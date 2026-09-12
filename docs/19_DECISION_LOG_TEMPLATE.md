@@ -84,7 +84,7 @@ The installed 6000.0.65f1 Editor resolves its bundled Unity Test Framework 1.6.0
 ## Decision: Multi-floor "Descent" run structure with an Extract/Descend checkpoint
 
 **Date:** 2026-09-12  
-**Status:** Proposed  
+**Status:** Accepted 2026-09-12 (applied to `03`, `05`, `10`, `15`)  
 **Owner:** Product / engineering
 
 ### Context

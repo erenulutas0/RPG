@@ -38,12 +38,23 @@ Priority:
   - hero_id
   - weapon_id
 - `room_start`
+  - floor_index
+  - room_index
 - `room_complete`
+  - floor_index
+  - room_index
+- `floor_complete`
+  - floor_index
+- `extract_choice`
+  - choice (extract / descend)
+  - floor_index
 - `boss_start`
 - `boss_end`
 - `run_end`
   - result
+  - cause (extracted / killed_by:<enemy_id>)
   - duration_sec
+  - floors_completed
   - rooms_completed
 
 ### Upgrade

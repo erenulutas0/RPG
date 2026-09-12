@@ -86,6 +86,8 @@ Possible future identity directions:
 
 Do not choose all of these at once. Prototype should validate #2 + #3 first.
 
+Originality note (2026-09-12): the reference game's identity is skeletons, catacombs and coins in an old-school Diablo style. Direction #1 and any "bones/crypt/coins" theming sit on top of it. Treat #1 as excluded unless a style board proves clear separation; see `24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md`.
+
 ## Player promise
 
 Within the first 3 minutes:

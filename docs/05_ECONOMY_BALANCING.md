@@ -51,10 +51,16 @@ Prototype:
 `HP_wave = base_hp * hp_growth^wave`
 `DMG_wave = base_dmg * dmg_growth^wave`
 
+With the accepted floor structure, `wave` is the floor index for the base curve; rooms inside a floor add a small linear step, and the floor modifier applies last. Elites and bosses use their own multipliers on top.
+
 Use different curves for:
 - normal enemies,
 - elites,
 - bosses.
+
+### At-risk rewards
+
+Rewards earned since the last floor checkpoint are at risk when the player chooses Descend. Start with **50%** lost on death and tune from playtests; keep the fraction in `EconomyConfig`, never in code.
 
 Boss difficulty should come partly from mechanics, not only HP inflation.
 
@@ -146,6 +152,14 @@ When added:
 - exclusions
 - tags
 - power estimate
+
+### Floors and modifiers
+- floor id
+- biome
+- scaling tier
+- modifier pool
+- boss id
+- modifier id, effects, power estimate
 
 ## Anti-patterns
 

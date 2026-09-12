@@ -105,18 +105,24 @@ Target ratio for interesting runs:
 
 ## Run structure
 
-Prototype option:
+Accepted 2026-09-12 (decision in `19_DECISION_LOG_TEMPLATE.md`, rationale in `24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md`): a run is a **descent through floors**, each floor built from the same six-room template.
 
-- 5 rooms/checkpoints
-- room 1–3 normal escalation
-- room 4 elite
-- room 5 boss
+```text
+Run
+ └─ Floor 1 … N          biome + one floor modifier + scaling tier
+     ├─ Room 1–3          normal encounters (1–3 waves)
+     ├─ Room 4            forge room: heal OR relic OR reroll
+     ├─ Room 5            elite encounter
+     └─ Room 6            floor boss → checkpoint
+```
 
-Alternative continuous model:
-- timed waves,
-- milestone bosses.
+- Floors reuse the template with a different biome palette, enemy pool weights, one data-defined floor modifier and geometric scaling (`05_ECONOMY_BALANCING.md`).
+- At every floor-boss checkpoint the player chooses **Extract** (bank all run rewards, end the run) or **Descend** (continue; a fraction of rewards earned since the last checkpoint is at risk on death).
+- Pacing targets: room 20–40 s, floor 3–4 min, first boss 4–6 min, early run 8–15 min over 2–3 floors.
 
-Recommendation: use **room/checkpoint structure** initially because:
+Alternative continuous model (timed waves, milestone bosses) stays a fallback if early clips show it markets better.
+
+Rooms were chosen over waves because of:
 - easier pacing,
 - clean reward screens,
 - easier analytics,
@@ -188,9 +194,11 @@ Bad for this product:
 
 Failure should:
 - end the run,
-- grant some progress,
-- clearly show why,
-- immediately offer another attempt.
+- grant some progress (banked checkpoint rewards are always kept; only the at-risk fraction since the last checkpoint is lost),
+- clearly show why (floor, room, killer, build),
+- immediately offer another attempt (one tap).
+
+Extract vs Descend at each checkpoint is the run's only risk decision; do not add a second one before testers ask for it.
 
 Never punish with long reloads.
 

@@ -29,11 +29,12 @@ Do NOT:
 - upgrade choice,
 - restart run.
 
-### Then
+### Then (order accepted 2026-09-12, see `24`)
 - 3 enemy archetypes,
-- 3 weapon behaviors,
-- room progression,
-- one boss.
+- floor 1: six-room template, one boss, result screen with cause of death,
+- floor 2: second modifier and scaling tier, Extract/Descend checkpoint,
+- the Forge meta layer with unlocks, two relics and local save,
+- 3 weapon behaviors.
 
 Exit:
 5–10 minutes playable.
