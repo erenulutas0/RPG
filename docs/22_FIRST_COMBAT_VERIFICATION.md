@@ -19,7 +19,8 @@ Completed USB-device test and APK details: [Android device validation](23_ANDROI
 5. Press **Play**. No click/tap is required. The blue Vanguard attacks the orange Grunt; the hero body and its sword/shield nudge upward; the Grunt flashes on hits.
 6. Watch the Grunt drop from 50 HP to zero in five 10-damage hits, spaced roughly 0.8 seconds apart. The first hit occurs on the first gameplay update, so the first visible HP may be 40. Expected time to death is about 3.2 seconds plus frame quantization.
 7. Confirm the Grunt shape disappears, the status reads **Grunt defeated**, enemy HP stays at zero, hero HP stays at 100, and **Hits landed: 5** stays unchanged for at least three seconds.
-8. Stop and press Play again. Confirm a fresh Grunt, fresh hero HP, and a new five-hit sequence. Keep default domain/scene reload enabled as saved in Editor settings. There is no in-game restart button in this slice.
+8. Confirm **XP: 0** during combat and **XP: 10** immediately after the fifth hit, and that XP stays at 10 afterwards.
+9. Stop and press Play again. Confirm a fresh Grunt, fresh hero HP, XP back at 0, and a new five-hit sequence. Keep default domain/scene reload enabled as saved in Editor settings. There is no in-game restart button in this slice.
 
 ## Data edits and edge cases
 
@@ -31,7 +32,8 @@ Perform data edits outside Play Mode; ScriptableObject Inspector edits during Pl
 - During Play Mode, move Grunt to X **20**; HP must stop falling. Return it to `(0, 1.2, 0)` and attacks resume if it is still alive.
 - Disable Grunt in the Hierarchy while alive, wait, then re-enable it. HP should remain unchanged while disabled and attacks should resume after re-enable.
 - Pause using the Editor pause button, then resume. Combat must freeze and continue without a backlog of burst attacks.
-- Check the three definition assets after running: their authored values remain unchanged by gameplay.
+- Select `Data/Economy/PrototypeEconomy.asset`: Experience Per Kill **10**. Change it to **25**, enter Play Mode, and expect **XP: 25** after the kill. Stop and restore **10**. Clearing the `Economy` field on Combat Setup must log `CombatSetup is missing required scene or definition references.`
+- Check the definition assets after running: their authored values remain unchanged by gameplay.
 
 ## Automated checks
 
@@ -46,8 +48,8 @@ The .NET test project targets .NET 9 and accepts SDK 9 or newer with the .NET 9 
 
 In Unity, open **Window → General → Test Runner**:
 
-1. Select **EditMode → Run All**: expect 26 passing cases covering damage validation, health clamping, duplicate/reentrant death, cadence, pause, missing/dead targets, independent weapon state, and the five-hit balance fixture.
-2. Select **PlayMode → Run All**: expect five passing tests covering the authored scene's full automatic kill, range/disable/reacquisition, destroyed targets, pause/resume, and dead-owner behavior.
+1. Select **EditMode → Run All**: expect 34 passing cases covering damage validation, health clamping, duplicate/reentrant death, cadence, pause, missing/dead targets, independent weapon state, the five-hit balance fixture, and kill-reward idempotency (repeated/re-entrant deaths, living/null victims, independent victims, invalid configuration).
+2. Select **PlayMode → Run All**: expect six passing tests covering the authored scene's full automatic kill with 10 XP, a single award under repeated lethal damage, range/disable/reacquisition, destroyed targets, pause/resume, and dead-owner behavior.
 3. Reopen Gameplay after tests; tests load/unload the scene for isolation.
 
 Optional Unity batch commands after installing the Editor (close any Editor using this project first). Batch mode requires an active Unity license: when the account session or Personal license has lapsed, Unity exits with code 198 and the log reads `No valid Unity Editor license found`; sign in again through Unity Hub before retrying. The Editor on this machine is installed at the path below, not under the default Hub location.
@@ -70,4 +72,4 @@ Create `TestResults` first if it does not exist. Do not add `-quit` to test comm
 
 ## Scope remaining
 
-The requested first slice ends at enemy death. Reward/XP, upgrade selection, additional enemies/weapons, escalating encounters, a boss, result screen, and in-game restart are deliberately still pending. The implementation plan assigns the next reward/choice slice to Day 3.
+The implemented slices end at enemy death with one XP award. Upgrade selection, additional enemies/weapons, escalating encounters, a boss, result screen, and in-game restart are deliberately still pending. The implementation plan assigns the next reward/choice slice to Day 3.

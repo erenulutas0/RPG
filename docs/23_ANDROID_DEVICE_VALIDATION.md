@@ -54,9 +54,24 @@ The APK and local test artifacts are intentionally ignored by Git. Unity-generat
 - Aligned Test Framework manifest with the Editor's effective built-in version **1.6.0** (NUnit **2.0.5**) and retained the generated lockfile.
 - Added `Scripts/Editor/AndroidPrototypeBuild.cs` with an Editor-only assembly: development APK from enabled scenes, portrait, ARM64/IL2CPP, explicit build-failure reporting.
 
-## Known environment issue (later on 2026-09-12)
+## License lapse and recovery (later on 2026-09-12)
 
-Batch-mode test runs attempted after the device validation exited with code 198 (`No valid Unity Editor license found`, `Access token is unavailable`). The static checks and the .NET `CombatChecks` suite still pass; the Unity test and build commands below need the Unity account session or Personal license renewed through Unity Hub first. The results above were produced before the license lapsed and were not re-run afterwards.
+Batch-mode runs exited with code 198 (`No valid Unity Editor license found`, `Access token is unavailable`). The account was restored with the Unity CLI: `E:/UnitySetup/unity.exe auth login` (browser sign-in by the user), then `unity license activate --personal --accept-eula` with the user's explicit consent to the Personal terms. `unity license status` now reports Unity Personal assigned. Run the Editor outside restricted sandboxes; it needs its AppData caches.
+
+## Kill → XP slice on device (2026-09-12)
+
+| Check | Result |
+|---|---|
+| Unity EditMode tests | 34 passed, 0 failed, 0 skipped |
+| Unity PlayMode tests | 6 passed, 0 failed, 0 skipped |
+| Static metadata/scene references | 53 GUIDs and 32 scene objects/components resolved |
+| Android build | Succeeded; APK 19,017,824 bytes, SHA-256 `A675F306D09761C46A7E318CA154D37F9CAC6FDFB739A10D56D74A1510E7F2B0` |
+| Install and cold launch | `Success`; activity launched in 748 ms |
+| Combat, 5.7 s after launch | Grunt 20/50 HP, **Hits landed: 3**, **XP: 0** (`android-xp-combat.png`) |
+| After death, 12.4 s | Grunt 0/50, **Grunt defeated**, **Hits landed: 5**, **XP: 10**, hero 100/100 (`android-xp-final.png`) |
+| App log | 465 app-process lines in `android-xp-logcat.txt`; no E/Unity, exception or fatal matches |
+
+The narrow grey shape at the right edge of the combat screenshot is the Samsung Edge panel handle, not game UI. This remains a short smoke test.
 
 ## Rebuild and launch
 
@@ -71,4 +86,4 @@ adb shell am start -W -n com.cryptforge.prototype/com.unity3d.player.UnityPlayer
 
 Select a specific device with `adb -s <serial>` if more than one is attached. The commands above assume exactly one authorized device. The existing first slice has no in-game restart button: fully close the app and reopen it to start a fresh fight, or use `adb shell am force-stop com.cryptforge.prototype` before launching it again.
 
-The requested first combat slice is now running on the phone. Rewards, upgrade choices, additional encounters and an in-game restart remain future slices.
+The first combat slice and the kill → XP slice are running on the phone. Upgrade choices, additional encounters, floors and an in-game restart remain future slices.

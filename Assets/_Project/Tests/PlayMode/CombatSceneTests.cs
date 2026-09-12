@@ -1,5 +1,6 @@
 using System.Collections;
 using Cryptforge.Combat;
+using Cryptforge.Core;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,7 @@ namespace Cryptforge.Tests
         private Health _enemy;
         private AttackController _attack;
         private Targeting _targeting;
+        private CombatSetup _setup;
 
         [UnitySetUp]
         public IEnumerator LoadGameplay()
@@ -23,6 +25,7 @@ namespace Cryptforge.Tests
             _enemy = GameObject.Find("Grunt").GetComponent<Health>();
             _attack = _hero.GetComponent<AttackController>();
             _targeting = _hero.GetComponent<Targeting>();
+            _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
         }
 
         [UnityTearDown]
@@ -40,6 +43,7 @@ namespace Cryptforge.Tests
         {
             int deaths = 0;
             _enemy.Died += () => deaths++;
+            Assert.That(_setup.Run.Experience, Is.Zero, "A fresh session starts with no experience.");
             float deadline = Time.realtimeSinceStartup + 8f;
             while (_enemy.IsAlive && Time.realtimeSinceStartup < deadline)
                 yield return null;
@@ -51,9 +55,29 @@ namespace Cryptforge.Tests
             Assert.That(_hero.Current, Is.EqualTo(100f));
             Assert.That(_enemy.GetComponentInChildren<SpriteRenderer>(true).enabled, Is.False);
             Assert.That(_targeting.Acquire(3f), Is.Null);
+            // PrototypeEconomy.asset configures 10 XP per kill, matching the five-hit balance fixture.
+            Assert.That(_setup.Run.Experience, Is.EqualTo(10));
             yield return new WaitForSeconds(1f);
             Assert.That(_attack.AttackCount, Is.EqualTo(5));
+            Assert.That(_setup.Run.Experience, Is.EqualTo(10));
             LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator ExperienceIsAwardedOnlyOnDeathAndNeverTwice()
+        {
+            int awards = 0;
+            _setup.Run.ExperienceChanged += () => awards++;
+            yield return new WaitForSeconds(1f);
+            Assert.That(_enemy.IsAlive, Is.True, "Two hits cannot kill a 50 HP Grunt.");
+            Assert.That(_setup.Run.Experience, Is.Zero);
+
+            _enemy.ApplyDamage(new DamageContext(1000f));
+            _enemy.ApplyDamage(new DamageContext(1000f));
+            yield return new WaitForSeconds(1f);
+            Assert.That(_enemy.IsAlive, Is.False);
+            Assert.That(_setup.Run.Experience, Is.EqualTo(10));
+            Assert.That(awards, Is.EqualTo(1));
         }
 
         [UnityTest]

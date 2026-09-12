@@ -61,7 +61,26 @@ Acceptance:
 - Combat does not modify any ScriptableObject. A fresh Play Mode session has fresh health and weapon state.
 - Both Unity test suites pass (26 EditMode and five PlayMode cases). The Android development APK also passed a short smoke test on Samsung SM-S911B; see `23_ANDROID_DEVICE_VALIDATION.md` for evidence and remaining profiling limits.
 
-## Day 3 — reward and upgrade slice (planned only)
+## Day 3 — reward and upgrade slice (kill → XP implemented; upgrades planned)
+
+### Implemented 2026-09-12: kill → XP once
+
+| Files | Change |
+|---|---|
+| `Scripts/Core/RunState.cs` | New. Plain C# run XP with `ExperienceChanged`; rejects negative amounts. Level, phase and upgrade state are not added yet. |
+| `Scripts/Economy/RewardService.cs` | New. `TryAwardKill(IDamageable)` rewards a dead victim once, tracked in a set, so repeated or re-entrant death callbacks cannot duplicate XP. |
+| `Scripts/Content/EconomyConfig.cs` | New. Only `_experiencePerKill`; the level threshold arrives with the upgrade slice. |
+| `Data/Economy/PrototypeEconomy.asset` | New. 10 XP per kill. |
+| `Scripts/Core/CombatSetup.cs` | Requires `EconomyConfig`, creates `RunState` and `RewardService`, awards on `Grunt.Died`, unsubscribes on destroy; exposes `Run`. |
+| `Scripts/UI/PrototypeHud.cs`, `Scripts/Content/PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | XP label from `prototype.experienceFormat`. The HUD listens to `ExperienceChanged`, because `Health.Changed` fires before `Died` and would refresh before the award. |
+| `Scenes/Gameplay/Gameplay.unity` | Two references: `CombatSetup._economy` and `PrototypeHud._setup`. |
+| `Tests/EditMode/RewardTests.cs`, `Tests/PlayMode/CombatSceneTests.cs`, `Tools/CombatChecks/CombatChecks.csproj` | Eight reward/run-state cases; the kill test asserts 10 XP; a new test applies lethal damage twice and expects one award. |
+
+Deliberate deviation from the table below: the tests live in `RewardTests.cs` rather than `RewardAndUpgradeTests.cs` until upgrade tests exist.
+
+Verified: Unity EditMode 34/34, PlayMode 6/6, `Verify-Project.ps1`, .NET CombatChecks 34/34, development APK on Samsung SM-S911B showing `XP: 0` during combat and `XP: 10` after the fifth hit (see `23`).
+
+### Remaining Day 3 plan
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.
 

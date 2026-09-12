@@ -536,6 +536,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _heroDefinition: {fileID: 11400000, guid: 10000000000000000000000000000002, type: 2}
   _enemyDefinition: {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+  _economy: {fileID: 11400000, guid: 10000000000000000000000000000005, type: 2}
   _hero: {fileID: 202}
   _enemy: {fileID: 302}
   _attack: {fileID: 204}
@@ -589,6 +590,7 @@ MonoBehaviour:
   _heroDefinition: {fileID: 11400000, guid: 10000000000000000000000000000002, type: 2}
   _enemyDefinition: {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
   _text: {fileID: 11400000, guid: 10000000000000000000000000000004, type: 2}
+  _setup: {fileID: 402}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

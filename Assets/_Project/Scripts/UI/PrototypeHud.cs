@@ -1,5 +1,6 @@
 using Cryptforge.Combat;
 using Cryptforge.Content;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -12,10 +13,12 @@ namespace Cryptforge.UI
         [SerializeField] private HeroDefinition _heroDefinition;
         [SerializeField] private EnemyDefinition _enemyDefinition;
         [SerializeField] private PrototypeTextDefinition _text;
+        [SerializeField] private CombatSetup _setup;
         private string _heroLabel;
         private string _enemyLabel;
         private string _weaponLabel;
         private string _attackLabel;
+        private string _experienceLabel;
         private GUIStyle _titleStyle;
         private GUIStyle _labelStyle;
         private GUIStyle _statusStyle;
@@ -23,8 +26,10 @@ namespace Cryptforge.UI
 
         private void Start()
         {
+            // Run state exists after CombatSetup.Awake, so Start is the earliest safe subscription point.
             if (_hero == null || _enemy == null || _attack == null || _heroDefinition == null ||
-                _enemyDefinition == null || _text == null || _heroDefinition.StartingWeapon == null)
+                _enemyDefinition == null || _text == null || _heroDefinition.StartingWeapon == null ||
+                _setup == null || _setup.Run == null)
             {
                 Debug.LogError("PrototypeHud is missing a scene or content reference.", this);
                 enabled = false;
@@ -46,6 +51,7 @@ namespace Cryptforge.UI
             _hero.Changed += RefreshLabels;
             _enemy.Changed += RefreshLabels;
             _attack.Attacked += RefreshLabels;
+            _setup.Run.ExperienceChanged += RefreshLabels;
             _subscribed = true;
             WeaponDefinition weapon = _heroDefinition.StartingWeapon;
             _weaponLabel = string.Format(_text.WeaponFormat, weapon.DisplayName, weapon.Damage, weapon.Interval);
@@ -57,6 +63,7 @@ namespace Cryptforge.UI
             _heroLabel = string.Format(_text.HealthFormat, _heroDefinition.DisplayName, _hero.Current, _hero.Maximum);
             _enemyLabel = string.Format(_text.HealthFormat, _enemyDefinition.DisplayName, _enemy.Current, _enemy.Maximum);
             _attackLabel = string.Format(_text.AttackCountFormat, _attack.AttackCount);
+            _experienceLabel = string.Format(_text.ExperienceFormat, _setup.Run.Experience);
         }
 
         private void OnGUI()
@@ -87,7 +94,9 @@ namespace Cryptforge.UI
             GUI.Label(new Rect(24f, height - 210f, width - 48f, 35f), _heroLabel, _labelStyle);
             DrawHealthBar(new Rect(24f, height - 170f, width - 48f, 10f), _hero, new Color(0.3f, 0.8f, 1f));
             GUI.Label(new Rect(24f, height - 142f, width - 48f, 70f), _enemy.IsAlive ? _text.Fighting : _text.Victory, _statusStyle);
-            GUI.Label(new Rect(24f, height - 65f, width - 48f, 35f), _attackLabel, _labelStyle);
+            float halfWidth = (width - 48f) * 0.5f;
+            GUI.Label(new Rect(24f, height - 65f, halfWidth, 35f), _attackLabel, _labelStyle);
+            GUI.Label(new Rect(24f + halfWidth, height - 65f, halfWidth, 35f), _experienceLabel, _labelStyle);
             GUI.matrix = previous;
         }
 
@@ -109,6 +118,7 @@ namespace Cryptforge.UI
             _hero.Changed -= RefreshLabels;
             _enemy.Changed -= RefreshLabels;
             _attack.Attacked -= RefreshLabels;
+            _setup.Run.ExperienceChanged -= RefreshLabels;
             _subscribed = false;
         }
     }

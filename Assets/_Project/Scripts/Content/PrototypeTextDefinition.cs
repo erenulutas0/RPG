@@ -14,6 +14,7 @@ namespace Cryptforge.Content
         [SerializeField] private string _healthFormat;
         [SerializeField] private string _weaponFormat;
         [SerializeField] private string _attackCountFormat;
+        [SerializeField] private string _experienceFormat;
 
         public string Title => _title;
         public string Subtitle => _subtitle;
@@ -22,5 +23,6 @@ namespace Cryptforge.Content
         public string HealthFormat => _healthFormat;
         public string WeaponFormat => _weaponFormat;
         public string AttackCountFormat => _attackCountFormat;
+        public string ExperienceFormat => _experienceFormat;
     }
 }

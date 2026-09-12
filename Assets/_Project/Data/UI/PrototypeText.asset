@@ -19,3 +19,4 @@ MonoBehaviour:
   _healthFormat: '{0}  |  {1:0} / {2:0} HP'
   _weaponFormat: '{0}  |  {1:0} damage every {2:0.0}s'
   _attackCountFormat: 'Hits landed: {0}'
+  _experienceFormat: 'XP: {0}'
