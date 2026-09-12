@@ -10,45 +10,46 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00000000000000000000000000000015, type: 3}
-  m_Name: Floor_EmberHalls
+  m_Name: Floor_QuicksilverVaults
   m_EditorClassIdentifier: 
-  _id: floor_ember_halls
-  _displayName: Ember Halls
+  _id: floor_quicksilver_vaults
+  _displayName: Quicksilver Vaults
   _rooms:
-  - _displayName: Ember Hall
+  - _displayName: Mercury Stair
     _kind: 0
     _waves:
     - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
     - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
     _forgeOptions: []
-  - _displayName: Cinder Walk
-    _kind: 0
-    _waves:
-    - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
-    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
-    _forgeOptions: []
-  - _displayName: Slag Gate
+  - _displayName: Cold Crucible
     _kind: 0
     _waves:
     - {fileID: 11400000, guid: 1000000000000000000000000000000a, type: 2}
+    - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
     _forgeOptions: []
-  - _displayName: The Forge
+  - _displayName: Vault Gate
+    _kind: 0
+    _waves:
+    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+    _forgeOptions: []
+  - _displayName: The Deep Forge
     _kind: 1
     _waves: []
     _forgeOptions:
     - {fileID: 11400000, guid: 1000000000000000000000000000000f, type: 2}
     - {fileID: 11400000, guid: 10000000000000000000000000000010, type: 2}
-  - _displayName: Captain's Post
+  - _displayName: Sentry Hall
     _kind: 2
     _waves:
     - {fileID: 11400000, guid: 10000000000000000000000000000011, type: 2}
     _forgeOptions: []
-  - _displayName: Warden's Crucible
+  - _displayName: Warden's Vault
     _kind: 3
     _waves:
     - {fileID: 11400000, guid: 10000000000000000000000000000012, type: 2}
     _forgeOptions: []
-  _enemyHealthMultiplier: 1
-  _enemyDamageMultiplier: 1
-  _modifier: {fileID: 0}
-  _nextFloor: {fileID: 11400000, guid: 10000000000000000000000000000015, type: 2}
+  _enemyHealthMultiplier: 1.4
+  _enemyDamageMultiplier: 1.25
+  _modifier: {fileID: 11400000, guid: 10000000000000000000000000000016, type: 2}
+  _nextFloor: {fileID: 0}

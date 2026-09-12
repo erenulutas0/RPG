@@ -13,11 +13,14 @@ namespace Cryptforge.Content
         [SerializeField] private WeaponDefinition _weapon;
         // Presentation and components; the prefab must carry Health, Targeting and AttackController.
         [SerializeField] private Health _prefab;
+        // Base gold before the floor modifier.
+        [SerializeField, Min(0)] private int _goldReward;
 
         public string Id => _id;
         public string DisplayName => _displayName;
         public float MaximumHealth => _maximumHealth;
         public WeaponDefinition Weapon => _weapon;
         public Health Prefab => _prefab;
+        public int GoldReward => _goldReward;
     }
 }

@@ -3,23 +3,28 @@ using System;
 namespace Cryptforge.Progression
 {
     // The single "is the player choosing?" source for pausing, encounter gating and the choice panel.
-    // Upgrade offers take precedence; the forge never opens while one is pending because progression waits for it.
+    // Priority is upgrade, then forge, then checkpoint: a level-up from the boss kill is resolved before the
+    // Extract/Descend decision, and progression never opens the forge while another choice is pending.
     public sealed class RunChoices
     {
         private readonly UpgradeService _upgrades;
         private readonly ForgeService _forge;
+        private readonly CheckpointService _checkpoint;
         private object _source;
 
         public ChoicePrompt Current { get; private set; }
         public bool IsOpen => Current != null;
         public event Action Changed;
 
-        public RunChoices(UpgradeService upgrades, ForgeService forge)
+        public RunChoices(UpgradeService upgrades, ForgeService forge, CheckpointService checkpoint = null)
         {
             _upgrades = upgrades ?? throw new ArgumentNullException(nameof(upgrades));
             _forge = forge ?? throw new ArgumentNullException(nameof(forge));
+            _checkpoint = checkpoint;
             _upgrades.OfferChanged += Refresh;
             _forge.OfferChanged += Refresh;
+            if (_checkpoint != null)
+                _checkpoint.OfferChanged += Refresh;
             Refresh();
         }
 
@@ -29,15 +34,18 @@ namespace Cryptforge.Progression
                 return false;
 
             // Capture the source first: a successful selection refreshes Current through OfferChanged.
-            object source = _source;
-            return source is UpgradeOffer upgrade
-                ? _upgrades.TrySelect(upgrade, slot)
-                : _forge.TrySelect((ForgeOffer)source, slot);
+            return _source switch
+            {
+                UpgradeOffer upgrade => _upgrades.TrySelect(upgrade, slot),
+                ForgeOffer forge => _forge.TrySelect(forge, slot),
+                CheckpointOffer checkpoint => _checkpoint.TrySelect(checkpoint, slot),
+                _ => false
+            };
         }
 
         private void Refresh()
         {
-            object source = (object)_upgrades.CurrentOffer ?? _forge.CurrentOffer;
+            object source = (object)_upgrades.CurrentOffer ?? (object)_forge.CurrentOffer ?? _checkpoint?.CurrentOffer;
             if (ReferenceEquals(source, _source))
                 return;
 
@@ -46,6 +54,7 @@ namespace Cryptforge.Progression
             {
                 UpgradeOffer upgrade => BuildUpgradePrompt(upgrade),
                 ForgeOffer forge => BuildForgePrompt(forge),
+                CheckpointOffer checkpoint => BuildCheckpointPrompt(checkpoint),
                 _ => null
             };
             Changed?.Invoke();
@@ -71,6 +80,14 @@ namespace Cryptforge.Progression
                 cards[i] = new ChoiceCard(option.DisplayName, string.Format(option.DescriptionFormat, option.DescriptionValue));
             }
             return new ChoicePrompt(ChoiceKind.Forge, cards);
+        }
+
+        private static ChoicePrompt BuildCheckpointPrompt(CheckpointOffer offer)
+        {
+            var cards = new ChoiceCard[offer.Choices.Count];
+            for (int i = 0; i < cards.Length; i++)
+                cards[i] = new ChoiceCard(offer.Choices[i].Name, offer.Choices[i].Description);
+            return new ChoicePrompt(ChoiceKind.Checkpoint, cards);
         }
     }
 }

@@ -7,12 +7,14 @@ using UnityEngine.SceneManagement;
 
 namespace Cryptforge.Core
 {
-    // Scene composition only. Combat and presentation own their own updates/events.
+    // Scene composition and run lifecycle: which services exist, and what ends or continues the run.
+    // Combat and presentation own their own updates/events.
     public sealed class CombatSetup : MonoBehaviour
     {
         [SerializeField] private HeroDefinition _heroDefinition;
         [SerializeField] private EconomyConfig _economy;
         [SerializeField] private UpgradeDefinition[] _upgrades;
+        [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Health _hero;
         [SerializeField] private AttackController _attack;
         [SerializeField] private EncounterController _encounters;
@@ -24,11 +26,12 @@ namespace Cryptforge.Core
         public WeaponRuntime Weapon { get; private set; }
         public UpgradeService Upgrades { get; private set; }
         public ForgeService Forge { get; private set; }
+        public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
 
         private void Awake()
         {
-            if (_heroDefinition == null || _economy == null || _hero == null || _attack == null ||
+            if (_heroDefinition == null || _economy == null || _text == null || _hero == null || _attack == null ||
                 _encounters == null || _heroDefinition.StartingWeapon == null || !HasUpgrades())
             {
                 Debug.LogError("CombatSetup is missing required scene or definition references.", this);
@@ -40,7 +43,7 @@ namespace Cryptforge.Core
             _hero.Initialize(_heroDefinition.MaximumHealth);
             Weapon = _heroDefinition.StartingWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
-            Run = new RunState(_economy.ExperiencePerLevel);
+            Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss);
             _rewards = new RewardService(Run, _economy.ExperiencePerKill);
 
             var options = new UpgradeOption[_upgrades.Length];
@@ -48,7 +51,9 @@ namespace Cryptforge.Core
                 options[i] = _upgrades[i].CreateOption();
             Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount);
             Forge = new ForgeService(Run, _hero);
-            Choices = new RunChoices(Upgrades, Forge);
+            Checkpoint = new CheckpointService(Run);
+            Checkpoint.Chosen += OnCheckpointChosen;
+            Choices = new RunChoices(Upgrades, Forge, Checkpoint);
             Choices.Changed += OnChoicesChanged;
             _hero.Died += OnHeroDied;
 
@@ -81,11 +86,40 @@ namespace Cryptforge.Core
             return true;
         }
 
-        private void OnEnemyDefeated(Health enemy) => _rewards.TryAwardKill(enemy);
+        private void OnEnemyDefeated(Health enemy) => _rewards.TryAwardKill(enemy, _encounters.CurrentGoldReward);
 
         private void OnHeroDied() => Run.End(RunOutcome.Defeat);
 
-        private void OnFloorCleared() => Run.End(RunOutcome.Victory);
+        // The final floor ends the Descent; every earlier floor offers Extract or Descend.
+        private void OnFloorCleared()
+        {
+            if (!_encounters.HasNextFloor)
+            {
+                Run.End(RunOutcome.Victory);
+                return;
+            }
+
+            FloorDefinition next = _encounters.Floor.NextFloor;
+            string modifier = next.Modifier != null ? next.Modifier.Description : _text.NoFloorModifier;
+            Checkpoint.Open(new[]
+            {
+                new CheckpointOption(CheckpointKind.Extract, _text.ExtractName, string.Format(_text.ExtractDescriptionFormat, Run.Gold)),
+                new CheckpointOption(CheckpointKind.Descend, _text.DescendName,
+                    string.Format(_text.DescendDescriptionFormat, Run.Gold, next.DisplayName, modifier))
+            });
+        }
+
+        private void OnCheckpointChosen(CheckpointKind kind)
+        {
+            if (kind == CheckpointKind.Extract)
+            {
+                Run.End(RunOutcome.Extracted);
+                return;
+            }
+
+            Run.SecureGold();
+            _encounters.DescendToNextFloor();
+        }
 
         // Scaled time freezes combat cadence while any choice is open; uGUI input runs on unscaled time.
         private void OnChoicesChanged()
@@ -107,6 +141,8 @@ namespace Cryptforge.Core
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
                 _encounters.FloorCleared -= OnFloorCleared;
             }
+            if (Checkpoint != null)
+                Checkpoint.Chosen -= OnCheckpointChosen;
             if (Choices != null)
                 Choices.Changed -= OnChoicesChanged;
             if (_pausedForChoice)

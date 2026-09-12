@@ -22,6 +22,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorStep.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorProgress.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
@@ -33,5 +34,6 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunEndTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EnemyArchetypeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FloorTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/DescentTests.cs" />
   </ItemGroup>
 </Project>

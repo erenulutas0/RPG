@@ -20,7 +20,7 @@ namespace Cryptforge.UI
         [SerializeField] private Text _enemyLabel;
         [SerializeField] private Text _heroLabel;
         [SerializeField] private Text _statusLabel;
-        [SerializeField] private Text _attackLabel;
+        [SerializeField] private Text _goldLabel;
         [SerializeField] private Text _experienceLabel;
         [SerializeField] private Image _enemyBar;
         [SerializeField] private Image _heroBar;
@@ -31,7 +31,7 @@ namespace Cryptforge.UI
         private void Start()
         {
             if (AnyMissing(_setup, _encounters, _hero, _heroDefinition, _text, _titleLabel, _floorLabel,
-                    _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _attackLabel, _experienceLabel, _enemyBar,
+                    _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _goldLabel, _experienceLabel, _enemyBar,
                     _heroBar, _experienceBar) ||
                 _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.Floor == null)
             {
@@ -45,11 +45,13 @@ namespace Cryptforge.UI
             _encounters.ProgressChanged += RefreshEncounter;
             _setup.Weapon.StatsChanged += RefreshWeapon;
             _setup.Run.ExperienceChanged += RefreshExperience;
+            _setup.Run.GoldChanged += RefreshGold;
             _subscribed = true;
             RefreshHero();
             RefreshEncounter();
             RefreshWeapon();
             RefreshExperience();
+            RefreshGold();
         }
 
         private void RefreshHero()
@@ -61,14 +63,13 @@ namespace Cryptforge.UI
         private void RefreshEncounter()
         {
             RoomDefinition room = _encounters.CurrentRoom;
-            _floorLabel.text = string.Format(_text.FloorProgressFormat, _encounters.Floor.DisplayName,
+            _floorLabel.text = string.Format(_text.FloorProgressFormat, _encounters.FloorNumber,
                 Mathf.Max(1, _encounters.RoomNumber), _encounters.RoomCount, room != null ? room.DisplayName : string.Empty);
 
             if (_encounters.IsInNonCombatRoom)
             {
                 _enemyLabel.text = room != null ? room.DisplayName : string.Empty;
                 _enemyBar.fillAmount = 0f;
-                _attackLabel.text = string.Empty;
                 _statusLabel.text = _text.ForgeStatus;
                 return;
             }
@@ -82,13 +83,17 @@ namespace Cryptforge.UI
             float maximum = enemy != null ? enemy.Maximum : definition.MaximumHealth;
             _enemyLabel.text = string.Format(_text.HealthFormat, definition.DisplayName, current, maximum);
             _enemyBar.fillAmount = Fraction(current, maximum);
-            _attackLabel.text = string.Format(_text.AttackCountFormat, _encounters.HitsTaken);
             if (_encounters.IsCleared)
                 _statusLabel.text = string.Format(_text.VictoryFormat, definition.DisplayName, _encounters.HitsTaken, _encounters.Elapsed);
             else if (_encounters.IsCurrentEnemyEnraged)
                 _statusLabel.text = string.Format(_text.EnragedFormat, definition.DisplayName);
             else
                 _statusLabel.text = string.Format(_text.WaveFormat, _encounters.WaveNumber, _encounters.WaveCount);
+        }
+
+        private void RefreshGold()
+        {
+            _goldLabel.text = string.Format(_text.GoldFormat, _setup.Run.Gold, _setup.Run.UnsecuredGold);
         }
 
         private void RefreshWeapon()
@@ -128,6 +133,7 @@ namespace Cryptforge.UI
                 _encounters.ProgressChanged -= RefreshEncounter;
             _setup.Weapon.StatsChanged -= RefreshWeapon;
             _setup.Run.ExperienceChanged -= RefreshExperience;
+            _setup.Run.GoldChanged -= RefreshGold;
         }
     }
 }

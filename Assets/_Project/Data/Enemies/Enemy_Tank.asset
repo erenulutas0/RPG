@@ -17,3 +17,4 @@ MonoBehaviour:
   _maximumHealth: 120
   _weapon: {fileID: 11400000, guid: 1000000000000000000000000000000c, type: 2}
   _prefab: {fileID: 1826359031350401551, guid: 36d45a0bb08664c4096540ac4d1a679d, type: 3}
+  _goldReward: 10

@@ -44,7 +44,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator FloorFollowsTheAuthoredRoomsAndEndsInVictory()
+        public IEnumerator FloorFollowsTheAuthoredRoomsToTheCheckpointAndExtractBanksTheGold()
         {
             var seen = new List<string>();
             float deadline = Time.realtimeSinceStartup + 40f;
@@ -76,14 +76,37 @@ namespace Cryptforge.Tests
             }));
             yield return null;
 
-            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory));
+            // The boss level-up comes first; the Extract/Descend decision waits behind it.
+            ChoosePendingUpgrades();
+            ChoicePrompt checkpoint = _setup.Choices.Current;
+            Assert.That(_setup.Run.HasEnded, Is.False, "Floor 1 is not the end of the Descent.");
             Assert.That(_encounters.RoomsCleared, Is.EqualTo(6));
-            Assert.That(_setup.Choices.IsOpen, Is.False, "The level-up from the final kill is withdrawn by the victory.");
+            Assert.That(checkpoint, Is.Not.Null);
+            Assert.That(checkpoint.Kind, Is.EqualTo(ChoiceKind.Checkpoint));
+            Assert.That(Time.timeScale, Is.Zero, "The checkpoint pauses the run.");
+            Assert.That(Label("Choice Title"), Is.EqualTo("Checkpoint: extract or descend?"));
+            Assert.That(checkpoint.Cards[0].Name, Is.EqualTo("Extract"));
+            Assert.That(checkpoint.Cards[0].Description, Is.EqualTo("Bank all 96 gold and end the run"));
+            Assert.That(checkpoint.Cards[1].Name, Is.EqualTo("Descend"));
+            Assert.That(checkpoint.Cards[1].Description, Is.EqualTo("Secure 96 gold. Quicksilver Vaults: +20% enemy damage, +50% gold"));
+            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 96  (96 at risk)"));
+            Assert.That(_result.IsOpen, Is.False);
+
+            Assert.That(_setup.Choices.TrySelect(checkpoint, 0), Is.True);
+            Assert.That(_setup.Choices.TrySelect(checkpoint, 1), Is.False, "The checkpoint decision is taken once.");
+            yield return null;
+
+            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Extracted));
+            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(96));
+            Assert.That(_setup.Run.GoldLost, Is.Zero);
+            Assert.That(_encounters.FloorNumber, Is.EqualTo(1));
+            Assert.That(_setup.Choices.IsOpen, Is.False);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(_result.IsOpen, Is.True);
-            Assert.That(Label("Result Title"), Is.EqualTo("Floor cleared"));
-            Assert.That(Label("Cause Label"), Does.Contain("Forge Warden").And.Contain("Ember Halls"));
-            Assert.That(Label("Progress Label"), Does.Contain("6/6"));
+            Assert.That(Label("Result Title"), Is.EqualTo("Extracted"));
+            Assert.That(Label("Cause Label"), Does.Contain("escaped").And.Contain("Ember Halls"));
+            Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("6 rooms"));
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 96"));
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -127,7 +150,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator WardenEnragesAtHalfHealthThenFallsForTheVictory()
+        public IEnumerator WardenEnragesAtHalfHealthThenItsFallOpensTheCheckpoint()
         {
             yield return AdvanceToRoom(6);
             Health warden = _encounters.CurrentEnemy;
@@ -145,8 +168,10 @@ namespace Cryptforge.Tests
 
             warden.ApplyDamage(new DamageContext(Lethal));
             yield return null;
-            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory));
-            Assert.That(_result.IsOpen, Is.True);
+            Assert.That(_setup.Run.HasEnded, Is.False);
+            ChoosePendingUpgrades();
+            Assert.That(_setup.Choices.Current.Kind, Is.EqualTo(ChoiceKind.Checkpoint));
+            Assert.That(_result.IsOpen, Is.False);
         }
 
         private IEnumerator AdvanceToRoom(int roomNumber)

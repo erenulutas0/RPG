@@ -81,6 +81,7 @@ namespace Cryptforge.Tests
             Assert.That(_enemy.IsAlive, Is.False);
             Assert.That(_setup.Run.Experience, Is.EqualTo(10));
             Assert.That(awards, Is.EqualTo(1));
+            Assert.That(_setup.Run.Gold, Is.EqualTo(5), "Enemy_Grunt.asset pays 5 gold, once.");
         }
 
         [UnityTest]

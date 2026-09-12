@@ -5,8 +5,8 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Economy
 {
-    // Awards the configured kill reward once per victim. Death callbacks can repeat or re-enter,
-    // so the rewarded set is the guarantee rather than caller discipline.
+    // Awards the configured kill experience, plus the enemy's gold, once per victim. Death callbacks can repeat or
+    // re-enter, so the rewarded set is the guarantee rather than caller discipline.
     public sealed class RewardService
     {
         private readonly RunState _run;
@@ -22,12 +22,17 @@ namespace Cryptforge.Economy
             _experiencePerKill = experiencePerKill;
         }
 
-        public bool TryAwardKill(IDamageable victim)
+        public bool TryAwardKill(IDamageable victim) => TryAwardKill(victim, 0);
+
+        public bool TryAwardKill(IDamageable victim, int gold)
         {
+            if (gold < 0)
+                throw new ArgumentOutOfRangeException(nameof(gold));
             if (victim == null || victim.IsAlive || !_rewarded.Add(victim))
                 return false;
 
             _run.AddExperience(_experiencePerKill);
+            _run.AddGold(gold);
             return true;
         }
     }

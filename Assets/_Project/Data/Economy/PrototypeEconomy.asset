@@ -15,3 +15,4 @@ MonoBehaviour:
   _experiencePerKill: 10
   _experiencePerLevel: 10
   _upgradeChoiceCount: 2
+  _atRiskGoldLoss: 0.5

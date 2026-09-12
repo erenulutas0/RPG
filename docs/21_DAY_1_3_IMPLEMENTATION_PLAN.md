@@ -208,6 +208,48 @@ Mend is the safer pick when hurt, Temper when healthy; the Warden threatens ever
 
 Verified: Unity EditMode 89/89, PlayMode 21/21, `Verify-Project.ps1`, .NET CombatChecks 89/89, development APK on Samsung SM-S911B: a full floor cleared in 46 s with 42 HP left (see `23`).
 
+### Implemented 2026-09-13: gold, the Extract/Descend checkpoint and Descent floor 2 (Quicksilver Vaults)
+
+Clearing Ember Halls no longer ends the run. After the Warden's level-up the panel asks **Checkpoint: extract or descend?**
+
+- **Extract** banks all gold and ends the run as **Extracted**.
+- **Descend** secures the gold earned so far and, after the one-second advance delay, starts floor 2 with the hero's current health: no heal.
+- A death banks the secured gold plus half of the gold earned since the last checkpoint, rounded down (`PrototypeEconomy.asset` At Risk Gold Loss 0.5). Extract and the final victory bank everything. Gold is shown and settled but not yet spent or saved; that is the Forge meta slice.
+
+Gold per kill: Grunt 5, Runner 3, Tank 10, Grunt Captain 20, Forge Warden 50. Ember Halls pays 96. Floor 2 applies its tier (enemy health ×1.4, enemy damage ×1.25) and then the **Cursed Gold** modifier (+20% enemy damage, +50% gold, rounded away from zero), so it pays 154 and a full Descent 250.
+
+| Room | Kind | Floor 2 content |
+|---|---|---|
+| 1 Mercury Stair | Combat | Grunt (70 HP, 9 damage / 1 s, 8 gold), Runner (42 HP, 3 damage / 0.4 s, 5 gold) |
+| 2 Cold Crucible | Combat | Tank (168 HP, 18 damage / 2.5 s after 1.5 s, 15 gold), Runner |
+| 3 Vault Gate | Combat | Grunt, Grunt |
+| 4 The Deep Forge | Forge | Mend or Temper |
+| 5 Sentry Hall | Elite | Grunt Captain (196 HP, 13.5 damage / 1.2 s after 0.6 s, 30 gold) |
+| 6 Warden's Vault | Boss | Forge Warden (420 HP, 15 damage / 1.8 s after 1 s, enrages at 50%, 75 gold) |
+
+| Files | Change |
+|---|---|
+| `Scripts/Core/RunState.cs`, `RunOutcome.cs` | Gold, secured gold and settlement on `End`: `GoldBanked`, `GoldLost`; new outcome `Extracted`; the loss fraction is validated to 0–1 and an ended run earns nothing more. |
+| `Scripts/Economy/RewardService.cs` | `TryAwardKill(victim, gold)` pays experience and gold once per victim. |
+| `Scripts/Combat/FloorScaling.cs` | New, plain C#: health = base × tier × (1 + modifier); damage bonus = tier × (1 + modifier) − 1, applied as a percent modifier on the enemy's runtime weapon; gold rounds away from zero. |
+| `Scripts/Progression/CheckpointKind.cs`, `CheckpointOption.cs`, `CheckpointOffer.cs`, `CheckpointService.cs`, `RunChoices.cs`, `ChoiceKind.cs` | New checkpoint decision with the same stale and re-entrant guards, withdrawn when the run ends. `RunChoices` priority is upgrade, forge, then checkpoint, so the boss level-up comes first. |
+| `Scripts/Content/FloorDefinition.cs`, `FloorModifierDefinition.cs`, `EnemyDefinition.cs`, `EconomyConfig.cs`; `Data/Floors/Floor_QuicksilverVaults.asset`, `Modifier_CursedGold.asset`; enemy, floor 1 and economy assets | Floors link through Next Floor with a scaling tier and an optional modifier; enemies author Gold Reward. |
+| `Scripts/Combat/EncounterController.cs` | Validates the whole floor chain at startup (rejects cycles), scales every spawn, tracks the floor number and total rooms, and `DescendToNextFloor()` starts the next floor after the advance delay. |
+| `Scripts/Core/CombatSetup.cs` | Floor cleared → checkpoint when a next floor exists, otherwise Victory. Extract → Extracted; Descend → secure gold, then descend. |
+| `Scripts/UI/RunHud.cs`, `RunResultView.cs`, `RunChoiceView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset`, `Scenes/Gameplay/Gameplay.unity` | HUD: `Floor n \| Room n/6 \| room`, and a gold **Gold n (n at risk)** label replaces the attack counter. Result: Descent complete, Extracted or Defeated; `Floor n \| rooms \| Level \| XP`; a gold line with any loss. The scene was wired by a temporary builder, deleted afterwards. |
+| Tests | EditMode `DescentTests` (11 cases), including a two-floor simulation through the real run, reward, upgrade, forge, choice and scaling code. PlayMode `DescentFlowTests` (3): descending with secured gold and scaled enemies, death on floor 2 losing half the unsecured gold, and both floors to Descent complete with 250 gold. `FloorFlowTests` now ends floor 1 at the checkpoint and extracts; `RunResultTests` and `CombatSceneTests` check the gold. |
+
+Balance chosen with the Descent simulation (first upgrade card every time, Mend at floor 2's forge, always descending):
+
+| Floor 1 forge | Damage first | Speed first |
+|---|---|---|
+| Mend | 38 HP after floor 1; clears floor 2 with 17 HP | 34 HP; clears floor 2 with 13 HP |
+| Temper | 17 HP; dies in Vault Gate, floor 2 room 3 | 4 HP; dies in Mercury Stair, floor 2 room 1 |
+
+Descending is a real bet: a healthy hero makes it, a hero who tempered on floor 1 should extract. Rejected alternatives in the same simulation: a 30% heal on descend let every path survive; health ×1.6 with the same ×1.5 damage killed the speed-first Mend path and left damage-first Mend at 2 HP.
+
+Verified: Unity EditMode 100/100, PlayMode 24/24, `Verify-Project.ps1`, .NET CombatChecks 100/100, development APK built only after both reports passed (SHA-256 `567C672B40F18698A305AF57B0BE91639E85FA777C2DDCEAE038D6975862487D`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

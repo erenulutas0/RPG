@@ -20,6 +20,7 @@ namespace Cryptforge.UI
         [SerializeField] private Text _titleLabel;
         [SerializeField] private Text _causeLabel;
         [SerializeField] private Text _progressLabel;
+        [SerializeField] private Text _goldLabel;
         [SerializeField] private Text _buildLabel;
         [SerializeField] private Text _restartLabel;
         [SerializeField] private Button _restartButton;
@@ -36,7 +37,7 @@ namespace Cryptforge.UI
         {
             if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _encounters == null || _encounters.Floor == null ||
                 _heroDefinition == null || _text == null || _panel == null || _titleLabel == null ||
-                _causeLabel == null || _progressLabel == null || _buildLabel == null || _restartLabel == null ||
+                _causeLabel == null || _progressLabel == null || _goldLabel == null || _buildLabel == null || _restartLabel == null ||
                 _restartButton == null)
             {
                 Debug.LogError("RunResultView is missing a scene or content reference.", this);
@@ -56,16 +57,34 @@ namespace Cryptforge.UI
         private void Show()
         {
             RunState run = _setup.Run;
-            bool victory = run.Outcome == RunOutcome.Victory;
+            string hero = _heroDefinition.DisplayName;
             string enemyName = _encounters.CurrentDefinition != null ? _encounters.CurrentDefinition.DisplayName : string.Empty;
             string roomName = _encounters.CurrentRoom != null ? _encounters.CurrentRoom.DisplayName : string.Empty;
-            _titleLabel.text = victory ? _text.ResultVictoryTitle : _text.ResultDefeatTitle;
-            _titleLabel.color = victory ? _victoryColor : _defeatColor;
-            _causeLabel.text = victory
-                ? string.Format(_text.ResultVictoryCauseFormat, _heroDefinition.DisplayName, enemyName, _encounters.Floor.DisplayName)
-                : string.Format(_text.ResultDefeatCauseFormat, _heroDefinition.DisplayName, enemyName, roomName);
-            _progressLabel.text = string.Format(_text.ResultProgressFormat, _encounters.RoomsCleared, _encounters.RoomCount,
+            string floorName = _encounters.Floor.DisplayName;
+            switch (run.Outcome)
+            {
+                case RunOutcome.Victory:
+                    _titleLabel.text = _text.ResultVictoryTitle;
+                    _titleLabel.color = _victoryColor;
+                    _causeLabel.text = string.Format(_text.ResultVictoryCauseFormat, hero, enemyName, floorName);
+                    break;
+                case RunOutcome.Extracted:
+                    _titleLabel.text = _text.ResultExtractedTitle;
+                    _titleLabel.color = _victoryColor;
+                    _causeLabel.text = string.Format(_text.ResultExtractedCauseFormat, hero, floorName);
+                    break;
+                default:
+                    _titleLabel.text = _text.ResultDefeatTitle;
+                    _titleLabel.color = _defeatColor;
+                    _causeLabel.text = string.Format(_text.ResultDefeatCauseFormat, hero, enemyName, roomName);
+                    break;
+            }
+
+            _progressLabel.text = string.Format(_text.ResultProgressFormat, _encounters.FloorNumber, _encounters.TotalRoomsCleared,
                 run.Level, run.Experience);
+            _goldLabel.text = run.GoldLost > 0
+                ? string.Format(_text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
+                : string.Format(_text.ResultGoldFormat, run.GoldBanked);
             _buildLabel.text = string.Format(_text.ResultBuildFormat, DescribeBuild());
 
             _panel.SetActive(true);

@@ -6,6 +6,7 @@ namespace Cryptforge.Core
     public sealed class RunState
     {
         private readonly int _experiencePerLevel;
+        private readonly float _atRiskGoldLoss;
 
         public int Experience { get; private set; }
         public int Level { get; private set; }
@@ -17,18 +18,50 @@ namespace Cryptforge.Core
         public RunOutcome Outcome { get; private set; }
         public bool HasEnded => Outcome != RunOutcome.None;
 
+        // Gold earned since the last floor checkpoint is unsecured; a defeat loses a fraction of it.
+        public int Gold { get; private set; }
+        public int SecuredGold { get; private set; }
+        public int UnsecuredGold => Gold - SecuredGold;
+        public int GoldBanked { get; private set; }
+        public int GoldLost { get; private set; }
+
         public event Action ExperienceChanged;
         public event Action LevelChanged;
         public event Action PendingUpgradesChanged;
+        public event Action GoldChanged;
         public event Action Ended;
 
         // Linear thresholds; the floor structure currently paces choices at one per kill.
-        public RunState(int experiencePerLevel)
+        public RunState(int experiencePerLevel, float atRiskGoldLoss = 0.5f)
         {
             if (experiencePerLevel < 1)
                 throw new ArgumentOutOfRangeException(nameof(experiencePerLevel));
+            if (float.IsNaN(atRiskGoldLoss) || atRiskGoldLoss < 0f || atRiskGoldLoss > 1f)
+                throw new ArgumentOutOfRangeException(nameof(atRiskGoldLoss));
 
             _experiencePerLevel = experiencePerLevel;
+            _atRiskGoldLoss = atRiskGoldLoss;
+        }
+
+        public void AddGold(int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount == 0 || HasEnded)
+                return;
+
+            Gold += amount;
+            GoldChanged?.Invoke();
+        }
+
+        // Called when the player descends past a checkpoint: everything earned so far becomes safe.
+        public void SecureGold()
+        {
+            if (HasEnded || UnsecuredGold == 0)
+                return;
+
+            SecuredGold = Gold;
+            GoldChanged?.Invoke();
         }
 
         public void AddExperience(int amount)
@@ -77,6 +110,9 @@ namespace Cryptforge.Core
             if (HasEnded)
                 return;
 
+            // Rounded down so a defeat never loses more than the configured fraction.
+            GoldLost = outcome == RunOutcome.Defeat ? (int)Math.Floor(UnsecuredGold * (double)_atRiskGoldLoss) : 0;
+            GoldBanked = Gold - GoldLost;
             Outcome = outcome;
             Ended?.Invoke();
         }

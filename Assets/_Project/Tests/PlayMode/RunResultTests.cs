@@ -71,7 +71,8 @@ namespace Cryptforge.Tests
             Assert.That(_result.IsOpen, Is.True);
             Assert.That(Label("Result Title"), Is.EqualTo("Defeated"));
             Assert.That(Label("Cause Label"), Does.Contain("Grunt").And.Contain("Ember Hall"));
-            Assert.That(Label("Progress Label"), Does.Contain("0/6"));
+            Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("0 rooms"));
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 0"));
             Assert.That(Label("Build Label"), Does.Contain("no upgrades"));
 
             int gruntHits = gruntAttack.AttackCount;
@@ -108,7 +109,9 @@ namespace Cryptforge.Tests
 
             Assert.That(_result.IsOpen, Is.True);
             Assert.That(Label("Cause Label"), Does.Contain("Runner").And.Contain("Ember Hall"));
-            Assert.That(Label("Progress Label"), Does.Contain("0/6").And.Contain("Level 1").And.Contain("XP 10"));
+            Assert.That(Label("Progress Label"), Does.Contain("0 rooms").And.Contain("Level 1").And.Contain("XP 10"));
+            // The Grunt's 5 gold was never secured: half, rounded down, is lost.
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 3  |  lost: 2"));
             Assert.That(Label("Build Label"), Does.Contain("Tempered Edge x1"));
         }
 

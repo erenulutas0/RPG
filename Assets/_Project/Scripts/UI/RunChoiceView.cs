@@ -71,7 +71,12 @@ namespace Cryptforge.UI
             if (prompt == null)
                 return;
 
-            _titleLabel.text = prompt.Kind == ChoiceKind.Forge ? _text.ForgeChoiceTitle : _text.UpgradeChoiceTitle;
+            _titleLabel.text = prompt.Kind switch
+            {
+                ChoiceKind.Forge => _text.ForgeChoiceTitle,
+                ChoiceKind.Checkpoint => _text.CheckpointChoiceTitle,
+                _ => _text.UpgradeChoiceTitle
+            };
             _inputEnabledAt = Time.unscaledTime + _inputDelay;
             for (int i = 0; i < _buttons.Length; i++)
             {
