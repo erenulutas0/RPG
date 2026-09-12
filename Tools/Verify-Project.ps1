@@ -1,4 +1,7 @@
-param()
+param(
+    # Built-in packages such as com.unity.ugui live in the Editor install until Unity copies them to Library/PackageCache.
+    [string]$EditorPath = $(if ($env:UNITY_EDITOR_PATH) { $env:UNITY_EDITOR_PATH } else { 'E:/Unity/Editors/6000.0.65f1/Editor' })
+)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -28,17 +31,38 @@ foreach ($folder in Get-ChildItem -LiteralPath $assetsRoot -Recurse -Directory) 
     }
 }
 
-foreach ($serializedFile in $assetFiles | Where-Object Extension -In '.unity', '.asset') {
+# GUIDs of scripts shipped in the manifest's packages (for example uGUI components referenced by the scene).
+$manifest = Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'Packages/manifest.json') | ConvertFrom-Json
+$packageGuids = @{}
+$packageRoots = @()
+foreach ($packageName in $manifest.dependencies.PSObject.Properties.Name) {
+    $cached = Get-ChildItem -LiteralPath (Join-Path $projectRoot 'Library/PackageCache') -Directory -Filter "$packageName@*" -ErrorAction SilentlyContinue
+    if ($cached) { $packageRoots += $cached.FullName; continue }
+    $builtIn = Join-Path $EditorPath "Data/Resources/PackageManager/BuiltInPackages/$packageName"
+    if (Test-Path -LiteralPath $builtIn) { $packageRoots += $builtIn }
+}
+foreach ($packageRoot in $packageRoots) {
+    foreach ($packageMeta in Get-ChildItem -LiteralPath $packageRoot -Recurse -File -Filter '*.meta') {
+        $guidMatch = [regex]::Match((Get-Content -Raw -LiteralPath $packageMeta.FullName), '(?m)^guid: ([0-9a-f]{32})\r?$')
+        if ($guidMatch.Success) { $packageGuids[$guidMatch.Groups[1].Value] = $true }
+    }
+}
+
+# Unity's built-in default and extra resources (materials, legacy font).
+$builtInResourceGuids = @('0000000000000000f000000000000000', '0000000000000000e000000000000000')
+
+foreach ($serializedFile in $assetFiles | Where-Object Extension -In '.unity', '.asset', '.prefab') {
     $serializedText = Get-Content -Raw -LiteralPath $serializedFile.FullName
     foreach ($reference in [regex]::Matches($serializedText, 'guid: ([0-9a-f]{32})')) {
         $assetGuid = $reference.Groups[1].Value
-        if ($assetGuid -eq '0000000000000000f000000000000000') { continue }
-        if (!$guidPaths.ContainsKey($assetGuid)) { throw "Unresolved GUID $assetGuid in $($serializedFile.FullName)" }
+        if ($builtInResourceGuids -contains $assetGuid -or $guidPaths.ContainsKey($assetGuid) -or $packageGuids.ContainsKey($assetGuid)) { continue }
+        throw "Unresolved GUID $assetGuid in $($serializedFile.FullName). If it belongs to a package, pass -EditorPath or open the project in Unity once."
     }
 
     foreach ($component in [regex]::Split($serializedText, '(?m)^--- !u!')) {
         $scriptMatch = [regex]::Match($component, 'm_Script: \{fileID: 11500000, guid: ([0-9a-f]{32}), type: 3\}')
-        if (!$scriptMatch.Success) { continue }
+        # Field names are only checked for project scripts; package components are validated by Unity import.
+        if (!$scriptMatch.Success -or !$guidPaths.ContainsKey($scriptMatch.Groups[1].Value)) { continue }
         $sourceText = Get-Content -Raw -LiteralPath $guidPaths[$scriptMatch.Groups[1].Value]
         foreach ($field in [regex]::Matches($component, '(?m)^  (_\w+):')) {
             if ($sourceText -notmatch ('\b' + [regex]::Escape($field.Groups[1].Value) + '\b')) {
@@ -64,10 +88,9 @@ foreach ($reference in [regex]::Matches($sceneText, '\{fileID: (\d+)\}')) {
 foreach ($assemblyFile in $assetFiles | Where-Object Extension -EQ '.asmdef') {
     $null = Get-Content -Raw -LiteralPath $assemblyFile.FullName | ConvertFrom-Json
 }
-$null = Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'Packages/manifest.json') | ConvertFrom-Json
 $buildSettings = Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'ProjectSettings/EditorBuildSettings.asset')
 $sceneGuid = [regex]::Match((Get-Content -Raw -LiteralPath ($scenePath + '.meta')), 'guid: ([0-9a-f]{32})').Groups[1].Value
 if ($buildSettings -notmatch $sceneGuid) { throw 'Gameplay scene is missing from build settings.' }
 
-Write-Output "PASS: $($guidPaths.Count) unique asset/folder GUIDs, $($sceneIds.Count) scene objects/components, resolved references and valid JSON."
+Write-Output "PASS: $($guidPaths.Count) unique asset/folder GUIDs, $($packageGuids.Count) package GUIDs indexed, $($sceneIds.Count) scene objects/components, resolved references and valid JSON."
 Write-Output 'This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor.'

@@ -17,6 +17,7 @@ MonoBehaviour:
   _fighting: Combat is automatic
   _victory: Grunt defeated
   _healthFormat: '{0}  |  {1:0} / {2:0} HP'
-  _weaponFormat: '{0}  |  {1:0} damage every {2:0.0}s'
+  _weaponFormat: '{0}  |  {1:0} damage every {2:0.00}s'
   _attackCountFormat: 'Hits landed: {0}'
-  _experienceFormat: 'XP: {0}'
+  _experienceFormat: 'Level {0}  |  XP {1} / {2}'
+  _upgradeChoiceTitle: Level up! Choose one upgrade

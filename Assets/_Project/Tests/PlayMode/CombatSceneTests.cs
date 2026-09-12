@@ -57,7 +57,8 @@ namespace Cryptforge.Tests
             Assert.That(_targeting.Acquire(3f), Is.Null);
             // PrototypeEconomy.asset configures 10 XP per kill, matching the five-hit balance fixture.
             Assert.That(_setup.Run.Experience, Is.EqualTo(10));
-            yield return new WaitForSeconds(1f);
+            // The kill opens an upgrade choice that pauses scaled time, so wait in real time.
+            yield return new WaitForSecondsRealtime(1f);
             Assert.That(_attack.AttackCount, Is.EqualTo(5));
             Assert.That(_setup.Run.Experience, Is.EqualTo(10));
             LogAssert.NoUnexpectedReceived();
@@ -74,7 +75,7 @@ namespace Cryptforge.Tests
 
             _enemy.ApplyDamage(new DamageContext(1000f));
             _enemy.ApplyDamage(new DamageContext(1000f));
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSecondsRealtime(1f);
             Assert.That(_enemy.IsAlive, Is.False);
             Assert.That(_setup.Run.Experience, Is.EqualTo(10));
             Assert.That(awards, Is.EqualTo(1));

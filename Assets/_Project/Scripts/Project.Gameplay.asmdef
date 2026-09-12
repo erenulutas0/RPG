@@ -1,6 +1,6 @@
 {
   "name": "Project.Gameplay",
   "rootNamespace": "Cryptforge",
-  "references": [],
+  "references": ["UnityEngine.UI"],
   "autoReferenced": true
 }

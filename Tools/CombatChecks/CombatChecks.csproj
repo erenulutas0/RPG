@@ -17,7 +17,9 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponRuntime.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CombatStateTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
   </ItemGroup>
 </Project>

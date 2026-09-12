@@ -8,10 +8,13 @@ namespace Cryptforge.Tests
 {
     public sealed class RewardTests
     {
+        // High threshold keeps these reward cases independent of levelling.
+        private const int ExperiencePerLevel = 1000;
+
         [Test]
         public void KillAwardsConfiguredExperienceExactlyOnce()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             var rewards = new RewardService(run, 10);
             var victim = new HealthState(50f);
             int changes = 0;
@@ -27,7 +30,7 @@ namespace Cryptforge.Tests
         [Test]
         public void LivingAndNullVictimsAreNotRewarded()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             var rewards = new RewardService(run, 10);
             var victim = new HealthState(50f);
 
@@ -41,7 +44,7 @@ namespace Cryptforge.Tests
         [Test]
         public void RepeatedAndReentrantDeathEventsAwardOnce()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             var rewards = new RewardService(run, 10);
             var victim = new HealthState(50f);
             victim.Died += () =>
@@ -60,7 +63,7 @@ namespace Cryptforge.Tests
         [Test]
         public void EachVictimIsRewardedIndependently()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             var rewards = new RewardService(run, 10);
             var first = new HealthState(50f);
             var second = new HealthState(50f);
@@ -76,7 +79,7 @@ namespace Cryptforge.Tests
         [Test]
         public void ZeroRewardMarksVictimWithoutChangingExperience()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             var rewards = new RewardService(run, 0);
             var victim = new HealthState(50f);
             int changes = 0;
@@ -93,13 +96,13 @@ namespace Cryptforge.Tests
         public void InvalidRewardConfigurationIsRejected()
         {
             Assert.Throws<ArgumentNullException>(() => new RewardService(null, 10));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new RewardService(new RunState(), -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new RewardService(new RunState(ExperiencePerLevel), -1));
         }
 
         [Test]
         public void RunStateAccumulatesAndRejectsNegativeExperience()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             int changes = 0;
             run.ExperienceChanged += () => changes++;
 
@@ -115,7 +118,7 @@ namespace Cryptforge.Tests
         [Test]
         public void PrototypeBalanceAwardsTenExperienceForOneGrunt()
         {
-            var run = new RunState();
+            var run = new RunState(ExperiencePerLevel);
             var rewards = new RewardService(run, 10);
             var weapon = new WeaponRuntime(10f, 0.8f, 3f);
             var target = new HealthState(50f);

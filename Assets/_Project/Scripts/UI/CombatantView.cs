@@ -59,7 +59,8 @@ namespace Cryptforge.UI
             if (_feedbackRemaining <= 0f)
                 return;
 
-            _feedbackRemaining -= Time.deltaTime;
+            // Unscaled so a hit flash or nudge still settles while an upgrade choice pauses combat.
+            _feedbackRemaining -= Time.unscaledDeltaTime;
             if (_feedbackRemaining <= 0f)
                 ResetFeedback();
         }

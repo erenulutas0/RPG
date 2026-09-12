@@ -73,6 +73,22 @@ Batch-mode runs exited with code 198 (`No valid Unity Editor license found`, `Ac
 
 The narrow grey shape at the right edge of the combat screenshot is the Samsung Edge panel handle, not game UI. This remains a short smoke test.
 
+## Upgrade choice slice on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode tests | 53 passed, 0 failed, 0 skipped |
+| Unity PlayMode tests | 10 passed, 0 failed, 0 skipped |
+| Static metadata/scene references | 69 project GUIDs, 1,099 package GUIDs indexed, 144 scene objects/components resolved |
+| Android build | Built only after both XML reports passed; APK 24,709,937 bytes, SHA-256 `2326B14D7D6BB954C883A0508B5FC8C2A2C342A98CF2DC8AE8BBB3E9E5A7BFAA` |
+| Install and cold launch | `Success`; activity launched in 553 ms |
+| Combat, 6.4 s | uGUI HUD inside the safe area (cutout inset 98 px); Grunt 10/50, **Hits landed: 4**, **Level 0 \| XP 0 / 10** (`android-upgrade-combat.png`) |
+| Kill, 11.6 s | Dimmed overlay with **Level up! Choose one upgrade**, **Tempered Edge / +5 damage per hit** and **Quickened Grip / +25% attack speed** (`android-upgrade-panel.png`) |
+| Two `adb input tap` commands on Tempered Edge | Panel closed; **Sword \| 15 damage every 0,80s** (one application), **Level 1 \| XP 10 / 20**, Grunt defeated (`android-upgrade-after.png`) |
+| App log | 461 app-process lines in `android-upgrade-logcat.txt`; no E/Unity, exception, fatal or missing-reference matches |
+
+Limits: the two adb taps run as separate shell commands, so the second landed after the panel had closed; truly simultaneous taps are covered by the PlayMode test rather than this device run. Numbers use the device's Turkish decimal comma. The dimmed "Grunt defeated" status line is visible between the cards; it is behind the overlay and harmless, but should move when the result screen replaces it.
+
 ## Rebuild and launch
 
 Close any Editor using this project, then run:
@@ -86,4 +102,4 @@ adb shell am start -W -n com.cryptforge.prototype/com.unity3d.player.UnityPlayer
 
 Select a specific device with `adb -s <serial>` if more than one is attached. The commands above assume exactly one authorized device. The existing first slice has no in-game restart button: fully close the app and reopen it to start a fresh fight, or use `adb shell am force-stop com.cryptforge.prototype` before launching it again.
 
-The first combat slice and the kill → XP slice are running on the phone. Upgrade choices, additional encounters, floors and an in-game restart remain future slices.
+The first combat slice, the kill → XP slice and the upgrade choice slice are running on the phone. The next encounter, floors and an in-game restart remain future slices.
