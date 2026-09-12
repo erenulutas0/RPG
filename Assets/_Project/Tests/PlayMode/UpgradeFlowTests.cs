@@ -106,7 +106,8 @@ namespace Cryptforge.Tests
             Tap(_buttons[SlotFor(WeaponStat.AttackSpeed)]);
             yield return null;
 
-            Assert.That(_setup.Weapon.Interval, Is.EqualTo(0.64f).Within(1e-5f));
+            // Upgrade_AttackSpeed.asset authors +50%: 0.8 s / 1.5.
+            Assert.That(_setup.Weapon.Interval, Is.EqualTo(0.8f / 1.5f).Within(1e-4f));
             Assert.That(_setup.Weapon.Damage, Is.EqualTo(10f));
             Assert.That(weaponLabel.text, Is.Not.EqualTo(before));
             AssertSourceSwordUnchanged();
@@ -165,9 +166,9 @@ namespace Cryptforge.Tests
 
             int hits = Mathf.CeilToInt(maximum / 10f);
             Assert.That(_encounters.HitsTaken, Is.EqualTo(hits));
-            // Hits land at 0, 0.64, 1.28 ... s; the unupgraded cadence would need (hits - 1) × 0.8 s.
+            // Hits land every _setup.Weapon.Interval; the unupgraded cadence would need (hits - 1) × 0.8 s.
             Assert.That(_encounters.Elapsed, Is.LessThan((hits - 1) * 0.8f - 0.15f),
-                $"Expected about {(hits - 1) * 0.64f:0.00} s after +25% attack speed.");
+                $"Expected about {(hits - 1) * _setup.Weapon.Interval:0.00} s after the attack speed upgrade.");
         }
 
         [UnityTest]

@@ -165,7 +165,9 @@ Balance measured with the 60 Hz simulation before choosing values (hero always t
 | Same enemies, Quickened Grip +35% | 19 | 11 |
 | Same enemies, Quickened Grip +50% | 19 | 15 |
 
-Finding for the next tuning pass, not applied here: +25% attack speed is clearly weaker than +5 damage, so choosing it first shortens the run by half. Raising it to +35–50% makes both cards viable. The on-device run (damage first) died in encounter 15, matching the simulation.
+Finding: +25% attack speed was clearly weaker than +5 damage, so choosing it first halved the run. The on-device run (damage first) died in encounter 15, matching the simulation.
+
+**Tuning applied 2026-09-13 (approved by the owner):** `Upgrade_AttackSpeed.asset` is now **+50%** (0.8 s → 0.53 s on the first stack; percents still sum, so five stacks give +250% and 0.23 s). Simulated runs now die in encounter 19 when taking damage first and 15 when taking attack speed first. `EnemyArchetypeTests.EitherFirstPickSurvivesAComparableNumberOfEncounters` guards that neither card becomes a trap again (speed first must reach encounter 10 and at least 70% of the damage-first run). PlayMode expectations read the authored interval.
 
 Verified: Unity EditMode 84/84, PlayMode 20/20, `Verify-Project.ps1`, .NET CombatChecks 84/84, development APK on Samsung SM-S911B including Runner, Tank windup and slam captures (see `23`).
 

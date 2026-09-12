@@ -8,7 +8,8 @@ using NUnit.Framework;
 namespace Cryptforge.Tests
 {
     // Mirrors the authored data: Grunt 50 HP 6/1.0s, Runner 30 HP 2/0.4s, Tank 120 HP 12/2.5s with a 1.5s windup,
-    // in the repeating order Grunt, Runner, Grunt, Tank. Update these fixtures when the assets change.
+    // in the repeating order Grunt, Runner, Grunt, Tank; upgrades Tempered Edge +5 damage and Quickened Grip +50%
+    // attack speed, five stacks each. Update these fixtures when the assets change.
     public sealed class EnemyArchetypeTests
     {
         private sealed class EnemyStats
@@ -104,6 +105,18 @@ namespace Cryptforge.Tests
             Assert.That(mixed, Is.GreaterThan(gruntsOnly));
         }
 
+        [Test]
+        public void EitherFirstPickSurvivesAComparableNumberOfEncounters()
+        {
+            int damageFirst = SimulateRun(Sequence, 0);
+            int speedFirst = SimulateRun(Sequence, 1);
+
+            // At +25% the speed-first run died in encounter 7 against 15 for damage first; neither card may be a trap.
+            Assert.That(speedFirst, Is.GreaterThanOrEqualTo(10));
+            Assert.That(speedFirst, Is.GreaterThanOrEqualTo(damageFirst * 0.7f),
+                $"Damage first died in encounter {damageFirst}, speed first in {speedFirst}.");
+        }
+
         private struct FightResult
         {
             public int HeroHits;
@@ -142,7 +155,8 @@ namespace Cryptforge.Tests
             return result;
         }
 
-        // Takes the first card at every choice; returns the encounter the hero died in.
+        // Takes the given card slot at every choice (falling back to the only card left); returns the encounter the
+        // hero died in.
         private static int SimulateRun(EnemyStats[] sequence, int pick)
         {
             var run = new RunState(10);
@@ -151,7 +165,7 @@ namespace Cryptforge.Tests
             var damage = new UpgradeOption("upgrade_damage", "Tempered Edge", "", WeaponStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 5f), 5);
             var speed = new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "", WeaponStat.AttackSpeed,
-                new StatModifier(ModifierOperation.Percent, 0.25f), 5);
+                new StatModifier(ModifierOperation.Percent, 0.5f), 5);
             var upgrades = new UpgradeService(run, heroWeapon, new[] { damage, speed }, 2);
             var hero = new HealthState(100f);
 

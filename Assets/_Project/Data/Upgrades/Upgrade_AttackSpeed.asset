@@ -17,5 +17,5 @@ MonoBehaviour:
   _descriptionFormat: '+{0:0}% attack speed'
   _stat: 1
   _operation: 1
-  _amount: 0.25
+  _amount: 0.5
   _maxStacks: 5
