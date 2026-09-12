@@ -68,6 +68,8 @@ Pick one after:
 - creative marketing appeal,
 - production speed.
 
+Status 2026-09-12: **A is excluded** (it is the reference game's identity; see `24`). **B is the working assumption** with a foundry twist: the guild hall sits above an ancient forge, floors descend through furnace biomes (ember halls, quicksilver vaults, arcane kiln), and saturated spell/status colors carry combat readability. The first style board compares B against C only; C's coin/greed motif may survive as loot presentation inside B, never as the theme.
+
 ## AI concept workflow
 
 ### Step 1 — style board
