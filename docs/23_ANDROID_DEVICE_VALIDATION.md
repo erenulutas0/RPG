@@ -151,4 +151,16 @@ Limits: the device run proves one reload visually; the exactly-once reload under
 
 Procedure incident and change: the capture script sent `adb input tap` on a timer without checking which app had focus. While the device owner was using other apps, three captures recorded those apps instead of the game and some taps may have reached them. The captures were deleted right after the review that spotted the problem, were never shared or committed, and no game evidence is taken from them. Unity pauses in the background, so the game state and the result above remain valid. From now on every automated tap and capture first checks that `com.cryptforge.prototype` has window focus and aborts otherwise, and unattended device runs are announced to the owner first.
 
-The first combat slice, kill → XP, upgrade choice, next encounter, enemy attack with result/restart, and Runner/Tank archetype slices are running on the phone. Enemy scaling, floors, healing and Extract remain future slices.
+## Quickened Grip +50% on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 85/85 and 20/20 passed before the build |
+| First attempt | Stopped before installing: another app had focus. Nothing was installed or tapped |
+| Owner opened the game and confirmed | Focus, awake display and no keyguard verified before install, before and after every tap and capture |
+| Install | APK SHA-256 `23DC82E0A7C8059CF044E11A4414328EC0386E51878C886444E0F2498ED4A567`, `Success`; game focused 1.0 s after launch |
+| First choice | **Quickened Grip / +50% attack speed** (`android-speed-choice.png`) |
+| Encounter 2 after Quickened Grip | **Sword \| 10 damage every 0,53s**, **Runner \| 20 / 30 HP** (`android-speed-runner.png`) |
+| Runner cleared | **Runner defeated in 3 hits, 1,1s**, **Level 2 \| XP 20 / 30** (`android-speed-runner-cleared.png`) |
+
+The first combat slice, kill → XP, upgrade choice, next encounter, enemy attack with result/restart, Runner/Tank archetype slices and the attack speed tuning are running on the phone. Enemy scaling, floors, healing and Extract remain future slices.
