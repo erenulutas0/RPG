@@ -163,4 +163,20 @@ Procedure incident and change: the capture script sent `adb input tap` on a time
 | Encounter 2 after Quickened Grip | **Sword \| 10 damage every 0,53s**, **Runner \| 20 / 30 HP** (`android-speed-runner.png`) |
 | Runner cleared | **Runner defeated in 3 hits, 1,1s**, **Level 2 \| XP 20 / 30** (`android-speed-runner-cleared.png`) |
 
-The first combat slice, kill → XP, upgrade choice, next encounter, enemy attack with result/restart, Runner/Tank archetype slices and the attack speed tuning are running on the phone. Enemy scaling, floors, healing and Extract remain future slices.
+## Descent floor 1 (Ember Halls) on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 89/89 and 21/21 passed before the build |
+| First attempt | Stopped before installing: another app had focus |
+| Owner opened the game and confirmed | Focus, awake display and no keyguard verified before install and before and after every capture and tap |
+| Install | APK SHA-256 `704F03BC55F6DC087D6E8F486E64C75C5F4D03F516A3964B7741D04B5EF06F24`, `Success` |
+| Capture method | State-driven: each poll screenshot was classified locally by two pixels (choice card 43,56,82 at 540,1720; enabled Try again button 217,115,64 at 540,1905) and deleted; the left card was tapped on every panel, so upgrades went damage first and the forge chose Mend |
+| Room 1, 2.5 s after launch | **Ember Halls \| Room 1/6 \| Ember Hall**, **Wave 1/2: combat is automatic**, Grunt 20/50, hero 88/100 (`android-floor-room1.png`) |
+| Panel 6 at 31.5 s | **The forge: choose one**, **Mend / Restore 40% of your health**, **Temper / Gain 1 extra upgrade choice**; behind it **Room 4/6 \| The Forge**, **Sword \| 35 damage every 0,80s** (`android-floor-forge.png`) |
+| Boss, 4.8 s after the Captain's level-up | **Room 6/6 \| Warden's Crucible**, **Forge Warden \| 90 / 300 HP** in the red enraged color, **Forge Warden is enraged!**, hero 52/100, **Sword \| 35 damage every 0,53s** (`android-floor-warden.png`) |
+| Result at 46.4 s after 7 panels | **Floor cleared**, **Vanguard defeated the Forge Warden and cleared Ember Halls**, **Rooms cleared: 6/6 \| Level 7 \| XP 70**, **Build: Tempered Edge x5, Quickened Grip x1**, hero 42/100 (`android-floor-result.png`); the simulation predicted 38 HP for this path |
+
+Limits: the whole floor took 46 s with instant automated choices, so a human run is roughly a minute. The victory cause line wraps to two lines and the forge status text shows faintly between the cards behind the overlay; both are cosmetic.
+
+The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning and Descent floor 1 are running on the phone. Floor 2 with a modifier and scaling, Extract/Descend, relics and local save remain future slices.
