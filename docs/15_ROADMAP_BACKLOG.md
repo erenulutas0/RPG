@@ -30,8 +30,8 @@ Do NOT:
 - restart run.
 
 ### Then (order accepted 2026-09-12, see `24`)
-- 3 enemy archetypes,
-- floor 1: six-room template, one boss, result screen with cause of death,
+- 3 enemy archetypes (done 2026-09-13: Grunt, Runner, Tank),
+- floor 1: six-room template, one boss, result screen with cause of death (done 2026-09-13: Ember Halls, see `21`),
 - floor 2: second modifier and scaling tier, Extract/Descend checkpoint,
 - the Forge meta layer with unlocks, two relics and local save,
 - 3 weapon behaviors.

@@ -13,17 +13,22 @@ MonoBehaviour:
   m_Name: PrototypeText
   m_EditorClassIdentifier:
   _title: CRYPTFORGE
-  _subtitle: A lone vanguard. Foes keep coming.
-  _encounterFormat: 'Encounter {0}: combat is automatic'
+  _floorProgressFormat: '{0}  |  Room {1}/{2}  |  {3}'
+  _waveFormat: 'Wave {0}/{1}: combat is automatic'
   _victoryFormat: '{0} defeated in {1} hits, {2:0.0}s'
+  _enragedFormat: '{0} is enraged!'
+  _forgeStatus: The forge is quiet. Choose your edge.
   _healthFormat: '{0}  |  {1:0} / {2:0} HP'
   _weaponFormat: '{0}  |  {1:0} damage every {2:0.00}s'
   _attackCountFormat: 'Hits this fight: {0}'
   _experienceFormat: 'Level {0}  |  XP {1} / {2}'
   _upgradeChoiceTitle: Level up! Choose one upgrade
-  _resultTitle: Defeated
-  _resultCauseFormat: '{0} fell to a {1} in encounter {2}'
-  _resultProgressFormat: 'Encounters cleared: {0}  |  Level {1}  |  XP {2}'
+  _forgeChoiceTitle: 'The forge: choose one'
+  _resultVictoryTitle: Floor cleared
+  _resultDefeatTitle: Defeated
+  _resultVictoryCauseFormat: '{0} defeated the {1} and cleared {2}'
+  _resultDefeatCauseFormat: '{0} fell to a {1} in {2}'
+  _resultProgressFormat: 'Rooms cleared: {0}/{1}  |  Level {2}  |  XP {3}'
   _resultBuildFormat: 'Build: {0}'
   _resultUpgradeFormat: '{0} x{1}'
   _resultNoUpgrades: no upgrades

@@ -69,8 +69,9 @@ namespace Cryptforge.Tests
 
             Assert.That(_setup.Run.HasEnded, Is.True);
             Assert.That(_result.IsOpen, Is.True);
-            Assert.That(Label("Cause Label"), Does.Contain("Grunt").And.Contain("1"));
-            Assert.That(Label("Progress Label"), Does.Contain("0"));
+            Assert.That(Label("Result Title"), Is.EqualTo("Defeated"));
+            Assert.That(Label("Cause Label"), Does.Contain("Grunt").And.Contain("Ember Hall"));
+            Assert.That(Label("Progress Label"), Does.Contain("0/6"));
             Assert.That(Label("Build Label"), Does.Contain("no upgrades"));
 
             int gruntHits = gruntAttack.AttackCount;
@@ -106,8 +107,8 @@ namespace Cryptforge.Tests
             yield return null;
 
             Assert.That(_result.IsOpen, Is.True);
-            Assert.That(Label("Cause Label"), Does.Contain("2"));
-            Assert.That(Label("Progress Label"), Does.Contain("1").And.Contain("10"));
+            Assert.That(Label("Cause Label"), Does.Contain("Runner").And.Contain("Ember Hall"));
+            Assert.That(Label("Progress Label"), Does.Contain("0/6").And.Contain("Level 1").And.Contain("XP 10"));
             Assert.That(Label("Build Label"), Does.Contain("Tempered Edge x1"));
         }
 

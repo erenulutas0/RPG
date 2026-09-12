@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00000000000000000000000000000015, type: 3}
+  m_Name: Floor_EmberHalls
+  m_EditorClassIdentifier: 
+  _id: floor_ember_halls
+  _displayName: Ember Halls
+  _rooms:
+  - _displayName: Ember Hall
+    _kind: 0
+    _waves:
+    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+    - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
+    _forgeOptions: []
+  - _displayName: Cinder Walk
+    _kind: 0
+    _waves:
+    - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
+    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+    _forgeOptions: []
+  - _displayName: Slag Gate
+    _kind: 0
+    _waves:
+    - {fileID: 11400000, guid: 1000000000000000000000000000000a, type: 2}
+    _forgeOptions: []
+  - _displayName: The Forge
+    _kind: 1
+    _waves: []
+    _forgeOptions:
+    - {fileID: 11400000, guid: 1000000000000000000000000000000f, type: 2}
+    - {fileID: 11400000, guid: 10000000000000000000000000000010, type: 2}
+  - _displayName: Captain's Post
+    _kind: 2
+    _waves:
+    - {fileID: 11400000, guid: 10000000000000000000000000000011, type: 2}
+    _forgeOptions: []
+  - _displayName: Warden's Crucible
+    _kind: 3
+    _waves:
+    - {fileID: 11400000, guid: 10000000000000000000000000000012, type: 2}
+    _forgeOptions: []

@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // Presents the current upgrade offer as large touch cards. The service rejects stale or repeated
-    // selections; this view additionally disables the cards on the first tap and briefly after showing.
-    public sealed class UpgradeChoiceView : MonoBehaviour
+    // Presents the current run choice (an upgrade offer or a forge visit) as large touch cards. The services reject
+    // stale or repeated selections; this view additionally disables the cards on the first tap and briefly after showing.
+    public sealed class RunChoiceView : MonoBehaviour
     {
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private PrototypeTextDefinition _text;
@@ -18,33 +18,32 @@ namespace Cryptforge.UI
         [SerializeField] private Text[] _nameLabels;
         [SerializeField] private Text[] _descriptionLabels;
         [SerializeField, Min(0f)] private float _inputDelay = 0.25f;
-        private UpgradeOffer _shownOffer;
+        private ChoicePrompt _shownPrompt;
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
         private bool _subscribed;
 
-        public bool IsOpen => _shownOffer != null;
+        public bool IsOpen => _shownPrompt != null;
 
         private void Start()
         {
-            if (_setup == null || _setup.Upgrades == null || _text == null || _panel == null || _titleLabel == null ||
+            if (_setup == null || _setup.Choices == null || _text == null || _panel == null || _titleLabel == null ||
                 !SlotsAreValid())
             {
-                Debug.LogError("UpgradeChoiceView is missing a scene or content reference.", this);
+                Debug.LogError("RunChoiceView is missing a scene or content reference.", this);
                 enabled = false;
                 return;
             }
 
-            _titleLabel.text = _text.UpgradeChoiceTitle;
             for (int i = 0; i < _buttons.Length; i++)
             {
                 int slot = i;
                 _buttons[i].onClick.AddListener(() => OnChoice(slot));
             }
 
-            _setup.Upgrades.OfferChanged += OnOfferChanged;
+            _setup.Choices.Changed += OnChoicesChanged;
             _subscribed = true;
-            Show(_setup.Upgrades.CurrentOffer);
+            Show(_setup.Choices.Current);
         }
 
         private bool SlotsAreValid()
@@ -61,28 +60,28 @@ namespace Cryptforge.UI
             return true;
         }
 
-        private void OnOfferChanged() => Show(_setup.Upgrades.CurrentOffer);
+        private void OnChoicesChanged() => Show(_setup.Choices.Current);
 
-        private void Show(UpgradeOffer offer)
+        private void Show(ChoicePrompt prompt)
         {
-            _shownOffer = offer;
-            _panel.SetActive(offer != null);
+            _shownPrompt = prompt;
+            _panel.SetActive(prompt != null);
             SetInteractable(false);
-            _awaitingInputDelay = offer != null;
-            if (offer == null)
+            _awaitingInputDelay = prompt != null;
+            if (prompt == null)
                 return;
 
+            _titleLabel.text = prompt.Kind == ChoiceKind.Forge ? _text.ForgeChoiceTitle : _text.UpgradeChoiceTitle;
             _inputEnabledAt = Time.unscaledTime + _inputDelay;
             for (int i = 0; i < _buttons.Length; i++)
             {
-                bool used = i < offer.Choices.Count;
+                bool used = i < prompt.Cards.Count;
                 _buttons[i].gameObject.SetActive(used);
                 if (!used)
                     continue;
 
-                UpgradeOption choice = offer.Choices[i];
-                _nameLabels[i].text = choice.DisplayName;
-                _descriptionLabels[i].text = string.Format(choice.DescriptionFormat, choice.DescriptionValue);
+                _nameLabels[i].text = prompt.Cards[i].Name;
+                _descriptionLabels[i].text = prompt.Cards[i].Description;
             }
         }
 
@@ -97,14 +96,14 @@ namespace Cryptforge.UI
 
         private void OnChoice(int slot)
         {
-            if (_shownOffer == null || _awaitingInputDelay)
+            if (_shownPrompt == null || _awaitingInputDelay)
                 return;
 
-            UpgradeOffer offer = _shownOffer;
+            ChoicePrompt prompt = _shownPrompt;
             SetInteractable(false);
-            // A successful selection raises OfferChanged, which hides this offer or shows the next one.
-            if (!_setup.Upgrades.TrySelect(offer, slot))
-                Show(_setup.Upgrades.CurrentOffer);
+            // A successful selection raises Changed, which hides this prompt or shows the next one.
+            if (!_setup.Choices.TrySelect(prompt, slot))
+                Show(_setup.Choices.Current);
         }
 
         private void SetInteractable(bool interactable)
@@ -118,7 +117,7 @@ namespace Cryptforge.UI
             if (!_subscribed)
                 return;
 
-            _setup.Upgrades.OfferChanged -= OnOfferChanged;
+            _setup.Choices.Changed -= OnChoicesChanged;
             for (int i = 0; i < _buttons.Length; i++)
             {
                 if (_buttons[i] != null)

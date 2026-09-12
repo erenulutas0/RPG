@@ -2,13 +2,13 @@
 
 Original portrait mobile auto-battler prototype. The authoritative project brief is in [docs](docs/00_README.md).
 
-Open this folder as a Unity project using **6000.0.65f1**. Open `Assets/_Project/Scenes/Gameplay/Gameplay.unity`, choose a **9:16** Game view, and press **Play**. The Vanguard automatically lands five Sword hits and defeats the Grunt; 10 XP reaches level 1, combat pauses, and two touch cards offer +5 damage or +50% attack speed. The chosen upgrade is applied once to the runtime weapon, then the next enemy spawns (Runner, Grunt, Tank, then the order repeats) and the HUD reports the hits and clear time of each fight. Enemies strike back, so the hero eventually falls; the result screen explains where and with which build, and **Try again** starts a fresh run in one tap.
+Open this folder as a Unity project using **6000.0.65f1**. Open `Assets/_Project/Scenes/Gameplay/Gameplay.unity`, choose a **9:16** Game view, and press **Play**. The Vanguard automatically lands five Sword hits and defeats the Grunt; 10 XP reaches level 1, combat pauses, and two touch cards offer +5 damage or +50% attack speed. The chosen upgrade is applied once to the runtime weapon and the run continues through **Ember Halls**, the first Descent floor: three combat rooms of waves (Grunt, Runner, Tank), a forge offering Mend (heal 40%) or Temper (extra upgrade), the elite Grunt Captain, and the Forge Warden boss that enrages at half health. Clearing the Warden shows **Floor cleared**; dying shows **Defeated** with the room and enemy. **Try again** starts a fresh run in one tap.
 
 - [Day 1–Day 3 plan and exact file inventory](docs/21_DAY_1_3_IMPLEMENTATION_PLAN.md)
 - [Setup, acceptance checks, test commands, and validation limits](docs/22_FIRST_COMBAT_VERIFICATION.md)
 - [Successful Android build and Samsung device test](docs/23_ANDROID_DEVICE_VALIDATION.md)
 
-Implemented: automatic combat, kill → XP, upgrade choice, consecutive encounters in a Grunt, Runner, Grunt, Tank order (Runner: fast chip attacks; Tank: 120 HP with a slow, delayed slam), enemy attacks with hero death, and the result screen with one-tap restart. Enemy scaling, healing, floor progression with Extract (see the Descent decision), and additional weapons/enemies are subsequent work.
+Implemented: automatic combat, kill → XP, upgrade choice, Grunt/Runner/Tank archetypes, enemy attacks with hero death, Descent floor 1 (rooms and waves, forge, elite, enraging boss) with victory/defeat results and one-tap restart. Floor 2 with a modifier and scaling, Extract/Descend, relics and local save are subsequent work.
 
 Local checks from the repository root:
 

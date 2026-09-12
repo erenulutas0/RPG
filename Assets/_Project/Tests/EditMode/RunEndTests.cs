@@ -27,8 +27,8 @@ namespace Cryptforge.Tests
             run.ExperienceChanged += () => experienceChanges++;
             run.AddExperience(5);
 
-            run.End();
-            run.End();
+            run.End(RunOutcome.Defeat);
+            run.End(RunOutcome.Defeat);
             run.AddExperience(50);
 
             Assert.That(run.HasEnded, Is.True);
@@ -50,7 +50,7 @@ namespace Cryptforge.Tests
             int offerChanges = 0;
             service.OfferChanged += () => offerChanges++;
 
-            run.End();
+            run.End(RunOutcome.Defeat);
 
             Assert.That(service.CurrentOffer, Is.Null);
             Assert.That(offerChanges, Is.EqualTo(1));
@@ -66,7 +66,7 @@ namespace Cryptforge.Tests
             var rewards = new RewardService(run, 10);
             var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { DamageOption() }, 2);
             var victim = new HealthState(50f);
-            run.End();
+            run.End(RunOutcome.Defeat);
 
             victim.ApplyDamage(new DamageContext(50f));
             rewards.TryAwardKill(victim);
@@ -126,7 +126,7 @@ namespace Cryptforge.Tests
             var heroWeapon = new WeaponRuntime(10f, 0.8f, 3f);
             var service = new UpgradeService(run, heroWeapon, new[] { DamageOption(), SpeedOption() }, 2);
             var hero = new HealthState(100f);
-            hero.Died += run.End;
+            hero.Died += () => run.End(RunOutcome.Defeat);
             var progress = new EncounterProgress(0f);
 
             while (!run.HasEnded && progress.EncounterNumber < 100)

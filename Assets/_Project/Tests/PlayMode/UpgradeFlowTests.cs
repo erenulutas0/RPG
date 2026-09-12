@@ -22,7 +22,7 @@ namespace Cryptforge.Tests
         private AttackController _attack;
         private Targeting _targeting;
         private EncounterController _encounters;
-        private UpgradeChoiceView _view;
+        private RunChoiceView _view;
         private Button[] _buttons;
 
         [UnitySetUp]
@@ -34,7 +34,7 @@ namespace Cryptforge.Tests
             _attack = GameObject.Find("Vanguard").GetComponent<AttackController>();
             _targeting = _attack.GetComponent<Targeting>();
             _encounters = Object.FindFirstObjectByType<EncounterController>();
-            _view = Object.FindFirstObjectByType<UpgradeChoiceView>();
+            _view = Object.FindFirstObjectByType<RunChoiceView>();
             _buttons = _view.GetComponentsInChildren<Button>(true);
         }
 

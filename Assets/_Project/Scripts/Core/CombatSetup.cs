@@ -23,6 +23,8 @@ namespace Cryptforge.Core
         public RunState Run { get; private set; }
         public WeaponRuntime Weapon { get; private set; }
         public UpgradeService Upgrades { get; private set; }
+        public ForgeService Forge { get; private set; }
+        public RunChoices Choices { get; private set; }
 
         private void Awake()
         {
@@ -45,12 +47,15 @@ namespace Cryptforge.Core
             for (int i = 0; i < _upgrades.Length; i++)
                 options[i] = _upgrades[i].CreateOption();
             Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount);
-            Upgrades.OfferChanged += OnOfferChanged;
+            Forge = new ForgeService(Run, _hero);
+            Choices = new RunChoices(Upgrades, Forge);
+            Choices.Changed += OnChoicesChanged;
             _hero.Died += OnHeroDied;
 
             // Subscribe before the first spawn so every defeated enemy reaches the reward service.
             _encounters.EnemyDefeated += OnEnemyDefeated;
-            _encounters.Initialize(Upgrades);
+            _encounters.FloorCleared += OnFloorCleared;
+            _encounters.Initialize(Choices, Forge);
         }
 
         // A reload rebuilds every runtime object from definitions, so nothing from the ended run carries over.
@@ -78,12 +83,14 @@ namespace Cryptforge.Core
 
         private void OnEnemyDefeated(Health enemy) => _rewards.TryAwardKill(enemy);
 
-        private void OnHeroDied() => Run.End();
+        private void OnHeroDied() => Run.End(RunOutcome.Defeat);
 
-        // Scaled time freezes combat cadence while a choice is open; uGUI input runs on unscaled time.
-        private void OnOfferChanged()
+        private void OnFloorCleared() => Run.End(RunOutcome.Victory);
+
+        // Scaled time freezes combat cadence while any choice is open; uGUI input runs on unscaled time.
+        private void OnChoicesChanged()
         {
-            bool choosing = Upgrades.CurrentOffer != null;
+            bool choosing = Choices.IsOpen;
             if (choosing == _pausedForChoice)
                 return;
 
@@ -96,9 +103,12 @@ namespace Cryptforge.Core
             if (_hero != null)
                 _hero.Died -= OnHeroDied;
             if (_encounters != null)
+            {
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
-            if (Upgrades != null)
-                Upgrades.OfferChanged -= OnOfferChanged;
+                _encounters.FloorCleared -= OnFloorCleared;
+            }
+            if (Choices != null)
+                Choices.Changed -= OnChoicesChanged;
             if (_pausedForChoice)
                 Time.timeScale = 1f;
         }

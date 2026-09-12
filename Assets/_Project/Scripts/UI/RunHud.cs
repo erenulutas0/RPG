@@ -15,7 +15,7 @@ namespace Cryptforge.UI
         [SerializeField] private HeroDefinition _heroDefinition;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Text _titleLabel;
-        [SerializeField] private Text _subtitleLabel;
+        [SerializeField] private Text _floorLabel;
         [SerializeField] private Text _weaponLabel;
         [SerializeField] private Text _enemyLabel;
         [SerializeField] private Text _heroLabel;
@@ -30,10 +30,10 @@ namespace Cryptforge.UI
         // Run state exists after CombatSetup.Awake, so Start is the earliest safe subscription point.
         private void Start()
         {
-            if (AnyMissing(_setup, _encounters, _hero, _heroDefinition, _text, _titleLabel, _subtitleLabel,
+            if (AnyMissing(_setup, _encounters, _hero, _heroDefinition, _text, _titleLabel, _floorLabel,
                     _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _attackLabel, _experienceLabel, _enemyBar,
                     _heroBar, _experienceBar) ||
-                _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.CurrentDefinition == null)
+                _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.Floor == null)
             {
                 Debug.LogError("RunHud is missing a scene or content reference.", this);
                 enabled = false;
@@ -41,7 +41,6 @@ namespace Cryptforge.UI
             }
 
             _titleLabel.text = _text.Title;
-            _subtitleLabel.text = _text.Subtitle;
             _hero.Changed += RefreshHero;
             _encounters.ProgressChanged += RefreshEncounter;
             _setup.Weapon.StatsChanged += RefreshWeapon;
@@ -61,16 +60,35 @@ namespace Cryptforge.UI
 
         private void RefreshEncounter()
         {
+            RoomDefinition room = _encounters.CurrentRoom;
+            _floorLabel.text = string.Format(_text.FloorProgressFormat, _encounters.Floor.DisplayName,
+                Mathf.Max(1, _encounters.RoomNumber), _encounters.RoomCount, room != null ? room.DisplayName : string.Empty);
+
+            if (_encounters.IsInNonCombatRoom)
+            {
+                _enemyLabel.text = room != null ? room.DisplayName : string.Empty;
+                _enemyBar.fillAmount = 0f;
+                _attackLabel.text = string.Empty;
+                _statusLabel.text = _text.ForgeStatus;
+                return;
+            }
+
+            EnemyDefinition definition = _encounters.CurrentDefinition;
+            if (definition == null)
+                return;
+
             Health enemy = _encounters.CurrentEnemy;
-            string enemyName = _encounters.CurrentDefinition.DisplayName;
             float current = enemy != null ? enemy.Current : 0f;
-            float maximum = enemy != null ? enemy.Maximum : _encounters.CurrentDefinition.MaximumHealth;
-            _enemyLabel.text = string.Format(_text.HealthFormat, enemyName, current, maximum);
+            float maximum = enemy != null ? enemy.Maximum : definition.MaximumHealth;
+            _enemyLabel.text = string.Format(_text.HealthFormat, definition.DisplayName, current, maximum);
             _enemyBar.fillAmount = Fraction(current, maximum);
             _attackLabel.text = string.Format(_text.AttackCountFormat, _encounters.HitsTaken);
-            _statusLabel.text = _encounters.IsCleared
-                ? string.Format(_text.VictoryFormat, enemyName, _encounters.HitsTaken, _encounters.Elapsed)
-                : string.Format(_text.EncounterFormat, _encounters.EncounterNumber);
+            if (_encounters.IsCleared)
+                _statusLabel.text = string.Format(_text.VictoryFormat, definition.DisplayName, _encounters.HitsTaken, _encounters.Elapsed);
+            else if (_encounters.IsCurrentEnemyEnraged)
+                _statusLabel.text = string.Format(_text.EnragedFormat, definition.DisplayName);
+            else
+                _statusLabel.text = string.Format(_text.WaveFormat, _encounters.WaveNumber, _encounters.WaveCount);
         }
 
         private void RefreshWeapon()

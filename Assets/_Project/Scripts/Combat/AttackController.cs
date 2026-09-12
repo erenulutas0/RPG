@@ -10,6 +10,8 @@ namespace Cryptforge.Combat
         private WeaponRuntime _weapon;
 
         public int AttackCount { get; private set; }
+        // Null until Initialize; behaviours such as enrage modify this runtime, never the definition.
+        public WeaponRuntime Weapon => _weapon;
         public event Action Attacked;
 
         public void Initialize(WeaponRuntime weapon)

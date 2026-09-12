@@ -1,47 +1,23 @@
 using System;
 using Cryptforge.Combat;
-using Cryptforge.Core;
-using Cryptforge.Economy;
-using Cryptforge.Progression;
 using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // Mirrors the authored data: Grunt 50 HP 6/1.0s, Runner 30 HP 2/0.4s, Tank 120 HP 12/2.5s with a 1.5s windup,
-    // in the repeating order Grunt, Runner, Grunt, Tank; upgrades Tempered Edge +5 damage and Quickened Grip +50%
-    // attack speed, five stacks each. Update these fixtures when the assets change.
+    // Mirrors the authored data: Runner 30 HP 2/0.4s, Tank 120 HP 12/2.5s with a 1.5s windup. Floor-level balance,
+    // including the Captain and the Warden, is covered by FloorTests. Update these fixtures when the assets change.
     public sealed class EnemyArchetypeTests
     {
         private sealed class EnemyStats
         {
-            public string Name;
             public float Health;
             public float Damage;
             public float Interval;
             public float InitialDelay;
         }
 
-        private static readonly EnemyStats Grunt = new EnemyStats { Name = "Grunt", Health = 50f, Damage = 6f, Interval = 1f };
-        private static readonly EnemyStats Runner = new EnemyStats { Name = "Runner", Health = 30f, Damage = 2f, Interval = 0.4f };
-        private static readonly EnemyStats Tank = new EnemyStats { Name = "Tank", Health = 120f, Damage = 12f, Interval = 2.5f, InitialDelay = 1.5f };
-        private static readonly EnemyStats[] Sequence = { Grunt, Runner, Grunt, Tank };
-
-        [TestCase(1, 0)]
-        [TestCase(2, 1)]
-        [TestCase(4, 3)]
-        [TestCase(5, 0)]
-        [TestCase(8, 3)]
-        public void EncounterScheduleRepeatsTheAuthoredOrder(int encounterNumber, int expectedIndex)
-        {
-            Assert.That(EncounterSchedule.IndexFor(encounterNumber, 4), Is.EqualTo(expectedIndex));
-        }
-
-        [Test]
-        public void EncounterScheduleRejectsInvalidInput()
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => EncounterSchedule.IndexFor(0, 4));
-            Assert.Throws<ArgumentOutOfRangeException>(() => EncounterSchedule.IndexFor(1, 0));
-        }
+        private static readonly EnemyStats Runner = new EnemyStats { Health = 30f, Damage = 2f, Interval = 0.4f };
+        private static readonly EnemyStats Tank = new EnemyStats { Health = 120f, Damage = 12f, Interval = 2.5f, InitialDelay = 1.5f };
 
         [Test]
         public void InitialDelayHoldsOnlyTheFirstAttack()
@@ -95,28 +71,6 @@ namespace Cryptforge.Tests
             Assert.That(hero.Current, Is.EqualTo(64f));
         }
 
-        [Test]
-        public void MixedSequenceRunEndsInDeathAndLastsLongerThanGruntsAlone()
-        {
-            int mixed = SimulateRun(Sequence, 0);
-            int gruntsOnly = SimulateRun(new[] { Grunt }, 0);
-
-            Assert.That(mixed, Is.InRange(8, 30));
-            Assert.That(mixed, Is.GreaterThan(gruntsOnly));
-        }
-
-        [Test]
-        public void EitherFirstPickSurvivesAComparableNumberOfEncounters()
-        {
-            int damageFirst = SimulateRun(Sequence, 0);
-            int speedFirst = SimulateRun(Sequence, 1);
-
-            // At +25% the speed-first run died in encounter 7 against 15 for damage first; neither card may be a trap.
-            Assert.That(speedFirst, Is.GreaterThanOrEqualTo(10));
-            Assert.That(speedFirst, Is.GreaterThanOrEqualTo(damageFirst * 0.7f),
-                $"Damage first died in encounter {damageFirst}, speed first in {speedFirst}.");
-        }
-
         private struct FightResult
         {
             public int HeroHits;
@@ -153,37 +107,6 @@ namespace Cryptforge.Tests
 
             result.Duration = (frame - 1) * step;
             return result;
-        }
-
-        // Takes the given card slot at every choice (falling back to the only card left); returns the encounter the
-        // hero died in.
-        private static int SimulateRun(EnemyStats[] sequence, int pick)
-        {
-            var run = new RunState(10);
-            var rewards = new RewardService(run, 10);
-            var heroWeapon = new WeaponRuntime(10f, 0.8f, 3f);
-            var damage = new UpgradeOption("upgrade_damage", "Tempered Edge", "", WeaponStat.Damage,
-                new StatModifier(ModifierOperation.Flat, 5f), 5);
-            var speed = new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "", WeaponStat.AttackSpeed,
-                new StatModifier(ModifierOperation.Percent, 0.5f), 5);
-            var upgrades = new UpgradeService(run, heroWeapon, new[] { damage, speed }, 2);
-            var hero = new HealthState(100f);
-
-            for (int encounter = 1; encounter <= 200; encounter++)
-            {
-                EnemyStats stats = sequence[EncounterSchedule.IndexFor(encounter, sequence.Length)];
-                var enemy = new HealthState(stats.Health);
-                Fight(hero, heroWeapon, stats);
-                if (!hero.IsAlive)
-                    return encounter;
-
-                enemy.ApplyDamage(new DamageContext(stats.Health));
-                rewards.TryAwardKill(enemy);
-                while (upgrades.CurrentOffer != null)
-                    upgrades.TrySelect(upgrades.CurrentOffer, Math.Min(pick, upgrades.CurrentOffer.Choices.Count - 1));
-            }
-
-            return int.MaxValue;
         }
     }
 }

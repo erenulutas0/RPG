@@ -171,6 +171,43 @@ Finding: +25% attack speed was clearly weaker than +5 damage, so choosing it fir
 
 Verified: Unity EditMode 84/84, PlayMode 20/20, `Verify-Project.ps1`, .NET CombatChecks 84/84, development APK on Samsung SM-S911B including Runner, Tank windup and slam captures (see `23`).
 
+### Implemented 2026-09-13: Descent floor 1 (Ember Halls)
+
+| Room | Kind | Content |
+|---|---|---|
+| 1 Ember Hall | Combat | Grunt, Runner |
+| 2 Cinder Walk | Combat | Runner, Grunt |
+| 3 Slag Gate | Combat | Tank |
+| 4 The Forge | Forge | **Mend** (restore 40% of maximum health) or **Temper** (one extra upgrade choice) |
+| 5 Captain's Post | Elite | **Grunt Captain**: 140 HP, 9 damage / 1.2 s, 0.6 s windup |
+| 6 Warden's Crucible | Boss | **Forge Warden**: 300 HP, 10 damage / 1.8 s, 1 s windup; at 50% health +100% attack speed |
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/FloorProgress.cs`, `FloorStep.cs`, `FloorStepKind.cs`, `RoomKind.cs` | New, plain C#. Walks rooms and waves; zero-wave rooms are non-combat steps; tracks rooms cleared and the final wave. |
+| `Scripts/Combat/IHealable.cs`, `HealthState.cs`, `Health.cs` | `Heal(amount)` clamps to maximum and never revives. |
+| `Scripts/Combat/EnrageRule.cs`, `EnrageBehaviour.cs`, `AttackController.cs` | One-time threshold rule (never on the killing blow) and a boss behaviour module that adds an attack speed modifier to the enemy's runtime weapon. `AttackController.Weapon` exposes that runtime. |
+| `Scripts/Core/RunState.cs`, `RunOutcome.cs` | `End(RunOutcome)` records Victory or Defeat once; `GrantBonusUpgrade()` and `PendingUpgradesChanged` let the forge add upgrade choices without levelling. |
+| `Scripts/Progression/ForgeEffect.cs`, `ForgeOption.cs`, `ForgeOffer.cs`, `ForgeService.cs` | New. One selection per visit, same stale/re-entrant guards as upgrades; withdrawn when the run ends. |
+| `Scripts/Progression/RunChoices.cs`, `ChoicePrompt.cs`, `ChoiceCard.cs`, `ChoiceKind.cs` | New single source for "the player is choosing": combines upgrade and forge offers into prompts for the panel, the pause and encounter gating. |
+| `Scripts/Content/FloorDefinition.cs`, `RoomDefinition.cs`, `ForgeOptionDefinition.cs`, `Data/Floors/Floor_EmberHalls.asset`, `Data/Forge/*.asset`, `Data/Enemies/Enemy_GruntCaptain.asset`, `Enemy_ForgeWarden.asset`, `Data/Weapons/Weapon_CaptainCleave.asset`, `Weapon_WardenHammer.asset` | Floor data with rooms authored inline; forge options and the elite/boss content. |
+| `Prefabs/Enemies/GruntCaptain.prefab`, `ForgeWarden.prefab` | Variants of Grunt and Tank; the Warden adds `EnrageBehaviour`, and its `CombatantView` switches to a red resting color when enraged. Created by a temporary builder, deleted afterwards. |
+| `Scripts/Combat/EncounterController.cs` | Now runs the floor: validates every room at startup, spawns waves, opens the forge, waits for choices, and clears the floor immediately on the final wave's kill. Replaces the looping `EncounterSequenceDefinition`/`EncounterSchedule`, which were removed with their asset and tests. |
+| `Scripts/Core/CombatSetup.cs` | Composes `ForgeService` and `RunChoices`; pauses on any open choice; hero death → Defeat, floor cleared → Victory. |
+| `Scripts/UI/RunChoiceView.cs` (renamed from `UpgradeChoiceView`, same GUID), `RunHud.cs`, `RunResultView.cs`, `CombatantView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | Panel shows upgrade or forge prompts with the matching title; HUD shows `Ember Halls | Room n/6 | room`, wave or forge status and the enraged warning; result screen shows Floor cleared or Defeated with the room, rooms cleared n/6, level, XP and build. |
+| Tests | EditMode `FloorTests` (12) with a floor simulation through the real run, reward, upgrade, forge and choice services; `EnemyArchetypeTests` keeps its fight cases. PlayMode `FloorFlowTests` (4): authored order to victory, Mend, Temper, Warden enrage and kill. `RunResultTests` and `UpgradeFlowTests` follow the new texts and view name. |
+
+Balance chosen with the floor simulation (hero always takes the first upgrade card):
+
+| | Damage first | Speed first |
+|---|---|---|
+| Mend at the forge | cleared, 38 HP left | cleared, 34 HP left |
+| Temper at the forge | cleared, 17 HP left | cleared, 4 HP left |
+
+Mend is the safer pick when hurt, Temper when healthy; the Warden threatens every path. XP stays at one level per kill for this floor. The measured fight time is only about 22 s plus choices and delays, so a first playthrough takes roughly a minute; floor 2 scaling and longer fights are the next lever toward the GDD's 3–4 minute floors.
+
+Verified: Unity EditMode 89/89, PlayMode 21/21, `Verify-Project.ps1`, .NET CombatChecks 89/89. Device check pending (see `23`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

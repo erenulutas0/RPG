@@ -8,16 +8,21 @@ namespace Cryptforge.Content
     public sealed class PrototypeTextDefinition : ScriptableObject
     {
         [SerializeField] private string _title;
-        [SerializeField] private string _subtitle;
-        [SerializeField] private string _encounterFormat;
+        [SerializeField] private string _floorProgressFormat;
+        [SerializeField] private string _waveFormat;
         [SerializeField] private string _victoryFormat;
+        [SerializeField] private string _enragedFormat;
+        [SerializeField] private string _forgeStatus;
         [SerializeField] private string _healthFormat;
         [SerializeField] private string _weaponFormat;
         [SerializeField] private string _attackCountFormat;
         [SerializeField] private string _experienceFormat;
         [SerializeField] private string _upgradeChoiceTitle;
-        [SerializeField] private string _resultTitle;
-        [SerializeField] private string _resultCauseFormat;
+        [SerializeField] private string _forgeChoiceTitle;
+        [SerializeField] private string _resultVictoryTitle;
+        [SerializeField] private string _resultDefeatTitle;
+        [SerializeField] private string _resultVictoryCauseFormat;
+        [SerializeField] private string _resultDefeatCauseFormat;
         [SerializeField] private string _resultProgressFormat;
         [SerializeField] private string _resultBuildFormat;
         [SerializeField] private string _resultUpgradeFormat;
@@ -25,20 +30,28 @@ namespace Cryptforge.Content
         [SerializeField] private string _restartLabel;
 
         public string Title => _title;
-        public string Subtitle => _subtitle;
-        // {0} encounter number.
-        public string EncounterFormat => _encounterFormat;
+        // {0} floor name, {1} room number, {2} room count, {3} room name.
+        public string FloorProgressFormat => _floorProgressFormat;
+        // {0} wave number, {1} wave count.
+        public string WaveFormat => _waveFormat;
         // {0} enemy name, {1} hits this fight, {2} clear time in seconds.
         public string VictoryFormat => _victoryFormat;
+        // {0} enemy name.
+        public string EnragedFormat => _enragedFormat;
+        public string ForgeStatus => _forgeStatus;
         public string HealthFormat => _healthFormat;
         public string WeaponFormat => _weaponFormat;
         public string AttackCountFormat => _attackCountFormat;
         public string ExperienceFormat => _experienceFormat;
         public string UpgradeChoiceTitle => _upgradeChoiceTitle;
-        public string ResultTitle => _resultTitle;
-        // {0} hero name, {1} enemy name, {2} encounter number.
-        public string ResultCauseFormat => _resultCauseFormat;
-        // {0} encounters cleared, {1} level, {2} experience.
+        public string ForgeChoiceTitle => _forgeChoiceTitle;
+        public string ResultVictoryTitle => _resultVictoryTitle;
+        public string ResultDefeatTitle => _resultDefeatTitle;
+        // {0} hero name, {1} boss name, {2} floor name.
+        public string ResultVictoryCauseFormat => _resultVictoryCauseFormat;
+        // {0} hero name, {1} enemy name, {2} room name.
+        public string ResultDefeatCauseFormat => _resultDefeatCauseFormat;
+        // {0} rooms cleared, {1} room count, {2} level, {3} experience.
         public string ResultProgressFormat => _resultProgressFormat;
         // {0} joined upgrade entries or the no-upgrades text.
         public string ResultBuildFormat => _resultBuildFormat;

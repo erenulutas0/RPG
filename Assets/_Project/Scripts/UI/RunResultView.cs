@@ -24,6 +24,8 @@ namespace Cryptforge.UI
         [SerializeField] private Text _restartLabel;
         [SerializeField] private Button _restartButton;
         [SerializeField, Min(0f)] private float _inputDelay = 0.5f;
+        [SerializeField] private Color _victoryColor = new Color(0.95f, 0.8f, 0.35f);
+        [SerializeField] private Color _defeatColor = new Color(1f, 0.55f, 0.35f);
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
         private bool _subscribed;
@@ -32,7 +34,7 @@ namespace Cryptforge.UI
 
         private void Start()
         {
-            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _encounters == null ||
+            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _encounters == null || _encounters.Floor == null ||
                 _heroDefinition == null || _text == null || _panel == null || _titleLabel == null ||
                 _causeLabel == null || _progressLabel == null || _buildLabel == null || _restartLabel == null ||
                 _restartButton == null)
@@ -43,7 +45,6 @@ namespace Cryptforge.UI
             }
 
             _panel.SetActive(false);
-            _titleLabel.text = _text.ResultTitle;
             _restartLabel.text = _text.RestartLabel;
             _restartButton.onClick.AddListener(OnRestart);
             _setup.Run.Ended += Show;
@@ -54,12 +55,17 @@ namespace Cryptforge.UI
 
         private void Show()
         {
-            string enemyName = _encounters.CurrentDefinition != null ? _encounters.CurrentDefinition.DisplayName : string.Empty;
-            _causeLabel.text = string.Format(_text.ResultCauseFormat, _heroDefinition.DisplayName, enemyName,
-                _encounters.EncounterNumber);
             RunState run = _setup.Run;
-            _progressLabel.text = string.Format(_text.ResultProgressFormat, _encounters.EncountersCleared, run.Level,
-                run.Experience);
+            bool victory = run.Outcome == RunOutcome.Victory;
+            string enemyName = _encounters.CurrentDefinition != null ? _encounters.CurrentDefinition.DisplayName : string.Empty;
+            string roomName = _encounters.CurrentRoom != null ? _encounters.CurrentRoom.DisplayName : string.Empty;
+            _titleLabel.text = victory ? _text.ResultVictoryTitle : _text.ResultDefeatTitle;
+            _titleLabel.color = victory ? _victoryColor : _defeatColor;
+            _causeLabel.text = victory
+                ? string.Format(_text.ResultVictoryCauseFormat, _heroDefinition.DisplayName, enemyName, _encounters.Floor.DisplayName)
+                : string.Format(_text.ResultDefeatCauseFormat, _heroDefinition.DisplayName, enemyName, roomName);
+            _progressLabel.text = string.Format(_text.ResultProgressFormat, _encounters.RoomsCleared, _encounters.RoomCount,
+                run.Level, run.Experience);
             _buildLabel.text = string.Format(_text.ResultBuildFormat, DescribeBuild());
 
             _panel.SetActive(true);

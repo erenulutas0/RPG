@@ -9,17 +9,20 @@ namespace Cryptforge.Core
 
         public int Experience { get; private set; }
         public int Level { get; private set; }
+        public int BonusUpgrades { get; private set; }
         public int UpgradesApplied { get; private set; }
-        public int PendingUpgrades => Level - UpgradesApplied;
+        public int PendingUpgrades => Level + BonusUpgrades - UpgradesApplied;
         public int ExperienceForCurrentLevel => Level * _experiencePerLevel;
         public int ExperienceForNextLevel => (Level + 1) * _experiencePerLevel;
-        public bool HasEnded { get; private set; }
+        public RunOutcome Outcome { get; private set; }
+        public bool HasEnded => Outcome != RunOutcome.None;
 
         public event Action ExperienceChanged;
         public event Action LevelChanged;
+        public event Action PendingUpgradesChanged;
         public event Action Ended;
 
-        // Linear thresholds until sequential encounters exist to tune a curve against.
+        // Linear thresholds; the floor structure currently paces choices at one per kill.
         public RunState(int experiencePerLevel)
         {
             if (experiencePerLevel < 1)
@@ -42,8 +45,21 @@ namespace Cryptforge.Core
             // Level is updated before callbacks so listeners always read a consistent threshold.
             Level = level;
             ExperienceChanged?.Invoke();
-            if (levelled)
-                LevelChanged?.Invoke();
+            if (!levelled)
+                return;
+
+            LevelChanged?.Invoke();
+            PendingUpgradesChanged?.Invoke();
+        }
+
+        // An upgrade choice earned outside levelling, such as the forge's Temper.
+        public void GrantBonusUpgrade()
+        {
+            if (HasEnded)
+                return;
+
+            BonusUpgrades++;
+            PendingUpgradesChanged?.Invoke();
         }
 
         public void RecordUpgradeApplied()
@@ -54,12 +70,14 @@ namespace Cryptforge.Core
             UpgradesApplied++;
         }
 
-        public void End()
+        public void End(RunOutcome outcome)
         {
+            if (outcome == RunOutcome.None)
+                throw new ArgumentOutOfRangeException(nameof(outcome));
             if (HasEnded)
                 return;
 
-            HasEnded = true;
+            Outcome = outcome;
             Ended?.Invoke();
         }
     }

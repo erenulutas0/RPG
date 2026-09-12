@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    public sealed class Health : MonoBehaviour, IDamageable
+    public sealed class Health : MonoBehaviour, IDamageable, IHealable
     {
         private HealthState _state;
 
@@ -27,6 +27,12 @@ namespace Cryptforge.Combat
         {
             if (isActiveAndEnabled)
                 _state?.ApplyDamage(context);
+        }
+
+        public void Heal(float amount)
+        {
+            if (isActiveAndEnabled)
+                _state?.Heal(amount);
         }
 
         private void OnChanged() => Changed?.Invoke();

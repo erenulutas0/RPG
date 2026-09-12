@@ -6,7 +6,8 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Progression
 {
-    // Opens an offer for each pending level and applies exactly one choice per offer to runtime weapon stats.
+    // Opens an offer for each pending upgrade (level-ups and bonus grants) and applies exactly one choice per offer
+    // to runtime weapon stats.
     public sealed class UpgradeService
     {
         private readonly RunState _run;
@@ -39,9 +40,9 @@ namespace Cryptforge.Progression
 
             Pool = new ReadOnlyCollection<UpgradeOption>(_pool);
             _choiceCount = choiceCount;
-            _run.LevelChanged += OnLevelChanged;
+            _run.PendingUpgradesChanged += OnPendingUpgradesChanged;
             _run.Ended += OnRunEnded;
-            OnLevelChanged();
+            OnPendingUpgradesChanged();
         }
 
         public int StacksOf(UpgradeOption option) =>
@@ -63,7 +64,7 @@ namespace Cryptforge.Progression
             return true;
         }
 
-        private void OnLevelChanged()
+        private void OnPendingUpgradesChanged()
         {
             if (CurrentOffer != null || _run.HasEnded)
                 return;

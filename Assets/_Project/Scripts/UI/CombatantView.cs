@@ -10,6 +10,9 @@ namespace Cryptforge.UI
         [SerializeField] private SpriteRenderer _body;
         [SerializeField, Min(0.01f)] private float _feedbackDuration = 0.14f;
         [SerializeField] private float _attackNudge = 0.2f;
+        // Optional: bosses with an enrage behaviour keep a new resting color once enraged.
+        [SerializeField] private EnrageBehaviour _enrage;
+        [SerializeField] private Color _enragedColor = new Color(1f, 0.35f, 0.2f);
         private Color _baseColor;
         private Vector3 _basePosition;
         private float _feedbackRemaining;
@@ -30,7 +33,16 @@ namespace Cryptforge.UI
             _health.Died += OnDied;
             if (_attack != null)
                 _attack.Attacked += OnAttacked;
+            if (_enrage != null)
+                _enrage.Enraged += OnEnraged;
             _subscribed = true;
+        }
+
+        private void OnEnraged()
+        {
+            _baseColor = _enragedColor;
+            if (_feedbackRemaining <= 0f)
+                _body.color = _enragedColor;
         }
 
         private void Start() => _body.enabled = _health.IsAlive;
@@ -82,6 +94,8 @@ namespace Cryptforge.UI
                 _health.Died -= OnDied;
                 if (_attack != null)
                     _attack.Attacked -= OnAttacked;
+                if (_enrage != null)
+                    _enrage.Enraged -= OnEnraged;
                 _subscribed = false;
             }
             ResetFeedback();

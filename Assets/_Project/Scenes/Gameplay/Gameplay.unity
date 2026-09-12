@@ -294,6 +294,8 @@ MonoBehaviour:
   _body: {fileID: 212}
   _feedbackDuration: 0.14
   _attackNudge: 0.22
+  _enrage: {fileID: 0}
+  _enragedColor: {r: 1, g: 0.35, b: 0.2, a: 1}
 --- !u!1 &210
 GameObject:
   m_ObjectHideFlags: 0
@@ -732,6 +734,8 @@ MonoBehaviour:
   _restartLabel: {fileID: 1479449558}
   _restartButton: {fileID: 1793412631}
   _inputDelay: 0.5
+  _victoryColor: {r: 0.95, g: 0.8, b: 0.35, a: 1}
+  _defeatColor: {r: 1, g: 0.55, b: 0.35, a: 1}
 --- !u!114 &195431777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -827,7 +831,7 @@ GameObject:
   - component: {fileID: 387869339}
   - component: {fileID: 387869340}
   m_Layer: 5
-  m_Name: Subtitle Label
+  m_Name: Floor Label
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2338,7 +2342,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00000000000000000000000000000012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _sequence: {fileID: 11400000, guid: 1000000000000000000000000000000d, type: 2}
+  _floor: {fileID: 11400000, guid: 1000000000000000000000000000000e, type: 2}
   _hero: {fileID: 202}
   _heroTargeting: {fileID: 203}
   _advanceDelay: 1
@@ -2532,7 +2536,7 @@ MonoBehaviour:
   _heroDefinition: {fileID: 11400000, guid: 10000000000000000000000000000002, type: 2}
   _text: {fileID: 11400000, guid: 10000000000000000000000000000004, type: 2}
   _titleLabel: {fileID: 1038809102}
-  _subtitleLabel: {fileID: 387869340}
+  _floorLabel: {fileID: 387869340}
   _weaponLabel: {fileID: 497101515}
   _enemyLabel: {fileID: 556414071}
   _heroLabel: {fileID: 1289620791}

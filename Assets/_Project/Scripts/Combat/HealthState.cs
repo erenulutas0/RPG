@@ -2,7 +2,7 @@ using System;
 
 namespace Cryptforge.Combat
 {
-    public sealed class HealthState : IDamageable
+    public sealed class HealthState : IDamageable, IHealable
     {
         public float Maximum { get; }
         public float Current { get; private set; }
@@ -31,6 +31,18 @@ namespace Cryptforge.Combat
             // The transition is captured before callbacks; lethal re-entry cannot emit twice.
             if (died)
                 Died?.Invoke();
+        }
+
+        // Healing never revives: death is final for this state.
+        public void Heal(float amount)
+        {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount < 0f)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (!IsAlive || amount == 0f || Current >= Maximum)
+                return;
+
+            Current = Math.Min(Maximum, Current + amount);
+            Changed?.Invoke();
         }
     }
 }
