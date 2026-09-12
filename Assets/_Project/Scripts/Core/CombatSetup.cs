@@ -10,12 +10,11 @@ namespace Cryptforge.Core
     public sealed class CombatSetup : MonoBehaviour
     {
         [SerializeField] private HeroDefinition _heroDefinition;
-        [SerializeField] private EnemyDefinition _enemyDefinition;
         [SerializeField] private EconomyConfig _economy;
         [SerializeField] private UpgradeDefinition[] _upgrades;
         [SerializeField] private Health _hero;
-        [SerializeField] private Health _enemy;
         [SerializeField] private AttackController _attack;
+        [SerializeField] private EncounterController _encounters;
         private RewardService _rewards;
         private bool _pausedForChoice;
 
@@ -25,8 +24,8 @@ namespace Cryptforge.Core
 
         private void Awake()
         {
-            if (_heroDefinition == null || _enemyDefinition == null || _economy == null || _hero == null ||
-                _enemy == null || _attack == null || _heroDefinition.StartingWeapon == null || !HasUpgrades())
+            if (_heroDefinition == null || _economy == null || _hero == null || _attack == null ||
+                _encounters == null || _heroDefinition.StartingWeapon == null || !HasUpgrades())
             {
                 Debug.LogError("CombatSetup is missing required scene or definition references.", this);
                 enabled = false;
@@ -35,7 +34,6 @@ namespace Cryptforge.Core
 
             Application.targetFrameRate = 60;
             _hero.Initialize(_heroDefinition.MaximumHealth);
-            _enemy.Initialize(_enemyDefinition.MaximumHealth);
             Weapon = _heroDefinition.StartingWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
             Run = new RunState(_economy.ExperiencePerLevel);
@@ -46,7 +44,10 @@ namespace Cryptforge.Core
                 options[i] = _upgrades[i].CreateOption();
             Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount);
             Upgrades.OfferChanged += OnOfferChanged;
-            _enemy.Died += OnEnemyDied;
+
+            // Subscribe before the first spawn so every defeated enemy reaches the reward service.
+            _encounters.EnemyDefeated += OnEnemyDefeated;
+            _encounters.Initialize(Upgrades);
         }
 
         private bool HasUpgrades()
@@ -61,7 +62,7 @@ namespace Cryptforge.Core
             return true;
         }
 
-        private void OnEnemyDied() => _rewards.TryAwardKill(_enemy);
+        private void OnEnemyDefeated(Health enemy) => _rewards.TryAwardKill(enemy);
 
         // Scaled time freezes combat cadence while a choice is open; uGUI input runs on unscaled time.
         private void OnOfferChanged()
@@ -76,8 +77,8 @@ namespace Cryptforge.Core
 
         private void OnDestroy()
         {
-            if (_enemy != null)
-                _enemy.Died -= OnEnemyDied;
+            if (_encounters != null)
+                _encounters.EnemyDefeated -= OnEnemyDefeated;
             if (Upgrades != null)
                 Upgrades.OfferChanged -= OnOfferChanged;
             if (_pausedForChoice)

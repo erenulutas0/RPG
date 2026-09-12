@@ -18,10 +18,11 @@ Completed USB-device test and APK details: [Android device validation](23_ANDROI
 4. Select the Game tab. Add a **540 × 960** fixed resolution or **9:16** aspect ratio. Also repeat at **1080 × 2340** (9:19.5). Verify the title, weapon stats, both health bars, hero, and enemy are visible without overlap.
 5. Press **Play**. No click/tap is required. The blue Vanguard attacks the orange Grunt; the hero body and its sword/shield nudge upward; the Grunt flashes on hits.
 6. Watch the Grunt drop from 50 HP to zero in five 10-damage hits, spaced roughly 0.8 seconds apart. The first hit occurs on the first gameplay update, so the first visible HP may be 40. Expected time to death is about 3.2 seconds plus frame quantization.
-7. Confirm the Grunt shape disappears, the status reads **Grunt defeated**, enemy HP stays at zero, hero HP stays at 100, and **Hits landed: 5** stays unchanged for at least three seconds.
-8. Confirm **Level 0 | XP 0 / 10** during combat. On the fifth hit XP reaches 10, the screen dims and **Level up! Choose one upgrade** shows two cards: **Tempered Edge** (+5 damage per hit) and **Quickened Grip** (+25% attack speed). Combat is paused.
-9. Click or tap **Tempered Edge**, including rapidly several times. Expect the panel to close, **Sword | 15 damage every 0.80s**, **Level 1 | XP 10 / 20**, and no second application. Repeat with **Quickened Grip** in a new session and expect **10 damage every 0.64s**.
-10. Stop and press Play again. Confirm a fresh Grunt, fresh hero HP, Level 0 and XP 0, the original Sword stats, and a new five-hit sequence. Keep default domain/scene reload enabled as saved in Editor settings. There is no in-game restart button in this slice.
+7. During combat the status reads **Encounter 1: combat is automatic** with **Hits this fight** counting up and **Level 0 | XP 0 / 10**. The Grunt is spawned at runtime from `Prefabs/Enemies/Grunt.prefab`; the Hierarchy shows it as **Grunt**.
+8. On the fifth hit the Grunt shape disappears, XP reaches 10, the screen dims and **Level up! Choose one upgrade** shows two cards: **Tempered Edge** (+5 damage per hit) and **Quickened Grip** (+25% attack speed). Behind the overlay the status reads **Grunt defeated in 5 hits, 3.2s**. Combat is paused and no new Grunt appears while the panel is open, however long you wait.
+9. Tap **Tempered Edge**, including rapidly several times. Expect the panel to close, **Sword | 15 damage every 0.80s**, **Level 1 | XP 10 / 20**, and no second application. About one second later **Encounter 2** starts with a fresh 50 HP Grunt; it dies in **4 hits, about 2.4s**, and the second choice opens at **XP 20 / 30**.
+10. In a new session choose **Quickened Grip** instead: expect **10 damage every 0.64s** and Encounter 2 cleared in **5 hits, about 2.6s**.
+11. Stop and press Play again. Confirm Encounter 1, fresh hero HP, Level 0 and XP 0, the original Sword stats, and a new five-hit sequence. Keep default domain/scene reload enabled as saved in Editor settings. There is no in-game restart button in this slice.
 
 ## Data edits and edge cases
 
@@ -30,7 +31,8 @@ Perform data edits outside Play Mode; ScriptableObject Inspector edits during Pl
 - Select `Data/Weapons/Weapon_Sword.asset`: Damage **10**, Interval **0.8**, Range **3**. Change Damage to **25**, enter Play Mode, and expect two hits. Stop and restore **10**.
 - Change Interval to **1.5** and expect visibly slower hits. Stop and restore **0.8**. Runtime snapshots intentionally do not hot-reload asset edits.
 - Change Range to **1**; the center-to-center separation is 2.4, so no hits should occur. Stop and restore **3**. There is no movement system to close this gap.
-- During Play Mode, move Grunt to X **20**; HP must stop falling. Return it to `(0, 1.2, 0)` and attacks resume if it is still alive.
+- Select the **Encounter** object: Advance Delay **1**. Set it to **3**, choose an upgrade, and expect a three-second gap before the next Grunt. Stop and restore **1**. Prefab edits to `Grunt.prefab` apply to every encounter.
+- During Play Mode, move the spawned Grunt to X **20**; HP must stop falling. Return it to `(0, 1.2, 0)` and attacks resume if it is still alive.
 - Disable Grunt in the Hierarchy while alive, wait, then re-enable it. HP should remain unchanged while disabled and attacks should resume after re-enable.
 - Pause using the Editor pause button, then resume. Combat must freeze and continue without a backlog of burst attacks.
 - Select `Data/Upgrades/Upgrade_Damage.asset`: Amount **5**. Change it to **20**, run, choose it and expect **30 damage**. Stop and restore **5**. After any session, `Weapon_Sword.asset` must still read Damage 10 and Interval 0.8.
@@ -51,8 +53,8 @@ The .NET test project targets .NET 9 and accepts SDK 9 or newer with the .NET 9 
 
 In Unity, open **Window → General → Test Runner**:
 
-1. Select **EditMode → Run All**: expect 53 passing cases covering damage validation, health clamping, duplicate/reentrant death, cadence, pause, missing/dead targets, independent weapon state, the five-hit balance fixture, kill-reward idempotency, stat modifier order and clamps, level thresholds, and single/stale/re-entrant upgrade selection with stack limits.
-2. Select **PlayMode → Run All**: expect ten passing tests covering the authored scene's full automatic kill with 10 XP, a single award under repeated lethal damage, range/disable/reacquisition, destroyed targets, pause/resume, dead-owner behavior, the upgrade panel opening and pausing combat, rapid taps applying once, attack-speed selection updating runtime stats and the HUD, and taps before the input delay being ignored.
+1. Select **EditMode → Run All**: expect 64 passing cases covering damage validation, health clamping, duplicate/reentrant death, cadence, pause, missing/dead targets, independent weapon state, the five-hit balance fixture, kill-reward idempotency, stat modifier order and clamps, level thresholds, single/stale/re-entrant upgrade selection with stack limits, encounter progress rules, and upgraded next-fight simulations.
+2. Select **PlayMode → Run All**: expect 13 passing tests covering the full automatic kill with 10 XP, a single award under repeated lethal damage, range/disable/reacquisition, destroyed targets, pause/resume, dead-owner behavior, the upgrade panel opening and pausing combat, rapid taps applying once, attack-speed selection updating runtime stats and the HUD, taps before the input delay being ignored, no encounter advance while choosing, and kill → XP → choose → next Grunt chains for both upgrades.
 3. Reopen Gameplay after tests; tests load/unload the scene for isolation.
 
 Optional Unity batch commands after installing the Editor (close any Editor using this project first). Batch mode requires an active Unity license: when the account session or Personal license has lapsed, Unity exits with code 198 and the log reads `No valid Unity Editor license found`; sign in again through Unity Hub before retrying. The Editor on this machine is installed at the path below, not under the default Hub location.
@@ -75,4 +77,4 @@ Create `TestResults` first if it does not exist. Do not add `-quit` to test comm
 
 ## Scope remaining
 
-The implemented slices end at enemy death, one XP award and one applied upgrade choice; nothing follows the choice yet. The next encounter, additional enemies/weapons, escalating encounters, a boss, result screen, and in-game restart are deliberately still pending. The implementation plan assigns the next reward/choice slice to Day 3.
+The implemented loop repeats kill → XP → choose → next identical Grunt. Enemy scaling, additional enemies/weapons, escalating encounters, a boss, result screen, and in-game restart are deliberately still pending. The implementation plan assigns the next reward/choice slice to Day 3.

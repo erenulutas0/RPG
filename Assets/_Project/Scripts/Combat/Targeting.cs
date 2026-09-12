@@ -6,6 +6,9 @@ namespace Cryptforge.Combat
     {
         [SerializeField] private Health[] _candidates;
 
+        // The encounter owner supplies candidates explicitly; there are still no scene searches or registries.
+        public void SetCandidates(Health[] candidates) => _candidates = candidates;
+
         public Health Acquire(float range)
         {
             Health nearest = null;

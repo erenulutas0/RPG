@@ -10,11 +10,9 @@ namespace Cryptforge.UI
     public sealed class RunHud : MonoBehaviour
     {
         [SerializeField] private CombatSetup _setup;
+        [SerializeField] private EncounterController _encounters;
         [SerializeField] private Health _hero;
-        [SerializeField] private Health _enemy;
-        [SerializeField] private AttackController _attack;
         [SerializeField] private HeroDefinition _heroDefinition;
-        [SerializeField] private EnemyDefinition _enemyDefinition;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Text _titleLabel;
         [SerializeField] private Text _subtitleLabel;
@@ -32,10 +30,10 @@ namespace Cryptforge.UI
         // Run state exists after CombatSetup.Awake, so Start is the earliest safe subscription point.
         private void Start()
         {
-            if (AnyMissing(_setup, _hero, _enemy, _attack, _heroDefinition, _enemyDefinition, _text, _titleLabel,
-                    _subtitleLabel, _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _attackLabel,
-                    _experienceLabel, _enemyBar, _heroBar, _experienceBar) ||
-                _heroDefinition.StartingWeapon == null || _setup.Run == null)
+            if (AnyMissing(_setup, _encounters, _hero, _heroDefinition, _text, _titleLabel, _subtitleLabel,
+                    _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _attackLabel, _experienceLabel, _enemyBar,
+                    _heroBar, _experienceBar) ||
+                _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.EnemyDefinition == null)
             {
                 Debug.LogError("RunHud is missing a scene or content reference.", this);
                 enabled = false;
@@ -44,25 +42,35 @@ namespace Cryptforge.UI
 
             _titleLabel.text = _text.Title;
             _subtitleLabel.text = _text.Subtitle;
-            _hero.Changed += RefreshCombat;
-            _enemy.Changed += RefreshCombat;
-            _attack.Attacked += RefreshCombat;
+            _hero.Changed += RefreshHero;
+            _encounters.ProgressChanged += RefreshEncounter;
             _setup.Weapon.StatsChanged += RefreshWeapon;
             _setup.Run.ExperienceChanged += RefreshExperience;
             _subscribed = true;
-            RefreshCombat();
+            RefreshHero();
+            RefreshEncounter();
             RefreshWeapon();
             RefreshExperience();
         }
 
-        private void RefreshCombat()
+        private void RefreshHero()
         {
             _heroLabel.text = string.Format(_text.HealthFormat, _heroDefinition.DisplayName, _hero.Current, _hero.Maximum);
-            _enemyLabel.text = string.Format(_text.HealthFormat, _enemyDefinition.DisplayName, _enemy.Current, _enemy.Maximum);
             _heroBar.fillAmount = Fraction(_hero.Current, _hero.Maximum);
-            _enemyBar.fillAmount = Fraction(_enemy.Current, _enemy.Maximum);
-            _statusLabel.text = _enemy.IsAlive ? _text.Fighting : _text.Victory;
-            _attackLabel.text = string.Format(_text.AttackCountFormat, _attack.AttackCount);
+        }
+
+        private void RefreshEncounter()
+        {
+            Health enemy = _encounters.CurrentEnemy;
+            string enemyName = _encounters.EnemyDefinition.DisplayName;
+            float current = enemy != null ? enemy.Current : 0f;
+            float maximum = enemy != null ? enemy.Maximum : _encounters.EnemyDefinition.MaximumHealth;
+            _enemyLabel.text = string.Format(_text.HealthFormat, enemyName, current, maximum);
+            _enemyBar.fillAmount = Fraction(current, maximum);
+            _attackLabel.text = string.Format(_text.AttackCountFormat, _encounters.HitsTaken);
+            _statusLabel.text = _encounters.IsCleared
+                ? string.Format(_text.VictoryFormat, enemyName, _encounters.HitsTaken, _encounters.Elapsed)
+                : string.Format(_text.EncounterFormat, _encounters.EncounterNumber);
         }
 
         private void RefreshWeapon()
@@ -97,9 +105,9 @@ namespace Cryptforge.UI
             if (!_subscribed)
                 return;
 
-            _hero.Changed -= RefreshCombat;
-            _enemy.Changed -= RefreshCombat;
-            _attack.Attacked -= RefreshCombat;
+            _hero.Changed -= RefreshHero;
+            if (_encounters != null)
+                _encounters.ProgressChanged -= RefreshEncounter;
             _setup.Weapon.StatsChanged -= RefreshWeapon;
             _setup.Run.ExperienceChanged -= RefreshExperience;
         }

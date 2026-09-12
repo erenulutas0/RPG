@@ -20,6 +20,8 @@ namespace Cryptforge.Tests
     {
         private CombatSetup _setup;
         private AttackController _attack;
+        private Targeting _targeting;
+        private EncounterController _encounters;
         private UpgradeChoiceView _view;
         private Button[] _buttons;
 
@@ -30,6 +32,8 @@ namespace Cryptforge.Tests
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
             _attack = GameObject.Find("Vanguard").GetComponent<AttackController>();
+            _targeting = _attack.GetComponent<Targeting>();
+            _encounters = Object.FindFirstObjectByType<EncounterController>();
             _view = Object.FindFirstObjectByType<UpgradeChoiceView>();
             _buttons = _view.GetComponentsInChildren<Button>(true);
         }
@@ -109,6 +113,60 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator NoNextEncounterStartsWhileTheChoiceIsOpen()
+        {
+            yield return WaitForOfferInput();
+            Health first = _encounters.CurrentEnemy;
+
+            yield return new WaitForSecondsRealtime(1.5f);
+
+            Assert.That(_encounters.EncounterNumber, Is.EqualTo(1));
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(first));
+            Assert.That(first != null, Is.True, "The defeated Grunt stays until the player chooses.");
+        }
+
+        [UnityTest]
+        public IEnumerator DamageUpgradeKillsTheNextGruntInFourHitsAndRewardsOnlyTheNewKill()
+        {
+            yield return WaitForOfferInput();
+            Health first = _encounters.CurrentEnemy;
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(5));
+
+            Tap(_buttons[SlotFor(WeaponStat.Damage)]);
+            yield return WaitForEncounter(2);
+
+            Health second = _encounters.CurrentEnemy;
+            Assert.That(second, Is.Not.SameAs(first));
+            Assert.That(first == null, Is.True, "The defeated Grunt is destroyed when the next encounter starts.");
+            Assert.That(second.Maximum, Is.EqualTo(50f));
+            Assert.That(second.IsAlive, Is.True);
+            Assert.That(_targeting.Acquire(3f), Is.SameAs(second));
+
+            yield return WaitForClear();
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(4));
+            Assert.That(_setup.Run.Experience, Is.EqualTo(20), "Only the new kill adds experience.");
+            Assert.That(_setup.Run.Level, Is.EqualTo(2));
+            Assert.That(_setup.Upgrades.CurrentOffer, Is.Not.Null, "The second kill opens the next choice.");
+            AssertSourceSwordUnchanged();
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator AttackSpeedUpgradeClearsTheNextGruntSooner()
+        {
+            yield return WaitForOfferInput();
+            float firstClearTime = _encounters.Elapsed;
+
+            Tap(_buttons[SlotFor(WeaponStat.AttackSpeed)]);
+            yield return WaitForEncounter(2);
+            yield return WaitForClear();
+
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(5));
+            Assert.That(_encounters.Elapsed, Is.LessThan(firstClearTime - 0.4f),
+                $"Expected about 2.56 s after +25% attack speed; first clear took {firstClearTime:0.00} s.");
+        }
+
+        [UnityTest]
         public IEnumerator TapsBeforeTheInputDelayAreIgnored()
         {
             float deadline = Time.realtimeSinceStartup + 8f;
@@ -130,6 +188,26 @@ namespace Cryptforge.Tests
 
             Assert.That(_setup.Upgrades.CurrentOffer, Is.Not.Null, "Killing the Grunt must open an upgrade offer.");
             yield return new WaitForSecondsRealtime(0.5f);
+        }
+
+        private IEnumerator WaitForEncounter(int number)
+        {
+            float deadline = Time.realtimeSinceStartup + 6f;
+            while (_encounters.EncounterNumber < number && Time.realtimeSinceStartup < deadline)
+                yield return null;
+
+            Assert.That(_encounters.EncounterNumber, Is.EqualTo(number), "The next encounter must start after the choice.");
+            // Let the previous enemy's deferred Destroy complete.
+            yield return null;
+        }
+
+        private IEnumerator WaitForClear()
+        {
+            float deadline = Time.realtimeSinceStartup + 8f;
+            while (!_encounters.IsCleared && Time.realtimeSinceStartup < deadline)
+                yield return null;
+
+            Assert.That(_encounters.IsCleared, Is.True, "The upgraded hero must clear the encounter.");
         }
 
         private int SlotFor(WeaponStat stat)

@@ -11,13 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0000000000000000000000000000000a, type: 3}
   m_Name: PrototypeText
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _title: CRYPTFORGE
-  _subtitle: A lone vanguard. One dungeon foe.
-  _fighting: Combat is automatic
-  _victory: Grunt defeated
+  _subtitle: A lone vanguard. Foes keep coming.
+  _encounterFormat: 'Encounter {0}: combat is automatic'
+  _victoryFormat: '{0} defeated in {1} hits, {2:0.0}s'
   _healthFormat: '{0}  |  {1:0} / {2:0} HP'
   _weaponFormat: '{0}  |  {1:0} damage every {2:0.00}s'
-  _attackCountFormat: 'Hits landed: {0}'
+  _attackCountFormat: 'Hits this fight: {0}'
   _experienceFormat: 'Level {0}  |  XP {1} / {2}'
   _upgradeChoiceTitle: Level up! Choose one upgrade

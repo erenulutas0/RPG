@@ -9,8 +9,8 @@ namespace Cryptforge.Content
     {
         [SerializeField] private string _title;
         [SerializeField] private string _subtitle;
-        [SerializeField] private string _fighting;
-        [SerializeField] private string _victory;
+        [SerializeField] private string _encounterFormat;
+        [SerializeField] private string _victoryFormat;
         [SerializeField] private string _healthFormat;
         [SerializeField] private string _weaponFormat;
         [SerializeField] private string _attackCountFormat;
@@ -19,8 +19,10 @@ namespace Cryptforge.Content
 
         public string Title => _title;
         public string Subtitle => _subtitle;
-        public string Fighting => _fighting;
-        public string Victory => _victory;
+        // {0} encounter number.
+        public string EncounterFormat => _encounterFormat;
+        // {0} enemy name, {1} hits this fight, {2} clear time in seconds.
+        public string VictoryFormat => _victoryFormat;
         public string HealthFormat => _healthFormat;
         public string WeaponFormat => _weaponFormat;
         public string AttackCountFormat => _attackCountFormat;

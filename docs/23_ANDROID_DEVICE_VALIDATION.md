@@ -102,4 +102,19 @@ adb shell am start -W -n com.cryptforge.prototype/com.unity3d.player.UnityPlayer
 
 Select a specific device with `adb -s <serial>` if more than one is attached. The commands above assume exactly one authorized device. The existing first slice has no in-game restart button: fully close the app and reopen it to start a fresh fight, or use `adb shell am force-stop com.cryptforge.prototype` before launching it again.
 
-The first combat slice, the kill → XP slice and the upgrade choice slice are running on the phone. The next encounter, floors and an in-game restart remain future slices.
+## Next encounter slice on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode tests | 64 passed, 0 failed, 0 skipped |
+| Unity PlayMode tests | 13 passed, 0 failed, 0 skipped |
+| Static metadata/scene references | 75 project GUIDs, 140 scene objects/components resolved |
+| Android build (tested content) | Built only after both XML reports passed; APK SHA-256 `57CFE61F1B2F551A83E15959BB3A20989D4538508F5C8FBECEECD39886180BFE` |
+| First choice, 12.0 s | Dimmed status **Grunt defeated in 5 hits, 3.2s**; Sword 10 damage (`android-encounter-choice1.png`) |
+| Tempered Edge tapped; +3.5 s | **Encounter 2**, **Sword \| 15 damage every 0,80s**, fresh Grunt at 5/50 after **3 hits**, **Level 1 \| XP 10 / 20** (`android-encounter-fight2.png`) |
+| Second choice, +7.0 s | Dimmed status **Grunt defeated in 4 hits, 2.4s** (`android-encounter-choice2.png`) |
+| Tempered Edge tapped again, captured inside the 1 s advance delay | **Grunt defeated in 4 hits, 2,4s**, **Hits this fight: 4**, **Sword \| 20 damage**, **Level 2 \| XP 20 / 30** (`android-encounter-cleared2.png`) |
+| App log | 463 app-process lines in `android-encounter-logcat.txt`; no E/Unity, exception, fatal, null-reference or missing-reference matches |
+| Subtitle fix | The new subtitle wrapped and was cut off at the top of the screen. Shortened the text asset only, rebuilt (SHA-256 `A21D6DCD0BE8522DF8BA37C3B0B373A549AF38DF3F4DCAA74B5E7AA6E09F0099`), reinstalled and confirmed **A lone vanguard. Foes keep coming.** on one line during Encounter 1 (`android-encounter-fight1.png`). Unity tests were not re-run for this text-only change; static verification passed. |
+
+The first combat slice, the kill → XP slice, the upgrade choice slice and the next encounter slice are running on the phone. Enemy scaling, floors, a result screen and an in-game restart remain future slices.

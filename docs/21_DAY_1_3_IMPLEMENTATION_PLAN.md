@@ -61,7 +61,7 @@ Acceptance:
 - Combat does not modify any ScriptableObject. A fresh Play Mode session has fresh health and weapon state.
 - Both Unity test suites pass (26 EditMode and five PlayMode cases). The Android development APK also passed a short smoke test on Samsung SM-S911B; see `23_ANDROID_DEVICE_VALIDATION.md` for evidence and remaining profiling limits.
 
-## Day 3 — reward and upgrade slice (kill → XP and upgrade choice implemented; next encounter planned)
+## Day 3 — reward and upgrade slice (implemented: kill → XP, upgrade choice, next encounter)
 
 ### Implemented 2026-09-12: kill → XP once
 
@@ -101,9 +101,24 @@ Deviations from the planned table below: no `UpgradeChoicePanel.prefab` yet (one
 
 Verified: Unity EditMode 53/53, PlayMode 10/10, `Verify-Project.ps1`, .NET CombatChecks 53/53, development APK on Samsung SM-S911B (see `23`).
 
-### Remaining Day 3 plan
+### Implemented 2026-09-13: next Grunt encounter after the choice
 
-Only the next-encounter step remains: extract `Prefabs/Enemies/Grunt.prefab`, add `EncounterController`, refresh targeting candidates, and prove the chosen upgrade visibly changes the next fight. The rows below are kept as the original plan.
+| Files | Change |
+|---|---|
+| `Prefabs/Enemies/Grunt.prefab` | New. The authored Grunt (Health, CombatantView, Enemy Body) extracted by a temporary Editor builder, which was deleted afterwards. The scene no longer contains a Grunt. |
+| `Scripts/Combat/EncounterProgress.cs` | New, plain C#. Encounter number, hits taken this fight, scaled clear time (elapsed stops at the clear), and `Tick(deltaTime, canAdvance)` that counts the advance delay only while progression is allowed. |
+| `Scripts/Combat/EncounterController.cs` | New. Spawns every encounter from the prefab at its own position with fresh `Health`, sets the hero's targeting candidates, raises `EncounterStarted`, `ProgressChanged` and `EnemyDefeated(Health)`. Starts the next encounter 1 s (scaled) after a clear, only when no upgrade offer is open; unsubscribes from and destroys the previous enemy first. |
+| `Scripts/Combat/Targeting.cs` | `SetCandidates(Health[])`; the serialized list is empty in the scene. |
+| `Scripts/Core/CombatSetup.cs` | No longer owns an enemy. Subscribes rewards to `EnemyDefeated` before `EncounterController.Initialize(Upgrades)` spawns the first Grunt. |
+| `Scripts/UI/RunHud.cs`, `Scripts/Content/PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | HUD follows the current encounter: `Encounter {0}: combat is automatic`, `Hits this fight: {0}`, and `{0} defeated in {1} hits, {2:0.0}s`. The enemy name now comes from the definition instead of a fixed "Grunt defeated" string. Subtitle shortened to fit one line. |
+| `Scenes/Gameplay/Gameplay.unity` | `Encounter` object at (0, 1.2, 0) with the controller; `CombatSetup._encounters` and `RunHud._encounters` wired. |
+| `Tests/EditMode/EncounterTests.cs`, `Tests/PlayMode/UpgradeFlowTests.cs` | 11 cases: numbering and reset, hit and clear-time counting, single clear, delay gated by `canAdvance`, validation, an earlier victim never rewarded again, and 60 Hz simulations showing +5 damage kills in 4 hits (~2.4 s) and +25% attack speed in 5 hits (~2.56 s vs 3.2 s). 3 PlayMode tests: no next encounter while the choice is open; damage upgrade → next Grunt is a new instance with 50 HP, targeted, killed in 4 hits, XP exactly 20 and a second offer; attack-speed upgrade → next clear at least 0.4 s faster. |
+
+Unchanged by design: enemy stats do not scale between encounters (floors and scaling belong to the Descent slices), and every encounter is a Grunt.
+
+Verified: Unity EditMode 64/64, PlayMode 13/13, `Verify-Project.ps1`, .NET CombatChecks 64/64, development APK on Samsung SM-S911B (see `23`).
+
+### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.
 
