@@ -50,10 +50,10 @@ In Unity, open **Window → General → Test Runner**:
 2. Select **PlayMode → Run All**: expect five passing tests covering the authored scene's full automatic kill, range/disable/reacquisition, destroyed targets, pause/resume, and dead-owner behavior.
 3. Reopen Gameplay after tests; tests load/unload the scene for isolation.
 
-Optional Unity batch commands after installing the Editor (close any Editor using this project first):
+Optional Unity batch commands after installing the Editor (close any Editor using this project first). Batch mode requires an active Unity license: when the account session or Personal license has lapsed, Unity exits with code 198 and the log reads `No valid Unity Editor license found`; sign in again through Unity Hub before retrying. The Editor on this machine is installed at the path below, not under the default Hub location.
 
 ```powershell
-$unityEditor = 'C:/Program Files/Unity/Hub/Editor/6000.0.65f1/Editor/Unity.exe'
+$unityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe'
 & $unityEditor -batchmode -nographics -projectPath E:/MobileGame -runTests -testPlatform EditMode -testResults E:/MobileGame/TestResults/editmode.xml -logFile E:/MobileGame/TestResults/editmode.log
 & $unityEditor -batchmode -nographics -projectPath E:/MobileGame -runTests -testPlatform PlayMode -testResults E:/MobileGame/TestResults/playmode.xml -logFile E:/MobileGame/TestResults/playmode.log
 ```

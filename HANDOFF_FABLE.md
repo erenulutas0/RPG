@@ -30,6 +30,9 @@ Bu, mekanik prototipin ilk savaş dilimidir. XP/ödül, yükseltme seçimi, ard�
 4. `docs/22_FIRST_COMBAT_VERIFICATION.md`: test/çalıştırma adımları.
 5. `docs/01_PRODUCT_VISION.md`, `03_GAME_DESIGN_DOCUMENT.md`, `06_TECH_ARCHITECTURE_UNITY.md`: ana tasarım ve mimari kısıtlar.
 6. `docs/05_ECONOMY_BALANCING.md`, `07_CODE_STANDARDS.md`, `09_CONTENT_PIPELINE.md`, `13_QA_RELEASE.md`, `15_ROADMAP_BACKLOG.md`, `19_DECISION_LOG_TEMPLATE.md` ve kalan tüm Markdown belgeleri.
+7. `docs/24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md`: referans oyunun çıkış sonrası durumu, mobil karşılaştırmalar ve çok katlı zindan ("Descent") önerisi. Öneriler `19` içindeki "Proposed" karar kabul edilene kadar mevcut belgeleri geçersiz kılmaz.
+
+Git: ilk commit `main` üzerinde atıldı ve `origin` = `https://github.com/erenulutas0/RPG.git` adresine push edildi (2026-09-12).
 
 `docs/16_FIRST_PROMPT.md` ilk kurulum görevini tanımlar; o ilk savaş görevi artık tamamlanmıştır. Yeniden sıfırdan proje kurmak için kullanılmamalı. `17_AGENT_PROMPTS.md` örnek görev şablonları içerir; hepsi birden görev değildir. Tarihsel kurulum engelleri için 23 numaralı belgedeki güncel tamamlanmış sonuç esas alınmalı; gerçek bir belge/kod çelişkisi varsa raporlanmalıdır.
 

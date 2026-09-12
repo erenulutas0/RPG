@@ -46,6 +46,15 @@ The project should be small enough for a solo developer using AI-assisted develo
 19. `19_DECISION_LOG_TEMPLATE.md`
 20. `20_SOURCES.md`
 
+Implementation-era documents (read after the above; they describe what actually exists):
+
+21. `21_DAY_1_3_IMPLEMENTATION_PLAN.md` — implemented first slice and the planned Day 3
+22. `22_FIRST_COMBAT_VERIFICATION.md` — setup, checks and test commands
+23. `23_ANDROID_DEVICE_VALIDATION.md` — device evidence and installed tooling
+24. `24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md` — reference post-launch findings and the multi-floor run proposal
+
+`PROJECT_CONTEXT.md` is the short form for AI agents.
+
 ## The most important rule
 
 **Do not start by producing dozens of final sprites.**

@@ -54,6 +54,10 @@ The APK and local test artifacts are intentionally ignored by Git. Unity-generat
 - Aligned Test Framework manifest with the Editor's effective built-in version **1.6.0** (NUnit **2.0.5**) and retained the generated lockfile.
 - Added `Scripts/Editor/AndroidPrototypeBuild.cs` with an Editor-only assembly: development APK from enabled scenes, portrait, ARM64/IL2CPP, explicit build-failure reporting.
 
+## Known environment issue (later on 2026-09-12)
+
+Batch-mode test runs attempted after the device validation exited with code 198 (`No valid Unity Editor license found`, `Access token is unavailable`). The static checks and the .NET `CombatChecks` suite still pass; the Unity test and build commands below need the Unity account session or Personal license renewed through Unity Hub first. The results above were produced before the license lapsed and were not re-run afterwards.
+
 ## Rebuild and launch
 
 Close any Editor using this project, then run:

@@ -37,6 +37,10 @@ The important signal is not the exact content count. The important signal is tha
 
 Use the reference only as evidence that the loop is understandable.
 
+### Post-launch update (2026-09-12)
+
+The game released on Steam on 2026-09-07 at $4.99 and sits at "Mostly Positive" (~70%). Its most repeated complaints are passive enemies with no failure state, cursor-drag interaction, few meaningful synergies, no respec and no loop after the 4–5 hour ending. Those gaps, the mobile comparables and the resulting run-structure proposal are documented in `24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md`. No mobile version of the reference has been announced.
+
 ---
 
 ## 2026 mobile benchmark reality

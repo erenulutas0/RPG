@@ -52,7 +52,7 @@ What evidence would cause us to reconsider?
 ## Decision: Pin the first combat prototype and defer persistent services
 
 **Date:** 2026-09-12  
-**Status:** Accepted for prototype implementation; Unity verification pending  
+**Status:** Accepted; Editor- and device-verified on 2026-09-12 (see the update at the end of this entry)  
 **Owner:** Project engineering
 
 ### Context
@@ -78,3 +78,33 @@ Replace the temporary HUD when implementing upgrade choices. Add persistent boot
 
 ### First Editor validation update
 The installed 6000.0.65f1 Editor resolves its bundled Unity Test Framework 1.6.0 and NUnit 2.0.5. Updated the manifest to 1.6.0 to match the tested, effective package version and retained Unity's generated lockfile. Removed the nonexistent `com.unity.modules.textrendering` dependency after import identified it. All 26 EditMode and five PlayMode tests now pass in Unity; Android validation is tracked in `23_ANDROID_DEVICE_VALIDATION.md`.
+
+---
+
+## Decision: Multi-floor "Descent" run structure with an Extract/Descend checkpoint
+
+**Date:** 2026-09-12  
+**Status:** Proposed  
+**Owner:** Product / engineering
+
+### Context
+`03_GAME_DESIGN_DOCUMENT.md` recommends a 5-room checkpoint run. Round-2 research (`24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md`) shows the reference game is punished for having no failure state, no risk and no loop after its ending, while praised mobile roguelites (Archero, Shiba Story Go) use a stage → relief → boss cadence with a choice every 30–60 seconds.
+
+### Options
+1. Keep a single 5-room run ending at one boss.
+2. Continuous timed waves with milestone bosses.
+3. Floors of six rooms (3 normal, forge, elite, boss) that repeat with biome, modifier and scaling changes, plus an Extract/Descend decision at each boss checkpoint.
+
+### Decision
+Proposed: option 3, implemented after the Day 3 and Day 4 slices, with a single permanent "Forge" meta layer and prestige deferred.
+
+### Why
+It reuses the room cadence the GDD already prefers, adds the risk/score tension players ask for without a backend, and keeps one progression vertical.
+
+### Consequences
+Positive: repeatable structure from data (`FloorDefinition`, modifiers), measurable Gate A, a natural place for later rewarded-ad hooks.
+
+Negative: two more definition types and a small run state machine before Gate A; balance work for at-risk reward fractions.
+
+### Revisit trigger
+Testers report the Extract/Descend choice as confusing or always-descend; floor 2 takes longer than 8 minutes to reach; or wave mode proves more marketable in early clips.

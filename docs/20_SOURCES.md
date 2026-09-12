@@ -109,6 +109,21 @@ Used for:
 - store page testing,
 - audience-specific product pages.
 
+## Round 2 additions (2026-09-12)
+
+Reference post-launch, mobile comparables, and 2026 market context. The full annotated list with what each source was used for is in `24_RESEARCH_ROUND_2_REFERENCE_AND_FUTURE.md`.
+
+- Bones and Coins Wiki: https://bones-and-coins.wiki/
+- Bones and Coins Steam reviews (JSON API): https://store.steampowered.com/appreviews/4134650?json=1&filter=all&language=english
+- Wanderer review: https://playwanderer.online/game-reviews/bones-and-coins
+- InsertCoins review: https://insertcoins.press/en/articles/bones-and-coins-test
+- Game Developer, Finding the Fun: Archero: https://www.gamedeveloper.com/design/finding-the-fun-archero-part-1---gameplay
+- Mobile Game Report, roguelite and idle RPG analyses 2026: https://www.mobilegamereport.com/
+- Deconstructor of Fun, Legend of Mushroom: https://www.deconstructoroffun.com/blog/2024/4/15/the-magic-of-legend-of-mushroom
+- Sensor Tower, State of Mobile 2026: https://sensortower.com/blog/state-of-mobile-2026
+- Playio, retention benchmarks 2026: https://blog.playio.co/d1-d7-d30-retention-benchmarks-2026
+- Unity 6 optimization guides: https://unity.com/blog/unity-6-game-optimization-guides
+
 ## Research discipline
 
 Policies, SDKs and store requirements change. Re-check official documentation immediately before:
