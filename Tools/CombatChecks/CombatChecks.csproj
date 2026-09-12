@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/DamageContext.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/IDamageable.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/HealthState.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponRuntime.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/CombatStateTests.cs" />
+  </ItemGroup>
+</Project>

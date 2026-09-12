@@ -1,0 +1,7 @@
+{
+  "name": "Project.Editor",
+  "rootNamespace": "Cryptforge.Editor",
+  "references": ["Project.Gameplay"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}
