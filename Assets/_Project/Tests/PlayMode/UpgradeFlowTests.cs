@@ -126,7 +126,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator DamageUpgradeKillsTheNextGruntInFourHitsAndRewardsOnlyTheNewKill()
+        public IEnumerator DamageUpgradeCarriesIntoTheNextEncounterAndRewardsOnlyTheNewKill()
         {
             yield return WaitForOfferInput();
             Health first = _encounters.CurrentEnemy;
@@ -136,14 +136,16 @@ namespace Cryptforge.Tests
             yield return WaitForEncounter(2);
 
             Health second = _encounters.CurrentEnemy;
+            float maximum = _encounters.CurrentDefinition.MaximumHealth;
             Assert.That(second, Is.Not.SameAs(first));
-            Assert.That(first == null, Is.True, "The defeated Grunt is destroyed when the next encounter starts.");
-            Assert.That(second.Maximum, Is.EqualTo(50f));
+            Assert.That(first == null, Is.True, "The defeated enemy is destroyed when the next encounter starts.");
+            Assert.That(second.Maximum, Is.EqualTo(maximum));
             Assert.That(second.IsAlive, Is.True);
             Assert.That(_targeting.Acquire(3f), Is.SameAs(second));
 
             yield return WaitForClear();
-            Assert.That(_encounters.HitsTaken, Is.EqualTo(4));
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(Mathf.CeilToInt(maximum / 15f)),
+                "Every hit on the next enemy uses the upgraded 15 damage.");
             Assert.That(_setup.Run.Experience, Is.EqualTo(20), "Only the new kill adds experience.");
             Assert.That(_setup.Run.Level, Is.EqualTo(2));
             Assert.That(_setup.Upgrades.CurrentOffer, Is.Not.Null, "The second kill opens the next choice.");
@@ -152,18 +154,20 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator AttackSpeedUpgradeClearsTheNextGruntSooner()
+        public IEnumerator AttackSpeedUpgradeShortensTheNextEncounterCadence()
         {
             yield return WaitForOfferInput();
-            float firstClearTime = _encounters.Elapsed;
 
             Tap(_buttons[SlotFor(WeaponStat.AttackSpeed)]);
             yield return WaitForEncounter(2);
+            float maximum = _encounters.CurrentDefinition.MaximumHealth;
             yield return WaitForClear();
 
-            Assert.That(_encounters.HitsTaken, Is.EqualTo(5));
-            Assert.That(_encounters.Elapsed, Is.LessThan(firstClearTime - 0.4f),
-                $"Expected about 2.56 s after +25% attack speed; first clear took {firstClearTime:0.00} s.");
+            int hits = Mathf.CeilToInt(maximum / 10f);
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(hits));
+            // Hits land at 0, 0.64, 1.28 ... s; the unupgraded cadence would need (hits - 1) × 0.8 s.
+            Assert.That(_encounters.Elapsed, Is.LessThan((hits - 1) * 0.8f - 0.15f),
+                $"Expected about {(hits - 1) * 0.64f:0.00} s after +25% attack speed.");
         }
 
         [UnityTest]

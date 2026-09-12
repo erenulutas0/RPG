@@ -16,6 +16,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/HealthState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponRuntime.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EncounterProgress.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/EncounterSchedule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
@@ -24,5 +25,6 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EncounterTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunEndTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/EnemyArchetypeTests.cs" />
   </ItemGroup>
 </Project>

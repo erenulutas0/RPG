@@ -5,13 +5,12 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    // Owns one active enemy at a time: spawns it from the prefab with fresh health and weapon, points the hero and
-    // the enemy at each other, and starts the next encounter once the current one is cleared, no upgrade choice is
-    // open and the hero is still alive.
+    // Owns one active enemy at a time: spawns the next enemy of the authored sequence with fresh health and weapon,
+    // points the hero and the enemy at each other, and starts the next encounter once the current one is cleared,
+    // no upgrade choice is open and the hero is still alive.
     public sealed class EncounterController : MonoBehaviour
     {
-        [SerializeField] private Health _enemyPrefab;
-        [SerializeField] private EnemyDefinition _enemyDefinition;
+        [SerializeField] private EncounterSequenceDefinition _sequence;
         [SerializeField] private Health _hero;
         [SerializeField] private Targeting _heroTargeting;
         [SerializeField, Min(0f)] private float _advanceDelay = 1f;
@@ -19,7 +18,7 @@ namespace Cryptforge.Combat
         private EncounterProgress _progress;
 
         public Health CurrentEnemy { get; private set; }
-        public EnemyDefinition EnemyDefinition => _enemyDefinition;
+        public EnemyDefinition CurrentDefinition { get; private set; }
         public int EncounterNumber => _progress?.EncounterNumber ?? 0;
         public int HitsTaken => _progress?.HitsTaken ?? 0;
         public float Elapsed => _progress?.Elapsed ?? 0f;
@@ -32,17 +31,26 @@ namespace Cryptforge.Combat
 
         public void Initialize(UpgradeService upgrades)
         {
-            if (_enemyPrefab == null || _enemyDefinition == null || _enemyDefinition.Weapon == null || _hero == null ||
-                _heroTargeting == null)
-                throw new InvalidOperationException("EncounterController needs an enemy prefab, an armed definition, the hero and hero targeting.");
-            if (_enemyPrefab.GetComponent<AttackController>() == null || _enemyPrefab.GetComponent<Targeting>() == null)
-                throw new InvalidOperationException("The enemy prefab needs AttackController and Targeting components.");
+            if (_sequence == null || _sequence.Count == 0 || _hero == null || _heroTargeting == null)
+                throw new InvalidOperationException("EncounterController needs an encounter sequence, the hero and hero targeting.");
+            for (int i = 0; i < _sequence.Count; i++)
+                ValidateEnemy(_sequence.EnemyAt(i), i);
             if (_progress != null)
                 throw new InvalidOperationException("EncounterController has already been initialized.");
 
             _upgrades = upgrades ?? throw new ArgumentNullException(nameof(upgrades));
             _progress = new EncounterProgress(_advanceDelay);
             StartNext();
+        }
+
+        // Fail at startup with the offending entry rather than mid-run when that enemy is first due.
+        private static void ValidateEnemy(EnemyDefinition definition, int index)
+        {
+            if (definition == null || definition.Weapon == null || definition.Prefab == null ||
+                definition.Prefab.GetComponent<AttackController>() == null ||
+                definition.Prefab.GetComponent<Targeting>() == null)
+                throw new InvalidOperationException(
+                    $"Encounter sequence entry {index} needs an enemy definition with a weapon and a prefab carrying Health, Targeting and AttackController.");
         }
 
         private void Update()
@@ -55,14 +63,16 @@ namespace Cryptforge.Combat
         {
             Release(CurrentEnemy, true);
 
-            Health enemy = Instantiate(_enemyPrefab, transform.position, Quaternion.identity);
-            enemy.name = _enemyPrefab.name;
-            enemy.Initialize(_enemyDefinition.MaximumHealth);
+            EnemyDefinition definition = _sequence.EnemyFor(_progress.EncounterNumber + 1);
+            Health enemy = Instantiate(definition.Prefab, transform.position, Quaternion.identity);
+            enemy.name = definition.Prefab.name;
+            enemy.Initialize(definition.MaximumHealth);
             enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
-            enemy.GetComponent<AttackController>().Initialize(_enemyDefinition.Weapon.CreateRuntime());
+            enemy.GetComponent<AttackController>().Initialize(definition.Weapon.CreateRuntime());
             enemy.Changed += OnEnemyChanged;
             enemy.Died += OnEnemyDied;
             CurrentEnemy = enemy;
+            CurrentDefinition = definition;
             _heroTargeting.SetCandidates(new[] { enemy });
 
             _progress.Begin();

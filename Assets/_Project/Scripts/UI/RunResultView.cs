@@ -54,7 +54,7 @@ namespace Cryptforge.UI
 
         private void Show()
         {
-            string enemyName = _encounters.EnemyDefinition != null ? _encounters.EnemyDefinition.DisplayName : string.Empty;
+            string enemyName = _encounters.CurrentDefinition != null ? _encounters.CurrentDefinition.DisplayName : string.Empty;
             _causeLabel.text = string.Format(_text.ResultCauseFormat, _heroDefinition.DisplayName, enemyName,
                 _encounters.EncounterNumber);
             RunState run = _setup.Run;

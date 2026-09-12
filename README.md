@@ -8,7 +8,7 @@ Open this folder as a Unity project using **6000.0.65f1**. Open `Assets/_Project
 - [Setup, acceptance checks, test commands, and validation limits](docs/22_FIRST_COMBAT_VERIFICATION.md)
 - [Successful Android build and Samsung device test](docs/23_ANDROID_DEVICE_VALIDATION.md)
 
-Implemented: automatic combat, kill → XP, upgrade choice, the next Grunt encounter, enemy attacks with hero death, and the result screen with one-tap restart. Enemy scaling, healing, floor progression with Extract (see the Descent decision), and additional weapons/enemies are subsequent work.
+Implemented: automatic combat, kill → XP, upgrade choice, consecutive encounters in a Grunt, Runner, Grunt, Tank order (Runner: fast chip attacks; Tank: 120 HP with a slow, delayed slam), enemy attacks with hero death, and the result screen with one-tap restart. Enemy scaling, healing, floor progression with Extract (see the Descent decision), and additional weapons/enemies are subsequent work.
 
 Local checks from the repository root:
 

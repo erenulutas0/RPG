@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00000000000000000000000000000006, type: 3}
-  m_Name: Enemy_Grunt
+  m_Name: Enemy_Tank
   m_EditorClassIdentifier: 
-  _id: enemy_grunt
-  _displayName: Grunt
-  _maximumHealth: 50
-  _weapon: {fileID: 11400000, guid: 10000000000000000000000000000008, type: 2}
-  _prefab: {fileID: 8324477348219262162, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
+  _id: enemy_tank
+  _displayName: Tank
+  _maximumHealth: 120
+  _weapon: {fileID: 11400000, guid: 1000000000000000000000000000000c, type: 2}
+  _prefab: {fileID: 1826359031350401551, guid: 36d45a0bb08664c4096540ac4d1a679d, type: 3}

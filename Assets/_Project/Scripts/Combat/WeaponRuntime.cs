@@ -20,14 +20,19 @@ namespace Cryptforge.Combat
         public float Range { get; }
         public event Action StatsChanged;
 
-        public WeaponRuntime(float damage, float interval, float range)
+        // initialDelay is a windup before the first attack only; later attacks follow the interval.
+        public WeaponRuntime(float damage, float interval, float range, float initialDelay = 0f)
         {
             RequirePositiveFinite(damage, nameof(damage));
             RequirePositiveFinite(interval, nameof(interval));
             RequirePositiveFinite(range, nameof(range));
+            if (float.IsNaN(initialDelay) || float.IsInfinity(initialDelay) || initialDelay < 0f)
+                throw new ArgumentOutOfRangeException(nameof(initialDelay));
+
             _damage = new ModifiableStat(damage, MinimumDamage);
             _attackSpeed = new ModifiableStat(1f, MinimumAttackSpeed);
             _baseInterval = interval;
+            _cooldown = initialDelay;
             Range = range;
         }
 

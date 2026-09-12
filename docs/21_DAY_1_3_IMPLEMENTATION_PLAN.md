@@ -137,6 +137,38 @@ Balance consequence, recorded for tuning: every encounter starts with a guarante
 
 Verified: Unity EditMode 71/71, PlayMode 17/17, `Verify-Project.ps1`, .NET CombatChecks 71/71, development APK on Samsung SM-S911B (see `23`).
 
+### Implemented 2026-09-13 (Day 4 item): Runner and Tank archetypes
+
+| Enemy | HP | Weapon | Windup | Prefab |
+|---|---|---|---|---|
+| Grunt | 50 | Grunt Strike 6 / 1.0 s | 0 | `Grunt.prefab`, orange 1.1 × 0.75 |
+| Runner | 30 | Runner Slash 2 / 0.4 s | 0 | `Runner.prefab` variant, yellow 0.55 × 0.95, lunge 0.3 |
+| Tank | 120 | Tank Slam 12 / 2.5 s | 1.5 s | `Tank.prefab` variant, purple 1.7 × 1.25, lunge 0.12 |
+
+Encounters follow `Data/Encounters/PrototypeEncounters.asset`: Grunt, Runner, Grunt, Tank, repeating. XP per kill stays 10 for every enemy.
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/WeaponRuntime.cs`, `Scripts/Content/WeaponDefinition.cs` | Optional `initialDelay` (windup before the first attack only); `_initialDelay` defaults to 0, so the Sword and Grunt Strike are unchanged. |
+| `Scripts/Content/EnemyDefinition.cs` | `_prefab` (Health with Targeting and AttackController). |
+| `Scripts/Content/EncounterSequenceDefinition.cs`, `Scripts/Combat/EncounterSchedule.cs` | Ordered, repeating enemy list; plain `IndexFor(encounterNumber, count)`. A stand-in for the Descent floor/room definitions. |
+| `Scripts/Combat/EncounterController.cs` | Spawns `sequence.EnemyFor(n)` from its own prefab; validates every entry at startup; exposes `CurrentDefinition` (used by the HUD and result screen). |
+| `Prefabs/Enemies/Runner.prefab`, `Tank.prefab`, `Data/Enemies/Enemy_Runner.asset`, `Enemy_Tank.asset`, `Data/Weapons/Weapon_RunnerSlash.asset`, `Weapon_TankSlam.asset` | New content. Variants override only body color, body scale and lunge distance; silhouettes differ so archetypes are readable without color. Created by a temporary Editor builder, deleted afterwards. |
+| `Tests/EditMode/EnemyArchetypeTests.cs`, `Tests/PlayMode/EncounterSequenceTests.cs`, `UpgradeFlowTests.cs` | 13 cases: schedule order and validation, windup only delaying the first attack, Runner fight (3 hits, 4–5 chip strikes), Tank fight (12 hits, first slam at 1.5 s, 3 slams, 64 HP left), mixed run lasting longer than Grunts alone. 3 PlayMode tests: authored order with per-archetype prefabs and HP, Runner dying to two upgraded hits while chipping, Tank holding its first slam for the windup. Next-encounter tests became data-relative because encounter 2 is now a Runner. |
+
+Balance measured with the 60 Hz simulation before choosing values (hero always takes the first card):
+
+| Variant | Damage-first run | Speed-first run |
+|---|---|---|
+| Grunts only (previous slice) | dies in encounter 11 | dies in encounter 7 |
+| Chosen Grunt/Runner/Grunt/Tank values | dies in encounter 15 | dies in encounter 7 |
+| Same enemies, Quickened Grip +35% | 19 | 11 |
+| Same enemies, Quickened Grip +50% | 19 | 15 |
+
+Finding for the next tuning pass, not applied here: +25% attack speed is clearly weaker than +5 damage, so choosing it first shortens the run by half. Raising it to +35–50% makes both cards viable. The on-device run (damage first) died in encounter 15, matching the simulation.
+
+Verified: Unity EditMode 84/84, PlayMode 20/20, `Verify-Project.ps1`, .NET CombatChecks 84/84; device result only (see `23`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

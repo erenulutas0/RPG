@@ -33,7 +33,7 @@ namespace Cryptforge.UI
             if (AnyMissing(_setup, _encounters, _hero, _heroDefinition, _text, _titleLabel, _subtitleLabel,
                     _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _attackLabel, _experienceLabel, _enemyBar,
                     _heroBar, _experienceBar) ||
-                _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.EnemyDefinition == null)
+                _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.CurrentDefinition == null)
             {
                 Debug.LogError("RunHud is missing a scene or content reference.", this);
                 enabled = false;
@@ -62,9 +62,9 @@ namespace Cryptforge.UI
         private void RefreshEncounter()
         {
             Health enemy = _encounters.CurrentEnemy;
-            string enemyName = _encounters.EnemyDefinition.DisplayName;
+            string enemyName = _encounters.CurrentDefinition.DisplayName;
             float current = enemy != null ? enemy.Current : 0f;
-            float maximum = enemy != null ? enemy.Maximum : _encounters.EnemyDefinition.MaximumHealth;
+            float maximum = enemy != null ? enemy.Maximum : _encounters.CurrentDefinition.MaximumHealth;
             _enemyLabel.text = string.Format(_text.HealthFormat, enemyName, current, maximum);
             _enemyBar.fillAmount = Fraction(current, maximum);
             _attackLabel.text = string.Format(_text.AttackCountFormat, _encounters.HitsTaken);

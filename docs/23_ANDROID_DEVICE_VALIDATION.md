@@ -132,4 +132,18 @@ Select a specific device with `adb -s <serial>` if more than one is attached. Th
 
 Limits: the device run proves one reload visually; the exactly-once reload under repeated taps is asserted by the PlayMode test. The whole run lasted about 30 seconds, much shorter than the GDD's 5–8 minute boss checkpoint target; that is expected until enemy scaling, healing and floors exist.
 
-The first combat slice, kill → XP, upgrade choice, next encounter, and enemy attack with result/restart slices are running on the phone. Enemy scaling, floors, healing and Extract remain future slices.
+## Runner and Tank slice on device (2026-09-13) — partial
+
+| Check | Result |
+|---|---|
+| Unity EditMode tests | 84 passed, 0 failed, 0 skipped |
+| Unity PlayMode tests | 20 passed, 0 failed, 0 skipped |
+| Static metadata/scene references | 91 project GUIDs, 178 scene objects/components resolved |
+| Android build | Built only after both XML reports passed; SHA-256 `B6F62AB9CEC50AA5DA45E579E0233787DECC2D9338FF06FDC643B3EA00429500`; cold launch 523 ms |
+| Result after an auto-played run | **Vanguard fell to a Grunt in encounter 15**, **Encounters cleared: 14 \| Level 14 \| XP 140**, **Tempered Edge x5, Quickened Grip x5** (`android-archetype-result.png`), matching the damage-first simulation |
+| App log | 786 app-process lines in `android-archetype-logcat.txt`; no E/Unity, exception, fatal, null-reference, missing-reference or invalid-operation matches |
+| Runner and Tank on screen | **Not captured.** The phone was in use during the run, so the app was in the background at the planned capture times |
+
+Procedure incident and change: the capture script sent `adb input tap` on a timer without checking which app had focus. While the device owner was using other apps, three captures recorded those apps instead of the game and some taps may have reached them. The captures were deleted right after the review that spotted the problem, were never shared or committed, and no game evidence is taken from them. Unity pauses in the background, so the game state and the result above remain valid. From now on every automated tap and capture first checks that `com.cryptforge.prototype` has window focus and aborts otherwise, and unattended device runs are announced to the owner first.
+
+The first combat slice, kill → XP, upgrade choice, next encounter, enemy attack with result/restart, and Runner/Tank archetype slices are running on the phone. Visual on-device confirmation of the Runner and Tank is pending. Enemy scaling, floors, healing and Extract remain future slices.

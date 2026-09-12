@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00000000000000000000000000000006, type: 3}
-  m_Name: Enemy_Grunt
+  m_Name: Enemy_Runner
   m_EditorClassIdentifier: 
-  _id: enemy_grunt
-  _displayName: Grunt
-  _maximumHealth: 50
-  _weapon: {fileID: 11400000, guid: 10000000000000000000000000000008, type: 2}
-  _prefab: {fileID: 8324477348219262162, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
+  _id: enemy_runner
+  _displayName: Runner
+  _maximumHealth: 30
+  _weapon: {fileID: 11400000, guid: 1000000000000000000000000000000b, type: 2}
+  _prefab: {fileID: 3791692503506538499, guid: 63d2cc6e1eef0a54695983cc962ab341, type: 3}
