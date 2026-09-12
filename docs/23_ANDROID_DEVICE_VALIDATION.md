@@ -132,7 +132,7 @@ Select a specific device with `adb -s <serial>` if more than one is attached. Th
 
 Limits: the device run proves one reload visually; the exactly-once reload under repeated taps is asserted by the PlayMode test. The whole run lasted about 30 seconds, much shorter than the GDD's 5–8 minute boss checkpoint target; that is expected until enemy scaling, healing and floors exist.
 
-## Runner and Tank slice on device (2026-09-13) — partial
+## Runner and Tank slice on device (2026-09-13)
 
 | Check | Result |
 |---|---|
@@ -142,8 +142,13 @@ Limits: the device run proves one reload visually; the exactly-once reload under
 | Android build | Built only after both XML reports passed; SHA-256 `B6F62AB9CEC50AA5DA45E579E0233787DECC2D9338FF06FDC643B3EA00429500`; cold launch 523 ms |
 | Result after an auto-played run | **Vanguard fell to a Grunt in encounter 15**, **Encounters cleared: 14 \| Level 14 \| XP 140**, **Tempered Edge x5, Quickened Grip x5** (`android-archetype-result.png`), matching the damage-first simulation |
 | App log | 786 app-process lines in `android-archetype-logcat.txt`; no E/Unity, exception, fatal, null-reference, missing-reference or invalid-operation matches |
-| Runner and Tank on screen | **Not captured.** The phone was in use during the run, so the app was in the background at the planned capture times |
+| Runner and Tank on screen, first attempt | Not captured: the phone was in use, so the app was in the background at the planned capture times |
+| Focus-checked capture, 01:11 (same build) | Every tap and capture gated on `com.cryptforge.prototype` window focus and an awake display, re-checked after each capture |
+| Encounter 2 Runner, after Quickened Grip | Narrow yellow enemy, **Runner \| 20 / 30 HP**, **Sword \| 10 damage every 0,64s**, **Hits this fight: 1**, hero **72 / 100** after the Grunt fight and two 2-damage slashes (`android-archetype-runner.png`) |
+| Encounter 4 Tank, during windup | Wide purple enemy, **Tank \| 80 / 120 HP** after two 20-damage hits, hero unchanged at **56 / 100** (`android-archetype-tank-windup.png`) |
+| Encounter 4 Tank, after first slam | **Tank \| 40 / 120 HP**, **Hits this fight: 4**, hero **44 / 100** (−12) (`android-archetype-tank-slam.png`) |
+| Tank cleared, captured inside the 1 s advance delay | **Tank defeated in 6 hits, 3,3s**, hero still **44 / 100** (one slam), **Level 4 \| XP 40 / 50**, **Sword \| 25 damage every 0,64s** (`android-archetype-tank-cleared.png`) |
 
 Procedure incident and change: the capture script sent `adb input tap` on a timer without checking which app had focus. While the device owner was using other apps, three captures recorded those apps instead of the game and some taps may have reached them. The captures were deleted right after the review that spotted the problem, were never shared or committed, and no game evidence is taken from them. Unity pauses in the background, so the game state and the result above remain valid. From now on every automated tap and capture first checks that `com.cryptforge.prototype` has window focus and aborts otherwise, and unattended device runs are announced to the owner first.
 
-The first combat slice, kill → XP, upgrade choice, next encounter, enemy attack with result/restart, and Runner/Tank archetype slices are running on the phone. Visual on-device confirmation of the Runner and Tank is pending. Enemy scaling, floors, healing and Extract remain future slices.
+The first combat slice, kill → XP, upgrade choice, next encounter, enemy attack with result/restart, and Runner/Tank archetype slices are running on the phone. Enemy scaling, floors, healing and Extract remain future slices.

@@ -167,7 +167,7 @@ Balance measured with the 60 Hz simulation before choosing values (hero always t
 
 Finding for the next tuning pass, not applied here: +25% attack speed is clearly weaker than +5 damage, so choosing it first shortens the run by half. Raising it to +35–50% makes both cards viable. The on-device run (damage first) died in encounter 15, matching the simulation.
 
-Verified: Unity EditMode 84/84, PlayMode 20/20, `Verify-Project.ps1`, .NET CombatChecks 84/84; device result only (see `23`).
+Verified: Unity EditMode 84/84, PlayMode 20/20, `Verify-Project.ps1`, .NET CombatChecks 84/84, development APK on Samsung SM-S911B including Runner, Tank windup and slam captures (see `23`).
 
 ### Original Day 3 plan (kept for reference)
 
