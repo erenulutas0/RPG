@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 
@@ -15,6 +16,7 @@ namespace Cryptforge.Progression
         private readonly Dictionary<UpgradeOption, int> _stacks = new Dictionary<UpgradeOption, int>();
 
         public UpgradeOffer CurrentOffer { get; private set; }
+        public IReadOnlyList<UpgradeOption> Pool { get; }
         public event Action OfferChanged;
 
         public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount)
@@ -35,8 +37,10 @@ namespace Cryptforge.Progression
                 _stacks.Add(pool[i], 0);
             }
 
+            Pool = new ReadOnlyCollection<UpgradeOption>(_pool);
             _choiceCount = choiceCount;
             _run.LevelChanged += OnLevelChanged;
+            _run.Ended += OnRunEnded;
             OnLevelChanged();
         }
 
@@ -45,7 +49,7 @@ namespace Cryptforge.Progression
 
         public bool TrySelect(UpgradeOffer offer, int slot)
         {
-            if (offer == null || offer != CurrentOffer || slot < 0 || slot >= offer.Choices.Count)
+            if (_run.HasEnded || offer == null || offer != CurrentOffer || slot < 0 || slot >= offer.Choices.Count)
                 return false;
 
             // Close the offer before side effects so re-entrant or repeated taps are rejected.
@@ -61,7 +65,7 @@ namespace Cryptforge.Progression
 
         private void OnLevelChanged()
         {
-            if (CurrentOffer != null)
+            if (CurrentOffer != null || _run.HasEnded)
                 return;
 
             CurrentOffer = CreateOffer();
@@ -69,9 +73,19 @@ namespace Cryptforge.Progression
                 OfferChanged?.Invoke();
         }
 
+        // A choice left open when the run ends is withdrawn so the result screen is never behind it.
+        private void OnRunEnded()
+        {
+            if (CurrentOffer == null)
+                return;
+
+            CurrentOffer = null;
+            OfferChanged?.Invoke();
+        }
+
         private UpgradeOffer CreateOffer()
         {
-            if (_run.PendingUpgrades <= 0)
+            if (_run.HasEnded || _run.PendingUpgrades <= 0)
                 return null;
 
             // Deterministic pool order until encounter pacing justifies weighted random offers.

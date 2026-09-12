@@ -5,12 +5,14 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    // Owns one active enemy at a time: spawns it from the prefab with fresh health, feeds the hero's targeting,
-    // and starts the next encounter once the current one is cleared and no upgrade choice is open.
+    // Owns one active enemy at a time: spawns it from the prefab with fresh health and weapon, points the hero and
+    // the enemy at each other, and starts the next encounter once the current one is cleared, no upgrade choice is
+    // open and the hero is still alive.
     public sealed class EncounterController : MonoBehaviour
     {
         [SerializeField] private Health _enemyPrefab;
         [SerializeField] private EnemyDefinition _enemyDefinition;
+        [SerializeField] private Health _hero;
         [SerializeField] private Targeting _heroTargeting;
         [SerializeField, Min(0f)] private float _advanceDelay = 1f;
         private UpgradeService _upgrades;
@@ -22,6 +24,7 @@ namespace Cryptforge.Combat
         public int HitsTaken => _progress?.HitsTaken ?? 0;
         public float Elapsed => _progress?.Elapsed ?? 0f;
         public bool IsCleared => _progress != null && _progress.IsCleared;
+        public int EncountersCleared => _progress?.EncountersCleared ?? 0;
 
         public event Action EncounterStarted;
         public event Action ProgressChanged;
@@ -29,8 +32,11 @@ namespace Cryptforge.Combat
 
         public void Initialize(UpgradeService upgrades)
         {
-            if (_enemyPrefab == null || _enemyDefinition == null || _heroTargeting == null)
-                throw new InvalidOperationException("EncounterController needs an enemy prefab, definition and hero targeting.");
+            if (_enemyPrefab == null || _enemyDefinition == null || _enemyDefinition.Weapon == null || _hero == null ||
+                _heroTargeting == null)
+                throw new InvalidOperationException("EncounterController needs an enemy prefab, an armed definition, the hero and hero targeting.");
+            if (_enemyPrefab.GetComponent<AttackController>() == null || _enemyPrefab.GetComponent<Targeting>() == null)
+                throw new InvalidOperationException("The enemy prefab needs AttackController and Targeting components.");
             if (_progress != null)
                 throw new InvalidOperationException("EncounterController has already been initialized.");
 
@@ -41,7 +47,7 @@ namespace Cryptforge.Combat
 
         private void Update()
         {
-            if (_progress != null && _progress.Tick(Time.deltaTime, _upgrades.CurrentOffer == null))
+            if (_progress != null && _progress.Tick(Time.deltaTime, _upgrades.CurrentOffer == null && _hero.IsAlive))
                 StartNext();
         }
 
@@ -52,6 +58,8 @@ namespace Cryptforge.Combat
             Health enemy = Instantiate(_enemyPrefab, transform.position, Quaternion.identity);
             enemy.name = _enemyPrefab.name;
             enemy.Initialize(_enemyDefinition.MaximumHealth);
+            enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
+            enemy.GetComponent<AttackController>().Initialize(_enemyDefinition.Weapon.CreateRuntime());
             enemy.Changed += OnEnemyChanged;
             enemy.Died += OnEnemyDied;
             CurrentEnemy = enemy;

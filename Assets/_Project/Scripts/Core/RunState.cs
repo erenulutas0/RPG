@@ -13,9 +13,11 @@ namespace Cryptforge.Core
         public int PendingUpgrades => Level - UpgradesApplied;
         public int ExperienceForCurrentLevel => Level * _experiencePerLevel;
         public int ExperienceForNextLevel => (Level + 1) * _experiencePerLevel;
+        public bool HasEnded { get; private set; }
 
         public event Action ExperienceChanged;
         public event Action LevelChanged;
+        public event Action Ended;
 
         // Linear thresholds until sequential encounters exist to tune a curve against.
         public RunState(int experiencePerLevel)
@@ -30,7 +32,8 @@ namespace Cryptforge.Core
         {
             if (amount < 0)
                 throw new ArgumentOutOfRangeException(nameof(amount));
-            if (amount == 0)
+            // An ended run is final: late rewards cannot reopen progression behind the result screen.
+            if (amount == 0 || HasEnded)
                 return;
 
             Experience += amount;
@@ -49,6 +52,15 @@ namespace Cryptforge.Core
                 throw new InvalidOperationException("No pending upgrade to apply.");
 
             UpgradesApplied++;
+        }
+
+        public void End()
+        {
+            if (HasEnded)
+                return;
+
+            HasEnded = true;
+            Ended?.Invoke();
         }
     }
 }

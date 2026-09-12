@@ -117,4 +117,19 @@ Select a specific device with `adb -s <serial>` if more than one is attached. Th
 | App log | 463 app-process lines in `android-encounter-logcat.txt`; no E/Unity, exception, fatal, null-reference or missing-reference matches |
 | Subtitle fix | The new subtitle wrapped and was cut off at the top of the screen. Shortened the text asset only, rebuilt (SHA-256 `A21D6DCD0BE8522DF8BA37C3B0B373A549AF38DF3F4DCAA74B5E7AA6E09F0099`), reinstalled and confirmed **A lone vanguard. Foes keep coming.** on one line during Encounter 1 (`android-encounter-fight1.png`). Unity tests were not re-run for this text-only change; static verification passed. |
 
-The first combat slice, the kill → XP slice, the upgrade choice slice and the next encounter slice are running on the phone. Enemy scaling, floors, a result screen and an in-game restart remain future slices.
+## Enemy attack and result screen slice on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode tests | 71 passed, 0 failed, 0 skipped |
+| Unity PlayMode tests | 17 passed, 0 failed, 0 skipped |
+| Static metadata/scene references | 79 project GUIDs, 178 scene objects/components resolved |
+| Android build | Built only after both XML reports passed; APK 24,716,834 bytes, SHA-256 `6BA30D96AC30097CBCB6C5FB9DF6821FC88BAAE14803A003FA3A5D8E58030FF7`; cold launch 431 ms |
+| Full run | `adb input tap` on the first card position every 0.7 s from 8 s after launch (the position is empty HUD space outside the choice panel and above the Try again button). First choice was already open at 5.7 s (`android-run-strike.png`) |
+| Result, captured at 35 s and again at 85 s | **Defeated**, **Vanguard fell to a Grunt in encounter 11**, **Encounters cleared: 10 \| Level 10 \| XP 100**, **Build: Tempered Edge x5, Quickened Grip x5**, Sword 35 damage every 0,36s behind the overlay; identical at both times, so nothing advanced after death (`android-run-midway.png`, `android-run-result.png`). Matches the EditMode full-run simulation exactly |
+| Try again (two taps in one shell command), +3.0 s | Same app process; **Encounter 1: combat is automatic**, **Level 0 \| XP 0 / 10**, **Sword \| 10 damage every 0,80s**, Grunt 10/50 flashing white, **Vanguard \| 82 / 100 HP** after three strikes (`android-run-restarted.png`) |
+| App log | 657 app-process lines across the run and restart in `android-run-logcat.txt`; no E/Unity, exception, fatal, null-reference or missing-reference matches |
+
+Limits: the device run proves one reload visually; the exactly-once reload under repeated taps is asserted by the PlayMode test. The whole run lasted about 30 seconds, much shorter than the GDD's 5–8 minute boss checkpoint target; that is expected until enemy scaling, healing and floors exist.
+
+The first combat slice, kill → XP, upgrade choice, next encounter, and enemy attack with result/restart slices are running on the phone. Enemy scaling, floors, healing and Extract remain future slices.

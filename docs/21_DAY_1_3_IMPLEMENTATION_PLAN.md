@@ -118,6 +118,25 @@ Unchanged by design: enemy stats do not scale between encounters (floors and sca
 
 Verified: Unity EditMode 64/64, PlayMode 13/13, `Verify-Project.ps1`, .NET CombatChecks 64/64, development APK on Samsung SM-S911B (see `23`).
 
+### Implemented 2026-09-13 (Day 4 item): enemy attacks, hero death, result screen and restart
+
+| Files | Change |
+|---|---|
+| `Data/Weapons/Weapon_GruntStrike.asset`, `Scripts/Content/EnemyDefinition.cs`, `Data/Enemies/Enemy_Grunt.asset` | New enemy weapon: 6 damage every 1.0 s, range 3. Enemies reference a `WeaponDefinition` and attack through the same `WeaponRuntime` path as the hero. |
+| `Prefabs/Enemies/Grunt.prefab` | Gains `Targeting` and `AttackController` (owner and targeting wired inside the prefab); `CombatantView` lunges the Grunt 0.22 units toward the hero on each strike. Edited by a temporary builder that was deleted afterwards. |
+| `Scripts/Combat/EncounterController.cs` | Requires the hero `Health`; each spawned enemy targets the hero and gets a fresh weapon runtime. The next encounter only starts while the hero is alive. Validates that the prefab is armed. |
+| `Scripts/Core/RunState.cs` | `End()` raises `Ended` once; experience after the end is ignored. |
+| `Scripts/Progression/UpgradeService.cs` | `Pool` for the result build list; ending the run withdraws an open offer and rejects further selections. |
+| `Scripts/Combat/EncounterProgress.cs` | `EncountersCleared`. |
+| `Scripts/Core/CombatSetup.cs` | Hero death ends the run. `RestartRun()` restores time scale and reloads the Gameplay scene once, rebuilding every runtime object from definitions. |
+| `Scripts/UI/RunResultView.cs`, `Scripts/Content/PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | Result canvas above the upgrade panel: **Defeated**, `{hero} fell to a {enemy} in encounter {n}`, encounters cleared / level / XP, the build (`Tempered Edge x5, Quickened Grip x5` or `no upgrades`), and a 260-unit **Try again** button that stays disabled for 0.5 s unscaled and disables itself on the first tap. |
+| `Scenes/Gameplay/Gameplay.unity` | `Result Canvas` (sorting order 20) with the view; `Encounter._hero` wired. |
+| `Tests/EditMode/RunEndTests.cs`, `Tests/PlayMode/RunResultTests.cs`, `CombatSceneTests.cs` | 7 cases: single end and ignored late XP, offer withdrawal, no reward after the end, pool stacks, cleared count, strike damage against the hero (76 HP after the first fight, 58 after an upgraded second), and a full-run simulation that must die within 5–20 encounters. 4 PlayMode tests: strikes deal authored damage; the Grunt kills a wounded hero and the result explains it while all attacks and encounters stop; the result lists cleared encounters and the build; Try again ignores early taps and reloads a fresh run exactly once. The first-kill scene test now expects the hero alive but damaged. |
+
+Balance consequence, recorded for tuning: every encounter starts with a guaranteed Grunt strike, so a run always ends. Taking the first card every time dies in encounter 11 after 10 clears with both upgrades maxed, in about 30 seconds on device. Healing (the planned forge room), enemy scaling and Extract belong to the Descent slices.
+
+Verified: Unity EditMode 71/71, PlayMode 17/17, `Verify-Project.ps1`, .NET CombatChecks 71/71, development APK on Samsung SM-S911B (see `23`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

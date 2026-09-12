@@ -23,5 +23,6 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EncounterTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RunEndTests.cs" />
   </ItemGroup>
 </Project>

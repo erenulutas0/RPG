@@ -21,3 +21,10 @@ MonoBehaviour:
   _attackCountFormat: 'Hits this fight: {0}'
   _experienceFormat: 'Level {0}  |  XP {1} / {2}'
   _upgradeChoiceTitle: Level up! Choose one upgrade
+  _resultTitle: Defeated
+  _resultCauseFormat: '{0} fell to a {1} in encounter {2}'
+  _resultProgressFormat: 'Encounters cleared: {0}  |  Level {1}  |  XP {2}'
+  _resultBuildFormat: 'Build: {0}'
+  _resultUpgradeFormat: '{0} x{1}'
+  _resultNoUpgrades: no upgrades
+  _restartLabel: Try again

@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 3092832546023263749}
   - component: {fileID: 8324477348219262162}
   - component: {fileID: 7272496857767471138}
+  - component: {fileID: 8049096984069169956}
+  - component: {fileID: 8497454021856667483}
   m_Layer: 0
   m_Name: Grunt
   m_TagString: Untagged
@@ -59,10 +61,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _health: {fileID: 8324477348219262162}
-  _attack: {fileID: 0}
+  _attack: {fileID: 8497454021856667483}
   _body: {fileID: 6534908672259299140}
   _feedbackDuration: 0.14
-  _attackNudge: 0
+  _attackNudge: -0.22
+--- !u!114 &8049096984069169956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679956143142569950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00000000000000000000000000000002, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _candidates: []
+--- !u!114 &8497454021856667483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679956143142569950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00000000000000000000000000000003, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _owner: {fileID: 8324477348219262162}
+  _targeting: {fileID: 8049096984069169956}
 --- !u!1 &2159935233389229391
 GameObject:
   m_ObjectHideFlags: 0

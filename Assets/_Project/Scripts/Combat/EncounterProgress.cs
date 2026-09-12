@@ -12,6 +12,7 @@ namespace Cryptforge.Combat
         public int HitsTaken { get; private set; }
         public float Elapsed { get; private set; }
         public bool IsCleared { get; private set; }
+        public int EncountersCleared => IsCleared ? EncounterNumber : Math.Max(0, EncounterNumber - 1);
 
         public EncounterProgress(float advanceDelay)
         {

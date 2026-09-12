@@ -52,7 +52,9 @@ namespace Cryptforge.Tests
             Assert.That(_enemy.Current, Is.Zero);
             Assert.That(deaths, Is.EqualTo(1));
             Assert.That(_attack.AttackCount, Is.EqualTo(5));
-            Assert.That(_hero.Current, Is.EqualTo(100f));
+            // The Grunt strikes back (exact counts are covered by the EditMode fight simulation).
+            Assert.That(_hero.IsAlive, Is.True);
+            Assert.That(_hero.Current, Is.LessThan(100f));
             Assert.That(_enemy.GetComponentInChildren<SpriteRenderer>(true).enabled, Is.False);
             Assert.That(_targeting.Acquire(3f), Is.Null);
             // PrototypeEconomy.asset configures 10 XP per kill, matching the five-hit balance fixture.

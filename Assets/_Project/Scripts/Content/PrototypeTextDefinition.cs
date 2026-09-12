@@ -16,6 +16,13 @@ namespace Cryptforge.Content
         [SerializeField] private string _attackCountFormat;
         [SerializeField] private string _experienceFormat;
         [SerializeField] private string _upgradeChoiceTitle;
+        [SerializeField] private string _resultTitle;
+        [SerializeField] private string _resultCauseFormat;
+        [SerializeField] private string _resultProgressFormat;
+        [SerializeField] private string _resultBuildFormat;
+        [SerializeField] private string _resultUpgradeFormat;
+        [SerializeField] private string _resultNoUpgrades;
+        [SerializeField] private string _restartLabel;
 
         public string Title => _title;
         public string Subtitle => _subtitle;
@@ -28,5 +35,16 @@ namespace Cryptforge.Content
         public string AttackCountFormat => _attackCountFormat;
         public string ExperienceFormat => _experienceFormat;
         public string UpgradeChoiceTitle => _upgradeChoiceTitle;
+        public string ResultTitle => _resultTitle;
+        // {0} hero name, {1} enemy name, {2} encounter number.
+        public string ResultCauseFormat => _resultCauseFormat;
+        // {0} encounters cleared, {1} level, {2} experience.
+        public string ResultProgressFormat => _resultProgressFormat;
+        // {0} joined upgrade entries or the no-upgrades text.
+        public string ResultBuildFormat => _resultBuildFormat;
+        // {0} upgrade name, {1} stacks.
+        public string ResultUpgradeFormat => _resultUpgradeFormat;
+        public string ResultNoUpgrades => _resultNoUpgrades;
+        public string RestartLabel => _restartLabel;
     }
 }
