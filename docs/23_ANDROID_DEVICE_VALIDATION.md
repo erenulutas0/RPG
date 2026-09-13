@@ -197,4 +197,22 @@ Limits: the whole floor took 46 s with instant automated choices, so a human run
 
 Limits: both floors took about 78 s with instant automated choices, so a human Descent is roughly two minutes, still short of the GDD's 3–4 minute floors. Only the Descend branch ran on device; Extract and a floor 2 death with gold loss are covered by PlayMode tests. The hero entered floor 2 with 33 HP here versus 38 in the simulation. The status line still shows faintly between the cards behind the overlay (cosmetic, as on floor 1).
 
-The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint and floor 2 are running on the phone. The Forge meta layer, relics and local save remain future slices.
+## Forge meta layer (Relic Forge and local save) on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 119/119 and 28/28 passed before the build |
+| Install | APK SHA-256 `32523A4D00FCC7142DBB59361FCEEB9208769A9B29C24F9BE553EE9BBE05628E`, `Success`, installed while the game was not in focus; nothing was launched |
+| First attempts | Stopped before any tap or capture: the game was not in focus during a 3-minute read-only wait, then another app was in front |
+| Owner opened the game | Focus, awake display and no keyguard verified before and after every tap and capture; the run the owner had opened was continued, never reinstalled or relaunched |
+| Checkpoint, panel 9 at 46.8 s | **Extract** tapped |
+| Result, 2.6 s later | **Extracted**, **Floor 1 \| 6 rooms \| Level 7 \| XP 70**, **Gold banked: 96**, **Build: Tempered Edge x5, Quickened Grip x2**, **Forge gold 96: Second Wind is ready to forge**, **Try again** above **Relic Forge** (`android-meta-result.png`) |
+| Relic Forge | **Gold 96 \| Deepest floor cleared: 1**; **Second Wind** with **Forge for 80 gold**; **Counterweight** dimmed with **150 gold: need 54 more**; **Start run** (`android-meta-forge.png`) |
+| One tap on Second Wind | **Gold 16**, Second Wind **Equipped**, Counterweight **150 gold: need 134 more** (`android-meta-forged.png`) |
+| Start run, 3.7 s later | Fresh run: **Floor 1 \| Room 1/6 \| Ember Hall**, **Relic: Second Wind** in gold under the weapon line, **Gold 0 (0 at risk)**, **Level 0 \| XP 0 / 10** (`android-meta-relic-run.png`) |
+| Saved profile | `/sdcard/Android/data/com.cryptforge.prototype/files/profile.json` (191 bytes): `saveVersion` 1, `revision` 3, `gold` 16, `ownedRelicIds` [`relic_second_wind`], equipped `relic_second_wind`, `deepestFloorCleared` 1. `profile.json.bak` holds revision 2 (96 gold, no relics); revision 1 was the floor 1 depth record. No temp file was left behind |
+| App log | 505 app-process lines in `android-meta-logcat.txt`; no E/Unity, exception, fatal, missing-reference or profile-recovery matches |
+
+Limits: Second Wind's heal and Counterweight's counters did not trigger in this short device run; both are covered by PlayMode tests. Owner feedback: the run starts immediately and there is no pause button; only choice panels and leaving the app pause it. Cosmetic: the result and Relic Forge backdrops are 92% opaque, so the HUD and result text show faintly behind the forge hint line and between the Relic Forge cards.
+
+The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2 and the Forge meta layer with local save are running on the phone. Weapon behaviors and a pause control remain future slices.
