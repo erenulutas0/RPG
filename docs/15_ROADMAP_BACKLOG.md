@@ -37,6 +37,11 @@ Do NOT:
 - 3 weapon behaviors (owner choice 2026-09-13: packs of enemies first, then Sword cleave, Staff area damage and Daggers with crits, Staff and Daggers unlocked in the Forge; done 2026-09-13, see `21`),
 - pause control (owner feedback 2026-09-13: a run starts at once and only choice panels or leaving the app pause it; done 2026-09-13: HUD pause button, pause on leaving the app, see `21`).
 
+### Next (owner choice 2026-09-14; art direction and order in `19`)
+- isometric arena: a floating platform with enemies spread in two dimensions, larger packs and a rebalance, placeholder visuals,
+- a touch-aimed area ability with a cooldown,
+- icon HUD: room pips, boss bar, buff icons with details on tap, bottom health and XP panel, damage numbers.
+
 Exit:
 5–10 minutes playable.
 

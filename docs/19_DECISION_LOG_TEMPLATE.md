@@ -213,3 +213,42 @@ Testers cannot tell which enemy is being hit or attacking; a Descent still plays
 - **`WeaponShop` is separate from `RelicShop`.** The starting-weapon rule has no relic equivalent; the shared card states became `UnlockStatus`. Extract a common shop when a third unlock category (heroes) arrives.
 - **Save version 2** adds `ownedWeaponIds` and `equippedWeaponId`. `ProfileMigration` upgrades version 1 files, covered by a migration test and a version 1 file test, as the revisit trigger of the save decision asked.
 - **Prices (Staff 120, Daggers 180)** interleave with the relics, so the result hint names the goals in order: Second Wind (80), Staff (120), Counterweight (150), Daggers (180). They come from pacing, not simulation; revisit with tester run counts.
+
+---
+
+## Decision: Astral foundry art direction and the mockup layout
+
+**Date:** 2026-09-14  
+**Status:** Accepted (the first slice, the isometric arena, is next)  
+**Owner:** Product / art
+
+### Context
+The owner asked for a look like a reference screenshot: a floating isometric dungeon floor against space, an area attack the player aims by touch, and visible buffs. Following `08` (concepts first, image models for exploration), two portrait mockups came from one prompt. They are in `ArtDirection/2026-09-14/mockups/`, with the prompts and edits in `PROMPTS.md`. The first cosmic render had a skull boss marker and a skull-like golem face; both were removed before the comparison.
+
+### Options
+1. **Cosmic:** a floating forge platform in a violet void, the same on every floor.
+2. **Furnace cavern:** the same platform inside an underground furnace cavern.
+3. **Astral foundry:** the cosmic backdrop, with each floor a forge island whose materials and nebula colors change.
+
+### Decision
+Option 3, with `cosmic-v1.png` as the layout and palette target.
+- **Arena:** a floating isometric diamond of dark stone and brass in the middle of the screen, enemies spread across it.
+- **HUD:** room pips and a boss bar at the top, a row of buff icons with stack badges and one gold counter; hero health and XP at the bottom, pause at the bottom left, a large ability button at the bottom right.
+- **Order:** the isometric arena with enemies spread in two dimensions first, then the touch-aimed area ability, then the icon HUD. Placeholder visuals throughout; final art stays behind the gates in `08`.
+
+### Why
+- **Readability:** ember-orange enemies and the blue spell ring stand out against the violet void; in the cavern, lava and orange fissures compete with the enemies.
+- **Continuity:** option 3 keeps B's forge floors (Ember Halls warm, Quicksilver Vaults cool silver) while adopting the owner's space idea.
+- **Originality:** dark stone and brass tiles, a thick floating island and molten enemies stay clear of the reference's flat purple grid and skeleton army.
+- **Portrait, one hand:** the ability button sits within the right thumb's reach and the arena stays unobstructed.
+
+### Consequences
+Positive: one concrete target for layout, palette and HUD; the area ability gains a spatial decision once enemies spread out.
+
+Negative:
+- Spreading enemies in depth needs two-dimensional formations, larger packs and a rebalance; the simulation and the parity tests must follow.
+- The icon HUD needs buff details on tap, and mites and health bars are small at phone size.
+- The mockups are AI-generated references; nothing from them enters `Assets`.
+
+### Revisit trigger
+The placeholder arena fails a readability check on the S23 (enemy size, health bars, damage numbers), testers cannot tell floors apart, or larger packs cost frame rate.
