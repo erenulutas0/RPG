@@ -179,4 +179,22 @@ Procedure incident and change: the capture script sent `adb input tap` on a time
 
 Limits: the whole floor took 46 s with instant automated choices, so a human run is roughly a minute. The victory cause line wraps to two lines and the forge status text shows faintly between the cards behind the overlay; both are cosmetic.
 
-The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning and Descent floor 1 are running on the phone. Floor 2 with a modifier and scaling, Extract/Descend, relics and local save remain future slices.
+## Descent floor 2 (Quicksilver Vaults) and the checkpoint on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 100/100 and 24/24 passed before the build |
+| First attempts | Stopped before any tap or capture, twice: the game was not open (home screen focused, no game process), including a 3-minute read-only wait |
+| Install | APK SHA-256 `567C672B40F18698A305AF57B0BE91639E85FA777C2DDCEAE038D6975862487D`, `Success` while the home screen had focus; nothing was launched |
+| Owner opened the game | The game already showed a finished run played on the new build: **Descent complete**, **Floor 2 \| 12 rooms \| Level 15 \| XP 150**, **Gold banked: 250**, hero 31/100 (`android-descent-owner-result.png`) |
+| Automated run | Focus, awake display and no keyguard verified before and after every tap and capture. One **Try again** tap started a fresh run. The lower card was tapped only on the first two-card panel after a one-card level-up (the checkpoint), the upper card everywhere else (damage first, Mend) |
+| Checkpoint, panel 9 at 48.4 s | **Checkpoint: extract or descend?**, **Extract / Bank all 96 gold and end the run**, **Descend / Secure 96 gold. Quicksilver Vaults: +20% enemy damage, +50% gold**; behind it **Floor 1 \| Room 6/6 \| Warden's Crucible**, **Forge Warden \| 0 / 300 HP** (`android-descent-checkpoint.png`) |
+| Floor 2, 2.4 s after Descend | **Floor 2 \| Room 1/6 \| Mercury Stair**, **Grunt \| 35 / 70 HP**, **Gold 96  (0 at risk)** in gold, hero 33/100: descending did not heal (`android-descent-floor2.png`) |
+| Floor 2 forge, panel 13 at 70.0 s | **Floor 2 \| Room 4/6 \| The Deep Forge**, **Mend / Temper**, **Sword \| 35 damage every 0,23s** (`android-descent-floor2-forge.png`) |
+| Boss, 5.4 s after Mend | **Room 6/6 \| Warden's Vault**, **Forge Warden \| 210 / 420 HP** in the enraged color, **Forge Warden is enraged!**, hero 21/100, **Gold 175  (79 at risk)** (`android-descent-floor2-warden.png`) |
+| Result at 79.5 s after 13 panels | **Descent complete**, **Vanguard defeated the Forge Warden and cleared Quicksilver Vaults**, **Floor 2 \| 12 rooms \| Level 15 \| XP 150**, **Gold banked: 250**, **Build: Tempered Edge x5, Quickened Grip x5**, hero 21/100 (`android-descent-result.png`); the simulation predicted 17 HP for this path |
+| App log | 603 app-process lines in `android-descent-logcat.txt`; no E/Unity, exception, fatal or missing-reference matches |
+
+Limits: both floors took about 78 s with instant automated choices, so a human Descent is roughly two minutes, still short of the GDD's 3–4 minute floors. Only the Descend branch ran on device; Extract and a floor 2 death with gold loss are covered by PlayMode tests. The hero entered floor 2 with 33 HP here versus 38 in the simulation. The status line still shows faintly between the cards behind the overlay (cosmetic, as on floor 1).
+
+The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint and floor 2 are running on the phone. The Forge meta layer, relics and local save remain future slices.

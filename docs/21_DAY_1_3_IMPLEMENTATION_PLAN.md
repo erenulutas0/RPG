@@ -248,7 +248,7 @@ Balance chosen with the Descent simulation (first upgrade card every time, Mend 
 
 Descending is a real bet: a healthy hero makes it, a hero who tempered on floor 1 should extract. Rejected alternatives in the same simulation: a 30% heal on descend let every path survive; health ×1.6 with the same ×1.5 damage killed the speed-first Mend path and left damage-first Mend at 2 HP.
 
-Verified: Unity EditMode 100/100, PlayMode 24/24, `Verify-Project.ps1`, .NET CombatChecks 100/100, development APK built only after both reports passed (SHA-256 `567C672B40F18698A305AF57B0BE91639E85FA777C2DDCEAE038D6975862487D`).
+Verified: Unity EditMode 100/100, PlayMode 24/24, `Verify-Project.ps1`, .NET CombatChecks 100/100, development APK built only after both reports passed (SHA-256 `567C672B40F18698A305AF57B0BE91639E85FA777C2DDCEAE038D6975862487D`). On Samsung SM-S911B an automated Descend run cleared both floors in about 78 s with 21 HP left and banked 250 gold (see `23`).
 
 ### Original Day 3 plan (kept for reference)
 
