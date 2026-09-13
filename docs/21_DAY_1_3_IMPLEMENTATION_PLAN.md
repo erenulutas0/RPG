@@ -324,9 +324,16 @@ Owner feedback from the Relic Forge device run: a run starts at once and there i
 | `Scripts/Core/RunPause.cs` | New, plain C#: the single owner of "is the run frozen?". An open choice and the player's pause each hold the run; pausing is refused during a choice or after the run ends, and the end releases a pause. |
 | `Scripts/Core/CombatSetup.cs` | Applies `RunPause` to `Time.timeScale` (the choice handler no longer sets it directly), reports choice state to it, and pauses on `OnApplicationPause(true)`. |
 | `Scripts/UI/PauseView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset`, `Scenes/Gameplay/Gameplay.unity` | HUD pause button and a **Pause Canvas** (sorting order 30, above choices and results) with the overlay. The scene was wired by a temporary builder, deleted afterwards. |
-| Tests | EditMode `RunPauseTests` (4). PlayMode `PauseFlowTests` (3): the button freezes combat until Resume; leaving the app pauses the run while an open choice stays in charge; the button hides when the run ends. |
+| Tests | EditMode `RunPauseTests` (4). PlayMode `PauseFlowTests` (4): the button freezes combat until Resume; leaving the app pauses the run while an open choice stays in charge; the button hides when the run ends; every button's canvas can receive touches. |
 
-Verified: Unity EditMode 123/123, PlayMode 31/31, `Verify-Project.ps1`, .NET CombatChecks 117/117, development APK built only after both reports passed (SHA-256 `07CDD30A40ADDD2DD1D0FAE38923DE995B043379E2368CA91D336AD6E3DCFC9B`).
+Verified first: Unity EditMode 123/123, PlayMode 31/31, `Verify-Project.ps1`, .NET CombatChecks 117/117, development APK built only after both reports passed (SHA-256 `07CDD30A40ADDD2DD1D0FAE38923DE995B043379E2368CA91D336AD6E3DCFC9B`).
+
+**Device finding and fix:** on the phone the pause button ignored real touches.
+- **Cause:** the HUD canvas had never needed input, so it had no `GraphicRaycaster`. The flow tests click buttons with `ExecuteEvents` directly and therefore bypass raycasting.
+- **Fix:** a temporary builder added the raycaster (deleted afterwards).
+- **Guard:** `PauseFlowTests.EveryButtonSitsOnACanvasThatReceivesTouches` now checks that every button's root canvas has one. Run against the unfixed scene it failed with **Pause Button is on HUD Canvas, which has no GraphicRaycaster**.
+
+Verified after the fix: Unity EditMode 123/123, PlayMode 32/32, `Verify-Project.ps1`, development APK built only after both reports passed (SHA-256 `15A602FB9EA45855429BF319088453A2C11E650050E7775EC43AD863290E80C5`).
 
 ### Original Day 3 plan (kept for reference)
 

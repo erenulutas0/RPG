@@ -109,6 +109,22 @@ namespace Cryptforge.Tests
             Assert.That(_pauseButton.gameObject.activeInHierarchy, Is.True);
         }
 
+        // Flow tests click buttons directly, which bypasses raycasting. On a device a touch only reaches a button whose
+        // root canvas has a GraphicRaycaster; the HUD canvas once lacked one, so the pause button ignored real touches.
+        [UnityTest]
+        public IEnumerator EveryButtonSitsOnACanvasThatReceivesTouches()
+        {
+            Button[] buttons = Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Assert.That(buttons, Is.Not.Empty);
+            foreach (Button button in buttons)
+            {
+                Canvas root = button.GetComponentInParent<Canvas>(true).rootCanvas;
+                Assert.That(root.GetComponent<GraphicRaycaster>(), Is.Not.Null,
+                    $"{button.name} is on {root.name}, which has no GraphicRaycaster.");
+            }
+            yield break;
+        }
+
         [UnityTest]
         public IEnumerator PauseButtonHidesWhenTheRunEnds()
         {
