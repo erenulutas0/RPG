@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _id: weapon_staff
   _displayName: Staff
-  _damage: 18
-  _interval: 1.2
+  _damage: 10
+  _interval: 0.9
   _range: 3
   _initialDelay: 0
   _behavior: 2
   _splashRadius: 3.5
-  _splashFraction: 0.75
+  _splashFraction: 1
   _critEvery: 0
   _critMultiplier: 0
-  _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s. Blasts every enemy near the target for {2:0}%'
+  _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s to the target and every enemy near it'
   _forgePrice: 120

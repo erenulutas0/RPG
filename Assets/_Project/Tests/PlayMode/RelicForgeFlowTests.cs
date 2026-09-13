@@ -198,7 +198,7 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(0.4f);
 
             Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo($"10 damage every {0.8f:0.0#}s. Cleaves a second enemy for 60%"));
-            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"18 damage every {1.2f:0.0#}s. Blasts every enemy near the target for 75%"));
+            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"10 damage every {0.9f:0.0#}s to the target and every enemy near it"));
             Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
             Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.55f:0.0#}s. Crits for 200% once every 3 strikes"));
             Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
@@ -226,7 +226,7 @@ namespace Cryptforge.Tests
             yield return StartRun();
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
             Assert.That(_setup.Weapon.Pattern.Behavior, Is.EqualTo(WeaponBehavior.Area));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Staff  |  18 damage every {1.2f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Staff  |  10 damage every {0.9f:0.00}s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Staff Loadout"));
             Assert.That(GameObject.Find("Sword Placeholder"), Is.Null, "The Sword loadout is hidden.");
 
@@ -236,7 +236,7 @@ namespace Cryptforge.Tests
             while (heroAttack.AttackCount < 2 && Time.realtimeSinceStartup < deadline)
                 yield return null;
             Assert.That(heroAttack.AttackCount, Is.GreaterThanOrEqualTo(2));
-            Assert.That(grunt.Current, Is.EqualTo(50f - 18f * heroAttack.AttackCount).Within(1e-3f), "Each Staff blast deals 18.");
+            Assert.That(grunt.Current, Is.EqualTo(50f - 10f * heroAttack.AttackCount).Within(1e-3f), "Each Staff blast deals 10.");
         }
 
         [UnityTest]
@@ -280,11 +280,14 @@ namespace Cryptforge.Tests
         }
 
         // Every Forge panel element is anchored to the bottom of the safe area; together they must fit the shortest
-        // 9:16 portrait screen (1920 canvas units) without overlapping.
+        // 9:16 portrait screen (1920 canvas units) without overlapping. On the phone the result screen's build line
+        // showed through a 92% backdrop between the weapon and relic cards, so the backdrop must be opaque.
         [UnityTest]
-        public IEnumerator ForgePanelFitsTheShortestPortraitScreenWithoutOverlaps()
+        public IEnumerator ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps()
         {
             yield return LoadGameplay(null);
+            Assert.That(_forge.transform.Find("Forge Panel").GetComponent<Image>().color.a, Is.EqualTo(1f),
+                "The result screen must not show through the Forge.");
             Transform safeArea = _forge.transform.Find("Forge Panel/Safe Area");
             var spans = new List<(string Name, float Bottom, float Top)>();
             foreach (RectTransform child in safeArea)

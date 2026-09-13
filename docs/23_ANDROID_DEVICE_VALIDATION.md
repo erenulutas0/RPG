@@ -235,4 +235,29 @@ Limits:
 - **Result build wording:** a relic that never triggered reads **Second Wind (0x)**, while the HUD omits the count until the first trigger.
 - **Capture scripts:** the first pixel used to recognise the orange button fell on the **Resume** glyphs, so the scripts now sample the button's label-free left edge.
 
-The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2, the Forge meta layer with local save and pause control are running on the phone. Weapon behaviors remain a future slice.
+## Packs, Staff, Daggers and weapon unlocks on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 140/140 and 37/37 passed before the build (commit cc1a217, which includes the packs of commit 23e0de3) |
+| Install | APK SHA-256 `8558B44BFB50FA307AA417882F646A6E4DF0B94D87F4EEE6AC8B51D14CAF48C5`, `Success` while the home screen had focus; nothing was launched |
+| Saved profile before | Version 1, revision 4, 112 gold, Second Wind owned and equipped, deepest floor 1 |
+| Owner opened the game | Focus, awake display and no keyguard verified before and after every tap and capture. The script always took the first card (damage first, Mend, Extract) |
+| Sword, first wave | **Grunt defeated in 5 hits, 3,2s**, **Sword \| 15 damage every 0,80s**, sword and shield (`android-weapons-run1-1.png`) |
+| Sword result, 10 panels at 55.6 s | **Extracted**, **Floor 1 \| 6 rooms \| Level 8 \| XP 108**, **Gold banked: 109**, **Build: Sword  \|  Second Wind (0x), Tempered Edge x5, Quickened Grip x3**, **Forge gold 221: Staff is ready to forge**, hero 56/100; the simulation predicted 54 (`android-weapons-result1.png`) |
+| Relic Forge | **Gold 221 \| Deepest floor cleared: 1**. **Weapons: carry one**: Sword **Equipped**, Staff **Forge for 120 gold**, Daggers **Forge for 180 gold**. **Relics: equip one**: Second Wind **Equipped**, Counterweight **Forge for 150 gold**. Decimals follow the phone's Turkish locale (**0,8s**) (`android-weapons-forge.png`) |
+| One tap on the Staff | **Gold 101**, Staff **Equipped**, Sword **Owned: tap to equip**, Daggers dimmed with **180 gold: need 79 more** (`android-weapons-forge-staff.png`) |
+| Staff run | Brown staff with a violet orb, no shield. **Staff \| 23 damage every 1,20s** facing two full-health mites (`android-weapons-staff-2.png`); **Grunt \| 50 / 50 HP (+2 more)** at 38 damage (`android-weapons-staff-5.png`); **Tank \| 34 / 120 HP**, hero 39/100 (`android-weapons-staff-7.png`) |
+| Staff result, 10 panels at 122.0 s | **Extracted**, **Build: Staff  \|  Second Wind (0x), Tempered Edge x5, Quickened Grip x3**, **Forge gold 210: Counterweight is ready to forge**, hero 38/100 against 52 simulated (`android-weapons-result-staff.png`) |
+| One tap on the Daggers | **Gold 30**, Daggers **Equipped**, Sword and Staff **Owned: tap to equip**, Counterweight dimmed with **150 gold: need 120 more** (`android-weapons-forge-daggers.png`) |
+| Daggers run | Two blades. **Grunt defeated in 7 hits, 3,3s** behind the first choice: 6 + 6 + 12 + 6 + 6 + 12 + 6 = 54, where 6-damage hits without crits would need 9 (`android-weapons-daggers-2.png`). **2 enemies defeated in 4 hits, 1,7s** at 11 damage (`android-weapons-daggers-4.png`), then three mites (`android-weapons-daggers-5.png`). The run was left to the owner |
+| Saved profile after | Version 2, revision 8, **30** gold (112 + 109 − 120 + 109 − 180), relics unchanged, `ownedWeaponIds` [`weapon_staff`, `weapon_daggers`], equipped `weapon_daggers`. `profile.json` 313 bytes, `profile.json.bak` 286 bytes (the previous version 2 save), no temp file |
+| App log | 584 app-process lines in `android-weapons-logcat.txt`, from process start at 19:16:58 to 19:21:46; no E/Unity, exception, fatal, missing-reference or profile-recovery matches |
+
+Findings, both fixed afterwards (see `21`):
+- **Staff health gap:** the Staff hero ended floor 1 at 38 HP against 52 simulated, while the Sword matched. The simulation readied the hero's weapon at every wave, but the scene's 1-second advance delay leaves a 1.2 s weapon still cooling down when the next wave arrives. The simulation now models the delay (the first Staff tuning then predicts 36), and the Staff was retuned to 10 damage every 0.9 s at full damage to everything in reach.
+- **Forge backdrop:** the result screen's **Build:** line showed through the 92% Relic Forge backdrop, between the Daggers card and **Relics: equip one**. The backdrop is now opaque.
+
+Limits: no still caught a gold crit flash; the PlayMode test checks it. A never-triggered relic still reads **Second Wind (0x)**. The retuned Staff and the opaque Forge were not yet on the phone when this section was written.
+
+The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2, the Forge meta layer with local save, pause control, packs and the three weapon behaviors with Forge weapon unlocks are running on the phone.

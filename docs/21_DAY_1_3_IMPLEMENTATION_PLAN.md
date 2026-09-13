@@ -395,7 +395,7 @@ Verified: Unity EditMode 129/129, PlayMode 34/34, `Verify-Project.ps1`, .NET Com
 
 The second half of the owner's choice: two weapons bought with gold in the Relic Forge, each with its own behavior.
 
-- **Staff (120 gold):** slow area damage. It deals 18 damage every 1.2 s to its target and 75% to every other living enemy within 3.5 units, which covers a whole pack. It clears mite packs fastest but falls behind the Sword against lone enemies once damage upgrades stack.
+- **Staff (120 gold):** area damage. Every 0.9 s it deals 10 damage to its target and to every other living enemy within 3.5 units, which covers a whole pack. It clears mite packs fastest and is the slowest weapon against lone enemies.
 - **Daggers (180 gold):** fast strikes with crits. They deal 6 damage every 0.55 s to one enemy, and every third strike is critical for double damage. They are slowest against packs and fastest against the Wardens.
 - **Crit rhythm:** crits follow a fixed rhythm (every Nth attack) instead of a chance, so fights stay readable and the simulation stays exact. A critical hit, splash included, carries `DamageContext.IsCritical`, and the struck body flashes gold instead of white.
 - **Carrying a weapon:** the Relic Forge now shows **Weapons: carry one** (Sword, Staff, Daggers) above **Relics: equip one**. Forging a weapon spends its price once and equips it; an owned weapon is equipped again for free. The Sword is the starting weapon: it is always owned and is never stored in the save. The next run creates the hero's weapon from the equipped definition. The HUD, the result build (**Build: Staff  |  ...**) and the hero's placeholder loadout (sword and shield, a staff with a violet orb, or two blades) follow it.
@@ -410,19 +410,19 @@ The second half of the owner's choice: two weapons bought with gold in the Relic
 | `Scripts/Progression/WeaponOption.cs`, `WeaponShop.cs` (new), `UnlockStatus.cs` (was `RelicStatus.cs`), `RelicShop.cs` | The weapon rack's rules: the starting weapon is always owned and is the fallback for a missing or unowned saved weapon; card states shared with relics. |
 | `Scripts/Core/CombatSetup.cs`, `Scripts/UI/RelicForgeView.cs`, `HeroWeaponView.cs` (new), `CombatantView.cs`, `RunHud.cs`, `RunResultView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | The Forge catalog on Combat Setup, `HeroWeapon` for the run, weapon cards and section headers, placeholder loadouts, the gold crit flash, the weapon in the HUD and result build, and the nearest unlock across both shops. |
 | `Scenes/Gameplay/Gameplay.unity` | A temporary builder, deleted afterwards, added the loadouts under **Hero Body** and three weapon cards and two headers to the Forge panel, and re-laid out all cards at 220 units so everything fits a 1920-unit canvas. |
-| Tests | EditMode `WeaponBehaviorTests` (6): area splash, the crit rhythm and a critical splash, crit validation, weapon identity and sidegrade balance in the Descent simulation. `WeaponForgeTests` (4): profile slots, the weapon rack, catalog validation, the version 1 migration. `ProfileStoreTests` adds a version 1 file loading and saving as version 2. PlayMode `RelicForgeFlowTests` adds forging the Staff into the next run, Daggers crits flashing gold, and a layout check that the Forge panel fits 1920 units without overlaps. |
+| Tests | EditMode `WeaponBehaviorTests` (6): area splash, the crit rhythm and a critical splash, crit validation, weapon identity and sidegrade balance in the Descent simulation. `WeaponForgeTests` (4): profile slots, the weapon rack, catalog validation, the version 1 migration. `ProfileStoreTests` adds a version 1 file loading and saving as version 2. PlayMode `RelicForgeFlowTests` adds forging the Staff into the next run, Daggers crits flashing gold, and a layout check that the Forge panel is opaque and fits 1920 units without overlaps. |
 
-Values were chosen with a search over damage, interval, area fraction and crit rhythm. The hard targets were the relic slice's: Mend descents survive, Temper descents fall on floor 2 without a relic, and both relics rescue damage-first Temper. On top of that, no weapon may be a straight upgrade: Mend-path health stays within 15 of the Sword's, the Staff must clear mite packs faster, and the Daggers must kill the Wardens faster. No Staff candidate weaker than the Sword against single targets met these targets; the closest ones died on a Mend path. The Staff's single-target damage per second (15) therefore sits slightly above the Sword's (12.5), and its weakness comes from scaling less with Tempered Edge.
+Values were chosen with a search over damage, interval, area fraction and crit rhythm. The hard targets were the relic slice's: Mend descents survive, Temper descents fall on floor 2 without a relic, and both relics rescue damage-first Temper. On top of that, no weapon may be a straight upgrade: Mend-path health stays within 15 of the Sword's, the Staff must clear mite packs faster, and the Daggers must kill the Wardens faster. The Staff ends up the weakest against a single target (11.1 damage per second against the Sword's 12.5) and the slowest against the Wardens.
 
-Results (health after floor 1 → end of floor 2; D = damage first, S = speed first; boss and mite-pack times are the simulated fight seconds on the D + Mend path):
+Results with the 1-second advance delay between waves (health after floor 1 → end of floor 2; D = damage first, S = speed first; boss and mite-pack times are the simulated fight seconds on the D + Mend path):
 
 | Weapon | D + Mend | S + Mend | D + Temper | S + Temper | D + Temper + Counterweight | D + Temper + Second Wind | S + Temper + Counterweight | S + Temper + Second Wind | Wardens | Mite packs |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Sword | 54 → 40 | 33 → 13 | 24 → dies F2 room 3 | 12 → dies F2 room 1 | 35 → 21 | 49 → 35 | 19 → dies F2 room 3 | 37 → 20 | 5.8 s | 4.4 s |
-| Staff | 52 → 30.5 | 52 → 27.5 | 21 → dies at the F2 Warden | 21 → dies at the F2 Warden | 39 → 17.5 | 46 → 24.5 | 37 → 15.5 | 46 → 24.5 | 6.7 s | 0 s |
+| Staff | 63 → 38.5 | 34 → 9.5 | 23 → dies at the F2 Warden | 3 → dies F2 room 1 | 43 → 18.5 | 48 → 23.5 | 11 → dies F2 room 2 | 28 → 3.5 | 6.5 s | 0 s |
 | Daggers | 60 → 37 | 44 → 21 | 31 → dies F2 room 3 | 6 → dies F2 room 1 | 44 → 21 | 31 → 33 | 24 → dies F2 room 3 | 31 → dies F2 room 3 | 3.6 s | 5.8 s |
 
-- **Staff:** after one Tempered Edge a single blast kills a mite pack. Its big hits make Counterweight's counters big too, and both relics carry even speed-first Temper. It shortens floor 1 fights to about 13 s.
+- **Staff:** after one Tempered Edge a single blast kills a mite pack, so mite waves cost it no time and floor 1 fights shrink to about 14 s. Its small hits keep Counterweight's counters small; only Second Wind carries speed-first Temper, with 3.5 HP left.
 - **Daggers:** Counterweight answers with 60% of a 6-damage hit, and neither relic carries speed-first Temper.
 
 Known gaps:
@@ -432,7 +432,15 @@ Known gaps:
 
 The first Unity run failed two of the new PlayMode tests: this Editor formats decimals in Turkish, so the HUD read **0,80s**, not **0.80s**. The HUD follows the device language on purpose, so the tests now format expected numbers in the current culture.
 
-Verified: Unity EditMode 140/140, PlayMode 37/37, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `8558B44BFB50FA307AA417882F646A6E4DF0B94D87F4EEE6AC8B51D14CAF48C5`).
+Verified (commit cc1a217, first Staff tuning): Unity EditMode 140/140, PlayMode 37/37, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `8558B44BFB50FA307AA417882F646A6E4DF0B94D87F4EEE6AC8B51D14CAF48C5`).
+
+**Device run and fixes (see `23`):**
+- **Staff health gap:** the first Staff tuning (18 damage every 1.2 s, 75% to the rest of the pack) ended floor 1 at 38 HP on the phone, against 52 in the simulation; the Sword matched (56 against 54). The simulation had readied the hero's weapon at every wave. In the scene the weapon only cools down during the 1-second advance delay, so a weapon slower than that delay starts each wave late.
+- **Simulation fix:** `DescentSimulation` now ticks the advance delay between waves. The Sword and Daggers results are unchanged. The first Staff tuning then showed 36 HP after floor 1 and died on floor 1 on the damage-first Temper path.
+- **Staff retune:** a repeated search found 8 of 540 candidates meeting every target. The Staff became 10 damage every 0.9 s, with full damage to everything in reach (the values above).
+- **Forge backdrop:** the result screen's build line showed through the 92% Relic Forge backdrop, between the weapon and relic cards. The backdrop is now opaque, and `ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps` checks it.
+
+Verified after the fixes: Unity EditMode 140/140, PlayMode 37/37, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `5949CEDE5117510EFA1BBA815FD18AF497BFAD6C5AC73AB7A8AADA7C1FF147FB`).
 
 ### Original Day 3 plan (kept for reference)
 

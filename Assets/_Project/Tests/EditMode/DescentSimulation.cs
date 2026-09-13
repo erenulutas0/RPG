@@ -77,9 +77,9 @@ namespace Cryptforge.Tests
         public static HeroWeapon Sword() =>
             new HeroWeapon { Damage = 10f, Interval = 0.8f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
 
-        // Weapon_Staff.asset: 18 damage every 1.2 s, and 75% to every enemy within 3.5 units of the target.
+        // Weapon_Staff.asset: 10 damage every 0.9 s to the target and every enemy within 3.5 units of it.
         public static HeroWeapon Staff() =>
-            new HeroWeapon { Damage = 18f, Interval = 1.2f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
+            new HeroWeapon { Damage = 10f, Interval = 0.9f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 1f) };
 
         // Weapon_Daggers.asset: 6 damage every 0.55 s; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
@@ -130,6 +130,10 @@ namespace Cryptforge.Tests
 
         // EncounterController._packSpacing in Gameplay.unity.
         public const float PackSpacing = 1.7f;
+
+        // EncounterController._advanceDelay in Gameplay.unity. The hero's weapon keeps cooling down for this long between a
+        // clear and the next wave, so a weapon slower than the delay starts the next wave still cooling down.
+        public const float AdvanceDelay = 1f;
 
         // Always descends. cardSlot is the upgrade card taken every time (clamped when fewer cards remain); floor 2 and
         // later always Mend, floor 1 Mends only when mendOnFloorOne is set.
@@ -210,7 +214,7 @@ namespace Cryptforge.Tests
                 }
 
                 float startSeconds = result.FightSeconds;
-                weapon.Tick(10f);
+                weapon.Tick(AdvanceDelay);
                 for (int frame = 0; frame < 200000 && hero.IsAlive && AnyAlive(enemies); frame++)
                 {
                     if (frame > 0)

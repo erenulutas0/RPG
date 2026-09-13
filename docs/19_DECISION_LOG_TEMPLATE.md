@@ -204,10 +204,11 @@ Negative:
 Testers cannot tell which enemy is being hit or attacking; a Descent still plays in under 5 minutes; one weapon is always or never chosen once Staff and Daggers exist.
 
 ### Weapons update (2026-09-13)
-- **Staff:** area damage, 18 every 1.2 s to the target and 75% to every enemy within 3.5 units.
+- **Staff:** area damage, 10 every 0.9 s to the target and to every enemy within 3.5 units.
 - **Daggers:** 6 every 0.55 s, with every third strike critical for double damage.
 - **Crits follow a fixed rhythm, not a chance.** The fight stays readable, the Descent simulation stays exact, and tests need no random seed. Revisit when crit upgrades or a crit chance enter the upgrade pool.
-- **Unlocked weapons are sidegrades.** Every weapon must survive both Mend descents with health within 15 of the Sword's, fall on floor 2 on Temper paths without a relic, and be rescued by both relics on damage-first Temper. The Staff must clear mite packs fastest and the Daggers must kill the Wardens fastest. No Staff weaker than the Sword against single targets met these targets, so its weakness is weaker scaling with the flat Tempered Edge, not lower base damage.
+- **Unlocked weapons are sidegrades.** Every weapon must survive both Mend descents with health within 15 of the Sword's, fall on floor 2 on Temper paths without a relic, and be rescued by both relics on damage-first Temper. The Staff must clear mite packs fastest and the Daggers must kill the Wardens fastest. The Staff pays for its reach with the weakest single-target damage (11.1 per second against the Sword's 12.5).
+- **The simulation models the 1-second advance delay between waves.** On the phone the first Staff tuning (18 every 1.2 s) ended floor 1 14 HP below its simulation, because a weapon slower than the delay starts each wave still cooling down. With the delay modeled, that tuning died on floor 1, so the Staff was retuned. Weapons slower than the delay pay this cost on every wave; revisit the delay and weapon intervals together.
 - **Weapons live in the Relic Forge** under their own header; the owner's choice named that panel. The Sword is the starting weapon: always owned, never saved, and the fallback for any missing or unowned saved weapon.
 - **`WeaponShop` is separate from `RelicShop`.** The starting-weapon rule has no relic equivalent; the shared card states became `UnlockStatus`. Extract a common shop when a third unlock category (heroes) arrives.
 - **Save version 2** adds `ownedWeaponIds` and `equippedWeaponId`. `ProfileMigration` upgrades version 1 files, covered by a migration test and a version 1 file test, as the revisit trigger of the save decision asked.
