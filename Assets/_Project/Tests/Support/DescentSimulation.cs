@@ -125,6 +125,15 @@ namespace Cryptforge.Tests
 
         public static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
 
+        // Data/Relics/Relic_SecondWind.asset and Relic_Counterweight.asset.
+        public static RelicOption SecondWind() =>
+            new RelicOption("relic_second_wind", "Second Wind", "Once per run, at {1:0}% health or less, restore {0:0}% of your health",
+                RelicEffect.SecondWind, 0.25f, 0.25f, 80);
+
+        public static RelicOption Counterweight() =>
+            new RelicOption("relic_counterweight", "Counterweight", "When an enemy hits you, strike back for {0:0}% of your weapon damage",
+                RelicEffect.CounterStrike, 0.6f, 0f, 150);
+
         public static ForgeOption Temper() =>
             new ForgeOption("forge_temper", "Temper", "Gain {0:0} extra upgrade choice", ForgeEffect.BonusUpgrade, 1f);
 

@@ -114,9 +114,9 @@ namespace Cryptforge.Tests
 
                 Assert.That(DescentSimulation.Run(Descent, 0, false, heroWeapon: weapon).ClearedFloors, Is.EqualTo(1), $"{name}: damage first with Temper");
                 Assert.That(DescentSimulation.Run(Descent, 1, false, heroWeapon: weapon).ClearedFloors, Is.EqualTo(1), $"{name}: speed first with Temper");
-                Assert.That(DescentSimulation.Run(Descent, 0, false, RelicForgeTests.Counterweight(), weapon).ClearedFloors, Is.EqualTo(2),
+                Assert.That(DescentSimulation.Run(Descent, 0, false, DescentSimulation.Counterweight(), weapon).ClearedFloors, Is.EqualTo(2),
                     $"{name}: damage first with Temper and Counterweight");
-                Assert.That(DescentSimulation.Run(Descent, 0, false, RelicForgeTests.SecondWind(), weapon).ClearedFloors, Is.EqualTo(2),
+                Assert.That(DescentSimulation.Run(Descent, 0, false, DescentSimulation.SecondWind(), weapon).ClearedFloors, Is.EqualTo(2),
                     $"{name}: damage first with Temper and Second Wind");
             }
         }

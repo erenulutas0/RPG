@@ -45,7 +45,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RelicForgeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunPauseTests.cs" />
-    <Compile Include="../../Assets/_Project/Tests/EditMode/DescentSimulation.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />

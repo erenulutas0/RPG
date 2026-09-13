@@ -442,6 +442,18 @@ Verified (commit cc1a217, first Staff tuning): Unity EditMode 140/140, PlayMode 
 
 Verified after the fixes: Unity EditMode 140/140, PlayMode 37/37, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `5949CEDE5117510EFA1BBA815FD18AF497BFAD6C5AC73AB7A8AADA7C1FF147FB`).
 
+### Implemented 2026-09-14: scene and simulation parity tests
+
+The Staff gap showed that the balance simulation can drift from the scene without any test failing. `SimulationParityTests` (PlayMode) now play whole Descents in the real scene the way `DescentSimulation` plays them, and compare the results.
+- **Choices:** the same upgrade card every time, Mend or Temper at the first forge, Mend afterwards, Descend at the checkpoint.
+- **Time:** `Time.captureDeltaTime` fixes game time at 1/60 s per frame, like the simulation, and the frame-rate cap is lifted, so a two-floor Descent takes about a second of real time.
+- **Cases:** each weapon on the damage-first Mend path; the Sword's speed-first Temper death; Counterweight and Second Wind carrying damage-first Temper; the Staff dying on floor 2 with Counterweight.
+- **Result:** all seven match exactly: outcome, floor, death room, kills, gold banked and lost, upgrades applied, relic triggers, and health after floor 1 and at the end. The tolerance is 1 HP.
+
+To make this possible, `DescentSimulation` and the relic mirrors moved into `Tests/Support` (`Project.TestSupport`, compiled only with the test framework). Both test assemblies reference it; the Android build does not include it.
+
+Verified: Unity EditMode 140/140, PlayMode 44/44, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `C06E064B7F24BE0F8601B01860D491AC35739FD8A25D9B701B365F7AC0266495`; no game code changed since the build installed on the phone).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

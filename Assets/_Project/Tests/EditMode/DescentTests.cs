@@ -177,11 +177,11 @@ namespace Cryptforge.Tests
         {
             DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
             DescentSimulation.Result plainMend = DescentSimulation.Run(floors, 0, true);
-            DescentSimulation.Result counterMend = DescentSimulation.Run(floors, 0, true, RelicForgeTests.Counterweight());
-            DescentSimulation.Result counterTemper = DescentSimulation.Run(floors, 0, false, RelicForgeTests.Counterweight());
-            DescentSimulation.Result windTemper = DescentSimulation.Run(floors, 0, false, RelicForgeTests.SecondWind());
-            DescentSimulation.Result counterGreedy = DescentSimulation.Run(floors, 1, false, RelicForgeTests.Counterweight());
-            DescentSimulation.Result windGreedy = DescentSimulation.Run(floors, 1, false, RelicForgeTests.SecondWind());
+            DescentSimulation.Result counterMend = DescentSimulation.Run(floors, 0, true, DescentSimulation.Counterweight());
+            DescentSimulation.Result counterTemper = DescentSimulation.Run(floors, 0, false, DescentSimulation.Counterweight());
+            DescentSimulation.Result windTemper = DescentSimulation.Run(floors, 0, false, DescentSimulation.SecondWind());
+            DescentSimulation.Result counterGreedy = DescentSimulation.Run(floors, 1, false, DescentSimulation.Counterweight());
+            DescentSimulation.Result windGreedy = DescentSimulation.Run(floors, 1, false, DescentSimulation.SecondWind());
 
             Assert.That(counterTemper.ClearedFloors, Is.EqualTo(2), "Counterweight carries damage first with Temper through floor 2.");
             Assert.That(windTemper.ClearedFloors, Is.EqualTo(2), "Second Wind carries damage first with Temper through floor 2.");

@@ -10,15 +10,6 @@ namespace Cryptforge.Tests
 {
     public sealed class RelicForgeTests
     {
-        // Mirror Data/Relics/Relic_SecondWind.asset and Relic_Counterweight.asset.
-        internal static RelicOption SecondWind() =>
-            new RelicOption("relic_second_wind", "Second Wind", "Once per run, at {1:0}% health or less, restore {0:0}% of your health",
-                RelicEffect.SecondWind, 0.25f, 0.25f, 80);
-
-        internal static RelicOption Counterweight() =>
-            new RelicOption("relic_counterweight", "Counterweight", "When an enemy hits you, strike back for {0:0}% of your weapon damage",
-                RelicEffect.CounterStrike, 0.6f, 0f, 150);
-
         [Test]
         public void ProfileSpendsOnlyOnAForgeThatItCanAfford()
         {
@@ -76,8 +67,8 @@ namespace Cryptforge.Tests
         public void ShopForgesAffordableRelicsEquipsOwnedOnesAndNamesTheNextUnlock()
         {
             var profile = new PlayerProfile(200, null, null, 0);
-            RelicOption wind = SecondWind();
-            RelicOption counter = Counterweight();
+            RelicOption wind = DescentSimulation.SecondWind();
+            RelicOption counter = DescentSimulation.Counterweight();
             var shop = new RelicShop(profile, new[] { wind, counter });
             Assert.That(shop.NextUnlock, Is.SameAs(wind), "The cheapest unowned relic is the next unlock.");
             Assert.That(shop.StatusOf(counter), Is.EqualTo(UnlockStatus.Affordable));
@@ -105,13 +96,13 @@ namespace Cryptforge.Tests
         [Test]
         public void ShopRejectsDuplicateAndUnlistedRelicsAndIgnoresUnknownSavedIds()
         {
-            Assert.Throws<ArgumentException>(() => new RelicShop(new PlayerProfile(), new[] { SecondWind(), SecondWind() }));
+            Assert.Throws<ArgumentException>(() => new RelicShop(new PlayerProfile(), new[] { DescentSimulation.SecondWind(), DescentSimulation.SecondWind() }));
             Assert.Throws<ArgumentException>(() => new RelicShop(new PlayerProfile(), new RelicOption[] { null }));
-            var shop = new RelicShop(new PlayerProfile(500, new[] { "relic_removed" }, "relic_removed", 0), new[] { SecondWind() });
+            var shop = new RelicShop(new PlayerProfile(500, new[] { "relic_removed" }, "relic_removed", 0), new[] { DescentSimulation.SecondWind() });
 
             Assert.That(shop.Equipped, Is.Null, "A saved relic that this build no longer sells is not applied.");
-            Assert.Throws<ArgumentException>(() => shop.StatusOf(Counterweight()));
-            Assert.Throws<ArgumentException>(() => shop.StatusOf(SecondWind()), "Only the shop's own relic instances are accepted.");
+            Assert.Throws<ArgumentException>(() => shop.StatusOf(DescentSimulation.Counterweight()));
+            Assert.Throws<ArgumentException>(() => shop.StatusOf(DescentSimulation.SecondWind()), "Only the shop's own relic instances are accepted.");
         }
 
         [TestCase(RunOutcome.Defeat, 100)]
@@ -155,8 +146,8 @@ namespace Cryptforge.Tests
         [Test]
         public void RelicOptionsValidateTheirEffectAndDescribeWholePercentages()
         {
-            Assert.That(SecondWind().Description, Is.EqualTo("Once per run, at 25% health or less, restore 25% of your health"));
-            Assert.That(Counterweight().Description, Is.EqualTo("When an enemy hits you, strike back for 60% of your weapon damage"));
+            Assert.That(DescentSimulation.SecondWind().Description, Is.EqualTo("Once per run, at 25% health or less, restore 25% of your health"));
+            Assert.That(DescentSimulation.Counterweight().Description, Is.EqualTo("When an enemy hits you, strike back for 60% of your weapon damage"));
             Assert.Throws<ArgumentException>(() => new RelicOption("", "", "", RelicEffect.SecondWind, 0.2f, 0.2f, 1));
             Assert.Throws<ArgumentOutOfRangeException>(() => new RelicOption("r", "", "", RelicEffect.CounterStrike, 0f, 0f, 1));
             Assert.Throws<ArgumentOutOfRangeException>(() => new RelicOption("r", "", "", RelicEffect.SecondWind, 1.5f, 0.2f, 1));
@@ -167,7 +158,7 @@ namespace Cryptforge.Tests
         [Test]
         public void CounterweightStrikesBackOnlyWhileBothFightersLive()
         {
-            var relic = new RelicRuntime(Counterweight());
+            var relic = new RelicRuntime(DescentSimulation.Counterweight());
             var hero = new HealthState(100f);
             var grunt = new HealthState(70f);
             int triggered = 0;
@@ -191,7 +182,7 @@ namespace Cryptforge.Tests
         [Test]
         public void SecondWindHealsOnceWhenHealthFirstFallsToTheThreshold()
         {
-            var relic = new RelicRuntime(SecondWind());
+            var relic = new RelicRuntime(DescentSimulation.SecondWind());
             var hero = new HealthState(100f);
 
             hero.ApplyDamage(new DamageContext(74f));
@@ -205,7 +196,7 @@ namespace Cryptforge.Tests
             Assert.That(hero.Current, Is.EqualTo(20f));
             Assert.That(relic.Triggers, Is.EqualTo(1));
 
-            var lethal = new RelicRuntime(SecondWind());
+            var lethal = new RelicRuntime(DescentSimulation.SecondWind());
             var dead = new HealthState(100f);
             dead.ApplyDamage(new DamageContext(100f));
             Assert.That(lethal.OnHeroDamaged(dead, null, 10f), Is.False);
