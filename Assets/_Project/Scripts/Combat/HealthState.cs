@@ -8,6 +8,8 @@ namespace Cryptforge.Combat
         public float Current { get; private set; }
         public bool IsAlive => Current > 0f;
 
+        // Damaged carries the hit (amount and source) and fires before Changed; Changed also reports heals.
+        public event Action<DamageContext> Damaged;
         public event Action Changed;
         public event Action Died;
 
@@ -27,6 +29,7 @@ namespace Cryptforge.Combat
 
             Current = Math.Max(0f, Current - context.Amount);
             bool died = !IsAlive;
+            Damaged?.Invoke(context);
             Changed?.Invoke();
             // The transition is captured before callbacks; lethal re-entry cannot emit twice.
             if (died)

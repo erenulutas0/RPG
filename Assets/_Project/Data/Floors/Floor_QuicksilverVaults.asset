@@ -18,20 +18,32 @@ MonoBehaviour:
   - _displayName: Mercury Stair
     _kind: 0
     _waves:
-    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
-    - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
     _forgeOptions: []
   - _displayName: Cold Crucible
     _kind: 0
     _waves:
-    - {fileID: 11400000, guid: 1000000000000000000000000000000a, type: 2}
-    - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 1000000000000000000000000000000a, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
     _forgeOptions: []
   - _displayName: Vault Gate
     _kind: 0
     _waves:
-    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
-    - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
     _forgeOptions: []
   - _displayName: The Deep Forge
     _kind: 1
@@ -42,12 +54,15 @@ MonoBehaviour:
   - _displayName: Sentry Hall
     _kind: 2
     _waves:
-    - {fileID: 11400000, guid: 10000000000000000000000000000011, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 10000000000000000000000000000011, type: 2}
+      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
     _forgeOptions: []
   - _displayName: Warden's Vault
     _kind: 3
     _waves:
-    - {fileID: 11400000, guid: 10000000000000000000000000000012, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 10000000000000000000000000000012, type: 2}
     _forgeOptions: []
   _enemyHealthMultiplier: 1.4
   _enemyDamageMultiplier: 1.25

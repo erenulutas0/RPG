@@ -10,6 +10,7 @@ namespace Cryptforge.Combat
         public float Current => _state?.Current ?? 0f;
         public float Maximum => _state?.Maximum ?? 0f;
         public bool IsAlive => _state != null && _state.IsAlive;
+        public event Action<DamageContext> Damaged;
         public event Action Changed;
         public event Action Died;
 
@@ -19,6 +20,7 @@ namespace Cryptforge.Combat
                 throw new InvalidOperationException("Health has already been initialized.");
 
             _state = new HealthState(maximum);
+            _state.Damaged += OnDamaged;
             _state.Changed += OnChanged;
             _state.Died += OnDied;
         }
@@ -35,6 +37,7 @@ namespace Cryptforge.Combat
                 _state?.Heal(amount);
         }
 
+        private void OnDamaged(DamageContext context) => Damaged?.Invoke(context);
         private void OnChanged() => Changed?.Invoke();
         private void OnDied() => Died?.Invoke();
 
@@ -43,6 +46,7 @@ namespace Cryptforge.Combat
             if (_state == null)
                 return;
 
+            _state.Damaged -= OnDamaged;
             _state.Changed -= OnChanged;
             _state.Died -= OnDied;
         }

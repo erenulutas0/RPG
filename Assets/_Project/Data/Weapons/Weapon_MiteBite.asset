@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00000000000000000000000000000004, type: 3}
-  m_Name: Weapon_GruntStrike
-  m_EditorClassIdentifier:
-  _id: weapon_grunt_strike
-  _displayName: Grunt Strike
-  _damage: 6
-  _interval: 1
+  m_Name: Weapon_MiteBite
+  m_EditorClassIdentifier: 
+  _id: weapon_mite_bite
+  _displayName: Mite Bite
+  _damage: 1
+  _interval: 1.5
   _range: 3
+  _initialDelay: 0
   _behavior: 0
   _splashRadius: 0
   _splashFraction: 0

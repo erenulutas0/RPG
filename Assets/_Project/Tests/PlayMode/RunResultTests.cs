@@ -102,16 +102,21 @@ namespace Cryptforge.Tests
                     _setup.Upgrades.TrySelect(offer, i);
             }
 
+            // The hero stops swinging so the mites of wave 2 cannot die and change the experience under test.
+            _heroAttack.enabled = false;
             deadline = Time.realtimeSinceStartup + 6f;
             while (_encounters.EncounterNumber < 2 && Time.realtimeSinceStartup < deadline)
                 yield return null;
             Assert.That(_encounters.EncounterNumber, Is.EqualTo(2));
+            deadline = Time.realtimeSinceStartup + 3f;
+            while ((_setup.LastAttacker == null || _setup.LastAttacker.DisplayName != "Cinder Mite") && Time.realtimeSinceStartup < deadline)
+                yield return null;
 
             _hero.ApplyDamage(new DamageContext(1000f));
             yield return null;
 
             Assert.That(_result.IsOpen, Is.True);
-            Assert.That(Label("Cause Label"), Does.Contain("Runner").And.Contain("Ember Hall"));
+            Assert.That(Label("Cause Label"), Does.Contain("Cinder Mite").And.Contain("Ember Hall"), "The last enemy to hit the hero is named.");
             Assert.That(Label("Progress Label"), Does.Contain("0 rooms").And.Contain("Level 1").And.Contain("XP 10"));
             // The Grunt's 5 gold was never secured: half, rounded down, is lost.
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 3  |  lost: 2"));

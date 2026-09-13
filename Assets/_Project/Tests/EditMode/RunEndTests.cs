@@ -63,13 +63,13 @@ namespace Cryptforge.Tests
         public void KillsAfterTheRunEndsGrantNothing()
         {
             var run = new RunState(10);
-            var rewards = new RewardService(run, 10);
+            var rewards = new RewardService(run);
             var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { DamageOption() }, 2);
             var victim = new HealthState(50f);
             run.End(RunOutcome.Defeat);
 
             victim.ApplyDamage(new DamageContext(50f));
-            rewards.TryAwardKill(victim);
+            rewards.TryAwardKill(victim, 10, 0);
 
             Assert.That(run.Experience, Is.Zero);
             Assert.That(service.CurrentOffer, Is.Null);
@@ -122,7 +122,7 @@ namespace Cryptforge.Tests
         public void PrototypeRunEndsInDeathAfterSeveralEncounters()
         {
             var run = new RunState(10);
-            var rewards = new RewardService(run, 10);
+            var rewards = new RewardService(run);
             var heroWeapon = new WeaponRuntime(10f, 0.8f, 3f);
             var service = new UpgradeService(run, heroWeapon, new[] { DamageOption(), SpeedOption() }, 2);
             var hero = new HealthState(100f);
@@ -137,7 +137,7 @@ namespace Cryptforge.Tests
                     break;
 
                 progress.Clear();
-                rewards.TryAwardKill(grunt);
+                rewards.TryAwardKill(grunt, 10, 5);
                 // Always take the first card: damage until it is maxed, then attack speed.
                 while (service.CurrentOffer != null)
                     service.TrySelect(service.CurrentOffer, 0);

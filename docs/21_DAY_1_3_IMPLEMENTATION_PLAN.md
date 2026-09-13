@@ -337,7 +337,57 @@ Verified after the fix: Unity EditMode 123/123, PlayMode 32/32, `Verify-Project.
 
 **Second device finding:** the **II** label floated above its 120-unit button. It had been copied from the 260-unit **Try again** label, which is anchored to the bottom with a fixed height; the Relic Forge button label was 30 units high for the same reason. Both labels now stretch to fill their buttons. `PauseFlowTests.EveryButtonLabelSitsInsideItsButton` guards every button; run against the scene before this fix it failed with **Forge Button Label extends outside Forge Button**.
 
-Verified after both fixes: Unity EditMode 123/123, PlayMode 33/33, `Verify-Project.ps1`, development APK built only after both reports passed (SHA-256 `0F8D8EB6E8F2821C2426774A215031285650C8D05BD8EBD9E9B34D0D62BBD6AD`). The corrected label has not been captured on the phone yet.
+Verified after both fixes: Unity EditMode 123/123, PlayMode 33/33, `Verify-Project.ps1`, development APK built only after both reports passed (SHA-256 `0F8D8EB6E8F2821C2426774A215031285650C8D05BD8EBD9E9B34D0D62BBD6AD`). The corrected label was later captured on the phone (see `23`).
+
+### Implemented 2026-09-13: packs, the Cinder Mite and the Sword's cleave (weapon behaviors, part 1)
+
+The GDD's weapon set (Sword cleave, Bow pierce, Staff AoE) only matters against several enemies at once, so the owner chose to add packs and three weapons together. This first part adds packs and the Sword's cleave; Staff, Daggers and weapon unlocks follow.
+
+- **Packs:** a wave now spawns one to three enemies in a row in front of the hero, centre first, then left and right, 1.7 units apart. Targeting breaks distance ties in favour of the earlier slot, so the hero always fights the first living enemy in slot order. The HUD bar follows that enemy, and the label counts the rest, for example **Cinder Mite | 15 / 15 HP  (+2 more)**. A wave clears when its last enemy falls: **3 enemies defeated in 6 hits, 2.4s**.
+- **Cinder Mite:** a new fodder enemy, a small ember-red variant of the Grunt prefab. It has 15 HP, deals 1 damage every 1.5 s, and gives 1 gold and 3 XP. The named enemies keep their stats and now give 10 XP each.
+- **Sword cleave:** each swing also strikes the nearest other living enemy within 2 units of the target, for 60% of the damage.
+- **Hits carry their attacker:** `DamageContext.Source` is set by `WeaponRuntime`, and health raises `Damaged` before `Changed`. Counterweight strikes back at the actual attacker in a pack, and a defeat names the last enemy whose hit landed.
+- **Experience:** XP per kill moved from `EconomyConfig` onto each enemy. Each level now costs one more than the last (10, 11, 12, ...; `_experienceGrowth` 1), so frequent small kills do not use up the ten upgrade stacks on floor 1.
+
+| Floor | Room | Waves |
+|---|---|---|
+| Ember Halls | Ember Hall | Grunt · 2 Mites · 3 Mites |
+| | Cinder Walk | Runner + Mite · 3 Mites · Grunt + 2 Mites |
+| | Slag Gate | Tank · 3 Mites |
+| | Captain's Post | Grunt Captain + 2 Mites |
+| | Warden's Crucible | Forge Warden |
+| Quicksilver Vaults | Mercury Stair | Grunt + Mite · 3 Mites |
+| | Cold Crucible | Tank + Mite · Runner + 2 Mites |
+| | Vault Gate | Grunt + 2 Mites |
+| | Sentry Hall | Grunt Captain + Mite |
+| | Warden's Vault | Forge Warden |
+
+Ember Halls now pays 109 gold (a floor 1 extraction still buys Second Wind) and a full Descent 270.
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/PackLayout.cs`, `WeaponBehavior.cs` | New: pack slot offsets; DirectHit and Cleave. |
+| `Scripts/Combat/WeaponRuntime.cs`, `AttackController.cs`, `Targeting.cs` | Cleave with splash radius and fraction; attacks pass their owner as the source and gather splash candidates, nearest first, only when ready; earlier candidates win distance ties. |
+| `Scripts/Combat/DamageContext.cs`, `HealthState.cs`, `Health.cs`, `RelicBehaviour.cs` | Damage source and the `Damaged` event; the relic reacts to the actual attacker. |
+| `Scripts/Combat/EncounterController.cs`, `Scripts/Content/WaveDefinition.cs`, `RoomDefinition.cs` | Waves of one to three enemies, per-enemy gold, `WaveEnemyAt`, `DefinitionOf`, `GoldRewardOf`, validation of pack sizes. |
+| `Scripts/Core/RunState.cs`, `CombatSetup.cs`, `Scripts/Economy/RewardService.cs`, `Scripts/Content/EnemyDefinition.cs`, `EconomyConfig.cs`, `WeaponDefinition.cs` | Experience growth; per-enemy experience and gold; the last attacker; weapon behavior data. |
+| `Scripts/UI/RunHud.cs`, `RunResultView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | Pack health line and pack victory status; the defeat names the last attacker. |
+| `Data/Enemies/Enemy_CinderMite.asset`, `Data/Weapons/Weapon_MiteBite.asset`, `Prefabs/Enemies/CinderMite.prefab`, both floors, every enemy and weapon asset, `PrototypeEconomy.asset`, `Gameplay.unity` | Content and data; the prefab variant and scene re-save came from a temporary builder, deleted afterwards. |
+| Tests | New `DescentSimulation` shared by `FloorTests` and `DescentTests`: packs in slot order, cleave, enrage and relics through the real services. New `PackTests` (6). PlayMode tests describe waves by what spawned; the hero's own cleaves may finish enemies in any order. New `FloorFlowTests.PacksSpawnSideBySideAndTheHeroFightsThemInSlotOrder`. |
+
+Balance was chosen with a scored search over mite stats, experience growth, cleave strength and floor 2 packs. A single-target Sword against these packs died in room 2 on every path. Results (first upgrade card every time, Mend on floor 2, always descending; health after floor 1 → end of floor 2):
+
+| Path | No relic | Counterweight | Second Wind |
+|---|---|---|---|
+| Damage first, Mend | 54 → 40 | 75 → 61 | — |
+| Damage first, Temper | 24 → dies in floor 2 room 3 | 35 → 21 | 49 → 35 |
+| Speed first, Mend | 33 → 13 | — | — |
+| Speed first, Temper | 12 → dies in floor 2 room 1 | 19 → dies in floor 2 room 3 | 37 → 20 |
+
+- **Level-ups:** 8 upgrades by the end of floor 1, and the tenth on floor 2.
+- **Counterweight:** cuts the damage-first Mend fight time from 22 s to 15 s.
+- **Second Wind:** now also carries the greediest path.
+- **Pacing:** simulated fight time for floor 1 is still only about 16 s, so pacing remains the open gap; longer rooms and more waves are the lever.
 
 ### Original Day 3 plan (kept for reference)
 

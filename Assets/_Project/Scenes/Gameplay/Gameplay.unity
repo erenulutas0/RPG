@@ -311,7 +311,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _hero: {fileID: 202}
   _attack: {fileID: 204}
-  _encounters: {fileID: 1243867566}
 --- !u!1 &210
 GameObject:
   m_ObjectHideFlags: 0
@@ -4240,6 +4239,7 @@ MonoBehaviour:
   _hero: {fileID: 202}
   _heroTargeting: {fileID: 203}
   _advanceDelay: 1
+  _packSpacing: 1.7
 --- !u!4 &1243867567
 Transform:
   m_ObjectHideFlags: 0

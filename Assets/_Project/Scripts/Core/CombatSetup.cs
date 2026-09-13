@@ -40,6 +40,8 @@ namespace Cryptforge.Core
         public RunBank Bank { get; private set; }
         // Null when no relic is equipped.
         public RelicRuntime Relic { get; private set; }
+        // The enemy whose hit last damaged the hero; after a defeat, the killer named on the result screen.
+        public EnemyDefinition LastAttacker { get; private set; }
 
         private void Awake()
         {
@@ -65,8 +67,8 @@ namespace Cryptforge.Core
             _hero.Initialize(_heroDefinition.MaximumHealth);
             Weapon = _heroDefinition.StartingWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
-            Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss);
-            _rewards = new RewardService(Run, _economy.ExperiencePerKill);
+            Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth);
+            _rewards = new RewardService(Run);
             // Created before any view subscribes to Run.Ended, so banked gold reaches the profile before results show.
             Bank = new RunBank(Run, Profile);
             Profile.Changed += SaveProfile;
@@ -88,6 +90,7 @@ namespace Cryptforge.Core
             Pause = new RunPause(Run);
             Pause.Changed += ApplyPause;
             Choices.Changed += OnChoicesChanged;
+            _hero.Damaged += OnHeroDamaged;
             _hero.Died += OnHeroDied;
 
             // Subscribe before the first spawn so every defeated enemy reaches the reward service.
@@ -141,7 +144,19 @@ namespace Cryptforge.Core
             }
         }
 
-        private void OnEnemyDefeated(Health enemy) => _rewards.TryAwardKill(enemy, _encounters.CurrentGoldReward);
+        private void OnEnemyDefeated(Health enemy)
+        {
+            EnemyDefinition definition = _encounters.DefinitionOf(enemy);
+            _rewards.TryAwardKill(enemy, definition != null ? definition.ExperienceReward : 0, _encounters.GoldRewardOf(enemy));
+        }
+
+        // Damaged fires before Died, so the killer is known when the defeat ends the run.
+        private void OnHeroDamaged(DamageContext context)
+        {
+            EnemyDefinition attacker = _encounters.DefinitionOf(context.Source);
+            if (attacker != null)
+                LastAttacker = attacker;
+        }
 
         private void OnHeroDied() => Run.End(RunOutcome.Defeat);
 
@@ -200,7 +215,10 @@ namespace Cryptforge.Core
         private void OnDestroy()
         {
             if (_hero != null)
+            {
+                _hero.Damaged -= OnHeroDamaged;
                 _hero.Died -= OnHeroDied;
+            }
             if (_encounters != null)
             {
                 _encounters.EnemyDefeated -= OnEnemyDefeated;

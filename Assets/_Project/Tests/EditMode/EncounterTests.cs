@@ -95,19 +95,19 @@ namespace Cryptforge.Tests
         public void EarlierVictimCannotBeRewardedAgainInALaterEncounter()
         {
             var run = new RunState(1000);
-            var rewards = new RewardService(run, 10);
+            var rewards = new RewardService(run);
             var progress = new EncounterProgress(1f);
             var first = new HealthState(50f);
             var second = new HealthState(50f);
-            first.Died += () => rewards.TryAwardKill(first);
-            second.Died += () => rewards.TryAwardKill(second);
+            first.Died += () => rewards.TryAwardKill(first, 10, 0);
+            second.Died += () => rewards.TryAwardKill(second, 10, 0);
 
             progress.Begin();
             first.ApplyDamage(new DamageContext(50f));
             progress.Clear();
             progress.Begin();
             first.ApplyDamage(new DamageContext(50f));
-            Assert.That(rewards.TryAwardKill(first), Is.False);
+            Assert.That(rewards.TryAwardKill(first, 10, 0), Is.False);
             second.ApplyDamage(new DamageContext(50f));
 
             Assert.That(run.Experience, Is.EqualTo(20));

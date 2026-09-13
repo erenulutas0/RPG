@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0000000000000000000000000000000d, type: 3}
   m_Name: PrototypeEconomy
   m_EditorClassIdentifier:
-  _experiencePerKill: 10
   _experiencePerLevel: 10
+  _experienceGrowth: 1
   _upgradeChoiceCount: 2
   _atRiskGoldLoss: 0.5

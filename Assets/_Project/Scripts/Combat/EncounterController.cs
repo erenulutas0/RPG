@@ -6,21 +6,34 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    // Runs the Descent one floor at a time: spawns each wave's enemy with floor-scaled health, damage and gold, opens the
-    // forge in non-combat rooms, and advances after a short delay once the current step is resolved, no choice is open
-    // and the hero lives. The final wave's kill clears the floor immediately; descending loads the next floor.
+    // Runs the Descent one floor at a time: spawns each wave as a pack of one to three enemies with floor-scaled health,
+    // damage and gold, opens the forge in non-combat rooms, and advances after a short delay once the current step is
+    // resolved, no choice is open and the hero lives. The final wave's last kill clears the floor immediately.
     public sealed class EncounterController : MonoBehaviour
     {
+        private sealed class SpawnedEnemy
+        {
+            public Health Health;
+            public EnemyDefinition Definition;
+            public int Gold;
+            public EnrageBehaviour Enrage;
+            public bool Defeated;
+            public Action OnDied;
+        }
+
         [SerializeField] private FloorDefinition _floor;
         [SerializeField] private Health _hero;
         [SerializeField] private Targeting _heroTargeting;
         [SerializeField, Min(0f)] private float _advanceDelay = 1f;
+        // Distance between pack slots; three abreast must stay inside every weapon's range of the hero.
+        [SerializeField, Min(0.1f)] private float _packSpacing = 1.7f;
+        private readonly List<SpawnedEnemy> _wave = new List<SpawnedEnemy>();
         private RunChoices _choices;
         private ForgeService _forge;
         private FloorDefinition _currentFloor;
         private FloorProgress _floorProgress;
         private EncounterProgress _fight;
-        private EnrageBehaviour _currentEnrage;
+        private SpawnedEnemy _lastDefeated;
         private float _transitionWait;
         private bool _descending;
         private int _roomsClearedOnEarlierFloors;
@@ -39,10 +52,13 @@ namespace Cryptforge.Combat
         public bool IsFloorCleared => _floorProgress != null && _floorProgress.IsComplete;
         public bool IsDescending => _descending;
         public bool IsInNonCombatRoom { get; private set; }
-        public Health CurrentEnemy { get; private set; }
-        public EnemyDefinition CurrentDefinition { get; private set; }
-        public int CurrentGoldReward { get; private set; }
-        public bool IsCurrentEnemyEnraged => _currentEnrage != null && _currentEnrage.IsEnraged;
+        public int WaveEnemyCount => _wave.Count;
+        public int AliveEnemyCount { get; private set; }
+        // The first living enemy in slot order, which is the hero's target; after the wave falls, the last one defeated.
+        public Health CurrentEnemy => CurrentSpawn?.Health;
+        public EnemyDefinition CurrentDefinition => CurrentSpawn?.Definition;
+        public EnemyDefinition EnragedDefinition => FindEnraged()?.Definition;
+        public bool IsCurrentEnemyEnraged => FindEnraged() != null;
         public int EncounterNumber => _fight?.EncounterNumber ?? 0;
         public int HitsTaken => _fight?.HitsTaken ?? 0;
         public float Elapsed => _fight?.Elapsed ?? 0f;
@@ -52,6 +68,19 @@ namespace Cryptforge.Combat
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
         public event Action FloorCleared;
+
+        private SpawnedEnemy CurrentSpawn
+        {
+            get
+            {
+                for (int i = 0; i < _wave.Count; i++)
+                {
+                    if (!_wave[i].Defeated)
+                        return _wave[i];
+                }
+                return _lastDefeated;
+            }
+        }
 
         public void Initialize(RunChoices choices, ForgeService forge)
         {
@@ -91,7 +120,15 @@ namespace Cryptforge.Combat
             ProgressChanged?.Invoke();
         }
 
-        // Fail at startup with the offending floor and room rather than mid-run when it is first reached.
+        // The current wave's enemies in slot order, alive or defeated, until the next wave or room replaces them.
+        public Health WaveEnemyAt(int index) => _wave[index].Health;
+
+        // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
+        public EnemyDefinition DefinitionOf(IDamageable enemy) => Find(enemy)?.Definition;
+
+        public int GoldRewardOf(IDamageable enemy) => Find(enemy)?.Gold ?? 0;
+
+        // Fail at startup with the offending floor, room and wave rather than mid-run when it is first reached.
         private static void ValidateFloor(FloorDefinition floor)
         {
             if (floor.RoomCount == 0)
@@ -122,11 +159,17 @@ namespace Cryptforge.Combat
                     throw new InvalidOperationException($"Room {index} needs at least one wave.");
                 for (int i = 0; i < room.WaveCount; i++)
                 {
-                    EnemyDefinition enemy = room.WaveAt(i);
-                    if (enemy == null || enemy.Weapon == null || enemy.Prefab == null ||
-                        enemy.Prefab.GetComponent<AttackController>() == null || enemy.Prefab.GetComponent<Targeting>() == null)
-                        throw new InvalidOperationException(
-                            $"Room {index} wave {i} needs an enemy definition with a weapon and a prefab carrying Health, Targeting and AttackController.");
+                    WaveDefinition wave = room.WaveAt(i);
+                    if (wave == null || wave.EnemyCount < 1 || wave.EnemyCount > PackLayout.MaxPackSize)
+                        throw new InvalidOperationException($"Room {index} wave {i} needs one to {PackLayout.MaxPackSize} enemies.");
+                    for (int e = 0; e < wave.EnemyCount; e++)
+                    {
+                        EnemyDefinition enemy = wave.EnemyAt(e);
+                        if (enemy == null || enemy.Weapon == null || enemy.Prefab == null ||
+                            enemy.Prefab.GetComponent<AttackController>() == null || enemy.Prefab.GetComponent<Targeting>() == null)
+                            throw new InvalidOperationException(
+                                $"Room {index} wave {i} enemy {e} needs a definition with a weapon and a prefab carrying Health, Targeting and AttackController.");
+                    }
                 }
             }
         }
@@ -180,34 +223,49 @@ namespace Cryptforge.Combat
             }
         }
 
-        private void StartWave(EnemyDefinition definition)
+        private void StartWave(WaveDefinition waveDefinition)
         {
-            ReleaseEnemy(true);
+            ReleaseWave(true);
             IsInNonCombatRoom = false;
             FloorModifierDefinition modifier = _currentFloor.Modifier;
             float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
-
-            Health enemy = Instantiate(definition.Prefab, transform.position, Quaternion.identity);
-            enemy.name = definition.Prefab.name;
-            enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
-            WeaponRuntime weapon = definition.Weapon.CreateRuntime();
             float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier, damagePercent);
-            if (damageBonus != 0f)
-                weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
-            enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
-            enemy.GetComponent<AttackController>().Initialize(weapon);
-            enemy.Changed += OnEnemyChanged;
-            enemy.Died += OnEnemyDied;
-            _currentEnrage = enemy.GetComponent<EnrageBehaviour>();
-            if (_currentEnrage != null)
-                _currentEnrage.Enraged += OnEnemyEnraged;
-            CurrentEnemy = enemy;
-            CurrentDefinition = definition;
-            CurrentGoldReward = FloorScaling.Gold(definition.GoldReward, goldPercent);
-            _heroTargeting.SetCandidates(new[] { enemy });
 
+            int count = waveDefinition.EnemyCount;
+            var candidates = new Health[count];
+            for (int i = 0; i < count; i++)
+            {
+                EnemyDefinition definition = waveDefinition.EnemyAt(i);
+                Vector3 position = transform.position + Vector3.right * PackLayout.OffsetX(i, count, _packSpacing);
+                Health enemy = Instantiate(definition.Prefab, position, Quaternion.identity);
+                enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
+                enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
+                WeaponRuntime weapon = definition.Weapon.CreateRuntime();
+                if (damageBonus != 0f)
+                    weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+                enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
+                enemy.GetComponent<AttackController>().Initialize(weapon);
+
+                var spawn = new SpawnedEnemy
+                {
+                    Health = enemy,
+                    Definition = definition,
+                    Gold = FloorScaling.Gold(definition.GoldReward, goldPercent),
+                    Enrage = enemy.GetComponent<EnrageBehaviour>()
+                };
+                spawn.OnDied = () => OnEnemyDied(spawn);
+                enemy.Changed += OnEnemyChanged;
+                enemy.Died += spawn.OnDied;
+                if (spawn.Enrage != null)
+                    spawn.Enrage.Enraged += OnEnemyEnraged;
+                _wave.Add(spawn);
+                candidates[i] = enemy;
+            }
+
+            AliveEnemyCount = count;
+            _heroTargeting.SetCandidates(candidates);
             _fight.Begin();
             EncounterStarted?.Invoke();
             ProgressChanged?.Invoke();
@@ -215,10 +273,7 @@ namespace Cryptforge.Combat
 
         private void EnterForge(RoomDefinition room)
         {
-            ReleaseEnemy(true);
-            CurrentEnemy = null;
-            CurrentDefinition = null;
-            CurrentGoldReward = 0;
+            ReleaseWave(true);
             _heroTargeting.SetCandidates(Array.Empty<Health>());
             IsInNonCombatRoom = true;
             _transitionWait = 0f;
@@ -236,35 +291,69 @@ namespace Cryptforge.Combat
             ProgressChanged?.Invoke();
         }
 
-        private void OnEnemyDied()
+        private void OnEnemyDied(SpawnedEnemy enemy)
         {
-            if (!_fight.Clear())
+            if (enemy.Defeated)
                 return;
 
-            EnemyDefeated?.Invoke(CurrentEnemy);
+            enemy.Defeated = true;
+            _lastDefeated = enemy;
+            AliveEnemyCount--;
+            if (AliveEnemyCount == 0)
+                _fight.Clear();
+
+            EnemyDefeated?.Invoke(enemy.Health);
             ProgressChanged?.Invoke();
-            if (_floorProgress.IsFinalWave)
+            if (AliveEnemyCount == 0 && _floorProgress.IsFinalWave)
                 AdvanceFloor();
         }
 
         private void OnEnemyEnraged() => ProgressChanged?.Invoke();
 
-        // Unsubscribing first guarantees an earlier enemy can never report into a later step.
-        private void ReleaseEnemy(bool destroy)
+        private SpawnedEnemy Find(IDamageable enemy)
         {
-            Health enemy = CurrentEnemy;
-            if (_currentEnrage != null)
-                _currentEnrage.Enraged -= OnEnemyEnraged;
-            _currentEnrage = null;
-            if (ReferenceEquals(enemy, null))
-                return;
-
-            enemy.Changed -= OnEnemyChanged;
-            enemy.Died -= OnEnemyDied;
-            if (destroy && enemy != null)
-                Destroy(enemy.gameObject);
+            if (enemy == null)
+                return null;
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                if (ReferenceEquals(_wave[i].Health, enemy))
+                    return _wave[i];
+            }
+            return null;
         }
 
-        private void OnDestroy() => ReleaseEnemy(false);
+        private SpawnedEnemy FindEnraged()
+        {
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                if (!_wave[i].Defeated && _wave[i].Enrage != null && _wave[i].Enrage.IsEnraged)
+                    return _wave[i];
+            }
+            return null;
+        }
+
+        // Unsubscribing first guarantees an earlier enemy can never report into a later step.
+        private void ReleaseWave(bool destroy)
+        {
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                SpawnedEnemy spawn = _wave[i];
+                if (spawn.Enrage != null)
+                    spawn.Enrage.Enraged -= OnEnemyEnraged;
+                if (ReferenceEquals(spawn.Health, null))
+                    continue;
+
+                spawn.Health.Changed -= OnEnemyChanged;
+                spawn.Health.Died -= spawn.OnDied;
+                if (destroy && spawn.Health != null)
+                    Destroy(spawn.Health.gameObject);
+            }
+
+            _wave.Clear();
+            _lastDefeated = null;
+            AliveEnemyCount = 0;
+        }
+
+        private void OnDestroy() => ReleaseWave(false);
     }
 }

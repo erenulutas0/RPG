@@ -156,3 +156,49 @@ Negative:
 
 ### Revisit trigger
 Add a Bootstrap scene when a service must outlive scene loads (audio, analytics, settings). Revisit relic values when testers always pick one relic or never forge. Add a migration test the first time `saveVersion` changes.
+
+---
+
+## Decision: Enemy packs and weapon behaviors
+
+**Date:** 2026-09-13  
+**Status:** Accepted (packs and the Sword's cleave implemented; Staff, Daggers and their Forge unlocks next; see `21`)  
+**Owner:** Product / engineering
+
+### Context
+`15` schedules three weapon behaviors after the Forge meta layer. The behaviors in `03` (cleave, pierce, area damage) only differ when several enemies stand together, but every wave held one enemy. The owner chose packs plus three weapons, in two commits:
+- Sword cleaves a second enemy.
+- Staff deals periodic area damage.
+- Daggers strike fast with crits.
+- Staff and Daggers are bought with gold in the Forge.
+
+### Options
+1. Keep single enemies and add behaviors that work on one target (crits, damage over time).
+2. Waves of one to three enemies, with fodder, per-enemy rewards and behaviors that reach several enemies.
+3. Continuous spawns with free enemy movement.
+
+### Decision
+Option 2.
+- **Packs:** one to three enemies per wave, in fixed slots 1.7 units apart. The hero fights the first living enemy in slot order.
+- **Fodder:** the Cinder Mite (15 HP, 1 damage every 1.5 s, 1 gold, 3 XP).
+- **Rewards:** experience moves from `EconomyConfig` onto each enemy, and each level costs one more than the last.
+- **Sword:** each swing also strikes the nearest other living enemy within 2 units for 60% of its damage.
+- **Hits carry their attacker:** relics and the defeat cause refer to the enemy that actually hit.
+
+### Why
+- **Packs first:** weapon behaviors need several targets to differ.
+- **Fixed slots:** a portrait auto-battler stays readable without movement, collision or spawn timing.
+- **Cleave and weak fodder:** in a scored simulation search, a single-target Sword against packs died in room 2 on every path. Cleave and 15 HP mites keep the accepted targets: Mend descents survive, Temper descents fail without a relic, and both relics rescue the damage-first Temper descent.
+- **Per-enemy experience with growth:** a flat 10 XP per kill would use up the ten upgrade stacks early on floor 1.
+
+### Consequences
+Positive: behaviors can matter; the defeat names the real killer; one `DescentSimulation` shared by the EditMode tests keeps the numbers checked.
+
+Negative:
+- The HUD bar follows only the targeted enemy; the others show as "+N more".
+- A floor is still about 16 s of simulated fighting.
+- Direct-hit weapons are weaker against packs, so future single-target weapons need another strength.
+- Scene tests describe a wave by what spawned, because cleaves can finish enemies in any order.
+
+### Revisit trigger
+Testers cannot tell which enemy is being hit or attacking; a Descent still plays in under 5 minutes; one weapon is always or never chosen once Staff and Daggers exist.

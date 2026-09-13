@@ -19,6 +19,8 @@ MonoBehaviour:
   _enragedFormat: '{0} is enraged!'
   _forgeStatus: The forge is quiet. Choose your edge.
   _healthFormat: '{0}  |  {1:0} / {2:0} HP'
+  _packHealthFormat: '{0}  |  {1:0} / {2:0} HP  (+{3} more)'
+  _packVictoryFormat: '{0} enemies defeated in {1} hits, {2:0.0}s'
   _weaponFormat: '{0}  |  {1:0} damage every {2:0.00}s'
   _goldFormat: 'Gold {0}  ({1} at risk)'
   _experienceFormat: 'Level {0}  |  XP {1} / {2}'

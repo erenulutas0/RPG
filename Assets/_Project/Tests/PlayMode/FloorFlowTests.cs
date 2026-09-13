@@ -12,11 +12,10 @@ using UnityEngine.UI;
 
 namespace Cryptforge.Tests
 {
-    // Walks Floor_EmberHalls quickly by applying lethal damage to each enemy and resolving choices through RunChoices.
+    // Walks Floor_EmberHalls quickly by applying lethal damage to each pack and resolving choices through RunChoices.
     // Card UI itself is covered by UpgradeFlowTests.
     public sealed class FloorFlowTests
     {
-        private const float Lethal = 100000f;
         private CombatSetup _setup;
         private Health _hero;
         private EncounterController _encounters;
@@ -46,35 +45,40 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator FloorFollowsTheAuthoredRoomsToTheCheckpointAndExtractBanksTheGold()
+        public IEnumerator FloorFollowsTheAuthoredPacksToTheCheckpointAndExtractBanksTheGold()
         {
-            var seen = new List<string>();
-            float deadline = Time.realtimeSinceStartup + 40f;
+            // The first wave spawned during scene load, before this test could subscribe.
+            var seen = new List<string> { PackTestUtility.Describe(_encounters) };
+            _encounters.EncounterStarted += () => seen.Add(PackTestUtility.Describe(_encounters));
+            bool forgeSeen = false;
+            float deadline = Time.realtimeSinceStartup + 60f;
             while (!_encounters.IsFloorCleared && Time.realtimeSinceStartup < deadline)
             {
                 ChoosePendingUpgrades();
                 ChoicePrompt prompt = _setup.Choices.Current;
                 if (_encounters.IsInNonCombatRoom && prompt != null && prompt.Kind == ChoiceKind.Forge)
                 {
-                    seen.Add($"{_encounters.RoomNumber}:{_encounters.CurrentRoom.DisplayName}:forge");
+                    if (!forgeSeen)
+                        seen.Add($"{_encounters.RoomNumber}:{_encounters.CurrentRoom.DisplayName}:forge");
+                    forgeSeen = true;
                     Assert.That(_encounters.CurrentEnemy, Is.Null);
                     Assert.That(Time.timeScale, Is.Zero, "The forge visit pauses the floor.");
                     Assert.That(Label("Floor Label"), Does.Contain("Room 4/6").And.Contain("The Forge"));
                     _setup.Choices.TrySelect(prompt, 0);
                 }
-                else if (!_encounters.IsInNonCombatRoom && _encounters.CurrentEnemy != null && _encounters.CurrentEnemy.IsAlive)
+                else if (!_encounters.IsInNonCombatRoom)
                 {
-                    seen.Add($"{_encounters.RoomNumber}.{_encounters.WaveNumber}:{_encounters.CurrentRoom.DisplayName}:{_encounters.CurrentDefinition.DisplayName}");
-                    _encounters.CurrentEnemy.ApplyDamage(new DamageContext(Lethal));
+                    PackTestUtility.KillWave(_encounters);
                 }
                 yield return null;
             }
 
             Assert.That(seen, Is.EqualTo(new[]
             {
-                "1.1:Ember Hall:Grunt", "1.2:Ember Hall:Runner", "2.1:Cinder Walk:Runner", "2.2:Cinder Walk:Grunt",
-                "3.1:Slag Gate:Tank", "4:The Forge:forge", "5.1:Captain's Post:Grunt Captain",
-                "6.1:Warden's Crucible:Forge Warden"
+                "1.1:Ember Hall:Grunt", "1.2:Ember Hall:Cinder Mite+Cinder Mite", "1.3:Ember Hall:Cinder Mite+Cinder Mite+Cinder Mite",
+                "2.1:Cinder Walk:Runner+Cinder Mite", "2.2:Cinder Walk:Cinder Mite+Cinder Mite+Cinder Mite",
+                "2.3:Cinder Walk:Grunt+Cinder Mite+Cinder Mite", "3.1:Slag Gate:Tank", "3.2:Slag Gate:Cinder Mite+Cinder Mite+Cinder Mite",
+                "4:The Forge:forge", "5.1:Captain's Post:Grunt Captain+Cinder Mite+Cinder Mite", "6.1:Warden's Crucible:Forge Warden"
             }));
             yield return null;
 
@@ -88,10 +92,10 @@ namespace Cryptforge.Tests
             Assert.That(Time.timeScale, Is.Zero, "The checkpoint pauses the run.");
             Assert.That(Label("Choice Title"), Is.EqualTo("Checkpoint: extract or descend?"));
             Assert.That(checkpoint.Cards[0].Name, Is.EqualTo("Extract"));
-            Assert.That(checkpoint.Cards[0].Description, Is.EqualTo("Bank all 96 gold and end the run"));
+            Assert.That(checkpoint.Cards[0].Description, Is.EqualTo("Bank all 109 gold and end the run"));
             Assert.That(checkpoint.Cards[1].Name, Is.EqualTo("Descend"));
-            Assert.That(checkpoint.Cards[1].Description, Is.EqualTo("Secure 96 gold. Quicksilver Vaults: +20% enemy damage, +50% gold"));
-            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 96  (96 at risk)"));
+            Assert.That(checkpoint.Cards[1].Description, Is.EqualTo("Secure 109 gold. Quicksilver Vaults: +20% enemy damage, +50% gold"));
+            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 109  (109 at risk)"));
             Assert.That(_result.IsOpen, Is.False);
 
             Assert.That(_setup.Choices.TrySelect(checkpoint, 0), Is.True);
@@ -99,7 +103,7 @@ namespace Cryptforge.Tests
             yield return null;
 
             Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Extracted));
-            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(96));
+            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(109));
             Assert.That(_setup.Run.GoldLost, Is.Zero);
             Assert.That(_encounters.FloorNumber, Is.EqualTo(1));
             Assert.That(_setup.Choices.IsOpen, Is.False);
@@ -108,11 +112,43 @@ namespace Cryptforge.Tests
             Assert.That(Label("Result Title"), Is.EqualTo("Extracted"));
             Assert.That(Label("Cause Label"), Does.Contain("escaped").And.Contain("Ember Halls"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("6 rooms"));
-            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 96"));
-            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 96: Second Wind is ready to forge"));
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 109"));
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 109: Second Wind is ready to forge"));
             PlayerProfile saved = TestProfile.ReadSaved();
-            Assert.That(saved.Gold, Is.EqualTo(96), "Extracting banks the run's gold in the saved profile.");
+            Assert.That(saved.Gold, Is.EqualTo(109), "Extracting banks the run's gold in the saved profile.");
             Assert.That(saved.DeepestFloorCleared, Is.EqualTo(1));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator PacksSpawnSideBySideAndTheHeroFightsThemInSlotOrder()
+        {
+            // The test deals every blow, so the hero's own cleaves cannot change the order under test.
+            _hero.GetComponent<AttackController>().enabled = false;
+            yield return AdvanceToWave(1, 3);
+            Assert.That(_encounters.WaveEnemyCount, Is.EqualTo(3));
+            Health centre = _encounters.WaveEnemyAt(0);
+            Health left = _encounters.WaveEnemyAt(1);
+            Health right = _encounters.WaveEnemyAt(2);
+            float y = centre.transform.position.y;
+            Assert.That(centre.transform.position.x, Is.EqualTo(0f).Within(1e-4f));
+            Assert.That(left.transform.position.x, Is.EqualTo(-1.7f).Within(1e-4f));
+            Assert.That(right.transform.position.x, Is.EqualTo(1.7f).Within(1e-4f));
+            Assert.That(left.transform.position.y, Is.EqualTo(y));
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(centre));
+            Assert.That(Label("Enemy Label"), Does.StartWith("Cinder Mite").And.Contain("(+2 more)"));
+
+            centre.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(left), "The left slot is next in order.");
+            Assert.That(_encounters.AliveEnemyCount, Is.EqualTo(2));
+            Assert.That(_encounters.IsCleared, Is.False);
+            Assert.That(Label("Enemy Label"), Does.Contain("(+1 more)"));
+
+            left.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            right.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(_encounters.IsCleared, Is.True, "The wave clears when its last enemy falls.");
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(right));
+            Assert.That(Label("Status Label"), Does.StartWith("3 enemies defeated in"));
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -172,7 +208,7 @@ namespace Cryptforge.Tests
             Assert.That(hammer.Weapon.Interval, Is.EqualTo(0.9f).Within(1e-4f), "+100% attack speed halves the interval.");
             Assert.That(Label("Status Label"), Does.Contain("enraged"));
 
-            warden.ApplyDamage(new DamageContext(Lethal));
+            warden.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
             yield return null;
             Assert.That(_setup.Run.HasEnded, Is.False);
             ChoosePendingUpgrades();
@@ -180,26 +216,29 @@ namespace Cryptforge.Tests
             Assert.That(_result.IsOpen, Is.False);
         }
 
-        private IEnumerator AdvanceToRoom(int roomNumber)
+        private IEnumerator AdvanceToRoom(int roomNumber) => AdvanceToWave(roomNumber, 1);
+
+        // Stops at the forge prompt of a forge room, or when the given wave of the room has a live enemy.
+        private IEnumerator AdvanceToWave(int roomNumber, int waveNumber)
         {
-            float deadline = Time.realtimeSinceStartup + 30f;
+            float deadline = Time.realtimeSinceStartup + 45f;
             while (Time.realtimeSinceStartup < deadline)
             {
                 ChoosePendingUpgrades();
                 ChoicePrompt prompt = _setup.Choices.Current;
                 bool atForge = _encounters.IsInNonCombatRoom && prompt != null && prompt.Kind == ChoiceKind.Forge;
-                bool atLiveEnemy = !_encounters.IsInNonCombatRoom && _encounters.CurrentEnemy != null && _encounters.CurrentEnemy.IsAlive;
-                if (_encounters.RoomNumber == roomNumber && (atForge || atLiveEnemy))
+                bool atLiveWave = !_encounters.IsInNonCombatRoom && PackTestUtility.AnyAlive(_encounters);
+                if (_encounters.RoomNumber == roomNumber && (atForge || (atLiveWave && _encounters.WaveNumber == waveNumber)))
                     yield break;
 
                 if (atForge)
                     _setup.Choices.TrySelect(prompt, 0);
-                else if (atLiveEnemy)
-                    _encounters.CurrentEnemy.ApplyDamage(new DamageContext(Lethal));
+                else if (atLiveWave)
+                    PackTestUtility.KillWave(_encounters);
                 yield return null;
             }
 
-            Assert.Fail($"Room {roomNumber} was not reached; stopped in room {_encounters.RoomNumber}.");
+            Assert.Fail($"Room {roomNumber} wave {waveNumber} was not reached; stopped in room {_encounters.RoomNumber} wave {_encounters.WaveNumber}.");
         }
 
         private void ChoosePendingUpgrades()

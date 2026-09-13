@@ -64,15 +64,16 @@ namespace Cryptforge.Tests
         public void KillRewardsGoldOnceWithTheExperience()
         {
             var run = new RunState(10);
-            var rewards = new RewardService(run, 10);
+            var rewards = new RewardService(run);
             var victim = new HealthState(50f);
             victim.ApplyDamage(new DamageContext(50f));
 
-            Assert.That(rewards.TryAwardKill(victim, 8), Is.True);
-            Assert.That(rewards.TryAwardKill(victim, 8), Is.False);
+            Assert.That(rewards.TryAwardKill(victim, 10, 8), Is.True);
+            Assert.That(rewards.TryAwardKill(victim, 10, 8), Is.False);
             Assert.That(run.Gold, Is.EqualTo(8));
             Assert.That(run.Experience, Is.EqualTo(10));
-            Assert.Throws<ArgumentOutOfRangeException>(() => rewards.TryAwardKill(victim, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => rewards.TryAwardKill(victim, 10, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => rewards.TryAwardKill(victim, -1, 0));
         }
 
         [Test]
@@ -154,36 +155,41 @@ namespace Cryptforge.Tests
         [Test]
         public void HealthyHeroesSurviveTheDescentAndWoundedOnesDoNot()
         {
-            DescentResult damageMend = SimulateDescent(0, true);
-            DescentResult speedMend = SimulateDescent(1, true);
-            DescentResult damageTemper = SimulateDescent(0, false);
-            DescentResult speedTemper = SimulateDescent(1, false);
+            DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
+            DescentSimulation.Result damageMend = DescentSimulation.Run(floors, 0, true);
+            DescentSimulation.Result speedMend = DescentSimulation.Run(floors, 1, true);
+            DescentSimulation.Result damageTemper = DescentSimulation.Run(floors, 0, false);
+            DescentSimulation.Result speedTemper = DescentSimulation.Run(floors, 1, false);
 
-            Assert.That(damageMend.ClearedFloors, Is.EqualTo(2), $"Damage first with Mend died on floor {damageMend.ClearedFloors + 1}.");
-            Assert.That(speedMend.ClearedFloors, Is.EqualTo(2), $"Speed first with Mend died on floor {speedMend.ClearedFloors + 1}.");
+            Assert.That(damageMend.ClearedFloors, Is.EqualTo(2), $"Damage first with Mend died in {damageMend.DeathRoom}.");
+            Assert.That(speedMend.ClearedFloors, Is.EqualTo(2), $"Speed first with Mend died in {speedMend.DeathRoom}.");
             Assert.That(damageTemper.ClearedFloors, Is.EqualTo(1), "Tempering on floor 1 leaves too little health to descend.");
             Assert.That(speedTemper.ClearedFloors, Is.EqualTo(1));
-            Assert.That(damageMend.HeroHealth, Is.InRange(5f, 40f), "Floor 2 must remain a real risk.");
-            Assert.That(damageMend.Gold, Is.EqualTo(250), "Floor 1 pays 96 gold and floor 2 pays 154 with Cursed Gold.");
+            Assert.That(speedMend.HeroHealth, Is.InRange(5f, 50f), "Floor 2 must remain a real risk.");
+            Assert.That(damageMend.Gold, Is.EqualTo(270), "Floor 1 pays 109 gold and floor 2 pays 161 with Cursed Gold.");
             Assert.That(damageTemper.GoldBanked, Is.EqualTo(damageTemper.Gold - damageTemper.UnsecuredAtDeath / 2));
+            Assert.That(damageMend.FloorOneUpgrades, Is.InRange(6, 9), "Level-ups are spread over both floors.");
+            Assert.That(damageMend.UpgradesApplied, Is.GreaterThan(damageMend.FloorOneUpgrades));
         }
 
         [Test]
-        public void EachRelicRescuesTheDamageFirstTemperDescentButNotTheGreediestPath()
+        public void RelicsRescueTheDamageFirstTemperDescentInDifferentWays()
         {
-            DescentResult plainMend = SimulateDescent(0, true);
-            DescentResult counterMend = SimulateDescent(0, true, RelicForgeTests.Counterweight());
-            DescentResult counterTemper = SimulateDescent(0, false, RelicForgeTests.Counterweight());
-            DescentResult windTemper = SimulateDescent(0, false, RelicForgeTests.SecondWind());
-            DescentResult counterGreedy = SimulateDescent(1, false, RelicForgeTests.Counterweight());
-            DescentResult windGreedy = SimulateDescent(1, false, RelicForgeTests.SecondWind());
+            DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
+            DescentSimulation.Result plainMend = DescentSimulation.Run(floors, 0, true);
+            DescentSimulation.Result counterMend = DescentSimulation.Run(floors, 0, true, RelicForgeTests.Counterweight());
+            DescentSimulation.Result counterTemper = DescentSimulation.Run(floors, 0, false, RelicForgeTests.Counterweight());
+            DescentSimulation.Result windTemper = DescentSimulation.Run(floors, 0, false, RelicForgeTests.SecondWind());
+            DescentSimulation.Result counterGreedy = DescentSimulation.Run(floors, 1, false, RelicForgeTests.Counterweight());
+            DescentSimulation.Result windGreedy = DescentSimulation.Run(floors, 1, false, RelicForgeTests.SecondWind());
 
             Assert.That(counterTemper.ClearedFloors, Is.EqualTo(2), "Counterweight carries damage first with Temper through floor 2.");
             Assert.That(windTemper.ClearedFloors, Is.EqualTo(2), "Second Wind carries damage first with Temper through floor 2.");
             Assert.That(windTemper.RelicTriggers, Is.EqualTo(1));
-            Assert.That(counterGreedy.ClearedFloors, Is.EqualTo(1), "Speed first with Temper stays too greedy even with a relic.");
-            Assert.That(windGreedy.ClearedFloors, Is.EqualTo(1));
+            Assert.That(counterGreedy.ClearedFloors, Is.EqualTo(1), "Counterweight cannot save speed first with Temper.");
+            Assert.That(windGreedy.ClearedFloors, Is.EqualTo(2), "Second Wind, the safety relic, can.");
             Assert.That(counterMend.HeroHealth, Is.GreaterThan(plainMend.HeroHealth + 10f), "Counterweight rewards damage upgrades.");
+            Assert.That(counterMend.FightSeconds, Is.LessThan(plainMend.FightSeconds), "Counters shorten the fights against packs.");
         }
 
         private static CheckpointOption[] Options() => new[]
@@ -191,160 +197,5 @@ namespace Cryptforge.Tests
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),
             new CheckpointOption(CheckpointKind.Descend, "Descend", "Secure 96 gold")
         };
-
-        private struct DescentResult
-        {
-            public int ClearedFloors;
-            public float HeroHealth;
-            public int Gold;
-            public int GoldBanked;
-            public int UnsecuredAtDeath;
-            public int RelicTriggers;
-        }
-
-        private sealed class EnemyStats
-        {
-            public float Health;
-            public float Damage;
-            public float Interval;
-            public float InitialDelay;
-            public float EnrageAt;
-            public int Gold;
-        }
-
-        private sealed class FloorStats
-        {
-            public EnemyStats[][] Rooms;
-            public float HealthMultiplier = 1f;
-            public float DamageMultiplier = 1f;
-            public float ModifierDamagePercent;
-            public float ModifierGoldPercent;
-        }
-
-        // Mirrors Floor_EmberHalls, Floor_QuicksilverVaults, Modifier_CursedGold and the enemy/weapon assets.
-        private static readonly EnemyStats Grunt = new EnemyStats { Health = 50f, Damage = 6f, Interval = 1f, Gold = 5 };
-        private static readonly EnemyStats Runner = new EnemyStats { Health = 30f, Damage = 2f, Interval = 0.4f, Gold = 3 };
-        private static readonly EnemyStats Tank = new EnemyStats { Health = 120f, Damage = 12f, Interval = 2.5f, InitialDelay = 1.5f, Gold = 10 };
-        private static readonly EnemyStats Captain = new EnemyStats { Health = 140f, Damage = 9f, Interval = 1.2f, InitialDelay = 0.6f, Gold = 20 };
-        private static readonly EnemyStats Warden = new EnemyStats { Health = 300f, Damage = 10f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50 };
-        private static readonly FloorStats EmberHalls = new FloorStats
-        {
-            Rooms = new[] { new[] { Grunt, Runner }, new[] { Runner, Grunt }, new[] { Tank }, new EnemyStats[0], new[] { Captain }, new[] { Warden } }
-        };
-        private static readonly FloorStats QuicksilverVaults = new FloorStats
-        {
-            Rooms = new[] { new[] { Grunt, Runner }, new[] { Tank, Runner }, new[] { Grunt, Grunt }, new EnemyStats[0], new[] { Captain }, new[] { Warden } },
-            HealthMultiplier = 1.4f,
-            DamageMultiplier = 1.25f,
-            ModifierDamagePercent = 0.2f,
-            ModifierGoldPercent = 0.5f
-        };
-
-        // Always descends; uses the real run, reward, upgrade, forge, choice, scaling and relic code at 60 Hz.
-        private static DescentResult SimulateDescent(int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null)
-        {
-            var run = new RunState(10, 0.5f);
-            var rewards = new RewardService(run, 10);
-            var weapon = new WeaponRuntime(10f, 0.8f, 3f);
-            var hero = new HealthState(100f);
-            var upgrades = new UpgradeService(run, weapon, new[]
-            {
-                new UpgradeOption("upgrade_damage", "", "", WeaponStat.Damage, new StatModifier(ModifierOperation.Flat, 5f), 5),
-                new UpgradeOption("upgrade_attack_speed", "", "", WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 0.5f), 5)
-            }, 2);
-            var forge = new ForgeService(run, hero);
-            var choices = new RunChoices(upgrades, forge);
-            var mend = new ForgeOption("forge_mend", "", "", ForgeEffect.Heal, 0.4f);
-            var temper = new ForgeOption("forge_temper", "", "", ForgeEffect.BonusUpgrade, 1f);
-            RelicRuntime relic = relicOption != null ? new RelicRuntime(relicOption) : null;
-
-            var result = new DescentResult();
-            FloorStats[] floors = { EmberHalls, QuicksilverVaults };
-            for (int f = 0; f < floors.Length; f++)
-            {
-                bool useMend = f > 0 || mendOnFloorOne;
-                if (!SimulateFloor(floors[f], run, rewards, weapon, hero, forge, choices, mend, temper, cardSlot, useMend, relic))
-                {
-                    result.UnsecuredAtDeath = run.UnsecuredGold;
-                    run.End(RunOutcome.Defeat);
-                    break;
-                }
-                result.ClearedFloors++;
-                run.SecureGold();
-            }
-
-            if (!run.HasEnded)
-                run.End(RunOutcome.Victory);
-            result.HeroHealth = hero.Current;
-            result.Gold = run.Gold;
-            result.GoldBanked = run.GoldBanked;
-            result.RelicTriggers = relic?.Triggers ?? 0;
-            return result;
-        }
-
-        private static bool SimulateFloor(FloorStats floor, RunState run, RewardService rewards, WeaponRuntime weapon, HealthState hero,
-            ForgeService forge, RunChoices choices, ForgeOption mend, ForgeOption temper, int cardSlot, bool useMend, RelicRuntime relic)
-        {
-            const float step = 1f / 60f;
-            var waves = new int[floor.Rooms.Length];
-            for (int i = 0; i < waves.Length; i++)
-                waves[i] = floor.Rooms[i].Length;
-            var progress = new FloorProgress(waves);
-
-            for (FloorStep next = progress.Advance(); next.Kind != FloorStepKind.Cleared; next = progress.Advance())
-            {
-                if (next.Kind == FloorStepKind.NonCombatRoom)
-                {
-                    forge.Open(new[] { mend, temper });
-                    choices.TrySelect(choices.Current, useMend ? 0 : 1);
-                    ChooseUpgrades(choices, cardSlot);
-                    continue;
-                }
-
-                EnemyStats stats = floor.Rooms[next.RoomIndex][next.WaveIndex];
-                var enemy = new HealthState(FloorScaling.Health(stats.Health, floor.HealthMultiplier, 0f));
-                var enemyWeapon = new WeaponRuntime(stats.Damage, stats.Interval, 3f, stats.InitialDelay);
-                float bonus = FloorScaling.DamageBonus(floor.DamageMultiplier, floor.ModifierDamagePercent);
-                if (bonus != 0f)
-                    enemyWeapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, bonus));
-                EnrageRule enrage = stats.EnrageAt > 0f ? new EnrageRule(stats.EnrageAt) : null;
-                weapon.Tick(10f);
-                for (int frame = 0; frame < 100000 && enemy.IsAlive && hero.IsAlive; frame++)
-                {
-                    if (frame > 0)
-                    {
-                        weapon.Tick(step);
-                        enemyWeapon.Tick(step);
-                    }
-                    weapon.TryAttack(enemy);
-                    if (enrage != null && enrage.Evaluate(enemy.Current, enemy.Maximum))
-                        enemyWeapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
-                    if (!enemy.IsAlive)
-                        continue;
-
-                    float healthBefore = hero.Current;
-                    // Mirrors RelicBehaviour: a survived hit reports to the relic, and a counter can trigger the enrage.
-                    if (enemyWeapon.TryAttack(hero) && relic != null && hero.Current < healthBefore)
-                    {
-                        relic.OnHeroDamaged(hero, enemy, weapon.Damage);
-                        if (enrage != null && enrage.Evaluate(enemy.Current, enemy.Maximum))
-                            enemyWeapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
-                    }
-                }
-
-                if (!hero.IsAlive)
-                    return false;
-                rewards.TryAwardKill(enemy, FloorScaling.Gold(stats.Gold, floor.ModifierGoldPercent));
-                ChooseUpgrades(choices, cardSlot);
-            }
-
-            return true;
-        }
-
-        private static void ChooseUpgrades(RunChoices choices, int cardSlot)
-        {
-            while (choices.Current != null && choices.Current.Kind == ChoiceKind.Upgrade)
-                choices.TrySelect(choices.Current, Math.Min(cardSlot, choices.Current.Cards.Count - 1));
-        }
     }
 }

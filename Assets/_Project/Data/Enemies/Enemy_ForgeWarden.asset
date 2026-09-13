@@ -18,3 +18,4 @@ MonoBehaviour:
   _weapon: {fileID: 11400000, guid: 10000000000000000000000000000014, type: 2}
   _prefab: {fileID: 8315638170894620965, guid: 57e246664eba26a48af19cbf575888b8, type: 3}
   _goldReward: 50
+  _experienceReward: 10

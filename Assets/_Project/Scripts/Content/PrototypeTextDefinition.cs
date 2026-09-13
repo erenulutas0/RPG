@@ -14,6 +14,8 @@ namespace Cryptforge.Content
         [SerializeField] private string _enragedFormat;
         [SerializeField] private string _forgeStatus;
         [SerializeField] private string _healthFormat;
+        [SerializeField] private string _packHealthFormat;
+        [SerializeField] private string _packVictoryFormat;
         [SerializeField] private string _weaponFormat;
         [SerializeField] private string _goldFormat;
         [SerializeField] private string _experienceFormat;
@@ -68,6 +70,10 @@ namespace Cryptforge.Content
         public string EnragedFormat => _enragedFormat;
         public string ForgeStatus => _forgeStatus;
         public string HealthFormat => _healthFormat;
+        // {0} targeted enemy name, {1} its health, {2} its maximum, {3} other enemies still alive in the pack.
+        public string PackHealthFormat => _packHealthFormat;
+        // {0} enemies in the wave, {1} hits on the pack, {2} clear time in seconds.
+        public string PackVictoryFormat => _packVictoryFormat;
         public string WeaponFormat => _weaponFormat;
         // {0} gold this run, {1} gold at risk since the last checkpoint.
         public string GoldFormat => _goldFormat;

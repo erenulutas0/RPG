@@ -15,6 +15,8 @@ namespace Cryptforge.Content
         [SerializeField] private Health _prefab;
         // Base gold before the floor modifier.
         [SerializeField, Min(0)] private int _goldReward;
+        // Experience per kill; packs make small enemies cheap so level-ups keep a steady pace.
+        [SerializeField, Min(0)] private int _experienceReward;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -22,5 +24,6 @@ namespace Cryptforge.Content
         public WeaponDefinition Weapon => _weapon;
         public Health Prefab => _prefab;
         public int GoldReward => _goldReward;
+        public int ExperienceReward => _experienceReward;
     }
 }

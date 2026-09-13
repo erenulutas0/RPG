@@ -6,6 +6,7 @@ namespace Cryptforge.Core
     public sealed class RunState
     {
         private readonly int _experiencePerLevel;
+        private readonly int _experienceGrowth;
         private readonly float _atRiskGoldLoss;
 
         public int Experience { get; private set; }
@@ -13,8 +14,8 @@ namespace Cryptforge.Core
         public int BonusUpgrades { get; private set; }
         public int UpgradesApplied { get; private set; }
         public int PendingUpgrades => Level + BonusUpgrades - UpgradesApplied;
-        public int ExperienceForCurrentLevel => Level * _experiencePerLevel;
-        public int ExperienceForNextLevel => (Level + 1) * _experiencePerLevel;
+        public int ExperienceForCurrentLevel => ThresholdFor(Level);
+        public int ExperienceForNextLevel => ThresholdFor(Level + 1);
         public RunOutcome Outcome { get; private set; }
         public bool HasEnded => Outcome != RunOutcome.None;
 
@@ -31,17 +32,24 @@ namespace Cryptforge.Core
         public event Action GoldChanged;
         public event Action Ended;
 
-        // Linear thresholds; the floor structure currently paces choices at one per kill.
-        public RunState(int experiencePerLevel, float atRiskGoldLoss = 0.5f)
+        // The first level costs experiencePerLevel and each later level costs experienceGrowth more than the one before,
+        // so packs of small kills keep level-ups spread over the Descent. A growth of zero keeps thresholds linear.
+        public RunState(int experiencePerLevel, float atRiskGoldLoss = 0.5f, int experienceGrowth = 0)
         {
             if (experiencePerLevel < 1)
                 throw new ArgumentOutOfRangeException(nameof(experiencePerLevel));
             if (float.IsNaN(atRiskGoldLoss) || atRiskGoldLoss < 0f || atRiskGoldLoss > 1f)
                 throw new ArgumentOutOfRangeException(nameof(atRiskGoldLoss));
+            if (experienceGrowth < 0)
+                throw new ArgumentOutOfRangeException(nameof(experienceGrowth));
 
             _experiencePerLevel = experiencePerLevel;
+            _experienceGrowth = experienceGrowth;
             _atRiskGoldLoss = atRiskGoldLoss;
         }
+
+        // Total experience for level n: n × perLevel + growth × n(n − 1) / 2.
+        private int ThresholdFor(int level) => level * _experiencePerLevel + _experienceGrowth * level * (level - 1) / 2;
 
         public void AddGold(int amount)
         {
@@ -73,7 +81,9 @@ namespace Cryptforge.Core
                 return;
 
             Experience += amount;
-            int level = Experience / _experiencePerLevel;
+            int level = Level;
+            while (Experience >= ThresholdFor(level + 1))
+                level++;
             bool levelled = level != Level;
             // Level is updated before callbacks so listeners always read a consistent threshold.
             Level = level;

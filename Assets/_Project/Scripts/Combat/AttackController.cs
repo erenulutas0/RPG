@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Cryptforge.Combat
@@ -7,6 +8,7 @@ namespace Cryptforge.Combat
     {
         [SerializeField] private Health _owner;
         [SerializeField] private Targeting _targeting;
+        private readonly List<IDamageable> _nearby = new List<IDamageable>();
         private WeaponRuntime _weapon;
 
         public int AttackCount { get; private set; }
@@ -30,8 +32,18 @@ namespace Cryptforge.Combat
                 return;
 
             _weapon.Tick(Time.deltaTime);
+            if (!_weapon.IsReady)
+                return;
+
             Health target = _targeting.Acquire(_weapon.Range);
-            if (target != null && _weapon.TryAttack(target))
+            if (target == null)
+                return;
+
+            // Splash candidates are gathered only for a ready attack, into a reused list.
+            _nearby.Clear();
+            if (_weapon.SplashRadius > 0f)
+                _targeting.CollectNear(target, _weapon.SplashRadius, _nearby);
+            if (_weapon.TryAttack(target, _owner, _nearby))
             {
                 AttackCount++;
                 Attacked?.Invoke();

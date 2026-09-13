@@ -215,22 +215,26 @@ namespace Cryptforge.Tests
         [Test]
         public void AuthoredFloorIsClearableWithEitherCardAfterMending()
         {
-            FloorResult damageFirst = SimulateFloor(0, true);
-            FloorResult speedFirst = SimulateFloor(1, true);
+            DescentSimulation.Floor[] floor = { DescentSimulation.EmberHalls };
+            DescentSimulation.Result damageFirst = DescentSimulation.Run(floor, 0, true);
+            DescentSimulation.Result speedFirst = DescentSimulation.Run(floor, 1, true);
 
-            Assert.That(damageFirst.Cleared, Is.True, $"Damage first died in room {damageFirst.RoomsCleared + 1}.");
-            Assert.That(speedFirst.Cleared, Is.True, $"Speed first died in room {speedFirst.RoomsCleared + 1}.");
-            Assert.That(damageFirst.HeroHealth, Is.InRange(15f, 60f), "The Warden should threaten a mended hero.");
+            Assert.That(damageFirst.ClearedFloors, Is.EqualTo(1), $"Damage first died in {damageFirst.DeathRoom}.");
+            Assert.That(speedFirst.ClearedFloors, Is.EqualTo(1), $"Speed first died in {speedFirst.DeathRoom}.");
+            Assert.That(damageFirst.HeroHealth, Is.InRange(20f, 75f), "The packs and the Warden should threaten a mended hero.");
             Assert.That(speedFirst.HeroHealth, Is.InRange(15f, 60f));
+            Assert.That(damageFirst.Kills, Is.EqualTo(22), "Ember Halls fields six named enemies and sixteen Cinder Mites.");
+            Assert.That(damageFirst.Gold, Is.EqualTo(109));
         }
 
         [Test]
         public void TemperTradesTheHealForPowerAndLeavesLessHealth()
         {
-            FloorResult mend = SimulateFloor(0, true);
-            FloorResult temper = SimulateFloor(0, false);
+            DescentSimulation.Floor[] floor = { DescentSimulation.EmberHalls };
+            DescentSimulation.Result mend = DescentSimulation.Run(floor, 0, true);
+            DescentSimulation.Result temper = DescentSimulation.Run(floor, 0, false);
 
-            Assert.That(temper.Cleared ? temper.HeroHealth : 0f, Is.LessThan(mend.HeroHealth));
+            Assert.That(temper.ClearedFloors == 1 ? temper.HeroHealth : 0f, Is.LessThan(mend.HeroHealth));
             Assert.That(temper.UpgradesApplied, Is.EqualTo(mend.UpgradesApplied + 1));
         }
 
@@ -239,98 +243,6 @@ namespace Cryptforge.Tests
             Assert.That(step.Kind, Is.EqualTo(kind));
             Assert.That(step.RoomIndex, Is.EqualTo(room));
             Assert.That(step.WaveIndex, Is.EqualTo(wave));
-        }
-
-        private struct FloorResult
-        {
-            public bool Cleared;
-            public float HeroHealth;
-            public int RoomsCleared;
-            public int UpgradesApplied;
-        }
-
-        private sealed class EnemyStats
-        {
-            public float Health;
-            public float Damage;
-            public float Interval;
-            public float InitialDelay;
-            public float EnrageAt;
-            public float EnrageSpeed;
-        }
-
-        // Mirrors Floor_EmberHalls.asset and its enemy/weapon assets; update together.
-        private static readonly EnemyStats Grunt = new EnemyStats { Health = 50f, Damage = 6f, Interval = 1f };
-        private static readonly EnemyStats Runner = new EnemyStats { Health = 30f, Damage = 2f, Interval = 0.4f };
-        private static readonly EnemyStats Tank = new EnemyStats { Health = 120f, Damage = 12f, Interval = 2.5f, InitialDelay = 1.5f };
-        private static readonly EnemyStats Captain = new EnemyStats { Health = 140f, Damage = 9f, Interval = 1.2f, InitialDelay = 0.6f };
-        private static readonly EnemyStats Warden = new EnemyStats
-            { Health = 300f, Damage = 10f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, EnrageSpeed = 1f };
-        private static readonly EnemyStats[][] Rooms =
-        {
-            new[] { Grunt, Runner }, new[] { Runner, Grunt }, new[] { Tank }, new EnemyStats[0], new[] { Captain }, new[] { Warden }
-        };
-
-        // Runs the real run, reward, upgrade, forge and choice services through the authored floor at 60 Hz.
-        private static FloorResult SimulateFloor(int cardSlot, bool mend)
-        {
-            const float step = 1f / 60f;
-            var run = new RunState(10);
-            var rewards = new RewardService(run, 10);
-            var heroWeapon = new WeaponRuntime(10f, 0.8f, 3f);
-            var hero = new HealthState(100f);
-            var upgrades = new UpgradeService(run, heroWeapon, new[] { Damage(), Speed() }, 2);
-            var forge = new ForgeService(run, hero);
-            var choices = new RunChoices(upgrades, forge);
-            var waves = new int[Rooms.Length];
-            for (int i = 0; i < Rooms.Length; i++)
-                waves[i] = Rooms[i].Length;
-            var floor = new FloorProgress(waves);
-
-            for (FloorStep next = floor.Advance(); next.Kind != FloorStepKind.Cleared; next = floor.Advance())
-            {
-                if (next.Kind == FloorStepKind.NonCombatRoom)
-                {
-                    forge.Open(new[] { Mend(), Temper() });
-                    choices.TrySelect(choices.Current, mend ? 0 : 1);
-                    ChooseUpgrades(choices, cardSlot);
-                    continue;
-                }
-
-                EnemyStats stats = Rooms[next.RoomIndex][next.WaveIndex];
-                var enemy = new HealthState(stats.Health);
-                var enemyWeapon = new WeaponRuntime(stats.Damage, stats.Interval, 3f, stats.InitialDelay);
-                EnrageRule enrage = stats.EnrageAt > 0f ? new EnrageRule(stats.EnrageAt) : null;
-                heroWeapon.Tick(10f);
-                for (int frame = 0; frame < 100000 && enemy.IsAlive && hero.IsAlive; frame++)
-                {
-                    if (frame > 0)
-                    {
-                        heroWeapon.Tick(step);
-                        enemyWeapon.Tick(step);
-                    }
-                    heroWeapon.TryAttack(enemy);
-                    if (enrage != null && enrage.Evaluate(enemy.Current, enemy.Maximum))
-                        enemyWeapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, stats.EnrageSpeed));
-                    if (enemy.IsAlive)
-                        enemyWeapon.TryAttack(hero);
-                }
-
-                if (!hero.IsAlive)
-                    return new FloorResult { RoomsCleared = floor.RoomsCleared, UpgradesApplied = run.UpgradesApplied };
-
-                rewards.TryAwardKill(enemy);
-                ChooseUpgrades(choices, cardSlot);
-            }
-
-            return new FloorResult
-                { Cleared = true, HeroHealth = hero.Current, RoomsCleared = floor.RoomsCleared, UpgradesApplied = run.UpgradesApplied };
-        }
-
-        private static void ChooseUpgrades(RunChoices choices, int cardSlot)
-        {
-            while (choices.Current != null && choices.Current.Kind == ChoiceKind.Upgrade)
-                choices.TrySelect(choices.Current, Math.Min(cardSlot, choices.Current.Cards.Count - 1));
         }
     }
 }

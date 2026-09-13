@@ -23,6 +23,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorProgress.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/PackLayout.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponBehavior.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
@@ -40,5 +42,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RelicForgeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunPauseTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/DescentSimulation.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
   </ItemGroup>
 </Project>

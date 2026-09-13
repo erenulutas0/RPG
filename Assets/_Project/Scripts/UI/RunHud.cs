@@ -94,15 +94,22 @@ namespace Cryptforge.UI
             if (definition == null)
                 return;
 
+            // The bar follows the hero's current target; the label counts the rest of the pack still standing.
             Health enemy = _encounters.CurrentEnemy;
             float current = enemy != null ? enemy.Current : 0f;
             float maximum = enemy != null ? enemy.Maximum : definition.MaximumHealth;
-            _enemyLabel.text = string.Format(_text.HealthFormat, definition.DisplayName, current, maximum);
+            int othersAlive = _encounters.AliveEnemyCount - (enemy != null && enemy.IsAlive ? 1 : 0);
+            _enemyLabel.text = othersAlive > 0
+                ? string.Format(_text.PackHealthFormat, definition.DisplayName, current, maximum, othersAlive)
+                : string.Format(_text.HealthFormat, definition.DisplayName, current, maximum);
             _enemyBar.fillAmount = Fraction(current, maximum);
-            if (_encounters.IsCleared)
+            EnemyDefinition enraged = _encounters.EnragedDefinition;
+            if (_encounters.IsCleared && _encounters.WaveEnemyCount > 1)
+                _statusLabel.text = string.Format(_text.PackVictoryFormat, _encounters.WaveEnemyCount, _encounters.HitsTaken, _encounters.Elapsed);
+            else if (_encounters.IsCleared)
                 _statusLabel.text = string.Format(_text.VictoryFormat, definition.DisplayName, _encounters.HitsTaken, _encounters.Elapsed);
-            else if (_encounters.IsCurrentEnemyEnraged)
-                _statusLabel.text = string.Format(_text.EnragedFormat, definition.DisplayName);
+            else if (enraged != null)
+                _statusLabel.text = string.Format(_text.EnragedFormat, enraged.DisplayName);
             else
                 _statusLabel.text = string.Format(_text.WaveFormat, _encounters.WaveNumber, _encounters.WaveCount);
         }

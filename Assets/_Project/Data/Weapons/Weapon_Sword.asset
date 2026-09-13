@@ -17,3 +17,6 @@ MonoBehaviour:
   _damage: 10
   _interval: 0.8
   _range: 3
+  _behavior: 1
+  _splashRadius: 2
+  _splashFraction: 0.6

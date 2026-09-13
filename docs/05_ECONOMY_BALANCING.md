@@ -64,6 +64,14 @@ Rewards earned since the last floor checkpoint are at risk when the player choos
 
 Boss difficulty should come partly from mechanics, not only HP inflation.
 
+### Run experience
+
+Each enemy carries its own experience and gold reward, so fodder in a pack can pay less than a named enemy. Levels cost progressively more:
+
+`xp_to_reach_level_n = xp_per_level * n + growth * n * (n - 1) / 2`
+
+The prototype uses 10 and 1 (10, 11, 12, ... per level). The fodder Cinder Mite gives 3 XP and named enemies 10, which keeps the ten upgrade stacks from running out on floor 1 when a room holds several enemies. Both constants live in `EconomyConfig`.
+
 ## Upgrade valuation
 
 Create a normalized “power budget” for upgrades.
@@ -128,6 +136,7 @@ When added:
 - base damage
 - interval
 - range
+- behavior (direct hit, cleave, ...), splash radius and fraction
 - projectile count
 - tags
 - scaling coefficients
@@ -139,7 +148,8 @@ When added:
 - HP
 - damage
 - speed
-- reward
+- gold reward
+- experience reward
 - tags
 - spawn weight
 
