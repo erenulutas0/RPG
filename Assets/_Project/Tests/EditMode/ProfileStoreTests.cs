@@ -143,6 +143,58 @@ namespace Cryptforge.Tests
             Assert.That(new ProfileStore(_directory).Load().Gold, Is.EqualTo(50), "Saving continues after the newest revision.");
         }
 
+        // A save killed while writing can leave a temp file cut at any character; none of those files may replace the last
+        // complete save, even when the cut keeps a higher revision.
+        [Test]
+        public void EveryTruncatedTempFileLosesToTheLastCompleteSave()
+        {
+            var store = new ProfileStore(_directory);
+            store.Load();
+            store.Save(new PlayerProfile(70, new[] { "relic_second_wind" }, "relic_second_wind", 1, new[] { "weapon_staff" }, "weapon_staff"));
+            string newer = JsonUtility.ToJson(new ProfileSaveData
+            {
+                saveVersion = ProfileSaveData.CurrentVersion,
+                revision = 9,
+                gold = 999,
+                ownedRelicIds = new string[0],
+                equippedRelicId = string.Empty,
+                deepestFloorCleared = 2,
+                ownedWeaponIds = new string[0],
+                equippedWeaponId = string.Empty
+            }, true);
+            string temp = Path.Combine(_directory, ProfileStore.TempFileName);
+
+            for (int length = 0; length < newer.Length; length++)
+            {
+                File.WriteAllText(temp, newer.Substring(0, length));
+                PlayerProfile loaded = new ProfileStore(_directory).Load();
+                Assert.That(loaded.Gold, Is.EqualTo(70), $"A temp file cut after {length} of {newer.Length} characters was loaded.");
+                Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
+            }
+
+            File.WriteAllText(temp, newer);
+            Assert.That(new ProfileStore(_directory).Load().Gold, Is.EqualTo(999), "The complete newer temp file still wins.");
+        }
+
+        // Storage damage can cut the main file too; the backup must win over any partial main file.
+        [Test]
+        public void EveryTruncatedMainFileFallsBackToTheBackup()
+        {
+            var store = new ProfileStore(_directory);
+            store.Load();
+            store.Save(new PlayerProfile(40, null, null, 0));
+            store.Save(new PlayerProfile(90, new[] { "relic_counterweight" }, "relic_counterweight", 2, new[] { "weapon_daggers" }, "weapon_daggers"));
+            string main = Path.Combine(_directory, ProfileStore.FileName);
+            string complete = File.ReadAllText(main);
+
+            for (int length = 0; length < complete.TrimEnd().Length; length++)
+            {
+                File.WriteAllText(main, complete.Substring(0, length));
+                PlayerProfile loaded = new ProfileStore(_directory).Load();
+                Assert.That(loaded.Gold, Is.EqualTo(40), $"A main file cut after {length} of {complete.Length} characters was loaded.");
+            }
+        }
+
         [Test]
         public void SaveFromANewerBuildIsNotReadAndIsKept()
         {

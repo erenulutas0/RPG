@@ -462,6 +462,14 @@ A code review of the packs and weapon commits found one robustness gap. A bad Fo
 
 Verified: Unity EditMode 143/143, PlayMode 44/44, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `8AF1C71DF37E3703A9B21A3DA55BD281DFDB6EE3F5F132DDDB4B6C735B1EAA6F`).
 
+### Implemented 2026-09-14: truncated save files
+
+`13` and `18` rate save corruption as critical. Two EditMode tests now cut a profile file at every character and reload it:
+- **Temp file:** a save killed mid-write can leave a partial temp file with a higher revision. At every cut length the last complete save still loads (70 gold, the equipped Staff), and only the complete newer file wins.
+- **Main file:** storage damage can cut `profile.json` itself. At every cut length the backup loads instead.
+
+Unity's JSON parser rejected every partial file, so no change to `ProfileStore` was needed; the tests keep it that way. Verified: Unity EditMode 145/145 (no game code changed).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.
