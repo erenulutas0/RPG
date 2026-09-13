@@ -1,6 +1,7 @@
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +18,7 @@ namespace Cryptforge.UI
         [SerializeField] private Text _titleLabel;
         [SerializeField] private Text _floorLabel;
         [SerializeField] private Text _weaponLabel;
+        [SerializeField] private Text _relicLabel;
         [SerializeField] private Text _enemyLabel;
         [SerializeField] private Text _heroLabel;
         [SerializeField] private Text _statusLabel;
@@ -31,7 +33,7 @@ namespace Cryptforge.UI
         private void Start()
         {
             if (AnyMissing(_setup, _encounters, _hero, _heroDefinition, _text, _titleLabel, _floorLabel,
-                    _weaponLabel, _enemyLabel, _heroLabel, _statusLabel, _goldLabel, _experienceLabel, _enemyBar,
+                    _weaponLabel, _relicLabel, _enemyLabel, _heroLabel, _statusLabel, _goldLabel, _experienceLabel, _enemyBar,
                     _heroBar, _experienceBar) ||
                 _heroDefinition.StartingWeapon == null || _setup.Run == null || _encounters.Floor == null)
             {
@@ -46,12 +48,26 @@ namespace Cryptforge.UI
             _setup.Weapon.StatsChanged += RefreshWeapon;
             _setup.Run.ExperienceChanged += RefreshExperience;
             _setup.Run.GoldChanged += RefreshGold;
+            if (_setup.Relic != null)
+                _setup.Relic.Triggered += RefreshRelic;
             _subscribed = true;
             RefreshHero();
             RefreshEncounter();
             RefreshWeapon();
             RefreshExperience();
             RefreshGold();
+            RefreshRelic();
+        }
+
+        private void RefreshRelic()
+        {
+            RelicRuntime relic = _setup.Relic;
+            if (relic == null)
+                _relicLabel.text = string.Empty;
+            else if (relic.Triggers == 0)
+                _relicLabel.text = string.Format(_text.RelicFormat, relic.Relic.DisplayName);
+            else
+                _relicLabel.text = string.Format(_text.RelicTriggeredFormat, relic.Relic.DisplayName, relic.Triggers);
         }
 
         private void RefreshHero()
@@ -134,6 +150,8 @@ namespace Cryptforge.UI
             _setup.Weapon.StatsChanged -= RefreshWeapon;
             _setup.Run.ExperienceChanged -= RefreshExperience;
             _setup.Run.GoldChanged -= RefreshGold;
+            if (_setup.Relic != null)
+                _setup.Relic.Triggered -= RefreshRelic;
         }
     }
 }

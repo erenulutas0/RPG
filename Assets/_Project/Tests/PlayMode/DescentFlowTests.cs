@@ -27,6 +27,7 @@ namespace Cryptforge.Tests
         [UnitySetUp]
         public IEnumerator LoadGameplay()
         {
+            TestProfile.Begin();
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
@@ -43,6 +44,7 @@ namespace Cryptforge.Tests
             Scene empty = SceneManager.CreateScene("Descent Test Cleanup");
             SceneManager.SetActiveScene(empty);
             yield return SceneManager.UnloadSceneAsync(gameplay);
+            TestProfile.End();
         }
 
         [UnityTest]
@@ -62,6 +64,9 @@ namespace Cryptforge.Tests
             Assert.That(_encounters.IsDescending, Is.True);
             Assert.That(Label("Gold Label"), Is.EqualTo("Gold 96  (0 at risk)"));
             Assert.That(Label("Floor Label"), Does.StartWith("Floor 2"));
+            PlayerProfile saved = TestProfile.ReadSaved();
+            Assert.That(saved.Gold, Is.EqualTo(96), "Secured gold is banked in the saved profile as soon as the hero descends.");
+            Assert.That(saved.DeepestFloorCleared, Is.EqualTo(1));
             yield return null;
             Assert.That(_hero.Current, Is.EqualTo(wounded), "Descending does not heal.");
 
@@ -110,6 +115,8 @@ namespace Cryptforge.Tests
             Assert.That(Label("Cause Label"), Does.Contain("Runner").And.Contain("Mercury Stair"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 2").And.Contain("6 rooms"));
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 100  |  lost: 4"));
+            Assert.That(TestProfile.ReadSaved().Gold, Is.EqualTo(100), "The 96 banked at the checkpoint plus the 4 kept.");
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 100: Second Wind is ready to forge"));
         }
 
         [UnityTest]
@@ -160,6 +167,9 @@ namespace Cryptforge.Tests
             Assert.That(Label("Cause Label"), Does.Contain("Forge Warden").And.Contain("Quicksilver Vaults"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 2").And.Contain("12 rooms"));
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 250"));
+            PlayerProfile saved = TestProfile.ReadSaved();
+            Assert.That(saved.Gold, Is.EqualTo(250));
+            Assert.That(saved.DeepestFloorCleared, Is.EqualTo(2));
             LogAssert.NoUnexpectedReceived();
         }
 

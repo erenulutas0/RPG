@@ -33,7 +33,7 @@ Do NOT:
 - 3 enemy archetypes (done 2026-09-13: Grunt, Runner, Tank),
 - floor 1: six-room template, one boss, result screen with cause of death (done 2026-09-13: Ember Halls, see `21`),
 - floor 2: second modifier and scaling tier, Extract/Descend checkpoint (done 2026-09-13: Quicksilver Vaults with Cursed Gold, gold at risk, see `21`),
-- the Forge meta layer with unlocks, two relics and local save,
+- the Forge meta layer with unlocks, two relics and local save (done 2026-09-13: Relic Forge with Second Wind and Counterweight, versioned JSON profile, see `21`),
 - 3 weapon behaviors.
 
 Exit:

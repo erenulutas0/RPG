@@ -168,6 +168,24 @@ namespace Cryptforge.Tests
             Assert.That(damageTemper.GoldBanked, Is.EqualTo(damageTemper.Gold - damageTemper.UnsecuredAtDeath / 2));
         }
 
+        [Test]
+        public void EachRelicRescuesTheDamageFirstTemperDescentButNotTheGreediestPath()
+        {
+            DescentResult plainMend = SimulateDescent(0, true);
+            DescentResult counterMend = SimulateDescent(0, true, RelicForgeTests.Counterweight());
+            DescentResult counterTemper = SimulateDescent(0, false, RelicForgeTests.Counterweight());
+            DescentResult windTemper = SimulateDescent(0, false, RelicForgeTests.SecondWind());
+            DescentResult counterGreedy = SimulateDescent(1, false, RelicForgeTests.Counterweight());
+            DescentResult windGreedy = SimulateDescent(1, false, RelicForgeTests.SecondWind());
+
+            Assert.That(counterTemper.ClearedFloors, Is.EqualTo(2), "Counterweight carries damage first with Temper through floor 2.");
+            Assert.That(windTemper.ClearedFloors, Is.EqualTo(2), "Second Wind carries damage first with Temper through floor 2.");
+            Assert.That(windTemper.RelicTriggers, Is.EqualTo(1));
+            Assert.That(counterGreedy.ClearedFloors, Is.EqualTo(1), "Speed first with Temper stays too greedy even with a relic.");
+            Assert.That(windGreedy.ClearedFloors, Is.EqualTo(1));
+            Assert.That(counterMend.HeroHealth, Is.GreaterThan(plainMend.HeroHealth + 10f), "Counterweight rewards damage upgrades.");
+        }
+
         private static CheckpointOption[] Options() => new[]
         {
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),
@@ -181,6 +199,7 @@ namespace Cryptforge.Tests
             public int Gold;
             public int GoldBanked;
             public int UnsecuredAtDeath;
+            public int RelicTriggers;
         }
 
         private sealed class EnemyStats
@@ -221,8 +240,8 @@ namespace Cryptforge.Tests
             ModifierGoldPercent = 0.5f
         };
 
-        // Always descends; uses the real run, reward, upgrade, forge, choice and scaling code at 60 Hz.
-        private static DescentResult SimulateDescent(int cardSlot, bool mendOnFloorOne)
+        // Always descends; uses the real run, reward, upgrade, forge, choice, scaling and relic code at 60 Hz.
+        private static DescentResult SimulateDescent(int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null)
         {
             var run = new RunState(10, 0.5f);
             var rewards = new RewardService(run, 10);
@@ -237,13 +256,14 @@ namespace Cryptforge.Tests
             var choices = new RunChoices(upgrades, forge);
             var mend = new ForgeOption("forge_mend", "", "", ForgeEffect.Heal, 0.4f);
             var temper = new ForgeOption("forge_temper", "", "", ForgeEffect.BonusUpgrade, 1f);
+            RelicRuntime relic = relicOption != null ? new RelicRuntime(relicOption) : null;
 
             var result = new DescentResult();
             FloorStats[] floors = { EmberHalls, QuicksilverVaults };
             for (int f = 0; f < floors.Length; f++)
             {
                 bool useMend = f > 0 || mendOnFloorOne;
-                if (!SimulateFloor(floors[f], run, rewards, weapon, hero, forge, choices, mend, temper, cardSlot, useMend))
+                if (!SimulateFloor(floors[f], run, rewards, weapon, hero, forge, choices, mend, temper, cardSlot, useMend, relic))
                 {
                     result.UnsecuredAtDeath = run.UnsecuredGold;
                     run.End(RunOutcome.Defeat);
@@ -258,11 +278,12 @@ namespace Cryptforge.Tests
             result.HeroHealth = hero.Current;
             result.Gold = run.Gold;
             result.GoldBanked = run.GoldBanked;
+            result.RelicTriggers = relic?.Triggers ?? 0;
             return result;
         }
 
         private static bool SimulateFloor(FloorStats floor, RunState run, RewardService rewards, WeaponRuntime weapon, HealthState hero,
-            ForgeService forge, RunChoices choices, ForgeOption mend, ForgeOption temper, int cardSlot, bool useMend)
+            ForgeService forge, RunChoices choices, ForgeOption mend, ForgeOption temper, int cardSlot, bool useMend, RelicRuntime relic)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -298,8 +319,17 @@ namespace Cryptforge.Tests
                     weapon.TryAttack(enemy);
                     if (enrage != null && enrage.Evaluate(enemy.Current, enemy.Maximum))
                         enemyWeapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
-                    if (enemy.IsAlive)
-                        enemyWeapon.TryAttack(hero);
+                    if (!enemy.IsAlive)
+                        continue;
+
+                    float healthBefore = hero.Current;
+                    // Mirrors RelicBehaviour: a survived hit reports to the relic, and a counter can trigger the enrage.
+                    if (enemyWeapon.TryAttack(hero) && relic != null && hero.Current < healthBefore)
+                    {
+                        relic.OnHeroDamaged(hero, enemy, weapon.Damage);
+                        if (enrage != null && enrage.Evaluate(enemy.Current, enemy.Maximum))
+                            enemyWeapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
+                    }
                 }
 
                 if (!hero.IsAlive)

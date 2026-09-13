@@ -250,6 +250,67 @@ Descending is a real bet: a healthy hero makes it, a hero who tempered on floor 
 
 Verified: Unity EditMode 100/100, PlayMode 24/24, `Verify-Project.ps1`, .NET CombatChecks 100/100, development APK built only after both reports passed (SHA-256 `567C672B40F18698A305AF57B0BE91639E85FA777C2DDCEAE038D6975862487D`). On Samsung SM-S911B an automated Descend run cleared both floors in about 78 s with 21 HP left and banked 250 gold (see `23`).
 
+### Implemented 2026-09-13: the Forge meta layer (local save, Relic Forge, two relics)
+
+What the player sees:
+
+- **Result screen:** a gold line names the nearest unlock, for example **Forge gold 96: Second Wind is ready to forge** or **Forge gold 0: Second Wind costs 80**. A **Relic Forge** button sits under **Try again**; both wait out the half-second input delay.
+- **Relic Forge:** a panel over the result screen with **Gold n | Deepest floor cleared: n**, one card per relic (name, effect, then **Forge for n gold**, **n gold: need n more**, **Owned: tap to equip** or **Equipped**) and **Start run**.
+  - Tapping an affordable relic forges and equips it; tapping an owned relic equips it. One relic is equipped at a time.
+  - Unaffordable cards are dimmed. Every change briefly ignores taps, so rapid taps cannot buy twice.
+- **During a run:** the HUD shows **Relic: name** under the weapon line and adds a trigger count once it fires. The result build lists the relic first, for example **Build: Second Wind (1x), Tempered Edge x5**.
+
+| Relic (`Data/Relics`) | Price | Effect |
+|---|---|---|
+| Second Wind | 80 | Once per run, when a hit the hero survives leaves 25% health or less, restore 25% of maximum health |
+| Counterweight | 150 | Every enemy hit the hero survives strikes that enemy back for 60% of the hero's current weapon damage |
+
+Both change behavior rather than raw stats, as `03` and `24` §4.5 require. Counterweight fits the Vanguard's shield/counter identity and makes damage upgrades worth more; Second Wind is a one-time safety net that makes a greedier forge pick or descent survivable. A floor 1 extraction (96 gold) buys Second Wind; a full Descent (250) buys both.
+
+**Gold flow:** `RunBank` deposits gold into the profile as soon as a checkpoint secures it, and the rest of the banked gold when the run ends, so a descent keeps its secured gold even if the app closes mid-floor. Clearing a floor raises the depth record. Every profile change is saved at once.
+
+**Save:** `profile.json` in `Application.persistentDataPath`, versioned JSON (`saveVersion` 1) with a `revision` that grows on every save.
+
+- **Saving:** writes and flushes `profile.json.tmp`, moves the old `profile.json` to `profile.json.bak`, then moves the temp file into place.
+- **Loading:** takes the readable file with the highest revision among the three. An unreadable main file is copied to `profile.json.unreadable`, and a file from a newer build is never read.
+- **Repairs:** negative gold, duplicate relic ids and an equipped relic that is not owned are fixed on load.
+- **When it loads:** on every Gameplay scene load, so no Bootstrap scene or persistent service object is needed yet (decision in `19`).
+
+| Files | Change |
+|---|---|
+| `Scripts/Core/PlayerProfile.cs` | New, plain C#: gold, owned and equipped relic, deepest floor cleared; forging spends, owns and equips as one change; damaged saved values are repaired. |
+| `Scripts/Economy/RunBank.cs` | New: deposits secured gold at the checkpoint and the remainder when the run ends. |
+| `Scripts/Progression/RelicEffect.cs`, `RelicOption.cs`, `RelicRuntime.cs`, `RelicStatus.cs`, `RelicShop.cs` | New: relic data with validation; one run's relic reacting to hits the hero survives (a killing blow never triggers it); the Relic Forge rules (status, next unlock, forge or equip on tap). |
+| `Scripts/Combat/IHealable.cs`, `RelicBehaviour.cs` | `IHealable` exposes `Current`. `RelicBehaviour` on the Vanguard reports each drop in hero health with the current enemy as the attacker. |
+| `Scripts/Save/ProfileSaveData.cs`, `ProfileMigration.cs`, `ProfileLoadStatus.cs`, `ProfileStore.cs`, `ProfileLocation.cs` | New: schema, version gate, atomic save and newest-readable load, and a test-only folder override. |
+| `Scripts/Content/RelicDefinition.cs`, `Data/Relics/Relic_SecondWind.asset`, `Relic_Counterweight.asset` | Relic definitions with price, effect, amount and threshold. |
+| `Scripts/Core/CombatSetup.cs` | Loads the profile, logs recovered or reset saves, composes `RelicShop` and `RunBank`, saves on every profile change (a failed write is logged and retried on the next change), applies the equipped relic and records cleared floors. |
+| `Scripts/UI/RunHud.cs`, `RunResultView.cs`, `RelicForgeView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset`, `Scenes/Gameplay/Gameplay.unity` | Relic HUD line, forge hint and Relic Forge button on the result screen, the Relic Forge panel. The scene was wired by a temporary builder, deleted afterwards. |
+| Tests | EditMode `RelicForgeTests` (12 cases), `ProfileStoreTests` (6: first launch, round trip, corrupt main file, interrupted saves, newer version, repaired values) and a relic case in the `DescentTests` simulation. PlayMode `RelicForgeFlowTests` (4): the locked Forge with an empty profile; forging, re-equipping, saving and starting a run with the relic; Counterweight answering Grunt strikes; Second Wind healing once. Every scene test now uses its own temporary profile folder; `FloorFlowTests`, `DescentFlowTests` and `RunResultTests` check the saved gold and forge hint. |
+
+Balance chosen with the Descent simulation (first upgrade card every time, Mend at floor 2's forge, always descending; health after floor 1 → end of floor 2):
+
+| Floor 1 path | No relic | Counterweight 60% | Second Wind 25%/25% |
+|---|---|---|---|
+| Damage first, Mend | 38 → 17 | 60 → 39 | 38 → 42 |
+| Damage first, Temper | 17 → dies in floor 2 room 3 | 39 → 18 | 42 → 21 |
+| Speed first, Mend | 34 → 13 | 42 → 21 | 34 → 38 |
+| Speed first, Temper | 4 → dies in floor 2 room 1 | 12 → dies in floor 2 room 1 | 29 → dies in floor 2 room 3 |
+
+Each relic rescues the damage-first Temper descent but not the greediest path. Rejected in the same simulation:
+
+- Counterweight at 50% rescued no path.
+- Second Wind once per floor let every path survive, including speed first with Temper.
+
+Known gaps:
+
+- After both relics (230 gold) gold has no sink; weapon unlocks from the next slice are the planned sink.
+- The analytics events `currency_spent` and `meta_upgrade` wait for an analytics service.
+- There is no in-game progress reset.
+- Closing the app mid-floor forfeits gold not yet secured.
+
+Verified: Unity EditMode 119/119, PlayMode 28/28, `Verify-Project.ps1`, .NET CombatChecks 113/113, development APK built only after both reports passed (SHA-256 `32523A4D00FCC7142DBB59361FCEEB9208769A9B29C24F9BE553EE9BBE05628E`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

@@ -19,6 +19,7 @@ namespace Cryptforge.Tests
         [UnitySetUp]
         public IEnumerator LoadGameplay()
         {
+            TestProfile.Begin();
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _hero = GameObject.Find("Vanguard").GetComponent<Health>();
@@ -36,6 +37,7 @@ namespace Cryptforge.Tests
             Scene empty = SceneManager.CreateScene("Combat Test Cleanup");
             SceneManager.SetActiveScene(empty);
             yield return SceneManager.UnloadSceneAsync(gameplay);
+            TestProfile.End();
         }
 
         [UnityTest]

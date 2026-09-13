@@ -161,6 +161,13 @@ When added:
 - boss id
 - modifier id, effects, power estimate
 
+### Relics (meta unlocks)
+- id
+- effect (behavior, not raw stat)
+- amount / threshold
+- price in gold
+- which simulated path it rescues
+
 ## Anti-patterns
 
 - 20 currencies,

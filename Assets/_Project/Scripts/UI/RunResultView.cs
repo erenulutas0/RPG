@@ -8,22 +8,26 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // Shows why and how far the run went, then offers a single restart. The button is briefly disabled
-    // after opening so a tap aimed at combat cannot restart by accident, and disables itself on first use.
+    // Shows why and how far the run went, what the Forge holds now, and offers a single restart or the Relic Forge.
+    // Both buttons are briefly disabled after opening so a tap aimed at combat cannot act by accident.
     public sealed class RunResultView : MonoBehaviour
     {
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private EncounterController _encounters;
         [SerializeField] private HeroDefinition _heroDefinition;
         [SerializeField] private PrototypeTextDefinition _text;
+        [SerializeField] private RelicForgeView _forge;
         [SerializeField] private GameObject _panel;
         [SerializeField] private Text _titleLabel;
         [SerializeField] private Text _causeLabel;
         [SerializeField] private Text _progressLabel;
         [SerializeField] private Text _goldLabel;
         [SerializeField] private Text _buildLabel;
+        [SerializeField] private Text _forgeHintLabel;
         [SerializeField] private Text _restartLabel;
         [SerializeField] private Button _restartButton;
+        [SerializeField] private Text _forgeButtonLabel;
+        [SerializeField] private Button _forgeButton;
         [SerializeField, Min(0f)] private float _inputDelay = 0.5f;
         [SerializeField] private Color _victoryColor = new Color(0.95f, 0.8f, 0.35f);
         [SerializeField] private Color _defeatColor = new Color(1f, 0.55f, 0.35f);
@@ -35,10 +39,11 @@ namespace Cryptforge.UI
 
         private void Start()
         {
-            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _encounters == null || _encounters.Floor == null ||
-                _heroDefinition == null || _text == null || _panel == null || _titleLabel == null ||
-                _causeLabel == null || _progressLabel == null || _goldLabel == null || _buildLabel == null || _restartLabel == null ||
-                _restartButton == null)
+            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _setup.Relics == null || _encounters == null ||
+                _encounters.Floor == null || _heroDefinition == null || _text == null || _forge == null || _panel == null ||
+                _titleLabel == null || _causeLabel == null || _progressLabel == null || _goldLabel == null || _buildLabel == null ||
+                _forgeHintLabel == null || _restartLabel == null || _restartButton == null || _forgeButtonLabel == null ||
+                _forgeButton == null)
             {
                 Debug.LogError("RunResultView is missing a scene or content reference.", this);
                 enabled = false;
@@ -47,7 +52,10 @@ namespace Cryptforge.UI
 
             _panel.SetActive(false);
             _restartLabel.text = _text.RestartLabel;
+            _forgeButtonLabel.text = _text.ForgeButtonLabel;
             _restartButton.onClick.AddListener(OnRestart);
+            _forgeButton.onClick.AddListener(OnForge);
+            // RunBank subscribed in CombatSetup.Awake, so the run's gold is already in the profile when Show runs.
             _setup.Run.Ended += Show;
             _subscribed = true;
             if (_setup.Run.HasEnded)
@@ -86,17 +94,21 @@ namespace Cryptforge.UI
                 ? string.Format(_text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
                 : string.Format(_text.ResultGoldFormat, run.GoldBanked);
             _buildLabel.text = string.Format(_text.ResultBuildFormat, DescribeBuild());
+            _forgeHintLabel.text = DescribeForge();
 
             _panel.SetActive(true);
-            _restartButton.interactable = false;
+            SetButtonsInteractable(false);
             _inputEnabledAt = Time.unscaledTime + _inputDelay;
             _awaitingInputDelay = true;
         }
 
         private string DescribeBuild()
         {
+            var entries = new List<string>();
+            if (_setup.Relic != null)
+                entries.Add(string.Format(_text.ResultRelicFormat, _setup.Relic.Relic.DisplayName, _setup.Relic.Triggers));
+
             UpgradeService upgrades = _setup.Upgrades;
-            var entries = new List<string>(upgrades.Pool.Count);
             for (int i = 0; i < upgrades.Pool.Count; i++)
             {
                 UpgradeOption option = upgrades.Pool[i];
@@ -108,13 +120,32 @@ namespace Cryptforge.UI
             return entries.Count > 0 ? string.Join(", ", entries) : _text.ResultNoUpgrades;
         }
 
+        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock.
+        private string DescribeForge()
+        {
+            RelicShop shop = _setup.Relics;
+            int gold = shop.Profile.Gold;
+            RelicOption next = shop.NextUnlock;
+            if (next == null)
+                return string.Format(_text.ForgeHintCompleteFormat, gold);
+            return shop.StatusOf(next) == RelicStatus.Affordable
+                ? string.Format(_text.ForgeHintReadyFormat, gold, next.DisplayName)
+                : string.Format(_text.ForgeHintNextFormat, gold, next.DisplayName, next.Price);
+        }
+
         private void Update()
         {
             if (!_awaitingInputDelay || Time.unscaledTime < _inputEnabledAt)
                 return;
 
             _awaitingInputDelay = false;
-            _restartButton.interactable = true;
+            SetButtonsInteractable(true);
+        }
+
+        private void SetButtonsInteractable(bool interactable)
+        {
+            _restartButton.interactable = interactable;
+            _forgeButton.interactable = interactable;
         }
 
         private void OnRestart()
@@ -122,8 +153,16 @@ namespace Cryptforge.UI
             if (_awaitingInputDelay || !_restartButton.interactable)
                 return;
 
-            _restartButton.interactable = false;
+            SetButtonsInteractable(false);
             _setup.RestartRun();
+        }
+
+        private void OnForge()
+        {
+            if (_awaitingInputDelay || !_forgeButton.interactable)
+                return;
+
+            _forge.Open();
         }
 
         private void OnDestroy()
@@ -134,6 +173,8 @@ namespace Cryptforge.UI
             _setup.Run.Ended -= Show;
             if (_restartButton != null)
                 _restartButton.onClick.RemoveListener(OnRestart);
+            if (_forgeButton != null)
+                _forgeButton.onClick.RemoveListener(OnForge);
         }
     }
 }

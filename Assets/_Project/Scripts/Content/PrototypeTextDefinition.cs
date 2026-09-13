@@ -38,6 +38,20 @@ namespace Cryptforge.Content
         [SerializeField] private string _resultUpgradeFormat;
         [SerializeField] private string _resultNoUpgrades;
         [SerializeField] private string _restartLabel;
+        [SerializeField] private string _relicFormat;
+        [SerializeField] private string _relicTriggeredFormat;
+        [SerializeField] private string _resultRelicFormat;
+        [SerializeField] private string _forgeHintReadyFormat;
+        [SerializeField] private string _forgeHintNextFormat;
+        [SerializeField] private string _forgeHintCompleteFormat;
+        [SerializeField] private string _forgeButtonLabel;
+        [SerializeField] private string _forgeTitle;
+        [SerializeField] private string _forgeStatusFormat;
+        [SerializeField] private string _relicForgeFormat;
+        [SerializeField] private string _relicNeedGoldFormat;
+        [SerializeField] private string _relicOwnedLabel;
+        [SerializeField] private string _relicEquippedLabel;
+        [SerializeField] private string _startRunLabel;
 
         public string Title => _title;
         // {0} floor number, {1} room number, {2} room count, {3} room name.
@@ -85,5 +99,28 @@ namespace Cryptforge.Content
         public string ResultUpgradeFormat => _resultUpgradeFormat;
         public string ResultNoUpgrades => _resultNoUpgrades;
         public string RestartLabel => _restartLabel;
+        // {0} relic name.
+        public string RelicFormat => _relicFormat;
+        // {0} relic name, {1} times it has triggered this run.
+        public string RelicTriggeredFormat => _relicTriggeredFormat;
+        // {0} relic name, {1} times it triggered; listed first in the result build.
+        public string ResultRelicFormat => _resultRelicFormat;
+        // {0} profile gold, {1} affordable relic name.
+        public string ForgeHintReadyFormat => _forgeHintReadyFormat;
+        // {0} profile gold, {1} cheapest unowned relic name, {2} its price.
+        public string ForgeHintNextFormat => _forgeHintNextFormat;
+        // {0} profile gold.
+        public string ForgeHintCompleteFormat => _forgeHintCompleteFormat;
+        public string ForgeButtonLabel => _forgeButtonLabel;
+        public string ForgeTitle => _forgeTitle;
+        // {0} profile gold, {1} deepest floor cleared.
+        public string ForgeStatusFormat => _forgeStatusFormat;
+        // {0} price.
+        public string RelicForgeFormat => _relicForgeFormat;
+        // {0} price, {1} gold still needed.
+        public string RelicNeedGoldFormat => _relicNeedGoldFormat;
+        public string RelicOwnedLabel => _relicOwnedLabel;
+        public string RelicEquippedLabel => _relicEquippedLabel;
+        public string StartRunLabel => _startRunLabel;
     }
 }

@@ -43,3 +43,17 @@ MonoBehaviour:
   _resultUpgradeFormat: '{0} x{1}'
   _resultNoUpgrades: no upgrades
   _restartLabel: Try again
+  _relicFormat: 'Relic: {0}'
+  _relicTriggeredFormat: 'Relic: {0} ({1}x)'
+  _resultRelicFormat: '{0} ({1}x)'
+  _forgeHintReadyFormat: 'Forge gold {0}: {1} is ready to forge'
+  _forgeHintNextFormat: 'Forge gold {0}: {1} costs {2}'
+  _forgeHintCompleteFormat: 'Forge gold {0}: every relic is forged'
+  _forgeButtonLabel: Relic Forge
+  _forgeTitle: Relic Forge
+  _forgeStatusFormat: 'Gold {0}  |  Deepest floor cleared: {1}'
+  _relicForgeFormat: Forge for {0} gold
+  _relicNeedGoldFormat: '{0} gold: need {1} more'
+  _relicOwnedLabel: 'Owned: tap to equip'
+  _relicEquippedLabel: Equipped
+  _startRunLabel: Start run

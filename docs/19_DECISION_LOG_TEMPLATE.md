@@ -113,3 +113,43 @@ Negative: two more definition types and a small run state machine before Gate A;
 
 ### Revisit trigger
 Testers report the Extract/Descend choice as confusing or always-descend; floor 2 takes longer than 8 minutes to reach; or wave mode proves more marketable in early clips.
+
+---
+
+## Decision: Local profile save and the first Forge meta layer
+
+**Date:** 2026-09-13  
+**Status:** Accepted (implemented; see `21`)  
+**Owner:** Product / engineering
+
+### Context
+Banked gold had no use and nothing persisted between runs. `15` and `24` §4.8 schedule the Forge meta layer with unlocks, two relics and local save before weapon behaviors. `03` asks for a small permanent layer without large raw-stat multipliers; `06` specifies versioned JSON with a temp-then-replace write and a fallback when corrupted.
+
+### Options
+1. A Bootstrap scene with a persistent save service and a separate menu scene for the Forge.
+2. Load the profile on every Gameplay scene load; open the Forge as a panel from the result screen.
+3. PlayerPrefs for gold and unlock flags.
+
+### Decision
+Option 2.
+- **Save:** `profile.json` stores `saveVersion` and a `revision`. A save writes a flushed temp file, moves the old profile to a backup and moves the temp file into place. Loading picks the readable file with the highest revision; an unreadable main file is kept, and a newer-build file is never read.
+- **Relics:** Second Wind (once per run, heal 25% at 25% health, 80 gold) and Counterweight (strike back for 60% of weapon damage, 150 gold). Each was chosen so the simulated damage-first Temper descent survives while the speed-first Temper descent still fails.
+- **Gold:** secured gold is banked at the checkpoint.
+- **Test seam:** scene tests redirect the profile folder through a static override. This is the one justified exception to the no-static-state rule in `07`, because tests must never touch a player's save.
+
+### Why
+- **No Bootstrap scene yet:** one tiny file read per run is cheaper than a service object that must survive scene reloads, and first launch still drops straight into combat as `04` wants.
+- **Forge on the result screen:** the result is where `04` wants the next unlock shown.
+- **Not PlayerPrefs:** it has no versioning, no backup and no atomic multi-field write.
+
+### Consequences
+Positive: permanent progress with crash-safe writes and tested corruption, interruption and version cases; relics change how builds and forge picks play rather than adding flat power.
+
+Negative:
+- After both relics (230 gold) gold has no sink.
+- Mid-floor progress beyond secured gold is not saved.
+- Tests depend on the override being reset.
+- A second hero, weapon unlocks or settings will need more profile fields and the first real migration.
+
+### Revisit trigger
+Add a Bootstrap scene when a service must outlive scene loads (audio, analytics, settings). Revisit relic values when testers always pick one relic or never forge. Add a migration test the first time `saveVersion` changes.

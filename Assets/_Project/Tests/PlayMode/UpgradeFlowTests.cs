@@ -28,6 +28,7 @@ namespace Cryptforge.Tests
         [UnitySetUp]
         public IEnumerator LoadGameplay()
         {
+            TestProfile.Begin();
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
@@ -46,6 +47,7 @@ namespace Cryptforge.Tests
             Scene empty = SceneManager.CreateScene("Upgrade Test Cleanup");
             SceneManager.SetActiveScene(empty);
             yield return SceneManager.UnloadSceneAsync(gameplay);
+            TestProfile.End();
         }
 
         [UnityTest]

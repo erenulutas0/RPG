@@ -25,6 +25,7 @@ namespace Cryptforge.Tests
         [UnitySetUp]
         public IEnumerator LoadGameplay()
         {
+            TestProfile.Begin();
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
@@ -41,6 +42,7 @@ namespace Cryptforge.Tests
             Scene empty = SceneManager.CreateScene("Floor Test Cleanup");
             SceneManager.SetActiveScene(empty);
             yield return SceneManager.UnloadSceneAsync(gameplay);
+            TestProfile.End();
         }
 
         [UnityTest]
@@ -107,6 +109,10 @@ namespace Cryptforge.Tests
             Assert.That(Label("Cause Label"), Does.Contain("escaped").And.Contain("Ember Halls"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("6 rooms"));
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 96"));
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 96: Second Wind is ready to forge"));
+            PlayerProfile saved = TestProfile.ReadSaved();
+            Assert.That(saved.Gold, Is.EqualTo(96), "Extracting banks the run's gold in the saved profile.");
+            Assert.That(saved.DeepestFloorCleared, Is.EqualTo(1));
             LogAssert.NoUnexpectedReceived();
         }
 

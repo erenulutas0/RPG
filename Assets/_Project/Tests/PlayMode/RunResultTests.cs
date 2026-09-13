@@ -25,6 +25,7 @@ namespace Cryptforge.Tests
         [UnitySetUp]
         public IEnumerator LoadGameplay()
         {
+            TestProfile.Begin();
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             FindSceneObjects();
@@ -38,6 +39,7 @@ namespace Cryptforge.Tests
             Scene empty = SceneManager.CreateScene("Result Test Cleanup");
             SceneManager.SetActiveScene(empty);
             yield return SceneManager.UnloadSceneAsync(gameplay);
+            TestProfile.End();
         }
 
         [UnityTest]
@@ -74,6 +76,7 @@ namespace Cryptforge.Tests
             Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("0 rooms"));
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 0"));
             Assert.That(Label("Build Label"), Does.Contain("no upgrades"));
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 0: Second Wind costs 80"));
 
             int gruntHits = gruntAttack.AttackCount;
             int heroHits = _heroAttack.AttackCount;
@@ -168,7 +171,7 @@ namespace Cryptforge.Tests
             _heroAttack = _hero.GetComponent<AttackController>();
             _encounters = Object.FindFirstObjectByType<EncounterController>();
             _result = Object.FindFirstObjectByType<RunResultView>();
-            _restart = _result.GetComponentInChildren<Button>(true);
+            _restart = _result.transform.Find("Result Panel/Safe Area/Restart Button").GetComponent<Button>();
         }
 
         private static string Label(string name) => GameObject.Find(name).GetComponent<Text>().text;

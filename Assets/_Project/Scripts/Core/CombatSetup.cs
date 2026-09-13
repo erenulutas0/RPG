@@ -1,7 +1,10 @@
+using System;
+using System.IO;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Economy;
 using Cryptforge.Progression;
+using Cryptforge.Save;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,11 +17,14 @@ namespace Cryptforge.Core
         [SerializeField] private HeroDefinition _heroDefinition;
         [SerializeField] private EconomyConfig _economy;
         [SerializeField] private UpgradeDefinition[] _upgrades;
+        [SerializeField] private RelicDefinition[] _relics;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Health _hero;
         [SerializeField] private AttackController _attack;
+        [SerializeField] private RelicBehaviour _relicBehaviour;
         [SerializeField] private EncounterController _encounters;
         private RewardService _rewards;
+        private ProfileStore _profileStore;
         private bool _pausedForChoice;
         private bool _restarting;
 
@@ -28,11 +34,17 @@ namespace Cryptforge.Core
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
+        public PlayerProfile Profile { get; private set; }
+        public RelicShop Relics { get; private set; }
+        public RunBank Bank { get; private set; }
+        // Null when no relic is equipped.
+        public RelicRuntime Relic { get; private set; }
 
         private void Awake()
         {
             if (_heroDefinition == null || _economy == null || _text == null || _hero == null || _attack == null ||
-                _encounters == null || _heroDefinition.StartingWeapon == null || !HasUpgrades())
+                _relicBehaviour == null || _encounters == null || _heroDefinition.StartingWeapon == null ||
+                !AllPresent(_upgrades) || !AllPresent(_relics))
             {
                 Debug.LogError("CombatSetup is missing required scene or definition references.", this);
                 enabled = false;
@@ -40,11 +52,29 @@ namespace Cryptforge.Core
             }
 
             Application.targetFrameRate = 60;
+            // The profile is read from disk on every scene load, so a restart needs no persistent service object.
+            _profileStore = new ProfileStore(ProfileLocation.Resolve());
+            Profile = _profileStore.Load();
+            ReportLoadProblems();
+            var relics = new RelicOption[_relics.Length];
+            for (int i = 0; i < _relics.Length; i++)
+                relics[i] = _relics[i].CreateOption();
+            Relics = new RelicShop(Profile, relics);
+
             _hero.Initialize(_heroDefinition.MaximumHealth);
             Weapon = _heroDefinition.StartingWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
             Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss);
             _rewards = new RewardService(Run, _economy.ExperiencePerKill);
+            // Created before any view subscribes to Run.Ended, so banked gold reaches the profile before results show.
+            Bank = new RunBank(Run, Profile);
+            Profile.Changed += SaveProfile;
+            RelicOption equipped = Relics.Equipped;
+            if (equipped != null)
+            {
+                Relic = new RelicRuntime(equipped);
+                _relicBehaviour.Initialize(Relic);
+            }
 
             var options = new UpgradeOption[_upgrades.Length];
             for (int i = 0; i < _upgrades.Length; i++)
@@ -63,7 +93,7 @@ namespace Cryptforge.Core
             _encounters.Initialize(Choices, Forge);
         }
 
-        // A reload rebuilds every runtime object from definitions, so nothing from the ended run carries over.
+        // A reload rebuilds every runtime object from definitions and the saved profile, so nothing else carries over.
         public void RestartRun()
         {
             if (_restarting)
@@ -74,16 +104,38 @@ namespace Cryptforge.Core
             SceneManager.LoadScene(gameObject.scene.buildIndex);
         }
 
-        private bool HasUpgrades()
+        private static bool AllPresent(UnityEngine.Object[] references)
         {
-            if (_upgrades == null || _upgrades.Length == 0)
+            if (references == null || references.Length == 0)
                 return false;
-            for (int i = 0; i < _upgrades.Length; i++)
+            for (int i = 0; i < references.Length; i++)
             {
-                if (_upgrades[i] == null)
+                if (references[i] == null)
                     return false;
             }
             return true;
+        }
+
+        private void ReportLoadProblems()
+        {
+            if (_profileStore.LastLoadStatus != ProfileLoadStatus.Recovered && _profileStore.LastLoadStatus != ProfileLoadStatus.Reset)
+                return;
+
+            Debug.LogWarning($"Profile {_profileStore.LastLoadStatus} from {_profileStore.Directory}: " +
+                string.Join("; ", _profileStore.LastLoadProblems), this);
+        }
+
+        // A failed write keeps the in-memory profile; the next change tries again.
+        private void SaveProfile()
+        {
+            try
+            {
+                _profileStore.Save(Profile);
+            }
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
+            {
+                Debug.LogError($"Saving the profile to {_profileStore.Directory} failed: {exception}", this);
+            }
         }
 
         private void OnEnemyDefeated(Health enemy) => _rewards.TryAwardKill(enemy, _encounters.CurrentGoldReward);
@@ -93,6 +145,7 @@ namespace Cryptforge.Core
         // The final floor ends the Descent; every earlier floor offers Extract or Descend.
         private void OnFloorCleared()
         {
+            Profile.RecordFloorCleared(_encounters.FloorNumber);
             if (!_encounters.HasNextFloor)
             {
                 Run.End(RunOutcome.Victory);
@@ -145,6 +198,8 @@ namespace Cryptforge.Core
                 Checkpoint.Chosen -= OnCheckpointChosen;
             if (Choices != null)
                 Choices.Changed -= OnChoicesChanged;
+            if (Profile != null)
+                Profile.Changed -= SaveProfile;
             if (_pausedForChoice)
                 Time.timeScale = 1f;
         }
