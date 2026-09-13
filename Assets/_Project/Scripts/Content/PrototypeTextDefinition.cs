@@ -52,6 +52,10 @@ namespace Cryptforge.Content
         [SerializeField] private string _relicOwnedLabel;
         [SerializeField] private string _relicEquippedLabel;
         [SerializeField] private string _startRunLabel;
+        [SerializeField] private string _pauseButtonLabel;
+        [SerializeField] private string _pauseTitle;
+        [SerializeField] private string _pauseHint;
+        [SerializeField] private string _resumeLabel;
 
         public string Title => _title;
         // {0} floor number, {1} room number, {2} room count, {3} room name.
@@ -122,5 +126,9 @@ namespace Cryptforge.Content
         public string RelicOwnedLabel => _relicOwnedLabel;
         public string RelicEquippedLabel => _relicEquippedLabel;
         public string StartRunLabel => _startRunLabel;
+        public string PauseButtonLabel => _pauseButtonLabel;
+        public string PauseTitle => _pauseTitle;
+        public string PauseHint => _pauseHint;
+        public string ResumeLabel => _resumeLabel;
     }
 }

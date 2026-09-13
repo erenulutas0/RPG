@@ -84,6 +84,9 @@ The installed 6000.0.65f1 Editor resolves its bundled Unity Test Framework 1.6.0
 ### Upgrade-slice update (2026-09-13)
 The IMGUI HUD was replaced by a uGUI Canvas as planned; `com.unity.ugui` 2.0.0 is the version built into the pinned Editor. Upgrade choices pause combat through `Time.timeScale`, owned by `CombatSetup` and restored when the offer closes or the scene unloads. Revisit when a result screen or app-level pause also needs to control time, at which point a single run-flow owner should take over.
 
+### Pause update (2026-09-13)
+Player and app-level pause arrived, so a single owner took over: `RunPause` combines the open-choice hold and the player's pause (also set by `OnApplicationPause`), and `CombatSetup` is the only code that writes `Time.timeScale`, from `RunPause.IsFrozen`. The result screen and Relic Forge run after the run has ended and do not freeze time.
+
 ---
 
 ## Decision: Multi-floor "Descent" run structure with an Extract/Descend checkpoint

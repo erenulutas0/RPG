@@ -25,7 +25,7 @@ namespace Cryptforge.Core
         [SerializeField] private EncounterController _encounters;
         private RewardService _rewards;
         private ProfileStore _profileStore;
-        private bool _pausedForChoice;
+        private bool _timeFrozen;
         private bool _restarting;
 
         public RunState Run { get; private set; }
@@ -34,6 +34,7 @@ namespace Cryptforge.Core
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
+        public RunPause Pause { get; private set; }
         public PlayerProfile Profile { get; private set; }
         public RelicShop Relics { get; private set; }
         public RunBank Bank { get; private set; }
@@ -84,6 +85,8 @@ namespace Cryptforge.Core
             Checkpoint = new CheckpointService(Run);
             Checkpoint.Chosen += OnCheckpointChosen;
             Choices = new RunChoices(Upgrades, Forge, Checkpoint);
+            Pause = new RunPause(Run);
+            Pause.Changed += ApplyPause;
             Choices.Changed += OnChoicesChanged;
             _hero.Died += OnHeroDied;
 
@@ -174,15 +177,24 @@ namespace Cryptforge.Core
             _encounters.DescendToNextFloor();
         }
 
-        // Scaled time freezes combat cadence while any choice is open; uGUI input runs on unscaled time.
-        private void OnChoicesChanged()
+        private void OnChoicesChanged() => Pause.SetChoiceOpen(Choices.IsOpen);
+
+        // Leaving the app (a call, the home button) pauses the run so it waits for the player on return.
+        private void OnApplicationPause(bool paused)
         {
-            bool choosing = Choices.IsOpen;
-            if (choosing == _pausedForChoice)
+            if (paused && Pause != null)
+                Pause.TryPause();
+        }
+
+        // Scaled time freezes combat cadence while the run is frozen; uGUI input runs on unscaled time.
+        private void ApplyPause()
+        {
+            bool frozen = Pause.IsFrozen;
+            if (frozen == _timeFrozen)
                 return;
 
-            _pausedForChoice = choosing;
-            Time.timeScale = choosing ? 0f : 1f;
+            _timeFrozen = frozen;
+            Time.timeScale = frozen ? 0f : 1f;
         }
 
         private void OnDestroy()
@@ -198,9 +210,11 @@ namespace Cryptforge.Core
                 Checkpoint.Chosen -= OnCheckpointChosen;
             if (Choices != null)
                 Choices.Changed -= OnChoicesChanged;
+            if (Pause != null)
+                Pause.Changed -= ApplyPause;
             if (Profile != null)
                 Profile.Changed -= SaveProfile;
-            if (_pausedForChoice)
+            if (_timeFrozen)
                 Time.timeScale = 1f;
         }
     }

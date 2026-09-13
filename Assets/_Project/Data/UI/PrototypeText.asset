@@ -57,3 +57,7 @@ MonoBehaviour:
   _relicOwnedLabel: 'Owned: tap to equip'
   _relicEquippedLabel: Equipped
   _startRunLabel: Start run
+  _pauseButtonLabel: II
+  _pauseTitle: Paused
+  _pauseHint: Combat waits until you resume
+  _resumeLabel: Resume

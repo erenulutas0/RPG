@@ -35,7 +35,7 @@ Do NOT:
 - floor 2: second modifier and scaling tier, Extract/Descend checkpoint (done 2026-09-13: Quicksilver Vaults with Cursed Gold, gold at risk, see `21`),
 - the Forge meta layer with unlocks, two relics and local save (done 2026-09-13: Relic Forge with Second Wind and Counterweight, versioned JSON profile, see `21`),
 - 3 weapon behaviors,
-- pause control (owner feedback 2026-09-13: a run starts at once and only choice panels or leaving the app pause it).
+- pause control (owner feedback 2026-09-13: a run starts at once and only choice panels or leaving the app pause it; done 2026-09-13: HUD pause button, pause on leaving the app, see `21`).
 
 Exit:
 5–10 minutes playable.

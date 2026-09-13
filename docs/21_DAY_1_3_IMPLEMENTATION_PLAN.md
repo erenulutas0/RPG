@@ -311,6 +311,23 @@ Known gaps:
 
 Verified: Unity EditMode 119/119, PlayMode 28/28, `Verify-Project.ps1`, .NET CombatChecks 113/113, development APK built only after both reports passed (SHA-256 `32523A4D00FCC7142DBB59361FCEEB9208769A9B29C24F9BE553EE9BBE05628E`).
 
+### Implemented 2026-09-13: pause control
+
+Owner feedback from the Relic Forge device run: a run starts at once and there is no way to pause it.
+
+- **Pause button:** a **II** button in the HUD's top-right corner pauses the run. Combat, the advance delays and all timers freeze, and a **Paused** overlay (**Combat waits until you resume**) offers **Resume**. Resume ignores taps for 0.3 s after the overlay appears.
+- **Leaving the app:** Home, a call or switching apps pauses the run too, so returning shows **Paused** instead of combat carrying on. A choice panel that is already open stays in charge: it already waits, so no second overlay appears.
+- **When the button shows:** only during live combat; it is hidden while a choice is open, while paused and after the run ends.
+
+| Files | Change |
+|---|---|
+| `Scripts/Core/RunPause.cs` | New, plain C#: the single owner of "is the run frozen?". An open choice and the player's pause each hold the run; pausing is refused during a choice or after the run ends, and the end releases a pause. |
+| `Scripts/Core/CombatSetup.cs` | Applies `RunPause` to `Time.timeScale` (the choice handler no longer sets it directly), reports choice state to it, and pauses on `OnApplicationPause(true)`. |
+| `Scripts/UI/PauseView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset`, `Scenes/Gameplay/Gameplay.unity` | HUD pause button and a **Pause Canvas** (sorting order 30, above choices and results) with the overlay. The scene was wired by a temporary builder, deleted afterwards. |
+| Tests | EditMode `RunPauseTests` (4). PlayMode `PauseFlowTests` (3): the button freezes combat until Resume; leaving the app pauses the run while an open choice stays in charge; the button hides when the run ends. |
+
+Verified: Unity EditMode 123/123, PlayMode 31/31, `Verify-Project.ps1`, .NET CombatChecks 117/117, development APK built only after both reports passed (SHA-256 `07CDD30A40ADDD2DD1D0FAE38923DE995B043379E2368CA91D336AD6E3DCFC9B`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.
