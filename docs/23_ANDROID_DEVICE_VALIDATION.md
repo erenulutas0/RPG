@@ -229,6 +229,10 @@ Limits: Second Wind's heal and Counterweight's counters did not trigger in this 
 
 Limits:
 - **Label position:** the **II** label sat above its button, because the label was copied from the taller **Try again** button (`android-pause-hud.png`, first build). The scene was fixed afterwards with a regression test; the Relic Forge button label had a smaller version of the same offset.
+  - **Fixed build (commit c46c841):** APK SHA-256 `0F8D8EB6E8F2821C2426774A215031285650C8D05BD8EBD9E9B34D0D62BBD6AD`, `Success`. **II** is centred in its button (`android-label-hud.png`).
+  - **Fixed build, result screen:** after a floor 1 extraction, **Relic Forge** is centred in its button (`android-label-result.png`). The saved profile carried over the update and grew to **Forge gold 112: Counterweight costs 150**.
+  - **App log:** 484 lines, no error matches.
+- **Result build wording:** a relic that never triggered reads **Second Wind (0x)**, while the HUD omits the count until the first trigger.
 - **Capture scripts:** the first pixel used to recognise the orange button fell on the **Resume** glyphs, so the scripts now sample the button's label-free left edge.
 
 The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2, the Forge meta layer with local save and pause control are running on the phone. Weapon behaviors remain a future slice.
