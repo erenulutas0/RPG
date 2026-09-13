@@ -333,7 +333,11 @@ Verified first: Unity EditMode 123/123, PlayMode 31/31, `Verify-Project.ps1`, .N
 - **Fix:** a temporary builder added the raycaster (deleted afterwards).
 - **Guard:** `PauseFlowTests.EveryButtonSitsOnACanvasThatReceivesTouches` now checks that every button's root canvas has one. Run against the unfixed scene it failed with **Pause Button is on HUD Canvas, which has no GraphicRaycaster**.
 
-Verified after the fix: Unity EditMode 123/123, PlayMode 32/32, `Verify-Project.ps1`, development APK built only after both reports passed (SHA-256 `15A602FB9EA45855429BF319088453A2C11E650050E7775EC43AD863290E80C5`).
+Verified after the fix: Unity EditMode 123/123, PlayMode 32/32, `Verify-Project.ps1`, development APK built only after both reports passed (SHA-256 `15A602FB9EA45855429BF319088453A2C11E650050E7775EC43AD863290E80C5`). On the phone the button now pauses the run, and leaving the app pauses it too (see `23`).
+
+**Second device finding:** the **II** label floated above its 120-unit button. It had been copied from the 260-unit **Try again** label, which is anchored to the bottom with a fixed height; the Relic Forge button label was 30 units high for the same reason. Both labels now stretch to fill their buttons. `PauseFlowTests.EveryButtonLabelSitsInsideItsButton` guards every button; run against the scene before this fix it failed with **Forge Button Label extends outside Forge Button**.
+
+Verified after both fixes: Unity EditMode 123/123, PlayMode 33/33, `Verify-Project.ps1`, development APK built only after both reports passed (SHA-256 `0F8D8EB6E8F2821C2426774A215031285650C8D05BD8EBD9E9B34D0D62BBD6AD`). The corrected label has not been captured on the phone yet.
 
 ### Original Day 3 plan (kept for reference)
 

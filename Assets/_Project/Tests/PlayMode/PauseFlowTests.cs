@@ -125,6 +125,27 @@ namespace Cryptforge.Tests
             yield break;
         }
 
+        // The pause button's label was copied from the taller Try again button and floated above the smaller button.
+        [UnityTest]
+        public IEnumerator EveryButtonLabelSitsInsideItsButton()
+        {
+            const float tolerance = 0.5f;
+            var buttonCorners = new Vector3[4];
+            var labelCorners = new Vector3[4];
+            foreach (Button button in Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                ((RectTransform)button.transform).GetWorldCorners(buttonCorners);
+                foreach (Text label in button.GetComponentsInChildren<Text>(true))
+                {
+                    label.rectTransform.GetWorldCorners(labelCorners);
+                    bool inside = labelCorners[0].x >= buttonCorners[0].x - tolerance && labelCorners[0].y >= buttonCorners[0].y - tolerance &&
+                                  labelCorners[2].x <= buttonCorners[2].x + tolerance && labelCorners[2].y <= buttonCorners[2].y + tolerance;
+                    Assert.That(inside, Is.True, $"{label.name} extends outside {button.name}.");
+                }
+            }
+            yield break;
+        }
+
         [UnityTest]
         public IEnumerator PauseButtonHidesWhenTheRunEnds()
         {

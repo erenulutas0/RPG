@@ -215,4 +215,20 @@ Limits: both floors took about 78 s with instant automated choices, so a human D
 
 Limits: Second Wind's heal and Counterweight's counters did not trigger in this short device run; both are covered by PlayMode tests. Owner feedback: the run starts immediately and there is no pause button; only choice panels and leaving the app pause it. Cosmetic: the result and Relic Forge backdrops are 92% opaque, so the HUD and result text show faintly behind the forge hint line and between the Relic Forge cards.
 
-The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2 and the Forge meta layer with local save are running on the phone. Weapon behaviors and a pause control remain future slices.
+## Pause control on device (2026-09-13)
+
+| Check | Result |
+|---|---|
+| First build (commit 70d35fd) | APK SHA-256 `07CDD30A40ADDD2DD1D0FAE38923DE995B043379E2368CA91D336AD6E3DCFC9B`, `Success`. The **II** button was found in the HUD and tapped after four upgrade choices, but the run never paused. Cause: the HUD canvas had no `GraphicRaycaster`, so real touches never reached the button, while the flow tests click buttons directly. The very first tap also landed just as the first Grunt died and a choice panel hid the button |
+| Fixed build (commit 82631dd) | APK SHA-256 `15A602FB9EA45855429BF319088453A2C11E650050E7775EC43AD863290E80C5`, `Success`; the game the owner had open closed and was launched again. The saved profile survived the update (**Relic: Second Wind**) |
+| Pause | Tapped right after choosing an upgrade, during the advance delay: **Paused**, **Combat waits until you resume**, **Resume**; behind it **Grunt 0 / 50 HP**, **Sword \| 15 damage**, **Gold 5 (5 at risk)** (`android-pause-overlay.png`) |
+| Frozen | Two captures 3 s apart while paused: 0.00% of sampled pixels changed (`android-pause-frozen.png`) |
+| Leave and return | **Resume**, then Home 0.8 s later during the Runner fight; the launcher was confirmed in front before the game was brought back. It showed **Paused** with **Runner \| 15 / 30 HP** and the hero at 72/100, and 0.00% changed over the next 2 s (`android-pause-after-home.png`) |
+| Resume again | Combat continued; 1.2 s later the Runner's kill opened the next upgrade choice |
+| App log | 631 app-process lines in `android-pause-logcat.txt`; no E/Unity, exception, fatal or missing-reference matches |
+
+Limits:
+- **Label position:** the **II** label sat above its button, because the label was copied from the taller **Try again** button (`android-pause-hud.png`, first build). The scene was fixed afterwards with a regression test; the Relic Forge button label had a smaller version of the same offset.
+- **Capture scripts:** the first pixel used to recognise the orange button fell on the **Resume** glyphs, so the scripts now sample the button's label-free left edge.
+
+The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2, the Forge meta layer with local save and pause control are running on the phone. Weapon behaviors remain a future slice.
