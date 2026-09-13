@@ -389,6 +389,51 @@ Balance was chosen with a scored search over mite stats, experience growth, clea
 - **Second Wind:** now also carries the greediest path.
 - **Pacing:** simulated fight time for floor 1 is still only about 16 s, so pacing remains the open gap; longer rooms and more waves are the lever.
 
+Verified: Unity EditMode 129/129, PlayMode 34/34, `Verify-Project.ps1`, .NET CombatChecks 123/123, development APK built only after both reports passed (SHA-256 `AA38FA1DD344F8E50E0567397F60362DD0BF813F48983302FD3ECF13EE0D1863`). Not captured on the phone before part 2.
+
+### Implemented 2026-09-13: Staff, Daggers and weapon unlocks (weapon behaviors, part 2)
+
+The second half of the owner's choice: two weapons bought with gold in the Relic Forge, each with its own behavior.
+
+- **Staff (120 gold):** slow area damage. It deals 18 damage every 1.2 s to its target and 75% to every other living enemy within 3.5 units, which covers a whole pack. It clears mite packs fastest but falls behind the Sword against lone enemies once damage upgrades stack.
+- **Daggers (180 gold):** fast strikes with crits. They deal 6 damage every 0.55 s to one enemy, and every third strike is critical for double damage. They are slowest against packs and fastest against the Wardens.
+- **Crit rhythm:** crits follow a fixed rhythm (every Nth attack) instead of a chance, so fights stay readable and the simulation stays exact. A critical hit, splash included, carries `DamageContext.IsCritical`, and the struck body flashes gold instead of white.
+- **Carrying a weapon:** the Relic Forge now shows **Weapons: carry one** (Sword, Staff, Daggers) above **Relics: equip one**. Forging a weapon spends its price once and equips it; an owned weapon is equipped again for free. The Sword is the starting weapon: it is always owned and is never stored in the save. The next run creates the hero's weapon from the equipped definition. The HUD, the result build (**Build: Staff  |  ...**) and the hero's placeholder loadout (sword and shield, a staff with a violet orb, or two blades) follow it.
+- **Nearest unlock:** the result hint names the cheapest unowned relic or weapon; a relic wins a tie, and the final hint reads **everything is forged**.
+- **Save version 2:** `profile.json` gains `ownedWeaponIds` and `equippedWeaponId`. `ProfileMigration` upgrades a version 1 file in place: no weapons, the starting weapon carried. This is the first real migration.
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/AttackPattern.cs` (new), `WeaponBehavior.cs`, `WeaponRuntime.cs`, `AttackController.cs`, `DamageContext.cs` | The behavior, splash and crit rhythm move into one validated `AttackPattern` value passed to `WeaponRuntime`; new `Area` behavior; `AttacksMade` counts the rhythm; `IsCritical` on hits. |
+| `Scripts/Content/WeaponDefinition.cs`, `Data/Weapons/Weapon_Staff.asset`, `Weapon_Daggers.asset` (new), every weapon asset | Crit rhythm fields, a Forge description format and a Forge price. Enemy weapons keep zeros and are never sold. |
+| `Scripts/Core/PlayerProfile.cs`, `Scripts/Save/ProfileSaveData.cs`, `ProfileMigration.cs`, `ProfileStore.cs` | Owned and equipped weapons alongside relics; schema version 2 with the version 1 step. |
+| `Scripts/Progression/WeaponOption.cs`, `WeaponShop.cs` (new), `UnlockStatus.cs` (was `RelicStatus.cs`), `RelicShop.cs` | The weapon rack's rules: the starting weapon is always owned and is the fallback for a missing or unowned saved weapon; card states shared with relics. |
+| `Scripts/Core/CombatSetup.cs`, `Scripts/UI/RelicForgeView.cs`, `HeroWeaponView.cs` (new), `CombatantView.cs`, `RunHud.cs`, `RunResultView.cs`, `PrototypeTextDefinition.cs`, `Data/UI/PrototypeText.asset` | The Forge catalog on Combat Setup, `HeroWeapon` for the run, weapon cards and section headers, placeholder loadouts, the gold crit flash, the weapon in the HUD and result build, and the nearest unlock across both shops. |
+| `Scenes/Gameplay/Gameplay.unity` | A temporary builder, deleted afterwards, added the loadouts under **Hero Body** and three weapon cards and two headers to the Forge panel, and re-laid out all cards at 220 units so everything fits a 1920-unit canvas. |
+| Tests | EditMode `WeaponBehaviorTests` (6): area splash, the crit rhythm and a critical splash, crit validation, weapon identity and sidegrade balance in the Descent simulation. `WeaponForgeTests` (4): profile slots, the weapon rack, catalog validation, the version 1 migration. `ProfileStoreTests` adds a version 1 file loading and saving as version 2. PlayMode `RelicForgeFlowTests` adds forging the Staff into the next run, Daggers crits flashing gold, and a layout check that the Forge panel fits 1920 units without overlaps. |
+
+Values were chosen with a search over damage, interval, area fraction and crit rhythm. The hard targets were the relic slice's: Mend descents survive, Temper descents fall on floor 2 without a relic, and both relics rescue damage-first Temper. On top of that, no weapon may be a straight upgrade: Mend-path health stays within 15 of the Sword's, the Staff must clear mite packs faster, and the Daggers must kill the Wardens faster. No Staff candidate weaker than the Sword against single targets met these targets; the closest ones died on a Mend path. The Staff's single-target damage per second (15) therefore sits slightly above the Sword's (12.5), and its weakness comes from scaling less with Tempered Edge.
+
+Results (health after floor 1 → end of floor 2; D = damage first, S = speed first; boss and mite-pack times are the simulated fight seconds on the D + Mend path):
+
+| Weapon | D + Mend | S + Mend | D + Temper | S + Temper | D + Temper + Counterweight | D + Temper + Second Wind | S + Temper + Counterweight | S + Temper + Second Wind | Wardens | Mite packs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Sword | 54 → 40 | 33 → 13 | 24 → dies F2 room 3 | 12 → dies F2 room 1 | 35 → 21 | 49 → 35 | 19 → dies F2 room 3 | 37 → 20 | 5.8 s | 4.4 s |
+| Staff | 52 → 30.5 | 52 → 27.5 | 21 → dies at the F2 Warden | 21 → dies at the F2 Warden | 39 → 17.5 | 46 → 24.5 | 37 → 15.5 | 46 → 24.5 | 6.7 s | 0 s |
+| Daggers | 60 → 37 | 44 → 21 | 31 → dies F2 room 3 | 6 → dies F2 room 1 | 44 → 21 | 31 → 33 | 24 → dies F2 room 3 | 31 → dies F2 room 3 | 3.6 s | 5.8 s |
+
+- **Staff:** after one Tempered Edge a single blast kills a mite pack. Its big hits make Counterweight's counters big too, and both relics carry even speed-first Temper. It shortens floor 1 fights to about 13 s.
+- **Daggers:** Counterweight answers with 60% of a 6-damage hit, and neither relic carries speed-first Temper.
+
+Known gaps:
+- Crit upgrades and a crit chance wait for the upgrade pool to grow.
+- Weapon placeholders are flat shapes; a visible area blast or crit number would read better.
+- Mid-run weapon swaps do not exist by design.
+
+The first Unity run failed two of the new PlayMode tests: this Editor formats decimals in Turkish, so the HUD read **0,80s**, not **0.80s**. The HUD follows the device language on purpose, so the tests now format expected numbers in the current culture.
+
+Verified: Unity EditMode 140/140, PlayMode 37/37, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `8558B44BFB50FA307AA417882F646A6E4DF0B94D87F4EEE6AC8B51D14CAF48C5`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

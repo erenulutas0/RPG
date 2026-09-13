@@ -19,45 +19,27 @@ namespace Cryptforge.Combat
         public float Damage => _damage.Value;
         public float Interval => _baseInterval / _attackSpeed.Value;
         public float Range { get; }
-        public WeaponBehavior Behavior { get; }
-        // How far from the target splash damage reaches, and the fraction of Damage it deals; zero for DirectHit.
-        public float SplashRadius { get; }
-        public float SplashFraction { get; }
+        public AttackPattern Pattern { get; }
+        // Successful attacks so far; the critical rhythm counts them.
+        public int AttacksMade { get; private set; }
         public bool IsReady => _cooldown <= 0f;
         public event Action StatsChanged;
 
         // initialDelay is a windup before the first attack only; later attacks follow the interval.
-        public WeaponRuntime(float damage, float interval, float range, float initialDelay = 0f,
-            WeaponBehavior behavior = WeaponBehavior.DirectHit, float splashRadius = 0f, float splashFraction = 0f)
+        public WeaponRuntime(float damage, float interval, float range, float initialDelay = 0f, AttackPattern pattern = default)
         {
             RequirePositiveFinite(damage, nameof(damage));
             RequirePositiveFinite(interval, nameof(interval));
             RequirePositiveFinite(range, nameof(range));
             if (float.IsNaN(initialDelay) || float.IsInfinity(initialDelay) || initialDelay < 0f)
                 throw new ArgumentOutOfRangeException(nameof(initialDelay));
-            switch (behavior)
-            {
-                case WeaponBehavior.DirectHit:
-                    if (splashRadius != 0f || splashFraction != 0f)
-                        throw new ArgumentException("A direct-hit weapon has no splash.");
-                    break;
-                case WeaponBehavior.Cleave:
-                    RequirePositiveFinite(splashRadius, nameof(splashRadius));
-                    if (!(splashFraction > 0f && splashFraction <= 1f))
-                        throw new ArgumentOutOfRangeException(nameof(splashFraction), "Splash deals a fraction in (0, 1].");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(behavior));
-            }
 
             _damage = new ModifiableStat(damage, MinimumDamage);
             _attackSpeed = new ModifiableStat(1f, MinimumAttackSpeed);
             _baseInterval = interval;
             _cooldown = initialDelay;
             Range = range;
-            Behavior = behavior;
-            SplashRadius = splashRadius;
-            SplashFraction = splashFraction;
+            Pattern = pattern;
         }
 
         public void AddModifier(WeaponStat stat, StatModifier modifier)
@@ -86,8 +68,9 @@ namespace Cryptforge.Combat
             _cooldown = Math.Max(0f, _cooldown - deltaTime);
         }
 
-        // source is the attacker, passed on so targets know who hit them. nearby lists other enemies within SplashRadius
-        // of the target, nearest first; a cleave strikes the first living one, a direct hit ignores the list.
+        // source is the attacker, passed on so targets know who hit them. nearby lists other enemies within the pattern's
+        // splash radius of the target, nearest first: a cleave strikes the first living one, an area attack every living
+        // one, and a direct hit ignores the list.
         public bool TryAttack(IDamageable target, IDamageable source = null, IReadOnlyList<IDamageable> nearby = null)
         {
             if (_cooldown > 0f || target == null || !target.IsAlive)
@@ -95,18 +78,21 @@ namespace Cryptforge.Combat
 
             // Consume cadence before callbacks so an on-hit callback cannot attack recursively.
             _cooldown = Interval;
-            float damage = Damage;
-            target.ApplyDamage(new DamageContext(damage, source));
-            if (Behavior == WeaponBehavior.Cleave && nearby != null)
+            AttacksMade++;
+            bool critical = Pattern.IsCritical(AttacksMade);
+            float damage = critical ? Damage * Pattern.CritMultiplier : Damage;
+            target.ApplyDamage(new DamageContext(damage, source, critical));
+            if (Pattern.Behavior == WeaponBehavior.DirectHit || nearby == null)
+                return true;
+
+            for (int i = 0; i < nearby.Count; i++)
             {
-                for (int i = 0; i < nearby.Count; i++)
-                {
-                    IDamageable other = nearby[i];
-                    if (other == null || ReferenceEquals(other, target) || !other.IsAlive)
-                        continue;
-                    other.ApplyDamage(new DamageContext(damage * SplashFraction, source));
+                IDamageable other = nearby[i];
+                if (other == null || ReferenceEquals(other, target) || !other.IsAlive)
+                    continue;
+                other.ApplyDamage(new DamageContext(damage * Pattern.SplashFraction, source, critical));
+                if (Pattern.Behavior == WeaponBehavior.Cleave)
                     break;
-                }
             }
             return true;
         }

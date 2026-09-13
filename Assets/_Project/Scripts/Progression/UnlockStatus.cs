@@ -1,6 +1,7 @@
 namespace Cryptforge.Progression
 {
-    public enum RelicStatus
+    // How the Relic Forge shows a relic or weapon to a profile.
+    public enum UnlockStatus
     {
         TooExpensive,
         Affordable,

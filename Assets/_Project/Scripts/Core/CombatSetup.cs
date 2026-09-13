@@ -18,6 +18,8 @@ namespace Cryptforge.Core
         [SerializeField] private EconomyConfig _economy;
         [SerializeField] private UpgradeDefinition[] _upgrades;
         [SerializeField] private RelicDefinition[] _relics;
+        // Hero weapons sold in the Relic Forge, in card order; the hero's starting weapon must be one of them.
+        [SerializeField] private WeaponDefinition[] _weapons;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Health _hero;
         [SerializeField] private AttackController _attack;
@@ -37,6 +39,9 @@ namespace Cryptforge.Core
         public RunPause Pause { get; private set; }
         public PlayerProfile Profile { get; private set; }
         public RelicShop Relics { get; private set; }
+        public WeaponShop Weapons { get; private set; }
+        // The weapon the hero carries this run: the profile's equipped weapon, or the starting weapon.
+        public WeaponDefinition HeroWeapon { get; private set; }
         public RunBank Bank { get; private set; }
         // Null when no relic is equipped.
         public RelicRuntime Relic { get; private set; }
@@ -47,7 +52,8 @@ namespace Cryptforge.Core
         {
             if (_heroDefinition == null || _economy == null || _text == null || _hero == null || _attack == null ||
                 _relicBehaviour == null || _encounters == null || _heroDefinition.StartingWeapon == null ||
-                !AllPresent(_upgrades) || !AllPresent(_relics))
+                !AllPresent(_upgrades) || !AllPresent(_relics) || !AllPresent(_weapons) ||
+                Array.IndexOf(_weapons, _heroDefinition.StartingWeapon) < 0)
             {
                 Debug.LogError("CombatSetup is missing required scene or definition references.", this);
                 enabled = false;
@@ -63,9 +69,14 @@ namespace Cryptforge.Core
             for (int i = 0; i < _relics.Length; i++)
                 relics[i] = _relics[i].CreateOption();
             Relics = new RelicShop(Profile, relics);
+            var weapons = new WeaponOption[_weapons.Length];
+            for (int i = 0; i < _weapons.Length; i++)
+                weapons[i] = _weapons[i].CreateForgeOption();
+            Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, _heroDefinition.StartingWeapon)]);
+            HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
 
             _hero.Initialize(_heroDefinition.MaximumHealth);
-            Weapon = _heroDefinition.StartingWeapon.CreateRuntime();
+            Weapon = HeroWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
             Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth);
             _rewards = new RewardService(Run);

@@ -1,3 +1,4 @@
+using System;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -6,19 +7,31 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // The Relic Forge panel opened from the result screen: one card per relic, forge or equip on tap, then start a run.
-    // RelicShop decides what a tap does; this view only shows the state and briefly ignores taps after each change.
+    // The Relic Forge panel opened from the result screen: a card per weapon and per relic, forge or equip on tap, then
+    // start a run. The shops decide what a tap does; this view only shows the state and briefly ignores taps after each
+    // change.
     public sealed class RelicForgeView : MonoBehaviour
     {
+        [Serializable]
+        private struct ForgeCard
+        {
+            public Button Button;
+            public Text Name;
+            public Text Description;
+            public Text State;
+
+            public bool IsComplete => Button != null && Name != null && Description != null && State != null;
+        }
+
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private GameObject _panel;
         [SerializeField] private Text _titleLabel;
         [SerializeField] private Text _statusLabel;
-        [SerializeField] private Button[] _cards;
-        [SerializeField] private Text[] _nameLabels;
-        [SerializeField] private Text[] _descriptionLabels;
-        [SerializeField] private Text[] _stateLabels;
+        [SerializeField] private Text _weaponsHeaderLabel;
+        [SerializeField] private Text _relicsHeaderLabel;
+        [SerializeField] private ForgeCard[] _weaponCards;
+        [SerializeField] private ForgeCard[] _relicCards;
         [SerializeField] private Button _startButton;
         [SerializeField] private Text _startLabel;
         [SerializeField, Min(0f)] private float _inputDelay = 0.25f;
@@ -30,37 +43,44 @@ namespace Cryptforge.UI
 
         private void Start()
         {
-            if (_setup == null || _setup.Relics == null || _text == null || _panel == null || _titleLabel == null ||
-                _statusLabel == null || _startButton == null || _startLabel == null || !CardsAreValid())
+            if (_setup == null || _setup.Relics == null || _setup.Weapons == null || _text == null || _panel == null ||
+                _titleLabel == null || _statusLabel == null || _weaponsHeaderLabel == null || _relicsHeaderLabel == null ||
+                _startButton == null || _startLabel == null || !CardsAreValid(_weaponCards, _setup.Weapons.Weapons.Count) ||
+                !CardsAreValid(_relicCards, _setup.Relics.Relics.Count))
             {
-                Debug.LogError("RelicForgeView is missing a scene or content reference, or has fewer cards than relics.", this);
+                Debug.LogError("RelicForgeView is missing a scene or content reference, or has fewer cards than items.", this);
                 enabled = false;
                 return;
             }
 
             _panel.SetActive(false);
             _titleLabel.text = _text.ForgeTitle;
+            _weaponsHeaderLabel.text = _text.ForgeWeaponsHeader;
+            _relicsHeaderLabel.text = _text.ForgeRelicsHeader;
             _startLabel.text = _text.StartRunLabel;
-            for (int i = 0; i < _cards.Length; i++)
+            for (int i = 0; i < _weaponCards.Length; i++)
             {
                 int slot = i;
-                _cards[i].onClick.AddListener(() => OnCard(slot));
+                _weaponCards[i].Button.onClick.AddListener(() => OnWeaponCard(slot));
+            }
+            for (int i = 0; i < _relicCards.Length; i++)
+            {
+                int slot = i;
+                _relicCards[i].Button.onClick.AddListener(() => OnRelicCard(slot));
             }
             _startButton.onClick.AddListener(OnStart);
             _setup.Profile.Changed += OnProfileChanged;
             _subscribed = true;
         }
 
-        private bool CardsAreValid()
+        private static bool CardsAreValid(ForgeCard[] cards, int itemCount)
         {
-            if (_cards == null || _nameLabels == null || _descriptionLabels == null || _stateLabels == null ||
-                _cards.Length < _setup.Relics.Relics.Count || _nameLabels.Length != _cards.Length ||
-                _descriptionLabels.Length != _cards.Length || _stateLabels.Length != _cards.Length)
+            if (cards == null || cards.Length < itemCount)
                 return false;
 
-            for (int i = 0; i < _cards.Length; i++)
+            for (int i = 0; i < cards.Length; i++)
             {
-                if (_cards[i] == null || _nameLabels[i] == null || _descriptionLabels[i] == null || _stateLabels[i] == null)
+                if (!cards[i].IsComplete)
                     return false;
             }
             return true;
@@ -83,19 +103,32 @@ namespace Cryptforge.UI
 
         private void Refresh()
         {
-            RelicShop shop = _setup.Relics;
-            _statusLabel.text = string.Format(_text.ForgeStatusFormat, shop.Profile.Gold, shop.Profile.DeepestFloorCleared);
-            for (int i = 0; i < _cards.Length; i++)
+            _statusLabel.text = string.Format(_text.ForgeStatusFormat, _setup.Profile.Gold, _setup.Profile.DeepestFloorCleared);
+
+            WeaponShop weapons = _setup.Weapons;
+            for (int i = 0; i < _weaponCards.Length; i++)
             {
-                bool used = i < shop.Relics.Count;
-                _cards[i].gameObject.SetActive(used);
+                bool used = i < weapons.Weapons.Count;
+                _weaponCards[i].Button.gameObject.SetActive(used);
                 if (!used)
                     continue;
 
-                RelicOption relic = shop.Relics[i];
-                _nameLabels[i].text = relic.DisplayName;
-                _descriptionLabels[i].text = relic.Description;
-                _stateLabels[i].text = DescribeState(shop, relic);
+                WeaponOption weapon = weapons.Weapons[i];
+                Show(_weaponCards[i], weapon.DisplayName, weapon.Description, weapons.StatusOf(weapon), weapon.Price,
+                    weapons.GoldNeededFor(weapon));
+            }
+
+            RelicShop relics = _setup.Relics;
+            for (int i = 0; i < _relicCards.Length; i++)
+            {
+                bool used = i < relics.Relics.Count;
+                _relicCards[i].Button.gameObject.SetActive(used);
+                if (!used)
+                    continue;
+
+                RelicOption relic = relics.Relics[i];
+                Show(_relicCards[i], relic.DisplayName, relic.Description, relics.StatusOf(relic), relic.Price,
+                    relics.GoldNeededFor(relic));
             }
 
             SetInteractable(false);
@@ -103,18 +136,24 @@ namespace Cryptforge.UI
             _awaitingInputDelay = true;
         }
 
-        private string DescribeState(RelicShop shop, RelicOption relic)
+        private void Show(ForgeCard card, string displayName, string description, UnlockStatus status, int price, int goldNeeded)
         {
-            switch (shop.StatusOf(relic))
+            card.Name.text = displayName;
+            card.Description.text = description;
+            switch (status)
             {
-                case RelicStatus.Affordable:
-                    return string.Format(_text.RelicForgeFormat, relic.Price);
-                case RelicStatus.TooExpensive:
-                    return string.Format(_text.RelicNeedGoldFormat, relic.Price, shop.GoldNeededFor(relic));
-                case RelicStatus.Owned:
-                    return _text.RelicOwnedLabel;
+                case UnlockStatus.Affordable:
+                    card.State.text = string.Format(_text.UnlockForgeFormat, price);
+                    break;
+                case UnlockStatus.TooExpensive:
+                    card.State.text = string.Format(_text.UnlockNeedGoldFormat, price, goldNeeded);
+                    break;
+                case UnlockStatus.Owned:
+                    card.State.text = _text.UnlockOwnedLabel;
+                    break;
                 default:
-                    return _text.RelicEquippedLabel;
+                    card.State.text = _text.UnlockEquippedLabel;
+                    break;
             }
         }
 
@@ -130,20 +169,29 @@ namespace Cryptforge.UI
         // Cards the player cannot afford are disabled so they read as locked; equipped cards stay lit and do nothing.
         private void SetInteractable(bool interactable)
         {
-            RelicShop shop = _setup.Relics;
-            for (int i = 0; i < _cards.Length && i < shop.Relics.Count; i++)
-                _cards[i].interactable = interactable && shop.StatusOf(shop.Relics[i]) != RelicStatus.TooExpensive;
+            WeaponShop weapons = _setup.Weapons;
+            for (int i = 0; i < _weaponCards.Length && i < weapons.Weapons.Count; i++)
+                _weaponCards[i].Button.interactable = interactable && weapons.StatusOf(weapons.Weapons[i]) != UnlockStatus.TooExpensive;
+
+            RelicShop relics = _setup.Relics;
+            for (int i = 0; i < _relicCards.Length && i < relics.Relics.Count; i++)
+                _relicCards[i].Button.interactable = interactable && relics.StatusOf(relics.Relics[i]) != UnlockStatus.TooExpensive;
             _startButton.interactable = interactable;
         }
 
-        private void OnCard(int slot)
+        // A successful forge or equip changes the profile, which refreshes the cards and restarts the input delay.
+        private void OnWeaponCard(int slot)
         {
-            RelicShop shop = _setup.Relics;
-            if (!IsOpen || _awaitingInputDelay || slot >= shop.Relics.Count)
-                return;
+            WeaponShop weapons = _setup.Weapons;
+            if (IsOpen && !_awaitingInputDelay && slot < weapons.Weapons.Count)
+                weapons.TrySelect(weapons.Weapons[slot]);
+        }
 
-            // A successful forge or equip changes the profile, which refreshes the cards and restarts the input delay.
-            shop.TrySelect(shop.Relics[slot]);
+        private void OnRelicCard(int slot)
+        {
+            RelicShop relics = _setup.Relics;
+            if (IsOpen && !_awaitingInputDelay && slot < relics.Relics.Count)
+                relics.TrySelect(relics.Relics[slot]);
         }
 
         private void OnStart()
@@ -163,10 +211,16 @@ namespace Cryptforge.UI
             _setup.Profile.Changed -= OnProfileChanged;
             if (_startButton != null)
                 _startButton.onClick.RemoveListener(OnStart);
-            for (int i = 0; i < _cards.Length; i++)
+            RemoveListeners(_weaponCards);
+            RemoveListeners(_relicCards);
+        }
+
+        private static void RemoveListeners(ForgeCard[] cards)
+        {
+            for (int i = 0; i < cards.Length; i++)
             {
-                if (_cards[i] != null)
-                    _cards[i].onClick.RemoveAllListeners();
+                if (cards[i].Button != null)
+                    cards[i].Button.onClick.RemoveAllListeners();
             }
         }
     }

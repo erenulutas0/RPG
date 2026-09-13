@@ -25,6 +25,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PackLayout.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponBehavior.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/AttackPattern.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
@@ -32,6 +33,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CombatStateTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
@@ -44,5 +47,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunPauseTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentSimulation.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />
   </ItemGroup>
 </Project>

@@ -41,8 +41,9 @@ namespace Cryptforge.Combat
 
             // Splash candidates are gathered only for a ready attack, into a reused list.
             _nearby.Clear();
-            if (_weapon.SplashRadius > 0f)
-                _targeting.CollectNear(target, _weapon.SplashRadius, _nearby);
+            float splashRadius = _weapon.Pattern.SplashRadius;
+            if (splashRadius > 0f)
+                _targeting.CollectNear(target, splashRadius, _nearby);
             if (_weapon.TryAttack(target, _owner, _nearby))
             {
                 AttackCount++;

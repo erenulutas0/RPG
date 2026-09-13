@@ -41,7 +41,7 @@ MonoBehaviour:
   _resultProgressFormat: 'Floor {0}  |  {1} rooms  |  Level {2}  |  XP {3}'
   _resultGoldFormat: 'Gold banked: {0}'
   _resultGoldLostFormat: 'Gold banked: {0}  |  lost: {1}'
-  _resultBuildFormat: 'Build: {0}'
+  _resultBuildFormat: 'Build: {0}  |  {1}'
   _resultUpgradeFormat: '{0} x{1}'
   _resultNoUpgrades: no upgrades
   _restartLabel: Try again
@@ -50,14 +50,16 @@ MonoBehaviour:
   _resultRelicFormat: '{0} ({1}x)'
   _forgeHintReadyFormat: 'Forge gold {0}: {1} is ready to forge'
   _forgeHintNextFormat: 'Forge gold {0}: {1} costs {2}'
-  _forgeHintCompleteFormat: 'Forge gold {0}: every relic is forged'
+  _forgeHintCompleteFormat: 'Forge gold {0}: everything is forged'
   _forgeButtonLabel: Relic Forge
   _forgeTitle: Relic Forge
   _forgeStatusFormat: 'Gold {0}  |  Deepest floor cleared: {1}'
-  _relicForgeFormat: Forge for {0} gold
-  _relicNeedGoldFormat: '{0} gold: need {1} more'
-  _relicOwnedLabel: 'Owned: tap to equip'
-  _relicEquippedLabel: Equipped
+  _forgeWeaponsHeader: 'Weapons: carry one'
+  _forgeRelicsHeader: 'Relics: equip one'
+  _unlockForgeFormat: Forge for {0} gold
+  _unlockNeedGoldFormat: '{0} gold: need {1} more'
+  _unlockOwnedLabel: 'Owned: tap to equip'
+  _unlockEquippedLabel: Equipped
   _startRunLabel: Start run
   _pauseButtonLabel: II
   _pauseTitle: Paused

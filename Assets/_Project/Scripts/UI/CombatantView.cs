@@ -13,6 +13,8 @@ namespace Cryptforge.UI
         // Optional: bosses with an enrage behaviour keep a new resting color once enraged.
         [SerializeField] private EnrageBehaviour _enrage;
         [SerializeField] private Color _enragedColor = new Color(1f, 0.35f, 0.2f);
+        // A critical hit flashes this color instead of white.
+        [SerializeField] private Color _criticalColor = new Color(1f, 0.82f, 0.2f);
         private Color _baseColor;
         private Vector3 _basePosition;
         private float _feedbackRemaining;
@@ -29,7 +31,7 @@ namespace Cryptforge.UI
 
             _baseColor = _body.color;
             _basePosition = _body.transform.localPosition;
-            _health.Changed += OnDamaged;
+            _health.Damaged += OnDamaged;
             _health.Died += OnDied;
             if (_attack != null)
                 _attack.Attacked += OnAttacked;
@@ -47,9 +49,9 @@ namespace Cryptforge.UI
 
         private void Start() => _body.enabled = _health.IsAlive;
 
-        private void OnDamaged()
+        private void OnDamaged(DamageContext context)
         {
-            _body.color = Color.white;
+            _body.color = context.IsCritical ? _criticalColor : Color.white;
             _feedbackRemaining = _feedbackDuration;
         }
 
@@ -90,7 +92,7 @@ namespace Cryptforge.UI
         {
             if (_subscribed)
             {
-                _health.Changed -= OnDamaged;
+                _health.Damaged -= OnDamaged;
                 _health.Died -= OnDied;
                 if (_attack != null)
                     _attack.Attacked -= OnAttacked;

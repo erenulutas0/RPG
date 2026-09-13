@@ -49,10 +49,12 @@ namespace Cryptforge.Content
         [SerializeField] private string _forgeButtonLabel;
         [SerializeField] private string _forgeTitle;
         [SerializeField] private string _forgeStatusFormat;
-        [SerializeField] private string _relicForgeFormat;
-        [SerializeField] private string _relicNeedGoldFormat;
-        [SerializeField] private string _relicOwnedLabel;
-        [SerializeField] private string _relicEquippedLabel;
+        [SerializeField] private string _forgeWeaponsHeader;
+        [SerializeField] private string _forgeRelicsHeader;
+        [SerializeField] private string _unlockForgeFormat;
+        [SerializeField] private string _unlockNeedGoldFormat;
+        [SerializeField] private string _unlockOwnedLabel;
+        [SerializeField] private string _unlockEquippedLabel;
         [SerializeField] private string _startRunLabel;
         [SerializeField] private string _pauseButtonLabel;
         [SerializeField] private string _pauseTitle;
@@ -103,7 +105,7 @@ namespace Cryptforge.Content
         public string ResultGoldFormat => _resultGoldFormat;
         // {0} gold banked, {1} gold lost.
         public string ResultGoldLostFormat => _resultGoldLostFormat;
-        // {0} joined upgrade entries or the no-upgrades text.
+        // {0} weapon name, {1} the relic and upgrade entries joined, or the no-upgrades text.
         public string ResultBuildFormat => _resultBuildFormat;
         // {0} upgrade name, {1} stacks.
         public string ResultUpgradeFormat => _resultUpgradeFormat;
@@ -115,9 +117,9 @@ namespace Cryptforge.Content
         public string RelicTriggeredFormat => _relicTriggeredFormat;
         // {0} relic name, {1} times it triggered; listed first in the result build.
         public string ResultRelicFormat => _resultRelicFormat;
-        // {0} profile gold, {1} affordable relic name.
+        // {0} profile gold, {1} affordable relic or weapon name.
         public string ForgeHintReadyFormat => _forgeHintReadyFormat;
-        // {0} profile gold, {1} cheapest unowned relic name, {2} its price.
+        // {0} profile gold, {1} cheapest unowned relic or weapon name, {2} its price.
         public string ForgeHintNextFormat => _forgeHintNextFormat;
         // {0} profile gold.
         public string ForgeHintCompleteFormat => _forgeHintCompleteFormat;
@@ -125,12 +127,14 @@ namespace Cryptforge.Content
         public string ForgeTitle => _forgeTitle;
         // {0} profile gold, {1} deepest floor cleared.
         public string ForgeStatusFormat => _forgeStatusFormat;
-        // {0} price.
-        public string RelicForgeFormat => _relicForgeFormat;
+        public string ForgeWeaponsHeader => _forgeWeaponsHeader;
+        public string ForgeRelicsHeader => _forgeRelicsHeader;
+        // Card states shared by relics and weapons. {0} price.
+        public string UnlockForgeFormat => _unlockForgeFormat;
         // {0} price, {1} gold still needed.
-        public string RelicNeedGoldFormat => _relicNeedGoldFormat;
-        public string RelicOwnedLabel => _relicOwnedLabel;
-        public string RelicEquippedLabel => _relicEquippedLabel;
+        public string UnlockNeedGoldFormat => _unlockNeedGoldFormat;
+        public string UnlockOwnedLabel => _unlockOwnedLabel;
+        public string UnlockEquippedLabel => _unlockEquippedLabel;
         public string StartRunLabel => _startRunLabel;
         public string PauseButtonLabel => _pauseButtonLabel;
         public string PauseTitle => _pauseTitle;

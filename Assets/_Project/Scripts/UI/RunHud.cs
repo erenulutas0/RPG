@@ -121,7 +121,7 @@ namespace Cryptforge.UI
 
         private void RefreshWeapon()
         {
-            _weaponLabel.text = string.Format(_text.WeaponFormat, _heroDefinition.StartingWeapon.DisplayName,
+            _weaponLabel.text = string.Format(_text.WeaponFormat, _setup.HeroWeapon.DisplayName,
                 _setup.Weapon.Damage, _setup.Weapon.Interval);
         }
 

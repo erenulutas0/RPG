@@ -20,3 +20,7 @@ MonoBehaviour:
   _behavior: 1
   _splashRadius: 2
   _splashFraction: 0.6
+  _critEvery: 0
+  _critMultiplier: 0
+  _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s. Cleaves a second enemy for {2:0}%'
+  _forgePrice: 0

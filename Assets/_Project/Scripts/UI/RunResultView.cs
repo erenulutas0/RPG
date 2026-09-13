@@ -39,7 +39,8 @@ namespace Cryptforge.UI
 
         private void Start()
         {
-            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _setup.Relics == null || _encounters == null ||
+            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _setup.Relics == null || _setup.Weapons == null ||
+                _encounters == null ||
                 _encounters.Floor == null || _heroDefinition == null || _text == null || _forge == null || _panel == null ||
                 _titleLabel == null || _causeLabel == null || _progressLabel == null || _goldLabel == null || _buildLabel == null ||
                 _forgeHintLabel == null || _restartLabel == null || _restartButton == null || _forgeButtonLabel == null ||
@@ -97,7 +98,7 @@ namespace Cryptforge.UI
             _goldLabel.text = run.GoldLost > 0
                 ? string.Format(_text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
                 : string.Format(_text.ResultGoldFormat, run.GoldBanked);
-            _buildLabel.text = string.Format(_text.ResultBuildFormat, DescribeBuild());
+            _buildLabel.text = string.Format(_text.ResultBuildFormat, _setup.HeroWeapon.DisplayName, DescribeBuild());
             _forgeHintLabel.text = DescribeForge();
 
             _panel.SetActive(true);
@@ -124,17 +125,22 @@ namespace Cryptforge.UI
             return entries.Count > 0 ? string.Join(", ", entries) : _text.ResultNoUpgrades;
         }
 
-        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock.
+        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock, relic or weapon.
         private string DescribeForge()
         {
-            RelicShop shop = _setup.Relics;
-            int gold = shop.Profile.Gold;
-            RelicOption next = shop.NextUnlock;
-            if (next == null)
+            int gold = _setup.Profile.Gold;
+            RelicOption relic = _setup.Relics.NextUnlock;
+            WeaponOption weapon = _setup.Weapons.NextUnlock;
+            if (relic == null && weapon == null)
                 return string.Format(_text.ForgeHintCompleteFormat, gold);
-            return shop.StatusOf(next) == RelicStatus.Affordable
-                ? string.Format(_text.ForgeHintReadyFormat, gold, next.DisplayName)
-                : string.Format(_text.ForgeHintNextFormat, gold, next.DisplayName, next.Price);
+
+            // The cheaper one is nearer; a relic wins a tie.
+            bool relicFirst = weapon == null || (relic != null && relic.Price <= weapon.Price);
+            string name = relicFirst ? relic.DisplayName : weapon.DisplayName;
+            int price = relicFirst ? relic.Price : weapon.Price;
+            return gold >= price
+                ? string.Format(_text.ForgeHintReadyFormat, gold, name)
+                : string.Format(_text.ForgeHintNextFormat, gold, name, price);
         }
 
         private void Update()

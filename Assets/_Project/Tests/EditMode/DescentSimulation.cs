@@ -38,11 +38,9 @@ namespace Cryptforge.Tests
         {
             public float Damage = 10f;
             public float Interval = 0.8f;
-            public WeaponBehavior Behavior = WeaponBehavior.DirectHit;
-            public float SplashRadius;
-            public float SplashFraction;
+            public AttackPattern Pattern;
 
-            public WeaponRuntime CreateRuntime() => new WeaponRuntime(Damage, Interval, 3f, 0f, Behavior, SplashRadius, SplashFraction);
+            public WeaponRuntime CreateRuntime() => new WeaponRuntime(Damage, Interval, 3f, 0f, Pattern);
         }
 
         internal struct Result
@@ -58,6 +56,9 @@ namespace Cryptforge.Tests
             public int UpgradesApplied;
             public float FightSeconds;
             public float FloorOneFightSeconds;
+            // Fight time against the enraging bosses, and against packs made only of Cinder Mites.
+            public float BossFightSeconds;
+            public float MitePackFightSeconds;
             public int FloorOneUpgrades;
             public string DeathRoom;
         }
@@ -74,7 +75,15 @@ namespace Cryptforge.Tests
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
-            new HeroWeapon { Damage = 10f, Interval = 0.8f, Behavior = WeaponBehavior.Cleave, SplashRadius = 2f, SplashFraction = 0.6f };
+            new HeroWeapon { Damage = 10f, Interval = 0.8f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
+
+        // Weapon_Staff.asset: 18 damage every 1.2 s, and 75% to every enemy within 3.5 units of the target.
+        public static HeroWeapon Staff() =>
+            new HeroWeapon { Damage = 18f, Interval = 1.2f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
+
+        // Weapon_Daggers.asset: 6 damage every 0.55 s; every third strike crits for double damage.
+        public static HeroWeapon Daggers() =>
+            new HeroWeapon { Damage = 6f, Interval = 0.55f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
@@ -200,6 +209,7 @@ namespace Cryptforge.Tests
                     enrages[i] = pack[i].EnrageAt > 0f ? new EnrageRule(pack[i].EnrageAt) : null;
                 }
 
+                float startSeconds = result.FightSeconds;
                 weapon.Tick(10f);
                 for (int frame = 0; frame < 200000 && hero.IsAlive && AnyAlive(enemies); frame++)
                 {
@@ -213,7 +223,7 @@ namespace Cryptforge.Tests
 
                     int target = FirstAlive(enemies);
                     if (weapon.IsReady)
-                        weapon.TryAttack(enemies[target], null, Nearby(enemies, target, weapon.SplashRadius));
+                        weapon.TryAttack(enemies[target], null, Nearby(enemies, target, weapon.Pattern.SplashRadius));
                     Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
 
                     for (int i = 0; i < pack.Length && hero.IsAlive; i++)
@@ -228,6 +238,12 @@ namespace Cryptforge.Tests
                         }
                     }
                 }
+
+                float waveSeconds = result.FightSeconds - startSeconds;
+                if (Array.Exists(pack, enemy => enemy.EnrageAt > 0f))
+                    result.BossFightSeconds += waveSeconds;
+                else if (Array.TrueForAll(pack, enemy => enemy == Mite))
+                    result.MitePackFightSeconds += waveSeconds;
 
                 if (!hero.IsAlive)
                 {

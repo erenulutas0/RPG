@@ -50,14 +50,14 @@ namespace Cryptforge.Progression
             }
         }
 
-        public RelicStatus StatusOf(RelicOption relic)
+        public UnlockStatus StatusOf(RelicOption relic)
         {
             RequireListed(relic);
             if (Profile.EquippedRelicId == relic.Id)
-                return RelicStatus.Equipped;
+                return UnlockStatus.Equipped;
             if (Profile.Owns(relic.Id))
-                return RelicStatus.Owned;
-            return Profile.Gold >= relic.Price ? RelicStatus.Affordable : RelicStatus.TooExpensive;
+                return UnlockStatus.Owned;
+            return Profile.Gold >= relic.Price ? UnlockStatus.Affordable : UnlockStatus.TooExpensive;
         }
 
         public int GoldNeededFor(RelicOption relic)
@@ -70,9 +70,9 @@ namespace Cryptforge.Progression
         {
             switch (StatusOf(relic))
             {
-                case RelicStatus.Affordable:
+                case UnlockStatus.Affordable:
                     return Profile.TryForgeRelic(relic.Id, relic.Price);
-                case RelicStatus.Owned:
+                case UnlockStatus.Owned:
                     return Profile.Equip(relic.Id);
                 default:
                     return false;

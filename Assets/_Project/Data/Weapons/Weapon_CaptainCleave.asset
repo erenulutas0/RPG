@@ -21,3 +21,7 @@ MonoBehaviour:
   _behavior: 0
   _splashRadius: 0
   _splashFraction: 0
+  _critEvery: 0
+  _critMultiplier: 0
+  _forgeDescriptionFormat: 
+  _forgePrice: 0

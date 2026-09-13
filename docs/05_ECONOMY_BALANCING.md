@@ -136,12 +136,14 @@ When added:
 - base damage
 - interval
 - range
-- behavior (direct hit, cleave, ...), splash radius and fraction
+- behavior (direct hit, cleave, area), splash radius and fraction
+- crit rhythm (every Nth attack) and crit multiplier
 - projectile count
 - tags
 - scaling coefficients
 - rarity
-- unlock condition
+- unlock condition (prototype: Forge price in gold)
+- which simulated fight it wins (packs, bosses)
 
 ### Enemies
 - id

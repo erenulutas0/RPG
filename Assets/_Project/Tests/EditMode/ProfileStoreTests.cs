@@ -44,7 +44,8 @@ namespace Cryptforge.Tests
         {
             var store = new ProfileStore(_directory);
             store.Load();
-            store.Save(new PlayerProfile(120, new[] { "relic_second_wind", "relic_counterweight" }, "relic_counterweight", 2));
+            store.Save(new PlayerProfile(120, new[] { "relic_second_wind", "relic_counterweight" }, "relic_counterweight", 2,
+                new[] { "weapon_staff" }, "weapon_staff"));
 
             var reopened = new ProfileStore(_directory);
             PlayerProfile loaded = reopened.Load();
@@ -54,9 +55,42 @@ namespace Cryptforge.Tests
             Assert.That(loaded.OwnedRelicIds, Is.EqualTo(new[] { "relic_second_wind", "relic_counterweight" }));
             Assert.That(loaded.EquippedRelicId, Is.EqualTo("relic_counterweight"));
             Assert.That(loaded.DeepestFloorCleared, Is.EqualTo(2));
+            Assert.That(loaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
+            Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 1").And.Contain("\"gold\": 120"));
+            Assert.That(json, Does.Contain("\"saveVersion\": 2").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
             Assert.That(File.Exists(Path.Combine(_directory, ProfileStore.TempFileName)), Is.False);
+        }
+
+        [Test]
+        public void VersionOneProfileLoadsWithoutWeaponsAndIsSavedAsVersionTwo()
+        {
+            // As the Forge meta build wrote it, before weapons could be forged.
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path, "{\n    \"saveVersion\": 1,\n    \"revision\": 5,\n    \"gold\": 90,\n    \"ownedRelicIds\": [\n" +
+                "        \"relic_second_wind\"\n    ],\n    \"equippedRelicId\": \"relic_second_wind\",\n    \"deepestFloorCleared\": 2\n}");
+
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(profile.Gold, Is.EqualTo(90));
+            Assert.That(profile.OwnedRelicIds, Is.EqualTo(new[] { "relic_second_wind" }));
+            Assert.That(profile.EquippedRelicId, Is.EqualTo("relic_second_wind"));
+            Assert.That(profile.DeepestFloorCleared, Is.EqualTo(2));
+            Assert.That(profile.OwnedWeaponIds, Is.Empty);
+            Assert.That(profile.EquippedWeaponId, Is.Null, "The hero keeps the starting weapon.");
+
+            Assert.That(profile.TryForgeWeapon("weapon_staff", 60), Is.True);
+            store.Save(profile);
+
+            string json = File.ReadAllText(path);
+            Assert.That(json, Does.Contain("\"saveVersion\": 2").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
+            Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.BackupFileName)), Does.Contain("\"saveVersion\": 1"),
+                "The version 1 file stays behind as the backup.");
+            PlayerProfile reloaded = new ProfileStore(_directory).Load();
+            Assert.That(reloaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
+            Assert.That(reloaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
         }
 
         [Test]

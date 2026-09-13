@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00000000000000000000000000000004, type: 3}
-  m_Name: Weapon_RunnerSlash
+  m_Name: Weapon_Daggers
   m_EditorClassIdentifier: 
-  _id: weapon_runner_slash
-  _displayName: Runner Slash
-  _damage: 2
-  _interval: 0.4
+  _id: weapon_daggers
+  _displayName: Daggers
+  _damage: 6
+  _interval: 0.55
   _range: 3
   _initialDelay: 0
   _behavior: 0
   _splashRadius: 0
   _splashFraction: 0
-  _critEvery: 0
-  _critMultiplier: 0
-  _forgeDescriptionFormat: 
-  _forgePrice: 0
+  _critEvery: 3
+  _critMultiplier: 2
+  _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s. Crits for {3:0}% once every {4} strikes'
+  _forgePrice: 180

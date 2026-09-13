@@ -70,7 +70,8 @@ namespace Cryptforge.Save
 
             _revision = best.revision;
             LastLoadStatus = ReferenceEquals(best, main) ? ProfileLoadStatus.Loaded : ProfileLoadStatus.Recovered;
-            return new PlayerProfile(best.gold, best.ownedRelicIds, best.equippedRelicId, best.deepestFloorCleared);
+            return new PlayerProfile(best.gold, best.ownedRelicIds, best.equippedRelicId, best.deepestFloorCleared,
+                best.ownedWeaponIds, best.equippedWeaponId);
         }
 
         public void Save(PlayerProfile profile)
@@ -78,17 +79,16 @@ namespace Cryptforge.Save
             if (profile == null)
                 throw new ArgumentNullException(nameof(profile));
 
-            var owned = new string[profile.OwnedRelicIds.Count];
-            for (int i = 0; i < owned.Length; i++)
-                owned[i] = profile.OwnedRelicIds[i];
             var data = new ProfileSaveData
             {
                 saveVersion = ProfileSaveData.CurrentVersion,
                 revision = _revision + 1,
                 gold = profile.Gold,
-                ownedRelicIds = owned,
+                ownedRelicIds = ToArray(profile.OwnedRelicIds),
                 equippedRelicId = profile.EquippedRelicId ?? string.Empty,
-                deepestFloorCleared = profile.DeepestFloorCleared
+                deepestFloorCleared = profile.DeepestFloorCleared,
+                ownedWeaponIds = ToArray(profile.OwnedWeaponIds),
+                equippedWeaponId = profile.EquippedWeaponId ?? string.Empty
             };
 
             System.IO.Directory.CreateDirectory(Directory);
@@ -145,6 +145,14 @@ namespace Cryptforge.Save
             if (upgraded == null)
                 _problems.Add($"{Path.GetFileName(path)} has an unsupported save version {data?.saveVersion.ToString() ?? "(empty file)"}.");
             return upgraded;
+        }
+
+        private static string[] ToArray(IReadOnlyList<string> ids)
+        {
+            var array = new string[ids.Count];
+            for (int i = 0; i < array.Length; i++)
+                array[i] = ids[i];
+            return array;
         }
 
         private static ProfileSaveData Newest(ProfileSaveData a, ProfileSaveData b)

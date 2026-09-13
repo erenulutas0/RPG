@@ -80,13 +80,13 @@ namespace Cryptforge.Tests
             RelicOption counter = Counterweight();
             var shop = new RelicShop(profile, new[] { wind, counter });
             Assert.That(shop.NextUnlock, Is.SameAs(wind), "The cheapest unowned relic is the next unlock.");
-            Assert.That(shop.StatusOf(counter), Is.EqualTo(RelicStatus.Affordable));
+            Assert.That(shop.StatusOf(counter), Is.EqualTo(UnlockStatus.Affordable));
 
             Assert.That(shop.TrySelect(wind), Is.True);
             Assert.That(shop.TrySelect(wind), Is.False, "Tapping the equipped relic changes nothing.");
             Assert.That(profile.Gold, Is.EqualTo(120));
             Assert.That(shop.Equipped, Is.SameAs(wind));
-            Assert.That(shop.StatusOf(counter), Is.EqualTo(RelicStatus.TooExpensive));
+            Assert.That(shop.StatusOf(counter), Is.EqualTo(UnlockStatus.TooExpensive));
             Assert.That(shop.GoldNeededFor(counter), Is.EqualTo(30));
             Assert.That(shop.TrySelect(counter), Is.False);
             Assert.That(shop.NextUnlock, Is.SameAs(counter));
@@ -94,11 +94,11 @@ namespace Cryptforge.Tests
             profile.Deposit(30);
             Assert.That(shop.TrySelect(counter), Is.True);
             Assert.That(profile.Gold, Is.Zero);
-            Assert.That(shop.StatusOf(wind), Is.EqualTo(RelicStatus.Owned));
+            Assert.That(shop.StatusOf(wind), Is.EqualTo(UnlockStatus.Owned));
             Assert.That(shop.GoldNeededFor(wind), Is.Zero);
             Assert.That(shop.TrySelect(wind), Is.True, "An owned relic is equipped on tap.");
             Assert.That(shop.Equipped, Is.SameAs(wind));
-            Assert.That(shop.StatusOf(counter), Is.EqualTo(RelicStatus.Owned));
+            Assert.That(shop.StatusOf(counter), Is.EqualTo(UnlockStatus.Owned));
             Assert.That(shop.NextUnlock, Is.Null);
         }
 

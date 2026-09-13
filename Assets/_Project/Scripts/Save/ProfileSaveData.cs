@@ -7,7 +7,8 @@ namespace Cryptforge.Save
     [Serializable]
     public sealed class ProfileSaveData
     {
-        public const int CurrentVersion = 1;
+        // Version 2 added forged weapons.
+        public const int CurrentVersion = 2;
 
         public int saveVersion;
         // Increases with every save; loading prefers the readable file with the highest revision.
@@ -16,5 +17,8 @@ namespace Cryptforge.Save
         public string[] ownedRelicIds;
         public string equippedRelicId;
         public int deepestFloorCleared;
+        public string[] ownedWeaponIds;
+        // Empty while the hero carries the starting weapon.
+        public string equippedWeaponId;
     }
 }

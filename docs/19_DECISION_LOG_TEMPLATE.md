@@ -162,7 +162,7 @@ Add a Bootstrap scene when a service must outlive scene loads (audio, analytics,
 ## Decision: Enemy packs and weapon behaviors
 
 **Date:** 2026-09-13  
-**Status:** Accepted (packs and the Sword's cleave implemented; Staff, Daggers and their Forge unlocks next; see `21`)  
+**Status:** Accepted (implemented: packs, the Sword's cleave, the Staff, the Daggers and their Forge unlocks; see `21`)  
 **Owner:** Product / engineering
 
 ### Context
@@ -202,3 +202,13 @@ Negative:
 
 ### Revisit trigger
 Testers cannot tell which enemy is being hit or attacking; a Descent still plays in under 5 minutes; one weapon is always or never chosen once Staff and Daggers exist.
+
+### Weapons update (2026-09-13)
+- **Staff:** area damage, 18 every 1.2 s to the target and 75% to every enemy within 3.5 units.
+- **Daggers:** 6 every 0.55 s, with every third strike critical for double damage.
+- **Crits follow a fixed rhythm, not a chance.** The fight stays readable, the Descent simulation stays exact, and tests need no random seed. Revisit when crit upgrades or a crit chance enter the upgrade pool.
+- **Unlocked weapons are sidegrades.** Every weapon must survive both Mend descents with health within 15 of the Sword's, fall on floor 2 on Temper paths without a relic, and be rescued by both relics on damage-first Temper. The Staff must clear mite packs fastest and the Daggers must kill the Wardens fastest. No Staff weaker than the Sword against single targets met these targets, so its weakness is weaker scaling with the flat Tempered Edge, not lower base damage.
+- **Weapons live in the Relic Forge** under their own header; the owner's choice named that panel. The Sword is the starting weapon: always owned, never saved, and the fallback for any missing or unowned saved weapon.
+- **`WeaponShop` is separate from `RelicShop`.** The starting-weapon rule has no relic equivalent; the shared card states became `UnlockStatus`. Extract a common shop when a third unlock category (heroes) arrives.
+- **Save version 2** adds `ownedWeaponIds` and `equippedWeaponId`. `ProfileMigration` upgrades version 1 files, covered by a migration test and a version 1 file test, as the revisit trigger of the save decision asked.
+- **Prices (Staff 120, Daggers 180)** interleave with the relics, so the result hint names the goals in order: Second Wind (80), Staff (120), Counterweight (150), Daggers (180). They come from pacing, not simulation; revisit with tester run counts.

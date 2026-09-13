@@ -77,7 +77,7 @@ namespace Cryptforge.Tests
         [Test]
         public void CleaveStrikesTheNearestOtherLivingEnemyForItsFraction()
         {
-            var sword = new WeaponRuntime(10f, 0.8f, 3f, 0f, WeaponBehavior.Cleave, 2f, 0.6f);
+            var sword = new WeaponRuntime(10f, 0.8f, 3f, 0f, new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f));
             var target = new HealthState(50f);
             var dead = new HealthState(15f);
             var near = new HealthState(15f);
@@ -101,11 +101,13 @@ namespace Cryptforge.Tests
         [Test]
         public void WeaponBehaviourSettingsAreValidated()
         {
-            Assert.Throws<ArgumentException>(() => new WeaponRuntime(10f, 1f, 3f, 0f, WeaponBehavior.DirectHit, 2f, 0f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new WeaponRuntime(10f, 1f, 3f, 0f, WeaponBehavior.Cleave, 0f, 0.5f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new WeaponRuntime(10f, 1f, 3f, 0f, WeaponBehavior.Cleave, 2f, 0f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new WeaponRuntime(10f, 1f, 3f, 0f, WeaponBehavior.Cleave, 2f, 1.5f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new WeaponRuntime(10f, 1f, 3f, 0f, (WeaponBehavior)99));
+            Assert.Throws<ArgumentException>(() => new AttackPattern(WeaponBehavior.DirectHit, 2f, 0f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Cleave, 0f, 0.5f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Cleave, 2f, 0f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Area, 2f, 1.5f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Area, float.NaN, 0.5f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern((WeaponBehavior)99));
+            Assert.That(new WeaponRuntime(10f, 1f, 3f).Pattern.Behavior, Is.EqualTo(WeaponBehavior.DirectHit), "The default pattern is a direct hit.");
         }
 
         [Test]
@@ -125,7 +127,7 @@ namespace Cryptforge.Tests
             {
                 weapon.Tick(10f);
                 int target = Array.FindIndex(mites, mite => mite.IsAlive);
-                weapon.TryAttack(mites[target], null, DescentSimulation.Nearby(mites, target, weapon.SplashRadius));
+                weapon.TryAttack(mites[target], null, DescentSimulation.Nearby(mites, target, weapon.Pattern.SplashRadius));
                 swings++;
             }
             return swings;

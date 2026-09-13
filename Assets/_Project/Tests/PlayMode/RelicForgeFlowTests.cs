@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.UI;
@@ -59,9 +60,19 @@ namespace Cryptforge.Tests
             Assert.That(CardText(1, "Name Label"), Is.EqualTo("Counterweight"));
             Assert.That(CardText(0, "State Label"), Is.EqualTo("80 gold: need 80 more"));
             Assert.That(Card(0).interactable, Is.False, "An unaffordable relic reads as locked.");
+            Assert.That(Label("Weapons Header"), Is.EqualTo("Weapons: carry one"));
+            Assert.That(Label("Relics Header"), Is.EqualTo("Relics: equip one"));
+            Assert.That(WeaponCardText(0, "Name Label"), Is.EqualTo("Sword"));
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"), "The starting weapon never needs forging.");
+            Assert.That(WeaponCardText(1, "Name Label"), Is.EqualTo("Staff"));
+            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("120 gold: need 120 more"));
+            Assert.That(WeaponCardText(2, "Name Label"), Is.EqualTo("Daggers"));
+            Assert.That(WeaponCard(2).interactable, Is.False);
 
             Tap(Card(0));
+            Tap(WeaponCard(1));
             Assert.That(_setup.Profile.OwnedRelicIds, Is.Empty);
+            Assert.That(_setup.Profile.OwnedWeaponIds, Is.Empty);
             Assert.That(TestProfile.HasSavedFile, Is.False, "A run with no gold and no cleared floor writes nothing.");
             LogAssert.NoUnexpectedReceived();
         }
@@ -171,7 +182,125 @@ namespace Cryptforge.Tests
 
             _hero.ApplyDamage(new DamageContext(1000f));
             yield return null;
-            Assert.That(Label("Build Label"), Does.StartWith("Build: Second Wind (1x)"));
+            Assert.That(Label("Build Label"), Does.StartWith("Build: Sword  |  Second Wind (1x)"));
+        }
+
+        [UnityTest]
+        public IEnumerator ForgingTheStaffCarriesItIntoTheNextRunAndTheSwordStaysFree()
+        {
+            // Decimals follow the current culture, as on the device.
+            yield return LoadGameplay(new PlayerProfile(150, null, null, 1));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Sword  |  10 damage every {0.8f:0.00}s"));
+            _hero.ApplyDamage(new DamageContext(1000f));
+            yield return null;
+            yield return new WaitForSecondsRealtime(0.6f);
+            Tap(FindButton("Forge Button"));
+            yield return new WaitForSecondsRealtime(0.4f);
+
+            Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo($"10 damage every {0.8f:0.0#}s. Cleaves a second enemy for 60%"));
+            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"18 damage every {1.2f:0.0#}s. Blasts every enemy near the target for 75%"));
+            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
+            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.55f:0.0#}s. Crits for 200% once every 3 strikes"));
+            Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
+
+            Tap(WeaponCard(1));
+            Tap(WeaponCard(1));
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(30), "Rapid taps forge the Staff once.");
+            Assert.That(_setup.Profile.EquippedWeaponId, Is.EqualTo("weapon_staff"));
+            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Equipped"));
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Owned: tap to equip"));
+
+            yield return new WaitForSecondsRealtime(0.4f);
+            Tap(WeaponCard(0));
+            Assert.That(_setup.Profile.EquippedWeaponId, Is.Null, "The Sword is equipped again for free.");
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(30));
+            yield return new WaitForSecondsRealtime(0.4f);
+            Tap(WeaponCard(1));
+            Assert.That(_setup.Profile.EquippedWeaponId, Is.EqualTo("weapon_staff"));
+
+            PlayerProfile saved = TestProfile.ReadSaved();
+            Assert.That(saved.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
+            Assert.That(saved.EquippedWeaponId, Is.EqualTo("weapon_staff"));
+
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return StartRun();
+            Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
+            Assert.That(_setup.Weapon.Pattern.Behavior, Is.EqualTo(WeaponBehavior.Area));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Staff  |  18 damage every {1.2f:0.00}s"));
+            Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Staff Loadout"));
+            Assert.That(GameObject.Find("Sword Placeholder"), Is.Null, "The Sword loadout is hidden.");
+
+            Health grunt = _encounters.CurrentEnemy;
+            AttackController heroAttack = _hero.GetComponent<AttackController>();
+            float deadline = Time.realtimeSinceStartup + 3f;
+            while (heroAttack.AttackCount < 2 && Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.That(heroAttack.AttackCount, Is.GreaterThanOrEqualTo(2));
+            Assert.That(grunt.Current, Is.EqualTo(50f - 18f * heroAttack.AttackCount).Within(1e-3f), "Each Staff blast deals 18.");
+        }
+
+        [UnityTest]
+        public IEnumerator DaggersCritEveryThirdStrikeAndTheCritFlashesGold()
+        {
+            yield return LoadGameplay(new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Daggers  |  6 damage every {0.55f:0.00}s"));
+            Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Daggers Loadout"));
+
+            // The Daggers may already have struck while the scene loaded, so each hit is checked against its attack number.
+            Health grunt = _encounters.CurrentEnemy;
+            WeaponRuntime daggers = _setup.Weapon;
+            SpriteRenderer body = grunt.transform.Find("Enemy Body").GetComponent<SpriteRenderer>();
+            var hits = new List<(int Attack, float Amount, bool Critical, bool FlashedGold)>();
+            System.Action<DamageContext> record = context =>
+                hits.Add((daggers.AttacksMade, context.Amount, context.IsCritical, body.color == new Color(1f, 0.82f, 0.2f)));
+            grunt.Damaged += record;
+            try
+            {
+                float deadline = Time.realtimeSinceStartup + 4f;
+                while ((hits.Count < 3 || !hits.Exists(hit => hit.Critical)) && Time.realtimeSinceStartup < deadline)
+                    yield return null;
+            }
+            finally
+            {
+                grunt.Damaged -= record;
+            }
+
+            Assert.That(hits.Count, Is.GreaterThanOrEqualTo(3));
+            Assert.That(hits.Exists(hit => hit.Critical), Is.True);
+            foreach (var hit in hits)
+            {
+                bool third = hit.Attack % 3 == 0;
+                Assert.That(hit.Critical, Is.EqualTo(third), $"Strike {hit.Attack}");
+                Assert.That(hit.Amount, Is.EqualTo(third ? 12f : 6f), $"Strike {hit.Attack}");
+                Assert.That(hit.FlashedGold, Is.EqualTo(third), $"Strike {hit.Attack} flash");
+            }
+            int strikes = daggers.AttacksMade;
+            Assert.That(grunt.Current, Is.EqualTo(50f - 6f * strikes - 6f * (strikes / 3)).Within(1e-3f));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Every Forge panel element is anchored to the bottom of the safe area; together they must fit the shortest
+        // 9:16 portrait screen (1920 canvas units) without overlapping.
+        [UnityTest]
+        public IEnumerator ForgePanelFitsTheShortestPortraitScreenWithoutOverlaps()
+        {
+            yield return LoadGameplay(null);
+            Transform safeArea = _forge.transform.Find("Forge Panel/Safe Area");
+            var spans = new List<(string Name, float Bottom, float Top)>();
+            foreach (RectTransform child in safeArea)
+            {
+                Assert.That(child.anchorMin.y, Is.Zero, child.name);
+                Assert.That(child.anchorMax.y, Is.Zero, child.name);
+                Assert.That(child.pivot.y, Is.Zero, child.name);
+                spans.Add((child.name, child.anchoredPosition.y, child.anchoredPosition.y + child.sizeDelta.y));
+            }
+
+            spans.Sort((a, b) => a.Bottom.CompareTo(b.Bottom));
+            Assert.That(spans.Count, Is.EqualTo(10));
+            Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(0f));
+            Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(1920f), spans[spans.Count - 1].Name);
+            for (int i = 1; i < spans.Count; i++)
+                Assert.That(spans[i].Bottom, Is.GreaterThanOrEqualTo(spans[i - 1].Top), $"{spans[i].Name} overlaps {spans[i - 1].Name}.");
         }
 
         private IEnumerator LoadGameplay(PlayerProfile seed)
@@ -193,10 +322,39 @@ namespace Cryptforge.Tests
             _forge = Object.FindFirstObjectByType<RelicForgeView>();
         }
 
+        private IEnumerator StartRun()
+        {
+            int loads = 0;
+            UnityAction<Scene, LoadSceneMode> countLoad = (scene, mode) => loads++;
+            SceneManager.sceneLoaded += countLoad;
+            try
+            {
+                Tap(FindButton("Start Run Button"));
+                float deadline = Time.realtimeSinceStartup + 5f;
+                while (loads == 0 && Time.realtimeSinceStartup < deadline)
+                    yield return null;
+                yield return null;
+            }
+            finally
+            {
+                SceneManager.sceneLoaded -= countLoad;
+            }
+
+            Assert.That(loads, Is.EqualTo(1));
+            // Views read the new run in Start, on the first frame after the load.
+            yield return null;
+            FindSceneObjects();
+        }
+
         private Button Card(int index) =>
             _forge.transform.Find($"Forge Panel/Safe Area/Relic Card {index + 1}").GetComponent<Button>();
 
         private string CardText(int index, string label) => Card(index).transform.Find(label).GetComponent<Text>().text;
+
+        private Button WeaponCard(int index) =>
+            _forge.transform.Find($"Forge Panel/Safe Area/Weapon Card {index + 1}").GetComponent<Button>();
+
+        private string WeaponCardText(int index, string label) => WeaponCard(index).transform.Find(label).GetComponent<Text>().text;
 
         private static Button FindButton(string name) => GameObject.Find(name).GetComponent<Button>();
 
