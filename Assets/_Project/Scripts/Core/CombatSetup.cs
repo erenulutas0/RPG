@@ -60,18 +60,19 @@ namespace Cryptforge.Core
                 return;
             }
 
+            if (!ForgeCatalog.TryCreate(_relics, _weapons, out RelicOption[] relics, out WeaponOption[] weapons, out string catalogError))
+            {
+                Debug.LogError($"CombatSetup cannot build the Relic Forge catalog. {catalogError}", this);
+                enabled = false;
+                return;
+            }
+
             Application.targetFrameRate = 60;
             // The profile is read from disk on every scene load, so a restart needs no persistent service object.
             _profileStore = new ProfileStore(ProfileLocation.Resolve());
             Profile = _profileStore.Load();
             ReportLoadProblems();
-            var relics = new RelicOption[_relics.Length];
-            for (int i = 0; i < _relics.Length; i++)
-                relics[i] = _relics[i].CreateOption();
             Relics = new RelicShop(Profile, relics);
-            var weapons = new WeaponOption[_weapons.Length];
-            for (int i = 0; i < _weapons.Length; i++)
-                weapons[i] = _weapons[i].CreateForgeOption();
             Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, _heroDefinition.StartingWeapon)]);
             HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
 

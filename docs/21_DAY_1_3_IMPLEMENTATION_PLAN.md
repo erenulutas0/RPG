@@ -454,6 +454,14 @@ To make this possible, `DescentSimulation` and the relic mirrors moved into `Tes
 
 Verified: Unity EditMode 140/140, PlayMode 44/44, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `C06E064B7F24BE0F8601B01860D491AC35739FD8A25D9B701B365F7AC0266495`; no game code changed since the build installed on the phone).
 
+### Implemented 2026-09-14: Forge catalog checks at startup
+
+A code review of the packs and weapon commits found one robustness gap. A bad Forge entry threw an exception halfway through `CombatSetup.Awake`, after the profile loaded but before the run existed. Examples: a weapon listed twice, a description format with an unknown placeholder, or crit data the weapon runtime rejects. Every view then logged its own missing-reference error, and nothing named the bad asset.
+
+`Content/ForgeCatalog` now builds the relic and weapon options before the profile loads. It checks every entry: empty slots, duplicate ids, relic amounts, description formats, and each weapon's combat data (by creating a runtime, so a broken Daggers asset fails even while the Sword is carried). Combat Setup logs one error naming the asset and disables itself, as it already did for missing references. EditMode `ForgeCatalogTests` (3) cover each case.
+
+Verified: Unity EditMode 143/143, PlayMode 44/44, `Verify-Project.ps1`, .NET CombatChecks 133/133, development APK built only after both reports passed (SHA-256 `8AF1C71DF37E3703A9B21A3DA55BD281DFDB6EE3F5F132DDDB4B6C735B1EAA6F`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.
