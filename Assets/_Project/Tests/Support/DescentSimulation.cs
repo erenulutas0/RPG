@@ -48,9 +48,21 @@ namespace Cryptforge.Tests
             public WeaponRuntime CreateRuntime() => new WeaponRuntime(Damage, Interval, Range, 0f, Pattern);
         }
 
+        // Ability_ForgeBurst.asset: the hero's burst, fired by the player; the simulation fires it whenever it is ready and
+        // an enemy stands within its radius of the hero.
+        internal sealed class HeroAbility
+        {
+            public float Damage = 20f;
+            public float Radius = 2.5f;
+            public float Cooldown = 8f;
+
+            public AbilityRuntime CreateRuntime() => new AbilityRuntime(Damage, Radius, Cooldown);
+        }
+
         internal struct Result
         {
             public int ClearedFloors;
+            public int AbilityUses;
             public float HeroHealth;
             public float HealthAfterFloorOne;
             public int Gold;
@@ -143,6 +155,8 @@ namespace Cryptforge.Tests
         public static ForgeOption Temper() =>
             new ForgeOption("forge_temper", "Temper", "Gain {0:0} extra upgrade choice", ForgeEffect.BonusUpgrade, 1f);
 
+        public static HeroAbility ForgeBurst() => new HeroAbility { Damage = 20f, Radius = 2.5f, Cooldown = 8f };
+
         // EncounterController's _entryDepth, _formationSpacing and _bodySpacing in Gameplay.unity, in floor units.
         public const float EntryDepth = 6f;
         public const float FormationSpacing = 1f;
@@ -155,11 +169,13 @@ namespace Cryptforge.Tests
         // Always descends. cardSlot is the upgrade card taken every time (clamped when fewer cards remain); floor 2 and
         // later always Mend, floor 1 Mends only when mendOnFloorOne is set.
         public static Result Run(Floor[] floors, int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null,
-            HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth)
+            HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
+            HeroAbility ability = null)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth);
             var rewards = new RewardService(run);
             WeaponRuntime weapon = (heroWeapon ?? Sword()).CreateRuntime();
+            AbilityRuntime burst = ability?.CreateRuntime();
             var hero = new HealthState(100f);
             var upgrades = new UpgradeService(run, weapon, new[] { Damage(), Speed() }, 2);
             var forge = new ForgeService(run, hero);
@@ -169,7 +185,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, hero, forge, choices, relic, cardSlot, f > 0 || mendOnFloorOne, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, cardSlot, f > 0 || mendOnFloorOne, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -196,8 +212,8 @@ namespace Cryptforge.Tests
             return result;
         }
 
-        private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, HealthState hero,
-            ForgeService forge, RunChoices choices, RelicRuntime relic, int cardSlot, bool useMend, ref Result result)
+        private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
+            HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, int cardSlot, bool useMend, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -240,6 +256,7 @@ namespace Cryptforge.Tests
                     if (frame > 0)
                     {
                         weapon.Tick(step);
+                        burst?.Tick(step);
                         for (int i = 0; i < pack.Length; i++)
                             enemyWeapons[i].Tick(step);
                         motion.Step(step);
@@ -250,6 +267,16 @@ namespace Cryptforge.Tests
                     if (target >= 0 && weapon.IsReady)
                         weapon.TryAttack(enemies[target], null, Nearby(motion, enemies, target, weapon.Pattern.SplashRadius));
                     Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                    if (burst != null && burst.IsReady)
+                    {
+                        IReadOnlyList<IDamageable> inReach = WithinReachOfHero(motion, enemies, burst.Radius);
+                        if (inReach.Count > 0)
+                        {
+                            burst.TryUse(null, inReach);
+                            result.AbilityUses++;
+                            Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                        }
+                    }
 
                     for (int i = 0; i < pack.Length && hero.IsAlive; i++)
                     {
@@ -318,6 +345,21 @@ namespace Cryptforge.Tests
                 }
             }
             return nearest;
+        }
+
+        // Mirrors Targeting.CollectNear around the hero: the living enemies within the radius on the floor.
+        internal static IReadOnlyList<IDamageable> WithinReachOfHero(PackMotion motion, HealthState[] enemies, float radius)
+        {
+            var inReach = new List<IDamageable>();
+            float radiusSquared = radius * radius;
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                float x = motion.XOf(i);
+                float y = motion.YOf(i);
+                if (enemies[i].IsAlive && x * x + y * y <= radiusSquared)
+                    inReach.Add(enemies[i]);
+            }
+            return inReach;
         }
 
         // Mirrors an enemy's Targeting.Acquire, whose only candidate is the hero at the origin.

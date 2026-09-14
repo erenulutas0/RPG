@@ -39,7 +39,8 @@ Do NOT:
 
 ### Next (owner choice 2026-09-14; art direction and order in `19`)
 - isometric arena: a floating platform with enemies spread in two dimensions, larger packs and a rebalance, placeholder visuals (done 2026-09-14 with placeholder visuals: arena floor, packs walking in, the rebalance, a floating platform and camera framing between the HUD blocks; then pixel-art placeholders drawn from code for the void, the platform, the hero, the enemies and the combat effects, see `21`),
-- a touch-aimed area ability with a cooldown,
+- an area ability with a cooldown (done 2026-09-14 as the Forge Burst around the hero: one button, a floor ring, 20 damage in 2.5 units every 8 s, see `21`),
+- a wider platform with a walkable hero (drag to move), packs from all four sides, chests on the floor and a camera that follows the hero (owner request 2026-09-14),
 - icon HUD: room pips, boss bar, buff icons with details on tap, bottom health and XP panel, damage numbers.
 
 Exit:

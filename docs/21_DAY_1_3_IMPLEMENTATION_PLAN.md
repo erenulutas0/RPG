@@ -595,7 +595,34 @@ How it was made: the drawing was split across five parallel agents (backdrop, pl
 
 Known limits: one facing for every figure (the hero always faces away, enemies always toward the hero); the sword swing rotates the sprite off the texel grid for 0.12 s; the staff ring shows half the splash radius so it does not ring the whole platform; both floors share one platform and backdrop, although `19` gives Quicksilver Vaults cool silver tones; the HUD is still the old text HUD (the icon HUD is the next slice after the ability).
 
-Verified: Unity EditMode 194/194, PlayMode 47/47, `Verify-Project.ps1`, .NET CombatChecks 178/178, development APK built only after both reports passed (SHA-256 `5FF7C1FF5FA33E6A96EA120D4EC6EDBF5EA838BF0C4F561B0C6E463D09238908`; not yet installed on the phone, which was not connected).
+Verified: Unity EditMode 194/194, PlayMode 47/47, `Verify-Project.ps1`, .NET CombatChecks 178/178, development APK built only after both reports passed (SHA-256 `5FF7C1FF5FA33E6A96EA120D4EC6EDBF5EA838BF0C4F561B0C6E463D09238908`; installed and checked on the phone the next morning, see `23`).
+
+### Implemented 2026-09-14: the Forge Burst (the hero's active ability)
+
+The first player action inside a fight. The owner chose a burst around the hero over the mockup's touch-aimed ring (`19`), because the coming slice puts the finger on movement.
+
+- **Ability:** `AbilityDefinition` (`Data/Abilities/Ability_ForgeBurst.asset`: 20 damage, 2.5 floor units, 8 s cooldown) on `HeroDefinition`; `AbilityRuntime` (pure) holds the cooldown and strikes every living target once; `AbilityController` on the Vanguard collects the enemies within the radius through `Targeting.CollectNear` around the hero, fires them, and ticks the cooldown on scaled time, so a pause or an open choice holds it. `CombatSetup` creates the runtime with the weapon and exposes it as `Ability`.
+- **Button:** `Ability Button` on the HUD canvas at the bottom right (220 units, the built-in round knob sprite, above the hero's health line): a blue burst glyph drawn by `AbilityArt`, a radial fill that drains through the cooldown, and `AbilityButtonView`, which answers only while the run is live, no choice is open and the run is not paused. A tap fires; a burst with nobody in reach is still spent, as the player chose the moment.
+- **Ring:** `AbilityRingView` lays a dashed isometric ring (`AbilityArt.DrawRangeRing`, twice as wide as tall, 2.5 units) on the floor around the hero's feet, sorted between the platform and the combatants: bright with a slow breath while ready, faint while cooling. `CombatEffectsView` flashes the blast ring at the burst's full radius on use; the struck enemies get their sparks and numbers from their own damage events.
+- **Simulation:** `DescentSimulation.Run` takes an optional `HeroAbility`; the simulation fires it whenever it is ready and an enemy stands within the radius, after the hero's swing of that frame. The scene never fires it by itself, so the parity tests stay exact. Fired that way the burst is the player's edge, not the balance (health after floor 1 → end; D + Mend, S + Mend, S + Temper):
+
+| Weapon | Without the burst | With the burst (uses) |
+|---|---|---|
+| Sword | 46 → 37, 43 → 21, dies F2 room 1 | 60 → 52 (9), 48 → 27 (10), dies F2 room 2 (7) |
+| Staff | 46 → 36, 40 → 32, dies F2 room 2 | 57 → 47 (9), 45 → 44 (9), dies F2 room 2 (7) |
+| Daggers | 54 → 34, 52 → 30, dies F2 room 2 | 62 → 48 (10), 58 → 42 (10), dies F2 room 3 (8) |
+
+- **Smoke:** the death puff is drawn at 55% so it no longer hides the hero standing beside a fallen enemy (seen on the phone).
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/AbilityRuntime.cs`, `AbilityController.cs`, `Scripts/Content/AbilityDefinition.cs`, `Data/Abilities/Ability_ForgeBurst.asset` (new); `HeroDefinition.cs`, `Hero_Vanguard.asset`, `Core/CombatSetup.cs` | The ability and its wiring into the run. |
+| `Scripts/Art/AbilityArt.cs`, `Scripts/UI/AbilityButtonView.cs`, `AbilityRingView.cs` (new); `CombatEffectsView.cs`; `Gameplay.unity` | Glyph, ring, button and effects; a temporary builder, deleted afterwards, added the controller and ring to the Vanguard and the button to the HUD. |
+| Tests | EditMode `AbilityTests` (3: strikes and cooldown, validation, the simulated edge without carrying greed), `AbilityArtTests` (2). PlayMode `AbilityFlowTests` (3): the button bursts both enemies of the first pack once they stand in the ring and then cools down; the button is dead behind a choice; the floor ring lies under the hero and fades while cooling. |
+
+Known limits: one ability, no upgrades touch it, and the simulation's automatic use is a stand-in for the player's timing.
+
+Verified: Unity EditMode 199/199, PlayMode 50/50, `Verify-Project.ps1`, .NET CombatChecks 183/183, development APK built only after both reports passed (SHA-256 `ECF52FA70B7EF17684C9CF7D76C81DA2D2AA0AD52C9CF9CFAFBF4BEA6B8BEC70`).
 
 ### Original Day 3 plan (kept for reference)
 

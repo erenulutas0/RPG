@@ -28,6 +28,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/ArenaFloor.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponBehavior.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AttackPattern.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/AbilityRuntime.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
@@ -52,6 +53,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/AbilityTests.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Art/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PixelCanvasTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaGeometryTests.cs" />

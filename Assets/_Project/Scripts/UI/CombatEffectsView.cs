@@ -60,6 +60,7 @@ namespace Cryptforge.UI
         private const float SparkFrameDuration = 0.06f;
         private const float SmokeFrameDuration = 0.12f;
         private const float SmokeRise = 0.4f;
+        private const float SmokeScale = 0.55f;
         private const float CoinFrameDuration = 0.08f;
         private const float CoinGravity = 9.8f;
         private const float CoinLaunch = 2.4f;
@@ -81,6 +82,8 @@ namespace Cryptforge.UI
         [SerializeField] private EncounterController _encounter;
         [SerializeField] private Health _hero;
         [SerializeField] private AttackController _heroAttack;
+        // Optional: the hero's ability, whose burst rings the hero at its full radius.
+        [SerializeField] private AbilityController _heroAbility;
         [SerializeField] private Camera _camera;
         // Draws sprites; the built-in Sprites-Default material does.
         [SerializeField] private Material _material;
@@ -180,6 +183,8 @@ namespace Cryptforge.UI
             _encounter.EnemyDefeated += OnEnemyDefeated;
             _heroAttack.Struck += OnHeroStruck;
             _hero.Damaged += OnHeroDamaged;
+            if (_heroAbility != null)
+                _heroAbility.Used += OnAbilityUsed;
             _subscribed = true;
             // The first wave may have spawned in an earlier Awake, before this view could listen.
             if (_encounter.WaveEnemyCount > 0)
@@ -194,6 +199,8 @@ namespace Cryptforge.UI
                 _encounter.EnemyDefeated -= OnEnemyDefeated;
                 _heroAttack.Struck -= OnHeroStruck;
                 _hero.Damaged -= OnHeroDamaged;
+                if (_heroAbility != null)
+                    _heroAbility.Used -= OnAbilityUsed;
                 _subscribed = false;
             }
             ReleaseWave();
@@ -384,12 +391,20 @@ namespace Cryptforge.UI
             return Mathf.Clamp(wantedTexels / EffectArt.RingFullRadius, MinRingScale, MaxRingScale);
         }
 
+        // The burst's ring covers the ability's whole radius, unlike the staff's, which shows only part of its splash.
+        private void OnAbilityUsed()
+        {
+            float scale = _heroAbility.Ability.Radius * PixelSpriteFactory.PixelsPerUnit / EffectArt.RingFullRadius;
+            Show(_ring, RingFrameDuration, _hero.transform.position, _sortingOrder + RingOrder, scale);
+        }
+
         private void OnEnemyDefeated(Health enemy)
         {
             EnemyWatch watch = FindWatch(enemy);
             Vector3 anchor = AnchorOf(watch, enemy);
+            // Smaller than the fallen enemy, so the puff never hides the hero standing beside it.
             ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
-                Vector3.up * SmokeRise, 0f, false);
+                Vector3.up * SmokeRise, 0f, false, SmokeScale);
             if (_encounter.GoldRewardOf(enemy) <= 0)
                 return;
 

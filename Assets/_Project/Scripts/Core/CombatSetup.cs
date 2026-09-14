@@ -23,6 +23,7 @@ namespace Cryptforge.Core
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Health _hero;
         [SerializeField] private AttackController _attack;
+        [SerializeField] private AbilityController _ability;
         [SerializeField] private RelicBehaviour _relicBehaviour;
         [SerializeField] private EncounterController _encounters;
         private RewardService _rewards;
@@ -32,6 +33,8 @@ namespace Cryptforge.Core
 
         public RunState Run { get; private set; }
         public WeaponRuntime Weapon { get; private set; }
+        // The hero's active ability this run, from the hero definition.
+        public AbilityRuntime Ability { get; private set; }
         public UpgradeService Upgrades { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
@@ -51,7 +54,8 @@ namespace Cryptforge.Core
         private void Awake()
         {
             if (_heroDefinition == null || _economy == null || _text == null || _hero == null || _attack == null ||
-                _relicBehaviour == null || _encounters == null || _heroDefinition.StartingWeapon == null ||
+                _ability == null || _relicBehaviour == null || _encounters == null || _heroDefinition.StartingWeapon == null ||
+                _heroDefinition.Ability == null ||
                 !AllPresent(_upgrades) || !AllPresent(_relics) || !AllPresent(_weapons) ||
                 Array.IndexOf(_weapons, _heroDefinition.StartingWeapon) < 0)
             {
@@ -79,6 +83,8 @@ namespace Cryptforge.Core
             _hero.Initialize(_heroDefinition.MaximumHealth);
             Weapon = HeroWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
+            Ability = _heroDefinition.Ability.CreateRuntime();
+            _ability.Initialize(Ability);
             Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth);
             _rewards = new RewardService(Run);
             // Created before any view subscribes to Run.Ended, so banked gold reaches the profile before results show.

@@ -9,10 +9,13 @@ namespace Cryptforge.Content
         [SerializeField] private string _displayName;
         [SerializeField, Min(1f)] private float _maximumHealth;
         [SerializeField] private WeaponDefinition _startingWeapon;
+        // The active ability the hero fires by touch.
+        [SerializeField] private AbilityDefinition _ability;
 
         public string Id => _id;
         public string DisplayName => _displayName;
         public float MaximumHealth => _maximumHealth;
         public WeaponDefinition StartingWeapon => _startingWeapon;
+        public AbilityDefinition Ability => _ability;
     }
 }
