@@ -1,4 +1,5 @@
 using System.Collections;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -65,23 +66,29 @@ namespace Cryptforge.Tests
             Assert.That(heroBody.sortingOrder, Is.GreaterThan(platform.sortingOrder));
         }
 
-        // Packs of up to five enter round the arena's corners; every slot of every corner stands on the platform's top.
+        // Packs of every size enter round the hero at the centre from all four corners, and every enemy starts on the
+        // platform inside the margin the hero keeps from the rim. The Descent simulation walks its packs on this platform.
         [UnityTest]
         public IEnumerator EveryPackSlotAtEveryCornerEntersOnThePlatform()
         {
+            ArenaGeometry geometry = _arena.Geometry;
+            ArenaGeometry simulated = DescentSimulation.Platform;
+            Assert.That((geometry.NearCorner, geometry.FarCorner, geometry.HalfWidth),
+                Is.EqualTo((simulated.NearCorner, simulated.FarCorner, simulated.HalfWidth)), "The simulation's platform is the scene's.");
             Assert.That(_arena.IsOnPlatform(0f, 0f), Is.True, "The hero starts at the centre.");
             Assert.That(_arena.IsOnPlatform(0f, -8f), Is.True, "The platform reaches behind the hero.");
+            var placements = new EntryPlacement[PackLayout.MaxPackSize];
             for (int wave = 0; wave < EntrySides.Count; wave++)
             {
-                for (int count = 1; count <= 5; count++)
+                for (int count = 1; count <= PackLayout.MaxPackSize; count++)
                 {
-                    var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth * DescentSimulation.FormationSpacing);
+                    EntrySides.Place(wave, count, 0f, 0f, geometry, DescentSimulation.EntryDepth, DescentSimulation.FormationSpacing, placements);
                     for (int slot = 0; slot < count; slot++)
                     {
-                        EntrySides.Formation(wave, slot, count, out EntrySide side, out int index, out int onSide);
-                        PackLayout.Offset(index, onSide, DescentSimulation.FormationSpacing, out float lateral, out float depth);
-                        motion.Add(new HealthState(1f), lateral, DescentSimulation.EntryDepth + depth, 1f, 1f, side);
-                        Assert.That(_arena.IsOnPlatform(motion.XOf(slot), motion.YOf(slot)), Is.True, $"wave {wave}, {count} enemies, slot {slot}");
+                        EntrySides.Formation(wave, slot, count, out EntrySide side, out _, out _);
+                        string where = $"wave {wave}, {count} enemies, slot {slot}";
+                        Assert.That(placements[slot].Side, Is.EqualTo(side), where + " keeps its corner");
+                        Assert.That(geometry.IsOnPlatform(placements[slot].X, placements[slot].Y, HeroMotion.EdgeMargin), Is.True, where);
                     }
                 }
             }

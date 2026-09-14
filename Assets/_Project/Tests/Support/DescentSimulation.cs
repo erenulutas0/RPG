@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Economy;
@@ -163,6 +164,9 @@ namespace Cryptforge.Tests
         public const float EntryDepth = 5f;
         public const float FormationSpacing = 1f;
         public const float BodySpacing = 0.9f;
+        // ArenaView's corners in Gameplay.unity: the platform the packs enter on and stop on. The simulated hero never leaves
+        // its centre, so no pack ever reaches the rim.
+        public static readonly ArenaGeometry Platform = new ArenaGeometry(-9f, 9f, 9f);
 
         // EncounterController._advanceDelay in Gameplay.unity. The hero's weapon keeps cooling down for this long between a
         // clear and the next wave, so a weapon slower than the delay starts the next wave still cooling down.
@@ -240,7 +244,9 @@ namespace Cryptforge.Tests
                 var enemyWeapons = new WeaponRuntime[pack.Length];
                 var enrages = new EnrageRule[pack.Length];
                 var rewarded = new bool[pack.Length];
-                var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing);
+                var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, 0f, 0f);
+                var placements = new EntryPlacement[pack.Length];
+                EntrySides.Place(waveOrdinal, pack.Length, 0f, 0f, Platform, EntryDepth, FormationSpacing, placements);
                 float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier, floor.ModifierDamagePercent);
                 for (int i = 0; i < pack.Length; i++)
                 {
@@ -249,9 +255,7 @@ namespace Cryptforge.Tests
                     if (damageBonus != 0f)
                         enemyWeapons[i].AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                     enrages[i] = pack[i].EnrageAt > 0f ? new EnrageRule(pack[i].EnrageAt) : null;
-                    EntrySides.Formation(waveOrdinal, i, pack.Length, out EntrySide side, out int indexOnSide, out int countOnSide);
-                    PackLayout.Offset(indexOnSide, countOnSide, FormationSpacing, out float offsetX, out float offsetY);
-                    motion.Add(enemies[i], offsetX, EntryDepth + offsetY, pack[i].Speed, pack[i].Reach, side);
+                    motion.Add(enemies[i], placements[i], pack[i].Speed, pack[i].Reach);
                 }
                 waveOrdinal++;
 

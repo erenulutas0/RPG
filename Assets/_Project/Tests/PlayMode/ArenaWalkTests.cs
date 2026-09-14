@@ -81,6 +81,66 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // With the hero standing at the right corner, the next wave enters only from where the platform is, out of reach, and
+        // every enemy walks in and stops on the platform to strike: none steps over the void.
+        [UnityTest]
+        public IEnumerator AtTheRimTheNextPackEntersFromThePlatformAndEveryEnemyStopsOnIt()
+        {
+            _hero.GetComponent<AttackController>().enabled = false;
+            ArenaView arena = Object.FindFirstObjectByType<ArenaView>();
+            _movement.Hold(new Vector2(1f, 0f));
+            yield return new WaitForSeconds(4f);
+            _movement.Release();
+            float heroX = _encounters.HeroFloorX;
+            float heroY = _encounters.HeroFloorY;
+            Assert.That(heroX, Is.EqualTo(9f - HeroMotion.EdgeMargin).Within(0.15f), "The hero stands at the right corner.");
+
+            // The first pack falls, the level-up is taken, and the next wave enters with the hero still at the corner.
+            int firstWave = _encounters.WaveNumber;
+            PackTestUtility.KillWave(_encounters);
+            float deadline = Time.realtimeSinceStartup + 10f;
+            while ((_encounters.WaveNumber == firstWave || !PackTestUtility.AnyAlive(_encounters)) && Time.realtimeSinceStartup < deadline)
+            {
+                while (_setup.Choices.Current != null && _setup.Choices.Current.Kind == ChoiceKind.Upgrade)
+                    _setup.Choices.TrySelect(_setup.Choices.Current, 0);
+                yield return null;
+            }
+            Assert.That(_encounters.WaveNumber, Is.EqualTo(firstWave + 1), "The next wave entered.");
+
+            int count = _encounters.WaveEnemyCount;
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 at = _encounters.WaveEnemyAt(i).transform.position;
+                float x = at.x;
+                float y = ArenaFloor.FloorY(at.y);
+                Assert.That(arena.Geometry.IsOnPlatform(x, y, HeroMotion.EdgeMargin), Is.True, $"Enemy {i} enters on the platform.");
+                Assert.That(x, Is.LessThan(heroX), $"Enemy {i} enters from the platform's side of the hero.");
+                float dx = x - heroX;
+                float dy = y - heroY;
+                Assert.That(dx * dx + dy * dy, Is.GreaterThan(4.5f * 4.5f), $"Enemy {i} enters out of reach.");
+            }
+
+            deadline = Time.realtimeSinceStartup + 10f;
+            bool allStruck = false;
+            while (!allStruck && Time.realtimeSinceStartup < deadline)
+            {
+                allStruck = true;
+                for (int i = 0; i < count; i++)
+                {
+                    Health enemy = _encounters.WaveEnemyAt(i);
+                    Vector3 at = enemy.transform.position;
+                    Assert.That(arena.Geometry.IsOnPlatform(at.x, ArenaFloor.FloorY(at.y), HeroMotion.EdgeMargin - 0.01f), Is.True,
+                        $"Enemy {i} never steps over the void.");
+                    if (enemy.GetComponent<AttackController>().AttackCount == 0)
+                        allStruck = false;
+                }
+                yield return null;
+            }
+            Assert.That(allStruck, Is.True, "Every enemy reached the hero at the corner and struck.");
+            Assert.That(_encounters.HeroFloorX, Is.EqualTo(heroX), "The hero never moved.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest]
         public IEnumerator TheFirstRoomsChestMendsAQuarterWhenTheHeroWalksOntoIt()
         {

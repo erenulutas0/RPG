@@ -5916,6 +5916,7 @@ MonoBehaviour:
   _floor: {fileID: 11400000, guid: 1000000000000000000000000000000e, type: 2}
   _hero: {fileID: 202}
   _heroTargeting: {fileID: 203}
+  _arena: {fileID: 905116832}
   _advanceDelay: 1
   _entryDepth: 5
   _formationSpacing: 1

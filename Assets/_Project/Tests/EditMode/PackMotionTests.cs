@@ -8,6 +8,7 @@ namespace Cryptforge.Tests
     public sealed class PackMotionTests
     {
         private const float Frame = 1f / 60f;
+        private static readonly ArenaGeometry Arena = new ArenaGeometry(-9f, 9f, 9f);
 
         [Test]
         public void AnEnemyWalksAtItsSpeedAndStopsJustInsideItsReach()
@@ -103,6 +104,128 @@ namespace Cryptforge.Tests
             Assert.That(Math.Sqrt(dx * dx + dy * dy), Is.EqualTo(1.1f).Within(1e-3f), "It stops just inside its reach of the new spot.");
             Assert.That(motion.YOf(0), Is.GreaterThan(0.9f), "It keeps to its own side, ahead of the hero.");
             Assert.Throws<ArgumentOutOfRangeException>(() => motion.Step(Frame, float.NaN, 0f));
+        }
+
+        // With the hero at the centre every corner fits its enemies, so a wave enters exactly where it entered before the
+        // corners could close: the scene, the simulation and the balance built on them stay as they were.
+        [Test]
+        public void WithTheHeroAtTheCentreEveryCornerStaysOpenAndThePackFormsUpAsBefore()
+        {
+            var placements = new EntryPlacement[PackLayout.MaxPackSize];
+            for (int wave = 0; wave < EntrySides.Count; wave++)
+            {
+                for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                {
+                    EntrySides.Place(wave, count, 0f, 0f, Arena, 5f, 1f, placements);
+                    for (int slot = 0; slot < count; slot++)
+                    {
+                        EntrySides.Formation(wave, slot, count, out EntrySide side, out int index, out int onSide);
+                        PackLayout.Offset(index, onSide, 1f, out float lateral, out float depth);
+                        var motion = new PackMotion(0.9f, 2f);
+                        motion.Add(new HealthState(1f), lateral, 5f + depth, 1f, 1f, side);
+                        string where = $"wave {wave}, {count} enemies, slot {slot}";
+                        Assert.That(placements[slot].Side, Is.EqualTo(side), where);
+                        Assert.That(placements[slot].Lateral, Is.EqualTo(lateral), where);
+                        Assert.That((placements[slot].X, placements[slot].Y), Is.EqualTo((motion.XOf(0), motion.YOf(0))), where);
+                    }
+                }
+            }
+
+            // Over two open corners the slots take them in turn, and the next wave starts one open corner further.
+            int nearAndLeft = (1 << (int)EntrySide.Near) | (1 << (int)EntrySide.Left);
+            EntrySides.Formation(0, 0, 7, nearAndLeft, out EntrySide first, out int firstIndex, out int firstCount);
+            Assert.That((first, firstIndex, firstCount), Is.EqualTo((EntrySide.Near, 0, 4)));
+            EntrySides.Formation(0, 6, 7, nearAndLeft, out EntrySide last, out int lastIndex, out int lastCount);
+            Assert.That((last, lastIndex, lastCount), Is.EqualTo((EntrySide.Near, 3, 4)), "Slot 6 is the fourth of four at the near corner.");
+            EntrySides.Formation(1, 0, 7, nearAndLeft, out EntrySide turned, out _, out int turnedCount);
+            Assert.That((turned, turnedCount), Is.EqualTo((EntrySide.Left, 4)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Formation(0, 0, 1, 0, out _, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Formation(0, 0, 1, EntrySides.AllSides + 1, out _, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Formation(-1, 0, 1, EntrySides.AllSides, out _, out _, out _));
+            Assert.Throws<ArgumentNullException>(() => EntrySides.Place(0, 1, 0f, 0f, Arena, 5f, 1f, null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Place(0, 8, 0f, 0f, Arena, 5f, 1f, new EntryPlacement[8]));
+            Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Place(0, 3, 0f, 0f, Arena, 5f, 1f, new EntryPlacement[2]));
+        }
+
+        // A hero at the rim has no floor beyond it, so the corners on that side close for the wave and the open ones take
+        // their enemies: every enemy still starts on the platform, out of reach, apart from the others.
+        [Test]
+        public void AtTheRimCornersOverTheVoidCloseAndThePackEntersFromWhereThePlatformIs()
+        {
+            var placements = new EntryPlacement[PackLayout.MaxPackSize];
+            float rim = 9f - HeroMotion.EdgeMargin;
+            AssertEntries(rim, 0f, 1 << (int)EntrySide.Left, "at the right corner");
+            AssertEntries(rim / 2f, rim / 2f, (1 << (int)EntrySide.Near) | (1 << (int)EntrySide.Left), "on the far-right edge");
+            AssertEntries(0f, -rim, 1 << (int)EntrySide.Far, "at the near corner");
+            AssertEntries(2f, 0f, EntrySides.AllSides, "two units right of the centre, where every corner still fits");
+
+            // A platform too small for the wave closes every corner; each enemy is drawn in toward the hero instead.
+            var small = new ArenaGeometry(-3f, 3f, 3f);
+            EntrySides.Place(0, 4, 0f, 0f, small, 5f, 1f, placements);
+            for (int slot = 0; slot < 4; slot++)
+                Assert.That(small.IsOnPlatform(placements[slot].X, placements[slot].Y, HeroMotion.EdgeMargin), Is.True, $"Small platform, slot {slot}.");
+
+            void AssertEntries(float heroX, float heroY, int openSides, string hero)
+            {
+                int openCount = 0;
+                for (int bits = openSides; bits != 0; bits &= bits - 1)
+                    openCount++;
+                for (int wave = 0; wave < EntrySides.Count; wave++)
+                {
+                    for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                    {
+                        EntrySides.Place(wave, count, heroX, heroY, Arena, 5f, 1f, placements);
+                        int used = 0;
+                        for (int slot = 0; slot < count; slot++)
+                        {
+                            EntryPlacement entry = placements[slot];
+                            string where = $"Hero {hero}, wave {wave}, {count} enemies, slot {slot}";
+                            Assert.That(Arena.IsOnPlatform(entry.X, entry.Y, HeroMotion.EdgeMargin), Is.True, where);
+                            float dx = entry.X - heroX;
+                            float dy = entry.Y - heroY;
+                            Assert.That(dx * dx + dy * dy, Is.GreaterThanOrEqualTo(25f - 1e-3f), where + " starts out of reach.");
+                            for (int other = 0; other < slot; other++)
+                            {
+                                float apartX = entry.X - placements[other].X;
+                                float apartY = entry.Y - placements[other].Y;
+                                Assert.That(apartX * apartX + apartY * apartY, Is.GreaterThanOrEqualTo(0.9f * 0.9f), where + $" keeps apart from slot {other}.");
+                            }
+                            used |= 1 << (int)entry.Side;
+                        }
+                        Assert.That(used & ~openSides, Is.Zero, $"Hero {hero}, wave {wave}, {count} enemies: only the open corners.");
+                        if (count >= openCount)
+                            Assert.That(used, Is.EqualTo(openSides), $"Hero {hero}, wave {wave}, {count} enemies: every open corner sends some.");
+                    }
+                }
+            }
+        }
+
+        // A Grunt entered at the far corner while the hero stood at the centre; the hero then walked out to the right corner.
+        // Its own point beside the hero hangs over the void, so it turns round the hero onto the platform and stops there.
+        [Test]
+        public void AtTheRimAnEnemyTurnsRoundTheHeroAndStopsOnThePlatform()
+        {
+            float heroX = 9f - HeroMotion.EdgeMargin;
+            var free = new PackMotion(0.9f, 2f);
+            var bounded = new PackMotion(0.9f, 2f, Arena, 0f, 0f);
+            free.Add(new HealthState(50f), 0f, 5f, 2f, 1.5f);
+            bounded.Add(new HealthState(50f), 0f, 5f, 2f, 1.5f);
+            for (int frame = 0; frame < 600; frame++)
+            {
+                free.Step(Frame, heroX, 0f);
+                bounded.Step(Frame, heroX, 0f);
+                Assert.That(Arena.IsOnPlatform(bounded.XOf(0), bounded.YOf(0), HeroMotion.EdgeMargin - 1e-3f), Is.True, $"Frame {frame}.");
+            }
+
+            Assert.That(Arena.IsOnPlatform(free.XOf(0), free.YOf(0)), Is.False, "Unbounded, it would stop beyond the rim, over the void.");
+            float dx = bounded.XOf(0) - heroX;
+            float dy = bounded.YOf(0);
+            Assert.That(Math.Sqrt(dx * dx + dy * dy), Is.EqualTo(1.4f).Within(1e-3f), "It stops just inside its reach, as anywhere else.");
+            Assert.That(bounded.XOf(0), Is.LessThan(heroX), "It stands on the platform's side of the hero.");
+            Assert.That(bounded.YOf(0), Is.GreaterThan(0f), "It keeps to the side it came from.");
+            Assert.That(Arena.IsOnPlatform(bounded.XOf(0), bounded.YOf(0), HeroMotion.EdgeMargin), Is.True);
+            Assert.Throws<ArgumentOutOfRangeException>(() => new PackMotion(0.9f, 2f, Arena, float.NaN, 0f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => bounded.Add(new HealthState(1f), new EntryPlacement(EntrySide.Far, 0f, float.NaN, 0f), 1f, 1f));
         }
 
         [Test]

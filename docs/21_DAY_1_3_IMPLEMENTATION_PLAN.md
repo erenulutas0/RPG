@@ -622,6 +622,8 @@ The first player action inside a fight. The owner chose a burst around the hero 
 
 Known limits: one ability, no upgrades touch it, and the simulation's automatic use is a stand-in for the player's timing.
 
+Verified: Unity EditMode 199/199, PlayMode 50/50, `Verify-Project.ps1`, .NET CombatChecks 183/183, development APK built only after both reports passed (SHA-256 `ECF52FA70B7EF17684C9CF7D76C81DA2D2AA0AD52C9CF9CFAFBF4BEA6B8BEC70`).
+
 ### Implemented 2026-09-14: the walkable arena (packs from every corner, a walking hero, chests, a following camera)
 
 The owner's request after seeing the reference game again (`19`): a wider platform in the middle, the hero walkable, packs from left and right and from all four sides, chests to survive by, the art larger on screen.
@@ -653,7 +655,26 @@ Known limits: every figure keeps one facing, so enemies from the near corner wal
 
 Verified: Unity EditMode 205/205, PlayMode 53/53, `Verify-Project.ps1`, .NET CombatChecks 193/193, development APK built only after both reports passed (SHA-256 `16FCB13983917E04C9D854609893CCFC7B2878BDD7010120F659DF98F96DE69C`).
 
-Verified: Unity EditMode 199/199, PlayMode 50/50, `Verify-Project.ps1`, .NET CombatChecks 183/183, development APK built only after both reports passed (SHA-256 `ECF52FA70B7EF17684C9CF7D76C81DA2D2AA0AD52C9CF9CFAFBF4BEA6B8BEC70`).
+### Implemented 2026-09-14: packs stay on the platform when the hero stands at the rim
+
+A read-through of the walkable arena found two rules that only held while the hero stood near the centre. Packs entered round the arena's centre, so a hero at the right corner had the right corner's pack appear on its left and the far corner's pack behind it. And an enemy's stopping point beside the hero was never checked against the platform: the hero keeps 0.6 units inside the rim and enemies stop up to 1.6 away, so a Grunt that followed the hero to a corner stopped over the void.
+
+- **Entry:** `EntrySides.Place` lays each wave out round the hero's position when it enters, 5 floor units out as before. A corner with an enemy that would start off the platform, or inside the 0.6-unit margin the hero keeps, closes for that wave and the open corners take its enemies in turn (`Formation` over an open-corner mask), so at the right corner a whole wave comes from the left, and on an edge from the two corners that have floor. If every corner closes, which only a platform too small for the wave can cause, each enemy is drawn in toward the hero until it stands inside.
+- **Stopping:** `PackMotion` takes the platform when a scene or the simulation creates it. An enemy whose own point beside the hero lies outside the margin turns round the hero in 5-degree steps, both ways, to the first point on the platform, and takes the way nearer to where it stands, so it never crosses in front of the hero. The hero always stands inside the same margin, so the half of the circle facing the platform's centre always qualifies.
+- **Nothing changes near the centre:** from the centre every corner fits every pack of up to seven and no point at reach is near the rim, so each enemy enters and stops exactly where it did before; a test compares every slot of every pack size bit for bit, and the balance and parity numbers are unchanged. `DescentSimulation.Platform` mirrors the scene's arena, checked by `ArenaViewTests`.
+- **Checked and left alone:** a press that starts on the burst or pause button does not walk the hero. The event system runs at execution order -1000, before `HeroMovementInput` at -60, so a press is already known to be on a button in its first frame, and the HUD labels do not catch raycasts. An earlier note in `23` had claimed otherwise; a drag from the burst button on the phone confirmed the input was right, and the note is corrected.
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/EntrySide.cs` | `EntryPlacement`, `EntrySides.AllSides`, `Formation` over open corners, `Place` round the hero with closing corners. |
+| `Scripts/Combat/PackMotion.cs` | A platform-bounded constructor with the hero's position, `Add` from a placement, turning onto the platform. |
+| `Scripts/Combat/EncounterController.cs`, `Gameplay.unity` | The encounter holds the `ArenaView` and places each wave round the hero; the scene reference was added to the encounter's serialized fields. |
+| `Tests/Support/DescentSimulation.cs` | The simulation places and walks its packs with the same calls on the same platform. |
+| Tests | EditMode `PackMotionTests` (+3): packs from the centre form up as before bit for bit, with open-corner formations and validation; corners over the void close at a corner, on an edge and near the centre, with every enemy on the platform, out of reach and apart, and a too-small platform drawing them in; a Grunt that followed the hero to the right corner turns onto the platform where it would have stood over the void. PlayMode `ArenaWalkTests` (+1): with the hero at the right corner the next wave enters from the platform's side, out of reach, and every enemy walks in, stays on the platform every frame and strikes; `ArenaViewTests` places packs of up to seven from the centre and checks the simulation's platform. |
+
+Known limits: enemies still wait behind a nearer one instead of stepping round it, so at a corner a pack can queue; a hero who walks along the rim while an enemy is turning can make it walk a longer arc.
+
+Verified: Unity EditMode 208/208, PlayMode 54/54, `Verify-Project.ps1`, .NET CombatChecks 196/196, development APK built only after both reports passed (SHA-256 `080FF9A7F5FA79FCABBD38AFB1A122C7540728A9634864B2195AB4E17BBD90F3`).
 
 ### Original Day 3 plan (kept for reference)
 

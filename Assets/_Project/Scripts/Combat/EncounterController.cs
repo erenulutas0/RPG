@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cryptforge.Content;
 using Cryptforge.Progression;
+using Cryptforge.UI;
 using UnityEngine;
 
 namespace Cryptforge.Combat
@@ -27,13 +28,16 @@ namespace Cryptforge.Combat
         [SerializeField] private FloorDefinition _floor;
         [SerializeField] private Health _hero;
         [SerializeField] private Targeting _heroTargeting;
+        // The platform the packs enter on and stop on.
+        [SerializeField] private ArenaView _arena;
         [SerializeField, Min(0f)] private float _advanceDelay = 1f;
-        // On the arena floor, whose centre is the origin: how far from the centre a pack enters at its corner, the unit of
+        // On the arena floor, whose centre is the origin: how far from the hero a pack enters at its corner, the unit of
         // its formation, and how close two enemies may come while walking in.
         [SerializeField, Min(0.5f)] private float _entryDepth = 5f;
         [SerializeField, Min(0.1f)] private float _formationSpacing = 1f;
         [SerializeField, Min(0f)] private float _bodySpacing = 0.9f;
         private readonly List<SpawnedEnemy> _wave = new List<SpawnedEnemy>();
+        private readonly EntryPlacement[] _placements = new EntryPlacement[PackLayout.MaxPackSize];
         private PackMotion _motion;
         private RunChoices _choices;
         private ForgeService _forge;
@@ -119,8 +123,8 @@ namespace Cryptforge.Combat
 
         public void Initialize(RunChoices choices, ForgeService forge)
         {
-            if (_floor == null || _hero == null || _heroTargeting == null)
-                throw new InvalidOperationException("EncounterController needs a first floor, the hero and hero targeting.");
+            if (_floor == null || _hero == null || _heroTargeting == null || _arena == null)
+                throw new InvalidOperationException("EncounterController needs a first floor, the hero, hero targeting and the arena.");
             if (_floorProgress != null)
                 throw new InvalidOperationException("EncounterController has already been initialized.");
 
@@ -277,13 +281,14 @@ namespace Cryptforge.Combat
 
             int count = waveDefinition.EnemyCount;
             var candidates = new Health[count];
-            _motion = new PackMotion(_bodySpacing, PackLayout.HalfWidth * _formationSpacing);
+            // The pack forms up round wherever the hero stands now, on the corners the platform leaves open.
+            float heroX = HeroFloorX;
+            float heroY = HeroFloorY;
+            _motion = new PackMotion(_bodySpacing, PackLayout.HalfWidth * _formationSpacing, _arena.Geometry, heroX, heroY);
+            EntrySides.Place(_waveOrdinal, count, heroX, heroY, _arena.Geometry, _entryDepth, _formationSpacing, _placements);
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);
-                EntrySides.Formation(_waveOrdinal, i, count, out EntrySide side, out int indexOnSide, out int countOnSide);
-                PackLayout.Offset(indexOnSide, countOnSide, _formationSpacing, out float lateral, out float depth);
-                depth += _entryDepth;
                 Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
                 enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
                 enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
@@ -292,7 +297,7 @@ namespace Cryptforge.Combat
                     weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                 enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
                 enemy.GetComponent<AttackController>().Initialize(weapon);
-                int slot = _motion.Add(enemy, lateral, depth, definition.MoveSpeed, weapon.Range, side);
+                int slot = _motion.Add(enemy, _placements[i], definition.MoveSpeed, weapon.Range);
                 enemy.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
 
                 var spawn = new SpawnedEnemy
@@ -374,7 +379,7 @@ namespace Cryptforge.Combat
             }
         }
 
-        // The hero stands at the floor origin, which is the world origin, so floor and world positions convert exactly.
+        // The arena's centre is both the floor and the world origin, so floor and world positions convert exactly.
         private static Vector3 WorldPosition(float floorX, float floorY) => new Vector3(floorX, ArenaFloor.WorldY(floorY), 0f);
 
         private SpawnedEnemy Find(IDamageable enemy)

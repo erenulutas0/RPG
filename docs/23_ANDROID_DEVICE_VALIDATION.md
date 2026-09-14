@@ -314,5 +314,5 @@ Build: commit 011328e (the 9-unit diamond, drag-to-walk, packs from every corner
 
 Seen, not fixed:
 - A lone enemy from the far corner stops straight behind the hero, so its body hides behind him and his hit flash (`android-walk-fight.png`); only enemies from the sides and the near corner are fully visible. A sideways stop for the far corner, or a sort that keeps the hero's attacker visible, is a follow-up.
-- A drag that starts on the burst button also starts a walk on that frame (the input reads the pointer before the event system has raycast the new touch); a tap does not move the hero, so this only shows when dragging out of the button.
+- ~~A drag that starts on the burst button also starts a walk on that frame (the input reads the pointer before the event system has raycast the new touch); a tap does not move the hero, so this only shows when dragging out of the button.~~ Corrected the same day: this was deduced from code, never seen, and wrong. The event system runs at execution order -1000 (set in its script's meta file), before `HeroMovementInput` at -60, so a press is already known to be on a button in its first frame. A drag from the burst button on this build left the hero and the camera in place (see the next section).
 - No walk animation: the hero slides. The upgrade cards still show the wave line faintly between them.
