@@ -622,6 +622,37 @@ The first player action inside a fight. The owner chose a burst around the hero 
 
 Known limits: one ability, no upgrades touch it, and the simulation's automatic use is a stand-in for the player's timing.
 
+### Implemented 2026-09-14: the walkable arena (packs from every corner, a walking hero, chests, a following camera)
+
+The owner's request after seeing the reference game again (`19`): a wider platform in the middle, the hero walkable, packs from left and right and from all four sides, chests to survive by, the art larger on screen.
+
+- **Platform:** `ArenaGeometry(-9, 9, 9)`: a diamond 18 world units wide and 9 tall on screen, the hero at its centre; `PlatformArt` draws it as before with 16 tiles per edge (581×419 texels). The backdrop's islands, rubble, sparkles, haze and galaxy moved beyond the corners and the keel (`VoidLayout`), the star field grew to 24×27 units.
+- **Corners:** `EntrySide` and `EntrySides`: a wave's slots go round the far, right, near and left corners in turn, starting one corner further for each wave of a floor, so a pack of four comes from every side at once. `PackLayout` still forms the enemies that share a corner. Packs enter 5 floor units from the centre (`_entryDepth`).
+- **Motion:** `PackMotion` takes the hero's position each step (`Step(dt, heroX, heroY)`); each enemy heads for its own point on the arc round the hero, turned by its corner and its lateral slot, stops just inside its reach, and walks again when the hero leaves. `EncounterController` feeds it the hero's floor position (`HeroFloorX/Y`) and picks the wave's nearest enemy relative to it.
+- **Hero:** `HeroMotion` (pure): 2.5 floor units per second, a steer with a dead band, the rim as a wall with sliding along the edge (0.6 units inside it). `HeroMovementInput` on the Vanguard: a touch or mouse press anywhere that is not a button starts a drag; past 24 px the hero walks, at 110 px at full speed; screen up is floor depth, so a diagonal drag walks the same diagonal on screen; `Hold`/`Release` steer it without a touch (tests, and later an auto-walk option). It runs before the encounter so the packs chase this frame's position.
+- **Chests:** `ChestRule` (pure) puts one chest per combat room on a spot circling the centre (right, far, left, near) 1.8 units out, inside the edge of what the camera shows; even rooms mend 25% of maximum health, odd rooms pay 10 gold at the floor's rate; the hero opens it by standing within 0.75 units. `ChestSpawner` draws it (`ChestArt`, closed and open with a coin glow) and applies the reward; `CombatEffectsView` shows the heal amount or pops coins with the sum.
+- **Camera:** `ArenaCameraFollow` replaces the fixed framing: 4.6 world units across the screen (`FollowFraming`, pure), the hero on the middle row between the HUD blocks, gliding after the hero at 8 per second and re-framed on screen or safe-area changes.
+- **Balance:** the simulation's hero stands still at the centre and fires the burst whenever it is ready with an enemy in reach, which is now the baseline for every balance test (`Burst(...)` helpers); chests are not simulated. With every corner striking at once the old numbers fell on floor 1, so floor 1 scales enemy damage by 0.92 (`_enemyDamageMultiplier`), floor 2 by 1.288 (its ×1.4 kept), and the Daggers strike every 0.5 s instead of 0.45 (they alone carried a greedy Temper descent at 0.92). Every earlier target holds:
+
+| Weapon | D + Mend | S + Mend | D + Temper | S + Temper | D + Temper + Counterweight | D + Temper + Second Wind | Wardens | Mite packs |
+|---|---|---|---|---|---|---|---|---|
+| Sword | 60 → 30 | 55 → 29 | dies F2 | dies F2 | survives | survives | 12.1 s | 7.2 s |
+| Staff | 42 → 29 | 48 → 39 | dies F2 | dies F2 | survives | survives | 13.6 s | 5.8 s |
+| Daggers | 69 → 34 | 59 → 22 | dies F2 | dies F2 | survives | survives | 11.6 s | 8.3 s |
+
+- **Parity:** unchanged in spirit; the scene and the simulation share `EntrySides` and `PackMotion`, the scene's hero never moves in the parity tests, and all seven cases match exactly.
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/EntrySide.cs`, `HeroMotion.cs`, `ChestRule.cs`, `ChestSpawner.cs` (new), `PackMotion.cs`, `EncounterController.cs`, `ArenaFloor.cs` | Corners, the walking hero's rules, chests, the moving target. |
+| `Scripts/UI/HeroMovementInput.cs`, `ArenaCameraFollow.cs`, `Scripts/Art/FollowFraming.cs`, `ChestArt.cs` (new); `ArenaCameraFraming.cs`, `ArenaFraming.cs` (removed); `VoidArt.cs`, `PlatformArt.cs`, `CombatEffectsView.cs` | Drag input, the following camera, chest art and effects, the wider void and 16 tiles. |
+| `Gameplay.unity`, `Floor_EmberHalls.asset`, `Floor_QuicksilverVaults.asset`, `Weapon_Daggers.asset` | The 9-unit diamond, entry depth 5, the new components (a temporary builder, deleted afterwards), the damage rates and the Daggers' interval. |
+| Tests | EditMode `PackMotionTests` (corners, a walking hero), `HeroMotionTests` (2), `ChestRuleTests` (2), `ChestArtTests` (1), `FollowFramingTests` (3); the balance tests run with the burst. PlayMode `ArenaWalkTests` (3: walking, chasing and the rim; the mending chest; the paying chest), `ArenaViewTests` (corners on the platform, the following camera), `FloorFlowTests` (corner entries), and the first-pack counts (7 swings, 7 hits; 3 swings and 4 hits after Tempered Edge). |
+
+Known limits: every figure keeps one facing, so enemies from the near corner walk with their backs to the camera; blocked enemies wait rather than step round each other; the hero has no walk animation; the chests and the hero's position are not part of the balance.
+
+Verified: Unity EditMode 205/205, PlayMode 53/53, `Verify-Project.ps1`, .NET CombatChecks 193/193, development APK built only after both reports passed (SHA-256 `16FCB13983917E04C9D854609893CCFC7B2878BDD7010120F659DF98F96DE69C`).
+
 Verified: Unity EditMode 199/199, PlayMode 50/50, `Verify-Project.ps1`, .NET CombatChecks 183/183, development APK built only after both reports passed (SHA-256 `ECF52FA70B7EF17684C9CF7D76C81DA2D2AA0AD52C9CF9CFAFBF4BEA6B8BEC70`).
 
 ### Original Day 3 plan (kept for reference)

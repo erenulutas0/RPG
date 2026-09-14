@@ -133,26 +133,26 @@ namespace Cryptforge.Tests
         {
             yield return WaitForOfferInput();
             Health first = _encounters.CurrentEnemy;
-            // Two swings on the mite that walked in first, each cleaving the Grunt, then four on the Grunt.
-            Assert.That(_encounters.HitsTaken, Is.EqualTo(8));
+            // Two swings on the mite from the right corner, then five on the Grunt from the far corner.
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(7));
 
             Tap(_buttons[SlotFor(WeaponStat.Damage)]);
             int swings = _attack.AttackCount;
             yield return WaitForEncounter(2);
 
-            // Wave 2 is three Cinder Mites, the front one straight ahead of the hero.
+            // Wave 2 is three Cinder Mites from the right, near and left corners, all 5 floor units out.
             Health second = _encounters.CurrentEnemy;
             Assert.That(_encounters.WaveEnemyCount, Is.EqualTo(3));
             Assert.That(second, Is.Not.SameAs(first));
             Assert.That(first == null, Is.True, "The defeated enemy is destroyed when the next wave starts.");
             Assert.That(second.Maximum, Is.EqualTo(15f));
-            Assert.That(second, Is.SameAs(_encounters.WaveEnemyAt(0)), "The front slot walks in nearest.");
+            Assert.That(second, Is.SameAs(_encounters.WaveEnemyAt(0)), "At equal distance the earlier slot is the target.");
             Assert.That(_targeting.Acquire(_setup.Weapon.Range), Is.Null, "The pack enters out of reach.");
 
             yield return WaitForClear();
             Assert.That(_attack.AttackCount - swings, Is.EqualTo(3),
-                "15 damage kills the front mite and cleaves a side one for 9; the next swing kills that one and cleaves the last, and a third finishes it.");
-            Assert.That(_encounters.HitsTaken, Is.EqualTo(5));
+                "15 damage kills the right mite; the next swing kills the near one and cleaves the left one for 9; a third finishes it.");
+            Assert.That(_encounters.HitsTaken, Is.EqualTo(4));
             Assert.That(_setup.Run.Experience, Is.EqualTo(14), "Only the three new kills add experience, 1 each.");
             Assert.That(_setup.Run.Level, Is.EqualTo(1), "Level 2 needs 22.");
             Assert.That(_setup.Upgrades.CurrentOffer, Is.Null);

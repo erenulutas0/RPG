@@ -59,8 +59,9 @@ namespace Cryptforge.Tests
 
             Assert.That(gruntAttack.AttackCount, Is.EqualTo(2));
             Assert.That(miteAttack.AttackCount, Is.GreaterThanOrEqualTo(1), "The faster mite strikes first.");
-            Assert.That(_hero.Current, Is.EqualTo(100f - 3.6f * gruntAttack.AttackCount - 0.6f * miteAttack.AttackCount).Within(1e-3f),
-                "Each Grunt Strike deals the 3.6 authored in Weapon_GruntStrike.asset and each Mite Bite 0.6.");
+            // Floor_EmberHalls.asset scales every enemy's damage by 0.92, because packs strike from every corner at once.
+            Assert.That(_hero.Current, Is.EqualTo(100f - 3.6f * 0.92f * gruntAttack.AttackCount - 0.6f * 0.92f * miteAttack.AttackCount).Within(1e-3f),
+                "Each Grunt Strike deals the 3.6 authored in Weapon_GruntStrike.asset at the floor's rate, each Mite Bite 0.6.");
             Assert.That(_setup.Run.HasEnded, Is.False);
             Assert.That(_result.IsOpen, Is.False);
         }

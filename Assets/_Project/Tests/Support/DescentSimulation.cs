@@ -99,9 +99,9 @@ namespace Cryptforge.Tests
         public static HeroWeapon Staff() =>
             new HeroWeapon { Damage = 11f, Interval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
 
-        // Weapon_Daggers.asset: 6 damage every 0.45 s at close reach; every third strike crits for double damage.
+        // Weapon_Daggers.asset: 6 damage every 0.5 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
-            new HeroWeapon { Damage = 6f, Interval = 0.45f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
+            new HeroWeapon { Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
@@ -113,7 +113,9 @@ namespace Cryptforge.Tests
                 null,
                 new[] { new[] { Captain, Grunt, Mite, Mite } },
                 new[] { new[] { Warden } }
-            }
+            },
+            // Packs come from every corner at once, so each enemy hits for a little less than its authored damage.
+            DamageMultiplier = 0.92f
         };
 
         public static readonly Floor QuicksilverVaults = new Floor
@@ -128,7 +130,7 @@ namespace Cryptforge.Tests
                 new[] { new[] { Warden, Mite, Mite } }
             },
             HealthMultiplier = 1.4f,
-            DamageMultiplier = 1.4f,
+            DamageMultiplier = 1.288f,
             ModifierDamagePercent = 0.2f,
             ModifierGoldPercent = 0.5f
         };
@@ -158,7 +160,7 @@ namespace Cryptforge.Tests
         public static HeroAbility ForgeBurst() => new HeroAbility { Damage = 20f, Radius = 2.5f, Cooldown = 8f };
 
         // EncounterController's _entryDepth, _formationSpacing and _bodySpacing in Gameplay.unity, in floor units.
-        public const float EntryDepth = 6f;
+        public const float EntryDepth = 5f;
         public const float FormationSpacing = 1f;
         public const float BodySpacing = 0.9f;
 
@@ -220,6 +222,8 @@ namespace Cryptforge.Tests
             for (int i = 0; i < waves.Length; i++)
                 waves[i] = floor.Rooms[i]?.Length ?? 0;
             var progress = new FloorProgress(waves);
+            // Waves started on this floor so far; each wave starts one corner further round the arena.
+            int waveOrdinal = 0;
 
             for (FloorStep next = progress.Advance(); next.Kind != FloorStepKind.Cleared; next = progress.Advance())
             {
@@ -245,9 +249,11 @@ namespace Cryptforge.Tests
                     if (damageBonus != 0f)
                         enemyWeapons[i].AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                     enrages[i] = pack[i].EnrageAt > 0f ? new EnrageRule(pack[i].EnrageAt) : null;
-                    PackLayout.Offset(i, pack.Length, FormationSpacing, out float offsetX, out float offsetY);
-                    motion.Add(enemies[i], offsetX, EntryDepth + offsetY, pack[i].Speed, pack[i].Reach);
+                    EntrySides.Formation(waveOrdinal, i, pack.Length, out EntrySide side, out int indexOnSide, out int countOnSide);
+                    PackLayout.Offset(indexOnSide, countOnSide, FormationSpacing, out float offsetX, out float offsetY);
+                    motion.Add(enemies[i], offsetX, EntryDepth + offsetY, pack[i].Speed, pack[i].Reach, side);
                 }
+                waveOrdinal++;
 
                 float startSeconds = result.FightSeconds;
                 weapon.Tick(AdvanceDelay);

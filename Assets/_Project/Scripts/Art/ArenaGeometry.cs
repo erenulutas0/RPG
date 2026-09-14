@@ -36,6 +36,18 @@ namespace Cryptforge.Art
         public bool IsOnPlatform(float floorX, float floorY) =>
             Math.Abs(floorX) / HalfWidth + Math.Abs(floorY - Middle) / HalfDepth <= 1f;
 
+        // True when the floor point lies on the top at least margin floor units inside its rim.
+        public bool IsOnPlatform(float floorX, float floorY, float margin)
+        {
+            if (float.IsNaN(margin) || margin < 0f)
+                throw new ArgumentOutOfRangeException(nameof(margin));
+            float halfWidth = HalfWidth - margin;
+            float halfDepth = HalfDepth - margin;
+            if (halfWidth <= 0f || halfDepth <= 0f)
+                return false;
+            return Math.Abs(floorX) / halfWidth + Math.Abs(floorY - Middle) / halfDepth <= 1f;
+        }
+
         // A point on the top by rhombus coordinates: s runs from the near corner toward the right corner, t toward the
         // left corner, both 0..1; (1, 1) is the far corner. Returned in world units.
         public void TopPoint(float s, float t, out float worldX, out float worldY)

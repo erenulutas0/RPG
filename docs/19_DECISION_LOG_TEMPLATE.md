@@ -276,3 +276,44 @@ The placeholder arena fails a readability check on the S23 (enemy size, health b
 - **Fixed numbers, no upgrades yet:** 20 damage to everything within 2.5 floor units, every 8 s. Fired whenever ready with an enemy in reach, the simulation shows it spares health on every weapon's mending Descent and still lets the greedy Temper Descent fall on floor 2, so it is the player's edge, not the balance. Ability upgrades and a second ability wait for the upgrade pool.
 - **The simulation fires it automatically; the scene never does.** Parity tests tap nothing, so they stay exact; balance tests run the simulation with the burst on and off.
 - **Next (owner request, same day):** a wider platform in the middle of the screen, a hero that walks by drag, packs entering from all four sides, chests on the floor, and a camera that follows the hero closer.
+
+---
+
+## Decision: The walkable arena
+
+**Date:** 2026-09-14  
+**Status:** Accepted (implemented; see `21`)  
+**Owner:** Product / engineering
+
+### Context
+After seeing the reference game again the owner found the tall diamond too narrow and the fight too static: the art was hardly visible, everything came from one side, and the player had nothing to do with a finger. The request: a wider platform in the middle, the hero walkable, packs from left and right and from all four sides, chests to survive by. Asked how, the owner chose drag-to-walk, a burst around the hero (already built), chests that heal or pay, and a camera that follows closely.
+
+### Options
+1. Keep the fixed hero; add the ability and chests as taps.
+2. A walkable hero on a wide diamond, packs from every corner, a following camera; the simulation keeps a hero that never moves as the balance baseline.
+3. A full free-roam arena with pathfinding, obstacles and a joystick widget.
+
+### Decision
+Option 2.
+- **Platform:** a 9-unit diamond (`ArenaGeometry(-9, 9, 9)`), the hero at its centre; the same `ArenaGeometry` and `PlatformArt` draw it, with 16 tiles per edge.
+- **Packs:** `EntrySides` spreads each wave's slots round the four corners, one corner further per wave, 5 floor units from the centre; `PackMotion` walks each enemy to its own point on an arc round the hero and follows the hero when it moves.
+- **Hero:** `HeroMotion` (2.5 floor units per second, a 0.6-unit margin inside the rim, sliding along the edge) driven by `HeroMovementInput`: a drag anywhere that is not a button, dead zone 24 px, full speed at 110 px, screen up mapped to floor depth so a diagonal drag walks a diagonal on screen.
+- **Chests:** one per combat room on a spot that circles the centre; even rooms mend 25%, odd rooms pay 10 gold at the floor's rate; the hero opens one by standing on it.
+- **Camera:** `ArenaCameraFollow` shows 4.6 world units across the screen and keeps the hero on the middle row between the HUD blocks, gliding after it.
+- **Balance baseline:** the simulation's hero stands still at the centre and fires the burst whenever it is ready with an enemy in reach; chests are the player's edge and are not simulated. With every corner attacking at once, enemy damage was scaled to 0.92 on floor 1 (1.288 on floor 2, keeping its ×1.4) and the Daggers slowed to 0.5 s; every earlier target holds.
+
+### Why
+- **Drag anywhere** keeps one-handed play and the whole arena visible; a fixed joystick would cover the platform and tap-to-walk is too slow to dodge.
+- **Corners, not edges:** the corners are the screen's left, right, top and bottom of the diamond, which is what the owner asked for, and a pack of four then comes from every side at once.
+- **The simulation stays exact** because nothing random or input-driven enters it: parity tests never move the hero, and the scene and the simulation share `PackMotion` and `EntrySides`.
+
+### Consequences
+Positive: the fight has decisions; the art is larger on screen; enemies surround the hero as in the reference.
+
+Negative:
+- Every figure still has one facing, so enemies from the near corner walk with their backs to the camera and the hero never turns.
+- Blocked enemies wait rather than step round each other; a pack from one corner queues.
+- The old framing tests and the fixed-camera slot checks were replaced.
+
+### Revisit trigger
+Testers cannot steer and fire at once; enemies pile up at one corner; the phone shows the drag start too far from the finger.

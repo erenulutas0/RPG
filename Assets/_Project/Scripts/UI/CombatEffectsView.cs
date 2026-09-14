@@ -84,6 +84,8 @@ namespace Cryptforge.UI
         [SerializeField] private AttackController _heroAttack;
         // Optional: the hero's ability, whose burst rings the hero at its full radius.
         [SerializeField] private AbilityController _heroAbility;
+        // Optional: the chests, whose opening pops coins or shows the heal.
+        [SerializeField] private ChestSpawner _chests;
         [SerializeField] private Camera _camera;
         // Draws sprites; the built-in Sprites-Default material does.
         [SerializeField] private Material _material;
@@ -185,6 +187,8 @@ namespace Cryptforge.UI
             _hero.Damaged += OnHeroDamaged;
             if (_heroAbility != null)
                 _heroAbility.Used += OnAbilityUsed;
+            if (_chests != null)
+                _chests.Opened += OnChestOpened;
             _subscribed = true;
             // The first wave may have spawned in an earlier Awake, before this view could listen.
             if (_encounter.WaveEnemyCount > 0)
@@ -201,6 +205,8 @@ namespace Cryptforge.UI
                 _hero.Damaged -= OnHeroDamaged;
                 if (_heroAbility != null)
                     _heroAbility.Used -= OnAbilityUsed;
+                if (_chests != null)
+                    _chests.Opened -= OnChestOpened;
                 _subscribed = false;
             }
             ReleaseWave();
@@ -389,6 +395,27 @@ namespace Cryptforge.UI
         {
             float wantedTexels = weapon.Pattern.SplashRadius * _ringSplashFraction * PixelSpriteFactory.PixelsPerUnit;
             return Mathf.Clamp(wantedTexels / EffectArt.RingFullRadius, MinRingScale, MaxRingScale);
+        }
+
+        // A heal shows its amount over the chest; gold pops coins and shows the sum in gold.
+        private void OnChestOpened(ChestReward reward, Vector3 position)
+        {
+            Vector3 anchor = position + Vector3.up * 0.5f;
+            if (reward.Kind == ChestRewardKind.Heal)
+            {
+                ShowNumber(Mathf.RoundToInt(_hero.Maximum * reward.HealFraction), false, anchor);
+                Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder);
+                return;
+            }
+            _deathCount++;
+            for (int i = 0; i < CoinCount; i++)
+            {
+                float spread = (i - (CoinCount - 1) * 0.5f) * CoinSpread + (PixelNoise.Value(i, _deathCount, CoinSeed) - 0.5f) * 0.4f;
+                float launch = CoinLaunch + PixelNoise.Value(i, _deathCount, CoinSeed + 1) * 0.6f;
+                ShowMoving(_coin, CoinFrameDuration, _coinDuration, position, _sortingOrder + CoinOrder,
+                    new Vector3(spread, launch, 0f), CoinGravity, true);
+            }
+            ShowNumber(reward.Gold, true, anchor);
         }
 
         // The burst's ring covers the ability's whole radius, unlike the staff's, which shows only part of its splash.

@@ -192,10 +192,10 @@ namespace Cryptforge.Art
     public sealed class VoidScene
     {
         // The star field's world rectangle; it is drawn at VoidArt.TexelsPerUnit with its pivot at the top-centre.
-        public const float StarFieldLeft = -4f;
-        public const float StarFieldBottom = -8f;
-        public const float StarFieldWidth = 8f;
-        public const float StarFieldHeight = 20f;
+        public const float StarFieldLeft = -12f;
+        public const float StarFieldBottom = -13f;
+        public const float StarFieldWidth = 24f;
+        public const float StarFieldHeight = 27f;
         public const int StarFieldSeed = 1409;
 
         public IslandPlacement[] Islands { get; }
@@ -214,10 +214,11 @@ namespace Cryptforge.Art
         }
     }
 
-    // Where the void's props sit. The phone shows world x ±2.6 and y about -3.9..7.4, and the platform's silhouette (top,
-    // faces and keel) is a tall diamond from (0, WorldTop) through (±HalfWidth, WorldMiddle) to (0, WorldBottom -
-    // KeelDepth), so the void shows in the four corner triangles beside it: that is where the mockup puts its islands,
-    // ring and galaxy, and where these placements go. Props never enter the diamond (see IsClearOfPlatform).
+    // Where the void's props sit. The camera follows the hero over a platform whose silhouette (top, faces and keel) is a
+    // wide diamond from (0, WorldTop) through (±HalfWidth, WorldMiddle) to (0, WorldBottom - KeelDepth): for the scene's
+    // 9-unit arena that is x ±9 and y from 4.5 down to -8. The void shows above the far corner, beyond the side corners and
+    // below the keel: that is where the islands, rings and galaxy go, and where the hero sees them when walking to a
+    // corner. Props never enter the diamond (see IsClearOfPlatform).
     public static class VoidLayout
     {
         // How far the platform's faces and keel reach below the top's near corner (the platform task: ~1.3 + 2.2).
@@ -252,45 +253,45 @@ namespace Cryptforge.Art
 
             var islands = new[]
             {
-                // Top-left: the tall ringed spire island; its left side runs off a 19.5:9 screen like the mockup's.
-                new IslandPlacement(-2.4f, 4.35f, spireIsland, 60, 24, new[] { new ChainSpec(8, 5), new ChainSpec(18, 3) }, 0f),
-                // Top-right: a slab with one lantern spire under the galaxy.
-                new IslandPlacement(2.55f, 4.25f, slabIsland, 0, 0, new[] { new ChainSpec(30, 4) }, 1.9f),
-                // Bottom-left: the ring island with the tall lantern spire.
-                new IslandPlacement(-2.25f, -3.95f, ringIsland, 60, 24, new[] { new ChainSpec(40, 4), new ChainSpec(14, 6) }, 3.7f),
-                // Bottom-right: a small perch with its own ring.
-                new IslandPlacement(2.3f, -3.55f, perchIsland, 44, 18, new[] { new ChainSpec(8, 3) }, 5.2f)
+                // Above the far corner, to the left: the tall ringed spire island.
+                new IslandPlacement(-3.4f, 5.4f, spireIsland, 60, 24, new[] { new ChainSpec(8, 5), new ChainSpec(18, 3) }, 0f),
+                // Above the far corner, to the right: a slab with one lantern spire under the galaxy.
+                new IslandPlacement(3.6f, 5.2f, slabIsland, 0, 0, new[] { new ChainSpec(30, 4) }, 1.9f),
+                // Beyond the left corner: the ring island with the tall lantern spire.
+                new IslandPlacement(-11.1f, -1.4f, ringIsland, 60, 24, new[] { new ChainSpec(40, 4), new ChainSpec(14, 6) }, 3.7f),
+                // Beyond the right corner: a small perch with its own ring.
+                new IslandPlacement(11.2f, -1.9f, perchIsland, 44, 18, new[] { new ChainSpec(8, 3) }, 5.2f)
             };
             var rubble = new[]
             {
-                new RubblePlacement(-1.25f, -3.55f, 10, 1),
-                new RubblePlacement(1.35f, -3.15f, 8, 2),
-                new RubblePlacement(2.5f, 4.4f, 9, 3),
-                new RubblePlacement(-1.15f, 7.25f, 8, 4),
-                new RubblePlacement(-0.6f, 6.85f, 7, 5),
-                new RubblePlacement(1.0f, 6.45f, 9, 6),
-                new RubblePlacement(-2.55f, -1.55f, 8, 7),
-                new RubblePlacement(2.55f, -0.85f, 10, 8)
+                new RubblePlacement(-5.6f, -9.6f, 10, 1),
+                new RubblePlacement(4.7f, -9.1f, 8, 2),
+                new RubblePlacement(9.9f, 3.9f, 9, 3),
+                new RubblePlacement(-2.4f, 8.1f, 8, 4),
+                new RubblePlacement(1.1f, 7.7f, 7, 5),
+                new RubblePlacement(6.4f, 6.9f, 9, 6),
+                new RubblePlacement(-10.3f, -4.6f, 8, 7),
+                new RubblePlacement(10.1f, -4.9f, 10, 8)
             };
             var sparkles = new[]
             {
-                new SparklePlacement(-0.95f, 7.15f, 0f),
-                new SparklePlacement(2.25f, 4.75f, 0.9f),
-                new SparklePlacement(-1.65f, -3.55f, 1.7f),
-                new SparklePlacement(1.05f, -3.6f, 2.6f),
-                new SparklePlacement(-2.45f, 4.55f, 3.3f),
-                new SparklePlacement(2.55f, 7.2f, 4.1f),
-                new SparklePlacement(-2.2f, 6.9f, 4.9f),
-                new SparklePlacement(0.35f, 7.3f, 5.6f),
-                new SparklePlacement(1.5f, -2.35f, 6.4f)
+                new SparklePlacement(-1.2f, 7.6f, 0f),
+                new SparklePlacement(10.4f, 1.2f, 0.9f),
+                new SparklePlacement(-9.8f, -6.0f, 1.7f),
+                new SparklePlacement(1.4f, -9.3f, 2.6f),
+                new SparklePlacement(-10.2f, 2.6f, 3.3f),
+                new SparklePlacement(3.5f, 6.4f, 4.1f),
+                new SparklePlacement(-6.4f, 6.2f, 4.9f),
+                new SparklePlacement(6.0f, -9.8f, 5.6f),
+                new SparklePlacement(9.9f, -5.4f, 6.4f)
             };
             var hazes = new[]
             {
-                new HazePlacement(-1.5f, 6.3f, 48, 32, 21),
-                new HazePlacement(-1.6f, -2.3f, 44, 36, 22),
-                new HazePlacement(2.3f, 3.6f, 36, 44, 23)
+                new HazePlacement(-7.0f, 7.0f, 48, 32, 21),
+                new HazePlacement(-9.6f, -5.5f, 44, 36, 22),
+                new HazePlacement(9.5f, -3.0f, 36, 44, 23)
             };
-            return new VoidScene(islands, rubble, sparkles, hazes, new GalaxyPlacement(1.75f, 6.5f, 34, 11));
+            return new VoidScene(islands, rubble, sparkles, hazes, new GalaxyPlacement(7.8f, 7.4f, 34, 11));
         }
 
         // True when a world point lies outside the platform's silhouette grown by the margin: the top rhombus plus the

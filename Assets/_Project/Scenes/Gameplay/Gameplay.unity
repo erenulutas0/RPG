@@ -212,14 +212,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 100}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0000000000000000000000000000001f, type: 3}
+  m_Script: {fileID: 11500000, guid: 2afa93871b954c2abd54daf78b59e331, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _target: {fileID: 201}
   _topHud: {fileID: 1944794816}
   _bottomHud: {fileID: 1289620789}
-  _bottom: -0.7
-  _top: 4.5
-  _halfWidth: 2.6
+  _visibleWidth: 4.6
+  _closingRate: 8
 --- !u!1 &200
 GameObject:
   m_ObjectHideFlags: 0
@@ -238,6 +238,7 @@ GameObject:
   - component: {fileID: 208}
   - component: {fileID: 209}
   - component: {fileID: 213}
+  - component: {fileID: 214}
   m_Layer: 0
   m_Name: Vanguard
   m_TagString: Untagged
@@ -500,6 +501,24 @@ MonoBehaviour:
   _readyAlpha: 0.75
   _coolingAlpha: 0.22
   _sortingOrder: 0
+--- !u!114 &214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdca963b20b74d40972749461de8067f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _setup: {fileID: 402}
+  _hero: {fileID: 202}
+  _arena: {fileID: 905116832}
+  _speed: 2.5
+  _deadZonePixels: 24
+  _fullSteerPixels: 110
 --- !u!1 &220
 GameObject:
   m_ObjectHideFlags: 0
@@ -4272,9 +4291,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _camera: {fileID: 102}
   _material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
-  _nearCorner: -3
-  _farCorner: 14
-  _halfWidth: 3.3
+  _nearCorner: -9
+  _farCorner: 9
+  _halfWidth: 9
   _sortingOrder: -20
 --- !u!4 &905116833
 Transform:
@@ -4307,6 +4326,7 @@ MonoBehaviour:
   _hero: {fileID: 202}
   _heroAttack: {fileID: 204}
   _heroAbility: {fileID: 209}
+  _chests: {fileID: 1821928769}
   _camera: {fileID: 102}
   _material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   _effectPoolSize: 24
@@ -5897,7 +5917,7 @@ MonoBehaviour:
   _hero: {fileID: 202}
   _heroTargeting: {fileID: 203}
   _advanceDelay: 1
-  _entryDepth: 6
+  _entryDepth: 5
   _formationSpacing: 1
   _bodySpacing: 0.9
 --- !u!4 &1243867567
@@ -7089,6 +7109,55 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 
+--- !u!1 &1821928768
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1821928770}
+  - component: {fileID: 1821928769}
+  m_Layer: 0
+  m_Name: Chests
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1821928769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1821928768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49505be418f9437bace543da234c38e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _encounters: {fileID: 1243867566}
+  _hero: {fileID: 202}
+  _setup: {fileID: 402}
+  _arena: {fileID: 905116832}
+  _sortingOrder: 1
+--- !u!4 &1821928770
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1821928768}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1828972076
 GameObject:
   m_ObjectHideFlags: 0
@@ -8386,3 +8455,4 @@ SceneRoots:
   - {fileID: 195431780}
   - {fileID: 871542063}
   - {fileID: 905116833}
+  - {fileID: 1821928770}

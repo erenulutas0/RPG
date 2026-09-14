@@ -9,7 +9,7 @@ namespace Cryptforge.Tests
     public sealed class VoidArtTests
     {
         // The scene's platform: ArenaView's defaults.
-        private static readonly ArenaGeometry SceneGeometry = new ArenaGeometry(-3f, 14f, 3.3f);
+        private static readonly ArenaGeometry SceneGeometry = new ArenaGeometry(-9f, 9f, 9f);
 
         [Test]
         public void IslandsAreOutlinedRockWithEmberLightsAndAnchorsInsideTheCanvas()
@@ -183,12 +183,12 @@ namespace Cryptforge.Tests
         [Test]
         public void EveryPropClearsThePlatformDiamondAndTheLayoutIsDeterministic()
         {
-            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, 2.75f, 0f), Is.False, "The top's centre.");
-            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, -4.9f, 0f), Is.False, "The keel's point.");
-            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, 7.1f, 0f), Is.True, "Above the far corner.");
-            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, -2.6f, 5f, 0f), Is.True, "The top-left void triangle.");
-            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, -2.6f, 0f, 0f), Is.True, "Beside the faces.");
-            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, 7.1f, 0.3f), Is.False, "A margin grows the diamond.");
+            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, 2.2f, 0f), Is.False, "The top's centre.");
+            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, -7.9f, 0f), Is.False, "The keel's point.");
+            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, 4.6f, 0f), Is.True, "Above the far corner.");
+            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, -2.6f, 4.2f, 0f), Is.True, "The void beside the far corner.");
+            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, -9.3f, 0f, 0f), Is.True, "Beyond the left corner.");
+            Assert.That(VoidLayout.IsClearOfPlatform(SceneGeometry, 0f, 4.6f, 0.3f), Is.False, "A margin grows the diamond.");
 
             // Islands drift ±0.05 units, so a 0.2 margin keeps every texel off the platform at every moment.
             const float margin = 0.2f;

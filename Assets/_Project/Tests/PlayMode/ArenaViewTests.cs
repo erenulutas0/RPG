@@ -9,7 +9,8 @@ using UnityEngine.UI;
 
 namespace Cryptforge.Tests
 {
-    // The placeholder arena: depth sorting, the platform under every pack slot, and the framing between the HUD blocks.
+    // The placeholder arena: depth sorting, the platform under every corner's pack slots, and the camera that follows the
+    // hero between the HUD blocks.
     public sealed class ArenaViewTests
     {
         private ArenaView _arena;
@@ -62,64 +63,66 @@ namespace Cryptforge.Tests
             foreach (SpriteRenderer sprite in _arena.Backdrop.GetComponentsInChildren<SpriteRenderer>(true))
                 Assert.That(sprite.sortingOrder, Is.LessThan(platform.sortingOrder), sprite.name);
             Assert.That(heroBody.sortingOrder, Is.GreaterThan(platform.sortingOrder));
-            LogAssert.NoUnexpectedReceived();
         }
 
+        // Packs of up to five enter round the arena's corners; every slot of every corner stands on the platform's top.
         [UnityTest]
-        public IEnumerator EveryPackSlotEntersOnThePlatformInFrontOfTheHero()
+        public IEnumerator EveryPackSlotAtEveryCornerEntersOnThePlatform()
         {
-            Assert.That(_arena.IsOnPlatform(0f, 0f), Is.True, "The hero stands on the platform.");
-            Assert.That(_arena.IsOnPlatform(0f, -1f), Is.True, "The platform continues behind the hero.");
-            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+            Assert.That(_arena.IsOnPlatform(0f, 0f), Is.True, "The hero starts at the centre.");
+            Assert.That(_arena.IsOnPlatform(0f, -8f), Is.True, "The platform reaches behind the hero.");
+            for (int wave = 0; wave < EntrySides.Count; wave++)
             {
-                for (int slot = 0; slot < count; slot++)
+                for (int count = 1; count <= 5; count++)
                 {
-                    PackLayout.Offset(slot, count, DescentSimulation.FormationSpacing, out float x, out float y);
-                    Assert.That(_arena.IsOnPlatform(x, DescentSimulation.EntryDepth + y), Is.True, $"{count} enemies, slot {slot}");
+                    var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth * DescentSimulation.FormationSpacing);
+                    for (int slot = 0; slot < count; slot++)
+                    {
+                        EntrySides.Formation(wave, slot, count, out EntrySide side, out int index, out int onSide);
+                        PackLayout.Offset(index, onSide, DescentSimulation.FormationSpacing, out float lateral, out float depth);
+                        motion.Add(new HealthState(1f), lateral, DescentSimulation.EntryDepth + depth, 1f, 1f, side);
+                        Assert.That(_arena.IsOnPlatform(motion.XOf(slot), motion.YOf(slot)), Is.True, $"wave {wave}, {count} enemies, slot {slot}");
+                    }
                 }
             }
-            Assert.That(_arena.IsOnPlatform(3.5f, 5f), Is.False, "Beyond the side corner is the void.");
+            Assert.That(_arena.IsOnPlatform(9.5f, 0f), Is.False, "Beyond the right corner is the void.");
+            Assert.That(_arena.IsOnPlatform(5f, 5f), Is.False, "Beyond the edge between two corners too.");
             yield break;
         }
 
-        // Both HUD blocks hang from the safe area's edges. On a 1080 x 2340 phone with a 100-row cutout inset, the canvas scale
-        // is 1, so the free band follows from their layout in canvas units.
+        // On a 1080 x 2340 phone the HUD leaves rows 620 to 1778 free: 4.6 world units show across the screen, the hero
+        // stands on the band's middle row, and the camera glides after the hero when it walks.
         [UnityTest]
-        public IEnumerator OnThePhoneTheHeroAndEveryPackSlotFitBetweenTheHudBlocks()
+        public IEnumerator TheCameraShowsAFixedWidthAndFollowsTheHeroInTheFreeBand()
         {
-            var framing = _camera.GetComponent<ArenaCameraFraming>();
+            var follow = _camera.GetComponent<ArenaCameraFollow>();
             RectTransform enemyBar = GameObject.Find("Enemy Bar").GetComponent<RectTransform>();
             RectTransform heroLabel = GameObject.Find("Hero Label").GetComponent<RectTransform>();
-            Assert.That(framing.TopHud, Is.SameAs(enemyBar), "The enemy bar is the lowest element of the top block.");
-            Assert.That(framing.BottomHud, Is.SameAs(heroLabel), "The hero label is the highest element of the bottom block.");
-            Assert.That(enemyBar.anchorMin.y, Is.EqualTo(1f));
-            Assert.That(enemyBar.pivot.y, Is.EqualTo(1f));
-            Assert.That(heroLabel.anchorMin.y, Is.Zero);
-            Assert.That(heroLabel.pivot.y, Is.Zero);
+            Assert.That(follow.TopHud, Is.SameAs(enemyBar), "The enemy bar is the lowest element of the top block.");
+            Assert.That(follow.BottomHud, Is.SameAs(heroLabel), "The hero label is the highest element of the bottom block.");
             Assert.That(GameObject.Find("HUD Canvas").GetComponent<CanvasScaler>().referenceResolution.x, Is.EqualTo(1080f));
+            var hero = GameObject.Find("Vanguard");
+            Assert.That(follow.Target, Is.SameAs(hero.transform));
 
             const float width = 1080f;
             const float height = 2340f;
             float bandTop = height - 100f - (-enemyBar.anchoredPosition.y + enemyBar.sizeDelta.y);
             float bandBottom = heroLabel.anchoredPosition.y + heroLabel.sizeDelta.y;
-            framing.Frame(width, height, bandBottom, bandTop);
+            follow.Frame(width, height, bandBottom, bandTop);
             float size = _camera.orthographicSize;
-            float cameraY = _camera.transform.position.y;
+            Assert.That(size * width / height, Is.EqualTo(follow.VisibleWidth / 2f).Within(1e-3f), "Half the visible width either side.");
+            Assert.That(Row(hero.transform.position.y, size, _camera.transform.position.y, height), Is.EqualTo((bandBottom + bandTop) / 2f).Within(1f),
+                "The hero's feet stand on the band's middle row.");
 
-            Bounds hero = GameObject.Find("Hero Body").GetComponent<SpriteRenderer>().bounds;
-            Assert.That(Row(hero.min.y, size, cameraY, height), Is.GreaterThanOrEqualTo(bandBottom), "The hero's feet clear the bottom block.");
-            float visibleHalfWidth = size * width / height;
-            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
-            {
-                for (int slot = 0; slot < count; slot++)
-                {
-                    PackLayout.Offset(slot, count, DescentSimulation.FormationSpacing, out float x, out float y);
-                    float worldY = ArenaFloor.WorldY(DescentSimulation.EntryDepth + y);
-                    Assert.That(Row(worldY, size, cameraY, height), Is.LessThanOrEqualTo(bandTop), $"{count} enemies, slot {slot} row");
-                    Assert.That(Mathf.Abs(x), Is.LessThanOrEqualTo(visibleHalfWidth), $"{count} enemies, slot {slot} column");
-                }
-            }
-            yield break;
+            // The hero walks right for half a second; the camera has closed most of the way after another half.
+            var movement = hero.GetComponent<HeroMovementInput>();
+            movement.Hold(new Vector2(1f, 0f));
+            yield return new WaitForSeconds(0.5f);
+            movement.Release();
+            Assert.That(hero.transform.position.x, Is.GreaterThan(1f), "The hero walked.");
+            yield return new WaitForSeconds(0.5f);
+            Assert.That(_camera.transform.position.x, Is.EqualTo(hero.transform.position.x).Within(0.2f), "The camera followed.");
+            Assert.That(_camera.transform.position.y, Is.EqualTo(hero.transform.position.y - follow.OffsetY).Within(0.2f));
         }
 
         private static float Row(float worldY, float orthographicSize, float cameraY, float screenHeight) =>

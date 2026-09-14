@@ -7,15 +7,15 @@ namespace Cryptforge.Tests
     public sealed class PlatformArtTests
     {
         // The scene's platform: ArenaView's defaults.
-        private static readonly ArenaGeometry SceneGeometry = new ArenaGeometry(-3f, 14f, 3.3f);
+        private static readonly ArenaGeometry SceneGeometry = new ArenaGeometry(-9f, 9f, 9f);
 
         [Test]
         public void LayoutFitsTheSceneGeometryOnASmallCanvas()
         {
             var layout = new PlatformLayout(SceneGeometry);
-            // Half-width 3.3 units = 106 texels plus the outline margin either side, on an odd width with a centre column.
-            Assert.That(layout.Width, Is.EqualTo(217));
-            Assert.That(layout.HalfDepth, Is.EqualTo(136), "Half the top's depth: 4.25 world units.");
+            // Half-width 9 units = 288 texels plus the outline margin either side, on an odd width with a centre column.
+            Assert.That(layout.Width, Is.EqualTo(581));
+            Assert.That(layout.HalfDepth, Is.EqualTo(144), "Half the top's depth: 4.5 world units.");
             Assert.That(layout.NearY, Is.EqualTo(16 + 70 + 42), "Under-hang, keel and faces below the near corner.");
             Assert.That(layout.FarY, Is.EqualTo(layout.NearY + 2 * layout.HalfDepth));
             Assert.That(layout.Height, Is.EqualTo(layout.FarY + 1 + PlatformLayout.Margin));

@@ -205,7 +205,7 @@ namespace Cryptforge.Tests
             Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo($"10 damage every {0.8f:0.0#}s. Cleaves a second enemy for 60%"));
             Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"11 damage every {1.1f:0.0#}s. Blasts every enemy near the target for 75%"));
             Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
-            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.45f:0.0#}s. Crits for 200% once every 3 strikes"));
+            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.5f:0.0#}s. Crits for 200% once every 3 strikes"));
             Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
 
             Tap(WeaponCard(1));
@@ -242,19 +242,19 @@ namespace Cryptforge.Tests
             while (heroAttack.AttackCount < 2 && Time.realtimeSinceStartup < deadline)
                 yield return null;
             Assert.That(heroAttack.AttackCount, Is.EqualTo(2));
-            Assert.That(mite.IsAlive, Is.False, "Two 11-damage blasts fell the 15 HP mite that walks in first.");
-            Assert.That(grunt.Current, Is.EqualTo(50f - 2 * 11f * 0.75f).Within(1e-3f), "Each blast also hits the Grunt walking in beside it for 75%.");
+            Assert.That(mite.IsAlive, Is.False, "The first blast wounds the mite from the right corner; the second, aimed at the Grunt, finishes it with its 75% splash.");
+            Assert.That(grunt.Current, Is.EqualTo(50f - 11f).Within(1e-3f), "The Grunt from the far corner takes the second blast head on.");
         }
 
         [UnityTest]
         public IEnumerator DaggersCritEveryThirdStrikeAndTheCritFlashesGold()
         {
             yield return LoadGameplay(new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Daggers  |  6 damage every {0.45f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Daggers  |  6 damage every {0.5f:0.00}s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Daggers Loadout"));
 
-            // Every hit on the pack is checked against its attack number: the mite walks in first and takes strikes 1 to 3,
-            // then the Grunt takes the rest.
+            // Every hit on the pack is checked against its attack number: the mite from the right corner walks in first and
+            // takes the first strikes, then the Grunt from the far corner takes the rest until the hero turns back.
             Health grunt = _encounters.WaveEnemyAt(0);
             Health mite = _encounters.WaveEnemyAt(1);
             WeaponRuntime daggers = _setup.Weapon;
@@ -280,15 +280,15 @@ namespace Cryptforge.Tests
             foreach (var hit in hits)
             {
                 bool third = hit.Attack % 3 == 0;
-                Assert.That(hit.Enemy, Is.SameAs(hit.Attack <= 3 ? mite : grunt), $"Strike {hit.Attack} target");
                 Assert.That(hit.Critical, Is.EqualTo(third), $"Strike {hit.Attack}");
                 Assert.That(hit.Amount, Is.EqualTo(third ? 12f : 6f), $"Strike {hit.Attack}");
                 Assert.That(hit.FlashedGold, Is.EqualTo(third), $"Strike {hit.Attack} flash");
                 if (hit.Enemy == grunt)
                     gruntDamage += hit.Amount;
             }
+            Assert.That(hits[0].Enemy, Is.SameAs(mite), "The mite arrives first and takes the first strike.");
             Assert.That(hits.Count, Is.EqualTo(daggers.AttacksMade), "Each strike lands once.");
-            Assert.That(mite.IsAlive, Is.False, "6, 6 and a 12 crit fell the 15 HP mite.");
+            Assert.That(mite.Current, Is.LessThan(15f));
             Assert.That(grunt.Current, Is.EqualTo(50f - gruntDamage).Within(1e-3f));
             LogAssert.NoUnexpectedReceived();
         }

@@ -9,6 +9,9 @@ namespace Cryptforge.Combat
 
         public static float WorldY(float floorY) => floorY * DepthScale;
 
+        // The floor depth a world height stands for; the inverse of WorldY, exact for the half scale.
+        public static float FloorY(float worldY) => worldY / DepthScale;
+
         // The squared floor distance for an offset between two world positions.
         public static float DistanceSquared(float worldDx, float worldDy)
         {

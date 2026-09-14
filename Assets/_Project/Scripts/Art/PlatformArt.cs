@@ -79,7 +79,7 @@ namespace Cryptforge.Art
     public static class PlatformArt
     {
         public const int FrameCount = 2;
-        public const int TilesPerEdge = 8;
+        public const int TilesPerEdge = 16;
 
         private const int Seed = 2207;
         private const int CourseHeight = 7;

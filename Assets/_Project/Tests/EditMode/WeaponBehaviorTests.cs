@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cryptforge.Combat;
+using Cryptforge.Progression;
 using NUnit.Framework;
 
 namespace Cryptforge.Tests
@@ -85,9 +86,9 @@ namespace Cryptforge.Tests
         [Test]
         public void StaffClearsMitePacksFastestAndDaggersFellTheWardensFastest()
         {
-            DescentSimulation.Result sword = DescentSimulation.Run(Descent, 0, true, heroWeapon: DescentSimulation.Sword());
-            DescentSimulation.Result staff = DescentSimulation.Run(Descent, 0, true, heroWeapon: DescentSimulation.Staff());
-            DescentSimulation.Result daggers = DescentSimulation.Run(Descent, 0, true, heroWeapon: DescentSimulation.Daggers());
+            DescentSimulation.Result sword = Burst(Descent, 0, true, heroWeapon: DescentSimulation.Sword());
+            DescentSimulation.Result staff = Burst(Descent, 0, true, heroWeapon: DescentSimulation.Staff());
+            DescentSimulation.Result daggers = Burst(Descent, 0, true, heroWeapon: DescentSimulation.Daggers());
 
             Assert.That(staff.MitePackFightSeconds, Is.LessThan(sword.MitePackFightSeconds));
             Assert.That(sword.MitePackFightSeconds, Is.LessThan(daggers.MitePackFightSeconds));
@@ -100,25 +101,30 @@ namespace Cryptforge.Tests
         [Test]
         public void EveryWeaponSurvivesTheMendingDescentButNeedsARelicToCarryGreed()
         {
-            DescentSimulation.Result swordDamage = DescentSimulation.Run(Descent, 0, true);
-            DescentSimulation.Result swordSpeed = DescentSimulation.Run(Descent, 1, true);
+            DescentSimulation.Result swordDamage = Burst(Descent, 0, true);
+            DescentSimulation.Result swordSpeed = Burst(Descent, 1, true);
             var weapons = new[] { ("Sword", DescentSimulation.Sword()), ("Staff", DescentSimulation.Staff()), ("Daggers", DescentSimulation.Daggers()) };
             foreach (var (name, weapon) in weapons)
             {
-                DescentSimulation.Result damageMend = DescentSimulation.Run(Descent, 0, true, heroWeapon: weapon);
-                DescentSimulation.Result speedMend = DescentSimulation.Run(Descent, 1, true, heroWeapon: weapon);
+                DescentSimulation.Result damageMend = Burst(Descent, 0, true, heroWeapon: weapon);
+                DescentSimulation.Result speedMend = Burst(Descent, 1, true, heroWeapon: weapon);
                 Assert.That(damageMend.ClearedFloors, Is.EqualTo(2), $"{name}: damage first with Mend");
                 Assert.That(speedMend.ClearedFloors, Is.EqualTo(2), $"{name}: speed first with Mend");
                 Assert.That(damageMend.HeroHealth, Is.EqualTo(swordDamage.HeroHealth).Within(15f), $"{name}: damage first health");
                 Assert.That(speedMend.HeroHealth, Is.EqualTo(swordSpeed.HeroHealth).Within(15f), $"{name}: speed first health");
 
-                Assert.That(DescentSimulation.Run(Descent, 0, false, heroWeapon: weapon).ClearedFloors, Is.EqualTo(1), $"{name}: damage first with Temper");
-                Assert.That(DescentSimulation.Run(Descent, 1, false, heroWeapon: weapon).ClearedFloors, Is.EqualTo(1), $"{name}: speed first with Temper");
-                Assert.That(DescentSimulation.Run(Descent, 0, false, DescentSimulation.Counterweight(), weapon).ClearedFloors, Is.EqualTo(2),
+                Assert.That(Burst(Descent, 0, false, heroWeapon: weapon).ClearedFloors, Is.EqualTo(1), $"{name}: damage first with Temper");
+                Assert.That(Burst(Descent, 1, false, heroWeapon: weapon).ClearedFloors, Is.EqualTo(1), $"{name}: speed first with Temper");
+                Assert.That(Burst(Descent, 0, false, DescentSimulation.Counterweight(), weapon).ClearedFloors, Is.EqualTo(2),
                     $"{name}: damage first with Temper and Counterweight");
-                Assert.That(DescentSimulation.Run(Descent, 0, false, DescentSimulation.SecondWind(), weapon).ClearedFloors, Is.EqualTo(2),
+                Assert.That(Burst(Descent, 0, false, DescentSimulation.SecondWind(), weapon).ClearedFloors, Is.EqualTo(2),
                     $"{name}: damage first with Temper and Second Wind");
             }
         }
+
+        // The balance baseline: the Forge Burst fired whenever it is ready with an enemy in reach.
+        private static DescentSimulation.Result Burst(DescentSimulation.Floor[] floors, int cardSlot, bool mendOnFloorOne,
+            RelicOption relicOption = null, DescentSimulation.HeroWeapon heroWeapon = null) =>
+            DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon, ability: DescentSimulation.ForgeBurst());
     }
 }

@@ -216,8 +216,8 @@ namespace Cryptforge.Tests
         public void AuthoredFloorIsClearableWithEitherCardAfterMending()
         {
             DescentSimulation.Floor[] floor = { DescentSimulation.EmberHalls };
-            DescentSimulation.Result damageFirst = DescentSimulation.Run(floor, 0, true);
-            DescentSimulation.Result speedFirst = DescentSimulation.Run(floor, 1, true);
+            DescentSimulation.Result damageFirst = Burst(floor, 0, true);
+            DescentSimulation.Result speedFirst = Burst(floor, 1, true);
 
             Assert.That(damageFirst.ClearedFloors, Is.EqualTo(1), $"Damage first died in {damageFirst.DeathRoom}.");
             Assert.That(speedFirst.ClearedFloors, Is.EqualTo(1), $"Speed first died in {speedFirst.DeathRoom}.");
@@ -231,8 +231,8 @@ namespace Cryptforge.Tests
         public void TemperTradesTheHealForPowerAndLeavesLessHealth()
         {
             DescentSimulation.Floor[] floor = { DescentSimulation.EmberHalls };
-            DescentSimulation.Result mend = DescentSimulation.Run(floor, 0, true);
-            DescentSimulation.Result temper = DescentSimulation.Run(floor, 0, false);
+            DescentSimulation.Result mend = Burst(floor, 0, true);
+            DescentSimulation.Result temper = Burst(floor, 0, false);
 
             Assert.That(temper.ClearedFloors == 1 ? temper.HeroHealth : 0f, Is.LessThan(mend.HeroHealth));
             Assert.That(temper.UpgradesApplied, Is.EqualTo(mend.UpgradesApplied + 1));
@@ -244,5 +244,10 @@ namespace Cryptforge.Tests
             Assert.That(step.RoomIndex, Is.EqualTo(room));
             Assert.That(step.WaveIndex, Is.EqualTo(wave));
         }
+
+        // The balance baseline: the Forge Burst fired whenever it is ready with an enemy in reach.
+        private static DescentSimulation.Result Burst(DescentSimulation.Floor[] floors, int cardSlot, bool mendOnFloorOne,
+            RelicOption relicOption = null, DescentSimulation.HeroWeapon heroWeapon = null) =>
+            DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon, ability: DescentSimulation.ForgeBurst());
     }
 }

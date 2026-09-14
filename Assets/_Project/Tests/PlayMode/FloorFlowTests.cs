@@ -123,7 +123,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator PacksEnterInFormationWalkInAndTheHeroFacesTheNearestFirst()
+        public IEnumerator PacksEnterAtTheCornersWalkInAndTheHeroFacesTheNearestFirst()
         {
             // The test deals every blow, so the hero's own cleaves cannot change the order under test.
             _hero.GetComponent<AttackController>().enabled = false;
@@ -137,38 +137,37 @@ namespace Cryptforge.Tests
             };
             yield return AdvanceToWave(1, 2);
             Assert.That(_encounters.WaveEnemyCount, Is.EqualTo(3));
-            Health centre = _encounters.WaveEnemyAt(0);
-            Health left = _encounters.WaveEnemyAt(1);
-            Health right = _encounters.WaveEnemyAt(2);
+            Health right = _encounters.WaveEnemyAt(0);
+            Health near = _encounters.WaveEnemyAt(1);
+            Health left = _encounters.WaveEnemyAt(2);
 
-            // The front slot enters 6 floor units from the hero and the other two 0.8 behind it and 1.4 to each side; depth
-            // shows at half length on screen.
+            // The floor's second wave starts one corner on: its three mites enter 5 floor units from the centre at the right,
+            // near and left corners; depth shows at half length on screen.
             Assert.That(spawned.Count, Is.EqualTo(3));
-            AssertPosition(spawned[0], 0f, 3f);
-            AssertPosition(spawned[1], -1.4f, 3.4f);
-            AssertPosition(spawned[2], 1.4f, 3.4f);
-            Assert.That(_encounters.CurrentEnemy, Is.SameAs(centre));
+            AssertPosition(spawned[0], 5f, 0f);
+            AssertPosition(spawned[1], 0f, -2.5f);
+            AssertPosition(spawned[2], -5f, 0f);
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(right), "At equal distance the earlier slot is the target.");
             Assert.That(Label("Enemy Label"), Does.StartWith("Cinder Mite").And.Contain("(+2 more)"));
 
             yield return new WaitForSeconds(0.5f);
-            Assert.That(centre.transform.position.x, Is.EqualTo(0f), "The front mite walks straight at the hero.");
-            Assert.That(centre.transform.position.y, Is.LessThan(spawned[0].y));
-            Assert.That(left.transform.position.x, Is.GreaterThan(spawned[1].x), "The side mites close in from their side.");
-            Assert.That(left.transform.position.y, Is.LessThan(spawned[1].y));
-            Assert.That(right.transform.position.x, Is.EqualTo(-left.transform.position.x), "Mirrored slots walk mirrored paths.");
-            Assert.That(right.transform.position.y, Is.EqualTo(left.transform.position.y));
-            Assert.That(_encounters.CurrentEnemy, Is.SameAs(centre));
+            Assert.That(right.transform.position.x, Is.LessThan(spawned[0].x), "The right mite walks in toward the hero.");
+            Assert.That(right.transform.position.y, Is.EqualTo(0f).Within(1e-4f), "Straight along its corner's line.");
+            Assert.That(near.transform.position.y, Is.GreaterThan(spawned[1].y), "The near mite walks up the screen.");
+            Assert.That(left.transform.position.x, Is.GreaterThan(spawned[2].x));
+            Assert.That(right.transform.position.x, Is.EqualTo(-left.transform.position.x).Within(1e-4f), "Mirrored corners walk mirrored paths.");
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(right));
 
-            centre.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
-            Assert.That(_encounters.CurrentEnemy, Is.SameAs(left), "At equal distance the earlier slot is next.");
+            right.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(near), "At equal distance the earlier slot is next.");
             Assert.That(_encounters.AliveEnemyCount, Is.EqualTo(2));
             Assert.That(_encounters.IsCleared, Is.False);
             Assert.That(Label("Enemy Label"), Does.Contain("(+1 more)"));
 
+            near.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
             left.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
-            right.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
             Assert.That(_encounters.IsCleared, Is.True, "The wave clears when its last enemy falls.");
-            Assert.That(_encounters.CurrentEnemy, Is.SameAs(right));
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(left));
             Assert.That(Label("Status Label"), Does.StartWith("3 enemies defeated in"));
             LogAssert.NoUnexpectedReceived();
         }

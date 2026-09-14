@@ -56,6 +56,8 @@ Base stats:
 - crit multiplier
 - move speed only if movement is actually used
 
+Status 2026-09-14: movement is used. The owner asked for the reference game's arena feel: a wide isometric platform in the middle of the screen, packs entering from every corner, a hero the player walks by dragging anywhere on the arena, chests on the floor to survive by, and a camera that follows the hero closely. Attacks stay automatic; the player's decisions are where to stand, when to fire the burst and which chest to take. See `19`.
+
 Avoid adding 20 stats.
 
 ### Enemies

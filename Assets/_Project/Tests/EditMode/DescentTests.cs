@@ -156,10 +156,10 @@ namespace Cryptforge.Tests
         public void HealthyHeroesSurviveTheDescentAndWoundedOnesDoNot()
         {
             DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
-            DescentSimulation.Result damageMend = DescentSimulation.Run(floors, 0, true);
-            DescentSimulation.Result speedMend = DescentSimulation.Run(floors, 1, true);
-            DescentSimulation.Result damageTemper = DescentSimulation.Run(floors, 0, false);
-            DescentSimulation.Result speedTemper = DescentSimulation.Run(floors, 1, false);
+            DescentSimulation.Result damageMend = Burst(floors, 0, true);
+            DescentSimulation.Result speedMend = Burst(floors, 1, true);
+            DescentSimulation.Result damageTemper = Burst(floors, 0, false);
+            DescentSimulation.Result speedTemper = Burst(floors, 1, false);
 
             Assert.That(damageMend.ClearedFloors, Is.EqualTo(2), $"Damage first with Mend died in {damageMend.DeathRoom}.");
             Assert.That(speedMend.ClearedFloors, Is.EqualTo(2), $"Speed first with Mend died in {speedMend.DeathRoom}.");
@@ -176,13 +176,13 @@ namespace Cryptforge.Tests
         public void RelicsRescueTheDamageFirstTemperDescentInDifferentWays()
         {
             DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
-            DescentSimulation.Result plainMend = DescentSimulation.Run(floors, 0, true);
-            DescentSimulation.Result counterMend = DescentSimulation.Run(floors, 0, true, DescentSimulation.Counterweight());
-            DescentSimulation.Result plainSpeedMend = DescentSimulation.Run(floors, 1, true);
-            DescentSimulation.Result counterSpeedMend = DescentSimulation.Run(floors, 1, true, DescentSimulation.Counterweight());
-            DescentSimulation.Result counterTemper = DescentSimulation.Run(floors, 0, false, DescentSimulation.Counterweight());
-            DescentSimulation.Result windTemper = DescentSimulation.Run(floors, 0, false, DescentSimulation.SecondWind());
-            DescentSimulation.Result windGreedy = DescentSimulation.Run(floors, 1, false, DescentSimulation.SecondWind());
+            DescentSimulation.Result plainMend = Burst(floors, 0, true);
+            DescentSimulation.Result counterMend = Burst(floors, 0, true, DescentSimulation.Counterweight());
+            DescentSimulation.Result plainSpeedMend = Burst(floors, 1, true);
+            DescentSimulation.Result counterSpeedMend = Burst(floors, 1, true, DescentSimulation.Counterweight());
+            DescentSimulation.Result counterTemper = Burst(floors, 0, false, DescentSimulation.Counterweight());
+            DescentSimulation.Result windTemper = Burst(floors, 0, false, DescentSimulation.SecondWind());
+            DescentSimulation.Result windGreedy = Burst(floors, 1, false, DescentSimulation.SecondWind());
 
             Assert.That(counterTemper.ClearedFloors, Is.EqualTo(2), "Counterweight carries damage first with Temper through floor 2.");
             Assert.That(windTemper.ClearedFloors, Is.EqualTo(2), "Second Wind carries damage first with Temper through floor 2.");
@@ -199,5 +199,10 @@ namespace Cryptforge.Tests
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),
             new CheckpointOption(CheckpointKind.Descend, "Descend", "Secure 96 gold")
         };
+
+        // The balance baseline: the Forge Burst fired whenever it is ready with an enemy in reach.
+        private static DescentSimulation.Result Burst(DescentSimulation.Floor[] floors, int cardSlot, bool mendOnFloorOne,
+            RelicOption relicOption = null, DescentSimulation.HeroWeapon heroWeapon = null) =>
+            DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon, ability: DescentSimulation.ForgeBurst());
     }
 }

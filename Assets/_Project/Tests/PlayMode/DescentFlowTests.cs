@@ -79,7 +79,7 @@ namespace Cryptforge.Tests
             Assert.That(_encounters.DefinitionOf(grunt).DisplayName, Is.EqualTo("Grunt"));
             Assert.That(grunt.Maximum, Is.EqualTo(70f).Within(1e-3f), "Floor 2 health tier: 50 x 1.4.");
             Assert.That(mite.Maximum, Is.EqualTo(21f).Within(1e-3f));
-            Assert.That(strike.Weapon.Damage, Is.EqualTo(3.6f * 1.4f * 1.2f).Within(1e-4f), "3.6 x 1.4 tier x 1.2 Cursed Gold.");
+            Assert.That(strike.Weapon.Damage, Is.EqualTo(3.6f * 1.288f * 1.2f).Within(1e-4f), "3.6 x 1.288 (the 1.4 tier at floor 1's 0.92 rate) x 1.2 Cursed Gold.");
             Assert.That(_encounters.GoldRewardOf(grunt), Is.EqualTo(8), "5 gold +50%, rounded away from zero.");
             Assert.That(_encounters.GoldRewardOf(mite), Is.Zero, "Cinder Mites pay no gold.");
             Assert.That(Label("Floor Label"), Does.Contain("Floor 2").And.Contain("Room 1/6").And.Contain("Mercury Stair"));

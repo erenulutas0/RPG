@@ -63,8 +63,9 @@ namespace Cryptforge.Tests
             Assert.That(_mite.IsAlive, Is.False, "The faster mite walks in first and falls first.");
             Assert.That(gruntDeaths, Is.EqualTo(1));
             Assert.That(miteDeaths, Is.EqualTo(1));
-            // Two swings fell the mite and each cleaves the Grunt walking in beside it for 6, so four more fell the Grunt.
-            Assert.That(_attack.AttackCount, Is.EqualTo(6));
+            // Two swings fell the mite from the right corner; the Grunt walks in from the far corner, beyond the cleave's
+            // reach of the mite, so five more fell it.
+            Assert.That(_attack.AttackCount, Is.EqualTo(7));
             // The pack strikes back (exact counts are covered by the Descent simulation).
             Assert.That(_hero.IsAlive, Is.True);
             Assert.That(_hero.Current, Is.LessThan(100f));
@@ -74,7 +75,7 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Run.Experience, Is.EqualTo(11));
             // The level-up opens an upgrade choice that pauses scaled time, so wait in real time.
             yield return new WaitForSecondsRealtime(1f);
-            Assert.That(_attack.AttackCount, Is.EqualTo(6));
+            Assert.That(_attack.AttackCount, Is.EqualTo(7));
             Assert.That(_setup.Run.Experience, Is.EqualTo(11));
             LogAssert.NoUnexpectedReceived();
         }

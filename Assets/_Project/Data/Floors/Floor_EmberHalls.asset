@@ -83,6 +83,6 @@ MonoBehaviour:
       - {fileID: 11400000, guid: 10000000000000000000000000000012, type: 2}
     _forgeOptions: []
   _enemyHealthMultiplier: 1
-  _enemyDamageMultiplier: 1
+  _enemyDamageMultiplier: 0.92
   _modifier: {fileID: 0}
   _nextFloor: {fileID: 11400000, guid: 10000000000000000000000000000015, type: 2}

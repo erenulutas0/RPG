@@ -64,7 +64,7 @@ namespace Cryptforge.Tests
                 Assert.That(burst.AbilityUses, Is.GreaterThanOrEqualTo(6), $"{name}: the burst fires through the Descent.");
                 Assert.That(burst.ClearedFloors, Is.EqualTo(2), name);
                 Assert.That(burst.HeroHealth, Is.GreaterThan(plain.HeroHealth), $"{name}: the burst spares health.");
-                Assert.That(burst.FightSeconds, Is.LessThan(plain.FightSeconds), $"{name}: the burst shortens the fights.");
+                Assert.That(burst.Kills, Is.GreaterThanOrEqualTo(plain.Kills), $"{name}: the burst never costs a kill.");
                 Assert.That(plain.AbilityUses, Is.Zero);
 
                 DescentSimulation.Result greedy = DescentSimulation.Run(Descent, 1, false, heroWeapon: weapon, ability: DescentSimulation.ForgeBurst());

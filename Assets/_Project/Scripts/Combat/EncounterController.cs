@@ -28,9 +28,9 @@ namespace Cryptforge.Combat
         [SerializeField] private Health _hero;
         [SerializeField] private Targeting _heroTargeting;
         [SerializeField, Min(0f)] private float _advanceDelay = 1f;
-        // On the arena floor, with the hero at the origin: how far away a pack enters, the unit of its formation, and how
-        // close two enemies may come while walking in.
-        [SerializeField, Min(0.5f)] private float _entryDepth = 6f;
+        // On the arena floor, whose centre is the origin: how far from the centre a pack enters at its corner, the unit of
+        // its formation, and how close two enemies may come while walking in.
+        [SerializeField, Min(0.5f)] private float _entryDepth = 5f;
         [SerializeField, Min(0.1f)] private float _formationSpacing = 1f;
         [SerializeField, Min(0f)] private float _bodySpacing = 0.9f;
         private readonly List<SpawnedEnemy> _wave = new List<SpawnedEnemy>();
@@ -44,6 +44,8 @@ namespace Cryptforge.Combat
         private float _transitionWait;
         private bool _descending;
         private int _roomsClearedOnEarlierFloors;
+        // Waves started on the current floor; each starts one corner further round the arena.
+        private int _waveOrdinal;
 
         public FloorDefinition Floor => _currentFloor;
         public int FloorNumber { get; private set; }
@@ -102,8 +104,8 @@ namespace Cryptforge.Combat
                 {
                     if (_wave[i].Defeated)
                         continue;
-                    float x = _motion.XOf(i);
-                    float y = _motion.YOf(i);
+                    float x = _motion.XOf(i) - _motion.HeroX;
+                    float y = _motion.YOf(i) - _motion.HeroY;
                     float distance = x * x + y * y;
                     if (distance < nearestDistance)
                     {
@@ -136,8 +138,13 @@ namespace Cryptforge.Combat
             _currentFloor = _floor;
             FloorNumber = 1;
             _floorProgress = new FloorProgress(WavesOf(_currentFloor));
+            _waveOrdinal = 0;
             AdvanceFloor();
         }
+
+        // The hero's position on the arena floor, which the packs walk toward.
+        public float HeroFloorX => _hero.transform.position.x;
+        public float HeroFloorY => ArenaFloor.FloorY(_hero.transform.position.y);
 
         public void DescendToNextFloor()
         {
@@ -148,6 +155,7 @@ namespace Cryptforge.Combat
             _currentFloor = _currentFloor.NextFloor;
             FloorNumber++;
             _floorProgress = new FloorProgress(WavesOf(_currentFloor));
+            _waveOrdinal = 0;
             _descending = true;
             _transitionWait = 0f;
             ProgressChanged?.Invoke();
@@ -273,9 +281,10 @@ namespace Cryptforge.Combat
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);
-                PackLayout.Offset(i, count, _formationSpacing, out float floorX, out float floorY);
-                floorY += _entryDepth;
-                Health enemy = Instantiate(definition.Prefab, WorldPosition(floorX, floorY), Quaternion.identity);
+                EntrySides.Formation(_waveOrdinal, i, count, out EntrySide side, out int indexOnSide, out int countOnSide);
+                PackLayout.Offset(indexOnSide, countOnSide, _formationSpacing, out float lateral, out float depth);
+                depth += _entryDepth;
+                Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
                 enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
                 enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
                 WeaponRuntime weapon = definition.Weapon.CreateRuntime();
@@ -283,7 +292,8 @@ namespace Cryptforge.Combat
                     weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                 enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
                 enemy.GetComponent<AttackController>().Initialize(weapon);
-                _motion.Add(enemy, floorX, floorY, definition.MoveSpeed, weapon.Range);
+                int slot = _motion.Add(enemy, lateral, depth, definition.MoveSpeed, weapon.Range, side);
+                enemy.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
 
                 var spawn = new SpawnedEnemy
                 {
@@ -302,6 +312,7 @@ namespace Cryptforge.Combat
             }
 
             AliveEnemyCount = count;
+            _waveOrdinal++;
             _heroTargeting.SetCandidates(candidates);
             _fight.Begin();
             EncounterStarted?.Invoke();
@@ -347,14 +358,14 @@ namespace Cryptforge.Combat
 
         private void OnEnemyEnraged() => ProgressChanged?.Invoke();
 
-        // Walks the living pack in and places each enemy at its floor position. Nothing moves on the frame a wave spawns or
-        // while time is frozen.
+        // Walks the living pack toward wherever the hero stands now and places each enemy at its floor position. Nothing
+        // moves on the frame a wave spawns or while time is frozen.
         private void MovePack(float deltaTime)
         {
             if (_motion == null || IsCleared || deltaTime <= 0f)
                 return;
 
-            _motion.Step(deltaTime);
+            _motion.Step(deltaTime, HeroFloorX, HeroFloorY);
             for (int i = 0; i < _wave.Count; i++)
             {
                 Health enemy = _wave[i].Health;

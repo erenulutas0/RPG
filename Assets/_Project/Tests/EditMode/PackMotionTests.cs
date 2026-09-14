@@ -1,4 +1,5 @@
 using System;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using NUnit.Framework;
 
@@ -49,6 +50,62 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void EachCornerEntersFromItsOwnSideAndTheLateralOffsetTurnsWithIt()
+        {
+            var motion = new PackMotion(0.9f, 2f);
+            motion.Add(new HealthState(10f), 1f, 5f, 2f, 1.4f, EntrySide.Far);
+            motion.Add(new HealthState(10f), 1f, 5f, 2f, 1.4f, EntrySide.Right);
+            motion.Add(new HealthState(10f), 1f, 5f, 2f, 1.4f, EntrySide.Near);
+            motion.Add(new HealthState(10f), 1f, 5f, 2f, 1.4f, EntrySide.Left);
+
+            Assert.That((motion.XOf(0), motion.YOf(0)), Is.EqualTo((1f, 5f)), "Far: ahead of the hero, offset to the right.");
+            Assert.That((motion.XOf(1), motion.YOf(1)), Is.EqualTo((5f, -1f)), "Right: the offset turns a quarter turn with the side.");
+            Assert.That((motion.XOf(2), motion.YOf(2)), Is.EqualTo((-1f, -5f)), "Near: below the hero.");
+            Assert.That((motion.XOf(3), motion.YOf(3)), Is.EqualTo((-5f, 1f)), "Left.");
+
+            for (int frame = 0; frame < 600; frame++)
+                motion.Step(Frame);
+            for (int i = 0; i < 4; i++)
+                Assert.That(motion.HasArrived(i), Is.True, $"Slot {i} walks in from its corner.");
+            // Every enemy ends on its own side of the hero, 30 degrees off its corner's line toward its offset.
+            Assert.That(motion.YOf(0), Is.GreaterThan(0.9f));
+            Assert.That(motion.XOf(0), Is.GreaterThan(0.4f));
+            Assert.That(motion.XOf(1), Is.GreaterThan(0.9f));
+            Assert.That(motion.YOf(1), Is.LessThan(-0.4f));
+            Assert.That(motion.YOf(2), Is.LessThan(-0.9f));
+            Assert.That(motion.XOf(3), Is.LessThan(-0.9f));
+            Assert.That(EntrySides.SideOf(0, 0), Is.EqualTo(EntrySide.Far));
+            Assert.That(EntrySides.SideOf(1, 2), Is.EqualTo(EntrySide.Left), "Wave 1 starts one corner further.");
+            EntrySides.Formation(1, 5, 6, out EntrySide side, out int index, out int count);
+            Assert.That(side, Is.EqualTo(EntrySide.Near), "Slot 5 of wave 1 takes the near corner.");
+            Assert.That((index, count), Is.EqualTo((1, 2)), "The second enemy of two on that corner.");
+            Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Formation(0, 3, 3, out _, out _, out _));
+        }
+
+        [Test]
+        public void ThePackFollowsAHeroWhoWalksAway()
+        {
+            var motion = new PackMotion(0.9f, 2f);
+            motion.Add(new HealthState(10f), 0f, 3f, 2f, 1.2f);
+            for (int frame = 0; frame < 120; frame++)
+                motion.Step(Frame);
+            Assert.That(motion.HasArrived(0), Is.True);
+
+            // The hero steps three units to the right: the enemy is out of reach again and walks after it.
+            motion.Step(Frame, 3f, 0f);
+            Assert.That(motion.HasArrived(0), Is.False);
+            Assert.That(motion.HeroX, Is.EqualTo(3f));
+            for (int frame = 0; frame < 240; frame++)
+                motion.Step(Frame, 3f, 0f);
+            Assert.That(motion.HasArrived(0), Is.True);
+            float dx = motion.XOf(0) - 3f;
+            float dy = motion.YOf(0);
+            Assert.That(Math.Sqrt(dx * dx + dy * dy), Is.EqualTo(1.1f).Within(1e-3f), "It stops just inside its reach of the new spot.");
+            Assert.That(motion.YOf(0), Is.GreaterThan(0.9f), "It keeps to its own side, ahead of the hero.");
+            Assert.Throws<ArgumentOutOfRangeException>(() => motion.Step(Frame, float.NaN, 0f));
+        }
+
+        [Test]
         public void AnEnemyWaitsBehindACloserOneAndWalksInWhenItFalls()
         {
             var motion = new PackMotion(0.9f, 2f);
@@ -79,6 +136,7 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentNullException>(() => motion.Add(null, 0f, 6f, 1f, 1f));
             Assert.Throws<ArgumentOutOfRangeException>(() => motion.Add(new HealthState(1f), 0f, 6f, -1f, 1f));
             Assert.Throws<ArgumentOutOfRangeException>(() => motion.Add(new HealthState(1f), 0f, 6f, 1f, 0f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => motion.Add(new HealthState(1f), 0f, 6f, 1f, 1f, (EntrySide)9));
             Assert.Throws<ArgumentOutOfRangeException>(() => motion.Step(-Frame));
             for (int i = 0; i < PackLayout.MaxPackSize; i++)
                 motion.Add(new HealthState(1f), i, 6f, 1f, 1f);
