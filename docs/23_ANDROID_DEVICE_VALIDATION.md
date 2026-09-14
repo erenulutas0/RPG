@@ -261,3 +261,24 @@ Findings, both fixed afterwards (see `21`):
 Limits: no still caught a gold crit flash; the PlayMode test checks it. A never-triggered relic still reads **Second Wind (0x)**. The retuned Staff and the opaque Forge were not yet on the phone when this section was written.
 
 The first combat slice, kill → XP, upgrade choice, enemy attack with result/restart, Runner/Tank archetypes, attack speed tuning, Descent floor 1, gold with the Extract/Descend checkpoint, floor 2, the Forge meta layer with local save, pause control, packs and the three weapon behaviors with Forge weapon unlocks are running on the phone.
+
+## Pixel-art arena on the phone (2026-09-14)
+
+Build: commit 568a6e3 (walking packs, the rebalance, the framed arena and the pixel-art placeholders drawn from code).
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 194/194 and 47/47 passed before the build |
+| Install | APK SHA-256 `5FF7C1FF5FA33E6A96EA120D4EC6EDBF5EA838BF0C4F561B0C6E463D09238908`, `Success` while the home screen had focus |
+| Launch | The owner was connected over USB and asked to open the game; the script launched it and verified focus, an awake display and no keyguard before and after every capture and the one tap |
+| First pack, about 3 s in | The stone-and-brass platform with its lantern towers, lava-seamed faces and keel, the violet void with rock islands, all behind the HUD text. The Grunt (slag body, lava cracks, ember eyes) fights beside the blue-steel knight while the mite it walked in with dies in a smoke puff; damage numbers **6** and **10** float above them; health bars over the enemies (`android-art-wave1-02.png`) |
+| First pack cleared | **2 enemies defeated in 8 hits, 5,8s**, **Level 1 \| XP 11 / 22**, the Grunt's smoke and coins, hero 89/100, as the simulation and `22` predict (`android-art-wave1-05.png`) |
+| Level-up | **Level up! Choose one upgrade** over the dimmed arena: **Tempered Edge +50% damage per hit** and **Quickened Grip +50% attack speed** (`android-art-levelup.png`) |
+| Cinder Walk | Four mites with full health bars walk in from the far end: **Sword \| 25 damage every 0,80s**, **Cinder Mite \| 15 / 15 HP (+3 more)**, hero 73/100 (`android-art-wave2-02.png`); three seconds later **4 enemies defeated in 4 hits, 3,4s** (`android-art-wave2-04.png`) |
+| App log | No Unity error, exception or missing-reference line |
+
+Notes:
+- The first level-up was taken on the phone by hand while the script was capturing (the script only tapped the second one), so the run reached **25 damage** with three Tempered Edges by Cinder Walk.
+- The framing held on the phone: the hero's feet sit just above **Vanguard | HP** and the far end of the platform, where packs enter, stays below the enemy bar.
+- Readability at phone size is good for the hero, the Grunt and the mites; the platform's far half and the islands sit under the top HUD text without hurting it.
+- Seen, not fixed: the death smoke is as large as the hero and briefly covers him; a Grunt fighting at the hero's shoulder overlaps the cape; no frame rate was measured.
