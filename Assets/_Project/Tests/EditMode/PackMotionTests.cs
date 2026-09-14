@@ -147,17 +147,28 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => EntrySides.Place(0, 3, 0f, 0f, Arena, 5f, 1f, new EntryPlacement[2]));
         }
 
-        // A hero at the rim has no floor beyond it, so the corners on that side close for the wave and the open ones take
-        // their enemies: every enemy still starts on the platform, out of reach, apart from the others.
+        // Away from the centre an enemy whose spot lies beyond the rim starts short of it, if that is still far enough from
+        // the hero; at the rim there is no such room, so the corners on that side close and the open ones take their
+        // enemies. Every enemy starts on the platform, out of reach, apart from the others.
         [Test]
         public void AtTheRimCornersOverTheVoidCloseAndThePackEntersFromWhereThePlatformIs()
         {
             var placements = new EntryPlacement[PackLayout.MaxPackSize];
             float rim = 9f - HeroMotion.EdgeMargin;
             AssertEntries(rim, 0f, 1 << (int)EntrySide.Left, "at the right corner");
+            AssertEntries(6.2f, 0f, 1 << (int)EntrySide.Left, "most of the way to the right corner");
             AssertEntries(rim / 2f, rim / 2f, (1 << (int)EntrySide.Near) | (1 << (int)EntrySide.Left), "on the far-right edge");
             AssertEntries(0f, -rim, 1 << (int)EntrySide.Far, "at the near corner");
+            AssertEntries(4.5f, 0f, EntrySides.AllSides, "halfway to the right corner, where every corner still has room");
             AssertEntries(2f, 0f, EntrySides.AllSides, "two units right of the centre, where every corner still fits");
+
+            // Halfway to the right corner the right corner's enemy starts short of the rim, nearer than 5 but at least 3 away.
+            EntrySides.Place(0, 4, 4.5f, 0f, Arena, 5f, 1f, placements);
+            Assert.That(placements[1].Side, Is.EqualTo(EntrySide.Right));
+            Assert.That(placements[1].X - 4.5f, Is.LessThan(5f).And.GreaterThanOrEqualTo(EntrySides.MinimumEntryDistance), "Drawn in short of the rim.");
+            Assert.That(placements[1].Y, Is.EqualTo(0f));
+            Assert.That(placements[3].Side, Is.EqualTo(EntrySide.Left));
+            Assert.That(placements[3].X, Is.EqualTo(-0.5f), "The left corner's spot is on the platform and stays where it was.");
 
             // A platform too small for the wave closes every corner; each enemy is drawn in toward the hero instead.
             var small = new ArenaGeometry(-3f, 3f, 3f);
@@ -183,7 +194,8 @@ namespace Cryptforge.Tests
                             Assert.That(Arena.IsOnPlatform(entry.X, entry.Y, HeroMotion.EdgeMargin), Is.True, where);
                             float dx = entry.X - heroX;
                             float dy = entry.Y - heroY;
-                            Assert.That(dx * dx + dy * dy, Is.GreaterThanOrEqualTo(25f - 1e-3f), where + " starts out of reach.");
+                            float minimum = EntrySides.MinimumEntryDistance;
+                            Assert.That(dx * dx + dy * dy, Is.GreaterThanOrEqualTo(minimum * minimum - 1e-3f), where + " starts out of reach.");
                             for (int other = 0; other < slot; other++)
                             {
                                 float apartX = entry.X - placements[other].X;
