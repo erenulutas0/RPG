@@ -294,3 +294,25 @@ Build: commit 094d84c, APK SHA-256 `ECF52FA70B7EF17684C9CF7D76C81DA2D2AA0AD52C9C
 | App log | No Unity error or exception line |
 
 Seen, not fixed: the button's dark disc overlaps the platform's lower-right edge and the faces below it, which is where the mockup puts it too; the ring is drawn at the hero's feet, so its far half passes behind enemies standing in front of the hero.
+
+## The walkable arena on the phone (2026-09-14)
+
+Build: commit 011328e (the 9-unit diamond, drag-to-walk, packs from every corner, chests, the following camera), APK SHA-256 `16FCB13983917E04C9D854609893CCFC7B2878BDD7010120F659DF98F96DE69C`, installed over USB while the game had focus; the install closed the game and the script relaunched it. Focus, an awake display and no keyguard were verified before and after every capture, tap and drag. Drags are `adb shell input swipe` presses started in the background so captures could run while the finger was down.
+
+| Check | Result |
+|---|---|
+| Unity EditMode / PlayMode tests | 205/205 and 53/53 passed before the build |
+| First pack, 5.1 s after launch | The diamond platform fills the screen with its brass seams crossing under the hero; the hero stands at the centre inside the burst ring, the Grunt walks in from the far corner at the top, the mite's health bar enters at the right edge, and the closed chest waits 1.8 units to the right, fully on screen. **Grunt \| 50 / 50 HP (+1 more)**, **Wave 1/3**, **Vanguard \| 100 / 100 HP** (`android-walk-start.png`) |
+| 7.1 s | The mite has fallen (**XP 1 / 10**); the Grunt stands behind the hero and strikes: the hero flashes white, **Vanguard \| 93 / 100 HP**, **Grunt \| 40 / 50 HP** with a **10** above it (`android-walk-fight.png`) |
+| Drag right from 7.6 s (380 px over 1.4 s), captured 1.9 s after the press | The hero walked onto the chest: it stands open under his feet, **25** rises and the bar reads **100 / 100 HP**; the camera followed him, so the platform's centre mark is now at the left edge and the right rim with the stone faces below it is in view; the Grunt chased and stands at his shoulder at **10 / 50** (`android-walk-chest.png`) |
+| 10.9 s | **2 enemies defeated in 7 hits, 6,1s** behind **Level up! Choose one upgrade** (`22` predicts 7 hits and 6.2 s for a hero who never moves); the Grunt's smoke and coin beside the open chest (`android-walk-levelup.png`) |
+| The owner's play | The panel closed within 1.3 s, before the script's polling saw it: the owner was playing by hand. When the second script looked, the run stood at **Floor 1 \| Room 3/6 \| Slag Gate**, **Sword \| 30 damage**, **Level 5**, **Gold 41 (41 at risk)**, on a level-up with room 3's closed chest beside the hero and two mites' bars at the ring (`android-walk-room3-levelup.png`) |
+| Tempered Edge tapped, +1.6 s | **Wave 2/2**, **Sword \| 35 damage every 0,80s**, **Tank \| 120 / 120 HP (+2 more)**; a mite walks in from the far corner under the top HUD text, the burst button's blue fill is draining, hero **73 / 100** (`android-walk-wave2.png`) |
+| Drag up-left (280 px left, 400 px up over 1.5 s), 0.7 s in | The hero walks toward the far-left corner, the camera glides after him (the centre mark now sits below-left of his feet), the far corner of the platform and the void beyond it come into view (`android-walk-up.png`) |
+| 1.9 s | The Tank reached him from the left and took a **35** (**85 / 120 HP**); it stands in front of room 3's chest, sorted by its feet; hero **72 / 100**; the lower-left rim and faces are in view (`android-walk-after-up.png`) |
+| App log | No Unity error, exception or missing-reference line during either script |
+
+Seen, not fixed:
+- A lone enemy from the far corner stops straight behind the hero, so its body hides behind him and his hit flash (`android-walk-fight.png`); only enemies from the sides and the near corner are fully visible. A sideways stop for the far corner, or a sort that keeps the hero's attacker visible, is a follow-up.
+- A drag that starts on the burst button also starts a walk on that frame (the input reads the pointer before the event system has raycast the new touch); a tap does not move the hero, so this only shows when dragging out of the button.
+- No walk animation: the hero slides. The upgrade cards still show the wave line faintly between them.
