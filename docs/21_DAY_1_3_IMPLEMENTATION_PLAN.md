@@ -535,6 +535,33 @@ Before the Unity runs, a frame-by-frame replay of single waves with the simulati
 
 Verified: Unity EditMode 150/150, PlayMode 44/44, `Verify-Project.ps1`, .NET CombatChecks 138/138. The development APK is built after part 2.
 
+### Implemented 2026-09-14: the floating platform and camera framing (isometric arena, part 2)
+
+The placeholder look of the astral foundry arena. No image or art asset is added; final art replaces one component.
+
+- **Arena view:** `ArenaView` builds one vertex-coloured mesh at startup and draws it with the built-in Sprites-Default material.
+  - **Void:** a violet gradient, four nebula glows, 220 stars with a few sparkles, and six small floating rocks.
+  - **Platform top:** a rhombus on the arena floor, from 3 floor units behind the hero to 14 in front and 3.3 to either side. It has a brass rim, 8 × 8 stone tiles that darken toward the far corner under the top HUD, a brass inlay at the centre, and ember lanterns at the near and side corners.
+  - **Below the top:** the near faces with seams and ember slits, and a keel with ember cracks and a glowing seam.
+- **Depth:** the camera sorts sprites along the screen's vertical axis (`TransparencySortMode.CustomAxis`). An enemy higher on the screen stands farther away on the floor, so it is drawn behind nearer enemies and the hero. The arena mesh draws at sorting order −20, below every sprite.
+- **Framing:** `ArenaCameraFraming` fits the arena into the rows between the HUD's enemy bar and hero label, and frames again when the screen size or safe area changes. The fitted area runs from 0.7 below the hero to 4.5 above it (beyond the deepest pack slot) and 2.6 to either side.
+  - **1080 × 2340 phone:** the widest pack slots set the zoom (orthographic size 5.63, down from 6).
+  - **1080 × 1920:** the free band sets it (5.96). Part 1's fixed camera left the hero's feet 28 rows inside the bottom HUD block at this size.
+
+Why a rhombus, not a 2:1 isometric diamond: a square platform turned 45° with the same near corner that holds every pack slot would be 13.6 units wide, 2.6 times the phone's visible width. Stretching the rhombus along the floor's depth keeps the mockup's tall diamond silhouette and holds every slot.
+
+| Files | Change |
+|---|---|
+| `Scripts/UI/ArenaView.cs`, `ArenaCameraFraming.cs`, `ArenaFraming.cs` (new) | The placeholder arena mesh and depth sorting; framing between the HUD blocks; the framing arithmetic as a pure function. |
+| `Scenes/Gameplay/Gameplay.unity` | A temporary builder, deleted afterwards, added the **Arena** object and the framing component on **Main Camera**, and set the camera's clear colour to the void's. |
+| Tests | EditMode `ArenaFramingTests` (4): the pack width setting the zoom on a tall phone with the arena centred in the free band, a shorter screen zooming out to fill the band, the whole-screen fallback when the HUD leaves too little, validation. PlayMode `ArenaViewTests` (3): depth sorting with the arena behind every sprite, every slot of every pack size entering on the platform, and on a 1080 × 2340 phone the hero's feet and every slot fitting between the HUD blocks and inside the screen width. |
+
+Before the tests, a temporary Editor script (not committed) rendered the scene with two walking packs at 1080 × 2340 and 1080 × 1920. After the first render the floating rocks were shrunk, because they competed with the platform, and ember cracks were added to the keel.
+
+Placeholder limits: combatants are still flat shapes; both floors share one platform, although `19` gives Quicksilver Vaults cool silver tones; nothing in the void moves.
+
+Verified: Unity EditMode 154/154, PlayMode 47/47, `Verify-Project.ps1`, .NET CombatChecks 138/138, development APK built only after both reports passed (SHA-256 `A95A3A66D91892792DCA8DC801AC8C76E2072620E69536C4B6B9C6FE4CCF481A`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

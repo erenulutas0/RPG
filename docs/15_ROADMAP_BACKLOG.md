@@ -38,7 +38,7 @@ Do NOT:
 - pause control (owner feedback 2026-09-13: a run starts at once and only choice panels or leaving the app pause it; done 2026-09-13: HUD pause button, pause on leaving the app, see `21`).
 
 ### Next (owner choice 2026-09-14; art direction and order in `19`)
-- isometric arena: a floating platform with enemies spread in two dimensions, larger packs and a rebalance, placeholder visuals (part 1 done 2026-09-14: arena floor, packs walking in and the rebalance, see `21`; the platform visuals are next),
+- isometric arena: a floating platform with enemies spread in two dimensions, larger packs and a rebalance, placeholder visuals (done 2026-09-14 with placeholder visuals: arena floor, packs walking in, the rebalance, a floating platform and camera framing between the HUD blocks, see `21`),
 - a touch-aimed area ability with a cooldown,
 - icon HUD: room pips, boss bar, buff icons with details on tap, bottom health and XP panel, damage numbers.
 

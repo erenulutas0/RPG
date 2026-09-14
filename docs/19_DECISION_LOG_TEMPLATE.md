@@ -219,7 +219,7 @@ Testers cannot tell which enemy is being hit or attacking; a Descent still plays
 ## Decision: Astral foundry art direction and the mockup layout
 
 **Date:** 2026-09-14  
-**Status:** Accepted (isometric arena part 1 implemented: arena floor, walking packs and the rebalance; the platform visuals are next; see `21`)  
+**Status:** Accepted (isometric arena implemented with placeholder visuals: arena floor, walking packs, rebalance, floating platform and framing; the touch-aimed area ability is next; see `21`)  
 **Owner:** Product / art
 
 ### Context
@@ -261,3 +261,6 @@ The placeholder arena fails a readability check on the S23 (enemy size, health b
 - **Counterweight now carries speed-first Temper for the Sword and the Staff.** The relic decision above wanted that path to fail. Accepted for now: Counterweight still favours damage upgrades (on the Sword's Mend paths it adds 16 HP to damage first and 5 to speed first), the Daggers still fall on that path, and Second Wind carries it for every weapon. Revisit with the relic values if testers always forge Counterweight.
 - **Pacing:** floor 1 takes about 54 s of simulated fighting with the Sword, up from about 16 s, which closes the pacing gap the packs decision left open.
 - **Larger packs, less damage each:** up to five enemies per wave on these floors (seven supported), enemy damage at 60%, Cinder Mites worth 1 XP and no gold, and each level costing two more than the last.
+- **Placeholder visuals come from code.** One vertex-coloured mesh draws the void, the platform and its keel. Nothing from the mockups enters `Assets`, and final art replaces a single component.
+- **The platform is a rhombus stretched along the floor's depth, not a 2:1 diamond.** A 2:1 platform holding every pack slot would be 2.6 times the phone's visible width. The rhombus keeps the mockup's tall silhouette.
+- **The camera fits the arena between the HUD blocks** instead of using a fixed size, because the free band differs between 9:16 screens and the phone's 9:19.5.
