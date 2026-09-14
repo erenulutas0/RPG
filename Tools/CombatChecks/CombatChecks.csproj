@@ -52,5 +52,9 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Art/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/PixelCanvasTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaGeometryTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
   </ItemGroup>
 </Project>
