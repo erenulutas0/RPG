@@ -56,16 +56,16 @@ namespace Cryptforge.Tests
 
             Assert.That(_setup.Choices.TrySelect(_setup.Choices.Current, CheckpointDescend), Is.True);
             Assert.That(_setup.Run.HasEnded, Is.False);
-            Assert.That(_setup.Run.SecuredGold, Is.EqualTo(109));
+            Assert.That(_setup.Run.SecuredGold, Is.EqualTo(116));
             Assert.That(_setup.Run.UnsecuredGold, Is.Zero);
             Assert.That(_setup.Choices.IsOpen, Is.False);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(_encounters.FloorNumber, Is.EqualTo(2));
             Assert.That(_encounters.IsDescending, Is.True);
-            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 109  (0 at risk)"));
+            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 116  (0 at risk)"));
             Assert.That(Label("Floor Label"), Does.StartWith("Floor 2"));
             PlayerProfile saved = TestProfile.ReadSaved();
-            Assert.That(saved.Gold, Is.EqualTo(109), "Secured gold is banked in the saved profile as soon as the hero descends.");
+            Assert.That(saved.Gold, Is.EqualTo(116), "Secured gold is banked in the saved profile as soon as the hero descends.");
             Assert.That(saved.DeepestFloorCleared, Is.EqualTo(1));
             yield return null;
             Assert.That(_hero.Current, Is.EqualTo(wounded), "Descending does not heal.");
@@ -75,19 +75,21 @@ namespace Cryptforge.Tests
             Health mite = _encounters.WaveEnemyAt(1);
             AttackController strike = grunt.GetComponent<AttackController>();
             Assert.That(_encounters.CurrentRoom.DisplayName, Is.EqualTo("Mercury Stair"));
-            Assert.That(_encounters.CurrentDefinition.DisplayName, Is.EqualTo("Grunt"));
+            Assert.That(_encounters.WaveEnemyCount, Is.EqualTo(4));
+            Assert.That(_encounters.DefinitionOf(grunt).DisplayName, Is.EqualTo("Grunt"));
             Assert.That(grunt.Maximum, Is.EqualTo(70f).Within(1e-3f), "Floor 2 health tier: 50 x 1.4.");
             Assert.That(mite.Maximum, Is.EqualTo(21f).Within(1e-3f));
-            Assert.That(strike.Weapon.Damage, Is.EqualTo(9f).Within(1e-4f), "6 x 1.25 tier x 1.2 Cursed Gold.");
+            Assert.That(strike.Weapon.Damage, Is.EqualTo(3.6f * 1.4f * 1.2f).Within(1e-4f), "3.6 x 1.4 tier x 1.2 Cursed Gold.");
             Assert.That(_encounters.GoldRewardOf(grunt), Is.EqualTo(8), "5 gold +50%, rounded away from zero.");
-            Assert.That(_encounters.GoldRewardOf(mite), Is.EqualTo(2));
+            Assert.That(_encounters.GoldRewardOf(mite), Is.Zero, "Cinder Mites pay no gold.");
             Assert.That(Label("Floor Label"), Does.Contain("Floor 2").And.Contain("Room 1/6").And.Contain("Mercury Stair"));
-            Assert.That(Label("Enemy Label"), Is.EqualTo("Grunt  |  70 / 70 HP  (+1 more)"));
+            // The HUD refreshes when the wave spawns, when the front-left Grunt ties the mite beside it for nearest.
+            Assert.That(Label("Enemy Label"), Is.EqualTo("Grunt  |  70 / 70 HP  (+3 more)"));
 
             grunt.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
-            Assert.That(_setup.Run.Gold, Is.EqualTo(117));
+            Assert.That(_setup.Run.Gold, Is.EqualTo(124));
             Assert.That(_setup.Run.UnsecuredGold, Is.EqualTo(8));
-            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 117  (8 at risk)"));
+            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 124  (8 at risk)"));
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -100,8 +102,8 @@ namespace Cryptforge.Tests
             yield return AdvanceToFloorRoom(2, 1);
             _encounters.WaveEnemyAt(0).ApplyDamage(new DamageContext(PackTestUtility.Lethal));
 
-            // The Grunt fell before it could strike; the Cinder Mite beside it bites on its first frame.
-            float deadline = Time.realtimeSinceStartup + 3f;
+            // The Grunt fell before it could walk in; the Cinder Mites beside it walk on and bite.
+            float deadline = Time.realtimeSinceStartup + 6f;
             while ((_setup.LastAttacker == null || _setup.LastAttacker.DisplayName != "Cinder Mite") && Time.realtimeSinceStartup < deadline)
                 yield return null;
             Assert.That(_setup.LastAttacker.DisplayName, Is.EqualTo("Cinder Mite"));
@@ -111,14 +113,14 @@ namespace Cryptforge.Tests
 
             Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Defeat));
             Assert.That(_setup.Run.GoldLost, Is.EqualTo(4), "Half of the 8 unsecured gold, rounded down.");
-            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(113));
+            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(120));
             Assert.That(_result.IsOpen, Is.True);
             Assert.That(Label("Result Title"), Is.EqualTo("Defeated"));
             Assert.That(Label("Cause Label"), Does.Contain("Cinder Mite").And.Contain("Mercury Stair"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 2").And.Contain("6 rooms"));
-            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 113  |  lost: 4"));
-            Assert.That(TestProfile.ReadSaved().Gold, Is.EqualTo(113), "The 109 banked at the checkpoint plus the 4 kept.");
-            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 113: Second Wind is ready to forge"));
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 120  |  lost: 4"));
+            Assert.That(TestProfile.ReadSaved().Gold, Is.EqualTo(120), "The 116 banked at the checkpoint plus the 4 kept.");
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 120: Second Wind is ready to forge"));
         }
 
         [UnityTest]
@@ -154,17 +156,19 @@ namespace Cryptforge.Tests
 
             Assert.That(floorTwo, Is.EqualTo(new[]
             {
-                "1.1:Mercury Stair:Grunt+Cinder Mite", "1.2:Mercury Stair:Cinder Mite+Cinder Mite+Cinder Mite",
-                "2.1:Cold Crucible:Tank+Cinder Mite", "2.2:Cold Crucible:Runner+Cinder Mite+Cinder Mite",
-                "3.1:Vault Gate:Grunt+Cinder Mite+Cinder Mite", "4:The Deep Forge:forge",
-                "5.1:Sentry Hall:Grunt Captain+Cinder Mite", "6.1:Warden's Vault:Forge Warden"
+                "1.1:Mercury Stair:Grunt+Cinder Mite+Cinder Mite+Cinder Mite", "1.2:Mercury Stair:Runner+Cinder Mite+Cinder Mite+Cinder Mite",
+                "2.1:Cold Crucible:Tank+Cinder Mite+Cinder Mite+Cinder Mite",
+                "2.2:Cold Crucible:Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite",
+                "3.1:Vault Gate:Grunt+Grunt+Cinder Mite+Cinder Mite+Cinder Mite", "4:The Deep Forge:forge",
+                "5.1:Sentry Hall:Grunt Captain+Grunt+Cinder Mite+Cinder Mite", "6.1:Warden's Vault:Forge Warden+Cinder Mite+Cinder Mite"
             }));
             yield return null;
 
+            // The Warden fell first here and its mites last; the result still names the boss.
             Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory));
             Assert.That(_encounters.TotalRoomsCleared, Is.EqualTo(12));
-            Assert.That(_setup.Run.Gold, Is.EqualTo(270), "Floor 1 pays 109 gold and floor 2 pays 161 with Cursed Gold.");
-            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(270));
+            Assert.That(_setup.Run.Gold, Is.EqualTo(273), "Floor 1 pays 116 gold and floor 2 pays 157 with Cursed Gold; Cinder Mites pay none.");
+            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(273));
             Assert.That(_setup.Run.GoldLost, Is.Zero);
             Assert.That(_setup.Choices.IsOpen, Is.False);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
@@ -172,9 +176,9 @@ namespace Cryptforge.Tests
             Assert.That(Label("Result Title"), Is.EqualTo("Descent complete"));
             Assert.That(Label("Cause Label"), Does.Contain("Forge Warden").And.Contain("Quicksilver Vaults"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 2").And.Contain("12 rooms"));
-            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 270"));
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 273"));
             PlayerProfile saved = TestProfile.ReadSaved();
-            Assert.That(saved.Gold, Is.EqualTo(270));
+            Assert.That(saved.Gold, Is.EqualTo(273));
             Assert.That(saved.DeepestFloorCleared, Is.EqualTo(2));
             LogAssert.NoUnexpectedReceived();
         }

@@ -19,3 +19,4 @@ MonoBehaviour:
   _prefab: {fileID: 8324477348219262162, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
   _goldReward: 5
   _experienceReward: 10
+  _moveSpeed: 1.6

@@ -145,7 +145,7 @@ Transform:
   m_GameObject: {fileID: 100}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 1.8, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -233,7 +233,7 @@ Transform:
   m_GameObject: {fileID: 200}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5448,7 +5448,9 @@ MonoBehaviour:
   _hero: {fileID: 202}
   _heroTargeting: {fileID: 203}
   _advanceDelay: 1
-  _packSpacing: 1.7
+  _entryDepth: 6
+  _formationSpacing: 1
+  _bodySpacing: 0.9
 --- !u!4 &1243867567
 Transform:
   m_ObjectHideFlags: 0

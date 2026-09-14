@@ -70,7 +70,7 @@ Each enemy carries its own experience and gold reward, so fodder in a pack can p
 
 `xp_to_reach_level_n = xp_per_level * n + growth * n * (n - 1) / 2`
 
-The prototype uses 10 and 1 (10, 11, 12, ... per level). The fodder Cinder Mite gives 3 XP and named enemies 10, which keeps the ten upgrade stacks from running out on floor 1 when a room holds several enemies. Both constants live in `EconomyConfig`.
+The prototype uses 10 and 2 (10, 12, 14, ... per level). Named enemies give 10 XP; the fodder Cinder Mite gives 1 XP and no gold. Packs of up to five enemies would otherwise use up the ten upgrade stacks on floor 1. Both constants live in `EconomyConfig`.
 
 ## Upgrade valuation
 
@@ -82,6 +82,8 @@ Example only:
 - epic: ~2.4 units
 
 Behavioral upgrades may require simulation rather than arithmetic.
+
+Scale damage upgrades by percent. The prototype's Tempered Edge adds +50% damage per stack: a flat +5 was worth 50% on a 10-damage weapon but 83% on the 6-damage Daggers. Percent bonuses add together before they multiply, so five stacks give +250%, not ×7.6.
 
 ## Synergy danger
 

@@ -67,10 +67,11 @@ namespace Cryptforge.UI
         {
             RunState run = _setup.Run;
             string hero = _heroDefinition.DisplayName;
-            // A defeat names the enemy whose hit landed last; a victory names the boss that fell last.
-            EnemyDefinition killer = run.Outcome == RunOutcome.Defeat && _setup.LastAttacker != null
-                ? _setup.LastAttacker
-                : _encounters.CurrentDefinition;
+            // A defeat names the enemy whose hit landed last; a victory names the final wave's boss, even when its pack
+            // outlived it.
+            EnemyDefinition killer = run.Outcome != RunOutcome.Defeat
+                ? _encounters.ToughestDefinition
+                : _setup.LastAttacker != null ? _setup.LastAttacker : _encounters.CurrentDefinition;
             string enemyName = killer != null ? killer.DisplayName : string.Empty;
             string roomName = _encounters.CurrentRoom != null ? _encounters.CurrentRoom.DisplayName : string.Empty;
             string floorName = _encounters.Floor.DisplayName;

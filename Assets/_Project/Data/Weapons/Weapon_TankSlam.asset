@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _id: weapon_tank_slam
   _displayName: Tank Slam
-  _damage: 12
+  _damage: 7.2
   _interval: 2.5
-  _range: 3
+  _range: 1.4
   _initialDelay: 1.5
   _behavior: 0
   _splashRadius: 0

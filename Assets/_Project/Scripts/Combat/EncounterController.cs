@@ -6,9 +6,12 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    // Runs the Descent one floor at a time: spawns each wave as a pack of one to three enemies with floor-scaled health,
-    // damage and gold, opens the forge in non-combat rooms, and advances after a short delay once the current step is
-    // resolved, no choice is open and the hero lives. The final wave's last kill clears the floor immediately.
+    // Runs the Descent one floor at a time: spawns each wave as a pack of up to seven enemies with floor-scaled health,
+    // damage and gold at the far end of the arena, walks it in toward the hero, opens the forge in non-combat rooms, and
+    // advances after a short delay once the current step is resolved, no choice is open and the hero lives. The final
+    // wave's last kill clears the floor immediately. It runs before other scripts so enemies move before anyone attacks
+    // in a frame, the same order the Descent simulation uses.
+    [DefaultExecutionOrder(-50)]
     public sealed class EncounterController : MonoBehaviour
     {
         private sealed class SpawnedEnemy
@@ -25,9 +28,13 @@ namespace Cryptforge.Combat
         [SerializeField] private Health _hero;
         [SerializeField] private Targeting _heroTargeting;
         [SerializeField, Min(0f)] private float _advanceDelay = 1f;
-        // Distance between pack slots; three abreast must stay inside every weapon's range of the hero.
-        [SerializeField, Min(0.1f)] private float _packSpacing = 1.7f;
+        // On the arena floor, with the hero at the origin: how far away a pack enters, the unit of its formation, and how
+        // close two enemies may come while walking in.
+        [SerializeField, Min(0.5f)] private float _entryDepth = 6f;
+        [SerializeField, Min(0.1f)] private float _formationSpacing = 1f;
+        [SerializeField, Min(0f)] private float _bodySpacing = 0.9f;
         private readonly List<SpawnedEnemy> _wave = new List<SpawnedEnemy>();
+        private PackMotion _motion;
         private RunChoices _choices;
         private ForgeService _forge;
         private FloorDefinition _currentFloor;
@@ -54,9 +61,25 @@ namespace Cryptforge.Combat
         public bool IsInNonCombatRoom { get; private set; }
         public int WaveEnemyCount => _wave.Count;
         public int AliveEnemyCount { get; private set; }
-        // The first living enemy in slot order, which is the hero's target; after the wave falls, the last one defeated.
+        // The living enemy nearest the hero on the floor, which the hero strikes once it is in reach (the earlier slot on equal
+        // distance); after the wave falls, the last one defeated.
         public Health CurrentEnemy => CurrentSpawn?.Health;
         public EnemyDefinition CurrentDefinition => CurrentSpawn?.Definition;
+        // The current wave's enemy with the most authored health, the earlier slot on a tie: a boss wave's boss, whichever
+        // enemy fell last.
+        public EnemyDefinition ToughestDefinition
+        {
+            get
+            {
+                EnemyDefinition toughest = null;
+                for (int i = 0; i < _wave.Count; i++)
+                {
+                    if (toughest == null || _wave[i].Definition.MaximumHealth > toughest.MaximumHealth)
+                        toughest = _wave[i].Definition;
+                }
+                return toughest;
+            }
+        }
         public EnemyDefinition EnragedDefinition => FindEnraged()?.Definition;
         public bool IsCurrentEnemyEnraged => FindEnraged() != null;
         public int EncounterNumber => _fight?.EncounterNumber ?? 0;
@@ -73,12 +96,22 @@ namespace Cryptforge.Combat
         {
             get
             {
+                SpawnedEnemy nearest = null;
+                float nearestDistance = float.MaxValue;
                 for (int i = 0; i < _wave.Count; i++)
                 {
-                    if (!_wave[i].Defeated)
-                        return _wave[i];
+                    if (_wave[i].Defeated)
+                        continue;
+                    float x = _motion.XOf(i);
+                    float y = _motion.YOf(i);
+                    float distance = x * x + y * y;
+                    if (distance < nearestDistance)
+                    {
+                        nearest = _wave[i];
+                        nearestDistance = distance;
+                    }
                 }
-                return _lastDefeated;
+                return nearest ?? _lastDefeated;
             }
         }
 
@@ -187,6 +220,7 @@ namespace Cryptforge.Combat
             if (_floorProgress == null || !_hero.IsAlive)
                 return;
 
+            MovePack(Time.deltaTime);
             bool canAdvance = !_choices.IsOpen;
             if (_descending || IsInNonCombatRoom)
             {
@@ -235,11 +269,13 @@ namespace Cryptforge.Combat
 
             int count = waveDefinition.EnemyCount;
             var candidates = new Health[count];
+            _motion = new PackMotion(_bodySpacing, PackLayout.HalfWidth * _formationSpacing);
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);
-                Vector3 position = transform.position + Vector3.right * PackLayout.OffsetX(i, count, _packSpacing);
-                Health enemy = Instantiate(definition.Prefab, position, Quaternion.identity);
+                PackLayout.Offset(i, count, _formationSpacing, out float floorX, out float floorY);
+                floorY += _entryDepth;
+                Health enemy = Instantiate(definition.Prefab, WorldPosition(floorX, floorY), Quaternion.identity);
                 enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
                 enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
                 WeaponRuntime weapon = definition.Weapon.CreateRuntime();
@@ -247,6 +283,7 @@ namespace Cryptforge.Combat
                     weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                 enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
                 enemy.GetComponent<AttackController>().Initialize(weapon);
+                _motion.Add(enemy, floorX, floorY, definition.MoveSpeed, weapon.Range);
 
                 var spawn = new SpawnedEnemy
                 {
@@ -310,6 +347,25 @@ namespace Cryptforge.Combat
 
         private void OnEnemyEnraged() => ProgressChanged?.Invoke();
 
+        // Walks the living pack in and places each enemy at its floor position. Nothing moves on the frame a wave spawns or
+        // while time is frozen.
+        private void MovePack(float deltaTime)
+        {
+            if (_motion == null || IsCleared || deltaTime <= 0f)
+                return;
+
+            _motion.Step(deltaTime);
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                Health enemy = _wave[i].Health;
+                if (!_wave[i].Defeated && enemy != null)
+                    enemy.transform.position = WorldPosition(_motion.XOf(i), _motion.YOf(i));
+            }
+        }
+
+        // The hero stands at the floor origin, which is the world origin, so floor and world positions convert exactly.
+        private static Vector3 WorldPosition(float floorX, float floorY) => new Vector3(floorX, ArenaFloor.WorldY(floorY), 0f);
+
         private SpawnedEnemy Find(IDamageable enemy)
         {
             if (enemy == null)
@@ -350,6 +406,7 @@ namespace Cryptforge.Combat
             }
 
             _wave.Clear();
+            _motion = null;
             _lastDefeated = null;
             AliveEnemyCount = 0;
         }

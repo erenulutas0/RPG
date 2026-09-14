@@ -7,9 +7,10 @@ using Cryptforge.Progression;
 
 namespace Cryptforge.Tests
 {
-    // Runs authored floors through the real run, reward, upgrade, forge, choice, scaling, enrage and relic code at 60 Hz.
-    // It mirrors the scene: a wave's pack fights together, the hero strikes the first living enemy in slot order, the
-    // hero acts before the enemies each frame, and every hit on the hero reaches the relic with its attacker.
+    // Runs authored floors through the real run, reward, upgrade, forge, choice, scaling, enrage, relic and pack motion code
+    // at 60 Hz. It mirrors the scene: a wave enters at the far end of the arena and walks in through PackMotion, the hero
+    // strikes the nearest living enemy within reach on the floor, enemies strike once the hero is within theirs, the hero
+    // acts before the enemies each frame, and every hit on the hero reaches the relic with its attacker.
     internal static class DescentSimulation
     {
         internal sealed class Enemy
@@ -22,6 +23,9 @@ namespace Cryptforge.Tests
             public float EnrageAt;
             public int Gold;
             public int Experience;
+            // Floor units per second, and the weapon's reach on the floor.
+            public float Speed;
+            public float Reach;
         }
 
         // Rooms hold waves, waves hold the enemies that spawn together; a null room is the forge.
@@ -38,9 +42,10 @@ namespace Cryptforge.Tests
         {
             public float Damage = 10f;
             public float Interval = 0.8f;
+            public float Range = 3f;
             public AttackPattern Pattern;
 
-            public WeaponRuntime CreateRuntime() => new WeaponRuntime(Damage, Interval, 3f, 0f, Pattern);
+            public WeaponRuntime CreateRuntime() => new WeaponRuntime(Damage, Interval, Range, 0f, Pattern);
         }
 
         internal struct Result
@@ -65,35 +70,36 @@ namespace Cryptforge.Tests
 
         // Mirror Data/Enemies, Data/Weapons, Data/Floors and PrototypeEconomy.asset; update together with the assets.
         public const int ExperiencePerLevel = 10;
-        public const int ExperienceGrowth = 1;
-        public static readonly Enemy Grunt = new Enemy { Name = "Grunt", Health = 50f, Damage = 6f, Interval = 1f, Gold = 5, Experience = 10 };
-        public static readonly Enemy Runner = new Enemy { Name = "Runner", Health = 30f, Damage = 2f, Interval = 0.4f, Gold = 3, Experience = 10 };
-        public static readonly Enemy Tank = new Enemy { Name = "Tank", Health = 120f, Damage = 12f, Interval = 2.5f, InitialDelay = 1.5f, Gold = 10, Experience = 10 };
-        public static readonly Enemy Captain = new Enemy { Name = "Grunt Captain", Health = 140f, Damage = 9f, Interval = 1.2f, InitialDelay = 0.6f, Gold = 20, Experience = 10 };
-        public static readonly Enemy Warden = new Enemy { Name = "Forge Warden", Health = 300f, Damage = 10f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50, Experience = 10 };
-        public static readonly Enemy Mite = new Enemy { Name = "Cinder Mite", Health = 15f, Damage = 1f, Interval = 1.5f, Gold = 1, Experience = 3 };
+        public const int ExperienceGrowth = 2;
+        public static readonly Enemy Grunt = new Enemy { Name = "Grunt", Health = 50f, Damage = 3.6f, Interval = 1f, Gold = 5, Experience = 10, Speed = 1.6f, Reach = 1.2f };
+        public static readonly Enemy Runner = new Enemy { Name = "Runner", Health = 30f, Damage = 1.2f, Interval = 0.4f, Gold = 3, Experience = 10, Speed = 3f, Reach = 1.2f };
+        public static readonly Enemy Tank = new Enemy { Name = "Tank", Health = 120f, Damage = 7.2f, Interval = 2.5f, InitialDelay = 1.5f, Gold = 10, Experience = 10, Speed = 0.9f, Reach = 1.4f };
+        public static readonly Enemy Captain = new Enemy { Name = "Grunt Captain", Health = 140f, Damage = 5.4f, Interval = 1.2f, InitialDelay = 0.6f, Gold = 20, Experience = 10, Speed = 1.4f, Reach = 1.3f };
+        public static readonly Enemy Warden = new Enemy { Name = "Forge Warden", Health = 300f, Damage = 6f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.4f };
+        // Mites come in numbers, so each one is worth only a little experience and no gold.
+        public static readonly Enemy Mite = new Enemy { Name = "Cinder Mite", Health = 15f, Damage = 0.6f, Interval = 1.5f, Gold = 0, Experience = 1, Speed = 2.2f, Reach = 1f };
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
-            new HeroWeapon { Damage = 10f, Interval = 0.8f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
+            new HeroWeapon { Damage = 10f, Interval = 0.8f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
 
-        // Weapon_Staff.asset: 10 damage every 0.9 s to the target and every enemy within 3.5 units of it.
+        // Weapon_Staff.asset: 11 damage every 1.1 s from 2.1 units away, and 75% of it to every enemy within 3.5 units of the target.
         public static HeroWeapon Staff() =>
-            new HeroWeapon { Damage = 10f, Interval = 0.9f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 1f) };
+            new HeroWeapon { Damage = 11f, Interval = 1.1f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
 
-        // Weapon_Daggers.asset: 6 damage every 0.55 s; every third strike crits for double damage.
+        // Weapon_Daggers.asset: 6 damage every 0.45 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
-            new HeroWeapon { Damage = 6f, Interval = 0.55f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
+            new HeroWeapon { Damage = 6f, Interval = 0.45f, Range = 1.5f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
             Rooms = new[]
             {
-                new[] { new[] { Grunt }, new[] { Mite, Mite }, new[] { Mite, Mite, Mite } },
-                new[] { new[] { Runner, Mite }, new[] { Mite, Mite, Mite }, new[] { Grunt, Mite, Mite } },
-                new[] { new[] { Tank }, new[] { Mite, Mite, Mite } },
+                new[] { new[] { Grunt, Mite }, new[] { Mite, Mite, Mite }, new[] { Grunt, Mite, Mite, Mite } },
+                new[] { new[] { Runner, Mite, Mite }, new[] { Mite, Mite, Mite, Mite }, new[] { Tank, Mite, Mite } },
+                new[] { new[] { Grunt, Runner, Mite, Mite }, new[] { Tank, Mite, Mite } },
                 null,
-                new[] { new[] { Captain, Mite, Mite } },
+                new[] { new[] { Captain, Grunt, Mite, Mite } },
                 new[] { new[] { Warden } }
             }
         };
@@ -102,22 +108,22 @@ namespace Cryptforge.Tests
         {
             Rooms = new[]
             {
-                new[] { new[] { Grunt, Mite }, new[] { Mite, Mite, Mite } },
-                new[] { new[] { Tank, Mite }, new[] { Runner, Mite, Mite } },
-                new[] { new[] { Grunt, Mite, Mite } },
+                new[] { new[] { Grunt, Mite, Mite, Mite }, new[] { Runner, Mite, Mite, Mite } },
+                new[] { new[] { Tank, Mite, Mite, Mite }, new[] { Mite, Mite, Mite, Mite, Mite } },
+                new[] { new[] { Grunt, Grunt, Mite, Mite, Mite } },
                 null,
-                new[] { new[] { Captain, Mite } },
-                new[] { new[] { Warden } }
+                new[] { new[] { Captain, Grunt, Mite, Mite } },
+                new[] { new[] { Warden, Mite, Mite } }
             },
             HealthMultiplier = 1.4f,
-            DamageMultiplier = 1.25f,
+            DamageMultiplier = 1.4f,
             ModifierDamagePercent = 0.2f,
             ModifierGoldPercent = 0.5f
         };
 
         public static UpgradeOption Damage() =>
-            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0} damage per hit", WeaponStat.Damage,
-                new StatModifier(ModifierOperation.Flat, 5f), 5);
+            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", WeaponStat.Damage,
+                new StatModifier(ModifierOperation.Percent, 0.5f), 5);
 
         public static UpgradeOption Speed() =>
             new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", WeaponStat.AttackSpeed,
@@ -137,8 +143,10 @@ namespace Cryptforge.Tests
         public static ForgeOption Temper() =>
             new ForgeOption("forge_temper", "Temper", "Gain {0:0} extra upgrade choice", ForgeEffect.BonusUpgrade, 1f);
 
-        // EncounterController._packSpacing in Gameplay.unity.
-        public const float PackSpacing = 1.7f;
+        // EncounterController's _entryDepth, _formationSpacing and _bodySpacing in Gameplay.unity, in floor units.
+        public const float EntryDepth = 6f;
+        public const float FormationSpacing = 1f;
+        public const float BodySpacing = 0.9f;
 
         // EncounterController._advanceDelay in Gameplay.unity. The hero's weapon keeps cooling down for this long between a
         // clear and the next wave, so a weapon slower than the delay starts the next wave still cooling down.
@@ -212,14 +220,17 @@ namespace Cryptforge.Tests
                 var enemyWeapons = new WeaponRuntime[pack.Length];
                 var enrages = new EnrageRule[pack.Length];
                 var rewarded = new bool[pack.Length];
+                var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing);
                 float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier, floor.ModifierDamagePercent);
                 for (int i = 0; i < pack.Length; i++)
                 {
                     enemies[i] = new HealthState(FloorScaling.Health(pack[i].Health, floor.HealthMultiplier, 0f));
-                    enemyWeapons[i] = new WeaponRuntime(pack[i].Damage, pack[i].Interval, 3f, pack[i].InitialDelay);
+                    enemyWeapons[i] = new WeaponRuntime(pack[i].Damage, pack[i].Interval, pack[i].Reach, pack[i].InitialDelay);
                     if (damageBonus != 0f)
                         enemyWeapons[i].AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                     enrages[i] = pack[i].EnrageAt > 0f ? new EnrageRule(pack[i].EnrageAt) : null;
+                    PackLayout.Offset(i, pack.Length, FormationSpacing, out float offsetX, out float offsetY);
+                    motion.Add(enemies[i], offsetX, EntryDepth + offsetY, pack[i].Speed, pack[i].Reach);
                 }
 
                 float startSeconds = result.FightSeconds;
@@ -231,17 +242,18 @@ namespace Cryptforge.Tests
                         weapon.Tick(step);
                         for (int i = 0; i < pack.Length; i++)
                             enemyWeapons[i].Tick(step);
+                        motion.Step(step);
                         result.FightSeconds += step;
                     }
 
-                    int target = FirstAlive(enemies);
-                    if (weapon.IsReady)
-                        weapon.TryAttack(enemies[target], null, Nearby(enemies, target, weapon.Pattern.SplashRadius));
+                    int target = Acquire(motion, enemies, weapon.Range);
+                    if (target >= 0 && weapon.IsReady)
+                        weapon.TryAttack(enemies[target], null, Nearby(motion, enemies, target, weapon.Pattern.SplashRadius));
                     Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
 
                     for (int i = 0; i < pack.Length && hero.IsAlive; i++)
                     {
-                        if (!enemies[i].IsAlive)
+                        if (!enemies[i].IsAlive || !IsHeroInReach(motion, i, enemyWeapons[i].Range))
                             continue;
                         float before = hero.Current;
                         if (enemyWeapons[i].TryAttack(hero, enemies[i]) && relic != null && hero.Current < before)
@@ -255,7 +267,7 @@ namespace Cryptforge.Tests
                 float waveSeconds = result.FightSeconds - startSeconds;
                 if (Array.Exists(pack, enemy => enemy.EnrageAt > 0f))
                     result.BossFightSeconds += waveSeconds;
-                else if (Array.TrueForAll(pack, enemy => enemy == Mite))
+                else if (Array.TrueForAll(pack, enemy => enemy.Name == Mite.Name))
                     result.MitePackFightSeconds += waveSeconds;
 
                 if (!hero.IsAlive)
@@ -286,27 +298,59 @@ namespace Cryptforge.Tests
             }
         }
 
-        // Mirrors Targeting.CollectNear over PackLayout slots: living enemies within radius of the target, nearest first.
-        internal static IReadOnlyList<IDamageable> Nearby(HealthState[] enemies, int target, float radius)
+        // Mirrors Targeting.Acquire for the hero at the floor origin: the nearest living enemy within range, the earlier slot on
+        // equal distance. Distances are computed exactly as Targeting computes them.
+        internal static int Acquire(PackMotion motion, HealthState[] enemies, float range)
+        {
+            int nearest = -1;
+            float nearestDistanceSquared = range * range;
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (!enemies[i].IsAlive)
+                    continue;
+                float x = motion.XOf(i);
+                float y = motion.YOf(i);
+                float distanceSquared = x * x + y * y;
+                if (nearest < 0 ? distanceSquared <= nearestDistanceSquared : distanceSquared < nearestDistanceSquared)
+                {
+                    nearest = i;
+                    nearestDistanceSquared = distanceSquared;
+                }
+            }
+            return nearest;
+        }
+
+        // Mirrors an enemy's Targeting.Acquire, whose only candidate is the hero at the origin.
+        private static bool IsHeroInReach(PackMotion motion, int enemy, float reach)
+        {
+            float x = -motion.XOf(enemy);
+            float y = -motion.YOf(enemy);
+            return x * x + y * y <= reach * reach;
+        }
+
+        // Mirrors Targeting.CollectNear: living enemies within radius of the target on the floor, nearest first.
+        internal static IReadOnlyList<IDamageable> Nearby(PackMotion motion, HealthState[] enemies, int target, float radius)
         {
             var nearby = new List<IDamageable>();
             if (radius <= 0f)
                 return nearby;
 
-            float origin = PackLayout.OffsetX(target, enemies.Length, PackSpacing);
+            float radiusSquared = radius * radius;
             var distances = new List<float>();
             for (int i = 0; i < enemies.Length; i++)
             {
                 if (i == target || !enemies[i].IsAlive)
                     continue;
-                float distance = Math.Abs(PackLayout.OffsetX(i, enemies.Length, PackSpacing) - origin);
-                if (distance > radius)
+                float dx = motion.XOf(i) - motion.XOf(target);
+                float dy = motion.YOf(i) - motion.YOf(target);
+                float distanceSquared = dx * dx + dy * dy;
+                if (distanceSquared > radiusSquared)
                     continue;
                 int insertAt = nearby.Count;
-                while (insertAt > 0 && distances[insertAt - 1] > distance)
+                while (insertAt > 0 && distances[insertAt - 1] > distanceSquared)
                     insertAt--;
                 nearby.Insert(insertAt, enemies[i]);
-                distances.Insert(insertAt, distance);
+                distances.Insert(insertAt, distanceSquared);
             }
             return nearby;
         }

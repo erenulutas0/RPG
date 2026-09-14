@@ -61,8 +61,8 @@ namespace Cryptforge.Tests
             PlayDescent("weapon_daggers", DescentSimulation.Daggers(), 0, false, DescentSimulation.SecondWind());
 
         [UnityTest]
-        public IEnumerator StaffSpeedFirstTemperWithCounterweightDeathMatchesTheSimulation() =>
-            PlayDescent("weapon_staff", DescentSimulation.Staff(), 1, false, DescentSimulation.Counterweight());
+        public IEnumerator DaggersSpeedFirstTemperWithCounterweightDeathMatchesTheSimulation() =>
+            PlayDescent("weapon_daggers", DescentSimulation.Daggers(), 1, false, DescentSimulation.Counterweight());
 
         private IEnumerator PlayDescent(string weaponId, DescentSimulation.HeroWeapon weapon, int cardSlot, bool mendOnFloorOne,
             RelicOption relic)

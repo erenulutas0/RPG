@@ -9,20 +9,31 @@ namespace Cryptforge.Tests
     public sealed class PackTests
     {
         [Test]
-        public void PackSlotsPutTheFirstEnemyInTheCentreAndSpreadTheRest()
+        public void PackSlotsFillTheFrontFirstAndStayInsideTheWidestSpread()
         {
-            Assert.That(PackLayout.OffsetX(0, 1, 1.7f), Is.Zero);
-            Assert.That(PackLayout.OffsetX(0, 2, 1.7f), Is.EqualTo(-0.85f).Within(1e-5f));
-            Assert.That(PackLayout.OffsetX(1, 2, 1.7f), Is.EqualTo(0.85f).Within(1e-5f));
-            Assert.That(PackLayout.OffsetX(0, 3, 1.7f), Is.Zero, "The first enemy is the nearest, so the hero fights it first.");
-            Assert.That(PackLayout.OffsetX(1, 3, 1.7f), Is.EqualTo(-1.7f));
-            Assert.That(PackLayout.OffsetX(2, 3, 1.7f), Is.EqualTo(1.7f));
+            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+            {
+                float previousDepth = 0f;
+                float sumX = 0f;
+                for (int index = 0; index < count; index++)
+                {
+                    PackLayout.Offset(index, count, 1f, out float x, out float y);
+                    Assert.That(Math.Abs(x), Is.LessThanOrEqualTo(PackLayout.HalfWidth), $"{count} enemies, slot {index}");
+                    Assert.That(y, Is.GreaterThanOrEqualTo(previousDepth), $"{count} enemies: slot {index} is not in front of an earlier one");
+                    previousDepth = y;
+                    sumX += x;
+                }
+                PackLayout.Offset(0, count, 1f, out _, out float frontDepth);
+                Assert.That(frontDepth, Is.Zero, "The first slot is at the front.");
+                Assert.That(sumX, Is.EqualTo(0f).Within(1e-4f), $"{count} enemies stay centred.");
+            }
 
-            // Three abreast stay inside the 3-unit weapon range from the hero 2.4 units below the pack.
-            Assert.That(Math.Sqrt(1.7 * 1.7 + 2.4 * 2.4), Is.LessThan(3.0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.OffsetX(0, 4, 1.7f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.OffsetX(2, 2, 1.7f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.OffsetX(0, 1, 0f));
+            PackLayout.Offset(1, 3, 1.5f, out float scaledX, out float scaledY);
+            Assert.That(scaledX, Is.EqualTo(-2.1f).Within(1e-5f), "Offsets scale with the spacing.");
+            Assert.That(scaledY, Is.EqualTo(1.2f).Within(1e-5f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(0, PackLayout.MaxPackSize + 1, 1f, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(2, 2, 1f, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(0, 1, 0f, out _, out _));
         }
 
         [Test]
@@ -113,22 +124,34 @@ namespace Cryptforge.Tests
         [Test]
         public void TheSwordCleaveClearsAMitePackInFewerSwingsThanADirectHit()
         {
-            // The centre mite's cleave reaches a side mite; the side mites stand 3.4 apart, beyond the 2-unit cleave.
-            Assert.That(SwingsToClearMites(DescentSimulation.Sword().CreateRuntime()), Is.EqualTo(5));
-            Assert.That(SwingsToClearMites(new WeaponRuntime(10f, 0.8f, 3f)), Is.EqualTo(6));
+            int cleave = SwingsToClearMites(DescentSimulation.Sword().CreateRuntime());
+            int direct = SwingsToClearMites(new WeaponRuntime(10f, 0.8f, 1.8f));
+            Assert.That(direct, Is.EqualTo(6), "Two 10-damage hits per 15 HP mite.");
+            Assert.That(cleave, Is.LessThan(direct), "Mites standing side by side at the hero share the cleave.");
         }
 
-        // Three 15 HP Cinder Mites in PackLayout slots; the hero strikes the first living one each swing.
+        // Three 15 HP Cinder Mites walked in to the hero; each swing strikes the nearest living one in reach.
         private static int SwingsToClearMites(WeaponRuntime weapon)
         {
             var mites = new[] { new HealthState(15f), new HealthState(15f), new HealthState(15f) };
+            var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
+            for (int i = 0; i < mites.Length; i++)
+            {
+                PackLayout.Offset(i, mites.Length, 1f, out float x, out float y);
+                motion.Add(mites[i], x, DescentSimulation.EntryDepth + y, DescentSimulation.Mite.Speed, DescentSimulation.Mite.Reach);
+            }
+            for (int frame = 0; frame < 600; frame++)
+                motion.Step(1f / 60f);
+
             int swings = 0;
             while (Array.Exists(mites, mite => mite.IsAlive) && swings < 50)
             {
                 weapon.Tick(10f);
-                int target = Array.FindIndex(mites, mite => mite.IsAlive);
-                weapon.TryAttack(mites[target], null, DescentSimulation.Nearby(mites, target, weapon.Pattern.SplashRadius));
+                int target = DescentSimulation.Acquire(motion, mites, weapon.Range);
+                Assert.That(target, Is.GreaterThanOrEqualTo(0), "Every mite waits within the hero's reach.");
+                weapon.TryAttack(mites[target], null, DescentSimulation.Nearby(motion, mites, target, weapon.Pattern.SplashRadius));
                 swings++;
+                motion.Step(1f / 60f);
             }
             return swings;
         }

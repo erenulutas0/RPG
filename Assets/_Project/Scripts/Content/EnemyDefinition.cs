@@ -17,6 +17,8 @@ namespace Cryptforge.Content
         [SerializeField, Min(0)] private int _goldReward;
         // Experience per kill; packs make small enemies cheap so level-ups keep a steady pace.
         [SerializeField, Min(0)] private int _experienceReward;
+        // Floor units per second while walking in; the weapon's range is how close it gets before it stops to attack.
+        [SerializeField, Min(0f)] private float _moveSpeed;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -25,5 +27,6 @@ namespace Cryptforge.Content
         public Health Prefab => _prefab;
         public int GoldReward => _goldReward;
         public int ExperienceReward => _experienceReward;
+        public float MoveSpeed => _moveSpeed;
     }
 }

@@ -219,7 +219,7 @@ Testers cannot tell which enemy is being hit or attacking; a Descent still plays
 ## Decision: Astral foundry art direction and the mockup layout
 
 **Date:** 2026-09-14  
-**Status:** Accepted (the first slice, the isometric arena, is next)  
+**Status:** Accepted (isometric arena part 1 implemented: arena floor, walking packs and the rebalance; the platform visuals are next; see `21`)  
 **Owner:** Product / art
 
 ### Context
@@ -252,3 +252,12 @@ Negative:
 
 ### Revisit trigger
 The placeholder arena fails a readability check on the S23 (enemy size, health bars, damage numbers), testers cannot tell floors apart, or larger packs cost frame rate.
+
+### Arena update (2026-09-14)
+- **Enemies walk in.** The owner chose walking over enemies appearing in place: reach starts to matter, and the coming area ability gets moving targets. The cost is a rebalance and a movement model the simulation must share.
+- **Positions live on a floor; the screen shows depth at half length.** Halving and doubling are exact in floating point, so distances from world positions equal the simulation's floor distances bit for bit, and the parity tests stay exact.
+- **One motion model for scene and simulation.** `PackMotion` is plain C#. Enemies step nearest first, and a step that comes within 0.9 units of a nearer enemy waits. No physics or pathfinding: revisit when rooms get obstacles or enemies need to push.
+- **Tempered Edge became +50% damage** instead of +5. That is the same for 10-damage weapons, but a flat bonus added 83% to the Daggers' 6 damage and no Daggers tuning met the sidegrade targets around it.
+- **Counterweight now carries speed-first Temper for the Sword and the Staff.** The relic decision above wanted that path to fail. Accepted for now: Counterweight still favours damage upgrades (on the Sword's Mend paths it adds 16 HP to damage first and 5 to speed first), the Daggers still fall on that path, and Second Wind carries it for every weapon. Revisit with the relic values if testers always forge Counterweight.
+- **Pacing:** floor 1 takes about 54 s of simulated fighting with the Sword, up from about 16 s, which closes the pacing gap the packs decision left open.
+- **Larger packs, less damage each:** up to five enemies per wave on these floors (seven supported), enemy damage at 60%, Cinder Mites worth 1 XP and no gold, and each level costing two more than the last.

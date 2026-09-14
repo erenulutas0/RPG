@@ -146,21 +146,26 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator CounterweightStrikesTheGruntEachTimeItHitsTheHero()
+        public IEnumerator CounterweightStrikesBackAtWhicheverEnemyHitsTheHero()
         {
             yield return LoadGameplay(new PlayerProfile(0, new[] { "relic_counterweight" }, "relic_counterweight", 0));
-            Health grunt = _encounters.CurrentEnemy;
+            // The hero holds its swings, so every point of damage on the pack comes from a counter.
+            _hero.GetComponent<AttackController>().enabled = false;
+            Health grunt = _encounters.WaveEnemyAt(0);
+            Health mite = _encounters.WaveEnemyAt(1);
             AttackController gruntAttack = grunt.GetComponent<AttackController>();
-            AttackController heroAttack = _hero.GetComponent<AttackController>();
+            AttackController miteAttack = mite.GetComponent<AttackController>();
 
-            float deadline = Time.realtimeSinceStartup + 4f;
-            while (gruntAttack.AttackCount < 2 && grunt.IsAlive && Time.realtimeSinceStartup < deadline)
+            float deadline = Time.realtimeSinceStartup + 10f;
+            while (gruntAttack.AttackCount < 2 && Time.realtimeSinceStartup < deadline)
                 yield return null;
 
-            Assert.That(gruntAttack.AttackCount, Is.GreaterThanOrEqualTo(2));
-            Assert.That(_setup.Relic.Triggers, Is.EqualTo(gruntAttack.AttackCount), "Every Grunt Strike is answered.");
-            Assert.That(grunt.Current, Is.EqualTo(50f - 10f * heroAttack.AttackCount - 6f * _setup.Relic.Triggers).Within(1e-3f),
-                "Sword hits deal 10 and each counter deals 60% of 10.");
+            Assert.That(gruntAttack.AttackCount, Is.EqualTo(2));
+            Assert.That(miteAttack.AttackCount, Is.GreaterThanOrEqualTo(1), "The faster mite bites first.");
+            Assert.That(_setup.Relic.Triggers, Is.EqualTo(gruntAttack.AttackCount + miteAttack.AttackCount), "Every strike is answered.");
+            Assert.That(grunt.Current, Is.EqualTo(50f - 6f * gruntAttack.AttackCount).Within(1e-3f),
+                "Each counter deals 60% of the Sword's 10 to the enemy that struck.");
+            Assert.That(mite.Current, Is.EqualTo(Mathf.Max(0f, 15f - 6f * miteAttack.AttackCount)).Within(1e-3f));
             Assert.That(Label("Relic Label"), Is.EqualTo($"Relic: Counterweight ({_setup.Relic.Triggers}x)"));
             LogAssert.NoUnexpectedReceived();
         }
@@ -198,9 +203,9 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(0.4f);
 
             Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo($"10 damage every {0.8f:0.0#}s. Cleaves a second enemy for 60%"));
-            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"10 damage every {0.9f:0.0#}s to the target and every enemy near it"));
+            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"11 damage every {1.1f:0.0#}s. Blasts every enemy near the target for 75%"));
             Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
-            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.55f:0.0#}s. Crits for 200% once every 3 strikes"));
+            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.45f:0.0#}s. Crits for 200% once every 3 strikes"));
             Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
 
             Tap(WeaponCard(1));
@@ -226,57 +231,74 @@ namespace Cryptforge.Tests
             yield return StartRun();
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
             Assert.That(_setup.Weapon.Pattern.Behavior, Is.EqualTo(WeaponBehavior.Area));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Staff  |  10 damage every {0.9f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Staff  |  11 damage every {1.1f:0.00}s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Staff Loadout"));
             Assert.That(GameObject.Find("Sword Placeholder"), Is.Null, "The Sword loadout is hidden.");
 
-            Health grunt = _encounters.CurrentEnemy;
+            Health grunt = _encounters.WaveEnemyAt(0);
+            Health mite = _encounters.WaveEnemyAt(1);
             AttackController heroAttack = _hero.GetComponent<AttackController>();
-            float deadline = Time.realtimeSinceStartup + 3f;
+            float deadline = Time.realtimeSinceStartup + 8f;
             while (heroAttack.AttackCount < 2 && Time.realtimeSinceStartup < deadline)
                 yield return null;
-            Assert.That(heroAttack.AttackCount, Is.GreaterThanOrEqualTo(2));
-            Assert.That(grunt.Current, Is.EqualTo(50f - 10f * heroAttack.AttackCount).Within(1e-3f), "Each Staff blast deals 10.");
+            Assert.That(heroAttack.AttackCount, Is.EqualTo(2));
+            Assert.That(mite.IsAlive, Is.False, "Two 11-damage blasts fell the 15 HP mite that walks in first.");
+            Assert.That(grunt.Current, Is.EqualTo(50f - 2 * 11f * 0.75f).Within(1e-3f), "Each blast also hits the Grunt walking in beside it for 75%.");
         }
 
         [UnityTest]
         public IEnumerator DaggersCritEveryThirdStrikeAndTheCritFlashesGold()
         {
             yield return LoadGameplay(new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Daggers  |  6 damage every {0.55f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo($"Daggers  |  6 damage every {0.45f:0.00}s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Daggers Loadout"));
 
-            // The Daggers may already have struck while the scene loaded, so each hit is checked against its attack number.
-            Health grunt = _encounters.CurrentEnemy;
+            // Every hit on the pack is checked against its attack number: the mite walks in first and takes strikes 1 to 3,
+            // then the Grunt takes the rest.
+            Health grunt = _encounters.WaveEnemyAt(0);
+            Health mite = _encounters.WaveEnemyAt(1);
             WeaponRuntime daggers = _setup.Weapon;
-            SpriteRenderer body = grunt.transform.Find("Enemy Body").GetComponent<SpriteRenderer>();
-            var hits = new List<(int Attack, float Amount, bool Critical, bool FlashedGold)>();
-            System.Action<DamageContext> record = context =>
-                hits.Add((daggers.AttacksMade, context.Amount, context.IsCritical, body.color == new Color(1f, 0.82f, 0.2f)));
-            grunt.Damaged += record;
+            var hits = new List<(Health Enemy, int Attack, float Amount, bool Critical, bool FlashedGold)>();
+            System.Action<DamageContext> recordGrunt = Recorder(grunt, daggers, hits);
+            System.Action<DamageContext> recordMite = Recorder(mite, daggers, hits);
+            grunt.Damaged += recordGrunt;
+            mite.Damaged += recordMite;
             try
             {
-                float deadline = Time.realtimeSinceStartup + 4f;
-                while ((hits.Count < 3 || !hits.Exists(hit => hit.Critical)) && Time.realtimeSinceStartup < deadline)
+                float deadline = Time.realtimeSinceStartup + 10f;
+                while (!hits.Exists(hit => hit.Enemy == grunt && hit.Critical) && Time.realtimeSinceStartup < deadline)
                     yield return null;
             }
             finally
             {
-                grunt.Damaged -= record;
+                grunt.Damaged -= recordGrunt;
+                mite.Damaged -= recordMite;
             }
 
-            Assert.That(hits.Count, Is.GreaterThanOrEqualTo(3));
-            Assert.That(hits.Exists(hit => hit.Critical), Is.True);
+            Assert.That(hits.Exists(hit => hit.Enemy == grunt && hit.Critical), Is.True);
+            float gruntDamage = 0f;
             foreach (var hit in hits)
             {
                 bool third = hit.Attack % 3 == 0;
+                Assert.That(hit.Enemy, Is.SameAs(hit.Attack <= 3 ? mite : grunt), $"Strike {hit.Attack} target");
                 Assert.That(hit.Critical, Is.EqualTo(third), $"Strike {hit.Attack}");
                 Assert.That(hit.Amount, Is.EqualTo(third ? 12f : 6f), $"Strike {hit.Attack}");
                 Assert.That(hit.FlashedGold, Is.EqualTo(third), $"Strike {hit.Attack} flash");
+                if (hit.Enemy == grunt)
+                    gruntDamage += hit.Amount;
             }
-            int strikes = daggers.AttacksMade;
-            Assert.That(grunt.Current, Is.EqualTo(50f - 6f * strikes - 6f * (strikes / 3)).Within(1e-3f));
+            Assert.That(hits.Count, Is.EqualTo(daggers.AttacksMade), "Each strike lands once.");
+            Assert.That(mite.IsAlive, Is.False, "6, 6 and a 12 crit fell the 15 HP mite.");
+            Assert.That(grunt.Current, Is.EqualTo(50f - gruntDamage).Within(1e-3f));
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // Records each hit with the weapon's attack number and whether the enemy's body flashed crit gold as it landed.
+        private static System.Action<DamageContext> Recorder(Health enemy, WeaponRuntime weapon,
+            List<(Health Enemy, int Attack, float Amount, bool Critical, bool FlashedGold)> hits)
+        {
+            SpriteRenderer body = enemy.transform.Find("Enemy Body").GetComponent<SpriteRenderer>();
+            return context => hits.Add((enemy, weapon.AttacksMade, context.Amount, context.IsCritical, body.color == new Color(1f, 0.82f, 0.2f)));
         }
 
         // Every Forge panel element is anchored to the bottom of the safe area; together they must fit the shortest

@@ -15,8 +15,8 @@ MonoBehaviour:
   _id: weapon_daggers
   _displayName: Daggers
   _damage: 6
-  _interval: 0.55
-  _range: 3
+  _interval: 0.45
+  _range: 1.5
   _initialDelay: 0
   _behavior: 0
   _splashRadius: 0

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: PrototypeEconomy
   m_EditorClassIdentifier:
   _experiencePerLevel: 10
-  _experienceGrowth: 1
+  _experienceGrowth: 2
   _upgradeChoiceCount: 2
   _atRiskGoldLoss: 0.5

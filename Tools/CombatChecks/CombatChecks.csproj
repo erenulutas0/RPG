@@ -24,6 +24,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PackLayout.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/PackMotion.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/ArenaFloor.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponBehavior.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AttackPattern.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
@@ -47,6 +49,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunPauseTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />
   </ItemGroup>

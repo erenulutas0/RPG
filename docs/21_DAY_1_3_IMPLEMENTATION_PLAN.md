@@ -470,6 +470,71 @@ Verified: Unity EditMode 143/143, PlayMode 44/44, `Verify-Project.ps1`, .NET Com
 
 Unity's JSON parser rejected every partial file, so no change to `ProfileStore` was needed; the tests keep it that way. Verified: Unity EditMode 145/145 (no game code changed).
 
+### Implemented 2026-09-14: the arena floor and walking packs (isometric arena, part 1)
+
+The first slice of the astral foundry direction in `19`. The owner chose enemies that walk in toward the hero over enemies that appear in place. This part moves combat onto a two-dimensional floor and rebalances the Descent; the floating platform, backdrop and camera follow in part 2.
+
+- **Arena floor:** every position is a point on a flat floor with the hero at the origin. The screen shows depth at half length (`ArenaFloor.DepthScale` 0.5), the way an isometric view foreshortens it. Reach, cleave and area radii are floor distances, so an enemy straight ahead is as far away as one to the side. The Vanguard now stands at the world origin, and the camera moved up to keep it framed.
+- **Formations:** a wave holds up to seven enemies. `PackLayout` fills the front row first and puts later slots behind and to the sides, never more than 2 floor units off the centre line.
+- **Walking in:** a wave enters 6 floor units from the hero (`_entryDepth`). `PackMotion` walks each enemy toward its own point on an arc just inside its weapon's reach (0.1 inside, so rounding never leaves it on the edge). Enemies from the centre slots come straight on; the widest slots approach from 60° off the centre line. Enemies step nearest first and wait whenever a step would bring them closer than 0.9 units (`_bodySpacing`) to a nearer enemy, so the pack queues instead of stacking.
+- **Combat order:** the hero strikes the nearest living enemy within its reach, the earlier slot on equal distance; an enemy strikes once the hero is within its own reach. Nothing walks on the frame a wave spawns, while time is frozen, or after the hero falls. `EncounterController` runs before other scripts, so enemies move before anyone attacks, the same order the Descent simulation uses.
+- **Victory names the boss:** Warden's Vault now holds two mites with the Warden, and the result named whichever enemy fell last. It now names the final wave's toughest enemy.
+
+| Enemy | Speed (units/s) | Reach | Damage |
+|---|---|---|---|
+| Grunt | 1.6 | 1.2 | 3.6 every 1 s |
+| Runner | 3 | 1.2 | 1.2 every 0.4 s |
+| Tank | 0.9 | 1.4 | 7.2 every 2.5 s |
+| Grunt Captain | 1.4 | 1.3 | 5.4 every 1.2 s |
+| Forge Warden | 1 | 1.4 | 6 every 1.8 s |
+| Cinder Mite | 2.2 | 1 | 0.6 every 1.5 s |
+
+| Floor | Room | Waves |
+|---|---|---|
+| Ember Halls | Ember Hall | Grunt + Mite · 3 Mites · Grunt + 3 Mites |
+| | Cinder Walk | Runner + 2 Mites · 4 Mites · Tank + 2 Mites |
+| | Slag Gate | Grunt + Runner + 2 Mites · Tank + 2 Mites |
+| | Captain's Post | Grunt Captain + Grunt + 2 Mites |
+| | Warden's Crucible | Forge Warden |
+| Quicksilver Vaults | Mercury Stair | Grunt + 3 Mites · Runner + 3 Mites |
+| | Cold Crucible | Tank + 3 Mites · 5 Mites |
+| | Vault Gate | 2 Grunts + 3 Mites |
+| | Sentry Hall | Grunt Captain + Grunt + 2 Mites |
+| | Warden's Vault | Forge Warden + 2 Mites |
+
+**Rebalance.** With walking packs the old values failed four balance tests. The Staff's 3.2 reach blasted packs well before they arrived, so it outclassed the other weapons. A flat +5 Tempered Edge added 83% to the Daggers' 6 damage but 50% to the other weapons' 10, and the search found no Daggers tuning around that. The new values:
+- **Enemies:** every enemy weapon deals 60% of its old damage; floor 2 hits 1.4× instead of 1.25× before Cursed Gold.
+- **Cinder Mites:** 1 XP and no gold instead of 3 XP and 1 gold, and each level costs two more than the last (10, 12, 14, ...; `_experienceGrowth` 2), so the larger packs do not use up the ten upgrade stacks early.
+- **Tempered Edge:** +50% damage instead of +5. That is the same for 10-damage weapons and proportional for the Daggers.
+- **Weapons:** the Sword reaches 1.8; the Staff deals 11 every 1.1 s from 2.1 units away and 75% of that to the rest of the pack within 3.5 units; the Daggers strike every 0.45 s at 1.5 units.
+- **Warden:** reach 1.4 instead of 1.5. It stopped exactly at 1.4, one of the Daggers reaches the search tried, where float rounding would decide whether they connect.
+
+The search kept the hard targets of the relic and weapon slices (Mend descents survive; Temper descents fall on floor 2 without a relic; both relics rescue damage-first Temper; every weapon within 15 HP of the Sword on the Mend paths; the Staff fastest on mite packs and the Daggers fastest on the Wardens). Small changes flipped outcomes, so it preferred candidates whose one-step neighbours also met every target.
+
+Ember Halls pays 116 gold and a full Descent 273, because only named enemies pay. A Descent now has 60 kills and about 83 s of simulated fighting with the Sword (54 s on floor 1, up from about 16 s), with 7 upgrades by the end of floor 1 and all 10 on floor 2.
+
+| Weapon | D + Mend | S + Mend | D + Temper | S + Temper | D + Temper + Counterweight | D + Temper + Second Wind | S + Temper + Counterweight | S + Temper + Second Wind | Wardens | Mite packs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Sword | 46 → 37 | 45 → 23 | 12 → dies F2 room 2 | 11 → dies F2 room 2 | 33 → 30 | 37 → 34 | 27 → 18 | 36 → 26 | 15.2 s | 9.1 s |
+| Staff | 46 → 42 | 41 → 34 | 12 → dies F2 room 2 | 7 → dies F2 room 2 | 40 → 37 | 37 → 33 | 23 → 16 | 32 → 25 | 16.2 s | 6.5 s |
+| Daggers | 55 → 38 | 51 → 33 | 21 → dies F2 room 3 | 18 → dies F2 room 2 | 35 → 20 | 46 → 29 | 29 → dies F2 room 3 | 43 → 24 | 13.9 s | 10.4 s |
+
+(Health after floor 1 → end of floor 2; D = damage first, S = speed first; Warden and mite-pack times are simulated fight seconds on the D + Mend path.)
+
+- **Counterweight now carries speed-first Temper** for the Sword and the Staff. The relic decision in `19` wanted that path to fail; it still fails for the Daggers. Counterweight still favours damage: on the Sword's Mend paths it adds 16 HP to damage first and 5 to speed first. `DescentTests` now checks that difference, and that Second Wind carries speed-first Temper.
+- **Parity:** the Staff's speed-first Temper death with Counterweight became a victory, so that parity case now plays the Daggers' death on the same path. All seven cases match the simulation exactly.
+
+| Files | Change |
+|---|---|
+| `Scripts/Combat/ArenaFloor.cs`, `PackMotion.cs` (new), `PackLayout.cs`, `Targeting.cs` | Floor distances; walking in; two-dimensional slots for up to seven enemies; targeting and splash by floor distance. |
+| `Scripts/Combat/EncounterController.cs`, `Scripts/Content/EnemyDefinition.cs`, `Scripts/UI/RunResultView.cs` | Entry depth, formation and body spacing; moving the pack each frame; move speed per enemy; the toughest enemy of the wave names a victory. |
+| Both floors, every enemy and weapon asset, `Enemy_CinderMite.asset`, `Upgrade_Damage.asset`, `PrototypeEconomy.asset`, `Gameplay.unity` | Packs, speeds, reaches and the rebalance; the hero at the origin, the camera and the encounter's arena settings. |
+| Tests | EditMode `PackMotionTests` (5): walking at speed and stopping inside reach, approach angles, waiting behind a nearer enemy, validation, floor distances from world positions matching floor coordinates exactly. `PackTests` checks the slots and plays the Sword's cleave on mites that walked in. `DescentSimulation` walks packs through `PackMotion` with the new data. PlayMode tests follow walking packs: formation positions at spawn and mirrored paths, the first pack falling to six swings for 11 XP, enemies striking only in reach, pause and a dead hero freezing movement, Counterweight answering whichever enemy strikes, Staff splash on the Grunt beside the mite, Daggers crits across the mite and the Grunt, and the victory naming the Warden although its mites fell last. |
+
+Before the Unity runs, a frame-by-frame replay of single waves with the simulation's classes predicted the scene counts the new PlayMode tests assert (six swings and eight hits for the first pack; three swings for three mites after Tempered Edge, four after Quickened Grip). All held on the first run.
+
+Verified: Unity EditMode 150/150, PlayMode 44/44, `Verify-Project.ps1`, .NET CombatChecks 138/138. The development APK is built after part 2.
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

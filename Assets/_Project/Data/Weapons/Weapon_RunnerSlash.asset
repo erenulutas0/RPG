@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _id: weapon_runner_slash
   _displayName: Runner Slash
-  _damage: 2
+  _damage: 1.2
   _interval: 0.4
-  _range: 3
+  _range: 1.2
   _initialDelay: 0
   _behavior: 0
   _splashRadius: 0

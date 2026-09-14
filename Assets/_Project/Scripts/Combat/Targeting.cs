@@ -24,7 +24,7 @@ namespace Cryptforge.Combat
                 if (!IsValid(candidate))
                     continue;
 
-                float distanceSquared = ((Vector2)(candidate.transform.position - transform.position)).sqrMagnitude;
+                float distanceSquared = FloorDistanceSquared(candidate.transform.position, transform.position);
                 if (nearest == null ? distanceSquared <= nearestDistanceSquared : distanceSquared < nearestDistanceSquared)
                 {
                     nearest = candidate;
@@ -43,19 +43,19 @@ namespace Cryptforge.Combat
                 return;
 
             float radiusSquared = radius * radius;
-            Vector2 origin = center.transform.position;
+            Vector3 origin = center.transform.position;
             for (int i = 0; i < _candidates.Length; i++)
             {
                 Health candidate = _candidates[i];
                 if (candidate == center || !IsValid(candidate))
                     continue;
 
-                float distanceSquared = ((Vector2)candidate.transform.position - origin).sqrMagnitude;
+                float distanceSquared = FloorDistanceSquared(candidate.transform.position, origin);
                 if (distanceSquared > radiusSquared)
                     continue;
 
                 int insertAt = results.Count;
-                while (insertAt > 0 && DistanceSquared((Health)results[insertAt - 1], origin) > distanceSquared)
+                while (insertAt > 0 && FloorDistanceSquared(((Health)results[insertAt - 1]).transform.position, origin) > distanceSquared)
                     insertAt--;
                 results.Insert(insertAt, candidate);
             }
@@ -64,7 +64,11 @@ namespace Cryptforge.Combat
         private bool IsValid(Health candidate) =>
             candidate != null && candidate.transform != transform && candidate.isActiveAndEnabled && candidate.IsAlive;
 
-        private static float DistanceSquared(Health health, Vector2 origin) =>
-            ((Vector2)health.transform.position - origin).sqrMagnitude;
+        // Reach and splash are measured on the arena floor, not on the screen.
+        private static float FloorDistanceSquared(Vector3 position, Vector3 origin)
+        {
+            Vector3 offset = position - origin;
+            return ArenaFloor.DistanceSquared(offset.x, offset.y);
+        }
     }
 }

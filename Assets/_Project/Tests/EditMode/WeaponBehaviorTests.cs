@@ -24,9 +24,9 @@ namespace Cryptforge.Tests
 
             Assert.That(staff.TryAttack(target, hero, new IDamageable[] { target, dead, left, right }), Is.True);
 
-            Assert.That(target.Current, Is.EqualTo(40f));
-            Assert.That(left.Current, Is.EqualTo(5f).Within(1e-4f), "The full 10 lands on every living neighbour.");
-            Assert.That(right.Current, Is.EqualTo(30f).Within(1e-4f));
+            Assert.That(target.Current, Is.EqualTo(39f));
+            Assert.That(left.Current, Is.EqualTo(6.75f).Within(1e-4f), "75% of the 11 lands on every living neighbour.");
+            Assert.That(right.Current, Is.EqualTo(31.75f).Within(1e-4f));
             Assert.That(sources, Is.EqualTo(new[] { hero }), "Splash hits carry the attacker too.");
         }
 

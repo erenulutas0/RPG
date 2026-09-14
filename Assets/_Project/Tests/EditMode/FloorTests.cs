@@ -223,8 +223,8 @@ namespace Cryptforge.Tests
             Assert.That(speedFirst.ClearedFloors, Is.EqualTo(1), $"Speed first died in {speedFirst.DeathRoom}.");
             Assert.That(damageFirst.HeroHealth, Is.InRange(20f, 75f), "The packs and the Warden should threaten a mended hero.");
             Assert.That(speedFirst.HeroHealth, Is.InRange(15f, 60f));
-            Assert.That(damageFirst.Kills, Is.EqualTo(22), "Ember Halls fields six named enemies and sixteen Cinder Mites.");
-            Assert.That(damageFirst.Gold, Is.EqualTo(109));
+            Assert.That(damageFirst.Kills, Is.EqualTo(31), "Ember Halls fields ten named enemies and twenty-one Cinder Mites.");
+            Assert.That(damageFirst.Gold, Is.EqualTo(116), "Only the named enemies pay gold.");
         }
 
         [Test]

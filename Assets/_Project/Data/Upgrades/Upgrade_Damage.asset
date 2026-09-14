@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: upgrade_damage
   _displayName: Tempered Edge
-  _descriptionFormat: '+{0:0} damage per hit'
+  _descriptionFormat: '+{0:0}% damage per hit'
   _stat: 0
-  _operation: 0
-  _amount: 5
+  _operation: 1
+  _amount: 0.5
   _maxStacks: 5

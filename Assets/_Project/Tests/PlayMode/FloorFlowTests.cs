@@ -75,10 +75,12 @@ namespace Cryptforge.Tests
 
             Assert.That(seen, Is.EqualTo(new[]
             {
-                "1.1:Ember Hall:Grunt", "1.2:Ember Hall:Cinder Mite+Cinder Mite", "1.3:Ember Hall:Cinder Mite+Cinder Mite+Cinder Mite",
-                "2.1:Cinder Walk:Runner+Cinder Mite", "2.2:Cinder Walk:Cinder Mite+Cinder Mite+Cinder Mite",
-                "2.3:Cinder Walk:Grunt+Cinder Mite+Cinder Mite", "3.1:Slag Gate:Tank", "3.2:Slag Gate:Cinder Mite+Cinder Mite+Cinder Mite",
-                "4:The Forge:forge", "5.1:Captain's Post:Grunt Captain+Cinder Mite+Cinder Mite", "6.1:Warden's Crucible:Forge Warden"
+                "1.1:Ember Hall:Grunt+Cinder Mite", "1.2:Ember Hall:Cinder Mite+Cinder Mite+Cinder Mite",
+                "1.3:Ember Hall:Grunt+Cinder Mite+Cinder Mite+Cinder Mite",
+                "2.1:Cinder Walk:Runner+Cinder Mite+Cinder Mite", "2.2:Cinder Walk:Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite",
+                "2.3:Cinder Walk:Tank+Cinder Mite+Cinder Mite",
+                "3.1:Slag Gate:Grunt+Runner+Cinder Mite+Cinder Mite", "3.2:Slag Gate:Tank+Cinder Mite+Cinder Mite",
+                "4:The Forge:forge", "5.1:Captain's Post:Grunt Captain+Grunt+Cinder Mite+Cinder Mite", "6.1:Warden's Crucible:Forge Warden"
             }));
             yield return null;
 
@@ -92,10 +94,10 @@ namespace Cryptforge.Tests
             Assert.That(Time.timeScale, Is.Zero, "The checkpoint pauses the run.");
             Assert.That(Label("Choice Title"), Is.EqualTo("Checkpoint: extract or descend?"));
             Assert.That(checkpoint.Cards[0].Name, Is.EqualTo("Extract"));
-            Assert.That(checkpoint.Cards[0].Description, Is.EqualTo("Bank all 109 gold and end the run"));
+            Assert.That(checkpoint.Cards[0].Description, Is.EqualTo("Bank all 116 gold and end the run"));
             Assert.That(checkpoint.Cards[1].Name, Is.EqualTo("Descend"));
-            Assert.That(checkpoint.Cards[1].Description, Is.EqualTo("Secure 109 gold. Quicksilver Vaults: +20% enemy damage, +50% gold"));
-            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 109  (109 at risk)"));
+            Assert.That(checkpoint.Cards[1].Description, Is.EqualTo("Secure 116 gold. Quicksilver Vaults: +20% enemy damage, +50% gold"));
+            Assert.That(Label("Gold Label"), Is.EqualTo("Gold 116  (116 at risk)"));
             Assert.That(_result.IsOpen, Is.False);
 
             Assert.That(_setup.Choices.TrySelect(checkpoint, 0), Is.True);
@@ -103,7 +105,7 @@ namespace Cryptforge.Tests
             yield return null;
 
             Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Extracted));
-            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(109));
+            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(116));
             Assert.That(_setup.Run.GoldLost, Is.Zero);
             Assert.That(_encounters.FloorNumber, Is.EqualTo(1));
             Assert.That(_setup.Choices.IsOpen, Is.False);
@@ -112,34 +114,53 @@ namespace Cryptforge.Tests
             Assert.That(Label("Result Title"), Is.EqualTo("Extracted"));
             Assert.That(Label("Cause Label"), Does.Contain("escaped").And.Contain("Ember Halls"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("6 rooms"));
-            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 109"));
-            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 109: Second Wind is ready to forge"));
+            Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 116"));
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 116: Second Wind is ready to forge"));
             PlayerProfile saved = TestProfile.ReadSaved();
-            Assert.That(saved.Gold, Is.EqualTo(109), "Extracting banks the run's gold in the saved profile.");
+            Assert.That(saved.Gold, Is.EqualTo(116), "Extracting banks the run's gold in the saved profile.");
             Assert.That(saved.DeepestFloorCleared, Is.EqualTo(1));
             LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
-        public IEnumerator PacksSpawnSideBySideAndTheHeroFightsThemInSlotOrder()
+        public IEnumerator PacksEnterInFormationWalkInAndTheHeroFacesTheNearestFirst()
         {
             // The test deals every blow, so the hero's own cleaves cannot change the order under test.
             _hero.GetComponent<AttackController>().enabled = false;
-            yield return AdvanceToWave(1, 3);
+            var spawned = new List<Vector3>();
+            _encounters.EncounterStarted += () =>
+            {
+                if (_encounters.RoomNumber != 1 || _encounters.WaveNumber != 2)
+                    return;
+                for (int i = 0; i < _encounters.WaveEnemyCount; i++)
+                    spawned.Add(_encounters.WaveEnemyAt(i).transform.position);
+            };
+            yield return AdvanceToWave(1, 2);
             Assert.That(_encounters.WaveEnemyCount, Is.EqualTo(3));
             Health centre = _encounters.WaveEnemyAt(0);
             Health left = _encounters.WaveEnemyAt(1);
             Health right = _encounters.WaveEnemyAt(2);
-            float y = centre.transform.position.y;
-            Assert.That(centre.transform.position.x, Is.EqualTo(0f).Within(1e-4f));
-            Assert.That(left.transform.position.x, Is.EqualTo(-1.7f).Within(1e-4f));
-            Assert.That(right.transform.position.x, Is.EqualTo(1.7f).Within(1e-4f));
-            Assert.That(left.transform.position.y, Is.EqualTo(y));
+
+            // The front slot enters 6 floor units from the hero and the other two 0.8 behind it and 1.4 to each side; depth
+            // shows at half length on screen.
+            Assert.That(spawned.Count, Is.EqualTo(3));
+            AssertPosition(spawned[0], 0f, 3f);
+            AssertPosition(spawned[1], -1.4f, 3.4f);
+            AssertPosition(spawned[2], 1.4f, 3.4f);
             Assert.That(_encounters.CurrentEnemy, Is.SameAs(centre));
             Assert.That(Label("Enemy Label"), Does.StartWith("Cinder Mite").And.Contain("(+2 more)"));
 
+            yield return new WaitForSeconds(0.5f);
+            Assert.That(centre.transform.position.x, Is.EqualTo(0f), "The front mite walks straight at the hero.");
+            Assert.That(centre.transform.position.y, Is.LessThan(spawned[0].y));
+            Assert.That(left.transform.position.x, Is.GreaterThan(spawned[1].x), "The side mites close in from their side.");
+            Assert.That(left.transform.position.y, Is.LessThan(spawned[1].y));
+            Assert.That(right.transform.position.x, Is.EqualTo(-left.transform.position.x), "Mirrored slots walk mirrored paths.");
+            Assert.That(right.transform.position.y, Is.EqualTo(left.transform.position.y));
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(centre));
+
             centre.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
-            Assert.That(_encounters.CurrentEnemy, Is.SameAs(left), "The left slot is next in order.");
+            Assert.That(_encounters.CurrentEnemy, Is.SameAs(left), "At equal distance the earlier slot is next.");
             Assert.That(_encounters.AliveEnemyCount, Is.EqualTo(2));
             Assert.That(_encounters.IsCleared, Is.False);
             Assert.That(Label("Enemy Label"), Does.Contain("(+1 more)"));
@@ -168,8 +189,9 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Choices.IsOpen, Is.False);
 
             yield return AdvanceToRoom(5);
-            Assert.That(_encounters.CurrentDefinition.DisplayName, Is.EqualTo("Grunt Captain"));
-            Assert.That(_encounters.CurrentEnemy.Maximum, Is.EqualTo(140f));
+            Health captain = _encounters.WaveEnemyAt(0);
+            Assert.That(_encounters.DefinitionOf(captain).DisplayName, Is.EqualTo("Grunt Captain"));
+            Assert.That(captain.Maximum, Is.EqualTo(140f));
         }
 
         [UnityTest]
@@ -214,6 +236,13 @@ namespace Cryptforge.Tests
             ChoosePendingUpgrades();
             Assert.That(_setup.Choices.Current.Kind, Is.EqualTo(ChoiceKind.Checkpoint));
             Assert.That(_result.IsOpen, Is.False);
+        }
+
+        private static void AssertPosition(Vector3 position, float x, float y)
+        {
+            Assert.That(position.x, Is.EqualTo(x).Within(1e-4f));
+            Assert.That(position.y, Is.EqualTo(y).Within(1e-4f));
+            Assert.That(position.z, Is.Zero);
         }
 
         private IEnumerator AdvanceToRoom(int roomNumber) => AdvanceToWave(roomNumber, 1);

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _id: weapon_warden_hammer
   _displayName: Warden Hammer
-  _damage: 10
+  _damage: 6
   _interval: 1.8
-  _range: 3
+  _range: 1.4
   _initialDelay: 1
   _behavior: 0
   _splashRadius: 0

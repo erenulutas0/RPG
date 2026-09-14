@@ -52,7 +52,7 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator PauseButtonFreezesCombatUntilResume()
         {
-            Health grunt = _encounters.CurrentEnemy;
+            Health grunt = _encounters.WaveEnemyAt(0);
             Assert.That(_pauseButton.gameObject.activeInHierarchy, Is.True);
             Assert.That(_pause.IsOpen, Is.False);
 
@@ -60,6 +60,7 @@ namespace Cryptforge.Tests
             int heroHits = _heroAttack.AttackCount;
             float gruntHealth = grunt.Current;
             float heroHealth = _hero.Current;
+            Vector3 gruntPosition = grunt.transform.position;
             Assert.That(_pause.IsOpen, Is.True);
             Assert.That(Time.timeScale, Is.Zero);
             Assert.That(_pauseButton.gameObject.activeInHierarchy, Is.False);
@@ -70,13 +71,18 @@ namespace Cryptforge.Tests
             Assert.That(_pause.IsOpen, Is.True, "A tap as the overlay appears does not resume.");
             Assert.That(_heroAttack.AttackCount, Is.EqualTo(heroHits), "Nothing attacks while paused.");
             Assert.That(grunt.Current, Is.EqualTo(gruntHealth));
+            Assert.That(grunt.transform.position, Is.EqualTo(gruntPosition), "Nothing walks while paused.");
             Assert.That(_hero.Current, Is.EqualTo(heroHealth));
 
             Tap(_resumeButton);
             Assert.That(_pause.IsOpen, Is.False);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(_pauseButton.gameObject.activeInHierarchy, Is.True);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.5f);
+            Assert.That(grunt.transform.position.y, Is.LessThan(gruntPosition.y), "The pack walks on after resuming.");
+            float deadline = Time.realtimeSinceStartup + 8f;
+            while (_heroAttack.AttackCount == heroHits && Time.realtimeSinceStartup < deadline)
+                yield return null;
             Assert.That(_heroAttack.AttackCount, Is.GreaterThan(heroHits), "Combat continues after resuming.");
             LogAssert.NoUnexpectedReceived();
         }
@@ -94,10 +100,10 @@ namespace Cryptforge.Tests
             Tap(_resumeButton);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
 
-            float deadline = Time.realtimeSinceStartup + 8f;
+            float deadline = Time.realtimeSinceStartup + 15f;
             while (_setup.Choices.Current == null && Time.realtimeSinceStartup < deadline)
                 yield return null;
-            Assert.That(_setup.Choices.Current, Is.Not.Null, "The first kill opens an upgrade choice.");
+            Assert.That(_setup.Choices.Current, Is.Not.Null, "Clearing the first pack opens an upgrade choice.");
             Assert.That(_pauseButton.gameObject.activeInHierarchy, Is.False, "The choice already holds the run.");
 
             _setup.gameObject.SendMessage("OnApplicationPause", true);

@@ -166,7 +166,7 @@ namespace Cryptforge.Tests
             Assert.That(damageTemper.ClearedFloors, Is.EqualTo(1), "Tempering on floor 1 leaves too little health to descend.");
             Assert.That(speedTemper.ClearedFloors, Is.EqualTo(1));
             Assert.That(speedMend.HeroHealth, Is.InRange(5f, 50f), "Floor 2 must remain a real risk.");
-            Assert.That(damageMend.Gold, Is.EqualTo(270), "Floor 1 pays 109 gold and floor 2 pays 161 with Cursed Gold.");
+            Assert.That(damageMend.Gold, Is.EqualTo(273), "Floor 1 pays 116 gold and floor 2 pays 157 with Cursed Gold; Cinder Mites pay none.");
             Assert.That(damageTemper.GoldBanked, Is.EqualTo(damageTemper.Gold - damageTemper.UnsecuredAtDeath / 2));
             Assert.That(damageMend.FloorOneUpgrades, Is.InRange(6, 9), "Level-ups are spread over both floors.");
             Assert.That(damageMend.UpgradesApplied, Is.GreaterThan(damageMend.FloorOneUpgrades));
@@ -178,17 +178,19 @@ namespace Cryptforge.Tests
             DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
             DescentSimulation.Result plainMend = DescentSimulation.Run(floors, 0, true);
             DescentSimulation.Result counterMend = DescentSimulation.Run(floors, 0, true, DescentSimulation.Counterweight());
+            DescentSimulation.Result plainSpeedMend = DescentSimulation.Run(floors, 1, true);
+            DescentSimulation.Result counterSpeedMend = DescentSimulation.Run(floors, 1, true, DescentSimulation.Counterweight());
             DescentSimulation.Result counterTemper = DescentSimulation.Run(floors, 0, false, DescentSimulation.Counterweight());
             DescentSimulation.Result windTemper = DescentSimulation.Run(floors, 0, false, DescentSimulation.SecondWind());
-            DescentSimulation.Result counterGreedy = DescentSimulation.Run(floors, 1, false, DescentSimulation.Counterweight());
             DescentSimulation.Result windGreedy = DescentSimulation.Run(floors, 1, false, DescentSimulation.SecondWind());
 
             Assert.That(counterTemper.ClearedFloors, Is.EqualTo(2), "Counterweight carries damage first with Temper through floor 2.");
             Assert.That(windTemper.ClearedFloors, Is.EqualTo(2), "Second Wind carries damage first with Temper through floor 2.");
             Assert.That(windTemper.RelicTriggers, Is.EqualTo(1));
-            Assert.That(counterGreedy.ClearedFloors, Is.EqualTo(1), "Counterweight cannot save speed first with Temper.");
-            Assert.That(windGreedy.ClearedFloors, Is.EqualTo(2), "Second Wind, the safety relic, can.");
+            Assert.That(windGreedy.ClearedFloors, Is.EqualTo(2), "Second Wind, the safety relic, carries speed first with Temper too.");
             Assert.That(counterMend.HeroHealth, Is.GreaterThan(plainMend.HeroHealth + 10f), "Counterweight rewards damage upgrades.");
+            Assert.That(counterMend.HeroHealth - plainMend.HeroHealth, Is.GreaterThan(counterSpeedMend.HeroHealth - plainSpeedMend.HeroHealth),
+                "Counters strike back with weapon damage, so damage first gains more from Counterweight than speed first.");
             Assert.That(counterMend.FightSeconds, Is.LessThan(plainMend.FightSeconds), "Counters shorten the fights against packs.");
         }
 
