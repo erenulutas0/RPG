@@ -15,6 +15,8 @@ namespace Cryptforge.Combat
         // Null until Initialize; behaviours such as enrage modify this runtime, never the definition.
         public WeaponRuntime Weapon => _weapon;
         public event Action Attacked;
+        // The target of each successful attack, right after Attacked, so views can place a strike effect at it.
+        public event Action<Health> Struck;
 
         public void Initialize(WeaponRuntime weapon)
         {
@@ -48,6 +50,7 @@ namespace Cryptforge.Combat
             {
                 AttackCount++;
                 Attacked?.Invoke();
+                Struck?.Invoke(target);
             }
         }
     }

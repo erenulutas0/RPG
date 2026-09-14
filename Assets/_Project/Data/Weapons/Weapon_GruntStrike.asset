@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Grunt Strike
   _damage: 3.6
   _interval: 1
-  _range: 1.2
+  _range: 1.5
   _behavior: 0
   _splashRadius: 0
   _splashFraction: 0

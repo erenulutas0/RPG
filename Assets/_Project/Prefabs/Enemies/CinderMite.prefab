@@ -12,13 +12,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: CinderMite
       objectReference: {fileID: 0}
+    - target: {fileID: 2680837988061780092, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
+      propertyPath: _look
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3092832546023263749, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -62,15 +66,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.b
-      value: 0.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.g
-      value: 0.35
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.r
-      value: 0.95
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

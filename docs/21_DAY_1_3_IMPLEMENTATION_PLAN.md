@@ -562,6 +562,41 @@ Placeholder limits: combatants are still flat shapes; both floors share one plat
 
 Verified: Unity EditMode 154/154, PlayMode 47/47, `Verify-Project.ps1`, .NET CombatChecks 138/138, development APK built only after both reports passed (SHA-256 `A95A3A66D91892792DCA8DC801AC8C76E2072620E69536C4B6B9C6FE4CCF481A`).
 
+### Implemented 2026-09-14: pixel-art placeholders for the astral foundry (isometric arena, part 3)
+
+The owner asked for the arena to reach the look of `ArtDirection/2026-09-14/mockups/cosmic-v1.png`, then the characters and the combat effects. Everything is still placeholder art, now **pixel art generated from code**: no image file enters `Assets`, and final art (doc `08`) replaces single components later.
+
+- **Pixel canvas:** `Cryptforge.Art` is engine-independent and compiled by the .NET checks: `Rgba`, `PixelCanvas` (rects, ellipses, triangles, lines, dither, string pixel maps, outline, silhouette), `PixelNoise` (deterministic hash noise, so the art is identical on every run), `PixelPalette` (sampled from the mockup), `ArenaGeometry`. `PixelSpriteFactory` turns a canvas into a point-filtered sprite at **32 texels per world unit**; every sprite is drawn at its final size, never scaled.
+- **Void backdrop** (`VoidArt`, `VoidLayout`, `VoidBackdropView`): a violet gradient sky mesh with nebula glows, two star layers, nine twinkling sparkles, a spiral galaxy, three haze clouds, four floating rock islands with lantern flames, orbital rings and hanging chains, and eight pieces of drifting rubble. Islands drift ±0.05 units over 8 s and flames flicker; pausing freezes it. Everything stays outside the platform and lower in contrast than the combat.
+- **Forge platform** (`PlatformLayout`, `PlatformArt`, `ForgePlatformView`): one 217×403 texel sprite for the whole platform: 8×8 two-tone stone tiles with grout, a brass rim, brass lines corner to corner with a nested-diamond emblem where they cross, corner towers with lanterns, stacked stone faces with lava seams, a keel narrowing to a lava crystal, and chains. A second overlay sprite flickers the flames, seams and crystal on a 2-frame swap and breathes its colour.
+- **Hero** (`HeroArt`, `HeroLookView`): the Vanguard as a 32×44 blue-steel knight seen from behind with a cape, three body frames (two idle breaths, an attack), and the weapons of the carried loadout drawn as their own sprites: sword and shield, staff with a violet orb, two daggers. The existing loadout objects keep their names, so `HeroWeaponView` is unchanged. On each attack the sword sweeps ±40° about its grip, the daggers thrust and the orb lights.
+- **Enemies** (`EnemyArt`, `EnemyLookView`): six looks with a 1-texel outline, feet on the pivot and a translucent ground shadow — Grunt (slag brute, 31×30), Runner (21×32), Tank (45×36), Grunt Captain (brass pauldron, 35×40), Forge Warden (quicksilver golem with one violet visor line, 49×56), Cinder Mite (15×16 ember with a flame crown). Two idle frames (lava cracks pulse, walking bobs) and an attack frame. Each enemy carries a 26×5 health bar above its head from the moment it spawns, hidden on death.
+- **Hit flash:** a white tint means nothing on a textured sprite, so `CombatantView` now flashes a **silhouette overlay** (`ILookSprites.SilhouetteOf`) tinted white, or crit gold, for the feedback duration; scenes without a look view keep the old tint. `IsFlashing` and `FlashColor` expose it to tests.
+- **Effects** (`EffectArt`, `CombatEffectsView`): sword crescents, staff blast rings, dagger double slashes with a gold star on crits, ember sparks on every hit, smoke and coins on a kill that pays gold, floating 3×5-pixel damage numbers (crit numbers gold at 2×), and a 0.1 s camera shake when the hero is hit. Sprites and a 24-effect, 12-number pool are built once; nothing allocates per frame. `AttackController` gained a `Struck(Health)` event beside `Attacked`.
+- **Reach:** with real sprites, an enemy stopping 0.9 floor units in front of the hero stood hidden behind the hero's helmet. Every reach grew (Cinder Mite 1.0 → 1.5; Grunt and Runner 1.2 → 1.5; Grunt Captain 1.3 → 1.6; Tank and Forge Warden 1.4 → 1.7) and the hero weapons with them (Sword 1.8 → 2.1, Staff 2.1 → 2.4, Daggers 1.5 → 1.8), so melee happens 0.7–0.8 world units above the hero's feet and the enemy's face stays visible. A +0.4 step for every enemy failed one balance target (the Daggers with Counterweight died on floor 2); this step keeps every target.
+
+Balance after the reach change (health after floor 1 → end of floor 2; Wardens and mite packs are fight seconds on the D + Mend path):
+
+| Weapon | D + Mend | S + Mend | D + Temper | S + Temper | D + Temper + Counterweight | D + Temper + Second Wind | S + Temper + Counterweight | S + Temper + Second Wind | Wardens | Mite packs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Sword | 46 → 37 | 43 → 21 | 12 → dies F2 room 2 | 9 → dies F2 room 1 | 29 → 26 | 37 → 34 | 13 | 23 | 14.6 s | 9.5 s |
+| Staff | 46 → 36 | 40 → 32 | 12 → dies F2 room 2 | 6 → dies F2 room 2 | 40 → 37 | 37 → 34 | 21 | 30 | 15.6 s | 6.1 s |
+| Daggers | 54 → 34 | 52 → 30 | 20 → dies F2 room 2 | 18 → dies F2 room 2 | 33 → 15 | 45 → 26 | dies F2 room 3 | 21 | 13.3 s | 10.0 s |
+
+How it was made: the drawing was split across five parallel agents (backdrop, platform, hero, enemies with the flash and bars, effects), each owning disjoint files, verified with a dotnet compile of the gameplay scripts against the Editor's UnityEngine assemblies plus the .NET tests; Unity itself ran once for the wiring (a temporary Editor builder, deleted afterwards, added `HeroLookView` to the Vanguard, `CombatEffectsView` to the Arena and `EnemyLookView` to every enemy prefab, and set the bodies to white at scale 1) and once for the tests. A temporary PlayMode test rendered the running scene to PNG frames for review; after the first render the platform faces were darkened (the warm brown competed with the ember enemies) and the enemy bars were shown from spawn.
+
+| Files | Change |
+|---|---|
+| `Scripts/Art/*.cs` (new) | Rgba, PixelCanvas, PixelNoise, PixelPalette, ArenaGeometry, VoidArt, PlatformArt, HeroArt, EnemyArt, EffectArt; `Art/Unity/PixelSpriteFactory.cs`. |
+| `Scripts/UI/Arena/` (new) | MeshBuilder, VoidBackdropView, ForgePlatformView; `ArenaView` coordinates them. |
+| `Scripts/UI/HeroLookView.cs`, `EnemyLookView.cs`, `ILookSprites.cs`, `CombatEffectsView.cs` (new), `CombatantView.cs`, `Scripts/Combat/AttackController.cs` | Looks, flash overlay, health bars, effects, the `Struck` event. |
+| `Scenes/Gameplay/Gameplay.unity`, `Prefabs/Enemies/*.prefab`, every weapon asset | The wiring above; white bodies at scale 1; the new reaches. |
+| Tests | EditMode `PixelCanvasTests` (6), `ArenaGeometryTests` (2), `VoidArtTests` (6), `PlatformArtTests` (7), `HeroArtTests` (6), `EnemyArtTests` (7), `EffectArtTests` (6). PlayMode: `ArenaViewTests` checks the drawn platform and the sorting of backdrop, platform and combatants; the Daggers crit test reads the flash from `CombatantView`; `UpgradeFlowTests` expects the Sword's new range. |
+
+Known limits: one facing for every figure (the hero always faces away, enemies always toward the hero); the sword swing rotates the sprite off the texel grid for 0.12 s; the staff ring shows half the splash radius so it does not ring the whole platform; both floors share one platform and backdrop, although `19` gives Quicksilver Vaults cool silver tones; the HUD is still the old text HUD (the icon HUD is the next slice after the ability).
+
+Verified: Unity EditMode 194/194, PlayMode 47/47, `Verify-Project.ps1`, .NET CombatChecks 178/178, development APK built only after both reports passed (SHA-256 `5FF7C1FF5FA33E6A96EA120D4EC6EDBF5EA838BF0C4F561B0C6E463D09238908`; not yet installed on the phone, which was not connected).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

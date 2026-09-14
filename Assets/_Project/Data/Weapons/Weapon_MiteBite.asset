@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Mite Bite
   _damage: 0.6
   _interval: 1.5
-  _range: 1
+  _range: 1.5
   _initialDelay: 0
   _behavior: 0
   _splashRadius: 0

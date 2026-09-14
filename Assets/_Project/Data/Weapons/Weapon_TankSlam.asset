@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Tank Slam
   _damage: 7.2
   _interval: 2.5
-  _range: 1.4
+  _range: 1.7
   _initialDelay: 1.5
   _behavior: 0
   _splashRadius: 0

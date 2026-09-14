@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7272496857767471138}
   - component: {fileID: 8049096984069169956}
   - component: {fileID: 8497454021856667483}
+  - component: {fileID: 2680837988061780092}
   m_Layer: 0
   m_Name: Grunt
   m_TagString: Untagged
@@ -65,6 +66,9 @@ MonoBehaviour:
   _body: {fileID: 6534908672259299140}
   _feedbackDuration: 0.14
   _attackNudge: -0.22
+  _enrage: {fileID: 0}
+  _enragedColor: {r: 1, g: 0.35, b: 0.2, a: 1}
+  _criticalColor: {r: 1, g: 0.82, b: 0.2, a: 1}
 --- !u!114 &8049096984069169956
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,6 +96,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _owner: {fileID: 8324477348219262162}
   _targeting: {fileID: 8049096984069169956}
+--- !u!114 &2680837988061780092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679956143142569950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5277d615b714d32a3fa5fd86b4e6c0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _look: 0
+  _body: {fileID: 6534908672259299140}
+  _health: {fileID: 8324477348219262162}
+  _attack: {fileID: 8497454021856667483}
+  _walkFrameDuration: 0.25
+  _breathFrameDuration: 1.1
+  _attackFrameDuration: 0.14
+  _barClearance: 0.12
+  _barSortingOrder: 10
 --- !u!1 &2159935233389229391
 GameObject:
   m_ObjectHideFlags: 0
@@ -119,7 +144,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1, y: 0.75, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3092832546023263749}
@@ -169,7 +194,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 20000000000000000000000000000001, type: 3}
-  m_Color: {r: 0.9, g: 0.4, b: 0.25, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Runner Slash
   _damage: 1.2
   _interval: 0.4
-  _range: 1.2
+  _range: 1.5
   _initialDelay: 0
   _behavior: 0
   _splashRadius: 0

@@ -293,12 +293,14 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        // Records each hit with the weapon's attack number and whether the enemy's body flashed crit gold as it landed.
+        // Records each hit with the weapon's attack number and whether the enemy flashed crit gold as it landed. The flash is
+        // a silhouette overlay over the drawn body, so CombatantView reports its colour.
         private static System.Action<DamageContext> Recorder(Health enemy, WeaponRuntime weapon,
             List<(Health Enemy, int Attack, float Amount, bool Critical, bool FlashedGold)> hits)
         {
-            SpriteRenderer body = enemy.transform.Find("Enemy Body").GetComponent<SpriteRenderer>();
-            return context => hits.Add((enemy, weapon.AttacksMade, context.Amount, context.IsCritical, body.color == new Color(1f, 0.82f, 0.2f)));
+            var view = enemy.GetComponent<CombatantView>();
+            return context => hits.Add((enemy, weapon.AttacksMade, context.Amount, context.IsCritical,
+                view.IsFlashing && view.FlashColor == new Color(1f, 0.82f, 0.2f)));
         }
 
         // Every Forge panel element is anchored to the bottom of the safe area; together they must fit the shortest

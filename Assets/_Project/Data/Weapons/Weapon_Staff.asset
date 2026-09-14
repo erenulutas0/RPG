@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Staff
   _damage: 11
   _interval: 1.1
-  _range: 2.1
+  _range: 2.4
   _initialDelay: 0
   _behavior: 2
   _splashRadius: 3.5

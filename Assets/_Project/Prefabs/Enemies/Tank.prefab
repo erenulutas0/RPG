@@ -12,13 +12,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tank
       objectReference: {fileID: 0}
+    - target: {fileID: 2680837988061780092, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
+      propertyPath: _look
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.7
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.25
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3092832546023263749, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -62,15 +66,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.b
-      value: 0.75
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.g
-      value: 0.3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.r
-      value: 0.62
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7272496857767471138, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: _attackNudge

@@ -247,7 +247,7 @@ namespace Cryptforge.Tests
             var sword = AssetDatabase.LoadAssetAtPath<WeaponDefinition>("Assets/_Project/Data/Weapons/Weapon_Sword.asset");
             Assert.That(sword.Damage, Is.EqualTo(10f));
             Assert.That(sword.Interval, Is.EqualTo(0.8f));
-            Assert.That(sword.Range, Is.EqualTo(1.8f));
+            Assert.That(sword.Range, Is.EqualTo(2.1f));
 #endif
         }
     }

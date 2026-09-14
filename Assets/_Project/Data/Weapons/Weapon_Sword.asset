@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Sword
   _damage: 10
   _interval: 0.8
-  _range: 1.8
+  _range: 2.1
   _behavior: 1
   _splashRadius: 2
   _splashFraction: 0.6

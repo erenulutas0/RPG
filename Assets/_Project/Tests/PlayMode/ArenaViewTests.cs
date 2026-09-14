@@ -45,14 +45,23 @@ namespace Cryptforge.Tests
 
             MeshRenderer arena = _arena.ArenaRenderer;
             Assert.That(arena, Is.Not.Null);
-            Assert.That(arena.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.GreaterThan(1000), "The void and the platform were built.");
+            Assert.That(arena.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.GreaterThan(0), "The sky was built.");
+            Assert.That(_arena.Platform.PlatformRenderer.sprite, Is.Not.Null, "The platform was drawn.");
+            Assert.That(_arena.Platform.PlatformRenderer.sprite.texture.filterMode, Is.EqualTo(FilterMode.Point), "Pixel art stays crisp.");
             SpriteRenderer[] sprites = Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.That(sprites.Length, Is.GreaterThan(2), "The hero and the first pack are in the scene.");
+            var heroBody = GameObject.Find("Hero Body").GetComponent<SpriteRenderer>();
+            Assert.That(heroBody.sprite.name, Does.StartWith("Hero Body"), "The hero wears its drawn look.");
             foreach (SpriteRenderer sprite in sprites)
             {
                 Assert.That(sprite.sortingLayerID, Is.EqualTo(arena.sortingLayerID), sprite.name);
                 Assert.That(sprite.sortingOrder, Is.GreaterThan(arena.sortingOrder), sprite.name);
             }
+            // Backdrop props draw under the platform, the platform under every combatant.
+            SpriteRenderer platform = _arena.Platform.PlatformRenderer;
+            foreach (SpriteRenderer sprite in _arena.Backdrop.GetComponentsInChildren<SpriteRenderer>(true))
+                Assert.That(sprite.sortingOrder, Is.LessThan(platform.sortingOrder), sprite.name);
+            Assert.That(heroBody.sortingOrder, Is.GreaterThan(platform.sortingOrder));
             LogAssert.NoUnexpectedReceived();
         }
 

@@ -77,6 +77,8 @@ Status 2026-09-14: the owner chose **astral foundry**, a cosmic take on B. Each 
 
 The mockups are references, not assets; see `19`.
 
+Status 2026-09-14 (later): the gameplay prototype now draws its placeholders from code as pixel art at 32 texels per world unit (`Scripts/Art`, see `21`): the platform, the void, a 40-texel hero, six enemy looks and the combat effects. This is step 3 of the list above with a first candidate for step 4; nothing here is a production sprite, and the device readability test decides the density.
+
 ## AI concept workflow
 
 ### Step 1 — style board

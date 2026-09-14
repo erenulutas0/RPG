@@ -12,9 +12,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: GruntCaptain
       objectReference: {fileID: 0}
+    - target: {fileID: 2680837988061780092, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
+      propertyPath: _look
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.35
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.y
@@ -62,15 +66,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.b
-      value: 0.16
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.g
-      value: 0.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6534908672259299140, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_Color.r
-      value: 0.72
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7272496857767471138, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: _attackNudge

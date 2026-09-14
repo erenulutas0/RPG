@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: Warden Hammer
   _damage: 6
   _interval: 1.8
-  _range: 1.4
+  _range: 1.7
   _initialDelay: 1
   _behavior: 0
   _splashRadius: 0

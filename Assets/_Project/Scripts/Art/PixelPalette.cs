@@ -25,9 +25,10 @@ namespace Cryptforge.Art
         public static readonly Rgba BrassDark = Rgba.FromHex("#6B4224");
 
         // The platform's faces, keel and the distant rock.
-        public static readonly Rgba FaceLight = Rgba.FromHex("#82553C");
-        public static readonly Rgba Face = Rgba.FromHex("#602D23");
-        public static readonly Rgba FaceDark = Rgba.FromHex("#3A1A18");
+        // Dark warm stone: the mockup's faces read as shadowed indigo-brown with only the lava seams bright.
+        public static readonly Rgba FaceLight = Rgba.FromHex("#6E4A3A");
+        public static readonly Rgba Face = Rgba.FromHex("#46323A");
+        public static readonly Rgba FaceDark = Rgba.FromHex("#2A1E2C");
         public static readonly Rgba RockLight = Rgba.FromHex("#3B3358");
         public static readonly Rgba Rock = Rgba.FromHex("#252041");
         public static readonly Rgba RockDark = Rgba.FromHex("#191344");
