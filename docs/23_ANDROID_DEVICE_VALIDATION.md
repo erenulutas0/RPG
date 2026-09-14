@@ -282,3 +282,15 @@ Notes:
 - The framing held on the phone: the hero's feet sit just above **Vanguard | HP** and the far end of the platform, where packs enter, stays below the enemy bar.
 - Readability at phone size is good for the hero, the Grunt and the mites; the platform's far half and the islands sit under the top HUD text without hurting it.
 - Seen, not fixed: the death smoke is as large as the hero and briefly covers him; a Grunt fighting at the hero's shoulder overlaps the cape; no frame rate was measured.
+## Forge Burst on the phone (2026-09-14)
+
+Build: commit 094d84c, APK SHA-256 `ECF52FA70B7EF17684C9CF7D76C81DA2D2AA0AD52C9CF9CFAFBF4BEA6B8BEC70`, installed over USB while the game had focus; the script relaunched the game, tapped the burst button once at 3.4 s (906, 1570) and captured before and after, focus-gated as always.
+
+| Check | Result |
+|---|---|
+| Before the tap | The dashed blue ring around the hero's feet spans the platform's width at the hero's row; the round button with the blue burst glyph sits at the bottom right above **Vanguard \| 100 / 100 HP**; the Grunt and the mite have just walked into the ring (`android-burst-before.png`) |
+| The tap | **20** floats over the Grunt beside the Sword's **10**, the mite is gone (**XP 1**), the ring has faded to a faint dash line and a blue radial fill drains around the button (`android-burst-burst-00.png`) |
+| Later | The ring is bright again once the 8 s passed; the owner's own level-up tap took Tempered Edge meanwhile (`android-burst-cooldown-half.png`) |
+| App log | No Unity error or exception line |
+
+Seen, not fixed: the button's dark disc overlaps the platform's lower-right edge and the faces below it, which is where the mockup puts it too; the ring is drawn at the hero's feet, so its far half passes behind enemies standing in front of the hero.
