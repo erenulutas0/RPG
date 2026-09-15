@@ -27,6 +27,21 @@ namespace Cryptforge.UI
         [SerializeField] private Image _enemyBar;
         [SerializeField] private Image _heroBar;
         [SerializeField] private Image _experienceBar;
+        // Compact combat presentation. The detailed readout remains available on the pause screen.
+        [SerializeField] private CanvasGroup _details;
+        [SerializeField] private Text _compactGold;
+        [SerializeField] private Text _weaponName;
+        [SerializeField] private Image[] _roomPips;
+        [SerializeField] private CanvasGroup _bossGroup;
+        [SerializeField] private Text _bossName;
+        [SerializeField] private UpgradeDefinition[] _badgeDefinitions;
+        [SerializeField] private GameObject[] _upgradeBadges;
+        [SerializeField] private Text[] _upgradeCounts;
+        [SerializeField] private GameObject _relicBadge;
+        [SerializeField] private Image _relicIcon;
+        [SerializeField] private Text _relicCount;
+        [SerializeField] private Sprite _secondWindIcon;
+        [SerializeField] private Sprite _counterweightIcon;
         private bool _subscribed;
 
         // Run state exists after CombatSetup.Awake, so Start is the earliest safe subscription point.
@@ -48,6 +63,8 @@ namespace Cryptforge.UI
             _setup.Weapon.StatsChanged += RefreshWeapon;
             _setup.Run.ExperienceChanged += RefreshExperience;
             _setup.Run.GoldChanged += RefreshGold;
+            _setup.Upgrades.OfferChanged += RefreshBadges;
+            _setup.Pause.Changed += RefreshDetails;
             if (_setup.Relic != null)
                 _setup.Relic.Triggered += RefreshRelic;
             _subscribed = true;
@@ -57,6 +74,34 @@ namespace Cryptforge.UI
             RefreshExperience();
             RefreshGold();
             RefreshRelic();
+            RefreshBadges();
+            RefreshDetails();
+        }
+
+        private void RefreshDetails()
+        {
+            if (_details == null)
+                return;
+            _details.alpha = _setup.Pause.IsPlayerPaused ? 1f : 0f;
+            _details.blocksRaycasts = false;
+            _details.interactable = false;
+        }
+
+        private void RefreshBadges()
+        {
+            if (_badgeDefinitions == null || _upgradeBadges == null || _upgradeCounts == null)
+                return;
+            int slots = Mathf.Min(_badgeDefinitions.Length, Mathf.Min(_upgradeBadges.Length, _upgradeCounts.Length));
+            for (int i = 0; i < slots; i++)
+            {
+                int count = 0;
+                if (_badgeDefinitions[i] != null)
+                    foreach (UpgradeOption option in _setup.Upgrades.Pool)
+                        if (option.Id == _badgeDefinitions[i].Id)
+                            count = _setup.Upgrades.StacksOf(option);
+                _upgradeBadges[i].SetActive(count > 0);
+                _upgradeCounts[i].text = count.ToString();
+            }
         }
 
         private void RefreshRelic()
@@ -68,6 +113,17 @@ namespace Cryptforge.UI
                 _relicLabel.text = string.Format(_text.RelicFormat, relic.Relic.DisplayName);
             else
                 _relicLabel.text = string.Format(_text.RelicTriggeredFormat, relic.Relic.DisplayName, relic.Triggers);
+            if (_relicBadge != null)
+            {
+                _relicBadge.SetActive(relic != null);
+                if (relic != null)
+                {
+                    bool secondWind = relic.Relic.Effect == RelicEffect.SecondWind;
+                    _relicIcon.sprite = secondWind ? _secondWindIcon : _counterweightIcon;
+                    _relicIcon.color = secondWind && relic.Triggers > 0 ? new Color(1f, 1f, 1f, 0.35f) : Color.white;
+                    _relicCount.text = secondWind ? (relic.Triggers == 0 ? "1" : "0") : relic.Triggers.ToString();
+                }
+            }
         }
 
         private void RefreshHero()
@@ -81,6 +137,18 @@ namespace Cryptforge.UI
             RoomDefinition room = _encounters.CurrentRoom;
             _floorLabel.text = string.Format(_text.FloorProgressFormat, _encounters.FloorNumber,
                 Mathf.Max(1, _encounters.RoomNumber), _encounters.RoomCount, room != null ? room.DisplayName : string.Empty);
+            if (_roomPips != null)
+                for (int i = 0; i < _roomPips.Length; i++)
+                {
+                    _roomPips[i].gameObject.SetActive(i < _encounters.RoomCount);
+                    _roomPips[i].color = i < _encounters.RoomNumber
+                        ? new Color32(218, 165, 84, 255) : new Color32(60, 60, 79, 255);
+                }
+            if (_bossGroup != null)
+            {
+                _bossGroup.alpha = room != null && room.Kind == RoomKind.Boss ? 1f : 0f;
+                _bossName.text = _encounters.CurrentDefinition != null ? _encounters.CurrentDefinition.DisplayName : string.Empty;
+            }
 
             if (_encounters.IsInNonCombatRoom)
             {
@@ -117,12 +185,16 @@ namespace Cryptforge.UI
         private void RefreshGold()
         {
             _goldLabel.text = string.Format(_text.GoldFormat, _setup.Run.Gold, _setup.Run.UnsecuredGold);
+            if (_compactGold != null)
+                _compactGold.text = _setup.Run.Gold.ToString();
         }
 
         private void RefreshWeapon()
         {
             _weaponLabel.text = string.Format(_text.WeaponFormat, _setup.HeroWeapon.DisplayName,
                 _setup.Weapon.Damage, _setup.Weapon.Interval);
+            if (_weaponName != null)
+                _weaponName.text = _setup.HeroWeapon.DisplayName;
         }
 
         private void RefreshExperience()
@@ -157,6 +229,8 @@ namespace Cryptforge.UI
             _setup.Weapon.StatsChanged -= RefreshWeapon;
             _setup.Run.ExperienceChanged -= RefreshExperience;
             _setup.Run.GoldChanged -= RefreshGold;
+            _setup.Upgrades.OfferChanged -= RefreshBadges;
+            _setup.Pause.Changed -= RefreshDetails;
             if (_setup.Relic != null)
                 _setup.Relic.Triggered -= RefreshRelic;
         }

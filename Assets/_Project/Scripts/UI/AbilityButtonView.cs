@@ -15,10 +15,12 @@ namespace Cryptforge.UI
         [SerializeField] private Button _button;
         [SerializeField] private Image _cooldownFill;
         [SerializeField] private Image _icon;
+        [SerializeField] private Text _countdownLabel;
         [SerializeField] private Color _readyColor = Color.white;
         [SerializeField] private Color _coolingColor = new Color(1f, 1f, 1f, 0.35f);
         private Sprite _glyph;
         private bool _subscribed;
+        private int _shownSeconds = -1;
 
         public bool IsUsable => _setup != null && _controller != null && _controller.Ability != null && _controller.Ability.IsReady &&
                                 !_setup.Run.HasEnded && !_setup.Choices.IsOpen && !_setup.Pause.IsPlayerPaused;
@@ -33,8 +35,12 @@ namespace Cryptforge.UI
                 return;
             }
 
-            _glyph = PixelSpriteFactory.CreateSprite(AbilityArt.DrawGlyph(), "Ability Glyph", PixelSpriteFactory.Centre);
-            _icon.sprite = _glyph;
+            // Imported UI artwork belongs to the asset database. Only own and destroy the procedural fallback.
+            if (_icon.sprite == null)
+            {
+                _glyph = PixelSpriteFactory.CreateSprite(AbilityArt.DrawGlyph(), "Ability Glyph", PixelSpriteFactory.Centre);
+                _icon.sprite = _glyph;
+            }
             _button.onClick.AddListener(OnTap);
             _subscribed = true;
             Refresh();
@@ -49,6 +55,12 @@ namespace Cryptforge.UI
             bool usable = IsUsable;
             _button.interactable = usable;
             _icon.color = usable ? _readyColor : _coolingColor;
+            int seconds = Mathf.CeilToInt(ability.Remaining);
+            if (_countdownLabel != null && seconds != _shownSeconds)
+            {
+                _shownSeconds = seconds;
+                _countdownLabel.text = seconds > 0 ? seconds.ToString() : string.Empty;
+            }
         }
 
         private void OnTap()

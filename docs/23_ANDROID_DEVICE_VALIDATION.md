@@ -350,6 +350,14 @@ Build: the frame-time probe (`21`), APK SHA-256 `03443B303B76A1E97E09239A460B768
 
 Reading: the S23 has room to spare. The two costs a mid-range phone will feel first are the wave spawn, about 11 ms of main thread and up to 0.7 MB of garbage per wave because every enemy draws its own sprites as it enters, and the 17.6 MB, 50–67 ms run start. On a phone two to three times slower the spawn alone could miss a frame or two per wave; that is an estimate, as no mid-range device was measured. Both costs sit in the placeholder art's view code (`EnemyLookView`, the arena views): caching drawn sprites per enemy look and across run restarts would remove most of both without changing how anything looks.
 
+## Art sprint 01 — reference capture only (2026-09-15)
+
+The owner authorized the first art round and USB/ADB inspection. An announced reference capture on the S23 (RFCW20W2WFX) was saved as `TestResults/art-sprint-01/current-01.png`, 1080x2340. Before screencap, dumpsys confirmed `com.cryptforge.prototype` focus, `mWakefulness=Awake` and `isKeyguardShowing=false`; the same checks passed again before retaining/pulling the capture.
+
+The existing level-up state shows the blue-steel hero, chest, large combat title/stat lines and two navy upgrade cards; a faint old status line remains visible between the cards. This is reference evidence for art work, not a pass of revised UI or a new performance measurement. No new APK was built/installed, no profile reset and no fresh installed-APK hash verification occurred in this art round.
+
+Generated gameplay camera alternatives and a themed choice concept are under `ArtDirection/2026-09-15/sprint-01/`, with exact prompts and integration limitations. They have not been applied to the phone. Record actual UI/device acceptance in a later integration entry, and update the old card-colour detection coordinates then.
+
 ## Local telemetry on the phone (2026-09-15)
 
 Build: the local telemetry log (`21`), APK SHA-256 `BAA8E568E0B8D3D9DFB00A3FBB243311F45916AAD17C7D73CA80FF6E90623A97`, installed with `adb install -r` while the launcher had focus, keeping app data. The session was announced to the owner first.
@@ -381,3 +389,39 @@ The script:
 Reading:
 - Floor 1 took 46.8 s of active play against the GDD's 3–4 minute floors.
 - Choice panels took 22.8 s, most of it the script's screenshot polling rather than thinking time. A human session's log would show real decision time.
+
+## Foundry UI integration on S23 — 2026-09-15–16
+
+The owner authorised resumed runtime work and USB testing after the telemetry worker finished. Device runs were announced before installation/control. Both installs used `adb install -r`, preserving data; launch used `am start`, not `monkey`. Every tap/swipe/capture checked Cryptforge focus, awake display and hidden keyguard; captures were checked again before pulling them. Local helper: `TestResults/art-device-review.ps1`. Captures, profile backups and pulled logs: `TestResults/device-art-ui-01/`.
+
+### Builds and checks
+
+- Initial integration APK: `BD861ACCED1A2C6C3149FF2FC5ABB3C07EF611A07E814C2AE0EBC9F85DA075AF`. Full gate passed: .NET 239, EditMode 251, PlayMode 62. Actual device review exposed a retained blue HP colour and square corners of the opaque ability icon covering the circular bezel.
+- Final corrected APK: **`8D1515975F8C3F1E0987FACC61379AFEF9B1E5239EA7D92C38DE23E0C517A149`**, 24,738,453 bytes. HP changed to red, XP to blue, and the icon is circularly masked beneath the bezel. The full gate passed again: .NET **239/239**, compile **0 warnings/errors**, EditMode **251/251**, PlayMode **62/62**, build exit 0 and static integrity (272 project GUIDs, 515 scene objects/components). `sha256sum` of the installed package's `base.apk` matches the local APK exactly.
+
+### Observations
+
+| Evidence | Observed result |
+|---|---|
+| `01-initial.png`, `02-choice.png` (the latter is live combat despite its filename) | Compact HUD, live weapon/gold/upgrade/relic counts, quiet floor, current procedural actors and following camera at width 6 |
+| `03-state.png` | Two framed upgrade cards; readable names/effects; icons match; no old status text in the gaps |
+| `04-pause-details.png` | Pause exposes detailed weapon/relic/target/gold information, including Turkish decimal commas, without overlapping Resume |
+| `05-movement.png` and later sequence | Resume and a gated horizontal drag work; camera follows the displaced hero |
+| `review-09.png` | Right-side Forge Warden's full body and overhead HP bar fit inside the view; boss-only top readout is visible |
+| `review-12.png` | Extract/Descend descriptions fit; these text options do not display an unrelated upgrade icon |
+| `review-13.png` | Extraction succeeds: floor 1, six rooms, level 7, XP 121, 126 gold banked; Staff/Counterweight, damage x5 and speed x2 |
+| `final-01-ready.png` | Final installed build: red HP, coherent circular ability face, no exposed square icon corners |
+| `final-02-cooldown.png` | Final build: a gated ability tap produces damage, dims the icon and displays 8 seconds; XP fill is blue |
+| `final-03-state.png` | Final build's choice state after resumed play |
+
+The owner also played during this session, including loadout changes and selections; the sequence is not an isolated deterministic playthrough. Before review, the profile was version 2, revision 44, gold 2839, both unlockable weapons and both relics owned, deepest floor 2, Daggers/Counterweight equipped. After review it retained those unlocks, deepest floor and equipped items with gold 3132 earned during play. No profile reset or backup restore was performed over the owner's live progress.
+
+Final process log `final-unity.log` had **0** matches for Unity errors/exceptions. A sampled 5-second window held 59.9 fps, 16.7 ms p95, 124 MB total memory; that window was paused (`time scale 0`), so it is not a new combat-performance benchmark. Existing telemetry continued recording; logs are pulled to `telemetry` and `telemetry-final`, including final-build upgrade events.
+
+### Updated S23 touch/detection coordinates
+
+At the current 1080x2340 layout: Pause about `(988,178)`, ability `(923,2108)`, first choice `(540,1300)`, second choice about `(540,1590)`, Resume/Try again `(540,1905)`. The choice cards are lower-middle, no longer at the old `1720` card-colour sample. The review script detected a visible first card from the right edge `(980,1250)` (RGB approximately 102,80,68) plus dark left interior `(98,1250)` before tapping; it never blindly tapped on a timer. Re-measure after any layout, safe-area or texture change, and keep the focus/awake/keyguard gate before every input/capture. A pixel match identifies a card, not its meaning; select the desired option from the current prompt.
+
+### Limits
+
+Phone evidence is S23 at width 6. Guardian-left/rim extremes and widths 6/7.5 at 1080x1920/2340 are covered analytically, not by a paired phone capture of every case. No manual short-screen UI pass or mid-range-device validation was performed. Result/Relic Forge styling, the large pause heading/resume button and individual badge tap explanations remain open. These are the first integrated HUD/card assets, not completion of all game art.

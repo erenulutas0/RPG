@@ -1,0 +1,132 @@
+using System.Collections;
+using System.Collections.Generic;
+using Cryptforge.Art;
+using Cryptforge.Core;
+using Cryptforge.Progression;
+using Cryptforge.UI;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+
+namespace Cryptforge.Tests
+{
+    public sealed class ArtHudFlowTests
+    {
+        private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
+        private CombatSetup _setup;
+
+        [UnitySetUp]
+        public IEnumerator Load()
+        {
+            TestProfile.Begin();
+            Time.timeScale = 1f;
+            yield return SceneManager.LoadSceneAsync(ScenePath);
+            yield return null;
+            _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
+        }
+
+        [UnityTearDown]
+        public IEnumerator Unload()
+        {
+            Time.timeScale = 1f;
+            Scene scene = SceneManager.GetActiveScene();
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Art HUD Cleanup"));
+            yield return SceneManager.UnloadSceneAsync(scene);
+            TestProfile.End();
+        }
+
+        [UnityTest]
+        public IEnumerator CompactReadoutKeepsDetailsAccessibleThroughPause()
+        {
+            CanvasGroup details = GameObject.Find("Run Details").GetComponent<CanvasGroup>();
+            Assert.That(details.alpha, Is.Zero);
+            Assert.That(details.blocksRaycasts, Is.False, "Hidden statistics must never intercept steering.");
+            Assert.That(GameObject.Find("Boss Readout").GetComponent<CanvasGroup>().alpha, Is.Zero,
+                "A normal pack does not display a boss bar.");
+            _setup.Run.AddGold(999999);
+            Text gold = GameObject.Find("Gold Count").GetComponent<Text>();
+            Assert.That(gold.text, Is.EqualTo("999999"));
+            Assert.That(GameObject.Find("Gold Label").GetComponent<Text>().text, Does.Contain("999999 at risk"));
+            Assert.That(_setup.Pause.TryPause(), Is.True);
+            Assert.That(details.alpha, Is.EqualTo(1f));
+            Assert.That(GameObject.Find("Weapon Label").GetComponent<Text>().text, Does.Contain("damage every"));
+            Assert.That(_setup.Pause.TryResume(), Is.True);
+            Assert.That(details.alpha, Is.Zero);
+            yield return null;
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator CardArtworkFollowsContentAfterTheFirstUpgradeHitsItsCap()
+        {
+            UpgradeOption damage = _setup.Upgrades.Pool[0];
+            for (int i = 0; i < damage.MaxStacks; i++)
+            {
+                _setup.Run.GrantBonusUpgrade();
+                Assert.That(_setup.Upgrades.TrySelect(_setup.Upgrades.CurrentOffer, 0), Is.True);
+            }
+            _setup.Run.GrantBonusUpgrade();
+            Assert.That(_setup.Upgrades.CurrentOffer.Choices[0].Stat, Is.EqualTo(WeaponStat.AttackSpeed));
+            GameObject first = GameObject.Find("Choice Button 1");
+            Image icon = first.transform.Find("Choice Icon").GetComponent<Image>();
+            Assert.That(icon.enabled, Is.True);
+            Assert.That(icon.sprite.name, Is.EqualTo("UI_Icon_QuickenedGrip_v1"), "Slot zero now holds the other upgrade.");
+            Assert.That(GameObject.Find("Damage Badge").transform.Find("Stack Count").GetComponent<Text>().text,
+                Is.EqualTo(damage.MaxStacks.ToString()));
+            yield return new WaitForSecondsRealtime(.3f);
+
+            // Real raycast through the decorative icon must still reach the whole card's button.
+            Canvas.ForceUpdateCanvases();
+            var pointer = new PointerEventData(EventSystem.current) { position = icon.rectTransform.position };
+            var hits = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointer, hits);
+            Assert.That(hits.Count, Is.GreaterThan(0));
+            Assert.That(hits[0].gameObject.GetComponentInParent<Button>(), Is.SameAs(first.GetComponent<Button>()));
+            ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
+            Assert.That(_setup.Choices.IsOpen, Is.False);
+            Assert.That(_setup.Upgrades.StacksOf(_setup.Upgrades.Pool[1]), Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator ImportedAbilityGlyphSurvivesSceneRestart()
+        {
+            Sprite original = GameObject.Find("Ability Icon").GetComponent<Image>().sprite;
+            Assert.That(original.name, Is.EqualTo("UI_Icon_ForgeBurst_v1"));
+            yield return SceneManager.LoadSceneAsync(ScenePath);
+            yield return null;
+            Assert.That(original != null, Is.True, "A view must not destroy a shared imported sprite on unload.");
+            Assert.That(GameObject.Find("Ability Icon").GetComponent<Image>().sprite, Is.SameAs(original));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator BothCameraCandidatesContainTheGuardianAtCentreAndRim()
+        {
+            var camera = Camera.main;
+            var follow = camera.GetComponent<ArenaCameraFollow>();
+            Assert.That(follow.VisibleWidth, Is.EqualTo(6f), "Start with the closer of the two approved test candidates.");
+            // Full Warden rectangle, including attack pose and health bar, at the largest stopping radius. Camera
+            // remains hero-relative at the rim. A further 0.35 units budgets the follow lag while walking.
+            float halfBody = EnemyArt.WardenWidth / 64f;
+            float top = (EnemyArt.WardenHeight + EnemyArt.HealthBarHeight + 3f) / 32f;
+            foreach (float width in new[] { 6f, 7.5f })
+                foreach (float height in new[] { 1920f, 2340f })
+                    foreach (float heroX in new[] { 0f, -8.4f, 8.4f })
+                    {
+                        const float bottom = 285f;
+                        float bandTop = height - 100f - 327f;
+                        FollowFraming.Fit(1080f, height, bottom, bandTop, width, out float size, out float offset);
+                        float left = heroX - width / 2f;
+                        float right = heroX + width / 2f;
+                        Assert.That(heroX - 1.6f - halfBody - .35f, Is.GreaterThan(left));
+                        Assert.That(heroX + 1.6f + halfBody + .35f, Is.LessThan(right));
+                        float guardianTopRow = (top + .8f + offset + size) / (2 * size) * height;
+                        Assert.That(guardianTopRow, Is.LessThan(bandTop), "The guardian's bar stays below the top HUD.");
+                    }
+            yield return null;
+        }
+    }
+}

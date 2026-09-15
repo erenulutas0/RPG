@@ -78,6 +78,12 @@ namespace Cryptforge.Art
     // DrawPlatform is the static sprite; DrawLights gives the animated overlay frames (flames, seam glow, crystal core).
     public static class PlatformArt
     {
+        // Local floor palette: quiet enough beneath moving silhouettes without darkening actors or the rim.
+        public static readonly Rgba FloorLight = new Rgba(47, 45, 61);
+        public static readonly Rgba FloorStone = new Rgba(43, 42, 57);
+        public static readonly Rgba FloorDark = new Rgba(40, 39, 53);
+        public static readonly Rgba FloorGrout = new Rgba(34, 33, 46);
+        public static readonly Rgba FloorInlay = new Rgba(79, 66, 53);
         public const int FrameCount = 2;
         public const int TilesPerEdge = 16;
 
@@ -184,12 +190,10 @@ namespace Cryptforge.Art
                     int j = Clamp((int)((along - across) * 0.5f * TilesPerEdge), 0, TilesPerEdge - 1);
                     bool far = i + j >= TilesPerEdge;
                     bool light = PixelNoise.Pick(i, j, Seed + 4, 2) == 0;
-                    Rgba tone = far
-                        ? (light ? PixelPalette.Stone : PixelPalette.StoneDark)
-                        : (light ? PixelPalette.StoneLight : PixelPalette.Stone);
+                    Rgba tone = far ? (light ? FloorStone : FloorDark) : (light ? FloorLight : FloorStone);
                     // Two-texel speckles keep the stone from reading as flat colour without adding micro detail.
-                    if (PixelNoise.Chance(x >> 1, y >> 1, Seed + 5, 0.07f))
-                        tone = tone == PixelPalette.StoneLight ? PixelPalette.Stone : tone == PixelPalette.Stone ? PixelPalette.StoneDark : PixelPalette.Grout;
+                    if (PixelNoise.Chance(x >> 1, y >> 1, Seed + 5, 0.02f))
+                        tone = tone == FloorLight ? FloorStone : FloorDark;
                     canvas.Set(x, y, tone);
                 }
             }
@@ -199,10 +203,10 @@ namespace Cryptforge.Art
                 float f = k / (float)TilesPerEdge;
                 layout.TopTexel(f, 0f, out int x0, out int y0);
                 layout.TopTexel(f, 1f, out int x1, out int y1);
-                canvas.Line(x0, y0, x1, y1, PixelPalette.Grout);
+                canvas.Line(x0, y0, x1, y1, FloorGrout);
                 layout.TopTexel(0f, f, out x0, out y0);
                 layout.TopTexel(1f, f, out x1, out y1);
-                canvas.Line(x0, y0, x1, y1, PixelPalette.Grout);
+                canvas.Line(x0, y0, x1, y1, FloorGrout);
             }
 
             // The rim: a brass band with a dark inner line, and a lit outer edge along the two near sides.
@@ -222,18 +226,18 @@ namespace Cryptforge.Art
                 }
             }
 
-            // Brass lines corner to corner, with a few glints along their core.
+            // Inlaid, unlit brass: reserve bright metal for the rim and the small centre emblem.
             for (int y = layout.NearY + 5; y <= layout.FarY - 5; y++)
             {
-                canvas.Set(cx - 1, y, PixelPalette.BrassDark);
-                canvas.Set(cx + 1, y, PixelPalette.BrassDark);
-                canvas.Set(cx, y, PixelNoise.Chance(0, y >> 2, Seed + 6, 0.12f) ? PixelPalette.BrassLight : PixelPalette.Brass);
+                canvas.Set(cx - 1, y, FloorGrout);
+                canvas.Set(cx + 1, y, FloorGrout);
+                canvas.Set(cx, y, FloorInlay);
             }
             for (int x = cx - hw + 4; x <= cx + hw - 4; x++)
             {
-                canvas.Set(x, layout.MiddleY - 1, PixelPalette.BrassDark);
-                canvas.Set(x, layout.MiddleY + 1, PixelPalette.BrassDark);
-                canvas.Set(x, layout.MiddleY, PixelNoise.Chance(x >> 2, 0, Seed + 7, 0.12f) ? PixelPalette.BrassLight : PixelPalette.Brass);
+                canvas.Set(x, layout.MiddleY - 1, FloorGrout);
+                canvas.Set(x, layout.MiddleY + 1, FloorGrout);
+                canvas.Set(x, layout.MiddleY, FloorInlay);
             }
 
             // The emblem where the lines cross: nested brass diamonds with a bright heart.

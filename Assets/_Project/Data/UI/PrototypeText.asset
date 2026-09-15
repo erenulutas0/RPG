@@ -11,9 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0000000000000000000000000000000a, type: 3}
   m_Name: PrototypeText
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   _title: CRYPTFORGE
-  _floorProgressFormat: 'Floor {0}  |  Room {1}/{2}  |  {3}'
+  _floorProgressFormat: 'Floor {0}  /  Room {1}/{2}
+
+    {3}'
   _waveFormat: 'Wave {0}/{1}: combat is automatic'
   _victoryFormat: '{0} defeated in {1} hits, {2:0.0}s'
   _enragedFormat: '{0} is enraged!'
@@ -22,8 +24,8 @@ MonoBehaviour:
   _packHealthFormat: '{0}  |  {1:0} / {2:0} HP  (+{3} more)'
   _packVictoryFormat: '{0} enemies defeated in {1} hits, {2:0.0}s'
   _weaponFormat: '{0}  |  {1:0} damage every {2:0.00}s'
-  _goldFormat: 'Gold {0}  ({1} at risk)'
-  _experienceFormat: 'Level {0}  |  XP {1} / {2}'
+  _goldFormat: Gold {0}  ({1} at risk)
+  _experienceFormat: Level {0}  |  XP {1} / {2}
   _upgradeChoiceTitle: Level up! Choose one upgrade
   _forgeChoiceTitle: 'The forge: choose one'
   _checkpointChoiceTitle: 'Checkpoint: extract or descend?'
@@ -38,7 +40,7 @@ MonoBehaviour:
   _resultVictoryCauseFormat: '{0} defeated the {1} and cleared {2}'
   _resultExtractedCauseFormat: '{0} escaped after clearing {1}'
   _resultDefeatCauseFormat: '{0} fell to a {1} in {2}'
-  _resultProgressFormat: 'Floor {0}  |  {1} rooms  |  Level {2}  |  XP {3}'
+  _resultProgressFormat: Floor {0}  |  {1} rooms  |  Level {2}  |  XP {3}
   _resultGoldFormat: 'Gold banked: {0}'
   _resultGoldLostFormat: 'Gold banked: {0}  |  lost: {1}'
   _resultBuildFormat: 'Build: {0}  |  {1}'

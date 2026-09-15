@@ -1,5 +1,20 @@
 # First combat slice — setup and verification
 
+## Current art verification — 2026-09-16
+
+Latest gate: **239/239 .NET**, **251/251 EditMode**, **62/62 PlayMode**, compile check without warnings/errors, static integrity and APK build passed. The installed S23 APK hash matches `8D1515975F8C3F1E0987FACC61379AFEF9B1E5239EA7D92C38DE23E0C517A149`. Four new PlayMode cases cover compact/pause state, reordered-card icon identity with real raycasting, imported-sprite lifetime and candidate camera bounds.
+
+The compact foundry UI supersedes the original visual instructions below. The gameplay assertions remain applicable. In `Gameplay.unity`, test these current visual checks at 1080x2340 and 540x960:
+
+1. Combat shows floor/room, six pips, one gold counter, weapon name and acquired upgrade/equipped relic badges. No large title or permanent stat paragraphs. Normal rooms have no boss readout; the Warden room has one.
+2. Pause reveals detailed weapon, target, relic and at-risk-gold information; Resume returns to the compact HUD. Verify culture-aware numbers (for example `1,10s` under Turkish culture).
+3. HP is red and XP blue in the lower panel. Forge Burst is a circular framed icon, bright when ready, dim while unavailable, with a numeric cooldown and separate radial fill. The opaque icon's square corners must not cover the bezel. Tap and drag exclusion still work.
+4. Level-ups show two framed cards with live names/effects and matching icons. Tap anywhere on a card, including its icon. After Tempered Edge reaches five stacks, Quickened Grip moves to the first slot with its own icon. Forge/checkpoint options use text without a misleading weapon icon. HUD text must not appear in the gaps.
+5. The floor grid and centre inlays recede below characters. The camera shows 6 world units across. Inspect a guardian beside the hero: body and overhead bar must fit. Walk toward the rim and confirm the camera still follows and the chest remains visible when in view.
+6. Repeat after a run restart; imported ability artwork must remain present. The original choice delay, pause, progression, telemetry and simulation-parity tests remain required.
+
+Phone coordinates/detection have changed; use the latest entry in `23`, not its older 2026-09-14 pixel checks. Short-screen camera bounds are automated; manual short-screen UI and a second physical device remain additional acceptance checks.
+
 Completed USB-device test and APK details: [Android device validation](23_ANDROID_DEVICE_VALIDATION.md). Unity Editor is installed at `E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe` and the prototype is installed on the Samsung SM-S911B.
 
 ## Validation status, 2026-09-12
@@ -111,4 +126,4 @@ Create `TestResults` first if it does not exist. Do not add `-quit` to test comm
 
 ## Scope remaining
 
-The implemented run is a two-floor Descent: six rooms per floor ending in a boss, a forge choice on each floor, gold with an Extract/Descend checkpoint after floor 1, a scaled floor 2 with the Cursed Gold modifier, a Descent complete, Extracted or Defeated result and a one-tap restart. Banked gold is saved locally and spent in the Relic Forge on two relics and two weapons. Packs walk in from every corner of a wide floating platform, the hero walks by drag with the camera following, chests mend or pay, and the hero fires a Forge Burst around itself from a bottom-right button; every placeholder is drawn from code as pixel art. Final art, a walk animation and facings, a touch-aimed area ability, the icon HUD, analytics and an in-game progress reset are still pending.
+The implemented run is a two-floor Descent: six rooms per floor ending in a boss, a forge choice on each floor, gold with an Extract/Descend checkpoint after floor 1, a scaled floor 2 with the Cursed Gold modifier, and victory/extracted/defeated results with restart. Banked gold is saved and spent in the Relic Forge. The hero walks by drag, fights automatically and fires a hero-centred Forge Burst. Actors and arena remain procedural pixel art; the HUD, upgrade cards and ability now use the imported foundry UI. Local telemetry is implemented. Walk/facing animation, individual badge tap details, remaining menu art, audio, production character art and an in-game progress reset remain open. A touch-aimed spell is not part of the current approved control scheme.

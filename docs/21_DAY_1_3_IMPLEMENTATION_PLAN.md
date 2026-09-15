@@ -1,5 +1,21 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Latest slice — compact foundry UI (2026-09-15–16)
+
+The owner approved the combined art direction and resumed Unity/device work after telemetry commit `127f4de`. Eight UI images from the approved art kits are now imported; no generated combat screenshot or replacement character sprite is used.
+
+- Compact floor/room text, room pips, one gold counter, actual upgrade-stack badges, equipped relic state and a boss-only readout. Detailed weapon, target, relic and gold-at-risk text is available through Pause. Second Wind's badge shows remaining charges (1/0); Counterweight's number is triggers, not stacks or damage.
+- A grouped lower HP/XP panel, a red health fill and blue XP fill. Forge Burst has separate glyph, circular mask, bezel, cooldown fill and countdown text. Imported assets survive scene reload; the procedural fallback owns only its own generated texture.
+- Opaque, framed choice cards with live text and full-card hit areas. Upgrade icons resolve by stable content ID through the active offer, including when reaching a stack cap changes slot order. Forge, checkpoint and unillustrated future options do not inherit unrelated icons.
+- A quieter local floor palette and fewer speckles in `PlatformArt`; dim inlays and a retained bright rim. Geometry, movement, characters, balance, telemetry and save rules are unchanged.
+- Camera width 6 instead of 4.6. Full guardian body/bar bounds are checked analytically for both 6 and 7.5 on short/tall portrait layouts, with horizontal follow-lag allowance. The actual S23 review uses 6; a paired 6/7.5 phone comparison is not claimed.
+
+Files: `Scripts/UI/RunHud.cs`, `RunChoiceView.cs`, `AbilityButtonView.cs`, `Scripts/Art/PlatformArt.cs`, `Data/UI/PrototypeText.asset`, `Scenes/Gameplay/Gameplay.unity`, eight textures and import metadata in `Art/UI/`, `Tests/EditMode/PlatformArtTests.cs`, and new `Tests/PlayMode/ArtHudFlowTests.cs`. Two temporary Editor migrations authored the scene/imports and corrected the first phone review's health colour and square icon corners; both were removed. Their local copies are under ignored `TestResults/`.
+
+Art rationale, import limits and handoff: `ArtDirection/2026-09-15/UNITY_INTEGRATION.md`. Device evidence and any remaining limits: `23_ANDROID_DEVICE_VALIDATION.md`. Result/Relic Forge screens, the large pause title/resume control, per-badge tap details, walk/facing animation and shipping texture optimisation remain later art work.
+
+**Verified:** after the device-driven corrections, .NET **239/239**, Unity compile check **0 warnings/errors**, EditMode **251/251**, PlayMode **62/62**, development APK build and static integrity passed (272 project GUIDs; 515 scene objects/components). APK SHA-256 **`8D1515975F8C3F1E0987FACC61379AFEF9B1E5239EA7D92C38DE23E0C517A149`**; the installed `base.apk` hash matches. S23 captures confirm final red HP/blue XP, circular ability artwork, cooldown response, readable choices and pause details; the earlier same-layout pass also reached the right-side guardian and Extract. See `23` for distinctions and remaining device coverage.
+
 Date: 2026-09-12. Scope follows `16_FIRST_PROMPT.md`, with `01`, `03`, and `06` as primary constraints. All 22 original Markdown documents were read before implementation. The repository initially contained only `docs/`, with no Unity project, source code, or Git repository.
 
 The first requested implementation stops after **one hero automatically attacks one enemy until the enemy dies**. Day 3 is planned, not implemented. This is not the full mechanical milestone or Gate A.

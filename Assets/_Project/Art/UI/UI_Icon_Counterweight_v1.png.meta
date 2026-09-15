@@ -1,0 +1,780 @@
+fileFormatVersion: 2
+guid: ad590130c43b4f444ac27992f28c94d3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6609437537367003967
+    second: UI_Icon_Counterweight_v1_0
+  - first:
+      213: -8785768941635755072
+    second: UI_Icon_Counterweight_v1_1
+  - first:
+      213: 3082163550761417103
+    second: UI_Icon_Counterweight_v1_2
+  - first:
+      213: -4327008033496148938
+    second: UI_Icon_Counterweight_v1_3
+  - first:
+      213: 6158596537008069677
+    second: UI_Icon_Counterweight_v1_4
+  - first:
+      213: 660479856667388845
+    second: UI_Icon_Counterweight_v1_5
+  - first:
+      213: 7618016763479302998
+    second: UI_Icon_Counterweight_v1_6
+  - first:
+      213: -590589599445234532
+    second: UI_Icon_Counterweight_v1_7
+  - first:
+      213: 7802484826820145966
+    second: UI_Icon_Counterweight_v1_8
+  - first:
+      213: 6571715773941540442
+    second: UI_Icon_Counterweight_v1_9
+  - first:
+      213: -3861082775107882764
+    second: UI_Icon_Counterweight_v1_10
+  - first:
+      213: 4788779492780320185
+    second: UI_Icon_Counterweight_v1_11
+  - first:
+      213: 5333749295286304731
+    second: UI_Icon_Counterweight_v1_12
+  - first:
+      213: 2307910832906691823
+    second: UI_Icon_Counterweight_v1_13
+  - first:
+      213: 9173647818758497639
+    second: UI_Icon_Counterweight_v1_14
+  - first:
+      213: 9181130150796293880
+    second: UI_Icon_Counterweight_v1_15
+  - first:
+      213: 1052633212709994544
+    second: UI_Icon_Counterweight_v1_16
+  - first:
+      213: 3525284356914215118
+    second: UI_Icon_Counterweight_v1_17
+  - first:
+      213: 4973289381416003154
+    second: UI_Icon_Counterweight_v1_18
+  - first:
+      213: -9034310213727805410
+    second: UI_Icon_Counterweight_v1_19
+  - first:
+      213: 884146643965126297
+    second: UI_Icon_Counterweight_v1_20
+  - first:
+      213: -131897316562446537
+    second: UI_Icon_Counterweight_v1_21
+  - first:
+      213: -6653429896325005991
+    second: UI_Icon_Counterweight_v1_22
+  - first:
+      213: 934053023543532552
+    second: UI_Icon_Counterweight_v1_23
+  - first:
+      213: -2472409782383287845
+    second: UI_Icon_Counterweight_v1_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_0
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 23
+        width: 1109
+        height: 1211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cc6b1cf39f8644a0800000000000000
+      internalID: -6609437537367003967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_1
+      rect:
+        serializedVersion: 2
+        x: 1116
+        y: 538
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c3242352bda21680800000000000000
+      internalID: -8785768941635755072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 267
+        width: 92
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f897ace5b6b06ca20800000000000000
+      internalID: 3082163550761417103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_3
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 343
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63453377e1163f3c0800000000000000
+      internalID: -4327008033496148938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_4
+      rect:
+        serializedVersion: 2
+        x: 1123
+        y: 326
+        width: 20
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2c1157bbeab77550800000000000000
+      internalID: 6158596537008069677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_5
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 300
+        width: 32
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dabe5f52eee7a2900800000000000000
+      internalID: 660479856667388845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_6
+      rect:
+        serializedVersion: 2
+        x: 1141
+        y: 280
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 653a72862e1a8b960800000000000000
+      internalID: 7618016763479302998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_7
+      rect:
+        serializedVersion: 2
+        x: 1131
+        y: 242
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9cc60d63edcdc7f0800000000000000
+      internalID: -590589599445234532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_8
+      rect:
+        serializedVersion: 2
+        x: 1133
+        y: 250
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e237df35c9ef74c60800000000000000
+      internalID: 7802484826820145966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_9
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 138
+        width: 13
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a56ed9e8dac633b50800000000000000
+      internalID: 6571715773941540442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_10
+      rect:
+        serializedVersion: 2
+        x: 973
+        y: 136
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f0b0554cadaa6ac0800000000000000
+      internalID: -3861082775107882764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_11
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 150
+        width: 17
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b5a8de9399257240800000000000000
+      internalID: 4788779492780320185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_12
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 115
+        width: 14
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdfb78289b8450a40800000000000000
+      internalID: 5333749295286304731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_13
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 128
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe4eda8bca8570020800000000000000
+      internalID: 2307910832906691823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_14
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 113
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76523ab46185f4f70800000000000000
+      internalID: 9173647818758497639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_15
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 110
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f677da7a3de96f70800000000000000
+      internalID: 9181130150796293880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_16
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 111
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0308b527454bb9e00800000000000000
+      internalID: 1052633212709994544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_17
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 106
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec8fc12e1735ce030800000000000000
+      internalID: 3525284356914215118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_18
+      rect:
+        serializedVersion: 2
+        x: 866
+        y: 79
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 256e580c75ca40540800000000000000
+      internalID: 4973289381416003154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_19
+      rect:
+        serializedVersion: 2
+        x: 932
+        y: 87
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e102218f9beaf9280800000000000000
+      internalID: -9034310213727805410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_20
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 87
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99625e230be154c00800000000000000
+      internalID: 884146643965126297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_21
+      rect:
+        serializedVersion: 2
+        x: 943
+        y: 91
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 737d773e6186b2ef0800000000000000
+      internalID: -131897316562446537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_22
+      rect:
+        serializedVersion: 2
+        x: 946
+        y: 87
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95d759bb2c44aa3a0800000000000000
+      internalID: -6653429896325005991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_23
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 71
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80c11bda64c66fc00800000000000000
+      internalID: 934053023543532552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Icon_Counterweight_v1_24
+      rect:
+        serializedVersion: 2
+        x: 899
+        y: 53
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd1e7ddf66c30bdd0800000000000000
+      internalID: -2472409782383287845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      UI_Icon_Counterweight_v1_0: -6609437537367003967
+      UI_Icon_Counterweight_v1_1: -8785768941635755072
+      UI_Icon_Counterweight_v1_10: -3861082775107882764
+      UI_Icon_Counterweight_v1_11: 4788779492780320185
+      UI_Icon_Counterweight_v1_12: 5333749295286304731
+      UI_Icon_Counterweight_v1_13: 2307910832906691823
+      UI_Icon_Counterweight_v1_14: 9173647818758497639
+      UI_Icon_Counterweight_v1_15: 9181130150796293880
+      UI_Icon_Counterweight_v1_16: 1052633212709994544
+      UI_Icon_Counterweight_v1_17: 3525284356914215118
+      UI_Icon_Counterweight_v1_18: 4973289381416003154
+      UI_Icon_Counterweight_v1_19: -9034310213727805410
+      UI_Icon_Counterweight_v1_2: 3082163550761417103
+      UI_Icon_Counterweight_v1_20: 884146643965126297
+      UI_Icon_Counterweight_v1_21: -131897316562446537
+      UI_Icon_Counterweight_v1_22: -6653429896325005991
+      UI_Icon_Counterweight_v1_23: 934053023543532552
+      UI_Icon_Counterweight_v1_24: -2472409782383287845
+      UI_Icon_Counterweight_v1_3: -4327008033496148938
+      UI_Icon_Counterweight_v1_4: 6158596537008069677
+      UI_Icon_Counterweight_v1_5: 660479856667388845
+      UI_Icon_Counterweight_v1_6: 7618016763479302998
+      UI_Icon_Counterweight_v1_7: -590589599445234532
+      UI_Icon_Counterweight_v1_8: 7802484826820145966
+      UI_Icon_Counterweight_v1_9: 6571715773941540442
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

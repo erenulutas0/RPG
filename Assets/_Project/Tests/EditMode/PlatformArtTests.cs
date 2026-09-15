@@ -55,8 +55,8 @@ namespace Cryptforge.Tests
             Assert.That(canvas.Get(layout.CentreX + layout.HalfWidth, layout.MiddleY), Is.EqualTo(PixelPalette.Brass), "Right corner.");
             Assert.That(canvas.Get(layout.CentreX, layout.NearY), Is.EqualTo(PixelPalette.BrassLight), "The near corner catches the light.");
             Assert.That(canvas.Get(layout.CentreX, layout.MiddleY), Is.EqualTo(PixelPalette.BrassLight), "The emblem's heart.");
-            Assert.That(canvas.Get(layout.CentreX, layout.MiddleY + 40), Is.EqualTo(PixelPalette.Brass).Or.EqualTo(PixelPalette.BrassLight), "The far diagonal.");
-            Assert.That(canvas.Get(layout.CentreX + 40, layout.MiddleY), Is.EqualTo(PixelPalette.Brass).Or.EqualTo(PixelPalette.BrassLight), "The side diagonal.");
+            Assert.That(canvas.Get(layout.CentreX, layout.MiddleY + 40), Is.EqualTo(PlatformArt.FloorInlay), "The far diagonal is unlit.");
+            Assert.That(canvas.Get(layout.CentreX + 40, layout.MiddleY), Is.EqualTo(PlatformArt.FloorInlay), "The side diagonal is unlit.");
             // A one-texel dark outline hugs the silhouette.
             Assert.That(canvas.Get(layout.CentreX, layout.FarY + 1), Is.EqualTo(PixelPalette.Outline));
             Assert.That(canvas.Get(layout.CentreX - layout.HalfWidth - 1, layout.MiddleY), Is.EqualTo(PixelPalette.Outline));
@@ -83,10 +83,11 @@ namespace Cryptforge.Tests
         public void TilesUseTwoStoneTonesPerHalfWithGroutAndFacesCarryLava()
         {
             PixelCanvas canvas = PlatformArt.DrawPlatform(SceneGeometry);
-            Assert.That(Count(canvas, PixelPalette.Stone), Is.GreaterThan(3000), "Shared stone tone.");
-            Assert.That(Count(canvas, PixelPalette.StoneLight), Is.GreaterThan(1500), "Near half's lighter tone.");
-            Assert.That(Count(canvas, PixelPalette.StoneDark), Is.GreaterThan(1500), "Far half's darker tone.");
-            Assert.That(Count(canvas, PixelPalette.Grout), Is.GreaterThan(300), "Grout lines between the tiles.");
+            Assert.That(Count(canvas, PlatformArt.FloorStone), Is.GreaterThan(3000), "Shared stone tone.");
+            Assert.That(Count(canvas, PlatformArt.FloorLight), Is.GreaterThan(1500), "Near half's lighter tone.");
+            Assert.That(Count(canvas, PlatformArt.FloorDark), Is.GreaterThan(1500), "Far half's darker tone.");
+            Assert.That(Count(canvas, PlatformArt.FloorGrout), Is.GreaterThan(300), "Grout lines between the tiles.");
+            Assert.That(PlatformArt.FloorLight.R - PlatformArt.FloorGrout.R, Is.LessThan(16), "Internal seams recede beneath actors.");
             Assert.That(Count(canvas, PixelPalette.Brass) + Count(canvas, PixelPalette.BrassDark), Is.GreaterThan(800), "Rim, diagonals and emblem.");
             Assert.That(Count(canvas, PixelPalette.Face) + Count(canvas, PixelPalette.FaceLight) + Count(canvas, PixelPalette.FaceDark), Is.GreaterThan(3000), "Stone faces and keel.");
             Assert.That(Count(canvas, PixelPalette.Lava), Is.GreaterThan(150), "Lava seams and the crystal's rind.");

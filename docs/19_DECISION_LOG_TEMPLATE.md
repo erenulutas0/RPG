@@ -320,6 +320,38 @@ Testers cannot steer and fire at once; enemies pile up at one corner; the phone 
 
 ---
 
+## Decision: Compact astral-foundry combat UI
+
+**Date:** 2026-09-15
+
+**Status:** Accepted visual direction; runtime integration pending
+
+**Owner:** Product owner / Astra art direction
+
+### Context
+The owner approved Astra's recommended combination after reviewing `ArtDirection/2026-09-15/sprint-01/`. Ultracode is executing the separate local-telemetry engineering prompt originally prepared for Opus. Art production proceeds independently; no duplicate engineering task is started.
+
+### Options
+1. A: closer combat with stronger character prominence.
+2. B: wider combat with more visible travel space and a quieter floor.
+3. Combine A's character prominence, B's floor treatment and C's opaque themed two-choice panel.
+
+### Decision
+Option 3. Keep the astral foundry, blue-steel hero, ember enemies, silver constructs and restrained brass. Remove the large game title and persistent stat paragraphs from combat in favour of compact floor/room progress, build badges and one gold counter. Group HP/XP below, with one active ability at bottom right and a compact pause target above. Use two equally prominent full-card upgrade targets with live text; no old HUD text may show through their gaps. Use the gauntlet/speed motif for attack speed so a boot does not imply movement speed.
+
+This is a moving-hero combat composition. The older full-island cosmic mockup remains a mood/palette reference; fitting the whole island during ordinary combat is not required. Preserve current character drawings during the first UI integration. Do not copy generated walls or obstructions into ArenaGeometry. Forge Burst remains hero-centred with existing gameplay values.
+
+### Why
+The combination gives the hero visual presence, lowers floor competition and makes the upgrade decision readable within thumb reach. Separating icons, panels and live text supports reuse, localization and dynamic values.
+
+### Consequences
+Art direction is selected; do not ask the owner to choose A/B again. Prepare reusable UI components, then validate real scene framing and touch layout. The generated images do not establish exact camera values, final pixel grids, additional buff mechanics, map geometry or approved enemy compositions. The proposed 6 and 7.5 widths remain test candidates, not shipped tuning. UI masters stay outside Assets until the integration slice imports and validates them. Do not edit the telemetry worker's files or claim its tests/device run as art verification.
+
+### Revisit trigger
+Real phone comparison shows unreadable small enemies, clipped bodies/health bars, insufficient thumb clearance or text that cannot fit on shorter portrait screens. Adjust the affected measurement while retaining the approved visual identity.
+
+---
+
 ## Decision: A local event log before any analytics SDK
 
 **Date:** 2026-09-15  
@@ -351,3 +383,22 @@ Negative:
 
 ### Revisit trigger
 External playtests beyond a handful of devices, or a soft-launch plan: then choose a provider and route the recorder's events to it.
+
+---
+
+## Decision: Integrate the approved foundry UI and start at a 6-unit camera width
+
+**Date:** 2026-09-16  
+**Status:** Implemented under the owner's approved art direction  
+**Owner:** Product owner / art
+
+### Context and options
+The owner approved A's character prominence, B's quiet floor and C's card hierarchy, then authorised integration once the telemetry worker finished. The old 4.6-unit camera clipped a guardian beside the hero. Widths 6 and 7.5 were candidates; retaining 4.6 did not provide adequate body margins.
+
+### Decision and evidence
+Use 6 initially. It retains more character prominence than 7.5 and fits the full guardian beside the hero in the S23 capture `TestResults/device-art-ui-01/review-09.png`. Both candidate widths also pass analytical short/tall portrait body/bar bounds with a horizontal follow-lag allowance. This is not a paired phone comparison; do not report 7.5 as device-tested.
+
+Import the reusable panel and seven icons/bezel images, keep live text, and retain procedural actors. Use local floor colours instead of changing the shared palette. Move the detailed readout to Pause rather than deleting useful combat/build information. Keep gameplay and telemetry untouched.
+
+### Consequences and remaining work
+The first integrated UI is playable, but generated raster UI is not a replacement for a grid-cleaned character pipeline. Result/forge screens and the pause menu's large title/resume control still use earlier styling. Individual badge tap explanations remain open; the full readout is available via Pause. Revisit camera width after movement/roster changes or clipping on another screen ratio, and test shorter UI layouts manually before release.

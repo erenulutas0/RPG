@@ -10,6 +10,13 @@ namespace Cryptforge.UI
     // stale or repeated selections; this view additionally disables the cards on the first tap and briefly after showing.
     public sealed class RunChoiceView : MonoBehaviour
     {
+        [System.Serializable]
+        private struct UpgradeIcon
+        {
+            public UpgradeDefinition Definition;
+            public Sprite Sprite;
+        }
+
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private GameObject _panel;
@@ -17,6 +24,8 @@ namespace Cryptforge.UI
         [SerializeField] private Button[] _buttons;
         [SerializeField] private Text[] _nameLabels;
         [SerializeField] private Text[] _descriptionLabels;
+        [SerializeField] private Image[] _cardIcons;
+        [SerializeField] private UpgradeIcon[] _upgradeIcons;
         [SerializeField, Min(0f)] private float _inputDelay = 0.25f;
         private ChoicePrompt _shownPrompt;
         private float _inputEnabledAt;
@@ -87,7 +96,26 @@ namespace Cryptforge.UI
 
                 _nameLabels[i].text = prompt.Cards[i].Name;
                 _descriptionLabels[i].text = prompt.Cards[i].Description;
+                if (_cardIcons != null && i < _cardIcons.Length && _cardIcons[i] != null)
+                {
+                    Sprite icon = IconFor(prompt, i);
+                    _cardIcons[i].sprite = icon;
+                    _cardIcons[i].enabled = icon != null;
+                }
             }
+        }
+
+        private Sprite IconFor(ChoicePrompt prompt, int slot)
+        {
+            // Resolve by content identity, not slot order or translated display names. Forge/checkpoint and future
+            // upgrades without artwork keep their text cards instead of inheriting an unrelated weapon icon.
+            UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
+            if (prompt.Kind != ChoiceKind.Upgrade || offer == null || slot >= offer.Choices.Count || _upgradeIcons == null)
+                return null;
+            foreach (UpgradeIcon icon in _upgradeIcons)
+                if (icon.Definition != null && icon.Definition.Id == offer.Choices[slot].Id)
+                    return icon.Sprite;
+            return null;
         }
 
         private void Update()
