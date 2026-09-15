@@ -7,6 +7,7 @@ Open this folder as a Unity project using **6000.0.65f1**. Open `Assets/_Project
 - [Day 1–Day 3 plan and exact file inventory](docs/21_DAY_1_3_IMPLEMENTATION_PLAN.md)
 - [Setup, acceptance checks, test commands, and validation limits](docs/22_FIRST_COMBAT_VERIFICATION.md)
 - [Successful Android build and Samsung device test](docs/23_ANDROID_DEVICE_VALIDATION.md)
+- [Handoff brief for the next assistant: rules, state, priorities, the art contract](docs/25_HANDOFF_2026-09-15.md)
 
 Implemented: automatic combat, kill → XP, upgrade choice, Grunt/Runner/Tank archetypes, enemy attacks with hero death, Descent floor 1 (rooms and waves, forge, elite, enraging boss), gold with an Extract/Descend checkpoint, floor 2 with a scaling tier and modifier, victory/extracted/defeat results and one-tap restart, the Forge meta layer with a versioned local save and two relics, a pause button, packs of up to seven enemies that walk in across a floating placeholder arena, and three weapon behaviors (Sword cleave, Staff area damage, Daggers crits) with Forge weapon unlocks and save version 2. Analytics and a progress reset are subsequent work.
 
@@ -15,6 +16,8 @@ Local checks from the repository root:
 ```powershell
 pwsh -File Tools/Verify-Project.ps1
 dotnet test Tools/CombatChecks/CombatChecks.csproj --configuration Release
+dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj
+pwsh -File Tools/Run-UnityTests.ps1
 ```
 
-The .NET check compiles and tests the actual engine-independent combat source. It does not validate Unity components, asset import, rendering, or Android builds.
+The .NET check compiles and tests the actual engine-independent combat source; the compile check builds every script and test against the pinned Editor's assemblies in seconds; the Unity runner executes the EditMode and PlayMode suites in batch mode and builds the development APK only when both pass. The first three do not validate Unity components, asset import, rendering, or Android builds.

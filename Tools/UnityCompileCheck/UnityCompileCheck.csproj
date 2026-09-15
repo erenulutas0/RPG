@@ -1,0 +1,33 @@
+<!--
+  A compile check in seconds, without opening Unity: every gameplay script plus the test support, EditMode and PlayMode
+  tests, compiled against the pinned Editor's UnityEngine assemblies, the project's UnityEngine.UI and TestRunner
+  assemblies and Unity's NUnit. It catches syntax errors, missing usings and wrong signatures before a Unity batch run;
+  it does not run tests, validate assets or replace the Unity suites (Tools/Run-UnityTests.ps1).
+
+    dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj
+
+  It needs Library/ScriptAssemblies and Library/PackageCache, which exist once Unity has opened the project.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>UNITY_INCLUDE_TESTS;UNITY_ANDROID</DefineConstants>
+    <NoWarn>CS0649;CS0414;CS0169;CS0067</NoWarn>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <OutputType>Library</OutputType>
+    <UnityEditorRoot Condition="'$(UnityEditorRoot)' == ''">E:/Unity/Editors/6000.0.65f1/Editor</UnityEditorRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/_Project/Scripts/**/*.cs" Exclude="../../Assets/_Project/Scripts/Editor/**/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/**/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/**/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/PlayMode/**/*.cs" />
+    <Reference Include="$(UnityEditorRoot)/Data/Managed/UnityEngine/*.dll" />
+    <Reference Include="../../Library/ScriptAssemblies/UnityEngine.UI.dll" />
+    <Reference Include="../../Library/ScriptAssemblies/UnityEngine.TestRunner.dll" />
+    <Reference Include="../../Library/PackageCache/com.unity.ext.nunit@*/net40/unity-custom/nunit.framework.dll" />
+  </ItemGroup>
+</Project>
