@@ -317,3 +317,37 @@ Negative:
 
 ### Revisit trigger
 Testers cannot steer and fire at once; enemies pile up at one corner; the phone shows the drag start too far from the finger.
+
+---
+
+## Decision: A local event log before any analytics SDK
+
+**Date:** 2026-09-15  
+**Status:** Accepted (implemented; see `21`)  
+**Owner:** Product owner / engineering
+
+### Context
+`10` recommends Firebase Analytics as a baseline, and this log's suggested first decisions include the analytics provider. The owner's rules forbid a backend, SDKs and network transmission at this stage. Meanwhile pacing and choice questions need evidence from real device sessions: floor 1 is about 47 s of active play against the GDD's 3–4 minutes.
+
+### Options
+1. Integrate Firebase Analytics now.
+2. A local, bounded JSON Lines log beside the profile, pulled with adb after a session; no SDK.
+3. Keep relying on screenshots and logcat.
+
+### Decision
+Option 2. Use `10`'s event names wherever the feature exists. Keep active combat time apart from choice, pause and background time. Identify a launch by a random session id; record no device or player identifiers.
+
+### Why
+- A file that never leaves the phone needs no SDK, consent flow or data-safety declaration.
+- It answers device-session questions now: how long rooms take, what gets picked, why runs end. The event names carry over to a provider later.
+- Screenshots and logcat cannot give exact counts, ordering or time splits.
+
+### Consequences
+Positive: exact per-run evidence; ordering and exactly-once rules under test; no binary or privacy cost.
+
+Negative:
+- Nothing aggregates across players or devices, and logs are pulled by hand.
+- A provider later still needs consent, a data-safety declaration and a sink behind the same recorder.
+
+### Revisit trigger
+External playtests beyond a handful of devices, or a soft-launch plan: then choose a provider and route the recorder's events to it.

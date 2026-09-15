@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.Save;
@@ -79,6 +80,46 @@ namespace Cryptforge.Tests
             Assert.That(shop.TrySelect(daggers), Is.True);
             Assert.That(profile.Gold, Is.Zero);
             Assert.That(shop.NextUnlock, Is.Null);
+        }
+
+        [Test]
+        public void ShopReportsForgedOnlyForPurchasesTheProfileAccepted()
+        {
+            var profile = new PlayerProfile(150, null, null, 0);
+            WeaponOption sword = Sword();
+            WeaponOption staff = Staff();
+            WeaponOption daggers = Daggers();
+            var shop = new WeaponShop(profile, new[] { sword, staff, daggers }, sword);
+            var forged = new List<WeaponOption>();
+            var goldSeenByForged = new List<int>();
+            bool ownedAndEquippedWhenForged = true;
+            shop.Forged += weapon =>
+            {
+                forged.Add(weapon);
+                goldSeenByForged.Add(profile.Gold);
+                ownedAndEquippedWhenForged &= profile.OwnsWeapon(weapon.Id) && profile.EquippedWeaponId == weapon.Id;
+            };
+
+            Assert.That(shop.TrySelect(sword), Is.False, "Tapping the carried starting weapon is not a purchase.");
+            Assert.That(shop.TrySelect(daggers), Is.False, "An unaffordable weapon is not a purchase.");
+            Assert.That(forged, Is.Empty);
+
+            Assert.That(shop.TrySelect(staff), Is.True);
+            Assert.That(forged, Is.EqualTo(new[] { staff }));
+            Assert.That(goldSeenByForged, Is.EqualTo(new[] { 30 }), "Forged follows the accepted spend.");
+
+            Assert.That(shop.TrySelect(sword), Is.True, "Returning to the starting weapon is not a purchase.");
+            Assert.That(shop.TrySelect(staff), Is.True, "Equipping an owned weapon is not a purchase.");
+            Assert.That(shop.TrySelect(staff), Is.False);
+            Assert.That(forged, Has.Count.EqualTo(1));
+
+            profile.Deposit(150);
+            Assert.That(shop.TrySelect(daggers), Is.True);
+            Assert.That(shop.TrySelect(daggers), Is.False);
+
+            Assert.That(forged, Is.EqualTo(new[] { staff, daggers }));
+            Assert.That(goldSeenByForged, Is.EqualTo(new[] { 30, 0 }));
+            Assert.That(ownedAndEquippedWhenForged, Is.True);
         }
 
         [Test]

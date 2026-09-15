@@ -14,6 +14,11 @@ namespace Cryptforge.Progression
         public ForgeOffer CurrentOffer { get; private set; }
         public event Action OfferChanged;
 
+        // (chosen option, slot) once per accepted choice, so observers such as telemetry learn what was picked; the
+        // closing OfferChanged alone cannot tell a choice from a visit withdrawn at run end. Raised after the effect is
+        // applied, immediately before OfferChanged.
+        public event Action<ForgeOption, int> Selected;
+
         public ForgeService(RunState run, IHealable hero)
         {
             _run = run ?? throw new ArgumentNullException(nameof(run));
@@ -56,6 +61,7 @@ namespace Cryptforge.Progression
                     break;
             }
 
+            Selected?.Invoke(choice, slot);
             OfferChanged?.Invoke();
             return true;
         }

@@ -14,6 +14,11 @@ namespace Cryptforge.Progression
         public PlayerProfile Profile { get; }
         public IReadOnlyList<RelicOption> Relics { get; }
 
+        // Raised once when a tap spends gold on a relic, after the profile accepted the purchase, so observers such as
+        // telemetry can count forge gold spent; profile.Changed cannot tell a purchase from an equip. Not raised for
+        // equipping an owned relic or for a tap that spends nothing.
+        public event Action<RelicOption> Forged;
+
         public RelicShop(PlayerProfile profile, IReadOnlyList<RelicOption> relics)
         {
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
@@ -71,7 +76,10 @@ namespace Cryptforge.Progression
             switch (StatusOf(relic))
             {
                 case UnlockStatus.Affordable:
-                    return Profile.TryForgeRelic(relic.Id, relic.Price);
+                    if (!Profile.TryForgeRelic(relic.Id, relic.Price))
+                        return false;
+                    Forged?.Invoke(relic);
+                    return true;
                 case UnlockStatus.Owned:
                     return Profile.Equip(relic.Id);
                 default:

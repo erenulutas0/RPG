@@ -349,3 +349,35 @@ Build: the frame-time probe (`21`), APK SHA-256 `03443B303B76A1E97E09239A460B768
 | App log | No Unity error or exception line |
 
 Reading: the S23 has room to spare. The two costs a mid-range phone will feel first are the wave spawn, about 11 ms of main thread and up to 0.7 MB of garbage per wave because every enemy draws its own sprites as it enters, and the 17.6 MB, 50–67 ms run start. On a phone two to three times slower the spawn alone could miss a frame or two per wave; that is an estimate, as no mid-range device was measured. Both costs sit in the placeholder art's view code (`EnemyLookView`, the arena views): caching drawn sprites per enemy look and across run restarts would remove most of both without changing how anything looks.
+
+## Local telemetry on the phone (2026-09-15)
+
+Build: the local telemetry log (`21`), APK SHA-256 `BAA8E568E0B8D3D9DFB00A3FBB243311F45916AAD17C7D73CA80FF6E90623A97`, installed with `adb install -r` while the launcher had focus, keeping app data. The session was announced to the owner first.
+
+The script:
+1. Backed up `profile.json` and `profile.json.bak`.
+2. Relaunched the game with `am start`.
+3. Took a focus-gated screenshot about once a second. It tapped the first card whenever the choice-panel pixel (1000, 1720) showed, and stopped at the result screen's **Try again** pixel (540, 1905). It never opened the Relic Forge.
+4. Pulled the telemetry folder (`TestResults/device-telemetry/`).
+
+| Check | Result |
+|---|---|
+| Before | No `telemetry` folder on the device; profile version 2, revision 42, forge gold 2723 |
+| Run | 9 panels in 73.6 s: seven level-ups (Tempered Edge ×5, then Quickened Grip ×2 once Tempered Edge was full), Mend, Extract |
+| Result screen | **Extracted**, **Floor 1 \| 6 rooms \| Level 7 \| XP 121**, **Gold banked: 116**, **Build: Staff \| Counterweight (26x), Tempered Edge x5, Quickened Grip x2**, **Forge gold 2839** (`device-telemetry/result.png`) |
+| Log file | `events.jsonl`, 11,081 bytes, 41 lines. One session and one run, `seq` 1 to 41 without a gap. LF line ends, UTC timestamps, a decimal point in every number |
+| `run_start` against the screen | `weapon_staff`, `relic_counterweight`, `forge_gold` 2723, `deepest_floor` 2 |
+| `run_end` against the screen | `extracted`, 1 floor, 6 rooms, level 7, 31 kills, 7 upgrades, gold 116, banked 116, lost 0 |
+| Choices against the panels | Seven `upgrade_selected` (five `upgrade_damage`, two `upgrade_attack_speed`), one `forge_selected` (`forge_mend`) and one `extract_choice` (`extract`): the nine panels |
+| Gold against the screen | Room kill gold 10 + 13 + 18 + 0 + 25 + 50 = 116; 2723 + 116 = the 2839 on screen |
+| Order at the start | `session_start`, `run_start`, `room_start` 1, `first_kill` (a Cinder Mite at 1.6 active s), then each upgrade offer before its selection |
+| Order per room | the room's `currency_earned`, then its `room_complete`, then the next `room_start`; `boss_start` names the Forge Warden |
+| Order after the boss | its kill's `upgrade_offered`, the boss room's `room_complete`, `boss_end` (defeated), `floor_complete`, then `upgrade_selected`, `extract_choice`, the banked `currency_earned` and `run_end` |
+| Time, run | 46.8 active s, 22.8 choice s, no pause, no background |
+| Time, rooms | Rooms 1–3: 13.1, 12.4 and 9.3 active s; the forge 1.0; the elite 4.7; the boss 6.3. The boss's level-up and the checkpoint came after the floor closed, so they count toward the run only |
+| Not in this run | No `chest_opened` or `ability_used`: the script never walked the hero or tapped the burst. No `app_background` |
+| Profile after | Version 2, revision 43, forge gold 2839, the same keys as before |
+
+Reading:
+- Floor 1 took 46.8 s of active play against the GDD's 3–4 minute floors.
+- Choice panels took 22.8 s, most of it the script's screenshot polling rather than thinking time. A human session's log would show real decision time.

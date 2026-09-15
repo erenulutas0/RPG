@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Economy;
@@ -162,6 +163,83 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentException>(() => forge.Open(new ForgeOption[0]));
             Assert.Throws<ArgumentOutOfRangeException>(() => new ForgeOption("x", "", "", ForgeEffect.Heal, 1.5f));
             Assert.Throws<ArgumentOutOfRangeException>(() => new ForgeOption("x", "", "", ForgeEffect.BonusUpgrade, 0.5f));
+        }
+
+        [Test]
+        public void ForgeSelectedReportsEachAcceptedChoiceOnceAfterItsEffectAndBeforeTheVisitCloses()
+        {
+            var run = new RunState(10);
+            var hero = new HealthState(100f);
+            var forge = new ForgeService(run, hero);
+            hero.ApplyDamage(new DamageContext(70f));
+            ForgeOption mend = Mend();
+            ForgeOption temper = Temper();
+
+            var log = new List<string>();
+            var chosen = new List<ForgeOption>();
+            var slots = new List<int>();
+            float healthSeenBySelected = 0f;
+            bool offerOpenDuringSelected = true;
+            forge.Selected += (option, slot) =>
+            {
+                log.Add("selected " + option.Id);
+                chosen.Add(option);
+                slots.Add(slot);
+                healthSeenBySelected = hero.Current;
+                offerOpenDuringSelected = forge.CurrentOffer != null;
+            };
+            forge.OfferChanged += () => log.Add("offer");
+
+            Assert.That(forge.Open(new[] { temper, mend }), Is.True);
+            ForgeOffer offer = forge.CurrentOffer;
+            Assert.That(forge.TrySelect(null, 0), Is.False);
+            Assert.That(forge.TrySelect(offer, -1), Is.False);
+            Assert.That(forge.TrySelect(offer, 2), Is.False);
+            Assert.That(chosen, Is.Empty, "Invalid taps are not reported.");
+
+            Assert.That(forge.TrySelect(offer, 1), Is.True);
+            Assert.That(healthSeenBySelected, Is.EqualTo(70f), "The heal is applied before Selected.");
+            Assert.That(offerOpenDuringSelected, Is.False);
+            Assert.That(forge.TrySelect(offer, 1), Is.False);
+            Assert.That(forge.TrySelect(offer, 0), Is.False);
+
+            Assert.That(forge.Open(new[] { mend }), Is.True);
+            Assert.That(forge.TrySelect(offer, 0), Is.False, "A stale offer from the previous visit is not reported.");
+
+            Assert.That(chosen, Is.EqualTo(new[] { mend }));
+            Assert.That(slots, Is.EqualTo(new[] { 1 }));
+            Assert.That(log, Is.EqualTo(new[] { "offer", "selected forge_mend", "offer", "offer" }));
+        }
+
+        [Test]
+        public void ForgeSelectedSeesTheTemperGrantAndIsNeverReportedAfterTheRunEnds()
+        {
+            var run = new RunState(10);
+            var hero = new HealthState(100f);
+            var upgrades = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { Damage(), Speed() }, 2);
+            var forge = new ForgeService(run, hero);
+            int pendingSeenBySelected = -1;
+            bool upgradeOfferSeenBySelected = false;
+            int selections = 0;
+            forge.Selected += (option, slot) =>
+            {
+                selections++;
+                pendingSeenBySelected = run.PendingUpgrades;
+                upgradeOfferSeenBySelected = upgrades.CurrentOffer != null;
+            };
+
+            forge.Open(new[] { Mend(), Temper() });
+            Assert.That(forge.TrySelect(forge.CurrentOffer, 1), Is.True);
+            Assert.That(selections, Is.EqualTo(1));
+            Assert.That(pendingSeenBySelected, Is.EqualTo(1), "The bonus upgrade is granted before Selected.");
+            Assert.That(upgradeOfferSeenBySelected, Is.True);
+
+            Assert.That(forge.Open(new[] { Mend() }), Is.True);
+            ForgeOffer open = forge.CurrentOffer;
+            run.End(RunOutcome.Extracted);
+            Assert.That(forge.CurrentOffer, Is.Null);
+            Assert.That(forge.TrySelect(open, 0), Is.False, "A visit withdrawn at run end cannot be chosen.");
+            Assert.That(selections, Is.EqualTo(1));
         }
 
         [Test]

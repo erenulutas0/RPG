@@ -66,5 +66,12 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PixelCanvasTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaGeometryTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
+    <!-- Pure telemetry only: the Unity subfolder is compiled by Unity and UnityCompileCheck. -->
+    <Compile Include="../../Assets/_Project/Scripts/Analytics/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryJsonTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryStoreTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryLogTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetrySessionTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RunTelemetryTests.cs" />
   </ItemGroup>
 </Project>

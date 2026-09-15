@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -254,6 +255,98 @@ namespace Cryptforge.Tests
             Assert.That(service.CurrentOffer.Choices, Is.EqualTo(new[] { damage }));
             Assert.Throws<ArgumentException>(() => new UpgradeService(run, weapon, new[] { damage, damage }, 2));
             Assert.Throws<ArgumentOutOfRangeException>(() => new UpgradeService(run, weapon, new[] { damage }, 0));
+        }
+
+        [Test]
+        public void SelectedReportsEachAcceptedChoiceOnceAfterItAppliesAndBeforeTheFollowingOffer()
+        {
+            var run = new RunState(10);
+            var weapon = new WeaponRuntime(10f, 0.8f, 3f);
+            UpgradeOption damage = DamageOption();
+            UpgradeOption speed = SpeedOption();
+            var service = new UpgradeService(run, weapon, new[] { damage, speed }, 2);
+            run.AddExperience(20);
+            UpgradeOffer first = service.CurrentOffer;
+
+            var log = new List<string>();
+            var slots = new List<int>();
+            var offersSeenBySelected = new List<UpgradeOffer>();
+            float intervalSeenBySelected = 0f;
+            int stacksSeenBySelected = 0;
+            int appliedSeenBySelected = 0;
+            service.Selected += (option, slot) =>
+            {
+                log.Add("selected " + option.Id);
+                slots.Add(slot);
+                offersSeenBySelected.Add(service.CurrentOffer);
+                if (option == speed)
+                {
+                    intervalSeenBySelected = weapon.Interval;
+                    stacksSeenBySelected = service.StacksOf(speed);
+                    appliedSeenBySelected = run.UpgradesApplied;
+                }
+            };
+            service.OfferChanged += () => log.Add("offer");
+
+            Assert.That(service.TrySelect(first, 1), Is.True);
+            UpgradeOffer second = service.CurrentOffer;
+            Assert.That(second, Is.Not.Null.And.Not.SameAs(first));
+            Assert.That(intervalSeenBySelected, Is.EqualTo(0.64f).Within(1e-5f), "The modifier is applied before Selected.");
+            Assert.That(stacksSeenBySelected, Is.EqualTo(1));
+            Assert.That(appliedSeenBySelected, Is.EqualTo(1));
+            Assert.That(offersSeenBySelected[0], Is.SameAs(second), "Selected already sees the following offer.");
+
+            Assert.That(service.TrySelect(first, 1), Is.False, "A repeated tap on the old offer is not reported.");
+            Assert.That(service.TrySelect(first, 0), Is.False, "A stale offer is not reported.");
+            Assert.That(service.TrySelect(null, 0), Is.False);
+            Assert.That(service.TrySelect(second, -1), Is.False);
+            Assert.That(service.TrySelect(second, 2), Is.False);
+            Assert.That(log, Is.EqualTo(new[] { "selected upgrade_attack_speed", "offer" }));
+
+            Assert.That(service.TrySelect(second, 0), Is.True);
+            Assert.That(offersSeenBySelected[1], Is.Null, "No level is pending, so no offer follows the last choice.");
+            Assert.That(service.TrySelect(second, 0), Is.False);
+
+            Assert.That(log, Is.EqualTo(new[] { "selected upgrade_attack_speed", "offer", "selected upgrade_damage", "offer" }));
+            Assert.That(slots, Is.EqualTo(new[] { 1, 0 }));
+        }
+
+        [Test]
+        public void SelectedIsNotReportedForAnOfferWithdrawnAtRunEndOrAReentrantTap()
+        {
+            var run = new RunState(10);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f),
+                new[] { DamageOption(), SpeedOption() }, 2);
+            run.AddExperience(10);
+            UpgradeOffer offer = service.CurrentOffer;
+            int selections = 0;
+            int offerChanges = 0;
+            service.Selected += (option, slot) => selections++;
+            service.OfferChanged += () => offerChanges++;
+
+            run.End(RunOutcome.Defeat);
+            Assert.That(service.CurrentOffer, Is.Null);
+            Assert.That(offerChanges, Is.EqualTo(1));
+            Assert.That(service.TrySelect(offer, 0), Is.False, "A choice after the run ended is rejected.");
+            run.AddExperience(50);
+            Assert.That(selections, Is.Zero);
+
+            var reentrantRun = new RunState(10);
+            var reentrant = new UpgradeService(reentrantRun, new WeaponRuntime(10f, 0.8f, 3f),
+                new[] { DamageOption(), SpeedOption() }, 2);
+            reentrantRun.AddExperience(10);
+            UpgradeOffer only = reentrant.CurrentOffer;
+            int reentrantSelections = 0;
+            reentrant.Selected += (option, slot) =>
+            {
+                reentrantSelections++;
+                reentrant.TrySelect(only, slot);
+            };
+            reentrant.OfferChanged += () => reentrant.TrySelect(only, 0);
+
+            Assert.That(reentrant.TrySelect(only, 0), Is.True);
+            Assert.That(reentrantSelections, Is.EqualTo(1));
+            Assert.That(reentrantRun.UpgradesApplied, Is.EqualTo(1));
         }
 
         [Test]

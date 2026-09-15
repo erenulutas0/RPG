@@ -694,6 +694,54 @@ No frame rate had been measured on a device (`22`, `23`), and doc 06's budget as
 
 Verified: Unity EditMode 210/210, PlayMode 54/54, `Verify-Project.ps1`, .NET CombatChecks 198/198, development APK built only after both reports passed (SHA-256 `03443B303B76A1E97E09239A460B768021B66CC34A640115C91023BE4C025605`), then a 150-second session on the phone.
 
+### Implemented 2026-09-15: a local telemetry log
+
+Handoff item D (`25`), specified in the owner's prompt through Astra's shared roadmap: a bounded local event log for device sessions, with no backend, SDK or network, beside the profile and separate from it. Built by a five-agent workflow in dependency order: the log core and the gameplay events in parallel, then the recorder, the Unity bridge and an adversarial review. The review found one real defect and fixed it: an old scene disposed after a new run began wrote `run_interrupted` under the new run's id.
+
+- **File:** `<persistentDataPath>/telemetry/events.jsonl`; on Android `/sdcard/Android/data/com.cryptforge.prototype/files/telemetry/`. The format is JSON Lines, schema 1, UTF-8 without a byte-order mark. At 256 KB the file rotates into `events.1.jsonl` and `events.2.jsonl`, never more than three files, and a line never splits across files.
+- **Envelope:** each line carries, in order:
+  - `v`: the schema version.
+  - `seq`: strictly increasing within a session, across runs and restarts.
+  - `t` and `st`: UTC time and seconds since the session started.
+  - `session`: a random id per app launch.
+  - `run`: `<session>-<ordinal>`, only while a run is open.
+  - `event`, then the event's fields.
+
+  Numbers use the invariant culture.
+- **Events:**
+  - Session and run: `session_start`, `run_start`, `run_end`, `run_interrupted`. `run_end` is written exactly once, with result, cause (`killed_by:<enemy_id>`), floors, rooms, level, kills, upgrades, gold, banked and lost gold, and active, choice, pause and background seconds. `run_interrupted` marks a run whose scene unloaded before it ended; no end is ever fabricated.
+  - Progress: `room_start` and `room_complete`, `boss_start` and `boss_end`, `floor_complete`.
+  - Play: `first_kill`, `chest_opened`, `ability_used`.
+  - Choices: `upgrade_offered`, `upgrade_selected`, `forge_selected`, `extract_choice`.
+  - Currency: `currency_earned` (run gold per room, by source: kills or chest; forge gold banked at run end) and `currency_spent` (Relic Forge purchases, outside any run).
+  - App and log: `app_background`, `app_foreground`, `telemetry_dropped`.
+
+  Not logged: frames, ordinary hits, the device model, hardware ids or any account.
+- **Time:** active seconds come from scaled time while no choice is open and the player has not paused: fighting, walking and the delays between waves. Choice and pause seconds come from unscaled time. Background seconds come from a monotonic clock between leaving and returning, with the resume frame skipped. All are kept per room, per floor and per run.
+- **Writes:** lines wait in a buffer of at most 512 (the oldest are dropped and reported). They are written on the main thread only when a choice opens, at a run end or interruption, when the app goes to the background, at quit, and every 64 lines or 10 seconds.
+- **Failures:** only IO and access errors are caught. The lines stay buffered, combat goes on, nothing reaches the console and the profile is never touched. After a failure only the 10-second timer retries.
+- **Composition:** `CombatSetup` adds `RunTelemetryBridge` at runtime, so the scene is unchanged. It is attached before `CombatSetup` subscribes to the checkpoint choice, kills and floor clears, so each cause is logged before its effect (Extract ends the run inside `Checkpoint.Chosen`); that subscription moved below it, and `CombatSetup` is its only subscriber.
+- **Bridge and session:** the bridge forwards encounter progress (compared on each hit, logged only on a change), kills, floor clears, the ability and the scene's chest spawner, and disposes the recorder on scene unload. `TelemetryRuntime` keeps one session per folder across restarts.
+- **Gameplay events:** new `UpgradeService.Selected`, `ForgeService.Selected`, `RelicShop.Forged` and `WeaponShop.Forged`, with no behaviour change. `Selected` fires after the choice applied and before the offer that follows it.
+
+| Files | Change |
+|---|---|
+| `Scripts/Analytics/TelemetryFields.cs`, `TelemetryRecord.cs`, `TelemetryJson.cs`, `ITelemetryClock.cs`, `StopwatchTelemetryClock.cs`, `ITelemetryStore.cs`, `FileTelemetryStore.cs`, `TelemetryLog.cs`, `TelemetrySession.cs` (new) | The pure log: fields, lines, the rotating store, the bounded buffer, the session. |
+| `Scripts/Analytics/RunTelemetry.cs`, `RunTelemetryContext.cs` (new) | The pure recorder: every event, the ordering rules, time accounting, room currency. |
+| `Scripts/Analytics/Unity/RunTelemetryBridge.cs`, `TelemetryRuntime.cs`, `TelemetryLocation.cs` (new); `Scripts/Core/CombatSetup.cs` | The Unity side and the wiring. |
+| `Scripts/Progression/UpgradeService.cs`, `ForgeService.cs`, `RelicShop.cs`, `WeaponShop.cs` | The four events. |
+| `Tools/CombatChecks/CombatChecks.csproj` | The pure telemetry sources and tests. |
+| Tests | EditMode (+41): `TelemetryJsonTests` (5), `TelemetryStoreTests` (5), `TelemetryLogTests` (8), `TelemetrySessionTests` (5), `RunTelemetryTests` (12), and 6 event tests in `UpgradeTests`, `FloorTests`, `RelicForgeTests`, `WeaponForgeTests`. PlayMode `TelemetryFlowTests` (4): the first pack and level-up logged in order beside a valid profile; a defeat and restart with one `run_end`, a second run id and no duplicated selection; a telemetry folder blocked by a file, with combat going on and no console errors; the first chest walk logged with its room and healed health. |
+
+Known limits:
+- Chest gold picked up while no room is open (during the descent after Descend) appears only in `chest_opened`, not in a room's `currency_earned`.
+- A flush that spans a rotation and fails part-way can repeat whole lines, with the same `seq`, on the retry.
+- The monotonic clock stops during deep sleep, so `background_sec` can undercount with the screen off.
+- `Application.quitting` is unreliable on Android; the other flush points cover it.
+- Telemetry is not part of the balance simulation.
+
+Verified: Unity EditMode 251/251, PlayMode 58/58 (the seven parity cases unchanged), `Verify-Project.ps1`, .NET CombatChecks 239/239, development APK built only after both reports passed (SHA-256 `BAA8E568E0B8D3D9DFB00A3FBB243311F45916AAD17C7D73CA80FF6E90623A97`), then one run on the phone whose log matched its result screen (`23`).
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.

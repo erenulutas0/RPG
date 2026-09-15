@@ -1,5 +1,7 @@
 # Analytics & Experimentation
 
+Status 2026-09-15: no analytics SDK is integrated, and nothing leaves the device. A local event log (`21`, schema 1) writes this document's run, room, floor, boss, upgrade, checkpoint and currency events to `telemetry/events.jsonl` beside the profile. The implemented names are `run_start`, `room_start`, `room_complete`, `floor_complete`, `extract_choice`, `boss_start`, `boss_end`, `run_end`, `upgrade_offered`, `upgrade_selected`, `currency_earned` and `currency_spent`. It adds `forge_selected`, `first_kill`, `chest_opened`, `ability_used`, `run_interrupted`, app background/foreground and a drop report. It also separates active combat time from choice, pause and background time. Onboarding, hero unlocks, meta upgrades and monetization events are not logged because those features do not exist. `session_end` is not logged, because a mobile app is not reliably told it ends. A provider below is still a later decision.
+
 ## Recommended stack
 
 For a solo Unity game, Firebase Analytics is a practical baseline:

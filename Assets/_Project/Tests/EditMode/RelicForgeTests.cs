@@ -94,6 +94,42 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void ShopReportsForgedOnlyForPurchasesTheProfileAccepted()
+        {
+            var profile = new PlayerProfile(200, null, null, 0);
+            RelicOption wind = DescentSimulation.SecondWind();
+            RelicOption counter = DescentSimulation.Counterweight();
+            var shop = new RelicShop(profile, new[] { wind, counter });
+            var forged = new List<RelicOption>();
+            var goldSeenByForged = new List<int>();
+            bool ownedAndEquippedWhenForged = true;
+            shop.Forged += relic =>
+            {
+                forged.Add(relic);
+                goldSeenByForged.Add(profile.Gold);
+                ownedAndEquippedWhenForged &= profile.Owns(relic.Id) && profile.EquippedRelicId == relic.Id;
+            };
+
+            Assert.That(shop.TrySelect(wind), Is.True);
+            Assert.That(forged, Is.EqualTo(new[] { wind }));
+            Assert.That(goldSeenByForged, Is.EqualTo(new[] { 120 }), "Forged follows the accepted spend.");
+
+            Assert.That(shop.TrySelect(wind), Is.False, "Tapping the equipped relic is not a purchase.");
+            Assert.That(shop.TrySelect(counter), Is.False, "An unaffordable relic is not a purchase.");
+            Assert.That(forged, Has.Count.EqualTo(1));
+
+            profile.Deposit(30);
+            Assert.That(shop.TrySelect(counter), Is.True);
+            Assert.That(shop.TrySelect(wind), Is.True, "Equipping an owned relic succeeds without a purchase.");
+            Assert.That(shop.TrySelect(counter), Is.True);
+            Assert.That(shop.TrySelect(counter), Is.False);
+
+            Assert.That(forged, Is.EqualTo(new[] { wind, counter }));
+            Assert.That(goldSeenByForged, Is.EqualTo(new[] { 120, 0 }));
+            Assert.That(ownedAndEquippedWhenForged, Is.True);
+        }
+
+        [Test]
         public void ShopRejectsDuplicateAndUnlistedRelicsAndIgnoresUnknownSavedIds()
         {
             Assert.Throws<ArgumentException>(() => new RelicShop(new PlayerProfile(), new[] { DescentSimulation.SecondWind(), DescentSimulation.SecondWind() }));

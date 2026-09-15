@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Cryptforge.Analytics;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Economy;
@@ -103,18 +104,48 @@ namespace Cryptforge.Core
             Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount);
             Forge = new ForgeService(Run, _hero);
             Checkpoint = new CheckpointService(Run);
-            Checkpoint.Chosen += OnCheckpointChosen;
             Choices = new RunChoices(Upgrades, Forge, Checkpoint);
             Pause = new RunPause(Run);
             Pause.Changed += ApplyPause;
             Choices.Changed += OnChoicesChanged;
+            RunTelemetryBridge telemetry = AttachTelemetry(equipped);
+            // After telemetry, so the choice is logged before Extract ends the run or Descend moves on.
+            Checkpoint.Chosen += OnCheckpointChosen;
             _hero.Damaged += OnHeroDamaged;
             _hero.Died += OnHeroDied;
 
             // Subscribe before the first spawn so every defeated enemy reaches the reward service.
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
+            telemetry.Begin();
             _encounters.Initialize(Choices, Forge);
+        }
+
+        // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
+        // so telemetry records each before the reaction to it (the run ending, gold paid). It only reads the run.
+        private RunTelemetryBridge AttachTelemetry(RelicOption equippedRelic)
+        {
+            var context = new RunTelemetryContext
+            {
+                Session = TelemetryRuntime.SessionFor(TelemetryLocation.Resolve()),
+                Run = Run,
+                Pause = Pause,
+                Choices = Choices,
+                Upgrades = Upgrades,
+                Forge = Forge,
+                Checkpoint = Checkpoint,
+                Relics = Relics,
+                Weapons = Weapons,
+                HeroId = _heroDefinition.Id,
+                WeaponId = HeroWeapon.Id,
+                RelicId = equippedRelic != null ? equippedRelic.Id : null,
+                AbilityId = _heroDefinition.Ability.Id,
+                ForgeGold = Profile.Gold,
+                DeepestFloorCleared = Profile.DeepestFloorCleared,
+                KillerId = () => LastAttacker != null ? LastAttacker.Id : null,
+                HeroHealth = () => _hero.Current
+            };
+            return RunTelemetryBridge.Attach(gameObject, context, _encounters, _ability);
         }
 
         // A reload rebuilds every runtime object from definitions and the saved profile, so nothing else carries over.

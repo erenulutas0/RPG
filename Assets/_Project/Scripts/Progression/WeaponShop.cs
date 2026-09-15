@@ -15,6 +15,11 @@ namespace Cryptforge.Progression
         public IReadOnlyList<WeaponOption> Weapons { get; }
         public WeaponOption StartingWeapon { get; }
 
+        // Raised once when a tap spends gold on a weapon, after the profile accepted the purchase, so observers such as
+        // telemetry can count forge gold spent; profile.Changed cannot tell a purchase from an equip. Not raised for
+        // equipping an owned weapon (the starting weapon included) or for a tap that spends nothing.
+        public event Action<WeaponOption> Forged;
+
         public WeaponShop(PlayerProfile profile, IReadOnlyList<WeaponOption> weapons, WeaponOption startingWeapon)
         {
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
@@ -82,7 +87,10 @@ namespace Cryptforge.Progression
             switch (StatusOf(weapon))
             {
                 case UnlockStatus.Affordable:
-                    return Profile.TryForgeWeapon(weapon.Id, weapon.Price);
+                    if (!Profile.TryForgeWeapon(weapon.Id, weapon.Price))
+                        return false;
+                    Forged?.Invoke(weapon);
+                    return true;
                 case UnlockStatus.Owned:
                     return weapon == StartingWeapon ? Profile.UnequipWeapon() : Profile.EquipWeapon(weapon.Id);
                 default:

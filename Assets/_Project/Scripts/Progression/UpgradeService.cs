@@ -20,6 +20,11 @@ namespace Cryptforge.Progression
         public IReadOnlyList<UpgradeOption> Pool { get; }
         public event Action OfferChanged;
 
+        // (chosen option, slot) once per accepted choice, so observers such as telemetry learn what was picked without
+        // diffing stacks. Raised after the modifier is applied and CurrentOffer holds the following offer (or null),
+        // immediately before OfferChanged, so a selection is always reported before the offer that follows it.
+        public event Action<UpgradeOption, int> Selected;
+
         public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount)
         {
             _run = run ?? throw new ArgumentNullException(nameof(run));
@@ -60,6 +65,7 @@ namespace Cryptforge.Progression
             _run.RecordUpgradeApplied();
             _weapon.AddModifier(choice.Stat, choice.Modifier);
             CurrentOffer = CreateOffer();
+            Selected?.Invoke(choice, slot);
             OfferChanged?.Invoke();
             return true;
         }
