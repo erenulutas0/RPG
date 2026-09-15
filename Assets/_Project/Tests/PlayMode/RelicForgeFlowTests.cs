@@ -90,6 +90,11 @@ namespace Cryptforge.Tests
             Assert.That(Label("Forge Status Label"), Is.EqualTo("Gold 250  |  Deepest floor cleared: 1"));
             Assert.That(CardText(0, "State Label"), Is.EqualTo("Forge for 80 gold"));
             Assert.That(CardText(1, "State Label"), Is.EqualTo("Forge for 150 gold"));
+            Assert.That(Card(0).transform.Find("Relic Artwork").GetComponent<Image>().sprite.name,
+                Is.EqualTo("UI_Icon_SecondWind_v1"));
+            Assert.That(Card(1).transform.Find("Relic Artwork").GetComponent<Image>().sprite.name,
+                Is.EqualTo("UI_Icon_Counterweight_v1"));
+            Color affordableColor = Card(1).transform.Find("State Accent").GetComponent<Image>().color;
 
             Tap(Card(1));
             Tap(Card(1));
@@ -97,6 +102,8 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Profile.Gold, Is.EqualTo(100), "Rapid taps forge Counterweight once.");
             Assert.That(_setup.Profile.EquippedRelicId, Is.EqualTo("relic_counterweight"));
             Assert.That(CardText(1, "State Label"), Is.EqualTo("Equipped"));
+            Assert.That(Card(1).transform.Find("State Accent").GetComponent<Image>().color,
+                Is.Not.EqualTo(affordableColor), "Equipping changes the visual state as well as the written label.");
             Assert.That(Label("Forge Status Label"), Does.StartWith("Gold 100"));
 
             yield return new WaitForSecondsRealtime(0.4f);
@@ -303,31 +310,45 @@ namespace Cryptforge.Tests
                 view.IsFlashing && view.FlashColor == new Color(1f, 0.82f, 0.2f)));
         }
 
-        // Every Forge panel element is anchored to the bottom of the safe area; together they must fit the shortest
-        // 9:16 portrait screen (1920 canvas units) without overlapping. On the phone the result screen's build line
-        // showed through a 92% backdrop between the weapon and relic cards, so the backdrop must be opaque.
+        // Test the rendered bounds, not a particular anchoring strategy: the foundry rows now expand with safe height.
+        // The result screen once showed through between cards, so the Forge backdrop must remain fully opaque.
         [UnityTest]
         public IEnumerator ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps()
         {
             yield return LoadGameplay(null);
             Assert.That(_forge.transform.Find("Forge Panel").GetComponent<Image>().color.a, Is.EqualTo(1f),
                 "The result screen must not show through the Forge.");
-            Transform safeArea = _forge.transform.Find("Forge Panel/Safe Area");
-            var spans = new List<(string Name, float Bottom, float Top)>();
-            foreach (RectTransform child in safeArea)
+            _forge.Open();
+            var safeArea = _forge.transform.Find("Forge Panel/Safe Area").GetComponent<RectTransform>();
+            safeArea.GetComponent<SafeAreaFitter>().enabled = false;
+            safeArea.anchorMin = safeArea.anchorMax = new Vector2(.5f, .5f);
+            var corners = new Vector3[4];
+            foreach (float height in new[] { 1760f, 1920f, 2232f })
             {
-                Assert.That(child.anchorMin.y, Is.Zero, child.name);
-                Assert.That(child.anchorMax.y, Is.Zero, child.name);
-                Assert.That(child.pivot.y, Is.Zero, child.name);
-                spans.Add((child.name, child.anchoredPosition.y, child.anchoredPosition.y + child.sizeDelta.y));
-            }
+                safeArea.sizeDelta = new Vector2(1080f, height);
+                Canvas.ForceUpdateCanvases();
+                var spans = new List<(string Name, float Bottom, float Top)>();
+                foreach (RectTransform child in safeArea)
+                {
+                    // The decorative background intentionally lies behind every row; only functional rows may not overlap.
+                    if (child.GetComponent<Button>() == null && child.GetComponent<Text>() == null)
+                        continue;
+                    child.GetWorldCorners(corners);
+                    Vector3 bottom = safeArea.InverseTransformPoint(corners[0]);
+                    Vector3 top = safeArea.InverseTransformPoint(corners[2]);
+                    Assert.That(bottom.x, Is.GreaterThanOrEqualTo(safeArea.rect.xMin - .5f), child.name);
+                    Assert.That(top.x, Is.LessThanOrEqualTo(safeArea.rect.xMax + .5f), child.name);
+                    spans.Add((child.name, bottom.y - safeArea.rect.yMin, top.y - safeArea.rect.yMin));
+                }
 
-            spans.Sort((a, b) => a.Bottom.CompareTo(b.Bottom));
-            Assert.That(spans.Count, Is.EqualTo(10));
-            Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(0f));
-            Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(1920f), spans[spans.Count - 1].Name);
-            for (int i = 1; i < spans.Count; i++)
-                Assert.That(spans[i].Bottom, Is.GreaterThanOrEqualTo(spans[i - 1].Top), $"{spans[i].Name} overlaps {spans[i - 1].Name}.");
+                spans.Sort((a, b) => a.Bottom.CompareTo(b.Bottom));
+                Assert.That(spans.Count, Is.EqualTo(10));
+                Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(-.5f));
+                Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(height + .5f), spans[spans.Count - 1].Name);
+                for (int i = 1; i < spans.Count; i++)
+                    Assert.That(spans[i].Bottom, Is.GreaterThanOrEqualTo(spans[i - 1].Top - .5f),
+                        $"{spans[i].Name} overlaps {spans[i - 1].Name} at safe height {height}.");
+            }
         }
 
         private IEnumerator LoadGameplay(PlayerProfile seed)

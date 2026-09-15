@@ -103,6 +103,35 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator ResultAndForgeTextFitsShortAndTallPortraitSafeAreas()
+        {
+            _setup.Run.End(RunOutcome.Defeat);
+            Object.FindFirstObjectByType<RelicForgeView>().Open();
+            yield return null;
+            foreach (string panelName in new[] { "Result Panel", "Forge Panel" })
+            {
+                var safe = GameObject.Find(panelName).transform.Find("Safe Area").GetComponent<RectTransform>();
+                safe.GetComponent<SafeAreaFitter>().enabled = false;
+                safe.anchorMin = safe.anchorMax = new Vector2(.5f, .5f);
+                foreach (float height in new[] { 1760f, 2232f })
+                {
+                    safe.sizeDelta = new Vector2(1080f, height);
+                    Canvas.ForceUpdateCanvases();
+                    foreach (Text label in safe.GetComponentsInChildren<Text>())
+                    {
+                        var settings = label.GetGenerationSettings(new Vector2(label.rectTransform.rect.width, 0));
+                        settings.resizeTextForBestFit = false;
+                        settings.fontSize = label.resizeTextMinSize;
+                        float needed = label.cachedTextGeneratorForLayout.GetPreferredHeight(label.text, settings) / label.pixelsPerUnit;
+                        Assert.That(needed, Is.LessThanOrEqualTo(label.rectTransform.rect.height + 1f),
+                            $"{panelName}/{label.name} truncates even at its minimum font size on a {height}-unit safe area.");
+                    }
+                }
+            }
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
         public IEnumerator BothCameraCandidatesContainTheGuardianAtCentreAndRim()
         {
             var camera = Camera.main;

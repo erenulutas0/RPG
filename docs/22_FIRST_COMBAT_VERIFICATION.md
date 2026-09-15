@@ -1,8 +1,17 @@
 # First combat slice — setup and verification
 
-## Current art verification — 2026-09-16
+## Current result/Forge menu checks — 2026-09-16
 
-Latest gate: **239/239 .NET**, **251/251 EditMode**, **62/62 PlayMode**, compile check without warnings/errors, static integrity and APK build passed. The installed S23 APK hash matches `8D1515975F8C3F1E0987FACC61379AFEF9B1E5239EA7D92C38DE23E0C517A149`. Four new PlayMode cases cover compact/pause state, reordered-card icon identity with real raycasting, imported-sprite lifetime and candidate camera bounds.
+Current gate: **239/239 .NET**, **251/251 EditMode**, **63/63 PlayMode**, compile check without warnings/errors, static integrity (272 GUIDs, 555 scene objects/components) and APK build passed. APK SHA-256: `B8176A69112EAFB7E8E7322B4768124102FACAE631F77E3B8BE6915D5B5D37E0`. The Forge guard now checks rendered row bounds at safe heights 1760/1920/2232 rather than requiring bottom-fixed anchors; text-fit coverage includes the result and Forge.
+
+1. Finish by defeat, extraction or victory. The result summary is in one opaque forged frame; outcome, cause, progress, banked/lost gold, build and unlock hint remain readable. Both Try again and Relic Forge are framed, full-width touch targets.
+2. Open Relic Forge. All three weapon cards, both relic cards and Start Run must fit inside the safe area. Repeat at short and tall portrait sizes. Names, effects and action/state text must not overlap.
+3. Verify state text alongside its accent: equipped green, affordable brass, owned blue, too expensive grey. A locked card stays disabled; enough gold permits forging once; equipping updates both the text and accent. Relic artwork must match the actual item.
+4. Start Run and check the selected loadout; return after another result. Costs, profile persistence, input delays and telemetry must retain their existing behaviour. No profile reset is needed for visual checks; use isolated test profiles for affordability tests.
+
+## Previous compact HUD slice verification — 2026-09-16
+
+Gate for the preceding HUD slice: **239/239 .NET**, **251/251 EditMode**, **62/62 PlayMode**, compile check without warnings/errors, static integrity and APK build passed. The installed S23 APK hash matches `8D1515975F8C3F1E0987FACC61379AFEF9B1E5239EA7D92C38DE23E0C517A149`. Four new PlayMode cases cover compact/pause state, reordered-card icon identity with real raycasting, imported-sprite lifetime and candidate camera bounds.
 
 The compact foundry UI supersedes the original visual instructions below. The gameplay assertions remain applicable. In `Gameplay.unity`, test these current visual checks at 1080x2340 and 540x960:
 

@@ -424,4 +424,29 @@ At the current 1080x2340 layout: Pause about `(988,178)`, ability `(923,2108)`, 
 
 ### Limits
 
-Phone evidence is S23 at width 6. Guardian-left/rim extremes and widths 6/7.5 at 1080x1920/2340 are covered analytically, not by a paired phone capture of every case. No manual short-screen UI pass or mid-range-device validation was performed. Result/Relic Forge styling, the large pause heading/resume button and individual badge tap explanations remain open. These are the first integrated HUD/card assets, not completion of all game art.
+Phone evidence is S23 at width 6. Guardian-left/rim extremes and widths 6/7.5 at 1080x1920/2340 are covered analytically, not by a paired phone capture of every case. No manual short-screen UI pass or mid-range-device validation was performed. Result/Relic Forge styling was open at this checkpoint and is covered by the following entry. The large pause heading/resume button and individual badge tap explanations remain open. These are the first integrated HUD/card assets, not completion of all game art.
+
+## Foundry result and Relic Forge menus on S23 — 2026-09-16
+
+The owner authorised continuing the art integration at medium reasoning effort. The unattended device run was announced. Installation used `adb install -r`; no data clear or profile restoration was performed. Every input/capture used the existing focus/awake/keyguard gate, with a second check before retaining captures. One pre-capture check stopped when those conditions were briefly unavailable; no capture was taken on that attempt. A fresh check found Cryptforge focused, awake and unlocked before resuming.
+
+**Build:** APK SHA-256 `B8176A69112EAFB7E8E7322B4768124102FACAE631F77E3B8BE6915D5B5D37E0`, 24,738,453 bytes. Installation returned Success; the installed `base.apk` SHA-256 matches. .NET **239/239**, compile **0 warnings/errors**, EditMode **251/251**, PlayMode **63/63**, Android build exit 0; static integrity resolved 272 project GUIDs and 555 scene objects/components.
+
+The first full PlayMode run passed 62/63 and blocked the APK: the old layout guard asserted `Forge Surface — Expected: 0, But was: 0.015` because it required every safe-area child to be bottom-anchored. The guard now checks actual bounds of all ten functional rows at safe heights 1760, 1920 and 2232, preserves opacity/containment/non-overlap checks, and excludes the decorative background. Its targeted rerun passed, followed by the full passing gate above. Result/Forge text fit at short and tall safe-area heights is also covered automatically.
+
+Local evidence: `TestResults/device-foundry-menus/` (ignored).
+
+| Evidence | Observed result |
+|---|---|
+| `05-result.png` | Extracted after floor 1, six rooms, level 7, XP 121; 116 gold banked. Staff, Counterweight (26 triggers), damage x5 and speed x2 remain readable inside one framed summary. Both result actions fit. |
+| `06-forge.png` | All three weapons, two relics and Start run visible within the S23 safe area; descriptions readable, relic art correct, Staff and Counterweight marked Equipped in green. Opaque Forge background hides the result screen. |
+| `07-equipped-alternative.png` | Tapping already-owned Daggers and Second Wind updates their text and accents to green; prior items become blue Owned. Gold stays 3531. |
+| `08-restored-loadout.png` | Staff and Counterweight restored through the normal cards before leaving the Forge. |
+| `09-new-run.png` | Start run reloads into floor 1, room 1 with Staff/Counterweight, a fresh run counter and the existing HUD/artwork intact. |
+| `final-unity.log` | No matches for checked Unity error/exception/fatal patterns in the app-process log. |
+
+The before profile was version 2, revision 53, gold 3415. After extraction and four owned-item selections it was version 2, revision 58, gold 3531; both weapon unlocks, both relic unlocks, deepest floor 2 and Staff/Counterweight loadout were retained. The 116-gold difference matches the result; no purchase was needed.
+
+Current S23 touch centres (1080x2340): result Try again approximately `(540,1565)`, Relic Forge `(540,1728)`; Forge weapon rows approximately `(540,665)`, `(540,945)`, `(540,1225)`, relic rows `(540,1638)` and `(540,1915)`, Start run `(540,2175)`. Re-measure after layout/safe-area changes. Combat/choice coordinates from the previous entry are unchanged.
+
+Limits: this phone pass exercised extraction and owned/equipped states. Defeat/victory, insufficient-gold/purchase logic and persistence remain covered by automated flow tests, not a fresh physical-device capture of every state. Short/tall safe-area coverage is automated; no second physical device, localization audit or new sustained performance benchmark was run. Pause-menu styling, badge detail interactions, weapon illustrations, character animation and audio remain separate work.

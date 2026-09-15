@@ -1,5 +1,16 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Latest slice — foundry result and Forge menus (2026-09-16)
+
+The owner authorised extending the approved UI to the result and Relic Forge screens. This slice reuses the imported frame and two relic icons. It adds no artwork dependency, shop rule or save schema.
+
+- Result: one opaque framed summary with outcome/cause, progress, banked/lost gold, build, next-unlock hint and two framed actions. Existing result strings and input-delay behaviour remain unchanged.
+- Forge: separate weapon and relic sections, five full-row card targets, a persistent bottom Start Run action, and safe-area-relative vertical layout. Existing prices, effects and state text remain visible. Equipped/affordable/owned/too-expensive states have green/brass/blue/grey accents in addition to their written labels. Relic icons resolve from the current effect instead of being assumed from card order.
+- Files: `Scenes/Gameplay/Gameplay.unity`, `Scripts/UI/RelicForgeView.cs`, `Tests/PlayMode/ArtHudFlowTests.cs`, `Tests/PlayMode/RelicForgeFlowTests.cs`. The one-shot Editor migration was removed after authoring; its local record is `TestResults/ApplyFoundryMenus.cs`. Art rationale and remaining work: `ArtDirection/2026-09-16/MENU_INTEGRATION.md`.
+- Verification adds text-fit coverage at 1080x1760 and 1080x2232 safe-area sizes and extends the existing purchase/equip test with icon identity and the affordable-to-equipped accent change. Existing double-tap, price, persistence and touch-bound tests remain required.
+
+**Verified:** .NET **239/239**, Unity compile check **0 warnings/errors**, EditMode **251/251**, PlayMode **63/63**, development APK build and static integrity passed (272 project GUIDs; 555 scene objects/components). APK SHA-256 **`B8176A69112EAFB7E8E7322B4768124102FACAE631F77E3B8BE6915D5B5D37E0`**. Device observations are recorded in `23_ANDROID_DEVICE_VALIDATION.md`.
+
 ## Latest slice — compact foundry UI (2026-09-15–16)
 
 The owner approved the combined art direction and resumed Unity/device work after telemetry commit `127f4de`. Eight UI images from the approved art kits are now imported; no generated combat screenshot or replacement character sprite is used.

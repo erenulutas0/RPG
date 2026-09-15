@@ -19,6 +19,8 @@ namespace Cryptforge.UI
             public Text Name;
             public Text Description;
             public Text State;
+            public Image Icon;
+            public Image StateAccent;
 
             public bool IsComplete => Button != null && Name != null && Description != null && State != null;
         }
@@ -34,6 +36,8 @@ namespace Cryptforge.UI
         [SerializeField] private ForgeCard[] _relicCards;
         [SerializeField] private Button _startButton;
         [SerializeField] private Text _startLabel;
+        [SerializeField] private Sprite _secondWindIcon;
+        [SerializeField] private Sprite _counterweightIcon;
         [SerializeField, Min(0f)] private float _inputDelay = 0.25f;
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
@@ -127,6 +131,16 @@ namespace Cryptforge.UI
                     continue;
 
                 RelicOption relic = relics.Relics[i];
+                if (_relicCards[i].Icon != null)
+                {
+                    _relicCards[i].Icon.sprite = relic.Effect switch
+                    {
+                        RelicEffect.SecondWind => _secondWindIcon,
+                        RelicEffect.CounterStrike => _counterweightIcon,
+                        _ => null
+                    };
+                    _relicCards[i].Icon.enabled = _relicCards[i].Icon.sprite != null;
+                }
                 Show(_relicCards[i], relic.DisplayName, relic.Description, relics.StatusOf(relic), relic.Price,
                     relics.GoldNeededFor(relic));
             }
@@ -140,6 +154,17 @@ namespace Cryptforge.UI
         {
             card.Name.text = displayName;
             card.Description.text = description;
+            // The written state remains the primary cue; colour makes the equipped/affordable rows easy to scan.
+            Color stateColor = status switch
+            {
+                UnlockStatus.Equipped => new Color32(137, 213, 180, 255),
+                UnlockStatus.Affordable => new Color32(238, 191, 108, 255),
+                UnlockStatus.Owned => new Color32(145, 188, 225, 255),
+                _ => new Color32(163, 167, 183, 255)
+            };
+            card.State.color = stateColor;
+            if (card.StateAccent != null)
+                card.StateAccent.color = stateColor;
             switch (status)
             {
                 case UnlockStatus.Affordable:
