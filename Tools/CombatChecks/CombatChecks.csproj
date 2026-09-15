@@ -36,6 +36,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunPause.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RelicForgeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunPauseTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FrameStatsTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />

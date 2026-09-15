@@ -276,6 +276,8 @@ Prototype targets:
 
 Profile on real Android devices early.
 
+Status 2026-09-15: a development build measures itself with `FrameTimeProbe` (logcat `[Perf]` lines, see `22`). On a Samsung SM-S911B, a flagship, a 150-second session held 60 fps through combat, choices and 20 wave spawns, with memory flat at 110–116 MB. Two costs will matter on a mid-range device. Each wave spends about 11 ms of main thread (2.7–16.6 ms) and 77–700 KB of garbage entering, because every enemy draws its own sprites. Each new run allocates 17.6 MB in one 50–67 ms frame: the frame in which the scene loads again and redraws its placeholder art from code. No mid-range device has been measured; see `23`.
+
 ## Dependency strategy
 
 Keep third-party dependencies minimal.

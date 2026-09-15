@@ -333,3 +333,19 @@ Three builds, each installed over USB; focus, an awake display and no keyguard w
 | App log | No Unity error or exception line in any of the three runs |
 
 Not seen on the phone: an enemy turning round a hero at the rim. With Counterweight carried (9 counters by room 2) the enemies that reached the corner fell within a second, before a capture caught them standing; the turn is covered by `PackMotionTests` and by the PlayMode test that stands the hero at the right corner and follows every enemy of the next wave frame by frame. No enemy stood beyond the rim in any capture.
+
+## Performance on the phone (2026-09-15)
+
+Build: the frame-time probe (`21`), APK SHA-256 `03443B303B76A1E97E09239A460B768021B66CC34A640115C91023BE4C025605`, installed while the game had focus. The script relaunched the game and streamed `adb logcat -v time -s Unity:V` to a file (`device-perf/logcat.txt`, the `[Perf]` lines in `device-perf/perf.txt`). For the first 20 s it sent nothing to the phone. Then, every 2.5 s, it checked focus (one `dumpsys window` and one `dumpsys power` call) and tapped the first card position (540, 1720) and the **Try again** position (540, 1905). That took every first card: damage upgrades, Mend, Extract. A finished run was restarted in one tap; a tap on the arena never walks the hero. 106 taps over 150 s; two runs through floor 1 and the start of a third.
+
+| Measure | Result |
+|---|---|
+| Frame rate | 30 windows, 8,854 frames. 28 windows at 59.9 fps with p50, p95 and p99 all at 16.7 ms, paused choices included; the other two held 59.3 and 59.5 fps around a run start. The probe read the display mode as 30 Hz while frames arrived every 16.7 ms, so that figure is not trusted |
+| Frames over 20 ms / over 35 ms | 7 / 4 in 150 s. Of the four over 35 ms: the launch (a 2,118 ms first frame, then 213 ms) and the two run starts. The three others over 20 ms were single 33.4 ms frames with no wave, load or probe line; they may come from the script's `dumpsys` calls |
+| Wave spawns in combat | 20 waves of 1, 3 and 4 enemies. `StartWave` took 2.7–16.6 ms, median 10.9 ms; not one spawn frame ran past 16.7 ms. Garbage per wave: 77–538 KB for three enemies, 103–644 KB for four, 700 KB for a single elite or boss; each such window ran 3–6 GC passes |
+| A new run (**Try again**) | One frame of 66.8 ms and one of 50.1 ms, with 17.6 MB allocated in that frame and 20–24 GC passes in its window. It is the frame in which the scene loads again and redraws its placeholder art from code |
+| Between spawns | 3–12 KB allocated per 5 s window, the probe's own log lines included, and no GC pass: combat allocates next to nothing per frame |
+| Memory | Total in use 110.5–116.3 MB and managed 1.0–1.4 MB across both restarts: no growth, so enemy and arena textures are released |
+| App log | No Unity error or exception line |
+
+Reading: the S23 has room to spare. The two costs a mid-range phone will feel first are the wave spawn, about 11 ms of main thread and up to 0.7 MB of garbage per wave because every enemy draws its own sprites as it enters, and the 17.6 MB, 50–67 ms run start. On a phone two to three times slower the spawn alone could miss a frame or two per wave; that is an estimate, as no mid-range device was measured. Both costs sit in the placeholder art's view code (`EnemyLookView`, the arena views): caching drawn sprites per enemy look and across run restarts would remove most of both without changing how anything looks.

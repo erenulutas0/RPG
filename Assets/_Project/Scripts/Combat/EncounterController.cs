@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cryptforge.Content;
+using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using UnityEngine;
@@ -269,7 +270,15 @@ namespace Cryptforge.Combat
             }
         }
 
+        // Timed as a whole for performance sessions (FrameTimeProbe): instantiating, drawing and setting up every enemy and
+        // everything that answers the new wave.
         private void StartWave(WaveDefinition waveDefinition)
+        {
+            using (PerformanceMarkers.StartWave.Auto())
+                SpawnWave(waveDefinition);
+        }
+
+        private void SpawnWave(WaveDefinition waveDefinition)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;

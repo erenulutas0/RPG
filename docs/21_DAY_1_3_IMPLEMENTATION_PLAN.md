@@ -677,6 +677,23 @@ Known limits: enemies still wait behind a nearer one instead of stepping round i
 
 Verified: Unity EditMode 208/208, PlayMode 54/54, `Verify-Project.ps1`, .NET CombatChecks 196/196, development APK built only after both reports passed (SHA-256 `58E9C943607C34E1C997403ABD4DD35684BBA267700B0D30C09B7DE054BBC31A`; the first version, which only closed corners, was `080FF9A7F5FA79FCABBD38AFB1A122C7540728A9634864B2195AB4E17BBD90F3`).
 
+### Implemented 2026-09-15: a frame-time probe for phone sessions
+
+No frame rate had been measured on a device (`22`, `23`), and doc 06's budget asks for stable 60 fps and no GC spikes from spawn-heavy systems. The probe measures a development build on the phone itself, without a profiler connection and without drawing anything.
+
+- **Probe:** `FrameTimeProbe` installs itself after the scene loads in a development player only (`Application.isEditor` or a release build leaves it out, so tests and the Editor never see it) and survives scene reloads. Every 5 s of real time it logs a window through `FrameStats`: frames, fps, average, p50, p95, p99, the longest frame, frames over 20 ms and over 35 ms. It adds the longest main-thread frame, the managed memory allocated and the GC runs, and the managed and total memory in use (Unity `ProfilerRecorder` counters). It logs a line for every wave that enters, with the enemy count and the `Cryptforge.StartWave` marker's time, and one for any other frame past 35 ms. Lines carry `[Perf]`, use the invariant culture and skip stack traces.
+- **Stats:** `FrameStats` (pure) keeps up to 4096 samples per window for nearest-rank percentiles and counts every frame for the average and the longest; it sorts into its own buffer, so summaries allocate nothing.
+- **Marker:** `PerformanceMarkers.StartWave` wraps `EncounterController.StartWave`: instantiating, drawing and setting up every enemy of a wave and everything that answers it. It costs nothing outside development builds.
+- **First session:** see `23`. On the S23 the game held 60 fps; a wave costs about 11 ms of main thread and up to 700 KB of garbage, and a new run 17.6 MB in one frame, the costs a mid-range phone will feel first.
+
+| Files | Change |
+|---|---|
+| `Scripts/Core/FrameStats.cs`, `FrameTimeProbe.cs`, `PerformanceMarkers.cs` (new) | Window statistics, the development-only probe, the wave marker. |
+| `Scripts/Combat/EncounterController.cs` | `StartWave` runs its body (`SpawnWave`) inside the marker. |
+| Tests | EditMode `FrameStatsTests` (2): a window's average, percentiles and missed deadlines; frames past the capacity, invalid durations and validation. The probe itself runs only on a device; its output is checked in `23`. |
+
+Verified: Unity EditMode 210/210, PlayMode 54/54, `Verify-Project.ps1`, .NET CombatChecks 198/198, development APK built only after both reports passed (SHA-256 `03443B303B76A1E97E09239A460B768021B66CC34A640115C91023BE4C025605`), then a 150-second session on the phone.
+
 ### Original Day 3 plan (kept for reference)
 
 Keep the existing gameplay scene. Implement one repeatable Grunt encounter and a two-choice numeric upgrade proof before adding enemy types or weapon behaviors.
