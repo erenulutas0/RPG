@@ -18,6 +18,8 @@ Do not spend days naming the game during prototype.
 
 ## Camera / orientation
 
+Owner direction, 2026-09-16: distinguish spacious normal combat rooms with more frequent enemy pressure and viable movement/automatic-attack kiting from contained boss arenas with fewer adds and readable escape space. Density, pursuit speeds, boss telegraphs and room-specific camera framing remain proposals until simulation and device verification; current pack capacity is seven. The concrete two-room art/technical plan is `ArtDirection/2026-09-16/arena-target/PRODUCTION_PLAN.md`. Do not turn the reference's blue effect into tap-to-clear combat; the hero's movement and weapon attacks remain central.
+
 **Default recommendation: portrait.**
 
 Why:

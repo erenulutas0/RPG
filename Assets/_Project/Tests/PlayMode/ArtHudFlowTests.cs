@@ -132,16 +132,16 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator BothCameraCandidatesContainTheGuardianAtCentreAndRim()
+        public IEnumerator ThreeCameraCandidatesContainTheGuardianAtCentreAndRim()
         {
             var camera = Camera.main;
             var follow = camera.GetComponent<ArenaCameraFollow>();
-            Assert.That(follow.VisibleWidth, Is.EqualTo(6f), "Start with the closer of the two approved test candidates.");
+            Assert.That(follow.VisibleWidth, Is.EqualTo(9f), "The wider portrait framing is selected for movement review.");
             // Full Warden rectangle, including attack pose and health bar, at the largest stopping radius. Camera
             // remains hero-relative at the rim. A further 0.35 units budgets the follow lag while walking.
             float halfBody = EnemyArt.WardenWidth / 64f;
             float top = (EnemyArt.WardenHeight + EnemyArt.HealthBarHeight + 3f) / 32f;
-            foreach (float width in new[] { 6f, 7.5f })
+            foreach (float width in new[] { 6f, 7.5f, 9f })
                 foreach (float height in new[] { 1920f, 2340f })
                     foreach (float heroX in new[] { 0f, -8.4f, 8.4f })
                     {

@@ -450,3 +450,25 @@ The before profile was version 2, revision 53, gold 3415. After extraction and f
 Current S23 touch centres (1080x2340): result Try again approximately `(540,1565)`, Relic Forge `(540,1728)`; Forge weapon rows approximately `(540,665)`, `(540,945)`, `(540,1225)`, relic rows `(540,1638)` and `(540,1915)`, Start run `(540,2175)`. Re-measure after layout/safe-area changes. Combat/choice coordinates from the previous entry are unchanged.
 
 Limits: this phone pass exercised extraction and owned/equipped states. Defeat/victory, insufficient-gold/purchase logic and persistence remain covered by automated flow tests, not a fresh physical-device capture of every state. Short/tall safe-area coverage is automated; no second physical device, localization audit or new sustained performance benchmark was run. Pause-menu styling, badge detail interactions, weapon illustrations, character animation and audio remain separate work.
+
+## Wider portrait camera on S23 — 2026-09-16
+
+The owner retained portrait and confirmed the proposed Opus ten-enemy task was not started. This slice only changes the camera's visible width from 6 to 9; it does not increase pack capacity or replace the cosmic backdrop/actors with the new cavern concept.
+
+**Verified:** .NET **239/239**, compile **0 warnings/errors**, EditMode **251/251**, PlayMode **63/63**, build exit 0, static integrity **272 GUIDs / 555 scene objects/components**. Development APK: 24,738,453 bytes, SHA-256 **`0E6CE9B82B47B6999B0AF68D8708B2882915AEDE0F16E861685755158FD1C4E2`**. `adb install -r` returned Success and the installed `base.apk` hash matches. The unattended run was announced; each input/capture used the focus/awake/keyguard checks, including the second capture check before pulling. The original profile was backed up locally, never cleared or restored over live progress.
+
+Local evidence: `TestResults/device-camera-09/`.
+
+| Evidence | Observed result |
+|---|---|
+| `01-start.png` | Current Staff/Counterweight profile starts at width 9. More floor and distant structures visible; HUD and ability button keep their previous size. A small enemy is visible near the right edge. |
+| `03-during-left-drag.png` | Capture taken during the scripted 2600 ms horizontal drag: the floor centre has shifted relative to the hero and a Staff area hit/damage number is visible. The gesture does not open Pause or activate the ability. |
+| `04-after-left-drag.png` | A level-up panel opens during the gesture; simulation pauses as before. The gesture is not an uninterrupted controlled kiting benchmark. |
+| `05-during-diagonal-drag.png`, `06-after-diagonal-drag.png` | A 2300 ms diagonal drag moves toward the far rim. The following camera retains the hero, nearby mites and the chest. |
+| `combat-17.png` | Guardian to the hero's left near the far rim: full body and overhead bar visible, plus boss-only HUD bar. |
+| `07-result.png` | Extracted after floor 1, six rooms, level 7, XP 121; 126 gold banked, Staff/Counterweight (22 triggers), damage x5 and speed x2. |
+| `final-unity.log` | No matches for the checked Unity error/exception/fatal patterns in the app-process log. |
+
+The profile went from version 2 / revision 58 / 3531 gold to version 2 / revision 59 / 3657 gold. Owned weapons/relics, deepest floor 2 and Staff/Counterweight loadout were retained. The 126-gold difference agrees with the result; no Forge purchase or equip operation was performed. This is a short live smoke review with possible owner interaction, not a deterministic isolated run.
+
+Remaining issue: near the far rim, the unbounded follow camera spends substantial upper-screen area on the void. Width 9 improves surrounding threat visibility, but room-aware camera limits and a separately sized boss arena remain necessary for the reference composition. The seven visual actors in `ArtDirection/2026-09-16/camera-review/` are offscreen staging, not this live phone encounter; the six staged render variants assume safe insets and use converted canvases. No physical short-screen device, paired three-width phone test, sustained combat benchmark or ten-enemy kiting acceptance is claimed. Touch coordinates remain those of the preceding menu/HUD slice.

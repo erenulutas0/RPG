@@ -1,5 +1,13 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Latest slice — wider portrait movement framing (2026-09-16)
+
+Following the owner's normal-room/boss-arena direction, the gameplay camera width changes from 6 to 9. Actor scale, arena geometry, controls, HUD, balance and pack capacity are unchanged. Widths 6, 7.5 and 9 were compared with identical staged visuals at tall and short portrait target sizes; rationale and evidence limits are in `ArtDirection/2026-09-16/camera-review/README.md`. The furnace-cavern board in `arena-target/` is a future art target, not the current runtime scene.
+
+Files: `Scenes/Gameplay/Gameplay.unity` (one camera field), `Tests/PlayMode/ArtHudFlowTests.cs` (extend existing guardian bounds coverage to width 9). The temporary offscreen render fixture was removed before the full gate. Live ten-enemy kiting, boss-specific geometry and new environment/actor art remain separate work.
+
+**Verified:** .NET **239/239**, Unity compile **0 warnings/errors**, EditMode **251/251**, PlayMode **63/63**, Android build exit 0 and static integrity passed (272 project GUIDs; 555 scene objects/components). APK SHA-256 **`0E6CE9B82B47B6999B0AF68D8708B2882915AEDE0F16E861685755158FD1C4E2`**. The offscreen comparison has a separate final 1/1 capture-fixture pass; it is not included in the shipped suite count. Phone results are in the latest docs/23 entry.
+
 ## Latest slice — foundry result and Forge menus (2026-09-16)
 
 The owner authorised extending the approved UI to the result and Relic Forge screens. This slice reuses the imported frame and two relic icons. It adds no artwork dependency, shop rule or save schema.

@@ -218,7 +218,7 @@ MonoBehaviour:
   _target: {fileID: 201}
   _topHud: {fileID: 1944794816}
   _bottomHud: {fileID: 1289620789}
-  _visibleWidth: 6
+  _visibleWidth: 9
   _closingRate: 8
 --- !u!1 &200
 GameObject:

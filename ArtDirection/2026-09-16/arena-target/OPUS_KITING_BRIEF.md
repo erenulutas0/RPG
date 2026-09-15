@@ -1,0 +1,17 @@
+# Prompt for Opus — movement and density proof
+
+Coordination update: the owner confirmed this task has not started. Astra's following camera slice selects width **9**; read the latest docs/21–23 and `../camera-review/README.md` before beginning, and retain that width unless fresh movement evidence justifies a coordinated change. The earlier width-6 baseline is historical.
+
+Read docs/25_HANDOFF_2026-09-15.md and the latest sections of docs/01, 03, 06, 08, 21, 22 and 23. Read ArtDirection/2026-09-16/arena-target/PRODUCTION_PLAN.md. Turkish conversation; English code/docs. Inspect the worktree and preserve others' changes. This is a proposed next assignment; do not assume another existing technical task is finished without checking.
+
+The owner wants player movement with automatic attacks, denser normal-room packs and meaningful kiting. Astra owns art. Implement one bounded normal-room movement/density proof using existing actors. Do not implement boss attacks, new upgrades, seed replay, new currencies or art in this slice.
+
+First audit AttackController/WeaponRuntime, HeroMotion, PackMotion, PackLayout, EntrySides, EncounterController and DescentSimulation. PackLayout.MaxPackSize is currently 7 and PackMotion uses fixed arrays. Explain attack reach, enemy pursuit/spacing, spawn boundaries and current allocations. Movement alone does not establish weapon viability: compare Staff with Sword and Daggers. A seed alone cannot replay a player-controlled run without the time-ordered input stream; do not claim exact phone replay from seed.
+
+Then extend capacity only as needed for one controlled 10-enemy normal encounter, with deterministic spacing and bounded spawn work. Progress toward 14/18 only after measured evidence, not in this first implementation. Avoid materializing new textures per spawned copy if profiling identifies that as the bottleneck; keep any cache ownership/lifetime change explicit and tested. Do not add hidden speed buffs or change rewards globally to make the demo pass.
+
+Add a deterministic scripted hero-route scenario alongside the stationary baseline: attack while in reach, retarget/move correctly, enforce arena bounds, prevent unavoidable spawn-at-feet hits and overlapping bodies where existing rules prohibit them. Mirror new movement/encounter rules in the simulation and retain strict scene parity. Report stationary versus moving survival, room time and earned gold; do not silently weaken old balance targets. Use controlled inputs and fixed time steps where appropriate.
+
+Coordinate ownership before editing Gameplay.unity, camera, HUD or Art files. Prefer pure tests and encounter data for this slice; if scene wiring is necessary, describe the small required change and ensure no art worker is editing the scene concurrently. Astra will choose visual framing after comparing candidates, so do not silently change the camera width.
+
+Follow the full gate in docs/25: .NET, Unity compile, full EditMode/PlayMode, APK only after pass, static integrity. Announce USB work; gate every input/capture on app focus, awake screen and hidden keyguard, and recheck captures. Preserve the phone profile. Measure actual active dense combat and spawn/restart costs; do not use a paused sample as evidence. Record files, tests, APK hash, phone evidence and unresolved limits in docs/21–23. Stop after this slice and report a concise handoff to Astra. Do not touch the unrelated untracked historical design review.

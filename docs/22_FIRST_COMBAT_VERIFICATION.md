@@ -1,5 +1,16 @@
 # First combat slice — setup and verification
 
+## Current portrait camera checks — 2026-09-16
+
+The current camera candidate is width **9**, superseding the width-6 instructions below. Keep actor/HUD scale unchanged. The six render comparisons in `ArtDirection/2026-09-16/camera-review/` are staged Unity imagery, not combat/device evidence.
+
+Current full gate: .NET **239/239**, EditMode **251/251**, PlayMode **63/63**, compile without warnings/errors, Android build and static integrity passed. APK SHA-256 `0E6CE9B82B47B6999B0AF68D8708B2882915AEDE0F16E861685755158FD1C4E2`. Menu/HUD checks below still apply; their listed APKs are preceding builds.
+
+1. On the phone, verify hero, small enemies, chest and guardian remain identifiable while more surrounding floor is visible.
+2. Drag horizontally and diagonally away from buttons. Confirm the camera follows smoothly, attacks still occur when in range, and the finger does not activate the ability or Pause accidentally.
+3. Inspect enemies entering from a lateral side and the guardian's body/bar. This frame is not expected to contain the entire 18-unit platform.
+4. The automated guardian-bounds check covers 6/7.5/9 at short/tall sizes. Ten-enemy pursuit, survival and sustained frame-time acceptance remain a separate technical test.
+
 ## Current result/Forge menu checks — 2026-09-16
 
 Current gate: **239/239 .NET**, **251/251 EditMode**, **63/63 PlayMode**, compile check without warnings/errors, static integrity (272 GUIDs, 555 scene objects/components) and APK build passed. APK SHA-256: `B8176A69112EAFB7E8E7322B4768124102FACAE631F77E3B8BE6915D5B5D37E0`. The Forge guard now checks rendered row bounds at safe heights 1760/1920/2232 rather than requiring bottom-fixed anchors; text-fit coverage includes the result and Forge.

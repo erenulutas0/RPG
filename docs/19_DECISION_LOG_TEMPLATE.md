@@ -401,4 +401,20 @@ Use 6 initially. It retains more character prominence than 7.5 and fits the full
 Import the reusable panel and seven icons/bezel images, keep live text, and retain procedural actors. Use local floor colours instead of changing the shared palette. Move the detailed readout to Pause rather than deleting useful combat/build information. Keep gameplay and telemetry untouched.
 
 ### Consequences and remaining work
-The first integrated UI is playable, but generated raster UI is not a replacement for a grid-cleaned character pipeline. Result/forge screens and the pause menu's large title/resume control still use earlier styling. Individual badge tap explanations remain open; the full readout is available via Pause. Revisit camera width after movement/roster changes or clipping on another screen ratio, and test shorter UI layouts manually before release.
+The first integrated UI is playable, but generated raster UI is not a replacement for a grid-cleaned character pipeline. Result/forge screens and the pause menu's large title/resume control still used earlier styling at this decision. Result/forge styling was subsequently integrated in `df0646a`. Individual badge tap explanations remain open; the full readout is available via Pause. Revisit camera width after movement/roster changes or clipping on another screen ratio, and test shorter UI layouts manually before release.
+
+---
+
+## Decision: Retain portrait and widen the movement view before increasing density
+
+**Date:** 2026-09-16  
+**Status:** Camera implementation and validation; dense combat remains future work  
+**Owner:** Product owner / art
+
+The owner approved continuing in portrait after discussing landscape, and supplied the furnace-cavern image as the desired boss-arena look. Normal rooms should have more frequent packs and practical kiting space. This replaces the previous cosmic-only environment preference for the next two-room art target, while retaining original foundry characters and combat-first contrast. See docs/03 and 08 and `ArtDirection/2026-09-16/arena-target/`.
+
+Landscape would provide more lateral space but would also change the one-thumb control/layout target. Keep portrait and test its framing before changing orientation. Compare widths 6, 7.5 and 9 with identical world-scale actors: choose 9 for the next movement pass. At 1080 px width, a 44-texel hero canvas is 165 px tall and a 16-texel mite is 60 px tall. Width 9 shows 50% more horizontal world span than 6. The six Unity render comparisons are staged at 1080x1920/2340 with simulated safe insets, not actual dense combat or proof of phone performance.
+
+The platform remains 18 units wide, so the full boss-island reference needs its own later geometry/framing decision. Do not enlarge actor world scale to compensate for zoom or alter pursuit/weapon ranges as part of this camera slice. Maximum live pack size remains seven. The ten-enemy movement/simulation task is prepared for Opus and was confirmed not started; it is not fulfilled by the staged render.
+
+Verification and phone evidence belong to the latest docs/21–23 sections. Revisit width 9 after the ten-enemy movement pass if the hero/mite is too small on a physical screen, spawn threats arrive without warning, or required boss margins fail. The painted reference requires new modular environment and animation assets; this change alone does not deliver that final art.
