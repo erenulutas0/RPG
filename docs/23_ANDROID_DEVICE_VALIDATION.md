@@ -1,5 +1,25 @@
 # Android device validation — passed first combat smoke test
 
+## Four-direction Vanguard: S23 movement review — 2026-09-17
+
+**Gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **89/89**, targeted animation **6/6**, graphics capture **1/1**, Android exit **0**, integrity **333 GUIDs / 555 scene objects/components**. APK SHA-256 **`C793A3F11F58AB82049892BB939D9CEC606893D3ABCBEC2974FAA0F8173A329A`**; `adb install -r` succeeded and installed `base.apk` matched. Samsung S23, 1080x2340. No data clear, purchase, proof-floor flag or profile restoration.
+
+**Fresh state and progress:** the phone was awake/unlocked on its launcher. Initial saved profile: version 2, revision **110**, **7891 gold**, Sword/Second Wind, both unlockable weapons/relics owned, deepest floor 2. The app cold-launched into a new run, so the preceding handoff's in-memory choice was no longer available; the first startup capture is only a splash screen. Before installing, this old-build run was completed with first offered upgrades, Mend and Extract, banking **116**, producing revision **111 / 8007 gold**. This old-build completion preserves progress; it is not evidence for new directional art.
+
+The preinstall, immediate postinstall and final profile SHA-256 all matched **`10160EAC26F8E4FFF4670FD5E3D2BA229662D2BFDA564DD291EE8C9E52CC66F7`**. Fresh backups/evidence are under ignored `TestResults/device-vanguard-directions-01/`. No stale backup was restored. Telemetry was retained and grew normally.
+
+The unattended session was announced. Each tap, drag and screencap checked game focus, awake display and hidden keyguard; captures checked again before pulling. Four diagonal drags were captured while their 2.2–2.5-second inputs were still held, following first-card choices where necessary:
+
+| Capture | Observation |
+| --- | --- |
+| `front-left-moving.png` | Front mirrored body, sword/buckler attached, passing feet; hero moves toward the near-left rim. |
+| `rear-right-moving.png` | Rear original body during return drag; ground marker/camera relationship changes. |
+| `front-right-moving.png` | Front original body during Cinder Walk combat with an approaching enemy. |
+| `rear-left-moving.png` | Rear mirrored body, sword on screen left, contact shadow under feet. |
+| `left-for-owner.png` | Left paused on Cinder Walk **2/6**, level-4 upgrade choice, **23 at-risk gold**, **55 HP**, XP **55/70**. Stored profile still revision **111 / 8007 gold / Sword / Second Wind**. |
+
+Current-process logcat search found no `Exception`, `NullReference`, `FATAL EXCEPTION` or `Error:` lines. This is a short Sword movement/art smoke check, not a sustained performance benchmark, mid-range test, new full-run balance test, or proof of perfect frame-by-frame foot contact. Staff/Daggers and lethal-hit/front-flash/reload coverage in this slice are Unity tests. Source gait is improved but still not foot-locked; mirrored light/handedness and individual finger occlusion remain.
+
 ## Imported Vanguard: installed and phone-reviewed — 2026-09-17
 
 **Gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **87/87**, graphics-enabled runtime capture **1/1**, Android exit **0**, integrity **317 GUIDs / 555 scene objects/components**. Development APK SHA-256 **`971FEF6BCEBF5EB8EAE06DEA51ECF08780833485D8FE80E1142511D016A90ADE`**. `adb install -r` returned Success; the installed `base.apk` SHA-256 matched. Same Samsung S23 (SM-S911B), 1080x2340. No app-data clear, purchase or profile restoration.

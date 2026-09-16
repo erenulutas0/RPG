@@ -45,5 +45,38 @@ MonoBehaviour:
     Flash: {fileID: 21300000, guid: d4ea743f5ef344145969c30f787e8679, type: 3}
     RightHand: {x: 0.33210784, y: 0.5981984}
     LeftHand: {x: -0.31740198, y: 0.75600535}
+  _frontFrames:
+  - Body: {fileID: 21300000, guid: 441b7920fc3855a4abc19b78f9322f84, type: 3}
+    Flash: {fileID: 21300000, guid: 27d2610c19dfedb46ae42ac1b9bd166b, type: 3}
+    RightHand: {x: -0.28063726, y: 0.53100586}
+    LeftHand: {x: 0.38112745, y: 0.657959}
+  - Body: {fileID: 21300000, guid: 58aa8eaa1d61b3544846f99e65eb796d, type: 3}
+    Flash: {fileID: 21300000, guid: 8c9ffea0b96456249b13c4a0fb8333ab, type: 3}
+    RightHand: {x: -0.28063726, y: 0.53100586}
+    LeftHand: {x: 0.38112745, y: 0.657959}
+  - Body: {fileID: 21300000, guid: 7626de603a24ea149b1e50eaccbd02e9, type: 3}
+    Flash: {fileID: 21300000, guid: 288a22599a0399041a47b0560e0c7f11, type: 3}
+    RightHand: {x: -0.28063726, y: 0.53100586}
+    LeftHand: {x: 0.38112745, y: 0.657959}
+  - Body: {fileID: 21300000, guid: 7e97c1e29ebd7ee4ca7cb9a0ce1e3246, type: 3}
+    Flash: {fileID: 21300000, guid: eaa6f0858669fbd4bba0b7a1fdacfeba, type: 3}
+    RightHand: {x: -0.28063726, y: 0.53100586}
+    LeftHand: {x: 0.38112745, y: 0.657959}
+  - Body: {fileID: 21300000, guid: fceb5269fd8281e4fbbc8952c110c30e, type: 3}
+    Flash: {fileID: 21300000, guid: a273c1cfd96615246a05155208e24495, type: 3}
+    RightHand: {x: -0.28063726, y: 0.53100586}
+    LeftHand: {x: 0.38112745, y: 0.657959}
+  - Body: {fileID: 21300000, guid: c42488e4ac371ec499bb6587eb0d31b9, type: 3}
+    Flash: {fileID: 21300000, guid: f455c07631ebab84e90d4838223e5c32, type: 3}
+    RightHand: {x: -0.23529412, y: 1.237793}
+    LeftHand: {x: 0.3872549, y: 0.61279297}
+  - Body: {fileID: 21300000, guid: c000b30e57a6115469577f38533fa847, type: 3}
+    Flash: {fileID: 21300000, guid: 888ceaf2f12b01242b17fe17cb03c581, type: 3}
+    RightHand: {x: -0.3259804, y: 0.5432129}
+    LeftHand: {x: 0.3872549, y: 0.657959}
+  - Body: {fileID: 21300000, guid: 24abab061a2087543b312cbb92a3653e, type: 3}
+    Flash: {fileID: 21300000, guid: 2e7e70266b46c584599217682ece55c3, type: 3}
+    RightHand: {x: -0.15318628, y: 0.6164551}
+    LeftHand: {x: 0.38112745, y: 0.657959}
   _sword: {fileID: 21300000, guid: b7996aab80f254f40bb3e2c608f52154, type: 3}
   _shield: {fileID: 21300000, guid: 5200d5d81ad172d4495c003563506036, type: 3}

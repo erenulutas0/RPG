@@ -54,6 +54,8 @@ namespace Cryptforge.UI
         public bool IsSwinging => _painted != null ? _painted.IsAttacking : _swingRemaining > 0f;
         public bool UsesPaintedArt => _painted != null;
         public int PaintedFrame => _painted?.FrameIndex ?? -1;
+        public bool FrontFacing => _painted != null && _painted.FrontFacing;
+        public bool Mirrored => _painted != null && _painted.Mirrored;
         public VanguardArtSet PaintedArt => _paintedArt;
 
         private void Awake()
@@ -74,6 +76,7 @@ namespace Cryptforge.UI
             if (!_built)
                 return;
             _attack.Attacked += OnAttacked;
+            _attack.Struck += OnStruck;
             _subscribed = true;
         }
 
@@ -82,6 +85,7 @@ namespace Cryptforge.UI
             if (_subscribed)
             {
                 _attack.Attacked -= OnAttacked;
+                _attack.Struck -= OnStruck;
                 _subscribed = false;
             }
             if (_built)
@@ -214,6 +218,11 @@ namespace Cryptforge.UI
                 _breathElapsed -= _breathInterval;
                 ShowPose(_pose == HeroPose.IdleA ? HeroPose.IdleB : HeroPose.IdleA);
             }
+        }
+
+        private void OnStruck(Health target)
+        {
+            if (_painted != null && target != null) _painted.FaceAttack(target.transform.position);
         }
 
         private void OnAttacked()

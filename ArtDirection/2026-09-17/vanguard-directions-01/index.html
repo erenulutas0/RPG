@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge · Vanguard dört yön</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#10111d;color:#ececf5}body{max-width:1200px;margin:auto;padding:32px 22px}header{max-width:780px}small{color:#dfb570;letter-spacing:.15em}h1{font-size:clamp(28px,4vw,46px);margin:12px 0}p{color:#b7b7ce;line-height:1.65}nav{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}button,select{font:inherit;padding:11px 18px;background:#222338;color:inherit;border:1px solid #494760;border-radius:8px;cursor:pointer}button[aria-pressed=true]{background:#39304a;border-color:#dda258}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.card{margin:0;background:#1a1a29;border:1px solid #333244;border-radius:14px;overflow:hidden}.card img{width:100%;display:block;aspect-ratio:1}.card figcaption{padding:16px 20px;color:#dbbb80}.note{border-left:3px solid #dda258;padding-left:16px;margin-top:28px}a{color:#b8d8ff}footer{font-size:13px;margin-top:30px;color:#9293aa}@media(max-width:620px){.grid{grid-template-columns:1fr}body{padding:22px 14px}}
+</style>
+<header><small>CRYPTFORGE / VANGUARD / 17 EYLÜL 2026</small><h1>Hareketin artık bir yönü var.</h1><p>İki çizilmiş bakış ve sol yön aynalaması. Aşağıdaki kareler oyun sahnesindeki gerçek karakterden Unity ile alındı; tarayıcı döngüsü yalnızca inceleme içindir.</p></header>
+<nav aria-label="İnceleme seçenekleri"><select id="weapon" aria-label="Silah"><option value="sword">Kılıç ve kalkan</option><option value="weapon_staff">Asa · mevcut çizim</option><option value="weapon_daggers">Hançerler · mevcut çizim</option></select><button data-mode="idle" aria-pressed="false">Duruş</button><button data-mode="walk" aria-pressed="true">Yürüyüş</button><button data-mode="attack" aria-pressed="false">Saldırı</button><button id="play">Durdur</button></nav>
+<main class="grid" id="grid"></main>
+<p class="note">Ayak teması iyileştirildi; kusursuz ayak kilidi ve parmakların kabzayı örtmesi hâlâ son rötuş istiyor. Sol yönlerde ışık ve silah eli de aynalanıyor. Asa, hançerler, düşmanlar ve efektler henüz aynı çizim kalitesine taşınmadı.</p>
+<p>Telefonda da doğrulandı: <a href="device-front-left.png">S23 ön-sol hareket</a> · <a href="device-rear-left.png">S23 arka-sol hareket</a>. Bunlar canlı oyundan alınmış, değiştirilmemiş ekran görüntüleridir.</p>
+<footer><a href="README.md">Üretim ve doğrulama notları</a> · <a href="generation.json">Birebir üretim promptları</a> · <a href="../vanguard-runtime-01/">Önceki tek yönlü sürüm</a></footer>
+<script>
+const dirs=['rear-right','rear-left','front-right','front-left'],labels=['Arka sağ · çizilmiş','Arka sol · aynalanmış','Ön sağ · çizilmiş','Ön sol · aynalanmış'];
+let mode='walk',step=0,playing=true;const grid=document.querySelector('#grid');
+dirs.forEach((d,i)=>{const f=document.createElement('figure');f.className='card';f.innerHTML='<img alt="'+labels[i]+'"><figcaption>'+labels[i]+'</figcaption>';grid.append(f)});
+function render(){const weapon=document.querySelector('#weapon').value;let suffix=mode==='walk'?'walk-'+(1+step%4):mode==='idle'?'idle':weapon==='sword'?'attack-'+[5,6,7,0][step%4]:'attack-0';document.querySelectorAll('.card img').forEach((img,i)=>img.src=weapon+'-'+dirs[i]+'-'+suffix+'.png')}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;step=0;document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.querySelector('#weapon').onchange=render;document.querySelector('#play').onclick=e=>{playing=!playing;e.target.textContent=playing?'Durdur':'Oynat'};
+setInterval(()=>{if(playing){step++;render()}},150);render();
+</script></html>

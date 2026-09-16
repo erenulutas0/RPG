@@ -58,6 +58,57 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator FourFacingsFollowTravelRetainIdleAndMirrorOnlyPresentation()
+        {
+            Assert.That(_look.PaintedArt.HasFrontFrames, Is.True);
+            foreach (var direction in new[] { new Vector2(1,1),new Vector2(-1,1),new Vector2(1,-1),new Vector2(-1,-1) })
+            {
+                _movement.Hold(direction);
+                for(int i=0;i<4;i++) yield return null;
+                Assert.That(_look.FrontFacing, Is.EqualTo(direction.y<0));
+                Assert.That(_look.Mirrored, Is.EqualTo(direction.x<0));
+                Assert.That(_body.sprite, Is.SameAs(_look.PaintedArt.GetFrame(_look.PaintedFrame,direction.y<0).Body));
+                Assert.That(_body.transform.localScale.x, Is.EqualTo(direction.x<0?-1:1));
+                Assert.That(_look.transform.localScale, Is.EqualTo(Vector3.one));
+                _movement.Release(); yield return null; yield return null;
+                Assert.That(_look.FrontFacing, Is.EqualTo(direction.y<0));
+                Assert.That(_look.Mirrored, Is.EqualTo(direction.x<0));
+            }
+            // A nearly horizontal direction must retain the last vertical facing instead of flickering.
+            _movement.Hold(new Vector2(-1,.01f)); yield return null; yield return null;
+            Assert.That(_look.FrontFacing, Is.True);
+            Time.timeScale=0;
+            _movement.Hold(Vector2.one);
+            yield return new WaitForSecondsRealtime(.05f);
+            Assert.That(_look.FrontFacing && _look.Mirrored, Is.True);
+            Assert.That(_attack.AttackCount, Is.Zero);
+        }
+
+        [UnityTest]
+        public IEnumerator LethalStrikeFacesActualTargetAndFrontFlashSurvivesReload()
+        {
+            _target.transform.position=_look.transform.position+new Vector3(-.2f,-.2f,0);
+            _target.ApplyDamage(new DamageContext(_target.Current-1));
+            _attack.enabled=true;
+            for(int i=0;i<4;i++) yield return null;
+            Assert.That(_target.IsAlive, Is.False);
+            Assert.That(_look.FrontFacing && _look.Mirrored, Is.True, "Do not reacquire after the lethal hit.");
+            _attack.enabled=false;
+            _look.GetComponent<Health>().ApplyDamage(new DamageContext(1));
+            yield return null;
+            var flash=_body.transform.Find("Flash").GetComponent<SpriteRenderer>();
+            Assert.That(flash.sprite, Is.SameAs(_look.PaintedArt.GetFrame(_look.PaintedFrame,true).Flash));
+            Assert.That(flash.transform.lossyScale.x, Is.LessThan(0));
+            var front=_look.PaintedArt.GetFrame(0,true).Body;
+            yield return SceneManager.LoadSceneAsync(ScenePath); yield return null;
+            yield return Resources.UnloadUnusedAssets();
+            var next=Object.FindFirstObjectByType<HeroLookView>();
+            Assert.That(next.PaintedArt.GetFrame(0,true).Body, Is.SameAs(front));
+            Assert.That(front.texture.isReadable, Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
         public IEnumerator MovementTraversesFourFramesStopsAndFreezesWithCombat()
         {
             var seen = new HashSet<int>();

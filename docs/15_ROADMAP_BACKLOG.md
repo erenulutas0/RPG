@@ -192,4 +192,6 @@ P3 Growth:
 
 - [x] Integrate the first imported Vanguard body/sword/buckler prototype with movement/attack events, flash/death/reload support and reproducible Unity captures.
 - [ ] Finish opposing facings, planted-foot gait and hand occlusion before calling the character animation production-ready.
+- [x] Add the front Vanguard pose set and four diagonal runtime facings, with mirrored presentation, real-target attack facing and revised rear passing feet.
+- [ ] Polish world-space foot contact and finger occlusion; resolve mirrored lighting/handedness before final character sign-off.
 - [ ] Match Staff/Daggers artwork and integrate the first animated Cinder Mite; current enemies/effects remain procedural.

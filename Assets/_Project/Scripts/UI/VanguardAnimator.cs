@@ -21,9 +21,12 @@ namespace Cryptforge.UI
         private float _remaining;
         private float _duration;
         private int _loadout;
+        private bool _moving;
         private const float Stride = 1.2f;
         public int FrameIndex { get; private set; } = -1;
         public bool IsAttacking => _remaining > 0;
+        public bool FrontFacing { get; private set; }
+        public bool Mirrored { get; private set; }
 
         public VanguardAnimator(VanguardArtSet art, SpriteRenderer body, SpriteRenderer[] parts,
             Transform root, AttackController attack, Sprite litOrb)
@@ -37,7 +40,7 @@ namespace Cryptforge.UI
 
         public void Reset()
         {
-            _remaining=0; _distance=0; _previous=_root.position;
+            _remaining=0; _distance=0; _moving=false; _previous=_root.position;
             ResetWeapons(); Show(0);
         }
 
@@ -57,6 +60,7 @@ namespace Cryptforge.UI
             Vector3 delta=_root.position-_previous; _previous=_root.position;
             if(dt<=0 || (_health!=null&&!_health.IsAlive)) return;
             float travel=new Vector2(delta.x,delta.y/ArenaFloor.DepthScale).magnitude;
+            _moving=travel>=.0001f;
             if(travel>0) _distance=(_distance+travel)%Stride;
             if(_remaining>0)
             {
@@ -69,13 +73,15 @@ namespace Cryptforge.UI
                 }
                 ResetWeapons();
             }
+            if (_moving) Face(delta);
             // Anticipate only when the next actual sword attack is close and a valid target is in range.
             var weapon=_attack.Weapon;
             if(_parts[0].gameObject.activeInHierarchy && weapon!=null && weapon.CooldownRemaining>0
                 && weapon.CooldownRemaining<=Mathf.Min(.09f,weapon.Interval*.25f)
                 && _targeting!=null && _targeting.Acquire(weapon.Range)!=null)
             {
-                Show(5); _parts[0].transform.localRotation=Quaternion.Euler(0,0,20); return;
+                if (!_moving) Face(_targeting.Acquire(weapon.Range).transform.position-_root.position);
+                Show(5); _parts[0].transform.localRotation=Quaternion.Euler(0,0,FrontFacing?100:20); return;
             }
             ResetWeapons();
             if(travel<.0001f){_distance=0;Show(0);}else Show(1+Mathf.Min(3,(int)(_distance/Stride*4)));
@@ -84,7 +90,11 @@ namespace Cryptforge.UI
         private void Show(int index)
         {
             FrameIndex=index;
-            var frame=_art.GetFrame(index); _body.sprite=frame.Body;
+            var frame=_art.GetFrame(index,FrontFacing); _body.sprite=frame.Body;
+            // Mirror the presentation subtree only; movement, targeting and the floor shadow remain untouched.
+            _body.transform.localScale=new Vector3(Mirrored?-1:1,1,1);
+            _parts[0].sortingOrder=_body.sortingOrder+(FrontFacing?2:-1);
+            _parts[1].sortingOrder=_body.sortingOrder+(FrontFacing?3:-1);
             _parts[0].transform.localPosition=frame.RightHand;
             _parts[1].transform.localPosition=frame.LeftHand;
             _parts[2].transform.localPosition=frame.RightHand;
@@ -95,8 +105,8 @@ namespace Cryptforge.UI
 
         private void ApplyAttack(float t)
         {
-            var frame=_art.GetFrame(FrameIndex); float pulse=Mathf.Sin(t*Mathf.PI);
-            if(_loadout==0) _parts[0].transform.localRotation=Quaternion.Euler(0,0,Mathf.Lerp(-50,0,t));
+            var frame=_art.GetFrame(FrameIndex,FrontFacing); float pulse=Mathf.Sin(t*Mathf.PI);
+            if(_loadout==0) _parts[0].transform.localRotation=Quaternion.Euler(0,0,FrontFacing?Mathf.Lerp(-100,-180,t):Mathf.Lerp(-50,0,t));
             else if(_loadout==1)
             {
                 var lean=Quaternion.Euler(0,0,-14*pulse);
@@ -114,7 +124,27 @@ namespace Cryptforge.UI
         private void ResetWeapons()
         {
             for(int i=0;i<_parts.Length;i++) _parts[i].transform.localRotation=Quaternion.identity;
+            if(FrontFacing) _parts[0].transform.localRotation=Quaternion.Euler(0,0,-180);
             _parts[3].sprite=_orb;
+        }
+
+        public void FaceAttack(Vector3 target)
+        {
+            // Struck supplies the actual hit target, including a target killed by that hit.
+            // Moving heroes keep their travel facing so a nearby enemy cannot reverse the gait every swing.
+            if (!_moving) Face(target-_root.position);
+            Show(FrameIndex); ApplyAttack(0);
+        }
+
+        private void Face(Vector3 delta)
+        {
+            if (!_art.HasFrontFrames) return;
+            Vector2 direction=new Vector2(delta.x,delta.y/ArenaFloor.DepthScale);
+            if(direction.sqrMagnitude<.00000001f) return;
+            direction.Normalize();
+            // Retain each axis inside a small dead band, including exact cardinal motion.
+            if(Mathf.Abs(direction.x)>.15f) Mirrored=direction.x<0;
+            if(Mathf.Abs(direction.y)>.15f) FrontFacing=direction.y<0;
         }
     }
 }

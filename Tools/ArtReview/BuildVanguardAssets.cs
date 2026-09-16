@@ -14,7 +14,7 @@ namespace Cryptforge.Editor
         public static void Build()
         {
             Directory.CreateDirectory(Folder);AssetDatabase.Refresh();
-            string[] files={"vanguard-body-v2.png","walk-a-v1.png","pass-a-v1.png","walk-b-v2.png","pass-b-v1.png","attack-windup-v1.png","strike-v1.png","recover-v1.png"};
+            string[] files={"vanguard-body-v2.png","walk-a-v1.png","rear-passing-a-v2.png","walk-b-v2.png","rear-passing-b-v2.png","attack-windup-v1.png","strike-v1.png","recover-v1.png"};
             string[] names={"Idle","ContactA","PassingA","ContactB","PassingB","Windup","Strike","Recovery"};
             var body=new Sprite[8];var flash=new Sprite[8];
             for(int i=0;i<8;i++)
@@ -44,6 +44,23 @@ namespace Cryptforge.Editor
                 frame.FindPropertyRelative("Body").objectReferenceValue=body[i];frame.FindPropertyRelative("Flash").objectReferenceValue=flash[i];
                 frame.FindPropertyRelative("RightHand").vector2Value=Anchor(right[i]);frame.FindPropertyRelative("LeftHand").vector2Value=Anchor(left[i]);
             }
+            string[] frontFiles={"idle","contact-a","passing-a","contact-b","passing-b","windup","strike","recovery"};
+            Vector2[] frontRight={new Vector2(365,790),new Vector2(365,790),new Vector2(365,790),new Vector2(365,790),new Vector2(365,790),new Vector2(402,211),new Vector2(328,780),new Vector2(469,720)};
+            Vector2[] frontLeft={new Vector2(905,686),new Vector2(905,686),new Vector2(905,686),new Vector2(905,686),new Vector2(905,686),new Vector2(910,723),new Vector2(910,686),new Vector2(905,686)};
+            var frontFrames=serialized.FindProperty("_frontFrames");frontFrames.arraySize=8;
+            for(int i=0;i<8;i++)
+            {
+                // One fixed registration for all front poses; retain the extra sole pixels below the rear crop.
+                Texture2D pixels=Sample("front-"+frontFiles[i]+"-v1.png",224,89,816,1152,128,180);
+                string path=Folder+"/CHR_Vanguard_Front_"+names[i]+".tga";
+                WriteTga(path,pixels,false);var sprite=Import(path,new Vector2(370f/816,16f/1152));
+                path=Folder+"/CHR_Vanguard_Front_"+names[i]+"_Flash.tga";
+                WriteTga(path,pixels,true);var silhouette=Import(path,new Vector2(370f/816,16f/1152));
+                Object.DestroyImmediate(pixels);
+                var frame=frontFrames.GetArrayElementAtIndex(i);
+                frame.FindPropertyRelative("Body").objectReferenceValue=sprite;frame.FindPropertyRelative("Flash").objectReferenceValue=silhouette;
+                frame.FindPropertyRelative("RightHand").vector2Value=FrontAnchor(frontRight[i]);frame.FindPropertyRelative("LeftHand").vector2Value=FrontAnchor(frontLeft[i]);
+            }
             serialized.FindProperty("_sword").objectReferenceValue=swordSprite;serialized.FindProperty("_shield").objectReferenceValue=shieldSprite;
             serialized.ApplyModifiedPropertiesWithoutUndo();EditorUtility.SetDirty(set);AssetDatabase.SaveAssets();
             var scene=EditorSceneManager.OpenScene("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
@@ -53,10 +70,11 @@ namespace Cryptforge.Editor
             var look=Object.FindFirstObjectByType<HeroLookView>();
             var hero=new SerializedObject(look);hero.FindProperty("_paintedArt").objectReferenceValue=set;hero.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.SaveScene(scene);
-            Debug.Log("Vanguard imported: eight shared body/flash pairs, sword/shield, 128 PPU, one scene art-set reference.");
+            Debug.Log("Vanguard imported: sixteen shared body/flash pairs, sword/shield, 128 PPU, one scene art-set reference.");
         }
 
         private static Vector2 Anchor(Vector2 point)=>new Vector2((point.x-594)/816f,(1213-point.y)/1124f*1.375f);
+        private static Vector2 FrontAnchor(Vector2 point)=>new Vector2((point.x-594)/816f,(1225-point.y)/1152f*1.40625f);
 
         private static Texture2D Sample(string file,int x,int top,int cropWidth,int cropHeight,int width,int height)
         {

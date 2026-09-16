@@ -1,5 +1,15 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Four-direction Vanguard and support-foot revision — 2026-09-17
+
+Eight imported front body/flash pairs join the rear set; two rear passing poses lower the support sole. `VanguardArtSet` retains optional front compatibility and shared ownership. `HeroLookView` observes the existing actual-target `Struck` event; `VanguardAnimator` chooses front/rear from travel or a stationary hit target and mirrors only the presentation subtree for left facings. A normalized 0.15 axis dead band retains cardinal/idle facing; strike/recovery hold direction. Sword/buckler anchors, draw order and sword angles differ by facing. Movement, attacks, economy, telemetry, spacing, scene, package/project settings and existing GUIDs are unchanged.
+
+Front registration is 128x180 at 128 PPU with a common crop/pivot preserving its lower boot pixels; rear stays 128x176. `BuildVanguardAssets.cs` and the source bridge rebuild both sets. `Run-VanguardProof.ps1 -Directions` captures the actual scene for all four facings and three loadouts. Two new `VanguardAnimationTests` cover travel/idle/dead-band/pause and lethal-target facing/front flash/shared reload lifetime, bringing the class to six tests. Art masters, exact built-in generation prompts/hashes, renders, gallery and limits: `ArtDirection/2026-09-17/vanguard-directions-01/`.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, targeted PlayMode **6/6**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **89/89**, Android exit **0**, integrity **333 GUIDs / 555 scene objects/components**. APK SHA-256 **`C793A3F11F58AB82049892BB939D9CEC606893D3ABCBEC2974FAA0F8173A329A`**; installed S23 hash matched. All four Sword facings were captured during live drags; fresh saved profile was preserved byte-for-byte through install/review. See `23`.
+
+**Limits:** two painted views plus mirroring, not eight independently painted directions. Mirrored lighting/handedness, exact planted-foot motion and finger occlusion remain. Staff/Daggers and enemies/effects retain earlier art. Their directional loadouts were covered in Unity; this phone slice used Sword only and is not a crowd/performance benchmark.
+
 ## First imported Vanguard runtime animation — 2026-09-17
 
 Eight body/flash pairs and separate sword/buckler sprites now drive the real hero. The new `VanguardArtSet` is referenced once by Gameplay; `HeroLookView` borrows its sprites and retains the procedural fallback/Staff/Daggers. `VanguardAnimator` observes actual floor displacement and selects four walking frames, returning to idle on stop and freezing with combat pause. Sword windup observes a read-only `WeaponRuntime.CooldownRemaining` and an in-range target; the existing post-damage attack event starts strike immediately, followed by recovery. Weapon cadence, damage, movement, rewards, enemy spacing, simulation and save schema are unchanged.

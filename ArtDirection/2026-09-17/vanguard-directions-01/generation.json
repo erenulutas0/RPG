@@ -1,0 +1,103 @@
+{
+  "initial": [
+    {
+      "key": "frontIdle",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-16/character-proof-01/vanguard-body-v2.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached original Cryptforge Vanguard body sprite. Create ONE matching front three-quarter SOUTHEAST-facing idle body, looking toward the lower-right of the screen, instead of the existing rear view. This is the same knight turned around, not a redesign. Keep exact blue steel plate armor, silver edging, brass helmet crest and circular joints, navy split cape, chunky proportions, big closed helmet, upper-left lighting and clean hand-painted small-game-sprite finish. Front: closed blue helmet with a narrow cool pale-blue visor slit (no face, horns, eyes or mouth); simple blue breastplate with restrained brass trim and navy waist cloth; cape behind shoulders, not across chest. Both EMPTY gauntlets visible and separated from torso, relaxed ready stance, anatomical right hand on screen-left around (365,790), left hand on screen-right around (855,670), no equipment. Match the input framing on a transparent RGBA 1176x1338 canvas: helmet top about y90, floor baseline about y1210, body centered near x594; approximately same shoulder width and head-to-body proportions. Both boots rest on the same invisible isometric ground plane. No floor, shadow, text, frame, weapon, shield, effects or extra character. Genuine transparent background, full body uncropped."
+    },
+    {
+      "key": "groundA",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-runtime-01/pass-a-v1.png",
+      "prompt": "Use case: precise-object-edit. Edit this existing original Vanguard walking passing frame. Change ONLY the legs below the knees. Preserve helmet, torso, BOTH hands, arms, cape, armor identity, canvas, pose registration, camera and upper-left lighting exactly. Repair the short screen-right support leg: extend its shin and lower the flat planted boot by about 55 pixels so the bottom of its sole reaches y1210 on the same 1176x1337 canvas (it currently ends around y1155). It must carry the body weight, not balance on its toes. Keep the SCREEN-LEFT boot lifted in its existing passing position, around y1040, with a small knee bend. The support boot retains existing blue steel and gold sole, correct short boot shape, no rubbery elongation of the foot. No independent zoom, cropping or repositioning of the whole character. Empty hands, no equipment, no effects, no ground, no shadow, no text. Preserve real RGBA transparency. One frame only."
+    },
+    {
+      "key": "groundB",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-runtime-01/pass-b-v1.png",
+      "prompt": "Use case: precise-object-edit. Edit this existing original Vanguard walking passing frame. Change ONLY the legs below the knees. Preserve helmet, torso, BOTH hands, arms, cape, armor identity, canvas, pose registration, camera and upper-left lighting exactly. Repair the short screen-left support leg: extend the shin and lower the flat planted boot by about 55 pixels so the bottom of the sole reaches y1210 on the same 1176x1337 canvas (it currently ends around y1155). It must carry body weight with a softly bent knee, not balance on toes. Keep SCREEN-RIGHT boot lifted in the existing passing position around y1040. The support boot retains existing blue steel and gold sole and correct short boot shape. No independent zoom, cropping or repositioning of the whole character. Empty hands, no equipment, effects, ground, shadow or text. Preserve real RGBA transparency. One frame only."
+    }
+  ],
+  "front": [
+    {
+      "name": "front-contact-a-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Keep torso, helmet, BOTH arms and empty hands unchanged. Alter only legs and lower cloth: first walking CONTACT pose, screen-left boot slightly forward and flat near (460,1220), screen-right leg steps back and outward around (800,1060). Modest grounded step, no running, no lifted knee above the hip. Both knees flex naturally. Upper body stays in place.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    },
+    {
+      "name": "front-contact-b-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Keep torso, helmet, BOTH arms and empty hands unchanged. Alter only legs and lower cloth: opposite walking CONTACT pose, screen-right boot forward and flat near (740,1220), screen-left leg steps back around (435,1070). It must visibly alternate legs with the previous first step, not repeat the original stance. Modest grounded step; no jump. Upper body stays in place.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    },
+    {
+      "name": "front-passing-a-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Keep torso, helmet, BOTH arms and empty hands unchanged. Alter only legs and lower cloth: walking PASSING A, screen-left leg supports the weight and its flat sole reaches y1220 beneath its hip near x475. Screen-right knee bends slightly and the boot passes raised beside the supporting calf, bottom near y1090, x655. Feet close but distinct, no hop, minimal cloth change.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    },
+    {
+      "name": "front-passing-b-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Keep torso, helmet, BOTH arms and empty hands unchanged. Alter only legs and lower cloth: walking PASSING B, screen-right leg supports the weight and its flat sole reaches y1220 beneath the hip near x725. Screen-left knee bends slightly and the boot passes raised beside that calf, bottom near y1090, x535. Opposite support leg from Passing A. Feet close but distinct, no hop, minimal cloth change.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    },
+    {
+      "name": "front-windup-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Sword WINDUP pose. Keep feet planted in the original idle stance, head and torso registered. Lift the anatomical RIGHT arm, on SCREEN LEFT: elbow out at (350,440), empty closed fist near (380,240), beside the helmet and separated from it. Left arm on screen-right and hand near (900,675) stay down for a separate buckler. Correct bent elbow, only two arms, no sword baked into the body. Small shoulder rotation, no lean or jump.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    },
+    {
+      "name": "front-strike-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Sword STRIKE pose. Keep feet planted in original idle stance, head/torso registered. Anatomical RIGHT arm on SCREEN LEFT has cut downward and toward the foreground: its empty closed fist is at (395,930), outside the left waist/thigh silhouette, elbow at (335,695). Left hand on screen-right near (900,675) stays ready for a separate shield. Slight shoulder follow-through only, preserve head and cape identity. No weapon or slash in the body.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    },
+    {
+      "name": "front-recovery-v1.png",
+      "prompt": "Use case: identity-preserve. Edit target: the attached front-facing Cryptforge Vanguard. Make ONE animation frame of this SAME knight. Keep exact front three-quarter southeast facing, helmet top (about 610,100), head size, upper-left lighting, closed blue visor, blue armor/silver bevels/brass trim, navy cloth/cape and transparent RGBA canvas 1176x1337. Full body at original scale; support sole reaches the original ground baseline about y1220. No reframing or individual alpha-fit resizing. No weapon, shield, effects, ground, shadow or text. Maintain original anatomy and details. Sword RECOVERY pose. Keep feet planted in original idle stance, head/torso registered. Anatomical RIGHT arm on SCREEN LEFT settles from a low forward strike: empty closed fist at (360,850), elbow near (330,645). Left hand on screen-right near (900,675) stays still for a separate shield. Very small transition back toward reference idle pose, no exaggerated lean or cape flutter. No weapon or slash in the body.",
+      "ref": "E:/MobileGame/ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png"
+    }
+  ],
+  "outputs": [
+    {
+      "file": "front-contact-a-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-5925a3fc-4758-4362-b02f-cae8235e533e.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "front-contact-b-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-16b83318-0c8b-4f58-99ec-ad66850098b8.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "front-passing-a-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-c7d54a4f-ec9a-4487-93c1-fe6367922f32.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "front-passing-b-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-9e9e0eb2-2f94-4765-a4b2-60976acacccc.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "front-windup-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-d574f1e9-df1c-4395-b543-e04e128c2d1a.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "front-strike-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-1045dab7-2521-4687-a3db-cc4ebc365784.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "front-recovery-v1.png",
+      "hint": "Generated images are saved to C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47 as C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-76599f15-21fe-468c-9246-c66b6a3c3d6f.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    }
+  ],
+  "initialOutputs": [
+    [
+      "frontIdle",
+      "front-idle-v1.png",
+      "exec-51ba3cec-295e-4fa2-a3da-b5e9b2662097.png"
+    ],
+    [
+      "groundA",
+      "rear-passing-a-v2.png",
+      "exec-5844600c-bff3-4ade-b642-fdbe63e9ca6f.png"
+    ],
+    [
+      "groundB",
+      "rear-passing-b-v2.png",
+      "exec-04f0870c-9852-4c49-a80e-d0cf609be094.png"
+    ]
+  ]
+}

@@ -556,3 +556,11 @@ A standing hero now takes less damage from a dense pack, since only as many enem
 **Decision:** the third option makes the accepted art direction playable and exposes remaining scale/attachment/motion issues on the phone. Only Vanguard adopts 128 PPU/bilinear; the common crop/pivot preserves world scale and avoids per-frame auto-fit breathing. Runtime sprites are imported shared assets rather than generated per frame. Existing procedural art remains the fallback and supplies Staff/Daggers.
 
 Movement frames observe actual floor displacement; anticipation reads cooldown/in-range targeting, and strike begins on the real post-damage event. Animation cannot change cadence, damage or movement. No animation event becomes a second source of gameplay truth. Full simulation parity remains part of the gate. This does not approve a final walk cycle, directional roster or matching enemy set. Details and limitations: `ArtDirection/2026-09-17/vanguard-runtime-01/README.md`.
+
+## 2026-09-17 — Four diagonal Vanguard facings before expanding the roster
+
+**Options:** keep the single rear facing; paint eight complete directions immediately; add one coherent front set and mirror each side for four diagonal facings.
+
+**Decision:** use the third option to make movement direction visible within a bounded sixteen-pose set. Moving heroes face actual travel; stationary attacks face their actual hit target, including lethal hits. Each facing axis retains its previous value near cardinal motion, and strike/recovery hold facing. Only the body/equipment/flash subtree mirrors; physical hero state and shadow remain untouched. Targeting and damage stay authoritative in the existing combat controller.
+
+**Tradeoffs:** mirroring reverses apparent handedness and light direction. It is a prototype compromise, not approval of final character animation. Fixed front/rear registration, corrected rear passing soles and directional sword/buckler layering improve readability, but individual finger occlusion and a strictly planted gait still need work. Front Staff/Daggers retain the neutral body attack and current procedural equipment. Evidence and reproduction: `ArtDirection/2026-09-17/vanguard-directions-01/README.md`.

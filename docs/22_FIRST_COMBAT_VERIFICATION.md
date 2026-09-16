@@ -1,5 +1,15 @@
 # First combat slice — setup and verification
 
+## Four-direction Vanguard verification — 2026-09-17
+
+**Latest gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **89/89**, targeted animation **6/6**, graphics capture **1/1**, Android exit **0**, integrity **333 GUIDs / 555 scene objects/components**. APK SHA-256 **`C793A3F11F58AB82049892BB939D9CEC606893D3ABCBEC2974FAA0F8173A329A`**. This supersedes the rear-only statements/counts below.
+
+1. Drag in each diagonal: rear/right, rear/left, front/right and front/left must appear; release keeps direction and returns to idle. Cardinal movement retains the other facing axis; small vertical noise must not flip front/back. Pause/choice freezes body motion.
+2. While moving, travel owns facing; a strike/recovery holds it briefly. When stopped, the actual hit target owns facing, even if that hit killed it. Reacquiring after damage must not redirect the lethal strike.
+3. Equipment and matching hit silhouette inherit the body mirror, but hero root/physical movement/floor shadow do not. Death/reload must keep imported front/rear textures valid and unreadable at runtime.
+4. Review all four facings and three loadouts with `Tools/ArtReview/Run-VanguardProof.ps1 -Directions`; optional `-Reimport` reproduces assets. These are actual Unity renders. Verify hand anchors, sole baseline and dimensions at phone size.
+5. Full suites passed before APK creation. On the S23 all four Sword directions were captured during controlled drags; installed hash and preserved profile hash matched. See latest `23` for phone state/limitations. No new Staff/Daggers physical run or ten-enemy performance claim is made.
+
 ## Imported Vanguard runtime checks — 2026-09-17
 
 **Current gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **87/87**, Android exit **0**, integrity **317 unique GUIDs / 555 scene objects/components**. Development APK SHA-256 **`971FEF6BCEBF5EB8EAE06DEA51ECF08780833485D8FE80E1142511D016A90ADE`**. All earlier counts/builds below are historical. Additional targeted animation tests **4/4** and graphics-enabled capture **1/1** passed before the full gate.
