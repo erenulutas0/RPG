@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 269f106de3ad4bbc9ca3cb0439c2516e, type: 3}
+  m_Name: VanguardArtSet
+  m_EditorClassIdentifier:
+  _frames:
+  - Body: {fileID: 21300000, guid: 4ec62d5468ef73d48ae0ef3348a982af, type: 3}
+    Flash: {fileID: 21300000, guid: 6bb88be130c5d99479fe61cc598a5bdf, type: 3}
+    RightHand: {x: 0.3112745, y: 0.51256675}
+    LeftHand: {x: -0.30514705, y: 0.754782}
+  - Body: {fileID: 21300000, guid: 0962d6f21f34847428e926cbfa2aca59, type: 3}
+    Flash: {fileID: 21300000, guid: 43a21d630b044ce46b97acf11ab749e6, type: 3}
+    RightHand: {x: 0.32352942, y: 0.51746}
+    LeftHand: {x: -0.3112745, y: 0.7511121}
+  - Body: {fileID: 21300000, guid: 05aa8637565910e41bc737bd6be92eae, type: 3}
+    Flash: {fileID: 21300000, guid: b0e6447691b04104385b1036b12dfdd8, type: 3}
+    RightHand: {x: 0.32843137, y: 0.51746}
+    LeftHand: {x: -0.3112745, y: 0.7511121}
+  - Body: {fileID: 21300000, guid: 4471ec71091cf724f8f5d08d2c434f75, type: 3}
+    Flash: {fileID: 21300000, guid: fd10217b7444ccf4581079b65aa54790, type: 3}
+    RightHand: {x: 0.3259804, y: 0.51746}
+    LeftHand: {x: -0.31495097, y: 0.7511121}
+  - Body: {fileID: 21300000, guid: 96c9c98dd7ee999408f4bec5400db608, type: 3}
+    Flash: {fileID: 21300000, guid: 4f16444bd98823549917ce8afea79cc1, type: 3}
+    RightHand: {x: 0.32352942, y: 0.51746}
+    LeftHand: {x: -0.3112745, y: 0.7511121}
+  - Body: {fileID: 21300000, guid: caa0e93daaf653e44ac37b39097e9d3f, type: 3}
+    Flash: {fileID: 21300000, guid: d4f627de92f6fa743a56e4cc2840b694, type: 3}
+    RightHand: {x: 0.30637255, y: 1.149911}
+    LeftHand: {x: -0.31740198, y: 0.754782}
+  - Body: {fileID: 21300000, guid: 8a41bb9f7a9949a4488acd4c08e44d1d, type: 3}
+    Flash: {fileID: 21300000, guid: ec8b54a05d4b2a4419c96043eb7ea6a3, type: 3}
+    RightHand: {x: 0.47549018, y: 0.7205294}
+    LeftHand: {x: -0.31740198, y: 0.75600535}
+  - Body: {fileID: 21300000, guid: 4c0c3df3458049143a9b15b69b427c4e, type: 3}
+    Flash: {fileID: 21300000, guid: d4ea743f5ef344145969c30f787e8679, type: 3}
+    RightHand: {x: 0.33210784, y: 0.5981984}
+    LeftHand: {x: -0.31740198, y: 0.75600535}
+  _sword: {fileID: 21300000, guid: b7996aab80f254f40bb3e2c608f52154, type: 3}
+  _shield: {fileID: 21300000, guid: 5200d5d81ad172d4495c003563506036, type: 3}

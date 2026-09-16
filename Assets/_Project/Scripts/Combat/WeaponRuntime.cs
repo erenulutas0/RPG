@@ -23,6 +23,8 @@ namespace Cryptforge.Combat
         // Successful attacks so far; the critical rhythm counts them.
         public int AttacksMade { get; private set; }
         public bool IsReady => _cooldown <= 0f;
+        // Read-only presentation timing; observing it cannot advance cadence or apply damage.
+        public float CooldownRemaining => _cooldown;
         public event Action StatsChanged;
 
         // initialDelay is a windup before the first attack only; later attacks follow the interval.

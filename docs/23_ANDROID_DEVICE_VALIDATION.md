@@ -1,5 +1,29 @@
 # Android device validation — passed first combat smoke test
 
+## Imported Vanguard: installed and phone-reviewed — 2026-09-17
+
+**Gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **87/87**, graphics-enabled runtime capture **1/1**, Android exit **0**, integrity **317 GUIDs / 555 scene objects/components**. Development APK SHA-256 **`971FEF6BCEBF5EB8EAE06DEA51ECF08780833485D8FE80E1142511D016A90ADE`**. `adb install -r` returned Success; the installed `base.apk` SHA-256 matched. Same Samsung S23 (SM-S911B), 1080x2340. No app-data clear, purchase or profile restoration.
+
+**Preserving progress.** Fresh initial backup: version 2, revision **107**, **7659 gold**, Staff/**Second Wind**, both unlockable weapons/relics owned and deepest floor 2. The existing old-build run was paused on the Forge choice with 41 at-risk gold and 48 HP. It was continued with Mend, the first offered upgrades and Extract before installation, banking **116**; preinstall backup therefore records revision **108**, **7775 gold**, same equipment. This deliberately avoids discarding an already-open run or restoring the older revision-104 handoff.
+
+The unattended device run was announced. Every tap/swipe/capture passed the focus, awake and hidden-keyguard check; captures were checked again before pulling. One capture failed as Unity's completed build stopped ADB; the daemon was restarted and a newly gated capture succeeded. The immediate post-launch capture was blank during startup and is not evidence of a rendered scene; subsequent live captures are.
+
+| Evidence under ignored `TestResults/device-vanguard-01/` | Observation |
+| --- | --- |
+| `03-staff-moving.png`, `04-staff-after-drag.png` | Imported hero and procedural Staff visible in live combat; a five-second right drag reaches the rim with the camera following. The first capture is near drag start, not proof of a passing frame. |
+| `06-staff-walk-left.png`, `07-staff-release.png` | Leftward drag shows a passing-leg pose with equipment attached; a later level-up choice interrupts further motion. Single rear-facing body remains obvious while backing away. |
+| `08-staff-next.png` | Imported hero fighting the existing procedural enemies at the rim. Mixed art fidelity remains. |
+| `11-staff-extracted.png` | New-build Staff/Second Wind run completes six rooms, level 7, XP 121, **116 banked gold**. Telemetry: 31 kills, 7 upgrades, 56.743 active seconds. This was a movement/art smoke run, not a balance baseline. |
+| `12-forge.png`, `13-sword-restart.png`, `14-sword-walk.png` | Equip the already-owned free Sword, then Start run. Imported sword/buckler/body survive scene restart; walking and damage are visible. No purchase. |
+| `15-sword-combat.png` | Left in Ember Hall 1/6 on the first upgrade choice: level 1, 11 XP, 5 at-risk gold, 86 HP, Sword/Second Wind. |
+
+**Final saved state:** revision **110**, **7891 gold**, **Sword / Second Wind**, same unlocks and deepest floor. The increase from 7659 is the old run's 116 plus the new Staff run's 116; the third revision increment equips Sword. Both backups and final telemetry/profile were retained; no development start-floor flag was created. Inspect fresh state before the next phone test, since the owner can resume this run.
+
+**Limits and logs.** Current-process `final-unity.log` contains **0** matches for the checked E/Unity, exception, missing/null-reference and fatal patterns. Logs are retained, but this is not a controlled performance benchmark: the first cold window includes a **2116.3 ms** maximum and the Sword warm restart window includes **50.1 ms / 1077.5 KB** maximum whole-frame allocation. No before/after attribution, cold-start acceptance, ten-enemy density remeasurement or mid-range claim is made. Physical checks covered Staff and Sword; Daggers, death/flash and imported-asset lifetime were covered by Editor tests/captures, not a separate new Daggers/death device run.
+
+Sources, actual Unity renders, source hashes/prompts, import contract and incomplete visual work are in `ArtDirection/2026-09-17/vanguard-runtime-01/`. Other facings, planted-foot cleanup, finger occlusion and matching Staff/Daggers/enemy artwork remain. The imported hero is an integrated prototype, not finished character art.
+
+
 ## Stone/contact slice: installed and observed live; controlled device pass pending — 2026-09-16
 
 Development APK **24,739,335 bytes**, SHA-256 **`8DD7866A84537B9B4D91644C685F894717460A86DC1E8261BC506E2F3BEF5E3D`**. Full gate after fixing the live-enemy clone fault: .NET **262**, EditMode **274**, PlayMode **80**, clean compile, Android exit 0 and integrity **292 GUIDs / 555 scene objects/components**. Installation used `adb install -r`; hashing the installed package matched the local APK. No app data was cleared.

@@ -1,5 +1,16 @@
 # First combat slice — setup and verification
 
+## Imported Vanguard runtime checks — 2026-09-17
+
+**Current gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **87/87**, Android exit **0**, integrity **317 unique GUIDs / 555 scene objects/components**. Development APK SHA-256 **`971FEF6BCEBF5EB8EAE06DEA51ECF08780833485D8FE80E1142511D016A90ADE`**. All earlier counts/builds below are historical. Additional targeted animation tests **4/4** and graphics-enabled capture **1/1** passed before the full gate.
+
+1. Drag the hero: its four walk frames follow displacement; releasing returns to idle. A pause/choice freezes movement/body animation. Opposing visual facings are still absent, so walking backwards currently keeps the rear view.
+2. With Sword, watch the raised-hand anticipation, immediate strike on actual damage, and recovery. The first ready hit can skip anticipation. Staff and Daggers preserve their existing cadence, orb/thrust feedback and loadout activation.
+3. Damage must show the current frame's silhouette; death must hide body, flash and equipment. Restart must load intact imported sprites. These are exercised by `VanguardAnimationTests`, alongside full combat/economy/parity tests.
+4. Inspect body/weapon scale and grip at phone size. The common pivot/crop avoids alpha-fit scale shifts. Passing-foot drift and incomplete finger occlusion remain explicit art limitations.
+5. Build only after both full suites pass; install with data preserved, compare installed hash, and check focus/awake/keyguard before every input/capture. Current S23 review and state are in the newest `23` entry.
+
+
 ## Latest gate: stone/rim materials and contact shadows — 2026-09-16
 
 **Current gate:** .NET **262/262**, compile **0 warnings/errors**, EditMode **274/274**, PlayMode **80/80**, Android exit **0**, integrity **292 GUIDs / 555 scene objects/components**. APK **24,739,335 bytes**, SHA-256 **`8DD7866A84537B9B4D91644C685F894717460A86DC1E8261BC506E2F3BEF5E3D`**, installed S23 hash matched. The first full attempt caught a live-clone shadow initialization fault; it was fixed and both complete suites rerun before this APK. Earlier counts below are historical.

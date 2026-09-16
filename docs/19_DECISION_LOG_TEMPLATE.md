@@ -548,3 +548,11 @@ Three intermediate versions were measured and dropped. Sliding round only the ne
 ### Consequences and remaining work
 
 A standing hero now takes less damage from a dense pack, since only as many enemies as fit a body apart can reach it; this is visible only on the development proof floor, because no authored wave crowds. Enemies still stop at their reach and the hero has no body. Crowded fights end differently on the Editor's Mono and the .NET runner, as they already did before this rule, so exact crowded outcomes are recorded per runtime. Revisit if authored waves grow beyond five, if a hero body is added (the same step constraint is the natural place for it), or if the phone shows enemies freezing in a crowd.
+
+## 2026-09-17 — Import one animated Vanguard without changing combat timing
+
+**Options:** retain the procedural hero until a complete directional sheet exists; replace it with a rigid painted cutout; integrate a bounded eight-frame body/equipment set and explicitly keep directional/foot-contact polish open.
+
+**Decision:** the third option makes the accepted art direction playable and exposes remaining scale/attachment/motion issues on the phone. Only Vanguard adopts 128 PPU/bilinear; the common crop/pivot preserves world scale and avoids per-frame auto-fit breathing. Runtime sprites are imported shared assets rather than generated per frame. Existing procedural art remains the fallback and supplies Staff/Daggers.
+
+Movement frames observe actual floor displacement; anticipation reads cooldown/in-range targeting, and strike begins on the real post-damage event. Animation cannot change cadence, damage or movement. No animation event becomes a second source of gameplay truth. Full simulation parity remains part of the gate. This does not approve a final walk cycle, directional roster or matching enemy set. Details and limitations: `ArtDirection/2026-09-17/vanguard-runtime-01/README.md`.

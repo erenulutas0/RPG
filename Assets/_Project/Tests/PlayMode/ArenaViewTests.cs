@@ -53,7 +53,8 @@ namespace Cryptforge.Tests
             SpriteRenderer[] sprites = Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.That(sprites.Length, Is.GreaterThan(2), "The hero and the first pack are in the scene.");
             var heroBody = GameObject.Find("Hero Body").GetComponent<SpriteRenderer>();
-            Assert.That(heroBody.sprite.name, Does.StartWith("Hero Body"), "The hero wears its drawn look.");
+            Assert.That(Object.FindFirstObjectByType<HeroLookView>().UsesPaintedArt, Is.True, "The scene uses the imported Vanguard set.");
+            Assert.That(heroBody.sprite.name, Does.StartWith("CHR_Vanguard_"));
             foreach (SpriteRenderer sprite in sprites)
             {
                 Assert.That(sprite.sortingLayerID, Is.EqualTo(arena.sortingLayerID), sprite.name);

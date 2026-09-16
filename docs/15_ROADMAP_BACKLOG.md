@@ -187,3 +187,9 @@ P3 Growth:
 - liveops
 - remote content
 - advanced social features
+
+## Art production progress — 2026-09-17
+
+- [x] Integrate the first imported Vanguard body/sword/buckler prototype with movement/attack events, flash/death/reload support and reproducible Unity captures.
+- [ ] Finish opposing facings, planted-foot gait and hand occlusion before calling the character animation production-ready.
+- [ ] Match Staff/Daggers artwork and integrate the first animated Cinder Mite; current enemies/effects remain procedural.

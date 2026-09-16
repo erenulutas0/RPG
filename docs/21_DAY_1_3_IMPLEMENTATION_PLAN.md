@@ -1,5 +1,18 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## First imported Vanguard runtime animation — 2026-09-17
+
+Eight body/flash pairs and separate sword/buckler sprites now drive the real hero. The new `VanguardArtSet` is referenced once by Gameplay; `HeroLookView` borrows its sprites and retains the procedural fallback/Staff/Daggers. `VanguardAnimator` observes actual floor displacement and selects four walking frames, returning to idle on stop and freezing with combat pause. Sword windup observes a read-only `WeaponRuntime.CooldownRemaining` and an in-range target; the existing post-damage attack event starts strike immediately, followed by recovery. Weapon cadence, damage, movement, rewards, enemy spacing, simulation and save schema are unchanged.
+
+Imported body and flash textures use a shared 128x176 canvas at 128 PPU, bilinear filtering, fixed pivot and per-frame hand anchors. Android uses ASTC 4x4, no CPU readback/mipmaps. Views never destroy imported references. Existing flash/death/contact-shadow ownership remains. The scene changes only the art-set reference; project/package settings and existing metas are preserved.
+
+Four new `VanguardAnimationTests` exercise movement/pause/release, damage-aligned strike/recovery/windup, moving flash/death/shared lifetime through reload, and owned Staff/Daggers attack/walk. The arena test now expects the imported set. The separate graphics-enabled runtime capture passed **1/1** and produced all observed walk frames plus sword attack phases. Captures, source masters/hashes, exact prompts, import choices and known limitations: `ArtDirection/2026-09-17/vanguard-runtime-01/`. Reproduction: `Tools/ArtReview/Run-VanguardProof.ps1`.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **87/87**, Android exit **0**, integrity **317 unique GUIDs / 555 scene objects/components**. Development APK SHA-256 **`971FEF6BCEBF5EB8EAE06DEA51ECF08780833485D8FE80E1142511D016A90ADE`**. Full scene/simulation parity remained green. Installed S23 package hash matched; the physical review is recorded in `23`.
+
+**Limits:** single rear northeast facing; opposing facings, planted-foot cleanup and finger occlusion remain. Staff/Daggers, enemies and effects retain prior procedural artwork. This is an integrated character prototype, not final animation or a completed roster. No claim of reduced hero-startup allocation or mid-range performance.
+
+
 ## Matching equipment and registered keyposes — 2026-09-17
 
 `ArtDirection/2026-09-16/hero-motion-01/` adds original transparent sword/buckler masters, two candidate step poses, one windup, provenance/metadata and actual Unity scene evidence. One duplicate-footfall attempt was corrected and excluded from playback. All body poses use one 119×176 canvas at the 128-PPU candidate density and the same pivot; anchors are measured per pose. The temporary capture tool now shares setup between the preceding resolution proof and `RenderHeroEquipmentKeyposes`, selected through `Run-CharacterProof.ps1 -Keyposes`. No authored game source, scene, sprite imports or project settings changed.

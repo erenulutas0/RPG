@@ -4,10 +4,9 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // The Vanguard's placeholder pixel look. At startup it draws the knight's three body frames and the six weapon
-    // sprites with HeroArt, hands them to the existing body and loadout renderers, then breathes in idle and swings the
-    // carried weapon on each attack. CombatantView keeps nudging the body's local position on attacks and hides the body
-    // on death; this view only ever changes the body's sprite and the weapon children, so the two never fight.
+    // Borrows an optional imported Vanguard set; HeroArt remains the fallback and supplies Staff/Daggers equipment.
+    // The imported animator observes movement and weapon timing without changing either. CombatantView nudges the body
+    // on attack and hides it on death; this view changes only its sprite and weapon children, so the two never fight.
     // It runs before the other hero components so CombatantView reads a white body colour as the resting tint.
     [DefaultExecutionOrder(-50)]
     public sealed class HeroLookView : MonoBehaviour, ILookSprites
@@ -20,6 +19,8 @@ namespace Cryptforge.UI
         [SerializeField] private SpriteRenderer _staffOrb;
         [SerializeField] private SpriteRenderer _daggerLeft;
         [SerializeField] private SpriteRenderer _daggerRight;
+        [SerializeField] private VanguardArtSet _paintedArt;
+        private VanguardAnimator _painted;
         // Idle frames alternate at this interval; a swing lasts about as long as CombatantView's attack nudge.
         [SerializeField, Min(0.05f)] private float _breathInterval = 0.5f;
         [SerializeField, Min(0.01f)] private float _swingDuration = 0.12f;
@@ -50,7 +51,10 @@ namespace Cryptforge.UI
         // The idle body as drawn, for anything that wants to derive from it; the hit-flash silhouettes are pre-built.
         public PixelCanvas BodyCanvas => _bodyCanvas;
         public HeroPose Pose => _pose;
-        public bool IsSwinging => _swingRemaining > 0f;
+        public bool IsSwinging => _painted != null ? _painted.IsAttacking : _swingRemaining > 0f;
+        public bool UsesPaintedArt => _painted != null;
+        public int PaintedFrame => _painted?.FrameIndex ?? -1;
+        public VanguardArtSet PaintedArt => _paintedArt;
 
         private void Awake()
         {
@@ -101,6 +105,11 @@ namespace Cryptforge.UI
         {
             if (bodySprite == null)
                 return null;
+            if (_painted != null)
+            {
+                Sprite paintedFlash = _paintedArt.FlashOf(bodySprite);
+                if (paintedFlash != null) return paintedFlash;
+            }
             for (int i = 0; i < PoseCount; i++)
             {
                 if (_bodySprites[i] == bodySprite)
@@ -173,10 +182,21 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _built = true;
             ShowPose(HeroPose.IdleA);
+            if (_paintedArt != null)
+            {
+                if (!_paintedArt.IsValid) Debug.LogError("Vanguard painted art set is incomplete.", this);
+                else _painted = new VanguardAnimator(_paintedArt, _body, _weapons, transform, _attack, _litOrb);
+            }
         }
 
         private void Update()
         {
+            if (_painted != null)
+            {
+                _painted.Tick(Time.deltaTime);
+                _pose = _painted.FrameIndex >= 5 ? HeroPose.Attack : HeroPose.IdleA;
+                return;
+            }
             if (_swingRemaining > 0f)
             {
                 // Unscaled, like CombatantView's nudge, so a swing settles even while an upgrade choice pauses combat.
@@ -198,6 +218,7 @@ namespace Cryptforge.UI
 
         private void OnAttacked()
         {
+            if (_painted != null) { _painted.Attacked(); return; }
             // The staff casts standing: its orb lights and the shaft leans while the body keeps its idle frame, since
             // the raised-arm frame would leave the staff floating at the hip.
             _casting = _staffShaft.gameObject.activeInHierarchy;
@@ -234,6 +255,7 @@ namespace Cryptforge.UI
 
         private void EndSwing()
         {
+            if (_painted != null) { _painted.Reset(); return; }
             _swingRemaining = 0f;
             _casting = false;
             _sword.transform.localRotation = Quaternion.identity;

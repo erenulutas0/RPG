@@ -1,0 +1,120 @@
+using Cryptforge.Art;
+using Cryptforge.Combat;
+using UnityEngine;
+
+namespace Cryptforge.UI
+{
+    // Presentation only: observe displacement and cooldown; never tick a weapon, move a hero or apply damage.
+    internal sealed class VanguardAnimator
+    {
+        private readonly VanguardArtSet _art;
+        private readonly SpriteRenderer _body;
+        private readonly SpriteRenderer[] _parts;
+        private readonly Transform _root;
+        private readonly AttackController _attack;
+        private readonly Targeting _targeting;
+        private readonly Health _health;
+        private readonly Sprite _orb;
+        private readonly Sprite _litOrb;
+        private Vector3 _previous;
+        private float _distance;
+        private float _remaining;
+        private float _duration;
+        private int _loadout;
+        private const float Stride = 1.2f;
+        public int FrameIndex { get; private set; } = -1;
+        public bool IsAttacking => _remaining > 0;
+
+        public VanguardAnimator(VanguardArtSet art, SpriteRenderer body, SpriteRenderer[] parts,
+            Transform root, AttackController attack, Sprite litOrb)
+        {
+            _art=art; _body=body; _parts=parts; _root=root; _attack=attack;
+            _targeting=root.GetComponent<Targeting>(); _health=root.GetComponent<Health>();
+            _previous=root.position; _orb=parts[3].sprite; _litOrb=litOrb;
+            _parts[0].sprite=art.Sword; _parts[1].sprite=art.Shield;
+            Show(0);
+        }
+
+        public void Reset()
+        {
+            _remaining=0; _distance=0; _previous=_root.position;
+            ResetWeapons(); Show(0);
+        }
+
+        public void Attacked()
+        {
+            _loadout=_parts[2].gameObject.activeInHierarchy?1:_parts[4].gameObject.activeInHierarchy?2:0;
+            _duration=Mathf.Min(.20f,(_attack.Weapon?.Interval ?? 1f)*.65f);
+            _remaining=_duration;
+            ResetWeapons();
+            // Damage already happened in this event: enter the strike, never begin a delayed visual windup.
+            Show(_loadout==0?6:0);
+            ApplyAttack(0);
+        }
+
+        public void Tick(float dt)
+        {
+            Vector3 delta=_root.position-_previous; _previous=_root.position;
+            if(dt<=0 || (_health!=null&&!_health.IsAlive)) return;
+            float travel=new Vector2(delta.x,delta.y/ArenaFloor.DepthScale).magnitude;
+            if(travel>0) _distance=(_distance+travel)%Stride;
+            if(_remaining>0)
+            {
+                _remaining=Mathf.Max(0,_remaining-dt);
+                if(_remaining>0)
+                {
+                    float t=1-_remaining/_duration;
+                    if(_loadout==0) Show(t<.42f?6:7);
+                    ApplyAttack(t); return;
+                }
+                ResetWeapons();
+            }
+            // Anticipate only when the next actual sword attack is close and a valid target is in range.
+            var weapon=_attack.Weapon;
+            if(_parts[0].gameObject.activeInHierarchy && weapon!=null && weapon.CooldownRemaining>0
+                && weapon.CooldownRemaining<=Mathf.Min(.09f,weapon.Interval*.25f)
+                && _targeting!=null && _targeting.Acquire(weapon.Range)!=null)
+            {
+                Show(5); _parts[0].transform.localRotation=Quaternion.Euler(0,0,20); return;
+            }
+            ResetWeapons();
+            if(travel<.0001f){_distance=0;Show(0);}else Show(1+Mathf.Min(3,(int)(_distance/Stride*4)));
+        }
+
+        private void Show(int index)
+        {
+            FrameIndex=index;
+            var frame=_art.GetFrame(index); _body.sprite=frame.Body;
+            _parts[0].transform.localPosition=frame.RightHand;
+            _parts[1].transform.localPosition=frame.LeftHand;
+            _parts[2].transform.localPosition=frame.RightHand;
+            _parts[3].transform.localPosition=frame.RightHand+Vector2.up*(HeroArt.StaffCapRow-HeroArt.StaffGripRow+4)/32f;
+            _parts[4].transform.localPosition=frame.LeftHand;
+            _parts[5].transform.localPosition=frame.RightHand;
+        }
+
+        private void ApplyAttack(float t)
+        {
+            var frame=_art.GetFrame(FrameIndex); float pulse=Mathf.Sin(t*Mathf.PI);
+            if(_loadout==0) _parts[0].transform.localRotation=Quaternion.Euler(0,0,Mathf.Lerp(-50,0,t));
+            else if(_loadout==1)
+            {
+                var lean=Quaternion.Euler(0,0,-14*pulse);
+                _parts[2].transform.localRotation=lean; _parts[3].transform.localRotation=lean;
+                _parts[3].transform.localPosition=(Vector3)frame.RightHand+lean*(Vector3.up*(HeroArt.StaffCapRow-HeroArt.StaffGripRow+4)/32f);
+                _parts[3].sprite=_litOrb;
+            }
+            else
+            {
+                _parts[4].transform.localPosition=frame.LeftHand+Vector2.up*(.12f*pulse);
+                _parts[5].transform.localPosition=frame.RightHand+Vector2.up*(.12f*pulse);
+            }
+        }
+
+        private void ResetWeapons()
+        {
+            for(int i=0;i<_parts.Length;i++) _parts[i].transform.localRotation=Quaternion.identity;
+            _parts[3].sprite=_orb;
+        }
+    }
+}
