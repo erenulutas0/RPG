@@ -8,10 +8,17 @@ using Cryptforge.Progression;
 
 namespace Cryptforge.Tests
 {
-    // Runs authored floors through the real run, reward, upgrade, forge, choice, scaling, enrage, relic and pack motion code
-    // at 60 Hz. It mirrors the scene: a wave enters at the far end of the arena and walks in through PackMotion, the hero
-    // strikes the nearest living enemy within reach on the floor, enemies strike once the hero is within theirs, the hero
-    // acts before the enemies each frame, and every hit on the hero reaches the relic with its attacker.
+    // Runs authored floors through the real run, reward, upgrade, forge, choice, scaling, enrage, relic, hero motion and
+    // pack motion code at 60 Hz. It mirrors the scene: a wave enters round the hero and walks in through PackMotion, the
+    // hero strikes the nearest living enemy within reach on the floor, enemies strike once the hero is within theirs, the
+    // hero acts before the enemies each frame, and every hit on the hero reaches the relic with its attacker.
+    //
+    // The hero walks too, when a run is given an IHeroRoute: HeroMovementInput (execution order -60) steers it from the
+    // steer it holds, then EncounterController (-50) steps the pack toward where it now stands, and the attacks follow. So
+    // the route is asked at the end of a frame and its answer is walked at the start of the next one, the same one-frame
+    // input lag the scene's PlayMode driver has when it calls HeroMovementInput.Hold after a frame's Update calls. Without
+    // a route the hero stands at the floor origin, where it has always stood: subtracting 0f is exact, so every distance,
+    // every placement and every balance number is bit for bit the one the stationary baseline was measured with.
     internal static class DescentSimulation
     {
         internal sealed class Enemy
@@ -79,6 +86,28 @@ namespace Cryptforge.Tests
             public float MitePackFightSeconds;
             public int FloorOneUpgrades;
             public string DeathRoom;
+            public int Level;
+            // What the movement report reads: strikes the hero took and the health they cost it.
+            public int HeroHitsTaken;
+            public float HeroDamageTaken;
+            // Frames the hero stood outside the rim margin it keeps. HeroMotion never lets it, so this stays 0.
+            public int FramesOffPlatform;
+            // Hero strikes landed on a frame the hero also walked.
+            public int StrikesWhileMoving;
+            // Seconds from a wave's spawn to the first strike its enemies landed on the hero, smallest over the run's waves;
+            // float.MaxValue when no enemy ever struck. A spawn out of reach leaves it above 0.
+            public float EarliestStrikeAfterSpawn;
+            // How close two living enemies of a wave came, and how close a living enemy came to the hero, over every frame
+            // from a spawn on. Kept squared while the run measures them; float.MaxValue until the first measurement.
+            public float ClosestEnemyGapSquared;
+            public float ClosestHeroDistanceSquared;
+            // Where the hero stood on the floor when the run ended, so a scene driver can prove it walked the same walk
+            // and not merely reached the same result. (0, 0) for a run with no route, which never moves the hero.
+            public float HeroFloorX;
+            public float HeroFloorY;
+
+            public float ClosestEnemyGap => (float)Math.Sqrt(ClosestEnemyGapSquared);
+            public float ClosestHeroDistance => (float)Math.Sqrt(ClosestHeroDistanceSquared);
         }
 
         // Mirror Data/Enemies, Data/Weapons, Data/Floors and PrototypeEconomy.asset; update together with the assets.
@@ -136,6 +165,22 @@ namespace Cryptforge.Tests
             ModifierGoldPercent = 0.5f
         };
 
+        // The density proof's floors: one combat room holding one wave of ten, with Ember Halls' multipliers, so the densest
+        // pack the formations hold can be fought by a standing hero and a walking one under the same rules. Ten Cinder Mites
+        // swarm at 2.2 floor units a second; the trailing wave puts a Grunt in slots 0 and 1, which enter from two corners
+        // at 1.6 and fall behind the mites, so the hero is chased by a fast ring and a slow one at once.
+        public static readonly Floor DensityProofMites = new Floor
+        {
+            Rooms = new[] { new[] { new[] { Mite, Mite, Mite, Mite, Mite, Mite, Mite, Mite, Mite, Mite } } },
+            DamageMultiplier = 0.92f
+        };
+
+        public static readonly Floor DensityProofTrailing = new Floor
+        {
+            Rooms = new[] { new[] { new[] { Grunt, Grunt, Mite, Mite, Mite, Mite, Mite, Mite, Mite, Mite } } },
+            DamageMultiplier = 0.92f
+        };
+
         public static UpgradeOption Damage() =>
             new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", WeaponStat.Damage,
                 new StatModifier(ModifierOperation.Percent, 0.5f), 5);
@@ -164,8 +209,9 @@ namespace Cryptforge.Tests
         public const float EntryDepth = 5f;
         public const float FormationSpacing = 1f;
         public const float BodySpacing = 0.9f;
-        // ArenaView's corners in Gameplay.unity: the platform the packs enter on and stop on. The simulated hero never leaves
-        // its centre, so no pack ever reaches the rim.
+        // HeroMovementInput._speed in Gameplay.unity, in floor units per second at full steer.
+        public const float HeroSpeed = 2.5f;
+        // ArenaView's corners in Gameplay.unity: the platform the packs enter on, stop on, and the hero walks on.
         public static readonly ArenaGeometry Platform = new ArenaGeometry(-9f, 9f, 9f);
 
         // EncounterController._advanceDelay in Gameplay.unity. The hero's weapon keeps cooling down for this long between a
@@ -173,10 +219,11 @@ namespace Cryptforge.Tests
         public const float AdvanceDelay = 1f;
 
         // Always descends. cardSlot is the upgrade card taken every time (clamped when fewer cards remain); floor 2 and
-        // later always Mend, floor 1 Mends only when mendOnFloorOne is set.
+        // later always Mend, floor 1 Mends only when mendOnFloorOne is set. A null route leaves the hero at the floor
+        // origin for the whole run, which is the balance baseline; heroSpeed is the walking speed a route steers.
         public static Result Run(Floor[] floors, int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null,
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
-            HeroAbility ability = null)
+            HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth);
             var rewards = new RewardService(run);
@@ -187,11 +234,20 @@ namespace Cryptforge.Tests
             var forge = new ForgeService(run, hero);
             var choices = new RunChoices(upgrades, forge);
             RelicRuntime relic = relicOption != null ? new RelicRuntime(relicOption) : null;
-            var result = new Result();
+            var result = new Result
+            {
+                EarliestStrikeAfterSpawn = float.MaxValue,
+                ClosestEnemyGapSquared = float.MaxValue,
+                ClosestHeroDistanceSquared = float.MaxValue
+            };
+            // One hero, placed where every run starts and kept across waves, rooms and floors, as in the scene.
+            var heroMotion = new HeroMotion(heroSpeed);
+            heroMotion.Place(0f, 0f, Platform);
+            RouteView view = route != null ? new RouteView() : null;
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, cardSlot, f > 0 || mendOnFloorOne, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, cardSlot, f > 0 || mendOnFloorOne, heroMotion, route, view, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -211,15 +267,19 @@ namespace Cryptforge.Tests
             if (!run.HasEnded)
                 run.End(RunOutcome.Victory);
             result.HeroHealth = hero.Current;
+            result.Level = run.Level;
             result.Gold = run.Gold;
             result.GoldBanked = run.GoldBanked;
             result.RelicTriggers = relic?.Triggers ?? 0;
             result.UpgradesApplied = run.UpgradesApplied;
+            result.HeroFloorX = heroMotion.X;
+            result.HeroFloorY = heroMotion.Y;
             return result;
         }
 
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
-            HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, int cardSlot, bool useMend, ref Result result)
+            HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, int cardSlot, bool useMend,
+            HeroMotion heroMotion, IHeroRoute route, RouteView view, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -244,9 +304,12 @@ namespace Cryptforge.Tests
                 var enemyWeapons = new WeaponRuntime[pack.Length];
                 var enrages = new EnrageRule[pack.Length];
                 var rewarded = new bool[pack.Length];
-                var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, 0f, 0f);
+                // The pack forms up round wherever the hero stands now, keeping a body's spacing between its spots.
+                float spawnX = heroMotion.X;
+                float spawnY = heroMotion.Y;
+                var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, spawnX, spawnY);
                 var placements = new EntryPlacement[pack.Length];
-                EntrySides.Place(waveOrdinal, pack.Length, 0f, 0f, Platform, EntryDepth, FormationSpacing, placements);
+                EntrySides.Place(waveOrdinal, pack.Length, spawnX, spawnY, Platform, EntryDepth, FormationSpacing, BodySpacing, placements);
                 float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier, floor.ModifierDamagePercent);
                 for (int i = 0; i < pack.Length; i++)
                 {
@@ -260,26 +323,36 @@ namespace Cryptforge.Tests
                 waveOrdinal++;
 
                 float startSeconds = result.FightSeconds;
+                // The steer the hero holds into the next frame, at rest on the frame a wave spawns, and when this wave first
+                // landed a hit on the hero. No frame passes during the advance delay or an instant choice, so the hero
+                // stands still through both, as it does in the scene while a choice panel is open.
+                float steerX = 0f;
+                float steerY = 0f;
+                float firstStrike = -1f;
                 weapon.Tick(AdvanceDelay);
                 for (int frame = 0; frame < 200000 && hero.IsAlive && AnyAlive(enemies); frame++)
                 {
+                    bool moved = false;
                     if (frame > 0)
                     {
                         weapon.Tick(step);
                         burst?.Tick(step);
                         for (int i = 0; i < pack.Length; i++)
                             enemyWeapons[i].Tick(step);
-                        motion.Step(step);
+                        // The scene's order: the hero walks from the steer it holds, then the pack steps toward where it is.
+                        moved = heroMotion.Move(steerX, steerY, step, Platform);
+                        motion.Step(step, heroMotion.X, heroMotion.Y);
                         result.FightSeconds += step;
                     }
 
-                    int target = Acquire(motion, enemies, weapon.Range);
-                    if (target >= 0 && weapon.IsReady)
-                        weapon.TryAttack(enemies[target], null, Nearby(motion, enemies, target, weapon.Pattern.SplashRadius));
+                    int target = Acquire(motion, enemies, weapon.Range, heroMotion.X, heroMotion.Y);
+                    if (target >= 0 && weapon.IsReady &&
+                        weapon.TryAttack(enemies[target], null, Nearby(motion, enemies, target, weapon.Pattern.SplashRadius)) && moved)
+                        result.StrikesWhileMoving++;
                     Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
                     if (burst != null && burst.IsReady)
                     {
-                        IReadOnlyList<IDamageable> inReach = WithinReachOfHero(motion, enemies, burst.Radius);
+                        IReadOnlyList<IDamageable> inReach = WithinReachOfHero(motion, enemies, burst.Radius, heroMotion.X, heroMotion.Y);
                         if (inReach.Count > 0)
                         {
                             burst.TryUse(null, inReach);
@@ -290,17 +363,30 @@ namespace Cryptforge.Tests
 
                     for (int i = 0; i < pack.Length && hero.IsAlive; i++)
                     {
-                        if (!enemies[i].IsAlive || !IsHeroInReach(motion, i, enemyWeapons[i].Range))
+                        if (!enemies[i].IsAlive || !IsHeroInReach(motion, i, enemyWeapons[i].Range, heroMotion.X, heroMotion.Y))
                             continue;
                         float before = hero.Current;
-                        if (enemyWeapons[i].TryAttack(hero, enemies[i]) && relic != null && hero.Current < before)
+                        if (!enemyWeapons[i].TryAttack(hero, enemies[i]))
+                            continue;
+
+                        result.HeroHitsTaken++;
+                        result.HeroDamageTaken += before - hero.Current;
+                        if (firstStrike < 0f)
+                            firstStrike = result.FightSeconds - startSeconds;
+                        if (relic != null && hero.Current < before)
                         {
                             relic.OnHeroDamaged(hero, enemies[i], weapon.Damage);
                             Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
                         }
                     }
+
+                    Observe(motion, enemies, heroMotion, ref result);
+                    if (route != null)
+                        Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, out steerX, out steerY);
                 }
 
+                if (firstStrike >= 0f && firstStrike < result.EarliestStrikeAfterSpawn)
+                    result.EarliestStrikeAfterSpawn = firstStrike;
                 float waveSeconds = result.FightSeconds - startSeconds;
                 if (Array.Exists(pack, enemy => enemy.EnrageAt > 0f))
                     result.BossFightSeconds += waveSeconds;
@@ -335,9 +421,13 @@ namespace Cryptforge.Tests
             }
         }
 
-        // Mirrors Targeting.Acquire for the hero at the floor origin: the nearest living enemy within range, the earlier slot on
-        // equal distance. Distances are computed exactly as Targeting computes them.
-        internal static int Acquire(PackMotion motion, HealthState[] enemies, float range)
+        // Mirrors Targeting.Acquire for a hero at the floor origin, where it has always stood.
+        internal static int Acquire(PackMotion motion, HealthState[] enemies, float range) => Acquire(motion, enemies, range, 0f, 0f);
+
+        // Mirrors Targeting.Acquire for the hero: the nearest living enemy within range, the earlier slot on equal distance.
+        // Distances are computed exactly as Targeting computes them, candidate minus origin, so the scene and the simulation
+        // get the same floats; with the hero at the origin subtracting 0f leaves every value as it was.
+        internal static int Acquire(PackMotion motion, HealthState[] enemies, float range, float heroX, float heroY)
         {
             int nearest = -1;
             float nearestDistanceSquared = range * range;
@@ -345,8 +435,8 @@ namespace Cryptforge.Tests
             {
                 if (!enemies[i].IsAlive)
                     continue;
-                float x = motion.XOf(i);
-                float y = motion.YOf(i);
+                float x = motion.XOf(i) - heroX;
+                float y = motion.YOf(i) - heroY;
                 float distanceSquared = x * x + y * y;
                 if (nearest < 0 ? distanceSquared <= nearestDistanceSquared : distanceSquared < nearestDistanceSquared)
                 {
@@ -358,26 +448,79 @@ namespace Cryptforge.Tests
         }
 
         // Mirrors Targeting.CollectNear around the hero: the living enemies within the radius on the floor.
-        internal static IReadOnlyList<IDamageable> WithinReachOfHero(PackMotion motion, HealthState[] enemies, float radius)
+        internal static IReadOnlyList<IDamageable> WithinReachOfHero(PackMotion motion, HealthState[] enemies, float radius,
+            float heroX, float heroY)
         {
             var inReach = new List<IDamageable>();
             float radiusSquared = radius * radius;
             for (int i = 0; i < enemies.Length; i++)
             {
-                float x = motion.XOf(i);
-                float y = motion.YOf(i);
+                float x = motion.XOf(i) - heroX;
+                float y = motion.YOf(i) - heroY;
                 if (enemies[i].IsAlive && x * x + y * y <= radiusSquared)
                     inReach.Add(enemies[i]);
             }
             return inReach;
         }
 
-        // Mirrors an enemy's Targeting.Acquire, whose only candidate is the hero at the origin.
-        private static bool IsHeroInReach(PackMotion motion, int enemy, float reach)
+        // Mirrors an enemy's Targeting.Acquire, whose only candidate is the hero: the hero's position less the enemy's, the
+        // way the scene subtracts it.
+        private static bool IsHeroInReach(PackMotion motion, int enemy, float reach, float heroX, float heroY)
         {
-            float x = -motion.XOf(enemy);
-            float y = -motion.YOf(enemy);
+            float x = heroX - motion.XOf(enemy);
+            float y = heroY - motion.YOf(enemy);
             return x * x + y * y <= reach * reach;
+        }
+
+        // Watches a wave the way the movement report reads it: how close two living enemies came, how close one came to the
+        // hero, and whether the hero ever stood outside the rim margin HeroMotion bounds it by.
+        private static void Observe(PackMotion motion, HealthState[] enemies, HeroMotion heroMotion, ref Result result)
+        {
+            if (!Platform.IsOnPlatform(heroMotion.X, heroMotion.Y, HeroMotion.EdgeMargin))
+                result.FramesOffPlatform++;
+
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (!enemies[i].IsAlive)
+                    continue;
+                float dx = motion.XOf(i) - heroMotion.X;
+                float dy = motion.YOf(i) - heroMotion.Y;
+                float distanceSquared = dx * dx + dy * dy;
+                if (distanceSquared < result.ClosestHeroDistanceSquared)
+                    result.ClosestHeroDistanceSquared = distanceSquared;
+
+                for (int other = 0; other < i; other++)
+                {
+                    if (!enemies[other].IsAlive)
+                        continue;
+                    float apartX = motion.XOf(i) - motion.XOf(other);
+                    float apartY = motion.YOf(i) - motion.YOf(other);
+                    float apartSquared = apartX * apartX + apartY * apartY;
+                    if (apartSquared < result.ClosestEnemyGapSquared)
+                        result.ClosestEnemyGapSquared = apartSquared;
+                }
+            }
+        }
+
+        // Fills the route's view at the end of a frame and takes the steer the hero holds through the next one: the scene's
+        // one-frame input lag, where the PlayMode driver calls HeroMovementInput.Hold after the frame's Update calls.
+        private static void Ask(IHeroRoute route, RouteView view, PackMotion motion, HealthState[] enemies,
+            WeaponRuntime[] enemyWeapons, HeroMotion heroMotion, float heroReach, float seconds, out float steerX, out float steerY)
+        {
+            view.HeroX = heroMotion.X;
+            view.HeroY = heroMotion.Y;
+            view.HeroReach = heroReach;
+            view.Platform = Platform;
+            view.Count = enemies.Length;
+            view.Seconds = seconds;
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                view.EnemyX[i] = motion.XOf(i);
+                view.EnemyY[i] = motion.YOf(i);
+                view.EnemyReach[i] = enemyWeapons[i].Range;
+                view.Alive[i] = enemies[i].IsAlive;
+            }
+            route.Steer(view, out steerX, out steerY);
         }
 
         // Mirrors Targeting.CollectNear: living enemies within radius of the target on the floor, nearest first.

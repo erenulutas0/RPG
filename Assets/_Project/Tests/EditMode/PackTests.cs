@@ -36,6 +36,70 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(0, 1, 0f, out _, out _));
         }
 
+        // The formations, slot by slot in spacing units. The first seven are pinned exactly, because the stationary Descent
+        // balance was measured on them; eight to ten are the new staggered ranks. Every row is symmetric about the centre
+        // line, keeps its slots at least 1.1 apart and at most 4 deep, and stays within the widest spread.
+        [Test]
+        public void EveryFormationIsPinnedSymmetricApartAndShallow()
+        {
+            float[][] slotX =
+            {
+                new[] { 0f },
+                new[] { -0.9f, 0.9f },
+                new[] { 0f, -1.4f, 1.4f },
+                new[] { -0.9f, 0.9f, -2f, 2f },
+                new[] { 0f, -1.4f, 1.4f, -0.8f, 0.8f },
+                new[] { -0.9f, 0.9f, -2f, 2f, -0.9f, 0.9f },
+                new[] { -0.9f, 0.9f, -2f, 2f, -2f, 2f, 0f },
+                new[] { -0.9f, 0.9f, 0f, -1.8f, 1.8f, -0.9f, 0.9f, 0f },
+                new[] { -0.9f, 0.9f, 0f, -1.8f, 1.8f, -0.9f, 0.9f, -1.6f, 1.6f },
+                new[] { -0.9f, 0.9f, 0f, -1.8f, 1.8f, -0.9f, 0.9f, -1.6f, 1.6f, 0f }
+            };
+            float[][] slotY =
+            {
+                new[] { 0f },
+                new[] { 0f, 0f },
+                new[] { 0f, 0.8f, 0.8f },
+                new[] { 0f, 0f, 1.2f, 1.2f },
+                new[] { 0f, 0.8f, 0.8f, 1.8f, 1.8f },
+                new[] { 0f, 0f, 1.2f, 1.2f, 2.4f, 2.4f },
+                new[] { 0f, 0f, 1.2f, 1.2f, 2.6f, 2.6f, 2.8f },
+                new[] { 0f, 0f, 1.2f, 1.2f, 1.2f, 2.4f, 2.4f, 3.6f },
+                new[] { 0f, 0f, 1.2f, 1.2f, 1.2f, 2.4f, 2.4f, 3.6f, 3.6f },
+                new[] { 0f, 0f, 1.2f, 1.2f, 1.2f, 2.4f, 2.4f, 3.6f, 3.6f, 3.6f }
+            };
+            Assert.That(slotX.Length, Is.EqualTo(PackLayout.MaxPackSize), "Every pack size has a formation.");
+
+            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+            {
+                for (int index = 0; index < count; index++)
+                {
+                    PackLayout.Offset(index, count, 1f, out float x, out float y);
+                    string where = $"{count} enemies, slot {index}";
+                    Assert.That((x, y), Is.EqualTo((slotX[count - 1][index], slotY[count - 1][index])), where);
+                    Assert.That(y, Is.LessThanOrEqualTo(4f), where + " stays within four spacing units of the front.");
+
+                    // Its mirror slot across the centre line stands at the same depth; a centre slot mirrors onto itself.
+                    bool mirrored = false;
+                    for (int other = 0; other < count && !mirrored; other++)
+                    {
+                        PackLayout.Offset(other, count, 1f, out float otherX, out float otherY);
+                        mirrored = otherX == -x && otherY == y;
+                    }
+                    Assert.That(mirrored, Is.True, where + " has no mirror slot.");
+
+                    for (int other = 0; other < index; other++)
+                    {
+                        PackLayout.Offset(other, count, 1f, out float otherX, out float otherY);
+                        float dx = x - otherX;
+                        float dy = y - otherY;
+                        Assert.That(dx * dx + dy * dy, Is.GreaterThanOrEqualTo(1.1f * 1.1f),
+                            where + $" stands less than 1.1 from slot {other}.");
+                    }
+                }
+            }
+        }
+
         [Test]
         public void ExperienceGrowthMakesEachLevelCostMoreThanTheLast()
         {

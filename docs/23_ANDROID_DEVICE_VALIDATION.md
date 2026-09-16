@@ -472,3 +472,30 @@ Local evidence: `TestResults/device-camera-09/`.
 The profile went from version 2 / revision 58 / 3531 gold to version 2 / revision 59 / 3657 gold. Owned weapons/relics, deepest floor 2 and Staff/Counterweight loadout were retained. The 126-gold difference agrees with the result; no Forge purchase or equip operation was performed. This is a short live smoke review with possible owner interaction, not a deterministic isolated run.
 
 Remaining issue: near the far rim, the unbounded follow camera spends substantial upper-screen area on the void. Width 9 improves surrounding threat visibility, but room-aware camera limits and a separately sized boss arena remain necessary for the reference composition. The seven visual actors in `ArtDirection/2026-09-16/camera-review/` are offscreen staging, not this live phone encounter; the six staged render variants assume safe insets and use converted canvases. No physical short-screen device, paired three-width phone test, sustained combat benchmark or ten-enemy kiting acceptance is claimed. Touch coordinates remain those of the preceding menu/HUD slice.
+
+## Ten enemies on the S23 — 2026-09-16
+
+The USB session was announced before it began. Every input and capture was preceded by the focus/awake/keyguard check and the app held focus throughout. The device profile and the telemetry log were pulled to a local backup first, and both were restored afterwards and verified by SHA-256 against that backup; the `development` folder was deleted from the device at the end.
+
+APK 24,738,586 bytes, SHA-256 `8D73EE69683BCDB1FA061F04AB15B6303C87B86477C806912D722CACA7A0653A`, `adb install -r` returned Success. The proof floor was reached by pushing one line, `floor_density_proof`, into `<persistentDataPath>/development/start-floor.txt` - the scene file was not touched.
+
+| Evidence | Observed result |
+|---|---|
+| `01-launch.png` | The HUD reads **Floor 1 / Room 1/1, Crowded Floor**: the development floor is live on the device. |
+| `02-state.png`, `04-dense.png` | Ten enemies - two Grunts and eight Cinder Mites - stand in a ring round the hero, each with its own bar and damage numbers. This is the density the slice set out to show. |
+| `03-now.png` | **Descent complete**, ten kills, level 2, 10 gold banked, hero at 54/100 HP with Daggers and Counterweight. |
+| `05-flag-removed.png` | With the file deleted the app starts on **Ember Hall, Room 1/6** again: the development hook leaves nothing behind. |
+
+**Frame cost of a ten-enemy room, from the `[Perf]` probe.**
+
+| What | Measured |
+|---|---|
+| Steady dense combat, ten enemies fighting | 59.5-59.9 fps; average 16.7-16.8 ms; p50 16.7, p95 16.7, p99 <= 17.0 ms; longest frame 17.1 ms; **no frame over 20 ms**; 3-138 KB allocated per 5 s window |
+| The frame ten enemies enter on (four spawns measured) | `StartWave` **8.7-10.9 ms**; the frame itself **50.0-50.1 ms**; main thread 56.0-63.0 ms; **18.2-18.3 MB allocated in that one frame**; 20-22 GC runs in the window that contains it |
+| Restart: result screen -> Try again -> scene reload and respawn | one 50.1 ms frame and nothing else over 35 ms; the scene reload itself costs under a frame |
+
+So ten enemies fighting are free on this device - the encounter holds 60 fps with no frame even reaching 20 ms - and the whole cost is the single frame the pack enters on, which drops about three frames. That frame is dominated not by time but by allocation: **18 MB of managed garbage per wave**, from the actor sprites being generated per enemy as they spawn. It is the same 18 MB whether the wave enters at the start of a run or after a restart. A sprite cache keyed by enemy id is the obvious remedy and would remove almost all of it, but it lives in the art code, so it is handed to the art owner rather than done here.
+
+Caveats. This is a flagship device; no low or mid-range phone has been measured. The measurement covers one wave of ten in an otherwise empty room, not ten enemies plus a boss, chests and effects. The runs were live, with owner interaction possible at the phone, so the health and gold figures in the captures are a smoke reading, not the deterministic numbers in `22`. Kiting was not driven by script on the device: the scene's agreement with the routed simulation is proved in PlayMode instead, which is the stronger statement.
+
+Local evidence: `TestResults/device-density-01/` (captures and the two `[Perf]` logs).

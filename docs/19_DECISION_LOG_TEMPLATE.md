@@ -418,3 +418,29 @@ Landscape would provide more lateral space but would also change the one-thumb c
 The platform remains 18 units wide, so the full boss-island reference needs its own later geometry/framing decision. Do not enlarge actor world scale to compensate for zoom or alter pursuit/weapon ranges as part of this camera slice. Maximum live pack size remains seven. The ten-enemy movement/simulation task is prepared for Opus and was confirmed not started; it is not fulfilled by the staged render.
 
 Verification and phone evidence belong to the latest docs/21–23 sections. Revisit width 9 after the ten-enemy movement pass if the hero/mite is too small on a physical screen, spawn threats arrive without warning, or required boss margins fail. The painted reference requires new modular environment and animation assets; this change alone does not deliver that final art.
+
+---
+
+## Decision: Prove ten-enemy density on a development-only floor, and keep entries clear of the rim
+
+**Date:** 2026-09-16
+**Status:** Implemented and measured on the S23
+**Owner:** Engineering, under the owner's brief in `ArtDirection/2026-09-16/arena-target/OPUS_KITING_BRIEF.md`
+
+### Context and options
+
+The camera was widened to 9 for movement, and the next question was whether a normal room can hold ten enemies and what walking away from them is worth. Three ways to reach a ten-enemy encounter were available: raise an authored wave in `Data/Floors`, add a room to Ember Halls, or put the encounter somewhere only development builds can reach. The first two change the balance numbers that `22` pins and would have to be undone; they also mean editing content another assistant owns.
+
+### Decision and evidence
+
+Add `Resources/Development/Floor_DensityProof.asset` and let a development build or a scene test start the run there through a one-line file in the profile folder. No authored floor changed, every existing balance number stands untouched, and the same code path serves the six PlayMode parity cases and the phone. A release build returns the authored floor before touching the file system, and a PlayMode case proves that without the file the scene starts on Ember Halls. On the device, deleting the file put the app back on Ember Hall 1/6.
+
+Capacity was raised from seven to ten, and the spawn now keeps a body's spacing. A sweep over every hero spot on the platform shows the spacing moves nothing for a pack of six or fewer - which every authored wave is - so no encounter a player can reach today enters anywhere but where it always did.
+
+A second, smaller decision came out of running the suites on two runtimes: an entry pulled in short of the rim used to land exactly on the rim line, and the Editor's Mono and the pure .NET runner disagreed by one bit about which side of it the spot was on. Rather than teach the tests to accept either answer, the pull-in now stops a ten-thousandth of the way short of the rim, which moves an entry by at most a thousandth of a unit and makes the guarantee true on every runtime. The alternative - a tolerance in the assertion - would have left the scene, the simulation and the device free to disagree quietly, which is the one thing this project's method cannot afford.
+
+### Consequences and remaining work
+
+Ten enemies fighting cost nothing measurable on an S23: 60 fps, no frame reaching 20 ms. The cost is the single frame the wave enters on, and it is allocation, not work: 18 MB of managed garbage per wave from per-enemy sprite generation. A sprite cache is the remedy and belongs to the art owner; until it exists, a wave of ten drops about three frames on entry, and a mid-range device has not been measured at all.
+
+Nothing here raises the capacity of a floor a player can reach. Whether normal rooms should hold more enemies, and what kiting should cost once they do, is a balance decision that now has numbers to argue from: kiting cuts the damage taken by 2.2x to 4.0x depending on the weapon, and the Staff kites the authored Descent almost unharmed. Review that before increasing any authored wave.

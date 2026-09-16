@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    // Runs the Descent one floor at a time: spawns each wave as a pack of up to seven enemies with floor-scaled health,
-    // damage and gold at the far end of the arena, walks it in toward the hero, opens the forge in non-combat rooms, and
-    // advances after a short delay once the current step is resolved, no choice is open and the hero lives. The final
-    // wave's last kill clears the floor immediately. It runs before other scripts so enemies move before anyone attacks
-    // in a frame, the same order the Descent simulation uses.
+    // Runs the Descent one floor at a time: spawns each wave as a pack of up to PackLayout.MaxPackSize enemies with
+    // floor-scaled health, damage and gold round the hero, at least a body apart, walks it in toward the hero, opens the
+    // forge in non-combat rooms, and advances after a short delay once the current step is resolved, no choice is open
+    // and the hero lives. The final wave's last kill clears the floor immediately. It runs before other scripts so
+    // enemies move before anyone attacks in a frame, the same order the Descent simulation uses.
     [DefaultExecutionOrder(-50)]
     public sealed class EncounterController : MonoBehaviour
     {
@@ -131,8 +131,13 @@ namespace Cryptforge.Combat
 
             _choices = choices ?? throw new ArgumentNullException(nameof(choices));
             _forge = forge ?? throw new ArgumentNullException(nameof(forge));
+            // The Editor and development builds may start the Descent on a floor from Resources/Development instead of the
+            // one this scene carries, so a scene test or a phone session can reach a proof encounter without editing
+            // Gameplay.unity. A release build, and anything without that file, always gets the authored floor back. It is
+            // resolved before validation, so whatever the run actually descends is the chain that gets checked.
+            FloorDefinition first = DevelopmentStart.FirstFloor(_floor);
             var visited = new HashSet<FloorDefinition>();
-            for (FloorDefinition floor = _floor; floor != null; floor = floor.NextFloor)
+            for (FloorDefinition floor = first; floor != null; floor = floor.NextFloor)
             {
                 if (!visited.Add(floor))
                     throw new InvalidOperationException($"Floor {floor.name} links back into the descent.");
@@ -140,7 +145,7 @@ namespace Cryptforge.Combat
             }
 
             _fight = new EncounterProgress(_advanceDelay);
-            _currentFloor = _floor;
+            _currentFloor = first;
             FloorNumber = 1;
             _floorProgress = new FloorProgress(WavesOf(_currentFloor));
             _waveOrdinal = 0;
@@ -294,7 +299,11 @@ namespace Cryptforge.Combat
             float heroX = HeroFloorX;
             float heroY = HeroFloorY;
             _motion = new PackMotion(_bodySpacing, PackLayout.HalfWidth * _formationSpacing, _arena.Geometry, heroX, heroY);
-            EntrySides.Place(_waveOrdinal, count, heroX, heroY, _arena.Geometry, _entryDepth, _formationSpacing, _placements);
+            // Spots keep the same body spacing the pack keeps while it walks, so no two enemies enter overlapping. The
+            // Descent simulation passes the same value, so scene and simulation lay a wave out identically; with the hero
+            // near the centre and a pack the formations already keep 1.1 spacing units apart, it changes nothing.
+            EntrySides.Place(_waveOrdinal, count, heroX, heroY, _arena.Geometry, _entryDepth, _formationSpacing, _bodySpacing,
+                _placements);
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);

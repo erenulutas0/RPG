@@ -45,7 +45,13 @@ Do NOT:
 - extend the foundry UI to result and Relic Forge menus (done 2026-09-16; reused frames, responsive card rows and explicit visual shop states; see `21`),
 - compare portrait movement framing at widths 6/7.5/9 (2026-09-16: staged Unity comparison complete, width 9 selected; device gate in `21`–`23`; ten-enemy kiting and boss-specific room art remain separate),
 - a frame-time probe for device sessions (done 2026-09-15, see `21` and `23`),
-- local telemetry for device sessions (owner's shared roadmap 2026-09-15, stage 1; done 2026-09-15: a bounded local JSON Lines event log with run, room, choice, currency and time events, no SDK or network, see `21`).
+- local telemetry for device sessions (owner's shared roadmap 2026-09-15, stage 1; done 2026-09-15: a bounded local JSON Lines event log with run, room, choice, currency and time events, no SDK or network, see `21`),
+- prove ten-enemy density and what kiting is worth (done 2026-09-16: capacity 10, a spawn separation, three hero routes, the simulation walking the hero in step with the scene, a development-only proof floor and six scene/simulation parity cases; measured on the S23; see `21`–`23`, decision in `19`). Left open by it, in the order they matter:
+  - a sprite cache for spawning actors — a wave of ten allocates 18 MB in one frame and drops about three (art owner),
+  - decide whether authored rooms should hold more than five, now that the numbers exist; every authored wave is still five or fewer,
+  - retune kiting: the Staff clears the authored Descent almost unharmed while kiting, and the Daggers keep only a 0.3-unit band in which they can strike while moving,
+  - give the hero a body enemies cannot walk through, and make the enemy spacing rule two-sided (the closest gap falls to 0.214 with ten enemies and a moving hero),
+  - measure a mid-range device: only the S23 has been measured.
 
 Exit:
 5–10 minutes playable.

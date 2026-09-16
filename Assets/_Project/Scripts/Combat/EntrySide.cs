@@ -42,6 +42,12 @@ namespace Cryptforge.Combat
         // The nearest an enemy may start to the hero, in floor units: beyond every enemy's and weapon's reach, so a pack
         // never enters already striking or struck.
         public const float MinimumEntryDistance = 3f;
+        // How much of the way to the rim a spot pulled in short of it gives up. Converging onto the rim exactly would leave
+        // the spot on the line, where whether it counts as on the platform is decided by the last bit of a float: the
+        // Editor's runtime and the pure test runner then disagree by one bit about the same spot. A relief this small moves
+        // an entry by a thousandth of a unit at most, which no one can see, and puts it hundreds of bits clear of the line,
+        // so every runtime agrees the pack starts on the platform.
+        private const float RimRelief = 1e-4f;
 
         // The unit vector on the floor from the hero toward the side's corner.
         public static void Outward(EntrySide side, out float x, out float y)
@@ -132,7 +138,20 @@ namespace Cryptforge.Combat
         // the hero near the centre nothing moves. Should every corner close, on a platform too small for the wave, each
         // enemy that starts outside is drawn in toward the hero until it stands inside.
         public static void Place(int waveOrdinal, int count, float heroX, float heroY, ArenaGeometry platform, float entryDepth,
-            float formationSpacing, EntryPlacement[] placements)
+            float formationSpacing, EntryPlacement[] placements) =>
+            Place(waveOrdinal, count, heroX, heroY, platform, entryDepth, formationSpacing, 0f, placements);
+
+        // Place, with every enemy also starting at least minimumSeparation floor units from the enemies before it in the wave,
+        // so bodies never spawn overlapping (callers pass the body spacing PackMotion keeps). A spot that ends up closer than
+        // that to an earlier enemy's spot, after any pull-in short of the rim, closes its own corner exactly as a spot over
+        // the void does, and the open corners take the wave again; enemies on a corner that is closing anyway are ignored,
+        // since they move. Formations keep their slots 1.1 spacing units apart, so while formationSpacing * 1.1 is at least
+        // the separation (1 and 0.9 in the scene) and the hero stands near the centre, where nothing is pulled in, no corner
+        // ever closes for it and the wave enters exactly as without it; a separation of 0 is the plain Place. What the
+        // too-small-platform fallback still cannot guarantee: once every corner has closed, the enemies drawn in toward the
+        // hero may stand nearer than MinimumEntryDistance to it and nearer than minimumSeparation to each other.
+        public static void Place(int waveOrdinal, int count, float heroX, float heroY, ArenaGeometry platform, float entryDepth,
+            float formationSpacing, float minimumSeparation, EntryPlacement[] placements)
         {
             if (placements == null)
                 throw new ArgumentNullException(nameof(placements));
@@ -142,7 +161,10 @@ namespace Cryptforge.Combat
                 throw new ArgumentOutOfRangeException(nameof(heroX));
             if (float.IsNaN(entryDepth) || float.IsInfinity(entryDepth) || entryDepth < 0f)
                 throw new ArgumentOutOfRangeException(nameof(entryDepth));
+            if (float.IsNaN(minimumSeparation) || float.IsInfinity(minimumSeparation) || minimumSeparation < 0f)
+                throw new ArgumentOutOfRangeException(nameof(minimumSeparation));
 
+            float separationSquared = minimumSeparation * minimumSeparation;
             int openSides = AllSides;
             while (true)
             {
@@ -174,6 +196,8 @@ namespace Cryptforge.Combat
                     placements[slot] = new EntryPlacement(side, lateral, x, y);
                 }
 
+                if (separationSquared > 0f)
+                    closing |= CrowdedSides(placements, count, closing, separationSquared);
                 if (closing == 0)
                     return;
                 if ((openSides & ~closing) == 0)
@@ -183,6 +207,32 @@ namespace Cryptforge.Combat
 
             for (int slot = 0; slot < count; slot++)
                 placements[slot] = DrawnInside(placements[slot], heroX, heroY, platform);
+        }
+
+        // The corners, beyond those already closing, of every spot nearer than the separation to an earlier spot, slot by slot;
+        // spots on a closing corner neither crowd nor count as crowded, since the next layout moves them.
+        private static int CrowdedSides(EntryPlacement[] placements, int count, int closing, float separationSquared)
+        {
+            for (int slot = 1; slot < count; slot++)
+            {
+                EntryPlacement placement = placements[slot];
+                if ((closing & (1 << (int)placement.Side)) != 0)
+                    continue;
+                for (int other = 0; other < slot; other++)
+                {
+                    EntryPlacement earlier = placements[other];
+                    if ((closing & (1 << (int)earlier.Side)) != 0)
+                        continue;
+                    float dx = placement.X - earlier.X;
+                    float dy = placement.Y - earlier.Y;
+                    if (dx * dx + dy * dy < separationSquared)
+                    {
+                        closing |= 1 << (int)placement.Side;
+                        break;
+                    }
+                }
+            }
+            return closing;
         }
 
         // The placement moved in toward the hero until it stands inside the rim's margin.
@@ -197,8 +247,10 @@ namespace Cryptforge.Combat
                 heroX + (placement.X - heroX) * inside, heroY + (placement.Y - heroY) * inside);
         }
 
-        // How far along the line from the hero to (x, y) it stays inside the rim's margin, as a fraction of the way; 0 when
-        // the hero's own spot is outside. The platform is convex, so everything short of that point is inside too.
+        // How far along the line from the hero to (x, y) it stays inside the rim's margin, as a fraction of the way, less the
+        // rim relief; 0 when the hero's own spot is outside. The platform is convex, so everything short of that point is
+        // inside too. The relief is taken at the end rather than from the margin the search uses, so a hero standing on the
+        // rim itself still measures from where it stands instead of finding nowhere to put the pack.
         private static float InsideFraction(float heroX, float heroY, float x, float y, ArenaGeometry platform)
         {
             if (!platform.IsOnPlatform(heroX, heroY, HeroMotion.EdgeMargin))
@@ -214,7 +266,7 @@ namespace Cryptforge.Combat
                 else
                     outside = middle;
             }
-            return inside;
+            return inside * (1f - RimRelief);
         }
     }
 }

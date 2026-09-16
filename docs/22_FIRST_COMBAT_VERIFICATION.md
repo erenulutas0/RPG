@@ -147,3 +147,29 @@ Create `TestResults` first if it does not exist. Do not add `-quit` to test comm
 ## Scope remaining
 
 The implemented run is a two-floor Descent: six rooms per floor ending in a boss, a forge choice on each floor, gold with an Extract/Descend checkpoint after floor 1, a scaled floor 2 with the Cursed Gold modifier, and victory/extracted/defeated results with restart. Banked gold is saved and spent in the Relic Forge. The hero walks by drag, fights automatically and fires a hero-centred Forge Burst. Actors and arena remain procedural pixel art; the HUD, upgrade cards and ability now use the imported foundry UI. Local telemetry is implemented. Walk/facing animation, individual badge tap details, remaining menu art, audio, production character art and an in-game progress reset remain open. A touch-aimed spell is not part of the current approved control scheme.
+
+## Ten-enemy movement and density proof — 2026-09-16
+
+**Gate:** .NET `CombatChecks` **257/257**, `UnityCompileCheck` **0 warnings / 0 errors**, EditMode **269/269**, PlayMode **70/70**, Android build exit 0, `Verify-Project` **282 unique asset/folder GUIDs, 555 scene objects/components**. Development APK 24,738,586 bytes, SHA-256 **`8D73EE69683BCDB1FA061F04AB15B6303C87B86477C806912D722CACA7A0653A`**. PlayMode rose by the seven new cases in `DensityProofParityTests`.
+
+**What the scene proves.** Six parity cases, one per weapon per route, run the proof floor in `Gameplay.unity` at `Time.captureDeltaTime = 1/60` and compare it to `DescentSimulation` on the same floor: outcome, kills, gold, banked gold, upgrades and hero health within 1 HP, and for the kiting cases the hero's final floor position within 1e-3. They pass, so the scene and the simulation agree frame by frame with a hero that walks, not only with one that stands. The three standing cases also assert the hero's transform is exactly the origin, and a seventh case proves that without the start-floor file the scene starts on `floor_ember_halls`, so the development hook cannot leak into a normal run. The scene's `ChestSpawner` is disabled for the comparison because the simulation has no chests and a walking hero can step on one.
+
+**The measured difference, on `DensityProofTrailing` (two Grunts then eight Cinder Mites, Ember Halls' 0.92 damage rate, no relic, no Forge Burst).** The hero starts at 100 HP:
+
+| Weapon | Standing, HP left | Kiting, HP left | Damage taken, standing → kiting | Strikes landed while moving |
+|---|---|---|---|---|
+| Sword | 25.48 | 81.23 | 74.52 → 18.77 (4.0x less) | 17 |
+| Staff | 56.94 | 80.68 | 43.06 → 19.32 (2.2x less) | 7 |
+| Daggers | 14.99 | 70.74 | 85.01 → 29.26 (2.9x less) | 33 |
+
+Every case clears all ten enemies, banks 10 gold and reaches level 2. Kiting cuts the damage taken for all three weapons, but not equally: the Daggers must stay in a band only 0.3 units wide to keep striking while moving, the Staff can kite far more freely. These numbers are produced by the pure runner and reproduced by the scene; they are not a balance target and no existing target was changed to obtain them.
+
+**Findings recorded rather than fixed.**
+
+- *Upgrade withdrawal.* `UpgradeService.OnRunEnded` withdraws a choice that is still open when the run ends, while the simulation applies the upgrade inside the kill. Measured over both authored floors, three weapons, two card slots, Mend/Temper and burst on/off - 31 runs including all seven `SimulationParityTests` scenarios - no run's final kill applies an upgrade, so no existing number depends on it. On the proof floor the final kill does apply one in five of the six cases, so the parity test compares `UpgradesApplied + PendingUpgrades` and separately asserts that nothing was left pending while the run was still live.
+- *Between-wave frames.* Between waves the simulation passes no frames at all and resets the held steer, while the scene runs real frames through the advance delay with the driver still steering. `KiteRoute` returns a zero steer when nothing in the wave is alive, and the six proof cases are one wave each, so nothing diverges today; a multi-wave routed comparison would need the simulation to run the delay as frames and one shared clock.
+- *Enemy spacing while the hero moves.* The one-sided spacing rule keeps an enemy out of the ring of enemies nearer the hero but not the reverse, so a nearer enemy may step within a body of a farther one. With ten enemies and a walking hero the closest enemy-to-enemy gap falls to 0.214 units against the 0.9 body spacing. This is pre-existing behaviour, visible now because the packs are larger.
+- *The hero has no body.* Enemies stop at their reach, not at the hero's body, and nothing prevents the hero from walking through them.
+- *Staff kiting through the authored Descent.* Kiting the Staff through the real two-floor Descent takes 6.6 total damage and finishes at 100 HP some 30% faster than standing. That is a balance problem for a later slice, not a defect of this one.
+
+**Cross-runtime float note.** The Editor's Mono and the pure .NET runner can disagree by one bit about a point that lies exactly on the platform's rim line. The production pull-in now stops a ten-thousandth of the way short of the rim so the question never arises, and the two grid sweeps that scan every hero spot keep 0.001 of clearance so they cover the same spots on both runtimes. Anything that pins an exact count over a grid of platform spots has to account for this.
