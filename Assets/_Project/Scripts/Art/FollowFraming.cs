@@ -29,5 +29,36 @@ namespace Cryptforge.Art
             orthographicSize = unitsPerRow * screenHeight / 2f;
             cameraOffsetY = ((bandBottom + bandTop) / 2f - screenHeight / 2f) * unitsPerRow;
         }
+
+        // The free band's centre favours the room when the hero approaches an edge. The final clamp reserves space
+        // around the hero for bodies, bars and nearby threats, even if that means showing some scenery outside the rim.
+        // Inputs/outputs are projected world coordinates, not unprojected floor depth.
+        public static void ConstrainToArena(ArenaGeometry arena, float heroX, float heroY, float visibleWidth,
+            float bandHeight, out float centreX, out float centreY)
+        {
+            if (!(visibleWidth > 0f) || float.IsInfinity(visibleWidth) || !(bandHeight > 0f) || float.IsInfinity(bandHeight))
+                throw new ArgumentOutOfRangeException(nameof(visibleWidth));
+            if (float.IsNaN(heroX) || float.IsInfinity(heroX) || float.IsNaN(heroY) || float.IsInfinity(heroY))
+                throw new ArgumentOutOfRangeException(nameof(heroX));
+            float halfWidth = visibleWidth / 2f;
+            float halfHeight = bandHeight / 2f;
+            const float rimScenery = .65f;
+            centreX = RoomCentre(heroX, -arena.HalfWidth, arena.HalfWidth, halfWidth, rimScenery);
+            centreY = RoomCentre(heroY, arena.WorldBottom, arena.WorldTop, halfHeight, rimScenery);
+            float sideRoom = Math.Min(2.6f, visibleWidth * .4f);
+            float headRoom = Math.Min(3.1f, bandHeight * .42f);
+            float footRoom = Math.Min(1.4f, bandHeight * .25f);
+            centreX = Clamp(centreX, heroX + sideRoom - halfWidth, heroX - sideRoom + halfWidth);
+            centreY = Clamp(centreY, heroY + headRoom - halfHeight, heroY - footRoom + halfHeight);
+        }
+
+        private static float RoomCentre(float target, float lower, float upper, float halfExtent, float scenery)
+        {
+            float minimum = lower + halfExtent - scenery;
+            float maximum = upper - halfExtent + scenery;
+            return minimum > maximum ? (lower + upper) / 2f : Clamp(target, minimum, maximum);
+        }
+
+        private static float Clamp(float value, float lower, float upper) => Math.Max(lower, Math.Min(upper, value));
     }
 }

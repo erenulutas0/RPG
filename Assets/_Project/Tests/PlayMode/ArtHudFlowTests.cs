@@ -45,32 +45,28 @@ namespace Cryptforge.Tests
             Time.timeScale = 0f;
             ArenaView previous = Object.FindFirstObjectByType<ArenaView>();
             Sprite platform = previous.Platform.PlatformRenderer.sprite;
-            Sprite stars = previous.Backdrop.transform.Find("Stars 0").GetComponent<SpriteRenderer>().sprite;
+            Sprite cavern = previous.Backdrop.CavernRenderer.sprite;
             Mesh oldSky = previous.Backdrop.SkyRenderer.GetComponent<MeshFilter>().sharedMesh;
             yield return SceneManager.LoadSceneAsync(ScenePath);
             yield return Resources.UnloadUnusedAssets();
             Time.timeScale = 0f;
             ArenaView current = Object.FindFirstObjectByType<ArenaView>();
             Assert.That(current.Platform.PlatformRenderer.sprite, Is.SameAs(platform));
-            Assert.That(current.Backdrop.transform.Find("Stars 0").GetComponent<SpriteRenderer>().sprite, Is.SameAs(stars));
+            Assert.That(current.Backdrop.CavernRenderer.sprite, Is.SameAs(cavern));
+            Assert.That(current.Backdrop.transform.Find("Stars 0"), Is.Null, "Do not generate unused void sprites.");
             Assert.That(oldSky == null, Is.True, "Small view-owned meshes must still be freed on scene unload.");
-            Transform island = current.Backdrop.transform.Find("Island 0");
-            Vector3 paused = island.localPosition;
             Sprite light = current.Platform.LightsRenderer.sprite;
             yield return new WaitForSecondsRealtime(.1f);
-            Assert.That(island.localPosition, Is.EqualTo(paused));
             Assert.That(current.Platform.LightsRenderer.sprite, Is.SameAs(light));
             Time.timeScale = 1f;
             bool flickered = false;
-            bool drifted = false;
             float stop = Time.time + .6f;
             while (Time.time < stop)
             {
                 yield return null;
                 flickered |= current.Platform.LightsRenderer.sprite != light;
-                drifted |= island.localPosition != paused;
             }
-            Assert.That(flickered && drifted, Is.True, "Shared textures must not freeze per-view animation.");
+            Assert.That(flickered, Is.True, "Shared textures must not freeze platform animation.");
             LogAssert.NoUnexpectedReceived();
         }
 

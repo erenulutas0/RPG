@@ -4,14 +4,16 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // The astral foundry arena chosen in `19`, with placeholder visuals generated from code: the void backdrop and the
-    // floating forge platform, built at startup as children of this object. It also makes the camera draw sprites higher on
+    // The foundry arena chosen in `19`: an optional imported cavern behind the procedural floating forge platform,
+    // built at startup as children of this object. It also makes the camera draw sprites higher on
     // the screen first, so a nearer combatant overlaps a farther one. Final art replaces the child views, not the game.
     public sealed class ArenaView : MonoBehaviour
     {
         [SerializeField] private Camera _camera;
         // Draws vertex colours and sprites; the built-in Sprites-Default material does.
         [SerializeField] private Material _material;
+        // Optional imported environment plate; the procedural void remains a fallback for isolated art tests.
+        [SerializeField] private Sprite _cavernBackdrop;
         // The platform top on the arena floor, in floor units with the hero at the origin: its near corner behind the hero,
         // its far corner beyond the deepest pack slot, and its half-width at the side corners.
         [SerializeField] private float _nearCorner = -3f;
@@ -45,7 +47,7 @@ namespace Cryptforge.UI
             ArenaGeometry geometry = Geometry;
             Backdrop = Child<VoidBackdropView>("Void Backdrop");
             using (PerformanceMarkers.BuildBackdrop.Auto())
-                Backdrop.Build(geometry, _material, _sortingOrder);
+                Backdrop.Build(geometry, _material, _sortingOrder, _cavernBackdrop, _camera);
             Platform = Child<ForgePlatformView>("Forge Platform");
             using (PerformanceMarkers.BuildPlatform.Auto())
                 Platform.Build(geometry, _material, _sortingOrder + 5);

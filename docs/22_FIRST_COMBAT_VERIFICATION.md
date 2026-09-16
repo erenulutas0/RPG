@@ -1,5 +1,15 @@
 # First combat slice — setup and verification
 
+## Latest gate: bounded camera and furnace plate — 2026-09-16
+
+**Current gate:** .NET **260/260**, compile **0 warnings/errors**, EditMode **272/272**, PlayMode **79/79**, Android exit **0**, integrity **289 GUIDs / 555 scene objects/components**. APK **24,739,335 bytes**, SHA-256 **`3704897005DA235B5C23DD70761DD2D784387489D5A896091F9241735CCB6F6F`**. This supersedes older counts and cosmic-background device steps below.
+
+1. Start the authored scene: dim painted furnace architecture should sit behind the separate platform, actors and HUD; there should be no procedural stars/islands in this mode.
+2. Drag to the far and side rims. The hero may move away from the band's centre; camera framing should reveal more room interior while protecting the hero body and nearby-threat space. Width remains 9. Distant entry positions and parts of the ability ring can still lie outside the screen or over the rim.
+3. Check short and tall portrait sizes. `FollowFramingTests` sweeps on-platform positions and checks margins; `ArenaViewTests.BoundedCameraAndCavernCoverAllRimsAtBothPortraitHeights` checks the real scene's hero body, all corners, source proportions and full backdrop coverage at 1080x1920/2340. Only the taller S23 was physically measured.
+4. Restart without exiting: background asset and cached platform must remain valid. The updated reload case also checks that unused procedural stars are absent, the old sky mesh is released and platform lights pause/resume. Existing fallback/cache tests remain green.
+5. On device, preserve profile/telemetry, use gated input/captures and remove any temporary proof-floor flag before returning to Ember Hall 1/6. Record build times and allocation separately; short fights mixed with choices/result screens are not sustained-combat evidence. See the corresponding `23` entry.
+
 ## Latest gate: shared environment sprites — 2026-09-16
 
 **Current gate:** .NET **257/257**, compile **0 warnings/errors**, EditMode **269/269**, PlayMode **78/78**, Android exit **0**, static integrity **287 GUIDs / 555 scene objects/components**. APK **24,738,586 bytes**, SHA-256 **`6DE8F2A9A2B92B3CA15A50FA5EA71980ACB8E91C60CF832C7A126F1D8CC39ED6`**. Counts and APKs in earlier sections below are historical.

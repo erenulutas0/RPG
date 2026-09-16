@@ -40,4 +40,6 @@ Update 2026-09-16: `../camera-review/README.md` records the completed 6/7.5/9 co
 
 Enemy sprite reuse and bounded platform/backdrop reuse are now implemented and phone-checked (docs/21–23). Three warm S23 restart frames allocated 1008.5–1131.4 KB, approximately 94% less than the preceding enemy-cache-only session; this is not a cold-start or mid-range-device claim.
 
-Current gaps are room-aware camera limits, separate normal/boss geometry and environment assets, overlapping pursuit spacing, the hero's missing blocking body, and weapon balance while kiting. Next review readable escape space and a separately layered environment kit. Pause-menu polish is deferred behind this combat-scene priority, not forgotten. Seeded offers and Forge Pulse remain deferred by the owner; neither was implemented in this performance slice.
+Room-bound camera framing and the first imported furnace-cavern background layer are now implemented; `../furnace-layer-01/` contains provenance and actual Unity centre/far/right comparison renders at tall and short portrait sizes. The current platform, actors and HUD remain separate layers; latest gate/device evidence is in docs/21–23.
+
+Current gaps are separate normal/boss geometry, a more finished stone/rim/prop kit and contact shadows, overlapping pursuit spacing, the hero's missing blocking body, and weapon balance while kiting. Pause-menu polish is deferred behind this combat-scene priority, not forgotten. Seeded offers and Forge Pulse remain deferred by the owner; neither was implemented in these art/performance slices.

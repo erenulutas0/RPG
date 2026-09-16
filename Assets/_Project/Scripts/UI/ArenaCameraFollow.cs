@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Follows the hero: a fixed width of the arena is visible, the hero stays in the middle of the rows between the HUD's
-    // top and bottom blocks, and the camera glides after the hero instead of snapping. It frames again when the screen
-    // size or safe area changes.
+    // Follows within room bounds at a fixed width, keeping the hero and nearby threats in the free HUD band.
+    // Near a rim it favours the room interior instead of centring empty space. Reframes for screen/safe-area changes.
     [RequireComponent(typeof(Camera))]
     public sealed class ArenaCameraFollow : MonoBehaviour
     {
         [SerializeField] private Transform _target;
+        [SerializeField] private ArenaView _arena;
         // The lowest element of the top HUD block and the highest element of the bottom block.
         [SerializeField] private RectTransform _topHud;
         [SerializeField] private RectTransform _bottomHud;
@@ -24,19 +24,22 @@ namespace Cryptforge.UI
         private int _framedHeight;
         private Rect _framedSafeArea;
         private float _offsetY;
+        private float _bandHeight;
         private bool _snapped;
 
         public Transform Target => _target;
         public RectTransform TopHud => _topHud;
         public RectTransform BottomHud => _bottomHud;
         public float VisibleWidth => _visibleWidth;
-        // How far below the hero the camera's centre sits.
+        // How far below the free band's world centre the camera sits; rim framing can move the hero within that band.
         public float OffsetY => _offsetY;
 
         // Frames for a screen of the given size whose free rows run from bandBottom to bandTop.
         public void Frame(float screenWidth, float screenHeight, float bandBottom, float bandTop)
         {
             FollowFraming.Fit(screenWidth, screenHeight, bandBottom, bandTop, _visibleWidth, out float size, out _offsetY);
+            _bandHeight = (bandTop - bandBottom >= screenHeight * FollowFraming.MinimumBandShare
+                ? bandTop - bandBottom : screenHeight) * _visibleWidth / screenWidth;
             _camera.orthographicSize = size;
             Snap();
         }
@@ -45,7 +48,12 @@ namespace Cryptforge.UI
         public Vector3 Goal()
         {
             Vector3 position = transform.position;
-            return new Vector3(_target.position.x, _target.position.y - _offsetY, position.z);
+            if (_arena == null || _bandHeight <= 0f)
+                return new Vector3(_target.position.x, _target.position.y - _offsetY, position.z);
+            Vector3 origin = _arena.transform.position;
+            FollowFraming.ConstrainToArena(_arena.Geometry, _target.position.x - origin.x, _target.position.y - origin.y,
+                _visibleWidth, _bandHeight, out float x, out float y);
+            return new Vector3(x + origin.x, y + origin.y - _offsetY, position.z);
         }
 
         private void Awake()

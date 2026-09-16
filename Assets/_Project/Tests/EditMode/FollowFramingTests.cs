@@ -37,6 +37,43 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => FollowFraming.Fit(0f, 2340f, 620f, 1778f, 4.6f, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => FollowFraming.Fit(1080f, float.NaN, 620f, 1778f, 4.6f, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => FollowFraming.Fit(1080f, 2340f, 620f, 1778f, 0f, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => FollowFraming.ConstrainToArena(new ArenaGeometry(-9, 9, 9), 0, 0, 9, 0, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => FollowFraming.ConstrainToArena(new ArenaGeometry(-9, 9, 9), float.NaN, 0, 9, 12, out _, out _));
+        }
+
+        [TestCase(1920f)]
+        [TestCase(2340f)]
+        public void RoomBoundsReduceRimVoidWithoutHidingTheHeroOrNearbyThreats(float height)
+        {
+            var arena = new ArenaGeometry(-9, 9, 9);
+            float band = (height - 427f - 361f) * 9f / 1080f;
+            for (float floorY = -8.5f; floorY <= 8.5f; floorY += .5f)
+            for (float x = -8.5f; x <= 8.5f; x += .5f)
+            {
+                if (!arena.IsOnPlatform(x, floorY)) continue;
+                float y = floorY * .5f;
+                FollowFraming.ConstrainToArena(arena, x, y, 9f, band, out float cx, out float cy);
+                Assert.That(x - cx, Is.InRange(-1.901f, 1.901f), "At least 2.6 units remain on each side.");
+                Assert.That(cy + band / 2f - y, Is.GreaterThanOrEqualTo(3.099f), "Threat body/bar headroom.");
+                Assert.That(y - (cy - band / 2f), Is.GreaterThanOrEqualTo(1.399f), "Foot and retreat space.");
+                Assert.That(Math.Abs(cx), Is.LessThanOrEqualTo(Math.Abs(x) + .001f));
+                Assert.That(Math.Abs(cy), Is.LessThanOrEqualTo(Math.Abs(y) + .001f));
+            }
+            FollowFraming.ConstrainToArena(arena, 0, 4.25f, 9, band, out _, out float far);
+            Assert.That(far, Is.LessThan(3f), "The camera must no longer chase the far rim into empty background.");
+        }
+
+        [Test]
+        public void ShiftedSmallAndLargeRoomsUseTheirOwnProjectedBounds()
+        {
+            var small = new ArenaGeometry(1, 9, 3);
+            FollowFraming.ConstrainToArena(small, 0, 2.5f, 9, 12, out float x, out float y);
+            Assert.That(x, Is.Zero);
+            Assert.That(y, Is.EqualTo(2.5f));
+            var large = new ArenaGeometry(-40, 40, 30);
+            FollowFraming.ConstrainToArena(large, 5, 4, 9, 12, out x, out y);
+            Assert.That(x, Is.EqualTo(5));
+            Assert.That(y, Is.EqualTo(4), "Interior follow remains free when the room extends beyond the view.");
         }
     }
 }

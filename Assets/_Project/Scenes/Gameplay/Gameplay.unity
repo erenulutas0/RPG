@@ -216,6 +216,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _target: {fileID: 201}
+  _arena: {fileID: 905116832}
   _topHud: {fileID: 1944794816}
   _bottomHud: {fileID: 1289620789}
   _visibleWidth: 9
@@ -5264,6 +5265,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _camera: {fileID: 102}
   _material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  _cavernBackdrop: {fileID: 21300000, guid: 0f2b963b3fcee744dabd325aa80b3830, type: 3}
   _nearCorner: -9
   _farCorner: 9
   _halfWidth: 9

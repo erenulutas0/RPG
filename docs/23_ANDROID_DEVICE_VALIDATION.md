@@ -571,3 +571,41 @@ Ignored evidence: `TestResults/device-arena-cache-01/`, including the old APK, b
 Fresh backup: profile version 2, revision **89**, **6211 gold**, Staff/Counterweight. At normal-floor return: version 2, revision **93**, **6251 gold**, same equipment, both purchased weapons/relics and deepest floor 2 retained. Four proof completions explain the 40 gold and four revisions. No backup was restored over that progress; no data clear, purchase or profile reset occurred. Telemetry remained in its two files and was pulled; it confirms the fifth run starts on `floor_ember_halls`.
 
 The bounded environment cache is complete. The reference furnace-cavern assets, room-aware framing, separate boss geometry, hero blocking and kiting balance remain future work. Seeded offers and Forge Pulse were not started.
+
+## First furnace layer and bounded follow on S23 — 2026-09-16
+
+**Gate:** .NET **260/260**, compile **0 warnings/errors**, EditMode **272/272**, PlayMode **79/79**, Android exit **0**, integrity **289 GUIDs / 555 scene objects/components**. APK **24,739,335 bytes**, SHA-256 **`3704897005DA235B5C23DD70761DD2D784387489D5A896091F9241735CCB6F6F`**. Installed with `adb install -r`; Success and the installed `base.apk` hash were verified. Phone: the same S23, 1080x2340. The session was announced, and all taps, drags and captures passed the focus/awake/keyguard gate, including the recheck before retaining each capture. The ADB daemon restarted after Unity's build; subsequent commands succeeded.
+
+Backed up the current profile, its backup and both telemetry files before installation; there was no development start-floor flag. The existing APK was preserved locally. Started the normal authored floor with the owner's Staff/Counterweight. Three Tempered Edge selections let the short movement review continue through its choice interruptions. No equipment change, purchase, ability tap or profile edit was made.
+
+### Live observations
+
+- `01-launch.png` is the early startup capture; it is not evidence of the completed scene.
+- `02-current.png`: the new cavern behind the existing floor and choice panel. No procedural star field or floating background islands remained.
+- `03-far-drag.png`: a 4.5-second upward drag reached the far tip. The camera retained much more escape floor below the hero, and the hero/threats stayed clear of the top HUD. The hero is white in this frame because of its existing damage flash; damage digits and enemy bars are live.
+- `04-state.png`, `05-diagonal.png`: upgrade overlays. The first diagonal gesture was interrupted by a choice, so its full requested duration was not active movement.
+- `06-live-rim.png`: choice dismissed near the upper/right rim, with a readable hero, live loot/damage effects and the cavern behind the platform.
+- `07-side-drag.png`: a second diagonal gesture reached the right corner. The hero remained visible with nearby enemy bodies/bars, and the background covered the view without an exposed texture boundary. Far entry positions can still be offscreen; this is intentional at width 9.
+
+This normal-floor review was force-stopped before its run ended to switch to the small development proof floor. It is not a completed Descent or a claimed graceful interruption callback. The in-run upgrades/rewards from that test were temporary and not banked. Existing permanent progress was preserved.
+
+Pushed `floor_density_proof` to the documented temporary start flag, launched, completed the proof, then used Try again once without exiting. `08-proof-result.png` and `10-warm-result.png` show two completions at 76/100 displayed HP, each banking 10 gold. `09-warm-combat.png` shows the reloaded cavern/platform and the entering pack with independent bars. These are actual phone images, unlike the frozen review renders in ArtDirection.
+
+| Warm proof restart | Measured |
+|---|---:|
+| Backdrop build | 0.18 ms |
+| Platform build | 0.06 ms |
+| StartWave (10 enemies) | 1.92 ms |
+| Probe frame interval | 16.7 ms |
+| Main-thread time | 29.7 ms |
+| Whole-frame allocation | 1005.5 KB |
+
+This single live smoke sample retains the preceding cache slice's roughly 1 MB restart allocation; it is not a controlled performance comparison. Ordinary authored-wave samples in the movement log measured 2.30–9.42 ms StartWave and 21.0–495.6 KB whole-frame allocation, including first-use enemy looks. The movement session contains many paused choice windows and a 33.4 ms paused interval. The proof's cold launch includes a 2144.9 ms application-start interval and a 107.1 ms startup frame. Do not describe all these windows as combat or claim all hitches are eliminated. No sustained dense-combat, GPU-specific or mid-range-device acceptance is claimed.
+
+### Cleanup and evidence
+
+Deleted only `development/start-floor.txt`; the pre-existing empty directory remains. Try again returned to **Ember Hall 1/6**, captured in `11-normal-floor.png`; final telemetry confirms `floor_ember_halls`. Profile before: version 2, revision **93**, **6251 gold**. At return: version 2, revision **95**, **6271 gold**, Staff/Counterweight, both purchased weapons/relics and deepest floor 2 retained. The two proof rewards explain the 20 gold and two revisions. No backup restoration, app-data clear, reset or purchase occurred.
+
+Ignored evidence: `TestResults/device-furnace-01/`, including backup, preceding APK, captures, `movement.log`, `proof.log`, `final-unity.log`, final profile and telemetry. Movement/final logs contained no matches for the checked Unity exception, missing-reference, error or fatal patterns. Offscreen test/capture fixture copies remain in `TestResults/FurnaceSetupTemporary.cs` and `FurnaceCaptureTemporary.cs`; they were removed from Assets before the full gate.
+
+The furnace plate and bounded camera are the completed art slice. Stone/rim/prop material work, contact shadows, production actors and a distinct boss arena remain open. Short portrait framing was rendered/tested at 1080x1920, but only the S23 was physically reviewed. Seeded offers and Forge Pulse remain deferred.

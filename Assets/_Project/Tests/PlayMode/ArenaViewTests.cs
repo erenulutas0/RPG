@@ -132,6 +132,45 @@ namespace Cryptforge.Tests
             Assert.That(_camera.transform.position.y, Is.EqualTo(hero.transform.position.y - follow.OffsetY).Within(0.2f));
         }
 
+        [UnityTest]
+        public IEnumerator BoundedCameraAndCavernCoverAllRimsAtBothPortraitHeights()
+        {
+            Time.timeScale = 0f;
+            var follow = _camera.GetComponent<ArenaCameraFollow>();
+            follow.enabled = false;
+            SpriteRenderer cavern = _arena.Backdrop.CavernRenderer;
+            Assert.That(cavern, Is.Not.Null, "The authored scene uses the imported cavern layer.");
+            Assert.That(cavern.sprite.texture.isReadable, Is.False, "No retained CPU copy of the imported background.");
+            foreach (int height in new[] { 1920, 2340 })
+            foreach (Vector2 point in new[] { Vector2.zero, new Vector2(-8.5f, 0), new Vector2(8.5f, 0),
+                         new Vector2(0, -4.25f), new Vector2(0, 4.25f) })
+            {
+                _camera.aspect = 1080f / height;
+                follow.Target.position = new Vector3(point.x, point.y, 0);
+                follow.Frame(1080, height, 361, height - 427);
+                _arena.Backdrop.FrameCavern();
+                var body = GameObject.Find("Hero Body").GetComponent<SpriteRenderer>().bounds;
+                Vector3 lower = _camera.WorldToViewportPoint(body.min);
+                Vector3 upper = _camera.WorldToViewportPoint(body.max);
+                Assert.That(lower.x, Is.GreaterThan(0f));
+                Assert.That(upper.x, Is.LessThan(1f));
+                Assert.That(lower.y, Is.GreaterThan(361f / height));
+                Assert.That(upper.y, Is.LessThan((height - 427f) / height));
+                Bounds background = cavern.bounds;
+                float halfHeight = _camera.orthographicSize;
+                float halfWidth = halfHeight * _camera.aspect;
+                Vector3 centre = _camera.transform.position;
+                Assert.That(background.min.x, Is.LessThan(centre.x - halfWidth));
+                Assert.That(background.max.x, Is.GreaterThan(centre.x + halfWidth));
+                Assert.That(background.min.y, Is.LessThan(centre.y - halfHeight));
+                Assert.That(background.max.y, Is.GreaterThan(centre.y + halfHeight));
+                Assert.That(cavern.transform.localScale.x, Is.EqualTo(cavern.transform.localScale.y), "Preserve source proportions.");
+                if (point.y > 4f)
+                    Assert.That(centre.y + follow.OffsetY, Is.LessThan(3f), "The actual scene must bind the arena bounds.");
+            }
+            yield break;
+        }
+
         private static float Row(float worldY, float orthographicSize, float cameraY, float screenHeight) =>
             (worldY - (cameraY - orthographicSize)) / (2f * orthographicSize) * screenHeight;
     }

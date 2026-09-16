@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // The astral void behind the platform: a violet gradient with nebula glows as a vertex-colour mesh (the lowest thing
+    // Optional imported cavern plate behind the platform. Without it, the procedural astral-void fallback uses a
+    // violet gradient with nebula glows as a vertex-colour mesh (the lowest thing
     // drawn, SkyRenderer), then pixel sprites for the haze clouds, the spiral galaxy, two star layers, and the floating
     // islands with their orbital rings, chains, lantern flames and drifting rubble, all placed by VoidLayout. Everything
     // borrows session-owned sprites in Build; its small sky mesh and animation state remain local. Update moves
     // transforms, swaps pre-built sprites and tints renderers, so nothing
     // allocates per frame and Time.timeScale = 0 freezes the drift and the twinkle.
+    [DefaultExecutionOrder(20)]
     public sealed class VoidBackdropView : MonoBehaviour
     {
         private const float DriftAmplitude = 0.05f;
@@ -37,6 +39,8 @@ namespace Cryptforge.UI
         }
 
         private Mesh _mesh;
+        private Camera _camera;
+        public SpriteRenderer CavernRenderer { get; private set; }
         private Drifter[] _drifters;
         private Flicker[] _sparkles;
         private Flicker[] _lanterns;
@@ -47,7 +51,7 @@ namespace Cryptforge.UI
 
         // Builds the backdrop once; sortingOrder is the lowest order in the scene and the sprites use the four orders
         // above it (haze and galaxy, stars and back ring halves, islands, front ring halves and flames).
-        public void Build(ArenaGeometry geometry, Material material, int sortingOrder)
+        public void Build(ArenaGeometry geometry, Material material, int sortingOrder, Sprite cavern = null, Camera camera = null)
         {
             if (material == null)
             {
@@ -57,6 +61,14 @@ namespace Cryptforge.UI
             }
 
             BuildSky(material, sortingOrder);
+
+            if (cavern != null && camera != null)
+            {
+                _camera = camera;
+                CavernRenderer = AddRenderer(transform, "Furnace Cavern", cavern, Vector3.zero, sortingOrder + 1);
+                FrameCavern();
+                return; // Imported art is asset-owned; do not generate the unused procedural backdrop.
+            }
 
             VoidSprites sprites = ArenaSpriteCache.Backdrop;
             VoidScene scene = sprites.Scene;
@@ -151,6 +163,25 @@ namespace Cryptforge.UI
                 Show(ref lantern, (Mathf.FloorToInt((time + lantern.Phase) * FlickerRate) & 1) == 0);
                 lantern.Renderer.color = new Color(1f, 1f, 1f, 0.86f + 0.14f * Mathf.Sin(time * GlowRate + lantern.Phase));
             }
+        }
+
+        private void LateUpdate() => FrameCavern();
+
+        // Cover the full camera without stretching the source. Small bounded parallax gives depth without exposing
+        // image edges at any rim or screen aspect; the floor and collision geometry remain world-anchored.
+        internal void FrameCavern()
+        {
+            if (CavernRenderer == null || _camera == null)
+                return;
+            Vector2 size = CavernRenderer.sprite.bounds.size;
+            float height = 2f * _camera.orthographicSize;
+            float width = height * _camera.aspect;
+            float scale = Mathf.Max(width / size.x, height / size.y) * 1.08f;
+            CavernRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+            Vector3 centre = _camera.transform.position;
+            CavernRenderer.transform.position = new Vector3(
+                centre.x - Mathf.Clamp(centre.x * .04f, -width * .025f, width * .025f),
+                centre.y - Mathf.Clamp(centre.y * .04f, -height * .025f, height * .025f), transform.position.z);
         }
 
         private void OnDestroy()
