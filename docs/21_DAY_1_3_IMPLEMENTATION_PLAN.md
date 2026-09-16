@@ -1,5 +1,11 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Vanguard/Mite character concept pair — 2026-09-16
+
+Art-only deliverable: `ArtDirection/2026-09-16/character-proof-01/` contains three unchanged original generated PNGs (one rejected hero exploration, the revised empty-handed hero and one Mite), exact prompts, alpha/hash metadata and an interactive browser review. The review compares detail, candidate source heights of 165/60 pixels, two/eight Mites, silhouettes and foot markers against an earlier Unity screenshot. The floor is schematic and the actors are static; no simulation or phone acceptance is implied. Production imports, pivots, weapon layers, animation and the existing 32-PPU contract are unchanged. Pipeline/roadmap/decision/handoff and the room production plan record what remains.
+
+**Verified:** desktop and narrow 390x844 browser review, image loading, scale/crowd/silhouette/foot-point controls, no horizontal page overflow or captured console warnings/errors; original PNG SHA-256 values match the saved metadata. No Unity tests, APK build/install or device actions were run for this concept-only slice. Latest runtime gate remains Opus's recorded spacing gate: .NET **272**, EditMode **284**, PlayMode **83**, APK SHA-256 **`24F1FD800362ACBDFB518C8F86D78367E3068FDF11271BF1C071F1A3476CABDA`**; see the spacing section below and `23`. Those checks were not rerun here.
+
 ## Stone/rim materials and actor contact shadows — 2026-09-16
 
 `PlatformArt` now draws quiet upper bevels/lower lips, broad per-slab mineral patches and sparse chips, plus flush coping stones and brass clamps inside the existing rim. Surface dimensions, silhouette, central inlay/emblem, light frames and walkable geometry remain. Sidewall and lantern art are deliberately still the earlier prototype drawing. Actual centre/far/right Unity review renders at both portrait sizes and provenance are in `ArtDirection/2026-09-16/stone-contact-01/`.

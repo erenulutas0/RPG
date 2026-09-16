@@ -1,0 +1,47 @@
+[
+  {
+    "file": "cinder-mite-v1.png",
+    "width": 1176,
+    "height": 1338,
+    "alphaThreshold": 16,
+    "bounds": [
+      167,
+      262,
+      1029,
+      1103
+    ],
+    "transparentPixels": 1215556,
+    "partialAlphaPixels": 357532,
+    "sha256": "F85FFF5C5668BC7FB5CC196C9E7BBBA3C7F9EF4B3A27A7B39FB9863F61B42113"
+  },
+  {
+    "file": "vanguard-body-v2.png",
+    "width": 1176,
+    "height": 1338,
+    "alphaThreshold": 16,
+    "bounds": [
+      288,
+      90,
+      900,
+      1213
+    ],
+    "transparentPixels": 1164957,
+    "partialAlphaPixels": 408288,
+    "sha256": "794B8009CFBDA6AEA93A1212DC3F8791E9ABF694BDA48C91A58919760D1884F3"
+  },
+  {
+    "file": "vanguard-master-v1.png",
+    "width": 1175,
+    "height": 1338,
+    "alphaThreshold": 16,
+    "bounds": [
+      74,
+      175,
+      1144,
+      1155
+    ],
+    "transparentPixels": 1166919,
+    "partialAlphaPixels": 404390,
+    "sha256": "4E0E65495FD9DE7AE7A21A7CCA5123C8DDEA6790B5046E4E650CF7812FDC6110"
+  }
+]

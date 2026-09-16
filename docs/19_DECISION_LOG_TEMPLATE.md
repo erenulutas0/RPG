@@ -1,5 +1,15 @@
 # Decision Log
 
+## Decision: Prove a separate hero body and one low ember enemy before expanding the roster
+
+**Date:** 2026-09-16
+**Status:** Concept candidates prepared for owner review; not production sprite approval
+**Owner:** Art, following the approved hero/Mite proof
+
+The first hero exploration combined weapons with the body and hid too much of the legs with a broad cape. Retain its provenance but use an edited empty-handed blue-steel body with a shorter split cape for the next proof. Separate equipment matches the existing Sword/Staff/Daggers structure and avoids baking one loadout into every animation. For the Mite, choose a low basalt quadruped with broad ember seams and a compact flame instead of many thin limbs or a large smoke/effect silhouette. Both candidates use the same faceted painted material language; cool hero mass versus warm enemy cues carries recognition when reduced.
+
+`ArtDirection/2026-09-16/character-proof-01/` records unchanged masters, exact prompts, hashes and the browser scale review. Keep the 32-PPU point-filtered runtime contract until a controlled import comparison justifies a change. Current generated masters are antialiased and do not meet that contract directly. A single pose proves neither animation consistency nor weapon alignment; opposing facings, fixed foot pivots and a short movement/attack proof precede production acceptance and roster expansion.
+
 ## Decision: Quiet slab materials and one shared contact patch
 
 **Date:** 2026-09-16

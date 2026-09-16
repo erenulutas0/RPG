@@ -1,5 +1,12 @@
 # Roadmap & Backlog
 
+## Current art checkpoint — 2026-09-16
+
+- [x] First hero/Mite concept pair and browser scale/crowd review (`ArtDirection/2026-09-16/character-proof-01/`).
+- [ ] Validate reduced sprite resolution/filtering in Unity at fixed world size; current 32-PPU actor contract remains.
+- [ ] Prove pivots, equipment anchors, opposing facings and a short animation sequence for that pair, then verify on device.
+- [ ] Expand the accepted pair into the production roster. Concept masters are not completion of this item.
+
 ## Phase 0 — Pre-production (1–3 focused days)
 
 Deliverables:

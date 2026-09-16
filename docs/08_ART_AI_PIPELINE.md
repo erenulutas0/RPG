@@ -215,3 +215,7 @@ Only after:
 ## Foundry UI integration — 2026-09-16
 
 The approved `ArtDirection/2026-09-15/ui-kit-01` and `ui-kit-02` masters now supply eight sprites in `Assets/_Project/Art/UI`. This is the first integrated HUD/card/ability art slice, not approval of a final character roster. See `ArtDirection/2026-09-15/UNITY_INTEGRATION.md` for source provenance, import settings, mask/slice use, ownership and remaining limitations; `21`/`22`/`23` hold runtime and device verification. Existing actors, weapons and arena geometry remain under the 32 PPU procedural-art contract.
+
+## First character concept pair — 2026-09-16
+
+`ArtDirection/2026-09-16/character-proof-01/` contains original Vanguard and Cinder Mite RGBA masters, exact built-in generation prompts, alpha bounds/hashes and an interactive browser scale study. Vanguard v2 is an unarmed body with separate-equipment intent; v1 is retained as a rejected exploration. The Mite uses low basalt masses and a compact flame. These are candidates for review, not owner-approved production sprites. Their antialiased painted rendering requires a reduced-sprite/import comparison before any change to the existing 32-PPU point-filtered actor contract. Fixed pivots, opposing facings, weapon anchors and animation consistency remain unproved. No Unity import or phone installation occurred in this art-only slice.
