@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Cryptforge.Art;
 using UnityEngine;
 
@@ -7,7 +6,8 @@ namespace Cryptforge.UI
     // The astral void behind the platform: a violet gradient with nebula glows as a vertex-colour mesh (the lowest thing
     // drawn, SkyRenderer), then pixel sprites for the haze clouds, the spiral galaxy, two star layers, and the floating
     // islands with their orbital rings, chains, lantern flames and drifting rubble, all placed by VoidLayout. Everything
-    // is built once in Build; Update only moves transforms, swaps pre-built sprites and tints renderers, so nothing
+    // borrows session-owned sprites in Build; its small sky mesh and animation state remain local. Update moves
+    // transforms, swaps pre-built sprites and tints renderers, so nothing
     // allocates per frame and Time.timeScale = 0 freezes the drift and the twinkle.
     public sealed class VoidBackdropView : MonoBehaviour
     {
@@ -36,9 +36,6 @@ namespace Cryptforge.UI
             public bool ShowingLit;
         }
 
-        private static readonly Vector2 TopCentre = new Vector2(0.5f, 1f);
-
-        private readonly List<Sprite> _sprites = new List<Sprite>();
         private Mesh _mesh;
         private Drifter[] _drifters;
         private Flicker[] _sparkles;
@@ -61,7 +58,8 @@ namespace Cryptforge.UI
 
             BuildSky(material, sortingOrder);
 
-            VoidScene scene = VoidLayout.Create();
+            VoidSprites sprites = ArenaSpriteCache.Backdrop;
+            VoidScene scene = sprites.Scene;
             int hazeOrder = sortingOrder + 1;
             int starOrder = sortingOrder + 2;
             int propOrder = sortingOrder + 3;
@@ -70,25 +68,23 @@ namespace Cryptforge.UI
             for (int i = 0; i < scene.Hazes.Length; i++)
             {
                 HazePlacement haze = scene.Hazes[i];
-                Sprite sprite = MakeSprite(VoidArt.DrawHaze(haze.Width, haze.Height, haze.Seed), "Void Haze " + i, PixelSpriteFactory.Centre, VoidArt.HazeTexelsPerUnit);
+                Sprite sprite = sprites.Haze(i);
                 AddRenderer(transform, "Haze " + i, sprite, new Vector3(haze.X, haze.Y, 0f), hazeOrder);
             }
             GalaxyPlacement galaxy = scene.Galaxy;
-            AddRenderer(transform, "Galaxy", MakeSprite(VoidArt.DrawGalaxy(galaxy.Radius, galaxy.Seed), "Void Galaxy", PixelSpriteFactory.Centre), new Vector3(galaxy.X, galaxy.Y, 0f), hazeOrder);
+            AddRenderer(transform, "Galaxy", sprites.Galaxy, new Vector3(galaxy.X, galaxy.Y, 0f), hazeOrder);
 
             // The star field hangs from its top so it always sorts first among the star-order sprites.
             _starLayers = new SpriteRenderer[2];
-            int starWidth = Mathf.RoundToInt(VoidScene.StarFieldWidth * VoidArt.TexelsPerUnit);
-            int starHeight = Mathf.RoundToInt(VoidScene.StarFieldHeight * VoidArt.TexelsPerUnit);
             var starTop = new Vector3(VoidScene.StarFieldLeft + VoidScene.StarFieldWidth / 2f, VoidScene.StarFieldBottom + VoidScene.StarFieldHeight, 0f);
             for (int layer = 0; layer < _starLayers.Length; layer++)
             {
-                Sprite sprite = MakeSprite(VoidArt.DrawStarField(starWidth, starHeight, VoidScene.StarFieldSeed, layer), "Void Stars " + layer, TopCentre);
+                Sprite sprite = sprites.Stars(layer);
                 _starLayers[layer] = AddRenderer(transform, "Stars " + layer, sprite, starTop, starOrder);
             }
 
-            Sprite sparkleLit = MakeSprite(VoidArt.DrawSparkle(true), "Void Sparkle Lit", PixelSpriteFactory.Centre);
-            Sprite sparkleDim = MakeSprite(VoidArt.DrawSparkle(false), "Void Sparkle Dim", PixelSpriteFactory.Centre);
+            Sprite sparkleLit = sprites.SparkleLit;
+            Sprite sparkleDim = sprites.SparkleDim;
             _sparkles = new Flicker[scene.Sparkles.Length];
             for (int i = 0; i < _sparkles.Length; i++)
             {
@@ -97,39 +93,34 @@ namespace Cryptforge.UI
                 _sparkles[i] = new Flicker { Renderer = renderer, Lit = sparkleLit, Dim = sparkleDim, Phase = sparkle.Phase, ShowingLit = true };
             }
 
-            Sprite flameTall = MakeSprite(VoidArt.DrawLantern(0), "Void Flame Tall", PixelSpriteFactory.BottomCentre);
-            Sprite flameLean = MakeSprite(VoidArt.DrawLantern(1), "Void Flame Lean", PixelSpriteFactory.BottomCentre);
+            Sprite flameTall = sprites.FlameTall;
+            Sprite flameLean = sprites.FlameLean;
             _drifters = new Drifter[scene.Islands.Length + scene.Rubble.Length];
             _lanterns = new Flicker[scene.Islands.Length];
             for (int i = 0; i < scene.Islands.Length; i++)
             {
                 IslandPlacement placement = scene.Islands[i];
-                IslandArt art = VoidArt.DrawIsland(placement.Spec);
+                IslandSprites art = sprites.Island(i);
                 Transform root = NewChild(transform, "Island " + i, new Vector3(placement.X, placement.Y, 0f));
                 _drifters[i] = new Drifter { Transform = root, Base = root.localPosition, Phase = placement.DriftPhase };
 
                 if (placement.HasRing)
                 {
-                    var ringCentre = new Vector3(0f, placement.RingCentreY(art) - placement.Y, 0f);
-                    AddRenderer(root, "Ring Back", MakeSprite(VoidArt.DrawRing(placement.RingWidth, placement.RingHeight, false), "Void Ring Back " + i, PixelSpriteFactory.Centre), ringCentre, starOrder);
-                    AddRenderer(root, "Ring Front", MakeSprite(VoidArt.DrawRing(placement.RingWidth, placement.RingHeight, true), "Void Ring Front " + i, PixelSpriteFactory.Centre), ringCentre, frontOrder);
+                    AddRenderer(root, "Ring Back", art.RingBack, art.RingAnchor, starOrder);
+                    AddRenderer(root, "Ring Front", art.RingFront, art.RingAnchor, frontOrder);
                 }
-                AddRenderer(root, "Rock", MakeSprite(art.Canvas, "Void Island " + i, PixelSpriteFactory.BottomCentre), Vector3.zero, propOrder);
+                AddRenderer(root, "Rock", art.Rock, Vector3.zero, propOrder);
                 for (int c = 0; c < placement.Chains.Length; c++)
                 {
-                    ChainSpec chain = placement.Chains[c];
-                    placement.ChainTop(art, chain, out float chainX, out float chainY);
-                    Sprite sprite = MakeSprite(VoidArt.DrawChain(chain.Links), "Void Chain " + i + "." + c, TopCentre);
-                    AddRenderer(root, "Chain " + c, sprite, new Vector3(chainX - placement.X, chainY - placement.Y, 0f), propOrder);
+                    AddRenderer(root, "Chain " + c, art.Chain(c), art.ChainAnchor(c), propOrder);
                 }
-                var flameFoot = new Vector3((art.LanternX + 0.5f - placement.Spec.Width / 2f) / VoidArt.TexelsPerUnit, art.LanternY / (float)VoidArt.TexelsPerUnit, 0f);
-                SpriteRenderer flame = AddRenderer(root, "Lantern", flameTall, flameFoot, frontOrder);
+                SpriteRenderer flame = AddRenderer(root, "Lantern", flameTall, art.FlameAnchor, frontOrder);
                 _lanterns[i] = new Flicker { Renderer = flame, Lit = flameTall, Dim = flameLean, Phase = placement.DriftPhase * 0.37f, ShowingLit = true };
             }
             for (int i = 0; i < scene.Rubble.Length; i++)
             {
                 RubblePlacement rubble = scene.Rubble[i];
-                Sprite sprite = MakeSprite(VoidArt.DrawRubble(rubble.Size, rubble.Seed), "Void Rubble " + i, PixelSpriteFactory.Centre);
+                Sprite sprite = sprites.Rubble(i);
                 SpriteRenderer renderer = AddRenderer(transform, "Rubble " + i, sprite, new Vector3(rubble.X, rubble.Y, 0f), propOrder);
                 _drifters[scene.Islands.Length + i] = new Drifter { Transform = renderer.transform, Base = renderer.transform.localPosition, Phase = 1.1f + i * 0.8f };
             }
@@ -166,9 +157,6 @@ namespace Cryptforge.UI
         {
             if (_mesh != null)
                 Destroy(_mesh);
-            foreach (Sprite sprite in _sprites)
-                PixelSpriteFactory.Destroy(sprite);
-            _sprites.Clear();
         }
 
         // Deep indigo below lifting to violet toward the upper right like the mockup, with soft nebula glows where the
@@ -194,14 +182,6 @@ namespace Cryptforge.UI
 
             _mesh = builder.ToMesh("Void Sky");
             SkyRenderer = MeshBuilder.Attach(transform, "Sky", _mesh, material, sortingOrder);
-        }
-
-        // Every sprite is tracked so OnDestroy frees its texture.
-        private Sprite MakeSprite(PixelCanvas canvas, string name, Vector2 pivot, float pixelsPerUnit = PixelSpriteFactory.PixelsPerUnit)
-        {
-            Sprite sprite = PixelSpriteFactory.CreateSprite(canvas, name, pivot, pixelsPerUnit);
-            _sprites.Add(sprite);
-            return sprite;
         }
 
         private static SpriteRenderer AddRenderer(Transform parent, string name, Sprite sprite, Vector3 localPosition, int sortingOrder)

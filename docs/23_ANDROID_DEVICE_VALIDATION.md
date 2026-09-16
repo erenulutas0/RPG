@@ -536,3 +536,38 @@ Local evidence: `TestResults/device-sprite-cache-01/` (ignored), including `base
 - `final-unity.log`: no matches for the checked Unity exception/error/fatal patterns.
 
 Before: version 2, revision **77**, **5525 gold**, Daggers/Counterweight. At normal-room return: version 2, revision **83**, **5575 gold**, Staff/Counterweight; both weapons/relics and deepest floor 2 retained. Five proof completions added 50 gold and one loadout selection accounts for the six revision increments. The owner interacted during the session, so the backup was **not restored over newer progress**. Telemetry was retained, including its normal rotation to two files, and pulled for evidence. No application data clear, purchase or profile reset occurred.
+
+## Platform and backdrop reuse on S23 — 2026-09-16
+
+The owner deferred the next Opus task and authorised this performance follow-up. The USB measurement was announced; every tap/capture passed the focus, awake and keyguard gate, and captures were checked again before pulling. The fresh profile/backup and telemetry were saved before installation, and no start-floor flag existed. The preceding APK was preserved locally with its `4A2F37C4...` hash. Installed the new APK with `adb install -r`; Success and exact installed `base.apk` hash were verified. The temporary proof flag selected the existing two-Grunt/eight-Mite floor, without editing scene data.
+
+**Gate:** .NET **257/257**, compile **0 warnings/errors**, EditMode **269/269**, PlayMode **78/78**, Android exit **0**, static integrity **287 GUIDs / 555 scene objects/components**. APK **24,738,586 bytes**, SHA-256 **`6DE8F2A9A2B92B3CA15A50FA5EA71980ACB8E91C60CF832C7A126F1D8CC39ED6`**.
+
+### Three warm restarts in the same application process
+
+All used Staff/Counterweight. Scripted input was limited to Try again; no movement, ability, upgrade, equip or purchase input was injected. Telemetry records ten kills, zero upgrades applied, ten gold banked and 75.712 HP remaining for each warm proof completion. Each took about 4.525 seconds of active combat.
+
+| Sample | Backdrop build | Platform build | StartWave | Probe frame interval | Main thread | Whole-frame allocation |
+|---|---:|---:|---:|---:|---:|---:|
+| Warm restart 1 | 1.02 ms | 0.04 ms | 1.81 ms | 16.7 ms | 32.0 ms | 1131.4 KB |
+| Warm restart 2 | 0.97 ms | 0.03 ms | 1.54 ms | 16.7 ms | 24.8 ms | 1008.5 KB |
+| Warm restart 3 | 1.06 ms | 0.04 ms | 1.59 ms | 16.7 ms | 28.0 ms | 1012.0 KB |
+
+The preceding enemy-cache-only session measured 17,620.8–17,742.4 KB for three warm restart frames. The current range is approximately **94% lower**. This is a comparison with recorded earlier live samples, not a fresh controlled A/B benchmark; the earlier session included owner interaction. Bytes describe **all work in that frame**, not the allocation of an individual marker. The small stage times and resource-identity tests support that environment redrawing has been removed from repeated builds.
+
+Probe intervals were 16.7 ms in these samples, but the main-thread recorder still measured 24.8–32.0 ms. Do not call restart work free or claim perfect presented frame pacing. Initial launch included a 2110.2 ms application-start interval and an 83.6 ms startup frame; the next window included a 50.1 ms frame with 325.9 KB allocated. Those are excluded from the warm comparison and were not isolated by stage markers, which start after initial scene loading. Cold generation remains a separate measurement problem.
+
+Warm restart windows mix the short fight and result screen, which also runs at time scale 1. For example window 57 reports 59.9 fps, max 16.9 ms and no interval above 20 ms, but this is **not** a sustained dense-combat benchmark. Total recorded memory stayed around 124.4–124.7 MB during this short session; that does not establish a long-term leak test. No mid-range device was measured.
+
+### Evidence and cleanup
+
+Ignored evidence: `TestResults/device-arena-cache-01/`, including the old APK, backups, `arena-cache.log`, `final-unity.log`, final profile and telemetry. Editor diagnostic before the change: `TestResults/arena-art-baseline.xml`; final diagnostics and native lifetime checks: `TestResults/playmode.xml`.
+
+- `01-cold-combat.png`: live proof fight with valid platform, backdrop and ten enemy actors.
+- `02-state.png`, `03-warm-1.png`, `04-warm-2.png`, `05-warm-3.png`: completed proof runs; these are result captures, not active-combat evidence. Environment remained visible behind the overlay.
+- `06-normal-floor.png`: after deleting only `development/start-floor.txt` and tapping Try again, **Ember Hall 1/6** with platform, props, chest, hero and enemies intact. The pre-existing empty development directory remains.
+- `final-unity.log`: no matches for the checked exception, missing-reference, error or fatal patterns.
+
+Fresh backup: profile version 2, revision **89**, **6211 gold**, Staff/Counterweight. At normal-floor return: version 2, revision **93**, **6251 gold**, same equipment, both purchased weapons/relics and deepest floor 2 retained. Four proof completions explain the 40 gold and four revisions. No backup was restored over that progress; no data clear, purchase or profile reset occurred. Telemetry remained in its two files and was pulled; it confirms the fifth run starts on `floor_ember_halls`.
+
+The bounded environment cache is complete. The reference furnace-cavern assets, room-aware framing, separate boss geometry, hero blocking and kiting balance remain future work. Seeded offers and Forge Pulse were not started.

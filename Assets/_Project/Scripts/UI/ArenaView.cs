@@ -1,4 +1,5 @@
 using Cryptforge.Art;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -43,9 +44,11 @@ namespace Cryptforge.UI
 
             ArenaGeometry geometry = Geometry;
             Backdrop = Child<VoidBackdropView>("Void Backdrop");
-            Backdrop.Build(geometry, _material, _sortingOrder);
+            using (PerformanceMarkers.BuildBackdrop.Auto())
+                Backdrop.Build(geometry, _material, _sortingOrder);
             Platform = Child<ForgePlatformView>("Forge Platform");
-            Platform.Build(geometry, _material, _sortingOrder + 5);
+            using (PerformanceMarkers.BuildPlatform.Auto())
+                Platform.Build(geometry, _material, _sortingOrder + 5);
         }
 
         private T Child<T>(string name) where T : Component

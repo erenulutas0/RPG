@@ -1,5 +1,13 @@
 # First combat slice — setup and verification
 
+## Latest gate: shared environment sprites — 2026-09-16
+
+**Current gate:** .NET **257/257**, compile **0 warnings/errors**, EditMode **269/269**, PlayMode **78/78**, Android exit **0**, static integrity **287 GUIDs / 555 scene objects/components**. APK **24,738,586 bytes**, SHA-256 **`6DE8F2A9A2B92B3CA15A50FA5EA71980ACB8E91C60CF832C7A126F1D8CC39ED6`**. Counts and APKs in earlier sections below are historical.
+
+`ArenaArtCacheTests` checks shared sprite identity, attachment/sorting state, unused-asset cleanup, private ownership for three geometry variants, and destruction of all 37 textures including hidden frames. `ArtHudFlowTests.SharedEnvironmentSurvivesReloadWhileMeshesAndAnimationStayLocal` verifies real scene reload, replacement of the view-owned sky mesh, and pause/resume of local animation. The Editor diagnostic records allocation events rather than bytes; a zero result from Mono's unsupported per-thread byte counter is not evidence of no allocation.
+
+On device, back up the live profile and telemetry, enter the development proof floor, then complete it and use Try again three times in the same process. Record `environment build` marker times separately from `StartWave`, frame interval, main-thread time and whole-frame allocation. Inspect platform, islands, chains, stars and enemy art after reload. Remove only `development/start-floor.txt`, return to Ember Hall 1/6, and preserve the resulting profile and telemetry. The S23 pass is in `23`; its 16.7 ms restart probe interval does not mean the measured 24.8–32.0 ms main-thread work disappeared. Cold environment creation precedes probe installation. Result screens run at time scale 1, so those windows must not be labelled sustained combat.
+
 ## Current portrait camera checks — 2026-09-16
 
 The current camera candidate is width **9**, superseding the width-6 instructions below. Keep actor/HUD scale unchanged. The six render comparisons in `ArtDirection/2026-09-16/camera-review/` are staged Unity imagery, not combat/device evidence.

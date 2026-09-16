@@ -7,8 +7,12 @@ namespace Cryptforge.Core
     public static class PerformanceMarkers
     {
         public const string StartWaveName = "Cryptforge.StartWave";
+        public const string BuildBackdropName = "Cryptforge.BuildBackdrop";
+        public const string BuildPlatformName = "Cryptforge.BuildPlatform";
 
         // A wave entering: every enemy instantiated, drawn and set up.
         public static readonly ProfilerMarker StartWave = new ProfilerMarker(ProfilerCategory.Scripts, StartWaveName);
+        public static readonly ProfilerMarker BuildBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, BuildBackdropName);
+        public static readonly ProfilerMarker BuildPlatform = new ProfilerMarker(ProfilerCategory.Scripts, BuildPlatformName);
     }
 }

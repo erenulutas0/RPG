@@ -24,6 +24,8 @@ namespace Cryptforge.Core
         private ProfilerRecorder _managedInUse;
         private ProfilerRecorder _totalInUse;
         private ProfilerRecorder _startWave;
+        private ProfilerRecorder _buildBackdrop;
+        private ProfilerRecorder _buildPlatform;
         private int _window;
         private float _windowSeconds;
         private long _windowAllocated;
@@ -48,6 +50,8 @@ namespace Cryptforge.Core
             _managedInUse = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Used Memory");
             _totalInUse = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Used Memory");
             _startWave = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.StartWaveName);
+            _buildBackdrop = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.BuildBackdropName);
+            _buildPlatform = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.BuildPlatformName);
             _collections = GC.CollectionCount(0);
             Write(FormattableString.Invariant(
                 $"{Tag} probe on: {SystemInfo.deviceModel}, {Screen.width}x{Screen.height} at {Screen.currentResolution.refreshRateRatio.value:0} Hz, target {Application.targetFrameRate} fps; recorders main thread {_mainThread.Valid}, allocated {_allocatedInFrame.Valid}, wave {_startWave.Valid}"));
@@ -60,6 +64,8 @@ namespace Cryptforge.Core
             _managedInUse.Dispose();
             _totalInUse.Dispose();
             _startWave.Dispose();
+            _buildBackdrop.Dispose();
+            _buildPlatform.Dispose();
         }
 
         // The unscaled delta and every recorder's last value describe the frame before this one.
@@ -69,11 +75,17 @@ namespace Cryptforge.Core
             long mainThread = _mainThread.Valid ? _mainThread.LastValue : 0;
             long allocated = _allocatedInFrame.Valid ? _allocatedInFrame.LastValue : 0;
             long wave = _startWave.Valid ? _startWave.LastValue : 0;
+            long backdrop = _buildBackdrop.Valid ? _buildBackdrop.LastValue : 0;
+            long platform = _buildPlatform.Valid ? _buildPlatform.LastValue : 0;
             _frames.Add(frame);
             _windowSeconds += frame;
             _windowAllocated += allocated;
             _windowMostAllocated = Math.Max(_windowMostAllocated, allocated);
             _windowLongestMainThread = Math.Max(_windowLongestMainThread, mainThread);
+
+            if (backdrop > 0 || platform > 0)
+                Write(FormattableString.Invariant(
+                    $"{Tag} environment build: backdrop {Milliseconds(backdrop):0.00} ms, platform {Milliseconds(platform):0.00} ms; frame allocation (all work) {allocated / 1024f:0.0} KB"));
 
             if (wave > 0)
             {
