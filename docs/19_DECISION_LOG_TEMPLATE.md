@@ -504,7 +504,7 @@ The painted distant layer uses bilinear filtering and a 64-PPU import (aspect-pr
 ## Decision: Enemies keep their spacing from every neighbour, and slide or wait rather than overlap
 
 **Date:** 2026-09-16
-**Status:** Implemented; phone check pending
+**Status:** Implemented and phone-checked on the S23
 **Owner:** Engineering, under the owner's spacing brief
 
 ### Context and options
