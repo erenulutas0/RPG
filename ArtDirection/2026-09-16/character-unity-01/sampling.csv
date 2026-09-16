@@ -1,0 +1,5 @@
+density,filter,hero_width_texels,hero_height_texels,mite_width_texels,mite_height_texels,hero_height_world,mite_height_world
+32,Point,24,44,16,16,1.375,0.5
+64,Point,48,88,33,32,1.375,0.5
+128,Point,96,176,66,64,1.375,0.5
+128,Bilinear,96,176,66,64,1.375,0.5

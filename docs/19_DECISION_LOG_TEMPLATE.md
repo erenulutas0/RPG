@@ -1,5 +1,14 @@
 # Decision Log
 
+## Decision: Carry 128-PPU painted actors forward as a candidate, with equipment and movement still gated
+
+**Date:** 2026-09-16
+**Status:** Unity art comparison completed; production import contract not yet adopted
+
+Compare the same source at 32, 64 and 128 PPU without changing world height. Mipmapped GPU reduction avoids judging the low-resolution cases from sparse unfiltered samples. The painted master loses shape/material cues at 32; 128 with bilinear display best preserves the proposed blue-steel/basalt look in this review. This is not evidence against purpose-drawn low-resolution pixel art. Keep the current runtime contract while preparing one matching loadout and a real movement proof; do not change floor/effect grids to match a concept image automatically.
+
+Actual scene renders in `ArtDirection/2026-09-16/character-unity-01/` expose the mismatch between the new body and old pixel weapons. Repositioning the grip fixes attachment location, but not hand occlusion, style or gait. The twelve-frame rigid translation/sword rotation is expressly a diagnostic, not a walk cycle. No APK or imported game sprite changed in this slice.
+
 ## Decision: Prove a separate hero body and one low ember enemy before expanding the roster
 
 **Date:** 2026-09-16

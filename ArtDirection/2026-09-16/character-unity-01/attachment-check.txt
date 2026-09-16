@@ -1,0 +1,2 @@
+12 rigid translation/sword-rotation samples; maximum grip transform error: 0 world units. This checks hierarchy attachment, not painted finger occlusion or a walk cycle.
+Right source point: (848,794); left: (345,596); crop bottom centre: (594,1213).

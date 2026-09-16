@@ -36,6 +36,8 @@ The lava backdrop is still too bright for a busy fight. Reduce contrast/saturati
 
 ## Current implementation gap
 
+Character update: `../character-unity-01/` now contains actual scene resolution/loadout/anchor comparisons and a rigid attachment-motion diagnostic. It favours a 128-PPU/bilinear candidate at unchanged world height. Step 3 remains incomplete: matching weapon art, finger occlusion, opposing facings and genuine movement/attack poses are still required before production imports and phone acceptance. No gameplay Assets were changed by the review.
+
 Update 2026-09-16: `../camera-review/README.md` records the completed 6/7.5/9 comparison and selected width 9. Opus completed the movement/density task in `a357723`: capacity is now 10, with a development-only two-Grunt/eight-Mite floor and six walking/stationary scene-parity cases. Authored waves remain five or fewer. S23 evidence and the significant spawn/restart allocation are in docs/21–23. The generated board remains concept art; it is not the measured device encounter.
 
 Enemy sprite reuse and bounded platform/backdrop reuse are now implemented and phone-checked (docs/21–23). Three warm S23 restart frames allocated 1008.5–1131.4 KB, approximately 94% less than the preceding enemy-cache-only session; this is not a cold-start or mid-range-device claim.

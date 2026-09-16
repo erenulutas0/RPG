@@ -3,7 +3,8 @@
 ## Current art checkpoint — 2026-09-16
 
 - [x] First hero/Mite concept pair and browser scale/crowd review (`ArtDirection/2026-09-16/character-proof-01/`).
-- [ ] Validate reduced sprite resolution/filtering in Unity at fixed world size; current 32-PPU actor contract remains.
+- [x] Compare reduced sprite resolution/filtering in Unity at fixed world size (`character-unity-01`, 32/64/128 PPU). 128/bilinear is a candidate; current shipped 32-PPU actor contract remains.
+- [ ] Prove final sprite imports, compression and cached ownership on device; the isolated GPU sampling review is not production integration.
 - [ ] Prove pivots, equipment anchors, opposing facings and a short animation sequence for that pair, then verify on device.
 - [ ] Expand the accepted pair into the production roster. Concept masters are not completion of this item.
 
