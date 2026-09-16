@@ -14,7 +14,7 @@ namespace Cryptforge.Tests
 {
     public sealed class CharacterProofCapture
     {
-        private const string Output = "ArtDirection/2026-09-16/character-unity-01/";
+        private string Output = "ArtDirection/2026-09-16/character-unity-01/";
         private readonly List<Object> _owned = new List<Object>();
         private Camera _camera;
         private Scene _scene;
@@ -28,8 +28,7 @@ namespace Cryptforge.Tests
         private static readonly Vector3 Left = SourcePoint(345, 596);
         private static Vector3 SourcePoint(float x, float y) => new Vector3((x - 594) * 1.375f / 1123, (1213 - y) * 1.375f / 1123, 0);
 
-        [UnityTest]
-        public IEnumerator RenderResolutionLoadoutsAndAttachmentMotion()
+        private IEnumerator Setup()
         {
             Directory.CreateDirectory(Output);
             TestProfile.Begin();
@@ -87,6 +86,12 @@ namespace Cryptforge.Tests
             follow.Frame(1080, 2340, 361, 2340-427);
             Object.FindFirstObjectByType<ArenaView>().Backdrop.FrameCavern();
             Canvas.ForceUpdateCanvases();
+        }
+
+        [UnityTest]
+        public IEnumerator RenderResolutionLoadoutsAndAttachmentMotion()
+        {
+            yield return Setup();
             SetLoadout(0);
             var metrics = new List<string> {"density,filter,hero_width_texels,hero_height_texels,mite_width_texels,mite_height_texels,hero_height_world,mite_height_world"};
             foreach (int density in new[] {32,64,128})
@@ -130,7 +135,52 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        private Sprite Sample(string file, Rect crop, int width, int height, int density, FilterMode filter)
+        [UnityTest]
+        public IEnumerator RenderHeroEquipmentKeyposes()
+        {
+            Output = "ArtDirection/2026-09-16/hero-motion-01/";
+            yield return Setup();
+            SetLoadout(0);
+            string[] files = {"vanguard-body-v2.png","walk-a-v1.png","walk-b-v2.png","attack-windup-v1.png"};
+            var bodies = new Sprite[files.Length];
+            for(int i=0;i<files.Length;i++)
+            {
+                // Shared source-space registration: never normalize each pose by its changing alpha bounds.
+                bodies[i] = Sample(files[i],new Rect(240,i==0?125:124,760,1124),119,176,128,FilterMode.Bilinear,new Vector2(354f/760,0));
+                Assert.That(bodies[i].bounds.size.y,Is.EqualTo(1.375f).Within(.00001f));
+                Assert.That(bodies[i].pivot,Is.EqualTo(bodies[0].pivot));
+            }
+            var mite=Sample("cinder-mite-v1.png",new Rect(167,235,862,841),66,64,128,FilterMode.Bilinear);
+            foreach(var view in _mites)view.sprite=mite;
+            _parts[0].sprite=Sample("sword-v1.png",new Rect(48,127,1080,1095),95,96,128,FilterMode.Bilinear,new Vector2(192f/1080,215f/1095));
+            _parts[1].sprite=Sample("shield-v1.png",new Rect(323,279,635,716),51,58,128,FilterMode.Bilinear,new Vector2(.59f,.51f));
+            Vector3[] right={SourcePoint(848,794),SourcePoint(858,790),SourcePoint(860,790),SourcePoint(844,273)};
+            Vector3[] left={SourcePoint(345,596),SourcePoint(340,599),SourcePoint(337,599),SourcePoint(335,596)};
+            string[] names={"idle","step-a","step-b","windup"};
+            for(int i=0;i<bodies.Length;i++)
+            {
+                SetPose(i,0);Detail("unity-"+names[i]+".png");
+                if(i==0)Capture("unity-room.png",1080,2340);
+            }
+            // Rough blocking sequence: two contact candidates with the idle as an explicit temporary passing pose.
+            int[] cycle={1,0,2,0};
+            for(int i=0;i<cycle.Length;i++){SetPose(cycle[i],0);Detail("walk-"+i.ToString("00")+".png");}
+            // A keypose cut proof, not a completed anticipation/strike/recovery sheet.
+            int[] attack={0,3,3,0,0};float[] angles={0,30,-20,-35,0};
+            for(int i=0;i<attack.Length;i++){SetPose(attack[i],angles[i]);Detail("attack-"+i.ToString("00")+".png");}
+            File.WriteAllText(Output+"registration.txt","Common body crop: source x=240..1000, top=89, bottom=1213 (exclusive); same 119x176 canvas at 128 PPU, pivot (354/760,0). No per-frame alpha-fit rescaling.\nRight hands: idle (848,794); A (858,790); B (860,790); windup (844,273). Left: (345,596),(340,599),(337,599),(335,596).\nTwo contact candidates and one windup only. Idle is a temporary passing pose; planted-foot gait and strike/recovery continuity are NOT accepted. No production import or phone installation.\n");
+            LogAssert.NoUnexpectedReceived();
+
+            void SetPose(int index,float angle)
+            {
+                _body.sprite=bodies[index];_rig.localPosition=Vector3.zero;
+                _parts[0].transform.localPosition=right[index];_parts[1].transform.localPosition=left[index];
+                _parts[0].transform.localRotation=Quaternion.Euler(0,0,angle);
+                Assert.That(Vector3.Distance(_parts[0].transform.position,_rig.TransformPoint(right[index])),Is.LessThan(.00001f));
+            }
+        }
+
+        private Sprite Sample(string file, Rect crop, int width, int height, int density, FilterMode filter, Vector2? pivot = null)
         {
             Texture2D original;
             using(var reader=new BinaryReader(File.OpenRead("TestResults/character-proof-source/"+file+".rgba")))
@@ -148,7 +198,7 @@ namespace Cryptforge.Tests
             var texture=new Texture2D(width,height,TextureFormat.RGBA32,false); _owned.Add(texture);
             texture.ReadPixels(new Rect(0,0,width,height),0,0); texture.Apply(); texture.filterMode=filter; texture.wrapMode=TextureWrapMode.Clamp;
             RenderTexture.active=before; RenderTexture.ReleaseTemporary(target);
-            var sprite=Sprite.Create(texture,new Rect(0,0,width,height),new Vector2(.5f,0),density,0,SpriteMeshType.FullRect);
+            var sprite=Sprite.Create(texture,new Rect(0,0,width,height),pivot ?? new Vector2(.5f,0),density,0,SpriteMeshType.FullRect);
             _owned.Add(sprite); return sprite;
         }
 

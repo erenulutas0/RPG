@@ -1,5 +1,11 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Matching equipment and registered keyposes — 2026-09-17
+
+`ArtDirection/2026-09-16/hero-motion-01/` adds original transparent sword/buckler masters, two candidate step poses, one windup, provenance/metadata and actual Unity scene evidence. One duplicate-footfall attempt was corrected and excluded from playback. All body poses use one 119×176 canvas at the 128-PPU candidate density and the same pivot; anchors are measured per pose. The temporary capture tool now shares setup between the preceding resolution proof and `RenderHeroEquipmentKeyposes`, selected through `Run-CharacterProof.ps1 -Keyposes`. No authored game source, scene, sprite imports or project settings changed.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, targeted keypose PlayMode capture **1/1** and preceding resolution capture **1/1** after setup refactoring; common size/pivot and grip placement assertions, browser preview and source hashes. Static integrity after temporary cleanup: **293 GUIDs / 555 scene objects/components**. Full runtime suites were not rerun; no APK build/install or phone actions. Latest recorded device APK remains **`24F1FD800362ACBDFB518C8F86D78367E3068FDF11271BF1C071F1A3476CABDA`**. The loop is rough blocking, not accepted walking or attack animation: passing/down, strike/recovery, contact timing, grip occlusion, opposing facings and Mite animation remain.
+
 ## Character sampling and weapon attachment in Unity — 2026-09-16
 
 `Tools/ArtReview/Run-CharacterProof.ps1` reproduces an isolated, graphics-enabled scene review from the unchanged hero/Mite concept masters. It stages one temporary PlayMode fixture with fresh metadata, uses TestProfile, and removes the temporary files afterwards. Actual Unity captures in `ArtDirection/2026-09-16/character-unity-01/` compare 32/64/128 PPU at 1.375/0.5-unit hero/Mite height, point versus bilinear at 128, old versus candidate hand anchors, all three existing loadouts, and twelve rigid translation/sword-rotation frames. The browser board exposes these comparisons. Mipmapped GPU sampling is a resolution experiment, not final importer/compression validation. No actual gait, facing or new attack frames were authored; matching weapon art and finger occlusion remain open.

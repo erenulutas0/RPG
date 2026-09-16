@@ -1,0 +1,86 @@
+[
+  {
+    "file": "attack-windup-v1.png",
+    "width": 1176,
+    "height": 1337,
+    "bounds": [
+      276,
+      89,
+      970,
+      1213
+    ],
+    "transparentPixels": 1151495,
+    "sha256": "8EE1BC4CF9C8CFC22A4FF88A02A68FEA30326A4003AEF437EC0439441ED55366",
+    "alphaThreshold": 16
+  },
+  {
+    "file": "shield-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bounds": [
+      323,
+      259,
+      958,
+      975
+    ],
+    "transparentPixels": 1218305,
+    "sha256": "D9DAB10B5A6C664228833DBF27AEC9214B70E2477DFAB08D7088FA32F47E8C98",
+    "alphaThreshold": 16
+  },
+  {
+    "file": "sword-v1.png",
+    "width": 1176,
+    "height": 1337,
+    "bounds": [
+      48,
+      115,
+      1128,
+      1210
+    ],
+    "transparentPixels": 1369357,
+    "sha256": "182BB241CA0675EB6F2086B3E3B699D16738D22C067A047619F2E8C119B53622",
+    "alphaThreshold": 16
+  },
+  {
+    "file": "walk-a-v1.png",
+    "width": 1176,
+    "height": 1337,
+    "bounds": [
+      269,
+      90,
+      911,
+      1208
+    ],
+    "transparentPixels": 1176327,
+    "sha256": "AACD874690CD20022AF85E5D327381D72EEFD8815C519BD8F8DD7E20E567EC91",
+    "alphaThreshold": 16
+  },
+  {
+    "file": "walk-b-rejected.png",
+    "width": 1176,
+    "height": 1337,
+    "bounds": [
+      288,
+      89,
+      904,
+      1184
+    ],
+    "transparentPixels": 1193052,
+    "sha256": "22C4B46B74186C109355B4A4F733B0670D63A3FDF1CDFCA2BD440C24F4974A7F",
+    "alphaThreshold": 16
+  },
+  {
+    "file": "walk-b-v2.png",
+    "width": 1176,
+    "height": 1337,
+    "bounds": [
+      266,
+      89,
+      915,
+      1201
+    ],
+    "transparentPixels": 1183495,
+    "sha256": "5F01993DB52F294C9904618AC175287C37EF00661E5E348C3901E93BD975CF05",
+    "alphaThreshold": 16
+  }
+]

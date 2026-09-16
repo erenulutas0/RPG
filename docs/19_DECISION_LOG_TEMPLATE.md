@@ -1,5 +1,14 @@
 # Decision Log
 
+## Decision: Keep common pose registration and reject a repeated footfall
+
+**Date:** 2026-09-17
+**Status:** Equipment/keypose review, not production animation acceptance
+
+Generate equipment separately from the body and keep a common source crop, output canvas and pivot across poses. Independently cropping/rescaling each pose would hide drift by changing the knight's size and would break equipment alignment. The first B attempt repeated A's extended leg; a targeted leg-only correction now alternates the footfall. Retain the rejected source for provenance and exclude it from playback. Match the sword/buckler's blue-steel/silver/brass rendering to the body before expanding other loadouts.
+
+The two contacts and one windup prove useful adjacent art, but do not prove a finished gait or attack: idle is only a temporary passing frame, sole/contact behaviour needs work, and strike/recovery is absent. Keep this blocking proof in ArtDirection and the isolated Unity capture tool until movement, hand occlusion and opposing facings pass review. See `ArtDirection/2026-09-16/hero-motion-01/README.md`; no production import or phone replacement is part of this decision.
+
 ## Decision: Carry 128-PPU painted actors forward as a candidate, with equipment and movement still gated
 
 **Date:** 2026-09-16

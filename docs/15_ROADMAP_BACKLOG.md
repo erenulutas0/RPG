@@ -4,6 +4,8 @@
 
 - [x] First hero/Mite concept pair and browser scale/crowd review (`ArtDirection/2026-09-16/character-proof-01/`).
 - [x] Compare reduced sprite resolution/filtering in Unity at fixed world size (`character-unity-01`, 32/64/128 PPU). 128/bilinear is a candidate; current shipped 32-PPU actor contract remains.
+- [x] Matching sword/buckler masters and a registered hero keypose blocking proof (`hero-motion-01`, completed 2026-09-17).
+- [ ] Complete passing/down and strike/recovery poses; accept planted-foot gait, grip occlusion and opposing facings before production integration.
 - [ ] Prove final sprite imports, compression and cached ownership on device; the isolated GPU sampling review is not production integration.
 - [ ] Prove pivots, equipment anchors, opposing facings and a short animation sequence for that pair, then verify on device.
 - [ ] Expand the accepted pair into the production roster. Concept masters are not completion of this item.

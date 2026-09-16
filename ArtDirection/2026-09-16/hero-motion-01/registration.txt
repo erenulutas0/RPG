@@ -1,0 +1,3 @@
+Common body crop: source x=240..1000, top=89, bottom=1213 (exclusive); same 119x176 canvas at 128 PPU, pivot (354/760,0). No per-frame alpha-fit rescaling.
+Right hands: idle (848,794); A (858,790); B (860,790); windup (844,273). Left: (345,596),(340,599),(337,599),(335,596).
+Two contact candidates and one windup only. Idle is a temporary passing pose; planted-foot gait and strike/recovery continuity are NOT accepted. No production import or phone installation.
