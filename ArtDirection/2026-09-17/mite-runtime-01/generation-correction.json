@@ -1,0 +1,6 @@
+{
+  "name": "mite-front-step-a-v2.png",
+  "ref": "mite-front-idle.png",
+  "prompt": "Use case: precise-object-edit. Edit target: supplied Cinder Mite idle sprite. Create exactly one alternate WALK frame, transparent RGBA background, unchanged canvas 1176x1337. CRITICAL: preserve its exact FRONT-LEFT facing, with its small glowing eyes and stone brow at approximately x435,y805, its head LEFT of the body center x610. Do not mirror, rotate the torso or move the head to the right. Preserve the crown flame, back basalt plates, lighting, body shape, scale and all pixels outside the legs as closely as possible. Only change four short stone legs into a complementary diagonal walking support pose: the nearer front paw on screen right reaches a little downward while the front paw on screen left draws slightly back under the brow, alternating rear support. Keep feet inside y1090 and x170..1030; keep original center. Same painted violet basalt, orange molten seams, compact orange flame. No floor, no shadow, no particles, no text. The head must still face down-left, exactly like this supplied reference.",
+  "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-c0fdde59-22b0-453e-83e0-e39920a135b7.png"
+}

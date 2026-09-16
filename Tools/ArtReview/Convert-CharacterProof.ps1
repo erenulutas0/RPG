@@ -1,6 +1,6 @@
 # Lossless format bridge only: unchanged PNG channels -> Unity RGBA staging; rendered BMP -> PNG evidence.
 # No resizing, painting, compositing, alpha replacement or colour grading happens here.
-param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions)
+param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $conversionRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -11,6 +11,7 @@ if ($Mode -eq 'Source') {
     if ($Keyposes) { $sourceFiles += @('hero-motion-01/sword-v1.png','hero-motion-01/shield-v1.png','hero-motion-01/walk-a-v1.png','hero-motion-01/walk-b-v2.png','hero-motion-01/attack-windup-v1.png') }
     if ($Integration) { $sourceFiles += @('../2026-09-17/vanguard-runtime-01/pass-a-v1.png','../2026-09-17/vanguard-runtime-01/pass-b-v1.png','../2026-09-17/vanguard-runtime-01/strike-v1.png','../2026-09-17/vanguard-runtime-01/recover-v1.png') }
     if ($Directions) { $sourceFiles += Get-ChildItem -LiteralPath "$conversionRoot/ArtDirection/2026-09-17/vanguard-directions-01" -Filter '*.png' | Where-Object { $_.Name -match '^(front-|rear-passing-)' } | ForEach-Object { '../2026-09-17/vanguard-directions-01/' + $_.Name } }
+    if ($Mite) { $sourceFiles += Get-ChildItem -LiteralPath "$conversionRoot/ArtDirection/2026-09-17/mite-runtime-01" -Filter '*.png' | Where-Object { $_.Name -match '^(mite-|slash-sheet|spark-sheet)' } | ForEach-Object { '../2026-09-17/mite-runtime-01/' + $_.Name } }
     foreach ($relative in $sourceFiles) {
         $name = Split-Path $relative -Leaf
         $bitmap = [System.Drawing.Bitmap]::new((Join-Path $conversionRoot "ArtDirection/2026-09-16/$relative"))

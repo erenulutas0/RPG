@@ -1,0 +1,68 @@
+[
+  {
+    "name": "mite-front-step-a.png",
+    "prompt": "Use case: precise-object-edit. Asset: one animation frame for an original mobile game, transparent RGBA background. Edit the supplied Cinder Mite, a low quadruped of dark violet basalt with orange molten seams, two ember eyes and a compact crown flame. Keep the same painted rendering, camera elevation, proportions, stone plate identity, lighting, canvas 1176x1337, body centre and foot registration. Keep the whole silhouette inside x150..1040 and y240..1110, generous transparent margins, no ground shadow, no text, no extra creature. Preserve actual transparency. Make a grounded walking contact pose facing down-left as in the reference. Advance the near front foot slightly down-left and draw the opposite front foot back. The opposite rear leg supports. Keep the flame crown height and body centre nearly fixed. Clear alternating foot placement, no hopping.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-eb0146cd-089e-4b05-9122-aeed8c2fb5d1.png",
+    "reference": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png"
+  },
+  {
+    "name": "mite-front-step-b.png",
+    "prompt": "Use case: precise-object-edit. Asset: one animation frame for an original mobile game, transparent RGBA background. Edit the supplied Cinder Mite, a low quadruped of dark violet basalt with orange molten seams, two ember eyes and a compact crown flame. Keep the same painted rendering, camera elevation, proportions, stone plate identity, lighting, canvas 1176x1337, body centre and foot registration. Keep the whole silhouette inside x150..1040 and y240..1110, generous transparent margins, no ground shadow, no text, no extra creature. Preserve actual transparency. Make the complementary grounded walking contact pose facing down-left as in the reference. Pull the near front foot back under the body and advance the far front foot down-left. Alternate the rear legs to the preceding diagonal support pair. Keep flame height and body centre nearly fixed. Clear alternate gait, no hopping.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-71979886-38ac-48ef-83db-254ca78d9c98.png",
+    "reference": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png"
+  },
+  {
+    "name": "mite-front-strike.png",
+    "prompt": "Use case: precise-object-edit. Asset: one animation frame for an original mobile game, transparent RGBA background. Edit the supplied Cinder Mite, a low quadruped of dark violet basalt with orange molten seams, two ember eyes and a compact crown flame. Keep the same painted rendering, camera elevation, proportions, stone plate identity, lighting, canvas 1176x1337, body centre and foot registration. Keep the whole silhouette inside x150..1040 and y240..1110, generous transparent margins, no ground shadow, no text, no extra creature. Preserve actual transparency. Make an immediate bite/ram strike pose facing down-left. The stone brow and head reach slightly forward down-left, forelegs brace wide, the low torso leans into the attack with a narrow hot mouth seam, eyes intent. The rear feet remain grounded. No energy blast, particles or slash painted in this sprite. Preserve body scale and flame height.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-2b5c2d1b-6e92-4152-827e-0abb8f7ca06e.png",
+    "reference": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png"
+  },
+  {
+    "name": "mite-rear-idle.png",
+    "prompt": "Use case: precise-object-edit. Asset: one animation frame for an original mobile game, transparent RGBA background. Edit the supplied Cinder Mite, a low quadruped of dark violet basalt with orange molten seams, two ember eyes and a compact crown flame. Keep the same painted rendering, camera elevation, proportions, stone plate identity, lighting, canvas 1176x1337, body centre and foot registration. Keep the whole silhouette inside x150..1040 and y240..1110, generous transparent margins, no ground shadow, no text, no extra creature. Preserve actual transparency. Turn the entire same quadruped around to face up-left: a rear three-quarter northwest view, seeing its back basalt plates and haunches rather than its eyes. Four same short stone legs, same compact orange flame crown. Do not simply mirror the front image. Its back needs to remain recognizable as exactly this little basalt creature. Neutral grounded stance at the same size and foot point.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-9b340c35-fa99-4463-86ba-746ff52a9548.png",
+    "reference": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png"
+  },
+  {
+    "name": "mite-death-break.png",
+    "prompt": "Use case: precise-object-edit. Asset: one animation frame for an original mobile game, transparent RGBA background. Edit the supplied Cinder Mite, a low quadruped of dark violet basalt with orange molten seams, two ember eyes and a compact crown flame. Keep the same painted rendering, camera elevation, proportions, stone plate identity, lighting, canvas 1176x1337, body centre and foot registration. Keep the whole silhouette inside x150..1040 and y240..1110, generous transparent margins, no ground shadow, no text, no extra creature. Preserve actual transparency. Draw the first non-graphic death/disassembly pose: the creature's basalt shell has cracked into a compact heap around the same foot position, four leg stones buckle under it, its eyes go dark, crown flame shrinks sharply into a short ember burst. Clearly lower silhouette, no standing face, a few close fragments only, no blood or gore. Keep the footprint under the original body, no huge explosion.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-f3a94350-4b9e-4a33-abeb-b6b206fe70cf.png",
+    "reference": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png"
+  },
+  {
+    "name": "mite-death-embers.png",
+    "prompt": "Use case: precise-object-edit. Asset: one animation frame for an original mobile game, transparent RGBA background. Edit the supplied Cinder Mite, a low quadruped of dark violet basalt with orange molten seams, two ember eyes and a compact crown flame. Keep the same painted rendering, camera elevation, proportions, stone plate identity, lighting, canvas 1176x1337, body centre and foot registration. Keep the whole silhouette inside x150..1040 and y240..1110, generous transparent margins, no ground shadow, no text, no extra creature. Preserve actual transparency. Draw the final non-graphic death/disassembly pose: the creature is now a small low pile of separate cooling dark basalt chunks on its original foot baseline near y1080. No head, eyes, body or legs remain recognizable. Two or three tiny orange embers between chunks, no tall flame. This is the settled remains of this creature, not a new creature. Compact footprint x300..890, transparency everywhere else.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-f603100c-6b54-4869-b532-f526a67b84e6.png",
+    "reference": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png"
+  },
+  {
+    "name": "mite-rear-step-a.png",
+    "ref": "E:/MobileGame/ArtDirection/2026-09-17/mite-runtime-01/mite-rear-idle.png",
+    "prompt": "Use case: precise-object-edit. Edit the supplied rear-view Cinder Mite into one animation pose. Preserve this exact stone quadruped identity, violet basalt plate design, orange molten seams, compact crown flame, rear three-quarter northwest facing, scale, lighting, 1176x1337 canvas, and fixed foot registration. Transparent RGBA, no text, ground or shadow. Keep silhouette inside x100..1060,y240..1120. Make a grounded walking contact pose: advance one diagonal pair of legs up-left while the other pair braces. A modest leg shift, not a body jump; keep torso and crown nearly registered.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-7bf3e68d-3369-4cd4-85d7-3d6c8c862827.png"
+  },
+  {
+    "name": "mite-rear-step-b.png",
+    "ref": "E:/MobileGame/ArtDirection/2026-09-17/mite-runtime-01/mite-rear-idle.png",
+    "prompt": "Use case: precise-object-edit. Edit the supplied rear-view Cinder Mite into one animation pose. Preserve this exact stone quadruped identity, violet basalt plate design, orange molten seams, compact crown flame, rear three-quarter northwest facing, scale, lighting, 1176x1337 canvas, and fixed foot registration. Transparent RGBA, no text, ground or shadow. Keep silhouette inside x100..1060,y240..1120. Make the opposite grounded walking contact pose: reverse which diagonal pair of legs advances up-left. Near rear foot moves back while its counterpart steps forward. Modest leg movement, body/flame stay registered; no hopping.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-9b6d2b91-7a11-45e8-8b02-c7444dd43c5c.png"
+  },
+  {
+    "name": "mite-rear-strike.png",
+    "ref": "E:/MobileGame/ArtDirection/2026-09-17/mite-runtime-01/mite-rear-idle.png",
+    "prompt": "Use case: precise-object-edit. Edit the supplied rear-view Cinder Mite into one animation pose. Preserve this exact stone quadruped identity, violet basalt plate design, orange molten seams, compact crown flame, rear three-quarter northwest facing, scale, lighting, 1176x1337 canvas, and fixed foot registration. Transparent RGBA, no text, ground or shadow. Keep silhouette inside x100..1060,y240..1120. Make an immediate ram/bite strike toward up-left, away from viewer: torso leans forward slightly, front feet braced, rear haunches press down and back. Head stays hidden on far side. No explosion or painted slash. Preserve flame height and grounded rear feet.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-8b30266b-8d65-4a0d-abe7-64d2e59f8e2f.png"
+  },
+  {
+    "name": "slash-sheet.png",
+    "prompt": "Use case: stylized-concept. Original portrait fantasy game's production VFX spritesheet, transparent RGBA, exactly square 1024x1024 divided into a uniform invisible 2x2 grid of 512x512 cells. FOUR animation frames in reading order of ONE blue-steel sword slash: 1 short pale-blue arc starting, 2 clean curved white-silver crescent at peak, 3 narrower fading cobalt tail, 4 only a few short fading pale-blue taper fragments. Each effect independently centered at the center of its own cell with 80px transparent padding on all four edges. Same slash direction bottom-left to top-right in all frames, modest narrow curved strokes, restrained soft edge matching polished painted fantasy sprites. No sword, character, stars, lightning bolts, background, smoke, text, grid lines or watermark. No opaque black background. True transparency between and behind all strokes.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-2667fbe7-d767-482a-95f6-a70d6f11ec58.png",
+    "reference": "none (new effect sheet)"
+  },
+  {
+    "name": "spark-sheet.png",
+    "prompt": "Use case: stylized-concept. Original mobile foundry fantasy game VFX sprite sheet. Square 1024x1024 canvas, truly transparent RGBA, exact invisible 2x2 grid of four 512x512 cells. Four separately centered consecutive impact frames in reading order: 1 compact white-hot ember core with 3 short amber rays; 2 four short orange/gold fragments snapping outwards; 3 dim orange specks at same compact radius; 4 just two tiny dull ember flecks. Every frame centered on its cell, 140px transparent margins. Clean painted edges, bright readable small effect, restrained minimal glow, no big explosion or long rays. No characters, objects, starfield, background, ground, letters, numbering or visible grid. Preserve real transparency.",
+    "source": "C:\\Users\\pc\\.codex\\generated_images\\01a095bd-7c87-7c33-83a1-013aa1757c47\\exec-06346721-5a63-4f0e-813f-6087cb1f5a62.png",
+    "reference": "none (new effect sheet)"
+  }
+]

@@ -1,5 +1,16 @@
 # First combat slice — setup and verification
 
+## Cinder Mite / imported strike verification — 2026-09-17
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, targeted Mite **5/5**, art/HUD **9/9**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **94/94**, Android exit **0**, integrity **367 GUIDs / 555 scene objects/components**. APK **24,739,942 bytes**, SHA-256 **`23EDF4B3D2FA6DC853A4B579254D5200D5483009D1B4B1A948EB6EDCC56BEED1`**. Physical-device review and preserved progress are recorded in the newest Docs/23 entry.
+
+1. In the ordinary rooms, Cinder Mites use the painted basalt/flame design. Approaching from above shows their front, approaching from below their back; horizontal changes mirror only presentation. Walking alternates two contacts; standing still returns to idle. A choice/pause freezes movement and death effects.
+2. Let a Mite attack: its head faces the struck hero. A hit uses the matching silhouette and slight body compression. Killing it hides the live body immediately, grants XP and leaves a short collapse/ember effect independent of the actor object. No reward or transition waits for animation.
+3. Sword hits show a silver-blue arc oriented toward the actual target; shared hit sparks are amber. Staff/Daggers retain their own earlier strike shapes. Reusing any effect slot must clear prior rotation, mirroring and alpha.
+4. `Tools/ArtReview/Run-MiteProof.ps1 -Reimport` rebuilds the art and captures the real Unity view; omit `-Reimport` for captures only. The browser replay is slowed for review. Five `MiteAnimationTests` plus the existing combat, economy, movement and parity suites guard the change.
+5. Review phone-size silhouettes, the existing large health bars and crowd overlap separately from physical spacing. See newest Docs/23 for exactly what was physically checked; no mid-range or sustained-performance claim follows from the offscreen capture.
+
+
 ## Four-direction Vanguard verification — 2026-09-17
 
 **Latest gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **89/89**, targeted animation **6/6**, graphics capture **1/1**, Android exit **0**, integrity **333 GUIDs / 555 scene objects/components**. APK SHA-256 **`C793A3F11F58AB82049892BB939D9CEC606893D3ABCBEC2974FAA0F8173A329A`**. This supersedes the rear-only statements/counts below.

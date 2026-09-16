@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bc96d48e17a482f85bd38ba9e42bf34, type: 3}
+  m_Name: FoundryStrikeArtSet
+  m_EditorClassIdentifier:
+  _slash:
+  - {fileID: 21300000, guid: 4af525a5cb4abad418834693a335164f, type: 3}
+  - {fileID: 21300000, guid: b14bac53e1e4d794682e4e67418678a8, type: 3}
+  - {fileID: 21300000, guid: 27460bbcd5dfa2d4199d94e7f1e7494d, type: 3}
+  - {fileID: 21300000, guid: 588a2b64c4958e842a5c7f2d5b059129, type: 3}
+  _spark:
+  - {fileID: 21300000, guid: f0b3a316820af7c49a5919adec358efa, type: 3}
+  - {fileID: 21300000, guid: beb8bfd93afdf8d43a6da1e15b7a6251, type: 3}
+  - {fileID: 21300000, guid: 7f9a8fae180913842b177909cf1d2bcb, type: 3}
+  - {fileID: 21300000, guid: 9b191d35596c0ff4ca97cd8c61e2f57c, type: 3}

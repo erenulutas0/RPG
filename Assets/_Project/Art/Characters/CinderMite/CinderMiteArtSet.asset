@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: CinderMiteArtSet
+  m_EditorClassIdentifier:
+  _front:
+  - Body: {fileID: 21300000, guid: 99ac99c9ad017e24f9b7c6cc6e2dd25b, type: 3}
+    Flash: {fileID: 21300000, guid: a7b6ae8544d82f345bc8985399c1c01c, type: 3}
+  - Body: {fileID: 21300000, guid: 0e4288339e6364a448f3d396173963a7, type: 3}
+    Flash: {fileID: 21300000, guid: 84880a102c3bda34a817e787e92a3ba8, type: 3}
+  - Body: {fileID: 21300000, guid: 8380d9f3ac0f5fa4683ce5fe35f95186, type: 3}
+    Flash: {fileID: 21300000, guid: b8f0861a74eb5b94e8b361952e9bf473, type: 3}
+  - Body: {fileID: 21300000, guid: 5d08c8c17ec642140aee8c65adf73a75, type: 3}
+    Flash: {fileID: 21300000, guid: 8520fb87e187bf14ea4185ee2768056f, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: a08723023df94f94ab4aca08b93538a4, type: 3}
+    Flash: {fileID: 21300000, guid: 975b3cf6ed8de1e48ae7c873d749c4b5, type: 3}
+  - Body: {fileID: 21300000, guid: 433677d020568914288c0a2aee6ce8c4, type: 3}
+    Flash: {fileID: 21300000, guid: 38dc71b0328458b4a8c2ed98878b72b2, type: 3}
+  - Body: {fileID: 21300000, guid: 5f205b2ac7416024893e7311e7a1edd0, type: 3}
+    Flash: {fileID: 21300000, guid: b6f78052f68795a4890932226ba6c56b, type: 3}
+  - Body: {fileID: 21300000, guid: 6192d7c5a2f856846a54799f7f943889, type: 3}
+    Flash: {fileID: 21300000, guid: cb91ee27c174eb84f8627abe46777808, type: 3}
+  _death:
+  - {fileID: 21300000, guid: c8d4110e6a2c9614b876576f632440b5, type: 3}
+  - {fileID: 21300000, guid: 12c25a87c16d1c242add11b1e0101b40, type: 3}

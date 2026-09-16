@@ -111,7 +111,7 @@ namespace Cryptforge.Tests
         {
             EnemyLookView first = Object.FindFirstObjectByType<EnemyLookView>();
             EnemyLook look = first.Look;
-            Sprite frame = EnemySpriteCache.Get(look).Frame(EnemyPose.IdleA);
+            Sprite frame = IdleFrameOf(first);
             Sprite flash = first.SilhouetteOf(frame);
             Sprite bar = first.transform.Find("Health Bar/Fill").GetComponent<SpriteRenderer>().sprite;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -119,7 +119,7 @@ namespace Cryptforge.Tests
             EnemyLookView next = Object.FindFirstObjectByType<EnemyLookView>();
             Assert.That(next.Look, Is.EqualTo(look));
             Assert.That(frame != null && flash != null && bar != null, Is.True);
-            Assert.That(EnemySpriteCache.Get(look).Frame(EnemyPose.IdleA), Is.SameAs(frame));
+            Assert.That(IdleFrameOf(next), Is.SameAs(frame));
             Assert.That(next.SilhouetteOf(frame), Is.SameAs(flash));
             Assert.That(next.transform.Find("Health Bar/Fill").GetComponent<SpriteRenderer>().sprite, Is.SameAs(bar));
             LogAssert.NoUnexpectedReceived();
@@ -148,7 +148,7 @@ namespace Cryptforge.Tests
             second.GetComponent<Health>().ApplyDamage(new DamageContext(10f, isCritical: true));
             Assert.That(second.GetComponent<CombatantView>().FlashColor,
                 Is.Not.EqualTo(first.GetComponent<CombatantView>().FlashColor));
-            Sprite frame = EnemySpriteCache.Get(source.Look).Frame(EnemyPose.IdleA);
+            Sprite frame = IdleFrameOf(source);
             Sprite flash = second.SilhouetteOf(frame);
             first.GetComponent<Health>().ApplyDamage(new DamageContext(100f));
             first.GetComponentInChildren<ContactShadowView>().Refresh();
@@ -164,6 +164,11 @@ namespace Cryptforge.Tests
             Assert.That(second.GetComponent<Health>().Current, Is.EqualTo(90f));
             LogAssert.NoUnexpectedReceived();
         }
+
+        // The first scene actor can use either imported art or the procedural fallback.
+        private static Sprite IdleFrameOf(EnemyLookView look) => look.PaintedArt != null
+            ? look.PaintedArt.GetFrame(0, false).Body
+            : EnemySpriteCache.Get(look.Look).Frame(EnemyPose.IdleA);
 
         [UnityTest]
         public IEnumerator CompactReadoutKeepsDetailsAccessibleThroughPause()

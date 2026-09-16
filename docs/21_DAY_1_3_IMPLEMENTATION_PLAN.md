@@ -1,5 +1,18 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Cinder Mite and imported hit effects — 2026-09-17
+
+The first imported enemy now uses a shared `EnemyArtSet`: front/rear idle, two travelling contacts and strike, plus two collapse/ember frames. `EnemyLookView` chooses four diagonal facings from displacement or the actual struck target, mirrors only the body, keeps the current pose during pause and briefly compresses on damage. Other enemy looks retain the procedural path. `EnemySpriteCache.EnsureBars` initializes the shared bars even when the first actor is imported. Only the Mite prefab's art-set reference and cosmetic nudge (.04) change; enemy data, movement, damage, rewards and cadence are untouched.
+
+`StrikeArtSet` supplies the new sword slash and shared impact spark. The slash follows the target vector; pooled Mite remains survive removal of the actor, fade over .4 seconds and do not delay death, XP or room progress. Imported textures are borrowed and never destroyed by views. All effects continue using the existing bounded pool; saturation may truncate older visuals. Staff/Daggers-specific strikes, coins and the ability ring remain procedural.
+
+Files: two art-set types; `EnemyLookView`, `EnemySpriteCache`, `CombatEffectsView`; CinderMite prefab; one effects-set reference in Gameplay; imported art under Characters/CinderMite and Effects/FoundryStrikes; `MiteAnimationTests` and the existing art-lifetime tests; reproducible importer/capture/source bridge in Tools/ArtReview. Retained source PNGs, exact prompts, corrected/rejected front contact, hashes, real scene captures and browser gallery: `ArtDirection/2026-09-17/mite-runtime-01/`. No project settings, package lock or existing GUID changed.
+
+Two existing art-lifetime tests now select the actual imported/procedural path instead of assuming the first enemy is procedural; their original lifetime, independent health/flash and cleanup assertions remain. The initial full run stopped at 92/94 and skipped the APK until these checks were updated. Five new scene tests cover shared ownership and reload, four facings/travel/pause, actual strike and hit silhouette, immediate kill/XP with actor-independent death, and pooled VFX rotation/tint/flip reuse. The ten-actor art capture disables attacks for readability; it is not a balance or performance run. World-space foot planting, finger occlusion and the remaining enemy roster are still open.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, targeted Mite **5/5**, art/HUD **9/9**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **94/94**, Android exit **0**, integrity **367 GUIDs / 555 scene objects/components**. APK **24,739,942 bytes**, SHA-256 **`23EDF4B3D2FA6DC853A4B579254D5200D5483009D1B4B1A948EB6EDCC56BEED1`**. Physical-device review and preserved progress are recorded in the newest Docs/23 entry.
+
+
 ## Four-direction Vanguard and support-foot revision — 2026-09-17
 
 Eight imported front body/flash pairs join the rear set; two rear passing poses lower the support sole. `VanguardArtSet` retains optional front compatibility and shared ownership. `HeroLookView` observes the existing actual-target `Struck` event; `VanguardAnimator` chooses front/rear from travel or a stationary hit target and mirrors only the presentation subtree for left facings. A normalized 0.15 axis dead band retains cardinal/idle facing; strike/recovery hold direction. Sword/buckler anchors, draw order and sword angles differ by facing. Movement, attacks, economy, telemetry, spacing, scene, package/project settings and existing GUIDs are unchanged.

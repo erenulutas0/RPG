@@ -1,5 +1,15 @@
 # Decision Log
 
+## Decision: Imported Mite poses and independent pooled death
+
+**Date:** 2026-09-17
+**Status:** Integrated prototype; final enemy animation still open
+
+Use a small shared `EnemyArtSet` for the first imported enemy, preserving the existing procedural fallback. Fixed registration across front/rear/walk/strike/death keeps its feet and scale comparable. One generated front contact faced the wrong way; reject it and import a corrected sibling, retaining both source and exact prompts.
+
+Play death in the existing effect pool instead of keeping the dead enemy active. This preserves immediate XP/kill accounting and room progression, avoids a corpse-specific object allocation per kill, and survives wave teardown. The tradeoff is bounded-pool replacement under simultaneous effects and a shared front/rear collapse. Sword/spark assets use the same ownership rule; imported frames must not enter runtime-generated sprite cleanup. New floors, enemy density/balance, hero collision and seeded upgrades are outside this art slice.
+
+
 ## Decision: Keep common pose registration and reject a repeated footfall
 
 **Date:** 2026-09-17

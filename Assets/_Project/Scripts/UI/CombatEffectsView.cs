@@ -5,10 +5,9 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Combat effects generated from code in the astral foundry style: the hero's strike at the enemy it hit, an ember
-    // spark and a floating damage number on every enemy hit, smoke and coins when an enemy dies, and a small camera shake
-    // when the hero is hurt. Every sprite is drawn once in Awake and every effect object is pooled, so combat never
-    // allocates. Effects run on scaled time so a pause freezes them; the shake runs on unscaled time so it always settles.
+    // Pooled strikes, hit sparks, numbers, deaths and coins. Optional imported slash/spark/death frames are borrowed;
+    // remaining procedural sprites are generated once in Awake. Per-hit effects reuse objects and arrays. Effects run
+    // on scaled time so a pause freezes them; the shake runs on unscaled time so it always settles.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -24,6 +23,7 @@ namespace Cryptforge.UI
             public Vector3 Velocity;
             public float Gravity;
             public bool Active;
+            public bool Fade;
         }
 
         private sealed class Number
@@ -44,6 +44,7 @@ namespace Cryptforge.UI
             public Health Enemy;
             public Transform Root;
             public Vector3 BodyOffset;
+            public EnemyLookView Look;
 
             public EnemyWatch(CombatEffectsView view) => _view = view;
 
@@ -89,6 +90,8 @@ namespace Cryptforge.UI
         [SerializeField] private Camera _camera;
         // Draws sprites; the built-in Sprites-Default material does.
         [SerializeField] private Material _material;
+        [SerializeField] private StrikeArtSet _paintedArt;
+        public bool UsesPaintedStrikes => _paintedArt != null && _paintedArt.IsValid;
         [SerializeField, Min(1)] private int _effectPoolSize = 24;
         [SerializeField, Min(1)] private int _numberPoolSize = 12;
         // Effects draw from this order up to four above it, over the combatants; numbers draw over the health bars.
@@ -225,13 +228,14 @@ namespace Cryptforge.UI
 
         private void BuildSprites()
         {
-            _slash = Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
+            _slash = UsesPaintedStrikes ? _paintedArt.Slash : Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
             _ring = Build(EffectArt.RingFrames(), "VFX Blast Ring", PixelSpriteFactory.Centre);
             _doubleSlash = Build(EffectArt.DoubleSlashFrames(), "VFX Double Slash", PixelSpriteFactory.Centre);
             _star = Build(EffectArt.StarBurstFrames(), "VFX Crit Star", PixelSpriteFactory.Centre);
-            _spark = Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
+            _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
             _smoke = Build(EffectArt.SmokeFrames(), "VFX Smoke", PixelSpriteFactory.Centre);
             _coin = Build(EffectArt.CoinFrames(), "VFX Coin", PixelSpriteFactory.Centre);
+            // Imported references are borrowed; only generated sprites enter the destruction list.
 
             // Numerals pivot at their bottom-left corner so a number is laid out left to right by stride.
             var digits = new PixelCanvas[10];
@@ -306,6 +310,7 @@ namespace Cryptforge.UI
 
                 watch.Enemy = enemy;
                 watch.Root = enemy.transform;
+                watch.Look = enemy.GetComponent<EnemyLookView>();
                 // Effects land at the middle of the body, whatever look the enemy was given.
                 SpriteRenderer body = enemy.GetComponentInChildren<SpriteRenderer>();
                 watch.BodyOffset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
@@ -324,6 +329,7 @@ namespace Cryptforge.UI
                     watch.Enemy.Damaged -= watch.OnDamaged;
                 watch.Enemy = null;
                 watch.Root = null;
+                watch.Look = null;
             }
             _watchCount = 0;
         }
@@ -376,7 +382,12 @@ namespace Cryptforge.UI
             switch (EffectArt.StrikeFor(weapon.Pattern.Behavior))
             {
                 case StrikeEffect.SwordSlash:
-                    Show(_slash, StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder);
+                    Effect slash = ShowMoving(_slash, StrikeFrameDuration, _slash.Length * StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder, Vector3.zero, 0, false);
+                    if (UsesPaintedStrikes)
+                    {
+                        Vector3 direction = target.transform.position - _hero.transform.position;
+                        slash.Transform.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 45);
+                    }
                     break;
                 case StrikeEffect.StaffBlast:
                     Vector3 feet = watch != null && watch.Root != null ? watch.Root.position : target.transform.position;
@@ -429,8 +440,15 @@ namespace Cryptforge.UI
         {
             EnemyWatch watch = FindWatch(enemy);
             Vector3 anchor = AnchorOf(watch, enemy);
-            // Smaller than the fallen enemy, so the puff never hides the hero standing beside it.
-            ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
+            // Remains outlive the actor without delaying death rewards or the next wave; fallback smoke stays small.
+            var painted = watch != null && watch.Look != null ? watch.Look.PaintedArt : null;
+            if (painted != null)
+            {
+                Effect remains = ShowMoving(painted.Death, .16f, .4f, enemy.transform.position, _sortingOrder + SmokeOrder, Vector3.zero, 0, false);
+                remains.Renderer.flipX = watch.Look.Mirrored;
+                remains.Fade = true;
+            }
+            else ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
                 Vector3.up * SmokeRise, 0f, false, SmokeScale);
             if (_encounter.GoldRewardOf(enemy) <= 0)
                 return;
@@ -459,7 +477,7 @@ namespace Cryptforge.UI
             ShowMoving(frames, frameDuration, frames.Length * frameDuration, origin, sortingOrder, Vector3.zero, 0f, false, scale);
 
         // Takes the next pool slot round robin, so when every slot is busy the oldest effect gives way.
-        private void ShowMoving(Sprite[] frames, float frameDuration, float lifetime, Vector3 origin, int sortingOrder,
+        private Effect ShowMoving(Sprite[] frames, float frameDuration, float lifetime, Vector3 origin, int sortingOrder,
             Vector3 velocity, float gravity, bool loop, float scale = 1f)
         {
             Effect effect = _effects[_nextEffect];
@@ -473,12 +491,16 @@ namespace Cryptforge.UI
             effect.Velocity = velocity;
             effect.Gravity = gravity;
             effect.Active = true;
+            effect.Fade = false;
             effect.Transform.position = origin;
+            effect.Transform.localRotation = Quaternion.identity;
             effect.Transform.localScale = new Vector3(scale, scale, 1f);
             effect.Renderer.sprite = frames[0];
             effect.Renderer.sortingOrder = sortingOrder;
             effect.Renderer.color = Color.white;
+            effect.Renderer.flipX = false;
             effect.Renderer.enabled = true;
+            return effect;
         }
 
         private void ShowNumber(int value, bool critical, Vector3 origin)
@@ -531,6 +553,7 @@ namespace Cryptforge.UI
                 Sprite sprite = effect.Frames[frame];
                 if (!ReferenceEquals(effect.Renderer.sprite, sprite))
                     effect.Renderer.sprite = sprite;
+                if (effect.Fade) effect.Renderer.color = new Color(1, 1, 1, Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .16f));
                 if (effect.Gravity != 0f || effect.Velocity != Vector3.zero)
                 {
                     float t = effect.Elapsed;

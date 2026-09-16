@@ -1,5 +1,20 @@
 # Android device validation — passed first combat smoke test
 
+## Cinder Mite and hit effects: S23 review — 2026-09-17
+
+**Gate:** .NET **272/272**, clean compile, EditMode **284/284**, PlayMode **94/94**, targeted Mite **5/5**, art/HUD **9/9**, graphics capture **1/1**, Android exit **0**, static integrity **367 GUIDs / 555 scene objects/components**. APK **24,739,942 bytes**, SHA-256 **`23EDF4B3D2FA6DC853A4B579254D5200D5483009D1B4B1A948EB6EDCC56BEED1`**. Installed with `adb install -r`; device `base.apk` hash matches. Same S23, 1080x2340.
+
+**Fresh state:** the phone was awake/unlocked on its launcher and no game process was running, so there was no active run to discard. The owner had advanced since the preceding review: profile version 2, revision **117 / 8588 gold / Daggers / Second Wind**, both unlockable weapons and relics, deepest floor 2. Backups were pulled before installation; preinstall and immediate postinstall profile SHA-256 both equal **`12FAE1C6A2CB54AF0488157B299B4802698617033BE7221C72659D4514A66120`**. No reset, purchase, loadout change or backup restoration occurred.
+
+The unattended run was announced. Every input/capture checked app focus, awake screen and hidden keyguard; captures checked again before retention. An otherwise absent `development/start-floor.txt` selected `floor_density_proof` for one run: two Grunts and eight Mites. `01-proof-entry` is only startup, not gameplay evidence. `02-proof-approach` shows the living pack and painted Mites arriving around the hero. After the first damage upgrade a 2.5-second southwest drag moved the hero toward the rim; `04-proof-moving` and `05-proof-after-drag` show the following Mites, hit feedback and compact collapsed remains. Two first-card damage upgrades were selected in total. Telemetry records **victory, 10 kills, 13.989 active seconds, 85.710 choice seconds, 62.464 HP, 10 gold banked**. This is a short art smoke run, not a controlled balance comparison.
+
+**Cleanup:** deleted only the temporary start-floor file; its previously existing empty directory remains. Try again returned to **Ember Hall 1/6**. Left on the first upgrade choice, **level 1, XP 10/22, 5 at-risk gold, 85 HP**, Daggers/Second Wind. Final stored profile **revision 118 / 8598 gold** retains the same loadout, unlocks and deepest floor. The difference is exactly the proof victory's 10 gold. Final profile SHA-256 **`C29C7F70DA51B3CE02F97B6B3BE5B5422F0152E571C94488605F3225CB16CF5F`**. Telemetry was retained, not replaced.
+
+**Limits and performance:** the short window covering choice release and movement held 59.7 fps with one 33.4 ms interval; the following mixed combat/choice window held 59.9 fps with max 16.7 ms. Much of the log is paused on choices or sitting on results; it cannot establish sustained dense-combat performance. Cold start included 2143.5 and 218.7 ms intervals. Normal warm restart sampled 1086.4 KB whole-frame allocation and StartWave .59 ms for two enemies. Current-process log search found no Exception, Error:, FATAL, NullReference or MissingReference matches. No middle-tier phone, GPU comparison or physical Sword run was performed; Sword direction/effect lifetime is covered by Unity tests and captures. Large health bars, earlier Grunt/chest art and some depth overlap remain visible.
+
+Ignored full evidence: `TestResults/device-mite-runtime-01/` (fresh backups, all screenshots, current-process logs, final profile/telemetry). Two unchanged game screenshots are retained for review as `ArtDirection/2026-09-17/mite-runtime-01/device-crowd.png` and `device-kiting.png`.
+
+
 ## Four-direction Vanguard: S23 movement review — 2026-09-17
 
 **Gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **89/89**, targeted animation **6/6**, graphics capture **1/1**, Android exit **0**, integrity **333 GUIDs / 555 scene objects/components**. APK SHA-256 **`C793A3F11F58AB82049892BB939D9CEC606893D3ABCBEC2974FAA0F8173A329A`**; `adb install -r` succeeded and installed `base.apk` matched. Samsung S23, 1080x2340. No data clear, purchase, proof-floor flag or profile restoration.

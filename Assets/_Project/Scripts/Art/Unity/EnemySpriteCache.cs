@@ -23,12 +23,18 @@ namespace Cryptforge.Art
             if (Looks[index] != null)
                 return Looks[index];
 
+            EnsureBars();
+            Looks[index] = new EnemySprites(look);
+            return Looks[index];
+        }
+
+        // Imported enemies still borrow the bars, even if no procedural enemy has spawned yet.
+        internal static void EnsureBars()
+        {
             if (BarBack == null)
                 BarBack = PixelSpriteFactory.CreateSprite(EnemyArt.DrawHealthBarBack(), "Health Bar Back", PixelSpriteFactory.Centre);
             if (BarFill == null)
                 BarFill = PixelSpriteFactory.CreateSprite(EnemyArt.DrawHealthBarFill(), "Health Bar Fill", new Vector2(0f, 0.5f));
-            Looks[index] = new EnemySprites(look);
-            return Looks[index];
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -194,4 +194,6 @@ P3 Growth:
 - [ ] Finish opposing facings, planted-foot gait and hand occlusion before calling the character animation production-ready.
 - [x] Add the front Vanguard pose set and four diagonal runtime facings, with mirrored presentation, real-target attack facing and revised rear passing feet.
 - [ ] Polish world-space foot contact and finger occlusion; resolve mirrored lighting/handedness before final character sign-off.
-- [ ] Match Staff/Daggers artwork and integrate the first animated Cinder Mite; current enemies/effects remain procedural.
+- [x] Integrate the first animated Cinder Mite plus imported sword slash and impact sparks; verify shared ownership, hit/death timing and crowd readability.
+- [ ] Match Staff/Daggers artwork and the remaining enemies; ability, coin and several strike effects still use the procedural art.
+- [ ] Refine the Mite health-bar width for crowd readability while preserving fill/flash/health independence.

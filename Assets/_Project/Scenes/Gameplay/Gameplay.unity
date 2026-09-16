@@ -5305,6 +5305,7 @@ MonoBehaviour:
   _chests: {fileID: 1821928769}
   _camera: {fileID: 102}
   _material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  _paintedArt: {fileID: 11400000, guid: a51314096c68ecd4190a4d4cfa91f178, type: 2}
   _effectPoolSize: 24
   _numberPoolSize: 12
   _sortingOrder: 5
