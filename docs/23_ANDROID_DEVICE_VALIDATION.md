@@ -1,5 +1,17 @@
 # Android device validation — passed first combat smoke test
 
+## Stone/contact slice: installed and observed live; controlled device pass pending — 2026-09-16
+
+Development APK **24,739,335 bytes**, SHA-256 **`8DD7866A84537B9B4D91644C685F894717460A86DC1E8261BC506E2F3BEF5E3D`**. Full gate after fixing the live-enemy clone fault: .NET **262**, EditMode **274**, PlayMode **80**, clean compile, Android exit 0 and integrity **292 GUIDs / 555 scene objects/components**. Installation used `adb install -r`; hashing the installed package matched the local APK. No app data was cleared.
+
+A fresh backup of the app's files, including both profile generations and telemetry, preceded installation under ignored `TestResults/device-stone-contact-01/before/`. The phone already held more progress than the preceding handoff: profile revision **97**, **6594 gold**, Staff/Counterweight, both purchased weapons/relics and deepest floor 2. Nothing was restored from an older backup. The observed profile remained byte-identical afterwards (SHA-256 `4D6EA529458141A44283A1692C1E7BC7748BA29B0F08DB2F45751AC25502B6EE`).
+
+After explicit `am start -W`, focus/unlocked/awake gates guarded every screenshot. `01-installed.png` caught startup too early to assess art. Despite its provisional filename, `02-normal-choice.png` shows **live combat**, with the new floor, rim, contact patches, body hit flash, damage numbers and a blue ability effect. `03-current.png` and `04-observed.png` show the level-4 choice in **Cinder Walk, floor 1 / room 2 of 6**, 33 at-risk run gold and 81 displayed HP. Telemetry records owner-driven upgrade selections, an ability and a chest; the agent sent **no taps or swipes** during this observed run.
+
+Live touches were apparent before automatic input began, so the owner was asked who should control the phone. The active run was left at its choice instead of force-stopping it to enter the proof floor. **Agent-controlled rim drags and ten-enemy warm-restart checks for this APK remain pending that coordination.** No temporary density-floor flag was created; the development directory was confirmed empty. Do not claim the phone was returned to Ember Hall, that this run finished, or that this build received a ten-enemy device pass. Those checks remain covered only by the preceding device build and current automated scene/parity tests until repeated here.
+
+`normal.log`/`observed.log` contain no matched `Exception`, `MissingReference`, `Error:` or `FATAL` messages. Recorded post-startup 5-second windows 2–7 report **59.9 fps**, maximum intervals **16.7–17.1 ms**, zero intervals over 20 ms; these mix combat and paused choices and are **not sustained-combat acceptance**. Observed 3–4-enemy wave markers: **1.42–6.28 ms** StartWave, **17.0–496.1 KB whole-frame allocation**. Cold window 1 includes a **2149 ms** startup interval and **196.5 ms** maximum main-thread work; do not merge it into the warm summary or attribute it to isolated floor drawing. The new shadow texture is 2 KB by construction, but no isolated mobile rendering-cost claim is made. Only the S23 was observed; short portrait review is from Unity renders.
+
 Date: 2026-09-12. The user authorized building and running the prototype on their USB-connected phone.
 
 ## Delivered

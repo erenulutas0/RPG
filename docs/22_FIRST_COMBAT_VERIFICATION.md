@@ -1,5 +1,14 @@
 # First combat slice — setup and verification
 
+## Latest gate: stone/rim materials and contact shadows — 2026-09-16
+
+**Current gate:** .NET **262/262**, compile **0 warnings/errors**, EditMode **274/274**, PlayMode **80/80**, Android exit **0**, integrity **292 GUIDs / 555 scene objects/components**. APK **24,739,335 bytes**, SHA-256 **`8DD7866A84537B9B4D91644C685F894717460A86DC1E8261BC506E2F3BEF5E3D`**, installed S23 hash matched. The first full attempt caught a live-clone shadow initialization fault; it was fixed and both complete suites rerun before this APK. Earlier counts below are historical.
+
+1. Inspect centre and far/side rim positions: slab bevels/patches/chips should recede beneath actors; coping and brass clamps must stay inside the old boundary and imply no raised obstacle. Compare actual Unity images in `ArtDirection/2026-09-16/stone-contact-01/` at 1080x2340/1920. Short-screen coverage is Editor-only.
+2. Hero/enemy contact patches must follow feet independently of body nudges, stay below all actors, disappear on death and shrink inside the diamond near an edge. The pure bounds sweep covers three sizes on symmetric/shifted geometry. Existing ability rings may extend over the rim; these are not shadows.
+3. `ArtHudFlowTests.ContactShadowsStayUnderFeetHideWithDeathAndShareAcrossReloads` checks actual scene sorting, nudges, edge fit, death, reload and unused-asset cleanup. The existing live-enemy clone test now checks one rebound shadow per copy and independent health. `ArenaArtCacheTests` also destroys/recreates the shared shadow on session reset.
+4. For the device pass, preserve the current profile/telemetry, update with `install -r`, compare installed APK hash and gate every input/capture on focus/unlocked/awake state. Coordinate with the owner if live touches are observed. Remove a temporary density-floor flag after testing and retain any progress earned. Full device evidence and benchmark limits are recorded in `23`.
+
 ## Latest gate: bounded camera and furnace plate — 2026-09-16
 
 **Current gate:** .NET **260/260**, compile **0 warnings/errors**, EditMode **272/272**, PlayMode **79/79**, Android exit **0**, integrity **289 GUIDs / 555 scene objects/components**. APK **24,739,335 bytes**, SHA-256 **`3704897005DA235B5C23DD70761DD2D784387489D5A896091F9241735CCB6F6F`**. This supersedes older counts and cosmic-background device steps below.

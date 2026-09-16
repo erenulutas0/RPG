@@ -60,6 +60,7 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _body.sprite = _sprites.Frame(EnemyPose.IdleA);
             CurrentPose = EnemyPose.IdleA;
+            ContactShadowView.Attach(transform, _body, EnemyArt.WidthOf(_look) / PixelSpriteFactory.PixelsPerUnit * .82f, _health);
             BuildBar();
             _lastPosition = transform.position;
             _frameRemaining = _breathFrameDuration;

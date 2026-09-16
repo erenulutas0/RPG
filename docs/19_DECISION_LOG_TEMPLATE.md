@@ -1,5 +1,18 @@
 # Decision Log
 
+## Decision: Quiet slab materials and one shared contact patch
+
+**Date:** 2026-09-16
+**Owner:** Art implementation, following the approved stone/rim/contact slice
+
+Extend the current deterministic floor drawing with upper bevels, broad stone patches, sparse chips and flush coping/brass clamps. A fully painted replacement would require a separate projection/seam/import proof; more bright lava or dense surface noise would compete with enemies. Retaining the silhouette and texel contract lets this slice improve material structure without changing walkable space or established camera margins. Sidewalls, corner props and character sheets remain prototype artwork rather than being described as finished.
+
+Use one 32x16 translucent contact sprite for hero/enemies, with independent root-level renderers. Reuse the existing session cache instead of drawing a texture per enemy or introducing a second cache owner. Body hit/attack nudges cannot lift the ground patch; death hides it. A conservative diamond fit contracts the footprint near the rim. This was chosen over a new masking shader or a per-frame clipped mesh for this small visual cue. It avoids spill onto the void at the cost of visibly smaller shadows very close to an edge; it is not a physical directional-light solution. No gameplay body, spacing, damage, seed or upgrade rules change.
+
+Pure tests sweep the full shadow rectangles across symmetric and shifted geometry. PlayMode verifies ground sorting, body independence, death, restart reuse, unused-asset cleanup and session resource release. Art provenance/review images are in `ArtDirection/2026-09-16/stone-contact-01/`; final gate and device observations belong to `21`–`23`.
+
+---
+
 Use one entry per meaningful irreversible or expensive decision.
 
 ---

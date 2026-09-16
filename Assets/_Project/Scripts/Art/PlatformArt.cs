@@ -84,6 +84,9 @@ namespace Cryptforge.Art
         public static readonly Rgba FloorDark = new Rgba(40, 39, 53);
         public static readonly Rgba FloorGrout = new Rgba(34, 33, 46);
         public static readonly Rgba FloorInlay = new Rgba(79, 66, 53);
+        public static readonly Rgba FloorBevel = new Rgba(53, 51, 65);
+        public static readonly Rgba RimStone = new Rgba(55, 51, 61);
+        public static readonly Rgba RimBevel = new Rgba(75, 66, 68);
         public const int FrameCount = 2;
         public const int TilesPerEdge = 16;
 
@@ -186,14 +189,26 @@ namespace Cryptforge.Art
                         continue;
                     float along = (y - layout.NearY) / (float)hd;
                     float across = (x - cx) / (float)hw;
-                    int i = Clamp((int)((along + across) * 0.5f * TilesPerEdge), 0, TilesPerEdge - 1);
-                    int j = Clamp((int)((along - across) * 0.5f * TilesPerEdge), 0, TilesPerEdge - 1);
+                    float tileS = (along + across) * 0.5f * TilesPerEdge;
+                    float tileT = (along - across) * 0.5f * TilesPerEdge;
+                    int i = Clamp((int)tileS, 0, TilesPerEdge - 1);
+                    int j = Clamp((int)tileT, 0, TilesPerEdge - 1);
                     bool far = i + j >= TilesPerEdge;
                     bool light = PixelNoise.Pick(i, j, Seed + 4, 2) == 0;
                     Rgba tone = far ? (light ? FloorStone : FloorDark) : (light ? FloorLight : FloorStone);
-                    // Two-texel speckles keep the stone from reading as flat colour without adding micro detail.
-                    if (PixelNoise.Chance(x >> 1, y >> 1, Seed + 5, 0.02f))
+                    float u = tileS - i;
+                    float v = tileT - j;
+                    // Broad mineral patches, not screen-space noise: their edges stay inside individual slabs.
+                    int patch = PixelNoise.Pick(i, j, Seed + 5, 4);
+                    if (u > .18f && u < .78f && v > .22f && v < .76f &&
+                        u + v * .45f > .42f + patch * .11f)
                         tone = tone == FloorLight ? FloorStone : FloorDark;
+                    // A narrow upper bevel and a darker lower lip give the slab thickness without bright grid lines.
+                    float bevel = TilesPerEdge / (float)hd * .55f;
+                    if ((u > 1f - bevel || v > 1f - bevel) && u < .99f && v < .99f)
+                        tone = FloorBevel;
+                    else if (u < bevel || v < bevel)
+                        tone = FloorGrout;
                     canvas.Set(x, y, tone);
                 }
             }
@@ -209,20 +224,47 @@ namespace Cryptforge.Art
                 canvas.Line(x0, y0, x1, y1, FloorGrout);
             }
 
-            // The rim: a brass band with a dark inner line, and a lit outer edge along the two near sides.
+            // A few short, low-contrast chips break the perfect grid; never draw glowing cracks in walkable stone.
+            for (int i = 1; i < TilesPerEdge - 1; i++)
+            {
+                for (int j = 1; j < TilesPerEdge - 1; j++)
+                {
+                    if (PixelNoise.Pick(i, j, Seed + 8, 7) != 0)
+                        continue;
+                    layout.TopTexel((i + .3f) / TilesPerEdge, (j + .3f) / TilesPerEdge, out int x, out int y);
+                    canvas.Line(x - 3, y + 1, x, y, FloorGrout);
+                    canvas.Line(x, y, x + 2, y - 2, FloorGrout);
+                    canvas.Set(x + 3, y - 2, FloorBevel);
+                }
+            }
+
+            // Flush coping stones inside the true edge; brass rails and regularly spaced clamps join the pieces.
+            // These are material changes only: the walkable silhouette and its corner positions do not move.
             for (int y = layout.NearY; y <= layout.FarY; y++)
             {
                 for (int x = cx - hw; x <= cx + hw; x++)
                 {
                     if (!layout.IsOnTop(x, y))
                         continue;
-                    if (!layout.IsInRhombus(x, y, hw - 3, hd - 4))
+                    if (!layout.IsInRhombus(x, y, hw - 12, hd - 8))
                     {
+                        float distance = (x - cx) / (float)hw;
+                        float edgePosition = Math.Abs(distance) * 8f;
+                        float part = edgePosition - (float)Math.Floor(edgePosition);
+                        bool rail = !layout.IsInRhombus(x, y, hw - 2, hd - 2);
+                        bool clamp = part < .12f || part > .88f;
+                        bool join = part > .48f && part < .54f;
                         bool outerEdge = !layout.IsInRhombus(x, y, hw - 1, hd - 1) && y < layout.MiddleY;
-                        canvas.Set(x, y, outerEdge ? PixelPalette.BrassLight : PixelPalette.Brass);
+                        bool innerBevel = layout.IsInRhombus(x, y, hw - 10, hd - 6);
+                        Rgba rim = join ? FloorGrout : (innerBevel ? RimBevel : RimStone);
+                        if (clamp)
+                            rim = innerBevel ? PixelPalette.BrassDark : PixelPalette.Brass;
+                        if (rail)
+                            rim = outerEdge ? PixelPalette.BrassLight : PixelPalette.Brass;
+                        canvas.Set(x, y, rim);
                     }
-                    else if (!layout.IsInRhombus(x, y, hw - 4, hd - 5))
-                        canvas.Set(x, y, PixelPalette.BrassDark);
+                    else if (!layout.IsInRhombus(x, y, hw - 14, hd - 9))
+                        canvas.Set(x, y, FloorGrout);
                 }
             }
 

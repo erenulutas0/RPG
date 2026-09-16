@@ -62,6 +62,7 @@ namespace Cryptforge.UI
                 return;
             }
             Build();
+            ContactShadowView.Attach(transform, _body, .78f, GetComponent<Health>());
         }
 
         private void OnEnable()

@@ -9,6 +9,7 @@ namespace Cryptforge.Art
     {
         private static PlatformSprites _platform;
         private static VoidSprites _void;
+        private static Sprite _contactShadow;
 
         internal static PlatformSprites Platform(ArenaGeometry geometry, out bool shared)
         {
@@ -19,6 +20,8 @@ namespace Cryptforge.Art
         }
 
         internal static VoidSprites Backdrop => _void ?? (_void = new VoidSprites());
+        internal static Sprite ContactShadow => _contactShadow != null ? _contactShadow :
+            (_contactShadow = PixelSpriteFactory.CreateSprite(ContactShadowArt.Draw(), "Contact Shadow", PixelSpriteFactory.Centre));
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         internal static void ResetSession()
@@ -34,6 +37,8 @@ namespace Cryptforge.Art
             _platform = null;
             _void?.Dispose();
             _void = null;
+            PixelSpriteFactory.Destroy(_contactShadow);
+            _contactShadow = null;
         }
     }
 

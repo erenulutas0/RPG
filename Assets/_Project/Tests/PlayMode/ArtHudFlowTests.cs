@@ -40,6 +40,42 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator ContactShadowsStayUnderFeetHideWithDeathAndShareAcrossReloads()
+        {
+            Time.timeScale = 0f;
+            var hero = Object.FindFirstObjectByType<HeroLookView>();
+            var enemy = Object.FindFirstObjectByType<EnemyLookView>();
+            var arena = Object.FindFirstObjectByType<ArenaView>();
+            var shadow = hero.GetComponentInChildren<ContactShadowView>();
+            var enemyShadow = enemy.GetComponentInChildren<ContactShadowView>();
+            Sprite shared = shadow.Renderer.sprite;
+            Assert.That(enemyShadow.Renderer.sprite, Is.SameAs(shared));
+            Assert.That(shadow.transform.parent, Is.EqualTo(hero.transform));
+            Assert.That(shadow.Renderer.sortingOrder, Is.GreaterThan(arena.Platform.LightsRenderer.sortingOrder));
+            Assert.That(shadow.Renderer.sortingOrder, Is.LessThan(GameObject.Find("Hero Body").GetComponent<SpriteRenderer>().sortingOrder));
+            Transform body = GameObject.Find("Hero Body").transform;
+            Vector3 original = body.localPosition;
+            body.localPosition += Vector3.up * .2f;
+            shadow.Refresh();
+            Assert.That(shadow.transform.localPosition, Is.EqualTo(Vector3.zero), "Attack nudges must not lift the contact patch.");
+            body.localPosition = original;
+            hero.transform.position = new Vector3(8.75f, 0, 0);
+            shadow.Refresh();
+            Assert.That(shadow.transform.localScale.x, Is.GreaterThan(0f).And.LessThan(.78f), "A rim footprint contracts inside the floor.");
+            enemy.GetComponent<Health>().ApplyDamage(new DamageContext(100000f));
+            enemyShadow.Refresh();
+            Assert.That(enemyShadow.Renderer.enabled, Is.False, "Dead enemies leave no detached patch.");
+            yield return SceneManager.LoadSceneAsync(ScenePath);
+            yield return null;
+            yield return Resources.UnloadUnusedAssets();
+            var next = Object.FindFirstObjectByType<HeroLookView>().GetComponentInChildren<ContactShadowView>();
+            Assert.That(next.Renderer.sprite, Is.SameAs(shared));
+            Assert.That(next.Renderer.enabled, Is.True);
+            Assert.That(shared.texture.isReadable, Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
         public IEnumerator SharedEnvironmentSurvivesReloadWhileMeshesAndAnimationStayLocal()
         {
             Time.timeScale = 0f;
@@ -98,6 +134,8 @@ namespace Cryptforge.Tests
             EnemyLookView second = Object.Instantiate(source);
             first.GetComponent<Health>().Initialize(100f);
             second.GetComponent<Health>().Initialize(100f);
+            Assert.That(first.GetComponentsInChildren<ContactShadowView>().Length, Is.EqualTo(1), "Cloning a live actor rebinds its existing shadow.");
+            Assert.That(second.GetComponentsInChildren<ContactShadowView>().Length, Is.EqualTo(1));
             // Cloning a live view also copies its generated bar; find the newly built bar via the last child.
             var firstFill = first.transform.GetChild(first.transform.childCount - 1).Find("Fill").GetComponent<SpriteRenderer>();
             var secondFill = second.transform.GetChild(second.transform.childCount - 1).Find("Fill").GetComponent<SpriteRenderer>();
@@ -113,6 +151,10 @@ namespace Cryptforge.Tests
             Sprite frame = EnemySpriteCache.Get(source.Look).Frame(EnemyPose.IdleA);
             Sprite flash = second.SilhouetteOf(frame);
             first.GetComponent<Health>().ApplyDamage(new DamageContext(100f));
+            first.GetComponentInChildren<ContactShadowView>().Refresh();
+            second.GetComponentInChildren<ContactShadowView>().Refresh();
+            Assert.That(first.GetComponentInChildren<ContactShadowView>().Renderer.enabled, Is.False);
+            Assert.That(second.GetComponentInChildren<ContactShadowView>().Renderer.enabled, Is.True, "The clone observes its own health.");
             Object.Destroy(first.gameObject);
             yield return null;
             Assert.That(second.HasSprites, Is.True);

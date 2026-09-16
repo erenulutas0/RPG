@@ -24,6 +24,7 @@ namespace Cryptforge.UI
 
         public ArenaGeometry Geometry => new ArenaGeometry(_nearCorner, _farCorner, _halfWidth);
         public Material Material => _material;
+        public int GroundEffectSortingOrder => _sortingOrder + 7;
         public VoidBackdropView Backdrop { get; private set; }
         public ForgePlatformView Platform { get; private set; }
         // The lowest renderer of the arena; every sprite in the scene draws above it.

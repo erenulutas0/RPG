@@ -1,5 +1,7 @@
 # Art Direction & AI-Assisted Asset Pipeline
 
+**Stone/contact contract, 2026-09-16:** `ArtDirection/2026-09-16/stone-contact-01/` records a deterministic material pass: low-contrast slab bevels/patches/chips and flush segmented coping with brass clamps. Platform geometry, 581x419 surface and two light frames, 32 PPU/point filtering and pivots remain. A single 32x16, centre-pivot, point-filtered RGBA32 contact shadow is borrowed by hero/enemy renderers from `ArenaSpriteCache`; it adds 2,048 texel bytes, survives scene reload and is released on session reset/quit. Shadows follow feet, hide on death and shrink inside the rim; they are not directional cast shadows. Corner props, sidewalls, chest and actor sheets still need their later production pass. No new generated raster or scene/prefab edit belongs to this slice.
+
 **Latest environment slice, 2026-09-16:** the authored scene now uses one imported dim furnace-cavern plate behind its existing procedural platform and actors, with room-bound width-9 camera framing. `ArtDirection/2026-09-16/furnace-layer-01/` records the exact built-in generation prompt, untouched source hash, import contract and actual Unity review renders. This supersedes the cosmic-runtime statement below. The distant plate deliberately uses bilinear filtering at a 64-PPU import; characters/floor retain their point-filtered 32-PPU contract. It is the first environment layer, not completed reference-quality floor/props/characters or a new boss room. See the latest docs/21–23 for verification.
 
 ## Main recommendation

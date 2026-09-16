@@ -111,6 +111,7 @@ namespace Cryptforge.Tests
         public IEnumerator ResetReleasesEverySharedTextureIncludingHiddenAnimationFrames()
         {
             var all = new List<Sprite>();
+            all.Add(ArenaSpriteCache.ContactShadow);
             PlatformSprites platform = ArenaSpriteCache.Platform(Geometry, out _);
             all.Add(platform.Surface);
             for (int i = 0; i < PlatformArt.FrameCount; i++)
@@ -135,6 +136,7 @@ namespace Cryptforge.Tests
                 Assert.That(texture == null, Is.True);
             Assert.That(ArenaSpriteCache.Platform(Geometry, out _).Surface != null, Is.True);
             Assert.That(ArenaSpriteCache.Backdrop.Galaxy != null, Is.True);
+            Assert.That(ArenaSpriteCache.ContactShadow != null, Is.True);
         }
 
         private static long Measure(string label, Action build)
