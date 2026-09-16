@@ -101,6 +101,18 @@ namespace Cryptforge.Tests
             // from a spawn on. Kept squared while the run measures them; float.MaxValue until the first measurement.
             public float ClosestEnemyGapSquared;
             public float ClosestHeroDistanceSquared;
+            // Seconds a living enemy that had not reached the hero spent held back by the pack with no step to take, summed
+            // over every enemy of the run, and the longest any one enemy was held back without a break.
+            public float EnemyStallSeconds;
+            public float LongestEnemyStallSeconds;
+            // Frames on which a living enemy stepped back against the step it took before, over every enemy of the run: how
+            // often the pack turns round on the spot. Only steps of at least VisibleStep count, so a correction too small to
+            // see is not a turn, and the first step after standing still for FlickerSeconds or more starts afresh, since
+            // setting off is not turning back. A pack following a hero that turns round turns with it.
+            public int EnemyStepReversals;
+            // Of those, the ones that came within FlickerSeconds of the same enemy's previous one: an enemy stepping back and
+            // forth on the spot rather than turning to follow the hero.
+            public int EnemyStepFlickers;
             // Where the hero stood on the floor when the run ended, so a scene driver can prove it walked the same walk
             // and not merely reached the same result. (0, 0) for a run with no route, which never moves the hero.
             public float HeroFloorX;
@@ -205,6 +217,16 @@ namespace Cryptforge.Tests
 
         public static HeroAbility ForgeBurst() => new HeroAbility { Damage = 20f, Radius = 2.5f, Cooldown = 8f };
 
+        // A hero turning round on the proof floors: full steer right, then left, then right, every second and a half, for two
+        // minutes. It reads nothing but the fight clock, so the scene's driver walks it through the same frames.
+        public static ScriptedRoute TurningRound()
+        {
+            var segments = new RouteSegment[80];
+            for (int i = 0; i < segments.Length; i++)
+                segments[i] = new RouteSegment((i + 1) * 1.5f, i % 2 == 0 ? 1f : -1f, 0f);
+            return new ScriptedRoute(segments);
+        }
+
         // EncounterController's _entryDepth, _formationSpacing and _bodySpacing in Gameplay.unity, in floor units.
         public const float EntryDepth = 5f;
         public const float FormationSpacing = 1f;
@@ -304,6 +326,9 @@ namespace Cryptforge.Tests
                 var enemyWeapons = new WeaponRuntime[pack.Length];
                 var enrages = new EnrageRule[pack.Length];
                 var rewarded = new bool[pack.Length];
+                // How long each enemy has been held back without a break, where it stood after the last frame and the last step
+                // it took.
+                var steps = new StepLog(pack.Length);
                 // The pack forms up round wherever the hero stands now, keeping a body's spacing between its spots.
                 float spawnX = heroMotion.X;
                 float spawnY = heroMotion.Y;
@@ -319,6 +344,8 @@ namespace Cryptforge.Tests
                         enemyWeapons[i].AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                     enrages[i] = pack[i].EnrageAt > 0f ? new EnrageRule(pack[i].EnrageAt) : null;
                     motion.Add(enemies[i], placements[i], pack[i].Speed, pack[i].Reach);
+                    steps.X[i] = steps.LastX[i] = motion.XOf(i);
+                    steps.Y[i] = steps.LastY[i] = motion.YOf(i);
                 }
                 waveOrdinal++;
 
@@ -343,6 +370,7 @@ namespace Cryptforge.Tests
                         moved = heroMotion.Move(steerX, steerY, step, Platform);
                         motion.Step(step, heroMotion.X, heroMotion.Y);
                         result.FightSeconds += step;
+                        ObserveSteps(motion, enemies, steps, step, result.FightSeconds, ref result);
                     }
 
                     int target = Acquire(motion, enemies, weapon.Range, heroMotion.X, heroMotion.Y);
@@ -499,6 +527,102 @@ namespace Cryptforge.Tests
                     if (apartSquared < result.ClosestEnemyGapSquared)
                         result.ClosestEnemyGapSquared = apartSquared;
                 }
+            }
+        }
+
+        // Two reversals of one enemy this close together are a flicker: six frames at 60 Hz.
+        public const float FlickerSeconds = 0.1f;
+        // The shortest step the reversal count looks at: a quarter of a texel, since the art draws 32 texels to a floor unit.
+        public const float VisibleStep = 1f / 128f;
+
+        // One wave's record of how its enemies walked: how long each has been held back without a break, where it stood when
+        // its last step was counted, that step, and when it last turned back.
+        private sealed class StepLog
+        {
+            public readonly float[] Stalled;
+            public readonly float[] X;
+            public readonly float[] Y;
+            public readonly float[] StepX;
+            public readonly float[] StepY;
+            public readonly float[] Reversed;
+            public readonly float[] LastX;
+            public readonly float[] LastY;
+            public readonly float[] Moved;
+
+            public StepLog(int count)
+            {
+                Stalled = new float[count];
+                X = new float[count];
+                Y = new float[count];
+                StepX = new float[count];
+                StepY = new float[count];
+                Reversed = new float[count];
+                LastX = new float[count];
+                LastY = new float[count];
+                Moved = new float[count];
+                for (int i = 0; i < count; i++)
+                    Reversed[i] = float.MinValue;
+            }
+        }
+
+        // Counts the frame against every living enemy the pack held back on its step, restarts the count of every other, and
+        // counts a step taken back against the previous one.
+        private static void ObserveSteps(PackMotion motion, HealthState[] enemies, StepLog steps, float step, float seconds, ref Result result)
+        {
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (!enemies[i].IsAlive)
+                {
+                    steps.Stalled[i] = 0f;
+                    continue;
+                }
+
+                if (motion.IsStalled(i))
+                {
+                    steps.Stalled[i] += step;
+                    result.EnemyStallSeconds += step;
+                    if (steps.Stalled[i] > result.LongestEnemyStallSeconds)
+                        result.LongestEnemyStallSeconds = steps.Stalled[i];
+                }
+                else
+                {
+                    steps.Stalled[i] = 0f;
+                }
+
+                // How long it had stood still before this frame, if it moved at all on it.
+                bool moved = motion.XOf(i) != steps.LastX[i] || motion.YOf(i) != steps.LastY[i];
+                bool setsOff = moved && seconds - step - steps.Moved[i] >= FlickerSeconds;
+                if (moved)
+                {
+                    steps.LastX[i] = motion.XOf(i);
+                    steps.LastY[i] = motion.YOf(i);
+                    steps.Moved[i] = seconds;
+                }
+                if (setsOff)
+                {
+                    steps.StepX[i] = 0f;
+                    steps.StepY[i] = 0f;
+                    steps.X[i] = motion.XOf(i);
+                    steps.Y[i] = motion.YOf(i);
+                    continue;
+                }
+
+                // A step is measured from where the enemy stood when its last step was counted, so small moves add up.
+                float stepX = motion.XOf(i) - steps.X[i];
+                float stepY = motion.YOf(i) - steps.Y[i];
+                if (stepX * stepX + stepY * stepY < VisibleStep * VisibleStep)
+                    continue;
+                steps.X[i] = motion.XOf(i);
+                steps.Y[i] = motion.YOf(i);
+                if (stepX * steps.StepX[i] + stepY * steps.StepY[i] < 0f)
+                {
+                    result.EnemyStepReversals++;
+                    if (seconds - steps.Reversed[i] <= FlickerSeconds)
+                        result.EnemyStepFlickers++;
+                    steps.Reversed[i] = seconds;
+                }
+                steps.StepX[i] = stepX;
+                steps.StepY[i] = stepY;
             }
         }
 

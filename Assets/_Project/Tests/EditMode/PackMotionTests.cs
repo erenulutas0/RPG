@@ -371,10 +371,11 @@ namespace Cryptforge.Tests
         }
 
         // Ten enemies, two Grunts in front of eight Cinder Mites, walk in from where the separated wave placed them: with the
-        // hero at the right corner the whole pack forms up on one corner, at the centre it comes from all four. No enemy ever
-        // steps inside the spacing of an enemy nearer the hero, and none ever leaves the platform.
+        // hero at the right corner the whole pack forms up on one corner, at the centre it comes from all four. On every
+        // frame, through a death and a walk, no two living enemies stand within a body of each other, whichever of them is
+        // nearer the hero, and none ever leaves the platform.
         [Test]
-        public void ATenPackWalksInWithoutAnyEnemySteppingIntoTheSpacingOfANearerOne()
+        public void ATenPackWalksInWithoutAnyTwoEnemiesComingWithinABodyOfEachOther()
         {
             WalkInTenPack(9f - HeroMotion.EdgeMargin, 0f, -1f, 0f, "from the right corner");
             WalkInTenPack(0f, 0f, 1f, 0f, "from the centre");
@@ -397,7 +398,6 @@ namespace Cryptforge.Tests
 
             var beforeX = new float[count];
             var beforeY = new float[count];
-            var order = new int[count];
             int moves = 0;
             for (int frame = 0; frame < 900; frame++)
             {
@@ -405,44 +405,31 @@ namespace Cryptforge.Tests
                     bodies[0].ApplyDamage(new DamageContext(50f));
                 if (frame >= 480 && frame < 600)
                     hero.Move(steerX, steerY, Frame, Arena);
-                float heroX = hero.X;
-                float heroY = hero.Y;
-
-                // The living enemies nearest the hero first, an earlier slot first on equal distance: PackMotion's step order.
-                int living = 0;
                 for (int i = 0; i < count; i++)
                 {
                     beforeX[i] = motion.XOf(i);
                     beforeY[i] = motion.YOf(i);
-                    if (!bodies[i].IsAlive)
-                        continue;
-                    float distance = Squared(beforeX[i] - heroX) + Squared(beforeY[i] - heroY);
-                    int insertAt = living;
-                    while (insertAt > 0 && Squared(beforeX[order[insertAt - 1]] - heroX) + Squared(beforeY[order[insertAt - 1]] - heroY) > distance)
-                    {
-                        order[insertAt] = order[insertAt - 1];
-                        insertAt--;
-                    }
-                    order[insertAt] = i;
-                    living++;
                 }
 
-                motion.Step(Frame, heroX, heroY);
-                for (int k = 0; k < living; k++)
+                motion.Step(Frame, hero.X, hero.Y);
+                for (int i = 0; i < count; i++)
                 {
-                    int i = order[k];
-                    if (motion.XOf(i) == beforeX[i] && motion.YOf(i) == beforeY[i])
+                    if (!bodies[i].IsAlive)
                         continue;
-                    moves++;
-                    Assert.That(Arena.IsOnPlatform(motion.XOf(i), motion.YOf(i), HeroMotion.EdgeMargin - 1e-3f), Is.True,
-                        $"Walking in {where}, frame {frame}, slot {i} stays on the platform.");
-                    for (int nearer = 0; nearer < k; nearer++)
+                    if (motion.XOf(i) != beforeX[i] || motion.YOf(i) != beforeY[i])
                     {
-                        int other = order[nearer];
+                        moves++;
+                        Assert.That(Arena.IsOnPlatform(motion.XOf(i), motion.YOf(i), HeroMotion.EdgeMargin - 1e-3f), Is.True,
+                            $"Walking in {where}, frame {frame}, slot {i} stays on the platform.");
+                    }
+                    for (int other = 0; other < i; other++)
+                    {
+                        if (!bodies[other].IsAlive)
+                            continue;
                         float dx = motion.XOf(other) - motion.XOf(i);
                         float dy = motion.YOf(other) - motion.YOf(i);
                         Assert.That(dx * dx + dy * dy, Is.GreaterThanOrEqualTo(BodySpacing * BodySpacing),
-                            $"Walking in {where}, frame {frame}: slot {i} stepped inside the spacing of slot {other}.");
+                            $"Walking in {where}, frame {frame}: slots {other} and {i} stand within a body of each other.");
                     }
                 }
             }
@@ -454,9 +441,8 @@ namespace Cryptforge.Tests
                 if (bodies[i].IsAlive && motion.HasArrived(i))
                     arrived++;
             }
-            // Only as many enemies as the ring at their reach holds, three of the nine here, stand in reach at once; the rest
-            // queue behind them at their spacing. The spacing rule only keeps an enemy out of the ring of the enemies nearer
-            // the hero, so a nearer one may still step within a body of a farther one standing still.
+            // Only as many enemies as the ring at their reach holds stand in reach at once; the rest queue behind them at
+            // their spacing.
             Assert.That(arrived, Is.GreaterThanOrEqualTo(3), $"The front of the pack reaches the hero {where}.");
         }
 

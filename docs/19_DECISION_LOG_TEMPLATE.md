@@ -498,3 +498,25 @@ Unbounded follow centres the hero even at the far rim, devoting much of the usef
 The owner's later furnace-cavern approval superseded the original cosmic-only choice, but its low-contrast combat hierarchy remains. Use one original generated background plate, separate from the walkable platform and every actor/UI/effect. Replacing the whole world with a flattened mockup would break movement and occlusion; building a complete environment kit before seeing one layer in Unity would delay the phone check. The first plate has muted indigo rock and sparse distant amber furnaces, with no foreground arena or painted gameplay elements. Existing floor/rim/lighting are retained for a bounded first composition proof.
 
 The painted distant layer uses bilinear filtering and a 64-PPU import (aspect-preserving cover at runtime), while actors/floor retain point-filtered 32-PPU art. This explicitly scoped exception avoids pretending the source has strict pixel-grid discipline. Android ASTC 6x6, no mipmaps or CPU readability, and bounded parallax keep it small. Asset ownership replaces procedural backdrop generation in the authored scene; the old cache remains a fallback when the imported sprite is absent. Prototype actors and stone still need a later material/style pass. Source, exact prompt, review renders and scope are in `ArtDirection/2026-09-16/furnace-layer-01/`; no asset was derived from a third-party game image.
+
+---
+
+## Decision: Enemies keep their spacing from every neighbour, and slide or wait rather than overlap
+
+**Date:** 2026-09-16
+**Status:** Implemented; phone check pending
+**Owner:** Engineering, under the owner's spacing brief
+
+### Context and options
+
+With ten enemies and a walking hero the pack overlapped badly (closest gap 0.072 against a 0.9 spacing), because only enemies nearer the hero could hold one back. Three shapes of fix were weighed. Pushing overlapping enemies apart after they move is simple, but it moves enemies that have already arrived, pushes them out of reach and back, and is the classic source of crowd jitter. Steering forces (separation added to the walk) are smooth in open space and oscillate in a crowd. A constraint on the step itself - never end a step inside a neighbour's spacing, slide along it instead, wait when no slide helps - moves nothing that is standing, keeps the invariant exactly by construction, and costs nothing when no neighbour is near.
+
+### Decision and evidence
+
+Constrain the step, with no memory between steps. Every enemy's step is refused if it ends inside any living neighbour's spacing, unless it widens a gap already too small; a refused step slides along every neighbour it could touch and is taken only if it brings the enemy strictly nearer its own point and keeps it on the platform; long frames are sub-stepped. Measured in the Editor: closest gap 0.900 in every proof run (before 0.072–0.704), flickers 12 → 0, longest wait while the hero walks 6.37 → 2.02 s, gold unchanged, and the standing authored Descent identical, because its packs never come within two strides of a body.
+
+Three intermediate versions were measured and dropped. Sliding round only the nearest blocker made an enemy zigzag down the gap between two neighbours, glancing off each in turn. Sliding against every near neighbour even when the straight step was free made standing packs wait longer (longest wait 5.35 → 9.45 s in the .NET measurement) and brought flickers back (14 against 1). Remembering the side an enemy slid round, to stop it switching sides, could freeze an enemy for good with the hero standing still - an adversarial review found the positions - while buying no fewer flickers. None of them is in the code; the frozen case is a test.
+
+### Consequences and remaining work
+
+A standing hero now takes less damage from a dense pack, since only as many enemies as fit a body apart can reach it; this is visible only on the development proof floor, because no authored wave crowds. Enemies still stop at their reach and the hero has no body. Crowded fights end differently on the Editor's Mono and the .NET runner, as they already did before this rule, so exact crowded outcomes are recorded per runtime. Revisit if authored waves grow beyond five, if a hero body is added (the same step constraint is the natural place for it), or if the phone shows enemies freezing in a crowd.

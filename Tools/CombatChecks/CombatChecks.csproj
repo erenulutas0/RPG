@@ -59,6 +59,7 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AbilityTests.cs" />

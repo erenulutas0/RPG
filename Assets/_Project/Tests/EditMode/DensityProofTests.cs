@@ -89,11 +89,8 @@ namespace Cryptforge.Tests
         // The proof itself: a wave of ten, standing and kiting, on both proof floors, with each weapon and with and without
         // the burst. Twenty-four runs, each run twice. What is asserted is what the rules guarantee — the run ends, it ends
         // the same way twice, the hero stays on the platform, no wave lands a hit on its spawn frame and no two living
-        // enemies ever share a spot. What kiting costs or saves is in the report's table, not in an assertion.
-        //
-        // Not asserted, on purpose: that the pack keeps the body spacing while it walks. PackMotion only stops an enemy from
-        // stepping into the ring of an enemy nearer the hero, so a nearer one may step within a body of a farther one that is
-        // standing still; a moving hero makes that happen more often. The observed smallest gap is reported instead.
+        // enemies ever share a spot. What kiting costs or saves is in the report's table, not in an assertion. That the pack
+        // keeps the full body spacing while it walks is asserted by the spacing test below.
         [Test]
         public void EveryDensityProofRunEndsTheSameWayTwiceAndKeepsItsSpawnAndPlatformGuarantees()
         {
@@ -132,6 +129,80 @@ namespace Cryptforge.Tests
 
         private static IHeroRoute Route(bool kite) => kite ? new KiteRoute() : (IHeroRoute)new StationaryRoute();
 
+        // The spacing while the pack walks, measured the way the movement report reads it, on both ten-enemy proof floors
+        // with every weapon: standing, kiting, turning round every second and a half, and running a loop into the rim and its
+        // corners. Every run clears; no two living enemies ever stand within a body of each other; no enemy steps back and
+        // forth; and a walking hero never leaves an enemy held back for three seconds at a stretch (the one-sided rule held
+        // them up to 6.4 s; this rule at most 2.3 s). The flicker check covers kiting too: sliding along only the first
+        // neighbour an enemy touches, instead of along all of them, makes the kiting Sword and Daggers flicker here.
+        [Test]
+        public void OnTheProofFloorsEveryWeaponAndWalkKeepsThePackABodyApartWithoutFlickering()
+        {
+            foreach (DescentSimulation.Floor floor in new[] { DescentSimulation.DensityProofTrailing, DescentSimulation.DensityProofMites })
+            {
+                string floorName = floor == DescentSimulation.DensityProofTrailing ? "Grunts then Mites" : "Mites";
+                foreach ((string name, DescentSimulation.HeroWeapon weapon) in Weapons())
+                {
+                    foreach ((string walk, IHeroRoute route) in Walks())
+                    {
+                        DescentSimulation.Result result = Run(new[] { floor }, weapon, route, false);
+                        string where = $"{floorName}, {name}, {walk}: {Describe(result)}";
+                        TestContext.WriteLine(where);
+                        Assert.That(result.ClearedFloors, Is.EqualTo(1), where);
+                        Assert.That(result.Kills, Is.EqualTo(10), where);
+                        Assert.That(result.ClosestEnemyGapSquared,
+                            Is.GreaterThanOrEqualTo(DescentSimulation.BodySpacing * DescentSimulation.BodySpacing), where);
+                        Assert.That(result.FramesOffPlatform, Is.Zero, where);
+                        Assert.That(result.EnemyStepFlickers, Is.Zero, where);
+                        if (route != null)
+                            Assert.That(result.LongestEnemyStallSeconds, Is.LessThan(3f), where);
+                    }
+                }
+            }
+        }
+
+        // Why the two-sided spacing moved no balance number: on the authored Descent a standing hero's packs never come
+        // within two strides of a body of each other (the fastest enemy, the Runner, walks 0.05 a frame), so no step ever
+        // ends inside anyone's spacing, nothing is held back or slides, and every enemy walks exactly the straight steps it
+        // walked when only nearer enemies could hold it back.
+        [Test]
+        public void OnTheAuthoredDescentAStandingHerosPacksNeverCrowdSoTheSpacingRuleNeverEngages()
+        {
+            float fastestStride = DescentSimulation.Runner.Speed / 60f;
+            float untouched = DescentSimulation.BodySpacing + 2f * fastestStride;
+            foreach ((string name, DescentSimulation.HeroWeapon weapon) in Weapons())
+            {
+                foreach (bool burst in new[] { false, true })
+                {
+                    DescentSimulation.Result result = Run(Descent, weapon, null, burst);
+                    string where = $"{name}{(burst ? " with the burst" : "")}: {Describe(result)}";
+                    Assert.That(result.ClosestEnemyGapSquared, Is.GreaterThanOrEqualTo(untouched * untouched), where);
+                    Assert.That(result.EnemyStallSeconds, Is.Zero, where);
+                    Assert.That(result.EnemyStepReversals, Is.Zero, where);
+                }
+            }
+        }
+
+        private static (string Name, IHeroRoute Route)[] Walks() => new (string, IHeroRoute)[]
+        {
+            ("standing", null),
+            ("kiting", new KiteRoute()),
+            ("turning round every 1.5 s", DescentSimulation.TurningRound()),
+            ("looping into the rim", RimLoop())
+        };
+
+        // Right, up, left and down for four seconds each, round and round: into the right corner, along the rim and across.
+        private static ScriptedRoute RimLoop()
+        {
+            var segments = new RouteSegment[40];
+            for (int i = 0; i < segments.Length; i++)
+            {
+                int leg = i % 4;
+                segments[i] = new RouteSegment((i + 1) * 4f, leg == 0 ? 1f : leg == 2 ? -1f : 0f, leg == 1 ? 1f : leg == 3 ? -1f : 0f);
+            }
+            return new ScriptedRoute(segments);
+        }
+
         // Six seconds out to the right corner, then a step in each direction in turn with a stand between them, for longer
         // than any Descent lasts. So the hero fights most of the run at the rim, where corners close and the packs come from
         // whichever side the platform reaches.
@@ -163,10 +234,12 @@ namespace Cryptforge.Tests
         // this suite green and only flake in PlayMode. With no route, or with the standing one, it is exactly (0, 0).
         private static string Describe(DescentSimulation.Result result) => string.Format(CultureInfo.InvariantCulture,
             "cleared {0} died {1} hp {2:R} seconds {3:R} kills {4} gold {5} level {6} upgrades {7} bursts {8} hits {9} " +
-            "damage {10:R} gap {11:R} nearest {12:R} off {13} moving {14} struck {15:R} hero {16:R},{17:R}",
+            "damage {10:R} gap {11:R} nearest {12:R} off {13} moving {14} struck {15:R} hero {16:R},{17:R} " +
+            "stalled {18:R} longest {19:R} turns {20} flickers {21}",
             result.ClearedFloors, result.DeathRoom ?? "-", result.HeroHealth, result.FightSeconds, result.Kills, result.Gold,
             result.Level, result.UpgradesApplied, result.AbilityUses, result.HeroHitsTaken, result.HeroDamageTaken,
             result.ClosestEnemyGapSquared, result.ClosestHeroDistanceSquared, result.FramesOffPlatform,
-            result.StrikesWhileMoving, result.EarliestStrikeAfterSpawn, result.HeroFloorX, result.HeroFloorY);
+            result.StrikesWhileMoving, result.EarliestStrikeAfterSpawn, result.HeroFloorX, result.HeroFloorY,
+            result.EnemyStallSeconds, result.LongestEnemyStallSeconds, result.EnemyStepReversals, result.EnemyStepFlickers);
     }
 }

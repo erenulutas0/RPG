@@ -53,7 +53,9 @@ Do NOT:
   - platform/backdrop sprite reuse (done 2026-09-16: bounded session ownership, geometry-safe fallback, native lifetime tests and three S23 warm restarts). Whole restart-frame allocation fell from 17,620.8–17,742.4 KB to 1008.5–1131.4 KB; probe intervals were 16.7 ms, with main-thread work still 24.8–32.0 ms. Cold startup and hero/effect allocation remain separate concerns; see `21`–`23`,
   - decide whether authored rooms should hold more than five, now that the numbers exist; every authored wave is still five or fewer,
   - retune kiting: the Staff clears the authored Descent almost unharmed while kiting, and the Daggers keep only a 0.3-unit band in which they can strike while moving,
-  - give the hero a body enemies cannot walk through, and make the enemy spacing rule two-sided (the closest gap falls to 0.214 with ten enemies and a moving hero),
+  - make the enemy spacing rule two-sided (done 2026-09-16: no two living enemies ever come within a body, slide or wait instead of overlap, no flicker on the proof floors, standing authored Descent unchanged; see `21`–`23`, decision in `19`; phone check pending),
+  - give the hero a body enemies cannot walk through,
+  - make crowded fights end the same on the Editor's Mono and the pure .NET runner (they disagree in the last bit of float comparisons in a crowd; 14 of 36 measured runs differ, see `22`),
   - measure a mid-range device: only the S23 has been measured.
 
 Exit:

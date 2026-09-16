@@ -16,11 +16,12 @@ using Object = UnityEngine.Object;
 namespace Cryptforge.Tests
 {
     // The density proof in the real scene: the wave the owner picked - two Grunts trailing eight Cinder Mites - fought by a
-    // hero that stands still and by one that kites, against the same wave in DescentSimulation. SimulationParityTests pins
-    // the standing Descent; this pins the walking one, which is the only evidence that HeroMotion, PackMotion, EntrySides
-    // and the routes behave the same way in the scene as in the simulation, and every claim about what kiting is worth
-    // rests on that. For the kiting cases the hero's final floor position must match too: the same outcome reached by a
-    // different walk would not prove the movement is mirrored.
+    // hero that stands still, by one that kites and by one that turns round every second and a half, against the same wave
+    // in DescentSimulation. SimulationParityTests pins the standing Descent; this pins the walking one, which is the only
+    // evidence that HeroMotion, PackMotion, EntrySides and the routes behave the same way in the scene as in the
+    // simulation, and every claim about what kiting is worth rests on that. For the walking cases the hero's final floor
+    // position must match too: the same outcome reached by a different walk would not prove the movement is mirrored. On
+    // every frame, in the scene itself, no two living enemies stand within a body of each other.
     //
     // The scene reaches the proof wave through DevelopmentStart: the test writes development/start-floor.txt into its own
     // profile folder before the scene loads, so Gameplay.unity is never touched and a release build can never get here.
@@ -70,6 +71,8 @@ namespace Cryptforge.Tests
         private bool _spawnHasNextFloor;
         // Frames on which the hero stood outside the margin HeroMotion keeps from the rim. It never should.
         private int _framesOffPlatform;
+        // How close two living enemies of the wave came in the scene, squared, over every frame of the run.
+        private float _closestEnemyGapSquared;
         // The most upgrades left unanswered at the end of a frame while the run was still live. The drain below empties
         // them every frame, so this stays 0 and the accounting at the end can only be explaining the run's last kill.
         private int _pendingWhileLive;
@@ -91,27 +94,39 @@ namespace Cryptforge.Tests
 
         [UnityTest]
         public IEnumerator SwordStandingOnTheProofFloorMatchesTheSimulation() =>
-            PlayProof(null, DescentSimulation.Sword(), false);
+            PlayProof(null, DescentSimulation.Sword(), null);
 
         [UnityTest]
         public IEnumerator SwordKitingOnTheProofFloorMatchesTheSimulation() =>
-            PlayProof(null, DescentSimulation.Sword(), true);
+            PlayProof(null, DescentSimulation.Sword(), new KiteRoute());
+
+        [UnityTest]
+        public IEnumerator SwordTurningRoundOnTheProofFloorMatchesTheSimulation() =>
+            PlayProof(null, DescentSimulation.Sword(), DescentSimulation.TurningRound());
 
         [UnityTest]
         public IEnumerator StaffStandingOnTheProofFloorMatchesTheSimulation() =>
-            PlayProof("weapon_staff", DescentSimulation.Staff(), false);
+            PlayProof("weapon_staff", DescentSimulation.Staff(), null);
 
         [UnityTest]
         public IEnumerator StaffKitingOnTheProofFloorMatchesTheSimulation() =>
-            PlayProof("weapon_staff", DescentSimulation.Staff(), true);
+            PlayProof("weapon_staff", DescentSimulation.Staff(), new KiteRoute());
+
+        [UnityTest]
+        public IEnumerator StaffTurningRoundOnTheProofFloorMatchesTheSimulation() =>
+            PlayProof("weapon_staff", DescentSimulation.Staff(), DescentSimulation.TurningRound());
 
         [UnityTest]
         public IEnumerator DaggersStandingOnTheProofFloorMatchesTheSimulation() =>
-            PlayProof("weapon_daggers", DescentSimulation.Daggers(), false);
+            PlayProof("weapon_daggers", DescentSimulation.Daggers(), null);
 
         [UnityTest]
         public IEnumerator DaggersKitingOnTheProofFloorMatchesTheSimulation() =>
-            PlayProof("weapon_daggers", DescentSimulation.Daggers(), true);
+            PlayProof("weapon_daggers", DescentSimulation.Daggers(), new KiteRoute());
+
+        [UnityTest]
+        public IEnumerator DaggersTurningRoundOnTheProofFloorMatchesTheSimulation() =>
+            PlayProof("weapon_daggers", DescentSimulation.Daggers(), DescentSimulation.TurningRound());
 
         // The development hook must be invisible to a player: with no start-floor file the scene descends from the floor
         // Gameplay.unity carries, as every other test and every build does.
@@ -133,9 +148,10 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        private IEnumerator PlayProof(string weaponId, DescentSimulation.HeroWeapon weapon, bool kite)
+        // route is null for a hero that stands. Both routes read nothing between calls, so the simulation and the scene can
+        // share one.
+        private IEnumerator PlayProof(string weaponId, DescentSimulation.HeroWeapon weapon, IHeroRoute route)
         {
-            IHeroRoute route = kite ? new KiteRoute() : null;
             DescentSimulation.Result expected = DescentSimulation.Run(
                 new[] { DescentSimulation.DensityProofTrailing }, 0, true, null, weapon, route: route);
 
@@ -233,10 +249,14 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Run.UpgradesApplied + _setup.Run.PendingUpgrades, Is.EqualTo(expected.UpgradesApplied), report);
             Assert.That(_hero.Current, Is.EqualTo(expected.HeroHealth).Within(HealthTolerance), report);
             Assert.That(_framesOffPlatform, Is.Zero, "The hero never stood outside the platform's margin. " + report);
-            if (kite)
+            Assert.That(_closestEnemyGapSquared, Is.GreaterThanOrEqualTo(DescentSimulation.BodySpacing * DescentSimulation.BodySpacing),
+                "Two living enemies stood within a body of each other in the scene. " + report);
+            Assert.That(expected.ClosestEnemyGapSquared, Is.GreaterThanOrEqualTo(DescentSimulation.BodySpacing * DescentSimulation.BodySpacing),
+                report);
+            if (route != null)
             {
                 Assert.That(expected.StrikesWhileMoving, Is.GreaterThan(0),
-                    "The kiting case has to be one that fights while it walks. " + report);
+                    "A walking case has to be one that fights while it walks. " + report);
                 Assert.That(heroFloorX, Is.EqualTo(expected.HeroFloorX).Within(PositionTolerance),
                     "The scene's hero walked a different route. " + report);
                 Assert.That(heroFloorY, Is.EqualTo(expected.HeroFloorY).Within(PositionTolerance),
@@ -258,6 +278,7 @@ namespace Cryptforge.Tests
         {
             _route = route;
             _framesOffPlatform = 0;
+            _closestEnemyGapSquared = float.MaxValue;
             _pendingWhileLive = 0;
             SceneManager.sceneLoaded += OnSceneLoaded;
             return SceneManager.LoadSceneAsync(ScenePath);
@@ -371,8 +392,8 @@ namespace Cryptforge.Tests
             _view.HeroReach = _setup.Weapon.Range;
             _view.Platform = _arena.Geometry;
             _view.Count = _encounters.WaveEnemyCount;
-            // Only a timed script reads this; KiteRoute ignores it, so the encounter's clock standing in for the
-            // simulation's run clock cannot move a proof case either way.
+            // The proof floor is one wave, so the encounter's clock is the simulation's fight clock: both start at 0 on the
+            // spawn frame and add the same fixed step on every frame after it. KiteRoute ignores it; TurningRound turns on it.
             _view.Seconds = _encounters.Elapsed;
             for (int i = 0; i < _view.Count; i++)
             {
@@ -392,6 +413,27 @@ namespace Cryptforge.Tests
         {
             if (!_arena.Geometry.IsOnPlatform(_encounters.HeroFloorX, _encounters.HeroFloorY, HeroMotion.EdgeMargin))
                 _framesOffPlatform++;
+
+            // Read back from the transforms, which PackMotion's floats reach exactly, so this is the spacing a player sees.
+            for (int i = 0; i < _encounters.WaveEnemyCount; i++)
+            {
+                Health enemy = _encounters.WaveEnemyAt(i);
+                if (!enemy.IsAlive)
+                    continue;
+                Vector3 at = enemy.transform.position;
+                for (int j = 0; j < i; j++)
+                {
+                    Health other = _encounters.WaveEnemyAt(j);
+                    if (!other.IsAlive)
+                        continue;
+                    Vector3 otherAt = other.transform.position;
+                    float dx = at.x - otherAt.x;
+                    float dy = ArenaFloor.FloorY(at.y) - ArenaFloor.FloorY(otherAt.y);
+                    float apartSquared = dx * dx + dy * dy;
+                    if (apartSquared < _closestEnemyGapSquared)
+                        _closestEnemyGapSquared = apartSquared;
+                }
+            }
         }
 
         // The development hook the scene reads, written into this test's own profile folder, which TestProfile deletes.

@@ -7,9 +7,20 @@ namespace Cryptforge.Combat
     // for its own point just inside its reach, on an arc round the hero spread by where it entered, and stops once it is
     // that close; when the hero moves, the point moves with the hero and the enemy walks again. On a platform the point
     // never hangs over the void: when the hero stands at the rim, the enemy turns round the hero to the nearest point that
-    // lies on the platform. It waits whenever its next step would bring it nearer than the spacing to an enemy that is
-    // closer to the hero. Enemies step nearest first, so the result never depends on update order, and the scene and the
-    // Descent simulation, which both use this class, move every enemy identically.
+    // lies on the platform.
+    //
+    // No step ever brings an enemy nearer than the spacing to another living enemy, whichever of the two stands nearer the
+    // hero, so enemies that start a body apart stay a body apart for as long as they live; a step may always widen a gap
+    // that is already too small. A step that would close on a neighbour slides instead, keeping only the part of the step
+    // that runs along the spacing of every neighbour the step could touch, so an enemy squeezing between two walks down
+    // the gap rather than glancing off each in turn; the slide is taken only if it still brings the enemy nearer its point
+    // and keeps it on the platform, and otherwise the enemy waits where it is and tries again next step. Every step brings
+    // an enemy nearer its point, so while the hero stands still no enemy walks away from its point and back, and the pack
+    // settles and comes to rest - though an enemy squeezing past a slower one may be nudged one way and then the other on
+    // the way, and one heading exactly through a neighbour standing on its point waits behind it. With nothing in its way
+    // an enemy walks straight at its point exactly as a lone enemy does. Enemies step nearest the hero first, ties by
+    // slot, so the result never depends on update order, and the scene and the Descent simulation, which both use this
+    // class, move every enemy identically. A long frame is walked in equal steps.
     public sealed class PackMotion
     {
         // How far inside its reach an enemy stops, so rounding can never leave it exactly on the edge.
@@ -18,11 +29,23 @@ namespace Cryptforge.Combat
         public const float MaxApproachDegrees = 60f;
         // Turning round the hero to find a stopping point on the platform goes in steps this wide, up to half a turn each way.
         public const float TurnStepDegrees = 5f;
+        // The longest step an enemy takes at once: a frame that would carry the fastest enemy further, after a hitch, is
+        // walked in equal steps no longer than this, up to MaxSubSteps, so a walk after a hitch follows the path the frames
+        // it stands for would have. At the game's frame rates every frame is a single step, and a frame of a third of a
+        // second, the longest Unity hands a script, stays within the cap for every authored enemy. The spacing never depends
+        // on it: every step's end is checked.
+        public const float MaxStride = 0.25f;
+        // A frame is walked in at most this many steps; past that each step is simply longer.
+        public const int MaxSubSteps = 8;
+        // A slide shorter than this share of the stride means the enemy heads straight into its neighbours, so it waits.
+        private const float ShortestSlide = 1e-3f;
+        private const int NoEnemy = -1;
 
         private const int TurnSteps = 36;
         private static readonly float[] TurnCos = TurnTable(Math.Cos);
         private static readonly float[] TurnSin = TurnTable(Math.Sin);
 
+        private readonly float _spacing;
         private readonly float _spacingSquared;
         private readonly float _spreadWidth;
         private readonly bool _bounded;
@@ -38,6 +61,7 @@ namespace Cryptforge.Combat
         private readonly float[] _stopSquared = new float[PackLayout.MaxPackSize];
         private readonly float[] _speed = new float[PackLayout.MaxPackSize];
         private readonly int[] _order = new int[PackLayout.MaxPackSize];
+        private readonly bool[] _stalled = new bool[PackLayout.MaxPackSize];
 
         public int Count { get; private set; }
         // Where the hero stood at the last step; where the pack was told it stands until then.
@@ -53,6 +77,7 @@ namespace Cryptforge.Combat
             if (!(spreadWidth > 0f) || float.IsInfinity(spreadWidth))
                 throw new ArgumentOutOfRangeException(nameof(spreadWidth));
 
+            _spacing = spacing;
             _spacingSquared = spacing * spacing;
             _spreadWidth = spreadWidth;
         }
@@ -123,6 +148,10 @@ namespace Cryptforge.Combat
         // True once the enemy stands close enough to the hero to stop walking.
         public bool HasArrived(int index) => DistanceToHeroSquared(index) <= _stopSquared[index];
 
+        // True when the last step left the enemy where it stood although it had not arrived: its straight step would have
+        // closed on a neighbour, and sliding along its neighbours brought it no nearer its point.
+        public bool IsStalled(int index) => _stalled[index];
+
         // Walks the pack toward the hero at the last known position.
         public void Step(float deltaTime) => Step(deltaTime, HeroX, HeroY);
 
@@ -135,8 +164,43 @@ namespace Cryptforge.Combat
 
             HeroX = heroX;
             HeroY = heroY;
+            Array.Clear(_stalled, 0, Count);
+            int living = OrderLiving();
+            if (living == 0 || deltaTime <= 0f)
+                return;
 
-            // Living enemies, nearest the hero first; an earlier slot goes first on equal distance.
+            float fastest = 0f;
+            for (int k = 0; k < living; k++)
+                fastest = Math.Max(fastest, _speed[_order[k]]);
+            int steps = 1;
+            if (fastest * deltaTime > MaxStride)
+                steps = (int)Math.Min(MaxSubSteps, Math.Ceiling(fastest * deltaTime / MaxStride));
+            float stepTime = deltaTime / steps;
+
+            for (int step = 0; step < steps; step++)
+            {
+                if (step > 0)
+                    OrderLiving();
+                for (int k = 0; k < living; k++)
+                {
+                    int i = _order[k];
+                    Walk walk = WalkOne(i, living, stepTime, heroX, heroY);
+                    // An enemy that walks on any step of a long frame did not wait through it.
+                    _stalled[i] = walk == Walk.Waited && (step == 0 || _stalled[i]);
+                }
+            }
+        }
+
+        private enum Walk
+        {
+            Stood,
+            Walked,
+            Waited
+        }
+
+        // Puts the living enemies into _order, nearest the hero first, an earlier slot first on equal distance, and counts them.
+        private int OrderLiving()
+        {
             int living = 0;
             for (int i = 0; i < Count; i++)
             {
@@ -152,34 +216,93 @@ namespace Cryptforge.Combat
                 _order[insertAt] = i;
                 living++;
             }
+            return living;
+        }
 
-            for (int k = 0; k < living; k++)
+        // One step of enemy i toward its point: straight at it when that keeps the spacing, else sliding round the enemy in
+        // the way, else none.
+        private Walk WalkOne(int i, int living, float deltaTime, float heroX, float heroY)
+        {
+            if (HasArrived(i))
+                return Walk.Stood;
+
+            // The enemy's own point on the arc round the hero: its corner's direction turned by its approach angle.
+            float directionX = _outwardX[i] * _approachCos[i] + _outwardY[i] * _approachSin[i];
+            float directionY = -_outwardX[i] * _approachSin[i] + _outwardY[i] * _approachCos[i];
+            float targetX = heroX + directionX * _stop[i];
+            float targetY = heroY + directionY * _stop[i];
+            if (_bounded && !_platform.IsOnPlatform(targetX, targetY, HeroMotion.EdgeMargin))
+                TurnOntoPlatform(i, heroX, heroY, ref targetX, ref targetY);
+            float dx = targetX - _x[i];
+            float dy = targetY - _y[i];
+            float remainingSquared = dx * dx + dy * dy;
+            float remaining = (float)Math.Sqrt(remainingSquared);
+            float stride = _speed[i] * deltaTime;
+            if (remaining <= 0f || stride <= 0f)
+                return Walk.Stood;
+
+            float nextX = stride >= remaining ? targetX : _x[i] + dx / remaining * stride;
+            float nextY = stride >= remaining ? targetY : _y[i] + dy / remaining * stride;
+            int blocker = Blocker(i, living, nextX, nextY);
+            if (blocker == NoEnemy)
             {
-                int i = _order[k];
-                if (HasArrived(i))
-                    continue;
+                _x[i] = nextX;
+                _y[i] = nextY;
+                return Walk.Walked;
+            }
 
-                // The enemy's own point on the arc round the hero: its corner's direction turned by its approach angle.
-                float directionX = _outwardX[i] * _approachCos[i] + _outwardY[i] * _approachSin[i];
-                float directionY = -_outwardX[i] * _approachSin[i] + _outwardY[i] * _approachCos[i];
-                float targetX = heroX + directionX * _stop[i];
-                float targetY = heroY + directionY * _stop[i];
-                if (_bounded && !_platform.IsOnPlatform(targetX, targetY, HeroMotion.EdgeMargin))
-                    TurnOntoPlatform(i, heroX, heroY, ref targetX, ref targetY);
-                float dx = targetX - _x[i];
-                float dy = targetY - _y[i];
-                float remaining = (float)Math.Sqrt(dx * dx + dy * dy);
-                if (remaining <= 0f)
-                    continue;
-                float stride = _speed[i] * deltaTime;
-                float nextX = stride >= remaining ? targetX : _x[i] + dx / remaining * stride;
-                float nextY = stride >= remaining ? targetY : _y[i] + dy / remaining * stride;
-                if (!IsBlocked(nextX, nextY, k))
+            // Slide: drop the part of the step that heads into any neighbour this step could touch, the one in the way among
+            // them, and keep the part that runs along their spacing, as far as that part reaches. Two passes, since dropping
+            // the part that heads into one can leave a little heading back into another.
+            float normalX = _x[i] - _x[blocker];
+            float normalY = _y[i] - _y[blocker];
+            if (!(normalX * normalX + normalY * normalY > 0f))
+                return Walk.Waited;
+            float slideX = dx / remaining;
+            float slideY = dy / remaining;
+            float touchSquared = (_spacing + stride) * (_spacing + stride);
+            for (int pass = 0; pass < 2; pass++)
+            {
+                for (int k = 0; k < living; k++)
                 {
-                    _x[i] = nextX;
-                    _y[i] = nextY;
+                    int other = _order[k];
+                    if (other == i)
+                        continue;
+                    float awayX = _x[i] - _x[other];
+                    float awayY = _y[i] - _y[other];
+                    float awaySquared = awayX * awayX + awayY * awayY;
+                    if (awaySquared >= touchSquared || !(awaySquared > 0f))
+                        continue;
+                    float away = (float)Math.Sqrt(awaySquared);
+                    awayX /= away;
+                    awayY /= away;
+                    float inward = slideX * awayX + slideY * awayY;
+                    if (inward >= 0f)
+                        continue;
+                    slideX -= inward * awayX;
+                    slideY -= inward * awayY;
                 }
             }
+            slideX *= stride;
+            slideY *= stride;
+            float slideSquared = slideX * slideX + slideY * slideY;
+            if (slideSquared < ShortestSlide * ShortestSlide * stride * stride)
+                return Walk.Waited;
+
+            float slidX = _x[i] + slideX;
+            float slidY = _y[i] + slideY;
+            float leftX = targetX - slidX;
+            float leftY = targetY - slidY;
+            if (leftX * leftX + leftY * leftY >= remainingSquared)
+                return Walk.Waited;
+            if (_bounded && !_platform.IsOnPlatform(slidX, slidY, HeroMotion.EdgeMargin))
+                return Walk.Waited;
+            if (Blocker(i, living, slidX, slidY) != NoEnemy)
+                return Walk.Waited;
+
+            _x[i] = slidX;
+            _y[i] = slidY;
+            return Walk.Walked;
         }
 
         // Turns the target round the hero, step by step both ways, to the first point that lies on the platform. When both
@@ -214,18 +337,44 @@ namespace Cryptforge.Combat
             }
         }
 
-        // Only enemies already stepped this frame, which are closer to the hero, can block, so no two enemies wait on each other.
-        private bool IsBlocked(float x, float y, int stepped)
+        // The living enemy that keeps enemy i from standing at (x, y): one the spot lies nearer than the spacing to, and
+        // nearer than i stands to it now, so a step never closes on a neighbour inside the spacing but may always widen a
+        // gap that is already too small. Of several, the one the spot comes nearest, the earlier in the order on a tie; -1
+        // when none does.
+        private int Blocker(int i, int living, float x, float y)
         {
-            for (int k = 0; k < stepped; k++)
+            int blocker = NoEnemy;
+            float nearest = float.MaxValue;
+            for (int k = 0; k < living; k++)
             {
                 int other = _order[k];
-                float dx = _x[other] - x;
-                float dy = _y[other] - y;
-                if (dx * dx + dy * dy < _spacingSquared)
-                    return true;
+                if (other == i)
+                    continue;
+                float dx = x - _x[other];
+                float dy = y - _y[other];
+                float apart = dx * dx + dy * dy;
+                if (apart >= nearest || !Blocks(i, other, x, y))
+                    continue;
+                blocker = other;
+                nearest = apart;
             }
-            return false;
+            return blocker;
+        }
+
+        // Whether living enemy other keeps enemy i from standing at (x, y): the spot lies nearer than the spacing to it and
+        // nearer than i stands to it now.
+        private bool Blocks(int i, int other, float x, float y)
+        {
+            if (!_bodies[other].IsAlive)
+                return false;
+            float dx = x - _x[other];
+            float dy = y - _y[other];
+            float apart = dx * dx + dy * dy;
+            if (apart >= _spacingSquared)
+                return false;
+            float nowX = _x[i] - _x[other];
+            float nowY = _y[i] - _y[other];
+            return apart < nowX * nowX + nowY * nowY;
         }
 
         private float DistanceToHeroSquared(int index)
