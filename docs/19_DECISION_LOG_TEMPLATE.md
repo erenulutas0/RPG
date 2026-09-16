@@ -444,3 +444,16 @@ A second, smaller decision came out of running the suites on two runtimes: an en
 Ten enemies fighting cost nothing measurable on an S23: 60 fps, no frame reaching 20 ms. The cost is the single frame the wave enters on, and it is allocation, not work: 18 MB of managed garbage per wave from per-enemy sprite generation. A sprite cache is the remedy and belongs to the art owner; until it exists, a wave of ten drops about three frames on entry, and a mid-range device has not been measured at all.
 
 Nothing here raises the capacity of a floor a player can reach. Whether normal rooms should hold more enemies, and what kiting should cost once they do, is a balance decision that now has numbers to argue from: kiting cuts the damage taken by 2.2x to 4.0x depending on the weapon, and the Staff kites the authored Descent almost unharmed. Review that before increasing any authored wave.
+
+---
+
+## Decision: Share immutable enemy sprites for one application session
+
+**Date:** 2026-09-16
+**Owner:** Art implementation, following the ten-enemy handoff
+
+Per-enemy ownership redraws identical canvases and allocates identical native textures for every spawn. A scene-owned cache would remove duplicate enemies within a run but still redraw on Try again. Imported sprite sheets would also avoid runtime drawing, but would mix a production-art replacement into this performance slice. Choose a lazy application-session cache keyed by `EnemyLook`, preserving the exact current drawers, names, pivots, pixel density and filter settings.
+
+`EnemySpriteCache` is the explicitly justified exception to the no-mutable-static-state guideline: it owns only a bounded set of presentation resources, never combat, progression, profile or telemetry state. Six looks, three frames and three flash silhouettes each, plus two bars shared by every look, cap the cache at 38 sprites/textures. Private frame arrays prevent borrowers from replacing the sequence. Views own animation clocks, renderers, tint and bar scale, and must never destroy borrowed sprites. Cache resources survive scene reload and unused-asset collection; application quit releases both sprites and textures, and subsystem registration clears stale state when entering Play with domain reload disabled. Native lifetime and reset are exercised in PlayMode; test-only assembly access keeps reset off the public gameplay API.
+
+The preceding 18 MB observation is **whole-frame allocation**, not an isolated measurement of enemy drawing. That frame also rebuilds arena/backdrop/other scene art. Compare the `StartWave` marker separately from total frame allocation and restart time; do not promise this cache removes the entire 18 MB. Arena and backdrop ownership remain a separate follow-up, measured after this bounded change. Verification and device results are recorded in the following docs/21–23 entries.

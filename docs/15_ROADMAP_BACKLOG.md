@@ -47,7 +47,7 @@ Do NOT:
 - a frame-time probe for device sessions (done 2026-09-15, see `21` and `23`),
 - local telemetry for device sessions (owner's shared roadmap 2026-09-15, stage 1; done 2026-09-15: a bounded local JSON Lines event log with run, room, choice, currency and time events, no SDK or network, see `21`),
 - prove ten-enemy density and what kiting is worth (done 2026-09-16: capacity 10, a spawn separation, three hero routes, the simulation walking the hero in step with the scene, a development-only proof floor and six scene/simulation parity cases; measured on the S23; see `21`–`23`, decision in `19`). Left open by it, in the order they matter:
-  - a sprite cache for spawning actors — a wave of ten allocates 18 MB in one frame and drops about three (art owner),
+  - enemy sprite cache (done 2026-09-16: immutable per-look frames and shared bars survive restarts; PlayMode lifetime/state checks and S23 verification in `21`–`23`). Warm ten-enemy `StartWave` is 2.39–3.05 ms versus a fresh old-build sample of 8.10 ms. Whole restart-frame allocation remains 17.6–17.7 thousand KB and frames 50–67 ms: isolate and retain arena/backdrop resources next. The original 18 MB was a whole-frame measurement, not all enemy drawing,
   - decide whether authored rooms should hold more than five, now that the numbers exist; every authored wave is still five or fewer,
   - retune kiting: the Staff clears the authored Descent almost unharmed while kiting, and the Daggers keep only a 0.3-unit band in which they can strike while moving,
   - give the hero a body enemies cannot walk through, and make the enemy spacing rule two-sided (the closest gap falls to 0.214 with ten enemies and a moving hero),

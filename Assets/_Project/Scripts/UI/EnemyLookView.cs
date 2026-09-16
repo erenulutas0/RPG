@@ -5,13 +5,12 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // Dresses an enemy in its generated placeholder look: the three EnemyArt frames (two idle/walk, one attack) drawn
-    // once in Awake, a white silhouette of each for CombatantView's hit flash, and a small health bar floating above
+    // once per look per application session, a white silhouette of each for CombatantView's hit flash, and a small health bar floating above
     // the head. Walking alternates the idle frames at a stride cadence; standing still alternates them slowly as a
-    // breath; an attack shows the wind-up frame for a moment. Everything the view builds is destroyed with it.
+    // breath; an attack shows the wind-up frame for a moment. Renderers and animation belong to the enemy; sprites are borrowed.
     public sealed class EnemyLookView : MonoBehaviour, ILookSprites
     {
         private const string BarName = "Health Bar";
-        private const int PoseCount = 3;
         // Below this squared distance per frame the enemy counts as standing (pack motion moves whole texels).
         private const float StillThreshold = 1e-8f;
 
@@ -28,10 +27,7 @@ namespace Cryptforge.UI
         [SerializeField] private float _barClearance = 0.12f;
         [SerializeField] private int _barSortingOrder = 10;
 
-        private readonly Sprite[] _frames = new Sprite[PoseCount];
-        private readonly Sprite[] _silhouettes = new Sprite[PoseCount];
-        private Sprite _barBack;
-        private Sprite _barFill;
+        private EnemySprites _sprites;
         private GameObject _bar;
         private SpriteRenderer _fillRenderer;
         private Vector3 _lastPosition;
@@ -42,7 +38,7 @@ namespace Cryptforge.UI
 
         public EnemyLook Look => _look;
         public EnemyPose CurrentPose { get; private set; }
-        public bool HasSprites => _frames[0] != null;
+        public bool HasSprites => _sprites != null && _sprites.Frame(EnemyPose.IdleA) != null;
 
         private void Awake()
         {
@@ -57,12 +53,12 @@ namespace Cryptforge.UI
             if (_attack == null)
                 _attack = GetComponent<AttackController>();
 
-            BuildSprites();
+            _sprites = EnemySpriteCache.Get(_look);
             // The prefab variants tint and scale the old square placeholder; the drawn look carries its own colour
             // and is already the size it should be on the 32 texel grid.
             _body.color = Color.white;
             _body.transform.localScale = Vector3.one;
-            _body.sprite = _frames[(int)EnemyPose.IdleA];
+            _body.sprite = _sprites.Frame(EnemyPose.IdleA);
             CurrentPose = EnemyPose.IdleA;
             BuildBar();
             _lastPosition = transform.position;
@@ -88,33 +84,7 @@ namespace Cryptforge.UI
         private void Start() => RefreshBar();
 
         // A pre-built white silhouette for any frame this view assigned to the body; null for anything else.
-        public Sprite SilhouetteOf(Sprite bodySprite)
-        {
-            if (bodySprite == null)
-                return null;
-            for (int i = 0; i < PoseCount; i++)
-            {
-                if (_frames[i] == bodySprite)
-                    return _silhouettes[i];
-            }
-            return null;
-        }
-
-        private void BuildSprites()
-        {
-            for (int i = 0; i < PoseCount; i++)
-            {
-                var pose = (EnemyPose)i;
-                PixelCanvas canvas = EnemyArt.Draw(_look, pose);
-                string name = _look + " " + pose;
-                _frames[i] = PixelSpriteFactory.CreateSprite(canvas, name, PixelSpriteFactory.BottomCentre);
-                _silhouettes[i] = PixelSpriteFactory.CreateSprite(canvas.Silhouette(Rgba.White), name + " Flash",
-                    PixelSpriteFactory.BottomCentre);
-            }
-            _barBack = PixelSpriteFactory.CreateSprite(EnemyArt.DrawHealthBarBack(), "Health Bar Back", PixelSpriteFactory.Centre);
-            // The fill pivots on its left edge so scaling it by the health fraction drains it toward the left.
-            _barFill = PixelSpriteFactory.CreateSprite(EnemyArt.DrawHealthBarFill(), "Health Bar Fill", new Vector2(0f, 0.5f));
-        }
+        public Sprite SilhouetteOf(Sprite bodySprite) => _sprites?.SilhouetteOf(bodySprite);
 
         // The bar hangs off the enemy root, not the body, so attack nudges and the death hide do not move it; it is
         // hidden on death separately.
@@ -124,10 +94,10 @@ namespace Cryptforge.UI
             _bar.transform.SetParent(transform, false);
             float top = EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;
             _bar.transform.localPosition = new Vector3(0f, top + _barClearance, 0f);
-            AddBarRenderer("Back", _barBack, Vector3.zero, _barSortingOrder);
+            AddBarRenderer("Back", EnemySpriteCache.BarBack, Vector3.zero, _barSortingOrder);
             // The fill's left edge sits one texel inside the backing's frame.
             float fillLeft = -EnemyArt.HealthFillWidth * 0.5f / PixelSpriteFactory.PixelsPerUnit;
-            _fillRenderer = AddBarRenderer("Fill", _barFill, new Vector3(fillLeft, 0f, 0f), _barSortingOrder + 1);
+            _fillRenderer = AddBarRenderer("Fill", EnemySpriteCache.BarFill, new Vector3(fillLeft, 0f, 0f), _barSortingOrder + 1);
         }
 
         private SpriteRenderer AddBarRenderer(string name, Sprite sprite, Vector3 localPosition, int sortingOrder)
@@ -201,7 +171,7 @@ namespace Cryptforge.UI
             if (CurrentPose == pose)
                 return;
             CurrentPose = pose;
-            _body.sprite = _frames[(int)pose];
+            _body.sprite = _sprites.Frame(pose);
         }
 
         private void OnDisable()
@@ -218,15 +188,5 @@ namespace Cryptforge.UI
             _subscribed = false;
         }
 
-        private void OnDestroy()
-        {
-            for (int i = 0; i < PoseCount; i++)
-            {
-                PixelSpriteFactory.Destroy(_frames[i]);
-                PixelSpriteFactory.Destroy(_silhouettes[i]);
-            }
-            PixelSpriteFactory.Destroy(_barBack);
-            PixelSpriteFactory.Destroy(_barFill);
-        }
     }
 }

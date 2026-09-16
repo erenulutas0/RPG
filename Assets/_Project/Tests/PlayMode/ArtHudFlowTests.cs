@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Cryptforge.Art;
+using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.UI;
@@ -36,6 +37,59 @@ namespace Cryptforge.Tests
             SceneManager.SetActiveScene(SceneManager.CreateScene("Art HUD Cleanup"));
             yield return SceneManager.UnloadSceneAsync(scene);
             TestProfile.End();
+        }
+
+        [UnityTest]
+        public IEnumerator SharedEnemyArtSurvivesRestartAndUnusedAssetCleanup()
+        {
+            EnemyLookView first = Object.FindFirstObjectByType<EnemyLookView>();
+            EnemyLook look = first.Look;
+            Sprite frame = EnemySpriteCache.Get(look).Frame(EnemyPose.IdleA);
+            Sprite flash = first.SilhouetteOf(frame);
+            Sprite bar = first.transform.Find("Health Bar/Fill").GetComponent<SpriteRenderer>().sprite;
+            yield return SceneManager.LoadSceneAsync(ScenePath);
+            yield return Resources.UnloadUnusedAssets();
+            EnemyLookView next = Object.FindFirstObjectByType<EnemyLookView>();
+            Assert.That(next.Look, Is.EqualTo(look));
+            Assert.That(frame != null && flash != null && bar != null, Is.True);
+            Assert.That(EnemySpriteCache.Get(look).Frame(EnemyPose.IdleA), Is.SameAs(frame));
+            Assert.That(next.SilhouetteOf(frame), Is.SameAs(flash));
+            Assert.That(next.transform.Find("Health Bar/Fill").GetComponent<SpriteRenderer>().sprite, Is.SameAs(bar));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator SharedEnemySpritesKeepHealthAndHitFeedbackIndependentWhenOneEnemyDies()
+        {
+            Time.timeScale = 0f;
+            EnemyLookView source = Object.FindFirstObjectByType<EnemyLookView>();
+            EnemyLookView first = Object.Instantiate(source);
+            EnemyLookView second = Object.Instantiate(source);
+            first.GetComponent<Health>().Initialize(100f);
+            second.GetComponent<Health>().Initialize(100f);
+            // Cloning a live view also copies its generated bar; find the newly built bar via the last child.
+            var firstFill = first.transform.GetChild(first.transform.childCount - 1).Find("Fill").GetComponent<SpriteRenderer>();
+            var secondFill = second.transform.GetChild(second.transform.childCount - 1).Find("Fill").GetComponent<SpriteRenderer>();
+            Assert.That(firstFill.sprite, Is.SameAs(secondFill.sprite));
+            first.GetComponent<Health>().ApplyDamage(new DamageContext(25f));
+            Assert.That(firstFill.transform.localScale.x, Is.EqualTo(.75f));
+            Assert.That(secondFill.transform.localScale.x, Is.EqualTo(1f));
+            Assert.That(first.GetComponent<CombatantView>().IsFlashing, Is.True);
+            Assert.That(second.GetComponent<CombatantView>().IsFlashing, Is.False);
+            second.GetComponent<Health>().ApplyDamage(new DamageContext(10f, isCritical: true));
+            Assert.That(second.GetComponent<CombatantView>().FlashColor,
+                Is.Not.EqualTo(first.GetComponent<CombatantView>().FlashColor));
+            Sprite frame = EnemySpriteCache.Get(source.Look).Frame(EnemyPose.IdleA);
+            Sprite flash = second.SilhouetteOf(frame);
+            first.GetComponent<Health>().ApplyDamage(new DamageContext(100f));
+            Object.Destroy(first.gameObject);
+            yield return null;
+            Assert.That(second.HasSprites, Is.True);
+            Assert.That(frame != null && frame.texture != null && flash != null && flash.texture != null, Is.True);
+            Assert.That(second.SilhouetteOf(frame), Is.SameAs(flash));
+            Assert.That(secondFill.sprite != null && secondFill.sprite.texture != null, Is.True);
+            Assert.That(second.GetComponent<Health>().Current, Is.EqualTo(90f));
+            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]

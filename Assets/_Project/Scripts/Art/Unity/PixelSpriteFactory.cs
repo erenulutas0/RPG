@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Cryptforge.Art
 {
     // Turns canvases into sprites: point filtering, no mipmaps, a fixed pixel density, so every generated placeholder
-    // shares one pixel grid. The caller owns what it creates: destroy the sprite's texture in OnDestroy. Never cache
-    // sprites in static fields; keep them on the component that built them.
+    // shares one pixel grid. The caller owns what it creates and must destroy both sprite and texture. Most views
+    // own their art; EnemySpriteCache instead owns shared enemy art for a session. Borrowing views never destroy it.
     public static class PixelSpriteFactory
     {
         // Texels per world unit for every placeholder sprite; the hero is about 1.25 units (40 texels) tall.

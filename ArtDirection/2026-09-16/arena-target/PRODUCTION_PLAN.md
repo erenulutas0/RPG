@@ -36,8 +36,6 @@ The lava backdrop is still too bright for a busy fight. Reduce contrast/saturati
 
 ## Current implementation gap
 
-Update after the owner's portrait decision: `../camera-review/README.md` records the 6/7.5/9 comparison and width-9 camera slice. The paragraph below describes the pre-comparison baseline; pack capacity and the remaining art/behavior gaps still apply.
+Update 2026-09-16: `../camera-review/README.md` records the completed 6/7.5/9 comparison and selected width 9. Opus completed the movement/density task in `a357723`: capacity is now 10, with a development-only two-Grunt/eight-Mite floor and six walking/stationary scene-parity cases. Authored waves remain five or fewer. S23 evidence and the significant spawn/restart allocation are in docs/21–23. The generated board remains concept art; it is not the measured device encounter.
 
-PackLayout.MaxPackSize is 7; PackMotion stores fixed-capacity arrays using that limit. ArenaCameraFollow uses the scene's current width of 6 and follows the hero. HeroMotion and enemy tracking already exist, but their existence alone does not prove satisfying kiting. There is no new runtime change in this folder. No Unity build, phone install or performance claim belongs to this concept-only slice.
-
-Next review artifact: an in-engine camera/movement comparison using the present actors, then a separately layered environment kit. Pause-menu polish is deferred behind this combat-scene priority, not forgotten.
+Current gaps are room-aware camera limits, separate normal/boss geometry and environment assets, overlapping pursuit spacing, the hero's missing blocking body, and weapon balance while kiting. First isolate enemy sprite reuse and remeasure the spawn cost. Then review readable escape space and a separately layered environment kit. Pause-menu polish is deferred behind this combat-scene priority, not forgotten.

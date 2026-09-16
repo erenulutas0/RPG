@@ -34,7 +34,9 @@ foreach ($p in $platforms) {
   $arguments = @('-batchmode', '-nographics', '-projectPath', $root, '-runTests', '-testPlatform', $p, '-testResults', "$out/$name.xml", '-logFile', "$out/$name.log")
   if ($Filter) { $arguments += @('-testFilter', $Filter) }
   $started = Get-Date
-  $process = Start-Process -FilePath $UnityEditor -ArgumentList $arguments -Wait -PassThru -NoNewWindow
+  $process = Start-Process -FilePath $UnityEditor -ArgumentList $arguments -PassThru -WindowStyle Hidden
+  # Wait for the Editor itself: -Wait also waits for long-lived licensing/helper descendants on Windows.
+  $process.WaitForExit()
   Write-Output "$p exit: $($process.ExitCode) after $([int]((Get-Date) - $started).TotalSeconds) s"
   if (Test-Path "$out/$name.xml") {
     $run = ([xml](Get-Content "$out/$name.xml")).'test-run'
@@ -55,7 +57,8 @@ if (-not $allPassed) { Write-Output '--- a suite failed; build skipped'; exit 1 
 if ($Platform -ne 'Both' -or $Filter) { Write-Output '--- only part of the suites ran; build skipped (run without -Platform and -Filter to build)'; exit 0 }
 
 Write-Output '--- both suites passed; building APK'
-$process = Start-Process -FilePath $UnityEditor -ArgumentList @('-batchmode', '-quit', '-projectPath', $root, '-buildTarget', 'Android', '-executeMethod', 'Cryptforge.Editor.AndroidPrototypeBuild.Build', '-logFile', "$out/android-build.log") -Wait -PassThru -NoNewWindow
+$process = Start-Process -FilePath $UnityEditor -ArgumentList @('-batchmode', '-quit', '-projectPath', $root, '-buildTarget', 'Android', '-executeMethod', 'Cryptforge.Editor.AndroidPrototypeBuild.Build', '-logFile', "$out/android-build.log") -PassThru -WindowStyle Hidden
+$process.WaitForExit()
 Write-Output "Build exit: $($process.ExitCode)"
 Select-String -Path "$out/android-build.log" -Pattern 'Android prototype built|BuildFailedException|error CS' | Select-Object -Last 3 | ForEach-Object { Write-Output $_.Line }
 $apk = "$root/Builds/Android/Cryptforge-Prototype.apk"

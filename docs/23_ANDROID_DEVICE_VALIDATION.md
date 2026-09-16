@@ -499,3 +499,40 @@ So ten enemies fighting are free on this device - the encounter holds 60 fps wit
 Caveats. This is a flagship device; no low or mid-range phone has been measured. The measurement covers one wave of ten in an otherwise empty room, not ten enemies plus a boss, chests and effects. The runs were live, with owner interaction possible at the phone, so the health and gold figures in the captures are a smoke reading, not the deterministic numbers in `22`. Kiting was not driven by script on the device: the scene's agreement with the routed simulation is proved in PlayMode instead, which is the stronger statement.
 
 Local evidence: `TestResults/device-density-01/` (captures and the two `[Perf]` logs).
+
+## Shared enemy sprite cache on S23 — 2026-09-16
+
+The owner authorised USB testing and the run was announced. Backed up `profile.json`, `profile.json.bak` and telemetry after force-stopping the app; no start-floor flag existed. The installed old APK hash matched `8D73EE69683BCDB1FA061F04AB15B6303C87B86477C806912D722CACA7A0653A`. The existing `floor_density_proof` flag enabled the same two-Grunt/eight-Mite room without a scene change. A fresh old-build restart was recorded before installing the cache APK with `adb install -r`.
+
+**Verified build:** .NET **257/257**, compile **0 warnings/errors**, EditMode **269/269**, PlayMode **74/74**, Android exit **0**, static integrity **284 GUIDs / 555 scene objects/components**. APK **24,738,586 bytes**, SHA-256 **`4A2F37C48A7DC451776772479780F9D9C16D2D488DA33F54365A40A4B92AF4CD`**; install returned Success and the installed `base.apk` hash matches.
+
+Every input/capture used the focus/awake/keyguard gate; captures were rechecked before being pulled. The first attempt stopped because NotificationShade had focus (awake, unlocked); collapsing it and launching the app restored focus. An ADB daemon restart during the Android build caused one old-build restart input to fail; the following capture still showed the result panel. That attempt is not counted as a restart. The successful retry produced the baseline below.
+
+### Measured restart frames
+
+| Build / sample | `StartWave` | Frame | Main thread | Whole-frame allocation |
+|---|---:|---:|---:|---:|
+| Old build, fresh sample | 8.10 ms | 66.7 ms | 67.2 ms | 18,284.1 KB |
+| Cache, warm restart 1 | 3.05 ms | 50.0 ms | 54.8 ms | 17,620.8 KB |
+| Cache, warm restart 2 | 2.68 ms | 66.7 ms | 68.2 ms | 17,742.4 KB |
+| Cache, warm restart 3 | 2.39 ms | 50.0 ms | 56.9 ms | 17,741.6 KB |
+
+These are live samples, not a controlled benchmark: baseline used Daggers/Counterweight; the owner switched to Staff during the new-build session and also used Forge Burst. The spawn marker shows a clear reduction consistent with removing repeated drawing, but a precise across-loadout performance percentage is not claimed. Three new-build warm restarts in one process confirm the cache survives scene reloads. The first launch window includes a 2148.3 ms application-start interval and a 182.2 ms startup frame; the probe starts after scene load and does not isolate cold enemy generation. Those samples are excluded from the warm comparison.
+
+**Correction to the preceding attribution:** the 18 MB figure describes the entire frame, which includes rebuilding platform/backdrop/hero/effects and other scene work. It was not 18 MB of enemy drawing, nor a measurement of every ordinary wave. Enemy sharing removes approximately 542–663 KB in these whole-frame samples, while the restart spike remains 50–67 ms. Do not mark scene-restart optimisation complete. Arena/backdrop caching and more specific allocation markers are the next performance slice.
+
+The new log contains many 59.9 fps windows, but these include result screens at `time scale 1`. Time scale alone does not prove combat is active. Staff and burst clear the proof quickly, and owner input was interleaved, so this pass does **not** replace the earlier sustained-combat benchmark with a new one. No mid-range phone was measured.
+
+### Visual evidence and retained data
+
+Local evidence: `TestResults/device-sprite-cache-01/` (ignored), including `baseline.log`, `cache.log`, `final-unity.log`, backups and pulled telemetry.
+
+- `baseline-07-restart.png`: old-build crowded fight, separate enemy bars and damage numbers.
+- `cache-01-cold.png`: new-build Grunts/Mites with mixed white hit silhouettes and independent health bars; appearance retained.
+- `cache-04-warm-combat.png`: despite the filename, this capture is already the **result** screen; not combat evidence.
+- `cache-05-warm-entry.png`: warm-restart combat with Staff/burst, hit silhouettes, effects and separate bar fills; shared sprites remain valid.
+- `cache-06-proof-end.png`: proof cleared and 10 gold banked; current Staff/Counterweight loadout retained.
+- `cache-07-normal-floor.png`: after deleting only `development/start-floor.txt`, Try again returns to **Ember Hall 1/6** with valid Grunt/Mite art. The empty development directory is harmless and contains no start flag.
+- `final-unity.log`: no matches for the checked Unity exception/error/fatal patterns.
+
+Before: version 2, revision **77**, **5525 gold**, Daggers/Counterweight. At normal-room return: version 2, revision **83**, **5575 gold**, Staff/Counterweight; both weapons/relics and deepest floor 2 retained. Five proof completions added 50 gold and one loadout selection accounts for the six revision increments. The owner interacted during the session, so the backup was **not restored over newer progress**. Telemetry was retained, including its normal rotation to two files, and pulled for evidence. No application data clear, purchase or profile reset occurred.
