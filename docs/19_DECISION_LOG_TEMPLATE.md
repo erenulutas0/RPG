@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-09-17 — Painted platform materials before runtime replacement
+
+**Decision:** prefer quieter V2 basalt for the next environment integration. Keep current arena geometry and combat rules; prove the floor, flush coping and near walls in an isolated real scene before allocating runtime textures.
+
+**Why:** the painted Vanguard/Mite/Grunt expose the procedural floor's brighter seams and different material fidelity. V1 retained too much edge contrast; V2 leaves the characters and effects in front. This is a material decision, not acceptance of the complete arena.
+
+**Evidence/limits:** fourteen paired/variant/short-screen Unity captures in `platform-material-01`, using the real frozen ten-enemy room. Rim views reposition the hero/camera, not the enemies. Old outline, corners, lower keel, fixtures and chest still show mixed fidelity; crowd occlusion is unchanged. No authored Assets/APK/device change. Next is join cleanup and a measured runtime import/cache/device slice.
+
 ## 2026-09-17 — Grunt runtime art without changing attack timing
 
 **Decision:** integrate selected Slag Brute front/rear/contact/passing/strike imports as a shared EnemyArtSet. Preserve idle/contactA/contactB/strike indices; append optional passingA/B for a four-pose gait. Mite retains its original four-frame set. Configure visible top and contact shadow separately from the padded canvas, and remove Grunt's old procedural attack nudge.

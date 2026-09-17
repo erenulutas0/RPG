@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-17",
+  "status": "Isolated Unity material proof; not a runtime import",
+  "assets": [
+    {
+      "file": "floor-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format24bppRgb",
+      "sha256": "91BA25593336C15ECB649B2D47DD647BA5CB5C4E86A67CD3D3BEFF1D81B1513B",
+      "role": "comparison",
+      "origin": "Built-in image generation; unchanged PNG master"
+    },
+    {
+      "file": "floor-v2.png",
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format24bppRgb",
+      "sha256": "65602DD942FDFB850F41C5E82F94926647AACB9E6B46EC97FF7D11F462725C63",
+      "role": "preferred material candidate",
+      "origin": "Built-in image generation; unchanged PNG master"
+    },
+    {
+      "file": "coping-v1.png",
+      "width": 2172,
+      "height": 724,
+      "pixelFormat": "Format32bppArgb",
+      "sha256": "2B9F30B9951AA2458D36230A3E2C02F1812ACB8E72AD4BDE15D68CBF8D1907FD",
+      "role": "preferred material candidate",
+      "origin": "Built-in image generation; unchanged PNG master"
+    },
+    {
+      "file": "wall-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format24bppRgb",
+      "sha256": "2F0C66153E7E67763C8387D9C4F6E2F4CB232B089E8F332F78F61CA1A6B5EB69",
+      "role": "preferred material candidate",
+      "origin": "Built-in image generation; unchanged PNG master"
+    }
+  ]
+}

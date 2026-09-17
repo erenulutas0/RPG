@@ -1,5 +1,11 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Platform material comparison — 2026-09-17
+
+`ArtDirection/2026-09-17/platform-material-01/` contains four unchanged generated source masters (floor V1/V2, coping, masonry), exact prompts/hashes, mapping contract and fourteen actual Unity images. V2 is the preferred floor for lower grout/bevel contrast. Seven temporary meshes map these onto existing geometry beneath ground effects; original keel/crystal/corner fixtures remain. Captures share a frozen real ten-enemy scene; hero/camera-only rim samples and a whole-platform diagnostic camera are explicitly labelled.
+
+`Tools/ArtReview/PlatformMaterialCapture.cs`, `Run-PlatformMaterialProof.ps1` and the new converter switch reproduce the proof without saving authored Assets or a scene. Capture resources are owned/disposed; temporary fixture is removed. No gameplay, APK or phone change. Full source-resolution allocation is not accepted for mobile: reduce/compress and prove shared cache/reload on integration. Corner/old-outline/keel joins, props and crowded depth remain open. Latest gate is in Docs/22.
+
 ## Grunt painted runtime integration — 2026-09-17
 
 The ordinary Grunt now uses the Slag Brute imports: front/rear idle, two contacts, two opposing-leg passing poses and immediate strike, mirrored for four directions, plus matching silhouette flashes and two independent collapse stages. EnemyArtSet supports either the existing four-frame Mite set or six frames; EnemyLookView consumes per-set stride, visible top and shadow width. Grunt prefab alone selects the set and removes the old procedural nudge. Gameplay.unity, combat timing/stats, spacing, camera and project settings are unchanged.

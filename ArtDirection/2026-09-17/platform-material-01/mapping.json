@@ -1,0 +1,14 @@
+{
+  "status": "isolated Unity material proof; not a runtime import",
+  "geometry": "unchanged ArenaView.Geometry; near=-9, far=9, halfWidth=9",
+  "outerDiamondScale": 0.998,
+  "innerDiamondScale": 0.95,
+  "floor": {"source":"floor-v2.png", "comparison":"floor-v1.png", "uvRepeat":[2,2], "nominalSlabsPerEdge":16},
+  "coping": {"source":"coping-v1.png", "uvRepeatPerSide":[2,1], "sides":4, "note":"trapezoidal UV mapping; corner joins require review"},
+  "nearFaces": {"source":"wall-v1.png", "uvRepeatPerFace":[3,1], "height":1.3, "faces":2},
+  "sampling": "original RGBA channels; sRGB Unity textures; trilinear + mipmaps; Repeat; no pixel repaint or source resize",
+  "renderOrder": {"oldPlatform":-16,"oldLights":-15,"materialQuads":-14,"groundEffects":-13},
+  "retainedPrototypeParts": ["keel", "crystal", "corner lanterns", "chest"],
+  "sceneStaging": "real ten-enemy proof pack advances160 frames with attacks disabled then freezes; camera-edge views reposition only hero/camera, not enemies; A/B captures identical state",
+  "phone": "not installed or physically validated"
+}

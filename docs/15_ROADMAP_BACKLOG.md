@@ -1,5 +1,12 @@
 # Roadmap & Backlog
 
+## Platform material checkpoint — 2026-09-17
+
+- [x] Painted basalt V1/V2, coping and near-face masters; selected quieter V2 with actual Unity centre/rim/detail/overview comparisons (`platform-material-01`). Isolated proof only.
+- [ ] Resolve coping corners, old pixel outline and near-wall/lower-keel joins.
+- [ ] Integrate accepted materials with reduced-size/compression comparison, shared ownership, reload tests and physical centre/rim movement validation.
+- [ ] Match remaining corner fixtures, crystal/keel, chest and ability indicator; preserve combat readability. Separate boss-room geometry remains later.
+
 ## Current art checkpoint — 2026-09-16
 
 Latest status, 2026-09-17: Vanguard front/rear runtime poses, Sword grip polish and Mite runtime poses/effects are integrated and S23-checked (latest Docs/21–23). The older unchecked pair milestones below retain their final-quality requirements: strict foot locking and matching Staff/Daggers are still open.

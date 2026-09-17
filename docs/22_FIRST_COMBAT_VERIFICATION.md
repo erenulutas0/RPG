@@ -1,5 +1,13 @@
 # First combat slice — setup and verification
 
+## Platform material proof verification — 2026-09-17
+
+**Gate:** .NET **272/272**, compile **0 warnings/errors**, full EditMode **284/284**, full PlayMode **100/100**, final graphics capture **1/1**, static integrity **404 GUIDs /555 scene objects/components**. Full suites ran with `-SkipApk`: this isolated art/tooling slice has no authored runtime Asset, scene, project-setting or APK change. No phone test/install was performed. The previous Grunt APK remains the latest device record.
+
+Four generated masters and fourteen actual Unity PNGs are under `ArtDirection/2026-09-17/platform-material-01/`. Baseline/candidate pairs share the frozen real ten-enemy room. Centre/rim, whole-platform/detail and shorter portrait views were reviewed; V2 floor is preferred. A capture-only correction refreshes the hero contact shadow after returning from the far rim before detail/overview; the final graphics capture was rerun successfully. No permanent tests were added for the gallery.
+
+Gallery Current/Painted, view and floor-version selectors, keyboard reveal slider, loaded images and desktop/390x844 layout passed; no horizontal overflow. Preferred masters, prompts, SHA-256, mapping and reproduction are recorded in its README/metadata. Temporary capture source/meta were removed. Runtime compression/allocation/cache/reload, moving seams, physical-device readability, corner/keel joins and sustained performance remain pending integration.
+
 ## Grunt runtime verification — 2026-09-17
 
 **Latest gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **100/100**, Grunt graphics capture **1/1**, Android exit **0**, integrity **404/555**. APK SHA-256 **`AC9D4FC627CD94484A2923DEBB7AEC2CD2894CF3E51537207123B1BA1A6814B0`**. This supersedes the preceding proof-only Grunt state. Read newest Docs/23 for physical-device evidence and retained profile state.
