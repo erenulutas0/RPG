@@ -49,7 +49,7 @@ namespace Cryptforge.Tests
             EnemyLookView mite = null;
             foreach (var look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
             {
-                if (mite == null && look.PaintedArt != null) mite = look;
+                if (mite == null && look.Look == EnemyLook.Mite && look.PaintedArt != null) mite = look;
                 else look.gameObject.SetActive(false);
             }
             Assert.That(mite, Is.Not.Null);

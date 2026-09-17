@@ -50,7 +50,12 @@ namespace Cryptforge.Tests
             var set = _look.PaintedArt; int mites = 0;
             foreach (var look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
             {
-                if (look.Look != EnemyLook.Mite) { Assert.That(look.PaintedArt, Is.Null); continue; }
+                if (look.Look != EnemyLook.Mite)
+                {
+                    if (look.Look == EnemyLook.Grunt) Assert.That(look.PaintedArt, Is.Not.Null.And.Not.SameAs(set));
+                    else Assert.That(look.PaintedArt, Is.Null);
+                    continue;
+                }
                 mites++; Assert.That(look.PaintedArt, Is.SameAs(set));
                 Assert.That(look.transform.Find("Health Bar/Fill").GetComponent<SpriteRenderer>().sprite, Is.Not.Null);
             }

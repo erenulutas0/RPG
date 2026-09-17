@@ -4,9 +4,10 @@
 
 Latest status, 2026-09-17: Vanguard front/rear runtime poses, Sword grip polish and Mite runtime poses/effects are integrated and S23-checked (latest Docs/21–23). The older unchecked pair milestones below retain their final-quality requirements: strict foot locking and matching Staff/Daggers are still open.
 
-- [x] Grunt front/rear design masters and browser scale/close-pair study (`ArtDirection/2026-09-17/grunt-proof-01/`). Static proof only; old Grunt remains in the game.
+- [x] Grunt front/rear design masters and browser scale/close-pair study (`ArtDirection/2026-09-17/grunt-proof-01/`). Historical static proof; superseded by the runtime checkpoint below.
 - [x] Grunt six-pose-per-side blocking, common registration/sampling and real Unity before/after/close-pair proof (`grunt-motion-01`). This proves sampling and reviewability, not final planted-foot animation or a runtime import.
-- [ ] Grunt registered facing/foot landmarks, movement/strike poses, reduced Unity samples and runtime/device validation.
+- [x] Grunt registered four-direction runtime imports, opposing passing poses, immediate strike/flash/death and Unity validation (`grunt-polish-01`; physical evidence in latest Docs/23).
+- [ ] Final Grunt planted-foot/volume/lighting polish and crowded depth readability.
 
 - [x] First hero/Mite concept pair and browser scale/crowd review (`ArtDirection/2026-09-16/character-proof-01/`).
 - [x] Compare reduced sprite resolution/filtering in Unity at fixed world size (`character-unity-01`, 32/64/128 PPU). 128/bilinear is a candidate; current shipped 32-PPU actor contract remains.

@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-09-17 — Grunt runtime art without changing attack timing
+
+**Decision:** integrate selected Slag Brute front/rear/contact/passing/strike imports as a shared EnemyArtSet. Preserve idle/contactA/contactB/strike indices; append optional passingA/B for a four-pose gait. Mite retains its original four-frame set. Configure visible top and contact shadow separately from the padded canvas, and remove Grunt's old procedural attack nudge.
+
+**Why:** the rear needed a clearer diagonal view and the contact-only proof reused idle as a passing pose. Source-sheet windup does not match the existing immediate damage event and must not quietly delay combat. Large transparent padding is not a useful bar-height measurement.
+
+**Evidence:** full272/284/100 suites, capture1,404/555 integrity; art sources/registration/rejections in grunt-polish-01 and device record in Docs/23. Strict foot locking, volume continuity, mirrored lighting and projected depth overlap remain separate polish. No stats, spacing or gameplay scene changes.
+
 ## Decision: Register Grunt keyposes without changing combat timing
 
 **Date:** 2026-09-17

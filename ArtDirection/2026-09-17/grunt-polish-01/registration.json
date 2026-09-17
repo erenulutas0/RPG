@@ -1,0 +1,221 @@
+{
+  "canvas": 640,
+  "sample": 180,
+  "ppu": 128,
+  "pivot": [
+    320,
+    64
+  ],
+  "frames": [
+    {
+      "name": "front-idle",
+      "file": "../grunt-motion-01/front-sheet-v2.png",
+      "bounds": [
+        54,
+        52,
+        511,
+        484
+      ],
+      "root": [
+        275,
+        450
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "front-step-a",
+      "file": "../grunt-motion-01/front-sheet-v2.png",
+      "bounds": [
+        532,
+        60,
+        989,
+        485
+      ],
+      "root": [
+        751,
+        450
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "front-step-b",
+      "file": "../grunt-motion-01/front-sheet-v2.png",
+      "bounds": [
+        48,
+        551,
+        512,
+        995
+      ],
+      "root": [
+        280,
+        957
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "front-strike",
+      "file": "../grunt-motion-01/front-sheet-v2.png",
+      "bounds": [
+        75,
+        1058,
+        532,
+        1469
+      ],
+      "root": [
+        280,
+        1445
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "rear-idle",
+      "file": "rear-sheet-v2.png",
+      "bounds": [
+        68,
+        33,
+        474,
+        475
+      ],
+      "root": [
+        280,
+        450
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "rear-step-a",
+      "file": "rear-sheet-v2.png",
+      "bounds": [
+        557,
+        48,
+        944,
+        481
+      ],
+      "root": [
+        762,
+        450
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "rear-step-b",
+      "file": "rear-sheet-v2.png",
+      "bounds": [
+        64,
+        549,
+        484,
+        986
+      ],
+      "root": [
+        290,
+        958
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "rear-strike",
+      "file": "rear-sheet-v2.png",
+      "bounds": [
+        52,
+        979,
+        513,
+        1466
+      ],
+      "root": [
+        300,
+        1435
+      ],
+      "sourceScale": 1
+    },
+    {
+      "name": "front-pass-a",
+      "file": "passing-v2.png",
+      "bounds": [
+        44,
+        52,
+        623,
+        594
+      ],
+      "root": [
+        347,
+        555
+      ],
+      "sourceScale": 0.8165869218500797
+    },
+    {
+      "name": "front-pass-b",
+      "file": "passing-v2.png",
+      "bounds": [
+        659,
+        53,
+        1231,
+        594
+      ],
+      "root": [
+        967,
+        555
+      ],
+      "sourceScale": 0.8165869218500797
+    },
+    {
+      "name": "rear-pass-a",
+      "file": "passing-v2.png",
+      "bounds": [
+        57,
+        668,
+        593,
+        1203
+      ],
+      "root": [
+        318,
+        1160
+      ],
+      "sourceScale": 0.8165869218500797
+    },
+    {
+      "name": "rear-pass-b",
+      "file": "passing-v2.png",
+      "bounds": [
+        683,
+        671,
+        1209,
+        1200
+      ],
+      "root": [
+        944,
+        1160
+      ],
+      "sourceScale": 0.8165869218500797
+    },
+    {
+      "name": "death-collapse",
+      "file": "death-v1.png",
+      "bounds": [
+        19,
+        313,
+        870,
+        813
+      ],
+      "root": [
+        445,
+        725
+      ],
+      "sourceScale": 0.5772266065388951
+    },
+    {
+      "name": "death-cool",
+      "file": "death-v1.png",
+      "bounds": [
+        907,
+        364,
+        1757,
+        813
+      ],
+      "root": [
+        1332,
+        725
+      ],
+      "sourceScale": 0.5772266065388951
+    }
+  ]
+}

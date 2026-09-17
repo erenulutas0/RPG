@@ -1,0 +1,57 @@
+[
+  {
+    "file": "death-v1.png",
+    "size": [
+      1774,
+      887
+    ],
+    "transparentPixels": 1023842,
+    "partialAlphaPixels": 548874,
+    "sha256": "7941F4DF17FABEFEA3C987C7ECCBB1F5CDF350A2F72725947D0192A0438AD55A",
+    "selected": true
+  },
+  {
+    "file": "passing-v1-rejected.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparentPixels": 878176,
+    "partialAlphaPixels": 691377,
+    "sha256": "EB2D39DB3A82BCB915D7D0AFE99B5C7B01FCB01660DD90866D92C6826897DDFB",
+    "selected": false
+  },
+  {
+    "file": "passing-v2.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparentPixels": 860280,
+    "partialAlphaPixels": 711160,
+    "sha256": "1FA9BB98991A562A8DF4DCBA7D6C7AE049373FA00B06DD64947C79AF37E00AA1",
+    "selected": true
+  },
+  {
+    "file": "rear-sheet-v2.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "transparentPixels": 892331,
+    "partialAlphaPixels": 680533,
+    "sha256": "DF0873620E7F97AAAF5321520EAF8C7EF1B6F493B9CA2A000DAAD5758809E2D9",
+    "selected": true
+  },
+  {
+    "file": "rear-sheet-v3.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "transparentPixels": 19242,
+    "partialAlphaPixels": 1553622,
+    "sha256": "7CAEB5629C7D75041242C1FBB0E2C4F68F6DCE7D00CDE1A243408FEB9826E706",
+    "selected": false
+  }
+]

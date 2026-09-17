@@ -1,5 +1,15 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Grunt painted runtime integration — 2026-09-17
+
+The ordinary Grunt now uses the Slag Brute imports: front/rear idle, two contacts, two opposing-leg passing poses and immediate strike, mirrored for four directions, plus matching silhouette flashes and two independent collapse stages. EnemyArtSet supports either the existing four-frame Mite set or six frames; EnemyLookView consumes per-set stride, visible top and shadow width. Grunt prefab alone selects the set and removes the old procedural nudge. Gameplay.unity, combat timing/stats, spacing, camera and project settings are unchanged.
+
+Files: Art/Characters/SlagBrute; EnemyArtSet.cs; EnemyLookView.cs; Grunt.prefab; GruntAnimationTests.cs; updated MiteAnimationTests and explicit Mite-only capture selection. Tools/ArtReview/BuildGruntAssets.cs and Run-GruntProof.ps1 reproduce rigid registration/import and real runtime capture. Exact source prompts, accepted/rejected masters, metadata, registration and gallery are in ArtDirection/2026-09-17/grunt-polish-01.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, full EditMode **284/284**, full PlayMode **100/100**, graphics capture **1/1**, Android exit **0**, integrity **404 GUIDs/555 scene objects/components**. Four new tests cover shared imports/reload, four facings/passing gait/pause, immediate target-facing strike and matching flash, independent death with immediate reward/removal. APK SHA-256 **`AC9D4FC627CD94484A2923DEBB7AEC2CD2894CF3E51537207123B1BA1A6814B0`**. Device evidence is in the newest Docs/23 section.
+
+Rear angle, alternating supports and raised-fist clearance are improved; strict foot locking, stone volume continuity and mirrored light/handedness remain provisional. Crowded depth overlap and hero/chest occlusion persist. No sustained performance or balance acceptance is implied.
+
 ## Grunt registered keyposes in Unity — 2026-09-17
 
 `ArtDirection/2026-09-17/grunt-motion-01/` contains selected front/rear six-pose blocking sheets, one retained rejected front attempt, exact prompts/metadata, rigid source-root registration and sixteen actual Unity renders. The first front attack swapped arms; the selected correction keeps the raised arm for the strike. `Tools/ArtReview/GruntMotionCapture.cs` temporarily substitutes only the two Grunt body renderers in the isolated real ten-enemy density room, preserving runtime Vanguard/Mites, bars, floor, camera and shadows. It captures the baseline/candidate, front/rear close pairs and twelve poses. No authored Asset/scene or gameplay changes. `Run-GruntMotionProof.ps1` installs/removes the temporary fixture; `Convert-CharacterProof.ps1 -GruntMotion` stages source channels and encodes render evidence.

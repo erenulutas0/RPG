@@ -65,7 +65,7 @@ MonoBehaviour:
   _attack: {fileID: 8497454021856667483}
   _body: {fileID: 6534908672259299140}
   _feedbackDuration: 0.14
-  _attackNudge: -0.22
+  _attackNudge: 0
   _enrage: {fileID: 0}
   _enragedColor: {r: 1, g: 0.35, b: 0.2, a: 1}
   _criticalColor: {r: 1, g: 0.82, b: 0.2, a: 1}
@@ -112,6 +112,7 @@ MonoBehaviour:
   _body: {fileID: 6534908672259299140}
   _health: {fileID: 8324477348219262162}
   _attack: {fileID: 8497454021856667483}
+  _paintedArt: {fileID: 11400000, guid: f964f8a13c2fc744bbde75aed988374b, type: 2}
   _walkFrameDuration: 0.25
   _breathFrameDuration: 1.1
   _attackFrameDuration: 0.14

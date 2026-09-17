@@ -1,5 +1,19 @@
 # First combat slice — setup and verification
 
+## Grunt runtime verification — 2026-09-17
+
+**Latest gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **100/100**, Grunt graphics capture **1/1**, Android exit **0**, integrity **404/555**. APK SHA-256 **`AC9D4FC627CD94484A2923DEBB7AEC2CD2894CF3E51537207123B1BA1A6814B0`**. This supersedes the preceding proof-only Grunt state. Read newest Docs/23 for physical-device evidence and retained profile state.
+
+- [x] Shared12 body/flash pairs and two death sprites; non-readable180x180 textures, pivot90,18,128PPU. Assets survive actor removal and scene reload.
+- [x] Four movement facings without mirroring combat roots; gait uses both contacts and opposing passing frames; pause freezes presentation.
+- [x] Actual strike immediately damages its target, selects frame3 and faces that target; matching white flash and compression.
+- [x] Rewards/removal immediate; independent pooled collapse freezes on pause and expires after resume.
+- [x] Grunt visible-top bar1.17 and .78-width contact shadow; Mite behavior and existing regression suites remain green.
+- [x] Gallery actual runtime renders and390x844 responsive layout; controls and images checked.
+- [ ] Final planted-foot/volume/lighting polish, crowd occlusion and sustained/mid-range performance acceptance.
+
+Reproduce graphics with `pwsh -File Tools/ArtReview/Run-GruntProof.ps1`; add `-Reimport` to rebuild selected assets. Full gate remains the prescribed .NET -> compile -> full Unity suites/APK -> integrity order.
+
 ## Grunt motion/sampling proof verification — 2026-09-17
 
 **Verified:** .NET **272/272**, compile **0 warnings/errors**, graphics-enabled `GruntMotionCapture` **1/1**, full EditMode **284/284**, full PlayMode **96/96**, integrity **375/555** after temporary fixture cleanup. Run `Tools/ArtReview/Run-GruntMotionProof.ps1` with Unity free to reproduce the isolated registration/room proof. Twelve shared-canvas pose samples and four actual room captures are under `ArtDirection/2026-09-17/grunt-motion-01/`; browser controls, links/images and desktop/390x844 layout were checked.

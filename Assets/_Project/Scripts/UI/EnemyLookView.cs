@@ -69,7 +69,7 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _body.sprite = _painted ? _paintedArt.GetFrame(0, false).Body : _sprites.Frame(EnemyPose.IdleA);
             CurrentPose = EnemyPose.IdleA;
-            ContactShadowView.Attach(transform, _body, _painted ? .48f : EnemyArt.WidthOf(_look) / PixelSpriteFactory.PixelsPerUnit * .82f, _health);
+            ContactShadowView.Attach(transform, _body, _painted ? _paintedArt.ShadowWidth : EnemyArt.WidthOf(_look) / PixelSpriteFactory.PixelsPerUnit * .82f, _health);
             BuildBar();
             _lastPosition = transform.position;
             _frameRemaining = _breathFrameDuration;
@@ -109,7 +109,7 @@ namespace Cryptforge.UI
             _bar.transform.SetParent(transform, false);
             // A Mite is much smaller than a Grunt. Scale the bar parent, retaining the shared sprites and fill ratio.
             if (_look == EnemyLook.Mite) _bar.transform.localScale = new Vector3(.65f, .8f, 1f);
-            float top = _painted ? _paintedArt.GetFrame(0, false).Body.bounds.max.y : EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;
+            float top = _painted ? _paintedArt.VisualTop : EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;
             _bar.transform.localPosition = new Vector3(0f, top + _barClearance, 0f);
             AddBarRenderer("Back", EnemySpriteCache.BarBack, Vector3.zero, _barSortingOrder);
             // The fill's left edge sits one texel inside the backing's frame.
@@ -187,8 +187,8 @@ namespace Cryptforge.UI
             float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
             if (travel < .0001f) { _walkDistance = 0; ShowPainted(0); return; }
             Face(delta);
-            _walkDistance = (_walkDistance + travel) % .55f;
-            ShowPainted(_walkDistance < .275f ? 1 : 2);
+            _walkDistance = (_walkDistance + travel) % _paintedArt.WalkCycleDistance;
+            ShowPainted(_paintedArt.WalkingFrame(_walkDistance));
             _body.transform.localScale = new Vector3((Mirrored ? -1 : 1) * (1 + .06f * compression), 1 - .08f * compression, 1);
         }
 

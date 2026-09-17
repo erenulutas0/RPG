@@ -1,5 +1,19 @@
 # Android device validation — passed first combat smoke test
 
+## Slag Brute runtime art on S23 — 2026-09-17
+
+**Gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **100/100**, graphics capture **1/1**, Android exit **0**, integrity **404 GUIDs / 555 scene objects/components**. APK **24,739,917 bytes**, SHA-256 **`AC9D4FC627CD94484A2923DEBB7AEC2CD2894CF3E51537207123B1BA1A6814B0`**. `adb install -r` succeeded; pulled installed `base.apk` matches that hash. Same S23,1080x2340.
+
+**Fresh state and preservation.** The phone initially showed another app; no off-game screenshot was taken. The owner explicitly answered that the phone was free for testing. Fresh backup was revision **131 /9658 gold /Daggers /Second Wind**, same unlocks and deepest floor2. Game launch showed an existing Ember Hall first-choice run. It was completed through the normal upgrade/Mend/Extract UI before installing, banking126 gold. Preinstall profile was **revision132 /9784 gold**. Preinstall and immediate postinstall SHA-256 both **`D2452610BF070D33D434D3BDF6AD7D7FE87D9C6AA0C62F4D305FEB0ED68C069A`**. No purchase, equipment change, reset or backup restoration.
+
+**Physical art smoke.** An otherwise absent development/start-floor.txt selected one ten-enemy proof. Capture10 is startup only. Capture11 shows two newly painted Grunts among eight Mites after the southeast drag;13 shows the front Grunt near the lower rim after southwest movement;14 shows rear facing after northwest movement and an active damage number/bar. The body renders and bar clearance are readable at phone scale. Hero/Mite and chest/Grunt depth overlap remain visible. This is a brief movement/art smoke, not exhaustive four-direction animation or foot-contact acceptance. Automated graphics/tests cover all four facings and hit/death details.
+
+Telemetry records one proof **victory**,10 kills, one damage upgrade, **15.741 active seconds**,49.338 choice seconds, **43.144 HP** at room completion and **10 gold banked**. It is not a balance comparison. The current-process log search found no Exception, Error:, FATAL, NullReference or MissingReference matches. No sustained-performance or mid-range-device claim.
+
+**Cleanup.** Removed only the temporary start-floor file, leaving the existing directory. Try again returned to the ordinary Ember Hall; telemetry confirms floor_ember_halls. Final permanent profile **revision133 /9794 gold /Daggers /Second Wind**, same unlocks/deepest floor. SHA-256 **`DCDBB76F79A2348CF6303AD7B470226D3E08C88334CA2F8CF2BA6A1487325740`**. The136-gold increase is the prior run's126 plus the proof's10. Fresh backups and new progress/telemetry are retained; none restored over current progress.
+
+All input/captures passed app-focus/awake/no-keyguard checks and captures rechecked focus before retention. Ignored evidence: TestResults/device-grunt-polish-01 (backups, installed APK, captures, log, telemetry). Three unchanged game-only captures are also in ArtDirection/2026-09-17/grunt-polish-01. Phone returned to normal Ember Hall1/6 first upgrade choice (level1,XP10/22,5 at-risk gold,85HP); inspect fresh before future input.
+
 ## Contact, sword grip and compact Mite bars: S23 — 2026-09-17
 
 **Gate:** .NET **272**, EditMode **284**, PlayMode **96**, clean compile, targeted Vanguard/Mite **13**, graphics capture **1**, Android exit **0**, integrity **375/555**. APK **24,739,917 bytes**, SHA-256 **`1DCB931D6ECCA73424870687AB3AB32E21AC4E2C6BACD67A3C3B66492F4FB01C`**. Installed with `adb install -r`; installed `base.apk` hash matches. Same S23/1080x2340.
