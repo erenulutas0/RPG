@@ -1,4 +1,9 @@
-# Experiment: a slower weapon cadence while the hero walks — 2026-09-18
+# Experiments: why kiting wins, and what would change it — 2026-09-18
+
+Part 1 measures a slower weapon cadence while the hero walks. Part 2 measures the two levers Part 1 pointed at:
+enemy speed and enemy reach. Neither part changes the game.
+
+## Part 1 — a slower weapon cadence while the hero walks
 
 **Nothing in the game changed.** This is a measurement of a proposal (Fable's design review, "walking cadence"), run
 entirely in a scratch copy of `DescentSimulation`. No runtime script, scene, asset, art, HUD, camera, profile, telemetry,
@@ -169,6 +174,8 @@ in this same harness without touching the game:
 3. A reward for standing rather than a tax on walking (for example a damage bonus after a second without moving), which
    at least cannot make a weapon unplayable while moving.
 
+Part 2 below measures 1 and 2. Number 3 is still untested.
+
 If the owner still wants the tax tried in the game, the smallest defensible version is 0.70 **scaled per weapon or by
 reach**, not one global constant, and it should be judged on the proof floors, where the simulation is exactly
 reproducible, rather than on a two-floor run whose noise floor is ±6–28 damage.
@@ -200,3 +207,147 @@ Kept separate from the numbers above on purpose. None of this is evidence.
 - Raw data: 144 experiment runs and 36 control runs, kept in the session scratchpad
   (`scratchpad/cadence/cadence.tsv`, with `build_harness.py`, `Program.cs` and `analyse.py` that produced it). It is not
   in the repository; rebuilding it from this description takes a few minutes.
+
+---
+
+## Part 2 — enemy speed and enemy reach
+
+Same harness, same encounters, same routes, cadence back at 1.00. The hero is untouched: speed 2.5, weapon ranges 1.8 /
+2.1 / 2.4, damage and cadence as they are. Two knobs move, one at a time:
+
+- **Speed.** Every enemy's walking speed × a multiplier, or raised to a least value ("min 2.5" means no enemy walks
+  slower than 2.5, the hero's own speed). Today: Tank 0.9, Warden 1.0, Captain 1.4, Grunt 1.6, Mite 2.2, Runner 3.0.
+- **Reach.** A flat bonus on every enemy's reach. In the data one number is both how far an enemy strikes from and where
+  it stops walking (`PackMotion` stops at reach − 0.1), so the bonus moves both, as it would in the game.
+
+The routes' view of the world stays honest: a kiting hero reads each enemy's real reach, so `KiteRoute` keeps its
+distance from the longer-reaching ones.
+
+### Stage 1: what the levers cost as they are
+
+The six standing Descent paths the balance tests pin (each cell is damage-card-first / speed-card-first, health left at
+the end of floor 2, with the burst and Mend):
+
+| Variant | Sword | Staff | Daggers |
+|---|---|---|---|
+| today | 30.4 / 29.2 | 28.9 / 39.2 | 33.7 / 22.4 |
+| speed ×1.15 | 13.7 / 29.0 | **died 3.1** / 36.6 | 28.9 / 18.2 |
+| speed ×1.30 | 11.7 / **died 3.1** | 9.8 / 14.2 | 27.2 / 12.5 |
+| speed min 2.0 | 10.4 / 1.8 | **died 3.1** / **died 6.1** | 11.7 / **died 3.1** |
+| reach +0.2 | 16.7 / 12.0 | **died 3.1** / 6.5 | **died 2.3** / **died 2.3** |
+| reach +0.4 | 4.5 / **died 3.1** | **died 3.1** / **died 3.1** | **died 2.3** / **died 2.3** |
+
+Unlike the cadence penalty, which a standing hero never meets, both of these levers change the authored balance on the
+first step: ×1.15 already kills a pinned path. So the interesting question cannot be asked from these numbers — a harder
+game is not the same as a game where movement matters less.
+
+### Stage 2: the same difficulty, only the mobility changed
+
+For each variant the enemies' damage was scaled back until the six standing paths land where they land today, searched
+over a grid from ×0.40 to ×1.00 and scored by the worst path's distance from today's health, requiring all six to clear
+both floors.
+
+| Variant | Enemy damage | Worst standing path vs today | The other pinned claims |
+|---|---|---|---|
+| today | ×1.00 | 0.0 | hold |
+| speed ×1.15 | ×0.94 | 8.9 | hold |
+| speed ×1.30 | ×0.88 | 11.9 | **broken** (Temper now clears floor 2) |
+| speed min 2.0 | ×0.80 | 13.9 | **broken** (both Temper paths clear) |
+| speed min 2.5 | ×0.82 | 12.8 | hold |
+| speed min 2.8 | ×0.82 | 10.2 | hold |
+| light min 2.5 (only enemies at or under 60 health) | ×0.98 | 16.0 | hold |
+| light min 2.8 | ×0.92 | 9.8 | hold |
+| reach +0.2 | **none** | — | — |
+| reach +0.4 | **none** | — | — |
+| speed min 2.5 + reach +0.2 | **none** | — | — |
+
+"The other pinned claims" are the rest of what `DescentTests` asserts, checked on the Sword: tempering on floor 1 must
+still be the trap that cannot descend, and Counterweight and Second Wind must still rescue it.
+
+**Enemy reach cannot be compensated at all.** No damage scale down to ×0.40 keeps the six standing paths alive, and the
+reason is mechanical, not a matter of tuning: enemies stop walking at reach − 0.1, so at +0.2 the Tank and the Warden
+stand exactly 1.8 from the hero — the Daggers' whole range — and at +0.4 they stand at 2.0, outside it. A standing
+Daggers hero cannot answer them at all. Enemy reach is not a difficulty dial; it is a relation to each weapon's range,
+and raising it globally breaks the weapon that has the least.
+
+### With difficulty held, does movement still win?
+
+Damage taken standing ÷ damage taken kiting, median over the three weapons (higher means kiting is safer). Every run in
+this table cleared; none died.
+
+| Variant | Proof floor | Authored Descent |
+|---|---|---|
+| today | 1.86 | 2.72 |
+| speed ×1.15 | 2.23 | 2.33 |
+| speed ×1.30 | 1.91 | 2.06 |
+| speed min 2.0 | 2.29 | 2.58 |
+| **speed min 2.5** | **1.69** | **1.76** |
+| speed min 2.8 | 2.05 | 1.56 |
+| light min 2.5 | 1.69 | 2.75 |
+| light min 2.8 | 2.05 | 1.87 |
+
+The ten-enemy proof floor holds only Grunts and Mites, so "light only" and "everything" are the same variant there; only
+the Descent, which has the Tank, the Captain and the Warden, can tell them apart.
+
+Two things stand out.
+
+**Nothing below the hero's own speed matters.** ×1.15, ×1.30 and a floor of 2.0 move the Descent ratio from 2.72 to
+2.06–2.58, which is inside the chaos band Part 1 measured, and two of them break the pinned Temper claims. A floor at
+2.5 — the hero's own speed — is where kiting stops being free: 2.72 → 1.76. This is not a coincidence of tuning. Below
+2.5 the hero can always open a gap and keep it; at 2.5 it cannot.
+
+**The slow, heavy enemies are the ones being kited.** Raising only the light enemies to 2.5 leaves the Descent at 2.75,
+no better than today, while raising everything gives 1.76. The Tank at 0.9, the Warden at 1.0 and the Captain at 1.4 are
+exactly the enemies a player can walk away from for ever.
+
+### What it costs in time, and where the hero is caught
+
+Fight seconds, standing / kiting, on the authored Descent:
+
+| Variant | Sword | Staff | Daggers |
+|---|---|---|---|
+| today | 66.4 / 66.5 | 69.9 / 49.2 | 65.1 / 132.4 |
+| speed min 2.5 | 54.5 / 49.2 | 51.5 / 45.4 | 54.3 / 59.1 |
+| speed min 2.8 | 52.5 / 44.8 | 49.9 / 43.2 | 52.7 / 55.3 |
+| light min 2.5 | 62.7 / 81.9 | 59.8 / 46.9 | 62.6 / 98.2 |
+
+Faster enemies make fights **shorter**, standing and kiting alike — the opposite of the cadence penalty, which stretched
+a kiting Descent by 15–106%. The Daggers' 132-second kiting run, the worst pacing case in the whole project, becomes 59
+seconds.
+
+On the proof floor at min 2.5 the kiting Sword spends 60% of the fight moving (100% today) and the Daggers 66%: they are
+forced to turn and fight. On the Descent the moving share stays at about 1.00 in every variant — the arena is wide and
+authored packs are five or fewer, so the hero can still circle; it simply takes half as much of its advantage with it.
+
+## Recommendation for Part 2
+
+1. **Do not raise enemy reach.** It is not a difficulty knob. At +0.2 the Tank and the Warden already stand at the edge
+   of the Daggers' range and a standing Daggers hero cannot fight back; no damage compensation rescues it. If enemy
+   reach is ever touched, it has to move together with the weapon ranges, and the Daggers set the floor.
+2. **Enemy speed is the lever that works, but only at the hero's own speed.** `speed min 2.5` with enemy damage ×0.82 is
+   the one variant that cuts kiting's advantage (Descent 2.72 → 1.76, proof 1.86 → 1.69), keeps all six standing paths
+   within 13 health of today, keeps the Temper and relic claims, kills no run, and shortens every fight.
+3. **Its price is the heavy enemies' identity.** At that floor the Tank walks 2.5 instead of 0.9 and every enemy moves
+   between 2.5 and 3.0; "slow and heavy" stops existing as a design idea, and the light-only version that preserves it
+   does nothing (2.75). Whoever decides this is choosing between a kiting answer and an enemy archetype, not between two
+   numbers.
+4. **Against Part 1.** Enemy speed changes what the hero can *achieve* — it can no longer open a gap — while the cadence
+   penalty taxes what it *does*. Speed shortens fights, cadence lengthens them; speed needs a damage re-tune and costs
+   an archetype, cadence costs nothing in balance but does not change the answer. If one of the two is to be tried in
+   the game, the evidence favours the speed floor.
+5. **If the heavies must stay slow**, this experiment has no answer inside the "no new enemy systems" constraint: the
+   next candidates are a closing dash, a ranged attack or ground the hero must leave, all of them new behaviour and all
+   untested here.
+
+## Limits of Part 2
+
+- The compensation is coarse and was fitted on six standing Mend paths only: the worst path still sits 9–16 health from
+  today, and the Temper and relic claims were checked on the Sword alone.
+- Scaling every enemy's damage by 0.82 is itself a balance change; in the game it would be a data pass over the enemy
+  assets, with its own numbers to re-pin.
+- Part 1's control applies with more force here: an imperceptible speed nudge already moved a walking Descent's damage
+  by up to 28 points, and speed is this part's variable. Treat single cells as illustration and the column trends as the
+  finding.
+- The proof floor cannot distinguish a light-only floor from a global one, because every enemy on it is light.
+- Everything is the .NET runner, one hero, three weapons, no relic in the matrix, card slot 0, no chests, and scripted
+  routes rather than players. The scene was not touched and nothing here was verified in Unity.
