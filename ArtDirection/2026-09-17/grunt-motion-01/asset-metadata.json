@@ -1,0 +1,53 @@
+[
+  {
+    "file": "front-sheet-v1-rejected.png",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 822511,
+    "partialAlphaPixels": 750353,
+    "alphaBoundsAbove16": [
+      44,
+      56,
+      984,
+      1469
+    ],
+    "sha256": "D86EA00C6D0600C6B477CC46499A4B9C7ECD05C261EB25F5ABF658068FACE4AA"
+  },
+  {
+    "file": "front-sheet-v2.png",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 832924,
+    "partialAlphaPixels": 739940,
+    "alphaBoundsAbove16": [
+      51,
+      55,
+      986,
+      1469
+    ],
+    "sha256": "274A5FC8F6198BD1CDDE8468F763D8B2B74822FABB60D775D911E67B6C86331B"
+  },
+  {
+    "file": "rear-sheet-v1.png",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 858953,
+    "partialAlphaPixels": 713911,
+    "alphaBoundsAbove16": [
+      59,
+      52,
+      991,
+      1467
+    ],
+    "sha256": "C726AD5024C3793CF2AAD83DBEBD319DFC080407DC2DB3C21DA7E42BC191D5C2"
+  }
+]

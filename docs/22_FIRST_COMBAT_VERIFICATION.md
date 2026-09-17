@@ -1,5 +1,17 @@
 # First combat slice — setup and verification
 
+## Grunt motion/sampling proof verification — 2026-09-17
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, graphics-enabled `GruntMotionCapture` **1/1**, full EditMode **284/284**, full PlayMode **96/96**, integrity **375/555** after temporary fixture cleanup. Run `Tools/ArtReview/Run-GruntMotionProof.ps1` with Unity free to reproduce the isolated registration/room proof. Twelve shared-canvas pose samples and four actual room captures are under `ArtDirection/2026-09-17/grunt-motion-01/`; browser controls, links/images and desktop/390x844 layout were checked.
+
+This checks graphics sampling and review staging, not production animation or live combat. Verify rear-facing angle/shape consistency, true planted-foot transitions, bar clearance, hit/death, shared imports and immediate-damage timing before integration. Close-pair and hero/chest occlusion are visible and unresolved. No authored runtime assets changed; APK/device checks were intentionally not rerun. The preceding contact/grip APK remains the latest installed build.
+
+
+## Grunt concept-only checkpoint — 2026-09-17
+
+The new front/rear masters in `ArtDirection/2026-09-17/grunt-proof-01/` were checked in a browser at desktop and 390x844 sizes, with scale/facing/close-pair/silhouette/foot controls and 17 loaded images. Static integrity remains **375/555**. This is not a new combat build: no runtime Assets changed and no Unity/.NET or phone tests were rerun. Next Grunt slice must register its feet/facings, prove movement/strike and sample in actual Unity before runtime/device integration. Contact/grip is still the latest verified build below.
+
+
 ## Contact/grip and compact-bar verification — 2026-09-17
 
 **Verified:** .NET **272/272**, clean compile, targeted Vanguard/Mite **13/13**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **96/96**, Android exit **0**, integrity **375/555**. APK **24,739,917 bytes**, SHA-256 **`1DCB931D6ECCA73424870687AB3AB32E21AC4E2C6BACD67A3C3B66492F4FB01C`**; installed S23 hash matched.

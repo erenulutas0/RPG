@@ -1,5 +1,21 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Grunt registered keyposes in Unity — 2026-09-17
+
+`ArtDirection/2026-09-17/grunt-motion-01/` contains selected front/rear six-pose blocking sheets, one retained rejected front attempt, exact prompts/metadata, rigid source-root registration and sixteen actual Unity renders. The first front attack swapped arms; the selected correction keeps the raised arm for the strike. `Tools/ArtReview/GruntMotionCapture.cs` temporarily substitutes only the two Grunt body renderers in the isolated real ten-enemy density room, preserving runtime Vanguard/Mites, bars, floor, camera and shadows. It captures the baseline/candidate, front/rear close pairs and twelve poses. No authored Asset/scene or gameplay changes. `Run-GruntMotionProof.ps1` installs/removes the temporary fixture; `Convert-CharacterProof.ps1 -GruntMotion` stages source channels and encodes render evidence.
+
+Common 640x640 registered canvas ->180x180 at128PPU/bilinear, pivot90,18. Visible front idle is approximately .936 units high; sprite padding is not a valid runtime bar-height measurement. Close-pair and hero/chest overlap persist; rear facing, stone-volume consistency, passing/foot contact and raised-fist/bar clearance remain open. Six-pose illustrative timing does not change the four-pose runtime art contract or immediate damage events. No hit/death/import/phone integration is claimed.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, graphics capture **1/1**, full EditMode **284/284**, full PlayMode **96/96**, integrity **375 GUIDs / 555 scene objects/components**. Source hashes/alpha coverage, 12x480-square and4x1080x2340 captures, browser controls and desktop/390x844 layout passed. APK explicitly skipped for this isolated art proof; installed contact/grip hash remains **`1DCB931D6ECCA73424870687AB3AB32E21AC4E2C6BACD67A3C3B66492F4FB01C`**, not reinstalled or reverified on device this turn.
+
+
+## Slag Brute design proof — 2026-09-17
+
+`ArtDirection/2026-09-17/grunt-proof-01/` adds two original front/rear masters, metadata/prompts and a browser scale study with the existing Vanguard/Mite sources. The 11-actor composition, close-depth pair, facing, size, silhouette and foot controls support a bounded visual review. It does not import Grunt art, animate it, change gameplay or fix overlap. The rear angle and registration remain open before production poses.
+
+**Verified:** original RGBA alpha/dimensions/SHA-256; browser desktop and 390x844 layout (17 images loaded, no horizontal overflow), interactive controls and 11 staged actors; static integrity **375 GUIDs / 555 scene objects/components**. No .NET/Unity suite or device rerun for this art-only study. No new APK. Latest runtime validation and installed hash remain the preceding contact/grip entry below.
+
+
 ## Vanguard contact/grip and compact Mite bars — 2026-09-17
 
 The hero's scene `CombatantView._attackNudge` changes from .22 to 0, keeping the imported feet at floor level during attacks. `VanguardAnimator` uses a .8-unit displacement cycle (previously 1.2), and one child renderer borrows the appropriate front-pose knuckle crop above the Sword. It mirrors with the body, hides on death and is disabled for Staff/Daggers and rear views. The imported hero's hit silhouette sorts above the grip. Eight 11x8, 128-PPU imports contain unchanged sampled body pixels; `VanguardArtSet.Frame` stores optional grip/registration. No new AI painting, runtime texture generation, gameplay changes or other scene edits.

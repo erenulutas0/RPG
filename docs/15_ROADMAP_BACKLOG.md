@@ -2,6 +2,12 @@
 
 ## Current art checkpoint — 2026-09-16
 
+Latest status, 2026-09-17: Vanguard front/rear runtime poses, Sword grip polish and Mite runtime poses/effects are integrated and S23-checked (latest Docs/21–23). The older unchecked pair milestones below retain their final-quality requirements: strict foot locking and matching Staff/Daggers are still open.
+
+- [x] Grunt front/rear design masters and browser scale/close-pair study (`ArtDirection/2026-09-17/grunt-proof-01/`). Static proof only; old Grunt remains in the game.
+- [x] Grunt six-pose-per-side blocking, common registration/sampling and real Unity before/after/close-pair proof (`grunt-motion-01`). This proves sampling and reviewability, not final planted-foot animation or a runtime import.
+- [ ] Grunt registered facing/foot landmarks, movement/strike poses, reduced Unity samples and runtime/device validation.
+
 - [x] First hero/Mite concept pair and browser scale/crowd review (`ArtDirection/2026-09-16/character-proof-01/`).
 - [x] Compare reduced sprite resolution/filtering in Unity at fixed world size (`character-unity-01`, 32/64/128 PPU). 128/bilinear is a candidate; current shipped 32-PPU actor contract remains.
 - [x] Matching sword/buckler masters and a registered hero keypose blocking proof (`hero-motion-01`, completed 2026-09-17).

@@ -1,0 +1,179 @@
+{
+  "canvas": 640,
+  "sample": 180,
+  "ppu": 128,
+  "pivot": [
+    320,
+    64
+  ],
+  "frames": [
+    {
+      "name": "front-idle",
+      "file": "front-sheet-v2.png",
+      "bounds": [
+        54,
+        52,
+        511,
+        484
+      ],
+      "root": [
+        275,
+        450
+      ]
+    },
+    {
+      "name": "front-step-a",
+      "file": "front-sheet-v2.png",
+      "bounds": [
+        532,
+        60,
+        989,
+        485
+      ],
+      "root": [
+        751,
+        450
+      ]
+    },
+    {
+      "name": "front-step-b",
+      "file": "front-sheet-v2.png",
+      "bounds": [
+        48,
+        551,
+        512,
+        995
+      ],
+      "root": [
+        280,
+        957
+      ]
+    },
+    {
+      "name": "front-windup",
+      "file": "front-sheet-v2.png",
+      "bounds": [
+        540,
+        516,
+        985,
+        1003
+      ],
+      "root": [
+        778,
+        970
+      ]
+    },
+    {
+      "name": "front-strike",
+      "file": "front-sheet-v2.png",
+      "bounds": [
+        75,
+        1058,
+        532,
+        1469
+      ],
+      "root": [
+        280,
+        1445
+      ]
+    },
+    {
+      "name": "front-recover",
+      "file": "front-sheet-v2.png",
+      "bounds": [
+        543,
+        1052,
+        989,
+        1472
+      ],
+      "root": [
+        779,
+        1445
+      ]
+    },
+    {
+      "name": "rear-idle",
+      "file": "rear-sheet-v1.png",
+      "bounds": [
+        69,
+        49,
+        513,
+        479
+      ],
+      "root": [
+        282,
+        450
+      ]
+    },
+    {
+      "name": "rear-step-a",
+      "file": "rear-sheet-v1.png",
+      "bounds": [
+        557,
+        54,
+        978,
+        475
+      ],
+      "root": [
+        769,
+        450
+      ]
+    },
+    {
+      "name": "rear-step-b",
+      "file": "rear-sheet-v1.png",
+      "bounds": [
+        74,
+        547,
+        543,
+        989
+      ],
+      "root": [
+        302,
+        950
+      ]
+    },
+    {
+      "name": "rear-windup",
+      "file": "rear-sheet-v1.png",
+      "bounds": [
+        549,
+        505,
+        983,
+        988
+      ],
+      "root": [
+        770,
+        970
+      ]
+    },
+    {
+      "name": "rear-strike",
+      "file": "rear-sheet-v1.png",
+      "bounds": [
+        56,
+        996,
+        534,
+        1464
+      ],
+      "root": [
+        282,
+        1440
+      ]
+    },
+    {
+      "name": "rear-recover",
+      "file": "rear-sheet-v1.png",
+      "bounds": [
+        550,
+        1053,
+        994,
+        1470
+      ],
+      "root": [
+        783,
+        1445
+      ]
+    }
+  ]
+}

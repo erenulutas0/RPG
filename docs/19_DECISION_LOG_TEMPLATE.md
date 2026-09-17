@@ -1,5 +1,23 @@
 # Decision Log
 
+## Decision: Register Grunt keyposes without changing combat timing
+
+**Date:** 2026-09-17
+**Status:** Isolated Unity proof; runtime integration pending
+
+Use explicit sheet rectangles and rigid per-pose floor-root registration at one scale. Automatically fitting each pose's alpha bounds would hide generated shape drift and make the enemy grow/shrink as its arm rises. Uniform sampling instead exposes that drift for review. The source sheets are not exact equal-cell grids; retain their untouched originals and measured registration. Keep existing room actors/bars/floor in the before/after capture so overlap and raised-fist/bar crowding remain visible.
+
+The six keyposes include a windup, but the current attack deals damage immediately. Do not delay gameplay or fake an anticipatory cue from an already delivered attack merely to use the artwork. Decide presentation timing explicitly at integration; a true telegraph would require a separately scoped gameplay/parity change. The existing four-pose enemy art contract remains unchanged. See `ArtDirection/2026-09-17/grunt-motion-01/README.md`.
+
+
+## Decision: Compact basalt Grunt, before production animation
+
+**Date:** 2026-09-17
+**Status:** Design candidate; not integrated
+
+Use broad shoulders, low head, oversized stone fists and a small furnace vent for the ordinary Grunt/Slag Brute. A taller flame-crowned version would compete with the Mite and obscure more combat; conventional armour would compete with the hero. Keep the initial height close to the existing .9375-unit canvas while checking the wider new silhouette explicitly. The browser close-pair comparison exposes persistent overlap; this is not a spacing fix. Front/rear independent generated masters require angle/shape reconciliation and registered feet before a motion proof. See `ArtDirection/2026-09-17/grunt-proof-01/README.md`; runtime art and the phone are unchanged.
+
+
 ## Decision: Bounded contact and grip polish before roster expansion
 
 **Date:** 2026-09-17

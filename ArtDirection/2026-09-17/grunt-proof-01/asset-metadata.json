@@ -1,0 +1,70 @@
+{
+  "front": {
+    "path": "ArtDirection/2026-09-17/grunt-proof-01/grunt-front-v1.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaBoundsAbove16": [
+      143,
+      231,
+      1111,
+      1086
+    ],
+    "transparentPixels": 1051507,
+    "partialAlphaPixels": 519641,
+    "sha256": "F2A5E9A8EE60122BB6F1EC26E3105C54905EE137AC07303DF4DFE4EDE6081600"
+  },
+  "rear": {
+    "path": "ArtDirection/2026-09-17/grunt-proof-01/grunt-rear-v1.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaBoundsAbove16": [
+      168,
+      237,
+      1133,
+      1060
+    ],
+    "transparentPixels": 1050019,
+    "partialAlphaPixels": 521459,
+    "sha256": "0B0C0A147CDA91AD6A3E3F8D000671D8FA677F421299DBE4DD6A50A8DCAFA435"
+  },
+  "hero": {
+    "path": "ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png",
+    "size": [
+      1176,
+      1337
+    ],
+    "mode": "RGBA",
+    "alphaBoundsAbove16": [
+      257,
+      98,
+      947,
+      1226
+    ],
+    "transparentPixels": 1143053,
+    "partialAlphaPixels": 428603,
+    "sha256": "3AA2E2F8451AF191C67895507634FEEDD414D4960822E7A170B0A7F4290A4BFF"
+  },
+  "mite": {
+    "path": "ArtDirection/2026-09-16/character-proof-01/cinder-mite-v1.png",
+    "size": [
+      1176,
+      1338
+    ],
+    "mode": "RGBA",
+    "alphaBoundsAbove16": [
+      167,
+      262,
+      1029,
+      1103
+    ],
+    "transparentPixels": 1215556,
+    "partialAlphaPixels": 357532,
+    "sha256": "F85FFF5C5668BC7FB5CC196C9E7BBBA3C7F9EF4B3A27A7B39FB9863F61B42113"
+  }
+}
