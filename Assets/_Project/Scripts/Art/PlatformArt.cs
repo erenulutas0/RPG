@@ -135,6 +135,25 @@ namespace Cryptforge.Art
 
         public static PixelCanvas DrawPlatform(ArenaGeometry geometry) => DrawPlatform(new PlatformLayout(geometry));
 
+        // Under the painted surface: no old top, wall outline or corner tower can bleed through the new rim.
+        public static PixelCanvas DrawFoundation(PlatformLayout layout)
+        {
+            var canvas = new PixelCanvas(layout.Width, layout.Height);
+            DrawKeel(canvas, layout);
+            DrawChains(canvas, layout);
+            DrawCrystal(canvas, layout);
+            canvas.Outline(PixelPalette.Outline);
+            return canvas;
+        }
+
+        public static PixelCanvas DrawFoundationLights(PlatformLayout layout, int frame)
+        {
+            if (frame < 0 || frame >= FrameCount) throw new ArgumentOutOfRangeException(nameof(frame));
+            var canvas = new PixelCanvas(layout.Width, layout.Height);
+            DrawCrystalGlow(canvas, layout, frame);
+            return canvas;
+        }
+
         public static PixelCanvas DrawPlatform(PlatformLayout layout)
         {
             var canvas = new PixelCanvas(layout.Width, layout.Height);

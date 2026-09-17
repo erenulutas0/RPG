@@ -3,8 +3,8 @@
 ## Platform material checkpoint — 2026-09-17
 
 - [x] Painted basalt V1/V2, coping and near-face masters; selected quieter V2 with actual Unity centre/rim/detail/overview comparisons (`platform-material-01`). Isolated proof only.
-- [ ] Resolve coping corners, old pixel outline and near-wall/lower-keel joins.
-- [ ] Integrate accepted materials with reduced-size/compression comparison, shared ownership, reload tests and physical centre/rim movement validation.
+- [x] Resolve coping corners, old pixel outline and near-wall/lower-keel joins (platform-runtime-01; lower keel artwork itself remains provisional).
+- [x] Integrate accepted materials with reduced-size/compression checks, shared ownership, reload tests and physical density/near-rim movement validation (2026-09-18, latest Docs/21–23).
 - [ ] Match remaining corner fixtures, crystal/keel, chest and ability indicator; preserve combat readability. Separate boss-room geometry remains later.
 
 ## Current art checkpoint — 2026-09-16

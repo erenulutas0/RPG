@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // The floating forge platform as pixel art: one sprite for the tiled top, corner towers, stone faces, keel, crystal
-    // and chains, plus an overlay sprite whose frames flicker the lantern flames, lava seams and the crystal's heart.
-    // Built by ArenaView from its geometry; the session cache shares the surface and animated frames across restarts.
+    // Optional painted materials over a retained keel/crystal/chain foundation. Without the set, use the pixel-art
+    // platform. ArenaView supplies geometry; the session cache shares generated meshes/sprites across restarts.
     public sealed class ForgePlatformView : MonoBehaviour
     {
         // Seconds between overlay frames, and how deep the ember light breathes between flickers.
@@ -15,24 +14,41 @@ namespace Cryptforge.UI
 
         private PlatformSprites _sprites;
         private bool _shared;
+        private PlatformMaterialMeshes _paintedMeshes;
+        private bool _sharedMeshes;
+        public bool UsesPaintedMaterials { get; private set; }
         private float _flickerTimer;
         private int _frame;
 
-        // The main renderer (the given sorting order); the overlay draws one order above it.
+        // Foundation/main sprite and its light overlay. Painted meshes occupy the layer immediately above these.
         public SpriteRenderer PlatformRenderer { get; private set; }
         public SpriteRenderer LightsRenderer { get; private set; }
 
         // Builds the platform once; sortingOrder is just above the backdrop and below every combatant. The material is
         // the arena's vertex-colour material, which sprites do not need: both renderers keep the sprite default.
-        public void Build(ArenaGeometry geometry, Material material, int sortingOrder)
+        public void Build(ArenaGeometry geometry, Material material, int sortingOrder, PlatformMaterialSet painted = null)
         {
             var layout = new PlatformLayout(geometry);
-            _sprites = ArenaSpriteCache.Platform(geometry, out _shared);
+            UsesPaintedMaterials = painted != null && painted.IsValid;
+            _sprites = UsesPaintedMaterials ? ArenaSpriteCache.Foundation(geometry, out _shared) : ArenaSpriteCache.Platform(geometry, out _shared);
 
             // Both sprites share the bottom-centre pivot at the canvas's world anchor, so their texels line up.
             var anchor = new Vector3(0f, layout.WorldBottom, 0f);
-            PlatformRenderer = AddRenderer("Platform", _sprites.Surface, anchor, sortingOrder);
-            LightsRenderer = AddRenderer("Platform Lights", _sprites.Light(0), anchor, sortingOrder + 1);
+            PlatformRenderer = AddRenderer("Platform", _sprites.Surface, anchor, UsesPaintedMaterials ? sortingOrder - 1 : sortingOrder);
+            LightsRenderer = AddRenderer("Platform Lights", _sprites.Light(0), anchor, UsesPaintedMaterials ? sortingOrder : sortingOrder + 1);
+            if (UsesPaintedMaterials)
+            {
+                _paintedMeshes = ArenaSpriteCache.PaintedMeshes(geometry, out _sharedMeshes);
+                for (int i = 0; i < _paintedMeshes.Count; i++)
+                {
+                    var part = new GameObject(_paintedMeshes[i].name);
+                    part.transform.SetParent(transform, false);
+                    part.AddComponent<MeshFilter>().sharedMesh = _paintedMeshes[i];
+                    var renderer = part.AddComponent<MeshRenderer>();
+                    renderer.sharedMaterial = painted.ForPart(i);
+                    renderer.sortingOrder = sortingOrder + 1;
+                }
+            }
         }
 
         private void Update()
@@ -55,6 +71,8 @@ namespace Cryptforge.UI
         {
             if (!_shared)
                 _sprites?.Dispose();
+            if (!_sharedMeshes)
+                _paintedMeshes?.Dispose();
         }
 
         private SpriteRenderer AddRenderer(string name, Sprite sprite, Vector3 localPosition, int sortingOrder)

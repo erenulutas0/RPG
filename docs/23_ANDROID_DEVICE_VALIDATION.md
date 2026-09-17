@@ -1,5 +1,23 @@
 # Android device validation — passed first combat smoke test
 
+## Painted platform materials: S23 — 2026-09-18
+
+**Gate:** .NET272, clean compile, EditMode284, PlayMode104, graphics1, Android exit0, integrity415/555. APK24,740,096 bytes; SHA-256 `64F49049A08DDB92396831F28FEC24DEFF42F902B8F849E6D87931F59F439475`. `adb install -r` succeeded and pulled installed base.apk hash matches. S23/1080x2340, serialRFCW20W2WFX. No project settings/package changes.
+
+**Fresh state and installation.** The phone was awake/unlocked in the game, paused at floor2/room1, level8,72HP,149 run gold. Permanent profile revision134/9930 gold/Daggers/Second Wind (both unlockable weapons/relics, deepest2). The existing run resumed through its last speed upgrade and Mend, ending in victory with293 total run gold. Because the earlier floor checkpoint was already banked, only157 more was added: preinstall revision135/10087. Fresh profile/backup/telemetry were pulled; preinstall and immediate postinstall profile SHA-256 both `4E625F80711AD4BDF3F58208490C054CF0EBD9151DB4D7CE983B59E3365A4362`. No backup restoration, purchase or equipment change.
+
+The first postinstall launch entered ordinary Ember Hall: the first temporary proof-file write was empty, then corrected. The owner also played during this normal run, confirmed when asked. Agent input stopped for coordination; the temporary flag was removed. The owner explicitly authorized restarting and handed control back. Before the controlled proof, the current saved state was revision136/10223 gold, same loadout/unlocks/deepest floor. The owner/agent mixed normal run is not controlled movement or balance evidence, and no old backup was restored over its progress.
+
+**Controlled art smoke.** Verified `floor_density_proof` was written, then launched one ten-enemy room. Capture20 shows the actual two-Grunt/eight-Mite encounter after a southeast drag;22 shows combat and the near coping/wall corner after the damage choice and southwest drag. Ground materials, imported actors, health bars and ground ring render in the correct order, without the old pixel rim protruding. Lower keel/chains and chest/ring remain visibly provisional; projected crowd overlap persists. Capture21 was already an upgrade panel, so that attempted swipe does not prove movement. Capture23 was already the result, so its attempted northwest swipe is not four-direction evidence.
+
+Telemetry for controlled session500ffe81a49b491ea0c12c19a2393baf records victory,10 kills, one damage upgrade,14.089 active seconds,65.022 choice seconds,65.224HP at completion and10 gold banked. This is an art smoke, not a balance comparison. Removed only the temporary start-floor file; its existing directory remains. Try again loaded normal floor_ember_halls, confirming a warm scene restart with the painted surface intact.
+
+**Performance/limits.** Warm normal restart: StartWave0.59ms, frame16.7ms, main thread24.4ms,948.9KB whole-frame allocation. The surrounding five-second window averaged59.9fps and max17.1ms. Other windows mix active combat, choice pause and result screens (some33.4ms intervals), so no sustained dense-combat or mid-range claim. Current-process log search found no Exception, Error:, FATAL, NullReference or MissingReference matches. Runtime tests separately establish shared mesh/material/foundation identity across scene reload; the phone capture alone cannot measure ownership.
+
+**Cleanup/state.** Final profile revision137/10233 gold/Daggers/Second Wind, same unlocks/deepest2; SHA-256 `3B63C73F70886712C22404478776D1C85A06C3BE1E75394AAAAB1F31594C5240`. The final controlled proof added10 to the owner's latest state. Telemetry and all new progress retained. Phone left at normal Ember Hall1/6 first upgrade choice, level1,XP10/22,5 at-risk gold,85HP. Inspect fresh before future input.
+
+Every tap/swipe/capture gated on app focus, awake display and hidden keyguard, with post-capture focus recheck. Ignored evidence: TestResults/device-platform-runtime-01 (fresh backups, installed APK, logs, telemetry and captures). Two unchanged game-only screenshots are also in ArtDirection/2026-09-18/platform-runtime-01. Browser gallery desktop/390x844 controls/layout were checked.
+
 ## Slag Brute runtime art on S23 — 2026-09-17
 
 **Gate:** .NET **272/272**, compile **0 warnings/errors**, EditMode **284/284**, PlayMode **100/100**, graphics capture **1/1**, Android exit **0**, integrity **404 GUIDs / 555 scene objects/components**. APK **24,739,917 bytes**, SHA-256 **`AC9D4FC627CD94484A2923DEBB7AEC2CD2894CF3E51537207123B1BA1A6814B0`**. `adb install -r` succeeded; pulled installed `base.apk` matches that hash. Same S23,1080x2340.

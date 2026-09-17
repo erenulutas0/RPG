@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-18",
+  "origin": "Accepted unchanged built-in generated masters from platform-material-01; Unity importer sampling only",
+  "sources": [
+    {
+      "source": "ArtDirection/2026-09-17/platform-material-01/floor-v2.png",
+      "asset": "Assets/_Project/Art/Environment/Platform/ENV_Platform_Floor.png",
+      "sha256": "65602DD942FDFB850F41C5E82F94926647AACB9E6B46EC97FF7D11F462725C63",
+      "unchangedCopy": true,
+      "targetWidth": 1024,
+      "targetHeight": 1024,
+      "androidFormat": "ASTC_6x6",
+      "blockPayloadBytesWithMips": 626288.0
+    },
+    {
+      "source": "ArtDirection/2026-09-17/platform-material-01/coping-v1.png",
+      "asset": "Assets/_Project/Art/Environment/Platform/ENV_Platform_Coping.png",
+      "sha256": "2B9F30B9951AA2458D36230A3E2C02F1812ACB8E72AD4BDE15D68CBF8D1907FD",
+      "unchangedCopy": true,
+      "targetWidth": 1024,
+      "targetHeight": 256,
+      "androidFormat": "ASTC_4x4",
+      "blockPayloadBytesWithMips": 349584.0
+    },
+    {
+      "source": "ArtDirection/2026-09-17/platform-material-01/wall-v1.png",
+      "asset": "Assets/_Project/Art/Environment/Platform/ENV_Platform_Wall.png",
+      "sha256": "2F0C66153E7E67763C8387D9C4F6E2F4CB232B089E8F332F78F61CA1A6B5EB69",
+      "unchangedCopy": true,
+      "targetWidth": 1024,
+      "targetHeight": 1024,
+      "androidFormat": "ASTC_6x6",
+      "blockPayloadBytesWithMips": 626288.0
+    }
+  ],
+  "sampling": "sRGB, non-readable, trilinear, Repeat, mipmaps, anisotropy2; coping NPOT nearest",
+  "memoryNote": "ASTC block payload calculation only; excludes driver/native overhead and retained foundation sprites. Dimensions checked in PlayMode output."
+}

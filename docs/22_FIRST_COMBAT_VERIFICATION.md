@@ -1,5 +1,18 @@
 # First combat slice — setup and verification
 
+## Painted platform runtime verification — 2026-09-18
+
+**Gate:** .NET272/272, compile0 warnings/errors, full EditMode284/284, full PlayMode104/104, graphics capture1/1, Android exit0, integrity415 GUIDs/555 scene objects/components. APK SHA-256 `64F49049A08DDB92396831F28FEC24DEFF42F902B8F849E6D87931F59F439475`; installed S23 hash matches.
+
+- [x] Actual scene references the valid material set; imported non-readable mipmapped Repeat/trilinear floor/wall1024-square ASTC6 and coping1024x256 ASTC4. The initial341-height RGBA32 fallback is corrected and guarded by assertions.
+- [x] Nine meshes below ground effects; exact coping joins and unchanged arena boundary.
+- [x] Scene reload shares meshes/materials/foundation; private geometry releases only its resources; repeated session reset destroys generated meshes and retains imported assets.
+- [x] Runtime centre/near/right/far, short portrait, overview/detail captures; original source hashes match copied imports.
+- [x] S23 southeast/near-rim density movement and normal warm restart; proof flag removed, current profile preserved. Full physical details/limits are in Docs/23.
+- [ ] Sustained/mid-range performance, final lower-foundation/props and crowd depth acceptance.
+
+Reproduce with `pwsh -File Tools/ArtReview/Run-PlatformRuntimeProof.ps1`; `-Reimport` configures imports and the one scene reference. Temporary scripts/meta are removed. Full game gate remains .NET -> compile -> full Unity suites/APK -> integrity.
+
 ## Platform material proof verification — 2026-09-17
 
 **Gate:** .NET **272/272**, compile **0 warnings/errors**, full EditMode **284/284**, full PlayMode **100/100**, final graphics capture **1/1**, static integrity **404 GUIDs /555 scene objects/components**. Full suites ran with `-SkipApk`: this isolated art/tooling slice has no authored runtime Asset, scene, project-setting or APK change. No phone test/install was performed. The previous Grunt APK remains the latest device record.

@@ -8,6 +8,8 @@ namespace Cryptforge.Art
     internal static class ArenaSpriteCache
     {
         private static PlatformSprites _platform;
+        private static PlatformSprites _foundation;
+        private static PlatformMaterialMeshes _paintedMeshes;
         private static VoidSprites _void;
         private static Sprite _contactShadow;
 
@@ -20,6 +22,20 @@ namespace Cryptforge.Art
         }
 
         internal static VoidSprites Backdrop => _void ?? (_void = new VoidSprites());
+
+        internal static PlatformSprites Foundation(ArenaGeometry geometry, out bool shared)
+        {
+            if (_foundation == null) _foundation = new PlatformSprites(geometry, true);
+            shared = _foundation.Matches(geometry);
+            return shared ? _foundation : new PlatformSprites(geometry, true);
+        }
+
+        internal static PlatformMaterialMeshes PaintedMeshes(ArenaGeometry geometry, out bool shared)
+        {
+            if (_paintedMeshes == null) _paintedMeshes = new PlatformMaterialMeshes(geometry);
+            shared = _paintedMeshes.Matches(geometry);
+            return shared ? _paintedMeshes : new PlatformMaterialMeshes(geometry);
+        }
         internal static Sprite ContactShadow => _contactShadow != null ? _contactShadow :
             (_contactShadow = PixelSpriteFactory.CreateSprite(ContactShadowArt.Draw(), "Contact Shadow", PixelSpriteFactory.Centre));
 
@@ -35,6 +51,10 @@ namespace Cryptforge.Art
         {
             _platform?.Dispose();
             _platform = null;
+            _foundation?.Dispose();
+            _foundation = null;
+            _paintedMeshes?.Dispose();
+            _paintedMeshes = null;
             _void?.Dispose();
             _void = null;
             PixelSpriteFactory.Destroy(_contactShadow);
@@ -48,15 +68,15 @@ namespace Cryptforge.Art
         private readonly Sprite[] _lights = new Sprite[PlatformArt.FrameCount];
         internal Sprite Surface { get; private set; }
 
-        internal PlatformSprites(ArenaGeometry geometry)
+        internal PlatformSprites(ArenaGeometry geometry, bool foundationOnly = false)
         {
             _geometry = geometry;
             var layout = new PlatformLayout(geometry);
             try
             {
-                Surface = PixelSpriteFactory.CreateSprite(PlatformArt.DrawPlatform(layout), "Forge Platform", PixelSpriteFactory.BottomCentre);
+                Surface = PixelSpriteFactory.CreateSprite(foundationOnly ? PlatformArt.DrawFoundation(layout) : PlatformArt.DrawPlatform(layout), "Forge Platform", PixelSpriteFactory.BottomCentre);
                 for (int i = 0; i < _lights.Length; i++)
-                    _lights[i] = PixelSpriteFactory.CreateSprite(PlatformArt.DrawLights(layout, i), "Forge Platform Lights " + i,
+                    _lights[i] = PixelSpriteFactory.CreateSprite(foundationOnly ? PlatformArt.DrawFoundationLights(layout, i) : PlatformArt.DrawLights(layout, i), "Forge Platform Lights " + i,
                         PixelSpriteFactory.BottomCentre);
             }
             catch

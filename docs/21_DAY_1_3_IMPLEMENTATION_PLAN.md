@@ -1,5 +1,15 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Painted platform runtime — 2026-09-18
+
+The real scene now uses the accepted V2 floor, flush coping and near-wall materials through one new ArenaView reference. Nine generated meshes are session-cached by one geometry; alternate geometry owns/disposes its own meshes. Asset-owned textures/materials survive view destruction. Foundation-only procedural sprites retain keel/chains/crystal and omit the old top/faces/towers/flames. Exact corner vertices and a narrow dark join lip remove the old rim bleed without changing movement boundaries, stats, encounters, camera or HUD behavior.
+
+Files: PlatformMaterialSet.cs, PlatformMaterialMeshes.cs, ArenaSpriteCache.cs, PlatformArt.cs, ForgePlatformView.cs, ArenaView.cs, one Gameplay.unity field, Art/Environment/Platform imports and PlatformMaterialTests.cs. Reproduction: Tools/ArtReview/BuildPlatformMaterials.cs, PlatformRuntimeCapture.cs and Run-PlatformRuntimeProof.ps1. Seven Unity renders, two unchanged device captures, source hashes and gallery are in ArtDirection/2026-09-18/platform-runtime-01.
+
+**Verified:** .NET272/272; compile0 warnings/errors; EditMode284/284; PlayMode104/104; graphics1/1; Android exit0; integrity415 GUIDs/555 scene objects/components. New tests cover actual Android formats/settings, joins/boundaries/sorting, reload reuse, private-geometry disposal and session reset without destroying borrowed assets. APK24,740,096 bytes, SHA-256 `64F49049A08DDB92396831F28FEC24DEFF42F902B8F849E6D87931F59F439475`; installed S23 hash matches. See Docs/23 for owner/agent coordination and profile preservation.
+
+Runtime imported dimensions: floor/wall1024x1024 ASTC6x6; coping1024x256 ASTC4x4. Mipmapped payload1,602,160 bytes excludes driver/foundation overhead. Original PNG bytes unchanged. Lower keel/crystal/chains, chest/ring, other enemies and crowded depth remain open; this is not a separate boss-room or final environment delivery.
+
 ## Platform material comparison — 2026-09-17
 
 `ArtDirection/2026-09-17/platform-material-01/` contains four unchanged generated source masters (floor V1/V2, coping, masonry), exact prompts/hashes, mapping contract and fourteen actual Unity images. V2 is the preferred floor for lower grout/bevel contrast. Seven temporary meshes map these onto existing geometry beneath ground effects; original keel/crystal/corner fixtures remain. Captures share a frozen real ten-enemy scene; hero/camera-only rim samples and a whole-platform diagnostic camera are explicitly labelled.

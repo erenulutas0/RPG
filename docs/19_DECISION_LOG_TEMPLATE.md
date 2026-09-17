@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-09-18 — Integrate platform materials with separate foundation ownership
+
+**Decision:** replace the top/coping/near faces with imported materials on nine cached meshes; retain only keel/chains/crystal from the procedural platform. Omit old corner towers/flames until matching props exist. Use exact shared corner positions and a narrow dark masonry lip to close the near-wall join. Keep arena geometry, camera and combat unchanged.
+
+**Why:** layering new art over the complete old platform left pixel outlines and mismatched fixtures protruding through the coping. Separating the foundation resolves the overlap without repainting generated masters or moving the playable boundary. A full-resolution proof allocation was inappropriate for mobile;1024-capped mipmapped ASTC imports reduce selected texture payload to about1.53MiB. Coping uses power-of-two sampling because1024x341 fell back to RGBA32 despite the ASTC override.
+
+**Evidence:** full272/284/104 gate, graphics1, integrity415/555, actual S23 density/near-rim and warm-normal-restart review. Source copies/hash, ownership tests, gallery and limitations are in platform-runtime-01. Lower-foundation art remains visibly provisional; no new boss room or sustained-performance acceptance.
+
 ## 2026-09-17 — Painted platform materials before runtime replacement
 
 **Decision:** prefer quieter V2 basalt for the next environment integration. Keep current arena geometry and combat rules; prove the floor, flush coping and near walls in an isolated real scene before allocating runtime textures.

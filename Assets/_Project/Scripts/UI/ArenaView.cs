@@ -14,6 +14,7 @@ namespace Cryptforge.UI
         [SerializeField] private Material _material;
         // Optional imported environment plate; the procedural void remains a fallback for isolated art tests.
         [SerializeField] private Sprite _cavernBackdrop;
+        [SerializeField] private PlatformMaterialSet _platformMaterials;
         // The platform top on the arena floor, in floor units with the hero at the origin: its near corner behind the hero,
         // its far corner beyond the deepest pack slot, and its half-width at the side corners.
         [SerializeField] private float _nearCorner = -3f;
@@ -24,6 +25,7 @@ namespace Cryptforge.UI
 
         public ArenaGeometry Geometry => new ArenaGeometry(_nearCorner, _farCorner, _halfWidth);
         public Material Material => _material;
+        public PlatformMaterialSet PlatformMaterials => _platformMaterials;
         public int GroundEffectSortingOrder => _sortingOrder + 7;
         public VoidBackdropView Backdrop { get; private set; }
         public ForgePlatformView Platform { get; private set; }
@@ -51,7 +53,7 @@ namespace Cryptforge.UI
                 Backdrop.Build(geometry, _material, _sortingOrder, _cavernBackdrop, _camera);
             Platform = Child<ForgePlatformView>("Forge Platform");
             using (PerformanceMarkers.BuildPlatform.Auto())
-                Platform.Build(geometry, _material, _sortingOrder + 5);
+                Platform.Build(geometry, _material, _sortingOrder + 5, _platformMaterials);
         }
 
         private T Child<T>(string name) where T : Component

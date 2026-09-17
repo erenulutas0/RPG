@@ -1,5 +1,7 @@
 # Platform material study — 2026-09-17
 
+Historical proof checkpoint: the pre-integration scene and capture recipe were recorded at commit `3f24a0a`. The platform was integrated on 2026-09-18; use `../../2026-09-18/platform-runtime-01/` for current runtime evidence. Reproducing this older before/after fixture requires the pre-integration checkout; do not overwrite these historical captures with today's scene.
+
 An isolated real-Unity comparison of painted basalt floor, flush brass coping and two near masonry faces. The preferred floor is **V2**: quieter bevels and grout leave more attention for the blue Vanguard, ember enemies and combat indicators. This is a partial surface/material proof, not the completed boss arena or a new runtime import.
 
 ## Review
