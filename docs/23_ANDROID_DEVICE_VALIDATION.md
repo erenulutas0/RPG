@@ -1,5 +1,18 @@
 # Android device validation — passed first combat smoke test
 
+## Contact, sword grip and compact Mite bars: S23 — 2026-09-17
+
+**Gate:** .NET **272**, EditMode **284**, PlayMode **96**, clean compile, targeted Vanguard/Mite **13**, graphics capture **1**, Android exit **0**, integrity **375/555**. APK **24,739,917 bytes**, SHA-256 **`1DCB931D6ECCA73424870687AB3AB32E21AC4E2C6BACD67A3C3B66492F4FB01C`**. Installed with `adb install -r`; installed `base.apk` hash matches. Same S23/1080x2340.
+
+Fresh inspection found the game active on **Ember Hall 1/6, level-2 choice, XP25/36, 10 at-risk gold, 70 HP**, with stored profile **revision118 /8598 gold /Daggers /Second Wind**. The unattended review was announced. The existing run was completed through its normal upgrade/Mend/Extract choices, banking **116** gold. Sword was temporarily equipped through Relic Forge for art review, with no purchase. Immediately before installation the profile was **revision120 /8714 gold /Sword**; preinstall and immediate postinstall SHA-256 both equal **`52718643171FD01FA875169835B98518ECDE53E4F965C7D631222297E615FF9A`**. Fresh backups were retained; none were restored.
+
+An otherwise absent `development/start-floor.txt` selected one ten-enemy proof run. Captures `11`–`16` show entry, southeast then southwest drags, compact Mite bars, front Sword presentation, silhouette flashes and a rear Sword strike. The moving front capture includes a large enemy overlapping the upper body, a remaining readability limitation. Telemetry records **victory /10 kills /13.355 active seconds /55.812 choice seconds /65.224 HP /10 gold banked**, with one damage upgrade. This is a short art smoke run, not a balance comparison or exhaustive physical four-direction acceptance.
+
+Removed only the temporary start-floor file; its pre-existing empty directory remains. Re-equipped Daggers in Relic Forge and started the ordinary floor. Left at **Ember Hall 1/6, first upgrade choice, level1, XP10/22, 5 at-risk gold, 85 HP**. Final stored profile **revision122 /8724 gold /Daggers /Second Wind**, same unlocks and deepest floor2. Final SHA-256 **`8D9B091082AC58682E6C7B6F0FBA4FC2948BBA63898A8FEA380FE3559F7DA570`**. The 126-gold difference is the existing run's 116 plus the proof's 10; progress/telemetry were retained, not replaced.
+
+Every input/capture checked app focus, awake display and no keyguard, and captures rechecked focus before retention. Evidence: ignored `TestResults/device-contact-grip-01/`; unchanged game-only captures also in the art gallery. Current-process log search found no Exception, Error:, FATAL, NullReference or MissingReference matches. Warm normal restart sampled **1000.4 KB** whole-frame allocation and **1.12 ms** StartWave for two enemies. Mixed combat/choice/result windows do not prove sustained performance; no middle-tier device or new performance gate. Final gait/lighting, large-enemy occlusion and matching other equipment remain open.
+
+
 ## Cinder Mite and hit effects: S23 review — 2026-09-17
 
 **Gate:** .NET **272/272**, clean compile, EditMode **284/284**, PlayMode **94/94**, targeted Mite **5/5**, art/HUD **9/9**, graphics capture **1/1**, Android exit **0**, static integrity **367 GUIDs / 555 scene objects/components**. APK **24,739,942 bytes**, SHA-256 **`23EDF4B3D2FA6DC853A4B579254D5200D5483009D1B4B1A948EB6EDCC56BEED1`**. Installed with `adb install -r`; device `base.apk` hash matches. Same S23, 1080x2340.

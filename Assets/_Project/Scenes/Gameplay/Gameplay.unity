@@ -318,7 +318,7 @@ MonoBehaviour:
   _attack: {fileID: 204}
   _body: {fileID: 212}
   _feedbackDuration: 0.14
-  _attackNudge: 0.22
+  _attackNudge: 0
   _enrage: {fileID: 0}
   _enragedColor: {r: 1, g: 0.35, b: 0.2, a: 1}
   _criticalColor: {r: 1, g: 0.82, b: 0.2, a: 1}

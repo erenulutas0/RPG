@@ -107,6 +107,8 @@ namespace Cryptforge.UI
             EnemySpriteCache.EnsureBars();
             _bar = new GameObject(BarName);
             _bar.transform.SetParent(transform, false);
+            // A Mite is much smaller than a Grunt. Scale the bar parent, retaining the shared sprites and fill ratio.
+            if (_look == EnemyLook.Mite) _bar.transform.localScale = new Vector3(.65f, .8f, 1f);
             float top = _painted ? _paintedArt.GetFrame(0, false).Body.bounds.max.y : EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;
             _bar.transform.localPosition = new Vector3(0f, top + _barClearance, 0f);
             AddBarRenderer("Back", EnemySpriteCache.BarBack, Vector3.zero, _barSortingOrder);

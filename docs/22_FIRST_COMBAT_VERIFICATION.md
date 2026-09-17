@@ -1,5 +1,16 @@
 # First combat slice — setup and verification
 
+## Contact/grip and compact-bar verification — 2026-09-17
+
+**Verified:** .NET **272/272**, clean compile, targeted Vanguard/Mite **13/13**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **96/96**, Android exit **0**, integrity **375/555**. APK **24,739,917 bytes**, SHA-256 **`1DCB931D6ECCA73424870687AB3AB32E21AC4E2C6BACD67A3C3B66492F4FB01C`**; installed S23 hash matched.
+
+1. Sword strikes must leave the body at its resting local position; the root-owned contact shadow remains below it. Walk in four diagonal directions, release and pause: only the existing pose/facing changes occur. The shortened gait still has discrete-frame sliding and is not final foot locking.
+2. In front-facing idle/walk/windup/strike/recovery, knuckle pixels cover the hilt and follow the mirrored body. The hit silhouette covers those knuckles; death hides the entire presentation. Staff/Daggers and rear-facing Sword must not show the overlay. Reload must preserve borrowed art.
+3. Mite bar backing width is .528125 world units, with .8 vertical scale; damage reduces the fill from its fixed left edge, independently of body compression. Grunt bars retain full size. Death hides the bar.
+4. Reproduce the real Unity gallery with `pwsh -File Tools/ArtReview/Run-VanguardProof.ps1 -ContactGrip`; add `-Reimport` only to rebuild retained source art. The browser's pose loop is a review aid; the 24-frame gait replay uses consecutive actual movement frames.
+5. On S23, one Sword proof run with two drags completed; ordinary Ember Hall was restored with Daggers. See Docs/23 for exact state. No sustained-performance, middle-tier-phone or final-animation acceptance claim.
+
+
 ## Cinder Mite / imported strike verification — 2026-09-17
 
 **Verified:** .NET **272/272**, compile **0 warnings/errors**, targeted Mite **5/5**, art/HUD **9/9**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **94/94**, Android exit **0**, integrity **367 GUIDs / 555 scene objects/components**. APK **24,739,942 bytes**, SHA-256 **`23EDF4B3D2FA6DC853A4B579254D5200D5483009D1B4B1A948EB6EDCC56BEED1`**. Physical-device review and preserved progress are recorded in the newest Docs/23 entry.

@@ -14,6 +14,9 @@ namespace Cryptforge.Art
             public Sprite Flash;
             public Vector2 RightHand;
             public Vector2 LeftHand;
+            // Optional, exactly registered crop of the existing front gauntlet; no runtime pixel generation.
+            public Sprite Grip;
+            public Vector2 GripOffset;
         }
 
         // Idle, contact A, passing A, contact B, passing B, windup, strike, recovery.

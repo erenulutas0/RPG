@@ -1,5 +1,16 @@
 # Day 1–Day 3: smallest mechanical prototype plan
 
+## Vanguard contact/grip and compact Mite bars — 2026-09-17
+
+The hero's scene `CombatantView._attackNudge` changes from .22 to 0, keeping the imported feet at floor level during attacks. `VanguardAnimator` uses a .8-unit displacement cycle (previously 1.2), and one child renderer borrows the appropriate front-pose knuckle crop above the Sword. It mirrors with the body, hides on death and is disabled for Staff/Daggers and rear views. The imported hero's hit silhouette sorts above the grip. Eight 11x8, 128-PPU imports contain unchanged sampled body pixels; `VanguardArtSet.Frame` stores optional grip/registration. No new AI painting, runtime texture generation, gameplay changes or other scene edits.
+
+`EnemyLookView` scales the Mite health-bar parent to (.65,.8,1), leaving shared sprites, fill ratio, anchoring and all other enemy bars intact. Existing source assets/GUIDs, package lock and settings are preserved. Tooling: `BuildVanguardAssets`, `Run-VanguardProof -ContactGrip [-Reimport]`, and retained `VanguardContactCapture`. Real four-direction poses, 24 consecutive movement frames, unchanged before captures and physical S23 images are in `ArtDirection/2026-09-17/contact-grip-01/`.
+
+Tests add front-grip pose/mirror/flash/death coverage and compact Mite width/fill/death coverage; existing attack tests now assert unchanged body position and other loadouts assert no sword-grip layer. Strict world-space foot locking remains unimplemented: four sampled poses still slide, and attacking replaces the walk pose. Large-enemy art/occlusion, matching equipment and final lighting remain next.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, targeted Vanguard/Mite **13/13**, graphics capture **1/1**, full EditMode **284/284**, PlayMode **96/96**, Android exit **0**, integrity **375 GUIDs / 555 scene objects/components**. APK **24,739,917 bytes**, SHA-256 **`1DCB931D6ECCA73424870687AB3AB32E21AC4E2C6BACD67A3C3B66492F4FB01C`**. Installed S23 hash matches. See newest Docs/23 for the completed proof run and preserved owner progress.
+
+
 ## Cinder Mite and imported hit effects — 2026-09-17
 
 The first imported enemy now uses a shared `EnemyArtSet`: front/rear idle, two travelling contacts and strike, plus two collapse/ember frames. `EnemyLookView` chooses four diagonal facings from displacement or the actual struck target, mirrors only the body, keeps the current pose during pause and briefly compresses on damage. Other enemy looks retain the procedural path. `EnemySpriteCache.EnsureBars` initializes the shared bars even when the first actor is imported. Only the Mite prefab's art-set reference and cosmetic nudge (.04) change; enemy data, movement, damage, rewards and cadence are untouched.

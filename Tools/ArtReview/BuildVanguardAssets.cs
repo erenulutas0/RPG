@@ -56,10 +56,21 @@ namespace Cryptforge.Editor
                 WriteTga(path,pixels,false);var sprite=Import(path,new Vector2(370f/816,16f/1152));
                 path=Folder+"/CHR_Vanguard_Front_"+names[i]+"_Flash.tga";
                 WriteTga(path,pixels,true);var silhouette=Import(path,new Vector2(370f/816,16f/1152));
+                Vector2 hand=FrontAnchor(frontRight[i]);
+                Vector2 pixelHand=hand*128+new Vector2(370f/816*128,16f/1152*180);
+                int gx=Mathf.FloorToInt(pixelHand.x)-5, gy=Mathf.FloorToInt(pixelHand.y)-4;
+                // Technical extraction only: preserve the exact sampled body pixels and their registration.
+                var gripPixels=new Texture2D(11,8,TextureFormat.RGBA32,false);
+                gripPixels.SetPixels(pixels.GetPixels(gx,gy,11,8));gripPixels.Apply();
+                path=Folder+"/CHR_Vanguard_Front_"+names[i]+"_Grip.tga";
+                WriteTga(path,gripPixels,false);var grip=Import(path,new Vector2(.5f,.5f));
+                Object.DestroyImmediate(gripPixels);
                 Object.DestroyImmediate(pixels);
                 var frame=frontFrames.GetArrayElementAtIndex(i);
                 frame.FindPropertyRelative("Body").objectReferenceValue=sprite;frame.FindPropertyRelative("Flash").objectReferenceValue=silhouette;
                 frame.FindPropertyRelative("RightHand").vector2Value=FrontAnchor(frontRight[i]);frame.FindPropertyRelative("LeftHand").vector2Value=FrontAnchor(frontLeft[i]);
+                frame.FindPropertyRelative("Grip").objectReferenceValue=grip;
+                frame.FindPropertyRelative("GripOffset").vector2Value=(new Vector2(gx+5.5f,gy+4)-new Vector2(370f/816*128,16f/1152*180))/128;
             }
             serialized.FindProperty("_sword").objectReferenceValue=swordSprite;serialized.FindProperty("_shield").objectReferenceValue=shieldSprite;
             serialized.ApplyModifiedPropertiesWithoutUndo();EditorUtility.SetDirty(set);AssetDatabase.SaveAssets();
@@ -69,6 +80,9 @@ namespace Cryptforge.Editor
             if(set==null || !set.IsValid) throw new System.InvalidOperationException("Imported Vanguard set is incomplete.");
             var look=Object.FindFirstObjectByType<HeroLookView>();
             var hero=new SerializedObject(look);hero.FindProperty("_paintedArt").objectReferenceValue=set;hero.ApplyModifiedPropertiesWithoutUndo();
+            var feedback=new SerializedObject(look.GetComponent<CombatantView>());
+            feedback.FindProperty("_attackNudge").floatValue=0;
+            feedback.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.SaveScene(scene);
             Debug.Log("Vanguard imported: sixteen shared body/flash pairs, sword/shield, 128 PPU, one scene art-set reference.");
         }

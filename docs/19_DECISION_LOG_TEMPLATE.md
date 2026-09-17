@@ -1,5 +1,15 @@
 # Decision Log
 
+## Decision: Bounded contact and grip polish before roster expansion
+
+**Date:** 2026-09-17
+**Status:** Integrated and checked on S23
+
+Remove the hero's old vertical nudge and shorten the distance per four-pose cycle, preserving a single owner of body position. A second runtime foot-offset system would fight `CombatantView` and could introduce visible jumps between the sparse poses; proper world-space foot locking remains a separate animation task. Use eight tiny registered crops of the existing front gauntlet instead of regenerating the body or adding a clipping shader. One overlay renders those authored knuckles above the sword; rear equipment is already behind the body. The whole-body damage silhouette renders above the new hand layer. No gameplay timing changes.
+
+Scale the Mite bar's parent only, retaining shared textures and the fill's left edge and fraction. Other enemies keep their existing bars. These are incremental presentation fixes, not final character animation or resolution of overlapping large-enemy silhouettes.
+
+
 ## Decision: Imported Mite poses and independent pooled death
 
 **Date:** 2026-09-17

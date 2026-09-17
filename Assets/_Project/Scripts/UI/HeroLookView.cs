@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // Borrows an optional imported Vanguard set; HeroArt remains the fallback and supplies Staff/Daggers equipment.
-    // The imported animator observes movement and weapon timing without changing either. CombatantView nudges the body
-    // on attack and hides it on death; this view changes only its sprite and weapon children, so the two never fight.
+    // The imported animator observes movement and weapon timing without changing either. CombatantView hides the body
+    // on death; the scene disables its old upward attack nudge to retain the imported hero's floor contact.
     // It runs before the other hero components so CombatantView reads a white body colour as the resting tint.
     [DefaultExecutionOrder(-50)]
     public sealed class HeroLookView : MonoBehaviour, ILookSprites

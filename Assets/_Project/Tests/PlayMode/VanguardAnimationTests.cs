@@ -133,11 +133,13 @@ namespace Cryptforge.Tests
         public IEnumerator SwordStrikeMatchesDamageThenRecoversAndAnticipatesNextHit()
         {
             int strikes = 0;
+            Vector3 resting = _body.transform.localPosition;
             _attack.Attacked += () =>
             {
                 strikes++;
                 Assert.That(_look.PaintedFrame, Is.EqualTo(6), "The damage event shows the strike immediately.");
                 Assert.That(_target.Current, Is.LessThan(_target.Maximum));
+                Assert.That(_body.transform.localPosition, Is.EqualTo(resting), "Imported sword attacks keep floor contact.");
             };
             _attack.enabled = true;
             bool recovered = false, anticipated = false;
@@ -146,10 +148,43 @@ namespace Cryptforge.Tests
                 yield return null;
                 recovered |= _look.PaintedFrame == 7;
                 anticipated |= _look.PaintedFrame == 5;
+                Assert.That(_body.transform.localPosition, Is.EqualTo(resting));
             }
             Assert.That(strikes, Is.EqualTo(2));
             Assert.That(_attack.AttackCount, Is.EqualTo(2));
             Assert.That(recovered && anticipated, Is.True, "Recovery and pre-hit windup must both be reachable.");
+        }
+
+        [UnityTest]
+        public IEnumerator FrontSwordGripTracksEachPoseMirrorsFlashesAndHidesOnDeath()
+        {
+            var grip = _body.transform.Find("Sword Grip").GetComponent<SpriteRenderer>();
+            _movement.Hold(new Vector2(-1,-1));
+            yield return null; yield return null;
+            for (int i=0;i<25;i++)
+            {
+                yield return null;
+                var frame=_look.PaintedArt.GetFrame(_look.PaintedFrame,true);
+                Assert.That(grip.enabled, Is.True);
+                Assert.That(grip.sprite, Is.SameAs(frame.Grip));
+                Assert.That(grip.transform.localPosition, Is.EqualTo((Vector3)frame.GripOffset));
+                Assert.That(grip.transform.lossyScale.x, Is.LessThan(0));
+                Assert.That(grip.sprite.texture.isReadable, Is.False);
+            }
+            _movement.Release(); yield return null; yield return null;
+            _target.transform.position=_look.transform.position+new Vector3(-.2f,-.1f);
+            _attack.enabled=true;
+            var seen=new HashSet<int>();
+            for(int i=0;i<80;i++)
+            {
+                yield return null; seen.Add(_look.PaintedFrame);
+                Assert.That(grip.sprite, Is.SameAs(_look.PaintedArt.GetFrame(_look.PaintedFrame,true).Grip));
+            }
+            CollectionAssert.IsSubsetOf(new[]{5,6,7},seen);
+            _look.GetComponent<Health>().ApplyDamage(new DamageContext(1)); yield return null;
+            Assert.That(_body.transform.Find("Flash").GetComponent<SpriteRenderer>().sortingOrder, Is.GreaterThan(grip.sortingOrder));
+            _look.GetComponent<Health>().ApplyDamage(new DamageContext(100000)); yield return null;
+            Assert.That(grip.gameObject.activeInHierarchy, Is.False);
         }
 
         [UnityTest]
@@ -196,6 +231,7 @@ namespace Cryptforge.Tests
                 Assert.That(_target.Current, Is.LessThan(_target.Maximum));
                 Assert.That(_look.IsSwinging, Is.True);
                 Assert.That(_look.PaintedFrame, Is.Zero, "Non-sword attacks keep the appropriate neutral arm pose.");
+                Assert.That(_body.transform.Find("Sword Grip").GetComponent<SpriteRenderer>().enabled, Is.False);
                 _attack.enabled = false;
                 _movement.Hold(Vector2.right);
                 bool walked = false;

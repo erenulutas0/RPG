@@ -17,66 +17,98 @@ MonoBehaviour:
     Flash: {fileID: 21300000, guid: 6bb88be130c5d99479fe61cc598a5bdf, type: 3}
     RightHand: {x: 0.3112745, y: 0.51256675}
     LeftHand: {x: -0.30514705, y: 0.754782}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: 0962d6f21f34847428e926cbfa2aca59, type: 3}
     Flash: {fileID: 21300000, guid: 43a21d630b044ce46b97acf11ab749e6, type: 3}
     RightHand: {x: 0.32352942, y: 0.51746}
     LeftHand: {x: -0.3112745, y: 0.7511121}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: 05aa8637565910e41bc737bd6be92eae, type: 3}
     Flash: {fileID: 21300000, guid: b0e6447691b04104385b1036b12dfdd8, type: 3}
     RightHand: {x: 0.32843137, y: 0.51746}
     LeftHand: {x: -0.3112745, y: 0.7511121}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: 4471ec71091cf724f8f5d08d2c434f75, type: 3}
     Flash: {fileID: 21300000, guid: fd10217b7444ccf4581079b65aa54790, type: 3}
     RightHand: {x: 0.3259804, y: 0.51746}
     LeftHand: {x: -0.31495097, y: 0.7511121}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: 96c9c98dd7ee999408f4bec5400db608, type: 3}
     Flash: {fileID: 21300000, guid: 4f16444bd98823549917ce8afea79cc1, type: 3}
     RightHand: {x: 0.32352942, y: 0.51746}
     LeftHand: {x: -0.3112745, y: 0.7511121}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: caa0e93daaf653e44ac37b39097e9d3f, type: 3}
     Flash: {fileID: 21300000, guid: d4f627de92f6fa743a56e4cc2840b694, type: 3}
     RightHand: {x: 0.30637255, y: 1.149911}
     LeftHand: {x: -0.31740198, y: 0.754782}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: 8a41bb9f7a9949a4488acd4c08e44d1d, type: 3}
     Flash: {fileID: 21300000, guid: ec8b54a05d4b2a4419c96043eb7ea6a3, type: 3}
     RightHand: {x: 0.47549018, y: 0.7205294}
     LeftHand: {x: -0.31740198, y: 0.75600535}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   - Body: {fileID: 21300000, guid: 4c0c3df3458049143a9b15b69b427c4e, type: 3}
     Flash: {fileID: 21300000, guid: d4ea743f5ef344145969c30f787e8679, type: 3}
     RightHand: {x: 0.33210784, y: 0.5981984}
     LeftHand: {x: -0.31740198, y: 0.75600535}
+    Grip: {fileID: 0}
+    GripOffset: {x: 0, y: 0}
   _frontFrames:
   - Body: {fileID: 21300000, guid: 441b7920fc3855a4abc19b78f9322f84, type: 3}
     Flash: {fileID: 21300000, guid: 27d2610c19dfedb46ae42ac1b9bd166b, type: 3}
     RightHand: {x: -0.28063726, y: 0.53100586}
     LeftHand: {x: 0.38112745, y: 0.657959}
+    Grip: {fileID: 21300000, guid: fc358f1b2d188d843809db1b8827e98e, type: 3}
+    GripOffset: {x: -0.27765012, y: 0.52734375}
   - Body: {fileID: 21300000, guid: 58aa8eaa1d61b3544846f99e65eb796d, type: 3}
     Flash: {fileID: 21300000, guid: 8c9ffea0b96456249b13c4a0fb8333ab, type: 3}
     RightHand: {x: -0.28063726, y: 0.53100586}
     LeftHand: {x: 0.38112745, y: 0.657959}
+    Grip: {fileID: 21300000, guid: 89750c9c09bb69f498ff572c89566e53, type: 3}
+    GripOffset: {x: -0.27765012, y: 0.52734375}
   - Body: {fileID: 21300000, guid: 7626de603a24ea149b1e50eaccbd02e9, type: 3}
     Flash: {fileID: 21300000, guid: 288a22599a0399041a47b0560e0c7f11, type: 3}
     RightHand: {x: -0.28063726, y: 0.53100586}
     LeftHand: {x: 0.38112745, y: 0.657959}
+    Grip: {fileID: 21300000, guid: 968a2e32d01fb0842b892062dc8cf5a8, type: 3}
+    GripOffset: {x: -0.27765012, y: 0.52734375}
   - Body: {fileID: 21300000, guid: 7e97c1e29ebd7ee4ca7cb9a0ce1e3246, type: 3}
     Flash: {fileID: 21300000, guid: eaa6f0858669fbd4bba0b7a1fdacfeba, type: 3}
     RightHand: {x: -0.28063726, y: 0.53100586}
     LeftHand: {x: 0.38112745, y: 0.657959}
+    Grip: {fileID: 21300000, guid: a6f2c2f32cb735240939bc7c08bb0faf, type: 3}
+    GripOffset: {x: -0.27765012, y: 0.52734375}
   - Body: {fileID: 21300000, guid: fceb5269fd8281e4fbbc8952c110c30e, type: 3}
     Flash: {fileID: 21300000, guid: a273c1cfd96615246a05155208e24495, type: 3}
     RightHand: {x: -0.28063726, y: 0.53100586}
     LeftHand: {x: 0.38112745, y: 0.657959}
+    Grip: {fileID: 21300000, guid: d4707f14d6417a142b096ecc5ac5ae9a, type: 3}
+    GripOffset: {x: -0.27765012, y: 0.52734375}
   - Body: {fileID: 21300000, guid: c42488e4ac371ec499bb6587eb0d31b9, type: 3}
     Flash: {fileID: 21300000, guid: f455c07631ebab84e90d4838223e5c32, type: 3}
     RightHand: {x: -0.23529412, y: 1.237793}
     LeftHand: {x: 0.3872549, y: 0.61279297}
+    Grip: {fileID: 21300000, guid: 7bac98332423f2240a1b25892f20476a, type: 3}
+    GripOffset: {x: -0.23858762, y: 1.2304688}
   - Body: {fileID: 21300000, guid: c000b30e57a6115469577f38533fa847, type: 3}
     Flash: {fileID: 21300000, guid: 888ceaf2f12b01242b17fe17cb03c581, type: 3}
     RightHand: {x: -0.3259804, y: 0.5432129}
     LeftHand: {x: 0.3872549, y: 0.657959}
+    Grip: {fileID: 21300000, guid: 899693f19b09bd3408bad41a17d5346e, type: 3}
+    GripOffset: {x: -0.32452512, y: 0.54296875}
   - Body: {fileID: 21300000, guid: 24abab061a2087543b312cbb92a3653e, type: 3}
     Flash: {fileID: 21300000, guid: 2e7e70266b46c584599217682ece55c3, type: 3}
     RightHand: {x: -0.15318628, y: 0.6164551}
     LeftHand: {x: 0.38112745, y: 0.657959}
+    Grip: {fileID: 21300000, guid: e4c731533274c6d4a8501424286e188e, type: 3}
+    GripOffset: {x: -0.15265012, y: 0.61328125}
   _sword: {fileID: 21300000, guid: b7996aab80f254f40bb3e2c608f52154, type: 3}
   _shield: {fileID: 21300000, guid: 5200d5d81ad172d4495c003563506036, type: 3}

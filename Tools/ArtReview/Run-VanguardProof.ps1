@@ -1,6 +1,6 @@
 #requires -Version 7
 # Capture the actual imported runtime hero. -Reimport first rebuilds the existing asset set from retained masters.
-param([switch]$Reimport, [switch]$Directions, [string]$UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
+param([switch]$Reimport, [switch]$Directions, [switch]$ContactGrip, [string]$UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
 $ErrorActionPreference = 'Stop'
 $proofRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path.Replace('\','/')
 if ((Get-Process Unity -ErrorAction SilentlyContinue) -or (Test-Path "$proofRoot/Temp/UnityLockfile")) { throw 'Close the Unity Editor before capture.' }
@@ -24,8 +24,9 @@ try {
             Invoke-VanguardUnity @('-batchmode','-quit','-projectPath',"`"$proofRoot`"",'-executeMethod','Cryptforge.Editor.BuildVanguardAssets.Build','-logFile',"`"$proofRoot/TestResults/vanguard-import.log`"")
         } finally { Remove-Item -LiteralPath $importTarget,"$importTarget.meta" }
     }
-    $captureClass = if ($Directions) { 'VanguardDirectionCapture' } else { 'VanguardRuntimeCapture' }
-    $captureFolder = if ($Directions) { 'vanguard-directions-01' } else { 'vanguard-runtime-01' }
+    $captureClass = if ($ContactGrip) { 'VanguardContactCapture' } elseif ($Directions) { 'VanguardDirectionCapture' } else { 'VanguardRuntimeCapture' }
+    $captureFolder = if ($ContactGrip) { 'contact-grip-01' } elseif ($Directions) { 'vanguard-directions-01' } else { 'vanguard-runtime-01' }
+    New-Item -ItemType Directory -Force "$proofRoot/ArtDirection/2026-09-17/$captureFolder" | Out-Null
     $captureTarget = "$proofRoot/Assets/_Project/Tests/PlayMode/$captureClass.cs"
     Install-TemporarySource "$PSScriptRoot/$captureClass.cs" $captureTarget
     try {

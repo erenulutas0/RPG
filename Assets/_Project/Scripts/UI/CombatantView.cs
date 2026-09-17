@@ -136,7 +136,8 @@ namespace Cryptforge.UI
             if (renderer == null)
                 renderer = flash.AddComponent<SpriteRenderer>();
             renderer.sortingLayerID = _body.sortingLayerID;
-            renderer.sortingOrder = _body.sortingOrder + 1;
+            // The imported hero's front knuckle overlay sits above its sword; flash must cover that hand too.
+            renderer.sortingOrder = _body.sortingOrder + (_look is HeroLookView hero && hero.UsesPaintedArt ? 5 : 1);
             return renderer;
         }
 

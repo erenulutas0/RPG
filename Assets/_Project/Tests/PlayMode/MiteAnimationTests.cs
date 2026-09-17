@@ -74,6 +74,25 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator CompactBarKeepsItsLeftEdgeAndHealthIndependentOfItsBody()
+        {
+            var bar=_look.transform.Find("Health Bar");
+            var fill=bar.Find("Fill").GetComponent<SpriteRenderer>();
+            float width=bar.Find("Back").GetComponent<SpriteRenderer>().bounds.size.x;
+            Assert.That(width, Is.EqualTo(26f/32*.65f).Within(.00001f));
+            float left=fill.bounds.min.x;
+            var health=_look.GetComponent<Health>(); health.ApplyDamage(new DamageContext(health.Maximum*.5f));
+            yield return null;
+            Assert.That(fill.bounds.min.x, Is.EqualTo(left).Within(.00001f));
+            Assert.That(fill.transform.localScale.x, Is.EqualTo(.5f));
+            Assert.That(bar.localScale, Is.EqualTo(new Vector3(.65f,.8f,1)));
+            foreach(var other in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
+                if(other.Look!=EnemyLook.Mite) Assert.That(other.transform.Find("Health Bar").localScale, Is.EqualTo(Vector3.one));
+            health.ApplyDamage(new DamageContext(health.Current)); yield return null;
+            Assert.That(bar.gameObject.activeSelf, Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose()
         {
             foreach (var direction in new[] { new Vector3(1, .5f), new Vector3(-1, .5f), new Vector3(1, -.5f), new Vector3(-1, -.5f) })

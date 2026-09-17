@@ -16,13 +16,15 @@ namespace Cryptforge.UI
         private readonly Health _health;
         private readonly Sprite _orb;
         private readonly Sprite _litOrb;
+        private readonly SpriteRenderer _grip;
         private Vector3 _previous;
         private float _distance;
         private float _remaining;
         private float _duration;
         private int _loadout;
         private bool _moving;
-        private const float Stride = 1.2f;
+        // A full four-pose cycle: shorter contacts reduce sliding without changing movement speed.
+        private const float Stride = .8f;
         public int FrameIndex { get; private set; } = -1;
         public bool IsAttacking => _remaining > 0;
         public bool FrontFacing { get; private set; }
@@ -35,6 +37,11 @@ namespace Cryptforge.UI
             _targeting=root.GetComponent<Targeting>(); _health=root.GetComponent<Health>();
             _previous=root.position; _orb=parts[3].sprite; _litOrb=litOrb;
             _parts[0].sprite=art.Sword; _parts[1].sprite=art.Shield;
+            var grip = new GameObject("Sword Grip");
+            grip.transform.SetParent(body.transform, false);
+            _grip = grip.AddComponent<SpriteRenderer>();
+            _grip.sharedMaterial = body.sharedMaterial;
+            _grip.sortingLayerID = body.sortingLayerID;
             Show(0);
         }
 
@@ -95,6 +102,11 @@ namespace Cryptforge.UI
             _body.transform.localScale=new Vector3(Mirrored?-1:1,1,1);
             _parts[0].sortingOrder=_body.sortingOrder+(FrontFacing?2:-1);
             _parts[1].sortingOrder=_body.sortingOrder+(FrontFacing?3:-1);
+            // Reuse the authored knuckle pixels above the hilt. Rear equipment is already behind the body.
+            _grip.sprite=frame.Grip;
+            _grip.transform.localPosition=frame.GripOffset;
+            _grip.sortingOrder=_body.sortingOrder+4;
+            _grip.enabled=FrontFacing && frame.Grip!=null && _parts[0].gameObject.activeInHierarchy;
             _parts[0].transform.localPosition=frame.RightHand;
             _parts[1].transform.localPosition=frame.LeftHand;
             _parts[2].transform.localPosition=frame.RightHand;

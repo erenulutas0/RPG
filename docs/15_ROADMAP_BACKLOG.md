@@ -196,4 +196,6 @@ P3 Growth:
 - [ ] Polish world-space foot contact and finger occlusion; resolve mirrored lighting/handedness before final character sign-off.
 - [x] Integrate the first animated Cinder Mite plus imported sword slash and impact sparks; verify shared ownership, hit/death timing and crowd readability.
 - [ ] Match Staff/Daggers artwork and the remaining enemies; ability, coin and several strike effects still use the procedural art.
-- [ ] Refine the Mite health-bar width for crowd readability while preserving fill/flash/health independence.
+- [x] Refine the Mite health-bar width for crowd readability while preserving fill/flash/health independence (2026-09-17, compact parent scale, Unity and S23 checked).
+- [x] Remove Vanguard's upward attack nudge, shorten the displacement gait cycle and add registered front sword knuckle occlusion; verify flash, mirrored poses and other loadouts.
+- [ ] Finish strict world-space support-foot contact and final finger articulation; the compact four-pose gait remains a prototype.
