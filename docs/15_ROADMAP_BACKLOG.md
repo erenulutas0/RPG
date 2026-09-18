@@ -226,3 +226,6 @@ P3 Growth:
 - [x] Separate health, labelled movement and XP; add a single pause-aware depletion emphasis without changing movement balance.
 - [x] Capture full/partial/empty/refilling states in Unity, including two portrait sizes.
 - [ ] Verify this HUD revision on the physical device after coordinating exclusive use.
+
+- [x] Compare ability-ring contours in the actual Unity room at two portrait sizes, ready/cooling and rim positions (2026-09-19).
+- [ ] Integrate preferred eight-arc ring with shared lifetime and validate actual ability use/movement on device.

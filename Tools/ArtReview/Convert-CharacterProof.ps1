@@ -1,6 +1,6 @@
 # Lossless format bridge only: unchanged PNG channels -> Unity RGBA staging; rendered BMP -> PNG evidence.
 # No resizing, painting, compositing, alpha replacement or colour grading happens here.
-param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite, [switch]$GruntMotion, [switch]$GruntPolish, [switch]$PlatformMaterial, [switch]$Chest, [switch]$ChestRuntime, [switch]$MovementHud)
+param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite, [switch]$GruntMotion, [switch]$GruntPolish, [switch]$PlatformMaterial, [switch]$Chest, [switch]$ChestRuntime, [switch]$MovementHud, [switch]$AbilityRing)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $conversionRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -46,6 +46,7 @@ if ($Mode -eq 'Source') {
     if ($Chest) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-18/chest-unity-01' }
     if ($ChestRuntime) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-18/chest-runtime-01' }
     if ($MovementHud) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/movement-hud-01' }
+    if ($AbilityRing) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/ability-ring-01' }
     foreach ($file in Get-ChildItem -LiteralPath $renders -Filter '*.bmp' -File) {
         $bitmap = [System.Drawing.Bitmap]::new($file.FullName)
         try { $bitmap.Save([System.IO.Path]::ChangeExtension($file.FullName,'png'),[System.Drawing.Imaging.ImageFormat]::Png) }

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cryptforge · Yetenek halkası</title>
+<style>:root{color-scheme:dark;font:16px/1.55 system-ui;background:#10121c;color:#eee8dd}body{max-width:1120px;margin:auto;padding:24px}h1{font-size:27px}p{max-width:800px;color:#b8becd}nav{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}button{font:inherit;padding:9px 12px;border:1px solid #5d6071;border-radius:8px;background:#202536;color:inherit;cursor:pointer}button[aria-pressed=true]{border-color:#ddb36f;background:#443625}.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}figure{margin:0}img{display:block;width:100%;height:auto}figcaption{margin:8px 0;color:#c9cbd7}a{color:#d9b474}@media(max-width:620px){.pair{grid-template-columns:1fr}.baseline{display:none}}</style>
+<h1>Yetenek halkası · 01</h1>
+<p>Kesikli piksel halkasını, zemine daha temiz oturan ince bir konturla karşılaştırıyoruz. Seçenekler aynı Unity sahnesinde geçici olarak örneklendi. Oyuna henüz aktarılmadı.</p>
+<nav id="variants" aria-label="Halka seçimi"></nav><p id="note"></p>
+<div class="pair"><figure class="baseline"><figcaption>Mevcut halka</figcaption><img src="before.png" alt="Mevcut kesikli yetenek halkası"></figure><figure><figcaption id="label"></figcaption><img id="candidate" alt="Yetenek halkası adayı, gerçek Unity görüntüsü"></figure></div>
+<p>Görüntüler canlı oynanış değildir. Soğuma durumu sabit alfa ile görsel olarak örneklenmiştir. Hasar, menzil ve süreler değişmedi. <a href="README.md">Kapsam ve teknik kayıt</a></p>
+<script>
+const variants=[['before','Mevcut','Şu anda oyundaki kısa kesikli halka.'],['continuous-ready','İnce kontur','Sürekli sınır; içerisi tamamen açık.'],['seal-ready','Uzun yaylar','Sekiz uzun yay ve dört küçük iç işaret.'],['seal-cooling','Soğuma','Düşük yoğunluk; hazır durumuyla karşılaştır.'],['continuous-short','Kontur · kısa ekran','1080 × 1920 örnekleme.'],['seal-short','Yaylar · kısa ekran','1080 × 1920 örnekleme.'],['seal-rim','Kenar kontrolü','Halka platform kenarında kesilmiyor; mevcut davranış korunuyor.']];
+function choose(key){const v=variants.find(v=>v[0]===key);document.querySelector('#candidate').src=key+'.png';document.querySelector('#label').textContent=v[1];document.querySelector('#note').textContent=v[2];document.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.key===key));}
+for(const [key,label] of variants){const b=document.createElement('button');b.dataset.key=key;b.textContent=label;b.onclick=()=>choose(key);document.querySelector('nav').append(b)}choose('seal-ready');
+</script></html>

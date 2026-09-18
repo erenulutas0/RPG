@@ -638,3 +638,7 @@ GroundedSorting groups bodies/equipment/flashes at actor roots. Health bars, con
 ## 2026-09-19 — Separate movement from health in the bottom HUD
 
 Chose a labelled, inset MOVE row and quieter full-state alpha over raising the brightness of the entire panel or enlarging the existing health-adjacent strip. Health retains priority; the movement budget has its own location and identity. Depletion is a single 0.24-second ember track pulse, then a subdued spent track, with exact fill and scaled-time pause behaviour. No flashing loop, balance retuning or new generated image. Evidence and reproduction: ArtDirection/2026-09-19/movement-hud-01/. Physical-device readability remains pending coordination.
+
+## 2026-09-19 — Ability range marker, visual proof decision
+
+Prefer a strengthened eight-arc contour with small inward lozenges over many short pixel dashes or a fully continuous line. Initial thin candidate was too faint; keep its rejected capture. Exact radius and a clear centre matter more than an ornate filled magic circle. Extend code-native geometry rather than generate an approximate bitmap. This is a proof preference, not runtime acceptance. No targeting, cooldown or cast effects changed. Evidence and remaining integration work: ArtDirection/2026-09-19/ability-ring-01/README.md.
