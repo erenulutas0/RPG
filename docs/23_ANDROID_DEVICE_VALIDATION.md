@@ -811,8 +811,48 @@ and all three telemetry files restored from the backup, each with a matching SHA
 512 banked gold and their events are gone and revision 144 / 10985 gold stands as before. The next launch starts on
 Ember Halls.
 
-Still owed, and the reason this is not yet an answer to Part 4's question: a run per arm with a committed kiting route
-rather than a 1.5 s oscillation, a clean arm A walking run, and the owner's own hands on both arms for the two
-questions no measurement answers - whether running is the obvious move, and whether there are openings to stop and
-strike. Local evidence: the session's telemetry and the end-of-run captures in the session scratchpad; nothing was
-copied into the repository.
+Local evidence: the session's telemetry and the end-of-run captures in the session scratchpad; nothing was copied into
+the repository. The owner then asked for the remaining runs, which follow and supersede the damage figures above.
+
+### Second pass, relic-free — the same evening
+
+Two things had to be fixed first. **The runs are deterministic**: repeating a cell reproduced it to the decimal, 49.8 s
+and 32.5 health twice for arm A standing, 43.8 and 43.9 s at 87.1 health for arm B kiting. So a single run per cell is
+the measurement, not a sample, and repeats buy nothing. **Second Wind was the real confound**: it fires once at a
+quarter health and heals a quarter, which is 25 damage of uncertainty in cells that never say whether it fired. The
+relic was unequipped by pushing an edited save while the app was stopped, into *both* `profile.json` and
+`profile.json.bak`, because the store loads the newest readable revision of the two and the first attempt, which wrote
+only the main file, was overridden by a newer backup.
+
+Eight runs then, each a cold launch, no relic, no Forge Burst, all five upgrades Tempered Edge, Mend at the forge.
+Damage taken is health lost with the Mend and any chest heals added back.
+
+| Hero | Arm A, today | | Arm B, graded 2.3 | |
+|---|---|---|---|---|
+| | damage | fight | damage | fight |
+| standing | **died in The Post** | 37.9 s | 117.5 | 46.2 s |
+| sweeping left and right, 1.5 s | 118.1 | 49.4 s | 105.5 | 40.3 s |
+| sweeping left and right, 3 s | 109.8 | 58.4 s | 107.2 | 45.4 s |
+| orbiting the arena, 6 s a lap | 98.3 | 59.5 s | 94.3 | 43.2 s |
+
+**Arm B is easier to stand in, not equal.** Without the relic a standing hero dies on arm A in the third room and
+survives arm B with 22.5 health. The ×0.78 compensation, fitted on the authored Descent with the burst, overshoots on
+this floor without it. That is a finding about the compensation, not about the speeds.
+
+**Movement pays about the same on both arms.** The best scripted route takes 98.3 on arm A against a standing death,
+and 94.3 on arm B against 117.5 standing, roughly a fifth saved on each. The simulation's claim that the candidate
+makes running away less worthwhile is **not reproduced**, and the reason is visible in the table: none of these routes
+is a kite. They steer on a timer, not away from the nearest enemy, so on arm A they walk back through a pack the hero
+could simply have outrun. A player kiting arm A would do better than 98.3; how much better is exactly what is unknown.
+
+**The pacing claim is reproduced, clearly.** Whenever the hero moves, arm A's fight runs 9 to 16 seconds longer than
+arm B's: 49.4 against 40.3, 58.4 against 45.4, 59.5 against 43.2. Slow enemies make a moving hero wait for the fight;
+the graded set ends it. This is the same effect the simulation reported as the Daggers' 104.6 s kiting run falling to
+32.1 s, and it is the strongest evidence the candidate produces the intended change.
+
+**After.** `development/start-floor.txt` deleted, the app force-stopped, and `profile.json`, `profile.json.bak` and all
+three telemetry files restored from the backup with matching SHA-256 hashes on the device: revision 144, 10985 gold,
+Second Wind equipped again, and every test run's gold and events gone. The next launch starts on Ember Halls.
+
+Still owed: the owner's own hands on both arms. Nothing measured here answers whether running away *feels* like the
+obvious move, whether there are openings to stop and strike, or whether a Tank walking at 2.3 still reads as a Tank.

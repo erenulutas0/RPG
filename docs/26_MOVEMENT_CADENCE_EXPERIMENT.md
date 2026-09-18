@@ -566,8 +566,12 @@ the Tank still read as a Tank** when it walks at 2.3 instead of 0.9?
   Parts 1–3 applies to them unchanged.
 - The arm floor is not the Descent: one floor, no modifier, no chests, no relic in the numbers, and a forge that only
   heals. It was shaped to make the question visible in about a minute and a half, not to be balanced content.
-- The arms were verified as assets and in the simulation, and then installed and run four times on the S23 on
-  2026-09-18; the record, with what the device did and did not confirm, is in `23`. In short: the arms behave as built,
-  standing difficulty is close between them (132.5 against 117.5 damage) and every fight is shorter on arm B, but the
-  predicted collapse of the kiting advantage did not appear under a scripted 1.5 s oscillation with no Forge Burst.
-  The feel questions are still unanswered, because nobody has played the arms by hand.
+- The arms were verified as assets and in the simulation, then installed and run twelve times on the S23 on
+  2026-09-18; the record is in `23`. Three results bear on Part 3's recommendation. The **pacing claim holds**: with a
+  moving hero, arm A's fight runs 9 to 16 seconds longer than arm B's, every time. The **compensation overshoots**:
+  without a relic a standing hero dies on arm A and survives arm B with 22.5 health, so ×0.78 is too generous once the
+  Forge Burst is not being fired. The claim that the candidate makes running away **less worthwhile is not
+  reproduced**, but no device run kited: the scripted routes steer on a timer rather than away from the nearest enemy,
+  so they understate kiting on the slow arm most. Device runs are deterministic, so each cell is one exact
+  measurement rather than a sample.
+- The feel questions are still unanswered, because nobody has played the arms by hand.
