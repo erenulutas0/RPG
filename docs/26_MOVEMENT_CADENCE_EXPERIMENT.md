@@ -4,7 +4,9 @@ Part 1 measures a slower weapon cadence while the hero walks. Part 2 measures th
 enemy speed and enemy reach. Part 3 measures a graded speed set, where the heavy enemies stay slower than the
 light ones, and separates what the speed change does from what the damage compensation does. Parts 1 to 3 change
 nothing in the game. Part 4 builds the two development floors that let the candidate be *played* beside today's
-game on the phone; it adds development-only content and still changes no shipped data.
+game on the phone; it adds development-only content and still changes no shipped data. Part 5 measures the fourth
+lever, the one the first three all pointed at and none tried: giving the hero a reason to stand still rather than a
+penalty for walking. It changes nothing in the game either.
 
 ## Part 1 — a slower weapon cadence while the hero walks
 
@@ -602,9 +604,123 @@ it makes the problem worse in the hand. All three levers act on what the enemies
 reason to stop.
 
 **The untested candidate is the fourth one, named in Part 1's recommendation and never measured: a reward for standing
-rather than a tax on moving** — for example damage that builds after a second without moving, which cannot make a
-weapon unplayable while walking and gives standing something that kiting cannot have. Measuring it needs the same
-harness and no game change. That is a decision for the owner, not a slice to start unasked.
+rather than a tax on moving.** Part 5 below measures it, in two shapes, and finds that the reward on its own does not
+work while a movement budget does.
 
 The arms themselves stay in the repository. They cost nothing in a release build, they are now a proven way to put two
 balance variants side by side on the phone, and the next lever can be tried in exactly the same way.
+
+---
+
+## Part 5 — a reason to stand still
+
+Parts 1 to 4 all act on what the enemies do, and the verdict above says none of them gives the player a reason to stop.
+This part measures the two shapes of the opposite idea, both proposed by the owner and both run in the same scratch
+harness with nothing in the game touched.
+
+- **A movement budget.** Running spends a bar. The bar refills only while the hero really stands still, and once it is
+  empty the hero still walks, at a fraction of its speed, rather than being frozen in place. Measured at bars of 2, 3
+  and 4 seconds, refills of 1.0, 1.5 and 2.5 bar-seconds per standing second, and empty speeds of 0, 0.4 and 0.7.
+- **A standing reward.** After a second without moving, the weapon hits for more, and the bonus is lost the moment the
+  hero moves. Measured at +25 %, +50 % and +75 %.
+
+A fourth route joins the three from earlier parts: **budget**, a player who retreats from contact like the back-off
+route but stands as soon as the bar is nearly dry, so it never crawls about on an empty one. It is what competent play
+looks like under a budget, and the back-off route is the same policy with the bar ignored.
+
+### The budget costs nothing in balance; the reward has to be paid for
+
+Fitting the hero's weapon damage so the six standing Descent paths land where they land today:
+
+| Variant | Hero damage | Worst standing path, health from today |
+|---|---|---|
+| bar 2 s, 3 s, 4 s | **×1.000** | **0.0** |
+| stand +25 % | ×0.938 | 14.9 |
+| stand +50 % | ×0.875 | 11.2 |
+| stand +75 % | ×0.800 | 20.9 |
+
+The budget needs no compensation at all, and not by luck: **a standing hero never spends any**, so every standing path
+is the same fight it was, frame for frame. That is a property no earlier lever had. The graded speed set of Part 3
+needed a damage pass over six enemy assets and still moved the baseline; the standing reward needs a weapon re-tune and
+still misses it by 11 to 21 health, because the bonus is not live during the first second of every engagement. Every
+variant keeps the pinned claims: tempering floor 1 still fails to descend and Counterweight still rescues it.
+
+### What each one does to the answer
+
+Damage taken, standing / kiting / back-off / budget. The recommended budget setting is a 2-second bar refilling at 1.5
+with an empty speed of 0.4.
+
+**Ten-enemy proof encounter**, where the simulation is exactly reproducible:
+
+| Weapon | today | bar 2 s | stand +50 % |
+|---|---|---|---|
+| Sword | 48.6 / **18.8** / 24.3 / 24.3 | 48.6 / 51.9 / 52.4 / **45.3** | 44.2 / **22.1** / 28.1 / 28.1 |
+| Staff | 35.9 / 19.3 / **15.5** / 15.5 | 35.9 / 39.2 / 28.7 / **18.8** | 22.6 / **13.2** / 15.5 / 15.5 |
+| Daggers | 47.5 / **27.1** / 48.6 / 48.6 | 47.5 / 59.1 / 41.4 / **38.1** | 42.0 / **27.1** / 44.7 / 44.7 |
+
+**Authored Descent:**
+
+| Weapon | today | bar 2 s | stand +50 % |
+|---|---|---|---|
+| Sword | 149.6 / **55.0** / 73.0 / 73.0 | 149.6 / 64.7 / 72.5 / **59.3** | 145.2 / **68.3** / 97.0 / 97.0 |
+| Staff | 151.1 / **15.9** / 36.0 / 36.0 | 151.1 / 39.7 / 76.6 / **35.0** | 139.9 / **26.0** / 44.5 / 44.5 |
+| Daggers | 146.3 / **107.5** / 128.8 / 128.8 | 146.3 / 126.1 / 100.6 / **98.6** | 150.2 / **114.7** / 134.9 / 134.9 |
+
+The bold cell is the cheapest route a player could pick. **Today it is "run the whole fight" in five of six cases.
+With a 2-second bar it is "stop and go" in all six.** That is the whole finding, and it is the first time in five parts
+that the best play has changed.
+
+The reversal is cleanest stated without ratios. Today, standing more costs more: on the Descent the back-off route pays
+73.0 against kiting's 55.0 with the Sword, 36.0 against 15.9 with the Staff, 128.8 against 107.5 with the Daggers. With
+a bar, standing more costs **less**: 59.3 against 64.7, 35.0 against 39.7, 98.6 against 126.1. The Staff's free ride,
+the worst case in the whole project at 15.9 damage for a two-floor Descent, becomes 35.0.
+
+### The standing reward taxes time, not safety
+
+The reward barely moves the answer: the cheapest route stays "kite" in five of six cases, and on the Descent the Sword's
+standing-to-kiting ratio gets *worse* at +75 % (2.72 → 3.42). The reason is visible in the clock. A hero that can keep
+its distance does not lose health when its damage is cut to pay for the bonus; it loses **time**. The Sword's kiting
+Descent runs 66.5 s today, 86.6 s at +50 % and 106.9 s at +75 %. A player optimising for survival still runs; the run
+just takes half as long again. A reward for standing only bites if the player cannot simply refuse to stand, which is
+what the budget takes away.
+
+Combining them (3-second bar with +50 %) gives the best proof-floor numbers of any variant, but it inherits the
+reward's weapon re-tune and its 11-health miss on the baseline for a gain the bar already delivers.
+
+### How much of it is the bar, and how much the two numbers that shape it
+
+Eighteen settings were run. On the proof floor every one of them brings the best route to stop-and-go, and the budget
+route's moving share falls from 0.89 / 0.76 / 0.49 to between 0.34 and 0.70. On the Descent the effect is present but
+much noisier, and one number should not be read at all: the Staff's kiting damage there is so small that its ratio
+swings between 3.6 and 22.8 across settings that barely differ. Read the Staff on damage, not on ratios.
+
+The empty speed matters more than the refill. At 0.7 the hero still outruns the Grunt on an empty bar and the budget
+does little; at 0.0 it is frozen, which reads as a punishment rather than as tiredness. 0.4 is the value these tables
+use and the one worth feeling.
+
+### Recommendation after Part 5
+
+**The movement budget is the first lever in five parts worth putting in the game, and the standing reward is not.** In
+its favour, against the graded speed set that the phone rejected:
+
+1. It changes the best play from "run the whole fight" to "stop and go", in all six weapon-and-encounter cells.
+2. It costs **no** balance re-tune, by construction, and keeps every pinned claim.
+3. It leaves enemy archetypes alone: the Tank is still slow and heavy.
+4. It shortens the worst pacing case, the Daggers' kiting Descent, from 132.4 s to 73.8 s.
+5. It fails safe. A player who ignores the bar walks slowly for a while; they are never frozen and never killed by the
+   mechanic itself.
+
+Two honest cautions. The routes are still scripted policies, and the budget route is a policy written to use the bar
+well, so it flatters the mechanic exactly as the kite route flattered kiting. And unlike every earlier candidate, this
+one **cannot be tested by swapping assets**: it is runtime behaviour plus a bar the player can see, so it needs scene
+code and a HUD element, and the HUD belongs to whoever owns the art.
+
+### Limits of Part 5
+
+- The same chaos band as Parts 1 to 3: single Descent cells move by up to 28 damage under an imperceptible nudge. The
+  proof floor, which reproduces exactly, carries the finding; the Descent shows the direction.
+- The standing reward is applied as a percent modifier toggled on and off, which is exact, but its first second is
+  never live, so a fitted compensation can only ever be approximate.
+- One hero, three weapons, no relic in the matrix, no chests, and nothing verified in Unity or on a device.
+- The bar is modelled as seconds of movement with a linear refill. A real implementation has to decide what happens
+  across waves and rooms; here each wave starts with a full bar, which is the most generous reading.
