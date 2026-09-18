@@ -46,6 +46,19 @@ namespace Cryptforge.Tests
             TestProfile.End();
         }
 
+        // Holds the hero against the right corner until it settles there, however long its movement budget makes that
+        // take. A deadline keeps a hero that never arrives from hanging the suite; the assertion that follows reports it.
+        private IEnumerator WalkToTheRightCorner()
+        {
+            float deadline = Time.realtimeSinceStartup + 20f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+                if (_encounters.HeroFloorX >= 9f - HeroMotion.EdgeMargin - 0.1f)
+                    yield break;
+            }
+        }
+
         [UnityTest]
         public IEnumerator TheHeroWalksAtItsSpeedThePackChasesAndTheRimHolds()
         {
@@ -72,9 +85,12 @@ namespace Cryptforge.Tests
             Vector3 offset = grunt.transform.position - _hero.transform.position;
             Assert.That(ArenaFloor.DistanceSquared(offset.x, offset.y), Is.LessThanOrEqualTo(1.5f * 1.5f), "The Grunt caught up and struck.");
 
-            // Walking right for long enough ends at the rim, inside the platform's margin, never in the void.
+            // Walking right for long enough ends at the rim, inside the platform's margin, never in the void. How long
+            // "long enough" is no longer follows from the distance: the movement budget buys HeroStamina.DefaultBar
+            // seconds at full speed and the rest of the crossing is at HeroStamina.DefaultEmptySpeed, so the test walks
+            // until the hero reaches the corner rather than for a fixed time.
             _movement.Hold(new Vector2(1f, 0f));
-            yield return new WaitForSeconds(4.5f);
+            yield return WalkToTheRightCorner();
             _movement.Release();
             Assert.That(_hero.transform.position.x, Is.EqualTo(9f - HeroMotion.EdgeMargin).Within(0.15f));
             Assert.That(Object.FindFirstObjectByType<ArenaView>().IsOnPlatform(_encounters.HeroFloorX, _encounters.HeroFloorY), Is.True);
@@ -89,7 +105,7 @@ namespace Cryptforge.Tests
             _hero.GetComponent<AttackController>().enabled = false;
             ArenaView arena = Object.FindFirstObjectByType<ArenaView>();
             _movement.Hold(new Vector2(1f, 0f));
-            yield return new WaitForSeconds(4f);
+            yield return WalkToTheRightCorner();
             _movement.Release();
             float heroX = _encounters.HeroFloorX;
             float heroY = _encounters.HeroFloorY;

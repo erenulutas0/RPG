@@ -32,6 +32,8 @@ namespace Cryptforge.Core
         private bool _timeFrozen;
         private bool _restarting;
 
+        // The wave the hero is fighting, for the few systems that follow the fight itself rather than the run.
+        public EncounterController Encounters => _encounters;
         public RunState Run { get; private set; }
         public WeaponRuntime Weapon { get; private set; }
         // The hero's active ability this run, from the hero definition.

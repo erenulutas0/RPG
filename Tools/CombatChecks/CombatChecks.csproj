@@ -31,6 +31,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/AbilityRuntime.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EntrySide.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HeroMotion.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/HeroStamina.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HeroRoute.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/ScriptedRoute.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/KiteRoute.cs" />
@@ -66,6 +67,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/HeroMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HeroRouteTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DensityProofTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/HeroStaminaTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/TargetingParityTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ChestRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FollowFramingTests.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Art/*.cs" />

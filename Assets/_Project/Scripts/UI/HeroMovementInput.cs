@@ -21,6 +21,11 @@ namespace Cryptforge.UI
         // Pixels of drag before the hero starts walking, and the drag that steers at full speed.
         [SerializeField, Min(1f)] private float _deadZonePixels = 24f;
         [SerializeField, Min(1f)] private float _fullSteerPixels = 110f;
+        // The movement budget (26 Part 5). Seconds of walking a full bar buys, bar-seconds restored per second of
+        // standing, and the share of its speed the hero keeps once the bar is empty.
+        [SerializeField, Min(0.1f)] private float _staminaBar = HeroStamina.DefaultBar;
+        [SerializeField, Min(0.1f)] private float _staminaRefill = HeroStamina.DefaultRefill;
+        [SerializeField, Range(0f, 1f)] private float _staminaEmptySpeed = HeroStamina.DefaultEmptySpeed;
         private HeroMotion _motion;
         private Vector2 _dragStart;
         private bool _dragging;
@@ -28,6 +33,8 @@ namespace Cryptforge.UI
         private Vector2 _steer;
 
         public HeroMotion Motion => _motion;
+        // What the hero has left to run on, for a view to show and for the Descent simulation to mirror.
+        public HeroStamina Stamina { get; private set; }
         // The steer in floor units, length up to one.
         public Vector2 Steer => _steer;
         public bool IsMoving { get; private set; }
@@ -48,8 +55,21 @@ namespace Cryptforge.UI
             }
 
             _motion = new HeroMotion(_speed);
+            Stamina = new HeroStamina(_staminaBar, _staminaRefill, _staminaEmptySpeed);
             _motion.Place(transform.position.x, ArenaFloor.FloorY(transform.position.y), _arena.Geometry);
+            // Every wave starts with a full bar: the pause while the next pack forms up is the hero's breather, and it
+            // keeps the budget in step with the Descent simulation, which fills it at the same moment.
+            if (_setup.Encounters != null)
+                _setup.Encounters.EncounterStarted += OnWaveStarted;
         }
+
+        private void OnDestroy()
+        {
+            if (_setup != null && _setup.Encounters != null)
+                _setup.Encounters.EncounterStarted -= OnWaveStarted;
+        }
+
+        private void OnWaveStarted() => Stamina.Fill();
 
         private void Update()
         {
@@ -59,7 +79,16 @@ namespace Cryptforge.UI
             if (_setup.Run == null || _setup.Run.HasEnded || !_hero.IsAlive || Time.deltaTime <= 0f)
                 return;
 
-            IsMoving = _motion.Move(_steer.x, _steer.y, Time.deltaTime, _arena.Geometry);
+            // Read the budget before walking and spend it after, on the displacement that really happened: a steer the
+            // rim refuses costs nothing. The Descent simulation does the same in the same order.
+            //
+            // Only a live wave spends it. Walking between waves, to a chest or across an empty room, is free, and the
+            // bar fills again for the next pack. That is also what keeps the scene and the simulation on one bar: the
+            // simulation only steps frames while a wave is alive, and a frame that spends nothing still refills, so a
+            // scene frame the simulation does not have would otherwise hand the hero a little more bar than it earned.
+            bool fighting = _setup.Encounters != null && _setup.Encounters.AliveEnemyCount > 0;
+            IsMoving = _motion.Move(_steer.x, _steer.y, Time.deltaTime * Stamina.SpeedFactor, _arena.Geometry);
+            Stamina.Step(Time.deltaTime, fighting && IsMoving);
             if (IsMoving)
                 transform.position = new Vector3(_motion.X, ArenaFloor.WorldY(_motion.Y), transform.position.z);
         }

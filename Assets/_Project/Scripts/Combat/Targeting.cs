@@ -64,11 +64,9 @@ namespace Cryptforge.Combat
         private bool IsValid(Health candidate) =>
             candidate != null && candidate.transform != transform && candidate.isActiveAndEnabled && candidate.IsAlive;
 
-        // Reach and splash are measured on the arena floor, not on the screen.
-        private static float FloorDistanceSquared(Vector3 position, Vector3 origin)
-        {
-            Vector3 offset = position - origin;
-            return ArenaFloor.DistanceSquared(offset.x, offset.y);
-        }
+        // Reach and splash are measured on the arena floor, not on the screen, and through the one function the Descent
+        // simulation measures with, so a near-tie between two candidates resolves the same way in both.
+        private static float FloorDistanceSquared(Vector3 position, Vector3 origin) =>
+            ArenaFloor.FloorDistanceSquared(position.x, ArenaFloor.FloorY(position.y), origin.x, ArenaFloor.FloorY(origin.y));
     }
 }

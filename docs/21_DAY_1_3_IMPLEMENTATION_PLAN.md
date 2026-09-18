@@ -1143,3 +1143,91 @@ because `DensityProofParityTests` already proves the development hook reaches a 
 played on a device: no install, no adb input and no profile or telemetry was touched in this slice.
 
 **Verified:** .NET **272/272**, compile **0 warnings/errors**, EditMode **287/287** (284 before this slice), PlayMode **106/106**, Android build exit **0**, static integrity **434 unique asset/folder GUIDs / 555 scene objects/components** (424 before). Development APK **24,752,344 bytes**, SHA-256 **`48504C0A81369E4F4B575D98438B80505A6310C7DC37EFFD0D5145A5B4D26E60`**, built but **not installed**: the phone session waits for the owner's USB window, and both arms are unplayed.
+
+## The hero's movement budget — 2026-09-18
+
+**Why.** `26` Part 5 measured four levers against the complaint that running away always wins. Three of them act on what
+the enemies do, and the owner played the best of those on the phone and reported running away *more*. The fourth acts
+on what the hero can do: walking spends a bar, standing refills it, and an empty bar slows the hero instead of pinning
+it. It is the only one that changes the cheapest way to play, and the only one that costs nothing in balance.
+
+**The rule.** `Scripts/Combat/HeroStamina.cs`, pure and shared: `Bar` seconds of walking at full speed, `Refill`
+bar-seconds restored for every second the hero really stands, and `EmptySpeed` of its speed once the bar is empty.
+Shipped at 2 s, 1.5 and 0.4, the setting Part 5 recommends. Spending is measured on displacement, not on the steer that
+was asked for, so a steer under the dead band or one into the rim costs nothing. Every wave starts with a full bar, and
+only a live wave spends it: walking between waves, to a chest or across an empty room, is free.
+
+`HeroMovementInput` reads `SpeedFactor` before walking and calls `Step` after, on the displacement that really happened,
+fills the bar on `EncounterController.EncounterStarted` and spends only while `AliveEnemyCount` is above zero.
+`DescentSimulation` does the same things in the same order and at the same moments, so the scene and the simulation stay
+one rule. `CombatSetup` gained one accessor, `Encounters`, so the movement can hear the wave start without a scene edit.
+
+**What it does, measured through the shipped code.** Damage taken, standing / kiting / back-off / stop-and-go, where
+stop-and-go is a hero that retreats from contact but stands as soon as the bar is nearly dry:
+
+| | Ten-enemy proof floor | Authored Descent |
+|---|---|---|
+| Sword, before | 48.6 / **18.8** / 24.3 / 24.3 | 149.6 / **55.0** / 73.0 / 73.0 |
+| Sword, with the bar | 48.6 / 51.9 / 52.4 / **45.3** | 149.6 / 64.7 / 72.5 / **59.3** |
+| Staff, before | 35.9 / 19.3 / **15.5** / 15.5 | 151.1 / **15.9** / 36.0 / 36.0 |
+| Staff, with the bar | 35.9 / 39.2 / 28.7 / **18.8** | 151.1 / 39.7 / 76.6 / **35.0** |
+| Daggers, before | 47.5 / **27.0** / 48.6 / 48.6 | 146.3 / **107.5** / 128.8 / 128.8 |
+| Daggers, with the bar | 47.5 / 59.1 / 41.4 / **38.1** | 146.3 / 126.1 / 100.6 / **98.6** |
+
+The bold cell is the cheapest route available. Before the bar it is "run the whole fight" in five of the six; with it,
+"stop and go" in all six. The Staff's free ride, 15.9 damage for a whole two-floor Descent, becomes 35.0. The worst
+pacing case in the project, the Daggers' kiting Descent, falls from 132.4 s to 73.8 s.
+
+**Why no balance number moved.** A hero that stands still never spends any, so every standing fight is the fight it
+was, frame for frame: the standing column above is identical before and after, and a test runs both Descent cards and
+all three weapons against a bar nothing can empty and asserts equality of health, damage, seconds, kills and floors.
+This is what the graded speed set of `26` Part 3 could not offer; it needed a damage pass over six enemy assets and
+still moved the baseline.
+
+**What the budget uncovered: two distance functions.** The first gate failed one parity case of 106, the Sword kiting
+on the proof floor, with the scene's hero 0.044 units from the simulation's after 13 s. A frame-by-frame, bit-exact
+diff of both walks (hero, bar, health, cooldown, every enemy's position, health and attack count) found them identical
+for 533 frames and then different in one field: the hero's target. A Grunt stood 1.4 units straight across and a Mite
+1.4 units diagonally, and `Targeting` struck the Mite while `DescentSimulation.Acquire` struck the Grunt. The two
+copies of `dx * dx + dy * dy`, compiled in two assemblies, were evaluated differently by the Editor's JIT and disagreed
+about the last bit: one saw the Mite nearer, the other a tie, which the earlier slot wins. (The pure .NET runner sees
+the Mite nearer for both; the Editor now sees a tie for both - the runtimes differ, as `22` already records, but within
+a runtime the two callers no longer can.) The slowed hero made the pack bunch up, which is what produced a tie close
+enough to expose it. With a bar too long to empty, the case passes exactly, so nothing in the budget's own bookkeeping
+was wrong.
+
+The fix is `ArenaFloor.FloorDistanceSquared`, one never-inlined method that every reach, splash and target decision in
+both the scene (`Targeting`) and the simulation (`Acquire`, `Nearby`, `WithinReachOfHero`, `IsHeroInReach`) now
+measures through. One body cannot disagree with itself. `TargetingParityTests` pins, on the floats of that frame, that the body
+answers nearer-or-tied in either runtime and the same float every time, and that measuring after the world halving
+changes no bit.
+
+**Tests.** New `Tests/EditMode/HeroStaminaTests.cs`, nine cases: the bar drains exactly the seconds it walks and never
+below empty; standing pays back at the refill rate and never past the bar; full speed until empty and the empty share
+after, with one frame of standing enough to walk again; a spent hero covers exactly its share of a fresh hero's
+distance over the same seconds, walked through `HeroMotion`; the bar steps the same whatever the frame length; changes
+are reported only when the bar really moves; impossible settings and frames are rejected; a standing hero's Descent is
+untouched; and a hero that runs the whole fight runs dry and pays more than half as much again in damage. New
+`Tests/EditMode/TargetingParityTests.cs`, two cases, above.
+
+`DensityProofTests` keeps its spotless flicker claim for every run that never ran dry and bounds a dry run at three,
+with both runtimes' measured counts and the reason in the comment: a hero slowed to `EmptySpeed` is caught, and an
+enemy standing at its point follows `KiteRoute`'s frame-by-frame zigzag - the known last flicker of the spacing slice,
+now reachable on the proof floors. It is the slowdown and not the bar that does it, measured by keeping the bar and
+removing the slowdown, which returns every one of those runs to its pre-budget flickers, gap and damage.
+`ArenaWalkTests` no longer walks to the rim on a stopwatch, because how long crossing the arena takes now depends on
+the budget; it walks until the hero reaches the corner, with a deadline.
+
+Files changed: `Scripts/Combat/ArenaFloor.cs`, `Scripts/Combat/Targeting.cs`, `Scripts/UI/HeroMovementInput.cs`,
+`Scripts/Core/CombatSetup.cs`, `Tests/Support/DescentSimulation.cs`, `Tests/EditMode/DensityProofTests.cs`,
+`Tests/PlayMode/ArenaWalkTests.cs`, `Tools/CombatChecks/CombatChecks.csproj`. Added: `Scripts/Combat/HeroStamina.cs`,
+`Tests/EditMode/HeroStaminaTests.cs`, `Tests/EditMode/TargetingParityTests.cs` and their metadata. Enemy data,
+weapons, authored floors, the scene, the camera and the art are untouched.
+
+**Not in this slice.** **The player cannot see the bar.** `HeroStamina.Changed` and `HeroMovementInput.Stamina` are the
+seam a view binds to, but no HUD element was added, because the HUD is the art owner's. Until it exists the mechanic is
+invisible, and an invisible budget is a bad one: a player who cannot see it can only learn it by being slowed. Nothing
+has been played on a device. The two Kite Test arms still carry the enemy-speed candidate, not this; feeling the budget
+on the phone needs this build, not an asset swap.
+
+**Verified:** .NET **291/291**, compile **0 warnings/errors**, EditMode **306/306** (287 before this slice), PlayMode **106/106**, Android build exit **0**, static integrity **438 unique asset/folder GUIDs / 555 scene objects/components**. Development APK **29,150,299 bytes**, SHA-256 **`C6ADAFEF15FD05711B4DCAB67CE79516D38E67FB6C726BB02DD2B93A8B53C113`**, built but **not installed**. The APK is 4.4 MB larger than the morning's build from a script-only change, which this slice did not investigate.
