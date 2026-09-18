@@ -1,5 +1,6 @@
 using System.Collections;
 using Cryptforge.Combat;
+using Cryptforge.Art;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.UI;
@@ -121,7 +122,7 @@ namespace Cryptforge.Tests
             Assert.That(ring.sprite, Is.Not.Null);
             Assert.That(ring.sortingOrder, Is.LessThan(body.sortingOrder), "The ring lies under the hero.");
             Assert.That(ring.sortingOrder, Is.GreaterThan(Object.FindFirstObjectByType<ArenaView>().Platform.PlatformRenderer.sortingOrder), "And over the platform.");
-            Assert.That(ring.bounds.size.x, Is.EqualTo(2f * _ability.Ability.Radius).Within(0.2f), "Its width spans the burst's radius either side.");
+            Assert.That(ring.transform.lossyScale.x * AbilityRingArt.ContourRadiusTexels / ring.sprite.pixelsPerUnit, Is.EqualTo(_ability.Ability.Radius).Within(.0001f), "The contour, not the transparent texture padding, defines reach.");
             Assert.That(ring.color.a, Is.GreaterThan(0.5f), "Bright while ready.");
 
             Tap(_button);
@@ -130,6 +131,46 @@ namespace Cryptforge.Tests
             Assert.That(ring.color.a, Is.LessThan(0.3f), "Faint while cooling down.");
         }
 
+        [UnityTest]
+        public IEnumerator TheRingFollowsTheHeroPausesAndSurvivesSceneReload()
+        {
+            _heroAttack.enabled = false;
+            var ring = Object.FindFirstObjectByType<AbilityRingView>().Ring;
+            Sprite sprite = ring.sprite;
+            Texture2D texture = sprite.texture;
+            Assert.That(texture.filterMode, Is.EqualTo(FilterMode.Bilinear));
+            Assert.That(texture.isReadable, Is.False);
+            Assert.That(texture.mipmapCount, Is.EqualTo(1));
+            Assert.That(texture.width * texture.height * 4, Is.EqualTo(524288));
+            _hero.transform.position = new Vector3(1f, .25f, 0);
+            Assert.That(ring.transform.position, Is.EqualTo(_hero.transform.position));
+            Time.timeScale = 0;
+            yield return null;
+            Color paused = ring.color;
+            yield return new WaitForSecondsRealtime(.15f);
+            Assert.That(ring.color, Is.EqualTo(paused));
+            Time.timeScale = 1;
+            yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
+            yield return null;
+            var next = Object.FindFirstObjectByType<AbilityRingView>().Ring;
+            Assert.That(next.sprite, Is.SameAs(sprite));
+            Assert.That(next.sprite.texture, Is.SameAs(texture));
+            LogAssert.NoUnexpectedReceived();
+        }
+        [UnityTest]
+        public IEnumerator SessionResetReleasesTheRingAndCreatesFreshNativeArt()
+        {
+            Sprite old = AbilityRingArt.Get();
+            Texture2D oldTexture = old.texture;
+            AbilityRingArt.ResetSession();
+            yield return null;
+            Assert.That(old == null, Is.True);
+            Assert.That(oldTexture == null, Is.True);
+            Sprite fresh = AbilityRingArt.Get();
+            Assert.That(fresh, Is.Not.Null);
+            Assert.That(fresh, Is.Not.SameAs(old));
+            Assert.That(AbilityRingArt.Get(), Is.SameAs(fresh));
+        }
         private static bool WithinReach(Health enemy, float radius)
         {
             Vector3 offset = enemy.transform.position;

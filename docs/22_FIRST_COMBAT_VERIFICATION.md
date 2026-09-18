@@ -362,3 +362,11 @@ Verified: .NET 291/291, compile 0 warnings/errors, graphics PlayMode capture 1/1
 ## Movement HUD device acceptance — 2026-09-19
 
 Installed on S23 and verified base.apk SHA256 `97A5F7511F0968E43AAF785BAAC2F0B8D654F91905CE4C858DECBACA3175A7AA`. In normal Daggers combat, HUD separation, spend/refill/full emphasis and the single depletion pulse were observed; empty stays visible during a choice. Fresh primary/backup profile hashes unchanged, revision150/gold11596/Daggers/Second Wind. Final observed Cinder Walk2/6 level4 choice,56HP,23run gold. No code/build change or additional suites; prior full gate applies. See newest Docs/23 and movement-hud-01/device for evidence and limits. This supersedes pending-phone statements; ability-ring geometry remains proof-only.
+
+## Integrated eight-arc ability ring — 2026-09-19
+
+AbilityRingView now borrows one session-owned 512x256 bilinear RGBA32 sprite from AbilityRingArt. Unit-radius contour at 240 PPU is scaled by the actual ability radius; transparent padding is not gameplay reach. Repeated scenes reuse the native art, subsystem reset and quit release it. Existing ready/cooling alpha, scaled-time breathing, ground sorting and hero following remain. No scene, damage, cooldown, density, targeting or movement-budget change. Old placeholder factory remains unused by this view.
+
+Two new AbilityFlowTests cover real reload reuse, hero following, paused colour stability, immutable texture contract and native reset/recreation; the reach assertion now checks the contour centreline. Four real integrated Unity captures include two portrait sizes, rim and actual ability use/cooling. Source/reproduction/limits: ArtDirection/2026-09-19/ability-ring-runtime-01/README.md. Final verification and device status are recorded there and in latest Docs/23. This supersedes proof-only status for the ring implementation, but not earlier device records until an installation is recorded.
+
+Verified: .NET291/291; compile0 warnings/errors; EditMode306/306; PlayMode110/110; graphics capture1/1; static integrity440 asset/folder GUIDs and568 scene objects/components. Android exit0, actual APK29,152,854 bytes, SHA256 `300759ECC845E8CB12FA9988E6BC6FF481E9C96ABF703CB63DBE1E3A30D76ED6`. Installed on S23; installed base.apk hash matched. Device evidence and limits follow in Docs/23 and the runtime README.

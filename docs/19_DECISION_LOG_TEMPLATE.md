@@ -642,3 +642,7 @@ Chose a labelled, inset MOVE row and quieter full-state alpha over raising the b
 ## 2026-09-19 — Ability range marker, visual proof decision
 
 Prefer a strengthened eight-arc contour with small inward lozenges over many short pixel dashes or a fully continuous line. Initial thin candidate was too faint; keep its rejected capture. Exact radius and a clear centre matter more than an ornate filled magic circle. Extend code-native geometry rather than generate an approximate bitmap. This is a proof preference, not runtime acceptance. No targeting, cooldown or cast effects changed. Evidence and remaining integration work: ArtDirection/2026-09-19/ability-ring-01/README.md.
+
+## 2026-09-19 — One shared unit-radius ability contour
+
+Integrate the selected eight-arc marker as deterministic code-native geometry. One unit-radius sprite plus per-view scaling has bounded memory independent of ability radii and avoids generation on scene reload. Keep current cast/cooldown semantics and independent ground sorting. Test the contour radius rather than transparent texture bounds. The first-session texture is RGBA32/non-readable with 0.5MiB raw GPU payload; this is not a compressed imported sprite or a frame-time claim. Runtime evidence: ArtDirection/2026-09-19/ability-ring-runtime-01/.

@@ -219,7 +219,7 @@ P3 Growth:
 - [x] Import shared closed/opening/spent foundry chest sprites with fixed registration and immediate single contact reward.
 - [x] Ground actor/prop depth groups while keeping health bars and ground effects independent.
 - [ ] Complete the coordinated physical-device review of the integrated chest build.
-- [ ] Replace ability-ring artwork; this slice changes its grouping only.
+- [x] Replace ability range-ring artwork with the shared eight-arc contour (2026-09-19).
 
 ## Movement HUD polish — 2026-09-19
 
@@ -228,4 +228,4 @@ P3 Growth:
 - [x] Verify this HUD revision on S23 after coordinating exclusive use (2026-09-19; Docs/23).
 
 - [x] Compare ability-ring contours in the actual Unity room at two portrait sizes, ready/cooling and rim positions (2026-09-19).
-- [ ] Integrate preferred eight-arc ring with shared lifetime and validate actual ability use/movement on device.
+- [x] Integrate preferred eight-arc ring with shared lifetime and validate actual ability use/movement on S23 (2026-09-19).

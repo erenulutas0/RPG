@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // The dashed ring on the floor around the hero that shows the ability's reach: bright while the burst is ready, faint
+    // The eight-arc ring on the floor around the hero that shows the ability's reach: bright while the burst is ready, faint
     // while it cools down. Built in Start, after CombatSetup has created the ability.
     public sealed class AbilityRingView : MonoBehaviour
     {
@@ -17,7 +17,7 @@ namespace Cryptforge.UI
         [SerializeField, Range(0f, 1f)] private float _coolingAlpha = 0.22f;
         // Sorting order between the platform and the combatants.
         [SerializeField] private int _sortingOrder = 0;
-        private Sprite _sprite;
+
         private SpriteRenderer _renderer;
 
         public SpriteRenderer Ring => _renderer;
@@ -31,12 +31,11 @@ namespace Cryptforge.UI
                 return;
             }
 
-            int radiusTexels = Mathf.RoundToInt(_controller.Ability.Radius * PixelSpriteFactory.PixelsPerUnit);
-            _sprite = PixelSpriteFactory.CreateSprite(AbilityArt.DrawRangeRing(radiusTexels), RingName, PixelSpriteFactory.Centre);
             var ring = new GameObject(RingName);
             ring.transform.SetParent(transform, false);
             _renderer = ring.AddComponent<SpriteRenderer>();
-            _renderer.sprite = _sprite;
+            _renderer.sprite = AbilityRingArt.Get();
+            ring.transform.localScale = Vector3.one * _controller.Ability.Radius;
             _renderer.sortingOrder = _sortingOrder;
             // The ring is a ground effect, independent of the hero's grounded body/equipment group.
             GroundedSorting.Attach(ring.transform, _renderer.sortingLayerID, _sortingOrder);
@@ -57,6 +56,6 @@ namespace Cryptforge.UI
             _renderer.color = new Color(1f, 1f, 1f, alpha);
         }
 
-        private void OnDestroy() => PixelSpriteFactory.Destroy(_sprite);
+        // The session cache owns the borrowed sprite and texture.
     }
 }
