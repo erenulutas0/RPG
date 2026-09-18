@@ -1,7 +1,9 @@
 # Experiments: why kiting wins, and what would change it — 2026-09-18
 
 Part 1 measures a slower weapon cadence while the hero walks. Part 2 measures the two levers Part 1 pointed at:
-enemy speed and enemy reach. Neither part changes the game.
+enemy speed and enemy reach. Part 3 measures a graded speed set, where the heavy enemies stay slower than the
+light ones, and separates what the speed change does from what the damage compensation does. No part changes
+the game.
 
 ## Part 1 — a slower weapon cadence while the hero walks
 
@@ -351,3 +353,144 @@ authored packs are five or fewer, so the hero can still circle; it simply takes 
 - The proof floor cannot distinguish a light-only floor from a global one, because every enemy on it is light.
 - Everything is the .NET runner, one hero, three weapons, no relic in the matrix, card slot 0, no chests, and scripted
   routes rather than players. The scene was not touched and nothing here was verified in Unity.
+
+---
+
+## Part 3 — a graded speed set, and speed separated from damage
+
+Part 2 ended with a choice the owner has to make: the only speed lever that worked was a flat floor at the hero's own
+speed, which costs the Tank, the Captain and the Warden their slowness. This part asks whether a **graded** set — the
+heavy enemies still the slowest, but none of them far below the hero — does the same work, and it measures the speed
+change and the damage compensation separately, so it is visible which half of the change carries the effect.
+
+Hero untouched: speed 2.5, ranges 1.8 / 2.1 / 2.4, cadence 1.00, no relic in the matrix. Today's speeds are Tank 0.9,
+Warden 1.0, Captain 1.4, Grunt 1.6, Mite 2.2, Runner 3.0.
+
+| Variant | Tank | Warden | Captain | Grunt | Mite | Runner | Keeps the heavy-slow order |
+|---|---|---|---|---|---|---|---|
+| today | 0.9 | 1.0 | 1.4 | 1.6 | 2.2 | 3.0 | yes |
+| graded 2.0 | 2.0 | 2.0 | 2.2 | 2.3 | 2.5 | 3.1 | yes |
+| graded 2.3 | 2.3 | 2.3 | 2.4 | 2.5 | 2.6 | 3.2 | yes |
+| graded 2.5 | 2.5 | 2.5 | 2.6 | 2.7 | 2.8 | 3.2 | yes |
+| flat 2.5 | 2.5 | 2.5 | 2.5 | 2.5 | 2.5 | 3.0 | no |
+
+Each variant was run twice: **speed only**, and **speed + damage**, where the enemies' damage is scaled back until the
+six standing Descent paths land closest to where they land today (grid from ×0.40 to ×1.00, all six required to clear).
+
+### Speed alone is only a difficulty increase
+
+| Variant | Standing Descent, health left (damage card / speed card) | | |
+|---|---|---|---|
+| | Sword | Staff | Daggers |
+| today | 30.4 / 29.2 | 28.9 / 39.2 | 33.7 / 22.4 |
+| graded 2.0, speed only | 2.1 / 4.0 | **died / died** | 14.4 / **died** |
+| graded 2.3, speed only | **died / died** | **died / died** | 7.8 / **died** |
+| graded 2.5, speed only | **died / died** | **died / died** | **died / died** |
+| flat 2.5, speed only | **died / died** | 9.4 / **died** | 1.0 / 2.3 |
+
+Seven standing runs died across the matrix, all of them on the authored Descent, and every pinned claim broke — with
+speed alone even Counterweight cannot rescue a tempered floor 1. Faster enemies without a damage pass do not make
+movement optional; they make **standing** impossible, which is the opposite of the goal.
+
+### The compensation pays for the speed; it does not change the answer
+
+| Variant | Enemy damage | Standing Descent after compensation (Sword / Staff / Daggers, damage card first) | Pinned claims |
+|---|---|---|---|
+| today | ×1.00 | 30.4 / 28.9 / 33.7 | hold |
+| graded 2.0 | ×0.80 | 37.7 / 27.1 / 42.0 | **broken** (Temper clears) |
+| graded 2.3 | ×0.78 | 29.6 / 30.2 / 44.5 | hold |
+| graded 2.5 | ×0.78 | 31.2 / 30.2 / 38.4 | **broken** (Temper clears) |
+| flat 2.5 | ×0.82 | 25.3 / 40.1 / 33.2 | hold |
+
+With no relic and no death, scaling every enemy's damage by a constant scales the hero's damage taken by exactly that
+constant and changes nothing else: enemy health, positions and the hero's kills are untouched, and the hero's health
+never feeds back into the fight. The measurement shows it exactly — on the proof floor the standing-to-kiting ratios are
+**identical** in both modes (graded 2.3 Sword 1.54 either way; graded 2.0 Staff 2.62 either way), and the damage taken
+falls by precisely the scale (73.4 → 58.7 is ×0.80). So: **the design effect comes entirely from the speed; the damage
+cut is what makes it affordable.**
+
+### What the graded set does to kiting, per weapon
+
+Damage taken, standing / kiting / back-off, with the compensation applied, and the standing-to-kiting ratio.
+
+**Authored Descent**
+
+| Variant | Sword | Staff | Daggers |
+|---|---|---|---|
+| today | 149.6 / 55.0 / 73.0 — **2.72** | 151.1 / 15.9 / 36.0 — **9.50** | 146.3 / 107.5 / 128.8 — **1.36** |
+| graded 2.0 | 142.3 / 68.4 / 95.5 — 2.08 | 152.9 / 60.5 / 94.9 — 2.53 | 132.4 / 97.5 / 105.5 — 1.36 |
+| graded 2.3 | 150.4 / 75.3 / 87.2 — **2.00** | 149.8 / 72.4 / 90.1 — **2.07** | 134.3 / 105.4 / 110.4 — **1.27** |
+| graded 2.5 | 148.8 / 80.4 / 96.7 — 1.85 | 149.8 / 94.7 / 121.7 — 1.58 | 141.6 / 113.8 / 123.8 — 1.24 |
+| flat 2.5 | 154.7 / 82.8 / 78.0 — 1.87 | 139.9 / 79.6 / 116.0 — 1.76 | 146.8 / 102.3 / 109.3 — 1.43 |
+
+**Ten-enemy proof encounter**
+
+| Variant | Sword | Staff | Daggers |
+|---|---|---|---|
+| today | 48.6 / 18.8 / 24.3 — 2.59 | 35.9 / 19.3 / 15.5 — 1.86 | 47.5 / 27.1 / 48.6 — 1.75 |
+| graded 2.0 | 58.7 / 26.1 / 33.1 — 2.25 | 39.3 / 15.0 / 20.3 — 2.62 | 70.7 / 40.6 / 38.4 — 1.74 |
+| graded 2.3 | 54.2 / 35.3 / 34.9 — 1.54 | 36.6 / 14.6 / 17.6 — 2.50 | 54.2 / 34.4 / 34.9 — 1.58 |
+| graded 2.5 | 58.1 / 30.6 / 31.9 — 1.90 | 36.6 / 22.4 / 22.8 — 1.63 | 65.5 / 43.9 / 36.2 — 1.49 |
+| flat 2.5 | 62.9 / 47.5 / 36.7 — 1.32 | 38.5 / 15.4 / 23.5 — 2.50 | 69.7 / 41.2 / 40.3 — 1.69 |
+
+Per weapon, which is how the owner asked for it:
+
+- **Sword.** The clearest case. On the Descent 2.72 → 2.00 (graded 2.3); kiting's damage nearly doubles, 55 → 75, while
+  standing stays where it was. Every graded step helps.
+- **Staff.** The extreme case today: kiting a two-floor Descent costs it 15.9 damage against 151 standing, a ratio of
+  9.5. Every variant collapses that to 1.6–2.5. This is the single largest change in the whole experiment, and it is the
+  build the owner most often plays. On the ten-enemy floor the Staff goes the other way (1.86 → 2.50 at graded 2.3):
+  enemies that converge faster bunch up, and an area weapon retreating from a tight bunch kills it sooner. Faster
+  enemies do not punish an area weapon in a small room.
+- **Daggers.** Barely moves: 1.36 → 1.27 on the Descent, 1.75 → 1.58 on the proof floor. It never had much kiting
+  advantage to take away — reach 1.8 against enemy reaches of 1.5–1.7 leaves almost no safe band — so this lever neither
+  helps nor hurts it. Whatever is done for the Daggers has to come from somewhere else.
+
+### Are there still openings to stand and strike?
+
+The back-off route stands whenever the nearest threat is further than reach + 0.6 and retreats when one is inside reach:
+its moving share is a direct answer to "can I find a moment to stop, or am I running the whole fight?".
+
+| Where | today | graded 2.3 | flat 2.5 |
+|---|---|---|---|
+| Descent, Sword / Staff / Daggers | 0.65 / 0.49 / 0.70 | 0.59 / 0.66 / 0.57 | 0.60 / 0.67 / 0.63 |
+| Proof floor, Sword / Staff / Daggers | 0.89 / 0.76 / 0.49 | 0.70 / 0.84 / 0.61 | 0.70 / 0.84 / 0.56 |
+
+The hero still spends a third to a half of every fight standing in all of them; no variant turns the run into constant
+running. On the ten-enemy floor the *kiting* hero is the one that gets pinned: its moving share falls from 1.00 to 0.66
+(Daggers) and 0.60–0.88 (Sword), meaning it is forced to turn and fight.
+
+### Time
+
+Fight seconds, standing / kiting, on the Descent, with compensation: today 66.4 / 66.5 (Sword), 69.9 / 49.2 (Staff),
+65.1 / **132.4** (Daggers) → graded 2.3: 56.8 / 48.3, 58.8 / 46.2, 53.7 / **62.5**. Every variant shortens every fight,
+and the Daggers' 132-second kiting run — the worst pacing case in the project — halves.
+
+## Recommendation after Part 3
+
+**`graded 2.3` with enemy damage ×0.78 is the candidate to feel on the phone.** It is the only variant that keeps the
+heavy-slow ordering *and* the pinned balance claims, it takes the Staff's 9.5 down to 2.1, it shortens every fight, and
+it leaves the hero a third to a half of each fight standing. `flat 2.5` is the stronger version of the same lever but
+flattens the archetypes; `graded 2.0` and `graded 2.5` both break the Temper claim.
+
+Two things this measurement cannot decide, and which the phone has to answer:
+
+1. Whether enemies at 2.3–2.6 still *read* as different from one another, or whether the Tank stops being a Tank.
+2. Whether being caught more often feels like pressure or like helplessness — the ratios say kiting is still worth doing
+   (2.0 on the Descent), but a number cannot tell how it plays.
+
+The damage pass (×0.78) is not a free rider: it is a data change over six enemy assets that would move every pinned
+balance number, so if the phone likes the feel, the slice after it is a rebalance with its own numbers to re-pin.
+
+## Limits of Part 3
+
+- The same chaos band applies: Part 1's control moved a walking Descent's damage by up to 28 points with an
+  imperceptible speed nudge, and speed is this part's variable. Single cells are illustration; the column trends and the
+  per-weapon direction are the finding.
+- The compensation is coarse (worst standing path 11.0–12.8 health from today) and was fitted on the six standing Mend
+  paths; the Temper and relic claims were checked on the Sword alone.
+- The graded sets are one guess each at a shape, not a search over the space; only the Runner keeps a speed above the
+  hero in every one of them.
+- Routes are scripted policies with perfect information, not players, and the back-off route's thresholds
+  (reach, reach + 0.6) are a guess at what a player would do.
+- The .NET runner, one hero, three weapons, no chests, and nothing verified in Unity or on a device.
