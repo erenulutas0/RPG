@@ -1096,3 +1096,50 @@ Files: ChestSpawner, ChestArtSet, GroundedSorting, HeroLookView, EnemyLookView, 
 Verified: .NET 272/272; compile 0 warnings/errors; EditMode 284/284; PlayMode 106/106; graphics capture 1/1; integrity 424 GUIDs / 555 scene objects/components; Android build exit 0. APK 24,751,592 bytes, SHA-256 `BA1F79545C8B3D70779A0380B2BD22A26BA0A8B88A3C09187B019DDCD852D814`. Two presentation tests cover immediate single reward, pause/resume, import format, common registration, independent ground/overlay groups and reload ownership. The first targeted test exposed an unsaved null art reference; importer now reloads the saved asset in the scene context and explicitly marks the scene dirty. A graphics check exposed the range ring inheriting the hero group; it now sorts independently.
 
 Device status: NOT installed or phone-tested. An asynchronous device-availability question remains unanswered; no ADB input/capture/install or profile/telemetry mutation occurred in this slice. The previously installed platform APK is still the latest verified phone record. Do not claim this build's depth, performance or opening was verified on S23.
+
+## Two development arms for the enemy-speed question — 2026-09-18
+
+**Why.** `26_MOVEMENT_CADENCE_EXPERIMENT` Part 3 measured a candidate — the graded 2.3 walking speeds with enemy damage
+at ×0.78 — and ended at two questions no simulation answers: whether enemies at 2.3–2.6 still read as different
+archetypes, and whether being caught more often feels like pressure or like helplessness. This slice builds the content
+that lets the candidate be played beside today's game, and nothing else. **The game is unchanged**: no authored enemy,
+weapon, floor, scene, HUD, camera or art file was touched, and the candidate is not adopted.
+
+**What was added.** Two development floors in `Resources/Development`, reached the same way the density proof floor is —
+a floor id in `<profile folder>/development/start-floor.txt`, read only in the Editor and in a development build, so a
+player's release build returns the authored floor before it looks at the file system. `Floor_KiteArmA`
+(`floor_kite_arm_a`, "Kite Test A") runs today's enemies at Ember Halls' damage rate of 0.92. `Floor_KiteArmB`
+(`floor_kite_arm_b`, "Kite Test B") runs six new definitions in `Data/Development` that copy their authored twins and
+change exactly one field each, `_moveSpeed`: Tank 0.9 → 2.3, Warden 1.0 → 2.3, Captain 1.4 → 2.4, Grunt 1.6 → 2.5, Mite
+2.2 → 2.6, Runner 3.0 → 3.2. The damage compensation is the floor's own rate, 0.7176 = 0.92 × 0.78, because
+`FloorScaling` applies it as one uniform percentage modifier to every enemy weapon — the same arithmetic as scaling six
+weapon assets, in one authored number instead of six.
+
+Both arms run one shape: Approach and Heavy Ground (combat), The Post (elite), The Forge, Warden Gate (boss); eighteen
+enemies over six waves, 1,135 enemy health, 99 experience, six level-ups. The forge offers only Mend, so the visit
+cannot become a decision that differs between the arms, and equal experience means both arms offer the same upgrade
+cards at the same moments — `UpgradeService` builds offers in pool order, not at random.
+
+**Expected, from the simulation.** Damage taken standing / kiting, and the ratio between them: Sword 108.7 / 55.2 =
+**1.97** on arm A against 103.8 / 73.2 = **1.42** on arm B; Staff 118.7 / 40.3 = **2.95** against 121.0 / 78.8 =
+**1.54**; Daggers 98.3 / 59.6 = **1.65** against 97.3 / 69.3 = **1.40**. Standing is as hard on both arms (health left
+31.3 / 21.3 / 41.7 against 36.2 / 19.0 / 42.7), which is the compensation working on a floor it was not fitted on. A
+kiting Staff finishes arm A at 99.7 health, untouched; on arm B it finishes at 61.2. A kiting Daggers run takes 104.6 s
+on arm A and 32.1 s on arm B. Full tables and the playing protocol are in `26` Part 4.
+
+**Tests.** New `Tests/EditMode/ComparisonArmTests.cs`, three cases: both arms load through the development hook and
+nothing but floors lives in `Resources/Development`; the arms run the same rooms, kinds, waves and enemy slots, with
+equal health, gold, experience, weapon assets and prefabs, so `_moveSpeed` is the only difference, and arm A's speeds
+are checked against today's authored numbers — which is how the experiment states that it changed no shipped data; arm
+B carries 0.92 × 0.78 and neither arm has a modifier or a next floor. The first run of the suite caught my own
+arithmetic: the arms send eighteen enemies, not the seventeen the test first claimed.
+
+Files added: `Data/Development/` (six enemy definitions), `Resources/Development/Floor_KiteArmA.asset`,
+`Floor_KiteArmB.asset`, `Tests/EditMode/ComparisonArmTests.cs` and their metadata. No file was changed.
+
+**Not in this slice.** The candidate is not adopted; `Data/Enemies` keeps today's speeds and every pinned balance number
+stands. The arms are proven as assets and in the simulation, not in the scene — no PlayMode case starts a run on them,
+because `DensityProofParityTests` already proves the development hook reaches a floor in that folder. Nothing has been
+played on a device: no install, no adb input and no profile or telemetry was touched in this slice.
+
+**Verified:** .NET **272/272**, compile **0 warnings/errors**, EditMode **287/287** (284 before this slice), PlayMode **106/106**, Android build exit **0**, static integrity **434 unique asset/folder GUIDs / 555 scene objects/components** (424 before). Development APK **24,752,344 bytes**, SHA-256 **`48504C0A81369E4F4B575D98438B80505A6310C7DC37EFFD0D5145A5B4D26E60`**, built but **not installed**: the phone session waits for the owner's USB window, and both arms are unplayed.

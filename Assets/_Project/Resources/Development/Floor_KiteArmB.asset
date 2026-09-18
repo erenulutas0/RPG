@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00000000000000000000000000000015, type: 3}
+  m_Name: Floor_KiteArmB
+  m_EditorClassIdentifier:
+  _id: floor_kite_arm_b
+  _displayName: Kite Test B
+  _rooms:
+  - _displayName: Approach
+    _kind: 0
+    _waves:
+    - _enemies:
+      - {fileID: 11400000, guid: 20000000000000000000000000000005, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 20000000000000000000000000000007, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000005, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+    _forgeOptions: []
+  - _displayName: Heavy Ground
+    _kind: 0
+    _waves:
+    - _enemies:
+      - {fileID: 11400000, guid: 20000000000000000000000000000002, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+    - _enemies:
+      - {fileID: 11400000, guid: 20000000000000000000000000000004, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000005, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+    _forgeOptions: []
+  - _displayName: The Post
+    _kind: 2
+    _waves:
+    - _enemies:
+      - {fileID: 11400000, guid: 20000000000000000000000000000002, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000004, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+      - {fileID: 11400000, guid: 20000000000000000000000000000006, type: 2}
+    _forgeOptions: []
+  - _displayName: The Forge
+    _kind: 1
+    _waves: []
+    _forgeOptions:
+    - {fileID: 11400000, guid: 1000000000000000000000000000000f, type: 2}
+  - _displayName: Warden Gate
+    _kind: 3
+    _waves:
+    - _enemies:
+      - {fileID: 11400000, guid: 20000000000000000000000000000003, type: 2}
+    _forgeOptions: []
+  _enemyHealthMultiplier: 1
+  _enemyDamageMultiplier: 0.7176
+  _modifier: {fileID: 0}
+  _nextFloor: {fileID: 0}

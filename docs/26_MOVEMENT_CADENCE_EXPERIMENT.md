@@ -2,8 +2,9 @@
 
 Part 1 measures a slower weapon cadence while the hero walks. Part 2 measures the two levers Part 1 pointed at:
 enemy speed and enemy reach. Part 3 measures a graded speed set, where the heavy enemies stay slower than the
-light ones, and separates what the speed change does from what the damage compensation does. No part changes
-the game.
+light ones, and separates what the speed change does from what the damage compensation does. Parts 1 to 3 change
+nothing in the game. Part 4 builds the two development floors that let the candidate be *played* beside today's
+game on the phone; it adds development-only content and still changes no shipped data.
 
 ## Part 1 — a slower weapon cadence while the hero walks
 
@@ -494,3 +495,76 @@ balance number, so if the phone likes the feel, the slice after it is a rebalanc
 - Routes are scripted policies with perfect information, not players, and the back-off route's thresholds
   (reach, reach + 0.6) are a guess at what a player would do.
 - The .NET runner, one hero, three weapons, no chests, and nothing verified in Unity or on a device.
+
+---
+
+## Part 4 — two arms to play, not to read
+
+Part 3 ended with two questions a simulation cannot answer: whether enemies at 2.3–2.6 still read as different
+archetypes, and whether being caught more often feels like pressure or like helplessness. Both are answered by playing,
+so this part builds the two arms and states what to expect from them.
+
+### What was built
+
+Two development floors, reached the way the density proof floor is reached — a floor id in
+`<profile folder>/development/start-floor.txt`, read only in the Editor and in a development build:
+
+| | Arm A — `floor_kite_arm_a` | Arm B — `floor_kite_arm_b` |
+|---|---|---|
+| On screen | Kite Test A | Kite Test B |
+| Walking speeds | today's: Tank 0.9, Warden 1.0, Captain 1.4, Grunt 1.6, Mite 2.2, Runner 3.0 | the candidate: 2.3, 2.3, 2.4, 2.5, 2.6, 3.2 |
+| Enemy damage rate | 0.92, Ember Halls' own | 0.7176, which is 0.92 × the measured 0.78 |
+| Everything else | identical | identical |
+
+The arms share one shape — Approach, Heavy Ground, The Post, The Forge, Warden Gate — eighteen enemies over six waves,
+1,135 enemy health, 99 experience (six level-ups), and a forge room offering only Mend, so the visit is not a decision
+that can differ between the arms. Arm B's enemies are six new definitions that copy their authored twins and change one
+field, `_moveSpeed`; they keep the same health, rewards, weapon assets and prefabs, so the arms cannot differ in reach,
+rhythm, damage, look or experience. The compensation is carried by the floor's damage rate rather than by copied weapons,
+because `FloorScaling` applies it as one uniform factor to every enemy — arithmetically the same ×0.78, in one authored
+number instead of six.
+
+Nothing shipped moved: `Data/Enemies`, `Data/Weapons`, the authored floors, the scene, the HUD, the camera and the art
+are untouched, and a release build returns the authored floor before it reads the file at all.
+
+### What the simulation expects from them
+
+Same harness as Parts 1–3, the hero at 100 health with the burst and no relic, the left upgrade card taken at every
+level-up and Mend taken at the forge. Damage taken, and health left at the end.
+
+| | Arm A: stand / kite / back-off | Arm B: stand / kite / back-off | stand ÷ kite |
+|---|---|---|---|
+| Sword | 108.7 / 55.2 / 54.1 | 103.8 / 73.2 / 70.6 | **1.97 → 1.42** |
+| Staff | 118.7 / 40.3 / 51.3 | 121.0 / 78.8 / 87.8 | **2.95 → 1.54** |
+| Daggers | 98.3 / 59.6 / 94.9 | 97.3 / 69.3 / 80.5 | **1.65 → 1.40** |
+
+Standing is as hard on both arms — health left 31.3 / 21.3 / 41.7 on A against 36.2 / 19.0 / 42.7 on B — which is what
+the damage compensation is for, and it holds here even though it was fitted on the Descent, not on this floor. What
+changes is the price of walking away: on arm A a kiting Staff finishes the whole floor at **99.7 health**, effectively
+untouched; on arm B the same route ends at 61.2. The Daggers' pacing changes as much: a kiting run takes **104.6 s** on
+arm A and **32.1 s** on arm B.
+
+Both arms are survivable standing, and only because of the Mend: measured without the forge room, a standing Sword and
+a standing Staff die to the Warden on both arms and the Daggers finish under 3 health. The back-off route, which stops
+whenever the nearest enemy is further than reach + 0.6, still spends 14–34 % of the fight standing on both arms.
+
+### How to play them
+
+1. Back up `profile.json`, `profile.json.bak` and the two telemetry files; install; the install ends any open run.
+2. Write `floor_kite_arm_a` into `development/start-floor.txt`, force-stop, launch, play the floor.
+3. Write `floor_kite_arm_b`, force-stop, launch, play it again with **the same weapon, the same relic and the same
+   upgrade card each level-up**. Both arms offer the same cards at the same moments, so this is possible exactly.
+4. Delete the start-floor file, force-stop and restore the profile and telemetry.
+
+The two questions, asked after each arm rather than at the end: **"Is running away the obvious move?"** and **"Do I find
+openings to stop and strike, or am I forced to run the whole fight?"** A third is worth asking on arm B alone: **does
+the Tank still read as a Tank** when it walks at 2.3 instead of 0.9?
+
+### Limits of Part 4
+
+- The expectations above come from scripted routes with perfect information, not from a player, and the chaos band of
+  Parts 1–3 applies to them unchanged.
+- The arm floor is not the Descent: one floor, no modifier, no chests, no relic in the numbers, and a forge that only
+  heals. It was shaped to make the question visible in about a minute and a half, not to be balanced content.
+- The arms were verified as assets and in the simulation. Nothing here has been played on a device yet; when it is, the
+  record goes in `23`.
