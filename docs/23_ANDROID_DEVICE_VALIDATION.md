@@ -882,3 +882,32 @@ direction is at least consistent.
 **The owner's impression, in their own words:** on the second arm they felt they ran away *more*, and on both arms they
 could kill by kiting and striking. That is the answer the numbers could not give, and it points the opposite way from
 the candidate's purpose. See the verdict in `26`.
+
+## The movement budget on the S23 — 2026-09-19
+
+The owner asked for the build carrying the movement budget and its HUD bar to be installed so they could play it.
+Development APK **24,752,344 bytes**, SHA-256 `D77FFFA6D385BBB017F9EBCBA8C9D6A7271250F5318E4021A8FD9F7BFA6DEED2`;
+`adb install -r` returned Success at 22:01:34 UTC and the installed `base.apk` hash matches. Focus, an awake display and
+no keyguard were checked before the one capture taken, and **no input was sent from this session at all**: the app was
+force-stopped after installing and handed over closed.
+
+**Before.** A run was open on the old build - Ember Halls, Cinder Walk, room 2 of 6, a level-up panel showing, 53 health,
+23 gold not yet banked - and the install ended it, which the owner had asked for. `profile.json`, `profile.json.bak` and
+all three telemetry files were pulled first; the profile itself was untouched and still reads revision **144**, **10985**
+gold, Second Wind equipped, no weapon equipped so the hero carries the Sword. No `development/start-floor.txt` exists,
+so the game starts on the authored Descent rather than on either Kite Test arm, which remain in the build unreachable.
+
+**The run.** The owner played Ember Halls with the Staff, clearing the first three rooms and the forge with health
+83.4 / 70.7 / 86.4 / 100.0 and fights of 17.5, 14.9 and 9.8 seconds. Telemetry does not record the bar, so nothing here
+measures the budget itself; the runs before 22:01 UTC are on the previous build and are not evidence about it.
+
+**What the owner reported.** The bar is good, and they notice clearly when it empties.
+
+That answers the question this slice was least sure of. The empty state had to be readable from the track alone, because
+an empty bar has no fill left to look at, and a dull ember track is a quiet signal; it turns out to be enough. It also
+means the mechanic is not invisible, which is what made shipping it without a bar a bad idea.
+
+**Still unanswered, and they are the design questions rather than the presentation one:** whether running away is still
+the obvious move, and whether there are openings to stop and strike. The simulation says the cheapest way to play changes
+from running the whole fight to stop-and-go in all six weapon-and-encounter cells (`26` Part 5), and no measurement can
+confirm how that plays.
