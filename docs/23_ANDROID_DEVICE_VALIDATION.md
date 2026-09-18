@@ -757,3 +757,62 @@ Files: ChestSpawner, ChestArtSet, GroundedSorting, HeroLookView, EnemyLookView, 
 Verified: .NET 272/272; compile 0 warnings/errors; EditMode 284/284; PlayMode 106/106; graphics capture 1/1; integrity 424 GUIDs / 555 scene objects/components; Android build exit 0. APK 24,751,592 bytes, SHA-256 `BA1F79545C8B3D70779A0380B2BD22A26BA0A8B88A3C09187B019DDCD852D814`. Two presentation tests cover immediate single reward, pause/resume, import format, common registration, independent ground/overlay groups and reload ownership. The first targeted test exposed an unsaved null art reference; importer now reloads the saved asset in the scene context and explicitly marks the scene dirty. A graphics check exposed the range ring inheriting the hero group; it now sorts independently.
 
 Device status: NOT installed or phone-tested. An asynchronous device-availability question remains unanswered; no ADB input/capture/install or profile/telemetry mutation occurred in this slice. The previously installed platform APK is still the latest verified phone record. Do not claim this build's depth, performance or opening was verified on S23.
+
+## Kite Test arms on the S23 — 2026-09-18
+
+The owner handed over USB and asked for the two development arms of `26` Part 4 to be installed and measured.
+Development APK **24,752,344 bytes**, SHA-256 `48504C0A81369E4F4B575D98438B80505A6310C7DC37EFFD0D5145A5B4D26E60`;
+`adb install -r` returned Success and the installed `base.apk` hash matches. Focus, an awake display and no keyguard
+were checked before and after every capture and before every tap.
+
+**Before.** Nothing was open: the launcher had focus, so no run was interrupted. `profile.json` (revision **144**,
+**10985** gold, Second Wind and Counterweight owned, Second Wind equipped, no weapon equipped so the hero carries the
+Sword), `profile.json.bak` and all three telemetry files were pulled first.
+
+**Four runs**, arm chosen by writing the floor id into `development/start-floor.txt` and tapping Try again, which
+reloads the scene and re-reads the file. The hero was never steered by hand: a standing run received no touch at all
+except on a choice panel, and a walking run held one drag from (540, 1600) that flipped 220 px left and right every
+1.5 s. The first card was taken at every level-up and Mend at the forge. **The Forge Burst was never fired**, so these
+are ability-free runs, unlike the simulation's.
+
+| Run | Arm | Hero | Fight | Health after each room | Left | Damage taken |
+|---|---|---|---|---|---|---|
+| 1 | A, today | standing | 49.8 s | 72.4 / 35.4 / 20.1 / 60.1 / 32.5 | 32.5 | **132.5** |
+| 2 | A, today | walking | 45.5 s | 98.0 / 65.4 / 73.3 / 100.0 / 77.9 | 77.9 | **98.8** |
+| 3 | B, graded 2.3 | standing | 46.2 s | 75.9 / 40.6 / 29.0 / 69.0 / 47.5 | 47.5 | **117.5** |
+| 4 | B, graded 2.3 | walking | 43.2 s | 76.3 / 48.8 / 47.5 / 87.5 / 66.0 | 66.0 | **74.0** |
+
+Damage taken is health lost, so the heals are added back: Mend in every run, Second Wind once in both standing runs
+(the result screen reads `Second Wind (1x)`; it did not fire in either walking run), and in run 2 two chests the walking
+hero happened to touch, each healing 25. All four runs ended in victory with 18 kills, level 6, 99 experience and 128
+gold, exactly as the arms were authored, and both arms opened the same six choices.
+
+**What the device agrees with.** The arms behave as built. Standing difficulty is close between them, which is what the
+×0.78 compensation is for: 132.5 against 117.5, arm B 11 % easier rather than the intended nil. Every fight is shorter
+on arm B, in both policies: 49.8 → 46.2 s standing and 45.5 → 43.2 s walking.
+
+**What it does not show.** The predicted collapse of the kiting advantage did not appear. Walking saved 25 % of the
+damage on arm A and 37 % on arm B, so on these runs movement paid *more* on the candidate, not less, against a
+simulation that expected 49 % to fall to 29 %. Three reasons not to read that as a refutation, and not to read it as
+support either:
+
+- The simulation's kiting route keeps the greatest distance it can with perfect information. A drag that flips left and
+  right every 1.5 s is not that; it walks into the pack as often as away from it, and it is a much weaker kite on the
+  slow arm A than on the fast arm B, where enemies close in whatever the hero does.
+- Neither device run used the Forge Burst, which the simulation fires whenever it is ready. Every device fight is
+  therefore longer and takes more hits than its predicted counterpart.
+- Run 2 is off-protocol: one tap landed on the second card, so that run carries Tempered Edge ×4 and Quickened Grip ×1
+  where the other three carry Tempered Edge ×5. Its damage and its 45.5 s are not strictly comparable. The driver now
+  waits 500 ms after releasing the drag before touching a card.
+
+**After.** The session ended early: the owner opened another app, the focus check refused the next tap and no input was
+sent after that. The app was force-stopped, `development/start-floor.txt` deleted and `profile.json`, `profile.json.bak`
+and all three telemetry files restored from the backup, each with a matching SHA-256 on the device, so the four runs'
+512 banked gold and their events are gone and revision 144 / 10985 gold stands as before. The next launch starts on
+Ember Halls.
+
+Still owed, and the reason this is not yet an answer to Part 4's question: a run per arm with a committed kiting route
+rather than a 1.5 s oscillation, a clean arm A walking run, and the owner's own hands on both arms for the two
+questions no measurement answers - whether running is the obvious move, and whether there are openings to stop and
+strike. Local evidence: the session's telemetry and the end-of-run captures in the session scratchpad; nothing was
+copied into the repository.
