@@ -1269,3 +1269,11 @@ placement crowds the lower surface a little, so both are worth a look by whoever
 played on a device.
 
 **Verified:** .NET **291/291**, compile **0 warnings/errors**, EditMode **306/306**, PlayMode **107/107**, Android build exit **0**, static integrity **439 unique asset/folder GUIDs / 564 scene objects/components** (555 before: the bar, its fill and their components). Development APK **24,752,344 bytes**, SHA-256 **`D77FFFA6D385BBB017F9EBCBA8C9D6A7271250F5318E4021A8FD9F7BFA6DEED2`**, built but **not installed**. The bar was also rendered from the real scene in the Editor, full, part spent and empty, through a temporary PlayMode capture that was deleted after it ran; the frames are in `TestResults/stamina-bar/` and are not committed.
+
+## Movement HUD visual hierarchy — 2026-09-19
+
+The bottom panel now separates health, labelled MOVE and quieter XP into distinct rows. Full movement uses reduced visual emphasis; a nonempty-to-empty transition gives one 0.24-second scaled-time ember track pulse. Pause freezes it and refilling cancels it. The fraction is exact; HeroStamina values, combat, enemy density, camera and ability rules are unchanged.
+
+Implementation and seven actual Unity renders at two portrait sizes: ArtDirection/2026-09-19/movement-hud-01/README.md. Runtime files: HeroStaminaView, Gameplay HUD layout; regression: ArtHudFlowTests. Reproduction: Tools/ArtReview/Style-MovementHud.ps1 and Run-MovementHudProof.ps1. No new raster generation. Device review remains pending coordination; no phone operation occurred. See the proof README for final verification and build identity.
+
+Verified: .NET 291/291; compile 0 warnings/errors; EditMode 306/306; PlayMode 108/108; isolated graphics capture 1/1; integrity 439 asset/folder GUIDs and 568 scene objects/components. Android build exited 0. Actual APK file: 29,151,985 bytes; SHA-256 `97A5F7511F0968E43AAF785BAAC2F0B8D654F91905CE4C858DECBACA3175A7AA`. Not installed or phone-tested in this slice. Full tests cover existing gameplay and the added depletion/pause regression; they do not establish physical-device readability or performance.

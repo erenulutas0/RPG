@@ -220,3 +220,9 @@ P3 Growth:
 - [x] Ground actor/prop depth groups while keeping health bars and ground effects independent.
 - [ ] Complete the coordinated physical-device review of the integrated chest build.
 - [ ] Replace ability-ring artwork; this slice changes its grouping only.
+
+## Movement HUD polish — 2026-09-19
+
+- [x] Separate health, labelled movement and XP; add a single pause-aware depletion emphasis without changing movement balance.
+- [x] Capture full/partial/empty/refilling states in Unity, including two portrait sizes.
+- [ ] Verify this HUD revision on the physical device after coordinating exclusive use.

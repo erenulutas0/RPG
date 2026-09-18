@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge · Hareket göstergesi</title>
+<style>
+:root{color-scheme:dark;font:16px/1.5 system-ui;background:#10121c;color:#e9e5db}body{max-width:1100px;margin:auto;padding:24px}h1{font-size:26px}p{color:#b8bac9;max-width:720px}button{font:inherit;background:#202536;color:inherit;border:1px solid #626579;border-radius:8px;padding:10px 14px;cursor:pointer}button[aria-pressed=true]{border-color:#e5b15e;background:#3d3024}nav{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.panel{width:100%;aspect-ratio:1080/300;background-size:100% auto;background-repeat:no-repeat;background-position:center 94%;border:1px solid #45434b;border-radius:8px}.scene{display:block;width:min(100%,440px);height:auto;margin:24px auto}small{color:#a6a9b7}a{color:#dfb879}
+</style>
+<h1>Hareket göstergesi · 01</h1>
+<p>Can üstte, hareket ayrı ve etiketli satırda, XP altta. Hareket bütçesi doluyken sakin; tükenince tek bir 0,24 saniyelik kor vurgusu. Bunlar gerçek Unity sahne görüntüleridir; aşağıdaki seçimler canlı oynanış değildir.</p>
+<nav id="states" aria-label="Gösterge durumu"></nav>
+<nav id="sizes" aria-label="Ekran oranı"><button data-short="false" aria-pressed="true">1080 × 2340</button><button data-short="true" aria-pressed="false">1080 × 1920</button></nav>
+<p id="caption"></p><div class="panel" role="img" aria-label="Alt panel yakın görünümü"></div>
+<img class="scene" alt="Gerçek Unity sahnesi ve hareket göstergesi">
+<small>Oyun dengesi ve kamera değişmedi. Kısa ekran için dolu ve boş durumlar kaydedildi. <a href="README.md">Teknik kayıt</a></small>
+<script>
+const states=[['full','Dolu'],['half','Yarım'],['empty-pulse','Tükenme anı'],['empty','Boş'],['refill','Doluyor']];let state='full',short=false;
+const nav=document.querySelector('#states');for(const [key,label] of states){const b=document.createElement('button');b.textContent=label;b.dataset.state=key;b.onclick=()=>{state=key;render()};nav.append(b)}
+document.querySelectorAll('[data-short]').forEach(b=>b.onclick=()=>{short=b.dataset.short==='true';if(short&&!['full','empty'].includes(state))state='empty';render()});
+function render(){const file=state+(short?'-short':'')+'.png';document.querySelector('.scene').src=file;const panel=document.querySelector('.panel');panel.style.backgroundImage=`url('${file}')`;panel.style.backgroundPosition=short?'center 94%':'center 94%';document.querySelectorAll('[data-state]').forEach(b=>{b.disabled=short&&!['full','empty'].includes(b.dataset.state);b.setAttribute('aria-pressed',b.dataset.state===state)});document.querySelectorAll('[data-short]').forEach(b=>b.setAttribute('aria-pressed',String(short)===b.dataset.short));document.querySelector('#caption').textContent=states.find(s=>s[0]===state)[1]+' · Unity render · '+(short?'1080 × 1920':'1080 × 2340')};render();
+</script></html>

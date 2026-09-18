@@ -634,3 +634,7 @@ Movement frames observe actual floor displacement; anticipation reads cooldown/i
 ChestArtSet holds three fixed-canvas/pivot imported sprites. Contact still awards gold/healing immediately and exactly once; the .18-second opening frame is cosmetic and pauses with scaled time. No new interaction, rarity, balance, reward, body collider or telemetry rule is introduced.
 
 GroundedSorting groups bodies/equipment/flashes at actor roots. Health bars, contact shadows and the range ring use independent root groups so their existing global overlay/ground orders survive. This changes presentation of crowded overlaps but not physical spacing. A correctly nearer Grunt can still hide the chest. Source consistency, smooth lid in-betweens, chest shadow and phone readability remain separate acceptance limits. See chest-runtime-01 and Docs/21–23 for final verification status.
+
+## 2026-09-19 — Separate movement from health in the bottom HUD
+
+Chose a labelled, inset MOVE row and quieter full-state alpha over raising the brightness of the entire panel or enlarging the existing health-adjacent strip. Health retains priority; the movement budget has its own location and identity. Depletion is a single 0.24-second ember track pulse, then a subdued spent track, with exact fill and scaled-time pause behaviour. No flashing loop, balance retuning or new generated image. Evidence and reproduction: ArtDirection/2026-09-19/movement-hud-01/. Physical-device readability remains pending coordination.

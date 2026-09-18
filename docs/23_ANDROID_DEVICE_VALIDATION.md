@@ -927,3 +927,9 @@ before (Sword 55.0 against 59.3 damage on the Descent). Pressure has to come fro
 the ten-enemy proof floor where it bites hard and `PackLayout.MaxPackSize` of 10 against authored waves of one to five.
 Raising authored density has been out of scope in every slice so far and stays a decision for the owner, not a plan this
 record makes.
+
+## 2026-09-19 — Movement HUD polish, desktop verification
+
+The labelled movement-row and depletion-pulse candidate was rendered in Unity at two portrait sizes. These images are Editor Camera.Render captures, not phone screenshots. No ADB input, capture, install, profile write or telemetry restoration occurred in this slice: the phone/Unity availability question had no answer. The installed D77FFFA6D385BBB017F9EBCBA8C9D6A7271250F5318E4021A8FD9F7BFA6DEED2 build and owner-play evidence above remain the latest device record. Read fresh device state before future review. New desktop build identity and validation are recorded in ArtDirection/2026-09-19/movement-hud-01/README.md; do not equate a built APK with an installed one.
+
+Verified: .NET 291/291; compile 0 warnings/errors; EditMode 306/306; PlayMode 108/108; isolated graphics capture 1/1; integrity 439 asset/folder GUIDs and 568 scene objects/components. Android build exited 0. Actual APK file: 29,151,985 bytes; SHA-256 `97A5F7511F0968E43AAF785BAAC2F0B8D654F91905CE4C858DECBACA3175A7AA`. Not installed or phone-tested in this slice. Full tests cover existing gameplay and the added depletion/pause regression; they do not establish physical-device readability or performance.

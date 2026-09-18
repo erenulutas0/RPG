@@ -290,6 +290,39 @@ namespace Cryptforge.Tests
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator MovementEmphasisIsQuietWhenFullAndPulsesOnlyOnDepletion()
+        {
+            var movement=Object.FindFirstObjectByType<HeroMovementInput>();
+            var view=Object.FindFirstObjectByType<HeroStaminaView>();
+            movement.enabled=false;
+            foreach(var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))attack.enabled=false;
+            float quiet=view.Fill.color.a;
+            movement.Stamina.Step(.5f,true);
+            Assert.That(view.Fill.color.a,Is.GreaterThan(quiet));
+            Assert.That(view.Fill.fillAmount,Is.EqualTo(movement.Stamina.Fraction));
+            movement.Stamina.Step(movement.Stamina.Bar,true);
+            Assert.That(view.IsPulsing,Is.True);
+            Color flash=view.Track.color;
+            Time.timeScale=0;yield return new WaitForSecondsRealtime(.3f);
+            Assert.That(view.IsPulsing,Is.True);
+            Assert.That(view.Track.color,Is.EqualTo(flash),"Pause holds the one-shot feedback.");
+            Time.timeScale=1;yield return new WaitForSeconds(.3f);
+            Assert.That(view.IsPulsing,Is.False);
+            Color spent=view.Track.color;
+            Assert.That(spent,Is.Not.EqualTo(flash));
+            movement.Stamina.Step(.1f,true);
+            Assert.That(view.IsPulsing,Is.False,"Remaining empty must not retrigger.");
+            movement.Stamina.Fill();
+            Assert.That(view.Fill.color.a,Is.EqualTo(quiet));
+            var label=GameObject.Find("Movement Label").GetComponent<Text>();
+            Assert.That(label.raycastTarget,Is.False);
+            var hp=GameObject.Find("Hero Bar").GetComponent<RectTransform>();
+            var track=view.Track.rectTransform;
+            Assert.That(hp.anchoredPosition.y,Is.GreaterThan(track.anchoredPosition.y+track.rect.height+10));
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // The movement budget the player can actually see: full at the start of a wave, empty after it has been run
         // through, and the track behind it saying so once there is no fill left to look at. The hero's own weapon is
         // switched off so the wave cannot end mid-test and refill the bar for a reason other than standing still.
