@@ -163,7 +163,8 @@ namespace Cryptforge.Tests
 
             Assert.That(_chests.IsOpen, Is.True, "Walking onto the chest opens it.");
             Assert.That(_chests.ChestsOpened, Is.EqualTo(1));
-            Assert.That(chest.sprite.name, Is.EqualTo("Chest Open"));
+            Assert.That(chest.sprite.name, Is.EqualTo("Chest Opening"));
+            Assert.That(_chests.IsOpening, Is.True);
             Assert.That(_hero.Current, Is.GreaterThan(wounded), "The first room's chest mends.");
             Assert.That(_effects.ActiveNumberCount, Is.GreaterThan(0), "The heal shows its amount.");
             Assert.That(_setup.Run.Gold, Is.Zero, "No gold from a mending chest.");

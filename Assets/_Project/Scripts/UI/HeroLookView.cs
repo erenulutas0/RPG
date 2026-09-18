@@ -68,6 +68,7 @@ namespace Cryptforge.UI
                 return;
             }
             Build();
+            GroundedSorting.Attach(transform, _body.sortingLayerID, 1);
             ContactShadowView.Attach(transform, _body, .78f, GetComponent<Health>());
         }
 

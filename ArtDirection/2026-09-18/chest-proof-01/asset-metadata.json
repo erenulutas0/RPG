@@ -1,0 +1,44 @@
+[
+  {
+    "file": "chest-closed-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 1164212,
+    "opaquePixels": 747,
+    "boundsAlphaAbove16": [
+      234,
+      385,
+      1016,
+      1085
+    ],
+    "sha256": "2DA525DA404757694032771723F94C538121CA1D2CB5C53DFE672706728D250A"
+  },
+  {
+    "file": "chest-open-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 1072130,
+    "opaquePixels": 762,
+    "boundsAlphaAbove16": [
+      235,
+      235,
+      1081,
+      1087
+    ],
+    "sha256": "49157A7A7FD27E1B9372E4B6293DE66AB5422747445628BC1A32042E5C81E211"
+  },
+  {
+    "file": "chest-opening-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 1126752,
+    "opaquePixels": 530,
+    "boundsAlphaAbove16": [
+      231,
+      340,
+      1022,
+      1086
+    ],
+    "sha256": "0F218D46AFA38FF789EEBF760FC7E419488FBFCFF1121D88AEE203E63808E428"
+  }
+]

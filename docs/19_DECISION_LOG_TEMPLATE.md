@@ -626,3 +626,11 @@ Movement frames observe actual floor displacement; anticipation reads cooldown/i
 **Decision:** use the third option to make movement direction visible within a bounded sixteen-pose set. Moving heroes face actual travel; stationary attacks face their actual hit target, including lethal hits. Each facing axis retains its previous value near cardinal motion, and strike/recovery hold facing. Only the body/equipment/flash subtree mirrors; physical hero state and shadow remain untouched. Targeting and damage stay authoritative in the existing combat controller.
 
 **Tradeoffs:** mirroring reverses apparent handedness and light direction. It is a prototype compromise, not approval of final character animation. Fixed front/rear registration, corrected rear passing soles and directional sword/buckler layering improve readability, but individual finger occlusion and a strictly planted gait still need work. Front Staff/Daggers retain the neutral body attack and current procedural equipment. Evidence and reproduction: `ArtDirection/2026-09-17/vanguard-directions-01/README.md`.
+
+## 2026-09-18 — Shared chest art and grounded presentation sorting
+
+**Options:** retain the procedural prop, shrink it to hide overlap, or import the accepted three-state foundry chest and sort whole actors/props at their ground roots. Choose the third: .75-unit reference box width preserves the ember cue, while shrinkage does not fix incorrect front/behind drawing.
+
+ChestArtSet holds three fixed-canvas/pivot imported sprites. Contact still awards gold/healing immediately and exactly once; the .18-second opening frame is cosmetic and pauses with scaled time. No new interaction, rarity, balance, reward, body collider or telemetry rule is introduced.
+
+GroundedSorting groups bodies/equipment/flashes at actor roots. Health bars, contact shadows and the range ring use independent root groups so their existing global overlay/ground orders survive. This changes presentation of crowded overlaps but not physical spacing. A correctly nearer Grunt can still hide the chest. Source consistency, smooth lid in-betweens, chest shadow and phone readability remain separate acceptance limits. See chest-runtime-01 and Docs/21–23 for final verification status.

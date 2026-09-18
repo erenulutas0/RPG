@@ -9637,6 +9637,7 @@ MonoBehaviour:
   _setup: {fileID: 402}
   _arena: {fileID: 905116832}
   _sortingOrder: 1
+  _art: {fileID: 11400000, guid: f2374f3e0095c3d448e315226cf2830a, type: 2}
 --- !u!4 &1821928770
 Transform:
   m_ObjectHideFlags: 0

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge — Sandık durumları</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#10121d;color:#eee9e1}*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:32px 20px}h1{font-size:36px;letter-spacing:-1px;margin:8px 0 16px}h2{font-size:20px}p{color:#b6b7c6;line-height:1.6}.eyebrow{color:#e1af62;font-size:12px;letter-spacing:2px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card,section{background:#1b1e2b;border:1px solid #383b4e;border-radius:12px;padding:18px;margin-bottom:18px}.card img{width:100%;display:block;background:repeating-conic-gradient(#252735 0 25%,#20222e 0 50%) 0/24px 24px;border-radius:8px}label,button{font:inherit}button,select{background:#292f43;color:#fff;border:1px solid #74788c;border-radius:6px;padding:10px;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #89d9ff}.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap}canvas{display:block;width:100%;height:auto;margin:18px auto;background:#272634;border-radius:8px}.note{border-left:3px solid #d7a350;padding-left:14px}a{color:#afd4ff}.small{font-size:13px}@media(max-width:650px){.grid{grid-template-columns:1fr}h1{font-size:29px}.card img{max-height:300px;object-fit:contain}}
+</style><main>
+<div class="eyebrow">CRYPTFORGE / FOUNDRY PROPS / 01</div>
+<h1>Ödül var. Açılıyor. Tükendi.</h1>
+<p>Aynı sandığın üç şeffaf görseli. Geniş pirinç çerçeve, koyu demir gövde ve sabit kor kilidi.</p>
+<div class="grid"><article class="card"><h2>01 · Kapalı</h2><img src="chest-closed-v1.png" alt="Kapalı, kor kilidi yanan sandık"><p>İnce ışık çizgisi ve tek parlak kilit.</p></article><article class="card"><h2>02 · Açılma</h2><img src="chest-opening-v1.png" alt="Kapağı yarı açık, içi aydınlık sandık"><p>Işık sandığın içinde kalıyor.</p></article><article class="card"><h2>03 · Boş</h2><img src="chest-open-v1.png" alt="Kapağı açık, kilidi sönmüş boş sandık"><p>Sönmüş kilit ve karanlık iç hacim.</p></article></div>
+<section><h2>Ölçek ve gövde sürekliliği</h2><div class="controls"><label>Gövde genişliği <select id="size"><option value="72">72 px</option><option value="90" selected>90 px</option><option value="108">108 px</option></select></label><button id="play" type="button">Açılmayı tekrar göster</button><label><input type="checkbox" id="anchor" checked> Taban işareti</label></div>
+<canvas id="proof" width="720" height="240" aria-label="Üç durum ve açılma önizlemesi"></canvas>
+<p class="small" id="status" aria-live="polite">Görseller yükleniyor…</p>
+<p class="note">Bu bir tarayıcı ölçek çalışması; Unity veya telefon görüntüsü değil. 1080 piksel / 9 birim varsayımında 90 piksel yaklaşık 0,75 dünya birimidir. Panel daralınca görüntü de küçülür. Üç kare kaba açılma kontrolüdür; son animasyon değildir.</p>
+<p class="small">Tüm durumlar aynı kaynak koordinatını ve ölçeği kullanır; her kare ayrı ayrı sınırlara sığdırılmaz. Gövde ve ışıkta küçük üretim farkları hâlâ var.</p></section>
+<section><h2>Sonraki uygulama adımı</h2><p>Gerçek sahnede ölçek, zemin kontrastı ve kahramanla örtüşme kontrolü; ardından ortak pivotlu, paylaşılan sprite ithalatı. Ödül mevcut temas anında verilmeye devam edecek. Görsel açılma ödülü geciktirmeyecek veya tekrarlamayacak.</p><a href="README.md">Çalışma notları</a> · <a href="PROMPTS.md">Üretim promptları</a> · <a href="asset-metadata.json">Dosya ölçümleri</a></section>
+</main><script>
+const names=['closed','opening','open'],images=names.map(n=>{const i=new Image();i.src='chest-'+n+'-v1.png';return i;});
+const canvas=document.querySelector('#proof'),ctx=canvas.getContext('2d'),size=document.querySelector('#size'),mark=document.querySelector('#anchor'),status=document.querySelector('#status');
+let ready=false,start=-1;
+function draw(t=0){if(!ready)return;ctx.clearRect(0,0,720,240);ctx.fillStyle='#292935';ctx.fillRect(0,0,720,240);ctx.strokeStyle='#3b3b48';for(let x=-240;x<960;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+480,240);ctx.stroke();ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x-480,240);ctx.stroke();}
+const s=Number(size.value)/788,elapsed=start<0?0:t-start,frame=start<0?0:elapsed<250?0:elapsed<430?1:2;
+for(let j=0;j<4;j++){const x=90+j*180,y=183;ctx.drawImage(images[j<3?j:frame],x-620*s,y-1080*s,1254*s,1254*s);if(mark.checked){ctx.strokeStyle='#81d8ed';ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x+5,y);ctx.moveTo(x,y-5);ctx.lineTo(x,y+5);ctx.stroke();}ctx.fillStyle='#ddd9d0';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(['Kapalı','Açılma','Boş','Kaba geçiş'][j],x,221);}
+if(start>=0&&elapsed<900)requestAnimationFrame(draw);}
+Promise.all(images.map(i=>i.decode())).then(()=>{ready=true;status.textContent='Ortak kaynak kökü: (620, 1080). 90 px başlangıç adayı; gerçek sahne kontrolü bekliyor.';draw();}).catch(()=>{status.textContent='Görseller yüklenemedi.';});
+size.onchange=()=>{start=-1;draw();};mark.onchange=()=>{start=-1;draw();};document.querySelector('#play').onclick=()=>{start=performance.now();requestAnimationFrame(draw);};
+</script></html>

@@ -32,6 +32,7 @@ namespace Cryptforge.UI
             view.Renderer.sprite = ArenaSpriteCache.ContactShadow;
             view.Renderer.sortingLayerID = body.sortingLayerID;
             view.Renderer.sortingOrder = -10;
+            GroundedSorting.Attach(child.transform, body.sortingLayerID, -10);
             child.transform.localScale = new Vector3(width, width, 1f);
             return view;
         }
@@ -41,6 +42,7 @@ namespace Cryptforge.UI
             _arena = FindFirstObjectByType<ArenaView>();
             if (_arena != null)
                 Renderer.sortingOrder = _arena.GroundEffectSortingOrder;
+            GroundedSorting.Attach(transform, Renderer.sortingLayerID, Renderer.sortingOrder);
             Refresh();
         }
 

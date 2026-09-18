@@ -69,6 +69,7 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _body.sprite = _painted ? _paintedArt.GetFrame(0, false).Body : _sprites.Frame(EnemyPose.IdleA);
             CurrentPose = EnemyPose.IdleA;
+            GroundedSorting.Attach(transform, _body.sortingLayerID, 1);
             ContactShadowView.Attach(transform, _body, _painted ? _paintedArt.ShadowWidth : EnemyArt.WidthOf(_look) / PixelSpriteFactory.PixelsPerUnit * .82f, _health);
             BuildBar();
             _lastPosition = transform.position;
@@ -107,6 +108,7 @@ namespace Cryptforge.UI
             EnemySpriteCache.EnsureBars();
             _bar = new GameObject(BarName);
             _bar.transform.SetParent(transform, false);
+            GroundedSorting.Attach(_bar.transform, _body.sortingLayerID, _barSortingOrder);
             // A Mite is much smaller than a Grunt. Scale the bar parent, retaining the shared sprites and fill ratio.
             if (_look == EnemyLook.Mite) _bar.transform.localScale = new Vector3(.65f, .8f, 1f);
             float top = _painted ? _paintedArt.VisualTop : EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;

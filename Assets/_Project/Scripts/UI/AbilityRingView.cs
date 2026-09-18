@@ -38,6 +38,8 @@ namespace Cryptforge.UI
             _renderer = ring.AddComponent<SpriteRenderer>();
             _renderer.sprite = _sprite;
             _renderer.sortingOrder = _sortingOrder;
+            // The ring is a ground effect, independent of the hero's grounded body/equipment group.
+            GroundedSorting.Attach(ring.transform, _renderer.sortingLayerID, _sortingOrder);
             Refresh();
         }
 

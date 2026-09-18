@@ -213,3 +213,10 @@ P3 Growth:
 - [x] Refine the Mite health-bar width for crowd readability while preserving fill/flash/health independence (2026-09-17, compact parent scale, Unity and S23 checked).
 - [x] Remove Vanguard's upward attack nudge, shorten the displacement gait cycle and add registered front sword knuckle occlusion; verify flash, mirrored poses and other loadouts.
 - [ ] Finish strict world-space support-foot contact and final finger articulation; the compact four-pose gait remains a prototype.
+
+## Chest art slice — 2026-09-18
+
+- [x] Import shared closed/opening/spent foundry chest sprites with fixed registration and immediate single contact reward.
+- [x] Ground actor/prop depth groups while keeping health bars and ground effects independent.
+- [ ] Complete the coordinated physical-device review of the integrated chest build.
+- [ ] Replace ability-ring artwork; this slice changes its grouping only.

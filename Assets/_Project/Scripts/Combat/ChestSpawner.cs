@@ -18,6 +18,10 @@ namespace Cryptforge.Combat
         [SerializeField] private ArenaView _arena;
         // Sorted with the combatants, so the hero walks in front of or behind the chest by depth.
         [SerializeField] private int _sortingOrder = 1;
+        [SerializeField] private ChestArtSet _art;
+        private bool _borrowed;
+        private float _openingRemaining;
+        private const float OpeningDuration = .18f;
         private Sprite _closed;
         private Sprite _open;
         private SpriteRenderer _renderer;
@@ -31,6 +35,8 @@ namespace Cryptforge.Combat
         public bool HasChest => _renderer != null && _renderer.enabled;
         public bool IsOpen { get; private set; }
         public int ChestsOpened { get; private set; }
+        public bool UsesPaintedArt => _borrowed;
+        public bool IsOpening => _openingRemaining > 0f;
         public float ChestFloorX => _floorX;
         public float ChestFloorY => _floorY;
         public event Action<ChestReward, Vector3> Opened;
@@ -44,13 +50,15 @@ namespace Cryptforge.Combat
                 return;
             }
 
-            _closed = PixelSpriteFactory.CreateSprite(ChestArt.Draw(false), "Chest Closed", PixelSpriteFactory.BottomCentre);
-            _open = PixelSpriteFactory.CreateSprite(ChestArt.Draw(true), "Chest Open", PixelSpriteFactory.BottomCentre);
+            _borrowed = _art != null && _art.IsValid;
+            _closed = _borrowed ? _art.Closed : PixelSpriteFactory.CreateSprite(ChestArt.Draw(false), "Chest Closed", PixelSpriteFactory.BottomCentre);
+            _open = _borrowed ? _art.Open : PixelSpriteFactory.CreateSprite(ChestArt.Draw(true), "Chest Open", PixelSpriteFactory.BottomCentre);
             var chest = new GameObject("Chest");
             chest.transform.SetParent(transform, false);
             _renderer = chest.AddComponent<SpriteRenderer>();
             _renderer.sprite = _closed;
             _renderer.sortingOrder = _sortingOrder;
+            GroundedSorting.Attach(chest.transform, _renderer.sortingLayerID, _sortingOrder);
             _renderer.enabled = false;
         }
 
@@ -76,8 +84,18 @@ namespace Cryptforge.Combat
 
         private void Update()
         {
-            if (!HasChest || IsOpen || !_hero.IsAlive || _setup.Run == null || _setup.Run.HasEnded || Time.deltaTime <= 0f)
+            if (!HasChest || Time.deltaTime <= 0f)
                 return;
+            if (IsOpen)
+            {
+                if (_openingRemaining > 0f)
+                {
+                    _openingRemaining = Mathf.Max(0f, _openingRemaining - Time.deltaTime);
+                    if (_openingRemaining == 0f) _renderer.sprite = _open;
+                }
+                return;
+            }
+            if (!_hero.IsAlive || _setup.Run == null || _setup.Run.HasEnded) return;
             if (ChestRule.IsWithinReach(_encounters.HeroFloorX, _encounters.HeroFloorY, _floorX, _floorY))
                 Open();
         }
@@ -94,6 +112,7 @@ namespace Cryptforge.Combat
             ChestRule.SpotFor(roomIndex, _arena.Geometry, out _floorX, out _floorY);
             _reward = ChestRule.RewardFor(roomIndex);
             IsOpen = false;
+            _openingRemaining = 0f;
             _renderer.sprite = _closed;
             _renderer.transform.position = new Vector3(_floorX, ArenaFloor.WorldY(_floorY), 0f);
             _renderer.enabled = true;
@@ -103,7 +122,8 @@ namespace Cryptforge.Combat
         {
             IsOpen = true;
             ChestsOpened++;
-            _renderer.sprite = _open;
+            _openingRemaining = _borrowed ? OpeningDuration : 0f;
+            _renderer.sprite = _borrowed ? _art.Opening : _open;
             if (_reward.Kind == ChestRewardKind.Heal)
             {
                 _hero.Heal(_hero.Maximum * _reward.HealFraction);
@@ -118,8 +138,11 @@ namespace Cryptforge.Combat
 
         private void OnDestroy()
         {
-            PixelSpriteFactory.Destroy(_closed);
-            PixelSpriteFactory.Destroy(_open);
+            if (!_borrowed)
+            {
+                PixelSpriteFactory.Destroy(_closed);
+                PixelSpriteFactory.Destroy(_open);
+            }
         }
     }
 }
