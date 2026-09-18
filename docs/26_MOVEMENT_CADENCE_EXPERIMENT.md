@@ -575,3 +575,36 @@ the Tank still read as a Tank** when it walks at 2.3 instead of 0.9?
   so they understate kiting on the slow arm most. Device runs are deterministic, so each cell is one exact
   measurement rather than a sample.
 - The feel questions are still unanswered, because nobody has played the arms by hand.
+
+---
+
+## Verdict — the graded speed set is not the answer
+
+The owner played both arms on 2026-09-18, blind to which was which, and reported that on the candidate arm they felt
+they ran away **more**, and that on **both** arms they could kill by kiting and striking. `23` holds the runs and the
+numbers beside that.
+
+**This closes the question the whole experiment was asked.** The candidate existed to make running away less worth
+doing. Played, it makes the player run more, and it leaves the winning strategy exactly where it was. Enemies that walk
+at the hero's own speed do not remove the reason to retreat; they remove the pauses, so the hero is moving all the time
+instead of some of the time. That is the "helplessness rather than pressure" outcome Part 3 listed as the risk it could
+not measure, and it arrived.
+
+What the candidate did deliver is real but is not what was wanted: fights end 9 to 16 seconds sooner when the hero
+moves, and standing becomes safer rather than equally hard, which is a fault in the ×0.78 compensation rather than a
+feature.
+
+**Recommendation: do not adopt the graded speed set, and do not adopt any of the three levers measured here.** Part 1
+found a walking-cadence tax leaves the answer as "keep kiting, only slower". Part 2 found enemy reach is not a
+difficulty dial at all, and that enemy speed only works at the hero's own speed, where it costs the heavy archetypes
+their identity. Part 3 found a graded set that keeps the archetypes and the balance claims. Part 4 played it and found
+it makes the problem worse in the hand. All three levers act on what the enemies do; none of them gives the player a
+reason to stop.
+
+**The untested candidate is the fourth one, named in Part 1's recommendation and never measured: a reward for standing
+rather than a tax on moving** — for example damage that builds after a second without moving, which cannot make a
+weapon unplayable while walking and gives standing something that kiting cannot have. Measuring it needs the same
+harness and no game change. That is a decision for the owner, not a slice to start unasked.
+
+The arms themselves stay in the repository. They cost nothing in a release build, they are now a proven way to put two
+balance variants side by side on the phone, and the next lever can be tried in exactly the same way.

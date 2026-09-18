@@ -879,6 +879,6 @@ takes fewer hits, and it reached one more chest. Both favour arm B. A repeat wit
 would settle it; the scripted runs above, which did hold the cards identical, put the same gap at 11 % as well, so the
 direction is at least consistent.
 
-The owner's own impression of the two arms is not recorded here yet. It is the only thing this whole exercise cannot
-measure, and the questions it has to answer are whether running away feels like the obvious move, whether there are
-openings to stop and strike, and whether a Tank walking at 2.3 still reads as a Tank.
+**The owner's impression, in their own words:** on the second arm they felt they ran away *more*, and on both arms they
+could kill by kiting and striking. That is the answer the numbers could not give, and it points the opposite way from
+the candidate's purpose. See the verdict in `26`.
