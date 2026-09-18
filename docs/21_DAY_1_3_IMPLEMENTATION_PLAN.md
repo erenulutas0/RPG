@@ -1230,4 +1230,42 @@ invisible, and an invisible budget is a bad one: a player who cannot see it can 
 has been played on a device. The two Kite Test arms still carry the enemy-speed candidate, not this; feeling the budget
 on the phone needs this build, not an asset swap.
 
-**Verified:** .NET **291/291**, compile **0 warnings/errors**, EditMode **306/306** (287 before this slice), PlayMode **106/106**, Android build exit **0**, static integrity **438 unique asset/folder GUIDs / 555 scene objects/components**. Development APK **29,150,299 bytes**, SHA-256 **`C6ADAFEF15FD05711B4DCAB67CE79516D38E67FB6C726BB02DD2B93A8B53C113`**, built but **not installed**. The APK is 4.4 MB larger than the morning's build from a script-only change, which this slice did not investigate.
+**Verified:** .NET **291/291**, compile **0 warnings/errors**, EditMode **306/306** (287 before this slice), PlayMode **106/106**, Android build exit **0**, static integrity **438 unique asset/folder GUIDs / 555 scene objects/components**. Development APK **29,150,299 bytes**, SHA-256 **`C6ADAFEF15FD05711B4DCAB67CE79516D38E67FB6C726BB02DD2B93A8B53C113`**, built but **not installed**. That build came out 4.4 MB larger than the morning's from a script-only change; the next build, an hour later, was back to 24,752,344 bytes, so it was transient and not something this slice introduced.
+
+## The movement bar on the HUD — 2026-09-18
+
+The budget shipped in the slice above with no way for the player to see it, which made it a bad mechanic: a hero that
+slows down for a reason nobody is shown can only be learned by suffering it. This adds the bar.
+
+**What the player sees.** A thin bar directly under the health bar, at the same width and left edge as the health and
+experience bars, drawn from the same shared square sprite with the same track-and-fill recipe: a dark track with one
+stretched Fill child. The fill is brass, so it reads apart from the health red above it and the experience blue below.
+Neither image takes a touch.
+
+The fill alone cannot say why a hero is slow, because an empty bar has no fill left to look at. So the **track** carries
+that: dark and cool while there is anything to spend, dull ember once there is not. That is the whole visual language of
+the mechanic - one length and one background colour.
+
+**How it is driven.** `Scripts/UI/HeroStaminaView.cs` binds to `HeroStamina.Changed` and sets `fillAmount` and the track
+colour. It works on the bar's own change event, never per frame, the way the rest of the HUD does, and it reads the
+budget rather than owning it: `HeroMovementInput` still spends it and `DescentSimulation` still mirrors it, so nothing
+about the fight changed. `Fill` and `Track` are exposed for tests.
+
+**The scene.** `Gameplay.unity` gained one object, `Stamina Bar`, under the HUD canvas's Safe Area, next to the health
+bar, with its Fill child and the view wired to the hero's movement input. It was made by a temporary Editor builder run
+in batch mode and deleted straight after, as scene edits in this project are.
+
+**Tests.** `ArtHudFlowTests` gains one case: a wave starts with a full bar, neither image is a raycast target, holding a
+walk past the bar's length empties the fill and changes the track, and standing still fills it again and puts the track
+back. The hero's weapon is switched off for it, so the wave cannot end mid-test and refill the bar for a reason other
+than standing still.
+
+Files changed: `Assets/_Project/Scenes/Gameplay/Gameplay.unity`, `Tests/PlayMode/ArtHudFlowTests.cs`. Added:
+`Scripts/UI/HeroStaminaView.cs` and its metadata. No combat rule, no data and no other art moved.
+
+**Not in this slice.** The bar is always on screen; it does not fade when full, and nothing animates when it empties. No
+sprite or font was authored - it reuses the square every other bar uses - but the two colours are a choice, and the
+placement crowds the lower surface a little, so both are worth a look by whoever owns the art. Still nothing has been
+played on a device.
+
+**Verified:** .NET **291/291**, compile **0 warnings/errors**, EditMode **306/306**, PlayMode **107/107**, Android build exit **0**, static integrity **439 unique asset/folder GUIDs / 564 scene objects/components** (555 before: the bar, its fill and their components). Development APK **24,752,344 bytes**, SHA-256 **`D77FFFA6D385BBB017F9EBCBA8C9D6A7271250F5318E4021A8FD9F7BFA6DEED2`**, built but **not installed**. The bar was also rendered from the real scene in the Editor, full, part spent and empty, through a temporary PlayMode capture that was deleted after it ran; the frames are in `TestResults/stamina-bar/` and are not committed.
