@@ -715,6 +715,12 @@ well, so it flatters the mechanic exactly as the kite route flattered kiting. An
 one **cannot be tested by swapping assets**: it is runtime behaviour plus a bar the player can see, so it needs scene
 code and a HUD element, and the HUD belongs to whoever owns the art.
 
+**Played, 2026-09-19.** Both were built and the owner played the authored Descent with it (`23`). The bar reads, and the
+empty state reads from its track alone. On the design question the answer is the one these tables already contain: on
+the authored Descent, whose waves hold one to five enemies, the owner can comfortably run, kite and rest, and cleared
+two floors without dropping below 70 health. The budget changes the rhythm of a fight; it does not add pressure, and the
+proof-floor column is where it bites, so how much it matters is a question about density rather than about the bar.
+
 ### Limits of Part 5
 
 - The same chaos band as Parts 1 to 3: single Descent cells move by up to 28 damage under an imperceptible nudge. The

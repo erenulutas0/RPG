@@ -907,7 +907,23 @@ That answers the question this slice was least sure of. The empty state had to b
 an empty bar has no fill left to look at, and a dull ember track is a quiet signal; it turns out to be enough. It also
 means the mechanic is not invisible, which is what made shipping it without a bar a bad idea.
 
-**Still unanswered, and they are the design questions rather than the presentation one:** whether running away is still
-the obvious move, and whether there are openings to stop and strike. The simulation says the cheapest way to play changes
-from running the whole fight to stop-and-go in all six weapon-and-encounter cells (`26` Part 5), and no measurement can
-confirm how that plays.
+**Then they played it properly.** A whole two-floor Descent with the Staff: twelve rooms, sixty kills, 92.7 s of
+fighting, 313 gold, finishing at 73.1 health and never once below 70.2. Their words, on the design question this slice
+exists for: they can comfortably run away, kite and rest; the waves hold few enemies anyway; it may get hard once the
+difficulty goes up; for now it is playable.
+
+**That is the measurement, felt.** `26` Part 5's own tables say the budget reverses the answer on the ten-enemy proof
+floor - standing becomes as cheap as running, and the best route becomes stop-and-go - while on the authored Descent it
+only softens it, because the authored waves hold one to five enemies and a hero with room to run can spend its bar,
+stand for a second and spend it again. The owner reached that conclusion from play in two runs, and the health line of
+theirs agrees: a whole Descent without dropping below 70.
+
+So the budget did what it was built to do and no more. It changed the **rhythm** of a fight from running throughout to
+running in bursts, which is what the simulation predicted and what the owner describes as resting. It did not make the
+authored Descent harder, and it was never going to: the same tables show the best play costing about what it cost
+before (Sword 55.0 against 59.3 damage on the Descent). Pressure has to come from the fight, not from the budget.
+
+**What this points at, untested.** The budget bites in proportion to how crowded the fight is. The project already has
+the ten-enemy proof floor where it bites hard and `PackLayout.MaxPackSize` of 10 against authored waves of one to five.
+Raising authored density has been out of scope in every slice so far and stays a decision for the owner, not a plan this
+record makes.
