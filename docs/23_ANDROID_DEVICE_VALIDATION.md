@@ -854,5 +854,31 @@ the graded set ends it. This is the same effect the simulation reported as the D
 three telemetry files restored from the backup with matching SHA-256 hashes on the device: revision 144, 10985 gold,
 Second Wind equipped again, and every test run's gold and events gone. The next launch starts on Ember Halls.
 
-Still owed: the owner's own hands on both arms. Nothing measured here answers whether running away *feels* like the
-obvious move, whether there are openings to stop and strike, or whether a Tank walking at 2.3 still reads as a Tank.
+### The owner plays both arms — the same evening
+
+The arms were then set up for the owner to play, one at a time, without being told which was which; the app was closed
+each time and no input was sent from this session. Their own loadout stood: the Sword, Second Wind equipped, and their
+own choice of upgrade cards.
+
+| | Arm A, today | Arm B, graded 2.3 |
+|---|---|---|
+| Result | victory | victory |
+| Fight | 45.7 s | 42.8 s |
+| Health after each room | 78.5 / 41.5 / 43.3 / 83.3 / 61.2 | 84.5 / 56.5 / 64.3 / 100.0 / 95.7 |
+| Damage taken | 128.8 | 115.0 |
+| Chests reached | 2 | 3 |
+| Upgrade cards | damage ×3, speed ×2 | damage ×4, speed ×1 |
+| Time spent on choices | 44.2 s | 5.2 s |
+
+Arm B was 11 % cheaper in damage and 2.9 s shorter, and the hero was never in danger on it: its lowest health at a room
+boundary was 56.5 against arm A's 41.5. Second Wind cannot have fired in either run, since neither dropped to a quarter
+health at any room boundary.
+
+**Two things make the 11 % soft.** The second run took one more damage card than the first, which kills faster and so
+takes fewer hits, and it reached one more chest. Both favour arm B. A repeat with the same five cards in both arms
+would settle it; the scripted runs above, which did hold the cards identical, put the same gap at 11 % as well, so the
+direction is at least consistent.
+
+The owner's own impression of the two arms is not recorded here yet. It is the only thing this whole exercise cannot
+measure, and the questions it has to answer are whether running away feels like the obvious move, whether there are
+openings to stop and strike, and whether a Tank walking at 2.3 still reads as a Tank.
