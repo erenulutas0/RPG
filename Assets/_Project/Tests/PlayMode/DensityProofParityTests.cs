@@ -128,6 +128,14 @@ namespace Cryptforge.Tests
         public IEnumerator DaggersTurningRoundOnTheProofFloorMatchesTheSimulation() =>
             PlayProof("weapon_daggers", DescentSimulation.Daggers(), DescentSimulation.TurningRound());
 
+        // The one case that goes for the chest on purpose. Until this slice the simulation had no chests at all and this
+        // driver switched the scene's spawner off to hide it, so nothing ever held the two together across an opening;
+        // this pins them, reward and book alike. It kites once the chest is its own, because a hero that stops walking
+        // after four hundred milliseconds never strikes while moving and would prove less than the cases above.
+        [UnityTest]
+        public IEnumerator SwordFetchingTheChestOnTheProofFloorMatchesTheSimulation() =>
+            PlayProof("weapon_sword", DescentSimulation.Sword(), new ChestRoute(new KiteRoute()));
+
         // The development hook must be invisible to a player: with no start-floor file the scene descends from the floor
         // Gameplay.unity carries, as every other test and every build does.
         [UnityTest]
@@ -222,11 +230,14 @@ namespace Cryptforge.Tests
             string report = string.Format(CultureInfo.InvariantCulture,
                 "scene: {0}, {1:0.#} HP, {2} kills, gold {3} ({4} banked), level {5}, {6} upgrades applied and {7} left " +
                 "pending, hero at ({8:0.###}, {9:0.###}); simulation: {10} floors cleared, {11:0.#} HP, {12} kills, " +
-                "gold {13} ({14}), level {15}, {16} upgrades, hero at ({17:0.###}, {18:0.###}), {19:0.##} fight s",
+                "gold {13} ({14}), level {15}, {16} upgrades, hero at ({17:0.###}, {18:0.###}), {19:0.##} fight s; " +
+                "chests {20}/{21}, books {22}/{23} (scene/simulation)",
                 _setup.Run.Outcome, _hero.Current, kills, _setup.Run.Gold, _setup.Run.GoldBanked, _setup.Run.Level,
                 _setup.Run.UpgradesApplied, _setup.Run.PendingUpgrades, heroFloorX, heroFloorY,
                 expected.ClearedFloors, expected.HeroHealth, expected.Kills, expected.Gold, expected.GoldBanked,
-                expected.Level, expected.UpgradesApplied, expected.HeroFloorX, expected.HeroFloorY, expected.FightSeconds);
+                expected.Level, expected.UpgradesApplied, expected.HeroFloorX, expected.HeroFloorY, expected.FightSeconds,
+                _chests != null ? _chests.ChestsOpened : 0, expected.ChestsOpened,
+                _chests != null ? _chests.BooksTaken : 0, expected.BooksTaken);
             TestContext.WriteLine(report);
 
             Assert.That(_setup.Run.HasEnded, Is.True, "The proof encounter did not finish. " + report);
@@ -236,6 +247,10 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Run.Gold, Is.EqualTo(expected.Gold), report);
             Assert.That(_setup.Run.GoldBanked, Is.EqualTo(expected.GoldBanked), report);
             Assert.That(_setup.Run.Level, Is.EqualTo(expected.Level), report);
+            Assert.That(_chests != null ? _chests.ChestsOpened : 0, Is.EqualTo(expected.ChestsOpened),
+                "The scene and the simulation opened different numbers of chests. " + report);
+            Assert.That(_chests != null ? _chests.BooksTaken : 0, Is.EqualTo(expected.BooksTaken),
+                "The chests the two opened held different books. " + report);
             Assert.That(_pendingWhileLive, Is.Zero,
                 "An upgrade went unanswered while the run was still live, so the accounting below would be hiding it. " + report);
             // Every upgrade the simulation applied is either applied here or still pending. The two differ only at the
@@ -299,13 +314,13 @@ namespace Cryptforge.Tests
             _movement = _hero.GetComponent<HeroMovementInput>();
             _encounters = Object.FindFirstObjectByType<EncounterController>();
             _arena = Object.FindFirstObjectByType<ArenaView>();
-            // Chests are not part of the Descent simulation and a walking hero steps on one: room 1's chest stands 1.8 floor
-            // units to the right of the centre and mends a quarter of the hero's health, which would make every comparison
-            // below meaningless. Disabling the spawner before its first Update is the only difference between this scene and
-            // the one a player sees.
+            // The chest is left switched on. It used to be disabled here, because chests were not part of the Descent
+            // simulation and a walking hero steps on one - room 1's chest stands 1.8 floor units to the right of the
+            // centre - so a heal on one side and not the other would have made every comparison below meaningless. That
+            // was the only difference between this scene and the one a player sees, and S3 (27) closed it by giving the
+            // simulation chests. Both sides now place the same chest, open it on the same reach and apply the same
+            // reward, which is what these cases are for.
             _chests = Object.FindFirstObjectByType<ChestSpawner>();
-            if (_chests != null)
-                _chests.enabled = false;
 
             _spawnFloorId = _encounters.Floor != null ? _encounters.Floor.Id : null;
             _spawnCount = _encounters.WaveEnemyCount;
@@ -394,6 +409,10 @@ namespace Cryptforge.Tests
             _view.HeroY = ArenaFloor.FloorY(heroAt.y);
             _view.HeroReach = _setup.Weapon.Range;
             _view.Platform = _arena.Geometry;
+            // The chest the simulation also shows its route, so a policy that fetches one steers on the same facts here.
+            _view.ChestX = _chests != null ? _chests.ChestFloorX : 0f;
+            _view.ChestY = _chests != null ? _chests.ChestFloorY : 0f;
+            _view.ChestClosed = _chests != null && _chests.HasChest && !_chests.IsOpen;
             _view.Count = _encounters.WaveEnemyCount;
             // The proof floor is one wave, so the encounter's clock is the simulation's fight clock: both start at 0 on the
             // spawn frame and add the same fixed step on every frame after it. KiteRoute ignores it; TurningRound turns on it.

@@ -145,6 +145,17 @@ namespace Cryptforge.Tests
         // else, while the pure runner flickers once each on Mites with the Sword and with the Daggers. The two runtimes
         // disagree about which run it happens in, as they do about every crowded walking run (22), so the bound is the
         // worst either of them measured rather than a claim about a particular case.
+        //
+        // Chests reached the simulation in S3 (27) and these runs open them: the proof floors carry a chest of their own,
+        // and the walks that leave the middle - turning round, and looping into the rim - step onto it, while standing and
+        // kiting do not. Every number here is nevertheless what it was before chests existed, for two reasons worth
+        // writing down, because both are load-bearing. The chest of a first room mends, and these walks reach it before
+        // anything has struck, so the heal lands on a hero at full health and restores nothing - measured, by running the
+        // whole suite with the book share set to zero and finding every figure unchanged. And at the shipped share
+        // (ChestRule.BookPercent) the first chest of seed 0 holds no book. Raise that share and it does: measured at 50%,
+        // the book it then hands over lengthens the Daggers' looping run on Grunts then Mites into a fourth flicker and
+        // this bound fails. That is the test doing its job - a share that changes what these runs measure has to be
+        // measured again, not waved through.
         [Test]
         public void OnTheProofFloorsEveryWeaponAndWalkKeepsThePackABodyApartWithoutFlickering()
         {
@@ -248,11 +259,12 @@ namespace Cryptforge.Tests
         private static string Describe(DescentSimulation.Result result) => string.Format(CultureInfo.InvariantCulture,
             "cleared {0} died {1} hp {2:R} seconds {3:R} kills {4} gold {5} level {6} upgrades {7} bursts {8} hits {9} " +
             "damage {10:R} gap {11:R} nearest {12:R} off {13} moving {14} struck {15:R} hero {16:R},{17:R} " +
-            "stalled {18:R} longest {19:R} turns {20} flickers {21}",
+            "stalled {18:R} longest {19:R} turns {20} flickers {21} chests {22} books {23}",
             result.ClearedFloors, result.DeathRoom ?? "-", result.HeroHealth, result.FightSeconds, result.Kills, result.Gold,
             result.Level, result.UpgradesApplied, result.AbilityUses, result.HeroHitsTaken, result.HeroDamageTaken,
             result.ClosestEnemyGapSquared, result.ClosestHeroDistanceSquared, result.FramesOffPlatform,
             result.StrikesWhileMoving, result.EarliestStrikeAfterSpawn, result.HeroFloorX, result.HeroFloorY,
-            result.EnemyStallSeconds, result.LongestEnemyStallSeconds, result.EnemyStepReversals, result.EnemyStepFlickers);
+            result.EnemyStallSeconds, result.LongestEnemyStallSeconds, result.EnemyStepReversals, result.EnemyStepFlickers,
+            result.ChestsOpened, result.BooksTaken);
     }
 }

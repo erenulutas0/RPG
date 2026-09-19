@@ -2,6 +2,7 @@ using System;
 using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Progression;
 using Cryptforge.UI;
 using UnityEngine;
 
@@ -31,10 +32,18 @@ namespace Cryptforge.Combat
         private float _floorY;
         private ChestReward _reward;
         private bool _subscribed;
+        // Chests placed so far in this run, counted across floors: the ordinal the run's seed uses to decide what each
+        // chest holds, so the third chest of a run is the third one wherever it stands.
+        private int _chestIndex = -1;
 
         public bool HasChest => _renderer != null && _renderer.enabled;
         public bool IsOpen { get; private set; }
         public int ChestsOpened { get; private set; }
+        // How many of those chests held a book, and what the last one held, so whoever reports an opening can name it
+        // without listening to the upgrade service as well.
+        public int BooksTaken { get; private set; }
+        public UpgradeOption LastBook { get; private set; }
+        public UpgradeRarity LastBookRarity { get; private set; }
         public bool UsesPaintedArt => _borrowed;
         public bool IsOpening => _openingRemaining > 0f;
         public float ChestFloorX => _floorX;
@@ -109,8 +118,9 @@ namespace Cryptforge.Combat
             _floorNumber = _encounters.FloorNumber;
             _roomNumber = _encounters.RoomNumber;
             int roomIndex = _roomNumber - 1;
+            _chestIndex++;
             ChestRule.SpotFor(roomIndex, _arena.Geometry, out _floorX, out _floorY);
-            _reward = ChestRule.RewardFor(roomIndex);
+            _reward = ChestRule.RewardFor(roomIndex, _chestIndex, _setup.Run != null ? _setup.Run.Seed : 0);
             IsOpen = false;
             _openingRemaining = 0f;
             _renderer.sprite = _closed;
@@ -132,6 +142,16 @@ namespace Cryptforge.Combat
             {
                 FloorModifierDefinition modifier = _encounters.Floor != null ? _encounters.Floor.Modifier : null;
                 _setup.Run.AddGold(FloorScaling.Gold(_reward.Gold, modifier != null ? modifier.GoldPercent : 0f));
+            }
+            // The book is granted before the opening is announced, so a report of this chest can name what it held.
+            LastBook = null;
+            LastBookRarity = UpgradeRarity.Common;
+            if (_reward.HoldsBook && _setup.Upgrades != null &&
+                _setup.Upgrades.TryGrantBook(_chestIndex, out UpgradeOption book, out UpgradeRarity rarity))
+            {
+                LastBook = book;
+                LastBookRarity = rarity;
+                BooksTaken++;
             }
             Opened?.Invoke(_reward, _renderer.transform.position);
         }

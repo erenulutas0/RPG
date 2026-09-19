@@ -231,8 +231,10 @@ namespace Cryptforge.Analytics
                 .Add("room_index", _roomIndex));
         }
 
-        // Called after a chest applied its reward, so the gold it added has already been seen through GoldChanged.
-        public void RecordChestOpened(ChestRewardKind reward, float healFraction)
+        // Called after a chest applied its reward and granted whatever book it held, so the gold it added has already
+        // been seen through GoldChanged. bookId is null for the chests that held none.
+        public void RecordChestOpened(ChestRewardKind reward, float healFraction, string bookId = null,
+            UpgradeRarity bookRarity = UpgradeRarity.Common)
         {
             if (!IsRecording)
                 return;
@@ -245,6 +247,8 @@ namespace Cryptforge.Analytics
                 .Add("reward", RewardName(reward))
                 .Add("gold", gold)
                 .Add("heal_fraction", (double)healFraction)
+                .Add("book", bookId ?? "none")
+                .Add("book_rarity", bookId != null ? bookRarity.ToString() : "none")
                 .Add("hero_hp", (double)_heroHealth())
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex));

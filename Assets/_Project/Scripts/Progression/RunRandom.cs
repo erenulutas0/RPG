@@ -16,6 +16,9 @@ namespace Cryptforge.Progression
         public const int Offers = 1;
         public const int Chests = 2;
         public const int Crits = 3;
+        // Which book a chest holds, kept apart from Chests so that "does this chest hold one" and "which one is it"
+        // never read the same word of the same stream.
+        public const int Books = 4;
 
         private uint _state;
 

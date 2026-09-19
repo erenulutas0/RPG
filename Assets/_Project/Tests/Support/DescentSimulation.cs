@@ -119,6 +119,11 @@ namespace Cryptforge.Tests
             // and not merely reached the same result. (0, 0) for a run with no route, which never moves the hero.
             public float HeroFloorX;
             public float HeroFloorY;
+            // Chests the hero walked onto, and how many of those held a book. A run with no route never leaves the
+            // middle and so never opens one, which is why every balance number measured before chests existed is
+            // unchanged.
+            public int ChestsOpened;
+            public int BooksTaken;
 
             public float ClosestEnemyGap => (float)Math.Sqrt(ClosestEnemyGapSquared);
             public float ClosestHeroDistance => (float)Math.Sqrt(ClosestHeroDistanceSquared);
@@ -356,10 +361,11 @@ namespace Cryptforge.Tests
             HeroStatsBinding.Apply(heroStats, hero, heroMotion, heroStamina);
             heroMotion.Place(0f, 0f, Platform);
             RouteView view = route != null ? new RouteView() : null;
+            var chest = new ChestState();
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, chest, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -389,9 +395,22 @@ namespace Cryptforge.Tests
             return result;
         }
 
+        // The one chest the run has at a time, the way the scene keeps one spawner: a new combat room moves it and
+        // closes it again, and its index counts every chest the run has placed, across floors.
+        private sealed class ChestState
+        {
+            public int Index = -1;
+            public float X;
+            public float Y;
+            public ChestReward Reward;
+            public bool Placed;
+            public bool Open;
+        }
+
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
-            HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, ref Result result)
+            HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
+            ChestState chest, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -409,6 +428,17 @@ namespace Cryptforge.Tests
                     choices.TrySelect(choices.Current, useMend ? 0 : 1);
                     ChooseUpgrades(choices, cardSlot);
                     continue;
+                }
+
+                // A room's first wave brings its chest, as ChestSpawner does on the encounter that starts a new room;
+                // later waves of the same room leave it where it is, opened or not.
+                if (next.WaveIndex == 0)
+                {
+                    chest.Index++;
+                    ChestRule.SpotFor(next.RoomIndex, Platform, out chest.X, out chest.Y);
+                    chest.Reward = ChestRule.RewardFor(next.RoomIndex, chest.Index, run.Seed);
+                    chest.Placed = true;
+                    chest.Open = false;
                 }
 
                 Enemy[] pack = floor.Rooms[next.RoomIndex][next.WaveIndex];
@@ -471,6 +501,10 @@ namespace Cryptforge.Tests
                         ObserveSteps(motion, enemies, steps, step, result.FightSeconds, ref result);
                     }
 
+                    // The chest is read once the hero has walked, as ChestSpawner reads the hero's floor position in its
+                    // own Update; a hero already standing on a freshly placed chest opens it on the wave's first frame.
+                    OpenChestIfReached(chest, hero, run, floor, upgrades, heroMotion, ref result);
+
                     int target = Acquire(motion, enemies, weapon.Range, heroMotion.X, heroMotion.Y);
                     if (target >= 0 && weapon.IsReady &&
                         weapon.TryAttack(enemies[target], null, Nearby(motion, enemies, target, weapon.Pattern.SplashRadius)) && moved)
@@ -508,7 +542,7 @@ namespace Cryptforge.Tests
 
                     Observe(motion, enemies, heroMotion, ref result);
                     if (route != null)
-                        Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, out steerX, out steerY);
+                        Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, chest, out steerX, out steerY);
                 }
 
                 if (firstStrike >= 0f && firstStrike < result.EarliestStrikeAfterSpawn)
@@ -527,6 +561,25 @@ namespace Cryptforge.Tests
             }
 
             return true;
+        }
+
+        // The hero walks onto a closed chest: it mends or pays, and then grants whatever book it held, in the order
+        // ChestSpawner.Open applies them.
+        private static void OpenChestIfReached(ChestState chest, HealthState hero, RunState run, Floor floor,
+            UpgradeService upgrades, HeroMotion heroMotion, ref Result result)
+        {
+            if (!chest.Placed || chest.Open || !hero.IsAlive || run.HasEnded ||
+                !ChestRule.IsWithinReach(heroMotion.X, heroMotion.Y, chest.X, chest.Y))
+                return;
+
+            chest.Open = true;
+            result.ChestsOpened++;
+            if (chest.Reward.Kind == ChestRewardKind.Heal)
+                hero.Heal(hero.Maximum * chest.Reward.HealFraction);
+            else
+                run.AddGold(FloorScaling.Gold(chest.Reward.Gold, floor.ModifierGoldPercent));
+            if (chest.Reward.HoldsBook && upgrades.TryGrantBook(chest.Index, out _, out _))
+                result.BooksTaken++;
         }
 
         // Enrage checks and kill rewards after any damage to the pack, in slot order like the scene's death callbacks.
@@ -720,8 +773,12 @@ namespace Cryptforge.Tests
         // Fills the route's view at the end of a frame and takes the steer the hero holds through the next one: the scene's
         // one-frame input lag, where the PlayMode driver calls HeroMovementInput.Hold after the frame's Update calls.
         private static void Ask(IHeroRoute route, RouteView view, PackMotion motion, HealthState[] enemies,
-            WeaponRuntime[] enemyWeapons, HeroMotion heroMotion, float heroReach, float seconds, out float steerX, out float steerY)
+            WeaponRuntime[] enemyWeapons, HeroMotion heroMotion, float heroReach, float seconds, ChestState chest,
+            out float steerX, out float steerY)
         {
+            view.ChestX = chest.X;
+            view.ChestY = chest.Y;
+            view.ChestClosed = chest.Placed && !chest.Open;
             view.HeroX = heroMotion.X;
             view.HeroY = heroMotion.Y;
             view.HeroReach = heroReach;

@@ -115,7 +115,7 @@ gate in order, distributions over seeds rather than one run, phone use coordinat
 | S2b | **The cards themselves** (done 2026-09-19): three tiers, luck, nine cards authored, five in the pool | a run's build differs from the next one's; and the pool's width is bounded by the run's length, measured | S2a |
 | S2c | **The other four cards** enter the pool. `26` Part 6 makes this a dependency of S4 rather than a follow-up: a swarm grants seventy-plus levels and five cards hold only twenty-two stacks | Iron Skin, Swift Boots, Deep Lungs and Fortune become reachable, and a swarm's levels have somewhere to go | — (measured; do it with S4) |
 | S2 (was) | **Stat sheet**: `HeroStats` on the `ModifiableStat` pipeline (Range, MaxHP, Regen, Armor, MoveSpeed, Bar, Refill, CritChance, CritDamage, Luck), each an `UpgradeOption` target, mirrored in the simulation | a stat card changes the fight identically in both; standing baseline re-pinned where a stat moves it | S1 |
-| S3 | **Books from chests**: `ChestRule` gains a book reward drawn by the seed, a run-long option applied through the same service | a chest can now change a build; measured against mend/gold | S1, S2 |
+| S3 | **Books from chests** (done 2026-09-20): a chest keeps its reward and some hold a book as well, drawn by the seed and applied through the same service; the share is measured in `28`. The Descent simulation gained chests with it, which it had never had | a chest can now change a build, and the walk to one is worth taking; measured against mend and gold at six shares | S1, S2 |
 | S4 | **Swarm room** (measured 2026-09-19, `26` Part 6; needs a per-wave difficulty multiplier, and S2c with it or before it): `RoomKind.Swarm` with a spawn schedule (waves every *n* seconds, escalating, elites at marks), a survive-for-*T* clock, an alive cap of 10, and a checkpoint to leave early | XP per minute and damage per minute across weapons and routes; the budget's effect at real crowding | — (can run beside S1–S3) |
 | S5 | **Forge Pulse and evolutions**: one behavioral upgrade with the trigger contract already agreed (every *N*th strike pulses; pulse damage is not a strike; crits can trigger it but it never crits; area strikes count once; pulse kills chain nothing; relic damage is not a strike), and an evolution at max stacks per weapon using Astra's existing ring and pulse art | the first synergies; Pulse should favour the Daggers, and if it favours the Sword the design is wrong | S1, S2 |
 | S6 | **Floor length and difficulty**: three or four floors re-authored around swarm rooms, a Difficulty stat, floor targets of 4–6 minutes, a Descent of 15–20 | the GDD's 3–4 minute floors, finally; distributions per seed | S4 |
@@ -129,9 +129,9 @@ the re-authoring that turns rooms into maps and needs the swarm room to exist. S
 **In the three days before Astra returns**: S1 and S2, with S3 if S2 lands early, and the S4 *measurement* in the
 scratch harness without touching the game. Nothing in these needs new art.
 
-**Visual needs to hand Astra**, none of them blocking: rarity on the choice cards, a book in the chest's opening
-frames, a swarm clock and a "leave" prompt on the HUD, a stat readout on the pause screen, and the evolution's
-presentation per weapon.
+**Visual needs to hand Astra**, none of them blocking: rarity on the choice cards, a book in the chest's opening frames
+and whatever names the stack it grants (built 2026-09-20 and silent until then), a swarm clock and a "leave" prompt on
+the HUD, a stat readout on the pause screen, and the evolution's presentation per weapon.
 
 ## 5. Decisions for the owner
 
@@ -181,6 +181,66 @@ the seed, and a draw on the chest stream between two offers changes nothing. `Ru
 `DevelopmentStart` tests cover the seed file. Every existing Descent and parity test passes unchanged.
 
 **Out of S1.** New cards, rarity, stats beyond Damage and AttackSpeed, chests, and anything visible.
+
+## 7. S3 specification — books from chests (agreed 2026-09-19)
+
+The chest is the game's other reward moment and today it holds nothing a build cares about: a quarter of the hero's
+health on even rooms, ten gold on odd ones. S3 lets a chest carry a **book** as well, which is an `UpgradeOption`
+granted from a second source rather than a second system, exactly as section 2 decided. It is the small slice chosen
+ahead of S4, and it also closes a gap that has been in the project since routes existed: the Descent simulation has
+never modelled chests at all, so a walking hero heals in the scene and does not in the simulation.
+
+**A book is additive, not a replacement.** A chest keeps the reward it has, and some chests hold a book on top of it.
+Three reasons. The heal on room one is load-bearing for the pinned balance claims and taking it away would move every
+number the project has measured. `ChestReward.Kind` stays Heal or Gold, so the chest's existing effects code needs no
+change and cannot regress - the art owner adds the book's own presentation later. And a book that costs the player
+nothing but the walk is the point: it gives the movement budget something to buy, which `26` Part 5 left it without.
+
+**Which chests hold one.** `ChestRule.HoldsBook(chestIndex, seed)` draws from `RunRandom.Stream(seed, Chests,
+chestIndex)`, where `chestIndex` counts chests placed across the whole run, not rooms within a floor. The share is a
+single constant, `ChestRule.BookPercent`, measured rather than chosen: a Descent places about twelve chests against
+roughly seven level-ups, so a share of one hands a build more from chests than from levels, and a share of zero is the
+game as it stands. The measurement reports survival and build width per share and the constant is set from it.
+
+**What a book gives.** `UpgradeService.TryGrantBook(chestIndex)` draws one option, uniformly, from the same eligibility
+the level-up offer uses - below its stack limit, prerequisite held - and one tier from `RarityTable` at the run's luck,
+both from `RunRandom.Stream(seed, Books, chestIndex)`, a fourth purpose so the "does this chest hold a book" draw and
+"which book" draw cannot correlate. It applies the modifier through the same two branches `TrySelect` uses, counts a
+stack, records an applied upgrade, and raises `BookGranted`. It grants nothing when nothing is eligible.
+
+One race is worth naming rather than defending against: a chest cannot open while a choice panel is up, because an open
+choice freezes time and `ChestSpawner` ignores a frame of zero length, but a level-up granted earlier in the same frame
+leaves a one-frame window in which a book could fill a card the open offer still shows. Taking that card would put it
+one stack past its limit. The alternative - hiding offered cards from the book draw - makes the draw depend on whether
+an offer happens to be open, which is true in the scene and never true in the simulation, and that is a parity
+divergence rather than an edge case. One stack over the cap on one card, once, is the cheaper cost.
+
+**Telemetry.** `chest_opened` gains `book` (the option id, or none) and `book_rarity`. Nothing else moves.
+
+**Simulation.** `DescentSimulation` places a chest in every combat room on `ChestRule.SpotFor`, checks
+`ChestRule.IsWithinReach` once a frame after the hero has moved and the pack has stepped, and applies the same three
+effects through the same calls. `RouteView` gains the chest's spot and whether it is still closed, so a policy can
+decide to fetch it; the scene's PlayMode driver fills the same fields from `ChestSpawner`. `Result` gains
+`ChestsOpened` and `BooksTaken`. A standing hero never reaches a chest, so every pinned balance number is unchanged by
+construction, and the parity tests that walk now cover the chest as well.
+
+**Tests.** `RunRandomTests`: the books stream differs from the chest stream at the same index. `ChestRuleTests`: the
+share is what it claims over many chests, the same seed gives the same chests, and a reward keeps its kind.
+`UpgradeTests`: a book respects stack limits and prerequisites, grants nothing when the pool is full, and a book drawn
+between two level-ups leaves both offers untouched. `DescentSimulation` tests: a walking hero opens the chest it walks
+onto, and a standing run is bit-identical to what it was. `SimulationParityTests`: a routed Descent that opens chests
+matches the scene. `RunTelemetryTests` re-pin `chest_opened`.
+
+**Out of S3.** A book's own art and any HUD for it (Astra's, and listed in the visual needs above), a separate book
+pool distinct from the card pool, books that offer a choice rather than granting, and chests that cost gold.
+
+**What was built, 2026-09-20.** All of the above, with the share set to 25 % from the sweep in `28`: the lowest share at
+which every measured run found at least one book and a hero who fetches them can still die. Two things the
+specification did not foresee. The simulation had never modelled chests at all, so a walking scene hero healed where the
+simulation's did not - a parity gap that had been open since routes existed and is now closed, with a scene case that
+walks onto a chest. And a book has no presentation yet: a chest that holds one still shows only its heal or its coins,
+so the stack arrives silently. That is Astra's to draw and is on the visual-needs list; until then the telemetry names
+it and the pause screen's stat readout will show it.
 
 ## Sources
 

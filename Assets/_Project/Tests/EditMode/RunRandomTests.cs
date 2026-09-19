@@ -45,9 +45,14 @@ namespace Cryptforge.Tests
             uint chests = RunRandom.Stream(42, RunRandom.Chests, 0).Next();
             uint later = RunRandom.Stream(42, RunRandom.Offers, 1).Next();
             uint otherSeed = RunRandom.Stream(43, RunRandom.Offers, 0).Next();
+            // Whether a chest holds a book and which book it is are drawn at the same index of the same run, so those
+            // two streams have to be as far apart as any other pair.
+            uint books = RunRandom.Stream(42, RunRandom.Books, 0).Next();
             Assert.That(offers, Is.Not.EqualTo(chests));
             Assert.That(offers, Is.Not.EqualTo(later));
             Assert.That(offers, Is.Not.EqualTo(otherSeed));
+            Assert.That(books, Is.Not.EqualTo(chests));
+            Assert.That(books, Is.Not.EqualTo(offers));
         }
 
         [Test]

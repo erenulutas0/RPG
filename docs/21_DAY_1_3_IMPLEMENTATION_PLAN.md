@@ -1550,3 +1550,39 @@ offered at, waiting for a visual treatment - the first visual need of this slice
 **Verified:** .NET **323/323**, compile **0 warnings/errors**, EditMode **338/338**, PlayMode **115/115**, Android build exit **0**, static integrity **460 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,344 bytes**, SHA-256 **`CF2EC63FC95D880A90626CF3728EA6883EAD6EEC26DDF1B8EA9B7594CC9AE651`**, built, **not installed**.
 
 Seven PlayMode cases had to be taught the new world, which is worth recording because each names an assumption a two-card pool had let stand: the whole-Descent parity cases assumed the scene and the simulation would build the same hero without being told a seed; two flow tests assumed a named card would be in the first offer; one assumed a card's magnitude was its asset's; one took whichever card sat in slot zero and then asserted the card it wanted by name; one filled a card to its cap by taking slot zero, which quietly stacked the card it was about to count; and the Mend case assumed the hero's maximum health was still a hundred. None of them were wrong before.
+
+## S3 — books from chests, and the chest the simulation never had — 2026-09-20
+
+**What shipped.** A chest can now hold a **book**: one stack of one card, granted on the spot, drawn from exactly the
+eligibility a level-up uses and at a tier from the same rarity table. It is additive - the chest still mends or pays,
+and `ChestReward.Kind` is unchanged, so nothing that shows a chest opening had to move and the room-one heal every
+pinned balance claim leans on is untouched. A fourth `RunRandom` purpose keeps "does this chest hold one" and "which
+one is it" from reading the same word of the same stream, and `chest_opened` now names the book and its tier.
+
+**The share was measured, not chosen** (`28`). The authored Descent, twenty-four seeds, three weapons, four walks,
+seventy-two runs a cell, six builds of the harness because `ChestRule.BookPercent` is a constant. At a share of zero the
+walk to a chest is a cost rather than a reward - fetching then standing dies ten times in seventy-two against kiting's
+seven, because the hero spends its budget crossing the arena for a heal it does not need yet. At 50 % a fetching hero
+never dies in a hundred and forty-four runs; at 100 % it finishes at the health cap with the fight a third shorter.
+**25 %** is the lowest share at which every measured run found at least one book - median two against eleven chosen
+upgrades - and a fetching hero can still die. What the number holds is about two books a Descent, so S6's longer floors
+bring it down with them.
+
+**The gap this opened by accident.** `DescentSimulation` had never modelled chests at all, since before routes existed.
+A walking scene hero healed and the simulation's did not, and it had never shown as a parity failure for a reason that
+is luck rather than design: every walk the parity cases run reaches the room's chest **before anything has struck it**,
+so the heal lands on a hero at full health and restores nothing. A book is not a no-op, so the simulation now places a
+chest in every combat room on the same rule, opens it on the same reach check, applies the same three effects in the
+same order, and a new parity case walks a scene hero onto one and holds the two together.
+
+**What did not move.** Every pinned number. A standing run never leaves the middle, so it never opens a chest; and at
+the shipped share the first chest of seed 0 - the seed the proof floors run on - holds no book. The second is a
+coincidence with a bound attached, written into `DensityProofTests`: raise the share to 50 % and the book that chest
+then holds lengthens the Daggers' looping run into a fourth enemy step-flicker and the proof fails. That failure is the
+test working, not a flake to widen.
+
+**Still missing, and it is Astra's.** A book has no presentation. A chest that holds one shows its heal or its coins and
+the stack arrives silently; the telemetry names it, the player does not see it. It is on the visual-needs list in `27`
+with the rarity treatment and the pause-screen stat readout.
+
+**Verified:** .NET **329/329**, compile **0 warnings/errors**, EditMode **344/344**, PlayMode **116/116**, Android build exit **0**, static integrity **460 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,163,321 bytes**, SHA-256 **`07C990A2BB56977BB1DA72E097B626ADE0389258605F10E01D24758FB77D5697`**, built, **not installed**.

@@ -357,6 +357,98 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void ABookGrantsOneStackOfAnEligibleCardAndRespectsEveryLimitTheOfferDoes()
+        {
+            var run = new RunState(10, 0.5f, 0, seed: 21);
+            var weapon = new WeaponRuntime(10f, 0.8f, 3f);
+            UpgradeOption damage = DamageOption(2);
+            UpgradeOption speed = SpeedOption(2);
+            var service = new UpgradeService(run, weapon, new[] { damage, speed }, 2);
+
+            Assert.That(service.TryGrantBook(0, out UpgradeOption book, out UpgradeRarity rarity), Is.True);
+            Assert.That(book, Is.Not.Null);
+            Assert.That(service.StacksOf(book), Is.EqualTo(1));
+            Assert.That(service.BooksGranted, Is.EqualTo(1));
+            Assert.That(run.UpgradesApplied, Is.Zero,
+                "A book answers no level-up, so the run's applied-upgrade count is still what the player chose.");
+            float damageAfter = weapon.Damage;
+            Assert.That(book.Stat == UpgradeStat.Damage ? damageAfter > 10f : damageAfter == 10f, Is.True,
+                "The book that was granted is the one that moved a stat.");
+
+            // The same chest of the same run always holds the same book at the same tier.
+            var replay = new UpgradeService(new RunState(10, 0.5f, 0, seed: 21), new WeaponRuntime(10f, 0.8f, 3f),
+                new[] { DamageOption(2), SpeedOption(2) }, 2);
+            Assert.That(replay.TryGrantBook(0, out UpgradeOption again, out UpgradeRarity againRarity), Is.True);
+            Assert.That(again.Id, Is.EqualTo(book.Id));
+            Assert.That(againRarity, Is.EqualTo(rarity));
+
+            // Fill the pool: four stacks over two cards of two, and the fifth book finds nothing to give.
+            for (int chest = 1; chest < 4; chest++)
+                Assert.That(service.TryGrantBook(chest, out _, out _), Is.True, $"Chest {chest} still has room.");
+            Assert.That(service.StacksOf(damage), Is.EqualTo(2));
+            Assert.That(service.StacksOf(speed), Is.EqualTo(2));
+            Assert.That(service.TryGrantBook(4, out UpgradeOption none, out _), Is.False, "A full build takes no books.");
+            Assert.That(none, Is.Null);
+        }
+
+        [Test]
+        public void ABookNeverReachesACardWhoseRequirementIsUnmet()
+        {
+            UpgradeOption damage = DamageOption(3);
+            var evolved = new UpgradeOption("upgrade_evolved", "Evolved", "+{0:0} damage", UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Flat, 50f), 1, requiresId: "upgrade_damage");
+            var run = new RunState(10, 0.5f, 0, seed: 5);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { evolved, damage }, 1);
+
+            Assert.That(service.TryGrantBook(0, out UpgradeOption first, out _), Is.True);
+            Assert.That(first.Id, Is.EqualTo("upgrade_damage"),
+                "The locked card stands first in the pool and is still not in the book's reach.");
+            Assert.That(service.StacksOf(evolved), Is.Zero);
+
+            // And once its requirement holds a stack it is reachable, like any card a level-up would now offer.
+            bool found = false;
+            for (int chest = 1; chest < 12 && !found; chest++)
+                found = service.TryGrantBook(chest, out UpgradeOption later, out _) && later.Id == evolved.Id;
+            Assert.That(found, Is.True, "A book reaches a card whose requirement the run has since met.");
+        }
+
+        [Test]
+        public void ABookDrawnBetweenTwoLevelUpsLeavesBothOffersWhereTheyWere()
+        {
+            // The two services see the same run and the same seed; only one of them opens a chest in between.
+            UpgradeOffer[] Offers(bool withBook)
+            {
+                var run = new RunState(10, 0.5f, 0, seed: 33);
+                var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f),
+                    new[] { DamageOption(9), SpeedOption(9), RangeOption(9) }, 2);
+                run.AddExperience(10);
+                UpgradeOffer first = service.CurrentOffer;
+                Assert.That(service.TrySelect(first, 0), Is.True);
+                if (withBook)
+                    service.TryGrantBook(0, out _, out _);
+                run.AddExperience(10);
+                return new[] { first, service.CurrentOffer };
+            }
+
+            UpgradeOffer[] plain = Offers(false);
+            UpgradeOffer[] withBook = Offers(true);
+            for (int i = 0; i < plain.Length; i++)
+            {
+                Assert.That(withBook[i].Index, Is.EqualTo(plain[i].Index));
+                for (int slot = 0; slot < plain[i].Choices.Count; slot++)
+                {
+                    Assert.That(withBook[i].Choices[slot].Id, Is.EqualTo(plain[i].Choices[slot].Id),
+                        $"Offer {i} slot {slot} moved because a chest was opened.");
+                    Assert.That(withBook[i].RarityAt(slot), Is.EqualTo(plain[i].RarityAt(slot)));
+                }
+            }
+        }
+
+        private static UpgradeOption RangeOption(int maxStacks = 5) =>
+            new UpgradeOption("upgrade_range", "Range", "+{0:0} range", UpgradeStat.Range,
+                new StatModifier(ModifierOperation.Flat, 0.3f), maxStacks);
+
+        [Test]
         public void PercentDescriptionValueReadsAsWholePercent()
         {
             Assert.That(SpeedOption().DescriptionValue, Is.EqualTo(25f));

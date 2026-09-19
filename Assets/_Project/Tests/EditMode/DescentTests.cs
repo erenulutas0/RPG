@@ -194,6 +194,39 @@ namespace Cryptforge.Tests
             Assert.That(counterMend.FightSeconds, Is.LessThan(plainMend.FightSeconds), "Counters shorten the fights against packs.");
         }
 
+        [Test]
+        public void AStandingRunNeverReachesAChestAndAFetchingOneTakesEveryOne()
+        {
+            DescentSimulation.Floor[] floors = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults };
+
+            DescentSimulation.Result standing = DescentSimulation.Run(floors, 0, true,
+                ability: DescentSimulation.ForgeBurst(), seed: 4, pool: DescentSimulation.TwoCardPool());
+            Assert.That(standing.ChestsOpened, Is.Zero,
+                "A hero that never leaves the middle never opens a chest, which is why every balance number " +
+                "measured before chests existed is untouched by them.");
+            Assert.That(standing.BooksTaken, Is.Zero);
+
+            DescentSimulation.Result fetching = DescentSimulation.Run(floors, 0, true,
+                ability: DescentSimulation.ForgeBurst(), route: new ChestRoute(), seed: 4,
+                pool: DescentSimulation.TwoCardPool());
+            Assert.That(fetching.ChestsOpened, Is.GreaterThan(0), "A hero that walks at the chest opens it.");
+            Assert.That(fetching.ChestsOpened, Is.LessThanOrEqualTo(12), "Two floors of six rooms hold at most twelve.");
+            Assert.That(fetching.BooksTaken, Is.LessThanOrEqualTo(fetching.ChestsOpened));
+            Assert.That(fetching.HeroFloorX * fetching.HeroFloorX + fetching.HeroFloorY * fetching.HeroFloorY,
+                Is.GreaterThan(0f), "It ended the run away from the centre, where the chest stood.");
+
+            // What a chest holds is the run's, not the walk's: the same seed fetched twice gives the same books.
+            DescentSimulation.Result again = DescentSimulation.Run(floors, 0, true,
+                ability: DescentSimulation.ForgeBurst(), route: new ChestRoute(), seed: 4,
+                pool: DescentSimulation.TwoCardPool());
+            Assert.That(again.BooksTaken, Is.EqualTo(fetching.BooksTaken));
+            Assert.That(again.ChestsOpened, Is.EqualTo(fetching.ChestsOpened));
+            Assert.That(again.HeroHealth, Is.EqualTo(fetching.HeroHealth));
+
+            // A book is a stack the hero found, not one it chose, so it never shows up as an applied upgrade.
+            Assert.That(again.UpgradesApplied, Is.EqualTo(fetching.UpgradesApplied));
+        }
+
         private static CheckpointOption[] Options() => new[]
         {
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),

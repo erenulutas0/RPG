@@ -501,7 +501,7 @@ namespace Cryptforge.Tests
             scene.Kill("enemy_grunt", 0, 0);
             scene.Kill("enemy_grunt", 0, 3);
             scene.Hero.Current = 50f;
-            scene.HealChest();
+            scene.HealChest("upgrade_damage", UpgradeRarity.Epic);
 
             scene.Room(1, Floor1, 2, RoomKind.Combat, "enemy_brute");
             scene.GoldChest(12);
@@ -532,8 +532,12 @@ namespace Cryptforge.Tests
             Assert.That(chests[0].Keys, Is.EqualTo(new[]
             {
                 "v", "seq", "t", "st", "session", "run", "event",
-                "reward", "gold", "heal_fraction", "hero_hp", "floor_index", "room_index"
+                "reward", "gold", "heal_fraction", "book", "book_rarity", "hero_hp", "floor_index", "room_index"
             }));
+            Assert.That((chests[0].Text("book"), chests[0].Text("book_rarity")), Is.EqualTo(("upgrade_damage", "Epic")),
+                "A chest that held a book names it and the tier it came at.");
+            Assert.That((chests[1].Text("book"), chests[1].Text("book_rarity")), Is.EqualTo(("none", "none")),
+                "A chest that held none says so rather than leaving the fields out.");
             Assert.That((chests[0].Text("reward"), chests[0].Integer("gold"), chests[0].Number("heal_fraction"), chests[0].Number("hero_hp")),
                 Is.EqualTo(("heal", 0L, 0.25, 75.0)), "A heal chest reports the health after its heal and no gold.");
             Assert.That((chests[1].Text("reward"), chests[1].Integer("gold"), chests[1].Integer("room_index")),
@@ -1014,10 +1018,10 @@ namespace Cryptforge.Tests
                 Recorder?.RecordChestOpened(ChestRewardKind.Gold, 0f);
             }
 
-            public void HealChest()
+            public void HealChest(string bookId = null, UpgradeRarity bookRarity = UpgradeRarity.Common)
             {
                 Hero.Heal(Hero.Maximum * ChestRule.HealFraction);
-                Recorder?.RecordChestOpened(ChestRewardKind.Heal, ChestRule.HealFraction);
+                Recorder?.RecordChestOpened(ChestRewardKind.Heal, ChestRule.HealFraction, bookId, bookRarity);
             }
 
             public bool PickUpgrade(int slot) => Upgrades.TrySelect(Upgrades.CurrentOffer, slot);

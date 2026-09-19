@@ -29,6 +29,13 @@ namespace Cryptforge.Progression
         // immediately before OfferChanged, so a selection is always reported before the offer that follows it.
         public event Action<UpgradeOption, int> Selected;
 
+        // (book, tier) once per granted book, raised after the modifier is applied, for telemetry and for whatever
+        // shows it later.
+        public event Action<UpgradeOption, UpgradeRarity> BookGranted;
+
+        // How many books this run has taken, so a report can tell a stack that was chosen from one that was found.
+        public int BooksGranted { get; private set; }
+
         // heroStats may be omitted by a caller whose pool holds only weapon cards; one is made so a hero card can
         // never find nothing to write to.
         public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount,
@@ -84,6 +91,39 @@ namespace Cryptforge.Progression
             return true;
         }
 
+        // A book: one card and one tier, granted rather than offered, drawn from the books stream at this chest's run
+        // ordinal so the same chest of the same run always holds the same book. It draws from the same eligibility a
+        // level-up does, and grants nothing when every card is full or blocked. A card the open offer happens to show
+        // is not excluded: whether an offer is open is true in the scene and never true in the simulation, and a draw
+        // that depended on it would diverge between them (docs/27 S3).
+        public bool TryGrantBook(int chestIndex, out UpgradeOption book, out UpgradeRarity rarity)
+        {
+            book = null;
+            rarity = UpgradeRarity.Common;
+            if (_run.HasEnded)
+                return false;
+
+            List<UpgradeOption> eligible = Eligible();
+            if (eligible.Count == 0)
+                return false;
+
+            RunRandom stream = RunRandom.Stream(_run.Seed, RunRandom.Books, chestIndex);
+            book = eligible[stream.NextBelow(eligible.Count)];
+            rarity = RarityTable.Draw(stream, _heroStats.Luck);
+            // Not RecordUpgradeApplied: that answers a pending level-up, and a book answers nothing. The run's
+            // UpgradesApplied stays what it has always meant - cards chosen at a level-up - and BooksGranted counts the
+            // stacks the hero found instead of chose.
+            _stacks[book]++;
+            BooksGranted++;
+            StatModifier modifier = book.ModifierFor(rarity);
+            if (HeroStats.Owns(book.Stat))
+                _heroStats.AddModifier(book.Stat, modifier);
+            else
+                _weapon.AddModifier(book.Stat, modifier);
+            BookGranted?.Invoke(book, rarity);
+            return true;
+        }
+
         private void OnPendingUpgradesChanged()
         {
             if (CurrentOffer != null || _run.HasEnded)
@@ -114,13 +154,7 @@ namespace Cryptforge.Progression
             if (_run.HasEnded || _run.PendingUpgrades <= 0)
                 return null;
 
-            var eligible = new List<UpgradeOption>(_pool.Length);
-            for (int i = 0; i < _pool.Length; i++)
-            {
-                UpgradeOption option = _pool[i];
-                if (_stacks[option] < option.MaxStacks && (option.RequiresId == null || StacksOfId(option.RequiresId) > 0))
-                    eligible.Add(option);
-            }
+            List<UpgradeOption> eligible = Eligible();
             if (eligible.Count == 0)
                 return null;
 
@@ -148,6 +182,20 @@ namespace Cryptforge.Progression
             for (int i = 0; i < choices.Count; i++)
                 rarities[i] = RarityTable.Draw(stream, _heroStats.Luck);
             return new UpgradeOffer(choices, index, rarities);
+        }
+
+        // The cards below their stack limit whose prerequisite, if any, holds a stack, in pool order. One list serves
+        // both reward moments, so a book can never reach a card a level-up would refuse to offer.
+        private List<UpgradeOption> Eligible()
+        {
+            var eligible = new List<UpgradeOption>(_pool.Length);
+            for (int i = 0; i < _pool.Length; i++)
+            {
+                UpgradeOption option = _pool[i];
+                if (_stacks[option] < option.MaxStacks && (option.RequiresId == null || StacksOfId(option.RequiresId) > 0))
+                    eligible.Add(option);
+            }
+            return eligible;
         }
 
         private int StacksOfId(string id)

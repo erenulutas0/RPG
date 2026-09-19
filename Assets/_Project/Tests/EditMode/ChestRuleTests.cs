@@ -37,17 +37,62 @@ namespace Cryptforge.Tests
         [Test]
         public void EvenRoomsHealAndOddRoomsPayAndTheHeroMustStandOnTheChest()
         {
-            ChestReward first = ChestRule.RewardFor(0);
+            ChestReward first = ChestRule.RewardFor(0, 0, 0);
             Assert.That(first.Kind, Is.EqualTo(ChestRewardKind.Heal));
             Assert.That(first.HealFraction, Is.EqualTo(0.25f));
-            ChestReward second = ChestRule.RewardFor(1);
+            ChestReward second = ChestRule.RewardFor(1, 1, 0);
             Assert.That(second.Kind, Is.EqualTo(ChestRewardKind.Gold));
             Assert.That(second.Gold, Is.EqualTo(10));
-            Assert.That(ChestRule.RewardFor(4).Kind, Is.EqualTo(ChestRewardKind.Heal));
+            Assert.That(ChestRule.RewardFor(4, 4, 0).Kind, Is.EqualTo(ChestRewardKind.Heal));
 
             Assert.That(ChestRule.IsWithinReach(1.3f, 0.3f, 1.8f, 0f), Is.True, "Half a unit away opens it.");
             Assert.That(ChestRule.IsWithinReach(0.8f, 0f, 1.8f, 0f), Is.False, "A full unit away does not.");
-            Assert.Throws<ArgumentOutOfRangeException>(() => ChestRule.RewardFor(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => ChestRule.RewardFor(-1, 0, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => ChestRule.RewardFor(0, -1, 0));
+        }
+
+        [Test]
+        public void ABookRidesOnTopOfTheRewardAtTheShareTheRuleClaims()
+        {
+            // A book never replaces what a chest pays, so no pinned Descent number moves because a chest held one.
+            for (int chest = 0; chest < 12; chest++)
+            {
+                ChestReward reward = ChestRule.RewardFor(chest % 6, chest, 7);
+                Assert.That(reward.Kind, Is.EqualTo(chest % 6 % 2 == 0 ? ChestRewardKind.Heal : ChestRewardKind.Gold));
+                Assert.That(reward.HoldsBook, Is.EqualTo(ChestRule.HoldsBook(chest, 7)));
+            }
+
+            // The share over many chests of many runs, within the slack a draw of this size leaves.
+            int books = 0;
+            const int Seeds = 400;
+            const int Chests = 12;
+            for (int seed = 0; seed < Seeds; seed++)
+            {
+                for (int chest = 0; chest < Chests; chest++)
+                {
+                    if (ChestRule.HoldsBook(chest, seed))
+                        books++;
+                }
+            }
+            double share = books * 100.0 / (Seeds * Chests);
+            Assert.That(share, Is.EqualTo(ChestRule.BookPercent).Within(3.0),
+                $"{books} books over {Seeds * Chests} chests is {share:0.0}%, against a claimed {ChestRule.BookPercent}%.");
+        }
+
+        [Test]
+        public void WhatAChestHoldsIsFixedByTheRunAndNotByTheOrderChestsAreOpened()
+        {
+            for (int chest = 0; chest < 12; chest++)
+            {
+                Assert.That(ChestRule.HoldsBook(chest, 11), Is.EqualTo(ChestRule.HoldsBook(chest, 11)),
+                    "The same chest of the same run always holds the same thing.");
+            }
+
+            // Two runs disagree about at least one chest, or the seed is doing nothing.
+            bool differs = false;
+            for (int chest = 0; chest < 12 && !differs; chest++)
+                differs = ChestRule.HoldsBook(chest, 11) != ChestRule.HoldsBook(chest, 12);
+            Assert.That(differs, Is.True, "Two seeds lay their books out differently.");
         }
     }
 }

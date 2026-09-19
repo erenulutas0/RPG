@@ -113,7 +113,8 @@ namespace Cryptforge.Analytics
 
         // The spawner raises Opened after it applied the reward, so chest gold has already reached the run.
         private void OnChestOpened(ChestReward reward, Vector3 position) =>
-            _telemetry.RecordChestOpened(reward.Kind, reward.HealFraction);
+            _telemetry.RecordChestOpened(reward.Kind, reward.HealFraction, _chests.LastBook?.Id,
+                _chests.LastBookRarity);
 
         // Scaled time for the run's active seconds, unscaled for choices and the player's pause, which stop scaled time.
         private void Update()
