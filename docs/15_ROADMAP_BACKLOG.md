@@ -241,6 +241,7 @@ P3 Growth:
 - [x] Review imported Staff equipment on S23 (2026-09-19; short normal-floor movement/cast sample, profiles unchanged).
 
 - [x] Create original Daggers master and two-hand browser proportion study (2026-09-19).
-- [ ] Register/import both Daggers in Unity; verify grip, depth, thrust and phone appearance.
+- [x] Register/import both Daggers in Unity; verify anchored grip, depth, attack, pause and reload (2026-09-19).
+- [ ] Review imported Daggers on the available phone (APK installed; physical review pending).
 
 - [x] Sample Daggers in actual Unity facings/gait/thrust and compare contact-preserving alternative (2026-09-19; proof only).

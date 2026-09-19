@@ -1011,3 +1011,9 @@ Evidence: ArtDirection/2026-09-19/staff-weapon-runtime-01/device contains origin
 Daggers source-only follow-up (2026-09-19): no device operation, new APK or loadout change. staff-weapon-runtime-01/device remains latest physical evidence; Daggers source in daggers-weapon-01 is not in the installed app.
 
 Daggers Unity proof follow-up (2026-09-19): no phone operation or new APK. Actual Editor renders exposed a hilt/contact issue in existing thrust; runtime integration remains pending. Staff4A73EE71 remains installed; previous device state is historical.
+
+## Daggers equipment APK installed; live review pending — 2026-09-19
+
+Owner authorised continuation. Connected S23 was unlocked with another app focused; asked whether it would be available for testing, with no reply before installation. Announced background app update and installed with `adb install --no-streaming -r`; success. No game launch, UI input, screenshot, recording, proof flag, loadout change or save restoration. Installed base.apk matched SHA256 `62D5A2707299AB8865B581ED3B5FD69F135EB727E8D562362F997B7F6055D603`, local APK24,752,344bytes. Gate291/306/115, compile clean, graphics1, integrity444/568, Android0.
+
+Fresh primary/backup pulled before install to ignored TestResults/daggers-runtime-device-2026-09-19/before. Revision165,12696gold,empty equippedWeaponId (default Sword),Counterweight,both unlocks/deepest2. After-install hashes exactly matched those fresh files: primary `B491EE6E287087787E54F5B1B8C82EF256F329CFDA09028886FFDE0DDA920900`, backup `DF2B5FD5EEFD90882ED9D8007160EAE15778811D44A7DBB21C42759C762B4224`. Development folder empty. Supersedes previous revision163/Staff state; do not restore it. Phone remains with owner. Next: coordinated live test of owned Daggers via UI; installation is not physical visual acceptance.

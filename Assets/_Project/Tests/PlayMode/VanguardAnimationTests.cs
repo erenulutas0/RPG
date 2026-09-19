@@ -260,6 +260,55 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator PaintedDaggersKeepBothHandsThroughTravelCastPauseAndReload()
+        {
+            TestProfile.Begin(new PlayerProfile(0,null,null,0,new[]{"weapon_daggers"},"weapon_daggers"));
+            yield return SceneManager.LoadSceneAsync(ScenePath); yield return null; Bind();
+            var left=GameObject.Find("Dagger Left").GetComponent<SpriteRenderer>();
+            var right=GameObject.Find("Dagger Right").GetComponent<SpriteRenderer>();
+            var shared=_look.PaintedArt.Dagger;
+            Assert.That(shared,Is.Not.Null);
+            Assert.That(left.sprite,Is.SameAs(shared)); Assert.That(right.sprite,Is.SameAs(shared));
+            foreach(var direction in new[]{new Vector2(1,1),new Vector2(-1,1),new Vector2(1,-1),new Vector2(-1,-1)})
+            {
+                _movement.Hold(direction);
+                for(int i=0;i<12;i++)
+                {
+                    yield return null;
+                    var frame=_look.PaintedArt.GetFrame(_look.PaintedFrame,_look.FrontFacing);
+                    Assert.That(left.transform.localPosition,Is.EqualTo((Vector3)frame.LeftHand));
+                    Assert.That(right.transform.localPosition,Is.EqualTo((Vector3)frame.RightHand));
+                    Assert.That(left.sortingOrder,Is.LessThan(_body.sortingOrder));
+                    Assert.That(right.sortingOrder,Is.LessThan(_body.sortingOrder));
+                }
+                _movement.Release(); yield return null; yield return null;
+            }
+            _target.transform.position=_look.transform.position+new Vector3(-.2f,-.1f);
+            _attack.enabled=true;
+            for(int i=0;i<4;i++) yield return null;
+            Assert.That(_attack.AttackCount,Is.EqualTo(1));
+            Assert.That(_target.Current,Is.LessThan(_target.Maximum));
+            var neutral=_look.PaintedArt.GetFrame(0,_look.FrontFacing);
+            Assert.That(left.transform.localPosition,Is.EqualTo((Vector3)neutral.LeftHand));
+            Assert.That(right.transform.localPosition,Is.EqualTo((Vector3)neutral.RightHand));
+            Assert.That(Quaternion.Angle(right.transform.localRotation,Quaternion.identity),Is.GreaterThan(36));
+            var rotation=right.transform.localRotation;
+            Time.timeScale=0; yield return new WaitForSecondsRealtime(.05f);
+            Assert.That(right.transform.localRotation,Is.EqualTo(rotation));
+            _attack.enabled=false; Time.timeScale=1;
+            for(int i=0;i<20;i++) yield return null;
+            Assert.That(Quaternion.Angle(right.transform.localRotation,Quaternion.identity),Is.EqualTo(35).Within(.01));
+            _look.GetComponent<Health>().ApplyDamage(new DamageContext(100000)); yield return null;
+            Assert.That(left.gameObject.activeInHierarchy,Is.False);
+            Assert.That(right.gameObject.activeInHierarchy,Is.False);
+            yield return SceneManager.LoadSceneAsync(ScenePath); yield return null;
+            yield return Resources.UnloadUnusedAssets();
+            Assert.That(Object.FindFirstObjectByType<HeroLookView>().PaintedArt.Dagger,Is.SameAs(shared));
+            Assert.That(shared.texture.isReadable,Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
         public IEnumerator OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody()
         {
             foreach (string id in new[] { "weapon_staff", "weapon_daggers" })

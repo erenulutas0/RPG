@@ -662,3 +662,7 @@ User explicitly requested installation of the Staff proof. Chose one cached immu
 ## 2026-09-19 — One-piece painted Staff equipment
 
 Choose the original whole Staff sprite over splitting the generated crystal and shaft. A single rigid sprite preserves registration through the existing cast lean and avoids a second visible orb. The shared optional VanguardArtSet reference preserves fallback behaviour; front knuckle overlay and rear depth follow the existing body poses. The tradeoff is that the old procedural orb's independent lit-sprite change is no longer visible; the painted crystal and already-integrated impact effect carry the violet identity. No balance or attack timing changes. Fixed source sampling and verification are recorded in ArtDirection/2026-09-19/staff-weapon-runtime-01/README.md.
+
+## 2026-09-19 — Imported Daggers retain neutral-hand contact
+
+The real-scene proof showed the previous weapon-only upward translation separates the new hilt from the neutral hand. For imported Daggers choose a short35-to47-degree outward wrist pivot about each registered hand, with the blades behind the body/gauntlets. Keep the existing strike event/duration, all combat rules and the legacy translation for sets without imported Daggers. This fixes contact without fabricating a moving-arm pose. Full arm animation and replacing the large procedural hit effect remain separate art work. Source/sampling and actual runtime captures: ArtDirection/2026-09-19/daggers-runtime-01.

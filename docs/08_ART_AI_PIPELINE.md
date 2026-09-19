@@ -316,3 +316,5 @@ ArtDirection/2026-09-19/daggers-weapon-01 contains one unchanged built-in imageg
 Verified: static integrity443 project GUIDs/1099package GUIDs/568scene objects. Source and hero images rendered in the browser; size/angle/mirror controls checked. No Assets/C# runtime/scene changes, Unity suite/build or phone operation. Installed Staff build4A73EE71 remains current. Next: fixed-registration Unity sampling for both hands, grip/depth/thrust review, then shared import and device verification.
 
 Daggers Unity proof (2026-09-19): fixed crop438,10,380,1220 ->20x64/128PPU, provisional pivot(.5,255/1220). See daggers-unity-01: existing thrust breaks contact; illustrated anchored alternative preferred for integration. Source remains unchanged; only temporary texture/transform substitutions were rendered.
+
+Imported Daggers (2026-09-19): dagger-v1 source remains unchanged; fixed crop438,10,380,1220 ->20x64/128PPU pivot(.5,255/1220), shared for both hands. Optional art reference controls anchored angular presentation, no per-hit pixels. Actual runtime proof in daggers-runtime-01; former daggers-unity-01 displacement fixture is a historical preintegration proof.

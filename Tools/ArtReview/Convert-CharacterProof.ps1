@@ -1,6 +1,6 @@
 # Lossless format bridge only: unchanged PNG channels -> Unity RGBA staging; rendered BMP -> PNG evidence.
 # No resizing, painting, compositing, alpha replacement or colour grading happens here.
-param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite, [switch]$GruntMotion, [switch]$GruntPolish, [switch]$PlatformMaterial, [switch]$Chest, [switch]$ChestRuntime, [switch]$MovementHud, [switch]$AbilityRing, [switch]$AbilityRingRuntime, [switch]$AbilityPulse, [switch]$StaffSplash, [switch]$StaffSplashRuntime, [switch]$StaffWeapon, [switch]$DaggersWeapon)
+param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite, [switch]$GruntMotion, [switch]$GruntPolish, [switch]$PlatformMaterial, [switch]$Chest, [switch]$ChestRuntime, [switch]$MovementHud, [switch]$AbilityRing, [switch]$AbilityRingRuntime, [switch]$AbilityPulse, [switch]$StaffSplash, [switch]$StaffSplashRuntime, [switch]$StaffWeapon, [switch]$DaggersWeapon, [switch]$DaggersRuntime)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $conversionRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -55,6 +55,7 @@ if ($Mode -eq 'Source') {
     if ($StaffSplashRuntime) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/staff-runtime-01' }
     if ($StaffWeapon) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/staff-weapon-runtime-01' }
     if ($DaggersWeapon) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/daggers-unity-01' }
+    if ($DaggersRuntime) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/daggers-runtime-01' }
     foreach ($file in Get-ChildItem -LiteralPath $renders -Filter '*.bmp' -File) {
         $bitmap = [System.Drawing.Bitmap]::new($file.FullName)
         try { $bitmap.Save([System.IO.Path]::ChangeExtension($file.FullName,'png'),[System.Drawing.Imaging.ImageFormat]::Png) }

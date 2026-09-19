@@ -37,6 +37,7 @@ namespace Cryptforge.UI
             _targeting=root.GetComponent<Targeting>(); _health=root.GetComponent<Health>();
             _previous=root.position; _orb=parts[3].sprite; _litOrb=litOrb;
             _parts[0].sprite=art.Sword; _parts[1].sprite=art.Shield;
+            if (art.Dagger != null) _parts[4].sprite=_parts[5].sprite=art.Dagger;
             if (art.Staff != null)
             {
                 _parts[2].sprite=art.Staff;
@@ -121,6 +122,11 @@ namespace Cryptforge.UI
             _parts[3].transform.localPosition=frame.RightHand+Vector2.up*(HeroArt.StaffCapRow-HeroArt.StaffGripRow+4)/32f;
             _parts[4].transform.localPosition=frame.LeftHand;
             _parts[5].transform.localPosition=frame.RightHand;
+            if (_art.Dagger != null)
+            {
+                _parts[4].sortingOrder=_parts[5].sortingOrder=_body.sortingOrder-1;
+                ApplyDaggerAngle(0);
+            }
         }
 
         private void ApplyAttack(float t)
@@ -136,9 +142,26 @@ namespace Cryptforge.UI
             }
             else
             {
-                _parts[4].transform.localPosition=frame.LeftHand+Vector2.up*(.12f*pulse);
-                _parts[5].transform.localPosition=frame.RightHand+Vector2.up*(.12f*pulse);
+                if (_art.Dagger != null)
+                {
+                    // Neutral body hands do not translate: rotate the painted blades about their registered grips.
+                    _parts[4].transform.localPosition=frame.LeftHand;
+                    _parts[5].transform.localPosition=frame.RightHand;
+                    ApplyDaggerAngle(pulse);
+                }
+                else
+                {
+                    _parts[4].transform.localPosition=frame.LeftHand+Vector2.up*(.12f*pulse);
+                    _parts[5].transform.localPosition=frame.RightHand+Vector2.up*(.12f*pulse);
+                }
             }
+        }
+
+        private void ApplyDaggerAngle(float pulse)
+        {
+            float angle=35+12*pulse;
+            _parts[4].transform.localRotation=Quaternion.Euler(0,0,(FrontFacing?-1:1)*angle);
+            _parts[5].transform.localRotation=Quaternion.Euler(0,0,(FrontFacing?1:-1)*angle);
         }
 
         private void ResetWeapons()
@@ -146,6 +169,7 @@ namespace Cryptforge.UI
             for(int i=0;i<_parts.Length;i++) _parts[i].transform.localRotation=Quaternion.identity;
             if(FrontFacing) _parts[0].transform.localRotation=Quaternion.Euler(0,0,-180);
             _parts[3].sprite=_orb;
+            if (_art.Dagger != null) ApplyDaggerAngle(0);
         }
 
         public void FaceAttack(Vector3 target)
