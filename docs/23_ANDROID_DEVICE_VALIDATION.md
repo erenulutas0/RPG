@@ -1009,3 +1009,5 @@ All inputs/captures used focused/awake/unlocked guards, including post-capture/r
 Evidence: ArtDirection/2026-09-19/staff-weapon-runtime-01/device contains original front/rear screenshots and a 540px-wide H264 transcode at unchanged speed. Raw video/contact sheets remain ignored in TestResults/staff-weapon-device-2026-09-19. Installed APK remains 4A73EE71112FE26005D97A9AD4AE0E986C9A6EF4AD7F8E4ED434D1AB86EF2E42. No code change or suite rerun in this device-only follow-up.
 
 Daggers source-only follow-up (2026-09-19): no device operation, new APK or loadout change. staff-weapon-runtime-01/device remains latest physical evidence; Daggers source in daggers-weapon-01 is not in the installed app.
+
+Daggers Unity proof follow-up (2026-09-19): no phone operation or new APK. Actual Editor renders exposed a hilt/contact issue in existing thrust; runtime integration remains pending. Staff4A73EE71 remains installed; previous device state is historical.

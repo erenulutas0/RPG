@@ -1,0 +1,11 @@
+# Daggers Unity sampling — 2026-09-19
+
+Isolated graphics-enabled real-scene study, not runtime integration. Tools/ArtReview/Run-DaggersWeaponProof.ps1 stages unchanged source channels and temporarily installs a PlayMode capture fixture; TestProfile isolates the save/development floor. No authored asset/scene save, APK or phone operation.
+
+Source: daggers-weapon-01/dagger-v1.png, 1254-square RGBA. Fixed padded crop top-left(438,10), size380x1220, sampled to20x64 at128PPU. Grip source(628,975) maps to(.5,255/1220). Near-uniform sampling differs under0.4% between axes; no independent alpha fit. One shared proof sprite serves both hands. Current neutral hand positions/four-body gait are retained. Candidate blade angles are35degrees outward according to front/rear, and mirrored by the existing body transform.
+
+Finding: the existing .12-unit upward weapon translation moves the grip away from the neutral body's hand during a real hit. Straight replacement is therefore not accepted. Front weapon-over-body depth also obscures the glove. Captures named thrust retain that existing translation; named anchored temporarily restore both hand anchors, place blades behind the body/gauntlets, and rotate them outward by up to12degrees using the observed thrust fraction. This is an illustrative contact-preserving alternative only: it is not an integrated animator, new body pose or verified animation loop. The old large pixel slash is still visible and belongs to later effect art.
+
+The fixture observes an actual attack (> .06 upward displacement) before capturing, asserts all four walking frames and checks both anchored local positions. It captures four facings, movement and attack comparisons and a portrait room. No damage/crit/range/movement-budget changes. Next: inspect the paired renders, integrate an optional shared dagger set and a contact-preserving presentation with pause/reset/reload tests; review actual device after a full runtime gate. Do not ship transient proof textures or claim a production-quality wrist animation.
+
+Verified: 57 actual Unity captures; .NET291/291, compile clean, graphics fixture1/1, integrity443/568. Both runs passed; second adds anchored comparisons after identifying the grip issue. Full runtime suites/APK/device were not repeated. The comparison page was visually inspected in the browser.

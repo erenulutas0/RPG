@@ -242,3 +242,5 @@ P3 Growth:
 
 - [x] Create original Daggers master and two-hand browser proportion study (2026-09-19).
 - [ ] Register/import both Daggers in Unity; verify grip, depth, thrust and phone appearance.
+
+- [x] Sample Daggers in actual Unity facings/gait/thrust and compare contact-preserving alternative (2026-09-19; proof only).
