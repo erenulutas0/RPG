@@ -730,3 +730,83 @@ proof-floor column is where it bites, so how much it matters is a question about
 - One hero, three weapons, no relic in the matrix, no chests, and nothing verified in Unity or on a device.
 - The bar is modelled as seconds of movement with a linear refill. A real implementation has to decide what happens
   across waves and rooms; here each wave starts with a full bar, which is the most generous reading.
+
+---
+
+## Part 6 — the swarm room, measured before it is built
+
+docs/27 puts a swarm room at the centre of the plan: the place a run earns its experience, the reason a card pool can
+be wide, and the ceiling the owner asked for, where even the strongest build dies if it stays. This measures all three
+before any of it is built. Nothing in the game changed.
+
+**The model.** A swarm is what the game can already express: one room whose waves never stop and keep hardening. Waves
+grow from three enemies to the ten the formations hold, grunts arrive from the third, a runner from the sixth, and
+heavies multiply rather than arriving once - one from the tenth and one more every ten after. Eighty waves, twelve
+seeds, three weapons, Ember Halls' damage rate, the shipped five-card pool, the Forge Burst. Two players: one that
+stands, and one that backs off when something is inside its reach and stands again when it is not.
+
+### A swarm room pays for far more levels than the pool can hold
+
+| Player | Wave reached (median) | Seconds | Level | Upgrades applied |
+|---|---|---|---|---|
+| Sword, standing | 10 | 40 | 9.5 | 9.5 |
+| Sword, backing off | 74.5 | 333 | 74 | **22** |
+| Staff, backing off | 81 of 80 | 257 | 78 | **22** |
+| Daggers, backing off | 37 | 211 | 46 | **22** |
+
+A whole two-floor Descent grants about seven level-ups. A swarm room grants **seventy-four to seventy-eight**. That
+settles the question S2b left open: the four cards held back from the pool are not a nicety, they are required, because
+a hero that levels seventy-eight times can only ever apply **twenty-two** upgrades - five cards at their stack limits
+is all the build there is. Fifty-six level-ups are poured into a full cup. **S2c is a dependency of S4, not a
+follow-up.**
+
+### Standing is not a strategy in a swarm, and that is correct
+
+A standing hero dies at wave eight to eleven with every weapon, in about forty seconds. A swarm is the one place the
+game should insist on movement, and it does. Note what this means beside `26` Part 5: the budget makes standing viable
+in an ordinary fight, and a swarm takes that back on purpose.
+
+### The ceiling needs the enemies to grow, and the ramp has to be gentle
+
+The arena holds ten enemies at a time, so once the numbers are capped the only way a swarm can keep getting worse is
+for each enemy to be worse. Scaling enemy health and damage by a flat factor, same eighty waves, backing off:
+
+| Enemy scale | Sword | Staff | Daggers |
+|---|---|---|---|
+| ×1.0 | wave 74.5, 6 of 12 survive all | **wave 81, 12 of 12 survive all** | wave 37, 1 of 12 |
+| ×1.5 | wave 7 | wave 7 | wave 7 |
+| ×2.0 | wave 5 | wave 5 | wave 5 |
+| ×3.0 | wave 4 | wave 4 | wave 4 |
+
+Two things fall out. **At ×1.0 the Staff is immortal** - twelve seeds, eighty waves, no deaths - because an area weapon
+against ten bunched enemies scales with the crowd. There is no ceiling without scaling. And **a flat ×1.5 is not the
+answer either**: it kills every weapon at wave seven, before a build exists, because the hero starts a swarm at level
+one and the enemies start at their hardest. So the ramp has to **rise with the run** rather than sit at a constant -
+wave by wave, starting at ×1.0 - which is a per-wave multiplier the floor format does not have today. That is the first
+thing S4 has to build.
+
+### The movement budget barely touches a tactical player, even in a crowd
+
+Run with a bar nothing can empty and the numbers are the same: Sword 74.5 against 80.5, Staff 81 against 81. Only the
+Daggers notice (37 against 52), because their reach of 1.8 keeps them closest to what they are fighting. This refines
+Part 5 rather than contradicting it: the budget punishes **running constantly**, and a player who moves only when
+something is inside its reach never spends enough to run dry. The budget is a tax on flight, not on movement.
+
+### What S4 must contain, from these numbers
+
+1. A **per-wave difficulty multiplier** on enemy health and damage, starting at ×1.0 and rising with the wave. The
+   floor format carries one multiplier for a whole floor; a swarm needs one per wave.
+2. **S2c first, or at the same time**: the pool must widen, or a swarm's seventy-plus levels are spent on a build that
+   was full at twenty-two.
+3. A **leave-when-you-like** exit, as docs/27 already decided, because the ceiling is meant to be a choice about when
+   to stop rather than a wall that ends the run for you.
+4. An honest note for whoever tunes it: at ×1.0 an area weapon never dies here. Any ramp has to be measured against the
+   Staff, which is the build that breaks it.
+
+### Limits of Part 6
+
+- A swarm modelled as waves with the game's one-second advance delay between them, not a continuous stream; a real
+  swarm room may not give that breather, and the breather is worth roughly a second of refill per wave.
+- Two scripted policies, not players, and the back-off thresholds (reach, reach + 0.6) are the same guess as ever.
+- Twelve seeds a cell, the .NET runner, no relics, no chests, nothing in Unity and nothing on a device.
+- The wave schedule is one shape, chosen to harden steadily; it is not a search over schedules.
