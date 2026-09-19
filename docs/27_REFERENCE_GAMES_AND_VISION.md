@@ -113,10 +113,10 @@ gate in order, distributions over seeds rather than one run, phone use coordinat
 | S1 | **Offer engine**: run seed on `RunState` and in `run_start`, a small PRNG of our own (not `System.Random`, which differs between Mono and .NET), rarity tiers per stat, explicit eligibility and stack limits, pool of N ≥ 3, `offer_index` and rarity in telemetry | two runs with different seeds differ; the same seed gives the same offers in scene and simulation | — |
 | S2a | **Stat sheet plumbing** (done 2026-09-19): six stats reachable by a card, pool unchanged so no number moves | each stat changes the thing that reads it, in scene and simulation alike | S1 |
 | S2b | **The cards themselves** (done 2026-09-19): three tiers, luck, nine cards authored, five in the pool | a run's build differs from the next one's; and the pool's width is bounded by the run's length, measured | S2a |
-| S2c | **The other four cards** enter the pool. `26` Part 6 makes this a dependency of S4 rather than a follow-up: a swarm grants seventy-plus levels and five cards hold only twenty-two stacks | Iron Skin, Swift Boots, Deep Lungs and Fortune become reachable, and a swarm's levels have somewhere to go | — (measured; do it with S4) |
+| S2c | **A pool that grows with the run** (done 2026-09-20, with S4): all nine cards are authored in one order and `UpgradePool.WidthAt` takes as many as the run's level has opened - five until level twelve, one more every six after | Iron Skin, Swift Boots, Deep Lungs and Fortune are reachable by a run long enough to pay for them, and a Descent is offered the same five it always was, pinned seed for seed | S2b |
 | S2 (was) | **Stat sheet**: `HeroStats` on the `ModifiableStat` pipeline (Range, MaxHP, Regen, Armor, MoveSpeed, Bar, Refill, CritChance, CritDamage, Luck), each an `UpgradeOption` target, mirrored in the simulation | a stat card changes the fight identically in both; standing baseline re-pinned where a stat moves it | S1 |
 | S3 | **Books from chests** (done 2026-09-20): a chest keeps its reward and some hold a book as well, drawn by the seed and applied through the same service; the share is measured in `28`. The Descent simulation gained chests with it, which it had never had | a chest can now change a build, and the walk to one is worth taking; measured against mend and gold at six shares | S1, S2 |
-| S4 | **Swarm room** (measured 2026-09-19, `26` Part 6; needs a per-wave difficulty multiplier, and S2c with it or before it): `RoomKind.Swarm` with a spawn schedule (waves every *n* seconds, escalating, elites at marks), a survive-for-*T* clock, an alive cap of 10, and a checkpoint to leave early | XP per minute and damage per minute across weapons and routes; the budget's effect at real crowding | — (can run beside S1–S3) |
+| S4 | **Swarm room** (done 2026-09-20, `29`; measured first in `26` Part 6): `RoomKind.Swarm` with a spawn schedule (waves every *n* seconds, escalating, elites at marks), a survive-for-*T* clock, an alive cap of 10, and a checkpoint to leave early | XP per minute and damage per minute across weapons and routes; the budget's effect at real crowding | — (can run beside S1–S3) |
 | S5 | **Forge Pulse and evolutions**: one behavioral upgrade with the trigger contract already agreed (every *N*th strike pulses; pulse damage is not a strike; crits can trigger it but it never crits; area strikes count once; pulse kills chain nothing; relic damage is not a strike), and an evolution at max stacks per weapon using Astra's existing ring and pulse art | the first synergies; Pulse should favour the Daggers, and if it favours the Sword the design is wrong | S1, S2 |
 | S6 | **Floor length and difficulty**: three or four floors re-authored around swarm rooms, a Difficulty stat, floor targets of 4–6 minutes, a Descent of 15–20 | the GDD's 3–4 minute floors, finally; distributions per seed | S4 |
 | S7 | **Meta tree**: banked gold into permanent nodes, respec, the Bones and Coins layer | the endgame Bones and Coins lacks | S1–S6 |
@@ -241,6 +241,75 @@ simulation's did not - a parity gap that had been open since routes existed and 
 walks onto a chest. And a book has no presentation yet: a chest that holds one still shows only its heal or its coins,
 so the stack arrives silently. That is Astra's to draw and is on the visual-needs list; until then the telemetry names
 it and the pause screen's stat readout will show it.
+
+## 8. S4 and S2c specification — the swarm room and a pool that grows with the run (agreed 2026-09-20)
+
+`26` Part 6 measured a swarm before it was built and came back with three things that fix this slice's shape. A swarm
+grants seventy-plus level-ups where five cards hold twenty-two stacks, so **S2c is a dependency of S4 rather than a
+follow-up**. The arena caps alive enemies at ten, so past the twelfth wave the only way a swarm can keep hardening is
+for each enemy to harden, and a flat multiplier fails both ways - at 1.0 an area weapon never dies, at 1.5 every weapon
+dies at wave seven - so the ramp has to **rise with the wave**, which the floor format cannot express. And the movement
+budget barely touches a player who moves only when threatened, even in a crowd, so a swarm is where fetching a chest
+stops being free.
+
+### S2c — the pool widens with the run, rather than all at once
+
+S2b measured a nine-card pool and it collapsed the game: standing cleared one Descent in ten, kiting a third to a half.
+The reason is dilution - a Descent grants about eleven level-ups, and every card past a point thins the chance of the
+one the hero needs. That measurement stands, so the four held-back cards cannot simply be added.
+
+What changes instead is that the pool is **a function of the run's level rather than a constant**. Cards are authored in
+one order - Tempered Edge, Quickened Grip, Long Reach, Keen Edge, Vital Surge, then Iron Skin, Swift Boots, Deep Lungs,
+Fortune - and `UpgradePool.WidthAt(level)` says how many of them are eligible, starting at the five that ship today and
+adding one card every so many levels up to all nine. A Descent that reaches level eleven sees close to the pool it sees
+now; a swarm that reaches level seventy sees all nine and has somewhere to put them. The thresholds are measured against
+two claims at once: the Descent's standing clear rate must not fall below what S2b pinned (7, 6 and 10 of 24 seeds), and
+a swarm must reach the full nine.
+
+### S4 — the swarm room
+
+**A swarm room is a room whose waves do not run out.** `RoomKind.Swarm` authors its waves as a **ladder**, the ordinary
+`WaveDefinition[]` every combat room already has: wave one is the ladder's first, and once the ladder is spent its last
+wave repeats for as long as the player stays. That is exactly the shape `26` Part 6 measured - the pack grows from three
+to the ten the formations hold over about twelve waves and then cannot grow again - and it needs no new content type.
+
+**The ramp is a per-wave multiplier.** `SwarmRule.DifficultyAt(ordinal)` is 1.0 on the first wave and rises with the
+wave; it multiplies the floor's own enemy health and damage multipliers, so it composes with `FloorScaling` rather than
+going round it. The rate is the measured constant of this slice, held against the Staff, which is the build that breaks
+a swarm: at a flat 1.0 an area weapon cleared all eighty waves in twelve of twelve seeds, so a ramp that leaves the
+Staff immortal has not ramped.
+
+**Leaving is a choice, and it is the choice the game already has.** After each swarm wave the room offers **Press on** or
+**Leave** through `CheckpointService`, the same service, the same `ChoiceKind.Checkpoint` and the same panel that asks
+Extract or Descend after a boss. Two new `CheckpointKind` values and no new UI: the visual treatment a swarm deserves - a
+wave counter, a clock - is Astra's and is on the visual-needs list. Offering it after every wave is the plainest reading
+of "leave when you like" and is the thing to ask the owner about after playing it.
+
+**`FloorProgress` gains endless rooms.** It is built today from a wave count per room; a swarm room is marked endless,
+`Advance()` keeps handing out waves with a rising ordinal and never clears it, and `LeaveEndlessRoom()` is what the
+Leave choice calls to let the floor move on.
+
+**Where a swarm room lives, for now.** Nowhere in the authored Descent. Putting one into Ember Halls or Quicksilver
+Vaults would move every pinned balance number in the project, and S6 is the slice that re-authors floors. S4 ships a
+**development swarm floor** reached through `development/start-floor.txt`, the same hook the density proof floors use,
+so it can be measured and played on the phone without touching the Descent. S6 decides where swarm rooms belong.
+
+**Simulation.** `DescentSimulation` mirrors all of it: endless rooms, the ladder, the per-wave multiplier, and a leave
+policy given as a parameter (leave after N waves) so a measurement can ask what N is worth. `Result` gains the deepest
+swarm wave reached.
+
+**Telemetry.** `swarm_wave` with the ordinal and the difficulty at it; the checkpoint event names the two new kinds.
+
+**Out of S4 and S2c.** Any swarm room in the authored Descent (S6), a clock or wave counter on the HUD (Astra), elites
+at marks, shrines, and a Difficulty stat the player can raise (S6).
+
+**What was built, 2026-09-20** (`29`). All of the above. The ramp is 2 % a wave, measured: flat leaves a backing-off
+hero immortal in half of forty-eight runs, and anything from 5 % up cuts the room down to what a Descent already grants.
+The pool's first extra card arrives at level twelve, one above the longest run the game has, so the Descent is
+bit-identical seed for seed. Two things the specification did not foresee. A swarm room has **one chest**, because
+chests are per room, so S3's books barely reach it - the median swarm run took none, and chests that arrive with the
+waves are a gap for S6. And the exit is offered after every wave, which is one constant and a question about feel that
+only playing it can answer.
 
 ## Sources
 

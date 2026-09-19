@@ -6,6 +6,31 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Progression
 {
+    // How many of the authored cards a run may be offered, by the level it has reached. S2b measured a nine-card pool
+    // handed to today's Descent and it collapsed the game - a standing hero cleared one run in ten - because a level-up
+    // is the only place a hero grows and every card past a point thins the chance of the one it needs. The answer is
+    // not a narrower set of cards but a pool that follows the run: a Descent grants about eleven level-ups and sees the
+    // five that ship, a swarm room grants seventy and sees all nine, with somewhere to put them (docs/27, S2c).
+    //
+    // The cards are authored in one order and the width takes them from the front, so a run below the first threshold
+    // is offered exactly what it was offered before this rule existed, seed for seed.
+    public static class UpgradePool
+    {
+        // The five cards a Descent has always been offered: Tempered Edge, Quickened Grip, Long Reach, Keen Edge and
+        // Vital Surge.
+        public const int BaseWidth = 5;
+        // The sixth card arrives one level past what a whole Descent reaches, so nothing about the Descent moves.
+        public const int FirstExtraAtLevel = 12;
+        public const int LevelsPerExtraCard = 6;
+
+        public static int WidthAt(int level)
+        {
+            if (level < FirstExtraAtLevel)
+                return BaseWidth;
+            return BaseWidth + 1 + (level - FirstExtraAtLevel) / LevelsPerExtraCard;
+        }
+    }
+
     // Opens an offer for each pending upgrade (level-ups and bonus grants) and applies exactly one choice per offer
     // to runtime weapon stats.
     public sealed class UpgradeService
@@ -184,12 +209,14 @@ namespace Cryptforge.Progression
             return new UpgradeOffer(choices, index, rarities);
         }
 
-        // The cards below their stack limit whose prerequisite, if any, holds a stack, in pool order. One list serves
-        // both reward moments, so a book can never reach a card a level-up would refuse to offer.
+        // The cards below their stack limit whose prerequisite, if any, holds a stack, in pool order, and only as far
+        // into the pool as the run's level has opened it. One list serves both reward moments, so a book can never
+        // reach a card a level-up would refuse to offer.
         private List<UpgradeOption> Eligible()
         {
-            var eligible = new List<UpgradeOption>(_pool.Length);
-            for (int i = 0; i < _pool.Length; i++)
+            int width = Math.Min(_pool.Length, UpgradePool.WidthAt(_run.Level));
+            var eligible = new List<UpgradeOption>(width);
+            for (int i = 0; i < width; i++)
             {
                 UpgradeOption option = _pool[i];
                 if (_stacks[option] < option.MaxStacks && (option.RequiresId == null || StacksOfId(option.RequiresId) > 0))

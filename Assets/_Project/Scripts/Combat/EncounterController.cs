@@ -48,6 +48,11 @@ namespace Cryptforge.Combat
         private SpawnedEnemy _lastDefeated;
         private float _transitionWait;
         private bool _descending;
+        // A swarm room has cleared a wave and is waiting for the player to say whether to press on or leave, and whether
+        // that question has been answered for the wave now on the floor. Both are needed: clearing only the first would
+        // leave the room asking again on the frame after the answer, forever, because the wave has still not advanced.
+        private bool _swarmChoiceOpen;
+        private bool _swarmChoiceAnswered;
         private int _roomsClearedOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
@@ -93,11 +98,20 @@ namespace Cryptforge.Combat
         public int HitsTaken => _fight?.HitsTaken ?? 0;
         public float Elapsed => _fight?.Elapsed ?? 0f;
         public bool IsCleared => _fight != null && _fight.IsCleared;
+        // A swarm room's state, for whoever reports or shows it: whether this room is one, which wave of it the run is
+        // on (one-based, past the room's authored ladder), and how much harder that wave is than the floor authored.
+        public bool IsInSwarmRoom => _floorProgress != null && _floorProgress.IsInEndlessRoom;
+        public int SwarmWave => IsInSwarmRoom ? _floorProgress.WaveIndex + 1 : 0;
+        public float SwarmDifficulty => IsInSwarmRoom ? SwarmRule.DifficultyAt(_floorProgress.WaveIndex) : 1f;
+        public bool IsAwaitingSwarmChoice => _swarmChoiceOpen;
 
         public event Action EncounterStarted;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
         public event Action FloorCleared;
+        // A swarm room's wave has fallen and the room is waiting: the composition root opens the press-on-or-leave
+        // choice and answers with ResumeSwarm. The same shape as FloorCleared and the Extract/Descend checkpoint.
+        public event Action SwarmWaveCleared;
 
         private SpawnedEnemy CurrentSpawn
         {
@@ -147,7 +161,7 @@ namespace Cryptforge.Combat
             _fight = new EncounterProgress(_advanceDelay);
             _currentFloor = first;
             FloorNumber = 1;
-            _floorProgress = new FloorProgress(WavesOf(_currentFloor));
+            _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
             _waveOrdinal = 0;
             AdvanceFloor();
         }
@@ -155,6 +169,23 @@ namespace Cryptforge.Combat
         // The hero's position on the arena floor, which the packs walk toward.
         public float HeroFloorX => _hero.transform.position.x;
         public float HeroFloorY => ArenaFloor.FloorY(_hero.transform.position.y);
+
+        // The answer to SwarmWaveCleared: press on for another wave, or leave the room for whatever follows it. The
+        // floor advances here, inside the answer, rather than on the next frame. That is not a detail: a room that
+        // waited a frame would give the hero's weapon one more frame of cooldown between waves than every other room
+        // gives it, and the Descent simulation - which has no frames to spend on a question - would drift a little
+        // further from the scene with every wave. Asking costs frozen time and nothing else.
+        public void ResumeSwarm(bool leave)
+        {
+            if (!_swarmChoiceOpen)
+                return;
+
+            _swarmChoiceOpen = false;
+            _swarmChoiceAnswered = true;
+            if (leave)
+                _floorProgress.LeaveEndlessRoom();
+            AdvanceFloor();
+        }
 
         public void DescendToNextFloor()
         {
@@ -164,7 +195,7 @@ namespace Cryptforge.Combat
             _roomsClearedOnEarlierFloors += _floorProgress.RoomsCleared;
             _currentFloor = _currentFloor.NextFloor;
             FloorNumber++;
-            _floorProgress = new FloorProgress(WavesOf(_currentFloor));
+            _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
             _waveOrdinal = 0;
             _descending = true;
             _transitionWait = 0f;
@@ -233,6 +264,15 @@ namespace Cryptforge.Combat
             return waves;
         }
 
+        // A swarm room's waves are a ladder rather than a list that finishes, so the floor never clears it on its own.
+        private static bool[] EndlessOf(FloorDefinition floor)
+        {
+            var endless = new bool[floor.RoomCount];
+            for (int i = 0; i < endless.Length; i++)
+                endless[i] = floor.RoomAt(i).Kind == RoomKind.Swarm;
+            return endless;
+        }
+
         private void Update()
         {
             if (_floorProgress == null || !_hero.IsAlive)
@@ -252,8 +292,22 @@ namespace Cryptforge.Combat
                 return;
             }
 
-            if (!_floorProgress.IsComplete && _fight.Tick(Time.deltaTime, canAdvance))
-                AdvanceFloor();
+            if (_floorProgress.IsComplete || !_fight.Tick(Time.deltaTime, canAdvance))
+                return;
+
+            // A swarm room does not roll on by itself: it asks. The choice that answers freezes time, so this runs once
+            // and then waits, and ResumeSwarm is what lets the next wave in or ends the room.
+            if (_floorProgress.IsInEndlessRoom && !_swarmChoiceAnswered &&
+                SwarmRule.OffersExitAfter(_floorProgress.WaveIndex))
+            {
+                if (_swarmChoiceOpen)
+                    return;
+                _swarmChoiceOpen = true;
+                SwarmWaveCleared?.Invoke();
+                return;
+            }
+
+            AdvanceFloor();
         }
 
         private void AdvanceFloor()
@@ -262,8 +316,13 @@ namespace Cryptforge.Combat
             switch (step.Kind)
             {
                 case FloorStepKind.Wave:
-                    StartWave(_currentFloor.RoomAt(step.RoomIndex).WaveAt(step.WaveIndex));
+                {
+                    RoomDefinition room = _currentFloor.RoomAt(step.RoomIndex);
+                    bool swarm = room.Kind == RoomKind.Swarm;
+                    int wave = swarm ? SwarmRule.LadderIndex(step.WaveIndex, room.WaveCount) : step.WaveIndex;
+                    StartWave(room.WaveAt(wave), swarm ? SwarmRule.DifficultyAt(step.WaveIndex) : 1f);
                     break;
+                }
                 case FloorStepKind.NonCombatRoom:
                     EnterForge(_currentFloor.RoomAt(step.RoomIndex));
                     break;
@@ -277,13 +336,15 @@ namespace Cryptforge.Combat
 
         // Timed as a whole for performance sessions (FrameTimeProbe): instantiating, drawing and setting up every enemy and
         // everything that answers the new wave.
-        private void StartWave(WaveDefinition waveDefinition)
+        // difficulty multiplies the floor's own enemy health and damage: 1 everywhere except inside a swarm room, where
+        // it rises wave by wave.
+        private void StartWave(WaveDefinition waveDefinition, float difficulty)
         {
             using (PerformanceMarkers.StartWave.Auto())
-                SpawnWave(waveDefinition);
+                SpawnWave(waveDefinition, difficulty);
         }
 
-        private void SpawnWave(WaveDefinition waveDefinition)
+        private void SpawnWave(WaveDefinition waveDefinition, float difficulty)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -291,7 +352,7 @@ namespace Cryptforge.Combat
             float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
-            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier, damagePercent);
+            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * difficulty, damagePercent);
 
             int count = waveDefinition.EnemyCount;
             var candidates = new Health[count];
@@ -309,7 +370,8 @@ namespace Cryptforge.Combat
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);
                 Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
                 enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
-                enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
+                enemy.Initialize(FloorScaling.Health(definition.MaximumHealth,
+                    _currentFloor.EnemyHealthMultiplier * difficulty, healthPercent));
                 WeaponRuntime weapon = definition.Weapon.CreateRuntime();
                 if (damageBonus != 0f)
                     weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
@@ -335,6 +397,8 @@ namespace Cryptforge.Combat
             }
 
             AliveEnemyCount = count;
+            // The wave on the floor is a new one, so the room may ask about it when it falls.
+            _swarmChoiceAnswered = false;
             _waveOrdinal++;
             _heroTargeting.SetCandidates(candidates);
             _fight.Begin();

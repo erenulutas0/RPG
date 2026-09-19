@@ -10,6 +10,90 @@ namespace Cryptforge.Tests
 {
     public sealed class FloorTests
     {
+        [Test]
+        public void ASwarmRoomHandsOutWavesUntilItIsLeft()
+        {
+            // Two rooms: a three-wave swarm and an ordinary two-wave room after it.
+            var progress = new FloorProgress(new[] { 3, 2 }, new[] { true, false });
+
+            for (int ordinal = 0; ordinal < 25; ordinal++)
+            {
+                FloorStep step = progress.Advance();
+                Assert.That(step.Kind, Is.EqualTo(FloorStepKind.Wave), $"Wave {ordinal} of a swarm.");
+                Assert.That(step.RoomIndex, Is.Zero);
+                Assert.That(step.WaveIndex, Is.EqualTo(ordinal), "The ordinal climbs past the ladder rather than wrapping.");
+                Assert.That(progress.IsInEndlessRoom, Is.True);
+                Assert.That(progress.IsFinalWave, Is.False, "A swarm room never has a final wave.");
+                Assert.That(progress.RoomsCleared, Is.Zero, "A swarm clears nothing while it is being fought.");
+            }
+
+            // The ladder is what SwarmRule reads that ordinal against, and it stops at the last authored wave.
+            Assert.That(SwarmRule.LadderIndex(0, 3), Is.Zero);
+            Assert.That(SwarmRule.LadderIndex(2, 3), Is.EqualTo(2));
+            Assert.That(SwarmRule.LadderIndex(24, 3), Is.EqualTo(2), "Past the ladder its last wave repeats.");
+
+            progress.LeaveEndlessRoom();
+            Assert.That(progress.IsInEndlessRoom, Is.False);
+            FloorStep after = progress.Advance();
+            Assert.That(after.Kind, Is.EqualTo(FloorStepKind.Wave));
+            Assert.That(after.RoomIndex, Is.EqualTo(1), "Leaving moves the floor on rather than rewinding the ladder.");
+            Assert.That(after.WaveIndex, Is.Zero);
+            Assert.That(progress.RoomsCleared, Is.EqualTo(1));
+
+            Assert.That(progress.Advance().WaveIndex, Is.EqualTo(1));
+            Assert.That(progress.IsFinalWave, Is.True, "The ordinary room after it still ends the floor.");
+            Assert.That(progress.Advance().Kind, Is.EqualTo(FloorStepKind.Cleared));
+        }
+
+        [Test]
+        public void LeavingASwarmRoomThatEndsTheFloorClearsIt()
+        {
+            var progress = new FloorProgress(new[] { 2 }, new[] { true });
+            Assert.That(progress.Advance().Kind, Is.EqualTo(FloorStepKind.Wave));
+            progress.LeaveEndlessRoom();
+            Assert.That(progress.Advance().Kind, Is.EqualTo(FloorStepKind.Cleared));
+            Assert.That(progress.IsComplete, Is.True);
+            Assert.That(progress.RoomsCleared, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AFloorWithNoEndlessRoomWalksExactlyAsItAlwaysDid()
+        {
+            // The flags are optional and false changes nothing: the same floor both ways, step for step.
+            var plain = new FloorProgress(new[] { 2, 0, 1 });
+            var flagged = new FloorProgress(new[] { 2, 0, 1 }, new[] { false, false, false });
+            for (int i = 0; i < 6; i++)
+            {
+                FloorStep a = plain.Advance();
+                FloorStep b = flagged.Advance();
+                Assert.That((b.Kind, b.RoomIndex, b.WaveIndex), Is.EqualTo((a.Kind, a.RoomIndex, a.WaveIndex)), $"Step {i}.");
+            }
+
+            Assert.Throws<ArgumentException>(() => new FloorProgress(new[] { 1, 0 }, new[] { true }),
+                "One flag per room, or none.");
+            Assert.Throws<ArgumentException>(() => new FloorProgress(new[] { 0 }, new[] { true }),
+                "An endless room with no authored wave has nothing to repeat.");
+        }
+
+        [Test]
+        public void ASwarmHardensWaveByWaveFromExactlyWhereItsFloorStarts()
+        {
+            Assert.That(SwarmRule.DifficultyAt(0), Is.EqualTo(1f),
+                "The first wave of a swarm is the difficulty its floor authored, no more.");
+            float previous = SwarmRule.DifficultyAt(0);
+            for (int wave = 1; wave < 200; wave++)
+            {
+                float now = SwarmRule.DifficultyAt(wave);
+                Assert.That(now, Is.GreaterThan(previous), $"Wave {wave} is harder than the one before it.");
+                previous = now;
+            }
+            Assert.That(SwarmRule.DifficultyAt(50), Is.EqualTo(1f + 50f * SwarmRule.DifficultyPerWave).Within(1e-4f));
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.DifficultyAt(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.LadderIndex(-1, 3));
+            Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.LadderIndex(0, 0));
+        }
+
         private static UpgradeOption Damage() =>
             new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0} damage per hit", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 5f), 5);

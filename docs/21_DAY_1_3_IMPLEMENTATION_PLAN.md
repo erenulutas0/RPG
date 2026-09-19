@@ -1586,3 +1586,41 @@ the stack arrives silently; the telemetry names it, the player does not see it. 
 with the rarity treatment and the pause-screen stat readout.
 
 **Verified:** .NET **329/329**, compile **0 warnings/errors**, EditMode **344/344**, PlayMode **116/116**, Android build exit **0**, static integrity **460 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,163,321 bytes**, SHA-256 **`07C990A2BB56977BB1DA72E097B626ADE0389258605F10E01D24758FB77D5697`**, built, **not installed**.
+
+## S4 and S2c — the swarm room, and a pool that grows with the run — 2026-09-20
+
+**What shipped.** `RoomKind.Swarm`: a room whose waves do not run out. Its authored waves are a **ladder** rather than a
+list that finishes - the ordinary `WaveDefinition[]` every combat room has - handed out in order, with the last wave
+repeating for as long as the player stays, and `SwarmRule` hardening every enemy in it wave by wave. `FloorProgress`
+gained endless rooms; leaving one is asked through `CheckpointService`, the same service and the same panel that asks
+Extract or Descend after a boss, with two new `CheckpointKind` values and no new UI. It lives on a development floor
+reached through `development/start-floor.txt`, not in the authored Descent, because putting one into Ember Halls would
+move every pinned number in the project and S6 is the slice that re-authors floors.
+
+Beside it, S2c: all nine authored cards are in the pool and `UpgradePool.WidthAt(level)` decides how many of them a run
+is offered - five until level twelve, one more every six levels after.
+
+**Two constants, both measured** (`29`). The ramp is **2 % a wave**: flat leaves a backing-off hero immortal in
+twenty-three of forty-eight runs (and the Staff in sixteen of sixteen), while 5 % and above cut the room down to about
+what a Descent already grants. At 2 % a swarm pays two to three times a Descent's level-ups in about two minutes, the
+deepest run reached wave one hundred and twenty-four against enemies three and a half times their authored strength, and
+nothing survived the two-hundred-wave cap. The pool's sixth card arrives at **level twelve**, one above the longest run
+the game has, and that is pinned rather than argued: over twenty-four seeds, three weapons, standing and kiting, a run
+with nine cards in the pool and a run with exactly five return the same floors, health, level, upgrades and fight
+seconds. The scene carries all nine now and nothing a Descent player can see moved.
+
+**What the suites caught.** `CheckpointOption` validated its kind against a hand-written pair - Extract or Descend - so
+the swarm's first Press on threw out of a scene test. It reads the enum now. That is the whole reason the parity case
+exists: the rule, the room and the choice all worked in the simulation, and only the scene knew about that list.
+
+**Two things the specification did not foresee.** A swarm room has **one chest**, because chests are per room, so S3's
+books barely reach it - the median swarm run took none. Chests that arrive with the waves are a real gap and belong with
+S6 or a slice of their own. And the exit is offered after **every** wave, which is the plainest reading of "leave when
+you like" and one constant, `SwarmRule.ExitEveryWaves`; whether it nags is a question about feel that only playing it
+can answer.
+
+**Still Astra's.** A swarm has no clock, no wave counter and no sign that the enemies are harder than they were; the
+choice panel's two cards are all the player sees. It is on the visual-needs list in `27` with the rarity treatment, the
+book's presentation and the pause-screen stat readout.
+
+**Verified:** .NET **336/336**, compile **0 warnings/errors**, EditMode **351/351**, PlayMode **117/117**, Android build exit **0**, static integrity **462 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`07B0F8E6615FCFA0433B00B5AC4538A6BA695E98AFF56638098ADD2B49FD3697`**, built, **not installed**.

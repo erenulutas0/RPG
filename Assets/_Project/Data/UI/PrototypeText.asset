@@ -34,6 +34,10 @@ MonoBehaviour:
   _descendName: Descend
   _descendDescriptionFormat: 'Secure {0} gold. {1}: {2}'
   _noFloorModifier: no modifier
+  _pressOnName: Press on
+  _pressOnDescriptionFormat: 'Wave {0}, enemies {1}% stronger'
+  _leaveName: Leave
+  _leaveDescriptionFormat: 'Survived {0} waves. Move on with {1} gold'
   _resultVictoryTitle: Descent complete
   _resultExtractedTitle: Extracted
   _resultDefeatTitle: Defeated

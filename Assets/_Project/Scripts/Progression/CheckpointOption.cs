@@ -11,7 +11,9 @@ namespace Cryptforge.Progression
 
         public CheckpointOption(CheckpointKind kind, string name, string description)
         {
-            if (kind != CheckpointKind.Extract && kind != CheckpointKind.Descend)
+            // Every kind the enum defines, not a hand-written pair: a swarm room's Press on and Leave arrive through
+            // this same option, and a list of two was what kept them out when they were added.
+            if (!Enum.IsDefined(typeof(CheckpointKind), kind))
                 throw new ArgumentOutOfRangeException(nameof(kind));
 
             Kind = kind;

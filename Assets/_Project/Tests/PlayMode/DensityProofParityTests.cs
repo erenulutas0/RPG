@@ -29,6 +29,7 @@ namespace Cryptforge.Tests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const string ProofFloorId = "floor_density_proof";
+        private const string SwarmFloorId = "floor_swarm_proof";
         private const string AuthoredFloorId = "floor_ember_halls";
         private const int ProofWaveSize = 10;
         // As in SimulationParityTests: both sides reach identical health today, and the margin only absorbs a reordering of
@@ -135,6 +136,81 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator SwordFetchingTheChestOnTheProofFloorMatchesTheSimulation() =>
             PlayProof("weapon_sword", DescentSimulation.Sword(), new ChestRoute(new KiteRoute()));
+
+        // The swarm room, scene against simulation. It is the one room whose waves do not run out, whose enemies harden
+        // wave by wave and whose exit is a choice, so nothing else in this file covers what it does; and a hero that
+        // stands still dies in it, which ends the run without needing a route or a leave policy. Everything is pinned:
+        // how deep it got, what it killed, what it levelled and what it was holding when it died.
+        [UnityTest]
+        public IEnumerator StandingInTheSwarmMatchesTheSimulation()
+        {
+            // No burst, as every case in this file runs without one: the Forge Burst fires when the player taps its
+            // button and nothing in a driven scene taps it, so a simulation that fired it would be fighting a different
+            // fight. What a burst is worth in a swarm is measured in docs/29, where a policy presses it.
+            DescentSimulation.Result expected = DescentSimulation.Run(new[] { DescentSimulation.SwarmProof }, 0, false,
+                null, DescentSimulation.Sword(), seed: DevelopmentSeed, swarmWaves: int.MaxValue);
+            Assert.That(expected.DeathRoom, Is.Not.Null,
+                "This case is only a case while a standing hero dies in the swarm; it presses on forever otherwise.");
+
+            TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { "weapon_sword" }, "weapon_sword"));
+            WriteStartFloor(SwarmFloorId);
+            WriteRunSeed(DevelopmentSeed);
+            _previousFrameRate = Application.targetFrameRate;
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = 1f / 60f;
+            AsyncOperation load = BeginLoad(null);
+            yield return load;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            Application.targetFrameRate = -1;
+
+            Assert.That(_spawnFloorId, Is.EqualTo(SwarmFloorId), "The scene started on the development swarm floor.");
+            Assert.That(_encounters.IsInSwarmRoom, Is.True, "Its one room is a swarm.");
+            Assert.That(_setup.Run.Seed, Is.EqualTo(DevelopmentSeed));
+            Assert.That(_setup.Upgrades.Pool.Count, Is.EqualTo(9),
+                "The scene carries all nine authored cards; UpgradePool decides how many of them a run is offered.");
+
+            int kills = 0;
+            int deepest = 0;
+            Action<Health> countKill = enemy => kills++;
+            _encounters.EnemyDefeated += countKill;
+            float deadline = Time.realtimeSinceStartup + RunDeadline;
+            try
+            {
+                while (true)
+                {
+                    // Upgrades first, then the room's own question. Slot 0 is Press on, so this hero never leaves and
+                    // the swarm is what ends the run, exactly as the simulation's policy does with no cap.
+                    while (_setup.Choices.Current != null && _setup.Choices.TrySelect(_setup.Choices.Current, 0))
+                    {
+                    }
+                    if (_setup.Run.HasEnded || Time.realtimeSinceStartup >= deadline)
+                        break;
+                    if (_encounters.SwarmWave > deepest)
+                        deepest = _encounters.SwarmWave;
+                    yield return null;
+                }
+            }
+            finally
+            {
+                _encounters.EnemyDefeated -= countKill;
+            }
+
+            string report = string.Format(CultureInfo.InvariantCulture,
+                "scene: {0}, wave {1}, {2:0.#} HP, {3} kills, level {4}, {5} upgrades; simulation: wave {6}, {7:0.#} HP, " +
+                "{8} kills, level {9}, {10} upgrades, died in room {11}",
+                _setup.Run.Outcome, deepest, _hero.Current, kills, _setup.Run.Level, _setup.Run.UpgradesApplied,
+                expected.SwarmWave, expected.HeroHealth, expected.Kills, expected.Level, expected.UpgradesApplied,
+                expected.DeathRoom);
+            TestContext.WriteLine(report);
+
+            Assert.That(_setup.Run.HasEnded, Is.True, "The swarm did not finish the run. " + report);
+            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Defeat), report);
+            Assert.That(deepest, Is.EqualTo(expected.SwarmWave), "The two reached different waves. " + report);
+            Assert.That(kills, Is.EqualTo(expected.Kills), report);
+            Assert.That(_setup.Run.Level, Is.EqualTo(expected.Level), report);
+            Assert.That(_hero.Current, Is.EqualTo(expected.HeroHealth).Within(1e-3f), report);
+            LogAssert.NoUnexpectedReceived();
+        }
 
         // The development hook must be invisible to a player: with no start-floor file the scene descends from the floor
         // Gameplay.unity carries, as every other test and every build does.

@@ -44,6 +44,11 @@ namespace Cryptforge.Tests
             public float DamageMultiplier = 1f;
             public float ModifierDamagePercent;
             public float ModifierGoldPercent;
+            // One flag per room, or null for a floor with no swarm in it: a swarm room's waves are a ladder that
+            // repeats its last entry and hardens wave by wave, and it never clears itself (RoomKind.Swarm, SwarmRule).
+            public bool[] Swarm;
+
+            public bool IsSwarm(int roomIndex) => Swarm != null && roomIndex < Swarm.Length && Swarm[roomIndex];
         }
 
         internal sealed class HeroWeapon
@@ -124,6 +129,8 @@ namespace Cryptforge.Tests
             // unchanged.
             public int ChestsOpened;
             public int BooksTaken;
+            // The deepest swarm wave the run reached, one-based; 0 on a floor with no swarm room.
+            public int SwarmWave;
 
             public float ClosestEnemyGap => (float)Math.Sqrt(ClosestEnemyGapSquared);
             public float ClosestHeroDistance => (float)Math.Sqrt(ClosestHeroDistanceSquared);
@@ -164,6 +171,37 @@ namespace Cryptforge.Tests
                 new[] { new[] { Warden } }
             },
             // Packs come from every corner at once, so each enemy hits for a little less than its authored damage.
+            DamageMultiplier = 0.92f
+        };
+
+        // The development swarm floor, mirroring Resources/Development/Floor_SwarmProof: one room whose waves do not run
+        // out. Its twelve authored waves are a ladder - three enemies growing to the ten the formations hold, grunts
+        // from the third, a runner from the sixth, the heavies from the tenth - and once it is spent the last wave
+        // repeats while SwarmRule hardens every enemy in it, wave by wave. The shape comes from docs/26 Part 6, which
+        // measured it before any of this was built; this authors it rather than generating it, so the asset and this
+        // hold the same twelve waves.
+        public static readonly Floor SwarmProof = new Floor
+        {
+            Rooms = new[]
+            {
+                new[]
+                {
+                    new[] { Mite, Mite, Mite },
+                    new[] { Mite, Mite, Mite },
+                    new[] { Grunt, Mite, Mite, Mite },
+                    new[] { Grunt, Mite, Mite, Mite, Mite },
+                    new[] { Grunt, Mite, Mite, Mite, Mite },
+                    new[] { Runner, Grunt, Mite, Mite, Mite, Mite },
+                    new[] { Runner, Grunt, Grunt, Mite, Mite, Mite },
+                    new[] { Runner, Grunt, Grunt, Mite, Mite, Mite, Mite },
+                    new[] { Runner, Grunt, Grunt, Grunt, Mite, Mite, Mite, Mite },
+                    new[] { Tank, Runner, Grunt, Grunt, Grunt, Mite, Mite, Mite },
+                    new[] { Tank, Runner, Grunt, Grunt, Grunt, Mite, Mite, Mite, Mite },
+                    new[] { Tank, Warden, Runner, Grunt, Grunt, Grunt, Mite, Mite, Mite, Mite }
+                }
+            },
+            Swarm = new[] { true },
+            // Ember Halls' own rate, so a swarm opens at the difficulty the game already fights at.
             DamageMultiplier = 0.92f
         };
 
@@ -257,12 +295,14 @@ namespace Cryptforge.Tests
         // Data/Upgrades, in the order CombatSetup carries them. The scene and this must hold the same cards in the
         // same order, or a seed shows one thing in the game and another here.
         //
-        // Five, not the nine that are authored. Measured over twenty-four seeds and three weapons (docs/22): a level-up
-        // is the only place a hero grows, and today's Descent grants about seven of them, so every card added past five
-        // thins that growth until the run stops being winnable - at nine cards a standing hero clears one run in ten
-        // and a kiting one fewer than half. Armor, Swift Boots, Deep Lungs and Fortune are authored and wait for the
-        // run to be long enough to pay for them (docs/27, S4 and S6).
-        public static UpgradeOption[] Pool() => new[] { Damage(), Speed(), Range(), Crit(), Health() };
+        // All nine now, where five used to stand, because how many of them a run is actually offered is no longer the
+        // pool's business: UpgradePool.WidthAt reads the run's level and takes that many from the front (docs/27, S2c).
+        // A Descent reaches level eleven and is offered the same five, seed for seed; a swarm room levels past the
+        // thresholds and reaches Iron Skin, Swift Boots, Deep Lungs and Fortune.
+        public static UpgradeOption[] Pool() => new[]
+        {
+            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck()
+        };
 
         // The pool the balance pins use: the two cards the game carried before rarity, at one magnitude each, so those
         // tests keep measuring what they are about - relics, weapons and the burst - and do not move whenever a card is
@@ -275,11 +315,9 @@ namespace Cryptforge.Tests
                 new StatModifier(ModifierOperation.Percent, 0.5f), 5)
         };
 
-        // Every authored card, for a measurement that asks what a wider pool would do.
-        public static UpgradeOption[] AuthoredPool() => new[]
-        {
-            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck()
-        };
+        // The five cards a Descent is offered, handed over whole, for a measurement that wants the width rule out of
+        // the way and asks what a pool of exactly five does.
+        public static UpgradeOption[] FiveCardPool() => new[] { Damage(), Speed(), Range(), Crit(), Health() };
 
         public static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
 
@@ -307,6 +345,12 @@ namespace Cryptforge.Tests
             return new ScriptedRoute(segments);
         }
 
+        // How many waves a swarm room is asked for before the run leaves it. A swarm never ends on its own, so a
+        // simulation needs a policy where the scene has a player: this one presses on until it dies or reaches the cap.
+        // A run that comes back having fought all of them has not been beaten, it has run out of patience, and that is
+        // a finding rather than a result.
+        public const int DefaultSwarmWaves = 200;
+
         // EncounterController's _entryDepth, _formationSpacing and _bodySpacing in Gameplay.unity, in floor units.
         public const float EntryDepth = 5f;
         public const float FormationSpacing = 1f;
@@ -328,7 +372,7 @@ namespace Cryptforge.Tests
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
             HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
-            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2)
+            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, int swarmWaves = DefaultSwarmWaves)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
@@ -365,7 +409,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, chest, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, chest, swarmWaves, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -410,13 +454,17 @@ namespace Cryptforge.Tests
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
-            ChestState chest, ref Result result)
+            ChestState chest, int swarmWaves, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
+            var endless = new bool[floor.Rooms.Length];
             for (int i = 0; i < waves.Length; i++)
+            {
                 waves[i] = floor.Rooms[i]?.Length ?? 0;
-            var progress = new FloorProgress(waves);
+                endless[i] = floor.IsSwarm(i);
+            }
+            var progress = new FloorProgress(waves, endless);
             // Waves started on this floor so far; each wave starts one corner further round the arena.
             int waveOrdinal = 0;
 
@@ -430,6 +478,16 @@ namespace Cryptforge.Tests
                     continue;
                 }
 
+                // A swarm room reads its ordinal against its ladder and hardens the wave, exactly as EncounterController
+                // does; every other room takes the wave the step names at the floor's own difficulty.
+                bool swarmRoom = floor.IsSwarm(next.RoomIndex);
+                int ladderWave = swarmRoom
+                    ? SwarmRule.LadderIndex(next.WaveIndex, floor.Rooms[next.RoomIndex].Length)
+                    : next.WaveIndex;
+                float difficulty = swarmRoom ? SwarmRule.DifficultyAt(next.WaveIndex) : 1f;
+                if (swarmRoom && next.WaveIndex + 1 > result.SwarmWave)
+                    result.SwarmWave = next.WaveIndex + 1;
+
                 // A room's first wave brings its chest, as ChestSpawner does on the encounter that starts a new room;
                 // later waves of the same room leave it where it is, opened or not.
                 if (next.WaveIndex == 0)
@@ -441,7 +499,7 @@ namespace Cryptforge.Tests
                     chest.Open = false;
                 }
 
-                Enemy[] pack = floor.Rooms[next.RoomIndex][next.WaveIndex];
+                Enemy[] pack = floor.Rooms[next.RoomIndex][ladderWave];
                 var enemies = new HealthState[pack.Length];
                 var enemyWeapons = new WeaponRuntime[pack.Length];
                 var enrages = new EnrageRule[pack.Length];
@@ -455,10 +513,10 @@ namespace Cryptforge.Tests
                 var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, spawnX, spawnY);
                 var placements = new EntryPlacement[pack.Length];
                 EntrySides.Place(waveOrdinal, pack.Length, spawnX, spawnY, Platform, EntryDepth, FormationSpacing, BodySpacing, placements);
-                float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier, floor.ModifierDamagePercent);
+                float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier * difficulty, floor.ModifierDamagePercent);
                 for (int i = 0; i < pack.Length; i++)
                 {
-                    enemies[i] = new HealthState(FloorScaling.Health(pack[i].Health, floor.HealthMultiplier, 0f));
+                    enemies[i] = new HealthState(FloorScaling.Health(pack[i].Health, floor.HealthMultiplier * difficulty, 0f));
                     enemyWeapons[i] = new WeaponRuntime(pack[i].Damage, pack[i].Interval, pack[i].Reach, pack[i].InitialDelay);
                     if (damageBonus != 0f)
                         enemyWeapons[i].AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
@@ -558,6 +616,11 @@ namespace Cryptforge.Tests
                     result.DeathRoom = $"{next.RoomIndex + 1}.{next.WaveIndex + 1}";
                     return false;
                 }
+
+                // The player's decision, as a policy: press on until the cap, then leave. EncounterController asks
+                // through the checkpoint at exactly this point, once the wave has fallen.
+                if (swarmRoom && next.WaveIndex + 1 >= swarmWaves)
+                    progress.LeaveEndlessRoom();
             }
 
             return true;

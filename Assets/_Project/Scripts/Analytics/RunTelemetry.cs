@@ -186,6 +186,22 @@ namespace Cryptforge.Analytics
 
         // Called on every encounter progress notification, which includes every hit, so it only compares numbers unless
         // the room changed. A room number below 1 (between floors) is not a room.
+        // Called as a swarm room's wave spawns, so a run's depth and the ramp it climbed can be read back. Ordinary
+        // rooms never call it.
+        public void RecordSwarmWave(int wave, float difficulty)
+        {
+            if (!IsRecording)
+                return;
+
+            _session.Emit("swarm_wave", new TelemetryFields()
+                .Add("wave", wave)
+                .Add("difficulty", (double)difficulty)
+                .Add("hero_hp", (double)_heroHealth())
+                .Add("level", _run.Level)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex));
+        }
+
         public void ObserveProgress(int floorNumber, string floorId, int roomNumber, RoomKind roomKind, string toughestEnemyId)
         {
             if (!IsRecording || floorNumber < 1 || roomNumber < 1)
@@ -627,7 +643,7 @@ namespace Cryptforge.Analytics
                 return;
 
             _session.Emit("extract_choice", new TelemetryFields()
-                .Add("choice", kind == CheckpointKind.Extract ? "extract" : "descend")
+                .Add("choice", ChoiceName(kind))
                 .Add("floor_index", _roomFloor)
                 .Add("gold", _run.Gold)
                 .Add("gold_unsecured", _run.UnsecuredGold));
@@ -705,6 +721,27 @@ namespace Cryptforge.Analytics
                     return "elite";
                 case RoomKind.Boss:
                     return "boss";
+                case RoomKind.Swarm:
+                    return "swarm";
+                default:
+                    return "unknown";
+            }
+        }
+
+        // A swarm room's two ride on the same event as the boss checkpoint, because they are the same decision asked in
+        // a different room.
+        private static string ChoiceName(CheckpointKind kind)
+        {
+            switch (kind)
+            {
+                case CheckpointKind.Extract:
+                    return "extract";
+                case CheckpointKind.Descend:
+                    return "descend";
+                case CheckpointKind.PressOn:
+                    return "press_on";
+                case CheckpointKind.Leave:
+                    return "leave";
                 default:
                     return "unknown";
             }

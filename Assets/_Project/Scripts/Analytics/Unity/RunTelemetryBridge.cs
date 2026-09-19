@@ -55,6 +55,7 @@ namespace Cryptforge.Analytics
             _chests = chests;
 
             _encounters.EncounterStarted += OnProgressChanged;
+            _encounters.EncounterStarted += OnEncounterStarted;
             _encounters.ProgressChanged += OnProgressChanged;
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
@@ -93,6 +94,14 @@ namespace Cryptforge.Analytics
             }
             _telemetry.ObserveProgress(_encounters.FloorNumber, floor != null ? floor.Id : null, _encounters.RoomNumber, room.Kind,
                 toughestId);
+        }
+
+        // A swarm room reports the wave it just put on the floor and how hard that wave is; every other room reports
+        // nothing here, because its waves are its room's business and room_start already carries them.
+        private void OnEncounterStarted()
+        {
+            if (_encounters.IsInSwarmRoom)
+                _telemetry.RecordSwarmWave(_encounters.SwarmWave, _encounters.SwarmDifficulty);
         }
 
         // Heard before the composition root pays the kill, which the recorder needs to tell kill gold from chest gold.
@@ -136,6 +145,7 @@ namespace Cryptforge.Analytics
             if (!ReferenceEquals(_encounters, null))
             {
                 _encounters.EncounterStarted -= OnProgressChanged;
+                _encounters.EncounterStarted -= OnEncounterStarted;
                 _encounters.ProgressChanged -= OnProgressChanged;
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
                 _encounters.FloorCleared -= OnFloorCleared;

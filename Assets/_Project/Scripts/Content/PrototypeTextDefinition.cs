@@ -27,6 +27,10 @@ namespace Cryptforge.Content
         [SerializeField] private string _descendName;
         [SerializeField] private string _descendDescriptionFormat;
         [SerializeField] private string _noFloorModifier;
+        [SerializeField] private string _pressOnName;
+        [SerializeField] private string _pressOnDescriptionFormat;
+        [SerializeField] private string _leaveName;
+        [SerializeField] private string _leaveDescriptionFormat;
         [SerializeField] private string _resultVictoryTitle;
         [SerializeField] private string _resultExtractedTitle;
         [SerializeField] private string _resultDefeatTitle;
@@ -90,6 +94,12 @@ namespace Cryptforge.Content
         // {0} gold this run, {1} next floor name, {2} next floor modifier description.
         public string DescendDescriptionFormat => _descendDescriptionFormat;
         public string NoFloorModifier => _noFloorModifier;
+        public string PressOnName => _pressOnName;
+        // {0} the wave that would follow, {1} how much harder it is than the floor authored, as a whole percentage.
+        public string PressOnDescriptionFormat => _pressOnDescriptionFormat;
+        public string LeaveName => _leaveName;
+        // {0} waves survived, {1} gold this run.
+        public string LeaveDescriptionFormat => _leaveDescriptionFormat;
         public string ResultVictoryTitle => _resultVictoryTitle;
         public string ResultExtractedTitle => _resultExtractedTitle;
         public string ResultDefeatTitle => _resultDefeatTitle;

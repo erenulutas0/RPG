@@ -227,6 +227,56 @@ namespace Cryptforge.Tests
             Assert.That(again.UpgradesApplied, Is.EqualTo(fetching.UpgradesApplied));
         }
 
+        [Test]
+        public void TheSwarmRoomKeepsGoingUntilTheHeroLeavesOrDies()
+        {
+            DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
+
+            // Standing in a crowd is not a strategy: the swarm is the one room that insists on movement, and it does.
+            DescentSimulation.Result standing = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmWaves: 200);
+            Assert.That(standing.DeathRoom, Is.Not.Null, "A hero that never moves dies in a swarm.");
+            Assert.That(standing.SwarmWave, Is.GreaterThan(1));
+            Assert.That(standing.SwarmWave, Is.LessThan(20), "And it dies early, whatever it is carrying.");
+
+            // Leaving is the player's decision, and the simulation takes it as a policy: press on for N waves, then go.
+            DescentSimulation.Result short_ = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmWaves: 3);
+            Assert.That(short_.DeathRoom, Is.Null, "Three waves of a swarm kill nobody.");
+            Assert.That(short_.SwarmWave, Is.EqualTo(3), "It left after the third wave rather than a fourth.");
+            Assert.That(short_.ClearedFloors, Is.EqualTo(1), "Leaving a swarm that ends the floor clears the floor.");
+            Assert.That(short_.Level, Is.GreaterThan(0), "And it keeps what those waves paid.");
+
+            // The ladder repeats and the ramp keeps climbing, so a longer stay is strictly deeper and strictly harder.
+            // Six, not twelve: the standing hero above died at wave nine, and a policy cannot press on past a grave.
+            DescentSimulation.Result longer = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmWaves: 6);
+            Assert.That(longer.SwarmWave, Is.EqualTo(6));
+            Assert.That(longer.DeathRoom, Is.Null);
+            Assert.That(longer.Level, Is.GreaterThan(short_.Level), "Staying longer is where a swarm's experience comes from.");
+            Assert.That(longer.Kills, Is.GreaterThan(short_.Kills));
+        }
+
+        [Test]
+        public void ASwarmLevelsAHeroFarPastWhatADescentDoesAndOpensThePoolWithIt()
+        {
+            // What S2c is for: a Descent reaches level eleven and is offered five cards; a swarm reaches far more and
+            // has somewhere to put them. This holds the two side by side rather than asserting a number no one measured.
+            DescentSimulation.Result descent = DescentSimulation.Run(
+                new[] { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults }, 0, true, null,
+                DescentSimulation.Sword(), ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 5);
+            DescentSimulation.Result swarm = DescentSimulation.Run(new[] { DescentSimulation.SwarmProof }, 0, false, null,
+                DescentSimulation.Sword(), ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 5,
+                swarmWaves: 200);
+
+            Assert.That(descent.Level, Is.LessThan(UpgradePool.FirstExtraAtLevel),
+                "A whole Descent still stops short of the sixth card.");
+            Assert.That(swarm.Level, Is.GreaterThan(descent.Level),
+                "A swarm room is where a run levels, which is the whole reason it exists.");
+            Assert.That(UpgradePool.WidthAt(swarm.Level), Is.GreaterThan(UpgradePool.WidthAt(descent.Level)),
+                "And the levels it grants are what opens the rest of the pool.");
+        }
+
         private static CheckpointOption[] Options() => new[]
         {
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),

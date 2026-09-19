@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cryptforge.Combat;
 using Cryptforge.Progression;
@@ -87,24 +88,59 @@ namespace Cryptforge.Tests
             Assert.That(healths.Count, Is.GreaterThan(3), "Eight seeds should not all end the same way.");
         }
 
-        // The pool is five because nine does not fit in the levels a Descent grants. Measured over the same seeds: with
-        // every authored card in the pool a kiting Sword clears well under half its runs, where five clears most.
+        // All nine authored cards are in the pool now and UpgradePool.WidthAt decides how many of them a run is
+        // offered (docs/27, S2c). On today's Descent that is exactly the five it has always been offered, because the
+        // sixth card arrives one level past what a whole Descent reaches. This holds the nine-card pool and a pool of
+        // exactly five side by side, seed for seed and weapon by weapon, so the claim is not "close enough" but "the
+        // same run". S2b's measurement - that nine cards handed to eleven level-ups collapses the game - is why the
+        // rule exists and is recorded in docs/21 and docs/22; what this pins is that the rule costs the Descent
+        // nothing.
         [Test]
-        public void TheAuthoredPoolIsWiderThanTodaysRunCanCarry()
+        public void TodaysDescentIsOfferedTheSameFiveCardsItAlwaysWas()
         {
-            int wide = 0;
-            int shipped = 0;
-            for (int seed = 0; seed < Seeds; seed++)
+            foreach ((string name, DescentSimulation.HeroWeapon weapon) in Weapons())
             {
-                if (DescentSimulation.Run(Descent(), 0, true, null, DescentSimulation.Sword(),
-                        ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: seed,
-                        pool: DescentSimulation.AuthoredPool()).ClearedFloors == 2)
-                    wide++;
-                if (Run(DescentSimulation.Sword(), new KiteRoute(), seed).ClearedFloors == 2)
-                    shipped++;
+                foreach (bool kiting in new[] { false, true })
+                {
+                    for (int seed = 0; seed < Seeds; seed++)
+                    {
+                        IHeroRoute Route() => kiting ? new KiteRoute() : null;
+                        DescentSimulation.Result nine = DescentSimulation.Run(Descent(), 0, true, null, weapon,
+                            ability: DescentSimulation.ForgeBurst(), route: Route(), seed: seed);
+                        DescentSimulation.Result five = DescentSimulation.Run(Descent(), 0, true, null, weapon,
+                            ability: DescentSimulation.ForgeBurst(), route: Route(), seed: seed,
+                            pool: DescentSimulation.FiveCardPool());
+                        string where = $"{name}, {(kiting ? "kiting" : "standing")}, seed {seed}";
+                        Assert.That(nine.ClearedFloors, Is.EqualTo(five.ClearedFloors), where);
+                        Assert.That(nine.HeroHealth, Is.EqualTo(five.HeroHealth), where);
+                        Assert.That(nine.Level, Is.EqualTo(five.Level), where);
+                        Assert.That(nine.UpgradesApplied, Is.EqualTo(five.UpgradesApplied), where);
+                        Assert.That(nine.FightSeconds, Is.EqualTo(five.FightSeconds), where);
+                        Assert.That(nine.Level, Is.LessThan(UpgradePool.FirstExtraAtLevel),
+                            $"{where}: a Descent that reached the sixth card would make the comparison above vacuous.");
+                    }
+                }
             }
-            Assert.That(wide, Is.LessThan(shipped),
-                "Nine cards spread the same seven level-ups thinner; the pool widens when the run is longer, not before.");
+        }
+
+        // What the width rule actually promises: a run that levels far enough is offered the cards a Descent never
+        // sees. Nothing in the game grants that many level-ups yet - a swarm room does, and that is S4 - so this asks
+        // the rule directly rather than through a run.
+        [Test]
+        public void ARunThatLevelsFarEnoughReachesEveryAuthoredCard()
+        {
+            Assert.That(UpgradePool.WidthAt(0), Is.EqualTo(UpgradePool.BaseWidth));
+            Assert.That(UpgradePool.WidthAt(UpgradePool.FirstExtraAtLevel - 1), Is.EqualTo(UpgradePool.BaseWidth),
+                "A whole Descent stops one level short of the sixth card.");
+            Assert.That(UpgradePool.WidthAt(UpgradePool.FirstExtraAtLevel), Is.EqualTo(UpgradePool.BaseWidth + 1));
+            Assert.That(UpgradePool.WidthAt(UpgradePool.FirstExtraAtLevel + UpgradePool.LevelsPerExtraCard),
+                Is.EqualTo(UpgradePool.BaseWidth + 2));
+            Assert.That(UpgradePool.WidthAt(30), Is.GreaterThanOrEqualTo(9), "All nine are reachable by level 30.");
+            for (int level = 0; level < 200; level++)
+            {
+                Assert.That(UpgradePool.WidthAt(level), Is.GreaterThanOrEqualTo(UpgradePool.WidthAt(Math.Max(0, level - 1))),
+                    "The pool never narrows as a run goes on.");
+            }
         }
     }
 }
