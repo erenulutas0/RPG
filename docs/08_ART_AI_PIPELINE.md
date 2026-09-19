@@ -308,3 +308,9 @@ Built-in image_gen produced a blue-steel/brass/violet Staff candidate and a targ
 No runtime Assets/code/scene/APK or phone operation. No game suites repeated for source art; installed Staff-impact build7A107BD2 remains current. Next: fixed-registration real Unity idle/walk/cast sampling, then shared import and phone verification. See artifact README/PROMPTS for full scope and provenance.
 
 Imported Staff: fixed master crop (416,36,192,1464), uniform 1/8 sampling to 24x183 at 128 PPU, pivot (.5,560/1464), Android ASTC4. Whole crystal/shaft shares one sprite; no runtime pixel generation for this imported sprite. See ArtDirection/2026-09-19/staff-weapon-runtime-01/README.md and Tools/ArtReview/Import-StaffWeapon.ps1. Original PNG is preserved; mirror light and final animation polish remain limitations.
+
+## Daggers source study — 2026-09-19
+
+ArtDirection/2026-09-19/daggers-weapon-01 contains one unchanged built-in imagegen master, exact prompt, alpha measurements, hash and browser two-hand proportion study. Broad silver/blue-steel blade and brass guard match Vanguard; one source is intended for both hands to avoid design drift. Corner alpha0; faint exterior alpha<=16 means no naive alpha-auto-fit. Provisional grip628,975 on1254-square master. Browser comparison64px/35degrees and56px/45degrees/mirrored passed; returned to64/35. Finger masking, rear depth and real .12-unit thrust are not yet validated with this source.
+
+Verified: static integrity443 project GUIDs/1099package GUIDs/568scene objects. Source and hero images rendered in the browser; size/angle/mirror controls checked. No Assets/C# runtime/scene changes, Unity suite/build or phone operation. Installed Staff build4A73EE71 remains current. Next: fixed-registration Unity sampling for both hands, grip/depth/thrust review, then shared import and device verification.

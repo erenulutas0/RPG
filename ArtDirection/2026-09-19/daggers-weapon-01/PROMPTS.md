@@ -1,0 +1,7 @@
+# Daggers source prompt — 2026-09-19
+
+Generated with the built-in image_gen tool. The source PNG is preserved unchanged.
+
+```text
+Use case: stylized-concept. Asset type: original isolated equipment sprite for Cryptforge, a portrait mobile arcane foundry roguelite. Create exactly ONE compact forged dagger, entire object upright tip pointing straight up and grip down, centred on a square canvas with generous transparent margins. Genuinely transparent RGBA background with alpha zero outside physical object, no floor shadow. Short broad double-edged spearpoint blade, readable at 48-72 pixels total height: blade 58 percent of total length, modest angular brass crossguard, dark indigo leather grip and small blue-steel pommel. Overall length about four times maximum guard width. Broad simple steel planes, bright cold silver cutting edges, dark blue-steel central ridge, warm restrained brass fittings. Clean hand-painted fantasy sprite rendering, crisp dark contour and chunky highlights from upper left, slight right-side facets but no foreshortening. Utilitarian arcane foundry tool matching a blue-armoured Vanguard with gold trim. No gem, no glow, no particles, no engraving, no runes, no curved scimitar blade, no serrations, no skulls or bones, no ribbons, no hands or characters, no background, no labels, no logos, no franchise resemblance. This single source will be used as a matched pair in the two hands; do not draw two daggers or crossed blades. Candidate source art, not a final animation sheet.
+```

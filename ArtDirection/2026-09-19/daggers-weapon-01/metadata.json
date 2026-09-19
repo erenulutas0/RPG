@@ -1,0 +1,44 @@
+{
+  "candidateGripTopLeft": [
+    628,
+    975
+  ],
+  "cornerAlpha": 0,
+  "measurements": [
+    {
+      "count": 186932,
+      "bounds": [
+        41,
+        19,
+        1193,
+        1223
+      ],
+      "threshold": 0
+    },
+    {
+      "count": 180169,
+      "bounds": [
+        451,
+        21,
+        803,
+        1221
+      ],
+      "threshold": 16
+    },
+    {
+      "count": 177680,
+      "bounds": [
+        452,
+        22,
+        803,
+        1221
+      ],
+      "threshold": 128
+    }
+  ],
+  "canvas": [
+    1254,
+    1254
+  ],
+  "stage": "source study only"
+}
