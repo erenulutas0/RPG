@@ -238,4 +238,4 @@ P3 Growth:
 
 - [x] Create original Staff weapon source and browser proportion/grip study (2026-09-19; no runtime import).
 - [x] Sample Staff weapon source in Unity, reconcile shaft/orb/grip/facings and integrate (2026-09-19; APK installed, live device review pending).
-- [ ] Review imported Staff equipment on the available phone; installation alone is not visual acceptance.
+- [x] Review imported Staff equipment on S23 (2026-09-19; short normal-floor movement/cast sample, profiles unchanged).

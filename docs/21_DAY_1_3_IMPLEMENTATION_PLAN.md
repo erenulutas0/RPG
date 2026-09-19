@@ -1330,3 +1330,5 @@ Source, registration, four-facing Unity captures, reproducible tooling and limit
 Verified: .NET 291/291, compile zero warnings/errors, EditMode 306/306, PlayMode 114/114; Android exit 0. APK 24,752,344 bytes, SHA-256 `4A73EE71112FE26005D97A9AD4AE0E986C9A6EF4AD7F8E4ED434D1AB86EF2E42`; installed S23 base.apk matched. Primary/backup profiles unchanged. Physical in-game review awaits phone availability; installation is not a visual phone test. See latest Docs/23.
 
 Final graphics capture: 1/1, including four observed cast-lean frames (53 renders total). Static integrity: 443 unique project GUIDs, 1099 package GUIDs, 568 scene objects/components.
+
+Staff device follow-up completed (2026-09-19): owner handed over S23; normal-floor movement/front/rear/cast reviewed in 12-second video, no visible staff/crystal separation. Profiles unchanged. Left level2 choice,80HP,10run gold,XP27/36. Latest Docs/23 and device evidence supersede pending review; no new build/code/test run.
