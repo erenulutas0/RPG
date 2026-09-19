@@ -66,7 +66,9 @@ namespace Cryptforge.Progression
             for (int i = 0; i < cards.Length; i++)
             {
                 UpgradeOption option = offer.Choices[i];
-                cards[i] = new ChoiceCard(option.DisplayName, string.Format(option.DescriptionFormat, option.DescriptionValue));
+                UpgradeRarity rarity = offer.RarityAt(i);
+                cards[i] = new ChoiceCard(option.DisplayName,
+                    string.Format(option.DescriptionFormat, option.DescriptionValueFor(rarity)), rarity);
             }
             return new ChoicePrompt(ChoiceKind.Upgrade, cards);
         }

@@ -107,11 +107,11 @@ namespace Cryptforge.Tests
                 yield return null;
             UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
             Assert.That(offer, Is.Not.Null);
-            for (int i = 0; i < offer.Choices.Count; i++)
-            {
-                if (offer.Choices[i].Stat == UpgradeStat.Damage)
-                    _setup.Upgrades.TrySelect(offer, i);
-            }
+            // Five cards in the pool means the first level-up is a draw, so the test takes whichever card slot zero
+            // holds and checks the result screen names that one. The choice must be taken either way: an open panel
+            // pauses the fight, and the next wave is what this test is waiting for.
+            string taken = offer.Choices[0].DisplayName;
+            Assert.That(_setup.Upgrades.TrySelect(offer, 0), Is.True);
 
             // The hero stops swinging so the mites of wave 2 cannot die and change the experience under test.
             _heroAttack.enabled = false;
@@ -132,7 +132,7 @@ namespace Cryptforge.Tests
             Assert.That(Label("Progress Label"), Does.Contain("0 rooms").And.Contain("Level 1").And.Contain("XP 11"));
             // The Grunt's 5 gold was never secured: half, rounded down, is lost.
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 3  |  lost: 2"));
-            Assert.That(Label("Build Label"), Does.Contain("Tempered Edge x1"));
+            Assert.That(Label("Build Label"), Does.Contain(taken + " x1"));
         }
 
         [UnityTest]

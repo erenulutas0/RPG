@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0000000000000000000000000000000e, type: 3}
-  m_Name: Upgrade_Damage
+  m_Name: Upgrade_MoveSpeed
   m_EditorClassIdentifier:
-  _id: upgrade_damage
-  _displayName: Tempered Edge
-  _descriptionFormat: '+{0:0}% damage per hit'
-  _stat: 0
+  _id: upgrade_move_speed
+  _displayName: Swift Boots
+  _descriptionFormat: '+{0:0}% movement speed'
+  _stat: 6
   _operation: 1
-  _amount: 0.5
-  _rareAmount: 0.75
-  _epicAmount: 1.25
-  _maxStacks: 5
+  _amount: 0.05
+  _rareAmount: 0.1
+  _epicAmount: 0.15
+  _maxStacks: 3
   _requires: {fileID: 0}

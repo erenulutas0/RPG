@@ -1477,3 +1477,76 @@ the hero only; enemies have none and the field defaults to zero for them.
 blocking: rarity on the choice cards and a stat readout on the pause screen (S2b).
 
 **Verified:** .NET **318/318**, compile **0 warnings/errors**, EditMode **322/322**, PlayMode **115/115**, Android build exit **0**, static integrity **452 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,160,078 bytes**, SHA-256 **`78ABE0F2A89FA11E8F5D9F60A557EB9CD23E564FB769C42A4D5649B1FA733062`**, built, **not installed**. EditMode and PlayMode counts are unchanged from S1 because the new cases are pure and run in the .NET suite as well, which is where the count rose from 307.
+
+## S2b — rarity, luck, and how wide a pool the run can carry — 2026-09-19
+
+**What shipped.** Three rarity tiers, luck, nine authored cards, and a pool of **five** of them in the game: Tempered
+Edge, Quickened Grip, Long Reach, Keen Edge and Vital Surge. A level-up now draws two of five and rolls a tier for
+each, so two runs differ. The other four cards - Iron Skin, Swift Boots, Deep Lungs and Fortune - are authored,
+mirrored in the simulation and deliberately out of the pool; the measurement below says why.
+
+**Rarity.** `UpgradeRarity` is Common, Rare, Epic - three, not Megabonk's five, because a level-up shows two cards on a
+phone and a scale a player cannot tell apart at a glance is a label rather than a choice. A card carries a magnitude
+per tier and `UpgradeOffer` carries the tier each card was offered at, beside the list rather than inside it, so the
+twelve places that read an offer still read `UpgradeOption`. Weights are 70/25/5 out of a hundred, drawn from the same
+stream as the cards and **after** them, so changing the tier weights can never change which cards a seed shows.
+Measured over 8,000 offered cards: 70.2 %, 24.9 %, 5.0 %.
+
+**Luck** is a hero stat that touches nothing in combat. It lowers the common tier's weight - `70 * 10000 / (10000 +
+luck*10000)`, in integers so every runtime draws the same tier - and the other two keep theirs, so they take a larger
+share of what is left. It can never reach zero, so a common card is always possible. Fortune is the card that grants
+it, and it waits outside the pool with the other three.
+
+**The measurement that set the pool size.** A level-up is the only place a hero grows, and today's Descent grants about
+seven. Every card added past a point thins that growth. Over twenty-four seeds and three weapons, share of runs that
+cleared both floors:
+
+| Pool | Standing (Sword/Staff/Daggers) | Kiting (Sword/Staff/Daggers) | Median health, kiting |
+|---|---|---|---|
+| 3 cards | 54 / 41 / 79 % | 100 / 100 / 100 % | 91.7 |
+| **5 cards (shipped)** | **29 / 25 / 41 %** | **91 / 91 / 87 %** | **91.7** |
+| 7 cards | 20 / 20 / 29 % | 75 / 83 / 62 % | 54.1 |
+| 9 cards | 12 / 4 / 8 % | 45 / 54 / 33 % | 0.0 |
+
+Two decisions came out of it. **Five cards**, because seven already halves the median health a kiting run ends with and
+nine leaves a standing hero clearing one run in ten. And **the common tier keeps today's magnitude** for the two
+existing cards - +50 % damage, +50 % attack speed - with Rare and Epic above at +75 % and +125 %. Measured first with
+Common at half of today's value, the whole matrix collapsed: every standing run died and four kiting runs in five. A
+tier that quietly makes the familiar card weaker is a nerf wearing a new word, so rarity is upside only.
+
+**What this costs, written down rather than discovered later.** A standing hero used to clear every Descent, because a
+two-card pool made the damage card certain. With five it clears 7, 6 and 10 of 24 seeds. That is a real difficulty
+increase and it is the direction the owner asked for, but it is a consequence of variety rather than a tuned choice,
+and `26`'s pinned claims would not survive it. So the balance pins - relics, weapons, the burst - now name
+`DescentSimulation.TwoCardPool()` explicitly and keep measuring what they are about, unmoved by any card added later.
+The shipped pool's own effect is claimed once, as a distribution, in `DescentSeedTests`.
+
+**Tests.** New `Tests/EditMode/DescentSeedTests.cs`, five cases: a kiting hero clears most seeds with every weapon; a
+standing hero clears some but not all, which is the cost above; the same seed is the same run, to the decimal; eight
+seeds do not all end the same way; and the authored nine-card pool clears strictly fewer seeds than the shipped five,
+which is the finding that set the size. `RunTelemetryTests` pin the two new fields. Every balance pin in
+`DescentTests`, `FloorTests`, `WeaponBehaviorTests` and `AbilityTests` names the two-card pool. In PlayMode, the whole-
+Descent parity cases and the two flow tests that need one particular card now write `development/run-seed.txt` after
+the test profile is redirected, so the scene and the simulation build the same hero; the flow tests use seed 3, which
+was measured to offer Tempered Edge first and Quickened Grip within two.
+
+Files changed: `Scripts/Progression/UpgradeStat.cs`, `UpgradeOption.cs`, `UpgradeOffer.cs`, `UpgradeService.cs`,
+`HeroStats.cs`, `RunChoices.cs`, `Scripts/Content/UpgradeDefinition.cs`, `Scripts/Analytics/RunTelemetry.cs`,
+`Tests/Support/DescentSimulation.cs`, four EditMode suites, `Data/Upgrades/Upgrade_Damage.asset` and
+`Upgrade_AttackSpeed.asset`, `Gameplay.unity` (the pool array only), `Tools/CombatChecks/CombatChecks.csproj`. Added:
+`Scripts/Progression/UpgradeRarity.cs`, seven upgrade assets, `Tests/EditMode/DescentSeedTests.cs` and their metadata.
+No art, HUD, camera or enemy data changed. The scene edit was made by a temporary Editor builder, deleted after it ran.
+
+**Not in this slice.** The four cards outside the pool. Weapon evolutions. A rarity a player can *see*: `ChoiceCard`
+carries its tier as a field for a view to bind to, and nothing shows it yet, which is the art owner's. The first
+attempt glued the tier to the card's name, which broke every test that reads a name and would have broken every
+translation; a field is the right seam. Nothing has been played on a device.
+
+**Handoff for Astra.** New upgrade ids: `upgrade_range`, `upgrade_crit`, `upgrade_health`, and authored but unused
+`upgrade_armor`, `upgrade_move_speed`, `upgrade_stamina`, `upgrade_luck`. `upgrade_offered` gains `choice_rarities`
+and `upgrade_selected` gains `rarity`, both alongside the existing fields; nothing was renamed. `ChoiceCard.Rarity` is the tier the card was
+offered at, waiting for a visual treatment - the first visual need of this slice, and nothing shows it today. The second is a stat readout on the pause screen, since a run now grows reach, crit, and health.
+
+**Verified:** .NET **323/323**, compile **0 warnings/errors**, EditMode **338/338**, PlayMode **115/115**, Android build exit **0**, static integrity **460 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,344 bytes**, SHA-256 **`CF2EC63FC95D880A90626CF3728EA6883EAD6EEC26DDF1B8EA9B7594CC9AE651`**, built, **not installed**.
+
+Seven PlayMode cases had to be taught the new world, which is worth recording because each names an assumption a two-card pool had let stand: the whole-Descent parity cases assumed the scene and the simulation would build the same hero without being told a seed; two flow tests assumed a named card would be in the first offer; one assumed a card's magnitude was its asset's; one took whichever card sat in slot zero and then asserted the card it wanted by name; one filled a card to its cap by taking slot zero, which quietly stacked the card it was about to count; and the Mend case assumed the hero's maximum health was still a hundred. None of them were wrong before.

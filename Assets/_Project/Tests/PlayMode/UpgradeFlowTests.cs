@@ -29,6 +29,7 @@ namespace Cryptforge.Tests
         public IEnumerator LoadGameplay()
         {
             TestProfile.Begin();
+            WriteRunSeed(CardSeed);
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
@@ -105,11 +106,16 @@ namespace Cryptforge.Tests
             yield return WaitForOfferInput();
             string before = weaponLabel.text;
 
-            Tap(_buttons[SlotFor(UpgradeStat.AttackSpeed)]);
+            int slot = SlotFor(UpgradeStat.AttackSpeed);
+            // The card comes at a tier now, so the expected cadence is read from the card that was actually offered
+            // rather than from the asset's common magnitude.
+            UpgradeOffer offered = _setup.Upgrades.CurrentOffer;
+            float granted = offered.Choices[slot].ModifierFor(offered.RarityAt(slot)).Amount;
+            Tap(_buttons[slot]);
             yield return null;
 
-            // Upgrade_AttackSpeed.asset authors +50%: 0.8 s / 1.5.
-            Assert.That(_setup.Weapon.Interval, Is.EqualTo(0.8f / 1.5f).Within(1e-4f));
+            Assert.That(granted, Is.GreaterThanOrEqualTo(0.5f), "Quickened Grip is +50% at its commonest.");
+            Assert.That(_setup.Weapon.Interval, Is.EqualTo(0.8f / (1f + granted)).Within(1e-4f));
             Assert.That(_setup.Weapon.Damage, Is.EqualTo(10f));
             Assert.That(weaponLabel.text, Is.Not.EqualTo(before));
             AssertSourceSwordUnchanged();
@@ -225,13 +231,33 @@ namespace Cryptforge.Tests
             Assert.That(_encounters.IsCleared, Is.True, "The upgraded hero must clear the encounter.");
         }
 
+        // The pool holds five cards and a level-up shows two of them, drawn from the run's seed, so the card a test
+        // needs is not certain to be in the first offer. Pending offers are taken until it appears; a run earns several
+        // level-ups before this is called, and the test fails loudly if it never comes.
+        // Measured: this seed offers Tempered Edge in the first level-up and Quickened Grip within two, so these tests
+        // read a card rather than a draw. What an arbitrary seed offers is DescentSeedTests' business.
+        private const int CardSeed = 3;
+
+        private static void WriteRunSeed(int seed)
+        {
+            string path = DevelopmentStart.RunSeedPath;
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+            System.IO.File.WriteAllText(path, seed.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
         private int SlotFor(UpgradeStat stat)
         {
-            UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
-            for (int i = 0; i < offer.Choices.Count; i++)
+            for (int guard = 0; guard < 16; guard++)
             {
-                if (offer.Choices[i].Stat == stat)
-                    return i;
+                UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
+                Assert.That(offer, Is.Not.Null, $"No {stat} upgrade was offered before the offers ran out.");
+                for (int i = 0; i < offer.Choices.Count; i++)
+                {
+                    if (offer.Choices[i].Stat == stat)
+                        return i;
+                }
+
+                Assert.That(_setup.Upgrades.TrySelect(offer, 0), Is.True, "Taking a card to reach the next offer.");
             }
 
             Assert.Fail($"No {stat} upgrade was offered.");

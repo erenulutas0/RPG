@@ -118,6 +118,8 @@ namespace Cryptforge.Tests
                 Is.EqualTo(("upgrade_damage,upgrade_attack_speed", 1L, 1L)));
             Assert.That((offers[0].Integer("offer_index"), offers[1].Integer("offer_index")), Is.EqualTo((0L, 1L)),
                 "Offers are numbered from zero, which names the stream each was drawn from.");
+            Assert.That(offers[0].Text("choice_rarities"), Is.EqualTo("Common,Common"),
+                "A tier per card, beside the ids rather than inside them, so a reader can count tiers without parsing.");
             List<Line> selections = All(lines, "upgrade_selected");
             Assert.That((selections[0].Text("upgrade_id"), selections[0].Integer("choice_slot"), selections[0].Integer("run_level"),
                 selections[0].Integer("stacks")), Is.EqualTo(("upgrade_attack_speed", 1L, 1L, 1L)));
@@ -125,6 +127,7 @@ namespace Cryptforge.Tests
                 Is.EqualTo(("upgrade_damage", 0L, 1L)));
             Assert.That((selections[0].Integer("offer_index"), selections[1].Integer("offer_index")), Is.EqualTo((0L, 1L)),
                 "A pick names the offer it came from.");
+            Assert.That(selections[0].Text("rarity"), Is.EqualTo("Common"), "And the tier it was taken at.");
 
             // Temper grants the bonus choice inside its effect, so that offer is logged before forge_selected.
             Line forge = Single(lines, "forge_selected");

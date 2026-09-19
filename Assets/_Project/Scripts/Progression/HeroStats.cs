@@ -21,11 +21,14 @@ namespace Cryptforge.Progression
         private readonly ModifiableStat _armor;
         private readonly ModifiableStat _moveSpeed;
         private readonly ModifiableStat _staminaBar;
+        private readonly ModifiableStat _luck;
 
         public float MaxHealth => _maxHealth.Value;
         public float Armor => _armor.Value;
         public float MoveSpeed => _moveSpeed.Value;
         public float StaminaBar => _staminaBar.Value;
+        // Luck never touches combat. It lowers how much of a rarity draw the common tier takes, and nothing else.
+        public float Luck => _luck.Value;
 
         // The share of a hit armor takes away, in [0, 1).
         public float DamageReduction => _armor.Value / (_armor.Value + ArmorSoftness);
@@ -39,11 +42,12 @@ namespace Cryptforge.Progression
             _armor = new ModifiableStat(armor, 0f);
             _moveSpeed = new ModifiableStat(moveSpeed, 0.1f);
             _staminaBar = new ModifiableStat(staminaBar, 0.1f);
+            _luck = new ModifiableStat(0f, 0f);
         }
 
         public static bool Owns(UpgradeStat stat) =>
             stat == UpgradeStat.MaxHealth || stat == UpgradeStat.Armor ||
-            stat == UpgradeStat.MoveSpeed || stat == UpgradeStat.StaminaBar;
+            stat == UpgradeStat.MoveSpeed || stat == UpgradeStat.StaminaBar || stat == UpgradeStat.Luck;
 
         public void AddModifier(UpgradeStat stat, StatModifier modifier)
         {
@@ -60,6 +64,9 @@ namespace Cryptforge.Progression
                     break;
                 case UpgradeStat.StaminaBar:
                     _staminaBar.AddModifier(modifier);
+                    break;
+                case UpgradeStat.Luck:
+                    _luck.AddModifier(modifier);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stat), "That stat belongs to the weapon, not the hero.");

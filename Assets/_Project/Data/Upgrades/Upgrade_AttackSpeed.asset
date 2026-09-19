@@ -18,4 +18,7 @@ MonoBehaviour:
   _stat: 1
   _operation: 1
   _amount: 0.5
+  _rareAmount: 0.75
+  _epicAmount: 1.25
   _maxStacks: 5
+  _requires: {fileID: 0}

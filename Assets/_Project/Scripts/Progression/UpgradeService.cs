@@ -68,13 +68,15 @@ namespace Cryptforge.Progression
 
             // Close the offer before side effects so re-entrant or repeated taps are rejected.
             UpgradeOption choice = offer.Choices[slot];
+            UpgradeRarity rarity = offer.RarityAt(slot);
             CurrentOffer = null;
             _stacks[choice]++;
             _run.RecordUpgradeApplied();
+            StatModifier modifier = choice.ModifierFor(rarity);
             if (HeroStats.Owns(choice.Stat))
-                _heroStats.AddModifier(choice.Stat, choice.Modifier);
+                _heroStats.AddModifier(choice.Stat, modifier);
             else
-                _weapon.AddModifier(choice.Stat, choice.Modifier);
+                _weapon.AddModifier(choice.Stat, modifier);
             LastSelected = offer;
             CurrentOffer = CreateOffer();
             Selected?.Invoke(choice, slot);
@@ -123,18 +125,29 @@ namespace Cryptforge.Progression
                 return null;
 
             int index = _offersCreated++;
-            if (eligible.Count <= _choiceCount)
-                return new UpgradeOffer(eligible, index);
-
+            // One stream per offer serves both draws: which cards, then at which tier. Cards first, so a change to the
+            // tier weights cannot change which cards a seed shows.
             RunRandom stream = RunRandom.Stream(_run.Seed, RunRandom.Offers, index);
-            var choices = new List<UpgradeOption>(_choiceCount);
-            for (int i = 0; i < _choiceCount; i++)
+            List<UpgradeOption> choices;
+            if (eligible.Count <= _choiceCount)
             {
-                int pick = stream.NextBelow(eligible.Count);
-                choices.Add(eligible[pick]);
-                eligible.RemoveAt(pick);
+                choices = eligible;
             }
-            return new UpgradeOffer(choices, index);
+            else
+            {
+                choices = new List<UpgradeOption>(_choiceCount);
+                for (int i = 0; i < _choiceCount; i++)
+                {
+                    int pick = stream.NextBelow(eligible.Count);
+                    choices.Add(eligible[pick]);
+                    eligible.RemoveAt(pick);
+                }
+            }
+
+            var rarities = new UpgradeRarity[choices.Count];
+            for (int i = 0; i < choices.Count; i++)
+                rarities[i] = RarityTable.Draw(stream, _heroStats.Luck);
+            return new UpgradeOffer(choices, index, rarities);
         }
 
         private int StacksOfId(string id)

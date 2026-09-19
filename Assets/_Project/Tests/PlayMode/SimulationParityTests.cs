@@ -64,14 +64,30 @@ namespace Cryptforge.Tests
         public IEnumerator DaggersSpeedFirstTemperWithCounterweightDeathMatchesTheSimulation() =>
             PlayDescent("weapon_daggers", DescentSimulation.Daggers(), 1, false, DescentSimulation.Counterweight());
 
+        // One fixed seed for every case here; what a seed shows is measured in DescentSeedTests, not pinned by these.
+        private const int DevelopmentSeed = 2026;
+
+        private static void WriteRunSeed(int seed)
+        {
+            string path = DevelopmentStart.RunSeedPath;
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+            System.IO.File.WriteAllText(path, seed.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
         private IEnumerator PlayDescent(string weaponId, DescentSimulation.HeroWeapon weapon, int cardSlot, bool mendOnFloorOne,
             RelicOption relic)
         {
+            // With a five-card pool a level-up draws from the run's seed, so the scene and the simulation have to be
+            // handed the same one or they build different heroes. The scene takes it from the development file, the
+            // same way the proof-floor cases do.
             DescentSimulation.Result expected = DescentSimulation.Run(
-                new[] { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults }, cardSlot, mendOnFloorOne, relic, weapon);
+                new[] { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults }, cardSlot, mendOnFloorOne, relic,
+                weapon, seed: DevelopmentSeed);
 
             TestProfile.Begin(new PlayerProfile(0, relic != null ? new[] { relic.Id } : null, relic?.Id, 0,
                 weaponId != null ? new[] { weaponId } : null, weaponId));
+            // After the profile is redirected, so the file lands in the test's own folder and not the Editor's.
+            WriteRunSeed(DevelopmentSeed);
             _previousFrameRate = Application.targetFrameRate;
             Time.timeScale = 1f;
             Time.captureDeltaTime = 1f / 60f;

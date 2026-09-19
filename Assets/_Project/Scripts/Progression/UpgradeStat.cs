@@ -11,6 +11,7 @@ namespace Cryptforge.Progression
         MaxHealth = 4,
         Armor = 5,
         MoveSpeed = 6,
-        StaminaBar = 7
+        StaminaBar = 7,
+        Luck = 8
     }
 }

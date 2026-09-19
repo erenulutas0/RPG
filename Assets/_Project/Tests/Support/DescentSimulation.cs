@@ -197,11 +197,84 @@ namespace Cryptforge.Tests
 
         public static UpgradeOption Damage() =>
             new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", UpgradeStat.Damage,
-                new StatModifier(ModifierOperation.Percent, 0.5f), 5);
+                new StatModifier(ModifierOperation.Percent, 0.5f),
+                new StatModifier(ModifierOperation.Percent, 0.75f),
+                new StatModifier(ModifierOperation.Percent, 1.25f), 5);
 
         public static UpgradeOption Speed() =>
             new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
-                new StatModifier(ModifierOperation.Percent, 0.5f), 5);
+                new StatModifier(ModifierOperation.Percent, 0.5f),
+                new StatModifier(ModifierOperation.Percent, 0.75f),
+                new StatModifier(ModifierOperation.Percent, 1.25f), 5);
+
+        public static UpgradeOption Range() =>
+            new UpgradeOption("upgrade_range", "Long Reach", "+{0:0.0#} reach", UpgradeStat.Range,
+                new StatModifier(ModifierOperation.Flat, 0.3f),
+                new StatModifier(ModifierOperation.Flat, 0.6f),
+                new StatModifier(ModifierOperation.Flat, 1f), 3);
+
+        public static UpgradeOption Crit() =>
+            new UpgradeOption("upgrade_crit", "Keen Edge", "+{0:0}% chance to crit", UpgradeStat.CritChance,
+                new StatModifier(ModifierOperation.Flat, 0.08f),
+                new StatModifier(ModifierOperation.Flat, 0.15f),
+                new StatModifier(ModifierOperation.Flat, 0.25f), 4);
+
+        public static UpgradeOption Health() =>
+            new UpgradeOption("upgrade_health", "Vital Surge", "+{0:0} maximum health", UpgradeStat.MaxHealth,
+                new StatModifier(ModifierOperation.Flat, 15f),
+                new StatModifier(ModifierOperation.Flat, 30f),
+                new StatModifier(ModifierOperation.Flat, 60f), 5);
+
+        public static UpgradeOption Armor() =>
+            new UpgradeOption("upgrade_armor", "Iron Skin", "+{0:0} armor", UpgradeStat.Armor,
+                new StatModifier(ModifierOperation.Flat, 20f),
+                new StatModifier(ModifierOperation.Flat, 40f),
+                new StatModifier(ModifierOperation.Flat, 80f), 5);
+
+        public static UpgradeOption MoveSpeed() =>
+            new UpgradeOption("upgrade_move_speed", "Swift Boots", "+{0:0}% movement speed", UpgradeStat.MoveSpeed,
+                new StatModifier(ModifierOperation.Percent, 0.05f),
+                new StatModifier(ModifierOperation.Percent, 0.1f),
+                new StatModifier(ModifierOperation.Percent, 0.15f), 3);
+
+        public static UpgradeOption Stamina() =>
+            new UpgradeOption("upgrade_stamina", "Deep Lungs", "+{0:0.0#}s of running", UpgradeStat.StaminaBar,
+                new StatModifier(ModifierOperation.Flat, 0.4f),
+                new StatModifier(ModifierOperation.Flat, 0.8f),
+                new StatModifier(ModifierOperation.Flat, 1.5f), 3);
+
+        public static UpgradeOption Luck() =>
+            new UpgradeOption("upgrade_luck", "Fortune", "+{0:0}% luck", UpgradeStat.Luck,
+                new StatModifier(ModifierOperation.Flat, 0.25f),
+                new StatModifier(ModifierOperation.Flat, 0.5f),
+                new StatModifier(ModifierOperation.Flat, 1f), 3);
+
+        // Data/Upgrades, in the order CombatSetup carries them. The scene and this must hold the same cards in the
+        // same order, or a seed shows one thing in the game and another here.
+        //
+        // Five, not the nine that are authored. Measured over twenty-four seeds and three weapons (docs/22): a level-up
+        // is the only place a hero grows, and today's Descent grants about seven of them, so every card added past five
+        // thins that growth until the run stops being winnable - at nine cards a standing hero clears one run in ten
+        // and a kiting one fewer than half. Armor, Swift Boots, Deep Lungs and Fortune are authored and wait for the
+        // run to be long enough to pay for them (docs/27, S4 and S6).
+        public static UpgradeOption[] Pool() => new[] { Damage(), Speed(), Range(), Crit(), Health() };
+
+        // The pool the balance pins use: the two cards the game carried before rarity, at one magnitude each, so those
+        // tests keep measuring what they are about - relics, weapons and the burst - and do not move whenever a card is
+        // added. What the shipped pool does is measured on its own, over seeds, in DescentSeedTests.
+        public static UpgradeOption[] TwoCardPool() => new[]
+        {
+            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Percent, 0.5f), 5),
+            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
+                new StatModifier(ModifierOperation.Percent, 0.5f), 5)
+        };
+
+        // Every authored card, for a measurement that asks what a wider pool would do.
+        public static UpgradeOption[] AuthoredPool() => new[]
+        {
+            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck()
+        };
 
         public static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
 
@@ -249,7 +322,8 @@ namespace Cryptforge.Tests
         public static Result Run(Floor[] floors, int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null,
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
-            HeroStamina stamina = null, int seed = 0, string[] preferIds = null)
+            HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
+            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
@@ -260,7 +334,7 @@ namespace Cryptforge.Tests
             // hands in its own bar (a test asking what the game was before the budget) must not have it overwritten.
             HeroStamina heroStamina = stamina ?? new HeroStamina();
             var heroStats = new HeroStats(100f, heroSpeed, heroStamina.Bar);
-            var upgrades = new UpgradeService(run, weapon, new[] { Damage(), Speed() }, 2, heroStats);
+            var upgrades = new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats);
             weapon.Seed = run.Seed;
             // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
             var picker = new CardPicker(upgrades, cardSlot, preferIds);

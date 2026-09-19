@@ -59,15 +59,18 @@ namespace Cryptforge.Tests
             var weapons = new[] { ("Sword", DescentSimulation.Sword()), ("Staff", DescentSimulation.Staff()), ("Daggers", DescentSimulation.Daggers()) };
             foreach (var (name, weapon) in weapons)
             {
-                DescentSimulation.Result plain = DescentSimulation.Run(Descent, 0, true, heroWeapon: weapon);
-                DescentSimulation.Result burst = DescentSimulation.Run(Descent, 0, true, heroWeapon: weapon, ability: DescentSimulation.ForgeBurst());
+                DescentSimulation.Result plain = DescentSimulation.Run(Descent, 0, true, heroWeapon: weapon,
+                    pool: DescentSimulation.TwoCardPool());
+                DescentSimulation.Result burst = DescentSimulation.Run(Descent, 0, true, heroWeapon: weapon,
+                    ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool());
                 Assert.That(burst.AbilityUses, Is.GreaterThanOrEqualTo(6), $"{name}: the burst fires through the Descent.");
                 Assert.That(burst.ClearedFloors, Is.EqualTo(2), name);
                 Assert.That(burst.HeroHealth, Is.GreaterThan(plain.HeroHealth), $"{name}: the burst spares health.");
                 Assert.That(burst.Kills, Is.GreaterThanOrEqualTo(plain.Kills), $"{name}: the burst never costs a kill.");
                 Assert.That(plain.AbilityUses, Is.Zero);
 
-                DescentSimulation.Result greedy = DescentSimulation.Run(Descent, 1, false, heroWeapon: weapon, ability: DescentSimulation.ForgeBurst());
+                DescentSimulation.Result greedy = DescentSimulation.Run(Descent, 1, false, heroWeapon: weapon,
+                    ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool());
                 Assert.That(greedy.ClearedFloors, Is.EqualTo(1), $"{name}: speed first with Temper still falls on floor 2, burst or not.");
             }
         }

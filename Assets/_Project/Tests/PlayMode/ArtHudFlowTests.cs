@@ -194,14 +194,45 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator CardArtworkFollowsContentAfterTheFirstUpgradeHitsItsCap()
         {
+            // Fill Tempered Edge to its cap, taking it wherever a level-up happens to offer it, then keep drawing until
+            // slot zero holds Quickened Grip: with five cards in the pool the next offer is a draw, and what this test
+            // is about is the icon following the card, not which card a seed shows.
             UpgradeOption damage = _setup.Upgrades.Pool[0];
-            for (int i = 0; i < damage.MaxStacks; i++)
+            for (int guard = 0; guard < 60 && _setup.Upgrades.StacksOf(damage) < damage.MaxStacks; guard++)
             {
                 _setup.Run.GrantBonusUpgrade();
-                Assert.That(_setup.Upgrades.TrySelect(_setup.Upgrades.CurrentOffer, 0), Is.True);
+                UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
+                // Tempered Edge when it is there; otherwise anything except Quickened Grip, whose stack count is what
+                // the end of this test measures.
+                int slot = -1;
+                for (int i = 0; i < offer.Choices.Count; i++)
+                    if (offer.Choices[i].Id == damage.Id)
+                        slot = i;
+                if (slot < 0)
+                {
+                    for (int i = 0; i < offer.Choices.Count; i++)
+                        if (offer.Choices[i].Stat != UpgradeStat.AttackSpeed)
+                            slot = i;
+                }
+                Assert.That(slot, Is.GreaterThanOrEqualTo(0), "Every offer holds a card that is not Quickened Grip.");
+                Assert.That(_setup.Upgrades.TrySelect(offer, slot), Is.True);
             }
-            _setup.Run.GrantBonusUpgrade();
+            Assert.That(_setup.Upgrades.StacksOf(damage), Is.EqualTo(damage.MaxStacks));
+            for (int guard = 0; guard < 60; guard++)
+            {
+                _setup.Run.GrantBonusUpgrade();
+                UpgradeOffer drawn = _setup.Upgrades.CurrentOffer;
+                if (drawn.Choices[0].Stat == UpgradeStat.AttackSpeed)
+                    break;
+                // Take anything but Quickened Grip, so the stack count this test ends on is the one click it makes.
+                int other = 0;
+                for (int i = 0; i < drawn.Choices.Count; i++)
+                    if (drawn.Choices[i].Stat != UpgradeStat.AttackSpeed)
+                        other = i;
+                Assert.That(_setup.Upgrades.TrySelect(drawn, other), Is.True);
+            }
             Assert.That(_setup.Upgrades.CurrentOffer.Choices[0].Stat, Is.EqualTo(UpgradeStat.AttackSpeed));
+            Assert.That(_setup.Upgrades.CurrentOffer.Choices[0].Id, Is.EqualTo("upgrade_attack_speed"));
             GameObject first = GameObject.Find("Choice Button 1");
             Image icon = first.transform.Find("Choice Icon").GetComponent<Image>();
             Assert.That(icon.enabled, Is.True);

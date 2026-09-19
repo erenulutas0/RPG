@@ -326,6 +326,7 @@ namespace Cryptforge.Tests
         // The balance baseline: the Forge Burst fired whenever it is ready with an enemy in reach.
         private static DescentSimulation.Result Burst(DescentSimulation.Floor[] floors, int cardSlot, bool mendOnFloorOne,
             RelicOption relicOption = null, DescentSimulation.HeroWeapon heroWeapon = null) =>
-            DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon, ability: DescentSimulation.ForgeBurst());
+            DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon,
+                ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool());
     }
 }

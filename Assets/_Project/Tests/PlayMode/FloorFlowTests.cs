@@ -184,7 +184,9 @@ namespace Cryptforge.Tests
 
             Assert.That(_setup.Choices.TrySelect(prompt, 0), Is.True);
             Assert.That(_setup.Choices.TrySelect(prompt, 0), Is.False);
-            Assert.That(_hero.Current, Is.EqualTo(Mathf.Min(100f, wounded + 40f)));
+            // Mend restores two fifths of the hero's maximum, and a Vital Surge taken on the way makes that maximum
+            // larger than the hundred it starts at.
+            Assert.That(_hero.Current, Is.EqualTo(Mathf.Min(_hero.Maximum, wounded + _hero.Maximum * 0.4f)).Within(1e-3f));
             Assert.That(_setup.Choices.IsOpen, Is.False);
 
             yield return AdvanceToRoom(5);

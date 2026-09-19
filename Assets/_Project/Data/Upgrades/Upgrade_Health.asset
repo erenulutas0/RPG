@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0000000000000000000000000000000e, type: 3}
-  m_Name: Upgrade_Damage
+  m_Name: Upgrade_Health
   m_EditorClassIdentifier:
-  _id: upgrade_damage
-  _displayName: Tempered Edge
-  _descriptionFormat: '+{0:0}% damage per hit'
-  _stat: 0
-  _operation: 1
-  _amount: 0.5
-  _rareAmount: 0.75
-  _epicAmount: 1.25
+  _id: upgrade_health
+  _displayName: Vital Surge
+  _descriptionFormat: '+{0:0} maximum health'
+  _stat: 4
+  _operation: 0
+  _amount: 15
+  _rareAmount: 30
+  _epicAmount: 60
   _maxStacks: 5
   _requires: {fileID: 0}

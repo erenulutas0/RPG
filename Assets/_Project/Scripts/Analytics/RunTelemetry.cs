@@ -73,6 +73,7 @@ namespace Cryptforge.Analytics
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
         private readonly StringBuilder _choiceIds = new StringBuilder();
+        private readonly StringBuilder _choiceRarities = new StringBuilder();
 
         private readonly TimeSplit _runTime = new TimeSplit();
         // Resets at each floor_complete, so a floor's time includes the checkpoint and descent that led into it.
@@ -569,18 +570,24 @@ namespace Cryptforge.Analytics
 
             _reportedOffer = offer;
             _choiceIds.Clear();
+            _choiceRarities.Clear();
             for (int i = 0; i < offer.Choices.Count; i++)
             {
                 if (i > 0)
+                {
                     _choiceIds.Append(',');
+                    _choiceRarities.Append(',');
+                }
                 _choiceIds.Append(offer.Choices[i].Id);
+                _choiceRarities.Append(offer.RarityAt(i).ToString());
             }
 
             _session.Emit("upgrade_offered", new TelemetryFields()
                 .Add("choice_ids", _choiceIds.ToString())
                 .Add("run_level", _run.Level)
                 .Add("pending", _run.PendingUpgrades)
-                .Add("offer_index", offer.Index));
+                .Add("offer_index", offer.Index)
+                .Add("choice_rarities", _choiceRarities.ToString()));
         }
 
         private void OnUpgradeSelected(UpgradeOption option, int slot)
@@ -588,12 +595,15 @@ namespace Cryptforge.Analytics
             if (!IsRecording || option == null)
                 return;
 
+            UpgradeOffer from = _upgrades.LastSelected;
+
             _session.Emit("upgrade_selected", new TelemetryFields()
                 .Add("upgrade_id", option.Id)
                 .Add("choice_slot", slot)
                 .Add("run_level", _run.Level)
                 .Add("stacks", _upgrades.StacksOf(option))
-                .Add("offer_index", _upgrades.LastSelected != null ? _upgrades.LastSelected.Index : -1));
+                .Add("offer_index", from != null ? from.Index : -1)
+                .Add("rarity", from != null ? from.RarityAt(slot).ToString() : "Common"));
         }
 
         private void OnForgeSelected(ForgeOption option, int slot)
