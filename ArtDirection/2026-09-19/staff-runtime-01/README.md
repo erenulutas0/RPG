@@ -1,0 +1,23 @@
+# Integrated Staff impact — 2026-09-19
+
+CombatEffectsView now borrows a single session-owned four-arc StaffSplashArt sprite. The512x256 RGBA32 bilinear/clamped/non-readable contour uses240PPU and a centred pivot. Raw texture payload524288 bytes; session reset/quit releases it, scene reload borrows it. There are no per-hit sprites/textures/GameObjects. The old three pixel-ring frames are no longer built by the view.
+
+Staff impacts stay at the target's feet at strike time, below actor groups (order0). Existing RingScale bounds and splash fraction are converted to world radius; the authored Staff impact still reaches1.75 units, not its full3.5 gameplay splash. Initial scale24/38 of the displayed radius eases to full in0.14s, fading during the final0.11s; total lifetime remains0.21s. All animation uses scaled time. Generic pool reuse resets both ability/Staff flags. Immediate damage, attack interval, targeting, balance, movement, scene and other weapon effects are unchanged.
+
+The proof's seven texture frames have become one contour with continuous transform/alpha animation, so initial stroke width scales too. Runtime captures are from an actual automatic Staff attack in the isolated ten-enemy scene. Graphics runner: Tools/ArtReview/Run-StaffSplashRuntimeProof.ps1. The older proof should be reproduced at7457d78 because its private-field staging assumes the old runtime.
+
+StaffSplashTests exercise a real attack with immediate damage, fixed origin after target movement, pause stability, maximum displayed radius, expiry, non-readable art, scene-reload reuse and native session reset. Existing ability and simulation parity tests cover unchanged mechanics.
+
+Full verification and completed physical-device findings are recorded below.
+
+## Verification and S23 installation
+
+Verified: .NET291/291; compile0 warnings/errors; EditMode306/306; PlayMode113/113; graphics capture1/1; integrity442 asset/folder GUIDs /568 scene objects/components. Android exit0; APK29,153,541 bytes, SHA256 `7A107BD2F871D2EC8AE660BFC7ABE565D25095EF47BB8E15B6F95CB49AD42279`. Installed base.apk hash matched. Six actual Unity captures cover real Staff attack start/expansion/fade/expiry and two portrait ratios. No full damage-area claim: candidate retains impact-only shown radius.
+
+The first streamed ADB install returned a blank failure; the retry using `install --no-streaming -r` succeeded. No uninstall/data clear. Initial phone was awake/unlocked at launcher; focus guard correctly refused a screenshot there. Fresh complete local files backup was taken before install (TestResults/staff-runtime-device-2026-09-19/before). Primary/backup hashes were identical before and after install: `6CD3D4D338536FE77993A3D52E88E55C6577F7FD3C6FC32FFDE81AAE45BC8DE3` / `8617F6460C901005EFF3CEB0D6CFDFADD072C36D1068A3187002878287C39B41`; revision150/gold11596/Daggers/Second Wind. No old backup restored.
+
+Temporarily selected the existing floor_density_proof using development/start-floor.txt (previously absent). Completed one Daggers run, banked10, opened Relic Forge and equipped the already-owned Staff through UI. An8-second live screenrecord shows successive four-arc purple impacts expanding/fading under the actors, distinct from the blue range ring; reviewed2–5s at20fps as a contact sheet. No active ability was used during the Staff recording/run. Completed Staff proof, banked another10, restored Daggers through UI. Development flag removed and empty directory verified. Normal Ember Hall1/6 then launched with Daggers/Second Wind; last captured at100HP,level0,XP0/10,0run gold (live state can advance).
+
+Final profile revision154/gold11616; same weapon/relic unlocks, Second Wind and deepest floor2. Primary SHA256 `F1C37216FCEA2EF18C36B72317502CC976FF91D862EBED5DFB00A0538C199BBF`; backup `18AA83037FC0DA94BF0DE2CF41021327AAA9D4BFFC38E1745B5FED2A25B52867`. Expected changes are two10-gold wins and two equipment saves. No purchases, save edits or rollback; telemetry naturally grew. Every tap/capture/recording was preceded by focused/awake/unlocked checks, with post-capture/recording checks. Last1500 log lines filtered for FATAL EXCEPTION/NullReferenceException/MissingReferenceException had no matches; not exhaustive. This is a short visual test, not a sustained performance benchmark or mid-range-device result.
+
+Committed device/staff.mp4 is a540px-wide H264 transcode at unchanged speed; device/normal.png is the original screencap. Raw video/contact sheet and private backups remain in ignored TestResults. Phone handed back to owner after normal return; inspect fresh before more input. Staff equipment sprite, Daggers art, coins and remaining roster are still separate work.

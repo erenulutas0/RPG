@@ -25,6 +25,7 @@ namespace Cryptforge.UI
             public bool Active;
             public bool Fade;
             public bool AbilityPulse;
+            public bool StaffPulse;
             public float PulseRadius;
         }
 
@@ -58,7 +59,7 @@ namespace Cryptforge.UI
         private const float NumberLift = 0.25f;
         private const float NumberJitter = 0.35f;
         private const float StrikeFrameDuration = 0.05f;
-        private const float RingFrameDuration = 0.07f;
+        private const float StaffPulseDuration = .21f;
         private const float StarFrameDuration = 0.07f;
         private const float SparkFrameDuration = 0.06f;
         private const float SmokeFrameDuration = 0.12f;
@@ -72,7 +73,7 @@ namespace Cryptforge.UI
         private const float MinRingScale = 0.75f;
         private const float MaxRingScale = 1.5f;
         // Sorting orders above the base: the floor ring lowest, coins highest.
-        private const int RingOrder = 0;
+
         private const int SparkOrder = 1;
         private const int SmokeOrder = 1;
         private const int StrikeOrder = 2;
@@ -232,7 +233,7 @@ namespace Cryptforge.UI
         private void BuildSprites()
         {
             _slash = UsesPaintedStrikes ? _paintedArt.Slash : Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
-            _ring = Build(EffectArt.RingFrames(), "VFX Blast Ring", PixelSpriteFactory.Centre);
+            _ring = new[] { StaffSplashArt.Get() }; // Borrowed session art.
             _abilityPulse = new[] { AbilityRingArt.Get() }; // Borrowed; never added to _sprites.
             _doubleSlash = Build(EffectArt.DoubleSlashFrames(), "VFX Double Slash", PixelSpriteFactory.Centre);
             _star = Build(EffectArt.StarBurstFrames(), "VFX Crit Star", PixelSpriteFactory.Centre);
@@ -395,7 +396,11 @@ namespace Cryptforge.UI
                     break;
                 case StrikeEffect.StaffBlast:
                     Vector3 feet = watch != null && watch.Root != null ? watch.Root.position : target.transform.position;
-                    Show(_ring, RingFrameDuration, feet, _sortingOrder + RingOrder, RingScale(weapon));
+                    float radius = RingScale(weapon) * EffectArt.RingFullRadius / PixelSpriteFactory.PixelsPerUnit;
+                    Effect impact = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, feet, 0,
+                        Vector3.zero, 0, false, radius * (24f / 38));
+                    impact.StaffPulse = true;
+                    impact.PulseRadius = radius;
                     break;
                 default:
                     Show(_doubleSlash, StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder);
@@ -501,6 +506,7 @@ namespace Cryptforge.UI
             effect.Active = true;
             effect.Fade = false;
             effect.AbilityPulse = false;
+            effect.StaffPulse = false;
             effect.PulseRadius = 0f;
             effect.Transform.position = origin;
             effect.Transform.localRotation = Quaternion.identity;
@@ -563,12 +569,12 @@ namespace Cryptforge.UI
                 Sprite sprite = effect.Frames[frame];
                 if (!ReferenceEquals(effect.Renderer.sprite, sprite))
                     effect.Renderer.sprite = sprite;
-                if (effect.AbilityPulse)
+                if (effect.AbilityPulse || effect.StaffPulse)
                 {
                     float progress = Mathf.Clamp01(effect.Elapsed / .14f);
-                    float radius = effect.PulseRadius * Mathf.Lerp(.6f, 1f, 1f - (1f - progress) * (1f - progress));
+                    float radius = effect.PulseRadius * Mathf.Lerp(effect.StaffPulse ? 24f / 38 : .6f, 1f, 1f - (1f - progress) * (1f - progress));
                     effect.Transform.localScale = new Vector3(radius, radius, 1f);
-                    float alpha = .85f * Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .11f);
+                    float alpha = (effect.StaffPulse ? 1f : .85f) * Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .11f);
                     effect.Renderer.color = new Color(1f, 1f, 1f, alpha);
                 }
                 if (effect.Fade) effect.Renderer.color = new Color(1, 1, 1, Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .16f));

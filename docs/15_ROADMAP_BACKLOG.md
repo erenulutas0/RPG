@@ -234,4 +234,4 @@ P3 Growth:
 - [ ] Match the separate Staff splash and remaining weapon/effect artwork to the painted presentation.
 
 - [x] Compare four-arc Staff impact against the pixel blast in the real Unity crowd at two portrait ratios (2026-09-19; proof only).
-- [ ] Integrate shared Staff impact contour, test ownership/pool/pause and verify on device.
+- [x] Integrate shared Staff impact contour, test ownership/pool/pause and verify on device (2026-09-19).

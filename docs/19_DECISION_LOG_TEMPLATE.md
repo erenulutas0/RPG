@@ -654,3 +654,7 @@ A short expansion/fade of the shared arc sprite replaces the blocky ability burs
 ## 2026-09-19 — Separate Staff impact from the ability seal (proof)
 
 Options: reuse the blue eight-arc ability artwork, retain the thick pixel blast, or create four tapered violet-white arcs. Prefer four arcs: distinguish the frequent target-centred weapon impact by geometry and colour, keep silhouettes clear through ground sorting and retain the old0.21s cosmetic duration. The small impact is not a full damage-range telegraph. Ten actual Unity proof captures are in ArtDirection/2026-09-19/staff-splash-01; no authored runtime or phone change. Next integration should use one shared contour and the existing pool; temporary seven-texture proof is not a production ownership design.
+
+## 2026-09-19 — Integrate Staff arcs with shared lifetime
+
+User explicitly requested installation of the Staff proof. Chose one cached immutable contour plus pooled scale/fade over seven generated frame textures, retaining the proof's visual identity and0.21s cosmetic duration. Keep the old impact-only size fraction and clamp; this is not an area telegraph and does not change damage reach. Ground sorting improves silhouette readability. StaffSplashTests cover real attack and ownership; full gate/device status in newest21–23 and staff-runtime-01/README.md.
