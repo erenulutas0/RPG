@@ -650,3 +650,7 @@ Integrate the selected eight-arc marker as deterministic code-native geometry. O
 ## 2026-09-19 — Reuse the range contour for the cast pulse
 
 A short expansion/fade of the shared arc sprite replaces the blocky ability burst. Chose this over a new sprite sheet because it matches the accepted visual language exactly, avoids extra texture memory and allows smooth timing. Keep damage immediate, origin fixed, total lifetime0.21s and existing pool. Ground sorting prevents the line crossing over bodies. This is feedback for an instant attack, not a travelling damage wave. Staff splash is separate scope.
+
+## 2026-09-19 — Separate Staff impact from the ability seal (proof)
+
+Options: reuse the blue eight-arc ability artwork, retain the thick pixel blast, or create four tapered violet-white arcs. Prefer four arcs: distinguish the frequent target-centred weapon impact by geometry and colour, keep silhouettes clear through ground sorting and retain the old0.21s cosmetic duration. The small impact is not a full damage-range telegraph. Ten actual Unity proof captures are in ArtDirection/2026-09-19/staff-splash-01; no authored runtime or phone change. Next integration should use one shared contour and the existing pool; temporary seven-texture proof is not a production ownership design.

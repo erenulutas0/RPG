@@ -232,3 +232,6 @@ P3 Growth:
 
 - [x] Replace the ability cast's thick pixel burst with a pooled expanding/fading ground contour; retain immediate damage and0.21s lifetime; verify Unity and S23 (2026-09-19).
 - [ ] Match the separate Staff splash and remaining weapon/effect artwork to the painted presentation.
+
+- [x] Compare four-arc Staff impact against the pixel blast in the real Unity crowd at two portrait ratios (2026-09-19; proof only).
+- [ ] Integrate shared Staff impact contour, test ownership/pool/pause and verify on device.

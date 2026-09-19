@@ -288,3 +288,9 @@ Two new AbilityFlowTests cover real reload reuse, hero following, paused colour 
 ## Ability cast pulse — 2026-09-19
 
 CombatEffectsView now borrows the shared eight-arc range sprite for a pooled, ground-sorted cast pulse. Starts at60% radius, expands to100% by0.14s and expires at0.21s, preserving old total duration and immediate damage. Fade/expansion use scaled time; the visual remains at cast origin. Pool reuse clears pulse state; no per-cast art allocation. Staff splash and other effects unchanged. New AbilityFlowTests case covers origin, radius, pause, expiry and ownership. Seven actual Unity frame captures and reproduction: ArtDirection/2026-09-19/ability-pulse-01/README.md. Full gate and phone evidence will be recorded there and in Docs/23.
+
+## Staff splash visual proof — 2026-09-19
+
+Ten real Unity renders in ArtDirection/2026-09-19/staff-splash-01 compare the current pixel blast with four tapered violet-white arcs below actors, at four stages and two portrait sizes. Preferred candidate has a clear centre and distinct shape from the ability's eight-arc seal. Isolated view-subscriber invocation and temporary pool frame substitution only; no weapon damage, authored Assets/scene, gameplay or phone change. Impact size retains the old shown fraction (1.75 units for Staff), not the full3.5 damage radius. Keep0.21s lifetime; production must use one shared contour with scale/alpha animation, not the proof's seven textures. Tools/ArtReview/Run-StaffSplashProof.ps1 reproduces the sample.
+
+Verified: .NET291/291, compile0 warnings/errors, graphics capture1/1, integrity440/568. Full suites/APK were not rerun for tooling-only changes; latest installed ability-pulse APK66CE2B7B2CB39E273C2DDC35B5795EEA70E518B65FF40BD50F0A00CD87D94165 remains unchanged. No phone/profile/telemetry access. Next: bounded runtime ownership/pool/pause integration and full gate/device review. See artifact README for timing, staging and evidence limits.
