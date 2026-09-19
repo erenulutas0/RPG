@@ -15,6 +15,7 @@ namespace Cryptforge.Progression
     {
         public const int Offers = 1;
         public const int Chests = 2;
+        public const int Crits = 3;
 
         private uint _state;
 

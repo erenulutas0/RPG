@@ -10,11 +10,11 @@ namespace Cryptforge.Tests
     public sealed class RunEndTests
     {
         private static UpgradeOption DamageOption() =>
-            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0} damage", WeaponStat.Damage,
+            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0} damage", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 5f), 5);
 
         private static UpgradeOption SpeedOption() =>
-            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", WeaponStat.AttackSpeed,
+            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.25f), 5);
 
         [Test]
@@ -113,7 +113,7 @@ namespace Cryptforge.Tests
             SimulateEncounter(hero, heroWeapon, out _);
             Assert.That(hero.Current, Is.EqualTo(76f), "Four 6-damage strikes land before the fifth Sword hit.");
 
-            heroWeapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Flat, 5f));
+            heroWeapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Flat, 5f));
             SimulateEncounter(hero, heroWeapon, out _);
             Assert.That(hero.Current, Is.EqualTo(58f), "Three strikes land before the fourth upgraded hit.");
         }

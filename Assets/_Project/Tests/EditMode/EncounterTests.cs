@@ -119,7 +119,7 @@ namespace Cryptforge.Tests
             var weapon = new WeaponRuntime(10f, 0.8f, 3f);
             Assert.That(SimulateFight(weapon, out _), Is.EqualTo(5));
 
-            weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Flat, 5f));
+            weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Flat, 5f));
             Assert.That(SimulateFight(weapon, out float clearTime), Is.EqualTo(4));
             // Frame quantization can add up to one step per hit.
             Assert.That(clearTime, Is.EqualTo(2.4f).Within(0.1f));
@@ -131,7 +131,7 @@ namespace Cryptforge.Tests
             var weapon = new WeaponRuntime(10f, 0.8f, 3f);
             SimulateFight(weapon, out float baseline);
 
-            weapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 0.25f));
+            weapon.AddModifier(UpgradeStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 0.25f));
             Assert.That(SimulateFight(weapon, out float upgraded), Is.EqualTo(5));
             Assert.That(baseline, Is.EqualTo(3.2f).Within(0.1f));
             Assert.That(upgraded, Is.EqualTo(2.56f).Within(0.1f));

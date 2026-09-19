@@ -80,7 +80,7 @@ namespace Cryptforge.Tests
         public IEnumerator RapidRepeatedTapsApplyDamageUpgradeExactlyOnce()
         {
             yield return WaitForOfferInput();
-            Button damage = _buttons[SlotFor(WeaponStat.Damage)];
+            Button damage = _buttons[SlotFor(UpgradeStat.Damage)];
 
             Tap(damage);
             Tap(damage);
@@ -105,7 +105,7 @@ namespace Cryptforge.Tests
             yield return WaitForOfferInput();
             string before = weaponLabel.text;
 
-            Tap(_buttons[SlotFor(WeaponStat.AttackSpeed)]);
+            Tap(_buttons[SlotFor(UpgradeStat.AttackSpeed)]);
             yield return null;
 
             // Upgrade_AttackSpeed.asset authors +50%: 0.8 s / 1.5.
@@ -136,7 +136,7 @@ namespace Cryptforge.Tests
             // Two swings on the mite from the right corner, then five on the Grunt from the far corner.
             Assert.That(_encounters.HitsTaken, Is.EqualTo(7));
 
-            Tap(_buttons[SlotFor(WeaponStat.Damage)]);
+            Tap(_buttons[SlotFor(UpgradeStat.Damage)]);
             int swings = _attack.AttackCount;
             yield return WaitForEncounter(2);
 
@@ -165,7 +165,7 @@ namespace Cryptforge.Tests
         {
             yield return WaitForOfferInput();
 
-            Tap(_buttons[SlotFor(WeaponStat.AttackSpeed)]);
+            Tap(_buttons[SlotFor(UpgradeStat.AttackSpeed)]);
             int swings = _attack.AttackCount;
             yield return WaitForEncounter(2);
             float deadline = Time.realtimeSinceStartup + 8f;
@@ -225,7 +225,7 @@ namespace Cryptforge.Tests
             Assert.That(_encounters.IsCleared, Is.True, "The upgraded hero must clear the encounter.");
         }
 
-        private int SlotFor(WeaponStat stat)
+        private int SlotFor(UpgradeStat stat)
         {
             UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
             for (int i = 0; i < offer.Choices.Count; i++)

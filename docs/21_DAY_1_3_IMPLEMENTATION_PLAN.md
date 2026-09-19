@@ -1416,3 +1416,64 @@ set in the Inspector. No timing or presentation changed. Future visual needs, no
 screen (S2).
 
 **Verified:** .NET **307/307**, compile **0 warnings/errors**, EditMode **322/322**, PlayMode **115/115**, Android build exit **0**, static integrity **449 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,157,379 bytes**, SHA-256 **`2F5311CA802B17573D789A67EF774E07A7D33386BEFDB6C6A0DDFDA9FC24C240`**, built, **not installed**. Note on size: builds since 2026-09-18 have alternated between about 24.7 and 29.2 MB with no corresponding source change; the earlier note calling the larger size transient was premature, and the cause has not been investigated.
+
+## S2a — the stat sheet a card can reach — 2026-09-19
+
+**Why, and why it is half a slice.** docs/27's S2 was one slice for seven stats plus rarity. Splitting it was the right
+call once the code was read: the plumbing (a card that targets something other than damage or cadence) is independent
+of the balance work (authoring those cards, putting them in the pool, and re-pinning what that moves), and rarity
+without magnitudes to vary is a label that lies. So **S2a is the plumbing**: six stats exist, each reachable by a card,
+each proven to change the thing that reads it, with the game's pool still holding its two cards so **no authored number
+moves**. S2b will author the cards, widen the pool, measure distributions across seeds and re-pin what changes. Luck
+goes with rarity into S2b, because luck without rarity has nothing to bite.
+
+**The stats.** `WeaponStat` is renamed `UpgradeStat` — the same serialized values, so the two upgrade assets keep their
+meaning — and gains six entries. Four are the weapon's, because that is where they are used: Damage, AttackSpeed, Range
+and CritChance on `WeaponRuntime`. Four are the hero's, on a new `HeroStats` sheet: MaxHealth, Armor, MoveSpeed and
+StaminaBar. `UpgradeService` routes a card by `HeroStats.Owns`, so one card type reaches either.
+
+- **Range** joins damage and cadence as a `ModifiableStat` on the weapon, with a safety floor of 0.1.
+- **MaxHealth** raises `HealthState.Maximum`, and what it adds arrives filled, so the card is worth taking mid-fight.
+- **Armor** is a pool, not a percentage: reduction = armor / (armor + 100), so 50 armor takes a third off a hit, 100
+  takes half, and no amount ever takes all of it. A hard cap would make the last points worthless without saying so;
+  this says so in its shape. It is taken off *before* anything observes the hit, so views, relics and the movement
+  report all read the damage that actually landed.
+- **MoveSpeed** and **StaminaBar** set `HeroMotion.Speed` and `HeroStamina.Bar`; the bar's new length arrives filled,
+  since a longer empty bar would do nothing until the hero next stood still.
+- **CritChance** is a chance on top of the authored rhythm, drawn from `RunRandom.Stream(seed, Crits, attackNumber)`.
+  The rhythm is checked first and never spends a draw, so the Daggers' every-third-strike is untouched and a weapon
+  with no chance never draws at all. A rolled crit doubles, the multiplier the Daggers already use, since a weapon
+  whose pattern authors no crits has none to borrow.
+
+**One rule for both sides.** `HeroStatsBinding.Apply` pushes the sheet into the health, the walk and the bar. It sets
+absolute values, never deltas, so calling it twice changes nothing the second time and the scene and the simulation
+cannot drift apart by applying a card a different number of times. `CombatSetup` calls it on `HeroStats.Changed`;
+`DescentSimulation` does the same, in the same order, and builds its sheet from the bar the run actually carries so a
+caller that injects its own budget is not overwritten.
+
+**Tests.** New `Tests/EditMode/HeroStatsTests.cs`, eleven cases: a range card lengthens reach; a maximum-health card
+raises the ceiling and arrives filled; armor takes a share of every hit and a million armor still never takes all of
+it; what observers are told is what landed; a move-speed card walks the hero exactly its share further over a second,
+through `HeroMotion`; a stamina card lengthens the bar and fills what it added; a crit-chance card crits on the same
+swings for the same seed, differs across seeds, and lands near its stated chance over four hundred swings; with no
+chance nothing is rolled and the Daggers' authored rhythm is exact; a hero card cannot write to the weapon nor a weapon
+card to the hero; applying the same sheet three times is one application; and every safety floor holds against a card
+that subtracts more than the stat has.
+
+Files changed: `Scripts/Progression/WeaponStat.cs` → `UpgradeStat.cs` (renamed, six entries appended),
+`UpgradeOption.cs`, `UpgradeService.cs`, `RunRandom.cs`, `Scripts/Combat/WeaponRuntime.cs`, `HealthState.cs`,
+`HeroMotion.cs`, `HeroStamina.cs`, `Health.cs`, `Scripts/Core/CombatSetup.cs`, `Tests/Support/DescentSimulation.cs`,
+`Tools/CombatChecks/CombatChecks.csproj`, and every file naming the old enum. Added:
+`Scripts/Progression/HeroStats.cs`, `HeroStatsBinding.cs`, `Tests/EditMode/HeroStatsTests.cs` and their metadata. No
+scene, data, art or HUD change, and no upgrade asset changed.
+
+**Not in this slice.** No card in the game targets any of the new stats yet, so nothing a player can see has changed
+and no balance number moved — deliberately. Rarity, Luck, regeneration and crit damage are S2b or later. Armor is on
+the hero only; enemies have none and the field defaults to zero for them.
+
+**Handoff for Astra.** `WeaponStat` is now `UpgradeStat` with the same values; no upgrade asset changed and no id moved.
+`UpgradeDefinition` can target the new stats in the Inspector, but none does yet. `CombatSetup.HeroStats` and
+`Health.State` are new public surfaces. No timing, presentation or art contract changed. Coming visual needs, none
+blocking: rarity on the choice cards and a stat readout on the pause screen (S2b).
+
+**Verified:** .NET **318/318**, compile **0 warnings/errors**, EditMode **322/322**, PlayMode **115/115**, Android build exit **0**, static integrity **452 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,160,078 bytes**, SHA-256 **`78ABE0F2A89FA11E8F5D9F60A557EB9CD23E564FB769C42A4D5649B1FA733062`**, built, **not installed**. EditMode and PlayMode counts are unchanged from S1 because the new cases are pure and run in the .NET suite as well, which is where the count rose from 307.

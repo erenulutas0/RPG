@@ -13,9 +13,17 @@ namespace Cryptforge.Combat
         public float X { get; private set; }
         public float Y { get; private set; }
         // Floor units per second at full steer.
-        public float Speed { get; }
+        public float Speed { get; private set; }
 
         public HeroMotion(float speed)
+        {
+            if (!(speed > 0f) || float.IsInfinity(speed))
+                throw new ArgumentOutOfRangeException(nameof(speed));
+            Speed = speed;
+        }
+
+        // A card may change how fast the hero walks; the value is absolute, so applying the same sheet twice is one walk.
+        public void SetSpeed(float speed)
         {
             if (!(speed > 0f) || float.IsInfinity(speed))
                 throw new ArgumentOutOfRangeException(nameof(speed));

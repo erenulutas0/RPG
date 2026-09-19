@@ -130,7 +130,7 @@ namespace Cryptforge.Tests
             var run = new RunState(10);
             var upgrades = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[]
             {
-                new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}", WeaponStat.Damage, new StatModifier(ModifierOperation.Flat, 5f), 5)
+                new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}", UpgradeStat.Damage, new StatModifier(ModifierOperation.Flat, 5f), 5)
             }, 2);
             var forge = new ForgeService(run, new HealthState(100f));
             var checkpoint = new CheckpointService(run);

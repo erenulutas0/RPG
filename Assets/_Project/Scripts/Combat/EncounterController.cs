@@ -312,7 +312,7 @@ namespace Cryptforge.Combat
                 enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier, healthPercent));
                 WeaponRuntime weapon = definition.Weapon.CreateRuntime();
                 if (damageBonus != 0f)
-                    weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+                    weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                 enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
                 enemy.GetComponent<AttackController>().Initialize(weapon);
                 int slot = _motion.Add(enemy, _placements[i], definition.MoveSpeed, weapon.Range);

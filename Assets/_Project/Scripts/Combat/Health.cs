@@ -7,6 +7,9 @@ namespace Cryptforge.Combat
     {
         private HealthState _state;
 
+        // The pure state behind this component, for the composition root that binds the run's stat sheet to it.
+        public HealthState State => _state;
+
         public float Current => _state?.Current ?? 0f;
         public float Maximum => _state?.Maximum ?? 0f;
         public bool IsAlive => _state != null && _state.IsAlive;

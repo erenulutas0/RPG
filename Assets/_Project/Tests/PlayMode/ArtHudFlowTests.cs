@@ -201,7 +201,7 @@ namespace Cryptforge.Tests
                 Assert.That(_setup.Upgrades.TrySelect(_setup.Upgrades.CurrentOffer, 0), Is.True);
             }
             _setup.Run.GrantBonusUpgrade();
-            Assert.That(_setup.Upgrades.CurrentOffer.Choices[0].Stat, Is.EqualTo(WeaponStat.AttackSpeed));
+            Assert.That(_setup.Upgrades.CurrentOffer.Choices[0].Stat, Is.EqualTo(UpgradeStat.AttackSpeed));
             GameObject first = GameObject.Find("Choice Button 1");
             Image icon = first.transform.Find("Choice Icon").GetComponent<Image>();
             Assert.That(icon.enabled, Is.True);

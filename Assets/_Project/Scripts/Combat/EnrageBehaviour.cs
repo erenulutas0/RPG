@@ -33,7 +33,7 @@ namespace Cryptforge.Combat
             if (_attack.Weapon == null || !_rule.Evaluate(_health.Current, _health.Maximum))
                 return;
 
-            _attack.Weapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, _attackSpeedBonus));
+            _attack.Weapon.AddModifier(UpgradeStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, _attackSpeedBonus));
             Enraged?.Invoke();
         }
     }

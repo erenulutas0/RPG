@@ -5,6 +5,7 @@ using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Economy;
 using Cryptforge.Progression;
+using Cryptforge.UI;
 using Cryptforge.Save;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -34,6 +35,8 @@ namespace Cryptforge.Core
 
         // The wave the hero is fighting, for the few systems that follow the fight itself rather than the run.
         public EncounterController Encounters => _encounters;
+        // What this run has grown about the hero itself; the weapon's own stats live on Weapon.
+        public HeroStats HeroStats { get; private set; }
         public RunState Run { get; private set; }
         public WeaponRuntime Weapon { get; private set; }
         // The hero's active ability this run, from the hero definition.
@@ -105,7 +108,16 @@ namespace Cryptforge.Core
             var options = new UpgradeOption[_upgrades.Length];
             for (int i = 0; i < _upgrades.Length; i++)
                 options[i] = _upgrades[i].CreateOption();
-            Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount);
+            // The run's stat sheet, bound to the three things that read it. HeroMovementInput builds the walk and the
+            // bar in its own Awake, which runs before this one, so both exist to bind now.
+            var movement = _hero.GetComponent<HeroMovementInput>();
+            HeroStats = new HeroStats(_heroDefinition.MaximumHealth,
+                movement != null ? movement.Motion.Speed : 2.5f,
+                movement != null ? movement.Stamina.Bar : HeroStamina.DefaultBar);
+            HeroStats.Changed += ApplyHeroStats;
+            ApplyHeroStats();
+            Weapon.Seed = Run.Seed;
+            Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount, HeroStats);
             Forge = new ForgeService(Run, _hero);
             Checkpoint = new CheckpointService(Run);
             Choices = new RunChoices(Upgrades, Forge, Checkpoint);
@@ -186,6 +198,13 @@ namespace Cryptforge.Core
         }
 
         // A failed write keeps the in-memory profile; the next change tries again.
+        private void ApplyHeroStats()
+        {
+            HeroMovementInput movement = _hero.GetComponent<HeroMovementInput>();
+            HeroStatsBinding.Apply(HeroStats, _hero.State, movement != null ? movement.Motion : null,
+                movement != null ? movement.Stamina : null);
+        }
+
         private void SaveProfile()
         {
             try

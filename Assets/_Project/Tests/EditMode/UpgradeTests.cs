@@ -10,11 +10,11 @@ namespace Cryptforge.Tests
     public sealed class UpgradeTests
     {
         private static UpgradeOption DamageOption(int maxStacks = 5) =>
-            new UpgradeOption("upgrade_damage", "Damage", "+{0:0} damage", WeaponStat.Damage,
+            new UpgradeOption("upgrade_damage", "Damage", "+{0:0} damage", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 5f), maxStacks);
 
         private static UpgradeOption SpeedOption(int maxStacks = 5) =>
-            new UpgradeOption("upgrade_attack_speed", "Speed", "+{0:0}% attack speed", WeaponStat.AttackSpeed,
+            new UpgradeOption("upgrade_attack_speed", "Speed", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.25f), maxStacks);
 
         [Test]
@@ -68,7 +68,7 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => new StatModifier((ModifierOperation)99, 1f));
             Assert.Throws<ArgumentOutOfRangeException>(() => new ModifiableStat(1f, 2f));
             Assert.Throws<ArgumentOutOfRangeException>(() => DamageOption(0));
-            Assert.Throws<ArgumentException>(() => new UpgradeOption("", "Damage", "", WeaponStat.Damage,
+            Assert.Throws<ArgumentException>(() => new UpgradeOption("", "Damage", "", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 1f), 1));
         }
 
@@ -79,8 +79,8 @@ namespace Cryptforge.Tests
             int changes = 0;
             weapon.StatsChanged += () => changes++;
 
-            weapon.AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Flat, 5f));
-            weapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 0.25f));
+            weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Flat, 5f));
+            weapon.AddModifier(UpgradeStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 0.25f));
 
             Assert.That(weapon.Damage, Is.EqualTo(15f));
             Assert.That(weapon.Interval, Is.EqualTo(0.64f).Within(1e-5f));
@@ -97,7 +97,7 @@ namespace Cryptforge.Tests
             var weapon = new WeaponRuntime(10f, 1f, 3f);
             var target = new HealthState(100f);
             weapon.TryAttack(target);
-            weapon.AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
+            weapon.AddModifier(UpgradeStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
 
             weapon.Tick(0.5f);
             Assert.That(weapon.TryAttack(target), Is.False, "The in-progress one-second cooldown is not shortened.");

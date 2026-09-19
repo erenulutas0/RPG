@@ -8,7 +8,7 @@ namespace Cryptforge.Progression
         public string Id { get; }
         public string DisplayName { get; }
         public string DescriptionFormat { get; }
-        public WeaponStat Stat { get; }
+        public UpgradeStat Stat { get; }
         public StatModifier Modifier { get; }
         public int MaxStacks { get; }
         // The id of a card that must hold at least one stack before this one is offered; null for none.
@@ -18,14 +18,14 @@ namespace Cryptforge.Progression
         public float DescriptionValue =>
             Modifier.Operation == ModifierOperation.Percent ? Modifier.Amount * 100f : Modifier.Amount;
 
-        public UpgradeOption(string id, string displayName, string descriptionFormat, WeaponStat stat,
+        public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
             StatModifier modifier, int maxStacks, string requiresId = null)
         {
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentException("Upgrade id is required.", nameof(id));
             if (requiresId != null && (requiresId.Length == 0 || requiresId == id))
                 throw new ArgumentException("A card may require another card, never nothing and never itself.", nameof(requiresId));
-            if (stat != WeaponStat.Damage && stat != WeaponStat.AttackSpeed)
+            if (!Enum.IsDefined(typeof(UpgradeStat), stat))
                 throw new ArgumentOutOfRangeException(nameof(stat));
             if (maxStacks < 1)
                 throw new ArgumentOutOfRangeException(nameof(maxStacks));

@@ -109,7 +109,7 @@ namespace Cryptforge.Tests
             Assert.That(offer, Is.Not.Null);
             for (int i = 0; i < offer.Choices.Count; i++)
             {
-                if (offer.Choices[i].Stat == WeaponStat.Damage)
+                if (offer.Choices[i].Stat == UpgradeStat.Damage)
                     _setup.Upgrades.TrySelect(offer, i);
             }
 

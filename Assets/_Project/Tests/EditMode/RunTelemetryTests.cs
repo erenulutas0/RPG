@@ -21,11 +21,11 @@ namespace Cryptforge.Tests
         private const string Floor2 = "floor_sunken_vaults";
 
         private static UpgradeOption Damage() =>
-            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0} damage per hit", WeaponStat.Damage,
+            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0} damage per hit", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 5f), 5);
 
         private static UpgradeOption Speed() =>
-            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", WeaponStat.AttackSpeed,
+            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.5f), 5);
 
         private static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);

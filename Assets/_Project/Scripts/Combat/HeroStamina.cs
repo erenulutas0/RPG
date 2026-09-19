@@ -20,7 +20,7 @@ namespace Cryptforge.Combat
         public const float DefaultEmptySpeed = 0.4f;
 
         // Seconds of walking a full bar buys.
-        public float Bar { get; }
+        public float Bar { get; private set; }
         // Bar-seconds restored for every second the hero stands still.
         public float Refill { get; }
         // What the hero's speed is multiplied by once the bar is empty.
@@ -64,6 +64,23 @@ namespace Cryptforge.Combat
             Current = moved
                 ? Math.Max(0f, Current - deltaTime)
                 : Math.Min(Bar, Current + deltaTime * Refill);
+            if (Current != was)
+                Changed?.Invoke();
+        }
+
+        // A card may lengthen the bar; what it adds arrives filled, as a longer bar with nothing in it would be a card
+        // that does nothing until the hero next stands still. Shortening it trims what is held to the new length.
+        public void SetBar(float bar)
+        {
+            if (!(bar > 0f) || float.IsInfinity(bar))
+                throw new ArgumentOutOfRangeException(nameof(bar));
+            if (bar == Bar)
+                return;
+
+            float gained = Math.Max(0f, bar - Bar);
+            Bar = bar;
+            float was = Current;
+            Current = Math.Min(bar, Current + gained);
             if (Current != was)
                 Changed?.Invoke();
         }

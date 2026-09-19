@@ -76,7 +76,7 @@ namespace Cryptforge.Tests
         [TestCase(-1f, 1f, 1f)]
         [TestCase(1f, float.NaN, 1f)]
         [TestCase(1f, 1f, float.PositiveInfinity)]
-        public void InvalidWeaponStatsAreRejected(float damage, float interval, float range)
+        public void InvalidUpgradeStatsAreRejected(float damage, float interval, float range)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new WeaponRuntime(damage, interval, range));
         }

@@ -72,6 +72,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/TargetingParityTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunRandomTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/OfferEngineTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/HeroStatsTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ChestRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FollowFramingTests.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Art/*.cs" />

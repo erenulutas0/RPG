@@ -12,6 +12,7 @@ namespace Cryptforge.Progression
     {
         private readonly RunState _run;
         private readonly WeaponRuntime _weapon;
+        private readonly HeroStats _heroStats;
         private readonly UpgradeOption[] _pool;
         private readonly int _choiceCount;
         private readonly Dictionary<UpgradeOption, int> _stacks = new Dictionary<UpgradeOption, int>();
@@ -28,10 +29,14 @@ namespace Cryptforge.Progression
         // immediately before OfferChanged, so a selection is always reported before the offer that follows it.
         public event Action<UpgradeOption, int> Selected;
 
-        public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount)
+        // heroStats may be omitted by a caller whose pool holds only weapon cards; one is made so a hero card can
+        // never find nothing to write to.
+        public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount,
+            HeroStats heroStats = null)
         {
             _run = run ?? throw new ArgumentNullException(nameof(run));
             _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
+            _heroStats = heroStats ?? new HeroStats(100f, 2.5f, HeroStamina.DefaultBar);
             if (pool == null)
                 throw new ArgumentNullException(nameof(pool));
             if (choiceCount < 1)
@@ -66,7 +71,10 @@ namespace Cryptforge.Progression
             CurrentOffer = null;
             _stacks[choice]++;
             _run.RecordUpgradeApplied();
-            _weapon.AddModifier(choice.Stat, choice.Modifier);
+            if (HeroStats.Owns(choice.Stat))
+                _heroStats.AddModifier(choice.Stat, choice.Modifier);
+            else
+                _weapon.AddModifier(choice.Stat, choice.Modifier);
             LastSelected = offer;
             CurrentOffer = CreateOffer();
             Selected?.Invoke(choice, slot);

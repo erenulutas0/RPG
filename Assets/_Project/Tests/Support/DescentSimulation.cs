@@ -196,11 +196,11 @@ namespace Cryptforge.Tests
         };
 
         public static UpgradeOption Damage() =>
-            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", WeaponStat.Damage,
+            new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Percent, 0.5f), 5);
 
         public static UpgradeOption Speed() =>
-            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", WeaponStat.AttackSpeed,
+            new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.5f), 5);
 
         public static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
@@ -256,7 +256,12 @@ namespace Cryptforge.Tests
             WeaponRuntime weapon = (heroWeapon ?? Sword()).CreateRuntime();
             AbilityRuntime burst = ability?.CreateRuntime();
             var hero = new HealthState(100f);
-            var upgrades = new UpgradeService(run, weapon, new[] { Damage(), Speed() }, 2);
+            // The budget is made first so the stat sheet starts from the bar this run actually carries; a caller that
+            // hands in its own bar (a test asking what the game was before the budget) must not have it overwritten.
+            HeroStamina heroStamina = stamina ?? new HeroStamina();
+            var heroStats = new HeroStats(100f, heroSpeed, heroStamina.Bar);
+            var upgrades = new UpgradeService(run, weapon, new[] { Damage(), Speed() }, 2, heroStats);
+            weapon.Seed = run.Seed;
             // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
             var picker = new CardPicker(upgrades, cardSlot, preferIds);
             var forge = new ForgeService(run, hero);
@@ -271,7 +276,10 @@ namespace Cryptforge.Tests
             // One hero, placed where every run starts and kept across waves, rooms and floors, as in the scene.
             var heroMotion = new HeroMotion(heroSpeed);
             // One movement budget for the whole run, as the scene keeps one on HeroMovementInput.
-            HeroStamina heroStamina = stamina ?? new HeroStamina();
+            // The sheet reaches the health, the walk and the bar through the one binder the scene also calls, so a card
+            // changes the same fight in both. Bound after all three exist and pushed once, as CombatSetup does.
+            heroStats.Changed += () => HeroStatsBinding.Apply(heroStats, hero, heroMotion, heroStamina);
+            HeroStatsBinding.Apply(heroStats, hero, heroMotion, heroStamina);
             heroMotion.Place(0f, 0f, Platform);
             RouteView view = route != null ? new RouteView() : null;
 
@@ -349,7 +357,7 @@ namespace Cryptforge.Tests
                     enemies[i] = new HealthState(FloorScaling.Health(pack[i].Health, floor.HealthMultiplier, 0f));
                     enemyWeapons[i] = new WeaponRuntime(pack[i].Damage, pack[i].Interval, pack[i].Reach, pack[i].InitialDelay);
                     if (damageBonus != 0f)
-                        enemyWeapons[i].AddModifier(WeaponStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+                        enemyWeapons[i].AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
                     enrages[i] = pack[i].EnrageAt > 0f ? new EnrageRule(pack[i].EnrageAt) : null;
                     motion.Add(enemies[i], placements[i], pack[i].Speed, pack[i].Reach);
                     steps.X[i] = steps.LastX[i] = motion.XOf(i);
@@ -454,7 +462,7 @@ namespace Cryptforge.Tests
             for (int i = 0; i < pack.Length; i++)
             {
                 if (enrages[i] != null && enrages[i].Evaluate(enemies[i].Current, enemies[i].Maximum))
-                    enemyWeapons[i].AddModifier(WeaponStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
+                    enemyWeapons[i].AddModifier(UpgradeStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
                 if (enemies[i].IsAlive || rewarded[i])
                     continue;
 

@@ -11,7 +11,7 @@ namespace Cryptforge.Content
         [SerializeField] private string _id;
         [SerializeField] private string _displayName;
         [SerializeField] private string _descriptionFormat;
-        [SerializeField] private WeaponStat _stat;
+        [SerializeField] private UpgradeStat _stat;
         [SerializeField] private ModifierOperation _operation;
         [SerializeField] private float _amount;
         [SerializeField, Min(1)] private int _maxStacks = 1;
@@ -21,7 +21,7 @@ namespace Cryptforge.Content
         public string Id => _id;
         public string DisplayName => _displayName;
         public string DescriptionFormat => _descriptionFormat;
-        public WeaponStat Stat => _stat;
+        public UpgradeStat Stat => _stat;
         public ModifierOperation Operation => _operation;
         public float Amount => _amount;
         public int MaxStacks => _maxStacks;

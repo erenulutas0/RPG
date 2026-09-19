@@ -12,7 +12,7 @@ namespace Cryptforge.Tests
     public sealed class OfferEngineTests
     {
         private static UpgradeOption Card(string id, int maxStacks = 5, string requires = null) =>
-            new UpgradeOption(id, id, "+{0:0}", WeaponStat.Damage, new StatModifier(ModifierOperation.Flat, 1f), maxStacks, requires);
+            new UpgradeOption(id, id, "+{0:0}", UpgradeStat.Damage, new StatModifier(ModifierOperation.Flat, 1f), maxStacks, requires);
 
         private static UpgradeOption[] Five() =>
             new[] { Card("a"), Card("b"), Card("c"), Card("d"), Card("e") };
