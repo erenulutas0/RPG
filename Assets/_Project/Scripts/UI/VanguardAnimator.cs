@@ -37,6 +37,12 @@ namespace Cryptforge.UI
             _targeting=root.GetComponent<Targeting>(); _health=root.GetComponent<Health>();
             _previous=root.position; _orb=parts[3].sprite; _litOrb=litOrb;
             _parts[0].sprite=art.Sword; _parts[1].sprite=art.Shield;
+            if (art.Staff != null)
+            {
+                _parts[2].sprite=art.Staff;
+                // The imported staff includes its crystal; retain the fallback renderer but never draw it twice.
+                _parts[3].enabled=false;
+            }
             var grip = new GameObject("Sword Grip");
             grip.transform.SetParent(body.transform, false);
             _grip = grip.AddComponent<SpriteRenderer>();
@@ -102,11 +108,13 @@ namespace Cryptforge.UI
             _body.transform.localScale=new Vector3(Mirrored?-1:1,1,1);
             _parts[0].sortingOrder=_body.sortingOrder+(FrontFacing?2:-1);
             _parts[1].sortingOrder=_body.sortingOrder+(FrontFacing?3:-1);
+            if (_art.Staff != null) _parts[2].sortingOrder=_body.sortingOrder+(FrontFacing?2:-1);
             // Reuse the authored knuckle pixels above the hilt. Rear equipment is already behind the body.
             _grip.sprite=frame.Grip;
             _grip.transform.localPosition=frame.GripOffset;
             _grip.sortingOrder=_body.sortingOrder+4;
-            _grip.enabled=FrontFacing && frame.Grip!=null && _parts[0].gameObject.activeInHierarchy;
+            _grip.enabled=FrontFacing && frame.Grip!=null && (_parts[0].gameObject.activeInHierarchy
+                || (_art.Staff!=null && _parts[2].gameObject.activeInHierarchy));
             _parts[0].transform.localPosition=frame.RightHand;
             _parts[1].transform.localPosition=frame.LeftHand;
             _parts[2].transform.localPosition=frame.RightHand;

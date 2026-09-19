@@ -217,6 +217,49 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
+        public IEnumerator PaintedStaffKeepsGripAcrossFacingsAndCastAndSurvivesReload()
+        {
+            TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { "weapon_staff" }, "weapon_staff"));
+            yield return SceneManager.LoadSceneAsync(ScenePath); yield return null; Bind();
+            var staff=GameObject.Find("Staff Shaft").GetComponent<SpriteRenderer>();
+            var orb=GameObject.Find("Staff Orb").GetComponent<SpriteRenderer>();
+            var sprite=_look.PaintedArt.Staff;
+            Assert.That(sprite, Is.Not.Null);
+            Assert.That(staff.sprite, Is.SameAs(sprite));
+            Assert.That(orb.enabled, Is.False, "The whole imported staff already contains the crystal.");
+            foreach(var direction in new[]{new Vector2(1,1),new Vector2(-1,1),new Vector2(1,-1),new Vector2(-1,-1)})
+            {
+                _movement.Hold(direction);
+                for(int i=0;i<12;i++)
+                {
+                    yield return null;
+                    var frame=_look.PaintedArt.GetFrame(_look.PaintedFrame,_look.FrontFacing);
+                    Assert.That(staff.transform.localPosition,Is.EqualTo((Vector3)frame.RightHand));
+                    Assert.That(staff.sortingOrder,Is.EqualTo(_body.sortingOrder+(_look.FrontFacing?2:-1)));
+                }
+                _movement.Release(); yield return null; yield return null;
+            }
+            Assert.That(_body.transform.Find("Sword Grip").GetComponent<SpriteRenderer>().enabled,Is.True);
+            _target.transform.position=_look.transform.position+new Vector3(-.2f,-.1f);
+            _attack.enabled=true;
+            for(int i=0;i<4;i++) yield return null;
+            Assert.That(_attack.AttackCount,Is.EqualTo(1));
+            Assert.That(Quaternion.Angle(staff.transform.localRotation,Quaternion.identity),Is.GreaterThan(1));
+            var rotation=staff.transform.localRotation;
+            Time.timeScale=0; yield return new WaitForSecondsRealtime(.05f);
+            Assert.That(staff.transform.localRotation,Is.EqualTo(rotation));
+            Assert.That(orb.enabled,Is.False);
+            Time.timeScale=1; _attack.enabled=false;
+            for(int i=0;i<20;i++) yield return null;
+            Assert.That(staff.transform.localRotation,Is.EqualTo(Quaternion.identity));
+            yield return SceneManager.LoadSceneAsync(ScenePath); yield return null;
+            yield return Resources.UnloadUnusedAssets();
+            Assert.That(Object.FindFirstObjectByType<HeroLookView>().PaintedArt.Staff,Is.SameAs(sprite));
+            Assert.That(sprite.texture.isReadable,Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
         public IEnumerator OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody()
         {
             foreach (string id in new[] { "weapon_staff", "weapon_daggers" })

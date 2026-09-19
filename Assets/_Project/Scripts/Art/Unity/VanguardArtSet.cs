@@ -24,8 +24,10 @@ namespace Cryptforge.Art
         [SerializeField] private Frame[] _frontFrames;
         [SerializeField] private Sprite _sword;
         [SerializeField] private Sprite _shield;
+        [SerializeField] private Sprite _staff;
         public Sprite Sword => _sword;
         public Sprite Shield => _shield;
+        public Sprite Staff => _staff;
         public Frame GetFrame(int index) => _frames[index];
         public Frame GetFrame(int index, bool front) => front && HasFrontFrames ? _frontFrames[index] : _frames[index];
         public bool HasFrontFrames => Complete(_frontFrames);

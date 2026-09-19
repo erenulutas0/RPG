@@ -658,3 +658,7 @@ Options: reuse the blue eight-arc ability artwork, retain the thick pixel blast,
 ## 2026-09-19 — Integrate Staff arcs with shared lifetime
 
 User explicitly requested installation of the Staff proof. Chose one cached immutable contour plus pooled scale/fade over seven generated frame textures, retaining the proof's visual identity and0.21s cosmetic duration. Keep the old impact-only size fraction and clamp; this is not an area telegraph and does not change damage reach. Ground sorting improves silhouette readability. StaffSplashTests cover real attack and ownership; full gate/device status in newest21–23 and staff-runtime-01/README.md.
+
+## 2026-09-19 — One-piece painted Staff equipment
+
+Choose the original whole Staff sprite over splitting the generated crystal and shaft. A single rigid sprite preserves registration through the existing cast lean and avoids a second visible orb. The shared optional VanguardArtSet reference preserves fallback behaviour; front knuckle overlay and rear depth follow the existing body poses. The tradeoff is that the old procedural orb's independent lit-sprite change is no longer visible; the painted crystal and already-integrated impact effect carry the violet identity. No balance or attack timing changes. Fixed source sampling and verification are recorded in ArtDirection/2026-09-19/staff-weapon-runtime-01/README.md.

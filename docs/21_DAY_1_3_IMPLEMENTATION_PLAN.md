@@ -1320,3 +1320,13 @@ Verified: .NET291/291, compile0 warnings/errors, EditMode306/306, PlayMode113/11
 Built-in image_gen produced a blue-steel/brass/violet Staff candidate and a targeted exterior-glow revision, saved unchanged in ArtDirection/2026-09-19/staff-weapon-01 with exact prompts, hashes, alpha measurements and a browser proportion/grip study beside the existing Vanguard. Prefer v2 for Unity sampling. Small alpha<=16 stray pixels make naive nonzero-alpha fitting unsuitable; source alpha is preserved. Grip(512,940),170–210CSS-pixel source heights and±14-degree lean are provisional browser placements, not verified runtime anchors. Existing shaft/orb split, cast-lit orb, finger occlusion and rear/mirrored continuity still need reconciliation.
 
 No runtime Assets/code/scene/APK or phone operation. No game suites repeated for source art; installed Staff-impact build7A107BD2 remains current. Next: fixed-registration real Unity idle/walk/cast sampling, then shared import and phone verification. See artifact README/PROMPTS for full scope and provenance.
+
+## Painted Staff equipment integration — 2026-09-19
+
+VanguardArtSet now borrows the fixed-registration Staff master through one optional shared 24x183 sprite at 128 PPU, bilinear, non-readable, Android ASTC4. VanguardAnimator follows existing right-hand anchors, keeps the whole crystal/shaft rigid during the unchanged cast lean, hides the old orb, extends the front knuckle overlay to Staff and places rear Staff behind the body. Art sets without Staff keep the procedural fallback. The crystal keeps its painted light; the old independent lit-orb swap is not shown. No scene, combat, movement, balance or camera change.
+
+Source, registration, four-facing Unity captures, reproducible tooling and limitations: ArtDirection/2026-09-19/staff-weapon-runtime-01/README.md. New VanguardAnimationTests case verifies grip/depth through four facings, no duplicate orb, real cast, pause/reset and shared asset survival after reload.
+
+Verified: .NET 291/291, compile zero warnings/errors, EditMode 306/306, PlayMode 114/114; Android exit 0. APK 24,752,344 bytes, SHA-256 `4A73EE71112FE26005D97A9AD4AE0E986C9A6EF4AD7F8E4ED434D1AB86EF2E42`; installed S23 base.apk matched. Primary/backup profiles unchanged. Physical in-game review awaits phone availability; installation is not a visual phone test. See latest Docs/23.
+
+Final graphics capture: 1/1, including four observed cast-lean frames (53 renders total). Static integrity: 443 unique project GUIDs, 1099 package GUIDs, 568 scene objects/components.

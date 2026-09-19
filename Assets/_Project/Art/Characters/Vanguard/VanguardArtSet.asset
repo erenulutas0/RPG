@@ -112,3 +112,4 @@ MonoBehaviour:
     GripOffset: {x: -0.15265012, y: 0.61328125}
   _sword: {fileID: 21300000, guid: b7996aab80f254f40bb3e2c608f52154, type: 3}
   _shield: {fileID: 21300000, guid: 5200d5d81ad172d4495c003563506036, type: 3}
+  _staff: {fileID: 21300000, guid: f836b39fc7021994ab018e4e7571f01a, type: 3}

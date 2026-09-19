@@ -1,6 +1,6 @@
 # Lossless format bridge only: unchanged PNG channels -> Unity RGBA staging; rendered BMP -> PNG evidence.
 # No resizing, painting, compositing, alpha replacement or colour grading happens here.
-param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite, [switch]$GruntMotion, [switch]$GruntPolish, [switch]$PlatformMaterial, [switch]$Chest, [switch]$ChestRuntime, [switch]$MovementHud, [switch]$AbilityRing, [switch]$AbilityRingRuntime, [switch]$AbilityPulse, [switch]$StaffSplash, [switch]$StaffSplashRuntime)
+param([ValidateSet('Source','Renders')][string]$Mode = 'Source', [switch]$Keyposes, [switch]$Integration, [switch]$Directions, [switch]$Mite, [switch]$GruntMotion, [switch]$GruntPolish, [switch]$PlatformMaterial, [switch]$Chest, [switch]$ChestRuntime, [switch]$MovementHud, [switch]$AbilityRing, [switch]$AbilityRingRuntime, [switch]$AbilityPulse, [switch]$StaffSplash, [switch]$StaffSplashRuntime, [switch]$StaffWeapon)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $conversionRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -18,6 +18,7 @@ if ($Mode -eq 'Source') {
     if ($GruntPolish) { $sourceFiles = @('../2026-09-17/grunt-motion-01/front-sheet-v2.png','../2026-09-17/grunt-polish-01/rear-sheet-v2.png','../2026-09-17/grunt-polish-01/passing-v2.png','../2026-09-17/grunt-polish-01/death-v1.png') }
     if ($PlatformMaterial) { $sourceFiles = @('../2026-09-17/platform-material-01/floor-v1.png','../2026-09-17/platform-material-01/floor-v2.png','../2026-09-17/platform-material-01/coping-v1.png','../2026-09-17/platform-material-01/wall-v1.png') }
     if ($Chest) { $rawFolder = Join-Path $conversionRoot 'TestResults/chest-source'; New-Item -ItemType Directory -Force -Path $rawFolder | Out-Null; $sourceFiles = @('../2026-09-18/chest-proof-01/chest-closed-v1.png','../2026-09-18/chest-proof-01/chest-opening-v1.png','../2026-09-18/chest-proof-01/chest-open-v1.png') }
+    if ($StaffWeapon) { $rawFolder = Join-Path $conversionRoot 'TestResults/staff-weapon-source'; New-Item -ItemType Directory -Force -Path $rawFolder | Out-Null; $sourceFiles = @('../2026-09-19/staff-weapon-01/staff-v2.png') }
     foreach ($relative in $sourceFiles) {
         $name = Split-Path $relative -Leaf
         $bitmap = [System.Drawing.Bitmap]::new((Join-Path $conversionRoot "ArtDirection/2026-09-16/$relative"))
@@ -51,6 +52,7 @@ if ($Mode -eq 'Source') {
     if ($AbilityPulse) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/ability-pulse-01' }
     if ($StaffSplash) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/staff-splash-01' }
     if ($StaffSplashRuntime) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/staff-runtime-01' }
+    if ($StaffWeapon) { $renders = Join-Path $conversionRoot 'ArtDirection/2026-09-19/staff-weapon-runtime-01' }
     foreach ($file in Get-ChildItem -LiteralPath $renders -Filter '*.bmp' -File) {
         $bitmap = [System.Drawing.Bitmap]::new($file.FullName)
         try { $bitmap.Save([System.IO.Path]::ChangeExtension($file.FullName,'png'),[System.Drawing.Imaging.ImageFormat]::Png) }

@@ -991,3 +991,11 @@ Committed device/staff.mp4 is a540px-wide H264 transcode at unchanged speed; dev
 ## Staff weapon art-only study — 2026-09-19
 
 No device operation or new APK in this slice. Source artwork/browser proof in ArtDirection/2026-09-19/staff-weapon-01. Prior installed Staff-impact7A107BD2 and prior observed profile154/11616gold/Daggers/Second Wind remain historical; inspect fresh before future use.
+
+## Painted Staff APK installed; live review pending — 2026-09-19
+
+S23 RFCW20W2WFX was connected, awake and unlocked, with a non-game app focused. Asked whether the phone would be available for a live test; no reply at time of installation. Announced update without opening the game, then `adb install --no-streaming -r` succeeded. No launch, tap, swipe, screenshot, recording, proof flag, save edit or restore. Existing app use was left alone. Installed base.apk SHA-256 matches `4A73EE71112FE26005D97A9AD4AE0E986C9A6EF4AD7F8E4ED434D1AB86EF2E42` (local APK 24,752,344 bytes). Gate: .NET291, compile clean, EditMode306, PlayMode114, Android exit0.
+
+Fresh preinstall primary/backup pulled to ignored TestResults/staff-weapon-device-2026-09-19/before. Stored state is revision163 /12570 gold /Staff /Counterweight, both weapons/relics owned, deepest floor2. After-install hashes exactly match before: primary `F00D6D5854672A14D6A32FAED9E62BB7C6C3689C77750647941A9F7BF5FC3B29`, backup `C09418B3C0FED76D75432B2E6D8584D707B07D83104809DAA804CA6148E41C09`. Development folder was empty. These fresh values supersede older profile154/Daggers entries; no rollback.
+
+Next: when the phone is available, launch Cryptforge and review the already-equipped Staff in motion/cast/front/rear, using focus/awake/keyguard guards. This slice establishes installation and Editor visuals, not physical appearance/performance. Daggers and remaining art stay separate.
