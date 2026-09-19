@@ -229,3 +229,6 @@ P3 Growth:
 
 - [x] Compare ability-ring contours in the actual Unity room at two portrait sizes, ready/cooling and rim positions (2026-09-19).
 - [x] Integrate preferred eight-arc ring with shared lifetime and validate actual ability use/movement on S23 (2026-09-19).
+
+- [x] Replace the ability cast's thick pixel burst with a pooled expanding/fading ground contour; retain immediate damage and0.21s lifetime; verify Unity and S23 (2026-09-19).
+- [ ] Match the separate Staff splash and remaining weapon/effect artwork to the painted presentation.

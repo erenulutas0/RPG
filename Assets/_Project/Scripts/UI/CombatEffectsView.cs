@@ -24,6 +24,8 @@ namespace Cryptforge.UI
             public float Gravity;
             public bool Active;
             public bool Fade;
+            public bool AbilityPulse;
+            public float PulseRadius;
         }
 
         private sealed class Number
@@ -108,6 +110,7 @@ namespace Cryptforge.UI
         private readonly List<Sprite> _sprites = new List<Sprite>();
         private Sprite[] _slash;
         private Sprite[] _ring;
+        private Sprite[] _abilityPulse;
         private Sprite[] _doubleSlash;
         private Sprite[] _star;
         private Sprite[] _spark;
@@ -230,6 +233,7 @@ namespace Cryptforge.UI
         {
             _slash = UsesPaintedStrikes ? _paintedArt.Slash : Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
             _ring = Build(EffectArt.RingFrames(), "VFX Blast Ring", PixelSpriteFactory.Centre);
+            _abilityPulse = new[] { AbilityRingArt.Get() }; // Borrowed; never added to _sprites.
             _doubleSlash = Build(EffectArt.DoubleSlashFrames(), "VFX Double Slash", PixelSpriteFactory.Centre);
             _star = Build(EffectArt.StarBurstFrames(), "VFX Crit Star", PixelSpriteFactory.Centre);
             _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
@@ -432,8 +436,12 @@ namespace Cryptforge.UI
         // The burst's ring covers the ability's whole radius, unlike the staff's, which shows only part of its splash.
         private void OnAbilityUsed()
         {
-            float scale = _heroAbility.Ability.Radius * PixelSpriteFactory.PixelsPerUnit / EffectArt.RingFullRadius;
-            Show(_ring, RingFrameDuration, _hero.transform.position, _sortingOrder + RingOrder, scale);
+            float radius = _heroAbility.Ability.Radius;
+            Effect pulse = ShowMoving(_abilityPulse, .21f, .21f, _hero.transform.position, 0,
+                Vector3.zero, 0f, false, radius * .6f);
+            pulse.AbilityPulse = true;
+            pulse.PulseRadius = radius;
+            pulse.Renderer.color = new Color(1f, 1f, 1f, .85f);
         }
 
         private void OnEnemyDefeated(Health enemy)
@@ -492,6 +500,8 @@ namespace Cryptforge.UI
             effect.Gravity = gravity;
             effect.Active = true;
             effect.Fade = false;
+            effect.AbilityPulse = false;
+            effect.PulseRadius = 0f;
             effect.Transform.position = origin;
             effect.Transform.localRotation = Quaternion.identity;
             effect.Transform.localScale = new Vector3(scale, scale, 1f);
@@ -553,6 +563,14 @@ namespace Cryptforge.UI
                 Sprite sprite = effect.Frames[frame];
                 if (!ReferenceEquals(effect.Renderer.sprite, sprite))
                     effect.Renderer.sprite = sprite;
+                if (effect.AbilityPulse)
+                {
+                    float progress = Mathf.Clamp01(effect.Elapsed / .14f);
+                    float radius = effect.PulseRadius * Mathf.Lerp(.6f, 1f, 1f - (1f - progress) * (1f - progress));
+                    effect.Transform.localScale = new Vector3(radius, radius, 1f);
+                    float alpha = .85f * Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .11f);
+                    effect.Renderer.color = new Color(1f, 1f, 1f, alpha);
+                }
                 if (effect.Fade) effect.Renderer.color = new Color(1, 1, 1, Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .16f));
                 if (effect.Gravity != 0f || effect.Velocity != Vector3.zero)
                 {

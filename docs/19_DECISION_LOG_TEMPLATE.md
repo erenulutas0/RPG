@@ -646,3 +646,7 @@ Prefer a strengthened eight-arc contour with small inward lozenges over many sho
 ## 2026-09-19 — One shared unit-radius ability contour
 
 Integrate the selected eight-arc marker as deterministic code-native geometry. One unit-radius sprite plus per-view scaling has bounded memory independent of ability radii and avoids generation on scene reload. Keep current cast/cooldown semantics and independent ground sorting. Test the contour radius rather than transparent texture bounds. The first-session texture is RGBA32/non-readable with 0.5MiB raw GPU payload; this is not a compressed imported sprite or a frame-time claim. Runtime evidence: ArtDirection/2026-09-19/ability-ring-runtime-01/.
+
+## 2026-09-19 — Reuse the range contour for the cast pulse
+
+A short expansion/fade of the shared arc sprite replaces the blocky ability burst. Chose this over a new sprite sheet because it matches the accepted visual language exactly, avoids extra texture memory and allows smooth timing. Keep damage immediate, origin fixed, total lifetime0.21s and existing pool. Ground sorting prevents the line crossing over bodies. This is feedback for an instant attack, not a travelling damage wave. Staff splash is separate scope.

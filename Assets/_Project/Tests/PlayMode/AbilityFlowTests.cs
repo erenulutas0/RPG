@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Cryptforge.Combat;
 using Cryptforge.Art;
 using Cryptforge.Core;
@@ -170,6 +171,34 @@ namespace Cryptforge.Tests
             Assert.That(fresh, Is.Not.Null);
             Assert.That(fresh, Is.Not.SameAs(old));
             Assert.That(AbilityRingArt.Get(), Is.SameAs(fresh));
+        }
+        [UnityTest]
+        public IEnumerator TheCastPulseExpandsAtItsOriginPausesAndExpiresWithoutOwningArt()
+        {
+            _heroAttack.enabled = false;
+            _encounters.enabled = false;
+            Time.timeScale = 0;
+            Vector3 origin = _hero.transform.position;
+            Assert.That(_ability.TryUse(), Is.True);
+            var pulse = GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>()
+                .Single(r => r.enabled && r.sprite == AbilityRingArt.Get());
+            Assert.That(pulse.sortingOrder, Is.Zero, "Ground effect below actor groups.");
+            Assert.That(pulse.transform.localScale.x, Is.EqualTo(_ability.Ability.Radius * .6f).Within(.0001f));
+            Vector3 initialScale = pulse.transform.localScale;
+            Color initialColor = pulse.color;
+            _hero.transform.position += Vector3.right;
+            yield return new WaitForSecondsRealtime(.15f);
+            Assert.That(pulse.transform.position, Is.EqualTo(origin), "A cast stays at its cast origin.");
+            Assert.That(pulse.transform.localScale, Is.EqualTo(initialScale));
+            Assert.That(pulse.color, Is.EqualTo(initialColor));
+            Time.timeScale = 1;
+            yield return null;
+            Assert.That(pulse.transform.localScale.x, Is.GreaterThan(initialScale.x));
+            Assert.That(pulse.transform.localScale.x, Is.LessThanOrEqualTo(_ability.Ability.Radius));
+            yield return new WaitForSeconds(.25f);
+            Assert.That(pulse.enabled, Is.False);
+            Assert.That(AbilityRingArt.Get(), Is.Not.Null);
+            LogAssert.NoUnexpectedReceived();
         }
         private static bool WithinReach(Health enemy, float radius)
         {
