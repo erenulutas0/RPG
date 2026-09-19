@@ -153,11 +153,12 @@ namespace Cryptforge.Tests
         private IEnumerator PlayProof(string weaponId, DescentSimulation.HeroWeapon weapon, IHeroRoute route)
         {
             DescentSimulation.Result expected = DescentSimulation.Run(
-                new[] { DescentSimulation.DensityProofTrailing }, 0, true, null, weapon, route: route);
+                new[] { DescentSimulation.DensityProofTrailing }, 0, true, null, weapon, route: route, seed: DevelopmentSeed);
 
             TestProfile.Begin(new PlayerProfile(0, null, null, 0,
                 weaponId != null ? new[] { weaponId } : null, weaponId));
             WriteStartFloor(ProofFloorId);
+            WriteRunSeed(DevelopmentSeed);
             _previousFrameRate = Application.targetFrameRate;
             Time.timeScale = 1f;
             Time.captureDeltaTime = 1f / 60f;
@@ -176,6 +177,8 @@ namespace Cryptforge.Tests
                 "driver has to steer from the frame the wave spawns in, or the walk starts behind the simulation's. " +
                 "Drive the route from a MonoBehaviour with [DefaultExecutionOrder(-70)] rather than loosening this.");
             Assert.That(_spawnFloorId, Is.EqualTo(ProofFloorId), "The scene started on the development proof floor.");
+            Assert.That(_setup.Run.Seed, Is.EqualTo(DevelopmentSeed),
+                "The scene took its run seed from development/run-seed.txt, so its offers are the simulation's.");
             Assert.That(_spawnCount, Is.EqualTo(ProofWaveSize), "The proof wave holds ten enemies.");
             Assert.That(_spawnHeroAt, Is.EqualTo(Vector3.zero), "The run starts at the arena's centre.");
             Assert.That(_closestSpawnDistance, Is.GreaterThanOrEqualTo(EntrySides.MinimumEntryDistance),
@@ -442,6 +445,16 @@ namespace Cryptforge.Tests
             string path = DevelopmentStart.StartFloorPath;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, floorId + Environment.NewLine);
+        }
+
+        // A fixed seed for both sides. With two cards and two choices nothing is drawn yet, but the plumbing is proven.
+        private const int DevelopmentSeed = 2026;
+
+        private static void WriteRunSeed(int seed)
+        {
+            string path = DevelopmentStart.RunSeedPath;
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, seed.ToString(CultureInfo.InvariantCulture) + Environment.NewLine);
         }
     }
 }

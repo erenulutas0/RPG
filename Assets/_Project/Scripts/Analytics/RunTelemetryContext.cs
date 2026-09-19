@@ -28,6 +28,8 @@ namespace Cryptforge.Analytics
         // PlayerProfile.Gold and DeepestFloorCleared as they were when the run started.
         public int ForgeGold;
         public int DeepestFloorCleared;
+        // RunState.Seed, recorded so the run's offers can be reproduced from the log.
+        public int Seed;
 
         // The id of the enemy that last hit the hero, or null; read once when a defeat ends the run.
         public Func<string> KillerId;

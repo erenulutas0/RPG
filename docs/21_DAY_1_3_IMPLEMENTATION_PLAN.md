@@ -1354,3 +1354,65 @@ VanguardArtSet gains one optional shared dagger sprite (fixed20x64/128PPU, bilin
 New VanguardAnimationTests case covers both hand anchors through four directions, immediate real attack/angular reaction, pause, recovery, death hiding and borrowed sprite survival across reload. Reproducible import and actual runtime capture tools are in Tools/ArtReview; 53 images are in ArtDirection/2026-09-19/daggers-runtime-01. The source master remains unchanged. The old large pixel hit effect and final arm animation remain open.
 
 Verified: .NET291/291, compile0 warnings/errors, EditMode306/306, PlayMode115/115, actual runtime graphics1/1, integrity444project GUIDs/1099package GUIDs/568scene objects; Android exit0. APK24,752,344bytes SHA256 `62D5A2707299AB8865B581ED3B5FD69F135EB727E8D562362F997B7F6055D603`; installed S23 base.apk matched. No live phone visual test yet: phone was in another app and availability question has no reply. Profiles unchanged; newest Docs/23 records details. Existing full suite counts supersede earlier proof-only checks.
+
+## S1 — the offer engine and the run seed — 2026-09-19
+
+**Why.** docs/27 redraws the roadmap around Megabonk and Bones and Coins; S1 is its first slice, and the handoff
+prompt's first priority. It changes nothing a player can see, because the pool still holds two cards and the game
+offers two, and that is deliberate: it is the foundation the stat sheet (S2), books from chests (S3) and Forge Pulse
+(S5) stand on, and it makes every offer reproducible from one recorded number. Every pinned balance figure is
+bit-identical by construction.
+
+**The rule.** `RunState` carries a `Seed`. `RunRandom` (`Scripts/Progression`) is the run's only source of randomness:
+a SplitMix-style generator over 32-bit unsigned integers, integer arithmetic only, so Mono, .NET and IL2CPP cannot
+disagree about a draw. Streams are derived, never consumed in sequence — `RunRandom.Stream(seed, purpose, index)` —
+with a purpose constant per consumer (`Offers` now, `Chests` reserved) and the consumer's own index, so a chest opened
+between two level-ups never moves the second one. `NextBelow(n)` is unbiased.
+
+`UpgradeService.CreateOffer()` builds the eligible list in pool order: below `MaxStacks`, and if the card names a
+prerequisite (`UpgradeOption.RequiresId`, `UpgradeDefinition._requires`), that card holds a stack. An eligible list no
+larger than the choice count is offered whole, in pool order, consuming no randomness; otherwise `choiceCount` distinct
+cards are drawn without replacement from the stream `(seed, Offers, offerIndex)`. `UpgradeOffer.Index` counts the
+run's offers from zero; `UpgradeService.LastSelected` remembers the offer a pick came from.
+
+The scene seeds the run in `CombatSetup`: from `<profile folder>/development/run-seed.txt` when it exists (Editor and
+development builds only, same rules as `start-floor.txt`; a whole number, or any text hashed — `RunSeeds.Parse`), else
+`RunSeeds.Fresh()` from the clock and uptime. `DescentSimulation.Run` takes `seed` and `preferIds`, a card policy by id
+that survives a pool larger than the choice count; a `CardPicker` replaces the bare slot inside the simulation.
+
+**Telemetry.** `run_start` gains `seed`; `upgrade_offered` and `upgrade_selected` gain `offer_index`. No profile change,
+no save-format change.
+
+**Tests.** `RunRandomTests` (six): the same stream yields the same words; three streams' first four words pinned as
+numbers; six known draws below six pinned; streams torn apart by purpose, by index and by seed; five thousand draws
+below five stay in range and land within a tenth of even; a count of one consumes nothing and bad arguments are
+refused. `OfferEngineTests` (eight, over a synthetic pool of five with two choices): the same seed shows the same cards
+at every level; different seeds differ; an offer never repeats a card and only shows eligible ones, over forty seeds;
+a maxed card leaves the pool and a prerequisite gates its dependant; a pool no larger than the choice count is offered
+whole in pool order whatever the seed, and still counts its index; a draw on the chest stream between two offers moves
+neither; the selected offer is remembered; a card cannot require itself. `UpgradeTests` re-states one claim: two
+eligible cards for one slot is now a draw, one card from the pool and the same card for the same seed, where it used
+to be the first in pool order. `RunTelemetryTests` re-pin the new fields. `DensityProofParityTests` writes
+`run-seed.txt` into its profile folder, hands the same seed to the simulation and asserts the scene took it, so the
+plumbing is proven end to end even while nothing is drawn.
+
+Files changed: `Scripts/Core/RunState.cs`, `Scripts/Core/DevelopmentStart.cs`, `Scripts/Core/CombatSetup.cs`,
+`Scripts/Progression/UpgradeOption.cs`, `UpgradeOffer.cs`, `UpgradeService.cs`, `Scripts/Content/UpgradeDefinition.cs`,
+`Scripts/Analytics/RunTelemetry.cs`, `RunTelemetryContext.cs`, `Tests/Support/DescentSimulation.cs`,
+`Tests/EditMode/UpgradeTests.cs`, `RunTelemetryTests.cs`, `Tests/PlayMode/DensityProofParityTests.cs`,
+`Tools/CombatChecks/CombatChecks.csproj`. Added: `Scripts/Progression/RunRandom.cs`, `Scripts/Core/RunSeeds.cs`,
+`Tests/EditMode/RunRandomTests.cs`, `OfferEngineTests.cs` and their metadata. No scene, data, art or HUD change.
+
+**Not in this slice.** Rarity: a rarity that scales nothing would be a lie on a card, so magnitudes wait for S2's stat
+sheet, where each card defines its tiers. New cards, stats beyond Damage and AttackSpeed, chests, Luck. Exact run replay
+from the seed is not claimed and never will be: the finger is not seeded. `SimulationParityTests` still runs the
+authored Descent without a chosen seed, which is correct while nothing is drawn and must change with S2.
+
+**Handoff for Astra (contracts that changed).** Upgrade ids are unchanged: `upgrade_damage`, `upgrade_attack_speed`.
+Two telemetry events grew a field, `offer_index`, and `run_start` grew `seed`; nothing was renamed. `UpgradeOffer` has
+an `Index`; `UpgradeService` has `LastSelected`; `UpgradeDefinition` has an optional `Requires` reference an author can
+set in the Inspector. No timing or presentation changed. Future visual needs, none blocking: rarity on the choice cards
+(S2), a book inside the chest's opening frames (S3), a swarm clock and a leave prompt (S4), a stat readout on the pause
+screen (S2).
+
+**Verified:** .NET **307/307**, compile **0 warnings/errors**, EditMode **322/322**, PlayMode **115/115**, Android build exit **0**, static integrity **449 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,157,379 bytes**, SHA-256 **`2F5311CA802B17573D789A67EF774E07A7D33386BEFDB6C6A0DDFDA9FC24C240`**, built, **not installed**. Note on size: builds since 2026-09-18 have alternated between about 24.7 and 29.2 MB with no corresponding source change; the earlier note calling the larger size transient was premature, and the cause has not been investigated.

@@ -17,6 +17,8 @@ namespace Cryptforge.Core
     {
         public const string FolderName = "development";
         public const string StartFloorFileName = "start-floor.txt";
+        // A run seed, so two development runs can be handed the same offers: a whole number, or any text, hashed.
+        public const string RunSeedFileName = "run-seed.txt";
         // The Resources subfolder the development-only floors live in; nothing else may live there, because every floor in
         // it is a candidate and Resources folders ship with the build whether or not anything reads them.
         public const string ResourcesFolder = "Development";
@@ -24,6 +26,22 @@ namespace Cryptforge.Core
         // Inside the profile folder but apart from the profile files, like the telemetry folder, so a scene test that
         // points the profile at a temporary folder writes and deletes this with it.
         public static string StartFloorPath => Path.Combine(ProfileLocation.Resolve(), FolderName, StartFloorFileName);
+        public static string RunSeedPath => Path.Combine(ProfileLocation.Resolve(), FolderName, RunSeedFileName);
+
+        // The seed the file names, under the same rules as the floor: only the Editor and a development build look, and
+        // a missing, empty or unreadable file means no seed was chosen.
+        public static bool TryRunSeed(out int seed)
+        {
+            seed = 0;
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return false;
+
+            string text = ReadFirstLine(RunSeedPath);
+            if (string.IsNullOrEmpty(text))
+                return false;
+            seed = RunSeeds.Parse(text);
+            return true;
+        }
 
         // The floor a run starts on: the one the file names, when this is the Editor or a development build and the id
         // matches a floor in Resources/Development; the authored floor in every other case. Resources are only touched
@@ -49,11 +67,12 @@ namespace Cryptforge.Core
         // The first non-empty trimmed line of the file, or null when there is no file or nothing readable in it. Every
         // failure a path from outside this code can produce is swallowed, not only the two the storage itself raises:
         // an exception here would end the run inside Awake, before the player ever sees the arena.
-        private static string ReadStartFloorId()
+        private static string ReadStartFloorId() => ReadFirstLine(StartFloorPath);
+
+        private static string ReadFirstLine(string path)
         {
             try
             {
-                string path = StartFloorPath;
                 if (!File.Exists(path))
                     return null;
 

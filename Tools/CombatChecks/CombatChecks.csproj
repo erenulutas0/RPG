@@ -38,6 +38,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/ChestRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/RunSeeds.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunPause.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
@@ -69,6 +70,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/DensityProofTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HeroStaminaTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/TargetingParityTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RunRandomTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/OfferEngineTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ChestRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FollowFramingTests.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Art/*.cs" />

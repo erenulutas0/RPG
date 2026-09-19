@@ -15,8 +15,11 @@ namespace Cryptforge.Progression
         private readonly UpgradeOption[] _pool;
         private readonly int _choiceCount;
         private readonly Dictionary<UpgradeOption, int> _stacks = new Dictionary<UpgradeOption, int>();
+        private int _offersCreated;
 
         public UpgradeOffer CurrentOffer { get; private set; }
+        // The offer the last accepted choice came from, for whoever reports the pick after CurrentOffer has moved on.
+        public UpgradeOffer LastSelected { get; private set; }
         public IReadOnlyList<UpgradeOption> Pool { get; }
         public event Action OfferChanged;
 
@@ -64,6 +67,7 @@ namespace Cryptforge.Progression
             _stacks[choice]++;
             _run.RecordUpgradeApplied();
             _weapon.AddModifier(choice.Stat, choice.Modifier);
+            LastSelected = offer;
             CurrentOffer = CreateOffer();
             Selected?.Invoke(choice, slot);
             OfferChanged?.Invoke();
@@ -90,20 +94,49 @@ namespace Cryptforge.Progression
             OfferChanged?.Invoke();
         }
 
+        // The eligible cards are those below their stack limit whose prerequisite, if any, holds a stack. When they are
+        // no more than the choice count they are offered whole, in pool order, and no randomness is consumed - which is
+        // the game as it was with two cards, so every number pinned before the engine existed still holds. Otherwise the
+        // offer draws that many distinct cards from the stream (seed, offers, index), so a chest opened between two
+        // level-ups never moves the second one.
         private UpgradeOffer CreateOffer()
         {
             if (_run.HasEnded || _run.PendingUpgrades <= 0)
                 return null;
 
-            // Deterministic pool order until encounter pacing justifies weighted random offers.
-            var choices = new List<UpgradeOption>(_choiceCount);
-            for (int i = 0; i < _pool.Length && choices.Count < _choiceCount; i++)
+            var eligible = new List<UpgradeOption>(_pool.Length);
+            for (int i = 0; i < _pool.Length; i++)
             {
-                if (_stacks[_pool[i]] < _pool[i].MaxStacks)
-                    choices.Add(_pool[i]);
+                UpgradeOption option = _pool[i];
+                if (_stacks[option] < option.MaxStacks && (option.RequiresId == null || StacksOfId(option.RequiresId) > 0))
+                    eligible.Add(option);
             }
+            if (eligible.Count == 0)
+                return null;
 
-            return choices.Count > 0 ? new UpgradeOffer(choices) : null;
+            int index = _offersCreated++;
+            if (eligible.Count <= _choiceCount)
+                return new UpgradeOffer(eligible, index);
+
+            RunRandom stream = RunRandom.Stream(_run.Seed, RunRandom.Offers, index);
+            var choices = new List<UpgradeOption>(_choiceCount);
+            for (int i = 0; i < _choiceCount; i++)
+            {
+                int pick = stream.NextBelow(eligible.Count);
+                choices.Add(eligible[pick]);
+                eligible.RemoveAt(pick);
+            }
+            return new UpgradeOffer(choices, index);
+        }
+
+        private int StacksOfId(string id)
+        {
+            for (int i = 0; i < _pool.Length; i++)
+            {
+                if (_pool[i].Id == id)
+                    return _stacks[_pool[i]];
+            }
+            return 0;
         }
     }
 }

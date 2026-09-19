@@ -69,6 +69,7 @@ namespace Cryptforge.Analytics
         private readonly string _abilityId;
         private readonly int _forgeGold;
         private readonly int _deepestFloorCleared;
+        private readonly int _seed;
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
         private readonly StringBuilder _choiceIds = new StringBuilder();
@@ -146,6 +147,7 @@ namespace Cryptforge.Analytics
                 throw new ArgumentOutOfRangeException(nameof(context), "RunTelemetryContext.DeepestFloorCleared cannot be negative.");
             _forgeGold = context.ForgeGold;
             _deepestFloorCleared = context.DeepestFloorCleared;
+            _seed = context.Seed;
             // Emitting before session_start throws in the session; refusing here keeps that out of every handler.
             if (!_session.HasStarted)
                 throw new ArgumentException("Start the telemetry session before recording a run.", nameof(context));
@@ -169,7 +171,8 @@ namespace Cryptforge.Analytics
                 .Add("relic_id", _relicId)
                 .Add("ability_id", _abilityId)
                 .Add("forge_gold", _forgeGold)
-                .Add("deepest_floor", _deepestFloorCleared));
+                .Add("deepest_floor", _deepestFloorCleared)
+                .Add("seed", _seed));
 
             // A run that already ended missed its Ended event; close it now so the log never shows it as still running.
             if (_run.HasEnded)
@@ -576,7 +579,8 @@ namespace Cryptforge.Analytics
             _session.Emit("upgrade_offered", new TelemetryFields()
                 .Add("choice_ids", _choiceIds.ToString())
                 .Add("run_level", _run.Level)
-                .Add("pending", _run.PendingUpgrades));
+                .Add("pending", _run.PendingUpgrades)
+                .Add("offer_index", offer.Index));
         }
 
         private void OnUpgradeSelected(UpgradeOption option, int slot)
@@ -588,7 +592,8 @@ namespace Cryptforge.Analytics
                 .Add("upgrade_id", option.Id)
                 .Add("choice_slot", slot)
                 .Add("run_level", _run.Level)
-                .Add("stacks", _upgrades.StacksOf(option)));
+                .Add("stacks", _upgrades.StacksOf(option))
+                .Add("offer_index", _upgrades.LastSelected != null ? _upgrades.LastSelected.Index : -1));
         }
 
         private void OnForgeSelected(ForgeOption option, int slot)

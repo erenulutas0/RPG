@@ -252,7 +252,14 @@ namespace Cryptforge.Tests
             var service = new UpgradeService(run, weapon, new[] { damage, SpeedOption() }, 1);
             run.AddExperience(10);
 
-            Assert.That(service.CurrentOffer.Choices, Is.EqualTo(new[] { damage }));
+            // Two eligible cards for one slot is a draw from the run's seed (OfferEngineTests): one card, from the pool,
+            // and the same card for the same seed.
+            Assert.That(service.CurrentOffer.Choices, Has.Count.EqualTo(1));
+            Assert.That(new[] { damage.Id, "upgrade_attack_speed" }, Does.Contain(service.CurrentOffer.Choices[0].Id));
+            var sameSeed = new RunState(10);
+            var again = new UpgradeService(sameSeed, new WeaponRuntime(10f, 0.8f, 3f), new[] { DamageOption(), SpeedOption() }, 1);
+            sameSeed.AddExperience(10);
+            Assert.That(again.CurrentOffer.Choices[0].Id, Is.EqualTo(service.CurrentOffer.Choices[0].Id));
             Assert.Throws<ArgumentException>(() => new UpgradeService(run, weapon, new[] { damage, damage }, 2));
             Assert.Throws<ArgumentOutOfRangeException>(() => new UpgradeService(run, weapon, new[] { damage }, 0));
         }

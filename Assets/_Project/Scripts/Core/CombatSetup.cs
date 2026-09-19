@@ -88,7 +88,9 @@ namespace Cryptforge.Core
             _attack.Initialize(Weapon);
             Ability = _heroDefinition.Ability.CreateRuntime();
             _ability.Initialize(Ability);
-            Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth);
+            // A development file may choose the seed; otherwise a fresh one. Either way it is recorded on run_start.
+            int seed = DevelopmentStart.TryRunSeed(out int chosen) ? chosen : RunSeeds.Fresh();
+            Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth, seed);
             _rewards = new RewardService(Run);
             // Created before any view subscribes to Run.Ended, so banked gold reaches the profile before results show.
             Bank = new RunBank(Run, Profile);
@@ -144,6 +146,7 @@ namespace Cryptforge.Core
                 AbilityId = _heroDefinition.Ability.Id,
                 ForgeGold = Profile.Gold,
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
+                Seed = Run.Seed,
                 KillerId = () => LastAttacker != null ? LastAttacker.Id : null,
                 HeroHealth = () => _hero.Current
             };

@@ -249,14 +249,16 @@ namespace Cryptforge.Tests
         public static Result Run(Floor[] floors, int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null,
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
-            HeroStamina stamina = null)
+            HeroStamina stamina = null, int seed = 0, string[] preferIds = null)
         {
-            var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth);
+            var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
             WeaponRuntime weapon = (heroWeapon ?? Sword()).CreateRuntime();
             AbilityRuntime burst = ability?.CreateRuntime();
             var hero = new HealthState(100f);
             var upgrades = new UpgradeService(run, weapon, new[] { Damage(), Speed() }, 2);
+            // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
+            var picker = new CardPicker(upgrades, cardSlot, preferIds);
             var forge = new ForgeService(run, hero);
             var choices = new RunChoices(upgrades, forge);
             RelicRuntime relic = relicOption != null ? new RelicRuntime(relicOption) : null;
@@ -275,7 +277,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, cardSlot, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -306,7 +308,7 @@ namespace Cryptforge.Tests
         }
 
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
-            HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, int cardSlot, bool useMend,
+            HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, ref Result result)
         {
             const float step = 1f / 60f;
@@ -447,7 +449,7 @@ namespace Cryptforge.Tests
 
         // Enrage checks and kill rewards after any damage to the pack, in slot order like the scene's death callbacks.
         private static void Resolve(Enemy[] pack, HealthState[] enemies, WeaponRuntime[] enemyWeapons, EnrageRule[] enrages, bool[] rewarded,
-            Floor floor, RewardService rewards, RunChoices choices, int cardSlot, ref Result result)
+            Floor floor, RewardService rewards, RunChoices choices, CardPicker cardSlot, ref Result result)
         {
             for (int i = 0; i < pack.Length; i++)
             {
@@ -691,10 +693,39 @@ namespace Cryptforge.Tests
             return -1;
         }
 
-        private static void ChooseUpgrades(RunChoices choices, int cardSlot)
+        private static void ChooseUpgrades(RunChoices choices, CardPicker picker)
         {
             while (choices.Current != null && choices.Current.Kind == ChoiceKind.Upgrade)
-                choices.TrySelect(choices.Current, Math.Min(cardSlot, choices.Current.Cards.Count - 1));
+                choices.TrySelect(choices.Current, picker.Slot(choices.Current.Cards.Count));
+        }
+
+        // A run's card policy. With a pool no larger than the choice count the slot is the card, as it always was; once
+        // offers are drawn, a policy has to name cards by id or it stops meaning anything.
+        internal sealed class CardPicker
+        {
+            private readonly UpgradeService _upgrades;
+            private readonly int _slot;
+            private readonly string[] _preferIds;
+
+            public CardPicker(UpgradeService upgrades, int slot, string[] preferIds)
+            {
+                _upgrades = upgrades;
+                _slot = slot;
+                _preferIds = preferIds;
+            }
+
+            public int Slot(int cardCount)
+            {
+                UpgradeOffer offer = _upgrades.CurrentOffer;
+                if (_preferIds != null && offer != null)
+                {
+                    for (int p = 0; p < _preferIds.Length; p++)
+                        for (int i = 0; i < offer.Choices.Count && i < cardCount; i++)
+                            if (offer.Choices[i].Id == _preferIds[p])
+                                return i;
+                }
+                return Math.Min(_slot, cardCount - 1);
+            }
         }
     }
 }

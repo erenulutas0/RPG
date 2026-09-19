@@ -11,6 +11,8 @@ namespace Cryptforge.Core
 
         public int Experience { get; private set; }
         public int Level { get; private set; }
+        // The run's seed: every drawn offer is a function of it, the offer's index and the eligible pool (RunRandom).
+        public int Seed { get; }
         public int BonusUpgrades { get; private set; }
         public int UpgradesApplied { get; private set; }
         public int PendingUpgrades => Level + BonusUpgrades - UpgradesApplied;
@@ -34,7 +36,7 @@ namespace Cryptforge.Core
 
         // The first level costs experiencePerLevel and each later level costs experienceGrowth more than the one before,
         // so packs of small kills keep level-ups spread over the Descent. A growth of zero keeps thresholds linear.
-        public RunState(int experiencePerLevel, float atRiskGoldLoss = 0.5f, int experienceGrowth = 0)
+        public RunState(int experiencePerLevel, float atRiskGoldLoss = 0.5f, int experienceGrowth = 0, int seed = 0)
         {
             if (experiencePerLevel < 1)
                 throw new ArgumentOutOfRangeException(nameof(experiencePerLevel));
@@ -46,6 +48,7 @@ namespace Cryptforge.Core
             _experiencePerLevel = experiencePerLevel;
             _experienceGrowth = experienceGrowth;
             _atRiskGoldLoss = atRiskGoldLoss;
+            Seed = seed;
         }
 
         // Total experience for level n: n × perLevel + growth × n(n − 1) / 2.
