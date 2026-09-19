@@ -140,6 +140,45 @@ presentation per weapon.
 4. Run length target: 4–6 minutes a floor, 15–20 a Descent. Recommended as the S6 target; S4's measurement will say
    whether a swarm room can carry it.
 
+## 6. S1 specification — the offer engine (agreed 2026-09-19)
+
+The smallest missing slice. It changes nothing a player can see today, because the pool still holds two cards and the
+game offers two; it is the foundation S2, S3 and S5 stand on, and it makes every offer reproducible from a recorded
+number. Every existing pinned balance figure stays bit-identical by construction.
+
+**Seed.** `RunState` carries an integer `Seed`, given at construction. The scene derives it in `CombatSetup` from a
+development override when one exists — `<profile folder>/development/run-seed.txt`, read under the same rules as
+`start-floor.txt` (Editor and development builds only, never throws, never logs) so two phone runs can be handed the
+same offers — and otherwise from the profile revision, the run ordinal and the clock, hashed. It is recorded on
+`run_start` as `seed`. The simulation takes a `seed` parameter, default 0.
+
+**A random source of our own.** `RunRandom`, a pure SplitMix-style generator over 32-bit unsigned integers, integer
+arithmetic only, so Mono and .NET cannot disagree. Streams are derived, not consumed in sequence:
+`RunRandom.Stream(seed, purpose, index)` seeds a generator from all three, with `purpose` a fixed constant per consumer
+(offers now, chests in S3) and `index` the consumer's own count. A chest opened between two level-ups therefore never
+moves the next level-up's offer. `NextBelow(n)` is unbiased. Sample outputs are pinned by test.
+
+**Offer rules.** An option is eligible when its stacks are below `MaxStacks` and, when it names a prerequisite, that
+option has at least one stack. `UpgradeService.CreateOffer()` builds the eligible list in pool order; if it holds no
+more options than the choice count it is offered whole, in pool order, consuming no randomness — which is today's game
+and why no number moves — otherwise `choiceCount` distinct options are drawn without replacement from the stream
+(seed, offers, offerIndex). `UpgradeOffer` carries its `Index`. Telemetry gains `offer_index` on `upgrade_offered` and
+`upgrade_selected`. Rarity is not part of S1: a rarity that scales nothing is a lie on a card, and magnitudes belong to
+S2's stat sheet where each card defines its tiers.
+
+**Simulation.** `DescentSimulation.Run` keeps `cardSlot` and gains `preferIds`: when given, the first offered choice
+whose id appears in the list is taken, so a policy such as "damage first" survives a pool larger than the choice
+count. Parity tests pass the scene's `Run.Seed` into the simulation.
+
+**Tests.** `RunRandomTests`: same inputs, same sequence; pinned sample values; streams with a different purpose or
+index differ; `NextBelow` stays in range and is roughly uniform. `UpgradeTests`: over a synthetic pool of five and a
+choice count of two, the same seed gives the same offers, different seeds differ, no offer repeats an option,
+eligibility and stack limits hold, an eligible list no larger than the choice count is offered in pool order whatever
+the seed, and a draw on the chest stream between two offers changes nothing. `RunTelemetryTests` re-pin the new fields.
+`DevelopmentStart` tests cover the seed file. Every existing Descent and parity test passes unchanged.
+
+**Out of S1.** New cards, rarity, stats beyond Damage and AttackSpeed, chests, and anything visible.
+
 ## Sources
 
 - Megabonk on Steam: https://store.steampowered.com/app/3405340/Megabonk/

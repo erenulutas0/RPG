@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-09-19 — Build the gameplay around Megabonk and Bones and Coins
+
+**Decision:** the references are Megabonk (for the run: stages with a timeline, swarms, a boss the player reaches when
+ready, tomes and chests, a stat sheet, a difficulty dial) and Bones and Coins (for the meta: banked coins into a
+permanent tree). Four choices made by the owner: BONK means Megabonk; books come from chests and cards from level-ups,
+two distinct reward moments; a swarm room can be left early with the XP earned so far; floors aim at 4–6 minutes and a
+Descent at 15–20. One principle over all of it: **even the strongest build dies if it stays too long** — a swarm that
+does not stop, as Megabonk's Final Swarm, is the run's ceiling, and balance is tuned to that ceiling rather than to a
+build that can idle. Art is untouched; the roadmap is docs/27 section 4.
+
+**Why:** docs/26 Part 5 and docs/23 showed the movement budget changes the rhythm of a fight and not its pressure, and
+that pressure comes from crowding; a stat sheet and books give the player a build, a swarm room gives the game its
+length and its ceiling. Books and cards are one system because `UpgradeOption` already is a tome.
+
+**Evidence/limits:** docs/27 (sources listed there). Nothing implemented; S1 (offer engine and seed) is the first slice.
+
 ## 2026-09-18 — Integrate platform materials with separate foundation ownership
 
 **Decision:** replace the top/coping/near faces with imported materials on nine cached meshes; retain only keel/chains/crystal from the procedural platform. Omit old corner towers/flames until matching props exist. Use exact shared corner positions and a narrow dark masonry lip to close the near-wall join. Keep arena geometry, camera and combat unchanged.
