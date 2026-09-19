@@ -987,3 +987,7 @@ Temporarily selected the existing floor_density_proof using development/start-fl
 Final profile revision154/gold11616; same weapon/relic unlocks, Second Wind and deepest floor2. Primary SHA256 `F1C37216FCEA2EF18C36B72317502CC976FF91D862EBED5DFB00A0538C199BBF`; backup `18AA83037FC0DA94BF0DE2CF41021327AAA9D4BFFC38E1745B5FED2A25B52867`. Expected changes are two10-gold wins and two equipment saves. No purchases, save edits or rollback; telemetry naturally grew. Every tap/capture/recording was preceded by focused/awake/unlocked checks, with post-capture/recording checks. Last1500 log lines filtered for FATAL EXCEPTION/NullReferenceException/MissingReferenceException had no matches; not exhaustive. This is a short visual test, not a sustained performance benchmark or mid-range-device result.
 
 Committed device/staff.mp4 is a540px-wide H264 transcode at unchanged speed; device/normal.png is the original screencap. Raw video/contact sheet and private backups remain in ignored TestResults. Phone handed back to owner after normal return; inspect fresh before more input. Staff equipment sprite, Daggers art, coins and remaining roster are still separate work.
+
+## Staff weapon art-only study — 2026-09-19
+
+No device operation or new APK in this slice. Source artwork/browser proof in ArtDirection/2026-09-19/staff-weapon-01. Prior installed Staff-impact7A107BD2 and prior observed profile154/11616gold/Daggers/Second Wind remain historical; inspect fresh before future use.

@@ -1,0 +1,20 @@
+{
+  "source": "staff-v2.png",
+  "canvas": [
+    1024,
+    1536
+  ],
+  "alphaBounds": [
+    65,
+    44,
+    867,
+    1499
+  ],
+  "nonzeroAlphaPixels": 99314,
+  "candidateGripTopLeft": [
+    512,
+    940
+  ],
+  "mode": "built-in imagegen; source channels unchanged",
+  "stage": "art proof only; grip provisional"
+}

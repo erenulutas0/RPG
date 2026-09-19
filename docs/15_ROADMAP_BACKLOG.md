@@ -235,3 +235,6 @@ P3 Growth:
 
 - [x] Compare four-arc Staff impact against the pixel blast in the real Unity crowd at two portrait ratios (2026-09-19; proof only).
 - [x] Integrate shared Staff impact contour, test ownership/pool/pause and verify on device (2026-09-19).
+
+- [x] Create original Staff weapon source and browser proportion/grip study (2026-09-19; no runtime import).
+- [ ] Sample Staff weapon source in Unity, reconcile shaft/orb/grip/facings and integrate.
