@@ -118,7 +118,7 @@ gate in order, distributions over seeds rather than one run, phone use coordinat
 | S3 | **Books from chests** (done 2026-09-20): a chest keeps its reward and some hold a book as well, drawn by the seed and applied through the same service; the share is measured in `28`. The Descent simulation gained chests with it, which it had never had | a chest can now change a build, and the walk to one is worth taking; measured against mend and gold at six shares | S1, S2 |
 | S4 | **Swarm room** (done 2026-09-20, `29`; measured first in `26` Part 6): `RoomKind.Swarm` with a spawn schedule (waves every *n* seconds, escalating, elites at marks), a survive-for-*T* clock, an alive cap of 10, and a checkpoint to leave early | XP per minute and damage per minute across weapons and routes; the budget's effect at real crowding | — (can run beside S1–S3) |
 | S5 | **Forge Pulse and evolutions**: one behavioral upgrade with the trigger contract already agreed (every *N*th strike pulses; pulse damage is not a strike; crits can trigger it but it never crits; area strikes count once; pulse kills chain nothing; relic damage is not a strike), and an evolution at max stacks per weapon using Astra's existing ring and pulse art | the first synergies; Pulse should favour the Daggers, and if it favours the Sword the design is wrong | S1, S2 |
-| S6 | **Floor length and difficulty**: three or four floors re-authored around swarm rooms, a Difficulty stat, floor targets of 4–6 minutes, a Descent of 15–20 | the GDD's 3–4 minute floors, finally; distributions per seed | S4 |
+| S6 | **Floors below, swarm on top** (reframed 2026-09-21, decision 5): three or four floors re-authored as the descent to a single finale swarm after the last boss, the floors carrying the difficulty and the reasons to move, a Difficulty stat, floor targets of 4–6 minutes, a Descent of 15–20; the ramp re-measured against a hero entering at level eleven | the GDD's 3–4 minute floors, finally; distributions per seed; a finale whose depth is a score | S4 |
 | S7 | **Meta tree**: banked gold into permanent nodes, respec, the Bones and Coins layer | the endgame Bones and Coins lacks | S1–S6 |
 
 Why this order. S1–S3 give the player a build, which is the prompt's priority and Phase 2's list. S4 gives the game
@@ -142,6 +142,17 @@ the HUD, a stat readout on the pause screen, and the evolution's presentation pe
    Recommended: yes; it is the same shape as Extract/Descend and the game already has that checkpoint.
 4. Run length target: 4–6 minutes a floor, 15–20 a Descent. Recommended as the S6 target; S4's measurement will say
    whether a swarm room can carry it.
+5. **The swarm is the finale, not a farm** (the owner, 2026-09-21, after playing it). Sections 2 and 8 above framed the
+   swarm room as the place a run earns its experience; the owner's reading is Megabonk's actual structure - the Final
+   Swarm that opens when the run's normal window ends, where leaving is extracting and depth is the score. The room
+   itself is unchanged by this. What changes is where it goes and what it is for: it stands at the end of the last
+   floor, after its boss, optional and endless; the floors below it are where a build is made and where the difficulty
+   has to live; and the levels a swarm grants past a full build should turn into something - gold, or a deepest-wave
+   record on the profile for S7. Two consequences for the measurements. `29`'s ramp was measured with a hero entering at
+   level one; a finale is entered at level eleven with a build, so the ramp has to be measured again against that hero,
+   and the target is not "it kills" but "depth is felt". And the open question about a bigger map belongs to the
+   floors: an arena is the right shape for an endless crowd, a map with reasons to cross it is the right shape for the
+   descent to it.
 
 ## 6. S1 specification — the offer engine (agreed 2026-09-19)
 
