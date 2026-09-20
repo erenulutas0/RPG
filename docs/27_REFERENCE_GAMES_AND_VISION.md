@@ -117,7 +117,9 @@ gate in order, distributions over seeds rather than one run, phone use coordinat
 | S2 (was) | **Stat sheet**: `HeroStats` on the `ModifiableStat` pipeline (Range, MaxHP, Regen, Armor, MoveSpeed, Bar, Refill, CritChance, CritDamage, Luck), each an `UpgradeOption` target, mirrored in the simulation | a stat card changes the fight identically in both; standing baseline re-pinned where a stat moves it | S1 |
 | S3 | **Books from chests** (done 2026-09-20): a chest keeps its reward and some hold a book as well, drawn by the seed and applied through the same service; the share is measured in `28`. The Descent simulation gained chests with it, which it had never had | a chest can now change a build, and the walk to one is worth taking; measured against mend and gold at six shares | S1, S2 |
 | S4 | **Swarm room** (done 2026-09-20, `29`; measured first in `26` Part 6): `RoomKind.Swarm` with a spawn schedule (waves every *n* seconds, escalating, elites at marks), a survive-for-*T* clock, an alive cap of 10, and a checkpoint to leave early | XP per minute and damage per minute across weapons and routes; the budget's effect at real crowding | — (can run beside S1–S3) |
-| S5 | **Forge Pulse and evolutions**: one behavioral upgrade with the trigger contract already agreed (every *N*th strike pulses; pulse damage is not a strike; crits can trigger it but it never crits; area strikes count once; pulse kills chain nothing; relic damage is not a strike), and an evolution at max stacks per weapon using Astra's existing ring and pulse art | the first synergies; Pulse should favour the Daggers, and if it favours the Sword the design is wrong | S1, S2 |
+| S5a | **Forge Pulse** (done 2026-09-21, `30`): one behavioural upgrade on the trigger contract agreed here (every *N*th strike pulses; pulse damage is not a strike; crits can trigger it but it never crits; area strikes count once; pulse kills chain nothing; relic damage is not a strike), shipped at one stack, radius 2.2, every fourth strike | **the claim below was measured and failed.** The Pulse was to favour the Daggers and instead favours the Sword at eleven of twelve settings, across two ways of scaling it: a per-strike burst inherits the weight of a strike, and the Daggers strike smallest. It shipped because it fixes a different real hole - the Sword is three times weaker than the Staff in a swarm - and because the Daggers need a card that keys on their crit rhythm instead, which is not this one | S1, S2 |
+| S5b | **Weapon evolutions at max stacks**: a card that reaches its limit becomes the next thing, per weapon, using Astra's existing ring and pulse art | the levels a swarm grants past a full build, which the phone session measured as eleven wasted ones from wave thirty-three on, finally land somewhere | S5a |
+| S5c | **Splintering Crit** (done 2026-09-21, `31`): a critical strike also strikes every enemy within 2.0 units of its target for a share of its crit damage, gated on the Daggers' every-third-strike rhythm | **the claim held.** With crits held equal across the weapons, the Daggers gain most in nine settings out of nine - seven to ten times what the Sword gains, fifty times what the Staff gains - and the ordering does not turn on the radius. It takes them from 18 waves to 55 against the Staff's 67, so they are a choice rather than the best | S5a |
 | S6 | **Floors below, swarm on top** (reframed 2026-09-21, decision 5): three or four floors re-authored as the descent to a single finale swarm after the last boss, the floors carrying the difficulty and the reasons to move, a Difficulty stat, floor targets of 4–6 minutes, a Descent of 15–20; the ramp re-measured against a hero entering at level eleven | the GDD's 3–4 minute floors, finally; distributions per seed; a finale whose depth is a score | S4 |
 | S7 | **Meta tree**: banked gold into permanent nodes, respec, the Bones and Coins layer | the endgame Bones and Coins lacks | S1–S6 |
 
@@ -321,6 +323,111 @@ bit-identical seed for seed. Two things the specification did not foresee. A swa
 chests are per room, so S3's books barely reach it - the median swarm run took none, and chests that arrive with the
 waves are a gap for S6. And the exit is offered after every wave, which is one constant and a question about feel that
 only playing it can answer.
+
+## 9. S5a specification — the Forge Pulse (agreed 2026-09-21)
+
+S5 holds two mechanisms that only share a purpose: a **behavioural upgrade**, which is a card that changes what an attack
+does rather than a number it carries, and an **evolution at max stacks**, which is a weapon becoming another weapon. They
+are built apart. This specifies the first, S5a; the evolution is S5b and the phone session argued for it - a swarm fills
+all thirty-six stacks by wave thirty-three and every level after that is wasted, and an evolution is what a full card
+turns into.
+
+**The Pulse rides the stat pipeline rather than a second system.** `UpgradeStat.PulseDamage` is the share of the weapon's
+damage a pulse deals, zero on every weapon until a card grants it, and `WeaponRuntime` holds it as a `ModifiableStat`
+like the four it already holds. So stacking it is stacking a number, rarity tiers work unchanged, and the simulation
+mirrors it by mirroring one stat. No new eligibility rule, no new offer kind, nothing that reads an offer changes.
+
+**The contract, as agreed in the roadmap and unchanged by this specification.** Every *N*th strike pulses. Pulse damage
+is **not a strike**: it advances no cadence, counts toward no rhythm and cannot pulse again, so a pulse never chains and
+a kill it lands starts nothing. A crit **can** be the strike that triggers a pulse, but the pulse itself **never crits**
+and its damage is never multiplied. An area strike counts **once** however many enemies it hits, because the strike is
+the swing and not the landing. Relic damage is not a strike, which holds already: relics call `ApplyDamage` and never
+`TryAttack`.
+
+**The pulse is centred on the hero, not on the target**, over `PulseRule.Radius` floor units. That is what makes it a
+short-reach weapon's card: the Daggers fight from 1.8 units and strike every half second, so they stand inside their own
+pulse and trigger it twice as often as the Sword; the Staff already owns the crowd and gains least. The roadmap's test of
+this design is that the Pulse favours the Daggers, and that if it favours the Sword the design is wrong - so the
+measurement reports all three weapons and the claim can fail.
+
+**Where the card sits.** Tenth in the authored order, behind Iron Skin, Swift Boots, Deep Lungs and Fortune, so
+`UpgradePool.WidthAt` only opens it to a run that has levelled well past a Descent. Nothing about the Descent moves -
+five cards at level eleven is five cards whatever stands behind them - and the Pulse arrives roughly where the phone
+session ran out of build. Whether that is too late is a tuning question the measurement informs and the owner settles.
+
+**Two constants, both measured** in the swarm room against all three weapons: how often a strike pulses
+(`PulseRule.Every`) and how far it reaches (`PulseRule.Radius`), with the card's magnitude per tier read off the same
+sweep. The claim to beat is that the Pulse changes which weapon goes deepest.
+
+**Scene and simulation.** `AttackController` gathers the enemies within the pulse radius of its owner through the same
+`Targeting.CollectNear` the Forge Burst uses, and hands them to `TryAttack` beside the splash list; `DescentSimulation`
+gathers them with `WithinReachOfHero`, which is that call's mirror and already exists. `WeaponRuntime.Pulsed` is raised
+for whoever draws it later. Telemetry counts pulses on `run_end`.
+
+**Out of S5a.** The evolution at max stacks (S5b), any art for the pulse - it is silent, like a book, and is on the
+visual-needs list - a second behavioural card, and any change to the three weapons' authored patterns.
+
+**What was built, 2026-09-21** (`30`). The mechanism, whole, with its seven contract clauses each pinned by a test. The
+design claim attached to it failed and is recorded rather than rewritten: the Pulse is the Sword's card. Two things worth
+carrying forward. A per-strike effect cannot be made a light weapon's card by tuning its radius or its scaling, so the
+Daggers' answer has to key on their every-third-strike crit rhythm and is a separate card. And the Sword's swarm baseline
+- 15.5 waves against the Staff's 45 - is a balance hole nobody had measured before; the Pulse covers it by accident, and
+covering a hole by accident is worth naming so that S6 fixes it on purpose.
+
+**Answered 2026-09-21.** The crit-keyed card was built as S5c and it works (`31`): the Daggers gain most at every one of
+nine settings, and unlike the Pulse the result is not sensitive to the radius, because the gate is in the weapon
+definitions rather than in a number. Taken together, `30` and `31` say something worth keeping: a behavioural card aimed
+at a particular weapon has to be gated on something that weapon owns in its own definition. Scale an effect to damage and
+it belongs to the heaviest weapon whatever else you do to it.
+
+## 10. S5c specification — Splintering Crit, the Daggers' card (agreed 2026-09-21)
+
+`30` closed the Forge Pulse with a falsified claim and a clear reason: a per-strike burst inherits the weight of a strike,
+so it belongs to the weapon with the biggest strike, and no radius or scaling changes that. The Daggers are still the
+weakest weapon in a swarm - twelve and a half waves against the Staff's forty-five - and what they lack there is not
+damage but **area**: a single-target weapon cannot clear ten enemies pressing in, however fast it swings. This card is the
+answer the measurement pointed at, keyed on the one thing the Daggers own outright.
+
+**The gate is a crit, and crits are not evenly distributed.** The Daggers' authored pattern crits **every third strike**;
+the Sword and the Staff author no rhythm at all and crit only from the chance Keen Edge grants. So the Daggers arrive
+already critting a third of their strikes, twice a second, having spent nothing, while the Sword must buy three stacks of
+Keen Edge to crit a quarter of the time at two thirds of the cadence. That is a structural edge rather than a tuned one,
+which is exactly what the Pulse lacked.
+
+**What it does.** `UpgradeStat.CritSplash` is the share of a **critical** strike's damage dealt to every other living
+enemy within `CritSplashRule.Radius` of **the target**. Centred on the target, not on the hero, which is what makes it a
+different card from the Pulse rather than a reskin of it: the Pulse is a drumbeat round the hero, this is a crit that
+splinters where it lands.
+
+**The contract**, in the same shape as the Pulse's and for the same reason - it is written down before the code so a later
+change cannot quietly reinterpret it:
+
+- Only a **critical** strike splinters, whether the crit came from the pattern's rhythm or from a rolled chance.
+- A splinter is **not a strike**: no cadence, no rhythm, it cannot splinter again, and a kill it lands starts nothing.
+- A splinter **never reports itself critical**, so a view that flashes crits flashes the strike and not its spray.
+- It is dealt off the **critical** damage, unlike the Pulse, which reads the plain damage: the card is about crits, so it
+  should grow with a build that invests in them.
+- An **area** weapon's splash and a splinter are separate: the Staff's splash already hit those enemies, and both land.
+  That is deliberate and is the thing the measurement has to watch, because it is how this card could turn out to be the
+  Staff's instead.
+- Relic and ability damage are not strikes and cannot splinter, which holds by construction.
+
+**Where the card sits.** Eleventh in the authored order, behind the Forge Pulse, so `UpgradePool` opens it only to a run
+that has levelled far past a Descent. Nothing about the Descent moves.
+
+**Two constants, measured** in the swarm room against all three weapons, with a control arm that holds neither behavioural
+card: the radius and the share, with the card's stack limit read off the same sweep. **The claim, stated so it can fail:
+Splintering Crit must take the Daggers deeper, in relative terms, than it takes the Sword or the Staff.** If it favours
+either of them, it is the wrong card for the same reason the Pulse was, and `30`'s lesson will have been that a strike-
+scaled effect cannot be aimed at a light weapon at all.
+
+**Out of S5c.** Weapon evolutions (S5b), art for either behavioural card - both are silent - a third behavioural card,
+and any change to the three weapons' authored patterns.
+
+**What was built, 2026-09-21** (`31`). All of it, at radius 2.0 and one stack, with six contract clauses each pinned by a
+test. Two things to carry into S5b. The two behavioural cards were measured **separately**, and `UpgradePool` opens both
+by level forty-two, so a finale can hold a Pulse and a splinter at once and nothing has measured that. And three
+mechanics are now invisible - the book, the Pulse and the splinter - which is the largest thing waiting on Astra.
 
 ## Sources
 

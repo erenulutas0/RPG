@@ -12,6 +12,13 @@ namespace Cryptforge.Progression
         Armor = 5,
         MoveSpeed = 6,
         StaminaBar = 7,
-        Luck = 8
+        Luck = 8,
+        // The share of the weapon's damage a pulse deals, zero until a card grants it. Behavioural rather than a plain
+        // number, but it rides this pipeline all the same, so nothing that reads an offer had to learn about it
+        // (docs/27, S5a).
+        PulseDamage = 9,
+        // The share of a critical strike that splinters into everything near its target, zero until a card grants it.
+        // Behavioural like PulseDamage, and on the same pipeline for the same reason (docs/27, S5c).
+        CritSplash = 10
     }
 }

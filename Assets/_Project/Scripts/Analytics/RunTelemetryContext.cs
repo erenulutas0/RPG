@@ -35,5 +35,7 @@ namespace Cryptforge.Analytics
         public Func<string> KillerId;
         // The hero's current health; read when a chest opens and when a room closes.
         public Func<float> HeroHealth;
+        // Pulses the hero weapon has fired, for run_end. Optional: a scene without a pulse reports none.
+        public Func<int> Pulses;
     }
 }

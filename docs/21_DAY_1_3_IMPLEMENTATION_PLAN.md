@@ -1624,3 +1624,49 @@ choice panel's two cards are all the player sees. It is on the visual-needs list
 book's presentation and the pause-screen stat readout.
 
 **Verified:** .NET **336/336**, compile **0 warnings/errors**, EditMode **351/351**, PlayMode **117/117**, Android build exit **0**, static integrity **462 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`07B0F8E6615FCFA0433B00B5AC4538A6BA695E98AFF56638098ADD2B49FD3697`**, built, **not installed**.
+
+## S5a and S5c — two behavioural cards, one failed claim and one that held — 2026-09-21
+
+**What shipped.** The first two upgrades that change what an attack *does* rather than a number it carries, both riding
+the existing stat pipeline so nothing that reads an offer had to learn about them.
+
+**Forge Pulse** (`30`): every fourth strike bursts round the hero for a share of its damage. Seven contract clauses, each
+pinned by a test - a pulse is not a strike, a crit can trigger one but the pulse never crits, an area strike counts once,
+a pulse kills nothing onward, relic damage is not a strike. Shipped at one stack, radius 2.2.
+
+**Splintering Crit** (`31`): a critical strike also strikes everything within 2.0 units of its target, for a share of the
+crit's damage. Six clauses, each pinned. One stack.
+
+**The Pulse's claim failed and is recorded rather than rewritten.** `docs/27` had said since the roadmap was drawn that
+the Pulse should favour the Daggers and that if it favoured the Sword the design was wrong. Measured over about three
+hundred and eighty swarm runs - sixteen seeds, three weapons, four radii, four magnitudes, and two different ways of
+scaling the damage - it favours the Sword at eleven settings out of twelve. The reason is structural: a per-strike burst
+inherits the weight of a strike, the Sword's strike is 10 against the Daggers' 6, and in a swarm every weapon has enemies
+inside the circle whatever its reach. Even a **flat** pulse, which should have rewarded the most strikes rather than the
+biggest, still went to the Sword - because attack-speed cards lift everyone and the Sword survives longer to collect
+more of them, so it ends up pulsing as often as the Daggers do (0.73 a second against 0.68).
+
+It shipped anyway, with the reasoning changed rather than the numbers: it covers a hole nobody had measured, which is that
+the Sword lasts 15.5 waves in a swarm against the Staff's 45.
+
+**The second card was designed from that diagnosis and its claim held.** If an effect scaled to damage belongs to the
+heaviest weapon, then a card for a light one has to be gated on something that weapon owns in its own definition. The
+Daggers author a crit every third strike; the Sword and the Staff author no rhythm at all. With crits **held equal** at
+25 % across all three - the harsher arm, since the nine-card pool sells Keen Edge to everyone - the Daggers gain most in
+nine settings out of nine: +206 % at the shipped radius against the Sword's +20 % and the Staff's +2 %. Unlike the Pulse,
+shrinking or widening the radius does not change the ordering. It takes the Daggers from 18 waves to 55, still under the
+Staff's 67, so they became a choice rather than the best.
+
+**What the two together are worth keeping.** A behavioural card aimed at a particular weapon has to be gated on something
+that weapon owns in its definition. Scale an effect to damage and it belongs to the heaviest weapon whatever else is done
+to it.
+
+**Two mistakes, both mine, both worth writing down.** The first sweep was thrown away: the control arm granted itself a
+Pulse, because a swarm run reaches level fifty and `UpgradePool` opens every card by level forty-two, so the Staff pulsed
+a hundred and six times in the row that was supposed to have none. And a Unity batch run was left running while a second
+card's asset and a scene edit went in underneath it - seventeen scene tests failed on a half-imported reference, which
+looked like a defect and was a process error.
+
+**Astra's queue is now three invisible mechanics**: a book, a pulse and a splinter, none of which draws anything.
+
+**Verified:** .NET **351/351**, compile **0 warnings/errors**, EditMode **366/366**, PlayMode **117/117**, Android build exit **0**, static integrity **466 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`88AD795206787DDEB0CFE40F935E1711F59C76CEE2AB246DDF96DA204B665C6C`**, built and **installed** to the owner's S23 for play; installed hash matches.

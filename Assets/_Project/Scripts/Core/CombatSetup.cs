@@ -161,7 +161,8 @@ namespace Cryptforge.Core
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
                 Seed = Run.Seed,
                 KillerId = () => LastAttacker != null ? LastAttacker.Id : null,
-                HeroHealth = () => _hero.Current
+                HeroHealth = () => _hero.Current,
+                Pulses = () => Weapon != null ? Weapon.PulsesFired : 0
             };
             return RunTelemetryBridge.Attach(gameObject, context, _encounters, _ability);
         }

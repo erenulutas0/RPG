@@ -151,7 +151,7 @@ namespace Cryptforge.Tests
             Assert.That(end.Keys, Is.EqualTo(new[]
             {
                 "v", "seq", "t", "st", "session", "run", "event",
-                "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "upgrades_applied", "gold",
+                "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "upgrades_applied", "pulses", "gold",
                 "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec"
             }));
             Assert.That((end.Text("result"), end.Text("cause"), end.Integer("floors_completed"), end.Integer("rooms_completed")),

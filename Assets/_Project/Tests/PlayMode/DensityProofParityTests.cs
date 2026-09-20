@@ -166,8 +166,20 @@ namespace Cryptforge.Tests
             Assert.That(_spawnFloorId, Is.EqualTo(SwarmFloorId), "The scene started on the development swarm floor.");
             Assert.That(_encounters.IsInSwarmRoom, Is.True, "Its one room is a swarm.");
             Assert.That(_setup.Run.Seed, Is.EqualTo(DevelopmentSeed));
-            Assert.That(_setup.Upgrades.Pool.Count, Is.EqualTo(9),
-                "The scene carries all nine authored cards; UpgradePool decides how many of them a run is offered.");
+            // Not a count: the cards themselves, in order. Everything the simulation claims about offers rests on the
+            // scene holding the same pool it does, and a count would pass while the tenth and eleventh cards were
+            // swapped. This is also the assertion that has to be right for UpgradePool to mean anything, since the width
+            // takes cards from the front.
+            UpgradeOption[] expectedPool = DescentSimulation.Pool();
+            Assert.That(_setup.Upgrades.Pool.Count, Is.EqualTo(expectedPool.Length),
+                "The scene and the simulation carry a different number of cards.");
+            for (int i = 0; i < expectedPool.Length; i++)
+            {
+                Assert.That(_setup.Upgrades.Pool[i].Id, Is.EqualTo(expectedPool[i].Id),
+                    $"Card {i} of the pool differs between the scene and the simulation.");
+                Assert.That(_setup.Upgrades.Pool[i].MaxStacks, Is.EqualTo(expectedPool[i].MaxStacks),
+                    $"Card {i} stacks differently in the scene than in the simulation.");
+            }
 
             int kills = 0;
             int deepest = 0;

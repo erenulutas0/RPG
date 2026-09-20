@@ -9,6 +9,12 @@ namespace Cryptforge.Combat
         [SerializeField] private Health _owner;
         [SerializeField] private Targeting _targeting;
         private readonly List<IDamageable> _nearby = new List<IDamageable>();
+        // Enemies within PulseRule.Radius of this attacker, gathered only when its weapon actually pulses. A different
+        // circle from _nearby's and drawn round a different centre: the attacker, not what it hit.
+        private readonly List<IDamageable> _inPulseRadius = new List<IDamageable>();
+        // Enemies within CritSplashRule.Radius of the target, for the splinter a critical strike throws. Gathered before
+        // the strike, because whether the strike crits is the weapon's business and not this controller's.
+        private readonly List<IDamageable> _inCritSplashRadius = new List<IDamageable>();
         private WeaponRuntime _weapon;
 
         public int AttackCount { get; private set; }
@@ -46,7 +52,15 @@ namespace Cryptforge.Combat
             float splashRadius = _weapon.Pattern.SplashRadius;
             if (splashRadius > 0f)
                 _targeting.CollectNear(target, splashRadius, _nearby);
-            if (_weapon.TryAttack(target, _owner, _nearby))
+            // The same, for the pulse, round this attacker. Nothing pulses until a card grants one, so this costs a
+            // float comparison on every attack any enemy ever makes.
+            _inPulseRadius.Clear();
+            if (_weapon.PulseDamage > 0f)
+                _targeting.CollectNear(_owner, PulseRule.Radius, _inPulseRadius);
+            _inCritSplashRadius.Clear();
+            if (_weapon.CritSplash > 0f)
+                _targeting.CollectNear(target, CritSplashRule.Radius, _inCritSplashRadius);
+            if (_weapon.TryAttack(target, _owner, _nearby, _inPulseRadius, _inCritSplashRadius))
             {
                 AttackCount++;
                 Attacked?.Invoke();

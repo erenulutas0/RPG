@@ -72,6 +72,7 @@ namespace Cryptforge.Analytics
         private readonly int _seed;
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
+        private readonly Func<int> _pulses;
         private readonly StringBuilder _choiceIds = new StringBuilder();
         private readonly StringBuilder _choiceRarities = new StringBuilder();
 
@@ -134,6 +135,7 @@ namespace Cryptforge.Analytics
             _checkpoint = Require(context.Checkpoint, nameof(context.Checkpoint));
             _killerId = Require(context.KillerId, nameof(context.KillerId));
             _heroHealth = Require(context.HeroHealth, nameof(context.HeroHealth));
+            _pulses = context.Pulses;
             _relics = context.Relics;
             _weapons = context.Weapons;
             _heroId = RequireId(context.HeroId, nameof(context.HeroId));
@@ -533,6 +535,7 @@ namespace Cryptforge.Analytics
                 .Add("run_level", _run.Level)
                 .Add("kills", _kills)
                 .Add("upgrades_applied", _run.UpgradesApplied)
+                .Add("pulses", _pulses != null ? _pulses() : 0)
                 .Add("gold", _run.Gold)
                 .Add("gold_banked", _run.GoldBanked)
                 .Add("gold_lost", _run.GoldLost)

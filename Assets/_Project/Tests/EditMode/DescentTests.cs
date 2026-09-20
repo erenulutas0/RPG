@@ -277,6 +277,73 @@ namespace Cryptforge.Tests
                 "And the levels it grants are what opens the rest of the pool.");
         }
 
+        [Test]
+        public void APulseReachesTheCrowdAndTakesASwarmRunDeeper()
+        {
+            // The claim docs/27 made for the Forge Pulse was that it would favour the Daggers; docs/30 measured that and
+            // it is false - the Pulse is the Sword's card, because it scales with the damage of a strike and the Daggers
+            // strike smallest. What is pinned here is only what the mechanism does: a pulse lands, it counts, and a run
+            // carrying one goes deeper than the same run without one. Which weapon it suits is a design question the
+            // measurement answered and the owner owns.
+            DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
+            DescentSimulation.HeroWeapon plain = DescentSimulation.Sword();
+            DescentSimulation.HeroWeapon pulsing = DescentSimulation.Sword();
+            pulsing.PulseShare = 1f;
+
+            DescentSimulation.Result without = DescentSimulation.Run(swarm, 0, false, null, plain,
+                ability: DescentSimulation.ForgeBurst(), seed: 2, swarmWaves: 60,
+                pool: DescentSimulation.FiveCardPool());
+            DescentSimulation.Result with = DescentSimulation.Run(swarm, 0, false, null, pulsing,
+                ability: DescentSimulation.ForgeBurst(), seed: 2, swarmWaves: 60,
+                pool: DescentSimulation.FiveCardPool());
+            // A hero that stands still, so the swarm ends both runs well short of the cap and the comparison is a real
+            // one; a kiting Sword survives sixty waves with or without a pulse and would compare two ceilings.
+            Assert.That(without.DeathRoom, Is.Not.Null);
+            Assert.That(with.DeathRoom, Is.Not.Null);
+
+            Assert.That(without.PulsesFired, Is.Zero, "A weapon with no pulse never pulses.");
+            Assert.That(with.PulsesFired, Is.GreaterThan(0), "A weapon with one does.");
+            Assert.That(with.SwarmWave, Is.GreaterThan(without.SwarmWave),
+                $"The pulse took the run deeper: {without.SwarmWave} waves without, {with.SwarmWave} with.");
+            Assert.That(with.Kills, Is.GreaterThan(without.Kills));
+        }
+
+        [Test]
+        public void ASplinteringCritGivesTheDaggersTheAreaTheyLack()
+        {
+            // The Daggers are the only weapon that crits without buying the chance, so they are the only one this card
+            // works for out of the box. What is pinned here is the mechanism reaching the fight; which weapon it suits
+            // is measured in docs/31.
+            DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
+            DescentSimulation.HeroWeapon plain = DescentSimulation.Daggers();
+            DescentSimulation.HeroWeapon splintering = DescentSimulation.Daggers();
+            splintering.CritSplashShare = 1f;
+
+            DescentSimulation.Result without = DescentSimulation.Run(swarm, 0, false, null, plain,
+                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmWaves: 60,
+                pool: DescentSimulation.FiveCardPool());
+            DescentSimulation.Result with = DescentSimulation.Run(swarm, 0, false, null, splintering,
+                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmWaves: 60,
+                pool: DescentSimulation.FiveCardPool());
+
+            Assert.That(without.SplintersFired, Is.Zero);
+            Assert.That(with.SplintersFired, Is.GreaterThan(0), "Every third Dagger strike crits, and every crit splinters.");
+            Assert.That(with.Kills, Is.GreaterThan(without.Kills),
+                $"The splinter cleared more of the crowd: {without.Kills} kills without, {with.Kills} with.");
+            Assert.That(with.SwarmWave, Is.GreaterThanOrEqualTo(without.SwarmWave));
+
+            // And the gate really is the crit rather than the pattern: a Sword that has bought a crit chance splinters
+            // too, which is why docs/31 holds every weapon at the same chance before comparing them.
+            DescentSimulation.HeroWeapon sword = DescentSimulation.Sword();
+            sword.CritSplashShare = 1f;
+            sword.CritChance = 0.5f;
+            DescentSimulation.Result bought = DescentSimulation.Run(swarm, 0, false, null, sword,
+                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmWaves: 60,
+                pool: DescentSimulation.FiveCardPool());
+            Assert.That(bought.SplintersFired, Is.GreaterThan(0),
+                "A weapon that authors no crit rhythm still splinters once it has a chance to crit.");
+        }
+
         private static CheckpointOption[] Options() => new[]
         {
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),

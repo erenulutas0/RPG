@@ -20,6 +20,10 @@ namespace Cryptforge.Combat
         private readonly ModifiableStat _attackSpeed;
         private readonly ModifiableStat _range;
         private readonly ModifiableStat _critChance;
+        // The share of this weapon's damage a pulse deals; 0 on every weapon until a card grants it (PulseRule).
+        private readonly ModifiableStat _pulseDamage;
+        // The share of a critical strike that splinters near its target; 0 until a card grants it (CritSplashRule).
+        private readonly ModifiableStat _critSplash;
         private readonly float _baseInterval;
         private float _cooldown;
 
@@ -28,6 +32,13 @@ namespace Cryptforge.Combat
         public float Range => _range.Value;
         // The chance, in [0, 1], that an attack crits on top of the pattern's fixed rhythm.
         public float CritChance => _critChance.Value;
+        // The share of Damage a pulse deals, 0 for no pulse at all.
+        public float PulseDamage => _pulseDamage.Value;
+        // How many pulses this weapon has fired, for a report that wants to tell a pulse's work from a strike's.
+        public int PulsesFired { get; private set; }
+        // The share of a critical strike that splinters, 0 for no splinter at all.
+        public float CritSplash => _critSplash.Value;
+        public int SplintersFired { get; private set; }
         // The run seed the crit roll is drawn from; 0 for every weapon that never rolls, which is all of them until a
         // card grants a chance.
         public int Seed { get; set; }
@@ -38,6 +49,9 @@ namespace Cryptforge.Combat
         // Read-only presentation timing; observing it cannot advance cadence or apply damage.
         public float CooldownRemaining => _cooldown;
         public event Action StatsChanged;
+        // Raised after a pulse has landed on everything it reached, for whatever draws it later. A pulse that found
+        // nothing still raises it: the pulse happened, and the art owner decides whether an empty one is worth showing.
+        public event Action Pulsed;
 
         // initialDelay is a windup before the first attack only; later attacks follow the interval.
         public WeaponRuntime(float damage, float interval, float range, float initialDelay = 0f, AttackPattern pattern = default)
@@ -52,6 +66,8 @@ namespace Cryptforge.Combat
             _attackSpeed = new ModifiableStat(1f, MinimumAttackSpeed);
             _range = new ModifiableStat(range, MinimumRange);
             _critChance = new ModifiableStat(0f, 0f);
+            _pulseDamage = new ModifiableStat(0f, 0f);
+            _critSplash = new ModifiableStat(0f, 0f);
             _baseInterval = interval;
             _cooldown = initialDelay;
             Pattern = pattern;
@@ -86,6 +102,12 @@ namespace Cryptforge.Combat
                 case UpgradeStat.CritChance:
                     _critChance.AddModifier(modifier);
                     break;
+                case UpgradeStat.PulseDamage:
+                    _pulseDamage.AddModifier(modifier);
+                    break;
+                case UpgradeStat.CritSplash:
+                    _critSplash.AddModifier(modifier);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stat));
             }
@@ -103,8 +125,13 @@ namespace Cryptforge.Combat
 
         // source is the attacker, passed on so targets know who hit them. nearby lists other enemies within the pattern's
         // splash radius of the target, nearest first: a cleave strikes the first living one, an area attack every living
-        // one, and a direct hit ignores the list.
-        public bool TryAttack(IDamageable target, IDamageable source = null, IReadOnlyList<IDamageable> nearby = null)
+        // one, and a direct hit ignores the list. inPulseRadius lists the enemies within PulseRule.Radius of the
+        // attacker itself, which is a different circle from nearby's and drawn round a different centre; a caller whose
+        // weapon has no pulse may leave it null, and every enemy weapon does. inCritSplashRadius is a third circle,
+        // round the target again but at CritSplashRule.Radius rather than the pattern's, for the splinter a critical
+        // strike throws; null unless a card granted one.
+        public bool TryAttack(IDamageable target, IDamageable source = null, IReadOnlyList<IDamageable> nearby = null,
+            IReadOnlyList<IDamageable> inPulseRadius = null, IReadOnlyList<IDamageable> inCritSplashRadius = null)
         {
             if (_cooldown > 0f || target == null || !target.IsAlive)
                 return false;
@@ -120,19 +147,68 @@ namespace Cryptforge.Combat
             float multiplier = rhythm ? Pattern.CritMultiplier : RolledCritMultiplier;
             float damage = critical ? Damage * multiplier : Damage;
             target.ApplyDamage(new DamageContext(damage, source, critical));
-            if (Pattern.Behavior == WeaponBehavior.DirectHit || nearby == null)
-                return true;
-
-            for (int i = 0; i < nearby.Count; i++)
+            if (Pattern.Behavior != WeaponBehavior.DirectHit && nearby != null)
             {
-                IDamageable other = nearby[i];
-                if (other == null || ReferenceEquals(other, target) || !other.IsAlive)
-                    continue;
-                other.ApplyDamage(new DamageContext(damage * Pattern.SplashFraction, source, critical));
-                if (Pattern.Behavior == WeaponBehavior.Cleave)
-                    break;
+                for (int i = 0; i < nearby.Count; i++)
+                {
+                    IDamageable other = nearby[i];
+                    if (other == null || ReferenceEquals(other, target) || !other.IsAlive)
+                        continue;
+                    other.ApplyDamage(new DamageContext(damage * Pattern.SplashFraction, source, critical));
+                    if (Pattern.Behavior == WeaponBehavior.Cleave)
+                        break;
+                }
             }
+
+            // A critical strike splinters where it landed, off the critical damage it just dealt.
+            Splinter(critical, damage, source, target, inCritSplashRadius);
+
+            // The pulse, last and outside everything above: it reads the strike's number but not its damage, so a crit
+            // can be the strike that triggers one and the pulse still lands flat. It is not a strike itself - no
+            // cadence, no rhythm, no pulse of its own - and it reaches whatever stands near the attacker rather than
+            // near what the attacker hit.
+            Pulse(source, inPulseRadius);
             return true;
+        }
+
+        private void Splinter(bool critical, float criticalDamage, IDamageable source, IDamageable target,
+            IReadOnlyList<IDamageable> inCritSplashRadius)
+        {
+            if (!CritSplashRule.Splinters(critical, CritSplash))
+                return;
+
+            SplintersFired++;
+            float amount = CritSplashRule.DamageOf(criticalDamage, CritSplash);
+            if (inCritSplashRadius == null || amount <= 0f)
+                return;
+
+            for (int i = 0; i < inCritSplashRadius.Count; i++)
+            {
+                IDamageable caught = inCritSplashRadius[i];
+                // Never the struck enemy again: it took the crit itself.
+                if (caught != null && !ReferenceEquals(caught, target) && caught.IsAlive)
+                    caught.ApplyDamage(new DamageContext(amount, source));
+            }
+        }
+
+        private void Pulse(IDamageable source, IReadOnlyList<IDamageable> inPulseRadius)
+        {
+            if (!PulseRule.Pulses(AttacksMade, PulseDamage))
+                return;
+
+            PulsesFired++;
+            float amount = PulseRule.DamageOf(Damage, PulseDamage);
+            if (inPulseRadius != null && amount > 0f)
+            {
+                for (int i = 0; i < inPulseRadius.Count; i++)
+                {
+                    IDamageable caught = inPulseRadius[i];
+                    if (caught != null && caught.IsAlive)
+                        caught.ApplyDamage(new DamageContext(amount, source));
+                }
+            }
+
+            Pulsed?.Invoke();
         }
 
         private static void RequirePositiveFinite(float value, string name)

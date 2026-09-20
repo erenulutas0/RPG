@@ -57,8 +57,28 @@ namespace Cryptforge.Tests
             public float Interval = 0.8f;
             public float Range = 3f;
             public AttackPattern Pattern;
+            // A splinter the weapon starts the run with, as a share of a critical strike, for the same reason as below.
+            public float CritSplashShare;
+            // A rolled crit chance the weapon starts with, which a card grants in the game: the measurement of a
+            // crit-gated effect has to be able to ask what the Sword would do having bought one.
+            public float CritChance;
+            // A pulse the weapon starts the run with, as a share of its damage. No weapon is authored with one - the
+            // Forge Pulse card grants it - but a measurement that wants to know what a pulse is worth cannot wait for a
+            // run to be offered the card, and a run long enough to be offered it is a different run. 0 is every weapon
+            // the game ships.
+            public float PulseShare;
 
-            public WeaponRuntime CreateRuntime() => new WeaponRuntime(Damage, Interval, Range, 0f, Pattern);
+            public WeaponRuntime CreateRuntime()
+            {
+                var runtime = new WeaponRuntime(Damage, Interval, Range, 0f, Pattern);
+                if (PulseShare > 0f)
+                    runtime.AddModifier(UpgradeStat.PulseDamage, new StatModifier(ModifierOperation.Flat, PulseShare));
+                if (CritSplashShare > 0f)
+                    runtime.AddModifier(UpgradeStat.CritSplash, new StatModifier(ModifierOperation.Flat, CritSplashShare));
+                if (CritChance > 0f)
+                    runtime.AddModifier(UpgradeStat.CritChance, new StatModifier(ModifierOperation.Flat, CritChance));
+                return runtime;
+            }
         }
 
         // Ability_ForgeBurst.asset: the hero's burst, fired by the player; the simulation fires it whenever it is ready and
@@ -131,6 +151,9 @@ namespace Cryptforge.Tests
             public int BooksTaken;
             // The deepest swarm wave the run reached, one-based; 0 on a floor with no swarm room.
             public int SwarmWave;
+            // Pulses the hero's weapon fired, and splinters it threw; 0 until a card grants each.
+            public int PulsesFired;
+            public int SplintersFired;
 
             public float ClosestEnemyGap => (float)Math.Sqrt(ClosestEnemyGapSquared);
             public float ClosestHeroDistance => (float)Math.Sqrt(ClosestHeroDistanceSquared);
@@ -292,6 +315,29 @@ namespace Cryptforge.Tests
                 new StatModifier(ModifierOperation.Flat, 0.5f),
                 new StatModifier(ModifierOperation.Flat, 1f), 3);
 
+        // Upgrade_Pulse.asset: every fourth strike bursts round the hero for a share of its damage (PulseRule). The first
+        // card that changes what an attack does rather than a number it carries, and the last in the authored order, so
+        // only a run that has levelled well past a Descent is ever offered it.
+        // One stack, not three: measured over sixteen seeds and three weapons (docs/30), a share of one already doubles
+        // or trebles how deep a run reaches, so a card that stacked to four would not be a card.
+        public static UpgradeOption Pulse() =>
+            new UpgradeOption("upgrade_pulse", "Forge Pulse", "Every 4th strike bursts for {0:0}% damage nearby",
+                UpgradeStat.PulseDamage,
+                new StatModifier(ModifierOperation.Flat, 0.4f),
+                new StatModifier(ModifierOperation.Flat, 0.65f),
+                new StatModifier(ModifierOperation.Flat, 1f), 1);
+
+        // Upgrade_CritSplash.asset: a critical strike splinters into everything near what it hit. Eleventh and last in
+        // the authored order, so only a run that has levelled far past a Descent is offered it. One stack, like the
+        // Pulse: a share of one is already the knee of the measured curve (docs/31), and two would put a full card
+        // outside anything that was measured.
+        public static UpgradeOption CritSplash() =>
+            new UpgradeOption("upgrade_crit_splash", "Splintering Crit", "Crits splinter for {0:0}% nearby",
+                UpgradeStat.CritSplash,
+                new StatModifier(ModifierOperation.Flat, 0.4f),
+                new StatModifier(ModifierOperation.Flat, 0.6f),
+                new StatModifier(ModifierOperation.Flat, 1f), 1);
+
         // Data/Upgrades, in the order CombatSetup carries them. The scene and this must hold the same cards in the
         // same order, or a seed shows one thing in the game and another here.
         //
@@ -301,7 +347,7 @@ namespace Cryptforge.Tests
         // thresholds and reaches Iron Skin, Swift Boots, Deep Lungs and Fortune.
         public static UpgradeOption[] Pool() => new[]
         {
-            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck()
+            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck(), Pulse(), CritSplash()
         };
 
         // The pool the balance pins use: the two cards the game carried before rarity, at one magnitude each, so those
@@ -433,6 +479,8 @@ namespace Cryptforge.Tests
             result.Gold = run.Gold;
             result.GoldBanked = run.GoldBanked;
             result.RelicTriggers = relic?.Triggers ?? 0;
+            result.PulsesFired = weapon.PulsesFired;
+            result.SplintersFired = weapon.SplintersFired;
             result.UpgradesApplied = run.UpgradesApplied;
             result.HeroFloorX = heroMotion.X;
             result.HeroFloorY = heroMotion.Y;
@@ -565,7 +613,18 @@ namespace Cryptforge.Tests
 
                     int target = Acquire(motion, enemies, weapon.Range, heroMotion.X, heroMotion.Y);
                     if (target >= 0 && weapon.IsReady &&
-                        weapon.TryAttack(enemies[target], null, Nearby(motion, enemies, target, weapon.Pattern.SplashRadius)) && moved)
+                        weapon.TryAttack(enemies[target], null,
+                            Nearby(motion, enemies, target, weapon.Pattern.SplashRadius),
+                            // The pulse's circle is drawn round the hero, so it is gathered by the same body
+                            // Targeting.CollectNear mirrors for the burst; nothing is gathered until a card grants a
+                            // pulse, exactly as AttackController skips it.
+                            weapon.PulseDamage > 0f
+                                ? WithinReachOfHero(motion, enemies, PulseRule.Radius, heroMotion.X, heroMotion.Y)
+                                : null,
+                            // The splinter's circle is round the struck enemy, which is what Nearby measures.
+                            weapon.CritSplash > 0f
+                                ? Nearby(motion, enemies, target, CritSplashRule.Radius)
+                                : null) && moved)
                         result.StrikesWhileMoving++;
                     Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
                     if (burst != null && burst.IsReady)

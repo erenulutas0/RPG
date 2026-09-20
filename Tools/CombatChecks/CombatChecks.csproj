@@ -22,6 +22,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorStep.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorProgress.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/SwarmRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/PulseRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/CritSplashRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PackLayout.cs" />
