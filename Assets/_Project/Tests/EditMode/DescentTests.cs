@@ -344,6 +344,36 @@ namespace Cryptforge.Tests
                 "A weapon that authors no crit rhythm still splinters once it has a chance to crit.");
         }
 
+        [Test]
+        public void EvolutionsFillTheLevelsASwarmWouldOtherwiseWasteAndChargeForThem()
+        {
+            // The hole docs/32 was written to close: a swarm run fills its build and then levels with nothing to spend
+            // the levels on. The Staff is the weapon that gets deep enough for it to show.
+            DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
+            var withoutEvolutions = new List<UpgradeOption>();
+            foreach (UpgradeOption option in DescentSimulation.Pool())
+            {
+                if (!option.IsEvolution)
+                    withoutEvolutions.Add(option);
+            }
+
+            DescentSimulation.Result plain = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
+                ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 1, swarmWaves: 80,
+                pool: withoutEvolutions);
+            DescentSimulation.Result evolved = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
+                ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 1, swarmWaves: 80);
+
+            Assert.That(plain.EvolutionsTaken, Is.Zero);
+            Assert.That(plain.Difficulty, Is.EqualTo(1f), "Without evolutions the world stays as its floors author it.");
+            Assert.That(evolved.EvolutionsTaken, Is.GreaterThan(0), "The run filled a card and was offered its evolution.");
+            Assert.That(evolved.Difficulty,
+                Is.EqualTo(1f + evolved.EvolutionsTaken * EvolutionRule.DifficultyPerStack).Within(1e-3f),
+                "And paid for every stack of it.");
+            Assert.That(evolved.Level - evolved.UpgradesApplied, Is.LessThanOrEqualTo(plain.Level - plain.UpgradesApplied),
+                $"Evolutions left no more levels unspent than before: {plain.Level - plain.UpgradesApplied} wasted " +
+                $"without, {evolved.Level - evolved.UpgradesApplied} with.");
+        }
+
         private static CheckpointOption[] Options() => new[]
         {
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),

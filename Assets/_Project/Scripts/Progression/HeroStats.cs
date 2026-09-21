@@ -22,6 +22,7 @@ namespace Cryptforge.Progression
         private readonly ModifiableStat _moveSpeed;
         private readonly ModifiableStat _staminaBar;
         private readonly ModifiableStat _luck;
+        private readonly ModifiableStat _difficulty;
 
         public float MaxHealth => _maxHealth.Value;
         public float Armor => _armor.Value;
@@ -29,6 +30,9 @@ namespace Cryptforge.Progression
         public float StaminaBar => _staminaBar.Value;
         // Luck never touches combat. It lowers how much of a rarity draw the common tier takes, and nothing else.
         public float Luck => _luck.Value;
+        // What every enemy multiplies its authored health and damage by, on top of whatever its floor already applies.
+        // 1 until an evolution is taken; it never falls below 1, because the floor of the stat says so.
+        public float Difficulty => _difficulty.Value;
 
         // The share of a hit armor takes away, in [0, 1).
         public float DamageReduction => _armor.Value / (_armor.Value + ArmorSoftness);
@@ -43,11 +47,13 @@ namespace Cryptforge.Progression
             _moveSpeed = new ModifiableStat(moveSpeed, 0.1f);
             _staminaBar = new ModifiableStat(staminaBar, 0.1f);
             _luck = new ModifiableStat(0f, 0f);
+            _difficulty = new ModifiableStat(1f, 1f);
         }
 
         public static bool Owns(UpgradeStat stat) =>
             stat == UpgradeStat.MaxHealth || stat == UpgradeStat.Armor ||
-            stat == UpgradeStat.MoveSpeed || stat == UpgradeStat.StaminaBar || stat == UpgradeStat.Luck;
+            stat == UpgradeStat.MoveSpeed || stat == UpgradeStat.StaminaBar || stat == UpgradeStat.Luck ||
+            stat == UpgradeStat.Difficulty;
 
         public void AddModifier(UpgradeStat stat, StatModifier modifier)
         {
@@ -67,6 +73,9 @@ namespace Cryptforge.Progression
                     break;
                 case UpgradeStat.Luck:
                     _luck.AddModifier(modifier);
+                    break;
+                case UpgradeStat.Difficulty:
+                    _difficulty.AddModifier(modifier);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stat), "That stat belongs to the weapon, not the hero.");

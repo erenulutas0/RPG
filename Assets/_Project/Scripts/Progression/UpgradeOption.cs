@@ -17,6 +17,11 @@ namespace Cryptforge.Progression
         public int MaxStacks { get; }
         // The id of a card that must hold at least one stack before this one is offered; null for none.
         public string RequiresId { get; }
+        // The id of a card that must be at its stack limit before this one is offered; null for anything that is not an
+        // evolution. A stronger gate than RequiresId, and the only gate an evolution has - the pool's width does not
+        // apply to it (EvolutionRule).
+        public string EvolvesFromId { get; }
+        public bool IsEvolution => EvolvesFromId != null;
 
         // Percent amounts are authored as fractions but read as whole percentages ("+25%").
         public float DescriptionValue =>
@@ -45,19 +50,23 @@ namespace Cryptforge.Progression
         }
 
         public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
-            StatModifier modifier, int maxStacks, string requiresId = null)
-            : this(id, displayName, descriptionFormat, stat, modifier, modifier, modifier, maxStacks, requiresId)
+            StatModifier modifier, int maxStacks, string requiresId = null, string evolvesFromId = null)
+            : this(id, displayName, descriptionFormat, stat, modifier, modifier, modifier, maxStacks, requiresId,
+                evolvesFromId)
         {
         }
 
         public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
-            StatModifier common, StatModifier rare, StatModifier epic, int maxStacks, string requiresId = null)
+            StatModifier common, StatModifier rare, StatModifier epic, int maxStacks, string requiresId = null,
+            string evolvesFromId = null)
         {
             StatModifier modifier = common;
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentException("Upgrade id is required.", nameof(id));
             if (requiresId != null && (requiresId.Length == 0 || requiresId == id))
                 throw new ArgumentException("A card may require another card, never nothing and never itself.", nameof(requiresId));
+            if (evolvesFromId != null && (evolvesFromId.Length == 0 || evolvesFromId == id))
+                throw new ArgumentException("A card may evolve from another card, never nothing and never itself.", nameof(evolvesFromId));
             if (!Enum.IsDefined(typeof(UpgradeStat), stat))
                 throw new ArgumentOutOfRangeException(nameof(stat));
             if (maxStacks < 1)
@@ -75,6 +84,7 @@ namespace Cryptforge.Progression
             _epic = epic;
             MaxStacks = maxStacks;
             RequiresId = requiresId;
+            EvolvesFromId = evolvesFromId;
         }
     }
 }

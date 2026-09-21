@@ -1670,3 +1670,32 @@ looked like a defect and was a process error.
 **Astra's queue is now three invisible mechanics**: a book, a pulse and a splinter, none of which draws anything.
 
 **Verified:** .NET **351/351**, compile **0 warnings/errors**, EditMode **366/366**, PlayMode **117/117**, Android build exit **0**, static integrity **466 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`88AD795206787DDEB0CFE40F935E1711F59C76CEE2AB246DDF96DA204B665C6C`**, built and **installed** to the owner's S23 for play; installed hash matches.
+
+## S5b — evolutions, what they cost, and what the owner did with them — 2026-09-21
+
+**What shipped.** A card at its stack limit, in a run past a Descent's length, unlocks its **evolution**
+(`UpgradeOption.EvolvesFromId`); and taking any evolution raises a run-level **Difficulty** - a new stat on `HeroStats`,
+starting at 1.0 - that multiplies every enemy's health and damage in the scene and the simulation alike. Three evolutions:
+Ruinous Edge, Blurred Grip and Ironblood, on the three cards every measured run fills first. Cost **0.20** a stack
+(`32`). An evolution ignores the pool's width, because a run that reached level fifty-one opens twelve of fourteen cards
+and evolutions behind that would never arrive.
+
+**What the pinned tests caught.** A full base card alone let evolutions into the **Descent** - eleven level-ups spent on
+one card fill a five-stack card, and an evolution ignores the width, so nothing stopped it; the seed-for-seed Descent
+guarantee broke on the first run. The gate is now both: base full **and** level twelve, one above the longest run the
+game has. And Unity's bundled NUnit has no `Has.Exactly(n).Items` where the .NET harness's newer one does, so the pure
+suite and the compile check both passed on an assertion Unity could not compile.
+
+**What the phone said.** The owner played it the same night. The hole is closed - thirty-five levels, thirty-six stacks
+applied, none wasted, against thirteen wasted the session before. Evolutions arrived at wave eleven, while the build was
+still being made, which is where the Pulse and the splinter should have arrived and did not. He took **all nine**
+evolution stacks the moment each was offered: the "and a harder world" line stopped him not once. Combined difficulty
+reached 4.54 by wave thirty-two - and his health **rose** through it, from 58 at wave thirteen to 191 at wave thirty-two.
+
+That contradicts `32`'s central row, which said a player who takes every evolution ends shallower than one who takes
+none. The simulation's Staff took six and died near wave thirty-six; the owner took nine and was comfortable. It is the
+calibration gap `32` named, now confirmed in play, and it is not fixed by picking a larger number: the world grows by
+adding and the hero grows by multiplying, and a linear ramp cannot catch a multiplicative build at any rate. The owner
+approved an exponential ramp the next morning; calibrating the measurement policy to his play comes first.
+
+**Verified:** .NET **359/359**, compile **0 warnings/errors**, EditMode **374/374**, PlayMode **117/117**, Android build exit **0**, static integrity **470 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`6C4C70647BE693D0A7C200BFD56669169F7D161D2FD47D9263B76FA8284BAEDD`**, installed and played on the owner's S23.

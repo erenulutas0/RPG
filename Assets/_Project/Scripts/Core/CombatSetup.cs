@@ -135,7 +135,7 @@ namespace Cryptforge.Core
             _encounters.FloorCleared += OnFloorCleared;
             _encounters.SwarmWaveCleared += OnSwarmWaveCleared;
             telemetry.Begin();
-            _encounters.Initialize(Choices, Forge);
+            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty);
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,

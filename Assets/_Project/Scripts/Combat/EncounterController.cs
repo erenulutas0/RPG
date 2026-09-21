@@ -42,6 +42,9 @@ namespace Cryptforge.Combat
         private PackMotion _motion;
         private RunChoices _choices;
         private ForgeService _forge;
+        // The run's difficulty, which every evolution raises (EvolutionRule). Null until Initialize, and 1 for any
+        // caller that never hands one over, so a scene or a test without a stat sheet fights the floor as authored.
+        private Func<float> _difficulty;
         private FloorDefinition _currentFloor;
         private FloorProgress _floorProgress;
         private EncounterProgress _fight;
@@ -136,8 +139,9 @@ namespace Cryptforge.Combat
             }
         }
 
-        public void Initialize(RunChoices choices, ForgeService forge)
+        public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null)
         {
+            _difficulty = difficulty;
             if (_floor == null || _hero == null || _heroTargeting == null || _arena == null)
                 throw new InvalidOperationException("EncounterController needs a first floor, the hero, hero targeting and the arena.");
             if (_floorProgress != null)
@@ -336,6 +340,10 @@ namespace Cryptforge.Combat
 
         // Timed as a whole for performance sessions (FrameTimeProbe): instantiating, drawing and setting up every enemy and
         // everything that answers the new wave.
+        // What every enemy multiplies its authored health and damage by beyond its floor: the run's difficulty, raised
+        // only by taking an evolution.
+        public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
+
         // difficulty multiplies the floor's own enemy health and damage: 1 everywhere except inside a swarm room, where
         // it rises wave by wave.
         private void StartWave(WaveDefinition waveDefinition, float difficulty)
@@ -352,7 +360,10 @@ namespace Cryptforge.Combat
             float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
-            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * difficulty, damagePercent);
+            // The wave's own escalation and the run's difficulty compose: a swarm's tenth wave under two evolutions is
+            // both harder than its first and harder than it would have been unevolved.
+            float scale = difficulty * RunDifficulty;
+            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * scale, damagePercent);
 
             int count = waveDefinition.EnemyCount;
             var candidates = new Health[count];
@@ -371,7 +382,7 @@ namespace Cryptforge.Combat
                 Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
                 enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
                 enemy.Initialize(FloorScaling.Health(definition.MaximumHealth,
-                    _currentFloor.EnemyHealthMultiplier * difficulty, healthPercent));
+                    _currentFloor.EnemyHealthMultiplier * scale, healthPercent));
                 WeaponRuntime weapon = definition.Weapon.CreateRuntime();
                 if (damageBonus != 0f)
                     weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));

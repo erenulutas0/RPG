@@ -154,6 +154,9 @@ namespace Cryptforge.Tests
             // Pulses the hero's weapon fired, and splinters it threw; 0 until a card grants each.
             public int PulsesFired;
             public int SplintersFired;
+            // Evolution stacks taken, and what the world ended up multiplying its enemies by for them.
+            public int EvolutionsTaken;
+            public float Difficulty;
 
             public float ClosestEnemyGap => (float)Math.Sqrt(ClosestEnemyGapSquared);
             public float ClosestHeroDistance => (float)Math.Sqrt(ClosestHeroDistanceSquared);
@@ -338,6 +341,30 @@ namespace Cryptforge.Tests
                 new StatModifier(ModifierOperation.Flat, 0.6f),
                 new StatModifier(ModifierOperation.Flat, 1f), 1);
 
+        // The three evolutions. Each is gated on the card every measured run fills first being full, each is a stronger
+        // version of the same stat, and each raises the world's difficulty by taking it (EvolutionRule). Positions twelve
+        // to fourteen, behind the width, which does not apply to an evolution.
+        public static UpgradeOption RuinousEdge() =>
+            new UpgradeOption("upgrade_damage_evolved", "Ruinous Edge", "+{0:0}% damage, and a harder world",
+                UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Percent, 0.9f),
+                new StatModifier(ModifierOperation.Percent, 1.3f),
+                new StatModifier(ModifierOperation.Percent, 2f), 3, null, "upgrade_damage");
+
+        public static UpgradeOption BlurredGrip() =>
+            new UpgradeOption("upgrade_attack_speed_evolved", "Blurred Grip", "+{0:0}% attack speed, and a harder world",
+                UpgradeStat.AttackSpeed,
+                new StatModifier(ModifierOperation.Percent, 0.7f),
+                new StatModifier(ModifierOperation.Percent, 1f),
+                new StatModifier(ModifierOperation.Percent, 1.6f), 3, null, "upgrade_attack_speed");
+
+        public static UpgradeOption Ironblood() =>
+            new UpgradeOption("upgrade_health_evolved", "Ironblood", "+{0:0} maximum health, and a harder world",
+                UpgradeStat.MaxHealth,
+                new StatModifier(ModifierOperation.Flat, 55f),
+                new StatModifier(ModifierOperation.Flat, 80f),
+                new StatModifier(ModifierOperation.Flat, 130f), 3, null, "upgrade_health");
+
         // Data/Upgrades, in the order CombatSetup carries them. The scene and this must hold the same cards in the
         // same order, or a seed shows one thing in the game and another here.
         //
@@ -347,7 +374,8 @@ namespace Cryptforge.Tests
         // thresholds and reaches Iron Skin, Swift Boots, Deep Lungs and Fortune.
         public static UpgradeOption[] Pool() => new[]
         {
-            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck(), Pulse(), CritSplash()
+            Damage(), Speed(), Range(), Crit(), Health(), Armor(), MoveSpeed(), Stamina(), Luck(), Pulse(), CritSplash(),
+            RuinousEdge(), BlurredGrip(), Ironblood()
         };
 
         // The pool the balance pins use: the two cards the game carried before rarity, at one magnitude each, so those
@@ -455,7 +483,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, chest, swarmWaves, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmWaves, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -481,6 +509,8 @@ namespace Cryptforge.Tests
             result.RelicTriggers = relic?.Triggers ?? 0;
             result.PulsesFired = weapon.PulsesFired;
             result.SplintersFired = weapon.SplintersFired;
+            result.Difficulty = heroStats.Difficulty;
+            result.EvolutionsTaken = upgrades.EvolutionsTaken;
             result.UpgradesApplied = run.UpgradesApplied;
             result.HeroFloorX = heroMotion.X;
             result.HeroFloorY = heroMotion.Y;
@@ -502,7 +532,7 @@ namespace Cryptforge.Tests
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
-            ChestState chest, int swarmWaves, ref Result result)
+            HeroStats heroStats, ChestState chest, int swarmWaves, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -561,10 +591,12 @@ namespace Cryptforge.Tests
                 var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, spawnX, spawnY);
                 var placements = new EntryPlacement[pack.Length];
                 EntrySides.Place(waveOrdinal, pack.Length, spawnX, spawnY, Platform, EntryDepth, FormationSpacing, BodySpacing, placements);
-                float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier * difficulty, floor.ModifierDamagePercent);
+                // The wave's escalation and the run's difficulty compose, as EncounterController composes them.
+                float scale = difficulty * heroStats.Difficulty;
+                float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier * scale, floor.ModifierDamagePercent);
                 for (int i = 0; i < pack.Length; i++)
                 {
-                    enemies[i] = new HealthState(FloorScaling.Health(pack[i].Health, floor.HealthMultiplier * difficulty, 0f));
+                    enemies[i] = new HealthState(FloorScaling.Health(pack[i].Health, floor.HealthMultiplier * scale, 0f));
                     enemyWeapons[i] = new WeaponRuntime(pack[i].Damage, pack[i].Interval, pack[i].Reach, pack[i].InitialDelay);
                     if (damageBonus != 0f)
                         enemyWeapons[i].AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));

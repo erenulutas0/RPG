@@ -118,7 +118,7 @@ gate in order, distributions over seeds rather than one run, phone use coordinat
 | S3 | **Books from chests** (done 2026-09-20): a chest keeps its reward and some hold a book as well, drawn by the seed and applied through the same service; the share is measured in `28`. The Descent simulation gained chests with it, which it had never had | a chest can now change a build, and the walk to one is worth taking; measured against mend and gold at six shares | S1, S2 |
 | S4 | **Swarm room** (done 2026-09-20, `29`; measured first in `26` Part 6): `RoomKind.Swarm` with a spawn schedule (waves every *n* seconds, escalating, elites at marks), a survive-for-*T* clock, an alive cap of 10, and a checkpoint to leave early | XP per minute and damage per minute across weapons and routes; the budget's effect at real crowding | — (can run beside S1–S3) |
 | S5a | **Forge Pulse** (done 2026-09-21, `30`): one behavioural upgrade on the trigger contract agreed here (every *N*th strike pulses; pulse damage is not a strike; crits can trigger it but it never crits; area strikes count once; pulse kills chain nothing; relic damage is not a strike), shipped at one stack, radius 2.2, every fourth strike | **the claim below was measured and failed.** The Pulse was to favour the Daggers and instead favours the Sword at eleven of twelve settings, across two ways of scaling it: a per-strike burst inherits the weight of a strike, and the Daggers strike smallest. It shipped because it fixes a different real hole - the Sword is three times weaker than the Staff in a swarm - and because the Daggers need a card that keys on their crit rhythm instead, which is not this one | S1, S2 |
-| S5b | **Weapon evolutions at max stacks**: a card that reaches its limit becomes the next thing, per weapon, using Astra's existing ring and pulse art | the levels a swarm grants past a full build, which the phone session measured as eleven wasted ones from wave thirty-three on, finally land somewhere | S5a |
+| S5b | **Evolutions, and what they cost** (done 2026-09-21, `32`): a card at its stack limit and a run past a Descent's length unlock an evolution, and every evolution raises a run-level `Difficulty` that scales enemy health and damage | **both claims answered.** Free evolutions send the Staff to the 200-wave cap wasting 59 levels; at 0.15 a run still goes 19 % deeper, so the second claim failed there; **0.20** is the smallest cost that satisfies it and takes wasted levels to zero. Taking *every* evolution now ends slightly shallower than taking none, which makes *some* the right answer - a build decision | S5a |
 | S5c | **Splintering Crit** (done 2026-09-21, `31`): a critical strike also strikes every enemy within 2.0 units of its target for a share of its crit damage, gated on the Daggers' every-third-strike rhythm | **the claim held.** With crits held equal across the weapons, the Daggers gain most in nine settings out of nine - seven to ten times what the Sword gains, fifty times what the Staff gains - and the ordering does not turn on the radius. It takes them from 18 waves to 55 against the Staff's 67, so they are a choice rather than the best | S5a |
 | S6 | **Floors below, swarm on top** (reframed 2026-09-21, decision 5): three or four floors re-authored as the descent to a single finale swarm after the last boss, the floors carrying the difficulty and the reasons to move, a Difficulty stat, floor targets of 4–6 minutes, a Descent of 15–20; the ramp re-measured against a hero entering at level eleven | the GDD's 3–4 minute floors, finally; distributions per seed; a finale whose depth is a score | S4 |
 | S7 | **Meta tree**: banked gold into permanent nodes, respec, the Bones and Coins layer | the endgame Bones and Coins lacks | S1–S6 |
@@ -428,6 +428,82 @@ and any change to the three weapons' authored patterns.
 test. Two things to carry into S5b. The two behavioural cards were measured **separately**, and `UpgradePool` opens both
 by level forty-two, so a finale can hold a Pulse and a splinter at once and nothing has measured that. And three
 mechanics are now invisible - the book, the Pulse and the splinter - which is the largest thing waiting on Astra.
+
+## 11. S5b specification — evolutions, and what they cost (agreed 2026-09-21)
+
+The phone session of 2026-09-21 measured the hole this slice exists to close. Fifty-five swarm waves, fifty-one levels,
+**thirty-eight** of them spent: the nine core cards were full by wave thirty-two, and from wave forty-one to wave
+fifty-five the upgrade panel never opened again. Thirteen level-ups produced nothing at all, because nothing was eligible.
+A room whose whole purpose is to pay for a long stay stops paying two thirds of the way through it.
+
+**But the same session measured the opposite problem, for the third time running.** The owner left at 102 health, losing
+2.1 health a wave; at that rate the swarm needed another fifty waves to kill him. Every session has ended with him
+choosing to stop. So a slice that only adds power would close one hole by digging the other deeper, and this
+specification refuses to do that.
+
+### An evolution is a card whose gate is a full card
+
+`UpgradeOption` gains `EvolvesFromId`. A card that names one is offered only when the card it names is **at its stack
+limit** - a stronger and more meaningful gate than `RequiresId`, which asks for a single stack. Everything else is reused:
+pool order, rarity tiers, the seeded draw, the stack limits, the one eligibility list that serves both level-ups and
+books.
+
+**An evolution is not gated by `UpgradePool.WidthAt`.** The width takes cards from the front of the authored order, and a
+run that reached level fifty-one only opens twelve of them; evolutions sitting at positions twelve to fourteen would never
+arrive. Their gate is their base card being full, which a run cannot reach early anyway, so the width has nothing to add
+and is deliberately not applied to them.
+
+### Every evolution makes the world harder
+
+`UpgradeStat.Difficulty` joins the sheet `HeroStats` holds - Megabonk keeps Difficulty on the character sheet for the same
+reason - starting at 1.0 and multiplying **enemy health and damage** wherever the floor's own multipliers are applied, in
+the scene and in the simulation alike. Taking an evolution raises it by `EvolutionRule.DifficultyPerStack`. Not as a
+second stat on the card, which the one-stat model cannot carry, but as a property of being an evolution: the service that
+applies the stack applies the cost.
+
+That is what makes an evolution a **choice** rather than a reward for having played long enough, and it is the first thing
+in the project that pushes back when the hero grows. It is also the honest shape for a finale whose depth is the score: a
+player who evolves goes deeper per wave and meets a harder wave for it.
+
+### What is authored
+
+Three evolutions, on the three cards every measured run fills first: Tempered Edge, Quickened Grip and Vital Surge. Each
+is a stronger version of the same stat with its own stack limit, so the balance question this slice asks is
+one-dimensional and can be answered by measurement rather than taste. Fifteen extra stacks against thirteen wasted levels
+is deliberate: a little more room than the hole, not a lot.
+
+**Behavioural evolutions - a weapon changing its pattern, the Daggers' direct hit becoming a cleave - are not in this
+slice.** They need the art the roadmap promised them and they are a second design question. The mechanism built here is
+what they will use.
+
+### What is measured
+
+`EvolutionRule.DifficultyPerStack` and the evolutions' magnitudes, in the swarm room against all three weapons, against
+the same backing-off player, with the control arm holding no evolutions. Two claims, stated so they can fail:
+
+1. **Evolutions must close the hole**: a run that fills its build must keep being offered cards afterwards, and the count
+   of level-ups that produce nothing must fall to near zero.
+2. **Evolutions must not remove the ceiling further**: a run that takes every evolution must not go deeper, relative to
+   its own control, than a run that takes none. If depth rises with every evolution taken, the difficulty cost is too
+   small and the number is wrong.
+
+The second is the one that matters, and it is allowed to send this slice back.
+
+**Out of S5b.** Behavioural evolutions and any art, a Difficulty the player can raise on purpose (S6), evolutions for the
+other six core cards, and any change to where the behavioural cards of S5a and S5c sit in the order - that is its own
+small slice, and the phone session says it is needed.
+
+**What was built, 2026-09-21** (`32`). The mechanism, the Difficulty stat, three evolutions, and the cost at 0.20. Two
+things the specification did not foresee, both caught by pinned tests rather than by reading. A full base card alone let
+an evolution into the **Descent**, because eleven level-ups spent on one card fill a five-stack card - so an evolution
+needs the level gate as well, and the Descent is bit-identical again. And the measurement exposed a limit that now applies
+to everything measured since `29`: **the scripted back-off player is about twice as fragile as the owner.** He wasted
+thirteen levels at wave fifty-five; the policies waste zero with two weapons out of three, because they die at waves
+twelve and fifteen. Every constant set against them is a floor rather than an answer, and re-calibrating the policy to his
+measured depth is worth its own slice before S6 tunes anything else.
+
+**Four silent mechanics now**: the book, the Pulse, the splinter and Difficulty. A card that says "and a harder world"
+gives the player no way to see how much harder the world became.
 
 ## Sources
 

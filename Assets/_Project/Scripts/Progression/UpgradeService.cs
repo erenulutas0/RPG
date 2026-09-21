@@ -60,6 +60,8 @@ namespace Cryptforge.Progression
 
         // How many books this run has taken, so a report can tell a stack that was chosen from one that was found.
         public int BooksGranted { get; private set; }
+        // Evolution stacks applied, each of which raised the world's difficulty.
+        public int EvolutionsTaken { get; private set; }
 
         // heroStats may be omitted by a caller whose pool holds only weapon cards; one is made so a hero card can
         // never find nothing to write to.
@@ -109,6 +111,7 @@ namespace Cryptforge.Progression
                 _heroStats.AddModifier(choice.Stat, modifier);
             else
                 _weapon.AddModifier(choice.Stat, modifier);
+            ApplyEvolutionCost(choice);
             LastSelected = offer;
             CurrentOffer = CreateOffer();
             Selected?.Invoke(choice, slot);
@@ -145,6 +148,7 @@ namespace Cryptforge.Progression
                 _heroStats.AddModifier(book.Stat, modifier);
             else
                 _weapon.AddModifier(book.Stat, modifier);
+            ApplyEvolutionCost(book);
             BookGranted?.Invoke(book, rarity);
             return true;
         }
@@ -212,17 +216,52 @@ namespace Cryptforge.Progression
         // The cards below their stack limit whose prerequisite, if any, holds a stack, in pool order, and only as far
         // into the pool as the run's level has opened it. One list serves both reward moments, so a book can never
         // reach a card a level-up would refuse to offer.
+        //
+        // An evolution is the exception to the width, and deliberately so: its gate is its base card being full, which is
+        // a harder thing to reach than a level, and an evolution sitting behind the width would never be offered at all -
+        // the run that prompted this slice reached level fifty-one, which opens twelve of fourteen cards (docs/27, S5b).
         private List<UpgradeOption> Eligible()
         {
             int width = Math.Min(_pool.Length, UpgradePool.WidthAt(_run.Level));
-            var eligible = new List<UpgradeOption>(width);
-            for (int i = 0; i < width; i++)
+            var eligible = new List<UpgradeOption>(_pool.Length);
+            for (int i = 0; i < _pool.Length; i++)
             {
                 UpgradeOption option = _pool[i];
-                if (_stacks[option] < option.MaxStacks && (option.RequiresId == null || StacksOfId(option.RequiresId) > 0))
+                if (_stacks[option] >= option.MaxStacks)
+                    continue;
+                if (option.IsEvolution)
+                {
+                    if (EvolutionRule.Unlocked(_run.Level, IsFull(option.EvolvesFromId)))
+                        eligible.Add(option);
+                    continue;
+                }
+                if (i < width && (option.RequiresId == null || StacksOfId(option.RequiresId) > 0))
                     eligible.Add(option);
             }
             return eligible;
+        }
+
+        // Whether the card with this id is at its stack limit. An id the pool does not hold is not full, so a
+        // mis-authored evolution is never offered rather than breaking a run.
+        private bool IsFull(string id)
+        {
+            for (int i = 0; i < _pool.Length; i++)
+            {
+                if (_pool[i].Id == id)
+                    return _stacks[_pool[i]] >= _pool[i].MaxStacks;
+            }
+            return false;
+        }
+
+        // Every evolution makes the world harder. Applied here rather than carried on the card, because a card holds one
+        // stat and an evolution needs two things to happen at once (EvolutionRule).
+        private void ApplyEvolutionCost(UpgradeOption option)
+        {
+            if (!option.IsEvolution)
+                return;
+
+            EvolutionsTaken++;
+            _heroStats.AddModifier(UpgradeStat.Difficulty, EvolutionRule.DifficultyCost());
         }
 
         private int StacksOfId(string id)

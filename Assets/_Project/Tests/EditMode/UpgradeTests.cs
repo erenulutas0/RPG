@@ -448,6 +448,172 @@ namespace Cryptforge.Tests
             new UpgradeOption("upgrade_range", "Range", "+{0:0} range", UpgradeStat.Range,
                 new StatModifier(ModifierOperation.Flat, 0.3f), maxStacks);
 
+        // Evolutions (docs/27, S5b). An evolution is a card whose gate is another card being full rather than merely
+        // held, it ignores the pool width, and taking one makes the world harder.
+        private static UpgradeOption Evolved(int maxStacks = 3, string from = "upgrade_damage") =>
+            new UpgradeOption("upgrade_damage_evolved", "Ruinous Edge", "+{0:0} damage", UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Flat, 50f), maxStacks, null, from);
+
+        // A run at a given level, reached by paying the experience for it, so RunState.Level is real rather than poked.
+        private static void RaiseToLevel(RunState run, int level)
+        {
+            for (int i = 0; i < 4000 && run.Level < level; i++)
+                run.AddExperience(10);
+            Assert.That(run.Level, Is.GreaterThanOrEqualTo(level));
+        }
+
+        [Test]
+        public void AnEvolutionWaitsForItsBaseCardToBeFull()
+        {
+            UpgradeOption damage = DamageOption(2);
+            UpgradeOption evolved = Evolved();
+            var run = new RunState(10, 0.5f, 0, seed: 4);
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { damage, evolved }, 2, stats);
+            RaiseToLevel(run, EvolutionRule.MinimumLevel);
+
+            Assert.That(service.CurrentOffer.Choices.Count, Is.EqualTo(1), "Only the base card is eligible.");
+            Assert.That(service.CurrentOffer.Choices[0].Id, Is.EqualTo("upgrade_damage"));
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True);
+            Assert.That(service.CurrentOffer.Choices.Count, Is.EqualTo(1), "One stack of two is still not full.");
+            Assert.That(service.CurrentOffer.Choices[0].Id, Is.EqualTo("upgrade_damage"));
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True);
+
+            // Full now, so the evolution is the only card left.
+            Assert.That(service.StacksOf(damage), Is.EqualTo(2));
+            Assert.That(service.CurrentOffer.Choices[0].Id, Is.EqualTo("upgrade_damage_evolved"));
+        }
+
+        [Test]
+        public void AnEvolutionAlsoWaitsForARunLongerThanADescent()
+        {
+            // A whole Descent grants eleven level-ups on one card, which is enough to fill a five-stack card, so a full
+            // base card alone would have let an evolution into the Descent - and since an evolution ignores the pool
+            // width, nothing else would have stopped it. This is the clause that keeps every Descent what it was.
+            UpgradeOption damage = DamageOption(2);
+            var run = new RunState(10, 0.5f, 0, seed: 4);
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { damage, Evolved() }, 2, stats);
+            RaiseToLevel(run, EvolutionRule.MinimumLevel - 2);
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True);
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True);
+            Assert.That(service.StacksOf(damage), Is.EqualTo(2), "The base card is full.");
+            Assert.That(service.CurrentOffer, Is.Null, "And there is still nothing to offer, because the run is too short.");
+
+            RaiseToLevel(run, EvolutionRule.MinimumLevel);
+            Assert.That(service.CurrentOffer, Is.Not.Null);
+            Assert.That(service.CurrentOffer.Choices[0].Id, Is.EqualTo("upgrade_damage_evolved"));
+            Assert.That(EvolutionRule.Unlocked(EvolutionRule.MinimumLevel - 1, true), Is.False);
+            Assert.That(EvolutionRule.Unlocked(EvolutionRule.MinimumLevel, false), Is.False);
+            Assert.That(EvolutionRule.Unlocked(EvolutionRule.MinimumLevel, true), Is.True);
+        }
+
+        [Test]
+        public void AnEvolutionIgnoresThePoolWidth()
+        {
+            // Twelve cards with the evolution last: the width at this level opens six of them, and the evolution is the
+            // twelfth. It is offered anyway, because its own gate is harder than the width's.
+            var pool = new List<UpgradeOption>();
+            for (int i = 0; i < 11; i++)
+            {
+                pool.Add(new UpgradeOption($"filler_{i}", $"Filler {i}", "+{0:0}", UpgradeStat.Damage,
+                    new StatModifier(ModifierOperation.Flat, 1f), i == 0 ? 1 : 9));
+            }
+            pool.Add(new UpgradeOption("filler_0_evolved", "Evolved", "+{0:0}", UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Flat, 50f), 3, null, "filler_0"));
+
+            var run = new RunState(10, 0.5f, 0, seed: 7);
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), pool, 12, stats);
+            RaiseToLevel(run, EvolutionRule.MinimumLevel);
+            Assert.That(UpgradePool.WidthAt(run.Level), Is.LessThan(pool.Count), "The width does not reach the evolution.");
+
+            // Fill the one-stack base card, wherever it is offered.
+            for (int guard = 0; guard < 20 && service.StacksOf(pool[0]) == 0; guard++)
+            {
+                UpgradeOffer offer = service.CurrentOffer;
+                int slot = 0;
+                for (int i = 0; i < offer.Choices.Count; i++)
+                    if (offer.Choices[i].Id == "filler_0")
+                        slot = i;
+                Assert.That(service.TrySelect(offer, slot), Is.True);
+                run.AddExperience(200);
+            }
+
+            var ids = new List<string>();
+            foreach (UpgradeOption choice in service.CurrentOffer.Choices)
+                ids.Add(choice.Id);
+            Assert.That(ids, Contains.Item("filler_0_evolved"),
+                "An evolution is offered from beyond the width, because the width is not its gate.");
+        }
+
+        [Test]
+        public void TakingAnEvolutionMakesTheWorldHarderAndNothingElseDoes()
+        {
+            UpgradeOption damage = DamageOption(1);
+            UpgradeOption evolved = Evolved(2);
+            var run = new RunState(10, 0.5f, 0, seed: 9);
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { damage, evolved }, 2, stats);
+            RaiseToLevel(run, EvolutionRule.MinimumLevel);
+
+            Assert.That(stats.Difficulty, Is.EqualTo(1f), "A run starts at the difficulty its floors author.");
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True, "The base card, which is not an evolution.");
+            Assert.That(stats.Difficulty, Is.EqualTo(1f), "An ordinary card costs the world nothing.");
+            Assert.That(service.EvolutionsTaken, Is.Zero);
+
+            Assert.That(service.CurrentOffer.Choices[0].Id, Is.EqualTo("upgrade_damage_evolved"));
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True);
+            Assert.That(stats.Difficulty, Is.EqualTo(1f + EvolutionRule.DifficultyPerStack).Within(1e-4f));
+            Assert.That(service.EvolutionsTaken, Is.EqualTo(1));
+
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True, "The second stack of the same evolution.");
+            Assert.That(stats.Difficulty, Is.EqualTo(1f + 2f * EvolutionRule.DifficultyPerStack).Within(1e-4f),
+                "Every stack costs, not just the first.");
+            Assert.That(service.EvolutionsTaken, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ABookThatLandsOnAnEvolutionPaysForItToo()
+        {
+            UpgradeOption damage = DamageOption(1);
+            var run = new RunState(10, 0.5f, 0, seed: 12);
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f), new[] { damage, Evolved(1) }, 1, stats);
+            RaiseToLevel(run, EvolutionRule.MinimumLevel);
+            Assert.That(service.TrySelect(service.CurrentOffer, 0), Is.True, "Fill the base card first.");
+
+            Assert.That(service.TryGrantBook(0, out UpgradeOption book, out _), Is.True);
+            Assert.That(book.Id, Is.EqualTo("upgrade_damage_evolved"), "The evolution is all that is left to find.");
+            Assert.That(stats.Difficulty, Is.EqualTo(1f + EvolutionRule.DifficultyPerStack).Within(1e-4f),
+                "A found evolution costs what a chosen one costs.");
+        }
+
+        [Test]
+        public void AnEvolutionOfACardThePoolDoesNotHoldIsNeverOffered()
+        {
+            // A mis-authored evolution is quietly never eligible rather than breaking a run.
+            var run = new RunState(10, 0.5f, 0, seed: 3);
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            var service = new UpgradeService(run, new WeaponRuntime(10f, 0.8f, 3f),
+                new[] { Evolved(3, "upgrade_that_does_not_exist") }, 1, stats);
+            RaiseToLevel(run, EvolutionRule.MinimumLevel);
+            Assert.That(service.CurrentOffer, Is.Null);
+
+            Assert.Throws<ArgumentException>(() => new UpgradeOption("a", "A", "{0}", UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Flat, 1f), 1, null, "a"), "A card cannot evolve from itself.");
+            Assert.Throws<ArgumentException>(() => new UpgradeOption("a", "A", "{0}", UpgradeStat.Damage,
+                new StatModifier(ModifierOperation.Flat, 1f), 1, null, ""));
+        }
+
+        [Test]
+        public void DifficultyNeverFallsBelowWhatTheFloorsAuthor()
+        {
+            var stats = new HeroStats(100f, 2.5f, 2f);
+            stats.AddModifier(UpgradeStat.Difficulty, new StatModifier(ModifierOperation.Flat, -5f));
+            Assert.That(stats.Difficulty, Is.EqualTo(1f), "A negative card cannot make the world easier than authored.");
+        }
+
         [Test]
         public void PercentDescriptionValueReadsAsWholePercent()
         {

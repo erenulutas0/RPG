@@ -19,6 +19,10 @@ namespace Cryptforge.Progression
         PulseDamage = 9,
         // The share of a critical strike that splinters into everything near its target, zero until a card grants it.
         // Behavioural like PulseDamage, and on the same pipeline for the same reason (docs/27, S5c).
-        CritSplash = 10
+        CritSplash = 10,
+        // What the world multiplies its enemies by. Starts at 1 and only ever rises, and only an evolution raises it:
+        // the cost of a card that is itself a reward for a full build (docs/27, S5b). Megabonk keeps Difficulty on the
+        // character sheet for the same reason - it is a thing about the run, and the run is what the sheet describes.
+        Difficulty = 11
     }
 }

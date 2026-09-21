@@ -21,6 +21,8 @@ namespace Cryptforge.Content
         [SerializeField, Min(1)] private int _maxStacks = 1;
         // A card that must hold a stack before this one can be offered; none for most cards.
         [SerializeField] private UpgradeDefinition _requires;
+        // A card that must be full before this one can be offered: this card is that card's evolution. None for most.
+        [SerializeField] private UpgradeDefinition _evolvesFrom;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -31,6 +33,7 @@ namespace Cryptforge.Content
         public int MaxStacks => _maxStacks;
 
         public UpgradeDefinition Requires => _requires;
+        public UpgradeDefinition EvolvesFrom => _evolvesFrom;
 
         public float RareAmount => _rareAmount != 0f ? _rareAmount : _amount;
         public float EpicAmount => _epicAmount != 0f ? _epicAmount : RareAmount;
@@ -40,6 +43,7 @@ namespace Cryptforge.Content
                 new StatModifier(_operation, _amount),
                 new StatModifier(_operation, RareAmount),
                 new StatModifier(_operation, EpicAmount),
-                _maxStacks, _requires != null ? _requires.Id : null);
+                _maxStacks, _requires != null ? _requires.Id : null,
+                _evolvesFrom != null ? _evolvesFrom.Id : null);
     }
 }
