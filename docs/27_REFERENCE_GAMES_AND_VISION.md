@@ -578,6 +578,14 @@ a buff in exchange for difficulty, the same bargain an evolution makes, chosen o
 map's size, which the owner raised, measured once there is something on it worth crossing. Ground rewards are recommended
 first: they give the hero a reason to move everywhere rather than to one spot, and they are pure simulation.
 
+**First part done 2026-09-21: the finale behind the last boss.** `Floor_FinalSwarm` holds the proof floor's ladder and
+multipliers - the room `35` and `36` measured at the end of the Descent - and Quicksilver Vaults leads to it, so the
+Warden's fall no longer ends the run: its checkpoint offers Extract, which banks everything as the old victory did, or
+Descend, which secures the Descent's gold and walks into the finale with only what the finale pays at risk. Walking out
+of it is the victory. The owner had asked whether it should wait for a strength threshold; measured (`36`), the
+threshold is one floor's worth of cards and the second floor adds nothing against the swarm, so the end of the Descent
+is past it with a floor to spare. That second finding is the brief for the rest of S6d.
+
 ### S6c specification — a continuous swarm and a walked exit (agreed 2026-09-21)
 
 Two changes to the finale, one rule each, and the owner chose the faithful version of the first over a cheaper one. The

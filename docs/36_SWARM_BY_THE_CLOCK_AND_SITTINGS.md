@@ -128,3 +128,22 @@ So this seed sits on the edge of the valley.
 This is the level-zero opening again, not the finale: entered at the end of the Descent no run of 139 dies inside the
 first minute. Every change to the room's opening made so far has been measured against a hero the design says never
 walks in, because the phone can only reach the room that way.
+
+## How much of a build the finale needs — 2026-09-21
+
+The owner asked whether the swarm should come only after a certain strength, and whether today's cards are enough to
+stand in it at all. The same calibrated player, 48 seeds a weapon, entering the room with three amounts of build:
+
+| Entered | Level on entry | Median s: Sword / Staff / Daggers | Dead before 90 s | Past 3 minutes |
+|---|---|---|---|---|
+| At level zero (the phone today) | 0 | 72 / 209 / 66 | 30 / 13 / 43 | 9 / 29 / 2 |
+| After Ember Halls | 7 | 197 / 245 / 171 | 0 / 0 / 0 | 42 / 47 / 17 |
+| After the whole Descent | 11 | 197 / 245 / 169 | 0 / 0 / 0 | 35 / 46 / 18 |
+
+**The threshold is one floor.** Seven levels of cards take every weapon out of the first-minute deaths and put the Sword
+past three minutes; today's cards are enough. **The second floor adds nothing** against the swarm - a hero entering at
+level eleven lasts exactly as long as one entering at seven. That is a finding for the map work of S6d: what the floors
+below give the hero is not yet what the finale asks of it.
+
+So the finale now stands where decision 5 put it, behind the last boss, rather than behind a separate strength gate: the
+end of the Descent is already past the threshold, with a floor to spare.

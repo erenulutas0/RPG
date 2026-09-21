@@ -241,6 +241,12 @@ namespace Cryptforge.Tests
             DamageMultiplier = 0.92f
         };
 
+        // Data/Floors/Floor_FinalSwarm, the finale behind the last boss (docs/27 decision 5): the proof floor's ladder and
+        // multipliers, unchanged, because that is the room docs/35 and docs/36 measured at the end of the Descent. One
+        // definition here, so the finale and the proof floor cannot drift apart in the simulation; the scene test that
+        // descends into the finale holds the asset to it.
+        public static Floor FinalSwarm => SwarmProof;
+
         public static readonly Floor QuicksilverVaults = new Floor
         {
             Rooms = new[]

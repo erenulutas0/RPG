@@ -80,4 +80,4 @@ MonoBehaviour:
   _enemyHealthMultiplier: 1.4
   _enemyDamageMultiplier: 1.288
   _modifier: {fileID: 11400000, guid: 10000000000000000000000000000016, type: 2}
-  _nextFloor: {fileID: 0}
+  _nextFloor: {fileID: 11400000, guid: b42e426407044031a82a854340dfd6f5, type: 2}

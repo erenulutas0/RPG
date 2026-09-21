@@ -128,8 +128,10 @@ namespace Cryptforge.Tests
             TestContext.WriteLine(report);
 
             Assert.That(setup.Run.HasEnded, Is.True, "The Descent did not finish. " + report);
+            // A Descent the simulation clears ends, in the scene, at the finale's door: the last boss opens the checkpoint
+            // and the driver extracts there, which banks exactly what the simulation's victory banks.
             bool expectedVictory = expected.ClearedFloors == 2;
-            Assert.That(setup.Run.Outcome, Is.EqualTo(expectedVictory ? RunOutcome.Victory : RunOutcome.Defeat), report);
+            Assert.That(setup.Run.Outcome, Is.EqualTo(expectedVictory ? RunOutcome.Extracted : RunOutcome.Defeat), report);
             if (!expectedVictory)
             {
                 Assert.That(encounters.FloorNumber, Is.EqualTo(expected.ClearedFloors + 1), report);
@@ -146,7 +148,8 @@ namespace Cryptforge.Tests
         }
 
         // The simulation's choices: its upgrade card (or the last card left), Mend or Temper at the first forge, Mend on later
-        // floors, and Descend at the checkpoint, where the health after floor 1 is recorded.
+        // floors, Descend at floor 1's checkpoint, where the health after floor 1 is recorded, and Extract at the finale's
+        // door after floor 2, which is where the simulated Descent ends.
         private static int SlotFor(ChoicePrompt prompt, int cardSlot, bool mendOnFloorOne, int floorNumber, Health hero,
             ref float healthAfterFloorOne)
         {
@@ -157,6 +160,8 @@ namespace Cryptforge.Tests
                 case ChoiceKind.Forge:
                     return floorNumber > 1 || mendOnFloorOne ? 0 : 1;
                 default:
+                    if (floorNumber >= 2)
+                        return 0;
                     healthAfterFloorOne = hero.Current;
                     return 1;
             }

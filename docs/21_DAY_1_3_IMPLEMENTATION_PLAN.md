@@ -1803,3 +1803,28 @@ replay test now runs the Descent into the swarm so its sittings replay too, and 
 seconds rather than ten because the opening's three mites pay too little for a level in less.
 
 **Verified:** .NET **372/372**, compile **0 warnings/errors**, EditMode **387/387**, PlayMode **118/118**, Android build exit **0**, static integrity **474 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,186,418 bytes**, SHA-256 **`E5845F8EFBF7F91D8B21A08B60FC505BD11343EE94234BF682C8FC9057A15517`**.
+
+## S6d, first part — the finale behind the last boss — 2026-09-21
+
+**Why.** Three rounds of tuning had measured the swarm's opening against a level-zero hero, because the phone could only
+reach the room through the development start floor, and decision 5 says no hero walks in that way. The owner asked
+whether the swarm should wait for a strength threshold and whether today's cards are enough to stand in it. Measured
+(`36`): the threshold is one floor - after Ember Halls no calibrated run of any weapon dies inside ninety seconds - and the
+second floor adds nothing against the swarm. So the finale went where decision 5 put it.
+
+**What shipped.** `Floor_FinalSwarm`, the proof floor's ladder and multipliers unchanged, and Quicksilver Vaults leads to
+it. The Warden's fall now opens a checkpoint: Extract banks everything as the old victory did; Descend secures the
+Descent's gold and walks into the finale, where only what the finale pays is at risk, and walking out is the victory. The
+simulation names the finale as the proof floor's single definition, and a scene test that descends into it holds the
+asset to that definition wave by wave.
+
+**Tests.** The Descent parity cases now end by extracting at the finale's door, which banks what the simulation's victory
+banks; the flow test that cleared both floors now finds the finale behind the Warden and extracts there; a new flow test
+descends and checks the secured gold, the floor and the ladder.
+
+**Noticed, not fixed.** `ChestPresentationTests.RewardIsImmediateAndSingleWhileOpeningHonorsPause` failed one full run
+(health 100 where 85 was expected) and passed four class runs and the full rerun. The chest can hold a health book since
+S3 and the class does not pin the run's seed, so a book of Vital Surge lifts the health past the heal. It is an art
+presentation test, left for its owner.
+
+**Verified:** .NET **372/372**, compile **0 warnings/errors**, EditMode **387/387**, PlayMode **119/119**, Android build exit **0**, static integrity **475 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,186,418 bytes**, SHA-256 **`882383B2C27A4B4329504A388042D893EAD6F2807213DDDB483A61A5BB68C331`**.

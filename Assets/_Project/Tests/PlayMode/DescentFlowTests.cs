@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.UI;
@@ -16,6 +17,7 @@ namespace Cryptforge.Tests
     // resolving choices through RunChoices: Mend at every forge, and the scripted decision at the checkpoint.
     public sealed class DescentFlowTests
     {
+        private const int CheckpointExtract = 0;
         private const int CheckpointDescend = 1;
         private CombatSetup _setup;
         private Health _hero;
@@ -124,7 +126,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator ClearingBothFloorsCompletesTheDescent()
+        public IEnumerator ClearingBothFloorsOpensTheFinaleAndExtractingAtItsDoorBanksTheRun()
         {
             var floorTwo = new List<string>();
             _encounters.EncounterStarted += () =>
@@ -132,6 +134,7 @@ namespace Cryptforge.Tests
                 if (_encounters.FloorNumber == 2)
                     floorTwo.Add(PackTestUtility.Describe(_encounters));
             };
+            ChoicePrompt finaleDoor = null;
             float deadline = Time.realtimeSinceStartup + 120f;
             while (!_setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
             {
@@ -139,7 +142,10 @@ namespace Cryptforge.Tests
                 ChoicePrompt prompt = _setup.Choices.Current;
                 if (prompt != null && prompt.Kind == ChoiceKind.Checkpoint)
                 {
-                    _setup.Choices.TrySelect(prompt, CheckpointDescend);
+                    // The last boss no longer ends the run: its checkpoint is the finale's door (docs/27 decision 5).
+                    if (_encounters.FloorNumber == 2)
+                        finaleDoor = prompt;
+                    _setup.Choices.TrySelect(prompt, _encounters.FloorNumber == 2 ? CheckpointExtract : CheckpointDescend);
                 }
                 else if (_encounters.IsInNonCombatRoom && prompt != null && prompt.Kind == ChoiceKind.Forge)
                 {
@@ -164,22 +170,71 @@ namespace Cryptforge.Tests
             }));
             yield return null;
 
-            // The Warden fell first here and its mites last; the result still names the boss.
-            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory));
+            Assert.That(finaleDoor, Is.Not.Null, "The Warden's fall opened a checkpoint.");
+            Assert.That(finaleDoor.Cards[CheckpointDescend].Description, Does.Contain("The Final Swarm"),
+                "And its way down is the finale.");
+            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Extracted));
             Assert.That(_encounters.TotalRoomsCleared, Is.EqualTo(12));
             Assert.That(_setup.Run.Gold, Is.EqualTo(273), "Floor 1 pays 116 gold and floor 2 pays 157 with Cursed Gold; Cinder Mites pay none.");
-            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(273));
+            Assert.That(_setup.Run.GoldBanked, Is.EqualTo(273), "Extracting at the door banks everything, as the old victory did.");
             Assert.That(_setup.Run.GoldLost, Is.Zero);
             Assert.That(_setup.Choices.IsOpen, Is.False);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(_result.IsOpen, Is.True);
-            Assert.That(Label("Result Title"), Is.EqualTo("Descent complete"));
-            Assert.That(Label("Cause Label"), Does.Contain("Forge Warden").And.Contain("Quicksilver Vaults"));
+            Assert.That(Label("Result Title"), Is.EqualTo("Extracted"));
+            Assert.That(Label("Cause Label"), Does.Contain("Quicksilver Vaults"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 2").And.Contain("12 rooms"));
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 273"));
             PlayerProfile saved = TestProfile.ReadSaved();
             Assert.That(saved.Gold, Is.EqualTo(273));
             Assert.That(saved.DeepestFloorCleared, Is.EqualTo(2));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Descending from the last floor walks into the finale: the gold so far is secured at the door, the floor is the
+        // authored finale, and its ladder and multipliers are the ones the simulation measured the finale with.
+        [UnityTest]
+        public IEnumerator DescendingFromTheLastFloorSecuresTheGoldAndEntersTheFinale()
+        {
+            float deadline = Time.realtimeSinceStartup + 120f;
+            while (!_encounters.IsInSwarmRoom && !_setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
+            {
+                ChoosePendingUpgrades();
+                ChoicePrompt prompt = _setup.Choices.Current;
+                if (prompt != null && prompt.Kind == ChoiceKind.Checkpoint)
+                    _setup.Choices.TrySelect(prompt, CheckpointDescend);
+                else if (_encounters.IsInNonCombatRoom && prompt != null && prompt.Kind == ChoiceKind.Forge)
+                    _setup.Choices.TrySelect(prompt, 0);
+                else if (!_encounters.IsInNonCombatRoom)
+                    PackTestUtility.KillWave(_encounters);
+                yield return null;
+            }
+
+            Assert.That(_setup.Run.HasEnded, Is.False);
+            Assert.That(_encounters.IsInSwarmRoom, Is.True, "Descending from floor 2 walks into the swarm.");
+            Assert.That(_encounters.FloorNumber, Is.EqualTo(3));
+            Assert.That(_encounters.HasNextFloor, Is.False, "The finale is the last floor: leaving it ends the run.");
+            Assert.That(_setup.Run.SecuredGold, Is.EqualTo(273), "Everything the Descent paid is safe before the finale.");
+            Assert.That(_setup.Run.UnsecuredGold, Is.Zero, "Only what the finale pays is at risk in it.");
+
+            FloorDefinition finale = _encounters.Floor;
+            DescentSimulation.Floor measured = DescentSimulation.FinalSwarm;
+            Assert.That(finale.Id, Is.EqualTo("floor_final_swarm"));
+            Assert.That(finale.DisplayName, Is.EqualTo("The Final Swarm"));
+            Assert.That(finale.RoomCount, Is.EqualTo(measured.Rooms.Length));
+            Assert.That(finale.RoomAt(0).Kind, Is.EqualTo(RoomKind.Swarm));
+            Assert.That(finale.EnemyHealthMultiplier, Is.EqualTo(measured.HealthMultiplier));
+            Assert.That(finale.EnemyDamageMultiplier, Is.EqualTo(measured.DamageMultiplier));
+            Assert.That(finale.Modifier, Is.Null);
+            RoomDefinition room = finale.RoomAt(0);
+            Assert.That(room.WaveCount, Is.EqualTo(measured.Rooms[0].Length));
+            for (int w = 0; w < room.WaveCount; w++)
+            {
+                WaveDefinition wave = room.WaveAt(w);
+                Assert.That(wave.EnemyCount, Is.EqualTo(measured.Rooms[0][w].Length), $"Wave {w + 1}'s size.");
+                for (int e = 0; e < wave.EnemyCount; e++)
+                    Assert.That(wave.EnemyAt(e).DisplayName, Is.EqualTo(measured.Rooms[0][w][e].Name), $"Wave {w + 1}, enemy {e + 1}.");
+            }
             LogAssert.NoUnexpectedReceived();
         }
 
