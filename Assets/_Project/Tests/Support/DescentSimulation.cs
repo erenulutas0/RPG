@@ -157,6 +157,10 @@ namespace Cryptforge.Tests
             // Evolution stacks taken, and what the world ended up multiplying its enemies by for them.
             public int EvolutionsTaken;
             public float Difficulty;
+            // Recorded picks a replay could not make, because the card it named was not offered.
+            public int ReplayMisses;
+            // The cards the run took, in order: what a replay of this run would hand back.
+            public string[] Picks;
 
             public float ClosestEnemyGap => (float)Math.Sqrt(ClosestEnemyGapSquared);
             public float ClosestHeroDistance => (float)Math.Sqrt(ClosestHeroDistanceSquared);
@@ -446,7 +450,8 @@ namespace Cryptforge.Tests
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
             HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
-            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, int swarmWaves = DefaultSwarmWaves)
+            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, int swarmWaves = DefaultSwarmWaves,
+            string[] replay = null, Action<int, float, int> onSwarmWave = null)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
@@ -460,7 +465,7 @@ namespace Cryptforge.Tests
             var upgrades = new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats);
             weapon.Seed = run.Seed;
             // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
-            var picker = new CardPicker(upgrades, cardSlot, preferIds);
+            var picker = new CardPicker(upgrades, cardSlot, preferIds, replay);
             var forge = new ForgeService(run, hero);
             var choices = new RunChoices(upgrades, forge);
             RelicRuntime relic = relicOption != null ? new RelicRuntime(relicOption) : null;
@@ -483,7 +488,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmWaves, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmWaves, onSwarmWave, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -511,6 +516,8 @@ namespace Cryptforge.Tests
             result.SplintersFired = weapon.SplintersFired;
             result.Difficulty = heroStats.Difficulty;
             result.EvolutionsTaken = upgrades.EvolutionsTaken;
+            result.ReplayMisses = picker.ReplayMisses;
+            result.Picks = picker.Taken.ToArray();
             result.UpgradesApplied = run.UpgradesApplied;
             result.HeroFloorX = heroMotion.X;
             result.HeroFloorY = heroMotion.Y;
@@ -532,7 +539,7 @@ namespace Cryptforge.Tests
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
-            HeroStats heroStats, ChestState chest, int swarmWaves, ref Result result)
+            HeroStats heroStats, ChestState chest, int swarmWaves, Action<int, float, int> onSwarmWave, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -565,6 +572,10 @@ namespace Cryptforge.Tests
                 float difficulty = swarmRoom ? SwarmRule.DifficultyAt(next.WaveIndex) : 1f;
                 if (swarmRoom && next.WaveIndex + 1 > result.SwarmWave)
                     result.SwarmWave = next.WaveIndex + 1;
+                // The same three numbers the scene's swarm_wave event records, at the same moment - as the wave spawns -
+                // so a simulated run can be laid over a recorded one wave by wave.
+                if (swarmRoom)
+                    onSwarmWave?.Invoke(next.WaveIndex + 1, hero.Current, run.Level);
 
                 // A room's first wave brings its chest, as ChestSpawner does on the encounter that starts a new room;
                 // later waves of the same room leave it where it is, opened or not.
@@ -999,17 +1010,46 @@ namespace Cryptforge.Tests
             private readonly UpgradeService _upgrades;
             private readonly int _slot;
             private readonly string[] _preferIds;
+            private readonly string[] _replay;
+            private int _picks;
 
-            public CardPicker(UpgradeService upgrades, int slot, string[] preferIds)
+            // Every card this run took, in order, so a simulated run can be replayed exactly as a recorded one is.
+            public readonly List<string> Taken = new List<string>();
+
+            // How many picks the replay could not make because the card was not in the offer. Zero for a faithful replay,
+            // which is the only kind worth measuring against: offers are drawn from the seed and the stacks, so a replay
+            // that took every recorded card saw every recorded offer.
+            public int ReplayMisses { get; private set; }
+
+            public CardPicker(UpgradeService upgrades, int slot, string[] preferIds, string[] replay = null)
             {
                 _upgrades = upgrades;
                 _slot = slot;
                 _preferIds = preferIds;
+                _replay = replay;
             }
 
             public int Slot(int cardCount)
             {
                 UpgradeOffer offer = _upgrades.CurrentOffer;
+                int pick = _picks++;
+                // A recorded run's k-th card at its k-th offer. Past the end of the recording the run plays on by the
+                // ordinary policy, which is how a replay that outlives its original is allowed to keep going.
+                int slot = Choose(offer, cardCount, pick);
+                if (offer != null && slot < offer.Choices.Count)
+                    Taken.Add(offer.Choices[slot].Id);
+                return slot;
+            }
+
+            private int Choose(UpgradeOffer offer, int cardCount, int pick)
+            {
+                if (_replay != null && offer != null && pick < _replay.Length)
+                {
+                    for (int i = 0; i < offer.Choices.Count && i < cardCount; i++)
+                        if (offer.Choices[i].Id == _replay[pick])
+                            return i;
+                    ReplayMisses++;
+                }
                 if (_preferIds != null && offer != null)
                 {
                     for (int p = 0; p < _preferIds.Length; p++)

@@ -374,6 +374,33 @@ namespace Cryptforge.Tests
                 $"without, {evolved.Level - evolved.UpgradesApplied} with.");
         }
 
+        [Test]
+        public void ARecordedBuildReplaysExactlyFromItsSeedAndItsCards()
+        {
+            // The instrument docs/33 calibrates the simulation with: offers are drawn from the seed and the stacks, so a run
+            // that takes the same card at the same offer sees the same offers, and the build is reproduced exactly. If that
+            // ever stopped being true, every replay of the owner's recorded runs would silently measure a different build.
+            DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
+            DescentSimulation.Result original = DescentSimulation.Run(swarm, 1, false, null, DescentSimulation.Staff(),
+                route: new KiteRoute(), seed: 42, swarmWaves: 40);
+            Assert.That(original.Picks.Length, Is.GreaterThan(10), "A run long enough to have made real choices.");
+
+            // Replayed under a different card policy, which the replay must override card for card.
+            DescentSimulation.Result replayed = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
+                route: new KiteRoute(), seed: 42, swarmWaves: 40, replay: original.Picks);
+
+            Assert.That(replayed.ReplayMisses, Is.Zero, "Every recorded card was offered when the replay reached it.");
+            Assert.That(replayed.Picks, Is.EqualTo(original.Picks));
+            Assert.That(replayed.SwarmWave, Is.EqualTo(original.SwarmWave));
+            Assert.That(replayed.HeroHealth, Is.EqualTo(original.HeroHealth));
+            Assert.That(replayed.Kills, Is.EqualTo(original.Kills));
+
+            // And a replay of cards the offers never contain misses every one, rather than quietly picking something else.
+            DescentSimulation.Result wrong = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
+                route: new KiteRoute(), seed: 42, swarmWaves: 5, replay: new[] { "no_such_card", "no_such_card" });
+            Assert.That(wrong.ReplayMisses, Is.EqualTo(2));
+        }
+
         private static CheckpointOption[] Options() => new[]
         {
             new CheckpointOption(CheckpointKind.Extract, "Extract", "Bank 96 gold"),

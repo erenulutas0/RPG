@@ -1699,3 +1699,24 @@ adding and the hero grows by multiplying, and a linear ramp cannot catch a multi
 approved an exponential ramp the next morning; calibrating the measurement policy to his play comes first.
 
 **Verified:** .NET **359/359**, compile **0 warnings/errors**, EditMode **374/374**, PlayMode **117/117**, Android build exit **0**, static integrity **470 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`6C4C70647BE693D0A7C200BFD56669169F7D161D2FD47D9263B76FA8284BAEDD`**, installed and played on the owner's S23.
+
+## S6a — calibrating the measurement to the owner, and the hypothesis that was wrong — 2026-09-21
+
+**What changed.** Nothing in the game. `DescentSimulation.Run` gained a **replay** - the k-th recorded card at the k-th
+offer - a per-wave trace, and `Result.Picks`, and a test pins that a run replayed from its own picks comes back identical
+with no misses. With that, the owner's four recorded swarm runs were replayed exactly from their seeds and cards, each
+against the pool of the build he played it on (`33`).
+
+**The hypothesis was wrong, in writing.** `27` section 12 said this step would isolate what the simulation gets wrong
+about how he moves. Given his cards, a back-off player with a slightly wider release fits his health within six to ten
+points a wave; the simulation was never wrong about moving. It was wrong about **choosing**: every measurement since `29`
+took the card in slot zero, and his two-card answers rank evolutions first, damage and cadence next, armor and the Forge
+Pulse last - the same order across four runs and three builds. The calibrated player, his ranking plus that movement,
+goes about half as deep again with the Staff as the reference player the ramp and the evolution cost were set against.
+
+**The question three sessions left open, answered.** Replayed with his own builds, his runs would have died at waves
+fifty-eight to ninety-six. He left each of them with that much margin in hand.
+
+**Verified:** .NET **360/360**, compile **0 warnings/errors**, EditMode **375/375**, PlayMode **117/117**, Android build exit
+**0**, static integrity **470 unique asset/folder GUIDs / 568 scene objects/components**. Nothing in the runtime changed,
+so nothing was installed.

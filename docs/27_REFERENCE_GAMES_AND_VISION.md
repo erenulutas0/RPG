@@ -155,6 +155,9 @@ the HUD, a stat readout on the pause screen, and the evolution's presentation pe
    and the target is not "it kills" but "depth is felt". And the open question about a bigger map belongs to the
    floors: an arena is the right shape for an endless crowd, a map with reasons to cross it is the right shape for the
    descent to it.
+6. **The finale's difficulty grows exponentially** (the owner, 2026-09-21, after the evolution session). Linear escalation
+   cannot catch a multiplicative build; the owner asked for the Megabonk shape, where staying is a real bet and even a
+   very strong build has a last minute. Section 12 orders the work: calibrate first, then the ramp.
 
 ## 6. S1 specification — the offer engine (agreed 2026-09-19)
 
@@ -504,6 +507,57 @@ measured depth is worth its own slice before S6 tunes anything else.
 
 **Four silent mechanics now**: the book, the Pulse, the splinter and Difficulty. A card that says "and a harder world"
 gives the player no way to see how much harder the world became.
+
+## 12. The finale, reshaped, and the map below it — plan agreed 2026-09-21
+
+Four phone sessions have now said the same thing in four ways: the owner leaves the swarm, it never kills him. The last
+one said *why*. With every evolution taken the world stood at 4.5 times its authored strength by wave thirty-two, and his
+health rose through it from 58 to 191. The world grows by **adding** - two per cent a wave, a fifth per evolution - and the
+hero grows by **multiplying** - damage times cadence times crits. A linear ramp cannot catch a multiplicative build at
+any rate; raising the rate only moves the moment it loses. That is a question of **shape**, not of a number.
+
+The owner compared it to Megabonk's Final Swarm, which does three things this room does not: difficulty that rises
+**exponentially with time**, enemies that **never stop** coming, and an exit that is **a place on the map** you walk to
+through the crowd. He approved the exponential ramp (decision 6, below) and asked for the rest to be planned now, with the
+art that two of them need arriving with Astra.
+
+### The order, and why it is this order
+
+**S6a — calibrate the measurement to the owner.** Every constant since `29` was set against a scripted back-off player,
+and four sessions say that player is about half as durable as the owner: the policies die at waves twelve to forty-five,
+he left at fifty and fifty-five. Anything measured against it is a floor rather than an answer, and an exponential ramp
+tuned against a player half his strength would be tuned for nobody. The telemetry holds his runs wave by wave - health,
+level, every card he took - and each run's seed. So his exact build can be **replayed** in the simulation, which isolates
+the one thing the simulation gets wrong. Pure measurement; nothing in the game changes.
+
+**Done 2026-09-21 (`33`), and the hypothesis first written here was wrong.** This paragraph said the thing the simulation
+gets wrong is how he moves. Replaying his builds exactly, a back-off player with a slightly wider release fits his health
+within six to ten points a wave; the simulation was never wrong about moving. It was wrong about **choosing** - every
+measurement since `29` took the card in slot zero, and he takes evolutions, then damage, then cadence, every time. The
+calibrated player is his card ranking plus that movement, and with the Staff it goes about half as deep again as the
+reference player the ramp and the evolution cost were set against. Replayed with his own builds, his runs would have died
+at waves fifty-eight to ninety-six; he left each with that margin in hand.
+
+**S6b — the exponential ramp.** `SwarmRule.DifficultyAt` becomes geometric - each wave a fixed factor harder than the one
+before - and the factor is measured against the calibrated policy. The target is not "it kills" but the Megabonk shape:
+the strongest measured build dies somewhere, a weaker build dies clearly earlier, and the gap between them is the score.
+
+**S6c — a continuous swarm and a walked exit.** The wave goes: as enemies die, others enter, up to the ten the arena holds.
+The per-wave question goes with it - it was a third of the owner's last session spent in menus - and leaving becomes a
+**place**, like a chest: the hero walks onto it through the crowd, and the movement budget finally prices an escape. The
+rule is gameplay and is built here with the exit at a provisional spot; how the exit looks is Astra's.
+
+**S6d — the map below.** The descent to the finale, re-authored around reasons to move: rewards on the ground (experience
+and gold the hero walks to collect, so a kill is no longer the only source of either), and **shrines** - places that grant
+a buff in exchange for difficulty, the same bargain an evolution makes, chosen on the map rather than on a card. Then the
+map's size, which the owner raised, measured once there is something on it worth crossing. Ground rewards are recommended
+first: they give the hero a reason to move everywhere rather than to one spot, and they are pure simulation.
+
+### What is Astra's, and waits for her
+
+A difficulty readout - four mechanics are silent now, and Difficulty is the one the owner said he could not feel - the
+swarm's clock, the exit, shrines, ground rewards, and marks for a book, a pulse and a splinter. None of S6a to S6c waits on
+her: each is a rule that can be measured before it can be seen.
 
 ## Sources
 
