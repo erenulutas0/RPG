@@ -30,6 +30,11 @@ namespace Cryptforge.Combat
         public bool HasExit;
         public float ExitX;
         public float ExitY;
+        // The Descent's rewards lying on the floor (docs/27, S6d), oldest first; a route sees at most MaxDrops of them.
+        public const int MaxDrops = 64;
+        public int DropCount;
+        public readonly float[] DropX = new float[MaxDrops];
+        public readonly float[] DropY = new float[MaxDrops];
     }
 
     // How the hero walks, decided once per frame: the player's drag in the scene, a written-down script or an automatic
@@ -152,6 +157,68 @@ namespace Cryptforge.Combat
             float length = (float)Math.Sqrt(distanceSquared);
             steerX = (view.HeroX - view.ExitX) / length;
             steerY = (view.HeroY - view.ExitY) / length;
+        }
+    }
+
+    // The hero that fetches its drops: whenever nothing living is within its reach plus a margin, it walks straight at
+    // the nearest reward lying on the floor; otherwise it plays the route it is given. The stand-in docs/37 measures what
+    // walking for rewards is worth with, and the route the scene's parity case fetches with.
+    public sealed class FetchRoute : IHeroRoute
+    {
+        private readonly IHeroRoute _meanwhile;
+        private readonly float _margin;
+
+        public FetchRoute(IHeroRoute meanwhile = null, float margin = 1.5f)
+        {
+            if (float.IsNaN(margin) || margin < 0f)
+                throw new ArgumentOutOfRangeException(nameof(margin));
+            _meanwhile = meanwhile;
+            _margin = margin;
+        }
+
+        public void Steer(RouteView view, out float steerX, out float steerY)
+        {
+            if (view == null)
+                throw new ArgumentNullException(nameof(view));
+
+            if (view.DropCount > 0 && !AnyWithin(view, view.HeroReach + _margin))
+            {
+                int nearest = -1;
+                float best = float.MaxValue;
+                for (int i = 0; i < view.DropCount && i < RouteView.MaxDrops; i++)
+                {
+                    float distanceSquared = ArenaFloor.FloorDistanceSquared(view.DropX[i], view.DropY[i], view.HeroX, view.HeroY);
+                    if (distanceSquared < best)
+                    {
+                        best = distanceSquared;
+                        nearest = i;
+                    }
+                }
+                if (nearest >= 0 && best > 0f)
+                {
+                    float length = (float)Math.Sqrt(best);
+                    steerX = (view.DropX[nearest] - view.HeroX) / length;
+                    steerY = (view.DropY[nearest] - view.HeroY) / length;
+                    return;
+                }
+            }
+
+            steerX = 0f;
+            steerY = 0f;
+            _meanwhile?.Steer(view, out steerX, out steerY);
+        }
+
+        private static bool AnyWithin(RouteView view, float distance)
+        {
+            float limit = distance * distance;
+            for (int i = 0; i < view.Count; i++)
+            {
+                if (!view.Alive[i])
+                    continue;
+                if (ArenaFloor.FloorDistanceSquared(view.EnemyX[i], view.EnemyY[i], view.HeroX, view.HeroY) <= limit)
+                    return true;
+            }
+            return false;
         }
     }
 

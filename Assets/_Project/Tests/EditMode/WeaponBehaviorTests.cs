@@ -460,10 +460,14 @@ namespace Cryptforge.Tests
             }
         }
 
-        // The balance baseline: the Forge Burst fired whenever it is ready with an enemy in reach.
+        // The balance baseline these claims were measured against: the Forge Burst fired whenever it is ready with an enemy
+        // in reach, by a hero who stands in the middle - in the game before the Descent's rewards lay on the floor, which
+        // the simulation keeps as a control (groundDrops: false). They pin the combat's arithmetic, which drops did not
+        // touch. In the game as it is a standing hero picks nothing up, and one who walks for its drops opens the chests
+        // this baseline never reached, which moves several of these claims; docs/37 records which.
         private static DescentSimulation.Result Burst(DescentSimulation.Floor[] floors, int cardSlot, bool mendOnFloorOne,
             RelicOption relicOption = null, DescentSimulation.HeroWeapon heroWeapon = null) =>
             DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon,
-                ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool());
+                ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool(), groundDrops: false);
     }
 }

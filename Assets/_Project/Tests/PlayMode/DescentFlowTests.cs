@@ -88,9 +88,15 @@ namespace Cryptforge.Tests
             // The HUD refreshes when the wave spawns, when the front-left Grunt ties the mite beside it for nearest.
             Assert.That(Label("Enemy Label"), Is.EqualTo("Grunt  |  70 / 70 HP  (+3 more)"));
 
+            // The Grunt's gold falls where it did, and is the run's only once the hero reaches it (docs/37).
             grunt.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(_setup.Run.Gold, Is.EqualTo(116));
+            Assert.That(_setup.Drops.Count, Is.EqualTo(1));
+            Assert.That(_setup.Drops.At(0).Gold, Is.EqualTo(8));
+            Assert.That(_setup.Drops.CollectNear(_setup.Drops.At(0).X, _setup.Drops.At(0).Y), Is.EqualTo(1));
             Assert.That(_setup.Run.Gold, Is.EqualTo(124));
             Assert.That(_setup.Run.UnsecuredGold, Is.EqualTo(8));
+            yield return null;
             Assert.That(Label("Gold Label"), Is.EqualTo("Gold 124  (8 at risk)"));
             LogAssert.NoUnexpectedReceived();
         }
@@ -103,6 +109,8 @@ namespace Cryptforge.Tests
             _setup.Choices.TrySelect(_setup.Choices.Current, CheckpointDescend);
             yield return AdvanceToFloorRoom(2, 1);
             _encounters.WaveEnemyAt(0).ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            // Its gold lies where it fell; picked up, it is the run's and at risk (docs/37).
+            Assert.That(_setup.Drops.CollectNear(_setup.Drops.At(0).X, _setup.Drops.At(0).Y), Is.EqualTo(1));
 
             // The Grunt fell before it could walk in; the Cinder Mites beside it walk on and bite.
             float deadline = Time.realtimeSinceStartup + 6f;

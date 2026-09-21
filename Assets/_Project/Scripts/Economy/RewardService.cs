@@ -30,5 +30,22 @@ namespace Cryptforge.Economy
             _run.AddGold(gold);
             return true;
         }
+
+        // The Descent's version of a kill (docs/27, S6d): the same once-per-victim guarantee, but the reward falls where
+        // the enemy fell and is paid when the hero picks it up.
+        public bool TryDropKill(IDamageable victim, int experience, int gold, float floorX, float floorY, GroundDrops drops)
+        {
+            if (experience < 0)
+                throw new ArgumentOutOfRangeException(nameof(experience));
+            if (gold < 0)
+                throw new ArgumentOutOfRangeException(nameof(gold));
+            if (drops == null)
+                throw new ArgumentNullException(nameof(drops));
+            if (victim == null || victim.IsAlive || !_rewarded.Add(victim))
+                return false;
+
+            drops.Add(floorX, floorY, experience, gold);
+            return true;
+        }
     }
 }

@@ -48,6 +48,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/RunPause.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Economy/GroundDrops.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/SwarmDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EncounterTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunEndTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EnemyArchetypeTests.cs" />

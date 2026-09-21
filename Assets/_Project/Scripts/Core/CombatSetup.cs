@@ -42,6 +42,8 @@ namespace Cryptforge.Core
         // The hero's active ability this run, from the hero definition.
         public AbilityRuntime Ability { get; private set; }
         public UpgradeService Upgrades { get; private set; }
+        // The Descent's rewards lying on the floor (docs/27, S6d), for whatever shows them.
+        public GroundDrops Drops { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
@@ -124,7 +126,9 @@ namespace Cryptforge.Core
             Pause = new RunPause(Run);
             Pause.Changed += ApplyPause;
             Choices.Changed += OnChoicesChanged;
+            Drops = new GroundDrops(Run);
             RunTelemetryBridge telemetry = AttachTelemetry(equipped);
+            telemetry.WatchDrops(Drops);
             // After telemetry, so the choice is logged before Extract ends the run or Descend moves on.
             Checkpoint.Chosen += OnCheckpointChosen;
             _hero.Damaged += OnHeroDamaged;
@@ -134,7 +138,7 @@ namespace Cryptforge.Core
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
             telemetry.Begin();
-            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades);
+            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops);
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
@@ -218,10 +222,27 @@ namespace Cryptforge.Core
             }
         }
 
+        // A kill in the Descent drops its reward where the enemy fell; the finale pays it at once, as it was measured and
+        // as the owner chose to keep it (docs/27, S6d).
         private void OnEnemyDefeated(Health enemy)
         {
             EnemyDefinition definition = _encounters.DefinitionOf(enemy);
-            _rewards.TryAwardKill(enemy, definition != null ? definition.ExperienceReward : 0, _encounters.GoldRewardOf(enemy));
+            int experience = definition != null ? definition.ExperienceReward : 0;
+            int gold = _encounters.GoldRewardOf(enemy);
+            if (_encounters.IsInSwarmRoom)
+            {
+                _rewards.TryAwardKill(enemy, experience, gold);
+                return;
+            }
+            if (!_encounters.TryFloorPositionOf(enemy, out float x, out float y))
+            {
+                // Every enemy the Descent kills stands in its pack; one that does not is a bug, and paying it at once
+                // keeps the run whole while the error says so.
+                Debug.LogError($"{enemy.name} fell outside its pack; its reward was paid instead of dropped.", this);
+                _rewards.TryAwardKill(enemy, experience, gold);
+                return;
+            }
+            _rewards.TryDropKill(enemy, experience, gold, x, y, Drops);
         }
 
         // Damaged fires before Died, so the killer is known when the defeat ends the run.
@@ -237,6 +258,9 @@ namespace Cryptforge.Core
         // The final floor ends the Descent; every earlier floor offers Extract or Descend.
         private void OnFloorCleared()
         {
+            // Whatever still lies on the floor flies to the hero before anything else happens, so the floor's gold is
+            // whole when the checkpoint shows it and its level-ups are offered before the checkpoint opens.
+            Drops.CollectAll();
             Profile.RecordFloorCleared(_encounters.FloorNumber);
             if (!_encounters.HasNextFloor)
             {

@@ -245,7 +245,16 @@ namespace Cryptforge.Analytics
             }
         }
 
-        // Called when an enemy is defeated, before the reward service pays for it; gold is the kill's reward.
+        // A drop is about to pay the run: its gold is kill gold, which is how a room's report tells it from a chest's.
+        public void RecordDropCollecting(int gold)
+        {
+            if (!IsRecording || gold <= 0)
+                return;
+            _killGoldExpected += gold;
+        }
+
+        // Called when an enemy is defeated, before the reward service pays for it; gold is the kill's reward, or zero for a
+        // kill whose reward fell to the floor and will be reported as it is picked up.
         public void RecordKill(string enemyId, int gold)
         {
             if (!IsRecording)

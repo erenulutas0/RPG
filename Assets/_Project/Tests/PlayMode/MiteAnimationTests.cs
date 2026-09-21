@@ -4,6 +4,7 @@ using System.IO;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Economy;
 using Cryptforge.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -138,7 +139,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator DeathRewardsImmediatelyAndPooledRemainsSurviveActorRemovalThenExpire()
+        public IEnumerator DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire()
         {
             var set = _look.PaintedArt; var setup = Object.FindFirstObjectByType<CombatSetup>();
             var health = _look.GetComponent<Health>(); int alive = _encounter.AliveEnemyCount;
@@ -147,8 +148,12 @@ namespace Cryptforge.Tests
             int children = GameObject.Find("Combat Effects").transform.childCount;
             health.ApplyDamage(new DamageContext(100000));
             Assert.That(_encounter.AliveEnemyCount, Is.EqualTo(alive - 1));
-            Assert.That(setup.Run.Gold, Is.EqualTo(before + reward));
-            Assert.That(setup.Run.Experience, Is.EqualTo(experience + 1), "A Mite pays XP immediately, even though its gold reward is zero.");
+            // The reward falls where the Mite died and is paid when the hero reaches it (docs/37): one drop, its one
+            // experience and no gold.
+            Assert.That(setup.Run.Gold, Is.EqualTo(before));
+            Assert.That(setup.Run.Experience, Is.EqualTo(experience));
+            GroundDrops.Drop drop = setup.Drops.At(setup.Drops.Count - 1);
+            Assert.That((drop.Experience, drop.Gold), Is.EqualTo((1, reward)));
             Assert.That(_body.gameObject.activeSelf, Is.False);
             SpriteRenderer remains = null;
             foreach (var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())

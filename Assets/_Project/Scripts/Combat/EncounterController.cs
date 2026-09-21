@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Economy;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using UnityEngine;
@@ -58,6 +59,7 @@ namespace Cryptforge.Combat
         private SwarmDirector _swarm;
         private RoomDefinition _swarmRoom;
         private UpgradeService _upgrades;
+        private GroundDrops _drops;
         private readonly List<SwarmDirector.Spawn> _swarmSpawns = new List<SwarmDirector.Spawn>(PackLayout.MaxPackSize);
         // The hero's targets by place, so a refilled place is a refilled candidate and the earlier place still wins a tie.
         private readonly Health[] _swarmCandidates = new Health[PackLayout.MaxPackSize];
@@ -157,12 +159,13 @@ namespace Cryptforge.Combat
         }
 
         // upgrades is what a swarm room holds level-ups back on and opens its sittings with; without it a swarm offers each
-        // level-up as it comes.
+        // level-up as it comes. drops are the Descent's rewards on the floor, which the hero picks up as it walks.
         public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null,
-            UpgradeService upgrades = null)
+            UpgradeService upgrades = null, GroundDrops drops = null)
         {
             _difficulty = difficulty;
             _upgrades = upgrades;
+            _drops = drops;
             if (_floor == null || _hero == null || _heroTargeting == null || _arena == null)
                 throw new InvalidOperationException("EncounterController needs a first floor, the hero, hero targeting and the arena.");
             if (_floorProgress != null)
@@ -192,6 +195,25 @@ namespace Cryptforge.Combat
         }
 
         // The hero's position on the arena floor, which the packs walk toward.
+        // Where an enemy of the pack on the floor stands, on the pack's own floor coordinates - what a drop falls at.
+        public bool TryFloorPositionOf(Health enemy, out float floorX, out float floorY)
+        {
+            floorX = 0f;
+            floorY = 0f;
+            if (enemy == null || _motion == null)
+                return false;
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                SpawnedEnemy spawned = _wave[i];
+                if (spawned == null || !ReferenceEquals(spawned.Health, enemy) || spawned.Slot >= _motion.Count)
+                    continue;
+                floorX = _motion.XOf(spawned.Slot);
+                floorY = _motion.YOf(spawned.Slot);
+                return true;
+            }
+            return false;
+        }
+
         public float HeroFloorX => _hero.transform.position.x;
         public float HeroFloorY => ArenaFloor.FloorY(_hero.transform.position.y);
 
@@ -292,6 +314,12 @@ namespace Cryptforge.Combat
                 TickSwarm(Time.deltaTime);
                 return;
             }
+
+            // The Descent's drops, read where the hero has just walked: after it moves and before the chest is read or
+            // anything strikes, on every frame of the floor - the pauses between waves and a forge's included, where a
+            // player walks to fetch them. A frozen frame is no frame, as the simulation has none while a choice is open.
+            if (_drops != null && Time.deltaTime > 0f)
+                _drops.CollectNear(HeroFloorX, HeroFloorY);
 
             bool canAdvance = !_choices.IsOpen;
             if (_descending || IsInNonCombatRoom)

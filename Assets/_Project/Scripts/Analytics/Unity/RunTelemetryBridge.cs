@@ -1,6 +1,7 @@
 using System;
 using Cryptforge.Combat;
 using Cryptforge.Content;
+using Cryptforge.Economy;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,6 +19,7 @@ namespace Cryptforge.Analytics
         private EncounterController _encounters;
         private AbilityController _ability;
         private ChestSpawner _chests;
+        private GroundDrops _drops;
 
         // Builds the recorder from the context (which validates it before anything is added), adds the bridge to host and
         // subscribes. Call before the composition root subscribes to the same encounter events, so telemetry sees a kill
@@ -39,6 +41,20 @@ namespace Cryptforge.Analytics
             bridge.Bind(telemetry, encounters, ability, FindChestSpawner(host.scene));
             return bridge;
         }
+
+        // The Descent's drops: a dropped kill's gold is kill gold when it is picked up (docs/27, S6d). Before the
+        // composition root's own subscriptions, like everything else here.
+        public void WatchDrops(GroundDrops drops)
+        {
+            if (drops == null)
+                throw new ArgumentNullException(nameof(drops));
+            if (_drops != null)
+                throw new InvalidOperationException("The bridge already watches the run's drops.");
+            _drops = drops;
+            _drops.Collecting += OnDropCollecting;
+        }
+
+        private void OnDropCollecting(GroundDrops.Drop drop) => _telemetry.RecordDropCollecting(drop.Gold);
 
         // Writes run_start; the run's other events follow it.
         public void Begin()
@@ -107,7 +123,9 @@ namespace Cryptforge.Analytics
         private void OnEnemyDefeated(Health enemy)
         {
             EnemyDefinition definition = _encounters.DefinitionOf(enemy);
-            _telemetry.RecordKill(definition != null ? definition.Id : null, _encounters.GoldRewardOf(enemy));
+            // A kill in the Descent drops its gold, which is expected when it is picked up rather than now.
+            int gold = _encounters.IsInSwarmRoom || _drops == null ? _encounters.GoldRewardOf(enemy) : 0;
+            _telemetry.RecordKill(definition != null ? definition.Id : null, gold);
         }
 
         // Heard before the composition root opens the checkpoint or ends the Descent.
@@ -154,6 +172,8 @@ namespace Cryptforge.Analytics
                 _ability.Used -= OnAbilityUsed;
             if (!ReferenceEquals(_chests, null))
                 _chests.Opened -= OnChestOpened;
+            if (_drops != null)
+                _drops.Collecting -= OnDropCollecting;
 
             if (_telemetry != null)
             {

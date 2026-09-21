@@ -4,6 +4,7 @@ using System.IO;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Economy;
 using Cryptforge.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -115,7 +116,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator DeathRewardsImmediatelyAndPooledRemainsSurviveActorRemovalThenExpire()
+        public IEnumerator DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire()
         {
             var set = _look.PaintedArt; var setup = Object.FindFirstObjectByType<CombatSetup>();
             var health = _look.GetComponent<Health>(); int alive = _encounter.AliveEnemyCount;
@@ -124,7 +125,9 @@ namespace Cryptforge.Tests
             int children = GameObject.Find("Combat Effects").transform.childCount;
             health.ApplyDamage(new DamageContext(100000));
             Assert.That(_encounter.AliveEnemyCount, Is.EqualTo(alive - 1));
-            Assert.That(setup.Run.Gold, Is.EqualTo(before + reward));
+            // The reward falls where the Grunt died and is paid when the hero reaches it (docs/37).
+            Assert.That(setup.Run.Gold, Is.EqualTo(before));
+            Assert.That(setup.Drops.At(setup.Drops.Count - 1).Gold, Is.EqualTo(reward));
             Assert.That(_body.gameObject.activeSelf, Is.False);
             SpriteRenderer remains = null;
             foreach (var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())

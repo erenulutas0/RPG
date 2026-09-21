@@ -35,6 +35,8 @@ namespace Cryptforge.Tests
             // Views bind in Start, before the first frame after the load.
             yield return null;
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
+            // The first pack has to level the hero on its own here, as it did before drops (docs/37).
+            DropVacuum.Attach(_setup);
             _hero = GameObject.Find("Vanguard").GetComponent<Health>();
             _heroAttack = _hero.GetComponent<AttackController>();
             _ability = _hero.GetComponent<AbilityController>();

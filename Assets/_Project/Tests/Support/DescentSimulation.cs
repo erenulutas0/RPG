@@ -157,6 +157,11 @@ namespace Cryptforge.Tests
             public float LadderTopSeconds;
             // Level-up sittings the swarm opened, whether or not anything was waiting.
             public int Sittings;
+            // The Descent's drops (docs/27, S6d): picked up by walking over them, and swept to the hero at a floor's end.
+            public int DropsCollected;
+            public int DropsSwept;
+            // The run's level as floor one's last room - its boss - begins; -1 if the run never got there.
+            public int FloorOneBossLevel;
             // Pulses the hero's weapon fired, and splinters it threw; 0 until a card grants each.
             public int PulsesFired;
             public int SplintersFired;
@@ -463,7 +468,7 @@ namespace Cryptforge.Tests
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
             HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
             IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, float swarmSeconds = DefaultSwarmSeconds,
-            string[] replay = null, Action<int, float, int> onSwarmWave = null)
+            string[] replay = null, Action<int, float, int> onSwarmWave = null, bool groundDrops = true)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
@@ -484,6 +489,7 @@ namespace Cryptforge.Tests
             var result = new Result
             {
                 EarliestStrikeAfterSpawn = float.MaxValue,
+                FloorOneBossLevel = -1,
                 ClosestEnemyGapSquared = float.MaxValue,
                 ClosestHeroDistanceSquared = float.MaxValue
             };
@@ -497,10 +503,13 @@ namespace Cryptforge.Tests
             heroMotion.Place(0f, 0f, Platform);
             RouteView view = route != null ? new RouteView() : null;
             var chest = new ChestState();
+            // The Descent's rewards on the floor, one set for the run as CombatSetup keeps one. groundDrops false is the
+            // game before them (docs/27, S6d) - every kill paid at once - kept so a measurement can say what they changed.
+            GroundDrops drops = groundDrops ? new GroundDrops(run) : null;
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave, drops, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -551,7 +560,8 @@ namespace Cryptforge.Tests
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
-            HeroStats heroStats, ChestState chest, float swarmSeconds, Action<int, float, int> onSwarmWave, ref Result result)
+            HeroStats heroStats, ChestState chest, float swarmSeconds, Action<int, float, int> onSwarmWave, GroundDrops drops,
+            ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -564,6 +574,13 @@ namespace Cryptforge.Tests
             var progress = new FloorProgress(waves, endless);
             // Waves started on this floor so far; each wave starts one corner further round the arena.
             int waveOrdinal = 0;
+            // Whether the pause before the next wave was lived frame by frame - a hero walking for its drops - so the weapon
+            // has already cooled down through it and the next wave must not add the pause again.
+            bool pauseLived = false;
+            // The last wave's pack, which a forge's walk out still shows the route: dead, as the scene's is.
+            PackMotion lastMotion = null;
+            HealthState[] lastEnemies = null;
+            WeaponRuntime[] lastWeapons = null;
 
             for (FloorStep next = progress.Advance(); next.Kind != FloorStepKind.Cleared; next = progress.Advance())
             {
@@ -572,6 +589,17 @@ namespace Cryptforge.Tests
                     forge.Open(new[] { Mend(), Temper() });
                     choices.TrySelect(choices.Current, useMend ? 0 : 1);
                     ChooseUpgrades(choices, cardSlot);
+                    // The walk out of the forge: EncounterController's transition wait, in which a hero can fetch what the
+                    // last room left lying. It starts from a fresh steer, as the scene's route is asked again after the
+                    // forge's answer.
+                    float forgeSteerX = 0f;
+                    float forgeSteerY = 0f;
+                    if (route != null && drops != null && drops.Count > 0 && lastMotion != null)
+                        Ask(route, view, lastMotion, lastEnemies, lastWeapons, heroMotion, weapon.Range, result.FightSeconds,
+                            chest, false, drops, out forgeSteerX, out forgeSteerY);
+                    pauseLived = Linger(run, weapon, burst, hero, choices, cardSlot, heroMotion, stamina, route, view,
+                        lastMotion, lastEnemies, lastWeapons, chest, upgrades, floor, drops, ref forgeSteerX, ref forgeSteerY,
+                        ref result);
                     continue;
                 }
 
@@ -632,6 +660,9 @@ namespace Cryptforge.Tests
                 }
                 waveOrdinal++;
 
+                if (result.ClearedFloors == 0 && result.FloorOneBossLevel < 0 && next.RoomIndex == floor.Rooms.Length - 1 &&
+                    next.WaveIndex == 0)
+                    result.FloorOneBossLevel = run.Level;
                 float startSeconds = result.FightSeconds;
                 // The steer the hero holds into the next frame, at rest on the frame a wave spawns, and when this wave first
                 // landed a hit on the hero. No frame passes during the advance delay or an instant choice, so the hero
@@ -639,7 +670,9 @@ namespace Cryptforge.Tests
                 float steerX = 0f;
                 float steerY = 0f;
                 float firstStrike = -1f;
-                weapon.Tick(AdvanceDelay);
+                if (!pauseLived)
+                    weapon.Tick(AdvanceDelay);
+                pauseLived = false;
                 // Every wave starts with a full movement budget, as the scene does: HeroMovementInput fills it on
                 // EncounterController.EncounterStarted, which is the same moment as this line.
                 stamina.Fill();
@@ -662,6 +695,10 @@ namespace Cryptforge.Tests
                         motion.Step(step, heroMotion.X, heroMotion.Y);
                         result.FightSeconds += step;
                         ObserveSteps(motion, enemies, steps, step, result.FightSeconds, ref result);
+                        // The drops, where the hero now stands: EncounterController reads them after the pack steps and
+                        // before the chest is read. Not on the spawn frame, whose reading the pause before it already made.
+                        if (drops != null)
+                            result.DropsCollected += drops.CollectNear(heroMotion.X, heroMotion.Y);
                     }
 
                     // The chest is read once the hero has walked, as ChestSpawner reads the hero's floor position in its
@@ -683,7 +720,7 @@ namespace Cryptforge.Tests
                                 ? Nearby(motion, enemies, target, CritSplashRule.Radius)
                                 : null) && moved)
                         result.StrikesWhileMoving++;
-                    Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                    Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, drops, motion, ref result);
                     if (burst != null && burst.IsReady)
                     {
                         IReadOnlyList<IDamageable> inReach = WithinReachOfHero(motion, enemies, burst.Radius, heroMotion.X, heroMotion.Y);
@@ -691,7 +728,7 @@ namespace Cryptforge.Tests
                         {
                             burst.TryUse(null, inReach);
                             result.AbilityUses++;
-                            Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                            Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, drops, motion, ref result);
                         }
                     }
 
@@ -710,14 +747,18 @@ namespace Cryptforge.Tests
                         if (relic != null && hero.Current < before)
                         {
                             relic.OnHeroDamaged(hero, enemies[i], weapon.Damage);
-                            Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                            Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, drops, motion, ref result);
                         }
                     }
 
+                    // A level-up a drop paid for this frame is answered now, at the frame's end, where the scene's player
+                    // answers an offer that opened during it - so this frame's blows were struck without the new card, in
+                    // both. A kill no longer pays at once, so Resolve asks nothing in the Descent.
+                    ChooseUpgrades(choices, cardSlot);
                     Observe(motion, enemies, heroMotion, ref result);
                     if (route != null)
                         Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, chest,
-                            false, out steerX, out steerY);
+                            false, drops, out steerX, out steerY);
                 }
 
                 if (firstStrike >= 0f && firstStrike < result.EarliestStrikeAfterSpawn)
@@ -733,8 +774,66 @@ namespace Cryptforge.Tests
                     result.DeathRoom = $"{next.RoomIndex + 1}.{next.WaveIndex + 1}";
                     return false;
                 }
+
+                lastMotion = motion;
+                lastEnemies = enemies;
+                lastWeapons = enemyWeapons;
+                // The floor's last wave ends it on the kill, as EncounterController advances at once; every other wave is
+                // followed by the advance delay, which a hero can walk in.
+                if (!progress.IsFinalWave)
+                    pauseLived = Linger(run, weapon, burst, hero, choices, cardSlot, heroMotion, stamina, route, view, motion,
+                        enemies, enemyWeapons, chest, upgrades, floor, drops, ref steerX, ref steerY, ref result);
             }
 
+            // The floor's last enemy has fallen: whatever still lies flies to the hero, as CombatSetup sweeps the floor
+            // before its checkpoint, and the level-ups it pays are answered before anything else.
+            if (drops != null)
+                result.DropsSwept += drops.CollectAll();
+            ChooseUpgrades(choices, cardSlot);
+            return true;
+        }
+
+        // The pause after a cleared wave, or a forge's walk out: EncounterController's advance delay, counted only on frames
+        // no choice is open, as EncounterProgress.Tick and the transition wait count it. With drops on the floor it is
+        // lived frame by frame, as the scene lives it - the hero walking free on its route's steer, since
+        // HeroMovementInput spends the bar only while something is alive, picking up what it reaches and passing the
+        // chest - and the next wave spawns on the frame the pause runs out; a drop that pays a level opens a choice, and
+        // that frame does not count, so the pause is a frame longer in both. With nothing on the floor nothing can happen
+        // in it, and the next wave adds the pause to the weapon's cooldown whole, as every number before drops was
+        // measured. Returns whether the pause was lived frame by frame.
+        private static bool Linger(RunState run, WeaponRuntime weapon, AbilityRuntime burst, HealthState hero,
+            RunChoices choices, CardPicker cardSlot, HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route,
+            RouteView view, PackMotion motion, HealthState[] enemies, WeaponRuntime[] enemyWeapons, ChestState chest,
+            UpgradeService upgrades, Floor floor, GroundDrops drops, ref float steerX, ref float steerY, ref Result result)
+        {
+            if (drops == null || drops.Count == 0)
+                return false;
+
+            const float step = 1f / 60f;
+            float waited = 0f;
+            for (int frame = 0; frame < 100000 && hero.IsAlive; frame++)
+            {
+                weapon.Tick(step);
+                burst?.Tick(step);
+                heroMotion.Move(steerX, steerY, step * stamina.SpeedFactor, Platform);
+                stamina.Step(step, false);
+                result.DropsCollected += drops.CollectNear(heroMotion.X, heroMotion.Y);
+                // A drop that paid a level opened a choice on this frame, and a frame with a choice open does not count.
+                bool counted = !choices.IsOpen;
+                if (counted)
+                    waited += step;
+                bool runsOut = counted && waited >= AdvanceDelay;
+                // On the frame the pause runs out the next wave spawns before ChestSpawner reads, so the reading on that
+                // frame is the new wave's own, made on its first frame.
+                if (!runsOut)
+                    OpenChestIfReached(chest, hero, run, floor, upgrades, heroMotion, ref result);
+                ChooseUpgrades(choices, cardSlot);
+                if (runsOut)
+                    return true;
+                if (route != null && motion != null)
+                    Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, chest, false,
+                        drops, out steerX, out steerY);
+            }
             return true;
         }
 
@@ -927,7 +1026,7 @@ namespace Cryptforge.Tests
                             ? Nearby(motion, current, target, CritSplashRule.Radius)
                             : null) && moved)
                     result.StrikesWhileMoving++;
-                Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, null, motion, ref result);
                 NoticeFallen();
                 // A sitting opened this frame is answered here even when nothing died, which is the only time Resolve
                 // would have asked; every other frame there is nothing to answer.
@@ -940,7 +1039,7 @@ namespace Cryptforge.Tests
                     {
                         burst.TryUse(null, inReach);
                         result.AbilityUses++;
-                        Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                        Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, null, motion, ref result);
                         NoticeFallen();
                     }
                 }
@@ -958,7 +1057,7 @@ namespace Cryptforge.Tests
                     if (relic != null && hero.Current < before)
                     {
                         relic.OnHeroDamaged(hero, current[i], weapon.Damage);
-                        Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                        Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, null, motion, ref result);
                         NoticeFallen();
                     }
                 }
@@ -985,7 +1084,7 @@ namespace Cryptforge.Tests
                     view.ExitX = exitX;
                     view.ExitY = exitY;
                     Ask(route, view, motion, current, enemyWeapons, heroMotion, weapon.Range, director.Seconds, chest,
-                        true, out steerX, out steerY);
+                        true, null, out steerX, out steerY);
                 }
             }
 
@@ -1030,8 +1129,11 @@ namespace Cryptforge.Tests
         }
 
         // Enrage checks and kill rewards after any damage to the pack, in slot order like the scene's death callbacks.
+        // A Descent kill drops its reward where the enemy fell (drops given); a swarm's pays at once and its level-up is
+        // answered there and then, as it always was (drops null).
         private static void Resolve(Enemy[] pack, HealthState[] enemies, WeaponRuntime[] enemyWeapons, EnrageRule[] enrages, bool[] rewarded,
-            Floor floor, RewardService rewards, RunChoices choices, CardPicker cardSlot, ref Result result)
+            Floor floor, RewardService rewards, RunChoices choices, CardPicker cardSlot, GroundDrops drops, PackMotion motion,
+            ref Result result)
         {
             for (int i = 0; i < pack.Length; i++)
             {
@@ -1042,7 +1144,13 @@ namespace Cryptforge.Tests
 
                 rewarded[i] = true;
                 result.Kills++;
-                rewards.TryAwardKill(enemies[i], pack[i].Experience, FloorScaling.Gold(pack[i].Gold, floor.ModifierGoldPercent));
+                int gold = FloorScaling.Gold(pack[i].Gold, floor.ModifierGoldPercent);
+                if (drops != null)
+                {
+                    rewards.TryDropKill(enemies[i], pack[i].Experience, gold, motion.XOf(i), motion.YOf(i), drops);
+                    continue;
+                }
+                rewards.TryAwardKill(enemies[i], pack[i].Experience, gold);
                 ChooseUpgrades(choices, cardSlot);
             }
         }
@@ -1221,9 +1329,15 @@ namespace Cryptforge.Tests
         // one-frame input lag, where the PlayMode driver calls HeroMovementInput.Hold after the frame's Update calls.
         private static void Ask(IHeroRoute route, RouteView view, PackMotion motion, HealthState[] enemies,
             WeaponRuntime[] enemyWeapons, HeroMotion heroMotion, float heroReach, float seconds, ChestState chest,
-            bool hasExit, out float steerX, out float steerY)
+            bool hasExit, GroundDrops drops, out float steerX, out float steerY)
         {
             view.HasExit = hasExit;
+            view.DropCount = drops != null ? Math.Min(drops.Count, RouteView.MaxDrops) : 0;
+            for (int i = 0; i < view.DropCount; i++)
+            {
+                view.DropX[i] = drops.At(i).X;
+                view.DropY[i] = drops.At(i).Y;
+            }
             view.ChestX = chest.X;
             view.ChestY = chest.Y;
             view.ChestClosed = chest.Placed && !chest.Open;

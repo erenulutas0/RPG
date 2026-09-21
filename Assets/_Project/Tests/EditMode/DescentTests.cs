@@ -415,15 +415,25 @@ namespace Cryptforge.Tests
             // swarm's held sittings are part of what has to replay.
             DescentSimulation.Floor[] swarm =
                 { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults, DescentSimulation.SwarmProof };
-            DescentSimulation.Result original = DescentSimulation.Run(swarm, 1, true, null, DescentSimulation.Staff(),
-                route: new KiteRoute(), seed: 42, swarmSeconds: 200f);
+            // The first seed from 42 whose run lasts in the swarm long enough to have sat down to its cards more than once.
+            // Chosen by the run rather than fixed, because the Editor's Mono and the .NET runner can round a float
+            // differently and walk a run down a different path; each still replays itself exactly, which is the claim.
+            int seed = 42;
+            DescentSimulation.Result original = default;
+            for (; seed < 62; seed++)
+            {
+                original = DescentSimulation.Run(swarm, 1, true, null, DescentSimulation.Staff(),
+                    route: new FetchRoute(new KiteRoute()), seed: seed, swarmSeconds: 200f);
+                if (original.SwarmSeconds > SwarmRule.OfferEverySeconds * 2f)
+                    break;
+            }
             Assert.That(original.Picks.Length, Is.GreaterThan(10), "A run long enough to have made real choices.");
             Assert.That(original.SwarmSeconds, Is.GreaterThan(SwarmRule.OfferEverySeconds * 2f),
                 "And long enough in the swarm to have sat down to its cards more than once.");
 
             // Replayed under a different card policy, which the replay must override card for card.
             DescentSimulation.Result replayed = DescentSimulation.Run(swarm, 0, true, null, DescentSimulation.Staff(),
-                route: new KiteRoute(), seed: 42, swarmSeconds: 200f, replay: original.Picks);
+                route: new FetchRoute(new KiteRoute()), seed: seed, swarmSeconds: 200f, replay: original.Picks);
 
             Assert.That(replayed.ReplayMisses, Is.Zero, "Every recorded card was offered when the replay reached it.");
             Assert.That(replayed.Picks, Is.EqualTo(original.Picks));
@@ -443,10 +453,14 @@ namespace Cryptforge.Tests
             new CheckpointOption(CheckpointKind.Descend, "Descend", "Secure 96 gold")
         };
 
-        // The balance baseline: the Forge Burst fired whenever it is ready with an enemy in reach.
+        // The balance baseline these claims were measured against: the Forge Burst fired whenever it is ready with an enemy
+        // in reach, by a hero who stands in the middle - in the game before the Descent's rewards lay on the floor, which
+        // the simulation keeps as a control (groundDrops: false). They pin the combat's arithmetic, which drops did not
+        // touch. In the game as it is a standing hero picks nothing up, and one who walks for its drops opens the chests
+        // this baseline never reached, which moves several of these claims; docs/37 records which.
         private static DescentSimulation.Result Burst(DescentSimulation.Floor[] floors, int cardSlot, bool mendOnFloorOne,
             RelicOption relicOption = null, DescentSimulation.HeroWeapon heroWeapon = null) =>
             DescentSimulation.Run(floors, cardSlot, mendOnFloorOne, relicOption, heroWeapon,
-                ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool());
+                ability: DescentSimulation.ForgeBurst(), pool: DescentSimulation.TwoCardPool(), groundDrops: false);
     }
 }

@@ -1828,3 +1828,37 @@ S3 and the class does not pin the run's seed, so a book of Vital Surge lifts the
 presentation test, left for its owner.
 
 **Verified:** .NET **372/372**, compile **0 warnings/errors**, EditMode **387/387**, PlayMode **119/119**, Android build exit **0**, static integrity **475 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,186,418 bytes**, SHA-256 **`882383B2C27A4B4329504A388042D893EAD6F2807213DDDB483A61A5BB68C331`**.
+
+## S6d, second part — rewards on the ground — 2026-09-21
+
+**What shipped.** `GroundDrops` and `DropRule` (Economy): in every room but a swarm a kill's experience and gold fall as
+one drop where the enemy fell (`RewardService.TryDropKill`, the same once-per-victim guarantee); `EncounterController`
+picks up whatever lies within `DropRule.PickupRadius` of the hero every frame after it walks, pauses between waves and a
+forge's walk out included; `CombatSetup` sweeps what is left when a floor's last enemy falls, before its checkpoint. The
+finale pays at once, as before. Telemetry counts a dropped kill's gold when it is picked up. Drops draw nothing yet -
+that is Fable's - so this is not a phone build.
+
+**The radius (`37`).** Criterion one picked 2.0 and its premise failed: enemies walk to the hero, so a ranged weapon's
+kills fall at its feet too, and at 2.0 walking changed nothing about when cards come. Shown three radii, the owner chose
+**1.0**: a hero who never fetches picks up nothing and loses the Descent; one who walks for its drops is two to three
+levels ahead at floor one's boss and cleared every seed measured. Criterion two passes at 1.0; criterion one is recorded
+as not met.
+
+**What it found.** No Descent balance number since chests existed had been measured by a hero who opens one. A walked
+Descent opens two or three, and with them greed stops being punished: Temper on floor one clears, Second Wind's rescue is
+never needed, Counterweight's gain reverses. The pinned balance tests keep their claims on the simulation's control
+(`groundDrops: false`, the game before drops), which is what they measure - the combat's arithmetic - and new tests
+describe the game as it plays.
+
+**The simulation** now lives the frames between waves whenever drops lie, as the scene always has; a frame on which a
+drop opens a level-up does not count toward the pause, in both. A new parity case fetches through all of Ember Halls,
+scene against simulation, and agrees to the frame: 31 kills, 30 drops picked up and one swept, 103 health, the same
+spot. `FetchRoute` is the stand-in that walks to the nearest drop when nothing is within reach plus 1.5.
+
+**Tests.** New `GroundDropsTests`; `DescentSeedTests` re-stated for heroes who fetch and one who never does; the replay
+test picks its seed by the run, since the Editor's Mono and the .NET runner walk it down different paths. Scene tests
+about the reward rule now assert the drop; scene tests about other things (the choice panel, the pause, telemetry, the
+result screen) attach `DropVacuum`, which picks every drop up on its own frame - the game before drops - so they keep
+testing what they test. Two art tests' reward lines were changed with them.
+
+**Verified:** .NET **380/380**, compile **0 warnings/errors**, EditMode **395/395**, PlayMode **120/120**, Android build exit **0**, static integrity **478 unique asset/folder GUIDs / 568 scene objects/components**. The build was a scripts-only one ("player data was not rebuilt"), 24,752,438 bytes; not installed, and the next phone build should be a clean one.

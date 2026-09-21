@@ -27,9 +27,10 @@ namespace Cryptforge.Tests
             DescentSimulation.Run(Descent(), 0, true, null, weapon, ability: DescentSimulation.ForgeBurst(),
                 route: route, seed: seed);
 
-        private static int Cleared(string name, bool kiting)
+        private static int Cleared(string name, Func<IHeroRoute> route, out int collected)
         {
             int cleared = 0;
+            collected = 0;
             for (int seed = 0; seed < Seeds; seed++)
             {
                 DescentSimulation.HeroWeapon weapon = name switch
@@ -38,33 +39,51 @@ namespace Cryptforge.Tests
                     "Staff" => DescentSimulation.Staff(),
                     _ => DescentSimulation.Daggers()
                 };
-                if (Run(weapon, kiting ? new KiteRoute() : null, seed).ClearedFloors == 2)
+                DescentSimulation.Result result = Run(weapon, route(), seed);
+                collected += result.DropsCollected;
+                if (result.ClearedFloors == 2)
                     cleared++;
             }
             return cleared;
         }
 
-        // Measured 2026-09-19 over these twenty-four seeds: kiting clears 22, 22 and 21 of 24 with the Sword, the Staff
-        // and the Daggers. The claim is loose on purpose - it is here to catch a pool or a tier that breaks the run,
-        // not to freeze one measurement.
+        // Measured over these twenty-four seeds: a kiting hero who walks to its drops between fights clears 23, 23 and 24
+        // of 24 with the Sword, the Staff and the Daggers (docs/37); before the Descent's rewards lay on the floor kiting
+        // cleared 22, 22 and 21, and kiting without fetching them now clears 19, 15 and 20. The claim is loose on purpose -
+        // it is here to catch a pool or a tier that breaks the run, not to freeze one measurement.
         [Test]
-        public void AKitingHeroClearsMostSeedsWithEveryWeapon()
+        public void AKitingHeroWhoFetchesItsDropsClearsMostSeedsWithEveryWeapon()
         {
             foreach ((string name, DescentSimulation.HeroWeapon _) in Weapons())
-                Assert.That(Cleared(name, true), Is.GreaterThanOrEqualTo(16), $"{name} kiting");
+                Assert.That(Cleared(name, () => new FetchRoute(new KiteRoute()), out _), Is.GreaterThanOrEqualTo(16),
+                    $"{name} kiting and fetching");
         }
 
-        // And the other half of the same measurement: standing cleared every run when the pool held two cards and the
-        // damage card was therefore certain. With five, it clears 7, 6 and 10 of 24. That is the cost of variety at
-        // today's run length, written down rather than discovered later (docs/22, docs/27 S2b).
+        // The other half: a hero who stands to fight and fetches between fights clears 12, 9 and 13 of 24 - neither
+        // impossible nor certain, which is the cost of a five-card pool at today's run length (docs/22, docs/27 S2b),
+        // now paid by the hero drops ask to walk (docs/37). Standing cleared 7, 6 and 10 before drops.
         [Test]
-        public void AStandingHeroNoLongerClearsEverySeed()
+        public void AHeroWhoStandsAndFetchesClearsSomeSeedsButNotAll()
         {
             foreach ((string name, DescentSimulation.HeroWeapon _) in Weapons())
             {
-                int cleared = Cleared(name, false);
-                Assert.That(cleared, Is.GreaterThan(0), $"{name} standing: the run is not impossible");
-                Assert.That(cleared, Is.LessThan(Seeds), $"{name} standing: the run is not certain either");
+                int cleared = Cleared(name, () => new FetchRoute(), out _);
+                Assert.That(cleared, Is.GreaterThan(0), $"{name} standing and fetching: the run is not impossible");
+                Assert.That(cleared, Is.LessThan(Seeds), $"{name} standing and fetching: the run is not certain either");
+            }
+        }
+
+        // And the hero who never walks for them: a drop lies where its enemy fell, just outside the reach every enemy
+        // stops at, and DropRule.PickupRadius is shorter than that, so a hero who stands picks up nothing all floor and
+        // meets every boss at level zero. That is what the radius was chosen for (docs/37).
+        [Test]
+        public void AHeroWhoNeverFetchesPicksNothingUpAndClearsNoSeed()
+        {
+            foreach ((string name, DescentSimulation.HeroWeapon _) in Weapons())
+            {
+                int cleared = Cleared(name, () => null, out int collected);
+                Assert.That(collected, Is.Zero, $"{name} standing picked something up");
+                Assert.That(cleared, Is.Zero, $"{name} standing cleared a seed");
             }
         }
 

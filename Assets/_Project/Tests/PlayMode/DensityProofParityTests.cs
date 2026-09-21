@@ -5,6 +5,7 @@ using System.IO;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Economy;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -297,6 +298,97 @@ namespace Cryptforge.Tests
         // Long enough for the pack to have gathered round the hero, so the walk out goes through it.
         private const float LeaveAfterSeconds = 8f;
 
+        // Fetching drops through Ember Halls, scene against simulation (docs/27 S6d, docs/37): the whole of floor one with a
+        // hero who kites and walks to its rewards between fights. It is the case the proof floor cannot reach - the pauses
+        // between waves, where the scene has always run frames and the simulation now lives them too, a forge's walk out,
+        // chests passed on the way and the floor's end sweeping what is left. The run stops at the checkpoint the Warden's
+        // fall opens, which is where the simulation's one-floor Descent ends.
+        [UnityTest]
+        public IEnumerator FetchingDropsThroughEmberHallsMatchesTheSimulation()
+        {
+            var route = new FetchRoute(new KiteRoute());
+            DescentSimulation.Result expected = DescentSimulation.Run(new[] { DescentSimulation.EmberHalls }, 0, true,
+                null, DescentSimulation.Sword(), route: new FetchRoute(new KiteRoute()), seed: DevelopmentSeed);
+            Assert.That(expected.ClearedFloors, Is.EqualTo(1), "This case is only a case while the simulated hero clears the floor.");
+            Assert.That(expected.DropsCollected, Is.GreaterThan(0), "And while it picks drops up on the way.");
+
+            TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { "weapon_sword" }, "weapon_sword"));
+            WriteRunSeed(DevelopmentSeed);
+            _previousFrameRate = Application.targetFrameRate;
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = 1f / 60f;
+            AsyncOperation load = BeginLoad(route);
+            yield return load;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            Application.targetFrameRate = -1;
+            Assert.That(_spawnFloorId, Is.EqualTo("floor_ember_halls"), "The scene started on the authored first floor.");
+
+            int kills = 0;
+            int pickedUp = 0;
+            int swept = 0;
+            Action<Health> countKill = enemy => kills++;
+            // The floor's end sweeps inside FloorCleared, when the floor already reads as cleared; every other pick-up
+            // happens while it is still being fought.
+            Action<GroundDrops.Drop> countDrop = drop =>
+            {
+                if (_encounters.IsFloorCleared)
+                    swept++;
+                else
+                    pickedUp++;
+            };
+            _encounters.EnemyDefeated += countKill;
+            _setup.Drops.Collecting += countDrop;
+            bool atCheckpoint = false;
+            float deadline = Time.realtimeSinceStartup + RunDeadline;
+            try
+            {
+                while (true)
+                {
+                    // The simulation's choices: its upgrade card, and Mend at the forge.
+                    while (_setup.Choices.Current != null &&
+                        (_setup.Choices.Current.Kind == ChoiceKind.Upgrade || _setup.Choices.Current.Kind == ChoiceKind.Forge) &&
+                        _setup.Choices.TrySelect(_setup.Choices.Current, 0))
+                    {
+                    }
+                    atCheckpoint = _setup.Choices.Current != null && _setup.Choices.Current.Kind == ChoiceKind.Checkpoint;
+                    if (atCheckpoint || _setup.Run.HasEnded || Time.realtimeSinceStartup >= deadline)
+                        break;
+                    Steer();
+                    yield return null;
+                }
+            }
+            finally
+            {
+                _encounters.EnemyDefeated -= countKill;
+                _setup.Drops.Collecting -= countDrop;
+            }
+
+            string report = string.Format(CultureInfo.InvariantCulture,
+                "scene: {0}, {1:0.#} HP, {2} kills, {3} drops picked up and {4} swept, gold {5}, level {6}, {7} upgrades, " +
+                "{8} chests, hero at ({9:0.###}, {10:0.###}); simulation: {11:0.#} HP, {12} kills, {13} picked up and {14} " +
+                "swept, gold {15}, level {16}, {17} upgrades, {18} chests, hero at ({19:0.###}, {20:0.###})",
+                atCheckpoint ? "at the checkpoint" : _setup.Run.Outcome.ToString(), _hero.Current, kills,
+                pickedUp, swept, _setup.Run.Gold, _setup.Run.Level,
+                _setup.Run.UpgradesApplied, _chests != null ? _chests.ChestsOpened : 0, _encounters.HeroFloorX,
+                _encounters.HeroFloorY, expected.HeroHealth, expected.Kills, expected.DropsCollected, expected.DropsSwept,
+                expected.Gold, expected.Level, expected.UpgradesApplied, expected.ChestsOpened, expected.HeroFloorX,
+                expected.HeroFloorY);
+            TestContext.WriteLine(report);
+
+            Assert.That(atCheckpoint, Is.True, "Floor one was not cleared. " + report);
+            Assert.That(kills, Is.EqualTo(expected.Kills), report);
+            Assert.That(pickedUp, Is.EqualTo(expected.DropsCollected), "Picked up on the way. " + report);
+            Assert.That(swept, Is.EqualTo(expected.DropsSwept), "Swept at the end. " + report);
+            Assert.That(_setup.Run.Gold, Is.EqualTo(expected.Gold), report);
+            Assert.That(_setup.Run.Level, Is.EqualTo(expected.Level), report);
+            Assert.That(_setup.Run.UpgradesApplied, Is.EqualTo(expected.UpgradesApplied), report);
+            Assert.That(_chests != null ? _chests.ChestsOpened : 0, Is.EqualTo(expected.ChestsOpened), report);
+            Assert.That(_hero.Current, Is.EqualTo(expected.HeroHealth).Within(1e-3f), report);
+            Assert.That(_encounters.HeroFloorX, Is.EqualTo(expected.HeroFloorX).Within(PositionTolerance), report);
+            Assert.That(_encounters.HeroFloorY, Is.EqualTo(expected.HeroFloorY).Within(PositionTolerance), report);
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // The development hook must be invisible to a player: with no start-floor file the scene descends from the floor
         // Gameplay.unity carries, as every other test and every build does.
         [UnityTest]
@@ -582,6 +674,14 @@ namespace Cryptforge.Tests
             _view.HasExit = _encounters.IsInSwarmRoom;
             _view.ExitX = _encounters.ExitFloorX;
             _view.ExitY = _encounters.ExitFloorY;
+            // The Descent's drops, oldest first, as the simulation shows them to its route.
+            GroundDrops drops = _setup.Drops;
+            _view.DropCount = drops != null ? Math.Min(drops.Count, RouteView.MaxDrops) : 0;
+            for (int i = 0; i < _view.DropCount; i++)
+            {
+                _view.DropX[i] = drops.At(i).X;
+                _view.DropY[i] = drops.At(i).Y;
+            }
             for (int i = 0; i < _view.Count; i++)
             {
                 Health enemy = _encounters.WaveEnemyAt(i);

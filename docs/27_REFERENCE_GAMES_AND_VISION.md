@@ -632,6 +632,61 @@ since there are no wave starts left to refill it.
 **Out of S6c.** The exit's art and any swarm clock (Astra), a swarm room anywhere in the authored Descent (S6d), and any
 change to the ladder itself.
 
+### S6d specification — rewards on the ground (agreed 2026-09-21)
+
+Two facts set the brief. The Descent the owner played before his first real finale took 96 seconds of play for two
+floors, against a target of four to six minutes a floor; and the finale erases what the floors give - a hero entering at
+level seven lasts exactly as long as one entering at eleven (`36`). So ground rewards are for the Descent itself: a
+reason to move in it, and a fight that asks more than standing still. The owner made the two decisions that shape it:
+**kills drop their reward** (not rewards placed in rooms beforehand), and **only in the Descent for now** - the finale
+keeps paying at once, as it was measured and as he liked it.
+
+**Where it falls.** In every room but a swarm, a kill's experience and gold fall as one drop where the enemy fell. The
+once-per-victim guarantee `RewardService` gives a kill moves with it: a victim drops once.
+
+**Picking it up.** The hero collects every drop within `DropRule.PickupRadius` of its feet, read once a frame after it
+has walked - the same point a chest is read, and before it. Collected is rewarded exactly as a kill was.
+
+**How long it lies.** For the rest of the floor: through the pauses between waves, across the floor's rooms, through a
+forge. The hero keeps its place between rooms, so what fell in one room can be fetched in the next. If the hero dies,
+what lies on the floor was never its gold.
+
+**Nothing is lost at a floor's end.** When the floor's last enemy falls, everything still lying flies to the hero, so a
+floor's gold and experience at its checkpoint are exactly what its kills paid. What walking buys is *when*: cards while
+the floor is being fought, not at its end.
+
+**The finale is untouched.** A swarm room rewards a kill the moment it falls, as it does today.
+
+**The simulation mirrors all of it** on the same frames, which now includes the frames between waves - the scene has
+always had them and a player can walk in them, and a hero who fetches a drop does. It gets a stand-in that fetches: the
+calibrated back-off player of `33`, walking to the nearest drop whenever nothing is within its reach plus its release
+distance.
+
+**Measured.** `DropRule.PickupRadius`, against criteria written now:
+
+1. **Reach costs a walk.** At the chosen radius a Sword standing and fighting collects at least three quarters of floor
+   one's drops as they fall, and a Staff standing and fighting at most half. The radius is the smallest that satisfies
+   the Sword; if it breaks the Staff's half, that is recorded.
+2. **Walking pays.** At that radius the calibrated player who fetches is at least one level higher than the one who
+   does not when each enters floor one's boss room, at the median, and clears the Descent no less often.
+3. **Nothing is lost.** Structural, pinned by a test: a floor's gold and experience at its checkpoint do not depend on
+   what the hero did.
+
+The Descent's pinned numbers - every one measured with experience arriving at the kill - move with this slice, and which
+ones move is recorded rather than hidden.
+
+**Out of it.** How a drop looks, and any pull toward the hero, are Fable's and Astra's: a drop has to be seen to be
+fetched, so the phone test waits for it to be drawn. Rewards placed in rooms, shrines and the map's size come after.
+
+**As built (2026-09-21, `37`).** The owner chose a radius of **one unit** from three measured, not the 2.0 criterion one
+picks: at 2.0 a standing hero picks up four drops in five and walking changes nothing about when the cards come, and
+criterion one's premise - that a ranged weapon kills far away - was wrong, because the enemies walk to the hero. At one
+unit a hero who never fetches picks up nothing and loses the Descent; one who walks for its drops is two to three levels
+ahead at floor one's boss and clears every seed measured. Criterion two passes at the chosen radius; criterion one is
+recorded as not met. The measurement also found that no balance number since chests existed had been measured by a hero
+who opens one, and that a walked Descent - chests included - no longer punishes greed: Temper on floor one clears, and
+the relics' rescues are never needed. That is where the rest of S6d starts.
+
 ### What is Astra's, and waits for her
 
 A difficulty readout - four mechanics are silent now, and Difficulty is the one the owner said he could not feel - the

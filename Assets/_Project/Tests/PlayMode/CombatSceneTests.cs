@@ -1,6 +1,7 @@
 using System.Collections;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Economy;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -71,17 +72,17 @@ namespace Cryptforge.Tests
             Assert.That(_hero.Current, Is.LessThan(100f));
             Assert.That(_enemy.GetComponentInChildren<SpriteRenderer>(true).enabled, Is.False);
             Assert.That(_targeting.Acquire(3f), Is.Null);
-            // Enemy_Grunt.asset pays 10 experience and Enemy_CinderMite.asset 1.
-            Assert.That(_setup.Run.Experience, Is.EqualTo(11));
-            // The level-up opens an upgrade choice that pauses scaled time, so wait in real time.
-            yield return new WaitForSecondsRealtime(1f);
-            Assert.That(_attack.AttackCount, Is.EqualTo(7));
-            Assert.That(_setup.Run.Experience, Is.EqualTo(11));
+            // The pack's rewards lie where it fell, one drop each - Enemy_Grunt.asset's 10 experience and 5 gold and
+            // Enemy_CinderMite.asset's 1 - and a hero who stands picks up neither (docs/27 S6d, docs/37).
+            Assert.That(_setup.Run.Experience, Is.Zero, "A standing hero picks nothing up.");
+            Assert.That(_setup.Drops.Count, Is.EqualTo(2));
+            Assert.That(_setup.Drops.At(0).Experience + _setup.Drops.At(1).Experience, Is.EqualTo(11));
+            Assert.That(_setup.Drops.At(0).Gold + _setup.Drops.At(1).Gold, Is.EqualTo(5));
             LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
-        public IEnumerator ExperienceIsAwardedOnlyOnDeathAndNeverTwice()
+        public IEnumerator ADeathDropsItsRewardOnceAndPickingItUpPaysItOnce()
         {
             int awards = 0;
             _setup.Run.ExperienceChanged += () => awards++;
@@ -94,9 +95,16 @@ namespace Cryptforge.Tests
             _enemy.ApplyDamage(new DamageContext(1000f));
             yield return new WaitForSecondsRealtime(1f);
             Assert.That(_enemy.IsAlive, Is.False);
+            Assert.That(_setup.Run.Experience, Is.Zero, "The reward lies where the Grunt fell (docs/37).");
+            Assert.That(_setup.Drops.Count, Is.EqualTo(1), "One drop, however many blows.");
+            GroundDrops.Drop drop = _setup.Drops.At(0);
+            Assert.That((drop.Experience, drop.Gold), Is.EqualTo((10, 5)), "Enemy_Grunt.asset's 10 experience and 5 gold.");
+
+            Assert.That(_setup.Drops.CollectNear(drop.X, drop.Y), Is.EqualTo(1), "Reaching it picks it up.");
+            Assert.That(_setup.Drops.CollectNear(drop.X, drop.Y), Is.Zero, "Once.");
             Assert.That(_setup.Run.Experience, Is.EqualTo(10));
             Assert.That(awards, Is.EqualTo(1));
-            Assert.That(_setup.Run.Gold, Is.EqualTo(5), "Enemy_Grunt.asset pays 5 gold, once.");
+            Assert.That(_setup.Run.Gold, Is.EqualTo(5));
         }
 
         [UnityTest]

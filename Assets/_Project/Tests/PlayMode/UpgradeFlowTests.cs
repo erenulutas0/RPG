@@ -33,6 +33,8 @@ namespace Cryptforge.Tests
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _setup = GameObject.Find("Combat Setup").GetComponent<CombatSetup>();
+            // The first pack has to level the hero on its own here, as it did before drops (docs/37).
+            DropVacuum.Attach(_setup);
             _attack = GameObject.Find("Vanguard").GetComponent<AttackController>();
             _targeting = _attack.GetComponent<Targeting>();
             _encounters = Object.FindFirstObjectByType<EncounterController>();
