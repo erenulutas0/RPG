@@ -147,3 +147,28 @@ below give the hero is not yet what the finale asks of it.
 
 So the finale now stands where decision 5 put it, behind the last boss, rather than behind a separate strength gate: the
 end of the Descent is already past the threshold, with a floor to spare.
+
+## The first run of the finale where it belongs — 2026-09-21
+
+The owner played the whole Descent with the Staff - Ember Halls in 66 seconds of play, the Quicksilver Vaults in 30 - and
+descended into the finale at **level 11**. He lasted **233 seconds** of play there (3 min 53 s), level 48, 533 kills in
+the room, and died to a Cinder Mite. He called it close to Megabonk and good; he could not find the exit, which draws
+nothing yet.
+
+**For the first time the simulation predicted him.** The calibrated Staff entering at the end of the Descent has a median
+of 245 seconds; he played 233. Every earlier comparison entered at level zero, where he was below it, or used the
+wave-based room, where he was far above it.
+
+**The first two minutes asked nothing of him.** His health never fell below 90 until the heavies arrived at 132 seconds
+and did not start falling for good until about 160: the ladder opens with the proof floor's three Cinder Mites, authored
+for a level-zero hero, and a level-11 Staff meets them as nothing. After that the ramp (4.6 at the end) and his nine
+evolution stacks (2.8) took the crowd to about thirteen times its authored strength, and his health went from 308 at two
+and a half minutes to nothing at four. `36` found the ladder's pace does not move survival for a hero with a build, so
+how soon the finale starts to press is a question of feel, and now an open one.
+
+**The finale is most of the run's money.** It paid 1,638 gold against the Descent's 323. Dying there lost half of it, 819,
+and still banked 1,142 - three and a half times what extracting at the door would have banked. As things stand Descend
+always beats Extract, whatever happens in the finale, and the exit is worth the other half.
+
+Choosing took 18 % of his time in the finale (34 cards in sittings every ten seconds), against 27 % in the first
+continuous run.
