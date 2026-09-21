@@ -241,12 +241,13 @@ namespace Cryptforge.Tests
             Assert.That(standing.SwarmSeconds, Is.LessThan(180f), "And it dies early, whatever it is carrying.");
 
             // Leaving is the player's decision, and the simulation takes it as a policy: stay for T seconds, then walk to
-            // the exit through the crowd and hold it. A short stay at the gentle opening gets out.
+            // the exit through the crowd and hold it. A short stay at the gentle opening gets out - twenty-five seconds,
+            // since the opening's three Cinder Mites pay too little for a level in less.
             DescentSimulation.Result short_ = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
-                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmSeconds: 10f);
-            Assert.That(short_.DeathRoom, Is.Null, "Ten seconds at the opening kill nobody.");
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmSeconds: 25f);
+            Assert.That(short_.DeathRoom, Is.Null, "The opening kills nobody who leaves it early.");
             Assert.That(short_.ClearedFloors, Is.EqualTo(1), "Walking out of a swarm that ends the floor clears the floor.");
-            Assert.That(short_.SwarmSeconds, Is.GreaterThanOrEqualTo(10f + ExitRule.DwellSeconds),
+            Assert.That(short_.SwarmSeconds, Is.GreaterThanOrEqualTo(25f + ExitRule.DwellSeconds),
                 "It left only after deciding to, and only after holding the exit.");
             ExitRule.SpotFor(DescentSimulation.Platform, out float exitX, out float exitY);
             Assert.That(ExitRule.IsWithinReach(short_.HeroFloorX, short_.HeroFloorY, exitX, exitY), Is.True,
@@ -255,7 +256,7 @@ namespace Cryptforge.Tests
 
             // Staying longer is where a swarm's experience comes from - and a hero that stays longer meets more of it.
             DescentSimulation.Result longer = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
-                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmSeconds: 25f);
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmSeconds: 45f);
             Assert.That(longer.Kills, Is.GreaterThan(short_.Kills));
             Assert.That(longer.SwarmSeconds, Is.GreaterThan(short_.SwarmSeconds));
         }
@@ -410,13 +411,18 @@ namespace Cryptforge.Tests
             // The instrument docs/33 calibrates the simulation with: offers are drawn from the seed and the stacks, so a run
             // that takes the same card at the same offer sees the same offers, and the build is reproduced exactly. If that
             // ever stopped being true, every replay of the owner's recorded runs would silently measure a different build.
-            DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
-            DescentSimulation.Result original = DescentSimulation.Run(swarm, 1, false, null, DescentSimulation.Staff(),
+            // The Descent and then the swarm, as the game plays them, so the run has made its choices in both and the
+            // swarm's held sittings are part of what has to replay.
+            DescentSimulation.Floor[] swarm =
+                { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults, DescentSimulation.SwarmProof };
+            DescentSimulation.Result original = DescentSimulation.Run(swarm, 1, true, null, DescentSimulation.Staff(),
                 route: new KiteRoute(), seed: 42, swarmSeconds: 200f);
             Assert.That(original.Picks.Length, Is.GreaterThan(10), "A run long enough to have made real choices.");
+            Assert.That(original.SwarmSeconds, Is.GreaterThan(SwarmRule.OfferEverySeconds * 2f),
+                "And long enough in the swarm to have sat down to its cards more than once.");
 
             // Replayed under a different card policy, which the replay must override card for card.
-            DescentSimulation.Result replayed = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
+            DescentSimulation.Result replayed = DescentSimulation.Run(swarm, 0, true, null, DescentSimulation.Staff(),
                 route: new KiteRoute(), seed: 42, swarmSeconds: 200f, replay: original.Picks);
 
             Assert.That(replayed.ReplayMisses, Is.Zero, "Every recorded card was offered when the replay reached it.");

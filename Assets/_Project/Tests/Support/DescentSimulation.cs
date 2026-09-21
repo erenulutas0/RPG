@@ -153,6 +153,10 @@ namespace Cryptforge.Tests
             // SwarmRule.StepSeconds - and the seconds it stood in the room. Both 0 on a floor with no swarm room.
             public int SwarmWave;
             public float SwarmSeconds;
+            // When the swarm first put an enemy of its ladder's last wave on the floor, on the room's clock; 0 if it never did.
+            public float LadderTopSeconds;
+            // Level-up sittings the swarm opened, whether or not anything was waiting.
+            public int Sittings;
             // Pulses the hero's weapon fired, and splinters it threw; 0 until a card grants each.
             public int PulsesFired;
             public int SplintersFired;
@@ -763,6 +767,8 @@ namespace Cryptforge.Tests
             // The corner the next entry comes from, carried in a local because a local function cannot hold a ref; it is
             // written back on every way out of this method.
             int ordinal = waveOrdinal;
+            // When the ladder's last wave first walked in, written back with the ordinal for the same reason.
+            float ladderTop = 0f;
             // A place not yet in use holds a fallen stand-in, already paid for and already reported, so every helper
             // written for a wave - each of which skips the fallen before it reads a position - reads a swarm the same way
             // without ever touching a place the pack does not have.
@@ -783,6 +789,8 @@ namespace Cryptforge.Tests
                 {
                     SwarmDirector.Spawn spawn = batch[s];
                     Enemy definition = ladder[spawn.Wave][spawn.Index];
+                    if (spawn.Wave == ladder.Length - 1 && ladderTop <= 0f)
+                        ladderTop = director.Seconds;
                     EntrySides.Place(ordinal, 1, heroMotion.X, heroMotion.Y, Platform, EntryDepth, FormationSpacing,
                         BodySpacing, placements);
                     ordinal++;
@@ -831,6 +839,8 @@ namespace Cryptforge.Tests
                 return alive;
             }
 
+            // Level-ups wait for the room's sittings, as EncounterController holds them before it opens the pack.
+            upgrades.Hold();
             director.Open(spawns);
             Place(spawns, spawns.Count);
             int reportedStep = -1;
@@ -881,7 +891,19 @@ namespace Cryptforge.Tests
                     {
                         result.SwarmSeconds = director.Seconds;
                         waveOrdinal = ordinal;
+                        result.LadderTopSeconds = ladderTop;
+                        // Whatever the room held back is offered on the way out, as the scene releases it.
+                        upgrades.Release();
+                        ChooseUpgrades(choices, cardSlot);
                         return true;
+                    }
+
+                    // A sitting: the held level-ups open here and are taken at this frame's Resolve, after the hero's
+                    // strike - where the scene's player answers an offer opened in this Update, before the next frame.
+                    if (director.OfferDue)
+                    {
+                        upgrades.OpenSitting();
+                        result.Sittings++;
                     }
                 }
 
@@ -901,6 +923,9 @@ namespace Cryptforge.Tests
                     result.StrikesWhileMoving++;
                 Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
                 NoticeFallen();
+                // A sitting opened this frame is answered here even when nothing died, which is the only time Resolve
+                // would have asked; every other frame there is nothing to answer.
+                ChooseUpgrades(choices, cardSlot);
                 if (burst != null && burst.IsReady)
                 {
                     IReadOnlyList<IDamageable> inReach = WithinReachOfHero(motion, current, burst.Radius, heroMotion.X,
@@ -960,6 +985,7 @@ namespace Cryptforge.Tests
 
             result.SwarmSeconds = director.Seconds;
             waveOrdinal = ordinal;
+            result.LadderTopSeconds = ladderTop;
             return hero.IsAlive;
         }
 

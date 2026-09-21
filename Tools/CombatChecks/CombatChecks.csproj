@@ -56,6 +56,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/SwarmDirectorTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EncounterTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunEndTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EnemyArchetypeTests.cs" />

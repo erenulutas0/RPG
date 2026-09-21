@@ -31,7 +31,7 @@ namespace Cryptforge.Tests
         }
 
         [Test]
-        public void AFallenPlaceWaitsItsBreathAndThenTheNextInLineWalksIn()
+        public void AFallenPlaceWaitsItsBreathAndThenTakesItsRoleInTheWaveTheClockIsOn()
         {
             var director = new SwarmDirector(Ladder);
             var spawns = new List<SwarmDirector.Spawn>();
@@ -44,53 +44,92 @@ namespace Cryptforge.Tests
             director.Tick(SwarmRule.RespawnSeconds * 0.5f, 2, spawns);
             Assert.That(spawns.Count, Is.EqualTo(1));
             Assert.That(spawns[0].Slot, Is.EqualTo(1), "The fallen place is the one that fills.");
-            Assert.That((spawns[0].Wave, spawns[0].Index), Is.EqualTo((1, 0)),
-                "The second wave's first enemy is next in line after the opening.");
+            int wave = SwarmRule.LadderWaveAt(director.Seconds, Ladder.Length);
+            Assert.That((spawns[0].Wave, spawns[0].Index), Is.EqualTo((wave, 1)),
+                "Place one is the second enemy of whichever wave the clock has reached.");
         }
 
         [Test]
-        public void TheCrowdGrowsWithTheLadderAndOnlyByBeingKilled()
+        public void TheCrowdHardensWithTheClockAndNotWithTheKilling()
         {
-            var director = new SwarmDirector(Ladder);
-            var spawns = new List<SwarmDirector.Spawn>();
-            director.Open(spawns);
+            // The ladder by the clock: one wave every LadderSeconds, the last for as long as the room lasts.
+            float wave = SwarmRule.LadderSeconds;
+            Assert.That(SwarmRule.LadderWaveAt(0f, 4), Is.Zero);
+            Assert.That(SwarmRule.LadderWaveAt(wave * 0.99f, 4), Is.Zero, "The first wave lasts a whole wave.");
+            Assert.That(SwarmRule.LadderWaveAt(wave * 2.5f, 4), Is.EqualTo(2));
+            Assert.That(SwarmRule.LadderWaveAt(wave * 1000f, 4), Is.EqualTo(3), "Past the ladder its last wave holds.");
+            Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.LadderWaveAt(-1f, 4));
+            Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.LadderWaveAt(0f, 0));
 
-            // Nothing dies: nothing new arrives, however long the hero stands there.
-            director.Tick(60f, 3, spawns);
-            Assert.That(spawns, Is.Empty, "A hero who kills nothing meets nothing new.");
-
-            // Kill through the queue. The cap is the size of the wave the queue has reached: 3, 3, then 4, then 5.
-            Assert.That(director.CapAt(0), Is.EqualTo(3));
-            Assert.That(director.CapAt(6), Is.EqualTo(4), "Past the first two waves the third's four may stand.");
-            Assert.That(director.CapAt(10), Is.EqualTo(5));
-            Assert.That(director.CapAt(1000), Is.EqualTo(5), "Past the ladder its last wave's size holds.");
-
-            director.Locate(15, out int wave, out int index);
-            Assert.That((wave, index), Is.EqualTo((3, 0)), "Past the end of the ladder its last wave repeats.");
-            director.Locate(17, out wave, out index);
-            Assert.That((wave, index), Is.EqualTo((3, 2)));
+            // Two rooms at the same minute, one whose hero has killed nothing and one whose hero has killed everything
+            // the moment it could: the place that fills now takes the same enemy in both, because the minute decides it.
+            var idle = new SwarmDirector(Ladder);
+            var busy = new SwarmDirector(Ladder);
+            var idleSpawns = new List<SwarmDirector.Spawn>();
+            var busySpawns = new List<SwarmDirector.Spawn>();
+            idle.Open(idleSpawns);
+            busy.Open(busySpawns);
+            const float Frame = 1f / 60f;
+            int busyAlive = 3;
+            for (int f = 0; f < (int)(wave * 3.5f / Frame); f++)
+            {
+                idle.Tick(Frame, 3, idleSpawns);
+                busy.Tick(Frame, busyAlive, busySpawns);
+                busyAlive += busySpawns.Count;
+                for (int slot = 0; slot < busy.Slots && busyAlive > 0; slot++)
+                {
+                    busy.Fell(slot);
+                    busyAlive--;
+                }
+            }
+            Assert.That(busy.Spawned, Is.GreaterThan(idle.Spawned * 2), "One room killed far more than the other.");
+            Assert.That(busy.Wave, Is.EqualTo(idle.Wave), "Both are on the wave their minute calls for.");
+            Assert.That(idle.Slots, Is.EqualTo(busy.Slots), "And both have opened the places that wave holds.");
+            Assert.That(idle.Slots, Is.EqualTo(Ladder[3]));
         }
 
         [Test]
-        public void ANewPlaceOpensWhenTheQueueReachesABiggerWave()
+        public void ANewPlaceOpensWhenTheClockReachesABiggerWaveEvenIfNothingDied()
         {
             var director = new SwarmDirector(new[] { 2, 3 });
             var spawns = new List<SwarmDirector.Spawn>();
             director.Open(spawns);
             Assert.That(director.Slots, Is.EqualTo(2));
 
-            // Both fall; after a breath both places refill from the second wave, and the second wave holds three, so a
-            // third place opens as well.
-            director.Fell(0);
-            director.Fell(1);
-            director.Tick(SwarmRule.RespawnSeconds, 0, spawns);
+            director.Tick(SwarmRule.LadderSeconds * 0.5f, 2, spawns);
+            Assert.That(spawns, Is.Empty, "The first wave's two while its time lasts.");
 
-            Assert.That(director.Slots, Is.EqualTo(3), "The crowd grew to the second wave's size.");
-            Assert.That(spawns.Count, Is.EqualTo(3));
-            var slots = new List<int>();
-            foreach (SwarmDirector.Spawn s in spawns)
-                slots.Add(s.Slot);
-            Assert.That(slots, Is.EquivalentTo(new[] { 0, 1, 2 }));
+            director.Tick(SwarmRule.LadderSeconds * 0.5f, 2, spawns);
+            Assert.That(director.Slots, Is.EqualTo(3), "The second wave holds three, so a third place opens.");
+            Assert.That(spawns.Count, Is.EqualTo(1));
+            Assert.That((spawns[0].Slot, spawns[0].Wave, spawns[0].Index), Is.EqualTo((2, 1, 2)),
+                "Into the new place walks the second wave's third enemy.");
+            Assert.That(director.CapAt(0f), Is.EqualTo(2));
+            Assert.That(director.CapAt(SwarmRule.LadderSeconds), Is.EqualTo(3));
+        }
+
+        [Test]
+        public void LevelUpSittingsFallDueOnTheRoomsClock()
+        {
+            float every = SwarmRule.OfferEverySeconds;
+            Assert.That(SwarmRule.OfferFallsDue(0f, every * 0.5f), Is.False);
+            Assert.That(SwarmRule.OfferFallsDue(every * 0.5f, every), Is.True, "Due as the clock reaches the interval.");
+            Assert.That(SwarmRule.OfferFallsDue(every, every * 1.5f), Is.False, "And not again until the next one.");
+            Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.OfferFallsDue(2f, 1f));
+
+            var director = new SwarmDirector(Ladder);
+            var spawns = new List<SwarmDirector.Spawn>();
+            director.Open(spawns);
+            int due = 0;
+            const float Frame = 1f / 60f;
+            // Half a second past the third, so a clock summed from sixty-ones never falls a hair short of it.
+            for (int f = 0; f < (int)((every * 3f + 0.5f) / Frame); f++)
+            {
+                director.Tick(Frame, 3, spawns);
+                if (director.OfferDue)
+                    due++;
+            }
+            Assert.That(due, Is.EqualTo(3), "Once per interval of the room's clock, on one frame each.");
         }
 
         [Test]

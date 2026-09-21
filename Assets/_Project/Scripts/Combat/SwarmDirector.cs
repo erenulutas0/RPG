@@ -7,10 +7,12 @@ namespace Cryptforge.Combat
     // the ladder, at what difficulty. Pure and shared, so the scene and the Descent simulation cannot drift apart on
     // when an enemy walks in - the one thing a continuous room does that a wave never did (docs/27, S6c).
     //
-    // The ladder is read as a queue. The opening places the first wave whole; after that every spawn takes the next
-    // enemy in line - the second wave's after the first's, through the last, whose list then repeats for as long as the
-    // room lasts. How many may stand at once is the size of the wave the queue has reached, so the crowd grows exactly as
-    // the ladder always meant it to, and it grows by being killed: a hero who kills nothing meets nothing new.
+    // The ladder is read by the clock (docs/27 decision 8). The room is on one wave of it at a time - the next every
+    // SwarmRule.LadderSeconds, the last for as long as the room lasts - and each of the pack's places has a role in every
+    // wave: place i is that wave's i-th enemy. A place that opens or fills again takes its role in the wave the clock has
+    // reached, and as many places are open as that wave has enemies. So what stands on the floor at any moment is the
+    // wave its minute calls for, however fast the hero has been killing. It was a queue first, read one spawn at a time,
+    // and a hero who killed fast met the heavies in half a minute; the owner asked for time instead (docs/35, docs/36).
     public sealed class SwarmDirector
     {
         public readonly struct Spawn
@@ -36,10 +38,14 @@ namespace Cryptforge.Combat
 
         // Seconds the hero has stood in the room.
         public float Seconds { get; private set; }
-        // Enemies spawned so far, the opening included: the queue's position.
+        // Enemies spawned so far, the opening included.
         public int Spawned { get; private set; }
         // Places in use, never more than the arena holds.
         public int Slots { get; private set; }
+        // Whether the last Tick carried the clock past a level-up sitting (SwarmRule.OfferEverySeconds).
+        public bool OfferDue { get; private set; }
+        // The wave of the ladder the room's clock is on.
+        public int Wave => SwarmRule.LadderWaveAt(Seconds, _sizes.Length);
 
         public SwarmDirector(IReadOnlyList<int> waveSizes)
         {
@@ -88,56 +94,36 @@ namespace Cryptforge.Combat
                 throw new ArgumentNullException(nameof(spawns));
 
             spawns.Clear();
+            float before = Seconds;
             Seconds += deltaTime;
-            // A new place opens only when the ladder allows more places than the pack has - never because an enemy fell.
-            // A fallen enemy's place is still a place: it waits out its breath and refills below. Counting the living
-            // here instead would open a fresh place the instant anything died, and the breath would mean nothing.
-            while (Slots < PackLayout.MaxPackSize && Slots < CapAt(Spawned))
+            OfferDue = SwarmRule.OfferFallsDue(before, Seconds);
+            int cap = CapAt(Seconds);
+            // A new place opens only when the clock's wave has more enemies than the pack has places - never because an
+            // enemy fell. A fallen enemy's place is still a place: it waits out its breath and refills below. Counting the
+            // living here instead would open a fresh place the instant anything died, and the breath would mean nothing.
+            while (Slots < PackLayout.MaxPackSize && Slots < cap)
                 spawns.Add(Take(Slots++));
             for (int slot = 0; slot < Slots; slot++)
             {
                 if (_fellAt[slot] < 0f || Seconds - _fellAt[slot] < SwarmRule.RespawnSeconds)
                     continue;
-                if (alive + spawns.Count >= CapAt(Spawned))
+                if (alive + spawns.Count >= cap)
                     break;
                 _fellAt[slot] = -1f;
                 spawns.Add(Take(slot));
             }
         }
 
-        // How many may stand at once when the queue stands at this position: the size of the wave it has reached.
-        public int CapAt(int position)
-        {
-            Locate(position, out int wave, out _);
-            return _sizes[wave];
-        }
+        // How many may stand at once at this moment of the room: the size of the wave its clock has reached.
+        public int CapAt(float seconds) => _sizes[SwarmRule.LadderWaveAt(seconds, _sizes.Length)];
 
-        // Where in the ladder the queue's position falls. Past the last wave, the last wave's list repeats.
-        public void Locate(int position, out int wave, out int index)
-        {
-            if (position < 0)
-                throw new ArgumentOutOfRangeException(nameof(position));
-
-            int remaining = position;
-            for (int w = 0; w < _sizes.Length - 1; w++)
-            {
-                if (remaining < _sizes[w])
-                {
-                    wave = w;
-                    index = remaining;
-                    return;
-                }
-                remaining -= _sizes[w];
-            }
-            wave = _sizes.Length - 1;
-            index = remaining % _sizes[wave];
-        }
-
+        // The place's role in the wave the clock is on. A wave smaller than the pack - a ladder that shrinks - wraps
+        // round its own list rather than reading past it.
         private Spawn Take(int slot)
         {
-            Locate(Spawned, out int wave, out int index);
+            int wave = SwarmRule.LadderWaveAt(Seconds, _sizes.Length);
             Spawned++;
-            return new Spawn(slot, wave, index, SwarmRule.DifficultyAtSeconds(Seconds));
+            return new Spawn(slot, wave, slot % _sizes[wave], SwarmRule.DifficultyAtSeconds(Seconds));
         }
     }
 }

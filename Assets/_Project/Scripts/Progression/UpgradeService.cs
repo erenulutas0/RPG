@@ -42,6 +42,10 @@ namespace Cryptforge.Progression
         private readonly int _choiceCount;
         private readonly Dictionary<UpgradeOption, int> _stacks = new Dictionary<UpgradeOption, int>();
         private int _offersCreated;
+        // A swarm room holds level-ups back and offers them together (docs/27 decision 7). While held, a pending level-up
+        // opens no offer; a sitting offers every pending one in a row, and the hold resumes once they are answered.
+        private bool _held;
+        private bool _sitting;
 
         public UpgradeOffer CurrentOffer { get; private set; }
         // The offer the last accepted choice came from, for whoever reports the pick after CurrentOffer has moved on.
@@ -89,6 +93,37 @@ namespace Cryptforge.Progression
             _choiceCount = choiceCount;
             _run.PendingUpgradesChanged += OnPendingUpgradesChanged;
             _run.Ended += OnRunEnded;
+            OnPendingUpgradesChanged();
+        }
+
+        public bool IsHeld => _held;
+
+        // From now on pending level-ups wait for a sitting. An offer already open stays open.
+        public void Hold()
+        {
+            _held = true;
+            _sitting = false;
+        }
+
+        // Offers every pending level-up, one after the other, then holds again. Does nothing unless held.
+        public void OpenSitting()
+        {
+            if (!_held || _run.HasEnded)
+                return;
+
+            _sitting = true;
+            if (CurrentOffer != null)
+                return;
+            CurrentOffer = CreateOffer();
+            if (CurrentOffer != null)
+                OfferChanged?.Invoke();
+        }
+
+        // Back to offering each level-up as it comes, starting with whatever the hold kept back.
+        public void Release()
+        {
+            _held = false;
+            _sitting = false;
             OnPendingUpgradesChanged();
         }
 
@@ -180,12 +215,14 @@ namespace Cryptforge.Progression
         // level-ups never moves the second one.
         private UpgradeOffer CreateOffer()
         {
-            if (_run.HasEnded || _run.PendingUpgrades <= 0)
+            if (_held && !_sitting)
                 return null;
+            if (_run.HasEnded || _run.PendingUpgrades <= 0)
+                return EndSitting();
 
             List<UpgradeOption> eligible = Eligible();
             if (eligible.Count == 0)
-                return null;
+                return EndSitting();
 
             int index = _offersCreated++;
             // One stream per offer serves both draws: which cards, then at which tier. Cards first, so a change to the
@@ -211,6 +248,13 @@ namespace Cryptforge.Progression
             for (int i = 0; i < choices.Count; i++)
                 rarities[i] = RarityTable.Draw(stream, _heroStats.Luck);
             return new UpgradeOffer(choices, index, rarities);
+        }
+
+        // Nothing left to offer: a sitting, if one is open, is over.
+        private UpgradeOffer EndSitting()
+        {
+            _sitting = false;
+            return null;
         }
 
         // The cards below their stack limit whose prerequisite, if any, holds a stack, in pool order, and only as far

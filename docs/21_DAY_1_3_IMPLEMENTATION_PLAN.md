@@ -1773,3 +1773,33 @@ raises the health by what it adds to the maximum. It failed one full run in this
 asserts exactly that difference.
 
 **Verified:** .NET **367/367**, compile **0 warnings/errors**, EditMode **382/382**, PlayMode **118/118**, Android build exit **0**, static integrity **473 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,185,542 bytes**, SHA-256 **`C93D0A4958D9C96A8756A44F7DAE60A43EB7A0C04CE3E8A87CC394F5BA5ADF92`**, installed on the owner's S23 with the swarm as its start floor.
+
+
+## S6c, second pass — the crowd by the clock, and level-ups in sittings — 2026-09-21
+
+**Why.** The owner's first continuous run (`35`) died at 94 seconds and called the room much too hard. It showed two
+things: a card panel every three and a half seconds - 27 % of the run spent choosing - and a crowd whose make-up advanced
+with every kill, so a fast killer met the heaviest wave within half a minute. Offered the choices, he picked the same
+levels shown less often, and a crowd that hardens with time (decisions 7 and 8 in `27`).
+
+**What shipped.** `SwarmDirector` gives each of the pack's places a role in each wave and reads the wave from the room's
+clock, one every `SwarmRule.LadderSeconds` (**12**). `UpgradeService` can hold level-ups; a swarm room holds them and opens a
+sitting every `SwarmRule.OfferEverySeconds` (**10**) that offers every pending one in a row, and leaving the room releases
+the rest. The Descent holds nothing and is unchanged. The simulation mirrors both on the same frames, and the parity case
+standing in the swarm takes its three cards in sittings, identically in scene and simulation.
+
+**How it was chosen (`36`).** At the end of the Descent neither constant moves the finale - the Staff's median is 239 to
+249 seconds across every setting - while at level zero they decide everything: a ladder that tops out in half a minute
+with held cards kills a level-zero Staff in 33 seconds, and a twelve-second ladder passes all four of `35`'s criteria even
+there. The rule written to pick the ladder's pace assumed it was part of the finale's tuning; it was not, so the pace
+was chosen after the sweep, for the level-zero opening and for a make-up the player lives through, and recorded as such.
+The finale now sits four seconds above `35`'s window (Staff 244 against 240): the roles stop heavies stacking and made it
+slightly easier, and with the owner calling it too hard the ramp is left alone until he plays the finale where it belongs.
+
+**Tests.** The director's tests were rewritten for roles and the clock, including two rooms at the same minute - one
+idle, one killing everything - that hold the same wave and the same places. A new `UpgradeSittingTests` pins the hold,
+the sitting, the release and that a sitting shows the cards the seed would have shown anyway. Two swarm tests moved: the
+replay test now runs the Descent into the swarm so its sittings replay too, and the leave-early test stays twenty-five
+seconds rather than ten because the opening's three mites pay too little for a level in less.
+
+**Verified:** .NET **372/372**, compile **0 warnings/errors**, EditMode **387/387**, PlayMode **118/118**, Android build exit **0**, static integrity **474 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,186,418 bytes**, SHA-256 **`E5845F8EFBF7F91D8B21A08B60FC505BD11343EE94234BF682C8FC9057A15517`**.

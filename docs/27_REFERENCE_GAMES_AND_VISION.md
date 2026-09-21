@@ -158,6 +158,15 @@ the HUD, a stat readout on the pause screen, and the evolution's presentation pe
 6. **The finale's difficulty grows exponentially** (the owner, 2026-09-21, after the evolution session). Linear escalation
    cannot catch a multiplicative build; the owner asked for the Megabonk shape, where staying is a real bet and even a
    very strong build has a last minute. Section 12 orders the work: calibrate first, then the ramp.
+7. **In the finale, level-ups are offered together, not one at a time** (the owner, 2026-09-21, after the first run
+   of the continuous swarm). A run that levels every three and a half seconds opened a card panel as often, and 27 %
+   of its time went to choosing. Offered two ways - fewer levels, or the same levels shown less often - he chose the
+   second: every card is still earned, and the swarm holds them back and offers them in one sitting every
+   `SwarmRule.OfferEverySeconds` (`36`).
+8. **The finale's crowd hardens with time, not with kills** (the owner, 2026-09-21, the same session). The ladder was a
+   queue read one spawn at a time, so a hero who killed fast met the heaviest wave's Warden in every ten enemies within
+   half a minute. Each of the pack's places now has a role in each wave, and the wave is the room's clock
+   (`SwarmRule.LadderSeconds`): what stands on the floor at any moment is what that minute calls for (`36`).
 
 ## 6. S1 specification — the offer engine (agreed 2026-09-19)
 

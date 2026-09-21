@@ -30,7 +30,7 @@ namespace Cryptforge.Combat
         // How many seconds of standing in the room make one step of the ramp. The swarm has no waves any more (docs/27,
         // S6c), so it hardens by the clock: at 1.02 a step every three seconds the room doubles in difficulty about every
         // hundred and five seconds. Measured in docs/35 against the calibrated player entering the finale the way the game
-        // will, at the end of the Descent with its build: the Staff's median survival lands at 196 seconds.
+        // will, at the end of the Descent with its build: the Staff's median survival lands at 202 seconds.
         public const float StepSeconds = 3f;
 
         // How long a fallen enemy's place stays empty before a fresh one walks in. Measured with the step (docs/35), not
@@ -38,6 +38,20 @@ namespace Cryptforge.Combat
         // all pass, a one-second refill costing the Sword about twenty seconds of median survival and the Staff and the
         // Daggers over thirty. Two keeps the room from ever clearing while a kill still buys a breath.
         public const float RespawnSeconds = 2f;
+
+        // How many seconds of the room's clock each wave of its ladder lasts before the next one's make-up takes over
+        // (docs/27 decision 8): the heavies of the last wave arrive at two minutes twelve, for everyone. The owner's first
+        // run of the continuous room met a Warden in every ten enemies within half a minute because he killed fast, and
+        // asked for the crowd to harden with time instead. Measured in docs/36, where it turned out not to move the
+        // finale at all - a hero with a Descent's build lives as long at 2.6 seconds as at twelve - and to decide
+        // everything for a hero without one: at 2.6 a level-zero Staff dies in half a minute, at twelve it lasts three.
+        public const float LadderSeconds = 12f;
+
+        // In a swarm room, level-ups are held and offered together, in one sitting, every this many seconds of the
+        // room's clock (docs/27 decision 7): the owner's first run opened a card panel every three and a half seconds.
+        // Measured in docs/36: the largest interval whose delay costs a level-zero Staff under a tenth of its survival;
+        // at the end of the Descent no interval up to fifteen seconds costs anything measurable.
+        public const float OfferEverySeconds = 10f;
 
         // The wave of the room's ladder that this ordinal spawns. Past the ladder's end the last wave repeats, so a
         // swarm never runs out of enemies and never grows past what the arena can hold.
@@ -68,6 +82,32 @@ namespace Cryptforge.Combat
             for (int i = 0; i < waveOrdinal; i++)
                 difficulty *= GrowthPerWave;
             return difficulty;
+        }
+
+        // Which wave of a ladder of waveCount waves the room's clock has reached: one every LadderSeconds, and the last
+        // for as long as the room lasts. One body that is never inlined, so the scene and the simulation truncate the
+        // same float the same way.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int LadderWaveAt(float seconds, int waveCount)
+        {
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
+            if (waveCount < 1)
+                throw new ArgumentOutOfRangeException(nameof(waveCount));
+
+            int wave = (int)(seconds / LadderSeconds);
+            return wave < waveCount ? wave : waveCount - 1;
+        }
+
+        // Whether a level-up sitting falls due between two readings of the room's clock: once each time the clock passes
+        // a multiple of OfferEverySeconds.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool OfferFallsDue(float before, float after)
+        {
+            if (float.IsNaN(before) || before < 0f || float.IsNaN(after) || after < before)
+                throw new ArgumentOutOfRangeException(nameof(after));
+
+            return (int)(after / OfferEverySeconds) > (int)(before / OfferEverySeconds);
         }
 
         // The difficulty an enemy spawning at this moment takes: the geometric ramp, one step per StepSeconds of standing in

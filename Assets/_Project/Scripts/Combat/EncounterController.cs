@@ -57,6 +57,7 @@ namespace Cryptforge.Combat
         // who, and the exit is where the hero leaves by standing still. Null outside a swarm room.
         private SwarmDirector _swarm;
         private RoomDefinition _swarmRoom;
+        private UpgradeService _upgrades;
         private readonly List<SwarmDirector.Spawn> _swarmSpawns = new List<SwarmDirector.Spawn>(PackLayout.MaxPackSize);
         // The hero's targets by place, so a refilled place is a refilled candidate and the earlier place still wins a tie.
         private readonly Health[] _swarmCandidates = new Health[PackLayout.MaxPackSize];
@@ -155,9 +156,13 @@ namespace Cryptforge.Combat
             }
         }
 
-        public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null)
+        // upgrades is what a swarm room holds level-ups back on and opens its sittings with; without it a swarm offers each
+        // level-up as it comes.
+        public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null,
+            UpgradeService upgrades = null)
         {
             _difficulty = difficulty;
+            _upgrades = upgrades;
             if (_floor == null || _hero == null || _heroTargeting == null || _arena == null)
                 throw new InvalidOperationException("EncounterController needs a first floor, the hero, hero targeting and the arena.");
             if (_floorProgress != null)
@@ -332,6 +337,10 @@ namespace Cryptforge.Combat
                 LeaveSwarm();
                 return;
             }
+            // The level-ups the room has held back, offered together; the offer pauses the game from the next frame, as
+            // every level-up does.
+            if (_swarm.OfferDue)
+                _upgrades?.OpenSitting();
             if (_swarmSpawns.Count > 0)
                 ProgressChanged?.Invoke();
         }
@@ -365,6 +374,7 @@ namespace Cryptforge.Combat
             _swarmHeroY = HeroFloorY;
             _swarmStep = -1;
             AliveEnemyCount = 0;
+            _upgrades?.Hold();
 
             _swarm.Open(_swarmSpawns);
             for (int i = 0; i < _swarmSpawns.Count; i++)
@@ -438,6 +448,8 @@ namespace Cryptforge.Combat
             ReleaseWave(true);
             Array.Clear(_swarmCandidates, 0, _swarmCandidates.Length);
             _heroTargeting.SetCandidates(Array.Empty<Health>());
+            // Whatever the room still held back is offered now, before the floor moves on.
+            _upgrades?.Release();
             AdvanceFloor();
         }
 
