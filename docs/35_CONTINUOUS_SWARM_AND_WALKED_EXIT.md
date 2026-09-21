@@ -123,3 +123,35 @@ evolutions in a harder room and can die sooner than the plain one, so one pair c
   the medians above.
 - The exit and the swarm's clock draw nothing; the room's hardening is still invisible.
 - One swarm ladder, one arena, the pure .NET runner, nothing on a device yet.
+
+## The first phone run — 2026-09-21
+
+One run on the owner's S23, the Staff, entered at level zero through the development start floor. He died at **94
+seconds** of play, level 28, 186 kills, to a Forge Warden, having taken eight evolution stacks - enemies at the end
+stood at 1.85 from the ramp times 2.6 from the evolutions. He called it much harder. In the last wave-based build he left
+every run alive at waves 44 to 55; this run ended at step 32, the difficulty of wave 32, so at the same point on the ramp
+a room that never pauses is far deadlier than one that did.
+
+Replayed from its seed in the simulation:
+
+| Run | Survived |
+|---|---|
+| The owner, on the phone | 94 s |
+| His 28 cards, back-off movement | 125 s |
+| His 28 cards, back-off movement, the burst | 151 s |
+| His seed, the calibrated ranking | 177 s |
+| The calibrated player, 48 seeds (median) | 200 s |
+
+For the first time the owner played **below** the calibrated player rather than above it. His cards followed his
+recorded ranking at 22 offers of 28; the six others were attack speed over damage twice and health over range or crit
+four times, taken as his health fell - which in the simulation costs this seed about fifty seconds. The remaining thirty
+are play the replay does not capture. One run is one sample, and it is recorded as that.
+
+Two things the run shows that the measurements did not ask about:
+
+- **The menus did not go away.** 28 level-ups in 94 seconds of play put 34 seconds into choosing, 27 % of the time -
+  against 30 % in his last wave-based run, question included. The per-wave question is gone; the level-up panel now
+  arrives every three and a half seconds.
+- **The crowd's make-up hardens by kills, not by time.** The ladder is a queue of spawns, and each place refills after a
+  fall, so a hero who kills faster reaches the twelfth wave's list - a Warden and a Tank in every ten - sooner. Ten or more
+  Wardens walked in during this run.
