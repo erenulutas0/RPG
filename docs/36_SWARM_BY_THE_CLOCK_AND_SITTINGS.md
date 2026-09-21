@@ -98,3 +98,33 @@ three, five and seven units give the same curve within three points.
 - The HUD says nothing while cards are held. A pending count, or a clock to the next sitting, is Astra's.
 - One ladder, one arena, the pure .NET runner; the calibrated player still underestimates the owner on average (`33`),
   though his first continuous run was below it (`35`).
+
+## The second phone run — 2026-09-21
+
+One run, the Staff, entered at level zero through the development start floor. He died at **89 seconds** of play, level
+13, 100 kills, to a Runner, and called it harder than the first. Beside the first continuous run:
+
+| | First run (queue, every level-up at once) | Second run (clock, sittings) |
+|---|---|---|
+| Survived | 94 s | 89 s |
+| Level at 30 / 60 / 87 s | 6 / 18 / 26 | 1 / 5 / 13 |
+| Kills | 186 | 100 |
+| Cards taken | 28 | 10, three more held at death |
+| Time spent choosing | 34 s, 27 % | 12 s, 12 % |
+| Killed by | a Forge Warden | a Runner |
+
+**The sittings did what they were for.** Ten cards in six sittings of one to three, and the time spent choosing fell from
+27 % of the run to 12 %.
+
+**The clock starved him of experience.** A ladder that walks one wave every twelve seconds keeps the crowd at three
+enemies for the first twenty-four seconds and at five until a minute, and experience comes only from kills, so he
+levelled at half the rate of the first run while the ramp climbed as fast as ever. The simulation agrees and shows where
+it bites: at level zero the calibrated Staff's survival splits in two. Thirteen of 48 runs die between 64 and 89 seconds,
+and every other run lives past 135, most past 200. At 60 seconds the ladder reaches its sixth wave and the Runner enters,
+when the hero is level five to seven. He died in that valley, to a Runner, never having seen a Warden. His own ten cards,
+replayed on his seed with the calibrated movement, live 218 seconds; the calibrated ranking on the same seed dies at 100.
+So this seed sits on the edge of the valley.
+
+This is the level-zero opening again, not the finale: entered at the end of the Descent no run of 139 dies inside the
+first minute. Every change to the room's opening made so far has been measured against a hero the design says never
+walks in, because the phone can only reach the room that way.
