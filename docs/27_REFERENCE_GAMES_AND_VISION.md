@@ -542,6 +542,13 @@ at waves fifty-eight to ninety-six; he left each with that margin in hand.
 before - and the factor is measured against the calibrated policy. The target is not "it kills" but the Megabonk shape:
 the strongest measured build dies somewhere, a weaker build dies clearly earlier, and the gap between them is the score.
 
+**Done 2026-09-21 (`34`), at 1.02 a wave.** Four criteria were written before the sweep. Against the calibrated player,
+1.02 takes the Staff's median from 53.5 to 41 and the runs past wave eighty from nine in a hundred and forty-four to one,
+and leaves the early game within noise of where it was; 1.025 took that last run too but made the first fifteen waves
+measurably deadlier (z = 2.11), and 1.03 and above are walls. Two criteria were not met as written and are recorded as
+such: the ceiling was stated as a maximum, which grows with the sample, and the early-game test as a strict inequality
+that a non-significant difference of four runs misses.
+
 **S6c — a continuous swarm and a walked exit.** The wave goes: as enemies die, others enter, up to the ten the arena holds.
 The per-wave question goes with it - it was a third of the owner's last session spent in menus - and leaving becomes a
 **place**, like a chest: the hero walks onto it through the crowd, and the movement budget finally prices an escape. The

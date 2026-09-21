@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
@@ -16,12 +17,16 @@ namespace Cryptforge.Combat
     // one and the enemies start at their hardest. A ramp starts where the hero starts and hardens from there.
     public static class SwarmRule
     {
-        // How much harder each wave is than the one before it, as a share of the enemy's authored health and damage.
-        // Measured in docs/29 over sixteen seeds, three weapons and three walks: a flat room never kills a backing-off
-        // hero at all, 0.05 and above cut the room down to about what a Descent already grants, and this is the rate at
-        // which a swarm pays for itself - a couple of minutes, two to three times a Descent's level-ups, and nobody
-        // immortal in forty-eight runs.
-        public const float DifficultyPerWave = 0.02f;
+        // How many times harder each wave is than the one before it. Geometric, not linear, and that is the point of it
+        // (docs/27 decision 6, docs/34): the hero grows by multiplying - damage times cadence times crits - and a world
+        // that grows by adding a fixed amount a wave can never catch a build that multiplies, whatever the amount. The
+        // linear two per cent this replaced left the owner's own builds alive to waves fifty-eight to ninety-six (docs/33).
+        //
+        // Measured against the calibrated player over 144 runs a rate: 1.02 takes the Staff's median from 53.5 to 41 and
+        // the runs past wave eighty from nine to one, and leaves the early game where it was (early deaths within noise).
+        // 1.025 took the last of those runs too and made the first fifteen waves measurably deadlier, so it was refused.
+        // 1.03 and above are walls.
+        public const float GrowthPerWave = 1.02f;
         // How often the room asks whether to press on or leave. One is every wave, which is the plainest reading of
         // "leave when you like"; it is the thing to ask the owner about after playing, not something a simulation can
         // answer.
@@ -39,14 +44,23 @@ namespace Cryptforge.Combat
             return waveOrdinal < waveCount ? waveOrdinal : waveCount - 1;
         }
 
-        // What this wave multiplies the floor's enemy health and damage by. 1.0 on the first wave, so a swarm opens at
-        // exactly the difficulty its floor authored, and rising from there.
+        // What this wave multiplies the floor's enemy health and damage by: 1.0 on the first wave, so a swarm opens at
+        // exactly the difficulty its floor authored, and GrowthPerWave times the wave before on every wave after.
+        //
+        // Repeated float multiplication rather than Math.Pow, and in one body that is never inlined. Math.Pow is a
+        // library call whose last bit has differed between the Editor's Mono, the .NET runner and the phone's IL2CPP, and
+        // this project has already paid once for two copies of float arithmetic disagreeing in the last bit (docs/21, the
+        // targeting divergence). An IEEE multiply is the same on every runtime, and a swarm is a few hundred waves at most.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static float DifficultyAt(int waveOrdinal)
         {
             if (waveOrdinal < 0)
                 throw new ArgumentOutOfRangeException(nameof(waveOrdinal));
 
-            return 1f + waveOrdinal * DifficultyPerWave;
+            float difficulty = 1f;
+            for (int i = 0; i < waveOrdinal; i++)
+                difficulty *= GrowthPerWave;
+            return difficulty;
         }
 
         // Whether the room offers its leave-or-stay choice after the wave at this ordinal.

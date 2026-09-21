@@ -87,7 +87,17 @@ namespace Cryptforge.Tests
                 Assert.That(now, Is.GreaterThan(previous), $"Wave {wave} is harder than the one before it.");
                 previous = now;
             }
-            Assert.That(SwarmRule.DifficultyAt(50), Is.EqualTo(1f + 50f * SwarmRule.DifficultyPerWave).Within(1e-4f));
+            // Geometric: each wave is GrowthPerWave times the one before, so the ratio of neighbours is constant and the
+            // gap between them keeps widening, which a linear ramp never does.
+            Assert.That(SwarmRule.DifficultyAt(1), Is.EqualTo(SwarmRule.GrowthPerWave));
+            for (int wave = 1; wave < 120; wave++)
+            {
+                float ratio = SwarmRule.DifficultyAt(wave + 1) / SwarmRule.DifficultyAt(wave);
+                Assert.That(ratio, Is.EqualTo(SwarmRule.GrowthPerWave).Within(1e-4f), $"Wave {wave + 1} over wave {wave}.");
+            }
+            Assert.That(SwarmRule.DifficultyAt(60) - SwarmRule.DifficultyAt(59),
+                Is.GreaterThan(SwarmRule.DifficultyAt(11) - SwarmRule.DifficultyAt(10)),
+                "Late waves harden by more than early ones: the ramp accelerates.");
 
             Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.DifficultyAt(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => SwarmRule.LadderIndex(-1, 3));

@@ -1720,3 +1720,21 @@ fifty-eight to ninety-six. He left each of them with that much margin in hand.
 **Verified:** .NET **360/360**, compile **0 warnings/errors**, EditMode **375/375**, PlayMode **117/117**, Android build exit
 **0**, static integrity **470 unique asset/folder GUIDs / 568 scene objects/components**. Nothing in the runtime changed,
 so nothing was installed.
+
+## S6b — the exponential ramp — 2026-09-21
+
+**What shipped.** `SwarmRule.DifficultyAt` is geometric: each swarm wave `GrowthPerWave` times the one before, **1.02**
+(`34`). Computed by repeated float multiplication in one never-inlined body rather than `Math.Pow`, because a library
+power function's last bit has differed between Mono, .NET and IL2CPP and this project has paid for one last-bit
+divergence already.
+
+**Why the shape and not the rate.** The world grew by adding and the hero by multiplying, so raising a linear rate only
+moved the moment it lost. Measured against the calibrated player of `33`, not the slot-zero one.
+
+**How it was chosen.** Four criteria written before the sweep. 1.02 is the only rate that reshapes the finale - the Staff's
+median 53.5 to 41, runs past wave eighty nine to one in 144 - without making the early game deadlier; 1.025 took the last
+long run but raised early deaths significantly (z = 2.11), and 1.03 and above are walls. Two criteria were not met as
+written: the ceiling was a maximum, which grows with the sample, and the early-game test a strict inequality missed by a
+non-significant four runs. Both are recorded rather than reworded.
+
+**Verified:** .NET **360/360**, compile **0 warnings/errors**, EditMode **375/375**, PlayMode **117/117**, Android build exit **0**, static integrity **470 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`340678528DFC7942FF00F112E7D5C80859663CB92E28C66E85B7DF2EDFAD0FED`**, built, not yet installed.
