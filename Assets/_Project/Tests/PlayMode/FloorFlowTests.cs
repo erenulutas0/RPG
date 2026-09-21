@@ -201,6 +201,7 @@ namespace Cryptforge.Tests
             yield return AdvanceToRoom(4);
             int applied = _setup.Run.UpgradesApplied;
             float heroHealth = _hero.Current;
+            float heroMaximum = _hero.Maximum;
 
             _setup.Choices.TrySelect(_setup.Choices.Current, 1);
 
@@ -211,7 +212,9 @@ namespace Cryptforge.Tests
             _setup.Choices.TrySelect(_setup.Choices.Current, 0);
             Assert.That(_setup.Run.UpgradesApplied, Is.EqualTo(applied + 1));
             Assert.That(_setup.Run.BonusUpgrades, Is.EqualTo(1));
-            Assert.That(_hero.Current, Is.EqualTo(heroHealth));
+            // Temper heals nothing. The bonus card is drawn from the run's seed, which this class does not pin, so it can
+            // be a health card - and a health card raises the current health by what it adds to the maximum.
+            Assert.That(_hero.Current - heroHealth, Is.EqualTo(_hero.Maximum - heroMaximum).Within(1e-4f));
         }
 
         [UnityTest]

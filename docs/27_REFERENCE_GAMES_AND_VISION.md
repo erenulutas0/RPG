@@ -554,11 +554,66 @@ The per-wave question goes with it - it was a third of the owner's last session 
 **place**, like a chest: the hero walks onto it through the crowd, and the movement budget finally prices an escape. The
 rule is gameplay and is built here with the exit at a provisional spot; how the exit looks is Astra's.
 
+**Done 2026-09-21 (`35`).** A step of three seconds and a respawn of two, measured at the end of the Descent rather than
+at level zero - where no setting met the criteria, because a level-zero Sword or Daggers dies inside a minute in a crowd
+that never clears whatever the clocks say, and decision 5 says the finale is never met that way. The Staff's median is
+202 seconds, the ninety-fifth percentile 236, two runs in 139 die in the first minute. The exit stands five units toward
+the far corner, and its distance turned out not to be the lever: at three, five and seven units a hero who decides by
+ninety seconds always gets out and one who decides at four minutes almost never does. The measurement also found that a
+stand-in blind to the exit left by accident in thirteen runs of 144, just by stopping to fight on it; the measuring player
+now avoids it as a player who sees it would, and until Astra draws it a real player can make the same mistake.
+
 **S6d — the map below.** The descent to the finale, re-authored around reasons to move: rewards on the ground (experience
 and gold the hero walks to collect, so a kill is no longer the only source of either), and **shrines** - places that grant
 a buff in exchange for difficulty, the same bargain an evolution makes, chosen on the map rather than on a card. Then the
 map's size, which the owner raised, measured once there is something on it worth crossing. Ground rewards are recommended
 first: they give the hero a reason to move everywhere rather than to one spot, and they are pure simulation.
+
+### S6c specification — a continuous swarm and a walked exit (agreed 2026-09-21)
+
+Two changes to the finale, one rule each, and the owner chose the faithful version of the first over a cheaper one. The
+cheap version kept waves and removed the gap between them; it would have left a two-second lull every time a fresh pack
+walked in from five units out. The faithful version removes waves.
+
+**The pack never ends.** A swarm room holds one pack for its whole life, at most the ten the arena holds. It opens with
+the ladder's first wave, as it does now, and it never clears: when an enemy dies its place waits `SwarmRule.RespawnSeconds`
+and a fresh enemy walks in, placed by the same `EntrySides` rule a wave uses. Which enemy is the ladder read as a queue -
+the second wave's enemies after the first's, then the third's, through the twelfth, whose list then repeats for as long
+as the room lasts - so the crowd hardens in composition exactly as the ladder always meant it to. How many stand at once is
+the size of the ladder wave the queue has reached: three at the start, ten by the time the queue is into the twelfth.
+
+**The ramp runs on the clock.** With no waves there is no wave ordinal to harden by. `SwarmRule.DifficultyAtSeconds` reads
+the seconds the hero has spent in the room and applies the geometric ramp of `34` one step per `StepSeconds`, and each
+enemy takes the difficulty of the moment it spawns - so an enemy that entered early stays the enemy it was, and the crowd
+around a hero who stays keeps getting worse. The owner's swarm waves took a median of seven seconds including the choice
+panels (296 intervals across four runs); with the panels gone the step is the constant this slice measures, against the
+same criteria `34` used, with the calibrated player of `33`.
+
+**Leaving is a place.** `ExitRule` puts an exit on the arena's far side, well beyond the chest, and the hero leaves by
+**standing on it** for `ExitRule.DwellSeconds`. A second, not a touch, so a hero kiting across it by accident does not end
+its run - and a second of standing still in a crowd is exactly the price the owner described: to take what the finale paid
+you, you have to walk through it and hold your ground. The per-wave question goes, all of it: the prompt, the event that
+opened it and the two checkpoint kinds it used. It was a third of the owner's last session spent in menus.
+
+**The simulation mirrors all of it**, on the same frames: the pack, the refill, the queue, the clock, the exit. It also
+needs a player who decides to leave, because a scripted player otherwise never does: a leave-after-*T*-seconds policy,
+after which the route walks to the exit, holds it, and either leaves or dies trying. That is the measurement the exit
+exists for - how the cost of leaving grows the longer a hero stays.
+
+**Constants.** Two measured, two fixed with their reasons stated. `StepSeconds` is measured against `34`'s four criteria.
+The exit's distance is measured against one criterion written now: **a calibrated hero who decides to leave early in the
+finale almost always gets out, and one who decides late often does not** - leaving has to become a real bet, or the exit
+is a menu with extra walking. `RespawnSeconds` is fixed at one second, because continuity is the point and anything much
+shorter only collapses into "always ten". `DwellSeconds` is fixed at one second for the reason above.
+
+*As built (`35`), three things differ from this specification and are recorded rather than rewritten above:*
+`RespawnSeconds` was measured with the step, because the first sweep showed it shapes the opening as much as the step
+does, and ships at two seconds; the hold counts only while the hero is **on the exit and not moving**, because the first
+build had a kiting hero leave twelve seconds in by running across it; and the movement bar fills once, as the room opens,
+since there are no wave starts left to refill it.
+
+**Out of S6c.** The exit's art and any swarm clock (Astra), a swarm room anywhere in the authored Descent (S6d), and any
+change to the ladder itself.
 
 ### What is Astra's, and waits for her
 

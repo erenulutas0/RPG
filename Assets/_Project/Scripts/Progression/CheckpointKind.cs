@@ -1,13 +1,11 @@
 namespace Cryptforge.Progression
 {
-    // Serialized nowhere, but reported by name in telemetry: append, never reorder.
+    // Serialized nowhere, but reported by name in telemetry: append, never reorder. Values 2 and 3 were a swarm room's
+    // Press on and Leave, retired when leaving became a place on the arena (docs/27, S6c); they stay unused rather than
+    // reassigned, so an old telemetry line never means something new.
     public enum CheckpointKind
     {
         Extract = 0,
-        Descend = 1,
-        // A swarm room's two: stay for another wave, or take what the room has paid so far and move on. The same
-        // service, the same prompt and the same panel as Extract and Descend, because it is the same decision.
-        PressOn = 2,
-        Leave = 3
+        Descend = 1
     }
 }

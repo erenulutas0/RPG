@@ -27,10 +27,17 @@ namespace Cryptforge.Combat
         // 1.025 took the last of those runs too and made the first fifteen waves measurably deadlier, so it was refused.
         // 1.03 and above are walls.
         public const float GrowthPerWave = 1.02f;
-        // How often the room asks whether to press on or leave. One is every wave, which is the plainest reading of
-        // "leave when you like"; it is the thing to ask the owner about after playing, not something a simulation can
-        // answer.
-        public const int ExitEveryWaves = 1;
+        // How many seconds of standing in the room make one step of the ramp. The swarm has no waves any more (docs/27,
+        // S6c), so it hardens by the clock: at 1.02 a step every three seconds the room doubles in difficulty about every
+        // hundred and five seconds. Measured in docs/35 against the calibrated player entering the finale the way the game
+        // will, at the end of the Descent with its build: the Staff's median survival lands at 196 seconds.
+        public const float StepSeconds = 3f;
+
+        // How long a fallen enemy's place stays empty before a fresh one walks in. Measured with the step (docs/35), not
+        // fixed at one second as the specification first had it: at the end of the Descent one, two and two and a half
+        // all pass, a one-second refill costing the Sword about twenty seconds of median survival and the Staff and the
+        // Daggers over thirty. Two keeps the room from ever clearing while a kill still buys a breath.
+        public const float RespawnSeconds = 2f;
 
         // The wave of the room's ladder that this ordinal spawns. Past the ladder's end the last wave repeats, so a
         // swarm never runs out of enemies and never grows past what the arena can hold.
@@ -63,13 +70,14 @@ namespace Cryptforge.Combat
             return difficulty;
         }
 
-        // Whether the room offers its leave-or-stay choice after the wave at this ordinal.
-        public static bool OffersExitAfter(int waveOrdinal)
+        // The difficulty an enemy spawning at this moment takes: the geometric ramp, one step per StepSeconds of standing in
+        // the room. An enemy keeps the difficulty it was born with, so the crowd round a hero who stays keeps hardening.
+        public static float DifficultyAtSeconds(float seconds)
         {
-            if (waveOrdinal < 0)
-                throw new ArgumentOutOfRangeException(nameof(waveOrdinal));
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
 
-            return (waveOrdinal + 1) % ExitEveryWaves == 0;
+            return DifficultyAt((int)(seconds / StepSeconds));
         }
     }
 }

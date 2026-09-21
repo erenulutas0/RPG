@@ -228,33 +228,36 @@ namespace Cryptforge.Tests
         }
 
         [Test]
-        public void TheSwarmRoomKeepsGoingUntilTheHeroLeavesOrDies()
+        public void TheSwarmRoomKeepsGoingUntilTheHeroWalksOutOrDies()
         {
             DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
 
-            // Standing in a crowd is not a strategy: the swarm is the one room that insists on movement, and it does.
+            // Standing in a crowd is not a strategy: the swarm is the one room that insists on movement, and it does. A
+            // hero that never decides to leave never reaches the exit either, and the room does not end on its own.
             DescentSimulation.Result standing = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
-                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmWaves: 200);
+                ability: DescentSimulation.ForgeBurst(), seed: 3);
             Assert.That(standing.DeathRoom, Is.Not.Null, "A hero that never moves dies in a swarm.");
-            Assert.That(standing.SwarmWave, Is.GreaterThan(1));
-            Assert.That(standing.SwarmWave, Is.LessThan(20), "And it dies early, whatever it is carrying.");
+            Assert.That(standing.SwarmSeconds, Is.GreaterThan(SwarmRule.StepSeconds));
+            Assert.That(standing.SwarmSeconds, Is.LessThan(180f), "And it dies early, whatever it is carrying.");
 
-            // Leaving is the player's decision, and the simulation takes it as a policy: press on for N waves, then go.
+            // Leaving is the player's decision, and the simulation takes it as a policy: stay for T seconds, then walk to
+            // the exit through the crowd and hold it. A short stay at the gentle opening gets out.
             DescentSimulation.Result short_ = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
-                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmWaves: 3);
-            Assert.That(short_.DeathRoom, Is.Null, "Three waves of a swarm kill nobody.");
-            Assert.That(short_.SwarmWave, Is.EqualTo(3), "It left after the third wave rather than a fourth.");
-            Assert.That(short_.ClearedFloors, Is.EqualTo(1), "Leaving a swarm that ends the floor clears the floor.");
-            Assert.That(short_.Level, Is.GreaterThan(0), "And it keeps what those waves paid.");
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmSeconds: 10f);
+            Assert.That(short_.DeathRoom, Is.Null, "Ten seconds at the opening kill nobody.");
+            Assert.That(short_.ClearedFloors, Is.EqualTo(1), "Walking out of a swarm that ends the floor clears the floor.");
+            Assert.That(short_.SwarmSeconds, Is.GreaterThanOrEqualTo(10f + ExitRule.DwellSeconds),
+                "It left only after deciding to, and only after holding the exit.");
+            ExitRule.SpotFor(DescentSimulation.Platform, out float exitX, out float exitY);
+            Assert.That(ExitRule.IsWithinReach(short_.HeroFloorX, short_.HeroFloorY, exitX, exitY), Is.True,
+                "It left from the exit, standing on it.");
+            Assert.That(short_.Level, Is.GreaterThan(0), "And it keeps what the room paid.");
 
-            // The ladder repeats and the ramp keeps climbing, so a longer stay is strictly deeper and strictly harder.
-            // Six, not twelve: the standing hero above died at wave nine, and a policy cannot press on past a grave.
+            // Staying longer is where a swarm's experience comes from - and a hero that stays longer meets more of it.
             DescentSimulation.Result longer = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Sword(),
-                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmWaves: 6);
-            Assert.That(longer.SwarmWave, Is.EqualTo(6));
-            Assert.That(longer.DeathRoom, Is.Null);
-            Assert.That(longer.Level, Is.GreaterThan(short_.Level), "Staying longer is where a swarm's experience comes from.");
+                ability: DescentSimulation.ForgeBurst(), seed: 3, swarmSeconds: 25f);
             Assert.That(longer.Kills, Is.GreaterThan(short_.Kills));
+            Assert.That(longer.SwarmSeconds, Is.GreaterThan(short_.SwarmSeconds));
         }
 
         [Test]
@@ -266,8 +269,7 @@ namespace Cryptforge.Tests
                 new[] { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults }, 0, true, null,
                 DescentSimulation.Sword(), ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 5);
             DescentSimulation.Result swarm = DescentSimulation.Run(new[] { DescentSimulation.SwarmProof }, 0, false, null,
-                DescentSimulation.Sword(), ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 5,
-                swarmWaves: 200);
+                DescentSimulation.Sword(), ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 5);
 
             Assert.That(descent.Level, Is.LessThan(UpgradePool.FirstExtraAtLevel),
                 "A whole Descent still stops short of the sixth card.");
@@ -285,27 +287,41 @@ namespace Cryptforge.Tests
             // strike smallest. What is pinned here is only what the mechanism does: a pulse lands, it counts, and a run
             // carrying one goes deeper than the same run without one. Which weapon it suits is a design question the
             // measurement answered and the owner owns.
+            //
+            // Over eight seeds rather than one: a continuous swarm kills a standing level-zero Sword in well under a minute,
+            // and a single run that short can end a frame either side of the other - some seeds die a moment sooner with
+            // the pulse than without it (docs/35). The mechanism has to show across a handful.
             DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
-            DescentSimulation.HeroWeapon plain = DescentSimulation.Sword();
-            DescentSimulation.HeroWeapon pulsing = DescentSimulation.Sword();
-            pulsing.PulseShare = 1f;
+            float secondsWithout = 0f, secondsWith = 0f;
+            int killsWithout = 0, killsWith = 0;
+            for (int seed = 0; seed < 8; seed++)
+            {
+                DescentSimulation.HeroWeapon plain = DescentSimulation.Sword();
+                DescentSimulation.HeroWeapon pulsing = DescentSimulation.Sword();
+                pulsing.PulseShare = 1f;
 
-            DescentSimulation.Result without = DescentSimulation.Run(swarm, 0, false, null, plain,
-                ability: DescentSimulation.ForgeBurst(), seed: 2, swarmWaves: 60,
-                pool: DescentSimulation.FiveCardPool());
-            DescentSimulation.Result with = DescentSimulation.Run(swarm, 0, false, null, pulsing,
-                ability: DescentSimulation.ForgeBurst(), seed: 2, swarmWaves: 60,
-                pool: DescentSimulation.FiveCardPool());
-            // A hero that stands still, so the swarm ends both runs well short of the cap and the comparison is a real
-            // one; a kiting Sword survives sixty waves with or without a pulse and would compare two ceilings.
-            Assert.That(without.DeathRoom, Is.Not.Null);
-            Assert.That(with.DeathRoom, Is.Not.Null);
+                DescentSimulation.Result without = DescentSimulation.Run(swarm, 0, false, null, plain,
+                    ability: DescentSimulation.ForgeBurst(), seed: seed, swarmSeconds: 300f,
+                    pool: DescentSimulation.FiveCardPool());
+                DescentSimulation.Result with = DescentSimulation.Run(swarm, 0, false, null, pulsing,
+                    ability: DescentSimulation.ForgeBurst(), seed: seed, swarmSeconds: 300f,
+                    pool: DescentSimulation.FiveCardPool());
+                // A hero that stands still, so the swarm ends both runs well short of the cap and the comparison is a
+                // real one rather than two ceilings.
+                Assert.That(without.DeathRoom, Is.Not.Null);
+                Assert.That(with.DeathRoom, Is.Not.Null);
+                Assert.That(without.PulsesFired, Is.Zero, "A weapon with no pulse never pulses.");
+                Assert.That(with.PulsesFired, Is.GreaterThan(0), "A weapon with one does.");
 
-            Assert.That(without.PulsesFired, Is.Zero, "A weapon with no pulse never pulses.");
-            Assert.That(with.PulsesFired, Is.GreaterThan(0), "A weapon with one does.");
-            Assert.That(with.SwarmWave, Is.GreaterThan(without.SwarmWave),
-                $"The pulse took the run deeper: {without.SwarmWave} waves without, {with.SwarmWave} with.");
-            Assert.That(with.Kills, Is.GreaterThan(without.Kills));
+                secondsWithout += without.SwarmSeconds;
+                secondsWith += with.SwarmSeconds;
+                killsWithout += without.Kills;
+                killsWith += with.Kills;
+            }
+
+            Assert.That(secondsWith, Is.GreaterThan(secondsWithout),
+                $"The pulse kept the runs alive longer: {secondsWithout:0} s in all without, {secondsWith:0} s with.");
+            Assert.That(killsWith, Is.GreaterThan(killsWithout));
         }
 
         [Test]
@@ -320,10 +336,10 @@ namespace Cryptforge.Tests
             splintering.CritSplashShare = 1f;
 
             DescentSimulation.Result without = DescentSimulation.Run(swarm, 0, false, null, plain,
-                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmWaves: 60,
+                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmSeconds: 300f,
                 pool: DescentSimulation.FiveCardPool());
             DescentSimulation.Result with = DescentSimulation.Run(swarm, 0, false, null, splintering,
-                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmWaves: 60,
+                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmSeconds: 300f,
                 pool: DescentSimulation.FiveCardPool());
 
             Assert.That(without.SplintersFired, Is.Zero);
@@ -338,7 +354,7 @@ namespace Cryptforge.Tests
             sword.CritSplashShare = 1f;
             sword.CritChance = 0.5f;
             DescentSimulation.Result bought = DescentSimulation.Run(swarm, 0, false, null, sword,
-                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmWaves: 60,
+                ability: DescentSimulation.ForgeBurst(), seed: 6, swarmSeconds: 300f,
                 pool: DescentSimulation.FiveCardPool());
             Assert.That(bought.SplintersFired, Is.GreaterThan(0),
                 "A weapon that authors no crit rhythm still splinters once it has a chance to crit.");
@@ -357,21 +373,35 @@ namespace Cryptforge.Tests
                     withoutEvolutions.Add(option);
             }
 
-            DescentSimulation.Result plain = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
-                ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 1, swarmWaves: 80,
-                pool: withoutEvolutions);
-            DescentSimulation.Result evolved = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
-                ability: DescentSimulation.ForgeBurst(), route: new KiteRoute(), seed: 1, swarmWaves: 80);
+            // Entered the way the game will enter it - at the end of the Descent, with the build the Descent gave it - since
+            // a hero that walks in at level zero dies long before it fills a card (docs/35). Over six seeds, because an
+            // evolved run pays for its evolutions in a harder room and can die sooner than the plain one, and a single
+            // pair then compares two runs of different lengths rather than two builds. The kiting hero never means to
+            // leave, and never stops on the exit by accident either.
+            DescentSimulation.Floor[] finale = { DescentSimulation.EmberHalls, DescentSimulation.QuicksilverVaults, swarm[0] };
+            int evolutions = 0, wastedWithout = 0, wastedWith = 0;
+            for (int seed = 0; seed < 6; seed++)
+            {
+                DescentSimulation.Result plain = DescentSimulation.Run(finale, 0, true, null, DescentSimulation.Staff(),
+                    ability: DescentSimulation.ForgeBurst(), route: new ExitRoute(float.PositiveInfinity, new KiteRoute()),
+                    seed: seed, pool: withoutEvolutions);
+                DescentSimulation.Result evolved = DescentSimulation.Run(finale, 0, true, null, DescentSimulation.Staff(),
+                    ability: DescentSimulation.ForgeBurst(), route: new ExitRoute(float.PositiveInfinity, new KiteRoute()),
+                    seed: seed);
 
-            Assert.That(plain.EvolutionsTaken, Is.Zero);
-            Assert.That(plain.Difficulty, Is.EqualTo(1f), "Without evolutions the world stays as its floors author it.");
-            Assert.That(evolved.EvolutionsTaken, Is.GreaterThan(0), "The run filled a card and was offered its evolution.");
-            Assert.That(evolved.Difficulty,
-                Is.EqualTo(1f + evolved.EvolutionsTaken * EvolutionRule.DifficultyPerStack).Within(1e-3f),
-                "And paid for every stack of it.");
-            Assert.That(evolved.Level - evolved.UpgradesApplied, Is.LessThanOrEqualTo(plain.Level - plain.UpgradesApplied),
-                $"Evolutions left no more levels unspent than before: {plain.Level - plain.UpgradesApplied} wasted " +
-                $"without, {evolved.Level - evolved.UpgradesApplied} with.");
+                Assert.That(plain.EvolutionsTaken, Is.Zero);
+                Assert.That(plain.Difficulty, Is.EqualTo(1f), "Without evolutions the world stays as its floors author it.");
+                Assert.That(evolved.Difficulty,
+                    Is.EqualTo(1f + evolved.EvolutionsTaken * EvolutionRule.DifficultyPerStack).Within(1e-3f),
+                    "Every stack of an evolution is paid for.");
+                evolutions += evolved.EvolutionsTaken;
+                wastedWithout += plain.Level - plain.UpgradesApplied;
+                wastedWith += evolved.Level - evolved.UpgradesApplied;
+            }
+
+            Assert.That(evolutions, Is.GreaterThan(0), "Runs filled a card and were offered its evolution.");
+            Assert.That(wastedWith, Is.LessThan(wastedWithout),
+                $"Evolutions left fewer levels unspent: {wastedWithout} wasted without, {wastedWith} with.");
         }
 
         [Test]
@@ -382,12 +412,12 @@ namespace Cryptforge.Tests
             // ever stopped being true, every replay of the owner's recorded runs would silently measure a different build.
             DescentSimulation.Floor[] swarm = { DescentSimulation.SwarmProof };
             DescentSimulation.Result original = DescentSimulation.Run(swarm, 1, false, null, DescentSimulation.Staff(),
-                route: new KiteRoute(), seed: 42, swarmWaves: 40);
+                route: new KiteRoute(), seed: 42, swarmSeconds: 200f);
             Assert.That(original.Picks.Length, Is.GreaterThan(10), "A run long enough to have made real choices.");
 
             // Replayed under a different card policy, which the replay must override card for card.
             DescentSimulation.Result replayed = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
-                route: new KiteRoute(), seed: 42, swarmWaves: 40, replay: original.Picks);
+                route: new KiteRoute(), seed: 42, swarmSeconds: 200f, replay: original.Picks);
 
             Assert.That(replayed.ReplayMisses, Is.Zero, "Every recorded card was offered when the replay reached it.");
             Assert.That(replayed.Picks, Is.EqualTo(original.Picks));
@@ -397,7 +427,7 @@ namespace Cryptforge.Tests
 
             // And a replay of cards the offers never contain misses every one, rather than quietly picking something else.
             DescentSimulation.Result wrong = DescentSimulation.Run(swarm, 0, false, null, DescentSimulation.Staff(),
-                route: new KiteRoute(), seed: 42, swarmWaves: 5, replay: new[] { "no_such_card", "no_such_card" });
+                route: new KiteRoute(), seed: 42, swarmSeconds: 25f, replay: new[] { "no_such_card", "no_such_card" });
             Assert.That(wrong.ReplayMisses, Is.EqualTo(2));
         }
 

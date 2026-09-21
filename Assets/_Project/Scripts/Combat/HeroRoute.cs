@@ -25,6 +25,11 @@ namespace Cryptforge.Combat
         public float ChestX;
         public float ChestY;
         public bool ChestClosed;
+        // A swarm room's way out, which the hero leaves by standing still on (ExitRule). HasExit is false, and the spot
+        // meaningless, anywhere else.
+        public bool HasExit;
+        public float ExitX;
+        public float ExitY;
     }
 
     // How the hero walks, decided once per frame: the player's drag in the scene, a written-down script or an automatic
@@ -76,6 +81,77 @@ namespace Cryptforge.Combat
             float length = (float)Math.Sqrt(distanceSquared);
             steerX = dx / length;
             steerY = dy / length;
+        }
+    }
+
+    // The hero that leaves a swarm: it plays the route it is given - or stands - until leaveAt seconds have passed, then
+    // walks straight at the exit and stops the moment it is standing on it, because the hold only counts while it is
+    // still (ExitRule). A player stand-in for measuring what leaving costs, and the route the scene's parity case walks.
+    //
+    // Until then it does what a player who can see the exit does: it never stops on it. The route it plays is blind to
+    // the exit, and the first measurement of docs/35 had about one such hero in eleven leave by accident, because
+    // standing still to fight is what a hero does most of the time and the exit is simply part of the floor. So while it
+    // means to stay, a stand on the exit becomes a step off it. Outside a swarm there is no exit and it only plays the
+    // route.
+    public sealed class ExitRoute : IHeroRoute
+    {
+        private readonly float _leaveAt;
+        private readonly IHeroRoute _meanwhile;
+
+        public ExitRoute(float leaveAt, IHeroRoute meanwhile = null)
+        {
+            if (float.IsNaN(leaveAt) || leaveAt < 0f)
+                throw new ArgumentOutOfRangeException(nameof(leaveAt));
+            _leaveAt = leaveAt;
+            _meanwhile = meanwhile;
+        }
+
+        public void Steer(RouteView view, out float steerX, out float steerY)
+        {
+            if (view == null)
+                throw new ArgumentNullException(nameof(view));
+
+            if (!view.HasExit || view.Seconds < _leaveAt)
+            {
+                steerX = 0f;
+                steerY = 0f;
+                _meanwhile?.Steer(view, out steerX, out steerY);
+                if (view.HasExit && steerX * steerX + steerY * steerY < StandsBelow * StandsBelow &&
+                    ExitRule.IsWithinReach(view.HeroX, view.HeroY, view.ExitX, view.ExitY))
+                    StepOff(view, out steerX, out steerY);
+                return;
+            }
+
+            if (ExitRule.IsWithinReach(view.HeroX, view.HeroY, view.ExitX, view.ExitY))
+            {
+                steerX = 0f;
+                steerY = 0f;
+                return;
+            }
+
+            // One body for the distance, never inlined, so the scene's assembly and the simulation's walk the same walk.
+            float distanceSquared = ArenaFloor.FloorDistanceSquared(view.ExitX, view.ExitY, view.HeroX, view.HeroY);
+            float length = (float)Math.Sqrt(distanceSquared);
+            steerX = (view.ExitX - view.HeroX) / length;
+            steerY = (view.ExitY - view.HeroY) / length;
+        }
+
+        // HeroMotion's dead band: a steer shorter than this holds still.
+        private const float StandsBelow = 0.05f;
+
+        // Straight away from the exit's centre, or back toward the arena's middle from dead on it.
+        private static void StepOff(RouteView view, out float steerX, out float steerY)
+        {
+            float distanceSquared = ArenaFloor.FloorDistanceSquared(view.HeroX, view.HeroY, view.ExitX, view.ExitY);
+            if (distanceSquared <= 0f)
+            {
+                steerX = 0f;
+                steerY = view.ExitY < view.Platform.Middle ? 1f : -1f;
+                return;
+            }
+            float length = (float)Math.Sqrt(distanceSquared);
+            steerX = (view.HeroX - view.ExitX) / length;
+            steerY = (view.HeroY - view.ExitY) / length;
         }
     }
 

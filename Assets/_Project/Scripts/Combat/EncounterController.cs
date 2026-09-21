@@ -18,6 +18,8 @@ namespace Cryptforge.Combat
     {
         private sealed class SpawnedEnemy
         {
+            // Its place in the pack, which a continuous swarm fills again once the enemy has fallen.
+            public int Slot;
             public Health Health;
             public EnemyDefinition Definition;
             public int Gold;
@@ -51,11 +53,21 @@ namespace Cryptforge.Combat
         private SpawnedEnemy _lastDefeated;
         private float _transitionWait;
         private bool _descending;
-        // A swarm room has cleared a wave and is waiting for the player to say whether to press on or leave, and whether
-        // that question has been answered for the wave now on the floor. Both are needed: clearing only the first would
-        // leave the room asking again on the frame after the answer, forever, because the wave has still not advanced.
-        private bool _swarmChoiceOpen;
-        private bool _swarmChoiceAnswered;
+        // A continuous swarm (docs/27, S6c): the director SwarmDirector says what walks in and when, the room's ladder says
+        // who, and the exit is where the hero leaves by standing still. Null outside a swarm room.
+        private SwarmDirector _swarm;
+        private RoomDefinition _swarmRoom;
+        private readonly List<SwarmDirector.Spawn> _swarmSpawns = new List<SwarmDirector.Spawn>(PackLayout.MaxPackSize);
+        // The hero's targets by place, so a refilled place is a refilled candidate and the earlier place still wins a tie.
+        private readonly Health[] _swarmCandidates = new Health[PackLayout.MaxPackSize];
+        private ExitDwell _exitDwell;
+        private float _exitX;
+        private float _exitY;
+        // Where the hero stood at the end of the last swarm frame, to tell whether it moved in this one: it has only held
+        // the exit while it stood still.
+        private float _swarmHeroX;
+        private float _swarmHeroY;
+        private int _swarmStep = -1;
         private int _roomsClearedOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
@@ -101,20 +113,24 @@ namespace Cryptforge.Combat
         public int HitsTaken => _fight?.HitsTaken ?? 0;
         public float Elapsed => _fight?.Elapsed ?? 0f;
         public bool IsCleared => _fight != null && _fight.IsCleared;
-        // A swarm room's state, for whoever reports or shows it: whether this room is one, which wave of it the run is
-        // on (one-based, past the room's authored ladder), and how much harder that wave is than the floor authored.
-        public bool IsInSwarmRoom => _floorProgress != null && _floorProgress.IsInEndlessRoom;
-        public int SwarmWave => IsInSwarmRoom ? _floorProgress.WaveIndex + 1 : 0;
-        public float SwarmDifficulty => IsInSwarmRoom ? SwarmRule.DifficultyAt(_floorProgress.WaveIndex) : 1f;
-        public bool IsAwaitingSwarmChoice => _swarmChoiceOpen;
+        // A swarm room's state, for whoever reports or shows it: whether this room is one, how long the hero has stood in
+        // it, which step of the ramp that is (one-based - what a wave number used to mean), how much harder an enemy
+        // walking in now is than the floor authored, and where the way out stands and how long it has been held.
+        public bool IsInSwarmRoom => _swarm != null;
+        public float SwarmSeconds => _swarm != null ? _swarm.Seconds : 0f;
+        public int SwarmWave => _swarm != null ? (int)(_swarm.Seconds / SwarmRule.StepSeconds) + 1 : 0;
+        public float SwarmDifficulty => _swarm != null ? SwarmRule.DifficultyAtSeconds(_swarm.Seconds) : 1f;
+        public float ExitFloorX => _exitX;
+        public float ExitFloorY => _exitY;
+        public float ExitHeldSeconds => _exitDwell != null ? _exitDwell.Held : 0f;
 
         public event Action EncounterStarted;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
         public event Action FloorCleared;
-        // A swarm room's wave has fallen and the room is waiting: the composition root opens the press-on-or-leave
-        // choice and answers with ResumeSwarm. The same shape as FloorCleared and the Extract/Descend checkpoint.
-        public event Action SwarmWaveCleared;
+        // A swarm room's ramp has moved to its next step, and the hero has walked out of a swarm room: for telemetry.
+        public event Action SwarmStepped;
+        public event Action SwarmLeft;
 
         private SpawnedEnemy CurrentSpawn
         {
@@ -173,23 +189,6 @@ namespace Cryptforge.Combat
         // The hero's position on the arena floor, which the packs walk toward.
         public float HeroFloorX => _hero.transform.position.x;
         public float HeroFloorY => ArenaFloor.FloorY(_hero.transform.position.y);
-
-        // The answer to SwarmWaveCleared: press on for another wave, or leave the room for whatever follows it. The
-        // floor advances here, inside the answer, rather than on the next frame. That is not a detail: a room that
-        // waited a frame would give the hero's weapon one more frame of cooldown between waves than every other room
-        // gives it, and the Descent simulation - which has no frames to spend on a question - would drift a little
-        // further from the scene with every wave. Asking costs frozen time and nothing else.
-        public void ResumeSwarm(bool leave)
-        {
-            if (!_swarmChoiceOpen)
-                return;
-
-            _swarmChoiceOpen = false;
-            _swarmChoiceAnswered = true;
-            if (leave)
-                _floorProgress.LeaveEndlessRoom();
-            AdvanceFloor();
-        }
 
         public void DescendToNextFloor()
         {
@@ -283,6 +282,12 @@ namespace Cryptforge.Combat
                 return;
 
             MovePack(Time.deltaTime);
+            if (_swarm != null)
+            {
+                TickSwarm(Time.deltaTime);
+                return;
+            }
+
             bool canAdvance = !_choices.IsOpen;
             if (_descending || IsInNonCombatRoom)
             {
@@ -299,18 +304,140 @@ namespace Cryptforge.Combat
             if (_floorProgress.IsComplete || !_fight.Tick(Time.deltaTime, canAdvance))
                 return;
 
-            // A swarm room does not roll on by itself: it asks. The choice that answers freezes time, so this runs once
-            // and then waits, and ResumeSwarm is what lets the next wave in or ends the room.
-            if (_floorProgress.IsInEndlessRoom && !_swarmChoiceAnswered &&
-                SwarmRule.OffersExitAfter(_floorProgress.WaveIndex))
+            AdvanceFloor();
+        }
+
+        // One frame of a continuous swarm, at the point in the frame the Descent simulation's swarm loop mirrors: after
+        // the pack has stepped and before anything strikes. A frozen frame is no frame at all - the simulation has none
+        // while a choice is open - so nothing here moves then, not even the room's clock.
+        private void TickSwarm(float deltaTime)
+        {
+            if (deltaTime <= 0f)
+                return;
+
+            _swarm.Tick(deltaTime, AliveEnemyCount, _swarmSpawns);
+            for (int i = 0; i < _swarmSpawns.Count; i++)
+                SpawnSwarmEnemy(_swarmSpawns[i]);
+            ReportSwarmStep();
+
+            // The way out, read where the hero stands now; it counts only while the hero stood still this frame, which is
+            // the position not having changed since the last one. Leaving ends the room before anything strikes.
+            float heroX = HeroFloorX;
+            float heroY = HeroFloorY;
+            bool moved = heroX != _swarmHeroX || heroY != _swarmHeroY;
+            _swarmHeroX = heroX;
+            _swarmHeroY = heroY;
+            if (_exitDwell.Step(deltaTime, !moved && ExitRule.IsWithinReach(heroX, heroY, _exitX, _exitY)))
             {
-                if (_swarmChoiceOpen)
-                    return;
-                _swarmChoiceOpen = true;
-                SwarmWaveCleared?.Invoke();
+                LeaveSwarm();
                 return;
             }
+            if (_swarmSpawns.Count > 0)
+                ProgressChanged?.Invoke();
+        }
 
+        private void ReportSwarmStep()
+        {
+            int step = (int)(_swarm.Seconds / SwarmRule.StepSeconds);
+            if (step == _swarmStep)
+                return;
+            _swarmStep = step;
+            SwarmStepped?.Invoke();
+        }
+
+        // A swarm room opens: one pack for the room's whole life, the ladder's first wave walking in, the way out placed,
+        // and the encounter started once - so the chest, the bar and the room's telemetry all see one room, not a wave.
+        private void BeginSwarm(RoomDefinition room)
+        {
+            ReleaseWave(true);
+            IsInNonCombatRoom = false;
+            _swarmRoom = room;
+            var sizes = new int[room.WaveCount];
+            for (int i = 0; i < sizes.Length; i++)
+                sizes[i] = room.WaveAt(i).EnemyCount;
+            _swarm = new SwarmDirector(sizes);
+            _motion = new PackMotion(_bodySpacing, PackLayout.HalfWidth * _formationSpacing, _arena.Geometry, HeroFloorX,
+                HeroFloorY);
+            Array.Clear(_swarmCandidates, 0, _swarmCandidates.Length);
+            ExitRule.SpotFor(_arena.Geometry, out _exitX, out _exitY);
+            _exitDwell = new ExitDwell();
+            _swarmHeroX = HeroFloorX;
+            _swarmHeroY = HeroFloorY;
+            _swarmStep = -1;
+            AliveEnemyCount = 0;
+
+            _swarm.Open(_swarmSpawns);
+            for (int i = 0; i < _swarmSpawns.Count; i++)
+                SpawnSwarmEnemy(_swarmSpawns[i]);
+            _heroTargeting.SetCandidates(_swarmCandidates);
+            _fight.Begin();
+            ReportSwarmStep();
+            EncounterStarted?.Invoke();
+            ProgressChanged?.Invoke();
+        }
+
+        // One enemy walking into one place: its own one-enemy entry, one corner further round the arena than the last,
+        // placed round wherever the hero stands now, at the difficulty the director gave it. A place whose enemy has
+        // fallen has its body taken away as the new one arrives.
+        private void SpawnSwarmEnemy(SwarmDirector.Spawn spawn)
+        {
+            EnemyDefinition definition = _swarmRoom.WaveAt(spawn.Wave).EnemyAt(spawn.Index);
+            EntrySides.Place(_waveOrdinal, 1, HeroFloorX, HeroFloorY, _arena.Geometry, _entryDepth, _formationSpacing,
+                _bodySpacing, _placements);
+            _waveOrdinal++;
+            FloorModifierDefinition modifier = _currentFloor.Modifier;
+            float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
+            float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
+            float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
+            float scale = spawn.Difficulty * RunDifficulty;
+            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * scale, damagePercent);
+            SpawnedEnemy enemy = CreateEnemy(definition, $"{definition.Prefab.name} {spawn.Slot + 1}", scale, healthPercent,
+                damageBonus, goldPercent, out float reach);
+            enemy.Slot = spawn.Slot;
+
+            if (spawn.Slot < _motion.Count)
+            {
+                RetireFallen(_wave[spawn.Slot]);
+                _motion.Replace(spawn.Slot, enemy.Health, _placements[0], definition.MoveSpeed, reach);
+                _wave[spawn.Slot] = enemy;
+            }
+            else
+            {
+                _motion.Add(enemy.Health, _placements[0], definition.MoveSpeed, reach);
+                _wave.Add(enemy);
+            }
+            enemy.Health.transform.position = WorldPosition(_motion.XOf(spawn.Slot), _motion.YOf(spawn.Slot));
+            _swarmCandidates[spawn.Slot] = enemy.Health;
+            AliveEnemyCount++;
+        }
+
+        // A fallen enemy's body leaves as its place is filled again: a second after it fell, long enough to be seen to.
+        private void RetireFallen(SpawnedEnemy fallen)
+        {
+            if (fallen == null)
+                return;
+            if (ReferenceEquals(_lastDefeated, fallen))
+                _lastDefeated = null;
+            if (fallen.Enrage != null)
+                fallen.Enrage.Enraged -= OnEnemyEnraged;
+            if (ReferenceEquals(fallen.Health, null))
+                return;
+            fallen.Health.Changed -= OnEnemyChanged;
+            fallen.Health.Died -= fallen.OnDied;
+            if (fallen.Health != null)
+                Destroy(fallen.Health.gameObject);
+        }
+
+        // The hero stood still on the way out long enough: the room ends, the pack goes with it, and the floor moves on.
+        private void LeaveSwarm()
+        {
+            SwarmLeft?.Invoke();
+            _swarm = null;
+            _swarmRoom = null;
+            _floorProgress.LeaveEndlessRoom();
+            ReleaseWave(true);
+            Array.Clear(_swarmCandidates, 0, _swarmCandidates.Length);
+            _heroTargeting.SetCandidates(Array.Empty<Health>());
             AdvanceFloor();
         }
 
@@ -322,9 +449,10 @@ namespace Cryptforge.Combat
                 case FloorStepKind.Wave:
                 {
                     RoomDefinition room = _currentFloor.RoomAt(step.RoomIndex);
-                    bool swarm = room.Kind == RoomKind.Swarm;
-                    int wave = swarm ? SwarmRule.LadderIndex(step.WaveIndex, room.WaveCount) : step.WaveIndex;
-                    StartWave(room.WaveAt(wave), swarm ? SwarmRule.DifficultyAt(step.WaveIndex) : 1f);
+                    if (room.Kind == RoomKind.Swarm)
+                        BeginSwarm(room);
+                    else
+                        StartWave(room.WaveAt(step.WaveIndex));
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
@@ -344,15 +472,13 @@ namespace Cryptforge.Combat
         // only by taking an evolution.
         public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
 
-        // difficulty multiplies the floor's own enemy health and damage: 1 everywhere except inside a swarm room, where
-        // it rises wave by wave.
-        private void StartWave(WaveDefinition waveDefinition, float difficulty)
+        private void StartWave(WaveDefinition waveDefinition)
         {
             using (PerformanceMarkers.StartWave.Auto())
-                SpawnWave(waveDefinition, difficulty);
+                SpawnWave(waveDefinition);
         }
 
-        private void SpawnWave(WaveDefinition waveDefinition, float difficulty)
+        private void SpawnWave(WaveDefinition waveDefinition)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -360,9 +486,8 @@ namespace Cryptforge.Combat
             float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
-            // The wave's own escalation and the run's difficulty compose: a swarm's tenth wave under two evolutions is
-            // both harder than its first and harder than it would have been unevolved.
-            float scale = difficulty * RunDifficulty;
+            // An ordinary wave hardens only by the run's difficulty, which every evolution raises.
+            float scale = RunDifficulty;
             float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * scale, damagePercent);
 
             int count = waveDefinition.EnemyCount;
@@ -379,42 +504,53 @@ namespace Cryptforge.Combat
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);
-                Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
-                enemy.name = count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}";
-                enemy.Initialize(FloorScaling.Health(definition.MaximumHealth,
-                    _currentFloor.EnemyHealthMultiplier * scale, healthPercent));
-                WeaponRuntime weapon = definition.Weapon.CreateRuntime();
-                if (damageBonus != 0f)
-                    weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
-                enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
-                enemy.GetComponent<AttackController>().Initialize(weapon);
-                int slot = _motion.Add(enemy, _placements[i], definition.MoveSpeed, weapon.Range);
-                enemy.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
-
-                var spawn = new SpawnedEnemy
-                {
-                    Health = enemy,
-                    Definition = definition,
-                    Gold = FloorScaling.Gold(definition.GoldReward, goldPercent),
-                    Enrage = enemy.GetComponent<EnrageBehaviour>()
-                };
-                spawn.OnDied = () => OnEnemyDied(spawn);
-                enemy.Changed += OnEnemyChanged;
-                enemy.Died += spawn.OnDied;
-                if (spawn.Enrage != null)
-                    spawn.Enrage.Enraged += OnEnemyEnraged;
+                SpawnedEnemy spawn = CreateEnemy(definition,
+                    count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}", scale, healthPercent,
+                    damageBonus, goldPercent, out float reach);
+                int slot = _motion.Add(spawn.Health, _placements[i], definition.MoveSpeed, reach);
+                spawn.Slot = slot;
+                spawn.Health.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
                 _wave.Add(spawn);
-                candidates[i] = enemy;
+                candidates[i] = spawn.Health;
             }
 
             AliveEnemyCount = count;
-            // The wave on the floor is a new one, so the room may ask about it when it falls.
-            _swarmChoiceAnswered = false;
             _waveOrdinal++;
             _heroTargeting.SetCandidates(candidates);
             _fight.Begin();
             EncounterStarted?.Invoke();
             ProgressChanged?.Invoke();
+        }
+
+        // One enemy, built and wired but not yet placed: the setup a wave and a swarm share, so the two can never drift apart.
+        // Its weapon's reach comes back for the pack, which stops each enemy just inside it.
+        private SpawnedEnemy CreateEnemy(EnemyDefinition definition, string name, float scale, float healthPercent,
+            float damageBonus, float goldPercent, out float reach)
+        {
+            Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
+            enemy.name = name;
+            enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier * scale,
+                healthPercent));
+            WeaponRuntime weapon = definition.Weapon.CreateRuntime();
+            if (damageBonus != 0f)
+                weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+            enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
+            enemy.GetComponent<AttackController>().Initialize(weapon);
+            reach = weapon.Range;
+
+            var spawn = new SpawnedEnemy
+            {
+                Health = enemy,
+                Definition = definition,
+                Gold = FloorScaling.Gold(definition.GoldReward, goldPercent),
+                Enrage = enemy.GetComponent<EnrageBehaviour>()
+            };
+            spawn.OnDied = () => OnEnemyDied(spawn);
+            enemy.Changed += OnEnemyChanged;
+            enemy.Died += spawn.OnDied;
+            if (spawn.Enrage != null)
+                spawn.Enrage.Enraged += OnEnemyEnraged;
+            return spawn;
         }
 
         private void EnterForge(RoomDefinition room)
@@ -445,6 +581,14 @@ namespace Cryptforge.Combat
             enemy.Defeated = true;
             _lastDefeated = enemy;
             AliveEnemyCount--;
+            // A swarm's place fills again after its breath; the room itself never clears, however empty it gets.
+            if (_swarm != null)
+            {
+                _swarm.Fell(enemy.Slot);
+                EnemyDefeated?.Invoke(enemy.Health);
+                ProgressChanged?.Invoke();
+                return;
+            }
             if (AliveEnemyCount == 0)
                 _fight.Clear();
 

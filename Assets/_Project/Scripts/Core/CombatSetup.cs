@@ -133,7 +133,6 @@ namespace Cryptforge.Core
             // Subscribe before the first spawn so every defeated enemy reaches the reward service.
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
-            _encounters.SwarmWaveCleared += OnSwarmWaveCleared;
             telemetry.Begin();
             _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty);
         }
@@ -255,34 +254,12 @@ namespace Cryptforge.Core
             });
         }
 
-        // A swarm room asks the same question the boss checkpoint asks, through the same service and the same panel:
-        // stay in the crowd for another wave, or take what it has paid and move on. The wave counter and the
-        // difficulty ride in the description so the player can see what pressing on costs.
-        private void OnSwarmWaveCleared()
-        {
-            Checkpoint.Open(new[]
-            {
-                new CheckpointOption(CheckpointKind.PressOn, _text.PressOnName,
-                    string.Format(_text.PressOnDescriptionFormat, _encounters.SwarmWave + 1,
-                        Mathf.RoundToInt((_encounters.SwarmDifficulty - 1f) * 100f))),
-                new CheckpointOption(CheckpointKind.Leave, _text.LeaveName,
-                    string.Format(_text.LeaveDescriptionFormat, _encounters.SwarmWave, Run.Gold))
-            });
-        }
-
         private void OnCheckpointChosen(CheckpointKind kind)
         {
-            switch (kind)
+            if (kind == CheckpointKind.Extract)
             {
-                case CheckpointKind.PressOn:
-                    _encounters.ResumeSwarm(false);
-                    return;
-                case CheckpointKind.Leave:
-                    _encounters.ResumeSwarm(true);
-                    return;
-                case CheckpointKind.Extract:
-                    Run.End(RunOutcome.Extracted);
-                    return;
+                Run.End(RunOutcome.Extracted);
+                return;
             }
 
             Run.SecureGold();
@@ -320,7 +297,6 @@ namespace Cryptforge.Core
             {
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
                 _encounters.FloorCleared -= OnFloorCleared;
-                _encounters.SwarmWaveCleared -= OnSwarmWaveCleared;
             }
             if (Checkpoint != null)
                 Checkpoint.Chosen -= OnCheckpointChosen;

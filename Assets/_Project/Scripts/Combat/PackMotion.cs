@@ -124,8 +124,34 @@ namespace Cryptforge.Combat
                 float.IsNaN(placement.Lateral) || float.IsInfinity(placement.Lateral))
                 throw new ArgumentOutOfRangeException(nameof(placement));
 
-            EntrySides.Outward(placement.Side, out float outwardX, out float outwardY);
             int index = Count++;
+            Initialise(index, body, placement, speed, reach);
+            return index;
+        }
+
+        // Fills a place whose enemy has fallen with a fresh one, entering where EntrySides placed it - how a continuous
+        // swarm keeps one pack of ten for its whole life without ever building a second (docs/27, S6c). The place keeps
+        // its index, so everything that addresses the pack by slot keeps working.
+        public void Replace(int index, IDamageable body, EntryPlacement placement, float speed, float reach)
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (body == null)
+                throw new ArgumentNullException(nameof(body));
+            if (_bodies[index] != null && _bodies[index].IsAlive)
+                throw new InvalidOperationException("Only a fallen enemy's place can be filled again.");
+            if (float.IsNaN(speed) || float.IsInfinity(speed) || speed < 0f)
+                throw new ArgumentOutOfRangeException(nameof(speed));
+            if (!(reach > 0f) || float.IsInfinity(reach))
+                throw new ArgumentOutOfRangeException(nameof(reach));
+
+            Initialise(index, body, placement, speed, reach);
+            _stalled[index] = false;
+        }
+
+        private void Initialise(int index, IDamageable body, EntryPlacement placement, float speed, float reach)
+        {
+            EntrySides.Outward(placement.Side, out float outwardX, out float outwardY);
             float stop = Math.Max(0f, reach - ReachMargin);
             double angle = Math.Max(-1f, Math.Min(1f, placement.Lateral / _spreadWidth)) * MaxApproachDegrees * Math.PI / 180.0;
             _bodies[index] = body;
@@ -138,7 +164,6 @@ namespace Cryptforge.Combat
             _stop[index] = stop;
             _stopSquared[index] = stop * stop;
             _speed[index] = speed;
-            return index;
         }
 
         public float XOf(int index) => _x[index];

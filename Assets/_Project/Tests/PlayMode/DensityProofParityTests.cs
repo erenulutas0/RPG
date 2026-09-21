@@ -148,7 +148,7 @@ namespace Cryptforge.Tests
             // button and nothing in a driven scene taps it, so a simulation that fired it would be fighting a different
             // fight. What a burst is worth in a swarm is measured in docs/29, where a policy presses it.
             DescentSimulation.Result expected = DescentSimulation.Run(new[] { DescentSimulation.SwarmProof }, 0, false,
-                null, DescentSimulation.Sword(), seed: DevelopmentSeed, swarmWaves: int.MaxValue);
+                null, DescentSimulation.Sword(), seed: DevelopmentSeed);
             Assert.That(expected.DeathRoom, Is.Not.Null,
                 "This case is only a case while a standing hero dies in the swarm; it presses on forever otherwise.");
 
@@ -223,6 +223,79 @@ namespace Cryptforge.Tests
             Assert.That(_hero.Current, Is.EqualTo(expected.HeroHealth).Within(1e-3f), report);
             LogAssert.NoUnexpectedReceived();
         }
+
+        // Walking out of the swarm, scene against simulation: the part of S6c the standing case cannot reach. The hero stands
+        // for a few seconds, walks to the exit through what has gathered and holds it still; the scene reads "still" from
+        // the hero's position not changing and the simulation from HeroMotion saying it did not move, and this is where a
+        // difference between the two would show.
+        [UnityTest]
+        public IEnumerator WalkingOutOfTheSwarmMatchesTheSimulation()
+        {
+            var route = new ExitRoute(LeaveAfterSeconds);
+            DescentSimulation.Result expected = DescentSimulation.Run(new[] { DescentSimulation.SwarmProof }, 0, false,
+                null, DescentSimulation.Sword(), route: new ExitRoute(LeaveAfterSeconds), seed: DevelopmentSeed);
+            Assert.That(expected.DeathRoom, Is.Null, "This case is only a case while the simulated hero gets out alive.");
+            Assert.That(expected.SwarmSeconds, Is.GreaterThanOrEqualTo(LeaveAfterSeconds + ExitRule.DwellSeconds));
+
+            TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { "weapon_sword" }, "weapon_sword"));
+            WriteStartFloor(SwarmFloorId);
+            WriteRunSeed(DevelopmentSeed);
+            _previousFrameRate = Application.targetFrameRate;
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = 1f / 60f;
+            AsyncOperation load = BeginLoad(route);
+            yield return load;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            Application.targetFrameRate = -1;
+            Assert.That(_encounters.IsInSwarmRoom, Is.True);
+
+            int kills = 0;
+            float leftAt = -1f;
+            Action<Health> countKill = enemy => kills++;
+            Action onLeft = () => leftAt = _encounters.SwarmSeconds;
+            _encounters.EnemyDefeated += countKill;
+            _encounters.SwarmLeft += onLeft;
+            float deadline = Time.realtimeSinceStartup + RunDeadline;
+            try
+            {
+                while (true)
+                {
+                    while (_setup.Choices.Current != null && _setup.Choices.Current.Kind == ChoiceKind.Upgrade &&
+                        _setup.Choices.TrySelect(_setup.Choices.Current, 0))
+                    {
+                    }
+                    if (_setup.Run.HasEnded || Time.realtimeSinceStartup >= deadline)
+                        break;
+                    Steer();
+                    yield return null;
+                }
+            }
+            finally
+            {
+                _encounters.EnemyDefeated -= countKill;
+                _encounters.SwarmLeft -= onLeft;
+            }
+
+            string report = string.Format(CultureInfo.InvariantCulture,
+                "scene: {0}, left at {1:0.###} s, {2:0.#} HP, {3} kills, level {4}, hero at ({5:0.###}, {6:0.###}); " +
+                "simulation: left at {7:0.###} s, {8:0.#} HP, {9} kills, level {10}, hero at ({11:0.###}, {12:0.###})",
+                _setup.Run.Outcome, leftAt, _hero.Current, kills, _setup.Run.Level, _encounters.HeroFloorX,
+                _encounters.HeroFloorY, expected.SwarmSeconds, expected.HeroHealth, expected.Kills, expected.Level,
+                expected.HeroFloorX, expected.HeroFloorY);
+            TestContext.WriteLine(report);
+
+            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory), "Walking out of the only room clears the floor. " + report);
+            Assert.That(leftAt, Is.EqualTo(expected.SwarmSeconds).Within(1e-3f), "The two left on different frames. " + report);
+            Assert.That(kills, Is.EqualTo(expected.Kills), report);
+            Assert.That(_setup.Run.Level, Is.EqualTo(expected.Level), report);
+            Assert.That(_hero.Current, Is.EqualTo(expected.HeroHealth).Within(1e-3f), report);
+            Assert.That(_encounters.HeroFloorX, Is.EqualTo(expected.HeroFloorX).Within(PositionTolerance), report);
+            Assert.That(_encounters.HeroFloorY, Is.EqualTo(expected.HeroFloorY).Within(PositionTolerance), report);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Long enough for the pack to have gathered round the hero, so the walk out goes through it.
+        private const float LeaveAfterSeconds = 8f;
 
         // The development hook must be invisible to a player: with no start-floor file the scene descends from the floor
         // Gameplay.unity carries, as every other test and every build does.
@@ -504,7 +577,11 @@ namespace Cryptforge.Tests
             _view.Count = _encounters.WaveEnemyCount;
             // The proof floor is one wave, so the encounter's clock is the simulation's fight clock: both start at 0 on the
             // spawn frame and add the same fixed step on every frame after it. KiteRoute ignores it; TurningRound turns on it.
-            _view.Seconds = _encounters.Elapsed;
+            // A swarm has no waves, so there it is the room's own clock, as the simulation hands its route.
+            _view.Seconds = _encounters.IsInSwarmRoom ? _encounters.SwarmSeconds : _encounters.Elapsed;
+            _view.HasExit = _encounters.IsInSwarmRoom;
+            _view.ExitX = _encounters.ExitFloorX;
+            _view.ExitY = _encounters.ExitFloorY;
             for (int i = 0; i < _view.Count; i++)
             {
                 Health enemy = _encounters.WaveEnemyAt(i);

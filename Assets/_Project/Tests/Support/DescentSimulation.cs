@@ -149,8 +149,10 @@ namespace Cryptforge.Tests
             // unchanged.
             public int ChestsOpened;
             public int BooksTaken;
-            // The deepest swarm wave the run reached, one-based; 0 on a floor with no swarm room.
+            // The swarm ramp's step the run reached, one-based - what a wave number used to mean, one step per
+            // SwarmRule.StepSeconds - and the seconds it stood in the room. Both 0 on a floor with no swarm room.
             public int SwarmWave;
+            public float SwarmSeconds;
             // Pulses the hero's weapon fired, and splinters it threw; 0 until a card grants each.
             public int PulsesFired;
             public int SplintersFired;
@@ -423,11 +425,11 @@ namespace Cryptforge.Tests
             return new ScriptedRoute(segments);
         }
 
-        // How many waves a swarm room is asked for before the run leaves it. A swarm never ends on its own, so a
-        // simulation needs a policy where the scene has a player: this one presses on until it dies or reaches the cap.
-        // A run that comes back having fought all of them has not been beaten, it has run out of patience, and that is
-        // a finding rather than a result.
-        public const int DefaultSwarmWaves = 200;
+        // How many seconds a run stands in a swarm before it decides to leave. A swarm never ends on its own, so a
+        // simulation needs a policy where the scene has a player: this one stays until the time is up, then walks to the
+        // exit through the crowd and holds it (ExitRule), and either gets out or dies trying. The default is long enough
+        // that a run which reaches it has not been beaten, it has run out of patience - a finding rather than a result.
+        public const float DefaultSwarmSeconds = 3600f;
 
         // EncounterController's _entryDepth, _formationSpacing and _bodySpacing in Gameplay.unity, in floor units.
         public const float EntryDepth = 5f;
@@ -450,7 +452,7 @@ namespace Cryptforge.Tests
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
             HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
-            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, int swarmWaves = DefaultSwarmWaves,
+            IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, float swarmSeconds = DefaultSwarmSeconds,
             string[] replay = null, Action<int, float, int> onSwarmWave = null)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
@@ -488,7 +490,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmWaves, onSwarmWave, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -539,7 +541,7 @@ namespace Cryptforge.Tests
         private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
-            HeroStats heroStats, ChestState chest, int swarmWaves, Action<int, float, int> onSwarmWave, ref Result result)
+            HeroStats heroStats, ChestState chest, float swarmSeconds, Action<int, float, int> onSwarmWave, ref Result result)
         {
             const float step = 1f / 60f;
             var waves = new int[floor.Rooms.Length];
@@ -563,20 +565,6 @@ namespace Cryptforge.Tests
                     continue;
                 }
 
-                // A swarm room reads its ordinal against its ladder and hardens the wave, exactly as EncounterController
-                // does; every other room takes the wave the step names at the floor's own difficulty.
-                bool swarmRoom = floor.IsSwarm(next.RoomIndex);
-                int ladderWave = swarmRoom
-                    ? SwarmRule.LadderIndex(next.WaveIndex, floor.Rooms[next.RoomIndex].Length)
-                    : next.WaveIndex;
-                float difficulty = swarmRoom ? SwarmRule.DifficultyAt(next.WaveIndex) : 1f;
-                if (swarmRoom && next.WaveIndex + 1 > result.SwarmWave)
-                    result.SwarmWave = next.WaveIndex + 1;
-                // The same three numbers the scene's swarm_wave event records, at the same moment - as the wave spawns -
-                // so a simulated run can be laid over a recorded one wave by wave.
-                if (swarmRoom)
-                    onSwarmWave?.Invoke(next.WaveIndex + 1, hero.Current, run.Level);
-
                 // A room's first wave brings its chest, as ChestSpawner does on the encounter that starts a new room;
                 // later waves of the same room leave it where it is, opened or not.
                 if (next.WaveIndex == 0)
@@ -588,7 +576,23 @@ namespace Cryptforge.Tests
                     chest.Open = false;
                 }
 
-                Enemy[] pack = floor.Rooms[next.RoomIndex][ladderWave];
+                // A swarm room has no waves: one pack for its whole life, refilled as it falls, hardening by the clock,
+                // left by walking out (docs/27, S6c). It runs as one loop and hands the floor back when it is over.
+                if (floor.IsSwarm(next.RoomIndex))
+                {
+                    bool survived = RunSwarmRoom(floor, next.RoomIndex, run, rewards, weapon, burst, hero, choices, relic,
+                        cardSlot, heroMotion, stamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave,
+                        ref waveOrdinal, ref result);
+                    if (!survived)
+                    {
+                        result.DeathRoom = $"{next.RoomIndex + 1}.{result.SwarmWave}";
+                        return false;
+                    }
+                    progress.LeaveEndlessRoom();
+                    continue;
+                }
+
+                Enemy[] pack = floor.Rooms[next.RoomIndex][next.WaveIndex];
                 var enemies = new HealthState[pack.Length];
                 var enemyWeapons = new WeaponRuntime[pack.Length];
                 var enrages = new EnrageRule[pack.Length];
@@ -602,8 +606,8 @@ namespace Cryptforge.Tests
                 var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, spawnX, spawnY);
                 var placements = new EntryPlacement[pack.Length];
                 EntrySides.Place(waveOrdinal, pack.Length, spawnX, spawnY, Platform, EntryDepth, FormationSpacing, BodySpacing, placements);
-                // The wave's escalation and the run's difficulty compose, as EncounterController composes them.
-                float scale = difficulty * heroStats.Difficulty;
+                // An ordinary wave hardens only by the run's difficulty, as EncounterController applies it.
+                float scale = heroStats.Difficulty;
                 float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier * scale, floor.ModifierDamagePercent);
                 for (int i = 0; i < pack.Length; i++)
                 {
@@ -702,7 +706,8 @@ namespace Cryptforge.Tests
 
                     Observe(motion, enemies, heroMotion, ref result);
                     if (route != null)
-                        Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, chest, out steerX, out steerY);
+                        Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, chest,
+                            false, out steerX, out steerY);
                 }
 
                 if (firstStrike >= 0f && firstStrike < result.EarliestStrikeAfterSpawn)
@@ -718,14 +723,259 @@ namespace Cryptforge.Tests
                     result.DeathRoom = $"{next.RoomIndex + 1}.{next.WaveIndex + 1}";
                     return false;
                 }
-
-                // The player's decision, as a policy: press on until the cap, then leave. EncounterController asks
-                // through the checkpoint at exactly this point, once the wave has fallen.
-                if (swarmRoom && next.WaveIndex + 1 >= swarmWaves)
-                    progress.LeaveEndlessRoom();
             }
 
             return true;
+        }
+
+        // One swarm room, mirroring EncounterController's continuous mode frame for frame. The pack is at most ten places
+        // for the room's whole life; SwarmDirector - the one body the scene also asks - says when a place fills and with
+        // which enemy of the ladder at what difficulty. The run leaves by standing on the exit for ExitRule.DwellSeconds,
+        // which this simulation does once swarmSeconds have passed, walking straight at the exit through whatever stands
+        // in the way. Returns false if the hero died.
+        private static bool RunSwarmRoom(Floor floor, int roomIndex, RunState run, RewardService rewards, WeaponRuntime weapon,
+            AbilityRuntime burst, HealthState hero, RunChoices choices, RelicRuntime relic, CardPicker cardSlot,
+            HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
+            HeroStats heroStats, ChestState chest, float swarmSeconds, Action<int, float, int> onSwarmWave,
+            ref int waveOrdinal, ref Result result)
+        {
+            const float step = 1f / 60f;
+            const int Places = PackLayout.MaxPackSize;
+            Enemy[][] ladder = floor.Rooms[roomIndex];
+            var sizes = new int[ladder.Length];
+            for (int i = 0; i < ladder.Length; i++)
+                sizes[i] = ladder[i].Length;
+            var director = new SwarmDirector(sizes);
+            var spawns = new List<SwarmDirector.Spawn>(Places);
+
+            var pack = new Enemy[Places];
+            var enemies = new HealthState[Places];
+            var enemyWeapons = new WeaponRuntime[Places];
+            var enrages = new EnrageRule[Places];
+            var rewarded = new bool[Places];
+            var fell = new bool[Places];
+            var steps = new StepLog(Places);
+            var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * FormationSpacing, Platform, heroMotion.X,
+                heroMotion.Y);
+            var placements = new EntryPlacement[Places];
+            ExitRule.SpotFor(Platform, out float exitX, out float exitY);
+            var dwell = new ExitDwell();
+            // The corner the next entry comes from, carried in a local because a local function cannot hold a ref; it is
+            // written back on every way out of this method.
+            int ordinal = waveOrdinal;
+            // A place not yet in use holds a fallen stand-in, already paid for and already reported, so every helper
+            // written for a wave - each of which skips the fallen before it reads a position - reads a swarm the same way
+            // without ever touching a place the pack does not have.
+            var unused = new HealthState(1f);
+            unused.ApplyDamage(new DamageContext(1f));
+            for (int i = 0; i < Places; i++)
+            {
+                enemies[i] = unused;
+                rewarded[i] = true;
+                fell[i] = true;
+            }
+
+            // Places a batch of spawns the way EncounterController does: each spawn is its own one-enemy entry, one corner
+            // further round the arena than the last, placed round wherever the hero stands now.
+            void Place(List<SwarmDirector.Spawn> batch, int count)
+            {
+                for (int s = 0; s < count; s++)
+                {
+                    SwarmDirector.Spawn spawn = batch[s];
+                    Enemy definition = ladder[spawn.Wave][spawn.Index];
+                    EntrySides.Place(ordinal, 1, heroMotion.X, heroMotion.Y, Platform, EntryDepth, FormationSpacing,
+                        BodySpacing, placements);
+                    ordinal++;
+                    float scale = spawn.Difficulty * heroStats.Difficulty;
+                    float damageBonus = FloorScaling.DamageBonus(floor.DamageMultiplier * scale, floor.ModifierDamagePercent);
+                    var health = new HealthState(FloorScaling.Health(definition.Health, floor.HealthMultiplier * scale, 0f));
+                    var enemyWeapon = new WeaponRuntime(definition.Damage, definition.Interval, definition.Reach,
+                        definition.InitialDelay);
+                    if (damageBonus != 0f)
+                        enemyWeapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+                    int slot = spawn.Slot;
+                    if (slot < motion.Count)
+                        motion.Replace(slot, health, placements[0], definition.Speed, definition.Reach);
+                    else
+                        motion.Add(health, placements[0], definition.Speed, definition.Reach);
+                    pack[slot] = definition;
+                    enemies[slot] = health;
+                    enemyWeapons[slot] = enemyWeapon;
+                    enrages[slot] = definition.EnrageAt > 0f ? new EnrageRule(definition.EnrageAt) : null;
+                    rewarded[slot] = false;
+                    fell[slot] = false;
+                    steps.X[slot] = steps.LastX[slot] = motion.XOf(slot);
+                    steps.Y[slot] = steps.LastY[slot] = motion.YOf(slot);
+                }
+            }
+
+            // Tells the director about every place whose enemy fell since it last asked.
+            void NoticeFallen()
+            {
+                for (int i = 0; i < motion.Count; i++)
+                {
+                    if (!fell[i] && enemies[i] != null && !enemies[i].IsAlive)
+                    {
+                        fell[i] = true;
+                        director.Fell(i);
+                    }
+                }
+            }
+
+            int Alive()
+            {
+                int alive = 0;
+                for (int i = 0; i < motion.Count; i++)
+                    if (enemies[i] != null && enemies[i].IsAlive)
+                        alive++;
+                return alive;
+            }
+
+            director.Open(spawns);
+            Place(spawns, spawns.Count);
+            int reportedStep = -1;
+            float steerX = 0f;
+            float steerY = 0f;
+            weapon.Tick(AdvanceDelay);
+            // The bar fills once, as the room opens: there are no wave starts left to fill it again, which is the point.
+            stamina.Fill();
+
+            for (int frame = 0; frame < 216000 && hero.IsAlive; frame++)
+            {
+                int stepIndex = (int)(director.Seconds / SwarmRule.StepSeconds);
+                if (stepIndex > reportedStep)
+                {
+                    reportedStep = stepIndex;
+                    result.SwarmWave = stepIndex + 1;
+                    onSwarmWave?.Invoke(stepIndex + 1, hero.Current, run.Level);
+                }
+
+                bool moved = false;
+                if (frame > 0)
+                {
+                    weapon.Tick(step);
+                    burst?.Tick(step);
+                    for (int i = 0; i < motion.Count; i++)
+                        enemyWeapons[i].Tick(step);
+                    moved = heroMotion.Move(steerX, steerY, step * stamina.SpeedFactor, Platform);
+                    // HeroMovementInput spends the bar only while something is alive to fight, read before this frame's
+                    // refill because it runs before EncounterController. A continuous room has frames with nobody alive -
+                    // the breath between a kill and its replacement - and walking through those is free in the scene, so
+                    // it is free here too.
+                    stamina.Step(step, moved && Alive() > 0);
+                    if (stamina.IsEmpty)
+                        result.StaminaEmptySeconds += step;
+                    motion.Step(step, heroMotion.X, heroMotion.Y);
+                    result.FightSeconds += step;
+                    ObserveSteps(motion, enemies, steps, step, result.FightSeconds, ref result);
+
+                    // EncounterController's continuous step, at the same point in the frame: the clock moves on and
+                    // whatever is due walks in. Enemies placed now act from the next frame, as an enemy spawned during
+                    // the scene's Update does.
+                    director.Tick(step, Alive(), spawns);
+                    Place(spawns, spawns.Count);
+
+                    // The way out, read where the hero now stands. Leaving ends the room before anything strikes, as the
+                    // scene releases the pack in the same Update that notices the exit has been held.
+                    if (dwell.Step(step, !moved && ExitRule.IsWithinReach(heroMotion.X, heroMotion.Y, exitX, exitY)))
+                    {
+                        result.SwarmSeconds = director.Seconds;
+                        waveOrdinal = ordinal;
+                        return true;
+                    }
+                }
+
+                OpenChestIfReached(chest, hero, run, floor, upgrades, heroMotion, ref result);
+
+                HealthState[] current = enemies;
+                int target = Acquire(motion, current, weapon.Range, heroMotion.X, heroMotion.Y);
+                if (target >= 0 && weapon.IsReady &&
+                    weapon.TryAttack(current[target], null,
+                        Nearby(motion, current, target, weapon.Pattern.SplashRadius),
+                        weapon.PulseDamage > 0f
+                            ? WithinReachOfHero(motion, current, PulseRule.Radius, heroMotion.X, heroMotion.Y)
+                            : null,
+                        weapon.CritSplash > 0f
+                            ? Nearby(motion, current, target, CritSplashRule.Radius)
+                            : null) && moved)
+                    result.StrikesWhileMoving++;
+                Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                NoticeFallen();
+                if (burst != null && burst.IsReady)
+                {
+                    IReadOnlyList<IDamageable> inReach = WithinReachOfHero(motion, current, burst.Radius, heroMotion.X,
+                        heroMotion.Y);
+                    if (inReach.Count > 0)
+                    {
+                        burst.TryUse(null, inReach);
+                        result.AbilityUses++;
+                        Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                        NoticeFallen();
+                    }
+                }
+
+                for (int i = 0; i < motion.Count && hero.IsAlive; i++)
+                {
+                    if (!current[i].IsAlive || !IsHeroInReach(motion, i, enemyWeapons[i].Range, heroMotion.X, heroMotion.Y))
+                        continue;
+                    float before = hero.Current;
+                    if (!enemyWeapons[i].TryAttack(hero, current[i]))
+                        continue;
+
+                    result.HeroHitsTaken++;
+                    result.HeroDamageTaken += before - hero.Current;
+                    if (relic != null && hero.Current < before)
+                    {
+                        relic.OnHeroDamaged(hero, current[i], weapon.Damage);
+                        Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, ref result);
+                        NoticeFallen();
+                    }
+                }
+
+                Observe(motion, current, heroMotion, ref result);
+                // The steer for the next frame: the run's own route while it is staying, and straight for the exit once it
+                // has decided to go.
+                if (director.Seconds >= swarmSeconds)
+                {
+                    // Walk to it, then stop on it: the hold only counts while the hero stands still.
+                    if (ExitRule.IsWithinReach(heroMotion.X, heroMotion.Y, exitX, exitY))
+                    {
+                        steerX = 0f;
+                        steerY = 0f;
+                    }
+                    else
+                    {
+                        SteerToward(heroMotion.X, heroMotion.Y, exitX, exitY, out steerX, out steerY);
+                    }
+                }
+                else if (route != null)
+                {
+                    // The room's own clock, which is what the scene hands its route in a swarm, and the way out.
+                    view.ExitX = exitX;
+                    view.ExitY = exitY;
+                    Ask(route, view, motion, current, enemyWeapons, heroMotion, weapon.Range, director.Seconds, chest,
+                        true, out steerX, out steerY);
+                }
+            }
+
+            result.SwarmSeconds = director.Seconds;
+            waveOrdinal = ordinal;
+            return hero.IsAlive;
+        }
+
+        // A full-strength steer straight at a point, through the one distance body the arena uses everywhere.
+        private static void SteerToward(float fromX, float fromY, float toX, float toY, out float steerX, out float steerY)
+        {
+            float distanceSquared = ArenaFloor.FloorDistanceSquared(toX, toY, fromX, fromY);
+            if (distanceSquared <= 0f)
+            {
+                steerX = 0f;
+                steerY = 0f;
+                return;
+            }
+            float length = (float)Math.Sqrt(distanceSquared);
+            steerX = (toX - fromX) / length;
+            steerY = (toY - fromY) / length;
         }
 
         // The hero walks onto a closed chest: it mends or pays, and then grants whatever book it held, in the order
@@ -939,8 +1189,9 @@ namespace Cryptforge.Tests
         // one-frame input lag, where the PlayMode driver calls HeroMovementInput.Hold after the frame's Update calls.
         private static void Ask(IHeroRoute route, RouteView view, PackMotion motion, HealthState[] enemies,
             WeaponRuntime[] enemyWeapons, HeroMotion heroMotion, float heroReach, float seconds, ChestState chest,
-            out float steerX, out float steerY)
+            bool hasExit, out float steerX, out float steerY)
         {
+            view.HasExit = hasExit;
             view.ChestX = chest.X;
             view.ChestY = chest.Y;
             view.ChestClosed = chest.Placed && !chest.Open;
@@ -948,9 +1199,11 @@ namespace Cryptforge.Tests
             view.HeroY = heroMotion.Y;
             view.HeroReach = heroReach;
             view.Platform = Platform;
-            view.Count = enemies.Length;
+            // The places the pack actually has. For a wave that is every enemy in it; a continuous swarm's pack has ten
+            // places in its arrays and only uses as many as the ladder has opened so far.
+            view.Count = motion.Count;
             view.Seconds = seconds;
-            for (int i = 0; i < enemies.Length; i++)
+            for (int i = 0; i < motion.Count; i++)
             {
                 view.EnemyX[i] = motion.XOf(i);
                 view.EnemyY[i] = motion.YOf(i);

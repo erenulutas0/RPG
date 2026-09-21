@@ -55,7 +55,8 @@ namespace Cryptforge.Analytics
             _chests = chests;
 
             _encounters.EncounterStarted += OnProgressChanged;
-            _encounters.EncounterStarted += OnEncounterStarted;
+            _encounters.SwarmStepped += OnSwarmStepped;
+            _encounters.SwarmLeft += OnSwarmLeft;
             _encounters.ProgressChanged += OnProgressChanged;
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
@@ -96,13 +97,11 @@ namespace Cryptforge.Analytics
                 toughestId);
         }
 
-        // A swarm room reports the wave it just put on the floor and how hard that wave is; every other room reports
-        // nothing here, because its waves are its room's business and room_start already carries them.
-        private void OnEncounterStarted()
-        {
-            if (_encounters.IsInSwarmRoom)
-                _telemetry.RecordSwarmWave(_encounters.SwarmWave, _encounters.SwarmDifficulty);
-        }
+        // A continuous swarm reports each step of its ramp and the moment the hero walks out.
+        private void OnSwarmStepped() =>
+            _telemetry.RecordSwarmStep(_encounters.SwarmWave, _encounters.SwarmSeconds, _encounters.SwarmDifficulty);
+
+        private void OnSwarmLeft() => _telemetry.RecordSwarmExit(_encounters.SwarmSeconds, _encounters.SwarmWave);
 
         // Heard before the composition root pays the kill, which the recorder needs to tell kill gold from chest gold.
         private void OnEnemyDefeated(Health enemy)
@@ -145,7 +144,8 @@ namespace Cryptforge.Analytics
             if (!ReferenceEquals(_encounters, null))
             {
                 _encounters.EncounterStarted -= OnProgressChanged;
-                _encounters.EncounterStarted -= OnEncounterStarted;
+                _encounters.SwarmStepped -= OnSwarmStepped;
+                _encounters.SwarmLeft -= OnSwarmLeft;
                 _encounters.ProgressChanged -= OnProgressChanged;
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
                 _encounters.FloorCleared -= OnFloorCleared;

@@ -1738,3 +1738,38 @@ written: the ceiling was a maximum, which grows with the sample, and the early-g
 non-significant four runs. Both are recorded rather than reworded.
 
 **Verified:** .NET **360/360**, compile **0 warnings/errors**, EditMode **375/375**, PlayMode **117/117**, Android build exit **0**, static integrity **470 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **24,752,438 bytes**, SHA-256 **`340678528DFC7942FF00F112E7D5C80859663CB92E28C66E85B7DF2EDFAD0FED`**, built, not yet installed.
+
+
+## S6c — a continuous swarm and a walked exit — 2026-09-21
+
+**What shipped.** The finale has no waves. `SwarmDirector` holds one pack of at most ten for the room's whole life: a
+fallen enemy's place waits `SwarmRule.RespawnSeconds` and fills again from the ladder read as a queue, entering by the same
+`EntrySides` rule a wave uses. The ramp of `34` runs on the clock, one step of 1.02 every `SwarmRule.StepSeconds`, and each
+enemy keeps the difficulty of the moment it walked in. The per-wave question is gone - the prompt, its event, the two
+checkpoint kinds (retired, not reassigned) and its text. Leaving is `ExitRule`: a spot five units toward the far corner,
+held for a second while standing still. Telemetry reports `swarm_step` and `swarm_exit` in place of `swarm_wave`. The
+exit and the clock draw nothing yet; they are Astra's.
+
+**How it was chosen (`35`).** At level zero no setting met the criteria - a Sword or Daggers with nothing dies inside a
+minute in a crowd that never clears - so the clocks were measured the way decision 5 says the room is met, at the end of
+the Descent. Four cells passed; a step of **three seconds** and a respawn of **two** put the Staff's median at 202 seconds
+with two early deaths in 139. The respawn was to be fixed at one second and was measured instead. The exit's distance
+turned out not to be the lever: at three, five and seven units the decision's timing decides everything.
+
+**What the measurement found about itself.** A stand-in blind to the exit left by accident in thirteen runs of 144 by
+stopping to fight on it, and that had inflated the late exits too. `ExitRoute` now plays a player who does not stop on an
+exit it does not mean to take, and every table in `35` was measured with it. On the phone, until the exit is drawn, a real
+player can make the same mistake.
+
+**Two tests re-stated.** The Forge Pulse and evolution tests each pinned one seed and each broke under the new clocks;
+they now sum eight and six seeds, the evolution one entering the swarm at the end of the Descent.
+
+**Scene parity.** A second PlayMode case walks out of the swarm through the pack, scene against simulation, on the same
+frame.
+
+**A flaky test, fixed in passing.** `FloorFlowTests.TemperOpensOneExtraUpgradeChoice` asserted that the hero's health is
+unchanged after Temper's bonus card, but the class does not pin the run's seed, so the card is sometimes a health card and
+raises the health by what it adds to the maximum. It failed one full run in this slice and one of two class runs; it now
+asserts exactly that difference.
+
+**Verified:** .NET **367/367**, compile **0 warnings/errors**, EditMode **382/382**, PlayMode **118/118**, Android build exit **0**, static integrity **473 unique asset/folder GUIDs / 568 scene objects/components**. Development APK **29,185,542 bytes**, SHA-256 **`C93D0A4958D9C96A8756A44F7DAE60A43EB7A0C04CE3E8A87CC394F5BA5ADF92`**, installed on the owner's S23 with the swarm as its start floor.
