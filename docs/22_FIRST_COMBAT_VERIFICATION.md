@@ -430,3 +430,335 @@ VanguardArtSet gains one optional shared dagger sprite (fixed20x64/128PPU, bilin
 New VanguardAnimationTests case covers both hand anchors through four directions, immediate real attack/angular reaction, pause, recovery, death hiding and borrowed sprite survival across reload. Reproducible import and actual runtime capture tools are in Tools/ArtReview; 53 images are in ArtDirection/2026-09-19/daggers-runtime-01. The source master remains unchanged. The old large pixel hit effect and final arm animation remain open.
 
 Verified: .NET291/291, compile0 warnings/errors, EditMode306/306, PlayMode115/115, actual runtime graphics1/1, integrity444project GUIDs/1099package GUIDs/568scene objects; Android exit0. APK24,752,344bytes SHA256 `62D5A2707299AB8865B581ED3B5FD69F135EB727E8D562362F997B7F6055D603`; installed S23 base.apk matched. No live phone visual test yet: phone was in another app and availability question has no reply. Profiles unchanged; newest Docs/23 records details. Existing full suite counts supersede earlier proof-only checks.
+
+## Ground reward presentation — 2026-09-22
+
+GroundDropView observes the docs/37 rule. One shared imported96x96/128PPU/ASTC4 sprite shows combined XP/gold, sorted by floor root with an independent contact shadow. Normal Descent kills leave a collectible; they no longer pop the old instant coins. Collection pays immediately and starts a pooled .22s cosmetic flight (.42s for distant collection). All rule constants and simulation order remain unchanged.
+
+Manual checks in the pinned Editor after opening Gameplay: kill an enemy while standing outside one-unit floor reach; confirm reward stays and gold/XP do not change. Walk close; confirm it disappears toward the hero and the counters change immediately. If a level-up opens, the flight must freeze with the choice and resume after selecting. Pause/resume mid-flight. Leave drops while later waves/rooms arrive; they must remain. Clear a floor; all remaining rewards must pay before the checkpoint. Descend/restart/end must not leave trails on the new floor. Final Swarm keeps instant rewards and no ground drops. Look for actor/prop front-back depth rather than forcing rewards over all enemies.
+
+Four GroundDropPresentationTests cover real death/collection, 40 identical drops and pool/re-enable correctness, upgrade pause/death, import contract/single-currency fallbacks/reload/subscription ownership. ChestPresentationTests now fixes its seed to a first chest without a random book, isolating its original heal assertion. Graphics fixture and actual controlled captures: Tools/ArtReview/Run-GroundRewardProof.ps1 and ArtDirection/2026-09-22/reward-runtime-01. Full final gate, APK and phone status are recorded in that README and newest docs/21–23; do not infer a device result from Editor captures.
+
+Ground reward installation follow-up (2026-09-22): S23 installed APK9DD2A9A758C95DCB88F91E4204B0207D61E30389787AF674414A0805B19A0F28, package hash matched and all nine backed-up app-files unchanged. Live manual checklist above is still pending: phone is locked/dozing, owner unlock requested. No physical visual result is claimed.
+
+## XP-only painted companion — 2026-09-23
+
+Cinder Mite's frequent XP-only reward now uses Reward_Experience.tga through a separate CombatSetup reference and a borrowed GroundDropView sprite. Full-canvas96x96/128PPU, bilinear, non-readable, no mips, Android ASTC4x4; root623/1254,111/1254;0.30 visible width versus combined0.45. No payout, pickup, timing, pooling, combat or simulation changes. Missing references and gold-only drops keep existing fallbacks. The imported asset is not destroyed by the view.
+
+Updated GroundDropPresentationTests verifies XP import/pivot, selection/scale and survival across scene reload; the level-choice test now exercises XP-only collection without crediting gold. Actual Unity capture kills a Cinder Mite and stages17 more XP-only drops, then checks depth, short portrait, local/sweep flight, choice pause and pool return. Reproduction: Tools/ArtReview/Import-ExperienceReward.ps1 and Run-ExperienceRewardProof.ps1. Evidence: ArtDirection/2026-09-22/xp-reward-runtime-01/README.md. Source image hash unchanged; no new generation in integration.
+
+Verified: .NET380/380, compile0 warnings/errors, EditMode395/395, PlayMode124/124, graphics1/1, integrity483project GUIDs/1099package GUIDs/568scene components. Browser8images,390px no overflow/errors. Android result follows below. Phone availability requested but unanswered; no device interaction or assumed profile state.
+
+Android verification complete: exit0, APK24,752,438bytes, SHA2561F00CF65D105882E8976A0B3167B5A600A57022B38D9A0B9ED2D1FC997BBA168. Build log confirms scene data rebuilt; packaged shared assets contain experience sprite references. ProjectSettings and Packages/packages-lock.json unchanged; final static integrity and git diff --check passed. Not installed: phone availability remains unanswered. No commit/push in this slice.
+
+## Finale exit visual integration and region direction — 2026-09-23
+
+ExitSealView now reads the existing final-swarm exit position and dwell. Brass0.9radius boundary/gateway sits below actors; mint arc clamps authoritative held/1second; off-screen directional cue stays inside the combat viewport without moving the destination. No new timer, input surface, banking or progression rule. PrototypeTextDefinition provides neutral English stand-still/direction strings. CombatSetup composes the view. The view owns one material and reusable lines/arc buffer; shared font is borrowed. Descent, ended floor/run and disabled view hide all indicators.
+
+Three new ExitSealPresentationTests passed: hidden Descent and reload, actual hold/pause/interruption/completion, camera-offscreen cue and disable. Actual graphics capture1 passed; final portait camera aspect fixed in fixture; idle/hold/pause/direction reviewed. Source/evidence: ArtDirection/2026-09-23/exit-seal-runtime-01. .NET380 passed, compile0 warnings/errors, static485project GUIDs/1099package GUIDs/568scene components. Full gate/APK result follows separately.
+
+Owner approved two fights -> elite OR chest -> forge -> main boss -> extract OR optional final swarm. region-map-01 is a tested interactive design, not a Unity route; current floors remain linear. DESIGN_AND_HANDOFF.md and OPUS_TASK.md document pending gameplay/model/parity/reward decisions. No external task dispatched. Distinct combat/boss map geometry is not implemented here. No phone changes.
+
+Verified final gate (2026-09-23): .NET380/380, compile0 warnings/errors, EditMode395/395, PlayMode127/127, targeted exit3/3, graphics1/1, static485project GUIDs/1099package GUIDs/568scene components. Android exit0; APK29,252,655bytes, SHA25628B658D4AFC4FBBFB68623F0EA97A3F2F3AD1CA9ECB747B10930ED57B95E0B41. No install/device operations, commit or push in this slice. The prior installed XP-only build remains the latest device record. Map flow is approved and prototyped in the browser only; branching gameplay, separate battlefield geometry and new region balancing remain outstanding. ProjectSettings and Packages/packages-lock.json unchanged.
+
+## 2026-09-23 — Fixed-scale wide-region paving
+
+PlatformMaterialMeshes now derives floor UVs from planar floor coordinates at the original 9-unit hall scale. The default hall retains its corner UVs; elongated regions no longer stretch/shear the paving. PlatformMaterialTests adds a hall/wide spatial-density check. Actual traversal screenshots in ArtDirection/2026-09-23/exploration-proof-01 were refreshed; ENVIRONMENT_KIT.md defines reusable perimeter scenery and explicitly defers walkable elevations. Wide geometry still exists only in the temporary capture scene. Coping/walls/foundation and physical encounter locations remain open.
+
+Verified: .NET 380; compile 0 warnings/errors; targeted PlatformMaterialTests 5/5; graphics traversal 1/1. No full-suite run, APK rebuild, installation or phone interaction for this bounded material slice. Latest installed XP-only build and previous exit-seal APK remain unchanged. No new performance claim.
+
+## 2026-09-23 — Wide-region coping and furnace source
+
+PlatformMaterialMeshes keeps coping perpendicular floor width at the original hall value (0.45/sqrt(2)), with a conservative half-scale inset cap for tiny geometries. Coping/wall/join repetitions follow floor-space edge length instead of stretching across the region. Shared miter vertices and nine-mesh ownership remain. PlatformMaterialTests checks hall/wide width, texture density and corner joins. Graphics traversal refreshed and inspected. This is repeated material geometry, not separate placed wall prefab modules.
+
+Verified: .NET380, compile clean, PlatformMaterialTests5/5, graphics traversal1/1. No full suite/APK/device change. Wide region remains temporary. New unchanged built-in image_gen furnace source and exact prompt in ArtDirection/2026-09-23/furnace-prop-01; RGBA1358x1159, transparent alpha, browser390px no overflow/all images loaded. Source only, not imported or placed. Next: sample/place reusable perimeter props, then live region integration with explicit local-encounter authority. No collision/elevation mechanic added.
+
+## 2026-09-23 — Furnace imported, isolated Unity placement
+
+Imported shared Furnace.tga (384x328/128PPU/custom pivot/non-readable/ASTC4) under Art/Props/Foundry. Importer samples unchanged source once and does not edit Gameplay. FurnaceCapture places it at north exterior on a temporary stone-textured foundation; real hero traversal and reference portrait capture. Initial oversized grey foundation corrected in second render. No collision, interaction, playable extension or production scene reference.
+
+Verified: compile0 warnings/errors, final graphics1/1, static487GUIDs/1099package/568scene objects, browser390px no overflow/all images loaded. Full suites and APK not rerun for source/import/temporary fixture slice. No phone action. Read ArtDirection/2026-09-23/furnace-unity-01/README.md. Next: bounded region scenery integration and explicit playable entry, full gate then device; local encounters remain separate and pending.
+
+## 2026-09-23 — Wide region and furnace development integration
+
+Gameplay now binds Furnace.tga and ArenaView supports a once-resolved development/region-preview.txt=wide flag. Default hall and release behaviour preserved; wide preview is -27/+27/18. FoundrySceneryView borrows art/material and owns its foundation mesh. No local encounters, collision/elevation or new progression rules. Graphics capture now loads actual Gameplay, not an enlarged scene copy. See ArtDirection/2026-09-23/region-runtime-01/README.md for commands, proof and limits.
+
+Verified: .NET380, compile0 warnings/errors, EditMode395/395, PlayMode130/130, targeted region2/2, graphics1/1, browser390px checked. Android exit0; actual APK29,252,655bytes, SHA256 C8B4592C03EF35A437BF7EB027B54D484DD333C48946EEF212D0B793D9F12704. APK is BUILT, NOT INSTALLED. USB device enumerated only; availability question unanswered, no launch/input/screenshot/profile access. Prior XP-only installed record remains current. No commit/push in this slice.
+
+Next: coordinated fresh app-files backup, install and hash verification, temporary wide flag (preserve any existing value), physical traversal/visual review, remove only the created flag and return to normal hall. Playing normally may award/persist progress; never restore stale profile data. After that: local encounter-site gameplay and richer perimeter scenery.
+
+## 2026-09-23 — Wide-region APK installed and device traversal
+
+Owner authorized phone use. Fresh9-file backup in ignored TestResults/region-device-20260923-151946, app force-stopped, install --no-streaming -r succeeded. Installed base.apk SHA256 C8B4592C03EF35A437BF7EB027B54D484DD333C48946EEF212D0B793D9F12704 matched. All9 files byte-identical immediately after install. Fresh stored profile189/27099gold/defaultSword/SecondWind/deepest3 supersedes previous186 state.
+
+Created only region-preview.txt=wide; original inactive start-floor.txt.off preserved. First walk was contaminated by owner inputs (owner confirmed), so no conclusions from its progression. After explicit handover restarted the wide run and sent a guarded25s north drag. Reached north furnace/rim; camera follow and fixed-scale paving visible on physical S23. Screenshot shows furnace overly occluded by hero at the exact tip: placement spacing needs polish, not final visual acceptance. Normal combat remained active and progressed to room2; no explicit upgrade selection or economy edit by assistant. This is a visual/traversal smoke test, not a performance benchmark.
+
+Removed the test-created region flag, force-stopped and returned to normal Ember Hall1/6. Paused at100HP/level0/XP0/runGold0 for handback. Primary and backup profiles match the fresh preinstall files byte-for-byte; telemetry naturally grew, no rollback. All taps/swipes/captures checked focus/awake/unlocked before and capture guard after. Last1200 log lines had no FATAL EXCEPTION/NullReferenceException/MissingReferenceException matches. Evidence: region-runtime-01/device/north.png and handback.png. No code/build changes in this device slice.
+
+## 2026-09-23 — Furnace clearance and physical exploration handoff
+
+Moved furnace to an offset north-east ornamental foundation (x1.6, worldTop+.45); playable geometry unchanged. Actual Gameplay graphics now walk to the reachable tip and side using HeroMotion.EdgeMargin. An initial waypoint at raw corner27 failed as unreachable; fixed the fixture to use the existing0.6 margin rather than changing movement. Final captures show hero/furnace separation at both inspected limits. Fixture HUD overdraw remains an Editor capture limitation; this does not establish new device acceptance.
+
+Verified: .NET380, compile clean, RegionSceneryTests2/2, graphics1/1. No full-suite/APK/device operation for this bounded layout correction; installed C8B4592C build still has original centred furnace. New OPUS_EXPLORATION_TASK.md covers two physical combat sites, optional single-use chest and unlocked boss entrance; drafted only, not sent or started. Existing region-map node task remains superseded. See region-runtime-01 updated screenshots and handoff.
+
+## 2026-09-23 — Foundry playable gate
+
+Read ArtDirection/2026-09-23/foundry-playable-01/README.md. New concave development map shares render/movement/spawn/pursuit geometry. .NET387, compile0warnings/errors, EditMode402, PlayMode131, final graphics traversal1 and integrity494GUIDs/1099package/568scene passed. Android exit0, APK33754918bytes, SHA2567FB249A4E8EB25560113ACF417521C25AB6809DD9B8A1EA118812D367B7C4CBD, installed/hash matched on S23. Existing default-mode tests pass; new mode has geometry/pursuit tests but no end-to-end seeded simulation replay assertion. Initial new pause fixture failure corrected through RunPause and full gate rerun; initial sampled-path corner stall corrected with interval union. See23 for device limits.
+
+## 2026-09-23 — Foundry rough architecture verification
+
+FoundryRegionView gained route inlays and provisional entry/salvage/furnace/gate landmarks. Walkable geometry and gameplay are unchanged. Compile check0 warnings/errors; integrity494 GUIDs/568 scene objects; refreshed real Unity five-zone walk1 passed; full pinned-Unity gate EditMode402/402 and PlayMode131/131 passed. The Android build follows this successful gate. No new calculation tests were added for this presentation-only pass. Existing pause/reload/disposal and navigation coverage ran unchanged.
+
+
+## Photograph-led build ready � installation pending active-run reply
+
+Final gate: pure388; Unity EditMode403 /PlayMode131; graphics1; compile clean; integrity494 GUIDs/568 scene objects. Android exit0, APK33,758,335bytes, SHA256 A8ED8E1C8F0DEFCF341CA998237E32A19E354794A9873D9B130EDC4B1C9C64A3. Built but NOT installed. Device still has648EA6 rough linked-map build.
+
+Read-only screenshot during this slice found a new owner run at Warden's Crucible1/6's room6,116 run gold,21/100HP,level7 upgrade choice. Asked whether owner will finish or authorizes abandoning for install; no reply yet. No tap/swipe/install/force-stop/save edit performed in this slice. Previous last-known profile196/28118 is not freshly verified here; inspect again before install. Screenshot TestResults/foundry-install-20260923-182322/live/before-layout-update.png. Owner's earlier closed-game authorization applied to the completed648 install, not this newly observed active run.
+
+## 2026-09-23 — Gate facade import and runtime verification
+
+Imported opaque generated source and bound optional shared GateFacade material. FoundryRegionView maps full UVs onto the upright wall, source geometry supplies perspective. FoundryRegionTests verifies real scene usage, non-readable/clamped texture and borrowed material survival across reload. Compile0warnings/errors; actual Unity five-waypoint graphics1; static496GUIDs/568scene objects; full EditMode403/403 and PlayMode131/131 passed. Android build follows. No new pure rule changes or repeated pure suite in this presentation-only slice. Previous pure388 remains historical evidence for unchanged geometry.
+
+
+## 2026-09-23 - Foundry surface gate
+
+Four furnace towers and matching region-only masonry integrated; geometry/gameplay unchanged. UnityCompileCheck0 warnings/errors; graphics five-position traversal1 passed; Verify-Project500 unique project GUIDs/568 scene objects. Full pinned Unity EditMode403/403 and PlayMode131/131 passed, including shared material use/non-readable imports, <=10 static renderer budget and reload cleanup. Android exit0, APK29,253,375bytes, SHA256 0CC7AD1F0FED3C145E7A5A62B6A48123DD3E07A9AEA0CAC7AF978D0596CC4750. Pure combat suite not rerun for this visual-only change. Sources and captures: foundry-surfaces-01. Device outcome in docs23.
+
+
+## 2026-09-23 - Combined foundry dressing verified
+
+Final runtime art: crane/counterweight/chain/basket, connecting pipes/collars/valves, heated shaft lining/basin/guardrails, iron roofs, beacons and hanging chains. No gameplay or navigation edits. Compile0 warnings/errors, static integrity505 GUIDs/568 scene objects, actual five-position Unity traversal1 passed. Close inspection corrected disconnected crane jib and stretched shaft lining. Final static budget15 renderers/16,896 vertices. Full EditMode403/403 and PlayMode131/131 passed, including shared imported material usage/non-readable textures, scenery ordering, <=16 static renderer ceiling and reload ownership.
+
+Android build exit0. APK29,253,465bytes, SHA256 7EE642D10E16A21588E40318D70CCC2F03C3ADFB61FE6CD27BA43851855E42EB. Pure combat suite not repeated for this visual-only package. Sources/prompts/captures in ArtDirection/2026-09-23/foundry-complete-01.
+
+
+## 2026-09-23 - Energy deferred, verification complete
+
+Owner requested temporary removal of movement energy. Current-rule switch disables spending and empty-speed penalty in scene and default simulation; MOVE HUD hidden; StaminaBar excluded from both offers and books. Historic explicit-budget tests remain. Gate: pure390, compile0 warnings/errors, graphics five-position walk1, EditMode405/405, PlayMode130/130, integrity505 GUIDs/568 scene objects. Actual same-route time106.7 ->44.5seconds; no art/camera/geometry edits. Android exit0, APK29,253,465bytes, SHA256 F0105B61C8454C4867D6CCA47D35E0CF592E4BCA85CEF7748271FAF2037EA67A.
+
+## 2026-09-24 - Foundry static illumination verified
+
+Actual Unity five-point traversal/graphics1 passed. Full EditMode405/405, PlayMode130/130, integrity507GUIDs/568scene objects. Foundry static batches remain15; vertices20,996. Authored build-time vertex shading and cap highlight bands; no gameplay/geometry/camera edits. Android exit0, APK33,774,777 bytes, SHA256 259EA288CC447CE38B8371DA694B7D43B57777A80AB8A6B6B2C5A63C57B394F1. Includes earlier energy deferral. Sources/limits and unchanged before/after/device captures in ArtDirection/2026-09-24/foundry-lighting-01/README.md. Pure suite not repeated for art-only changes. Device installed and reviewed (docs23).
+
+## 2026-09-24 - Gate and boiler geometry verified
+
+Foundry-only gate pillars/cornice/crowns and boiler shoulders/open-mouth stacks integrated with shared imported materials. No gameplay/navigation/camera/scene edits. Near-camera review caught and corrected cap/shaft painter-order overlap before final gate. Graphics walk1, EditMode405/405, PlayMode130/130, integrity508GUIDs/568 scene objects. Static15 renderers/23,160 vertices. Android exit0, APK33,777,280 bytes, SHA2560B23B12F7C9EB5D4CDB38802820E8FD5CA8BBA7BA43ADF768371BC4F41FF95A1. Source and actual before/after/detail/portrait/device evidence: ArtDirection/2026-09-24/foundry-architecture-01/README.md. Pure suite not repeated for unchanged combat rules. Installed device recorded in docs23.
+
+## 2026-09-24 - Combined courtyard package verification
+
+Final five-waypoint Unity graphics proof passed (1/1). Full gate: EditMode 405/405, PlayMode 130/130, Android build exit 0. Project integrity: 511 unique project GUIDs, 1099 package GUIDs, 568 scene objects. Static scenery remains 15 renderers; vertices increase from 23,160 to 39,740. No combat rules changed; pure .NET combat suite was not rerun.
+
+APK Builds/Android/Cryptforge-Prototype.apk: 29,999,777 bytes, SHA256 460BD079412E658692CEA1EF32FF79CD5BF54C803E86158B84D326BC45CA1261. Installed on the S23 with install-r Success; installed base.apk hash matched. All 10 stored files byte-identical immediately after installation. Fresh backup and logs: TestResults/foundry-courtyard-20260924.
+
+Owner unlocked and left phone free. Guarded 15-second bridge movement and 12-second return to courtyard reviewed new paving, bridge piers, inlays and live Staff combat. Physical screenshots: device-bridge.png, device-courtyard.png, device-handback.png in ArtDirection/2026-09-24/foundry-courtyard-01. Left PAUSED in Cinder Walk, room 2/6, wave 3/3, 68/100 HP, level 0, XP 4/10, 0 run gold. No upgrades or loadout changes selected. Profile revision 208, gold 31166, Staff/Second Wind/deepest 3 unchanged after review; SHA256 D3D4FF563175BDF50EC2E9D32A772A015D7544E2C4F9C7704374DBD441BB7BCD matches fresh pre-install copy. No save restoration or editing.
+
+Current process log has 0 matches for FATAL EXCEPTION, NullReferenceException, MissingReferenceException or InvalidOperationException. Startup still includes 2185.3 ms and 222.8 ms frames; these remain unresolved and are not hidden by the short visual review. This is not a sustained density or midrange-device benchmark. Crane and shaft details were verified in Unity; physical traversal this turn covered bridge and courtyard only. Energy deferral remains active. No commit/push.
+
+
+## 2026-09-24 - Undercroft architecture gate
+
+## Final verification
+
+Full Unity gate passed: EditMode 405/405; PlayMode 130/130; Android build exit 0. Final project integrity passed: 511 unique project GUIDs, 1099 package GUIDs, 568 scene objects/components. Five-point graphics proof passed 1/1 before the full gate. Existing region batching/sorting/reload tests passed unchanged. Pure combat suite not rerun for this presentation-only change.
+
+APK Builds/Android/Cryptforge-Prototype.apk: 34,532,412 bytes; SHA256 FD0D282C3E39746AC89E01FECB73E662136703E439FF80092AE34BE12A6DE4F6. READY, NOT INSTALLED in this turn. Physical smoke remains pending owner device coordination. Initial guarded capture refused because game focus was absent; no capture or input dispatched. Later read-only window check showed launcher/unlocked/awake. No tap, swipe, force-stop, app launch, install or save modification performed. Last verified installed package remains the preceding courtyard build 460BD079412E658692CEA1EF32FF79CD5BF54C803E86158B84D326BC45CA1261; do not mistake new Unity screenshots for device evidence. Do not assume the previous paused run remains current; inspect fresh before installation. No commit/push.
+
+## 2026-09-24 - Device install and handback (supersedes pending status above)
+
+The owner explicitly requested installation for hands-on review. Fresh inspection found the S23 connected, unlocked, awake and on the launcher. A backup of the existing 10 app files was pulled before install. `adb install -r` returned Success. The first whole-directory after-install pull lost USB transport partway through the large IL2CPP metadata file, so that partial local copy is not evidence of data loss; the device reconnected automatically. Installed base.apk SHA256 FD0D282C3E39746AC89E01FECB73E662136703E439FF80092AE34BE12A6DE4F6 matches the built APK. A fresh individual pull verified profile, backup profile, foundry preview flag, disabled floor flag and all three telemetry files byte-for-byte against their preinstall copies. The stored profile remains revision 208, 31,166 gold, Staff/Second Wind, deepest floor 3; profile hash still matches after launch.
+
+The game launched explicitly and a guarded S23 screenshot captured live Ember Hall room 1/6 with the character and enemies on the updated courtyard. No movement or purchase was performed by the assistant; the game was left open and running for the owner to try. Current-process log has zero matches for FATAL EXCEPTION, NullReferenceException, MissingReferenceException or InvalidOperationException. This is an installation and startup smoke, not a physical traversal of the new undercroft or a performance benchmark. Unity five-point graphics proof covers undercroft visibility. Evidence: TestResults/foundry-undercroft-20260924, including before/, after-install/ critical files, 01-start.png and game.log. No save restore/edit. No commit/push.
+
+## 2026-09-25 - Atmosphere verified and installed
+
+Compile check: 0 warnings/errors. Full Unity gate: EditMode 405/405, PlayMode 130/130, Android exit 0. Final five-point graphics walk plus sampled plume and same-frame effect-on/off captures passed 1/1. Final integrity after temporary capture cleanup: 512 project GUIDs, 1099 package GUIDs, 568 scene objects/components. Pure combat suite not rerun for this presentation-only change. Preview: ArtDirection/2026-09-25/foundry-atmosphere-01.
+
+APK A03DF2201C2FBABBEF337C84CDE6FB2DD7E2C9C83D38D3263CFC5FCE3AACA707 (39,340,606 bytes) installed on S23; install-r Success and installed base.apk hash matched. Owner explicitly approved restarting the paused room-2 run and left device free. Fresh backup in TestResults/foundry-atmosphere-20260925/before. All 7 saved profile/backup/development/telemetry files byte-identical immediately after install. Profile revision 209, 31,166 gold, default Sword/Second Wind/deepest 3; SHA256 C2A33F051D75465E7AFAA1FBF720E3EF18AE3F3044794D87F3A20D7488964DAE unchanged after review. No save restoration/edit or loadout change.
+
+Guarded northeast traversal, one Vital Surge in-run choice, then short north movement reached the furnace/gate approach. device-plume.png shows the actual phone plume and embers. Pause confirmed: 06-stop.png and 07-paused-repeat.png were byte-identical. Final handback PAUSED in Cinder Walk room 2/6, wave 3/3, 58/130 HP, level 1, XP 18/22, 5 run gold. Screenshots and process log retained. A pause tap during the earlier level-up choice did not dismiss it; the later photographed pause is the actual final state.
+
+Current process log: zero matches for FATAL EXCEPTION/NullReferenceException/MissingReferenceException/InvalidOperationException. Early active windows 2-5 measured 59.9 fps, max frame 17.1 ms. Startup window retained 2181.8 ms and 375.8 ms spikes. This short S23 sample is not sustained density, isolated allocation or midrange acceptance. Code reuses arrays; no assertion that all game allocations disappeared. No commit/push.
+
+## 2026-09-29 - Combined foundry art package verified and installed
+
+Presentation-only package: quieter paving, gate/flue hardware, peripheral workshop stock, engraved court seal and supported braziers. Compile check passed with 0 warnings/errors. Static integrity passed: 514 project GUIDs, 1099 package GUIDs, 568 scene objects/components. Full Unity gate: EditMode 405/405; PlayMode 130/130; Android build exit 0. Final graphics capture passed before the full gate and was independently visually reviewed. Environment static census 17 renderers / 46,476 vertices (previous 16 / 44,716), plus the unchanged atmosphere 1 / 780. Existing sorting, reload and walking checks pass; renderer cap is now 17 to allow the necessary explicit gate iron overlay group. Pure combat suite not rerun for presentation-only edits.
+
+APK SHA256 BF87942E8C9EAE76AA5DDCB9F575493F1B3C9C260E5EA41E82F4FFD69FC196CC, actual file length 39,340,606 bytes. S23 RFCW20W2WFX install-r succeeded; installed base.apk hash matched. Fresh device inspection showed launcher, awake and unlocked. Before/after-install individual pulls confirmed all 7 profile/backup/development/telemetry files byte-identical. Profile remained revision 215, 32,776 gold, Staff/Second Wind, deepest floor 3; post-review profile hash also matched. No profile edit/restore or loadout change.
+
+Guarded short movement reached the north pipe-storage shelf and showed the new floor and supported flame in actual portrait combat. Handback confirmed PAUSED in Cinder Walk room 2/6, wave 2/3, 67/100 HP, level 0, XP 1/10, 0 run gold. Phone evidence: TestResults/foundry-art-package-20260929/03-west.png (historical filename; actual view is north pipe shelf), 04-paused.png, game.log, install.txt and save copies. No FATAL EXCEPTION, NullReferenceException, MissingReferenceException or InvalidOperationException in the current-process log. Active sample windows 2-3: 59.9 fps, max 16.9 ms; startup window retains 2165.4 ms spike. This short S23 smoke does not establish sustained-density or midrange performance, nor fix startup stalls. Whole-map, gate, workshop and shaft review additionally used real Unity captures, not phone captures.
+
+Preview: ArtDirection/2026-09-29/foundry-art-package-01. The reference art target remains unfinished, especially architectural silhouette variety and material richness. No commit/push.
+
+## 2026-09-29 - Crane and facade silhouette package ready; device install pending
+
+Completed crane mounting/cradle/bearing/counterweight/basket refinement and faceted undercroft piers/terminal supports/iron anchors. Runtime changes limited to FoundryRegionDressing.cs and FoundryRegionUndercroft.cs; walking, collisions, gameplay and scene data unchanged. Compile check 0 warnings/errors; integrity 514 project GUIDs / 1099 package GUIDs / 568 scene objects/components. Actual five-point graphics traversal/capture 1/1, reviewed crane, overview and bridge; independent facade cross-review accepted. Full Unity gate: EditMode 405/405, PlayMode 130/130, Android build exit 0. Static census 17 renderers / 47,096 vertices; existing atmosphere separately 1 / 780. No new materials or raster assets.
+
+APK E51DEC6448AD4012B43E0C906FD72DD9270769120617BCF0E0690AC0D9016645, actual APK file 39,340,606 bytes, built 2026-09-29 13:54:53 local. NOT INSTALLED. Fresh guarded read-only screenshot found the owner had advanced to Forge room 4/6, 41 run gold, 54/100 HP, level 5, XP 76/90. Restart/install versus finish question is unanswered. No device tap/swipe/force-stop/launch/install/profile edit in this turn. Preserve that run; installed package remains BF87942E8C9EAE76AA5DDCB9F575493F1B3C9C260E5EA41E82F4FFD69FC196CC. Screenshot TestResults/foundry-silhouette-20260929/00-before.png. Reinspect device before any later approved install; do not treat old captured state as current.
+
+Proof and before/after: ArtDirection/2026-09-29/foundry-silhouette-01. Reference-quality art remains unfinished. No commit/push.
+
+## 2026-09-29 - Combined gate, boiler, bridge and shaft landmarks
+
+Four integrated art tasks completed: shallow gate pediment; boiler plinth/corner support; bridge socket/inset panels; four-side inner shaft coping/retaining saddles. Includes the preceding crane/undercroft work. Only Architecture/Site runtime presentation sources changed this slice. No gameplay, scene, collision, camera or energy edits; no new textures/materials. Compile 0 warnings/errors; final integrity 514 project GUIDs, 1099 package GUIDs, 568 scene objects/components. Final actual five-position graphics capture 1/1 passed after removing floating gate flashing. Root and independent reviewer inspected final views; no blocker. Boiler plinth is visually heavy: do not increase it further. Static 17 renderers / 49,396 vertices; unchanged atmosphere separately 1 / 780.
+
+Full Unity gate passed: EditMode 405/405, PlayMode 130/130, Android build exit 0. APK SHA256 4576CC04844ABB7F733AB1F354F8CBFD82A9962A3CAB386CE8EADCCE93B38994, actual file size 39,340,606 bytes, local build time 2026-09-29 14:25:34. BUILT, NOT INSTALLED. Owner stated they were using the phone and asked to continue development; no adb/device action performed this slice. Previous installed BF87942E8C9EAE76AA5DDCB9F575493F1B3C9C260E5EA41E82F4FFD69FC196CC remains. Do not assume the earlier Forge screenshot is current. Reinspect/coordinate before restarting the owner's run. No device performance/profile claims for this uninstalled package.
+
+Proof: ArtDirection/2026-09-29/foundry-landmarks-01 (before is the previous uninstalled silhouette package). Final reference-image quality remains unfinished. No commit/push.
+
+## 2026-09-29 - Landmark package installed (supersedes pending status)
+
+Owner explicitly requested installation. Seven critical files backed up in TestResults/foundry-landmarks-install-20260929/before. adb install returned a blank failure, but immediate installed base.apk hash inspection confirmed the exact intended 4576CC04844ABB7F733AB1F354F8CBFD82A9962A3CAB386CE8EADCCE93B38994 package. No second install attempted. Device became unlocked/launcher; game launched successfully. Post-launch verification: profile, backup, two development flags and rotated telemetry files byte-identical; current telemetry retains its exact preinstall prefix and appends launch events. Profile revision215/32776gold/Staff/SecondWind/deepest3 unchanged. No save edit/restore.
+
+Startup capture and pause confirmed room1/6, wave1/3,93HP,level0,XP0/10,0runGold. Game left PAUSED for owner Resume. Current process log has no fatal/null-reference/missing-reference/invalid-operation matches. Installation/startup smoke only, not a new physical landmark traversal/performance benchmark. Evidence 01-start.png,02-paused.png,game.log,install.txt and before/after-install files. Initial verification script had stale LASTEXITCODE and then compared active telemetry after launch; explicit final six-file hash and telemetry-prefix verification resolved those tooling issues. No code/build changes or commit/push.
+
+## 2026-09-29 - Local masonry light/depth package ready
+
+Static RGB-only furnace/brazier bounce on boiler/gate stone tiers and deck-relative darkening of undercroft stone/anchor plates. Geometry/UV/alpha/materials unchanged; 17 static renderers / 49,396 vertices, unchanged atmosphere1/780. Compile0warnings/errors, integrity514/1099/568, actual five-point graphics1/1. Root and independent visual review accepted furnace/undercroft treatment. Full gate passed EditMode405/405, PlayMode130/130, Android exit0.
+
+APK374F0327B734E3DC2009E5B7F047370CA44AFC9392D6AA92E58092BB8DDA65A3, actual39,340,606 bytes, built2026-09-29 15:01:43 local. READY NOT INSTALLED. No adb/device operations this turn; installed4576CC04844ABB7F733AB1F354F8CBFD82A9962A3CAB386CE8EADCCE93B38994 remains. The prior startup/pause snapshot is historical, recheck before operating the phone. No new device-performance/profile claims. Proof ArtDirection/2026-09-29/foundry-depth-01. No commit/push.
+
+## 2026-09-29 - Workshop anvil and local soot verified
+
+Added a supported anvil and resting hammer on an outward-expanded west shelf; retained original stock and court-facing edge. Added smooth local floor soot near shaft/storage without geometry or alpha changes. Includes preceding masonry/depth shading. Static region: 17 renderers / 49,556 vertices; atmosphere unchanged at 1 / 780. Actual five-point graphics capture 1/1; root and independent visual/code review found no blocker. Compile check 0 warnings/errors; integrity 514 project GUIDs / 1099 package GUIDs / 568 scene objects/components. Full gate passed: EditMode 405/405, PlayMode 130/130, Android build exit 0.
+
+APK SHA256 E933DC1CED20FEC4AB984C2B04E83A36F910A3DCF6C3611BAED240329D2C81B4, actual file size 39,340,606 bytes, local build time 2026-09-29 15:23:57. READY, NOT INSTALLED. No device/adb actions in this turn; installed landmark build remains 4576CC04844ABB7F733AB1F354F8CBFD82A9962A3CAB386CE8EADCCE93B38994. Fresh device review needed before any later install; no new phone performance or save claims. Proof: ArtDirection/2026-09-29/foundry-use-01. No gameplay, scene, collision, camera or energy changes; no commit/push.
+
+## 2026-09-29 - Three-agent visual closeout verified
+
+Exactly three helper agents used. Flue band/slot placement now conforms to tapered chimney faces; anvil working face/horn existing vertices receive steel tint; capture-only HUD order corrected to match production overlay semantics. No runtime HUD/scene/gameplay/collision changes. Final actual graphics traversal1/1, furnace/workshop/point3 visual review passed. Static17renderers/49,556vertices unchanged, atmosphere1/780. Compile0warnings/errors, integrity514/1099/568. Full gate passed EditMode405/405, PlayMode130/130, Android build exit0.
+
+APK SHA25618DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535, actual39,340,606bytes, localbuild2026-09-29 15:49:27. READY NOT INSTALLED. Includes uninstalled material-depth/workshop-use slices. No device operations this turn; last verified installed4576CC04844ABB7F733AB1F354F8CBFD82A9962A3CAB386CE8EADCCE93B38994 remains. No new phone performance/save claims; inspect fresh before next installation. Proof ArtDirection/2026-09-29/foundry-finish-01. Named findings closed, final reference fidelity remains future work. No commit/push.
+
+## 2026-09-29 - Foundry finish installed on S23
+
+Supersedes the ready/not-installed status above. Owner explicitly requested installation. Backed up profile, profile backup, two development flags, and three telemetry files under TestResults/foundry-finish-install-20260929/before/. The prior Forge choice run was restarted without selecting an option. adb install -r succeeded; installed base.apk SHA256 matches the built APK: 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. Profile, profile backup, development flags, and rotated telemetry files were byte-identical after installation. Active events.jsonl retained its full prior prefix and gained new launch/run events. The new app launched into Ember Hall room 1/6; a short unattended smoke run reached Slag Gate and ended in defeat. Started another run and left it paused in Ember Hall room 1/6 with 100/100 HP, ready for the owner to resume. Evidence: TestResults/foundry-finish-install-20260929/01-start.png and 04-ready.png. No save editing, commit, or push.
+## 2026-09-29 - Segmented undercroft arch masonry
+
+Replaced continuous arch faces with 13 individually separated stone faces over recessed mortar, a projecting central key, narrow lit upper arrises, and dark inner returns. Existing static wall material and local depth shading reused. Static budget: 17 renderers / 51,348 vertices (previous 49,556); atmosphere remains separately 1 / 780. No gameplay, collision, scene, camera, or raster asset changes. Actual Unity five-waypoint graphics traversal passed; undercroft, bridge, and full-map renders inspected. This is a subtle close-range refinement, not reference-art completion.
+
+Compile: 0 warnings/errors. Integrity: 514 project GUIDs / 1,099 package GUIDs / 568 scene objects/components. Full gate: EditMode 405/405, PlayMode 130/130, Android build exit 0. APK actual size 39,340,606 bytes, built 2026-09-29 16:26:53 local; SHA256 F5723AB3A6204118B349301B3834043B215C5BFD9134664B066A2DF99DBB499F. READY, NOT INSTALLED. Last verified installed package remains 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No phone operations or new device-performance/save claims. Proof: ArtDirection/2026-09-29/foundry-arches-01. No helper agents, commit, or push this slice.
+## 2026-09-29 - Court, approach, and workshop paving
+
+Added three flush paving regions in FoundryRegionFinish/FoundryRegionView: central 2x2 seal flags, crosswise staggered 1x2 gate-approach flags, and darker 1x1 workshop stones. General court remains staggered 2x1, with half flags at zone ends. Existing shared texture, static lighting, and batches retained. No walking-union, collision, scene, gameplay, camera, or raster asset change. Includes the prior uninstalled arch masonry slice. Static budget 17 renderers / 51,780 vertices (previous 51,348); atmosphere separately 1 / 780.
+
+Actual five-waypoint Unity graphics traversal passed. Reviewed overview and center/approach/workshop portraits; comparison in ArtDirection/2026-09-29/foundry-paving-01. Compile 0 warnings/errors; integrity 514 project GUIDs / 1,099 package GUIDs / 568 scene objects/components. Full gate EditMode 405/405, PlayMode 130/130, Android exit 0. APK actual size 39,340,606 bytes, local build 2026-09-29 16:43:29, SHA256 EED797DA0FFA60A586E6523759A3261A6F35B6B53F91455DFBABB484C68C5BFB. READY, NOT INSTALLED. Last verified installed remains 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No phone actions, new device measurements, helper agents, commit, or push. Reference-quality art is still in progress.
+## 2026-09-29 - Gate finials and boiler shoulder braces
+
+Added two supported gate finials with cast sockets, bronze collars, and tapered tips, plus two visible roof-mounted shoulder braces on each of four boiler chimneys. Existing mouth/smoke anchors, painted facade, footprints, and static iron batches retained. Capture-only gate framing expanded; baseline recaptured with the same new review framing before runtime edits. Gameplay camera unchanged. Root reviewed matched gate/furnace details, overview, and gate portrait. Finials sit above the close-follow gate portrait; their main impact is the wide silhouette. Proof: ArtDirection/2026-09-29/foundry-crowns-01.
+
+Static 17 renderers / 52,556 vertices (previous 51,780); atmosphere separately 1 / 780. Graphics traversal 1/1 passed, compile 0 warnings/errors, integrity 514/1099/568. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0. APK actual size 39,340,606 bytes, local build 2026-09-29 16:57:43, SHA256 6DBD8583D538C3C77458F1DBFA8823D20146FEDF3D5E0C284E241BE373158EC8. READY, NOT INSTALLED. Includes the prior uninstalled arch and paving slices. Last verified installed remains 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No phone actions, save changes, helper agents, commit, or push. Reference-quality art remains in progress.
+## 2026-09-29 - Combined material, architecture, and atmosphere package
+
+Owner requested several art tasks in one delivery. Integrated: unchanged generated honed basalt v2 (versioned source and Assets file, old v1 retained), 8 gate tower return louvre panels, iron roof aprons on 4 boilers, irregular soft smoke outlines with source-to-upper colour transition. Final review lifted panel edges and smoke visibility. Two implementation helpers plus one independent reviewer used (maximum 3). Final actual Unity images accepted with no blocking placement/readability issue. Smoke remains subtle; device motion/performance not claimed. Proof/source/prompt: ArtDirection/2026-09-29/foundry-integrated-01/README.md and PROMPTS.md. No raster editing; built-in image_gen source SHA256 63ED64CB8CFA2A6C450ED6EEE2C13B3869E4DD18D7414F6479DAE4DC89049FBA.
+
+Static 17 renderers / 52,908 vertices; atmosphere 1 / 780 with 288 cached radius floats and existing 30 Hz/pause/ownership behavior. No walking-union, collision, scene, gameplay, or playable camera edits. Graphics traversal 1/1, compile 0 warnings/errors, integrity 515/1099/568. Full gate: EditMode 405/405, PlayMode 130/130, Android exit 0. APK actual size 39,340,606 bytes, local build 2026-09-29 17:21:08, SHA256 FD05B1749FB79D9E1EF7F992DBB61BF0B9FB83CA6E253FD9B74DC938D9F32BEC. READY, NOT INSTALLED. Includes prior uninstalled arches, paving, and crowns. Last verified installed remains 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No phone actions, save edits, commit, or push. Named combined package complete; final reference-image quality remains open.
+## 2026-09-29 - Combined foundry service, shaft hardware and floor-light pass
+
+Completed in one visual package: supported north-shelf quenching basin, reserve billets and hollow strip coils; 32 recessed-looking shaft coping trays and three chain clevis/saddle connections; subtle gate/boiler contact shade, worn approach and outer bridge torch pools. Bridge floor is subdivided across its width for localized lighting. Reuses existing materials/textures and static batches; no gameplay, walkable bounds, collision or balance change.
+
+Evidence: ArtDirection/2026-09-29/foundry-service-01/index.html and README.md. Before/after and closeups are real Unity captures. Graphics capture 1/1 passed; 405 EditMode + 130 PlayMode passed; static integrity 515 project GUIDs / 1099 package GUIDs / 568 scene objects/components passed. Final static budget 17 renderers / 54,840 vertices (+1,932 from prior package); unchanged separate atmosphere renderer. Three helpers covered workshop, shaft hardware and visual review. No blocking visual defect found; reference-image fidelity is still a work in progress.
+
+Android build succeeded. APK Builds/Android/Cryptforge-Prototype.apk: 39,340,606 bytes, 2026-09-29 17:45:55 local; SHA-256 DFF2E84065DA0CCA3B80C8580B89814C30107D2AC889B5514D3E6176ED62529D. NOT installed or device-tested in this session. Last known installed phone APK remains 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535; do not infer current device state.
+## 2026-09-29 - Combined perimeter and service hardware finish
+
+Eight exterior posts received stepped feet/collars, tapered stone crowns, bronze terminals and inset panels. Existing exterior pipe runs received four paired bolted unions and two valve bodies. Gate apron received eight flush metal wear-strip frames. Initial dark threshold plates were rejected in graphics review because they resembled holes; final strips leave stone visible and reuse the coping batch. Modified FoundryRegionSite, FoundryRegionDressing and FoundryRegionArchitecture only. No new bitmap/material, gameplay, collision, walking union, scene, camera or per-frame work. No helper agents used.
+
+Actual Unity five-position capture passed 1/1; gate/furnace/undercroft/portrait/full-map reviewed. Static budget 17 renderers / 56,816 vertices (+1,976); existing atmosphere 1 / 780 separately, unchanged. Compile check passed 0 warnings/errors before final threshold adjustment; final Unity gate passed EditMode405/405, PlayMode130/130, Android exit0. Integrity515/1099/568 passed. Preview references11/11 resolved. Proof ArtDirection/2026-09-29/foundry-perimeter-finish-01/index.html and README.md.
+
+APK Builds/Android/Cryptforge-Prototype.apk: actual39,340,606bytes, localtime2026-09-29 18:02:11, SHA2561A55731F755FC6C42D72392474DBBC2E7A696D243300AC47E0227E19AFF3386A. READY NOT INSTALLED. Includes previous uninstalled service/material/architecture changes. Last verified installed remains18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No device operations, save edits, new phone performance claims, commit or push. Reference-image fidelity remains in progress.
+## 2026-09-29 - Combined court stonework finish
+
+Added a flush 24-flag stone annulus beneath the existing central engraved seal (radius3.97, inside the +/-4 inset), restrained gate-road shoulder shading, sparse in-slab corner repairs, softer joints and reduced slab value variation. FoundryRegionFinish and FoundryRegionView only; existing paving batch and continuous UVs reused. No new material/texture, per-frame behavior, walking/collision, scene, gameplay or camera edits. No helpers used.
+
+Actual Unity five-position capture1/1 passed; center combat and gate views reviewed. Compile0warnings/errors, integrity515/1099/568, full EditMode405/405 and PlayMode130/130 passed, Android exit0. Static17renderers/57,432vertices (+616), atmosphere1/780 unchanged. Preview HTTP200 and7/7 local references verified. Before/after and production notes: ArtDirection/2026-09-29/foundry-court-finish-01.
+
+APK actual39,340,606bytes, localtime2026-09-29 19:11:24, SHA256103811AA22B982D4363C509FA4BBA8EBD6ADD7DDD2ED3D5D7567355D70E5FCE3. READY NOT INSTALLED. Includes all prior uninstalled art packages. Last verified installed remains18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No phone operations, save edits, new device performance claims, commit or push. Reference-image fidelity remains unfinished.
+## 2026-09-29 - Exterior post lanterns and warm floor pools
+
+Four existing exterior post tips now carry enclosed iron lanterns with two visible window faces, opaque cage bars, supported caps and hipped roofs. Four matching static floor-light sources added. FoundryRegionSite and FoundryRegionFinish only; existing texture reused without editing. No gameplay, walking/collision, scene, camera, save, per-frame light or particle changes. No agents used.
+
+First full gate caught a renderer regression: 18 static groups exceeded the existing <=17 test. Kept the test unchanged; split panes into inset windows around bars and reused the existing flame batch. Final actual Unity capture1/1 passed with 17renderers/57,560vertices (+128 from prior), atmosphere1/780 unchanged. Final closeup and overview reviewed; cap UVs corrected after dark first render. Final full gate EditMode405/405, PlayMode130/130, Android exit0. Earlier integrity515/1099/568 and compile0warnings/errors passed. Proof ArtDirection/2026-09-29/foundry-lanterns-01.
+
+APK actual39,340,606bytes, localtime2026-09-29 19:36:46, SHA2561C4A1D885F27C7A5B2DFDA74FF16B990D24BC0193887DD27229C34C3EECA6688. READY NOT INSTALLED. Includes previous uninstalled art passes. Last verified installed remains18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. No phone operations, save edits, new device performance claim, commit or push. Reference-image quality remains in progress.
+## 2026-09-29 - Combined art installed and reviewed on S23
+
+Owner confirmed phone free and authorized installation/review. Fresh backup TestResults/foundry-lanterns-install-20260929/before. adb install-r succeeded; installed base.apk SHA256 matches1C4A1D885F27C7A5B2DFDA74FF16B990D24BC0193887DD27229C34C3EECA6688. All7 profile/backup/development/telemetry files byte-identical immediately after install. Supersedes prior not-installed status for included art passes.
+
+Physical review: center stone ring visible in combat; guarded southeast/northeast movement reached exterior lantern, warm paving, masonry and boiler/pipe details (07-lantern.png). Initial startup run ended in Slag Gate defeat,0gold banked; restarted through Try again. Left PAUSED in Ember Hall1/6,wave3/3,86HP,level0,XP3/10,0runGold,Staff/SecondWind. No upgrade, equipment purchase, save edit or restoration.
+
+After review profile/backup,both development flags and rotated telemetry remain byte-identical. Profile revision215/32776gold/Staff/SecondWind/deepest3 unchanged. Current telemetry retained full preinstall prefix and appended3919bytes. Current-process log0matches for FATAL EXCEPTION,NullReferenceException,MissingReferenceException,InvalidOperationException. Short install/movement/art smoke only, not sustained performance or exhaustive traversal. Inputs/captures gated on focus,awake,no-keyguard; captures rechecked. Device image copied unchanged to ArtDirection/2026-09-29/foundry-lanterns-01/device-lantern.png. No code/build changes,commit,push. Reinspect fresh before further phone input.
+## 2026-09-29 - Pressure reservoirs integrated and verified
+
+Two exterior tanks at (22.3,-5.8)/(22.3,15.8), each on supported2x2 masonry feet, now connect existing boiler service mains. Added faceted metal hulls, retaining belts, tapered shoulders, relief stems/wheels and short wall-to-main branches. All feet outside walking union. FoundryRegionDressing only; existing materials/static batches. No gameplay, collision, scene, camera, per-frame work or new raster assets. No agents used.
+
+First visual review caught belt caps painting over the upper hull; corrected bottom-to-top course order. Near tank now emits after pipes, far tank before; branches begin on tank wall. Final actual five-point Unity capture1/1 passed; furnace closeup/overview reviewed. Static17renderers/59,584vertices (+2,024), atmosphere1/780 unchanged. Full gate EditMode405/405,PlayMode130/130,Android exit0. Compile/integrity earlier passed0warnings/errors and515/1099/568. Preview HTTP200,7/7 local links. Proof ArtDirection/2026-09-29/foundry-reservoirs-01.
+
+APK actual39,340,606bytes, localtime2026-09-29 20:15:24, SHA25679B4C59EE5E4D7AA44BA53663228BA9D198BD7920DCCD1F004B7F0CDB7E62DC1. READY NOT INSTALLED. Last verified installed phone package1C4A1D885F27C7A5B2DFDA74FF16B990D24BC0193887DD27229C34C3EECA6688 remains; prior paused phone snapshot is historical until reinspected. No device operations/save edits/commit/push. Reference-image fidelity remains unfinished.
+## 2026-09-29 - Reservoir package installed on S23
+
+Owner explicitly authorized restarting the advanced Forge-choice run (40HP,5unbanked gold). Fresh backups under TestResults/foundry-reservoirs-install-20260929/before. adb install-r Success; installed base.apk SHA25679B4C59EE5E4D7AA44BA53663228BA9D198BD7920DCCD1F004B7F0CDB7E62DC1 matches local. All7 saved files byte-identical immediately after install. Supersedes pending installation above.
+
+Startup run ended in Slag Gate defeat with0banked gold. Restarted through Try again; guarded northeast drags reached the boiler/tank group. Actual08-tank-detail.png confirms near reservoir hull, base, pipe connections and surrounding furnace art on S23. Movement/camera follow worked. A visual limitation is especially apparent here: foreground actor/ring rendering can make the hero look on top of projected boiler/pipe silhouettes while the walkable bounds remain unchanged. Record this as the next depth/readability issue; it was not fixed or claimed accepted in this device-only turn.
+
+Left PAUSED in Cinder Walk2/6,wave1/3,77HP,level0,XP3/10,0runGold,Staff/SecondWind. Profile revision215/32776gold/deepest3 unchanged; profile,backup,two development flags,rotated telemetry byte-identical after review. Active telemetry retains exact prior prefix. Current-process log0matches for FATAL EXCEPTION/NullReferenceException/MissingReferenceException/InvalidOperationException. No save restore/edit/equipment purchase. Short art/movement smoke, not sustained performance or full-map acceptance. All input/capture gated by focus/awake/no-keyguard; post-capture focus rechecked. Evidence copied unchanged to ArtDirection/2026-09-29/foundry-reservoirs-01/device-tank.png. No code/build change,commit,push. Reinspect before future phone actions.
+## 2026-09-29 - Foundry ground readability and hero cutaway
+
+The foundry ability range ring and pooled ability/Staff pulses now use the arena ground-effect sorting rank (-13), instead of painting above every structure. Ordinary halls retain their prior effect rank. FoundryVisibilityView and the Resources FoundryCutaway shader reveal the existing floor through above-floor architecture in a soft ellipse around the living hero. Scene-owned material variants reuse source textures, update one uniform per variant, disable cleanly, and are destroyed on reload; shared imported materials survive. Static mesh construction and batches remain unchanged. This is a hero-centred readability cutaway, not physical depth sorting; distant enemies still render above structures.
+
+Matched actual Unity captures at walkable design point (22,0), traversal portraits and full-map review: ArtDirection/2026-09-29/foundry-ground-readability-01. Both matched images use the new ring sorting; only cutaway enable differs. Five waypoint traversal1/1 passed. Static17renderers/59,584vertices and separate atmosphere1/780 unchanged. Gameplay, movement/collision, balance, scene, camera and save rules unchanged.
+
+Targeted first test caught the old assertion that every material is borrowed; updated ownership checks require new variants to be destroyed and imported assets to survive. Final full gate EditMode405/405,PlayMode130/130,Android exit0. Final compile0warnings/errors; integrity518projectGUIDs/1099packageGUIDs/568sceneobjects passed. Proof HTTP200/local links resolved. Added checks cover cutaway focus/disable/reload ownership, grounded ring SortingGroup and real ability-event pulse rank.
+
+APK Builds/Android/Cryptforge-Prototype.apk: actual39,340,731bytes, local2026-09-29 20:55:31, SHA25644566462D0203760FF3EA8B918175EEE553636DF6F35E7FDB565BA3E32780288. READY NOT INSTALLED. Last verified installed remains79B4C59EE5E4D7AA44BA53663228BA9D198BD7920DCCD1F004B7F0CDB7E62DC1. Device read-only check found S23 awake/unlocked at launcher; asked whether it is free, no reply yet. No phone inputs/install/save writes or device-performance claims. New shader cost and appearance on Android remain to be tested. No helper agents, commit or push.
+## 2026-09-29 - Ground-readability package installed on S23
+
+Owner said to continue after the pending installation question. Fresh guarded screenshot showed the same paused Cinder Walk run (77HP,0runGold). Backed up profile/backup/development flags/telemetry before adb install-r. Success; installed base.apk SHA25644566462D0203760FF3EA8B918175EEE553636DF6F35E7FDB565BA3E32780288 matches tested local build. All7 saved files byte-identical immediately after installation. Supersedes READY NOT INSTALLED above.
+
+Actual phone inspection reached near boilers/reservoirs through controlled northeast drags. Cutaway renders on S23 and reveals floor around feet; range ring remains beneath solid architecture. Chose Long Reach at first level-up to continue traversal. Short live movement/combat smoke only, not sustained performance acceptance. Remote-enemy occlusion remains open. Current-process log: no FATAL EXCEPTION, NullReferenceException, MissingReferenceException, InvalidOperationException or shader error/unsupported matches.
+
+Left PAUSED room3/6,wave2/2,28HP,level1,XP16/22,5at-risk gold,Staff/SecondWind. Profile revision215/32776gold/deepest3 unchanged; backup,development flags and rotated logs unchanged. Active telemetry preserves pre-test prefix. No profile restore/purchase. Evidence TestResults/foundry-visibility-install-20260929; unchanged actual screenshot at ArtDirection/2026-09-29/foundry-ground-readability-01/device.png. Inspect fresh before future phone inputs. No new code/build/commit/push this installation turn.
+
+## 2026-09-30 - Foundry court floor verified
+
+Actual Unity graphics traversal 1/1 before and after, same code except the floor package. Static budget 17 renderers (unchanged) / 60,768 vertices (+1,184 for the compass); atmosphere separate and unchanged. Compile 0 warnings/errors. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0. `FoundryRegionTests` first failed on this package - it required every renderer at rank -14 or above to use the cutaway shader - and now asserts the one floor-decal batch exists and does not. Integrity 517 project GUIDs / 1,099 package GUIDs / 568 scene objects/components passed; the previous record said 518, no asset was removed and git shows no deletion. Proof `ArtDirection/2026-09-30/foundry-floor-01/`.
+
+## 2026-09-30 - Foundry depth ordering and landmark mass verified
+
+Actual Unity captures: depth ordering alone, then depth plus massing, against the floor package's after state, plus dedicated closeups with the visibility view on and off - an enemy behind the south boiler is hidden now and drew over it before; no hole is cut behind the hero in front of a north boiler. Traversal walk recorded in `after/walk.csv`. Static budget 17 renderers (limit unchanged) / 54,168 vertices (was 60,768). Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; the build log shows `Cryptforge/Foundry Cutaway` compiled. New checks cover the hero depth uniform, actor depth apply/restore around rendering and the structure depth flags. Integrity 519 project GUIDs (+2 new script metas) / 1,099 package GUIDs / 568 scene objects passed. Collision, movement bounds, balance, saves and telemetry untouched. Proof `ArtDirection/2026-09-30/foundry-depth-mass-01/`.
+
+## 2026-09-30 - Hidden enemy silhouettes verified in Unity
+
+Actual Unity capture matched against the depth package: the part of the enemy covered by the south boiler now shows as an ember silhouette whose boundary follows the dome's edge; the open-court start with eleven enemies shows no silhouette. Static scenery unchanged (17 renderers / 54,168 vertices). `FoundryRegionTests` now asserts every wave enemy body shares one two-pass x-ray material while the view runs and returns to `Sprites/Default` when it is disabled. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; integrity 520 project GUIDs (+1 shader meta) / 1,099 / 568 passed. Proof `ArtDirection/2026-09-30/foundry-xray-01/`.
+
+## 2026-09-30 - Foundry rim trim verified in Unity
+
+Actual Unity captures matched against the silhouette package: the dashed dark row along the furnace-pit balustrade (point-1), the north rim (point-3) and the gate base is gone, replaced by a continuous, subtle kerb course; brass inlays read brighter because they now sample the brass rail. Static budget unchanged, 17 renderers / 54,168 vertices. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; integrity 520 / 1,099 / 568 passed. Proof `ArtDirection/2026-09-30/foundry-rim-01/`.
+
+## 2026-09-30 - Foundry parallel pass verified in Unity
+
+Actual Unity captures matched against the rim package (`ArtDirection/2026-09-30/foundry-parallel-01/`): brass star seal at the start, coursed bridge deck, heavy chains, riveted-plate reservoirs, varied piers. Static budget 17 renderers (limit unchanged) / 58,692 vertices (+4,524). `FoundryRegionTests` now also covers the loot silhouette material (shared, distinct from the enemy one, restored on disable, destroyed on reload). Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; integrity 520 / 1,099 / 568 passed. The captures predate the gate's `nPOTScale` change; the final gate run includes it.
+
+## 2026-09-30 - Foundry chest depth, forge light and bridge pass two verified in Unity
+
+Actual Unity captures against the parallel pass (`ArtDirection/2026-09-30/foundry-chest-light-01/`): warm pool around the furnace pit and boiler aprons with a cooler open court; bridge stones on the court's diagonal grid; the chest in the open court renders normally. No capture places a chest behind a structure; `FoundryRegionTests` and `ChestPresentationTests` now cover chest feet depth during rendering, restore afterwards, the loot material, and the ordinary-hall path. Static budget 17 renderers / 58,612 vertices. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; integrity 520 / 1,099 / 568 passed.
+
+## 2026-09-30 - Forged UI panel import verified in Unity
+
+Matched actual Unity captures before and after the meta change (`ArtDirection/2026-09-30/ui-panel-01/`): pixel differences are confined to the panel areas; corner and edge positions of the HUD panels, the level-up modal and the choice cards are identical, confirming the sprite borders follow the resized texture. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; integrity 520 / 1,099 / 568 passed. Build report: panel 344.6 KB (was 4.5 MB), textures 13.9 MB (was 18.1 MB).
+
+## 2026-09-30 - Foundry effect depth and forge light verified in Unity
+
+Actual Unity captures against the chest/light pass (`ArtDirection/2026-09-30/foundry-fx-light-01/`): orange pools at the pit and boiler aprons with a cool court, calmer bridge margins. `FoundryRegionTests` now covers above-floor effects moved to their ground-contact depth during apply and restored after, ground pulses untouched, numbers unchanged. Static budget 17 renderers / 56,404 vertices. Full gate EditMode 405/405, PlayMode 130/130, Android build exit 0; integrity 520 / 1,099 / 568 passed.
+
+## 2026-09-30 - Health bars on top; depth-proof and render-stats development tools
+
+Integrated: an enemy's health bar keeps its authored depth while its body goes to feet depth, so bars stay readable over structures like the damage numbers (`FoundryVisibilityView.cs`, `EnemyLookView.Bar`, `FoundryRegionTests`). New development-only tools, inert without their flag files and outside development builds: `DepthProofArrangement` (`development/depth-proof.txt`: stops the fight and places an enemy, the chest and a drop behind the south-west boiler, hero in front) and `RenderStatsProbe` (`development/render-stats.txt`: logs `[RenderStats]` every 5 s with fps, frame p50/p95/max, GPU ms, draw/batches/SetPass, triangles, memory, GC). Tests: `DepthProofArrangementTests` (3), `RenderStatsProbeTests` (5). Full gate EditMode 410/410, PlayMode 133/133, Android build exit 0.
+
+## 2026-09-30 - Stone balustrade and review fixes verified in Unity
+
+Actual Unity captures against the effect/light pass (`ArtDirection/2026-09-30/foundry-rail-01/`): the rim and pit collar read as a balustrade with open gaps (pit glow shows through), posts and lanterns unchanged. Static budget 17 renderers / 59,008 vertices. `DepthProofArrangementTests` now also asserts hidden and visible sparks at the right feet with no gameplay change. Full gate EditMode 410/410, PlayMode 134/134, Android build exit 0; integrity 524 / 1,099 / 568 passed.
+
+## 2026-09-30 - Foundry reference pass verified in Unity
+
+Actual Unity captures against the balustrade pass and beside the reference (`ArtDirection/2026-09-30/foundry-reference-pass-01/`): violet-grey court with orange pit rim and boiler aprons, lit brass decals, nine heavy chains, bridge-head braziers and banners, finials painted correctly against the rail. Static budget 17 renderers / 63,644 vertices. Full gate EditMode 410/410, PlayMode 134/134, Android build exit 0; integrity 524 / 1,099 / 568 passed.

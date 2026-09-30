@@ -245,3 +245,58 @@ P3 Growth:
 - [ ] Review imported Daggers on the available phone (APK installed; physical review pending).
 
 - [x] Sample Daggers in actual Unity facings/gait/thrust and compare contact-preserving alternative (2026-09-19; proof only).
+
+- [x] Make Descent ground rewards visible with a shared painted sprite and pooled ground/collection presentation; preserve immediate payment and simulation parity (2026-09-22, Unity/full gate/APK passed).
+- [x] Install ground reward APK on S23 and verify package identity/current profile preservation (2026-09-22).
+- [x] Review ground rewards live on S23 (2026-09-22: presence/proximity payment confirmed; exact flight timing not isolated).
+- [ ] Present the walked finale exit, hold progress, finale pressure/clock and pending upgrade cards (visual plan in ArtDirection/2026-09-22/reward-proof-01/VISUAL_PLAN.md).
+
+- [x] Integrate matching painted XP-only crystal at0.30 visible width (2026-09-23; actual Unity capture passed).
+- [x] Install and physically review the XP-only companion crystal on S23 (2026-09-23: package/profile integrity and visible crystal confirmed; timing/performance not remeasured).
+
+- [x] Confirm first-region route and optional post-boss swarm decision; interactive map composition (2026-09-23).
+- [ ] Implement playable region route: two fights, elite/chest branch, forge, boss, extract/optional swarm; see region-map-01/DESIGN_AND_HANDOFF.md.
+- [x] Integrate finale ground seal and authoritative hold progress with off-screen cue (2026-09-23; targeted tests and Unity captures passed).
+- [ ] Physically review finale exit seal/hold/cue on device.
+
+- [x] Development-only wide region entry and first imported furnace scenery; full gate395/130, APK built2026-09-23.
+- [x] Wide-region physical device review (2026-09-23: APK installed and traversed on S23; see the traversal item below and Docs/23).
+- [ ] Physical encounter sites and separate boss approach; node-route proposal remains superseded.
+
+- [x] S23 wide-region traversal and installed-hash review (2026-09-23); test flag removed, normal hall restored.
+- [ ] Adjust north furnace clearance: hero occludes furnace at exact arena tip. 2026-09-30: the square towers were replaced by round boilers that depth-sort against actors (`foundry-depth-mass-01`); the exact tip has not been re-checked.
+
+## 2026-09-23 — Playable foundry delivered
+
+Development map installed on S23 (7FB249A4); owner can walk/fight/collect/choose/restart with foundry flag retained. Shared concave floor/navigation and perimeter modules complete for first playable review. Gate artwork, local-site progression, separate boss hall, richer dressing and sustained midrange performance remain open. See foundry-playable-01 and latest21–25.
+
+## 2026-09-23 — Current art order after composition correction
+
+Use the photograph-led broad court / shaft / south bridge / northeast gate from foundry-playable-01, not the earlier linked-platform diagram. After this layout build is reviewed at phone scale, replace coarse gate/furnace/crane architecture with registered modular art, then finish perimeter joints, paving, local light and atmosphere. Preserve readable combat space. Opus progression handoff stays on hold; local sites and separate boss transition remain unimplemented.
+
+## 2026-09-30 — Foundry map art: depth, mass, light and texture imports
+
+Proofs under `ArtDirection/2026-09-30/`; state, verification table and commit plan in `38_HANDOFF_2026-09-30_ART.md`. Nothing committed.
+
+- [x] Court floor reads at the gameplay camera: per-flag tone, brass compass, floor decals kept out of the hero cutaway (2026-09-30; Unity, full gate, installed and seen on S23; `foundry-floor-01`).
+- [x] Real depth for tall structures and a cutaway only in front of the hero; round boilers, balustrade, furnace pit, foundations, piers and chains replace the square towers and shaft (2026-09-30; Unity, full gate, installed; a structure hiding an actor not yet seen on device; `foundry-depth-mass-01`).
+- [x] X-ray silhouettes behind structures: ember for enemies, gold for drops and chests (2026-09-30; Unity capture for enemies, tests for drops and chests; installed; not yet seen on device; `foundry-xray-01`, `foundry-parallel-01`, `foundry-chest-light-01`).
+- [x] Chests and above-floor combat effects take ground depth in the foundry; numbers stay on top (2026-09-30; tests only, no capture of either behind a structure; installed; `foundry-chest-light-01`, `foundry-fx-light-01`).
+- [x] Rim vent-slot row removed; brass star seal, coursed bridge deck, heavy chains, riveted reservoirs and boilers, three pier forms (2026-09-30; Unity, full gate, installed; seal seen on S23; `foundry-rim-01`, `foundry-parallel-01`).
+- [x] Floor light from the real pit, boilers, lanterns and beacons: forge-orange pools and a cool open court; calmer bridge margins (2026-09-30; Unity, full gate, installed and seen on S23; `foundry-chest-light-01`, `foundry-fx-light-01`).
+- [x] Ship GateFacade and FurnaceFacade as power-of-two ASTC 6x6 (1.2 MB each, were 3.6 MB RGBA32) and the forged UI panel at Android 1024 ASTC 4x4 (344.6 KB, was 4.5 MB); build textures 20.5 to 13.9 MB (2026-09-30; panel seen on S23; `foundry-parallel-01`, `foundry-chest-light-01`, `ui-panel-01`).
+- [x] Painted-texture prompt pack v2: P1 court flagstones, P2 balustrade trim, P3 foundation masonry, P4 pit lining, P5 boiler drum wrap, all power-of-two, with renderer-budget options (2026-09-30; `painted-surfaces-02`, supersedes `painted-surfaces-01`). Prompts only; nothing generated.
+- [ ] Owner: choose the renderer-budget option (`painted-surfaces-02/PROMPTS.md` section 3: A stay at 17 through the P4 discharge merge, B drop the crane-footing roof, C raise the cap to 18); needed before P2 is integrated.
+- [ ] Owner: painted irregular flagstones (P1) or today's geometric flags with a jointless stone face (P1-b).
+- [ ] Generate P1-P5 in ChatGPT (P5 optional, after P4) and save the untouched masters under `ArtDirection/<date>/painted-surfaces-02-masters/`. Pending: nothing generated yet.
+- [ ] Integrate P1-P5 (power-of-two imports, new foundry material slots, `FoundryRegionFinish/View/Massing`, `PlatformMaterialSet`) with matched Unity captures and the full gate; ask before installing.
+- [x] See the enemy/loot silhouettes on the S23 (2026-09-30, development depth-proof flag; `foundry-device-proof-01`). Effect depth behind a structure seen on the S23 too (2026-09-30, `foundry-rail-01`).
+- [x] Measure foundry frame time on the S23 (2026-09-30, development `RenderStatsProbe`): ~60 fps at the vsync cap, p95 16.7 ms, GPU ~3 ms, 50-98 draw calls in a normal run; not a sustained/thermal or late-game swarm test (`foundry-device-proof-01`).
+- [ ] Bridge and lighting follow-ups: bridge margins may now look plain; pool cores read slightly rusty/dark and orange Mites on the pit rim lose contrast; the bridge lattice goes with P1.
+- [ ] Later polish: foundry floor-decal atlas, iron recolour, brass tint, pit-collar trim, lantern-pane colour, seal quad UVs, low parapet, thin pier ledges; check the UI panel for shimmer on a moving panel.
+- [ ] Commit the 2026-09-22..30 art working tree once the owner agrees on the grouping and on the ~1.8 GB of proof captures (plan in `38_HANDOFF_2026-09-30_ART.md`).
+
+
+## Deferred - movement energy (owner decision 2026-09-23)
+
+- [ ] Reconsider energy only after large-map traversal has been evaluated. Currently disabled globally: no drain/slowdown, no MOVE HUD, no energy upgrades in offers/books. Preserve the old mechanism for comparison; do not restore it implicitly. Evaluate enemy approach tools and kiting balance before choosing whether energy returns. See latest doc19 decision and HeroStamina.CurrentRulesEnabled.

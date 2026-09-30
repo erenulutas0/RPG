@@ -810,3 +810,10 @@ something is inside its reach never spends enough to run dry. The budget is a ta
 - Two scripted policies, not players, and the back-off thresholds (reach, reach + 0.6) are the same guess as ever.
 - Twelve seeds a cell, the .NET runner, no relics, no chests, nothing in Unity and nothing on a device.
 - The wave schedule is one shape, chosen to harden steadily; it is not a search over schedules.
+
+
+## 2026-09-23 - Movement energy deferred by owner
+
+The owner found energy depletion disruptive on the large map and requested its temporary removal. Current playable rules now allow continuous movement at the existing configured speed: no energy spending or empty-bar speed penalty. The MOVE label/bar are hidden, and StaminaBar upgrades (Deep Lungs) are excluded from both level offers and chest books. Damage, hero base speed, enemy speed and all other progression rules remain unchanged. This applies to the current game, not only the foundry preview.
+
+HeroStamina.CurrentRulesEnabled is the shared current-rule switch; HeroMovementInput and the default DescentSimulation use it. Explicit budget instances and historical experiments remain available. UpgradeService receives the same enabled state without reordering authored pool indices. No save format or permanent profile change. Re-enabling is a future design decision, not an automatic milestone: first assess large-map traversal and alternative enemy pressure; repeat scene/simulation/device balance review if energy returns. Earlier movement-budget recommendations in doc26 are historical while this decision is active.

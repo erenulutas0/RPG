@@ -682,3 +682,84 @@ Choose the original whole Staff sprite over splitting the generated crystal and 
 ## 2026-09-19 — Imported Daggers retain neutral-hand contact
 
 The real-scene proof showed the previous weapon-only upward translation separates the new hilt from the neutral hand. For imported Daggers choose a short35-to47-degree outward wrist pivot about each registered hand, with the blades behind the body/gauntlets. Keep the existing strike event/duration, all combat rules and the legacy translation for sets without imported Daggers. This fixes contact without fabricating a moving-arm pose. Full arm animation and replacing the large procedural hit effect remain separate art work. Source/sampling and actual runtime captures: ArtDirection/2026-09-19/daggers-runtime-01.
+
+## 2026-09-22 — One visible object for a combined ground reward
+
+Considered separate XP/coin objects, permanent pickup halos, and one compact painted cluster. Choose the cluster: GroundDrops pays both amounts together, and a cyan crystal plus round brass coins communicates both without inventing two pickup targets. Keep the visible width around .45 units, smaller than the unchanged one-unit reach; use a quiet separate contact shadow instead of an always-on glow. Single-currency exceptions retain honest simple fallback symbols.
+
+The presentation subscribes to existing value events and pools renderers; it neither pays rewards nor moves them in the gameplay model. Collection flight is cosmetic and freezes with game time, including an upgrade choice opening on the payment frame. Distant collection uses a longer visual flight without adding a sweep flag or delaying a checkpoint. Old Descent death coins are suppressed; instant Swarm/chest feedback stays. The price of correct floor sorting is that nearby actors can occlude a drop. No rule, balance, new magnet radius, audio or exit system is added. Evidence and final verification status: ArtDirection/2026-09-22/reward-runtime-01/README.md.
+
+## Region route direction approved — 2026-09-23
+
+Owner approved the first region sequence: two combat areas, an exclusive elite OR chest branch, forge, main boss hall. Post-boss decision explicitly approved: extract with rewards OR enter optional finale swarm. Existing impressive arena is the boss-hall visual target; ordinary areas need separate kiting-friendly layouts. Implement one region before expanding to multiple worlds. This is approved direction, not shipped progression: FloorDefinition/FloorProgress remain linear. ArtDirection/2026-09-23/region-map-01/DESIGN_AND_HANDOFF.md records remaining route model, choice arbitration, dedicated chest reward ownership, simulation/parity, telemetry and economy decisions. Browser paths and both boss decisions passed interaction checks; no numeric elite/chest reward tradeoff is implied.
+
+## Superseding region direction and first traversal proof — 2026-09-23
+
+Owner approved a fixed explorable multi-screen isometric region, replacing the small node-selected route. Encounters/chests/forge/elite are physical destinations; boss hall remains separate and optional final swarm direction is preserved. Read ArtDirection/2026-09-23/exploration-proof-01/DIRECTION.md. Old region-map-01/OPUS_TASK.md is explicitly superseded; Opus has not started according to last reply. No boss unlock/key/reward policy invented.
+
+Temporary Unity scene copy enlarged convex arena6x area at unchanged hero/camera scale. Real movement/stamina legs measured6.78/18.53/18.55 game seconds; graphics1 and integrity485/568 passed. Initial unlisted-scene load failed, corrected with EditorSceneManager without build-profile edits. No production Assets/gameplay/settings/APK/device change. Current floor material stretches visibly: next art work needs stable-scale tiled ground. Encounter activation and exploration cadence remain unimplemented; no combat balance or device-performance claim.
+
+## 2026-09-23 — Development region entry and scenery ownership
+
+Decision: keep the authored hall as default and expose the wide traversal preview through a separate development/region-preview.txt flag (wide). Floor selection remains independent. ArenaView resolves geometry once before the first consumer; release short-circuits IO. This avoids silently changing all authored combat geometry while the physical encounter-site design is still pending. FoundrySceneryView borrows furnace/floor assets and owns its sole generated foundation mesh. No per-frame work, new reward, collision, stamina or progression rules.
+
+The ordinary boss hall is not replaced. Current linear rooms still run in the wide preview; do not call that local exploration. Next mechanics work is authored encounter activation and boss approach, coordinated separately from art. Temporary art captures disable attacks only inside the fixture, not through the development flag.
+
+## 2026-09-23 — Art-first foundry region layout
+
+Owner explicitly deferred Opus and approved shaping the map first. New ArtDirection/2026-09-23/foundry-layout-01 contains an interactive top-down/isometric surface proposal, fixed-scale schematic portrait camera and one untouched built-in image_gen concept. Five identities: entry, large casting square, two-connected salvage court, broad furnace passage and separate boss approach. Routes are flat; concave outline and side hole are proposed only, not current ArenaGeometry.
+
+Browser verified at1280 and390 widths: five selectors, isometric pointer-to-floor conversion, images, no overflow or script errors. Desktop screenshot inspected. Exact image prompt in PROMPT.md; source SHA25698F7D14F6B3E3634A2DCA3D8AABF3910B5883C608244CE4E4868B6862F5C5C5D. Painted concept includes a few entrance steps and differs in exact geometry; those are not approved elevation mechanics. Diagram is placement authority, concept is atmosphere, neither is runtime collision. Design-space isometric coordinates require explicit conversion; schematic camera is not the runtime9-unit framing.
+
+No Assets, runtime, APK, device or tests changed in this concept slice. Current installed C8 build and uninstalled furnace-clearance change remain as recorded. Opus handoff marked ON HOLD, not sent or started. Next: review region shape then isolated traversability/greybox and modular art; concave geometry cannot be installed as only a painted floor.
+
+## 2026-09-23 — Foundry art layout proof
+
+Approved concept progressed to an isolated Unity surface:952 connected cells, five fixed-scale portrait samples. No concave gameplay integration yet. Gate architecture generated as separate source, but both attempts retain alpha haze and are not production-ready. Read foundry-unity-01 and boss-gate-01 READMEs. Graphics1, integrity489/568 and browser checks passed. No APK/device operation; Opus stays on hold. Next: clean gate and supported environment modules.
+
+## 2026-09-23 — Perimeter art follow-up
+
+Keep furnace supports decorative outside the952-cell proposal; no silent extension of navigation. Static Unity study now has two annexes and six buttresses, graphics/browser/integrity verified. Floor/annex joins remain unfinished. Third gate cleanup rejected; no imported gate. See foundry-perimeter-01. Opus stays on hold, phone unchanged.
+
+## 2026-09-23 — Playable map before further isolated art
+
+Owner requested a coherent playable deliverable. Implemented shared concave geometry, routing and environment in development foundry mode; installed/hash verified7FB249A4. Existing Descent remains the progression authority. Keep foundry flag on for owner feedback. Local physical encounter activation/separate boss hall are the next gameplay slice, not claimed complete. Read foundry-playable-01. Gate art cleanup remains deferred.
+
+## 2026-09-23 — Rough complete map before final environment art
+
+Owner approved completing the rough map before refinement toward the foundry concept. Added replaceable entry, salvage, furnace and gate architectural masses plus flat route/square inlays in FoundryRegionView. Raised footprints remain outside shared traversal geometry; no new obstacles, elevations, balance or progression. Real Unity five-zone walk passed; full Android gate/device result follows in verification docs. Large blocks are deliberately provisional, not final visual acceptance. Opus remains on hold.
+
+## 2026-09-23 � Owner correction: photograph owns the structure
+
+Owner rejected the narrow linked-platform interpretation and explicitly requested the same structure as foundry-v1.png. This supersedes the earlier diagram-as-authority instruction for the foundry region. Current runtime now uses one broad court with an inset shaft on the left, a straight south entry bridge and a wide northeast gate apron. The concept remains the visual target; current rough masses are not final art or an exact reproduction of every painted detail.
+
+FoundryMap now combines five axis-aligned rectangles with one exact diagonal bridge (u-v in[-4,4],u+v in[-50,-24]). Main court bounds[-18,-14]..[14,18], shaft[-12,2]..[-4,10], apron[12,-2]..[32,12]. Bridge predicates and continuous segment clipping share the rendered straight bridge. FoundryPursuit nodes moved with these regions. The old952-cell/seven-rectangle layout and old waypoints are historical.
+
+FoundryRegionView adds deep sidewalls and regularly spaced exterior supports, low edge parapets, a central three-ring brass seal, perimeter furnace plinths, a simple crane silhouette and a northeast closed gate. Static faces batch by shared material/sorting layer rather than adding a renderer for every support. Mesh ownership remains local, materials borrowed, no per-frame geometry. The four furnace sprites are existing imported art. Decorative silhouettes still need final art, registered joints, lighting and occlusion polish. No elevated walking or functioning gate transition was added.
+
+Verification: final pure suite388 passed, compile clean, graphics walk1 passed, integrity494GUIDs/568scene objects. Capture walkthrough legs29.4/30.6/18.2/16.8/11.7game seconds, attacks disabled in fixture. Refreshed overview.png uses a temporary overview camera; actual portrait camera stays width9. Android gate/install follow separately. Opus remains on hold; no commit/push.
+
+## 2026-09-23 — Gate texture instead of hazy cutout
+
+Use an opaque front-elevation facade texture on the existing vertical gate mesh. Previous generated cutouts had atmospheric alpha contamination; a rectangle of physical masonry/doors needs no cutout mask. Reference/style and exact prompt preserved in gate-facade-01. Walkable geometry, progression and camera unchanged. Supporting masonry height adapted to facade while footprints remain beyond the walking boundary. This is a production-imported first art pass, not final environment acceptance.
+
+
+## 2026-09-23 - Foundry furnace and masonry integration
+
+Four detailed furnace elevations now wrap the existing scenery footprints, with exposed chimney geometry. Foundry-only masonry replaces the earlier slit-pattern walls on parapets, deep supports and architectural sides; ordinary hall materials remain unchanged. World-continuous wall UVs and painter-ordered chimney caps address cell seams and roof overlap. All art is borrowed from imported assets; static meshes are still batched and owned. Geometry, camera, combat and progression unchanged.
+
+Sources, exact built-in image_gen prompts, import settings and actual Unity captures: ArtDirection/2026-09-23/foundry-surfaces-01/README.md. No manual raster cleanup. Final silhouette/pipework/crane/shaft dressing remains unfinished. Compile clean, graphics traversal1, static integrity500/568; full gate and device result recorded separately in docs22/23.
+
+
+## 2026-09-23 - Complete foundry dressing package
+
+Owner requested the remaining environment dressing in one integrated update. FoundryRegionDressing adds braced crane, pulleys, hanging salvage basket, pipe runs/collars/valves/supports, heated panelled shaft lining and molten basin, iron roofs, inner guardrails, beacons and suspension chains. Shared map geometry, camera, encounters and economy unchanged. Two unchanged built-in image_gen material masters imported as shared non-readable ASTC6/max1024 assets. Static code-native meshes give these materials the needed shapes; no new Update, texture generation or light system.
+
+Review/source/prompt contract: ArtDirection/2026-09-23/foundry-complete-01/README.md. Actual integrated five-position Unity traversal and close-up render proof passed; scene uses15 static renderer groups. Crane attachment and shaft panel aspect corrected after close review. Scenery rank allocation keeps background/floor/contact shadows/actors consistent. Full gate and final phone state follow in docs22/23. Named dressing scope complete; no functional crane/lava hazard/boss transport is implied.
+
+
+## 2026-09-23 - Movement energy deferred by owner
+
+The owner found energy depletion disruptive on the large map and requested its temporary removal. Current playable rules now allow continuous movement at the existing configured speed: no energy spending or empty-bar speed penalty. The MOVE label/bar are hidden, and StaminaBar upgrades (Deep Lungs) are excluded from both level offers and chest books. Damage, hero base speed, enemy speed and all other progression rules remain unchanged. This applies to the current game, not only the foundry preview.
+
+HeroStamina.CurrentRulesEnabled is the shared current-rule switch; HeroMovementInput and the default DescentSimulation use it. Explicit budget instances and historical experiments remain available. UpgradeService receives the same enabled state without reordering authored pool indices. No save format or permanent profile change. Re-enabling is a future design decision, not an automatic milestone: first assess large-map traversal and alternative enemy pressure; repeat scene/simulation/device balance review if energy returns. Earlier movement-budget recommendations in doc26 are historical while this decision is active.

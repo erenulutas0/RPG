@@ -1862,3 +1862,103 @@ result screen) attach `DropVacuum`, which picks every drop up on its own frame -
 testing what they test. Two art tests' reward lines were changed with them.
 
 **Verified:** .NET **380/380**, compile **0 warnings/errors**, EditMode **395/395**, PlayMode **120/120**, Android build exit **0**, static integrity **478 unique asset/folder GUIDs / 568 scene objects/components**. The build was a scripts-only one ("player data was not rebuilt"), 24,752,438 bytes; not installed, and the next phone build should be a clean one.
+
+## Ground reward presentation — 2026-09-22
+
+GroundDropView makes the docs/37 ground rule visible without changing collection or payment. CombatSetup attaches the observer with one optional imported sprite reference; resting drops use floor-root sorting and independent shared contact shadows. One immutable 96-square/128PPU/bilinear/ASTC4 combined XP/gold sprite is borrowed across reloads. Sixteen pooled roots grow as required without overwriting uncollected drops; value-identical drops stay distinct. Collection starts a .22s flight (.42s when distant), uses scaled time, and never delays XP/gold or upgrade choices. Ending a run clears presentation without paying remaining drops. Old Descent instant-coin effects are suppressed; chest and Swarm effects stay.
+
+Files: GroundDropView.cs/meta, CombatSetup.cs, CombatEffectsView.cs, GroundRewards asset/folder/meta, one Gameplay sprite reference, GroundDropPresentationTests.cs/meta, ChestPresentationTests.cs, Tools/ArtReview reward importer/capture/runner, and ArtDirection/2026-09-22/reward-runtime-01. Original source/prompt are retained in reward-proof-01. Single-currency exceptions use provisional honest fallback symbols; no new gameplay, density, balance, camera, save, package or project-setting change.
+
+Four new tests cover actual death/collection, coincident rewards/pool/rehydration, upgrade pause/death, import and reload ownership/subscription cleanup. The previously documented flaky chest heal test now pins a seed without a first-chest book. Eight actual graphics-enabled Unity captures show controlled model events at two portrait sizes, front/back overlap and pickup/sweep/choice states. These are staged captures, not a phone or performance measurement.
+
+**Verified:** .NET **380/380**, compile **0 warnings/errors**, EditMode **395/395**, PlayMode **124/124** (existing scene/simulation parity included), targeted presentation **6/6**, graphics **1/1**, static integrity **482 project GUIDs / 1099 package GUIDs / 568 scene objects/components**. Android exit **0**, APK **24,752,438 bytes**, SHA-256 **`9DD2A9A758C95DCB88F91E4204B0207D61E30389787AF674414A0805B19A0F28`**. Log confirms player data rebuilt for the changed scene; APK inspection finds the view in IL2CPP metadata and reward art in shared assets. Packages lock/ProjectSettings/source hash preserved. No commit/push.
+
+**Phone:** S23 enumerated only. Availability question was unanswered; no install, launch, input, capture, profile or telemetry access. Next is coordinated device acceptance, then the separate walked-exit visual slice. Details/reproduction/limits in the runtime README.
+
+Ground reward device follow-up (2026-09-22): APK9DD2A9A758C95DCB88F91E4204B0207D61E30389787AF674414A0805B19A0F28 installed on S23 and installed hash matched. Fresh profile186/26321gold/defaultSword/SecondWind/deepest3 and all nine backed-up app-files unchanged. Phone locked/dozing; unlock requested, no launch/input/capture. Live visual acceptance remains pending. See newest docs/23 and reward-runtime-01 README; this supersedes not-installed status above.
+
+## XP-only painted companion — 2026-09-23
+
+Cinder Mite's frequent XP-only reward now uses Reward_Experience.tga through a separate CombatSetup reference and a borrowed GroundDropView sprite. Full-canvas96x96/128PPU, bilinear, non-readable, no mips, Android ASTC4x4; root623/1254,111/1254;0.30 visible width versus combined0.45. No payout, pickup, timing, pooling, combat or simulation changes. Missing references and gold-only drops keep existing fallbacks. The imported asset is not destroyed by the view.
+
+Updated GroundDropPresentationTests verifies XP import/pivot, selection/scale and survival across scene reload; the level-choice test now exercises XP-only collection without crediting gold. Actual Unity capture kills a Cinder Mite and stages17 more XP-only drops, then checks depth, short portrait, local/sweep flight, choice pause and pool return. Reproduction: Tools/ArtReview/Import-ExperienceReward.ps1 and Run-ExperienceRewardProof.ps1. Evidence: ArtDirection/2026-09-22/xp-reward-runtime-01/README.md. Source image hash unchanged; no new generation in integration.
+
+Verified: .NET380/380, compile0 warnings/errors, EditMode395/395, PlayMode124/124, graphics1/1, integrity483project GUIDs/1099package GUIDs/568scene components. Browser8images,390px no overflow/errors. Android result follows below. Phone availability requested but unanswered; no device interaction or assumed profile state.
+
+Android verification complete: exit0, APK24,752,438bytes, SHA2561F00CF65D105882E8976A0B3167B5A600A57022B38D9A0B9ED2D1FC997BBA168. Build log confirms scene data rebuilt; packaged shared assets contain experience sprite references. ProjectSettings and Packages/packages-lock.json unchanged; final static integrity and git diff --check passed. Not installed: phone availability remains unanswered. No commit/push in this slice.
+
+## Finale exit visual integration and region direction — 2026-09-23
+
+ExitSealView now reads the existing final-swarm exit position and dwell. Brass0.9radius boundary/gateway sits below actors; mint arc clamps authoritative held/1second; off-screen directional cue stays inside the combat viewport without moving the destination. No new timer, input surface, banking or progression rule. PrototypeTextDefinition provides neutral English stand-still/direction strings. CombatSetup composes the view. The view owns one material and reusable lines/arc buffer; shared font is borrowed. Descent, ended floor/run and disabled view hide all indicators.
+
+Three new ExitSealPresentationTests passed: hidden Descent and reload, actual hold/pause/interruption/completion, camera-offscreen cue and disable. Actual graphics capture1 passed; final portait camera aspect fixed in fixture; idle/hold/pause/direction reviewed. Source/evidence: ArtDirection/2026-09-23/exit-seal-runtime-01. .NET380 passed, compile0 warnings/errors, static485project GUIDs/1099package GUIDs/568scene components. Full gate/APK result follows separately.
+
+Owner approved two fights -> elite OR chest -> forge -> main boss -> extract OR optional final swarm. region-map-01 is a tested interactive design, not a Unity route; current floors remain linear. DESIGN_AND_HANDOFF.md and OPUS_TASK.md document pending gameplay/model/parity/reward decisions. No external task dispatched. Distinct combat/boss map geometry is not implemented here. No phone changes.
+
+Verified final gate (2026-09-23): .NET380/380, compile0 warnings/errors, EditMode395/395, PlayMode127/127, targeted exit3/3, graphics1/1, static485project GUIDs/1099package GUIDs/568scene components. Android exit0; APK29,252,655bytes, SHA25628B658D4AFC4FBBFB68623F0EA97A3F2F3AD1CA9ECB747B10930ED57B95E0B41. No install/device operations, commit or push in this slice. The prior installed XP-only build remains the latest device record. Map flow is approved and prototyped in the browser only; branching gameplay, separate battlefield geometry and new region balancing remain outstanding. ProjectSettings and Packages/packages-lock.json unchanged.
+
+## 2026-09-23 — Fixed-scale wide-region paving
+
+PlatformMaterialMeshes now derives floor UVs from planar floor coordinates at the original 9-unit hall scale. The default hall retains its corner UVs; elongated regions no longer stretch/shear the paving. PlatformMaterialTests adds a hall/wide spatial-density check. Actual traversal screenshots in ArtDirection/2026-09-23/exploration-proof-01 were refreshed; ENVIRONMENT_KIT.md defines reusable perimeter scenery and explicitly defers walkable elevations. Wide geometry still exists only in the temporary capture scene. Coping/walls/foundation and physical encounter locations remain open.
+
+Verified: .NET 380; compile 0 warnings/errors; targeted PlatformMaterialTests 5/5; graphics traversal 1/1. No full-suite run, APK rebuild, installation or phone interaction for this bounded material slice. Latest installed XP-only build and previous exit-seal APK remain unchanged. No new performance claim.
+
+## 2026-09-23 — Wide-region coping and furnace source
+
+PlatformMaterialMeshes keeps coping perpendicular floor width at the original hall value (0.45/sqrt(2)), with a conservative half-scale inset cap for tiny geometries. Coping/wall/join repetitions follow floor-space edge length instead of stretching across the region. Shared miter vertices and nine-mesh ownership remain. PlatformMaterialTests checks hall/wide width, texture density and corner joins. Graphics traversal refreshed and inspected. This is repeated material geometry, not separate placed wall prefab modules.
+
+Verified: .NET380, compile clean, PlatformMaterialTests5/5, graphics traversal1/1. No full suite/APK/device change. Wide region remains temporary. New unchanged built-in image_gen furnace source and exact prompt in ArtDirection/2026-09-23/furnace-prop-01; RGBA1358x1159, transparent alpha, browser390px no overflow/all images loaded. Source only, not imported or placed. Next: sample/place reusable perimeter props, then live region integration with explicit local-encounter authority. No collision/elevation mechanic added.
+
+## 2026-09-23 — Furnace imported, isolated Unity placement
+
+Imported shared Furnace.tga (384x328/128PPU/custom pivot/non-readable/ASTC4) under Art/Props/Foundry. Importer samples unchanged source once and does not edit Gameplay. FurnaceCapture places it at north exterior on a temporary stone-textured foundation; real hero traversal and reference portrait capture. Initial oversized grey foundation corrected in second render. No collision, interaction, playable extension or production scene reference.
+
+Verified: compile0 warnings/errors, final graphics1/1, static487GUIDs/1099package/568scene objects, browser390px no overflow/all images loaded. Full suites and APK not rerun for source/import/temporary fixture slice. No phone action. Read ArtDirection/2026-09-23/furnace-unity-01/README.md. Next: bounded region scenery integration and explicit playable entry, full gate then device; local encounters remain separate and pending.
+
+## 2026-09-23 — Wide region and furnace development integration
+
+Gameplay now binds Furnace.tga and ArenaView supports a once-resolved development/region-preview.txt=wide flag. Default hall and release behaviour preserved; wide preview is -27/+27/18. FoundrySceneryView borrows art/material and owns its foundation mesh. No local encounters, collision/elevation or new progression rules. Graphics capture now loads actual Gameplay, not an enlarged scene copy. See ArtDirection/2026-09-23/region-runtime-01/README.md for commands, proof and limits.
+
+Verified: .NET380, compile0 warnings/errors, EditMode395/395, PlayMode130/130, targeted region2/2, graphics1/1, browser390px checked. Android exit0; actual APK29,252,655bytes, SHA256 C8B4592C03EF35A437BF7EB027B54D484DD333C48946EEF212D0B793D9F12704. APK is BUILT, NOT INSTALLED. USB device enumerated only; availability question unanswered, no launch/input/screenshot/profile access. Prior XP-only installed record remains current. No commit/push in this slice.
+
+Next: coordinated fresh app-files backup, install and hash verification, temporary wide flag (preserve any existing value), physical traversal/visual review, remove only the created flag and return to normal hall. Playing normally may award/persist progress; never restore stale profile data. After that: local encounter-site gameplay and richer perimeter scenery.
+
+## 2026-09-23 — Furnace clearance and physical exploration handoff
+
+Moved furnace to an offset north-east ornamental foundation (x1.6, worldTop+.45); playable geometry unchanged. Actual Gameplay graphics now walk to the reachable tip and side using HeroMotion.EdgeMargin. An initial waypoint at raw corner27 failed as unreachable; fixed the fixture to use the existing0.6 margin rather than changing movement. Final captures show hero/furnace separation at both inspected limits. Fixture HUD overdraw remains an Editor capture limitation; this does not establish new device acceptance.
+
+Verified: .NET380, compile clean, RegionSceneryTests2/2, graphics1/1. No full-suite/APK/device operation for this bounded layout correction; installed C8B4592C build still has original centred furnace. New OPUS_EXPLORATION_TASK.md covers two physical combat sites, optional single-use chest and unlocked boss entrance; drafted only, not sent or started. Existing region-map node task remains superseded. See region-runtime-01 updated screenshots and handoff.
+
+## 2026-09-23 — Playable foundry integration (owner scope change)
+
+Owner requested a playable build rather than more isolated art previews. Integrated fixed concave FoundryMap, shared floor rendering, conservative hero clearance/sliding, deterministic separated entry and twelve-node pursuit into development mode region-preview.txt=foundry. Camera follows at existing width; default hall and old wide mode preserved. Uses authored Descent combat/reward/choice/end loop; local encounter-site activation and separate boss-hall transition remain unimplemented. External Opus task remains unstarted.
+
+Actual PackMotion corner stall exposed a sampled segment-check weakness; replaced with exact rectangle interval-union validation. New pure tests cover four-offset interior spawn sweeps, long-step hole crossing, route connectivity and real pack pursuit; scene test covers entry, authoritative pause and unload/default return. Gate387 .NET/402 EditMode/131 PlayMode, compile clean. See foundry-playable-01 README for detailed scope and final APK/device evidence. No full-run simulation parity claim for development geometry.
+
+## 2026-09-23 � Owner correction: photograph owns the structure
+
+Owner rejected the narrow linked-platform interpretation and explicitly requested the same structure as foundry-v1.png. This supersedes the earlier diagram-as-authority instruction for the foundry region. Current runtime now uses one broad court with an inset shaft on the left, a straight south entry bridge and a wide northeast gate apron. The concept remains the visual target; current rough masses are not final art or an exact reproduction of every painted detail.
+
+FoundryMap now combines five axis-aligned rectangles with one exact diagonal bridge (u-v in[-4,4],u+v in[-50,-24]). Main court bounds[-18,-14]..[14,18], shaft[-12,2]..[-4,10], apron[12,-2]..[32,12]. Bridge predicates and continuous segment clipping share the rendered straight bridge. FoundryPursuit nodes moved with these regions. The old952-cell/seven-rectangle layout and old waypoints are historical.
+
+FoundryRegionView adds deep sidewalls and regularly spaced exterior supports, low edge parapets, a central three-ring brass seal, perimeter furnace plinths, a simple crane silhouette and a northeast closed gate. Static faces batch by shared material/sorting layer rather than adding a renderer for every support. Mesh ownership remains local, materials borrowed, no per-frame geometry. The four furnace sprites are existing imported art. Decorative silhouettes still need final art, registered joints, lighting and occlusion polish. No elevated walking or functioning gate transition was added.
+
+Verification: final pure suite388 passed, compile clean, graphics walk1 passed, integrity494GUIDs/568scene objects. Capture walkthrough legs29.4/30.6/18.2/16.8/11.7game seconds, attacks disabled in fixture. Refreshed overview.png uses a temporary overview camera; actual portrait camera stays width9. Android gate/install follow separately. Opus remains on hold; no commit/push.
+
+## 2026-09-23 — Gate art implementation
+
+New GateFacade.png and MAT_GateFacade in Props/Foundry; unchanged generated RGB source retained in gate-facade-01. PlatformMaterialSet gains optional _gateFacade; existing IsValid still checks only floor/coping/wall. FoundryRegionView.BuildGate builds a masonry body and dedicated facade plane; generated meshes owned by region, material borrowed. No Gameplay scene edit, geometry or gameplay change. Full gate403/131 passed. Art review source/prompt/captures in gate-facade-01. Sidewalls/outer columns and remaining environment still provisional.
+
+
+## 2026-09-23 - Foundry furnace and masonry integration
+
+Four detailed furnace elevations now wrap the existing scenery footprints, with exposed chimney geometry. Foundry-only masonry replaces the earlier slit-pattern walls on parapets, deep supports and architectural sides; ordinary hall materials remain unchanged. World-continuous wall UVs and painter-ordered chimney caps address cell seams and roof overlap. All art is borrowed from imported assets; static meshes are still batched and owned. Geometry, camera, combat and progression unchanged.
+
+Sources, exact built-in image_gen prompts, import settings and actual Unity captures: ArtDirection/2026-09-23/foundry-surfaces-01/README.md. No manual raster cleanup. Final silhouette/pipework/crane/shaft dressing remains unfinished. Compile clean, graphics traversal1, static integrity500/568; full gate and device result recorded separately in docs22/23.
+
+
+## 2026-09-23 - Complete foundry dressing package
+
+Owner requested the remaining environment dressing in one integrated update. FoundryRegionDressing adds braced crane, pulleys, hanging salvage basket, pipe runs/collars/valves/supports, heated panelled shaft lining and molten basin, iron roofs, inner guardrails, beacons and suspension chains. Shared map geometry, camera, encounters and economy unchanged. Two unchanged built-in image_gen material masters imported as shared non-readable ASTC6/max1024 assets. Static code-native meshes give these materials the needed shapes; no new Update, texture generation or light system.
+
+Review/source/prompt contract: ArtDirection/2026-09-23/foundry-complete-01/README.md. Actual integrated five-position Unity traversal and close-up render proof passed; scene uses15 static renderer groups. Crane attachment and shaft panel aspect corrected after close review. Scenery rank allocation keeps background/floor/contact shadows/actors consistent. Full gate and final phone state follow in docs22/23. Named dressing scope complete; no functional crane/lava hazard/boss transport is implied.
