@@ -8,6 +8,10 @@ namespace Cryptforge.Content
     public sealed class PrototypeTextDefinition : ScriptableObject
     {
         [SerializeField] private string _title;
+        [SerializeField] private string _exitInstruction = "EXIT - Stand still";
+        [SerializeField] private string _exitDirection = "EXIT";
+        public string ExitInstruction => _exitInstruction;
+        public string ExitDirection => _exitDirection;
         [SerializeField] private string _floorProgressFormat;
         [SerializeField] private string _waveFormat;
         [SerializeField] private string _victoryFormat;

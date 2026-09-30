@@ -28,6 +28,8 @@ namespace Cryptforge.Core
         [SerializeField] private AbilityController _ability;
         [SerializeField] private RelicBehaviour _relicBehaviour;
         [SerializeField] private EncounterController _encounters;
+        [SerializeField] private Sprite _groundRewardSprite;
+        [SerializeField] private Sprite _groundExperienceSprite;
         private RewardService _rewards;
         private ProfileStore _profileStore;
         private bool _timeFrozen;
@@ -130,6 +132,8 @@ namespace Cryptforge.Core
             Drops = new GroundDrops(Run);
             RunTelemetryBridge telemetry = AttachTelemetry(equipped);
             telemetry.WatchDrops(Drops);
+            gameObject.AddComponent<ExitSealView>().Initialize(this, _text);
+            gameObject.AddComponent<GroundDropView>().Initialize(Drops, Run, _hero.transform, _groundRewardSprite, _encounters, _groundExperienceSprite);
             // After telemetry, so the choice is logged before Extract ends the run or Descend moves on.
             Checkpoint.Chosen += OnCheckpointChosen;
             _hero.Damaged += OnHeroDamaged;
