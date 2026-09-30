@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "checks": [
+    "source/scene loads",
+    "nearby pickup only",
+    "floor sweep completion",
+    "reset",
+    "36-drop grayscale and radius review",
+    "390px no horizontal overflow",
+    "reduced-motion sweep",
+    "no page or HTTP errors"
+  ],
+  "screenshots": [
+    "preview-desktop.png",
+    "preview-density-grayscale.png",
+    "preview-mobile.png"
+  ],
+  "limits": "Browser presentation only; no Unity import, scene-depth, phone or gameplay parity verification."
+}

@@ -1,0 +1,4 @@
+Installed SHA256 7FB249A4E8EB25560113ACF417521C25AB6809DD9B8A1EA118812D367B7C4CBD
+Profile revision 194, gold 27795; permanent unlocks/equipment unchanged.
+Foundry flag retained for owner playtest. Left level1 choice,80HP,5run gold,13/22XP.
+No matched runtime exceptions in captured Unity log. Short smoke only; mixed paused/active performance windows.

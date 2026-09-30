@@ -1,0 +1,3 @@
+Connected unit cells: 952
+Static view width: 9
+No navigation, collision, HUD, combat or device verification.

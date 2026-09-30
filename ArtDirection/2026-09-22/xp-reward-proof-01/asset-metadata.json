@@ -1,0 +1,25 @@
+{
+  "source": "xp-v1.png",
+  "sha256": "463b0c4c819ac4da1f01aba1be34a0ba70021670ed039de20263951fdfc033d0",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "mode": "RGBA",
+  "alphaRange": [
+    0,
+    255
+  ],
+  "alphaGreaterThan16BoundsExclusive": [
+    223,
+    150,
+    1023,
+    1143
+  ],
+  "provisionalRootTopLeft": [
+    623,
+    1143
+  ],
+  "provisionalVisibleWidth": 0.3,
+  "runtimeImported": false
+}

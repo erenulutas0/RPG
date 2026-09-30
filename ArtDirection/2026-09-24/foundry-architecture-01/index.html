@@ -1,0 +1,12 @@
+<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge · Kapı ve fırın mimarisi</title>
+<style>body{margin:0;background:#10121c;color:#e4dfd7;font:16px/1.6 system-ui}main{max-width:1400px;margin:auto;padding:32px}h1{font-size:30px;margin:4px 0}p{color:#a9a8b2;max-width:850px}button{background:#252a3d;color:inherit;border:1px solid #696175;border-radius:6px;padding:12px 24px;cursor:pointer;margin:8px 8px 16px 0}button[aria-pressed=true]{border-color:#e5a75e;color:#ffd194}img{display:block;width:100%;border-radius:8px}section{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:32px auto}@media(max-width:700px){section{grid-template-columns:1fr}}small{color:#dfad70}a{color:#e6b57d}</style>
+<main><small>CRYPTFORGE / 24 EYLÜL 2026</small><h1>Kapı ve fırınlar · mimari hacim</h1>
+<p>Kademeli sütunlar, eğimli taçlar ve açık ağızlı bacalar. Mevcut oyunun izometrik yüzeylerine eklenen mimari parçalar; aşağıdaki görüntüler doğrudan Unity sahnesinden.</p>
+<button id="before" aria-pressed="false">Önceki ışık düzenlemesi</button><button id="after" aria-pressed="true">Yeni mimari</button>
+<a id="full" href="after.png" target="_blank"><img id="map" src="after.png" alt="Dökümhane haritasının tamamı"></a>
+<section><div><h2>Kapı</h2><a href="gate-detail.png"><img src="gate-detail.png" alt="Kapının yeni kademeli sütunları"></a></div><div><h2>Fırın</h2><a href="furnace-detail.png"><img src="furnace-detail.png" alt="Fırının baca ve çatı ayrıntıları"></a></div></section>
+<h2>Oyun kamerası</h2><p>Gerçek sahnenin 1080 × 2340 Unity çekimi; telefon ekran görüntüsü değildir.</p><img style="max-width:400px" src="portrait.png" alt="Kapı önünde oyun kamerası">
+<h2>Telefonda</h2><p>Yeni sürüm S23'e yüklendi; bu görüntü gerçek cihazdan. Kayıtlar korundu.</p><img style="max-width:400px" src="device-gate.png" alt="Telefonda yeni sütunlar ve bacalar">
+<p>Bu turda Blender veya yeni bir üretilmiş doku kullanılmadı. Mevcut taş ve demir malzemeleri korunarak şekiller geliştirildi. Sonraki sanat çalışmasında taş ölçeği, vinç ve mimari süslemeler hâlâ geliştirilebilir.</p></main>
+<script>for(const id of ['before','after'])document.getElementById(id).onclick=()=>{document.getElementById('map').src=id+'.png';document.getElementById('full').href=id+'.png';for(const name of ['before','after'])document.getElementById(name).setAttribute('aria-pressed',name===id?'true':'false');};</script></html>

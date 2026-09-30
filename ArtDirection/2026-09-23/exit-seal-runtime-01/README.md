@@ -1,0 +1,15 @@
+# Finale exit presentation — 2026-09-23
+
+ExitSealView is composed by CombatSetup. The brass boundary has ExitRule.Radius0.9, floor Y projected by ArenaFloor; corner accents and an ivory gateway distinguish it from the blue ability range. A mint contour reads clamp(ExitHeldSeconds / DwellSeconds) directly, without a second timer. Draw order0 stays below actors. A viewport-clamped arrow and short EXIT label indicate a hidden destination without moving it. Existing HUD anchors constrain the cue; a conservative combat-band fallback handles unusable anchor measurements. Stand-still instruction is neutral, not inferred movement state. Strings live in PrototypeTextDefinition with English defaults.
+
+One view-owned Sprites/Default material and persistent line renderers are reused throughout the scene, with a preallocated64-segment arc buffer; no per-frame texture generation, new input surface, state transition or reward mutation. The built-in font is borrowed. Disable/death/finished floor/Descent hide presentation; destroy releases owned objects/material. The room's exit and banking remain EncounterController/ExitDwell authority.
+
+Three ExitSealPresentationTests passed: Descent visibility and reload cleanup; real stationary hold, pause, interrupted reset and true encounter completion; off-screen cue without moving the seal and disable hiding. The graphics fixture Run-ExitSealProof.ps1 loads isolated floor_swarm_proof/seed42, disables attacks and movement, places the hero on the real exit, and captures idle/hold/pause/direction. It uses the authoritative encounter clock. The direction capture deliberately shifts the camera20world units; it is not a normal player viewpoint. An initial capture aspect mismatch was corrected in the fixture; the final renders use1080/2340 throughout. Ground depth and off-screen arrow were visually reviewed. No physical-device validation or performance claim yet.
+
+## Region direction (separate, not yet playable)
+
+The owner approved two fights -> elite OR chest -> forge -> main boss, then extract OR optional finale swarm. ArtDirection/2026-09-23/region-map-01 is an interactive route composition and bounded gameplay handoff. Existing Unity floor progression is still linear. This exit integration does not implement that branching map or rebalance its rewards. Do not present route buttons as a working Unity feature.
+
+Full gate/build results follow when complete. No phone changes in this slice; prior XP-only APK1F00CF65 remains the latest installed record.
+
+Verified final gate (2026-09-23): .NET380/380, compile0 warnings/errors, EditMode395/395, PlayMode127/127, targeted exit3/3, graphics1/1, static485project GUIDs/1099package GUIDs/568scene components. Android exit0; APK29,252,655bytes, SHA25628B658D4AFC4FBBFB68623F0EA97A3F2F3AD1CA9ECB747B10930ED57B95E0B41. No install/device operations, commit or push in this slice. The prior installed XP-only build remains the latest device record. Map flow is approved and prototyped in the browser only; branching gameplay, separate battlefield geometry and new region balancing remain outstanding. ProjectSettings and Packages/packages-lock.json unchanged.

@@ -1,0 +1,12 @@
+<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge · Dökümhane ışığı</title>
+<style>body{margin:0;background:#10121c;color:#e4dfd7;font:16px/1.6 system-ui}main{max-width:1400px;margin:auto;padding:32px}h1{font-size:30px;margin:4px 0}p{color:#a9a8b2;max-width:850px}button{background:#252a3d;color:inherit;border:1px solid #696175;border-radius:6px;padding:12px 24px;cursor:pointer;margin:8px 8px 16px 0}button[aria-pressed=true]{border-color:#e5a75e;color:#ffd194}img{display:block;width:100%;border-radius:8px}section{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:760px;margin:32px auto}small{color:#dfad70}a{color:#e6b57d}</style>
+<main><small>CRYPTFORGE / 24 EYLÜL 2026</small><h1>Dökümhane · sıcaklık ve derinlik</h1>
+<p>Gerçek Unity sahnesinden aynı açı ve çözünürlükte iki görüntü. Fırın çevresinde sıcak ışık, serin avlu, kenar gölgeleri ve taş kapaklarda daha belirgin yüzeyler. Bu bir konsept resim veya Blender çıktısı değil.</p>
+<button id="before" aria-pressed="false">Önce</button><button id="after" aria-pressed="true">Şimdi</button>
+<a id="full" href="after.png" target="_blank"><img id="map" src="after.png" alt="Haritanın tamamı"></a>
+<p>Harita görseline tıklayarak 3200 × 2400 PNG’yi açabilirsin. Aşağıdaki görüntüler gerçek oyun kamerasıyla Unity'de alındı; telefon ekran görüntüsü değildir.</p>
+<section><div><h2>Kuyu çevresi</h2><img src="shaft-camera.png" alt="Kuyu çevresindeki oyun kamerası"></div><div><h2>Kapı yaklaşımı</h2><img src="gate-camera.png" alt="Kapı önündeki oyun kamerası"></div></section>
+<h2>Telefonda doğrulandı</h2><p>S23'ten gerçek ekran görüntüsü. Yeni sürüm yüklendi; kayıtlar korundu. Enerjisiz hareket de bu sürümde.</p><img style="max-width:400px" src="device-gate.png" alt="S23 cihazında kapı ve fırın bölgesi">
+<p>Sonraki mimari kalite hedefi: kapı yanları, fırın çatısı ve vinç için daha özgün hacimler. Bu geçişte yeni 3D model veya gerçek zamanlı ışık kullanılmadı.</p></main>
+<script>for(const id of ['before','after'])document.getElementById(id).onclick=()=>{document.getElementById('map').src=id+'.png';document.getElementById('full').href=id+'.png';for(const name of ['before','after'])document.getElementById(name).setAttribute('aria-pressed',name===id?'true':'false');};</script></html>

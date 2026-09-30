@@ -1,0 +1,11 @@
+# Foundry surface prompts
+
+Built-in image_gen. Both use ../gate-facade-01/gate-facade-v1.png as material/style reference only. Original outputs copied unchanged; no raster edits.
+
+## masonry
+
+Use case: stylized-concept. A single square seamless tiling game masonry texture, opaque edge-to-edge physical dark blue-grey basalt wall. Reference image is MATERIAL/STYLE only: match the carved gate's blue-grey stone. Straight-on perfectly orthographic flat wall elevation, no perspective. Staggered heavy rectangular stone blocks, subtle varied sizes, fine chipped bevels, shallow dark mortar, modest weathering. Fairly quiet mid-dark value, readable large stones rather than tiny noisy gravel. Seamless both horizontal and vertical edges; no border or framed panel, no decorative pillars, no metal bands, no cracks glowing, no flames, no signs, no doors, no banners, no text, no moss. Restrained cool stone with soft baked relief, no directional cast shadows. 1024x1024 square.
+
+## furnace
+
+Use case: stylized-concept. One opaque full-bleed rectangular front-elevation texture for an original fantasy industrial furnace tower in a mobile game. Reference image is MATERIAL AND STYLE only; match its richly painted dark basalt and aged brass. Perfectly flat frontal orthographic elevation, no perspective, no isometric angle, no visible side or top planes. Tall portrait composition approximately 2:3. Physical furnace structure fills all pixels edge-to-edge; no outside background, no transparency, no sky, no floor, no smoke. A large central recessed orange ember firebox behind 5 thick black iron vertical bars, surrounded by dark riveted iron and carved blue-grey stone jambs. Above the firebox a broad dark boiler face with 3 small ember-lit vents and restrained brass rim. One heavy dark pipe runs vertically along each side, with restrained brass joints, all entirely inside the rectangle. Thick stone bottom sill flush at bottom, iron cornice flush at top. Orange light confined to recesses and small reflected warmth on nearby metal; no broad glow, no flames spilling out. No emblem, no text, no UI, no weapons, no characters. This is a surface texture to map onto a geometry face, not a freestanding sprite or a scene.
