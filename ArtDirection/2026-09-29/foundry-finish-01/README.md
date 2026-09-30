@@ -1,0 +1,14 @@
+# Foundry visual closeout — 2026-09-29
+
+Exactly three helper agents reviewed architecture, workshop and portrait readability, within the owner's maximum. Closed two bounded art findings: bands/inspection slots match the flue's actual tapered octagonal cross-sections; anvil head/horn/existing bevel have restrained steel tint. No new geometry, textures, materials or batches. Static region remains17renderers/49,556vertices; atmosphere1/780.
+
+The third audit found a capture-only HUD ordering artifact. Production canvases are ScreenSpaceOverlay; the fixture's camera conversion left order0 under actors. Capture now offsets existing orders by30000, preserving relative modal order. This does not alter the shipped HUD. New point-3 shows correct overlap; capture-before.png is retained as diagnostic evidence, not a production-before claim.
+
+Actual five-point graphics proof passed. Root inspected final furnace, workshop and point3 images. before.png is the previous use-package map; after.png/current closeups are actual Unity output. Includes the preceding depth/use changes, not yet installed. This closes the named findings, not final reference-image fidelity.
+
+Compile passed0warnings/errors; integrity514projectGUIDs/1099packageGUIDs/568sceneobjects. Full Unity gate passed: EditMode 405/405; PlayMode 130/130; Android exit 0. APK SHA256 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535 (39,340,606 bytes), built 2026-09-29 15:49:27 local. READY, NOT INSTALLED. No adb/device action; last installed package remains4576CC04844ABB7F733AB1F354F8CBFD82A9962A3CAB386CE8EADCCE93B38994. No gameplay/collision/camera/scene edits, save changes, commit or push.
+
+
+## 2026-09-29 - Foundry finish installed on S23
+
+Supersedes the ready/not-installed status above. Owner explicitly requested installation. Backed up profile, profile backup, two development flags, and three telemetry files under TestResults/foundry-finish-install-20260929/before/. The prior Forge choice run was restarted without selecting an option. adb install -r succeeded; installed base.apk SHA256 matches the built APK: 18DF8C2A877C96FEE67A36447E968C0103E394B9512EC66BA079ADE0D91D5535. Profile, profile backup, development flags, and rotated telemetry files were byte-identical after installation. Active events.jsonl retained its full prior prefix and gained new launch/run events. The new app launched into Ember Hall room 1/6; a short unattended smoke run reached Slag Gate and ended in defeat. Started another run and left it paused in Ember Hall room 1/6 with 100/100 HP, ready for the owner to resume. Evidence: TestResults/foundry-finish-install-20260929/01-start.png and 04-ready.png. No save editing, commit, or push.

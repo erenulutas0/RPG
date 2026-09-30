@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cryptforge · Dökümhane sanat paketi</title>
+  <style>
+    :root{color-scheme:dark;--bg:#11131c;--panel:#1a1d29;--ink:#eee8df;--muted:#b8b3bd;--brass:#dfad70;--line:#353747}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,sans-serif}main{max-width:1440px;margin:auto;padding:40px 28px 64px}header{max-width:930px;margin-bottom:32px}.eyebrow{color:var(--brass);font-size:12px;letter-spacing:.15em}h1{font-size:clamp(30px,4vw,48px);line-height:1.15;margin:15px 0}h2{font-size:24px;line-height:1.3;margin:0 0 12px}h3{font-size:19px;margin:0 0 8px}p{margin:0 0 18px;color:var(--muted)}a{color:var(--brass);text-underline-offset:4px}button{font:inherit;cursor:pointer;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:6px;padding:10px 22px;min-height:48px}button[aria-pressed=true]{background:#352a21;border-color:var(--brass);color:#ffdab0}button:focus-visible,a:focus-visible{outline:3px solid #94bbff;outline-offset:4px}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 14px}.frame{display:block;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#0c0e15;min-height:140px}.frame img{display:block;width:100%;height:auto}.frame:has(img[hidden]){display:none}.caption{font-size:13px;margin:10px 0;color:var(--muted)}.gallery{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:42px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}.copy{padding:22px 22px 8px}.card .frame{border:0;border-radius:0}.card p{font-size:15px}.portraits{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding-top:12px}.portrait .frame{max-width:440px}.portrait p{max-width:570px}footer{border-top:1px solid var(--line);margin-top:46px;padding-top:22px;font-size:14px}[hidden]{display:none!important}@media(max-width:720px){main{padding:25px 16px 40px}.gallery,.portraits{grid-template-columns:1fr}.gallery{gap:20px;margin:30px 0}.copy{padding:18px 18px 4px}}
+  </style>
+</head>
+<body><main>
+  <header><span class="eyebrow">CRYPTFORGE / 29 EYLÜL 2026</span><h1>Dökümhanenin karakteri</h1><p>Daha sakin taş döşemeler, kapıda belirgin demir işçiliği ve çevrede üretim izleri. Avlu, fırınlar ve atölye ayrıntıları aynı haritada bir araya geliyor.</p></header>
+  <section aria-labelledby="map-title"><h2 id="map-title">Haritanın bütünü</h2><p>24 Eylül mimari görünümü ile bu çalışmayı aynı açıdan karşılaştır. Duman ve köz atmosferi 25 Eylül çalışmasından geliyor. Büyük görüntüyü açmak için haritaya dokun.</p><div class="controls" aria-label="Harita görünümü"><button id="before" aria-pressed="false" type="button">Önce</button><button id="after" aria-pressed="true" type="button">Yeni çalışma</button></div><a class="frame" id="full-map" href="after.png"><img id="map" src="after.png" alt="Yeni sanat paketiyle dökümhane haritasının tamamı"></a><p id="map-status" class="caption" role="status">Gerçek Unity sahnesinden genel görünüm.</p></section>
+  <section class="gallery" aria-label="Mimari ve çevre ayrıntıları">
+    <article class="card"><div class="copy"><h3>Kapı ve fırınlar</h3><p>Kulelerde koyu demir paneller, tutucu kuşaklar ve küçük bronz bağlantılar. Baca yüzeylerinde bakım kapakları.</p></div><a class="frame" href="gate-detail.png"><img loading="lazy" src="gate-detail.png" alt="Kapı kuleleri ve fırınlardaki metal ayrıntıları"></a></article>
+    <article class="card"><div class="copy"><h3>Vinç ve servis alanı</h3><p>Taş platformun üzerinde dökümhanenin çalışma alanını tanımlayan vinç ve çevre düzeni.</p></div><a class="frame" href="crane-detail.png"><img loading="lazy" src="crane-detail.png" alt="Dökümhane vinci ve çevresindeki servis alanı"></a></article>
+    <article class="card"><div class="copy"><h3>Kuyu çevresi</h3><p>Kuyu mimarisinin ve çevresindeki taş yüzeylerin güncel görünümü.</p></div><a class="frame" href="shaft-detail.png"><img loading="lazy" src="shaft-detail.png" alt="Kuyunun taş kenarı ve çevresindeki döşemeler"></a></article>
+    <article class="card"><div class="copy"><h3>Atölye izleri</h3><p>İstiflenmiş metal külçeler, parça sandığı, borular ve aletler; kenardaki servis raflarına yerleştirildi.</p></div><a class="frame" href="workshop-detail.png"><img loading="lazy" src="workshop-detail.png" alt="Metal külçeler, parça sandığı ve atölye düzeni"></a></article>
+  </section>
+  <section class="portraits" aria-label="Oyun kamerası ve cihaz">
+    <article class="portrait"><h2>Oyun kamerasından</h2><p>Avlunun dikey kadrajı: zemin, kahraman ve düşmanların birlikte nasıl okunduğunu gösteren gerçek Unity görüntüsü.</p><a class="frame" href="point-2.png"><img loading="lazy" src="point-2.png" alt="Dikey oyun kamerasından avluda kahraman ve düşmanlar"></a></article>
+    <article class="portrait" id="phone" hidden><h2>Telefonda</h2><p>Bu paketin cihaz üzerinde alınmış görüntüsü.</p><a class="frame" href="device.png"><img id="device-image" alt="Sanat paketinin telefondaki gerçek görünümü"></a></article>
+  </section>
+  <footer><a href="README.md">Üretim ve doğrulama kaydı</a><p class="caption">Bu sayfadaki harita ve ayrıntı görüntüleri oyun sahnesinin yakalamalarıdır. Test ve cihaz incelemesinin durumu üretim kaydında ayrı belirtilir.</p></footer>
+</main><script>
+  const map=document.getElementById('map'),full=document.getElementById('full-map'),status=document.getElementById('map-status');
+  function selectMap(name){for(const id of ['before','after'])document.getElementById(id).setAttribute('aria-pressed',String(name===id));map.hidden=false;map.src=name+'.png';full.href=name+'.png';map.alt=name==='before'?'Sanat paketinden önce dökümhane haritası':'Yeni sanat paketiyle dökümhane haritası';status.textContent='Gerçek Unity sahnesinden genel görünüm.';}
+  for(const id of ['before','after'])document.getElementById(id).addEventListener('click',()=>selectMap(id));
+  map.addEventListener('error',()=>{map.hidden=true;status.textContent='Bu karşılaştırma görüntüsü hazırlanıyor.';});
+  document.querySelectorAll('.gallery img,.portrait img:not(#device-image)').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;const note=document.createElement('p');note.className='caption';note.style.padding='0 20px';note.textContent='Görüntü hazırlanıyor.';img.closest('article').append(note);}));
+  const device=document.getElementById('device-image');device.addEventListener('load',()=>{document.getElementById('phone').hidden=false;});device.src='device.png';
+</script></body></html>
+

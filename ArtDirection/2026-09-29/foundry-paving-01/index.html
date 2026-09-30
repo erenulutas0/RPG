@@ -1,0 +1,9 @@
+<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge · Avlu döşemesi</title>
+<style>body{margin:0;background:#11131c;color:#eee8df;font:17px/1.6 system-ui}main{max-width:1400px;margin:auto;padding:28px}p{color:#c2bac8}img{width:100%;display:block}a{color:#e4b477}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pair img{max-width:480px;margin:auto}button{font:inherit;padding:10px 18px;background:#2d3041;color:white;border:1px solid #8c795b;border-radius:6px;cursor:pointer}button[aria-pressed=true]{background:#71532c}@media(max-width:700px){.pair{grid-template-columns:1fr}}</style>
+<main><h1>Avlu döşemesi</h1><p>Merkezde geniş taş plakalar, kapı yaklaşımında enine döşeme, atölye kenarında koyu küçük taşlar. Yüzeyler aynı seviyede; görüntüler gerçek Unity sahnesinden.</p>
+<button aria-pressed="false" onclick="show(false)">Önce</button> <button aria-pressed="true" onclick="show(true)">Sonra</button>
+<a id="map-link" href="after.png"><img id="map" src="after.png" alt="Güncel döşemeyle haritanın tamamı"></a>
+<div class="pair"><section><h2>Merkez avlu</h2><a id="court-link" href="point-2.png"><img id="court" src="point-2.png" alt="Merkez mührü, karakter ve düşmanlarla döşeme"></a></section><section><h2>Kapı yaklaşımı</h2><a id="approach-link" href="point-3.png"><img id="approach" src="point-3.png" alt="Fırınların arasındaki enine döşeme"></a></section></div>
+<p><a href="README.md">Üretim ve doğrulama kaydı</a></p></main>
+<script>function show(after){const files={map:after?'after.png':'before.png',court:after?'point-2.png':'before-court.png',approach:after?'point-3.png':'before-approach.png'};Object.entries(files).forEach(([id,file])=>{document.getElementById(id).src=file;document.getElementById(id+'-link').href=file});document.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===(after?1:0))));}</script></html>
