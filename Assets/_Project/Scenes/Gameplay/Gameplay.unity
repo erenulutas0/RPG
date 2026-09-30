@@ -5285,6 +5285,7 @@ MonoBehaviour:
   _material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   _cavernBackdrop: {fileID: 21300000, guid: 0f2b963b3fcee744dabd325aa80b3830, type: 3}
   _platformMaterials: {fileID: 11400000, guid: 06f509f322965f44bbeb9bff31e4bb6d, type: 2}
+  _furnaceSprite: {fileID: 21300000, guid: 8297f21650a2ab44c903af9c32161ee0, type: 3}
   _nearCorner: -9
   _farCorner: 9
   _halfWidth: 9

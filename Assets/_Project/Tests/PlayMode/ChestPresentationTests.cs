@@ -1,5 +1,7 @@
 using System.Collections;
+using System.IO;
 using Cryptforge.Combat;
+using Cryptforge.Core;
 using Cryptforge.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,6 +16,11 @@ namespace Cryptforge.Tests
         [UnitySetUp] public IEnumerator Load()
         {
             TestProfile.Begin(); Time.timeScale=1;
+            // Isolate the opening/heal contract from S3's random health book, which can also raise maximum/current HP.
+            int seed=0;
+            while(ChestRule.RewardFor(0,0,seed).HoldsBook)seed++;
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RunSeedPath));
+            File.WriteAllText(DevelopmentStart.RunSeedPath,seed.ToString(System.Globalization.CultureInfo.InvariantCulture));
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             yield return null;
             foreach(var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))attack.enabled=false;
@@ -39,13 +46,14 @@ namespace Cryptforge.Tests
             Assert.That(closed.texture.width,Is.EqualTo(192));
             Assert.That(closed.texture.format,Is.EqualTo(TextureFormat.ASTC_4x4));
             health.ApplyDamage(new DamageContext(40));
-            int events=0; chest.Opened+=(reward,position)=>events++;
+            int events=0; Vector3 openedAt=Vector3.zero; chest.Opened+=(reward,position)=>{events++;openedAt=position;};
             movement.Hold(Vector2.right);
             float deadline=Time.realtimeSinceStartup+5;
             while(!chest.IsOpen&&Time.realtimeSinceStartup<deadline)yield return null;
             movement.Release();
             Assert.That(chest.IsOpen,Is.True);
             Assert.That(events,Is.EqualTo(1));
+            Assert.That(openedAt,Is.EqualTo(renderer.transform.position),"The opening is reported where the chest stands.");
             Assert.That(health.Current,Is.EqualTo(85f).Within(.001f));
             Assert.That(chest.IsOpening,Is.True);
             var opening=renderer.sprite;
@@ -67,6 +75,11 @@ namespace Cryptforge.Tests
             var sprite=chest.sprite;var texture=sprite.texture;
             var group=chest.GetComponent<SortingGroup>();
             Assert.That(group.sortingOrder,Is.EqualTo(1));
+            // The chest is an actor like the combatants, so the foundry can depth-test it; an ordinary hall keeps its own material.
+            Assert.That(Object.FindFirstObjectByType<ChestSpawner>().Body,Is.SameAs(chest));
+            Assert.That(GroundedSorting.Actors,Does.Contain(chest.transform));
+            Assert.That(chest.sharedMaterial.shader.name,Is.EqualTo("Sprites/Default"));
+            Assert.That(Object.FindFirstObjectByType<FoundryVisibilityView>(),Is.Null);
             var hero=Object.FindFirstObjectByType<HeroLookView>();
             Assert.That(hero.GetComponent<SortingGroup>().sortingOrder,Is.EqualTo(group.sortingOrder));
             var ring=Object.FindFirstObjectByType<AbilityRingView>().Ring.GetComponent<SortingGroup>();

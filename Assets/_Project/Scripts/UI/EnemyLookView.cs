@@ -44,6 +44,10 @@ namespace Cryptforge.UI
         private bool _subscribed;
 
         public EnemyLook Look => _look;
+        // The body renderer, for presentation that restyles it in place (the foundry's hidden-enemy silhouette).
+        internal SpriteRenderer Body => _body;
+        // The health bar root (a child of this enemy), for presentation that keeps it on top of scenery.
+        internal Transform Bar => _bar != null ? _bar.transform : null;
         public EnemyPose CurrentPose { get; private set; }
         public bool HasSprites => _painted || (_sprites != null && _sprites.Frame(EnemyPose.IdleA) != null);
 

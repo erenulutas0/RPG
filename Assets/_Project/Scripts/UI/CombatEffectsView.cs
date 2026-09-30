@@ -7,7 +7,9 @@ namespace Cryptforge.UI
 {
     // Pooled strikes, hit sparks, numbers, deaths and coins. Optional imported slash/spark/death frames are borrowed;
     // remaining procedural sprites are generated once in Awake. Per-hit effects reuse objects and arrays. Effects run
-    // on scaled time so a pause freezes them; the shake runs on unscaled time so it always settles.
+    // on scaled time so a pause freezes them; the shake runs on unscaled time so it always settles. Each effect above the
+    // floor remembers the floor it stands on, which the foundry turns into depth while a camera renders
+    // (FoundryVisibilityView); everywhere else that height is never read.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -27,8 +29,15 @@ namespace Cryptforge.UI
             public bool AbilityPulse;
             public bool StaffPulse;
             public float PulseRadius;
+            // Drawn above the floor and standing on GroundY (world): the feet of the actor it belongs to, or the floor under
+            // the point it was placed at. Floor pulses never are; they already sort under the foundry's structures.
+            public bool AboveFloor;
+            public float GroundY;
         }
 
+        // Numbers are read, not seen as things in the world, so they stay on the flat layer over every foundry structure,
+        // like the HUD: a structure edge crossing a rising number would cut digits off and change the value it reads, and
+        // an enemy hidden behind a structure is still marked by its silhouette, which its number rises from.
         private sealed class Number
         {
             public Transform Transform;
@@ -112,6 +121,7 @@ namespace Cryptforge.UI
         private Sprite[] _slash;
         private Sprite[] _ring;
         private Sprite[] _abilityPulse;
+        private int _groundOrder;
         private Sprite[] _doubleSlash;
         private Sprite[] _star;
         private Sprite[] _spark;
@@ -166,6 +176,18 @@ namespace Cryptforge.UI
 
         public bool IsShaking => _shakeRemaining > 0f;
 
+        // Pool slots, and the effect on show above the floor in one with the world height of the floor it stands on, for
+        // presentation that depth-tests effects against scenery (FoundryVisibilityView). Floor pulses and numbers are
+        // never returned, and a parked slot is null.
+        internal int EffectSlotCount => _effects != null ? _effects.Length : 0;
+
+        internal Transform AboveFloorEffect(int slot, out float groundY)
+        {
+            Effect effect = _effects[slot];
+            groundY = effect.GroundY;
+            return effect.Active && effect.AboveFloor ? effect.Transform : null;
+        }
+
         private void Awake()
         {
             if (_encounter == null || _hero == null || _heroAttack == null || _camera == null || _material == null)
@@ -181,6 +203,13 @@ namespace Cryptforge.UI
             for (int i = 0; i < _watches.Length; i++)
                 _watches[i] = new EnemyWatch(this);
             _ready = true;
+        }
+
+        private void Start()
+        {
+            var arena = FindFirstObjectByType<ArenaView>();
+            if (arena != null && arena.IsFoundryRegion)
+                _groundOrder = arena.GroundEffectSortingOrder;
         }
 
         private void OnEnable()
@@ -316,9 +345,12 @@ namespace Cryptforge.UI
                 watch.Enemy = enemy;
                 watch.Root = enemy.transform;
                 watch.Look = enemy.GetComponent<EnemyLookView>();
-                // Effects land at the middle of the body, whatever look the enemy was given.
+                // Effects land at the middle of the body, whatever look the enemy was given. Only its place on screen: the
+                // foundry may have moved the body in z for a render (FoundryVisibilityView), which effects must not inherit.
                 SpriteRenderer body = enemy.GetComponentInChildren<SpriteRenderer>();
-                watch.BodyOffset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
+                Vector3 offset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
+                offset.z = 0f;
+                watch.BodyOffset = offset;
                 enemy.Damaged += watch.OnDamaged;
             }
             _watchCount = count;
@@ -356,10 +388,18 @@ namespace Cryptforge.UI
             return enemy != null ? enemy.transform.position + Vector3.up * DefaultBodyHeight : Vector3.zero;
         }
 
+        // The floor the enemy stands on (its root, which the foundry's depth never moves), for the effects on its body.
+        private static float FeetOf(EnemyWatch watch, Health enemy)
+        {
+            if (watch != null && watch.Root != null)
+                return watch.Root.position.y;
+            return enemy != null ? enemy.transform.position.y : 0f;
+        }
+
         private void OnEnemyDamaged(EnemyWatch watch, DamageContext context)
         {
             Vector3 anchor = AnchorOf(watch, watch.Enemy);
-            Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder);
+            StandOn(Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder), FeetOf(watch, watch.Enemy));
 
             bool fromHero = ReferenceEquals(context.Source, _hero);
             if (fromHero && context.IsCritical)
@@ -384,10 +424,12 @@ namespace Cryptforge.UI
 
             EnemyWatch watch = FindWatch(target);
             Vector3 anchor = AnchorOf(watch, target);
+            float ground = FeetOf(watch, target);
             switch (EffectArt.StrikeFor(weapon.Pattern.Behavior))
             {
                 case StrikeEffect.SwordSlash:
-                    Effect slash = ShowMoving(_slash, StrikeFrameDuration, _slash.Length * StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder, Vector3.zero, 0, false);
+                    Effect slash = StandOn(ShowMoving(_slash, StrikeFrameDuration, _slash.Length * StrikeFrameDuration, anchor,
+                        _sortingOrder + StrikeOrder, Vector3.zero, 0, false), ground);
                     if (UsesPaintedStrikes)
                     {
                         Vector3 direction = target.transform.position - _hero.transform.position;
@@ -397,15 +439,15 @@ namespace Cryptforge.UI
                 case StrikeEffect.StaffBlast:
                     Vector3 feet = watch != null && watch.Root != null ? watch.Root.position : target.transform.position;
                     float radius = RingScale(weapon) * EffectArt.RingFullRadius / PixelSpriteFactory.PixelsPerUnit;
-                    Effect impact = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, feet, 0,
+                    Effect impact = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, feet, _groundOrder,
                         Vector3.zero, 0, false, radius * (24f / 38));
                     impact.StaffPulse = true;
                     impact.PulseRadius = radius;
                     break;
                 default:
-                    Show(_doubleSlash, StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder);
+                    StandOn(Show(_doubleSlash, StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder), ground);
                     if (critical)
-                        Show(_star, StarFrameDuration, anchor, _sortingOrder + StarOrder);
+                        StandOn(Show(_star, StarFrameDuration, anchor, _sortingOrder + StarOrder), ground);
                     break;
             }
         }
@@ -417,14 +459,15 @@ namespace Cryptforge.UI
             return Mathf.Clamp(wantedTexels / EffectArt.RingFullRadius, MinRingScale, MaxRingScale);
         }
 
-        // A heal shows its amount over the chest; gold pops coins and shows the sum in gold.
+        // A heal shows its amount over the chest; gold pops coins and shows the sum in gold. The position is where the
+        // chest stands on the floor, so its spark and coins stand there too.
         private void OnChestOpened(ChestReward reward, Vector3 position)
         {
             Vector3 anchor = position + Vector3.up * 0.5f;
             if (reward.Kind == ChestRewardKind.Heal)
             {
                 ShowNumber(Mathf.RoundToInt(_hero.Maximum * reward.HealFraction), false, anchor);
-                Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder);
+                StandOn(Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder), position.y);
                 return;
             }
             _deathCount++;
@@ -432,8 +475,8 @@ namespace Cryptforge.UI
             {
                 float spread = (i - (CoinCount - 1) * 0.5f) * CoinSpread + (PixelNoise.Value(i, _deathCount, CoinSeed) - 0.5f) * 0.4f;
                 float launch = CoinLaunch + PixelNoise.Value(i, _deathCount, CoinSeed + 1) * 0.6f;
-                ShowMoving(_coin, CoinFrameDuration, _coinDuration, position, _sortingOrder + CoinOrder,
-                    new Vector3(spread, launch, 0f), CoinGravity, true);
+                StandOn(ShowMoving(_coin, CoinFrameDuration, _coinDuration, position, _sortingOrder + CoinOrder,
+                    new Vector3(spread, launch, 0f), CoinGravity, true), position.y);
             }
             ShowNumber(reward.Gold, true, anchor);
         }
@@ -442,7 +485,7 @@ namespace Cryptforge.UI
         private void OnAbilityUsed()
         {
             float radius = _heroAbility.Ability.Radius;
-            Effect pulse = ShowMoving(_abilityPulse, .21f, .21f, _hero.transform.position, 0,
+            Effect pulse = ShowMoving(_abilityPulse, .21f, .21f, _hero.transform.position, _groundOrder,
                 Vector3.zero, 0f, false, radius * .6f);
             pulse.AbilityPulse = true;
             pulse.PulseRadius = radius;
@@ -453,17 +496,21 @@ namespace Cryptforge.UI
         {
             EnemyWatch watch = FindWatch(enemy);
             Vector3 anchor = AnchorOf(watch, enemy);
+            // The collapse, the smoke and the swarm's coins all stand where the enemy fell.
+            float ground = FeetOf(watch, enemy);
             // Remains outlive the actor without delaying death rewards or the next wave; fallback smoke stays small.
             var painted = watch != null && watch.Look != null ? watch.Look.PaintedArt : null;
             if (painted != null)
             {
-                Effect remains = ShowMoving(painted.Death, .16f, .4f, enemy.transform.position, _sortingOrder + SmokeOrder, Vector3.zero, 0, false);
+                Effect remains = StandOn(ShowMoving(painted.Death, .16f, .4f, enemy.transform.position, _sortingOrder + SmokeOrder,
+                    Vector3.zero, 0, false), ground);
                 remains.Renderer.flipX = watch.Look.Mirrored;
                 remains.Fade = true;
             }
-            else ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
-                Vector3.up * SmokeRise, 0f, false, SmokeScale);
-            if (_encounter.GoldRewardOf(enemy) <= 0)
+            else StandOn(ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
+                Vector3.up * SmokeRise, 0f, false, SmokeScale), ground);
+            // Descent rewards now remain on the floor; its drop view is the collectible cue. Swarm pays immediately.
+            if (!_encounter.IsInSwarmRoom || _encounter.GoldRewardOf(enemy) <= 0)
                 return;
 
             _deathCount++;
@@ -471,8 +518,8 @@ namespace Cryptforge.UI
             {
                 float spread = (i - (CoinCount - 1) * 0.5f) * CoinSpread + (PixelNoise.Value(i, _deathCount, CoinSeed) - 0.5f) * 0.4f;
                 float launch = CoinLaunch + PixelNoise.Value(i, _deathCount, CoinSeed + 1) * 0.6f;
-                ShowMoving(_coin, CoinFrameDuration, _coinDuration, anchor, _sortingOrder + CoinOrder,
-                    new Vector3(spread, launch, 0f), CoinGravity, true);
+                StandOn(ShowMoving(_coin, CoinFrameDuration, _coinDuration, anchor, _sortingOrder + CoinOrder,
+                    new Vector3(spread, launch, 0f), CoinGravity, true), ground);
             }
         }
 
@@ -486,8 +533,16 @@ namespace Cryptforge.UI
             _shakeRemaining = _shakeDuration;
         }
 
-        private void Show(Sprite[] frames, float frameDuration, Vector3 origin, int sortingOrder, float scale = 1f) =>
+        private Effect Show(Sprite[] frames, float frameDuration, Vector3 origin, int sortingOrder, float scale = 1f) =>
             ShowMoving(frames, frameDuration, frames.Length * frameDuration, origin, sortingOrder, Vector3.zero, 0f, false, scale);
+
+        // Marks an effect as drawn above the floor, standing on groundY (world). Only the foundry's depth reads it.
+        private static Effect StandOn(Effect effect, float groundY)
+        {
+            effect.AboveFloor = true;
+            effect.GroundY = groundY;
+            return effect;
+        }
 
         // Takes the next pool slot round robin, so when every slot is busy the oldest effect gives way.
         private Effect ShowMoving(Sprite[] frames, float frameDuration, float lifetime, Vector3 origin, int sortingOrder,
@@ -508,6 +563,8 @@ namespace Cryptforge.UI
             effect.AbilityPulse = false;
             effect.StaffPulse = false;
             effect.PulseRadius = 0f;
+            effect.AboveFloor = false;
+            effect.GroundY = 0f;
             effect.Transform.position = origin;
             effect.Transform.localRotation = Quaternion.identity;
             effect.Transform.localScale = new Vector3(scale, scale, 1f);

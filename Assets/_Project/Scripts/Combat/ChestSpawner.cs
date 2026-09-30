@@ -30,6 +30,9 @@ namespace Cryptforge.Combat
         private int _roomNumber;
         private float _floorX;
         private float _floorY;
+        // Where the chest stands, as placed; reported on opening rather than read back from the transform, which the
+        // foundry's presentation depth may have moved in z (FoundryVisibilityView).
+        private Vector3 _spot;
         private ChestReward _reward;
         private bool _subscribed;
         // Chests placed so far in this run, counted across floors: the ordinal the run's seed uses to decide what each
@@ -48,6 +51,8 @@ namespace Cryptforge.Combat
         public bool IsOpening => _openingRemaining > 0f;
         public float ChestFloorX => _floorX;
         public float ChestFloorY => _floorY;
+        // The chest's one renderer (null if the spawner could not start), for presentation that restyles it.
+        internal SpriteRenderer Body => _renderer;
         public event Action<ChestReward, Vector3> Opened;
 
         private void Awake()
@@ -124,7 +129,8 @@ namespace Cryptforge.Combat
             IsOpen = false;
             _openingRemaining = 0f;
             _renderer.sprite = _closed;
-            _renderer.transform.position = new Vector3(_floorX, ArenaFloor.WorldY(_floorY), 0f);
+            _spot = new Vector3(_floorX, ArenaFloor.WorldY(_floorY), 0f);
+            _renderer.transform.position = _spot;
             _renderer.enabled = true;
         }
 
@@ -153,7 +159,7 @@ namespace Cryptforge.Combat
                 LastBookRarity = rarity;
                 BooksTaken++;
             }
-            Opened?.Invoke(_reward, _renderer.transform.position);
+            Opened?.Invoke(_reward, _spot);
         }
 
         private void OnDestroy()

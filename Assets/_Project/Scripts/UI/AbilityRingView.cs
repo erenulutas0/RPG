@@ -36,6 +36,9 @@ namespace Cryptforge.UI
             _renderer = ring.AddComponent<SpriteRenderer>();
             _renderer.sprite = AbilityRingArt.Get();
             ring.transform.localScale = Vector3.one * _controller.Ability.Radius;
+            var arena = FindFirstObjectByType<ArenaView>();
+            if (arena != null && arena.IsFoundryRegion)
+                _sortingOrder = arena.GroundEffectSortingOrder;
             _renderer.sortingOrder = _sortingOrder;
             // The ring is a ground effect, independent of the hero's grounded body/equipment group.
             GroundedSorting.Attach(ring.transform, _renderer.sortingLayerID, _sortingOrder);
