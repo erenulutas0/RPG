@@ -119,7 +119,8 @@ namespace Cryptforge.Core
             HeroStats.Changed += ApplyHeroStats;
             ApplyHeroStats();
             Weapon.Seed = Run.Seed;
-            Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount, HeroStats);
+            Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount, HeroStats,
+                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled);
             Forge = new ForgeService(Run, _hero);
             Checkpoint = new CheckpointService(Run);
             Choices = new RunChoices(Upgrades, Forge, Checkpoint);

@@ -477,9 +477,9 @@ namespace Cryptforge.Tests
             var hero = new HealthState(100f);
             // The budget is made first so the stat sheet starts from the bar this run actually carries; a caller that
             // hands in its own bar (a test asking what the game was before the budget) must not have it overwritten.
-            HeroStamina heroStamina = stamina ?? new HeroStamina();
+            HeroStamina heroStamina = stamina ?? HeroStamina.ForCurrentRules();
             var heroStats = new HeroStats(100f, heroSpeed, heroStamina.Bar);
-            var upgrades = new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats);
+            var upgrades = new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats, heroStamina.Enabled);
             weapon.Seed = run.Seed;
             // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
             var picker = new CardPicker(upgrades, cardSlot, preferIds, replay);

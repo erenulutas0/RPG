@@ -322,66 +322,28 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator MovementEmphasisIsQuietWhenFullAndPulsesOnlyOnDepletion()
+        public IEnumerator DeferredEnergyHidesHudAndDoesNotSlowSustainedMovement()
         {
             var movement=Object.FindFirstObjectByType<HeroMovementInput>();
-            var view=Object.FindFirstObjectByType<HeroStaminaView>();
-            movement.enabled=false;
+            var view=Object.FindFirstObjectByType<HeroStaminaView>(FindObjectsInactive.Include);
+            Assert.That(view,Is.Not.Null);
+            Assert.That(view.Track.gameObject.activeInHierarchy,Is.False);
+            Assert.That(GameObject.Find("Movement Label"),Is.Null);
+            Assert.That(movement.Stamina.Enabled,Is.False);
             foreach(var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))attack.enabled=false;
-            float quiet=view.Fill.color.a;
-            movement.Stamina.Step(.5f,true);
-            Assert.That(view.Fill.color.a,Is.GreaterThan(quiet));
-            Assert.That(view.Fill.fillAmount,Is.EqualTo(movement.Stamina.Fraction));
-            movement.Stamina.Step(movement.Stamina.Bar,true);
-            Assert.That(view.IsPulsing,Is.True);
-            Color flash=view.Track.color;
-            Time.timeScale=0;yield return new WaitForSecondsRealtime(.3f);
-            Assert.That(view.IsPulsing,Is.True);
-            Assert.That(view.Track.color,Is.EqualTo(flash),"Pause holds the one-shot feedback.");
-            Time.timeScale=1;yield return new WaitForSeconds(.3f);
-            Assert.That(view.IsPulsing,Is.False);
-            Color spent=view.Track.color;
-            Assert.That(spent,Is.Not.EqualTo(flash));
-            movement.Stamina.Step(.1f,true);
-            Assert.That(view.IsPulsing,Is.False,"Remaining empty must not retrigger.");
-            movement.Stamina.Fill();
-            Assert.That(view.Fill.color.a,Is.EqualTo(quiet));
-            var label=GameObject.Find("Movement Label").GetComponent<Text>();
-            Assert.That(label.raycastTarget,Is.False);
-            var hp=GameObject.Find("Hero Bar").GetComponent<RectTransform>();
-            var track=view.Track.rectTransform;
-            Assert.That(hp.anchoredPosition.y,Is.GreaterThan(track.anchoredPosition.y+track.rect.height+10));
-            LogAssert.NoUnexpectedReceived();
-        }
-
-        // The movement budget the player can actually see: full at the start of a wave, empty after it has been run
-        // through, and the track behind it saying so once there is no fill left to look at. The hero's own weapon is
-        // switched off so the wave cannot end mid-test and refill the bar for a reason other than standing still.
-        [UnityTest]
-        public IEnumerator TheMovementBarEmptiesWhileTheHeroRunsAndFillsAgainWhileItStands()
-        {
-            var movement = Object.FindFirstObjectByType<HeroMovementInput>();
-            var view = Object.FindFirstObjectByType<HeroStaminaView>();
-            Assert.That(view, Is.Not.Null, "The HUD carries a movement bar.");
-            movement.GetComponent<AttackController>().enabled = false;
-            Assert.That(view.Fill.fillAmount, Is.EqualTo(1f).Within(1e-3f), "A wave starts with a full bar.");
-            Assert.That(view.Fill.raycastTarget, Is.False, "The bar never takes a touch from the arena.");
-            Assert.That(view.Track.raycastTarget, Is.False);
-            Color ready = view.Track.color;
-
-            movement.Hold(new Vector2(0f, 1f));
-            yield return new WaitForSeconds(HeroStamina.DefaultBar + 0.5f);
-            Assert.That(movement.Stamina.IsEmpty, Is.True, "Walking spends it.");
-            Assert.That(view.Fill.fillAmount, Is.Zero, "An empty budget draws no fill.");
-            Assert.That(view.Track.color, Is.Not.EqualTo(ready),
-                "With no fill left to read, the track is what tells the player why the hero is slow.");
-
+            float travelled=0;
+            for(int i=0;i<6;i++)
+            {
+                float before=movement.Motion.X;
+                movement.Hold(i%2==0?Vector2.right:Vector2.left);
+                yield return new WaitForSeconds(1f);
+                travelled+=Mathf.Abs(movement.Motion.X-before);
+            }
             movement.Release();
-            yield return new WaitForSeconds(HeroStamina.DefaultBar / HeroStamina.DefaultRefill + 0.5f);
-            Assert.That(view.Fill.fillAmount, Is.EqualTo(1f).Within(1e-3f), "Standing still fills it again.");
-            Assert.That(view.Track.color, Is.EqualTo(ready));
+            Assert.That(travelled,Is.GreaterThan(movement.Motion.Speed*5f),"Six seconds of real movement must not fall to the old empty-bar speed.");
+            Assert.That(movement.Stamina.Fraction,Is.EqualTo(1f));
+            Assert.That(movement.Stamina.SpeedFactor,Is.EqualTo(1f));
             LogAssert.NoUnexpectedReceived();
         }
-
     }
 }

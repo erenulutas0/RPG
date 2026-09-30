@@ -11468,6 +11468,7 @@ MonoBehaviour:
   _movement: {fileID: 214}
   _track: {fileID: 2108032140}
   _fill: {fileID: 1450695664}
+  _label: {fileID: 1807888678}
   _readyTrack: {r: 0.13, g: 0.16, b: 0.23, a: 1}
   _spentTrack: {r: 0.36, g: 0.17, b: 0.13, a: 1}
 --- !u!114 &2108032140

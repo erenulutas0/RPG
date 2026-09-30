@@ -40,6 +40,7 @@ namespace Cryptforge.Progression
         private readonly HeroStats _heroStats;
         private readonly UpgradeOption[] _pool;
         private readonly int _choiceCount;
+        private readonly bool _movementEnergyEnabled;
         private readonly Dictionary<UpgradeOption, int> _stacks = new Dictionary<UpgradeOption, int>();
         private int _offersCreated;
         // A swarm room holds level-ups back and offers them together (docs/27 decision 7). While held, a pending level-up
@@ -70,9 +71,10 @@ namespace Cryptforge.Progression
         // heroStats may be omitted by a caller whose pool holds only weapon cards; one is made so a hero card can
         // never find nothing to write to.
         public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount,
-            HeroStats heroStats = null)
+            HeroStats heroStats = null, bool movementEnergyEnabled = true)
         {
             _run = run ?? throw new ArgumentNullException(nameof(run));
+            _movementEnergyEnabled = movementEnergyEnabled;
             _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
             _heroStats = heroStats ?? new HeroStats(100f, 2.5f, HeroStamina.DefaultBar);
             if (pool == null)
@@ -271,6 +273,8 @@ namespace Cryptforge.Progression
             for (int i = 0; i < _pool.Length; i++)
             {
                 UpgradeOption option = _pool[i];
+                if (!_movementEnergyEnabled && option.Stat == UpgradeStat.StaminaBar)
+                    continue;
                 if (_stacks[option] >= option.MaxStacks)
                     continue;
                 if (option.IsEvolution)

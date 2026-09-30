@@ -17,6 +17,21 @@ namespace Cryptforge.Tests
         private static HeroStamina Unlimited() => new HeroStamina(100000f, HeroStamina.DefaultRefill, HeroStamina.DefaultEmptySpeed);
 
         [Test]
+        public void CurrentRulesAllowContinuousMovementWithoutSpendingEnergy()
+        {
+            var stamina=HeroStamina.ForCurrentRules();
+            int changes=0;stamina.Changed+=()=>changes++;
+            for(int i=0;i<3600;i++)stamina.Step(1f/60f,true);
+            Assert.That(stamina.Enabled,Is.False);
+            Assert.That(stamina.SpeedFactor,Is.EqualTo(1f));
+            Assert.That(stamina.Current,Is.EqualTo(stamina.Bar));
+            Assert.That(changes,Is.Zero);
+            var run=DescentSimulation.Run(new[]{DescentSimulation.DensityProofTrailing},0,false,null,
+                DescentSimulation.Sword(),route:new KiteRoute());
+            Assert.That(run.StaminaEmptySeconds,Is.Zero,"Simulation defaults must match the playable rules.");
+        }
+
+        [Test]
         public void WalkingSpendsExactlyTheSecondsItWalksAndStandingPutsThemBackAtTheRefillRate()
         {
             var stamina = new HeroStamina(2f, 1.5f, 0.4f);

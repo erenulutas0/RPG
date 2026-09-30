@@ -18,6 +18,12 @@ namespace Cryptforge.Combat
         public const float DefaultBar = 2f;
         public const float DefaultRefill = 1.5f;
         public const float DefaultEmptySpeed = 0.4f;
+        // Owner decision 2026-09-23: defer energy while evaluating large-map traversal.
+        // Explicit budget instances remain available for historical experiments.
+        public static bool CurrentRulesEnabled => false;
+        public bool Enabled { get; }
+        public static HeroStamina ForCurrentRules() =>
+            new HeroStamina(DefaultBar, DefaultRefill, DefaultEmptySpeed, CurrentRulesEnabled);
 
         // Seconds of walking a full bar buys.
         public float Bar { get; private set; }
@@ -30,7 +36,7 @@ namespace Cryptforge.Combat
         public float Fraction => Current / Bar;
         public bool IsEmpty => Current <= 0f;
         // What to multiply this frame's step by before walking. Read it before moving; spend afterwards.
-        public float SpeedFactor => IsEmpty ? EmptySpeed : 1f;
+        public float SpeedFactor => Enabled && IsEmpty ? EmptySpeed : 1f;
 
         // Raised only when the bar actually changed, so a view can bind to it without polling.
         public event Action Changed;
@@ -39,7 +45,7 @@ namespace Cryptforge.Combat
         {
         }
 
-        public HeroStamina(float bar, float refill, float emptySpeed)
+        public HeroStamina(float bar, float refill, float emptySpeed, bool enabled = true)
         {
             RequirePositiveFinite(bar, nameof(bar));
             RequirePositiveFinite(refill, nameof(refill));
@@ -50,6 +56,7 @@ namespace Cryptforge.Combat
             Refill = refill;
             EmptySpeed = emptySpeed;
             Current = bar;
+            Enabled = enabled;
         }
 
         // Spends or restores the bar for one frame. `moved` is whether the hero really changed position on it.
@@ -57,7 +64,7 @@ namespace Cryptforge.Combat
         {
             if (float.IsNaN(deltaTime) || float.IsInfinity(deltaTime) || deltaTime < 0f)
                 throw new ArgumentOutOfRangeException(nameof(deltaTime));
-            if (deltaTime == 0f)
+            if (!Enabled || deltaTime == 0f)
                 return;
 
             float was = Current;

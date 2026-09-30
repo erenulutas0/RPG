@@ -14,6 +14,7 @@ namespace Cryptforge.UI
         [SerializeField] private HeroMovementInput _movement;
         [SerializeField] private Image _track;
         [SerializeField] private Image _fill;
+        [SerializeField] private GameObject _label;
         [SerializeField] private Color _readyTrack = new Color(0.18f, 0.22f, 0.29f, 1f);
         [SerializeField] private Color _spentTrack = new Color(0.36f, 0.17f, 0.13f, 1f);
         private HeroStamina _stamina;
@@ -40,6 +41,13 @@ namespace Cryptforge.UI
             }
 
             _stamina = _movement.Stamina;
+            if (!_stamina.Enabled)
+            {
+                if (_label != null) _label.SetActive(false);
+                _track.gameObject.SetActive(false);
+                enabled = false;
+                return;
+            }
             _fillColor = _fill.color;
             _stamina.Changed += Refresh;
             Refresh();

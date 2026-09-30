@@ -35,6 +35,25 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void DeferredEnergyCannotOfferOrGrantAnEnergyCard()
+        {
+            var run=new RunState(10);
+            var stamina=Card(UpgradeStat.StaminaBar,ModifierOperation.Flat,1f);
+            var damage=Card(UpgradeStat.Damage,ModifierOperation.Flat,1f);
+            var service=new UpgradeService(run,new WeaponRuntime(10f,1f,2f),new[]{stamina,damage},1,
+                Sheet(),movementEnergyEnabled:false);
+            run.AddExperience(10);
+            Assert.That(service.CurrentOffer.Choices[0],Is.SameAs(damage));
+            for(int i=0;i<5;i++)
+            {
+                Assert.That(service.TryGrantBook(i,out var book,out var rarity),Is.True);
+                Assert.That(book,Is.SameAs(damage));
+            }
+            Assert.That(service.TryGrantBook(6,out var exhausted,out var lastTier),Is.False);
+            Assert.That(service.StacksOf(stamina),Is.Zero);
+        }
+
+        [Test]
         public void ARangeCardLengthensTheWeaponsReach()
         {
             var weapon = new WeaponRuntime(10f, 0.8f, 2.1f);

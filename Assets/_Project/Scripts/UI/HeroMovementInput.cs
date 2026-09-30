@@ -55,7 +55,7 @@ namespace Cryptforge.UI
             }
 
             _motion = new HeroMotion(_speed);
-            Stamina = new HeroStamina(_staminaBar, _staminaRefill, _staminaEmptySpeed);
+            Stamina = new HeroStamina(_staminaBar, _staminaRefill, _staminaEmptySpeed, HeroStamina.CurrentRulesEnabled);
             _motion.Place(transform.position.x, ArenaFloor.FloorY(transform.position.y), _arena.Geometry);
             // Every wave starts with a full bar: the pause while the next pack forms up is the hero's breather, and it
             // keeps the budget in step with the Descent simulation, which fills it at the same moment.
