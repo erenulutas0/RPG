@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forged panel import</title>
+<style>
+  :root { --bg:#14151a; --fg:#e7e3da; --muted:#9a968c; --line:#2b2d35; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } p { color:var(--muted); margin:0 0 24px; }
+  h2 { font-size:16px; margin:32px 0 12px; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  figure { margin:0; } img { width:100%; height:auto; border:1px solid var(--line); display:block; }
+  figcaption { color:var(--muted); font-size:13px; margin-top:4px; }
+  @media (max-width:640px) { .pair { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Forged UI panel import — 2026-09-30</h1>
+<p>UI_Panel_ForgedBlank_v2: 2172x724 RGB24 uncompressed (4.5 MB) to 1024x341 ASTC 4x4 on Android (345 KB). Actual Unity captures, same camera and state; the Editor shows the 1024 resize but not ASTC. See README.md.</p>
+<h2>Level-up choice (the panel at its largest)</h2>
+<div class="pair">
+  <figure><img src="before/hud-choice.png" alt="Before (2172 source)"><figcaption>Before (2172 source)</figcaption></figure>
+  <figure><img src="after/hud-choice.png" alt="After (1024 import)"><figcaption>After (1024 import)</figcaption></figure>
+</div>
+<h2>Corners and edges at 2x (left before, right after)</h2>
+<figure><img src="crops-2x.png" alt="2x crops"><figcaption>Modal corner, card edge, HUD corner, HUD right edge</figcaption></figure>
+<h2>HUD in play</h2>
+<div class="pair">
+  <figure><img src="before/start.png" alt="Before"><figcaption>Before</figcaption></figure>
+  <figure><img src="after/start.png" alt="After"><figcaption>After</figcaption></figure>
+</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hidden enemy silhouettes</title>
+<style>
+  :root { --bg:#14151a; --fg:#e7e3da; --muted:#9a968c; --line:#2b2d35; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } p { color:var(--muted); margin:0 0 24px; }
+  h2 { font-size:16px; margin:32px 0 12px; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  figure { margin:0; } img { width:100%; height:auto; border:1px solid var(--line); display:block; }
+  figcaption { color:var(--muted); font-size:13px; margin-top:4px; }
+  @media (max-width:640px) { .pair { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Hidden enemy silhouettes — 2026-09-30</h1>
+<p>Actual Unity captures, same camera and state. See README.md.</p>
+<h2>Enemy behind the south boiler</h2>
+<div class="pair">
+  <figure><img src="../foundry-depth-mass-01/after/depth-enemy-behind-tower.png" alt="Before: the hidden part vanishes"><figcaption>Before: the hidden part vanishes</figcaption></figure>
+  <figure><img src="after/depth-enemy-behind-tower.png" alt="After: ember silhouette where the boiler covers it"><figcaption>After: ember silhouette where the boiler covers it</figcaption></figure>
+</div>
+<h2>Open court: no silhouettes</h2>
+<div class="pair">
+  <figure><img src="../foundry-depth-mass-01/after/start.png" alt="Before"><figcaption>Before</figcaption></figure>
+  <figure><img src="after/start.png" alt="After"><figcaption>After</figcaption></figure>
+</div>
+<h2>Hero in front of a north boiler</h2>
+<div class="pair">
+  <figure><img src="../foundry-depth-mass-01/after/depth-hero-before-tower.png" alt="Before"><figcaption>Before</figcaption></figure>
+  <figure><img src="after/depth-hero-before-tower.png" alt="After"><figcaption>After</figcaption></figure>
+</div>
+<h2>Device (Samsung S23, installed build)</h2>
+<div class="pair">
+  <figure><img src="device.png" alt="Device capture"><figcaption>Boiler compound corner on the phone (no enemy behind a structure in this frame)</figcaption></figure>
+  <figure><img src="../../2026-09-23/foundry-layout-01/foundry-v1.png" alt="Approved reference"><figcaption>Approved reference</figcaption></figure>
+</div>
+</main>
+</body>
+</html>
