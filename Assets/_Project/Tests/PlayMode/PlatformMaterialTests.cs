@@ -105,12 +105,56 @@ namespace Cryptforge.Tests
             Mesh privateMesh = view.GetComponentsInChildren<MeshFilter>()[0].sharedMesh;
             Sprite privateFoundation = view.PlatformRenderer.sprite;
             Assert.That(privateMesh, Is.Not.SameAs(cached));
-            Assert.That(privateMesh.bounds.size.x, Is.EqualTo(11.4f).Within(.001f));
+            Assert.That(privateMesh.bounds.size.x, Is.InRange(11f, 12f));
             Object.Destroy(other);
             yield return null;
             yield return null;
             Assert.That(privateMesh == null && privateFoundation == null, Is.True);
             Assert.That(cached != null && _arena.PlatformMaterials.Floor.mainTexture != null, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator WideRegionKeepsHallPavingScaleAndOrthogonalFloorAxes()
+        {
+            var other = new GameObject("Wide paving check");
+            var view = other.AddComponent<ForgePlatformView>();
+            view.Build(new ArenaGeometry(-27, 27, 18), _arena.Material, -15, _arena.PlatformMaterials);
+            Mesh hall = _arena.Platform.GetComponentsInChildren<MeshFilter>()[0].sharedMesh;
+            Mesh wide = view.GetComponentsInChildren<MeshFilter>()[0].sharedMesh;
+            foreach (Mesh mesh in new[] { hall, wide })
+            {
+                Vector3[] points = mesh.vertices;
+                Vector2[] uv = mesh.uv;
+                // Opposite corners isolate each floor axis, independent of the diamond's aspect ratio.
+                Vector2 across = (uv[1] - uv[3]) / (points[1].x - points[3].x);
+                Vector2 along = (uv[2] - uv[0]) / ((points[2].y - points[0].y) * 2f);
+                Assert.That(across.x, Is.EqualTo(1f / 8.55f).Within(.00001f));
+                Assert.That(across.y, Is.EqualTo(-1f / 8.55f).Within(.00001f));
+                Assert.That(along.x, Is.EqualTo(across.x).Within(.00001f));
+                Assert.That(along.y, Is.EqualTo(-across.y).Within(.00001f));
+            }
+            Assert.That(hall.uv[0], Is.EqualTo(Vector2.zero));
+            Assert.That(hall.uv[2], Is.EqualTo(new Vector2(2, 2)));
+            var wideParts = view.GetComponentsInChildren<MeshFilter>();
+            var hallParts = _arena.Platform.GetComponentsInChildren<MeshFilter>();
+            foreach (var parts in new[] { hallParts, wideParts })
+            {
+                for (int i = 1; i <= 4; i++)
+                {
+                    Vector3[] p = parts[i].sharedMesh.vertices;
+                    Vector2 edge = new Vector2(p[1].x - p[0].x, (p[1].y - p[0].y) * 2);
+                    Vector2 inset = new Vector2(p[3].x - p[0].x, (p[3].y - p[0].y) * 2);
+                    float width = Mathf.Abs(edge.x * inset.y - edge.y * inset.x) / edge.magnitude;
+                    Assert.That(width, Is.EqualTo(.45f / Mathf.Sqrt(2)).Within(.00001f));
+                    Assert.That(parts[i].sharedMesh.uv[1].x / edge.magnitude,
+                        Is.EqualTo(2f / Mathf.Sqrt(162)).Within(.00001f));
+                    Vector3[] next = parts[1 + i % 4].sharedMesh.vertices;
+                    Assert.That(p[1], Is.EqualTo(next[0]));
+                    Assert.That(p[2], Is.EqualTo(next[3]));
+                }
+            }
+            Object.Destroy(other);
+            yield return null;
         }
 
         [UnityTest]

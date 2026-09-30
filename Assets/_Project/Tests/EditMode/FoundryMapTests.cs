@@ -1,0 +1,82 @@
+using Cryptforge.Art;
+using Cryptforge.Combat;
+using NUnit.Framework;
+
+namespace Cryptforge.Tests
+{
+    public sealed class FoundryMapTests
+    {
+        [Test] public void StraightBridgeBlocksSidewaysMotionAndConnectsToCourt()
+        {
+            FoundryMap.ToFloor(-23,-23,out float x,out float y);
+            FoundryMap.ToFloor(8,-8,out float dx,out float dy);
+            FoundryMap.Move(ref x,ref y,dx,dy,.6f);
+            FoundryMap.ToDesign(x,y,out float u,out float v);
+            Assert.That(u-v,Is.LessThanOrEqualTo(2.81f));
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            FoundryMap.ToFloor(-23,-23,out x,out y);
+            FoundryMap.ToFloor(0,0,out float tx,out float ty);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.True);
+        }
+        [Test] public void ActualPackMotionPursuesAroundSideVoid()
+        {
+            FoundryMap.ToFloor(-15,6,out float x,out float y);
+            FoundryMap.ToFloor(0,6,out float hx,out float hy);
+            var pack=new PackMotion(.9f,2f,ArenaGeometry.Foundry,hx,hy);
+            pack.Add(new HealthState(50),new EntryPlacement(EntrySide.Left,0,x,y),2.5f,1.2f);
+            for(int frame=0;frame<3600&&!pack.HasArrived(0);frame++)
+            {
+                pack.Step(1f/60,hx,hy);
+                Assert.That(FoundryMap.Segment(x,y,pack.XOf(0),pack.YOf(0),.6f),Is.True);
+                x=pack.XOf(0);y=pack.YOf(0);
+            }
+            Assert.That(pack.HasArrived(0),Is.True,$"Enemy {x},{y}; hero {hx},{hy}; distance {ArenaFloor.FloorDistanceSquared(x,y,hx,hy)}");
+        }
+        [TestCase(.5f)]
+        [TestCase(.61f)]
+        [TestCase(.99f)]
+        [TestCase(.01f)]
+        public void EveryInteriorCellCanSpawnTenWithoutOverlapOrVoid(float offset)
+        {
+            var points=new EntryPlacement[10];
+            for(int u=-28;u<32;u++)for(int v=-28;v<18;v++)
+            {
+                FoundryMap.ToFloor(u+offset,v+offset,out float x,out float y);
+                if(!FoundryMap.Contains(x,y,.6f))continue;
+                FoundryMap.PlacePack(0,10,x,y,.9f,points);
+                for(int i=0;i<10;i++)
+                {
+                    Assert.That(FoundryMap.Contains(points[i].X,points[i].Y,.6f),Is.True);
+                    Assert.That(FoundryMap.Segment(x,y,points[i].X,points[i].Y,.6f),Is.True);
+                    for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(points[i].X,points[i].Y,points[j].X,points[j].Y),Is.GreaterThanOrEqualTo(.9f*.9f));
+                }
+            }
+        }
+        [Test] public void LongHeroStepCannotCrossTheSideHole()
+        {
+            FoundryMap.ToFloor(-15,6,out float x,out float y);
+            FoundryMap.ToFloor(17,0,out float dx,out float dy);
+            FoundryMap.Move(ref x,ref y,dx,dy,.6f);
+            FoundryMap.ToDesign(x,y,out float u,out _);
+            Assert.That(u,Is.LessThan(-12));
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+        [Test] public void PursuitRoutesAroundHoleAndThroughPassage()
+        {
+            foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f}})
+            {
+                FoundryMap.ToFloor(-15,6,out float x,out float y);
+                FoundryMap.ToFloor(goal[0],goal[1],out float hx,out float hy);
+                var route=new FoundryPursuit();
+                for(int tick=0;tick<6000&&ArenaFloor.FloorDistanceSquared(x,y,hx,hy)>.04f;tick++)
+                {
+                    float tx=hx,ty=hy;route.Target(x,y,hx,hy,ref tx,ref ty);
+                    float dx=tx-x,dy=ty-y;float length=(float)System.Math.Sqrt(dx*dx+dy*dy);
+                    if(length>0)FoundryMap.Move(ref x,ref y,dx/length*System.Math.Min(.08f,length),dy/length*System.Math.Min(.08f,length),.6f);
+                    Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+                }
+                Assert.That(ArenaFloor.FloorDistanceSquared(x,y,hx,hy),Is.LessThanOrEqualTo(.04f),"A routed enemy must reach the hero.");
+            }
+        }
+    }
+}

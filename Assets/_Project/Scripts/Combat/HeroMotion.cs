@@ -46,6 +46,10 @@ namespace Cryptforge.Combat
             float stride = Speed * deltaTime * strength;
             float dx = steerX / length * stride;
             float dy = steerY / length * stride;
+            if (geometry.IsFoundry)
+            {
+                float x=X,y=Y;bool moved=FoundryMap.Move(ref x,ref y,dx,dy,EdgeMargin);X=x;Y=y;return moved;
+            }
             if (TryPlace(X + dx, Y + dy, geometry))
                 return true;
 

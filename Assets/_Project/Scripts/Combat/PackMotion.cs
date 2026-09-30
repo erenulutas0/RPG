@@ -50,6 +50,7 @@ namespace Cryptforge.Combat
         private readonly float _spreadWidth;
         private readonly bool _bounded;
         private readonly ArenaGeometry _platform;
+        private readonly FoundryPursuit _foundryPursuit;
         private readonly IDamageable[] _bodies = new IDamageable[PackLayout.MaxPackSize];
         private readonly float[] _x = new float[PackLayout.MaxPackSize];
         private readonly float[] _y = new float[PackLayout.MaxPackSize];
@@ -92,6 +93,7 @@ namespace Cryptforge.Combat
 
             _bounded = true;
             _platform = platform;
+            if(platform.IsFoundry)_foundryPursuit=new FoundryPursuit();
             HeroX = heroX;
             HeroY = heroY;
         }
@@ -258,6 +260,7 @@ namespace Cryptforge.Combat
             float targetY = heroY + directionY * _stop[i];
             if (_bounded && !_platform.IsOnPlatform(targetX, targetY, HeroMotion.EdgeMargin))
                 TurnOntoPlatform(i, heroX, heroY, ref targetX, ref targetY);
+            _foundryPursuit?.Target(_x[i],_y[i],heroX,heroY,ref targetX,ref targetY);
             float dx = targetX - _x[i];
             float dy = targetY - _y[i];
             float remainingSquared = dx * dx + dy * dy;
@@ -268,6 +271,7 @@ namespace Cryptforge.Combat
 
             float nextX = stride >= remaining ? targetX : _x[i] + dx / remaining * stride;
             float nextY = stride >= remaining ? targetY : _y[i] + dy / remaining * stride;
+            if(_platform.IsFoundry&&!FoundryMap.Segment(_x[i],_y[i],nextX,nextY,HeroMotion.EdgeMargin))return Walk.Waited;
             int blocker = Blocker(i, living, nextX, nextY);
             if (blocker == NoEnemy)
             {
@@ -316,6 +320,7 @@ namespace Cryptforge.Combat
 
             float slidX = _x[i] + slideX;
             float slidY = _y[i] + slideY;
+            if(_platform.IsFoundry&&!FoundryMap.Segment(_x[i],_y[i],slidX,slidY,HeroMotion.EdgeMargin))return Walk.Waited;
             float leftX = targetX - slidX;
             float leftY = targetY - slidY;
             if (leftX * leftX + leftY * leftY >= remainingSquared)

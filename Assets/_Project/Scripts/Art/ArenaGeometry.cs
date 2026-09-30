@@ -12,8 +12,10 @@ namespace Cryptforge.Art
         public readonly float NearCorner;
         public readonly float FarCorner;
         public readonly float HalfWidth;
+        public readonly bool IsFoundry;
+        public static ArenaGeometry Foundry => new ArenaGeometry(-38,40,38,true);
 
-        public ArenaGeometry(float nearCorner, float farCorner, float halfWidth)
+        public ArenaGeometry(float nearCorner, float farCorner, float halfWidth, bool isFoundry = false)
         {
             if (!(farCorner > nearCorner) || float.IsInfinity(farCorner) || float.IsInfinity(nearCorner))
                 throw new ArgumentOutOfRangeException(nameof(farCorner), "The far corner must lie beyond the near corner.");
@@ -23,6 +25,7 @@ namespace Cryptforge.Art
             NearCorner = nearCorner;
             FarCorner = farCorner;
             HalfWidth = halfWidth;
+            IsFoundry = isFoundry;
         }
 
         public float Middle => (NearCorner + FarCorner) / 2f;
@@ -34,13 +37,14 @@ namespace Cryptforge.Art
         public float WorldMiddle => ArenaFloor.WorldY(Middle);
 
         public bool IsOnPlatform(float floorX, float floorY) =>
-            Math.Abs(floorX) / HalfWidth + Math.Abs(floorY - Middle) / HalfDepth <= 1f;
+            IsFoundry ? FoundryMap.Contains(floorX,floorY,0) : Math.Abs(floorX) / HalfWidth + Math.Abs(floorY - Middle) / HalfDepth <= 1f;
 
         // True when the floor point lies on the top at least margin floor units inside its rim.
         public bool IsOnPlatform(float floorX, float floorY, float margin)
         {
             if (float.IsNaN(margin) || margin < 0f)
                 throw new ArgumentOutOfRangeException(nameof(margin));
+            if (IsFoundry) return FoundryMap.Contains(floorX,floorY,margin);
             float halfWidth = HalfWidth - margin;
             float halfDepth = HalfDepth - margin;
             if (halfWidth <= 0f || halfDepth <= 0f)

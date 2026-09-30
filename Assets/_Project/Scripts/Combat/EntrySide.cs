@@ -165,6 +165,7 @@ namespace Cryptforge.Combat
                 throw new ArgumentOutOfRangeException(nameof(minimumSeparation));
 
             float separationSquared = minimumSeparation * minimumSeparation;
+            if (platform.IsFoundry) { FoundryMap.PlacePack(waveOrdinal,count,heroX,heroY,minimumSeparation,placements);return; }
             int openSides = AllSides;
             while (true)
             {

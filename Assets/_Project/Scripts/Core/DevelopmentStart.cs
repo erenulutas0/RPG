@@ -19,6 +19,8 @@ namespace Cryptforge.Core
         public const string StartFloorFileName = "start-floor.txt";
         // A run seed, so two development runs can be handed the same offers: a whole number, or any text, hashed.
         public const string RunSeedFileName = "run-seed.txt";
+        // Any text in it arms the depth proof on the foundry map (DepthProofArrangement), a device check of structure depth.
+        public const string DepthProofFileName = "depth-proof.txt";
         // The Resources subfolder the development-only floors live in; nothing else may live there, because every floor in
         // it is a candidate and Resources folders ship with the build whether or not anything reads them.
         public const string ResourcesFolder = "Development";
@@ -27,6 +29,20 @@ namespace Cryptforge.Core
         // points the profile at a temporary folder writes and deletes this with it.
         public static string StartFloorPath => Path.Combine(ProfileLocation.Resolve(), FolderName, StartFloorFileName);
         public static string RunSeedPath => Path.Combine(ProfileLocation.Resolve(), FolderName, RunSeedFileName);
+        public static string RegionPreviewPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "region-preview.txt");
+
+        // Separate from floor selection: this changes only the development arena, not authored progression.
+        public static bool WideRegionPreview() => (Application.isEditor || Debug.isDebugBuild) &&
+            string.Equals(ReadFirstLine(RegionPreviewPath), "wide", StringComparison.Ordinal);
+        public static bool FoundryRegionPreview() => (Application.isEditor || Debug.isDebugBuild) &&
+            string.Equals(ReadFirstLine(RegionPreviewPath), "foundry", StringComparison.Ordinal);
+
+        public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
+
+        // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file
+        // leaves the run alone. It only arranges the foundry, so it means nothing without the foundry preview.
+        public static bool DepthProof() => (Application.isEditor || Debug.isDebugBuild) &&
+            !string.IsNullOrEmpty(ReadFirstLine(DepthProofPath));
 
         // The seed the file names, under the same rules as the floor: only the Editor and a development build look, and
         // a missing, empty or unreadable file means no seed was chosen.
