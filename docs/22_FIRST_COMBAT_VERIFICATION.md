@@ -510,7 +510,7 @@ Read ArtDirection/2026-09-23/foundry-playable-01/README.md. New concave developm
 FoundryRegionView gained route inlays and provisional entry/salvage/furnace/gate landmarks. Walkable geometry and gameplay are unchanged. Compile check0 warnings/errors; integrity494 GUIDs/568 scene objects; refreshed real Unity five-zone walk1 passed; full pinned-Unity gate EditMode402/402 and PlayMode131/131 passed. The Android build follows this successful gate. No new calculation tests were added for this presentation-only pass. Existing pause/reload/disposal and navigation coverage ran unchanged.
 
 
-## Photograph-led build ready — installation pending active-run reply
+## Photograph-led build ready â€” installation pending active-run reply
 
 Final gate: pure388; Unity EditMode403 /PlayMode131; graphics1; compile clean; integrity494 GUIDs/568 scene objects. Android exit0, APK33,758,335bytes, SHA256 A8ED8E1C8F0DEFCF341CA998237E32A19E354794A9873D9B130EDC4B1C9C64A3. Built but NOT installed. Device still has648EA6 rough linked-map build.
 

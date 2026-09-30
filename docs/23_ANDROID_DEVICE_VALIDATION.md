@@ -1095,26 +1095,26 @@ Owner confirmed the game was closed and authorized continuation. Fresh backup Te
 Launched normal authored Ember Hall1/6 with retained region-preview=foundry. Guarded pause/resume,8-second northwest drag, pause: camera moved across square toward side/furnace junction;3 enemies defeated, XP crystals visible. Left paused at85/100HP,level0,XP0/10,runGold0. No upgrade or loadout selection. This is a short device movement/render smoke, not full map traversal/performance acceptance. All five paths were verified in Unity in the previous slice. Current-process log had no matched FATAL EXCEPTION/NullReferenceException/MissingReferenceException/InvalidOperationException. Evidence in foundry-playable-01/device-rough. Latest installed648 supersedes7FB and pending-install entries. Device ready for owner Resume.
 
 
-## Photograph-led build ready — installation pending active-run reply
+## Photograph-led build ready â€” installation pending active-run reply
 
 Final gate: pure388; Unity EditMode403 /PlayMode131; graphics1; compile clean; integrity494 GUIDs/568 scene objects. Android exit0, APK33,758,335bytes, SHA256 A8ED8E1C8F0DEFCF341CA998237E32A19E354794A9873D9B130EDC4B1C9C64A3. Built but NOT installed. Device still has648EA6 rough linked-map build.
 
 Read-only screenshot during this slice found a new owner run at Warden's Crucible1/6's room6,116 run gold,21/100HP,level7 upgrade choice. Asked whether owner will finish or authorizes abandoning for install; no reply yet. No tap/swipe/install/force-stop/save edit performed in this slice. Previous last-known profile196/28118 is not freshly verified here; inspect again before install. Screenshot TestResults/foundry-install-20260923-182322/live/before-layout-update.png. Owner's earlier closed-game authorization applied to the completed648 install, not this newly observed active run.
 
 
-## 2026-09-23 — Photograph-led map installed on S23
+## 2026-09-23 â€” Photograph-led map installed on S23
 
 Owner said continue; fresh inspection found launcher focused, game closed. Fresh backup TestResults/foundry-photo-install-20260923-195830. Profile197/28234gold/defaultSword/SecondWind/deepest3: the previous116gold had been banked before this session. Installed APK A8ED8E1C8F0DEFCF341CA998237E32A19E354794A9873D9B130EDC4B1C9C64A3 via install-r; Success and installed base.apk hash matched. All10 files identical immediately after installation; profile and backup identical after smoke. No restore or save edit. Foundry flag retained.
 
 First launch request failed during an ADB daemon connection interruption; game remained on launcher and input guards rejected taps. Rechecked device and retried launch only, not installation. Successful start paused at100HP. Guarded resume /12-second leftward drag /pause confirmed camera movement, combat and visible new court/shaft area. Left Ember Hall1/6,wave3/3,77HP,level0,XP0/10,runGold0,paused. No loadout or upgrade choice. Current-process log had no matched FATAL EXCEPTION/NullReferenceException/MissingReferenceException/InvalidOperationException. Short S23 smoke only, not complete physical-device traversal or performance proof. Earlier five-region Unity walk remains the traversal evidence. Screenshots device-photo. Supersedes pending-install and648 device status. No code or rebuild in this device turn.
 
 
-## Final build status — 2026-09-23
+## Final build status â€” 2026-09-23
 
 Full gate403 EditMode /131 PlayMode passed; Android exit0. APK48AB4DFA3F0AC71D8B9B6AF56A25F95B8E57B5D1FDADB897805FBFCD49050CA5,29,253,015bytes, built NOT installed. Device read-only check found NotificationShade/keyguard showing; guarded screenshot refused as designed. Asked owner to unlock and leave game closed or continue only on computer. No answer yet; no taps, installation, force-stop or profile operation this slice. Installed phone remains A8ED8E1C8F0DEFCF341CA998237E32A19E354794A9873D9B130EDC4B1C9C64A3. Last recorded profile197/28234 is historical until freshly read again.
 
 
-## 2026-09-23 — Installed; USB lost before gate-position review
+## 2026-09-23 â€” Installed; USB lost before gate-position review
 
 Owner unlocked and requested continuation. Fresh inspection launcher/unlocked. Backup TestResults/gate-install-20260923-211101/before: profile197/28234gold/defaultSword/SecondWind/deepest3. Installed48AB4DFA3F0AC71D8B9B6AF56A25F95B8E57B5D1FDADB897805FBFCD49050CA5, adb Success and base.apk hash matched. All10 files byte-identical immediately after installation. Foundry flag retained. No code/build changes this turn.
 
