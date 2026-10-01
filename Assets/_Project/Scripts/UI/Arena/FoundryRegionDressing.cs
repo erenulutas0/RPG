@@ -343,7 +343,8 @@ namespace Cryptforge.UI
         private int _chainLink;
         private static readonly Vector2 ChainLight=new Vector2(-.6f,.8f);
         // Near-black forged iron (#1E1C22 over the plate centre), warm bronze wear on the lit rim, faint cool ambient rim.
-        private static readonly Color ChainIron=new Color(.6f,.54f,.58f),ChainBronze=new Color(2f,1.5f,.95f),
+        // The bronze peaks at 1.9, under the +/-2 the sprite shaders' fixed4 colour interpolator guarantees (FoundryRegionTests).
+        private static readonly Color ChainIron=new Color(.6f,.54f,.58f),ChainBronze=new Color(1.9f,1.425f,.9f),
             ChainCool=new Color(.95f,1.05f,1.35f);
 
         private void Chain(ArenaView arena,Vector3 a,Vector3 b,float width,float order)
