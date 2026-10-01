@@ -1388,3 +1388,7 @@ Owner handed over the phone (launcher, game not running). Pushed `development/de
 ## 2026-09-30 - Foundry reference pass installed on S23
 
 Owner said the phone was free; fresh check: Chrome in front, game not running. Backups in `TestResults/foundry-refpass-install-20260930` (profile revision 221). `adb install -r` of APK 37,022,536 bytes, SHA-256 8F4C2C76A123C4E22293B4DF610BA0B224B3F78367F526423197CA1B90451F42: Success, hash matches; profile and backup unchanged. One launch, one short drag: violet-grey court with lit brass compass/lozenges and the bridge-head brazier seen on device. Logcat 0 exception/shader-error matches; app sent Home; development folder unchanged. Proof `ArtDirection/2026-09-30/foundry-reference-pass-01/device-*.png`.
+
+## 2026-10-01 - Foundry night pass installed on S23
+
+Owner reconnected the phone and asked to continue. Fresh check: launcher in front, game not running. Backups in `TestResults/foundry-night-install-20261001` (profile revision 221). `adb install -r` of APK 32,374,835 bytes, SHA-256 81299787DDBDEFEE455560EF17F8102873C1CCC931787417A7B14A687487497D: Success, hash matches; profile and backup unchanged. With `development/render-stats.txt`: one launch, two short drags (ashlar court, rounded pit collar seen); 59.9 fps, GPU 3.0-3.3 ms, 52-81 draws, 61k triangles, 128 MB. Flag removed, app stopped; logcat 0 exception/shader-error matches. Proof `ArtDirection/2026-10-01/foundry-night-01/`.

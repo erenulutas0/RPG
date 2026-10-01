@@ -762,3 +762,7 @@ Actual Unity captures against the effect/light pass (`ArtDirection/2026-09-30/fo
 ## 2026-09-30 - Foundry reference pass verified in Unity
 
 Actual Unity captures against the balustrade pass and beside the reference (`ArtDirection/2026-09-30/foundry-reference-pass-01/`): violet-grey court with orange pit rim and boiler aprons, lit brass decals, nine heavy chains, bridge-head braziers and banners, finials painted correctly against the rail. Static budget 17 renderers / 63,644 vertices. Full gate EditMode 410/410, PlayMode 134/134, Android build exit 0; integrity 524 / 1,099 / 568 passed.
+
+## 2026-10-01 - Foundry night pass verified in Unity
+
+Actual Unity captures against the reference pass (`ArtDirection/2026-10-01/foundry-night-01/`): ashlar court, rounded pit collar, clutter clusters and gate braziers, the bridge end kerb no longer painted over the coping. Static budget 17 renderers / 71,456 vertices. `FoundryRegionTests` now also asserts every region vertex colour x material tint in [0, 2) and that floor decals sort at the paving's rank and after it. Full gate EditMode 410/410, PlayMode 134/134, Android build exit 0; integrity 525 / 1,099 / 568 passed.

@@ -626,3 +626,8 @@ No raster art generated. Integrated: the slit parapet became a stone balustrade 
 ## 2026-09-30 - Foundry reference pass: calibrated floor light, lit decals, abyss chains, bridge head
 
 No raster art generated. Integrated: floor light calibrated against measurements of the reference (violet-grey open court, tighter rose/orange pools; `FoundryRegionFinish.cs`); flush floor decals lit by the floor light at emit, compass lozenges on brass (`FoundryRegionView.cs`, `FoundryRegionHeraldry.cs`); six new heavy chains into the abyss, bridge-head braziers and banners cut from the gate facade, finial paint order fixed (`FoundryRegionMassing.cs`, `FoundryRegionDressing.cs`, `FoundryRegionSite.cs`). Installed and seen on S23 (see 23). Proof `ArtDirection/2026-09-30/foundry-reference-pass-01/`.
+
+
+## 2026-10-01 - Foundry night pass: ashlar court, rounded pit collar, rim clutter, decal order
+
+No raster art generated. Integrated: mixed-size ashlar court paving (`FoundryRegionFinish.cs`), a rounded furnace-pit collar (`FoundryRegionMassing.cs`), rim clutter and gate fire braziers (`FoundryRegionClutter.cs`), floor decals sorted under raised structures (`FoundryRegionView.cs`), chain bronze under the colour ceiling, and a vertex-colour range test. Built, installed and seen on S23 (see 23). Proof `ArtDirection/2026-10-01/foundry-night-01/`.
