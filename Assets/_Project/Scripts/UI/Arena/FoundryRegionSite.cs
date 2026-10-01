@@ -69,11 +69,19 @@ namespace Cryptforge.UI
             // Two-s side kerb stones run through to the end; the end course butts between them. Flush decal only.
             var joints=new Builder();
             float rail=4-Kerb*1.41421356f,end=-50+Kerb*1.41421356f;
+            // Each side's kerb stops where the bridge enters the court: the west (d<0) side at s=-32, where its rail ends
+            // (beyond it the court's west room is walkable on both sides), the east side where it meets the court's
+            // south edge (v=-14).
+            float westEnd=-32,eastEnd=-28+rail;
             for(int i=0;i<13;i++)
             {
-                float s0=-50+i*2,s1=s0+2;
+                float s0=-50+i*2;
                 foreach(float d in new[]{-rail,rail})
+                {
+                    float s1=Mathf.Min(s0+2,d<0?westEnd:eastEnd);
+                    if(s1<=s0)continue;
                     Strip(joints,(s0+d)*.5f,(s0-d)*.5f,(s1+d)*.5f,(s1-d)*.5f,KerbWidth,KerbTone,CopingTrim.Stone,i*5+(d<0?0:3));
+                }
             }
             for(int i=0;i<4;i++)
             {
