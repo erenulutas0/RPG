@@ -15,12 +15,15 @@ namespace Cryptforge.UI
         private sealed class Batch { internal Builder Builder=new Builder(); internal Material Material; internal float Order; internal readonly List<int> Owners=new List<int>(); }
         private readonly List<Batch> _batches=new List<Batch>();
         private static Vector3 Project(float x,float y) { FoundryMap.ToFloor(x,y,out float fx,out float fy);return new Vector3(fx,fy*.5f,0); }
-        // Flush floor decals - coping trim, borders, inlays, seal, joints. They sort at the same rank as raised
-        // parapet sides (-14) but are part of the walking surface, so the hero cutaway must not dissolve them:
-        // before this, brass lines vanished in a disc around the hero's feet as he walked over them. They are built
-        // unlit and take the paving's floor light as their batch is emitted (LightFloorDecals), so never pre-light one.
-        private const float FloorDecal=-14.5f;
+        // Flush floor decals - coping trim, borders, inlays, seal, joints. They are part of the walking surface, so the
+        // hero cutaway must not dissolve them (before 2026-09-30 brass lines vanished in a disc around the hero's feet).
+        // They sort at the paving's own rank (-15), drawn after it (see the emit loop), so every raised structure at -14 -
+        // bridge coping, block sides - paints over them: at -14 they tied with those and won on bounds, painting kerbs over
+        // the bridge coping and the crane footing's face. They are built unlit and take the paving's floor light as their
+        // batch is emitted (LightFloorDecals), so never pre-light one.
+        private const float FloorDecal=-14.75f;
         internal const string FloorDecalLayer="Foundry floor decals";
+        internal const float DecalSortReach=200f;
         public void Build(ArenaView arena,Sprite furnace)
         {
             _furnace=furnace;
@@ -75,7 +78,10 @@ namespace Cryptforge.UI
             {
                 bool decal=batch.Order==FloorDecal;
                 if(decal)LightFloorDecals(batch.Builder);
-                Emit(decal?FloorDecalLayer:"Foundry static layer",batch.Builder,batch.Material,batch.Order,batch.Owners);
+                Mesh emitted=Emit(decal?FloorDecalLayer:"Foundry static layer",batch.Builder,batch.Material,batch.Order,batch.Owners);
+                // Equal ranks draw by bounds centre along the sort axis (+y, lower drawn later): reaching far below the
+                // map puts the decals' centre under the paving's, so they always draw just after it. Culling only widens.
+                if(decal){var bounds=emitted.bounds;bounds.Encapsulate(bounds.min+Vector3.down*DecalSortReach);emitted.bounds=bounds;}
             }
             _batches.Clear();
             _depthFootprints.Clear();_depthLandmarks.Clear();_depthScope=-1;

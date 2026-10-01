@@ -58,15 +58,20 @@ namespace Cryptforge.Tests
             int floorDecals=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
-                if(renderer.sortingOrder < -14) continue;
-                // Flush floor decals share the parapet rank but are the walking surface: the cutaway never takes them.
+                // Flush floor decals are the walking surface: the cutaway never takes them, and they sort at the paving's
+                // rank, drawn after it, so raised structures at -14 (bridge coping, block sides) paint over them.
                 if(renderer.name==FoundryRegionView.FloorDecalLayer)
                 {
                     floorDecals++;
                     Assert.That(renderer.sharedMaterial.shader.name,Is.Not.EqualTo("Cryptforge/Foundry Cutaway"),
                         "Brass inlays must not vanish around the hero's feet.");
+                    Assert.That(renderer.sortingOrder,Is.EqualTo(-15),"Decals sort at the paving's rank, under every raised structure.");
+                    foreach(var other in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                        if(other!=renderer&&other.sortingOrder==renderer.sortingOrder)
+                            Assert.That(renderer.bounds.center.y,Is.LessThan(other.bounds.center.y),"Decals draw after the paving under them.");
                     continue;
                 }
+                if(renderer.sortingOrder < -14) continue;
                 var variant=renderer.sharedMaterial;
                 Assert.That(variant.shader.name,Is.EqualTo("Cryptforge/Foundry Cutaway"));
                 ownedMaterials.Add(variant);
