@@ -76,6 +76,8 @@ namespace Cryptforge.UI
             foreach(var p in ForgeBeacons)lamps.Add(Lamp(new Vector4(p.x,p.y,p.x,p.y),0,3.8f,.5f,FlameLight));
             // The fire braziers flanking the gate on the apron rail's end posts (BuildClutter).
             foreach(float v in GateBrazierPosts)lamps.Add(Lamp(new Vector4(GateBrazierU,v,GateBrazierU,v),0,3.6f,.45f,FlameLight));
+            // The lantern posts along the bridge rails (BuildBridgeLanterns): pools that merge into a lit causeway.
+            foreach(var p in BridgeLanterns)lamps.Add(Lamp(new Vector4(p.x,p.y,p.x,p.y),0,3.4f,.45f,FlameLight));
             return _forgeLamps=lamps.ToArray();
         }
 
