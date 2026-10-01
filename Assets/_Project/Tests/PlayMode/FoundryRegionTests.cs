@@ -103,6 +103,22 @@ namespace Cryptforge.Tests
                 for(int i=0;i<points.Length;i++)if(flags[i].x>0){writesDepth=true;Assert.That(points[i].z,Is.GreaterThan(0f));}
             }
             Assert.That(writesDepth,Is.True,"Tall structures must occlude actors behind them.");
+            // Floor light, decal light and tints multiply vertex colours above 1; the sprite shaders carry them in a
+            // fixed4 interpolator, whose guaranteed range on every mobile precision is +/-2 (after the material tint).
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+            {
+                var lit=renderer.GetComponent<MeshFilter>().sharedMesh;
+                var colours=new System.Collections.Generic.List<Color>();lit.GetColors(colours);
+                Color tint=renderer.sharedMaterial.HasProperty("_Color")?renderer.sharedMaterial.color:Color.white;
+                float peak=0,low=0;
+                foreach(var c in colours)
+                {
+                    peak=Mathf.Max(peak,Mathf.Max(c.r*tint.r,Mathf.Max(c.g*tint.g,c.b*tint.b)));
+                    low=Mathf.Min(low,Mathf.Min(c.r,Mathf.Min(c.g,c.b)));
+                }
+                Assert.That(peak,Is.LessThan(2f),renderer.name+": vertex light beyond the shader's guaranteed colour range.");
+                Assert.That(low,Is.GreaterThanOrEqualTo(0f),renderer.name+": negative vertex colour.");
+            }
             visibility.enabled=false;
             foreach(var variant in ownedMaterials)Assert.That(variant.GetVector("_HeroFocus").w,Is.Zero);
             foreach(Transform child in movement.transform)Assert.That(child.localPosition.z,Is.Zero,"Without the view actors return to the flat layer and draw over every structure.");
