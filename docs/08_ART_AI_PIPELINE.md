@@ -631,3 +631,8 @@ No raster art generated. Integrated: floor light calibrated against measurements
 ## 2026-10-01 - Foundry night pass: ashlar court, rounded pit collar, rim clutter, decal order
 
 No raster art generated. Integrated: mixed-size ashlar court paving (`FoundryRegionFinish.cs`), a rounded furnace-pit collar (`FoundryRegionMassing.cs`), rim clutter and gate fire braziers (`FoundryRegionClutter.cs`), floor decals sorted under raised structures (`FoundryRegionView.cs`), chain bronze under the colour ceiling, and a vertex-colour range test. Built, installed and seen on S23 (see 23). Proof `ArtDirection/2026-10-01/foundry-night-01/`.
+
+
+## 2026-10-01 - Foundry day pass: molten pit floor, bridge lanterns, bridge west rail
+
+No raster art generated. Integrated: a molten pool and warm lining gradient in the furnace pit and a softened collar corner (`FoundryRegionMassing.cs`); lantern posts on the bridge rails with light pools (`FoundryRegionSite.cs`, `FoundryRegionFinish.cs`); the bridge west rail and kerbs end at the court (`FoundryRegionView.cs`, `FoundryRegionSite.cs`). Installed on S23, not yet viewed there (see 23). Proof `ArtDirection/2026-10-01/foundry-day-01/`.
