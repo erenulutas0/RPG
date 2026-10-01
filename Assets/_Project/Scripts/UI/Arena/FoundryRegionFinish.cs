@@ -58,9 +58,10 @@ namespace Cryptforge.UI
                 lamps.Add(Lamp(new Vector4(c.x,c.y,c.x,c.y),BoilerPlinth,SquatBoiler(i)?4.2f:4.6f,
                     SquatBoiler(i)?.9f:1.4f,FurnaceLight));
             }
-            // The pit collar's corner lanterns (.9 pedestals) only round off the pit's own glow at its corners.
-            foreach(var p in new[]{new Vector2(PitU0+.45f,PitV0+.45f),new Vector2(PitU1-.45f,PitV0+.45f),
-                new Vector2(PitU0+.45f,PitV1-.45f),new Vector2(PitU1-.45f,PitV1-.45f)})
+            // The pit collar's corner lanterns (.9 pedestals, on the rounded collar's corner arcs) only round off the
+            // pit's own glow at its corners.
+            foreach(var p in new[]{new Vector2(PitU0+PitLantern,PitV0+PitLantern),new Vector2(PitU1-PitLantern,PitV0+PitLantern),
+                new Vector2(PitU0+PitLantern,PitV1-PitLantern),new Vector2(PitU1-PitLantern,PitV1-PitLantern)})
                 lamps.Add(Lamp(new Vector4(p.x,p.y,p.x,p.y),0,3.4f,.3f,FlameLight));
             // Rim lanterns and beacons are the concept's braziers: R-B ~+22/255 over the open court at 1-1.5 u, half by
             // ~2.2, gone by ~3.5 - about as strong as before, a little tighter, and rose instead of tan.
