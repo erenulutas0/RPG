@@ -1,5 +1,5 @@
 #requires -Version 7
-param([Parameter(Mandatory)][ValidateSet('P1b','P3','P4','P5')][string]$Surface)
+param([Parameter(Mandatory)][ValidateSet('P1b','P3','P3b','P4','P5')][string]$Surface)
 $ErrorActionPreference='Stop'
 $taskRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $taskTemp=Join-Path $taskRoot 'Assets/_Project/Scripts/Editor/BuildPaintedSurfaceAsset.cs'

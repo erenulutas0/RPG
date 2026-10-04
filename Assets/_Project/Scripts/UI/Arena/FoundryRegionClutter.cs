@@ -75,7 +75,8 @@ namespace Cryptforge.UI
         // Clean patches of the two textures clutter is drawn on (scanned for the least grain: a masonry block interior and a
         // stretch of the iron plate's centre), with their measured mean texel, sRGB.
         private static readonly Vector2 MasonryPatch=new Vector2(.624f,.867f),IronPatch=new Vector2(.624f,.235f);
-        private static readonly Color MasonryPatchMean=new Color(.2504f,.2188f,.2432f),IronPatchMean=new Color(.178f,.183f,.205f);
+        // Masonry V3: measured over the 51-pixel patch around the existing UV centre.
+        private static readonly Color MasonryPatchMean=new Color(.234f,.2168f,.2416f),IronPatchMean=new Color(.178f,.183f,.205f);
         private const float ClutterGrain=.02f,ClutterPeak=1.9f,ClutterDeck=.18f;
         // Wood, burlap, hoop iron and bronze as they should render, before the patch division (EmitClutter): the albedo the
         // region's light multiplies - LitFace on a v0 face, ShadeFace on a u0 face, ClutterLid over the lit face on a lid,

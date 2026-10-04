@@ -1,0 +1,12 @@
+# Painted masonry variety — 2026-10-05
+
+Built-in image_gen edit of FoundryMasonryV2; exact prompt in P3b-prompt.txt. Untouched output P3b-raw.png SHA256 40155D49CBD7A535826177423E2798EE461BE1126BD414010F42D979683658B6. Original generated output also remains under Codex generated_images. This version introduces slate/charcoal/warm-grey blocks, broad mineral facets, chipped edges, sparse cracks and restrained runoff. Five courses and roughly the previous block scale are retained. This is painted albedo, not new geometry or a claim of complete target fidelity.
+
+New sibling Assets/_Project/Art/Props/Foundry/FoundryMasonryV3.png; V2 retained unchanged. Existing MAT_FoundryMasonry now references V3 with its own GUID. The importer copies the raw master without repainting/resizing; Unity imports 1024x1024 ASTC_6x6,11 mips on Android. P3b added to the existing import tool. The existing clutter patch mean was remeasured over a 51-pixel window (2-pixel sampling) at UV(.624,.867): RGB(.234,.2168,.2416), to preserve wood/burlap tones using the shared stone batch.
+
+Actual Unity capture 1/1, compile0 warnings/errors, integrity533/1099/568. Static17 renderers/76,492 vertices unchanged. Matched before/after: overview,gate-detail,bridge-detail,point-2. Additional after-only undercroft/workshop views show large stone surfaces and calibrated props. No runtime layout, gameplay, camera, collision, depth, shader, energy, save or telemetry logic changes. Full test/build and device results follow.
+## Verified and installed
+
+EditMode410/410,PlayMode135/135,Android exit0. APK32,374,745 bytes SHA2560D719910B89CAEF4590EFF4CCA102C563D86B941C52EC26D5B49E2795966D8F6; installed S23 base.apk hash matches. Matched static device review: before59.9fps/GPU3.7ms,after59.9fps/GPU3.7-3.8ms,57draws/63.8ktriangles/~127.6MB both. This is a fixed development view, not a combat or midrange benchmark. Guarded3-second up-left walk and screenshots inspected; current-process Unity exception/shader-error matches0.
+
+Backup TestResults/masonry-install-20261005. Profile and profile.json.bak hashes unchanged (revision221); original development filenames and hashes match after removing the two temporary flags. No profile restore or telemetry edits. Game stopped; ordinary preview on next launch. Local commit only, no push. Generated, integrated, built, installed and seen on device.
