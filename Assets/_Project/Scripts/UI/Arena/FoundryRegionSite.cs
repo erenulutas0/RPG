@@ -70,10 +70,10 @@ namespace Cryptforge.UI
             var iron=new Builder();
             foreach(var p in posts)
             {
-                ArchitecturalTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-2.8f,.3f,.025f);
-                ArchitecturalTier(stone,p.x-.24f,p.y-.24f,p.x+.24f,p.y+.24f,.3f,1.1f,.03f);
-                ArchitecturalTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,1.1f,1.28f,.04f);
-                ArchitecturalTier(stone,p.x-.21f,p.y-.21f,p.x+.21f,p.y+.21f,1.28f,1.65f,.14f);
+                LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-2.8f,.3f,.025f);
+                LitFoundryTier(stone,p.x-.24f,p.y-.24f,p.x+.24f,p.y+.24f,.3f,1.1f,.03f);
+                LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,1.1f,1.28f,.04f);
+                LitFoundryTier(stone,p.x-.21f,p.y-.21f,p.x+.21f,p.y+.21f,1.28f,1.65f,.14f);
                 // A shallow socket finishes the existing crown; the brazier remains
                 // fixed at height 1.65 and none of this changes the pier footprint.
                 var cap=Octagon(p.x-.08f,p.y-.08f,p.x+.08f,p.y+.08f,.02f);
@@ -136,11 +136,11 @@ namespace Cryptforge.UI
                 {
                     // Bottom-up, each course painting over the top of the one under it.
                     var stone=new Builder();
-                    ArchitecturalTier(stone,p.x-.19f,p.y-.19f,p.x+.19f,p.y+.19f,-.6f,-.3f,.02f);
-                    ArchitecturalTier(stone,p.x-.27f,p.y-.27f,p.x+.27f,p.y+.27f,-.3f,0,.02f);
-                    ArchitecturalTier(stone,p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,0,.22f,.03f);
-                    ArchitecturalTier(stone,p.x-.22f,p.y-.22f,p.x+.22f,p.y+.22f,.22f,1.49f,.01f);
-                    ArchitecturalTier(stone,p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,1.49f,1.69f,.04f);
+                    LitFoundryTier(stone,p.x-.19f,p.y-.19f,p.x+.19f,p.y+.19f,-.6f,-.3f,.02f);
+                    LitFoundryTier(stone,p.x-.27f,p.y-.27f,p.x+.27f,p.y+.27f,-.3f,0,.02f);
+                    LitFoundryTier(stone,p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,0,.22f,.03f);
+                    LitFoundryTier(stone,p.x-.22f,p.y-.22f,p.x+.22f,p.y+.22f,.22f,1.49f,.01f);
+                    LitFoundryTier(stone,p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,1.49f,1.69f,.04f);
                     Create("Bridge lantern posts",stone,set.FoundryWall,-11);
                     var iron=new Builder();
                     PierPanels(iron,p,.222f,.13f,.78f,.5f,.09f);
@@ -262,11 +262,11 @@ namespace Cryptforge.UI
         // to near: emitted before them, with the court borders, the span leaving a post's far side painted over its front.
         private static void CourtFinialMasonry(Builder masonry,Vector2 p)
         {
-            ArchitecturalTier(masonry,p.x-.38f,p.y-.38f,p.x+.38f,p.y+.38f,0,.22f,.025f);
-            ArchitecturalTier(masonry,p.x-.29f,p.y-.29f,p.x+.29f,p.y+.29f,.22f,1.48f,.035f);
-            ArchitecturalTier(masonry,p.x-.34f,p.y-.34f,p.x+.34f,p.y+.34f,.92f,1.06f,.025f);
-            ArchitecturalTier(masonry,p.x-.38f,p.y-.38f,p.x+.38f,p.y+.38f,1.48f,1.69f,.04f);
-            if(!CourtLantern(p))ArchitecturalTier(masonry,p.x-.29f,p.y-.29f,p.x+.29f,p.y+.29f,1.69f,2.10f,.20f);
+            LitFoundryTier(masonry,p.x-.38f,p.y-.38f,p.x+.38f,p.y+.38f,0,.22f,.025f);
+            LitFoundryTier(masonry,p.x-.29f,p.y-.29f,p.x+.29f,p.y+.29f,.22f,1.48f,.035f);
+            LitFoundryTier(masonry,p.x-.34f,p.y-.34f,p.x+.34f,p.y+.34f,.92f,1.06f,.025f);
+            LitFoundryTier(masonry,p.x-.38f,p.y-.38f,p.x+.38f,p.y+.38f,1.48f,1.69f,.04f);
+            if(!CourtLantern(p))LitFoundryTier(masonry,p.x-.29f,p.y-.29f,p.x+.29f,p.y+.29f,1.69f,2.10f,.20f);
         }
 
         private void BuildCourtLantern(ArenaView arena,Builder iron,Vector2 p)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Cryptforge.Art;
 
 namespace Cryptforge.UI
 {
@@ -87,6 +88,7 @@ namespace Cryptforge.UI
         private void BuildGateInlays(ArenaView arena,float height)
         {
             var iron=new Builder();
+            BuildGateHeaderTies(iron,height);
             foreach(float v in new[]{-3f,11f})
             {
                 BuildGateSideRecesses(iron,v);
@@ -119,6 +121,9 @@ namespace Cryptforge.UI
                     ArchitectureBar(iron,a,a+lift,.035f,new Color(.73f,.75f,.81f));
                     ArchitectureBar(iron,b,b+lift,.055f,new Color(.31f,.34f,.43f));
                     ArchitectureBar(iron,a+lift,b+lift,.045f,new Color(.7f,.7f,.72f));
+                    // A central forged mullion gives the front recesses depth without closing them.
+                    Vector3 middle=Vector3.Lerp(a,b,.5f);
+                    ArchitectureBar(iron,middle,middle+lift,.055f,new Color(.46f,.49f,.57f));
                     // Restrained bronze fixing plates, rather than bright glowing runes.
                     foreach(float t in new[]{.14f,.86f})
                     {
@@ -298,32 +303,41 @@ namespace Cryptforge.UI
         {
             int first=mesh.C.Count;
             ArchitecturalTier(mesh,u0,v0,u1,v1,bottom,top,inset);
-            // Build-time reflected heat, local to these boiler/gate stone tiers only.
-            // Other users of ArchitecturalTier (iron caps, bridge, shaft) retain their colours.
-            float u=(u0+u1)*.5f,v=(v0+v1)*.5f;
-            float source=0;
-            foreach(float furnaceU in new[]{18.5f,26.5f})
-                foreach(float furnaceV in new[]{-3.5f,13.5f})
-                {
-                    float du=u-furnaceU,dv=v-furnaceV;
-                    source=Mathf.Max(source,1/(1+.18f*(du*du+dv*dv)));
-                }
-            // The existing two small gate braziers contribute less than furnace windows.
-            foreach(float beaconV in new[]{-2f,12f})
-            {
-                float du=u-32.5f,dv=v-beaconV;
-                source=Mathf.Max(source,.38f/(1+.3f*(du*du+dv*dv)));
-            }
-            Vector3 baseCenter=Project(u,v);
+            // ArchitecturalTier emits three wall quads followed by its upper cap. Recover
+            // authored elevation exactly; projected Y also contains the floor's depth.
             for(int i=first;i<mesh.C.Count;i++)
             {
-                float elevation=Mathf.Clamp(mesh.V[i].y-baseCenter.y,bottom,top);
-                float bounce=.48f*source*Mathf.Pow(Mathf.Clamp01(1-elevation/3.5f),.8f);
-                Color original=mesh.C[i];
-                // Preserve directional shading and alpha; upper stone keeps its cool ambient.
-                mesh.C[i]=new Color(original.r*(1+.65f*bounce),original.g*(1+.14f*bounce),
-                    original.b*(1-.35f*bounce),original.a);
+                int local=i-first;
+                float elevation=local<12&&local%4<2?bottom:top;
+                Vector3 floor=mesh.V[i]-Vector3.up*elevation;
+                FoundryMap.ToDesign(floor.x,floor.y*2,out float u,out float v);
+                mesh.C[i]=SurfaceTone(mesh.C[i],u,v,elevation,local<12?top-elevation:2);
             }
+        }
+
+        private static void BuildGateHeaderTies(Builder iron,float height)
+        {
+            // Four straps wrap the cornice face and its upper return, inside the gate's
+            // existing depth owner. Clean iron UVs avoid repeating an entire plate on a bolt.
+            foreach(float v in new[]{.2f,2.5f,7.5f,9.8f})
+            {
+                Vector3 a=Project(32,v-.10f)+Vector3.up*(height-.10f);
+                Vector3 b=Project(32,v+.10f)+Vector3.up*(height-.10f);
+                Vector3 rise=Vector3.up*.20f;
+                GateIronPatch(iron,a,b,b+rise,a+rise,new Color(.62f,.65f,.73f));
+                Vector3 back=Project(32.55f,v)-Project(32,v);
+                GateIronPatch(iron,a+rise,b+rise,b+rise+back,a+rise+back,new Color(.80f,.77f,.69f));
+                Vector3 bolt=(a+b)*.5f+rise*.5f;
+                Vector3 x=Vector3.right*.045f,y=Vector3.up*.04f;
+                GateIronPatch(iron,bolt-y,bolt+x,bolt+y,bolt-x,new Color(1.35f,1.09f,.70f));
+            }
+        }
+
+        private static void GateIronPatch(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tint)
+        {
+            int first=mesh.V.Count;
+            FullFace(mesh,a,b,c,d,tint);
+            for(int i=first;i<mesh.V.Count;i++)mesh.U[i]=IronPatch+(Vector2)(mesh.V[i]-a)*.02f;
         }
 
         private static Vector3 FlueFacePoint(Vector3[] lower,Vector3[] upper,int edge,float along,float height)
