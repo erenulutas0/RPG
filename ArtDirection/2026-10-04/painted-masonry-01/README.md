@@ -1,8 +1,8 @@
-# Painted foundation masonry (P3) — 2026-10-04
+﻿# Painted foundation masonry (P3) — 2026-10-04
 
 Builtin image generation, untouched master and exact prompt in ../painted-surfaces-02-masters/P3-raw.png and P3-prompt.txt. New versioned FoundryMasonryV2 texture on the existing shared masonry material, Repeat, 1024 POT, mipmapped ASTC6x6. Original texture/GUID retained. Broad, chipped violet-charcoal basalt courses replace the navy small-brick surface. Geometry and colour headroom unchanged.
 
-Clutter samples the same clean UV patch (.624,.867); its measured 41x41 source-texel mean is now (.2504,.2188,.2432), replacing the old texture's mean, preserving wood and cloth colours. Matched actual Unity captures include overview, bridge, gate, foundation and workshop; graphics capture 1/1. No conspicuous repeat discontinuity at gameplay scale; close-up block edges remain stylized. Static budget 17 renderers / 73,244 vertices. Compile 0 warnings/errors. Full gate pending.
+Clutter samples the same clean UV patch (.624,.867); its measured 41x41 source-texel mean is now (.2504,.2188,.2432), replacing the old texture's mean, preserving wood and cloth colours. Matched actual Unity captures include overview, bridge, gate, foundation and workshop; graphics capture 1/1. No conspicuous repeat discontinuity at gameplay scale; close-up block edges remain stylized. Static budget 17 renderers / 73,244 vertices. Compile 0 warnings/errors. Full gate results are recorded below.
 
 Android importer observed the actual texture as 1024x1024 ASTC_6x6, 11 mips. The build tool now reports actual Android-imported dimensions/format in android-build.log, alongside packed asset sizes, so requested settings are not mistaken for shipped compression.
 

@@ -1,0 +1,13 @@
+﻿# Painted boiler wrap (P5) — session started 2026-10-04, validated 2026-10-05
+
+Untouched builtin-generated master / exact prompt in ../painted-surfaces-02-masters/P5-raw.png and P5-prompt.txt. FoundryBoilerWrap is a new versioned 512x512 POT texture and shared material bound to the existing furnace-facade slot. The original facade/material/GUID are retained. Actual Android import: ASTC_6x6, 10 mips.
+
+Broad fire openings and dull bronze/iron replace the repeated architectural facade. Existing full-height tall drum mapping and v=.14..50 squat drum mapping are preserved; matched captures show both. The painted opening is wider than the prompt's nominal 45%, accepted in actual curved geometry because it remains legible and does not spill outside the drum. No new geometry or renderer: 17 / 73,244 vertices. No change to pit, gameplay, collision or camera.
+
+Graphics capture 1/1 and integrity 531/1099/568 passed. Full gate results are recorded below. Not installed; no phone visible in ADB.
+
+## 2026-10-05 - Painted boiler wrap (P5) and combined package complete
+
+Integrated FoundryBoilerWrap on the existing court boiler slot; dedicated pit material unchanged. Matched actual Unity proof ArtDirection/2026-10-04/painted-boiler-01; combined reference/before/after page ArtDirection/2026-10-04/painted-foundry-01. Session started October 4; final gate completed after midnight October 5. Graphics 1/1; EditMode 410/410; PlayMode 134/134; Android exit 0; integrity 531/1099/568. Static budget remains 17 renderers / 73,244 vertices. Android actual formats: paving and masonry 1024x1024 ASTC_6x6 (11 mips), pit 256x512 ASTC_6x6 (10), boiler 512x512 ASTC_6x6 (10). Packed boiler 154.8 KB, pit 78.0 KB. Final APK 32,374,745 bytes SHA256 B6B4BFD0DCA089A0FF514767BC94E356CA58AEE68A1B9649A60F17C9810BE551.
+
+Generated, integrated, captured and built; NOT installed at this record. Phone reappeared after disconnecting; another app is foreground and Cryptforge is not running. Asked owner whether phone is free before launching/testing. Read-only backup TestResults/painted-final-backup-20261005 includes profile, profile backup, development and telemetry; profile revision 221. No device inputs or flags changed. No push. All four raw masters and exact prompts/hashes preserved in painted-surfaces-02-masters; original imported assets/GUIDs retained. The target's full lighting/volume/detail fidelity is still future work; P2 deliberately skipped without adding a renderer.

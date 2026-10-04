@@ -1,0 +1,13 @@
+﻿# Combined painted foundry package — 2026-10-04/05
+
+Four generated masters integrated into the real Unity scene: jointless basalt court, violet-charcoal masonry, dedicated ribbed pit lining and bronze-iron boiler wrap. Inherited bridge-margin, pit atmosphere and undercroft discharge fixes were completed first. All raw generated masters and exact prompts are preserved with hashes in ../painted-surfaces-02-masters/README.md.
+
+Each integration has a matched before/after proof and individual gate record. Static architecture remains 17 renderers / 73,244 vertices. Gameplay, movement bounds, collision, energy-disabled state, save data and telemetry are unchanged. Final P5 gate passed; final APK and device status are recorded below. Nothing from this session is installed yet: USB disappeared during work and the owner was asked to reconnect.
+
+Remaining art gap: the target has stronger integrated volume/lighting and less regular surface wear. This package improves surfaces without claiming full reference fidelity. A follow-up should prioritize localized wear/lighting at architectural joins and mobile-scale evaluation, not spend a new renderer or rewrite the map. P2 balustrade trim is deliberately skipped: existing stone balusters remain.
+
+## 2026-10-05 - Painted boiler wrap (P5) and combined package complete
+
+Integrated FoundryBoilerWrap on the existing court boiler slot; dedicated pit material unchanged. Matched actual Unity proof ArtDirection/2026-10-04/painted-boiler-01; combined reference/before/after page ArtDirection/2026-10-04/painted-foundry-01. Session started October 4; final gate completed after midnight October 5. Graphics 1/1; EditMode 410/410; PlayMode 134/134; Android exit 0; integrity 531/1099/568. Static budget remains 17 renderers / 73,244 vertices. Android actual formats: paving and masonry 1024x1024 ASTC_6x6 (11 mips), pit 256x512 ASTC_6x6 (10), boiler 512x512 ASTC_6x6 (10). Packed boiler 154.8 KB, pit 78.0 KB. Final APK 32,374,745 bytes SHA256 B6B4BFD0DCA089A0FF514767BC94E356CA58AEE68A1B9649A60F17C9810BE551.
+
+Generated, integrated, captured and built; NOT installed at this record. Phone reappeared after disconnecting; another app is foreground and Cryptforge is not running. Asked owner whether phone is free before launching/testing. Read-only backup TestResults/painted-final-backup-20261005 includes profile, profile backup, development and telemetry; profile revision 221. No device inputs or flags changed. No push. All four raw masters and exact prompts/hashes preserved in painted-surfaces-02-masters; original imported assets/GUIDs retained. The target's full lighting/volume/detail fidelity is still future work; P2 deliberately skipped without adding a renderer.
