@@ -1471,10 +1471,7 @@ namespace Cryptforge.UI
                     b.U[plate+2]=new Vector2(u1,region.w);b.U[plate+3]=new Vector2(u0,region.w);
                     continue;
                 }
-                int start=b.U.Count;
-                b.Quad(p,q,s,t,false,Tinted(StoneLight(mid),tint));
-                b.U[start]=new Vector2(a*r/2.8f,h0/2.4f);b.U[start+1]=new Vector2(e*r/2.8f,h0/2.4f);
-                b.U[start+2]=new Vector2(e*r/2.8f,h1/2.4f);b.U[start+3]=new Vector2(a*r/2.8f,h1/2.4f);
+                WeatheredCourseFace(b,c,r0,r1,h0,h1,a,e,Tinted(StoneLight(mid),tint));
             }
         }
 
@@ -1499,31 +1496,47 @@ namespace Cryptforge.UI
             for(int k=0;k<2*m;k+=2)
             {
                 Vector3 p=OnRing(c,r,FrontAngle(k,m),h),q=OnRing(c,r,FrontAngle(k+1,m),h),s=OnRing(c,r,FrontAngle(k+2,m),h);
-                if(iron)FullFace(b,centre,p,q,s,color);else b.Quad(centre,p,q,s,true,color);
+                if(iron)
+                {
+                    int first=b.V.Count;
+                    FullFace(b,centre,p,q,s,color);
+                    for(int j=first;j<b.V.Count;j++)b.C[j]=RoofPatina(color,b.V[j],centre,r);
+                }
+                else
+                {
+                    int first=b.V.Count;
+                    b.Quad(centre,p,q,s,true,color);
+                    for(int j=first;j<b.V.Count;j++)
+                    {
+                        Vector3 floor=b.V[j]-Vector3.up*h;
+                        FoundryMap.ToDesign(floor.x,floor.y*2,out float u,out float v);
+                        b.C[j]=SurfaceTone(color,u,v,h,2);
+                    }
+                }
             }
         }
 
         // The two camera-facing faces of a design-plane box: v0 (lit) and u0 (shade), as Block draws them.
         private static void MassBox(Builder b,Vector4 box,float bottom,float top,bool faceV,bool faceU,float tone)
         {
-            Vector3 low=Vector3.up*bottom,high=Vector3.up*top;
             var toneColor=new Color(tone,tone,tone);
             if(faceU)
             {
-                Vector3 a=Project(box.x,box.w),c=Project(box.x,box.y);
-                b.WallQuad(a+low,c+low,c+high,a+high,false,Tinted(ShadeFace,toneColor));
+                WeatheredBoxFace(b,new Vector2(box.x,box.w),new Vector2(box.x,box.y),bottom,top,Tinted(ShadeFace,toneColor));
             }
             if(faceV)
             {
-                Vector3 a=Project(box.x,box.y),c=Project(box.z,box.y);
-                b.WallQuad(a+low,c+low,c+high,a+high,false,Tinted(LitFace,toneColor));
+                WeatheredBoxFace(b,new Vector2(box.x,box.y),new Vector2(box.z,box.y),bottom,top,Tinted(LitFace,toneColor));
             }
         }
 
         private static void MassCap(Builder b,Vector4 box,float h,Color color)
         {
             Vector3 lift=Vector3.up*h;
+            int first=b.V.Count;
             b.Quad(Project(box.x,box.y)+lift,Project(box.z,box.y)+lift,Project(box.z,box.w)+lift,Project(box.x,box.w)+lift,true,color);
+            b.C[first]=SurfaceTone(color,box.x,box.y,h,2);b.C[first+1]=SurfaceTone(color,box.z,box.y,h,2);
+            b.C[first+2]=SurfaceTone(color,box.z,box.w,h,2);b.C[first+3]=SurfaceTone(color,box.x,box.w,h,2);
         }
 
         // A design-plane band beside an exposed edge: dir 0 south (-v), 1 west (-u), 2 north (+v), 3 east (+u).

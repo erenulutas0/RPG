@@ -21,7 +21,7 @@ namespace Cryptforge.UI
         // .04 (AshlarLightStep) - and the bridge every 1 s / 2 d, so no falloff radius is below 3.4: a pool interpolates
         // as one soft gradient across the joints rather than a lit disc or a pool that steps stone by stone (the old 2x1
         // bond's staggered rows stepped by up to ~11/255 in R-B, its apron pools by ~14).
-        private struct ForgeLamp { internal Vector4 Box; internal float Round,Radius,Strength; internal Color Tint; }
+        private struct ForgeLamp { internal Vector4 Box; internal float Round,Radius,Strength,Height; internal Color Tint; }
         // The furnace tint is amber (hue ~33); heat deepens it. A pool absorbs blue in proportion to its glow and green
         // in proportion to the glow's square, so the pit and boiler rims run forge orange (hue ~22, saturation ~.5).
         // The flame tint is redder (hue ~26): a lantern's weak spill over violet stone then reads rose (hue ~5,
@@ -48,7 +48,7 @@ namespace Cryptforge.UI
             // A hot rim: forge orange (saturation ~.5) to ~1.5 off the pit, rose-amber by 2.5, the court's violet by
             // 3.5. It was orange to ~3.5 off and still warmed the seal centre, 4.5 away; the concept's pit lights no
             // floor at all.
-            lamps.Add(Lamp(new Vector4(PitU0,PitV0,PitU1,PitV1),0,3.8f,1f,FurnaceLight));
+            lamps.Add(Lamp(new Vector4(PitU0,PitV0,PitU1,PitV1),0,3.8f,1f,FurnaceLight,-1f));
             // The tall rear boilers' fire fronts face the apron and reach furthest onto it; the squat front ones turn
             // their grates away. Their plinths sit at or past the walkable edge (the rear ones .5 and 1.8 behind it),
             // so the pools must reach in to it: a ~2-2.5 wide orange band along each apron rim, not the whole apron.
@@ -56,7 +56,7 @@ namespace Cryptforge.UI
             {
                 Vector2 c=BoilerCentres[i];
                 lamps.Add(Lamp(new Vector4(c.x,c.y,c.x,c.y),BoilerPlinth,SquatBoiler(i)?4.2f:4.6f,
-                    SquatBoiler(i)?.9f:1.4f,FurnaceLight));
+                    SquatBoiler(i)?.9f:1.4f,FurnaceLight,SquatBoiler(i)?.8f:1.5f));
             }
             // The pit collar's corner lanterns (.9 pedestals, on the rounded collar's corner arcs) only round off the
             // pit's own glow at its corners.
@@ -81,8 +81,8 @@ namespace Cryptforge.UI
             return _forgeLamps=lamps.ToArray();
         }
 
-        private static ForgeLamp Lamp(Vector4 box,float round,float radius,float strength,Color tint)=>
-            new ForgeLamp{Box=box,Round=round,Radius=radius,Strength=strength,Tint=tint};
+        private static ForgeLamp Lamp(Vector4 box,float round,float radius,float strength,Color tint,float height=2.6f)=>
+            new ForgeLamp{Box=box,Round=round,Radius=radius,Strength=strength,Tint=tint,Height=height};
 
         private static float SmoothFall(float distance,float radius)
         {
@@ -530,11 +530,11 @@ namespace Cryptforge.UI
             var outer=new List<Vector2>();var inner=new List<Vector2>();
             for(int k=0;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v0+joint));inner.Add(new Vector2(iu[k],v0+bevel));}
             for(int k=1;k<ov.Length;k++){outer.Add(new Vector2(u1-joint,ov[k]));inner.Add(new Vector2(u1-bevel,iv[k]));}
-            PavingStrip(mesh,outer,inner,stone*1.1f,faceTint);
+            PavingStrip(mesh,outer,inner,stone*1.1f,faceTint,stone);
             outer.Clear();inner.Clear();
             for(int k=0;k<ov.Length;k++){outer.Add(new Vector2(u0+joint,ov[k]));inner.Add(new Vector2(u0+bevel,iv[k]));}
             for(int k=1;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v1-joint));inner.Add(new Vector2(iu[k],v1-bevel));}
-            PavingStrip(mesh,outer,inner,stone*.74f,faceTint);
+            PavingStrip(mesh,outer,inner,stone*.74f,faceTint,stone);
             PavingGrid(mesh,iu,iv,stone,faceTint);
             // Sparse flush corner repairs, not cracks or raised rubble. They use
             // continuous paving UVs and stay entirely within the individual flag.
@@ -590,13 +590,17 @@ namespace Cryptforge.UI
         }
 
         // A shared-vertex strip of flush quads between matching outer and inner points.
-        private static void PavingStrip(Builder mesh,List<Vector2> outer,List<Vector2> inner,float tone,Color tint)
+        private static void PavingStrip(Builder mesh,List<Vector2> outer,List<Vector2> inner,float tone,Color tint,float faceTone)
         {
             int first=mesh.V.Count;
             for(int k=0;k<outer.Count;k++)
             {
-                PavingVertex(mesh,outer[k].x,outer[k].y,tone,tint,FloorLight(outer[k].x,outer[k].y));
-                PavingVertex(mesh,inner[k].x,inner[k].y,tone,tint,FloorLight(inner[k].x,inner[k].y));
+                // Rubbed bevels fade in and out along a stone instead of tracing every slab at
+                // identical contrast. Flush joints and the shared light lattice stay untouched.
+                float worn=FloorPatina(outer[k].x*1.7f+3,outer[k].y*1.7f-7)*.6f;
+                float edgeTone=Mathf.Lerp(tone,faceTone,worn);
+                PavingVertex(mesh,outer[k].x,outer[k].y,edgeTone,tint,FloorLight(outer[k].x,outer[k].y));
+                PavingVertex(mesh,inner[k].x,inner[k].y,edgeTone,tint,FloorLight(inner[k].x,inner[k].y));
             }
             for(int k=0;k+1<outer.Count;k++)
             {

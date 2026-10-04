@@ -13,6 +13,14 @@ namespace Cryptforge.Tests
     public sealed class FoundryRegionTests
     {
         private Scene _scene;
+        [Test] public void ArchitectureLightFollowsFireHeightAndRecessesBelowLedges()
+        {
+            Color near=FoundryRegionView.ArchitectureLight(-8,2,0,2);
+            Color above=FoundryRegionView.ArchitectureLight(-8,2,14,2);
+            Assert.That(near.r/near.b,Is.GreaterThan(above.r/above.b+.1f),"Pit heat must fall away above the fire, not climb the entire structure.");
+            Color recessed=FoundryRegionView.ArchitectureLight(-8,2,0,0);
+            Assert.That(recessed.r,Is.LessThan(near.r*.9f),"The ledge underside needs localized contact shade.");
+        }
         [SetUp] public void Begin()=>TestProfile.Begin();
         [UnityTearDown] public IEnumerator End()
         {
