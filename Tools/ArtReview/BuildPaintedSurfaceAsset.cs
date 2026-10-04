@@ -49,6 +49,8 @@ namespace Cryptforge.Editor
                 serialized.ApplyModifiedPropertiesWithoutUndo();EditorUtility.SetDirty(set);
             }
             AssetDatabase.SaveAssets();
+            var imported=(Texture2D)material.mainTexture;
+            Debug.Log($"Painted surface actual target {EditorUserBuildSettings.activeBuildTarget}: {name} {imported.width}x{imported.height} {imported.format}, {imported.mipmapCount} mips");
             Debug.Log("Painted surface "+stage+" imported, source untouched, ASTC_6x6 configured: "+path);
         }
     }

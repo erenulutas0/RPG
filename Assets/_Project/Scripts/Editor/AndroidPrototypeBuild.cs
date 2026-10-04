@@ -39,6 +39,14 @@ namespace Cryptforge.Editor
             if (report.summary.result != BuildResult.Succeeded)
                 throw new BuildFailedException($"Android build failed: {report.summary.result}, {report.summary.totalErrors} errors.");
 
+            // Report the Android-imported texture, not only its requested importer override.
+            foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Art/Props/Foundry" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                Debug.Log($"Android texture: {path} {texture.width}x{texture.height} {texture.format}, {texture.mipmapCount} mips");
+            }
+
             Debug.Log($"Android prototype built: {report.summary.outputPath} ({report.summary.totalSize} bytes)");
         }
     }
