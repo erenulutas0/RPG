@@ -770,3 +770,9 @@ Actual Unity captures against the reference pass (`ArtDirection/2026-10-01/found
 ## 2026-10-01 - Foundry day pass verified in Unity
 
 Actual Unity captures against the night pass (`ArtDirection/2026-10-01/foundry-day-01/`): a glowing molten floor in the furnace pit, one lantern post per bridge rail reading as its own post, the bridge west rail ending at the court edge. Static budget 17 renderers / 73,296 vertices. Full gate EditMode 410/410, PlayMode 134/134, Android build exit 0; integrity 525 / 1,099 / 568 passed.
+
+## 2026-10-04 - Pending foundry work completed
+
+Finished the inherited pit atmosphere (20 rising sparks, heat wisps and glow), gate-brazier support checks, bridge coping/kerb corrections, arch-before-pier ordering, screened anchor plates and framed molten discharge. Extended the west bridge paving margin to d=-4 for s=-32..-24, covering the bare joint bed after the kerb ends. No gameplay, movement bounds, save or balance changes. Proof: ArtDirection/2026-10-04/foundry-completion-01 (actual Unity before/after).
+
+Graphics capture1/1; .NET390/390; compile0warnings/errors; EditMode410/410; PlayMode134/134; Android exit0. Static17renderers/73,244vertices; atmosphere832vertices. Integrity526/1099/568 checked while gate was in progress. APK37,175,012bytes SHA25623BB5C7B4C2A51BA12A6609193B6D358E867270DD278A755486CFA2858ED0058. Built, NOT installed; latest known installed remains F6776526... from October1. Fresh read-only phone check found launcher foreground and game not running. No device inputs. New painted masters are being prepared separately; this package contains no texture changes. Commit locally only, no push.

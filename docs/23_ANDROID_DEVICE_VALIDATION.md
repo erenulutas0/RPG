@@ -1396,3 +1396,9 @@ Owner reconnected the phone and asked to continue. Fresh check: launcher in fron
 ## 2026-10-01 - Foundry day pass installed on S23 (not viewed)
 
 Fresh check found the game in front with a paused owner run (Floor 1 room 3/6, level 3, 11 unbanked gold); the owner chose "install now". Backups in `TestResults/foundry-day-install-20261001` (profile revision 221). `adb install -r` of APK 37,158,301 bytes, SHA-256 F67765262EB7CBA3FE53285DB4288059375BD813E652B389891E04A7D1B67E67: Success, hash matches; profile and backup unchanged. After the launch the keyguard came up, so the guarded drags and screenshots were skipped (one focus-only screenshot taken by mistake while the keyguard showed was deleted unused). Logcat 0 exception/shader-error matches. The new pit and bridge lanterns are not yet seen on the phone.
+
+## 2026-10-04 - Pending foundry work completed
+
+Finished the inherited pit atmosphere (20 rising sparks, heat wisps and glow), gate-brazier support checks, bridge coping/kerb corrections, arch-before-pier ordering, screened anchor plates and framed molten discharge. Extended the west bridge paving margin to d=-4 for s=-32..-24, covering the bare joint bed after the kerb ends. No gameplay, movement bounds, save or balance changes. Proof: ArtDirection/2026-10-04/foundry-completion-01 (actual Unity before/after).
+
+Graphics capture1/1; .NET390/390; compile0warnings/errors; EditMode410/410; PlayMode134/134; Android exit0. Static17renderers/73,244vertices; atmosphere832vertices. Integrity526/1099/568 checked while gate was in progress. APK37,175,012bytes SHA25623BB5C7B4C2A51BA12A6609193B6D358E867270DD278A755486CFA2858ED0058. Built, NOT installed; latest known installed remains F6776526... from October1. Fresh read-only phone check found launcher foreground and game not running. No device inputs. New painted masters are being prepared separately; this package contains no texture changes. Commit locally only, no push.

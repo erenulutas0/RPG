@@ -41,9 +41,9 @@ namespace Cryptforge.UI
             var joints=new Builder();
             float rail=4-Kerb*1.41421356f,end=-50+Kerb*1.41421356f;
             // Each side's kerb stops where the bridge enters the court: the west (d<0) side at s=-32, where its rail ends
-            // (beyond it the court's west room is walkable on both sides), the east side where it meets the court's
-            // south edge (v=-14).
-            float westEnd=-32,eastEnd=-28+rail;
+            // (beyond it the court's west room is walkable on both sides); the east side runs to the deck end, where its
+            // rail ends and it meets the court's own south kerb.
+            float westEnd=-32,eastEnd=-24;
             for(int i=0;i<13;i++)
             {
                 float s0=-50+i*2;

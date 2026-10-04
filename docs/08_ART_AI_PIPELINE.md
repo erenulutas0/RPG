@@ -636,3 +636,9 @@ No raster art generated. Integrated: mixed-size ashlar court paving (`FoundryReg
 ## 2026-10-01 - Foundry day pass: molten pit floor, bridge lanterns, bridge west rail
 
 No raster art generated. Integrated: a molten pool and warm lining gradient in the furnace pit and a softened collar corner (`FoundryRegionMassing.cs`); lantern posts on the bridge rails with light pools (`FoundryRegionSite.cs`, `FoundryRegionFinish.cs`); the bridge west rail and kerbs end at the court (`FoundryRegionView.cs`, `FoundryRegionSite.cs`). Installed on S23, not yet viewed there (see 23). Proof `ArtDirection/2026-10-01/foundry-day-01/`.
+
+## 2026-10-04 - Pending foundry work completed
+
+Finished the inherited pit atmosphere (20 rising sparks, heat wisps and glow), gate-brazier support checks, bridge coping/kerb corrections, arch-before-pier ordering, screened anchor plates and framed molten discharge. Extended the west bridge paving margin to d=-4 for s=-32..-24, covering the bare joint bed after the kerb ends. No gameplay, movement bounds, save or balance changes. Proof: ArtDirection/2026-10-04/foundry-completion-01 (actual Unity before/after).
+
+Graphics capture1/1; .NET390/390; compile0warnings/errors; EditMode410/410; PlayMode134/134; Android exit0. Static17renderers/73,244vertices; atmosphere832vertices. Integrity526/1099/568 checked while gate was in progress. APK37,175,012bytes SHA25623BB5C7B4C2A51BA12A6609193B6D358E867270DD278A755486CFA2858ED0058. Built, NOT installed; latest known installed remains F6776526... from October1. Fresh read-only phone check found launcher foreground and game not running. No device inputs. New painted masters are being prepared separately; this package contains no texture changes. Commit locally only, no push.

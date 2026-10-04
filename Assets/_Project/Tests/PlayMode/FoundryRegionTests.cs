@@ -53,6 +53,16 @@ namespace Cryptforge.Tests
                 Assert.That(renderer.sortingOrder,Is.InRange(-18,-1),"Scenery must remain above the cavern and below combatants.");
 
             var visibility=arena.Region.GetComponent<FoundryVisibilityView>();
+            // The gate's fire baskets hang on posts the balustrade places for itself: a rail change must not leave one
+            // floating over a span or bare void.
+            var regionView=arena.Region.GetComponent<FoundryRegionView>();
+            foreach(float v in FoundryRegionView.GateBrazierPosts)
+            {
+                bool held=false;
+                foreach(var post in regionView.RailPostBoxes)
+                    if(FoundryRegionView.GateBrazierU>=post.x&&FoundryRegionView.GateBrazierU<=post.z&&v>=post.y&&v<=post.w)held=true;
+                Assert.That(held,Is.True,"A balustrade post holds the gate brazier at v "+v+".");
+            }
             Assert.That(visibility,Is.Not.Null);
             var ownedMaterials=new System.Collections.Generic.HashSet<Material>();
             int floorDecals=0;
@@ -157,6 +167,26 @@ namespace Cryptforge.Tests
             Time.timeScale=1;
             yield return new WaitForSeconds(.12f);
             Assert.That(atmosphereMesh.vertices,Is.Not.EqualTo(initialAtmosphere),"Active atmosphere should move.");
+            // The atmosphere is a sibling of the region, so the region's colour check above never covered it.
+            var tones=new System.Collections.Generic.List<Color>();atmosphereMesh.GetColors(tones);
+            foreach(var c in tones)
+            {
+                Assert.That(Mathf.Max(c.r,Mathf.Max(c.g,c.b)),Is.LessThan(2f),"Atmosphere colour beyond the shader's range.");
+                Assert.That(Mathf.Min(c.r,Mathf.Min(c.g,c.b)),Is.GreaterThanOrEqualTo(0f),"Negative atmosphere colour.");
+            }
+            // The pit's sparks and haze are depth-tested against the collar (behind the near pieces and the domes, in front
+            // of the far collar), and are born only inside the collar's opening, never over walkable court.
+            int pitVertices=0;
+            foreach(var p in atmosphereMesh.vertices)
+                if(p.z!=0){pitVertices++;Assert.That(p.z,Is.InRange(FoundryDepth.Z(-.6f),FoundryDepth.Z(.09f)));}
+            Assert.That(pitVertices,Is.GreaterThan(0),"The furnace pit has sparks and haze.");
+            for(int spark=0;spark<FoundryAtmosphereView.SparkCount;spark++)
+                for(int life=0;life<200;life++)
+                {
+                    Vector2 at=FoundryAtmosphereView.SparkSpawn(spark,life);
+                    Assert.That(Vector2.Distance(at,new Vector2(-8,6)),Is.LessThan(3.45f),"Sparks are born inside the collar's opening.");
+                    Assert.That(Cryptforge.Art.FoundryMap.Cell(Mathf.FloorToInt(at.x),Mathf.FloorToInt(at.y)),Is.False,"Never over walkable court.");
+                }
 
 
             Assert.That(setup.Encounters.AliveEnemyCount,Is.GreaterThan(0));

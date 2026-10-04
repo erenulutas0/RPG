@@ -55,11 +55,12 @@ namespace Cryptforge.UI
             for(int i=0;i<3;i++)
             {
                 int edge=i==2?3:i; Vector3 a=bridge[edge],b=bridge[(edge+1)%4];
+                // Outward from the whole edge's midpoint, so shortening the west edge below does not shear its coping.
+                Vector3 outward=(a+b)*.5f-Project(-18.5f,-18.5f);outward.Normalize();
                 // The west edge's court end lies inside the court's west room (u -18..-12, v -14..18) up to (-18,-14):
                 // walkable floor on both sides, so the rail and its wall start where the bridge leaves the court.
                 if(edge==3)a=Project(-18,-14);
                 walls.WallQuad(a+Vector3.down*2.8f,b+Vector3.down*2.8f,b,a,false,new Color(.7f,.7f,.76f));
-                Vector3 outward=(a+b)*.5f-Project(-18.5f,-18.5f);outward.Normalize();
                 var rail=new Builder();
                 rail.WallQuad(a,b,b+Vector3.up*.3f,a+Vector3.up*.3f,false,new Color(.7f,.7f,.76f));
                 rail.WallQuad(a+Vector3.up*.3f,b+Vector3.up*.3f,b+Vector3.up*.3f+outward*.25f,a+Vector3.up*.3f+outward*.25f,true,Color.white);
@@ -115,21 +116,25 @@ namespace Cryptforge.UI
                     LitFloorQuad(mesh,Deck(s,d),Deck(s,d+2),Deck(s+1,d+2),Deck(s+1,d),j==0||j==3?.66f:.5f);
                 }
             DeckLattice(mesh,1,-2,2,false);
-            DeckLattice(mesh,2,-3.5f,-2,true);DeckLattice(mesh,2,2,3.5f,true);
+            // The west kerb ends at s=-32. Beyond it the deck meets walkable court,
+            // so carry the stone face to d=-4 instead of exposing the joint bed.
+            DeckLattice(mesh,2,-3.5f,-2,true,-50,-32);
+            DeckLattice(mesh,2,-4,-2,true,-32,-24);
+            DeckLattice(mesh,2,2,3.5f,true);
         }
         // Every u/v lattice stone of size g inside the band d0..d1 of the deck: whole diamonds, and the pieces a lane,
         // the kerb line or a deck end cuts from them. Lane and end cuts lie on lattice centre or tip lines (g = 1 and 2:
         // s=-24 is a centre line, s=-50 a tip line); the kerb line cuts the margin course off-lattice, along the kerb.
-        private static void DeckLattice(Builder mesh,float g,float d0,float d1,bool margin)
+        private static void DeckLattice(Builder mesh,float g,float d0,float d1,bool margin,float s0=-50,float s1=-24)
         {
             int lo=Mathf.FloorToInt(-27/g)-1,hi=Mathf.CeilToInt(-10/g)+1;
             for(int k=lo;k<=hi;k++)
                 for(int m=lo;m<=hi;m++)
                 {
                     float s=(k+m+1)*g,d=(k-m)*g;
-                    if(d+g<=d0||d-g>=d1||s+g<=-50||s-g>=-24)continue;
+                    if(d+g<=d0||d-g>=d1||s+g<=s0||s-g>=s1)continue;
                     var stone=new List<Vector2>{new Vector2(s-g,d),new Vector2(s,d+g),new Vector2(s+g,d),new Vector2(s,d-g)};
-                    stone=DeckClip(DeckClip(DeckClip(DeckClip(stone,0,-50,1),0,-24,-1),1,d0,1),1,d1,-1);
+                    stone=DeckClip(DeckClip(DeckClip(DeckClip(stone,0,s0,1),0,s1,-1),1,d0,1),1,d1,-1);
                     if(stone.Count>=3)BridgeStone(mesh,stone,margin,k,m);
                 }
         }

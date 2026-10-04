@@ -5,8 +5,10 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // Shared depth scale of the foundry. Structure vertices store the region-local screen height of their ground
-    // contact in z (FoundryRegionView.ApplyStructureDepth); actor sprites get the same value from their feet. Everything else in
-    // the scene stays at z 0, nearer than any structure, so it keeps passing its default depth test unchanged.
+    // contact in z (FoundryRegionView.ApplyStructureDepth); actor sprites and above-floor combat effects get the same value
+    // from their feet while a camera renders, and the furnace pit's sparks and haze (FoundryAtmosphereView) stand at the
+    // pit's depth. Everything else in the scene stays at z 0, nearer than any structure, so it keeps passing its default
+    // depth test unchanged.
     internal static class FoundryDepth
     {
         internal const float Base = 50f;

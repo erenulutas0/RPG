@@ -856,10 +856,15 @@ namespace Cryptforge.UI
             new Vector4(-19.1f,-14.4f,-18.5f,-13.8f),new Vector4(-14.4f,-19.1f,-13.8f,-18.5f)
         };
 
+        // Every balustrade post the rail placed (design boxes), for checks that hang things on them (the gate braziers).
+        private readonly List<Vector4> _railPostBoxes=new List<Vector4>();
+        internal IReadOnlyList<Vector4> RailPostBoxes=>_railPostBoxes;
+
         private void BuildBalustrade(ArenaView arena,List<MassPiece> pieces)
         {
             var wall=arena.PlatformMaterials.FoundryWall;
             var placed=new List<Vector4>();
+            _railPostBoxes.Clear();
             for(int i=0;i<CourtFinials.Length;i++)
             {
                 Vector2 p=CourtFinials[i];
@@ -989,7 +994,7 @@ namespace Cryptforge.UI
         {
             if(!MassClear(box)||MassBlocked(box)||MassConflicts(box,1.35f,true))return false;
             foreach(var other in placed)if(Overlap(other,box))return false;
-            placed.Add(box);posts.Add(Along(box,alongU));
+            placed.Add(box);posts.Add(Along(box,alongU));_railPostBoxes.Add(box);
             AddPiece(pieces,box,1.34f,()=>
             {
                 var above=new Builder();var below=front?new Builder():null;

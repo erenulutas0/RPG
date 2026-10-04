@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cryptforge.Art;
 using UnityEngine;
 
@@ -8,6 +9,10 @@ namespace Cryptforge.UI
     {
         private void BuildUndercroft(ArenaView arena)
         {
+            // Piers go in after every arch. Arches and piers share one masonry batch, painted in emission order, and _cells
+            // lists the court before the room west of it, so the arch from (-8,-14) followed the major pier at (-4,-14),
+            // right of the bridge head, and laid its foot over the pier's left half. Now every pier covers both arch feet.
+            var piers=new List<(Vector2 at,bool major)>();
             foreach(var cell in _cells)
             {
                 int x=cell.x,y=cell.y;
@@ -15,17 +20,20 @@ namespace Cryptforge.UI
                 // The inset shaft has its own lining and must remain open.
                 if(x>-13&&x<0&&y>0&&y<12)continue;
                 if(x%4==0 && ExteriorSpan(x,y,true))
-                    UndercroftArch(arena,Project(x,y),Project(x+4,y),x/4+y,!ExteriorSpan(x+4,y,true));
+                    UndercroftArch(arena,new Vector2(x,y),new Vector2(x+4,y),x/4+y,!ExteriorSpan(x+4,y,true),piers);
                 if(y%4==0 && ExteriorSpan(x,y,false))
-                    UndercroftArch(arena,Project(x,y),Project(x,y+4),y/4+x,!ExteriorSpan(x,y+4,false));
+                    UndercroftArch(arena,new Vector2(x,y),new Vector2(x,y+4),y/4+x,!ExteriorSpan(x,y+4,false),piers);
             }
+            foreach(var pier in piers)UndercroftPier(arena,pier.at,pier.major);
             // Long suspension catenaries connect scenery anchors beneath the deck.
             SuspendedChain(arena,Project(-20,-10)+Vector3.down*4,
                 Project(-12,-10)+Vector3.down*4,2.1f);
             SuspendedChain(arena,Project(4,-10)+Vector3.down*4,
                 Project(12,-10)+Vector3.down*4,2.4f);
-            foreach(float u in new[]{17f,25f})
-                FurnaceDrain(arena,Project(u+1.5f,-5.1f));
+            // The near drain stops behind the court. At the far one's 6.7 its foot came out below the court's south edge on
+            // screen (6.29 under its mouth), the casing's rank (-16) painting it over that face (-17), which stands in front.
+            foreach(var drain in new[]{new Vector2(17,5.2f),new Vector2(25,6.7f)})
+                FurnaceDrain(arena,Project(drain.x+1.5f,-5.1f),drain.y);
         }
 
         private static bool ExteriorSpan(int x,int y,bool alongX)
@@ -38,8 +46,10 @@ namespace Cryptforge.UI
             return true;
         }
 
-        private void UndercroftArch(ArenaView arena,Vector3 a,Vector3 b,int cadence,bool terminal)
+        private void UndercroftArch(ArenaView arena,Vector2 from,Vector2 to,int cadence,bool terminal,
+            List<(Vector2 at,bool major)> piers)
         {
+            Vector3 a=Project(from.x,from.y),b=Project(to.x,to.y);
             var stone=new Builder();
             // Odd count places one load-bearing key at the crown. Recessed mortar
             // remains behind the joints rather than opening cracks through the arch.
@@ -68,8 +78,8 @@ namespace Cryptforge.UI
             Create("Undercroft arches and ribs",stone,arena.PlatformMaterials.FoundryWall,-16);
             // Every third pier carries a deeper buttress. End spans receive their own
             // support so neither arch foot terminates as a floating masonry blade.
-            UndercroftPier(arena,a,cadence%3==0);
-            if(terminal)UndercroftPier(arena,b,true);
+            piers.Add((from,cadence%3==0));
+            if(terminal)piers.Add((to,true));
         }
 
         private static Vector3 ArchIntrados(Vector3 a,Vector3 b,float t)
@@ -77,8 +87,9 @@ namespace Cryptforge.UI
             return Vector3.Lerp(a,b,t)+Vector3.down*(5.8f-2.7f*Mathf.Sin(t*Mathf.PI));
         }
 
-        private void UndercroftPier(ArenaView arena,Vector3 anchor,bool major)
+        private void UndercroftPier(ArenaView arena,Vector2 at,bool major)
         {
+            Vector3 anchor=Project(at.x,at.y);
             float half=major?.42f:.29f,depth=major?8.8f:7.25f;
             Vector3 top=anchor+Vector3.down*2.5f;
             Vector3 foot=anchor+Vector3.down*depth;
@@ -101,7 +112,10 @@ namespace Cryptforge.UI
             }
             ShadeUndercroftDepth(stone,anchor,anchor);
             Create("Faceted undercroft buttresses",stone,arena.PlatformMaterials.FoundryWall,-16);
-            if(!major)return;
+            // A bastion or a boiler's foundation stands in front of four major piers (12,-14; -18,0; -18,16; 20,-2). Their
+            // stone paints under those masses (one batch, emitted first), but the plate's rank is over all the stone below
+            // the deck, so it painted over the mass in front: across the top of the bastion at (12,-14), for one.
+            if(!major||PierScreened(at))return;
             var iron=new Builder();
             Vector3 plate=top+Vector3.down*.55f;
             FullFace(iron,plate+Vector3.left*.22f,plate+Vector3.right*.22f,
@@ -118,6 +132,20 @@ namespace Cryptforge.UI
             // do not rely on equal-order material batches to expose the anchor plates.
             ShadeUndercroftDepth(iron,anchor,anchor);
             Create("Undercroft iron anchors",iron,arena.PlatformMaterials.FoundryIron,-15.4f);
+        }
+
+        // True where a built bastion or a boiler's foundation stands between the face at design point p and the camera,
+        // within a unit of it. The sight line runs to -u -v climbing .71 a unit, so out to there a plate (3.05 to 4.25
+        // under the deck) is still level with a bastion's block, capped 2.3 down, or a boiler's drum.
+        private static bool PierScreened(Vector2 p)
+        {
+            for(float t=0;t<=1.001f;t+=.25f)
+            {
+                Vector2 q=p-new Vector2(t,t);
+                foreach(var b in Bastions)if(q.x>=b.x&&q.x<=b.z&&q.y>=b.y&&q.y<=b.w&&MassClear(b))return true;
+                foreach(var c in BoilerCentres)if((q-c).sqrMagnitude<BoilerPlinth*BoilerPlinth)return true;
+            }
+            return false;
         }
 
         // Authored build-time shading, not transparency or realtime lighting. Read depth
@@ -149,19 +177,61 @@ namespace Cryptforge.UI
             }
         }
 
-        private void FurnaceDrain(ArenaView arena,Vector3 mouth)
+        // A boiler's discharge chute: an iron casing hung from the mouth, its face open in a slot from ChuteSlot down that
+        // shows the molten metal. Casing (FoundryIron -15.4) and metal (FoundryEmbers -15.5) share the rank -16, where
+        // Unity paints batches by bounds centre on the sort axis, the higher first: the abyss chains hold the iron's centre
+        // near -9.7 and the metal holds the embers' near +1.3, so the iron paints last, and a solid casing hid the metal
+        // entirely (to 2026-10-01). The casing is now a frame - a collar over the mouth and a rail either side of the slot -
+        // the metal tucked ChuteTuck under it, so either order shows the same chute. The metal stays in the embers batch:
+        // its reach up the screen keeps that centre above the pit lining's, which the molten pool relies on (PitPool).
+        // Without the ember material the casing stays solid.
+        private void FurnaceDrain(ArenaView arena,Vector3 mouth,float length)
         {
+            var embers=arena.PlatformMaterials.FoundryEmbers;
             var iron=new Builder();
-            Vector3 bottom=mouth+Vector3.down*6.7f;
-            FullFace(iron,mouth+Vector3.left*.24f,bottom+Vector3.left*.13f,
-                bottom+Vector3.right*.13f,mouth+Vector3.right*.24f,new Color(.4f,.4f,.46f));
+            Color plate=new Color(.4f,.4f,.46f);
+            float top=ChuteHalf(0,length),collar=ChuteHalf(ChuteSlot,length),foot=ChuteHalf(length,length);
+            if(embers==null)ChuteQuad(iron,mouth,length,plate,new Vector2(0,-top),new Vector2(length,-foot),
+                new Vector2(length,foot),new Vector2(0,top));
+            else
+            {
+                ChuteQuad(iron,mouth,length,plate,new Vector2(0,-top),new Vector2(ChuteSlot,-collar),
+                    new Vector2(ChuteSlot,collar),new Vector2(0,top));
+                foreach(float side in new[]{-1f,1f})
+                    ChuteQuad(iron,mouth,length,plate,new Vector2(ChuteSlot,side*collar),new Vector2(length,side*foot),
+                        new Vector2(length,side*ChuteOpening.y),new Vector2(ChuteSlot,side*ChuteOpening.x));
+            }
             Create("Furnace discharge casing",iron,arena.PlatformMaterials.FoundryIron,-15.4f);
-            if(arena.PlatformMaterials.FoundryEmbers==null)return;
+            if(embers==null)return;
+            // The metal over the ember texture's hot seam, as the beacons, lantern panes and fire windows are lit (the
+            // crust patch it sampled before would have read as dark slag): bright at the mouth, cooling to the foot.
             var heat=new Builder();
-            FullFace(heat,mouth+Vector3.down*.4f+Vector3.left*.11f,bottom+Vector3.left*.035f,
-                bottom+Vector3.right*.035f,mouth+Vector3.down*.4f+Vector3.right*.11f,new Color(.8f,.43f,.18f));
-            for(int i=0;i<heat.U.Count;i++)heat.U[i]=new Vector2(.065f+heat.U[i].x*.035f,.7f+heat.U[i].y*.25f);
-            Create("Contained furnace discharge",heat,arena.PlatformMaterials.FoundryEmbers,-15.5f);
+            Vector3 head=mouth+Vector3.down*(ChuteSlot-ChuteTuck),end=mouth+Vector3.down*length;
+            float wide=ChuteOpening.x+ChuteTuck,narrow=ChuteOpening.y+ChuteTuck;
+            FullFace(heat,head+Vector3.left*wide,end+Vector3.left*narrow,end+Vector3.right*narrow,
+                head+Vector3.right*wide,ChuteHot);
+            heat.C[1]=heat.C[2]=ChuteCool;
+            HotSeam(heat,0);
+            Create("Contained furnace discharge",heat,embers,-15.5f);
+        }
+
+        // The casing's half-width runs .24 at the mouth to .13 at the foot; the slot's, ChuteOpening, .11 at its head to .035.
+        private const float ChuteSlot=.4f,ChuteTuck=.01f;
+        private static readonly Vector2 ChuteOpening=new Vector2(.11f,.035f);
+        private static readonly Color ChuteHot=new Color(1.35f,1.5f,1.2f),ChuteCool=new Color(.85f,.75f,.6f);
+        private static float ChuteHalf(float depth,float length)=>Mathf.Lerp(.24f,.13f,depth/length);
+
+        // One quad of a chute's casing from corners (depth under the mouth, offset across), mapped as the solid casing's full
+        // face is: the iron plate's u down the length, v across the casing's width at that depth.
+        private static void ChuteQuad(Builder b,Vector3 mouth,float length,Color color,Vector2 p,Vector2 q,Vector2 r,Vector2 s)
+        {
+            int n=b.V.Count;
+            foreach(var k in new[]{p,q,r,s})
+            {
+                b.V.Add(mouth+new Vector3(k.y,-k.x,0));b.C.Add(color);
+                b.U.Add(new Vector2(k.x/length,.5f+k.y/(2*ChuteHalf(k.x,length))));
+            }
+            b.T.AddRange(new[]{n,n+1,n+2,n,n+2,n+3});
         }
     }
 }

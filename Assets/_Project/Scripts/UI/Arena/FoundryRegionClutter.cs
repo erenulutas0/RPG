@@ -68,8 +68,10 @@ namespace Cryptforge.UI
         // v .56-1.3 and 9.7-10.44 on the u 32 edge: cap 1.12, pointed to 1.34), each on an iron socket seated over the point,
         // .19 back of the post's centre so the bowl's whole round lies off the apron. The posts carry their depth: the
         // baskets take the same footprint.
-        private static readonly float[] GateBrazierPosts={.93f,10.07f};
-        private const float GateBrazierU=32.45f,GateBrazierRise=1.46f;
+        // They stand on posts the balustrade places itself (FoundryRegionTests checks a post holds each one).
+        internal static readonly float[] GateBrazierPosts={.93f,10.07f};
+        internal const float GateBrazierU=32.45f;
+        private const float GateBrazierRise=1.46f;
         // Clean patches of the two textures clutter is drawn on (scanned for the least grain: a masonry block interior and a
         // stretch of the iron plate's centre), with their measured mean texel, sRGB.
         private static readonly Vector2 MasonryPatch=new Vector2(.624f,.867f),IronPatch=new Vector2(.624f,.235f);
