@@ -1,0 +1,11 @@
+# Painted furnace pit lining (P4) — 2026-10-04
+
+Untouched builtin-generated master and exact prompt: ../painted-surfaces-02-masters/P4-raw.png and P4-prompt.txt. New shared FoundryPitLining material replaces only the previous furnace-facade lining/inner-drum batch at -15.5. The court's boiler fronts keep their old material for the next stage. No additional renderer: static 17 / 73,244 vertices.
+
+The September 30 prompt pack predates the October 1 molten pool. Its proposed discharge merge was not applied: the current separate ember batch still owns the molten pool and discharge. Current pool height, collar, collision and bounds are preserved. The new lining maps v=.06 to the pool level, samples an orange coal gap at u=.415..425/v=.07..08 for the seam and uses restrained neutral tints / .22 pool wash because heat is already painted into the source. Inner drums share the full-height lining, preserving the revised pool composition rather than applying the obsolete facade UV crop.
+
+Actual graphics capture 1/1: repeated portholes/grates removed, cool soot above and heated stone below, seamless-looking pool join. Existing shared-material lifecycle checks now include the dedicated lining, assert it differs from the boiler surface, and check POT dimensions to guard against the observed Android compression regression. Compile 0 warnings/errors, integrity 529/1099/568. Android import observed 256x512 ASTC_6x6, 10 mips. Full gate pending. Not installed.
+
+## 2026-10-04 - Dedicated painted pit lining (P4)
+
+Integrated FoundryPitLining with its own shared material and preserved 17-renderer batching. Adapted UV/heat to the current molten pool rather than the obsolete pre-pool prompt-pack layout. Repeated facade windows removed; molten pool/discharge and actor depth preserved. Proof ArtDirection/2026-10-04/painted-pit-01. Graphics 1/1; compile 0 warnings/errors; integrity 529/1099/568; EditMode 410/410; PlayMode 134/134; Android exit 0. New shared-surface checks cover pit independence and POT dimensions. Static 17 / 73,244 vertices. Android actual 256x512 ASTC_6x6, 10 mips; packed texture 78.0 KB. APK 32,374,835 bytes SHA256 F3512B910F9AA85B14AAA2F769B74E3063AD99D017DCA82D452B4668BB10CF7E. Built, not installed (ADB device list empty). No push.

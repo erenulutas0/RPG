@@ -18,6 +18,7 @@ MonoBehaviour:
   _gateFacade: {fileID: 2100000, guid: c1bf6ced74bbdad47b861bf76d1a804d, type: 2}
   _foundryWall: {fileID: 2100000, guid: 45d1469988859ed429e45f5a9e30d2b7, type: 2}
   _furnaceFacade: {fileID: 2100000, guid: e893b097e182d4f44a8b1b44785b5d2f, type: 2}
+  _foundryPitLining: {fileID: 2100000, guid: 8739a5c9ac7d8494aa7da6bee2344080, type: 2}
   _foundryIron: {fileID: 2100000, guid: 1a4afb82f05df78458ed1035c7b37f3d, type: 2}
   _foundryEmbers: {fileID: 2100000, guid: 2bb991504960a7041a93e0c78c0bc9b2, type: 2}
   _foundryPaving: {fileID: 2100000, guid: bb0e7a77a8343c145bb92c982d7526df, type: 2}

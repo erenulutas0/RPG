@@ -38,11 +38,13 @@ namespace Cryptforge.Tests
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 if(renderer.sharedMaterial.mainTexture==gate.mainTexture)usesGate=true;
             Assert.That(usesGate,Is.True);
-            var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FurnaceFacade,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving};
+            Assert.That(arena.PlatformMaterials.FoundryPitLining,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade),"The pit lining must stay independent of the boiler wrap.");
+            var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FurnaceFacade,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving};
             foreach(var shared in surfaces)
             {
                 Assert.That(shared,Is.Not.Null);
                 Assert.That(((Texture2D)shared.mainTexture).isReadable,Is.False);
+                Assert.That(Mathf.IsPowerOfTwo(shared.mainTexture.width)&&Mathf.IsPowerOfTwo(shared.mainTexture.height),Is.True,"Mipmapped foundry surfaces must be POT to preserve Android compression.");
                 bool used=false;
                 foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
                     if(renderer.sharedMaterial.mainTexture==shared.mainTexture)used=true;

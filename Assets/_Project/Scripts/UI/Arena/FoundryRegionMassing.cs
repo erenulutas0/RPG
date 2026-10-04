@@ -263,13 +263,13 @@ namespace Cryptforge.UI
                 PitPool(pool);
                 Create("Furnace pit molten pool",pool,set.FoundryEmbers,-15.5f);
             }
-            if(set.FurnaceFacade!=null)
+            if(set.FoundryPitLining!=null)
             {
                 var walls=new Builder();
                 PitLiningFronts(walls);
-                // Two inner boilers stand in the pool with their painted fire fronts below the deck.
+                // The inner drums share the ribbed pit surface; boiler doors stay on the court's towers.
                 foreach(var c in PitBoilers)PitDrum(walls,c);
-                Create("Furnace pit lining and inner boilers",walls,set.FurnaceFacade,-15.5f);
+                Create("Furnace pit lining and inner boilers",walls,set.FoundryPitLining,-15.5f);
             }
             var wall=set.FoundryWall;
             // Collar: lantern pedestals on the corner arcs and mid posts on the straights, each one structure for depth, and
@@ -405,14 +405,11 @@ namespace Cryptforge.UI
         private const int PitFacets=21;
         private static Vector2 PitLiningStation(int i,out Vector2 normal)=>PitRing(PitQuarter*(1.5f-2f*i/PitFacets),RailDepth,out normal);
 
-        // Only the far half of the band's inner edge faces the camera. Painted furnace fronts run down from the deck round it,
-        // left to right - seven panels of three facets each, the middle one on the pit's back - into the pool, the grate's
-        // foot at the waterline (PitFrontScale), so the fire behind the bars burns just above the metal. A facet turned to the
-        // camera reads a little brighter than one seen edge-on toward the ends. The pool lights them from below: course by
-        // course (PitLiningRows) the iron warms from a cool shade at the deck to forge orange at the metal (PitHeat), a seam
-        // of the grate's fire runs along the waterline, and the pool's light washes up over them (PitWash).
+        // Seven ribbed lining panels, three facets each, descend from the far collar into the molten pool.
+        // The new texture has baked bottom heat and coals in its lowest 12%; its v=.06 meets the waterline.
+        // Keep modest facet shading and a restrained pool wash rather than multiplying the baked heat twice.
         private static readonly float[] PitLiningRows={0,.55f,1.05f,1.45f,1.75f,PitMolten-PitSeam};
-        private const float PitSeam=.07f,PitFrontScale=PitMolten/.85f;
+        private const float PitSeam=.07f,PitFrontScale=PitMolten/.94f;
         private static void PitLiningFronts(Builder walls)
         {
             const int facets=3;
@@ -437,23 +434,21 @@ namespace Cryptforge.UI
                 }
             }
         }
-        // The pool's light washed over the fronts: the grate's fire, translucent (this batch is Sprites/Default, which blends
-        // premultiplied by vertex alpha), climbing from the waterline and fading out a quarter of the way down from the
-        // deck - the only light that lifts the dark iron past what the colour ceiling's 2x tint can.
+        // A translucent sample of the painted coals joins the lining to the separate molten pool.
         private static readonly float[] PitWashRows={.45f,1.2f,1.65f,PitMolten-PitSeam};
         private static Color PitWash(float depth)
         {
             float glow=Mathf.Pow(Mathf.InverseLerp(.45f,PitMolten-PitSeam,depth),1.6f);
-            return new Color(1,.92f,.8f,.62f*glow);
+            return new Color(1,.92f,.8f,.22f*glow);
         }
         // Light from the pool at a depth: from cool to hot as the height above the metal falls through reach.
         private static Color PitHeat(float depth,Color cool,Color hot,float reach)=>
             Color.LerpUnclamped(cool,hot,Mathf.Exp(-(PitMolten-depth)/reach));
-        private static readonly Color PitWallCool=new Color(.52f,.45f,.42f),PitWallHot=new Color(1.8f,1.12f,.6f);
-        private static readonly Color PitDrumCool=new Color(.5f,.44f,.42f),PitDrumHot=new Color(1.82f,1.08f,.56f);
-        // The grate's fire between two bars (furnace facade u .373-.379, v .28-.29), and the waterline seam's tone over it.
-        private static readonly Vector4 PitFire=new Vector4(.373f,.28f,.379f,.29f);
-        private static readonly Color PitSeamTone=new Color(1.02f,1.35f,1.3f);
+        private static readonly Color PitWallCool=new Color(.95f,.92f,.90f),PitWallHot=new Color(1.05f,.98f,.90f);
+        private static readonly Color PitDrumCool=new Color(.65f,.63f,.61f),PitDrumHot=new Color(1.15f,1f,.85f);
+        // An orange gap between coals in the dedicated lining, avoiding the old facade's grate UV.
+        private static readonly Vector4 PitFire=new Vector4(.415f,.07f,.425f,.08f);
+        private static readonly Color PitSeamTone=new Color(1f,1.1f,.95f);
 
         // A course of a painted front from depth top down to bottom under the deck-level edge a-c, mapped onto the texture
         // region (u0, v0, u1, v1) (v0 at the bottom), its top and bottom edges each in their own colour.
@@ -466,7 +461,7 @@ namespace Cryptforge.UI
             b.C[start+2]=upper;b.C[start+3]=upper;
         }
 
-        // An inner boiler's painted drum from the pool up to the deck: the furnace front wrapped once round its visible half
+        // An inner boiler's painted drum from the pool up to the deck: the lining wrapped once round its visible half
         // as PaintedDrum wraps it, at the lining's texture scale, in courses lit by the pool like the lining but closer to
         // it - dark above, so the boiler stands out against the lit wall behind - with a rim of the pool's light up the side
         // turned to the gap (PitDrumHeat), and the same seam of fire at the waterline.
