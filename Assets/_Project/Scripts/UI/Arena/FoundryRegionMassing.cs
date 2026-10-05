@@ -325,7 +325,41 @@ namespace Cryptforge.UI
             {
                 Vector2 centre=c;
                 AddPiece(pieces,new Vector4(centre.x-1.1f,centre.y-1.1f,centre.x+1.1f,centre.y+1.1f),1.3f,
-                    ()=>{var dome=new Builder();PitDome(dome,centre);Create("Pit boiler dome",dome,wall,-11);});
+                    ()=>
+                    {
+                        var dome=new Builder();PitDome(dome,centre);Create("Pit boiler dome",dome,wall,-11);
+                        var iron=new Builder();PitDomeIron(iron,centre);
+                        Create("Pit boiler retaining iron",iron,set.FoundryIron,-10.5f);
+                    });
+            }
+        }
+
+        private static void PitDomeIron(Builder b,Vector2 c)
+        {
+            // Broad retaining bands identify the hood as furnace equipment. They occupy
+            // the existing stone envelope and inherit its 1.3-high owner, below the open flue.
+            int ring=b.C.Count;
+            MassCourse(b,c,1.1f,1.1f,.035f,.16f,8,true,new Color(1.08f,.96f,.8f));
+            for(int i=ring;i<b.C.Count;i++)
+                if((i-ring)%4<2)
+                    b.C[i]=Tinted(b.C[i],Color.Lerp(Color.white,new Color(1.18f,1.02f,.87f),
+                        PitFacingPool(c,FrontAngle((i-ring)/4,8)+Mathf.PI/16)));
+            MassCourse(b,c,.24f,.24f,.66f,.79f,6,true,new Color(1.12f,1.02f,.88f));
+            // Three structural straps follow the actual flat facets of the two hood courses.
+            // Interpolating facet endpoints keeps them coplanar rather than floating on a circle.
+            for(int facet=1;facet<=5;facet+=2)
+            {
+                float a=FrontAngle(facet,8),e=FrontAngle(facet+1,8);
+                for(int course=0;course<2;course++)
+                {
+                    float r0=course==0?.98f:.76f,r1=course==0?.76f:.44f;
+                    float h0=course==0?.18f:.44f,h1=course==0?.44f:.64f;
+                    Vector3 bottomA=OnRing(c,r0,a,h0),bottomB=OnRing(c,r0,e,h0);
+                    Vector3 topA=OnRing(c,r1,a,h1),topB=OnRing(c,r1,e,h1);
+                    Color tone=new Color(.96f,.88f,.77f);
+                    LinkQuad(b,Vector3.Lerp(bottomA,bottomB,.4f),Vector3.Lerp(bottomA,bottomB,.6f),
+                        Vector3.Lerp(topA,topB,.6f),Vector3.Lerp(topA,topB,.4f),tone,tone,tone,tone);
+                }
             }
         }
 

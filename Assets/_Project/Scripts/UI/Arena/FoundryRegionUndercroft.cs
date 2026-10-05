@@ -64,10 +64,16 @@ namespace Cryptforge.UI
                 Vector3 lower=Vector3.down*(key?.10f:0);
                 Vector3 upper=Vector3.up*(key?.96f:.78f);
                 float variation=1+(((i*7+Mathf.Abs(cadence))%5)-2)*.018f;
-                Color shade=i<count/2?new Color(.49f,.50f,.60f):new Color(.37f,.39f,.49f);
-                if(key)shade=new Color(.54f,.53f,.59f);
+                Color shade=i<count/2?new Color(.53f,.53f,.60f):new Color(.42f,.43f,.51f);
+                if(key)shade=new Color(.58f,.56f,.60f);
                 shade*=variation;shade.a=1;
-                stone.WallQuad(left+lower,right+lower,right+upper,left+upper,false,shade);
+                // A broad inner return separates the load-bearing arch face from the
+                // opening. Both planes stay inside the existing wedge contour, with
+                // continuous world masonry UVs rather than an extra applied trim.
+                Vector3 returnTop=Vector3.Lerp(lower,upper,.3f);
+                Color returnShade=new Color(shade.r*.68f,shade.g*.7f,shade.b*.75f);
+                stone.WallQuad(left+lower,right+lower,right+returnTop,left+returnTop,false,returnShade);
+                stone.WallQuad(left+returnTop,right+returnTop,right+upper,left+upper,false,shade);
                 // A narrow lit upper arris and dark return give each wedge thickness.
                 stone.WallQuad(left+upper,right+upper,right+upper+Vector3.down*.045f,
                     left+upper+Vector3.down*.045f,false,new Color(.57f,.57f,.64f));
@@ -95,8 +101,17 @@ namespace Cryptforge.UI
             Vector3 foot=anchor+Vector3.down*depth;
             Vector3 bevel=new Vector3(half*.32f,.12f,0);
             var stone=new Builder();
-            stone.WallQuad(top+Vector3.left*half,top+Vector3.right*half,
-                foot+Vector3.right*half*.55f,foot+Vector3.left*half*.55f,false,new Color(.4f,.43f,.54f));
+            // Broad longitudinal planes make the shaft read as structural masonry
+            // below the deck. This only partitions the old front quad: the outline,
+            // taper, depth owner and continuously projected stone UVs are unchanged.
+            float[] across={-1f,-.56f,.56f,1f};
+            Color[] front={new Color(.32f,.35f,.45f),new Color(.45f,.46f,.53f),
+                new Color(.39f,.41f,.50f)};
+            for(int face=0;face<3;face++)
+                stone.WallQuad(top+Vector3.right*(half*across[face]),
+                    top+Vector3.right*(half*across[face+1]),
+                    foot+Vector3.right*(half*.55f*across[face+1]),
+                    foot+Vector3.right*(half*.55f*across[face]),false,front[face]);
             stone.WallQuad(top+Vector3.left*half-bevel,top+Vector3.left*half,
                 foot+Vector3.left*half*.55f,foot+Vector3.left*half*.55f-bevel*.45f,false,new Color(.26f,.29f,.39f));
             stone.WallQuad(top+Vector3.right*half,top+Vector3.right*half+bevel,

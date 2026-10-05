@@ -693,3 +693,12 @@ Proof ArtDirection/2026-10-05/foundry-identity-01 pairs actual Unity overview/ga
 Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745 bytes SHA25646D65F0CA8A2007F87B26B749BE8EFF9014EF141121CE84E46CE3E7DD9BB077F installed and base.apk hash matched. Matched S23 static59.7-59.9fps/GPU3.8ms/57draws/66.2ktriangles. One observed sample reached33.4ms max; do not claim zero hitches. No current-process Unity exception/shader-error matches. Not a combat/midrange benchmark.
 
 Fresh backup TestResults/identity-device-20261005. Guarded four-drag gate route recorded in proof/device-route.txt; timing yields slight position differences. Profile/bak and original two development files unchanged by hash; temporary flags removed, app stopped. Normal preview ready next launch. No push.
+## 2026-10-05 - Three-agent structural package 02 installed
+
+Three agents in disjoint files refined bridge support courses (Site), undercroft arch/pier face shading (Undercroft), and active pit hood collars/neck bands/straps (Massing). Dead legacy BuildShaft was identified and left untouched; pit work was reassigned to the actual BuildFurnacePit path. Parent inspected captures and ran integration. Static17renderers/80,316vertices (+1,496,+1.90%). Existing materials/depth ownership/walking boundaries preserved; no new assets, scene, gameplay or camera changes.
+
+Actual matched Unity and phone evidence: ArtDirection/2026-10-05/foundry-structure-02. Bridge/undercroft reviewed in Unity closeups and overview; pit also inspected after a guarded two-drag approach on S23. Fine changes are subtle at overview scale and parts of the undercroft remain obscured by existing bastions. Phone route timing yields slight framing differences; this is not an exact pixel-aligned comparison or a reference-fidelity claim.
+
+Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745bytes SHA2567DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC installed and base.apk hash matched. S23 static59.9fps/GPU3.8ms/57draws/67.2ktriangles; captured settled samples max16.9ms. No current-process Unity error matches. Not a combat/midrange benchmark.
+
+Owner explicitly approved restarting their Forge run (2HP,40unbanked gold). Fresh backup TestResults/structure-device-20261005 taken first. Profile/bak and original development files unchanged by hash after validation; test flags removed, app stopped. Persistent progress retained; the in-flight run was restarted as authorised. No push.

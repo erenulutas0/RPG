@@ -70,7 +70,12 @@ namespace Cryptforge.UI
             var iron=new Builder();
             foreach(var p in posts)
             {
-                LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-2.8f,.3f,.025f);
+                // A seated lower foot and deck-bearing shoulder break the long support
+                // into structural courses. The recessed stem remains inside the old
+                // shaft envelope; bottom, deck height and depth ownership are unchanged.
+                LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-2.8f,-2.35f,.03f);
+                LitFoundryTier(stone,p.x-.245f,p.y-.245f,p.x+.245f,p.y+.245f,-2.35f,-.18f,.005f);
+                LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-.18f,.3f,.025f);
                 LitFoundryTier(stone,p.x-.24f,p.y-.24f,p.x+.24f,p.y+.24f,.3f,1.1f,.03f);
                 LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,1.1f,1.28f,.04f);
                 LitFoundryTier(stone,p.x-.21f,p.y-.21f,p.x+.21f,p.y+.21f,1.28f,1.65f,.14f);
