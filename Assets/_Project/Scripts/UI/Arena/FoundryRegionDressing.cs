@@ -45,7 +45,7 @@ namespace Cryptforge.UI
             }
             Vector3 tip=Project(-20,20)+Vector3.up*7.8f;
             Vector3 rear=mast+Vector3.right;
-            Truss(arena,rear,tip,.65f);
+            BuildCraneBoxJib(arena,rear,tip);
             Tube(arena,mast,rear,.2f);
             Tube(arena,foot+Vector3.up*3,tip,.095f);
             // Broad bearing collar gives the lattice mast a clear mechanical joint.
@@ -53,11 +53,61 @@ namespace Cryptforge.UI
             Wheel(arena,mast,.32f);
             Vector3 load=tip+Vector3.down*3.4f;
             Chain(arena,tip,load,.13f,-11);
+            // A sheave seats the hoist chain in the jib instead of ending it on a bare rail.
+            BuildCraneSheave(arena,tip+Vector3.down*.2f);
+            CraneCase(arena,load+new Vector3(-.16f,-.13f,0),.32f,.26f,new Vector3(.08f,.05f,0));
             BuildCraneBasket(arena,load);
             // Counterweight is over the crane foundation, not the playable court.
             CraneCase(arena,rear+new Vector3(-.32f,-.85f,0),.68f,.72f,new Vector3(.22f,.15f,0));
             foreach(float x in new[]{-.2f,.2f})
                 Tube(arena,rear+new Vector3(x,.04f,0),rear+new Vector3(x,-.88f,0),.07f);
+            // The hanging weight is three stacked cast slabs held by the existing straps.
+            for(int i=1;i<3;i++)
+                Tube(arena,rear+new Vector3(-.29f,-.85f+i*.24f,0),
+                    rear+new Vector3(.33f,-.85f+i*.24f,0),.035f);
+        }
+
+        private void BuildCraneBoxJib(ArenaView arena,Vector3 rear,Vector3 tip)
+        {
+            // The second chord stays below the existing upper silhouette. Four cross-ties
+            // turn the thin planar lattice into a shallow load-bearing box without closing it.
+            Vector3 depth=new Vector3(.18f,-.24f,0);
+            Vector3 normal=new Vector3(-(tip-rear).y,(tip-rear).x,0).normalized*.65f;
+            Tube(arena,rear+depth,tip+depth,.13f);
+            Tube(arena,rear-normal+depth,tip-normal+depth,.12f);
+            for(int i=0;i<=3;i++)
+            {
+                Vector3 p=Vector3.Lerp(rear,tip,i/3f);
+                Tube(arena,p,p+depth,.09f);
+                Tube(arena,p-normal,p-normal+depth,.09f);
+            }
+            Truss(arena,rear,tip,.65f);
+        }
+
+        private void BuildCraneSheave(ArenaView arena,Vector3 center)
+        {
+            // Filled rim and hub sample plain iron: shrinking the entire plate texture here
+            // would turn the small hoist wheel into visual noise. All geometry uses the iron batch.
+            var mesh=new Builder();
+            const int segments=12;
+            Color edge=new Color(.96f,.9f,.78f),inner=new Color(.38f,.4f,.47f);
+            for(int i=0;i<segments;i++)
+            {
+                float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
+                Vector3 p=new Vector3(Mathf.Cos(a),Mathf.Sin(a),0),q=new Vector3(Mathf.Cos(b),Mathf.Sin(b),0);
+                float light=.75f+.25f*Mathf.Max(0,Vector2.Dot(p,ChainLight));
+                Color rim=ChainShade(edge,light);
+                LinkQuad(mesh,center+p*.24f,center+q*.24f,center+q*.155f,center+p*.155f,rim,rim,inner,inner);
+                if(i%3==0)
+                {
+                    Vector3 side=new Vector3(-p.y,p.x,0)*.022f;
+                    LinkQuad(mesh,center+side,center+p*.17f+side,center+p*.17f-side,center-side,
+                        inner,edge,edge,inner);
+                }
+            }
+            LinkQuad(mesh,center+new Vector3(-.065f,-.065f,0),center+new Vector3(.065f,-.065f,0),
+                center+new Vector3(.065f,.065f,0),center+new Vector3(-.065f,.065f,0),edge,edge,edge,edge);
+            Create("Crane hoist sheave",mesh,arena.PlatformMaterials.FoundryIron,-11);
         }
 
         private void BuildCraneBasket(ArenaView arena,Vector3 suspension)
@@ -88,6 +138,8 @@ namespace Cryptforge.UI
                 Vector3 p=front+width*(i/4f);
                 Tube(arena,p,p+down,.08f);
             }
+            // The side diagonal keeps the open load visible while giving the cage a rigid corner.
+            Tube(arena,front+width+down,front+width+depth,.075f);
         }
 
         private void CraneCase(ArenaView arena,Vector3 lowerLeft,float width,float height,Vector3 depth)
@@ -99,6 +151,12 @@ namespace Cryptforge.UI
             FullFace(body,lowerLeft+up,lowerLeft+right+up,lowerLeft+right+depth+up,
                 lowerLeft+depth+up,new Color(.65f,.64f,.6f));
             FullFace(body,lowerLeft,lowerLeft+right,lowerLeft+right+up,lowerLeft+up,new Color(.43f,.45f,.5f));
+            float bevel=Mathf.Min(.045f,Mathf.Min(width,height)*.18f);
+            Color worn=new Color(.8f,.76f,.68f),shade=new Color(.27f,.29f,.35f);
+            LinkQuad(body,lowerLeft,lowerLeft+right,lowerLeft+right+Vector3.up*bevel,lowerLeft+Vector3.up*bevel,
+                shade,shade,shade,shade);
+            LinkQuad(body,lowerLeft+Vector3.up*bevel,lowerLeft+Vector3.right*bevel+Vector3.up*bevel,
+                lowerLeft+Vector3.right*bevel+up,lowerLeft+up,worn,worn,worn,worn);
             Create("Crane cast iron casing",body,arena.PlatformMaterials.FoundryIron,-11);
             Tube(arena,lowerLeft+up,lowerLeft+right+up,.035f);
         }

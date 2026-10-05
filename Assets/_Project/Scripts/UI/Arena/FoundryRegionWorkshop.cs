@@ -62,6 +62,12 @@ namespace Cryptforge.UI
                 Project(6.06f,21.44f)+Vector3.up*.583f,
                 Project(6.06f,21.48f)+Vector3.up*.583f,
                 Project(5.66f,21.48f)+Vector3.up*.583f,new Color(.2f,.24f,.28f));
+            // Broad welded ribs belong to the tank walls, not loose foreground trim.
+            // Their design-plane extents remain inside the existing tank footprint.
+            foreach(float u in new[]{5.48f,6.48f})
+                WorkshopMetalHull(basin,u,20.7f,u+.12f,20.76f,.34f,.8f,.012f);
+            foreach(float v in new[]{21.02f,21.65f})
+                WorkshopMetalHull(basin,5.3f,v,5.36f,v+.12f,.34f,.8f,.012f);
             Create("Open workshop quenching tank",basin,arena.PlatformMaterials.FoundryIron,-11);
         }
 
@@ -128,6 +134,14 @@ namespace Cryptforge.UI
             // Recolour existing vertices; stock, waist and supporting foot stay dark.
             for(int i=headStart+24;i<headStart+28;i++)metal.C[i]=new Color(.67f,.70f,.75f);
             for(int i=headStart+8;i<headStart+12;i++)metal.C[i]=new Color(.73f,.75f,.79f);
+            // A worked steel face has no fabricated panel frame. Sample the same
+            // neutral iron patch as small props, retaining a subtle forged grain.
+            for(int i=headStart+24;i<headStart+28;i++)
+            {
+                Vector3 grain=metal.V[i]-(Project(-22.25f,5.58f)+Vector3.up*1.28f);
+                metal.U[i]=IronPatch+new Vector2(grain.x,grain.y)*.012f;
+                metal.C[i]=new Color(1.55f,1.6f,1.62f);
+            }
             Vector3 hornLeft=Project(-22.2f,7.15f),hornRight=Project(-21.5f,7.15f);
             Vector3 tip=Project(-21.85f,8.03f)+Vector3.up*1.24f;
             FullFace(metal,hornLeft+Vector3.up*1.28f,hornRight+Vector3.up*1.28f,
@@ -202,7 +216,8 @@ namespace Cryptforge.UI
 
         private void BuildToolRack(ArenaView arena)
         {
-            // Low rack and two tongs are decorative silhouettes, fully on the north shelf.
+            // The paired handles and spread jaws distinguish tongs from the central
+            // hanging hammer. All tools remain inside the original rack footprint.
             Vector3 left=Project(5.65f,19.8f),right=Project(6.65f,19.8f);
             Tube(arena,left+Vector3.up*.2f,left+Vector3.up*1.3f,.07f);
             Tube(arena,right+Vector3.up*.2f,right+Vector3.up*1.3f,.07f);
@@ -211,10 +226,20 @@ namespace Cryptforge.UI
             {
                 Vector3 handle=Project(u,19.78f)+Vector3.up*1.2f;
                 Vector3 joint=handle+Vector3.down*.63f;
-                Tube(arena,handle,joint,.04f);
-                Tube(arena,joint,joint+new Vector3(-.07f,-.18f,0),.035f);
-                Tube(arena,joint,joint+new Vector3(.07f,-.18f,0),.035f);
+                Tube(arena,handle+Vector3.left*.04f,joint+Vector3.right*.018f,.035f);
+                Tube(arena,handle+Vector3.right*.04f,joint+Vector3.left*.018f,.035f);
+                Tube(arena,joint,joint+new Vector3(-.085f,-.16f,0),.04f);
+                Tube(arena,joint,joint+new Vector3(.085f,-.16f,0),.04f);
+                Tube(arena,joint+new Vector3(-.085f,-.16f,0),
+                    joint+new Vector3(-.045f,-.19f,0),.035f);
+                Tube(arena,joint+new Vector3(.085f,-.16f,0),
+                    joint+new Vector3(.045f,-.19f,0),.035f);
             }
+            var hammer=new Builder();
+            ArchitectureBar(hammer,Project(6.12f,19.8f)+Vector3.up*1.23f,
+                Project(6.12f,19.8f)+Vector3.up*.73f,.055f,new Color(.48f,.34f,.21f));
+            WorkshopMetalHull(hammer,5.97f,19.7f,6.27f,19.9f,.62f,.78f,.022f);
+            Create("Rack hanging forge hammer",hammer,arena.PlatformMaterials.FoundryIron,-11);
             foreach(float u in new[]{5.65f,6.65f})
                 Tube(arena,Project(u,19.5f)+Vector3.up*.2f,
                     Project(u,20.05f)+Vector3.up*.2f,.08f);

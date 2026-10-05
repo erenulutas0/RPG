@@ -34,6 +34,9 @@ namespace Cryptforge.UI
                 LitFoundryTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
                 LitFoundryTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
             }
+            // The stepped keystone ties the shallow pediment to the door's central seal.
+            // Its crown stays below the existing gable and within the header footprint.
+            LitFoundryTier(stone,32.16f,4.38f,33.42f,5.62f,height+.43f,height+1.36f,.13f);
             // Central raised seal housing above the painted doors; the door artwork remains intact.
             LitFoundryTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
@@ -72,6 +75,7 @@ namespace Cryptforge.UI
             Vector3 ridge=Project(32.18f,5)+Vector3.up*(height+1.55f);
             Vector3 back=Project(33.78f,5)-Project(32.18f,5);
             stone.WallQuad(a,b,ridge,ridge,false,new Color(.47f,.51f,.62f));
+            BuildGatePedimentRecess(stone,a,b,ridge);
             // The two sloping roof faces establish actual projected depth, not a flat icon.
             stone.WallQuad(a,ridge,ridge+back,a+back,false,new Color(.67f,.69f,.75f));
             stone.WallQuad(ridge,b,b+back,ridge+back,false,new Color(.41f,.45f,.55f));
@@ -82,6 +86,28 @@ namespace Cryptforge.UI
                 stone.WallQuad(p,q,q+Vector3.up*.13f,p+Vector3.up*.13f,false,new Color(.7f,.72f,.78f));
                 stone.WallQuad(p+Vector3.up*.13f,q+Vector3.up*.13f,
                     q+back+Vector3.up*.13f,p+back+Vector3.up*.13f,false,new Color(.57f,.61f,.7f));
+            }
+        }
+
+        private static void BuildGatePedimentRecess(Builder stone,Vector3 a,Vector3 b,Vector3 ridge)
+        {
+            // One broad recessed tympanum gives the gable a carved frame at gameplay
+            // scale. All points remain on its front plane; no extra floating ornament,
+            // rear projection or raised depth bound is introduced.
+            Vector3 center=(a+b+ridge)/3;
+            var outer=new[]{Vector3.Lerp(center,a,.83f),Vector3.Lerp(center,b,.83f),
+                Vector3.Lerp(center,ridge,.83f)};
+            var inner=new[]{Vector3.Lerp(center,a,.64f),Vector3.Lerp(center,b,.64f),
+                Vector3.Lerp(center,ridge,.64f)};
+            stone.WallQuad(inner[0],inner[1],inner[2],inner[2],false,new Color(.27f,.30f,.39f));
+            // A restrained lower catching edge and shaded sloping reveals establish
+            // the bevel without bright gold outlines or another set of small marks.
+            var tones=new[]{new Color(.63f,.65f,.71f),new Color(.33f,.37f,.46f),
+                new Color(.49f,.53f,.62f)};
+            for(int i=0;i<3;i++)
+            {
+                int next=(i+1)%3;
+                stone.WallQuad(outer[i],outer[next],inner[next],inner[i],false,tones[i]);
             }
         }
 

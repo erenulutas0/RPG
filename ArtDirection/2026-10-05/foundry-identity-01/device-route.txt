@@ -1,0 +1,6 @@
+Guarded baseline route from the fixed depth-proof start (all adb swipe coordinates are physical 1080x2340 pixels):
+1. 520 1400 -> 610 1050, 8000 ms
+2. 520 1400 -> 820 500, 2500 ms
+3. 520 1400 -> 1000 600, 6000 ms
+4. 520 1400 -> 850 1560, 2500 ms
+Capture after every step, checking foreground/awake/keyguard before input and screenshot. Steps1-3 intermediate images are not a promise of exact deterministic position: adb input timing varies slightly. Final image is gate approach, not an exact pixel registration. Tall pediment is partly covered by the existing portrait HUD at this approach; full gate inspection uses actual Unity gate-detail capture. No camera/HUD edits in this package.
