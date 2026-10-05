@@ -1450,3 +1450,10 @@ NOT installed: phone keyguard showing, unlock request pending. Read-only state q
 ## 2026-10-05 - Workshop props device closure
 
 Owner authorised install. Fresh backup TestResults/workshop-device-20261005. APK3051F09D7E7E1932CC4F35D2487EB0CC04E82EEA10FAC06DBEB2C90AABA86050 installed and base.apk hash matched. Guarded static capture and 3-second walk inspected, current-process Unity error matches0. Matched S23 static review:59.9fps/GPU3.8ms/57draws;65.6k triangles versus63.8k before. Not a combat/midrange benchmark. Profile and backup unchanged by hash; original two development files unchanged, test flags removed; app stopped. Proof workshop-props-01 now includes device evidence. Supersedes pending-device status. No push.
+## 2026-10-05 - Paving contrast integrated and installed
+
+Court/apron joint-bed tone .50->.66, lit bevel1.10->1.055 and shadow bevel.74->.86 soften the dark grid seen during the workshop device review. Seal inset/setts keep their existing contrast. Colour-only change in FoundryRegionFinish: same geometry, UVs, light sampling, materials, gameplay and walking union. Static17/78,232 unchanged. Proof ArtDirection/2026-10-05/paving-softness-01 contains matched Unity views and guarded phone capture/walk.
+
+Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745 bytes SHA2562AE2ACAC31F1D126CCE099F176922C24444575FDCBD851FF6D428239A9F165AC installed and base.apk hash matched. Matched S23 static59.9fps/GPU3.8ms/57draws/65.6ktriangles. No current-process Unity exceptions/shader errors. Not a combat or midrange benchmark. The capture includes the depth-proof actors' periodic white hit flash; this is not a texture change.
+
+Fresh backup TestResults/paving-device-20261005. Profile/bak unchanged by hash; original development files unchanged, test flags removed, app stopped, normal preview ready next launch. No push. This corrects floor emphasis; it does not close the broader reference-image fidelity gap.

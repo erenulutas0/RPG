@@ -521,8 +521,11 @@ namespace Cryptforge.UI
             var lattice=new Color[us.Length*vs.Length];
             for(int l=0;l<vs.Length;l++)for(int k=0;k<us.Length;k++)lattice[l*us.Length+k]=FloorLight(us[k],vs[l]);
             float step=AshlarLightStep(us,vs,lattice);
-            if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),.5f,tint);
-            else PavingGrid(mesh,us,vs,.5f,tint,lattice);
+            // Dust-filled court joints stay subordinate to actors and brass routes at phone size.
+            // Preserve inset/setts contrast and all stone footprints/light sampling.
+            float jointTone=kept?.5f:.66f;
+            if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
+            else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
             // Lit from screen right: the v0 and u1 edges are one strip, mitred where they meet, the u0 and v1 edges the
             // shaded one. Outer (joint) and inner (bevel) rows take the same light lines: none falls inside the band.
             float[] ou=LightLines(u0+joint,u1-joint,step),ov=LightLines(v0+joint,v1-joint,step);
@@ -530,11 +533,11 @@ namespace Cryptforge.UI
             var outer=new List<Vector2>();var inner=new List<Vector2>();
             for(int k=0;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v0+joint));inner.Add(new Vector2(iu[k],v0+bevel));}
             for(int k=1;k<ov.Length;k++){outer.Add(new Vector2(u1-joint,ov[k]));inner.Add(new Vector2(u1-bevel,iv[k]));}
-            PavingStrip(mesh,outer,inner,stone*1.1f,faceTint,stone);
+            PavingStrip(mesh,outer,inner,stone*(kept?1.1f:1.055f),faceTint,stone);
             outer.Clear();inner.Clear();
             for(int k=0;k<ov.Length;k++){outer.Add(new Vector2(u0+joint,ov[k]));inner.Add(new Vector2(u0+bevel,iv[k]));}
             for(int k=1;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v1-joint));inner.Add(new Vector2(iu[k],v1-bevel));}
-            PavingStrip(mesh,outer,inner,stone*.74f,faceTint,stone);
+            PavingStrip(mesh,outer,inner,stone*(kept?.74f:.86f),faceTint,stone);
             PavingGrid(mesh,iu,iv,stone,faceTint);
             // Sparse flush corner repairs, not cracks or raised rubble. They use
             // continuous paving UVs and stay entirely within the individual flag.

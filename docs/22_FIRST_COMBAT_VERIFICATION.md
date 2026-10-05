@@ -816,3 +816,10 @@ Supersedes pending install. Owner continuation, phone launcher/unlocked/no game 
 ## 2026-10-05 - Workshop props combined pass
 
 Existing crate, barrel and sack clusters now have board variation/diagonal braces, stave joins/hoop lips/lid details, and gathered folds/tie bands. Code-native geometry in FoundryRegionClutter only; no new textures/materials or gameplay changes. Existing footprints and depth ownership retained. Static budget:17 renderers,78,232 vertices (+1,740 from76,492). Actual Unity before/after proof:ArtDirection/2026-10-05/workshop-props-01. Compile0/0,graphics1/1,Edit410/410,Play135/135,integrity534/1099/568. Device review pending unlock; do not reuse the prior package's FPS as a measurement of this pass.
+## 2026-10-05 - Paving contrast integrated and installed
+
+Court/apron joint-bed tone .50->.66, lit bevel1.10->1.055 and shadow bevel.74->.86 soften the dark grid seen during the workshop device review. Seal inset/setts keep their existing contrast. Colour-only change in FoundryRegionFinish: same geometry, UVs, light sampling, materials, gameplay and walking union. Static17/78,232 unchanged. Proof ArtDirection/2026-10-05/paving-softness-01 contains matched Unity views and guarded phone capture/walk.
+
+Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745 bytes SHA2562AE2ACAC31F1D126CCE099F176922C24444575FDCBD851FF6D428239A9F165AC installed and base.apk hash matched. Matched S23 static59.9fps/GPU3.8ms/57draws/65.6ktriangles. No current-process Unity exceptions/shader errors. Not a combat or midrange benchmark. The capture includes the depth-proof actors' periodic white hit flash; this is not a texture change.
+
+Fresh backup TestResults/paving-device-20261005. Profile/bak unchanged by hash; original development files unchanged, test flags removed, app stopped, normal preview ready next launch. No push. This corrects floor emphasis; it does not close the broader reference-image fidelity gap.
