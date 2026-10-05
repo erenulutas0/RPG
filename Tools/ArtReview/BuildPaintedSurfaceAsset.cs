@@ -18,10 +18,12 @@ namespace Cryptforge.Editor
                 case "P3b":name="FoundryMasonryV3";materialName="MAT_FoundryMasonry";break;
                 case "P4":name="FoundryPitLining";materialName="MAT_FoundryPitLining";max=512;break;
                 case "P5":name="FoundryBoilerWrap";materialName="MAT_FoundryBoilerWrap";max=512;break;
-                default:throw new InvalidOperationException("Choose P1b, P3, P3b, P4 or P5.");
+                case "P6":name="FoundryIronV2";materialName="MAT_FoundryIron";break;
+                default:throw new InvalidOperationException("Choose P1b, P3, P3b, P4, P5 or P6.");
             }
             string root="Assets/_Project/Art/Props/Foundry/",path=root+name+".png";
             string source=stage=="P3b"?"ArtDirection/2026-10-05/masonry-variety-01/P3b-raw.png":
+                stage=="P6"?"ArtDirection/2026-10-05/forged-metal-01/P6-raw.png":
                 "ArtDirection/2026-10-04/painted-surfaces-02-masters/"+stage+"-raw.png";
             File.Copy(source,path,true);
             AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
