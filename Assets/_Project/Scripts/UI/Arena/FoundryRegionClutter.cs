@@ -161,6 +161,8 @@ namespace Cryptforge.UI
             CrateSide(b,front,right,bottom,top,lit);
             float du=CrateSeam/(box.z-box.x),dv=CrateSeam/(box.w-box.y);
             LidBand(b,box,top,0,1,0,1,lid);
+            for(int k=0;k<3;k++)
+                LidBand(b,box,top,0,1,k/3f,(k+1)/3f,lid*(k==1?.91f:1.035f));
             for(int k=1;k<3;k++)LidBand(b,box,top,0,1,k/3f-dv,k/3f+dv,lid*.55f);
             LidBand(b,box,top,0,1,0,2*dv,lid*1.12f);
             LidBand(b,box,top,0,2*du,0,1,lid*1.12f);
@@ -172,12 +174,30 @@ namespace Cryptforge.UI
             float s=Mathf.Min(CrateBatten/Vector2.Distance(a,c),.2f),h=Mathf.Min(CrateBatten,(top-bottom)*.2f);
             Color batten=face*.74f,seam=face*.5f;
             FaceBand(b,a,c,0,1,bottom,top,face);
+            // Broad board tones survive the portrait camera better than noisy wood grain.
+            for(int k=0;k<3;k++)
+            {
+                float lo=Mathf.Lerp(bottom+h,top-h,k/3f),hi=Mathf.Lerp(bottom+h,top-h,(k+1)/3f);
+                FaceBand(b,a,c,s,1-s,lo,hi,face*(k==1?.88f:1.08f));
+                FaceBand(b,a,c,s+.05f,1-s-.07f,lo+(hi-lo)*.60f,lo+(hi-lo)*.64f,face*.83f);
+            }
             FaceBand(b,a,c,0,s,bottom,top,batten);FaceBand(b,a,c,1-s,1,bottom,top,batten);
             FaceBand(b,a,c,s,1-s,bottom,bottom+h,batten);FaceBand(b,a,c,s,1-s,top-h,top,batten);
             for(int k=1;k<3;k++)
             {
                 float y=Mathf.Lerp(bottom+h,top-h,k/3f);
                 FaceBand(b,a,c,s,1-s,y-CrateSeam,y+CrateSeam,seam);
+            }
+            // A diagonal brace belongs to the face plane, not a screen-space sticker.
+            float low=bottom+h*1.15f,high=top-h*1.15f;
+            Vector3 p=Project(Mathf.Lerp(a.x,c.x,s),Mathf.Lerp(a.y,c.y,s));
+            Vector3 q=Project(Mathf.Lerp(a.x,c.x,1-s),Mathf.Lerp(a.y,c.y,1-s));
+            b.Quad(p+Vector3.up*(low-h*.28f),q+Vector3.up*(high-h*.28f),
+                q+Vector3.up*(high+h*.28f),p+Vector3.up*(low+h*.28f),false,face*.87f);
+            foreach(float t in new[]{.12f,.88f})
+            {
+                float along=Mathf.Lerp(s,1-s,t),y=Mathf.Lerp(low,high,t);
+                FaceBand(b,a,c,along-.014f,along+.014f,y-.012f,y+.012f,Tinted(HoopIron,LitFace));
             }
         }
 
@@ -205,13 +225,32 @@ namespace Cryptforge.UI
             MassCourse(b,c,end,r,bottom,mid,6,true,BarrelWood);
             MassCourse(b,c,r,end,mid,top,6,true,BarrelWood);
             for(int i=first;i<b.C.Count;i++)if((i-first)/4%2==1)b.C[i]*=.88f;
+            // Recessed stave joins follow the existing polygonal barrel surface.
+            for(int k=1;k<6;k++)
+            {
+                float angle=FrontAngle(k,6),spread=.012f;
+                Color seam=Tinted(IronLight(angle),BarrelWood)*.48f;
+                b.Quad(OnRing(c,end,angle-spread,bottom),OnRing(c,end,angle+spread,bottom),
+                    OnRing(c,r,angle+spread,mid),OnRing(c,r,angle-spread,mid),false,seam);
+                b.Quad(OnRing(c,r,angle-spread,mid),OnRing(c,r,angle+spread,mid),
+                    OnRing(c,end,angle+spread,top),OnRing(c,end,angle-spread,top),false,seam);
+            }
             foreach(float t in new[]{.12f,.8f})
             {
                 // The stave line's radius at the hoop's middle, then a little proud of it.
                 float ring=Mathf.Lerp(end,r,1-Mathf.Abs(t+.04f-.5f)*2)*1.04f;
                 MassCourse(b,c,ring,ring,bottom+h*t,bottom+h*(t+.08f),6,true,HoopIron);
+                MassCourse(b,c,ring,ring,bottom+h*(t+.065f),bottom+h*(t+.08f),6,true,HoopIron*1.2f);
             }
             MassDisk(b,c,end,top,6,true,Tinted(LitFace,CrateWood)*ClutterLid);
+            // Lid joins stay inside the twelve-sided rim rather than crossing its silhouette.
+            foreach(float offset in new[]{-.25f,.25f})
+            {
+                float v=c.y+end*offset,half=end*.78f;
+                FaceLidStroke(b,new Vector2(c.x-half,v),new Vector2(c.x+half,v),top,.012f,
+                    Tinted(LitFace,BarrelWood)*.55f);
+            }
+            MassDisk(b,c+new Vector2(end*.22f,0),end*.12f,top+.002f,4,true,Tinted(LitFace,BarrelWood)*.7f);
         }
 
         // A tied sack: a burlap belly at half height drawing in to a broad shoulder, closed by a disc, and a small tie on top;
@@ -225,6 +264,26 @@ namespace Cryptforge.UI
             MassDisk(b,c,r*.62f,neck,5,true,Tinted(LitFace,Burlap));
             MassCourse(b,c,r*.2f,r*.28f,neck,top,5,true,tie);
             MassDisk(b,c,r*.28f,top,5,true,Tinted(LitFace,tie));
+            // Tension folds follow the front facets into the gathered neck.
+            for(int k=0;k<5;k++)
+            {
+                float a=FrontAngle(k,5),e=FrontAngle(k+1,5);
+                Vector3 lo=Vector3.Lerp(OnRing(c,r*.94f,a,bottom),OnRing(c,r*.94f,e,bottom),.42f);
+                Vector3 bulge=Vector3.Lerp(OnRing(c,r,a,belly),OnRing(c,r,e,belly),.48f);
+                Vector3 shoulder=Vector3.Lerp(OnRing(c,r*.62f,a,neck),OnRing(c,r*.62f,e,neck),.55f);
+                Color fold=Tinted(IronLight((a+e)*.5f),Burlap)*.7f;
+                ArchitectureBar(b,Vector3.Lerp(lo,bulge,.35f),bulge,.013f,fold);
+                ArchitectureBar(b,bulge,shoulder,.013f,fold);
+            }
+            MassCourse(b,c,r*.235f,r*.24f,neck+h*.025f,neck+h*.065f,5,true,tie*1.1f);
+        }
+
+        private static void FaceLidStroke(Builder b,Vector2 a,Vector2 c,float height,float width,Color tone)
+        {
+            Vector2 n=new Vector2(-(c-a).y,(c-a).x).normalized*width*.5f;
+            Vector3 up=Vector3.up*height;
+            b.Quad(Project(a.x+n.x,a.y+n.y)+up,Project(c.x+n.x,c.y+n.y)+up,
+                Project(c.x-n.x,c.y-n.y)+up,Project(a.x-n.x,a.y-n.y)+up,false,tone);
         }
 
         // A bronze stock pile in three courses - two bars along v, two across them, one along v on top - each course far to
