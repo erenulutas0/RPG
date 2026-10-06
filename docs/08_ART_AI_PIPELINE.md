@@ -702,3 +702,10 @@ Actual matched Unity and phone evidence: ArtDirection/2026-10-05/foundry-structu
 Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745bytes SHA2567DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC installed and base.apk hash matched. S23 static59.9fps/GPU3.8ms/57draws/67.2ktriangles; captured settled samples max16.9ms. No current-process Unity error matches. Not a combat/midrange benchmark.
 
 Owner explicitly approved restarting their Forge run (2HP,40unbanked gold). Fresh backup TestResults/structure-device-20261005 taken first. Profile/bak and original development files unchanged by hash after validation; test flags removed, app stopped. Persistent progress retained; the in-flight run was restarted as authorised. No push.
+## 2026-10-06 - Five-agent visual closure, desktop complete
+
+Proof: ArtDirection/2026-10-06/visual-closure-01. Five requested agents covered anvil material continuity, enclosed amber lantern glass, foundry-only backdrop tint, four-point portrait gate capture, and remaining-art review. Parent combined and inspected final Unity captures. The first lantern trial was too yellow and was corrected before the final capture and full gate. No new textures/materials/geometry: static17 renderers/80,316 vertices unchanged. Existing cage/flames, depth owners, scene, camera, HUD, movement and gameplay unchanged.
+
+Before/after overview, bridge, workshop, gate and furnace are preserved. Portrait capture records coordinates, current9-unit width and enabled HUD; staged positions are not movement/combat evidence. Centred gate view reveals door/seal and both banners, but top architecture remains HUD-obscured/cropped. Do not claim concept fidelity is achieved. Further broad material cohesion and deliberate gate framing offer more value than indiscriminate small hardware.
+
+Final graphics1passed,Edit410/410,Play135/135,Android0;integrity534/1099/568. APK32,374,745bytes SHA25674297A6B721A4251F7C0E07E06AD3F8E1CD03848B984DD54955CDD7F4680B978. Phone unavailable: no ADB, installation, profile changes or device measurements. No push.

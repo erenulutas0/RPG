@@ -841,3 +841,8 @@ Actual matched Unity and phone evidence: ArtDirection/2026-10-05/foundry-structu
 Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745bytes SHA2567DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC installed and base.apk hash matched. S23 static59.9fps/GPU3.8ms/57draws/67.2ktriangles; captured settled samples max16.9ms. No current-process Unity error matches. Not a combat/midrange benchmark.
 
 Owner explicitly approved restarting their Forge run (2HP,40unbanked gold). Fresh backup TestResults/structure-device-20261005 taken first. Profile/bak and original development files unchanged by hash after validation; test flags removed, app stopped. Persistent progress retained; the in-flight run was restarted as authorised. No push.
+## 2026-10-06 - Visual closure desktop gate
+
+Three runtime art files (FoundryRegionWorkshop, FoundryRegionSite, VoidBackdropView) refine anvil UV/colour continuity, quiet amber lantern glass and foundry-only cavern tint. Four staged portrait gate captures were added to Tools/ArtReview/FoundryRuntimeCapture.cs, with walkability, settled production camera and enabled-HUD assertions. No combat, movement, scene or HUD behavior changes.
+
+Final graphics capture1passed; full EditMode410/410 and PlayMode135/135;Android build exit0. Integrity534asset/folder GUIDs/1099package GUIDs/568scene objects/components. Static17renderers/80,316vertices unchanged. Proof ArtDirection/2026-10-06/visual-closure-01. The portrait sheet diagnoses remaining gate top/HUD cropping; it is not a walking or combat readability test. Phone verification remains pending; no new performance measurement.

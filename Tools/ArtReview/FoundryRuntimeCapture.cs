@@ -87,6 +87,41 @@ namespace Cryptforge.Tests
                 Capture("point-"+index,1080,2340);index++;
             }
             File.WriteAllText(Output+"walk.csv",report.ToString());
+            // Portrait landmark review at the production follow width, with the existing HUD visible.
+            // These are staged positions, not a walking/performance proof. Keep them before any closeup
+            // camera changes or upgrade choices; TestProfile isolates all run and development-file writes.
+            var follow = _camera.GetComponent<ArenaCameraFollow>();
+            var gateReport = new System.Text.StringBuilder(
+                "design_u,design_v,floor_x,floor_y,camera_x,camera_y,orthographic_size,visible_width,hud_enabled\n");
+            // Last point aligns screen x with the pediment centre at design (32.18, 5):
+            // equal u-v means equal projected x. It distinguishes lateral cropping from vertical HUD overlap.
+            foreach (var gateDesign in new[] { new Vector2(22, 6), new Vector2(26, 6),
+                new Vector2(28, 6), new Vector2(30, 2.82f) })
+            {
+                Cryptforge.Art.FoundryMap.ToFloor(gateDesign.x, gateDesign.y, out float gateX, out float gateY);
+                Assert.That(arena.Geometry.IsOnPlatform(gateX, gateY), Is.True, "Gate review point must be walkable");
+                movement.Release();
+                movement.Motion.Place(gateX, gateY, arena.Geometry);
+                hero.transform.position = new Vector3(movement.Motion.X, movement.Motion.Y * .5f, hero.transform.position.z);
+                // Let actor/visibility updates observe the placement, then use the same portrait HUD band
+                // as the route captures. Frame snaps through the live follow component's production Goal().
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                follow.Frame(1080, 2340, 361, 2340 - 427);
+                yield return null;
+                yield return null;
+                Assert.That(Vector3.Distance(_camera.transform.position, follow.Goal()), Is.LessThan(.002f),
+                    "Portrait capture must use settled follow framing");
+                foreach (var canvas in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+                    if (canvas.isRootCanvas) Assert.That(canvas.enabled, Is.True, "Portrait review keeps HUD enabled");
+                Capture(gateDesign.x == 30 ? "gate-approach-centred" : "gate-approach-" + (int)gateDesign.x, 1080, 2340);
+                Vector3 cameraPosition = _camera.transform.position;
+                gateReport.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "{0:F2},{1:F2},{2:F4},{3:F4},{4:F4},{5:F4},{6:F4},{7:F4},true",
+                    gateDesign.x, gateDesign.y, movement.Motion.X, movement.Motion.Y, cameraPosition.x, cameraPosition.y,
+                    _camera.orthographicSize, follow.VisibleWidth));
+            }
+            File.WriteAllText(Output + "gate-approach.csv", gateReport.ToString());
             // Matched actual-render comparison at a walkable point behind the near boiler main.
             Cryptforge.Art.FoundryMap.ToFloor(22,0,out float reviewX,out float reviewY);
             movement.Motion.Place(reviewX,reviewY,arena.Geometry);
@@ -237,7 +272,5 @@ namespace Cryptforge.Tests
         }
     }
 }
-
-
 
 

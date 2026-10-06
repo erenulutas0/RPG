@@ -128,31 +128,34 @@ namespace Cryptforge.UI
                 FullFace(metal,waist[edge]+Vector3.up*.85f,waist[next]+Vector3.up*.85f,
                     shoulder[next]+Vector3.up*1.08f,shoulder[edge]+Vector3.up*1.08f,tint);
             }
+            // The anvil is one forged casting, not a set of framed metal panels.
+            // Keep its foot and waist darker than the worked head, using neutral grain.
+            WorkedAnvilSurface(metal,0,metal.V.Count,Project(-22.25f,5.58f),1.6f);
             int headStart=metal.C.Count;
             WorkshopMetalHull(metal,-22.25f,5.58f,-21.45f,7.15f,1.08f,1.28f,.025f);
+            WorkedAnvilSurface(metal,headStart,metal.V.Count,Project(-22.25f,5.58f),2f);
             // Only the working face and its near worn shoulder catch cool steel light.
             // Recolour existing vertices; stock, waist and supporting foot stay dark.
-            for(int i=headStart+24;i<headStart+28;i++)metal.C[i]=new Color(.67f,.70f,.75f);
-            for(int i=headStart+8;i<headStart+12;i++)metal.C[i]=new Color(.73f,.75f,.79f);
+            for(int i=headStart+8;i<headStart+12;i++)metal.C[i]=new Color(1.7f,1.72f,1.74f);
             // A worked steel face has no fabricated panel frame. Sample the same
             // neutral iron patch as small props, retaining a subtle forged grain.
             for(int i=headStart+24;i<headStart+28;i++)
             {
-                Vector3 grain=metal.V[i]-(Project(-22.25f,5.58f)+Vector3.up*1.28f);
-                metal.U[i]=IronPatch+new Vector2(grain.x,grain.y)*.012f;
                 metal.C[i]=new Color(1.55f,1.6f,1.62f);
             }
+            int hornStart=metal.V.Count;
             Vector3 hornLeft=Project(-22.2f,7.15f),hornRight=Project(-21.5f,7.15f);
             Vector3 tip=Project(-21.85f,8.03f)+Vector3.up*1.24f;
             FullFace(metal,hornLeft+Vector3.up*1.28f,hornRight+Vector3.up*1.28f,
-                tip,tip,new Color(.67f,.70f,.75f));
+                tip,tip,new Color(1.55f,1.6f,1.62f));
             FullFace(metal,hornLeft+Vector3.up*1.08f,hornLeft+Vector3.up*1.28f,
-                tip,tip,new Color(.29f,.34f,.43f));
+                tip,tip,new Color(.62f,.72f,.86f));
             // One dark hardy-hole mark breaks up the flat heel without emissive detail.
             FullFace(metal,Project(-21.99f,5.77f)+Vector3.up*1.284f,
                 Project(-21.78f,5.77f)+Vector3.up*1.284f,
                 Project(-21.78f,5.98f)+Vector3.up*1.284f,
                 Project(-21.99f,5.98f)+Vector3.up*1.284f,new Color(.1f,.12f,.17f));
+            WorkedAnvilSurface(metal,hornStart,metal.V.Count,Project(-22.25f,5.58f),1f);
             Create("Workshop anvil",metal,arena.PlatformMaterials.FoundryIron,-11);
             // A single hammer rests on the face. Its complete silhouette is supported
             // by the anvil; do not scatter small loose tools across the walking court.
@@ -161,7 +164,21 @@ namespace Cryptforge.UI
             var tool=new Builder();
             ArchitectureBar(tool,handle,head,.055f,new Color(.5f,.37f,.23f));
             WorkshopMetalHull(tool,-22.13f,6.64f,-21.73f,6.87f,1.29f,1.43f,.025f);
+            WorkedAnvilSurface(tool,0,tool.V.Count,handle,1.6f);
             Create("Anvil resting hammer",tool,arena.PlatformMaterials.FoundryIron,-11);
+        }
+
+        private static void WorkedAnvilSurface(Builder mesh,int first,int end,Vector3 anchor,float gain)
+        {
+            // Local UVs avoid the atlas border/rivets on solid worked metal. Sampling
+            // one continuous patch also keeps the head-to-horn transition coherent.
+            for(int i=first;i<end;i++)
+            {
+                Vector3 grain=mesh.V[i]-anchor;
+                mesh.U[i]=IronPatch+new Vector2(grain.x,grain.y)*.012f;
+                Color colour=mesh.C[i];
+                mesh.C[i]=new Color(colour.r*gain,colour.g*gain,colour.b*gain,colour.a);
+            }
         }
 
         private void WorkshopCrate(ArenaView arena,float u0,float v0,float u1,float v1,float bottom,float top)

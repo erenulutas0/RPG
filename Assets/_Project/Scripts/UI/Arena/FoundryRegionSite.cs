@@ -280,27 +280,26 @@ namespace Cryptforge.UI
             // the same cap. Scenery only; no particles or per-frame light work.
             WorkshopMetalHull(iron,p.x-.27f,p.y-.27f,p.x+.27f,p.y+.27f,1.69f,1.79f,.035f);
             var glow=new Builder();
+            int face=0;
             foreach(var edge in new[]{new[]{Project(p.x-.21f,p.y-.21f),Project(p.x+.21f,p.y-.21f)},
                 new[]{Project(p.x-.21f,p.y+.21f),Project(p.x-.21f,p.y-.21f)}})
             {
                 Vector3 a=edge[0]+Vector3.up*1.81f,b=edge[1]+Vector3.up*1.81f,up=Vector3.up*.56f;
-                // Bright panes are inset between opaque iron bars. The existing
-                // hot-seam texture is sampled unchanged, as on other forge beacons.
-                // Split inset panes around the cage bars. They can share the
-                // existing exposed-flame rank without painting over opaque iron.
+                // Enclosed amber glass stays inside the existing cage openings.
+                // A quiet hot patch and a soot gradient distinguish it from exposed fire.
                 foreach(float start in new[]{.15f,.58f})
                 {
                     Vector3 l=Vector3.Lerp(a,b,start)+Vector3.up*.035f;
                     Vector3 r=Vector3.Lerp(a,b,start+.27f)+Vector3.up*.035f;
-                    FullFace(glow,l,r,r+up-Vector3.up*.07f,l+up-Vector3.up*.07f,new Color(1f,.66f,.30f));
+                    LanternPane(glow,l,r,up-Vector3.up*.07f,face==0?1f:.84f);
                 }
                 ArchitectureBar(iron,a,a+up,.065f,new Color(.70f,.60f,.43f));
                 ArchitectureBar(iron,b,b+up,.065f,new Color(.70f,.60f,.43f));
                 Vector3 middle=(a+b)*.5f;
                 ArchitectureBar(iron,middle,middle+up,.04f,new Color(.40f,.36f,.31f));
+                face++;
             }
             // Share the existing flame batch; inset pane geometry leaves the cage clear.
-            HotSeam(glow,0);
             if(arena.PlatformMaterials.FoundryEmbers!=null)
                 Create("Court lantern panes",glow,arena.PlatformMaterials.FoundryEmbers,-10);
             WorkshopMetalHull(iron,p.x-.28f,p.y-.28f,p.x+.28f,p.y+.28f,2.37f,2.48f,.025f);
@@ -313,6 +312,19 @@ namespace Cryptforge.UI
                 ArchitectureBar(iron,a,b,.035f,new Color(.85f,.77f,.61f));
                 ArchitectureBar(iron,a,peak,.025f,new Color(.67f,.70f,.76f));
             }
+        }
+
+        private static void LanternPane(Builder glow,Vector3 left,Vector3 right,Vector3 rise,float facing)
+        {
+            Color lower=new Color(.93f*facing,.60f*facing,.55f*facing,1);
+            Color upper=new Color(.48f*facing,.27f*facing,.32f*facing,1);
+            int first=glow.U.Count;
+            FullFace(glow,left,right,right+rise,left+rise,lower);
+            glow.C[first+2]=upper;glow.C[first+3]=upper;
+            // Measured smooth orange patch in FoundryEmbers (centre RGB 247,140,9).
+            // The narrow footprint avoids magnifying the black crust used by open flames.
+            for(int i=first;i<glow.U.Count;i++)
+                glow.U[i]=new Vector2(.7815f+glow.U[i].x*.001f,.8375f+glow.U[i].y*.001f);
         }
 
         private void BuildCraneHardware(ArenaView arena)

@@ -21,6 +21,9 @@ namespace Cryptforge.UI
         private const float FlickerRate = 7f;
         private const float GlowRate = 5.3f;
         private const float TwoPi = Mathf.PI * 2f;
+        // Recede the painted distant furnaces behind the playable foundry. Keep alpha opaque so the sky does not
+        // wash out the cavern's dark gaps; a smaller blue reduction retains its cool depth and warm molten landmarks.
+        private static readonly Color FoundryCavernTint = new Color(.84f, .87f, .91f, 1f);
 
         private struct Drifter
         {
@@ -66,6 +69,7 @@ namespace Cryptforge.UI
             {
                 _camera = camera;
                 CavernRenderer = AddRenderer(transform, "Furnace Cavern", cavern, Vector3.zero, sortingOrder + 1);
+                CavernRenderer.color = geometry.IsFoundry ? FoundryCavernTint : Color.white;
                 FrameCavern();
                 return; // Imported art is asset-owned; do not generate the unused procedural backdrop.
             }

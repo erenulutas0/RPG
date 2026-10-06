@@ -1475,3 +1475,8 @@ Actual matched Unity and phone evidence: ArtDirection/2026-10-05/foundry-structu
 Compile0/0,graphics1/1,Edit410/410,Play135/135,Android0,integrity534/1099/568. APK32,374,745bytes SHA2567DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC installed and base.apk hash matched. S23 static59.9fps/GPU3.8ms/57draws/67.2ktriangles; captured settled samples max16.9ms. No current-process Unity error matches. Not a combat/midrange benchmark.
 
 Owner explicitly approved restarting their Forge run (2HP,40unbanked gold). Fresh backup TestResults/structure-device-20261005 taken first. Profile/bak and original development files unchanged by hash after validation; test flags removed, app stopped. Persistent progress retained; the in-flight run was restarted as authorised. No push.
+## 2026-10-06 - Visual closure APK ready, phone unavailable
+
+Owner explicitly could not provide the phone; no ADB access or device mutation was performed. Final desktop graphics capture and full gate passed:Edit410,Play135,Android0. APK Builds/Android/Cryptforge-Prototype.apk is32,374,745bytes, SHA25674297A6B721A4251F7C0E07E06AD3F8E1CD03848B984DD54955CDD7F4680B978. Built but NOT installed. Last installed baseline remains October5 structure02, SHA2567DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC.
+
+Proof ArtDirection/2026-10-06/visual-closure-01 contains actual Unity comparisons, not phone captures. Pending: fresh current-state backup, guarded install/hash check, lantern/steel/background appearance while moving and fighting, gate approach review, profile/development-file verification and session-owned flag cleanup. Do not restore an old backup or reuse the prior package's S23 FPS as a measurement of this APK. No push.
