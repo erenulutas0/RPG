@@ -9,8 +9,11 @@ namespace Cryptforge.UI
         // sideways up a tower). No runtime update, new material, collision or depth ownership.
         internal static Color ArchitectureLight(float u,float v,float height,float belowLedge)
         {
-            float streak=FloorPatina(u*.83f+height*.025f,v*.83f-height*.025f);
-            float deposit=Mathf.Lerp(.87f,1.035f,streak);
+            // Painted masonry already carries individual block variation. Keep the overlaid deposit
+            // broad and shallow so neighbouring caps/faces read as one structure rather than patches.
+            // The previous .87..1.035 range has the same midpoint; this is contrast restraint, not a lift.
+            float streak=FloorPatina(u*.31f+height*.025f,v*.31f-height*.025f);
+            float deposit=Mathf.Lerp(.905f,1f,streak);
             float contact=1-.2f*Mathf.Exp(-Mathf.Max(0,belowLedge)/.32f);
             float heat=0;
             Color warm=Color.clear;

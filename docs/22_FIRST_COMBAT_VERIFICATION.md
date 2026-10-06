@@ -846,3 +846,10 @@ Owner explicitly approved restarting their Forge run (2HP,40unbanked gold). Fres
 Three runtime art files (FoundryRegionWorkshop, FoundryRegionSite, VoidBackdropView) refine anvil UV/colour continuity, quiet amber lantern glass and foundry-only cavern tint. Four staged portrait gate captures were added to Tools/ArtReview/FoundryRuntimeCapture.cs, with walkability, settled production camera and enabled-HUD assertions. No combat, movement, scene or HUD behavior changes.
 
 Final graphics capture1passed; full EditMode410/410 and PlayMode135/135;Android build exit0. Integrity534asset/folder GUIDs/1099package GUIDs/568scene objects/components. Static17renderers/80,316vertices unchanged. Proof ArtDirection/2026-10-06/visual-closure-01. The portrait sheet diagnoses remaining gate top/HUD cropping; it is not a walking or combat readability test. Phone verification remains pending; no new performance measurement.
+
+
+## 2026-10-06 - Surface composition verified on desktop
+
+FoundryRegionFinish stock deposit bounds aligned with both workshop shelves; FoundryRegionWeathering reduces overlay variation frequency/amplitude. Existing color cap, fire-height lighting and contact shadows retained. Test-only synchronous gate lens/offset comparisons restore camera and follow state in finally, with assertions. No runtime camera/HUD/combat changes.
+
+Compile0warnings/errors;graphics1passed;final Edit410/410,Play135/135,Android0. Static17renderers/80,316vertices;integrity534/1099/568. Proof surface-composition-01. Alternatives do not fully reveal gate and have quantified visibility/actor-size tradeoffs, so production framing retained. Dynamic device readability pending; no phone available.

@@ -120,6 +120,7 @@ namespace Cryptforge.Tests
                     "{0:F2},{1:F2},{2:F4},{3:F4},{4:F4},{5:F4},{6:F4},{7:F4},true",
                     gateDesign.x, gateDesign.y, movement.Motion.X, movement.Motion.Y, cameraPosition.x, cameraPosition.y,
                     _camera.orthographicSize, follow.VisibleWidth));
+                if (gateDesign.x == 30) CaptureGateFramingStudy(follow, hero.transform);
             }
             File.WriteAllText(Output + "gate-approach.csv", gateReport.ToString());
             // Matched actual-render comparison at a walkable point behind the near boiler main.
@@ -240,6 +241,45 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // Test-only lens/composition alternatives. No production serialized camera/HUD values are edited.
+        // Freeze time between these renders so each alternative uses exactly the same scene pose.
+        private void CaptureGateFramingStudy(ArenaCameraFollow follow, Transform hero)
+        {
+            Vector3 productionPosition = _camera.transform.position;
+            float productionSize = _camera.orthographicSize;
+            bool productionFollowEnabled = follow.enabled;
+            var rows = new System.Text.StringBuilder(
+                "variant,camera_x,camera_y,orthographic_size,visible_width,hero_viewport_x,hero_viewport_y\n");
+            try
+            {
+                follow.enabled = false;
+                foreach (string variant in new[] { "production", "up-1p5", "width-11" })
+                {
+                    _camera.transform.position = productionPosition + (variant == "up-1p5" ? Vector3.up * 1.5f : Vector3.zero);
+                    _camera.orthographicSize = variant == "width-11" ? 11f * 2340f / (2f * 1080f) : productionSize;
+                    Canvas.ForceUpdateCanvases();
+                    Capture("gate-study-" + variant, 1080, 2340);
+                    Vector3 viewport = _camera.WorldToViewportPoint(hero.position);
+                    rows.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "{0},{1:F4},{2:F4},{3:F4},{4:F4},{5:F4},{6:F4}", variant,
+                        _camera.transform.position.x, _camera.transform.position.y, _camera.orthographicSize,
+                        _camera.orthographicSize * 2f * 1080f / 2340f, viewport.x, viewport.y));
+                }
+            }
+            finally
+            {
+                _camera.transform.position = productionPosition;
+                _camera.orthographicSize = productionSize;
+                follow.enabled = productionFollowEnabled;
+                Canvas.ForceUpdateCanvases();
+                Object.FindFirstObjectByType<ArenaView>().Backdrop.FrameCavern();
+            }
+            Assert.That(_camera.transform.position, Is.EqualTo(productionPosition));
+            Assert.That(_camera.orthographicSize, Is.EqualTo(productionSize));
+            Assert.That(follow.enabled, Is.EqualTo(productionFollowEnabled));
+            File.WriteAllText(Output + "gate-framing-study.csv", rows.ToString());
+        }
+
         private void Capture(string name,int width,int height)
         {
             var target=RenderTexture.GetTemporary(width,height,24);var previous=RenderTexture.active;
@@ -272,5 +312,4 @@ namespace Cryptforge.Tests
         }
     }
 }
-
 

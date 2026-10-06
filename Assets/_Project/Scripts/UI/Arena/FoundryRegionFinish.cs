@@ -132,7 +132,11 @@ namespace Cryptforge.UI
             // Soot belongs to working areas, not every slab. Smooth, irregular deposits
             // stay flush with the floor and never resemble cracks or blocking rubble.
             float shaftDistance=DistanceFromFloorBox(u,v,-12,2,-4,10);
-            float stockDistance=DistanceFromFloorBox(u,v,-20.7f,5,-18.45f,8.4f);
+            // Match both supported service shelves in BuildWorkshop: the old stock
+            // footprint omitted the anvil extension and the pipe/quenching station.
+            // Reuse the existing deposit field rather than layering another stain.
+            float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,-23f,5,-18.45f,8.4f),
+                DistanceFromFloorBox(u,v,2,18.5f,7,22.4f));
             float soot=Mathf.Max(Mathf.Clamp01(1-shaftDistance/1.45f),
                 Mathf.Clamp01(1-stockDistance/2.0f));
             soot=soot*soot*Mathf.Lerp(.55f,1,FloorPatina(u*.71f+9,v*.71f-4));

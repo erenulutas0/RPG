@@ -709,3 +709,12 @@ Proof: ArtDirection/2026-10-06/visual-closure-01. Five requested agents covered 
 Before/after overview, bridge, workshop, gate and furnace are preserved. Portrait capture records coordinates, current9-unit width and enabled HUD; staged positions are not movement/combat evidence. Centred gate view reveals door/seal and both banners, but top architecture remains HUD-obscured/cropped. Do not claim concept fidelity is achieved. Further broad material cohesion and deliberate gate framing offer more value than indiscriminate small hardware.
 
 Final graphics1passed,Edit410/410,Play135/135,Android0;integrity534/1099/568. APK32,374,745bytes SHA25674297A6B721A4251F7C0E07E06AD3F8E1CD03848B984DD54955CDD7F4680B978. Phone unavailable: no ADB, installation, profile changes or device measurements. No push.
+
+
+## 2026-10-06 - Surface composition desktop closure
+
+Proof ArtDirection/2026-10-06/surface-composition-01, baseline7e2332b. Existing agents continued disjoint tasks: stock soot now matches both current workshop shelves; architectural deposit field is broader/shallow (.31frequency,.905..1 range, same midpoint.9525); test-only gate framing compares production,+1.5Y,width11 at one pose. Parent inspected actual comparisons and accepted the surface changes as subtle corrections, not a large fidelity leap. Geometry/materials/renderers/depth/gameplay unchanged; static17/80,316.
+
+Gate alternatives both retain upper HUD obstruction. Upward shifts hero180px and reduces nominal below-hero band23.2%; width11 makes world actors18.2%smaller. Production combat camera retained. Future full reveal requires separate arrival-presentation or HUD design, with play validation. Existing lane/boiler wear already existed: no duplicate system was added.
+
+Compile0/0,graphics1,Edit410,Play135,Android0,integrity534/1099/568. APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B,32,374,745bytes, includes visual-closure changes. No phone access or installation; no current device performance claim. No push.

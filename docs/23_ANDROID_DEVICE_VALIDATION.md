@@ -1480,3 +1480,10 @@ Owner explicitly approved restarting their Forge run (2HP,40unbanked gold). Fres
 Owner explicitly could not provide the phone; no ADB access or device mutation was performed. Final desktop graphics capture and full gate passed:Edit410,Play135,Android0. APK Builds/Android/Cryptforge-Prototype.apk is32,374,745bytes, SHA25674297A6B721A4251F7C0E07E06AD3F8E1CD03848B984DD54955CDD7F4680B978. Built but NOT installed. Last installed baseline remains October5 structure02, SHA2567DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC.
 
 Proof ArtDirection/2026-10-06/visual-closure-01 contains actual Unity comparisons, not phone captures. Pending: fresh current-state backup, guarded install/hash check, lantern/steel/background appearance while moving and fighting, gate approach review, profile/development-file verification and session-owned flag cleanup. Do not restore an old backup or reuse the prior package's S23 FPS as a measurement of this APK. No push.
+
+
+## 2026-10-06 - Surface composition supersedes pending APK
+
+Latest APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B,32,374,745bytes, includes preceding visual-closure package plus workshop deposit/masonry cohesion corrections. Compile/graphics/fullgate passed:Edit410,Play135,Android0. Phone still unavailable: NO ADB access, installation or profile modification. Latest installed remains October5 structure02 (7DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC).
+
+Install this final cumulative APK when device available, with fresh run-state/profile/development backup and guarded visual review. Inspect surfaces and prior lantern/anvil/background changes while moving and fighting; production camera is unchanged. Portrait lens experiments in surface-composition-01 are test-only and not shipped. Previous S23 timing is not evidence for this build. No push.
