@@ -725,3 +725,10 @@ Compile0/0,graphics1,Edit410,Play135,Android0,integrity534/1099/568. APK B2D5A6F
 APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B installed and base.apk hash matched after fresh backup TestResults/surface-device-20261007. Supersedes pending device status. Guarded foundry gate walk and normal Staff room2, pickups, upgrade choice and enemy-contact captures reviewed; proof ArtDirection/2026-10-06/surface-composition-01/device. No new code/rebuild. Gate top/HUD crop remains; no new visual blocker in these samples.
 
 S23 settled depth59.9fps/GPU3.8ms, initial226.5ms max; normal active samples59.4–59.9fps/GPU4.0–4.4ms, initial57.3ms max. Paused-choice samples excluded. Short smoke review, not dense-wave/midrange benchmark. No current-process error matches. ADB server interrupted before input; focus guard aborted then recovered. Profile/bak and original development files SHA256-identical; temporary depth/render flags removed, app stopped. Telemetry test events retained, no backup restore. Latest cumulative build ready for normal launch. No push.
+
+
+## 2026-10-07 - Gate arrival art study
+
+Proof ArtDirection/2026-10-07/gate-arrival-01: actual Unity combat/transition/full-gate/restored portrait captures and interactive crossfade timing page with skip/Escape/background reset. Graphics1passed; camera/follow/HUD restoration assertions passed; combat/restored PNG hashes identical. Browser control logic harness passed and preview HTTP200 verified. Full reveal uses centre(19,16.4),width17.6 and temporarily hidden HUD in the capture only.
+
+Not a shipped Unity animation: current gate has no safe pre-encounter arrival state. README records future trigger/skip/input/interruptions requirements. No runtime camera or scene edit, APK rebuild or phone mutation; installed B2D5A6F5 remains current. This completes composition study, not gameplay integration. No push.
