@@ -28,3 +28,14 @@ Continuation of `7e2332b` (visual-closure-01), with no phone access. Existing ag
 Phone installation, current-package movement/combat visual review, Android texture appearance and performance remain pending. No ADB command, device profile modification or installation took place. Last installed build remains October 5 structure02; prior device measurements must not be presented as evidence for this build.
 
 The bounded surface tasks and simple gate-camera study are complete. Full concept fidelity is not achieved. A full landmark reveal now needs a separate arrival-presentation/HUD design, not more global camera enlargement or added trim. Keep that future slice separate from the accepted surface corrections. No push.
+
+
+## Device closure (device log date 2026-10-07)
+
+Owner made phone available and unlocked it. Cumulative APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B installed successfully; installed base.apk SHA256 matches. Supersedes the earlier pending-install status. No code change or rebuild in this closure.
+
+Fresh backup: TestResults/surface-device-20261007/before. App was not running before install. Guarded depth-proof start and four-step gate walk were inspected, followed by normal Staff play through room2, XP/pickup and Quickened Grip choice. Captures: device/start.png, gate.png, combat-1.png (drops), combat-2.png (choice), combat-3.png (enemy contact). Lantern panes, masonry and floor remained readable in these samples; gate upper HUD crop persists. This is a short smoke review, not a dense-wave or midrange-device benchmark. The route does not establish a new device closeup of the anvil.
+
+S23 depth-proof settled samples59.9fps/GPU3.8ms; initial sample includes226.5ms maximum frame. Normal-run active samples59.4–59.9fps/GPU4.0–4.4ms, initial57.3ms maximum. Choice-paused samples excluded from active-play figures. No current-process exception/shader/error matches in captured logs. Detailed logs remain in TestResults/surface-device-20261007.
+
+An ADB server interruption occurred before the first route input; guard aborted, server recovered, route then completed. No failed-focus input was sent. Both session-owned depth-proof/render-stats files removed, app stopped. Profile.json, profile.json.bak and original region-preview/start-floor.off files are byte-identical by SHA256. Telemetry appended normal test events and was retained. No backup restoration or persistent progress rollback. Next launch runs normal foundry preview. No push.

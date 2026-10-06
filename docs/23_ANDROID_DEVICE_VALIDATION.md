@@ -1487,3 +1487,10 @@ Proof ArtDirection/2026-10-06/visual-closure-01 contains actual Unity comparison
 Latest APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B,32,374,745bytes, includes preceding visual-closure package plus workshop deposit/masonry cohesion corrections. Compile/graphics/fullgate passed:Edit410,Play135,Android0. Phone still unavailable: NO ADB access, installation or profile modification. Latest installed remains October5 structure02 (7DA6010C1C646642EE5B12F22EDD7347D68CF6360CC32FBEEA00E9BA7F4EAEEC).
 
 Install this final cumulative APK when device available, with fresh run-state/profile/development backup and guarded visual review. Inspect surfaces and prior lantern/anvil/background changes while moving and fighting; production camera is unchanged. Portrait lens experiments in surface-composition-01 are test-only and not shipped. Previous S23 timing is not evidence for this build. No push.
+
+
+## Device closure - surface composition (device logs 2026-10-07)
+
+APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B installed and base.apk hash matched after fresh backup TestResults/surface-device-20261007. Supersedes pending device status. Guarded foundry gate walk and normal Staff room2, pickups, upgrade choice and enemy-contact captures reviewed; proof ArtDirection/2026-10-06/surface-composition-01/device. No new code/rebuild. Gate top/HUD crop remains; no new visual blocker in these samples.
+
+S23 settled depth59.9fps/GPU3.8ms, initial226.5ms max; normal active samples59.4–59.9fps/GPU4.0–4.4ms, initial57.3ms max. Paused-choice samples excluded. Short smoke review, not dense-wave/midrange benchmark. No current-process error matches. ADB server interrupted before input; focus guard aborted then recovered. Profile/bak and original development files SHA256-identical; temporary depth/render flags removed, app stopped. Telemetry test events retained, no backup restore. Latest cumulative build ready for normal launch. No push.

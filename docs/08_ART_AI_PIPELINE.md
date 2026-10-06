@@ -718,3 +718,10 @@ Proof ArtDirection/2026-10-06/surface-composition-01, baseline7e2332b. Existing 
 Gate alternatives both retain upper HUD obstruction. Upward shifts hero180px and reduces nominal below-hero band23.2%; width11 makes world actors18.2%smaller. Production combat camera retained. Future full reveal requires separate arrival-presentation or HUD design, with play validation. Existing lane/boiler wear already existed: no duplicate system was added.
 
 Compile0/0,graphics1,Edit410,Play135,Android0,integrity534/1099/568. APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B,32,374,745bytes, includes visual-closure changes. No phone access or installation; no current device performance claim. No push.
+
+
+## Device closure - surface composition (device logs 2026-10-07)
+
+APK B2D5A6F5000A1A7EF4099E595E19DA35BB1BF33921F65557ED9F722937B2E42B installed and base.apk hash matched after fresh backup TestResults/surface-device-20261007. Supersedes pending device status. Guarded foundry gate walk and normal Staff room2, pickups, upgrade choice and enemy-contact captures reviewed; proof ArtDirection/2026-10-06/surface-composition-01/device. No new code/rebuild. Gate top/HUD crop remains; no new visual blocker in these samples.
+
+S23 settled depth59.9fps/GPU3.8ms, initial226.5ms max; normal active samples59.4–59.9fps/GPU4.0–4.4ms, initial57.3ms max. Paused-choice samples excluded. Short smoke review, not dense-wave/midrange benchmark. No current-process error matches. ADB server interrupted before input; focus guard aborted then recovered. Profile/bak and original development files SHA256-identical; temporary depth/render flags removed, app stopped. Telemetry test events retained, no backup restore. Latest cumulative build ready for normal launch. No push.
