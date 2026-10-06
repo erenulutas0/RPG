@@ -54,6 +54,7 @@ namespace Cryptforge.Combat
         private SpawnedEnemy _lastDefeated;
         private float _transitionWait;
         private bool _descending;
+        private bool _firstEncounterPending;
         // A continuous swarm (docs/27, S6c): the director SwarmDirector says what walks in and when, the room's ladder says
         // who, and the exit is where the hero leaves by standing still. Null outside a swarm room.
         private SwarmDirector _swarm;
@@ -91,6 +92,7 @@ namespace Cryptforge.Combat
         public bool IsInNonCombatRoom { get; private set; }
         public int WaveEnemyCount => _wave.Count;
         public int AliveEnemyCount { get; private set; }
+        public bool IsFirstEncounterPending => _firstEncounterPending;
         // The living enemy nearest the hero on the floor, which the hero strikes once it is in reach (the earlier slot on equal
         // distance); after the wave falls, the last one defeated.
         public Health CurrentEnemy => CurrentSpawn?.Health;
@@ -161,7 +163,7 @@ namespace Cryptforge.Combat
         // upgrades is what a swarm room holds level-ups back on and opens its sittings with; without it a swarm offers each
         // level-up as it comes. drops are the Descent's rewards on the floor, which the hero picks up as it walks.
         public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null,
-            UpgradeService upgrades = null, GroundDrops drops = null)
+            UpgradeService upgrades = null, GroundDrops drops = null, bool deferFirstEncounter = false)
         {
             _difficulty = difficulty;
             _upgrades = upgrades;
@@ -191,6 +193,22 @@ namespace Cryptforge.Combat
             FloorNumber = 1;
             _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
             _waveOrdinal = 0;
+            _firstEncounterPending = true;
+            if (!deferFirstEncounter)
+                BeginFirstEncounter();
+        }
+
+        // Arrival presentation may hold only the initial step. Validation and floor setup have already completed;
+        // repeated completion/skip callbacks cannot spawn another wave or advance a later floor.
+        public void BeginFirstEncounter()
+        {
+            if (_floorProgress == null)
+                throw new InvalidOperationException("EncounterController must be initialized before its first encounter begins.");
+            if (!_firstEncounterPending)
+                return;
+
+            // Clear before events fire: an EncounterStarted subscriber may call this method again.
+            _firstEncounterPending = false;
             AdvanceFloor();
         }
 
@@ -305,7 +323,7 @@ namespace Cryptforge.Combat
 
         private void Update()
         {
-            if (_floorProgress == null || !_hero.IsAlive)
+            if (_floorProgress == null || _firstEncounterPending || !_hero.IsAlive)
                 return;
 
             MovePack(Time.deltaTime);

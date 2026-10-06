@@ -37,6 +37,10 @@ namespace Cryptforge.Core
         public static bool FoundryRegionPreview() => (Application.isEditor || Debug.isDebugBuild) &&
             string.Equals(ReadFirstLine(RegionPreviewPath), "foundry", StringComparison.Ordinal);
 
+        public static string GateArrivalPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "gate-arrival.txt");
+        public static bool GateArrival() => FoundryRegionPreview() && !DepthProof() &&
+            !string.IsNullOrEmpty(ReadFirstLine(GateArrivalPath));
+
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
         // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file

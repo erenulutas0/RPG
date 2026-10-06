@@ -146,7 +146,9 @@ namespace Cryptforge.Analytics
         private void Update()
         {
             if (_telemetry != null)
-                _telemetry.Tick(Time.deltaTime, Time.unscaledDeltaTime);
+                // A pre-encounter presentation is not active combat time. Keep unscaled flush/pause handling.
+                _telemetry.Tick(_encounters != null && _encounters.IsFirstEncounterPending ? 0f : Time.deltaTime,
+                    Time.unscaledDeltaTime);
         }
 
         private void OnApplicationPause(bool paused)

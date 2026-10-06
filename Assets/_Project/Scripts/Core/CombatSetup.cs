@@ -143,7 +143,9 @@ namespace Cryptforge.Core
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
             telemetry.Begin();
-            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops);
+            bool arrival = DevelopmentStart.GateArrival();
+            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival);
+            if (arrival) gameObject.AddComponent<GateArrivalView>().Initialize(this, movement);
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
