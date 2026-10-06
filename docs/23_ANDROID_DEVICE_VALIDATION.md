@@ -1512,3 +1512,10 @@ Proof ArtDirection/2026-10-07/yard-surface-01. FoundryRegionFinish only: broader
 Graphics1, Edit410, Play143, Android0, integrity536/1099/568. Installed APK CAC7489FB29F0AF91781D85731B3BC154B31236154B2DF3D01E8B8C85E2B3170 (35,934,327 bytes); base.apk hash matched. Guarded S23 staged boiler/gate walk reviewed, no current-process managed exception/crash match. Not a fresh combat/performance benchmark. Fresh backup TestResults/yard-device-20261007; profile/bak and all original development files hash-identical. Temporary depth-proof removed, previous arrival opt-in retained, app stopped, no push.
 
 Further minor floor-value tuning has diminishing benefit. Next substantive art slice should target a clearly visible asset/material limitation with an explicit before/after reference, or dynamic combat readability; do not advertise another small contrast adjustment as a major map upgrade.
+
+
+## 2026-10-07 - Masonry V4 cohesion installed
+
+New built-in image_gen edit of original FoundryMasonryV3: V4 removes repeated large diagonal fracture facets while preserving the five-course bond and dark grey-violet value. MAT_FoundryMasonry points at the new versioned texture; V3/GUID untouched. Full prompt/provenance and Unity gate/portrait/bridge/pit/overview comparisons: ArtDirection/2026-10-07/masonry-cohesion-01. Source1254square, Unity POT scaling, Android max1024 ASTC6x6, mipmapped/trilinear/repeat/non-readable. No geometry, lighting, camera or gameplay edits; static17/80,344 unchanged. Improvement is surface coherence, not concept completion.
+
+Graphics1, Edit410, Play143, Android0, integrity537/1099/568. Installed APK59FCABA6D557886D68D2E0E1230CB2D8C1076F2C3FC776A48F18E67D203C0A2E (35,934,327 bytes); base.apk matched. Guarded S23 full gate reveal and natural Staff combat handback inspected. No managed exception/crash pattern in sampled process log; no new performance benchmark. Fresh backup TestResults/masonry-device-20261007; profile/bak and original development files SHA256-identical. No test flags added, arrival opt-in retained, app stopped. No push.
