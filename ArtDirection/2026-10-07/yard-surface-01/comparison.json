@@ -1,0 +1,18 @@
+{
+  "point-1.png": {
+    "mean_absolute_rgb_255": 0.151,
+    "changed_pixels_percent": 3.84
+  },
+  "point-2.png": {
+    "mean_absolute_rgb_255": 0.041,
+    "changed_pixels_percent": 1.13
+  },
+  "point-3.png": {
+    "mean_absolute_rgb_255": 0.4,
+    "changed_pixels_percent": 12.42
+  },
+  "point-4.png": {
+    "mean_absolute_rgb_255": 0.473,
+    "changed_pixels_percent": 14.28
+  }
+}

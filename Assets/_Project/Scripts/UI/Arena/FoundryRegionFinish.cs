@@ -137,10 +137,19 @@ namespace Cryptforge.UI
             // Reuse the existing deposit field rather than layering another stain.
             float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,-23f,5,-18.45f,8.4f),
                 DistanceFromFloorBox(u,v,2,18.5f,7,22.4f));
-            float soot=Mathf.Max(Mathf.Clamp01(1-shaftDistance/1.45f),
-                Mathf.Clamp01(1-stockDistance/2.0f));
-            soot=soot*soot*Mathf.Lerp(.55f,1,FloorPatina(u*.71f+9,v*.71f-4));
-            light*=1-.17f*soot;
+            float shaftSoot=Mathf.Clamp01(1-shaftDistance/1.45f);
+            shaftSoot*=shaftSoot*Mathf.Lerp(.55f,1,FloorPatina(u*.71f+9,v*.71f-4));
+            // Service deposits spread into the working apron, but remain broad enough to
+            // read across several flags. Preserve the established narrow pit deposit.
+            float stockSoot=Mathf.Clamp01(1-stockDistance/3.4f);
+            stockSoot*=stockSoot*Mathf.Lerp(.72f,1,FloorPatina(u*.27f+9,v*.27f-4));
+            light*=1-Mathf.Max(.17f*shaftSoot,.30f*stockSoot);
+            // Boiler service grime occupies the outside shoulders, leaving the central
+            // walking lane clear. A smooth rounded footprint avoids false obstacle edges.
+            float boilerDeposit=0;
+            foreach(var c in BoilerCentres)
+                boilerDeposit=Mathf.Max(boilerDeposit,ContactShade(u,v,c.x,c.y,c.x,c.y,3.2f,BoilerPlinth));
+            light*=1-.24f*boilerDeposit;
             // Contact shade ties the large gate/boiler masses to their stone apron.
             // Smooth local falloff avoids a painted rectangular outline around buildings.
             // The boilers' round plinths replaced the 3x3 furnace boxes this once traced.
@@ -153,7 +162,7 @@ namespace Cryptforge.UI
             float lane=Mathf.Clamp01(1-Mathf.Abs(v-5)/3.5f);
             float along=Mathf.SmoothStep(0,1,Mathf.InverseLerp(8,13,u))*
                 (1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(29,32,u)));
-            light*=1+.045f*lane*lane*along;
+            light*=1+.11f*lane*lane*along;
             // Wide flush shoulder courses frame the gate approach without bright
             // navigation lines. Fade the treatment into the court at its entrance.
             float shoulder=Mathf.Max(Mathf.Clamp01(1-Mathf.Abs(v-.5f)/.65f),
