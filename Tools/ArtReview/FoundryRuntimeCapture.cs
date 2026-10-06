@@ -120,7 +120,11 @@ namespace Cryptforge.Tests
                     "{0:F2},{1:F2},{2:F4},{3:F4},{4:F4},{5:F4},{6:F4},{7:F4},true",
                     gateDesign.x, gateDesign.y, movement.Motion.X, movement.Motion.Y, cameraPosition.x, cameraPosition.y,
                     _camera.orthographicSize, follow.VisibleWidth));
-                if (gateDesign.x == 30) CaptureGateFramingStudy(follow, hero.transform);
+                if (gateDesign.x == 30)
+                {
+                    CaptureGateFramingStudy(follow, hero.transform);
+                    CaptureGateArrivalStudy(follow);
+                }
             }
             File.WriteAllText(Output + "gate-approach.csv", gateReport.ToString());
             // Matched actual-render comparison at a walkable point behind the near boiler main.
@@ -239,6 +243,47 @@ namespace Cryptforge.Tests
             _camera.aspect=4f/3f;_camera.orthographicSize=26;
             Capture("map-export",3200,2400);
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // Art storyboard only: the live foundry has no safe non-combat gate-arrival phase yet.
+        // Render a full landmark reveal without creating an automatic gameplay camera takeover.
+        private void CaptureGateArrivalStudy(ArenaCameraFollow follow)
+        {
+            Vector3 originalPosition = _camera.transform.position;
+            float originalSize = _camera.orthographicSize;
+            bool originalFollow = follow.enabled;
+            var roots = new System.Collections.Generic.List<Canvas>();
+            var states = new System.Collections.Generic.List<bool>();
+            foreach (var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (canvas.isRootCanvas) { roots.Add(canvas); states.Add(canvas.enabled); }
+            try
+            {
+                follow.enabled = false;
+                Capture("gate-arrival-combat", 1080, 2340);
+                foreach (var canvas in roots) canvas.enabled = false;
+                Vector3 reveal = new Vector3(19, 16.4f, originalPosition.z);
+                float revealSize = 17.6f * 2340f / (2f * 1080f);
+                _camera.transform.position = Vector3.Lerp(originalPosition, reveal, .5f);
+                _camera.orthographicSize = Mathf.Lerp(originalSize, revealSize, .5f);
+                Capture("gate-arrival-transition", 1080, 2340);
+                _camera.transform.position = reveal;
+                _camera.orthographicSize = revealSize;
+                Capture("gate-arrival-reveal", 1080, 2340);
+            }
+            finally
+            {
+                _camera.transform.position = originalPosition;
+                _camera.orthographicSize = originalSize;
+                follow.enabled = originalFollow;
+                for (int i = 0; i < roots.Count; i++) roots[i].enabled = states[i];
+                Canvas.ForceUpdateCanvases();
+                Object.FindFirstObjectByType<ArenaView>().Backdrop.FrameCavern();
+            }
+            Assert.That(_camera.transform.position, Is.EqualTo(originalPosition));
+            Assert.That(_camera.orthographicSize, Is.EqualTo(originalSize));
+            Assert.That(follow.enabled, Is.EqualTo(originalFollow));
+            for (int i = 0; i < roots.Count; i++) Assert.That(roots[i].enabled, Is.EqualTo(states[i]));
+            Capture("gate-arrival-restored", 1080, 2340);
         }
 
         // Test-only lens/composition alternatives. No production serialized camera/HUD values are edited.
