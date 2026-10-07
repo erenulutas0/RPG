@@ -65,6 +65,19 @@ namespace Cryptforge.Tests
             Assert.That(arena.Region, Is.Not.Null);
             var route=new Cryptforge.Art.FoundryPursuit();
             Capture("start",1080,2340);
+            // Explicit typography specimens through the real pooled number renderer.
+            // These are staged readouts, not damage inflicted on the captured enemies.
+            var effects=Object.FindFirstObjectByType<CombatEffectsView>();
+            var showNumber=typeof(CombatEffectsView).GetMethod("ShowNumber",
+                System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+            Assert.That(showNumber,Is.Not.Null);
+            showNumber.Invoke(effects,new object[]{8,false,hero.transform.position+new Vector3(-1,1.5f,0)});
+            showNumber.Invoke(effects,new object[]{128,true,hero.transform.position+new Vector3(1,1.5f,0)});
+            showNumber.Invoke(effects,new object[]{99999,true,hero.transform.position+new Vector3(0,2.4f,0)});
+            yield return null;
+            Assert.That(effects.ActiveNumberCount,Is.GreaterThanOrEqualTo(3));
+            Capture("damage-type",1080,2340);
+            yield return new WaitForSeconds(.8f);
             var report=new System.Text.StringBuilder("point,seconds,x,y,stamina\n");
             int index=0;
             foreach(var design in new[]{new Vector2(-23,-23),new Vector2(-15,6),new Vector2(0,0),new Vector2(16,6),new Vector2(28,6)})

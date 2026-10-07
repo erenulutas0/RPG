@@ -8,16 +8,16 @@ namespace Cryptforge.Tests
     public sealed class EffectArtTests
     {
         [Test]
-        public void DigitMapsAreThreeByFiveAndDistinct()
+        public void DigitMapsAreFiveBySevenAndDistinct()
         {
             var seen = new HashSet<string>();
             for (int digit = 0; digit < 10; digit++)
             {
                 IReadOnlyList<string> map = EffectArt.DigitMap(digit);
-                Assert.That(map.Count, Is.EqualTo(EffectArt.DigitHeight), $"Digit {digit} is five rows tall.");
+                Assert.That(map.Count, Is.EqualTo(EffectArt.DigitHeight), $"Digit {digit} is seven rows tall.");
                 foreach (string row in map)
                 {
-                    Assert.That(row.Length, Is.EqualTo(EffectArt.DigitWidth), $"Digit {digit} is three texels wide.");
+                    Assert.That(row.Length, Is.EqualTo(EffectArt.DigitWidth), $"Digit {digit} is five texels wide.");
                     Assert.That(row, Does.Match("^[#.]+$"), "Digit maps use only ink and transparency.");
                 }
                 Assert.That(seen.Add(string.Join("/", map)), $"Digit {digit} repeats another numeral.");
@@ -32,35 +32,35 @@ namespace Cryptforge.Tests
         }
 
         [Test]
-        public void AComposedNumberIsElevenTexelsWideWithOneTexelGaps()
+        public void AComposedNumberHasReadableGlyphsAndOneTexelGaps()
         {
             PixelCanvas number = EffectArt.ComposeNumber(128, Rgba.White);
-            Assert.That(number.Width, Is.EqualTo(11));
+            Assert.That(number.Width, Is.EqualTo(17));
             Assert.That(number.Height, Is.EqualTo(EffectArt.DigitHeight));
-            Assert.That(EffectArt.NumberWidth(3), Is.EqualTo(11));
-            Assert.That(ColumnIsEmpty(number, 3), "The first gap column is transparent.");
-            Assert.That(ColumnIsEmpty(number, 7), "The second gap column is transparent.");
-            Assert.That(ColumnIsEmpty(number, 0), Is.False, "The numeral 1 starts in the first column.");
-            Assert.That(number.Get(0, 4), Is.EqualTo(Rgba.Transparent), "The top-left of a 1 is open.");
-            Assert.That(number.Get(1, 4), Is.EqualTo(Rgba.White), "The 1's stem is white.");
-            Assert.That(number.Get(8, 0), Is.EqualTo(Rgba.White), "The 8's base is drawn.");
+            Assert.That(EffectArt.NumberWidth(3), Is.EqualTo(17));
+            Assert.That(ColumnIsEmpty(number, 5), "The first gap column is transparent.");
+            Assert.That(ColumnIsEmpty(number, 11), "The second gap column is transparent.");
+            Assert.That(ColumnIsEmpty(number, 1), Is.False, "The numeral 1 has a visible foot.");
+            Assert.That(number.Get(0, 6), Is.EqualTo(Rgba.Transparent), "The top-left of a 1 is open.");
+            Assert.That(number.Get(2, 6), Is.EqualTo(Rgba.White), "The 1's stem is white.");
+            Assert.That(number.Get(13, 0), Is.EqualTo(Rgba.White), "The 8's base is drawn.");
 
             PixelCanvas plain = EffectArt.NumberCanvas(128, false);
-            Assert.That((plain.Width, plain.Height), Is.EqualTo((13, 7)), "An outlined number is one texel wider on each side.");
-            Assert.That(plain.Get(0, 1), Is.EqualTo(PixelPalette.Outline));
+            Assert.That((plain.Width, plain.Height), Is.EqualTo((19, 9)), "An outlined number is one texel wider on each side.");
+            Assert.That(plain.Get(1, 1), Is.EqualTo(PixelPalette.Outline));
             Assert.That(plain.Get(0, 0), Is.EqualTo(Rgba.Transparent), "The corner beside a 1's foot stays open.");
-            Assert.That(plain.Get(2, 5), Is.EqualTo(Rgba.White));
+            Assert.That(plain.Get(3, 7), Is.EqualTo(Rgba.White));
 
             PixelCanvas crit = EffectArt.NumberCanvas(128, true);
-            Assert.That((crit.Width, crit.Height), Is.EqualTo((26, 14)), "A crit number is drawn at twice the scale.");
-            Assert.That(crit.Get(2, 2), Is.EqualTo(PixelPalette.CoinLight));
-            Assert.That(crit.Get(3, 3), Is.EqualTo(PixelPalette.CoinLight), "Upscaling keeps whole texel blocks.");
+            Assert.That((crit.Width, crit.Height), Is.EqualTo((38, 18)), "A crit number is drawn at twice the scale.");
+            Assert.That(crit.Get(4, 2), Is.EqualTo(PixelPalette.CoinLight));
+            Assert.That(crit.Get(5, 3), Is.EqualTo(PixelPalette.CoinLight), "Upscaling keeps whole texel blocks.");
             Assert.That(Has(crit, Rgba.White), Is.False, "Crit numbers are gold, not white.");
 
             PixelCanvas digit = EffectArt.DigitCanvas(7, Rgba.White);
-            Assert.That((digit.Width, digit.Height), Is.EqualTo((5, 7)));
-            Assert.That(digit.Get(3, 5), Is.EqualTo(Rgba.White), "The 7's top bar reaches the glyph's right edge.");
-            Assert.That(digit.Get(4, 5), Is.EqualTo(PixelPalette.Outline), "One texel of outline frames the glyph.");
+            Assert.That((digit.Width, digit.Height), Is.EqualTo((7, 9)));
+            Assert.That(digit.Get(5, 7), Is.EqualTo(Rgba.White), "The 7's top bar reaches the glyph's right edge.");
+            Assert.That(digit.Get(6, 7), Is.EqualTo(PixelPalette.Outline), "One texel of outline frames the glyph.");
         }
 
         [Test]

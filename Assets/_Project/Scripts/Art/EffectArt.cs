@@ -13,12 +13,12 @@ namespace Cryptforge.Art
     }
 
     // Combat effect placeholders drawn from code in the astral foundry palette: the hero's strike effects, hit sparks, crit
-    // bursts, death smoke, coins and the 3x5 numerals of floating damage numbers. Pure and deterministic so every frame can
+    // bursts, death smoke, coins and the 5x7 numerals of floating damage numbers. Pure and deterministic so every frame can
     // be tested without Unity; CombatEffectsView turns them into sprites once at startup. Row 0 of a canvas is its bottom.
     public static class EffectArt
     {
-        public const int DigitWidth = 3;
-        public const int DigitHeight = 5;
+        public const int DigitWidth = 5;
+        public const int DigitHeight = 7;
         public const int DigitGap = 1;
         // Left edges of consecutive numerals are this far apart: the glyph plus its gap.
         public const int DigitStride = DigitWidth + DigitGap;
@@ -44,16 +44,16 @@ namespace Cryptforge.Art
 
         private static readonly string[][] Digits =
         {
-            new[] { "###", "#.#", "#.#", "#.#", "###" },
-            new[] { ".#.", "##.", ".#.", ".#.", "###" },
-            new[] { "###", "..#", "###", "#..", "###" },
-            new[] { "###", "..#", "###", "..#", "###" },
-            new[] { "#.#", "#.#", "###", "..#", "..#" },
-            new[] { "###", "#..", "###", "..#", "###" },
-            new[] { "###", "#..", "###", "#.#", "###" },
-            new[] { "###", "..#", "..#", "..#", "..#" },
-            new[] { "###", "#.#", "###", "#.#", "###" },
-            new[] { "###", "#.#", "###", "..#", "###" }
+            new[] { ".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###." },
+            new[] { "..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###." },
+            new[] { ".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####" },
+            new[] { "####.", "....#", "....#", ".###.", "....#", "....#", "####." },
+            new[] { "...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#." },
+            new[] { "#####", "#....", "#....", "####.", "....#", "....#", "####." },
+            new[] { ".###.", "#....", "#....", "####.", "#...#", "#...#", ".###." },
+            new[] { "#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..." },
+            new[] { ".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###." },
+            new[] { ".###.", "#...#", "#...#", ".####", "....#", "....#", ".###." }
         };
 
         // A compact ember burst, then the same sparks flung outward with the core gone.
