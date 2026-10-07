@@ -1373,8 +1373,35 @@ namespace Cryptforge.UI
             MassBox(b,top,shoulder,-2.75f,true,true,.95f);
             MassBox(b,top,-3.95f,-3.8f,true,true,.5f);
             Vector4 head=GrowSafe(top,.14f);
-            MassBox(b,head,-2.75f,DeckFace,true,true,1.06f);
-            MassCap(b,head,DeckFace,new Color(.62f,.65f,.74f));
+            // A recessed neck carries a chamfered capital, within the original head bounds.
+            // Build upward so each upper cap covers the lower stage's hidden return.
+            ArchitecturalTier(b,top.x,top.y,top.z,top.w,-2.75f,-2.58f,.02f);
+            ArchitecturalTier(b,head.x,head.y,head.z,head.w,-2.58f,DeckFace-.22f,.04f);
+            int crownStart=b.V.Count;
+            ArchitecturalTier(b,head.x,head.y,head.z,head.w,DeckFace-.22f,DeckFace,.15f);
+            // The crown is a dressed slab: don't wrap the wall's mortar grid over its bevel.
+            for(int vertex=crownStart;vertex<b.V.Count;vertex++)
+                b.U[vertex]=new Vector2(.34f,.70f)+(Vector2)(b.V[vertex]-b.V[crownStart])*.025f;
+            BastionCornerStones(b,top,shoulder,-2.78f);
+        }
+
+        private static void BastionCornerStones(Builder b,Vector4 box,float bottom,float top)
+        {
+            // Large dressed quoins wrap the near corner. Chain anchors remain on the
+            // central faces; the established anchor planes and silhouette are unchanged.
+            int courses=Mathf.Max(1,Mathf.CeilToInt((top-bottom)/.62f));
+            for(int i=0;i<courses;i++)
+            {
+                float lo=Mathf.Lerp(bottom,top,i/(float)courses)+.018f;
+                float hi=Mathf.Lerp(bottom,top,(i+1)/(float)courses)-.018f;
+                float reach=i%2==0?.42f:.30f;
+                Vector3 corner=Project(box.x,box.y);
+                Vector3 west=Project(box.x,box.y+reach),south=Project(box.x+reach,box.y);
+                GateDressedFace(b,west+Vector3.up*lo,corner+Vector3.up*lo,
+                    corner+Vector3.up*hi,west+Vector3.up*hi,new Color(.51f,.55f,.64f),.08f);
+                GateDressedFace(b,corner+Vector3.up*lo,south+Vector3.up*lo,
+                    south+Vector3.up*hi,corner+Vector3.up*hi,new Color(.76f,.79f,.86f),.08f);
+            }
         }
 
         // A pier stage from its upper footprint down to its lower one: the two camera faces, a bright arris on the
