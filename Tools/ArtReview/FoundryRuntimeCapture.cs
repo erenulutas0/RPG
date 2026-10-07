@@ -187,6 +187,23 @@ namespace Cryptforge.Tests
             _camera.orthographicSize=8.8f;
             _camera.transform.position=new Vector3(19,16.4f,_camera.transform.position.z);
             Capture("gate-detail",1200,1200);
+            var flameMotion=Object.FindObjectsByType<FoundryFlameMotion>(FindObjectsSortMode.None);
+            Assert.That(flameMotion.Length,Is.EqualTo(1),"Open flames must share their existing emission batch.");
+            var flameMesh=flameMotion[0].GetComponent<MeshFilter>().sharedMesh;
+            var firstFlamePose=flameMesh.vertices;
+            for(int frame=0;frame<6;frame++)
+            {
+                yield return new WaitForSeconds(.1f);
+                Capture("flame-motion-"+frame,1200,1200);
+            }
+            Assert.That(flameMesh.vertices,Is.Not.EqualTo(firstFlamePose),"Real foundry batch tips must animate.");
+            float motionScale=Time.timeScale;
+            Time.timeScale=0;
+            var pausedFlames=flameMesh.vertices;
+            yield return null;yield return null;
+            Assert.That(flameMesh.vertices,Is.EqualTo(pausedFlames));
+            Time.timeScale=motionScale;
+
             _camera.orthographicSize=4.3f;
             _camera.transform.position=new Vector3(21.2f,10,_camera.transform.position.z);
             Capture("furnace-detail",1200,1200);

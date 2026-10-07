@@ -570,6 +570,12 @@ namespace Cryptforge.UI
                 Color tip=FlameTone[q];tip.g*=.68f;tip.b*=.75f;tip.a=q==2?.88f:.68f;
                 light.C[first+2]=Color.Lerp(FlameTone[q],tip,.65f);
                 light.C[first+3]=tip;
+                // Bottom vertices remain anchored; tips use a stable source/layer phase.
+                for(int k=2;k<4;k++)
+                {
+                    float weight=Mathf.Clamp01((FlameOutline[q*4+k].y+.2f)/.56f)*scale;
+                    light.Flames.Add(new FoundryFlameVertex(first+k,weight,center.x*.83f+center.y*1.3f+q*.29f));
+                }
             }
         }
 

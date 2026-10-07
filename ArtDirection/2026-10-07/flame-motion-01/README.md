@@ -1,0 +1,15 @@
+# Open flame motion — 2026-10-07
+
+FoundryFlameMotion borrows the existing emission batch mesh. ForgeFlame tags only the two upper vertices of each tongue, carrying a height/scale weight and stable position/layer phase through batching. The motion samples two lateral sine rates and one vertical rate at at most 30Hz using scaled delta time. Coal beds, flame bases, untagged geometry and depth Z stay fixed. Cached arrays avoid per-frame managed allocations/mesh reads; the existing batch vertex buffer is uploaded when sampled. This is not zero-cost or shader-only motion.
+
+Bounds have a fixed 0.2-unit padding per side; upload preserves it. Maximum authored tip sway is below 0.124 units laterally /0.086 vertically. Disable restores rest pose, re-enable resumes; region remains mesh owner and destroys it on unload. No new material, renderer, triangle, texture, scene or gameplay changes. Total17 renderers /80,344 vertices retained, with one existing batch now dynamic.
+
+Graphics capture passed on the real map: exactly one animated batch, tips change across six captured poses and freeze during pause. Standalone lifecycle test covers anchored vertices, unchanged depth, motion bounds, pause, disable/enable and restored pose. Browser proof cycles six actual captures at 0.1-second intervals; it is a short sampled loop, not live Unity. Full suites/build/device closure completed; see validation below.
+
+## 2026-10-07 - Open flame motion installed
+
+FoundryFlameMotion animates tagged upper flame corners in the existing emission batch at up to 30Hz, using scaled time and cached vertex arrays. Bases, untagged vertices and depth stay fixed; pause freezes, disable restores, re-enable resumes. Fixed bounds padding covers authored displacement. Region owns the mesh. No added materials/renderers/geometry; 17 renderers /80,344 vertices retained, one existing batch now dynamic. Full batch vertex upload is an explicit cost, not shader-only motion.
+
+Proof: ArtDirection/2026-10-07/flame-motion-01 (six actual Unity poses plus guarded S23 entry still). Graphics check asserts exactly one animated batch, actual motion and pause freeze. Compile 0 warnings/errors; EditMode410/410, PlayMode144/144, Android exit0; integrity539/1099/568. APK8C0B5FA725943CDE6BF86039EF73E9A7BC7FD23862A3991EFA0EC839CAC0AB5B,31,113,605bytes installed and base.apk hash matched.
+
+Fresh TestResults/flame-motion-device-20261007 backup; profile/bak and all three original development files SHA256-identical after review. Temporary depth-proof/render-stats flags removed, original arrival opt-in retained, app stopped. Sampled process log had no managed exception/crash pattern. Short staged S23 gate sample before recording:59.7-59.9fps, p50/p95 16.7ms, one window maximum33.4ms; GPU about4.2ms. This is not a dense-combat or midrange-device benchmark. Entry still confirms on-device flame appearance; real-map automated captures verify motion. Local first device video crops the open flames and is not promoted as visual motion evidence. No push.
