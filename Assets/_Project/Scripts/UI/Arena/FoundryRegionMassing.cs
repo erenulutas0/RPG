@@ -211,15 +211,15 @@ namespace Cryptforge.UI
             using var depth=MassDepth(new Vector4(Mathf.Min(from.x,to.x)-.25f,Mathf.Min(from.y,to.y)-.25f,
                 Mathf.Max(from.x,to.x)+.25f,Mathf.Max(from.y,to.y)+.25f),height+width);
             Vector3 lift=Vector3.up*height,a=Project(from.x,from.y)+lift,b=Project(to.x,to.y)+lift;
-            Tube(arena,a,b,width,-10.5f);
-            Vector3 d=(b-a).normalized,n=new Vector3(-d.y,d.x,0);
+            PressureTube(arena,a,b,width,-10.5f);
+            Vector3 d=(b-a).normalized;
             int bands=Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.5f));
             for(int i=0;i<=bands;i++)
             {
                 Vector3 p=Vector3.Lerp(a,b,i/(float)bands);
                 bool end=i==0||i==bands;
-                float reach=width*(end?.8f:.64f);
-                Tube(arena,p-n*reach,p+n*reach,width*(end?.34f:.2f),-10.5f);
+                float halfLength=width*(end?.17f:.10f);
+                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),-10.5f);
             }
         }
 

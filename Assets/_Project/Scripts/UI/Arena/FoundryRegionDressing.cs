@@ -392,27 +392,53 @@ namespace Cryptforge.UI
 
         private void Pipe(ArenaView arena,Vector3 a,Vector3 b,float width)
         {
-            Tube(arena,a,b,width);
-            Vector3 d=(b-a).normalized,n=new Vector3(-d.y,d.x,0);
+            PressureTube(arena,a,b,width);
+            Vector3 d=(b-a).normalized;
             int count=Mathf.Max(1,Mathf.CeilToInt(Vector3.Distance(a,b)/1.3f));
             for(int i=0;i<=count;i++)
             {
                 Vector3 p=Vector3.Lerp(a,b,i/(float)count);
-                Tube(arena,p-n*width*.66f,p+n*width*.66f,width*.22f);
+                PressureTube(arena,p-d*width*.11f,p+d*width*.11f,width*1.32f);
             }
+        }
+
+        // Plain iron and a curved cross-section keep pressure mains distinct from structural beams.
+        // This shares the existing iron batch and leaves generic rods/rails untouched.
+        private void PressureTube(ArenaView arena,Vector3 a,Vector3 b,float width,float order=-11)
+        {
+            Vector3 axis=(b-a).normalized,n=new Vector3(-axis.y,axis.x,0);
+            if(Vector2.Dot(new Vector2(n.x,n.y),ChainLight)<0)n=-n;
+            var mesh=new Builder();
+            const int strips=6;
+            for(int i=0;i<strips;i++)
+            {
+                float t0=i/(float)strips,t1=(i+1)/(float)strips;
+                float x0=Mathf.Cos(t0*Mathf.PI),x1=Mathf.Cos(t1*Mathf.PI);
+                Color c0=PressureShade(t0),c1=PressureShade(t1);
+                LinkQuad(mesh,a+n*x0*width*.5f,b+n*x0*width*.5f,
+                    b+n*x1*width*.5f,a+n*x1*width*.5f,c0,c0,c1,c1);
+            }
+            Create("Rounded pressure iron",mesh,arena.PlatformMaterials.FoundryIron,order);
+        }
+
+        private static Color PressureShade(float t)
+        {
+            float value=.30f+.72f*Mathf.Max(0,Mathf.Cos((t-.30f)*Mathf.PI));
+            return new Color(value*.96f,value,value*1.06f);
         }
 
         private void Wheel(ArenaView arena,Vector3 center,float radius)
         {
+            PressureTube(arena,center+Vector3.left*radius*.2f,center+Vector3.right*radius*.2f,radius*.4f);
             const int segments=12;
             for(int i=0;i<segments;i++)
             {
                 float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
-                Tube(arena,center+new Vector3(Mathf.Cos(a)*radius,Mathf.Sin(a)*radius,0),
+                PressureTube(arena,center+new Vector3(Mathf.Cos(a)*radius,Mathf.Sin(a)*radius,0),
                     center+new Vector3(Mathf.Cos(b)*radius,Mathf.Sin(b)*radius,0),.065f);
             }
-            Tube(arena,center+Vector3.left*radius,center+Vector3.right*radius,.07f);
-            Tube(arena,center+Vector3.down*radius,center+Vector3.up*radius,.07f);
+            PressureTube(arena,center+Vector3.left*radius,center+Vector3.right*radius,.07f);
+            PressureTube(arena,center+Vector3.down*radius,center+Vector3.up*radius,.07f);
         }
 
         // Link parity runs across calls, so catenaries built from short segments keep alternating.
