@@ -14,20 +14,13 @@ namespace Cryptforge.UI
 
         private void BuildBridgePiers(ArenaView arena)
         {
-            // Far to near: in one rail's screen column each post stands in front of the one before it, and one masonry
-            // batch paints in emission order. So the court-side gateposts with their fire baskets and banners come first,
-            // the rail lanterns in front of the gateposts' shafts next (BuildBridgeLanterns), and the far-end piers last,
-            // their crowns and beacons in front of the nearer lanterns' corbels and shafts.
-            BridgePiers(arena,BridgeHeadPosts);
-            // The bridge head (the two court-side gateposts), after the approved layout: a fire basket on each crown in
-            // place of the old beacon (its foot covers the socket), and a blue banner from the gate facade's own painting
-            // on a bronze bracket off each outboard face; the layout's hooded statues need painted art and are left out.
-            // Each post's pieces take the depth footprint its landmark registers, as a scope; all stand outboard of the
-            // bridge's walking quad.
+            // Paired keepers replace the temporary head-post braziers. The lower supports and
+            // banners remain; all bases stand outside the walking union.
+            BridgePiers(arena,BridgeHeadPosts,true);
             foreach(var post in BridgeHeadPosts)
-                using(MassDepth(new Vector4(post.x-.32f,post.y-.32f,post.x+.32f,post.y+.32f),3.2f))
+                using(MassDepth(new Vector4(post.x-.7f,post.y-.7f,post.x+.7f,post.y+.7f),4.3f))
                 {
-                    Brazier(arena,post,1.65f);
+                    BridgeKeeper(arena,post);
                     BridgeBanner(arena,post);
                 }
             BuildBridgeLanterns(arena);
@@ -64,7 +57,7 @@ namespace Cryptforge.UI
 
         // Stone piers whose entire feet are outside the diagonal bridge and court walking union. Unscoped: their pieces
         // resolve to the piers' landmarks (RegisterDepthLandmarks).
-        private void BridgePiers(ArenaView arena,Vector2[] posts)
+        private void BridgePiers(ArenaView arena,Vector2[] posts,bool keeper=false)
         {
             var stone=new Builder();
             var iron=new Builder();
@@ -76,6 +69,22 @@ namespace Cryptforge.UI
                 LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-2.8f,-2.35f,.03f);
                 LitFoundryTier(stone,p.x-.245f,p.y-.245f,p.x+.245f,p.y+.245f,-2.35f,-.18f,.005f);
                 LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,-.18f,.3f,.025f);
+                if(keeper)
+                {
+                    // A below-deck console ties the outboard statue shaft back to the bridge rim.
+                    float side=Mathf.Sign(p.x-p.y),sum=p.x+p.y;
+                    var rim=new[]{Deck(sum-.9f,side*3.95f),Deck(sum-.9f,side*6.6f),
+                        Deck(sum+.9f,side*6.6f),Deck(sum+.9f,side*3.95f)};
+                    for(int edge=0;edge<4;edge++)
+                    {
+                        Vector3 a=rim[edge],b=rim[(edge+1)%4];
+                        stone.WallQuad(a-Vector3.up*.7f,b-Vector3.up*.7f,b-Vector3.up*.1f,a-Vector3.up*.1f,false,new Color(.65f,.65f,.73f));
+                    }
+                    stone.Quad(rim[0]-Vector3.up*.1f,rim[1]-Vector3.up*.1f,rim[2]-Vector3.up*.1f,rim[3]-Vector3.up*.1f,true,new Color(.8f,.8f,.88f));
+                    LitFoundryTier(stone,p.x-.48f,p.y-.48f,p.x+.48f,p.y+.48f,-.18f,.18f,.07f);
+                    LitFoundryTier(stone,p.x-.7f,p.y-.7f,p.x+.7f,p.y+.7f,.18f,.45f,.12f);
+                    continue;
+                }
                 LitFoundryTier(stone,p.x-.24f,p.y-.24f,p.x+.24f,p.y+.24f,.3f,1.1f,.03f);
                 LitFoundryTier(stone,p.x-.3f,p.y-.3f,p.x+.3f,p.y+.3f,1.1f,1.28f,.04f);
                 LitFoundryTier(stone,p.x-.21f,p.y-.21f,p.x+.21f,p.y+.21f,1.28f,1.65f,.14f);
@@ -92,6 +101,20 @@ namespace Cryptforge.UI
             }
             Create("Bridge gateposts",stone,arena.PlatformMaterials.FoundryWall,-11);
             Create("Bridge gatepost sockets and seals",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
+        }
+
+        private void BridgeKeeper(ArenaView arena,Vector2 post)
+        {
+            var material=arena.PlatformMaterials.ForgeKeeper;
+            if(material==null)return;
+            // Preserve the source's 2:3 aspect and baked lighting on both sides; never mirror it.
+            const float height=3.8f,width=height*2f/3f;
+            Vector3 foot=Project(post.x,post.y)+Vector3.up*.38f;
+            Vector3 a=foot-Vector3.right*(width*.5f),b=foot+Vector3.right*(width*.5f);
+            var card=new Builder();
+            card.Quad(a,b,b+Vector3.up*height,a+Vector3.up*height,false,Color.white);
+            card.U.Clear();card.U.AddRange(new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up});
+            Create("Bridge forge keepers",card,material,-10);
         }
 
         // Quiet cast-iron panels face both approaches, with a small incised lozenge instead of signs or glowing UI-like
@@ -113,8 +136,8 @@ namespace Cryptforge.UI
         }
 
         // Rail lanterns, after the approved layout, whose causeway is lit at intervals along both parapets (here the fire
-        // stood only at the bridge's two ends): one a side, halfway along the run from the gateposts (s -32.9) to the
-        // far piers (s -50.6), on the gateposts' line d +/-4.7. Each is a slim stone post - a stepped
+        // stood only at the bridge's two ends): one a side, halfway along the run from the original gateposts (s -32.9) to the
+        // far piers (s -50.6), on the original rail line d +/-4.7. Each is a slim stone post - a stepped
         // corbel under the deck line, a plinth, a shaft with the gateposts' iron panels, a cap - carrying the court lantern
         // (BuildCourtLantern) at the height the court's posts carry it, so the court's lit rail reads as carried on across
         // the void. Every vertex lies outboard of the walking quad: the nearest, the lantern roof's hull, at |d| 4.14 (the
@@ -154,14 +177,11 @@ namespace Cryptforge.UI
                 }
         }
 
-        private static readonly Vector2[] BridgeHeadPosts={new Vector2(-18.8f,-14.1f),new Vector2(-14.1f,-18.8f)};
+        internal static readonly Vector2[] BridgeHeadPosts={new Vector2(-19.95f,-14.15f),new Vector2(-14.15f,-19.95f)};
         private static readonly Vector2[] BridgeFootPosts={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f)};
-        // A banner hangs in its post's own s = u+v plane - a camera-facing card, so the frontal painting keeps its shape -
-        // its inner edge at |d| 5.515 (screen |x| 3.9), .4 outboard of the post's widest chamfer. Its top is held .1 under
-        // the lowest balustrade stone beside the west post (the corner post's foot, x -3.9): the card sorts with the facade
-        // (-12), under the rail's stone (-11), which stands behind it, so it must not overlap the rail on screen. Below that
-        // line only below-deck masonry (-16) and the void lie behind it, and it paints over them.
-        private const float BannerInner=5.515f,BannerWidth=.83f,BannerTop=.4f;
+        // Camera-facing cloth hangs outside the guardian's support at |d|6.65 (screen |x|4.70).
+        // The top bracket sits under the broad cap; the cloth remains in the existing facade batch.
+        private const float BannerInner=6.65f,BannerWidth=.83f,BannerTop=.4f;
         // The facade's left banner (GateFacade.png, 1536 x 1024; pixels, y down), from the painted rod's shaft (y 100, under
         // the bracket's bar) to the swallow-tailed hem, measured and inset 1.8 px inside its gold trim so no stone around it
         // is sampled: the hem across its five columns - the edges x 288.3 / 416.7, the notches x 311 / 395 and the centre
@@ -181,8 +201,8 @@ namespace Cryptforge.UI
             // Texture pixel to card point (screen x grows with d), and card-plane point to world.
             Vector3 At(float d,float h)=>Project((s+d)*.5f,(s-d)*.5f)+Vector3.up*h;
             Vector3 Card(float x,float y)=>At(d0+(x-BannerHem[0].x)*scale/FoundryMap.Axis,BannerTop-(y-100)*scale);
-            // Lit warm at the head, under the fire basket, cooler toward the hem hanging into the void's shade.
-            Color head=new Color(1.06f,1f,.94f),hem=new Color(.8f,.8f,.9f);
+            // Cool ambient stone light above, shaded violet toward the hem in the void.
+            Color head=new Color(.94f,.95f,1f),hem=new Color(.8f,.8f,.9f);
             var card=new Builder();
             for(int i=0;i+1<BannerHem.Length;i++)
             for(int row=0;row<6;row++)
@@ -207,12 +227,12 @@ namespace Cryptforge.UI
             // and a short brace from the post's face to the bar, inside the gap before the cloth.
             var iron=new Builder();
             float rod=BannerTop-5*scale,end=side*(outer+.2f);
-            ArchitectureBar(iron,At(side*5.02f,rod),At(end,rod),.075f,new Color(.62f,.47f,.28f));
-            ArchitectureBar(iron,At(side*5.02f,rod+.022f),At(end,rod+.022f),.022f,new Color(.98f,.8f,.5f));
+            ArchitectureBar(iron,At(side*6.4f,rod),At(end,rod),.075f,new Color(.62f,.47f,.28f));
+            ArchitectureBar(iron,At(side*6.4f,rod+.022f),At(end,rod+.022f),.022f,new Color(.98f,.8f,.5f));
             Vector3 knob=At(end,rod);
             FullFace(iron,knob+Vector3.up*.07f,knob+Vector3.right*.065f,knob+Vector3.down*.07f,knob+Vector3.left*.065f,
                 new Color(.9f,.7f,.42f));
-            ArchitectureBar(iron,At(side*5.08f,rod-.34f),At(side*5.45f,rod-.01f),.05f,new Color(.34f,.35f,.41f));
+            ArchitectureBar(iron,At(side*6.4f,rod-.34f),At(side*6.58f,rod-.01f),.05f,new Color(.34f,.35f,.41f));
             Create("Bridge head banner brackets",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
         }
 

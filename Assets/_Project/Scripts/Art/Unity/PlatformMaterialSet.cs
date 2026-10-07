@@ -16,6 +16,8 @@ namespace Cryptforge.Art
         [SerializeField] private Material _foundryIron;
         [SerializeField] private Material _foundryEmbers;
         [SerializeField] private Material _foundryPaving;
+        [SerializeField] private Material _forgeKeeper;
+        public Material ForgeKeeper => _forgeKeeper;
         public Material Floor => _floor;
         public Material Coping => _coping;
         public Material Wall => _wall;

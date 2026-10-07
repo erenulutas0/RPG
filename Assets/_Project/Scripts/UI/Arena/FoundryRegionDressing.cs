@@ -12,7 +12,7 @@ namespace Cryptforge.UI
             BuildPipework(arena);
             // The shaft and the tower roofs are rebuilt as the furnace pit and round boilers (FoundryRegionMassing.cs).
             // Mark the bridge mouth and gate with sparse warm beacons; the pit carries its own corner lanterns. The two
-            // court-side bridge gateposts carry fire baskets instead, and lantern posts line both rails between the head
+            // court-side bridge gateposts carry carved keepers, and lantern posts line both rails between the head
             // and these far beacons (BuildBridgePiers, FoundryRegionSite.cs).
             foreach(var p in new[]{new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
                 new Vector2(32.5f,-2),new Vector2(32.5f,12)})Beacon(arena,p.x,p.y);

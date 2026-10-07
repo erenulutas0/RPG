@@ -37,7 +37,7 @@ namespace Cryptforge.UI
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
         private static readonly Vector2[] CourtLanternPosts={new Vector2(-18.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
         private static readonly Vector2[] ForgeBeacons={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
-            new Vector2(-18.8f,-14.1f),new Vector2(-14.1f,-18.8f),new Vector2(32.5f,-2),new Vector2(32.5f,12)};
+            new Vector2(32.5f,-2),new Vector2(32.5f,12)};
         private static ForgeLamp[] _forgeLamps;
 
         // Built lazily on first use: static initialisers in other partial files have run by then.

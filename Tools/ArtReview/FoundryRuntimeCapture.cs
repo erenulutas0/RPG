@@ -170,6 +170,27 @@ namespace Cryptforge.Tests
             _camera.orthographicSize=savedSize;_camera.aspect=savedAspect;_camera.transform.position=savedCamera;
             foreach(var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include,FindObjectsSortMode.None))
                 if(canvas.isRootCanvas)canvas.enabled=true;
+            // Real walkable bridge approaches, including the left court behind its keeper.
+            int keeperPosition=0;
+            foreach(var design in new[]{new Vector2(-18,-18),new Vector2(-17.3f,-12.1f),new Vector2(-15.85f,-18.55f)})
+            {
+                Cryptforge.Art.FoundryMap.ToFloor(design.x,design.y,out float kx,out float ky);
+                Assert.That(arena.Geometry.IsOnPlatform(kx,ky,HeroMotion.EdgeMargin),Is.True);
+                movement.Motion.Place(kx,ky,arena.Geometry);
+                hero.transform.position=new Vector3(kx,ky*.5f,hero.transform.position.z);
+                _camera.aspect=1080f/2340f;
+                follow.Frame(1080,2340,361,2340-427);
+                _camera.transform.position=follow.Goal();
+                yield return null;
+                Capture("keeper-portrait-"+keeperPosition,1080,2340);
+                if(keeperPosition==1)
+                {
+                    visibility.enabled=false;
+                    Capture("keeper-portrait-without-depth",1080,2340);
+                    visibility.enabled=true;yield return null;
+                }
+                keeperPosition++;
+            }
             // Review the complete blockout without changing the playable camera or the scene asset.
             _camera.GetComponent<ArenaCameraFollow>().enabled=false;
             foreach(var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include,FindObjectsSortMode.None))
@@ -224,7 +245,7 @@ namespace Cryptforge.Tests
             atmosphereRenderer.enabled=true;
             Capture("atmosphere-on",800,800);
             _camera.orthographicSize=6;
-            _camera.transform.position=new Vector3(0,-14,_camera.transform.position.z);
+            _camera.transform.position=new Vector3(0,-13,_camera.transform.position.z);
             Capture("bridge-detail",1200,1200);
             var banners=Object.FindObjectsByType<FoundryBannerMotion>(FindObjectsSortMode.None);
             Assert.That(banners.Length,Is.EqualTo(1),"Bridge cloth must share the existing facade batch.");

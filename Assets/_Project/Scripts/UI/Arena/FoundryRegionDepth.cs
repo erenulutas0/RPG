@@ -70,9 +70,9 @@ namespace Cryptforge.UI
             foreach(var p in new[]{new Vector2(-18.5f,-6),new Vector2(-18.5f,12),new Vector2(-9,-14.5f),
                 new Vector2(2,-14.5f),new Vector2(10,-14.5f),new Vector2(-14,18.5f),new Vector2(0,18.5f),new Vector2(10,18.5f)})
                 DepthLandmark(p.x-.4f,p.y-.4f,p.x+.4f,p.y+.4f,2.85f); // Outer posts and court lanterns.
-            foreach(var p in new[]{new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
-                new Vector2(-18.8f,-14.1f),new Vector2(-14.1f,-18.8f)})
+            foreach(var p in BridgeFootPosts)
                 DepthLandmark(p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,3.2f); // Bridge piers with their beacons.
+            foreach(var p in BridgeHeadPosts)DepthLandmark(p.x-.7f,p.y-.7f,p.x+.7f,p.y+.7f,4.3f);
             DepthLandmark(-23f,5,-18.45f,8.4f,1.6f); // Salvage shelf with its anvil, crate and stock.
             DepthLandmark(2,18.5f,7,22.4f,1.6f); // Pipe shelf with its basin, rack and stored pipes.
         }

@@ -58,10 +58,67 @@ namespace Cryptforge.Tests
                     if(renderer.sharedMaterial.mainTexture==shared.mainTexture)used=true;
                 Assert.That(used,Is.True,"Imported foundry surface must be used by the scene.");
             }
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(17),"Static architecture, including the separate iron overlay rank, must stay batched.");
+            var keeper=arena.PlatformMaterials.ForgeKeeper;
+            Assert.That(keeper,Is.Not.Null,"The paired bridge guardians use one imported material.");
+            var keeperTexture=keeper.mainTexture as Texture2D;
+            Assert.That(keeperTexture,Is.Not.Null);
+            Assert.That(keeperTexture.isReadable,Is.False);
+            Assert.That(keeperTexture.wrapMode,Is.EqualTo(TextureWrapMode.Clamp));
+            Assert.That(Mathf.IsPowerOfTwo(keeperTexture.width)&&Mathf.IsPowerOfTwo(keeperTexture.height),Is.True);
+            Mesh keeperMesh=null;
+            Material keeperVariant=null;
+            int keeperBatches=0,otherBatches=0;
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+            {
+                if(renderer.sharedMaterial.mainTexture!=keeperTexture){otherBatches++;continue;}
+                keeperBatches++;
+                keeperVariant=renderer.sharedMaterial;
+                keeperMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
+                Assert.That(renderer.sortingOrder,Is.EqualTo(-6),"The shared guardian rank remains below actors.");
+                Assert.That(keeperVariant.shader.name,Is.EqualTo("Cryptforge/Foundry Cutaway"));
+                Assert.That(keeperVariant,Is.Not.SameAs(keeper),"The scene owns its cutaway variant, not the imported material.");
+                Assert.That(keeperMesh.vertexCount,Is.EqualTo(8),"Two guardian cards share one batch.");
+                Assert.That(keeperMesh.triangles.Length,Is.EqualTo(12));
+                var keeperFlags=new System.Collections.Generic.List<Vector2>();
+                keeperMesh.GetUVs(1,keeperFlags);
+                Assert.That(keeperFlags.Count,Is.EqualTo(keeperMesh.vertexCount));
+                foreach(var flag in keeperFlags)
+                    Assert.That(flag,Is.EqualTo(Vector2.one),"Every guardian vertex writes depth and supports hero cutaway.");
+                var keeperPoints=keeperMesh.vertices;
+                var keeperUvs=keeperMesh.uv;
+                for(int side=0;side<2;side++)
+                {
+                    int first=side*4;
+                    // The complete card is outboard of the bridge's walking width, including its transparent margin.
+                    float sign=Mathf.Sign(keeperPoints[first].x);
+                    for(int corner=0;corner<4;corner++)
+                    {
+                        var point=keeperPoints[first+corner];
+                        Assert.That(Mathf.Sign(point.x),Is.EqualTo(sign));
+                        Assert.That(Mathf.Abs(point.x),Is.GreaterThan(4f*Cryptforge.Art.FoundryMap.Axis));
+                        Assert.That(point.z,Is.GreaterThan(0f));
+                    }
+                    Assert.That(keeperUvs[first],Is.EqualTo(Vector2.zero));
+                    Assert.That(keeperUvs[first+1],Is.EqualTo(Vector2.right));
+                    Assert.That(keeperUvs[first+2],Is.EqualTo(Vector2.one));
+                    Assert.That(keeperUvs[first+3],Is.EqualTo(Vector2.up),"Both cards preserve the source's baked lighting orientation.");
+                }
+            }
+            Assert.That(keeperBatches,Is.EqualTo(1),"The guardian pair adds exactly one shared batch.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(17),"The pre-existing architecture retains its renderer budget.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(18),
+                "The approved guardian material adds one renderer to the previous 17-renderer budget.");
+
+
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 Assert.That(renderer.sortingOrder,Is.InRange(-18,-1),"Scenery must remain above the cavern and below combatants.");
 
+            foreach(var post in FoundryRegionView.BridgeHeadPosts)
+                for(int u=0;u<=14;u++)for(int v=0;v<=14;v++)
+                {
+                    Cryptforge.Art.FoundryMap.ToFloor(post.x-.7f+u*.1f,post.y-.7f+v*.1f,out float x,out float y);
+                    Assert.That(Cryptforge.Art.FoundryMap.Contains(x,y,0),Is.False,"Guardian plinths stay outside the complete walking union.");
+                }
             var visibility=arena.Region.GetComponent<FoundryVisibilityView>();
             // The gate's fire baskets hang on posts the balustrade places for itself: a rail change must not leave one
             // floating over a span or bare void.
@@ -342,6 +399,9 @@ namespace Cryptforge.Tests
             Assert.That(Object.FindFirstObjectByType<FoundryVisibilityView>(),Is.Null,"Ordinary halls place neither actors nor effects in depth.");
             Assert.That(mesh==null,Is.True);
             Assert.That(material==null,Is.EqualTo(ownedMaterials.Contains(material)),"Only scene-owned material variants are destroyed.");
+            Assert.That(keeperMesh==null,Is.True,"Reload releases the guardian mesh.");
+            Assert.That(keeperVariant==null,Is.True,"Reload releases the guardian cutaway material.");
+            Assert.That(keeper!=null&&keeperTexture!=null,Is.True,"Shared keeper assets survive reload.");
             Assert.That(gate!=null,Is.True,"Reload must not destroy shared facade assets.");
             foreach(var variant in ownedMaterials)Assert.That(variant==null,Is.True,"Scene cutaway variants must be released on reload.");
             Assert.That(xray==null,Is.True,"The enemy silhouette material must be released on reload.");

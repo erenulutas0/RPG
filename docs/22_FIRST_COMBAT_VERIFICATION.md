@@ -874,3 +874,8 @@ Fresh TestResults/arrival-device-20261007 backup; profile/bak and both original 
 ## 2026-10-07 - Exit seal test scheduling correction
 
 The paving validation exposed a test-only Update/LateUpdate race in ExitSealPresentationTests.RealHoldPauseInterruptionAndCompletionFollowEncounter. The moving encounter had advanced by0.02053 while the visual still held the prior frame. Freeze at the sample point and yield through LateUpdate before comparing; tolerance tightened from0.02 to0.00001, and paused equality is exact. No runtime exit code changed. Targeted3/3 and subsequent full Edit410/410, Play145/145 passed. Initial failure retained under TestResults/basalt-initial-playmode.*. APK ready, device pending; see latest doc23.
+
+
+## 2026-10-07 - Guardian package verification
+
+.NET390, Edit410, Play145, graphics1, compile clean; integrity544/1099/568. New keeper integration is included in FoundryRegionTests (one shared batch, alpha import, depth/cutaway, clearance and resource ownership). Real Unity proof: ArtDirection/2026-10-07/guardian-runtime-01. APK93380BAC built, NOT device-verified because USB disappeared. After reconnect, inspect the bridge pair at normal follow width, walk left court behind keeper, verify hero cutaway, banner/console attachment, and ordinary combat after diagnostic cleanup. See docs38 for exact hash and device handoff. Do not confuse the18 region MeshRenderers with total device draw calls.
