@@ -538,20 +538,20 @@ namespace Cryptforge.UI
             if(arena.PlatformMaterials.FoundryEmbers==null)return;
             var light=new Builder();
             ForgeFlame(light,p+Vector3.up*1.04f,1,0);
-            // Sample a hot seam from the unchanged source instead of shrinking the whole basin.
-            HotSeam(light,0);
+            // Open flames use a smooth hot patch; the coal mound keeps its cracked texture.
+            FlameSeam(light,0);
             Create("Contained forge beacon",light,arena.PlatformMaterials.FoundryEmbers,-10);
         }
 
         // The beacon's flame: an outer tongue, an inner one and a white-hot core (quad outlines about the flame's centre,
-        // bottom-up), in the hot-seam tones. Scale grows it about the centre; lean tips it sideways in proportion to height.
+        // bottom-up), in graduated heat tones. Scale grows it about the centre; lean tips it sideways in proportion to height.
         private static readonly Vector2[] FlameOutline=
         {
             new Vector2(-.13f,-.2f),new Vector2(.14f,-.16f),new Vector2(.07f,.17f),new Vector2(-.02f,.36f),
             new Vector2(-.11f,-.17f),new Vector2(.025f,-.12f),new Vector2(-.04f,.08f),new Vector2(-.15f,.14f),
             new Vector2(-.05f,-.16f),new Vector2(.055f,-.16f),new Vector2(.025f,.08f),new Vector2(0,.18f)
         };
-        private static readonly Color[] FlameTone={new Color(1,.85f,.6f),new Color(1,.65f,.35f),new Color(1.5f,1.3f,1)};
+        private static readonly Color[] FlameTone={new Color(.94f,.74f,.65f),new Color(1.12f,1.20f,1f),new Color(1.22f,1.75f,1.8f)};
 
         private static void ForgeFlame(Builder light,Vector3 center,float scale,float lean)
         {
@@ -563,12 +563,27 @@ namespace Cryptforge.UI
                     Vector2 o=FlameOutline[q*4+k];
                     corner[k]=center+new Vector3((o.x+lean*(o.y+.2f))*scale,o.y*scale,0);
                 }
+                int first=light.C.Count;
                 FullFace(light,corner[0],corner[1],corner[2],corner[3],FlameTone[q]);
+                // Cooler, less opaque tips keep overlapping tongues from reading as
+                // solid red shards. The gold base stays seated in the coal mound.
+                Color tip=FlameTone[q];tip.g*=.68f;tip.b*=.75f;tip.a=q==2?.88f:.68f;
+                light.C[first+2]=Color.Lerp(FlameTone[q],tip,.65f);
+                light.C[first+3]=tip;
             }
         }
 
-        // Maps full-face UVs from vertex `first` on into the ember texture's hot seam: the flames, the court lanterns'
-        // panes and the boilers' fire windows all sample it.
+        // The old wider patch included opaque coal crust, producing black holes in
+        // each tongue. Reuse the lanterns' measured smooth hot patch in the same atlas
+        // and batch; boilers and undercroft retain their separate HotSeam mapping.
+        private static void FlameSeam(Builder light,int first)
+        {
+            for(int i=first;i<light.U.Count;i++)
+                light.U[i]=new Vector2(.7815f+light.U[i].x*.001f,.8375f+light.U[i].y*.001f);
+        }
+
+        // Maps full-face UVs into the textured hot seam for boiler windows and undercroft heat.
+        // Open flames and enclosed lantern panes use their own smooth-patch mappings.
         private static void HotSeam(Builder light,int first)
         {
             for(int i=first;i<light.U.Count;i++)light.U[i]=new Vector2(.776f+light.U[i].x*.012f,.838f+light.U[i].y*.016f);
@@ -618,7 +633,7 @@ namespace Cryptforge.UI
             ForgeFlame(fire,heap+new Vector3(-.18f,.1f,0),1f,-.3f);
             ForgeFlame(fire,heap+new Vector3(.19f,.08f,0),1.05f,.28f);
             ForgeFlame(fire,heap+new Vector3(0,.27f,0),1.55f,0);
-            HotSeam(fire,flames);
+            FlameSeam(fire,flames);
             Create("Bridge brazier fire",fire,set.FoundryEmbers,-10);
         }
     }
