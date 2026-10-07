@@ -40,15 +40,19 @@ namespace Cryptforge.UI
                 var p=new[]{Project(x,y),Project(x+1,y),Project(x+1,y+1),Project(x,y+1)};
                 BuildPavingCell(floor,cell);
                 var neighbours=new[]{Vector2Int.down,Vector2Int.right,Vector2Int.up,Vector2Int.left};
-                for(int i=0;i<4;i++)if(!FoundryMap.Cell(cell.x+neighbours[i].x,cell.y+neighbours[i].y))
+                for(int i=0;i<4;i++)if(!FoundryMap.UncutCell(cell.x+neighbours[i].x,cell.y+neighbours[i].y))
                 {
                     Vector3 a=p[i],b=p[(i+1)%4],drop=Vector3.down*2.8f;
+                    FoundryMap.ToDesign((a.x+b.x)*.5f,a.y+b.y,out float edgeU,out float edgeV);
+                    if(!CourtEdgeVisible(edgeU,edgeV))continue;
                     walls.WallQuad(a+drop,b+drop,b,a,false,new Color(.7f,.7f,.76f));
                     Vector3 inward=(Project(x+.5f,y+.5f)-(a+b)*.5f)*.18f;
                     trim.Quad(a,b,b+inward,a+inward,false,new Color(.7f,.65f,.54f));
                     MapCoping(trim,CopingTrim.Stone,cell.x*7+cell.y*13+i);
                 }
             }
+            ClipFloorCorners(floor);
+            BuildDiagonalCourtEdges(arena,walls,trim);
             // Exact straight bridge, using the same diagonal inequalities as movement.
             var bridge=new[]{Project(-27,-23),Project(-23,-27),Project(-10,-14),Project(-14,-10)};
             // Diagonally laid stone deck exactly covering that quad (was one flat slab in 26 x 4 light-sampling strips).
@@ -409,6 +413,7 @@ namespace Cryptforge.UI
         // or, outside any scope, the landmark whose volume holds each quad (resolved at Emit).
         private void Create(string name,Builder b,Material material,float order,int footprint=-1)
         {
+            if(order==FloorDecal)ClipFloorCorners(b);
             Batch target=null;
             foreach(var batch in _batches)if(batch.Material==material&&batch.Order==order){target=batch;break;}
             if(target==null){target=new Batch{Material=material,Order=order};_batches.Add(target);}

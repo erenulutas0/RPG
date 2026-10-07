@@ -24,6 +24,13 @@ namespace Cryptforge.UI
                 if(y%4==0 && ExteriorSpan(x,y,false))
                     UndercroftArch(arena,new Vector2(x,y),new Vector2(x,y+4),y/4+x,!ExteriorSpan(x,y+4,false),piers);
             }
+            for(int corner=0;corner<2;corner++)
+            {
+                CornerEdge(corner,out var a,out var b,out _);
+                Vector2 middle=(a+b)*.5f;
+                UndercroftArch(arena,a,middle,corner*2,false,piers);
+                UndercroftArch(arena,middle,b,corner*2+1,true,piers);
+            }
             foreach(var pier in piers)UndercroftPier(arena,pier.at,pier.major);
             // Long suspension catenaries connect scenery anchors beneath the deck.
             SuspendedChain(arena,Project(-26,-10)+Vector3.down*4,
@@ -41,7 +48,8 @@ namespace Cryptforge.UI
             for(int i=0;i<4;i++)
             {
                 int u=x+(alongX?i:0),v=y+(alongX?0:i);
-                if(!FoundryMap.Cell(u,v)||FoundryMap.Cell(u-(alongX?0:1),v-(alongX?1:0)))return false;
+                if(!FoundryMap.UncutCell(u,v)||FoundryMap.UncutCell(u-(alongX?0:1),v-(alongX?1:0))||
+                    !CourtEdgeVisible(u+(alongX?.5f:0),v+(alongX?0:.5f)))return false;
             }
             return true;
         }

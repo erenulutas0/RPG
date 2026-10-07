@@ -80,7 +80,8 @@ namespace Cryptforge.Tests
             yield return new WaitForSeconds(.8f);
             var report=new System.Text.StringBuilder("point,seconds,x,y,stamina\n");
             int index=0;
-            foreach(var design in new[]{new Vector2(-23,-23),new Vector2(-20,6),new Vector2(0,0),new Vector2(16,6),new Vector2(28,6)})
+            foreach(var design in new[]{new Vector2(-23,-23),new Vector2(-20,6),new Vector2(0,0),new Vector2(16,6),new Vector2(28,6),
+                new Vector2(10,-10),new Vector2(-20,-10)})
             {
                 Cryptforge.Art.FoundryMap.ToFloor(design.x,design.y,out float gx,out float gy);
                 var target=new Vector2(gx,gy);

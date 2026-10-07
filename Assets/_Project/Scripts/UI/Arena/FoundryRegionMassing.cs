@@ -618,15 +618,16 @@ namespace Cryptforge.UI
             // Balusters with equal clear gaps along the axis, as between two posts on a straight span.
             var along=new float[axis.Length];
             for(int j=1;j<axis.Length;j++)along[j]=along[j-1]+Vector2.Distance(axis[j-1],axis[j]);
-            float length=along[PitChords],belly=BalusterProfile[2].x*2;
+            int chords=axis.Length-1;
+            float length=along[chords],belly=BalusterProfile[2].x*2;
             int count=Mathf.Max(0,Mathf.RoundToInt((length-BalusterGap)/(belly+BalusterGap)));
             while(count>0&&(length-count*belly)/(count+1)<.12f)count--;
             float gap=(length-count*belly)/(count+1);
             Vector2 arris=new Vector2(HandrailCourse.y-.012f,HandrailCourse.y);
-            bool fromEnd=front[0].x+front[0].y<front[PitChords].x+front[PitChords].y;
-            for(int step=0;step<PitChords;step++)
+            bool fromEnd=front[0].x+front[0].y<front[chords].x+front[chords].y;
+            for(int step=0;step<chords;step++)
             {
-                int j=fromEnd?PitChords-1-step:step;
+                int j=fromEnd?chords-1-step:step;
                 Vector2 outward=front[j]+front[j+1]-back[j]-back[j+1];
                 Color face=PitFacing(Mathf.Atan2(outward.y,outward.x));
                 Vector3 p=Project(front[j].x,front[j].y),q=Project(front[j+1].x,front[j+1].y);
@@ -864,18 +865,18 @@ namespace Cryptforge.UI
         // here among the rail pieces, their iron with the court borders (FoundryRegionSite.cs).
         private static readonly Vector2[] CourtFinials =
         {
-            new Vector2(-24.5f,-6),new Vector2(-24.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(10,-14.5f),
+            new Vector2(-24.5f,-6),new Vector2(-24.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(7.5f,-14.5f),
             new Vector2(-14,18.5f),new Vector2(0,18.5f),new Vector2(10,18.5f)
         };
 
         // New lantern posts: the court's convex corners, the apron's concave corner, and the longest bare runs.
         private static readonly Vector4[] RailLanterns =
         {
-            new Vector4(14,-14.72f,14.72f,-14),new Vector4(-24.72f,18,-24,18.72f),new Vector4(-24.72f,.64f,-24,1.36f),
+            new Vector4(-24.72f,18,-24,18.72f),new Vector4(-24.72f,.64f,-24,1.36f),
             new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-.72f,14.72f,0),
             new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f)
         };
-        private static readonly bool[] RailLanternFront={true,true,true,false,false,true,false,false};
+        private static readonly bool[] RailLanternFront={true,true,false,false,true,false,false};
 
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =
@@ -926,7 +927,8 @@ namespace Cryptforge.UI
                 for(int dir=0;dir<4;dir++)
                 {
                     int nx=cell.x+(dir==1?-1:dir==3?1:0),ny=cell.y+(dir==0?-1:dir==2?1:0);
-                    if(FoundryMap.Cell(nx,ny)||InPit(nx+.5f,ny+.5f))continue;
+                    if(FoundryMap.UncutCell(nx,ny)||InPit(nx+.5f,ny+.5f)||
+                        !CourtEdgeVisible(cell.x+.5f+(dir==1?-.5f:dir==3?.5f:0),cell.y+.5f+(dir==0?-.5f:dir==2?.5f:0)))continue;
                     var key=(dir,dir==0?cell.y:dir==1?cell.x:dir==2?cell.y+1:cell.x+1);
                     if(!lines.TryGetValue(key,out var along))lines[key]=along=new List<int>();
                     along.Add(dir%2==0?cell.x:cell.y);
@@ -1218,7 +1220,7 @@ namespace Cryptforge.UI
         // side is the platform (w for v-edges, z for u-edges).
         private static readonly Vector4[] Bastions =
         {
-            new Vector4(13.2f,-16.6f,15.8f,-14),new Vector4(.7f,-16.6f,3.3f,-14),new Vector4(8.7f,-16.6f,11.3f,-14),
+            new Vector4(14,-8,16.6f,-5.4f),new Vector4(.7f,-16.6f,3.3f,-14),new Vector4(5.7f,-16.6f,8.3f,-14),
             new Vector4(-26.6f,-7.3f,-24,-4.7f),new Vector4(-26.6f,-.3f,-24,2.3f),new Vector4(-26.6f,15.6f,-24,18.4f)
         };
 
@@ -1230,7 +1232,7 @@ namespace Cryptforge.UI
                 Vector4 top=Bastions[i];
                 if(!MassClear(top))continue;
                 var b=new Builder();
-                MassPier(b,top,i<3,PierForms[i]);
+                MassPier(b,top,i>0&&i<3,PierForms[i]);
                 Vector3 deck=Project((top.x+top.z)*.5f,(top.y+top.w)*.5f);
                 ShadeUndercroftDepth(b,deck,deck);
                 Create("Foundation bastion",b,wall,-16);
@@ -1245,9 +1247,9 @@ namespace Cryptforge.UI
             // before: a floor rank writes no depth. Anchors (u, v, height), faces 0 south, 1 west.
             // The corner bastions' anchor chains and the catenary between the first two south piers (they were straight
             // and per-segment; now hung, the anchor chains with a slight sag):
-            AbyssChain(arena,new Vector3(15.2f,-16.6f,-3.4f),0,new Vector2(5.2f,-7.2f),.45f,.36f);
+            AbyssChain(arena,new Vector3(14.8f,-8f,-3.4f),0,new Vector2(5.2f,-7.2f),.45f,.36f);
             AbyssChain(arena,new Vector3(-26.6f,16.6f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
-            PierChain(arena,new Vector3(3f,-16.6f,-4f),0,new Vector3(9f,-16.6f,-4f),0,2f,.26f);
+            PierChain(arena,new Vector3(3f,-16.6f,-4f),0,new Vector3(7f,-16.6f,-4f),0,2f,.26f);
             // Across the gap between the two south-west piers of the west rim, and from the nearer one into the void.
             PierChain(arena,new Vector3(-26.6f,-5f,-3.5f),1,new Vector3(-26.6f,.3f,-3.5f),1,1.5f,.3f);
             AbyssChain(arena,new Vector3(-26.6f,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);

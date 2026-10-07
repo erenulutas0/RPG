@@ -43,6 +43,37 @@ namespace Cryptforge.UI
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
             BuildGateInlays(arena,height);
             BuildGateThreshold(arena);
+            BuildGateLandingShoulders(arena);
+        }
+
+        private void BuildGateLandingShoulders(ArenaView arena)
+        {
+            // Raised side terraces frame the existing single-plane walk. Their steps face
+            // outward into the void; none pretends to be a stair the hero can climb.
+            foreach(bool north in new[]{false,true})
+            {
+                float v0=north?12.45f:-3.9f,v1=north?13.9f:-2.45f;
+                var box=new Vector4(29.2f,v0,32,v1);
+                using(MassDepth(box,1.05f))
+                {
+                    var support=new Builder();
+                    LitFoundryTier(support,box.x,box.y,box.z,box.w,-2.8f,0,.12f);
+                    Create("Gate landing shoulder foundations",support,arena.PlatformMaterials.FoundryWall,-16);
+                    var stone=new Builder();
+                    LitFoundryTier(stone,box.x,box.y,box.z,box.w,0,.18f,.12f);
+                    LitFoundryTier(stone,29.45f,v0+.15f,32,v1-.15f,.18f,.45f,.06f);
+                    LitFoundryTier(stone,29.9f,v0+.28f,32,v1-.28f,.45f,.72f,.06f);
+                    LitFoundryTier(stone,30.35f,v0+.38f,32,v1-.38f,.72f,1.02f,.04f);
+                    // Separate below-deck faces so they never draw over the walking surface.
+                    // The raised stonework is scoped to the completely outboard footprint.
+                    Create("Gate landing stepped shoulders",stone,arena.PlatformMaterials.FoundryWall,-11);
+                }
+            }
+            var threshold=new Builder();
+            foreach(float u in new[]{27.75f,28.15f})
+                Strip(threshold,u,.5f,u,9.5f,.13f,new Color(.76f,.72f,.65f),CopingTrim.Stone);
+            // Broad stone portal band, flush with the lane, marks arrival at the wider landing.
+            Create("Gate landing approach band",threshold,arena.PlatformMaterials.Coping,FloorDecal);
         }
 
         private void BuildGateThreshold(ArenaView arena)

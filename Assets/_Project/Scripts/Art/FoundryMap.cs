@@ -12,6 +12,10 @@ namespace Cryptforge.Art
         // own the floor mesh, hero clearance, spawning and the pursuit visibility graph.
         public const int West=-24,South=-14,North=18,East=14;
         public const int PitWest=-16,PitSouth=2,PitEast=-4,PitNorth=14;
+        public const int CornerCut=6;
+        // The two entrance-facing corners are genuine diagonal edges, not stepped cells.
+        public static bool CourtPlane(float u,float v) => u+v>=West+South+CornerCut && u-v<=East-South-CornerCut;
+        public static bool UncutCell(int u,int v) => Inside(u+.5f,v+.5f,false);
         private static readonly int[,] Rooms =
         {
             {West,South,PitWest,North},{PitEast,South,East,North},
@@ -24,9 +28,10 @@ namespace Cryptforge.Art
         public static void ToFloor(float u,float v,out float x,out float y) { x=(u-v)*Axis;y=(u+v)*Axis; }
         public static void ToDesign(float x,float y,out float u,out float v) { u=(x+y)*Axis;v=(y-x)*Axis; }
         public static bool Cell(int u,int v) => Inside(u+.5f,v+.5f);
-        private static bool Inside(float u,float v)
+        private static bool Inside(float u,float v,bool clipped=true)
         {
-            for(int i=0;i<RectangleCount;i++)if(u>=Rooms[i,0]&&u<=Rooms[i,2]&&v>=Rooms[i,1]&&v<=Rooms[i,3])return true;
+            for(int i=0;i<RectangleCount;i++)if(u>=Rooms[i,0]&&u<=Rooms[i,2]&&v>=Rooms[i,1]&&v<=Rooms[i,3]&&
+                (!clipped||i>=4||CourtPlane(u,v)))return true;
             return Bridge(u,v);
         }
         public static bool Contains(float x,float y,float margin)
@@ -54,6 +59,8 @@ namespace Cryptforge.Art
                     bool intersects=r==RectangleCount
                         ? Slab(u-v,(tu-tv)-(u-v),-4,4,ref enter,ref exit)&&Slab(u+v,(tu+tv)-(u+v),-50,-24,ref enter,ref exit)
                         : Slab(u,tu-u,Rooms[r,0],Rooms[r,2],ref enter,ref exit)&&Slab(v,tv-v,Rooms[r,1],Rooms[r,3],ref enter,ref exit);
+                    if(intersects&&r<4)intersects=Slab(u+v,(tu+tv)-(u+v),West+South+CornerCut,float.PositiveInfinity,ref enter,ref exit)&&
+                        Slab(u-v,(tu-tv)-(u-v),float.NegativeInfinity,East-South-CornerCut,ref enter,ref exit);
                     if(!intersects)continue;
                     if(enter<=covered+1e-6f)furthest=Math.Max(furthest,exit);
                 }

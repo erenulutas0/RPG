@@ -13,6 +13,20 @@ namespace Cryptforge.Tests
     public sealed class FoundryRegionTests
     {
         private Scene _scene;
+        private static bool FloorCovers(Mesh mesh,Vector2 point)
+        {
+            var vertices=mesh.vertices;var triangles=mesh.triangles;
+            float Cross(Vector2 a,Vector2 b)=>a.x*b.y-a.y*b.x;
+            for(int i=0;i<triangles.Length;i+=3)
+            {
+                Vector2 a=vertices[triangles[i]],b=vertices[triangles[i+1]],c=vertices[triangles[i+2]];
+                float area=Cross(b-a,c-a);
+                if(Mathf.Abs(area)<1e-8f)continue;
+                float u=Cross(b-point,c-point)/area,v=Cross(c-point,a-point)/area,w=1-u-v;
+                if(u>=-1e-5f&&v>=-1e-5f&&w>=-1e-5f)return true;
+            }
+            return false;
+        }
         [Test] public void ArchitectureLightFollowsFireHeightAndRecessesBelowLedges()
         {
             Color near=FoundryRegionView.ArchitectureLight(-8,2,0,2);
@@ -38,6 +52,18 @@ namespace Cryptforge.Tests
             var setup=Object.FindFirstObjectByType<CombatSetup>();
             var movement=Object.FindFirstObjectByType<HeroMovementInput>();
             Assert.That(arena.Region,Is.Not.Null);Assert.That(arena.Platform,Is.Null);
+            // Test the actual generated triangles, not just the map predicates: clipped ashlar
+            // must leave the removed tips empty and keep the lanes/bridge covered.
+            Mesh paving=null;
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
+            Assert.That(paving,Is.Not.Null);
+            foreach(var sample in new[]{new Vector3(-23,-13,0),new Vector3(13,-13,0),
+                new Vector3(-20.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1)})
+            {
+                Cryptforge.Art.FoundryMap.ToFloor(sample.x,sample.y,out float px,out float py);
+                Assert.That(FloorCovers(paving,new Vector2(px,py*.5f)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");
+            }
             var gate=arena.PlatformMaterials.GateFacade;
             Assert.That(gate,Is.Not.Null,"Foundry facade must be an imported shared material.");
             Assert.That(((Texture2D)gate.mainTexture).isReadable,Is.False);

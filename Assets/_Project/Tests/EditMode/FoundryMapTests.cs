@@ -6,6 +6,28 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryMapTests
     {
+        [TestCase(-23f,-13f,-20f,-9f)]
+        [TestCase(13f,-13f,9f,-9f)]
+        public void ChamferRejectsRemovedCornerAndStopsLongMovement(float cutU,float cutV,float safeU,float safeV)
+        {
+            FoundryMap.ToFloor(cutU,cutV,out float tx,out float ty);
+            FoundryMap.ToFloor(safeU,safeV,out float x,out float y);
+            Assert.That(FoundryMap.Contains(tx,ty,0),Is.False);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,0),Is.False);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            Assert.That(ArenaFloor.FloorDistanceSquared(x,y,tx,ty),Is.GreaterThan(1));
+        }
+        [Test] public void ChamferKeepsFullBridgeAndItsCourtSeamOpen()
+        {
+            for(float s=-47;s<=-23;s+=.25f)
+                foreach(float d in new[]{-2.7f,0,2.7f})
+                {
+                    FoundryMap.ToFloor((s+d)*.5f,(s-d)*.5f,out float x,out float y);
+                    Assert.That(FoundryMap.Contains(x,y,.6f),Is.True,$"Bridge s={s},d={d}");
+                }
+        }
         [Test] public void StraightBridgeBlocksSidewaysMotionAndConnectsToCourt()
         {
             FoundryMap.ToFloor(-23,-23,out float x,out float y);

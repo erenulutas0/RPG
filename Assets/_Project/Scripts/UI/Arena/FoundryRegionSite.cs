@@ -247,7 +247,7 @@ namespace Cryptforge.UI
                 int x=cell.x,y=cell.y;
                 foreach(var offset in new[]{Vector2Int.down,Vector2Int.left,Vector2Int.up,Vector2Int.right})
                 {
-                    if(FoundryMap.Cell(x+offset.x,y+offset.y))continue;
+                    if(FoundryMap.UncutCell(x+offset.x,y+offset.y)||!CourtEdgeVisible(x+.5f+offset.x*.5f,y+.5f+offset.y*.5f))continue;
                     // A continuous kerb course along every open edge, one kerb stone per cell. It used to be a 0.8
                     // strip per cell set 0.32 in, which left a dashed row of dark bars that read as vent slots.
                     if(offset==Vector2Int.down)Strip(borders,x,y+Kerb,x+1,y+Kerb,KerbWidth,KerbTone,CopingTrim.Stone,x*7+y*13+offset.x*3+offset.y);
