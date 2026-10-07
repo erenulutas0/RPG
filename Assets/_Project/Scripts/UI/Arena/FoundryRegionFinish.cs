@@ -35,7 +35,7 @@ namespace Cryptforge.UI
         private static readonly Color CoolSlate=new Color(1f,.945f,1.09f),CourtAmbient=new Color(1.05f,.99f,1.11f);
         private static readonly Color FireAbsorb=new Color(0,.42f,.22f,0);
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
-        private static readonly Vector2[] CourtLanternPosts={new Vector2(-18.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
+        private static readonly Vector2[] CourtLanternPosts={new Vector2(-24.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
         private static readonly Vector2[] ForgeBeacons={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
             new Vector2(32.5f,-2),new Vector2(32.5f,12)};
         private static ForgeLamp[] _forgeLamps;
@@ -131,11 +131,11 @@ namespace Cryptforge.UI
             light*=Mathf.Lerp(.91f,1.025f,patina);
             // Soot belongs to working areas, not every slab. Smooth, irregular deposits
             // stay flush with the floor and never resemble cracks or blocking rubble.
-            float shaftDistance=DistanceFromFloorBox(u,v,-12,2,-4,10);
+            float shaftDistance=DistanceFromFloorBox(u,v,PitU0,PitV0,PitU1,PitV1);
             // Match both supported service shelves in BuildWorkshop: the old stock
             // footprint omitted the anvil extension and the pipe/quenching station.
             // Reuse the existing deposit field rather than layering another stain.
-            float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,-23f,5,-18.45f,8.4f),
+            float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,-29f,5,-24.45f,8.4f),
                 DistanceFromFloorBox(u,v,2,18.5f,7,22.4f));
             float shaftSoot=Mathf.Clamp01(1-shaftDistance/1.45f);
             shaftSoot*=shaftSoot*Mathf.Lerp(.55f,1,FloorPatina(u*.71f+9,v*.71f-4));
@@ -224,7 +224,7 @@ namespace Cryptforge.UI
         {
             if(cell.x>=-4&&cell.x<4&&cell.y>=-4&&cell.y<4)return 1;
             if(cell.x>=10&&cell.x<32&&cell.y>=0&&cell.y<10)return 2;
-            if(cell.x>=-18&&cell.x<-14&&cell.y>=2&&cell.y<12)return 3;
+            if(cell.x>=FoundryMap.West&&cell.x<FoundryMap.PitWest&&cell.y>=2&&cell.y<12)return 3;
             return 0;
         }
 

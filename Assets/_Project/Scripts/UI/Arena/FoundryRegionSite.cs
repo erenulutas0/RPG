@@ -177,7 +177,7 @@ namespace Cryptforge.UI
                 }
         }
 
-        internal static readonly Vector2[] BridgeHeadPosts={new Vector2(-19.95f,-14.15f),new Vector2(-14.15f,-19.95f)};
+        internal static readonly Vector2[] BridgeHeadPosts={new Vector2(-20.55f,-14.75f),new Vector2(-14.75f,-20.55f)};
         private static readonly Vector2[] BridgeFootPosts={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f)};
         // Camera-facing cloth hangs outside the guardian's support at |d|6.65 (screen |x|4.70).
         // The top bracket sits under the broad cap; the cloth remains in the existing facade batch.
@@ -283,7 +283,7 @@ namespace Cryptforge.UI
                 }
         }
 
-        private static bool CourtLantern(Vector2 p)=>(p.x==-18.5f&&p.y==-6)||(p.x==2&&p.y==-14.5f)||
+        private static bool CourtLantern(Vector2 p)=>(p.x==-24.5f&&p.y==-6)||(p.x==2&&p.y==-14.5f)||
             (p.x==-14&&p.y==18.5f)||(p.x==10&&p.y==18.5f);
 
         // A court post's stone, bottom-up: a stronger stepped silhouette than the old exterior posts - plinth, shaft, a mid
@@ -354,7 +354,7 @@ namespace Cryptforge.UI
 
         private void BuildCraneHardware(ArenaView arena)
         {
-            Vector3 foot=Project(-19.5f,13)+Vector3.up*1.1f;
+            Vector3 foot=Project(-25.5f,13)+Vector3.up*1.1f;
             var iron=new Builder();
             // Broad gusset plates anchor the existing lattice tower to its plinth.
             foreach(float sign in new[]{-1f,1f})

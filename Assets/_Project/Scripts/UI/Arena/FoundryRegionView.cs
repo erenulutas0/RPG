@@ -58,7 +58,7 @@ namespace Cryptforge.UI
                 int edge=i==2?3:i; Vector3 a=bridge[edge],b=bridge[(edge+1)%4];
                 // Outward from the whole edge's midpoint, so shortening the west edge below does not shear its coping.
                 Vector3 outward=(a+b)*.5f-Project(-18.5f,-18.5f);outward.Normalize();
-                // The west edge's court end lies inside the court's west room (u -18..-12, v -14..18) up to (-18,-14):
+                // The west edge enters the court at its south boundary v=-14, at (-18,-14):
                 // walkable floor on both sides, so the rail and its wall start where the bridge leaves the court.
                 if(edge==3)a=Project(-18,-14);
                 walls.WallQuad(a+Vector3.down*2.8f,b+Vector3.down*2.8f,b,a,false,new Color(.7f,.7f,.76f));

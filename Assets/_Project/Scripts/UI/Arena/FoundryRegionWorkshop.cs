@@ -10,7 +10,7 @@ namespace Cryptforge.UI
         {
             // Extend only toward the exterior void for the working anvil station;
             // the court-facing edge, stock and parts bin stay in their old places.
-            Block(arena,-23f,5,-18.45f,8.4f,.18f,2.8f,"Salvage service shelf");
+            Block(arena,-29f,5,-24.45f,8.4f,.18f,2.8f,"Salvage service shelf");
             // The north extension is masonry-backed all the way to its outer edge;
             // its court-facing edge and the original pipe/tool positions do not move.
             Block(arena,2,18.5f,7,22.4f,.18f,2.8f,"Pipe service shelf");
@@ -19,11 +19,11 @@ namespace Cryptforge.UI
             // Staggered courses read as metal stock, with sloped shoulders and small gaps.
             for(int level=0;level<2;level++)
                 for(int row=0;row<3-level;row++)
-                    WorkshopMetalHull(ingots,-20.35f+row*.51f+level*.24f,5.35f,
-                        -19.91f+row*.51f+level*.24f,6.85f,.2f+level*.22f,.41f+level*.22f,.055f);
+                    WorkshopMetalHull(ingots,-26.35f+row*.51f+level*.24f,5.35f,
+                        -25.91f+row*.51f+level*.24f,6.85f,.2f+level*.22f,.41f+level*.22f,.055f);
             Create("Stacked forge ingots",ingots,arena.PlatformMaterials.FoundryIron,-11);
 
-            WorkshopCrate(arena,-20.3f,7.15f,-18.85f,8.05f,.2f,.92f);
+            WorkshopCrate(arena,-26.3f,7.15f,-24.85f,8.05f,.2f,.92f);
             BuildWorkshopAnvil(arena);
             // Emit the rear work station before the foreground pipe/rack silhouettes.
             BuildQuenchingBasin(arena);
@@ -109,16 +109,16 @@ namespace Cryptforge.UI
             // Every design-plane point is on the supported exterior shelf. The
             // widened foot, narrow waist, flat heel and projecting horn form one tool.
             var support=new Builder();
-            ArchitecturalTier(support,-22.5f,5.65f,-21.2f,7.55f,.18f,.48f,.06f);
+            ArchitecturalTier(support,-28.5f,5.65f,-27.2f,7.55f,.18f,.48f,.06f);
             Create("Anvil stone bedding",support,arena.PlatformMaterials.FoundryWall,-11);
             var metal=new Builder();
-            WorkshopMetalHull(metal,-22.32f,5.86f,-21.38f,7.32f,.48f,.63f,.055f);
-            Vector3[] lower={Project(-22.19f,6.05f),Project(-21.51f,6.05f),
-                Project(-21.51f,7.13f),Project(-22.19f,7.13f)};
-            Vector3[] waist={Project(-22.06f,6.28f),Project(-21.64f,6.28f),
-                Project(-21.64f,6.92f),Project(-22.06f,6.92f)};
-            Vector3[] shoulder={Project(-22.25f,5.8f),Project(-21.45f,5.8f),
-                Project(-21.45f,7.15f),Project(-22.25f,7.15f)};
+            WorkshopMetalHull(metal,-28.32f,5.86f,-27.38f,7.32f,.48f,.63f,.055f);
+            Vector3[] lower={Project(-28.19f,6.05f),Project(-27.51f,6.05f),
+                Project(-27.51f,7.13f),Project(-28.19f,7.13f)};
+            Vector3[] waist={Project(-28.06f,6.28f),Project(-27.64f,6.28f),
+                Project(-27.64f,6.92f),Project(-28.06f,6.92f)};
+            Vector3[] shoulder={Project(-28.25f,5.8f),Project(-27.45f,5.8f),
+                Project(-27.45f,7.15f),Project(-28.25f,7.15f)};
             foreach(int edge in new[]{0,3})
             {
                 int next=(edge+1)%4;
@@ -130,10 +130,10 @@ namespace Cryptforge.UI
             }
             // The anvil is one forged casting, not a set of framed metal panels.
             // Keep its foot and waist darker than the worked head, using neutral grain.
-            WorkedAnvilSurface(metal,0,metal.V.Count,Project(-22.25f,5.58f),1.6f);
+            WorkedAnvilSurface(metal,0,metal.V.Count,Project(-28.25f,5.58f),1.6f);
             int headStart=metal.C.Count;
-            WorkshopMetalHull(metal,-22.25f,5.58f,-21.45f,7.15f,1.08f,1.28f,.025f);
-            WorkedAnvilSurface(metal,headStart,metal.V.Count,Project(-22.25f,5.58f),2f);
+            WorkshopMetalHull(metal,-28.25f,5.58f,-27.45f,7.15f,1.08f,1.28f,.025f);
+            WorkedAnvilSurface(metal,headStart,metal.V.Count,Project(-28.25f,5.58f),2f);
             // Only the working face and its near worn shoulder catch cool steel light.
             // Recolour existing vertices; stock, waist and supporting foot stay dark.
             for(int i=headStart+8;i<headStart+12;i++)metal.C[i]=new Color(1.7f,1.72f,1.74f);
@@ -144,26 +144,26 @@ namespace Cryptforge.UI
                 metal.C[i]=new Color(1.55f,1.6f,1.62f);
             }
             int hornStart=metal.V.Count;
-            Vector3 hornLeft=Project(-22.2f,7.15f),hornRight=Project(-21.5f,7.15f);
-            Vector3 tip=Project(-21.85f,8.03f)+Vector3.up*1.24f;
+            Vector3 hornLeft=Project(-28.2f,7.15f),hornRight=Project(-27.5f,7.15f);
+            Vector3 tip=Project(-27.85f,8.03f)+Vector3.up*1.24f;
             FullFace(metal,hornLeft+Vector3.up*1.28f,hornRight+Vector3.up*1.28f,
                 tip,tip,new Color(1.55f,1.6f,1.62f));
             FullFace(metal,hornLeft+Vector3.up*1.08f,hornLeft+Vector3.up*1.28f,
                 tip,tip,new Color(.62f,.72f,.86f));
             // One dark hardy-hole mark breaks up the flat heel without emissive detail.
-            FullFace(metal,Project(-21.99f,5.77f)+Vector3.up*1.284f,
-                Project(-21.78f,5.77f)+Vector3.up*1.284f,
-                Project(-21.78f,5.98f)+Vector3.up*1.284f,
-                Project(-21.99f,5.98f)+Vector3.up*1.284f,new Color(.1f,.12f,.17f));
-            WorkedAnvilSurface(metal,hornStart,metal.V.Count,Project(-22.25f,5.58f),1f);
+            FullFace(metal,Project(-27.99f,5.77f)+Vector3.up*1.284f,
+                Project(-27.78f,5.77f)+Vector3.up*1.284f,
+                Project(-27.78f,5.98f)+Vector3.up*1.284f,
+                Project(-27.99f,5.98f)+Vector3.up*1.284f,new Color(.1f,.12f,.17f));
+            WorkedAnvilSurface(metal,hornStart,metal.V.Count,Project(-28.25f,5.58f),1f);
             Create("Workshop anvil",metal,arena.PlatformMaterials.FoundryIron,-11);
             // A single hammer rests on the face. Its complete silhouette is supported
             // by the anvil; do not scatter small loose tools across the walking court.
-            Vector3 handle=Project(-21.81f,6.19f)+Vector3.up*1.31f;
-            Vector3 head=Project(-21.95f,6.78f)+Vector3.up*1.31f;
+            Vector3 handle=Project(-27.81f,6.19f)+Vector3.up*1.31f;
+            Vector3 head=Project(-27.95f,6.78f)+Vector3.up*1.31f;
             var tool=new Builder();
             ArchitectureBar(tool,handle,head,.055f,new Color(.5f,.37f,.23f));
-            WorkshopMetalHull(tool,-22.13f,6.64f,-21.73f,6.87f,1.29f,1.43f,.025f);
+            WorkshopMetalHull(tool,-28.13f,6.64f,-27.73f,6.87f,1.29f,1.43f,.025f);
             WorkedAnvilSurface(tool,0,tool.V.Count,handle,1.6f);
             Create("Anvil resting hammer",tool,arena.PlatformMaterials.FoundryIron,-11);
         }

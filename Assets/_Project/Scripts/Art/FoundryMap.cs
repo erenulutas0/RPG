@@ -7,8 +7,17 @@ namespace Cryptforge.Art
     public static class FoundryMap
     {
         public const float Axis = .70710678f;
-        // One broad court around a real shaft, plus a northeast gate apron and south bridge.
-        private static readonly int[,] Rooms = {{-18,-14,-12,18},{-4,-14,14,18},{-12,-14,-4,2},{-12,10,-4,18},{12,-2,32,12}};
+        // Reference-led court: a broad west workshop, a large off-centre furnace opening,
+        // and a narrower gate causeway ending in a full-width landing. These same bounds
+        // own the floor mesh, hero clearance, spawning and the pursuit visibility graph.
+        public const int West=-24,South=-14,North=18,East=14;
+        public const int PitWest=-16,PitSouth=2,PitEast=-4,PitNorth=14;
+        private static readonly int[,] Rooms =
+        {
+            {West,South,PitWest,North},{PitEast,South,East,North},
+            {PitWest,South,PitEast,PitSouth},{PitWest,PitNorth,PitEast,North},
+            {East,0,28,10},{28,-2,32,12}
+        };
         public static bool Bridge(float u,float v) => u-v>=-4&&u-v<=4&&u+v>=-50&&u+v<=-24;
         public static int RectangleCount => Rooms.GetLength(0);
         public static int Bound(int rectangle,int coordinate) => Rooms[rectangle,coordinate];

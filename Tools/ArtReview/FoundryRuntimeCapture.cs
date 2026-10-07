@@ -80,7 +80,7 @@ namespace Cryptforge.Tests
             yield return new WaitForSeconds(.8f);
             var report=new System.Text.StringBuilder("point,seconds,x,y,stamina\n");
             int index=0;
-            foreach(var design in new[]{new Vector2(-23,-23),new Vector2(-15,6),new Vector2(0,0),new Vector2(16,6),new Vector2(28,6)})
+            foreach(var design in new[]{new Vector2(-23,-23),new Vector2(-20,6),new Vector2(0,0),new Vector2(16,6),new Vector2(28,6)})
             {
                 Cryptforge.Art.FoundryMap.ToFloor(design.x,design.y,out float gx,out float gy);
                 var target=new Vector2(gx,gy);
@@ -141,7 +141,7 @@ namespace Cryptforge.Tests
             }
             File.WriteAllText(Output + "gate-approach.csv", gateReport.ToString());
             // Matched actual-render comparison at a walkable point behind the near boiler main.
-            Cryptforge.Art.FoundryMap.ToFloor(22,0,out float reviewX,out float reviewY);
+            Cryptforge.Art.FoundryMap.ToFloor(22,.8f,out float reviewX,out float reviewY);
             movement.Motion.Place(reviewX,reviewY,arena.Geometry);
             hero.transform.position=new Vector3(reviewX,reviewY*.5f,hero.transform.position.z);
             yield return null;
@@ -158,7 +158,7 @@ namespace Cryptforge.Tests
             foreach(var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include,FindObjectsSortMode.None))
                 if(canvas.isRootCanvas)canvas.enabled=false;
             // The hero just in front of the north-west boiler: nothing behind him may be cut away.
-            Cryptforge.Art.FoundryMap.ToFloor(18.5f,10.4f,out float frontX,out float frontY);
+            Cryptforge.Art.FoundryMap.ToFloor(18.5f,9.2f,out float frontX,out float frontY);
             movement.Motion.Place(frontX,frontY,arena.Geometry);
             hero.transform.position=new Vector3(frontX,frontY*.5f,hero.transform.position.z);
             yield return null;
@@ -171,7 +171,7 @@ namespace Cryptforge.Tests
             visibility.enabled=true;yield return null;
             // An enemy on the apron just behind the south-west boiler: the boiler is in front of it.
             var blocked=setup.Encounters.WaveEnemyAt(0);
-            Cryptforge.Art.FoundryMap.ToFloor(18.5f,-1.2f,out float behindX,out float behindY);
+            Cryptforge.Art.FoundryMap.ToFloor(18.5f,.8f,out float behindX,out float behindY);
             blocked.transform.position=new Vector3(behindX,behindY*.5f,blocked.transform.position.z);
             yield return null;
             _camera.orthographicSize=3.6f;
@@ -206,7 +206,7 @@ namespace Cryptforge.Tests
             }
             // Production-scale crane approach; a reachable courtyard point with hero clearance.
             float priorX=movement.Motion.X,priorY=movement.Motion.Y;
-            Cryptforge.Art.FoundryMap.ToFloor(-17,15,out float cx,out float cy);
+            Cryptforge.Art.FoundryMap.ToFloor(-23,15,out float cx,out float cy);
             Assert.That(arena.Geometry.IsOnPlatform(cx,cy,HeroMotion.EdgeMargin),Is.True);
             movement.Motion.Place(cx,cy,arena.Geometry);
             hero.transform.position=new Vector3(cx,cy*.5f,hero.transform.position.z);
@@ -228,10 +228,10 @@ namespace Cryptforge.Tests
             arena.Backdrop.FrameCavern();
             Capture("overview",1600,1200);
             _camera.aspect=1;_camera.orthographicSize=7.8f;
-            _camera.transform.position=new Vector3(-24,1.5f,_camera.transform.position.z);
+            _camera.transform.position=new Vector3(-28.2426f,-.6213f,_camera.transform.position.z);
             Capture("crane-detail",1024,1024);
-            _camera.orthographicSize=5;
-            _camera.transform.position=new Vector3(-9.9f,-1.4f,_camera.transform.position.z);
+            _camera.orthographicSize=6.5f;
+            _camera.transform.position=new Vector3(-12.7284f,-1.4f,_camera.transform.position.z);
             Capture("shaft-detail",1024,1024);
             _camera.orthographicSize=8.8f;
             _camera.transform.position=new Vector3(19,16.4f,_camera.transform.position.z);
@@ -298,7 +298,7 @@ namespace Cryptforge.Tests
             _camera.transform.position=new Vector3(13,-5,_camera.transform.position.z);
             Capture("undercroft-detail",1200,1200);
             _camera.orthographicSize=5;
-            _camera.transform.position=new Vector3(-18,-4,_camera.transform.position.z);
+            _camera.transform.position=new Vector3(-22.2426f,-6.1213f,_camera.transform.position.z);
             Capture("workshop-detail",1200,1200);
             _camera.orthographicSize=4;
             _camera.transform.position=new Vector3(-11,8.3f,_camera.transform.position.z);

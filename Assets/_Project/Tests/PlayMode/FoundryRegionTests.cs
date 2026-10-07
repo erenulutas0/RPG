@@ -251,7 +251,10 @@ namespace Cryptforge.Tests
                 for(int life=0;life<200;life++)
                 {
                     Vector2 at=FoundryAtmosphereView.SparkSpawn(spark,life);
-                    Assert.That(Vector2.Distance(at,new Vector2(-8,6)),Is.LessThan(3.45f),"Sparks are born inside the collar's opening.");
+                    // Distance to the rounded-square opening, not its inscribed circle:
+                    // the enlarged pit has long straight sides around the corner arcs.
+                    Vector2 corner=new Vector2(Mathf.Max(0,Mathf.Abs(at.x+10)-2.49f),Mathf.Max(0,Mathf.Abs(at.y-8)-2.49f));
+                    Assert.That(corner.magnitude,Is.LessThan(2.96f),"Sparks are born inside the collar's opening.");
                     Assert.That(Cryptforge.Art.FoundryMap.Cell(Mathf.FloorToInt(at.x),Mathf.FloorToInt(at.y)),Is.False,"Never over walkable court.");
                 }
 

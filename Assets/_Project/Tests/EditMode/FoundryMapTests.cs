@@ -20,7 +20,7 @@ namespace Cryptforge.Tests
         }
         [Test] public void ActualPackMotionPursuesAroundSideVoid()
         {
-            FoundryMap.ToFloor(-15,6,out float x,out float y);
+            FoundryMap.ToFloor(-20,6,out float x,out float y);
             FoundryMap.ToFloor(0,6,out float hx,out float hy);
             var pack=new PackMotion(.9f,2f,ArenaGeometry.Foundry,hx,hy);
             pack.Add(new HealthState(50),new EntryPlacement(EntrySide.Left,0,x,y),2.5f,1.2f);
@@ -39,7 +39,7 @@ namespace Cryptforge.Tests
         public void EveryInteriorCellCanSpawnTenWithoutOverlapOrVoid(float offset)
         {
             var points=new EntryPlacement[10];
-            for(int u=-28;u<32;u++)for(int v=-28;v<18;v++)
+            for(int u=-28;u<32;u++)for(int v=-28;v<FoundryMap.North;v++)
             {
                 FoundryMap.ToFloor(u+offset,v+offset,out float x,out float y);
                 if(!FoundryMap.Contains(x,y,.6f))continue;
@@ -54,18 +54,19 @@ namespace Cryptforge.Tests
         }
         [Test] public void LongHeroStepCannotCrossTheSideHole()
         {
-            FoundryMap.ToFloor(-15,6,out float x,out float y);
+            FoundryMap.ToFloor(-20,6,out float x,out float y);
             FoundryMap.ToFloor(17,0,out float dx,out float dy);
             FoundryMap.Move(ref x,ref y,dx,dy,.6f);
             FoundryMap.ToDesign(x,y,out float u,out _);
-            Assert.That(u,Is.LessThan(-12));
+            Assert.That(u,Is.LessThan(FoundryMap.PitWest));
             Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
         }
         [Test] public void PursuitRoutesAroundHoleAndThroughPassage()
         {
-            foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f}})
+            foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f},
+                new[]{-23f,17f},new[]{30f,-1f},new[]{30f,11f}})
             {
-                FoundryMap.ToFloor(-15,6,out float x,out float y);
+                FoundryMap.ToFloor(-20,6,out float x,out float y);
                 FoundryMap.ToFloor(goal[0],goal[1],out float hx,out float hy);
                 var route=new FoundryPursuit();
                 for(int tick=0;tick<6000&&ArenaFloor.FloorDistanceSquared(x,y,hx,hy)>.04f;tick++)

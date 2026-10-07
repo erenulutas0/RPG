@@ -23,8 +23,8 @@ namespace Cryptforge.UI
         // between the two inner boilers, whose drums' silhouettes lie 1.26 to either side of the centre column below the
         // deck and their domes' 1.16 above it; the opening's far edge there is its corner arc, centred PitArc in along the
         // diagonal, of radius PitArcRadius.
-        private static readonly Vector2 PitCentre=new Vector2(-8,6);
-        private const float PitPool=2f,PitArc=.693f,PitArcRadius=2.96f,SparkAcross=1.12f;
+        private static readonly Vector2 PitCentre=new Vector2((FoundryMap.PitWest+FoundryMap.PitEast)*.5f,(FoundryMap.PitSouth+FoundryMap.PitNorth)*.5f);
+        private const float PitPool=3.6f,PitArc=3.522f,PitArcRadius=2.96f,SparkAcross=1.12f;
         // The pit's glow, heat and sparks are depth-tested against the structures (FoundryDepth), as actors are; the rest of
         // the mesh stays flat at z 0, over every structure. All take one depth, that of screen height 0 (about where the pool
         // shows past the near rail): behind the inner boilers' domes (their footprints' diagonal lies at -.71), the near
@@ -132,7 +132,7 @@ namespace Cryptforge.UI
             // A warm glow over the pool and the lining's foot, breathing with the fire.
             Color glow=PitGlowTone;
             glow.a=.085f*(.86f+.09f*Mathf.Sin(time*1.7f)+.05f*Mathf.Sin(time*4.3f+1.3f));
-            Disc(PitGlow,PitPoint(0,1.9f,-.55f),2.05f,1.2f,glow);
+            Disc(PitGlow,PitPoint(0,1.9f,1.45f-PitPool),2.05f,1.2f,glow);
             // Wisps of heat over the pool's far half, rising slowly past the deck as they spread, cool and fade.
             for(int i=0;i<HeatCount;i++)
             {
@@ -142,7 +142,7 @@ namespace Cryptforge.UI
                 float across=(Hash(i,life,5)-.5f)*1.1f+.07f*Mathf.Sin(time*1.3f+i*2.3f);
                 Color heat=Color.Lerp(HeatHot,HeatCool,age);
                 heat.a=fade*fade*.07f*(.85f+.15f*Mathf.Sin(time*2.7f+i*2.1f));
-                Heat(FirstHeat+i,PitPoint(across,Mathf.Lerp(1.7f,2.7f,Hash(i,life,6)),age*3.1f-1.5f),.3f+age*.55f,
+                Heat(FirstHeat+i,PitPoint(across,Mathf.Lerp(1.7f,2.7f,Hash(i,life,6)),age*(PitPool+1.1f)-PitPool+.5f),.3f+age*.55f,
                     .42f+age*.4f,(i*7+3)%SmokeCount,time,heat);
             }
             // Sparks, each born at a fresh point of the pool every life (SparkSpawn): a slowing climb from the pool to 2.2-3.2
@@ -215,7 +215,7 @@ namespace Cryptforge.UI
 
         // Where spark `spark` is born in its life `life`, in design units: on the pool, at most SparkAcross to either side of
         // the pit's centre column - inside the drums' silhouettes - and from .8 beyond the centre (into the screen) to .35
-        // short of the lining's foot. All of it lies inside the opening's inscribed circle (radius 3.45), never over walkable
+        // short of the lining's foot. All of it lies inside the rounded-square opening, never over walkable
         // court.
         internal static Vector2 SparkSpawn(int spark,int life)
         {

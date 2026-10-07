@@ -18,7 +18,7 @@ namespace Cryptforge.UI
                 int x=cell.x,y=cell.y;
                 // Only the two exterior faces visible in the fixed isometric view.
                 // The inset shaft has its own lining and must remain open.
-                if(x>-13&&x<0&&y>0&&y<12)continue;
+                if(x>FoundryMap.PitWest-1&&x<FoundryMap.PitEast+4&&y>FoundryMap.PitSouth-2&&y<FoundryMap.PitNorth+2)continue;
                 if(x%4==0 && ExteriorSpan(x,y,true))
                     UndercroftArch(arena,new Vector2(x,y),new Vector2(x+4,y),x/4+y,!ExteriorSpan(x+4,y,true),piers);
                 if(y%4==0 && ExteriorSpan(x,y,false))
@@ -26,7 +26,7 @@ namespace Cryptforge.UI
             }
             foreach(var pier in piers)UndercroftPier(arena,pier.at,pier.major);
             // Long suspension catenaries connect scenery anchors beneath the deck.
-            SuspendedChain(arena,Project(-20,-10)+Vector3.down*4,
+            SuspendedChain(arena,Project(-26,-10)+Vector3.down*4,
                 Project(-12,-10)+Vector3.down*4,2.1f);
             SuspendedChain(arena,Project(4,-10)+Vector3.down*4,
                 Project(12,-10)+Vector3.down*4,2.4f);

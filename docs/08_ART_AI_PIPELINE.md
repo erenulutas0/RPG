@@ -835,3 +835,11 @@ Profile,bak and all3 original development files SHA256-identical after review; n
 
 ## 2026-10-07 - Floating amount glyph contract
 Floating damage/heal/gold amounts now use code-native5x7 glyphs, one-texel gap/outline, normal white and critical gold at2x. Max5digits and pooled renderer unchanged. Supersedes historical3x5 specification; HUD font unchanged. Validated .NET390/Edit410/Play145 and S23 normal combat; critical samples in actual Unity. See docs38 and ArtDirection/2026-10-07/damage-type-01.
+
+## 2026-10-08 - Reference-led layout template
+
+Owner approved correcting overall composition before further local polish. The foundry court now spans design u[-24,14], v[-14,18], around a 12x12 furnace opening u[-16,-4], v[2,14] (previously 8x8). Gate causeway is u[14,28], v[0,10], with a wider landing u[28,32], v[-2,12]. The diagonal entrance bridge remains connected. Its keeper supports moved 0.6 along each negative design axis to keep their complete footprints outside the widened court.
+
+FoundryMap is the shared floor/movement/spawn boundary. Pit bounds are consumed directly by rendering, floor soot and the undercroft exclusion. West crane, loading shelf, anvil/stock, clutter, finials, foundation heads, chains and depth owners moved 6 design units west together. Furnace opening uses the existing rounded-square construction with longer straight sides; molten surface is 3.6 below the deck, bed 5 below, with inner boiler spacing and atmosphere adjusted. No new imported artwork, renderer, currency or combat rule.
+
+This is a first playable composition template, not reference completion. The concept's bevelled outer outline, raised gate terrace, finer apparent masonry scale and denser workshop staging remain open. Current gameplay floor remains one plane; no climbable heights are implied. Proof: ArtDirection/2026-10-08/reference-layout-01. Before/after overview uses identical camera framing; detail cameras follow relocated structures.

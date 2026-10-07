@@ -9,7 +9,7 @@ namespace Cryptforge.UI
     // furnace pit with inner boilers inside a round balustraded collar, and foundation bastions with chains under
     // the deck. A few large silhouettes that read at the portrait camera, not small ornament. Every above-deck
     // footprint is tested against the shared walking union and skipped rather than allowed to intrude on it (the
-    // pit's lie wholly inside its hole); the map, movement and collision are unchanged.
+    // pit's lie wholly inside its hole). Pit bounds come from the shared walking map.
     //
     // Painter order is by (material, order) batch, then by emission inside a batch. The stacks below respect it:
     // boiler plinths -13 (floor stone), painted boiler drums -12, cornices, balustrade, pit collar and collar stone
@@ -37,11 +37,12 @@ namespace Cryptforge.UI
         // straights at the mid posts and rounds the corners; the lining follows that edge's far half down to a pool of molten
         // metal PitMolten below the deck (over the deep coal bed), and collar stone fills the hole outside the band. The
         // walkable edge stays the hole's.
-        private const float PitU0=-12,PitV0=2,PitU1=-4,PitV1=10,PitCollar=.55f,PitDepth=3.2f,PitMolten=2f;
+        private const float PitU0=FoundryMap.PitWest,PitV0=FoundryMap.PitSouth,PitU1=FoundryMap.PitEast,PitV1=FoundryMap.PitNorth;
+        private const float PitCollar=.55f,PitDepth=5f,PitMolten=3.6f;
         private const float PitHalf=(PitU1-PitU0)*.5f,PitRim=PitHalf-PitCollar+RailDepth,PitRound=3.2f;
         private const float PitStraight=PitRim-PitRound,PitQuarter=2*PitStraight+PitRound*Mathf.PI*.5f;
         private static readonly Vector2 PitCentre=new Vector2((PitU0+PitU1)*.5f,(PitV0+PitV1)*.5f);
-        private static readonly Vector2[] PitBoilers={new Vector2(-9.6f,7.6f),new Vector2(-6.4f,4.4f)};
+        private static readonly Vector2[] PitBoilers={new Vector2(-12.6f,10.6f),new Vector2(-7.4f,5.4f)};
         private static readonly Color LitFace=new Color(.63f,.66f,.77f),ShadeFace=new Color(.43f,.46f,.57f);
         private static readonly Color CapTone=new Color(.86f,.89f,.98f),Bronze=new Color(1.22f,.95f,.6f);
 
@@ -418,9 +419,11 @@ namespace Cryptforge.UI
             }
         }
         // The pool's tone, brightest at the lining's foot; and where the ember texture's molten channels meet (u .47-.53, v
-        // .23-.29) mapped over the part the camera sees, .015 of the texture to a unit, so no crust plate shows.
+        // .23-.29) mapped over the enlarged opening, so unrelated crust plates never enter the pool.
         private static readonly Color PitPoolFar=new Color(1.9f,1.82f,1.6f),PitPoolNear=new Color(1.7f,1.35f,1.05f);
-        private static Vector2 PitPoolTexel(Vector2 p)=>new Vector2(.497f+(p.x+6.1f)*.015f,.262f+(p.y-7.9f)*.015f);
+        // Keep the enlarged basin within the molten-channel patch of the existing atlas.
+        // Absolute old-layout UVs exposed unrelated pale crust plates after relocation.
+        private static Vector2 PitPoolTexel(Vector2 p)=>new Vector2(.497f+(p.x-PitCentre.x)*.005f,.262f+(p.y-PitCentre.y)*.005f);
 
         // The band's inner edge on the near half at the far point's screen column (equal u-v), by bisection.
         private static Vector2 PitNearEdge(Vector2 far)
@@ -861,23 +864,23 @@ namespace Cryptforge.UI
         // here among the rail pieces, their iron with the court borders (FoundryRegionSite.cs).
         private static readonly Vector2[] CourtFinials =
         {
-            new Vector2(-18.5f,-6),new Vector2(-18.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(10,-14.5f),
+            new Vector2(-24.5f,-6),new Vector2(-24.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(10,-14.5f),
             new Vector2(-14,18.5f),new Vector2(0,18.5f),new Vector2(10,18.5f)
         };
 
         // New lantern posts: the court's convex corners, the apron's concave corner, and the longest bare runs.
         private static readonly Vector4[] RailLanterns =
         {
-            new Vector4(14,-14.72f,14.72f,-14),new Vector4(-18.72f,18,-18,18.72f),new Vector4(-18.72f,.64f,-18,1.36f),
-            new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-2.72f,14.72f,-2),
-            new Vector4(15.14f,12,15.86f,12.72f),new Vector4(21.64f,12,22.36f,12.72f)
+            new Vector4(14,-14.72f,14.72f,-14),new Vector4(-24.72f,18,-24,18.72f),new Vector4(-24.72f,.64f,-24,1.36f),
+            new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-.72f,14.72f,0),
+            new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f)
         };
         private static readonly bool[] RailLanternFront={true,true,true,false,false,true,false,false};
 
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =
         {
-            new Vector4(-21,11,-18,15),new Vector4(-23,5,-18.45f,8.4f),new Vector4(-19,8.4f,-18,10.5f),new Vector4(2,18.5f,7,22.4f),
+            new Vector4(-27,11,-24,15),new Vector4(-29,5,-24.45f,8.4f),new Vector4(-25,8.4f,-24,10.5f),new Vector4(2,18.5f,7,22.4f),
             new Vector4(19.5f,-2.6f,24.6f,-2),
             new Vector4(32,-3,35,-1),new Vector4(32,11,35,13),
             new Vector4(21.3f,-6.8f,23.3f,-4.8f),new Vector4(21.3f,14.8f,23.3f,16.8f),
@@ -1216,7 +1219,7 @@ namespace Cryptforge.UI
         private static readonly Vector4[] Bastions =
         {
             new Vector4(13.2f,-16.6f,15.8f,-14),new Vector4(.7f,-16.6f,3.3f,-14),new Vector4(8.7f,-16.6f,11.3f,-14),
-            new Vector4(-20.6f,-7.3f,-18,-4.7f),new Vector4(-20.6f,-.3f,-18,2.3f),new Vector4(-20.6f,15.6f,-18,18.4f)
+            new Vector4(-26.6f,-7.3f,-24,-4.7f),new Vector4(-26.6f,-.3f,-24,2.3f),new Vector4(-26.6f,15.6f,-24,18.4f)
         };
 
         private void BuildBastions(ArenaView arena)
@@ -1243,11 +1246,11 @@ namespace Cryptforge.UI
             // The corner bastions' anchor chains and the catenary between the first two south piers (they were straight
             // and per-segment; now hung, the anchor chains with a slight sag):
             AbyssChain(arena,new Vector3(15.2f,-16.6f,-3.4f),0,new Vector2(5.2f,-7.2f),.45f,.36f);
-            AbyssChain(arena,new Vector3(-20.6f,16.6f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
+            AbyssChain(arena,new Vector3(-26.6f,16.6f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
             PierChain(arena,new Vector3(3f,-16.6f,-4f),0,new Vector3(9f,-16.6f,-4f),0,2f,.26f);
             // Across the gap between the two south-west piers of the west rim, and from the nearer one into the void.
-            PierChain(arena,new Vector3(-20.6f,-5f,-3.5f),1,new Vector3(-20.6f,.3f,-3.5f),1,1.5f,.3f);
-            AbyssChain(arena,new Vector3(-20.6f,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
+            PierChain(arena,new Vector3(-26.6f,-5f,-3.5f),1,new Vector3(-26.6f,.3f,-3.5f),1,1.5f,.3f);
+            AbyssChain(arena,new Vector3(-26.6f,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
             // From the far gateposts' outboard chamfers, out of frame on both sides of the bridge's end; each post's
             // stone (-11) hides the anchor link, so the chain comes from behind it.
             AbyssChain(arena,new Vector3(-27.855f,-22.745f,-2.2f),-1,new Vector2(-6.6f,-8.6f),.6f,.4f);

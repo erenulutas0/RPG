@@ -5,7 +5,7 @@ namespace Cryptforge.Art
     // Tiny visibility graph around the side loop and passage. No per-frame allocations.
     public sealed class FoundryPursuit
     {
-        private static readonly float[,] Points={{-23,-23},{-14,-14},{0,0},{-14,0},{-2,0},{-15,6},{-14,12},{-2,12},{-8,15},{8,6},{16,6},{28,6}};
+        private static readonly float[,] Points={{-23,-23},{-14,-14},{0,0},{-18,0},{-2,0},{-20,6},{-18,16},{-2,16},{-10,16},{8,6},{16,6},{28,6}};
         private static readonly int Count=Points.GetLength(0);
         private static readonly float[] X=new float[Count],Y=new float[Count];
         private static readonly float[,] Distance=new float[Count,Count];
