@@ -18,3 +18,7 @@ Actual Unity capture of the playable foundry after the owner requested an overal
 This establishes the template; it is not a finished match to the reference. Bevelled court silhouette, a distinct raised gate terrace, smaller apparent paving scale and more deliberate workshop grouping remain. All current walkable ground is on one gameplay plane. Existing artwork is reused rather than replaced wholesale.
 
 Full gate passed:145/145 PlayMode and Android build exit0. APK SHA25649954D59713C50F530EF64EF9B8FFA74A1F6B8DEAB5CE12CC69B2B52BDF46D8E,35,962,080bytes. Device install awaits permission to close the owner's newly active Floor2 run. The initial read-only backup predates that run and must not be restored over it.
+
+
+## Device completion
+Owner approved closing the active run. Fresh backup: TestResults/reference-layout-device-20261008-003613; previous backup was not restored. Installed APK49954D59713C50F530EF64EF9B8FFA74A1F6B8DEAB5CE12CC69B2B52BDF46D8E and verified installed base.apk SHA256. Guarded staged movement reached pit front, the widened west workshop and gate landing through the narrow causeway. The first gate approach reached the outside shoulder; adjusted input duration to enter the actual lane, then reached the facade. Normal Staff combat verified separately. No fresh performance benchmark. Profile, backup and all3 original development files SHA256-identical to the fresh pre-install backup. Temporary depth-proof removed; app stopped; telemetry retained. Supersedes pending installation above.
