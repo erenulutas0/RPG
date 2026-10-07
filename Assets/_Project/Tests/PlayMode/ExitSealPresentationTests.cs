@@ -42,11 +42,15 @@ namespace Cryptforge.Tests
             var hero=Object.FindFirstObjectByType<HeroMovementInput>().transform;
             var exit=new Vector3(encounter.ExitFloorX,ArenaFloor.WorldY(encounter.ExitFloorY),0);
             Assert.That(view.ExitPosition,Is.EqualTo(exit));
-            hero.position=exit;yield return new WaitForSeconds(.35f);yield return null;
+            hero.position=exit;yield return new WaitForSeconds(.35f);
+            // Test coroutines resume after Update but before the view's LateUpdate.
+            // Freeze the encounter, then let LateUpdate publish that final held value;
+            // comparing a moving encounter here otherwise depends on the frame duration.
+            Time.timeScale=0;yield return null;
             Assert.That(view.ShownProgress,Is.GreaterThan(.1f).And.LessThan(.8f));
-            Assert.That(view.ShownProgress,Is.EqualTo(encounter.ExitHeldSeconds/ExitRule.DwellSeconds).Within(.02f));
-            Time.timeScale=0;float held=view.ShownProgress;yield return new WaitForSecondsRealtime(.2f);
-            Assert.That(view.ShownProgress,Is.EqualTo(held).Within(.02f));
+            Assert.That(view.ShownProgress,Is.EqualTo(encounter.ExitHeldSeconds/ExitRule.DwellSeconds).Within(.00001f));
+            float held=view.ShownProgress;yield return new WaitForSecondsRealtime(.2f);
+            Assert.That(view.ShownProgress,Is.EqualTo(held));
             Time.timeScale=1;hero.position=exit+Vector3.right*2;yield return null;yield return null;
             Assert.That(view.ShownProgress,Is.Zero);Assert.That(setup.Run.HasEnded,Is.False);
             hero.position=exit;yield return new WaitForSeconds(1.2f);yield return null;
