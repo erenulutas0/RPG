@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // Builds from the same map as movement; owns meshes, borrows imported art.
-    // Open-flame tips animate within their existing shared batch.
+    // Open-flame tips and bridge cloth animate within their existing shared batches.
     public sealed partial class FoundryRegionView : MonoBehaviour
     {
         private readonly List<Mesh> _owned=new List<Mesh>();
@@ -417,6 +417,7 @@ namespace Cryptforge.UI
             target.Builder.V.AddRange(b.V);target.Builder.U.AddRange(b.U);target.Builder.C.AddRange(b.C);
             foreach(int index in b.T)target.Builder.T.Add(index+offset);
             foreach(var tip in b.Flames)target.Builder.Flames.Add(new FoundryFlameVertex(tip.Index+offset,tip.Weight,tip.Phase));
+            foreach(var cloth in b.Cloth)target.Builder.Cloth.Add(new FoundryBannerVertex(cloth.Index+offset,cloth.Drop,cloth.Phase));
             int owner=footprint>=0?footprint:_depthScope;
             for(int i=0;i<b.V.Count;i++)target.Owners.Add(owner);
         }
@@ -428,6 +429,7 @@ namespace Cryptforge.UI
             var mesh=new Mesh{name=name};mesh.SetVertices(b.V);mesh.SetUVs(0,b.U);if(flags!=null)mesh.SetUVs(1,flags);mesh.SetColors(b.C);mesh.SetTriangles(b.T,0);mesh.RecalculateBounds();_owned.Add(mesh);
             var obj=new GameObject(name);obj.transform.SetParent(transform,false);obj.AddComponent<MeshFilter>().sharedMesh=mesh;var r=obj.AddComponent<MeshRenderer>();r.sharedMaterial=structure?_visibility.ForStructure(material):material;r.sortingOrder=SceneryOrder(order);
             if(b.Flames.Count>0)obj.AddComponent<FoundryFlameMotion>().Initialize(mesh,b.Flames);
+            if(b.Cloth.Count>0)obj.AddComponent<FoundryBannerMotion>().Initialize(mesh,b.Cloth);
             return mesh;
         }
         private static int SceneryOrder(float order)
@@ -442,6 +444,7 @@ namespace Cryptforge.UI
         private sealed class Builder
         {
             internal readonly List<FoundryFlameVertex> Flames=new List<FoundryFlameVertex>();
+            internal readonly List<FoundryBannerVertex> Cloth=new List<FoundryBannerVertex>();
             internal readonly List<Vector3> V=new List<Vector3>();internal readonly List<Vector2> U=new List<Vector2>();
             internal readonly List<Color> C=new List<Color>();internal readonly List<int> T=new List<int>();
             // World-continuous UVs keep masonry courses from restarting at every one-unit wall cell.

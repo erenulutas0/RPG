@@ -226,6 +226,25 @@ namespace Cryptforge.Tests
             _camera.orthographicSize=6;
             _camera.transform.position=new Vector3(0,-14,_camera.transform.position.z);
             Capture("bridge-detail",1200,1200);
+            var banners=Object.FindObjectsByType<FoundryBannerMotion>(FindObjectsSortMode.None);
+            Assert.That(banners.Length,Is.EqualTo(1),"Bridge cloth must share the existing facade batch.");
+            var bannerMesh=banners[0].GetComponent<MeshFilter>().sharedMesh;
+            banners[0].enabled=false;
+            Capture("banner-rest",1200,1200);
+            var bannerRest=bannerMesh.vertices;
+            banners[0].enabled=true;
+            for(int frame=0;frame<8;frame++)
+            {
+                yield return new WaitForSeconds(.2f);
+                Capture("banner-motion-"+frame,1200,1200);
+            }
+            Assert.That(bannerMesh.vertices,Is.Not.EqualTo(bannerRest));
+            float bannerScale=Time.timeScale;
+            Time.timeScale=0;
+            var bannerPaused=bannerMesh.vertices;
+            yield return null;yield return null;
+            Assert.That(bannerMesh.vertices,Is.EqualTo(bannerPaused));
+            Time.timeScale=bannerScale;
             _camera.orthographicSize=6;
             _camera.transform.position=new Vector3(13,-5,_camera.transform.position.z);
             Capture("undercroft-detail",1200,1200);

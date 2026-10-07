@@ -165,7 +165,7 @@ namespace Cryptforge.UI
         // The facade's left banner (GateFacade.png, 1536 x 1024; pixels, y down), from the painted rod's shaft (y 100, under
         // the bracket's bar) to the swallow-tailed hem, measured and inset 1.8 px inside its gold trim so no stone around it
         // is sampled: the hem across its five columns - the edges x 288.3 / 416.7, the notches x 311 / 395 and the centre
-        // tip x 352.5 - each with its lowest y. Four quads between the columns, no T-junctions.
+        // tip x 352.5 - each with its lowest y. Six rows per column allow a gentle cloth curve.
         private static readonly Vector2[] BannerHem=
         {
             new Vector2(288.3f,568.6f),new Vector2(311,534.7f),new Vector2(352.5f,598.2f),new Vector2(395,530.6f),
@@ -185,9 +185,12 @@ namespace Cryptforge.UI
             Color head=new Color(1.06f,1f,.94f),hem=new Color(.8f,.8f,.9f);
             var card=new Builder();
             for(int i=0;i+1<BannerHem.Length;i++)
+            for(int row=0;row<6;row++)
             {
                 Vector2 a=BannerHem[i],b=BannerHem[i+1];
-                var pixels=new[]{new Vector2(a.x,100),new Vector2(b.x,100),b,a};
+                float top=row/6f,bottom=(row+1)/6f;
+                var pixels=new[]{new Vector2(a.x,Mathf.Lerp(100,a.y,top)),new Vector2(b.x,Mathf.Lerp(100,b.y,top)),
+                    new Vector2(b.x,Mathf.Lerp(100,b.y,bottom)),new Vector2(a.x,Mathf.Lerp(100,a.y,bottom))};
                 int start=card.V.Count;
                 card.Quad(Card(pixels[0].x,pixels[0].y),Card(pixels[1].x,pixels[1].y),Card(pixels[2].x,pixels[2].y),
                     Card(pixels[3].x,pixels[3].y),false,Color.white);
@@ -195,6 +198,8 @@ namespace Cryptforge.UI
                 {
                     card.U[start+k]=new Vector2(pixels[k].x/1536,1-pixels[k].y/1024);
                     card.C[start+k]=Color.Lerp(head,hem,(pixels[k].y-100)/(BannerHem[2].y-100));
+                    float drop=(pixels[k].y-100)/(BannerHem[2].y-100);
+                    card.Cloth.Add(new FoundryBannerVertex(start+k,drop,side*.7f));
                 }
             }
             Create("Bridge head banners",card,facade,-12);
