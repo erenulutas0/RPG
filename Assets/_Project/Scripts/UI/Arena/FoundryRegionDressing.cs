@@ -34,25 +34,26 @@ namespace Cryptforge.UI
             CraneCase(arena,foot+new Vector3(-.63f,.23f,0),.18f,.82f,new Vector3(.15f,.1f,0));
             CraneCase(arena,foot+new Vector3(.45f,.23f,0),.18f,.82f,new Vector3(.15f,.1f,0));
             Tube(arena,foot+new Vector3(-.54f,1.07f,0),foot+new Vector3(.54f,1.07f,0),.14f);
-            // Twin tower legs, cross bracing, and a diagonal lattice jib.
-            Tube(arena,foot+Vector3.left*.3f,mast+Vector3.left*.3f,.2f);
-            Tube(arena,foot+Vector3.right*.3f,mast+Vector3.right*.3f,.2f);
+            // Wide cast uprights carry the silhouette; one brace per bay leaves readable
+            // openings. Plain plate sampling avoids miniature rivet panels on every rod.
+            CraneBeam(arena,foot+Vector3.left*.3f,mast+Vector3.left*.3f,.30f);
+            CraneBeam(arena,foot+Vector3.right*.3f,mast+Vector3.right*.3f,.30f);
             for(int i=0;i<6;i++)
             {
                 Vector3 a=foot+Vector3.up*i;
-                Tube(arena,a+Vector3.left*.3f,a+Vector3.up+Vector3.right*.3f,.085f);
-                Tube(arena,a+Vector3.right*.3f,a+Vector3.up+Vector3.left*.3f,.085f);
+                float side=i%2==0?1:-1;
+                CraneBeam(arena,a+Vector3.right*.3f*side,a+Vector3.up-Vector3.right*.3f*side,.12f);
             }
             Vector3 tip=Project(-20,20)+Vector3.up*7.8f;
             Vector3 rear=mast+Vector3.right;
             BuildCraneBoxJib(arena,rear,tip);
-            Tube(arena,mast,rear,.2f);
-            Tube(arena,foot+Vector3.up*3,tip,.095f);
+            CraneBeam(arena,mast,rear,.28f);
+            CraneBeam(arena,foot+Vector3.up*3,tip,.14f);
             // Broad bearing collar gives the lattice mast a clear mechanical joint.
             CraneCase(arena,mast+new Vector3(-.48f,-.4f,0),.96f,.23f,new Vector3(.16f,.11f,0));
-            Wheel(arena,mast,.32f);
+            BuildCraneSheave(arena,mast,.32f,true);
             Vector3 load=tip+Vector3.down*3.4f;
-            Chain(arena,tip,load,.13f,-11);
+            Chain(arena,tip,load,.16f,-11);
             // A sheave seats the hoist chain in the jib instead of ending it on a bare rail.
             BuildCraneSheave(arena,tip+Vector3.down*.2f);
             CraneCase(arena,load+new Vector3(-.16f,-.13f,0),.32f,.26f,new Vector3(.08f,.05f,0));
@@ -69,27 +70,49 @@ namespace Cryptforge.UI
 
         private void BuildCraneBoxJib(ArenaView arena,Vector3 rear,Vector3 tip)
         {
-            // The second chord stays below the existing upper silhouette. Four cross-ties
-            // turn the thin planar lattice into a shallow load-bearing box without closing it.
+            // Broad chords and sparse single diagonals read as a loaded gantry at phone
+            // scale. Rear depth stays below the established tip; no extra material batch.
             Vector3 depth=new Vector3(.18f,-.24f,0);
-            Vector3 normal=new Vector3(-(tip-rear).y,(tip-rear).x,0).normalized*.65f;
-            Tube(arena,rear+depth,tip+depth,.13f);
-            Tube(arena,rear-normal+depth,tip-normal+depth,.12f);
+            Vector3 normal=new Vector3(-(tip-rear).y,(tip-rear).x,0).normalized*.72f;
+            CraneBeam(arena,rear+depth,tip+depth,.20f);
+            CraneBeam(arena,rear-normal+depth,tip-normal+depth,.19f);
             for(int i=0;i<=3;i++)
             {
                 Vector3 p=Vector3.Lerp(rear,tip,i/3f);
-                Tube(arena,p,p+depth,.09f);
-                Tube(arena,p-normal,p-normal+depth,.09f);
+                CraneBeam(arena,p,p+depth,.12f);
+                CraneBeam(arena,p-normal,p-normal+depth,.12f);
             }
-            Truss(arena,rear,tip,.65f);
+            CraneBeam(arena,rear,tip,.30f);
+            CraneBeam(arena,rear-normal,tip-normal,.26f);
+            const int bays=5;
+            for(int i=0;i<bays;i++)
+            {
+                Vector3 p=Vector3.Lerp(rear,tip,i/(float)bays),q=Vector3.Lerp(rear,tip,(i+1)/(float)bays);
+                CraneBeam(arena,i%2==0?p:p-normal,i%2==0?q-normal:q,.14f);
+            }
+            foreach(Vector3 p in new[]{rear,tip})
+                CraneBeam(arena,p+normal*.10f,p-normal*1.10f,.24f);
         }
 
-        private void BuildCraneSheave(ArenaView arena,Vector3 center)
+        private void CraneBeam(ArenaView arena,Vector3 a,Vector3 b,float width)
+        {
+            Vector3 n=new Vector3(-(b-a).y,(b-a).x,0).normalized*width*.5f;
+            // Pick the upper-left edge regardless of the direction the segment was authored.
+            if(Vector2.Dot(n,ChainLight)<0)n=-n;
+            var beam=new Builder();
+            Color face=new Color(.86f,.86f,.91f),dark=new Color(.37f,.39f,.47f),rim=new Color(1.12f,1.06f,.93f);
+            LinkQuad(beam,a+n,b+n,b-n,a-n,face,face,dark,dark);
+            LinkQuad(beam,a+n,b+n,b+n*.70f,a+n*.70f,rim,rim,face,face);
+            Create("Crane structural iron",beam,arena.PlatformMaterials.FoundryIron,-11);
+        }
+
+        private void BuildCraneSheave(ArenaView arena,Vector3 center,float radius=.24f,bool solid=false)
         {
             // Filled rim and hub sample plain iron: shrinking the entire plate texture here
             // would turn the small hoist wheel into visual noise. All geometry uses the iron batch.
             var mesh=new Builder();
             const int segments=12;
+            float scale=radius/.24f;
             Color edge=new Color(.96f,.9f,.78f),inner=new Color(.38f,.4f,.47f);
             for(int i=0;i<segments;i++)
             {
@@ -97,23 +120,26 @@ namespace Cryptforge.UI
                 Vector3 p=new Vector3(Mathf.Cos(a),Mathf.Sin(a),0),q=new Vector3(Mathf.Cos(b),Mathf.Sin(b),0);
                 float light=.75f+.25f*Mathf.Max(0,Vector2.Dot(p,ChainLight));
                 Color rim=ChainShade(edge,light);
-                LinkQuad(mesh,center+p*.24f,center+q*.24f,center+q*.155f,center+p*.155f,rim,rim,inner,inner);
-                if(i%3==0)
+                LinkQuad(mesh,center+p*radius,center+q*radius,center+q*.155f*scale,center+p*.155f*scale,rim,rim,inner,inner);
+                if(solid)
+                    LinkQuad(mesh,center,center+p*.155f*scale,center+q*.155f*scale,center,
+                        inner,ChainShade(inner,light),ChainShade(inner,light),inner);
+                else if(i%3==0)
                 {
-                    Vector3 side=new Vector3(-p.y,p.x,0)*.022f;
-                    LinkQuad(mesh,center+side,center+p*.17f+side,center+p*.17f-side,center-side,
+                    Vector3 side=new Vector3(-p.y,p.x,0)*.022f*scale;
+                    LinkQuad(mesh,center+side,center+p*.17f*scale+side,center+p*.17f*scale-side,center-side,
                         inner,edge,edge,inner);
                 }
             }
-            LinkQuad(mesh,center+new Vector3(-.065f,-.065f,0),center+new Vector3(.065f,-.065f,0),
-                center+new Vector3(.065f,.065f,0),center+new Vector3(-.065f,.065f,0),edge,edge,edge,edge);
+            LinkQuad(mesh,center+new Vector3(-.065f,-.065f,0)*scale,center+new Vector3(.065f,-.065f,0)*scale,
+                center+new Vector3(.065f,.065f,0)*scale,center+new Vector3(-.065f,.065f,0)*scale,edge,edge,edge,edge);
             Create("Crane hoist sheave",mesh,arena.PlatformMaterials.FoundryIron,-11);
         }
 
         private void BuildCraneBasket(ArenaView arena,Vector3 suspension)
         {
-            Vector3 front=suspension+new Vector3(-.72f,-.62f,0);
-            Vector3 width=Vector3.right*1.25f,depth=new Vector3(.36f,.23f,0),down=Vector3.down*.78f;
+            Vector3 front=suspension+new Vector3(-.82f,-.62f,0);
+            Vector3 width=Vector3.right*1.45f,depth=new Vector3(.36f,.23f,0),down=Vector3.down*.90f;
             // Back rails, dark solid bottom, then irregular scrap and open front bars.
             // The offset side makes a load-carrying cage instead of a flat hanging grille.
             Tube(arena,front+depth,front+depth+width,.12f);
@@ -122,21 +148,24 @@ namespace Cryptforge.UI
             var bottom=new Builder();
             FullFace(bottom,front+down,front+width+down,front+width+depth+down,front+depth+down,new Color(.31f,.34f,.4f));
             Create("Crane basket floor",bottom,arena.PlatformMaterials.FoundryIron,-11);
-            CraneCase(arena,front+new Vector3(.18f,-.68f,0),.42f,.24f,depth*.48f);
-            CraneCase(arena,front+new Vector3(.67f,-.68f,0),.35f,.4f,depth*.5f);
-            Tube(arena,front+new Vector3(.28f,-.33f,0),front+new Vector3(.9f,-.12f,0),.15f);
+            CraneCase(arena,front+new Vector3(.13f,-.79f,0),.55f,.40f,depth*.65f);
+            CraneCase(arena,front+new Vector3(.76f,-.79f,0),.43f,.58f,depth*.65f);
+            CraneBeam(arena,front+new Vector3(.25f,-.31f,0),front+new Vector3(1.08f,-.06f,0),.20f);
             foreach(Vector3 end in new[]{front,front+width})
             {
                 Tube(arena,end,end+depth,.12f);
                 Tube(arena,end+down,end+depth+down,.14f);
-                Tube(arena,suspension,end,.065f);
+                CraneBeam(arena,suspension,end,.09f);
             }
-            Tube(arena,front,front+width,.14f);
-            Tube(arena,front+down,front+width+down,.18f);
-            for(int i=0;i<5;i++)
+            // A solid low tray seats the scrap; three open bays keep it legible instead
+            // of adding another fine grille over the distant background masonry.
+            CraneCase(arena,front+down,1.45f,.22f,depth);
+            CraneBeam(arena,front,front+width,.20f);
+            CraneBeam(arena,front+down,front+width+down,.22f);
+            for(int i=0;i<4;i++)
             {
-                Vector3 p=front+width*(i/4f);
-                Tube(arena,p,p+down,.08f);
+                Vector3 p=front+width*(i/3f);
+                CraneBeam(arena,p,p+down,.12f);
             }
             // The side diagonal keeps the open load visible while giving the cage a rigid corner.
             Tube(arena,front+width+down,front+width+depth,.075f);
@@ -370,18 +399,6 @@ namespace Cryptforge.UI
             {
                 Vector3 p=Vector3.Lerp(a,b,i/(float)count);
                 Tube(arena,p-n*width*.66f,p+n*width*.66f,width*.22f);
-            }
-        }
-
-        private void Truss(ArenaView arena,Vector3 a,Vector3 b,float depth)
-        {
-            Vector3 n=new Vector3(-(b-a).y,(b-a).x,0).normalized*depth;
-            Tube(arena,a,b,.2f);Tube(arena,a-n,b-n,.17f);
-            const int panels=7;
-            for(int i=0;i<panels;i++)
-            {
-                Vector3 p=Vector3.Lerp(a,b,i/(float)panels),q=Vector3.Lerp(a,b,(i+1)/(float)panels);
-                Tube(arena,p,q-n,.085f);Tube(arena,p-n,q,.085f);
             }
         }
 

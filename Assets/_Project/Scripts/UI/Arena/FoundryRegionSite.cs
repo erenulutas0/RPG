@@ -370,10 +370,10 @@ namespace Cryptforge.UI
             }
             Create("Crane gussets",iron,arena.PlatformMaterials.FoundryIron,-11);
             Vector3 drum=foot+Vector3.up*.68f;
-            Tube(arena,drum+Vector3.left*.35f,drum+Vector3.right*.35f,.42f);
+            CraneBeam(arena,drum+Vector3.left*.35f,drum+Vector3.right*.35f,.42f);
             foreach(float y in new[]{-.15f,0,.15f})
-                Tube(arena,drum+new Vector3(-.3f,y,0),drum+new Vector3(.3f,y,0),.035f);
-            Wheel(arena,drum+Vector3.right*.38f,.3f);
+                CraneBeam(arena,drum+new Vector3(-.3f,y,0),drum+new Vector3(.3f,y,0),.025f);
+            BuildCraneSheave(arena,drum+Vector3.right*.38f,.3f,true);
         }
 
         private void BuildShaftCollar(ArenaView arena)

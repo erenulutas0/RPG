@@ -879,3 +879,8 @@ The paving validation exposed a test-only Update/LateUpdate race in ExitSealPres
 ## 2026-10-07 - Guardian package verification
 
 .NET390, Edit410, Play145, graphics1, compile clean; integrity544/1099/568. New keeper integration is included in FoundryRegionTests (one shared batch, alpha import, depth/cutaway, clearance and resource ownership). Real Unity proof: ArtDirection/2026-10-07/guardian-runtime-01. APK93380BAC built, NOT device-verified because USB disappeared. After reconnect, inspect the bridge pair at normal follow width, walk left court behind keeper, verify hero cutaway, banner/console attachment, and ordinary combat after diagnostic cleanup. See docs38 for exact hash and device handoff. Do not confuse the18 region MeshRenderers with total device draw calls.
+
+
+## 2026-10-07 - Crane structure verification
+
+Full .NET390/Edit410/Play145, graphics1 and compile clean; integrity544/1099/568. APK24BCDD64BD851636A0DCB4948ADAC7FCBACE2D19753A32A04497B3F56EC4E4AD installed/hash matched on S23. Guarded west-court crane view, local character cutaway and normal Staff combat reviewed. Original profile/development files unchanged; diagnostics removed. Proof ArtDirection/2026-10-07/crane-structure-01. Region remains18renderers,79,288vertices; no new dynamic work. Full crane remains a square review view: the production portrait naturally crops outboard/top portions at close range.

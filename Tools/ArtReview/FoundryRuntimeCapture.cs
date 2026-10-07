@@ -191,6 +191,21 @@ namespace Cryptforge.Tests
                 }
                 keeperPosition++;
             }
+            // Production-scale crane approach; a reachable courtyard point with hero clearance.
+            float priorX=movement.Motion.X,priorY=movement.Motion.Y;
+            Cryptforge.Art.FoundryMap.ToFloor(-17,15,out float cx,out float cy);
+            Assert.That(arena.Geometry.IsOnPlatform(cx,cy,HeroMotion.EdgeMargin),Is.True);
+            movement.Motion.Place(cx,cy,arena.Geometry);
+            hero.transform.position=new Vector3(cx,cy*.5f,hero.transform.position.z);
+            _camera.aspect=1080f/2340f;
+            follow.Frame(1080,2340,361,2340-427);
+            _camera.transform.position=follow.Goal();
+            yield return null;
+            Capture("crane-portrait",1080,2340);
+            movement.Motion.Place(priorX,priorY,arena.Geometry);
+            hero.transform.position=new Vector3(priorX,priorY*.5f,hero.transform.position.z);
+            yield return null; // Closeup must show the winch without the portrait's local cutaway.
+
             // Review the complete blockout without changing the playable camera or the scene asset.
             _camera.GetComponent<ArenaCameraFollow>().enabled=false;
             foreach(var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include,FindObjectsSortMode.None))
