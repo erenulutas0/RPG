@@ -33,6 +33,7 @@ namespace Cryptforge.UI
                 LitFoundryTier(stone,32.02f,v+.02f,34.98f,v+1.98f,5.7f,6.05f,.12f);
                 LitFoundryTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
                 LitFoundryTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
+                BuildGateCornerStones(stone,v);
             }
             // The stepped keystone ties the shallow pediment to the door's central seal.
             // Its crown stays below the existing gable and within the header footprint.
@@ -79,14 +80,69 @@ namespace Cryptforge.UI
             // The two sloping roof faces establish actual projected depth, not a flat icon.
             stone.WallQuad(a,ridge,ridge+back,a+back,false,new Color(.67f,.69f,.75f));
             stone.WallQuad(ridge,b,b+back,ridge+back,false,new Color(.41f,.45f,.55f));
-            // Heavy stone capping courses follow the slopes with the same restrained material.
+            // Individual dressed coping blocks follow the slopes. Sampling a stone interior
+            // avoids horizontal brick joints running across these sloping structural pieces.
             foreach(var edge in new[]{new[]{a,ridge},new[]{ridge,b}})
             {
-                Vector3 p=edge[0],q=edge[1];
-                stone.WallQuad(p,q,q+Vector3.up*.13f,p+Vector3.up*.13f,false,new Color(.7f,.72f,.78f));
-                stone.WallQuad(p+Vector3.up*.13f,q+Vector3.up*.13f,
-                    q+back+Vector3.up*.13f,p+back+Vector3.up*.13f,false,new Color(.57f,.61f,.7f));
+                for(int i=0;i<7;i++)
+                {
+                    Vector3 p=Vector3.Lerp(edge[0],edge[1],(i+.015f)/7f);
+                    Vector3 q=Vector3.Lerp(edge[0],edge[1],(i+.985f)/7f);
+                    Vector3 rise=Vector3.up*.19f;
+                    Color tint=new Color(.69f,.71f,.76f)*(i%3==1?.92f:1f);
+                    GateDressedFace(stone,p,q,q+rise,p+rise,tint,.14f);
+                    GateDressedFace(stone,p+rise,q+rise,q+back+rise,p+back+rise,
+                        new Color(.59f,.63f,.70f),.035f);
+                }
             }
+        }
+
+        private static void BuildGateCornerStones(Builder stone,float v)
+        {
+            // Paired returns wrap the existing chamfer, clear of ventilation recesses.
+            // Split at the existing projecting belts instead of painting stones over them.
+            foreach(var range in new[]{new Vector2(.49f,1.46f),new Vector2(1.74f,3.21f),
+                new Vector2(3.49f,5.41f)})
+            {
+                int count=Mathf.CeilToInt((range.y-range.x)/.55f);
+                for(int i=0;i<count;i++)
+                {
+                    float bottom=Mathf.Lerp(range.x,range.y,i/(float)count)+.018f;
+                    float top=Mathf.Lerp(range.x,range.y,(i+1)/(float)count)-.018f;
+                    Vector3 a=Project(32.26f,v+.52f),b=Project(32.26f,v+.42f);
+                    Vector3 c=Project(32.44f,v+.24f),d=Project(32.68f,v+.24f);
+                    var points=new[]{a,b,c,d};
+                    for(int face=0;face<3;face++)
+                    {
+                        float light=(face==0?.57f:face==1?.73f:.87f)*(i%2==0?1f:.94f);
+                        GateDressedFace(stone,points[face]+Vector3.up*bottom,
+                            points[face+1]+Vector3.up*bottom,points[face+1]+Vector3.up*top,
+                            points[face]+Vector3.up*top,new Color(light*.94f,light*.97f,light),.10f);
+                    }
+                }
+            }
+        }
+
+        private static void GateDressedFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,
+            Color tint,float bevel)
+        {
+            Vector3 center=(a+b+c+d)*.25f;
+            Vector3 ia=Vector3.Lerp(a,center,bevel),ib=Vector3.Lerp(b,center,bevel);
+            Vector3 ic=Vector3.Lerp(c,center,bevel),id=Vector3.Lerp(d,center,bevel);
+            GateStonePatch(mesh,ia,ib,ic,id,tint);
+            GateStonePatch(mesh,a,b,ib,ia,tint*.55f);
+            GateStonePatch(mesh,b,c,ic,ib,tint*.72f);
+            GateStonePatch(mesh,c,d,id,ic,tint*1.18f);
+            GateStonePatch(mesh,d,a,ia,id,tint*.91f);
+        }
+
+        private static void GateStonePatch(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tint)
+        {
+            tint.a=1;
+            int start=mesh.U.Count;
+            mesh.Quad(a,b,c,d,false,tint);
+            mesh.U[start]=new Vector2(.27f,.65f);mesh.U[start+1]=new Vector2(.42f,.65f);
+            mesh.U[start+2]=new Vector2(.42f,.75f);mesh.U[start+3]=new Vector2(.27f,.75f);
         }
 
         private static void BuildGatePedimentRecess(Builder stone,Vector3 a,Vector3 b,Vector3 ridge)
@@ -130,11 +186,11 @@ namespace Cryptforge.UI
                 // Cast finials are carried by the existing terminal, not floating
                 // ornaments. Their narrow upper taper leaves the door crest dominant.
                 TintedIronTier(iron,33.15f,v+.65f,33.85f,v+1.35f,7.36f,7.53f,.04f,
-                    new Color(.48f,.51f,.58f));
+                    new Color(.68f,.73f,.83f),true);
                 TintedIronTier(iron,33.20f,v+.70f,33.80f,v+1.30f,7.53f,7.67f,.025f,
-                    new Color(.72f,.56f,.34f));
+                    new Color(1.03f,.80f,.49f),true);
                 TintedIronTier(iron,33.25f,v+.75f,33.75f,v+1.25f,7.67f,8.45f,.22f,
-                    new Color(.56f,.60f,.69f));
+                    new Color(.80f,.86f,.99f),true);
                 // Deep narrow panels break the broad tower faces into supporting pilasters.
                 // They are on the existing front plane, clear of the door and banner facade.
                 foreach(var levels in new[]{new Vector2(.72f,1.3f),new Vector2(1.88f,3.03f),
@@ -304,11 +360,16 @@ namespace Cryptforge.UI
         }
 
         private static void TintedIronTier(Builder mesh,float u0,float v0,float u1,float v1,
-            float bottom,float top,float inset,Color tint)
+            float bottom,float top,float inset,Color tint,bool plainIron=false)
         {
             int first=mesh.C.Count;
             ArchitecturalTier(mesh,u0,v0,u1,v1,bottom,top,inset);
-            for(int i=first;i<mesh.C.Count;i++)mesh.C[i]*=tint;
+            for(int i=first;i<mesh.C.Count;i++)
+            {
+                mesh.C[i]*=tint;
+                // Cast terminals use solid iron, not a complete riveted plate per facet.
+                if(plainIron)mesh.U[i]=IronPatch+(Vector2)(mesh.V[i]-mesh.V[first])*.025f;
+            }
         }
 
         private static void ArchitectureBar(Builder mesh,Vector3 a,Vector3 b,float width,Color tint)
