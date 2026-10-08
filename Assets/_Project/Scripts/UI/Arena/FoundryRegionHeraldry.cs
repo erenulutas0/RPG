@@ -105,6 +105,68 @@ namespace Cryptforge.UI
             return FoundryMap.Contains(x,y,.2f);
         }
 
+        // A flush processional inlay makes the long gate apron read as a destination.
+        // Matte stone/brass, with no emission or animation: this is architecture, not an
+        // ability telegraph or a second interactive exit. The whole panel stays inside
+        // the existing lane and is lit with the floor in the shared decal batch.
+        private void BuildGateProcession(ArenaView arena)
+        {
+            var inlay=new Builder();
+            var groove=new Color(.48f,.46f,.43f);
+            var brass=new Color(.70f,.58f,.39f);
+            var edge=new Color(.78f,.66f,.46f);
+            var frame=new[]{new Vector2(15.8f,2),new Vector2(16.5f,1.3f),
+                new Vector2(29.9f,1.3f),new Vector2(30.6f,2),new Vector2(30.6f,8),
+                new Vector2(29.9f,8.7f),new Vector2(16.5f,8.7f),new Vector2(15.8f,8)};
+            var inner=new[]{new Vector2(16.2f,2.15f),new Vector2(16.65f,1.7f),
+                new Vector2(29.75f,1.7f),new Vector2(30.2f,2.15f),new Vector2(30.2f,7.85f),
+                new Vector2(29.75f,8.3f),new Vector2(16.65f,8.3f),new Vector2(16.2f,7.85f)};
+            for(int pass=0;pass<2;pass++)
+            {
+                bool metal=pass==1;
+                var trim=metal?CopingTrim.Brass:CopingTrim.Stone;
+                Color tone=metal?brass:groove;
+                for(int i=0;i<frame.Length;i++)
+                {
+                    Vector2 p=frame[i],q=frame[(i+1)%frame.Length];
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.075f:.14f,tone,trim,i);
+                    p=inner[i];q=inner[(i+1)%inner.Length];
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.035f:.075f,tone,trim,i+7);
+                }
+                Vector2 centre=new Vector2(23.2f,5);
+                for(int i=0;i<48;i++)
+                {
+                    float a=i*Mathf.PI/24,b=(i+1)*Mathf.PI/24;
+                    foreach(float radius in new[]{1.72f,1.96f})
+                    {
+                        Vector2 p=centre+SealPolar(a,radius),q=centre+SealPolar(b,radius);
+                        Strip(inlay,p.x,p.y,q.x,q.y,metal?.055f:.11f,tone,trim,i);
+                    }
+                }
+                // Four long points follow the approach; their open interior preserves
+                // paving detail and actor contrast at the normal follow-camera width.
+                var star=new[]{new Vector2(2.62f,0),new Vector2(.42f,.42f),
+                    new Vector2(0,1.45f),new Vector2(-.42f,.42f),
+                    new Vector2(-2.62f,0),new Vector2(-.42f,-.42f),
+                    new Vector2(0,-1.45f),new Vector2(.42f,-.42f)};
+                for(int i=0;i<star.Length;i++)
+                {
+                    Vector2 p=centre+star[i],q=centre+star[(i+1)%star.Length];
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.07f:.13f,metal?edge:groove,trim,i);
+                }
+                foreach(var ends in new[]{new Vector2(17.1f,20.38f),new Vector2(26.02f,29.3f)})
+                    Strip(inlay,ends.x,5,ends.y,5,metal?.055f:.11f,tone,trim);
+                // Four short ties connect the framing to the medallion without filling
+                // the fighting lane with a repeated luminous-looking pattern.
+                foreach(float u in new[]{18f,28.4f})foreach(float v in new[]{1.5f,8.5f})
+                {
+                    Vector2 c=new Vector2(u,v),along=new Vector2(.32f,0),across=new Vector2(0,.18f);
+                    SealQuad(inlay,c-along,c+across,c+along,c-across,metal?edge:groove,metal?CopingRail:SealStone);
+                }
+            }
+            Create("Gate processional stone and brass inlay",inlay,arena.PlatformMaterials.Coping,FloorDecal);
+        }
+
         // A crack-free 72x88 px patch of panel stone (texel ~.18, std .005): the seal's fills read as one dark stone,
         // not as magnified cracks, rails or frames (floor UVs would tile the whole coping sheet across the disc).
         private static readonly Vector4 SealStone=new Vector4(2024/2172f,1-443/724f,2096/2172f,1-355/724f);

@@ -309,3 +309,8 @@ Proofs under `ArtDirection/2026-09-30/`; state, verification table and commit pl
 - [ ] True walkable gate elevation and further painted light/material cohesion against the approved concept. These are not completed by the decorative shoulders or this package.
 
 Evidence: ArtDirection/2026-10-08/north-workshop-paving-01; latest state and installation in docs38/23. Historical unchecked September texture/commit items above are dated snapshots, not a reversal of later completed packages.
+
+## 2026-10-08 - Gate approach motif
+
+- [x] Long matte processional frame, lane-oriented medallion and broad dressed threshold using existing batches (gate-procession-01; full gate and S23).
+- [ ] Actual walkable gate elevation: consistent ground/actor/shadow/effect/camera projection and depth/cutaway proof. The new flush artwork does not complete this item.

@@ -225,7 +225,8 @@ namespace Cryptforge.UI
             Color brass=new Color(.7f,.56f,.34f);
             BuildCourtSeal(arena);
             Strip(inlays,-22,-24,-8,-10,.12f,brass,CopingTrim.Brass);Strip(inlays,-24,-22,-10,-8,.12f,brass,CopingTrim.Brass);
-            Strip(inlays,4,-1,30,-1,.12f,brass,CopingTrim.Brass);Strip(inlays,5,9,30,9,.12f,brass,CopingTrim.Brass);
+            // Court guides stop before the gate's own centred processional panel.
+            Strip(inlays,4,-1,13.5f,-1,.12f,brass,CopingTrim.Brass);Strip(inlays,5,9,13.5f,9,.12f,brass,CopingTrim.Brass);
             Strip(inlays,-16,-10,8,-10,.1f,brass,CopingTrim.Brass);Strip(inlays,-16,-10,-16,15,.1f,brass,CopingTrim.Brass);
             Strip(inlays,-16,15,10,15,.1f,brass,CopingTrim.Brass);
             BuildCourtCompass(inlays,brass);

@@ -42,6 +42,7 @@ namespace Cryptforge.UI
             LitFoundryTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
             BuildGateInlays(arena,height);
+            BuildGateProcession(arena);
             BuildGateThreshold(arena);
             BuildGateLandingShoulders(arena);
         }
@@ -69,33 +70,22 @@ namespace Cryptforge.UI
                     Create("Gate landing stepped shoulders",stone,arena.PlatformMaterials.FoundryWall,-11);
                 }
             }
-            var threshold=new Builder();
-            foreach(float u in new[]{27.75f,28.15f})
-                Strip(threshold,u,.5f,u,9.5f,.13f,new Color(.76f,.72f,.65f),CopingTrim.Stone);
-            // Broad stone portal band, flush with the lane, marks arrival at the wider landing.
-            Create("Gate landing approach band",threshold,arena.PlatformMaterials.Coping,FloorDecal);
+            // The flush processional panel now continues across this landing seam.
         }
 
         private void BuildGateThreshold(ArenaView arena)
         {
-            // Flush wear strips belong to the existing gate apron. They are not
-            // stairs, a new collision surface or an interactive exit marker.
+            // A crosswise dressed threshold terminates the processional panel. These
+            // five broad stones replace tiny repeated metal brackets; they are flush,
+            // with the same continuous stone texture/light as the apron beneath them.
+            var stone=new Builder();
+            for(int i=0;i<5;i++)
+                AshlarFlag(stone,new AshlarStone{I=61,J=i*4,W=3,H=4,Zone=2});
+            Create("Gate dressed threshold paving",stone,arena.PlatformMaterials.FoundryPaving,-15);
             var iron=new Builder();
-            for(int i=0;i<8;i++)
-            {
-                float v=-.6f+i*1.4f;
-                // Open stone between strips avoids dark plates reading as pits.
-                Strip(iron,30.95f,v+.12f,31.75f,v+.12f,.08f,new Color(.75f,.70f,.61f),CopingTrim.Brass);
-                Strip(iron,30.95f,v+1.24f,31.75f,v+1.24f,.08f,new Color(.75f,.70f,.61f),CopingTrim.Brass);
-                Strip(iron,30.95f,v+.12f,30.95f,v+1.24f,.055f,new Color(.67f,.62f,.54f),CopingTrim.Brass);
-                foreach(float corner in new[]{.16f,1.20f})
-                {
-                    Vector3 p=Project(31.05f,v+corner);
-                    ArchitectureBar(iron,p-Vector3.right*.026f,p+Vector3.right*.026f,.045f,
-                        new Color(.63f,.59f,.49f));
-                }
-            }
-            Create("Flush gate wear threshold",iron,arena.PlatformMaterials.Coping,FloorDecal);
+            foreach(float u in new[]{30.55f,31.88f})
+                Strip(iron,u,.18f,u,9.82f,.055f,new Color(.67f,.59f,.43f),CopingTrim.Brass);
+            Create("Flush gate threshold bindings",iron,arena.PlatformMaterials.Coping,FloorDecal);
         }
 
         private static void BuildGatePediment(Builder stone,float height)
