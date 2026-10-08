@@ -18,10 +18,12 @@ namespace Cryptforge.UI
         private static float CornerDistance(Vector3 p,int corner,int plane)
         {
             FoundryMap.ToDesign(p.x,p.y*2,out float u,out float v);
-            if(plane==0)return corner==0?u-FoundryMap.West:FoundryMap.East-u;
-            if(plane==1)return v-FoundryMap.South;
-            return corner==0?FoundryMap.West+FoundryMap.South+FoundryMap.CornerCut-u-v:
-                u-v-(FoundryMap.East-FoundryMap.South-FoundryMap.CornerCut);
+            bool west=corner==0||corner==3,north=corner>=2;
+            float x=west?u-FoundryMap.West:FoundryMap.East-u;
+            float y=north?FoundryMap.North-v:v-FoundryMap.South;
+            if(plane==0)return x;
+            if(plane==1)return y;
+            return (north?FoundryMap.NorthCornerCut:FoundryMap.CornerCut)-x-y;
         }
         private static List<CornerVertex> CornerClip(List<CornerVertex> source,int corner,int plane,float sign)
         {
@@ -41,7 +43,7 @@ namespace Cryptforge.UI
         }
         private static void ClipFloorCorners(Builder mesh)
         {
-            for(int corner=0;corner<2;corner++)
+            for(int corner=0;corner<FoundryMap.CornerCount;corner++)
             {
                 var result=new Builder();var remap=new Dictionary<int,int>();
                 void Add(List<CornerVertex> polygon)
@@ -80,16 +82,21 @@ namespace Cryptforge.UI
         }
         private static void CornerEdge(int corner,out Vector2 a,out Vector2 b,out Vector2 outward)
         {
-            float west=FoundryMap.West,east=FoundryMap.East,south=FoundryMap.South,cut=FoundryMap.CornerCut;
-            a=corner==0?new Vector2(west,south+cut):new Vector2(east-cut,south);
-            b=corner==0?new Vector2(west+cut,south):new Vector2(east,south+cut);
-            outward=corner==0?new Vector2(-1,-1).normalized:new Vector2(1,-1).normalized;
+            float west=FoundryMap.West,east=FoundryMap.East,south=FoundryMap.South,north=FoundryMap.North;
+            float cut=corner<2?FoundryMap.CornerCut:FoundryMap.NorthCornerCut;
+            switch(corner)
+            {
+                case 0:a=new Vector2(west,south+cut);b=new Vector2(west+cut,south);outward=new Vector2(-1,-1).normalized;break;
+                case 1:a=new Vector2(east-cut,south);b=new Vector2(east,south+cut);outward=new Vector2(1,-1).normalized;break;
+                case 2:a=new Vector2(east,north-cut);b=new Vector2(east-cut,north);outward=new Vector2(1,1).normalized;break;
+                default:a=new Vector2(west+cut,north);b=new Vector2(west,north-cut);outward=new Vector2(-1,1).normalized;break;
+            }
         }
         private static bool CourtEdgeVisible(float u,float v)=>u>FoundryMap.East+.001f||FoundryMap.CourtPlane(u,v);
 
         private void BuildDiagonalCourtEdges(ArenaView arena,Builder walls,Builder trim)
         {
-            for(int corner=0;corner<2;corner++)
+            for(int corner=0;corner<FoundryMap.CornerCount;corner++)
             {
                 CornerEdge(corner,out var a,out var b,out var outward);
                 Vector3 pa=Project(a.x,a.y),pb=Project(b.x,b.y);

@@ -136,7 +136,7 @@ namespace Cryptforge.UI
             // footprint omitted the anvil extension and the pipe/quenching station.
             // Reuse the existing deposit field rather than layering another stain.
             float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,-29f,5,-24.45f,8.4f),
-                DistanceFromFloorBox(u,v,2,18.5f,7,22.4f));
+                DistanceFromFloorBox(u,v,StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w));
             float shaftSoot=Mathf.Clamp01(1-shaftDistance/1.45f);
             shaftSoot*=shaftSoot*Mathf.Lerp(.55f,1,FloorPatina(u*.71f+9,v*.71f-4));
             // Service deposits spread into the working apron, but remain broad enough to
@@ -228,24 +228,12 @@ namespace Cryptforge.UI
             return 0;
         }
 
-        // Court ashlar, 2026-10-01. The 2x1 running bond (the apron's 1x2) ran every course joint unbroken across the
-        // court, 22-32 u long: the canonical brick bond at the portrait camera, where the paving fills 80-95% of the
-        // view, against the concept's large dressed flags of mixed size with no joint running on. The court and the
-        // apron are now random ashlar on a half-unit grid, laid once at load from a seeded hash: stones 1-3 u a side
-        // (aspect at most 2.5, at most 6.25 cells) weighted to the 2.5-6 cell flags, half-unit infill only where nothing
-        // else fits. A skyline packer fills the lowest, then leftmost free half cell with a weighted pick among its
-        // best-scored stones: no new joint making a visible straight run over 4 u (brass and the void edge are covered
-        // and end a run; a zone edge counts at most 2 u, so the T a convex zone corner forces stays short), no four-way
-        // crossing, no half-unit step beside a neighbour, and no half cell left over in the row or under a forced joint
-        // (only infill could take it). A stone whose top meets its neighbour's top, or the end of a forced line beside
-        // it, is ten times likelier, so the next stone can bridge the joint between them: two columns leapfrogging each
-        // other otherwise draw one long joint. Where every stone breaks a rule the least penalised is laid. The apron
-        // keeps its crosswise lay - a stone wider than it is tall is a quarter as likely there. Seed 24, measured on the
-        // whole floor: 398 court and apron stones (mean 2.8 cells, no infill); 94% of the visible free joints run 4 u or
-        // less, 25 run 4.5-6.5 u, and no zone edge is carried on by more than 3 u. The brass lanes and the compass's axis
-        // rays lie in forced joints, so no flag runs under an inlay. The seal inset's 2x2 flags and the west strip's 1x1
-        // setts are laid exactly as before.
-        private const int AshlarSub=2,AshlarRun=8,AshlarEdgeRun=4,AshlarLevel=10,AshlarSalt=24;
+        // Half-unit ashlar lattice, tightened to 1-2 unit stones (maximum area3) for
+        // the reference-scale court. The skyline packer breaks long joints and avoids
+        // four-way crossings; brass lines remain forced joints. The seal/work lane
+        // use one-unit flags. Smaller, softer joints keep the denser layout subordinate
+        // to actors. Historical 398-stone statistics belonged to the larger 2026-10-01 lay.
+        private const int AshlarSub=2,AshlarRun=6,AshlarEdgeRun=4,AshlarLevel=10,AshlarSalt=24;
         private const byte AshlarFree=0,AshlarEdge=1,AshlarCovered=2;
         // Forced joints under the court's brass, (u0, v0, u1, v1) of each line: BuildLandmarks' lanes and BuildCourtCompass'
         // rays on the axes (r 4.1-8.5; the joint runs on from the seal inset's edge at 4).
@@ -261,10 +249,10 @@ namespace Cryptforge.UI
         private static int[] AshlarFamily(bool crosswise)
         {
             var sizes=new List<int>();
-            for(int h=2;h<=6;h++)
-                for(int w=2;w<=6;w++)
+            for(int h=2;h<=4;h++)
+                for(int w=2;w<=4;w++)
                 {
-                    if(Mathf.Max(w,h)*2>5*Mathf.Min(w,h)||w*h>25)continue;
+                    if(w*h>12)continue;
                     int weight=w*h<6?3:w*h<10?6:8;
                     sizes.AddRange(new[]{w,h,crosswise&&w>h?Mathf.Max(1,weight/4):weight});
                 }
@@ -320,11 +308,11 @@ namespace Cryptforge.UI
                 else lay.Cover(false,Mathf.RoundToInt((line.x-u0)*AshlarSub),
                     Mathf.RoundToInt((line.y-v0)*AshlarSub),Mathf.RoundToInt((line.w-v0)*AshlarSub));
             }
-            // The seal inset's sixteen 2x2 flags and the west strip's setts first, then the court, then the apron.
+            // One-unit flags under the seal and west work lane, then the smaller court/apron ashlar.
             for(int i=0;i<lay.W;i+=AshlarSub)
                 for(int j=0;j<lay.H;j+=AshlarSub)
                 {
-                    if(zone[i,j]==1&&((i/AshlarSub+u0)&1)==0&&((j/AshlarSub+v0)&1)==0)lay.Place(i,j,2*AshlarSub,2*AshlarSub,1);
+                    if(zone[i,j]==1)lay.Place(i,j,AshlarSub,AshlarSub,1);
                     else if(zone[i,j]==3)lay.Place(i,j,AshlarSub,AshlarSub,3);
                 }
             lay.Fill(0,salt);lay.Fill(2,salt);
@@ -525,10 +513,10 @@ namespace Cryptforge.UI
                 s.Zone==2?new Color(1.01f,.985f,.96f):
                 s.Zone==3?new Color(.82f,.84f,.88f):Color.white;
             Color faceTint=flagTint*tint;
-            // A darker joint and a lit/shaded bevel, so each flag reads as a laid stone: .028 / .06 on a 1x1, a little
-            // wider on the big flags (.034 / .075 at 6 cells), never more than .14 of an infill stone's width.
-            float joint=kept?.028f:.024f+.004f*Mathf.Sqrt(area);
-            float bevel=kept?.06f:Mathf.Min(.05f+.01f*Mathf.Sqrt(area),.14f*Mathf.Min(w,h));
+            // Narrow joints and shallow bevels preserve the laid-stone relief at the finer scale.
+            // Infill bevel width is capped relative to the smallest side.
+            float joint=kept?.018f:.014f+.003f*Mathf.Sqrt(area);
+            float bevel=kept?.04f:Mathf.Min(.032f+.008f*Mathf.Sqrt(area),.12f*Mathf.Min(w,h));
             // The joint bed's vertices are the 1-unit lattice the step test already lit; refined, it takes the finer one.
             float[] us=LightLines(u0,u1,1),vs=LightLines(v0,v1,1);
             var lattice=new Color[us.Length*vs.Length];
@@ -536,7 +524,7 @@ namespace Cryptforge.UI
             float step=AshlarLightStep(us,vs,lattice);
             // Dust-filled court joints stay subordinate to actors and brass routes at phone size.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.5f:.66f;
+            float jointTone=kept?.6f:.70f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
             // Lit from screen right: the v0 and u1 edges are one strip, mitred where they meet, the u0 and v1 edges the

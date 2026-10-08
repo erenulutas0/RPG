@@ -4,6 +4,12 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        private const float StockShift=-20;
+        // One station origin moves its support, tools, stock, depth and rail exclusion together.
+        private static Vector4 StockShelf=>new Vector4(2+StockShift,18.5f,7+StockShift,22.4f);
+        private static Vector3 StockProject(float u,float v)=>Project(u+StockShift,v);
+        private static void StockHull(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,float bevel)=>
+            WorkshopMetalHull(mesh,u0+StockShift,v0,u1+StockShift,v1,bottom,top,bevel);
         // Two small exterior service shelves explain the crane's industrial purpose.
         // Their complete design-plane footprints are outside the shared walking union.
         private void BuildWorkshop(ArenaView arena)
@@ -11,9 +17,9 @@ namespace Cryptforge.UI
             // Extend only toward the exterior void for the working anvil station;
             // the court-facing edge, stock and parts bin stay in their old places.
             Block(arena,-29f,5,-24.45f,8.4f,.18f,2.8f,"Salvage service shelf");
-            // The north extension is masonry-backed all the way to its outer edge;
-            // its court-facing edge and the original pipe/tool positions do not move.
-            Block(arena,2,18.5f,7,22.4f,.18f,2.8f,"Pipe service shelf");
+            // Group the complete stock station behind the northwest pit loop, near the
+            // crane and anvil. Its own local arrangement stays on its masonry support.
+            Block(arena,StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,.18f,2.8f,"Northwest pipe service shelf");
 
             var ingots=new Builder();
             // Staggered courses read as metal stock, with sloped shoulders and small gaps.
@@ -37,37 +43,37 @@ namespace Cryptforge.UI
             var basin=new Builder();
             // Two low skids carry an open iron tank; no emissive water or effect.
             foreach(float u in new[]{5.4f,6.4f})
-                WorkshopMetalHull(basin,u,20.75f,u+.28f,22.05f,.18f,.32f,.02f);
+                StockHull(basin,u,20.75f,u+.28f,22.05f,.18f,.32f,.02f);
             // Far walls first, then a recessed opaque liquid plane, then near walls.
             // This is painter-ordered geometry in the existing static iron batch.
-            WorkshopMetalHull(basin,5.3f,21.94f,6.8f,22.1f,.32f,.85f,.025f);
-            WorkshopMetalHull(basin,6.64f,20.7f,6.8f,21.94f,.32f,.85f,.025f);
+            StockHull(basin,5.3f,21.94f,6.8f,22.1f,.32f,.85f,.025f);
+            StockHull(basin,6.64f,20.7f,6.8f,21.94f,.32f,.85f,.025f);
             Color inner=new Color(.16f,.19f,.23f);
-            FullFace(basin,Project(5.46f,21.94f)+Vector3.up*.58f,
-                Project(6.64f,21.94f)+Vector3.up*.58f,
-                Project(6.64f,21.94f)+Vector3.up*.82f,
-                Project(5.46f,21.94f)+Vector3.up*.82f,inner);
-            FullFace(basin,Project(6.64f,20.86f)+Vector3.up*.58f,
-                Project(6.64f,21.94f)+Vector3.up*.58f,
-                Project(6.64f,21.94f)+Vector3.up*.82f,
-                Project(6.64f,20.86f)+Vector3.up*.82f,inner);
-            FullFace(basin,Project(5.46f,20.86f)+Vector3.up*.58f,
-                Project(6.64f,20.86f)+Vector3.up*.58f,
-                Project(6.64f,21.94f)+Vector3.up*.58f,
-                Project(5.46f,21.94f)+Vector3.up*.58f,new Color(.09f,.13f,.17f));
-            WorkshopMetalHull(basin,5.3f,20.7f,6.8f,20.86f,.32f,.85f,.025f);
-            WorkshopMetalHull(basin,5.3f,20.86f,5.46f,21.94f,.32f,.85f,.025f);
+            FullFace(basin,StockProject(5.46f,21.94f)+Vector3.up*.58f,
+                StockProject(6.64f,21.94f)+Vector3.up*.58f,
+                StockProject(6.64f,21.94f)+Vector3.up*.82f,
+                StockProject(5.46f,21.94f)+Vector3.up*.82f,inner);
+            FullFace(basin,StockProject(6.64f,20.86f)+Vector3.up*.58f,
+                StockProject(6.64f,21.94f)+Vector3.up*.58f,
+                StockProject(6.64f,21.94f)+Vector3.up*.82f,
+                StockProject(6.64f,20.86f)+Vector3.up*.82f,inner);
+            FullFace(basin,StockProject(5.46f,20.86f)+Vector3.up*.58f,
+                StockProject(6.64f,20.86f)+Vector3.up*.58f,
+                StockProject(6.64f,21.94f)+Vector3.up*.58f,
+                StockProject(5.46f,21.94f)+Vector3.up*.58f,new Color(.09f,.13f,.17f));
+            StockHull(basin,5.3f,20.7f,6.8f,20.86f,.32f,.85f,.025f);
+            StockHull(basin,5.3f,20.86f,5.46f,21.94f,.32f,.85f,.025f);
             // A short dull reflection makes the dark inset legible without sparkle.
-            FullFace(basin,Project(5.66f,21.44f)+Vector3.up*.583f,
-                Project(6.06f,21.44f)+Vector3.up*.583f,
-                Project(6.06f,21.48f)+Vector3.up*.583f,
-                Project(5.66f,21.48f)+Vector3.up*.583f,new Color(.2f,.24f,.28f));
+            FullFace(basin,StockProject(5.66f,21.44f)+Vector3.up*.583f,
+                StockProject(6.06f,21.44f)+Vector3.up*.583f,
+                StockProject(6.06f,21.48f)+Vector3.up*.583f,
+                StockProject(5.66f,21.48f)+Vector3.up*.583f,new Color(.2f,.24f,.28f));
             // Broad welded ribs belong to the tank walls, not loose foreground trim.
             // Their design-plane extents remain inside the existing tank footprint.
             foreach(float u in new[]{5.48f,6.48f})
-                WorkshopMetalHull(basin,u,20.7f,u+.12f,20.76f,.34f,.8f,.012f);
+                StockHull(basin,u,20.7f,u+.12f,20.76f,.34f,.8f,.012f);
             foreach(float v in new[]{21.02f,21.65f})
-                WorkshopMetalHull(basin,5.3f,v,5.36f,v+.12f,.34f,.8f,.012f);
+                StockHull(basin,5.3f,v,5.36f,v+.12f,.34f,.8f,.012f);
             Create("Open workshop quenching tank",basin,arena.PlatformMaterials.FoundryIron,-11);
         }
 
@@ -77,10 +83,10 @@ namespace Cryptforge.UI
             // A low billet bundle and two flat wound-strip coils occupy only the
             // supported rear shelf; the original pipe rack remains the foreground.
             foreach(float v in new[]{20.86f,21.7f})
-                WorkshopMetalHull(stock,2.5f,v,3.4f,v+.16f,.18f,.29f,.015f);
+                StockHull(stock,2.5f,v,3.4f,v+.16f,.18f,.29f,.015f);
             for(int level=0;level<3;level++)
                 for(int column=0;column<2;column++)
-                    WorkshopMetalHull(stock,2.56f+column*.4f,20.78f,
+                    StockHull(stock,2.56f+column*.4f,20.78f,
                         2.9f+column*.4f,21.98f,.29f+level*.17f,.44f+level*.17f,.025f);
             const int segments=16;
             for(int layer=0;layer<2;layer++)
@@ -89,10 +95,10 @@ namespace Cryptforge.UI
                 for(int segment=0;segment<segments;segment++)
                 {
                     float a=segment*Mathf.PI*2/segments,b=(segment+1)*Mathf.PI*2/segments;
-                    Vector3 outerA=Project(4.03f+Mathf.Cos(a)*.52f,21.35f+Mathf.Sin(a)*.52f);
-                    Vector3 outerB=Project(4.03f+Mathf.Cos(b)*.52f,21.35f+Mathf.Sin(b)*.52f);
-                    Vector3 innerA=Project(4.03f+Mathf.Cos(a)*.23f,21.35f+Mathf.Sin(a)*.23f);
-                    Vector3 innerB=Project(4.03f+Mathf.Cos(b)*.23f,21.35f+Mathf.Sin(b)*.23f);
+                    Vector3 outerA=StockProject(4.03f+Mathf.Cos(a)*.52f,21.35f+Mathf.Sin(a)*.52f);
+                    Vector3 outerB=StockProject(4.03f+Mathf.Cos(b)*.52f,21.35f+Mathf.Sin(b)*.52f);
+                    Vector3 innerA=StockProject(4.03f+Mathf.Cos(a)*.23f,21.35f+Mathf.Sin(a)*.23f);
+                    Vector3 innerB=StockProject(4.03f+Mathf.Cos(b)*.23f,21.35f+Mathf.Sin(b)*.23f);
                     FullFace(stock,outerA+Vector3.up*bottom,outerB+Vector3.up*bottom,
                         outerB+Vector3.up*top,outerA+Vector3.up*top,new Color(.27f,.31f,.37f));
                     FullFace(stock,innerA+Vector3.up*bottom,innerB+Vector3.up*bottom,
@@ -210,13 +216,13 @@ namespace Cryptforge.UI
         {
             var saddles=new Builder();
             foreach(float u in new[]{2.5f,4.55f})
-                WorkshopMetalHull(saddles,u,18.78f,u+.25f,20.03f,.18f,.43f,.015f);
+                StockHull(saddles,u,18.78f,u+.25f,20.03f,.18f,.43f,.015f);
             Create("Stored pipe saddles",saddles,arena.PlatformMaterials.FoundryIron,-11);
             // Three horizontal lengths, deliberately separate from the operational furnace pipes.
             foreach(float v in new[]{19f,19.4f,19.8f})
             {
-                Vector3 a=Project(2.3f,v)+Vector3.up*.58f;
-                Vector3 b=Project(5f,v)+Vector3.up*.58f;
+                Vector3 a=StockProject(2.3f,v)+Vector3.up*.58f;
+                Vector3 b=StockProject(5f,v)+Vector3.up*.58f;
                 Tube(arena,a,b,.19f);
                 // Dark open bore and thin top edge at the visible end.
                 Vector3 normal=new Vector3(-(b-a).y,(b-a).x,0).normalized;
@@ -227,21 +233,21 @@ namespace Cryptforge.UI
                 Create("Stored pipe open ends",ends,arena.PlatformMaterials.FoundryIron,-11);
             }
             foreach(float u in new[]{2.7f,4.6f})
-                Tube(arena,Project(u,18.94f)+Vector3.up*.7f,
-                    Project(u,19.86f)+Vector3.up*.7f,.055f);
+                Tube(arena,StockProject(u,18.94f)+Vector3.up*.7f,
+                    StockProject(u,19.86f)+Vector3.up*.7f,.055f);
         }
 
         private void BuildToolRack(ArenaView arena)
         {
             // The paired handles and spread jaws distinguish tongs from the central
             // hanging hammer. All tools remain inside the original rack footprint.
-            Vector3 left=Project(5.65f,19.8f),right=Project(6.65f,19.8f);
+            Vector3 left=StockProject(5.65f,19.8f),right=StockProject(6.65f,19.8f);
             Tube(arena,left+Vector3.up*.2f,left+Vector3.up*1.3f,.07f);
             Tube(arena,right+Vector3.up*.2f,right+Vector3.up*1.3f,.07f);
             Tube(arena,left+Vector3.up*1.24f,right+Vector3.up*1.24f,.09f);
             foreach(float u in new[]{5.9f,6.35f})
             {
-                Vector3 handle=Project(u,19.78f)+Vector3.up*1.2f;
+                Vector3 handle=StockProject(u,19.78f)+Vector3.up*1.2f;
                 Vector3 joint=handle+Vector3.down*.63f;
                 Tube(arena,handle+Vector3.left*.04f,joint+Vector3.right*.018f,.035f);
                 Tube(arena,handle+Vector3.right*.04f,joint+Vector3.left*.018f,.035f);
@@ -253,13 +259,13 @@ namespace Cryptforge.UI
                     joint+new Vector3(.045f,-.19f,0),.035f);
             }
             var hammer=new Builder();
-            ArchitectureBar(hammer,Project(6.12f,19.8f)+Vector3.up*1.23f,
-                Project(6.12f,19.8f)+Vector3.up*.73f,.055f,new Color(.48f,.34f,.21f));
-            WorkshopMetalHull(hammer,5.97f,19.7f,6.27f,19.9f,.62f,.78f,.022f);
+            ArchitectureBar(hammer,StockProject(6.12f,19.8f)+Vector3.up*1.23f,
+                StockProject(6.12f,19.8f)+Vector3.up*.73f,.055f,new Color(.48f,.34f,.21f));
+            StockHull(hammer,5.97f,19.7f,6.27f,19.9f,.62f,.78f,.022f);
             Create("Rack hanging forge hammer",hammer,arena.PlatformMaterials.FoundryIron,-11);
             foreach(float u in new[]{5.65f,6.65f})
-                Tube(arena,Project(u,19.5f)+Vector3.up*.2f,
-                    Project(u,20.05f)+Vector3.up*.2f,.08f);
+                Tube(arena,StockProject(u,19.5f)+Vector3.up*.2f,
+                    StockProject(u,20.05f)+Vector3.up*.2f,.08f);
         }
 
         private static void WorkshopMetalHull(Builder mesh,float u0,float v0,float u1,float v1,

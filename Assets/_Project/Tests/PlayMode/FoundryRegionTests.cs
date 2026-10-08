@@ -59,7 +59,8 @@ namespace Cryptforge.Tests
                 if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
             Assert.That(paving,Is.Not.Null);
             foreach(var sample in new[]{new Vector3(-23,-13,0),new Vector3(13,-13,0),
-                new Vector3(-20.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1)})
+                new Vector3(-20.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
+                new Vector3(-23,17,0),new Vector3(13,17,0),new Vector3(-21.17f,14.77f,1),new Vector3(10.83f,14.77f,1)})
             {
                 Cryptforge.Art.FoundryMap.ToFloor(sample.x,sample.y,out float px,out float py);
                 Assert.That(FloorCovers(paving,new Vector2(px,py*.5f)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");

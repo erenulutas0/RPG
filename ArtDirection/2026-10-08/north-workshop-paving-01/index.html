@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foundry — north court, workshop and paving</title>
+<style>body{margin:0;background:#11121b;color:#e5ded5;font:16px/1.55 system-ui}main{max-width:1280px;margin:auto;padding:32px 20px}h1{line-height:1.15}p{max-width:850px;color:#c1bcc5}button,a{color:#efc688}button{background:#242333;border:1px solid #675341;padding:10px 18px;margin:4px;cursor:pointer;border-radius:5px}img{display:block;width:100%;height:auto;background:#181923;border-radius:8px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.portraits{grid-template-columns:repeat(3,minmax(0,1fr))}figure{margin:14px 0}figcaption{color:#b5aeb8;font-size:14px;padding:8px 0}.tag{color:#e7ad66}a{overflow-wrap:anywhere}@media(max-width:680px){.grid,.portraits{grid-template-columns:1fr}main{padding:22px 12px}}</style>
+<main>
+<div class="tag">CRYPTFORGE · 08 OCTOBER 2026 · ACTUAL UNITY CAPTURES</div>
+<h1>One court. A grouped workshop. Smaller stone.</h1>
+<p>Three changes in one playable package: four-unit north chamfers, the stock station beside the crane, and smaller paving with quieter joints. The six-unit south chamfers remain. These are actual game renders, not a new concept painting.</p>
+<button onclick="show('before')">Previous layout</button><button onclick="show('after')">Current layout</button>
+<figure><img id="overview" src="after/overview.png" alt="Current foundry overview"><figcaption id="caption">Current layout — north corners and grouped workshop.</figcaption></figure>
+<h2>Phone-camera paving comparison</h2>
+<div class="grid"><figure><img loading="lazy" src="before/point-2.png" alt="Previous centre paving"><figcaption>Before — broader flags and stronger joints.</figcaption></figure><figure><img loading="lazy" src="after/point-2.png" alt="Current centre paving"><figcaption>After — smaller flags; the same texture and gameplay camera.</figcaption></figure></div>
+<h2>Workshop grouping</h2>
+<figure><img loading="lazy" src="after/workshop-group.png" alt="Crane, reserve stock, tool rack and anvil"><figcaption>Reserve stock, basin, pipes and tools share the northwest work area. Existing anvil and crane remain; stock platform, depth footprint, clutter and soot moved together.</figcaption></figure>
+<h2>Real map traversal</h2>
+<div class="grid portraits"><figure><img loading="lazy" src="after/point-7.png" alt="Northwest court walk"><figcaption>Northwest chamfer.</figcaption></figure><figure><img loading="lazy" src="after/point-8.png" alt="Workshop front walk"><figcaption>Workshop front.</figcaption></figure><figure><img loading="lazy" src="after/point-9.png" alt="Northeast court walk"><figcaption>Northeast chamfer.</figcaption></figure></div>
+<h2>Installed on S23</h2>
+<p>The installed APK hash matches the tested build. Guarded north traversal and ordinary gameplay/loot were inspected. Profile and original development settings are unchanged; temporary diagnostic removed.</p>
+<div class="grid"><figure><img loading="lazy" src="device/northwest-edge.png" alt="S23 crane and northwest perimeter"><figcaption>S23 — crane and grouped workshop.</figcaption></figure><figure><img loading="lazy" src="device/workshop-front.png" alt="S23 stock station and north lane"><figcaption>S23 — stock front and clear north loop.</figcaption></figure><figure><img loading="lazy" src="device/northeast-edge.png" alt="S23 northeast chamfer"><figcaption>S23 — northeast chamfer and character clearance.</figcaption></figure><figure><img loading="lazy" src="device/normal-live.png" alt="S23 ordinary gameplay with XP and coins"><figcaption>S23 — ordinary Staff gameplay and loot over the smaller flags.</figcaption></figure></div>
+<h2>Reference and remaining work</h2>
+<p>The broad court, left furnace pit, south bridge and northeast gate remain the reference anchors. True walkable elevation at the gate and the reference's richer painted surface/light character remain open. This package does not finish the reference map.</p>
+<p><a href="../../2026-09-23/foundry-layout-01/foundry-v1.png">Approved concept reference</a> · <a href="after/map-export.png">Full-resolution game map</a> · <a href="README.md">Verification and device record</a> · <a href="after/mesh-budget.csv">Mesh budget</a></p>
+<p>18 region renderers, 92,951 vertices (+2,871 from the preceding package). Largest mesh: 27,023 vertices. No new material, texture or update loop. These counts are not a device FPS benchmark.</p>
+</main><script>function show(state){document.getElementById('overview').src=state+'/overview.png';document.getElementById('caption').textContent=state==='before'?'Previous layout — square north corners and separate stock station.':'Current layout — north corners and grouped workshop.'}</script></html>

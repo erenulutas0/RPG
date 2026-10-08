@@ -73,7 +73,7 @@ namespace Cryptforge.UI
                 DepthLandmark(p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,3.2f); // Bridge piers with their beacons.
             foreach(var p in BridgeHeadPosts)DepthLandmark(p.x-.7f,p.y-.7f,p.x+.7f,p.y+.7f,4.3f);
             DepthLandmark(-29f,5,-24.45f,8.4f,1.6f); // Salvage shelf with its anvil, crate and stock.
-            DepthLandmark(2,18.5f,7,22.4f,1.6f); // Pipe shelf with its basin, rack and stored pipes.
+            DepthLandmark(StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,1.6f); // Northwest pipe/tool station.
         }
         // The frontmost landmark whose volume holds the point; -1 when none does.
         private int ResolveDepthOwner(Vector3 point)

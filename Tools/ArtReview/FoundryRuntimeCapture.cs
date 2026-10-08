@@ -81,7 +81,7 @@ namespace Cryptforge.Tests
             var report=new System.Text.StringBuilder("point,seconds,x,y,stamina\n");
             int index=0;
             foreach(var design in new[]{new Vector2(-23,-23),new Vector2(-20,6),new Vector2(0,0),new Vector2(16,6),new Vector2(28,6),
-                new Vector2(10,-10),new Vector2(-20,-10)})
+                new Vector2(10,-10),new Vector2(-20,-10),new Vector2(-21,15),new Vector2(-15.5f,16),new Vector2(11,15)})
             {
                 Cryptforge.Art.FoundryMap.ToFloor(design.x,design.y,out float gx,out float gy);
                 var target=new Vector2(gx,gy);
@@ -207,7 +207,7 @@ namespace Cryptforge.Tests
             }
             // Production-scale crane approach; a reachable courtyard point with hero clearance.
             float priorX=movement.Motion.X,priorY=movement.Motion.Y;
-            Cryptforge.Art.FoundryMap.ToFloor(-23,15,out float cx,out float cy);
+            Cryptforge.Art.FoundryMap.ToFloor(-22.5f,14,out float cx,out float cy);
             Assert.That(arena.Geometry.IsOnPlatform(cx,cy,HeroMotion.EdgeMargin),Is.True);
             movement.Motion.Place(cx,cy,arena.Geometry);
             hero.transform.position=new Vector3(cx,cy*.5f,hero.transform.position.z);
@@ -302,8 +302,11 @@ namespace Cryptforge.Tests
             _camera.transform.position=new Vector3(-22.2426f,-6.1213f,_camera.transform.position.z);
             Capture("workshop-detail",1200,1200);
             _camera.orthographicSize=4;
-            _camera.transform.position=new Vector3(-11,8.3f,_camera.transform.position.z);
+            _camera.transform.position=new Vector3(-25.1421f,1.2289f,_camera.transform.position.z);
             Capture("pipe-storage-detail",1200,1200);
+            _camera.orthographicSize=9;
+            _camera.transform.position=new Vector3(-26.7f,-.5f,_camera.transform.position.z);
+            Capture("workshop-group",1400,1000);
             // The forged UI panel at its largest - a level-up choice over the HUD - at the playable camera. Taken after
             // every timed capture: the open choice pauses the run, and nothing below waits on scaled time.
             _camera.orthographicSize=savedSize;_camera.aspect=savedAspect;_camera.transform.position=savedCamera;
@@ -318,6 +321,13 @@ namespace Cryptforge.Tests
             var statics=arena.Region.GetComponentsInChildren<MeshFilter>();
             int vertices=0;foreach(var filter in statics)vertices+=filter.sharedMesh.vertexCount;
             File.WriteAllText(Output+"static-budget.txt","renderers="+statics.Length+"\nvertices="+vertices+"\n");
+            var meshBudget=new System.Text.StringBuilder("material,vertices\n");
+            foreach(var filter in statics)
+            {
+                meshBudget.AppendLine(filter.GetComponent<MeshRenderer>().sharedMaterial.name+","+filter.sharedMesh.vertexCount);
+                Assert.That(filter.sharedMesh.vertexCount,Is.LessThan(65536),"Keep each shared mesh inside its 16-bit index range.");
+            }
+            File.WriteAllText(Output+"mesh-budget.csv",meshBudget.ToString());
             // Export a clean, high-resolution image of the actual authored map for sharing.
             foreach(var enemy in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
                 enemy.gameObject.SetActive(false);

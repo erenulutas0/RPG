@@ -774,3 +774,9 @@ Accept one additional shared material/renderer for both statues: region budget18
 ## 2026-10-08 - Shared diagonal court boundary
 
 Decision: cut the two entrance-facing corners by6 units in the shared FoundryMap, then clip the actual floor triangles and move all perimeter architecture to that boundary. Keep the bridge and gate-room union independent so the diagonal entrance remains fully connected. This corrects composition with matching collision/spawn/pursuit behavior instead of decorative masking. Gate shoulders may rise outside the lane; actual walkable elevation remains deferred until actor projection, depth and traversal can be implemented together. No additional renderer or texture. Proof: ArtDirection/2026-10-08/court-silhouette-01.
+
+## 2026-10-08 - Complete north silhouette and consolidate workshop
+
+Decision: use four-unit north corner cuts, group the existing stock station near the crane, and reduce geometric flagstone size in one package. Repeating the six-unit southern cuts would unnecessarily narrow the pit/workshop loop. Keeping stock isolated along the north rail weakens the industrial grouping; moving all its support/depth/clutter/soot together avoids floating remnants. Geometric stone sizes are the appropriate control because the current texture is continuous stone rather than a painted tile layout. Narrower, softer joints counter the increased paving density.
+
+Accepted cost: +2,871 region vertices (about3.2%), unchanged18 region renderers, no new materials/textures/update loops. Boundary change is shared by rendering, movement, pursuit and pack placement, with new north-corner cases and actual floor coverage assertions. Automated gate and guarded S23 traversal passed; see north-workshop-paving-01 and latest doc23. Gate elevation is still a separate gameplay/art integration, not implied by decorative shoulders.

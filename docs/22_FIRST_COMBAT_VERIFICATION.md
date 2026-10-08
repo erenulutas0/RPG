@@ -884,3 +884,9 @@ The paving validation exposed a test-only Update/LateUpdate race in ExitSealPres
 ## 2026-10-07 - Crane structure verification
 
 Full .NET390/Edit410/Play145, graphics1 and compile clean; integrity544/1099/568. APK24BCDD64BD851636A0DCB4948ADAC7FCBACE2D19753A32A04497B3F56EC4E4AD installed/hash matched on S23. Guarded west-court crane view, local character cutaway and normal Staff combat reviewed. Original profile/development files unchanged; diagnostics removed. Proof ArtDirection/2026-10-07/crane-structure-01. Region remains18renderers,79,288vertices; no new dynamic work. Full crane remains a square review view: the production portrait naturally crops outboard/top portions at close range.
+
+## 2026-10-08 - North court/workshop/paving verification
+
+Current package .NET395/Edit415/Play145, graphics1, compile0warnings/errors, Android0, integrity545/1099/568. APK CD9510549BA6F748145AE7CF7A4D8ABBFF538A4B57948991692FD2C3FE2814C6 installed and hash matched. Review north-cut containment and long steps, all-interior ten-enemy placement, pursuit, real floor triangles, structure depth/resource ownership and unchanged cloth/flame checks. Actual graphics walk reaches northwest/stock/northeast; each mesh is below65,536vertices.
+
+Manual replay: with current foundry preview, walk around the west side of the pit to crane, follow north loop past moved stock and approach northeast cut. Check rail alignment, feet clearance, supported props and calm paving under actors; inspect whole outline in overview because portrait crops architecture. Guarded S23 route and ordinary Staff gameplay/loot were checked. Profile/bak/original flags remained hash-identical, diagnostics removed and app stopped. No new performance benchmark. See proof north-workshop-paving-01 and latest doc23.

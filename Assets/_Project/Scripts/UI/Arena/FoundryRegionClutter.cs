@@ -37,8 +37,8 @@ namespace Cryptforge.UI
             (ClutterKind.Crate,new Vector4(-26.9f,13.1f,-26.35f,13.6f),1.12f,1.62f,true),
             // Pipe shelf (.18): a barrel between the strip coils and the quenching tank, clear of the coils on screen, and a
             // crate in front of the tool rack, clear of the stored pipes' ends: iron, emitted after the workshop's stock.
-            (ClutterKind.Barrel,new Vector4(4.74f,20.89f,5.26f,21.41f),.18f,.86f,true),
-            (ClutterKind.Crate,new Vector4(6.2f,18.55f,6.95f,19.25f),.18f,.72f,true),
+            (ClutterKind.Barrel,new Vector4(4.74f+StockShift,20.89f,5.26f+StockShift,21.41f),.18f,.86f,true),
+            (ClutterKind.Crate,new Vector4(6.2f+StockShift,18.55f,6.95f+StockShift,19.25f),.18f,.72f,true),
             // North-west boiler yard, behind the court's north-east rail from the apron corner to the court's north corner:
             // masonry, under the rail, its posts and the apron lantern, over the boiler's painted drum and cornice; every top
             // stays below the boiler's iron shell on screen. Tall pieces only, set between the rail's posts on screen: half a

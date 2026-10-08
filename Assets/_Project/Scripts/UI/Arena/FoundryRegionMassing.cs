@@ -872,7 +872,7 @@ namespace Cryptforge.UI
         // New lantern posts: the court's convex corners, the apron's concave corner, and the longest bare runs.
         private static readonly Vector4[] RailLanterns =
         {
-            new Vector4(-24.72f,18,-24,18.72f),new Vector4(-24.72f,.64f,-24,1.36f),
+            new Vector4(-22.64f,16.08f,-22.08f,16.64f),new Vector4(-24.72f,.64f,-24,1.36f),
             new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-.72f,14.72f,0),
             new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f)
         };
@@ -881,7 +881,7 @@ namespace Cryptforge.UI
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =
         {
-            new Vector4(-27,11,-24,15),new Vector4(-29,5,-24.45f,8.4f),new Vector4(-25,8.4f,-24,10.5f),new Vector4(2,18.5f,7,22.4f),
+            new Vector4(-27,11,-24,15),new Vector4(-29,5,-24.45f,8.4f),new Vector4(-25,8.4f,-24,10.5f),StockShelf,
             new Vector4(19.5f,-2.6f,24.6f,-2),
             new Vector4(32,-3,35,-1),new Vector4(32,11,35,13),
             new Vector4(21.3f,-6.8f,23.3f,-4.8f),new Vector4(21.3f,14.8f,23.3f,16.8f),
@@ -1221,7 +1221,7 @@ namespace Cryptforge.UI
         private static readonly Vector4[] Bastions =
         {
             new Vector4(14,-8,16.6f,-5.4f),new Vector4(.7f,-16.6f,3.3f,-14),new Vector4(5.7f,-16.6f,8.3f,-14),
-            new Vector4(-26.6f,-7.3f,-24,-4.7f),new Vector4(-26.6f,-.3f,-24,2.3f),new Vector4(-26.6f,15.6f,-24,18.4f)
+            new Vector4(-26.6f,-7.3f,-24,-4.7f),new Vector4(-26.6f,-.3f,-24,2.3f),new Vector4(-26.6f,11.4f,-24,14)
         };
 
         private void BuildBastions(ArenaView arena)
@@ -1248,7 +1248,7 @@ namespace Cryptforge.UI
             // The corner bastions' anchor chains and the catenary between the first two south piers (they were straight
             // and per-segment; now hung, the anchor chains with a slight sag):
             AbyssChain(arena,new Vector3(14.8f,-8f,-3.4f),0,new Vector2(5.2f,-7.2f),.45f,.36f);
-            AbyssChain(arena,new Vector3(-26.6f,16.6f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
+            AbyssChain(arena,new Vector3(-26.6f,12.4f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
             PierChain(arena,new Vector3(3f,-16.6f,-4f),0,new Vector3(7f,-16.6f,-4f),0,2f,.26f);
             // Across the gap between the two south-west piers of the west rim, and from the nearer one into the void.
             PierChain(arena,new Vector3(-26.6f,-5f,-3.5f),1,new Vector3(-26.6f,.3f,-3.5f),1,1.5f,.3f);

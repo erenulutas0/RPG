@@ -8,6 +8,8 @@ namespace Cryptforge.Tests
     {
         [TestCase(-23f,-13f,-20f,-9f)]
         [TestCase(13f,-13f,9f,-9f)]
+        [TestCase(-23f,17f,-21f,15f)]
+        [TestCase(13f,17f,11f,15f)]
         public void ChamferRejectsRemovedCornerAndStopsLongMovement(float cutU,float cutV,float safeU,float safeV)
         {
             FoundryMap.ToFloor(cutU,cutV,out float tx,out float ty);
@@ -86,7 +88,7 @@ namespace Cryptforge.Tests
         [Test] public void PursuitRoutesAroundHoleAndThroughPassage()
         {
             foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f},
-                new[]{-23f,17f},new[]{30f,-1f},new[]{30f,11f}})
+                new[]{-21f,15f},new[]{11f,15f},new[]{30f,-1f},new[]{30f,11f}})
             {
                 FoundryMap.ToFloor(-20,6,out float x,out float y);
                 FoundryMap.ToFloor(goal[0],goal[1],out float hx,out float hy);

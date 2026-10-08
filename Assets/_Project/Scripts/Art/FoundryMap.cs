@@ -13,8 +13,10 @@ namespace Cryptforge.Art
         public const int West=-24,South=-14,North=18,East=14;
         public const int PitWest=-16,PitSouth=2,PitEast=-4,PitNorth=14;
         public const int CornerCut=6;
-        // The two entrance-facing corners are genuine diagonal edges, not stepped cells.
-        public static bool CourtPlane(float u,float v) => u+v>=West+South+CornerCut && u-v<=East-South-CornerCut;
+        public const int NorthCornerCut=4,CornerCount=4;
+        // Four diagonal edges share one boundary with render clipping and pursuit.
+        public static bool CourtPlane(float u,float v) => u+v>=West+South+CornerCut && u-v<=East-South-CornerCut &&
+            u+v<=East+North-NorthCornerCut && u-v>=West-North+NorthCornerCut;
         public static bool UncutCell(int u,int v) => Inside(u+.5f,v+.5f,false);
         private static readonly int[,] Rooms =
         {
@@ -59,8 +61,8 @@ namespace Cryptforge.Art
                     bool intersects=r==RectangleCount
                         ? Slab(u-v,(tu-tv)-(u-v),-4,4,ref enter,ref exit)&&Slab(u+v,(tu+tv)-(u+v),-50,-24,ref enter,ref exit)
                         : Slab(u,tu-u,Rooms[r,0],Rooms[r,2],ref enter,ref exit)&&Slab(v,tv-v,Rooms[r,1],Rooms[r,3],ref enter,ref exit);
-                    if(intersects&&r<4)intersects=Slab(u+v,(tu+tv)-(u+v),West+South+CornerCut,float.PositiveInfinity,ref enter,ref exit)&&
-                        Slab(u-v,(tu-tv)-(u-v),float.NegativeInfinity,East-South-CornerCut,ref enter,ref exit);
+                    if(intersects&&r<4)intersects=Slab(u+v,(tu+tv)-(u+v),West+South+CornerCut,East+North-NorthCornerCut,ref enter,ref exit)&&
+                        Slab(u-v,(tu-tv)-(u-v),West-North+NorthCornerCut,East-South-CornerCut,ref enter,ref exit);
                     if(!intersects)continue;
                     if(enter<=covered+1e-6f)furthest=Math.Max(furthest,exit);
                 }
