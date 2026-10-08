@@ -1372,6 +1372,10 @@ namespace Cryptforge.UI
                     // Tapered shaft girded by two projecting belt courses, each a lit ledge over a shadow.
                     Vector4 bottom=PierInset(top,alongU,.22f,.4f);
                     PierStage(b,neck,shoulder,bottom,foot,.95f,true);
+                    // Blind panels between the belts give these long shafts a carved
+                    // structure. Stay below the anchor block and inside the old faces.
+                    foreach(var range in new[]{new Vector2(.08f,.26f),new Vector2(.38f,.56f),new Vector2(.70f,.91f)})
+                        PierRecess(b,neck,shoulder,bottom,foot,alongU,.24f,.76f,range.x,range.y);
                     foreach(float f in new[]{.3f,.62f})
                     {
                         float h=Mathf.Lerp(shoulder,foot,f),under=h-.46f;
@@ -1391,6 +1395,8 @@ namespace Cryptforge.UI
                     // into the shaft; a corbel either side of it carries the block.
                     Vector4 bottom=PierInset(top,alongU,.18f,.36f);
                     PierStage(b,neck,shoulder,bottom,foot,.95f,true);
+                    PierRecess(b,neck,shoulder,bottom,foot,alongU,.09f,.29f,.10f,.68f);
+                    PierRecess(b,neck,shoulder,bottom,foot,alongU,.71f,.91f,.10f,.68f);
                     float mid=Mathf.Lerp(shoulder,foot,.5f),end=Mathf.Lerp(shoulder,foot,.74f);
                     float front=PierFront(top,alongU),back=PierFront(neck,alongU);
                     float midBack=PierFront(Vector4.Lerp(neck,bottom,.5f),alongU),endBack=PierFront(Vector4.Lerp(neck,bottom,.74f),alongU);
@@ -1437,6 +1443,32 @@ namespace Cryptforge.UI
             for(int vertex=crownStart;vertex<b.V.Count;vertex++)
                 b.U[vertex]=new Vector2(.34f,.70f)+(Vector2)(b.V[vertex]-b.V[crownStart])*.025f;
             BastionCornerStones(b,top,shoulder,-2.78f);
+        }
+
+        private static void PierRecess(Builder mesh,Vector4 upper,float high,Vector4 lower,float low,
+            bool alongU,float left,float right,float from,float to)
+        {
+            // Carved blind recess: its four reveals and inset bed partition a part of
+            // the existing projected face. No outer contour, anchor or collision moves.
+            Vector3 Point(float across,float down)
+            {
+                Vector4 box=Vector4.Lerp(upper,lower,down);
+                Vector3 p=alongU?Vector3.Lerp(Project(box.x,box.y),Project(box.z,box.y),across):
+                    Vector3.Lerp(Project(box.x,box.w),Project(box.x,box.y),across);
+                return p+Vector3.up*Mathf.Lerp(high,low,down);
+            }
+            Vector3 a=Point(left,to),b=Point(right,to),c=Point(right,from),d=Point(left,from);
+            // The long inset has a broad top shadow, shaded left reveal and a catching
+            // right/bottom reveal. Continuous masonry UVs retain the wall's courses.
+            Vector3 across=(b-a)*.15f,vertical=(d-a)*.045f;
+            Vector3 ia=a+across+vertical,ib=b-across+vertical;
+            Vector3 ic=c-across-vertical,id=d+across-vertical;
+            Color face=alongU?new Color(.42f,.44f,.53f):new Color(.31f,.34f,.43f);
+            mesh.WallQuad(ia,ib,ic,id,false,face*.73f);
+            mesh.WallQuad(a,b,ib,ia,false,face*1.15f);
+            mesh.WallQuad(b,c,ic,ib,false,face*1.28f);
+            mesh.WallQuad(c,d,id,ic,false,face*.52f);
+            mesh.WallQuad(d,a,ia,id,false,face*.64f);
         }
 
         private static void BastionCornerStones(Builder b,Vector4 box,float bottom,float top)

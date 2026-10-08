@@ -333,3 +333,12 @@ Evidence: `ArtDirection/2026-10-08/surface-cohesion-01/`, full gate and S23 appr
 - [x] Preserve directional form shading, generic unlit fittings and static batching; verify Unity and S23 traversal/normal combat.
 
 Evidence: `ArtDirection/2026-10-09/forge-metal-light-01/`. Broad painted-reference fidelity remains open.
+
+
+## 2026-10-09 — Worked stone and foundation faces
+
+- [x] Within-stone mineral wash and sparse flush edge flakes, preserving seal/workshop setts and ramp seams.
+- [x] Blind recesses on banded/buttressed bastions within existing contours and anchors.
+- [x] Actual triangle-interior elevation regression, full gate and guarded S23 paving/ramp/normal-run review.
+
+Evidence: `ArtDirection/2026-10-09/stone-relief-01/`. Broad painted-reference fidelity remains open.

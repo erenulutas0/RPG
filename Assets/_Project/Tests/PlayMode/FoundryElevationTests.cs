@@ -64,6 +64,21 @@ namespace Cryptforge.Tests
                     Assert.That(Vector3.Distance(points[i], FoundrySurface.Project(u, v)), Is.LessThan(.002f), $"Paving vertex {i}: UV={uv[i]}, design={u},{v}, point={points[i]}, target={FoundrySurface.Project(u,v)}");
                     raisedFloorVertices++;
                 }
+                // Correct corners alone cannot prove a flush triangle: a decoration
+                // straddling the ramp crest can float or cut through between them.
+                // Test actual paving triangle interiors against the surface and its UVs.
+                var triangles = mesh.triangles;
+                for (int t = 0; t < triangles.Length; t += 3)
+                {
+                    int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
+                    Vector2 centreUv = (uv[a] + uv[b] + uv[c]) / 3;
+                    float u = (centreUv.x - 1) * 8.55f / (2 * FoundryMap.Axis);
+                    float v = (centreUv.y - 1) * 8.55f / (2 * FoundryMap.Axis);
+                    if (u < FoundrySurface.RampStart - 1 || u > FoundrySurface.RampEnd + 1) continue;
+                    Vector3 centre = (points[a] + points[b] + points[c]) / 3;
+                    Assert.That(Vector3.Distance(centre, FoundrySurface.Project(u, v)), Is.LessThan(.002f),
+                        $"Paving triangle {t / 3} must stay flush through the ramp seams.");
+                }
             }
             Assert.That(raisedFloorVertices, Is.GreaterThan(20), "Actual paving uses the shared raised surface.");
 

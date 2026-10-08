@@ -1,0 +1,20 @@
+# Worked stone and carved bastion faces — 2026-10-09
+
+This package develops two remaining surface differences from the approved foundry reference: uniformly flat flag faces and long, repetitive foundation shafts.
+
+- Paving retains its packing, footprint, bevel/joint widths and continuous design-space UVs. A bounded mineral wash varies the value within each stone. Selected large flags receive one shallow, irregular five-point edge flake with a narrow catching lip. The seal and workshop setts do not receive flakes. Small repeated corner triangles are replaced. Everything is flush and samples existing forge light; the gate height projection is retained.
+- Banded bastions gain three blind panels between their belts. Buttressed bastions gain two narrower recesses beside the central rib. Four shaded reveals frame each inset bed within the old face; existing contours, chain anchors, support footprints, stepped pier variant and painter order remain unchanged.
+
+Files: `FoundryRegionFinish.cs`, `FoundryRegionMassing.cs` and `FoundryElevationTests.cs`. No new texture, material, renderer, animation, gameplay, camera or save work. Procedural meshes are built once. These are vertex/mesh surface treatments, not newly painted raster textures or physically cut holes.
+
+Static region: 18 renderers /99,828 vertices versus 96,558 before (+3,270, about 3.4%). Actual Unity graphics capture and its traversal assertions passed. .NET 395 passed; compile 0 warnings/errors. Final suites, APK and guarded phone review passed after the ramp-seam correction.
+
+`before/` comes from the installed forge-metal-light package. `after/` is actual Unity rendering with matched cameras; review actor poses are staged. This package is a surface refinement, not a claim that the reference artwork is finished.
+
+Review follow-up: the initial edge-flake geometry on one dressed threshold flag spans design u=30.756..31.505, crossing the ramp crest at u=31. The correction excludes wear from any flag crossing either grade break. FoundryElevationTests now checks actual paving triangle interiors, because correct corner heights alone do not guarantee a flush face. Initial full suites also passed, but the provisional APK was not installed. The final graphics capture, full suites and device verification passed after this correction.
+
+## Final verification and installation
+
+Verified: .NET 395 passed; compile 0 warnings/errors; final actual graphics capture 1 passed; EditMode 415 passed / PlayMode 150 passed, including the strengthened triangle-interior elevation assertion. Android exit 0. Final integrity: 552 asset/folder GUIDs /1,099 package GUIDs /568 scene objects/components, resolved references and valid JSON. Static region:18 renderers /99,828 vertices (+3,270, about3.4%); largest mesh30,443. No new material, texture, renderer or per-frame work. APK 36,067,857 bytes; SHA-256 `209FC325C9E98DAA292EE10AE9F16AE350D53590774FB61BEA6CB8E7C24D5D70`; installed S23 base.apk hash matched.
+
+Fresh pre-install backup: `TestResults/stone-relief-device-20261009-004818`. The phone was on Home, unlocked, with the game stopped; no owner run interrupted. Guarded actual drags checked the lane, gate threshold and ramp descent. Slate flakes and within-stone variation were seen on the S23; full long bastion recesses were reviewed in the Unity overview, not claimed fully visible through the phone HUD. Separate normal Staff run produced Room1,90HP,4 unbanked gold and visible XP/gold/chest rewards; the retained normal-combat image is the post-fight loot view, not an active attack frame. Profile.json, profile.json.bak and all3 original development files remained SHA-256-identical. Temporary depth-proof removed; original gate-arrival,region-preview,start-floor.txt.off and test telemetry retained. No save restoration. App background-flushed, stopped and phone released. No selected fatal/reference/invalid-operation/index/shader patterns in sampled process logs. No new FPS, sustained or midrange benchmark; the earlier elevation first-use hitch remains unisolated.

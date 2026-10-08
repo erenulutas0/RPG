@@ -2018,3 +2018,15 @@ FoundryRegionWeathering adds shared reflected-light sampling and bounded metal t
 
 
 Verified: .NET 395 passed; compile 0 warnings/errors; actual graphics capture 1 passed; EditMode 415 passed / PlayMode 150 passed; Android exit 0. Final integrity: 552 unique asset/folder GUIDs, 1,099 package GUIDs and 568 scene objects/components; references and JSON valid. Static region: 18 renderers /96,558 vertices (+936, about 0.98%); largest mesh 27,373. No new renderer, material, texture or update loop. APK 36,063,810 bytes; SHA-256 `43BD507FD72AE0D91093D96BA86771C172B0DB7C00006BBE993EAE6A11743CDD`; installed S23 base.apk hash matched.
+
+
+## 2026-10-09 — Worked stone and foundation recesses
+
+Files: FoundryRegionFinish.cs (within-stone wash, edge flakes replacing tiny corner repairs) and FoundryRegionMassing.cs (blind recesses between banded belts and beside buttress ribs). Existing floor coverage, UV/elevation, color, geometry budget, depth, traversal, ownership and combat tests are retained. No new test duplicates these reversible art choices. Actual graphics capture passed;18renderers /99,988vertices (+3,430). Final verified counts/APK/device evidence follows after the gate.
+
+Code review found one threshold flake spanning the ramp crest (u30.756..31.505 across31). Exclude flakes from flags crossing either grade break. Strengthen the existing FoundryElevationTests test with actual paving triangle-centroid/UV comparisons against FoundrySurface, not only vertex comparisons. Initial passing results are retained under TestResults/stone-relief-initial-*; provisional APK not installed. Final capture and full gate follow this correction.
+
+
+Verified: .NET 395 passed; compile 0 warnings/errors; final actual graphics capture 1 passed; EditMode 415 passed / PlayMode 150 passed, including the strengthened triangle-interior elevation assertion. Android exit 0. Final integrity: 552 asset/folder GUIDs /1,099 package GUIDs /568 scene objects/components, resolved references and valid JSON. Static region:18 renderers /99,828 vertices (+3,270, about3.4%); largest mesh30,443. No new material, texture, renderer or per-frame work. APK 36,067,857 bytes; SHA-256 `209FC325C9E98DAA292EE10AE9F16AE350D53590774FB61BEA6CB8E7C24D5D70`; installed S23 base.apk hash matched.
+
+Final evidence: ArtDirection/2026-10-09/stone-relief-01. Device status recorded in doc23; the final99,828vertex budget supersedes the initial99,988 capture.

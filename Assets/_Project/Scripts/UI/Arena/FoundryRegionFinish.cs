@@ -535,17 +535,60 @@ namespace Cryptforge.UI
             for(int k=0;k<ov.Length;k++){outer.Add(new Vector2(u0+joint,ov[k]));inner.Add(new Vector2(u0+bevel,iv[k]));}
             for(int k=1;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v1-joint));inner.Add(new Vector2(iu[k],v1-bevel));}
             PavingStrip(mesh,outer,inner,stone*.88f,faceTint,stone);
+            int faceStart=mesh.C.Count;
             PavingGrid(mesh,iu,iv,stone,faceTint);
-            // Sparse flush corner repairs, not cracks or raised rubble. They use
-            // continuous paving UVs and stay entirely within the individual flag.
-            if(s.Zone!=1&&grain>.86f)
+            // A shallow, broad mineral wash breaks the uniformly flat slab faces. It
+            // changes material value within each stone, never the floor's light field.
+            for(int row=0;row<iv.Length;row++)for(int col=0;col<iu.Length;col++)
             {
-                float size=Mathf.Min(.24f,Mathf.Min(w,h)*.22f);
-                Vector3 corner=Project(u0+bevel,v0+bevel),b=Project(u0+bevel,v0+bevel+size);
-                int first=mesh.C.Count;
-                LitFloorQuad(mesh,corner,Project(u0+bevel+size,v0+bevel),b,b,stone*.84f);
-                for(int i=first;i<mesh.C.Count;i++)mesh.C[i]*=tint;
+                float cloud=FloorPatina((iu[col]-u0)*1.1f+seedU*.73f,
+                    (iv[row]-v0)*1.1f+seedV*.83f);
+                int vertex=faceStart+row*iu.Length+col;
+                Color color=mesh.C[vertex]*Mathf.Lerp(.92f,1.04f,cloud);
+                color.a=1;mesh.C[vertex]=color;
             }
+            // A single polygon cannot bridge a grade break while remaining flush.
+            // Keep flags crossing either ramp seam dressed rather than chipped.
+            bool crossesRise=(u0<FoundrySurface.RampStart&&u1>FoundrySurface.RampStart)||
+                (u0<FoundrySurface.RampEnd&&u1>FoundrySurface.RampEnd);
+            if(!kept&&area>=1&&grain>.64f&&!crossesRise)
+                FlagEdgeWear(mesh,u0,v0,u1,v1,bevel,stone,faceTint,grain,hue);
+        }
+
+        private static void FlagEdgeWear(Builder mesh,float u0,float v0,float u1,float v1,
+            float bevel,float tone,Color tint,float grain,float hue)
+        {
+            // A single shallow exfoliated edge on selected large flags. Five irregular
+            // points and a narrow catching lip read as chipped slate, not loose rubble.
+            // All pieces remain inside the flag, flush, lit and UV-mapped from the same
+            // design coordinates as the paving (including the elevated gate threshold).
+            int side=Mathf.Min(3,Mathf.FloorToInt(hue*4));
+            float length=(side%2==0?u1-u0:v1-v0)-2*bevel;
+            float depth=Mathf.Min(u1-u0,v1-v0)*Mathf.Lerp(.12f,.23f,grain);
+            float middle=Mathf.Lerp(.32f,.68f,StoneSample((int)(u0*2)+41,(int)(v0*2)-17));
+            float half=length*Mathf.Lerp(.18f,.29f,grain);
+            float centre=length*middle;
+            Vector2 origin=side==0?new Vector2(u0+bevel,v0+bevel):
+                side==1?new Vector2(u1-bevel,v0+bevel):
+                side==2?new Vector2(u1-bevel,v1-bevel):new Vector2(u0+bevel,v1-bevel);
+            Vector2 along=side==0?Vector2.right:side==1?Vector2.up:side==2?Vector2.left:Vector2.down;
+            Vector2 inward=new Vector2(-along.y,along.x);
+            Vector2 a=origin+along*(centre-half),b=origin+along*(centre+half);
+            Vector2 c=origin+along*(centre+half*.55f)+inward*(depth*.72f);
+            Vector2 d=origin+along*(centre-half*.18f)+inward*depth;
+            Vector2 e=origin+along*(centre-half*.75f)+inward*(depth*.42f);
+            FlagWearFace(mesh,a,b,c,d,tone*.84f,tint);
+            FlagWearFace(mesh,a,d,e,e,tone*.84f,tint);
+            Vector2 lip=inward*.022f;
+            FlagWearFace(mesh,c,d,d+lip,c+lip,tone*1.035f,tint);
+            FlagWearFace(mesh,d,e,e+lip,d+lip,tone*1.035f,tint);
+        }
+
+        private static void FlagWearFace(Builder mesh,Vector2 a,Vector2 b,Vector2 c,Vector2 d,float tone,Color tint)
+        {
+            int first=mesh.C.Count;
+            LitFloorQuad(mesh,Project(a.x,a.y),Project(b.x,b.y),Project(c.x,c.y),Project(d.x,d.y),tone);
+            for(int i=first;i<mesh.C.Count;i++)mesh.C[i]*=tint;
         }
 
         // The stone's light lattice: whole units, halved where the 1-unit interpolation of light (FloorLight on us x vs)

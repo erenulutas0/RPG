@@ -800,3 +800,8 @@ Owner requested the next three art tasks as one package. Selected court stone co
 ## 2026-10-09 — Use authored forge sources for metal reflection
 
 The previous stone/light cohesion left industrial iron cold beside the same fires. Chose shared authored light sources and explicit physical surface heights instead of applying an orange tint to entire structures or adding runtime lights to projected geometry. Metal retains its existing directional shading and receives bounded warmth that decays with height/distance. Pipes subdivide only when this treatment is requested, avoiding an unlit midpoint on a long run between two cooler ends. Source image art, glow windows and gameplay remain unchanged. This is a reflected-light presentation approximation, not physically based or dynamic illumination.
+
+
+## 2026-10-09 — Work the stone surfaces without changing the map
+
+Compared another global tint pass, a new raster atlas and restrained surface modelling. Selected bounded per-stone mineral value variation, sparse irregular edge flakes and broad blind recesses on long bastions: they address flat slab faces and repetitive shafts using the current approved layout and reusable textures. Avoided extra scattered props or blocking rubble. Flakes are flush; recesses are projected surface treatment rather than real holes. No gameplay or material pipeline change.

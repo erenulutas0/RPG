@@ -874,3 +874,8 @@ Foundry paving uses restrained individual flag variation and quieter joint/bevel
 ## 2026-10-09 — Reflected forge light on industrial metal
 
 FoundryRegionWeathering.MetalLight reads the existing ForgeLamps at authored design coordinates/source heights, including gate surface elevation. It modulates existing directional metal tones with bounded reflected warmth. Applied to opted-in boiler iron courses/discs, formed hood panels/seams, pressure reservoir courses/caps and elevated mains/collars. Fire fronts, glow windows, ordinary rods/valves, floor lighting and imported textures are unchanged. Long lit pipes sample at at most0.75 projected-unit spacing using their explicit surface height, preserving their existing cross section/depth owner/material. Static build-time vertex colours; no new renderer, shader, material, texture or update loop. Region18renderers /96,558vertices (+936, about1%); largestmesh27,373. Proof: ArtDirection/2026-10-09/forge-metal-light-01. Final gate/device status is recorded below in docs22/23/38 after verification.
+
+
+## 2026-10-09 — Worked-stone and bastion-face treatment
+
+FoundryRegionFinish retains the fine ashlar layout but adds a shallow within-stone mineral wash and sparse five-point edge flakes on larger non-seal/non-workshop flags. Existing source images and continuous floor UVs remain; all chips are flush and share source lighting and gate projection. FoundryRegionMassing frames blind recesses in banded and buttressed foundation faces, preserving contours, anchors and the stepped variant. Static geometry only, same18 renderers. Proof: ArtDirection/2026-10-09/stone-relief-01; complete verification follows in docs21-23.
