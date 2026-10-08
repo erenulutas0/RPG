@@ -325,3 +325,11 @@ Evidence: ArtDirection/2026-10-08/north-workshop-paving-01; latest state and ins
 - [x] Recede distant foundry cavern light through an owned sprite material; preserve ordinary halls and verify release/borrowed-art ownership.
 
 Evidence: `ArtDirection/2026-10-08/surface-cohesion-01/`, full gate and S23 approach/normal combat. Broader painted-reference fidelity remains open.
+
+
+## 2026-10-09 — Industrial metal reflected light
+
+- [x] Carry authored forge-source warmth across boiler shells/hoods, pressure mains/collars and reservoir surfaces with source-height falloff and ramp continuity.
+- [x] Preserve directional form shading, generic unlit fittings and static batching; verify Unity and S23 traversal/normal combat.
+
+Evidence: `ArtDirection/2026-10-09/forge-metal-light-01/`. Broad painted-reference fidelity remains open.

@@ -100,11 +100,11 @@ namespace Cryptforge.UI
             // Riveted iron shell, bronze hoops, stepped dome and a flue: bottom-up in painter order. The shell is
             // two courses of two-facet plates with staggered seams, so it reads as one banded drum.
             var iron=new Builder();
-            MassCourse(iron,c,BoilerShell,BoilerShell,CorniceTop,4.5f,BoilerFacets,true,Color.white);
-            MassCourse(iron,c,BoilerShell,BoilerShell,4.5f,ShellTop,BoilerFacets,true,Color.white,1);
-            MassCourse(iron,c,BoilerShell+.06f,BoilerShell+.06f,CorniceTop,CorniceTop+.15f,BoilerFacets,true,Bronze);
-            MassCourse(iron,c,BoilerShell+.07f,BoilerShell+.07f,ShellTop-.1f,ShellTop+.06f,BoilerFacets,true,Bronze);
-            MassDisk(iron,c,BoilerShell+.07f,ShellTop+.06f,BoilerFacets,true,new Color(.46f,.48f,.54f));
+            MassCourse(iron,c,BoilerShell,BoilerShell,CorniceTop,4.5f,BoilerFacets,true,Color.white,forgeLight:true);
+            MassCourse(iron,c,BoilerShell,BoilerShell,4.5f,ShellTop,BoilerFacets,true,Color.white,1,forgeLight:true);
+            MassCourse(iron,c,BoilerShell+.06f,BoilerShell+.06f,CorniceTop,CorniceTop+.15f,BoilerFacets,true,Bronze,forgeLight:true);
+            MassCourse(iron,c,BoilerShell+.07f,BoilerShell+.07f,ShellTop-.1f,ShellTop+.06f,BoilerFacets,true,Bronze,forgeLight:true);
+            MassDisk(iron,c,BoilerShell+.07f,ShellTop+.06f,BoilerFacets,true,new Color(.46f,.48f,.54f),forgeLight:true);
             float h=ShellTop+.06f;
             FormedBoilerCourse(iron,c,1.42f,1.12f,h,h+.36f,h,h+.86f,10);
             FormedBoilerCourse(iron,c,1.12f,.72f,h+.36f,h+.68f,h,h+.86f,10);
@@ -143,12 +143,12 @@ namespace Cryptforge.UI
             Vector2 box=c+toward*(BoilerDrum+.03f);
             bool boxVisible=toward.x+toward.y<0;
             if(!boxVisible)WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
-            MassCourse(iron,c,1.62f,1.62f,SquatCorniceTop,1.55f,BoilerFacets,true,Bronze);
-            MassDisk(iron,c,1.62f,1.55f,BoilerFacets,true,new Color(.46f,.48f,.54f));
+            MassCourse(iron,c,1.62f,1.62f,SquatCorniceTop,1.55f,BoilerFacets,true,Bronze,forgeLight:true);
+            MassDisk(iron,c,1.62f,1.55f,BoilerFacets,true,new Color(.46f,.48f,.54f),forgeLight:true);
             FormedBoilerCourse(iron,c,1.52f,1.12f,1.55f,1.78f,1.55f,2f,10);
             FormedBoilerCourse(iron,c,1.12f,.64f,1.78f,1.93f,1.55f,2f,10);
             FormedBoilerCourse(iron,c,.64f,.34f,1.93f,2f,1.55f,2f,10);
-            MassDisk(iron,c,.34f,2f,6,true,new Color(.5f,.52f,.58f));
+            MassDisk(iron,c,.34f,2f,6,true,new Color(.5f,.52f,.58f),forgeLight:true);
             BoilerVent(iron,c,2f,SquatTop,.2f);
             if(boxVisible)WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
             Create("Boiler iron dome",iron,set.FoundryIron,-10.5f);
@@ -178,7 +178,7 @@ namespace Cryptforge.UI
                     Color tone=Color.Lerp(new Color(.44f,.46f,.50f),new Color(.88f,.87f,.81f),side);
                     tone+=new Color(.19f,.21f,.25f,0)*highlight;
                     tone*=1-.14f*t*t;tone.a=1;
-                    b.C[first+j]=tone;
+                    b.C[first+j]=MetalTone(tone,b.V[first+j],height);
                     b.U[first+j]=new Vector2(.18f+.64f*(angle+45f*Mathf.Deg2Rad)/(2*Mathf.PI),.24f+.5f*t);
                 }
             }
@@ -190,7 +190,11 @@ namespace Cryptforge.UI
                 int first=b.V.Count;
                 FullFace(b,OnRing(c,r0,a-width,h0+.004f),OnRing(c,r0,a+width,h0+.004f),
                     OnRing(c,r1,a+width,h1+.004f),OnRing(c,r1,a-width,h1+.004f),new Color(.30f,.32f,.36f));
-                for(int j=0;j<4;j++)b.U[first+j]=new Vector2(j==0||j==3?.3f:.7f,j<2?.3f:.7f);
+                for(int j=0;j<4;j++)
+                {
+                    b.U[first+j]=new Vector2(j==0||j==3?.3f:.7f,j<2?.3f:.7f);
+                    b.C[first+j]=MetalTone(b.C[first+j],b.V[first+j],(j<2?h0:h1)+.004f);
+                }
             }
         }
 
@@ -252,7 +256,7 @@ namespace Cryptforge.UI
             using var depth=MassDepth(new Vector4(Mathf.Min(from.x,to.x)-.25f,Mathf.Min(from.y,to.y)-.25f,
                 Mathf.Max(from.x,to.x)+.25f,Mathf.Max(from.y,to.y)+.25f),height+width);
             Vector3 lift=Vector3.up*height,a=Project(from.x,from.y)+lift,b=Project(to.x,to.y)+lift;
-            PressureTube(arena,a,b,width,-10.5f);
+            PressureTube(arena,a,b,width,-10.5f,height);
             Vector3 d=(b-a).normalized;
             int bands=Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.5f));
             for(int i=0;i<=bands;i++)
@@ -260,7 +264,7 @@ namespace Cryptforge.UI
                 Vector3 p=Vector3.Lerp(a,b,i/(float)bands);
                 bool end=i==0||i==bands;
                 float halfLength=width*(end?.17f:.10f);
-                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),-10.5f);
+                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),-10.5f,height);
             }
         }
 
@@ -1562,7 +1566,7 @@ namespace Cryptforge.UI
         // the panel's riveted top rail, running on round the drum. The texture clamps, so the wrap restarts only
         // on facet edges; stagger shifts the seams by a facet, as lapped boiler plate does.
         private static void MassCourse(Builder b,Vector2 c,float r0,float r1,float h0,float h1,int m,bool iron,Color tint,
-            int stagger=0)
+            int stagger=0,bool forgeLight=false)
         {
             float r=(r0+r1)*.5f,rise=Mathf.Max(h1-h0,Mathf.Abs(r1-r0)*.5f);
             bool rail=rise<.2f;
@@ -1580,6 +1584,8 @@ namespace Cryptforge.UI
                     float u0=Mathf.Lerp(region.x,region.z,at/(float)per),u1=Mathf.Lerp(region.x,region.z,(at+1)/(float)per);
                     b.U[plate]=new Vector2(u0,region.y);b.U[plate+1]=new Vector2(u1,region.y);
                     b.U[plate+2]=new Vector2(u1,region.w);b.U[plate+3]=new Vector2(u0,region.w);
+                    if(forgeLight)for(int j=0;j<4;j++)
+                        b.C[plate+j]=MetalTone(b.C[plate+j],b.V[plate+j],j<2?h0:h1);
                     continue;
                 }
                 WeatheredCourseFace(b,c,r0,r1,h0,h1,a,e,Tinted(StoneLight(mid),tint));
@@ -1601,7 +1607,7 @@ namespace Cryptforge.UI
         }
 
         // Full top disc as a fan of quads, each spanning two segments.
-        private static void MassDisk(Builder b,Vector2 c,float r,float h,int m,bool iron,Color color)
+        private static void MassDisk(Builder b,Vector2 c,float r,float h,int m,bool iron,Color color,bool forgeLight=false)
         {
             Vector3 centre=Project(c.x,c.y)+Vector3.up*h;
             for(int k=0;k<2*m;k+=2)
@@ -1611,7 +1617,11 @@ namespace Cryptforge.UI
                 {
                     int first=b.V.Count;
                     FullFace(b,centre,p,q,s,color);
-                    for(int j=first;j<b.V.Count;j++)b.C[j]=RoofPatina(color,b.V[j],centre,r);
+                    for(int j=first;j<b.V.Count;j++)
+                    {
+                        Color tone=RoofPatina(color,b.V[j],centre,r);
+                        b.C[j]=forgeLight?MetalTone(tone,b.V[j],h):tone;
+                    }
                 }
                 else
                 {

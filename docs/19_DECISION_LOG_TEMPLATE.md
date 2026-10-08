@@ -795,3 +795,8 @@ Decision: use one continuous presentation-height function for the final gate ram
 ## 2026-10-08 — Prefer broad material hierarchy over more ornaments
 
 Owner requested the next three art tasks as one package. Selected court stone cohesion, readable formed boiler hoods and distant cavern separation, rather than adding small architectural props. The finer paving amplified an independent dark/pale stone lottery; narrowing that variation preserves the bond and allows existing broad deposits to carry the wear. Boiler hoods lose repeated complete riveted panels but retain sparse seams and complete far slopes after the first plain version read as a dish. A local backdrop material compresses distant contrast/saturation without another fullscreen overlay or changing gameplay. These improve material hierarchy; they do not complete painted-reference fidelity or introduce dynamic lighting. Actual before/after proof: surface-cohesion-01.
+
+
+## 2026-10-09 — Use authored forge sources for metal reflection
+
+The previous stone/light cohesion left industrial iron cold beside the same fires. Chose shared authored light sources and explicit physical surface heights instead of applying an orange tint to entire structures or adding runtime lights to projected geometry. Metal retains its existing directional shading and receives bounded warmth that decays with height/distance. Pipes subdivide only when this treatment is requested, avoiding an unlit midpoint on a long run between two cooler ends. Source image art, glow windows and gameplay remain unchanged. This is a reflected-light presentation approximation, not physically based or dynamic illumination.

@@ -199,13 +199,13 @@ namespace Cryptforge.UI
             {
                 Vector3 a=Project(19.7f,v)+Vector3.up*1.8f;
                 Vector3 b=Project(25.1f,v)+Vector3.up*1.8f;
-                Pipe(arena,a,b,.42f);
+                Pipe(arena,a,b,.42f,1.8f);
                 // Broad bolted unions distinguish the service mains from the small
                 // stored lengths. All parts stay on the existing exterior pipe run.
                 PipeUnion(arena,Vector3.Lerp(a,b,.18f),b-a,.42f);
                 PipeUnion(arena,Vector3.Lerp(a,b,.82f),b-a,.42f);
                 // Small bypass pipe and support pedestals along the void-side service run.
-                Pipe(arena,a+Vector3.down*.65f,b+Vector3.down*.65f,.2f);
+                Pipe(arena,a+Vector3.down*.65f,b+Vector3.down*.65f,.2f,1.15f);
                 foreach(float u in new[]{21f,23.5f})
                 {
                     Block(arena,u,v-.35f,u+.6f,v+.35f,.65f,2.8f,"Pipe saddle");
@@ -243,7 +243,7 @@ namespace Cryptforge.UI
             WorkshopMetalHull(iron,u-.20f,v-.20f,u+.20f,v+.20f,2.91f,3.04f,.025f);
             Create("Faceted pressure reservoirs",iron,arena.PlatformMaterials.FoundryIron,-11);
             Vector3 branch=Project(u,v+Mathf.Sign(mainV-v)*.82f)+Vector3.up*1.72f;
-            Pipe(arena,branch,Project(u,mainV)+Vector3.up*1.72f,.22f);
+            Pipe(arena,branch,Project(u,mainV)+Vector3.up*1.72f,.22f,1.72f);
             // Small top relief stem and wheel give the larger silhouette purpose.
             Vector3 stem=Project(u,v)+Vector3.up*3.04f;
             Tube(arena,stem,stem+Vector3.up*.27f,.095f);
@@ -276,7 +276,8 @@ namespace Cryptforge.UI
                     mesh.U[start+2]=new Vector2(u1,texTop);mesh.U[start+3]=new Vector2(u0,texTop);
                     // Light per facet edge, not per facet: shading rolls smoothly instead of barrel staves.
                     Color edgeA=ReservoirLight(a),edgeB=ReservoirLight(b);
-                    mesh.C[start]=edgeA;mesh.C[start+1]=edgeB;mesh.C[start+2]=edgeB;mesh.C[start+3]=edgeA;
+                    mesh.C[start]=MetalTone(edgeA,lowA,bottom);mesh.C[start+1]=MetalTone(edgeB,lowB,bottom);
+                    mesh.C[start+2]=MetalTone(edgeB,highB,top);mesh.C[start+3]=MetalTone(edgeA,highA,top);
                     ArchitectureBar(mesh,highA,highB,.023f,new Color(.78f,.73f,.62f));
                 }
                 // Planar cap mapping stays inside the plain plate, clear of the straps and rivets.
@@ -286,6 +287,7 @@ namespace Cryptforge.UI
                 {
                     Vector3 offset=mesh.V[cap+k]-center;
                     mesh.U[cap+k]=new Vector2(.5f+offset.x*.45f,.5f+offset.y*.9f);
+                    mesh.C[cap+k]=MetalTone(mesh.C[cap+k],mesh.V[cap+k],top);
                 }
             }
         }
@@ -390,21 +392,21 @@ namespace Cryptforge.UI
             Create("Foundry ironwork",mesh,arena.PlatformMaterials.FoundryIron,order);
         }
 
-        private void Pipe(ArenaView arena,Vector3 a,Vector3 b,float width)
+        private void Pipe(ArenaView arena,Vector3 a,Vector3 b,float width,float? surfaceHeight=null)
         {
-            PressureTube(arena,a,b,width);
+            PressureTube(arena,a,b,width,surfaceHeight:surfaceHeight);
             Vector3 d=(b-a).normalized;
             int count=Mathf.Max(1,Mathf.CeilToInt(Vector3.Distance(a,b)/1.3f));
             for(int i=0;i<=count;i++)
             {
                 Vector3 p=Vector3.Lerp(a,b,i/(float)count);
-                PressureTube(arena,p-d*width*.11f,p+d*width*.11f,width*1.32f);
+                PressureTube(arena,p-d*width*.11f,p+d*width*.11f,width*1.32f,surfaceHeight:surfaceHeight);
             }
         }
 
         // Plain iron and a curved cross-section keep pressure mains distinct from structural beams.
         // This shares the existing iron batch and leaves generic rods/rails untouched.
-        private void PressureTube(ArenaView arena,Vector3 a,Vector3 b,float width,float order=-11)
+        private void PressureTube(ArenaView arena,Vector3 a,Vector3 b,float width,float order=-11,float? surfaceHeight=null)
         {
             Vector3 axis=(b-a).normalized,n=new Vector3(-axis.y,axis.x,0);
             if(Vector2.Dot(new Vector2(n.x,n.y),ChainLight)<0)n=-n;
@@ -415,8 +417,22 @@ namespace Cryptforge.UI
                 float t0=i/(float)strips,t1=(i+1)/(float)strips;
                 float x0=Mathf.Cos(t0*Mathf.PI),x1=Mathf.Cos(t1*Mathf.PI);
                 Color c0=PressureShade(t0),c1=PressureShade(t1);
-                LinkQuad(mesh,a+n*x0*width*.5f,b+n*x0*width*.5f,
-                    b+n*x1*width*.5f,a+n*x1*width*.5f,c0,c0,c1,c1);
+                // Long lit mains sample between the ends so a nearby forge does not
+                // disappear halfway along the pipe. Short collars need one span.
+                int spans=surfaceHeight.HasValue?Mathf.Max(1,Mathf.CeilToInt(Vector3.Distance(a,b)/.75f)):1;
+                for(int span=0;span<spans;span++)
+                {
+                    Vector3 from=Vector3.Lerp(a,b,span/(float)spans),to=Vector3.Lerp(a,b,(span+1f)/spans);
+                    Color from0=c0,to0=c0,from1=c1,to1=c1;
+                    if(surfaceHeight.HasValue)
+                    {
+                        float height=surfaceHeight.Value;
+                        from0=MetalTone(c0,from,height);to0=MetalTone(c0,to,height);
+                        from1=MetalTone(c1,from,height);to1=MetalTone(c1,to,height);
+                    }
+                    LinkQuad(mesh,from+n*x0*width*.5f,to+n*x0*width*.5f,
+                        to+n*x1*width*.5f,from+n*x1*width*.5f,from0,to0,to1,from1);
+                }
             }
             Create("Rounded pressure iron",mesh,arena.PlatformMaterials.FoundryIron,order);
         }

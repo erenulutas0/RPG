@@ -35,6 +35,29 @@ namespace Cryptforge.Tests
             Color recessed=FoundryRegionView.ArchitectureLight(-8,2,0,0);
             Assert.That(recessed.r,Is.LessThan(near.r*.9f),"The ledge underside needs localized contact shade.");
         }
+        [Test] public void MetalReflectionFallsOffInHeightAndStaysContinuousAcrossTheRamp()
+        {
+            Color near=FoundryRegionView.MetalLight(26.9f,-4.08f,1.8f);
+            Color high=FoundryRegionView.MetalLight(26.9f,-4.08f,12f);
+            Color away=FoundryRegionView.MetalLight(-40,-40,1.8f);
+            Assert.That(near.r/near.b,Is.GreaterThan(high.r/high.b+.2f),"Heat must remain near the fire, not color the whole stack.");
+            Assert.That(high,Is.EqualTo(away),"Far above all lamps only the cool metal ambient remains.");
+            foreach(float seam in new[]{29f,31f})
+                for(float v=-5;v<=16;v+=1)
+                {
+                    Color a=FoundryRegionView.MetalLight(seam-.001f,v,1.8f);
+                    Color b=FoundryRegionView.MetalLight(seam+.001f,v,1.8f);
+                    Assert.That(Mathf.Abs(a.r-b.r)+Mathf.Abs(a.g-b.g)+Mathf.Abs(a.b-b.b),Is.LessThan(.005f));
+                }
+            for(float u=-35;u<=38;u+=2)for(float v=-30;v<=22;v+=2)
+                foreach(float h in new[]{0f,1.8f,4f,8f})
+                {
+                    Color light=FoundryRegionView.MetalLight(u,v,h);
+                    Assert.That(light.r,Is.InRange(0f,1.9f));Assert.That(light.g,Is.InRange(0f,1.9f));
+                    Assert.That(light.b,Is.InRange(0f,1.9f));Assert.That(light.a,Is.EqualTo(1));
+                }
+        }
+
         [SetUp] public void Begin()=>TestProfile.Begin();
         [UnityTearDown] public IEnumerator End()
         {

@@ -33,6 +33,40 @@ namespace Cryptforge.UI
             return light;
         }
 
+        // Non-emissive reflected forge light for industrial iron. Sample the authored
+        // source heights and surface elevation, never the displayed screen y of a tower.
+        // Directional form shading stays in the incoming metal tone. Calculated at build
+        // only; fire textures and glow windows do not pass through this treatment.
+        internal static Color MetalLight(float u,float v,float height)
+        {
+            float heat=0;
+            Color warm=Color.clear;
+            float worldHeight=height+FoundrySurface.Height(u);
+            foreach(var lamp in ForgeLamps())
+            {
+                float horizontal=Mathf.Max(0,DistanceFromFloorBox(u,v,lamp.Box.x,lamp.Box.y,lamp.Box.z,lamp.Box.w)-lamp.Round);
+                float sourceU=Mathf.Clamp(u,lamp.Box.x,lamp.Box.z);
+                float vertical=(worldHeight-lamp.Height-FoundrySurface.Height(sourceU))*1.15f;
+                float glow=lamp.Strength*SmoothFall(Mathf.Sqrt(horizontal*horizontal+vertical*vertical),lamp.Radius);
+                heat+=glow;warm+=lamp.Tint*glow;
+            }
+            float saturation=1-Mathf.Exp(-heat);
+            if(heat>.0001f)warm*=1.35f*saturation/heat;
+            Color light=new Color(.96f,1f,1.04f,1)+warm;
+            light.g*=1-.06f*saturation;light.b*=1-.18f*saturation;
+            light.a=1;
+            return light;
+        }
+
+        private static Color MetalTone(Color tone,Vector3 projected,float height)
+        {
+            FoundrySurface.ToDesign(projected.x,projected.y-height,out float u,out float v);
+            Color result=Tinted(tone,MetalLight(u,v,height));
+            float peak=Mathf.Max(result.r,Mathf.Max(result.g,result.b));
+            if(peak>1.9f){float scale=1.9f/peak;result.r*=scale;result.g*=scale;result.b*=scale;}
+            return result;
+        }
+
         private static Color SurfaceTone(Color tone,float u,float v,float height,float belowLedge)
         {
             Color light=ArchitectureLight(u,v,height,belowLedge);

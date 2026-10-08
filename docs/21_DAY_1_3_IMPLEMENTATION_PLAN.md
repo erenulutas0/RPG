@@ -2010,3 +2010,11 @@ Modified FoundryRegionFinish (stone variation/joints/bevels), FoundryRegionMassi
 
 
 Verified: .NET 395 passed; compile 0 warnings/errors; final actual graphics capture 1 passed; EditMode 415 passed / PlayMode 149 passed (including new owned-material lifecycle test); Android exit 0; final integrity 552 asset/folder GUIDs /1,099 package GUIDs /568 scene objects/components. Static region 18 renderers /95,622 vertices (+832, about0.9%); largest mesh27,373. APK36,061,418 bytes; SHA-256 `BA39FFFAB4EB3D650CBC0609B7211DF6BCDA3990EDCCE1655EE45519B8CFCA67`; installed S23 base.apk hash matched. S23 approach/ramp and normal combat reviewed; profile/backup/original flags unchanged, temporary depth-proof removed. Proof: `ArtDirection/2026-10-08/surface-cohesion-01/`.
+
+
+## 2026-10-09 — Industrial metal light integration
+
+FoundryRegionWeathering adds shared reflected-light sampling and bounded metal tint. FoundryRegionMassing opts boiler courses/discs and hood panels/seams into the treatment and passes explicit height into pressure feeds. FoundryRegionDressing applies it to service mains/collars and reservoir courses/caps; only lit long tubes subdivide for intermediate samples. FoundryRegionTests adds a regression for warm-near/cool-high behavior, ambient outside source range, continuous ramp seams and opaque bounded color across the region. No new asset, scene, camera, input, movement, save or balance changes. Actual matched Unity captures/traversal passed; full verification and installed state follow in docs22/23/38.
+
+
+Verified: .NET 395 passed; compile 0 warnings/errors; actual graphics capture 1 passed; EditMode 415 passed / PlayMode 150 passed; Android exit 0. Final integrity: 552 unique asset/folder GUIDs, 1,099 package GUIDs and 568 scene objects/components; references and JSON valid. Static region: 18 renderers /96,558 vertices (+936, about 0.98%); largest mesh 27,373. No new renderer, material, texture or update loop. APK 36,063,810 bytes; SHA-256 `43BD507FD72AE0D91093D96BA86771C172B0DB7C00006BBE993EAE6A11743CDD`; installed S23 base.apk hash matched.
