@@ -418,7 +418,7 @@ namespace Cryptforge.UI
                 int local=i-first;
                 float elevation=local<12&&local%4<2?bottom:top;
                 Vector3 floor=mesh.V[i]-Vector3.up*elevation;
-                FoundryMap.ToDesign(floor.x,floor.y*2,out float u,out float v);
+                FoundrySurface.ToDesign(floor.x,floor.y,out float u,out float v);
                 mesh.C[i]=SurfaceTone(mesh.C[i],u,v,elevation,local<12?top-elevation:2);
             }
         }

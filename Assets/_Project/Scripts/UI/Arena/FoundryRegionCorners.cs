@@ -17,7 +17,7 @@ namespace Cryptforge.UI
         }
         private static float CornerDistance(Vector3 p,int corner,int plane)
         {
-            FoundryMap.ToDesign(p.x,p.y*2,out float u,out float v);
+            FoundrySurface.ToDesign(p.x,p.y,out float u,out float v);
             bool west=corner==0||corner==3,north=corner>=2;
             float x=west?u-FoundryMap.West:FoundryMap.East-u;
             float y=north?FoundryMap.North-v:v-FoundryMap.South;

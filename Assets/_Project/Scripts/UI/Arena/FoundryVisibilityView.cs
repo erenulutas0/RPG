@@ -18,14 +18,10 @@ namespace Cryptforge.UI
         internal static float ActorZ(Vector3 region, float worldY) => region.z + Z(worldY - region.y) - ActorBias;
     }
 
-    // Presentation-only depth for the foundry. While a camera renders, the sprites of every actor (hero, enemies,
-    // ground drops, the chest) sit at the depth of the actor's feet, so structures in front hide them and structures behind
-    // do not. Only the actors' child transforms (and the combat effects below) move, and only between LateUpdate/pre-cull
-    // and a camera's post-render: when a camera draws, gameplay, roots and anything that reads positions during Update see
-    // the original z. In a frame no camera draws (batch tests with -nographics) the moved z persists until the next apply;
-    // nothing in gameplay reads it (chest reach uses stored floats, contact shadows only x/y, telemetry no positions), and
-    // tests that read z call RestoreActorDepth first. The one exception to "children only" is a root that is its own
-    // sprite and has no children (the chest): it has no physics body and nothing reads its z, so the root itself moves.
+    // Presentation-only surface height and depth. Positions/sprite variants are applied only
+    // during camera rendering and restored afterwards, including the childless chest. Gameplay
+    // always reads flat roots; actor bodies, bars and airborne effects share their floor contact.
+    // Ground sprites instead bend over the surface using a scene-owned grid/shader cache.
     // The hero stays readable: structures in front of him (never those behind) fade over his body, and a faded
     // fragment writes no depth. Static meshes/batches remain intact. Each source material has one scene-owned variant.
     // Enemies hidden by a structure stay locatable: their bodies share one scene-owned material whose second pass draws
@@ -46,7 +42,8 @@ namespace Cryptforge.UI
         internal static readonly Color LootXrayColor = new Color(1f, .8f, .32f, 1f);
         private readonly Dictionary<Material, Material> _variants = new Dictionary<Material, Material>();
         private readonly List<Transform> _moved = new List<Transform>();
-        private readonly List<float> _restZ = new List<float>();
+        private readonly List<Vector3> _restPosition = new List<Vector3>();
+        private readonly FoundryGroundProjection _ground = new FoundryGroundProjection();
         private readonly List<SpriteRenderer> _xrayed = new List<SpriteRenderer>();
         private readonly List<Material> _xrayedFrom = new List<Material>();
         private Material _xray;
@@ -105,10 +102,11 @@ namespace Cryptforge.UI
             if (_hero != null && (_health == null || _health.IsAlive))
             {
                 Vector3 p = _hero.position;
-                focus = new Vector4(p.x, p.y + .35f, FoundryDepth.ActorZ(transform.position, p.y), 1);
+                float lift = FoundrySurface.Lift(p, transform.position);
+                focus = new Vector4(p.x, p.y + lift + .35f, FoundryDepth.ActorZ(transform.position, p.y + lift), 1);
             }
             foreach (var variant in _variants.Values) variant.SetVector(FocusId, focus);
-            ApplyActorDepth();
+            // Height is applied only in camera callbacks, never left for the next gameplay Update.
         }
 
         // Also covers cameras rendered by hand (review captures) after the last post-render restore.
@@ -132,15 +130,18 @@ namespace Cryptforge.UI
                 if (actor == null) { actors.RemoveAt(i); continue; }
                 if (!actor.gameObject.activeInHierarchy) continue;
                 Transform bar = ShowEnemyWhenHidden(actor);
-                float z = FoundryDepth.ActorZ(region, actor.position.y);
+                float lift = FoundrySurface.Lift(actor.position, region);
+                float z = FoundryDepth.ActorZ(region, actor.position.y + lift);
                 int children = actor.childCount;
-                if (children == 0) MoveToDepth(actor, z);
-                // An enemy's health bar is a readout, like the damage numbers: it stays on top even when a structure
+                if (children == 0) MoveToDepth(actor, z, lift);
+                // An enemy's health bar shares height but keeps its readout depth, even when a structure
                 // hides the body, so a silhouetted enemy still shows how hurt it is.
                 for (int c = 0; c < children; c++)
                 {
                     Transform child = actor.GetChild(c);
-                    if (child != bar) MoveToDepth(child, z);
+                    bool floor = child.GetComponent<ContactShadowView>() != null || child.name == "Ability Ring";
+                    if (floor) _ground.Apply(child.GetComponent<SpriteRenderer>(), region);
+                    MoveToDepth(child, child == bar ? child.position.z : z, floor ? 0 : lift);
                 }
             }
             ShowLootWhenHidden();
@@ -157,17 +158,28 @@ namespace Cryptforge.UI
             int slots = _effects.EffectSlotCount;
             for (int i = 0; i < slots; i++)
             {
-                Transform effect = _effects.AboveFloorEffect(i, out float groundY);
-                if (effect != null) MoveToDepth(effect, FoundryDepth.ActorZ(region, groundY));
+                Transform effect = _effects.SurfaceEffect(i, out Vector3 contact, out bool above, out var floor);
+                if (effect == null) continue;
+                if (floor != null) _ground.Apply(floor, region);
+                else
+                {
+                    float lift = FoundrySurface.Lift(contact, region);
+                    MoveToDepth(effect, FoundryDepth.ActorZ(region, contact.y + lift), lift);
+                }
+            }
+            for (int i = 0; i < _effects.NumberSlotCount; i++)
+            {
+                var number = _effects.SurfaceNumber(i, out Vector3 contact);
+                if (number != null) MoveToDepth(number, number.position.z, FoundrySurface.Lift(contact, region));
             }
         }
 
-        private void MoveToDepth(Transform moved, float z)
+        private void MoveToDepth(Transform moved, float z, float lift = 0)
         {
             _moved.Add(moved);
-            _restZ.Add(moved.localPosition.z);
+            _restPosition.Add(moved.localPosition);
             Vector3 p = moved.position;
-            moved.position = new Vector3(p.x, p.y, z);
+            moved.position = new Vector3(p.x, p.y + lift, z);
         }
 
         // Gives an enemy's body the silhouette material, once; the original is kept for OnDisable.
@@ -260,20 +272,20 @@ namespace Cryptforge.UI
             _pruneAt = 64;
         }
 
-        // Returns every moved transform (actor sprites and effects) to the local z it had before ApplyActorDepth.
+        // Restores every moved transform and ground sprite to its pre-render state.
         internal void RestoreActorDepth()
         {
             if (!_applied) return;
-            // Newest first, so a transform recorded twice ends at the z it had before the first move.
+            // Newest first, so a transform recorded twice ends at its original position.
             for (int i = _moved.Count - 1; i >= 0; i--)
             {
                 Transform moved = _moved[i];
                 if (moved == null) continue;
-                Vector3 local = moved.localPosition;
-                if (local.z != _restZ[i]) moved.localPosition = new Vector3(local.x, local.y, _restZ[i]);
+                moved.localPosition = _restPosition[i];
             }
             _moved.Clear();
-            _restZ.Clear();
+            _restPosition.Clear();
+            _ground.Restore();
             _applied = false;
         }
 
@@ -288,6 +300,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            _ground.Dispose();
             foreach (var variant in _variants.Values) if (variant != null) Destroy(variant);
             _variants.Clear();
             if (_xray != null) Destroy(_xray);

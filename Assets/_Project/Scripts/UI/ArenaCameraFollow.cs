@@ -48,7 +48,10 @@ namespace Cryptforge.UI
         public Vector3 Goal()
         {
             Vector3 position = transform.position;
-            if (_arena == null || _bandHeight <= 0f || _arena.IsFoundryRegion)
+            if (_arena != null && _arena.IsFoundryRegion)
+                return new Vector3(_target.position.x, _target.position.y - _offsetY +
+                    FoundrySurface.Lift(_target.position, _arena.transform.position), position.z);
+            if (_arena == null || _bandHeight <= 0f)
                 return new Vector3(_target.position.x, _target.position.y - _offsetY, position.z);
             Vector3 origin = _arena.transform.position;
             FollowFraming.ConstrainToArena(_arena.Geometry, _target.position.x - origin.x, _target.position.y - origin.y,

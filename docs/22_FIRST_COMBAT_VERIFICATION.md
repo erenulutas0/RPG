@@ -894,3 +894,12 @@ Manual replay: with current foundry preview, walk around the west side of the pi
 ## 2026-10-08 - Gate approach verification
 
 Gate-procession-01: .NET395/Edit415/Play145, graphics1, compileclean, Android0, integrity545/1099/568. Existing floor/depth/resource/meshbudget/motion guards passed. Matched Unity gate overview and normal follow portraits checked matte inlay against the cyan ability ring. On S23, walk from court into gate lane, cross medallion, approach threshold; check feet stay on the flush floor and stone/brass remain under actors. Completed with APK C5C78DF97A5090830159C295D262DE935F8540E39C60920740EB8D5E34D6E0F7; normal Staff combat readback afterward. Persistent files unchanged, app stopped. Actual height remains unimplemented; no new performance claim.
+
+
+## 2026-10-08 — Raised gate terrace verified
+
+Shared surface projection now raises the final gate approach. Tests cover forward/inverse mapping and seam continuity, actual paving vertices/UVs, flat gameplay roots, actor/bar/chest/effect/number contact height, camera follow, sprite-grid reuse and lifecycle restoration. The first full PlayMode run exposed chipped-floor UVs that included height and unsupported gate braziers after procedural rail redistribution; code was corrected without weakening the existing support assertion.
+
+Final verification: .NET 395 passed; compile 0 warnings/errors; targeted surface/region/elevation 5 passed; actual graphics capture 1 passed; full EditMode 415 passed / PlayMode 148 passed; Android exit 0. Integrity: 550 unique asset/folder GUIDs, 1,099 package GUIDs, 568 scene objects/components; references/JSON valid. Static region 18 renderers / 94,790 vertices (largest 27,373), excluding actors and ground sprite grids.
+
+APK 31,183,755 bytes, SHA-256 `42916B306B07732DF42D4AFB11D5C7DB0037FEB67D135BD6D1F9CD4E50734617`; installed base.apk hash matched. S23 actual climb/descent and normal Staff combat reviewed. Capture-interleaved traversal had one unisolated 166.9 ms frame. A fresh-process repeat without screenshots during measurement showed post-startup 59.5–59.9 fps, maximum 33.3 ms, no frame over 35 ms; gate GPU averages 4.5–4.6 ms, maximum 5.3 ms, 52 draws. This is short traversal evidence, not a sustained-combat, midrange or cold-driver benchmark. Proof and limitations: `ArtDirection/2026-10-08/gate-elevation-01/`.

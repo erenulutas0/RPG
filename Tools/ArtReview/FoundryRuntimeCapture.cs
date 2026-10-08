@@ -110,7 +110,7 @@ namespace Cryptforge.Tests
             // Last point aligns screen x with the pediment centre at design (32.18, 5):
             // equal u-v means equal projected x. It distinguishes lateral cropping from vertical HUD overlap.
             foreach (var gateDesign in new[] { new Vector2(22, 6), new Vector2(26, 6),
-                new Vector2(28, 6), new Vector2(30, 2.82f) })
+                new Vector2(28, 6), new Vector2(29, 6), new Vector2(31, 6), new Vector2(30, 2.82f) })
             {
                 Cryptforge.Art.FoundryMap.ToFloor(gateDesign.x, gateDesign.y, out float gateX, out float gateY);
                 Assert.That(arena.Geometry.IsOnPlatform(gateX, gateY), Is.True, "Gate review point must be walkable");
@@ -136,6 +136,18 @@ namespace Cryptforge.Tests
                     _camera.orthographicSize, follow.VisibleWidth));
                 if (gateDesign.x == 30)
                 {
+                    // Staged hit/pulse on the slope through production effect handlers;
+                    // the review enemy is restored before traversal resumes.
+                    var slopeEnemy = setup.Encounters.WaveEnemyAt(0);
+                    Vector3 enemyRest = slopeEnemy.transform.position;
+                    Cryptforge.Art.FoundryMap.ToFloor(30, 4.6f, out float hitX, out float hitY);
+                    slopeEnemy.transform.position = new Vector3(hitX, hitY * .5f, 0);
+                    slopeEnemy.ApplyDamage(new DamageContext(1));
+                    typeof(CombatEffectsView).GetMethod("OnAbilityUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                        .Invoke(effects, null);
+                    Capture("gate-ramp-effects", 1080, 2340);
+                    slopeEnemy.transform.position = enemyRest;
+                    yield return new WaitForSeconds(.8f);
                     CaptureGateFramingStudy(follow, hero.transform);
                     CaptureGateArrivalStudy(follow);
                 }

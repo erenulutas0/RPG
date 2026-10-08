@@ -14,6 +14,7 @@ namespace Cryptforge.UI
         private PrototypeTextDefinition _text;
         private Camera _camera;
         private ArenaCameraFollow _framing;
+        private ArenaView _arena;
         private GameObject _plate;
         private LineRenderer _progress;
         private LineRenderer _arrow;
@@ -30,6 +31,7 @@ namespace Cryptforge.UI
         {
             _setup = setup; _text = text; _camera = Camera.main;
             _framing = _camera.GetComponent<ArenaCameraFollow>();
+            _arena = FindFirstObjectByType<ArenaView>();
             _material = new Material(Shader.Find("Sprites/Default"));
             _plate = new GameObject("Finale Exit Seal"); _plate.transform.SetParent(transform, false);
             var brass = new Color(.78f,.63f,.36f,1);
@@ -81,6 +83,7 @@ namespace Cryptforge.UI
             ShownProgress=visible?Mathf.Clamp01(encounter.ExitHeldSeconds/ExitRule.DwellSeconds):0;
             if(!visible)return;
             Vector3 position=new Vector3(encounter.ExitFloorX,ArenaFloor.WorldY(encounter.ExitFloorY),0);
+            if(_arena!=null&&_arena.IsFoundryRegion)position.y+=FoundrySurface.Lift(position,_arena.transform.position);
             _plate.transform.position=position;
             _progress.enabled=ShownProgress>0;
             for(int i=0;i<=Segments;i++)_arc[i]=Point(Mathf.PI/2-i*(Mathf.PI*2/Segments)*ShownProgress,ExitRule.Radius);

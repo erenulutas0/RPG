@@ -619,7 +619,7 @@ namespace Cryptforge.UI
         {
             Vector3 p=Project(u,v);
             mesh.V.Add(p);
-            mesh.U.Add(new Vector2(1+(p.x+p.y*2)/8.55f,1+(-p.x+p.y*2)/8.55f));
+            mesh.U.Add(new Vector2(1+2*FoundryMap.Axis*u/8.55f,1+2*FoundryMap.Axis*v/8.55f));
             mesh.C.Add(new Color(light.r*tone*tint.r,light.g*tone*tint.g,light.b*tone*tint.b,1));
         }
 
@@ -654,7 +654,8 @@ namespace Cryptforge.UI
             for(int i=start;i<start+4;i++)
             {
                 Vector3 p=mesh.V[i];
-                FoundryMap.ToDesign(p.x,p.y*2,out float u,out float v);
+                FoundrySurface.ToDesign(p.x,p.y,out float u,out float v);
+                mesh.U[i]=new Vector2(1+2*FoundryMap.Axis*u/8.55f,1+2*FoundryMap.Axis*v/8.55f);
                 Color color=FloorLight(u,v)*stone;color.a=1;
                 mesh.C[i]=color;
             }

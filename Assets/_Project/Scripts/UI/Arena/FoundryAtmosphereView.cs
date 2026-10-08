@@ -254,8 +254,7 @@ namespace Cryptforge.UI
 
         private static Vector3 Project(float u,float v)
         {
-            FoundryMap.ToFloor(u,v,out float x,out float y);
-            return new Vector3(x,y*.5f,0);
+            return FoundrySurface.Project(u,v);
         }
         private void OnDestroy(){if(_mesh!=null)Destroy(_mesh);}
     }

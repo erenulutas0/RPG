@@ -921,6 +921,11 @@ namespace Cryptforge.UI
                 placed.Add(box);
                 AddPiece(pieces,box,2.8f,()=>LanternPost(arena,box,front));
             }
+            // Braziers are attached to explicit supports, not incidental gap subdivisions.
+            // Elevation changes screen-overlap exclusions against boilers and therefore can
+            // redistribute the procedural posts even though the walking boundary is unchanged.
+            foreach(float v in GateBrazierPosts)
+                PlaceRailPost(pieces,placed,new List<Vector2>(),new Vector4(32,v-.26f,32.52f,v+.26f),false,false,wall);
             // Exposed edges from the same cells and neighbour test as the movement map; the pit has its own collar.
             var lines=new Dictionary<(int dir,int line),List<int>>();
             foreach(var cell in _cells)
@@ -1575,7 +1580,7 @@ namespace Cryptforge.UI
                     for(int j=first;j<b.V.Count;j++)
                     {
                         Vector3 floor=b.V[j]-Vector3.up*h;
-                        FoundryMap.ToDesign(floor.x,floor.y*2,out float u,out float v);
+                        FoundrySurface.ToDesign(floor.x,floor.y,out float u,out float v);
                         b.C[j]=SurfaceTone(color,u,v,h,2);
                     }
                 }

@@ -15,7 +15,7 @@ namespace Cryptforge.UI
         // Owners runs parallel to Builder.V: the footprint index each vertex takes its depth from (-1 = resolve at Emit).
         private sealed class Batch { internal Builder Builder=new Builder(); internal Material Material; internal float Order; internal readonly List<int> Owners=new List<int>(); }
         private readonly List<Batch> _batches=new List<Batch>();
-        private static Vector3 Project(float x,float y) { FoundryMap.ToFloor(x,y,out float fx,out float fy);return new Vector3(fx,fy*.5f,0); }
+        private static Vector3 Project(float x,float y) => FoundrySurface.Project(x,y);
         // Flush floor decals - coping trim, borders, inlays, seal, joints. They are part of the walking surface, so the
         // hero cutaway must not dissolve them (before 2026-09-30 brass lines vanished in a disc around the hero's feet).
         // They sort at the paving's own rank (-15), drawn after it (see the emit loop), so every raised structure at -14 -
@@ -43,7 +43,7 @@ namespace Cryptforge.UI
                 for(int i=0;i<4;i++)if(!FoundryMap.UncutCell(cell.x+neighbours[i].x,cell.y+neighbours[i].y))
                 {
                     Vector3 a=p[i],b=p[(i+1)%4],drop=Vector3.down*2.8f;
-                    FoundryMap.ToDesign((a.x+b.x)*.5f,a.y+b.y,out float edgeU,out float edgeV);
+                    FoundrySurface.ToDesign((a.x+b.x)*.5f,(a.y+b.y)*.5f,out float edgeU,out float edgeV);
                     if(!CourtEdgeVisible(edgeU,edgeV))continue;
                     walls.WallQuad(a+drop,b+drop,b,a,false,new Color(.7f,.7f,.76f));
                     Vector3 inward=(Project(x+.5f,y+.5f)-(a+b)*.5f)*.18f;
@@ -347,7 +347,7 @@ namespace Cryptforge.UI
             for(int i=0;i<b.V.Count;i++)
             {
                 // Flush vertices only: world y is the floor's y halved (Project), z is still 0 on this rank.
-                FoundryMap.ToDesign(b.V[i].x,b.V[i].y*2,out float u,out float v);
+                FoundrySurface.ToDesign(b.V[i].x,b.V[i].y,out float u,out float v);
                 Color light=FloorLight(u,v),tone=b.C[i];
                 if(OnCopingRail(b.U[i]))light=new Color(BrassLight(light.r),BrassLight(light.g),BrassLight(light.b));
                 Color lit=new Color(tone.r*light.r,tone.g*light.g,tone.b*light.b,tone.a);
