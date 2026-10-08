@@ -790,3 +790,8 @@ Real walkable elevation cannot be delivered honestly as a stair picture while ac
 ## 2026-10-08 — Raise the gate without changing combat coordinates
 
 Decision: use one continuous presentation-height function for the final gate ramp, with a level terrace. Combat/pursuit/spawning continue to read the existing floor plane. Render callbacks lift visual children and restore them, including the childless chest; damage numbers retain their source contact rather than deriving height from their floating position. Floor sprites deform over the same surface. Reason: lifting only architecture would make actors float or sink, while moving gameplay roots would silently alter reach and deterministic simulation. The ramp starts beyond the boiler crowns. Scope excludes jumps, overlapping floors, door progression and balance changes. Painted reference fidelity remains incomplete.
+
+
+## 2026-10-08 — Prefer broad material hierarchy over more ornaments
+
+Owner requested the next three art tasks as one package. Selected court stone cohesion, readable formed boiler hoods and distant cavern separation, rather than adding small architectural props. The finer paving amplified an independent dark/pale stone lottery; narrowing that variation preserves the bond and allows existing broad deposits to carry the wear. Boiler hoods lose repeated complete riveted panels but retain sparse seams and complete far slopes after the first plain version read as a dish. A local backdrop material compresses distant contrast/saturation without another fullscreen overlay or changing gameplay. These improve material hierarchy; they do not complete painted-reference fidelity or introduce dynamic lighting. Actual before/after proof: surface-cohesion-01.

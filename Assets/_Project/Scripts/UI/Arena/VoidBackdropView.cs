@@ -42,6 +42,7 @@ namespace Cryptforge.UI
         }
 
         private Mesh _mesh;
+        private Material _cavernAtmosphere;
         private Camera _camera;
         public SpriteRenderer CavernRenderer { get; private set; }
         private Drifter[] _drifters;
@@ -70,6 +71,15 @@ namespace Cryptforge.UI
                 _camera = camera;
                 CavernRenderer = AddRenderer(transform, "Furnace Cavern", cavern, Vector3.zero, sortingOrder + 1);
                 CavernRenderer.color = geometry.IsFoundry ? FoundryCavernTint : Color.white;
+                if (geometry.IsFoundry)
+                {
+                    var shader = Resources.Load<Shader>("FoundryCavern");
+                    if (shader != null)
+                    {
+                        _cavernAtmosphere = new Material(shader) { name = "Foundry cavern atmosphere owned" };
+                        CavernRenderer.sharedMaterial = _cavernAtmosphere;
+                    }
+                }
                 FrameCavern();
                 return; // Imported art is asset-owned; do not generate the unused procedural backdrop.
             }
@@ -190,6 +200,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            if (_cavernAtmosphere != null) Destroy(_cavernAtmosphere);
             if (_mesh != null)
                 Destroy(_mesh);
         }

@@ -316,3 +316,12 @@ Evidence: ArtDirection/2026-10-08/north-workshop-paving-01; latest state and ins
 - [x] Long matte processional frame, lane-oriented medallion and broad dressed threshold using existing batches (gate-procession-01; full gate and S23).
 - [x] Actual traversable visual gate elevation: shared ground/actor/shadow/effect/camera projection, inverse/depth tests, S23 climb/descent (gate-elevation-01; full gate).
 - [ ] If first-use elevation hitch recurs, isolate cold shader/driver versus capture/cache cost; short warm S23 repeat does not establish midrange or sustained combat performance.
+
+
+## 2026-10-08 — Three-task material hierarchy package
+
+- [x] Reduce the finer paving's checkerboard with restrained flag tone and quieter joints/bevels.
+- [x] Formed metal boiler hoods: complete far/near slopes, broad highlights, soot and sparse radial seams.
+- [x] Recede distant foundry cavern light through an owned sprite material; preserve ordinary halls and verify release/borrowed-art ownership.
+
+Evidence: `ArtDirection/2026-10-08/surface-cohesion-01/`, full gate and S23 approach/normal combat. Broader painted-reference fidelity remains open.

@@ -106,9 +106,9 @@ namespace Cryptforge.UI
             MassCourse(iron,c,BoilerShell+.07f,BoilerShell+.07f,ShellTop-.1f,ShellTop+.06f,BoilerFacets,true,Bronze);
             MassDisk(iron,c,BoilerShell+.07f,ShellTop+.06f,BoilerFacets,true,new Color(.46f,.48f,.54f));
             float h=ShellTop+.06f;
-            MassCourse(iron,c,1.42f,1.12f,h,h+.36f,8,true,new Color(1.1f,1.1f,1.12f));
-            MassCourse(iron,c,1.12f,.72f,h+.36f,h+.68f,8,true,new Color(1.16f,1.16f,1.18f));
-            MassCourse(iron,c,.72f,.36f,h+.68f,h+.86f,6,true,new Color(1.2f,1.2f,1.22f));
+            FormedBoilerCourse(iron,c,1.42f,1.12f,h,h+.36f,h,h+.86f,10);
+            FormedBoilerCourse(iron,c,1.12f,.72f,h+.36f,h+.68f,h,h+.86f,10);
+            FormedBoilerCourse(iron,c,.72f,.36f,h+.68f,h+.86f,h,h+.86f,10);
             BoilerVent(iron,c,h+.86f,FlueTop,.3f);
             var glow=new Builder();
             ShellWindow(iron,glow,c,3);
@@ -145,13 +145,53 @@ namespace Cryptforge.UI
             if(!boxVisible)WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
             MassCourse(iron,c,1.62f,1.62f,SquatCorniceTop,1.55f,BoilerFacets,true,Bronze);
             MassDisk(iron,c,1.62f,1.55f,BoilerFacets,true,new Color(.46f,.48f,.54f));
-            MassCourse(iron,c,1.52f,1.12f,1.55f,1.78f,BoilerFacets,true,new Color(1.1f,1.1f,1.12f));
-            MassCourse(iron,c,1.12f,.64f,1.78f,1.93f,8,true,new Color(1.16f,1.16f,1.18f));
-            MassCourse(iron,c,.64f,.34f,1.93f,2f,6,true,new Color(1.2f,1.2f,1.22f));
+            FormedBoilerCourse(iron,c,1.52f,1.12f,1.55f,1.78f,1.55f,2f,10);
+            FormedBoilerCourse(iron,c,1.12f,.64f,1.78f,1.93f,1.55f,2f,10);
+            FormedBoilerCourse(iron,c,.64f,.34f,1.93f,2f,1.55f,2f,10);
             MassDisk(iron,c,.34f,2f,6,true,new Color(.5f,.52f,.58f));
             BoilerVent(iron,c,2f,SquatTop,.2f);
             if(boxVisible)WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
             Create("Boiler iron dome",iron,set.FoundryIron,-10.5f);
+        }
+
+        // Formed hoods use a continuous plain-metal sample, not a full riveted plate
+        // on every tapered facet. Shared-angle lighting joins all three courses; soot
+        // gathers towards the flue and one broad cold highlight describes the curvature.
+        // Existing footprint, depth owner, material and lower riveted shell are retained.
+        private static void FormedBoilerCourse(Builder b,Vector2 c,float r0,float r1,
+            float h0,float h1,float baseHeight,float topHeight,int segments)
+        {
+            // Cover the far slope too: the old flat cap left a dark crescent behind the
+            // flue, making the simplified hood read as a dish. Emit far before near.
+            for(int k=-segments;k<segments;k++)
+            {
+                float a=FrontAngle(k,segments),e=FrontAngle(k+1,segments);
+                int first=b.V.Count;
+                FullFace(b,OnRing(c,r0,a,h0),OnRing(c,r0,e,h0),
+                    OnRing(c,r1,e,h1),OnRing(c,r1,a,h1),Color.white);
+                for(int j=0;j<4;j++)
+                {
+                    float angle=j==0||j==3?a:e,height=j<2?h0:h1;
+                    float t=Mathf.InverseLerp(baseHeight,topHeight,height);
+                    float side=(1+Mathf.Cos(angle-285f*Mathf.Deg2Rad))*.5f;
+                    float highlight=Mathf.Pow(Mathf.Max(0,Mathf.Cos(angle-270f*Mathf.Deg2Rad)),8);
+                    Color tone=Color.Lerp(new Color(.44f,.46f,.50f),new Color(.88f,.87f,.81f),side);
+                    tone+=new Color(.19f,.21f,.25f,0)*highlight;
+                    tone*=1-.14f*t*t;tone.a=1;
+                    b.C[first+j]=tone;
+                    b.U[first+j]=new Vector2(.18f+.64f*(angle+45f*Mathf.Deg2Rad)/(2*Mathf.PI),.24f+.5f*t);
+                }
+            }
+            // Sparse standing seams, continuous across the three courses, describe the
+            // convex form without returning to a tiny riveted panel on every facet.
+            for(int k=-segments+2;k<segments;k+=4)
+            {
+                float a=FrontAngle(k,segments),width=.012f;
+                int first=b.V.Count;
+                FullFace(b,OnRing(c,r0,a-width,h0+.004f),OnRing(c,r0,a+width,h0+.004f),
+                    OnRing(c,r1,a+width,h1+.004f),OnRing(c,r1,a-width,h1+.004f),new Color(.30f,.32f,.36f));
+                for(int j=0;j<4;j++)b.U[first+j]=new Vector2(j==0||j==3?.3f:.7f,j<2?.3f:.7f);
+            }
         }
 
         private void BoilerDrumFaces(PlatformMaterialSet set,Vector2 c,float bottom,float top,float v0,float v1)

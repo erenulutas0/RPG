@@ -493,20 +493,16 @@ namespace Cryptforge.UI
         private static void AshlarFlag(Builder mesh,AshlarStone s)
         {
             float u0=s.I*.5f,v0=s.J*.5f,u1=(s.I+s.W)*.5f,v1=(s.J+s.H)*.5f,w=u1-u0,h=v1-v0,area=w*h;
-            // The seal inset's flags and the west strip's setts keep their old variation, joint and bevel exactly.
+            // Keep the seal/workshop bond, but unify the yard's material. The old independent
+            // dark replacement/pale flag lottery became a checkerboard after the finer paving.
+            // Broad shared deposits carry the wear; restrained individual stone differences
+            // still reveal the bond without looking like separately lit squares.
             bool kept=s.Zone==1||s.Zone==3;
             int seedU=kept?(int)u0:s.I,seedV=kept?(int)v0:s.J;
-            // Deterministic per-flag variation, strong enough to read one flag from the next at the portrait camera:
-            // most flags sit near the base tone, about one in six is a darker replacement stone and one in ten a
-            // paler, warmer one, the way the reference's courtyard is mottled - softer on the big flags (to 72% at 6
-            // cells), whose dark tones would otherwise read as a stain, and on the half-unit infill (50%), where a dark
-            // one ringed by its joint would read as a socket or a hole. Still flush colour only - no grit or floor
-            // geometry that could be mistaken for a collision obstacle.
             float grain=StoneSample(seedU,seedV),hue=StoneSample(seedU+131,seedV-57);
-            float tone=grain<.17f?Mathf.Lerp(.78f,.87f,grain/.17f):
-                grain>.9f?Mathf.Lerp(1.08f,1.15f,(grain-.9f)/.1f):Mathf.Lerp(.93f,1.04f,(grain-.17f)/.73f);
-            float stone=1+(tone-1)*(kept?1:area<1?.5f:Mathf.Clamp(1-.06f*(area-1),.72f,1));
-            Color flagTint=hue<.22f?new Color(.97f,.99f,1.03f):hue>.82f?new Color(1.05f,1.0f,.93f):Color.white;
+            float tone=Mathf.Lerp(.92f,1.055f,grain);
+            float stone=1+(tone-1)*(area<1?.5f:1f);
+            Color flagTint=hue<.22f?new Color(.99f,1f,1.015f):hue>.82f?new Color(1.02f,1f,.98f):Color.white;
             // The gate apron's stone is a shade redder than the court's (hue ~281 against ~263 under the open light;
             // the concept's apron is ~287); its former blue cut (.93) turned it magenta-grey under the violet ambient.
             Color tint=s.Zone==1?new Color(1.08f,1.065f,1.015f):
@@ -524,7 +520,7 @@ namespace Cryptforge.UI
             float step=AshlarLightStep(us,vs,lattice);
             // Dust-filled court joints stay subordinate to actors and brass routes at phone size.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.6f:.70f;
+            float jointTone=kept?.68f:.74f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
             // Lit from screen right: the v0 and u1 edges are one strip, mitred where they meet, the u0 and v1 edges the
@@ -534,11 +530,11 @@ namespace Cryptforge.UI
             var outer=new List<Vector2>();var inner=new List<Vector2>();
             for(int k=0;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v0+joint));inner.Add(new Vector2(iu[k],v0+bevel));}
             for(int k=1;k<ov.Length;k++){outer.Add(new Vector2(u1-joint,ov[k]));inner.Add(new Vector2(u1-bevel,iv[k]));}
-            PavingStrip(mesh,outer,inner,stone*(kept?1.1f:1.055f),faceTint,stone);
+            PavingStrip(mesh,outer,inner,stone*1.055f,faceTint,stone);
             outer.Clear();inner.Clear();
             for(int k=0;k<ov.Length;k++){outer.Add(new Vector2(u0+joint,ov[k]));inner.Add(new Vector2(u0+bevel,iv[k]));}
             for(int k=1;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v1-joint));inner.Add(new Vector2(iu[k],v1-bevel));}
-            PavingStrip(mesh,outer,inner,stone*(kept?.74f:.86f),faceTint,stone);
+            PavingStrip(mesh,outer,inner,stone*.88f,faceTint,stone);
             PavingGrid(mesh,iu,iv,stone,faceTint);
             // Sparse flush corner repairs, not cracks or raised rubble. They use
             // continuous paving UVs and stay entirely within the individual flag.

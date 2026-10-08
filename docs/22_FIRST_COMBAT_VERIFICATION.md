@@ -903,3 +903,10 @@ Shared surface projection now raises the final gate approach. Tests cover forwar
 Final verification: .NET 395 passed; compile 0 warnings/errors; targeted surface/region/elevation 5 passed; actual graphics capture 1 passed; full EditMode 415 passed / PlayMode 148 passed; Android exit 0. Integrity: 550 unique asset/folder GUIDs, 1,099 package GUIDs, 568 scene objects/components; references/JSON valid. Static region 18 renderers / 94,790 vertices (largest 27,373), excluding actors and ground sprite grids.
 
 APK 31,183,755 bytes, SHA-256 `42916B306B07732DF42D4AFB11D5C7DB0037FEB67D135BD6D1F9CD4E50734617`; installed base.apk hash matched. S23 actual climb/descent and normal Staff combat reviewed. Capture-interleaved traversal had one unisolated 166.9 ms frame. A fresh-process repeat without screenshots during measurement showed post-startup 59.5–59.9 fps, maximum 33.3 ms, no frame over 35 ms; gate GPU averages 4.5–4.6 ms, maximum 5.3 ms, 52 draws. This is short traversal evidence, not a sustained-combat, midrange or cold-driver benchmark. Proof and limitations: `ArtDirection/2026-10-08/gate-elevation-01/`.
+
+
+## 2026-10-08 — Three-task surface cohesion verified
+
+Verified: .NET 395 passed; compile 0 warnings/errors; final actual graphics capture 1 passed; EditMode 415 passed / PlayMode 149 passed (including new owned-material lifecycle test); Android exit 0; final integrity 552 asset/folder GUIDs /1,099 package GUIDs /568 scene objects/components. Static region 18 renderers /95,622 vertices (+832, about0.9%); largest mesh27,373. APK36,061,418 bytes; SHA-256 `BA39FFFAB4EB3D650CBC0609B7211DF6BCDA3990EDCCE1655EE45519B8CFCA67`; installed S23 base.apk hash matched.
+
+Lifecycle regression confirms independently owned foundry materials release without destroying borrowed art or changing an ordinary hall. The existing floor-light, geometry/UV, depth/cutaway, scene reload, traversal and combat parity tests pass unchanged. First hood capture was visually too plain; complete far slopes and sparse seams were added before the final graphics/full gate. Review image retained in proof/review. No test failures were waived. No new device performance claim.
