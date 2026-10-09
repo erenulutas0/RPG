@@ -21,6 +21,9 @@ namespace Cryptforge.UI
             // crane and anvil. Its own local arrangement stays on its masonry support.
             Block(arena,StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,.18f,2.8f,"Northwest pipe service shelf");
 
+            bool bakedSalvage=BuildBakedSalvageStation(arena);
+            if(!bakedSalvage)
+            {
             var ingots=new Builder();
             // Staggered courses read as metal stock, with sloped shoulders and small gaps.
             for(int level=0;level<2;level++)
@@ -30,7 +33,8 @@ namespace Cryptforge.UI
             Create("Stacked forge ingots",ingots,arena.PlatformMaterials.FoundryIron,-11);
 
             WorkshopCrate(arena,-26.3f,7.15f,-24.85f,8.05f,.2f,.92f);
-            BuildWorkshopAnvil(arena);
+            }
+            BuildWorkshopAnvil(arena,!bakedSalvage);
             // Emit the rear work station before the foreground pipe/rack silhouettes.
             BuildQuenchingBasin(arena);
             BuildWorkshopReserveStock(arena);
@@ -116,13 +120,14 @@ namespace Cryptforge.UI
             Create("Workshop reserve billets and strip coils",stock,arena.PlatformMaterials.FoundryIron,-11);
         }
 
-        private void BuildWorkshopAnvil(ArenaView arena)
+        private void BuildWorkshopAnvil(ArenaView arena,bool buildMetal=true)
         {
             // Every design-plane point is on the supported exterior shelf. The
             // widened foot, narrow waist, flat heel and projecting horn form one tool.
             var support=new Builder();
             ArchitecturalTier(support,-28.5f,5.65f,-27.2f,7.55f,.18f,.48f,.06f);
             Create("Anvil stone bedding",support,arena.PlatformMaterials.FoundryWall,-11);
+            if(!buildMetal)return;
             var metal=new Builder();
             WorkshopMetalHull(metal,-28.32f,5.86f,-27.38f,7.32f,.48f,.63f,.055f);
             Vector3[] lower={Project(-28.19f,6.05f),Project(-27.51f,6.05f),

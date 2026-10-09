@@ -1,0 +1,15 @@
+# Verification
+
+## 2026-10-09 — Workshop surface package verified and installed
+
+Completed three coordinated art tasks: lower cast crane housing, Blender-baked salvage station (anvil/hammer/chest/five ingots), and two local service paving repairs. Source and matched actual Unity views: ArtDirection/2026-10-09/salvage-kit-01 and foundry-surface-01. Same anchors, walking union, camera, gameplay and profile rules. Runtime region24renderers/100,572vertices ->25/100,968. New salvage texture512ASTC6x6/10mips/non-readable; one quad with original whole-shelf depth and explicit scene material cleanup. Full reference fidelity remains unfinished.
+
+Actual graphical capture1before and2after passed; the second after fixes an observed ordering bug where the rear landing hid the anvil horn at the old equal iron rank. Final rank-10.5/quantized-7 accepted in image and source review. Final .NET395passed, EditMode415passed, PlayMode151passed, Android exit0; no C# warning/error matches in build log. Final static integrity565asset/folderGUIDs /1099packageGUIDs /568sceneobjects/components, valid references/JSON. Test XML retained in proof validation/. The earlier566static count included Unity's temporary InitTestScene while tests were running;565is the clean final count.
+
+APK36,117,967bytes, SHA256 B55C4EA2FF4009A6A078C1DB4BBAB4A7AA712236F6991290D21A2D1472CA9F6F. Fresh pre-install backup TestResults/workshop-surface-device-20261009-222954. Phone was unlocked on Launcher with game stopped. adb install-r succeeded; installed base.apk hash matched; all11files SHA256-identical immediately after install.
+
+Guarded real drags reached the west crane/salvage station, repaired paving and north passage. At the first northwest capture the USB transport disappeared; the guard stopped further input, and the finally cleanup could not reach the disconnected device. Connection returned on the next check. Root rechecked awake/unlocked game focus and captured the actual unchanged diagnostic session before resuming the remaining short route. No blind input or reinstall. Final cleanup successfully removed depth-proof.txt and stopped the app. No render-stats flag was added.
+
+Normal Staff run showed Room1,90HP,4unbankedgold, damage7 and XP/gold/chest. Final profile.json,bak and all3original development files SHA256-identical; telemetry retained, no stale save restoration. Selected fatal/reference/index/invalid-operation/shader-error patterns absent in sampled process logs. App stopped and phone released. Device photos are under device/; reconnected.png is a real capture after the transport recovery, not a synthetic comparison.
+
+No FPS or sustained performance acceptance was performed for this slice. The earlier first-ramp hitch and crowded/midrange-device acceptance remain open. Crane base is still busy around the old front crank; floor repair contrast is deliberately subtle. Next substantive art work remains actor/encounter presentation or a clear architectural material gap, rather than another barely visible detail pass.

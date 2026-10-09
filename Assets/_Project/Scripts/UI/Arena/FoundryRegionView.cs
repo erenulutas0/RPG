@@ -492,6 +492,7 @@ namespace Cryptforge.UI
         private void OnDestroy()
         {
             foreach(var mesh in _owned)if(mesh!=null)Destroy(mesh);
+            if(_salvageMaterial!=null)Destroy(_salvageMaterial);
             if(_reservoirMaterial!=null)Destroy(_reservoirMaterial);
             if(_bakedBoilerMaterial!=null)Destroy(_bakedBoilerMaterial);
             if(_bakedShortBoilerMaterial!=null)Destroy(_bakedShortBoilerMaterial);

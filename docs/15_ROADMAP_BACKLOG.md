@@ -433,3 +433,13 @@ The first full PlayMode run caught a genuine entry timing issue: the first revea
 Forge keeper source provenance correction: the older prompt.txt contains literal undefined and a generic tool note; the complete original generation prompt was not preserved. README now states this explicitly; no prompt was invented.
 
 Next substantive art work remains broader authored surface richness and encounter/boss presentation, followed by actor articulation/roster. Do not spend repeated slices on barely visible bevels. Full reference fidelity is not complete; cold-first-ramp hitch, sustained crowded-combat and midrange acceptance remain open.
+
+## 2026-10-09 — Workshop metal kit, crane housing and service paving
+
+Completed a coordinated three-part art package: enclosed cast lower crane housing, Blender-baked anvil/hammer/parts chest/five ingots, and two local repair patches in the west/north service paving. Original crane silhouette width and upper rigging, station anchors, masonry support, walkable union, camera, combat and profile behavior are retained. Floor repairs subdivide existing parent stones exactly; no overlay or new obstacle.
+
+Editable source: Tools/ArtReview/BuildBlenderSalvage.py and ArtDirection/2026-10-09/salvage-kit-01. Authoring mesh3,038vertices/5,984triangles is baked to one runtime quad;1024source imported512ASTC6x6,10mips,non-readable. Calculated block payload158,432bytes including mips, excluding engine overhead. Original whole-shelf mass depth and explicit material cleanup remain. Actual Unity review caught the equal-rank rear landing hiding the anvil horn; rank-10.5/sortingOrder-7 fixes it without moving the art. Source/image review accepted final contacts and silhouette.
+
+Region24renderers/100,572vertices becomes25/100,968; no new per-frame component. Actual matched source-state before/after, detail/overview and four walkable staged-hero portraits: ArtDirection/2026-10-09/foundry-surface-01. The inherited budget texture line describes unchanged FoundryShortBoiler, not salvage. Final tests/device evidence is recorded in docs22/23/38 and the proof validation directory.
+
+Reference fidelity is unfinished. The crane base remains busy around its old front crank; local floor changes are deliberately restrained. Next higher-value art work should address actor/encounter presentation or a clearly visible architectural material gap, not another marginal bevel pass. Cold-first-ramp diagnosis and sustained crowded/midrange-device acceptance remain open.

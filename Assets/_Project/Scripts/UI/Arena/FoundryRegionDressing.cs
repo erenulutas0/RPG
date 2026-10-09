@@ -28,21 +28,18 @@ namespace Cryptforge.UI
             MetalCap(arena,-27,11,-24,15,1.12f);
             Vector3 foot=Project(-25.5f,13)+Vector3.up*1.1f;
             Vector3 mast=foot+Vector3.up*6.5f;
-            // Cast mounting shoe and open winch cradle frame the existing winding drum.
-            // They stay over the established exterior plinth, not the walking court.
+            // A cast lower hoist tower seats on the existing shoe. The upper pivot,
+            // jib and load keep their original height and suspension endpoints.
             CraneCase(arena,foot+new Vector3(-.67f,.02f,0),1.34f,.19f,new Vector3(.18f,.12f,0));
-            CraneCase(arena,foot+new Vector3(-.63f,.23f,0),.18f,.82f,new Vector3(.15f,.1f,0));
-            CraneCase(arena,foot+new Vector3(.45f,.23f,0),.18f,.82f,new Vector3(.15f,.1f,0));
-            Tube(arena,foot+new Vector3(-.54f,1.07f,0),foot+new Vector3(.54f,1.07f,0),.14f);
-            // Wide cast uprights carry the silhouette; one brace per bay leaves readable
-            // openings. Plain plate sampling avoids miniature rivet panels on every rod.
-            CraneBeam(arena,foot+Vector3.left*.3f,mast+Vector3.left*.3f,.30f);
-            CraneBeam(arena,foot+Vector3.right*.3f,mast+Vector3.right*.3f,.30f);
-            for(int i=0;i<6;i++)
+            BuildCraneHousing(arena,foot);
+            Vector3 open=foot+Vector3.up*4.6f;
+            CraneBeam(arena,open+Vector3.left*.3f,mast+Vector3.left*.3f,.30f);
+            CraneBeam(arena,open+Vector3.right*.3f,mast+Vector3.right*.3f,.30f);
+            for(int i=0;i<2;i++)
             {
-                Vector3 a=foot+Vector3.up*i;
+                Vector3 a=open+Vector3.up*(i*.95f);
                 float side=i%2==0?1:-1;
-                CraneBeam(arena,a+Vector3.right*.3f*side,a+Vector3.up-Vector3.right*.3f*side,.12f);
+                CraneBeam(arena,a+Vector3.right*.3f*side,a+Vector3.up*.95f-Vector3.right*.3f*side,.12f);
             }
             Vector3 tip=Project(-26,20)+Vector3.up*7.8f;
             Vector3 rear=mast+Vector3.right;

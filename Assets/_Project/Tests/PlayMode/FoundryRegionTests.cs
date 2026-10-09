@@ -135,12 +135,31 @@ namespace Cryptforge.Tests
             Assert.That(reservoir.width,Is.EqualTo(512));
             Assert.That(reservoir.isReadable,Is.False);
             Assert.That(reservoir.mipmapCount,Is.GreaterThan(1));
+            var salvage=Resources.Load<Texture2D>("FoundrySalvage");
+            Assert.That(salvage,Is.Not.Null);
+            Assert.That(salvage.width,Is.EqualTo(512));
+            Assert.That(salvage.isReadable,Is.False);
+            Assert.That(salvage.mipmapCount,Is.GreaterThan(1));
+            int salvageBatches=0;
             int reservoirBatches=0;
             var reservoirRanks=new System.Collections.Generic.HashSet<int>();
             int shortBatches=0;
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==salvage)
+                {
+                    salvageBatches++;
+                    Assert.That(renderer.sortingOrder,Is.EqualTo(-7));
+                    var station=renderer.GetComponent<MeshFilter>().sharedMesh;
+                    Assert.That(station.vertexCount,Is.EqualTo(4));
+                    var flags=new System.Collections.Generic.List<Vector2>();station.GetUVs(1,flags);
+                    Assert.That(flags.Count,Is.EqualTo(4));
+                    foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
+                    // Whole-shelf depth spans its unequal design-plane side lengths.
+                    foreach(var p in station.vertices)Assert.That(p.z,Is.InRange(42.70f,43.13f));
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture==reservoir)
                 {
                     reservoirBatches++;reservoirRanks.Add(renderer.sortingOrder);
@@ -222,12 +241,13 @@ namespace Cryptforge.Tests
             Assert.That(keeperBatches,Is.EqualTo(1),"The guardian pair adds exactly one shared batch.");
             Assert.That(bakedBatches,Is.EqualTo(2),"Two replacements: two shared depth bands; shade shares existing floor decals.");
             Assert.That(bakedDepthBands,Is.EqualTo(2));
+            Assert.That(salvageBatches,Is.EqualTo(1));
             Assert.That(reservoirBatches,Is.EqualTo(2));
             Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
             Assert.That(otherBatches,Is.LessThanOrEqualTo(18),"Architecture plus the near reservoir relief retains its explicit renderer budget.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(24),
-                "Four boiler bands and two reservoir ranks retain an explicit24renderer bound.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(25),
+                "Four boiler bands and two reservoir ranks and the salvage kit retain an explicit25renderer bound.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

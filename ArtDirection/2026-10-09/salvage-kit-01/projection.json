@@ -1,0 +1,37 @@
+{
+  "blender": "4.5.9 LTS",
+  "vertices": 3038,
+  "triangles": 5984,
+  "anchor": [
+    -26.725,
+    6.7
+  ],
+  "ortho_scale": 5.5,
+  "left": -2.75,
+  "right": 2.75,
+  "bottom": -1.75,
+  "top": 3.75,
+  "render_size": 1024,
+  "height_compensation": 1.1547005383792515,
+  "design_top": 1.43,
+  "depth_footprint": [
+    -29,
+    5,
+    -24.45,
+    8.4
+  ],
+  "depth_height": 1.6,
+  "included": [
+    "anvil metal and resting hammer",
+    "steel parts chest",
+    "five cast ingots"
+  ],
+  "preserve_runtime": [
+    "masonry salvage shelf",
+    "anvil stone bedding",
+    "nearby barrels/crates/sack",
+    "all walkable space"
+  ],
+  "source": "Authored geometry and study02 procedural materials/lights",
+  "limitation": "Fixed-view metal-only art candidate; no Unity integration/device acceptance. No floor or shadow catcher."
+}

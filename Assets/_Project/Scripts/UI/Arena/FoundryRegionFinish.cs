@@ -492,6 +492,11 @@ namespace Cryptforge.UI
         // samples the forge light as densely as six 1x1 ones and a pool runs on across its joints.
         private static void AshlarFlag(Builder mesh,AshlarStone s)
         {
+            if(!ServiceApronFlag(mesh,s))AshlarFlagFace(mesh,s,false);
+        }
+
+        private static void AshlarFlagFace(Builder mesh,AshlarStone s,bool repair)
+        {
             float u0=s.I*.5f,v0=s.J*.5f,u1=(s.I+s.W)*.5f,v1=(s.J+s.H)*.5f,w=u1-u0,h=v1-v0,area=w*h;
             // Keep the seal/workshop bond, but unify the yard's material. The old independent
             // dark replacement/pale flag lottery became a checkerboard after the finer paving.
@@ -509,6 +514,14 @@ namespace Cryptforge.UI
                 s.Zone==2?new Color(1.01f,.985f,.96f):
                 s.Zone==3?new Color(.82f,.84f,.88f):Color.white;
             Color faceTint=flagTint*tint;
+            if(repair)
+            {
+                // One cool replacement-stone family across each service repair, not
+                // a random dark/light checkerboard. Lighting remains world-continuous.
+                stone=Mathf.Lerp(.965f,1.015f,grain);
+                tint=new Color(.87f,.91f,.965f);
+                faceTint=tint;
+            }
             // Narrow joints and shallow bevels preserve the laid-stone relief at the finer scale.
             // Infill bevel width is capped relative to the smallest side.
             float joint=kept?.018f:.014f+.003f*Mathf.Sqrt(area);
@@ -521,6 +534,7 @@ namespace Cryptforge.UI
             // Dust-filled court joints stay subordinate to actors and brass routes at phone size.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
             float jointTone=kept?.68f:.74f;
+            if(repair)jointTone=.80f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
             // Lit from screen right: the v0 and u1 edges are one strip, mitred where they meet, the u0 and v1 edges the
@@ -551,7 +565,7 @@ namespace Cryptforge.UI
             // Keep flags crossing either ramp seam dressed rather than chipped.
             bool crossesRise=(u0<FoundrySurface.RampStart&&u1>FoundrySurface.RampStart)||
                 (u0<FoundrySurface.RampEnd&&u1>FoundrySurface.RampEnd);
-            if(!kept&&area>=1&&grain>.64f&&!crossesRise)
+            if(!repair&&!kept&&area>=1&&grain>.64f&&!crossesRise)
                 FlagEdgeWear(mesh,u0,v0,u1,v1,bevel,stone,faceTint,grain,hue);
         }
 
