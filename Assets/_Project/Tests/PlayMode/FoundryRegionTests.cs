@@ -117,9 +117,29 @@ namespace Cryptforge.Tests
             Assert.That(Mathf.IsPowerOfTwo(keeperTexture.width)&&Mathf.IsPowerOfTwo(keeperTexture.height),Is.True);
             Mesh keeperMesh=null;
             Material keeperVariant=null;
-            int keeperBatches=0,otherBatches=0;
+            var baked=Resources.Load<Texture2D>("FoundryBoiler");
+            Assert.That(baked,Is.Not.Null);
+            Assert.That(baked.isReadable,Is.False);
+            Assert.That(baked.mipmapCount,Is.GreaterThan(1));
+            Assert.That(baked.width,Is.EqualTo(1024));
+            Assert.That(baked.height,Is.EqualTo(1024));
+            int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==baked)
+                {
+                    bakedBatches++;
+                    if(renderer.sortingOrder>-15)
+                    {
+                        bakedDepthBands++;
+                        var card=renderer.GetComponent<MeshFilter>().sharedMesh;
+                        Assert.That(card.vertexCount,Is.EqualTo(4));
+                        var flags=new System.Collections.Generic.List<Vector2>();card.GetUVs(1,flags);
+                        foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
+                        foreach(var p in card.vertices)Assert.That(p.z,Is.EqualTo(50+(18.39f+15.81f)*.35355339f).Within(.001f));
+                    }
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture!=keeperTexture){otherBatches++;continue;}
                 keeperBatches++;
                 keeperVariant=renderer.sharedMaterial;
@@ -155,9 +175,11 @@ namespace Cryptforge.Tests
                 }
             }
             Assert.That(keeperBatches,Is.EqualTo(1),"The guardian pair adds exactly one shared batch.");
+            Assert.That(bakedBatches,Is.EqualTo(2),"One replacement: two depth bands; shade shares existing floor decals.");
+            Assert.That(bakedDepthBands,Is.EqualTo(2));
             Assert.That(otherBatches,Is.LessThanOrEqualTo(17),"The pre-existing architecture retains its renderer budget.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(18),
-                "The approved guardian material adds one renderer to the previous 17-renderer budget.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(20),
+                "Single baked boiler adds two explicitly bounded renderers to the prior18.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

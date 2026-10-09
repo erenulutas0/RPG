@@ -393,3 +393,12 @@ Proof: ArtDirection/2026-10-09/blender-furnace-01. Existing art/runtime backlog 
 - [ ] Mobile compression/atlas and device acceptance before wider adoption. Source11,928vertices/23,104triangles was rendered to a quad for this probe, not imported as production mesh.
 
 Proof: ArtDirection/2026-10-09/blender-furnace-02. This advances the earlier Blender experiment; full map migration is not approved or completed.
+## 2026-10-09 — Single production baked boiler
+
+- [x] Replace north boiler0 with two depth-aware baked bands; preserve base/pipe/flue anchors; contact shade shares existing floor decals.
+- [x] ASTC6/mip import, lifecycle/depth/batch tests, actual matched graphics and four walkable approach reviews; final full suites and APK passed.
+- [x] Background S23 installation/hash match; all11fresh saved files unchanged.
+- [ ] Pending owner availability reply: open installed build for north-boiler movement/visual review, normal combat and short performance sample. No new APK needed for that review.
+- [ ] Further wear/light coherence and other furnace variants only after evaluating this one replacement. Full reference fidelity and earlier ramp hitch remain open.
+
+Proof: ArtDirection/2026-10-09/baked-boiler-runtime-01. Study02 staged court placement is superseded by this actual one-boiler integration, but its editable Blender source remains authoritative.

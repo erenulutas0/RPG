@@ -822,3 +822,7 @@ Owner explicitly requested completed commits pushed on2026-10-09, superseding ea
 ## 2026-10-09 — Bounded free Blender trial, no production migration
 
 Decision: retain the Unity game and avoid a new paid service while evaluating one Blender furnace. Actual matched-scale Unity study shows stronger metal shading but less architectural character; replacement is not accepted. Preserve production arched openings in the next iteration and prove depth/contact in one map placement before migration. Proof: ArtDirection/2026-10-09/blender-furnace-01. No runtime or device changes.
+
+## 2026-10-09 — First production Blender bake, bounded to one boiler
+
+Use the authored study02 render as two static depth-aware image bands on boiler0, not the full23,104-triangle source model. Preserve the existing foundation, pipe anchors and layout. Keep Android texture1024ASTC6/mips/non-readable and scene-owned materials. Contact shade joins existing floor decals after an existing regression test caught a second decal batch.20renderers replaces18with fewer vertices; device performance remains unmeasured. No new paid service or whole-map pipeline migration. Full suites/APK/install pass; device visual acceptance pending availability. Evidence: ArtDirection/2026-10-09/baked-boiler-runtime-01.

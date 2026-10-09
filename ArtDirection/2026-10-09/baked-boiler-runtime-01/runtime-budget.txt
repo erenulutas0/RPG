@@ -1,0 +1,3 @@
+Texture:1024x1024 ASTC_6x6; mipmaps:11; readable:False
+Region renderers:20; vertices:101392
+Actual production replacement, HUD hidden, hero staged at four validated walkable points. No synthetic prop placement.

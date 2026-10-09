@@ -489,6 +489,10 @@ namespace Cryptforge.UI
                 }
             }
         }
-        private void OnDestroy(){foreach(var mesh in _owned)if(mesh!=null)Destroy(mesh);}
+        private void OnDestroy()
+        {
+            foreach(var mesh in _owned)if(mesh!=null)Destroy(mesh);
+            if(_bakedBoilerMaterial!=null)Destroy(_bakedBoilerMaterial);
+        }
     }
 }
