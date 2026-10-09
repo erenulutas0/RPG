@@ -1,0 +1,6 @@
+Production BuildTallBoiler unchanged; isolated1200/360px comparison.
+Candidate: Blender bake1200/10.8PPU, lighting differs by design.
+Staged map probe at design(8,4), new temporary depth plane; no production boiler replaced.
+Real hero transform staged front/back; not a traversal/collision or phone proof.
+Front cutaway changed pixels:0. Behind cutaway changed pixels:22410.
+No mobile compression, shadow/contact tuning or device performance acceptance.

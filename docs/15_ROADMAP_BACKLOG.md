@@ -384,3 +384,12 @@ Actual Unity before/after and three-agent source/visual review: ArtDirection/202
 - [ ] Choose layered bake vs optimized mesh based on map/device evidence; full-map migration remains unapproved and unproven.
 
 Proof: ArtDirection/2026-10-09/blender-furnace-01. Existing art/runtime backlog and first-use hitch remain open.
+
+## 2026-10-09 — Arched furnace study02
+
+- [x] Restore arched mouths, jambs/grates and upper ports; improve contained heat and cool basalt.
+- [x] Actual Unity staged placement/front-back cutaway probe and portrait-width review; no production replacement.
+- [ ] Resolve ground contact/environment light, pipe/foundation alignment and all-side/neighbor depth before replacing one boiler.
+- [ ] Mobile compression/atlas and device acceptance before wider adoption. Source11,928vertices/23,104triangles was rendered to a quad for this probe, not imported as production mesh.
+
+Proof: ArtDirection/2026-10-09/blender-furnace-02. This advances the earlier Blender experiment; full map migration is not approved or completed.

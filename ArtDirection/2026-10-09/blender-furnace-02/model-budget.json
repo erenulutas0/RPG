@@ -1,0 +1,10 @@
+{
+  "blender": "4.5.9 LTS",
+  "evaluated_vertices": 11928,
+  "evaluated_triangles": 23104,
+  "height_compensation": 1.1547005383792515,
+  "ortho_scale": 10.8,
+  "render_size": 1200,
+  "source": "Authored geometry and procedural material nodes",
+  "limitation": "Study mesh; materials not baked, not installed or mobile budget approved"
+}

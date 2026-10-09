@@ -6,9 +6,9 @@ $taskTarget=Join-Path $taskRoot 'Assets/_Project/Tests/PlayMode/BlenderFurnaceCa
 $taskResults=Join-Path $taskRoot 'TestResults/blender-furnace.xml'
 if((Get-Process Unity -ErrorAction SilentlyContinue) -or (Test-Path "$taskRoot/Temp/UnityLockfile")){throw 'Unity is in use'}
 if((Test-Path $taskTarget) -or (Test-Path "$taskTarget.meta")){throw 'Temporary capture already exists'}
-if(!(Test-Path "$taskRoot/ArtDirection/2026-10-09/blender-furnace-01/furnace-blender.png")){throw 'Run BuildBlenderFurnace.py with Blender first'}
+if(!(Test-Path "$taskRoot/ArtDirection/2026-10-09/blender-furnace-02/furnace-blender.png")){throw 'Run BuildBlenderFurnace.py with Blender first'}
 Add-Type -AssemblyName System.Drawing
-$taskProof=Join-Path $taskRoot 'ArtDirection/2026-10-09/blender-furnace-01'
+$taskProof=Join-Path $taskRoot 'ArtDirection/2026-10-09/blender-furnace-02'
 $taskBitmap=[System.Drawing.Bitmap]::new("$taskProof/furnace-blender.png")
 try {
  $taskData=$taskBitmap.LockBits([System.Drawing.Rectangle]::new(0,0,1200,1200),[System.Drawing.Imaging.ImageLockMode]::ReadOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
