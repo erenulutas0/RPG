@@ -817,3 +817,8 @@ Use broad bounded stone relief on the gate, round sections on stored pipe and re
 Compared adding detail geometry with sampling the existing iron surface across larger coherent faces. Chose broader continuous UVs and bounded lower-wall deposits because the previous tiny crop hid the grain; stored pipes retain the same section. Pit receives one extra collar-shadow row and shared-station form shading, preserving its authored ribs and pool. Environmental brass becomes matte, with quieter grooves, to keep combat indicators dominant. No new source art or gameplay claim. Three-agent actual-capture review found the gain useful but restrained, especially in the overview; coil segmentation and graphic molten pool remain open.
 
 Owner explicitly requested completed commits pushed on2026-10-09, superseding earlier local-only notes. Normal fast-forward push only; do not rewrite history.
+
+
+## 2026-10-09 — Bounded free Blender trial, no production migration
+
+Decision: retain the Unity game and avoid a new paid service while evaluating one Blender furnace. Actual matched-scale Unity study shows stronger metal shading but less architectural character; replacement is not accepted. Preserve production arched openings in the next iteration and prove depth/contact in one map placement before migration. Proof: ArtDirection/2026-10-09/blender-furnace-01. No runtime or device changes.

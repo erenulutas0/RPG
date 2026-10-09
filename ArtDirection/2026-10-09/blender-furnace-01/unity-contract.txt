@@ -1,0 +1,5 @@
+Production BuildTallBoiler invoked unchanged; separate isolated layer.
+Camera: ortho half-height5.4, square1200/360, same background.
+Candidate: transparent Blender bake shown as ordinary sprite,1200/10.8PPU.
+Lighting differs by design; this is a rendering-workflow comparison, not a controlled material-only comparison.
+No map replacement, actor-depth/cutaway integration, mobile compression or device performance acceptance.

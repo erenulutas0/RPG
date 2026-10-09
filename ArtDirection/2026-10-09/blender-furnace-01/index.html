@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge · Blender fırın denemesi</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10121b;color:#e1e4ed;font:16px/1.65 system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:36px 24px}h1{font-size:clamp(27px,4vw,44px);line-height:1.2}h2{font-size:22px}p{max-width:850px;color:#bfc5d4}a{color:#f2b776}small{color:#abb2c4}.tag{color:#edb176;letter-spacing:.1em;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}figure{margin:0;padding:18px;background:#191c27;border:1px solid #303446;border-radius:12px}img{width:100%;height:auto;display:block;background:#080a0e}figcaption{margin:12px 0 0}button{padding:9px 16px;border:1px solid #626b85;border-radius:7px;background:#292f42;color:white;cursor:pointer;margin:10px 8px 20px 0}button[aria-pressed=true]{border-color:#f1b274}.note{border-left:3px solid #d1975b;padding:12px 20px;background:#191c27;margin:28px 0}.small img{max-width:360px;margin:auto}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+</style><main>
+<div class="tag">CRYPTFORGE · 09 EKİM 2026 · ÜCRETSİZ ARAÇ DENEMESİ</div>
+<h1>Tek fırın, iki üretim yöntemi</h1>
+<p>Mevcut oyun geometrisi ve Blender’da hazırlanan yeni örnek, Unity’de aynı kamera ölçeğiyle görüntülendi. Bu çalışma henüz haritaya veya telefona eklenmedi.</p>
+<button id="large" aria-pressed="true" onclick="size(false)">Büyük karşılaştırma</button><button id="small" aria-pressed="false" onclick="size(true)">360 px okunabilirlik</button>
+<div class="grid" id="comparison">
+<figure><img id="before" src="unity-current.png" alt="Üretimdeki kemerli ateş açıklıklı fırının Unity görüntüsü"><figcaption><strong>Mevcut oyun fırını</strong><br><small>Kemerli açıklıklar ve daha zengin mimari ayrıntı.</small></figcaption></figure>
+<figure><img id="after" src="unity-blender-study.png" alt="Blender örneğinin Unity içinde sprite olarak görüntüsü"><figcaption><strong>Blender denemesi</strong><br><small>Daha belirgin metal hacmi, kenar ışığı ve yüzey gölgesi.</small></figcaption></figure>
+</div>
+<div class="note"><strong>Karar: henüz değiştirmiyoruz.</strong><br>Yeni örnek fazla temiz ve tekrarlı; ateş açıklıkları da fazla düz. Mevcut fırının mimari karakterini koruyup yeni ışık ve malzeme yöntemini onun üzerinde geliştirmek daha anlamlı.</div>
+<h2>Bu deneme neyi kanıtlıyor?</h2>
+<p>Blender’dan düzenlenebilir model ve önceden render edilmiş görünüm üretebiliyoruz; görünüm Unity’de gösterilebiliyor. Haritadaki karakter örtüşmesi, kesilme sistemi, zeminle birleşme ve mobil maliyet henüz doğrulanmadı. İki modelin ışıkları da farklı; bu yalnızca malzeme değişikliği karşılaştırması değil.</p>
+<p><strong>Ek abonelik / ücretli API: kullanılmadı.</strong> Mevcut telefon sürümü korunuyor. Çalışma modeli 9.512 vertex ve 18.432 üçgen; mobil kullanım için optimize edilmiş sayılmıyor.</p>
+<h2>Kaynaklar ve doğrulama</h2>
+<p><a href="furnace-study.blend">Düzenlenebilir Blender sahnesi</a> · <a href="furnace-study.fbx">FBX model</a> · <a href="furnace-blender.png">Şeffaf render</a> · <a href="README.md">Teknik notlar</a></p>
+<p>Gerçek Unity grafik yakalama testi: 1/1 başarılı. Proje bütünlük kontrolü başarılı. Telefon testi veya tam harita kalite onayı değildir. FBX, Blender’ın malzeme görünümünü hazır Unity malzemesi olarak içermez.</p>
+</main><script>function size(s){document.querySelector('#comparison').classList.toggle('small',s);document.querySelector('#before').src=s?'unity-current-small.png':'unity-current.png';document.querySelector('#after').src=s?'unity-blender-small.png':'unity-blender-study.png';document.querySelector('#large').setAttribute('aria-pressed',!s);document.querySelector('#small').setAttribute('aria-pressed',s)}</script></html>

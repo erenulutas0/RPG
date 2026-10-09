@@ -375,3 +375,12 @@ Proof: `ArtDirection/2026-10-09/architecture-cohesion-01/`. This closes the thre
 Actual Unity before/after and three-agent source/visual review: ArtDirection/2026-10-09/material-readability-01. Broad painted-reference fidelity and the other genuine tasks listed above remain open. The owner authorized pushing completed commits on2026-10-09; earlier local-only notes are historical.
 
 - [ ] Instrument first ramp resource/grid creation and first draw before choosing prewarm: current build had one216.9ms first-entry stall; same-process repeat max33.4ms does not prove the root cause or fix it.
+
+
+## 2026-10-09 — Blender workflow experiment
+
+- [x] One free editable furnace study and actual Unity matched-scale1200/360px comparison; no production replacement.
+- [ ] Preserve arched openings and refine soot/heat variation in a candidate; prove actor depth, cutaway and ground contact before accepting a single map placement.
+- [ ] Choose layered bake vs optimized mesh based on map/device evidence; full-map migration remains unapproved and unproven.
+
+Proof: ArtDirection/2026-10-09/blender-furnace-01. Existing art/runtime backlog and first-use hitch remain open.
