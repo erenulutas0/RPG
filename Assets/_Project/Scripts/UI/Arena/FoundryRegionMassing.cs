@@ -76,7 +76,7 @@ namespace Cryptforge.UI
                 Vector2 c=BoilerCentres[i];
                 using(MassDepth(new Vector4(c.x-BoilerPlinth,c.y-BoilerPlinth,c.x+BoilerPlinth,c.y+BoilerPlinth),BoilerTop(i)))
                 {
-                    if(!SquatBoiler(i)&&BuildBakedBoiler(arena,c))continue;
+                    if(BuildBakedBoiler(arena,c,SquatBoiler(i)))continue;
                     if(SquatBoiler(i))BuildSquatBoiler(arena,c);
                     else BuildTallBoiler(arena,c);
                 }
@@ -153,6 +153,14 @@ namespace Cryptforge.UI
             BoilerVent(iron,c,2f,SquatTop,.2f);
             if(boxVisible)WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
             Create("Boiler iron dome",iron,set.FoundryIron,-10.5f);
+        }
+
+        private void BuildSquatBoilerSocket(Builder iron,Vector2 c)
+        {
+            float mainU=c.x<22?19.7f:25.1f;
+            Vector2 toward=(new Vector2(mainU,-4.5f)-c).normalized;
+            Vector2 box=c+toward*(BoilerDrum+.03f);
+            WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
         }
 
         // Formed hoods use a continuous plain-metal sample, not a full riveted plate

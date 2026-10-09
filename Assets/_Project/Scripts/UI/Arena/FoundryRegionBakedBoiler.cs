@@ -4,24 +4,34 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
-        private Material _bakedBoilerMaterial;
+        private Material _bakedBoilerMaterial,_bakedShortBoilerMaterial;
 
-        // The north pair shares one source material and two static batches. Imported bake is shared; material/meshes belong to this scene.
+        // Each boiler pair shares one source material and two static batches.
+        // Imported bakes are asset-owned; source materials and meshes belong to this scene.
         // Keep the existing footprint, foundation, pipe anchors and atmosphere source.
-        private bool BuildBakedBoiler(ArenaView arena,Vector2 centre)
+        private bool BuildBakedBoiler(ArenaView arena,Vector2 centre,bool squat=false)
         {
-            if(_bakedBoilerMaterial==null)
+            ref Material material=ref (squat?ref _bakedShortBoilerMaterial:ref _bakedBoilerMaterial);
+            if(material==null)
             {
-                var texture=Resources.Load<Texture2D>("FoundryBoiler");
+                var texture=Resources.Load<Texture2D>(squat?"FoundryShortBoiler":"FoundryBoiler");
                 if(texture==null)return false;
-                _bakedBoilerMaterial=new Material(Shader.Find("Sprites/Default"))
+                material=new Material(Shader.Find("Sprites/Default"))
                     {name="Baked arched boiler",mainTexture=texture};
             }
             Vector3 origin=Project(centre.x,centre.y);
             // Separate lower drum and upper shell ranks so existing front rails and pipework
             // retain their painter ordering. Both use the same footprint depth/cutaway.
-            BakedBoilerBand(origin,-1.8f,2.8f,-12);
-            BakedBoilerBand(origin,2.8f,9f,-10.5f);
+            float imageBottom=squat?-1.86f:-1.8f,size=squat?6f:10.8f,split=squat?1.2f:2.8f;
+            BakedBoilerBand(origin,imageBottom,split,-12,material,imageBottom,size);
+            BakedBoilerBand(origin,split,imageBottom+size,-10.5f,material,imageBottom,size);
+            if(squat)
+            {
+                // The existing main joins at height1.8; keep its original runtime socket.
+                var socket=new Builder();
+                BuildSquatBoilerSocket(socket,centre);
+                Create("Short boiler service socket",socket,arena.PlatformMaterials.FoundryIron,-10.5f);
+            }
 
             // Quiet radial contact shade, emitted with floor decals, under architecture/actors.
             var shadow=new Builder();
@@ -42,16 +52,16 @@ namespace Cryptforge.UI
             return true;
         }
 
-        private void BakedBoilerBand(Vector3 origin,float bottom,float top,float order)
+        private void BakedBoilerBand(Vector3 origin,float bottom,float top,float order,Material material,float imageBottom,float size)
         {
             var b=new Builder();
-            b.V.AddRange(new[]{origin+new Vector3(-5.4f,bottom,0),origin+new Vector3(5.4f,bottom,0),
-                origin+new Vector3(5.4f,top,0),origin+new Vector3(-5.4f,top,0)});
-            float v0=(bottom+1.8f)/10.8f,v1=(top+1.8f)/10.8f;
+            b.V.AddRange(new[]{origin+new Vector3(-size*.5f,bottom,0),origin+new Vector3(size*.5f,bottom,0),
+                origin+new Vector3(size*.5f,top,0),origin+new Vector3(-size*.5f,top,0)});
+            float v0=(bottom-imageBottom)/size,v1=(top-imageBottom)/size;
             b.U.AddRange(new[]{new Vector2(0,v0),new Vector2(1,v0),new Vector2(1,v1),new Vector2(0,v1)});
             for(int i=0;i<4;i++)b.C.Add(Color.white);
             b.T.AddRange(new[]{0,1,2,0,2,3});
-            Create("Baked boiler band",b,_bakedBoilerMaterial,order);
+            Create("Baked boiler band",b,material,order);
         }
     }
 }

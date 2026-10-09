@@ -97,7 +97,7 @@ namespace Cryptforge.Tests
                 if(renderer.sharedMaterial.mainTexture==gate.mainTexture)usesGate=true;
             Assert.That(usesGate,Is.True);
             Assert.That(arena.PlatformMaterials.FoundryPitLining,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade),"The pit lining must stay independent of the boiler wrap.");
-            var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FurnaceFacade,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving};
+            var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving};
             foreach(var shared in surfaces)
             {
                 Assert.That(shared,Is.Not.Null);
@@ -108,6 +108,8 @@ namespace Cryptforge.Tests
                     if(renderer.sharedMaterial.mainTexture==shared.mainTexture)used=true;
                 Assert.That(used,Is.True,"Imported foundry surface must be used by the scene.");
             }
+            foreach(var r in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                Assert.That(r.sharedMaterial.mainTexture,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade.mainTexture),"The four baked boilers retire the old furnace-wrap batch.");
             var keeper=arena.PlatformMaterials.ForgeKeeper;
             Assert.That(keeper,Is.Not.Null,"The paired bridge guardians use one imported material.");
             var keeperTexture=keeper.mainTexture as Texture2D;
@@ -123,9 +125,27 @@ namespace Cryptforge.Tests
             Assert.That(baked.mipmapCount,Is.GreaterThan(1));
             Assert.That(baked.width,Is.EqualTo(1024));
             Assert.That(baked.height,Is.EqualTo(1024));
+            var shortBake=Resources.Load<Texture2D>("FoundryShortBoiler");
+            Assert.That(shortBake,Is.Not.Null);
+            Assert.That(shortBake.isReadable,Is.False);
+            Assert.That(shortBake.width,Is.EqualTo(1024));
+            Assert.That(shortBake.mipmapCount,Is.GreaterThan(1));
+            int shortBatches=0;
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==shortBake)
+                {
+                    shortBatches++;
+                    var shortMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
+                    Assert.That(shortMesh.vertexCount,Is.EqualTo(8),"Short pair shares each depth band.");
+                    var flags=new System.Collections.Generic.List<Vector2>();shortMesh.GetUVs(1,flags);
+                    foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
+                    var points=shortMesh.vertices;
+                    for(int i=0;i<points.Length;i++)
+                        Assert.That(points[i].z,Is.EqualTo(50+((i<4?17.9f:26.9f)-4.08f)*.35355339f).Within(.001f));
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture==baked)
                 {
                     bakedBatches++;
@@ -182,9 +202,10 @@ namespace Cryptforge.Tests
             Assert.That(keeperBatches,Is.EqualTo(1),"The guardian pair adds exactly one shared batch.");
             Assert.That(bakedBatches,Is.EqualTo(2),"Two replacements: two shared depth bands; shade shares existing floor decals.");
             Assert.That(bakedDepthBands,Is.EqualTo(2));
+            Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
             Assert.That(otherBatches,Is.LessThanOrEqualTo(17),"The pre-existing architecture retains its renderer budget.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(20),
-                "Baked boiler pair adds two explicitly bounded renderers to the prior18.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(21),
+                "Four baked bands replace the old furnace-wrap batch: net three above the prior18.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
