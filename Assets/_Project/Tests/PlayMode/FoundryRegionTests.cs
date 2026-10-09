@@ -130,10 +130,30 @@ namespace Cryptforge.Tests
             Assert.That(shortBake.isReadable,Is.False);
             Assert.That(shortBake.width,Is.EqualTo(1024));
             Assert.That(shortBake.mipmapCount,Is.GreaterThan(1));
+            var reservoir=Resources.Load<Texture2D>("FoundryReservoir");
+            Assert.That(reservoir,Is.Not.Null);
+            Assert.That(reservoir.width,Is.EqualTo(512));
+            Assert.That(reservoir.isReadable,Is.False);
+            Assert.That(reservoir.mipmapCount,Is.GreaterThan(1));
+            int reservoirBatches=0;
+            var reservoirRanks=new System.Collections.Generic.HashSet<int>();
             int shortBatches=0;
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==reservoir)
+                {
+                    reservoirBatches++;reservoirRanks.Add(renderer.sortingOrder);
+                    bool far=renderer.sortingOrder==-9;
+                    Assert.That(renderer.sortingOrder,Is.EqualTo(far?-9:-7),"Tank ranks must straddle the service mains at -8.");
+                    var tank=renderer.GetComponent<MeshFilter>().sharedMesh;
+                    Assert.That(tank.vertexCount,Is.EqualTo(4));
+                    foreach(var p in tank.vertices)
+                        Assert.That(p.z,Is.EqualTo(50+(22.3f+(far?15.8f:-5.8f))*.35355339f).Within(.001f));
+                    var flags=new System.Collections.Generic.List<Vector2>();tank.GetUVs(1,flags);
+                    foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture==shortBake)
                 {
                     shortBatches++;
@@ -202,10 +222,12 @@ namespace Cryptforge.Tests
             Assert.That(keeperBatches,Is.EqualTo(1),"The guardian pair adds exactly one shared batch.");
             Assert.That(bakedBatches,Is.EqualTo(2),"Two replacements: two shared depth bands; shade shares existing floor decals.");
             Assert.That(bakedDepthBands,Is.EqualTo(2));
+            Assert.That(reservoirBatches,Is.EqualTo(2));
+            Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
-            Assert.That(otherBatches,Is.LessThanOrEqualTo(17),"The pre-existing architecture retains its renderer budget.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(21),
-                "Four baked bands replace the old furnace-wrap batch: net three above the prior18.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(18),"Architecture plus the near reservoir relief retains its explicit renderer budget.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(24),
+                "Four boiler bands and two reservoir ranks retain an explicit24renderer bound.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

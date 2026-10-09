@@ -226,6 +226,8 @@ namespace Cryptforge.UI
             // Both 2x2 feet are entirely outside the immutable map union. A deep
             // masonry plinth supports the tank and its short branch to the main.
             Block(arena,u-1,v-1,u+1,v+1,.25f,3.5f,"Pressure tank service footing");
+            if(!BuildBakedPressureReservoir(arena,u,v))
+            {
             var iron=new Builder();
             WorkshopMetalHull(iron,u-.76f,v-.76f,u+.76f,v+.76f,.25f,.43f,.055f);
             // Texture rows per course (the panel is Clamp): the foot takes the bottom rivet strap,
@@ -242,12 +244,17 @@ namespace Cryptforge.UI
             ReservoirCourse(iron,u,v,.57f,.27f,2.77f,2.91f,.3f,.4f);
             WorkshopMetalHull(iron,u-.20f,v-.20f,u+.20f,v+.20f,2.91f,3.04f,.025f);
             Create("Faceted pressure reservoirs",iron,arena.PlatformMaterials.FoundryIron,-11);
+            }
             Vector3 branch=Project(u,v+Mathf.Sign(mainV-v)*.82f)+Vector3.up*1.72f;
             Pipe(arena,branch,Project(u,mainV)+Vector3.up*1.72f,.22f,1.72f);
             // Small top relief stem and wheel give the larger silhouette purpose.
             Vector3 stem=Project(u,v)+Vector3.up*3.04f;
-            Tube(arena,stem,stem+Vector3.up*.27f,.095f);
-            Wheel(arena,stem+Vector3.up*.31f,.18f);
+            using(MassDepth(new Vector4(u-1,v-1,u+1,v+1),3.7f))
+            {
+                float order=v>0?-11f:-10f;
+                Tube(arena,stem,stem+Vector3.up*.27f,.095f,order);
+                Wheel(arena,stem+Vector3.up*.31f,.18f,order);
+            }
         }
 
         private static void ReservoirCourse(Builder mesh,float u,float v,float bottomRadius,
@@ -394,6 +401,7 @@ namespace Cryptforge.UI
 
         private void Pipe(ArenaView arena,Vector3 a,Vector3 b,float width,float? surfaceHeight=null)
         {
+            if(surfaceHeight.HasValue){FinishedPressurePipe(arena,a,b,width,surfaceHeight.Value);return;}
             PressureTube(arena,a,b,width,surfaceHeight:surfaceHeight);
             Vector3 d=(b-a).normalized;
             int count=Mathf.Max(1,Mathf.CeilToInt(Vector3.Distance(a,b)/1.3f));
@@ -411,6 +419,12 @@ namespace Cryptforge.UI
             Vector3 axis=(b-a).normalized,n=new Vector3(-axis.y,axis.x,0);
             if(Vector2.Dot(new Vector2(n.x,n.y),ChainLight)<0)n=-n;
             var mesh=new Builder();
+            if(surfaceHeight.HasValue)
+            {
+                FinishedPipeSection(mesh,a,b,n,width*.5f,width*.5f,surfaceHeight.Value,1,0,1);
+                Create("Formed boiler feed",mesh,arena.PlatformMaterials.FoundryIron,order);
+                return;
+            }
             const int strips=6;
             for(int i=0;i<strips;i++)
             {
@@ -443,18 +457,18 @@ namespace Cryptforge.UI
             return new Color(value*.96f,value,value*1.06f);
         }
 
-        private void Wheel(ArenaView arena,Vector3 center,float radius)
+        private void Wheel(ArenaView arena,Vector3 center,float radius,float order=-11)
         {
-            PressureTube(arena,center+Vector3.left*radius*.2f,center+Vector3.right*radius*.2f,radius*.4f);
+            PressureTube(arena,center+Vector3.left*radius*.2f,center+Vector3.right*radius*.2f,radius*.4f,order);
             const int segments=12;
             for(int i=0;i<segments;i++)
             {
                 float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
                 PressureTube(arena,center+new Vector3(Mathf.Cos(a)*radius,Mathf.Sin(a)*radius,0),
-                    center+new Vector3(Mathf.Cos(b)*radius,Mathf.Sin(b)*radius,0),.065f);
+                    center+new Vector3(Mathf.Cos(b)*radius,Mathf.Sin(b)*radius,0),.065f,order);
             }
-            PressureTube(arena,center+Vector3.left*radius,center+Vector3.right*radius,.07f);
-            PressureTube(arena,center+Vector3.down*radius,center+Vector3.up*radius,.07f);
+            PressureTube(arena,center+Vector3.left*radius,center+Vector3.right*radius,.07f,order);
+            PressureTube(arena,center+Vector3.down*radius,center+Vector3.up*radius,.07f,order);
         }
 
         // Link parity runs across calls, so catenaries built from short segments keep alternating.

@@ -1,0 +1,25 @@
+{
+  "blender": "4.5.9 LTS",
+  "vertices": 2952,
+  "triangles": 5756,
+  "ortho_scale": 4,
+  "render_size": 1024,
+  "bottom": -0.5,
+  "top": 3.5,
+  "left": -2,
+  "right": 2,
+  "design_bottom": 0.25,
+  "design_top": 3.04,
+  "body_radius": 0.85,
+  "foot_half_extent": 0.76,
+  "height_compensation": 1.1547005383792515,
+  "source": "Authored mesh; approved study02 procedural materials and lights",
+  "preserve_runtime": [
+    "2x2 masonry footing .25 surface",
+    "branch at1.72 height, radius .82 socket",
+    "stem from3.04 to3.31",
+    "wheel at3.35",
+    "separate near/far painter ordering"
+  ],
+  "limitation": "Static fixed-view tank-body bake. No foundation, branch, stem, wheel or ground shadow baked. Source-stage metadata; production integration and subsequent verification are recorded in ../pressure-assembly-01 and docs/38_HANDOFF_2026-09-30_ART.md."
+}

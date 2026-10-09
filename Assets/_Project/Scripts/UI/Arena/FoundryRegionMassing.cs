@@ -381,8 +381,8 @@ namespace Cryptforge.UI
                 AddPiece(pieces,new Vector4(centre.x-1.1f,centre.y-1.1f,centre.x+1.1f,centre.y+1.1f),1.3f,
                     ()=>
                     {
-                        var dome=new Builder();PitDome(dome,centre);Create("Pit boiler dome",dome,wall,-11);
-                        var iron=new Builder();PitDomeIron(iron,centre);
+                        var dome=new Builder();PitHoodStoneFoot(dome,centre);Create("Pit boiler dome",dome,wall,-11);
+                        var iron=new Builder();FormedPitHood(iron,centre);
                         Create("Pit boiler retaining iron",iron,set.FoundryIron,-10.5f);
                     });
             }

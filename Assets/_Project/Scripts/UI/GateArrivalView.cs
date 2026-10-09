@@ -49,15 +49,19 @@ namespace Cryptforge.UI
             _events = UnityEngine.EventSystems.EventSystem.current;
             if (_events != null) { _eventsEnabled = _events.enabled; _events.enabled = false; }
             _captured = true; _follow.enabled = false;
-            float elapsed = 0;
-            while (!_skip && elapsed < 4f && !_setup.Run.HasEnded)
+            // The frame before capture may contain expensive scene construction. Its
+            // unscaledDeltaTime is not time spent presenting this view: start our clock here.
+            double began = Time.realtimeSinceStartupAsDouble;
+            while (!_skip && !_setup.Run.HasEnded)
             {
+                double elapsedTime = Time.realtimeSinceStartupAsDouble - began;
+                if (elapsedTime >= 4d) break;
+                float elapsed = (float)elapsedTime;
                 float blend = elapsed < 1f ? Mathf.SmoothStep(0, 1, elapsed) :
                     elapsed < 3f ? 1f : 1f - Mathf.SmoothStep(0, 1, elapsed - 3f);
                 _camera.transform.position = Vector3.Lerp(_position, new Vector3(19, 16.4f, _position.z), blend);
                 float revealSize = 17.6f / (2f * Mathf.Max(.1f, _camera.aspect));
                 _camera.orthographicSize = Mathf.Lerp(_size, revealSize, blend);
-                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
             RestoreView();

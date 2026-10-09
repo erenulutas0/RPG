@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge — keeper seating</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#11131b;color:#e8e2d8;font:16px system-ui,sans-serif;line-height:1.6}main{max-width:1150px;margin:auto;padding:30px 22px}h1{font-size:32px;line-height:1.2;margin:8px 0}p{max-width:850px;color:#bdc0c9}.eyebrow{color:#cbaa74;font-size:13px;letter-spacing:.09em;text-transform:uppercase}.status{display:inline-block;padding:6px 12px;border:1px solid #554b38;border-radius:5px;color:#d6bc8e;margin:12px 0}nav{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}button,a{font:inherit;color:#e8d8bb}button{padding:10px 18px;border:1px solid #665a46;background:#252833;border-radius:6px;cursor:pointer}button[aria-pressed=true]{background:#54432d;border-color:#c09a62}button:focus-visible,a:focus-visible{outline:3px solid #88bbff;outline-offset:3px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}figure{margin:0}img{display:block;width:100%;height:auto;background:#080910;border-radius:7px}figcaption{margin:8px 0 22px;color:#c7b38f}.note{border-left:3px solid #756343;padding-left:16px;margin:24px 0}details{margin:28px 0}summary{cursor:pointer;color:#d7c19d}.links{display:flex;gap:20px;flex-wrap:wrap;margin-top:24px}@media(max-width:650px){main{padding:22px 14px}h1{font-size:27px}.pair{gap:10px}figcaption{font-size:13px}}
+</style>
+<main>
+<div class="eyebrow">Cryptforge · 9 October 2026 · actual Unity comparison</div>
+<h1>A cleaner seat for the bridge keepers</h1>
+<p>The existing statues now sit on dressed octagonal mounting slabs. Shorter diamond tips and a continuous stone surface improve the join while keeping the original support bounds.</p>
+<div class="status">Installed · S23 seating review complete</div>
+<nav aria-label="Comparison viewpoint">
+<button aria-pressed="true" data-view="approach--15--18" onclick="selectView(this)">Right keeper</button>
+<button aria-pressed="false" data-view="approach--17--12" onclick="selectView(this)">Left keeper / cutaway</button>
+<button aria-pressed="false" data-view="approach--18--18" onclick="selectView(this)">Bridge approach</button>
+</nav>
+<div class="pair">
+<figure><img id="before" src="before/approach--15--18.png" alt="Before: right keeper mounting slab"><figcaption>Before — narrow tapered cap and exposed corners</figcaption></figure>
+<figure><img id="after" src="after/approach--15--18.png" alt="After: right keeper mounting slab"><figcaption>After — broader seat and clipped diamond tips</figcaption></figure>
+</div>
+<p id="view-note" aria-live="polite">Right-side approach: the full statue base and its mounting slab are visible.</p>
+<p class="note">The comparisons above are matched Unity captures with the HUD hidden and the hero staged at validated walkable points. The left-side view deliberately shows the existing hero cutaway. Actual phone evidence appears below.</p>
+<p><strong>24 renderers · 100,572 vertices</strong> — unchanged renderer count, 24 additional vertices across the two seats. Statue artwork, banners, lower consoles and gameplay remain unchanged. This is a small integration improvement.</p>
+<figure style="max-width:540px;margin:30px auto"><img loading="lazy" src="device/keeper-bridge.png" alt="Actual S23 view of right bridge keeper and completed stone seat"><figcaption>Actual S23 — targeted right-keeper approach. Statue/base contact, new slab, banner and hero reviewed; no floating join or clipping observed.</figcaption></figure>
+<p>Combined package verified: <strong>395 .NET · 415 EditMode · 151 PlayMode</strong> tests passed, Android build exit 0, static integrity 561 / 1,099 / 568. Installed APK hash and verification scope are recorded in the review notes.</p>
+<p>The separate normal Staff combat check passed. Profile, backup and original development flags remained identical; diagnostic flags were removed and the app stopped. The first unsuccessful keeper route is excluded. This is not a sustained-combat or midrange performance benchmark.</p>
+<details><summary>Additional framing record</summary><p>The square view crops both keepers at the edges. Retained for completeness; the portrait comparisons above are the useful seating evidence.</p><div class="pair"><figure><img loading="lazy" src="before/bridge-detail.png" alt="Before: square bridge framing with cropped statues"><figcaption>Before — cropped framing</figcaption></figure><figure><img loading="lazy" src="after/bridge-detail.png" alt="After: square bridge framing with cropped statues"><figcaption>After — cropped framing</figcaption></figure></div></details>
+<div class="links"><a href="README.md">Scope and review notes</a><a href="after/graphics.xml">Graphics result</a><a href="after/runtime-budget.txt">Runtime budget</a><a href="device/keeper-log.txt">Device process log</a></div>
+</main>
+<script>
+function selectView(button){
+ const view=button.dataset.view;
+ const labels={'approach--15--18':['right keeper','Right-side approach: the full statue base and its mounting slab are visible.'],'approach--17--12':['left keeper with hero cutaway','Left court approach: the existing local cutaway reveals the hero behind the keeper. The lower mounting slab remains visible.'],'approach--18--18':['central bridge approach','Central bridge approach using the production portrait frame.']};
+ for(const phase of ['before','after']){const img=document.getElementById(phase);img.src=phase+'/'+view+'.png';img.alt=phase+': '+labels[view][0];}
+ document.querySelectorAll('nav button').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+ document.getElementById('view-note').textContent=labels[view][1];
+}
+</script>
+</html>

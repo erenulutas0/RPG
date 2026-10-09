@@ -16,7 +16,7 @@ namespace Cryptforge.UI
             for(int i=0;i<8;i++)
                 LitFoundryTier(stone,32,-.85f+i*1.47f,32.32f,-.38f+i*1.47f,
                     height-.32f,height-.12f,0);
-            BuildGatePediment(stone,height);
+            BuildGateHeaderFinish(stone,height);
             foreach(float v in new[]{-3f,11f})
             {
                 // Wide plinth, narrower shaft and chamfered crown replace the flat box silhouette.

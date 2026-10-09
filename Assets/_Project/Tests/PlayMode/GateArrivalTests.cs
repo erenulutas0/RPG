@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Reflection;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.UI;
@@ -98,6 +99,43 @@ namespace Cryptforge.Tests
             Assert.That(Time.timeScale, Is.Zero);
             Assert.That(Object.FindFirstObjectByType<CombatSetup>().Encounters.EncounterNumber, Is.EqualTo(1));
             AssertControlsRestored();
+        }
+
+        [UnityTest] public IEnumerator PriorSceneFrameDoesNotConsumeVisibleArrivalDuration()
+        {
+            yield return LoadArrival();
+            Object.FindFirstObjectByType<GateArrivalView>().Skip();
+            yield return null;
+            yield return null;
+            AssertControlsRestored();
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            Health first = setup.Encounters.WaveEnemyAt(0);
+            var host = new GameObject("Arrival after an expensive scene frame");
+            host.SetActive(false); // Step the actual presentation without a second engine-owned Start.
+            try
+            {
+                var arrival = host.AddComponent<GateArrivalView>();
+                arrival.Initialize(setup, Object.FindFirstObjectByType<HeroMovementInput>());
+                var reveal = (IEnumerator)typeof(GateArrivalView).GetMethod("Start",
+                    BindingFlags.Instance | BindingFlags.NonPublic).Invoke(arrival, null);
+                Assert.That(reveal.MoveNext(), Is.True, "Start first yields for scene layout.");
+                // Reproduce a loading frame before capture, rather than changing or mocking Unity time.
+                System.Threading.Thread.Sleep(1200);
+                yield return null;
+                Assert.That(Time.unscaledDeltaTime, Is.GreaterThanOrEqualTo(1f),
+                    "The regression must actually exercise an expensive preceding frame.");
+                double began = Time.realtimeSinceStartupAsDouble;
+                while (reveal.MoveNext() && Time.realtimeSinceStartupAsDouble - began < 6d)
+                    yield return null;
+                Assert.That(arrival.IsPresenting, Is.False);
+                Assert.That(Time.realtimeSinceStartupAsDouble - began, Is.InRange(4d, 6d),
+                    "Four unscaled seconds start at capture, not at the preceding loading frame.");
+                Assert.That(Time.timeScale, Is.Zero);
+                Assert.That(setup.Encounters.EncounterNumber, Is.EqualTo(1));
+                Assert.That(setup.Encounters.WaveEnemyAt(0), Is.SameAs(first));
+                AssertControlsRestored();
+            }
+            finally { Object.DestroyImmediate(host); }
         }
 
         [UnityTest] public IEnumerator DepthProofTakesPrecedenceOverArrival()

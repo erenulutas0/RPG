@@ -1,6 +1,6 @@
 # Forge keeper candidate — 2026-10-07
 
-Original bridge-head guardian concept produced with built-in image_gen. Full prompt in prompt.txt. Workspace source: forge-keeper-source.png (1024x1536 RGBA). Generated file exec-6cbb5df3-da3e-4fd1-a90f-3a752e445fd4.png was copied without raster postprocessing. Alpha range0..254; sampled exterior pixels have zero alpha. Preserves transparent background.
+Original bridge-head guardian concept produced with built-in image_gen. The original full generation prompt was not preserved: prompt.txt contains the literal `undefined` followed by a generic generation note. Do not treat that file as the original prompt or reconstruct one as historical evidence. Workspace source: forge-keeper-source.png (1024x1536 RGBA). Generated file exec-6cbb5df3-da3e-4fd1-a90f-3a752e445fd4.png was copied without raster postprocessing. Alpha range0..254; sampled exterior pixels have zero alpha. Preserves transparent background.
 
 Design intent: replace the narrow fire-post silhouette in a future bridge art study with a substantial carved guardian. Heavy hood, empty face, readable folds, restrained bronze and a close-held hammer reinforce the foundry theme. The candidate is stone architecture, not another playable hero or enemy.
 

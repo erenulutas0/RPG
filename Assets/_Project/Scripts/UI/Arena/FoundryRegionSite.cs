@@ -82,7 +82,7 @@ namespace Cryptforge.UI
                     }
                     stone.Quad(rim[0]-Vector3.up*.1f,rim[1]-Vector3.up*.1f,rim[2]-Vector3.up*.1f,rim[3]-Vector3.up*.1f,true,new Color(.8f,.8f,.88f));
                     LitFoundryTier(stone,p.x-.48f,p.y-.48f,p.x+.48f,p.y+.48f,-.18f,.18f,.07f);
-                    LitFoundryTier(stone,p.x-.7f,p.y-.7f,p.x+.7f,p.y+.7f,.18f,.45f,.12f);
+                    DressedKeeperSeat(stone,p);
                     continue;
                 }
                 LitFoundryTier(stone,p.x-.24f,p.y-.24f,p.x+.24f,p.y+.24f,.3f,1.1f,.03f);
@@ -473,4 +473,3 @@ namespace Cryptforge.UI
         }
     }
 }
-
