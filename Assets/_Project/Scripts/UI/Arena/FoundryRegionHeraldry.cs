@@ -14,7 +14,7 @@ namespace Cryptforge.UI
         {
             const float Field=3.4f,Inner=3.44f,Outer=3.82f;
             var seal=new Builder();
-            var brass=new Color(.7f,.56f,.34f);var lit=new Color(.81f,.64f,.37f);var channel=new Color(.47f,.45f,.41f);
+            var brass=new Color(.7f,.56f,.34f);var lit=new Color(.76f,.61f,.37f);var channel=new Color(.70f,.69f,.73f);
             // Points on the compass rays: four major on the screen axes (its odd rays), four minor on its diagonals.
             var tips=new Vector2[8];var valleys=new Vector2[8];
             for(int i=0;i<8;i++){tips[i]=SealPolar(i*Mathf.PI/4,i%2==1?3.12f:2.05f);valleys[i]=SealPolar((i+.5f)*Mathf.PI/4,.78f);}
@@ -56,6 +56,7 @@ namespace Cryptforge.UI
                     Strip(seal,m.x,m.y,n.x,n.y,metal?.07f:.12f,metal?brass:channel,trim,i+3);
                 }
             }
+            WeatherHeraldry(seal);
             Create("Court engraved forge seal",seal,arena.PlatformMaterials.Coping,FloorDecal);
         }
 
@@ -66,8 +67,8 @@ namespace Cryptforge.UI
         {
             const float Ring=8.6f;
             // A narrow worn channel either side of a brighter inlay: the brass has to read as metal, not as a crack.
-            var channel=new Color(.47f,.45f,.41f);
-            var lit=new Color(brass.r*1.16f,brass.g*1.14f,brass.b*1.1f);
+            var channel=new Color(.70f,.69f,.73f);
+            var lit=new Color(brass.r*1.08f,brass.g*1.08f,brass.b*1.1f);
             for(int i=0;i<96;i++)
             {
                 float a=i*Mathf.PI/48,b=(i+1)*Mathf.PI/48;
@@ -97,6 +98,9 @@ namespace Cryptforge.UI
                     SealQuad(inlays,tip-along,tip+side,tip+along,tip-side,lit,CopingRail);
                 }
             }
+            // This builder also owns the court's straight guides. Give those the same
+            // surface response so the compass does not sit inside a newer-looking frame.
+            WeatherHeraldry(inlays);
         }
 
         private static bool OnCourt(Vector2 design)
@@ -112,9 +116,9 @@ namespace Cryptforge.UI
         private void BuildGateProcession(ArenaView arena)
         {
             var inlay=new Builder();
-            var groove=new Color(.48f,.46f,.43f);
+            var groove=new Color(.70f,.69f,.73f);
             var brass=new Color(.70f,.58f,.39f);
-            var edge=new Color(.78f,.66f,.46f);
+            var edge=new Color(.74f,.63f,.46f);
             var frame=new[]{new Vector2(15.8f,2),new Vector2(16.5f,1.3f),
                 new Vector2(29.9f,1.3f),new Vector2(30.6f,2),new Vector2(30.6f,8),
                 new Vector2(29.9f,8.7f),new Vector2(16.5f,8.7f),new Vector2(15.8f,8)};
@@ -164,7 +168,23 @@ namespace Cryptforge.UI
                     SealQuad(inlay,c-along,c+across,c+along,c-across,metal?edge:groove,metal?CopingRail:SealStone);
                 }
             }
+            WeatherHeraldry(inlay);
             Create("Gate processional stone and brass inlay",inlay,arena.PlatformMaterials.Coping,FloorDecal);
+        }
+
+        // Environmental inlay is rubbed, aged brass rather than a polished outline.
+        // Broad continuous wear stays attached to the floor and shares its existing
+        // illumination later at Emit. No broken motif, extra geometry or random flicker.
+        private static void WeatherHeraldry(Builder mesh)
+        {
+            for(int i=0;i<mesh.V.Count;i++)
+            {
+                if(!OnCopingRail(mesh.U[i]))continue;
+                FoundrySurface.ToDesign(mesh.V[i].x,mesh.V[i].y,out float u,out float v);
+                float wear=Mathf.Lerp(.93f,1f,FloorPatina(u*.37f+11,v*.37f-5));
+                Color tone=mesh.C[i];
+                mesh.C[i]=new Color(tone.r*.86f*wear,tone.g*.96f*wear,tone.b*1.14f*wear,tone.a);
+            }
         }
 
         // A crack-free 72x88 px patch of panel stone (texel ~.18, std .005): the seal's fills read as one dark stone,

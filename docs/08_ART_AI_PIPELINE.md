@@ -884,3 +884,8 @@ FoundryRegionFinish retains the fine ashlar layout but adds a shallow within-sto
 ## 2026-10-09 — Combined gate, workshop and undercroft refinement
 
 Three isolated agents worked on Architecture, Workshop and Undercroft files, with read-only cross-reviews and root-owned integration/capture. Broad gate lancets replace repeated shutters; stored pipes use round sections and plain worked-iron sampling; recessed masonry backs the existing arch rings. Same source assets, static batches and layout. The smoothed stock metal is a form/readability improvement, not new texture realism. Proof: ArtDirection/2026-10-09/architecture-cohesion-01.
+
+
+## 2026-10-09 — Three-agent material readability pass
+
+Three isolated helper files: Workshop broad unframed iron UVs/continuous stock pipe grain; Massing pit collar-contact shadow and continuous side shading; Heraldry matte inlaid brass and lower groove contrast. Existing raster sources/materials only, no generated texture or extra frame work. Root and helpers cross-reviewed actual matched-camera captures and source; no blocking regression. Use ArtDirection/2026-10-09/material-readability-01 for evidence. These refinements do not finish painted-reference fidelity.

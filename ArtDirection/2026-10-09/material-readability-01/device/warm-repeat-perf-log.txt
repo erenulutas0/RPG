@@ -1,0 +1,499 @@
+--------- beginning of main
+10-09 14:02:18.060 I/Zygote  (15840): Process 15840 created for com.cryptforge.prototype
+10-09 14:02:18.060 I/forge.prototype(15840): Late-enabling -Xcheck:jni
+10-09 14:02:18.087 I/forge.prototype(15840): Using CollectorTypeCMC GC.
+10-09 14:02:18.097 D/nativeloader(15840): Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+10-09 14:02:18.101 D/ActivityThread(15840): setConscryptValidator
+10-09 14:02:18.101 D/ActivityThread(15840): setConscryptValidator - put
+10-09 14:02:18.151 D/nativeloader(15840): Configuring clns-9 for other apk /data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/lib/arm64:/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.cryptforge.prototype
+10-09 14:02:18.159 V/GraphicsEnvironment(15840): Currently set values for:
+10-09 14:02:18.159 V/GraphicsEnvironment(15840):   angle_gl_driver_selection_pkgs=[]
+10-09 14:02:18.159 V/GraphicsEnvironment(15840):   angle_gl_driver_selection_values=[]
+10-09 14:02:18.159 V/GraphicsEnvironment(15840): com.cryptforge.prototype is not listed in per-application setting
+10-09 14:02:18.159 V/GraphicsEnvironment(15840): ANGLE allowlist from config: com.dreamgames.royalmatch com.dts.freefiremax com.dxx.firenow com.gramgames.mergedragons com.ludo.king com.mojang.minecraftpe com.my.defense com.nintendo.zaka com.os.airforce com.playrix.fishdomdd.gplay io.teslatech.callbreak jp.konami.prospia net.peakgames.toonblast
+10-09 14:02:18.159 V/GraphicsEnvironment(15840): No special selections for ANGLE, returning default driver choice
+10-09 14:02:18.160 V/GraphicsEnvironment(15840): App is not on the allowlist for updatable production driver.
+10-09 14:02:18.205 D/DesktopExperienceFlags(15840): Toggle override initialized to: false
+10-09 14:02:18.210 E/ashmem  (15840): Pinning is deprecated since Android Q. Please use trim or other methods.
+10-09 14:02:18.227 D/CompatChangeReporter(15840): Compat change id reported: 377864165; UID 10661; state: ENABLED
+10-09 14:02:18.227 D/DesktopModeFlags(15840): Toggle override initialized to: OVERRIDE_UNSET
+10-09 14:02:18.231 I/DecorView(15840): setWindowBackground: isPopOver=false color=ff000000 d=android.graphics.drawable.ColorDrawable@cccb76c
+10-09 14:02:18.232 D/nativeloader(15840): Load /data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/lib/arm64/libmain.so using class loader ns clns-9 (caller=/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk): ok
+10-09 14:02:18.287 I/IL2CPP  (15840): JNI_OnLoad
+10-09 14:02:18.288 V/Unity   (15840): Context Type: ActivityOrService
+10-09 14:02:18.288 D/Unity   (15840): CommandLine:
+10-09 14:02:18.304 I/Unity   (15840): onResume
+10-09 14:02:18.314 D/ViewRootImpl(15840): desktopMode is false
+10-09 14:02:18.315 I/ViewRootImpl(15840): dVRR is disabled
+--------- beginning of system
+10-09 14:02:18.317 D/InsetsController(15840): Setting requestedVisibleTypes to 496 (was 503)
+10-09 14:02:18.317 I/InsetsController(15840): setRequestedVisibleTypes: visible=false, mask=statusBars navigationBars captionBar, host=com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity, from=android.view.InsetsController.controlAnimationUnchecked:1646 android.view.InsetsController.applyAnimation:2278 android.view.InsetsController.applyAnimation:2207 android.view.InsetsController.hide:1581 android.view.InsetsController.hide:1521 android.view.ViewRootImpl.controlInsetsForCompatibility:4199 android.view.ViewRootImpl.setView:1992 android.view.WindowManagerGlobal.addView:606 android.view.WindowManagerImpl.addView:167 android.app.ActivityThread.handleResumeActivity:6758
+10-09 14:02:18.319 D/InputTransport(15840): Input channel constructed: 'db21087', fd=114
+10-09 14:02:18.320 I/InsetsController(15840): onStateChanged: host=com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3038, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2340), mDisplayCutout=DisplayCutout{insets=Rect(0, 98 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(510, 0 - 570, 98), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2340 physicalDisplayWidth=1080 physicalDisplayHeight=2340 density={3.0} cutoutSpec={M 0,0 H -10 V 32.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=108, center=Point(108, 108)}, RoundedCorner{position=TopRight, radius=108, center=Point(972, 108)}, RoundedCorner{position=BottomRight, radius=108, center=Point(972, 2232)}, RoundedCorner{position=BottomLeft, radius=108, center=Point(108, 2232)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2340), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(948, 0 - 1080, 98) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2340 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {ddaf0000 mType=statusBars mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {ddaf0005 mType=mandatorySystemGestures mFrame=[0,0][1080,134] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {ddaf0006 mType=tappableElement mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mAttachedInsets=null mVisible=false mFlags=INVALID mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {780f0001 mType=navigationBars mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0004 mType=systemGestures mFrame=[0,0][0,0] mAttachedInsets=null mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {780f0005 mType=mandatorySystemGestures mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0006 mType=tappableElement mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0024 mType=systemGestures mFrame=[0,0][0,0] mAttachedInsets=null mVisible=true mFlags= mSideHint=NONE mBoundingRects=null} }
+10-09 14:02:18.323 I/VRI[UnityPlayerActivity]@d36552b(15840): synced displayState. AttachInfo displayState=2
+10-09 14:02:18.323 D/InputTransport(15840): setImprovementEvent.. GameApp 1 1  428.625  424.542 11282379.000 4750.955 3358.925
+10-09 14:02:18.324 I/VRI[UnityPlayerActivity]@d36552b(15840): setView = com.android.internal.policy.DecorView@4dd905d IsHRR=false mFlingFrameRateChange=0 TM=true
+10-09 14:02:18.324 I/IDS_TAG (15840): Starting IDS observe window
+10-09 14:02:18.324 I/IDS_TAG (15840): Getting Shared Preference for android.app.Application@7bc554b uid = 10661
+10-09 14:02:18.327 I/IDS_TAG (15840): App android.app.Application@7bc554b has not finished training
+10-09 14:02:18.328 I/IDS_TAG (15840): Closing IDS observe window
+10-09 14:02:18.328 I/IDS_TAG (15840): Getting Shared Preference for android.app.Application@7bc554b uid = 10661
+10-09 14:02:18.328 I/IDS_TAG (15840): IDS count updated to 5 for android.app.Application@7bc554b
+10-09 14:02:18.329 D/WindowOnBackDispatcher(15840): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@8d251e
+10-09 14:02:18.330 D/WindowOnBackDispatcher(15840): setTopOnBackInvokedCallback (unwrapped): com.unity3d.player.a.d@9c21ff
+10-09 14:02:18.331 I/SV[109665906 UnityPlayerActivity](15840): onWindowVisibilityChanged(0) true com.unity3d.player.a.f{6895e72 VFE...... .F....I. 0,0-0,0 #7f020000 app:id/unitySurfaceView} of VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:18.331 D/SurfaceView(15840): 109665906 updateSurface: has no frame
+10-09 14:02:18.331 D/VRI[UnityPlayerActivity]@d36552b(15840): WindowInsets changed: 1080x2340 statusBars:[0,98,0,0] navigationBars:[0,0,0,144] mandatorySystemGestures:[0,134,0,144]
+10-09 14:02:18.338 E/BufferQueueProducer(15840): Unable to open libpenguin.so: dlopen failed: library "libpenguin.so" not found.
+10-09 14:02:18.338 E/forge.prototype(15840): Unable to open libpenguin.so: dlopen failed: library "libpenguin.so" not found.
+10-09 14:02:18.338 W/libc    (15840): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+10-09 14:02:18.338 I/BufferQueueProducer(15840): [](id:3de000000000,api:0,p:1836016445,c:15840) setDequeueTimeout:2077252342
+10-09 14:02:18.338 I/BLASTBufferQueue_Java(15840): new BLASTBufferQueue, mName= VRI[UnityPlayerActivity]@d36552b mNativeObject= 0xb4000074703c8800 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3603 android.view.ViewRootImpl.relayoutWindow:11813 android.view.ViewRootImpl.performTraversals:4840 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961 android.view.Choreographer$CallbackRecord.run:1970 android.view.Choreographer.doCallbacks:1423 android.view.Choreographer.doFrame:1348 android.view.Choreographer$FrameDisplayEventReceiver.run:1930
+10-09 14:02:18.338 I/BLASTBufferQueue_Java(15840): update, w= 1080 h= 2340 mName = VRI[UnityPlayerActivity]@d36552b mNativeObject= 0xb4000074703c8800 sc.mNativeObject= 0xb400007658201a80 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3608 android.view.ViewRootImpl.relayoutWindow:11813 android.view.ViewRootImpl.performTraversals:4840 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961
+10-09 14:02:18.339 W/libc    (15840): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+10-09 14:02:18.339 I/VRI[UnityPlayerActivity]@d36552b(15840): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)0 dur=5 res=0x3 s={true 0xb4000074703fea00} ch=true seqId=0
+10-09 14:02:18.340 I/VRI[UnityPlayerActivity]@d36552b(15840): performConfigurationChange setNightDimText nightDimLevel=0
+10-09 14:02:18.340 D/VRI[UnityPlayerActivity]@d36552b(15840): WindowInsets changed: statusBars:null navigationBars:null
+10-09 14:02:18.341 D/SurfaceView(15840): 109665906 updateSurface: has no frame
+10-09 14:02:18.341 I/SV[109665906 UnityPlayerActivity](15840): windowStopped(false) true com.unity3d.player.a.f{6895e72 VFE...... .F....ID 0,0-1080,2340 #7f020000 app:id/unitySurfaceView} of VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:18.341 D/SurfaceView(15840): 109665906 updateSurface: has no frame
+10-09 14:02:18.341 D/VRI[UnityPlayerActivity]@d36552b(15840): applyTransactionOnDraw applyImmediately
+10-09 14:02:18.342 D/VRI[UnityPlayerActivity]@d36552b(15840): reportNextDraw android.view.ViewRootImpl.performTraversals:5507 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961 android.view.Choreographer$CallbackRecord.run:1970
+10-09 14:02:18.342 I/SurfaceView(15840): 109665906 Changes: creating=true format=true size=true visible=true alpha=false hint=false left=true top=true z=false attached=true lifecycleStrategy=false
+10-09 14:02:18.343 W/libc    (15840): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+10-09 14:02:18.343 I/BufferQueueProducer(15840): [](id:3de000000001,api:0,p:0,c:15840) setDequeueTimeout:2077252342
+10-09 14:02:18.345 I/BLASTBufferQueue_Java(15840): new BLASTBufferQueue, mName= 6895e72 SurfaceView[com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity]@0 mNativeObject= 0xb4000074703ee800 caller= android.view.SurfaceView.createBlastSurfaceControls:1878 android.view.SurfaceView.updateSurface:1519 android.view.SurfaceView.lambda$new$0:283 android.view.SurfaceView.$r8$lambda$NfZyM_TG8F8lqzaOVZ7noREFjzU:0 android.view.SurfaceView$$ExternalSyntheticLambda1.onPreDraw:0 android.view.ViewTreeObserver.dispatchOnPreDraw:1295 android.view.ViewRootImpl.performTraversals:5512 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961
+10-09 14:02:18.345 I/BLASTBufferQueue_Java(15840): update, w= 1080 h= 2340 mName = 6895e72 SurfaceView[com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity]@0 mNativeObject= 0xb4000074703ee800 sc.mNativeObject= 0xb400007658202d40 format= 4 caller= android.view.SurfaceView.createBlastSurfaceControls:1879 android.view.SurfaceView.updateSurface:1519 android.view.SurfaceView.lambda$new$0:283 android.view.SurfaceView.$r8$lambda$NfZyM_TG8F8lqzaOVZ7noREFjzU:0 android.view.SurfaceView$$ExternalSyntheticLambda1.onPreDraw:0 android.view.ViewTreeObserver.dispatchOnPreDraw:1295
+10-09 14:02:18.345 I/SurfaceView(15840): 109665906 Cur surface: Surface(name=null mNativeObject=0)/@0x1b76e15
+10-09 14:02:18.345 I/SV[109665906 UnityPlayerActivity](15840): pST: sr = Rect(0, 0 - 1080, 2340) sw = 1080 sh = 2340
+10-09 14:02:18.345 I/SV[109665906 UnityPlayerActivity](15840): onSSPAndSRT: pl = 0 pt = 0 sx = 1.0 sy = 1.0
+10-09 14:02:18.345 D/SurfaceView(15840): 109665906 performSurfaceTransaction UI Thread position = [0, 0, 1080, 2340] surfaceSize = 1080x2340
+10-09 14:02:18.346 D/VRI[UnityPlayerActivity]@d36552b(15840): applyTransactionOnDraw applyImmediately
+10-09 14:02:18.346 W/libc    (15840): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+10-09 14:02:18.346 I/SV[109665906 UnityPlayerActivity](15840): updateSurface: mVisible = true mSurface.isValid() = true
+10-09 14:02:18.346 I/SV[109665906 UnityPlayerActivity](15840): updateSurface: mSurfaceCreated = false surfaceChanged = true visibleChanged = true
+10-09 14:02:18.346 I/SurfaceView(15840): 109665906 visibleChanged -- surfaceCreated
+10-09 14:02:18.346 I/SV[109665906 UnityPlayerActivity](15840): surfaceCreated 1 #8 com.unity3d.player.a.f{6895e72 VFE...... .F....ID 0,0-1080,2340 #7f020000 app:id/unitySurfaceView}
+10-09 14:02:18.346 I/SurfaceView(15840): 109665906 surfaceChanged -- format=4 w=1080 h=2340
+10-09 14:02:18.346 I/SV[109665906 UnityPlayerActivity](15840): surfaceChanged (1080,2340) 1 #8 com.unity3d.player.a.f{6895e72 VFE...... .F....ID 0,0-1080,2340 #7f020000 app:id/unitySurfaceView}
+10-09 14:02:18.346 I/SurfaceView(15840): 109665906 surfaceRedrawNeeded
+10-09 14:02:18.347 I/SurfaceView(15840): 109665906 finishedDrawing
+10-09 14:02:18.347 V/SurfaceView(15840): Layout: x=0 y=0 w=1080 h=2340, frame=Rect(0, 0 - 1080, 2340)
+10-09 14:02:18.347 D/VRI[UnityPlayerActivity]@d36552b(15840): applyTransactionOnDraw applyImmediately
+10-09 14:02:18.347 D/VRI[UnityPlayerActivity]@d36552b(15840): Setup new sync=wmsSync-VRI[UnityPlayerActivity]@d36552b#1
+10-09 14:02:18.348 I/VRI[UnityPlayerActivity]@d36552b(15840): Creating new active sync group VRI[UnityPlayerActivity]@d36552b#2
+10-09 14:02:18.356 I/BLASTBufferQueue(15840): [VRI[UnityPlayerActivity]@d36552b#0](f:0,a:0,s:0) onFrameAvailable the first frame is available
+10-09 14:02:18.356 I/SurfaceComposerClient(15840): apply transaction with the first frame. layerId: 120426, bufferData(ID: 68032281968640, frameNumber: 1)
+10-09 14:02:18.356 D/VRI[UnityPlayerActivity]@d36552b(15840): reportDrawFinished seqId=0
+10-09 14:02:18.369 I/InsetsController(15840): onStateChanged: host=com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3038, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2340), mDisplayCutout=DisplayCutout{insets=Rect(0, 98 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(510, 0 - 570, 98), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2340 physicalDisplayWidth=1080 physicalDisplayHeight=2340 density={3.0} cutoutSpec={M 0,0 H -10 V 32.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=108, center=Point(108, 108)}, RoundedCorner{position=TopRight, radius=108, center=Point(972, 108)}, RoundedCorner{position=BottomRight, radius=108, center=Point(972, 2232)}, RoundedCorner{position=BottomLeft, radius=108, center=Point(108, 2232)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2340), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(948, 0 - 1080, 98) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2340 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {ddaf0000 mType=statusBars mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {ddaf0005 mType=mandatorySystemGestures mFrame=[0,0][1080,134] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {ddaf0006 mType=tappableElement mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mAttachedInsets=null mVisible=false mFlags=INVALID mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {780f0001 mType=navigationBars mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0004 mType=systemGestures mFrame=[0,0][0,0] mAttachedInsets=null mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {780f0005 mType=mandatorySystemGestures mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0006 mType=tappableElement mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0024 mType=systemGestures mFrame=[0,0][0,0] mAttachedInsets=null mVisible=true mFlags= mSideHint=NONE mBoundingRects=null} }
+10-09 14:02:18.371 I/InsetsController(15840): onStateChanged: host=com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3038, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2340), mDisplayCutout=DisplayCutout{insets=Rect(0, 98 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(510, 0 - 570, 98), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2340 physicalDisplayWidth=1080 physicalDisplayHeight=2340 density={3.0} cutoutSpec={M 0,0 H -10 V 32.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=108, center=Point(108, 108)}, RoundedCorner{position=TopRight, radius=108, center=Point(972, 108)}, RoundedCorner{position=BottomRight, radius=108, center=Point(972, 2232)}, RoundedCorner{position=BottomLeft, radius=108, center=Point(108, 2232)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2340), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(948, 0 - 1080, 98) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2340 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {ddaf0000 mType=statusBars mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=false mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {ddaf0005 mType=mandatorySystemGestures mFrame=[0,0][1080,134] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {ddaf0006 mType=tappableElement mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mAttachedInsets=null mVisible=false mFlags=INVALID mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,98] mAttachedInsets=null mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {780f0001 mType=navigationBars mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=false mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0004 mType=systemGestures mFrame=[0,0][0,0] mAttachedInsets=null mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {780f0005 mType=mandatorySystemGestures mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0006 mType=tappableElement mFrame=[0,2196][1080,2340] mAttachedInsets=null mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {780f0024 mType=systemGestures mFrame=[0,0][0,0] mAttachedInsets=null mVisible=true mFlags= mSideHint=NONE mBoundingRects=null} }
+10-09 14:02:18.371 I/VRI[UnityPlayerActivity]@d36552b(15840): handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+10-09 14:02:18.387 I/Unity   (15840): windowFocusChanged: true
+10-09 14:02:18.387 I/Unity   (15840): resumeUnity
+10-09 14:02:18.388 D/InputMethodManagerUtils(15840): startInputInner - Id : 0
+10-09 14:02:18.388 I/InputMethodManager(15840): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+10-09 14:02:18.390 D/InsetsController(15840): hide(ime())
+10-09 14:02:18.390 I/ImeTracker(15840): com.cryptforge.prototype:31dd7e6a: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+10-09 14:02:18.392 I/Unity   (15840): MemoryManager: Using 'Dynamic Heap' Allocator.
+10-09 14:02:18.392 D/Unity   (15840): [UnityMemory] Configuration Parameters - Can be set up in boot.config
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-allocator-temp-initial-block-size-main=262144"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-allocator-temp-initial-block-size-worker=262144"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-bucket-allocator-granularity=16"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-bucket-allocator-bucket-count=8"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-bucket-allocator-block-size=4194304"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-bucket-allocator-block-count=1"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-main-allocator-block-size=16777216"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-thread-allocator-block-size=16777216"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-gfx-main-allocator-block-size=16777216"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-gfx-thread-allocator-block-size=16777216"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-cache-allocator-block-size=4194304"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-typetree-allocator-block-size=2097152"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-profiler-bucket-allocator-granularity=16"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-profiler-bucket-allocator-bucket-count=8"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-profiler-bucket-allocator-block-size=4194304"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-profiler-bucket-allocator-block-count=1"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-profiler-allocator-block-size=16777216"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-profiler-editor-allocator-block-size=1048576"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-main=4194304"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-job-temp-allocator-block-size=2097152"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-job-temp-allocator-block-size-background=1048576"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-background-worker=32768"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-job-worker=262144"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-preload-manager=262144"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-audio-worker=65536"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-cloud-worker=32768"
+10-09 14:02:18.392 D/Unity   (15840):     "memorysetup-temp-allocator-size-gfx=262144"
+10-09 14:02:18.393 D/InputTransport(15840): Input channel constructed: 'ClientS', fd=126
+10-09 14:02:18.406 D/Unity   (15840): Enabling Unity systrace
+10-09 14:02:18.412 I/Unity   (15840): SetGameState: isLoading: true, mode: UNKNOWN, label: -2, quality: -1
+10-09 14:02:18.416 D/Unity   (15840): [VFS] Mount /data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk
+10-09 14:02:18.431 I/Unity   (15840): SystemInfo CPU = ARM64 FP ASIMD AES, Cores = 8, Memory = 7072mb
+10-09 14:02:18.431 I/Unity   (15840): SystemInfo ARM big.LITTLE configuration: 5 big (mask: 0xf8), 3 little (mask: 0x7)
+10-09 14:02:18.431 I/Unity   (15840): ApplicationInfo 'com.cryptforge.prototype', Version '0.1.0', Min API Level '26', Target API Level '36'
+10-09 14:02:18.431 I/Unity   (15840): Built from '6000.0/staging' branch, Version '6000.0.65f1 (a18e2220bd50)', Build type 'Development', Scripting Backend 'il2cpp', CPU 'arm64-v8a', Stripping 'Enabled'
+10-09 14:02:18.431 I/Unity   (15840): Device Model 'samsung SM-S911B', OS 'Android OS 16 (API 36)'
+10-09 14:02:18.432 D/Unity   (15840): Determine if il2cpp resources need to extracted:
+10-09 14:02:18.433 D/Unity   (15840):     il2cpp resources are up to date, not extracting
+10-09 14:02:18.445 I/BLASTBufferQueue_Java(15840): update, w= 1080 h= 2340 mName = VRI[UnityPlayerActivity]@d36552b mNativeObject= 0xb4000074703c8800 sc.mNativeObject= 0xb4000076582031c0 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3592 android.view.ViewRootImpl.relayoutWindow:11813 android.view.ViewRootImpl.performTraversals:4840 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961
+10-09 14:02:18.445 I/VRI[UnityPlayerActivity]@d36552b(15840): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)0 dur=13 res=0x0 s={true 0xb4000074703fea00} ch=false seqId=0
+10-09 14:02:18.445 I/VRI[UnityPlayerActivity]@d36552b(15840): updateBoundsLayer: t=android.view.SurfaceControl$Transaction@ae7ca83 sc=Surface(name=Bounds for - com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity@0#120429)/@0x8b75400 frame=2
+10-09 14:02:18.445 D/VRI[UnityPlayerActivity]@d36552b(15840): applyTransactionOnDraw applyImmediately
+10-09 14:02:18.470 I/BLASTBufferQueue_Java(15840): update, w= 1080 h= 2340 mName = VRI[UnityPlayerActivity]@d36552b mNativeObject= 0xb4000074703c8800 sc.mNativeObject= 0xb400007658201e40 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3592 android.view.ViewRootImpl.relayoutWindow:11813 android.view.ViewRootImpl.performTraversals:4840 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961
+10-09 14:02:18.470 I/VRI[UnityPlayerActivity]@d36552b(15840): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)0 dur=4 res=0x0 s={true 0xb4000074703fea00} ch=false seqId=0
+10-09 14:02:18.471 D/Unity   (15840): [EGL] Attaching window :0xb400007470400310
+10-09 14:02:18.471 D/Unity   (15840): InitializeScriptEngine OK (0x7640fa5fc0)
+10-09 14:02:18.472 D/Unity   (15840): Found 1 interfaces on host :
+10-09 14:02:18.472 D/Unity   (15840):  0) 192.168.1.111
+10-09 14:02:18.472 D/Unity   (15840):
+10-09 14:02:18.473 D/Unity   (15840): Player connection [502518800768]  Target information:
+10-09 14:02:18.473 D/Unity   (15840):
+10-09 14:02:18.473 D/Unity   (15840): Player connection [502518800768]  * "[IP] 192.168.1.111 [Port] 55000 [Flags] 2 [Guid] 3099754876 [EditorId] 1772332469 [Version] 1048832 [Id] AndroidPlayer(11,samsung_SM-S911B@192.168.1.111) [Debug] 0 [PackageName] AndroidPlayer [ProjectName] Project Cryptforge"
+10-09 14:02:18.473 D/Unity   (15840):
+10-09 14:02:18.473 D/Unity   (15840): Player connection [502518800768] Started UDP target info broadcast (1) on [225.0.0.222:54997].
+10-09 14:02:18.473 D/Unity   (15840):
+10-09 14:02:18.479 I/forge.prototype(15840): Compiler allocated 5214KB to compile void android.view.ViewRootImpl.performTraversals()
+10-09 14:02:18.486 I/DisplayManager(15840): Implicitly registering for refresh rate
+10-09 14:02:18.490 D/Unity   (15840): PlayerInitEngineNoGraphics OK
+10-09 14:02:18.490 I/Unity   (15840): Company Name: CryptforgePrototype
+10-09 14:02:18.490 I/Unity   (15840): Product Name: Project Cryptforge
+10-09 14:02:18.490 D/Unity   (15840): AndroidGraphics::Startup window =  0xb400007470400310
+10-09 14:02:18.490 D/Unity   (15840): [EGL] Attaching window :0xb400007470400310
+10-09 14:02:18.503 D/vulkan  (15840): searching for layers in '/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/lib/arm64'
+10-09 14:02:18.503 D/vulkan  (15840): searching for layers in '/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk!/lib/arm64-v8a'
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: count=14
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_debug_report [enabled=0, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_debug_utils [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_surface_maintenance1 [enabled=0, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_swapchain_colorspace [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_GOOGLE_surfaceless_query [enabled=0, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_android_surface [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_device_group_creation [enabled=0, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_fence_capabilities [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_memory_capabilities [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_semaphore_capabilities [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_get_physical_device_properties2 [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_get_surface_capabilities2 [enabled=0, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_surface [enabled=1, external=0]
+10-09 14:02:18.503 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_surface_protected_capabilities [enabled=0, external=0]
+10-09 14:02:18.509 W/Adreno-AppProfiles(15840): Could not find QSPM HAL service. Skipping adreno profile processing.
+10-09 14:02:18.510 I/AdrenoVK-0(15840): ===== BEGIN DUMP OF OVERRIDDEN SETTINGS =====
+10-09 14:02:18.510 I/AdrenoVK-0(15840): ===== END DUMP OF OVERRIDDEN SETTINGS =====
+10-09 14:02:18.511 I/AdrenoVK-0(15840): QUALCOMM build          : 3df4c357f0, I515341007c
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Build Date              : 01/27/26
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Shader Compiler Version : E031.41.03.64
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Local Branch            :
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Remote Branch           : refs/tags/AU_LINUX_ANDROID_LA.VENDOR.13.2.0.11.00.00.856.062
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Remote Branch           : NONE
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Reconstruct Branch      : NOTHING
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Build Config            : S P 14.1.4 AArch64
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Driver Version          : 0676.77.1
+10-09 14:02:18.511 I/AdrenoVK-0(15840): PFP                     : 0x01740181
+10-09 14:02:18.511 I/AdrenoVK-0(15840): ME                      : 0x00000000
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Application Name    : Project Cryptforge
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Application Version : 0x00000001
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Engine Name         : Unity
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Engine Version      : 0x00000001
+10-09 14:02:18.511 I/AdrenoVK-0(15840): Api Version         : 0x00401000
+10-09 14:02:18.511 D/Unity   (15840): [Vulkan init] SelectPhysicalDevice requestedDeviceIndex=-1 xrDevice=0x0
+10-09 14:02:18.511 D/Unity   (15840): [Vulkan init] Physical Device 0xb400007558621510 [0]: "Adreno (TM) 740" deviceType=1 vendorID=5143 deviceID=43050a01
+10-09 14:02:18.512 D/Unity   (15840): Vulkan detection: 2
+10-09 14:02:18.512 D/Unity   (15840): GfxDevice: creating device client; kGfxThreadingModeThreaded
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: count=14
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_debug_report [enabled=0, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_debug_utils [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_surface_maintenance1 [enabled=0, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_swapchain_colorspace [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_GOOGLE_surfaceless_query [enabled=0, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_android_surface [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_device_group_creation [enabled=0, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_fence_capabilities [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_memory_capabilities [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_semaphore_capabilities [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_get_physical_device_properties2 [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_get_surface_capabilities2 [enabled=0, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_surface [enabled=1, external=0]
+10-09 14:02:18.512 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_surface_protected_capabilities [enabled=0, external=0]
+10-09 14:02:18.514 I/AdrenoVK-0(15840): QUALCOMM build          : 3df4c357f0, I515341007c
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Build Date              : 01/27/26
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Shader Compiler Version : E031.41.03.64
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Local Branch            :
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Remote Branch           : refs/tags/AU_LINUX_ANDROID_LA.VENDOR.13.2.0.11.00.00.856.062
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Remote Branch           : NONE
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Reconstruct Branch      : NOTHING
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Build Config            : S P 14.1.4 AArch64
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Driver Version          : 0676.77.1
+10-09 14:02:18.514 I/AdrenoVK-0(15840): PFP                     : 0x01740181
+10-09 14:02:18.514 I/AdrenoVK-0(15840): ME                      : 0x00000000
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Application Name    : Project Cryptforge
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Application Version : 0x00000001
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Engine Name         : Unity
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Engine Version      : 0x00000001
+10-09 14:02:18.514 I/AdrenoVK-0(15840): Api Version         : 0x00401000
+10-09 14:02:18.516 D/Unity   (15840): [Vulkan init] SelectPhysicalDevice requestedDeviceIndex=-1 xrDevice=0x0
+10-09 14:02:18.516 D/Unity   (15840): [Vulkan init] Physical Device 0xb400007558621510 [0]: "Adreno (TM) 740" deviceType=1 vendorID=5143 deviceID=43050a01
+10-09 14:02:18.516 D/Unity   (15840): [Vulkan init] Selected physical device 0xb400007558621510
+10-09 14:02:18.516 D/Unity   (15840): [Vulkan init] Graphics queue count=1
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.517 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.521 D/nativeloader(15840): Load liblibswappywrapper.so using class loader ns clns-9 (caller=/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk): dlopen failed: library "liblibswappywrapper.so" not found
+10-09 14:02:18.525 D/nativeloader(15840): Load /data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/lib/arm64/libswappywrapper.so using class loader ns clns-9 (caller=/data/app/~~Ilaj_ISQQEowQX-YeHPQGw==/com.cryptforge.prototype-qG1JOppTxouMu97vrQOr1A==/base.apk): ok
+10-09 14:02:18.526 I/SwappyWrapper(15840): SwappyWrapperInit() succeeded. Build: Sat Sep 12 22:25:31 2026
+10-09 14:02:18.526 D/Unity   (15840): SwappyWrapper: InitSwappyWrapper() succeeded.
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: count=115
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_ANDROID_external_memory_android_hardware_buffer [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_4444_formats [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_astc_decode_mode [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_blend_operation_advanced [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_color_write_enable [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_conservative_rasterization [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_custom_border_color [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_depth_clip_control [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_depth_clip_enable [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_descriptor_indexing [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_device_memory_report [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_extended_dynamic_state [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_extended_dynamic_state2 [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_filter_cubic [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_fragment_density_map [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_fragment_density_map2 [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_global_priority [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_global_priority_query [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_hdr_metadata [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_host_query_reset [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_image_robustness [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_image_view_min_lod [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_index_type_uint8 [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_line_rasterization [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_load_store_op_none [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_pipeline_creation_cache_control [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_pipeline_creation_feedback [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_primitive_topology_list_restart [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_private_data [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_provoking_vertex [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_queue_family_foreign [enabled=1, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_robustness2 [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_sample_locations [enabled=0, external=0]
+10-09 14:02:18.526 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_sampler_filter_minmax [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_scalar_block_layout [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_separate_stencil_usage [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_shader_atomic_float [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_shader_demote_to_helper_invocation [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_shader_stencil_export [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_subgroup_size_control [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_swapchain_maintenance1 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_texel_buffer_alignment [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_texture_compression_astc_hdr [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_tooling_info [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_transform_feedback [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_vertex_attribute_divisor [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_EXT_vertex_input_dynamic_state [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_GOOGLE_display_timing [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_IMG_filter_cubic [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_16bit_storage [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_8bit_storage [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_acceleration_structure [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_bind_memory2 [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_buffer_device_address [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_copy_commands2 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_create_renderpass2 [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_dedicated_allocation [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_deferred_host_operations [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_depth_stencil_resolve [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_descriptor_update_template [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_device_group [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_draw_indirect_count [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_driver_properties [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_dynamic_rendering [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_fence [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_fence_fd [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_memory [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_memory_fd [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_semaphore [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_external_semaphore_fd [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_format_feature_flags2 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_fragment_shading_rate [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_get_memory_requirements2 [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_global_priority [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_image_format_list [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_imageless_framebuffer [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_incremental_present [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_maintenance1 [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_maintenance2 [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_maintenance3 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_maintenance4 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_multiview [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_pipeline_executable_properties [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_push_descriptor [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_ray_query [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_relaxed_block_layout [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_sampler_mirror_clamp_to_edge [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_sampler_ycbcr_conversion [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_separate_depth_stencil_layouts [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_draw_parameters [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_float16_int8 [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_float_controls [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_integer_dot_product [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_non_semantic_info [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_subgroup_extended_types [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_subgroup_uniform_control_flow [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shader_terminate_invocation [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_shared_presentable_image [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_spirv_1_4 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_storage_buffer_storage_class [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_swapchain [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_swapchain_mutable_format [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_synchronization2 [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_timeline_semaphore [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_uniform_buffer_standard_layout [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_variable_pointers [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_vulkan_memory_model [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_KHR_zero_initialize_workgroup_memory [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_fragment_density_map_offset [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_image_processing [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_render_pass_shader_resolve [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_render_pass_store_ops [enabled=1, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_render_pass_transform [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_rotated_copy_commands [enabled=0, external=0]
+10-09 14:02:18.527 D/Unity   (15840): [Vulkan init] extensions: name=VK_QCOM_tile_properties [enabled=0, external=0]
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3b9ff250 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.527 I/AdrenoVK-0(15840): Unknown struct with type 0x3ba17508 provided to vkGetPhysicalDeviceFeatures2
+10-09 14:02:18.530 D/Unity   (15840): Vulkan API version 1.1.0 (1.3.128 supported by driver, 1.1.0 requested)
+10-09 14:02:18.530 D/Unity   (15840): Vulkan vendor=[Qualcomm] id=[5143]
+10-09 14:02:18.530 D/Unity   (15840): Vulkan renderer=[Adreno (TM) 740] id=[43050a01]
+10-09 14:02:18.531 D/Unity   (15840): Vulkan device type 1
+10-09 14:02:18.531 D/Unity   (15840): Vulkan driverversion=[512.676.1 (0x802a4001)] uint=[-2144714751]
+10-09 14:02:18.531 D/Unity   (15840): Vulkan driverLibraryString=[Qualcomm Technologies Inc. Adreno Vulkan Driver (8), Driver Build: 3df4c357f0, I515341007c, 1769513954
+10-09 14:02:18.531 D/Unity   (15840): Date: 01/27/26
+10-09 14:02:18.531 D/Unity   (15840): Compiler Version: E031.41.03.64
+10-09 14:02:18.531 D/Unity   (15840): Driver Branch:
+10-09 14:02:18.531 D/Unity   (15840): ]
+10-09 14:02:18.531 D/Unity   (15840): VK use pretransform: 0
+10-09 14:02:18.541 D/Unity   (15840): Vulkan PSO: Cache data successfully loaded [size=100496,path=/storage/emulated/0/Android/data/com.cryptforge.prototype/cache/vulkan_pso_cache.bin]
+10-09 14:02:18.542 D/Unity   (15840): [EGL] Attaching window :0x0
+10-09 14:02:18.542 D/Unity   (15840): AndroidDisplayManagerVulkan::AttachWindow(0xb400007470400310, 0)
+10-09 14:02:18.542 D/Unity   (15840): InitializeOrResetSwapChain 1080x2340 hdr=0 samples=0
+10-09 14:02:18.544 I/AdrenoUtils(15840): <ReadGpuID:407>: Reading chip ID through GSL
+10-09 14:02:18.544 E/qdgralloc(15840): GetSize: Unrecognized pixel format: 0x3b
+10-09 14:02:18.544 W/qdgralloc(15840): gralloc failed to allocate buffer for size 0 format 59 AWxAH 1x1 usage 2816
+10-09 14:02:18.544 E/Gralloc4(15840): isSupported(1, 1, 59, 1, ...) failed with 7
+10-09 14:02:18.544 E/GraphicBufferAllocator(15840): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+10-09 14:02:18.544 E/AHardwareBuffer(15840): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+10-09 14:02:18.544 E/qdgralloc(15840): GetSize: Unrecognized pixel format: 0x3b
+10-09 14:02:18.544 W/qdgralloc(15840): gralloc failed to allocate buffer for size 0 format 59 AWxAH 1x1 usage 2816
+10-09 14:02:18.544 E/Gralloc4(15840): isSupported(1, 1, 59, 1, ...) failed with 7
+10-09 14:02:18.545 E/GraphicBufferAllocator(15840): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+10-09 14:02:18.545 E/AHardwareBuffer(15840): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+10-09 14:02:18.545 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.546 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.546 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.547 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.550 D/AChoreographer(15840): Attaching thread to JVM for AChoreographer
+10-09 14:02:18.561 V/MediaRouter(15840): Audio routes updated: AudioRoutesInfo{ type=SPEAKER, bluetoothName=Eren adlı kişiye ait Buds2 }, a2dp=true
+10-09 14:02:18.561 V/MediaRouter(15840): Selecting route: RouteInfo{ name=Eren adlı kişiye ait Buds2, description=Bluetooth ses, status=null, category=RouteCategory{ name=Sistem types=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO  groupable=false }, supportedTypes=ROUTE_TYPE_LIVE_AUDIO , presentationDisplay=null }
+10-09 14:02:18.561 I/MediaRouter(15840): Skip setBluetoothA2dpOn(): types=1, isPlaybackActive()=false, BT route=RouteInfo{ name=Eren adlı kişiye ait Buds2, description=Bluetooth ses, status=null, category=RouteCategory{ name=Sistem types=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO  groupable=false }, supportedTypes=ROUTE_TYPE_LIVE_AUDIO , presentationDisplay=null }
+10-09 14:02:18.563 D/Unity   (15840): AndroidDisplayManagerVulkan::AttachWindow(0xb400007470400310, 0)
+10-09 14:02:18.563 D/Unity   (15840): Initialize engine version: 6000.0.65f1 (a18e2220bd50)
+10-09 14:02:18.601 D/Unity   (15840): PlayerInitEngineGraphics OK
+10-09 14:02:18.603 D/Unity   (15840): Found 44 native sensors
+10-09 14:02:18.604 D/Unity   (15840): Sensor :        Accelerometer ( 1) ; 0.004786 / 0.00s ; lsm6dso LSM6DSO Accelerometer Non-wakeup / STMicro
+10-09 14:02:18.604 D/Unity   (15840): Sensor :        Accelerometer ( 1) ; 0.004786 / 0.00s ; lsm6dso LSM6DSO Accelerometer Non-wakeup / STMicro
+10-09 14:02:18.604 D/Unity   (15840): enabled Accelerometer sensor
+10-09 14:02:18.609 D/Unity   (15840): Input: Touchpad enabled(1079.00, 2339.00)
+10-09 14:02:18.609 I/Unity   (15840): SetGameState: isLoading: false, mode: UNKNOWN, label: -1, quality: 2
+10-09 14:02:18.610 D/Unity   (15840): InitializeOrResetSwapChain 1080x2340 hdr=0 samples=0
+10-09 14:02:18.616 E/qdgralloc(15840): GetSize: Unrecognized pixel format: 0x3b
+10-09 14:02:18.616 W/qdgralloc(15840): gralloc failed to allocate buffer for size 0 format 59 AWxAH 1x1 usage 2816
+10-09 14:02:18.616 E/Gralloc4(15840): isSupported(1, 1, 59, 1, ...) failed with 7
+10-09 14:02:18.617 E/GraphicBufferAllocator(15840): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+10-09 14:02:18.617 E/AHardwareBuffer(15840): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+10-09 14:02:18.617 E/qdgralloc(15840): GetSize: Unrecognized pixel format: 0x3b
+10-09 14:02:18.617 W/qdgralloc(15840): gralloc failed to allocate buffer for size 0 format 59 AWxAH 1x1 usage 2816
+10-09 14:02:18.617 E/Gralloc4(15840): isSupported(1, 1, 59, 1, ...) failed with 7
+10-09 14:02:18.617 E/GraphicBufferAllocator(15840): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+10-09 14:02:18.617 E/AHardwareBuffer(15840): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+10-09 14:02:18.618 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.618 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.619 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.620 W/qdgralloc(15840): getInterlacedFlag: getMetaData returned 3, defaulting to interlaced_flag = 0
+10-09 14:02:18.642 I/Unity   (15840): SetGameState: isLoading: true, mode: UNKNOWN, label: 0, quality: 2
+10-09 14:02:18.649 I/BLASTBufferQueue(15840): [6895e72 SurfaceView[com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity]@0#1](f:0,a:0,s:0) onFrameAvailable the first frame is available
+10-09 14:02:18.649 I/SurfaceComposerClient(15840): apply transaction with the first frame. layerId: 120431, bufferData(ID: 68032281968670, frameNumber: 1)
+10-09 14:02:18.753 W/InteractionJankMonitor(15840): Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.cryptforge.prototype
+10-09 14:02:20.687 D/Unity   (15840): UnloadTime: 0.675260 ms
+10-09 14:02:20.723 I/IL2CPP  (15840): Locale tr-TR
+10-09 14:02:20.946 I/Unity   (15840): SetGameState: isLoading: false, mode: UNKNOWN, label: 0, quality: 2
+10-09 14:02:20.947 I/Unity   (15840): [Perf] probe on: samsung SM-S911B, 1080x2340 at 30 Hz, target 60 fps; recorders main thread True, allocated True, wave True
+10-09 14:02:20.950 D/Unity   (15840): Sensor :        Accelerometer ( 1) ; 0.004786 / 0.00s ; lsm6dso LSM6DSO Accelerometer Non-wakeup / STMicro
+10-09 14:02:20.950 D/Unity   (15840): Using Java Choreographer.
+10-09 14:02:20.954 I/BLASTBufferQueue_Java(15840): update, w= 1080 h= 2340 mName = VRI[UnityPlayerActivity]@d36552b mNativeObject= 0xb4000074703c8800 sc.mNativeObject= 0xb4000075586500c0 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3592 android.view.ViewRootImpl.relayoutWindow:11813 android.view.ViewRootImpl.performTraversals:4840 android.view.ViewRootImpl.doTraversal:3959 android.view.ViewRootImpl$TraversalRunnable.run:13034 android.view.Choreographer$CallbackRecord.run:1961
+10-09 14:02:20.954 I/VRI[UnityPlayerActivity]@d36552b(15840): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)0 dur=2 res=0x0 s={true 0xb4000074703fea00} ch=false seqId=0
+10-09 14:02:20.954 I/VRI[UnityPlayerActivity]@d36552b(15840): updateBoundsLayer: t=android.view.SurfaceControl$Transaction@ae7ca83 sc=Surface(name=Bounds for - com.cryptforge.prototype/com.unity3d.player.UnityPlayerActivity@0#120429)/@0x8b75400 frame=4
+10-09 14:02:20.954 D/VRI[UnityPlayerActivity]@d36552b(15840): applyTransactionOnDraw applyImmediately
+10-09 14:02:21.012 I/Unity   (15840): [RenderStats] start device=samsung_SM-S911B api=Vulkan gpu=Adreno_(TM)_740 screen=1080x2340 refresh_hz=30.0 target_fps=60 vsync=1 quality=Medium mt_render=on frame_timing=on window_s=5
+10-09 14:02:21.013 I/Unity   (15840): [DepthProof] arranged behind the south-west boiler: enemy Grunt 1 at (13.93, 6.12), chest at (15.03, 6.20), drop at (16.19, 6.75); hero in front at (14.57, 1.91), CinderMite 2 in the open court at (13.86, 0.85) (world units). The fight is stopped; every 0.3 s each enemy placed takes a spark-only strike, healed at once. Remove development/depth-proof.txt afterwards.
+10-09 14:02:21.013 I/Unity   (15840): [Perf] long frame 2309.2 ms, main thread 0.0 ms, allocated 0.0 KB, time scale 1
+10-09 14:02:21.254 I/Unity   (15840): [Perf] long frame 300.1 ms, main thread 250.6 ms, allocated 99.0 KB, time scale 1
+10-09 14:02:21.370 I/Unity   (15840): [Perf] long frame 169.5 ms, main thread 24.8 ms, allocated 0.3 KB, time scale 1
+10-09 14:02:23.657 I/Unity   (15840): [Perf] window 1: 141 frames in 5.01 s (28.1 fps), avg 35.5 ms, p50 16.7, p95 16.7, p99 300.1, max 2309.2 ms, over 20 ms 3, over 35 ms 3; main thread max 250.6 ms; allocated 162.1 KB, most in a frame 99.0 KB, GC runs 1; managed 1.6 MB, total 126.3 MB; time scale 1
+10-09 14:02:25.960 I/Unity   (15840): [RenderStats] t=7.3 scene=Gameplay region=foundry fps=55.5 ms_p50=16.7 ms_p95=16.7 ms_max=300.1 draw=57 batches=57 setpass=51 tris=81.9k verts=139.7k gc_frame_avg=833B gpu_ms=4.0 gpu_ms_max=4.6 rt_ms=1.2 total=130.4MB sys=279.2MB gc_used=1.7MB gc_res=14.3MB gfx=60.8MB tex=15.5MB timescale=1.00
+10-09 14:02:28.661 I/Unity   (15840): [Perf] window 2: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 17.0, max 17.2 ms, over 20 ms 0, over 35 ms 0; main thread max 18.1 ms; allocated 137.8 KB, most in a frame 4.4 KB, GC runs 1; managed 1.6 MB, total 130.3 MB; time scale 1
+10-09 14:02:28.723 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 0
+10-09 14:02:28.724 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:30.966 I/Unity   (15840): [RenderStats] t=12.3 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=17.1 draw=57 batches=57 setpass=51 tris=82.2k verts=140.2k gc_frame_avg=525B gpu_ms=4.0 gpu_ms_max=4.7 rt_ms=1.0 total=130.4MB sys=296.0MB gc_used=1.6MB gc_res=14.3MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:02:31.798 W/forge.prototype(15840): userfaultfd: MOVE ioctl seems unsupported: Connection timed out
+10-09 14:02:33.669 I/Unity   (15840): [Perf] window 3: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.9, max 17.1 ms, over 20 ms 0, over 35 ms 0; main thread max 20.1 ms; allocated 152.9 KB, most in a frame 12.5 KB, GC runs 1; managed 1.6 MB, total 130.5 MB; time scale 1
+10-09 14:02:35.972 I/Unity   (15840): [RenderStats] t=17.3 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.9 draw=52 batches=52 setpass=46 tris=82.2k verts=140.2k gc_frame_avg=468B gpu_ms=4.1 gpu_ms_max=4.3 rt_ms=1.0 total=130.4MB sys=301.7MB gc_used=1.6MB gc_res=14.3MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:02:36.223 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 1
+10-09 14:02:36.707 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 0
+10-09 14:02:38.675 I/Unity   (15840): [Perf] window 4: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 16.9 ms, over 20 ms 0, over 35 ms 0; main thread max 21.2 ms; allocated 138.6 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.6 MB; time scale 1
+10-09 14:02:39.225 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:39.239 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:40.980 I/Unity   (15840): [RenderStats] t=22.3 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.9 draw=43 batches=43 setpass=37 tris=82.2k verts=140.1k gc_frame_avg=466B gpu_ms=3.9 gpu_ms_max=4.5 rt_ms=0.8 total=130.6MB sys=302.0MB gc_used=1.7MB gc_res=14.3MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:02:42.716 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 1
+10-09 14:02:43.138 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 0
+10-09 14:02:43.680 I/Unity   (15840): [Perf] window 5: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 16.8 ms, over 20 ms 0, over 35 ms 0; main thread max 21.6 ms; allocated 135.5 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.6 MB; time scale 1
+10-09 14:02:45.718 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:45.730 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:45.986 I/Unity   (15840): [RenderStats] t=27.3 scene=Gameplay region=foundry fps=59.7 ms_p50=16.7 ms_p95=16.7 ms_max=33.4 draw=56 batches=56 setpass=50 tris=82.2k verts=140.2k gc_frame_avg=490B gpu_ms=4.3 gpu_ms_max=5.0 rt_ms=1.0 total=130.8MB sys=314.4MB gc_used=1.7MB gc_res=14.3MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:02:47.650 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 1
+10-09 14:02:48.685 I/Unity   (15840): [Perf] window 6: 299 frames in 5.01 s (59.7 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 33.4 ms, over 20 ms 1, over 35 ms 0; main thread max 36.3 ms; allocated 148.2 KB, most in a frame 6.1 KB, GC runs 1; managed 1.6 MB, total 130.7 MB; time scale 1
+10-09 14:02:50.653 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:02:50.989 I/Unity   (15840): [RenderStats] t=32.3 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.7 draw=52 batches=52 setpass=46 tris=83.1k verts=140.7k gc_frame_avg=487B gpu_ms=4.6 gpu_ms_max=4.8 rt_ms=0.9 total=130.8MB sys=313.0MB gc_used=1.7MB gc_res=14.3MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:02:53.692 I/Unity   (15840): [Perf] window 7: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 16.9 ms, over 20 ms 0, over 35 ms 0; main thread max 22.9 ms; allocated 137.2 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.7 MB; time scale 1
+10-09 14:02:55.995 I/Unity   (15840): [RenderStats] t=37.3 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.9 draw=52 batches=52 setpass=46 tris=83.2k verts=140.7k gc_frame_avg=461B gpu_ms=4.6 gpu_ms_max=5.4 rt_ms=0.9 total=130.8MB sys=302.2MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:02:58.700 I/Unity   (15840): [Perf] window 8: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 16.9 ms, over 20 ms 0, over 35 ms 0; main thread max 22.4 ms; allocated 135.1 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.7 MB; time scale 1
+10-09 14:02:59.126 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 0
+10-09 14:02:59.126 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:03:01.002 I/Unity   (15840): [RenderStats] t=42.4 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.8 draw=52 batches=52 setpass=46 tris=83.2k verts=140.7k gc_frame_avg=470B gpu_ms=4.6 gpu_ms_max=5.3 rt_ms=1.0 total=130.8MB sys=302.7MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:03:03.705 I/Unity   (15840): [Perf] window 9: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 16.9 ms, over 20 ms 0, over 35 ms 0; main thread max 21.4 ms; allocated 137.7 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.8 MB; time scale 1
+10-09 14:03:05.139 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 1
+10-09 14:03:06.006 I/Unity   (15840): [RenderStats] t=47.4 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.9 draw=55 batches=55 setpass=49 tris=82.5k verts=140.3k gc_frame_avg=468B gpu_ms=4.4 gpu_ms_max=5.4 rt_ms=1.2 total=130.8MB sys=302.7MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:03:08.142 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:03:08.710 I/Unity   (15840): [Perf] window 10: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 17.0 ms, over 20 ms 0, over 35 ms 0; main thread max 22.2 ms; allocated 137.2 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.8 MB; time scale 1
+10-09 14:03:10.655 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 0
+10-09 14:03:10.655 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:03:11.014 I/Unity   (15840): [RenderStats] t=52.4 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=17.0 draw=56 batches=56 setpass=50 tris=82.2k verts=140.2k gc_frame_avg=462B gpu_ms=4.2 gpu_ms_max=4.9 rt_ms=1.1 total=130.8MB sys=299.1MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:03:13.714 I/Unity   (15840): [Perf] window 11: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.7, max 16.9 ms, over 20 ms 0, over 35 ms 0; main thread max 26.6 ms; allocated 135.5 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.8 MB; time scale 1
+10-09 14:03:16.017 I/Unity   (15840): [RenderStats] t=57.4 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.9 draw=55 batches=55 setpass=49 tris=82.3k verts=140.3k gc_frame_avg=468B gpu_ms=4.3 gpu_ms_max=5.3 rt_ms=1.1 total=130.8MB sys=299.4MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:03:16.665 I/VRI[UnityPlayerActivity]@d36552b(15840): ViewPostIme pointer 1
+10-09 14:03:18.721 I/Unity   (15840): [Perf] window 12: 299 frames in 5.01 s (59.7 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.8, max 33.4 ms, over 20 ms 1, over 35 ms 0; main thread max 25.0 ms; allocated 136.9 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.7 MB; time scale 1
+10-09 14:03:19.669 I/VRI[UnityPlayerActivity]@d36552b(15840): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[UnityPlayerActivity]@d36552b
+10-09 14:03:21.022 I/Unity   (15840): [RenderStats] t=62.4 scene=Gameplay region=foundry fps=59.7 ms_p50=16.7 ms_p95=16.7 ms_max=33.4 draw=52 batches=52 setpass=46 tris=83.2k verts=140.7k gc_frame_avg=469B gpu_ms=4.6 gpu_ms_max=5.5 rt_ms=1.1 total=130.8MB sys=299.5MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00
+10-09 14:03:23.725 I/Unity   (15840): [Perf] window 13: 300 frames in 5.01 s (59.9 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 16.7, max 16.9 ms, over 20 ms 0, over 35 ms 0; main thread max 22.1 ms; allocated 137.2 KB, most in a frame 3.3 KB, GC runs 1; managed 1.6 MB, total 130.7 MB; time scale 1
+10-09 14:03:26.028 I/Unity   (15840): [RenderStats] t=67.4 scene=Gameplay region=foundry fps=59.9 ms_p50=16.7 ms_p95=16.7 ms_max=16.9 draw=52 batches=52 setpass=46 tris=83.2k verts=140.7k gc_frame_avg=461B gpu_ms=4.7 gpu_ms_max=5.4 rt_ms=1.1 total=130.8MB sys=299.3MB gc_used=1.7MB gc_res=1.7MB gfx=60.9MB tex=15.5MB timescale=1.00

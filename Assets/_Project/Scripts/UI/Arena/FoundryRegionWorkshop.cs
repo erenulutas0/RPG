@@ -231,7 +231,7 @@ namespace Cryptforge.UI
                 Vector3 b=StockProject(5f,v)+Vector3.up*.58f;
                 // Round stock has the same shaded curved section as working pipe,
                 // with no collars: the bundle stays distinct from connected mains.
-                PressureTube(arena,a,b,.19f,surfaceHeight:.58f);
+                StoredStockTube(arena,a,b,.19f,.58f);
                 Vector3 axis=(b-a).normalized;
                 Vector3 normal=new Vector3(-axis.y,axis.x,0);
                 var ends=new Builder();
@@ -259,6 +259,48 @@ namespace Cryptforge.UI
             foreach(float u in new[]{2.7f,4.6f})
                 Tube(arena,StockProject(u,18.94f)+Vector3.up*.7f,
                     StockProject(u,19.86f)+Vector3.up*.7f,.055f);
+        }
+
+        private void StoredStockTube(ArenaView arena,Vector3 a,Vector3 b,float width,float height)
+        {
+            // Same six-strip curved section and light sampling as a pressure main, but
+            // stored lengths carry continuous rolled grain instead of repeated tiny patches.
+            Vector3 axis=(b-a).normalized,normal=new Vector3(-axis.y,axis.x,0);
+            if(Vector2.Dot(new Vector2(normal.x,normal.y),ChainLight)<0)normal=-normal;
+            var mesh=new Builder();
+            const int strips=6;
+            int spans=Mathf.Max(1,Mathf.CeilToInt(Vector3.Distance(a,b)/.75f));
+            for(int strip=0;strip<strips;strip++)
+            {
+                float t0=strip/(float)strips,t1=(strip+1f)/strips;
+                float x0=Mathf.Cos(t0*Mathf.PI),x1=Mathf.Cos(t1*Mathf.PI);
+                for(int span=0;span<spans;span++)
+                {
+                    float s0=span/(float)spans,s1=(span+1f)/spans;
+                    Vector3 from=Vector3.Lerp(a,b,s0),to=Vector3.Lerp(a,b,s1);
+                    int first=mesh.V.Count;
+                    LinkQuad(mesh,from+normal*x0*width*.5f,to+normal*x0*width*.5f,
+                        to+normal*x1*width*.5f,from+normal*x1*width*.5f,
+                        MetalTone(StoredPipeTone(t0,s0),from,height),
+                        MetalTone(StoredPipeTone(t0,s1),to,height),
+                        MetalTone(StoredPipeTone(t1,s1),to,height),
+                        MetalTone(StoredPipeTone(t1,s0),from,height));
+                    mesh.U[first]=new Vector2(.23f+s0*.51f,.36f+t0*.16f);
+                    mesh.U[first+1]=new Vector2(.23f+s1*.51f,.36f+t0*.16f);
+                    mesh.U[first+2]=new Vector2(.23f+s1*.51f,.36f+t1*.16f);
+                    mesh.U[first+3]=new Vector2(.23f+s0*.51f,.36f+t1*.16f);
+                }
+            }
+            Create("Rounded stored iron",mesh,arena.PlatformMaterials.FoundryIron,-11);
+        }
+
+        private static Color StoredPipeTone(float around,float along)
+        {
+            // Broad mill-scale at the ends; the full curved highlight remains readable.
+            float wear=.86f+.14f*Mathf.Sin(along*Mathf.PI);
+            Color tone=PressureShade(around);
+            tone.r*=wear;tone.g*=wear;tone.b*=wear;
+            return tone;
         }
 
         private void BuildToolRack(ArenaView arena)
@@ -338,10 +380,20 @@ namespace Cryptforge.UI
             {
                 int index=first+vertex;
                 Vector3 grain=mesh.V[index]-anchor;
-                mesh.U[index]=IronPatch+new Vector2(grain.x,grain.y)*.014f;
+                // The old 1.4%-per-unit crop reduced the authored grain to a flat fill.
+                // Sample a broad interior field without reaching the atlas straps/rivets.
+                // A common local projection keeps adjacent coil sectors and hull faces joined.
+                mesh.U[index]=new Vector2(Mathf.Clamp(.48f+grain.x*.21f,.17f,.83f),
+                    Mathf.Clamp(.42f+grain.y*.21f,.17f,.83f));
                 Color tone=mesh.C[index];
-                tone.r*=gain;tone.g*=gain;tone.b*=gain;
-                mesh.C[index]=MetalTone(tone,mesh.V[index],vertex<2?lowerHeight:upperHeight);
+                float height=vertex<2?lowerHeight:upperHeight;
+                float deposit=upperHeight-lowerHeight>.08f&&vertex<2?.84f:1f;
+                float scale=.90f+.10f*FloorPatina((mesh.V[index].x+anchor.x)*.47f,
+                    (mesh.V[index].y+anchor.y)*.47f);
+                tone.r*=gain*deposit*scale;
+                tone.g*=gain*deposit*scale;
+                tone.b*=gain*deposit*Mathf.Lerp(scale,1f,.12f);
+                mesh.C[index]=MetalTone(tone,mesh.V[index],height);
             }
         }
     }

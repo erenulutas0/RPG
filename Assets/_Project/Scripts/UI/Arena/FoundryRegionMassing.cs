@@ -488,8 +488,9 @@ namespace Cryptforge.UI
 
         // Seven ribbed lining panels, three facets each, descend from the far collar into the molten pool.
         // The new texture has baked bottom heat and coals in its lowest 12%; its v=.06 meets the waterline.
-        // Keep modest facet shading and a restrained pool wash rather than multiplying the baked heat twice.
-        private static readonly float[] PitLiningRows={0,.55f,1.05f,1.45f,1.75f,PitMolten-PitSeam};
+        // A broad contact shadow under the collar releases into the painted stone. Shading
+        // is evaluated at shared stations so the rounded wall does not read as flat stripes.
+        private static readonly float[] PitLiningRows={0,.18f,.55f,1.05f,1.45f,1.75f,PitMolten-PitSeam};
         private const float PitSeam=.07f,PitFrontScale=PitMolten/.94f;
         private static void PitLiningFronts(Builder walls)
         {
@@ -498,20 +499,24 @@ namespace Cryptforge.UI
             {
                 Vector2 pa=PitLiningStation(i,out Vector2 na),pb=PitLiningStation(i+1,out Vector2 nb);
                 Vector3 a=Project(pa.x,pa.y),b=Project(pb.x,pb.y);
-                float turn=Mathf.Atan2(-na.y-nb.y,-na.x-nb.x)-225*Mathf.Deg2Rad,tone=1+.08f*Mathf.Cos(2*turn);
                 float u0=i%facets/(float)facets,u1=(i%facets+1)/(float)facets;
-                var toneColor=new Color(tone,tone,tone);
                 for(int row=0;row+1<PitLiningRows.Length;row++)
                 {
                     float top=PitLiningRows[row],bottom=PitLiningRows[row+1];
+                    int first=walls.C.Count;
                     PitFront(walls,a,b,top,bottom,new Vector4(u0,1-bottom/PitFrontScale,u1,1-top/PitFrontScale),
-                        Tinted(PitHeat(top,PitWallCool,PitWallHot,.85f),toneColor),Tinted(PitHeat(bottom,PitWallCool,PitWallHot,.85f),toneColor));
+                        PitWallTone(top,na),PitWallTone(bottom,na));
+                    walls.C[first+1]=PitWallTone(bottom,nb);
+                    walls.C[first+2]=PitWallTone(top,nb);
                 }
                 PitFront(walls,a,b,PitMolten-PitSeam,PitMolten,PitFire,PitSeamTone,PitSeamTone);
                 for(int row=0;row+1<PitWashRows.Length;row++)
                 {
                     float top=PitWashRows[row],bottom=PitWashRows[row+1];
-                    PitFront(walls,a,b,top,bottom,PitFire,PitWash(top),PitWash(bottom));
+                    int first=walls.C.Count;
+                    PitFront(walls,a,b,top,bottom,PitFire,PitWallWash(top,na),PitWallWash(bottom,na));
+                    walls.C[first+1]=PitWallWash(bottom,nb);
+                    walls.C[first+2]=PitWallWash(top,nb);
                 }
             }
         }
@@ -521,6 +526,28 @@ namespace Cryptforge.UI
         {
             float glow=Mathf.Pow(Mathf.InverseLerp(.45f,PitMolten-PitSeam,depth),1.6f);
             return new Color(1,.92f,.8f,.22f*glow);
+        }
+        // The far wall receives the open pool's light; the two turning ends stay darker.
+        // This only attenuates the previous lighting envelope (at most 1.08), while the
+        // baked lining remains responsible for the individual stone and metal texture.
+        private static float PitWallFacing(Vector2 normal)=>
+            Mathf.Clamp01((normal.x+normal.y)*.70710678f);
+
+        private static Color PitWallTone(float depth,Vector2 normal)
+        {
+            float facing=PitWallFacing(normal);
+            float form=Mathf.Lerp(.82f,1.08f,facing*facing);
+            float contact=Mathf.Lerp(.48f,1f,Mathf.SmoothStep(0,1,depth/.55f));
+            Color heat=PitHeat(depth,PitWallCool,PitWallHot,.85f);
+            return Tinted(heat,new Color(form*contact,form*contact,form*contact));
+        }
+
+        private static Color PitWallWash(float depth,Vector2 normal)
+        {
+            Color wash=PitWash(depth);
+            // Preserve side-wall soot instead of covering every bay in equal orange haze.
+            wash.a*=Mathf.Lerp(.45f,1f,PitWallFacing(normal));
+            return wash;
         }
         // Light from the pool at a depth: from cool to hot as the height above the metal falls through reach.
         private static Color PitHeat(float depth,Color cool,Color hot,float reach)=>

@@ -360,6 +360,18 @@ Target-specific old acceptance checks (including pit-rim Mite contrast or moving
 ## 2026-10-09 — Combined architectural package status
 
 - [x] Gate stone lancets, rounded workshop stock and backed undercroft arches integrated; three-agent source/visual cross-review and full Unity/Android gate passed.
-- [ ] Install architecture-cohesion APK and complete guarded device review after owner confirms phone availability. Optional short traversal measurement is prepared, not yet run.
+- [x] Install architecture-cohesion APK and complete guarded S23 gate/normal review; fresh profile/flag hashes preserved. Short no-capture traversal measured59.5–59.9fps after startup with one50ms hitch, still unisolated; extended acceptance remains open.
 
 Proof: `ArtDirection/2026-10-09/architecture-cohesion-01/`. This closes the three implementation tasks, not the remaining art backlog above.
+
+
+## 2026-10-09 — Material readability package
+
+- [x] Reveal existing iron grain across workshop stock and keep continuous pipe highlights.
+- [x] Give pit lining continuous curved-wall shading and a bounded collar contact shadow.
+- [x] Make environmental brass matte and reduce groove contrast without losing the route motif.
+- [x] Material-readability APK installed/hash-matched; guarded stock/pit/normal-run review and profile/flag checks passed. First/warm ramp measurements recorded separately; first-use hitch remains open.
+
+Actual Unity before/after and three-agent source/visual review: ArtDirection/2026-10-09/material-readability-01. Broad painted-reference fidelity and the other genuine tasks listed above remain open. The owner authorized pushing completed commits on2026-10-09; earlier local-only notes are historical.
+
+- [ ] Instrument first ramp resource/grid creation and first draw before choosing prewarm: current build had one216.9ms first-entry stall; same-process repeat max33.4ms does not prove the root cause or fix it.
