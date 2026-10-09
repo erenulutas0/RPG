@@ -34,6 +34,7 @@ namespace Cryptforge.UI
                 LitFoundryTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
                 LitFoundryTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
                 BuildGateCornerStones(stone,v);
+                BuildGatePierRelief(stone,v);
             }
             // The stepped keystone ties the shallow pediment to the door's central seal.
             // Its crown stays below the existing gable and within the header footprint.
@@ -99,8 +100,8 @@ namespace Cryptforge.UI
             stone.WallQuad(a,b,ridge,ridge,false,new Color(.47f,.51f,.62f));
             BuildGatePedimentRecess(stone,a,b,ridge);
             // The two sloping roof faces establish actual projected depth, not a flat icon.
-            stone.WallQuad(a,ridge,ridge+back,a+back,false,new Color(.67f,.69f,.75f));
-            stone.WallQuad(ridge,b,b+back,ridge+back,false,new Color(.41f,.45f,.55f));
+            GateStonePatch(stone,a,ridge,ridge+back,a+back,new Color(.67f,.69f,.75f));
+            GateStonePatch(stone,ridge,b,b+back,ridge+back,new Color(.41f,.45f,.55f));
             // Individual dressed coping blocks follow the slopes. Sampling a stone interior
             // avoids horizontal brick joints running across these sloping structural pieces.
             foreach(var edge in new[]{new[]{a,ridge},new[]{ridge,b}})
@@ -194,7 +195,6 @@ namespace Cryptforge.UI
             BuildGateHeaderTies(iron,height);
             foreach(float v in new[]{-3f,11f})
             {
-                BuildGateSideRecesses(iron,v);
                 // A compact hipped iron terminal makes the paired towers read as engineered
                 // gate machinery while staying within their existing masonry footprints.
                 int capStart=iron.C.Count;
@@ -212,29 +212,6 @@ namespace Cryptforge.UI
                     new Color(1.03f,.80f,.49f),true);
                 TintedIronTier(iron,33.25f,v+.75f,33.75f,v+1.25f,7.67f,8.45f,.22f,
                     new Color(.80f,.86f,.99f),true);
-                // Deep narrow panels break the broad tower faces into supporting pilasters.
-                // They are on the existing front plane, clear of the door and banner facade.
-                foreach(var levels in new[]{new Vector2(.72f,1.3f),new Vector2(1.88f,3.03f),
-                    new Vector2(3.67f,5.19f)})
-                {
-                    Vector3 a=Project(32.26f,v+.54f)+Vector3.up*levels.x;
-                    Vector3 b=Project(32.26f,v+1.46f)+Vector3.up*levels.x;
-                    Vector3 lift=Vector3.up*(levels.y-levels.x);
-                    FullFace(iron,a,b,b+lift,a+lift,new Color(.22f,.25f,.32f));
-                    ArchitectureBar(iron,a,a+lift,.035f,new Color(.73f,.75f,.81f));
-                    ArchitectureBar(iron,b,b+lift,.055f,new Color(.31f,.34f,.43f));
-                    ArchitectureBar(iron,a+lift,b+lift,.045f,new Color(.7f,.7f,.72f));
-                    // A central forged mullion gives the front recesses depth without closing them.
-                    Vector3 middle=Vector3.Lerp(a,b,.5f);
-                    ArchitectureBar(iron,middle,middle+lift,.055f,new Color(.46f,.49f,.57f));
-                    // Restrained bronze fixing plates, rather than bright glowing runes.
-                    foreach(float t in new[]{.14f,.86f})
-                    {
-                        Vector3 p=Vector3.Lerp(a,b,.5f)+lift*t;
-                        ArchitectureBar(iron,p-Vector3.up*.065f,p+Vector3.up*.065f,.08f,
-                            new Color(.8f,.57f,.28f));
-                    }
-                }
                 // Iron collars sit against the lower edge of the projecting stone courses.
                 foreach(float y in new[]{1.48f,3.23f,5.43f})
                 {
@@ -359,25 +336,60 @@ namespace Cryptforge.UI
             Create("Flue retaining bands",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
         }
 
-        private static void BuildGateSideRecesses(Builder iron,float v)
+        private static void BuildGatePierRelief(Builder stone,float v)
         {
-            // The wide return face receives paired shutter recesses, leaving the
-            // projecting stone courses and the painted door plane unobscured.
-            foreach(var level in new[]{new Vector2(1.94f,3.0f),new Vector2(3.76f,5.12f)})
-                foreach(float u in new[]{32.72f,33.59f})
-                {
-                    Vector3 a=Project(u,v+.27f)+Vector3.up*level.x;
-                    Vector3 b=Project(u+.57f,v+.27f)+Vector3.up*level.x;
-                    Vector3 lift=Vector3.up*(level.y-level.x);
-                    FullFace(iron,a,b,b+lift,a+lift,new Color(.20f,.23f,.30f));
-                    ArchitectureBar(iron,a,a+lift,.045f,new Color(.55f,.58f,.65f));
-                    ArchitectureBar(iron,b,b+lift,.045f,new Color(.27f,.30f,.38f));
-                    ArchitectureBar(iron,a,b,.08f,new Color(.62f,.62f,.65f));
-                    ArchitectureBar(iron,a+lift,b+lift,.06f,new Color(.36f,.39f,.46f));
-                    // Three substantial louvres read as ventilation at portrait scale.
-                    foreach(float t in new[]{.25f,.5f,.75f})
-                        ArchitectureBar(iron,a+lift*t,b+lift*t,.065f,new Color(.60f,.63f,.70f));
-                }
+            // Broad blind lancets replace the repeated metal shutters. Their two
+            // storeys stop short of the projecting belts, retaining the existing
+            // pier silhouette while giving its visible returns a carved hierarchy.
+            foreach(bool front in new[]{true,false})
+            {
+                GateBlindLancet(stone,v,front,1.88f,3.08f,1.70f,3.25f);
+                GateBlindLancet(stone,v,front,3.66f,5.29f,3.45f,5.45f);
+            }
+        }
+
+        private static void GateBlindLancet(Builder stone,float v,bool front,
+            float bottom,float top,float courseBottom,float courseTop)
+        {
+            float half=front?.49f:.78f;
+            float center=front?v+1:33.5f;
+            float h=top-bottom;
+            // Five sides make the pointed head part of the supporting stonework,
+            // rather than a line decoration applied over another rectangular plate.
+            var outer=new[]{new Vector2(center-half,bottom),new Vector2(center+half,bottom),
+                new Vector2(center+half,top-h*.25f),new Vector2(center,top),
+                new Vector2(center-half,top-h*.25f)};
+            var inner=new Vector2[5];
+            Vector2 middle=new Vector2(center,bottom+h*.47f);
+            for(int i=0;i<5;i++)
+                inner[i]=new Vector2(Mathf.Lerp(outer[i].x,center,.28f),
+                    Mathf.Lerp(outer[i].y,middle.y,.18f));
+            Vector3 hub=GatePierFace(v,front,middle,courseBottom,courseTop);
+            Color recess=front?new Color(.16f,.19f,.25f):new Color(.22f,.25f,.32f);
+            for(int i=0;i<5;i++)
+            {
+                int j=(i+1)%5;
+                Vector3 ia=GatePierFace(v,front,inner[i],courseBottom,courseTop);
+                Vector3 ib=GatePierFace(v,front,inner[j],courseBottom,courseTop);
+                GateStonePatch(stone,ia,ib,hub,hub,recess);
+                // Shadowed jamb/head and a broad catching sill imply depth. The
+                // planar relief keeps the original actor fade/depth owner intact.
+                float light=i==0?.73f:i==1?.31f:i==2?.37f:i==3?.54f:.61f;
+                if(front)light*=.83f;
+                GateStonePatch(stone,GatePierFace(v,front,outer[i],courseBottom,courseTop),
+                    GatePierFace(v,front,outer[j],courseBottom,courseTop),ib,ia,
+                    new Color(light*.93f,light*.97f,light));
+            }
+        }
+
+        private static Vector3 GatePierFace(float v,bool front,Vector2 face,
+            float courseBottom,float courseTop)
+        {
+            // Match the existing shaft taper at the actual elevation instead of
+            // letting a constant-plane insert drift out of its masonry face.
+            float taper=.04f*Mathf.InverseLerp(courseBottom,courseTop,face.y);
+            return (front?Project(32.26f+taper,face.x):Project(face.x,v+.24f+taper))
+                +Vector3.up*face.y;
         }
 
         private static void TintedIronTier(Builder mesh,float u0,float v0,float u1,float v1,

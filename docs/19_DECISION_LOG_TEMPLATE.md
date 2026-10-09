@@ -805,3 +805,8 @@ The previous stone/light cohesion left industrial iron cold beside the same fire
 ## 2026-10-09 — Work the stone surfaces without changing the map
 
 Compared another global tint pass, a new raster atlas and restrained surface modelling. Selected bounded per-stone mineral value variation, sparse irregular edge flakes and broad blind recesses on long bastions: they address flat slab faces and repetitive shafts using the current approved layout and reusable textures. Avoided extra scattered props or blocking rubble. Flakes are flush; recesses are projected surface treatment rather than real holes. No gameplay or material pipeline change.
+
+
+## 2026-10-09 — Complete architectural fields instead of adding ornaments
+
+Use broad bounded stone relief on the gate, round sections on stored pipe and recessed spandrels under the deck. These address repeated small panels, beam-like pipes and isolated arch rings in the current render. Reuse source textures/materials and preserve the approved layout, supports, silhouette and actor clearance. The plain metal patch removes inappropriate rivet frames but leaves texture richness open. No scope change to gameplay, camera or world progression.

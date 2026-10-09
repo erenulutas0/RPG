@@ -879,3 +879,8 @@ FoundryRegionWeathering.MetalLight reads the existing ForgeLamps at authored des
 ## 2026-10-09 — Worked-stone and bastion-face treatment
 
 FoundryRegionFinish retains the fine ashlar layout but adds a shallow within-stone mineral wash and sparse five-point edge flakes on larger non-seal/non-workshop flags. Existing source images and continuous floor UVs remain; all chips are flush and share source lighting and gate projection. FoundryRegionMassing frames blind recesses in banded and buttressed foundation faces, preserving contours, anchors and the stepped variant. Static geometry only, same18 renderers. Proof: ArtDirection/2026-10-09/stone-relief-01; complete verification follows in docs21-23.
+
+
+## 2026-10-09 — Combined gate, workshop and undercroft refinement
+
+Three isolated agents worked on Architecture, Workshop and Undercroft files, with read-only cross-reviews and root-owned integration/capture. Broad gate lancets replace repeated shutters; stored pipes use round sections and plain worked-iron sampling; recessed masonry backs the existing arch rings. Same source assets, static batches and layout. The smoothed stock metal is a form/readability improvement, not new texture realism. Proof: ArtDirection/2026-10-09/architecture-cohesion-01.

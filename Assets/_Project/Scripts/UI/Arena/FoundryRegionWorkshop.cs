@@ -9,7 +9,7 @@ namespace Cryptforge.UI
         private static Vector4 StockShelf=>new Vector4(2+StockShift,18.5f,7+StockShift,22.4f);
         private static Vector3 StockProject(float u,float v)=>Project(u+StockShift,v);
         private static void StockHull(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,float bevel)=>
-            WorkshopMetalHull(mesh,u0+StockShift,v0,u1+StockShift,v1,bottom,top,bevel);
+            WorkshopMetalHull(mesh,u0+StockShift,v0,u1+StockShift,v1,bottom,top,bevel,true);
         // Two small exterior service shelves explain the crane's industrial purpose.
         // Their complete design-plane footprints are outside the shared walking union.
         private void BuildWorkshop(ArenaView arena)
@@ -26,7 +26,7 @@ namespace Cryptforge.UI
             for(int level=0;level<2;level++)
                 for(int row=0;row<3-level;row++)
                     WorkshopMetalHull(ingots,-26.35f+row*.51f+level*.24f,5.35f,
-                        -25.91f+row*.51f+level*.24f,6.85f,.2f+level*.22f,.41f+level*.22f,.055f);
+                        -25.91f+row*.51f+level*.24f,6.85f,.2f+level*.22f,.41f+level*.22f,.055f,true);
             Create("Stacked forge ingots",ingots,arena.PlatformMaterials.FoundryIron,-11);
 
             WorkshopCrate(arena,-26.3f,7.15f,-24.85f,8.05f,.2f,.92f);
@@ -99,12 +99,18 @@ namespace Cryptforge.UI
                     Vector3 outerB=StockProject(4.03f+Mathf.Cos(b)*.52f,21.35f+Mathf.Sin(b)*.52f);
                     Vector3 innerA=StockProject(4.03f+Mathf.Cos(a)*.23f,21.35f+Mathf.Sin(a)*.23f);
                     Vector3 innerB=StockProject(4.03f+Mathf.Cos(b)*.23f,21.35f+Mathf.Sin(b)*.23f);
+                    int first=stock.V.Count;
                     FullFace(stock,outerA+Vector3.up*bottom,outerB+Vector3.up*bottom,
                         outerB+Vector3.up*top,outerA+Vector3.up*top,new Color(.27f,.31f,.37f));
                     FullFace(stock,innerA+Vector3.up*bottom,innerB+Vector3.up*bottom,
                         innerB+Vector3.up*top,innerA+Vector3.up*top,new Color(.14f,.17f,.22f));
                     FullFace(stock,outerA+Vector3.up*top,outerB+Vector3.up*top,
                         innerB+Vector3.up*top,innerA+Vector3.up*top,new Color(.49f,.52f,.56f));
+                    // The coil is one rolled strip, not sixteen framed panels.
+                    Vector3 anchor=StockProject(4.03f,21.35f);
+                    WorkedStockFace(stock,first,anchor,1.5f,bottom,top);
+                    WorkedStockFace(stock,first+4,anchor,1.25f,bottom,top);
+                    WorkedStockFace(stock,first+8,anchor,1.65f,top,top);
                 }
             }
             Create("Workshop reserve billets and strip coils",stock,arena.PlatformMaterials.FoundryIron,-11);
@@ -223,13 +229,31 @@ namespace Cryptforge.UI
             {
                 Vector3 a=StockProject(2.3f,v)+Vector3.up*.58f;
                 Vector3 b=StockProject(5f,v)+Vector3.up*.58f;
-                Tube(arena,a,b,.19f);
-                // Dark open bore and thin top edge at the visible end.
-                Vector3 normal=new Vector3(-(b-a).y,(b-a).x,0).normalized;
+                // Round stock has the same shaded curved section as working pipe,
+                // with no collars: the bundle stays distinct from connected mains.
+                PressureTube(arena,a,b,.19f,surfaceHeight:.58f);
+                Vector3 axis=(b-a).normalized;
+                Vector3 normal=new Vector3(-axis.y,axis.x,0);
                 var ends=new Builder();
-                Vector3 c=a-(b-a).normalized*.018f;
-                FullFace(ends,c+normal*.075f,c+(b-a).normalized*.025f,
-                    c-normal*.075f,c-(b-a).normalized*.025f,new Color(.08f,.09f,.13f));
+                Vector3 c=a-axis*.018f;
+                // A continuous oval cut rim and dark bore replace the diamond end.
+                // Extents match the existing tube width and original end projection.
+                const int segments=12;
+                for(int segment=0;segment<segments;segment++)
+                {
+                    float angle=segment*Mathf.PI*2/segments,next=(segment+1)*Mathf.PI*2/segments;
+                    Vector3 outerA=c+normal*Mathf.Cos(angle)*.095f+axis*Mathf.Sin(angle)*.025f;
+                    Vector3 outerB=c+normal*Mathf.Cos(next)*.095f+axis*Mathf.Sin(next)*.025f;
+                    Vector3 innerA=c+normal*Mathf.Cos(angle)*.067f+axis*Mathf.Sin(angle)*.017f;
+                    Vector3 innerB=c+normal*Mathf.Cos(next)*.067f+axis*Mathf.Sin(next)*.017f;
+                    int first=ends.V.Count;
+                    FullFace(ends,innerA,innerB,c,c,new Color(.06f,.075f,.1f));
+                    WorkedStockFace(ends,first,c,1,.58f,.58f);
+                    first=ends.V.Count;
+                    float edge=.65f+.22f*Mathf.Cos((angle+next)*.5f);
+                    FullFace(ends,outerA,outerB,innerB,innerA,new Color(edge*.96f,edge,edge*1.06f));
+                    WorkedStockFace(ends,first,c,1,.58f,.58f);
+                }
                 Create("Stored pipe open ends",ends,arena.PlatformMaterials.FoundryIron,-11);
             }
             foreach(float u in new[]{2.7f,4.6f})
@@ -269,8 +293,9 @@ namespace Cryptforge.UI
         }
 
         private static void WorkshopMetalHull(Builder mesh,float u0,float v0,float u1,float v1,
-            float bottom,float top,float bevel)
+            float bottom,float top,float bevel,bool plainMetal=false)
         {
+            int first=mesh.V.Count;
             // Iron is a clamped material: map one complete face per quad rather than
             // masonry's repeating wall UVs, which sample a uniform texture edge here.
             float shoulder=top-Mathf.Min(.045f,(top-bottom)*.2f);
@@ -293,6 +318,31 @@ namespace Cryptforge.UI
             }
             FullFace(mesh,inset[0]+Vector3.up*top,inset[1]+Vector3.up*top,
                 inset[2]+Vector3.up*top,inset[3]+Vector3.up*top,new Color(.53f,.57f,.64f));
+            if(plainMetal)
+            {
+                // Billets and welded tank shells use unframed grain; the parts bin
+                // and already-worked anvil keep their separate material treatments.
+                Vector3 anchor=Project(u0,v0);
+                for(int face=0;face<2;face++)
+                    WorkedStockFace(mesh,first+face*4,anchor,1.45f,bottom,shoulder);
+                for(int face=0;face<4;face++)
+                    WorkedStockFace(mesh,first+8+face*4,anchor,1.6f,shoulder,top);
+                WorkedStockFace(mesh,first+24,anchor,1.65f,top,top);
+            }
+        }
+
+        private static void WorkedStockFace(Builder mesh,int first,Vector3 anchor,float gain,
+            float lowerHeight,float upperHeight)
+        {
+            for(int vertex=0;vertex<4;vertex++)
+            {
+                int index=first+vertex;
+                Vector3 grain=mesh.V[index]-anchor;
+                mesh.U[index]=IronPatch+new Vector2(grain.x,grain.y)*.014f;
+                Color tone=mesh.C[index];
+                tone.r*=gain;tone.g*=gain;tone.b*=gain;
+                mesh.C[index]=MetalTone(tone,mesh.V[index],vertex<2?lowerHeight:upperHeight);
+            }
         }
     }
 }

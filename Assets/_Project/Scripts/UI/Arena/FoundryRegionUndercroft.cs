@@ -59,6 +59,12 @@ namespace Cryptforge.UI
         {
             Vector3 a=Project(from.x,from.y),b=Project(to.x,to.y);
             var stone=new Builder();
+            // Close the spandrels between the existing opening and the deck underside.
+            // The previous isolated rings read like thin ribs hanging below a slab.
+            // This recessed backing gives the same intrados a load-bearing masonry
+            // field. Emit it first: arch faces and the later piers retain their overlap.
+            // All vertices remain below the old deck and above the old arch opening.
+            UndercroftSpandrel(stone,a,b);
             // Odd count places one load-bearing key at the crown. Recessed mortar
             // remains behind the joints rather than opening cracks through the arch.
             const int count=13;
@@ -72,16 +78,20 @@ namespace Cryptforge.UI
                 Vector3 lower=Vector3.down*(key?.10f:0);
                 Vector3 upper=Vector3.up*(key?.96f:.78f);
                 float variation=1+(((i*7+Mathf.Abs(cadence))%5)-2)*.018f;
-                Color shade=i<count/2?new Color(.53f,.53f,.60f):new Color(.42f,.43f,.51f);
-                if(key)shade=new Color(.58f,.56f,.60f);
+                float across=(i+.5f)/count;
+                Color shade=Color.Lerp(new Color(.57f,.56f,.63f),new Color(.43f,.45f,.54f),across);
+                if(key)shade=new Color(.61f,.59f,.64f);
                 shade*=variation;shade.a=1;
                 // A broad inner return separates the load-bearing arch face from the
                 // opening. Both planes stay inside the existing wedge contour, with
                 // continuous world masonry UVs rather than an extra applied trim.
-                Vector3 returnTop=Vector3.Lerp(lower,upper,.3f);
-                Color returnShade=new Color(shade.r*.68f,shade.g*.7f,shade.b*.75f);
+                Vector3 returnTop=Vector3.Lerp(lower,upper,.32f);
+                Vector3 bevelTop=Vector3.Lerp(lower,upper,.40f);
+                Color returnShade=new Color(shade.r*.53f,shade.g*.58f,shade.b*.66f);
                 stone.WallQuad(left+lower,right+lower,right+returnTop,left+returnTop,false,returnShade);
-                stone.WallQuad(left+returnTop,right+returnTop,right+upper,left+upper,false,shade);
+                stone.WallQuad(left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,false,
+                    new Color(shade.r*.83f,shade.g*.87f,shade.b*.94f));
+                stone.WallQuad(left+bevelTop,right+bevelTop,right+upper,left+upper,false,shade);
                 // A narrow lit upper arris and dark return give each wedge thickness.
                 stone.WallQuad(left+upper,right+upper,right+upper+Vector3.down*.045f,
                     left+upper+Vector3.down*.045f,false,new Color(.57f,.57f,.64f));
@@ -94,6 +104,32 @@ namespace Cryptforge.UI
             // support so neither arch foot terminates as a floating masonry blade.
             piers.Add((from,cadence%3==0));
             if(terminal)piers.Add((to,true));
+        }
+
+        private static void UndercroftSpandrel(Builder stone,Vector3 a,Vector3 b)
+        {
+            const int segments=13;
+            // Both exposed court faces share a material but face different ambient
+            // light. Keep the backing lighter than the soffit and below the dressed
+            // ring; this is a broad surface hierarchy, not black paint over the wall.
+            float facing=Mathf.InverseLerp(-2.9f,2.9f,b.y-a.y);
+            Color tone=Color.Lerp(new Color(.38f,.40f,.49f),new Color(.46f,.46f,.53f),facing);
+            for(int i=0;i<segments;i++)
+            {
+                float t=i/(float)segments,n=(i+1)/(float)segments;
+                Vector3 p=ArchIntrados(a,b,t),q=ArchIntrados(a,b,n);
+                Vector3 topP=Vector3.Lerp(a,b,t)+Vector3.down*2.8f;
+                Vector3 topQ=Vector3.Lerp(a,b,n)+Vector3.down*2.8f;
+                // Continuous world masonry UVs meet the existing wall course; no
+                // repeated full-face atlas stamps or extra material/batch are needed.
+                stone.WallQuad(p,q,topQ,topP,false,tone);
+            }
+            // One continuous contact shadow joins the old deck to the recessed
+            // field. It stays within the fill even at the crown, whose intrados is
+            // 3.1 units below the deck; no need for thirteen repeated thin strips.
+            Vector3 deckA=a+Vector3.down*2.8f,deckB=b+Vector3.down*2.8f;
+            stone.WallQuad(deckA,deckB,deckB+Vector3.down*.16f,deckA+Vector3.down*.16f,
+                false,new Color(tone.r*.78f,tone.g*.80f,tone.b*.84f));
         }
 
         private static Vector3 ArchIntrados(Vector3 a,Vector3 b,float t)

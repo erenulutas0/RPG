@@ -342,3 +342,24 @@ Evidence: `ArtDirection/2026-10-09/forge-metal-light-01/`. Broad painted-referen
 - [x] Actual triangle-interior elevation regression, full gate and guarded S23 paving/ramp/normal-run review.
 
 Evidence: `ArtDirection/2026-10-09/stone-relief-01/`. Broad painted-reference fidelity remains open.
+
+
+## 2026-10-09 — Current art backlog reconciliation
+
+Historical September checkboxes above are dated records, not the current work queue. Doc38 sections7–8 confirm the October1 commit grouping and imported P1-b paving, P3 masonry, P4 pit lining and P5 boiler wrap. P2 was explicitly skipped; the current18-renderer count does not imply P2 integration. Bridge margins, iron recolour, lantern panes and pier crowns have later implementation records. Staff/Daggers assets are present. Do not regenerate or reopen them solely from old unchecked lines.
+
+Still open after the current architectural package:
+- [ ] Complete broad painted-reference fidelity and material/architectural cohesion; smooth stock metal still needs richer authored surface character.
+- [ ] Local encounter sites and the actual boss transition/separate boss-room art. The development gate-arrival presentation is not that gameplay transition; do not revive the superseded node-route proposal implicitly.
+- [ ] Final actor gait/hand articulation/mirrored-light consistency and remaining character/enemy roster art.
+- [ ] Sustained crowded-combat and midrange readability/performance; diagnose the previous first-use elevation hitch if it recurs.
+
+Target-specific old acceptance checks (including pit-rim Mite contrast or moving-UI shimmer) require their own evidence. Recent general traversal must not silently mark every older acceptance item complete.
+
+
+## 2026-10-09 — Combined architectural package status
+
+- [x] Gate stone lancets, rounded workshop stock and backed undercroft arches integrated; three-agent source/visual cross-review and full Unity/Android gate passed.
+- [ ] Install architecture-cohesion APK and complete guarded device review after owner confirms phone availability. Optional short traversal measurement is prepared, not yet run.
+
+Proof: `ArtDirection/2026-10-09/architecture-cohesion-01/`. This closes the three implementation tasks, not the remaining art backlog above.
