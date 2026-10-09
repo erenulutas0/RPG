@@ -959,3 +959,7 @@ Reference fidelity is unfinished. The crane base remains busy around its old fro
 ## 2026-10-09 — Map shape takes priority over small polish
 
 Owner requested closer reference map size, shape and major features. Implemented westboundary-24→-30 with complete exteriorassembly relocation, +192walkable squareunits, continuous tapered fortressfoundation and deeper industrialpit. Original gate/bridge/pitfloorboundaries and camera remain. Actual proof: ArtDirection/2026-10-09/foundry-massing-01. Full verification/device status: latestdocs38/23entry. Next priority: gateapproach/enclosure, entrancebridgeproportions and purposefulworkyardfeatures. This supersedes the preceding suggestion to switch immediately to actor/encounter art. Fullreference fidelity is notcomplete.
+
+## 2026-10-10 - Reference approach and industrial yard
+
+Implemented a real wider/longer entrance bridge, fortified gatehouse wings and a flush freight-transfer yard. Existing materials/batches;25 renderers unchanged,113,622 vertices (+5,970). Actual comparisons: ArtDirection/2026-10-09/foundry-approach-01. Corrected bridge support ordering, court paving overlap and heavy joints during review. Surface richness and populated machinery remain unfinished. Verified409 .NET /429 EditMode /151 PlayMode, Android exit0; phone installation/review pending owner-run restart permission. Exact evidence and limits: proof validation/verification.md.

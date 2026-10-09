@@ -36,7 +36,7 @@ namespace Cryptforge.UI
         private static readonly Color FireAbsorb=new Color(0,.42f,.22f,0);
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
         private static readonly Vector2[] CourtLanternPosts={WestPoint(-24.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
-        private static readonly Vector2[] ForgeBeacons={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
+        private static readonly Vector2[] ForgeBeacons={DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD),
             new Vector2(32.5f,-2),new Vector2(32.5f,12)};
         private static ForgeLamp[] _forgeLamps;
 

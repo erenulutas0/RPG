@@ -44,6 +44,7 @@ namespace Cryptforge.UI
             BuildWorkshopReserveStock(arena);
             BuildStoredPipes(arena);
             BuildToolRack(arena);
+            BuildProductionYard(arena);
         }
 
         private void BuildQuenchingBasin(ArenaView arena)

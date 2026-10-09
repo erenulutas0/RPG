@@ -23,8 +23,8 @@ namespace Cryptforge.Tests
         }
         [Test] public void ChamferKeepsFullBridgeAndItsCourtSeamOpen()
         {
-            for(float s=-47;s<=-23;s+=.25f)
-                foreach(float d in new[]{-2.7f,0,2.7f})
+            for(float s=FoundryMap.BridgeStart+1.3f;s<=FoundryMap.BridgeEnd+1;s+=.25f)
+                foreach(float d in new[]{-FoundryMap.BridgeHalfWidth+1.3f,0,FoundryMap.BridgeHalfWidth-1.3f})
                 {
                     FoundryMap.ToFloor((s+d)*.5f,(s-d)*.5f,out float x,out float y);
                     Assert.That(FoundryMap.Contains(x,y,.6f),Is.True,$"Bridge s={s},d={d}");
@@ -36,11 +36,30 @@ namespace Cryptforge.Tests
             FoundryMap.ToFloor(8,-8,out float dx,out float dy);
             FoundryMap.Move(ref x,ref y,dx,dy,.6f);
             FoundryMap.ToDesign(x,y,out float u,out float v);
-            Assert.That(u-v,Is.LessThanOrEqualTo(2.81f));
+            Assert.That(u-v,Is.LessThanOrEqualTo(FoundryMap.BridgeHalfWidth-1.19f));
             Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
             FoundryMap.ToFloor(-23,-23,out x,out y);
             FoundryMap.ToFloor(0,0,out float tx,out float ty);
             Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.True);
+        }
+        [Test] public void ExtendedBridgeStopsAtItsRealFarEnd()
+        {
+            FoundryMap.ToFloor(-31,-31,out float x,out float y);
+            FoundryMap.ToFloor(-40,-40,out float tx,out float ty);
+            Assert.That(FoundryMap.Contains(tx,ty,0),Is.False);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            FoundryMap.ToDesign(x,y,out float u,out float v);
+            Assert.That(u+v,Is.GreaterThanOrEqualTo(FoundryMap.BridgeStart+1.19f));
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+        [TestCase(-31f,-31f,0f,6f)]
+        [TestCase(-31f,-31f,-27f,6f)]
+        [TestCase(-31f,-31f,28f,6f)]
+        public void ExtendedBridgePursuitWorksInBothDirections(float u,float v,float goalU,float goalV)
+        {
+            AssertRoute(u,v,goalU,goalV);
+            AssertRoute(goalU,goalV,u,v);
         }
         [Test] public void ActualPackMotionPursuesAroundSideVoid()
         {
@@ -64,7 +83,9 @@ namespace Cryptforge.Tests
         {
             var points=new EntryPlacement[10];
             // Include the diagonal bridge and every authored room, including the widened workyard.
-            int minU=-28,minV=-28,maxU=-28,maxV=-28;
+            int bridgeMin=(int)System.Math.Floor((FoundryMap.BridgeStart-FoundryMap.BridgeHalfWidth)*.5f);
+            int bridgeMax=(int)System.Math.Ceiling((FoundryMap.BridgeEnd+FoundryMap.BridgeHalfWidth)*.5f);
+            int minU=bridgeMin,minV=bridgeMin,maxU=bridgeMax,maxV=bridgeMax;
             for(int room=0;room<FoundryMap.RectangleCount;room++)
             {
                 minU=System.Math.Min(minU,FoundryMap.Bound(room,0));

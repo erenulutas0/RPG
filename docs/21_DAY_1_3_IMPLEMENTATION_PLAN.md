@@ -2122,3 +2122,8 @@ The first full PlayMode run caught a genuine entry timing issue: the first revea
 Forge keeper source provenance correction: the older prompt.txt contains literal undefined and a generic tool note; the complete original generation prompt was not preserved. README now states this explicitly; no prompt was invented.
 
 Next substantive art work remains broader authored surface richness and encounter/boss presentation, followed by actor articulation/roster. Do not spend repeated slices on barely visible bevels. Full reference fidelity is not complete; cold-first-ramp hitch, sustained crowded-combat and midrange acceptance remain open.
+## 2026-10-10 - Foundry approach, gatehouse and yard
+
+FoundryMap/Pursuit share expanded bridge bounds with RegionView/Site/Massing and endpoint lights/chains. Added FoundryRegionBridgeSupports, FoundryRegionGateEnclosure and FoundryRegionProductionYard partials; Architecture and Workshop hook their respective features. No scene or gameplay progression edit. New far-end/pursuit checks and expanded spawn/render/fixture coverage verify the real footprint. Bridge presentation clips at the court seam while collision retains its overlap.
+
+Verified: .NET409, EditMode429, PlayMode151; three graphics passes; integrity568/1099/568; Android exit0 with no C# warning/error matches. APK36,146,073 bytes; SHA256 AB290A8824C5C3FF91D822DDC50C6F19C0A254BCD1392E76B4DC462583B2789F. Not installed: owner-run restart permission pending. Full evidence/reproduction: ArtDirection/2026-10-09/foundry-approach-01.

@@ -991,8 +991,8 @@ namespace Cryptforge.UI
             new Vector4(19.5f,-2.6f,24.6f,-2),
             new Vector4(32,-3,35,-1),new Vector4(32,11,35,13),
             new Vector4(21.3f,-6.8f,23.3f,-4.8f),new Vector4(21.3f,14.8f,23.3f,16.8f),
-            new Vector4(-27.9f,-23.3f,-27.3f,-22.7f),new Vector4(-23.3f,-27.9f,-22.7f,-27.3f),
-            new Vector4(-19.1f,-14.4f,-18.5f,-13.8f),new Vector4(-14.4f,-19.1f,-13.8f,-18.5f)
+            BridgePostBox(BridgeFootS,-BridgeFootD,.3f),BridgePostBox(BridgeFootS,BridgeFootD,.3f),
+            BridgePostBox(BridgeHeadS,-BridgeHeadD,.7f),BridgePostBox(BridgeHeadS,BridgeHeadD,.7f)
         };
 
         // Every balustrade post the rail placed (design boxes), for checks that hang things on them (the gate braziers).
@@ -1366,8 +1366,8 @@ namespace Cryptforge.UI
             AbyssChain(arena,new Vector3(-26.6f+WestShift,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
             // From the far gateposts' outboard chamfers, out of frame on both sides of the bridge's end; each post's
             // stone (-11) hides the anchor link, so the chain comes from behind it.
-            AbyssChain(arena,new Vector3(-27.855f,-22.745f,-2.2f),-1,new Vector2(-6.6f,-8.6f),.6f,.4f);
-            AbyssChain(arena,new Vector3(-22.745f,-27.855f,-2.2f),-1,new Vector2(6.6f,-8.6f),.6f,.4f);
+            AbyssChain(arena,new Vector3((BridgeFootS-BridgeFootD)*.5f-.255f,(BridgeFootS+BridgeFootD)*.5f+.255f,-2.2f),-1,new Vector2(-6.6f,-8.6f),.6f,.4f);
+            AbyssChain(arena,new Vector3((BridgeFootS+BridgeFootD)*.5f+.255f,(BridgeFootS-BridgeFootD)*.5f-.255f,-2.2f),-1,new Vector2(6.6f,-8.6f),.6f,.4f);
             // From the anchor plate of the undercroft's major pier right of the bridge head (FoundryRegionUndercroft.cs).
             AbyssChain(arena,new Vector3(-4f,-14f,-3.9f),-1,new Vector2(3f,-10.2f),.5f,.38f);
             // From the gate's south foundation, past the east edge of the frame.

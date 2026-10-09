@@ -7,7 +7,7 @@ namespace Cryptforge.Art
     {
         private static readonly float[,] Points=
         {
-            {-23,-23},{-14,-14},{0,0},{-18,0},{-2,0},{-20,6},
+            {(FoundryMap.BridgeStart+4)*.5f,(FoundryMap.BridgeStart+4)*.5f},{-23,-23},{-14,-14},{0,0},{-18,0},{-2,0},{-20,6},
             // Keep the widened loading court connected to both sides of the pit.
             {FoundryMap.West+4,0},{FoundryMap.West+4,12},{FoundryMap.West+4,16},
             {-18,16},{-2,16},{-10,16},{8,6},{16,6},{28,6}

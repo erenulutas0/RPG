@@ -84,7 +84,9 @@ namespace Cryptforge.Tests
             foreach(var sample in new[]{new Vector3(-29,-13,0),new Vector3(13,-13,0),
                 new Vector3(-26.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
                 new Vector3(-29,17,0),new Vector3(13,17,0),new Vector3(-27.17f,14.77f,1),new Vector3(10.83f,14.77f,1),
-                new Vector3(-23.17f,-12.77f,1),new Vector3(-23.17f,16.77f,1),new Vector3(-27.17f,6.23f,1)})
+                new Vector3(-23.17f,-12.77f,1),new Vector3(-23.17f,16.77f,1),new Vector3(-27.17f,6.23f,1),
+                new Vector3(-32.17f,-31.77f,1),new Vector3(-29.83f,-34.17f,1),new Vector3(-29.35f,-34.65f,0),
+                new Vector3(-15.17f,-14.23f,1),new Vector3(-15.17f,-13.77f,1),new Vector3(-10.17f,-13.77f,1)})
             {
                 Cryptforge.Art.FoundryMap.ToFloor(sample.x,sample.y,out float px,out float py);
                 Assert.That(FloorCovers(paving,new Vector2(px,py*.5f)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");
@@ -231,7 +233,7 @@ namespace Cryptforge.Tests
                     {
                         var point=keeperPoints[first+corner];
                         Assert.That(Mathf.Sign(point.x),Is.EqualTo(sign));
-                        Assert.That(Mathf.Abs(point.x),Is.GreaterThan(4f*Cryptforge.Art.FoundryMap.Axis));
+                        Assert.That(Mathf.Abs(point.x),Is.GreaterThan(Cryptforge.Art.FoundryMap.BridgeHalfWidth*Cryptforge.Art.FoundryMap.Axis));
                         Assert.That(point.z,Is.GreaterThan(0f));
                     }
                     Assert.That(keeperUvs[first],Is.EqualTo(Vector2.zero));
@@ -261,6 +263,13 @@ namespace Cryptforge.Tests
                     Cryptforge.Art.FoundryMap.ToFloor(post.x-.7f+u*.1f,post.y-.7f+v*.1f,out float x,out float y);
                     Assert.That(Cryptforge.Art.FoundryMap.Contains(x,y,0),Is.False,"Guardian plinths stay outside the complete walking union.");
                 }
+            foreach(var posts in new[]{FoundryRegionView.BridgeFootPosts,FoundryRegionView.BridgeLanterns})
+                foreach(var post in posts)
+                    for(int u=0;u<=8;u++)for(int v=0;v<=8;v++)
+                    {
+                        Cryptforge.Art.FoundryMap.ToFloor(post.x-.32f+u*.08f,post.y-.32f+v*.08f,out float x,out float y);
+                        Assert.That(Cryptforge.Art.FoundryMap.Contains(x,y,0),Is.False,"Bridge lantern and end-pier feet remain outside the wider walking deck.");
+                    }
             var visibility=arena.Region.GetComponent<FoundryVisibilityView>();
             // The gate's fire baskets hang on posts the balustrade places for itself: a rail change must not leave one
             // floating over a span or bare void.

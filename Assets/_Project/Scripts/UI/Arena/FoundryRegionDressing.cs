@@ -14,7 +14,7 @@ namespace Cryptforge.UI
             // Mark the bridge mouth and gate with sparse warm beacons; the pit carries its own corner lanterns. The two
             // court-side bridge gateposts carry carved keepers, and lantern posts line both rails between the head
             // and these far beacons (BuildBridgePiers, FoundryRegionSite.cs).
-            foreach(var p in new[]{new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
+            foreach(var p in new[]{DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD),
                 new Vector2(32.5f,-2),new Vector2(32.5f,12)})Beacon(arena,p.x,p.y);
             // Heavy exterior suspension links reinforce the floating foundry silhouette.
             foreach(var p in new[]{WestPoint(-24,-8),new Vector2(5,-14),new Vector2(14,15)})

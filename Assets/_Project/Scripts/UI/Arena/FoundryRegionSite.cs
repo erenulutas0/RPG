@@ -24,32 +24,27 @@ namespace Cryptforge.UI
                     BridgeBanner(arena,post);
                 }
             BuildBridgeLanterns(arena);
+            BuildEntranceBridgeSupports(arena);
             BridgePiers(arena,BridgeFootPosts);
-            // A continuous kerb course along both rails and across the far end - the court's own kerb (same coping panels,
-            // inset, width and tone) - so the deck edge reads as a floor edge meeting its rail, and its long unbroken
-            // lines run with the walk, not across it. It replaces the three transverse expansion bands: the deck is now
-            // laid diagonally (BuildBridgeDeck), and a band across the walk would cut through its stones. Deck frame
-            // s=u+v, d=u-v; the deck's margin course stops at |d|=3.5, just inside the kerb's inner edge (|d|=3.505).
-            // Two-s side kerb stones run through to the end; the end course butts between them. Flush decal only.
+            // Continuous kerbs meet the two actual court seams. The end cap closes
+            // only the physical far end; it never crosses a traversable court join.
             var joints=new Builder();
-            float rail=4-Kerb*1.41421356f,end=-50+Kerb*1.41421356f;
-            // Each side's kerb stops where the bridge enters the court: the west (d<0) side at s=-32, where its rail ends
-            // (beyond it the court's west room is walkable on both sides); the east side runs to the deck end, where its
-            // rail ends and it meets the court's own south kerb.
-            float westEnd=-32,eastEnd=-24;
-            for(int i=0;i<13;i++)
+            float rail=FoundryMap.BridgeHalfWidth-Kerb*1.41421356f;
+            float end=FoundryMap.BridgeStart+Kerb*1.41421356f;
+            for(int i=0;i<(FoundryMap.BridgeEnd-FoundryMap.BridgeStart)/2;i++)
             {
-                float s0=-50+i*2;
+                float s0=FoundryMap.BridgeStart+i*2;
                 foreach(float d in new[]{-rail,rail})
                 {
-                    float s1=Mathf.Min(s0+2,d<0?westEnd:eastEnd);
+                    float s1=Mathf.Min(s0+2,d<0?FoundryMap.BridgeWestSeam:FoundryMap.BridgeEastSeam);
                     if(s1<=s0)continue;
                     Strip(joints,(s0+d)*.5f,(s0-d)*.5f,(s1+d)*.5f,(s1-d)*.5f,KerbWidth,KerbTone,CopingTrim.Stone,i*5+(d<0?0:3));
                 }
             }
+            float margin=FoundryMap.BridgeHalfWidth-.5f;
             for(int i=0;i<4;i++)
             {
-                float d0=-3.5f+i*1.75f,d1=d0+1.75f;
+                float d0=-margin+i*margin*.5f,d1=d0+margin*.5f;
                 Strip(joints,(end+d0)*.5f,(end-d0)*.5f,(end+d1)*.5f,(end-d1)*.5f,KerbWidth,KerbTone,CopingTrim.Stone,70+i);
             }
             Create("Bridge joints",joints,arena.PlatformMaterials.Coping,FloorDecal);
@@ -73,8 +68,8 @@ namespace Cryptforge.UI
                 {
                     // A below-deck console ties the outboard statue shaft back to the bridge rim.
                     float side=Mathf.Sign(p.x-p.y),sum=p.x+p.y;
-                    var rim=new[]{Deck(sum-.9f,side*3.95f),Deck(sum-.9f,side*6.6f),
-                        Deck(sum+.9f,side*6.6f),Deck(sum+.9f,side*3.95f)};
+                    var rim=new[]{Deck(sum-.9f,side*(FoundryMap.BridgeHalfWidth-.05f)),Deck(sum-.9f,side*(FoundryMap.BridgeHalfWidth+2.6f)),
+                        Deck(sum+.9f,side*(FoundryMap.BridgeHalfWidth+2.6f)),Deck(sum+.9f,side*(FoundryMap.BridgeHalfWidth-.05f))};
                     for(int edge=0;edge<4;edge++)
                     {
                         Vector3 a=rim[edge],b=rim[(edge+1)%4];
@@ -135,25 +130,12 @@ namespace Cryptforge.UI
             }
         }
 
-        // Rail lanterns, after the approved layout, whose causeway is lit at intervals along both parapets (here the fire
-        // stood only at the bridge's two ends): one a side, halfway along the run from the original gateposts (s -32.9) to the
-        // far piers (s -50.6), on the original rail line d +/-4.7. Each is a slim stone post - a stepped
-        // corbel under the deck line, a plinth, a shaft with the gateposts' iron panels, a cap - carrying the court lantern
-        // (BuildCourtLantern) at the height the court's posts carry it, so the court's lit rail reads as carried on across
-        // the void. Every vertex lies outboard of the walking quad: the nearest, the lantern roof's hull, at |d| 4.14 (the
-        // deck ends at 4). On screen a post stands in its rail's column in front of the gatepost's shaft and behind the
-        // far pier's crown and beacon, so its stone is painted between theirs (BuildBridgePiers). No stone of a post lies
-        // under later-painted iron or fire behind it, and no iron or fire of a post over earlier-painted parts in front of
-        // it: the far pair's stone stays below the gateposts' iron panels (its lantern, iron painted after them, covers
-        // their foot); the near pair's panels sit high enough to clear the far beacons' prongs (iron -11, painted before
-        // any -10.5), and its lanterns clear their flames. Each post is one structure for depth, as the head posts are:
-        // actors behind it are hidden, and it fades in front of the hero.
-        private static readonly Vector2[] BridgeLanterns=
+        // Two separate lantern rows on the longer causeway. Their roof hulls sit
+        // wholly outside the walking quad and each row has room below the next.
+        internal static readonly Vector2[] BridgeLanterns=
         {
-            // One per rail, halfway between the gatepost (s -32.9) and the far pier (s -50.6): the bridge runs straight down
-            // the screen, so posts every third (2.1 screen units apart) overlapped into one tall stacked pillar with the
-            // gatepost; halfway (3.1 apart, more than a post's 2.75 height) each reads as its own lantern post.
-            new Vector2(-18.525f,-23.225f),new Vector2(-23.225f,-18.525f)
+            DeckDesign(-46,-(FoundryMap.BridgeHalfWidth+.7f)),DeckDesign(-46,FoundryMap.BridgeHalfWidth+.7f),
+            DeckDesign(-57,-(FoundryMap.BridgeHalfWidth+.7f)),DeckDesign(-57,FoundryMap.BridgeHalfWidth+.7f)
         };
 
         private void BuildBridgeLanterns(ArenaView arena)
@@ -177,11 +159,17 @@ namespace Cryptforge.UI
                 }
         }
 
-        internal static readonly Vector2[] BridgeHeadPosts={new Vector2(-20.55f,-14.75f),new Vector2(-14.75f,-20.55f)};
-        private static readonly Vector2[] BridgeFootPosts={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f)};
-        // Camera-facing cloth hangs outside the guardian's support at |d|6.65 (screen |x|4.70).
+        private const float BridgeHeadS=FoundryMap.BridgeWestSeam-3.3f,BridgeHeadD=FoundryMap.BridgeHalfWidth+1.8f;
+        private const float BridgeFootS=FoundryMap.BridgeStart-.6f,BridgeFootD=FoundryMap.BridgeHalfWidth+.7f;
+        internal static readonly Vector2[] BridgeHeadPosts={DeckDesign(BridgeHeadS,-BridgeHeadD),DeckDesign(BridgeHeadS,BridgeHeadD)};
+        internal static readonly Vector2[] BridgeFootPosts={DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD)};
+        private static Vector4 BridgePostBox(float s,float d,float half)
+        {
+            Vector2 p=DeckDesign(s,d);return new Vector4(p.x-half,p.y-half,p.x+half,p.y+half);
+        }
+        // Camera-facing cloth hangs outside the guardian's support outside the widened guardian support.
         // The top bracket sits under the broad cap; the cloth remains in the existing facade batch.
-        private const float BannerInner=6.65f,BannerWidth=.83f,BannerTop=.4f;
+        private const float BannerInner=FoundryMap.BridgeHalfWidth+2.65f,BannerWidth=.83f,BannerTop=.4f;
         // The facade's left banner (GateFacade.png, 1536 x 1024; pixels, y down), from the painted rod's shaft (y 100, under
         // the bracket's bar) to the swallow-tailed hem, measured and inset 1.8 px inside its gold trim so no stone around it
         // is sampled: the hem across its five columns - the edges x 288.3 / 416.7, the notches x 311 / 395 and the centre

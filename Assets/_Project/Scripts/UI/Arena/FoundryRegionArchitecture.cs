@@ -9,6 +9,7 @@ namespace Cryptforge.UI
         // All geometry is static and stays on the established scenery footprints.
         private void BuildGateArchitecture(ArenaView arena,float height)
         {
+            BuildGateEnclosure(arena,true);
             var stone=new Builder();
             // Segmented cornice: projecting lower lip, recessed course and sloping crown.
             LitFoundryTier(stone,32,-1,34,11,height-.12f,height+.12f,0);
@@ -42,6 +43,7 @@ namespace Cryptforge.UI
             // Central raised seal housing above the painted doors; the door artwork remains intact.
             LitFoundryTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
+            BuildGateEnclosure(arena,false);
             BuildGateInlays(arena,height);
             BuildGateProcession(arena);
             BuildGateThreshold(arena);

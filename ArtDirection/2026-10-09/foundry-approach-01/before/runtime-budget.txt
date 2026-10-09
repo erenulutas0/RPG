@@ -1,0 +1,3 @@
+FoundryShortBoiler texture:1024x1024 ASTC_6x6; mipmaps:11; readable:False
+Region renderers:25; vertices:107652
+Actual production replacement, HUD hidden, four matched walkable points plus two expanded-area points in after. No synthetic prop placement.

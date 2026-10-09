@@ -26,7 +26,9 @@ namespace Cryptforge.Art
             {PitWest,South,PitEast,PitSouth},{PitWest,PitNorth,PitEast,North},
             {East,0,28,10},{28,-2,32,12}
         };
-        public static bool Bridge(float u,float v) => u-v>=-4&&u-v<=4&&u+v>=-50&&u+v<=-24;
+        public const int BridgeStart=-66,BridgeEnd=-22,BridgeHalfWidth=5;
+        public const int BridgeWestSeam=2*South-BridgeHalfWidth,BridgeEastSeam=2*South+BridgeHalfWidth;
+        public static bool Bridge(float u,float v) => u-v>=-BridgeHalfWidth&&u-v<=BridgeHalfWidth&&u+v>=BridgeStart&&u+v<=BridgeEnd;
         public static int RectangleCount => Rooms.GetLength(0);
         public static int Bound(int rectangle,int coordinate) => Rooms[rectangle,coordinate];
         public static void ToFloor(float u,float v,out float x,out float y) { x=(u-v)*Axis;y=(u+v)*Axis; }
@@ -61,7 +63,7 @@ namespace Cryptforge.Art
                 {
                     float enter=0,exit=1;
                     bool intersects=r==RectangleCount
-                        ? Slab(u-v,(tu-tv)-(u-v),-4,4,ref enter,ref exit)&&Slab(u+v,(tu+tv)-(u+v),-50,-24,ref enter,ref exit)
+                        ? Slab(u-v,(tu-tv)-(u-v),-BridgeHalfWidth,BridgeHalfWidth,ref enter,ref exit)&&Slab(u+v,(tu+tv)-(u+v),BridgeStart,BridgeEnd,ref enter,ref exit)
                         : Slab(u,tu-u,Rooms[r,0],Rooms[r,2],ref enter,ref exit)&&Slab(v,tv-v,Rooms[r,1],Rooms[r,3],ref enter,ref exit);
                     if(intersects&&r<4)intersects=Slab(u+v,(tu+tv)-(u+v),West+South+CornerCut,East+North-NorthCornerCut,ref enter,ref exit)&&
                         Slab(u-v,(tu-tv)-(u-v),West-North+NorthCornerCut,East-South-CornerCut,ref enter,ref exit);

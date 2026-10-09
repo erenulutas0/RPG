@@ -861,3 +861,7 @@ Next substantive art work remains broader authored surface richness and encounte
 ## 2026-10-09 — Map shape takes priority over small polish
 
 Owner requested closer reference map size, shape and major features. Implemented westboundary-24→-30 with complete exteriorassembly relocation, +192walkable squareunits, continuous tapered fortressfoundation and deeper industrialpit. Original gate/bridge/pitfloorboundaries and camera remain. Actual proof: ArtDirection/2026-10-09/foundry-massing-01. Full verification/device status: latestdocs38/23entry. Next priority: gateapproach/enclosure, entrancebridgeproportions and purposefulworkyardfeatures. This supersedes the preceding suggestion to switch immediately to actor/encounter art. Fullreference fidelity is notcomplete.
+
+## 2026-10-10 - Real approach proportions and fortified silhouette
+
+Owner requested closer reference shape/features and higher visual quality, authorizing parallel work. Chose25% wider and approximately69% longer full bridge extent, fortified gate wings and a flush industrial transfer yard. Shared movement/render bounds change with the bridge; its court overlap remains for traversal but no longer paints over court paving. Chose flush rails rather than raised machinery without collision. No new transition/interaction; gameplay-camera width and run rules unchanged. Actual image review and989 tests passed; device restart/install remains pending. Evidence: foundry-approach-01.
