@@ -228,12 +228,11 @@ namespace Cryptforge.UI
             return 0;
         }
 
-        // Half-unit ashlar lattice, tightened to 1-2 unit stones (maximum area3) for
-        // the reference-scale court. The skyline packer breaks long joints and avoids
-        // four-way crossings; brass lines remain forced joints. The seal/work lane
-        // use one-unit flags. Smaller, softer joints keep the denser layout subordinate
-        // to actors. Historical 398-stone statistics belonged to the larger 2026-10-01 lay.
-        private const int AshlarSub=2,AshlarRun=6,AshlarEdgeRun=4,AshlarLevel=10,AshlarSalt=24;
+        // Half-unit ashlar with mixed compact flags and occasional 2.5x1 slabs
+        // (maximum area3). The skyline packer limits long joints and four-way crossings;
+        // matching neighbour heights is only a mild preference, not a regular course.
+        // Brass remains a forced joint and the ceremonial seal alone keeps unit flags.
+        private const int AshlarSub=2,AshlarRun=6,AshlarEdgeRun=4,AshlarLevel=2,AshlarSalt=37;
         private const byte AshlarFree=0,AshlarEdge=1,AshlarCovered=2;
         // Forced joints under the court's brass, (u0, v0, u1, v1) of each line: BuildLandmarks' lanes and BuildCourtCompass'
         // rays on the axes (r 4.1-8.5; the joint runs on from the seal inset's edge at 4).
@@ -249,8 +248,8 @@ namespace Cryptforge.UI
         private static int[] AshlarFamily(bool crosswise)
         {
             var sizes=new List<int>();
-            for(int h=2;h<=4;h++)
-                for(int w=2;w<=4;w++)
+            for(int h=2;h<=5;h++)
+                for(int w=2;w<=5;w++)
                 {
                     if(w*h>12)continue;
                     int weight=w*h<6?3:w*h<10?6:8;
@@ -308,14 +307,14 @@ namespace Cryptforge.UI
                 else lay.Cover(false,Mathf.RoundToInt((line.x-u0)*AshlarSub),
                     Mathf.RoundToInt((line.y-v0)*AshlarSub),Mathf.RoundToInt((line.w-v0)*AshlarSub));
             }
-            // One-unit flags under the seal and west work lane, then the smaller court/apron ashlar.
+            // Only the ceremonial seal keeps a regular one-unit bond. The workyard
+            // shares the varied ashlar sizes; long slab courses now break across it.
             for(int i=0;i<lay.W;i+=AshlarSub)
                 for(int j=0;j<lay.H;j+=AshlarSub)
                 {
                     if(zone[i,j]==1)lay.Place(i,j,AshlarSub,AshlarSub,1);
-                    else if(zone[i,j]==3)lay.Place(i,j,AshlarSub,AshlarSub,3);
                 }
-            lay.Fill(0,salt);lay.Fill(2,salt);
+            lay.Fill(0,salt);lay.Fill(2,salt);lay.Fill(3,salt);
             return lay.Stones;
         }
 
@@ -498,11 +497,10 @@ namespace Cryptforge.UI
         private static void AshlarFlagFace(Builder mesh,AshlarStone s,bool repair)
         {
             float u0=s.I*.5f,v0=s.J*.5f,u1=(s.I+s.W)*.5f,v1=(s.J+s.H)*.5f,w=u1-u0,h=v1-v0,area=w*h;
-            // Keep the seal/workshop bond, but unify the yard's material. The old independent
-            // dark replacement/pale flag lottery became a checkerboard after the finer paving.
-            // Broad shared deposits carry the wear; restrained individual stone differences
-            // still reveal the bond without looking like separately lit squares.
-            bool kept=s.Zone==1||s.Zone==3;
+            // Keep the ceremonial seal regular. Other stone families follow broad
+            // mineral patches, so variation belongs to quarry batches and weathered
+            // work areas rather than an independent pale/dark checkerboard.
+            bool kept=s.Zone==1;
             int seedU=kept?(int)u0:s.I,seedV=kept?(int)v0:s.J;
             float grain=StoneSample(seedU,seedV),hue=StoneSample(seedU+131,seedV-57);
             float tone=Mathf.Lerp(.92f,1.055f,grain);
@@ -512,8 +510,9 @@ namespace Cryptforge.UI
             // the concept's apron is ~287); its former blue cut (.93) turned it magenta-grey under the violet ambient.
             Color tint=s.Zone==1?new Color(1.08f,1.065f,1.015f):
                 s.Zone==2?new Color(1.01f,.985f,.96f):
-                s.Zone==3?new Color(.82f,.84f,.88f):Color.white;
+                s.Zone==3?new Color(.94f,.96f,.99f):Color.white;
             Color faceTint=flagTint*tint;
+            if(!kept&&!repair)faceTint*=PavingMineralFamily((u0+u1)*.5f,(v0+v1)*.5f);
             if(repair)
             {
                 // One cool replacement-stone family across each service repair, not
@@ -565,8 +564,14 @@ namespace Cryptforge.UI
             // Keep flags crossing either ramp seam dressed rather than chipped.
             bool crossesRise=(u0<FoundrySurface.RampStart&&u1>FoundrySurface.RampStart)||
                 (u0<FoundrySurface.RampEnd&&u1>FoundrySurface.RampEnd);
-            if(!repair&&!kept&&area>=1&&grain>.64f&&!crossesRise)
-                FlagEdgeWear(mesh,u0,v0,u1,v1,bevel,stone,faceTint,grain,hue);
+            if(!repair&&!kept&&area>=1&&!crossesRise)
+            {
+                float exposure=PavingWearExposure((u0+u1)*.5f,(v0+v1)*.5f);
+                if(grain>.66f-exposure*.20f)
+                    FlagEdgeWear(mesh,u0,v0,u1,v1,bevel,stone,faceTint,grain,hue);
+                if(PavingHash(s.I,s.J,173)%5==0)
+                    BrokenFlagCorner(mesh,u0,v0,u1,v1,joint,bevel,stone,faceTint,s.I,s.J,exposure);
+            }
         }
 
         private static void FlagEdgeWear(Builder mesh,float u0,float v0,float u1,float v1,

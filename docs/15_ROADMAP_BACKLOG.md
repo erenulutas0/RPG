@@ -458,3 +458,15 @@ Owner requested closer reference map size, shape and major features. Implemented
 - [ ] Next substantial reference gaps: irregular stone surfaces and purposeful raised yard equipment with honest collision/navigation. Keep map features ahead of unrelated actor polish.
 
 Evidence: ArtDirection/2026-10-09/foundry-approach-01. Full reference fidelity and sustained/midrange performance remain incomplete.
+
+## 2026-10-10 - Courtyard craft, art first
+
+- [x] Mixed slab workyard, restrained mineral families and contained stone wear; production-packer regression coverage.
+- [x] Broad gate recesses, dressed crowns and lower quoins on existing tapered faces.
+- [x] Coherent stock hoist within the existing shelf, with explicit upper-assembly depth ownership.
+- [x] Matched actual Unity comparison, including phone-proportioned staged-actor views.
+- [ ] Current package physical-device acceptance after pending owner-run restart approval.
+- [ ] Closer reference surface richness: less planar stone wear and more coherent authored industrial metal. The central paving delta is moderate; avoid treating it as reference completion.
+- [ ] Region encounter/boss progression remains later, per latest explicit owner instruction. Do not resurrect the superseded node-map plan.
+
+Evidence: ArtDirection/2026-10-10/foundry-craft-01. See final verification record for exact tests/build/device status.

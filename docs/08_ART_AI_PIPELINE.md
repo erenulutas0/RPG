@@ -963,3 +963,9 @@ Owner requested closer reference map size, shape and major features. Implemented
 ## 2026-10-10 - Reference approach and industrial yard
 
 Implemented a real wider/longer entrance bridge, fortified gatehouse wings and a flush freight-transfer yard. Existing materials/batches;25 renderers unchanged,113,622 vertices (+5,970). Actual comparisons: ArtDirection/2026-10-09/foundry-approach-01. Corrected bridge support ordering, court paving overlap and heavy joints during review. Surface richness and populated machinery remain unfinished. Verified409 .NET /429 EditMode /151 PlayMode, Android exit0; phone installation/review pending owner-run restart permission. Exact evidence and limits: proof validation/verification.md.
+
+## 2026-10-10 - Art-first courtyard craft package
+
+Owner explicitly chose reference-map art before further gameplay/region progression. Three coordinated slices are visually accepted: mixed ashlar workyard/court with broad mineral families and contained corner wear; broad tapered-face gate recesses with dressed caps/quoins; stock-shelf hoist with bearing-supported drum, braces, two chains and lifting yoke. Existing layout, walking routes, doorway, camera and gameplay remain unchanged. Stock feet stay within the original non-walkable shelf and upper machinery has explicit3.6-height depth ownership. No new texture, material or per-frame component.
+
+Actual Unity before/after evidence: ArtDirection/2026-10-10/foundry-craft-01. Region25renderers unchanged;113,622 to117,754vertices (+4,132/3.64%). Yard and gate gains are clear; central paving delta is moderate. Fine irregular stone grain and richer metal surface remain below the approved reference; this is not map-art completion. Local encounters, boss transition and optional finale implementation remain deferred. Full tests/build/device status belongs to proof validation/verification.md and docs22/23/38.

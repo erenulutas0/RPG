@@ -1775,3 +1775,11 @@ Remaining reference gaps are the long narrow gate approach/enclosure, entrance-b
 APK36,146,073 bytes, SHA256 AB290A8824C5C3FF91D822DDC50C6F19C0A254BCD1392E76B4DC462583B2789F, built after989 passing tests. NOT INSTALLED. Read-only ADB check found RFCW20W2WFX connected, Cryptforge PID14122 awake/focused, matching the previous preflight. Last observed run was paused Room2 /74HP /8unbanked gold; this turn did not re-read gameplay values or send input. Completed-package restart/install question is pending. No stop/install/device flag/profile write occurred.
 
 Prepared ignored foundry-approach-device scripts remain unexecuted. On approval, reinspect focus/keyguard and take fresh backup before installation. Guard bridge/gate/yard and normal combat; retain telemetry, compare profile/backup/original flags and remove only new diagnostic flags. Never restore stale saves. Prior first-ramp hitch, sustained/crowd and midrange acceptance remain open. Exact evidence: ArtDirection/2026-10-09/foundry-approach-01/validation/verification.md.
+
+## 2026-10-10 - Courtyard craft verified; APK ready
+
+Three art slices integrated: mixed ashlar/mineral/wear floor, broad recessed and dressed gate masonry, stock loading hoist. Same walking footprint/camera/gameplay. Matched actual Unity review accepted the package while recording remaining planar wear/procedural-metal and reference-richness gaps. Proof: ArtDirection/2026-10-10/foundry-craft-01.
+
+PASS:409 .NET,432 EditMode,151 PlayMode (992 total); one before and one after graphics capture; Android exit0/no C# warning-error matches. Final static integrity571assetGUIDs/1099packageGUIDs/568sceneobjects, references/JSON valid. Region25renderers unchanged;113,622->117,754vertices (+4,132/3.64%). No FPS acceptance claimed.
+
+APK36,153,404bytes; SHA256 035EFC2FCED469CBA94F1129051A46EC608F1091947C8A6A232D3A6A0F3944BE. NOT INSTALLED: prior owner-run restart question is pending. No device action this turn; last recorded phone package021b95f and earlier paused Room2/74HP/8unbankedgold were not reobserved. Fresh preflight/backup is required after approval. Full evidence/reproduction and device limits: proof validation/verification.md. Owner prioritizes reference-map art before region encounter/boss progression.

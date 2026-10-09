@@ -865,3 +865,9 @@ Owner requested closer reference map size, shape and major features. Implemented
 ## 2026-10-10 - Real approach proportions and fortified silhouette
 
 Owner requested closer reference shape/features and higher visual quality, authorizing parallel work. Chose25% wider and approximately69% longer full bridge extent, fortified gate wings and a flush industrial transfer yard. Shared movement/render bounds change with the bridge; its court overlap remains for traversal but no longer paints over court paving. Chose flush rails rather than raised machinery without collision. No new transition/interaction; gameplay-camera width and run rules unchanged. Actual image review and989 tests passed; device restart/install remains pending. Evidence: foundry-approach-01.
+
+## 2026-10-10 - Art-first courtyard craft package
+
+Owner explicitly chose reference-map art before further gameplay/region progression. Three coordinated slices are visually accepted: mixed ashlar workyard/court with broad mineral families and contained corner wear; broad tapered-face gate recesses with dressed caps/quoins; stock-shelf hoist with bearing-supported drum, braces, two chains and lifting yoke. Existing layout, walking routes, doorway, camera and gameplay remain unchanged. Stock feet stay within the original non-walkable shelf and upper machinery has explicit3.6-height depth ownership. No new texture, material or per-frame component.
+
+Actual Unity before/after evidence: ArtDirection/2026-10-10/foundry-craft-01. Region25renderers unchanged;113,622 to117,754vertices (+4,132/3.64%). Yard and gate gains are clear; central paving delta is moderate. Fine irregular stone grain and richer metal surface remain below the approved reference; this is not map-art completion. Local encounters, boss transition and optional finale implementation remain deferred. Full tests/build/device status belongs to proof validation/verification.md and docs22/23/38.

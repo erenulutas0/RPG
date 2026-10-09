@@ -1065,3 +1065,11 @@ Remaining reference gaps are the long narrow gate approach/enclosure, entrance-b
 PASS:409 pure .NET,429 EditMode,151 PlayMode (989 total). Bridge checks cover far-end stopping, bidirectional pursuit, expanded spawn sweep, actual rendered floor/void and court seam, and outboard keeper/lantern/post footprints. Existing renderer/depth/colour/lifecycle/decal assertions retained. Three successful graphics passes; Android exit0 with no C# warning/error matches. Final integrity568/1099/568; region25 renderers,107,652 ->113,622 vertices.
 
 Proof: ArtDirection/2026-10-09/foundry-approach-01, including test XML and full verification. Same-camera comparisons are distinguished from the wider complete-map capture; hero views retain production camera width. APK SHA256 AB290A8824C5C3FF91D822DDC50C6F19C0A254BCD1392E76B4DC462583B2789F. Device traversal/normal combat pending owner-run restart authorization; no phone or FPS claim.
+
+## 2026-10-10 - Courtyard craft verified; APK ready
+
+Three art slices integrated: mixed ashlar/mineral/wear floor, broad recessed and dressed gate masonry, stock loading hoist. Same walking footprint/camera/gameplay. Matched actual Unity review accepted the package while recording remaining planar wear/procedural-metal and reference-richness gaps. Proof: ArtDirection/2026-10-10/foundry-craft-01.
+
+PASS:409 .NET,432 EditMode,151 PlayMode (992 total); one before and one after graphics capture; Android exit0/no C# warning-error matches. Final static integrity571assetGUIDs/1099packageGUIDs/568sceneobjects, references/JSON valid. Region25renderers unchanged;113,622->117,754vertices (+4,132/3.64%). No FPS acceptance claimed.
+
+APK36,153,404bytes; SHA256 035EFC2FCED469CBA94F1129051A46EC608F1091947C8A6A232D3A6A0F3944BE. NOT INSTALLED: prior owner-run restart question is pending. No device action this turn; last recorded phone package021b95f and earlier paused Room2/74HP/8unbankedgold were not reobserved. Fresh preflight/backup is required after approval. Full evidence/reproduction and device limits: proof validation/verification.md. Owner prioritizes reference-map art before region encounter/boss progression.
