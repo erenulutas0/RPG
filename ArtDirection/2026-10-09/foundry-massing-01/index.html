@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cryptforge — Foundry footprint and foundation</title>
+<style>
+:root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#11131b;color:#d9dce5}*{box-sizing:border-box}body{margin:0}main{max-width:1320px;margin:auto;padding:28px 20px 60px}h1{font-size:clamp(26px,4vw,42px);line-height:1.15;margin:6px 0 14px}h2{font-size:23px;margin:32px 0 12px}p{max-width:900px;color:#bfc4d2}.eyebrow{letter-spacing:.13em;font-size:12px;color:#d5af70;text-transform:uppercase}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 12px}button{font:inherit;background:#242936;color:#e2e5ef;border:1px solid #485166;border-radius:6px;padding:9px 17px;cursor:pointer;min-height:44px}button[aria-pressed="true"]{background:#5f492e;border-color:#d6ad6b;color:#fff0d5}button:focus-visible,a:focus-visible{outline:3px solid #94b8ff;outline-offset:3px}.viewer{margin:0;background:#090b10;border:1px solid #343a4a;border-radius:8px;overflow:hidden}.viewer img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:contain}.viewer figcaption{padding:13px 17px;color:#c8cedc;border-top:1px solid #343a4a}a{color:#e3bd80}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid figure{margin:0;border:1px solid #343a4a;background:#181c27;border-radius:7px;overflow:hidden}.grid img{display:block;width:100%;height:auto}.grid figcaption{padding:12px 15px;color:#bbc2d0}.facts{display:flex;gap:14px;flex-wrap:wrap;margin:20px 0}.fact{background:#1b202b;padding:13px 18px;border-left:3px solid #9d794a}.fact b{display:block;color:#ebd4ad}small{color:#a5adbd}.notice{padding:12px 16px;background:#24232b;border:1px solid #4b454b;border-radius:6px}.links{display:flex;gap:18px;flex-wrap:wrap}@media(max-width:650px){main{padding:20px 12px 40px}.grid{grid-template-columns:1fr}.facts{gap:8px}.fact{flex:1 1 140px}}
+</style>
+<main>
+<div class="eyebrow">Cryptforge · actual Unity geometry · 09 October 2026</div>
+<h1>A broader workshop yard.<br>A connected fortress foundation.</h1>
+<p>The west court extends beside the pit. The crane and salvage station follow its edge; the foundation joins into a broad masonry body with shorter tapered supports.</p>
+<div class="toolbar" aria-label="Comparison image">
+<button type="button" data-view="after" aria-pressed="true">After</button>
+<button type="button" data-view="before" aria-pressed="false">Before</button>
+<button type="button" data-view="reference" aria-pressed="false">Approved reference</button>
+</div>
+<figure class="viewer"><a id="full" href="after/overview.png" target="_blank" rel="noopener"><img id="overview" src="after/overview.png" alt="Current foundry with expanded west yard and connected stone foundation"></a><figcaption id="caption" aria-live="polite">After · actual Unity render, review camera size 32. Open the image for full resolution.</figcaption></figure>
+<div class="facts"><div class="fact"><b>6 design units</b>added to the west court</div><div class="fact"><b>25 renderers</b>before and after</div><div class="fact"><b>107,652 vertices</b>after · previously 100,968</div></div>
+<p>The same camera is used for both runtime overviews. The approved reference has its own composition and is shown separately. The concept's final material richness remains a longer-term art target.</p>
+<h2>Inspect the current geometry</h2>
+<div class="grid">
+<figure><a href="after/workshop-detail.png" target="_blank" rel="noopener"><img loading="lazy" src="after/workshop-detail.png" alt="Relocated crane and salvage station beside the wider clear workshop lane"></a><figcaption>Workshop · relocated service assembly beside the widened lane.</figcaption></figure>
+<figure><a href="after/shaft-detail.png" target="_blank" rel="noopener"><img loading="lazy" src="after/shaft-detail.png" alt="Current furnace pit architecture"></a><figcaption>Furnace pit · the opening remains anchored within the larger court.</figcaption></figure>
+<figure><a href="after/court-detail.png" target="_blank" rel="noopener"><img loading="lazy" src="after/court-detail.png" alt="Current court and central inlay"></a><figcaption>Courtyard · open combat space and central inlay.</figcaption></figure>
+<figure><a href="after/approach--20-6.png" target="_blank" rel="noopener"><img loading="lazy" src="after/approach--20-6.png" alt="Actual Unity staged hero approach beside the pit"></a><figcaption>Approach · staged hero on a validated walking point, HUD hidden.</figcaption></figure>
+</div>
+<h2>Verification status</h2>
+<p class="notice">Actual Unity images have been inspected. All 981 automated tests and Android build passed. Phone installation/review is pending permission to close the owner's current run. These captures are not phone screenshots or a performance benchmark.</p>
+<p class="links"><a href="README.md">Production notes</a><a href="after/runtime-budget.txt">Captured mesh budget</a><a href="../../2026-09-23/foundry-layout-01/foundry-v1.png">Original reference image</a></p>
+<section><h2>Expanded playable floor</h2><p>After-only captures at u=-27/v=6 and u=-26/v=15. Same production camera width; staged hero, HUD hidden.</p><div class="grid"><figure><img src="after/expanded--27-6.png" alt="New western floor"><figcaption>New western floor</figcaption></figure><figure><img src="after/expanded--26-15.png" alt="Northwest passage"><figcaption>Northwest passage</figcaption></figure></div><p class="notice">981 tests passed; Android build ready. Phone installation is awaiting permission to close the owner's paused run. These new views are Unity captures, not phone footage.</p><a href="validation/verification.md">Final build and verification record</a></section></main>
+<script>
+const views={after:{src:'after/overview.png',alt:'Current foundry with expanded west yard and connected stone foundation',label:'After · actual Unity render, review camera size 32. Open the image for full resolution.'},before:{src:'before/overview.png',alt:'Previous narrower foundry court with long isolated foundation piers',label:'Before · actual Unity render at the same review camera size 32.'},reference:{src:'../../2026-09-23/foundry-layout-01/foundry-v1.png',alt:'Approved foundry concept with broad workshop yard, furnace pit and gate approach',label:'Approved concept reference · art direction image, not a runtime screenshot.'}};
+document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{const entry=views[button.dataset.view];document.getElementById('overview').src=entry.src;document.getElementById('overview').alt=entry.alt;document.getElementById('full').href=entry.src;document.getElementById('caption').textContent=entry.label;document.querySelectorAll('[data-view]').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));}));
+</script>
+</html>

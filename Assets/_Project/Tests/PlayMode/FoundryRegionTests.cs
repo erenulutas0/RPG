@@ -81,9 +81,10 @@ namespace Cryptforge.Tests
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
             Assert.That(paving,Is.Not.Null);
-            foreach(var sample in new[]{new Vector3(-23,-13,0),new Vector3(13,-13,0),
-                new Vector3(-20.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
-                new Vector3(-23,17,0),new Vector3(13,17,0),new Vector3(-21.17f,14.77f,1),new Vector3(10.83f,14.77f,1)})
+            foreach(var sample in new[]{new Vector3(-29,-13,0),new Vector3(13,-13,0),
+                new Vector3(-26.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
+                new Vector3(-29,17,0),new Vector3(13,17,0),new Vector3(-27.17f,14.77f,1),new Vector3(10.83f,14.77f,1),
+                new Vector3(-23.17f,-12.77f,1),new Vector3(-23.17f,16.77f,1),new Vector3(-27.17f,6.23f,1)})
             {
                 Cryptforge.Art.FoundryMap.ToFloor(sample.x,sample.y,out float px,out float py);
                 Assert.That(FloorCovers(paving,new Vector2(px,py*.5f)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");
@@ -157,7 +158,8 @@ namespace Cryptforge.Tests
                     Assert.That(flags.Count,Is.EqualTo(4));
                     foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
                     // Whole-shelf depth spans its unequal design-plane side lengths.
-                    foreach(var p in station.vertices)Assert.That(p.z,Is.InRange(42.70f,43.13f));
+                    float westDepthShift=Cryptforge.Art.FoundryMap.WestAssemblyOffset*Cryptforge.Art.FoundryMap.Axis*.5f;
+                    foreach(var p in station.vertices)Assert.That(p.z,Is.InRange(42.70f+westDepthShift,43.13f+westDepthShift));
                     continue;
                 }
                 if(renderer.sharedMaterial.mainTexture==reservoir)

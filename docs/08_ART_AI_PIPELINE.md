@@ -954,3 +954,8 @@ Editable source: Tools/ArtReview/BuildBlenderSalvage.py and ArtDirection/2026-10
 Region24renderers/100,572vertices becomes25/100,968; no new per-frame component. Actual matched source-state before/after, detail/overview and four walkable staged-hero portraits: ArtDirection/2026-10-09/foundry-surface-01. The inherited budget texture line describes unchanged FoundryShortBoiler, not salvage. Final tests/device evidence is recorded in docs22/23/38 and the proof validation directory.
 
 Reference fidelity is unfinished. The crane base remains busy around its old front crank; local floor changes are deliberately restrained. Next higher-value art work should address actor/encounter presentation or a clearly visible architectural material gap, not another marginal bevel pass. Cold-first-ramp diagnosis and sustained crowded/midrange-device acceptance remain open.
+
+
+## 2026-10-09 — Map shape takes priority over small polish
+
+Owner requested closer reference map size, shape and major features. Implemented westboundary-24→-30 with complete exteriorassembly relocation, +192walkable squareunits, continuous tapered fortressfoundation and deeper industrialpit. Original gate/bridge/pitfloorboundaries and camera remain. Actual proof: ArtDirection/2026-10-09/foundry-massing-01. Full verification/device status: latestdocs38/23entry. Next priority: gateapproach/enclosure, entrancebridgeproportions and purposefulworkyardfeatures. This supersedes the preceding suggestion to switch immediately to actor/encounter art. Fullreference fidelity is notcomplete.

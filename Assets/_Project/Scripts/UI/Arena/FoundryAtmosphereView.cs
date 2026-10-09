@@ -24,7 +24,7 @@ namespace Cryptforge.UI
         // deck and their domes' 1.16 above it; the opening's far edge there is its corner arc, centred PitArc in along the
         // diagonal, of radius PitArcRadius.
         private static readonly Vector2 PitCentre=new Vector2((FoundryMap.PitWest+FoundryMap.PitEast)*.5f,(FoundryMap.PitSouth+FoundryMap.PitNorth)*.5f);
-        private const float PitPool=3.6f,PitArc=3.522f,PitArcRadius=2.96f,SparkAcross=1.12f;
+        private const float PitPool=FoundryRegionView.PitMolten,PitArc=3.522f,PitArcRadius=2.96f,SparkAcross=1.12f;
         // The pit's glow, heat and sparks are depth-tested against the structures (FoundryDepth), as actors are; the rest of
         // the mesh stays flat at z 0, over every structure. All take one depth, that of screen height 0 (about where the pool
         // shows past the near rail): behind the inner boilers' domes (their footprints' diagonal lies at -.71), the near

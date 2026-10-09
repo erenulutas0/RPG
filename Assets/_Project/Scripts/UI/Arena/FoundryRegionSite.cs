@@ -283,7 +283,7 @@ namespace Cryptforge.UI
                 }
         }
 
-        private static bool CourtLantern(Vector2 p)=>(p.x==-24.5f&&p.y==-6)||(p.x==2&&p.y==-14.5f)||
+        private static bool CourtLantern(Vector2 p)=>(p.x==-24.5f+WestShift&&p.y==-6)||(p.x==2&&p.y==-14.5f)||
             (p.x==-14&&p.y==18.5f)||(p.x==10&&p.y==18.5f);
 
         // A court post's stone, bottom-up: a stronger stepped silhouette than the old exterior posts - plinth, shaft, a mid
@@ -354,7 +354,7 @@ namespace Cryptforge.UI
 
         private void BuildCraneHardware(ArenaView arena)
         {
-            Vector3 foot=Project(-25.5f,13)+Vector3.up*1.1f;
+            Vector3 foot=WestProject(-25.5f,13)+Vector3.up*1.1f;
             var iron=new Builder();
             // Broad gusset plates anchor the existing lattice tower to its plinth.
             foreach(float sign in new[]{-1f,1f})

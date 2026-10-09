@@ -35,7 +35,7 @@ namespace Cryptforge.UI
         private static readonly Color CoolSlate=new Color(1f,.945f,1.09f),CourtAmbient=new Color(1.05f,.99f,1.11f);
         private static readonly Color FireAbsorb=new Color(0,.42f,.22f,0);
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
-        private static readonly Vector2[] CourtLanternPosts={new Vector2(-24.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
+        private static readonly Vector2[] CourtLanternPosts={WestPoint(-24.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
         private static readonly Vector2[] ForgeBeacons={new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
             new Vector2(32.5f,-2),new Vector2(32.5f,12)};
         private static ForgeLamp[] _forgeLamps;
@@ -135,7 +135,7 @@ namespace Cryptforge.UI
             // Match both supported service shelves in BuildWorkshop: the old stock
             // footprint omitted the anvil extension and the pipe/quenching station.
             // Reuse the existing deposit field rather than layering another stain.
-            float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,-29f,5,-24.45f,8.4f),
+            float stockDistance=Mathf.Min(DistanceFromFloorBox(u,v,SalvageShelf.x,SalvageShelf.y,SalvageShelf.z,SalvageShelf.w),
                 DistanceFromFloorBox(u,v,StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w));
             float shaftSoot=Mathf.Clamp01(1-shaftDistance/1.45f);
             shaftSoot*=shaftSoot*Mathf.Lerp(.55f,1,FloorPatina(u*.71f+9,v*.71f-4));

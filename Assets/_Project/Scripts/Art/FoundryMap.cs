@@ -10,7 +10,9 @@ namespace Cryptforge.Art
         // Reference-led court: a broad west workshop, a large off-centre furnace opening,
         // and a narrower gate causeway ending in a full-width landing. These same bounds
         // own the floor mesh, hero clearance, spawning and the pursuit visibility graph.
-        public const int West=-24,South=-14,North=18,East=14;
+        public const int West=-30,South=-14,North=18,East=14;
+        // Original west service assemblies were authored against the -24 court edge.
+        public const int WestAssemblyOffset=West+24;
         public const int PitWest=-16,PitSouth=2,PitEast=-4,PitNorth=14;
         public const int CornerCut=6;
         public const int NorthCornerCut=4,CornerCount=4;

@@ -6,9 +6,9 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryMapTests
     {
-        [TestCase(-23f,-13f,-20f,-9f)]
+        [TestCase(-29f,-13f,-26f,-9f)]
         [TestCase(13f,-13f,9f,-9f)]
-        [TestCase(-23f,17f,-21f,15f)]
+        [TestCase(-29f,17f,-27f,15f)]
         [TestCase(13f,17f,11f,15f)]
         public void ChamferRejectsRemovedCornerAndStopsLongMovement(float cutU,float cutV,float safeU,float safeV)
         {
@@ -63,7 +63,16 @@ namespace Cryptforge.Tests
         public void EveryInteriorCellCanSpawnTenWithoutOverlapOrVoid(float offset)
         {
             var points=new EntryPlacement[10];
-            for(int u=-28;u<32;u++)for(int v=-28;v<FoundryMap.North;v++)
+            // Include the diagonal bridge and every authored room, including the widened workyard.
+            int minU=-28,minV=-28,maxU=-28,maxV=-28;
+            for(int room=0;room<FoundryMap.RectangleCount;room++)
+            {
+                minU=System.Math.Min(minU,FoundryMap.Bound(room,0));
+                minV=System.Math.Min(minV,FoundryMap.Bound(room,1));
+                maxU=System.Math.Max(maxU,FoundryMap.Bound(room,2));
+                maxV=System.Math.Max(maxV,FoundryMap.Bound(room,3));
+            }
+            for(int u=minU;u<maxU;u++)for(int v=minV;v<maxV;v++)
             {
                 FoundryMap.ToFloor(u+offset,v+offset,out float x,out float y);
                 if(!FoundryMap.Contains(x,y,.6f))continue;
@@ -84,6 +93,43 @@ namespace Cryptforge.Tests
             FoundryMap.ToDesign(x,y,out float u,out _);
             Assert.That(u,Is.LessThan(FoundryMap.PitWest));
             Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+        [TestCase(-27f,0f)]
+        [TestCase(-27f,6f)]
+        [TestCase(-26f,12f)]
+        [TestCase(-23f,-13f)]
+        [TestCase(-23f,17f)]
+        public void ExpandedWestWorkyardKeepsFullHeroClearance(float u,float v)
+        {
+            FoundryMap.ToFloor(u,v,out float x,out float y);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+        [TestCase(-27f,6f,0f,6f)]
+        [TestCase(-27f,6f,28f,6f)]
+        [TestCase(-27f,6f,-23f,-23f)]
+        [TestCase(-26f,16f,-2f,16f)]
+        [TestCase(-27f,-9f,11f,15f)]
+        public void ExpandedWestPursuitReachesBothEnds(float u,float v,float goalU,float goalV)
+        {
+            AssertRoute(u,v,goalU,goalV);
+            AssertRoute(goalU,goalV,u,v);
+        }
+        private static void AssertRoute(float u,float v,float goalU,float goalV)
+        {
+            FoundryMap.ToFloor(u,v,out float x,out float y);
+            FoundryMap.ToFloor(goalU,goalV,out float hx,out float hy);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            Assert.That(FoundryMap.Contains(hx,hy,.6f),Is.True);
+            var route=new FoundryPursuit();
+            for(int tick=0;tick<6000&&ArenaFloor.FloorDistanceSquared(x,y,hx,hy)>.04f;tick++)
+            {
+                float tx=hx,ty=hy;route.Target(x,y,hx,hy,ref tx,ref ty);
+                float dx=tx-x,dy=ty-y;float length=(float)System.Math.Sqrt(dx*dx+dy*dy);
+                float oldX=x,oldY=y;
+                if(length>0)FoundryMap.Move(ref x,ref y,dx/length*System.Math.Min(.08f,length),dy/length*System.Math.Min(.08f,length),.6f);
+                Assert.That(FoundryMap.Segment(oldX,oldY,x,y,.6f),Is.True);
+            }
+            Assert.That(ArenaFloor.FloorDistanceSquared(x,y,hx,hy),Is.LessThanOrEqualTo(.04f),$"Route {u},{v} -> {goalU},{goalV}");
         }
         [Test] public void PursuitRoutesAroundHoleAndThroughPassage()
         {

@@ -9,6 +9,7 @@ namespace Cryptforge.UI
     {
         private void BuildUndercroft(ArenaView arena)
         {
+            BuildFoundationCurtain(arena);
             // Piers go in after every arch. Arches and piers share one masonry batch, painted in emission order, and _cells
             // lists the court before the room west of it, so the arch from (-8,-14) followed the major pier at (-4,-14),
             // right of the bridge head, and laid its foot over the pier's left half. Now every pier covers both arch feet.
@@ -33,7 +34,7 @@ namespace Cryptforge.UI
             }
             foreach(var pier in piers)UndercroftPier(arena,pier.at,pier.major);
             // Long suspension catenaries connect scenery anchors beneath the deck.
-            SuspendedChain(arena,Project(-26,-10)+Vector3.down*4,
+            SuspendedChain(arena,Project(FoundryMap.West-2,-10)+Vector3.down*4,
                 Project(-12,-10)+Vector3.down*4,2.1f);
             SuspendedChain(arena,Project(4,-10)+Vector3.down*4,
                 Project(12,-10)+Vector3.down*4,2.4f);
@@ -41,6 +42,49 @@ namespace Cryptforge.UI
             // screen (6.29 under its mouth), the casing's rank (-16) painting it over that face (-17), which stands in front.
             foreach(var drain in new[]{new Vector2(17,5.2f),new Vector2(25,6.7f)})
                 FurnaceDrain(arena,Project(drain.x+1.5f,-5.1f),drain.y);
+        }
+
+        // A fortress needs a connected body below its deck. The former arches joined
+        // only at their crowns, leaving long isolated posts against the cavern. A broad
+        // recessed curtain now binds their full springing height and tapers inward at
+        // its foot. Arch faces and buttresses emitted later remain proud of this body.
+        private void BuildFoundationCurtain(ArenaView arena)
+        {
+            var spans=new List<(Vector2 a,Vector2 b)>();
+            foreach(var cell in _cells)
+            {
+                int u=cell.x,v=cell.y;
+                if(!FoundryMap.UncutCell(u,v-1)&&!InPit(u+.5f,v-.5f)&&CourtEdgeVisible(u+.5f,v))
+                    spans.Add((new Vector2(u,v),new Vector2(u+1,v)));
+                if(!FoundryMap.UncutCell(u-1,v)&&!InPit(u-.5f,v+.5f)&&CourtEdgeVisible(u,v+.5f))
+                    spans.Add((new Vector2(u,v),new Vector2(u,v+1)));
+            }
+            for(int corner=0;corner<2;corner++)
+            {
+                CornerEdge(corner,out var a,out var b,out _);
+                spans.Add((a,b));
+            }
+            // The bridge joins through the shared union's open edge; never close it
+            // with an invented cross-wall or fill the central smelting opening.
+            foreach(var span in spans)
+            {
+                Vector3 a=Project(span.a.x,span.a.y),b=Project(span.b.x,span.b.y);
+                var stone=new Builder();
+                Color tone=span.a.x==span.b.x?new Color(.34f,.37f,.46f):new Color(.43f,.44f,.52f);
+                const float shoulder=5.95f,foot=7.25f;
+                stone.WallQuad(a+Vector3.down*shoulder,b+Vector3.down*shoulder,
+                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,false,tone);
+                // One shared contraction maps every adjoining endpoint identically,
+                // including diagonal corners, so the lower skirt has no seam gaps.
+                Vector2 centre=new Vector2(-8,2);
+                Vector2 innerA=Vector2.Lerp(span.a,centre,.035f),innerB=Vector2.Lerp(span.b,centre,.035f);
+                Vector3 lowerA=Project(innerA.x,innerA.y)+Vector3.down*foot;
+                Vector3 lowerB=Project(innerB.x,innerB.y)+Vector3.down*foot;
+                stone.WallQuad(lowerA,lowerB,b+Vector3.down*shoulder,a+Vector3.down*shoulder,
+                    false,new Color(tone.r*.78f,tone.g*.81f,tone.b*.88f));
+                ShadeUndercroftDepth(stone,a,b);
+                Create("Continuous fortress foundation",stone,arena.PlatformMaterials.FoundryWall,-16);
+            }
         }
 
         private static bool ExteriorSpan(int x,int y,bool alongX)
@@ -140,14 +184,13 @@ namespace Cryptforge.UI
         private void UndercroftPier(ArenaView arena,Vector2 at,bool major)
         {
             Vector3 anchor=Project(at.x,at.y);
-            float half=major?.42f:.29f,depth=major?8.8f:7.25f;
+            float half=major?.58f:.44f,depth=major?7.9f:6.9f;
             Vector3 top=anchor+Vector3.down*2.5f;
             Vector3 foot=anchor+Vector3.down*depth;
             Vector3 bevel=new Vector3(half*.32f,.12f,0);
             var stone=new Builder();
-            // Broad longitudinal planes make the shaft read as structural masonry
-            // below the deck. This only partitions the old front quad: the outline,
-            // taper, depth owner and continuously projected stone UVs are unchanged.
+            // Broad, shorter responds grow out of the connected curtain rather than
+            // reading as separate needles. Only major responds reach below its skirt.
             float[] across={-1f,-.56f,.56f,1f};
             Color[] front={new Color(.32f,.35f,.45f),new Color(.45f,.46f,.53f),
                 new Color(.39f,.41f,.50f)};

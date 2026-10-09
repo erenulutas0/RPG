@@ -38,7 +38,8 @@ namespace Cryptforge.UI
         // metal PitMolten below the deck (over the deep coal bed), and collar stone fills the hole outside the band. The
         // walkable edge stays the hole's.
         private const float PitU0=FoundryMap.PitWest,PitV0=FoundryMap.PitSouth,PitU1=FoundryMap.PitEast,PitV1=FoundryMap.PitNorth;
-        private const float PitCollar=.55f,PitDepth=5f,PitMolten=3.6f;
+        private const float PitCollar=.55f,PitDepth=6.6f;
+        internal const float PitMolten=5.2f;
         private const float PitHalf=(PitU1-PitU0)*.5f,PitRim=PitHalf-PitCollar+RailDepth,PitRound=3.2f;
         private const float PitStraight=PitRim-PitRound,PitQuarter=2*PitStraight+PitRound*Mathf.PI*.5f;
         private static readonly Vector2 PitCentre=new Vector2((PitU0+PitU1)*.5f,(PitV0+PitV1)*.5f);
@@ -311,7 +312,7 @@ namespace Cryptforge.UI
                 // floor or the lining, and under the pool it closes any seam the pool leaves.
                 var basin=new Builder();
                 FullFace(basin,Project(iu0,iv0)+floor,Project(iu1,iv0)+floor,Project(iu1,iv1)+floor,Project(iu0,iv1)+floor,
-                    new Color(.95f,.62f,.42f));
+                    new Color(.58f,.36f,.23f));
                 Create("Furnace pit coal bed",basin,set.FoundryEmbers,-17);
                 var pool=new Builder();
                 PitPool(pool);
@@ -321,7 +322,8 @@ namespace Cryptforge.UI
             {
                 var walls=new Builder();
                 PitLiningFronts(walls);
-                // The inner drums share the ribbed pit surface; boiler doors stay on the court's towers.
+                // Long iron vessels descend with the lining to the deep pool. The dedicated
+                // lining atlas contains a pipe strip used by their body, ribs and belts.
                 foreach(var c in PitBoilers)PitDrum(walls,c);
                 Create("Furnace pit lining and inner boilers",walls,set.FoundryPitLining,-15.5f);
             }
@@ -374,7 +376,8 @@ namespace Cryptforge.UI
                     using(MassDepth(box,RailPlinth))Create("Pit collar stone",stone,wall,-11);
                 }});
             }
-            // Masonry domes of the inner boilers rise just above the deck, between the far and near collar.
+            // The existing formed hoods stay just above deck level; the longer industrial
+            // vessels beneath them now establish the shaft's depth without hiding the court.
             foreach(var c in PitBoilers)
             {
                 Vector2 centre=c;
@@ -440,8 +443,8 @@ namespace Cryptforge.UI
 
         // The pool of molten metal, PitMolten down, where the camera can see it: in the gap between the two inner boilers,
         // from the lining's foot toward the near collar, which hides the rest of the pit's floor (from the camera the near
-        // rail covers the lining below about 2 to 3 deep, so the floor shows only there, and behind the near balusters). It is
-        // the hot heart of the ember texture, lifted to near white heat. Its far edge runs .05 in under the lining's foot and
+        // rail conceals the near half of the deeper floor). It is a contained orange source below long dark machinery,
+        // rather than a broad near-white surface at the rim. Its far edge runs .05 in under the lining's foot and
         // its sides .05 in behind the boilers' silhouettes, so no seam opens: both are in the lining's batch, which draws
         // after this one (on the shared rank the undercroft discharge keeps this batch's bounds centre higher) and paints
         // over the overlap; were the two ever to swap, only those .05 bands would change. It draws over the layout
@@ -473,7 +476,7 @@ namespace Cryptforge.UI
         }
         // The pool's tone, brightest at the lining's foot; and where the ember texture's molten channels meet (u .47-.53, v
         // .23-.29) mapped over the enlarged opening, so unrelated crust plates never enter the pool.
-        private static readonly Color PitPoolFar=new Color(1.9f,1.82f,1.6f),PitPoolNear=new Color(1.7f,1.35f,1.05f);
+        private static readonly Color PitPoolFar=new Color(1.4f,1.15f,.85f),PitPoolNear=new Color(1.05f,.70f,.42f);
         // Keep the enlarged basin within the molten-channel patch of the existing atlas.
         // Absolute old-layout UVs exposed unrelated pale crust plates after relocation.
         private static Vector2 PitPoolTexel(Vector2 p)=>new Vector2(.497f+(p.x-PitCentre.x)*.005f,.262f+(p.y-PitCentre.y)*.005f);
@@ -499,7 +502,7 @@ namespace Cryptforge.UI
         // The new texture has baked bottom heat and coals in its lowest 12%; its v=.06 meets the waterline.
         // A broad contact shadow under the collar releases into the painted stone. Shading
         // is evaluated at shared stations so the rounded wall does not read as flat stripes.
-        private static readonly float[] PitLiningRows={0,.18f,.55f,1.05f,1.45f,1.75f,PitMolten-PitSeam};
+        private static readonly float[] PitLiningRows={0,.18f,.55f,1.05f,1.75f,2.65f,4.1f,PitMolten-PitSeam};
         private const float PitSeam=.07f,PitFrontScale=PitMolten/.94f;
         private static void PitLiningFronts(Builder walls)
         {
@@ -530,11 +533,11 @@ namespace Cryptforge.UI
             }
         }
         // A translucent sample of the painted coals joins the lining to the separate molten pool.
-        private static readonly float[] PitWashRows={.45f,1.2f,1.65f,PitMolten-PitSeam};
+        private static readonly float[] PitWashRows={1.8f,2.65f,4.1f,PitMolten-PitSeam};
         private static Color PitWash(float depth)
         {
-            float glow=Mathf.Pow(Mathf.InverseLerp(.45f,PitMolten-PitSeam,depth),1.6f);
-            return new Color(1,.92f,.8f,.22f*glow);
+            float glow=Mathf.Pow(Mathf.InverseLerp(1.8f,PitMolten-PitSeam,depth),1.6f);
+            return new Color(1,.92f,.8f,.16f*glow);
         }
         // The far wall receives the open pool's light; the two turning ends stay darker.
         // This only attenuates the previous lighting envelope (at most 1.08), while the
@@ -561,8 +564,8 @@ namespace Cryptforge.UI
         // Light from the pool at a depth: from cool to hot as the height above the metal falls through reach.
         private static Color PitHeat(float depth,Color cool,Color hot,float reach)=>
             Color.LerpUnclamped(cool,hot,Mathf.Exp(-(PitMolten-depth)/reach));
-        private static readonly Color PitWallCool=new Color(.95f,.92f,.90f),PitWallHot=new Color(1.05f,.98f,.90f);
-        private static readonly Color PitDrumCool=new Color(.65f,.63f,.61f),PitDrumHot=new Color(1.15f,1f,.85f);
+        private static readonly Color PitWallCool=new Color(.80f,.82f,.88f),PitWallHot=new Color(1.05f,.98f,.90f);
+        private static readonly Color PitDrumCool=new Color(.95f,1f,1.08f),PitDrumHot=new Color(1.3f,1.08f,.85f);
         // An orange gap between coals in the dedicated lining, avoiding the old facade's grate UV.
         private static readonly Vector4 PitFire=new Vector4(.415f,.07f,.425f,.08f);
         private static readonly Color PitSeamTone=new Color(1f,1.1f,.95f);
@@ -578,17 +581,16 @@ namespace Cryptforge.UI
             b.C[start+2]=upper;b.C[start+3]=upper;
         }
 
-        // An inner boiler's painted drum from the pool up to the deck: the lining wrapped once round its visible half
-        // as PaintedDrum wraps it, at the lining's texture scale, in courses lit by the pool like the lining but closer to
-        // it - dark above, so the boiler stands out against the lit wall behind - with a rim of the pool's light up the side
-        // turned to the gap (PitDrumHeat), and the same seam of fire at the waterline.
-        private static readonly float[] PitDrumRows={0,.9f,1.45f,1.75f,PitMolten-PitSeam};
+        // The atlas's continuous dark pipe strip makes these long vessels read as machinery,
+        // distinct from the large stone lining panels. Their original radius/hoods are retained.
+        private static readonly float[] PitDrumRows={0,.85f,1.75f,2.65f,4.1f,PitMolten-PitSeam};
         private static void PitDrum(Builder b,Vector2 c)
         {
             const int m=8;
             for(int k=0;k<m;k++)
             {
-                float a=FrontAngle(k,m),e=FrontAngle(k+1,m),u0=k/(float)m,u1=(k+1)/(float)m;
+                float a=FrontAngle(k,m),e=FrontAngle(k+1,m);
+                float u0=Mathf.Lerp(.229f,.282f,k/(float)m),u1=Mathf.Lerp(.229f,.282f,(k+1)/(float)m);
                 Color light=PaintLight((a+e)*.5f);
                 float rim=PitFacingPool(c,(a+e)*.5f);
                 Vector3 p=OnRing(c,1,a,0),q=OnRing(c,1,e,0);
@@ -600,11 +602,35 @@ namespace Cryptforge.UI
                 }
                 PitFront(b,p,q,PitMolten-PitSeam,PitMolten,PitFire,PitSeamTone,PitSeamTone);
             }
+            PitVesselStructure(b,c);
+        }
+
+        private static void PitVesselStructure(Builder b,Vector2 c)
+        {
+            // Three uninterrupted stiffening ribs turn the tall below-deck body into a
+            // legible furnace vessel. They stay below the original radius1.1 hood envelope.
+            foreach(int facet in new[]{1,4,6})
+            {
+                float angle=FrontAngle(facet,8)+Mathf.PI/16;
+                Vector3 a=OnRing(c,1.025f,angle-.055f,0),d=OnRing(c,1.025f,angle+.055f,0);
+                float rim=PitFacingPool(c,angle);
+                PitFront(b,a,d,.15f,PitMolten-.16f,new Vector4(.24f,.17f,.278f,.90f),
+                    Tinted(PitDrumCool,new Color(1.06f,1.06f,1.06f)),PitDrumHeat(PitMolten-.16f,rim));
+            }
+            // Retaining belts wrap the vessel's actual curved section; no floating screen bars.
+            foreach(float depth in new[]{.85f,2.65f,4.45f})
+                for(int k=0;k<8;k++)
+                {
+                    float a=FrontAngle(k,8),e=FrontAngle(k+1,8),angle=(a+e)*.5f;
+                    Vector3 p=OnRing(c,1.04f,a,0),q=OnRing(c,1.04f,e,0);
+                    Color tone=Tinted(PaintLight(angle),new Color(1.18f,1.09f,.93f));
+                    PitFront(b,p,q,depth,depth+.14f,new Vector4(.23f,.56f,.28f,.60f),tone,tone);
+                }
         }
         // The drum's light: the pool's from below, and on the side turned to the gap between the boilers - which is all the
         // camera sees of them below the deck - a rim of it that reaches up the drum.
         private static Color PitDrumHeat(float depth,float rim)=>
-            Color.LerpUnclamped(PitHeat(depth,PitDrumCool,PitDrumHot,.42f),PitDrumHot,rim*Mathf.Lerp(.3f,.8f,depth/PitMolten));
+            Color.LerpUnclamped(PitHeat(depth,PitDrumCool,PitDrumHot,.55f),PitDrumHot,rim*Mathf.Lerp(.08f,.65f,depth/PitMolten));
         // How squarely a boiler's face at angle turns to the pit's centre, where the pool shows: 0 turned away, 1 square on.
         private static float PitFacingPool(Vector2 c,float angle)
         {
@@ -945,14 +971,14 @@ namespace Cryptforge.UI
         // here among the rail pieces, their iron with the court borders (FoundryRegionSite.cs).
         private static readonly Vector2[] CourtFinials =
         {
-            new Vector2(-24.5f,-6),new Vector2(-24.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(7.5f,-14.5f),
+            WestPoint(-24.5f,-6),WestPoint(-24.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(7.5f,-14.5f),
             new Vector2(-14,18.5f),new Vector2(0,18.5f),new Vector2(10,18.5f)
         };
 
         // New lantern posts: the court's convex corners, the apron's concave corner, and the longest bare runs.
         private static readonly Vector4[] RailLanterns =
         {
-            new Vector4(-22.64f,16.08f,-22.08f,16.64f),new Vector4(-24.72f,.64f,-24,1.36f),
+            WestBox(-22.64f,16.08f,-22.08f,16.64f),WestBox(-24.72f,.64f,-24,1.36f),
             new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-.72f,14.72f,0),
             new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f)
         };
@@ -961,7 +987,7 @@ namespace Cryptforge.UI
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =
         {
-            new Vector4(-27,11,-24,15),new Vector4(-29,5,-24.45f,8.4f),new Vector4(-25,8.4f,-24,10.5f),StockShelf,
+            WestBox(-27,11,-24,15),SalvageShelf,WestBox(-25,8.4f,-24,10.5f),StockShelf,
             new Vector4(19.5f,-2.6f,24.6f,-2),
             new Vector4(32,-3,35,-1),new Vector4(32,11,35,13),
             new Vector4(21.3f,-6.8f,23.3f,-4.8f),new Vector4(21.3f,14.8f,23.3f,16.8f),
@@ -1306,7 +1332,7 @@ namespace Cryptforge.UI
         private static readonly Vector4[] Bastions =
         {
             new Vector4(14,-8,16.6f,-5.4f),new Vector4(.7f,-16.6f,3.3f,-14),new Vector4(5.7f,-16.6f,8.3f,-14),
-            new Vector4(-26.6f,-7.3f,-24,-4.7f),new Vector4(-26.6f,-.3f,-24,2.3f),new Vector4(-26.6f,11.4f,-24,14)
+            WestBox(-26.6f,-7.3f,-24,-4.7f),WestBox(-26.6f,-.3f,-24,2.3f),WestBox(-26.6f,11.4f,-24,14)
         };
 
         private void BuildBastions(ArenaView arena)
@@ -1333,11 +1359,11 @@ namespace Cryptforge.UI
             // The corner bastions' anchor chains and the catenary between the first two south piers (they were straight
             // and per-segment; now hung, the anchor chains with a slight sag):
             AbyssChain(arena,new Vector3(14.8f,-8f,-3.4f),0,new Vector2(5.2f,-7.2f),.45f,.36f);
-            AbyssChain(arena,new Vector3(-26.6f,12.4f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
+            AbyssChain(arena,new Vector3(-26.6f+WestShift,12.4f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
             PierChain(arena,new Vector3(3f,-16.6f,-4f),0,new Vector3(7f,-16.6f,-4f),0,2f,.26f);
             // Across the gap between the two south-west piers of the west rim, and from the nearer one into the void.
-            PierChain(arena,new Vector3(-26.6f,-5f,-3.5f),1,new Vector3(-26.6f,.3f,-3.5f),1,1.5f,.3f);
-            AbyssChain(arena,new Vector3(-26.6f,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
+            PierChain(arena,new Vector3(-26.6f+WestShift,-5f,-3.5f),1,new Vector3(-26.6f+WestShift,.3f,-3.5f),1,1.5f,.3f);
+            AbyssChain(arena,new Vector3(-26.6f+WestShift,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
             // From the far gateposts' outboard chamfers, out of frame on both sides of the bridge's end; each post's
             // stone (-11) hides the anchor link, so the chain comes from behind it.
             AbyssChain(arena,new Vector3(-27.855f,-22.745f,-2.2f),-1,new Vector2(-6.6f,-8.6f),.6f,.4f);
@@ -1389,8 +1415,8 @@ namespace Cryptforge.UI
         // (-3.4 to -4.3 on the block faces, plates included), and the block and head keep the deck footprint exactly as before.
         private static readonly Vector3[] PierForms =
         {
-            new Vector3(-19.5f,-5.2f,0),new Vector3(-17.2f,-4.7f,1),new Vector3(-20.4f,-5.6f,2),
-            new Vector3(-18.2f,-5f,1),new Vector3(-20.8f,-5.4f,0),new Vector3(-16.8f,-4.8f,2)
+            new Vector3(-9.2f,-5.2f,0),new Vector3(-8.6f,-4.7f,1),new Vector3(-10.2f,-5.6f,2),
+            new Vector3(-9.4f,-5f,1),new Vector3(-10f,-5.4f,0),new Vector3(-8.8f,-4.8f,2)
         };
         private static readonly Color PierLedge=new Color(.76f,.79f,.88f);
 

@@ -24,3 +24,8 @@ Replace only the five ingot meshes, parts chest and anvil metal/resting hammer. 
 The isolated render was inspected. The broad worked anvil face is quieter than the initial trial, with a genuine square hardy hole and a rounded tapered horn. Chest straps sit above the lid rather than on a coplanar surface. Cast ingots retain their original five-piece arrangement. No emissive parts, floor plane, masonry or shadow catcher are included, so transparent surrounding pixels cannot paint a false shelf contact shadow.
 
 This is an isolated source-art review. Runtime compression, scene ordering, footprint/cutaway ownership, actual portrait visibility, renderer cost and device acceptance require separate integration verification. Baked lighting is static and the whole source is specific to this stationary arrangement. Full reference quality is not claimed.
+
+
+## Current placement after the west-yard expansion
+
+The coordinates above describe the original authoring frame. Production now adds FoundryMap.WestAssemblyOffset (-6) to the anchor and both footprint u endpoints together. The source image, quad extents and UVs remain unchanged. Current origin is Project(-32.725,6.7), footprint(-35,5,-30.45,8.4). See foundry-massing-01 for actual translated placement and current validation.

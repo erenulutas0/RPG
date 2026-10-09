@@ -64,7 +64,7 @@ namespace Cryptforge.UI
         // Occluders whose parts are built in other partial files without a scope (dressing, site finish, workshop).
         private void RegisterDepthLandmarks()
         {
-            DepthLandmark(-27,11,-24,15,8.6f); // Crane footing, mast, collar and the jib root.
+            DepthLandmark(-27+WestShift,11,-24+WestShift,15,8.6f); // Crane footing, mast, collar and the jib root.
             foreach(float v in new[]{15.8f,-5.8f})DepthLandmark(21.3f,v-1,23.3f,v+1,3.7f); // Pressure reservoirs.
             foreach(float v in new[]{-4.5f,14.5f})DepthLandmark(19.7f,v-.4f,25.1f,v+.4f,2.4f); // Service mains.
             foreach(var p in CourtFinials)
@@ -72,7 +72,7 @@ namespace Cryptforge.UI
             foreach(var p in BridgeFootPosts)
                 DepthLandmark(p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,3.2f); // Bridge piers with their beacons.
             foreach(var p in BridgeHeadPosts)DepthLandmark(p.x-.7f,p.y-.7f,p.x+.7f,p.y+.7f,4.3f);
-            DepthLandmark(-29f,5,-24.45f,8.4f,1.6f); // Salvage shelf with its anvil, crate and stock.
+            DepthLandmark(SalvageShelf.x,SalvageShelf.y,SalvageShelf.z,SalvageShelf.w,1.6f); // Salvage shelf with its anvil, crate and stock.
             DepthLandmark(StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,1.6f); // Northwest pipe/tool station.
         }
         // The frontmost landmark whose volume holds the point; -1 when none does.

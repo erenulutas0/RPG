@@ -26,15 +26,15 @@ namespace Cryptforge.UI
             // Crane loading bay, on its landing (.18). The two barrels stand in the screen column of the crane footing's
             // court finial, below its iron panels: iron, over the finial's stone. The crate stack and the sack stand behind
             // the salvage shelf's parts bin and anvil: masonry, under them.
-            (ClutterKind.Barrel,new Vector4(-26.09f,10.26f,-25.51f,10.84f),.18f,.86f,true),
-            (ClutterKind.Crate,new Vector4(-25.45f,9.35f,-24.62f,10.15f),.18f,.92f,false),
-            (ClutterKind.Crate,new Vector4(-25.3f,9.5f,-24.75f,10.05f),.92f,1.38f,false),
-            (ClutterKind.Barrel,new Vector4(-26.18f,9.62f,-25.62f,10.18f),.18f,.84f,true),
-            (ClutterKind.Sack,new Vector4(-26.15f,8.85f,-25.65f,9.35f),.18f,.56f,false),
+            (ClutterKind.Barrel,WestBox(-26.09f,10.26f,-25.51f,10.84f),.18f,.86f,true),
+            (ClutterKind.Crate,WestBox(-25.45f,9.35f,-24.62f,10.15f),.18f,.92f,false),
+            (ClutterKind.Crate,WestBox(-25.3f,9.5f,-24.75f,10.05f),.92f,1.38f,false),
+            (ClutterKind.Barrel,WestBox(-26.18f,9.62f,-25.62f,10.18f),.18f,.84f,true),
+            (ClutterKind.Sack,WestBox(-26.15f,8.85f,-25.65f,9.35f),.18f,.56f,false),
             // On the crane footing's iron roof (1.12), in its far corner clear of the mast: iron, over the west rail behind.
-            (ClutterKind.Barrel,new Vector4(-26.78f,14.32f,-26.22f,14.88f),1.12f,1.8f,true),
-            (ClutterKind.Barrel,new Vector4(-26.87f,13.68f,-26.33f,14.22f),1.12f,1.78f,true),
-            (ClutterKind.Crate,new Vector4(-26.9f,13.1f,-26.35f,13.6f),1.12f,1.62f,true),
+            (ClutterKind.Barrel,WestBox(-26.78f,14.32f,-26.22f,14.88f),1.12f,1.8f,true),
+            (ClutterKind.Barrel,WestBox(-26.87f,13.68f,-26.33f,14.22f),1.12f,1.78f,true),
+            (ClutterKind.Crate,WestBox(-26.9f,13.1f,-26.35f,13.6f),1.12f,1.62f,true),
             // Pipe shelf (.18): a barrel between the strip coils and the quenching tank, clear of the coils on screen, and a
             // crate in front of the tool rack, clear of the stored pipes' ends: iron, emitted after the workshop's stock.
             (ClutterKind.Barrel,new Vector4(4.74f+StockShift,20.89f,5.26f+StockShift,21.41f),.18f,.86f,true),
@@ -61,7 +61,7 @@ namespace Cryptforge.UI
         // The yards' landings stand behind the rail, which hides all but their top.
         private static readonly (Vector4 box,float depth)[] ClutterLandings=
         {
-            (new Vector4(-26.2f,8.4f,-24.45f,11f),1.8f),(new Vector4(14.6f,12.8f,16.3f,18.3f),2.8f),
+            (WestBox(-26.2f,8.4f,-24.45f,11f),1.8f),(new Vector4(14.6f,12.8f,16.3f,18.3f),2.8f),
             (new Vector4(15.05f,-4.75f,15.7f,-2.5f),2.8f)
         };
         // The gate's fire baskets stand on the two end posts of the balustrade across its front (BuildBalustrade sets them at

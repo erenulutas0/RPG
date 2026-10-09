@@ -11,8 +11,8 @@ namespace Cryptforge.UI
         {
             if(s.Zone!=0&&s.Zone!=3)return false;
             float u=(s.I+s.W*.5f)*.5f,v=(s.J+s.H*.5f)*.5f;
-            float west=ServiceApronWeight(u,v,-21.1f,6.8f,2.25f,4.1f);
-            float north=ServiceApronWeight(u,v,-15.3f,16f,3.45f,1.48f);
+            float west=ServiceApronWeight(u,v,-21.1f+WestShift,6.8f,2.25f,4.1f);
+            float north=ServiceApronWeight(u,v,-15.3f+WestShift,16f,3.45f,1.48f);
             float weight=Mathf.Max(west,north);
             if(weight<=0)return false;
             // All stones in the core belong to one repair. Only its outer shoulder

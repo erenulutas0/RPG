@@ -17,16 +17,16 @@ namespace Cryptforge.UI
             foreach(var p in new[]{new Vector2(-27.6f,-23),new Vector2(-23,-27.6f),
                 new Vector2(32.5f,-2),new Vector2(32.5f,12)})Beacon(arena,p.x,p.y);
             // Heavy exterior suspension links reinforce the floating foundry silhouette.
-            foreach(var p in new[]{new Vector2(-24,-8),new Vector2(5,-14),new Vector2(14,15)})
+            foreach(var p in new[]{WestPoint(-24,-8),new Vector2(5,-14),new Vector2(14,15)})
                 Chain(arena,Project(p.x,p.y)+Vector3.down*.3f,
                     Project(p.x-1,p.y)+Vector3.down*6.5f,.16f,-16);
         }
 
         private void BuildCrane(ArenaView arena)
         {
-            Block(arena,-27,11,-24,15,1.1f,3,"Crane masonry footing");
-            MetalCap(arena,-27,11,-24,15,1.12f);
-            Vector3 foot=Project(-25.5f,13)+Vector3.up*1.1f;
+            Block(arena,-27+WestShift,11,-24+WestShift,15,1.1f,3,"Crane masonry footing");
+            MetalCap(arena,-27+WestShift,11,-24+WestShift,15,1.12f);
+            Vector3 foot=WestProject(-25.5f,13)+Vector3.up*1.1f;
             Vector3 mast=foot+Vector3.up*6.5f;
             // A cast lower hoist tower seats on the existing shoe. The upper pivot,
             // jib and load keep their original height and suspension endpoints.
@@ -41,7 +41,7 @@ namespace Cryptforge.UI
                 float side=i%2==0?1:-1;
                 CraneBeam(arena,a+Vector3.right*.3f*side,a+Vector3.up*.95f-Vector3.right*.3f*side,.12f);
             }
-            Vector3 tip=Project(-26,20)+Vector3.up*7.8f;
+            Vector3 tip=WestProject(-26,20)+Vector3.up*7.8f;
             Vector3 rear=mast+Vector3.right;
             BuildCraneBoxJib(arena,rear,tip);
             CraneBeam(arena,mast,rear,.28f);

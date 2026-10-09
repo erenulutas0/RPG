@@ -15,9 +15,9 @@ namespace Cryptforge.UI
                     {name="Forged salvage workstation",mainTexture=texture};
             }
             // The metal kit shares the original salvage shelf depth; masonry stays procedural.
-            using(MassDepth(new Vector4(-29f,5,-24.45f,8.4f),1.6f))
+            using(MassDepth(SalvageShelf,1.6f))
             {
-                Vector3 origin=Project(-26.725f,6.7f);
+                Vector3 origin=WestProject(-26.725f,6.7f);
                 var b=new Builder();
                 b.V.AddRange(new[]{origin+new Vector3(-2.75f,-1.75f,0),origin+new Vector3(2.75f,-1.75f,0),
                     origin+new Vector3(2.75f,3.75f,0),origin+new Vector3(-2.75f,3.75f,0)});
