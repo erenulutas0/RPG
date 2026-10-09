@@ -16,7 +16,7 @@ try {
     $rewardRun=([xml](Get-Content -LiteralPath $rewardResults)).'test-run'
     if($rewardRun.result -ne 'Passed'){throw "Layout capture failed: $($rewardRun.result)"}
     Add-Type -AssemblyName System.Drawing
-    foreach($rewardFile in Get-ChildItem "$rewardRoot/ArtDirection/2026-10-09/baked-boiler-runtime-01" -Filter '*.bmp'){
+    foreach($rewardFile in Get-ChildItem "$rewardRoot/ArtDirection/2026-10-09/baked-boiler-runtime-02" -Filter '*.bmp'){
         $rewardBitmap=[System.Drawing.Bitmap]::new($rewardFile.FullName)
         try{$rewardBitmap.Save([IO.Path]::ChangeExtension($rewardFile.FullName,'png'),[System.Drawing.Imaging.ImageFormat]::Png)}finally{$rewardBitmap.Dispose()}
         Remove-Item -LiteralPath $rewardFile.FullName

@@ -14,7 +14,7 @@ namespace Cryptforge.Tests
 {
     public sealed class BakedBoilerRuntimeCapture
     {
-        const string Output="ArtDirection/2026-10-09/baked-boiler-runtime-01/";
+        const string Output="ArtDirection/2026-10-09/baked-boiler-runtime-02/";
         Scene _scene;
         [UnityTest] public IEnumerator CaptureProductionReplacement()
         {
@@ -43,15 +43,20 @@ namespace Cryptforge.Tests
             var type=typeof(FoundryRegionView);const BindingFlags fields=BindingFlags.Instance|BindingFlags.NonPublic;
             var region=arena.Region.GetComponent<FoundryRegionView>();
             type.GetField("_visibility",fields).SetValue(old,type.GetField("_visibility",fields).GetValue(region));
-            using((System.IDisposable)type.GetMethod("MassDepth",fields).Invoke(old,new object[]{new Vector4(16.39f,13.81f,20.39f,17.81f),7.2f}))
-                type.GetMethod("BuildTallBoiler",fields).Invoke(old,new object[]{arena,new Vector2(18.39f,15.81f)});
+            foreach(var c in new[]{new Vector2(18.39f,15.81f),new Vector2(26.95f,14.5f)})
+                using((System.IDisposable)type.GetMethod("MassDepth",fields).Invoke(old,new object[]{new Vector4(c.x-2,c.y-2,c.x+2,c.y+2),7.2f}))
+                    type.GetMethod("BuildTallBoiler",fields).Invoke(old,new object[]{arena,c});
             foreach(var batch in (IEnumerable)type.GetField("_batches",fields).GetValue(old))
             {
                 object Field(string name)=>batch.GetType().GetField(name,fields|BindingFlags.Public).GetValue(batch);
                 type.GetMethod("Emit",fields).Invoke(old,new[]{"Legacy boiler",Field("Builder"),Field("Material"),Field("Order"),Field("Owners")});
             }
             Capture(camera,arena,"furnace-before",1200,1200);
+            Vector3 pair=(centre+FoundrySurface.Project(26.95f,14.5f))*.5f;
+            camera.transform.position=new Vector3(pair.x,pair.y+3.5f,-10);camera.orthographicSize=7;
+            Capture(camera,arena,"pair-before",1600,1000);
             oldRoot.SetActive(false);foreach(var r in bakedRenderers)r.enabled=true;
+            Capture(camera,arena,"pair-after",1600,1000);
             camera.transform.position=new Vector3(0,4,-10);camera.orthographicSize=29;
             Capture(camera,arena,"overview",1600,1200);
             foreach(var p in new[]{new Vector2(12,12),new Vector2(16,9),new Vector2(22,9),new Vector2(28,9)})

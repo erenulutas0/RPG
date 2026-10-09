@@ -6,14 +6,17 @@ namespace Cryptforge.UI
     {
         private Material _bakedBoilerMaterial;
 
-        // One bounded replacement. Imported bake is shared; material/meshes belong to this scene.
+        // The north pair shares one source material and two static batches. Imported bake is shared; material/meshes belong to this scene.
         // Keep the existing footprint, foundation, pipe anchors and atmosphere source.
         private bool BuildBakedBoiler(ArenaView arena,Vector2 centre)
         {
-            var texture=Resources.Load<Texture2D>("FoundryBoiler");
-            if(texture==null)return false;
-            _bakedBoilerMaterial=new Material(Shader.Find("Sprites/Default"))
-                {name="Baked arched boiler",mainTexture=texture};
+            if(_bakedBoilerMaterial==null)
+            {
+                var texture=Resources.Load<Texture2D>("FoundryBoiler");
+                if(texture==null)return false;
+                _bakedBoilerMaterial=new Material(Shader.Find("Sprites/Default"))
+                    {name="Baked arched boiler",mainTexture=texture};
+            }
             Vector3 origin=Project(centre.x,centre.y);
             // Separate lower drum and upper shell ranks so existing front rails and pipework
             // retain their painter ordering. Both use the same footprint depth/cutaway.

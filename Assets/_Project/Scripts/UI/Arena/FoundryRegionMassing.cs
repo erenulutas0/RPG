@@ -76,7 +76,7 @@ namespace Cryptforge.UI
                 Vector2 c=BoilerCentres[i];
                 using(MassDepth(new Vector4(c.x-BoilerPlinth,c.y-BoilerPlinth,c.x+BoilerPlinth,c.y+BoilerPlinth),BoilerTop(i)))
                 {
-                    if(i==0&&BuildBakedBoiler(arena,c))continue;
+                    if(!SquatBoiler(i)&&BuildBakedBoiler(arena,c))continue;
                     if(SquatBoiler(i))BuildSquatBoiler(arena,c);
                     else BuildTallBoiler(arena,c);
                 }

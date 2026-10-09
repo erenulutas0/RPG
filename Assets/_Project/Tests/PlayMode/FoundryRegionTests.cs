@@ -133,10 +133,15 @@ namespace Cryptforge.Tests
                     {
                         bakedDepthBands++;
                         var card=renderer.GetComponent<MeshFilter>().sharedMesh;
-                        Assert.That(card.vertexCount,Is.EqualTo(4));
+                        Assert.That(card.vertexCount,Is.EqualTo(8),"Both north boilers must share each depth-band batch.");
                         var flags=new System.Collections.Generic.List<Vector2>();card.GetUVs(1,flags);
                         foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
-                        foreach(var p in card.vertices)Assert.That(p.z,Is.EqualTo(50+(18.39f+15.81f)*.35355339f).Within(.001f));
+                        var points=card.vertices;
+                        for(int i=0;i<points.Length;i++)
+                        {
+                            float sum=i<4?18.39f+15.81f:26.95f+14.5f;
+                            Assert.That(points[i].z,Is.EqualTo(50+sum*.35355339f).Within(.001f),"Each boiler retains its own footprint depth inside the shared batch.");
+                        }
                     }
                     continue;
                 }
@@ -175,11 +180,11 @@ namespace Cryptforge.Tests
                 }
             }
             Assert.That(keeperBatches,Is.EqualTo(1),"The guardian pair adds exactly one shared batch.");
-            Assert.That(bakedBatches,Is.EqualTo(2),"One replacement: two depth bands; shade shares existing floor decals.");
+            Assert.That(bakedBatches,Is.EqualTo(2),"Two replacements: two shared depth bands; shade shares existing floor decals.");
             Assert.That(bakedDepthBands,Is.EqualTo(2));
             Assert.That(otherBatches,Is.LessThanOrEqualTo(17),"The pre-existing architecture retains its renderer budget.");
             Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(20),
-                "Single baked boiler adds two explicitly bounded renderers to the prior18.");
+                "Baked boiler pair adds two explicitly bounded renderers to the prior18.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

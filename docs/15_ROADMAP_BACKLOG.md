@@ -402,3 +402,11 @@ Proof: ArtDirection/2026-10-09/blender-furnace-02. This advances the earlier Ble
 - [ ] Further wear/light coherence and other furnace variants only after evaluating this one replacement. Full reference fidelity and earlier ramp hitch remain open.
 
 Proof: ArtDirection/2026-10-09/baked-boiler-runtime-01. Study02 staged court placement is superseded by this actual one-boiler integration, but its editable Blender source remains authoritative.
+
+## 2026-10-09 — Accepted single boiler; shared north pair
+
+The preceding single-boiler device-review checkbox is now closed: guarded S23 movement, normal run and fresh profile/development-file hashes passed; evidence in baked-boiler-runtime-01/device. Short stationary samples do not close the separate first-use ramp hitch or sustained/midrange acceptance.
+
+The second tall north boiler now shares the accepted study02 texture/material and two depth bands. Both preserve independent mass ownership; short east boilers keep their original distinct design. Actual Unity pair comparison and four walkable approaches passed; region remains20renderers and drops to100,684vertices. Full gate and device results follow in the pair handoff. Proof: ArtDirection/2026-10-09/baked-boiler-runtime-02.
+
+Next substantial art work: author a distinct short-boiler variant using the same editable Blender workflow, compare it at actual game size before integration; then address coarse foreground pipe shading against the new baked forms. Do not replace the whole map indiscriminately. Full reference surface richness, actor/encounter art and first-ramp engineering investigation remain separate open work.

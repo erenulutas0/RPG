@@ -826,3 +826,11 @@ Decision: retain the Unity game and avoid a new paid service while evaluating on
 ## 2026-10-09 — First production Blender bake, bounded to one boiler
 
 Use the authored study02 render as two static depth-aware image bands on boiler0, not the full23,104-triangle source model. Preserve the existing foundation, pipe anchors and layout. Keep Android texture1024ASTC6/mips/non-readable and scene-owned materials. Contact shade joins existing floor decals after an existing regression test caught a second decal batch.20renderers replaces18with fewer vertices; device performance remains unmeasured. No new paid service or whole-map pipeline migration. Full suites/APK/install pass; device visual acceptance pending availability. Evidence: ArtDirection/2026-10-09/baked-boiler-runtime-01.
+
+## 2026-10-09 — Accepted single boiler; shared north pair
+
+The preceding single-boiler device-review checkbox is now closed: guarded S23 movement, normal run and fresh profile/development-file hashes passed; evidence in baked-boiler-runtime-01/device. Short stationary samples do not close the separate first-use ramp hitch or sustained/midrange acceptance.
+
+The second tall north boiler now shares the accepted study02 texture/material and two depth bands. Both preserve independent mass ownership; short east boilers keep their original distinct design. Actual Unity pair comparison and four walkable approaches passed; region remains20renderers and drops to100,684vertices. Full gate and device results follow in the pair handoff. Proof: ArtDirection/2026-10-09/baked-boiler-runtime-02.
+
+Next substantial art work: author a distinct short-boiler variant using the same editable Blender workflow, compare it at actual game size before integration; then address coarse foreground pipe shading against the new baked forms. Do not replace the whole map indiscriminately. Full reference surface richness, actor/encounter art and first-ramp engineering investigation remain separate open work.
