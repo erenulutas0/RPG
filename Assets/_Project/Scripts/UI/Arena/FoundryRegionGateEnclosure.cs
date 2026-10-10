@@ -80,6 +80,100 @@ namespace Cryptforge.UI
                 mesh.C[i]=new Color(tint.r*shade,tint.g*shade,tint.b*shade,1);
             }
             if(dressed)GateEnclosureDressedTier(mesh,first);
+            else if(bottom>=0&&top-bottom>.7f)GateEnclosureAshlar(mesh,first,bottom,top);
+        }
+
+        private static void GateEnclosureAshlar(Builder mesh,int first,float bottom,float top)
+        {
+            // Replace the wrapped large-brick face with cut ashlar, retaining the
+            // tier's exact corners/taper and its original cap. The original wall
+            // becomes the narrow mortar bed beneath the stones, not an extra decal.
+            // Two broad damp runs follow each face from the belt above; neighboring
+            // stones share their wash, rather than receiving independent dark tiles.
+            for(int face=0;face<3;face++)
+            {
+                int index=first+face*4;
+                var points=new[]{mesh.V[index],mesh.V[index+1],mesh.V[index+2],mesh.V[index+3]};
+                var tones=new[]{mesh.C[index],mesh.C[index+1],mesh.C[index+2],mesh.C[index+3]};
+                float width=Vector3.Distance(points[0],points[1]);
+                for(int i=0;i<4;i++)
+                {
+                    mesh.U[index+i]=new Vector2(i==0||i==3?.27f:.42f,i<2?.65f:.75f);
+                    // Keep chamfers solid and slightly damp instead of trying to
+                    // subdivide a narrow corner into tiny, high-contrast bricks.
+                    mesh.C[index+i]=tones[i]*(face==2?.88f:.72f);
+                    mesh.C[index+i]=new Color(mesh.C[index+i].r,mesh.C[index+i].g,mesh.C[index+i].b,1);
+                }
+                if(face==2||width<.35f)continue;
+                int rows=Mathf.Max(2,Mathf.RoundToInt((top-bottom)/.55f));
+                float total=0;
+                for(int row=0;row<rows;row++)total+=GateCourseWeight(row);
+                float y=0;
+                int columns=Mathf.Max(2,Mathf.RoundToInt(width/.63f));
+                for(int row=0;row<rows;row++)
+                {
+                    float next=y+GateCourseWeight(row)/total;
+                    // An alternating half bond and restrained repeating width rhythm
+                    // make proper masonry courses without a regular checkerboard.
+                    float x=row%2==0?0:-.46f/columns;
+                    int block=0;
+                    while(x<1)
+                    {
+                        float w=(block%3==0?1.14f:block%3==1?.91f:.95f)/columns;
+                        float end=Mathf.Min(1,x+w),start=Mathf.Max(0,x);
+                        float gapX=.008f/Mathf.Max(.3f,width);
+                        float gapY=.009f/(top-bottom);
+                        float a=start==0?0:start+gapX,b=end==1?1:end-gapX;
+                        float lo=row==0?0:y+gapY,hi=row==rows-1?1:next-gapY;
+                        if(b-a>.015f)
+                            GateAshlarStone(mesh,points,tones,a,b,lo,hi,row,block,face,bottom,top);
+                        x+=w;block++;
+                    }
+                    y=next;
+                }
+            }
+        }
+
+        private static float GateCourseWeight(int row)=>row%4==0?1.09f:row%4==1?.91f:row%4==2?1.04f:.96f;
+
+        private static Vector3 GateFaceLerp(Vector3[] face,float u,float v)=>
+            Vector3.Lerp(Vector3.Lerp(face[0],face[1],u),Vector3.Lerp(face[3],face[2],u),v);
+
+        private static void GateAshlarStone(Builder mesh,Vector3[] face,Color[] light,
+            float u0,float u1,float v0,float v1,int row,int block,int side,float bottom,float top)
+        {
+            int first=mesh.V.Count;
+            mesh.Quad(GateFaceLerp(face,u0,v0),GateFaceLerp(face,u1,v0),
+                GateFaceLerp(face,u1,v1),GateFaceLerp(face,u0,v1),false,Color.white);
+            // Sample different nearby pieces of the existing mineral grain. No
+            // visible brick seams from the old atlas and no additional texture.
+            float offset=(row+block*2)%4*.007f;
+            float a=.274f+offset,b=.406f-offset*.4f,c=.655f+(row%3)*.007f,d=.747f;
+            mesh.U[first]=new Vector2(a,c);mesh.U[first+1]=new Vector2(b,c);
+            mesh.U[first+2]=new Vector2(b,d);mesh.U[first+3]=new Vector2(a,d);
+            var uv=new[]{new Vector2(u0,v0),new Vector2(u1,v0),new Vector2(u1,v1),new Vector2(u0,v1)};
+            // Individual variation stays below the shared face weathering: a broad
+            // stone wall should not become a checkerboard of unrelated light values.
+            float stone=1f+(((block+row*3)%5)-2)*.018f;
+            for(int i=0;i<4;i++)
+            {
+                Vector2 p=uv[i];
+                Color baseLight=Color.Lerp(Color.Lerp(light[0],light[1],p.x),
+                    Color.Lerp(light[3],light[2],p.x),p.y);
+                float below=(1-p.y)*(top-bottom),above=p.y*(top-bottom);
+                float soot=.16f*Mathf.Exp(-below/.42f)+.07f*Mathf.Exp(-above/.38f);
+                float runA=Mathf.Clamp01(1-Mathf.Abs(p.x-(side==0?.27f:.68f))/.17f);
+                float runB=Mathf.Clamp01(1-Mathf.Abs(p.x-(side==0?.78f:.24f))/.11f);
+                float wash=(runA*runA*.13f+runB*runB*.075f)*Mathf.SmoothStep(.1f,1,p.y);
+                float mineral=Mathf.Clamp01(1-Mathf.Abs(p.x-.49f)/.30f)*
+                    Mathf.Clamp01(1-Mathf.Abs(p.y-.32f)/.37f)*.055f;
+                float value=stone*(1-soot-wash+mineral);
+                // Cool damp upper runs and a faint warm lower mineral wash stay in
+                // the established indigo/basalt palette and below the doorway's contrast.
+                float warm=mineral*.4f,cool=wash*.12f;
+                mesh.C[first+i]=new Color(baseLight.r*value*(1+warm-cool),
+                    baseLight.g*value*(1+warm*.2f),baseLight.b*value*(1+cool),1);
+            }
         }
 
         private static void GateEnclosureDressedTier(Builder mesh,int first)

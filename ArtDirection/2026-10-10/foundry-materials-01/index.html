@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge — Foundry materials</title>
+<style>
+:root{font:16px/1.55 system-ui,sans-serif;color:#dce0e9;background:#11141c;color-scheme:dark}*{box-sizing:border-box}body{margin:0}main{max-width:1400px;margin:auto;padding:30px 22px 60px}h1{font-size:clamp(28px,4vw,44px);line-height:1.15}p{max-width:950px;color:#bec5d3}a{color:#e1bc7b}button{font:inherit;border:1px solid #586078;background:#242a39;color:#e4e8ef;padding:9px 18px;border-radius:6px;min-height:44px;cursor:pointer}button[aria-pressed=true]{background:#604a2d;border-color:#d7b378}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}figure{margin:0;border:1px solid #343d50;border-radius:8px;overflow:hidden;background:#090c13}img{display:block;width:100%;height:auto}figcaption{padding:12px 16px;color:#c3cad8}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}.grid img{aspect-ratio:1;object-fit:contain}.status{border-left:3px solid #c49d61;padding:12px 18px;background:#24231f}a:focus-visible,button:focus-visible{outline:3px solid #a6c7ff;outline-offset:3px}@media(max-width:700px){main{padding:20px 12px}.grid{grid-template-columns:1fr}}
+</style>
+<main><p>CRYPTFORGE · ACTUAL UNITY GEOMETRY</p><h1>Foundry materials: stone, iron and authored hoist</h1>
+<p>The existing layout receives more coherent surface materials and an authored stock-hoist replacement. Compare the running scene's architecture with the preceding build and the approved concept.</p>
+<div class="controls"><button data-view="after" aria-pressed="true">After</button><button data-view="before" aria-pressed="false">Before</button><button data-view="reference" aria-pressed="false">Approved reference</button></div>
+<figure><a id="full" href="after/overview.png"><img id="overview" src="after/overview.png" alt="Updated Unity foundry overview"></a><figcaption id="caption" aria-live="polite">After · actual Unity capture. Open for full resolution.</figcaption></figure>
+<h2>Courtyard at portrait scale</h2>
+<p>Matched staged hero position, before and after. The layout and gameplay remain unchanged. These portrait Unity captures show the new surface at phone proportions; they are not physical-device screenshots.</p>
+<div class="grid">
+<figure><a href="before/approach-0-0.png"><img style="aspect-ratio:auto" src="before/approach-0-0.png" alt="Before courtyard at portrait phone proportions" loading="lazy"></a><figcaption>Before · original paving at the central approach.</figcaption></figure>
+<figure><a href="after/approach-0-0.png"><img style="aspect-ratio:auto" src="after/approach-0-0.png" alt="After courtyard at the identical portrait position" loading="lazy"></a><figcaption>After · updated surface at the same position and camera.</figcaption></figure>
+</div>
+<h2>Industrial and architectural details</h2>
+<div class="grid">
+<figure><a href="after/stock-detail.png"><img src="after/stock-detail.png" alt="Loading gantry above the existing pipe and billet stock" loading="lazy"></a><figcaption>Stock station · a substantial hoist on the existing exterior shelf.</figcaption></figure>
+<figure><a href="after/workshop-detail.png"><img src="after/workshop-detail.png" alt="Western workshop composition" loading="lazy"></a><figcaption>Workshop · crane, freight track, salvage and stock share an industrial purpose.</figcaption></figure>
+<figure><a href="after/gate-detail.png"><img src="after/gate-detail.png" alt="Gate material and architectural detail" loading="lazy"></a><figcaption>Gate · companion architectural finish.</figcaption></figure>
+<figure><a href="after/court-detail.png"><img src="after/court-detail.png" alt="Courtyard paving and surface detail" loading="lazy"></a><figcaption>Court · companion surface work.</figcaption></figure>
+</div>
+<p class="status" id="verification">Actual Unity visual review accepted. 992 tests passed; Android build succeeded. Physical-device installation remains pending owner-run restart approval. These captures are not phone screenshots or performance measurements.</p>
+<p>The reference is an art target; this package does not claim identical fidelity. The new machinery sits outside the existing walking route and adds no interaction.</p>
+<p><a href="README.md">Production notes</a> · <a href="validation/verification.md">Verification</a> · <a href="after/full-map.png">Complete map</a> · <a href="before/runtime-budget.txt">Before mesh counts</a> · <a href="after/runtime-budget.txt">After mesh counts</a></p>
+</main><script>
+const views={after:['after/overview.png','After · actual Unity capture. Open for full resolution.'],before:['before/overview.png','Before · matched Unity capture.'],reference:['../../2026-09-23/foundry-layout-01/foundry-v1.png','Approved concept · visual target, not a gameplay screenshot.']};
+document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{const view=views[button.dataset.view];document.getElementById('overview').src=view[0];document.getElementById('overview').alt=view[1];document.getElementById('full').href=view[0];document.getElementById('caption').textContent=view[1];document.querySelectorAll('[data-view]').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));}));
+</script></html>

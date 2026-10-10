@@ -470,3 +470,14 @@ Evidence: ArtDirection/2026-10-09/foundry-approach-01. Full reference fidelity a
 - [ ] Region encounter/boss progression remains later, per latest explicit owner instruction. Do not resurrect the superseded node-map plan.
 
 Evidence: ArtDirection/2026-10-10/foundry-craft-01. See final verification record for exact tests/build/device status.
+## 2026-10-10 - Materials package, reference art still first
+
+- [x] Authored stock-hoist metal with coherent bearing/drum/chain forms, integrated at existing shelf and explicit depth.
+- [x] Finer gate masonry with restrained weathering; existing silhouette/door preserved.
+- [x] Less polygonal floor wear; rare contained incisions, quiet majority of stone.
+- [x] Matched actual Unity visual review; resource/depth/material cleanup checks.
+- [ ] Physical-device review of current accumulated map packages after pending owner-run restart approval.
+- [ ] Broader surface consistency: remaining procedural stock/crane surfaces are coarser than authored metal; reference fine stone richness is not yet matched.
+- [ ] Local encounters, boss hall transition and progression remain deferred by the art-first direction.
+
+Proof: ArtDirection/2026-10-10/foundry-materials-01. Continue with visibly useful material/composition gains, not repeated almost-invisible trim passes. Existing cold-first-ramp, sustained/crowd and midrange-device questions remain open.

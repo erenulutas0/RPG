@@ -8,6 +8,7 @@ namespace Cryptforge.UI
         // The rear feet clear the tank (ending at v22.1); stock remains in front.
         private void BuildStockHoist(ArenaView arena)
         {
+            if(BuildBakedStockHoist())return;
             int owner=RegisterDepthFootprint(StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,3.6f,true,false);
             using(new DepthScope(this,owner))
             {

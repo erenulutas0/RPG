@@ -568,39 +568,12 @@ namespace Cryptforge.UI
             {
                 float exposure=PavingWearExposure((u0+u1)*.5f,(v0+v1)*.5f);
                 if(grain>.66f-exposure*.20f)
-                    FlagEdgeWear(mesh,u0,v0,u1,v1,bevel,stone,faceTint,grain,hue);
+                    FracturedFlagEdge(mesh,u0,v0,u1,v1,joint,bevel,stone,faceTint,s.I,s.J,grain,hue);
                 if(PavingHash(s.I,s.J,173)%5==0)
                     BrokenFlagCorner(mesh,u0,v0,u1,v1,joint,bevel,stone,faceTint,s.I,s.J,exposure);
+                if(PavingHash(s.I,s.J,419)%24==0)
+                    IncisedFlagLine(mesh,u0,v0,u1,v1,bevel,stone,faceTint,s.I,s.J);
             }
-        }
-
-        private static void FlagEdgeWear(Builder mesh,float u0,float v0,float u1,float v1,
-            float bevel,float tone,Color tint,float grain,float hue)
-        {
-            // A single shallow exfoliated edge on selected large flags. Five irregular
-            // points and a narrow catching lip read as chipped slate, not loose rubble.
-            // All pieces remain inside the flag, flush, lit and UV-mapped from the same
-            // design coordinates as the paving (including the elevated gate threshold).
-            int side=Mathf.Min(3,Mathf.FloorToInt(hue*4));
-            float length=(side%2==0?u1-u0:v1-v0)-2*bevel;
-            float depth=Mathf.Min(u1-u0,v1-v0)*Mathf.Lerp(.12f,.23f,grain);
-            float middle=Mathf.Lerp(.32f,.68f,StoneSample((int)(u0*2)+41,(int)(v0*2)-17));
-            float half=length*Mathf.Lerp(.18f,.29f,grain);
-            float centre=length*middle;
-            Vector2 origin=side==0?new Vector2(u0+bevel,v0+bevel):
-                side==1?new Vector2(u1-bevel,v0+bevel):
-                side==2?new Vector2(u1-bevel,v1-bevel):new Vector2(u0+bevel,v1-bevel);
-            Vector2 along=side==0?Vector2.right:side==1?Vector2.up:side==2?Vector2.left:Vector2.down;
-            Vector2 inward=new Vector2(-along.y,along.x);
-            Vector2 a=origin+along*(centre-half),b=origin+along*(centre+half);
-            Vector2 c=origin+along*(centre+half*.55f)+inward*(depth*.72f);
-            Vector2 d=origin+along*(centre-half*.18f)+inward*depth;
-            Vector2 e=origin+along*(centre-half*.75f)+inward*(depth*.42f);
-            FlagWearFace(mesh,a,b,c,d,tone*.84f,tint);
-            FlagWearFace(mesh,a,d,e,e,tone*.84f,tint);
-            Vector2 lip=inward*.022f;
-            FlagWearFace(mesh,c,d,d+lip,c+lip,tone*1.035f,tint);
-            FlagWearFace(mesh,d,e,e+lip,d+lip,tone*1.035f,tint);
         }
 
         private static void FlagWearFace(Builder mesh,Vector2 a,Vector2 b,Vector2 c,Vector2 d,float tone,Color tint)

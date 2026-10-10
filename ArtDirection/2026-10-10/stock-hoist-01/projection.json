@@ -1,0 +1,28 @@
+{
+  "anchor": [
+    4.5,
+    22.08
+  ],
+  "ortho_scale": 5.4,
+  "left": -2.7,
+  "right": 2.7,
+  "bottom": -0.9,
+  "top": 4.5,
+  "render_size": 1024,
+  "height_compensation": 1.1547005383792515,
+  "depth_footprint": [
+    2,
+    18.5,
+    7,
+    22.4
+  ],
+  "depth_height": 3.6,
+  "source": "Authored geometry and study02 procedural materials/lights",
+  "preserved": [
+    "shelf footprint",
+    "3.44 crosshead height",
+    "stock and tank",
+    "movement and camera"
+  ],
+  "limitation": "Fixed-view transparent hoist-only bake; runtime and device acceptance separate."
+}

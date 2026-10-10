@@ -143,6 +143,14 @@ namespace Cryptforge.Tests
             Assert.That(salvage.width,Is.EqualTo(512));
             Assert.That(salvage.isReadable,Is.False);
             Assert.That(salvage.mipmapCount,Is.GreaterThan(1));
+            var stockHoist=Resources.Load<Texture2D>("FoundryStockHoist");
+            Assert.That(stockHoist,Is.Not.Null);
+            Assert.That(stockHoist.width,Is.EqualTo(512));
+            Assert.That(stockHoist.isReadable,Is.False);
+            Assert.That(stockHoist.mipmapCount,Is.GreaterThan(1));
+            int hoistBatches=0;
+            Material hoistVariant=null;
+            Mesh hoistMesh=null;
             int salvageBatches=0;
             int reservoirBatches=0;
             var reservoirRanks=new System.Collections.Generic.HashSet<int>();
@@ -150,6 +158,21 @@ namespace Cryptforge.Tests
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==stockHoist)
+                {
+                    hoistBatches++;hoistVariant=renderer.sharedMaterial;
+                    Assert.That(renderer.sortingOrder,Is.EqualTo(-9),"Hoist stays behind existing foreground stock at -8.");
+                    hoistMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
+                    Assert.That(hoistMesh.vertexCount,Is.EqualTo(4));
+                    var flags=new System.Collections.Generic.List<Vector2>();hoistMesh.GetUVs(1,flags);
+                    Assert.That(flags.Count,Is.EqualTo(4));
+                    foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one),"Tall crosshead retains explicit stock-shelf depth and cutaway ownership.");
+                    float shift=Cryptforge.Art.FoundryMap.WestAssemblyOffset;
+                    float leftDepth=50+(-18+shift+22.4f)*Cryptforge.Art.FoundryMap.Axis*.5f;
+                    float rightDepth=50+(-13+shift+18.5f)*Cryptforge.Art.FoundryMap.Axis*.5f;
+                    foreach(var p in hoistMesh.vertices)Assert.That(p.z,Is.InRange(leftDepth-.001f,rightDepth+.001f));
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture==salvage)
                 {
                     salvageBatches++;
@@ -246,12 +269,13 @@ namespace Cryptforge.Tests
             Assert.That(bakedBatches,Is.EqualTo(2),"Two replacements: two shared depth bands; shade shares existing floor decals.");
             Assert.That(bakedDepthBands,Is.EqualTo(2));
             Assert.That(salvageBatches,Is.EqualTo(1));
+            Assert.That(hoistBatches,Is.EqualTo(1),"One hoist card replaces the procedural assembly.");
             Assert.That(reservoirBatches,Is.EqualTo(2));
             Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
             Assert.That(otherBatches,Is.LessThanOrEqualTo(18),"Architecture plus the near reservoir relief retains its explicit renderer budget.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(25),
-                "Four boiler bands and two reservoir ranks and the salvage kit retain an explicit25renderer bound.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(26),
+                "The authored stock hoist adds one bounded renderer to the existing 25.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
@@ -274,6 +298,9 @@ namespace Cryptforge.Tests
             // The gate's fire baskets hang on posts the balustrade places for itself: a rail change must not leave one
             // floating over a span or bare void.
             var regionView=arena.Region.GetComponent<FoundryRegionView>();
+            var hoistSource=typeof(FoundryRegionView).GetField("_stockHoistMaterial",
+                System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(regionView) as Material;
+            Assert.That(hoistSource,Is.Not.Null);
             foreach(float v in FoundryRegionView.GateBrazierPosts)
             {
                 bool held=false;
@@ -555,6 +582,9 @@ namespace Cryptforge.Tests
             Assert.That(material==null,Is.EqualTo(ownedMaterials.Contains(material)),"Only scene-owned material variants are destroyed.");
             Assert.That(keeperMesh==null,Is.True,"Reload releases the guardian mesh.");
             Assert.That(keeperVariant==null,Is.True,"Reload releases the guardian cutaway material.");
+            Assert.That(hoistMesh==null&&hoistVariant==null&&hoistSource==null,Is.True,
+                "Reload releases the hoist mesh, cutaway variant and owned source material.");
+            Assert.That(stockHoist!=null,Is.True,"Reload preserves the shared hoist texture resource.");
             Assert.That(keeper!=null&&keeperTexture!=null,Is.True,"Shared keeper assets survive reload.");
             Assert.That(gate!=null,Is.True,"Reload must not destroy shared facade assets.");
             foreach(var variant in ownedMaterials)Assert.That(variant==null,Is.True,"Scene cutaway variants must be released on reload.");
