@@ -874,3 +874,8 @@ Actual Unity before/after evidence: ArtDirection/2026-10-10/foundry-craft-01. Re
 ## 2026-10-10 - Improve material consistency before adding map features
 
 Owner continues reference-map art first. Chose an authored fixed-view hoist bake over more procedural bevel strips, accepting one additional renderer and512compressed texture. Retained exact shelf/depth/height and original geometry as fallback. Matched review confirms crane must remain in front; promoting the hoist merely to reveal its chains would produce incorrect spatial overlap. Smaller gate stone and restrained fractured floor surfaces improve consistency without changing navigation or introducing gameplay. Evidence: foundry-materials-01 and stock-hoist-01.
+## 2026-10-10 - Preserve workshop geometry while replacing material presentation
+
+Decision: bake the existing stock-station metal and crane body from authored Blender geometry into two fixed-view transparent cards. Keep original wood, crane footing, chain, basket, tip sheave and lights separate, with original footprints and camera. Explicit per-card depth owners and scene-owned cleanup follow the established hoist contract.
+
+Actual image review rejected a large middle-mast masonry overlap. Correct only the named rear northwest lantern's masonry order; do not globally raise the crane or hoist over unrelated foreground parts. Accepted cost is two card batches plus one localized masonry batch (26 to29 total); vertices fall 118,902 to116,178. Static counts do not prove faster frames. Reference-map art remains first, and physical-device acceptance is pending the existing restart/install question. Evidence: workshop-coherence-01.

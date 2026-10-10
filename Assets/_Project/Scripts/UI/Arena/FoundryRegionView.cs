@@ -511,6 +511,8 @@ namespace Cryptforge.UI
             foreach(var mesh in _owned)if(mesh!=null)Destroy(mesh);
             if(_salvageMaterial!=null)Destroy(_salvageMaterial);
             if(_stockHoistMaterial!=null)Destroy(_stockHoistMaterial);
+            if(_stockStationMaterial!=null)Destroy(_stockStationMaterial);
+            if(_craneMaterial!=null)Destroy(_craneMaterial);
             if(_reservoirMaterial!=null)Destroy(_reservoirMaterial);
             if(_bakedBoilerMaterial!=null)Destroy(_bakedBoilerMaterial);
             if(_bakedShortBoilerMaterial!=null)Destroy(_bakedShortBoilerMaterial);

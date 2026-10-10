@@ -148,6 +148,19 @@ namespace Cryptforge.Tests
             Assert.That(stockHoist.width,Is.EqualTo(512));
             Assert.That(stockHoist.isReadable,Is.False);
             Assert.That(stockHoist.mipmapCount,Is.GreaterThan(1));
+            var stockStation=Resources.Load<Texture2D>("FoundryStockStation");
+            var craneTexture=Resources.Load<Texture2D>("FoundryCrane");
+            Assert.That(stockStation,Is.Not.Null);Assert.That(craneTexture,Is.Not.Null);
+            Assert.That(stockStation.width,Is.EqualTo(512));
+            Assert.That(craneTexture.width,Is.EqualTo(1024));
+            foreach(var texture in new[]{stockStation,craneTexture})
+            {
+                Assert.That(texture.isReadable,Is.False);
+                Assert.That(texture.mipmapCount,Is.GreaterThan(1));
+            }
+            int stockBatches=0,craneBatches=0;
+            var workshopMeshes=new System.Collections.Generic.List<Mesh>();
+            var workshopVariants=new System.Collections.Generic.List<Material>();
             int hoistBatches=0;
             Material hoistVariant=null;
             Mesh hoistMesh=null;
@@ -158,10 +171,28 @@ namespace Cryptforge.Tests
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==stockStation||renderer.sharedMaterial.mainTexture==craneTexture)
+                {
+                    bool isCrane=renderer.sharedMaterial.mainTexture==craneTexture;
+                    if(isCrane)craneBatches++;else stockBatches++;
+                    Assert.That(renderer.sortingOrder,Is.EqualTo(isCrane?-9:-10));
+                    var card=renderer.GetComponent<MeshFilter>().sharedMesh;
+                    workshopMeshes.Add(card);workshopVariants.Add(renderer.sharedMaterial);
+                    Assert.That(card.vertexCount,Is.EqualTo(4));
+                    var flags=new System.Collections.Generic.List<Vector2>();card.GetUVs(1,flags);
+                    Assert.That(flags.Count,Is.EqualTo(4));
+                    foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
+                    float minimum=isCrane?-22:-5.5f,maximum=isCrane?-15:3.4f;
+                    foreach(var p in card.vertices)
+                        Assert.That(p.z,Is.InRange(50+minimum*Cryptforge.Art.FoundryMap.Axis*.5f-.001f,
+                            50+maximum*Cryptforge.Art.FoundryMap.Axis*.5f+.001f),
+                            "Explicit structure depth stays within its original footprint, including tall transparent margins.");
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture==stockHoist)
                 {
                     hoistBatches++;hoistVariant=renderer.sharedMaterial;
-                    Assert.That(renderer.sortingOrder,Is.EqualTo(-9),"Hoist stays behind existing foreground stock at -8.");
+                    Assert.That(renderer.sortingOrder,Is.EqualTo(-11),"Hoist stays behind stock -10, crane -9 and live wood -8.");
                     hoistMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
                     Assert.That(hoistMesh.vertexCount,Is.EqualTo(4));
                     var flags=new System.Collections.Generic.List<Vector2>();hoistMesh.GetUVs(1,flags);
@@ -270,12 +301,13 @@ namespace Cryptforge.Tests
             Assert.That(bakedDepthBands,Is.EqualTo(2));
             Assert.That(salvageBatches,Is.EqualTo(1));
             Assert.That(hoistBatches,Is.EqualTo(1),"One hoist card replaces the procedural assembly.");
+            Assert.That(stockBatches,Is.EqualTo(1));Assert.That(craneBatches,Is.EqualTo(1));
             Assert.That(reservoirBatches,Is.EqualTo(2));
             Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
-            Assert.That(otherBatches,Is.LessThanOrEqualTo(18),"Architecture plus the near reservoir relief retains its explicit renderer budget.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(26),
-                "The authored stock hoist adds one bounded renderer to the existing 25.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(19),"The rear crane lantern masonry has one separate ordering batch.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(29),
+                "Stock, crane and rear lantern ordering add three bounded batches to the existing 26.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
@@ -301,6 +333,13 @@ namespace Cryptforge.Tests
             var hoistSource=typeof(FoundryRegionView).GetField("_stockHoistMaterial",
                 System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(regionView) as Material;
             Assert.That(hoistSource,Is.Not.Null);
+            var workshopSources=new System.Collections.Generic.List<Material>();
+            foreach(var field in new[]{"_stockStationMaterial","_craneMaterial"})
+            {
+                var source=typeof(FoundryRegionView).GetField(field,
+                    System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(regionView) as Material;
+                Assert.That(source,Is.Not.Null);workshopSources.Add(source);
+            }
             foreach(float v in FoundryRegionView.GateBrazierPosts)
             {
                 bool held=false;
@@ -585,6 +624,10 @@ namespace Cryptforge.Tests
             Assert.That(hoistMesh==null&&hoistVariant==null&&hoistSource==null,Is.True,
                 "Reload releases the hoist mesh, cutaway variant and owned source material.");
             Assert.That(stockHoist!=null,Is.True,"Reload preserves the shared hoist texture resource.");
+            foreach(var workshopMesh in workshopMeshes)Assert.That(workshopMesh==null,Is.True);
+            foreach(var variant in workshopVariants)Assert.That(variant==null,Is.True);
+            foreach(var source in workshopSources)Assert.That(source==null,Is.True);
+            Assert.That(stockStation!=null&&craneTexture!=null,Is.True,"Reload retains shared workshop textures.");
             Assert.That(keeper!=null&&keeperTexture!=null,Is.True,"Shared keeper assets survive reload.");
             Assert.That(gate!=null,Is.True,"Reload must not destroy shared facade assets.");
             foreach(var variant in ownedMaterials)Assert.That(variant==null,Is.True,"Scene cutaway variants must be released on reload.");

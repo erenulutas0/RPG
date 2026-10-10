@@ -41,10 +41,13 @@ namespace Cryptforge.UI
             BuildWorkshopAnvil(arena,!bakedSalvage);
             // Emit the rear work station before the foreground pipe/rack silhouettes.
             BuildStockHoist(arena);
+            if(!BuildBakedStockStation())
+            {
             BuildQuenchingBasin(arena);
             BuildWorkshopReserveStock(arena);
             BuildStoredPipes(arena);
             BuildToolRack(arena);
+            }
             BuildProductionYard(arena);
         }
 

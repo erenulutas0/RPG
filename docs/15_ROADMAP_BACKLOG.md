@@ -481,3 +481,13 @@ Evidence: ArtDirection/2026-10-10/foundry-craft-01. See final verification recor
 - [ ] Local encounters, boss hall transition and progression remain deferred by the art-first direction.
 
 Proof: ArtDirection/2026-10-10/foundry-materials-01. Continue with visibly useful material/composition gains, not repeated almost-invisible trim passes. Existing cold-first-ramp, sustained/crowd and midrange-device questions remain open.
+## 2026-10-10 - Workshop coherence package
+
+- [x] Authored stock-station metal and crane body, retaining original separate wood/chain/load/lights and footprints.
+- [x] Actual Unity comparison at detail and gameplay proportions; correct localized rear masonry occlusion and bright bearing imbalance.
+- [x] Explicit depth and bounded scene-owned resource lifecycle integration.
+- [ ] Physical-device acceptance of the accumulated map packages after the pending owner-run restart decision.
+- [ ] Reference composition remains incomplete: the working yard is still sparse beyond its peripheral shelves. Additional raised machinery requires corresponding navigation/collision design, not decorative blockers over walkable floor.
+- [ ] Fine stone/material consistency, crowded/midrange-device acceptance and first-ramp hitch diagnosis remain open. Gameplay progression remains deferred by the owner's art-first request.
+
+Evidence and final gates: ArtDirection/2026-10-10/workshop-coherence-01/validation/verification.md. Avoid treating a peripheral material improvement as complete reference fidelity.

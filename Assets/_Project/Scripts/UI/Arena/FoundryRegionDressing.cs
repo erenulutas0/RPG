@@ -28,6 +28,11 @@ namespace Cryptforge.UI
             MetalCap(arena,-27+WestShift,11,-24+WestShift,15,1.12f);
             Vector3 foot=WestProject(-25.5f,13)+Vector3.up*1.1f;
             Vector3 mast=foot+Vector3.up*6.5f;
+            Vector3 tip=WestProject(-26,20)+Vector3.up*7.8f;
+            Vector3 rear=mast+Vector3.right;
+            bool bakedCrane=BuildBakedCrane(foot);
+            if(!bakedCrane)
+            {
             // A cast lower hoist tower seats on the existing shoe. The upper pivot,
             // jib and load keep their original height and suspension endpoints.
             CraneCase(arena,foot+new Vector3(-.67f,.02f,0),1.34f,.19f,new Vector3(.18f,.12f,0));
@@ -41,20 +46,21 @@ namespace Cryptforge.UI
                 float side=i%2==0?1:-1;
                 CraneBeam(arena,a+Vector3.right*.3f*side,a+Vector3.up*.95f-Vector3.right*.3f*side,.12f);
             }
-            Vector3 tip=WestProject(-26,20)+Vector3.up*7.8f;
-            Vector3 rear=mast+Vector3.right;
             BuildCraneBoxJib(arena,rear,tip);
             CraneBeam(arena,mast,rear,.28f);
             CraneBeam(arena,foot+Vector3.up*3,tip,.14f);
             // Broad bearing collar gives the lattice mast a clear mechanical joint.
             CraneCase(arena,mast+new Vector3(-.48f,-.4f,0),.96f,.23f,new Vector3(.16f,.11f,0));
             BuildCraneSheave(arena,mast,.32f,true);
+            }
             Vector3 load=tip+Vector3.down*3.4f;
             Chain(arena,tip,load,.16f,-11);
             // A sheave seats the hoist chain in the jib instead of ending it on a bare rail.
             BuildCraneSheave(arena,tip+Vector3.down*.2f);
             CraneCase(arena,load+new Vector3(-.16f,-.13f,0),.32f,.26f,new Vector3(.08f,.05f,0));
             BuildCraneBasket(arena,load);
+            if(!bakedCrane)
+            {
             // Counterweight is over the crane foundation, not the playable court.
             CraneCase(arena,rear+new Vector3(-.32f,-.85f,0),.68f,.72f,new Vector3(.22f,.15f,0));
             foreach(float x in new[]{-.2f,.2f})
@@ -63,6 +69,7 @@ namespace Cryptforge.UI
             for(int i=1;i<3;i++)
                 Tube(arena,rear+new Vector3(-.29f,-.85f+i*.24f,0),
                     rear+new Vector3(.33f,-.85f+i*.24f,0),.035f);
+            }
         }
 
         private void BuildCraneBoxJib(ArenaView arena,Vector3 rear,Vector3 tip)

@@ -342,6 +342,8 @@ namespace Cryptforge.UI
 
         private void BuildCraneHardware(ArenaView arena)
         {
+            // The authored crane includes its own mast gussets and lower winch.
+            if(_craneMaterial!=null)return;
             Vector3 foot=WestProject(-25.5f,13)+Vector3.up*1.1f;
             var iron=new Builder();
             // Broad gusset plates anchor the existing lattice tower to its plinth.

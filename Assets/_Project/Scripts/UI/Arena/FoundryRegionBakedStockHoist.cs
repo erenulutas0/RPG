@@ -26,8 +26,9 @@ namespace Cryptforge.UI
                 card.U.AddRange(new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up});
                 for(int i=0;i<4;i++)card.C.Add(Color.white);
                 card.T.AddRange(new[]{0,1,2,0,2,3});
-                // -11.5 quantizes to -9, behind foreground stock's -11 / -8.
-                Create("Baked stock loading hoist",card,_stockHoistMaterial,-11.5f);
+                // Explicit rear-to-front order: hoist -11, stock -10, crane -9,
+                // live wood and suspension hardware -8. Shelf cap remains -12.
+                Create("Baked stock loading hoist",card,_stockHoistMaterial,-12.5f);
             }
             return true;
         }

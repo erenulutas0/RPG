@@ -976,9 +976,10 @@ namespace Cryptforge.UI
         };
 
         // New lantern posts: the court's convex corners, the apron's concave corner, and the longest bare runs.
+        private static readonly Vector4 CraneRearLantern=WestBox(-22.64f,16.08f,-22.08f,16.64f);
         private static readonly Vector4[] RailLanterns =
         {
-            WestBox(-22.64f,16.08f,-22.08f,16.64f),WestBox(-24.72f,.64f,-24,1.36f),
+            CraneRearLantern,WestBox(-24.72f,.64f,-24,1.36f),
             new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-.72f,14.72f,0),
             new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f)
         };
@@ -1299,7 +1300,10 @@ namespace Cryptforge.UI
             Vector4 cap=GrowSafe(box,.04f);
             MassBox(above,cap,1.48f,1.69f,true,true,1.14f);
             MassCap(above,cap,1.69f,CapTone);
-            Create("Balustrade lantern post",above,wall,-11);
+            // The northwest chamfer post stands behind the crane footing. Its
+            // masonry must remain behind both the authored card and legacy mast;
+            // the lantern cage/panes below retain their foreground ranks.
+            Create("Balustrade lantern post",above,wall,box==CraneRearLantern?-12:-11);
             if(front)
             {
                 var below=new Builder();
