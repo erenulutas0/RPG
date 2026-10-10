@@ -145,8 +145,9 @@ namespace Cryptforge.UI
                     if(!shared.TryGetValue(key,out int index))
                     {
                         index=mesh.V.Count;shared.Add(key,index);
-                        float cloud=FloorPatina((p.x-u0)*1.1f+seedU*.73f,(p.y-v0)*1.1f+seedV*.83f);
-                        PavingVertex(mesh,p.x,p.y,stone*Mathf.Lerp(.92f,1.04f,cloud),tint,FloorLight(p.x,p.y));
+                        // Imported mineral grain carries the stone body; do not
+                        // restart a broad cloudy vertex wash inside every flag.
+                        PavingVertex(mesh,p.x,p.y,stone,tint,FloorLight(p.x,p.y));
                     }
                     indices[k]=index;
                 }

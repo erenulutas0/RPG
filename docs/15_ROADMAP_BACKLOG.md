@@ -540,3 +540,13 @@ Remaining reference gap is the wider architectural variety and building scale rh
 - [ ] Accumulated physical-device/crowd/midrange/first-ramp acceptance remains pending. Regional encounter/boss progression stays deferred under the art-first decision.
 
 Evidence and final verification: ArtDirection/2026-10-10/foundry-gate-court-01. Existing map bounds, ramp and gameplay preserved.
+
+## 2026-10-11 - Foundry stonework material slice
+
+- [x] Integrate versioned fine-mineral V5 paving, remove redundant slab cloud wash, unify grain scale and retain ramp/lighting contracts.
+- [x] Add dressed gate courses, continuous niche mapping and supported bevelled coping within existing silhouette.
+- [x] Reject first visual attempt and accept corrected matched Unity court/gate views with independent review.
+- [ ] Full reference richness remains incomplete: paving rhythm, central gate housing and wider architectural variety still differ.
+- [ ] Accumulated phone/crowd/midrange/first-ramp acceptance remains pending; region encounter/boss progression stays deferred.
+
+Evidence: ArtDirection/2026-10-10/foundry-stonework-01. Final suite/APK status belongs to its validation record and latest docs21-23.

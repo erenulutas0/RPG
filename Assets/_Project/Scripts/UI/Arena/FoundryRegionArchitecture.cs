@@ -12,8 +12,8 @@ namespace Cryptforge.UI
             BuildGateEnclosure(arena,true);
             var stone=new Builder();
             // Continuous lower cornice supports the stepped portal crown above.
-            LitFoundryTier(stone,32,-1,34,11,height-.12f,height+.12f,0);
-            LitFoundryTier(stone,32.12f,-.9f,33.88f,10.9f,height+.12f,height+.44f,.12f);
+            GateCraftTier(stone,32,-1,34,11,height-.12f,height+.12f,0);
+            GateCraftTier(stone,32.12f,-.9f,33.88f,10.9f,height+.12f,height+.44f,.12f);
             BuildGateHeaderFinish(stone,height);
             foreach(float v in new[]{-3f,11f})
             {
@@ -25,17 +25,17 @@ namespace Cryptforge.UI
                 GateEnclosureTier(stone,32.16f,v+.14f,34.84f,v+1.86f,1.45f,1.70f,.08f,.96f,true);
                 GateEnclosureTier(stone,32.26f,v+.24f,34.74f,v+1.76f,1.70f,5.45f,.04f,.92f);
                 GateEnclosureTier(stone,32.08f,v+.08f,34.92f,v+1.92f,5.45f,5.70f,.08f,.96f,true);
-                LitFoundryTier(stone,32.02f,v+.02f,34.98f,v+1.98f,5.7f,6.05f,.12f);
-                LitFoundryTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
-                LitFoundryTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
+                GateCraftTier(stone,32.02f,v+.02f,34.98f,v+1.98f,5.7f,6.05f,.12f);
+                GateCraftTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
+                GateCraftTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
                 BuildGatePierRelief(stone,v);
                 BuildGateInnerReturn(stone,v,height);
             }
             // The raised keystone ties the stepped portal crown to the door seal.
             // It stays below the new crest and within the existing header footprint.
-            LitFoundryTier(stone,32.16f,4.38f,33.42f,5.62f,height+.43f,height+1.36f,.13f);
+            GateCraftTier(stone,32.16f,4.38f,33.42f,5.62f,height+.43f,height+1.36f,.13f);
             // Central raised seal housing above the painted doors; the door artwork remains intact.
-            LitFoundryTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
+            GateCraftTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
             BuildGateEnclosure(arena,false);
             BuildGateInlays(arena,height);
@@ -346,9 +346,9 @@ namespace Cryptforge.UI
             // across either painted banner, seal, door leaf or walking approach.
             bool near=v<0;
             float a=near?v+1.42f:v+.04f,b=near?v+1.96f:v+.58f;
-            GateEnclosureTier(stone,32.02f,a,33.04f,b,.45f,1.15f,.03f,.94f,true);
-            GateEnclosureTier(stone,32.10f,a+.05f,32.96f,b-.05f,1.15f,height-.38f,.035f,.87f,true);
-            GateEnclosureTier(stone,32.02f,a-.02f,33.04f,b+.02f,height-.38f,height+.10f,.065f,.96f,true);
+            GateCraftTier(stone,32.02f,a,33.04f,b,.45f,1.15f,.03f,.94f);
+            GateCraftTier(stone,32.10f,a+.05f,32.96f,b-.05f,1.15f,height-.38f,.035f,.87f);
+            GateCraftTier(stone,32.02f,a-.02f,33.04f,b+.02f,height-.38f,height+.10f,.065f,.96f);
         }
 
         private static void GateBlindLancet(Builder stone,float v,bool front,
@@ -369,19 +369,24 @@ namespace Cryptforge.UI
                     Mathf.Lerp(outer[i].y,middle.y,.18f));
             Vector3 hub=GatePierFace(v,front,middle,courseBottom,courseTop);
             Color recess=front?new Color(.32f,.35f,.42f):new Color(.39f,.42f,.49f);
+            Vector3 origin=GatePierFace(v,front,new Vector2(center-half,bottom),courseBottom,courseTop);
+            Vector3 along=GatePierFace(v,front,new Vector2(center+half,bottom),courseBottom,courseTop);
+            Vector3 across=GatePierFace(v,front,new Vector2(center-half,top),courseBottom,courseTop);
             for(int i=0;i<5;i++)
             {
                 int j=(i+1)%5;
                 Vector3 ia=GatePierFace(v,front,inner[i],courseBottom,courseTop);
                 Vector3 ib=GatePierFace(v,front,inner[j],courseBottom,courseTop);
-                GateStonePatch(stone,ia,ib,hub,hub,recess);
+                // One continuous mineral field across the whole blind niche. The
+                // old per-triangle remap left an unintended X across its centre.
+                HeaderStonePatch(stone,ia,ib,hub,hub,recess,origin,along,across);
                 // Shadowed jamb/head and a broad catching sill imply depth. The
                 // planar relief keeps the original actor fade/depth owner intact.
                 float light=i==0?.73f:i==1?.31f:i==2?.37f:i==3?.54f:.61f;
                 if(front)light*=.83f;
-                GateStonePatch(stone,GatePierFace(v,front,outer[i],courseBottom,courseTop),
+                HeaderStonePatch(stone,GatePierFace(v,front,outer[i],courseBottom,courseTop),
                     GatePierFace(v,front,outer[j],courseBottom,courseTop),ib,ia,
-                    new Color(light*.93f,light*.97f,light));
+                    new Color(light*.93f,light*.97f,light),origin,along,across);
             }
         }
 

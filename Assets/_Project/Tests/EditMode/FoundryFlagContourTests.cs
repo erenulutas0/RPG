@@ -143,7 +143,7 @@ namespace Cryptforge.Tests
             for(int i=0;i<vertices.Count;i++)
             {
                 Assert.That(float.IsNaN(vertices[i].x)||float.IsNaN(vertices[i].y)||float.IsInfinity(vertices[i].x)||float.IsInfinity(vertices[i].y),Is.False);
-                design[i]=new Vector2((uv[i].x-1)*8.55f/(2*FoundryMap.Axis),(uv[i].y-1)*8.55f/(2*FoundryMap.Axis));
+                design[i]=new Vector2((uv[i].x-1)*FoundryRegionView.PavingGrainSpan/(2*FoundryMap.Axis),(uv[i].y-1)*FoundryRegionView.PavingGrainSpan/(2*FoundryMap.Axis));
                 Assert.That(design[i].x,Is.InRange(u0-.0001f,u0+width+.0001f));
                 Assert.That(design[i].y,Is.InRange(v0-.0001f,v0+height+.0001f));
                 Assert.That(Vector3.Distance(vertices[i],SurfacePoint(design[i].x,design[i].y)),Is.LessThan(.0001f));

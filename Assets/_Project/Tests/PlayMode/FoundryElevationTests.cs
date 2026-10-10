@@ -58,8 +58,8 @@ namespace Cryptforge.Tests
                 for (int i = 0; i < points.Length; i++)
                 {
                     // Paving UVs retain the original floor coordinate, independent of height.
-                    float u = (uv[i].x - 1) * 8.55f / (2 * FoundryMap.Axis);
-                    float v = (uv[i].y - 1) * 8.55f / (2 * FoundryMap.Axis);
+                    float u = (uv[i].x - 1) * FoundryRegionView.PavingGrainSpan / (2 * FoundryMap.Axis);
+                    float v = (uv[i].y - 1) * FoundryRegionView.PavingGrainSpan / (2 * FoundryMap.Axis);
                     if (u < FoundrySurface.RampStart + .01f) continue;
                     Assert.That(Vector3.Distance(points[i], FoundrySurface.Project(u, v)), Is.LessThan(.002f), $"Paving vertex {i}: UV={uv[i]}, design={u},{v}, point={points[i]}, target={FoundrySurface.Project(u,v)}");
                     raisedFloorVertices++;
@@ -72,8 +72,8 @@ namespace Cryptforge.Tests
                 {
                     int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
                     Vector2 centreUv = (uv[a] + uv[b] + uv[c]) / 3;
-                    float u = (centreUv.x - 1) * 8.55f / (2 * FoundryMap.Axis);
-                    float v = (centreUv.y - 1) * 8.55f / (2 * FoundryMap.Axis);
+                    float u = (centreUv.x - 1) * FoundryRegionView.PavingGrainSpan / (2 * FoundryMap.Axis);
+                    float v = (centreUv.y - 1) * FoundryRegionView.PavingGrainSpan / (2 * FoundryMap.Axis);
                     if (u < FoundrySurface.RampStart - 1 || u > FoundrySurface.RampEnd + 1) continue;
                     Vector3 centre = (points[a] + points[b] + points[c]) / 3;
                     Assert.That(Vector3.Distance(centre, FoundrySurface.Project(u, v)), Is.LessThan(.002f),
