@@ -50,6 +50,14 @@ namespace Cryptforge.UI
         {
             int masonryStart=mesh.C.Count,fireStart=fire.C.Count;
             float u0=u-width*.5f,u1=u+width*.5f,v0=v-depth*.5f,v1=v+depth*.5f;
+            if(variant==1||variant==2)
+            {
+                DistantFurnaceShaft(mesh,fire,u0,v0,u1,v1,top,bottom,tone,variant);
+                float shaftFade=Project(u,v).y+bottom+2.5f;
+                FadeDistantFoot(mesh,masonryStart,shaftFade);
+                FadeDistantFoot(fire,fireStart,shaftFade);
+                return;
+            }
             // Narrow lower shaft, broad shoulder and dressed crown belong to one
             // supported industrial mass, not a floating cap or an opaque rectangle.
             DistantBlock(mesh,u0+.34f,v0+.3f,u1-.34f,v1-.3f,bottom,bottom+8,tone*.70f);
@@ -96,6 +104,144 @@ namespace Cryptforge.UI
             FadeDistantFoot(fire,fireStart,fadeBase);
         }
 
+        private static void DistantFurnaceShaft(Builder mesh,Builder fire,float u0,float v0,float u1,float v1,
+            float top,float bottom,Color tone,int variant)
+        {
+            float shoulder=top-(variant==1?4.8f:6.2f),sill=top-16.2f;
+            const float recess=.46f;
+            // Continuous narrow foundation, then a recessed core. No outer full
+            // wall crosses either bay: the pier/spandrel geometry forms its opening.
+            float lowerJoint=Mathf.Lerp(bottom,sill,.5f);
+            DistantBlock(mesh,u0+.20f,v0+.20f,u1-.20f,v1-.20f,bottom,lowerJoint,tone*.73f);
+            DistantBlock(mesh,u0+.20f,v0+.20f,u1-.20f,v1-.20f,lowerJoint,sill,tone*.73f);
+            DistantBlock(mesh,u0+.10f,v0+.10f,u1-.10f,v1-.10f,sill-.45f,sill,tone*.90f);
+            DistantBlock(mesh,u0+recess,v0+recess,u1-.20f,v1-.20f,sill,shoulder,tone*.52f);
+            // West face is emitted first; the south corner face is nearer the camera.
+            DistantRecessFace(mesh,fire,u0,v0,u1,v1,true,sill,shoulder,recess,tone*.74f);
+            DistantRecessFace(mesh,fire,u0,v0,u1,v1,false,sill,shoulder,recess,tone);
+            // Stepped load-bearing shoulders become a tapered upper shaft. These
+            // are sloping masonry faces, not a repetitive pile of floating caps.
+            DistantTaper(mesh,u0-.06f,v0-.06f,u1+.06f,v1+.06f,shoulder,shoulder+.52f,.18f,tone);
+            DistantTaper(mesh,u0+.12f,v0+.12f,u1-.12f,v1-.12f,shoulder+.52f,top-1.10f,.39f,tone*.92f);
+            DistantBlock(mesh,u0+.42f,v0+.42f,u1-.42f,v1-.42f,top-1.1f,top-.52f,tone*.92f);
+            DistantBlock(mesh,u0+.28f,v0+.28f,u1-.28f,v1-.28f,top-.52f,top-.13f,tone*1.06f);
+            DistantBlock(mesh,u0+.44f,v0+.44f,u1-.44f,v1-.44f,top-.13f,top,tone);
+            if(variant==2)
+            {
+                float u=(u0+u1)*.5f,v=(v0+v1)*.5f;
+                DistantBlock(mesh,u-.36f,v+.20f,u+.36f,v+.92f,top,top+.95f,tone*.82f);
+                DistantBlock(mesh,u-.45f,v+.11f,u+.45f,v+1.01f,top+.80f,top+1.1f,tone);
+            }
+        }
+
+        private static Vector3 DistantFacePoint(float u0,float v0,float u1,float v1,bool west,float t,float z,float inset)
+        {
+            // Traverse both visible faces left-to-right in the fixed camera.
+            return (west?Project(u0+inset,Mathf.Lerp(v1,v0,t)):
+                Project(Mathf.Lerp(u0,u1,t),v0+inset))+Vector3.up*z;
+        }
+
+        private static void DistantRecessFace(Builder mesh,Builder fire,float u0,float v0,float u1,float v1,
+            bool west,float sill,float head,float recess,Color tone)
+        {
+            const float left=.29f,right=.71f;
+            int facadeStart=mesh.V.Count;
+            float span=west?v1-v0:u1-u0,radius=(right-left)*span*.5f,spring=head-.38f-radius;
+            System.Func<float,float,float,Vector3> p=(t,z,d)=>DistantFacePoint(u0,v0,u1,v1,west,t,z,d);
+            mesh.WallQuad(p(0,sill,0),p(left,sill,0),p(left,head,0),p(0,head,0),false,tone);
+            mesh.WallQuad(p(right,sill,0),p(1,sill,0),p(1,head,0),p(right,head,0),false,tone);
+            // Jamb returns and deep sill expose the real distance to the core.
+            mesh.WallQuad(p(left,sill,0),p(left,sill,recess),p(left,spring,recess),p(left,spring,0),false,tone*.64f);
+            mesh.WallQuad(p(right,sill,recess),p(right,sill,0),p(right,spring,0),p(right,spring,recess),false,tone*.80f);
+            mesh.WallQuad(p(left,sill,0),p(right,sill,0),p(right,sill,recess),p(left,sill,recess),true,tone*.85f);
+            // An eight-stone arched head. Each spandrel ends at its curved underside;
+            // the reveals follow that curve back into the recessed shaft.
+            const int segments=8;
+            for(int i=0;i<segments;i++)
+            {
+                float a=Mathf.PI-i*Mathf.PI/segments,b=Mathf.PI-(i+1)*Mathf.PI/segments;
+                float ta=.5f+Mathf.Cos(a)*(right-left)*.5f,tb=.5f+Mathf.Cos(b)*(right-left)*.5f;
+                float za=spring+Mathf.Sin(a)*radius,zb=spring+Mathf.Sin(b)*radius;
+                Color course=tone*(i%3==0?.92f:1f);
+                mesh.WallQuad(p(ta,za,0),p(tb,zb,0),p(tb,head,0),p(ta,head,0),false,course);
+                mesh.WallQuad(p(ta,za,recess),p(tb,zb,recess),p(tb,zb,0),p(ta,za,0),false,tone*.60f);
+            }
+            // Raised dressed masonry catches light around the opening. Its outer
+            // radius and projecting returns are geometry, not a painted arch.
+            const float frame=.19f,projection=-.18f;
+            for(int i=0;i<segments;i++)
+            {
+                float a=Mathf.PI-i*Mathf.PI/segments,b=Mathf.PI-(i+1)*Mathf.PI/segments;
+                float ia=.5f+Mathf.Cos(a)*radius/span,ib=.5f+Mathf.Cos(b)*radius/span;
+                float oa=.5f+Mathf.Cos(a)*(radius+frame)/span,ob=.5f+Mathf.Cos(b)*(radius+frame)/span;
+                float izA=spring+Mathf.Sin(a)*radius,izB=spring+Mathf.Sin(b)*radius;
+                float ozA=spring+Mathf.Sin(a)*(radius+frame),ozB=spring+Mathf.Sin(b)*(radius+frame);
+                Color dress=tone*(i%3==0?1.27f:1.38f);
+                mesh.WallQuad(p(ia,izA,projection),p(ib,izB,projection),p(ob,ozB,projection),p(oa,ozA,projection),false,dress);
+                mesh.WallQuad(p(ia,izA,0),p(ib,izB,0),p(ib,izB,projection),p(ia,izA,projection),false,tone*.87f);
+                mesh.WallQuad(p(oa,ozA,projection),p(ob,ozB,projection),p(ob,ozB,0),p(oa,ozA,0),false,tone*1.10f);
+            }
+            foreach(float jamb in new[]{left-frame/span,right})
+            {
+                float end=jamb+frame/span,edge=.009f;
+                mesh.WallQuad(p(jamb+edge,sill,projection),p(end-edge,sill,projection),p(end-edge,spring,projection),p(jamb+edge,spring,projection),false,tone*1.30f);
+                mesh.WallQuad(p(jamb,sill,-.04f),p(jamb+edge,sill,projection),p(jamb+edge,spring,projection),p(jamb,spring,-.04f),false,tone*.98f);
+                mesh.WallQuad(p(end-edge,sill,projection),p(end,sill,-.04f),p(end,spring,-.04f),p(end-edge,spring,projection),false,tone*1.17f);
+                // Broad foot and impost shoulders carry the dressed arch frame.
+                foreach(float z in new[]{sill+.30f,spring-.20f})
+                {
+                    mesh.WallQuad(p(jamb-.032f,z,-.24f),p(end+.032f,z,-.24f),p(end+.032f,z+.20f,-.24f),p(jamb-.032f,z+.20f,-.24f),false,tone*1.22f);
+                    mesh.WallQuad(p(jamb-.032f,z+.20f,-.24f),p(end+.032f,z+.20f,-.24f),p(end+.032f,z+.20f,0),p(jamb-.032f,z+.20f,0),false,tone*1.42f);
+                }
+            }
+            float fireBottom=sill+1.05f,fireTop=spring-.55f,step=(fireTop-fireBottom)/3f;
+            float paneHeight=Mathf.Min(1.65f,step*.57f);
+            for(int pane=0;pane<3;pane++)
+            {
+                float z0=fireBottom+pane*step,z1=z0+paneHeight,mid=(z0+z1)*.5f;
+                // Open gaps deliberately contain no fire triangles: this material
+                // draws after masonry and cannot rely on a grate hiding its glow.
+                DistantFirePane(fire,p,.466f,.534f,z0,mid,recess-.008f,.10f,.19f);
+                DistantFirePane(fire,p,.466f,.534f,mid,z1,recess-.008f,.19f,.12f);
+                if(pane==2)continue;
+                float lintel=(z1+fireBottom+(pane+1)*step)*.5f;
+                mesh.WallQuad(p(.37f,lintel-.09f,recess-.12f),p(.63f,lintel-.09f,recess-.12f),
+                    p(.63f,lintel+.09f,recess-.12f),p(.37f,lintel+.09f,recess-.12f),false,tone*.91f);
+                mesh.WallQuad(p(.37f,lintel+.09f,recess-.12f),p(.63f,lintel+.09f,recess-.12f),
+                    p(.63f,lintel+.09f,recess),p(.37f,lintel+.09f,recess),false,tone*1.1f);
+            }
+            // The first edge of each arch voussoir slopes differently. Texture
+            // courses instead share the facade's fixed design-plane horizontal,
+            // preventing rotated bricks across the segmented spandrel and reveals.
+            float facadeSlope=west?-.5f:.5f;
+            for(int i=facadeStart;i<mesh.V.Count;i++)
+                mesh.U[i]=new Vector2(mesh.V[i].x/2.8f,(mesh.V[i].y-facadeSlope*mesh.V[i].x)/2.4f);
+        }
+
+        private static void DistantFirePane(Builder fire,System.Func<float,float,float,Vector3> p,
+            float left,float right,float bottom,float top,float inset,float low,float high)
+        {
+            int first=fire.V.Count;
+            FullFace(fire,p(left,bottom,inset),p(right,bottom,inset),p(right,top,inset),p(left,top,inset),Color.white);
+            for(int i=0;i<4;i++)
+            {
+                float value=i<2?low:high;
+                fire.C[first+i]=new Color(value,value*.73f,value*.52f,1);
+                fire.U[first+i]=new Vector2(.7815f+fire.U[first+i].x*.001f,.8375f+fire.U[first+i].y*.001f);
+            }
+        }
+
+        private static void DistantTaper(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,float inset,Color tone)
+        {
+            Vector3 a=Project(u0,v0)+Vector3.up*bottom,b=Project(u1,v0)+Vector3.up*bottom;
+            Vector3 d=Project(u0,v1)+Vector3.up*bottom;
+            Vector3 e=Project(u0+inset,v0+inset)+Vector3.up*top,f=Project(u1-inset,v0+inset)+Vector3.up*top;
+            Vector3 g=Project(u1-inset,v1-inset)+Vector3.up*top,h=Project(u0+inset,v1-inset)+Vector3.up*top;
+            mesh.WallQuad(d,a,e,h,false,tone*.70f);
+            mesh.WallQuad(a,b,f,e,false,tone);
+            mesh.WallQuad(e,f,g,h,true,tone*1.10f);
+        }
+
         private static void FadeDistantFoot(Builder mesh,int first,float fadeBase)
         {
             for(int i=first;i<mesh.C.Count;i++)
@@ -116,7 +262,7 @@ namespace Cryptforge.UI
         private static void DistantArchSpan(Builder mesh,Vector3 a,Vector3 b,Color tone)
         {
             const int segments=16;
-            Vector3 back=new Vector3(-.75f,.38f,0);
+            Vector3 back=new Vector3(-1.05f,.525f,0);
             for(int i=0;i<segments;i++)
             {
                 if(i>=7&&i<=9)continue; // A missing middle bay never suggests a path to the court.
@@ -127,10 +273,32 @@ namespace Cryptforge.UI
                 Vector3 lowerP=p+Vector3.down*(5.2f-riseP),lowerQ=q+Vector3.down*(5.2f-riseQ);
                 mesh.WallQuad(lowerP+back,lowerQ+back,q+back,p+back,false,tone*.65f);
                 mesh.WallQuad(lowerP,lowerQ,q,p,false,tone*.88f);
+                mesh.WallQuad(lowerP+back,lowerQ+back,lowerQ,lowerP,false,tone*.48f);
                 mesh.WallQuad(p,q,q+back,p+back,false,tone*1.08f);
+                // Low masonry parapet and occasional squared posts keep the span
+                // architectural without disguising the central break as a route.
+                Vector3 rail=Vector3.up*.43f,railBack=back*.28f;
+                mesh.WallQuad(p,q,q+rail,p+rail,false,tone*.88f);
+                mesh.WallQuad(p+rail,q+rail,q+rail+railBack,p+rail+railBack,false,tone*1.05f);
+                if(i==0||i==3||i==6||i==10||i==13||i==15)
+                {
+                    Vector3 post=(p+q)*.5f,half=(q-p).normalized*.14f;
+                    mesh.WallQuad(post-half,post+half,post+half+Vector3.up*.70f,post-half+Vector3.up*.70f,false,tone);
+                    mesh.WallQuad(post-half+Vector3.up*.70f,post+half+Vector3.up*.70f,
+                        post+half+Vector3.up*.70f+railBack,post-half+Vector3.up*.70f+railBack,false,tone*1.1f);
+                }
                 if(i==6||i==10)
                     mesh.WallQuad(i==6?lowerQ:lowerP,(i==6?lowerQ:lowerP)+back,
                         (i==6?q:p)+back,i==6?q:p,false,tone*.60f);
+            }
+            // Deep bearing shoes extend below both springings and meet the tower
+            // cores. They are emitted before the towers, so the latter own overlap.
+            foreach(Vector3 end in new[]{a,b})
+            {
+                Vector3 half=(b-a).normalized*.55f,low=Vector3.down*6.3f,high=Vector3.down*4.3f;
+                mesh.WallQuad(end-half+low,end+half+low,end+half+high,end-half+high,false,tone*.78f);
+                mesh.WallQuad(end-half+low+back,end-half+low,end-half+high,end-half+high+back,false,tone*.57f);
+                mesh.WallQuad(end-half+high,end+half+high,end+half+high+back,end-half+high+back,false,tone);
             }
         }
     }

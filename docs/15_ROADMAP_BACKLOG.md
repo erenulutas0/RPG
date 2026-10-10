@@ -524,3 +524,9 @@ Next visual priority: purposeful working-yard composition and richer architectur
 The north working-yard interval now contains a supported original casting bench and screw press, open moulds and finished billets. Existing walking lanes and north rail are preserved; no new gameplay/collision contract is needed outside the walk union. Actual Unity review accepts placement, contact and foreground overlap. Evidence: ArtDirection/2026-10-10/foundry-workbay-01; editable Blender kit: casting-bench-01 beside it.
 
 Next substantial art priority remains architectural richness and working-yard composition at whole-map scale, especially the coarse large northwest distant silhouette. Avoid claiming the small bench completes reference fidelity. Device/crowd/midrange/first-ramp acceptance and deferred region encounter/boss progression remain open; final gate and installation status live in the proof verification record.
+
+## 2026-10-10 - North skyline architecture
+
+Completed in Unity: two recessed arched furnace towers with dressed frames/tapered shoulders; improved broken viaduct supports/parapets; shorter subdued furnace panes. Actual root and independent image review accepted the refined version. Evidence and final gate: ArtDirection/2026-10-10/foundry-skyline-01.
+
+Remaining reference gap is the wider architectural variety and building scale rhythm, especially simpler surrounding shafts and gate/court material richness. The new towers intentionally stay dark and do not replace the reference's full detail. Avoid claiming complete fidelity or repeating another minor glow-only pass. Physical-device/crowd/midrange/first-ramp acceptance remains open; regional encounter/boss progression remains deferred by the art-first decision.

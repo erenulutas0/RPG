@@ -1113,3 +1113,10 @@ APK: 36,185,695 bytes; SHA256 357024F64DC7D9C040486CF85FE4B00978DBDE9273454E3C08
 PASS: 409 pure .NET, 446 EditMode and 154 PlayMode cases (1,009 distinct-suite tests; zero failures/skips). Two focused casting cases passed and are included in the full suite, not counted twice. Compile: 0 warnings/errors. One before and two after graphics passes; before/final-after XML retained. Android exit 0, no C# or shader diagnostics. Static integrity: 584 asset/folder GUIDs, 1099 package GUIDs, 568 scene objects/components; references/JSON valid.
 
 Root and independent actual Unity review accept the supported bench/press, foreground rail/finial overlap and portrait readability. Region: 31 to 32 renderers, 115,042 to 115,106 vertices (+64); no frame-time claim. Evidence: ArtDirection/2026-10-10/foundry-workbay-01/validation/verification.md. APK: 36,188,179 bytes; SHA256 F5C0AAFE5F6B0504149AB942846FD621B5353FF71A78A8E447FDE73BE91012DB. NOT INSTALLED.
+
+
+## 2026-10-10 - Distant furnace architecture verified
+
+PASS: 409 pure .NET, 446 EditMode and 154 PlayMode cases (1,009 total; zero failures/skips). One focused distant-works case also passed and is included in the full total. Compile: 0 warnings/errors. One before and two after graphics passes; baseline/final-after XML retained. Android exit 0, no C# or shader diagnostics. Static integrity: 584 asset/folder GUIDs, 1099 package GUIDs, 568 scene objects/components; references/JSON valid. No tests weakened. Root and independent final image review accepted the refined arches, shoulders and broken span. Region: 32 renderers unchanged, 116,326 vertices; distant 2,276 remains within its unchanged 2,500 ceiling. No performance claim.
+
+APK: 36,193,923 bytes; SHA256 FB3A240950D69901AA8976746ABCD6B508D42728BB7B05984C91D8BA8781DA39. NOT INSTALLED. Full evidence and limits: ArtDirection/2026-10-10/foundry-skyline-01/validation/verification.md.

@@ -1819,3 +1819,10 @@ No ADB action or fresh phone observation this pass. The earlier concrete owner-r
 Latest APK: 36,188,179 bytes; SHA256 F5C0AAFE5F6B0504149AB942846FD621B5353FF71A78A8E447FDE73BE91012DB. The full 1,009-test gate and actual Unity image review passed. No ADB action or fresh device observation in this pass. The earlier concrete owner-run restart/install question remains pending. Last recorded package 021b95f and paused Room 2 / 74 HP / 8 unbanked gold are historical.
 
 After approval take fresh preflight/backup, install the latest accumulated package and check its hash, review map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-workbay-01/validation/verification.md.
+
+
+## 2026-10-10 - Distant furnace architecture APK ready
+
+APK: 36,193,923 bytes; SHA256 FB3A240950D69901AA8976746ABCD6B508D42728BB7B05984C91D8BA8781DA39. NOT INSTALLED. Full 1,009-test gate and actual Unity image review passed; integrity 584/1099/568 valid. No ADB action or fresh device observation this pass. The earlier concrete owner-run restart/install question remains pending. Last recorded package 021b95f and paused Room 2 / 74 HP / 8 unbanked gold are historical observations.
+
+After approval take fresh preflight/backup, install/hash-check the latest accumulated package, review map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-skyline-01/validation/verification.md.
