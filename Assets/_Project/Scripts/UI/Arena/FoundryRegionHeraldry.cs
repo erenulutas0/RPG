@@ -9,101 +9,56 @@ namespace Cryptforge.UI
         // multiplier avoids tinting that gold twice into almost-black bronze.
         private static readonly Color CeremonialBrass=new Color(.96f,.91f,.79f);
         private static readonly Color CeremonialBrassEdge=new Color(1.02f,.97f,.85f);
-        // The seal every run opens on, read at arm's length: a brass-lined compass star inside a brass ring pair, after
-        // the reference medallion. Paving shows through the star and only the field between its points darkens, so the
-        // brass separates without a glow, a pit or an obstacle under the range ring and telegraphs. Flush, lit only as
-        // the paving under it (LightFloorDecals), and inside r 3.9 (the shaft corner is past r 4.2); the rings sit on
-        // BuildCourtStoneRing's annulus (3.26-3.97).
+        // One stone medallion, one quiet brass boundary. The old remote r8.6
+        // bullseye/spokes competed with the ability ring and the actual court scale.
         private void BuildCourtSeal(ArenaView arena)
         {
-            const float Field=3.4f,Inner=3.44f,Outer=3.82f;
             var seal=new Builder();
-            var brass=CeremonialBrass;var lit=CeremonialBrassEdge;var channel=new Color(.70f,.69f,.73f);
-            // Points on the compass rays: four major on the screen axes (its odd rays), four minor on its diagonals.
+            var channel=new Color(.76f,.75f,.77f);
+            var brass=CeremonialBrass;
             var tips=new Vector2[8];var valleys=new Vector2[8];
-            for(int i=0;i<8;i++){tips[i]=SealPolar(i*Mathf.PI/4,i%2==1?3.12f:2.05f);valleys[i]=SealPolar((i+.5f)*Mathf.PI/4,.78f);}
-            // Darker field: each half-point's sector from the star edge out under the inner ring, stepped along the
-            // edge so it meets the star exactly. A flat patch of panel stone, half transparent, so paving still reads.
-            var field=new Color(1,1,.93f,.44f);
-            for(int i=0;i<8;i++)for(int side=-1;side<=1;side+=2)
+            for(int i=0;i<8;i++)
             {
-                Vector2 tip=tips[i],valley=valleys[side>0?i:(i+7)%8];
-                for(int k=0;k<4;k++)
-                {
-                    float a=i*Mathf.PI/4+side*k*Mathf.PI/32,b=i*Mathf.PI/4+side*(k+1)*Mathf.PI/32;
-                    SealQuad(seal,SealEdge(tip,valley,a),SealEdge(tip,valley,b),SealPolar(b,Field),SealPolar(a,Field),field,SealStone);
-                }
+                tips[i]=SealPolar(i*Mathf.PI/4,i%2==1?2.50f:1.70f);
+                valleys[i]=SealPolar((i+.5f)*Mathf.PI/4,.62f);
             }
-            // One facet of each point in light shade, as a carved compass rose; the other stays bare paving.
-            for(int i=0;i<8;i++)SealQuad(seal,Vector2.zero,tips[i],valleys[i],valleys[i],new Color(1,1,.93f,.2f),SealStone);
-            // Grooves first, brass second, so no dark channel overdraws a brass join.
+            // Open paving inside the compass keeps the fighting floor quiet.
             for(int pass=0;pass<2;pass++)
             {
-                bool metal=pass==1;var trim=metal?CopingTrim.Brass:CopingTrim.Stone;
+                bool metal=pass==1;
+                var trim=metal?CopingTrim.Brass:CopingTrim.Stone;
                 for(int i=0;i<8;i++)
                 {
-                    bool major=i%2==1;
-                    float width=metal?(major?.12f:.09f):(major?.15f:.12f);Color tone=metal?(major?lit:brass):channel;
-                    Strip(seal,tips[i].x,tips[i].y,valleys[i].x,valleys[i].y,width,tone,trim,i*2);
-                    Vector2 back=valleys[(i+7)%8];
-                    Strip(seal,tips[i].x,tips[i].y,back.x,back.y,width,tone,trim,i*2+1);
-                    // A lozenge ties the ring pair on every ray; the compass ray carries the line on from r 4.1.
-                    Vector2 d=SealPolar(i*Mathf.PI/4,1),c=d*((Inner+Outer)*.5f),along=d*(metal?.17f:.21f);
-                    Vector2 across=new Vector2(-d.y,d.x)*((major?.1f:.07f)+(metal?0:.04f));
-                    SealQuad(seal,c-along,c+across,c+along,c-across,metal?lit:channel,metal?CopingRail:SealStone);
+                    float width=metal?.075f:.105f;
+                    foreach(var valley in new[]{valleys[i],valleys[(i+7)%8]})
+                        Strip(seal,tips[i].x,tips[i].y,valley.x,valley.y,width,metal?brass:channel,trim,i);
                 }
                 for(int i=0;i<48;i++)
                 {
-                    float a=i*Mathf.PI/24,b=(i+1)*Mathf.PI/24;
-                    Vector2 p=SealPolar(a,Outer),q=SealPolar(b,Outer),m=SealPolar(a,Inner),n=SealPolar(b,Inner);
-                    Strip(seal,p.x,p.y,q.x,q.y,metal?.135f:.17f,metal?lit:channel,trim,i);
-                    Strip(seal,m.x,m.y,n.x,n.y,metal?.095f:.12f,metal?brass:channel,trim,i+3);
+                    Vector2 p=SealPolar(i*Mathf.PI/24,3.79f),q=SealPolar((i+1)*Mathf.PI/24,3.79f);
+                    Strip(seal,p.x,p.y,q.x,q.y,metal?.075f:.11f,metal?brass:channel,trim,i);
+                }
+                // Eight small joints tie the single ring to the radial stone voussoirs.
+                for(int ray=0;ray<8;ray++)
+                {
+                    Vector2 d=SealPolar(ray*Mathf.PI/4,1),p=d*2.96f,q=d*3.67f;
+                    Strip(seal,p.x,p.y,q.x,q.y,metal?.045f:.075f,metal?brass:channel,trim,ray);
                 }
             }
             WeatherHeraldry(seal);
             Create("Court engraved forge seal",seal,arena.PlatformMaterials.Coping,FloorDecal);
         }
 
-        // The reference's compass: eight brass rays leave the seal and meet a wide outer ring, so the open court -
-        // where the portrait camera spends most of a run - reads as laid-out paving rather than an empty sheet.
-        // Every piece is flush and clipped to the walking union, so the ring breaks where the shaft cuts the court.
         private static void BuildCourtCompass(Builder inlays,Color brass)
         {
-            const float Ring=8.6f;
-            // A narrow worn channel either side of a brighter inlay: the brass has to read as metal, not as a crack.
-            var channel=new Color(.70f,.69f,.73f);
-            var lit=CeremonialBrassEdge;
-            for(int i=0;i<96;i++)
+            // Short cardinal setting-out keys belong to the medallion. There is
+            // deliberately no second remote ring crossing the pit-side battle space.
+            for(int ray=0;ray<4;ray++)
             {
-                float a=i*Mathf.PI/48,b=(i+1)*Mathf.PI/48;
-                Vector2 p=new Vector2(Mathf.Cos(a),Mathf.Sin(a))*Ring,q=new Vector2(Mathf.Cos(b),Mathf.Sin(b))*Ring;
-                if(!OnCourt(p)||!OnCourt(q)||!OnCourt((p+q)*.5f))continue;
-                Strip(inlays,p.x,p.y,q.x,q.y,.17f,channel,CopingTrim.Stone,i);
-                Strip(inlays,p.x,p.y,q.x,q.y,.14f,lit,CopingTrim.Brass);
+                Vector2 d=SealPolar(ray*Mathf.PI*.5f,1),p=d*4.03f,q=d*4.48f;
+                if(OnCourt(p)&&OnCourt(q))
+                    Strip(inlays,p.x,p.y,q.x,q.y,.075f,brass,CopingTrim.Brass,ray);
             }
-            for(int ray=0;ray<8;ray++)
-            {
-                Vector2 direction=new Vector2(Mathf.Cos(ray*Mathf.PI/4),Mathf.Sin(ray*Mathf.PI/4));
-                // Short pieces, each kept only if it lies on the court, so a ray stops cleanly at the shaft collar.
-                for(float r=4.1f;r<Ring-.1f;r+=.5f)
-                {
-                    Vector2 p=direction*r,q=direction*Mathf.Min(r+.5f,Ring-.1f);
-                    if(!OnCourt(p)||!OnCourt(q))continue;
-                    Strip(inlays,p.x,p.y,q.x,q.y,ray%2==0?.15f:.12f,channel,CopingTrim.Stone,ray+(int)(r*2));
-                    Strip(inlays,p.x,p.y,q.x,q.y,ray%2==0?.12f:.095f,lit,CopingTrim.Brass);
-                }
-                // A brass lozenge where each cardinal ray meets the ring, as the reference marks its star points. On the
-                // rail like the seal's lozenges: its local quad UVs sampled the sheet's corner, a dark stone patch with a
-                // brass edge that would also have taken the floor light as stone.
-                Vector2 tip=direction*Ring;
-                if(ray%2==0&&OnCourt(tip))
-                {
-                    Vector2 side=new Vector2(-direction.y,direction.x)*.3f,along=direction*.42f;
-                    SealQuad(inlays,tip-along,tip+side,tip+along,tip-side,lit,CopingRail);
-                }
-            }
-            // This builder also owns the court's straight guides. Give those the same
-            // surface response so the compass does not sit inside a newer-looking frame.
             WeatherHeraldry(inlays);
         }
 
@@ -123,32 +78,55 @@ namespace Cryptforge.UI
             var groove=new Color(.70f,.69f,.73f);
             var brass=CeremonialBrass;
             var edge=CeremonialBrassEdge;
-            var frame=new[]{new Vector2(15.8f,2),new Vector2(16.5f,1.3f),
-                new Vector2(29.9f,1.3f),new Vector2(30.6f,2),new Vector2(30.6f,8),
-                new Vector2(29.9f,8.7f),new Vector2(16.5f,8.7f),new Vector2(15.8f,8)};
-            var inner=new[]{new Vector2(16.2f,2.15f),new Vector2(16.65f,1.7f),
+            // Dressed stone replaces the long pair of racing-stripe outlines.
+            // Its centreline is inset inside the previous frame's exact envelope.
+            var frame=new[]{new Vector2(16.2f,2.15f),new Vector2(16.65f,1.7f),
                 new Vector2(29.75f,1.7f),new Vector2(30.2f,2.15f),new Vector2(30.2f,7.85f),
                 new Vector2(29.75f,8.3f),new Vector2(16.65f,8.3f),new Vector2(16.2f,7.85f)};
+            var stone=new Builder();
+            // The eight corners share true offset-line intersections. Each edge owns
+            // its miter-to-miter sector, so neighboring beds cannot overlap the faces.
+            var outerBed=InsetFlagContour(frame,-.28f);
+            var innerBed=InsetFlagContour(frame,.28f);
+            var outerFace=InsetFlagContour(frame,-.24f);
+            var innerFace=InsetFlagContour(frame,.24f);
+            // Complete the common mortar bed before any dressed stone is emitted.
+            for(int i=0;i<frame.Length;i++)
+            {
+                int next=(i+1)%frame.Length;
+                CeremonialStoneFace(stone,new[]{outerBed[i],outerBed[next],innerBed[next],innerBed[i]},.82f);
+            }
+            for(int i=0;i<frame.Length;i++)
+            {
+                int next=(i+1)%frame.Length;
+                float length=Vector2.Distance(frame[i],frame[next]);
+                int blocks=Mathf.Max(1,Mathf.CeilToInt(length/1.25f));
+                float joint=.018f/length;
+                for(int k=0;k<blocks;k++)
+                {
+                    float t0=k/(float)blocks+joint,t1=(k+1)/(float)blocks-joint;
+                    Vector2 a=Vector2.Lerp(outerFace[i],outerFace[next],t0);
+                    Vector2 b=Vector2.Lerp(outerFace[i],outerFace[next],t1);
+                    Vector2 c=Vector2.Lerp(innerFace[i],innerFace[next],t1);
+                    Vector2 d=Vector2.Lerp(innerFace[i],innerFace[next],t0);
+                    float tone=1.07f+.015f*((i+k)%3);
+                    CeremonialStoneFace(stone,new[]{a,b,c,d},tone);
+                }
+            }
+            Create("Gate dressed stone border",stone,arena.PlatformMaterials.FoundryPaving,-15);
             for(int pass=0;pass<2;pass++)
             {
                 bool metal=pass==1;
                 var trim=metal?CopingTrim.Brass:CopingTrim.Stone;
                 Color tone=metal?brass:groove;
-                for(int i=0;i<frame.Length;i++)
-                {
-                    Vector2 p=frame[i],q=frame[(i+1)%frame.Length];
-                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.105f:.14f,tone,trim,i);
-                    p=inner[i];q=inner[(i+1)%inner.Length];
-                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.052f:.075f,tone,trim,i+7);
-                }
                 Vector2 centre=new Vector2(23.2f,5);
                 for(int i=0;i<48;i++)
                 {
                     float a=i*Mathf.PI/24,b=(i+1)*Mathf.PI/24;
-                    foreach(float radius in new[]{1.72f,1.96f})
+                    foreach(float radius in new[]{1.82f})
                     {
                         Vector2 p=centre+SealPolar(a,radius),q=centre+SealPolar(b,radius);
-                        Strip(inlay,p.x,p.y,q.x,q.y,metal?.078f:.11f,tone,trim,i);
+                        Strip(inlay,p.x,p.y,q.x,q.y,metal?.060f:.085f,tone,trim,i);
                     }
                 }
                 // Four long points follow the approach; their open interior preserves
@@ -160,13 +138,13 @@ namespace Cryptforge.UI
                 for(int i=0;i<star.Length;i++)
                 {
                     Vector2 p=centre+star[i],q=centre+star[(i+1)%star.Length];
-                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.095f:.13f,metal?edge:groove,trim,i);
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.072f:.10f,metal?edge:groove,trim,i);
                 }
-                foreach(var ends in new[]{new Vector2(17.1f,20.38f),new Vector2(26.02f,29.3f)})
+                foreach(var ends in new[]{new Vector2(18.8f,20.38f),new Vector2(26.02f,27.6f)})
                     Strip(inlay,ends.x,5,ends.y,5,metal?.078f:.11f,tone,trim);
                 // Four short ties connect the framing to the medallion without filling
                 // the fighting lane with a repeated luminous-looking pattern.
-                foreach(float u in new[]{18f,28.4f})foreach(float v in new[]{1.5f,8.5f})
+                foreach(float u in new[]{18f,28.4f})foreach(float v in new[]{1.7f,8.3f})
                 {
                     Vector2 c=new Vector2(u,v),along=new Vector2(.32f,0),across=new Vector2(0,.18f);
                     SealQuad(inlay,c-along,c+across,c+along,c-across,metal?edge:groove,metal?CopingRail:SealStone);
@@ -174,6 +152,28 @@ namespace Cryptforge.UI
             }
             WeatherHeraldry(inlay);
             Create("Gate processional stone and brass inlay",inlay,arena.PlatformMaterials.Coping,FloorDecal);
+        }
+
+        // World-continuous stone UV/light sampled in half-unit cells. Clipping
+        // bounds every triangle and splits the gate's u29/u31 grade breaks exactly.
+        private static void CeremonialStoneFace(Builder mesh,Vector2[] polygon,float tone)
+        {
+            float u0=polygon[0].x,u1=u0,v0=polygon[0].y,v1=v0;
+            foreach(var p in polygon){u0=Mathf.Min(u0,p.x);u1=Mathf.Max(u1,p.x);v0=Mathf.Min(v0,p.y);v1=Mathf.Max(v1,p.y);}
+            float[] us=LightLines(u0,u1,.5f),vs=LightLines(v0,v1,.5f);
+            for(int y=0;y+1<vs.Length;y++)for(int x=0;x+1<us.Length;x++)
+            {
+                var clipped=ClipFlagCell(polygon,us[x],vs[y],us[x+1],vs[y+1]);
+                if(clipped.Count<3)continue;
+                int first=mesh.V.Count;
+                foreach(var p in clipped)
+                    PavingVertex(mesh,p.x,p.y,tone,new Color(1.025f,1.015f,.99f),FloorLight(p.x,p.y));
+                for(int i=1;i+1<clipped.Count;i++)
+                {
+                    if(Mathf.Abs(FlagCross(clipped[i]-clipped[0],clipped[i+1]-clipped[0]))<1e-7f)continue;
+                    mesh.T.Add(first);mesh.T.Add(first+i);mesh.T.Add(first+i+1);
+                }
+            }
         }
 
         // Environmental inlay is rubbed, aged brass rather than a polished outline.

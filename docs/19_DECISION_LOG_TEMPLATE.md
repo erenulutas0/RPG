@@ -907,3 +907,7 @@ Decision: add the press/moulding kit on a supported exterior shelf u[-18,-13], v
 ## 2026-10-10 - Architectural relief before broader brightness changes
 
 Decision: replace the blank visible shafts of the two north skyline towers with real recessed furnace bays, dressed arches, chamfered jambs and tapered shoulders. Strengthen the existing broken viaduct bearings/parapets while retaining its gap. Keep anchors, background sorting, atmospheric material and lower fade. The first image review rejected continuous orange stripes; final shorter panes and raised frames retain quiet background hierarchy. Actual Unity root/independent review accepts the refined version, with modest portrait gain because arch heads sit above its crop. Do not describe this as full reference completion. Evidence and final test/device status: ArtDirection/2026-10-10/foundry-skyline-01.
+
+## 2026-10-10 - One court medallion and a stone-framed gate approach
+
+Owner requested gate and courtyard improvements together toward the approved concept. Chosen: coherent portal masses, one flush stone medallion and a segmented stone approach border. Rejected: more small pier belts, a second oversized court bullseye, and brighter duplicate gold racing stripes. This improves architectural hierarchy while preserving the existing playing space and door art. The border required visible mortar and shared miter joints; actual root/independent Unity review accepted the corrected result. No navigation, camera, gameplay, save or device changes. Proof: ArtDirection/2026-10-10/foundry-gate-court-01.

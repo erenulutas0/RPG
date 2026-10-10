@@ -2,42 +2,36 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Continuous roof and coping grain; existing silhouette, elevation and anchors.
+    // Supported portal crown; unchanged footprint, maximum elevation and door anchors.
     public sealed partial class FoundryRegionView
     {
         private static void BuildGateHeaderFinish(Builder stone,float height)
         {
-            Vector3 a=Project(32.18f,-.55f)+Vector3.up*(height+.43f);
-            Vector3 b=Project(32.18f,10.55f)+Vector3.up*(height+.43f);
-            Vector3 ridge=Project(32.18f,5)+Vector3.up*(height+1.55f);
-            Vector3 back=Project(33.78f,5)-Project(32.18f,5);
-            // The recessed front and seal housing retain their established appearance.
-            stone.WallQuad(a,b,ridge,ridge,false,new Color(.47f,.51f,.62f));
-            BuildGatePedimentRecess(stone,a,b,ridge);
-            var edges=new[]{new[]{a,ridge},new[]{ridge,b}};
-            var roofTones=new[]{new Color(.67f,.70f,.77f),new Color(.47f,.51f,.61f)};
-            for(int side=0;side<2;side++)
+            // A broad supported lintel replaces the long shallow temple gable.
+            // The two low shoulders climb into a narrow central crest, retaining
+            // the existing height envelope while strengthening the industrial gate.
+            GateEnclosureTier(stone,32.08f,-.78f,33.92f,10.78f,height+.43f,height+.72f,.06f,.90f,true);
+            foreach(bool left in new[]{true,false})
             {
-                Vector3 p=edges[side][0],q=edges[side][1];
-                HeaderStonePatch(stone,p,q,q+back,p+back,roofTones[side],p,q,p+back);
+                float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
+                GateEnclosureTier(stone,32.18f,v0,33.82f,v1,height+.72f,height+.97f,.11f,.93f,true);
+                float inner0=left?2.0f:6.5f,inner1=left?3.5f:8.0f;
+                GateEnclosureTier(stone,32.28f,inner0,33.72f,inner1,height+.97f,height+1.22f,.13f,.86f,true);
             }
-            // These are the same fourteen coping blocks, with the same gaps and bevels.
-            // Tops now follow their supporting slope's light instead of a single flat
-            // tone on both roof planes. Small course variation avoids a striped header.
-            for(int side=0;side<2;side++)
+            GateEnclosureTier(stone,32.15f,3.35f,33.85f,6.65f,height+.72f,height+1.32f,.10f,.88f,true);
+            GateEnclosureTier(stone,32.22f,3.38f,33.78f,6.62f,height+1.32f,height+1.55f,.09f,.98f,true);
+            // Five substantial corbels beneath the lintel read as structural
+            // support; their broad top returns carry the continuous header above.
+            foreach(float v in new[]{-.50f,2.20f,4.70f,7.20f,9.90f})
             {
-                var edge=edges[side];
-                for(int i=0;i<7;i++)
-                {
-                    Vector3 p=Vector3.Lerp(edge[0],edge[1],(i+.015f)/7f);
-                    Vector3 q=Vector3.Lerp(edge[0],edge[1],(i+.985f)/7f);
-                    Vector3 rise=Vector3.up*.19f;
-                    float course=i%3==1?.975f:1f;
-                    HeaderDressedFace(stone,p,q,q+rise,p+rise,
-                        new Color(.65f,.68f,.75f)*course,.14f);
-                    HeaderDressedFace(stone,p+rise,q+rise,q+back+rise,p+back+rise,
-                        roofTones[side]*(1.035f*course),.035f);
-                }
+                Vector3 a=Project(32.05f,v)+Vector3.up*(height-.28f);
+                Vector3 b=Project(32.05f,v+.40f)+Vector3.up*(height-.28f);
+                Vector3 c=Project(32.0f,v+.53f)+Vector3.up*(height+.08f);
+                Vector3 d=Project(32.0f,v-.13f)+Vector3.up*(height+.08f);
+                Vector3 back=Project(32.46f,v)-Project(32.0f,v);
+                HeaderStonePatch(stone,a,a+back,d+back,d,new Color(.35f,.39f,.48f),a,a+back,d);
+                HeaderStonePatch(stone,d,c,c+back,d+back,new Color(.67f,.70f,.77f),d,c,d+back);
+                HeaderDressedFace(stone,a,b,c,d,new Color(.53f,.57f,.65f),.06f);
             }
         }
 

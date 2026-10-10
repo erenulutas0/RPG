@@ -1826,3 +1826,9 @@ After approval take fresh preflight/backup, install the latest accumulated packa
 APK: 36,193,923 bytes; SHA256 FB3A240950D69901AA8976746ABCD6B508D42728BB7B05984C91D8BA8781DA39. NOT INSTALLED. Full 1,009-test gate and actual Unity image review passed; integrity 584/1099/568 valid. No ADB action or fresh device observation this pass. The earlier concrete owner-run restart/install question remains pending. Last recorded package 021b95f and paused Room 2 / 74 HP / 8 unbanked gold are historical observations.
 
 After approval take fresh preflight/backup, install/hash-check the latest accumulated package, review map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-skyline-01/validation/verification.md.
+
+## 2026-10-10 - Gate/court APK built, not installed
+
+Latest local APK36196072bytes; SHA256 EB02AA8CB3BC649753FE9367E1599ECE99B1AE9C2CFCB24E3D87A3CD84243119. Built after final409.NET/446Edit/154Play and clean compile; Android exit0. Combined portal, radial court medallion and mitered stone approach border visually accepted in Unity. Proof: ArtDirection/2026-10-10/foundry-gate-court-01. No ADB action or fresh device observation this turn.
+
+Earlier concrete owner-run restart/install decision remains pending. Last recorded package021b95f and Room2/74HP/8unbankedgold are historical; do not treat them as current. After approval take fresh preflight/backup, install/hash-check latest accumulated package and inspect map/normal combat; preserve current original saves/telemetry and remove only newly introduced diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp acceptance remains open.

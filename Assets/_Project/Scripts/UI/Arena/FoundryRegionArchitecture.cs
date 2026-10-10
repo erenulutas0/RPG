@@ -11,34 +11,28 @@ namespace Cryptforge.UI
         {
             BuildGateEnclosure(arena,true);
             var stone=new Builder();
-            // Segmented cornice: projecting lower lip, recessed course and sloping crown.
+            // Continuous lower cornice supports the stepped portal crown above.
             LitFoundryTier(stone,32,-1,34,11,height-.12f,height+.12f,0);
             LitFoundryTier(stone,32.12f,-.9f,33.88f,10.9f,height+.12f,height+.44f,.12f);
-            for(int i=0;i<8;i++)
-                LitFoundryTier(stone,32,-.85f+i*1.47f,32.32f,-.38f+i*1.47f,
-                    height-.32f,height-.12f,0);
             BuildGateHeaderFinish(stone,height);
             foreach(float v in new[]{-3f,11f})
             {
-                // Wide plinth, narrower shaft and chamfered crown replace the flat box silhouette.
+                // Continuous vertical buttress shafts carry the heavy portal.
+                // Removing the intermediate stacked belts avoids a cage of small
+                // black windows alongside the uninterrupted painted door.
                 LitFoundryTier(stone,32,v,35,v+2,0,.45f,.08f);
-                float previous=.45f;
-                foreach(float level in new[]{1.5f,3.25f,5.45f})
-                {
-                    // Build upward in painter order so a course's rear cap cannot paint over
-                    // the shaft above it. A single full-height shaft followed by all caps cannot do this.
-                    LitFoundryTier(stone,32.26f,v+.24f,34.74f,v+1.76f,previous,level,.04f);
-                    LitFoundryTier(stone,32.08f,v+.08f,34.92f,v+1.92f,level,level+.2f,.04f);
-                    previous=level+.2f;
-                }
+                GateEnclosureTier(stone,32.12f,v+.10f,34.88f,v+1.90f,.45f,1.45f,.14f,.91f);
+                GateEnclosureTier(stone,32.16f,v+.14f,34.84f,v+1.86f,1.45f,1.70f,.08f,.96f,true);
+                GateEnclosureTier(stone,32.26f,v+.24f,34.74f,v+1.76f,1.70f,5.45f,.04f,.92f);
+                GateEnclosureTier(stone,32.08f,v+.08f,34.92f,v+1.92f,5.45f,5.70f,.08f,.96f,true);
                 LitFoundryTier(stone,32.02f,v+.02f,34.98f,v+1.98f,5.7f,6.05f,.12f);
                 LitFoundryTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
                 LitFoundryTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
-                BuildGateCornerStones(stone,v);
                 BuildGatePierRelief(stone,v);
+                BuildGateInnerReturn(stone,v,height);
             }
-            // The stepped keystone ties the shallow pediment to the door's central seal.
-            // Its crown stays below the existing gable and within the header footprint.
+            // The raised keystone ties the stepped portal crown to the door seal.
+            // It stays below the new crest and within the existing header footprint.
             LitFoundryTier(stone,32.16f,4.38f,33.42f,5.62f,height+.43f,height+1.36f,.13f);
             // Central raised seal housing above the painted doors; the door artwork remains intact.
             LitFoundryTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
@@ -93,8 +87,8 @@ namespace Cryptforge.UI
 
         private static void BuildGatePediment(Builder stone,float height)
         {
-            // A shallow continuous gable is supported by the full existing header.
-            // Its front remains behind the central seal housing, above the painted doors.
+            // Legacy unused gable builder. The live portal uses the supported
+            // stepped crown in BuildGateHeaderFinish instead.
             Vector3 a=Project(32.18f,-.55f)+Vector3.up*(height+.43f);
             Vector3 b=Project(32.18f,10.55f)+Vector3.up*(height+.43f);
             Vector3 ridge=Project(32.18f,5)+Vector3.up*(height+1.55f);
@@ -171,9 +165,8 @@ namespace Cryptforge.UI
 
         private static void BuildGatePedimentRecess(Builder stone,Vector3 a,Vector3 b,Vector3 ridge)
         {
-            // One broad recessed tympanum gives the gable a carved frame at gameplay
-            // scale. All points remain on its front plane; no extra floating ornament,
-            // rear projection or raised depth bound is introduced.
+            // Legacy recess for the unused gable builder above. The active stepped
+            // crown retains the separate central seal housing and does not call this.
             Vector3 center=(a+b+ridge)/3;
             var outer=new[]{Vector3.Lerp(center,a,.83f),Vector3.Lerp(center,b,.83f),
                 Vector3.Lerp(center,ridge,.83f)};
@@ -215,7 +208,7 @@ namespace Cryptforge.UI
                 TintedIronTier(iron,33.25f,v+.75f,33.75f,v+1.25f,7.67f,8.45f,.22f,
                     new Color(.80f,.86f,.99f),true);
                 // Iron collars sit against the lower edge of the projecting stone courses.
-                foreach(float y in new[]{1.48f,3.23f,5.43f})
+                foreach(float y in new[]{1.48f,5.43f})
                 {
                     Vector3 a=Project(32.25f,v+.3f)+Vector3.up*y;
                     Vector3 b=Project(32.25f,v+1.7f)+Vector3.up*y;
@@ -340,14 +333,22 @@ namespace Cryptforge.UI
 
         private static void BuildGatePierRelief(Builder stone,float v)
         {
-            // Broad blind lancets replace the repeated metal shutters. Their two
-            // storeys stop short of the projecting belts, retaining the existing
-            // pier silhouette while giving its visible returns a carved hierarchy.
+            // One stone-backed tall blind niche replaces the two dark storeys.
+            // The continuous shaft remains legible as load-bearing masonry.
             foreach(bool front in new[]{true,false})
-            {
-                GateBlindLancet(stone,v,front,1.88f,3.08f,1.70f,3.25f);
-                GateBlindLancet(stone,v,front,3.66f,5.29f,3.45f,5.45f);
-            }
+                GateBlindLancet(stone,v,front,2.03f,5.18f,1.70f,5.45f);
+        }
+
+        private static void BuildGateInnerReturn(Builder stone,float v,float height)
+        {
+            // Substantial jambs and their deep returns stand outside the facade's
+            // v[-1,11] rectangle. They thicken the physical portal without drawing
+            // across either painted banner, seal, door leaf or walking approach.
+            bool near=v<0;
+            float a=near?v+1.42f:v+.04f,b=near?v+1.96f:v+.58f;
+            GateEnclosureTier(stone,32.02f,a,33.04f,b,.45f,1.15f,.03f,.94f,true);
+            GateEnclosureTier(stone,32.10f,a+.05f,32.96f,b-.05f,1.15f,height-.38f,.035f,.87f,true);
+            GateEnclosureTier(stone,32.02f,a-.02f,33.04f,b+.02f,height-.38f,height+.10f,.065f,.96f,true);
         }
 
         private static void GateBlindLancet(Builder stone,float v,bool front,
@@ -367,7 +368,7 @@ namespace Cryptforge.UI
                 inner[i]=new Vector2(Mathf.Lerp(outer[i].x,center,.28f),
                     Mathf.Lerp(outer[i].y,middle.y,.18f));
             Vector3 hub=GatePierFace(v,front,middle,courseBottom,courseTop);
-            Color recess=front?new Color(.16f,.19f,.25f):new Color(.22f,.25f,.32f);
+            Color recess=front?new Color(.32f,.35f,.42f):new Color(.39f,.42f,.49f);
             for(int i=0;i<5;i++)
             {
                 int j=(i+1)%5;
@@ -439,8 +440,9 @@ namespace Cryptforge.UI
 
         private static void BuildGateHeaderTies(Builder iron,float height)
         {
-            // Four straps wrap the cornice face and its upper return, inside the gate's
-            // existing depth owner. Clean iron UVs avoid repeating an entire plate on a bolt.
+            // Four straps wrap the unchanged horizontal lower cornice and its upper
+            // return, below the new stepped crown; they never followed the old gable.
+            // Clean iron UVs avoid repeating an entire plate on a bolt.
             foreach(float v in new[]{.2f,2.5f,7.5f,9.8f})
             {
                 Vector3 a=Project(32,v-.10f)+Vector3.up*(height-.10f);

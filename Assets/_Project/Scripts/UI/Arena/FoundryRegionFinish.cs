@@ -234,13 +234,12 @@ namespace Cryptforge.UI
         // Brass remains a forced joint and the ceremonial seal alone keeps unit flags.
         private const int AshlarSub=2,AshlarRun=6,AshlarEdgeRun=4,AshlarLevel=2,AshlarSalt=37;
         private const byte AshlarFree=0,AshlarEdge=1,AshlarCovered=2;
-        // Forced joints under the court's brass, (u0, v0, u1, v1) of each line: BuildLandmarks' lanes and BuildCourtCompass'
-        // rays on the axes (r 4.1-8.5; the joint runs on from the seal inset's edge at 4).
+        // Forced joints under the surviving angular court guides. The old remote
+        // compass spokes are gone; their four artificial seams are retired too.
         private static readonly Vector4[] CourtBrassJoints=
         {
             new Vector4(4,-1,30,-1),new Vector4(5,9,30,9),new Vector4(-16,-10,8,-10),new Vector4(-16,-10,-16,15),
-            new Vector4(-16,15,10,15),new Vector4(4,0,8.5f,0),new Vector4(-8.5f,0,-4,0),new Vector4(0,4,0,8.5f),
-            new Vector4(0,-8.5f,0,-4)
+            new Vector4(-16,15,10,15)
         };
         // Stone sizes in half units (w along u, h along v) and weights, in the packer's order: court, then the apron's
         // crosswise set. Infill comes last, at weight 1: it is only ever laid as the least penalised stone.
@@ -666,26 +665,25 @@ namespace Cryptforge.UI
 
         private static void BuildCourtStoneRing(Builder mesh)
         {
-            // A flush annulus inside the existing 8x8 court inset. All corners
-            // remain within +/-4, clear of the shaft. The engraved seal renders above it.
+            // A single stone-built medallion occupies the same r3.97 envelope.
+            // Radial joints carry the composition; no extra dark disc or outer target.
+            var field=new Vector2[48];
+            for(int i=0;i<field.Length;i++)field[i]=SealPolar(i*Mathf.PI/24,2.73f);
+            CeremonialStoneFace(mesh,field,.96f);
             const int segments=24;
             for(int i=0;i<segments;i++)
             {
                 float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
-                CourtRingFlag(mesh,a,b,3.26f,3.97f,.64f);
-                float tone=(i%3==0?1.13f:1.07f);
-                CourtRingFlag(mesh,a+.004f,b-.004f,3.285f,3.945f,tone);
-                // A narrow outer dressed edge catches ambient light but never glows.
-                CourtRingFlag(mesh,a+.004f,b-.004f,3.91f,3.945f,tone*1.045f);
+                CourtRingFlag(mesh,a,b,2.70f,3.97f,.82f);
+                float tone=i%3==0?1.055f:1.025f;
+                CourtRingFlag(mesh,a+.004f,b-.004f,2.735f,3.945f,tone);
             }
         }
 
         private static void CourtRingFlag(Builder mesh,float a,float b,float inner,float outer,float tone)
         {
-            LitFloorQuad(mesh,Project(Mathf.Cos(a)*inner,Mathf.Sin(a)*inner),
-                Project(Mathf.Cos(b)*inner,Mathf.Sin(b)*inner),
-                Project(Mathf.Cos(b)*outer,Mathf.Sin(b)*outer),
-                Project(Mathf.Cos(a)*outer,Mathf.Sin(a)*outer),tone);
+            CeremonialStoneFace(mesh,new[]{SealPolar(a,inner),SealPolar(b,inner),
+                SealPolar(b,outer),SealPolar(a,outer)},tone);
         }
 
         private static void LitFloorQuad(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,float stone)

@@ -530,3 +530,13 @@ Next substantial art priority remains architectural richness and working-yard co
 Completed in Unity: two recessed arched furnace towers with dressed frames/tapered shoulders; improved broken viaduct supports/parapets; shorter subdued furnace panes. Actual root and independent image review accepted the refined version. Evidence and final gate: ArtDirection/2026-10-10/foundry-skyline-01.
 
 Remaining reference gap is the wider architectural variety and building scale rhythm, especially simpler surrounding shafts and gate/court material richness. The new towers intentionally stay dark and do not replace the reference's full detail. Avoid claiming complete fidelity or repeating another minor glow-only pass. Physical-device/crowd/midrange/first-ramp acceptance remains open; regional encounter/boss progression remains deferred by the art-first decision.
+
+## 2026-10-10 - Gate and court art package
+
+- [x] Replace the shallow gate gable/repeated pier belts with a supported stepped crown, continuous stone shafts and deep portal returns inside existing bounds.
+- [x] Consolidate the court into one radial stone medallion with restrained brass, preserving an open fighting floor.
+- [x] Give the approach a flush dressed stone border; resolve visibility and miter joins through matched actual Unity review.
+- [ ] Reference material grain/stone scale and natural wear remain unfinished; do not claim full photographic fidelity.
+- [ ] Accumulated physical-device/crowd/midrange/first-ramp acceptance remains pending. Regional encounter/boss progression stays deferred under the art-first decision.
+
+Evidence and final verification: ArtDirection/2026-10-10/foundry-gate-court-01. Existing map bounds, ramp and gameplay preserved.
