@@ -305,9 +305,9 @@ namespace Cryptforge.Tests
             Assert.That(reservoirBatches,Is.EqualTo(2));
             Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
-            Assert.That(otherBatches,Is.LessThanOrEqualTo(21),"The distant masonry and furnace slits add two bounded background batches.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(31),
-                "Distant works add two bounded background batches to the existing 29.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(22),"The casting bench adds one card; its supports reuse the existing masonry batches.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(32),
+                "One casting bench card adds one renderer to the measured 31-renderer region.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

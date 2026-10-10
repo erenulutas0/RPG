@@ -82,6 +82,7 @@ namespace Cryptforge.UI
             BuildDressing(arena);
             BuildSiteFinish(arena);
             BuildWorkshop(arena);
+            BuildCastingWorkbay(arena);
             BuildClutter(arena);
             BuildUndercroft(arena);
             // Last: round boilers' foundations, balustrade, furnace pit and bastions (FoundryRegionMassing.cs).
@@ -514,6 +515,7 @@ namespace Cryptforge.UI
             if(_salvageMaterial!=null)Destroy(_salvageMaterial);
             if(_stockHoistMaterial!=null)Destroy(_stockHoistMaterial);
             if(_stockStationMaterial!=null)Destroy(_stockStationMaterial);
+            if(_castingBenchMaterial!=null)Destroy(_castingBenchMaterial);
             if(_craneMaterial!=null)Destroy(_craneMaterial);
             if(_reservoirMaterial!=null)Destroy(_reservoirMaterial);
             if(_bakedBoilerMaterial!=null)Destroy(_bakedBoilerMaterial);

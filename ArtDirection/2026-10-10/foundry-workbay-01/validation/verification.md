@@ -1,0 +1,15 @@
+# Final verification — 2026-10-10
+
+Baseline b1b690c. PASS:409 pure .NET,446 EditMode,154 PlayMode (1,009 distinct-suite cases, no failures/skips). Two focused casting cases passed before the full gate; do not count them twice. Compile check0warnings/0errors. One baseline and two successful after graphical captures; the second adds an after-only complete-workbay portrait. Before/final-after XML retained. Android exit0; no C#warning/error or shader-error matches in final test/build/capture logs. Static integrity:584 unique asset/folderGUIDs,1099packageGUIDs,568sceneobjects/components; references/JSON valid.
+
+APK:36,188,179bytes. SHA256:F5C0AAFE5F6B0504149AB942846FD621B5353FF71A78A8E447FDE73BE91012DB. NOT INSTALLED. The build log's larger224,925,046-byte report is Unity's build report size; the APK identity above is measured from the actual file.
+
+Root and independent actual Unity image review accepted the casting workbay's support/contact, front finial/rail overlap and local workshop identity. Additional portrait puts the complete equipment behind the unchanged north lane. Region31->32renderers and115042->115106vertices (+64). Source1024RGBA imports512x512ASTC6x6/10mips/non-readable. Source/import bytes have identicalSHA256:8823D680030EBB366692BFD8700D343172942E4C9651E800BE51E150136DAC62. One new card material, explicit non-landmark depth owner and bounded fallback; support geometry reuses existing wall batches. Authoring mesh10,040vertices/19,744triangles is not loaded at runtime. Counts do not establish allocation/frame-time performance.
+
+FoundryCastingBenchTests checks sampled outside-walk shelf placement, actual north passage clearance, finial clearance, real-scene card projection/UV/depth, actual raised support triangles and owned source/variant/mesh destruction while retaining the borrowed texture. Existing region ceilings increased only by the measured one renderer; unrelated assertions retained. Gameplay, navigation, scene, camera, progression and save contracts unchanged.
+
+Before images were captured from the clean baseline. Shared overview/stock/portrait cameras support comparison; casting-detail and casting-portrait are additional after-only views. These are Unity renders with hidden HUD/staged actors, not phone captures. Gallery Before/After/Approved reference state changes and displayed image loads were checked in the in-app browser.
+
+No ADB action or fresh phone observation this pass. The earlier concrete owner-run restart/install question remains pending; previously recorded021b95f/Room2/74HP/8unbankedgold are historical. After approval take fresh preflight/backup, install latest accumulated package and verify its hash, review map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves.
+
+Limits: whole-map visual gain is modest; three similar bright moulds are cleaner than surrounding iron. Reference architecture/working-yard richness, large simple distant silhouettes, device/crowd/midrange acceptance and first-ramp hitch remain open. Region encounter/boss progression remains deferred under the owner's art-first direction.

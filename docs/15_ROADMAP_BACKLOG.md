@@ -518,3 +518,9 @@ Proof and final verification: ArtDirection/2026-10-10/foundry-flagstone-01/READM
 Implemented and visually reviewed in Unity: five distant towers, one broken service span, atmospheric separation and lower-shaft fading, explicit background/island sorting, and quieter irregular paving joints. Evidence: ArtDirection/2026-10-10/foundry-depth-01. Full test/build/device status is recorded in its validation/verification.md.
 
 Next visual priority: purposeful working-yard composition and richer architectural forms. The new distant silhouettes remain simple; avoid another isolated haze or tiny corner-chip iteration. Raised equipment still requires navigation/collision agreement. The approved broad court, left furnace pit, northeast gate and foreground bridge remain the composition contract. Full reference fidelity and physical-device/crowd/midrange/first-ramp acceptance are open; region encounter/boss progression remains deferred by the owner's art-first direction.
+
+## 2026-10-10 - Casting workbay delivered to Unity
+
+The north working-yard interval now contains a supported original casting bench and screw press, open moulds and finished billets. Existing walking lanes and north rail are preserved; no new gameplay/collision contract is needed outside the walk union. Actual Unity review accepts placement, contact and foreground overlap. Evidence: ArtDirection/2026-10-10/foundry-workbay-01; editable Blender kit: casting-bench-01 beside it.
+
+Next substantial art priority remains architectural richness and working-yard composition at whole-map scale, especially the coarse large northwest distant silhouette. Avoid claiming the small bench completes reference fidelity. Device/crowd/midrange/first-ramp acceptance and deferred region encounter/boss progression remain open; final gate and installation status live in the proof verification record.

@@ -1813,3 +1813,9 @@ After approval, fresh preflight/backup and latest accumulated package installati
 APK: 36,185,695 bytes; SHA256 357024F64DC7D9C040486CF85FE4B00978DBDE9273454E3C0894F68780B5D595. NOT INSTALLED. Built after the passing 1,007-test final gate and accepted actual Unity image review. Static integrity 581/1099/568.
 
 No ADB action or fresh phone observation this pass. The earlier concrete owner-run restart/install decision remains unanswered. Last recorded installed package 021b95f and paused Room 2 / 74 HP / 8 unbanked gold are historical observations. After approval, take fresh preflight/backup, install the latest accumulated package and verify its hash, review the map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp performance acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-depth-01/validation/verification.md.
+
+## 2026-10-10 - Casting workbay APK ready, not installed
+
+Latest APK: 36,188,179 bytes; SHA256 F5C0AAFE5F6B0504149AB942846FD621B5353FF71A78A8E447FDE73BE91012DB. The full 1,009-test gate and actual Unity image review passed. No ADB action or fresh device observation in this pass. The earlier concrete owner-run restart/install question remains pending. Last recorded package 021b95f and paused Room 2 / 74 HP / 8 unbanked gold are historical.
+
+After approval take fresh preflight/backup, install the latest accumulated package and check its hash, review map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-workbay-01/validation/verification.md.
