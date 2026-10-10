@@ -23,8 +23,8 @@ namespace Cryptforge.UI
             for(int k=0;k<4;k++)
             {
                 uint hash=PavingHash(seedU+k*17,seedV-k*11,701);
-                float x=inset+size*(.006f+.025f*(hash&255)/255f);
-                float y=inset+size*(.006f+.025f*((hash>>8)&255)/255f);
+                float x=inset+size*(.004f+.017f*(hash&255)/255f);
+                float y=inset+size*(.004f+.017f*((hash>>8)&255)/255f);
                 corners[k]=new Vector2(k==0||k==3?u0+x:u1-x,k<2?v0+y:v1-y);
             }
             var result=new Vector2[8];

@@ -86,6 +86,7 @@ namespace Cryptforge.UI
             BuildUndercroft(arena);
             // Last: round boilers' foundations, balustrade, furnace pit and bastions (FoundryRegionMassing.cs).
             BuildMassing(arena);
+            BuildDistantWorks(arena);
             foreach(var batch in _batches)
             {
                 bool decal=batch.Order==FloorDecal;
@@ -509,6 +510,7 @@ namespace Cryptforge.UI
         private void OnDestroy()
         {
             foreach(var mesh in _owned)if(mesh!=null)Destroy(mesh);
+            if(_distantMasonryMaterial!=null)Destroy(_distantMasonryMaterial);
             if(_salvageMaterial!=null)Destroy(_salvageMaterial);
             if(_stockHoistMaterial!=null)Destroy(_stockHoistMaterial);
             if(_stockStationMaterial!=null)Destroy(_stockStationMaterial);

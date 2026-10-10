@@ -891,3 +891,11 @@ Image review prompted a softer, narrower, deeper central flue aperture; no new g
 Use convex hand-quarried contours inside each existing packed flag, with unequal setbacks and corner cuts. Keep the complete mortar underbed and partition the face along adaptive light cells, rather than allowing slab-wide triangles to distort local light. Bound the common bevel offset before a short chamfer can collapse. Regular ceremonial/repair/infill flags and ramp-crossing flags retain the previous path; rectangular wear overlays do not render outside new contours.
 
 Actual image review accepts the bounded gain: visible quarry edges, no holes/light wedges or lost actor readability. Exposed joints are stronger than before and the course structure remains rectangular. Full reference fidelity is still open. Static cost29renderers unchanged,113,995vertices versus117,045; no FPS improvement claim. Evidence: foundry-flagstone-01. No phone action; prior restart/install question remains pending.
+
+## 2026-10-10 - Add world-anchored depth around the foundry
+
+Decision: close a reference composition gap with an intermediate layer of five distant industrial towers and one broken arched span, while retaining the approved playable layout. Use explicit sorting ranks below every island batch, including the deep smelting basin. Only the imported foundry backdrop reserves the two extra ranks; normal backdrops retain their existing ordering.
+
+The initial material treatment was rejected in actual Unity review because sharp masonry and square bottoms looked attached or suspended. Reuse the cavern atmospheric shader with a per-material blend and fade only the low shafts; retain opaque upper tiers and subdued warm windows. The original backdrop's default blend remains 0.22. One owned material and two owned meshes are released with the scene; textures and shared materials remain borrowed. Narrower quarry setbacks and lighter mortar reduce the previous contour pass's outlined-grid effect.
+
+No new playable route, obstacle, encounter, camera rule or save behavior. Full reference fidelity is still open. Device acceptance and the earlier concrete owner-run restart/install decision remain pending; no phone actions or fresh observations in this pass. Actual evidence: ArtDirection/2026-10-10/foundry-depth-01.

@@ -534,8 +534,10 @@ namespace Cryptforge.UI
             for(int l=0;l<vs.Length;l++)for(int k=0;k<us.Length;k++)lattice[l*us.Length+k]=FloorLight(us[k],vs[l]);
             float step=AshlarLightStep(us,vs,lattice);
             // Dust-filled court joints stay subordinate to actors and brass routes at phone size.
+            // Quarry setbacks expose more bed: keep mortar close to dusty stone in
+            // value, so the floor reads as masonry rather than a dark outlined grid.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.68f:.79f;
+            float jointTone=kept?.68f:.86f;
             if(repair)jointTone=.80f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);

@@ -305,13 +305,16 @@ namespace Cryptforge.Tests
             Assert.That(reservoirBatches,Is.EqualTo(2));
             Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
-            Assert.That(otherBatches,Is.LessThanOrEqualTo(19),"The rear crane lantern masonry has one separate ordering batch.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(29),
-                "Stock, crane and rear lantern ordering add three bounded batches to the existing 26.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(21),"The distant masonry and furnace slits add two bounded background batches.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(31),
+                "Distant works add two bounded background batches to the existing 29.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
-                Assert.That(renderer.sortingOrder,Is.InRange(-18,-1),"Scenery must remain above the cavern and below combatants.");
+                if(renderer.name.StartsWith("Distant foundry works"))
+                    Assert.That(renderer.sortingOrder,Is.InRange(-20,-19),"Distant works occupy explicit ranks below the island.");
+                else
+                    Assert.That(renderer.sortingOrder,Is.InRange(-18,-1),"Existing scenery retains its ranks above distant works and below combatants.");
 
             foreach(var post in FoundryRegionView.BridgeHeadPosts)
                 for(int u=0;u<=14;u++)for(int v=0;v<=14;v++)
@@ -603,8 +606,14 @@ namespace Cryptforge.Tests
             Assert.That(chest.transform.localPosition.z,Is.Zero,"Without the view the chest returns to the flat layer.");
             Assert.That(chest.sharedMaterial.shader.name,Is.EqualTo("Sprites/Default"));
             visibility.enabled=true;
-            var mesh=arena.Region.GetComponentInChildren<MeshFilter>().sharedMesh;
-            var material=arena.Region.GetComponentInChildren<MeshRenderer>().sharedMaterial;
+            // Select the borrowed floor explicitly: the first child may instead be
+            // a scene-owned distant atmosphere layer, covered by its lifecycle test.
+            MeshRenderer floorRenderer=null;
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving){floorRenderer=renderer;break;}
+            Assert.That(floorRenderer,Is.Not.Null);
+            var mesh=floorRenderer.GetComponent<MeshFilter>().sharedMesh;
+            var material=floorRenderer.sharedMaterial;
             Assert.That(setup.Pause.TryPause(),Is.True);
             yield return null; // Finish the frame whose delta was calculated before the pause.
             var pausedAtmosphere=atmosphereMesh.vertices;
@@ -618,7 +627,7 @@ namespace Cryptforge.Tests
             Assert.That(Object.FindFirstObjectByType<ArenaView>().Region,Is.Null);
             Assert.That(Object.FindFirstObjectByType<FoundryVisibilityView>(),Is.Null,"Ordinary halls place neither actors nor effects in depth.");
             Assert.That(mesh==null,Is.True);
-            Assert.That(material==null,Is.EqualTo(ownedMaterials.Contains(material)),"Only scene-owned material variants are destroyed.");
+            Assert.That(material!=null,Is.True,"Reload preserves the explicitly selected borrowed floor material.");
             Assert.That(keeperMesh==null,Is.True,"Reload releases the guardian mesh.");
             Assert.That(keeperVariant==null,Is.True,"Reload releases the guardian cutaway material.");
             Assert.That(hoistMesh==null&&hoistVariant==null&&hoistSource==null,Is.True,

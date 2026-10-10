@@ -512,3 +512,9 @@ Proof and final verification: ArtDirection/2026-10-10/foundry-surface-cohesion-0
 - [ ] Accumulated phone acceptance remains pending the existing owner-run restart/install decision; sustained crowd/midrange/first-ramp checks remain open.
 
 Proof and final verification: ArtDirection/2026-10-10/foundry-flagstone-01/README.md. Region29renderers/113,995vertices; no new textures/materials or per-frame components. Deferred region encounter/boss progression remains separate from the owner's art-first work.
+
+## 2026-10-10 - Reference depth package
+
+Implemented and visually reviewed in Unity: five distant towers, one broken service span, atmospheric separation and lower-shaft fading, explicit background/island sorting, and quieter irregular paving joints. Evidence: ArtDirection/2026-10-10/foundry-depth-01. Full test/build/device status is recorded in its validation/verification.md.
+
+Next visual priority: purposeful working-yard composition and richer architectural forms. The new distant silhouettes remain simple; avoid another isolated haze or tiny corner-chip iteration. Raised equipment still requires navigation/collision agreement. The approved broad court, left furnace pit, northeast gate and foreground bridge remain the composition contract. Full reference fidelity and physical-device/crowd/midrange/first-ramp acceptance are open; region encounter/boss progression remains deferred by the owner's art-first direction.

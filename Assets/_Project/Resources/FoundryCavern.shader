@@ -4,6 +4,7 @@ Shader "Cryptforge/Foundry Cavern"
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
+        _Atmosphere ("Indigo atmospheric blend", Range(0,1)) = .22
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _Flip ("Flip", Vector) = (1,1,1,1)
         [PerRendererData] _AlphaTex ("External Alpha", 2D) = "white" {}
@@ -22,6 +23,7 @@ Shader "Cryptforge/Foundry Cavern"
             #pragma multi_compile_instancing
             #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
             #include "UnitySprites.cginc"
+            half _Atmosphere;
             fixed4 CavernFrag(v2f input) : SV_Target
             {
                 fixed4 c = SampleSpriteTexture(input.texcoord) * input.color;
@@ -29,7 +31,7 @@ Shader "Cryptforge/Foundry Cavern"
                 // saturation and contrast into violet air. No full-screen overlay or bloom.
                 half luminance = dot(c.rgb, half3(.2126,.7152,.0722));
                 c.rgb = lerp(luminance.xxx, c.rgb, .72);
-                c.rgb = c.rgb * .78 + half3(.072,.067,.115) * .22;
+                c.rgb = lerp(c.rgb, half3(.072,.067,.115), _Atmosphere);
                 c.rgb *= c.a;
                 return c;
             }

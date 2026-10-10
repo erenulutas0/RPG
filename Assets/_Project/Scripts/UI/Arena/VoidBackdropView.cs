@@ -64,12 +64,15 @@ namespace Cryptforge.UI
                 return;
             }
 
-            BuildSky(material, sortingOrder);
+            // Reserve two explicit ranks for world-anchored distant works, below even
+            // the deep smelting basin. Other backdrops retain their original order.
+            int backdropOrder = geometry.IsFoundry && cavern != null && camera != null ? sortingOrder - 2 : sortingOrder;
+            BuildSky(material, backdropOrder);
 
             if (cavern != null && camera != null)
             {
                 _camera = camera;
-                CavernRenderer = AddRenderer(transform, "Furnace Cavern", cavern, Vector3.zero, sortingOrder + 1);
+                CavernRenderer = AddRenderer(transform, "Furnace Cavern", cavern, Vector3.zero, backdropOrder + 1);
                 CavernRenderer.color = geometry.IsFoundry ? FoundryCavernTint : Color.white;
                 if (geometry.IsFoundry)
                 {

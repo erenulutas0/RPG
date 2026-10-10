@@ -1807,3 +1807,9 @@ After approval, use fresh preflight/backup, install latest accumulated art packa
 APK36,180,484bytes, SHA256 AA3859B559D48F21E3971A2A4ACDF1B14E07890D92EC45A27867F419A6E559E0. Built after1,006passing distinct-suite tests, clean compile, accepted actual Unity comparison and final integrity579/1099/568. NOT INSTALLED. No ADB action or new phone observation this pass. Prior concrete owner-run restart/install question remains unanswered; last recorded phone021b95f and paused Room2/74HP/8unbankedgold are historical.
 
 After approval, fresh preflight/backup and latest accumulated package installation/hash check are required. Review bridge/yard/court/pit/gate and normal combat with guarded inputs. Preserve current original saves/development files and telemetry, remove only newly introduced diagnostic flags, never restore stale backups. Contour construction allocations and frame time were not measured; first-ramp/crowd/midrange acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-flagstone-01.
+
+## 2026-10-10 - Distant works APK ready, not installed
+
+APK: 36,185,695 bytes; SHA256 357024F64DC7D9C040486CF85FE4B00978DBDE9273454E3C0894F68780B5D595. NOT INSTALLED. Built after the passing 1,007-test final gate and accepted actual Unity image review. Static integrity 581/1099/568.
+
+No ADB action or fresh phone observation this pass. The earlier concrete owner-run restart/install decision remains unanswered. Last recorded installed package 021b95f and paused Room 2 / 74 HP / 8 unbanked gold are historical observations. After approval, take fresh preflight/backup, install the latest accumulated package and verify its hash, review the map and normal combat, preserve current original saves/telemetry and remove only new diagnostic flags. Never restore stale saves. Physical-device/crowd/midrange/first-ramp performance acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-depth-01/validation/verification.md.

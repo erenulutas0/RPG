@@ -33,6 +33,13 @@ namespace Cryptforge.Tests
                 Assert.That(second, Is.Not.SameAs(owned));
                 Assert.That(views[2].CavernRenderer.sharedMaterial.shader.name, Is.EqualTo("Sprites/Default"));
                 Assert.That(views[2].CavernRenderer.color, Is.EqualTo(Color.white));
+                for (int i = 0; i < 2; i++)
+                {
+                    Assert.That(views[i].SkyRenderer.sortingOrder, Is.EqualTo(-22));
+                    Assert.That(views[i].CavernRenderer.sortingOrder, Is.EqualTo(-21));
+                }
+                Assert.That(views[2].SkyRenderer.sortingOrder, Is.EqualTo(-20), "Non-foundry backdrops keep their existing ranks.");
+                Assert.That(views[2].CavernRenderer.sortingOrder, Is.EqualTo(-19));
                 foreach (var view in views)
                 {
                     Assert.That(view.CavernRenderer.sprite, Is.SameAs(sprite));
