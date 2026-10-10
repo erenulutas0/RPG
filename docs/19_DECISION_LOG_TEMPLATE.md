@@ -879,3 +879,9 @@ Owner continues reference-map art first. Chose an authored fixed-view hoist bake
 Decision: bake the existing stock-station metal and crane body from authored Blender geometry into two fixed-view transparent cards. Keep original wood, crane footing, chain, basket, tip sheave and lights separate, with original footprints and camera. Explicit per-card depth owners and scene-owned cleanup follow the established hoist contract.
 
 Actual image review rejected a large middle-mast masonry overlap. Correct only the named rear northwest lantern's masonry order; do not globally raise the crane or hoist over unrelated foreground parts. Accepted cost is two card batches plus one localized masonry batch (26 to29 total); vertices fall 118,902 to116,178. Static counts do not prove faster frames. Reference-map art remains first, and physical-device acceptance is pending the existing restart/install question. Evidence: workshop-coherence-01.
+
+## 2026-10-10 - Material readability without new gameplay signals
+
+Use neutral warm tints on already golden coping albedo, clean inner-rail UVs and brass widths inside existing grooves. Preserve matte/non-emissive floor lighting and its1.9color ceiling so floor heraldry does not become an ability telegraph. Stone changes soften joints and vary compact oblong proportions while retaining the coverage lattice and brass constraints. Pit machinery stays below the existing deck, with unchanged pools/collar/atmosphere and vessel envelopes.
+
+Image review prompted a softer, narrower, deeper central flue aperture; no new geometry was needed for that correction. Accepted package29renderers unchanged,117,045vertices. Floor/reference similarity gain is modest; do not treat another numerical weight tweak as the next substantive reference-quality milestone. Evidence: foundry-surface-cohesion-01.

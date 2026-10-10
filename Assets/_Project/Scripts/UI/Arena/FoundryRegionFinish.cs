@@ -228,7 +228,7 @@ namespace Cryptforge.UI
             return 0;
         }
 
-        // Half-unit ashlar with mixed compact flags and occasional 2.5x1 slabs
+        // Half-unit ashlar with predominantly compact oblong flags and occasional 2.5x1 slabs
         // (maximum area3). The skyline packer limits long joints and four-way crossings;
         // matching neighbour heights is only a mild preference, not a regular course.
         // Brass remains a forced joint and the ceremonial seal alone keeps unit flags.
@@ -252,7 +252,10 @@ namespace Cryptforge.UI
                 for(int w=2;w<=5;w++)
                 {
                     if(w*h>12)continue;
-                    int weight=w*h<6?3:w*h<10?6:8;
+                    // Compact oblongs establish the reference's human stone scale;
+                    // retain broad square flags and occasional long replacements.
+                    // Do not refine the packing lattice or add face subdivisions.
+                    int weight=w*h<6?2:w*h==6?9:w*h==9?8:w*h<10?5:4;
                     sizes.AddRange(new[]{w,h,crosswise&&w>h?Mathf.Max(1,weight/4):weight});
                 }
             sizes.AddRange(new[]{2,1,1,1,2,1,1,1,1});
@@ -523,8 +526,8 @@ namespace Cryptforge.UI
             }
             // Narrow joints and shallow bevels preserve the laid-stone relief at the finer scale.
             // Infill bevel width is capped relative to the smallest side.
-            float joint=kept?.018f:.014f+.003f*Mathf.Sqrt(area);
-            float bevel=kept?.04f:Mathf.Min(.032f+.008f*Mathf.Sqrt(area),.12f*Mathf.Min(w,h));
+            float joint=kept?.018f:repair?.014f+.003f*Mathf.Sqrt(area):.011f+.0025f*Mathf.Sqrt(area);
+            float bevel=kept?.04f:Mathf.Min((repair?.032f:.025f)+(repair?.008f:.007f)*Mathf.Sqrt(area),.12f*Mathf.Min(w,h));
             // The joint bed's vertices are the 1-unit lattice the step test already lit; refined, it takes the finer one.
             float[] us=LightLines(u0,u1,1),vs=LightLines(v0,v1,1);
             var lattice=new Color[us.Length*vs.Length];
@@ -532,7 +535,7 @@ namespace Cryptforge.UI
             float step=AshlarLightStep(us,vs,lattice);
             // Dust-filled court joints stay subordinate to actors and brass routes at phone size.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.68f:.74f;
+            float jointTone=kept?.68f:.79f;
             if(repair)jointTone=.80f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
@@ -543,11 +546,11 @@ namespace Cryptforge.UI
             var outer=new List<Vector2>();var inner=new List<Vector2>();
             for(int k=0;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v0+joint));inner.Add(new Vector2(iu[k],v0+bevel));}
             for(int k=1;k<ov.Length;k++){outer.Add(new Vector2(u1-joint,ov[k]));inner.Add(new Vector2(u1-bevel,iv[k]));}
-            PavingStrip(mesh,outer,inner,stone*1.055f,faceTint,stone);
+            PavingStrip(mesh,outer,inner,stone*(kept||repair?1.055f:1.035f),faceTint,stone);
             outer.Clear();inner.Clear();
             for(int k=0;k<ov.Length;k++){outer.Add(new Vector2(u0+joint,ov[k]));inner.Add(new Vector2(u0+bevel,iv[k]));}
             for(int k=1;k<ou.Length;k++){outer.Add(new Vector2(ou[k],v1-joint));inner.Add(new Vector2(iu[k],v1-bevel));}
-            PavingStrip(mesh,outer,inner,stone*.88f,faceTint,stone);
+            PavingStrip(mesh,outer,inner,stone*(kept||repair?.88f:.925f),faceTint,stone);
             int faceStart=mesh.C.Count;
             PavingGrid(mesh,iu,iv,stone,faceTint);
             // A shallow, broad mineral wash breaks the uniformly flat slab faces. It

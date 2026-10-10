@@ -491,3 +491,14 @@ Proof: ArtDirection/2026-10-10/foundry-materials-01. Continue with visibly usefu
 - [ ] Fine stone/material consistency, crowded/midrange-device acceptance and first-ramp hitch diagnosis remain open. Gameplay progression remains deferred by the owner's art-first request.
 
 Evidence and final gates: ArtDirection/2026-10-10/workshop-coherence-01/validation/verification.md. Avoid treating a peripheral material improvement as complete reference fidelity.
+
+## 2026-10-10 - Surface cohesion completed in Unity
+
+- [x] Readable warm-matte court and gate brass within existing groove footprints and bounded floor lighting.
+- [x] Quieter ashlar joints and compact oblong mix; exact coverage/ceremonial/repair/brass constraints retained.
+- [x] Contained vertical pit flues and faceted industrial vessel crowns; final image-review tonal correction.
+- [ ] Current accumulated map package phone acceptance after the pending owner-run restart decision.
+- [ ] Reference irregular stone character remains unresolved. Future useful floor work needs designed irregular outlines/topology or authored surface treatment, rather than another minor weight/palette pass.
+- [ ] Working-yard composition remains sparse; new raised equipment needs a matching navigation/collision contract. Full reference fidelity and deferred gameplay progression remain separate work.
+
+Proof and final verification: ArtDirection/2026-10-10/foundry-surface-cohesion-01/README.md. No new renderer/material/texture; totalgeometry+0.75%. Physical-device/crowd/midrange/first-ramp acceptance remains open.

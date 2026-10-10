@@ -235,7 +235,7 @@ namespace Cryptforge.UI
         private void BuildLandmarks(ArenaView arena)
         {
             var inlays=new Builder();
-            Color brass=new Color(.7f,.56f,.34f);
+            Color brass=CeremonialBrass;
             BuildCourtSeal(arena);
             foreach(float d in new[]{-BridgeLaneHalf,BridgeLaneHalf})
             {
@@ -356,8 +356,8 @@ namespace Cryptforge.UI
         // a decal samples the coping sheet's rail, its only metal - is polished: per channel it recovers BrassFloor of
         // the light's dimming below neutral (it still reads as brass on cool slate) and takes the light's excess over
         // neutral at BrassGain (a warm glint in the pools). The coping material is Sprites/Default at _Color 1, so the
-        // vertex colour itself lands in the fixed4 interpolator (guaranteed +/-2): decal tones reach 1 (the seal field)
-        // under FloorLight's 1.74, brass tones .82 under ~1.93; DecalCeiling keeps any future tone's peak below 2, hue kept.
+        // vertex colour itself lands in the fixed4 interpolator (guaranteed +/-2). Both stone and the brighter
+        // ceremonial brass use DecalCeiling below 2 after lighting; scaling preserves the material hue.
         private const float BrassFloor=.3f,BrassGain=1.25f,DecalCeiling=1.9f;
         private static void LightFloorDecals(Builder b)
         {

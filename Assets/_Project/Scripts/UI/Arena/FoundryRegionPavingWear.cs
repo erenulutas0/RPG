@@ -11,9 +11,11 @@ namespace Cryptforge.UI
             // changes their albedo, while existing world-space forge lighting remains.
             float quarry=FloorPatina(u*.105f+14.6f,v*.105f-8.3f);
             float weather=FloorPatina(u*.23f-2.1f,v*.23f+17.4f);
-            Color cool=new Color(.88f,.93f,1.01f),warm=new Color(1.085f,1.055f,.985f);
+            // Neutral slate and slightly warm quarried stone share a quiet value
+            // range: floor variation should read as material, not a purple grid.
+            Color cool=new Color(.925f,.965f,1.025f),warm=new Color(1.065f,1.045f,.985f);
             Color family=Color.Lerp(cool,warm,Mathf.SmoothStep(.08f,.92f,quarry));
-            family*=Mathf.Lerp(.93f,1.035f,weather);family.a=1;
+            family*=Mathf.Lerp(.95f,1.035f,weather);family.a=1;
             return family;
         }
 

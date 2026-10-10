@@ -322,6 +322,7 @@ namespace Cryptforge.UI
             {
                 var walls=new Builder();
                 PitLiningFronts(walls);
+                PitFurnaceBays(walls);
                 // Long iron vessels descend with the lining to the deep pool. The dedicated
                 // lining atlas contains a pipe strip used by their body, ribs and belts.
                 foreach(var c in PitBoilers)PitDrum(walls,c);
@@ -569,6 +570,43 @@ namespace Cryptforge.UI
         // An orange gap between coals in the dedicated lining, avoiding the old facade's grate UV.
         private static readonly Vector4 PitFire=new Vector4(.415f,.07f,.425f,.08f);
         private static readonly Color PitSeamTone=new Color(1f,1.1f,.95f);
+
+        // Three deep flues break the broad stone lining into industrial bays. Each is
+        // attached to one actual lining chord and projects only .12 inward, entirely
+        // below deck. Emit before the vessels so their near silhouettes remain intact.
+        private static void PitFurnaceBays(Builder b)
+        {
+            foreach(int facet in new[]{5,10,15})
+            {
+                Vector2 p=PitLiningStation(facet,out Vector2 np);
+                Vector2 q=PitLiningStation(facet+1,out Vector2 nq);
+                Vector2 normal=(np+nq).normalized;
+                Vector3 a=Project(Mathf.Lerp(p.x,q.x,.12f),Mathf.Lerp(p.y,q.y,.12f));
+                Vector3 c=Project(Mathf.Lerp(p.x,q.x,.88f),Mathf.Lerp(p.y,q.y,.88f));
+                Vector3 inward=Project(-normal.x*.12f,-normal.y*.12f)-Project(0,0);
+                const float top=.64f,bottom=4.94f;
+                var soot=new Color(.56f,.59f,.66f);
+                // Broad dark channel, with a cool upper throat and a contained lower
+                // fire aperture. The painted coal sample never reaches the deck edge.
+                PitFront(b,a,c,top,bottom,new Vector4(.31f,.18f,.40f,.86f),soot,
+                    new Color(.57f,.43f,.34f));
+                Vector3 left=Vector3.Lerp(a,c,.37f),right=Vector3.Lerp(a,c,.63f);
+                PitFront(b,left,right,3.4f,4.82f,PitFire,
+                    new Color(.21f,.12f,.065f),new Color(.78f,.46f,.24f));
+                // Recess returns and continuous iron jambs give the opening actual
+                // thickness rather than a bright stripe painted over the masonry.
+                var metal=new Vector4(.008f,.17f,.066f,.90f);
+                Color upper=new Color(.67f,.71f,.81f),lower=new Color(.92f,.74f,.59f);
+                PitFront(b,a,a+inward,top,bottom,metal,new Color(.31f,.34f,.40f),new Color(.6f,.4f,.28f));
+                PitFront(b,c+inward,c,top,bottom,metal,new Color(.44f,.46f,.53f),new Color(.78f,.52f,.34f));
+                PitFront(b,a+inward,Vector3.Lerp(a,c,.16f)+inward,top,bottom,metal,upper,lower);
+                PitFront(b,Vector3.Lerp(a,c,.84f)+inward,c+inward,top,bottom,metal,upper,lower);
+                // Heavy lintel and two cross ties visually bind the long pair of ribs.
+                foreach(float depth in new[]{top,1.55f,3.75f})
+                    PitFront(b,a+inward,c+inward,depth,depth+.15f,
+                        new Vector4(.0f,.69f,.08f,.745f),new Color(.52f,.55f,.63f),new Color(.47f,.49f,.56f));
+            }
+        }
 
         // A course of a painted front from depth top down to bottom under the deck-level edge a-c, mapped onto the texture
         // region (u0, v0, u1, v1) (v0 at the bottom), its top and bottom edges each in their own colour.

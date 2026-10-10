@@ -5,6 +5,10 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        // The coping rail already contains warm metal albedo. A neutral worn-metal
+        // multiplier avoids tinting that gold twice into almost-black bronze.
+        private static readonly Color CeremonialBrass=new Color(.96f,.91f,.79f);
+        private static readonly Color CeremonialBrassEdge=new Color(1.02f,.97f,.85f);
         // The seal every run opens on, read at arm's length: a brass-lined compass star inside a brass ring pair, after
         // the reference medallion. Paving shows through the star and only the field between its points darkens, so the
         // brass separates without a glow, a pit or an obstacle under the range ring and telegraphs. Flush, lit only as
@@ -14,7 +18,7 @@ namespace Cryptforge.UI
         {
             const float Field=3.4f,Inner=3.44f,Outer=3.82f;
             var seal=new Builder();
-            var brass=new Color(.7f,.56f,.34f);var lit=new Color(.76f,.61f,.37f);var channel=new Color(.70f,.69f,.73f);
+            var brass=CeremonialBrass;var lit=CeremonialBrassEdge;var channel=new Color(.70f,.69f,.73f);
             // Points on the compass rays: four major on the screen axes (its odd rays), four minor on its diagonals.
             var tips=new Vector2[8];var valleys=new Vector2[8];
             for(int i=0;i<8;i++){tips[i]=SealPolar(i*Mathf.PI/4,i%2==1?3.12f:2.05f);valleys[i]=SealPolar((i+.5f)*Mathf.PI/4,.78f);}
@@ -39,7 +43,7 @@ namespace Cryptforge.UI
                 for(int i=0;i<8;i++)
                 {
                     bool major=i%2==1;
-                    float width=metal?(major?.09f:.07f):(major?.15f:.12f);Color tone=metal?(major?lit:brass):channel;
+                    float width=metal?(major?.12f:.09f):(major?.15f:.12f);Color tone=metal?(major?lit:brass):channel;
                     Strip(seal,tips[i].x,tips[i].y,valleys[i].x,valleys[i].y,width,tone,trim,i*2);
                     Vector2 back=valleys[(i+7)%8];
                     Strip(seal,tips[i].x,tips[i].y,back.x,back.y,width,tone,trim,i*2+1);
@@ -52,8 +56,8 @@ namespace Cryptforge.UI
                 {
                     float a=i*Mathf.PI/24,b=(i+1)*Mathf.PI/24;
                     Vector2 p=SealPolar(a,Outer),q=SealPolar(b,Outer),m=SealPolar(a,Inner),n=SealPolar(b,Inner);
-                    Strip(seal,p.x,p.y,q.x,q.y,metal?.1f:.17f,metal?lit:channel,trim,i);
-                    Strip(seal,m.x,m.y,n.x,n.y,metal?.07f:.12f,metal?brass:channel,trim,i+3);
+                    Strip(seal,p.x,p.y,q.x,q.y,metal?.135f:.17f,metal?lit:channel,trim,i);
+                    Strip(seal,m.x,m.y,n.x,n.y,metal?.095f:.12f,metal?brass:channel,trim,i+3);
                 }
             }
             WeatherHeraldry(seal);
@@ -68,14 +72,14 @@ namespace Cryptforge.UI
             const float Ring=8.6f;
             // A narrow worn channel either side of a brighter inlay: the brass has to read as metal, not as a crack.
             var channel=new Color(.70f,.69f,.73f);
-            var lit=new Color(brass.r*1.08f,brass.g*1.08f,brass.b*1.1f);
+            var lit=CeremonialBrassEdge;
             for(int i=0;i<96;i++)
             {
                 float a=i*Mathf.PI/48,b=(i+1)*Mathf.PI/48;
                 Vector2 p=new Vector2(Mathf.Cos(a),Mathf.Sin(a))*Ring,q=new Vector2(Mathf.Cos(b),Mathf.Sin(b))*Ring;
                 if(!OnCourt(p)||!OnCourt(q)||!OnCourt((p+q)*.5f))continue;
                 Strip(inlays,p.x,p.y,q.x,q.y,.17f,channel,CopingTrim.Stone,i);
-                Strip(inlays,p.x,p.y,q.x,q.y,.11f,lit,CopingTrim.Brass);
+                Strip(inlays,p.x,p.y,q.x,q.y,.14f,lit,CopingTrim.Brass);
             }
             for(int ray=0;ray<8;ray++)
             {
@@ -86,7 +90,7 @@ namespace Cryptforge.UI
                     Vector2 p=direction*r,q=direction*Mathf.Min(r+.5f,Ring-.1f);
                     if(!OnCourt(p)||!OnCourt(q))continue;
                     Strip(inlays,p.x,p.y,q.x,q.y,ray%2==0?.15f:.12f,channel,CopingTrim.Stone,ray+(int)(r*2));
-                    Strip(inlays,p.x,p.y,q.x,q.y,ray%2==0?.09f:.07f,lit,CopingTrim.Brass);
+                    Strip(inlays,p.x,p.y,q.x,q.y,ray%2==0?.12f:.095f,lit,CopingTrim.Brass);
                 }
                 // A brass lozenge where each cardinal ray meets the ring, as the reference marks its star points. On the
                 // rail like the seal's lozenges: its local quad UVs sampled the sheet's corner, a dark stone patch with a
@@ -117,8 +121,8 @@ namespace Cryptforge.UI
         {
             var inlay=new Builder();
             var groove=new Color(.70f,.69f,.73f);
-            var brass=new Color(.70f,.58f,.39f);
-            var edge=new Color(.74f,.63f,.46f);
+            var brass=CeremonialBrass;
+            var edge=CeremonialBrassEdge;
             var frame=new[]{new Vector2(15.8f,2),new Vector2(16.5f,1.3f),
                 new Vector2(29.9f,1.3f),new Vector2(30.6f,2),new Vector2(30.6f,8),
                 new Vector2(29.9f,8.7f),new Vector2(16.5f,8.7f),new Vector2(15.8f,8)};
@@ -133,9 +137,9 @@ namespace Cryptforge.UI
                 for(int i=0;i<frame.Length;i++)
                 {
                     Vector2 p=frame[i],q=frame[(i+1)%frame.Length];
-                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.075f:.14f,tone,trim,i);
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.105f:.14f,tone,trim,i);
                     p=inner[i];q=inner[(i+1)%inner.Length];
-                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.035f:.075f,tone,trim,i+7);
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.052f:.075f,tone,trim,i+7);
                 }
                 Vector2 centre=new Vector2(23.2f,5);
                 for(int i=0;i<48;i++)
@@ -144,7 +148,7 @@ namespace Cryptforge.UI
                     foreach(float radius in new[]{1.72f,1.96f})
                     {
                         Vector2 p=centre+SealPolar(a,radius),q=centre+SealPolar(b,radius);
-                        Strip(inlay,p.x,p.y,q.x,q.y,metal?.055f:.11f,tone,trim,i);
+                        Strip(inlay,p.x,p.y,q.x,q.y,metal?.078f:.11f,tone,trim,i);
                     }
                 }
                 // Four long points follow the approach; their open interior preserves
@@ -156,10 +160,10 @@ namespace Cryptforge.UI
                 for(int i=0;i<star.Length;i++)
                 {
                     Vector2 p=centre+star[i],q=centre+star[(i+1)%star.Length];
-                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.07f:.13f,metal?edge:groove,trim,i);
+                    Strip(inlay,p.x,p.y,q.x,q.y,metal?.095f:.13f,metal?edge:groove,trim,i);
                 }
                 foreach(var ends in new[]{new Vector2(17.1f,20.38f),new Vector2(26.02f,29.3f)})
-                    Strip(inlay,ends.x,5,ends.y,5,metal?.055f:.11f,tone,trim);
+                    Strip(inlay,ends.x,5,ends.y,5,metal?.078f:.11f,tone,trim);
                 // Four short ties connect the framing to the medallion without filling
                 // the fighting lane with a repeated luminous-looking pattern.
                 foreach(float u in new[]{18f,28.4f})foreach(float v in new[]{1.5f,8.5f})
@@ -181,9 +185,17 @@ namespace Cryptforge.UI
             {
                 if(!OnCopingRail(mesh.U[i]))continue;
                 FoundrySurface.ToDesign(mesh.V[i].x,mesh.V[i].y,out float u,out float v);
-                float wear=Mathf.Lerp(.93f,1f,FloorPatina(u*.37f+11,v*.37f-5));
+                float wear=Mathf.Lerp(.88f,1f,FloorPatina(u*.37f+11,v*.37f-5));
                 Color tone=mesh.C[i];
-                mesh.C[i]=new Color(tone.r*.86f*wear,tone.g*.96f*wear,tone.b*1.14f*wear,tone.a);
+                mesh.C[i]=new Color(tone.r*.96f*wear,tone.g*.98f*wear,tone.b*wear,tone.a);
+                // Sample the rail's metal centre, excluding its nearly black outer
+                // frame and strongest bright bevel. The new UV remains within the
+                // original rail rectangle so LightFloorDecals still classifies it as
+                // brass and applies the unchanged bounded, non-emissive response.
+                Vector2 uv=mesh.U[i];
+                float across=Mathf.InverseLerp(CopingRail.y,CopingRail.w,uv.y);
+                uv.y=Mathf.Lerp(1-18/724f,1-7/724f,across);
+                mesh.U[i]=uv;
             }
         }
 

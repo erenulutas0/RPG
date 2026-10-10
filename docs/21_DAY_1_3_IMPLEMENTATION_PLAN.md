@@ -2139,3 +2139,9 @@ Added BuildBlenderStockHoist.py, editable stock-hoist-01 source, FoundryStockHoi
 ## 2026-10-10 - Workshop art continuation
 
 Implemented authored stock and crane replacements, deterministic surrounding ordering, explicit depth ownership and owned-resource cleanup. A real image-review regression was corrected in the rear northwest lantern masonry; original live light, chain and basket remain. Current camera, walking footprint, gameplay, progression and saves are unchanged. See ArtDirection/2026-10-10/workshop-coherence-01/validation/verification.md for exact final gates and phone status. Further reference composition work remains separate from deferred encounter/progression changes.
+
+## 2026-10-10 - Court/brass/pit surface package
+
+Implemented compact ashlar mix and softer joints (FoundryRegionFinish/PavingWear), readable matte ceremonial metal (Heraldry/View), contained shaft flues and faceted vessel crowns (Massing/PitHoods). Same camera, walk bounds, progression, combat and saves. First flue review prompted quieter backing/ties and a narrower deeper heat slot. Actual matching before/finalafter accepted; floor gain is modest and irregular reference flags remain future work.
+
+Verified:409 .NET, clean compile0warnings/0errors,432 EditMode,151 PlayMode (992total), graphics1before+2after, integrity577/1099/568. Android exit0/no C#diagnostics. APK36,165,000bytes; SHA256199F9356AE439D119C5F5EDCFD0A95810D4C46841D1A74897710E65864C1CE54. No phone installation this turn; prior restart decision pending. Evidence/reproduction: ArtDirection/2026-10-10/foundry-surface-cohesion-01.
