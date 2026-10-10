@@ -885,3 +885,9 @@ Actual image review rejected a large middle-mast masonry overlap. Correct only t
 Use neutral warm tints on already golden coping albedo, clean inner-rail UVs and brass widths inside existing grooves. Preserve matte/non-emissive floor lighting and its1.9color ceiling so floor heraldry does not become an ability telegraph. Stone changes soften joints and vary compact oblong proportions while retaining the coverage lattice and brass constraints. Pit machinery stays below the existing deck, with unchanged pools/collar/atmosphere and vessel envelopes.
 
 Image review prompted a softer, narrower, deeper central flue aperture; no new geometry was needed for that correction. Accepted package29renderers unchanged,117,045vertices. Floor/reference similarity gain is modest; do not treat another numerical weight tweak as the next substantive reference-quality milestone. Evidence: foundry-surface-cohesion-01.
+
+## 2026-10-10 - Irregular stone silhouettes with continuous floor coverage
+
+Use convex hand-quarried contours inside each existing packed flag, with unequal setbacks and corner cuts. Keep the complete mortar underbed and partition the face along adaptive light cells, rather than allowing slab-wide triangles to distort local light. Bound the common bevel offset before a short chamfer can collapse. Regular ceremonial/repair/infill flags and ramp-crossing flags retain the previous path; rectangular wear overlays do not render outside new contours.
+
+Actual image review accepts the bounded gain: visible quarry edges, no holes/light wedges or lost actor readability. Exposed joints are stronger than before and the course structure remains rectangular. Full reference fidelity is still open. Static cost29renderers unchanged,113,995vertices versus117,045; no FPS improvement claim. Evidence: foundry-flagstone-01. No phone action; prior restart/install question remains pending.

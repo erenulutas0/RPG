@@ -502,3 +502,13 @@ Evidence and final gates: ArtDirection/2026-10-10/workshop-coherence-01/validati
 - [ ] Working-yard composition remains sparse; new raised equipment needs a matching navigation/collision contract. Full reference fidelity and deferred gameplay progression remain separate work.
 
 Proof and final verification: ArtDirection/2026-10-10/foundry-surface-cohesion-01/README.md. No new renderer/material/texture; totalgeometry+0.75%. Physical-device/crowd/midrange/first-ramp acceptance remains open.
+
+## 2026-10-10 - Flagstone contour milestone
+
+- [x] Replace ordinary rectangular stone faces with varied convex quarry contours and safe matching bevels; preserve complete paving coverage, lighting, UVs, inlays and surface elevation.
+- [x] Retain regular ceremonial/repair/infill stones and planar ramp-seam handling; independent image review accepts actor readability and continuous light.
+- [ ] Reference-quality stone finish is only partly resolved: underlying rectangular courses and the stronger mortar network remain visible. Do not describe the contour pass as complete reference fidelity.
+- [ ] Working-yard composition still needs purposeful equipment placement and a matching navigation/collision contract for raised obstacles.
+- [ ] Accumulated phone acceptance remains pending the existing owner-run restart/install decision; sustained crowd/midrange/first-ramp checks remain open.
+
+Proof and final verification: ArtDirection/2026-10-10/foundry-flagstone-01/README.md. Region29renderers/113,995vertices; no new textures/materials or per-frame components. Deferred region encounter/boss progression remains separate from the owner's art-first work.

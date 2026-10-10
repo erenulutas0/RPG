@@ -539,6 +539,11 @@ namespace Cryptforge.UI
             if(repair)jointTone=.80f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
+            if(UseFlagContour(s.Zone,repair,u0,v0,u1,v1))
+            {
+                ContouredFlagFace(mesh,u0,v0,u1,v1,joint,bevel,step,stone,faceTint,s.I,s.J);
+                return; // Old edge/corner overlays belong to the rectangular face only.
+            }
             // Lit from screen right: the v0 and u1 edges are one strip, mitred where they meet, the u0 and v1 edges the
             // shaded one. Outer (joint) and inner (bevel) rows take the same light lines: none falls inside the band.
             float[] ou=LightLines(u0+joint,u1-joint,step),ov=LightLines(v0+joint,v1-joint,step);

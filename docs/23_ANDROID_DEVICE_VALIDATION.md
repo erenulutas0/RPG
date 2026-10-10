@@ -1801,3 +1801,9 @@ Evidence/source reproduction: ArtDirection/2026-10-10/workshop-coherence-01, sto
 APK36,165,000bytes, SHA256199F9356AE439D119C5F5EDCFD0A95810D4C46841D1A74897710E65864C1CE54. Built after992passing tests, clean compile, accepted matched Unity review and static integrity. NOT INSTALLED; no ADB action or fresh device observation this turn. Prior concrete owner-run restart/install question remains unanswered. Last recorded021b95fphone package and Room2/74HP/8unbankedgold are historical observations.
 
 After approval, use fresh preflight/backup, install latest accumulated art package and verify installed hash; review current bridge/yard/gate/court/pit plus normal combat under guarded inputs, retain telemetry/current saves, compare original files and remove only new diagnostic flags. Never restore stale profile backups. Device/crowd/midrange/first-ramp acceptance remains open. Proof: ArtDirection/2026-10-10/foundry-surface-cohesion-01.
+
+## 2026-10-10 - Flagstone contour APK ready; device review still pending
+
+APK36,180,484bytes, SHA256 AA3859B559D48F21E3971A2A4ACDF1B14E07890D92EC45A27867F419A6E559E0. Built after1,006passing distinct-suite tests, clean compile, accepted actual Unity comparison and final integrity579/1099/568. NOT INSTALLED. No ADB action or new phone observation this pass. Prior concrete owner-run restart/install question remains unanswered; last recorded phone021b95f and paused Room2/74HP/8unbankedgold are historical.
+
+After approval, fresh preflight/backup and latest accumulated package installation/hash check are required. Review bridge/yard/court/pit/gate and normal combat with guarded inputs. Preserve current original saves/development files and telemetry, remove only newly introduced diagnostic flags, never restore stale backups. Contour construction allocations and frame time were not measured; first-ramp/crowd/midrange acceptance remains open. Evidence: ArtDirection/2026-10-10/foundry-flagstone-01.

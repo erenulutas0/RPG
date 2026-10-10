@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="14" result="Passed" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0,287491">
+  <test-suite type="TestSuite" id="1000" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="446" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.287491" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1522" name="Project.EditModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.EditModeTests.dll" runstate="Runnable" testcasecount="446" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.277406" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="5584" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1523" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="446" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.275794" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1524" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="446" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.272222" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1159" name="FoundryFlagContourTests" fullname="Cryptforge.Tests.FoundryFlagContourTests" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.265096" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1168" name="AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea" fullname="Cryptforge.Tests.FoundryFlagContourTests.AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.081057" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1166" name="AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea(0.5f)" fullname="Cryptforge.Tests.FoundryFlagContourTests.AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea(0.5f)" methodname="AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1627230478" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.062112" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1167" name="AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea(1.0f)" fullname="Cryptforge.Tests.FoundryFlagContourTests.AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea(1.0f)" methodname="AdjacentLightCellsPartitionTheInnerContourWithoutLostOrDoubledArea" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="561821609" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.012274" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1165" name="CellClippingHandlesKnownAreasNegativeCoordinatesAndNearBoundarySlivers" fullname="Cryptforge.Tests.FoundryFlagContourTests.CellClippingHandlesKnownAreasNegativeCoordinatesAndNearBoundarySlivers" methodname="CellClippingHandlesKnownAreasNegativeCoordinatesAndNearBoundarySlivers" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="574395964" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.001177" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1176" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.030759" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1170" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(-25.0f,6.0f,2.0f,1.5f,3,False)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(-25.0f,6.0f,2.0f,1.5f,3,False)" methodname="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1488014005" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.020870" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1171" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(28.5f,3.0f,1.0f,1.0f,2,False)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(28.5f,3.0f,1.0f,1.0f,2,False)" methodname="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1215234729" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.002085" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1172" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(30.5f,3.0f,1.0f,1.0f,2,False)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(30.5f,3.0f,1.0f,1.0f,2,False)" methodname="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1284692274" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.000986" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1173" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(29.0f,3.0f,1.0f,1.0f,2,False)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(29.0f,3.0f,1.0f,1.0f,2,False)" methodname="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="640197884" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.002926" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1174" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(0.0f,0.0f,1.0f,1.0f,1,False)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(0.0f,0.0f,1.0f,1.0f,1,False)" methodname="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1097122223" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.001093" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1175" name="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(-24.0f,6.0f,1.0f,1.0f,3,True)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(-24.0f,6.0f,1.0f,1.0f,3,True)" methodname="ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="898732133" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.001214" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1164" name="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.141696" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1160" name="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(0.5f,2.0f)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(0.5f,2.0f)" methodname="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1051006487" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.037815" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1161" name="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(1.0f,1.0f)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(1.0f,1.0f)" methodname="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1709211600" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.030608" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1162" name="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(1.5f,2.0f)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(1.5f,2.0f)" methodname="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1982472556" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.036619" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1163" name="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(2.5f,1.0f)" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(2.5f,1.0f)" methodname="ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="1711592898" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.035505" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1169" name="ProtectedFlagsAndCrossRampSeamsKeepTheirDressedPath" fullname="Cryptforge.Tests.FoundryFlagContourTests.ProtectedFlagsAndCrossRampSeamsKeepTheirDressedPath" methodname="ProtectedFlagsAndCrossRampSeamsKeepTheirDressedPath" classname="Cryptforge.Tests.FoundryFlagContourTests" runstate="Runnable" seed="690549473" result="Passed" start-time="2026-10-10 14:06:42Z" end-time="2026-10-10 14:06:42Z" duration="0.000710" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: E:/MobileGame/TestResults/editmode-filter.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

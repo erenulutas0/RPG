@@ -1,0 +1,1232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="151" result="Passed" total="151" passed="151" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:16:01Z" duration="358,8256921">
+  <test-suite type="TestSuite" id="1189" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:16:01Z" duration="358.825692" total="151" passed="151" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1185" name="Project.PlayModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.PlayModeTests.dll" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:16:01Z" duration="358.815564" total="151" passed="151" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="19296" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1186" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:16:01Z" duration="358.814802" total="151" passed="151" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1187" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:16:01Z" duration="358.814135" total="151" passed="151" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="AbilityFlowTests" fullname="Cryptforge.Tests.AbilityFlowTests" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:10:20Z" duration="17.863318" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1006" name="SessionResetReleasesTheRingAndCreatesFreshNativeArt" fullname="Cryptforge.Tests.AbilityFlowTests.SessionResetReleasesTheRingAndCreatesFreshNativeArt" methodname="SessionResetReleasesTheRingAndCreatesFreshNativeArt" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" seed="867458953" result="Passed" start-time="2026-10-10 14:10:02Z" end-time="2026-10-10 14:10:03Z" duration="0.724323" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1003" name="TheBurstWaitsWhileAChoiceIsOpen" fullname="Cryptforge.Tests.AbilityFlowTests.TheBurstWaitsWhileAChoiceIsOpen" methodname="TheBurstWaitsWhileAChoiceIsOpen" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" seed="844188168" result="Passed" start-time="2026-10-10 14:10:03Z" end-time="2026-10-10 14:10:09Z" duration="6.238611" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="TheButtonBurstsEveryEnemyInReachThenCoolsDown" fullname="Cryptforge.Tests.AbilityFlowTests.TheButtonBurstsEveryEnemyInReachThenCoolsDown" methodname="TheButtonBurstsEveryEnemyInReachThenCoolsDown" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" seed="1362350376" result="Passed" start-time="2026-10-10 14:10:09Z" end-time="2026-10-10 14:10:19Z" duration="9.850324" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1007" name="TheCastPulseExpandsAtItsOriginPausesAndExpiresWithoutOwningArt" fullname="Cryptforge.Tests.AbilityFlowTests.TheCastPulseExpandsAtItsOriginPausesAndExpiresWithoutOwningArt" methodname="TheCastPulseExpandsAtItsOriginPausesAndExpiresWithoutOwningArt" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" seed="1880276610" result="Passed" start-time="2026-10-10 14:10:19Z" end-time="2026-10-10 14:10:20Z" duration="0.550525" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1004" name="TheRangeRingLiesOnTheFloorAndFadesWhileCoolingDown" fullname="Cryptforge.Tests.AbilityFlowTests.TheRangeRingLiesOnTheFloorAndFadesWhileCoolingDown" methodname="TheRangeRingLiesOnTheFloorAndFadesWhileCoolingDown" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" seed="570399860" result="Passed" start-time="2026-10-10 14:10:20Z" end-time="2026-10-10 14:10:20Z" duration="0.134328" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="TheRingFollowsTheHeroPausesAndSurvivesSceneReload" fullname="Cryptforge.Tests.AbilityFlowTests.TheRingFollowsTheHeroPausesAndSurvivesSceneReload" methodname="TheRingFollowsTheHeroPausesAndSurvivesSceneReload" classname="Cryptforge.Tests.AbilityFlowTests" runstate="Runnable" seed="1549884845" result="Passed" start-time="2026-10-10 14:10:20Z" end-time="2026-10-10 14:10:20Z" duration="0.351663" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1008" name="ArenaArtCacheTests" fullname="Cryptforge.Tests.ArenaArtCacheTests" classname="Cryptforge.Tests.ArenaArtCacheTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-10 14:10:20Z" end-time="2026-10-10 14:10:21Z" duration="0.532217" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1010" name="OtherGeometryUsesItsOwnDimensionsAndReleasesOnlyItsOwnArt" fullname="Cryptforge.Tests.ArenaArtCacheTests.OtherGeometryUsesItsOwnDimensionsAndReleasesOnlyItsOwnArt" methodname="OtherGeometryUsesItsOwnDimensionsAndReleasesOnlyItsOwnArt" classname="Cryptforge.Tests.ArenaArtCacheTests" runstate="Runnable" seed="1270547554" result="Passed" start-time="2026-10-10 14:10:20Z" end-time="2026-10-10 14:10:20Z" duration="0.200266" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1009" name="RecordColdAndRepeatedEnvironmentBuildCosts" fullname="Cryptforge.Tests.ArenaArtCacheTests.RecordColdAndRepeatedEnvironmentBuildCosts" methodname="RecordColdAndRepeatedEnvironmentBuildCosts" classname="Cryptforge.Tests.ArenaArtCacheTests" runstate="Runnable" seed="1786636731" result="Passed" start-time="2026-10-10 14:10:20Z" end-time="2026-10-10 14:10:20Z" duration="0.170671" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[ArenaArt] platform 0: 83 allocation events, 18.45 ms (Editor, not device)
+[ArenaArt] backdrop 0: 1127 allocation events, 44.36 ms (Editor, not device)
+[ArenaArt] platform 1: 6 allocation events, 0.04 ms (Editor, not device)
+[ArenaArt] backdrop 1: 234 allocation events, 0.66 ms (Editor, not device)
+]]></output>
+            </test-case>
+            <test-case id="1011" name="ResetReleasesEverySharedTextureIncludingHiddenAnimationFrames" fullname="Cryptforge.Tests.ArenaArtCacheTests.ResetReleasesEverySharedTextureIncludingHiddenAnimationFrames" methodname="ResetReleasesEverySharedTextureIncludingHiddenAnimationFrames" classname="Cryptforge.Tests.ArenaArtCacheTests" runstate="Runnable" seed="1316144915" result="Passed" start-time="2026-10-10 14:10:20Z" end-time="2026-10-10 14:10:21Z" duration="0.149218" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[ArenaArt] retained 38 RGBA32 textures, 8368004 texel bytes (native overhead excluded)
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1012" name="ArenaViewTests" fullname="Cryptforge.Tests.ArenaViewTests" classname="Cryptforge.Tests.ArenaViewTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:10:21Z" end-time="2026-10-10 14:10:22Z" duration="1.491915" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1016" name="BoundedCameraAndCavernCoverAllRimsAtBothPortraitHeights" fullname="Cryptforge.Tests.ArenaViewTests.BoundedCameraAndCavernCoverAllRimsAtBothPortraitHeights" methodname="BoundedCameraAndCavernCoverAllRimsAtBothPortraitHeights" classname="Cryptforge.Tests.ArenaViewTests" runstate="Runnable" seed="900327433" result="Passed" start-time="2026-10-10 14:10:21Z" end-time="2026-10-10 14:10:21Z" duration="0.157451" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1014" name="EveryPackSlotAtEveryCornerEntersOnThePlatform" fullname="Cryptforge.Tests.ArenaViewTests.EveryPackSlotAtEveryCornerEntersOnThePlatform" methodname="EveryPackSlotAtEveryCornerEntersOnThePlatform" classname="Cryptforge.Tests.ArenaViewTests" runstate="Runnable" seed="731837823" result="Passed" start-time="2026-10-10 14:10:21Z" end-time="2026-10-10 14:10:21Z" duration="0.100532" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1013" name="FartherSpritesDrawFirstAndTheArenaStaysBehindEveryCombatant" fullname="Cryptforge.Tests.ArenaViewTests.FartherSpritesDrawFirstAndTheArenaStaysBehindEveryCombatant" methodname="FartherSpritesDrawFirstAndTheArenaStaysBehindEveryCombatant" classname="Cryptforge.Tests.ArenaViewTests" runstate="Runnable" seed="1358541015" result="Passed" start-time="2026-10-10 14:10:21Z" end-time="2026-10-10 14:10:21Z" duration="0.099352" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1015" name="TheCameraShowsAFixedWidthAndFollowsTheHeroInTheFreeBand" fullname="Cryptforge.Tests.ArenaViewTests.TheCameraShowsAFixedWidthAndFollowsTheHeroInTheFreeBand" methodname="TheCameraShowsAFixedWidthAndFollowsTheHeroInTheFreeBand" classname="Cryptforge.Tests.ArenaViewTests" runstate="Runnable" seed="1272085633" result="Passed" start-time="2026-10-10 14:10:21Z" end-time="2026-10-10 14:10:22Z" duration="1.116553" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1017" name="ArenaWalkTests" fullname="Cryptforge.Tests.ArenaWalkTests" classname="Cryptforge.Tests.ArenaWalkTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:10:22Z" end-time="2026-10-10 14:10:38Z" duration="16.169812" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1019" name="AtTheRimTheNextPackEntersFromThePlatformAndEveryEnemyStopsOnIt" fullname="Cryptforge.Tests.ArenaWalkTests.AtTheRimTheNextPackEntersFromThePlatformAndEveryEnemyStopsOnIt" methodname="AtTheRimTheNextPackEntersFromThePlatformAndEveryEnemyStopsOnIt" classname="Cryptforge.Tests.ArenaWalkTests" runstate="Runnable" seed="2724024" result="Passed" start-time="2026-10-10 14:10:22Z" end-time="2026-10-10 14:10:29Z" duration="6.604709" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1020" name="TheFirstRoomsChestMendsAQuarterWhenTheHeroWalksOntoIt" fullname="Cryptforge.Tests.ArenaWalkTests.TheFirstRoomsChestMendsAQuarterWhenTheHeroWalksOntoIt" methodname="TheFirstRoomsChestMendsAQuarterWhenTheHeroWalksOntoIt" classname="Cryptforge.Tests.ArenaWalkTests" runstate="Runnable" seed="866174576" result="Passed" start-time="2026-10-10 14:10:29Z" end-time="2026-10-10 14:10:29Z" duration="0.549089" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1018" name="TheHeroWalksAtItsSpeedThePackChasesAndTheRimHolds" fullname="Cryptforge.Tests.ArenaWalkTests.TheHeroWalksAtItsSpeedThePackChasesAndTheRimHolds" methodname="TheHeroWalksAtItsSpeedThePackChasesAndTheRimHolds" classname="Cryptforge.Tests.ArenaWalkTests" runstate="Runnable" seed="521981692" result="Passed" start-time="2026-10-10 14:10:29Z" end-time="2026-10-10 14:10:35Z" duration="5.451135" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="TheSecondRoomsChestPaysGoldAtTheFloorsRate" fullname="Cryptforge.Tests.ArenaWalkTests.TheSecondRoomsChestPaysGoldAtTheFloorsRate" methodname="TheSecondRoomsChestPaysGoldAtTheFloorsRate" classname="Cryptforge.Tests.ArenaWalkTests" runstate="Runnable" seed="1600614344" result="Passed" start-time="2026-10-10 14:10:35Z" end-time="2026-10-10 14:10:38Z" duration="3.551419" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1022" name="ArtHudFlowTests" fullname="Cryptforge.Tests.ArtHudFlowTests" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-10-10 14:10:38Z" end-time="2026-10-10 14:10:47Z" duration="8.491701" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1028" name="CardArtworkFollowsContentAfterTheFirstUpgradeHitsItsCap" fullname="Cryptforge.Tests.ArtHudFlowTests.CardArtworkFollowsContentAfterTheFirstUpgradeHitsItsCap" methodname="CardArtworkFollowsContentAfterTheFirstUpgradeHitsItsCap" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="2074141797" result="Passed" start-time="2026-10-10 14:10:38Z" end-time="2026-10-10 14:10:39Z" duration="0.419416" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1027" name="CompactReadoutKeepsDetailsAccessibleThroughPause" fullname="Cryptforge.Tests.ArtHudFlowTests.CompactReadoutKeepsDetailsAccessibleThroughPause" methodname="CompactReadoutKeepsDetailsAccessibleThroughPause" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="637188211" result="Passed" start-time="2026-10-10 14:10:39Z" end-time="2026-10-10 14:10:39Z" duration="0.117795" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1023" name="ContactShadowsStayUnderFeetHideWithDeathAndShareAcrossReloads" fullname="Cryptforge.Tests.ArtHudFlowTests.ContactShadowsStayUnderFeetHideWithDeathAndShareAcrossReloads" methodname="ContactShadowsStayUnderFeetHideWithDeathAndShareAcrossReloads" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="2042325998" result="Passed" start-time="2026-10-10 14:10:39Z" end-time="2026-10-10 14:10:39Z" duration="0.167090" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1032" name="DeferredEnergyHidesHudAndDoesNotSlowSustainedMovement" fullname="Cryptforge.Tests.ArtHudFlowTests.DeferredEnergyHidesHudAndDoesNotSlowSustainedMovement" methodname="DeferredEnergyHidesHudAndDoesNotSlowSustainedMovement" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="233390678" result="Passed" start-time="2026-10-10 14:10:39Z" end-time="2026-10-10 14:10:45Z" duration="6.135118" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1029" name="ImportedAbilityGlyphSurvivesSceneRestart" fullname="Cryptforge.Tests.ArtHudFlowTests.ImportedAbilityGlyphSurvivesSceneRestart" methodname="ImportedAbilityGlyphSurvivesSceneRestart" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="990900109" result="Passed" start-time="2026-10-10 14:10:45Z" end-time="2026-10-10 14:10:45Z" duration="0.187555" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1030" name="ResultAndForgeTextFitsShortAndTallPortraitSafeAreas" fullname="Cryptforge.Tests.ArtHudFlowTests.ResultAndForgeTextFitsShortAndTallPortraitSafeAreas" methodname="ResultAndForgeTextFitsShortAndTallPortraitSafeAreas" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="1639800157" result="Passed" start-time="2026-10-10 14:10:45Z" end-time="2026-10-10 14:10:45Z" duration="0.125161" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1025" name="SharedEnemyArtSurvivesRestartAndUnusedAssetCleanup" fullname="Cryptforge.Tests.ArtHudFlowTests.SharedEnemyArtSurvivesRestartAndUnusedAssetCleanup" methodname="SharedEnemyArtSurvivesRestartAndUnusedAssetCleanup" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="449252691" result="Passed" start-time="2026-10-10 14:10:45Z" end-time="2026-10-10 14:10:46Z" duration="0.169997" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1026" name="SharedEnemySpritesKeepHealthAndHitFeedbackIndependentWhenOneEnemyDies" fullname="Cryptforge.Tests.ArtHudFlowTests.SharedEnemySpritesKeepHealthAndHitFeedbackIndependentWhenOneEnemyDies" methodname="SharedEnemySpritesKeepHealthAndHitFeedbackIndependentWhenOneEnemyDies" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="1422649246" result="Passed" start-time="2026-10-10 14:10:46Z" end-time="2026-10-10 14:10:46Z" duration="0.134405" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1024" name="SharedEnvironmentSurvivesReloadWhileMeshesAndAnimationStayLocal" fullname="Cryptforge.Tests.ArtHudFlowTests.SharedEnvironmentSurvivesReloadWhileMeshesAndAnimationStayLocal" methodname="SharedEnvironmentSurvivesReloadWhileMeshesAndAnimationStayLocal" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="152093266" result="Passed" start-time="2026-10-10 14:10:46Z" end-time="2026-10-10 14:10:47Z" duration="0.900795" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1031" name="ThreeCameraCandidatesContainTheGuardianAtCentreAndRim" fullname="Cryptforge.Tests.ArtHudFlowTests.ThreeCameraCandidatesContainTheGuardianAtCentreAndRim" methodname="ThreeCameraCandidatesContainTheGuardianAtCentreAndRim" classname="Cryptforge.Tests.ArtHudFlowTests" runstate="Runnable" seed="1204025826" result="Passed" start-time="2026-10-10 14:10:47Z" end-time="2026-10-10 14:10:47Z" duration="0.118550" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1033" name="ChestPresentationTests" fullname="Cryptforge.Tests.ChestPresentationTests" classname="Cryptforge.Tests.ChestPresentationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-10 14:10:47Z" end-time="2026-10-10 14:10:48Z" duration="1.260661" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1035" name="ReloadBorrowsSpritesAndActorsSortAtGroundRoots" fullname="Cryptforge.Tests.ChestPresentationTests.ReloadBorrowsSpritesAndActorsSortAtGroundRoots" methodname="ReloadBorrowsSpritesAndActorsSortAtGroundRoots" classname="Cryptforge.Tests.ChestPresentationTests" runstate="Runnable" seed="123700153" result="Passed" start-time="2026-10-10 14:10:47Z" end-time="2026-10-10 14:10:47Z" duration="0.180398" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1034" name="RewardIsImmediateAndSingleWhileOpeningHonorsPause" fullname="Cryptforge.Tests.ChestPresentationTests.RewardIsImmediateAndSingleWhileOpeningHonorsPause" methodname="RewardIsImmediateAndSingleWhileOpeningHonorsPause" classname="Cryptforge.Tests.ChestPresentationTests" runstate="Runnable" seed="722009704" result="Passed" start-time="2026-10-10 14:10:47Z" end-time="2026-10-10 14:10:48Z" duration="1.066929" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1036" name="CombatSceneTests" fullname="Cryptforge.Tests.CombatSceneTests" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-10 14:10:48Z" end-time="2026-10-10 14:11:07Z" duration="19.179485" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1038" name="ADeathDropsItsRewardOnceAndPickingItUpPaysItOnce" fullname="Cryptforge.Tests.CombatSceneTests.ADeathDropsItsRewardOnceAndPickingItUpPaysItOnce" methodname="ADeathDropsItsRewardOnceAndPickingItUpPaysItOnce" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" seed="407516964" result="Passed" start-time="2026-10-10 14:10:48Z" end-time="2026-10-10 14:10:50Z" duration="2.103257" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1037" name="AuthoredSceneAutomaticallyClearsTheFirstPackKillingEachEnemyOnce" fullname="Cryptforge.Tests.CombatSceneTests.AuthoredSceneAutomaticallyClearsTheFirstPackKillingEachEnemyOnce" methodname="AuthoredSceneAutomaticallyClearsTheFirstPackKillingEachEnemyOnce" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" seed="1821780858" result="Passed" start-time="2026-10-10 14:10:50Z" end-time="2026-10-10 14:10:56Z" duration="6.243305" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1042" name="DeadHeroStopsAttackingAndThePackStopsWalking" fullname="Cryptforge.Tests.CombatSceneTests.DeadHeroStopsAttackingAndThePackStopsWalking" methodname="DeadHeroStopsAttackingAndThePackStopsWalking" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" seed="1090007498" result="Passed" start-time="2026-10-10 14:10:56Z" end-time="2026-10-10 14:10:58Z" duration="1.116504" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1040" name="DestroyedEnemyDoesNotCauseMissingReferenceErrors" fullname="Cryptforge.Tests.CombatSceneTests.DestroyedEnemyDoesNotCauseMissingReferenceErrors" methodname="DestroyedEnemyDoesNotCauseMissingReferenceErrors" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" seed="698881360" result="Passed" start-time="2026-10-10 14:10:58Z" end-time="2026-10-10 14:11:01Z" duration="3.200096" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1039" name="OutOfRangeAndDisabledTargetsAreIgnoredThenReacquired" fullname="Cryptforge.Tests.CombatSceneTests.OutOfRangeAndDisabledTargetsAreIgnoredThenReacquired" methodname="OutOfRangeAndDisabledTargetsAreIgnoredThenReacquired" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" seed="524966203" result="Passed" start-time="2026-10-10 14:11:01Z" end-time="2026-10-10 14:11:04Z" duration="3.133848" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1041" name="PauseFreezesAttacksAndWalkingAndResumeContinues" fullname="Cryptforge.Tests.CombatSceneTests.PauseFreezesAttacksAndWalkingAndResumeContinues" methodname="PauseFreezesAttacksAndWalkingAndResumeContinues" classname="Cryptforge.Tests.CombatSceneTests" runstate="Runnable" seed="1067308927" result="Passed" start-time="2026-10-10 14:11:04Z" end-time="2026-10-10 14:11:07Z" duration="3.368761" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1043" name="DensityProofParityTests" fullname="Cryptforge.Tests.DensityProofParityTests" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-10-10 14:11:07Z" end-time="2026-10-10 14:11:15Z" duration="7.978396" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1051" name="DaggersKitingOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.DaggersKitingOnTheProofFloorMatchesTheSimulation" methodname="DaggersKitingOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1844554062" result="Passed" start-time="2026-10-10 14:11:07Z" end-time="2026-10-10 14:11:08Z" duration="0.932848" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 69.6 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (-0.426, -6.45); simulation: 1 floors cleared, 69.6 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (-0.426, -6.45), 31.63 fight s; chests 0/0, books 0/0 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1050" name="DaggersStandingOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.DaggersStandingOnTheProofFloorMatchesTheSimulation" methodname="DaggersStandingOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1158485813" result="Passed" start-time="2026-10-10 14:11:08Z" end-time="2026-10-10 14:11:09Z" duration="0.526680" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 48.7 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (0, 0); simulation: 1 floors cleared, 48.7 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (0, 0), 19.02 fight s; chests 0/0, books 0/0 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1052" name="DaggersTurningRoundOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.DaggersTurningRoundOnTheProofFloorMatchesTheSimulation" methodname="DaggersTurningRoundOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="546709313" result="Passed" start-time="2026-10-10 14:11:09Z" end-time="2026-10-10 14:11:09Z" duration="0.387713" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 61.4 HP, 10 kills, gold 10 (10 banked), level 2, 1 upgrades applied and 1 left pending, hero at (0.542, 0); simulation: 1 floors cleared, 61.4 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (0.542, 0), 11.78 fight s; chests 1/1, books 1/1 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1056" name="FetchingDropsThroughEmberHallsMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.FetchingDropsThroughEmberHallsMatchesTheSimulation" methodname="FetchingDropsThroughEmberHallsMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="2071565006" result="Passed" start-time="2026-10-10 14:11:09Z" end-time="2026-10-10 14:11:11Z" duration="1.534639" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: at the checkpoint, 109.5 HP, 31 kills, 29 drops picked up and 2 swept, gold 116, level 7, 7 upgrades, 2 chests, hero at (-5.517, -1.381); simulation: 109.5 HP, 31 kills, 29 picked up and 2 swept, gold 116, level 7, 7 upgrades, 2 chests, hero at (-5.517, -1.381)
+]]></output>
+            </test-case>
+            <test-case id="1048" name="StaffKitingOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.StaffKitingOnTheProofFloorMatchesTheSimulation" methodname="StaffKitingOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1837418793" result="Passed" start-time="2026-10-10 14:11:11Z" end-time="2026-10-10 14:11:11Z" duration="0.304811" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 80.7 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (-1.257, 5.617); simulation: 1 floors cleared, 80.7 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (-1.257, 5.617), 7.35 fight s; chests 0/0, books 0/0 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1047" name="StaffStandingOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.StaffStandingOnTheProofFloorMatchesTheSimulation" methodname="StaffStandingOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="62682471" result="Passed" start-time="2026-10-10 14:11:11Z" end-time="2026-10-10 14:11:11Z" duration="0.284233" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 64.1 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (0, 0); simulation: 1 floors cleared, 64.1 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (0, 0), 7.95 fight s; chests 0/0, books 0/0 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1049" name="StaffTurningRoundOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.StaffTurningRoundOnTheProofFloorMatchesTheSimulation" methodname="StaffTurningRoundOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1258403262" result="Passed" start-time="2026-10-10 14:11:11Z" end-time="2026-10-10 14:11:11Z" duration="0.214205" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 79.6 HP, 10 kills, gold 10 (10 banked), level 2, 1 upgrades applied and 1 left pending, hero at (2.208, 0); simulation: 1 floors cleared, 79.6 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (2.208, 0), 5.12 fight s; chests 1/1, books 1/1 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1054" name="StandingInTheSwarmMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.StandingInTheSwarmMatchesTheSimulation" methodname="StandingInTheSwarmMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="598858346" result="Passed" start-time="2026-10-10 14:11:11Z" end-time="2026-10-10 14:11:13Z" duration="1.646786" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, wave 19, 0 HP, 35 kills, level 4, 3 upgrades; simulation: wave 19, 0 HP, 35 kills, level 4, 3 upgrades, died in room 1.19
+]]></output>
+            </test-case>
+            <test-case id="1053" name="SwordFetchingTheChestOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.SwordFetchingTheChestOnTheProofFloorMatchesTheSimulation" methodname="SwordFetchingTheChestOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1367130181" result="Passed" start-time="2026-10-10 14:11:13Z" end-time="2026-10-10 14:11:13Z" duration="0.359322" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 85.6 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (-2.678, 4.208); simulation: 1 floors cleared, 85.6 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (-2.678, 4.208), 8.88 fight s; chests 1/1, books 1/1 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1045" name="SwordKitingOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.SwordKitingOnTheProofFloorMatchesTheSimulation" methodname="SwordKitingOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="147571253" result="Passed" start-time="2026-10-10 14:11:13Z" end-time="2026-10-10 14:11:14Z" duration="0.460341" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 81.2 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (-0.986, 5.931); simulation: 1 floors cleared, 81.2 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (-0.986, 5.931), 12.97 fight s; chests 0/0, books 0/0 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1044" name="SwordStandingOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.SwordStandingOnTheProofFloorMatchesTheSimulation" methodname="SwordStandingOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1684162459" result="Passed" start-time="2026-10-10 14:11:14Z" end-time="2026-10-10 14:11:14Z" duration="0.443283" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 48.7 HP, 10 kills, gold 10 (10 banked), level 2, 0 upgrades applied and 2 left pending, hero at (0, 0); simulation: 1 floors cleared, 48.7 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (0, 0), 14.45 fight s; chests 0/0, books 0/0 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1046" name="SwordTurningRoundOnTheProofFloorMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.SwordTurningRoundOnTheProofFloorMatchesTheSimulation" methodname="SwordTurningRoundOnTheProofFloorMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="58164291" result="Passed" start-time="2026-10-10 14:11:14Z" end-time="2026-10-10 14:11:15Z" duration="0.395329" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, 64.7 HP, 10 kills, gold 10 (10 banked), level 2, 1 upgrades applied and 1 left pending, hero at (3.708, 0); simulation: 1 floors cleared, 64.7 HP, 10 kills, gold 10 (10), level 2, 2 upgrades, hero at (3.708, 0), 10.52 fight s; chests 1/1, books 1/1 (scene/simulation)
+]]></output>
+            </test-case>
+            <test-case id="1055" name="WalkingOutOfTheSwarmMatchesTheSimulation" fullname="Cryptforge.Tests.DensityProofParityTests.WalkingOutOfTheSwarmMatchesTheSimulation" methodname="WalkingOutOfTheSwarmMatchesTheSimulation" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1620318119" result="Passed" start-time="2026-10-10 14:11:15Z" end-time="2026-10-10 14:11:15Z" duration="0.365890" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Victory, left at 10.667 s, 96.1 HP, 6 kills, level 0, hero at (0, 4.125); simulation: left at 10.667 s, 96.1 HP, 6 kills, level 0, hero at (0, 4.125)
+]]></output>
+            </test-case>
+            <test-case id="1057" name="WithoutTheStartFloorFileTheSceneStartsOnTheAuthoredFloor" fullname="Cryptforge.Tests.DensityProofParityTests.WithoutTheStartFloorFileTheSceneStartsOnTheAuthoredFloor" methodname="WithoutTheStartFloorFileTheSceneStartsOnTheAuthoredFloor" classname="Cryptforge.Tests.DensityProofParityTests" runstate="Runnable" seed="1008614609" result="Passed" start-time="2026-10-10 14:11:15Z" end-time="2026-10-10 14:11:15Z" duration="0.114831" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1058" name="DepthProofArrangementTests" fullname="Cryptforge.Tests.DepthProofArrangementTests" classname="Cryptforge.Tests.DepthProofArrangementTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:11:15Z" end-time="2026-10-10 14:11:22Z" duration="6.736524" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1059" name="FlagStopsTheFoundryWithAnEnemyBehindTheSouthWestBoiler" fullname="Cryptforge.Tests.DepthProofArrangementTests.FlagStopsTheFoundryWithAnEnemyBehindTheSouthWestBoiler" methodname="FlagStopsTheFoundryWithAnEnemyBehindTheSouthWestBoiler" classname="Cryptforge.Tests.DepthProofArrangementTests" runstate="Runnable" seed="779147193" result="Passed" start-time="2026-10-10 14:11:15Z" end-time="2026-10-10 14:11:17Z" duration="2.110548" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DepthProof] arranged behind the south-west boiler: enemy Grunt 1 at (13.93, 6.12), chest at (15.03, 6.20), drop at (16.19, 6.75); hero in front at (14.57, 1.91), CinderMite 2 in the open court at (13.86, 0.85) (world units). The fight is stopped; every 0.3 s each enemy placed takes a spark-only strike, healed at once. Remove development/depth-proof.txt afterwards.
+]]></output>
+            </test-case>
+            <test-case id="1062" name="OutsideTheFoundryTheFlagDoesNothing" fullname="Cryptforge.Tests.DepthProofArrangementTests.OutsideTheFoundryTheFlagDoesNothing" methodname="OutsideTheFoundryTheFlagDoesNothing" classname="Cryptforge.Tests.DepthProofArrangementTests" runstate="Runnable" seed="701645604" result="Passed" start-time="2026-10-10 14:11:17Z" end-time="2026-10-10 14:11:17Z" duration="0.114919" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1060" name="TheStrikesShowASparkAtEachEnemysFeetAndChangeNothing" fullname="Cryptforge.Tests.DepthProofArrangementTests.TheStrikesShowASparkAtEachEnemysFeetAndChangeNothing" methodname="TheStrikesShowASparkAtEachEnemysFeetAndChangeNothing" classname="Cryptforge.Tests.DepthProofArrangementTests" runstate="Runnable" seed="1760228620" result="Passed" start-time="2026-10-10 14:11:17Z" end-time="2026-10-10 14:11:21Z" duration="3.767936" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DepthProof] arranged behind the south-west boiler: enemy Grunt 1 at (13.93, 6.12), chest at (15.03, 6.20), drop at (16.19, 6.75); hero in front at (14.57, 1.91), CinderMite 2 in the open court at (13.86, 0.85) (world units). The fight is stopped; every 0.3 s each enemy placed takes a spark-only strike, healed at once. Remove development/depth-proof.txt afterwards.
+]]></output>
+            </test-case>
+            <test-case id="1061" name="WithoutTheFlagTheFoundryStartsAsEver" fullname="Cryptforge.Tests.DepthProofArrangementTests.WithoutTheFlagTheFoundryStartsAsEver" methodname="WithoutTheFlagTheFoundryStartsAsEver" classname="Cryptforge.Tests.DepthProofArrangementTests" runstate="Runnable" seed="1368350734" result="Passed" start-time="2026-10-10 14:11:21Z" end-time="2026-10-10 14:11:22Z" duration="0.731115" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1063" name="DescentFlowTests" fullname="Cryptforge.Tests.DescentFlowTests" classname="Cryptforge.Tests.DescentFlowTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:11:22Z" end-time="2026-10-10 14:12:24Z" duration="61.696529" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1066" name="ClearingBothFloorsOpensTheFinaleAndExtractingAtItsDoorBanksTheRun" fullname="Cryptforge.Tests.DescentFlowTests.ClearingBothFloorsOpensTheFinaleAndExtractingAtItsDoorBanksTheRun" methodname="ClearingBothFloorsOpensTheFinaleAndExtractingAtItsDoorBanksTheRun" classname="Cryptforge.Tests.DescentFlowTests" runstate="Runnable" seed="2099746144" result="Passed" start-time="2026-10-10 14:11:22Z" end-time="2026-10-10 14:11:40Z" duration="18.353135" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1067" name="DescendingFromTheLastFloorSecuresTheGoldAndEntersTheFinale" fullname="Cryptforge.Tests.DescentFlowTests.DescendingFromTheLastFloorSecuresTheGoldAndEntersTheFinale" methodname="DescendingFromTheLastFloorSecuresTheGoldAndEntersTheFinale" classname="Cryptforge.Tests.DescentFlowTests" runstate="Runnable" seed="408370821" result="Passed" start-time="2026-10-10 14:11:40Z" end-time="2026-10-10 14:12:00Z" duration="19.284007" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1064" name="DescendingSecuresTheGoldAndScalesTheNextFloor" fullname="Cryptforge.Tests.DescentFlowTests.DescendingSecuresTheGoldAndScalesTheNextFloor" methodname="DescendingSecuresTheGoldAndScalesTheNextFloor" classname="Cryptforge.Tests.DescentFlowTests" runstate="Runnable" seed="1115530838" result="Passed" start-time="2026-10-10 14:12:00Z" end-time="2026-10-10 14:12:11Z" duration="11.233169" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1065" name="DyingOnTheNextFloorLosesHalfTheUnsecuredGoldAndNamesTheLastAttacker" fullname="Cryptforge.Tests.DescentFlowTests.DyingOnTheNextFloorLosesHalfTheUnsecuredGoldAndNamesTheLastAttacker" methodname="DyingOnTheNextFloorLosesHalfTheUnsecuredGoldAndNamesTheLastAttacker" classname="Cryptforge.Tests.DescentFlowTests" runstate="Runnable" seed="1431155747" result="Passed" start-time="2026-10-10 14:12:11Z" end-time="2026-10-10 14:12:24Z" duration="12.815611" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1068" name="EnemySpriteCacheTests" fullname="Cryptforge.Tests.EnemySpriteCacheTests" classname="Cryptforge.Tests.EnemySpriteCacheTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:24Z" duration="0.151847" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1069" name="EveryLookSharesOnlyItsOwnFramesAndKeepsTheArtContract" fullname="Cryptforge.Tests.EnemySpriteCacheTests.EveryLookSharesOnlyItsOwnFramesAndKeepsTheArtContract" methodname="EveryLookSharesOnlyItsOwnFramesAndKeepsTheArtContract" classname="Cryptforge.Tests.EnemySpriteCacheTests" runstate="Runnable" seed="971675471" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:24Z" duration="0.071491" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1070" name="SessionResetReleasesEveryNativeResourceAndAllowsFreshArt" fullname="Cryptforge.Tests.EnemySpriteCacheTests.SessionResetReleasesEveryNativeResourceAndAllowsFreshArt" methodname="SessionResetReleasesEveryNativeResourceAndAllowsFreshArt" classname="Cryptforge.Tests.EnemySpriteCacheTests" runstate="Runnable" seed="1452007524" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:24Z" duration="0.066517" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1071" name="ExitSealPresentationTests" fullname="Cryptforge.Tests.ExitSealPresentationTests" classname="Cryptforge.Tests.ExitSealPresentationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:26Z" duration="2.330981" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1072" name="DescentHidesSealAndReloadCleansUp" fullname="Cryptforge.Tests.ExitSealPresentationTests.DescentHidesSealAndReloadCleansUp" methodname="DescentHidesSealAndReloadCleansUp" classname="Cryptforge.Tests.ExitSealPresentationTests" runstate="Runnable" seed="447113690" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:24Z" duration="0.191468" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1074" name="OffscreenCueDoesNotMoveTheRealSeal" fullname="Cryptforge.Tests.ExitSealPresentationTests.OffscreenCueDoesNotMoveTheRealSeal" methodname="OffscreenCueDoesNotMoveTheRealSeal" classname="Cryptforge.Tests.ExitSealPresentationTests" runstate="Runnable" seed="1596537174" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:24Z" duration="0.153183" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1073" name="RealHoldPauseInterruptionAndCompletionFollowEncounter" fullname="Cryptforge.Tests.ExitSealPresentationTests.RealHoldPauseInterruptionAndCompletionFollowEncounter" methodname="RealHoldPauseInterruptionAndCompletionFollowEncounter" classname="Cryptforge.Tests.ExitSealPresentationTests" runstate="Runnable" seed="783143312" result="Passed" start-time="2026-10-10 14:12:24Z" end-time="2026-10-10 14:12:26Z" duration="1.969195" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1075" name="FloorFlowTests" fullname="Cryptforge.Tests.FloorFlowTests" classname="Cryptforge.Tests.FloorFlowTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-10 14:12:26Z" end-time="2026-10-10 14:13:06Z" duration="39.423295" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1076" name="FloorFollowsTheAuthoredPacksToTheCheckpointAndExtractBanksTheGold" fullname="Cryptforge.Tests.FloorFlowTests.FloorFollowsTheAuthoredPacksToTheCheckpointAndExtractBanksTheGold" methodname="FloorFollowsTheAuthoredPacksToTheCheckpointAndExtractBanksTheGold" classname="Cryptforge.Tests.FloorFlowTests" runstate="Runnable" seed="1317516502" result="Passed" start-time="2026-10-10 14:12:26Z" end-time="2026-10-10 14:12:36Z" duration="10.239229" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1078" name="MendRestoresFortyPercentHealthAndTheFloorContinues" fullname="Cryptforge.Tests.FloorFlowTests.MendRestoresFortyPercentHealthAndTheFloorContinues" methodname="MendRestoresFortyPercentHealthAndTheFloorContinues" classname="Cryptforge.Tests.FloorFlowTests" runstate="Runnable" seed="1002170977" result="Passed" start-time="2026-10-10 14:12:36Z" end-time="2026-10-10 14:12:46Z" duration="9.151809" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1077" name="PacksEnterAtTheCornersWalkInAndTheHeroFacesTheNearestFirst" fullname="Cryptforge.Tests.FloorFlowTests.PacksEnterAtTheCornersWalkInAndTheHeroFacesTheNearestFirst" methodname="PacksEnterAtTheCornersWalkInAndTheHeroFacesTheNearestFirst" classname="Cryptforge.Tests.FloorFlowTests" runstate="Runnable" seed="334724539" result="Passed" start-time="2026-10-10 14:12:46Z" end-time="2026-10-10 14:12:47Z" duration="1.615418" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1079" name="TemperOpensOneExtraUpgradeChoice" fullname="Cryptforge.Tests.FloorFlowTests.TemperOpensOneExtraUpgradeChoice" methodname="TemperOpensOneExtraUpgradeChoice" classname="Cryptforge.Tests.FloorFlowTests" runstate="Runnable" seed="491670877" result="Passed" start-time="2026-10-10 14:12:47Z" end-time="2026-10-10 14:12:55Z" duration="8.183780" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1080" name="WardenEnragesAtHalfHealthThenItsFallOpensTheCheckpoint" fullname="Cryptforge.Tests.FloorFlowTests.WardenEnragesAtHalfHealthThenItsFallOpensTheCheckpoint" methodname="WardenEnragesAtHalfHealthThenItsFallOpensTheCheckpoint" classname="Cryptforge.Tests.FloorFlowTests" runstate="Runnable" seed="1311924573" result="Passed" start-time="2026-10-10 14:12:55Z" end-time="2026-10-10 14:13:06Z" duration="10.219091" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1081" name="FoundryBannerMotionTests" fullname="Cryptforge.Tests.FoundryBannerMotionTests" classname="Cryptforge.Tests.FoundryBannerMotionTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-10 14:13:06Z" end-time="2026-10-10 14:13:06Z" duration="0.496134" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1082" name="ClothSeamsStayJoinedWhileRodDepthAndPauseArePreserved" fullname="Cryptforge.Tests.FoundryBannerMotionTests.ClothSeamsStayJoinedWhileRodDepthAndPauseArePreserved" methodname="ClothSeamsStayJoinedWhileRodDepthAndPauseArePreserved" classname="Cryptforge.Tests.FoundryBannerMotionTests" runstate="Runnable" seed="1568928864" result="Passed" start-time="2026-10-10 14:13:06Z" end-time="2026-10-10 14:13:06Z" duration="0.483127" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1083" name="FoundryCavernTests" fullname="Cryptforge.Tests.FoundryCavernTests" classname="Cryptforge.Tests.FoundryCavernTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-10 14:13:06Z" end-time="2026-10-10 14:13:06Z" duration="0.134654" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1084" name="ReloadReleasesOnlyOwnedAtmosphereAndKeepsBorrowedArt" fullname="Cryptforge.Tests.FoundryCavernTests.ReloadReleasesOnlyOwnedAtmosphereAndKeepsBorrowedArt" methodname="ReloadReleasesOnlyOwnedAtmosphereAndKeepsBorrowedArt" classname="Cryptforge.Tests.FoundryCavernTests" runstate="Runnable" seed="385976826" result="Passed" start-time="2026-10-10 14:13:06Z" end-time="2026-10-10 14:13:06Z" duration="0.117929" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1085" name="FoundryElevationTests" fullname="Cryptforge.Tests.FoundryElevationTests" classname="Cryptforge.Tests.FoundryElevationTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-10 14:13:06Z" end-time="2026-10-10 14:13:07Z" duration="0.815923" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1086" name="ElevatedActorsEffectsAndCameraShareContactsWithoutMovingGameplayRoots" fullname="Cryptforge.Tests.FoundryElevationTests.ElevatedActorsEffectsAndCameraShareContactsWithoutMovingGameplayRoots" methodname="ElevatedActorsEffectsAndCameraShareContactsWithoutMovingGameplayRoots" classname="Cryptforge.Tests.FoundryElevationTests" runstate="Runnable" seed="766424947" result="Passed" start-time="2026-10-10 14:13:06Z" end-time="2026-10-10 14:13:07Z" duration="0.800461" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1087" name="FoundryFlameMotionTests" fullname="Cryptforge.Tests.FoundryFlameMotionTests" classname="Cryptforge.Tests.FoundryFlameMotionTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-10 14:13:07Z" end-time="2026-10-10 14:13:07Z" duration="0.496233" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1088" name="OnlyTipsMoveAndPauseDisablePreserveDepthAndBounds" fullname="Cryptforge.Tests.FoundryFlameMotionTests.OnlyTipsMoveAndPauseDisablePreserveDepthAndBounds" methodname="OnlyTipsMoveAndPauseDisablePreserveDepthAndBounds" classname="Cryptforge.Tests.FoundryFlameMotionTests" runstate="Runnable" seed="7288379" result="Passed" start-time="2026-10-10 14:13:07Z" end-time="2026-10-10 14:13:07Z" duration="0.483173" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1089" name="FoundryRegionTests" fullname="Cryptforge.Tests.FoundryRegionTests" classname="Cryptforge.Tests.FoundryRegionTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-10 14:13:07Z" end-time="2026-10-10 14:13:09Z" duration="1.211799" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1090" name="ArchitectureLightFollowsFireHeightAndRecessesBelowLedges" fullname="Cryptforge.Tests.FoundryRegionTests.ArchitectureLightFollowsFireHeightAndRecessesBelowLedges" methodname="ArchitectureLightFollowsFireHeightAndRecessesBelowLedges" classname="Cryptforge.Tests.FoundryRegionTests" runstate="Runnable" seed="17085607" result="Passed" start-time="2026-10-10 14:13:07Z" end-time="2026-10-10 14:13:07Z" duration="0.004045" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1092" name="FlagCreatesPlayableMapAndReloadReleasesMeshes" fullname="Cryptforge.Tests.FoundryRegionTests.FlagCreatesPlayableMapAndReloadReleasesMeshes" methodname="FlagCreatesPlayableMapAndReloadReleasesMeshes" classname="Cryptforge.Tests.FoundryRegionTests" runstate="Runnable" seed="243061865" result="Passed" start-time="2026-10-10 14:13:07Z" end-time="2026-10-10 14:13:09Z" duration="1.138808" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1091" name="MetalReflectionFallsOffInHeightAndStaysContinuousAcrossTheRamp" fullname="Cryptforge.Tests.FoundryRegionTests.MetalReflectionFallsOffInHeightAndStaysContinuousAcrossTheRamp" methodname="MetalReflectionFallsOffInHeightAndStaysContinuousAcrossTheRamp" classname="Cryptforge.Tests.FoundryRegionTests" runstate="Runnable" seed="186340275" result="Passed" start-time="2026-10-10 14:13:09Z" end-time="2026-10-10 14:13:09Z" duration="0.051943" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1093" name="FoundrySurfaceTests" fullname="Cryptforge.Tests.FoundrySurfaceTests" classname="Cryptforge.Tests.FoundrySurfaceTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-10 14:13:09Z" end-time="2026-10-10 14:13:09Z" duration="0.013495" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1094" name="ProjectionRoundTripsAcrossBothRampSeams" fullname="Cryptforge.Tests.FoundrySurfaceTests.ProjectionRoundTripsAcrossBothRampSeams" methodname="ProjectionRoundTripsAcrossBothRampSeams" classname="Cryptforge.Tests.FoundrySurfaceTests" runstate="Runnable" seed="1407139745" result="Passed" start-time="2026-10-10 14:13:09Z" end-time="2026-10-10 14:13:09Z" duration="0.011476" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1095" name="SurfaceIsContinuousAndLeavesTheCourtAndNavigationUntouched" fullname="Cryptforge.Tests.FoundrySurfaceTests.SurfaceIsContinuousAndLeavesTheCourtAndNavigationUntouched" methodname="SurfaceIsContinuousAndLeavesTheCourtAndNavigationUntouched" classname="Cryptforge.Tests.FoundrySurfaceTests" runstate="Runnable" seed="1284619959" result="Passed" start-time="2026-10-10 14:13:09Z" end-time="2026-10-10 14:13:09Z" duration="0.000936" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1096" name="GateArrivalTests" fullname="Cryptforge.Tests.GateArrivalTests" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-10 14:13:09Z" end-time="2026-10-10 14:13:25Z" duration="16.585657" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1104" name="ApplicationPauseSkipsWithoutResumingExistingPause" fullname="Cryptforge.Tests.GateArrivalTests.ApplicationPauseSkipsWithoutResumingExistingPause" methodname="ApplicationPauseSkipsWithoutResumingExistingPause" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="121253129" result="Passed" start-time="2026-10-10 14:13:09Z" end-time="2026-10-10 14:13:10Z" duration="0.827690" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1105" name="BeginBeforeInitializationIsRejected" fullname="Cryptforge.Tests.GateArrivalTests.BeginBeforeInitializationIsRejected" methodname="BeginBeforeInitializationIsRejected" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="1654588387" result="Passed" start-time="2026-10-10 14:13:10Z" end-time="2026-10-10 14:13:10Z" duration="0.002617" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1097" name="DeferredEntryAndSkipStartExactlyOneEncounter" fullname="Cryptforge.Tests.GateArrivalTests.DeferredEntryAndSkipStartExactlyOneEncounter" methodname="DeferredEntryAndSkipStartExactlyOneEncounter" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="902453432" result="Passed" start-time="2026-10-10 14:13:10Z" end-time="2026-10-10 14:13:10Z" duration="0.906312" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1100" name="DepthProofTakesPrecedenceOverArrival" fullname="Cryptforge.Tests.GateArrivalTests.DepthProofTakesPrecedenceOverArrival" methodname="DepthProofTakesPrecedenceOverArrival" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="82725196" result="Passed" start-time="2026-10-10 14:13:10Z" end-time="2026-10-10 14:13:11Z" duration="0.784427" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DepthProof] arranged behind the south-west boiler: enemy Grunt 1 at (13.93, 6.12), chest at (15.03, 6.20), drop at (16.19, 6.75); hero in front at (14.57, 1.91), CinderMite 2 in the open court at (13.86, 0.85) (world units). The fight is stopped; every 0.3 s each enemy placed takes a spark-only strike, healed at once. Remove development/depth-proof.txt afterwards.
+]]></output>
+            </test-case>
+            <test-case id="1103" name="DisableBeforeStartDoesNotRecaptureRestoredControls" fullname="Cryptforge.Tests.GateArrivalTests.DisableBeforeStartDoesNotRecaptureRestoredControls" methodname="DisableBeforeStartDoesNotRecaptureRestoredControls" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="2035740983" result="Passed" start-time="2026-10-10 14:13:11Z" end-time="2026-10-10 14:13:12Z" duration="0.868500" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1102" name="DisableRestoresViewAndReenableCompletesOnlyOnce" fullname="Cryptforge.Tests.GateArrivalTests.DisableRestoresViewAndReenableCompletesOnlyOnce" methodname="DisableRestoresViewAndReenableCompletesOnlyOnce" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="482818432" result="Passed" start-time="2026-10-10 14:13:12Z" end-time="2026-10-10 14:13:13Z" duration="0.884874" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1098" name="NaturalCompletionUsesUnscaledTimeAndRestoresControl" fullname="Cryptforge.Tests.GateArrivalTests.NaturalCompletionUsesUnscaledTimeAndRestoresControl" methodname="NaturalCompletionUsesUnscaledTimeAndRestoresControl" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="1092635549" result="Passed" start-time="2026-10-10 14:13:13Z" end-time="2026-10-10 14:13:18Z" duration="4.811451" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1099" name="PriorSceneFrameDoesNotConsumeVisibleArrivalDuration" fullname="Cryptforge.Tests.GateArrivalTests.PriorSceneFrameDoesNotConsumeVisibleArrivalDuration" methodname="PriorSceneFrameDoesNotConsumeVisibleArrivalDuration" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="1516188137" result="Passed" start-time="2026-10-10 14:13:18Z" end-time="2026-10-10 14:13:24Z" duration="6.025468" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1101" name="UnloadingDuringArrivalDoesNotLeakIntoNextEntry" fullname="Cryptforge.Tests.GateArrivalTests.UnloadingDuringArrivalDoesNotLeakIntoNextEntry" methodname="UnloadingDuringArrivalDoesNotLeakIntoNextEntry" classname="Cryptforge.Tests.GateArrivalTests" runstate="Runnable" seed="1415036039" result="Passed" start-time="2026-10-10 14:13:24Z" end-time="2026-10-10 14:13:25Z" duration="1.471515" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1106" name="GroundDropPresentationTests" fullname="Cryptforge.Tests.GroundDropPresentationTests" classname="Cryptforge.Tests.GroundDropPresentationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:13:25Z" end-time="2026-10-10 14:13:27Z" duration="1.664851" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1108" name="CoincidentDropsRemainSeparateAndPoolDoesNotOverwriteRewards" fullname="Cryptforge.Tests.GroundDropPresentationTests.CoincidentDropsRemainSeparateAndPoolDoesNotOverwriteRewards" methodname="CoincidentDropsRemainSeparateAndPoolDoesNotOverwriteRewards" classname="Cryptforge.Tests.GroundDropPresentationTests" runstate="Runnable" seed="1424810495" result="Passed" start-time="2026-10-10 14:13:25Z" end-time="2026-10-10 14:13:26Z" duration="0.609965" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1110" name="CurrencyFallbacksAndReloadPreserveBorrowedNativeArt" fullname="Cryptforge.Tests.GroundDropPresentationTests.CurrencyFallbacksAndReloadPreserveBorrowedNativeArt" methodname="CurrencyFallbacksAndReloadPreserveBorrowedNativeArt" classname="Cryptforge.Tests.GroundDropPresentationTests" runstate="Runnable" seed="1192217905" result="Passed" start-time="2026-10-10 14:13:26Z" end-time="2026-10-10 14:13:26Z" duration="0.192397" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1109" name="LevelChoiceFreezesFlightAndDeathNeverCollectsRestingDrops" fullname="Cryptforge.Tests.GroundDropPresentationTests.LevelChoiceFreezesFlightAndDeathNeverCollectsRestingDrops" methodname="LevelChoiceFreezesFlightAndDeathNeverCollectsRestingDrops" classname="Cryptforge.Tests.GroundDropPresentationTests" runstate="Runnable" seed="1229210886" result="Passed" start-time="2026-10-10 14:13:26Z" end-time="2026-10-10 14:13:27Z" duration="0.715793" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1107" name="RealKillDropsAtFeetAndPaysOnlyOnCollection" fullname="Cryptforge.Tests.GroundDropPresentationTests.RealKillDropsAtFeetAndPaysOnlyOnCollection" methodname="RealKillDropsAtFeetAndPaysOnlyOnCollection" classname="Cryptforge.Tests.GroundDropPresentationTests" runstate="Runnable" seed="121732675" result="Passed" start-time="2026-10-10 14:13:27Z" end-time="2026-10-10 14:13:27Z" duration="0.133530" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1111" name="GruntAnimationTests" fullname="Cryptforge.Tests.GruntAnimationTests" classname="Cryptforge.Tests.GruntAnimationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:13:27Z" end-time="2026-10-10 14:13:30Z" duration="3.201279" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1114" name="ActualStrikeFacesItsTargetAndHitFlashUsesThatFrame" fullname="Cryptforge.Tests.GruntAnimationTests.ActualStrikeFacesItsTargetAndHitFlashUsesThatFrame" methodname="ActualStrikeFacesItsTargetAndHitFlashUsesThatFrame" classname="Cryptforge.Tests.GruntAnimationTests" runstate="Runnable" seed="974210704" result="Passed" start-time="2026-10-10 14:13:27Z" end-time="2026-10-10 14:13:27Z" duration="0.140180" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1115" name="DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire" fullname="Cryptforge.Tests.GruntAnimationTests.DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire" methodname="DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire" classname="Cryptforge.Tests.GruntAnimationTests" runstate="Runnable" seed="1142930750" result="Passed" start-time="2026-10-10 14:13:27Z" end-time="2026-10-10 14:13:28Z" duration="0.706831" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1112" name="SharedSixPoseSetUsesVisualTopAndSurvivesReload" fullname="Cryptforge.Tests.GruntAnimationTests.SharedSixPoseSetUsesVisualTopAndSurvivesReload" methodname="SharedSixPoseSetUsesVisualTopAndSurvivesReload" classname="Cryptforge.Tests.GruntAnimationTests" runstate="Runnable" seed="1608938729" result="Passed" start-time="2026-10-10 14:13:28Z" end-time="2026-10-10 14:13:28Z" duration="0.217246" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1113" name="TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose" fullname="Cryptforge.Tests.GruntAnimationTests.TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose" methodname="TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose" classname="Cryptforge.Tests.GruntAnimationTests" runstate="Runnable" seed="1521630292" result="Passed" start-time="2026-10-10 14:13:28Z" end-time="2026-10-10 14:13:30Z" duration="2.123015" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1116" name="MiteAnimationTests" fullname="Cryptforge.Tests.MiteAnimationTests" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-10 14:13:30Z" end-time="2026-10-10 14:13:34Z" duration="3.628634" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1120" name="ActualStrikeFacesItsTargetAndHitFlashUsesThatFrame" fullname="Cryptforge.Tests.MiteAnimationTests.ActualStrikeFacesItsTargetAndHitFlashUsesThatFrame" methodname="ActualStrikeFacesItsTargetAndHitFlashUsesThatFrame" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" seed="968684980" result="Passed" start-time="2026-10-10 14:13:30Z" end-time="2026-10-10 14:13:30Z" duration="0.142570" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1118" name="CompactBarKeepsItsLeftEdgeAndHealthIndependentOfItsBody" fullname="Cryptforge.Tests.MiteAnimationTests.CompactBarKeepsItsLeftEdgeAndHealthIndependentOfItsBody" methodname="CompactBarKeepsItsLeftEdgeAndHealthIndependentOfItsBody" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" seed="1473419889" result="Passed" start-time="2026-10-10 14:13:30Z" end-time="2026-10-10 14:13:30Z" duration="0.157298" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1117" name="CrowdBorrowsRegisteredFramesAndReloadDoesNotDestroyThem" fullname="Cryptforge.Tests.MiteAnimationTests.CrowdBorrowsRegisteredFramesAndReloadDoesNotDestroyThem" methodname="CrowdBorrowsRegisteredFramesAndReloadDoesNotDestroyThem" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" seed="660172040" result="Passed" start-time="2026-10-10 14:13:30Z" end-time="2026-10-10 14:13:31Z" duration="0.223347" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1121" name="DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire" fullname="Cryptforge.Tests.MiteAnimationTests.DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire" methodname="DeathDropsItsRewardAndPooledRemainsSurviveActorRemovalThenExpire" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" seed="1800318499" result="Passed" start-time="2026-10-10 14:13:31Z" end-time="2026-10-10 14:13:31Z" duration="0.707401" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1122" name="SwordAndSparkBorrowImportedArtAndPoolReuseResetsRotationAndTint" fullname="Cryptforge.Tests.MiteAnimationTests.SwordAndSparkBorrowImportedArtAndPoolReuseResetsRotationAndTint" methodname="SwordAndSparkBorrowImportedArtAndPoolReuseResetsRotationAndTint" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" seed="199126553" result="Passed" start-time="2026-10-10 14:13:31Z" end-time="2026-10-10 14:13:32Z" duration="0.262450" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1119" name="TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose" fullname="Cryptforge.Tests.MiteAnimationTests.TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose" methodname="TravelSelectsFourFacingsWithoutMirroringTheCombatRootAndPauseFreezesPose" classname="Cryptforge.Tests.MiteAnimationTests" runstate="Runnable" seed="1245682694" result="Passed" start-time="2026-10-10 14:13:32Z" end-time="2026-10-10 14:13:34Z" duration="2.122306" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1123" name="PauseFlowTests" fullname="Cryptforge.Tests.PauseFlowTests" classname="Cryptforge.Tests.PauseFlowTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-10 14:13:34Z" end-time="2026-10-10 14:13:43Z" duration="9.346844" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1127" name="EveryButtonLabelSitsInsideItsButton" fullname="Cryptforge.Tests.PauseFlowTests.EveryButtonLabelSitsInsideItsButton" methodname="EveryButtonLabelSitsInsideItsButton" classname="Cryptforge.Tests.PauseFlowTests" runstate="Runnable" seed="1349154912" result="Passed" start-time="2026-10-10 14:13:34Z" end-time="2026-10-10 14:13:34Z" duration="0.104274" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1126" name="EveryButtonSitsOnACanvasThatReceivesTouches" fullname="Cryptforge.Tests.PauseFlowTests.EveryButtonSitsOnACanvasThatReceivesTouches" methodname="EveryButtonSitsOnACanvasThatReceivesTouches" classname="Cryptforge.Tests.PauseFlowTests" runstate="Runnable" seed="992083025" result="Passed" start-time="2026-10-10 14:13:34Z" end-time="2026-10-10 14:13:34Z" duration="0.099278" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1125" name="LeavingTheAppPausesTheRunButAnOpenChoiceStaysInCharge" fullname="Cryptforge.Tests.PauseFlowTests.LeavingTheAppPausesTheRunButAnOpenChoiceStaysInCharge" methodname="LeavingTheAppPausesTheRunButAnOpenChoiceStaysInCharge" classname="Cryptforge.Tests.PauseFlowTests" runstate="Runnable" seed="28389159" result="Passed" start-time="2026-10-10 14:13:34Z" end-time="2026-10-10 14:13:41Z" duration="6.617349" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1124" name="PauseButtonFreezesCombatUntilResume" fullname="Cryptforge.Tests.PauseFlowTests.PauseButtonFreezesCombatUntilResume" methodname="PauseButtonFreezesCombatUntilResume" classname="Cryptforge.Tests.PauseFlowTests" runstate="Runnable" seed="828889860" result="Passed" start-time="2026-10-10 14:13:41Z" end-time="2026-10-10 14:13:43Z" duration="2.383566" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1128" name="PauseButtonHidesWhenTheRunEnds" fullname="Cryptforge.Tests.PauseFlowTests.PauseButtonHidesWhenTheRunEnds" methodname="PauseButtonHidesWhenTheRunEnds" classname="Cryptforge.Tests.PauseFlowTests" runstate="Runnable" seed="1157233599" result="Passed" start-time="2026-10-10 14:13:43Z" end-time="2026-10-10 14:13:43Z" duration="0.131563" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1129" name="PlatformMaterialTests" fullname="Cryptforge.Tests.PlatformMaterialTests" classname="Cryptforge.Tests.PlatformMaterialTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-10 14:13:43Z" end-time="2026-10-10 14:13:44Z" duration="0.817087" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1132" name="DifferentGeometryOwnsAndReleasesItsMeshesWhileCachedSceneStaysAlive" fullname="Cryptforge.Tests.PlatformMaterialTests.DifferentGeometryOwnsAndReleasesItsMeshesWhileCachedSceneStaysAlive" methodname="DifferentGeometryOwnsAndReleasesItsMeshesWhileCachedSceneStaysAlive" classname="Cryptforge.Tests.PlatformMaterialTests" runstate="Runnable" seed="10066144" result="Passed" start-time="2026-10-10 14:13:43Z" end-time="2026-10-10 14:13:43Z" duration="0.133156" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1130" name="RealSceneUsesBoundedImportedTexturesBelowEffectsAndKeepsThePlayableBoundary" fullname="Cryptforge.Tests.PlatformMaterialTests.RealSceneUsesBoundedImportedTexturesBelowEffectsAndKeepsThePlayableBoundary" methodname="RealSceneUsesBoundedImportedTexturesBelowEffectsAndKeepsThePlayableBoundary" classname="Cryptforge.Tests.PlatformMaterialTests" runstate="Runnable" seed="510016209" result="Passed" start-time="2026-10-10 14:13:43Z" end-time="2026-10-10 14:13:43Z" duration="0.137378" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Platform] ENV_Platform_Floor: 1024x1024 ASTC_6x6, mips 11
+[Platform] ENV_Platform_Coping: 1024x256 ASTC_4x4, mips 11
+[Platform] ENV_Platform_Wall: 1024x1024 ASTC_6x6, mips 11
+]]></output>
+            </test-case>
+            <test-case id="1131" name="SceneReloadReusesMeshesMaterialsAndFoundationWithoutDestroyingBorrowedAssets" fullname="Cryptforge.Tests.PlatformMaterialTests.SceneReloadReusesMeshesMaterialsAndFoundationWithoutDestroyingBorrowedAssets" methodname="SceneReloadReusesMeshesMaterialsAndFoundationWithoutDestroyingBorrowedAssets" classname="Cryptforge.Tests.PlatformMaterialTests" runstate="Runnable" seed="731609337" result="Passed" start-time="2026-10-10 14:13:43Z" end-time="2026-10-10 14:13:44Z" duration="0.185725" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1134" name="SessionResetReleasesGeneratedMeshesButPreservesImportedMaterialAndTexture" fullname="Cryptforge.Tests.PlatformMaterialTests.SessionResetReleasesGeneratedMeshesButPreservesImportedMaterialAndTexture" methodname="SessionResetReleasesGeneratedMeshesButPreservesImportedMaterialAndTexture" classname="Cryptforge.Tests.PlatformMaterialTests" runstate="Runnable" seed="1521818383" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:44Z" duration="0.153635" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1133" name="WideRegionKeepsHallPavingScaleAndOrthogonalFloorAxes" fullname="Cryptforge.Tests.PlatformMaterialTests.WideRegionKeepsHallPavingScaleAndOrthogonalFloorAxes" methodname="WideRegionKeepsHallPavingScaleAndOrthogonalFloorAxes" classname="Cryptforge.Tests.PlatformMaterialTests" runstate="Runnable" seed="622502035" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:44Z" duration="0.192544" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1135" name="RegionSceneryTests" fullname="Cryptforge.Tests.RegionSceneryTests" classname="Cryptforge.Tests.RegionSceneryTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:44Z" duration="0.452975" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1136" name="MissingOrUnknownFlagPreservesHall" fullname="Cryptforge.Tests.RegionSceneryTests.MissingOrUnknownFlagPreservesHall" methodname="MissingOrUnknownFlagPreservesHall" classname="Cryptforge.Tests.RegionSceneryTests" runstate="Runnable" seed="1481333894" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:44Z" duration="0.196601" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1137" name="WidePreviewBorrowsArtAndReturnsToHallOnReload" fullname="Cryptforge.Tests.RegionSceneryTests.WidePreviewBorrowsArtAndReturnsToHallOnReload" methodname="WidePreviewBorrowsArtAndReturnsToHallOnReload" classname="Cryptforge.Tests.RegionSceneryTests" runstate="Runnable" seed="697406415" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:44Z" duration="0.240934" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1138" name="RelicForgeFlowTests" fullname="Cryptforge.Tests.RelicForgeFlowTests" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:59Z" duration="14.691471" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1141" name="CounterweightStrikesBackAtWhicheverEnemyHitsTheHero" fullname="Cryptforge.Tests.RelicForgeFlowTests.CounterweightStrikesBackAtWhicheverEnemyHitsTheHero" methodname="CounterweightStrikesBackAtWhicheverEnemyHitsTheHero" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="1079068895" result="Passed" start-time="2026-10-10 14:13:44Z" end-time="2026-10-10 14:13:48Z" duration="3.287939" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1144" name="DaggersCritEveryThirdStrikeAndTheCritFlashesGold" fullname="Cryptforge.Tests.RelicForgeFlowTests.DaggersCritEveryThirdStrikeAndTheCritFlashesGold" methodname="DaggersCritEveryThirdStrikeAndTheCritFlashesGold" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="497459518" result="Passed" start-time="2026-10-10 14:13:48Z" end-time="2026-10-10 14:13:50Z" duration="2.548717" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1145" name="ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps" fullname="Cryptforge.Tests.RelicForgeFlowTests.ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps" methodname="ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="1028306328" result="Passed" start-time="2026-10-10 14:13:50Z" end-time="2026-10-10 14:13:50Z" duration="0.099787" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1140" name="ForgingARelicSpendsGoldSavesItAndCarriesItIntoTheNextRun" fullname="Cryptforge.Tests.RelicForgeFlowTests.ForgingARelicSpendsGoldSavesItAndCarriesItIntoTheNextRun" methodname="ForgingARelicSpendsGoldSavesItAndCarriesItIntoTheNextRun" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="432537992" result="Passed" start-time="2026-10-10 14:13:50Z" end-time="2026-10-10 14:13:53Z" duration="2.746153" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1143" name="ForgingTheStaffCarriesItIntoTheNextRunAndTheSwordStaysFree" fullname="Cryptforge.Tests.RelicForgeFlowTests.ForgingTheStaffCarriesItIntoTheNextRunAndTheSwordStaysFree" methodname="ForgingTheStaffCarriesItIntoTheNextRunAndTheSwordStaysFree" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="1578849727" result="Passed" start-time="2026-10-10 14:13:53Z" end-time="2026-10-10 14:13:58Z" duration="4.728865" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1139" name="ResultNamesTheNextRelicAndTheForgeLocksWhatTheProfileCannotAfford" fullname="Cryptforge.Tests.RelicForgeFlowTests.ResultNamesTheNextRelicAndTheForgeLocksWhatTheProfileCannotAfford" methodname="ResultNamesTheNextRelicAndTheForgeLocksWhatTheProfileCannotAfford" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="1286764274" result="Passed" start-time="2026-10-10 14:13:58Z" end-time="2026-10-10 14:13:59Z" duration="1.149611" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1142" name="SecondWindRestoresAQuarterOnceWhenTheHeroFallsToAQuarter" fullname="Cryptforge.Tests.RelicForgeFlowTests.SecondWindRestoresAQuarterOnceWhenTheHeroFallsToAQuarter" methodname="SecondWindRestoresAQuarterOnceWhenTheHeroFallsToAQuarter" classname="Cryptforge.Tests.RelicForgeFlowTests" runstate="Runnable" seed="1032106572" result="Passed" start-time="2026-10-10 14:13:59Z" end-time="2026-10-10 14:13:59Z" duration="0.116577" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1146" name="RunResultTests" fullname="Cryptforge.Tests.RunResultTests" classname="Cryptforge.Tests.RunResultTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:13:59Z" end-time="2026-10-10 14:14:17Z" duration="18.299715" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1148" name="GruntKillsAWoundedHeroAndTheResultExplainsWhy" fullname="Cryptforge.Tests.RunResultTests.GruntKillsAWoundedHeroAndTheResultExplainsWhy" methodname="GruntKillsAWoundedHeroAndTheResultExplainsWhy" classname="Cryptforge.Tests.RunResultTests" runstate="Runnable" seed="1246579213" result="Passed" start-time="2026-10-10 14:13:59Z" end-time="2026-10-10 14:14:04Z" duration="4.769180" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1149" name="ResultListsClearedEncountersAndTheBuild" fullname="Cryptforge.Tests.RunResultTests.ResultListsClearedEncountersAndTheBuild" methodname="ResultListsClearedEncountersAndTheBuild" classname="Cryptforge.Tests.RunResultTests" runstate="Runnable" seed="1238496473" result="Passed" start-time="2026-10-10 14:14:04Z" end-time="2026-10-10 14:14:13Z" duration="8.839021" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1147" name="ThePackStrikesTheHeroOnlyOnceInReach" fullname="Cryptforge.Tests.RunResultTests.ThePackStrikesTheHeroOnlyOnceInReach" methodname="ThePackStrikesTheHeroOnlyOnceInReach" classname="Cryptforge.Tests.RunResultTests" runstate="Runnable" seed="1508788539" result="Passed" start-time="2026-10-10 14:14:13Z" end-time="2026-10-10 14:14:16Z" duration="3.265553" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1150" name="TryAgainReloadsAFreshRunExactlyOnce" fullname="Cryptforge.Tests.RunResultTests.TryAgainReloadsAFreshRunExactlyOnce" methodname="TryAgainReloadsAFreshRunExactlyOnce" classname="Cryptforge.Tests.RunResultTests" runstate="Runnable" seed="1841047588" result="Passed" start-time="2026-10-10 14:14:16Z" end-time="2026-10-10 14:14:17Z" duration="1.411467" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1151" name="SimulationParityTests" fullname="Cryptforge.Tests.SimulationParityTests" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-10 14:14:17Z" end-time="2026-10-10 14:14:26Z" duration="8.926366" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1154" name="DaggersDamageFirstMendingDescentMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.DaggersDamageFirstMendingDescentMatchesTheSimulation" methodname="DaggersDamageFirstMendingDescentMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="234035566" result="Passed" start-time="2026-10-10 14:14:17Z" end-time="2026-10-10 14:14:19Z" duration="1.228487" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 3.1, -1 HP after floor 1, 0 HP at the end, 19 kills, gold 0 (0 banked), 0 upgrades, relic x0; simulation: 0 floors cleared, death 3.1, 0, 0, 19, 0 (0), 0, x0
+]]></output>
+            </test-case>
+            <test-case id="1158" name="DaggersSpeedFirstTemperWithCounterweightDeathMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.DaggersSpeedFirstTemperWithCounterweightDeathMatchesTheSimulation" methodname="DaggersSpeedFirstTemperWithCounterweightDeathMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="1285359056" result="Passed" start-time="2026-10-10 14:14:19Z" end-time="2026-10-10 14:14:20Z" duration="1.377276" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 5.1, -1 HP after floor 1, 0 HP at the end, 27 kills, gold 0 (0 banked), 1 upgrades, relic x55; simulation: 0 floors cleared, death 5.1, 0, 0, 27, 0 (0), 1, x55
+]]></output>
+            </test-case>
+            <test-case id="1157" name="DaggersTemperWithSecondWindMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.DaggersTemperWithSecondWindMatchesTheSimulation" methodname="DaggersTemperWithSecondWindMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="153310798" result="Passed" start-time="2026-10-10 14:14:20Z" end-time="2026-10-10 14:14:21Z" duration="1.455819" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 3.2, -1 HP after floor 1, 0 HP at the end, 25 kills, gold 0 (0 banked), 0 upgrades, relic x1; simulation: 0 floors cleared, death 3.2, 0, 0, 25, 0 (0), 0, x1
+]]></output>
+            </test-case>
+            <test-case id="1153" name="StaffDamageFirstMendingDescentMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.StaffDamageFirstMendingDescentMatchesTheSimulation" methodname="StaffDamageFirstMendingDescentMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="393584747" result="Passed" start-time="2026-10-10 14:14:21Z" end-time="2026-10-10 14:14:23Z" duration="1.101140" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 3.1, -1 HP after floor 1, 0 HP at the end, 22 kills, gold 0 (0 banked), 0 upgrades, relic x0; simulation: 0 floors cleared, death 3.1, 0, 0, 22, 0 (0), 0, x0
+]]></output>
+            </test-case>
+            <test-case id="1152" name="SwordDamageFirstMendingDescentMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.SwordDamageFirstMendingDescentMatchesTheSimulation" methodname="SwordDamageFirstMendingDescentMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="1484834933" result="Passed" start-time="2026-10-10 14:14:23Z" end-time="2026-10-10 14:14:24Z" duration="1.263934" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 3.2, -1 HP after floor 1, 0 HP at the end, 25 kills, gold 0 (0 banked), 0 upgrades, relic x0; simulation: 0 floors cleared, death 3.2, 0, 0, 25, 0 (0), 0, x0
+]]></output>
+            </test-case>
+            <test-case id="1155" name="SwordSpeedFirstTemperDeathMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.SwordSpeedFirstTemperDeathMatchesTheSimulation" methodname="SwordSpeedFirstTemperDeathMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="1663906026" result="Passed" start-time="2026-10-10 14:14:24Z" end-time="2026-10-10 14:14:25Z" duration="1.268303" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 3.2, -1 HP after floor 1, 0 HP at the end, 25 kills, gold 0 (0 banked), 0 upgrades, relic x0; simulation: 0 floors cleared, death 3.2, 0, 0, 25, 0 (0), 0, x0
+]]></output>
+            </test-case>
+            <test-case id="1156" name="SwordTemperWithCounterweightMatchesTheSimulation" fullname="Cryptforge.Tests.SimulationParityTests.SwordTemperWithCounterweightMatchesTheSimulation" methodname="SwordTemperWithCounterweightMatchesTheSimulation" classname="Cryptforge.Tests.SimulationParityTests" runstate="Runnable" seed="662414533" result="Passed" start-time="2026-10-10 14:14:25Z" end-time="2026-10-10 14:14:26Z" duration="1.216160" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[scene: Defeat, floor 1, death 3.2, -1 HP after floor 1, 0 HP at the end, 25 kills, gold 0 (0 banked), 0 upgrades, relic x44; simulation: 0 floors cleared, death 3.2, 0, 0, 25, 0 (0), 0, x44
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1159" name="StaffSplashTests" fullname="Cryptforge.Tests.StaffSplashTests" classname="Cryptforge.Tests.StaffSplashTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-10 14:14:26Z" end-time="2026-10-10 14:14:27Z" duration="0.762448" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1160" name="RealStaffStrikeKeepsDamageImmediateAndPulseGroundedPausedAndBounded" fullname="Cryptforge.Tests.StaffSplashTests.RealStaffStrikeKeepsDamageImmediateAndPulseGroundedPausedAndBounded" methodname="RealStaffStrikeKeepsDamageImmediateAndPulseGroundedPausedAndBounded" classname="Cryptforge.Tests.StaffSplashTests" runstate="Runnable" seed="295347968" result="Passed" start-time="2026-10-10 14:14:26Z" end-time="2026-10-10 14:14:27Z" duration="0.521537" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1161" name="ReloadBorrowsTheSameStaffTextureAndSessionResetReleasesIt" fullname="Cryptforge.Tests.StaffSplashTests.ReloadBorrowsTheSameStaffTextureAndSessionResetReleasesIt" methodname="ReloadBorrowsTheSameStaffTextureAndSessionResetReleasesIt" classname="Cryptforge.Tests.StaffSplashTests" runstate="Runnable" seed="728930401" result="Passed" start-time="2026-10-10 14:14:27Z" end-time="2026-10-10 14:14:27Z" duration="0.231078" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1162" name="TelemetryFlowTests" fullname="Cryptforge.Tests.TelemetryFlowTests" classname="Cryptforge.Tests.TelemetryFlowTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-10 14:14:27Z" end-time="2026-10-10 14:14:55Z" duration="27.839739" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1164" name="ADefeatAndARestartStartASecondRunInTheSameSessionWithoutDuplicates" fullname="Cryptforge.Tests.TelemetryFlowTests.ADefeatAndARestartStartASecondRunInTheSameSessionWithoutDuplicates" methodname="ADefeatAndARestartStartASecondRunInTheSameSessionWithoutDuplicates" classname="Cryptforge.Tests.TelemetryFlowTests" runstate="Runnable" seed="1638148129" result="Passed" start-time="2026-10-10 14:14:27Z" end-time="2026-10-10 14:14:40Z" duration="12.459907" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1166" name="ATelemetryFolderBlockedByAFileLeavesCombatRunningWithoutErrorLogs" fullname="Cryptforge.Tests.TelemetryFlowTests.ATelemetryFolderBlockedByAFileLeavesCombatRunningWithoutErrorLogs" methodname="ATelemetryFolderBlockedByAFileLeavesCombatRunningWithoutErrorLogs" classname="Cryptforge.Tests.TelemetryFlowTests" runstate="Runnable" seed="1148413651" result="Passed" start-time="2026-10-10 14:14:40Z" end-time="2026-10-10 14:14:48Z" duration="8.596593" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1163" name="TheFirstPackAndItsLevelUpWriteAnOrderedLogBesideAValidProfile" fullname="Cryptforge.Tests.TelemetryFlowTests.TheFirstPackAndItsLevelUpWriteAnOrderedLogBesideAValidProfile" methodname="TheFirstPackAndItsLevelUpWriteAnOrderedLogBesideAValidProfile" classname="Cryptforge.Tests.TelemetryFlowTests" runstate="Runnable" seed="809446305" result="Passed" start-time="2026-10-10 14:14:48Z" end-time="2026-10-10 14:14:54Z" duration="6.248174" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1165" name="WalkingOntoTheFirstChestLogsItWithTheRoomAndTheHealedHealth" fullname="Cryptforge.Tests.TelemetryFlowTests.WalkingOntoTheFirstChestLogsItWithTheRoomAndTheHealedHealth" methodname="WalkingOntoTheFirstChestLogsItWithTheRoomAndTheHealedHealth" classname="Cryptforge.Tests.TelemetryFlowTests" runstate="Runnable" seed="451973860" result="Passed" start-time="2026-10-10 14:14:54Z" end-time="2026-10-10 14:14:55Z" duration="0.517069" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1167" name="UpgradeFlowTests" fullname="Cryptforge.Tests.UpgradeFlowTests" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-10 14:14:55Z" end-time="2026-10-10 14:15:51Z" duration="56.370993" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1170" name="AttackSpeedChoiceChangesRuntimeIntervalAndHudOnly" fullname="Cryptforge.Tests.UpgradeFlowTests.AttackSpeedChoiceChangesRuntimeIntervalAndHudOnly" methodname="AttackSpeedChoiceChangesRuntimeIntervalAndHudOnly" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="330298033" result="Passed" start-time="2026-10-10 14:14:55Z" end-time="2026-10-10 14:15:02Z" duration="6.778566" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1173" name="AttackSpeedUpgradeShortensTheNextPackCadence" fullname="Cryptforge.Tests.UpgradeFlowTests.AttackSpeedUpgradeShortensTheNextPackCadence" methodname="AttackSpeedUpgradeShortensTheNextPackCadence" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="1976297923" result="Passed" start-time="2026-10-10 14:15:02Z" end-time="2026-10-10 14:15:12Z" duration="10.464553" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1172" name="DamageUpgradeCarriesIntoTheNextPackAndRewardsOnlyTheNewKills" fullname="Cryptforge.Tests.UpgradeFlowTests.DamageUpgradeCarriesIntoTheNextPackAndRewardsOnlyTheNewKills" methodname="DamageUpgradeCarriesIntoTheNextPackAndRewardsOnlyTheNewKills" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="2017093847" result="Passed" start-time="2026-10-10 14:15:12Z" end-time="2026-10-10 14:15:23Z" duration="10.653035" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1168" name="KillOpensTwoTouchChoicesAndPausesCombat" fullname="Cryptforge.Tests.UpgradeFlowTests.KillOpensTwoTouchChoicesAndPausesCombat" methodname="KillOpensTwoTouchChoicesAndPausesCombat" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="1395564105" result="Passed" start-time="2026-10-10 14:15:23Z" end-time="2026-10-10 14:15:30Z" duration="7.266636" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1171" name="NoNextEncounterStartsWhileTheChoiceIsOpen" fullname="Cryptforge.Tests.UpgradeFlowTests.NoNextEncounterStartsWhileTheChoiceIsOpen" methodname="NoNextEncounterStartsWhileTheChoiceIsOpen" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="259536924" result="Passed" start-time="2026-10-10 14:15:30Z" end-time="2026-10-10 14:15:38Z" duration="8.234053" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1169" name="RapidRepeatedTapsApplyDamageUpgradeExactlyOnce" fullname="Cryptforge.Tests.UpgradeFlowTests.RapidRepeatedTapsApplyDamageUpgradeExactlyOnce" methodname="RapidRepeatedTapsApplyDamageUpgradeExactlyOnce" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="1886759965" result="Passed" start-time="2026-10-10 14:15:38Z" end-time="2026-10-10 14:15:45Z" duration="6.721693" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1174" name="TapsBeforeTheInputDelayAreIgnored" fullname="Cryptforge.Tests.UpgradeFlowTests.TapsBeforeTheInputDelayAreIgnored" methodname="TapsBeforeTheInputDelayAreIgnored" classname="Cryptforge.Tests.UpgradeFlowTests" runstate="Runnable" seed="1306169104" result="Passed" start-time="2026-10-10 14:15:45Z" end-time="2026-10-10 14:15:51Z" duration="6.250174" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1175" name="VanguardAnimationTests" fullname="Cryptforge.Tests.VanguardAnimationTests" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-10 14:15:51Z" end-time="2026-10-10 14:16:01Z" duration="9.744708" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1181" name="FlashTracksMovingBodyDeathHidesEquipmentAndReloadKeepsSharedAssets" fullname="Cryptforge.Tests.VanguardAnimationTests.FlashTracksMovingBodyDeathHidesEquipmentAndReloadKeepsSharedAssets" methodname="FlashTracksMovingBodyDeathHidesEquipmentAndReloadKeepsSharedAssets" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="891706961" result="Passed" start-time="2026-10-10 14:15:51Z" end-time="2026-10-10 14:15:52Z" duration="0.288664" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1176" name="FourFacingsFollowTravelRetainIdleAndMirrorOnlyPresentation" fullname="Cryptforge.Tests.VanguardAnimationTests.FourFacingsFollowTravelRetainIdleAndMirrorOnlyPresentation" methodname="FourFacingsFollowTravelRetainIdleAndMirrorOnlyPresentation" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="1663967762" result="Passed" start-time="2026-10-10 14:15:52Z" end-time="2026-10-10 14:15:52Z" duration="0.617095" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1180" name="FrontSwordGripTracksEachPoseMirrorsFlashesAndHidesOnDeath" fullname="Cryptforge.Tests.VanguardAnimationTests.FrontSwordGripTracksEachPoseMirrorsFlashesAndHidesOnDeath" methodname="FrontSwordGripTracksEachPoseMirrorsFlashesAndHidesOnDeath" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="1410682888" result="Passed" start-time="2026-10-10 14:15:52Z" end-time="2026-10-10 14:15:54Z" duration="1.981559" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1177" name="LethalStrikeFacesActualTargetAndFrontFlashSurvivesReload" fullname="Cryptforge.Tests.VanguardAnimationTests.LethalStrikeFacesActualTargetAndFrontFlashSurvivesReload" methodname="LethalStrikeFacesActualTargetAndFrontFlashSurvivesReload" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="1599038539" result="Passed" start-time="2026-10-10 14:15:54Z" end-time="2026-10-10 14:15:54Z" duration="0.288005" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1178" name="MovementTraversesFourFramesStopsAndFreezesWithCombat" fullname="Cryptforge.Tests.VanguardAnimationTests.MovementTraversesFourFramesStopsAndFreezesWithCombat" methodname="MovementTraversesFourFramesStopsAndFreezesWithCombat" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="1472974699" result="Passed" start-time="2026-10-10 14:15:54Z" end-time="2026-10-10 14:15:55Z" duration="0.819669" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1184" name="OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody" fullname="Cryptforge.Tests.VanguardAnimationTests.OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody" methodname="OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="1345021632" result="Passed" start-time="2026-10-10 14:15:55Z" end-time="2026-10-10 14:15:57Z" duration="1.413262" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1183" name="PaintedDaggersKeepBothHandsThroughTravelCastPauseAndReload" fullname="Cryptforge.Tests.VanguardAnimationTests.PaintedDaggersKeepBothHandsThroughTravelCastPauseAndReload" methodname="PaintedDaggersKeepBothHandsThroughTravelCastPauseAndReload" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="418827230" result="Passed" start-time="2026-10-10 14:15:57Z" end-time="2026-10-10 14:15:58Z" duration="1.695618" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1182" name="PaintedStaffKeepsGripAcrossFacingsAndCastAndSurvivesReload" fullname="Cryptforge.Tests.VanguardAnimationTests.PaintedStaffKeepsGripAcrossFacingsAndCastAndSurvivesReload" methodname="PaintedStaffKeepsGripAcrossFacingsAndCastAndSurvivesReload" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="79267431" result="Passed" start-time="2026-10-10 14:15:58Z" end-time="2026-10-10 14:16:00Z" duration="1.670752" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1179" name="SwordStrikeMatchesDamageThenRecoversAndAnticipatesNextHit" fullname="Cryptforge.Tests.VanguardAnimationTests.SwordStrikeMatchesDamageThenRecoversAndAnticipatesNextHit" methodname="SwordStrikeMatchesDamageThenRecoversAndAnticipatesNextHit" classname="Cryptforge.Tests.VanguardAnimationTests" runstate="Runnable" seed="1005566617" result="Passed" start-time="2026-10-10 14:16:00Z" end-time="2026-10-10 14:16:01Z" duration="0.957814" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: E:/MobileGame/TestResults/playmode.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
