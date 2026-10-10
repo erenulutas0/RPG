@@ -1189,12 +1189,9 @@ namespace Cryptforge.UI
             return true;
         }
 
-        // The balustrade proper, after the approved layout: a plinth course with a lit ledge, a row of turned balusters
-        // with open gaps and a handrail with a lit arris and top. It replaced a solid parapet pierced with pointed
-        // openings, which read as a castle wall with arrow slits. The floor, the pit's glow or the abyss shows between the
-        // balusters, and there no actor depth is written either: the depth pass covers drawn triangles only. It stands in
-        // the camera-facing RailDepth of its footprint band; the rest of the band lies behind the plinth from the camera
-        // (through the pit's deeper collar a gap shows a shadow line of it: the top of the far sidewall).
+        // The rounded pit keeps its open turned balustrade and these shared course dimensions.
+        // Exterior RailSpan uses a heavier stone sill with recessed square iron instead; it retains
+        // the camera-facing RailDepth within the original footprint band and the same RailTop.
         private const float RailPlinth=.15f,RailHand=.57f,RailDepth=.24f,BalusterAxis=RailDepth*.5f;
         // The clear gap aimed for between two bellies; the solid respond closing an end with no post against it.
         private const float BalusterGap=.19f,RailRespond=.14f;
@@ -1215,42 +1212,55 @@ namespace Cryptforge.UI
         {
             bool faceV=alongU||startFace,faceU=!alongU||startFace;
             float s0=alongU?box.x:box.y,s1=alongU?box.z:box.w;
-            // Plinth course. Its top is a lit ledge up to the balusters' axis, then the shadowed floor of the gaps
-            // (elsewhere hidden by the balusters and the handrail).
-            CourseBox(above,RailBox(box,alongU,s0,s1,0,RailDepth),0,RailPlinth,faceV,faceU,1.02f,PlinthCourse);
-            CourseTop(above,RailBox(box,alongU,s0,s1,0,BalusterAxis),alongU,RailPlinth,
-                Tinted(CapTone,new Color(.95f,.95f,.95f)),PlinthCourse);
-            CourseTop(above,RailBox(box,alongU,s0,s1,BalusterAxis,RailDepth),alongU,RailPlinth,GapShade,PlinthCourse);
-            // Balusters with equal clear gaps, far to near (depth grows along the edge), between solid responds at open
-            // ends. Bellies never meet on screen (pitch x .707 > belly), so only the rail courses need painter order.
-            float first=s0+(startFace?RailRespond:0),last=s1-(endFace?RailRespond:0),belly=BalusterProfile[2].x*2;
-            int count=Mathf.Max(0,Mathf.RoundToInt((last-first-BalusterGap)/(belly+BalusterGap)));
-            while(count>0&&(last-first-count*belly)/(count+1)<.12f)count--;
-            // Too short for a baluster: a solid dado between plinth and handrail.
-            if(count==0)MassBox(above,RailBox(box,alongU,s0,s1,0,RailDepth),RailPlinth,RailHand,faceV,faceU,.98f);
+            // Exterior bays are load-bearing parapets rather than a row of turned columns.
+            // Keep the original footprint/top/depth owner; the pit retains its separate open balustrade.
+            const float sill=.34f,lintel=.60f,respond=.22f;
+            Vector4 body=RailBox(box,alongU,s0,s1,0,RailDepth);
+            CourseBox(above,body,0,sill,faceV,faceU,1.02f,PlinthCourse);
+            CourseTop(above,body,alongU,sill,Tinted(CapTone,new Color(.9f,.9f,.9f)),PlinthCourse);
+            float first=s0+Mathf.Min(respond,(s1-s0)*.25f);
+            float last=s1-Mathf.Min(respond,(s1-s0)*.25f);
+            if(last-first<.32f)
+                CourseBox(above,body,sill,lintel,faceV,faceU,1.02f,PlinthCourse);
             else
             {
-                float gap=(last-first-count*belly)/(count+1);
-                if(endFace)MassBox(above,RailBox(box,alongU,last,s1,0,RailDepth),RailPlinth,RailHand,true,true,.98f);
-                for(int i=count-1;i>=0;i--)
+                // A recessed wrought-iron web has fewer, square uprights and real open gaps.
+                // Draw far-to-near within the same existing masonry batch. Clean atlas interiors
+                // avoid projecting mortar joints onto the metal; no new material or sorting rank.
+                CourseBox(above,RailBox(box,alongU,last,s1,0,RailDepth),sill,lintel,true,true,1.02f,PlinthCourse);
+                int bars=Mathf.Max(1,Mathf.RoundToInt((last-first)/.65f));
+                for(int i=bars-1;i>=0;i--)
                 {
-                    float at=first+gap+belly*.5f+i*(belly+gap);
-                    Baluster(above,alongU?Project(at,box.y+BalusterAxis):Project(box.x+BalusterAxis,at),i);
+                    float at=Mathf.Lerp(first,last,(i+.5f)/bars);
+                    ExteriorRailIron(above,RailBox(box,alongU,at-.028f,at+.028f,.105f,.16f),sill,lintel);
                 }
-                if(startFace)MassBox(above,RailBox(box,alongU,s0,first,0,RailDepth),RailPlinth,RailHand,true,true,.98f);
+                ExteriorRailIron(above,RailBox(box,alongU,first,last,.11f,.155f),sill+.055f,sill+.095f);
+                CourseBox(above,RailBox(box,alongU,s0,first,0,RailDepth),sill,lintel,true,true,1.02f,PlinthCourse);
             }
-            // Handrail: it overhangs toward the void only, never over the walking edge; a lit arris runs along its top.
+            // Broad dressed coping closes the structural bay. Its restrained arris replaces the
+            // formerly bright continuous handrail without changing the walking-side overhang.
             Vector4 hand=RailBox(box,alongU,s0,s1,front?-.03f:0,RailDepth+.02f);
             Vector2 arris=new Vector2(HandrailCourse.y-.012f,HandrailCourse.y);
-            CourseBox(above,hand,RailHand,RailTop-.03f,faceV,faceU,1.2f,new Vector2(HandrailCourse.x,arris.x));
-            CourseBox(above,hand,RailTop-.03f,RailTop,faceV,faceU,1.55f,arris);
-            CourseTop(above,hand,alongU,RailTop,Tinted(CapTone,new Color(1.1f,1.1f,1.1f)),HandrailCourse);
+            CourseBox(above,hand,lintel,RailTop-.025f,faceV,faceU,1.08f,new Vector2(HandrailCourse.x,arris.x));
+            CourseBox(above,hand,RailTop-.025f,RailTop,faceV,faceU,1.24f,arris);
+            CourseTop(above,hand,alongU,RailTop,Tinted(CapTone,new Color(.98f,.98f,.98f)),HandrailCourse);
             if(below==null)return;
             // The balustrade's own wall drops below the deck, with a projecting corbel course under its edge.
             MassBox(below,box,DeckFace,0,faceV,faceU,.9f);
             MassBox(below,box,-.5f,-.36f,faceV,faceU,.36f);
             Vector4 corbel=alongU?new Vector4(box.x,box.y-.07f,box.z,box.y):new Vector4(box.x-.07f,box.y,box.x,box.w);
             MassBox(below,corbel,-.36f,-.04f,faceV,faceU,1.08f);
+        }
+
+        private static void ExteriorRailIron(Builder b,Vector4 box,float bottom,float top)
+        {
+            int first=b.V.Count;
+            CourseBox(b,box,bottom,top,true,true,.62f,PlinthCourse);
+            for(int i=first;i<b.V.Count;i++)
+            {
+                b.U[i]=new Vector2(.47f,.49f);
+                b.C[i]=Tinted(b.C[i],new Color(.82f,.91f,1f));
+            }
         }
 
         // A turned baluster. Round, so from the fixed camera it is its own profile: a camera-facing card, shaded as a

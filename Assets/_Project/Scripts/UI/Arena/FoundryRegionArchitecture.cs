@@ -31,11 +31,7 @@ namespace Cryptforge.UI
                 BuildGatePierRelief(stone,v);
                 BuildGateInnerReturn(stone,v,height);
             }
-            // The raised keystone ties the stepped portal crown to the door seal.
-            // It stays below the new crest and within the existing header footprint.
-            GateCraftTier(stone,32.16f,4.38f,33.42f,5.62f,height+.43f,height+1.36f,.13f);
-            // Central raised seal housing above the painted doors; the door artwork remains intact.
-            GateCraftTier(stone,32.12f,3.9f,33.45f,6.1f,height+.43f,height+1.03f,.22f);
+            BuildGateCartouche(stone,height);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
             BuildGateEnclosure(arena,false);
             BuildGateInlays(arena,height);
@@ -215,15 +211,7 @@ namespace Cryptforge.UI
                     ArchitectureBar(iron,a,b,.075f,new Color(.47f,.43f,.38f));
                 }
             }
-            // Small forge seal on the raised central stone. The large painted door seal remains dominant.
-            Vector3 seal=Project(32.12f,5)+Vector3.up*(height+.74f);
-            Vector3 horizontal=Vector3.right*.26f,vertical=Vector3.up*.22f;
-            var warm=new Color(.91f,.68f,.34f);
-            ArchitectureBar(iron,seal+vertical,seal+horizontal,.045f,warm);
-            ArchitectureBar(iron,seal+horizontal,seal-vertical,.045f,warm);
-            ArchitectureBar(iron,seal-vertical,seal-horizontal,.045f,warm);
-            ArchitectureBar(iron,seal-horizontal,seal+vertical,.045f,warm);
-            ArchitectureBar(iron,seal-Vector3.up*.09f,seal+Vector3.up*.09f,.07f,warm);
+            BuildGateCartoucheLock(iron,height);
             // Explicitly above masonry: equal-order material batches have no painter guarantee.
             Create("Gate inset iron and bronze",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
         }

@@ -550,3 +550,12 @@ Evidence and final verification: ArtDirection/2026-10-10/foundry-gate-court-01. 
 - [ ] Accumulated phone/crowd/midrange/first-ramp acceptance remains pending; region encounter/boss progression stays deferred.
 
 Evidence: ArtDirection/2026-10-10/foundry-stonework-01. Final suite/APK status belongs to its validation record and latest docs21-23.
+## 2026-10-11 - Portal and exterior parapet package
+
+- [x] Replace the central gate boxes with supported recessed dressed stone and one subdued iron lock.
+- [x] Give exterior rails stone sill/iron web/copings while keeping pit/bridge open balustrades and existing walking bounds.
+- [x] Accept matched Unity detail, overview and actor portraits with independent review.
+- [ ] Full reference architectural variety and more natural perimeter/paving rhythm remain incomplete.
+- [ ] Accumulated phone/crowd/midrange/first-ramp acceptance remains pending; regional encounters/boss progression stay deferred.
+
+Proof and final gate: ArtDirection/2026-10-11/foundry-portal-parapet-01.
