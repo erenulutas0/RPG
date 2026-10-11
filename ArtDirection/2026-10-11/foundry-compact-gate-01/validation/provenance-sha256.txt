@@ -1,0 +1,16 @@
+Baseline f5e1487: accepted broad-court actual Unity outputs reused unchanged; not a new execution.
+d384ed0e5953aa550bc5e33354b74cadb916350a3557fb51211a2d1de2583bb8  before/overview.png <- ../foundry-broad-court-01/after/overview.png
+7f29d629466da3f257d38b5e3cdf290738ef13db999ce178f33829bddbe6428c  before/full-map.png <- ../foundry-broad-court-01/after/full-map.png
+12a08004696e608fd089cc12be15909c8fb1e8ba2f149cfefae9526ba64a0537  before/gate-detail.png <- ../foundry-broad-court-01/after/gate-detail.png
+84f30f68b689a8c5810f85a54fa7ee2b5c381c275b40be24c3b031b5cdf67ed5  before/court-detail.png <- ../foundry-broad-court-01/after/court-detail.png
+473f10ae6d1d3752dbe579a8816ced119988250b000c27914c8cb54700747cf6  before/skyline-detail.png <- ../foundry-broad-court-01/after/skyline-detail.png
+93a6d25909c9b32e63730f9164b1981141032270f067675e6fff72c31cb071bc  before/approach-20-1.png <- ../foundry-broad-court-01/after/approach-20-1.png
+6e00ea4062831c1882f61b4d3e570a43bc2c6db2b126cc32c39202df24f921e9  before/approach-0-0.png <- ../foundry-broad-court-01/after/approach-0-0.png
+04d0c1db7d029af3f90a0dd0858687b6cdbe1524279fdc0517e49bbbe67af5d1  before/expanded--27-6.png <- ../foundry-broad-court-01/after/expanded--27-6.png
+d267d156b3d8ba017a6f9d4209d5920a6bd66aba9423bf8103c05588afe336b4  before/expanded--26-15.png <- ../foundry-broad-court-01/after/expanded--26-15.png
+4344e5f3fed0e2a4aeba90835f1019eb09fe392bb1c22a9d4d21b0a26c940209  before/broad-yard.png <- ../foundry-broad-court-01/after/broad-yard.png
+c5489ddb23aac771c4e35497785607feb64db495ee9bc002cf1fb255ca3ce3ac  before/runtime-budget.txt <- ../foundry-broad-court-01/after/runtime-budget.txt
+6e08df7fd38510ecb692e2f5c52af2c2fb811b510cd3335202c3192f9b143807  before/distant-budget.txt <- ../foundry-broad-court-01/after/distant-budget.txt
+e3a1c75df941c39859a46f2597e0eb505fd32175fba20770c8dd22dc05e01c59  before/distant-material.txt <- ../foundry-broad-court-01/after/distant-material.txt
+0e250043e69e22160a29887b5b15e9d58adb4dc9240c5e67e210d815bdece92f  before/cavern-texture.txt <- ../foundry-broad-court-01/after/cavern-texture.txt
+14cc2685e0de449651ec2434c05d4b80547f67d641c109a097ebc679a36c8f83  before/graphics.xml <- ../foundry-broad-court-01/after/graphics.xml

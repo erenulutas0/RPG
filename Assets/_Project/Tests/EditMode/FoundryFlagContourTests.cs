@@ -10,6 +10,7 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryFlagContourTests
     {
+        private const float RampStart=FoundryMap.GateLandingStart+1f,RampEnd=FoundryMap.GateLandingStart+3f;
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
         private static object Call(string name,params object[] args)
@@ -112,16 +113,16 @@ namespace Cryptforge.Tests
             Assert.That(Use(1,false,0,1),Is.False,"Ceremonial flags remain regular.");
             Assert.That(Use(0,true,4,5),Is.False,"Service repairs retain their dressed contours.");
             Assert.That(Use(0,false,4,4.5f,1),Is.False,"Small infill remains dressed.");
-            Assert.That(Use(2,false,28.5f,29.5f),Is.False,"A face must not bridge the ramp foot.");
-            Assert.That(Use(2,false,30.5f,31.5f),Is.False,"A face must not bridge the ramp crest.");
-            Assert.That(Use(2,false,29,30),Is.True,"A wholly planar ramp cell can be contoured.");
-            Assert.That(Use(2,false,31,32),Is.True,"The raised landing can be contoured.");
+            Assert.That(Use(2,false,RampStart-.5f,RampStart+.5f),Is.False,"A face must not bridge the ramp foot.");
+            Assert.That(Use(2,false,RampEnd-.5f,RampEnd+.5f),Is.False,"A face must not bridge the ramp crest.");
+            Assert.That(Use(2,false,RampStart,RampStart+1),Is.True,"A wholly planar ramp cell can be contoured.");
+            Assert.That(Use(2,false,RampEnd,RampEnd+1),Is.True,"The raised landing can be contoured.");
         }
 
         [TestCase(-25f,6f,2f,1.5f,3,false)]
-        [TestCase(28.5f,3f,1f,1f,2,false)]
-        [TestCase(30.5f,3f,1f,1f,2,false)]
-        [TestCase(29f,3f,1f,1f,2,false)]
+        [TestCase(RampStart-.5f,3f,1f,1f,2,false)]
+        [TestCase(RampEnd-.5f,3f,1f,1f,2,false)]
+        [TestCase(RampStart,3f,1f,1f,2,false)]
         [TestCase(0f,0f,1f,1f,1,false)]
         [TestCase(-24f,6f,1f,1f,3,true)]
         public void ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(float u0,float v0,float width,float height,int zone,bool repair)

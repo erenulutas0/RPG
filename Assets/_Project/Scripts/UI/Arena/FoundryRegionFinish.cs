@@ -37,7 +37,7 @@ namespace Cryptforge.UI
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
         private static readonly Vector2[] CourtLanternPosts={WestPoint(-24.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
         private static readonly Vector2[] ForgeBeacons={DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD),
-            new Vector2(32.5f,-2),new Vector2(32.5f,12)};
+            new Vector2(GateU(32.5f),-2),new Vector2(GateU(32.5f),12)};
         private static ForgeLamp[] _forgeLamps;
 
         // Built lazily on first use: static initialisers in other partial files have run by then.
@@ -153,7 +153,7 @@ namespace Cryptforge.UI
             // Contact shade ties the large gate/boiler masses to their stone apron.
             // Smooth local falloff avoids a painted rectangular outline around buildings.
             // The boilers' round plinths replaced the 3x3 furnace boxes this once traced.
-            float contact=ContactShade(u,v,32,-3,35,13,1.4f);
+            float contact=ContactShade(u,v,GateU(32),-3,GateU(35),13,1.4f);
             foreach(var c in BoilerCentres)
                 contact=Mathf.Max(contact,ContactShade(u,v,c.x,c.y,c.x,c.y,1.05f,BoilerPlinth));
             light*=1-.16f*contact;
@@ -161,14 +161,14 @@ namespace Cryptforge.UI
             // material value change, not a luminous path or a new gameplay marker.
             float lane=Mathf.Clamp01(1-Mathf.Abs(v-5)/3.5f);
             float along=Mathf.SmoothStep(0,1,Mathf.InverseLerp(8,13,u))*
-                (1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(29,32,u)));
+                (1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(FoundrySurface.RampStart,FoundryMap.GateLandingEnd,u)));
             light*=1+.11f*lane*lane*along;
             // Wide flush shoulder courses frame the gate approach without bright
             // navigation lines. Fade the treatment into the court at its entrance.
             float shoulder=Mathf.Max(Mathf.Clamp01(1-Mathf.Abs(v-.5f)/.65f),
                 Mathf.Clamp01(1-Mathf.Abs(v-9.5f)/.65f));
             float approach=Mathf.SmoothStep(0,1,Mathf.InverseLerp(8,12,u))*
-                (1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(31,32,u)));
+                (1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(FoundrySurface.RampEnd,FoundryMap.GateLandingEnd,u)));
             light*=1-.12f*shoulder*approach;
             float edge=0;
             foreach(var offset in EdgeSamples)
@@ -223,7 +223,7 @@ namespace Cryptforge.UI
         private static int PavingZone(Vector2Int cell)
         {
             if(cell.x>=-4&&cell.x<4&&cell.y>=-4&&cell.y<4)return 1;
-            if(cell.x>=10&&cell.x<32&&cell.y>=0&&cell.y<10)return 2;
+            if(cell.x>=10&&cell.x<FoundryMap.GateLandingEnd&&cell.y>=0&&cell.y<10)return 2;
             if(cell.x>=FoundryMap.West&&cell.x<FoundryMap.PitWest&&cell.y>=2&&cell.y<12)return 3;
             return 0;
         }

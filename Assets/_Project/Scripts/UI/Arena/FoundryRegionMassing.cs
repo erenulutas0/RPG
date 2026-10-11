@@ -20,12 +20,22 @@ namespace Cryptforge.UI
     {
         // Boiler centres (design u,v): two behind the gate apron (north), two in front of it (south). Each sits
         // wholly on void ground, flush against the apron edges, and meets the existing service mains
-        // (v -4.5 / 14.5, u 19.7..25.1) on its drum surface.
+        // (v -4.5 / 14.5) on their drum surfaces. Only the far pair moves with the gate.
         private static readonly Vector2[] BoilerCentres =
         {
-            new Vector2(18.39f,15.81f),new Vector2(26.95f,14.5f),new Vector2(17.9f,-4.08f),new Vector2(26.9f,-4.08f)
+            new Vector2(18.39f,15.81f),new Vector2(GateU(26.95f),14.5f),new Vector2(17.9f,-4.08f),new Vector2(GateU(26.9f),-4.08f)
         };
         private const float BoilerPlinth=2f,BoilerDrum=1.85f,BoilerShell=1.6f;
+        private const float ServiceMainStart=19.7f,ServiceMainEnd=25.1f+FoundryMap.GateOffset;
+        private const float ServiceMiddle=(ServiceMainStart+ServiceMainEnd)*.5f;
+        private const float NorthReservoirV=19f,SouthReservoirV=-7.4f;
+        private static Vector4 ReservoirFootprint(float v)=>new Vector4(ServiceMiddle-1,v-1,ServiceMiddle+1,v+1);
+        private static Vector4 ReservoirNeck(bool north)
+        {
+            Vector2 boiler=BoilerCentres[north?0:2];
+            return new Vector4(boiler.x+.8f,north?boiler.y+1.25f:SouthReservoirV+.8f,
+                ServiceMiddle-.3f,north?NorthReservoirV-.75f:boiler.y-1.25f);
+        }
         private const float DrumBase=.45f,DrumTop=3.35f,CorniceTop=3.6f,ShellTop=5.4f,FlueTop=7.2f;
         private const int BoilerFacets=10;
         // Balustrade: a .42-deep footprint band on the void side of each exposed edge; the balustrade itself stands in
@@ -140,7 +150,7 @@ namespace Cryptforge.UI
             var iron=new Builder();
             // The existing service main (v -4.5, height 1.8) now meets the boiler above its drum: it enters an
             // iron junction box standing on the cornice. A box on the hidden side goes under the dome.
-            float mainU=c.x<22?19.7f:25.1f;
+            float mainU=c.x<ServiceMiddle?ServiceMainStart:ServiceMainEnd;
             Vector2 toward=(new Vector2(mainU,-4.5f)-c).normalized;
             Vector2 box=c+toward*(BoilerDrum+.03f);
             bool boxVisible=toward.x+toward.y<0;
@@ -158,7 +168,7 @@ namespace Cryptforge.UI
 
         private void BuildSquatBoilerSocket(Builder iron,Vector2 c)
         {
-            float mainU=c.x<22?19.7f:25.1f;
+            float mainU=c.x<ServiceMiddle?ServiceMainStart:ServiceMainEnd;
             Vector2 toward=(new Vector2(mainU,-4.5f)-c).normalized;
             Vector2 box=c+toward*(BoilerDrum+.03f);
             WorkshopMetalHull(iron,box.x-.26f,box.y-.26f,box.x+.26f,box.y+.26f,SquatCorniceTop,2.06f,.04f);
@@ -245,19 +255,19 @@ namespace Cryptforge.UI
             // Heavy feeds from the two east boilers into the gate towers' shaft faces; the squat south boiler's
             // leaves its drum at knee height.
             const float southFeed=1f,northFeed=2.6f;
-            Vector2 south=BoilerCentres[3]+new Vector2(.7071f,-.7071f)*BoilerDrum,elbow=new Vector2(33.3f,south.y);
+            Vector2 south=BoilerCentres[3]+new Vector2(.7071f,-.7071f)*BoilerDrum,elbow=new Vector2(GateU(33.3f),south.y);
             MassPipe(arena,south,elbow,southFeed,.5f);
-            MassPipe(arena,elbow,new Vector2(33.3f,-2.76f),southFeed,.5f);
-            using(MassDepth(new Vector4(33f,south.y-.3f,33.6f,south.y+.3f),southFeed+.34f))
+            MassPipe(arena,elbow,new Vector2(GateU(33.3f),-2.76f),southFeed,.5f);
+            using(MassDepth(new Vector4(GateU(33f),south.y-.3f,GateU(33.6f),south.y+.3f),southFeed+.34f))
             {
                 var joint=new Builder();
-                WorkshopMetalHull(joint,33f,south.y-.3f,33.6f,south.y+.3f,southFeed-.32f,southFeed+.34f,.05f);
+                WorkshopMetalHull(joint,GateU(33f),south.y-.3f,GateU(33.6f),south.y+.3f,southFeed-.32f,southFeed+.34f,.05f);
                 Create("Boiler feed elbow",joint,arena.PlatformMaterials.FoundryIron,-10.5f);
             }
             Vector2 north=BoilerCentres[1];
             const float feedV=12.72f;
             float ndv=feedV-north.y,ndu=Mathf.Sqrt(Mathf.Max(0,BoilerDrum*BoilerDrum-ndv*ndv));
-            MassPipe(arena,new Vector2(north.x+ndu,feedV),new Vector2(32.26f,feedV),northFeed,.5f);
+            MassPipe(arena,new Vector2(north.x+ndu,feedV),new Vector2(GateU(32.26f),feedV),northFeed,.5f);
         }
 
         // An elevated main between design points, with collars and end flanges, as one structure for depth.
@@ -1027,9 +1037,8 @@ namespace Cryptforge.UI
         private static readonly Vector4[] MassObstacles =
         {
             WestBox(-27,11,-24,15),SalvageShelf,WestBox(-25,8.4f,-24,10.5f),StockShelf,
-            new Vector4(19.5f,-2.6f,24.6f,-2),
-            new Vector4(32,-3,35,-1),new Vector4(32,11,35,13),
-            new Vector4(21.3f,-6.8f,23.3f,-4.8f),new Vector4(21.3f,14.8f,23.3f,16.8f),
+            new Vector4(GateU(32),-3,GateU(35),-1),new Vector4(GateU(32),11,GateU(35),13),
+            ReservoirFootprint(SouthReservoirV),ReservoirFootprint(NorthReservoirV),ReservoirNeck(false),ReservoirNeck(true),
             BridgePostBox(BridgeFootS,-BridgeFootD,.3f),BridgePostBox(BridgeFootS,BridgeFootD,.3f),
             BridgePostBox(BridgeHeadS,-BridgeHeadD,.7f),BridgePostBox(BridgeHeadS,BridgeHeadD,.7f)
         };
@@ -1070,7 +1079,7 @@ namespace Cryptforge.UI
             // Elevation changes screen-overlap exclusions against boilers and therefore can
             // redistribute the procedural posts even though the walking boundary is unchanged.
             foreach(float v in GateBrazierPosts)
-                PlaceRailPost(pieces,placed,new List<Vector2>(),new Vector4(32,v-.26f,32.52f,v+.26f),false,false,wall);
+                PlaceRailPost(pieces,placed,new List<Vector2>(),new Vector4(GateU(32),v-.26f,GateU(32.52f),v+.26f),false,false,wall);
             // Exposed edges from the same cells and neighbour test as the movement map; the pit has its own collar.
             var lines=new Dictionary<(int dir,int line),List<int>>();
             foreach(var cell in _cells)
@@ -1453,7 +1462,7 @@ namespace Cryptforge.UI
             // From the anchor plate of the undercroft's major pier right of the bridge head (FoundryRegionUndercroft.cs).
             AbyssChain(arena,new Vector3(-4f,-14f,-3.9f),-1,new Vector2(3f,-10.2f),.5f,.38f);
             // From the gate's south foundation, past the east edge of the frame.
-            AbyssChain(arena,new Vector3(33.4f,-3f,-1.6f),0,new Vector2(10f,-11f),.9f,.42f);
+            AbyssChain(arena,new Vector3(GateU(33.4f),-3f,-1.6f),0,new Vector2(10f,-11f),.9f,.42f);
         }
 
         // A chain from an anchor out and down into the void; its far end lies reach away on screen, out of frame or deep

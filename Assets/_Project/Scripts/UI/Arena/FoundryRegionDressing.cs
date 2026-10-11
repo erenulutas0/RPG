@@ -15,7 +15,7 @@ namespace Cryptforge.UI
             // court-side bridge gateposts carry carved keepers, and lantern posts line both rails between the head
             // and these far beacons (BuildBridgePiers, FoundryRegionSite.cs).
             foreach(var p in new[]{DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD),
-                new Vector2(32.5f,-2),new Vector2(32.5f,12)})Beacon(arena,p.x,p.y);
+                new Vector2(GateU(32.5f),-2),new Vector2(GateU(32.5f),12)})Beacon(arena,p.x,p.y);
             // Heavy exterior suspension links reinforce the floating foundry silhouette.
             foreach(var p in new[]{WestPoint(-24,-8),new Vector2(5,-14),new Vector2(14,15)})
                 Chain(arena,Project(p.x,p.y)+Vector3.down*.3f,
@@ -198,11 +198,18 @@ namespace Cryptforge.UI
         {
             // Exterior reservoirs connect the boiler pairs without narrowing their
             // shared walking apron. Rear equipment is emitted before the main pipes.
-            BuildPressureReservoir(arena,22.3f,15.8f,14.5f);
+            // Low masonry necks tie both service feet to their boiler foundations;
+            // each remains below the tank plinth and wholly outside the walking floor.
+            foreach(bool north in new[]{true,false})
+            {
+                Vector4 neck=ReservoirNeck(north);
+                Block(arena,neck.x,neck.y,neck.z,neck.w,.18f,3.5f,"Reservoir foundation neck");
+            }
+            BuildPressureReservoir(arena,ServiceMiddle,NorthReservoirV,14.5f);
             foreach(float v in new[]{-4.5f,14.5f})
             {
-                Vector3 a=Project(19.7f,v)+Vector3.up*1.8f;
-                Vector3 b=Project(25.1f,v)+Vector3.up*1.8f;
+                Vector3 a=Project(ServiceMainStart,v)+Vector3.up*1.8f;
+                Vector3 b=Project(ServiceMainEnd,v)+Vector3.up*1.8f;
                 Pipe(arena,a,b,.42f,1.8f);
                 // Broad bolted unions distinguish the service mains from the small
                 // stored lengths. All parts stay on the existing exterior pipe run.
@@ -210,11 +217,11 @@ namespace Cryptforge.UI
                 PipeUnion(arena,Vector3.Lerp(a,b,.82f),b-a,.42f);
                 // Small bypass pipe and support pedestals along the void-side service run.
                 Pipe(arena,a+Vector3.down*.65f,b+Vector3.down*.65f,.2f,1.15f);
-                foreach(float u in new[]{21f,23.5f})
+                foreach(float u in new[]{ServiceMiddle-.2f})
                 {
-                    Block(arena,u,v-.35f,u+.6f,v+.35f,.65f,2.8f,"Pipe saddle");
-                    Tube(arena,Project(u+.3f,v)+Vector3.up*.6f,
-                        Project(u+.3f,v)+Vector3.up*1.8f,.13f);
+                    Block(arena,u,v-.25f,u+.4f,v+.25f,.65f,2.8f,"Pipe saddle");
+                    Tube(arena,Project(u+.2f,v)+Vector3.up*.6f,
+                        Project(u+.2f,v)+Vector3.up*1.8f,.13f);
                 }
                 Vector3 valve=Vector3.Lerp(a,b,.5f)+Vector3.up*.38f;
                 Vector3 hub=Vector3.Lerp(a,b,.5f);
@@ -222,7 +229,7 @@ namespace Cryptforge.UI
                 Tube(arena,valve-Vector3.up*.38f,valve,.09f);Wheel(arena,valve,.28f);
             }
             // The near tank occludes the pipe behind it in the fixed projection.
-            BuildPressureReservoir(arena,22.3f,-5.8f,-4.5f);
+            BuildPressureReservoir(arena,ServiceMiddle,SouthReservoirV,-4.5f);
         }
 
         private void BuildPressureReservoir(ArenaView arena,float u,float v,float mainV)

@@ -12,22 +12,22 @@ namespace Cryptforge.UI
             BuildGateEnclosure(arena,true);
             var stone=new Builder();
             // Continuous lower cornice supports the stepped portal crown above.
-            GateCraftTier(stone,32,-1,34,11,height-.12f,height+.12f,0);
-            GateCraftTier(stone,32.12f,-.9f,33.88f,10.9f,height+.12f,height+.44f,.12f);
+            GateCraftTier(stone,GateU(32),-1,GateU(34),11,height-.12f,height+.12f,0);
+            GateCraftTier(stone,GateU(32.12f),-.9f,GateU(33.88f),10.9f,height+.12f,height+.44f,.12f);
             BuildGateHeaderFinish(stone,height);
             foreach(float v in new[]{-3f,11f})
             {
                 // Continuous vertical buttress shafts carry the heavy portal.
                 // Removing the intermediate stacked belts avoids a cage of small
                 // black windows alongside the uninterrupted painted door.
-                LitFoundryTier(stone,32,v,35,v+2,0,.45f,.08f);
-                GateEnclosureTier(stone,32.12f,v+.10f,34.88f,v+1.90f,.45f,1.45f,.14f,.91f);
-                GateEnclosureTier(stone,32.16f,v+.14f,34.84f,v+1.86f,1.45f,1.70f,.08f,.96f,true);
-                GateEnclosureTier(stone,32.26f,v+.24f,34.74f,v+1.76f,1.70f,5.45f,.04f,.92f);
-                GateEnclosureTier(stone,32.08f,v+.08f,34.92f,v+1.92f,5.45f,5.70f,.08f,.96f,true);
-                GateCraftTier(stone,32.02f,v+.02f,34.98f,v+1.98f,5.7f,6.05f,.12f);
-                GateCraftTier(stone,32.25f,v+.2f,34.75f,v+1.8f,6.05f,7.05f,.48f);
-                GateCraftTier(stone,32.62f,v+.57f,34.38f,v+1.43f,7.05f,7.25f,.05f);
+                LitFoundryTier(stone,GateU(32),v,GateU(35),v+2,0,.45f,.08f);
+                GateEnclosureTier(stone,GateU(32.12f),v+.10f,GateU(34.88f),v+1.90f,.45f,1.45f,.14f,.91f);
+                GateEnclosureTier(stone,GateU(32.16f),v+.14f,GateU(34.84f),v+1.86f,1.45f,1.70f,.08f,.96f,true);
+                GateEnclosureTier(stone,GateU(32.26f),v+.24f,GateU(34.74f),v+1.76f,1.70f,5.45f,.04f,.92f);
+                GateEnclosureTier(stone,GateU(32.08f),v+.08f,GateU(34.92f),v+1.92f,5.45f,5.70f,.08f,.96f,true);
+                GateCraftTier(stone,GateU(32.02f),v+.02f,GateU(34.98f),v+1.98f,5.7f,6.05f,.12f);
+                GateCraftTier(stone,GateU(32.25f),v+.2f,GateU(34.75f),v+1.8f,6.05f,7.05f,.48f);
+                GateCraftTier(stone,GateU(32.62f),v+.57f,GateU(34.38f),v+1.43f,7.05f,7.25f,.05f);
                 BuildGatePierRelief(stone,v);
                 BuildGateInnerReturn(stone,v,height);
             }
@@ -47,7 +47,7 @@ namespace Cryptforge.UI
             foreach(bool north in new[]{false,true})
             {
                 float v0=north?12.45f:-3.9f,v1=north?13.9f:-2.45f;
-                var box=new Vector4(29.2f,v0,32,v1);
+                var box=new Vector4(GateU(29.2f),v0,GateU(32),v1);
                 using(MassDepth(box,1.05f))
                 {
                     var support=new Builder();
@@ -55,9 +55,9 @@ namespace Cryptforge.UI
                     Create("Gate landing shoulder foundations",support,arena.PlatformMaterials.FoundryWall,-16);
                     var stone=new Builder();
                     LitFoundryTier(stone,box.x,box.y,box.z,box.w,0,.18f,.12f);
-                    LitFoundryTier(stone,29.45f,v0+.15f,32,v1-.15f,.18f,.45f,.06f);
-                    LitFoundryTier(stone,29.9f,v0+.28f,32,v1-.28f,.45f,.72f,.06f);
-                    LitFoundryTier(stone,30.35f,v0+.38f,32,v1-.38f,.72f,1.02f,.04f);
+                    LitFoundryTier(stone,GateU(29.45f),v0+.15f,GateU(32),v1-.15f,.18f,.45f,.06f);
+                    LitFoundryTier(stone,GateU(29.9f),v0+.28f,GateU(32),v1-.28f,.45f,.72f,.06f);
+                    LitFoundryTier(stone,GateU(30.35f),v0+.38f,GateU(32),v1-.38f,.72f,1.02f,.04f);
                     // Separate below-deck faces so they never draw over the walking surface.
                     // The raised stonework is scoped to the completely outboard footprint.
                     Create("Gate landing stepped shoulders",stone,arena.PlatformMaterials.FoundryWall,-11);
@@ -73,10 +73,10 @@ namespace Cryptforge.UI
             // with the same continuous stone texture/light as the apron beneath them.
             var stone=new Builder();
             for(int i=0;i<5;i++)
-                AshlarFlag(stone,new AshlarStone{I=61,J=i*4,W=3,H=4,Zone=2});
+                AshlarFlag(stone,new AshlarStone{I=61+2*FoundryMap.GateOffset,J=i*4,W=3,H=4,Zone=2});
             Create("Gate dressed threshold paving",stone,arena.PlatformMaterials.FoundryPaving,-15);
             var iron=new Builder();
-            foreach(float u in new[]{30.55f,31.88f})
+            foreach(float u in new[]{GateU(30.55f),GateU(31.88f)})
                 Strip(iron,u,.18f,u,9.82f,.055f,new Color(.67f,.59f,.43f),CopingTrim.Brass);
             Create("Flush gate threshold bindings",iron,arena.PlatformMaterials.Coping,FloorDecal);
         }
@@ -85,10 +85,10 @@ namespace Cryptforge.UI
         {
             // Legacy unused gable builder. The live portal uses the supported
             // stepped crown in BuildGateHeaderFinish instead.
-            Vector3 a=Project(32.18f,-.55f)+Vector3.up*(height+.43f);
-            Vector3 b=Project(32.18f,10.55f)+Vector3.up*(height+.43f);
-            Vector3 ridge=Project(32.18f,5)+Vector3.up*(height+1.55f);
-            Vector3 back=Project(33.78f,5)-Project(32.18f,5);
+            Vector3 a=Project(GateU(32.18f),-.55f)+Vector3.up*(height+.43f);
+            Vector3 b=Project(GateU(32.18f),10.55f)+Vector3.up*(height+.43f);
+            Vector3 ridge=Project(GateU(32.18f),5)+Vector3.up*(height+1.55f);
+            Vector3 back=Project(GateU(33.78f),5)-Project(GateU(32.18f),5);
             stone.WallQuad(a,b,ridge,ridge,false,new Color(.47f,.51f,.62f));
             BuildGatePedimentRecess(stone,a,b,ridge);
             // The two sloping roof faces establish actual projected depth, not a flat icon.
@@ -123,8 +123,8 @@ namespace Cryptforge.UI
                 {
                     float bottom=Mathf.Lerp(range.x,range.y,i/(float)count)+.018f;
                     float top=Mathf.Lerp(range.x,range.y,(i+1)/(float)count)-.018f;
-                    Vector3 a=Project(32.26f,v+.52f),b=Project(32.26f,v+.42f);
-                    Vector3 c=Project(32.44f,v+.24f),d=Project(32.68f,v+.24f);
+                    Vector3 a=Project(GateU(32.26f),v+.52f),b=Project(GateU(32.26f),v+.42f);
+                    Vector3 c=Project(GateU(32.44f),v+.24f),d=Project(GateU(32.68f),v+.24f);
                     var points=new[]{a,b,c,d};
                     for(int face=0;face<3;face++)
                     {
@@ -189,7 +189,7 @@ namespace Cryptforge.UI
                 // A compact hipped iron terminal makes the paired towers read as engineered
                 // gate machinery while staying within their existing masonry footprints.
                 int capStart=iron.C.Count;
-                ArchitecturalTier(iron,32.66f,v+.61f,34.34f,v+1.39f,7.24f,7.36f,.09f);
+                ArchitecturalTier(iron,GateU(32.66f),v+.61f,GateU(34.34f),v+1.39f,7.24f,7.36f,.09f);
                 for(int i=capStart;i<iron.C.Count;i++)
                 {
                     Color tint=iron.C[i];
@@ -197,17 +197,17 @@ namespace Cryptforge.UI
                 }
                 // Cast finials are carried by the existing terminal, not floating
                 // ornaments. Their narrow upper taper leaves the door crest dominant.
-                TintedIronTier(iron,33.15f,v+.65f,33.85f,v+1.35f,7.36f,7.53f,.04f,
+                TintedIronTier(iron,GateU(33.15f),v+.65f,GateU(33.85f),v+1.35f,7.36f,7.53f,.04f,
                     new Color(.68f,.73f,.83f),true);
-                TintedIronTier(iron,33.20f,v+.70f,33.80f,v+1.30f,7.53f,7.67f,.025f,
+                TintedIronTier(iron,GateU(33.20f),v+.70f,GateU(33.80f),v+1.30f,7.53f,7.67f,.025f,
                     new Color(1.03f,.80f,.49f),true);
-                TintedIronTier(iron,33.25f,v+.75f,33.75f,v+1.25f,7.67f,8.45f,.22f,
+                TintedIronTier(iron,GateU(33.25f),v+.75f,GateU(33.75f),v+1.25f,7.67f,8.45f,.22f,
                     new Color(.80f,.86f,.99f),true);
                 // Iron collars sit against the lower edge of the projecting stone courses.
                 foreach(float y in new[]{1.48f,5.43f})
                 {
-                    Vector3 a=Project(32.25f,v+.3f)+Vector3.up*y;
-                    Vector3 b=Project(32.25f,v+1.7f)+Vector3.up*y;
+                    Vector3 a=Project(GateU(32.25f),v+.3f)+Vector3.up*y;
+                    Vector3 b=Project(GateU(32.25f),v+1.7f)+Vector3.up*y;
                     ArchitectureBar(iron,a,b,.075f,new Color(.47f,.43f,.38f));
                 }
             }
@@ -334,16 +334,16 @@ namespace Cryptforge.UI
             // across either painted banner, seal, door leaf or walking approach.
             bool near=v<0;
             float a=near?v+1.42f:v+.04f,b=near?v+1.96f:v+.58f;
-            GateCraftTier(stone,32.02f,a,33.04f,b,.45f,1.15f,.03f,.94f);
-            GateCraftTier(stone,32.10f,a+.05f,32.96f,b-.05f,1.15f,height-.38f,.035f,.87f);
-            GateCraftTier(stone,32.02f,a-.02f,33.04f,b+.02f,height-.38f,height+.10f,.065f,.96f);
+            GateCraftTier(stone,GateU(32.02f),a,GateU(33.04f),b,.45f,1.15f,.03f,.94f);
+            GateCraftTier(stone,GateU(32.10f),a+.05f,GateU(32.96f),b-.05f,1.15f,height-.38f,.035f,.87f);
+            GateCraftTier(stone,GateU(32.02f),a-.02f,GateU(33.04f),b+.02f,height-.38f,height+.10f,.065f,.96f);
         }
 
         private static void GateBlindLancet(Builder stone,float v,bool front,
             float bottom,float top,float courseBottom,float courseTop)
         {
             float half=front?.49f:.78f;
-            float center=front?v+1:33.5f;
+            float center=front?v+1:GateU(33.5f);
             float h=top-bottom;
             // Five sides make the pointed head part of the supporting stonework,
             // rather than a line decoration applied over another rectangular plate.
@@ -384,7 +384,7 @@ namespace Cryptforge.UI
             // Match the existing shaft taper at the actual elevation instead of
             // letting a constant-plane insert drift out of its masonry face.
             float taper=.04f*Mathf.InverseLerp(courseBottom,courseTop,face.y);
-            return (front?Project(32.26f+taper,face.x):Project(face.x,v+.24f+taper))
+            return (front?Project(GateU(32.26f)+taper,face.x):Project(face.x,v+.24f+taper))
                 +Vector3.up*face.y;
         }
 
@@ -438,11 +438,11 @@ namespace Cryptforge.UI
             // Clean iron UVs avoid repeating an entire plate on a bolt.
             foreach(float v in new[]{.2f,2.5f,7.5f,9.8f})
             {
-                Vector3 a=Project(32,v-.10f)+Vector3.up*(height-.10f);
-                Vector3 b=Project(32,v+.10f)+Vector3.up*(height-.10f);
+                Vector3 a=Project(GateU(32),v-.10f)+Vector3.up*(height-.10f);
+                Vector3 b=Project(GateU(32),v+.10f)+Vector3.up*(height-.10f);
                 Vector3 rise=Vector3.up*.20f;
                 GateIronPatch(iron,a,b,b+rise,a+rise,new Color(.62f,.65f,.73f));
-                Vector3 back=Project(32.55f,v)-Project(32,v);
+                Vector3 back=Project(GateU(32.55f),v)-Project(GateU(32),v);
                 GateIronPatch(iron,a+rise,b+rise,b+rise+back,a+rise+back,new Color(.80f,.77f,.69f));
                 Vector3 bolt=(a+b)*.5f+rise*.5f;
                 Vector3 x=Vector3.right*.045f,y=Vector3.up*.04f;

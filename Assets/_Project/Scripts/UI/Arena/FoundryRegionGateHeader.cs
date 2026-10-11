@@ -10,29 +10,29 @@ namespace Cryptforge.UI
             // A broad supported lintel replaces the long shallow temple gable.
             // The two low shoulders climb into a narrow central crest, retaining
             // the existing height envelope while strengthening the industrial gate.
-            GateCraftTier(stone,32.08f,-.78f,33.92f,10.78f,height+.43f,height+.72f,.06f,.90f);
+            GateCraftTier(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,.90f);
             foreach(bool left in new[]{true,false})
             {
                 float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
-                GateCraftTier(stone,32.18f,v0,33.82f,v1,height+.72f,height+.97f,.11f,.93f);
+                GateCraftTier(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+.97f,.11f,.93f);
                 float inner0=left?2.0f:6.5f,inner1=left?3.5f:8.0f;
-                GateCraftTier(stone,32.28f,inner0,33.72f,inner1,height+.97f,height+1.22f,.13f,.86f);
+                GateCraftTier(stone,GateU(32.28f),inner0,GateU(33.72f),inner1,height+.97f,height+1.22f,.13f,.86f);
             }
             // Recess the middle face behind the keystone. Two side cheeks and the
             // rear core carry the unchanged crest without filling its carved void.
-            GateCraftTier(stone,32.65f,3.35f,33.85f,6.65f,height+.72f,height+1.32f,.08f,.88f);
-            GateCraftTier(stone,32.15f,3.35f,32.67f,3.95f,height+.72f,height+1.32f,.04f,.88f);
-            GateCraftTier(stone,32.15f,6.05f,32.67f,6.65f,height+.72f,height+1.32f,.04f,.88f);
-            GateCraftTier(stone,32.22f,3.38f,33.78f,6.62f,height+1.32f,height+1.55f,.09f,.98f);
+            GateCraftTier(stone,GateU(32.65f),3.35f,GateU(33.85f),6.65f,height+.72f,height+1.32f,.08f,.88f);
+            GateCraftTier(stone,GateU(32.15f),3.35f,GateU(32.67f),3.95f,height+.72f,height+1.32f,.04f,.88f);
+            GateCraftTier(stone,GateU(32.15f),6.05f,GateU(32.67f),6.65f,height+.72f,height+1.32f,.04f,.88f);
+            GateCraftTier(stone,GateU(32.22f),3.38f,GateU(33.78f),6.62f,height+1.32f,height+1.55f,.09f,.98f);
             // Five substantial corbels beneath the lintel read as structural
             // support; their broad top returns carry the continuous header above.
             foreach(float v in new[]{-.50f,2.20f,4.70f,7.20f,9.90f})
             {
-                Vector3 a=Project(32.05f,v)+Vector3.up*(height-.28f);
-                Vector3 b=Project(32.05f,v+.40f)+Vector3.up*(height-.28f);
-                Vector3 c=Project(32.0f,v+.53f)+Vector3.up*(height+.08f);
-                Vector3 d=Project(32.0f,v-.13f)+Vector3.up*(height+.08f);
-                Vector3 back=Project(32.46f,v)-Project(32.0f,v);
+                Vector3 a=Project(GateU(32.05f),v)+Vector3.up*(height-.28f);
+                Vector3 b=Project(GateU(32.05f),v+.40f)+Vector3.up*(height-.28f);
+                Vector3 c=Project(GateU(32.0f),v+.53f)+Vector3.up*(height+.08f);
+                Vector3 d=Project(GateU(32.0f),v-.13f)+Vector3.up*(height+.08f);
+                Vector3 back=Project(GateU(32.46f),v)-Project(GateU(32.0f),v);
                 HeaderStonePatch(stone,a,a+back,d+back,d,new Color(.35f,.39f,.48f),a,a+back,d);
                 HeaderStonePatch(stone,d,c,c+back,d+back,new Color(.67f,.70f,.77f),d,c,d+back);
                 HeaderDressedFace(stone,a,b,c,d,new Color(.53f,.57f,.65f),.06f);
@@ -58,41 +58,41 @@ namespace Cryptforge.UI
                 inner[i]=new Vector2(outer[i].x*.67f,Mathf.Lerp(.99f,outer[i].y,.55f));
                 back[i]=new Vector2(outer[i].x*.63f,Mathf.Lerp(.99f,outer[i].y,.52f));
             }
-            Vector3 origin=GateCartouchePoint(new Vector2(-1.06f,.52f),32.12f,height);
-            Vector3 along=GateCartouchePoint(new Vector2(1.06f,.52f),32.12f,height);
-            Vector3 across=GateCartouchePoint(new Vector2(-1.06f,1.42f),32.12f,height);
+            Vector3 origin=GateCartouchePoint(new Vector2(-1.06f,.52f),GateU(32.12f),height);
+            Vector3 along=GateCartouchePoint(new Vector2(1.06f,.52f),GateU(32.12f),height);
+            Vector3 across=GateCartouchePoint(new Vector2(-1.06f,1.42f),GateU(32.12f),height);
             // Emit depth returns first; the recessed backing and front stone then
             // cover hidden return faces in the fixed painter view.
             for(int i=0;i<n;i++)
             {
                 int j=(i+1)%n;
-                HeaderStonePatch(stone,GateCartouchePoint(outer[i],32.66f,height),
-                    GateCartouchePoint(outer[j],32.66f,height),GateCartouchePoint(outer[j],32.18f,height),
-                    GateCartouchePoint(outer[i],32.18f,height),new Color(.38f,.42f,.51f),origin,along,across);
+                HeaderStonePatch(stone,GateCartouchePoint(outer[i],GateU(32.66f),height),
+                    GateCartouchePoint(outer[j],GateU(32.66f),height),GateCartouchePoint(outer[j],GateU(32.18f),height),
+                    GateCartouchePoint(outer[i],GateU(32.18f),height),new Color(.38f,.42f,.51f),origin,along,across);
             }
             // Continuous rear stone is a real recessed backing, not a dark patch
             // over the old solid box. The opening starts above the supporting lintel.
-            Vector3 hub=GateCartouchePoint(centre,32.60f,height);
+            Vector3 hub=GateCartouchePoint(centre,GateU(32.60f),height);
             for(int i=0;i<n;i++)
             {
                 int j=(i+1)%n;
-                HeaderStonePatch(stone,GateCartouchePoint(back[i],32.60f,height),
-                    GateCartouchePoint(back[j],32.60f,height),hub,hub,
+                HeaderStonePatch(stone,GateCartouchePoint(back[i],GateU(32.60f),height),
+                    GateCartouchePoint(back[j],GateU(32.60f),height),hub,hub,
                     new Color(.24f,.28f,.35f),origin,along,across);
             }
             for(int i=0;i<n;i++)
             {
                 int j=(i+1)%n;
                 Color reveal=i==0?new Color(.61f,.64f,.70f):new Color(.30f,.35f,.44f);
-                HeaderStonePatch(stone,GateCartouchePoint(inner[i],32.12f,height),GateCartouchePoint(inner[j],32.12f,height),
-                    GateCartouchePoint(back[j],32.60f,height),GateCartouchePoint(back[i],32.60f,height),reveal,origin,along,across);
+                HeaderStonePatch(stone,GateCartouchePoint(inner[i],GateU(32.12f),height),GateCartouchePoint(inner[j],GateU(32.12f),height),
+                    GateCartouchePoint(back[j],GateU(32.60f),height),GateCartouchePoint(back[i],GateU(32.60f),height),reveal,origin,along,across);
             }
             for(int i=0;i<n;i++)
             {
                 int j=(i+1)%n;
-                Vector3 a=GateCartouchePoint(outer[i],32.18f,height),b=GateCartouchePoint(outer[j],32.18f,height);
-                Vector3 da=GateCartouchePoint(dressed[i],32.12f,height),db=GateCartouchePoint(dressed[j],32.12f,height);
-                Vector3 ia=GateCartouchePoint(inner[i],32.12f,height),ib=GateCartouchePoint(inner[j],32.12f,height);
+                Vector3 a=GateCartouchePoint(outer[i],GateU(32.18f),height),b=GateCartouchePoint(outer[j],GateU(32.18f),height);
+                Vector3 da=GateCartouchePoint(dressed[i],GateU(32.12f),height),db=GateCartouchePoint(dressed[j],GateU(32.12f),height);
+                Vector3 ia=GateCartouchePoint(inner[i],GateU(32.12f),height),ib=GateCartouchePoint(inner[j],GateU(32.12f),height);
                 // The outer sidewalls tie the shaped face physically into the rear
                 // core; the two receding profiles give the dressed stone real relief.
                 Color edge=i<3?new Color(.60f,.63f,.70f):new Color(.48f,.52f,.62f);
@@ -107,7 +107,7 @@ namespace Cryptforge.UI
         {
             // One cast locking plate stays entirely within the recessed opening.
             // Its dark iron mass is subordinate to the door's large painted seal.
-            Vector3 At(float v,float z,float depth=0)=>Project(32.58f+depth,5+v)+Vector3.up*(height+z);
+            Vector3 At(float v,float z,float depth=0)=>Project(GateU(32.58f)+depth,5+v)+Vector3.up*(height+z);
             var shape=new[]{new Vector2(-.39f,.86f),new Vector2(.39f,.86f),new Vector2(.47f,.92f),
                 new Vector2(.47f,1.07f),new Vector2(.39f,1.13f),new Vector2(-.39f,1.13f),
                 new Vector2(-.47f,1.07f),new Vector2(-.47f,.92f)};

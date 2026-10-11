@@ -81,8 +81,8 @@ namespace Cryptforge.UI
             // Dressed stone replaces the long pair of racing-stripe outlines.
             // Its centreline is inset inside the previous frame's exact envelope.
             var frame=new[]{new Vector2(16.2f,2.15f),new Vector2(16.65f,1.7f),
-                new Vector2(29.75f,1.7f),new Vector2(30.2f,2.15f),new Vector2(30.2f,7.85f),
-                new Vector2(29.75f,8.3f),new Vector2(16.65f,8.3f),new Vector2(16.2f,7.85f)};
+                new Vector2(GateU(29.75f),1.7f),new Vector2(GateU(30.2f),2.15f),new Vector2(GateU(30.2f),7.85f),
+                new Vector2(GateU(29.75f),8.3f),new Vector2(16.65f,8.3f),new Vector2(16.2f,7.85f)};
             var stone=new Builder();
             // The eight corners share true offset-line intersections. Each edge owns
             // its miter-to-miter sector, so neighboring beds cannot overlap the faces.
@@ -119,7 +119,7 @@ namespace Cryptforge.UI
                 bool metal=pass==1;
                 var trim=metal?CopingTrim.Brass:CopingTrim.Stone;
                 Color tone=metal?brass:groove;
-                Vector2 centre=new Vector2(23.2f,5);
+                Vector2 centre=new Vector2(23.2f+FoundryMap.GateOffset*.5f,5);
                 for(int i=0;i<48;i++)
                 {
                     float a=i*Mathf.PI/24,b=(i+1)*Mathf.PI/24;
@@ -140,11 +140,11 @@ namespace Cryptforge.UI
                     Vector2 p=centre+star[i],q=centre+star[(i+1)%star.Length];
                     Strip(inlay,p.x,p.y,q.x,q.y,metal?.072f:.10f,metal?edge:groove,trim,i);
                 }
-                foreach(var ends in new[]{new Vector2(18.8f,20.38f),new Vector2(26.02f,27.6f)})
+                foreach(var ends in new[]{new Vector2(17.3f,centre.x-2.82f),new Vector2(centre.x+2.82f,GateU(29.1f))})
                     Strip(inlay,ends.x,5,ends.y,5,metal?.078f:.11f,tone,trim);
                 // Four short ties connect the framing to the medallion without filling
                 // the fighting lane with a repeated luminous-looking pattern.
-                foreach(float u in new[]{18f,28.4f})foreach(float v in new[]{1.7f,8.3f})
+                foreach(float u in new[]{18f,GateU(28.4f)})foreach(float v in new[]{1.7f,8.3f})
                 {
                     Vector2 c=new Vector2(u,v),along=new Vector2(.32f,0),across=new Vector2(0,.18f);
                     SealQuad(inlay,c-along,c+across,c+along,c-across,metal?edge:groove,metal?CopingRail:SealStone);

@@ -70,7 +70,7 @@ namespace Cryptforge.UI
         // baskets take the same footprint.
         // They stand on posts the balustrade places itself (FoundryRegionTests checks a post holds each one).
         internal static readonly float[] GateBrazierPosts={.93f,10.07f};
-        internal const float GateBrazierU=32.45f;
+        internal const float GateBrazierU=32.45f+Cryptforge.Art.FoundryMap.GateOffset;
         private const float GateBrazierRise=1.46f;
         // Clean patches of the two textures clutter is drawn on (scanned for the least grain: a masonry block interior and a
         // stretch of the iron plate's centre), with their measured mean texel, sRGB.
@@ -115,11 +115,11 @@ namespace Cryptforge.UI
             foreach(float v in GateBrazierPosts)
             {
                 if(!MassClear(new Vector4(GateBrazierU-.44f,v-.44f,GateBrazierU+.44f,v+.44f)))continue;
-                using(MassDepth(new Vector4(32,v-.37f,32.52f,v+.37f),GateBrazierRise+1.51f))
+                using(MassDepth(new Vector4(GateU(32),v-.37f,GateU(32.52f),v+.37f),GateBrazierRise+1.51f))
                 {
                     // A short cast socket over the post's point, under the basket's foot; then the bridge head's basket.
                     var socket=new Builder();
-                    Vector2 seat=new Vector2(32.38f,v);
+                    Vector2 seat=new Vector2(GateU(32.38f),v);
                     MassCourse(socket,seat,.22f,.2f,1.12f,GateBrazierRise-.1f,6,true,new Color(.66f,.66f,.71f));
                     MassDisk(socket,seat,.2f,GateBrazierRise-.1f,6,true,new Color(.4f,.41f,.46f));
                     Create("Gate brazier sockets",socket,arena.PlatformMaterials.FoundryIron,-10.5f);

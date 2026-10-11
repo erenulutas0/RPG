@@ -14,6 +14,29 @@ namespace Cryptforge.Tests
     public sealed class FoundryRegionTests
     {
         private Scene _scene;
+        private static void AssertBoilerDrainContacts(ArenaView arena)
+        {
+            bool CasingEdge(Vector3 centre,float halfWidth)
+            {
+                foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                {
+                    if(renderer.sortingOrder!=-16||renderer.sharedMaterial.mainTexture!=arena.PlatformMaterials.FoundryIron.mainTexture)continue;
+                    var points=renderer.GetComponent<MeshFilter>().sharedMesh.vertices;
+                    bool left=System.Array.Exists(points,p=>Vector2.Distance(p,centre-Vector3.right*halfWidth)<.001f);
+                    bool right=System.Array.Exists(points,p=>Vector2.Distance(p,centre+Vector3.right*halfWidth)<.001f);
+                    if(left&&right)return true;
+                }
+                return false;
+            }
+            foreach(var drain in new[]{new Vector2(18.5f,5.2f),new Vector2(22.5f,6.7f)})
+            {
+                Vector3 mouth=FoundrySurface.Project(drain.x,-5.1f);
+                Assert.That(CasingEdge(mouth,.24f),Is.True,"Discharge collar must stay attached to its south boiler.");
+                Assert.That(CasingEdge(mouth-Vector3.up*drain.y,.13f),Is.True,"Relocation must preserve the casing's full reach.");
+            }
+            Assert.That(CasingEdge(FoundrySurface.Project(26.5f,-5.1f),.24f),Is.False,
+                "No detached discharge can remain at the previous far-boiler anchor.");
+        }
         private static bool FloorCovers(Mesh mesh,Vector2 point)
         {
             var vertices=mesh.vertices;var triangles=mesh.triangles;
@@ -99,8 +122,8 @@ namespace Cryptforge.Tests
         {
             Assert.That(rank==-10||rank==-7,Is.True,"Boilers retain the lower drum and upper shell ranks.");
             bool upper=rank==-7;
-            var centres=squat?new[]{new Vector2(17.9f,-4.08f),new Vector2(26.9f,-4.08f)}:
-                new[]{new Vector2(18.39f,15.81f),new Vector2(26.95f,14.5f)};
+            var centres=squat?new[]{new Vector2(17.9f,-4.08f),new Vector2(22.9f,-4.08f)}:
+                new[]{new Vector2(18.39f,15.81f),new Vector2(22.95f,14.5f)};
             var points=mesh.vertices;var uv=mesh.uv;var colours=mesh.colors;var triangles=mesh.triangles;
             var flags=new System.Collections.Generic.List<Vector2>();mesh.GetUVs(1,flags);
             Assert.That(points.Length,Is.GreaterThanOrEqualTo(8));
@@ -156,6 +179,48 @@ namespace Cryptforge.Tests
             if(!upper)Assert.That(points.Length,Is.EqualTo(8));
             return hardware;
         }
+        [Test] public void CompactGateServicesStayOutsidePavingAndRemainPhysicallySupported()
+        {
+            var flags=System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic;
+            var type=typeof(FoundryRegionView);
+            var boilers=(Vector2[])type.GetField("BoilerCentres",flags).GetValue(null);
+            float main0=(float)type.GetField("ServiceMainStart",flags).GetRawConstantValue();
+            float main1=(float)type.GetField("ServiceMainEnd",flags).GetRawConstantValue();
+            float mid=(main0+main1)*.5f;
+            Assert.That(boilers[0],Is.EqualTo(new Vector2(18.39f,15.81f)));
+            Assert.That(boilers[2],Is.EqualTo(new Vector2(17.9f,-4.08f)));
+            Assert.That(boilers[1].x,Is.EqualTo(22.95f));Assert.That(boilers[3].x,Is.EqualTo(22.9f));
+            Assert.That(main1-main0,Is.GreaterThan(1),"The shortened main still has room for a supported valve.");
+            void Outside(Vector4 box)
+            {
+                for(float u=box.x+.01f;u<=box.z-.009f;u+=.1f)
+                    for(float v=box.y+.01f;v<=box.w-.009f;v+=.1f)
+                    {
+                        FoundryMap.ToFloor(u,v,out float x,out float y);
+                        Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False,"Service foundations cannot claim walkable paving.");
+                    }
+            }
+            float Distance(Vector2 p,Vector4 box)=>Vector2.Distance(p,new Vector2(Mathf.Clamp(p.x,box.x,box.z),Mathf.Clamp(p.y,box.y,box.w)));
+            foreach(bool north in new[]{true,false})
+            {
+                int near=north?0:2,far=near+1;float mainV=north?14.5f:-4.5f;
+                Assert.That(Vector2.Distance(boilers[near],new Vector2(main0,mainV)),Is.EqualTo(1.85f).Within(.01f));
+                Assert.That(Vector2.Distance(boilers[far],new Vector2(main1,mainV)),Is.EqualTo(1.85f).Within(.01f),"Both main endpoints must still enter their own drums.");
+                float tankV=(float)type.GetField(north?"NorthReservoirV":"SouthReservoirV",flags).GetRawConstantValue();
+                Vector4 tank=(Vector4)type.GetMethod("ReservoirFootprint",flags).Invoke(null,new object[]{tankV});
+                Vector4 neck=(Vector4)type.GetMethod("ReservoirNeck",flags).Invoke(null,new object[]{north});
+                Vector4 saddle=new Vector4(mid-.2f,mainV-.25f,mid+.2f,mainV+.25f);
+                Outside(tank);Outside(neck);Outside(saddle);
+                foreach(var boiler in boilers)
+                {
+                    Assert.That(Distance(boiler,tank),Is.GreaterThan(2.03f),"Moved tanks cannot intersect a boiler cornice or foundation.");
+                    Assert.That(Distance(boiler,saddle),Is.GreaterThan(2.03f),"A saddle must fit between the two boiler plinths.");
+                }
+                Assert.That(Distance(boilers[near],neck),Is.LessThan(1.8f),"The low structural neck overlaps its near boiler foundation.");
+                Assert.That(neck.x<tank.z&&neck.z>tank.x&&neck.y<tank.w&&neck.w>tank.y,Is.True,
+                    "The neck also overlaps the tank footing, leaving no unsupported gap.");
+            }
+        }
         [Test] public void ArchitectureLightFollowsFireHeightAndRecessesBelowLedges()
         {
             Color near=FoundryRegionView.ArchitectureLight(-8,2,0,2);
@@ -166,12 +231,12 @@ namespace Cryptforge.Tests
         }
         [Test] public void MetalReflectionFallsOffInHeightAndStaysContinuousAcrossTheRamp()
         {
-            Color near=FoundryRegionView.MetalLight(26.9f,-4.08f,1.8f);
-            Color high=FoundryRegionView.MetalLight(26.9f,-4.08f,12f);
+            Color near=FoundryRegionView.MetalLight(22.9f,-4.08f,1.8f);
+            Color high=FoundryRegionView.MetalLight(22.9f,-4.08f,12f);
             Color away=FoundryRegionView.MetalLight(-40,-40,1.8f);
             Assert.That(near.r/near.b,Is.GreaterThan(high.r/high.b+.2f),"Heat must remain near the fire, not color the whole stack.");
             Assert.That(high,Is.EqualTo(away),"Far above all lamps only the cool metal ambient remains.");
-            foreach(float seam in new[]{29f,31f})
+            foreach(float seam in new[]{FoundrySurface.RampStart,FoundrySurface.RampEnd})
                 for(float v=-5;v<=16;v+=1)
                 {
                     Color a=FoundryRegionView.MetalLight(seam-.001f,v,1.8f);
@@ -211,16 +276,19 @@ namespace Cryptforge.Tests
                 if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
             Assert.That(paving,Is.Not.Null);
             AssertWorkIslandContacts(arena,paving);
+            AssertBoilerDrainContacts(arena);
             foreach(var sample in new[]{new Vector3(FoundryMap.West+1,-13,0),new Vector3(13,-13,0),
                 new Vector3(-26.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
                 new Vector3(FoundryMap.West+1,17,0),new Vector3(13,17,0),new Vector3(FoundryMap.West+2.83f,14.77f,1),new Vector3(10.83f,14.77f,1),
                 new Vector3(-29,-13,1),new Vector3(-29,17,1),new Vector3(-34.17f,.23f,1),new Vector3(-32.17f,12.23f,1),
                 new Vector3(-23.17f,-12.77f,1),new Vector3(-23.17f,16.77f,1),new Vector3(-27.17f,6.23f,1),
                 new Vector3(-32.17f,-31.77f,1),new Vector3(-29.83f,-34.17f,1),new Vector3(-29.35f,-34.65f,0),
-                new Vector3(-15.17f,-14.23f,1),new Vector3(-15.17f,-13.77f,1),new Vector3(-10.17f,-13.77f,1)})
+                new Vector3(-15.17f,-14.23f,1),new Vector3(-15.17f,-13.77f,1),new Vector3(-10.17f,-13.77f,1),
+                new Vector3(24.83f,11.23f,1),new Vector3(26.83f,-1.23f,1),new Vector3(26.83f,5.23f,1),
+                new Vector3(29.17f,5.23f,0),new Vector3(30.17f,11.23f,0),new Vector3(23.17f,11.23f,0)})
             {
-                Cryptforge.Art.FoundryMap.ToFloor(sample.x,sample.y,out float px,out float py);
-                Assert.That(FloorCovers(paving,new Vector2(px,py*.5f)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");
+                Vector3 p=FoundrySurface.Project(sample.x,sample.y);
+                Assert.That(FloorCovers(paving,new Vector2(p.x,p.y)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");
             }
             var gate=arena.PlatformMaterials.GateFacade;
             Assert.That(gate,Is.Not.Null,"Foundry facade must be an imported shared material.");
@@ -228,7 +296,24 @@ namespace Cryptforge.Tests
             Assert.That(gate.mainTexture.wrapMode,Is.EqualTo(TextureWrapMode.Clamp));
             bool usesGate=false;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
-                if(renderer.sharedMaterial.mainTexture==gate.mainTexture)usesGate=true;
+                if(renderer.sharedMaterial.mainTexture==gate.mainTexture)
+                {
+                    usesGate=true;
+                    var facadeMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
+                    // Bridge banners share this material/batch. Inspect the actual portal
+                    // corners and their full-image UVs rather than assuming a four-vertex batch.
+                    var vertices=facadeMesh.vertices;
+                    Vector3 a=FoundrySurface.Project(27.99f,11),b=FoundrySurface.Project(27.99f,-1);
+                    var corners=new[]{a,b,b+Vector3.up*6.5f,a+Vector3.up*6.5f};
+                    var uvs=new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up};
+                    for(int corner=0;corner<4;corner++)
+                    {
+                        int index=System.Array.FindIndex(vertices,p=>Vector2.Distance(p,corners[corner])<.001f);
+                        Assert.That(index,Is.GreaterThanOrEqualTo(0),
+                            "The painted portal must sit on the shortened raised landing, not the old gate anchor.");
+                        Assert.That(facadeMesh.uv[index],Is.EqualTo(uvs[corner]));
+                    }
+                }
             Assert.That(usesGate,Is.True);
             Assert.That(arena.PlatformMaterials.FoundryPitLining,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade),"The pit lining must stay independent of the boiler wrap.");
             var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving};
@@ -360,7 +445,7 @@ namespace Cryptforge.Tests
                     var tank=renderer.GetComponent<MeshFilter>().sharedMesh;
                     Assert.That(tank.vertexCount,Is.EqualTo(4));
                     foreach(var p in tank.vertices)
-                        Assert.That(p.z,Is.EqualTo(50+(22.3f+(far?15.8f:-5.8f))*.35355339f).Within(.001f));
+                        Assert.That(p.z,Is.EqualTo(50+(20.4f+(far?19f:-7.4f))*.35355339f).Within(.001f));
                     var flags=new System.Collections.Generic.List<Vector2>();tank.GetUVs(1,flags);
                     foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
                     continue;

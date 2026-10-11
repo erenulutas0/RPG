@@ -11,6 +11,10 @@ namespace Cryptforge.Art
         // and a narrower gate causeway ending in a full-width landing. These same bounds
         // own the floor mesh, hero clearance, spawning and the pursuit visibility graph.
         public const int West=-36,South=-14,North=18,East=14;
+        // Shorter causeway; rigid landing and gate architecture translate together.
+        // The court, furnace opening and arrival bridge retain their world anchors.
+        public const int GateOffset=-4,GateLandingStart=28+GateOffset,GateLandingEnd=32+GateOffset;
+        public const float GateLandingCentre=(GateLandingStart+GateLandingEnd)*.5f;
         // Original west service assemblies were authored against the -24 court edge.
         public const int WestAssemblyOffset=West+24;
         // Interior production equipment moves half the west extension, keeping
@@ -36,7 +40,7 @@ namespace Cryptforge.Art
         {
             {West,South,PitWest,North},{PitEast,South,East,North},
             {PitWest,South,PitEast,PitSouth},{PitWest,PitNorth,PitEast,North},
-            {East,0,28,10},{28,-2,32,12}
+            {East,0,GateLandingStart,10},{GateLandingStart,-2,GateLandingEnd,12}
         };
         public const int BridgeStart=-66,BridgeEnd=-22,BridgeHalfWidth=5;
         public const int BridgeWestSeam=2*South-BridgeHalfWidth,BridgeEastSeam=2*South+BridgeHalfWidth;

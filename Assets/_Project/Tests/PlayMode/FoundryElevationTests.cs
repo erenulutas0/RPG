@@ -82,7 +82,7 @@ namespace Cryptforge.Tests
             }
             Assert.That(raisedFloorVertices, Is.GreaterThan(20), "Actual paving uses the shared raised surface.");
 
-            foreach (float u in new[] { 27.5f, 28, 29, 30, 31, 29, 27.5f })
+            foreach (float u in new[] { FoundrySurface.RampStart-1.5f, FoundrySurface.RampStart-1, FoundrySurface.RampStart, FoundrySurface.RampStart+1, FoundrySurface.RampEnd, FoundrySurface.RampStart, FoundrySurface.RampStart-1.5f })
             {
                 FoundryMap.ToFloor(u, 5, out float x, out float y);
                 Vector3 flat = arena.transform.position + new Vector3(x, y * .5f, 0);
@@ -111,7 +111,7 @@ namespace Cryptforge.Tests
                 Assert.That(ring.sharedMaterial, Is.SameAs(sourceMaterial));
             }
 
-            FoundryMap.ToFloor(30, 5, out float ex, out float ey);
+            FoundryMap.ToFloor(FoundryMap.GateLandingCentre, 5, out float ex, out float ey);
             enemy.transform.position = new Vector3(ex, ey * .5f, 0);
             float enemyLift = FoundrySurface.Lift(enemy.transform.position, arena.transform.position);
             enemy.ApplyDamage(new DamageContext(1));

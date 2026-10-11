@@ -151,7 +151,7 @@ namespace Cryptforge.Tests
         }
         [TestCase(-31f,-31f,0f,6f)]
         [TestCase(-31f,-31f,-27f,6f)]
-        [TestCase(-31f,-31f,28f,6f)]
+        [TestCase(-31f,-31f,FoundryMap.GateLandingCentre,6f)]
         public void ExtendedBridgePursuitWorksInBothDirections(float u,float v,float goalU,float goalV)
         {
             AssertRoute(u,v,goalU,goalV);
@@ -222,7 +222,7 @@ namespace Cryptforge.Tests
             Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
         }
         [TestCase(-27f,6f,0f,6f)]
-        [TestCase(-27f,6f,28f,6f)]
+        [TestCase(-27f,6f,FoundryMap.GateLandingCentre,6f)]
         [TestCase(-27f,6f,-23f,-23f)]
         [TestCase(-26f,16f,-2f,16f)]
         [TestCase(-27f,-9f,11f,15f)]
@@ -231,7 +231,7 @@ namespace Cryptforge.Tests
             AssertRoute(u,v,goalU,goalV);
             AssertRoute(goalU,goalV,u,v);
         }
-        [Test] public void WiderCourtAddsTraversableAreaWithoutMovingPitBridgeOrGate()
+        [Test] public void WiderCourtKeepsItsAreaAndPreservesPitAndBridge()
         {
             Assert.That(FoundryMap.East-FoundryMap.West,Is.EqualTo(50),"The width change is physical floor, not camera framing.");
             foreach(var design in new[]{new[]{-34f,0f},new[]{-32f,12f},new[]{-32f,-9f},new[]{-33f,15f}})
@@ -245,7 +245,7 @@ namespace Cryptforge.Tests
             }
             Assert.That(new[]{FoundryMap.PitWest,FoundryMap.PitSouth,FoundryMap.PitEast,FoundryMap.PitNorth},Is.EqualTo(new[]{-16,2,-4,14}));
             Assert.That(new[]{FoundryMap.BridgeStart,FoundryMap.BridgeEnd,FoundryMap.BridgeHalfWidth},Is.EqualTo(new[]{-66,-22,5}));
-            Assert.That(new[]{FoundryMap.Bound(5,0),FoundryMap.Bound(5,1),FoundryMap.Bound(5,2),FoundryMap.Bound(5,3)},Is.EqualTo(new[]{28,-2,32,12}));
+            Assert.That(new[]{FoundryMap.Bound(5,0),FoundryMap.Bound(5,1),FoundryMap.Bound(5,2),FoundryMap.Bound(5,3)},Is.EqualTo(new[]{24,-2,28,12}));
         }
         [TestCase(-34f,0f)]
         [TestCase(-32f,12f)]
@@ -264,10 +264,49 @@ namespace Cryptforge.Tests
                     for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(entries[i].X,entries[i].Y,entries[j].X,entries[j].Y),Is.GreaterThanOrEqualTo(.9f*.9f));
                 }
             }
-            foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f}})
+            foreach(var goal in new[]{new[]{0f,6f},new[]{FoundryMap.GateLandingCentre,6f},new[]{-23f,-23f}})
             {
                 AssertRoute(u,v,goal[0],goal[1]);
                 AssertRoute(goal[0],goal[1],u,v);
+            }
+        }
+        [Test] public void CompactGateMovesTheLandingWithoutMovingTheMainCourt()
+        {
+            Assert.That(new[]{FoundryMap.West,FoundryMap.East,FoundryMap.South,FoundryMap.North},Is.EqualTo(new[]{-36,14,-14,18}));
+            Assert.That(new[]{FoundryMap.Bound(4,0),FoundryMap.Bound(4,2)},Is.EqualTo(new[]{14,24}));
+            // The landing retains its complete transverse width but now ends at28.
+            foreach(var p in new[]{new[]{26f,-1f},new[]{26f,11f},new[]{27f,5f}})
+            {
+                FoundryMap.ToFloor(p[0],p[1],out float x,out float y);
+                Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+                AssertRoute(-20,6,p[0],p[1]);AssertRoute(p[0],p[1],-20,6);
+            }
+            foreach(var p in new[]{new[]{29f,5f},new[]{31f,-1f},new[]{31f,11f},new[]{23f,11f}})
+            {
+                FoundryMap.ToFloor(p[0],p[1],out float x,out float y);
+                Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False,"Old eastern floor is truly gone; only the shifted landing is wider.");
+            }
+            FoundryMap.ToFloor(27,5,out float hx,out float hy);
+            FoundryMap.ToFloor(31,5,out float tx,out float ty);
+            Assert.That(FoundryMap.Segment(hx,hy,tx,ty,.6f),Is.False);
+            FoundryMap.Move(ref hx,ref hy,tx-hx,ty-hy,.6f);
+            Assert.That(FoundryMap.Contains(hx,hy,.6f),Is.True,"Moving toward the old gate cannot walk into the void.");
+        }
+        [TestCase(26f,-1f)]
+        [TestCase(26f,11f)]
+        [TestCase(27f,5f)]
+        public void CompactLandingRetainsSeparatedTenEnemySpawns(float u,float v)
+        {
+            var entries=new EntryPlacement[10];FoundryMap.ToFloor(u,v,out float hx,out float hy);
+            for(int wave=0;wave<4;wave++)
+            {
+                FoundryMap.PlacePack(wave,10,hx,hy,.9f,entries);
+                for(int i=0;i<entries.Length;i++)
+                {
+                    Assert.That(FoundryMap.Contains(entries[i].X,entries[i].Y,.6f),Is.True);
+                    Assert.That(FoundryMap.Segment(hx,hy,entries[i].X,entries[i].Y,.6f),Is.True);
+                    for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(entries[i].X,entries[i].Y,entries[j].X,entries[j].Y),Is.GreaterThanOrEqualTo(.9f*.9f));
+                }
             }
         }
         private static void AssertRoute(float u,float v,float goalU,float goalV)
@@ -289,8 +328,8 @@ namespace Cryptforge.Tests
         }
         [Test] public void PursuitRoutesAroundHoleAndThroughPassage()
         {
-            foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f},
-                new[]{-21f,15f},new[]{11f,15f},new[]{30f,-1f},new[]{30f,11f}})
+            foreach(var goal in new[]{new[]{0f,6f},new[]{FoundryMap.GateLandingCentre,6f},new[]{-23f,-23f},
+                new[]{-21f,15f},new[]{11f,15f},new[]{FoundryMap.GateLandingCentre,-1f},new[]{FoundryMap.GateLandingCentre,11f}})
             {
                 FoundryMap.ToFloor(-20,6,out float x,out float y);
                 FoundryMap.ToFloor(goal[0],goal[1],out float hx,out float hy);

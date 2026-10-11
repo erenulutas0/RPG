@@ -625,3 +625,13 @@ Evidence and final validation: ArtDirection/2026-10-11/foundry-workyard-islands-
 Completed visual scope: physical main-court width44->50, west working strip14->20; coherent relocated west assemblies and interior freight yard; connected trolley hardware and detailed mould bench. Baselineb5bcbed comparison: ArtDirection/2026-10-11/foundry-broad-court-01. Map bounds, art, movement and tests remain shared; camera scale retained. Extra floor changes encounter spacing opportunity even though encounter counts/data are untouched; no balance acceptance implied.
 
 Remaining art priorities: overall court-to-gate proportions against the reference, authored equipment/architectural material richness, then accumulated actual-device circulation/crowd/shimmer/midrange acceptance. Avoid substituting small trim changes for structural reference differences. Region progression and bosses remain deferred under owner art-first direction. No claim of full reference completion or installed package.
+
+## 2026-10-11 - Compact gate composition integrated
+
+- [x] Shorten the oversized gate arm18->14u while preserving broad-court width, pit, bridge and work islands.
+- [x] Move ramp, gate architecture and far boilers coherently; connect relocated reservoirs, service mains and discharges.
+- [x] Replace long northern roof slopes with compact shoulders and distinct upright exhaust crowns using existing batches.
+- [ ] Full reference fidelity: native architectural/equipment material richness is still weaker than the approved image. Next substantial art work should address the broad stone/iron surface treatment and readable production detail as a coherent set, rather than isolated trim changes.
+- [ ] Accumulated device circulation, crowd, first-ramp, shimmer and midrange acceptance remains open. Region progression/boss design remains deferred under the owner art-first direction.
+
+Evidence: ArtDirection/2026-10-11/foundry-compact-gate-01. This supersedes the initial gate-arm proportion item above, not full map/reference or physical-device acceptance.

@@ -7,7 +7,7 @@ namespace Cryptforge.UI
     // orthonormal floor coordinates. All ground contacts use this one projection.
     internal static class FoundrySurface
     {
-        internal const float RampStart = 29f, RampEnd = 31f, Rise = 1.25f;
+        internal const float RampStart = FoundryMap.GateLandingStart + 1f, RampEnd = FoundryMap.GateLandingEnd - 1f, Rise = 1.25f;
         internal static float Height(float u) => Mathf.Clamp01((u - RampStart) / (RampEnd - RampStart)) * Rise;
         internal static Vector3 Project(float u, float v)
         {

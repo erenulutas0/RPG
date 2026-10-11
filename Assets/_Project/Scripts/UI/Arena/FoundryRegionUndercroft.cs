@@ -40,8 +40,12 @@ namespace Cryptforge.UI
                 Project(12,-10)+Vector3.down*4,2.4f);
             // The near drain stops behind the court. At the far one's 6.7 its foot came out below the court's south edge on
             // screen (6.29 under its mouth), the casing's rank (-16) painting it over that face (-17), which stands in front.
-            foreach(var drain in new[]{new Vector2(17,5.2f),new Vector2(25,6.7f)})
-                FurnaceDrain(arena,Project(drain.x+1.5f,-5.1f),drain.y);
+            // Discharges follow their own boiler, including a relocated gate-side pair.
+            // Keeping the old far world anchor also incorrectly lifted it onto the ramp.
+            Vector2 nearDrain=BoilerCentres[2]+new Vector2(.6f,-1.02f);
+            Vector2 farDrain=BoilerCentres[3]+new Vector2(-.4f,-1.02f);
+            FurnaceDrain(arena,Project(nearDrain.x,nearDrain.y),5.2f);
+            FurnaceDrain(arena,Project(farDrain.x,farDrain.y),6.7f);
         }
 
         // A fortress needs a connected body below its deck. The former arches joined

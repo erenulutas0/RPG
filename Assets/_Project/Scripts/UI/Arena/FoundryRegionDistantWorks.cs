@@ -155,19 +155,25 @@ namespace Cryptforge.UI
                 float inward=x<(u0+u1)*.5f?.55f:-.55f;
                 DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,shoulder+2.0f,.16f,tone*.94f,inward,.55f);
             }
-            // A tall narrowed exhaust and a lower broad furnace hood replace the
-            // same square slab on both shafts. All roofs stay on their masonry neck.
-            float neck=variant==1?.90f:.68f;
+            // Compact structural shoulders carry upright furnace necks. The old
+            // long sloping transition read as a pyramid above each arched bay.
+            // Retain the shoulder datum and enough body at shoulder+2 to receive
+            // the leaning buttress heads; the tiers reuse the same face budget.
+            float neck=variant==1?.76f:.62f;
+            float shoulderHead=shoulder+2.25f;
+            float crown=top-(variant==2?1.20f:0);
             DistantTaper(mesh,u0-.06f,v0-.06f,u1+.06f,v1+.06f,shoulder,shoulder+.52f,.18f,tone);
-            DistantTaper(mesh,u0+.12f,v0+.12f,u1-.12f,v1-.12f,shoulder+.52f,top-2.0f,neck-.12f,tone*.92f);
-            DistantBlock(mesh,u0+neck,v0+neck,u1-neck,v1-neck,top-2.0f,top-.92f,tone*.87f);
-            DistantBlock(mesh,u0+neck-.13f,v0+neck-.13f,u1-neck+.13f,v1-neck+.13f,top-.92f,top-.65f,tone*1.06f);
-            DistantTaper(mesh,u0+neck-.13f,v0+neck-.13f,u1-neck+.13f,v1-neck+.13f,top-.65f,top,.38f,tone);
+            DistantTaper(mesh,u0+.12f,v0+.12f,u1-.12f,v1-.12f,shoulder+.52f,shoulderHead,neck-.12f,tone*.92f);
+            DistantBlock(mesh,u0+neck,v0+neck,u1-neck,v1-neck,shoulderHead,crown-.92f,tone*.87f);
+            DistantBlock(mesh,u0+neck-.22f,v0+neck-.22f,u1-neck+.22f,v1-neck+.22f,crown-.92f,crown-.65f,tone*1.06f);
+            DistantTaper(mesh,u0+neck-.22f,v0+neck-.22f,u1-neck+.22f,v1-neck+.22f,crown-.65f,crown,.38f,tone);
             if(variant==2)
             {
                 float u=(u0+u1)*.5f,v=(v0+v1)*.5f;
-                DistantBlock(mesh,u-.36f,v+.02f,u+.36f,v+.74f,top,top+.95f,tone*.82f);
-                DistantBlock(mesh,u-.45f,v-.07f,u+.45f,v+.83f,top+.80f,top+1.1f,tone);
+                // A wide, low rectangular exhaust hood distinguishes the smaller
+                // works from the tall open flue, with both courses fully seated.
+                DistantBlock(mesh,u-.56f,v+.02f,u+.56f,v+.74f,crown,crown+.60f,tone*.82f);
+                DistantBlock(mesh,u-.65f,v-.07f,u+.65f,v+.83f,crown+.48f,crown+.80f,tone);
             }
             else
                 DistantMasonryFace(mesh,Project(u0+neck+.40f,v0+neck+.40f)+Vector3.up*(top+.002f),

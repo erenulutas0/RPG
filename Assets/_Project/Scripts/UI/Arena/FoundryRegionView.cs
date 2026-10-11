@@ -16,6 +16,9 @@ namespace Cryptforge.UI
         private sealed class Batch { internal Builder Builder=new Builder(); internal Material Material; internal float Order; internal readonly List<int> Owners=new List<int>(); }
         private readonly List<Batch> _batches=new List<Batch>();
         private static Vector3 Project(float x,float y) => FoundrySurface.Project(x,y);
+        // Authored rigid gate coordinates. Never offset Project itself: the court
+        // and near boiler pair remain fixed while only this assembly moves.
+        private static float GateU(float authoredU)=>authoredU+FoundryMap.GateOffset;
         // Flush floor decals - coping trim, borders, inlays, seal, joints. They are part of the walking surface, so the
         // hero cutaway must not dissolve them (before 2026-09-30 brass lines vanished in a disc around the hero's feet).
         // They sort at the paving's own rank (-15), drawn after it (see the emit loop), so every raised structure at -14 -
@@ -260,16 +263,16 @@ namespace Cryptforge.UI
             var facade=arena.PlatformMaterials.GateFacade;
             float height=facade!=null?6.5f:4.8f;
             // One structure for depth: foundations, body, facade, pediment, inlays and the gate beacons.
-            using(DepthStructure(32,-3,35,13,height+1.7f))BuildGateParts(arena,facade,height);
+            using(DepthStructure(GateU(32),-3,GateU(35),13,height+1.7f))BuildGateParts(arena,facade,height);
         }
         private void BuildGateParts(ArenaView arena,Material facade,float height)
         {
-            Block(arena,32,-3,35,-1,facade!=null?.4f:4.8f,3,"Gate left foundation");
-            Block(arena,32,11,35,13,facade!=null?.4f:4.8f,3,"Gate right foundation");
-            Block(arena,32,-1,34,11,height,3,"Gate masonry body");
+            Block(arena,GateU(32),-3,GateU(35),-1,facade!=null?.4f:4.8f,3,"Gate left foundation");
+            Block(arena,GateU(32),11,GateU(35),13,facade!=null?.4f:4.8f,3,"Gate right foundation");
+            Block(arena,GateU(32),-1,GateU(34),11,height,3,"Gate masonry body");
             if(facade==null)return;
             // Full rectangular elevation on one physical wall; no cutout alpha or baked isometric tilt.
-            Vector3 a=Project(31.99f,11),b=Project(31.99f,-1),lift=Vector3.up*height;
+            Vector3 a=Project(GateU(31.99f),11),b=Project(GateU(31.99f),-1),lift=Vector3.up*height;
             var face=new Builder();face.Quad(a,b,b+lift,a+lift,false,Color.white);
             face.U.Clear();face.U.AddRange(new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up});
             Create("Painted gate facade",face,facade,-12);

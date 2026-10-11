@@ -1,0 +1,10 @@
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(122,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(123,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(124,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(122,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(123,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(124,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(122,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(123,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryFlagContourTests.cs(124,19): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+EditMode cannot directly reference internal UI FoundrySurface. Test samples now derive from public shared landing constants; runtime encapsulation preserved.
