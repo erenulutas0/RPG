@@ -1,0 +1,66 @@
+[
+  {
+    "atlas": "FoundryBoiler.png",
+    "size": [
+      2048,
+      1024
+    ],
+    "tiles": [
+      {
+        "source": "ArtDirection\\2026-10-11\\industrial-furnace-01\\variant-0.png",
+        "sha256": "ee14f4986a6c3e2cc1c3c923084152921118aad0e9af4d363cf5da11c71cece0",
+        "alpha_bounds": [
+          318,
+          140,
+          706,
+          948
+        ],
+        "tile": 0
+      },
+      {
+        "source": "ArtDirection\\2026-10-11\\industrial-furnace-01\\variant-1.png",
+        "sha256": "9350235aa4e92b63bddd7beba18ecefdb30fda9afafa80f806bd37478e89d9cd",
+        "alpha_bounds": [
+          318,
+          145,
+          706,
+          948
+        ],
+        "tile": 1
+      }
+    ],
+    "sha256": "79efad872e17ca58dd207fe34c808a28da13475972636847baae5e5e8050833b"
+  },
+  {
+    "atlas": "FoundryShortBoiler.png",
+    "size": [
+      2048,
+      1024
+    ],
+    "tiles": [
+      {
+        "source": "ArtDirection\\2026-10-11\\industrial-retort-01\\variant-0.png",
+        "sha256": "ba68dea870ec116a9c733e06ef5c7ba2707539cb5da205a7a11b9aeb769be415",
+        "alpha_bounds": [
+          169,
+          267,
+          855,
+          875
+        ],
+        "tile": 0
+      },
+      {
+        "source": "ArtDirection\\2026-10-11\\industrial-retort-01\\variant-1.png",
+        "sha256": "003ac3d3cf2ed0ec3a32e33bde141a166d412c2d98efe695ae6e607f453e1c5f",
+        "alpha_bounds": [
+          169,
+          295,
+          855,
+          875
+        ],
+        "tile": 1
+      }
+    ],
+    "sha256": "a6a2fcf45bd33c34be1de38265916092d81d4049045b64f89ecf3c6b1ff00d13"
+  }
+]

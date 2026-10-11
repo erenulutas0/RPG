@@ -1,0 +1,38 @@
+{
+  "variant": 0,
+  "blender": "4.5.9 LTS",
+  "vertices": 6688,
+  "triangles": 12996,
+  "ortho_scale": 6,
+  "left": -3,
+  "right": 3,
+  "bottom": -1.86,
+  "top": 4.14,
+  "render_size": 1024,
+  "height_compensation": 1.1547005383792515,
+  "height_range": [
+    0.0,
+    2.2799999177827233
+  ],
+  "physical_bounds": [
+    -2.2962141036987305,
+    -2.2962141036987305,
+    2.0,
+    2.0
+  ],
+  "projected_normalized_bounds": [
+    0.16666638851165771,
+    0.146343395113945,
+    0.8333330154418945,
+    0.7381786704063416
+  ],
+  "collision_footprint": "Existing radius2 base; original fire mouth geometry retained",
+  "exhaust_outlet": [
+    0,
+    0,
+    2.28
+  ],
+  "service_socket": "Runtime socket at1.8 unchanged; no socket baked into source",
+  "source": "Native editable geometry; original study02 procedural materials/lights; no raster postprocessing",
+  "limitations": "Static fixed-view source render, not a runtime mesh or Unity/device acceptance"
+}

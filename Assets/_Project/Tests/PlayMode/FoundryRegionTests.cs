@@ -118,66 +118,42 @@ namespace Cryptforge.Tests
                 }
             }
         }
-        private static int VerifyBoilerBand(Mesh mesh,int rank,bool squat)
+        private static void VerifyBoilerBand(Mesh mesh,int rank,bool squat)
         {
             Assert.That(rank==-10||rank==-7,Is.True,"Boilers retain the lower drum and upper shell ranks.");
             bool upper=rank==-7;
-            var centres=squat?new[]{new Vector2(17.9f,-4.08f),new Vector2(22.9f,-4.08f)}:
-                new[]{new Vector2(18.39f,15.81f),new Vector2(22.95f,14.5f)};
+            var centres=(Vector2[])typeof(FoundryRegionView).GetField("BoilerCentres",
+                System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic).GetValue(null);
             var points=mesh.vertices;var uv=mesh.uv;var colours=mesh.colors;var triangles=mesh.triangles;
             var flags=new System.Collections.Generic.List<Vector2>();mesh.GetUVs(1,flags);
-            Assert.That(points.Length,Is.GreaterThanOrEqualTo(8));
+            Assert.That(points.Length,Is.EqualTo(8),"Each shared band contains exactly two cards, with all service detail baked into the atlas.");
+            Assert.That(triangles.Length,Is.EqualTo(12));
             Assert.That(uv.Length,Is.EqualTo(points.Length));Assert.That(colours.Length,Is.EqualTo(points.Length));
             Assert.That(flags.Count,Is.EqualTo(points.Length));
             foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
             float axis=Cryptforge.Art.FoundryMap.Axis,imageBottom=squat?-1.86f:-1.8f,size=squat?6f:10.8f;
             float split=squat?1.2f:2.8f,bottom=upper?split:imageBottom,top=upper?imageBottom+size:split;
-            var expectedUv=new[]{new Vector2(0,(bottom-imageBottom)/size),new Vector2(1,(bottom-imageBottom)/size),
-                new Vector2(1,(top-imageBottom)/size),new Vector2(0,(top-imageBottom)/size)};
-            int first=0,triangle=0,hardware=0;
             for(int side=0;side<2;side++)
             {
-                Vector2 c=centres[side];float originX=(c.x-c.y)*axis,originY=(c.x+c.y)*axis*.5f;
-                float depth=50+originY;int end=first;
-                while(end<points.Length&&Mathf.Abs(points[end].z-depth)<.001f)end++;
-                Assert.That(end-first,Is.GreaterThanOrEqualTo(4),"Each contiguous owner group begins with its original card.");
-                bool decorated=upper&&squat&&side==0;
-                if(decorated)Assert.That(end-first,Is.GreaterThan(4),"The selected upper shell carries its fitted service assembly.");
-                else Assert.That(end-first,Is.EqualTo(4),"Other shells and both lower bands retain only the original card.");
+                int first=side*4;
+                Vector2 c=centres[(squat?2:0)+side];float originX=(c.x-c.y)*axis,originY=(c.x+c.y)*axis*.5f;
+                float depth=50+originY,u0=side*.5f,u1=u0+.5f;
+                var expectedUv=new[]{new Vector2(u0,(bottom-imageBottom)/size),new Vector2(u1,(bottom-imageBottom)/size),
+                    new Vector2(u1,(top-imageBottom)/size),new Vector2(u0,(top-imageBottom)/size)};
                 var expectedPoints=new[]{new Vector2(originX-size*.5f,originY+bottom),new Vector2(originX+size*.5f,originY+bottom),
                     new Vector2(originX+size*.5f,originY+top),new Vector2(originX-size*.5f,originY+top)};
                 for(int corner=0;corner<4;corner++)
                 {
                     int at=first+corner;
-                    Assert.That(Vector2.Distance(points[at],expectedPoints[corner]),Is.LessThan(.001f),"Hardware must not reshape or move either baked card.");
-                    Assert.That(Vector2.Distance(uv[at],expectedUv[corner]),Is.LessThan(.00001f));
+                    Assert.That(Vector2.Distance(points[at],expectedPoints[corner]),Is.LessThan(.001f),"Atlas variants must not reshape or move either baked card.");
+                    Assert.That(points[at].z,Is.EqualTo(depth).Within(.001f),"Each atlas variant keeps its own foundation depth.");
+                    Assert.That(Vector2.Distance(uv[at],expectedUv[corner]),Is.LessThan(.00001f),"Near uses the left tile and far uses the right, with the same vertical split and baked light orientation.");
                     Assert.That(colours[at],Is.EqualTo(Color.white));
                 }
                 int[] cardTriangles={first,first+1,first+2,first,first+2,first+3};
-                Assert.That(triangles.Length-triangle,Is.GreaterThanOrEqualTo(6));
-                foreach(int index in cardTriangles)Assert.That(triangles[triangle++],Is.EqualTo(index),"The image quad draws before its fitted parts.");
-                Vector2 sample=squat?new Vector2(.52f,.53f):new Vector2(.60f,.68f);
-                for(int i=first+4;i<end;i++)
-                {
-                    Assert.That(uv[i],Is.EqualTo(sample),"Hardware samples only the verified opaque steel patch.");
-                    Assert.That(points[i].z,Is.EqualTo(depth).Within(.001f),"Service parts inherit their own boiler's depth.");
-                    float dx=Mathf.Abs(points[i].x-originX),height=squat?2.28f:7.2f;
-                    Assert.That(dx,Is.LessThanOrEqualTo(4*axis+.001f));
-                    Assert.That(points[i].y,Is.InRange(originY-2*axis+dx*.5f-.001f,originY+2*axis-dx*.5f+height+.001f),
-                        "Fitted parts stay inside the original projected footprint and height extrusion.");
-                }
-                while(triangle<triangles.Length&&triangles[triangle]<end)
-                {
-                    Assert.That(triangles.Length-triangle,Is.GreaterThanOrEqualTo(3));
-                    for(int corner=0;corner<3;corner++)
-                        Assert.That(triangles[triangle++],Is.InRange(first+4,end-1),"Hardware triangles cannot connect to image cards or another boiler.");
-                }
-                hardware+=end-first-4;first=end;
+                for(int index=0;index<cardTriangles.Length;index++)
+                    Assert.That(triangles[side*6+index],Is.EqualTo(cardTriangles[index]),"Only the original image quads remain; no overlay hardware or cross-card triangles.");
             }
-            Assert.That(first,Is.EqualTo(points.Length),"Only the two original boiler depth owners may occur in a shared band.");
-            Assert.That(triangle,Is.EqualTo(triangles.Length));
-            if(!upper)Assert.That(points.Length,Is.EqualTo(8));
-            return hardware;
         }
         [Test] public void CompactGateServicesStayOutsidePavingAndRemainPhysicallySupported()
         {
@@ -340,17 +316,20 @@ namespace Cryptforge.Tests
             Material keeperVariant=null;
             var baked=Resources.Load<Texture2D>("FoundryBoiler");
             Assert.That(baked,Is.Not.Null);
-            Assert.That(baked.isReadable,Is.False);
-            Assert.That(baked.mipmapCount,Is.GreaterThan(1));
-            Assert.That(baked.width,Is.EqualTo(1024));
-            Assert.That(baked.height,Is.EqualTo(1024));
             var shortBake=Resources.Load<Texture2D>("FoundryShortBoiler");
             Assert.That(shortBake,Is.Not.Null);
-            Assert.That(shortBake.isReadable,Is.False);
-            Assert.That(shortBake.width,Is.EqualTo(1024));
-            Assert.That(shortBake.mipmapCount,Is.GreaterThan(1));
+            foreach(var atlas in new[]{baked,shortBake})
+            {
+                Assert.That(atlas.isReadable,Is.False);
+                Assert.That(atlas.width,Is.EqualTo(2048),"The two 1024-square variants share one horizontal atlas.");
+                Assert.That(atlas.height,Is.EqualTo(1024));
+                Assert.That(atlas.mipmapCount,Is.EqualTo(12),"Verify the full loaded POT mip chain, not just the importer setting.");
+                Assert.That(atlas.wrapMode,Is.EqualTo(TextureWrapMode.Clamp));
+#if UNITY_ANDROID
+                Assert.That(atlas.format,Is.EqualTo(TextureFormat.ASTC_6x6),"Verify the actual loaded Android compression.");
+#endif
+            }
             var boilerMeshes=new System.Collections.Generic.List<Mesh>();
-            int boilerHardware=0;
             var reservoir=Resources.Load<Texture2D>("FoundryReservoir");
             Assert.That(reservoir,Is.Not.Null);
             Assert.That(reservoir.width,Is.EqualTo(512));
@@ -385,6 +364,8 @@ namespace Cryptforge.Tests
             int salvageBatches=0;
             int reservoirBatches=0;
             var reservoirRanks=new System.Collections.Generic.HashSet<int>();
+            var tallBoilerRanks=new System.Collections.Generic.HashSet<int>();
+            var shortBoilerRanks=new System.Collections.Generic.HashSet<int>();
             int shortBatches=0;
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
@@ -453,20 +434,22 @@ namespace Cryptforge.Tests
                 if(renderer.sharedMaterial.mainTexture==shortBake)
                 {
                     shortBatches++;
+                    shortBoilerRanks.Add(renderer.sortingOrder);
                     var shortMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
                     boilerMeshes.Add(shortMesh);
-                    boilerHardware+=VerifyBoilerBand(shortMesh,renderer.sortingOrder,true);
+                    VerifyBoilerBand(shortMesh,renderer.sortingOrder,true);
                     continue;
                 }
                 if(renderer.sharedMaterial.mainTexture==baked)
                 {
                     bakedBatches++;
+                    tallBoilerRanks.Add(renderer.sortingOrder);
                     if(renderer.sortingOrder>-15)
                     {
                         bakedDepthBands++;
                         var card=renderer.GetComponent<MeshFilter>().sharedMesh;
                         boilerMeshes.Add(card);
-                        boilerHardware+=VerifyBoilerBand(card,renderer.sortingOrder,false);
+                        VerifyBoilerBand(card,renderer.sortingOrder,false);
                     }
                     continue;
                 }
@@ -513,7 +496,9 @@ namespace Cryptforge.Tests
             Assert.That(reservoirBatches,Is.EqualTo(2));
             Assert.That(reservoirRanks.Count,Is.EqualTo(2));
             Assert.That(shortBatches,Is.EqualTo(2),"Distinct short texture uses two bounded bands.");
-            Assert.That(boilerHardware,Is.InRange(1,600),"Fitted service hardware has a small shared geometry budget, with no extra material batch.");
+            Assert.That(tallBoilerRanks,Is.EquivalentTo(new[]{-10,-7}));
+            Assert.That(shortBoilerRanks,Is.EquivalentTo(new[]{-10,-7}));
+            Assert.That(boilerMeshes.Count,Is.EqualTo(4),"Two atlases retain exactly four shared depth-band batches.");
             Assert.That(otherBatches,Is.LessThanOrEqualTo(22),"The casting bench adds one card; its supports reuse the existing masonry batches.");
             Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(32),
                 "One casting bench card adds one renderer to the measured 31-renderer region.");
@@ -846,7 +831,7 @@ namespace Cryptforge.Tests
             Assert.That(material!=null,Is.True,"Reload preserves the explicitly selected borrowed floor material.");
             Assert.That(keeperMesh==null,Is.True,"Reload releases the guardian mesh.");
             Assert.That(keeperVariant==null,Is.True,"Reload releases the guardian cutaway material.");
-            foreach(var boilerMesh in boilerMeshes)Assert.That(boilerMesh==null,Is.True,"Reload releases both boiler cards and their fitted geometry.");
+            foreach(var boilerMesh in boilerMeshes)Assert.That(boilerMesh==null,Is.True,"Reload releases all four boiler atlas card batches.");
             foreach(var source in boilerSources)Assert.That(source==null,Is.True,"Reload releases the owned boiler source materials.");
             Assert.That(baked!=null&&shortBake!=null,Is.True,"Reload preserves borrowed boiler textures.");
             Assert.That(hoistMesh==null&&hoistVariant==null&&hoistSource==null,Is.True,

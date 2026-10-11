@@ -635,3 +635,14 @@ Remaining art priorities: overall court-to-gate proportions against the referenc
 - [ ] Accumulated device circulation, crowd, first-ramp, shimmer and midrange acceptance remains open. Region progression/boss design remains deferred under the owner art-first direction.
 
 Evidence: ArtDirection/2026-10-11/foundry-compact-gate-01. This supersedes the initial gate-arm proportion item above, not full map/reference or physical-device acceptance.
+
+## 2026-10-11 - Industrial furnace complex integrated
+
+- [x] Distinct complete tall furnace profiles with shared original firebox/socket/steam contracts.
+- [x] Distinct low foreground retorts with integrated inspection/service details and retained2.28height envelope.
+- [x] Lossless two-tile atlases and unchanged runtime batch/depth/material ownership; remove obsolete hatch overlay.
+- [x] Independent source/contact and actual Unity art review; corrected closed flues and receiver seating before import.
+- [ ] Full reference fidelity remains open: next major visual gap is coherent gate housing/supporting stone architecture and functional pipework, not another small furnace trim pass.
+- [ ] Accumulated device circulation/crowd/midrange/first-ramp/shimmer acceptance remains open. Region encounters/boss progression is still deferred by the art-first direction.
+
+Scope/evidence: ArtDirection/2026-10-11/foundry-industrial-01. The five-helper batch closes the furnace-individuality candidate in the prior compact-gate package; it does not declare every map-art or device task finished.

@@ -1,0 +1,48 @@
+[
+  {
+    "variant": 0,
+    "evaluated_vertices": 10888,
+    "evaluated_triangles": 21148,
+    "actual_maximum_radius": 2.375078983243632,
+    "actual_maximum_height": 7.199999870772734,
+    "nominal_foundation_radius": 2,
+    "shell_socket_radius": 1.6,
+    "shell_socket_height": 4.05,
+    "flue_outlet": [
+      0,
+      0,
+      7.2
+    ],
+    "width": 1024,
+    "height": 1024,
+    "ortho_scale": 10.8,
+    "image_bottom": -1.8,
+    "height_compensation": 1.1547005383792515,
+    "blender": "4.5.9 LTS",
+    "source_blend": "ArtDirection\\2026-10-09\\blender-furnace-02\\furnace-study.blend",
+    "limitation": "Native authoring meshes; only the RGBA bakes are intended for existing runtime cards."
+  },
+  {
+    "variant": 1,
+    "evaluated_vertices": 11760,
+    "evaluated_triangles": 22884,
+    "actual_maximum_radius": 2.375078983243632,
+    "actual_maximum_height": 7.199999870772734,
+    "nominal_foundation_radius": 2,
+    "shell_socket_radius": 1.6,
+    "shell_socket_height": 4.05,
+    "flue_outlet": [
+      0,
+      0,
+      7.2
+    ],
+    "width": 1024,
+    "height": 1024,
+    "ortho_scale": 10.8,
+    "image_bottom": -1.8,
+    "height_compensation": 1.1547005383792515,
+    "blender": "4.5.9 LTS",
+    "source_blend": "ArtDirection\\2026-10-09\\blender-furnace-02\\furnace-study.blend",
+    "limitation": "Native authoring meshes; only the RGBA bakes are intended for existing runtime cards."
+  }
+]

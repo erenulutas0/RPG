@@ -1,0 +1,32 @@
+[
+  {
+    "file": "variant-0.png",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_bounds": [
+      318,
+      140,
+      706,
+      948
+    ],
+    "sha256": "ee14f4986a6c3e2cc1c3c923084152921118aad0e9af4d363cf5da11c71cece0"
+  },
+  {
+    "file": "variant-1.png",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_bounds": [
+      318,
+      145,
+      706,
+      948
+    ],
+    "sha256": "9350235aa4e92b63bddd7beba18ecefdb30fda9afafa80f806bd37478e89d9cd"
+  }
+]
