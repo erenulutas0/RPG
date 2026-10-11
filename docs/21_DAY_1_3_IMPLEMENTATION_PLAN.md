@@ -2237,3 +2237,8 @@ The first full gate failed the stale chest-telemetry100HP ceiling when a health 
 APK 36210895 bytes; SHA256 AFE4F820B60956F22C6C8A9A317585BAD37E3A00C386C6BDA97D2FED8B45B502. NOT INSTALLED. No ADB/fresh phone observation. Earlier concrete owner-run restart/install decision remains pending; historical021b95f and Room2/74HP/8unbankedgold are not current state. After authorization inspect fresh, back up current files, install/hash-check latest package and preserve current original saves/telemetry. Never restore stale snapshots. Device/crowd/midrange/first-ramp/motion acceptance remains open; region gameplay/boss progression stays deferred.
 
 Next substantial visual priority: authored north-shaft/broken-span silhouettes if navigation stays frozen, or a whole northwest-workyard composition with explicit circulation/blocked-footprint contracts. Do not repeat an isolated tint/trim pass or place raised scenery on walkable floor without shared navigation.
+
+
+## 2026-10-11 - Native north silhouette integration
+
+One runtime partial adds distinct receding crowns, connected corner buttresses and closed broken-span fracture profiles. Geometry contact fix reviewed before capture; existing lifecycle/order/finite-geometry/budget tests retained. No scene, camera, navigation or combat change. Actual region 32 renderers / 118,817 vertices; distant 2,496 under the unchanged 2,500 ceiling. PASS 409 pure / 446 EditMode / 157 PlayMode, compile clean, static 586/1099/568, Android exit 0. Review, final XML and package identity: ArtDirection/2026-10-11/foundry-north-silhouette-01/validation/verification.md. No ADB/device validation this slice; see newest docs23 before any device operation. Broader workyard circulation and reference richness remain follow-up work.

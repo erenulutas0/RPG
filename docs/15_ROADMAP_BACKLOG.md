@@ -597,3 +597,13 @@ Evidence and final verification: ArtDirection/2026-10-11/foundry-backdrop-depth-
 - [ ] Full reference fidelity and physical-device/crowd/midrange/first-ramp acceptance remain open. Regional gameplay/boss progression stays deferred.
 
 Evidence, final gate and package/device state: ArtDirection/2026-10-11/foundry-distant-material-01.
+
+## 2026-10-11 - North skyline structure
+
+- [x] Differentiate the two north-shaft crowns and connect substantial buttresses into their receding shoulders.
+- [x] Replace flat broken-span ends with unequal closed fracture profiles; preserve the 2,500-vertex distant ceiling and existing traversal.
+- [x] Capture actual matched Unity views and verify the comparison browser controls.
+- [ ] Next substantial art priority: coherent northwest workyard composition, with explicit circulation and shared blocked-footprint contracts before adding raised objects to reachable floor.
+- [ ] Full reference fidelity and device/crowd/midrange/first-ramp/motion acceptance remain open; region gameplay/boss progression remains deferred.
+
+Evidence and final verification: ArtDirection/2026-10-11/foundry-north-silhouette-01. This supersedes the pending north-shaft silhouette item above, not the remaining workyard or device items.

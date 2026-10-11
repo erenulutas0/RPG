@@ -137,26 +137,43 @@ namespace Cryptforge.UI
             // Continuous narrow foundation, then a recessed core. No outer full
             // wall crosses either bay: the pier/spandrel geometry forms its opening.
             float lowerJoint=Mathf.Lerp(bottom,sill,.5f);
-            DistantBlock(mesh,u0+.20f,v0+.20f,u1-.20f,v1-.20f,bottom,lowerJoint,tone*.73f);
+            // The next foundation course covers this cap completely.
+            DistantBlock(mesh,u0+.20f,v0+.20f,u1-.20f,v1-.20f,bottom,lowerJoint,tone*.73f,false);
             DistantBlock(mesh,u0+.20f,v0+.20f,u1-.20f,v1-.20f,lowerJoint,sill,tone*.73f);
             DistantBlock(mesh,u0+.10f,v0+.10f,u1-.10f,v1-.10f,sill-.45f,sill,tone*.90f);
             DistantBlock(mesh,u0+recess,v0+recess,u1-.20f,v1-.20f,sill,shoulder,tone*.52f);
             // West face is emitted first; the south corner face is nearer the camera.
             DistantRecessFace(mesh,fire,u0,v0,u1,v1,true,sill,shoulder,recess,tone*.74f);
             DistantRecessFace(mesh,fire,u0,v0,u1,v1,false,sill,shoulder,recess,tone);
-            // Stepped load-bearing shoulders become a tapered upper shaft. These
-            // are sloping masonry faces, not a repetitive pile of floating caps.
+            // Corner buttresses carry the shoulder independently of the open fire
+            // bays. Their sloping heads meet the neck rather than ending as posts.
+            foreach(float x in new[]{u0-.16f,u1-.46f})
+            {
+                DistantBlock(mesh,x,v0-.20f,x+.62f,v0+.44f,sill,shoulder-.75f,tone*.85f);
+                // Lean the head into the receding shoulder, keeping a shared
+                // bearing volume instead of a detached fin beside the neck.
+                float inward=x<(u0+u1)*.5f?.55f:-.55f;
+                DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,shoulder+2.0f,.16f,tone*.94f,inward,.55f);
+            }
+            // A tall narrowed exhaust and a lower broad furnace hood replace the
+            // same square slab on both shafts. All roofs stay on their masonry neck.
+            float neck=variant==1?.90f:.68f;
             DistantTaper(mesh,u0-.06f,v0-.06f,u1+.06f,v1+.06f,shoulder,shoulder+.52f,.18f,tone);
-            DistantTaper(mesh,u0+.12f,v0+.12f,u1-.12f,v1-.12f,shoulder+.52f,top-1.10f,.39f,tone*.92f);
-            DistantBlock(mesh,u0+.42f,v0+.42f,u1-.42f,v1-.42f,top-1.1f,top-.52f,tone*.92f);
-            DistantBlock(mesh,u0+.28f,v0+.28f,u1-.28f,v1-.28f,top-.52f,top-.13f,tone*1.06f);
-            DistantBlock(mesh,u0+.44f,v0+.44f,u1-.44f,v1-.44f,top-.13f,top,tone);
+            DistantTaper(mesh,u0+.12f,v0+.12f,u1-.12f,v1-.12f,shoulder+.52f,top-2.0f,neck-.12f,tone*.92f);
+            DistantBlock(mesh,u0+neck,v0+neck,u1-neck,v1-neck,top-2.0f,top-.92f,tone*.87f);
+            DistantBlock(mesh,u0+neck-.13f,v0+neck-.13f,u1-neck+.13f,v1-neck+.13f,top-.92f,top-.65f,tone*1.06f);
+            DistantTaper(mesh,u0+neck-.13f,v0+neck-.13f,u1-neck+.13f,v1-neck+.13f,top-.65f,top,.38f,tone);
             if(variant==2)
             {
                 float u=(u0+u1)*.5f,v=(v0+v1)*.5f;
-                DistantBlock(mesh,u-.36f,v+.20f,u+.36f,v+.92f,top,top+.95f,tone*.82f);
-                DistantBlock(mesh,u-.45f,v+.11f,u+.45f,v+1.01f,top+.80f,top+1.1f,tone);
+                DistantBlock(mesh,u-.36f,v+.02f,u+.36f,v+.74f,top,top+.95f,tone*.82f);
+                DistantBlock(mesh,u-.45f,v-.07f,u+.45f,v+.83f,top+.80f,top+1.1f,tone);
             }
+            else
+                DistantMasonryFace(mesh,Project(u0+neck+.40f,v0+neck+.40f)+Vector3.up*(top+.002f),
+                    Project(u1-neck-.40f,v0+neck+.40f)+Vector3.up*(top+.002f),
+                    Project(u1-neck-.40f,v1-neck-.40f)+Vector3.up*(top+.002f),
+                    Project(u0+neck+.40f,v1-neck-.40f)+Vector3.up*(top+.002f),true,tone*.24f);
         }
 
         private static Vector3 DistantFacePoint(float u0,float v0,float u1,float v1,bool west,float t,float z,float inset)
@@ -292,12 +309,13 @@ namespace Cryptforge.UI
             }
         }
 
-        private static void DistantTaper(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,float inset,Color tone)
+        private static void DistantTaper(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,float inset,Color tone,
+            float topU=0,float topV=0)
         {
             Vector3 a=Project(u0,v0)+Vector3.up*bottom,b=Project(u1,v0)+Vector3.up*bottom;
             Vector3 d=Project(u0,v1)+Vector3.up*bottom;
-            Vector3 e=Project(u0+inset,v0+inset)+Vector3.up*top,f=Project(u1-inset,v0+inset)+Vector3.up*top;
-            Vector3 g=Project(u1-inset,v1-inset)+Vector3.up*top,h=Project(u0+inset,v1-inset)+Vector3.up*top;
+            Vector3 e=Project(u0+inset+topU,v0+inset+topV)+Vector3.up*top,f=Project(u1-inset+topU,v0+inset+topV)+Vector3.up*top;
+            Vector3 g=Project(u1-inset+topU,v1-inset+topV)+Vector3.up*top,h=Project(u0+inset+topU,v1-inset+topV)+Vector3.up*top;
             DistantMasonryFace(mesh,d,a,e,h,false,tone*.70f);
             DistantMasonryFace(mesh,a,b,f,e,false,tone);
             DistantMasonryFace(mesh,e,f,g,h,true,tone*1.10f);
@@ -312,12 +330,12 @@ namespace Cryptforge.UI
             }
         }
 
-        private static void DistantBlock(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,Color tone)
+        private static void DistantBlock(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,Color tone,bool cap=true)
         {
             Vector3 a=Project(u0,v0),b=Project(u1,v0),c=Project(u1,v1),d=Project(u0,v1);
             DistantMasonryFace(mesh,d+Vector3.up*bottom,a+Vector3.up*bottom,a+Vector3.up*top,d+Vector3.up*top,false,tone*.70f);
             DistantMasonryFace(mesh,a+Vector3.up*bottom,b+Vector3.up*bottom,b+Vector3.up*top,a+Vector3.up*top,false,tone);
-            DistantMasonryFace(mesh,a+Vector3.up*top,b+Vector3.up*top,c+Vector3.up*top,d+Vector3.up*top,true,tone*1.13f);
+            if(cap)DistantMasonryFace(mesh,a+Vector3.up*top,b+Vector3.up*top,c+Vector3.up*top,d+Vector3.up*top,true,tone*1.13f);
         }
 
         private static void DistantArchSpan(Builder mesh,Vector3 a,Vector3 b,Color tone)
@@ -338,8 +356,35 @@ namespace Cryptforge.UI
                 float riseP=Mathf.Sqrt(Mathf.Max(0,1-(t*2-1)*(t*2-1)))*4.1f;
                 float riseQ=Mathf.Sqrt(Mathf.Max(0,1-(next*2-1)*(next*2-1)))*4.1f;
                 Vector3 lowerP=p+Vector3.down*(5.2f-riseP),lowerQ=q+Vector3.down*(5.2f-riseQ);
-                SpanFace(lowerP+back,lowerQ+back,q+back,p+back,false,tone*.65f);
-                SpanFace(lowerP,lowerQ,q,p,false,tone*.88f);
+                bool broken=i==6||i==10;
+                if(broken)
+                {
+                    // The two severed ends have different fracture angles. Front
+                    // and rear share each authored notch, closing the exposed core
+                    // without a square cut, floating rubble or a paper-thin edge.
+                    bool left=i==6;
+                    Vector3 inward=(left?a-b:b-a).normalized;
+                    Vector3 low=(left?lowerQ:lowerP)+inward*.12f;
+                    Vector3 high=(left?q:p)+inward*(left?.30f:.16f);
+                    Vector3 notch=Vector3.Lerp(low,high,left?.43f:.62f)+inward*(left?.46f:.33f);
+                    Vector3 innerLow=left?lowerP:lowerQ,innerHigh=left?p:q;
+                    Vector3 middle=Vector3.Lerp(innerLow,innerHigh,left?.43f:.62f);
+                    var ends=new[]{low,notch,high};var inner=new[]{innerLow,middle,innerHigh};
+                    for(int band=0;band<2;band++)
+                    {
+                        Vector3 f0=left?inner[band]:ends[band],f1=left?ends[band]:inner[band];
+                        Vector3 f2=left?ends[band+1]:inner[band+1],f3=left?inner[band+1]:ends[band+1];
+                        SpanFace(f0+back,f1+back,f2+back,f3+back,false,tone*.65f);
+                        SpanFace(f0,f1,f2,f3,false,tone*.88f);
+                        SpanFace(ends[band],ends[band]+back,ends[band+1]+back,ends[band+1],false,tone*(band==0?.57f:.74f));
+                    }
+                    if(left){lowerQ=low;q=high;}else{lowerP=low;p=high;}
+                }
+                else
+                {
+                    SpanFace(lowerP+back,lowerQ+back,q+back,p+back,false,tone*.65f);
+                    SpanFace(lowerP,lowerQ,q,p,false,tone*.88f);
+                }
                 SpanFace(lowerP+back,lowerQ+back,lowerQ,lowerP,false,tone*.48f);
                 SpanFace(p,q,q+back,p+back,true,tone*1.08f);
                 // Low masonry parapet and occasional squared posts keep the span
@@ -347,16 +392,18 @@ namespace Cryptforge.UI
                 Vector3 rail=Vector3.up*.43f,railBack=back*.28f;
                 SpanFace(p,q,q+rail,p+rail,false,tone*.88f);
                 SpanFace(p+rail,q+rail,q+rail+railBack,p+rail+railBack,true,tone*1.05f);
-                if(i==0||i==3||i==6||i==10||i==13||i==15)
+                if(broken)
+                {
+                    Vector3 end=i==6?q:p;
+                    SpanFace(end,end+railBack,end+rail+railBack,end+rail,false,tone*.62f);
+                }
+                if(i==0||i==3||i==13||i==15)
                 {
                     Vector3 post=(p+q)*.5f,half=(q-p).normalized*.14f;
                     SpanFace(post-half,post+half,post+half+Vector3.up*.70f,post-half+Vector3.up*.70f,false,tone);
                     SpanFace(post-half+Vector3.up*.70f,post+half+Vector3.up*.70f,
                         post+half+Vector3.up*.70f+railBack,post-half+Vector3.up*.70f+railBack,true,tone*1.1f);
                 }
-                if(i==6||i==10)
-                    SpanFace(i==6?lowerQ:lowerP,(i==6?lowerQ:lowerP)+back,
-                        (i==6?q:p)+back,i==6?q:p,false,tone*.60f);
             }
             // Deep bearing shoes extend below both springings and meet the tower
             // cores. They are emitted before the towers, so the latter own overlap.
