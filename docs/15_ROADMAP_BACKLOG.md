@@ -618,3 +618,10 @@ Evidence and final verification: ArtDirection/2026-10-11/foundry-north-silhouett
 - [ ] Reference material/authored equipment richness remains incomplete; next art work should improve the coherent working kit rather than scatter unrelated props. Region encounter/boss progression stays deferred.
 
 Evidence and final validation: ArtDirection/2026-10-11/foundry-workyard-islands-01. This supersedes the pending initial workyard grouping above, not the full-reference/device items.
+
+
+## 2026-10-11 - Broad court package
+
+Completed visual scope: physical main-court width44->50, west working strip14->20; coherent relocated west assemblies and interior freight yard; connected trolley hardware and detailed mould bench. Baselineb5bcbed comparison: ArtDirection/2026-10-11/foundry-broad-court-01. Map bounds, art, movement and tests remain shared; camera scale retained. Extra floor changes encounter spacing opportunity even though encounter counts/data are untouched; no balance acceptance implied.
+
+Remaining art priorities: overall court-to-gate proportions against the reference, authored equipment/architectural material richness, then accumulated actual-device circulation/crowd/shimmer/midrange acceptance. Avoid substituting small trim changes for structural reference differences. Region progression and bosses remain deferred under owner art-first direction. No claim of full reference completion or installed package.

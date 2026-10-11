@@ -21,7 +21,13 @@ namespace Cryptforge.Tests
         {
             // Representative actual foundry rooms, with ceremonial, work and approach
             // zones. Reflection exercises the production packer without a test-only API.
-            const int u0=-30,v0=-14,width=128,height=64;
+            int u0=FoundryMap.West,v0=FoundryMap.South,maxU=u0,maxV=v0;
+            for(int room=0;room<FoundryMap.RectangleCount;room++)
+            {
+                maxU=Math.Max(maxU,FoundryMap.Bound(room,2));
+                maxV=Math.Max(maxV,FoundryMap.Bound(room,3));
+            }
+            int width=(maxU-u0)*2,height=(maxV-v0)*2;
             var zone=new sbyte[width,height];
             for(int i=0;i<width;i++)for(int j=0;j<height;j++)zone[i,j]=-1;
             for(int room=0;room<FoundryMap.RectangleCount;room++)

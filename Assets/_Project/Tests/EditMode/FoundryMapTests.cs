@@ -102,9 +102,9 @@ namespace Cryptforge.Tests
             }
         }
 
-        [TestCase(-29f,-13f,-26f,-9f)]
+        [TestCase(FoundryMap.West+1f,-13f,FoundryMap.West+4f,-9f)]
         [TestCase(13f,-13f,9f,-9f)]
-        [TestCase(-29f,17f,-27f,15f)]
+        [TestCase(FoundryMap.West+1f,17f,FoundryMap.West+3f,15f)]
         [TestCase(13f,17f,11f,15f)]
         public void ChamferRejectsRemovedCornerAndStopsLongMovement(float cutU,float cutV,float safeU,float safeV)
         {
@@ -230,6 +230,45 @@ namespace Cryptforge.Tests
         {
             AssertRoute(u,v,goalU,goalV);
             AssertRoute(goalU,goalV,u,v);
+        }
+        [Test] public void WiderCourtAddsTraversableAreaWithoutMovingPitBridgeOrGate()
+        {
+            Assert.That(FoundryMap.East-FoundryMap.West,Is.EqualTo(50),"The width change is physical floor, not camera framing.");
+            foreach(var design in new[]{new[]{-34f,0f},new[]{-32f,12f},new[]{-32f,-9f},new[]{-33f,15f}})
+            {
+                FoundryMap.ToFloor(design[0],design[1],out float x,out float y);
+                Assert.That(FoundryMap.SurfaceContains(x,y,.6f),Is.True,"New western floor has actor clearance.");
+                Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+                FoundryMap.ToFloor(design[0]+.3f,design[1]+.2f,out float tx,out float ty);
+                Assert.That(FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f),Is.True);
+                Assert.That(ArenaFloor.FloorDistanceSquared(x,y,tx,ty),Is.LessThan(.00001f));
+            }
+            Assert.That(new[]{FoundryMap.PitWest,FoundryMap.PitSouth,FoundryMap.PitEast,FoundryMap.PitNorth},Is.EqualTo(new[]{-16,2,-4,14}));
+            Assert.That(new[]{FoundryMap.BridgeStart,FoundryMap.BridgeEnd,FoundryMap.BridgeHalfWidth},Is.EqualTo(new[]{-66,-22,5}));
+            Assert.That(new[]{FoundryMap.Bound(5,0),FoundryMap.Bound(5,1),FoundryMap.Bound(5,2),FoundryMap.Bound(5,3)},Is.EqualTo(new[]{28,-2,32,12}));
+        }
+        [TestCase(-34f,0f)]
+        [TestCase(-32f,12f)]
+        [TestCase(-32f,-9f)]
+        public void NewWesternFloorSupportsFullPacksAndBothWayPursuit(float u,float v)
+        {
+            var entries=new EntryPlacement[10];
+            FoundryMap.ToFloor(u,v,out float hx,out float hy);
+            for(int wave=0;wave<4;wave++)
+            {
+                FoundryMap.PlacePack(wave,10,hx,hy,.9f,entries);
+                for(int i=0;i<entries.Length;i++)
+                {
+                    Assert.That(FoundryMap.Contains(entries[i].X,entries[i].Y,.6f),Is.True);
+                    Assert.That(FoundryMap.Segment(hx,hy,entries[i].X,entries[i].Y,.6f),Is.True);
+                    for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(entries[i].X,entries[i].Y,entries[j].X,entries[j].Y),Is.GreaterThanOrEqualTo(.9f*.9f));
+                }
+            }
+            foreach(var goal in new[]{new[]{0f,6f},new[]{28f,6f},new[]{-23f,-23f}})
+            {
+                AssertRoute(u,v,goal[0],goal[1]);
+                AssertRoute(goal[0],goal[1],u,v);
+            }
         }
         private static void AssertRoute(float u,float v,float goalU,float goalV)
         {

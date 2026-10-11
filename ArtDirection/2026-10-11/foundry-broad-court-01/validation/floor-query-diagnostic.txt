@@ -1,0 +1,2 @@
+Floor diagnostic point=(-15.55635000, -16.97056000); tri=1315; a=(-35.00179000, -7.24784400); b=(-35.35534000, -7.07106700); c=(-35.35534000, -7.07106800); area=3,37175152E-07; bary=0,1,0
+Triangle bounding box is remote from the queried point; float barycentric cancellation produced false coverage. Production floor unchanged; test oracle uses bounds and double orientation. Expected removed-corner occupancy remains false.

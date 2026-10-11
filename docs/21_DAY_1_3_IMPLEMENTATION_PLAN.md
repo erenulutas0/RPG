@@ -2247,3 +2247,10 @@ One runtime partial adds distinct receding crowns, connected corner buttresses a
 ## 2026-10-11 - Shared work-island art and navigation
 
 FoundryMap exposes two immutable equipment bounds and separates SurfaceContains from walkability; Segment sweeps actor-clearance-expanded rectangles analytically with1e-4 relief. Existing movement/spawn delegate to them; pursuit statically derives8new corners. ProductionYard reads the same rectangles for low iron skids, loaded trolley and mould bench. Surface-only art/exterior tests retain actual floor semantics. No new texture/renderer/updater; scene, camera, balance and progression unchanged. Eight new pure/EditMode cases and expanded existing full-region scene assertions verify floor/contact/depth and navigation. Final417/454/157, compileclean, static586/1099/568, Androidexit0. Evidence/package/device state: ArtDirection/2026-10-11/foundry-workyard-islands-01/validation/verification.md. No ADB this slice; device motion/crowd acceptance remains open.
+
+
+## 2026-10-11 - Broad court integration
+
+FoundryMap width and shared island coordinates, FoundryRegionProductionYard rail placement and equipment detail integrated as one package. Width-dependent chamfer, paving packing and imported-card depth tests now derive actualbounds; old removed-corner points are explicitly tested as newfloor. Four new pure cases verify new-strip movement, four ten-enemy waves and bidirectional pursuit to court/gate/bridge. Camera Foundry path follows hero without generic-clamp limitation. Three helpers split width/tests, equipment and independent art QA; root alone owns Unity/ADB.
+
+First full gate caught a floor-test oracle falsepositive: a near-degenerate clipped triangle far outside the queried corner returnedfloatbarycentrics(0,1,0). Recorded diagnostic retained; double orientations and triangle bounds reject remote slivers without changing expected geometry or production source. Failed, focused and final test evidence is retained under ArtDirection/2026-10-11/foundry-broad-court-01/validation. No phone operation or fresh observation; latest finalbuild record in docs22/23/38.

@@ -1,0 +1,17 @@
+Baseline b5bcbed: accepted final workyard-islands captures reused unchanged; not a new execution.
+8496D0A9E3D08B281D80FE5485F724BD7F1E525E68DF0ED2F2AD8B3384704183  before/overview.png  <- ../foundry-workyard-islands-01/after/overview.png
+6ACB62E8C5D5734A3B1DC57358F4C711320857671858FAC06685BFEF6B42F2D1  before/full-map.png  <- ../foundry-workyard-islands-01/after/full-map.png
+63497E9ACEAF1E44F4041B60D3CB848C06351E0A3CD413A2DD77C71EDA480579  before/yard-detail.png  <- ../foundry-workyard-islands-01/after/yard-detail.png
+D6840534F4D30DE7F3A7FD0C422FD4B4F454E0BC1BF5DE8CA0254980E1B62149  before/workshop-detail.png  <- ../foundry-workyard-islands-01/after/workshop-detail.png
+CBDC10CE09A7676CDFE0E006DB8C33680BCADC4A04C0B8A528C5EF41D08CF58C  before/crane-detail.png  <- ../foundry-workyard-islands-01/after/crane-detail.png
+C0E0D5648BFC03C3AA3B3C22548FE58382D6E79426BCAD9F21460A0316828927  before/expanded--27-6.png  <- ../foundry-workyard-islands-01/after/expanded--27-6.png
+D46E68C1AD6BB6BC61FD72DA5BE7E8E5A8F806B0C04002D39AD21DB9EFCFA2C1  before/expanded--26-15.png  <- ../foundry-workyard-islands-01/after/expanded--26-15.png
+C9FB50AC06980D423605BA15CA6B5CBE405BC462955082C8D10CFBA05EB9135F  before/casting-portrait.png  <- ../foundry-workyard-islands-01/after/casting-portrait.png
+DAF51848FBAAF1F4CF6E7E217AD9E0516B21B319C7FCDEBDFF78CD9D106DAFD3  before/islands-yard-wide.png  <- ../foundry-workyard-islands-01/after/islands-yard-wide.png
+F22252009F26BDC34DAE83E6D5E90296B8E665CE365ACC8F39F3A0EBE50FD7C5  before/islands-trolley-portrait.png  <- ../foundry-workyard-islands-01/after/islands-trolley-portrait.png
+F7BB2F710254BFE8B48E051C244F94E0533C7DC150222C9D847EDB5852F2A460  before/islands-mould-portrait.png  <- ../foundry-workyard-islands-01/after/islands-mould-portrait.png
+EE345758E9510954BF81A1535E12C139C62A54A98B3EAC8A418A298D230997C2  before/runtime-budget.txt  <- ../foundry-workyard-islands-01/after/runtime-budget.txt
+6E08DF7FD38510ECB692E2F5C52AF2C2FB811B510CD3335202C3192F9B143807  before/distant-budget.txt  <- ../foundry-workyard-islands-01/after/distant-budget.txt
+E3A1C75DF941C39859A46F2597E0EB505FD32175FBA20770C8DD22DC05E01C59  before/distant-material.txt  <- ../foundry-workyard-islands-01/after/distant-material.txt
+0E250043E69E22160A29887B5B15E9D58ADB4DC9240C5E67E210D815BDECE92F  before/cavern-texture.txt  <- ../foundry-workyard-islands-01/after/cavern-texture.txt
+B9370B0E5C91D01F0B69AEB04F6843D44806C73C67196E3F3DCD4B1A23F58978  before/graphics.xml  <- ../foundry-workyard-islands-01/after/graphics.xml

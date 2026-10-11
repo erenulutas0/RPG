@@ -960,3 +960,10 @@ Keep navigation frozen for this visual slice. Use two visibly different receding
 Owner continued the reference-led art work. Keeping all equipment on exterior shelves cannot reproduce the reference's working courtyard. Place two low islands on existing floor: trolley[-26,-4,-22,-1.8] and mould bench[-21.8,11.8,-18.6,14], with one shared immutable rectangle contract for visual skids, actor clearance, spawning and pursuit. Reject an earlier western trolley proposal because it occupied a tested anchor and left a narrow edge lane. Final west lane is4units; retain all old camera/circulation assertions.
 
 Distinguish physical paving SurfaceContains from walkable Contains. Exact actor-margin-expanded rectangle sweeps plus1e-4 float relief prevent tunnelling/grazing; add8derived corners to the static pursuit graph. No independent decorative collider or hidden visual-only obstacle. This is the smallest movement support needed by the art slice, not new progression, combat balance or an interactive production system. Assets remain original native geometry, shared materials and continuous floor. Evidence: ArtDirection/2026-10-11/foundry-workyard-islands-01.
+
+
+## 2026-10-11 - Widen the real court, preserve reference landmarks
+
+Decision: after owner explicitly identified insufficient width, move FoundryMap.West from-30 to-36. Preserve South/North/East, pit, bridge and gate. Main span44->50 and western strip14->20 create real floor. Existing WestAssemblyOffset relocates rim assemblies-6; WorkyardShift=(West+30)*.5f recenters interior islands/turntable-3. Rail endpoint followsWest+.35. Shared obstacle and surface contracts remain; no phantom equipment or floor holes.
+
+Consequence:192additional square design units, potentially lower encounter density with unchanged spawn counts. This is a bounded visual-layout adjustment, not a balance decision. Retain casting shelf after actual visual review found the stock/casting gap coherent with intervening tower/balustrade. Equipment detailing stays inside proven footprints. Full reference proportions/materials and physical-device acceptance remain open. Evidence: foundry-broad-court-01.

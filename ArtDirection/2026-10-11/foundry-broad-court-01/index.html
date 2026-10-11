@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge — Geniş çalışma avlusu</title>
+<style>
+:root{font:16px/1.55 system-ui;color:#dfe3ed;background:#11141d;color-scheme:dark}*{box-sizing:border-box}body{margin:0}main{max-width:1400px;margin:auto;padding:28px 20px 60px}h1{font-size:clamp(28px,4vw,44px);line-height:1.15}p{max-width:960px;color:#bec6d4}a{color:#e6bd7b}button,select{font:inherit;background:#252c39;border:1px solid #65718a;color:inherit;padding:10px 18px;min-height:44px;border-radius:6px;cursor:pointer}button[aria-pressed=true]{background:#65492c;border-color:#d4ae6b}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:20px 0}figure{margin:0;border:1px solid #394051;border-radius:8px;overflow:hidden;background:#0b0d14}img{display:block;width:100%;height:auto}figcaption{padding:12px 16px}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0}.status{border-left:3px solid #cfab70;padding:12px 18px;background:#28251f}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #a8caff;outline-offset:3px}@media(max-width:700px){main{padding:20px 12px}.pair{grid-template-columns:1fr}select{max-width:100%}}
+</style>
+<main>
+<p>CRYPTFORGE · GERÇEK UNITY GÖRÜNTÜLERİ</p>
+<h1>Avlu genişliyor, çalışma düzeni tamamlanıyor</h1>
+<p>Ana avlu 44’ten 50 birime, çukurun batısındaki çalışma şeridi 14’ten 20 birime genişledi. Vinç ve stok alanı batıya taşındı; raylar, araba ve tezgâh yeni alana yerleşti. Ekipmanların bağlantıları ve yüzeyleri ayrıntılandırıldı. Önce/sonra görüntülerindeki kamera konumu ve ölçeği aynıdır.</p>
+<p class="status" id="verification">Bunlar oyunun Unity görüntüleridir; telefon ekran görüntüsü değildir. Entegrasyon ve doğrulama durumu <a href="README.md">paket kaydında</a> tutulur. Onaylı referansın bütün görsel ayrıntıları henüz tamamlanmış değildir.</p>
+<div class="controls">
+<button data-phase="before" aria-pressed="false">Önce</button>
+<button data-phase="after" aria-pressed="true">Sonra</button>
+<button data-phase="reference" aria-pressed="false">Onaylı referans</button>
+<label>Görünüm <select id="view" aria-label="Görünüm">
+<option value="overview">Haritaya genel bakış</option>
+<option value="full-map">Haritanın tamamı</option>
+<option value="yard-detail">Avlu ayrıntısı</option>
+<option value="workshop-detail">Atölye ayrıntısı</option>
+<option value="crane-detail">Vinç ve çalışma alanı</option>
+<option value="expanded--27-6">Batı avlusu — dikey</option>
+<option value="expanded--26-15">Kuzeybatı atölyesi — dikey</option>
+<option value="casting-portrait">Döküm tezgâhı yaklaşımı — dikey</option>
+<option value="islands-yard-wide">Çalışma alanları — sabit geniş kamera</option><option value="islands-trolley-portrait">Araba — sabit dikey kamera</option><option value="islands-mould-portrait">Tezgâh — sabit dikey kamera</option></select></label>
+</div>
+<figure><a id="full" href="after/overview.png"><img id="comparison" src="after/overview.png" alt="Sonra: gerçek Unity harita görüntüsü"></a><figcaption id="caption" aria-live="polite">Sonra · gerçek Unity görüntüsü, eşleşen kamera.</figcaption></figure>
+<h2>Harita ve çevresindeki yapılar</h2>
+<div class="pair"><figure><img src="before/full-map.png" alt="Haritanın çevresi önce"><figcaption>Önce · b5bcbed</figcaption></figure><figure><img src="after/full-map.png" alt="Haritanın çevresi sonra"><figcaption>Sonra · aynı kamera</figcaption></figure></div>
+<h2>Avludaki çalışma düzeni</h2>
+<div class="pair"><figure><img src="before/workshop-detail.png" alt="Atölye önce"><figcaption>Önce</figcaption></figure><figure><img src="after/workshop-detail.png" alt="Atölye sonra"><figcaption>Sonra · aynı kamera</figcaption></figure></div>
+<h2>Yeni batı alanı — yalnızca yeni sürüm</h2>
+<p>Bu ek kameralar genişleyen alanı ve yeniden yerleştirilen ekipmanı inceler; karşılaştırma kameraları yukarıda sabittir.</p>
+<figure><img src="after/broad-yard.png" alt="Geniş batı avlusu"><figcaption>Yeni sürüm · geniş çalışma avlusu · Unity</figcaption></figure>
+<div class="pair"><figure><img src="after/broad--27--6.png" alt="Detaylandırılmış yük arabası"><figcaption>Bağlantıları tamamlanan yük arabası</figcaption></figure><figure><img src="after/broad--23-10.png" alt="Kalıp tezgâhı"><figcaption>Ahşap yüzey ve bağlı kalıp sıkıştırıcıları</figcaption></figure></div>
+<div class="pair"><figure><img src="after/broad--34-6.png" alt="Eklenen batı şeridinde karakter"><figcaption>Yeni yürünebilir batı şeridi</figcaption></figure><figure><img src="after/broad--32-12.png" alt="Yeni kuzeybatı yaklaşımı"><figcaption>Kuzeybatı yaklaşımı</figcaption></figure></div>
+<p>Dikey görüntüler oyun kamerasının genişliğini kullanır; karşılaştırma için kahraman yerleştirilmiş ve arayüz gizlenmiştir. Onaylı çizim hedefi gösterir, oyunun tamamlanmış hâlini göstermez. <a href="../../2026-09-23/foundry-layout-01/foundry-v1.png">Referansı tam boy aç</a> · <a href="README.md">Kapsam ve doğrulama</a></p>
+</main>
+<script>
+let phase='after';
+const view=document.querySelector('#view');
+function show(){
+  const reference=phase==='reference';
+  const src=reference?'../../2026-09-23/foundry-layout-01/foundry-v1.png':phase+'/'+view.value+'.png';
+  const label=reference?'Onaylı konsept · oyun ekran görüntüsü değildir.':(phase==='before'?'Önce · temel sürüm b5bcbed':'Sonra')+' · gerçek Unity görüntüsü, eşleşen kamera.';
+  document.querySelector('#comparison').src=src;
+  document.querySelector('#comparison').alt=label;
+  document.querySelector('#full').href=src;
+  document.querySelector('#caption').textContent=label;
+  document.querySelectorAll('[data-phase]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.phase===phase)));
+  view.disabled=reference;
+}
+document.querySelectorAll('[data-phase]').forEach(button=>button.addEventListener('click',()=>{phase=button.dataset.phase;show();}));
+view.addEventListener('change',show);
+show();
+</script>
+</html>

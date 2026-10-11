@@ -10,9 +10,12 @@ namespace Cryptforge.Art
         // Reference-led court: a broad west workshop, a large off-centre furnace opening,
         // and a narrower gate causeway ending in a full-width landing. These same bounds
         // own the floor mesh, hero clearance, spawning and the pursuit visibility graph.
-        public const int West=-30,South=-14,North=18,East=14;
+        public const int West=-36,South=-14,North=18,East=14;
         // Original west service assemblies were authored against the -24 court edge.
         public const int WestAssemblyOffset=West+24;
+        // Interior production equipment moves half the west extension, keeping
+        // working space on both sides between the moving rim and the fixed pit.
+        public const float WorkyardShift=(West+30)*.5f;
         public const int PitWest=-16,PitSouth=2,PitEast=-4,PitNorth=14;
         public const int CornerCut=6;
         public const int NorthCornerCut=4,CornerCount=4;
@@ -20,8 +23,8 @@ namespace Cryptforge.Art
         // share their exact footprint; they do not cut holes in the floor union.
         private static readonly float[,] WorkIslands=
         {
-            {-26f,-4f,-22f,-1.8f},
-            {-21.8f,11.8f,-18.6f,14.0f}
+            {-26f+WorkyardShift,-4f,-22f+WorkyardShift,-1.8f},
+            {-21.8f+WorkyardShift,11.8f,-18.6f+WorkyardShift,14.0f}
         };
         public static int WorkIslandCount=>WorkIslands.GetLength(0);
         public static float WorkIslandBound(int island,int coordinate)=>WorkIslands[island,coordinate];

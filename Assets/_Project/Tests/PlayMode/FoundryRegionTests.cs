@@ -17,16 +17,38 @@ namespace Cryptforge.Tests
         private static bool FloorCovers(Mesh mesh,Vector2 point)
         {
             var vertices=mesh.vertices;var triangles=mesh.triangles;
-            float Cross(Vector2 a,Vector2 b)=>a.x*b.y-a.y*b.x;
+            // Clipping can leave sub-pixel slivers. Float cross products of a far
+            // point can cancel to barycentrics (0,1,0) on such a triangle. Bounds
+            // rejection and double orientations keep this geometry oracle local.
+            double Cross(Vector2 a,Vector2 b,Vector2 origin)=>((double)a.x-origin.x)*((double)b.y-origin.y)-((double)a.y-origin.y)*((double)b.x-origin.x);
             for(int i=0;i<triangles.Length;i+=3)
             {
                 Vector2 a=vertices[triangles[i]],b=vertices[triangles[i+1]],c=vertices[triangles[i+2]];
-                float area=Cross(b-a,c-a);
-                if(Mathf.Abs(area)<1e-8f)continue;
-                float u=Cross(b-point,c-point)/area,v=Cross(c-point,a-point)/area,w=1-u-v;
-                if(u>=-1e-5f&&v>=-1e-5f&&w>=-1e-5f)return true;
+                if(point.x<Mathf.Min(a.x,Mathf.Min(b.x,c.x))-1e-5f || point.x>Mathf.Max(a.x,Mathf.Max(b.x,c.x))+1e-5f ||
+                    point.y<Mathf.Min(a.y,Mathf.Min(b.y,c.y))-1e-5f || point.y>Mathf.Max(a.y,Mathf.Max(b.y,c.y))+1e-5f)continue;
+                double area=Cross(b,c,a);
+                if(System.Math.Abs(area)<1e-8)continue;
+                double u=Cross(b,c,point)/area,v=Cross(c,a,point)/area,w=1-u-v;
+                if(u>=-1e-5&&v>=-1e-5&&w>=-1e-5)return true;
             }
             return false;
+        }
+        [Test] public void FloorCoverageRejectsRemoteClippedSliverAndRetainsRealFloor()
+        {
+            var mesh=new Mesh();
+            try
+            {
+                mesh.vertices=new[]{new Vector3(-35.00179f,-7.247844f),new Vector3(-35.35534f,-7.071067f),
+                    new Vector3(-35.35534f,-7.071068f),Vector3.zero,Vector3.right,Vector3.up};
+                mesh.triangles=new[]{0,1,2,3,4,5};
+                Assert.That(FloorCovers(mesh,new Vector2(-15.55635f,-16.97056f)),Is.False,
+                    "A remote clipped sliver cannot cover a removed court corner.");
+                Assert.That(FloorCovers(mesh,new Vector2(-199.7f,75.1f)),Is.False,
+                    "Exact float32 counterexample: old barycentrics round to (0,0,1) for this remote point.");
+                Assert.That(FloorCovers(mesh,new Vector2(.2f,.2f)),Is.True);
+                Assert.That(FloorCovers(mesh,new Vector2(.8f,.8f)),Is.False);
+            }
+            finally {Object.DestroyImmediate(mesh);}
         }
         private static void AssertWorkIslandContacts(ArenaView arena,Mesh paving)
         {
@@ -189,9 +211,10 @@ namespace Cryptforge.Tests
                 if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
             Assert.That(paving,Is.Not.Null);
             AssertWorkIslandContacts(arena,paving);
-            foreach(var sample in new[]{new Vector3(-29,-13,0),new Vector3(13,-13,0),
+            foreach(var sample in new[]{new Vector3(FoundryMap.West+1,-13,0),new Vector3(13,-13,0),
                 new Vector3(-26.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
-                new Vector3(-29,17,0),new Vector3(13,17,0),new Vector3(-27.17f,14.77f,1),new Vector3(10.83f,14.77f,1),
+                new Vector3(FoundryMap.West+1,17,0),new Vector3(13,17,0),new Vector3(FoundryMap.West+2.83f,14.77f,1),new Vector3(10.83f,14.77f,1),
+                new Vector3(-29,-13,1),new Vector3(-29,17,1),new Vector3(-34.17f,.23f,1),new Vector3(-32.17f,12.23f,1),
                 new Vector3(-23.17f,-12.77f,1),new Vector3(-23.17f,16.77f,1),new Vector3(-27.17f,6.23f,1),
                 new Vector3(-32.17f,-31.77f,1),new Vector3(-29.83f,-34.17f,1),new Vector3(-29.35f,-34.65f,0),
                 new Vector3(-15.17f,-14.23f,1),new Vector3(-15.17f,-13.77f,1),new Vector3(-10.17f,-13.77f,1)})
@@ -292,7 +315,8 @@ namespace Cryptforge.Tests
                     var flags=new System.Collections.Generic.List<Vector2>();card.GetUVs(1,flags);
                     Assert.That(flags.Count,Is.EqualTo(4));
                     foreach(var flag in flags)Assert.That(flag,Is.EqualTo(Vector2.one));
-                    float minimum=isCrane?-22:-5.5f,maximum=isCrane?-15:3.4f;
+                    float minimum=(isCrane?-16:.5f)+FoundryMap.WestAssemblyOffset;
+                    float maximum=(isCrane?-9:9.4f)+FoundryMap.WestAssemblyOffset;
                     foreach(var p in card.vertices)
                         Assert.That(p.z,Is.InRange(50+minimum*Cryptforge.Art.FoundryMap.Axis*.5f-.001f,
                             50+maximum*Cryptforge.Art.FoundryMap.Axis*.5f+.001f),
