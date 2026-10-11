@@ -1212,9 +1212,12 @@ namespace Cryptforge.UI
         {
             bool faceV=alongU||startFace,faceU=!alongU||startFace;
             float s0=alongU?box.x:box.y,s1=alongU?box.z:box.w;
-            // Exterior bays are load-bearing parapets rather than a row of turned columns.
-            // Keep the original footprint/top/depth owner; the pit retains its separate open balustrade.
-            const float sill=.34f,lintel=.60f,respond=.22f;
+            // The existing posts determine the bay module: a wide bay has a solid central
+            // masonry panel between two openings; short returns stay open above a low sill.
+            // This gives the perimeter structural rhythm without moving any post or edge.
+            const float lintel=.60f,respond=.22f;
+            bool panel=s1-s0>=1.95f;
+            float sill=panel?.28f:.18f;
             Vector4 body=RailBox(box,alongU,s0,s1,0,RailDepth);
             CourseBox(above,body,0,sill,faceV,faceU,1.02f,PlinthCourse);
             CourseTop(above,body,alongU,sill,Tinted(CapTone,new Color(.9f,.9f,.9f)),PlinthCourse);
@@ -1224,17 +1227,17 @@ namespace Cryptforge.UI
                 CourseBox(above,body,sill,lintel,faceV,faceU,1.02f,PlinthCourse);
             else
             {
-                // A recessed wrought-iron web has fewer, square uprights and real open gaps.
-                // Draw far-to-near within the same existing masonry batch. Clean atlas interiors
-                // avoid projecting mortar joints onto the metal; no new material or sorting rank.
+                // Far-to-near within the existing masonry batch. The central panel stands
+                // on the continuous sill; its face is recessed behind broad dressed shoulders.
                 CourseBox(above,RailBox(box,alongU,last,s1,0,RailDepth),sill,lintel,true,true,1.02f,PlinthCourse);
-                int bars=Mathf.Max(1,Mathf.RoundToInt((last-first)/.65f));
-                for(int i=bars-1;i>=0;i--)
+                if(panel)
                 {
-                    float at=Mathf.Lerp(first,last,(i+.5f)/bars);
-                    ExteriorRailIron(above,RailBox(box,alongU,at-.028f,at+.028f,.105f,.16f),sill,lintel);
+                    float centre=(first+last)*.5f,half=Mathf.Clamp((s1-s0)*.14f,.26f,.43f);
+                    ExteriorRailOpening(above,box,alongU,centre+half,last,sill,lintel);
+                    ExteriorRailPanel(above,box,alongU,centre-half,centre+half,sill,lintel);
+                    ExteriorRailOpening(above,box,alongU,first,centre-half,sill,lintel);
                 }
-                ExteriorRailIron(above,RailBox(box,alongU,first,last,.11f,.155f),sill+.055f,sill+.095f);
+                else ExteriorRailOpening(above,box,alongU,first,last,sill,lintel);
                 CourseBox(above,RailBox(box,alongU,s0,first,0,RailDepth),sill,lintel,true,true,1.02f,PlinthCourse);
             }
             // Broad dressed coping closes the structural bay. Its restrained arris replaces the
@@ -1250,6 +1253,33 @@ namespace Cryptforge.UI
             MassBox(below,box,-.5f,-.36f,faceV,faceU,.36f);
             Vector4 corbel=alongU?new Vector4(box.x,box.y-.07f,box.z,box.y):new Vector4(box.x-.07f,box.y,box.x,box.w);
             MassBox(below,corbel,-.36f,-.04f,faceV,faceU,1.08f);
+        }
+
+        private static void ExteriorRailOpening(Builder b,Vector4 box,bool alongU,float first,float last,
+            float bottom,float top)
+        {
+            int bars=Mathf.Max(1,Mathf.RoundToInt((last-first)/.65f));
+            for(int i=bars-1;i>=0;i--)
+            {
+                float at=Mathf.Lerp(first,last,(i+.5f)/bars);
+                ExteriorRailIron(b,RailBox(box,alongU,at-.028f,at+.028f,.105f,.16f),bottom,top);
+            }
+            ExteriorRailIron(b,RailBox(box,alongU,first,last,.11f,.155f),bottom+.055f,bottom+.095f);
+        }
+
+        private static void ExteriorRailPanel(Builder b,Vector4 box,bool alongU,float first,float last,
+            float bottom,float top)
+        {
+            // The backing sits physically behind the two shoulders and the lower ledge.
+            // Its quiet slate face is broad enough to read as a panel, not another tiny joint.
+            const float reveal=.055f,shoulder=.085f,ledge=.065f;
+            Vector4 back=RailBox(box,alongU,first,last,reveal,RailDepth);
+            CourseBox(b,back,bottom,top,true,true,.75f,PlinthCourse);
+            CourseBox(b,RailBox(box,alongU,last-shoulder,last,0,RailDepth),bottom,top,true,true,1.08f,PlinthCourse);
+            Vector4 foot=RailBox(box,alongU,first,last,0,RailDepth);
+            CourseBox(b,foot,bottom,bottom+ledge,true,true,1.06f,PlinthCourse);
+            CourseTop(b,foot,alongU,bottom+ledge,CapTone,PlinthCourse);
+            CourseBox(b,RailBox(box,alongU,first,first+shoulder,0,RailDepth),bottom,top,true,true,1.08f,PlinthCourse);
         }
 
         private static void ExteriorRailIron(Builder b,Vector4 box,float bottom,float top)

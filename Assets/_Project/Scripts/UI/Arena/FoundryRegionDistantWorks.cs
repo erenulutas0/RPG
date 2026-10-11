@@ -58,27 +58,37 @@ namespace Cryptforge.UI
                 FadeDistantFoot(fire,fireStart,shaftFade);
                 return;
             }
-            // Narrow lower shaft, broad shoulder and dressed crown belong to one
-            // supported industrial mass, not a floating cap or an opaque rectangle.
+            // A narrow foundation carries a broad furnace chest and sloping shoulder.
+            // Differing necks and exhaust crowns break the repeated flat-topped shafts
+            // without turning these hazed background buildings into new landmarks.
             DistantBlock(mesh,u0+.34f,v0+.3f,u1-.34f,v1-.3f,bottom,bottom+8,tone*.70f);
-            DistantBlock(mesh,u0+.34f,v0+.3f,u1-.34f,v1-.3f,bottom+8,top-3.2f,tone*.70f);
-            DistantBlock(mesh,u0+.15f,v0+.13f,u1-.15f,v1-.13f,top-10,top-2.8f,tone);
-            DistantBlock(mesh,u0,v0,u1,v1,top-3.25f,top-2.65f,tone*1.05f);
-            DistantBlock(mesh,u0+.20f,v0+.18f,u1-.20f,v1-.18f,top-2.65f,top-.55f,tone*.92f);
-            DistantBlock(mesh,u0-.08f,v0-.08f,u1+.08f,v1+.08f,top-.55f,top-.12f,tone*1.06f);
-            DistantBlock(mesh,u0+.18f,v0+.18f,u1-.18f,v1-.18f,top-.12f,top,tone);
-            // Two load-bearing front ribs extend down the face. Their modest width
-            // keeps the silhouette vertical rather than striping every wall course.
-            foreach(float x in new[]{u0+.23f,u1-.53f})
-                DistantBlock(mesh,x,v0-.10f,x+.30f,v0+.18f,top-13,top-3.0f,tone*.87f);
-            foreach(float x in new[]{u0+.15f,u1-.53f})
-                DistantBlock(mesh,x,v0+.12f,x+.38f,v0+.50f,top,top+.55f,tone*.95f);
-            // A low vent stack breaks selected crowns; never reaches deck elevation.
-            if(variant%2==0)
+            float shoulder=top-(variant==4?4.9f:variant==3?3.5f:4.2f);
+            DistantBlock(mesh,u0+.34f,v0+.3f,u1-.34f,v1-.3f,bottom+8,shoulder,tone*.70f);
+            DistantBlock(mesh,u0+.15f,v0+.13f,u1-.15f,v1-.13f,top-12,shoulder,tone);
+            DistantBlock(mesh,u0,v0,u1,v1,shoulder-.38f,shoulder,tone*1.02f);
+            DistantTaper(mesh,u0,v0,u1,v1,shoulder,shoulder+1.35f,.48f,tone*.91f);
+            DistantBlock(mesh,u0+.48f,v0+.48f,u1-.48f,v1-.48f,shoulder+1.35f,top-.65f,tone*.85f);
+            DistantBlock(mesh,u0+.35f,v0+.35f,u1-.35f,v1-.35f,top-.65f,top-.30f,tone);
+            DistantTaper(mesh,u0+.35f,v0+.35f,u1-.35f,v1-.35f,top-.30f,top,.22f,tone*.93f);
+            // Splayed bearing feet join the shaft, while the slimmer ribs continue
+            // into the shoulder instead of ending abruptly halfway down the face.
+            foreach(float x in new[]{u0+.13f,u1-.55f})
             {
-                DistantBlock(mesh,u-.36f,v+.2f,u+.36f,v+.92f,top,top+1.05f,tone*.82f);
-                DistantBlock(mesh,u-.45f,v+.11f,u+.45f,v+1.01f,top+.82f,top+1.1f,tone);
+                DistantTaper(mesh,x-.08f,v0-.08f,x+.50f,v0+.50f,top-14,top-11,.08f,tone*.82f);
+                DistantBlock(mesh,x,v0,x+.42f,v0+.42f,top-11,shoulder,tone*.88f);
             }
+            // The three remaining works have a single exhaust, twin narrow stacks,
+            // and an offset tall flue with a low hatch. All are borne by the neck.
+            if(variant==3)
+                foreach(float x in new[]{u-.69f,u+.21f})
+                    DistantVentCrown(mesh,x,v-.30f,.48f,.74f,top,top+.70f,tone);
+            else if(variant==4)
+            {
+                DistantVentCrown(mesh,u-.84f,v+.02f,.69f,.85f,top,top+1.10f,tone*.90f);
+                DistantTaper(mesh,u+.04f,v-.52f,u+.88f,v+.45f,top,top+.35f,.16f,tone*.84f);
+            }
+            else
+                DistantVentCrown(mesh,u-.37f,v-.24f,.74f,.96f,top,top+1.10f,tone*.94f);
             // Few low furnace openings. Recess stone remains visible around each
             // narrow amber slit; the architectural mass dominates at a distance.
             for(int level=0;level<2;level++)
@@ -102,6 +112,18 @@ namespace Cryptforge.UI
             float fadeBase=Project(u,v).y+bottom+2.5f;
             FadeDistantFoot(mesh,masonryStart,fadeBase);
             FadeDistantFoot(fire,fireStart,fadeBase);
+        }
+
+        private static void DistantVentCrown(Builder mesh,float u,float v,float width,float depth,
+            float bottom,float top,Color tone)
+        {
+            DistantBlock(mesh,u,v,u+width,v+depth,bottom,top-.18f,tone*.74f);
+            DistantBlock(mesh,u-.07f,v-.07f,u+width+.07f,v+depth+.07f,top-.18f,top,tone);
+            // A dark inset on the cap reads as an exhaust mouth, not a glowing beacon.
+            FullFace(mesh,Project(u+.10f,v+.10f)+Vector3.up*(top+.002f),
+                Project(u+width-.10f,v+.10f)+Vector3.up*(top+.002f),
+                Project(u+width-.10f,v+depth-.10f)+Vector3.up*(top+.002f),
+                Project(u+.10f,v+depth-.10f)+Vector3.up*(top+.002f),tone*.30f);
         }
 
         private static void DistantFurnaceShaft(Builder mesh,Builder fire,float u0,float v0,float u1,float v1,

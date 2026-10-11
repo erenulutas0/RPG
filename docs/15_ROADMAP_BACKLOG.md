@@ -559,3 +559,13 @@ Evidence: ArtDirection/2026-10-10/foundry-stonework-01. Final suite/APK status b
 - [ ] Accumulated phone/crowd/midrange/first-ramp acceptance remains pending; regional encounters/boss progression stay deferred.
 
 Proof and final gate: ArtDirection/2026-10-11/foundry-portal-parapet-01.
+
+## 2026-10-11 - Foundry mass and perimeter rhythm
+
+- [x] Give three remaining generic distant shafts distinct supported shoulder/exhaust silhouettes within existing budgets.
+- [x] Break exterior rail infill repetition with deliberate masonry-panel and open-iron modules inside existing bounds.
+- [x] Review actual matched overview and actor portraits independently; retain realistic whole-map limits.
+- [ ] Next substantial art: workyard clusters and boiler individuality; inspect oversized painted backdrop composition. Avoid another isolated parapet detail pass.
+- [ ] Accumulated device/crowd/midrange/first-ramp acceptance pending. Regional encounters/boss progression remain deferred.
+
+Evidence and final gate: ArtDirection/2026-10-11/foundry-mass-rhythm-01.
