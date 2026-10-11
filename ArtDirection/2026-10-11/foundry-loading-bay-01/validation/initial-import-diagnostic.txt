@@ -1,0 +1,6 @@
+Assets\_Project\Tests\EditMode\FoundryLoadingSupportTests.cs(47,32): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryLoadingSupportTests.cs(98,37): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryLoadingSupportTests.cs(47,32): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryLoadingSupportTests.cs(98,37): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryLoadingSupportTests.cs(47,32): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryLoadingSupportTests.cs(98,37): error CS0122: 'FoundrySurface' is inaccessible due to its protection level

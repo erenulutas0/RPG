@@ -1,0 +1,24 @@
+{
+  "baseline": "3044b83",
+  "compared_source": "ArtDirection\\2026-10-11\\workyard-clusters-01\\stock",
+  "frame_fields_equal": true,
+  "rgba_1024_and_clear_corners": true,
+  "actual_evaluated_bounds": [
+    2.2100000381469727,
+    18.75999994277954,
+    6.799999952316284,
+    22.10000009536743
+  ],
+  "actual_evaluated_height_range": [
+    0.165358961676087,
+    1.2999999766672992
+  ],
+  "native_vertices": 13888,
+  "native_triangles": 27544,
+  "hashes": {
+    "stock-station.png": "800BB3E80EBA3F77D68696310C7E28FDBA97844F8C2036C692DE405B613A1BB9",
+    "stock-station.blend": "961EC74E9F082C7D353C3DEB45B790EDCBD0A3560D69C53216EA04ED6710B9D9",
+    "projection.json": "287188A2768B9200BC5D998E3A8A8CE27A8DA7712CC8CC6240B0000B5044D9D6"
+  },
+  "limitation": "Source render checks only; no Unity or phone acceptance."
+}

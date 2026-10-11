@@ -1,0 +1,24 @@
+{
+  "baseline": "3044b83",
+  "compared_source": "ArtDirection\\2026-10-11\\workyard-clusters-01\\casting",
+  "frame_fields_equal": true,
+  "rgba_1024_and_clear_corners": true,
+  "actual_evaluated_bounds": [
+    -17.55999994277954,
+    19.424999952316284,
+    -13.420000076293945,
+    22.069999933242798
+  ],
+  "actual_evaluated_height_range": [
+    0.17999998128357736,
+    2.470000048582314
+  ],
+  "native_vertices": 12493,
+  "native_triangles": 24626,
+  "hashes": {
+    "casting-bench.png": "CC700BBBDBDE132978CFAA0D4BFE3DB5AA68093D5D8061CD57E5232AA59E6AE5",
+    "casting-bench.blend": "3112D603911A4128CB79A0D985A30B71DC1A28F2B9179ECA709D0DF6CA23130A",
+    "projection.json": "4482AD6198F038EB37C492F93FE03906EE99E1477FCDDA2C4AAF6A8E76FE59C9"
+  },
+  "limitation": "Source render checks only; no Unity or phone acceptance."
+}

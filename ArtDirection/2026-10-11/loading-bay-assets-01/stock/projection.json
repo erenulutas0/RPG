@@ -1,0 +1,56 @@
+{
+  "blender": "4.5.9 LTS",
+  "vertices": 13888,
+  "triangles": 27544,
+  "anchor": [
+    4.5,
+    20.45
+  ],
+  "ortho_scale": 6.3,
+  "left": -3.15,
+  "right": 3.15,
+  "bottom": -2.45,
+  "top": 3.85,
+  "render_size": 1024,
+  "height_compensation": 1.1547005383792515,
+  "depth_footprint": [
+    2,
+    18.5,
+    7,
+    22.4
+  ],
+  "depth_height": 1.6,
+  "equipment_bounds": [
+    2.2100000381469727,
+    18.75999994277954,
+    6.799999952316284,
+    22.10000009536743
+  ],
+  "height_range": [
+    0.165358961676087,
+    1.2999999766672992
+  ],
+  "projected_normalized_bounds": [
+    0.10464974492788315,
+    0.20994208753108978,
+    0.8518590927124023,
+    0.7433966994285583
+  ],
+  "included": [
+    "quench tank and still water",
+    "five unequal billets with sheared end faces",
+    "two wound strip coils with cut faces and distinct broad mill scale",
+    "six staggered hollow pipes in a supported receiving cradle",
+    "raised retaining cheeks and integral haunches",
+    "tool rack"
+  ],
+  "preserved": [
+    "wood barrel and crate",
+    "crane",
+    "hoist",
+    "masonry shelf",
+    "walking space and camera"
+  ],
+  "source": "Authored geometry; existing study02 procedural materials and lighting",
+  "limitation": "Fixed-view metal-only transparent render; no floor or shadow catcher; Unity acceptance separate."
+}

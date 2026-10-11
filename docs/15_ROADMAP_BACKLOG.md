@@ -689,3 +689,14 @@ Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.
 Next substantial art candidate: coherent crane/loading assemblies and connected industrial service structures at the established western perimeter, assessed against the whole reference and at actor-height scale. Avoid another isolated trim pass; preserve circulation and cap geometry/resource growth.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-bridge-yard-01.
+
+
+## 2026-10-11 - Western loading assemblies verified; device pending
+
+- [x] Integrate connected loading supports, cast crane, distinct receiving and casting stations.
+- [x] Validate source frames, actual Unity imports/captures, support geometry, full suites and Android build.
+- [ ] Device acceptance and full reference richness remain open.
+
+Next coherent art package: reduce the visual dominance of the northwest service shaft through joined shaft/head/side-return architecture and local material hierarchy, reviewed against the entire reference and the casting/crane portraits. Preserve the existing scenic envelope, circulation and camera; do not add another row of small trim or grow every wall mesh. Keep full-map scale and foreground/background separation as acceptance criteria. Physical-device acceptance remains separate.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.

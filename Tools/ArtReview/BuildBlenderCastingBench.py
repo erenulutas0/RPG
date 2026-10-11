@@ -11,7 +11,7 @@ from mathutils import Vector
 from bpy_extras.object_utils import world_to_camera_view
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'ArtDirection/2026-10-11/workyard-clusters-01/casting'
+OUT = ROOT / 'ArtDirection/2026-10-11/loading-bay-assets-01/casting'
 OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'ArtDirection/2026-10-09/blender-furnace-02/furnace-study.blend'))
 for obj in list(bpy.data.objects):
@@ -117,7 +117,9 @@ def surface(name, dark, light, scale, stretch, roughness):
 
 
 wood=surface('Worn warm moulding oak',(.070,.037,.021),(.24,.145,.073),5,(.30,5,5),.76)
-sand=surface('Compacted ochre casting sand',(.16,.105,.052),(.34,.25,.13),85,(1,1,1),.95)
+sand=surface('Compacted ochre casting sand',(.10,.066,.030),(.23,.17,.080),28,(1,1,1),.95)
+used_sand=surface('Heat darkened facing sand',(.036,.027,.019),(.092,.068,.039),20,(1,1,1),.98)
+ceramic=surface('Fired pouring vessel',(.055,.036,.025),(.19,.105,.052),7,(1,1,1),.90)
 
 # A low, genuinely supported workbench. Gaps between the planks retain volume.
 for u in [-17.38,-13.77]:
@@ -161,16 +163,60 @@ cube('Clamped oak flask',(-17.13,21.29,-16.59,21.89),.60,.85,wood,.025)
 for u in [-17.1,-16.67]:cube('Flask pressure strap',(u,21.27,u+.05,21.91),.64,.87,cast,.008)
 
 
-def mould(name,u,v,width,length,bottom):
+def subtract(body,cutter,name):
+    modifier=body.modifiers.new(name,'BOOLEAN'); modifier.operation='DIFFERENCE'
+    modifier.object=cutter; bpy.context.view_layer.objects.active=body
+    bpy.ops.object.modifier_apply(modifier=modifier.name)
+    bpy.data.objects.remove(cutter,do_unlink=True)
+
+
+def ring(name,u,v,outer,inner,bottom,top,material):
+    vertices=[];faces=[];segments=48
+    for radius,z in [(outer,bottom),(outer,top),(inner,bottom),(inner,top)]:
+        for i in range(segments):
+            angle=math.tau*i/segments
+            vertices.append(point(u+math.cos(angle)*radius,v+math.sin(angle)*radius,z))
+    for i in range(segments):
+        j=(i+1)%segments
+        faces.extend([(i,j,segments+j,segments+i),
+            (segments+i,segments+j,3*segments+j,3*segments+i),
+            (3*segments+i,3*segments+j,2*segments+j,2*segments+i),
+            (2*segments+i,2*segments+j,j,i)])
+    mesh=bpy.data.meshes.new(name);mesh.from_pydata(vertices,[],faces);mesh.update()
+    obj=bpy.data.objects.new(name,mesh);bpy.context.collection.objects.link(obj)
+    return finish(obj,name,material)
+
+
+def mould(name,u,v,width,length,bottom,bearing=False):
     top=bottom+.23; rim=.075
     # Sand is a real volume with a tapered ingot cavity removed by Boolean.
     body=cube(name+' packed sand',(u+rim,v+rim,u+width-rim,v+length-rim),bottom+.025,top-.023,sand,0)
-    cavity=section(name+' ingot negative',[
-        ((u+width*.40,v+length*.24,u+width*.60,v+length*.76),bottom+.085),
-        ((u+width*.30,v+length*.14,u+width*.70,v+length*.86),top+.06)],soot,0)
-    modifier=body.modifiers.new('Real tapered ingot impression','BOOLEAN'); modifier.operation='DIFFERENCE'
-    modifier.object=cavity; bpy.context.view_layer.objects.active=body
-    bpy.ops.object.modifier_apply(modifier=modifier.name); bpy.data.objects.remove(cavity,do_unlink=True)
+    if bearing:
+        # A complete annular bearing channel surrounds an untouched sand core.
+        # The sprue and runner join the channel geometrically, not as painted marks.
+        cu,cv=u+width*.62,v+length*.53
+        body.data.materials[0]=used_sand
+        subtract(body,ring(name+' annular negative',cu,cv,.30,.135,bottom+.082,top+.06,soot),
+                 'Real annular bearing impression')
+        runner=section(name+' runner negative',[
+            ((u+.18,cv-.036,cu-.23,cv+.036),bottom+.082),
+            ((u+.15,cv-.070,cu-.21,cv+.070),top+.06)],soot,0)
+        subtract(body,runner,'Runner enters bearing channel')
+        # A tapered open pouring well overlaps the runner at its western end.
+        well=section(name+' pouring well negative',[
+            ((u+.135,cv-.090,u+.305,cv+.090),bottom+.082),
+            ((u+.10,cv-.14,u+.34,cv+.14),top+.06)],soot,0)
+        subtract(body,well,'Open pouring well')
+        ring(name+' cooling bronze bearing',cu,cv,.291,.143,bottom+.084,bottom+.12,bronze)
+        cube(name+' cooling bronze runner',(u+.18,cv-.035,cu-.25,cv+.035),bottom+.084,bottom+.119,bronze,.004)
+        cube(name+' cooling sprue heel',(u+.137,cv-.088,u+.303,cv+.088),bottom+.084,bottom+.116,bronze,.010)
+    else:
+        # The set-aside half retains a long tapered ingot pattern distinct from
+        # the circular bearing and its broad connected gate in the active flask.
+        cavity=section(name+' ingot negative',[
+            ((u+width*.40,v+length*.24,u+width*.60,v+length*.76),bottom+.085),
+            ((u+width*.30,v+length*.14,u+width*.70,v+length*.86),top+.06)],soot,0)
+        subtract(body,cavity,'Real tapered ingot impression')
     for box in [(u,v,u+width,v+rim),(u,v+length-rim,u+width,v+length),
                 (u,v+rim,u+rim,v+length-rim),(u+width-rim,v+rim,u+width,v+length-rim)]:
         cube(name+' oak flask rail',box,bottom,top,wood,.012)
@@ -190,7 +236,7 @@ from mathutils import Matrix
 centre=Vector(point(-17.17+.405,19.66+.42,.99))
 rotation=Matrix.Translation(centre)@Matrix.Rotation(math.radians(-10),4,'Z')@Matrix.Translation(-centre)
 for obj in set(bpy.data.objects)-removed_before:obj.matrix_world=rotation@obj.matrix_world
-mould('Active broad ingot mould',-15.96,19.58,1.22,.98,.99)
+mould('Active gated bearing mould',-15.96,19.58,1.22,.98,.99,bearing=True)
 # Closed flask uses dark oak sides and a recessed iron lid; broad straps explain how
 # the two halves stay clamped without hiding the active sand impression beside it.
 cube('Queued closed flask',(-14.43,19.64,-13.61,20.47),.99,1.36,wood,.025)
@@ -200,17 +246,41 @@ for u in [-14.32,-13.80]:
     cube('Flask broad front clamp',(u,19.618,u+.075,19.66),1.01,1.41,cast,.006)
     cube('Flask broad top clamp',(u,19.618,u+.075,20.49),1.385,1.418,cast,.006)
 # Finished stock is a compact uneven bundle, supported by the original rear rack.
-for v in [21.08,21.76]:cube('Billet rack runner',(-15.71,v,-13.52,v+.12),.18,.34,wood,.012)
+for v in [21.08,21.76]:cube('Billet rack runner',(-15.71,v,-14.31,v+.12),.18,.34,wood,.012)
 for level in range(2):
-    for i in range(3-level):
-        u=-15.56+i*.69+level*.32
+    for i in range(2-level):
+        u=-15.56+i*.65+level*.30
         bottom=.34+level*.23;top=bottom+.23
         section('Finished cooled billet',[
             ((u,20.94+level*.06,u+.50,21.97-level*.08),bottom),
             ((u+.055,21.01+level*.06,u+.445,21.9-level*.08),top)],stock,.025)
-for u in [-15.70,-13.58]:
+for u in [-15.70,-14.40]:
     cube('Rack retaining shoe',(u,21.20,u+.10,21.62),.18,.42,cast,.018)
     cube('Rack short stock stop',(u,21.25,u+.10,21.54),.38,.84,cast,.014)
+# A real open pouring pot rests in a three-foot cast stand next to the cooled
+# billets. Its lip, inner wall and bottom stay visible; no floating glow is baked.
+pot_u,pot_v=-13.91,21.55
+cube('Pour pot stand sole',(-14.25,21.21,-13.57,21.89),.18,.25,cast,.026)
+for du,dv in [(-.19,-.17),(.19,-.17),(0,.21)]:
+    rod('Pour pot stand leg',(pot_u+du,pot_v+dv,.23),(pot_u+du*.68,pot_v+dv*.68,.63),.049,cast)
+ring('Pour pot support collar',pot_u,pot_v,.232,.17,.57,.65,cast)
+vessel=[];faces=[];segments=48
+for radius,z in [(.17,.60),(.27,1.16),(.29,1.22),(.23,1.22),(.20,.81),(.10,.70)]:
+    for i in range(segments):
+        angle=math.tau*i/segments
+        vessel.append(point(pot_u+math.cos(angle)*radius,pot_v+math.sin(angle)*radius,z))
+for level in range(5):
+    for i in range(segments):
+        j=(i+1)%segments
+        faces.append((level*segments+i,level*segments+j,(level+1)*segments+j,(level+1)*segments+i))
+faces.append(tuple(range(5*segments,6*segments)))
+faces.append(tuple(reversed(range(segments))))
+mesh=bpy.data.meshes.new('Open pouring vessel');mesh.from_pydata(vessel,[],faces);mesh.update()
+obj=bpy.data.objects.new('Open pouring vessel',mesh);bpy.context.collection.objects.link(obj)
+finish(obj,'Open pouring vessel',ceramic,.008)
+ring('Pour vessel iron grip band',pot_u,pot_v,.258,.235,1.04,1.12,iron)
+for side in [-1,1]:
+    rod('Pour vessel lifting socket',(pot_u+side*.238,pot_v,1.08),(pot_u+side*.355,pot_v,1.08),.049,bronze)
 # Rammer rests in the gap between the removed half and the active mould.
 rod('Sand rammer handle',(-16.22,19.76,1.04),(-16.22,20.26,1.04),.034,wood)
 cube('Sand rammer head',(-16.30,20.22,-16.14,20.40),.99,1.13,iron,.018)
@@ -247,7 +317,7 @@ metadata=dict(blender=bpy.app.version_string,vertices=vertices,triangles=triangl
     render_size=1024,height_compensation=HEIGHT,camera_direction=[-12,-12,math.sqrt(96)],
     vertical_target=1.0,depth_footprint=[-18,19.1,-13,22.4],depth_height=2.5,
     equipment_bounds=physical,height_range=height_range,projected_normalized_bounds=projected,
-    included=['oak moulding bench','rear hand screw press','angled removed mould half','broad active sand mould','closed strapped flask','five staged finished billets in retaining rack','rammer and mould pick'],
+    included=['oak moulding bench','rear hand screw press','angled removed ingot mould half','runner-fed annular bearing mould with dark facing sand and cooling bronze','closed strapped flask','three staged finished billets in retaining rack','open pouring vessel seated in a three-foot stand','rammer and mould pick'],
     source='Native authored 3D geometry; existing study02 metal materials and lights; procedural oak and sand',
     limitation='Fixed-view transparent render, no floor or shadow catcher; Unity integration and device acceptance pending.')
 (OUT/'projection.json').write_text(json.dumps(metadata,indent=2)+'\n')

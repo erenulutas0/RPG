@@ -24,7 +24,7 @@ namespace Cryptforge.UI
 
         private void BuildCrane(ArenaView arena)
         {
-            Block(arena,-27+WestShift,11,-24+WestShift,15,1.1f,3,"Crane masonry footing");
+            BuildServiceShelf(arena,WestBox(-27,11,-24,15),1.1f,3,"Crane masonry footing",false);
             MetalCap(arena,-27+WestShift,11,-24+WestShift,15,1.12f);
             Vector3 foot=WestProject(-25.5f,13)+Vector3.up*1.1f;
             Vector3 mast=foot+Vector3.up*6.5f;

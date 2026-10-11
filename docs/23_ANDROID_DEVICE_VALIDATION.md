@@ -1991,3 +1991,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 No device installation or input performed. Root and independent actual-image review accept clearer arch construction, seated keeper statues and better supported/recognisable yard equipment. Parapet and whole-map gains remain modest; full reference material/structural richness is unfinished. The center/near-island portraits show clear actor feet/guide, not exhaustive moving-edge/crowd acceptance. Region remains32renderers;148756->162568vertices (+13812, 9.3%). Distant2496 unchanged. No new texture/material/updater and no phone-performance claim. No ADB or fresh device observation; earlier concrete install/restart decision remains pending. Before eventual deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-bridge-yard-01.
+
+
+## 2026-10-11 - Western loading assemblies verified; device pending
+
+425 .NET / 488 EditMode / 159 PlayMode = 1,072 distinct suite cases, zero failures/skips. Isolated compile zero warnings/errors. One successful Android-target graphics capture (1/1). PASS: 594 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,242,956 bytes; SHA256 1130DFD56C5AAFEBBE3CA034661F370AF86C03D9E9E4C10CDA5B0FBE9283E728. NOT INSTALLED.
+
+No ADB, installation or fresh phone observation this turn. The earlier concrete install/restart decision remains pending. Before eventual deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.

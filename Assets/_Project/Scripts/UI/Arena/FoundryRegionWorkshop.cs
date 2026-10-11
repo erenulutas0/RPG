@@ -20,10 +20,10 @@ namespace Cryptforge.UI
         private void BuildWorkshop(ArenaView arena)
         {
             // The complete shelf follows the west edge, including its baked metal kit.
-            Block(arena,SalvageShelf.x,SalvageShelf.y,SalvageShelf.z,SalvageShelf.w,.18f,2.8f,"Salvage service shelf");
+            BuildServiceShelf(arena,SalvageShelf,.18f,2.8f,"Salvage service shelf");
             // Group the complete stock station behind the northwest pit loop, near the
             // crane and anvil. Its own local arrangement stays on its masonry support.
-            Block(arena,StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,.18f,2.8f,"Northwest pipe service shelf");
+            BuildServiceShelf(arena,StockShelf,.18f,2.8f,"Northwest pipe service shelf");
 
             bool bakedSalvage=BuildBakedSalvageStation(arena);
             if(!bakedSalvage)
@@ -49,6 +49,90 @@ namespace Cryptforge.UI
             BuildToolRack(arena);
             }
             BuildProductionYard(arena);
+        }
+
+        private void BuildServiceShelf(ArenaView arena,Vector4 box,float rise,float depth,string name,bool ironEdge=true)
+        {
+            // Replace the old solid Block faces, retaining its exact deck, owner
+            // and rank split. Recessed infill and fitted corbels are one foundation,
+            // not an extra facade painted over the old masonry.
+            int owner=RegisterDepthFootprint(box.x,box.y,box.z,box.w,rise,rise>=.6f||DepthScopeFades,rise>=1f);
+            var foundation=new Builder();var raised=new Builder();var iron=new Builder();var cap=new Builder();
+            ServiceShelfFaces(foundation,raised,iron,box,rise,depth,ironEdge);
+            BevelCap(cap,box.x,box.y,box.z,box.w,rise);
+            Create(name+" fitted foundation",foundation,arena.PlatformMaterials.FoundryWall,-16);
+            Create(name+" bearing apron",raised,arena.PlatformMaterials.FoundryWall,-14,owner);
+            Create(name+" cap",cap,arena.PlatformMaterials.Floor,-13,owner);
+            if(ironEdge)Create(name+" edge girder",iron,arena.PlatformMaterials.FoundryIron,-11,owner);
+        }
+
+        private static void ServiceShelfFaces(Builder foundation,Builder raised,Builder iron,
+            Vector4 box,float rise,float depth,bool ironEdge)
+        {
+            var points=new[]{new Vector2(box.x,box.y),new Vector2(box.z,box.y),
+                new Vector2(box.z,box.w),new Vector2(box.x,box.w)};
+            foreach(int edge in new[]{0,3})
+            {
+                Vector2 a=points[edge],b=points[(edge+1)%4],inward=edge==0?Vector2.up:Vector2.right;
+                Vector3 pa=Project(a.x,a.y),pb=Project(b.x,b.y);
+                Vector3 inset=Project(a.x+inward.x*.28f,a.y+inward.y*.28f)-pa;
+                Color face=edge==0?new Color(.66f,.68f,.75f):new Color(.49f,.53f,.62f);
+                // Two broad recessed courses sit behind the load-bearing brackets.
+                // All recesses move INTO the original supported rectangle.
+                UndercroftCoursedFace(foundation,pa+inset+Vector3.down*depth,pb+inset+Vector3.down*depth,
+                    pb+inset+Vector3.down*.42f,pa+inset+Vector3.down*.42f,face*.80f,2,1);
+                for(int corbel=2;corbel>=0;corbel--)
+                    ServiceShelfCorbel(foundation,a,b,inward,corbel*.5f,depth,face);
+                // The continuous bearing course spans every bracket and closes
+                // the upper edge of the infill. Its top ends exactly at floor0.
+                UndercroftCoursedFace(foundation,pa+Vector3.down*.42f,pb+Vector3.down*.42f,pb,pa,face,1,2);
+                float stoneTop=ironEdge?rise-.15f:rise;
+                UndercroftCoursedFace(raised,pa,pb,pb+Vector3.up*stoneTop,pa+Vector3.up*stoneTop,
+                    face,ironEdge?1:2,2);
+                if(ironEdge)ServiceShelfGirder(iron,pa,pb,inset*(.05f/.28f),rise,edge==0);
+            }
+        }
+
+        private static void ServiceShelfCorbel(Builder mesh,Vector2 a,Vector2 b,Vector2 inward,
+            float centre,float depth,Color tone)
+        {
+            float length=Vector2.Distance(a,b),half=.34f/length;
+            Vector2 left=Vector2.Lerp(a,b,Mathf.Max(0,centre-half));
+            Vector2 right=Vector2.Lerp(a,b,Mathf.Min(1,centre+half));
+            Vector3 At(Vector2 p,float inset,float height)=>Project(p.x+inward.x*inset,p.y+inward.y*inset)+Vector3.up*height;
+            // Rooted foot, raked body and broad upper haunch. The original extent
+            // is retained at the foot and header, with a quiet inward waist.
+            float[] levels={-depth,-1.15f,-.42f};
+            float[] setbacks={0f,.23f,0f};
+            for(int tier=0;tier<2;tier++)
+            {
+                Vector3 l0=At(left,setbacks[tier],levels[tier]),r0=At(right,setbacks[tier],levels[tier]);
+                Vector3 l1=At(left,setbacks[tier+1],levels[tier+1]),r1=At(right,setbacks[tier+1],levels[tier+1]);
+                // Returns are closed against the infill before the front is drawn.
+                UndercroftMineralFace(mesh,At(left,.28f,levels[tier]),l0,l1,
+                    At(left,.28f,levels[tier+1]),tone*.71f,false);
+                UndercroftMineralFace(mesh,r0,At(right,.28f,levels[tier]),
+                    At(right,.28f,levels[tier+1]),r1,tone*.84f,false);
+                UndercroftMineralFace(mesh,l0,r0,r1,l1,tone,true);
+            }
+        }
+
+        private static void ServiceShelfGirder(Builder iron,Vector3 a,Vector3 b,Vector3 inset,float top,bool light)
+        {
+            // A shallow channel section replaces the top15cm of the stone side.
+            // It remains entirely above floor0 and below the unchanged equipment
+            // deck; no below-floor iron can overpaint the adjacent walking court.
+            Color face=light?new Color(.56f,.61f,.69f):new Color(.39f,.44f,.52f);
+            GateIronPatch(iron,a+Vector3.up*(top-.15f),b+Vector3.up*(top-.15f),
+                b+Vector3.up*(top-.12f),a+Vector3.up*(top-.12f),face);
+            GateIronPatch(iron,a+Vector3.up*(top-.12f),b+Vector3.up*(top-.12f),
+                b+inset+Vector3.up*(top-.12f),a+inset+Vector3.up*(top-.12f),face*1.14f);
+            GateIronPatch(iron,a+inset+Vector3.up*(top-.12f),b+inset+Vector3.up*(top-.12f),
+                b+inset+Vector3.up*(top-.03f),a+inset+Vector3.up*(top-.03f),face*.70f);
+            GateIronPatch(iron,a+inset+Vector3.up*(top-.03f),b+inset+Vector3.up*(top-.03f),
+                b+Vector3.up*(top-.03f),a+Vector3.up*(top-.03f),face*.82f);
+            GateIronPatch(iron,a+Vector3.up*(top-.03f),b+Vector3.up*(top-.03f),
+                b+Vector3.up*top,a+Vector3.up*top,face*1.16f);
         }
 
         private void BuildQuenchingBasin(ArenaView arena)

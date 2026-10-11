@@ -1012,3 +1012,12 @@ Decision: connected bridge parapets stay outboard of the walking lane, with shor
 Root and independent actual-image review accept clearer arch construction, seated keeper statues and better supported/recognisable yard equipment. Parapet and whole-map gains remain modest; full reference material/structural richness is unfinished. The center/near-island portraits show clear actor feet/guide, not exhaustive moving-edge/crowd acceptance. Region remains32renderers;148756->162568vertices (+13812, 9.3%). Distant2496 unchanged. No new texture/material/updater and no phone-performance claim. No ADB or fresh device observation; earlier concrete install/restart decision remains pending. Before eventual deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-bridge-yard-01.
+
+
+## 2026-10-11 - Western loading assemblies verified; device pending
+
+Decision: improve complete supported loading assemblies using native Blender sources and exact existing card/depth contracts. Replace old solid support faces instead of overpainting them. Separate receiving stock from active casting through object construction rather than new lights/effects.
+
+Root actual-image review accepts better connected loading architecture and clearer receiving/casting identities. Live crane chain/sheave/load contact remains seated in the inspected images. The existing foreground lamp pole crosses the mast and the large northwest shaft still dominates some close views. Local gains are visible; whole-map gain is modest and full reference material/structural richness remains unfinished. Region remains 32 renderers; 162568->165392 vertices (+2824, 1.7%). Distant2496 unchanged. Existing crane import1024 ASTC6x6/11mips and stock/casting512 ASTC6x6/10mips remain non-readable; no extra runtime texture, material or updater. Native Blender mesh counts are authoring counts, not runtime GPU geometry. These resource counts are not phone-performance evidence.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.

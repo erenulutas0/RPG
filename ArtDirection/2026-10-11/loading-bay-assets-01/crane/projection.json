@@ -1,0 +1,62 @@
+{
+  "anchor": "WestProject(-25.5,13)+up*1.1",
+  "left": -7.4,
+  "right": 3.4,
+  "bottom": -0.4,
+  "top": 10.4,
+  "ortho_scale": 10.8,
+  "render_size": 1024,
+  "mast": [
+    0.0,
+    6.5
+  ],
+  "rear": [
+    1.0,
+    6.5
+  ],
+  "tip": [
+    -5.303300857543945,
+    8.99809741973877
+  ],
+  "depth_footprint": [
+    -27,
+    11,
+    -24,
+    15
+  ],
+  "depth_footprint_x_offset": "WestShift",
+  "depth_height": 8.6,
+  "runtime_rank": -11.5,
+  "live": [
+    "masonry footing",
+    "metal footing cap",
+    "hanging chain",
+    "tip sheave",
+    "payload basket",
+    "lantern"
+  ],
+  "evaluated_vertices": 7720,
+  "evaluated_triangles": 15180,
+  "projected_bounds": [
+    0.18137986958026886,
+    0.0370369553565979,
+    0.8306372165679932,
+    0.9459941387176514
+  ],
+  "projected_anchors": {
+    "mast": [
+      0.6851851344108582,
+      0.6388888955116272
+    ],
+    "rear": [
+      0.7777777314186096,
+      0.6388888955116272
+    ],
+    "tip": [
+      0.194138765335083,
+      0.8701941967010498
+    ]
+  },
+  "source": "Authored geometry; study02 procedural materials and lights",
+  "limitation": "Fixed-view camera-space exact-anchor bake. All component shading is static."
+}

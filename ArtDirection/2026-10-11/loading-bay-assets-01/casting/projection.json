@@ -1,0 +1,57 @@
+{
+  "blender": "4.5.9 LTS",
+  "vertices": 12493,
+  "triangles": 24626,
+  "anchor": [
+    -15.5,
+    20.75
+  ],
+  "ortho_scale": 7,
+  "left": -3.5,
+  "right": 3.5,
+  "bottom": -2.5,
+  "top": 4.5,
+  "render_size": 1024,
+  "height_compensation": 1.1547005383792515,
+  "camera_direction": [
+    -12,
+    -12,
+    9.797958971132712
+  ],
+  "vertical_target": 1.0,
+  "depth_footprint": [
+    -18,
+    19.1,
+    -13,
+    22.4
+  ],
+  "depth_height": 2.5,
+  "equipment_bounds": [
+    -17.55999994277954,
+    19.424999952316284,
+    -13.420000076293945,
+    22.069999933242798
+  ],
+  "height_range": [
+    0.17999998128357736,
+    2.470000048582314
+  ],
+  "projected_normalized_bounds": [
+    0.16788169741630554,
+    0.22933384776115417,
+    0.8422983884811401,
+    0.7140045762062073
+  ],
+  "included": [
+    "oak moulding bench",
+    "rear hand screw press",
+    "angled removed ingot mould half",
+    "runner-fed annular bearing mould with dark facing sand and cooling bronze",
+    "closed strapped flask",
+    "three staged finished billets in retaining rack",
+    "open pouring vessel seated in a three-foot stand",
+    "rammer and mould pick"
+  ],
+  "source": "Native authored 3D geometry; existing study02 metal materials and lights; procedural oak and sand",
+  "limitation": "Fixed-view transparent render, no floor or shadow catcher; Unity integration and device acceptance pending."
+}

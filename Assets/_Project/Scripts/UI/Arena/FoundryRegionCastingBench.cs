@@ -10,20 +10,11 @@ namespace Cryptforge.UI
 
         private void BuildCastingWorkbay(ArenaView arena)
         {
-            Block(arena,CastingShelf.x,CastingShelf.y,CastingShelf.z,CastingShelf.w,
-                .18f,2.8f,"Casting service shelf");
+            BuildServiceShelf(arena,CastingShelf,.18f,2.8f,"Casting service shelf");
             // Below-deck cantilevers join the workbay to the real court wall. The
             // north rail stays intact: this is scenery, not an unwalkable new route.
             var supports=new Builder();
-            foreach(float u in new[]{-17.4f,-14.3f})
-            {
-                Vector3 a=Project(u,17.8f),b=Project(u+.7f,17.8f);
-                Vector3 c=Project(u+.7f,19.5f),d=Project(u,19.5f);
-                Vector3 top=Vector3.down*.32f,bottom=Vector3.down*2.5f;
-                supports.WallQuad(a+bottom,b+bottom,b+top,a+top,false,new Color(.49f,.51f,.58f));
-                supports.WallQuad(d+bottom,a+bottom,a+top,d+top,false,new Color(.40f,.43f,.51f));
-                supports.WallQuad(a+top,b+top,c+top,d+top,true,new Color(.59f,.59f,.63f));
-            }
+            CastingShelfBearings(supports);
             Create("Casting shelf cantilevers",supports,arena.PlatformMaterials.FoundryWall,-16);
             if(BuildBakedCastingBench())return;
 
@@ -38,6 +29,29 @@ namespace Cryptforge.UI
                 foreach(float u in new[]{-16.9f,-15.9f,-14.9f})
                     WorkshopMetalHull(bench,u,20f,u+.65f,21.1f,1.3f,1.48f,.055f,true);
                 Create("Casting bench fallback",bench,arena.PlatformMaterials.FoundryIron,-12);
+            }
+        }
+
+        private static void CastingShelfBearings(Builder supports)
+        {
+            // A fitted bearing shoe and tapered haunch replace the old solid box.
+            // The same attachment strip17.8..19.5 and height-2.5..-.32 remain;
+            // every vertex stays below the deck and behind the unchanged rail.
+            foreach(float u in new[]{-17.4f,-14.3f})
+            {
+                Vector3 a=Project(u,17.8f),b=Project(u+.7f,17.8f);
+                Vector3 c=Project(u+.7f,19.5f),d=Project(u,19.5f);
+                Vector3 lowA=Project(u+.10f,17.8f)+Vector3.down*2.5f;
+                Vector3 lowB=Project(u+.60f,17.8f)+Vector3.down*2.5f;
+                Vector3 lowC=Project(u+.60f,18.35f)+Vector3.down*2.5f;
+                Vector3 lowD=Project(u+.10f,18.35f)+Vector3.down*2.5f;
+                Vector3 seat=Vector3.down*.68f,top=Vector3.down*.32f;
+                UndercroftCoursedFace(supports,lowA,lowB,b+seat,a+seat,new Color(.53f,.56f,.63f),2,1);
+                UndercroftCoursedFace(supports,lowD,lowA,a+seat,d+seat,new Color(.39f,.43f,.52f),2,1);
+                UndercroftMineralFace(supports,lowB,lowC,c+seat,b+seat,new Color(.31f,.35f,.43f),false);
+                UndercroftMineralFace(supports,a+seat,b+seat,b+top,a+top,new Color(.62f,.65f,.72f),true);
+                UndercroftMineralFace(supports,d+seat,a+seat,a+top,d+top,new Color(.47f,.51f,.60f),true);
+                UndercroftMineralFace(supports,a+top,b+top,c+top,d+top,new Color(.64f,.67f,.73f),false);
             }
         }
 
