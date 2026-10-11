@@ -569,3 +569,13 @@ Proof and final gate: ArtDirection/2026-10-11/foundry-portal-parapet-01.
 - [ ] Accumulated device/crowd/midrange/first-ramp acceptance pending. Regional encounters/boss progression remain deferred.
 
 Evidence and final gate: ArtDirection/2026-10-11/foundry-mass-rhythm-01.
+
+## 2026-10-11 - Workyard cluster refresh
+
+- [x] Recompose supported stock and casting groups with distinct work stages inside existing bounds.
+- [x] Preserve imported card/material/depth contracts and validate source bounds/projection.
+- [x] Reject mismatched boiler overlays, retain only a seated low lid, independently review matched Unity views.
+- [ ] Broader workyard distribution, coherent boiler variants and dominant backdrop scale remain reference gaps. Avoid repeated tiny hardware passes.
+- [ ] Accumulated phone/crowd/midrange/first-ramp acceptance remains pending; regional encounters/boss progression remain deferred.
+
+Evidence and final verification: ArtDirection/2026-10-11/foundry-workyard-identity-01.

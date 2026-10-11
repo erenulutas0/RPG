@@ -8,9 +8,10 @@ import json
 import math
 from pathlib import Path
 from mathutils import Vector
+from bpy_extras.object_utils import world_to_camera_view
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'ArtDirection/2026-10-10/casting-bench-01'
+OUT = ROOT / 'ArtDirection/2026-10-11/workyard-clusters-01/casting'
 OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'ArtDirection/2026-10-09/blender-furnace-02/furnace-study.blend'))
 for obj in list(bpy.data.objects):
@@ -179,7 +180,8 @@ def mould(name,u,v,width,length,bottom):
         rod(name+' lifting lug',(x,v+length*.40,bottom+.12),(x,v+length*.60,bottom+.12),.028,bronze)
 
 
-# Front-left removed half and two open working moulds: exposed cavities face camera.
+# Three distinct production stages: an angled removed half, one broad active mould,
+# and a closed strapped flask queued for the press. Avoid three identical pale boxes.
 removed_before=set(bpy.data.objects)
 mould('Removed mould half',-17.17,19.66,.81,.84,.99)
 # The removed half is set aside at a slight angle rather than becoming a third
@@ -188,19 +190,30 @@ from mathutils import Matrix
 centre=Vector(point(-17.17+.405,19.66+.42,.99))
 rotation=Matrix.Translation(centre)@Matrix.Rotation(math.radians(-10),4,'Z')@Matrix.Translation(-centre)
 for obj in set(bpy.data.objects)-removed_before:obj.matrix_world=rotation@obj.matrix_world
-mould('Open ingot mould',-15.91,19.63,.72,.88,.99)
-mould('Second open mould',-14.93,19.66,.64,.84,.99)
-# Finished billets sit on their own short low rack at the east rear.
+mould('Active broad ingot mould',-15.96,19.58,1.22,.98,.99)
+# Closed flask uses dark oak sides and a recessed iron lid; broad straps explain how
+# the two halves stay clamped without hiding the active sand impression beside it.
+cube('Queued closed flask',(-14.43,19.64,-13.61,20.47),.99,1.36,wood,.025)
+cube('Closed flask parting line',(-14.445,19.625,-13.595,20.485),1.15,1.18,cast,.008)
+cube('Recessed flask lid',(-14.34,19.73,-13.70,20.38),1.36,1.382,stock,.012)
+for u in [-14.32,-13.80]:
+    cube('Flask broad front clamp',(u,19.618,u+.075,19.66),1.01,1.41,cast,.006)
+    cube('Flask broad top clamp',(u,19.618,u+.075,20.49),1.385,1.418,cast,.006)
+# Finished stock is a compact uneven bundle, supported by the original rear rack.
 for v in [21.08,21.76]:cube('Billet rack runner',(-15.71,v,-13.52,v+.12),.18,.34,wood,.012)
-for i in range(3):
-    u=-15.56+i*.69
-    section('Finished cooled billet',[
-        ((u,20.94,u+.50,21.97),.34),
-        ((u+.055,21.01,u+.445,21.9),.57)],stock,.028)
-    cube('Billet identification notch',(u+.09,21.00,u+.17,21.04),.47,.50,soot,.003)
-# Two simple tools on the free bench end, no scattered visual clutter.
-rod('Sand rammer handle',(-13.98,19.74,1.04),(-13.98,20.29,1.04),.034,wood)
-cube('Sand rammer head',(-14.1,20.26,-13.86,20.40),.99,1.14,iron,.021)
+for level in range(2):
+    for i in range(3-level):
+        u=-15.56+i*.69+level*.32
+        bottom=.34+level*.23;top=bottom+.23
+        section('Finished cooled billet',[
+            ((u,20.94+level*.06,u+.50,21.97-level*.08),bottom),
+            ((u+.055,21.01+level*.06,u+.445,21.9-level*.08),top)],stock,.025)
+for u in [-15.70,-13.58]:
+    cube('Rack retaining shoe',(u,21.20,u+.10,21.62),.18,.42,cast,.018)
+    cube('Rack short stock stop',(u,21.25,u+.10,21.54),.38,.84,cast,.014)
+# Rammer rests in the gap between the removed half and the active mould.
+rod('Sand rammer handle',(-16.22,19.76,1.04),(-16.22,20.26,1.04),.034,wood)
+cube('Sand rammer head',(-16.30,20.22,-16.14,20.40),.99,1.13,iron,.018)
 rod('Mould pick',(-14.25,19.6,1.02),(-13.56,19.6,1.02),.014,steel)
 
 scene=bpy.context.scene; camera=scene.camera
@@ -226,12 +239,15 @@ physical=[min(p.x for p in bounds)+ANCHOR[0],min(p.y for p in bounds)+ANCHOR[1],
 height_range=[min(p.z for p in bounds)/HEIGHT,max(p.z for p in bounds)/HEIGHT]
 assert physical[0]>=-17.7 and physical[1]>=19.4 and physical[2]<=-13.35 and physical[3]<=22.1,physical
 assert height_range[0]>=.1799 and height_range[1]<=2.5,height_range
+screen=[world_to_camera_view(scene,camera,p) for p in bounds]
+projected=[min(p.x for p in screen),min(p.y for p in screen),max(p.x for p in screen),max(p.y for p in screen)]
+assert min(projected)>=0 and max(projected)<=1,projected
 metadata=dict(blender=bpy.app.version_string,vertices=vertices,triangles=triangles,
     anchor=list(ANCHOR),ortho_scale=7,left=-3.5,right=3.5,bottom=-2.5,top=4.5,
     render_size=1024,height_compensation=HEIGHT,camera_direction=[-12,-12,math.sqrt(96)],
     vertical_target=1.0,depth_footprint=[-18,19.1,-13,22.4],depth_height=2.5,
-    equipment_bounds=physical,height_range=height_range,
-    included=['oak moulding bench','rear hand screw press','three open sand moulds with real tapered cavities','three finished billets','rammer and mould pick'],
+    equipment_bounds=physical,height_range=height_range,projected_normalized_bounds=projected,
+    included=['oak moulding bench','rear hand screw press','angled removed mould half','broad active sand mould','closed strapped flask','five staged finished billets in retaining rack','rammer and mould pick'],
     source='Native authored 3D geometry; existing study02 metal materials and lights; procedural oak and sand',
     limitation='Fixed-view transparent render, no floor or shadow catcher; Unity integration and device acceptance pending.')
 (OUT/'projection.json').write_text(json.dumps(metadata,indent=2)+'\n')

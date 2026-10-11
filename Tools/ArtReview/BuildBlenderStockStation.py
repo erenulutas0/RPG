@@ -8,9 +8,10 @@ import json
 import math
 from pathlib import Path
 from mathutils import Vector
+from bpy_extras.object_utils import world_to_camera_view
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'ArtDirection/2026-10-10/stock-station-01'
+OUT = ROOT / 'ArtDirection/2026-10-11/workyard-clusters-01/stock'
 OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'ArtDirection/2026-10-09/blender-furnace-02/furnace-study.blend'))
 for obj in list(bpy.data.objects):
@@ -110,43 +111,53 @@ cube('Recessed quench water',(5.46,20.86,6.64,21.94),.56,.58,water,.002)
 for u in [5.48,6.48]:cube('Tank welded rib',(u,20.695,u+.12,20.76),.34,.80,stock,.009)
 for v in [21.02,21.65]:cube('Tank end rib',(5.295,v,5.36,v+.12),.34,.80,stock,.009)
 
-# Six original billets on two skids; same stacked arrangement and total height.
+# Billets are staged in a retaining cradle rather than a uniform rectangular pile.
 for v in [20.86,21.7]:cube('Billet skid',(2.5,v,3.4,v+.16),.18,.29,cast,.014)
 for level in range(3):
-    for column in range(2):
-        u=2.56+column*.4;bottom=.29+level*.17;top=.44+level*.17
-        section('Rolled billet',[((u,20.78,u+.34,21.98),bottom),
-            ((u,20.78,u+.34,21.98),top-.025),
-            ((u+.025,20.805,u+.315,21.955),top)],stock,.008)
+    for column in range(2 if level<2 else 1):
+        u=2.56+column*.4+(0.18 if level==2 else 0)
+        bottom=.29+level*.23;top=bottom+.23
+        end=21.98-(.10 if column==1 else 0)
+        section('Staged cast billet',[((u,20.78,u+.34,end),bottom),
+            ((u,20.78,u+.34,end),top-.04),
+            ((u+.035,20.815,u+.305,end-.035),top)],stock,.012)
+for u in [2.47,3.39]:
+    cube('Billet cradle end stop',(u,21.20,u+.065,21.46),.23,1.14,cast,.012)
+cube('Billet cradle transverse shoe',(2.47,21.2,3.455,21.46),.18,.26,cast,.018)
 
-# Two flat strip coils with an actual centre bore and restrained concentric seams.
-def coil(bottom,top):
+# Upright strip coils are held in two floor cradles. Their holes and round silhouette
+# explain rolled feedstock at map scale; no tiny loose scraps are added to the court.
+def coil(front,back):
     vertices=[];faces=[];segments=64
-    for z,radius in [(bottom,.52),(top,.52),(bottom,.23),(top,.23)]:
+    for v,radius in [(front,.52),(back,.52),(front,.23),(back,.23)]:
         for i in range(segments):
             a=i*math.tau/segments
-            vertices.append(point(4.03+math.cos(a)*radius,21.35+math.sin(a)*radius,z))
+            vertices.append(point(4.03+math.cos(a)*radius,v,.76+math.sin(a)*radius/HEIGHT))
     for i in range(segments):
         j=(i+1)%segments
         faces.extend([(i,j,segments+j,segments+i),
             (2*segments+i,3*segments+i,3*segments+j,2*segments+j),
+            (i,2*segments+i,2*segments+j,j),
             (segments+i,segments+j,3*segments+j,3*segments+i)])
     mesh=bpy.data.meshes.new('Rolled strip coil');mesh.from_pydata(vertices,[],faces);mesh.update()
     obj=bpy.data.objects.new('Rolled strip coil',mesh);bpy.context.collection.objects.link(obj)
     finish(obj,'Rolled strip coil',stock,.009)
     for radius in [.30,.37,.44]:
         bpy.ops.mesh.primitive_torus_add(major_segments=64,minor_segments=6,
-            location=point(4.03,21.35,top+.001),major_radius=radius,minor_radius=.003)
+            location=point(4.03,front-.002,.76),rotation=(math.pi/2,0,0),major_radius=radius,minor_radius=.003)
         finish(bpy.context.object,'Quiet wound strip seam',cast)
-for layer in range(2):coil(.18+layer*.16,.32+layer*.16)
+for front in [21.03,21.46]:
+    # Narrow block cradles touch the coil below its lower quadrants.
+    for u in [3.67,4.23]:cube('Coil cradle bearing',(u,front-.035,u+.16,front+.255),.18,.395,cast,.022)
+    coil(front,front+.22)
 
-# Three hollow stock pipes. The open cut rim is continuous, not a painted cap.
-def pipe(v):
+# Five hollow stock pipes. The open cut rim is continuous, not a painted cap.
+def pipe(v,height,end):
     vertices=[];faces=[];n=32
-    for u,radius in [(2.3,.095),(5,.095),(2.3,.067),(5,.067)]:
+    for u,radius in [(2.3,.13),(end,.13),(2.3,.095),(end,.095)]:
         for i in range(n):
             a=i*math.tau/n
-            vertices.append(point(u,v+math.cos(a)*radius,.58+math.sin(a)*radius/HEIGHT))
+            vertices.append(point(u,v+math.cos(a)*radius,height+math.sin(a)*radius/HEIGHT))
     for i in range(n):
         j=(i+1)%n
         faces.extend([(i,j,n+j,n+i),(2*n+i,3*n+i,3*n+j,2*n+j),
@@ -155,9 +166,12 @@ def pipe(v):
     obj=bpy.data.objects.new('Hollow stored pipe',mesh);bpy.context.collection.objects.link(obj)
     finish(obj,'Hollow stored pipe',iron,.004)
     for poly in mesh.polygons:poly.use_smooth=True
-for u in [2.5,4.55]:cube('Pipe saddle',(u,18.78,u+.25,20.03),.18,.43,cast,.015)
-for v in [19,19.4,19.8]:pipe(v)
-for u in [2.7,4.6]:rod('Pipe retaining strap',(u,18.94,.70),(u,19.86,.70),.0275,stock)
+for u in [2.5,4.55]:
+    cube('Pipe cradle shoe',(u,18.78,u+.25,20.03),.18,.39,cast,.02)
+    for v in [18.82,19.83]:cube('Pipe cradle side stop',(u,v,u+.25,v+.09),.35,.68,iron,.016)
+for v,end in [(19.04,4.98),(19.34,4.9),(19.64,4.96)]:pipe(v,.503,end)
+upper_pipe_height=.503+math.sqrt(.26**2-.15**2)/HEIGHT
+for v,end in [(19.19,4.92),(19.49,4.84)]:pipe(v,upper_pipe_height,end)
 
 # Tool rack retains its footprint and recognizable tongs/hammer arrangement.
 for u in [5.65,6.65]:
@@ -178,19 +192,31 @@ camera.location=target+Vector((-12,-12,math.sqrt(96)))
 camera.rotation_euler=(target-camera.location).to_track_quat('-Z','Y').to_euler()
 camera.data.ortho_scale=6.3
 scene.render.resolution_x=1024;scene.render.resolution_y=1024
+scene.render.resolution_percentage=100;scene.render.film_transparent=True
+scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGBA'
 scene.render.filepath=str(OUT/'stock-station.png')
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'stock-station.blend'))
 bpy.ops.render.render(write_still=True)
-deps=bpy.context.evaluated_depsgraph_get();vertices=triangles=0
+deps=bpy.context.evaluated_depsgraph_get();vertices=triangles=0;bounds=[]
 for obj in scene.objects:
     if obj.type!='MESH':continue
     evaluated=obj.evaluated_get(deps);mesh=evaluated.to_mesh();mesh.calc_loop_triangles()
-    vertices+=len(mesh.vertices);triangles+=len(mesh.loop_triangles);evaluated.to_mesh_clear()
+    vertices+=len(mesh.vertices);triangles+=len(mesh.loop_triangles)
+    bounds.extend([obj.matrix_world@vert.co for vert in mesh.vertices]);evaluated.to_mesh_clear()
+physical=[min(p.x for p in bounds)+ANCHOR[0],min(p.y for p in bounds)+ANCHOR[1],
+          max(p.x for p in bounds)+ANCHOR[0],max(p.y for p in bounds)+ANCHOR[1]]
+height_range=[min(p.z for p in bounds)/HEIGHT,max(p.z for p in bounds)/HEIGHT]
+assert physical[0]>=2 and physical[1]>=18.5 and physical[2]<=7 and physical[3]<=22.4,physical
+assert height_range[0]>=.15 and height_range[1]<=1.6,height_range
+screen=[world_to_camera_view(scene,camera,p) for p in bounds]
+projected=[min(p.x for p in screen),min(p.y for p in screen),max(p.x for p in screen),max(p.y for p in screen)]
+assert min(projected)>=0 and max(projected)<=1,projected
 metadata=dict(blender=bpy.app.version_string,vertices=vertices,triangles=triangles,
     anchor=list(ANCHOR),ortho_scale=6.3,left=-3.15,right=3.15,bottom=-2.45,top=3.85,
     render_size=1024,height_compensation=HEIGHT,depth_footprint=[2,18.5,7,22.4],depth_height=1.6,
-    included=['quench tank and still water','six billets','two strip coils','three hollow pipes','tool rack'],
+    equipment_bounds=physical,height_range=height_range,projected_normalized_bounds=projected,
+    included=['quench tank and still water','five staged billets in a retaining cradle','two upright strip coils with cradles','five hollow pipes in a triangular bundle','tool rack'],
     preserved=['wood barrel and crate','crane','hoist','masonry shelf','walking space and camera'],
     source='Authored geometry; existing study02 procedural materials and lighting',
     limitation='Fixed-view metal-only transparent render; no floor or shadow catcher; Unity acceptance separate.')

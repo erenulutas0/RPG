@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cryptforge — Atölye düzeni ve kazan donanımı</title>
+<style>
+:root{font:16px/1.55 system-ui;color:#dfe3ed;background:#11141d;color-scheme:dark}*{box-sizing:border-box}body{margin:0}main{max-width:1400px;margin:auto;padding:28px 20px 60px}h1{font-size:clamp(28px,4vw,44px);line-height:1.15}p{max-width:960px;color:#bec6d4}a{color:#e6bd7b}button,select{font:inherit;background:#252c39;border:1px solid #65718a;color:inherit;padding:10px 18px;min-height:44px;border-radius:6px;cursor:pointer}button[aria-pressed=true]{background:#65492c;border-color:#d4ae6b}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:20px 0}figure{margin:0;border:1px solid #394051;border-radius:8px;overflow:hidden;background:#0b0d14}img{display:block;width:100%;height:auto}figcaption{padding:12px 16px}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0}.status{border-left:3px solid #cfab70;padding:12px 18px;background:#28251f}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #a8caff;outline-offset:3px}@media(max-width:700px){main{padding:20px 12px}.pair{grid-template-columns:1fr}select{max-width:100%}}
+</style>
+<main>
+<p>CRYPTFORGE · GERÇEK UNITY GÖRÜNTÜLERİ</p>
+<h1>Üretim alanı daha belirgin bir atölyeye dönüşüyor</h1>
+<p>Malzeme istasyonunda dik bobinler, beş boruluk destekli demet ve külçe yatağı; döküm tezgâhında açık kalıp, kenara ayrılmış kalıp yarısı ve pres için hazırlanmış kapalı kalıp. Aynı pakette kazanların işlevini anlatan donanım da karşılaştırılıyor.</p>
+<p class="status" id="verification">Bunlar oyunun Unity görüntüleridir; telefon ekran görüntüsü değildir. Entegrasyon ve doğrulama durumu <a href="README.md">paket kaydında</a> tutulur. Referansın atölye yerleşimi ve genel görsel zenginliği için hâlâ çalışma gerekiyor.</p>
+<div class="controls">
+<button data-phase="before" aria-pressed="false">Önce</button>
+<button data-phase="after" aria-pressed="true">Sonra</button>
+<button data-phase="reference" aria-pressed="false">Onaylı referans</button>
+<label>Görünüm <select id="view" aria-label="Görünüm">
+<option value="overview">Haritaya genel bakış</option>
+<option value="stock-detail">Malzeme istasyonu</option>
+<option value="casting-detail">Döküm tezgâhı</option>
+<option value="workshop-detail">Atölye bütünü</option>
+<option value="gate-detail">Kapı ve kazanlar</option>
+<option value="approach-20-1">Kazan yaklaşımı — dikey</option>
+<option value="expanded-30-5">Kapı yaklaşımı — dikey</option>
+<option value="full-map">Haritanın tamamı</option>
+</select></label>
+</div>
+<figure><a id="full" href="after/overview.png"><img id="comparison" src="after/overview.png" alt="Sonra: gerçek Unity harita görüntüsü"></a><figcaption id="caption" aria-live="polite">Sonra · gerçek Unity görüntüsü, eşleşen kamera.</figcaption></figure>
+<h2>Malzeme ve taşıma istasyonu</h2>
+<div class="pair"><figure><img src="before/stock-detail.png" alt="Malzeme istasyonu önce"><figcaption>Önce · 10d5e01</figcaption></figure><figure><img src="after/stock-detail.png" alt="Malzeme istasyonu sonra"><figcaption>Sonra · aynı kamera</figcaption></figure></div>
+<h2>Döküm sürecinin farklı aşamaları</h2>
+<div class="pair"><figure><img src="before/casting-detail.png" alt="Döküm tezgâhı önce"><figcaption>Önce</figcaption></figure><figure><img src="after/casting-detail.png" alt="Döküm tezgâhı sonra"><figcaption>Sonra · aynı kamera</figcaption></figure></div>
+<p>Dikey görüntüler oyun kamerasının genişliğini kullanır; karşılaştırma için kahraman yerleştirilmiş ve arayüz gizlenmiştir. Onaylı çizim hedefi gösterir, oyunun tamamlanmış hâlini göstermez. <a href="../../2026-09-23/foundry-layout-01/foundry-v1.png">Referansı tam boy aç</a> · <a href="README.md">Kapsam ve doğrulama</a></p>
+</main>
+<script>
+let phase='after';
+const view=document.querySelector('#view');
+function show(){
+  const reference=phase==='reference';
+  const src=reference?'../../2026-09-23/foundry-layout-01/foundry-v1.png':phase+'/'+view.value+'.png';
+  const label=reference?'Onaylı konsept · oyun ekran görüntüsü değildir.':(phase==='before'?'Önce · temel sürüm 10d5e01':'Sonra')+' · gerçek Unity görüntüsü, eşleşen kamera.';
+  document.querySelector('#comparison').src=src;
+  document.querySelector('#comparison').alt=label;
+  document.querySelector('#full').href=src;
+  document.querySelector('#caption').textContent=label;
+  document.querySelectorAll('[data-phase]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.phase===phase)));
+  view.disabled=reference;
+}
+document.querySelectorAll('[data-phase]').forEach(button=>button.addEventListener('click',()=>{phase=button.dataset.phase;show();}));
+view.addEventListener('change',show);
+show();
+</script>
+</html>
