@@ -1,0 +1,90 @@
+{
+  "baseline": "4ac6665aa72e061ab03c86efcb83f2b86df51e5e",
+  "image_count": 9,
+  "records": [
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/full-map.png",
+      "baseline_blob": "060e7fb2434230e76115e941c13683fce92115af",
+      "destination": "before/full-map.png",
+      "sha256": "76EF341A4668C2625ADDD4B81D9B529A3C6BC67A2A25CA671F661BEA4478550C"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/broad-yard.png",
+      "baseline_blob": "bcdea172d0c239d1200d523463dc54e0ea18d846",
+      "destination": "before/broad-yard.png",
+      "sha256": "F54A73E36EB4B34EF396CF1036822EB10D4CE0579B0DCEE73D3D4F99E775B7A8"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/skyline-detail.png",
+      "baseline_blob": "05bc6c16bd161c9f26ce999d071df839e135b0c1",
+      "destination": "before/skyline-detail.png",
+      "sha256": "38D38A9EACABDA814FFDEDADC426DD789B0FBBD4DAB661A92F4CFD7DA4F5EA60"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/expanded--26-15.png",
+      "baseline_blob": "f5206640045c21d28264af20bf3c855917e35f6e",
+      "destination": "before/expanded--26-15.png",
+      "sha256": "C77DD9304AE9F4BD0FCC3C40A5F6A26063FFAC4E313512DB7A41D5AFBBC57270"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/casting-portrait.png",
+      "baseline_blob": "f6171a5790ac7a0c09371a937df62bcec34593fc",
+      "destination": "before/casting-portrait.png",
+      "sha256": "3A8C4A1EA23752553C2EA2934A187FF4EDC1E126B86E5F5C06E72F054B5F596B"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/crane-detail.png",
+      "baseline_blob": "75ed63685fdd8ad53c3ef69a4882747c66f21513",
+      "destination": "before/crane-detail.png",
+      "sha256": "3292FDB680A2DA3325EFFA6A3DAA6CAC4CD7E01922F0DCCB8E227E40BC9538D4"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/stock-detail.png",
+      "baseline_blob": "80c01a82285d704fc555ace17e2d46adf3e8076c",
+      "destination": "before/stock-detail.png",
+      "sha256": "49D99EA21738E4405E7AEAF3030FA6B0C619C30B29498AFB4A088464EFA114F8"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/overview.png",
+      "baseline_blob": "4ab96c7ed1a6bdc890634bd9172ad1a5f2ec74b2",
+      "destination": "before/overview.png",
+      "sha256": "AF8357284F54099E4570760E62836D07B0123BC9479198AC44614ED3630AA882"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/expanded--27-6.png",
+      "baseline_blob": "f6cf055130eef9e2a47a122d9dfe348e1ff326be",
+      "destination": "before/expanded--27-6.png",
+      "sha256": "C34B28E568E834871AA7B5F0D19B93492B2F415A7A7B7EBE2708A272E9D609DC"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/runtime-budget.txt",
+      "baseline_blob": "86792bdf7959e3e655d179a91ce68dfbf12bb971",
+      "destination": "before/runtime-budget.txt",
+      "sha256": "7D3F25411A31545EDF5F34FCCE752094F18FC3CB2B9798D647990377B96FF918"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/distant-budget.txt",
+      "baseline_blob": "d1970d299371315a20a3f064548b723ee6af8332",
+      "destination": "before/distant-budget.txt",
+      "sha256": "6E08DF7FD38510ECB692E2F5C52AF2C2FB811B510CD3335202C3192F9B143807"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/distant-material.txt",
+      "baseline_blob": "0b2747f741210a94e83733713f3df9690cf1ca81",
+      "destination": "before/distant-material.txt",
+      "sha256": "FE9905F331B0E16DF607D7707B7EB5FFD4D59ADE49B7497B0666589DA2B825B6"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/cavern-texture.txt",
+      "baseline_blob": "75f67b33b13e6c0f35c75808f3205c6bcde42f14",
+      "destination": "before/cavern-texture.txt",
+      "sha256": "0E250043E69E22160A29887B5B15E9D58ADB4DC9240C5E67E210D815BDECE92F"
+    },
+    {
+      "source": "ArtDirection/2026-10-11/foundry-loading-bay-01/after/graphics.xml",
+      "baseline_blob": "b326b5b1cbf87f622424b43fc2dbb2494aa1fcb6",
+      "destination": "before/graphics.xml",
+      "sha256": "8224D01F43F22A89DC01705C7A23A2A58A8EC2437C5B9FD3B8A28C502C0F331D"
+    }
+  ]
+}

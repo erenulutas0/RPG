@@ -1156,3 +1156,12 @@ Three helpers authored support geometry/tests, crane source, and stock/casting s
 Root actual-image review accepts better connected loading architecture and clearer receiving/casting identities. Live crane chain/sheave/load contact remains seated in the inspected images. The existing foreground lamp pole crosses the mast and the large northwest shaft still dominates some close views. Local gains are visible; whole-map gain is modest and full reference material/structural richness remains unfinished. Region remains 32 renderers; 162568->165392 vertices (+2824, 1.7%). Distant2496 unchanged. Existing crane import1024 ASTC6x6/11mips and stock/casting512 ASTC6x6/10mips remain non-readable; no extra runtime texture, material or updater. Native Blender mesh counts are authoring counts, not runtime GPU geometry. These resource counts are not phone-performance evidence.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.
+
+
+## 2026-10-11 - Connected service shafts verified; device pending
+
+Two existing northwest distant furnace shafts receive narrower necks, joined dressed shoulders, real recessed neck panels with side returns and hollow exhaust crowns. The original leaning buttress heads move inward to meet the narrowed neck. The mouths have low throats, inner walls and separate annular rims instead of solid roof caps. Existing lower furnace body/fire, other distant variants, atmospheric fade, materials, sorting, camera, navigation, gameplay and saves remain unchanged.
+
+Region32 renderers/166468 vertices versus165392 (+1076); distant geometry2496->3572. The combined distant vertex ceiling is intentionally revised from2500 to3600 for two complete hollow crowns/recessed necks; all existing lifetime, material, rank, fade and bounds assertions stay intact. This is a measured resource-budget decision, not a frame-time result. No new texture, material instance or per-frame updater.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.

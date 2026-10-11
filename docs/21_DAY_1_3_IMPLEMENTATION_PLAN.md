@@ -2328,3 +2328,15 @@ Three helpers authored support geometry/tests, crane source, and stock/casting s
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,242,956 bytes; SHA256 1130DFD56C5AAFEBBE3CA034661F370AF86C03D9E9E4C10CDA5B0FBE9283E728. NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.
+
+
+## 2026-10-11 - Connected service shafts verified; device pending
+
+Two existing northwest distant furnace shafts receive narrower necks, joined dressed shoulders, real recessed neck panels with side returns and hollow exhaust crowns. The original leaning buttress heads move inward to meet the narrowed neck. The mouths have low throats, inner walls and separate annular rims instead of solid roof caps. Existing lower furnace body/fire, other distant variants, atmospheric fade, materials, sorting, camera, navigation, gameplay and saves remain unchanged.
+
+Files: FoundryRegionDistantWorks.cs, new FoundryServiceShaftTests.cs/meta, the combined geometry budget in FoundryDistantWorksTests.cs, FoundryServiceShaftCapture.cs and Run-FoundryServiceShaftProof.ps1.
+
+425 .NET / 497 EditMode / 159 PlayMode = 1,081 distinct suite cases, zero failures/skips. Final isolated compile zero warnings/errors; Android-target graphics capture passed. PASS: 595 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit0 with no C# or shader diagnostics. APK 36,248,250 bytes, SHA256 B8225B648A17854B3EB00D07B5A7CF4EDFC0B86DC32D080EB2353157B32C8DC7; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.

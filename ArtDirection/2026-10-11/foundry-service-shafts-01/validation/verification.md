@@ -1,0 +1,8 @@
+# Final verification
+
+425 .NET / 497 EditMode / 159 PlayMode = 1,081 distinct suite cases, zero failures/skips. Final isolated compile zero warnings/errors; Android-target graphics capture passed. PASS: 595 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit0 with no C# or shader diagnostics. APK 36,248,250 bytes, SHA256 B8225B648A17854B3EB00D07B5A7CF4EDFC0B86DC32D080EB2353157B32C8DC7; NOT INSTALLED.
+
+Region32 renderers/166468 vertices versus165392 (+1076); distant geometry2496->3572. The combined distant vertex ceiling is intentionally revised from2500 to3600 for two complete hollow crowns/recessed necks; all existing lifetime, material, rank, fade and bounds assertions stay intact. This is a measured resource-budget decision, not a frame-time result. No new texture, material instance or per-frame updater.
+
+The local shaft silhouettes and construction are improved; full reference fidelity is unfinished. The broad dark sloped shoulders read more like pyramidal exhaust hoods, a visible material simplification; lower shaft bodies remain plain. Whole-map improvement is modest. Device movement/crowd/HUD/shimmer/midrange acceptance remains open. No ADB or fresh phone observation. The earlier concrete install/restart decision remains pending. Future deployment must inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Region encounter/boss progression remains deferred by the art-first direction.

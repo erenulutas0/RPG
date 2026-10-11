@@ -152,34 +152,115 @@ namespace Cryptforge.UI
                 DistantBlock(mesh,x,v0-.20f,x+.62f,v0+.44f,sill,shoulder-.75f,tone*.85f);
                 // Lean the head into the receding shoulder, keeping a shared
                 // bearing volume instead of a detached fin beside the neck.
-                float inward=x<(u0+u1)*.5f?.55f:-.55f;
-                DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,shoulder+2.0f,.16f,tone*.94f,inward,.55f);
+                float neck=variant==1?.94f:1.02f;
+                float inward=(x<(u0+u1)*.5f?1:-1)*(neck-.15f);
+                DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,shoulder+2.0f,.16f,tone*.94f,inward,neck+.04f);
             }
-            // Compact structural shoulders carry upright furnace necks. The old
-            // long sloping transition read as a pyramid above each arched bay.
-            // Retain the shoulder datum and enough body at shoulder+2 to receive
-            // the leaning buttress heads; the tiers reuse the same face budget.
-            float neck=variant==1?.76f:.62f;
-            float shoulderHead=shoulder+2.25f;
-            float crown=top-(variant==2?1.20f:0);
-            DistantTaper(mesh,u0-.06f,v0-.06f,u1+.06f,v1+.06f,shoulder,shoulder+.52f,.18f,tone);
-            DistantTaper(mesh,u0+.12f,v0+.12f,u1-.12f,v1-.12f,shoulder+.52f,shoulderHead,neck-.12f,tone*.92f);
-            DistantBlock(mesh,u0+neck,v0+neck,u1-neck,v1-neck,shoulderHead,crown-.92f,tone*.87f);
-            DistantBlock(mesh,u0+neck-.22f,v0+neck-.22f,u1-neck+.22f,v1-neck+.22f,crown-.92f,crown-.65f,tone*1.06f);
-            DistantTaper(mesh,u0+neck-.22f,v0+neck-.22f,u1-neck+.22f,v1-neck+.22f,crown-.65f,crown,.38f,tone);
-            if(variant==2)
+            DistantFurnaceHead(mesh,u0,v0,u1,v1,top,tone,variant);
+        }
+
+        private static void DistantFurnaceHead(Builder mesh,float u0,float v0,float u1,float v1,
+            float top,Color tone,int variant)
+        {
+            float shoulder=top-(variant==1?4.8f:6.2f),neck=variant==1?.94f:1.02f;
+            float neckBottom=shoulder+(variant==1?1.85f:2.10f);
+            float exhaustTop=top-(variant==1?0:.40f),exhaustBottom=top-(variant==1?.90f:1.20f);
+            Vector4 foot=new Vector4(u0-.06f,v0-.06f,u1+.06f,v1+.06f);
+            Vector4 bearing=new Vector4(u0+.14f,v0+.14f,u1-.14f,v1-.14f);
+            Vector4 shaft=new Vector4(u0+neck,v0+neck,u1-neck,v1-neck);
+            // The original shoulder datum/outer bearing stay fixed. Two joined
+            // raking courses taper to a slimmer neck; no hidden horizontal caps
+            // are laid across the next section or the open exhaust throat.
+            DistantHeadShoulder(mesh,foot,bearing,shoulder,shoulder+.45f,tone*.93f);
+            DistantHeadShoulder(mesh,bearing,shaft,shoulder+.45f,neckBottom,tone*.88f);
+            // True blind recesses replace the long flat brick neck. Broad corner
+            // bearings, dressed sill/header and inset returns share one volume.
+            // West first, south last follows the fixed isometric painter order.
+            DistantNeckFace(mesh,shaft,true,neckBottom,exhaustBottom-.16f,tone*.70f);
+            DistantNeckFace(mesh,shaft,false,neckBottom,exhaustBottom-.16f,tone*.91f);
+            Vector4 crown=new Vector4(shaft.x-.12f,shaft.y-.12f,shaft.z+.12f,shaft.w+.12f);
+            DistantHeadShoulder(mesh,shaft,crown,exhaustBottom-.16f,exhaustBottom,tone*.95f);
+            DistantHollowExhaust(mesh,crown,exhaustBottom,exhaustTop,variant==1?.22f:.26f,tone);
+        }
+
+        private static void DistantHeadShoulder(Builder mesh,Vector4 lower,Vector4 upper,float bottom,float top,Color tone)
+        {
+            Vector3 a=Project(lower.x,lower.y)+Vector3.up*bottom,b=Project(lower.z,lower.y)+Vector3.up*bottom;
+            Vector3 d=Project(lower.x,lower.w)+Vector3.up*bottom;
+            Vector3 e=Project(upper.x,upper.y)+Vector3.up*top,f=Project(upper.z,upper.y)+Vector3.up*top;
+            Vector3 h=Project(upper.x,upper.w)+Vector3.up*top;
+            DistantMineralFace(mesh,d,a,e,h,tone*.72f,true);
+            DistantMineralFace(mesh,a,b,f,e,tone,true);
+        }
+
+        private static void DistantNeckFace(Builder mesh,Vector4 box,bool west,float bottom,float top,Color tone)
+        {
+            const float side=.20f,inset=.14f;
+            float lower=bottom+.20f,upper=top-.20f;
+            Vector3 At(float t,float h,float recess)=>DistantFacePoint(box.x,box.y,box.z,box.w,west,t,h,recess);
+            // Each piece owns a disjoint portion of this facade: there is no
+            // original full wall under the recessed panel and its side returns.
+            DistantHeadCourses(mesh,At(0,bottom,0),At(side,bottom,0),At(side,top,0),At(0,top,0),tone,2);
+            DistantHeadCourses(mesh,At(1-side,bottom,0),At(1,bottom,0),At(1,top,0),At(1-side,top,0),tone,2);
+            DistantMineralFace(mesh,At(side,bottom,0),At(1-side,bottom,0),At(1-side,lower,0),At(side,lower,0),tone,true);
+            DistantMineralFace(mesh,At(side,upper,0),At(1-side,upper,0),At(1-side,top,0),At(side,top,0),tone,true);
+            DistantHeadCourses(mesh,At(side,lower,inset),At(1-side,lower,inset),At(1-side,upper,inset),At(side,upper,inset),tone*.78f,2);
+            DistantMineralFace(mesh,At(side,lower,0),At(side,lower,inset),At(side,upper,inset),At(side,upper,0),tone*.58f,false);
+            DistantMineralFace(mesh,At(1-side,lower,inset),At(1-side,lower,0),At(1-side,upper,0),At(1-side,upper,inset),tone*.84f,false);
+            DistantMineralFace(mesh,At(side,lower,0),At(1-side,lower,0),At(1-side,lower,inset),At(side,lower,inset),tone*1.04f,false);
+            DistantMineralFace(mesh,At(side,upper,inset),At(1-side,upper,inset),At(1-side,upper,0),At(side,upper,0),tone*.66f,false);
+        }
+
+        private static void DistantHeadCourses(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone,int rows)
+        {
+            for(int row=0;row<rows;row++)
             {
-                float u=(u0+u1)*.5f,v=(v0+v1)*.5f;
-                // A wide, low rectangular exhaust hood distinguishes the smaller
-                // works from the tall open flue, with both courses fully seated.
-                DistantBlock(mesh,u-.56f,v+.02f,u+.56f,v+.74f,crown,crown+.60f,tone*.82f);
-                DistantBlock(mesh,u-.65f,v-.07f,u+.65f,v+.83f,crown+.48f,crown+.80f,tone);
+                float lo=row/(float)rows,hi=(row+1f)/rows;
+                DistantMineralFace(mesh,Vector3.Lerp(a,d,lo),Vector3.Lerp(b,c,lo),
+                    Vector3.Lerp(b,c,hi),Vector3.Lerp(a,d,hi),tone,true);
             }
-            else
-                DistantMasonryFace(mesh,Project(u0+neck+.40f,v0+neck+.40f)+Vector3.up*(top+.002f),
-                    Project(u1-neck-.40f,v0+neck+.40f)+Vector3.up*(top+.002f),
-                    Project(u1-neck-.40f,v1-neck-.40f)+Vector3.up*(top+.002f),
-                    Project(u0+neck+.40f,v1-neck-.40f)+Vector3.up*(top+.002f),true,tone*.24f);
+        }
+
+        private static void DistantHollowExhaust(Builder mesh,Vector4 outer,float bottom,float top,float wall,Color tone)
+        {
+            Vector4 inside=new Vector4(outer.x+wall,outer.y+wall,outer.z-wall,outer.w-wall);
+            var rim=new[]{Project(outer.x,outer.y),Project(outer.z,outer.y),Project(outer.z,outer.w),Project(outer.x,outer.w)};
+            var throat=new[]{Project(inside.x,inside.y),Project(inside.z,inside.y),Project(inside.z,inside.w),Project(inside.x,inside.w)};
+            // A low opaque throat closes the distant shaft. The top remains a
+            // geometric hole: only its annulus and inner walls reach the rim.
+            DistantMineralFace(mesh,throat[0]+Vector3.up*bottom,throat[1]+Vector3.up*bottom,
+                throat[2]+Vector3.up*bottom,throat[3]+Vector3.up*bottom,tone*.16f,false);
+            foreach(int edge in new[]{1,2,3,0})
+            {
+                int next=(edge+1)%4;
+                DistantMineralFace(mesh,throat[edge]+Vector3.up*bottom,throat[next]+Vector3.up*bottom,
+                    throat[next]+Vector3.up*top,throat[edge]+Vector3.up*top,tone*(edge<2?.34f:.23f),false);
+            }
+            // Outer near faces occlude the bottom of the throat in the same way
+            // a real open flue does. Their cap is four rim strips, never a full roof.
+            foreach(int edge in new[]{3,0})
+            {
+                int next=(edge+1)%4;
+                DistantMineralFace(mesh,rim[edge]+Vector3.up*bottom,rim[next]+Vector3.up*bottom,
+                    rim[next]+Vector3.up*top,rim[edge]+Vector3.up*top,tone*(edge==0?.96f:.69f),true);
+            }
+            foreach(int edge in new[]{1,2,3,0})
+            {
+                int next=(edge+1)%4;
+                DistantMineralFace(mesh,rim[edge]+Vector3.up*top,rim[next]+Vector3.up*top,
+                    throat[next]+Vector3.up*top,throat[edge]+Vector3.up*top,tone*(edge<2?.89f:1.07f),true);
+            }
+        }
+
+        private static void DistantMineralFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone,bool dressed)
+        {
+            int first=mesh.V.Count;
+            FullFace(mesh,a,b,c,d,tone);
+            // A quiet interior patch keeps these few broad fitted stones distinct
+            // from the lower shafts' brick field without adding another texture.
+            mesh.U[first]=new Vector2(.275f,.655f);mesh.U[first+1]=new Vector2(.415f,.655f);
+            mesh.U[first+2]=new Vector2(.415f,.747f);mesh.U[first+3]=new Vector2(.275f,.747f);
+            if(dressed)GateStoneEdges(mesh,first,.032f,.032f);
         }
 
         private static Vector3 DistantFacePoint(float u0,float v0,float u1,float v1,bool west,float t,float z,float inset)

@@ -700,3 +700,13 @@ Evidence/reproduction: ArtDirection/2026-10-11/foundry-bridge-yard-01.
 Next coherent art package: reduce the visual dominance of the northwest service shaft through joined shaft/head/side-return architecture and local material hierarchy, reviewed against the entire reference and the casting/crane portraits. Preserve the existing scenic envelope, circulation and camera; do not add another row of small trim or grow every wall mesh. Keep full-map scale and foreground/background separation as acceptance criteria. Physical-device acceptance remains separate.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.
+
+
+## 2026-10-11 - Connected service shafts verified; device pending
+
+- [x] Connected narrower northwest shafts with recessed faces and hollow crowns; source/image review, tests and Android build.
+- [ ] Full reference fidelity and physical-device acceptance.
+
+Next substantial visual review: compare the whole court, pit and gate against the reference at matched scale, then prioritize the largest remaining material/structural mismatch rather than another isolated trim pass. Keep the complete new loading area and service shafts together for the next authorized phone review.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
