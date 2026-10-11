@@ -42,8 +42,9 @@ namespace Cryptforge.UI
 
         private void BuildGateLandingShoulders(ArenaView arena)
         {
-            // Raised side terraces frame the existing single-plane walk. Their steps face
-            // outward into the void; none pretends to be a stair the hero can climb.
+            // Broad seated stone shoulders frame the existing single-plane walk.
+            // Low ashlar bodies carry substantial coping instead of miniature stairs;
+            // the complete assembly stays outboard of the hero's approach.
             foreach(bool north in new[]{false,true})
             {
                 float v0=north?12.45f:-3.9f,v1=north?13.9f:-2.45f;
@@ -54,10 +55,9 @@ namespace Cryptforge.UI
                     LitFoundryTier(support,box.x,box.y,box.z,box.w,-2.8f,0,.12f);
                     Create("Gate landing shoulder foundations",support,arena.PlatformMaterials.FoundryWall,-16);
                     var stone=new Builder();
-                    LitFoundryTier(stone,box.x,box.y,box.z,box.w,0,.18f,.12f);
-                    LitFoundryTier(stone,GateU(29.45f),v0+.15f,GateU(32),v1-.15f,.18f,.45f,.06f);
-                    LitFoundryTier(stone,GateU(29.9f),v0+.28f,GateU(32),v1-.28f,.45f,.72f,.06f);
-                    LitFoundryTier(stone,GateU(30.35f),v0+.38f,GateU(32),v1-.38f,.72f,1.02f,.04f);
+                    GateEnclosureTier(stone,box.x,box.y,box.z,box.w,0,.24f,.08f,.92f,true);
+                    GateEnclosureTier(stone,GateU(29.30f),v0+.10f,GateU(32),v1-.10f,.24f,.78f,.12f,.87f);
+                    GateCraftTier(stone,GateU(29.28f),v0+.08f,GateU(32),v1-.08f,.78f,1.02f,.055f,.95f);
                     // Separate below-deck faces so they never draw over the walking surface.
                     // The raised stonework is scoped to the completely outboard footprint.
                     Create("Gate landing stepped shoulders",stone,arena.PlatformMaterials.FoundryWall,-11);
@@ -195,13 +195,13 @@ namespace Cryptforge.UI
                     Color tint=iron.C[i];
                     iron.C[i]=new Color(tint.r*.48f,tint.g*.5f,tint.b*.55f,1);
                 }
-                // Cast finials are carried by the existing terminal, not floating
-                // ornaments. Their narrow upper taper leaves the door crest dominant.
+                // A short cast terminal caps each jamb within its depth envelope. The
+                // former long spear made these jambs read as another pair of towers.
                 TintedIronTier(iron,GateU(33.15f),v+.65f,GateU(33.85f),v+1.35f,7.36f,7.53f,.04f,
                     new Color(.68f,.73f,.83f),true);
                 TintedIronTier(iron,GateU(33.20f),v+.70f,GateU(33.80f),v+1.30f,7.53f,7.67f,.025f,
                     new Color(1.03f,.80f,.49f),true);
-                TintedIronTier(iron,GateU(33.25f),v+.75f,GateU(33.75f),v+1.25f,7.67f,8.45f,.22f,
+                TintedIronTier(iron,GateU(33.25f),v+.75f,GateU(33.75f),v+1.25f,7.67f,7.94f,.22f,
                     new Color(.80f,.86f,.99f),true);
                 // Iron collars sit against the lower edge of the projecting stone courses.
                 foreach(float y in new[]{1.48f,5.43f})
@@ -321,8 +321,8 @@ namespace Cryptforge.UI
 
         private static void BuildGatePierRelief(Builder stone,float v)
         {
-            // One stone-backed tall blind niche replaces the two dark storeys.
-            // The continuous shaft remains legible as load-bearing masonry.
+            // A narrow stone-backed rebate leaves broad vertical bearings on both
+            // sides. Most of the jamb remains solid dressed stone, not a dark window.
             foreach(bool front in new[]{true,false})
                 GateBlindLancet(stone,v,front,2.03f,5.18f,1.70f,5.45f);
         }
@@ -335,14 +335,14 @@ namespace Cryptforge.UI
             bool near=v<0;
             float a=near?v+1.42f:v+.04f,b=near?v+1.96f:v+.58f;
             GateCraftTier(stone,GateU(32.02f),a,GateU(33.04f),b,.45f,1.15f,.03f,.94f);
-            GateCraftTier(stone,GateU(32.10f),a+.05f,GateU(32.96f),b-.05f,1.15f,height-.38f,.035f,.87f);
+            GateCraftTier(stone,GateU(32.04f),a+.025f,GateU(33.04f),b-.025f,1.15f,height-.38f,.025f,.96f);
             GateCraftTier(stone,GateU(32.02f),a-.02f,GateU(33.04f),b+.02f,height-.38f,height+.10f,.065f,.96f);
         }
 
         private static void GateBlindLancet(Builder stone,float v,bool front,
             float bottom,float top,float courseBottom,float courseTop)
         {
-            float half=front?.49f:.78f;
+            float half=front?.29f:.47f;
             float center=front?v+1:GateU(33.5f);
             float h=top-bottom;
             // Five sides make the pointed head part of the supporting stonework,
@@ -356,7 +356,7 @@ namespace Cryptforge.UI
                 inner[i]=new Vector2(Mathf.Lerp(outer[i].x,center,.28f),
                     Mathf.Lerp(outer[i].y,middle.y,.18f));
             Vector3 hub=GatePierFace(v,front,middle,courseBottom,courseTop);
-            Color recess=front?new Color(.32f,.35f,.42f):new Color(.39f,.42f,.49f);
+            Color recess=front?new Color(.39f,.42f,.48f):new Color(.46f,.49f,.55f);
             Vector3 origin=GatePierFace(v,front,new Vector2(center-half,bottom),courseBottom,courseTop);
             Vector3 along=GatePierFace(v,front,new Vector2(center+half,bottom),courseBottom,courseTop);
             Vector3 across=GatePierFace(v,front,new Vector2(center-half,top),courseBottom,courseTop);

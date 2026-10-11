@@ -2,34 +2,40 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Supported portal crown; unchanged footprint, maximum elevation and door anchors.
+    // Supported portal parapet; existing footprint, height envelope and door anchors.
     public sealed partial class FoundryRegionView
     {
         private static void BuildGateHeaderFinish(Builder stone,float height)
         {
-            // A broad supported lintel replaces the long shallow temple gable.
-            // The two low shoulders climb into a narrow central crest, retaining
-            // the existing height envelope while strengthening the industrial gate.
+            // One continuous lintel and a low interrupted coping make the doorway
+            // a fortified industrial wall. The former nested shoulders climbed
+            // into a temple-like crest and made the door look broad and squat.
             GateCraftTier(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,.90f);
             foreach(bool left in new[]{true,false})
             {
                 float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
-                GateCraftTier(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+.97f,.11f,.93f);
-                float inner0=left?2.0f:6.5f,inner1=left?3.5f:8.0f;
-                GateCraftTier(stone,GateU(32.28f),inner0,GateU(33.72f),inner1,height+.97f,height+1.22f,.13f,.86f);
+                GateCraftTier(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+.97f,.035f,.91f);
             }
-            // Recess the middle face behind the keystone. Two side cheeks and the
-            // rear core carry the unchanged crest without filling its carved void.
-            GateCraftTier(stone,GateU(32.65f),3.35f,GateU(33.85f),6.65f,height+.72f,height+1.32f,.08f,.88f);
-            GateCraftTier(stone,GateU(32.15f),3.35f,GateU(32.67f),3.95f,height+.72f,height+1.32f,.04f,.88f);
-            GateCraftTier(stone,GateU(32.15f),6.05f,GateU(32.67f),6.65f,height+.72f,height+1.32f,.04f,.88f);
-            GateCraftTier(stone,GateU(32.22f),3.38f,GateU(33.78f),6.62f,height+1.32f,height+1.55f,.09f,.98f);
-            // Five substantial corbels beneath the lintel read as structural
-            // support; their broad top returns carry the continuous header above.
+            // Four broad coping ends break the silhouette quietly. Their nearly
+            // vertical sides sit directly on the full masonry course beneath;
+            // no sloping roof, tall crenellations or unsupported trim is added.
+            foreach(var span in new[]{new Vector2(-.60f,1.20f),new Vector2(2.25f,3.35f),
+                new Vector2(6.65f,7.75f),new Vector2(8.80f,10.60f)})
+                GateCraftTier(stone,GateU(32.22f),span.x,GateU(33.78f),span.y,
+                    height+.97f,height+1.16f,.025f,.93f);
+            // The compact lock recess remains physically backed and side-seated.
+            // Its cap follows the same flat elevation as the flanking coping,
+            // so the door seal stays the principal emblem from the walking lane.
+            GateCraftTier(stone,GateU(32.65f),3.35f,GateU(33.85f),6.65f,height+.72f,height+.98f,.035f,.88f);
+            GateCraftTier(stone,GateU(32.15f),3.35f,GateU(32.67f),3.95f,height+.72f,height+.98f,.025f,.88f);
+            GateCraftTier(stone,GateU(32.15f),6.05f,GateU(32.67f),6.65f,height+.72f,height+.98f,.025f,.88f);
+            GateCraftTier(stone,GateU(32.22f),3.38f,GateU(33.78f),6.62f,height+.98f,height+1.16f,.025f,.93f);
+            // Shallow corbels carry the continuous lower cornice. Keeping the
+            // existing stations also preserves its separate iron strap contacts.
             foreach(float v in new[]{-.50f,2.20f,4.70f,7.20f,9.90f})
             {
-                Vector3 a=Project(GateU(32.05f),v)+Vector3.up*(height-.28f);
-                Vector3 b=Project(GateU(32.05f),v+.40f)+Vector3.up*(height-.28f);
+                Vector3 a=Project(GateU(32.05f),v)+Vector3.up*(height-.18f);
+                Vector3 b=Project(GateU(32.05f),v+.40f)+Vector3.up*(height-.18f);
                 Vector3 c=Project(GateU(32.0f),v+.53f)+Vector3.up*(height+.08f);
                 Vector3 d=Project(GateU(32.0f),v-.13f)+Vector3.up*(height+.08f);
                 Vector3 back=Project(GateU(32.46f),v)-Project(GateU(32.0f),v);
@@ -44,8 +50,12 @@ namespace Cryptforge.UI
             new Vector2(.93f,1.16f),new Vector2(.52f,1.42f),new Vector2(-.52f,1.42f),
             new Vector2(-.93f,1.16f),new Vector2(-1.06f,.71f)};
 
+        // Compress only the relief above its original bearing line. Both stone
+        // and the cast lock use this mapping, keeping the lock inside its reveal.
+        private static float GateCartoucheRise(float authored)=>.52f+(authored-.52f)*.64f;
+
         private static Vector3 GateCartouchePoint(Vector2 face,float u,float height)=>
-            Project(u,5+face.x)+Vector3.up*(height+face.y);
+            Project(u,5+face.x)+Vector3.up*(height+GateCartoucheRise(face.y));
 
         private static void BuildGateCartouche(Builder stone,float height)
         {
@@ -107,7 +117,7 @@ namespace Cryptforge.UI
         {
             // One cast locking plate stays entirely within the recessed opening.
             // Its dark iron mass is subordinate to the door's large painted seal.
-            Vector3 At(float v,float z,float depth=0)=>Project(GateU(32.58f)+depth,5+v)+Vector3.up*(height+z);
+            Vector3 At(float v,float z,float depth=0)=>Project(GateU(32.58f)+depth,5+v)+Vector3.up*(height+GateCartoucheRise(z));
             var shape=new[]{new Vector2(-.39f,.86f),new Vector2(.39f,.86f),new Vector2(.47f,.92f),
                 new Vector2(.47f,1.07f),new Vector2(.39f,1.13f),new Vector2(-.39f,1.13f),
                 new Vector2(-.47f,1.07f),new Vector2(-.47f,.92f)};

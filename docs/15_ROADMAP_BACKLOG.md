@@ -646,3 +646,15 @@ Evidence: ArtDirection/2026-10-11/foundry-compact-gate-01. This supersedes the i
 - [ ] Accumulated device circulation/crowd/midrange/first-ramp/shimmer acceptance remains open. Region encounters/boss progression is still deferred by the art-first direction.
 
 Scope/evidence: ArtDirection/2026-10-11/foundry-industrial-01. The five-helper batch closes the furnace-individuality candidate in the prior compact-gate package; it does not declare every map-art or device task finished.
+
+## 2026-10-11 - Gatehouse and stone approach package
+
+- [x] Reduce outer-tower dominance and join the shorter roof shoulders to the gate curtain.
+- [x] Simplify the portal parapet and keep the compressed central lock seated inside its stone reveal.
+- [x] Improve vertical jamb bearings, restrained recesses and low landing supports in the existing scenery footprints.
+- [x] Replace the visually flat approach field with readable staggered stone courses; preserve the actual ramp and threshold.
+- [x] Independent source/contact review and second-capture art acceptance; retain the first paving rejection.
+- [ ] Full reference material richness and finer architectural articulation remain incomplete. Future work should address substantial coherent surfaces, not accumulate isolated miniature trim.
+- [ ] Accumulated physical-device circulation, crowd, HUD/motion/shimmer and midrange checks remain open. Region encounter/boss progression remains deferred.
+
+Evidence: ArtDirection/2026-10-11/foundry-gate-stone-01. This closes the bounded gatehouse/approach work from the prior industrial package, not every map-art or device task.

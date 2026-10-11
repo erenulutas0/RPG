@@ -68,7 +68,7 @@ namespace Cryptforge.UI
             return FoundryMap.SurfaceContains(x,y,.2f);
         }
 
-        // A flush processional inlay makes the long gate apron read as a destination.
+        // A flush processional inlay makes the compact gate apron read as a destination.
         // Matte stone/brass, with no emission or animation: this is architecture, not an
         // ability telegraph or a second interactive exit. The whole panel stays inside
         // the existing lane and is lit with the floor in the shared decal batch.
@@ -90,6 +90,7 @@ namespace Cryptforge.UI
             var innerBed=InsetFlagContour(frame,.28f);
             var outerFace=InsetFlagContour(frame,-.24f);
             var innerFace=InsetFlagContour(frame,.24f);
+            BuildGateProcessionalFlags(stone,innerBed);
             // Complete the common mortar bed before any dressed stone is emitted.
             for(int i=0;i<frame.Length;i++)
             {
@@ -113,6 +114,7 @@ namespace Cryptforge.UI
                     CeremonialStoneFace(stone,new[]{a,b,c,d},tone);
                 }
             }
+            BuildGateApronCourses(stone);
             Create("Gate dressed stone border",stone,arena.PlatformMaterials.FoundryPaving,-15);
             for(int pass=0;pass<2;pass++)
             {
@@ -154,8 +156,76 @@ namespace Cryptforge.UI
             Create("Gate processional stone and brass inlay",inlay,arena.PlatformMaterials.Coping,FloorDecal);
         }
 
+        private static void BuildGateProcessionalFlags(Builder stone,Vector2[] field)
+        {
+            // The insignia is engraved into assembled flags, not a single carpet-like
+            // panel. A calm staggered bond has no checkerboard or raised step edges.
+            // Keep its joints finer than the surrounding dressed perimeter stones.
+            CeremonialStoneFace(stone,field,.80f);
+            float u0=field[0].x,u1=u0,v0=field[0].y,v1=v0;
+            foreach(var p in field)
+            {
+                u0=Mathf.Min(u0,p.x);u1=Mathf.Max(u1,p.x);
+                v0=Mathf.Min(v0,p.y);v1=Mathf.Max(v1,p.y);
+            }
+            const int rows=4;
+            float rowHeight=(v1-v0)/rows;
+            for(int row=0;row<rows;row++)
+            {
+                float bottom=v0+row*rowHeight,top=v0+(row+1)*rowHeight;
+                float cursor=u0-(row%2==0?0:.72f);
+                for(int slab=0;cursor<u1;slab++)
+                {
+                    // Alternate quarry lengths as a course, rather than scattering
+                    // unrelated repairs around the central four-point engraving.
+                    float next=cursor+(slab%3==1?1.75f:1.45f);
+                    if(u1-next<.55f)next=u1;
+                    float left=Mathf.Max(u0,cursor),right=Mathf.Min(u1,next);
+                    float tone=1.005f+.012f*((slab+row*2)%3);
+                    GateProcessionalFlag(stone,field,left,bottom,right,top,tone);
+                    cursor=next;
+                }
+            }
+        }
+
+        private static void BuildGateApronCourses(Builder stone)
+        {
+            // Two quiet service-edge courses join the panel to the existing flush
+            // threshold at u26.5. Their half-unit shoulders stay wholly on the old
+            // walking surface, away from the boilers and the foreground rail.
+            float end=GateU(30.5f);
+            foreach(float v in new[]{.7f,8.65f})
+            {
+                var strip=new[]{new Vector2(16.2f,v),new Vector2(end,v),
+                    new Vector2(end,v+.65f),new Vector2(16.2f,v+.65f)};
+                CeremonialStoneFace(stone,strip,.80f);
+                int count=Mathf.CeilToInt((end-16.2f)/1.7f);
+                for(int k=0;k<count;k++)
+                {
+                    float left=Mathf.Lerp(16.2f,end,k/(float)count);
+                    float right=Mathf.Lerp(16.2f,end,(k+1)/(float)count);
+                    GateProcessionalFlag(stone,strip,left,v,right,v+.65f,1.035f);
+                }
+            }
+        }
+
+        private static void GateProcessionalFlag(Builder stone,Vector2[] contour,
+            float u0,float v0,float u1,float v1,float tone)
+        {
+            const float joint=.024f,bevel=.045f;
+            if(u1-u0<=2*bevel||v1-v0<=2*bevel)return;
+            // Both clips share the exact panel outline. The narrow rubbed margin
+            // remains flush; every triangle is split at the shared light lattice and
+            // ramp breaks by CeremonialStoneFace, including clipped corner flags.
+            var outer=ClipFlagCell(contour,u0+joint,v0+joint,u1-joint,v1-joint);
+            if(outer.Count<3)return;
+            CeremonialStoneFace(stone,outer.ToArray(),tone*.965f);
+            var face=ClipFlagCell(contour,u0+bevel,v0+bevel,u1-bevel,v1-bevel);
+            if(face.Count>=3)CeremonialStoneFace(stone,face.ToArray(),tone);
+        }
+
         // World-continuous stone UV/light sampled in half-unit cells. Clipping
-        // bounds every triangle and splits the gate's u29/u31 grade breaks exactly.
+        // bounds every triangle and splits the gate's u25/u27 grade breaks exactly.
         private static void CeremonialStoneFace(Builder mesh,Vector2[] polygon,float tone)
         {
             float u0=polygon[0].x,u1=u0,v0=polygon[0].y,v1=v0;

@@ -38,32 +38,31 @@ namespace Cryptforge.UI
                 Create("Gate fortified curtain wings",stone,arena.PlatformMaterials.FoundryWall,order);
             }
 
-            using(MassDepth(towerFoot,9.2f))
+            using(MassDepth(towerFoot,7.35f))
             {
                 var foundation=new Builder();
                 GateEnclosureTier(foundation,towerFoot.x,towerFoot.y,towerFoot.z,towerFoot.w,-3.45f,0,.10f,.84f);
                 Create("Gate buttress foundations",foundation,arena.PlatformMaterials.FoundryWall,-16);
                 var stone=new Builder();
                 GateEnclosureTier(stone,GateU(31.05f),towerV,GateU(34.9f),towerV+2.45f,0,.52f,.10f,.92f,true);
-                // A broad battered lower body carries the upper tower. Stepping the
-                // footprint inward with height reads as a buttress, not a tall chimney.
+                // Two connected masonry lifts carry a low roof shoulder. The
+                // original third storey competed with the doorway like a chimney;
+                // the new coping meets the curtain instead of looming above it.
                 GateEnclosureTier(stone,GateU(31.16f),towerV+.11f,GateU(34.79f),towerV+2.34f,.52f,3.38f,.32f,.87f);
                 GateEnclosureTier(stone,GateU(31.43f),towerV+.36f,GateU(34.52f),towerV+2.09f,3.38f,3.63f,.05f,1f,true);
-                GateEnclosureTier(stone,GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f,3.63f,6.72f,.065f,.86f);
-                GateEnclosureTier(stone,GateU(31.42f),towerV+.35f,GateU(34.53f),towerV+2.10f,6.72f,7.01f,.07f,.98f,true);
-                GateEnclosureTier(stone,GateU(31.60f),towerV+.52f,GateU(34.35f),towerV+1.93f,7.01f,8.26f,.04f,.87f);
-                GateEnclosureTier(stone,GateU(31.46f),towerV+.40f,GateU(34.49f),towerV+2.05f,8.26f,8.57f,.065f,1f,true);
-                // One wide hipped crown terminates each solid buttress; no extra
-                // finial, fire source, narrow spire or animated component is added.
-                GateEnclosureTier(stone,GateU(31.60f),towerV+.52f,GateU(34.35f),towerV+1.93f,8.57f,9.05f,.38f,.84f,true);
-                GateEnclosureTier(stone,GateU(31.99f),towerV+.90f,GateU(33.96f),towerV+1.55f,9.05f,9.2f,.05f,.96f,true);
+                GateEnclosureTier(stone,GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f,3.63f,6.55f,.065f,.86f);
+                GateEnclosureTier(stone,GateU(31.42f),towerV+.35f,GateU(34.53f),towerV+2.10f,6.55f,6.82f,.07f,.98f,true);
+                // Broad hipped coping joins the wall's 6.82-7.02 roof level. Its
+                // full bearing stays on the body below and inside the old footprint.
+                GateEnclosureTier(stone,GateU(31.54f),towerV+.46f,GateU(34.41f),towerV+1.99f,6.82f,7.20f,.30f,.88f,true);
+                GateEnclosureTier(stone,GateU(31.84f),towerV+.76f,GateU(34.11f),towerV+1.69f,7.20f,7.35f,.04f,.94f,true);
                 var lower=new Vector4(GateU(31.16f),towerV+.11f,GateU(34.79f),towerV+2.34f);
                 var middle=new Vector4(GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f);
                 foreach(bool front in new[]{true,false})
                 {
                     GateEnclosureQuoins(stone,lower,front);
-                    GateEnclosureRelief(stone,middle,3.63f,6.72f,.065f,
-                        front,.5f,front?.31f:.33f,3.97f,6.40f);
+                    GateEnclosureRelief(stone,middle,3.63f,6.55f,.065f,
+                        front,.5f,front?.25f:.28f,3.97f,6.16f);
                 }
                 Create("Gate broad crowned buttresses",stone,arena.PlatformMaterials.FoundryWall,order);
             }
@@ -250,7 +249,7 @@ namespace Cryptforge.UI
                 Vector3 ia=GateEnclosureFace(box,front,inner[i].x,inner[i].y,courseBottom,courseTop,inset);
                 Vector3 ib=GateEnclosureFace(box,front,inner[j].x,inner[j].y,courseBottom,courseTop,inset);
                 // A cool stone-backed niche, not a pitch-black opening or gold icon.
-                float recess=(front?.225f:.285f)*(i==0?1.12f:i==2||i==3?.91f:1f);
+                float recess=(front?.28f:.345f)*(i==0?1.08f:i==2||i==3?.94f:1f);
                 GateStonePatch(mesh,ia,ib,hub,hub,new Color(recess*.91f,recess*.96f,recess));
                 float light=i==0?.66f:i==1?.34f:i==2?.37f:i==3?.56f:.59f;
                 if(front)light*=.83f;
