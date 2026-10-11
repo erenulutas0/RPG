@@ -579,3 +579,12 @@ Evidence and final gate: ArtDirection/2026-10-11/foundry-mass-rhythm-01.
 - [ ] Accumulated phone/crowd/midrange/first-ramp acceptance remains pending; regional encounters/boss progression remain deferred.
 
 Evidence and final verification: ArtDirection/2026-10-11/foundry-workyard-identity-01.
+## 2026-10-11 - Foundry cavern composition
+
+- [x] Replace dominant painted flank walls with a versioned foundry-only plate of smaller staggered architecture and calm central depth.
+- [x] Preserve old generic cavern, walking/ramp/camera and cover/parallax/ownership contracts; add fallback and coverage checks.
+- [x] Independently review actual overview, bridge and actor portraits; preserve honest limits on portrait gain.
+- [ ] Improve the now more exposed native distant-shaft/broken-arch material/depth coherence; broader workyard distribution and fully authored boiler variants also remain.
+- [ ] Accumulated device/crowd/midrange/first-ramp acceptance remains pending; region encounter/boss progression remains deferred.
+
+Evidence and final verification: ArtDirection/2026-10-11/foundry-backdrop-depth-01.

@@ -57,6 +57,18 @@ namespace Cryptforge.UI
         // above it (haze and galaxy, stars and back ring halves, islands, front ring halves and flames).
         public void Build(ArenaGeometry geometry, Material material, int sortingOrder, Sprite cavern = null, Camera camera = null)
         {
+            // The wider foundry composition is optional and borrowed. Ordinary halls
+            // keep their supplied plate; an omitted cavern/camera still means void.
+            Sprite foundryCavern = geometry.IsFoundry && material != null && cavern != null && camera != null
+                ? Resources.Load<Sprite>("FoundryCavernV2") : null;
+            Build(geometry, material, sortingOrder, cavern, camera, foundryCavern);
+        }
+
+        // Separate loading from construction so the missing optional asset follows
+        // the same framing/ownership path as a loaded plate, without global test state.
+        internal void Build(ArenaGeometry geometry, Material material, int sortingOrder, Sprite cavern, Camera camera,
+            Sprite foundryCavern)
+        {
             if (material == null)
             {
                 Debug.LogError("VoidBackdropView needs a vertex-colour material for its sky.", this);
@@ -72,7 +84,8 @@ namespace Cryptforge.UI
             if (cavern != null && camera != null)
             {
                 _camera = camera;
-                CavernRenderer = AddRenderer(transform, "Furnace Cavern", cavern, Vector3.zero, backdropOrder + 1);
+                Sprite plate = geometry.IsFoundry && foundryCavern != null ? foundryCavern : cavern;
+                CavernRenderer = AddRenderer(transform, "Furnace Cavern", plate, Vector3.zero, backdropOrder + 1);
                 CavernRenderer.color = geometry.IsFoundry ? FoundryCavernTint : Color.white;
                 if (geometry.IsFoundry)
                 {
