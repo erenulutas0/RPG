@@ -2011,3 +2011,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 The local shaft silhouettes and construction are improved; full reference fidelity is unfinished. The broad dark sloped shoulders read more like pyramidal exhaust hoods, a visible material simplification; lower shaft bodies remain plain. Whole-map improvement is modest. Device movement/crowd/HUD/shimmer/midrange acceptance remains open. No ADB or fresh phone observation. The earlier concrete install/restart decision remains pending. Future deployment must inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Region encounter/boss progression remains deferred by the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
+
+
+## 2026-10-11 - Court, pit and gate construction verified; device pending
+
+425 .NET / 510 EditMode / 159 PlayMode = 1,094 distinct suite cases, zero final failures/skips. Isolated compile zero warnings/errors; before and after Android-target graphics captures passed. PASS: 599 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,256,060 bytes; SHA256 3405AA3C2A261B803A36F7B25BCED0D1AEDDF64CB422BABB56EBC9E53F375501; NOT INSTALLED.
+
+Full reference material richness and physical-device movement/crowd/HUD/shimmer/midrange acceptance remain unfinished. No ADB, install or fresh device observation in this package. The earlier concrete restart/install decision remains pending. Future deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots. Regional encounter/boss progression stays deferred by the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.

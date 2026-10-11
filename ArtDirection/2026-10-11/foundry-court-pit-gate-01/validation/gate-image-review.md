@@ -1,0 +1,13 @@
+# Gate paired-image review
+
+Reviewed 2026-10-11 using the actual `before/` and `after/` Unity captures for `gate-detail.png`, `full-map.png` and `approach-20-1.png`. This is the gate author's image review, separate from the independent source review. No runtime source or Assets were changed during review.
+
+**Judgement: accept the bounded gate improvement. No blocking visible contact, coverage or lock-continuity defect found in these views.**
+
+- In the gate close view, the former thin pointed surface marks now read as deeper blind recesses with clearly seated lower sills and broad shoulder stones. The side/front rebates stay separated by the original corner chamfer. The near and far piers retain their upper and lower seating, and the surrounding boiler pipes remain attached at their previous locations.
+- The recess backs are darker than before and their fine grain is subdued. At this lighting they are almost black at a distance; the lighter sills and side returns nevertheless provide visible depth in the close view, with no apparent background showing through. This is acceptable as a shadowed architectural recess, but it is not a claim that all stone materials now match the reference. Any later material pass should preserve this depth separation without increasing the overall black-window impression.
+- The two header shoulders now form continuous masses around the central lock. The lock remains seated within its existing reveal, with no new slit or floating edge at the shoulder connections. The broad horizontal stone reads more coherently than the previous short separated coping pieces. Its continuous silhouette is intentionally simpler, not taller.
+- The painted door, brass seal, blue banners and fire retain the dominant visual hierarchy. New framing does not cover those elements or spill into the approach. The matched approach portrait retains the same hero, floor, rail and boiler contacts; most of the changed upper architecture is outside that portrait, so it primarily checks nearby placement rather than the new head detail.
+- In the full-map pair, the change is small and local: the gate's recesses and upper mass are cleaner on inspection, but the overall map size, layout, silhouette and broad material character remain substantially the same. This package does not deliver a wholesale reference-level transformation. Court/pit differences belong to the other parts of the combined package and are not credited to the gate change.
+
+This review establishes only visual acceptance of these captured views. It does not independently attest to test results, performance, phone readability, animation, interaction, device installation or full reference parity.

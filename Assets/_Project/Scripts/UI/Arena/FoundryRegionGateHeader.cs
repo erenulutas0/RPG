@@ -7,22 +7,15 @@ namespace Cryptforge.UI
     {
         private static void BuildGateHeaderFinish(Builder stone,float height)
         {
-            // One continuous lintel and a low interrupted coping make the doorway
-            // a fortified industrial wall. The former nested shoulders climbed
-            // into a temple-like crest and made the door look broad and squat.
-            GateCraftTier(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,.90f);
+            // A continuous dressed lintel seats two broad shoulder stones around
+            // the existing lock. The connected mass replaces four disconnected
+            // coping ends without adding another silhouette tier or a tall crest.
+            GateCraftTier(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,1.02f);
             foreach(bool left in new[]{true,false})
             {
                 float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
-                GateCraftTier(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+.97f,.035f,.91f);
+                GateCraftTier(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+1.16f,.065f,.99f);
             }
-            // Four broad coping ends break the silhouette quietly. Their nearly
-            // vertical sides sit directly on the full masonry course beneath;
-            // no sloping roof, tall crenellations or unsupported trim is added.
-            foreach(var span in new[]{new Vector2(-.60f,1.20f),new Vector2(2.25f,3.35f),
-                new Vector2(6.65f,7.75f),new Vector2(8.80f,10.60f)})
-                GateCraftTier(stone,GateU(32.22f),span.x,GateU(33.78f),span.y,
-                    height+.97f,height+1.16f,.025f,.93f);
             // The compact lock recess remains physically backed and side-seated.
             // Its cap follows the same flat elevation as the flanking coping,
             // so the door seal stays the principal emblem from the walking lane.

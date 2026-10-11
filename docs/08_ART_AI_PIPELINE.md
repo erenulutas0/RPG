@@ -1165,3 +1165,12 @@ Two existing northwest distant furnace shafts receive narrower necks, joined dre
 Region32 renderers/166468 vertices versus165392 (+1076); distant geometry2496->3572. The combined distant vertex ceiling is intentionally revised from2500 to3600 for two complete hollow crowns/recessed necks; all existing lifetime, material, rank, fade and bounds assertions stay intact. This is a measured resource-budget decision, not a frame-time result. No new texture, material instance or per-frame updater.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
+
+
+## 2026-10-11 - Court, pit and gate construction verified; device pending
+
+The court compass now uses restrained paired brass facets and a continuous engraved ring over three fitted stone courses. The pit upper lining has a joined below-deck bearing course and four relief ribs with side returns, leaving all furnace bays, vessels and the molten seam unchanged. Four gate shafts receive genuine blind recesses with backing, returns and broad dressed surrounds; two connected header shoulders replace the former interrupted coping ends. Existing court/pit/gate footprints, door and lock sockets, ramps, navigation, camera, material batches, depth ownership, scene, gameplay and saves remain unchanged.
+
+Region 32 renderers/165232 vertices versus 166468 (-1236); distant geometry 3572 unchanged. No new runtime texture, material, renderer or updater. Counts are resource observations, not device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.

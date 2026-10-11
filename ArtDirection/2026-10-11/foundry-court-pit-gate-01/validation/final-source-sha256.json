@@ -1,0 +1,12 @@
+{
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionArchitecture.cs": "e1dd2dc850abc9fc3d4aed99f2b423b00df3f2cd8cf03360ab0960ee25ae38c5",
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionFinish.cs": "02f90b403cf1d840e7616ba50e7354c48d7878da53775d543e3b71fc6a20af0b",
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionGateEnclosure.cs": "73ed755d09c7e7bf2714cbd92f3bc06251e8c2c85bd4ddacef9c6c208fc1de1f",
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionGateHeader.cs": "607f28f02997ff8bf7d1a168627f35015c7cb6844d3bbc5353a4c10c14ea1bc9",
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionGateRecesses.cs": "b156a0a20d05009efc4ab490a887c669011611097149f3093e2ead5acdfa2270",
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionHeraldry.cs": "c531aa3db15848c5cf7503e2ad42e5414d24a0e2a250cf5956f362c59c960081",
+  "Assets/_Project/Scripts/UI/Arena/FoundryRegionMassing.cs": "8480b06be4ef27d75c930debf46d77fc71c8c11a60635f3b29ae7dc912e1cf4b",
+  "Assets/_Project/Tests/EditMode/FoundryCourtCompassTests.cs": "b4741fe77773d6d8c7906f42fd5dbc28edeacaf4b011232931d554ef959daf01",
+  "Assets/_Project/Tests/EditMode/FoundryGateRecessTests.cs": "317c730b123b82a213563b35fd490c92f5ebae9d05075423af37d317af722425",
+  "Assets/_Project/Tests/EditMode/FoundryPitLiningConstructionTests.cs": "2ac0ccc5c3b0293a43e480310fd81c00b01cd451a701b029f9888cf570fe5877"
+}

@@ -1317,3 +1317,13 @@ Three helpers split runtime architecture, new regression tests/source review, an
 Region32 renderers/166468 vertices versus165392 (+1076); distant geometry2496->3572. The combined distant vertex ceiling is intentionally revised from2500 to3600 for two complete hollow crowns/recessed necks; all existing lifetime, material, rank, fade and bounds assertions stay intact. This is a measured resource-budget decision, not a frame-time result. No new texture, material instance or per-frame updater.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
+
+
+## 2026-10-11 - Court, pit and gate construction verified; device pending
+
+425 .NET / 510 EditMode / 159 PlayMode = 1,094 distinct suite cases, zero final failures/skips. Isolated compile zero warnings/errors; before and after Android-target graphics captures passed. PASS: 599 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,256,060 bytes; SHA256 3405AA3C2A261B803A36F7B25BCED0D1AEDDF64CB422BABB56EBC9E53F375501; NOT INSTALLED.
+
+Three helpers owned court, pit and gate implementation with disjoint files; root integrated and alone ran Unity. Fresh before images were captured at baseline 66e68d3 before any runtime edits, then nine matching after views used the same camera/actor setup. One additional broad-yard view was captured only after; it is excluded from the paired comparison. Source review was crossed between helpers; root and helpers inspected actual images. Initial full EditMode passed 509/510: the new court annulus RGB gain also multiplied alpha to 1.08. The local ring tone now explicitly preserves alpha 1; the strict test was retained. Initial failed XML is saved. Full final suites passed before the APK build.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.

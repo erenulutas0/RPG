@@ -2340,3 +2340,13 @@ Files: FoundryRegionDistantWorks.cs, new FoundryServiceShaftTests.cs/meta, the c
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit0 with no C# or shader diagnostics. APK 36,248,250 bytes, SHA256 B8225B648A17854B3EB00D07B5A7CF4EDFC0B86DC32D080EB2353157B32C8DC7; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
+
+
+## 2026-10-11 - Court, pit and gate construction verified; device pending
+
+The court compass now uses restrained paired brass facets and a continuous engraved ring over three fitted stone courses. The pit upper lining has a joined below-deck bearing course and four relief ribs with side returns, leaving all furnace bays, vessels and the molten seam unchanged. Four gate shafts receive genuine blind recesses with backing, returns and broad dressed surrounds; two connected header shoulders replace the former interrupted coping ends. Existing court/pit/gate footprints, door and lock sockets, ramps, navigation, camera, material batches, depth ownership, scene, gameplay and saves remain unchanged.
+
+425 .NET / 510 EditMode / 159 PlayMode = 1,094 distinct suite cases, zero final failures/skips. Isolated compile zero warnings/errors; before and after Android-target graphics captures passed. PASS: 599 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,256,060 bytes; SHA256 3405AA3C2A261B803A36F7B25BCED0D1AEDDF64CB422BABB56EBC9E53F375501; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.

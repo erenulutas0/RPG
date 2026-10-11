@@ -50,19 +50,17 @@ namespace Cryptforge.UI
                 // the new coping meets the curtain instead of looming above it.
                 GateEnclosureTier(stone,GateU(31.16f),towerV+.11f,GateU(34.79f),towerV+2.34f,.52f,3.38f,.32f,.87f);
                 GateEnclosureTier(stone,GateU(31.43f),towerV+.36f,GateU(34.52f),towerV+2.09f,3.38f,3.63f,.05f,1f,true);
-                GateEnclosureTier(stone,GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f,3.63f,6.55f,.065f,.86f);
+                GateRecessedShaft(stone,new Vector4(GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f),
+                    3.63f,6.55f,.065f,.92f,.36f);
                 GateEnclosureTier(stone,GateU(31.42f),towerV+.35f,GateU(34.53f),towerV+2.10f,6.55f,6.82f,.07f,.98f,true);
                 // Broad hipped coping joins the wall's 6.82-7.02 roof level. Its
                 // full bearing stays on the body below and inside the old footprint.
                 GateEnclosureTier(stone,GateU(31.54f),towerV+.46f,GateU(34.41f),towerV+1.99f,6.82f,7.20f,.30f,.88f,true);
                 GateEnclosureTier(stone,GateU(31.84f),towerV+.76f,GateU(34.11f),towerV+1.69f,7.20f,7.35f,.04f,.94f,true);
                 var lower=new Vector4(GateU(31.16f),towerV+.11f,GateU(34.79f),towerV+2.34f);
-                var middle=new Vector4(GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f);
                 foreach(bool front in new[]{true,false})
                 {
                     GateEnclosureQuoins(stone,lower,front);
-                    GateEnclosureRelief(stone,middle,3.63f,6.55f,.065f,
-                        front,.5f,front?.25f:.28f,3.97f,6.16f);
                 }
                 Create("Gate broad crowned buttresses",stone,arena.PlatformMaterials.FoundryWall,order);
             }

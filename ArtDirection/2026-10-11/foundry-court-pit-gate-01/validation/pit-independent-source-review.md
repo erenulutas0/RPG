@@ -1,0 +1,13 @@
+# Independent pit source review
+
+Reviewed `PitLiningFronts`, the new bearing course/ribs and relief helpers, adjacent bay/vessel construction, the actual `FoundryPitLining.png` atlas, and all five new `FoundryPitLiningConstructionTests` cases. Read-only review; no Unity or Assets edits.
+
+No blocking source defect found.
+
+- **Atlas:** the bearing-course rectangle samples middle masonry rather than the coal/fire area. Rib halves and returns stay inside the existing left iron strap; their vertical coordinate follows depth continuously, so each profile segment does not repeat the full strap. Existing wall/pool sampling is retained. The masonry sample includes a painted joint near its lower portion; capture should confirm that repeating it across the three short profile faces stays quiet.
+- **Painter order:** lower walls and heat wash precede the new course/ribs, then the existing furnace bays and vessel bodies draw afterward in the same lining batch. This retains their foreground silhouettes. The unchanged collar, posts and vessel heads remain in their established higher ranks. No new material/rank/owner is introduced.
+- **Contact and envelope:** the course starts on the exact former rail/deck stations and returns to the retained depth-0.55 wall stations. Its inward relief is 0.22. Four ribs taper from the same depth-0.55 stations to a maximum 0.28 inward relief and return to the wall at depth 4.90, before the unchanged 5.13 molten seam. Side returns join actual wall chords. All construction remains below deck and inside the existing opening; the collar path and passage remain unchanged.
+- **Bay/vessel overlap:** ribs use stations 3, 9, 12 and 18; omitted stations 6 and 15 avoid the furnace frames. The new test checks their emitted projected vertices against each aperture column; connected rib quads remain on the corresponding side of those columns. Vessels still render after the construction, preserving their nearer surfaces. Source alone cannot establish whether the bearing course looks overly heavy beside the hood shoulders.
+- **Tests/cost:** five cases cover emitted finite geometry/UVs, the retained projected lining prism, actual deck and lower-wall joins, bay aperture columns, original molten seam and growth. The source count of 1264 lining vertices is consistent with 924 original -168 replaced shallow-wall vertices +252 course vertices +256 rib vertices: net +340. No lifecycle work is added.
+
+Visual acceptance remains pending matched shaft-detail, pit-side portrait and full-map captures. Check the course's contact under the rim, the side returns beside the vessels, and whether the darker upper strip materially improves supported depth rather than obscuring it.

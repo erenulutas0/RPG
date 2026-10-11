@@ -710,3 +710,11 @@ Evidence/reproduction: ArtDirection/2026-10-11/foundry-loading-bay-01.
 Next substantial visual review: compare the whole court, pit and gate against the reference at matched scale, then prioritize the largest remaining material/structural mismatch rather than another isolated trim pass. Keep the complete new loading area and service shafts together for the next authorized phone review.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
+
+
+## 2026-10-11 - Court, pit and gate construction verified; device pending
+
+- [x] Combined court medallion, pit bearing and recessed gate package; actual comparison, full suites and APK.
+- [ ] Full reference fidelity and device acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.

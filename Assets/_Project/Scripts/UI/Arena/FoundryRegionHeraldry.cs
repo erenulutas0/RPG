@@ -14,39 +14,69 @@ namespace Cryptforge.UI
         private void BuildCourtSeal(ArenaView arena)
         {
             var seal=new Builder();
-            var channel=new Color(.76f,.75f,.77f);
-            var brass=CeremonialBrass;
-            var tips=new Vector2[8];var valleys=new Vector2[8];
-            for(int i=0;i<8;i++)
-            {
-                tips[i]=SealPolar(i*Mathf.PI/4,i%2==1?2.50f:1.70f);
-                valleys[i]=SealPolar((i+.5f)*Mathf.PI/4,.62f);
-            }
-            // Open paving inside the compass keeps the fighting floor quiet.
+            BuildCourtSealGeometry(seal);
+            Create("Court engraved forge seal",seal,arena.PlatformMaterials.Coping,FloorDecal);
+        }
+
+        private static void BuildCourtSealGeometry(Builder seal)
+        {
+            var channel=new Color(.84f,.82f,.83f);
+            // A continuous annulus replaces the chain of very thin line quads.
+            // Its width survives the overview while the existing r3.79 setting,
+            // original stone-medallion footprint and single boundary stay fixed.
             for(int pass=0;pass<2;pass++)
             {
                 bool metal=pass==1;
-                var trim=metal?CopingTrim.Brass:CopingTrim.Stone;
-                for(int i=0;i<8;i++)
-                {
-                    float width=metal?.075f:.105f;
-                    foreach(var valley in new[]{valleys[i],valleys[(i+7)%8]})
-                        Strip(seal,tips[i].x,tips[i].y,valley.x,valley.y,width,metal?brass:channel,trim,i);
-                }
+                float half=metal?.065f:.095f;
+                Color ringTone=metal?CeremonialBrass*1.08f:channel;
+                ringTone.a=1;
                 for(int i=0;i<48;i++)
                 {
-                    Vector2 p=SealPolar(i*Mathf.PI/24,3.79f),q=SealPolar((i+1)*Mathf.PI/24,3.79f);
-                    Strip(seal,p.x,p.y,q.x,q.y,metal?.075f:.11f,metal?brass:channel,trim,i);
+                    float a=i*Mathf.PI/24,b=(i+1)*Mathf.PI/24;
+                    SealQuad(seal,SealPolar(a,3.79f-half),SealPolar(b,3.79f-half),
+                        SealPolar(b,3.79f+half),SealPolar(a,3.79f+half),
+                        ringTone,metal?CopingRail:SealStone);
                 }
-                // Eight small joints tie the single ring to the radial stone voussoirs.
                 for(int ray=0;ray<8;ray++)
                 {
                     Vector2 d=SealPolar(ray*Mathf.PI/4,1),p=d*2.96f,q=d*3.67f;
-                    Strip(seal,p.x,p.y,q.x,q.y,metal?.045f:.075f,metal?brass:channel,trim,ray);
+                    Strip(seal,p.x,p.y,q.x,q.y,metal?.055f:.085f,
+                        metal?CeremonialBrass:channel,metal?CopingTrim.Brass:CopingTrim.Stone,ray);
                 }
             }
+            // Slim paired compass facets have enough area to read at map scale,
+            // unlike an empty star outline. Most paving between the eight arms is
+            // still exposed: this is a worn metal engraving, not a filled gold sigil.
+            for(int ray=0;ray<8;ray++)
+            {
+                Vector2 direction=SealPolar(ray*Mathf.PI/4,1),side=new Vector2(-direction.y,direction.x);
+                bool primary=ray%2==1;
+                float length=primary?2.50f:1.70f,width=primary?.20f:.145f;
+                Vector2 root=direction*.27f,tip=direction*length;
+                Vector2 left=direction*.82f+side*width,right=direction*.82f-side*width;
+                SealQuad(seal,direction*.24f,left+side*.028f,tip+direction*.025f,right-side*.028f,channel,SealStone);
+                CourtSealFacet(seal,root,left,tip,CeremonialBrass*(primary?1.27f:1.12f));
+                CourtSealFacet(seal,root,tip,right,CeremonialBrass*(primary?.83f:.76f));
+            }
+            SealQuad(seal,new Vector2(0,-.32f),new Vector2(.32f,0),new Vector2(0,.32f),new Vector2(-.32f,0),channel,SealStone);
+            CourtSealFacet(seal,new Vector2(0,-.27f),new Vector2(.27f,0),new Vector2(0,.27f),CeremonialBrass*1.05f);
+            CourtSealFacet(seal,new Vector2(0,-.27f),new Vector2(0,.27f),new Vector2(-.27f,0),CeremonialBrass*.81f);
             WeatherHeraldry(seal);
-            Create("Court engraved forge seal",seal,arena.PlatformMaterials.Coping,FloorDecal);
+        }
+
+        private static void CourtSealFacet(Builder seal,Vector2 a,Vector2 b,Vector2 c,Color tone)
+        {
+            int first=seal.V.Count;tone.a=1;
+            foreach(Vector2 p in new[]{a,b,c})
+            {
+                seal.V.Add(Project(p.x,p.y));seal.C.Add(tone);
+                // Broad subdued interior metal, rather than the rail's almost-white
+                // bevel, fills these facets. World-attached grain continues across
+                // neighbouring arms and receives ordinary floor light at Emit.
+                seal.U.Add(new Vector2(Mathf.Lerp(CopingRail.x,CopingRail.z,.5f+p.x*.075f+p.y*.023f),
+                    (CopingRail.y+CopingRail.w)*.5f));
+            }
+            seal.T.Add(first);seal.T.Add(first+1);seal.T.Add(first+2);
         }
 
         private static void BuildCourtCompass(Builder inlays,Color brass)

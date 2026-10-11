@@ -679,7 +679,7 @@ namespace Cryptforge.UI
             // Radial joints carry the composition; no extra dark disc or outer target.
             var field=new Vector2[48];
             for(int i=0;i<field.Length;i++)field[i]=SealPolar(i*Mathf.PI/24,2.73f);
-            CeremonialStoneFace(mesh,field,.96f);
+            BuildCourtMedallionField(mesh,field);
             const int segments=24;
             for(int i=0;i<segments;i++)
             {
@@ -687,6 +687,27 @@ namespace Cryptforge.UI
                 CourtRingFlag(mesh,a,b,2.70f,3.97f,.82f);
                 float tone=i%3==0?1.055f:1.025f;
                 CourtRingFlag(mesh,a+.004f,b-.004f,2.735f,3.945f,tone);
+            }
+        }
+
+        private static void BuildCourtMedallionField(Builder mesh,Vector2[] field)
+        {
+            // Keep the exact circular bed and original continuous mineral/light
+            // projection. A few broad fitted flags replace its single dark slab;
+            // quiet open joints explain the assembly underneath the compass.
+            CeremonialStoneFace(mesh,field,.84f);
+            const float radius=2.73f,rowHeight=1.82f,joint=.022f;
+            for(int row=0;row<3;row++)
+            {
+                float bottom=-radius+row*rowHeight,top=bottom+rowHeight;
+                float cursor=-radius-(row==1?.88f:0);
+                for(int slab=0;cursor<radius;slab++)
+                {
+                    float next=cursor+(slab%2==0?1.92f:1.76f);
+                    var flag=ClipFlagCell(field,cursor+joint,bottom+joint,next-joint,top-joint);
+                    if(flag.Count>=3)CeremonialStoneFace(mesh,flag.ToArray(),1.035f+.012f*((row+slab)%3));
+                    cursor=next;
+                }
             }
         }
 

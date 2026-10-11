@@ -523,7 +523,9 @@ namespace Cryptforge.UI
                 Vector2 pa=PitLiningStation(i,out Vector2 na),pb=PitLiningStation(i+1,out Vector2 nb);
                 Vector3 a=Project(pa.x,pa.y),b=Project(pb.x,pb.y);
                 float u0=i%facets/(float)facets,u1=(i%facets+1)/(float)facets;
-                for(int row=0;row+1<PitLiningRows.Length;row++)
+                // The first two shallow strips are owned by the joined bearing
+                // course below. Do not leave another wall across its bevels.
+                for(int row=2;row+1<PitLiningRows.Length;row++)
                 {
                     float top=PitLiningRows[row],bottom=PitLiningRows[row+1];
                     int first=walls.C.Count;
@@ -541,6 +543,95 @@ namespace Cryptforge.UI
                     walls.C[first+1]=PitWallWash(bottom,nb);
                     walls.C[first+2]=PitWallWash(top,nb);
                 }
+            }
+            PitLiningBearingCourse(walls);
+            PitLiningBearings(walls);
+        }
+
+        private static void PitLiningBearingCourse(Builder b)
+        {
+            // The rail bears on one deep stone course, with a chamfered nose
+            // wholly below the original deck edge. Shared stations join every
+            // return around the existing curve; no coping grows onto the court.
+            var profile=new[]{new Vector2(0,0),new Vector2(.12f,.22f),
+                new Vector2(.38f,.22f),new Vector2(.55f,0)};
+            for(int i=0;i<PitFacets;i++)
+            {
+                Vector2 a=PitLiningStation(i,out Vector2 na),c=PitLiningStation(i+1,out Vector2 nc);
+                for(int row=0;row+1<profile.Length;row++)
+                {
+                    Vector2 upper=profile[row],lower=profile[row+1];
+                    PitLiningReliefFace(b,PitLiningPoint(a,na,lower),PitLiningPoint(c,nc,lower),
+                        PitLiningPoint(c,nc,upper),PitLiningPoint(a,na,upper),
+                        new Vector4(.43f,.47f,.72f,.55f),upper.x,lower.x,(na+nc).normalized,
+                        row==0?1.03f:row==1?.84f:.61f,false);
+                }
+            }
+        }
+
+        private static void PitLiningBearings(Builder b)
+        {
+            // Four long bearing ribs follow existing painted strap boundaries.
+            // The other seams stay flat where the furnace apertures already own
+            // the bay. A deep shoulder meets the coping, then narrows into the
+            // continuous rib and a low foot above the unchanged molten seam.
+            var profile=new[]{new Vector2(.55f,0),new Vector2(.88f,.28f),
+                new Vector2(1.22f,.15f),new Vector2(4.54f,.15f),new Vector2(4.90f,0)};
+            foreach(int station in new[]{3,9,12,18})
+            {
+                Vector2 centre=PitLiningStation(station,out Vector2 normal);
+                Vector2 prev=PitLiningStation(station-1,out Vector2 prevNormal);
+                Vector2 next=PitLiningStation(station+1,out Vector2 nextNormal);
+                float left=.33f/Vector2.Distance(centre,prev),right=.33f/Vector2.Distance(centre,next);
+                var points=new[]{Vector2.Lerp(centre,prev,left),centre,Vector2.Lerp(centre,next,right)};
+                var normals=new[]{Vector2.Lerp(normal,prevNormal,left).normalized,normal,
+                    Vector2.Lerp(normal,nextNormal,right).normalized};
+                for(int row=0;row+1<profile.Length;row++)
+                {
+                    Vector2 upper=profile[row],lower=profile[row+1];
+                    for(int half=0;half<2;half++)
+                        PitLiningReliefFace(b,PitLiningPoint(points[half],normals[half],lower),
+                            PitLiningPoint(points[half+1],normals[half+1],lower),
+                            PitLiningPoint(points[half+1],normals[half+1],upper),
+                            PitLiningPoint(points[half],normals[half],upper),
+                            new Vector4(.008f+half*.03f,1-lower.x/PitFrontScale,
+                                .038f+half*.03f,1-upper.x/PitFrontScale),
+                            upper.x,lower.x,normal,row==0?1.03f:row==1?.81f:1f,true);
+                    // Side returns end on the actual wall chord instead of
+                    // floating over the texture or ending in a screen-space strip.
+                    foreach(int edge in new[]{0,2})
+                    {
+                        Vector3 wallLow=Project(points[edge].x,points[edge].y)+Vector3.down*lower.x;
+                        Vector3 wallHigh=Project(points[edge].x,points[edge].y)+Vector3.down*upper.x;
+                        Vector3 faceLow=PitLiningPoint(points[edge],normals[edge],lower);
+                        Vector3 faceHigh=PitLiningPoint(points[edge],normals[edge],upper);
+                        PitLiningReliefFace(b,wallLow,faceLow,faceHigh,wallHigh,
+                            new Vector4(.012f,1-lower.x/PitFrontScale,.064f,1-upper.x/PitFrontScale),
+                            upper.x,lower.x,normal,edge==0?.56f:.73f,true);
+                    }
+                }
+            }
+        }
+
+        private static Vector3 PitLiningPoint(Vector2 point,Vector2 normal,Vector2 profile)
+        {
+            Vector2 inside=point-normal*profile.y;
+            return Project(inside.x,inside.y)+Vector3.down*profile.x;
+        }
+
+        private static void PitLiningReliefFace(Builder b,Vector3 a,Vector3 c,Vector3 d,Vector3 e,
+            Vector4 sample,float top,float bottom,Vector2 normal,float gain,bool iron)
+        {
+            int first=b.V.Count;
+            FullFace(b,a,c,d,e,Color.white);
+            b.U[first]=new Vector2(sample.x,sample.y);b.U[first+1]=new Vector2(sample.z,sample.y);
+            b.U[first+2]=new Vector2(sample.z,sample.w);b.U[first+3]=new Vector2(sample.x,sample.w);
+            for(int i=0;i<4;i++)
+            {
+                float depth=i<2?bottom:top;
+                Color tone=iron?PitHeat(depth,new Color(.65f,.69f,.77f),new Color(.98f,.76f,.50f),.85f):
+                    PitWallTone(depth,normal);
+                tone*=gain;tone.a=1;b.C[first+i]=tone;
             }
         }
         // A translucent sample of the painted coals joins the lining to the separate molten pool.

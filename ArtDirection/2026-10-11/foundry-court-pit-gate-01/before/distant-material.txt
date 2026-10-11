@@ -1,0 +1,9 @@
+Native distant foundry mesh/material observations. Painted backdrop metadata is separate in cavern-texture.txt.
+Observed resource ranges are not a physical-device performance measurement.
+Owned masonry material: Distant foundry atmosphere owned; atmosphere: 0.44
+Distant foundry works: vertices=3428; rank=-20; material=Distant foundry atmosphere owned; owned masonry=True; shader=Cryptforge/Foundry Cavern; atmosphere=0.44
+  RGBA entries=3428; finite=3428; nonfinite=0; min=0.1030164,0.1045351,0.114245869,0; max=1.03784239,1.02923977,1.13233769,1
+  UV entries=3428; finite=3428; nonfinite=0; min=-31.3103,-35.61359; max=17.16586,20.34279
+Distant foundry works furnace slits: vertices=144; rank=-19; material=MAT_FoundryEmbers; owned masonry=False; shader=Sprites/Default; atmosphere=not present
+  RGBA entries=144; finite=144; nonfinite=0; min=0.1,0.07300001,0.0519999973,0.6048141; max=0.28,0.22,0.19,1
+  UV entries=144; finite=144; nonfinite=0; min=0.7815,0.8375; max=0.782499969,0.838499963

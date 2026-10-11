@@ -23,12 +23,12 @@ namespace Cryptforge.UI
                 LitFoundryTier(stone,GateU(32),v,GateU(35),v+2,0,.45f,.08f);
                 GateEnclosureTier(stone,GateU(32.12f),v+.10f,GateU(34.88f),v+1.90f,.45f,1.45f,.14f,.91f);
                 GateEnclosureTier(stone,GateU(32.16f),v+.14f,GateU(34.84f),v+1.86f,1.45f,1.70f,.08f,.96f,true);
-                GateEnclosureTier(stone,GateU(32.26f),v+.24f,GateU(34.74f),v+1.76f,1.70f,5.45f,.04f,.92f);
+                GateRecessedShaft(stone,new Vector4(GateU(32.26f),v+.24f,GateU(34.74f),v+1.76f),
+                    1.70f,5.45f,.04f,.96f,.28f);
                 GateEnclosureTier(stone,GateU(32.08f),v+.08f,GateU(34.92f),v+1.92f,5.45f,5.70f,.08f,.96f,true);
                 GateCraftTier(stone,GateU(32.02f),v+.02f,GateU(34.98f),v+1.98f,5.7f,6.05f,.12f);
                 GateCraftTier(stone,GateU(32.25f),v+.2f,GateU(34.75f),v+1.8f,6.05f,7.05f,.48f);
                 GateCraftTier(stone,GateU(32.62f),v+.57f,GateU(34.38f),v+1.43f,7.05f,7.25f,.05f);
-                BuildGatePierRelief(stone,v);
                 BuildGateInnerReturn(stone,v,height);
             }
             BuildGateCartouche(stone,height);
@@ -319,14 +319,6 @@ namespace Cryptforge.UI
             Create("Flue retaining bands",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
         }
 
-        private static void BuildGatePierRelief(Builder stone,float v)
-        {
-            // A narrow stone-backed rebate leaves broad vertical bearings on both
-            // sides. Most of the jamb remains solid dressed stone, not a dark window.
-            foreach(bool front in new[]{true,false})
-                GateBlindLancet(stone,v,front,2.03f,5.18f,1.70f,5.45f);
-        }
-
         private static void BuildGateInnerReturn(Builder stone,float v,float height)
         {
             // Substantial jambs and their deep returns stand outside the facade's
@@ -337,55 +329,6 @@ namespace Cryptforge.UI
             GateCraftTier(stone,GateU(32.02f),a,GateU(33.04f),b,.45f,1.15f,.03f,.94f);
             GateCraftTier(stone,GateU(32.04f),a+.025f,GateU(33.04f),b-.025f,1.15f,height-.38f,.025f,.96f);
             GateCraftTier(stone,GateU(32.02f),a-.02f,GateU(33.04f),b+.02f,height-.38f,height+.10f,.065f,.96f);
-        }
-
-        private static void GateBlindLancet(Builder stone,float v,bool front,
-            float bottom,float top,float courseBottom,float courseTop)
-        {
-            float half=front?.29f:.47f;
-            float center=front?v+1:GateU(33.5f);
-            float h=top-bottom;
-            // Five sides make the pointed head part of the supporting stonework,
-            // rather than a line decoration applied over another rectangular plate.
-            var outer=new[]{new Vector2(center-half,bottom),new Vector2(center+half,bottom),
-                new Vector2(center+half,top-h*.25f),new Vector2(center,top),
-                new Vector2(center-half,top-h*.25f)};
-            var inner=new Vector2[5];
-            Vector2 middle=new Vector2(center,bottom+h*.47f);
-            for(int i=0;i<5;i++)
-                inner[i]=new Vector2(Mathf.Lerp(outer[i].x,center,.28f),
-                    Mathf.Lerp(outer[i].y,middle.y,.18f));
-            Vector3 hub=GatePierFace(v,front,middle,courseBottom,courseTop);
-            Color recess=front?new Color(.39f,.42f,.48f):new Color(.46f,.49f,.55f);
-            Vector3 origin=GatePierFace(v,front,new Vector2(center-half,bottom),courseBottom,courseTop);
-            Vector3 along=GatePierFace(v,front,new Vector2(center+half,bottom),courseBottom,courseTop);
-            Vector3 across=GatePierFace(v,front,new Vector2(center-half,top),courseBottom,courseTop);
-            for(int i=0;i<5;i++)
-            {
-                int j=(i+1)%5;
-                Vector3 ia=GatePierFace(v,front,inner[i],courseBottom,courseTop);
-                Vector3 ib=GatePierFace(v,front,inner[j],courseBottom,courseTop);
-                // One continuous mineral field across the whole blind niche. The
-                // old per-triangle remap left an unintended X across its centre.
-                HeaderStonePatch(stone,ia,ib,hub,hub,recess,origin,along,across);
-                // Shadowed jamb/head and a broad catching sill imply depth. The
-                // planar relief keeps the original actor fade/depth owner intact.
-                float light=i==0?.73f:i==1?.31f:i==2?.37f:i==3?.54f:.61f;
-                if(front)light*=.83f;
-                HeaderStonePatch(stone,GatePierFace(v,front,outer[i],courseBottom,courseTop),
-                    GatePierFace(v,front,outer[j],courseBottom,courseTop),ib,ia,
-                    new Color(light*.93f,light*.97f,light),origin,along,across);
-            }
-        }
-
-        private static Vector3 GatePierFace(float v,bool front,Vector2 face,
-            float courseBottom,float courseTop)
-        {
-            // Match the existing shaft taper at the actual elevation instead of
-            // letting a constant-plane insert drift out of its masonry face.
-            float taper=.04f*Mathf.InverseLerp(courseBottom,courseTop,face.y);
-            return (front?Project(GateU(32.26f)+taper,face.x):Project(face.x,v+.24f+taper))
-                +Vector3.up*face.y;
         }
 
         private static void TintedIronTier(Builder mesh,float u0,float v0,float u1,float v1,
