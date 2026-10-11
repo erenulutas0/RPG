@@ -203,7 +203,24 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator WalkingOntoTheFirstChestLogsItWithTheRoomAndTheHealedHealth()
         {
-            yield return LoadGameplay(null);
+            yield return AssertFirstChestTelemetry(0, false);
+        }
+
+        [UnityTest]
+        public IEnumerator AHealthBookChestLogsTheHealthAfterBothRewards()
+        {
+            // In the authored starting pool, seed 34 grants rare Vital Surge from the first chest.
+            // This catches a stale pre-book snapshot even when healing raises HP past its original maximum.
+            yield return AssertFirstChestTelemetry(34, true);
+        }
+
+        private IEnumerator AssertFirstChestTelemetry(int seed, bool healthBook)
+        {
+            TestProfile.Begin();
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RunSeedPath));
+            File.WriteAllText(DevelopmentStart.RunSeedPath, seed.ToString(CultureInfo.InvariantCulture));
+            yield return LoadScene();
+            Assert.That(_setup.Run.Seed, Is.EqualTo(seed));
             ChestSpawner chests = UnityEngine.Object.FindFirstObjectByType<ChestSpawner>();
             var movement = _hero.GetComponent<Cryptforge.UI.HeroMovementInput>();
             _hero.GetComponent<AttackController>().enabled = false;
@@ -211,12 +228,38 @@ namespace Cryptforge.Tests
 
             _hero.ApplyDamage(new DamageContext(40f));
             float wounded = _hero.Current;
+            float originalMaximum = _hero.Maximum;
+            float healed = 0f, rewardedMaximum = 0f;
+            string bookId = null;
+            int openings = 0;
+            chests.Opened += (reward, position) =>
+            {
+                openings++;
+                healed = _hero.Current;
+                rewardedMaximum = _hero.Maximum;
+                bookId = chests.LastBook?.Id;
+            };
             movement.Hold(new Vector2(1f, 0f));
             float deadline = Time.realtimeSinceStartup + 6f;
             while (!chests.IsOpen && Time.realtimeSinceStartup < deadline)
                 yield return null;
             movement.Release();
             Assert.That(chests.IsOpen, Is.True, "Walking onto the chest opens it.");
+            Assert.That(openings, Is.EqualTo(1));
+            Assert.That(chests.ChestsOpened, Is.EqualTo(1));
+            Assert.That(healed, Is.GreaterThan(wounded).And.LessThanOrEqualTo(rewardedMaximum));
+            if (healthBook)
+            {
+                Assert.That(chests.LastBook, Is.Not.Null, "The regression seed must still exercise a health book.");
+                Assert.That(chests.LastBook.Stat, Is.EqualTo(UpgradeStat.MaxHealth));
+                Assert.That(rewardedMaximum, Is.GreaterThan(originalMaximum));
+                Assert.That(healed, Is.GreaterThan(originalMaximum), "This case must cover HP above the old ceiling.");
+            }
+            else
+            {
+                Assert.That(chests.LastBook, Is.Null);
+                Assert.That(rewardedMaximum, Is.EqualTo(originalMaximum));
+            }
             yield return UnloadGameplayScene();
 
             List<Line> log = ReadLog();
@@ -228,7 +271,9 @@ namespace Cryptforge.Tests
             Assert.That(chest.Text("reward"), Is.EqualTo("heal"));
             Assert.That(chest.Number("gold"), Is.EqualTo(0));
             Assert.That(chest.Number("heal_fraction"), Is.EqualTo(ChestRule.HealFraction));
-            Assert.That(chest.Number("hero_hp"), Is.GreaterThan(wounded).And.LessThanOrEqualTo(100), "The health after the chest mended.");
+            Assert.That(chest.Number("hero_hp"), Is.EqualTo(healed), "Telemetry records the Opened snapshot after healing and any book.");
+            Assert.That(chest.Text("book"), Is.EqualTo(bookId ?? "none"));
+            Assert.That(Count(log, "chest_opened"), Is.EqualTo(1));
             Assert.That(chest.Number("floor_index"), Is.EqualTo(1));
             Assert.That(chest.Number("room_index"), Is.EqualTo(1));
             LogAssert.NoUnexpectedReceived();
