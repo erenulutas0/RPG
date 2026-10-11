@@ -173,10 +173,43 @@ namespace Cryptforge.UI
                 mesh.C[first+i]=new Color(baseLight.r*value*(1+warm-cool),
                     baseLight.g*value*(1+warm*.2f),baseLight.b*value*(1+cool),1);
             }
+            GateStoneEdges(mesh,first,.035f,.038f);
+        }
+
+        private static void GateStoneEdges(Builder mesh,int first,float along,float rise)
+        {
+            // Cut a narrow dressed rim into the existing face, entirely coplanar.
+            // This catches the established face light without enlarging the tier or
+            // adding coincident overlays. Grain and weathering remain continuous.
+            var outer=new Vector3[4];var grain=new Vector2[4];var light=new Color[4];
+            for(int i=0;i<4;i++){outer[i]=mesh.V[first+i];grain[i]=mesh.U[first+i];light[i]=mesh.C[first+i];}
+            float x=Mathf.Min(.12f,along/Mathf.Max(.01f,Vector3.Distance(outer[0],outer[1])));
+            float y=Mathf.Min(.12f,rise/Mathf.Max(.01f,Vector3.Distance(outer[0],outer[3])));
+            var sample=new[]{new Vector2(x,y),new Vector2(1-x,y),new Vector2(1-x,1-y),new Vector2(x,1-y)};
+            for(int i=0;i<4;i++)
+            {
+                Vector2 p=sample[i];
+                mesh.V[first+i]=GateFaceLerp(outer,p.x,p.y);
+                mesh.U[first+i]=Vector2.Lerp(Vector2.Lerp(grain[0],grain[1],p.x),Vector2.Lerp(grain[3],grain[2],p.x),p.y);
+                mesh.C[first+i]=Color.Lerp(Color.Lerp(light[0],light[1],p.x),Color.Lerp(light[3],light[2],p.x),p.y);
+            }
+            for(int edge=0;edge<4;edge++)
+            {
+                int next=(edge+1)%4,start=mesh.V.Count;
+                mesh.Quad(outer[edge],outer[next],mesh.V[first+next],mesh.V[first+edge],false,Color.white);
+                float catchLight=edge==2?1.14f:edge==0?.80f:edge==1?.91f:1.035f;
+                var tones=new[]{light[edge],light[next],mesh.C[first+next],mesh.C[first+edge]};
+                var coords=new[]{grain[edge],grain[next],mesh.U[first+next],mesh.U[first+edge]};
+                for(int i=0;i<4;i++)
+                {
+                    Color c=tones[i]*catchLight;c.a=1;mesh.C[start+i]=c;mesh.U[start+i]=coords[i];
+                }
+            }
         }
 
         private static void GateEnclosureDressedTier(Builder mesh,int first)
         {
+            int originalEnd=mesh.V.Count;
             // Broad mouldings are solid dressed stones. Each face samples one
             // continuous stone interior instead of a row of bricks wrapping a cap.
             for(int f=0;f<3;f++)
@@ -186,16 +219,43 @@ namespace Cryptforge.UI
                 mesh.U[i+2]=new Vector2(.42f,.75f);mesh.U[i+3]=new Vector2(.27f,.75f);
             }
             float minX=float.MaxValue,minY=float.MaxValue,maxX=float.MinValue,maxY=float.MinValue;
-            for(int i=first+12;i<mesh.V.Count;i++)
+            for(int i=first+12;i<originalEnd;i++)
             {
                 Vector3 p=mesh.V[i];minX=Mathf.Min(minX,p.x);maxX=Mathf.Max(maxX,p.x);
                 minY=Mathf.Min(minY,p.y);maxY=Mathf.Max(maxY,p.y);
             }
-            for(int i=first+12;i<mesh.V.Count;i++)
+            for(int i=first+12;i<originalEnd;i++)
             {
                 Vector3 p=mesh.V[i];
                 mesh.U[i]=new Vector2(Mathf.Lerp(.27f,.42f,Mathf.InverseLerp(minX,maxX,p.x)),
                     Mathf.Lerp(.65f,.75f,Mathf.InverseLerp(minY,maxY,p.y)));
+            }
+            // Long mouldings are laid as broad fitted blocks instead of a single
+            // seamless extrusion. Keep the upper roof bearing/cap untouched; only
+            // divide its two visible vertical fascia faces inside their old corners.
+            for(int face=0;face<2;face++)
+            {
+                int index=first+face*4;
+                var points=new[]{mesh.V[index],mesh.V[index+1],mesh.V[index+2],mesh.V[index+3]};
+                var tones=new[]{mesh.C[index],mesh.C[index+1],mesh.C[index+2],mesh.C[index+3]};
+                float width=Vector3.Distance(points[0],points[1]);
+                int blocks=Mathf.Max(2,Mathf.RoundToInt(width/1.1f));
+                for(int i=0;i<4;i++){Color c=tones[i]*.73f;c.a=1;mesh.C[index+i]=c;}
+                for(int block=0;block<blocks;block++)
+                {
+                    float a=(float)block/blocks,b=(float)(block+1)/blocks;
+                    float joint=.013f/Mathf.Max(.3f,width);
+                    if(block>0)a+=joint;if(block+1<blocks)b-=joint;
+                    int start=mesh.V.Count;
+                    mesh.Quad(GateFaceLerp(points,a,0),GateFaceLerp(points,b,0),GateFaceLerp(points,b,1),GateFaceLerp(points,a,1),false,Color.white);
+                    for(int i=0;i<4;i++)
+                    {
+                        float u=i==0||i==3?a:b,v=i<2?0:1;
+                        mesh.U[start+i]=new Vector2(.27f+.15f*u,.65f+.10f*v);
+                        mesh.C[start+i]=Color.Lerp(Color.Lerp(tones[0],tones[1],u),Color.Lerp(tones[3],tones[2],u),v);
+                    }
+                    GateStoneEdges(mesh,start,.028f,.022f);
+                }
             }
         }
 

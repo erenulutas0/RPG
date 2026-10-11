@@ -136,6 +136,29 @@ namespace Cryptforge.UI
         {
             int lo=Mathf.FloorToInt((s0-FoundryMap.BridgeHalfWidth)*.5f/g)-1;
             int hi=Mathf.CeilToInt((s1+FoundryMap.BridgeHalfWidth)*.5f/g)+1;
+            if(!margin)
+            {
+                // Stagger broad walkway flags in the same quarry axes as the court.
+                // Variable oblongs replace the repeated one-unit diamond grid; clipping
+                // still owns the exact bridge/court join and the two straight lane edges.
+                for(int row=lo;row<=hi;row++)
+                {
+                    float u=(lo-(row%2==0?0:.5f))*g;
+                    int block=0;
+                    while(u<=(hi+1)*g)
+                    {
+                        float width=(StoneSample(row+719,block+83)>.38f?2f:1f)*g;
+                        float v=row*g;
+                        var stone=new List<Vector2>{new Vector2(u+v,u-v),
+                            new Vector2(u+v+g,u-v-g),new Vector2(u+width+v+g,u+width-v-g),
+                            new Vector2(u+width+v,u+width-v)};
+                        stone=BridgeCourtClip(DeckClip(DeckClip(DeckClip(DeckClip(stone,0,s0,1),0,s1,-1),1,d0,1),1,d1,-1));
+                        if(stone.Count>=3)BridgeStone(mesh,stone,false,row,block);
+                        u+=width;block++;
+                    }
+                }
+                return;
+            }
             for(int k=lo;k<=hi;k++)
                 for(int m=lo;m<=hi;m++)
                 {
@@ -185,14 +208,16 @@ namespace Cryptforge.UI
             for(int i=0;i<n;i++)area+=p[i].x*p[(i+1)%n].y-p[(i+1)%n].x*p[i].y;
             if(Mathf.Abs(area)<1e-4f)return;
             if(area<0)System.Array.Reverse(p);
-            // Flags take the court's skewed distribution (mostly near base, one in six darker, one in ten paler and warmer).
-            // Margin stones are darker, cooler and about half as varied, so the centre flags dominate and the margins stay
-            // a calm ground under enemies and telegraphs.
-            float grain=StoneSample(k+(margin?9000:5000),m-(margin?389:277));
-            float stone=margin?(grain<.17f?Mathf.Lerp(.83f,.87f,grain/.17f):grain>.9f?Mathf.Lerp(.96f,.99f,(grain-.9f)/.1f):Mathf.Lerp(.88f,.94f,(grain-.17f)/.73f)):
-                grain<.17f?Mathf.Lerp(.78f,.87f,grain/.17f):grain>.9f?Mathf.Lerp(1.08f,1.15f,(grain-.9f)/.1f):Mathf.Lerp(.93f,1.04f,(grain-.17f)/.73f);
-            float hue=StoneSample(k+(margin?9131:5131),m-(margin?446:57));
-            Color tint=hue<.22f?new Color(.97f,.99f,1.03f):hue>.82f?new Color(1.05f,1.0f,.93f):Color.white;
+            // Nearby bridge flags share the court's broad quarry field; independent
+            // pale/dark samples previously made the entrance a checkerboard. Margins
+            // retain their deliberately darker bearing under the existing kerbs.
+            Vector2 centre=Vector2.zero;
+            foreach(Vector2 point in p)centre+=point;
+            centre/=n;
+            float grain=FloorPatina(centre.x*.16f+5.7f,centre.y*.16f-9.4f);
+            float stone=Mathf.Lerp(margin?.88f:.96f,margin?.94f:1.03f,grain);
+            float hue=FloorPatina(centre.x*.11f-13.2f,centre.y*.11f+4.6f);
+            Color tint=hue<.22f?new Color(.99f,1f,1.015f):hue>.82f?new Color(1.02f,1f,.98f):Color.white;
             if(margin)tint*=new Color(.97f,.985f,1.03f);
             // Fine mortar and shallow worn arrises read as paving, not a heavy wire
             // grid. The centre and margin share one restrained joint treatment.

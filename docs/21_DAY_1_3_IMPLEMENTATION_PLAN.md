@@ -2272,3 +2272,17 @@ Tools/ArtReview/PackIndustrialAtlases.py packs unscaled images with byte-exact p
 Native presentation changes stay in FoundryRegionArchitecture, GateEnclosure, GateHeader and Heraldry. Door anchors, materials, scene, camera, shared map/ramp, sockets and save/gameplay contracts remain. Reduced outer height7.35 has a matching depth envelope; inner terminal7.94 fits the central8.2. Broad landing shoulders remain outboard under1.05. Both stone relief and lock use the same compressed rise.
 
 FoundryGateStoneTests adds five production-geometry cases for contour coverage, UV continuity, finite/index/winding validity, triangle-interior coplanarity at ramp foot/crest, separated apron bands and lock containment in its actual backing. Existing PlayMode checks retain portal corners, ownership and region contracts. Tooling is after-only; fourteen baseline857a99c images are copied with hashes. First graphics pass rejected for faint paving, second accepted after bounded contrast/joint refinement. Final suite/build evidence is in ArtDirection/2026-10-11/foundry-gate-stone-01/validation. Root alone owns Unity/ADB.
+
+
+## 2026-10-11 - Court, bridge and dressed masonry verified; device pending
+
+Court and workyard zones favor larger unequal flags (maximum area3), with broad correlated quarry tones and clearer restrained joints. Bridge central deck uses staggered 1x1/2x1 oblongs clipped to the original lane/court boundary; quiet outer bands and continuous world grain/light remain. Gate ashlar faces gain narrow coplanar dressed rims; long coping fascia gains broad fitted blocks while original roof bearing, exact face envelopes, tiers, sockets and depth ownership remain. Gate candidate family/treatment is retained, but shared packer joint scores can change its layout. No new runtime texture/material/renderer/updater; camera, navigation, ramps, scenes, gameplay and saves unchanged.
+
+Files: FoundryRegionFinish.cs, FoundryRegionView.cs, FoundryRegionGateEnclosure.cs; new FoundryBridgePavingTests.cs and FoundryMasonrySurfaceTests.cs with fresh metas; Tools/ArtReview/FoundryCourtStoneCapture.cs and Run-FoundryCourtStoneProof.ps1.
+
+Three helpers split court finish, gate masonry/tests, and proof/source/actual-image review; root implemented the bridge and ran all Unity checks. Fourteen baseline9150049 matched before images were copied and hash-verified; capture is after-only. Browser controls and loaded images verified after restarting the existing localhost preview server. Two tapered/skewed masonry cases guard exact silhouette, area partition and UV/light continuity; one actual deck case guards complete floor coverage, continuous grain, flush surface and court overlap ownership.
+
+Verified: 425 .NET / 470 EditMode / 159 PlayMode = 1,054 distinct suite cases, zero failures/skips. Compile zero warnings/errors; actual Android-target graphics capture 1/1. PASS: 589 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,223,974 bytes; SHA256 E559FD12666CCB1599648266CE3A02B23C707585C2A8268AD80495EB3F06A5C9. NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.

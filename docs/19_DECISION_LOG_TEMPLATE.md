@@ -985,3 +985,12 @@ Native source geometry keeps material/light coherence. Independent review correc
 Decision: make the painted door primary by removing the outer towers' upper storey and flattening the portal crest, within existing foundations and navigation. Shorten the inner cast terminals to fit their existing depth envelope. New approach flags remain flush and share the current ramp projection rather than implying new stairs or obstacles.
 
 Reason: reference comparison showed competing tower masses and an overly continuous paving panel. The first valid implementation did not make its new bond visually readable; actual-image review required a joint/bed correction before accepting it. Tradeoff:4578 additional static vertices overall, unchanged32renderers and no new textures/material instances/updaters. Device frame time is unmeasured. Evidence and final gate: ArtDirection/2026-10-11/foundry-gate-stone-01.
+
+
+## 2026-10-11 - Court, bridge and dressed masonry verified; device pending
+
+Decision: unify the court and bridge quarry field and articulate existing gate stone faces in place. We considered more independent per-slab contrast and raised/chipped masonry. Broad shared quarry tones reduce checkerboard and preserve actor contrast; coplanar edge catches retain existing contact/depth envelopes without creating new obstacle expectations. Long fascia becomes fitted blocks with its original cap still continuous. This is a bounded material/craft gain, not reference completion or measured phone performance.
+
+Root and independent seven-pair actual Unity review accept reduced bridge checkerboard, clearer court bond and restrained gate edges. Actor/feet/ability guide and pipe contacts read correctly in inspected views. Whole-map gain is modest; full reference material/structural richness remains incomplete. Region32renderers/135688vertices versus129812baseline (+5876/about4.5%); distant2496 unchanged. These are resource counts, not device performance evidence. No ADB or fresh phone observation; earlier concrete install/restart decision remains pending. Before future deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Physical-device circulation/crowd/HUD/motion/shimmer/midrange acceptance and region gameplay/boss progression remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.

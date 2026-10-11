@@ -1255,3 +1255,15 @@ First graphics pass was rejected for faint paving despite valid geometry. Bounde
 Final PASS:425.NET/467EditMode/159PlayMode =1051 distinct suite cases, zero failures/skips; focused5/5 included in total. Isolated compile0warnings/errors; final static587/1099/568; Androidexit0, no C# or shader errors. APK36220642bytes; SHA256 F1EBF070D6F4E52F6306683E1B496B6311BA41656E48AE46A2D57ED3B5CBC987. NOT INSTALLED. No ADB/fresh phone observation; earlier concrete install/restart decision remains pending. Before future deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots.
 
 Full reference richness and device circulation/crowd/HUD/motion/shimmer/midrange acceptance remain open. Further art work should improve coherent material/stone articulation rather than repeat isolated trim. Regional encounter/boss progression remains deferred by the art-first direction.
+
+
+## 2026-10-11 - Court, bridge and dressed masonry verified; device pending
+
+425 .NET / 470 EditMode / 159 PlayMode = 1,054 distinct suite cases, zero failures/skips. Compile zero warnings/errors; actual Android-target graphics capture 1/1. PASS: 589 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,223,974 bytes; SHA256 E559FD12666CCB1599648266CE3A02B23C707585C2A8268AD80495EB3F06A5C9. NOT INSTALLED.
+
+Three helpers split court finish, gate masonry/tests, and proof/source/actual-image review; root implemented the bridge and ran all Unity checks. Fourteen baseline9150049 matched before images were copied and hash-verified; capture is after-only. Browser controls and loaded images verified after restarting the existing localhost preview server. Two tapered/skewed masonry cases guard exact silhouette, area partition and UV/light continuity; one actual deck case guards complete floor coverage, continuous grain, flush surface and court overlap ownership.
+
+Root and independent seven-pair actual Unity review accept reduced bridge checkerboard, clearer court bond and restrained gate edges. Actor/feet/ability guide and pipe contacts read correctly in inspected views. Whole-map gain is modest; full reference material/structural richness remains incomplete. Region32renderers/135688vertices versus129812baseline (+5876/about4.5%); distant2496 unchanged. These are resource counts, not device performance evidence. No ADB or fresh phone observation; earlier concrete install/restart decision remains pending. Before future deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Physical-device circulation/crowd/HUD/motion/shimmer/midrange acceptance and region gameplay/boss progression remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.

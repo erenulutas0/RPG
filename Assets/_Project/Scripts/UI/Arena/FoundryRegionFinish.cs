@@ -228,7 +228,7 @@ namespace Cryptforge.UI
             return 0;
         }
 
-        // Half-unit ashlar with predominantly compact oblong flags and occasional 2.5x1 slabs
+        // Half-unit ashlar with broad unequal court flags and occasional 2.5x1 slabs
         // (maximum area3). The skyline packer limits long joints and four-way crossings;
         // matching neighbour heights is only a mild preference, not a regular course.
         // Brass remains a forced joint and the ceremonial seal alone keeps unit flags.
@@ -251,11 +251,12 @@ namespace Cryptforge.UI
                 for(int w=2;w<=5;w++)
                 {
                     if(w*h>12)continue;
-                    // Ordinary dressed flags are predominantly 1x1 and 1x1.5,
-                    // with some 1x2 and rare broad/long replacement slabs. The
-                    // half-unit lattice and joint-run constraints are unchanged.
+                    // The court is a field of unequal basalt flags, not small square
+                    // tiles. Keep the existing gate family and three-unit area cap;
+                    // broad 1x2 and 1.5x2 flags break up the repeated court grid.
                     int area=w*h;
-                    int weight=area==4?18:area==6?18:area==8?4:area==9?2:1;
+                    int weight=crosswise?(area==4?18:area==6?18:area==8?4:area==9?2:1):
+                        area==4?3:area==6?12:area==8?18:area==9?9:area==10?7:area==12?12:1;
                     sizes.AddRange(new[]{w,h,crosswise&&w>h?Mathf.Max(1,weight/4):weight});
                 }
             sizes.AddRange(new[]{2,1,1,1,2,1,1,1,1});
@@ -506,6 +507,17 @@ namespace Cryptforge.UI
             bool kept=s.Zone==1;
             int seedU=kept?(int)u0:s.I,seedV=kept?(int)v0:s.J;
             float grain=StoneSample(seedU,seedV),hue=StoneSample(seedU+131,seedV-57);
+            bool court=!kept&&!repair&&s.Zone!=2;
+            if(court)
+            {
+                // Neighbouring flags share quarry batches. Independent per-flag
+                // pale/dark samples made a checkerboard even with varied packing.
+                // Sample broad mineral fields at each face centre instead; retain
+                // actual flame lighting and surface grain at their existing scale.
+                float cu=(u0+u1)*.5f,cv=(v0+v1)*.5f;
+                grain=FloorPatina(cu*.16f+5.7f,cv*.16f-9.4f);
+                hue=FloorPatina(cu*.11f-13.2f,cv*.11f+4.6f);
+            }
             float tone=Mathf.Lerp(kept?.92f:.96f,kept?1.055f:1.03f,grain);
             float stone=1+(tone-1)*(area<1?.5f:1f);
             Color flagTint=hue<.22f?new Color(.99f,1f,1.015f):hue>.82f?new Color(1.02f,1f,.98f):Color.white;
@@ -526,8 +538,10 @@ namespace Cryptforge.UI
             }
             // Narrow joints and shallow bevels preserve the laid-stone relief at the finer scale.
             // Infill bevel width is capped relative to the smallest side.
-            float joint=kept?.018f:repair?.014f+.003f*Mathf.Sqrt(area):.009f+.002f*Mathf.Sqrt(area);
-            float bevel=kept?.04f:Mathf.Min((repair?.032f:.018f)+(repair?.008f:.005f)*Mathf.Sqrt(area),.12f*Mathf.Min(w,h));
+            float joint=kept?.018f:repair?.014f+.003f*Mathf.Sqrt(area):
+                (court?.015f:.009f)+.002f*Mathf.Sqrt(area);
+            float bevel=kept?.04f:Mathf.Min((repair?.032f:court?.028f:.018f)+
+                (repair?.008f:court?.006f:.005f)*Mathf.Sqrt(area),.12f*Mathf.Min(w,h));
             // The joint bed's vertices are the 1-unit lattice the step test already lit; refined, it takes the finer one.
             float[] us=LightLines(u0,u1,1),vs=LightLines(v0,v1,1);
             var lattice=new Color[us.Length*vs.Length];
@@ -537,7 +551,7 @@ namespace Cryptforge.UI
             // Quarry setbacks expose more bed: keep mortar close to dusty stone in
             // value, so the floor reads as masonry rather than a dark outlined grid.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.68f:.90f;
+            float jointTone=kept?.68f:court?.84f:.90f;
             if(repair)jointTone=.80f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);

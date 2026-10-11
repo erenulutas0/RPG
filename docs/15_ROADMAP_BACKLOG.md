@@ -658,3 +658,12 @@ Scope/evidence: ArtDirection/2026-10-11/foundry-industrial-01. The five-helper b
 - [ ] Accumulated physical-device circulation, crowd, HUD/motion/shimmer and midrange checks remain open. Region encounter/boss progression remains deferred.
 
 Evidence: ArtDirection/2026-10-11/foundry-gate-stone-01. This closes the bounded gatehouse/approach work from the prior industrial package, not every map-art or device task.
+
+
+## 2026-10-11 - Court, bridge and dressed masonry verified; device pending
+
+- [x] Coordinate larger court flags, staggered bridge paving and fitted gate masonry using existing native surfaces.
+- [x] Compare fourteen baseline views and independently review actual production images; verify geometry, suites and Android build.
+- [ ] Full reference richness and physical-device circulation/crowd/shimmer/midrange acceptance remain unfinished. Regional gameplay progression remains deferred.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.
