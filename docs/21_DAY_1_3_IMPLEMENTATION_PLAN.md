@@ -2286,3 +2286,17 @@ Verified: 425 .NET / 470 EditMode / 159 PlayMode = 1,054 distinct suite cases, z
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,223,974 bytes; SHA256 E559FD12666CCB1599648266CE3A02B23C707585C2A8268AD80495EB3F06A5C9. NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.
+
+
+## 2026-10-11 - Pit machinery and exterior masonry verified; device pending
+
+Pit vessels now have distinct broad octagonal pressure and stepped receiver heads, seated hold-downs, recessed annular mouths and below-deck service bays/cages. All remain within the existing radius1.1/height1.3 hood and deck-to-molten drum envelopes. Foundation curtains use broad fitted courses, arch wedges use quiet mineral grain and tapered piers have full-width dressed courses. Existing silhouettes, pit/collar/pool, flue sockets, depth owners, material batches, navigation, camera, scene, gameplay and saves remain unchanged.
+
+Files: FoundryRegionPitHoods.cs, pit-only FoundryRegionMassing.cs, FoundryRegionUndercroft.cs; new FoundryPitVesselTests.cs and FoundryUndercroftStoneTests.cs with fresh metas; Tools/ArtReview/FoundryPitWallCapture.cs and Run-FoundryPitWallProof.ps1.
+
+Three helpers split pit machinery, outer masonry/tests, and proof plus independent review; root alone ran Unity. Fourteen c549f06 baseline views were copied/hash-verified; captures are after-only at matched cameras. Independent source review caught design-collinear wall merging across gate ramp grade breaks. The fix requires projected collinearity at both the deck and contracted foot; a regression uses the real south landing and the foot-only bend at26. First capture diagnostics/images are retained. Eight new EditMode cases cover emitted vessel containment, wall joins, projected ramp preservation, tapered/sloping masonry, UVs and depth cooling.
+
+425 .NET / 478 EditMode / 159 PlayMode = 1,062 distinct suite cases, zero failures/skips. Compile zero warnings/errors. Two successful Android-target graphics captures; the first was superseded after source review. PASS: 591 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,232,266 bytes; SHA256 F44358DE1552E9DC7FE46AB084E2E488A0F2FAD5352C3B6A24FC0546C1E454A4. NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.

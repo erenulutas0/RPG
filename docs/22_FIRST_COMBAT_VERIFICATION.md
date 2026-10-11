@@ -1267,3 +1267,15 @@ Three helpers split court finish, gate masonry/tests, and proof/source/actual-im
 Root and independent seven-pair actual Unity review accept reduced bridge checkerboard, clearer court bond and restrained gate edges. Actor/feet/ability guide and pipe contacts read correctly in inspected views. Whole-map gain is modest; full reference material/structural richness remains incomplete. Region32renderers/135688vertices versus129812baseline (+5876/about4.5%); distant2496 unchanged. These are resource counts, not device performance evidence. No ADB or fresh phone observation; earlier concrete install/restart decision remains pending. Before future deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Physical-device circulation/crowd/HUD/motion/shimmer/midrange acceptance and region gameplay/boss progression remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.
+
+
+## 2026-10-11 - Pit machinery and exterior masonry verified; device pending
+
+425 .NET / 478 EditMode / 159 PlayMode = 1,062 distinct suite cases, zero failures/skips. Compile zero warnings/errors. Two successful Android-target graphics captures; the first was superseded after source review. PASS: 591 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,232,266 bytes; SHA256 F44358DE1552E9DC7FE46AB084E2E488A0F2FAD5352C3B6A24FC0546C1E454A4. NOT INSTALLED.
+
+Three helpers split pit machinery, outer masonry/tests, and proof plus independent review; root alone ran Unity. Fourteen c549f06 baseline views were copied/hash-verified; captures are after-only at matched cameras. Independent source review caught design-collinear wall merging across gate ramp grade breaks. The fix requires projected collinearity at both the deck and contracted foot; a regression uses the real south landing and the foot-only bend at26. First capture diagnostics/images are retained. Eight new EditMode cases cover emitted vessel containment, wall joins, projected ramp preservation, tapered/sloping masonry, UVs and depth cooling.
+
+Root and independent actual-image review accept clearer machinery construction and broader quieter exterior stone faces. Whole-map gain is modest; full reference material/structural richness is unfinished. Region remains32renderers;135688->148756vertices (+13068, 9.6%). Distant2496 unchanged. No new texture/material/updater and no phone-performance claim. No ADB or fresh device observation; the earlier concrete install/restart decision remains pending. Future deployment must inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.

@@ -70,25 +70,121 @@ namespace Cryptforge.UI
             }
             // The bridge joins through the shared union's open edge; never close it
             // with an invented cross-wall or fill the central smelting opening.
-            foreach(var span in spans)
+            foreach(var span in JoinedFoundationSpans(spans))
             {
                 Vector3 a=Project(span.a.x,span.a.y),b=Project(span.b.x,span.b.y);
                 var stone=new Builder();
                 Color tone=span.a.x==span.b.x?new Color(.34f,.37f,.46f):new Color(.43f,.44f,.52f);
                 const float shoulder=5.95f,foot=7.25f;
-                stone.WallQuad(a+Vector3.down*shoulder,b+Vector3.down*shoulder,
-                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,false,tone);
+                int blocks=Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.75f));
+                UndercroftCoursedFace(stone,a+Vector3.down*shoulder,b+Vector3.down*shoulder,
+                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,tone,4,blocks);
                 // One shared contraction maps every adjoining endpoint identically,
                 // including diagonal corners, so the lower skirt has no seam gaps.
                 Vector2 centre=new Vector2(-8,2);
                 Vector2 innerA=Vector2.Lerp(span.a,centre,.035f),innerB=Vector2.Lerp(span.b,centre,.035f);
                 Vector3 lowerA=Project(innerA.x,innerA.y)+Vector3.down*foot;
                 Vector3 lowerB=Project(innerB.x,innerB.y)+Vector3.down*foot;
-                stone.WallQuad(lowerA,lowerB,b+Vector3.down*shoulder,a+Vector3.down*shoulder,
-                    false,new Color(tone.r*.78f,tone.g*.81f,tone.b*.88f));
+                UndercroftCoursedFace(stone,lowerA,lowerB,b+Vector3.down*shoulder,a+Vector3.down*shoulder,
+                    new Color(tone.r*.78f,tone.g*.81f,tone.b*.88f),2,blocks);
                 ShadeUndercroftDepth(stone,a,b);
                 Create("Continuous fortress foundation",stone,arena.PlatformMaterials.FoundryWall,-16);
             }
+        }
+
+        // Join only contiguous collinear exterior spans. This lets a large fitted
+        // block cross the old one-cell construction seams, without closing openings
+        // or changing any corner of the authored skirt (including its chamfers).
+        private static List<(Vector2 a,Vector2 b)> JoinedFoundationSpans(List<(Vector2 a,Vector2 b)> source)
+        {
+            var result=new List<(Vector2 a,Vector2 b)>(source);
+            for(int i=0;i<result.Count;i++)
+            {
+                bool joined;
+                do
+                {
+                    joined=false;
+                    for(int j=0;j<result.Count;j++)
+                    {
+                        if(i==j)continue;
+                        var first=result[i];var next=result[j];
+                        Vector2 d=first.b-first.a,e=next.b-next.a;
+                        if(Vector2.Dot(d,e)<=0||Mathf.Abs(d.x*e.y-d.y*e.x)>.00001f)continue;
+                        if(first.b==next.a&&FoundationProjectionStraight(first.a,first.b,next.b))result[i]=(first.a,next.b);
+                        else if(next.b==first.a&&FoundationProjectionStraight(next.a,first.a,first.b))result[i]=(next.a,first.b);
+                        else continue;
+                        result.RemoveAt(j);if(j<i)i--;
+                        joined=true;break;
+                    }
+                }while(joined);
+            }
+            return result;
+        }
+
+        private static bool FoundationProjectionStraight(Vector2 a,Vector2 middle,Vector2 b)
+        {
+            // Design-plane collinearity is not enough on the gate ramp. Preserve
+            // both projected grade breaks and the different breaks where the
+            // contracted skirt crosses that ramp, retaining the old cell vertices.
+            Vector2 centre=new Vector2(-8,2);
+            Vector2 lowA=Vector2.Lerp(a,centre,.035f),lowMiddle=Vector2.Lerp(middle,centre,.035f),
+                lowB=Vector2.Lerp(b,centre,.035f);
+            return UndercroftCollinear(Project(a.x,a.y),Project(middle.x,middle.y),Project(b.x,b.y))&&
+                UndercroftCollinear(Project(lowA.x,lowA.y),Project(lowMiddle.x,lowMiddle.y),Project(lowB.x,lowB.y));
+        }
+
+        private static bool UndercroftCollinear(Vector3 a,Vector3 middle,Vector3 b)
+        {
+            double cross=((double)b.x-a.x)*(middle.y-a.y)-((double)b.y-a.y)*(middle.x-a.x);
+            return System.Math.Abs(cross)<=.00001*System.Math.Max(1,Vector3.Distance(a,b));
+        }
+
+        // Broad fitted courses replace the old giant brick atlas on the curtain
+        // and pier front. The underlay closes the restrained joints; every dressed
+        // face is inset within the exact original tapered/skewed quad. Shared depth
+        // shading is applied after assembly so it does not restart per stone.
+        private static void UndercroftCoursedFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,
+            Color tone,int rows,int columns)
+        {
+            UndercroftMineralFace(mesh,a,b,c,d,tone*.82f,false);
+            float width=(Vector3.Distance(a,b)+Vector3.Distance(d,c))*.5f;
+            float height=(Vector3.Distance(a,d)+Vector3.Distance(b,c))*.5f;
+            float jointX=.008f/Mathf.Max(.01f,width),jointY=.009f/Mathf.Max(.01f,height);
+            for(int row=0;row<rows;row++)
+            {
+                float lo=row/(float)rows,hi=(row+1)/(float)rows;
+                float y0=row==0?0:lo+jointY,y1=row==rows-1?1:hi-jointY;
+                float x=row%2==0||columns==1?0:-.5f/columns;
+                int index=0;
+                while(x<1)
+                {
+                    float end=Mathf.Min(1,x+1f/columns),start=Mathf.Max(0,x);
+                    float x0=start==0?0:start+jointX,x1=end==1?1:end-jointX;
+                    if(x1>x0)
+                    {
+                        float mineral=1+(((row*2+index)%5)-2)*.012f;
+                        Vector3 p=UndercroftFacePoint(a,b,c,d,x0,y0),q=UndercroftFacePoint(a,b,c,d,x1,y0);
+                        Vector3 r=UndercroftFacePoint(a,b,c,d,x1,y1),s=UndercroftFacePoint(a,b,c,d,x0,y1);
+                        UndercroftMineralFace(mesh,p,q,r,s,tone*mineral,true);
+                    }
+                    x+=1f/columns;index++;
+                }
+            }
+        }
+
+        private static Vector3 UndercroftFacePoint(Vector3 a,Vector3 b,Vector3 c,Vector3 d,float x,float y)=>
+            Vector3.Lerp(Vector3.Lerp(a,b,x),Vector3.Lerp(d,c,x),y);
+
+        private static void UndercroftMineralFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,
+            Color tone,bool dressed)
+        {
+            int first=mesh.V.Count;tone.a=1;
+            mesh.Quad(a,b,c,d,false,tone);
+            // The same stone-interior patch as the new gate ashlar, excluding its
+            // texture's black brick joints. Small geometric courses own the bond.
+            mesh.U[first]=new Vector2(.275f,.655f);mesh.U[first+1]=new Vector2(.415f,.655f);
+            mesh.U[first+2]=new Vector2(.415f,.747f);mesh.U[first+3]=new Vector2(.275f,.747f);
+            if(dressed)GateStoneEdges(mesh,first,.022f,.024f);
         }
 
         private static bool ExteriorSpan(int x,int y,bool alongX)
@@ -136,10 +232,10 @@ namespace Cryptforge.UI
                 Vector3 returnTop=Vector3.Lerp(lower,upper,.32f);
                 Vector3 bevelTop=Vector3.Lerp(lower,upper,.40f);
                 Color returnShade=new Color(shade.r*.53f,shade.g*.58f,shade.b*.66f);
-                stone.WallQuad(left+lower,right+lower,right+returnTop,left+returnTop,false,returnShade);
-                stone.WallQuad(left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,false,
-                    new Color(shade.r*.83f,shade.g*.87f,shade.b*.94f));
-                stone.WallQuad(left+bevelTop,right+bevelTop,right+upper,left+upper,false,shade);
+                UndercroftMineralFace(stone,left+lower,right+lower,right+returnTop,left+returnTop,returnShade,false);
+                UndercroftMineralFace(stone,left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,
+                    new Color(shade.r*.83f,shade.g*.87f,shade.b*.94f),false);
+                UndercroftMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,shade,true);
                 // A narrow lit upper arris and dark return give each wedge thickness.
                 stone.WallQuad(left+upper,right+upper,right+upper+Vector3.down*.045f,
                     left+upper+Vector3.down*.045f,false,new Color(.57f,.57f,.64f));
@@ -199,22 +295,26 @@ namespace Cryptforge.UI
             Color[] front={new Color(.32f,.35f,.45f),new Color(.45f,.46f,.53f),
                 new Color(.39f,.41f,.50f)};
             for(int face=0;face<3;face++)
-                stone.WallQuad(top+Vector3.right*(half*across[face]),
-                    top+Vector3.right*(half*across[face+1]),
-                    foot+Vector3.right*(half*.55f*across[face+1]),
-                    foot+Vector3.right*(half*.55f*across[face]),false,front[face]);
-            stone.WallQuad(top+Vector3.left*half-bevel,top+Vector3.left*half,
-                foot+Vector3.left*half*.55f,foot+Vector3.left*half*.55f-bevel*.45f,false,new Color(.26f,.29f,.39f));
-            stone.WallQuad(top+Vector3.right*half,top+Vector3.right*half+bevel,
-                foot+Vector3.right*half*.55f+bevel*.45f,foot+Vector3.right*half*.55f,false,new Color(.48f,.49f,.58f));
+            {
+                Vector3 p=top+Vector3.right*(half*across[face]),
+                    q=top+Vector3.right*(half*across[face+1]),
+                    r=foot+Vector3.right*(half*.55f*across[face+1]),
+                    s=foot+Vector3.right*(half*.55f*across[face]);
+                if(face==1)UndercroftCoursedFace(stone,s,r,q,p,front[face],major?7:6,1);
+                else UndercroftMineralFace(stone,p,q,r,s,front[face],false);
+            }
+            UndercroftMineralFace(stone,top+Vector3.left*half-bevel,top+Vector3.left*half,
+                foot+Vector3.left*half*.55f,foot+Vector3.left*half*.55f-bevel*.45f,new Color(.26f,.29f,.39f),false);
+            UndercroftMineralFace(stone,top+Vector3.right*half,top+Vector3.right*half+bevel,
+                foot+Vector3.right*half*.55f+bevel*.45f,foot+Vector3.right*half*.55f,new Color(.48f,.49f,.58f),false);
             // Shoulder and lower course join the pier to the deck and the arch spring.
             foreach(float drop in new[]{.22f,3.12f})
             {
                 Vector3 p=top+Vector3.down*drop;
                 float width=half*(drop<1?1.18f:.92f);
-                stone.WallQuad(p+Vector3.left*width,p+Vector3.right*width,
+                UndercroftMineralFace(stone,p+Vector3.left*width,p+Vector3.right*width,
                     p+Vector3.right*width+Vector3.down*.2f,p+Vector3.left*width+Vector3.down*.2f,
-                    false,new Color(.46f,.46f,.53f));
+                    new Color(.46f,.46f,.53f),true);
             }
             ShadeUndercroftDepth(stone,anchor,anchor);
             Create("Faceted undercroft buttresses",stone,arena.PlatformMaterials.FoundryWall,-16);

@@ -655,25 +655,60 @@ namespace Cryptforge.UI
 
         private static void PitVesselStructure(Builder b,Vector2 c)
         {
-            // Three uninterrupted stiffening ribs turn the tall below-deck body into a
-            // legible furnace vessel. They stay below the original radius1.1 hood envelope.
-            foreach(int facet in new[]{1,4,6})
+            // The pressure chest has broad service plates; its receiving vessel has
+            // a longer cage. Jackets, belts and top hold-downs share one centre and
+            // stay under the existing radius1.1 head instead of widening the shaft.
+            bool pressure=c.x<PitCentre.x;
+            foreach(int facet in pressure?new[]{1,3,5,7}:new[]{0,2,4,6})
             {
                 float angle=FrontAngle(facet,8)+Mathf.PI/16;
-                Vector3 a=OnRing(c,1.025f,angle-.055f,0),d=OnRing(c,1.025f,angle+.055f,0);
+                Vector3 a=OnRing(c,1.065f,angle-.065f,0),d=OnRing(c,1.065f,angle+.065f,0);
                 float rim=PitFacingPool(c,angle);
-                PitFront(b,a,d,.15f,PitMolten-.16f,new Vector4(.24f,.17f,.278f,.90f),
+                PitFront(b,a,d,0,PitMolten-.16f,new Vector4(.24f,.17f,.278f,.90f),
                     Tinted(PitDrumCool,new Color(1.06f,1.06f,1.06f)),PitDrumHeat(PitMolten-.16f,rim));
             }
+            // Wide closed inspection bays follow the cylinder facets. Their backing,
+            // shallow iron returns and face are connected; no floating screen decals.
+            foreach(int facet in pressure?new[]{2,5}:new[]{3})
+                PitVesselServiceBay(b,c,facet,pressure?.52f:.38f,pressure?1.94f:2.54f);
             // Retaining belts wrap the vessel's actual curved section; no floating screen bars.
-            foreach(float depth in new[]{.85f,2.65f,4.45f})
+            foreach(float depth in pressure?new[]{.22f,2.12f,4.45f}:new[]{.22f,2.72f,4.45f})
                 for(int k=0;k<8;k++)
                 {
                     float a=FrontAngle(k,8),e=FrontAngle(k+1,8),angle=(a+e)*.5f;
-                    Vector3 p=OnRing(c,1.04f,a,0),q=OnRing(c,1.04f,e,0);
+                    Vector3 p=OnRing(c,1.075f,a,0),q=OnRing(c,1.075f,e,0);
                     Color tone=Tinted(PaintLight(angle),new Color(1.18f,1.09f,.93f));
-                    PitFront(b,p,q,depth,depth+.14f,new Vector4(.23f,.56f,.28f,.60f),tone,tone);
+                    PitFront(b,p,q,depth,depth+.18f,new Vector4(.23f,.56f,.28f,.60f),tone,tone);
                 }
+        }
+
+        private static void PitVesselServiceBay(Builder b,Vector2 c,int facet,float top,float bottom)
+        {
+            float a=FrontAngle(facet,8),e=FrontAngle(facet+2,8),middle=(a+e)*.5f;
+            // A two-facet folded plate retains the cylindrical silhouette and meets
+            // its vertical rails at the actual emitted facet edges.
+            var sample=new Vector4(.23f,.17f,.28f,.90f);
+            Color light=PaintLight(middle),dark=Tinted(light,new Color(.55f,.57f,.62f));
+            for(int k=facet;k<facet+2;k++)
+            {
+                Vector3 p=OnRing(c,1.017f,FrontAngle(k,8),0),q=OnRing(c,1.017f,FrontAngle(k+1,8),0);
+                PitFront(b,p,q,top,bottom,sample,dark,Tinted(dark,new Color(1.10f,.96f,.83f)));
+                Vector3 outerP=OnRing(c,1.066f,FrontAngle(k,8),0),outerQ=OnRing(c,1.066f,FrontAngle(k+1,8),0);
+                foreach(float depth in new[]{top,bottom-.10f})
+                    PitFront(b,outerP,outerQ,depth,depth+.10f,new Vector4(.23f,.56f,.28f,.60f),light,light);
+            }
+            foreach(float angle in new[]{a,e})
+            {
+                Vector3 inner=OnRing(c,1.017f,angle,0),outer=OnRing(c,1.066f,angle,0);
+                PitFront(b,inner,outer,top,bottom,sample,dark,dark);
+                Vector3 outerEnd=OnRing(c,1.066f,angle+(angle==a?.055f:-.055f),0);
+                PitFront(b,outer,outerEnd,top,bottom,sample,light,Tinted(light,new Color(1.12f,.98f,.87f)));
+            }
+            // Short central latch is seated on the jacket rather than hovering in
+            // front of a broad opening. It makes the two serviceable bodies legible.
+            PitFront(b,OnRing(c,1.034f,middle-.12f,0),OnRing(c,1.034f,middle+.12f,0),
+                (top+bottom)*.5f-.08f,(top+bottom)*.5f+.08f,
+                new Vector4(.23f,.56f,.28f,.60f),light,light);
         }
         // The drum's light: the pool's from below, and on the side turned to the gap between the boilers - which is all the
         // camera sees of them below the deck - a rim of it that reaches up the drum.

@@ -994,3 +994,12 @@ Decision: unify the court and bridge quarry field and articulate existing gate s
 Root and independent seven-pair actual Unity review accept reduced bridge checkerboard, clearer court bond and restrained gate edges. Actor/feet/ability guide and pipe contacts read correctly in inspected views. Whole-map gain is modest; full reference material/structural richness remains incomplete. Region32renderers/135688vertices versus129812baseline (+5876/about4.5%); distant2496 unchanged. These are resource counts, not device performance evidence. No ADB or fresh phone observation; earlier concrete install/restart decision remains pending. Before future deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Physical-device circulation/crowd/HUD/motion/shimmer/midrange acceptance and region gameplay/boss progression remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.
+
+
+## 2026-10-11 - Pit machinery and exterior masonry verified; device pending
+
+Decision: distinguish complete vessel heads and servicing structure instead of multiplying identical ribs. Replace large wrapped brick seams on load-bearing exterior wedges/piers with fitted mineral faces. Keep projected grade breaks during any span join, including the contracted skirt.
+
+Root and independent actual-image review accept clearer machinery construction and broader quieter exterior stone faces. Whole-map gain is modest; full reference material/structural richness is unfinished. Region remains32renderers;135688->148756vertices (+13068, 9.6%). Distant2496 unchanged. No new texture/material/updater and no phone-performance claim. No ADB or fresh device observation; the earlier concrete install/restart decision remains pending. Future deployment must inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.

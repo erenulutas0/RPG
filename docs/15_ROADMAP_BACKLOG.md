@@ -667,3 +667,14 @@ Evidence: ArtDirection/2026-10-11/foundry-gate-stone-01. This closes the bounded
 - [ ] Full reference richness and physical-device circulation/crowd/shimmer/midrange acceptance remain unfinished. Regional gameplay progression remains deferred.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.
+
+
+## 2026-10-11 - Pit machinery and exterior masonry verified; device pending
+
+- [x] Coordinate pit vessel profiles/service hardware and exterior masonry within existing envelopes.
+- [x] Preserve projected foundation/ramp contact and verify actual Unity images, suites and Android build.
+- [ ] Full reference richness and physical-device acceptance remain open.
+
+Next substantial visual work: coherent bridge/entrance architecture and attached foundry work equipment/material finish at the existing navigation footprints. Keep whole-map reference comparison and actor-height readability; avoid isolated colour/trim passes.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.
