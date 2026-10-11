@@ -1003,3 +1003,12 @@ Decision: distinguish complete vessel heads and servicing structure instead of m
 Root and independent actual-image review accept clearer machinery construction and broader quieter exterior stone faces. Whole-map gain is modest; full reference material/structural richness is unfinished. Region remains32renderers;135688->148756vertices (+13068, 9.6%). Distant2496 unchanged. No new texture/material/updater and no phone-performance claim. No ADB or fresh device observation; the earlier concrete install/restart decision remains pending. Future deployment must inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.
+
+
+## 2026-10-11 - Bridge architecture and workyard equipment verified; device pending
+
+Decision: connected bridge parapets stay outboard of the walking lane, with short inscribed depth separators and exact asymmetric court clipping. Give trolley and mould bench distinct complete construction instead of scattered decorative props. Far retained cargo hardware must precede its cargo in the painter batch.
+
+Root and independent actual-image review accept clearer arch construction, seated keeper statues and better supported/recognisable yard equipment. Parapet and whole-map gains remain modest; full reference material/structural richness is unfinished. The center/near-island portraits show clear actor feet/guide, not exhaustive moving-edge/crowd acceptance. Region remains32renderers;148756->162568vertices (+13812, 9.3%). Distant2496 unchanged. No new texture/material/updater and no phone-performance claim. No ADB or fresh device observation; earlier concrete install/restart decision remains pending. Before eventual deployment inspect fresh state and preserve current original saves/telemetry; never restore historical snapshots. Device circulation/crowd/HUD/motion/shimmer/midrange acceptance and regional encounter/boss progression remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-bridge-yard-01.

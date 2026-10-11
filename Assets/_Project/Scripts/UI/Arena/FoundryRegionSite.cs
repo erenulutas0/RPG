@@ -24,6 +24,7 @@ namespace Cryptforge.UI
                     BridgeBanner(arena,post);
                 }
             BuildBridgeLanterns(arena);
+            BuildBridgeParapets(arena);
             BuildEntranceBridgeSupports(arena);
             BridgePiers(arena,BridgeFootPosts);
             // Continuous kerbs meet the two actual court seams. The end cap closes

@@ -1,0 +1,3 @@
+FoundryShortBoiler texture:2048x1024 ASTC_6x6; mipmaps:12; readable:False
+Region renderers:32; vertices:148756
+Actual production replacement, HUD hidden, after-only walkable court, expanded-area, bridge and gate views; matched baseline images are copied with provenance. No synthetic prop placement.

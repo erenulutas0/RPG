@@ -678,3 +678,14 @@ Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-stone-01.
 Next substantial visual work: coherent bridge/entrance architecture and attached foundry work equipment/material finish at the existing navigation footprints. Keep whole-map reference comparison and actor-height readability; avoid isolated colour/trim passes.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-pit-wall-01.
+
+
+## 2026-10-11 - Bridge architecture and workyard equipment verified; device pending
+
+- [x] Coordinate entrance bridge parapets/support masonry and attached yard equipment within the existing envelopes.
+- [x] Verify passage/court seams, keeper seats, equipment containment, actual Unity images, suites and Android build.
+- [ ] Full reference richness and physical-device acceptance remain open.
+
+Next substantial art candidate: coherent crane/loading assemblies and connected industrial service structures at the established western perimeter, assessed against the whole reference and at actor-height scale. Avoid another isolated trim pass; preserve circulation and cap geometry/resource growth.
+
+Evidence/reproduction: ArtDirection/2026-10-11/foundry-bridge-yard-01.

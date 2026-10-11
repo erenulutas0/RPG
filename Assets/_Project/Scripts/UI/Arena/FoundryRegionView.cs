@@ -70,7 +70,12 @@ namespace Cryptforge.UI
                 // The walking quad overlaps the court slightly so its widened corners remain connected.
                 if(edge==3)a=Deck(FoundryMap.BridgeWestSeam,-FoundryMap.BridgeHalfWidth);
                 if(edge==1)b=Deck(FoundryMap.BridgeEastSeam,FoundryMap.BridgeHalfWidth);
-                walls.WallQuad(a+Vector3.down*2.8f,b+Vector3.down*2.8f,b,a,false,new Color(.7f,.7f,.76f));
+                if(edge==0)UndercroftCoursedFace(walls,a+Vector3.down*2.8f,b+Vector3.down*2.8f,b,a,
+                    new Color(.61f,.63f,.70f),4,Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.4f)));
+                else walls.WallQuad(a+Vector3.down*2.8f,b+Vector3.down*2.8f,b,a,false,new Color(.7f,.7f,.76f));
+                // The side edges now carry full outboard parapets. Retain the old
+                // low cap only across the physical far end, never the court join.
+                if(edge!=0)continue;
                 var rail=new Builder();
                 rail.WallQuad(a,b,b+Vector3.up*.3f,a+Vector3.up*.3f,false,new Color(.7f,.7f,.76f));
                 rail.WallQuad(a+Vector3.up*.3f,b+Vector3.up*.3f,b+Vector3.up*.3f+outward*.25f,a+Vector3.up*.3f+outward*.25f,true,Color.white);

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0,2915702">
+  <test-suite type="TestSuite" id="1000" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="483" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.291570" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1579" name="Project.EditModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.EditModeTests.dll" runstate="Runnable" testcasecount="483" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.280014" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="30612" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1580" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="483" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.278124" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1581" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="483" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.274839" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1159" name="FoundryBridgeArchitectureTests" fullname="Cryptforge.Tests.FoundryBridgeArchitectureTests" classname="Cryptforge.Tests.FoundryBridgeArchitectureTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.265458" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1163" name="KeeperConsoleParapetLeavesExistingSeatAndStatueSocketsUnburied" fullname="Cryptforge.Tests.FoundryBridgeArchitectureTests.KeeperConsoleParapetLeavesExistingSeatAndStatueSocketsUnburied" methodname="KeeperConsoleParapetLeavesExistingSeatAndStatueSocketsUnburied" classname="Cryptforge.Tests.FoundryBridgeArchitectureTests" runstate="Runnable" seed="435624005" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.036244" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1162" name="ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams" fullname="Cryptforge.Tests.FoundryBridgeArchitectureTests.ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams" classname="Cryptforge.Tests.FoundryBridgeArchitectureTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.214191" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1160" name="ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams(-1.0f)" fullname="Cryptforge.Tests.FoundryBridgeArchitectureTests.ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams(-1.0f)" methodname="ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams" classname="Cryptforge.Tests.FoundryBridgeArchitectureTests" runstate="Runnable" seed="1702081095" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.100179" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1161" name="ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams(1.0f)" fullname="Cryptforge.Tests.FoundryBridgeArchitectureTests.ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams(1.0f)" methodname="ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams" classname="Cryptforge.Tests.FoundryBridgeArchitectureTests" runstate="Runnable" seed="388886429" result="Passed" start-time="2026-10-11 18:26:03Z" end-time="2026-10-11 18:26:03Z" duration="0.111707" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: E:/MobileGame/TestResults/editmode-filter.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
