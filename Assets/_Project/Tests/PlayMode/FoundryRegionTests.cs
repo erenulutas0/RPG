@@ -3,6 +3,7 @@ using System.IO;
 using Cryptforge.Core;
 using Cryptforge.UI;
 using Cryptforge.Combat;
+using Cryptforge.Art;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -26,6 +27,51 @@ namespace Cryptforge.Tests
                 if(u>=-1e-5f&&v>=-1e-5f&&w>=-1e-5f)return true;
             }
             return false;
+        }
+        private static void AssertWorkIslandContacts(ArenaView arena,Mesh paving)
+        {
+            var iron=new System.Collections.Generic.List<(Vector3[] points,Vector2[] flags)>();
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+            {
+                if(renderer.sharedMaterial.mainTexture!=arena.PlatformMaterials.FoundryIron.mainTexture)continue;
+                if(renderer.sharedMaterial.shader.name!="Cryptforge/Foundry Cutaway")continue;
+                var mesh=renderer.GetComponent<MeshFilter>().sharedMesh;
+                var flags=new System.Collections.Generic.List<Vector2>();mesh.GetUVs(1,flags);
+                Assert.That(flags.Count,Is.EqualTo(mesh.vertexCount));
+                iron.Add((mesh.vertices,flags.ToArray()));
+            }
+            Assert.That(iron,Is.Not.Empty);
+            for(int island=0;island<FoundryMap.WorkIslandCount;island++)
+            {
+                float u0=FoundryMap.WorkIslandBound(island,0),v0=FoundryMap.WorkIslandBound(island,1);
+                float u1=FoundryMap.WorkIslandBound(island,2),v1=FoundryMap.WorkIslandBound(island,3);
+                FoundryMap.ToFloor((u0+u1)*.5f,(v0+v1)*.5f,out float cx,out float cy);
+                Assert.That(FoundryMap.Contains(cx,cy,0),Is.False);
+                Assert.That(FloorCovers(paving,new Vector2(cx,cy*.5f)),Is.True,"Raised work stands above real continuous floor triangles.");
+                FoundryMap.ToFloor(u0,v1,out float lx,out float ly);
+                FoundryMap.ToFloor(u1,v0,out float rx,out float ry);
+                foreach(var corner in new[]{new Vector2(u0,v0),new Vector2(u1,v0),new Vector2(u1,v1),new Vector2(u0,v1)})
+                {
+                    FoundryMap.ToFloor(corner.x,corner.y,out float x,out float y);
+                    float depth=50+Mathf.Lerp(ly,ry,Mathf.InverseLerp(lx,rx,x))*.5f;
+                    bool grounded=false;
+                    foreach(var batch in iron)
+                        for(int i=0;i<batch.points.Length;i++)
+                        {
+                            Vector3 p=batch.points[i];
+                            // The authored skid is shallow; require real low geometry
+                            // at each blocked corner, not a floating image or a distant vertex.
+                            if(Mathf.Abs(p.x-x)>.005f||p.y<y*.5f||p.y>y*.5f+.12f)continue;
+                            if(Mathf.Abs(p.z-depth)>.001f)continue;
+                            Assert.That(batch.flags[i],Is.EqualTo(Vector2.one),"Each low corner owns its island depth and hero cutaway.");
+                            grounded=true;break;
+                        }
+                    Assert.That(grounded,Is.True,$"Work island {island} has grounded iron at shared corner {corner}.");
+                    Vector2 inset=Vector2.Lerp(corner,new Vector2((u0+u1)*.5f,(v0+v1)*.5f),.15f);
+                    FoundryMap.ToFloor(inset.x,inset.y,out x,out y);
+                    Assert.That(FloorCovers(paving,new Vector2(x,y*.5f)),Is.True,"The new obstacle cannot punch a hole in the rendered paving.");
+                }
+            }
         }
         private static int VerifyBoilerBand(Mesh mesh,int rank,bool squat)
         {
@@ -142,6 +188,7 @@ namespace Cryptforge.Tests
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
             Assert.That(paving,Is.Not.Null);
+            AssertWorkIslandContacts(arena,paving);
             foreach(var sample in new[]{new Vector3(-29,-13,0),new Vector3(13,-13,0),
                 new Vector3(-26.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
                 new Vector3(-29,17,0),new Vector3(13,17,0),new Vector3(-27.17f,14.77f,1),new Vector3(10.83f,14.77f,1),
@@ -373,14 +420,14 @@ namespace Cryptforge.Tests
                 for(int u=0;u<=14;u++)for(int v=0;v<=14;v++)
                 {
                     Cryptforge.Art.FoundryMap.ToFloor(post.x-.7f+u*.1f,post.y-.7f+v*.1f,out float x,out float y);
-                    Assert.That(Cryptforge.Art.FoundryMap.Contains(x,y,0),Is.False,"Guardian plinths stay outside the complete walking union.");
+                    Assert.That(Cryptforge.Art.FoundryMap.SurfaceContains(x,y,0),Is.False,"Guardian plinths stay outside the complete physical deck.");
                 }
             foreach(var posts in new[]{FoundryRegionView.BridgeFootPosts,FoundryRegionView.BridgeLanterns})
                 foreach(var post in posts)
                     for(int u=0;u<=8;u++)for(int v=0;v<=8;v++)
                     {
                         Cryptforge.Art.FoundryMap.ToFloor(post.x-.32f+u*.08f,post.y-.32f+v*.08f,out float x,out float y);
-                        Assert.That(Cryptforge.Art.FoundryMap.Contains(x,y,0),Is.False,"Bridge lantern and end-pier feet remain outside the wider walking deck.");
+                        Assert.That(Cryptforge.Art.FoundryMap.SurfaceContains(x,y,0),Is.False,"Bridge lantern and end-pier feet remain outside the wider physical deck.");
                     }
             var visibility=arena.Region.GetComponent<FoundryVisibilityView>();
             // The gate's fire baskets hang on posts the balustrade places for itself: a rail change must not leave one

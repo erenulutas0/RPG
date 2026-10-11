@@ -1865,7 +1865,7 @@ namespace Cryptforge.UI
                 {
                     float u=Mathf.Lerp(box.x+inset,box.z-inset,i/(float)nu),v=Mathf.Lerp(box.y+inset,box.w-inset,j/(float)nv);
                     FoundryMap.ToFloor(u,v,out float x,out float y);
-                    if(FoundryMap.Contains(x,y,0))return false;
+                    if(FoundryMap.SurfaceContains(x,y,0))return false;
                 }
             return true;
         }

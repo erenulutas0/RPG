@@ -6,6 +6,102 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryMapTests
     {
+        [TestCase(0)]
+        [TestCase(1)]
+        public void WorkIslandsBlockActorsButRetainTheirContinuousFloor(int island)
+        {
+            float u=(FoundryMap.WorkIslandBound(island,0)+FoundryMap.WorkIslandBound(island,2))*.5f;
+            float v=(FoundryMap.WorkIslandBound(island,1)+FoundryMap.WorkIslandBound(island,3))*.5f;
+            FoundryMap.ToFloor(u,v,out float x,out float y);
+            Assert.That(FoundryMap.SurfaceContains(x,y,.6f),Is.True,"Equipment stands on continuous paving.");
+            Assert.That(FoundryMap.Cell((int)System.Math.Floor(u),(int)System.Math.Floor(v)),Is.True);
+            Assert.That(FoundryMap.UncutCell((int)System.Math.Floor(u),(int)System.Math.Floor(v)),Is.True);
+            Assert.That(FoundryMap.Contains(x,y,0),Is.False,"Actors cannot enter the solid footprint.");
+            Assert.That(FoundryMap.Segment(x,y,x,y,0),Is.False,"A zero-length query agrees with occupancy.");
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void WorkIslandSweepsRejectCrossingsAndClearanceGrazes(int island)
+        {
+            float left=FoundryMap.WorkIslandBound(island,0),right=FoundryMap.WorkIslandBound(island,2);
+            float bottom=FoundryMap.WorkIslandBound(island,1),top=FoundryMap.WorkIslandBound(island,3);
+            FoundryMap.ToFloor(left-1,(bottom+top)*.5f,out float x,out float y);
+            FoundryMap.ToFloor(right+1,(bottom+top)*.5f,out float tx,out float ty);
+            Assert.That(FoundryMap.Contains(x,y,.6f)&&FoundryMap.Contains(tx,ty,.6f),Is.True);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False,"Free endpoints cannot tunnel across a work island.");
+            Assert.That(FoundryMap.Segment(tx,ty,x,y,.6f),Is.False);
+            // A line misses the footprint but clips its actor clearance.
+            FoundryMap.ToFloor(left-1,bottom-.59f,out x,out y);
+            FoundryMap.ToFloor(right+1,bottom-.59f,out tx,out ty);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,0),Is.True);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False);
+            FoundryMap.ToFloor(left-1,bottom-.61f,out x,out y);
+            FoundryMap.ToFloor(right+1,bottom-.61f,out tx,out ty);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.True);
+            FoundryMap.ToFloor(left-1,bottom-.6f,out x,out y);
+            FoundryMap.ToFloor(right+1,bottom-.6f,out tx,out ty);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False,"Nominal grazing remains blocked after float projection round trips.");
+            Assert.That(FoundryMap.Segment(tx,ty,x,y,.6f),Is.False);
+            FoundryMap.ToFloor((left+right)*.5f,bottom-.6f,out x,out y);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.False,"Point clearance uses the same boundary relief as swept clearance.");
+            // Both endpoints are outside the box, but a diagonal clips only its corner.
+            FoundryMap.ToFloor(left-.9f,bottom-.5f,out x,out y);
+            FoundryMap.ToFloor(left-.5f,bottom-.9f,out tx,out ty);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.True);
+            FoundryMap.ToFloor(left-.9f,bottom-.1f,out x,out y);
+            FoundryMap.ToFloor(left-.1f,bottom-.9f,out tx,out ty);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False,"Short corner crossings are checked analytically.");
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void LongMovementStopsAtWorkIslandAndDiagonalInputSlidesAlongIt(int island)
+        {
+            float left=FoundryMap.WorkIslandBound(island,0),right=FoundryMap.WorkIslandBound(island,2);
+            float middle=(FoundryMap.WorkIslandBound(island,1)+FoundryMap.WorkIslandBound(island,3))*.5f;
+            FoundryMap.ToFloor(left-1,middle,out float x,out float y);
+            FoundryMap.ToFloor(right+1,middle,out float tx,out float ty);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            FoundryMap.ToDesign(x,y,out float stoppedU,out float stoppedV);
+            Assert.That(stoppedU,Is.LessThan(left-.59f));
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            FoundryMap.ToFloor(.5f,-.4f,out float dx,out float dy);
+            Assert.That(FoundryMap.Move(ref x,ref y,dx,dy,.6f),Is.True,"Blocked forward input retains its clear lateral component.");
+            FoundryMap.ToDesign(x,y,out float slidU,out float slidV);
+            Assert.That(slidU,Is.LessThan(left-.59f));
+            Assert.That(slidV,Is.LessThan(stoppedV-.3f));
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void PursuitAndTenEnemyEntriesRouteAroundEachWorkIsland(int island)
+        {
+            float left=FoundryMap.WorkIslandBound(island,0),right=FoundryMap.WorkIslandBound(island,2);
+            float bottom=FoundryMap.WorkIslandBound(island,1),top=FoundryMap.WorkIslandBound(island,3);
+            float middleU=(left+right)*.5f,middleV=(bottom+top)*.5f;
+            AssertRoute(left-1,middleV,right+1,middleV);
+            AssertRoute(right+1,middleV,left-1,middleV);
+            AssertRoute(middleU,bottom-1,middleU,top+1);
+            AssertRoute(middleU,top+1,middleU,bottom-1);
+            var entries=new EntryPlacement[10];
+            foreach(var design in new[]{new[]{left-1,middleV},new[]{right+1,middleV},new[]{middleU,bottom-1},new[]{middleU,top+1}})
+            {
+                FoundryMap.ToFloor(design[0],design[1],out float hx,out float hy);
+                for(int wave=0;wave<4;wave++)
+                {
+                    FoundryMap.PlacePack(wave,10,hx,hy,.9f,entries);
+                    for(int i=0;i<entries.Length;i++)
+                    {
+                        Assert.That(FoundryMap.Contains(entries[i].X,entries[i].Y,.6f),Is.True);
+                        Assert.That(FoundryMap.Segment(hx,hy,entries[i].X,entries[i].Y,.6f),Is.True);
+                        for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(entries[i].X,entries[i].Y,entries[j].X,entries[j].Y),Is.GreaterThanOrEqualTo(.9f*.9f));
+                    }
+                }
+            }
+        }
+
         [TestCase(-29f,-13f,-26f,-9f)]
         [TestCase(13f,-13f,9f,-9f)]
         [TestCase(-29f,17f,-27f,15f)]

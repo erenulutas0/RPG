@@ -16,6 +16,15 @@ namespace Cryptforge.Art
         public const int PitWest=-16,PitSouth=2,PitEast=-4,PitNorth=14;
         public const int CornerCut=6;
         public const int NorthCornerCut=4,CornerCount=4;
+        // Raised work islands occupy existing paving. Rendering and navigation
+        // share their exact footprint; they do not cut holes in the floor union.
+        private static readonly float[,] WorkIslands=
+        {
+            {-26f,-4f,-22f,-1.8f},
+            {-21.8f,11.8f,-18.6f,14.0f}
+        };
+        public static int WorkIslandCount=>WorkIslands.GetLength(0);
+        public static float WorkIslandBound(int island,int coordinate)=>WorkIslands[island,coordinate];
         // Four diagonal edges share one boundary with render clipping and pursuit.
         public static bool CourtPlane(float u,float v) => u+v>=West+South+CornerCut && u-v<=East-South-CornerCut &&
             u+v<=East+North-NorthCornerCut && u-v>=West-North+NorthCornerCut;
@@ -43,14 +52,37 @@ namespace Cryptforge.Art
         public static bool Contains(float x,float y,float margin)
         {
             ToDesign(x,y,out float u,out float v);
+            return SurfaceContains(x,y,margin)&&!WorkIslandIntersection(u,v,u,v,margin);
+        }
+        // For paving, inlays and exterior mass placement: occupied paving remains
+        // a physical surface even though actors cannot walk through its equipment.
+        public static bool SurfaceContains(float x,float y,float margin)
+        {
+            ToDesign(x,y,out float u,out float v);
             // Conservative square clearance in the orthonormal design plane. All void strips exceed twice the margin.
             return Inside(u,v)&&Inside(u-margin,v-margin)&&Inside(u+margin,v-margin)&&Inside(u-margin,v+margin)&&Inside(u+margin,v+margin);
         }
         public static bool Segment(float x,float y,float tx,float ty,float margin)
         {
             ToDesign(x,y,out float u,out float v);ToDesign(tx,ty,out float tu,out float tv);
-            return Line(u-margin,v-margin,tu-margin,tv-margin)&&Line(u+margin,v-margin,tu+margin,tv-margin)&&
+            return !WorkIslandIntersection(u,v,tu,tv,margin)&&
+                Line(u-margin,v-margin,tu-margin,tv-margin)&&Line(u+margin,v-margin,tu+margin,tv-margin)&&
                 Line(u-margin,v+margin,tu-margin,tv+margin)&&Line(u+margin,v+margin,tu+margin,tv+margin);
+        }
+        // Exact swept square clearance: endpoint/corner sampling alone can miss
+        // a narrow crossing or a tangent. Boundary contact is conservatively blocked.
+        private static bool WorkIslandIntersection(float u,float v,float tu,float tv,float margin)
+        {
+            // Keep nominal boundary contact conservative after the orthonormal
+            // float round trip on Mono, .NET and IL2CPP (as for entry rim relief).
+            float clearance=margin+1e-4f;
+            for(int i=0;i<WorkIslandCount;i++)
+            {
+                float enter=0,exit=1;
+                if(Slab(u,tu-u,WorkIslands[i,0]-clearance,WorkIslands[i,2]+clearance,ref enter,ref exit)&&
+                    Slab(v,tv-v,WorkIslands[i,1]-clearance,WorkIslands[i,3]+clearance,ref enter,ref exit))return true;
+            }
+            return false;
         }
         // Exact interval union: sampling could miss a tiny corner cut and leave a pursuer stuck there.
         private static bool Line(float u,float v,float tu,float tv)

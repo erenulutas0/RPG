@@ -607,3 +607,14 @@ Evidence, final gate and package/device state: ArtDirection/2026-10-11/foundry-d
 - [ ] Full reference fidelity and device/crowd/midrange/first-ramp/motion acceptance remain open; region gameplay/boss progression remains deferred.
 
 Evidence and final verification: ArtDirection/2026-10-11/foundry-north-silhouette-01. This supersedes the pending north-shaft silhouette item above, not the remaining workyard or device items.
+
+
+## 2026-10-11 - Workyard islands integrated
+
+- [x] Establish loading/transfer/casting grouping inside the west court with two low purposeful work islands.
+- [x] Share rendered equipment bounds with actor movement, spawning and pursuit; keep actual paving continuous.
+- [x] Preserve existing circulation anchors and matched cameras; add wide yard and two contact portraits without inventing old matches.
+- [ ] Physical-device navigation/crowd/midrange/first-ramp/motion acceptance remains open.
+- [ ] Reference material/authored equipment richness remains incomplete; next art work should improve the coherent working kit rather than scatter unrelated props. Region encounter/boss progression stays deferred.
+
+Evidence and final validation: ArtDirection/2026-10-11/foundry-workyard-islands-01. This supersedes the pending initial workyard grouping above, not the full-reference/device items.

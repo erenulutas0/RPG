@@ -35,7 +35,7 @@ namespace Cryptforge.Tests
             {
                 float u=Mathf.Lerp(shelf.x,shelf.z,i/50f),v=Mathf.Lerp(shelf.y,shelf.w,j/33f);
                 FoundryMap.ToFloor(u,v,out float x,out float y);
-                Assert.That(FoundryMap.Contains(x,y,0),Is.False,"Scenic bench must not claim a playable patch.");
+                Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False,"The exterior scenic bench must remain outside the physical floor, including occupied paving.");
             }
             // The existing north finial's cap extends .38 beyond its centre.
             float du=Mathf.Max(shelf.x+14,Mathf.Max(0,-14-shelf.z));

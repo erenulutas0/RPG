@@ -953,3 +953,10 @@ The full gate separately exposed the old chest telemetry test's 100 HP ceiling: 
 ## 2026-10-11 - Differentiate the native north shafts structurally
 
 Keep navigation frozen for this visual slice. Use two visibly different receding furnace crowns and four connected corner buttresses; preserve the broken arch gap but give its ends distinct closed fractures. Preserve existing materials/UVs/atmosphere rather than another isolated tint pass. Remove fully buried caps to remain at 2,496 vertices under the existing 2,500 distant budget. These scenery structures create no traversable route. Whole-map gain is restrained; coherent workyard distribution remains the next larger reference gap. Raised workyard props require matching navigation, not visual-only obstructions. Evidence: ArtDirection/2026-10-11/foundry-north-silhouette-01.
+
+
+## 2026-10-11 - Interior working props require shared navigation
+
+Owner continued the reference-led art work. Keeping all equipment on exterior shelves cannot reproduce the reference's working courtyard. Place two low islands on existing floor: trolley[-26,-4,-22,-1.8] and mould bench[-21.8,11.8,-18.6,14], with one shared immutable rectangle contract for visual skids, actor clearance, spawning and pursuit. Reject an earlier western trolley proposal because it occupied a tested anchor and left a narrow edge lane. Final west lane is4units; retain all old camera/circulation assertions.
+
+Distinguish physical paving SurfaceContains from walkable Contains. Exact actor-margin-expanded rectangle sweeps plus1e-4 float relief prevent tunnelling/grazing; add8derived corners to the static pursuit graph. No independent decorative collider or hidden visual-only obstacle. This is the smallest movement support needed by the art slice, not new progression, combat balance or an interactive production system. Assets remain original native geometry, shared materials and continuous floor. Evidence: ArtDirection/2026-10-11/foundry-workyard-islands-01.

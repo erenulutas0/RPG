@@ -12,14 +12,26 @@ namespace Cryptforge.Art
             {FoundryMap.West+4,0},{FoundryMap.West+4,12},{FoundryMap.West+4,16},
             {-18,16},{-2,16},{-10,16},{8,6},{16,6},{28,6}
         };
-        private static readonly int Count=Points.GetLength(0);
+        private static readonly int Count=Points.GetLength(0)+FoundryMap.WorkIslandCount*4;
         private static readonly float[] X=new float[Count],Y=new float[Count];
         private static readonly float[,] Distance=new float[Count,Count];
         private readonly float[] _cost=new float[Count];
         private float _heroX=float.PositiveInfinity,_heroY;
         static FoundryPursuit()
         {
-            for(int i=0;i<Count;i++)FoundryMap.ToFloor(Points[i,0],Points[i,1],out X[i],out Y[i]);
+            int authored=Points.GetLength(0);
+            for(int i=0;i<authored;i++)FoundryMap.ToFloor(Points[i,0],Points[i,1],out X[i],out Y[i]);
+            // Relief beyond the graph's .65 clearance avoids numerical tangencies
+            // and derives every new turning point from the same blocked footprint.
+            for(int island=0;island<FoundryMap.WorkIslandCount;island++)
+                for(int corner=0;corner<4;corner++)
+                {
+                    bool east=(corner&1)!=0,north=(corner&2)!=0;
+                    float u=FoundryMap.WorkIslandBound(island,east?2:0)+(east?.70f:-.70f);
+                    float v=FoundryMap.WorkIslandBound(island,north?3:1)+(north?.70f:-.70f);
+                    int index=authored+island*4+corner;
+                    FoundryMap.ToFloor(u,v,out X[index],out Y[index]);
+                }
             for(int i=0;i<Count;i++)for(int j=0;j<Count;j++)Distance[i,j]=FoundryMap.Segment(X[i],Y[i],X[j],Y[j],.65f)?Length(X[i]-X[j],Y[i]-Y[j]):float.PositiveInfinity;
             for(int k=0;k<Count;k++)for(int i=0;i<Count;i++)for(int j=0;j<Count;j++)Distance[i,j]=Math.Min(Distance[i,j],Distance[i,k]+Distance[k,j]);
         }

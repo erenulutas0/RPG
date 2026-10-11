@@ -65,7 +65,7 @@ namespace Cryptforge.UI
         private static bool OnCourt(Vector2 design)
         {
             FoundryMap.ToFloor(design.x,design.y,out float x,out float y);
-            return FoundryMap.Contains(x,y,.2f);
+            return FoundryMap.SurfaceContains(x,y,.2f);
         }
 
         // A flush processional inlay makes the long gate apron read as a destination.

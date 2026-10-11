@@ -174,7 +174,7 @@ namespace Cryptforge.UI
             foreach(var offset in EdgeSamples)
             {
                 FoundryMap.ToFloor(u+offset.x,v+offset.y,out float x,out float y);
-                if(!FoundryMap.Contains(x,y,0))edge+=.055f;
+                if(!FoundryMap.SurfaceContains(x,y,0))edge+=.055f;
             }
             light*=1-edge;
             float peak=Mathf.Max(light.r,Mathf.Max(light.g,light.b));

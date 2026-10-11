@@ -58,7 +58,132 @@ namespace Cryptforge.UI
             // than another decorated medallion competing with the central court seal.
             YardPanel(bed,centre-new Vector2(.34f,.26f),centre+new Vector2(.34f,.26f),
                 new Color(.7f,.68f,.63f,.6f));
+            // Flush freight rails connect the new loading trolley to the turntable.
+            // The trolley itself owns a shared blocked footprint, not these rails.
+            foreach(float u in new[]{-24.6f,-23.4f})
+                YardRail(bed,new Vector2(u,-1.8f),new Vector2(u,3.56f),recess,rail,11);
             Create("Embedded freight transfer yard",bed,arena.PlatformMaterials.Coping,FloorDecal);
+            BuildWorkIslands(arena);
+        }
+
+        private void BuildWorkIslands(ArenaView arena)
+        {
+            for(int island=0;island<Cryptforge.Art.FoundryMap.WorkIslandCount;island++)
+            {
+                float u0=Cryptforge.Art.FoundryMap.WorkIslandBound(island,0);
+                float v0=Cryptforge.Art.FoundryMap.WorkIslandBound(island,1);
+                float u1=Cryptforge.Art.FoundryMap.WorkIslandBound(island,2);
+                float v1=Cryptforge.Art.FoundryMap.WorkIslandBound(island,3);
+                // The shallow iron skid defines the complete collision footprint.
+                // Floor paving continues beneath it, and all loads stay inside it.
+                using(DepthStructure(u0,v0,u1,v1,1.55f))
+                {
+                    var kit=new Builder();
+                    WorkshopMetalHull(kit,u0,v0,u1,v1,.015f,.10f,.035f,true);
+                    if(island==0)BuildYardTrolley(kit,u0,v0,u1,v1);
+                    else BuildYardMouldBench(kit,u0,v0,u1,v1);
+                    Create("Workyard island "+island,kit,arena.PlatformMaterials.FoundryIron,-11);
+                }
+            }
+        }
+
+        private static void BuildYardTrolley(Builder kit,float u0,float v0,float u1,float v1)
+        {
+            // Far wheels precede the frame; the near pair is emitted last.
+            foreach(float u in new[]{u0+.62f,u1-.62f})YardWheel(kit,u,v1-.18f,.38f,.28f);
+            WorkshopMetalHull(kit,u0+.16f,v0+.25f,u1-.16f,v1-.25f,.42f,.60f,.035f,true);
+            foreach(float v in new[]{v0+.38f,v1-.51f})
+                WorkshopMetalHull(kit,u0+.25f,v,u1-.25f,v+.13f,.26f,.43f,.02f,true);
+            // Three staggered courses of long billets make one broad freight load.
+            for(int level=0;level<3;level++)
+                for(int row=0;row<3-level;row++)
+                {
+                    float v=v0+.48f+row*.41f+level*.20f;
+                    int first=kit.C.Count;
+                    WorkshopMetalHull(kit,u0+.46f,v,u1-.54f,v+.33f,.60f+level*.20f,.79f+level*.20f,.055f,true);
+                    // Warm mill scale distinguishes raw stock from the cool cart.
+                    // Variation belongs to whole billets, not a noisy per-vertex wash.
+                    for(int c=first;c<kit.C.Count;c++)
+                    {
+                        Color tone=kit.C[c];
+                        tone.r*=1.23f+row*.04f;tone.g*=1.03f;tone.b*=.75f+level*.025f;
+                        kit.C[c]=tone;
+                    }
+                }
+            // Two restrained retaining straps seat over the actual stock stack.
+            foreach(float u in new[]{u0+.85f,u1-.90f})
+            {
+                WorkshopMetalHull(kit,u,v0+.39f,u+.10f,v1-.37f,.60f,.67f,.012f,true);
+                WorkshopMetalHull(kit,u,v0+.70f,u+.10f,v1-.70f,1.19f,1.24f,.012f,true);
+            }
+            // Short end handles remain within the skid and below the cargo skyline.
+            foreach(float u in new[]{u0+.10f,u1-.22f})
+            {
+                foreach(float v in new[]{v0+.40f,v1-.52f})
+                    WorkshopMetalHull(kit,u,v,u+.12f,v+.12f,.60f,.91f,.012f,true);
+                WorkshopMetalHull(kit,u,v0+.40f,u+.12f,v1-.40f,.86f,.94f,.015f,true);
+            }
+            foreach(float u in new[]{u0+.62f,u1-.62f})YardWheel(kit,u,v0+.18f,.38f,.28f);
+        }
+
+        private static void YardWheel(Builder kit,float u,float v,float height,float radius)
+        {
+            Vector3 centre=Project(u,v)+Vector3.up*height;
+            Vector3 horizontal=(Project(u+1,v)-Project(u,v));
+            // A cast wheel sits in a design-u/height plane. Disc, rim and hub are
+            // original native geometry, using the existing unframed iron grain.
+            for(int i=0;i<12;i++)
+            {
+                float a=i*Mathf.PI/6,b=(i+1)*Mathf.PI/6;
+                Vector3 p=horizontal*(Mathf.Cos(a)*radius)+Vector3.up*(Mathf.Sin(a)*radius);
+                Vector3 q=horizontal*(Mathf.Cos(b)*radius)+Vector3.up*(Mathf.Sin(b)*radius);
+                int first=kit.V.Count;
+                FullFace(kit,centre,centre+p*.74f,centre+q*.74f,centre,new Color(.24f,.27f,.33f));
+                kit.T.RemoveRange(kit.T.Count-3,3); // Fan is one triangle, not a degenerate quad.
+                FullFace(kit,centre+p*.74f,centre+p,centre+q,centre+q*.74f,new Color(.50f,.55f,.63f));
+                WorkedStockFace(kit,first,centre,1.3f,height-radius,height+radius);
+                WorkedStockFace(kit,first+4,centre,1.3f,height-radius,height+radius);
+            }
+            WorkshopMetalHull(kit,u-.08f,v-.055f,u+.08f,v+.055f,height-.08f,height+.08f,.015f,true);
+        }
+
+        private static void BuildYardMouldBench(Builder kit,float u0,float v0,float u1,float v1)
+        {
+            // Four legs and lower ties leave visible air beneath the work surface.
+            foreach(float u in new[]{u0+.16f,u1-.36f})
+            {
+                foreach(float v in new[]{v0+.18f,v1-.38f})
+                    WorkshopMetalHull(kit,u,v,u+.20f,v+.20f,.10f,1.05f,.025f,true);
+                WorkshopMetalHull(kit,u,v0+.20f,u+.20f,v1-.20f,.30f,.43f,.02f,true);
+            }
+            WorkshopMetalHull(kit,u0+.10f,v0+.10f,u1-.10f,v1-.10f,.99f,1.13f,.04f,true);
+            // Two unequal open moulds, rather than another stack of closed boxes.
+            YardMould(kit,u0+.32f,v0+.31f,u0+1.42f,v1-.27f,1.13f,1.40f);
+            YardMould(kit,u0+1.70f,v0+.40f,u1-.30f,v1-.47f,1.13f,1.32f);
+            // Sparse clamps on the long mould; maximum height only at these details.
+            foreach(float v in new[]{v0+.55f,v1-.58f})
+                WorkshopMetalHull(kit,u0+.25f,v,u0+.45f,v+.12f,1.36f,1.51f,.015f,true);
+            WorkshopMetalHull(kit,u0+1.53f,v0+.26f,u0+1.61f,v1-.30f,1.13f,1.22f,.015f,true);
+        }
+
+        private static void YardMould(Builder kit,float u0,float v0,float u1,float v1,float bottom,float top)
+        {
+            WorkshopMetalHull(kit,u0,v0,u1,v1,bottom,bottom+.055f,.025f,true);
+            // Dark recessed casting sand remains below all four supported frame rails.
+            var sand=new Color(.80f,.57f,.34f);
+            FullFace(kit,Project(u0+.11f,v0+.11f)+Vector3.up*(bottom+.06f),
+                Project(u1-.11f,v0+.11f)+Vector3.up*(bottom+.06f),
+                Project(u1-.11f,v1-.11f)+Vector3.up*(bottom+.06f),
+                Project(u0+.11f,v1-.11f)+Vector3.up*(bottom+.06f),sand);
+            // A seated ingot pattern and narrow feed channel explain the cavity's
+            // casting purpose; both stay well below the open rim.
+            float middle=(u0+u1)*.5f;
+            WorkshopMetalHull(kit,middle-.19f,v0+.29f,middle+.19f,v1-.29f,bottom+.06f,bottom+.095f,.07f,true);
+            WorkshopMetalHull(kit,middle-.05f,v0+.12f,middle+.05f,v0+.31f,bottom+.06f,bottom+.09f,.012f,true);
+            WorkshopMetalHull(kit,u0,v1-.12f,u1,v1,bottom+.055f,top,.02f,true);
+            WorkshopMetalHull(kit,u1-.12f,v0+.12f,u1,v1-.12f,bottom+.055f,top,.02f,true);
+            WorkshopMetalHull(kit,u0,v0,u1,v0+.12f,bottom+.055f,top,.02f,true);
+            WorkshopMetalHull(kit,u0,v0+.12f,u0+.12f,v1-.12f,bottom+.055f,top,.02f,true);
         }
 
         private static void YardPanel(Builder mesh,Vector2 min,Vector2 max,Color tone)
