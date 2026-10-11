@@ -67,7 +67,7 @@ namespace Cryptforge.Tests
                     Assert.That(material,Is.Not.SameAs(borrowedWall));
                     Assert.That(material.shader.name,Is.EqualTo("Cryptforge/Foundry Cavern"));
                     Assert.That(material.mainTexture,Is.SameAs(borrowedWallTexture),"The scene owns only its atmospheric material, not another texture.");
-                    Assert.That(material.GetFloat("_Atmosphere"),Is.EqualTo(.62f).Within(.00001f));
+                    Assert.That(material.GetFloat("_Atmosphere"),Is.EqualTo(.44f).Within(.00001f));
                 }
                 else
                 {
@@ -86,6 +86,7 @@ namespace Cryptforge.Tests
                 Vector3[] local=mesh.vertices;points.Add(local);vertices+=local.Length;
                 Assert.That(local.Length,Is.GreaterThan(0));
                 Assert.That(mesh.uv.Length,Is.EqualTo(local.Length));
+                foreach(var uv in mesh.uv)Assert.That(IsFinite(uv.x)&&IsFinite(uv.y),Is.True,"Fixed facade mapping must not produce invalid texture coordinates on vertical edges.");
                 var depthFlags=new List<Vector2>();mesh.GetUVs(1,depthFlags);
                 Assert.That(depthFlags,Is.Empty,"Background geometry must not become an actor occluder.");
                 foreach(var p in local)

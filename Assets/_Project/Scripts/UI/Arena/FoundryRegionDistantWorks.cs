@@ -5,14 +5,15 @@ namespace Cryptforge.UI
     public sealed partial class FoundryRegionView
     {
         private Material _distantMasonryMaterial;
+        private const float DistantStoneWidth=2.1f,DistantStoneHeight=1.8f;
 
         // World-anchored architecture beyond the playable island, below its deck.
         // Separate far scenery rank: never an actor occluder or a navigable bridge.
         private void BuildDistantWorks(ArenaView arena)
         {
             var masonry=new Builder();var fire=new Builder();
-            var far=new Color(.40f,.45f,.57f);
-            var near=new Color(.55f,.58f,.66f);
+            var far=new Color(.70f,.73f,.82f);
+            var near=new Color(.82f,.83f,.89f);
             // Emit the distant span before its two bearing towers. The broken centre
             // makes it unmistakably scenery, with no route leading onto our court.
             DistantArchSpan(masonry,Project(-5,39)+Vector3.down*5.4f,
@@ -33,7 +34,7 @@ namespace Cryptforge.UI
                 {
                     name="Distant foundry atmosphere owned",mainTexture=masonryMaterial.mainTexture
                 };
-                _distantMasonryMaterial.SetFloat("_Atmosphere",.62f);
+                _distantMasonryMaterial.SetFloat("_Atmosphere",.44f);
                 masonryMaterial=_distantMasonryMaterial;
             }
             // Distinct ranks stay below every island batch, including the basin.
@@ -53,6 +54,7 @@ namespace Cryptforge.UI
             if(variant==1||variant==2)
             {
                 DistantFurnaceShaft(mesh,fire,u0,v0,u1,v1,top,bottom,tone,variant);
+                FinishDistantStone(mesh,masonryStart,u,v,top,bottom,variant);
                 float shaftFade=Project(u,v).y+bottom+2.5f;
                 FadeDistantFoot(mesh,masonryStart,shaftFade);
                 FadeDistantFoot(fire,fireStart,shaftFade);
@@ -97,7 +99,7 @@ namespace Cryptforge.UI
                     float x=u-.68f+column*1.1f,z=top-5.7f-level*5.0f;
                     Vector3 a=Project(x,v0-.012f)+Vector3.up*z;
                     Vector3 b=Project(x+.30f,v0-.012f)+Vector3.up*z;
-                    mesh.WallQuad(a+Vector3.left*.08f,b+Vector3.right*.08f,
+                    DistantMasonryFace(mesh,a+Vector3.left*.08f,b+Vector3.right*.08f,
                         b+Vector3.up*1.15f+Vector3.right*.08f,a+Vector3.up*1.15f+Vector3.left*.08f,
                         false,tone*.32f);
                     int slitStart=fire.U.Count;
@@ -110,6 +112,7 @@ namespace Cryptforge.UI
             // Only the low shaft dissolves into depth haze. Upper overlapping tiers
             // remain opaque, so their construction never shows through itself.
             float fadeBase=Project(u,v).y+bottom+2.5f;
+            FinishDistantStone(mesh,masonryStart,u,v,top,bottom,variant);
             FadeDistantFoot(mesh,masonryStart,fadeBase);
             FadeDistantFoot(fire,fireStart,fadeBase);
         }
@@ -170,12 +173,12 @@ namespace Cryptforge.UI
             int facadeStart=mesh.V.Count;
             float span=west?v1-v0:u1-u0,radius=(right-left)*span*.5f,spring=head-.38f-radius;
             System.Func<float,float,float,Vector3> p=(t,z,d)=>DistantFacePoint(u0,v0,u1,v1,west,t,z,d);
-            mesh.WallQuad(p(0,sill,0),p(left,sill,0),p(left,head,0),p(0,head,0),false,tone);
-            mesh.WallQuad(p(right,sill,0),p(1,sill,0),p(1,head,0),p(right,head,0),false,tone);
+            DistantMasonryFace(mesh,p(0,sill,0),p(left,sill,0),p(left,head,0),p(0,head,0),false,tone);
+            DistantMasonryFace(mesh,p(right,sill,0),p(1,sill,0),p(1,head,0),p(right,head,0),false,tone);
             // Jamb returns and deep sill expose the real distance to the core.
-            mesh.WallQuad(p(left,sill,0),p(left,sill,recess),p(left,spring,recess),p(left,spring,0),false,tone*.64f);
-            mesh.WallQuad(p(right,sill,recess),p(right,sill,0),p(right,spring,0),p(right,spring,recess),false,tone*.80f);
-            mesh.WallQuad(p(left,sill,0),p(right,sill,0),p(right,sill,recess),p(left,sill,recess),true,tone*.85f);
+            DistantMasonryFace(mesh,p(left,sill,0),p(left,sill,recess),p(left,spring,recess),p(left,spring,0),false,tone*.64f);
+            DistantMasonryFace(mesh,p(right,sill,recess),p(right,sill,0),p(right,spring,0),p(right,spring,recess),false,tone*.80f);
+            DistantMasonryFace(mesh,p(left,sill,0),p(right,sill,0),p(right,sill,recess),p(left,sill,recess),true,tone*.85f);
             // An eight-stone arched head. Each spandrel ends at its curved underside;
             // the reveals follow that curve back into the recessed shaft.
             const int segments=8;
@@ -185,8 +188,8 @@ namespace Cryptforge.UI
                 float ta=.5f+Mathf.Cos(a)*(right-left)*.5f,tb=.5f+Mathf.Cos(b)*(right-left)*.5f;
                 float za=spring+Mathf.Sin(a)*radius,zb=spring+Mathf.Sin(b)*radius;
                 Color course=tone*(i%3==0?.92f:1f);
-                mesh.WallQuad(p(ta,za,0),p(tb,zb,0),p(tb,head,0),p(ta,head,0),false,course);
-                mesh.WallQuad(p(ta,za,recess),p(tb,zb,recess),p(tb,zb,0),p(ta,za,0),false,tone*.60f);
+                DistantMasonryFace(mesh,p(ta,za,0),p(tb,zb,0),p(tb,head,0),p(ta,head,0),false,course);
+                DistantMasonryFace(mesh,p(ta,za,recess),p(tb,zb,recess),p(tb,zb,0),p(ta,za,0),false,tone*.60f);
             }
             // Raised dressed masonry catches light around the opening. Its outer
             // radius and projecting returns are geometry, not a painted arch.
@@ -199,21 +202,21 @@ namespace Cryptforge.UI
                 float izA=spring+Mathf.Sin(a)*radius,izB=spring+Mathf.Sin(b)*radius;
                 float ozA=spring+Mathf.Sin(a)*(radius+frame),ozB=spring+Mathf.Sin(b)*(radius+frame);
                 Color dress=tone*(i%3==0?1.27f:1.38f);
-                mesh.WallQuad(p(ia,izA,projection),p(ib,izB,projection),p(ob,ozB,projection),p(oa,ozA,projection),false,dress);
-                mesh.WallQuad(p(ia,izA,0),p(ib,izB,0),p(ib,izB,projection),p(ia,izA,projection),false,tone*.87f);
-                mesh.WallQuad(p(oa,ozA,projection),p(ob,ozB,projection),p(ob,ozB,0),p(oa,ozA,0),false,tone*1.10f);
+                DistantMasonryFace(mesh,p(ia,izA,projection),p(ib,izB,projection),p(ob,ozB,projection),p(oa,ozA,projection),false,dress);
+                DistantMasonryFace(mesh,p(ia,izA,0),p(ib,izB,0),p(ib,izB,projection),p(ia,izA,projection),false,tone*.87f);
+                DistantMasonryFace(mesh,p(oa,ozA,projection),p(ob,ozB,projection),p(ob,ozB,0),p(oa,ozA,0),false,tone*1.10f);
             }
             foreach(float jamb in new[]{left-frame/span,right})
             {
                 float end=jamb+frame/span,edge=.009f;
-                mesh.WallQuad(p(jamb+edge,sill,projection),p(end-edge,sill,projection),p(end-edge,spring,projection),p(jamb+edge,spring,projection),false,tone*1.30f);
-                mesh.WallQuad(p(jamb,sill,-.04f),p(jamb+edge,sill,projection),p(jamb+edge,spring,projection),p(jamb,spring,-.04f),false,tone*.98f);
-                mesh.WallQuad(p(end-edge,sill,projection),p(end,sill,-.04f),p(end,spring,-.04f),p(end-edge,spring,projection),false,tone*1.17f);
+                DistantMasonryFace(mesh,p(jamb+edge,sill,projection),p(end-edge,sill,projection),p(end-edge,spring,projection),p(jamb+edge,spring,projection),false,tone*1.30f);
+                DistantMasonryFace(mesh,p(jamb,sill,-.04f),p(jamb+edge,sill,projection),p(jamb+edge,spring,projection),p(jamb,spring,-.04f),false,tone*.98f);
+                DistantMasonryFace(mesh,p(end-edge,sill,projection),p(end,sill,-.04f),p(end,spring,-.04f),p(end-edge,spring,projection),false,tone*1.17f);
                 // Broad foot and impost shoulders carry the dressed arch frame.
                 foreach(float z in new[]{sill+.30f,spring-.20f})
                 {
-                    mesh.WallQuad(p(jamb-.032f,z,-.24f),p(end+.032f,z,-.24f),p(end+.032f,z+.20f,-.24f),p(jamb-.032f,z+.20f,-.24f),false,tone*1.22f);
-                    mesh.WallQuad(p(jamb-.032f,z+.20f,-.24f),p(end+.032f,z+.20f,-.24f),p(end+.032f,z+.20f,0),p(jamb-.032f,z+.20f,0),false,tone*1.42f);
+                    DistantMasonryFace(mesh,p(jamb-.032f,z,-.24f),p(end+.032f,z,-.24f),p(end+.032f,z+.20f,-.24f),p(jamb-.032f,z+.20f,-.24f),false,tone*1.22f);
+                    DistantMasonryFace(mesh,p(jamb-.032f,z+.20f,-.24f),p(end+.032f,z+.20f,-.24f),p(end+.032f,z+.20f,0),p(jamb-.032f,z+.20f,0),false,tone*1.42f);
                 }
             }
             float fireBottom=sill+1.05f,fireTop=spring-.55f,step=(fireTop-fireBottom)/3f;
@@ -227,9 +230,9 @@ namespace Cryptforge.UI
                 DistantFirePane(fire,p,.466f,.534f,mid,z1,recess-.008f,.19f,.12f);
                 if(pane==2)continue;
                 float lintel=(z1+fireBottom+(pane+1)*step)*.5f;
-                mesh.WallQuad(p(.37f,lintel-.09f,recess-.12f),p(.63f,lintel-.09f,recess-.12f),
+                DistantMasonryFace(mesh,p(.37f,lintel-.09f,recess-.12f),p(.63f,lintel-.09f,recess-.12f),
                     p(.63f,lintel+.09f,recess-.12f),p(.37f,lintel+.09f,recess-.12f),false,tone*.91f);
-                mesh.WallQuad(p(.37f,lintel+.09f,recess-.12f),p(.63f,lintel+.09f,recess-.12f),
+                DistantMasonryFace(mesh,p(.37f,lintel+.09f,recess-.12f),p(.63f,lintel+.09f,recess-.12f),
                     p(.63f,lintel+.09f,recess),p(.37f,lintel+.09f,recess),false,tone*1.1f);
             }
             // The first edge of each arch voussoir slopes differently. Texture
@@ -237,7 +240,43 @@ namespace Cryptforge.UI
             // preventing rotated bricks across the segmented spandrel and reveals.
             float facadeSlope=west?-.5f:.5f;
             for(int i=facadeStart;i<mesh.V.Count;i++)
-                mesh.U[i]=new Vector2(mesh.V[i].x/2.8f,(mesh.V[i].y-facadeSlope*mesh.V[i].x)/2.4f);
+                mesh.U[i]=new Vector2(mesh.V[i].x/DistantStoneWidth,(mesh.V[i].y-facadeSlope*mesh.V[i].x)/DistantStoneHeight);
+        }
+
+        private static void DistantMasonryFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,bool cap,Color tone,
+            float? courseSlope=null)
+        {
+            int first=mesh.V.Count;
+            FullFace(mesh,a,b,c,d,tone);
+            float slope=courseSlope??(Mathf.Abs(b.x-a.x)>.0001f?(b.y-a.y)/(b.x-a.x):0);
+            for(int j=0;j<4;j++)
+            {
+                Vector3 p=mesh.V[first+j];
+                // Caps use the same small stone scale in their design plane, rather
+                // than the foreground floor's very broad eight-unit texture span.
+                mesh.U[first+j]=cap?new Vector2((p.x+p.y*2)*.70710678f/DistantStoneWidth,
+                    (-p.x+p.y*2)*.70710678f/DistantStoneWidth):
+                    new Vector2(p.x/DistantStoneWidth,(p.y-slope*p.x)/DistantStoneHeight);
+                Color lit=tone*(cap?1f:j<2?.88f:1.03f);lit.a=tone.a;mesh.C[first+j]=lit;
+            }
+        }
+
+        private static void FinishDistantStone(Builder mesh,int first,float u,float v,float top,float bottom,int variant)
+        {
+            Vector3 origin=Project(u,v);
+            for(int i=first;i<mesh.V.Count;i++)
+            {
+                Vector3 p=mesh.V[i];float height=p.y-origin.y;
+                float rise=Mathf.SmoothStep(0,1,Mathf.InverseLerp(bottom+3,top,height));
+                // Continuous broad weathering, not per-block random tints: lower
+                // damp stone cools into the haze while exposed crowns regain value.
+                Color ambient=Color.Lerp(new Color(.64f,.70f,.82f),new Color(1.08f,1.05f,1.02f),rise);
+                float stain=.96f+.04f*Mathf.Sin((p.x-origin.x)*1.1f+variant*1.7f);
+                float heat=(variant==1||variant==2)?Mathf.Clamp01(1-Mathf.Abs(height-(top-10))/7.5f):0;
+                Color old=mesh.C[i];
+                mesh.C[i]=new Color(old.r*ambient.r*stain*(1+.10f*heat),old.g*ambient.g*stain*(1+.025f*heat),
+                    old.b*ambient.b*stain*(1-.025f*heat),old.a);
+            }
         }
 
         private static void DistantFirePane(Builder fire,System.Func<float,float,float,Vector3> p,
@@ -259,9 +298,9 @@ namespace Cryptforge.UI
             Vector3 d=Project(u0,v1)+Vector3.up*bottom;
             Vector3 e=Project(u0+inset,v0+inset)+Vector3.up*top,f=Project(u1-inset,v0+inset)+Vector3.up*top;
             Vector3 g=Project(u1-inset,v1-inset)+Vector3.up*top,h=Project(u0+inset,v1-inset)+Vector3.up*top;
-            mesh.WallQuad(d,a,e,h,false,tone*.70f);
-            mesh.WallQuad(a,b,f,e,false,tone);
-            mesh.WallQuad(e,f,g,h,true,tone*1.10f);
+            DistantMasonryFace(mesh,d,a,e,h,false,tone*.70f);
+            DistantMasonryFace(mesh,a,b,f,e,false,tone);
+            DistantMasonryFace(mesh,e,f,g,h,true,tone*1.10f);
         }
 
         private static void FadeDistantFoot(Builder mesh,int first,float fadeBase)
@@ -276,15 +315,21 @@ namespace Cryptforge.UI
         private static void DistantBlock(Builder mesh,float u0,float v0,float u1,float v1,float bottom,float top,Color tone)
         {
             Vector3 a=Project(u0,v0),b=Project(u1,v0),c=Project(u1,v1),d=Project(u0,v1);
-            mesh.WallQuad(d+Vector3.up*bottom,a+Vector3.up*bottom,a+Vector3.up*top,d+Vector3.up*top,false,tone*.70f);
-            mesh.WallQuad(a+Vector3.up*bottom,b+Vector3.up*bottom,b+Vector3.up*top,a+Vector3.up*top,false,tone);
-            mesh.WallQuad(a+Vector3.up*top,b+Vector3.up*top,c+Vector3.up*top,d+Vector3.up*top,false,tone*1.13f);
+            DistantMasonryFace(mesh,d+Vector3.up*bottom,a+Vector3.up*bottom,a+Vector3.up*top,d+Vector3.up*top,false,tone*.70f);
+            DistantMasonryFace(mesh,a+Vector3.up*bottom,b+Vector3.up*bottom,b+Vector3.up*top,a+Vector3.up*top,false,tone);
+            DistantMasonryFace(mesh,a+Vector3.up*top,b+Vector3.up*top,c+Vector3.up*top,d+Vector3.up*top,true,tone*1.13f);
         }
 
         private static void DistantArchSpan(Builder mesh,Vector3 a,Vector3 b,Color tone)
         {
             const int segments=16;
             Vector3 back=new Vector3(-1.05f,.525f,0);
+            float courseSlope=(b.y-a.y)/(b.x-a.x);
+            // The underside follows an arch, but its masonry courses follow the
+            // whole span. Deriving each segment's UV slope from that curve rotated
+            // adjacent courses and made the two broken halves read as plain stubs.
+            void SpanFace(Vector3 p,Vector3 q,Vector3 r,Vector3 s,bool cap,Color tint)=>
+                DistantMasonryFace(mesh,p,q,r,s,cap,tint,courseSlope);
             for(int i=0;i<segments;i++)
             {
                 if(i>=7&&i<=9)continue; // A missing middle bay never suggests a path to the court.
@@ -293,24 +338,24 @@ namespace Cryptforge.UI
                 float riseP=Mathf.Sqrt(Mathf.Max(0,1-(t*2-1)*(t*2-1)))*4.1f;
                 float riseQ=Mathf.Sqrt(Mathf.Max(0,1-(next*2-1)*(next*2-1)))*4.1f;
                 Vector3 lowerP=p+Vector3.down*(5.2f-riseP),lowerQ=q+Vector3.down*(5.2f-riseQ);
-                mesh.WallQuad(lowerP+back,lowerQ+back,q+back,p+back,false,tone*.65f);
-                mesh.WallQuad(lowerP,lowerQ,q,p,false,tone*.88f);
-                mesh.WallQuad(lowerP+back,lowerQ+back,lowerQ,lowerP,false,tone*.48f);
-                mesh.WallQuad(p,q,q+back,p+back,false,tone*1.08f);
+                SpanFace(lowerP+back,lowerQ+back,q+back,p+back,false,tone*.65f);
+                SpanFace(lowerP,lowerQ,q,p,false,tone*.88f);
+                SpanFace(lowerP+back,lowerQ+back,lowerQ,lowerP,false,tone*.48f);
+                SpanFace(p,q,q+back,p+back,true,tone*1.08f);
                 // Low masonry parapet and occasional squared posts keep the span
                 // architectural without disguising the central break as a route.
                 Vector3 rail=Vector3.up*.43f,railBack=back*.28f;
-                mesh.WallQuad(p,q,q+rail,p+rail,false,tone*.88f);
-                mesh.WallQuad(p+rail,q+rail,q+rail+railBack,p+rail+railBack,false,tone*1.05f);
+                SpanFace(p,q,q+rail,p+rail,false,tone*.88f);
+                SpanFace(p+rail,q+rail,q+rail+railBack,p+rail+railBack,true,tone*1.05f);
                 if(i==0||i==3||i==6||i==10||i==13||i==15)
                 {
                     Vector3 post=(p+q)*.5f,half=(q-p).normalized*.14f;
-                    mesh.WallQuad(post-half,post+half,post+half+Vector3.up*.70f,post-half+Vector3.up*.70f,false,tone);
-                    mesh.WallQuad(post-half+Vector3.up*.70f,post+half+Vector3.up*.70f,
-                        post+half+Vector3.up*.70f+railBack,post-half+Vector3.up*.70f+railBack,false,tone*1.1f);
+                    SpanFace(post-half,post+half,post+half+Vector3.up*.70f,post-half+Vector3.up*.70f,false,tone);
+                    SpanFace(post-half+Vector3.up*.70f,post+half+Vector3.up*.70f,
+                        post+half+Vector3.up*.70f+railBack,post-half+Vector3.up*.70f+railBack,true,tone*1.1f);
                 }
                 if(i==6||i==10)
-                    mesh.WallQuad(i==6?lowerQ:lowerP,(i==6?lowerQ:lowerP)+back,
+                    SpanFace(i==6?lowerQ:lowerP,(i==6?lowerQ:lowerP)+back,
                         (i==6?q:p)+back,i==6?q:p,false,tone*.60f);
             }
             // Deep bearing shoes extend below both springings and meet the tower
@@ -318,9 +363,9 @@ namespace Cryptforge.UI
             foreach(Vector3 end in new[]{a,b})
             {
                 Vector3 half=(b-a).normalized*.55f,low=Vector3.down*6.3f,high=Vector3.down*4.3f;
-                mesh.WallQuad(end-half+low,end+half+low,end+half+high,end-half+high,false,tone*.78f);
-                mesh.WallQuad(end-half+low+back,end-half+low,end-half+high,end-half+high+back,false,tone*.57f);
-                mesh.WallQuad(end-half+high,end+half+high,end+half+high+back,end-half+high+back,false,tone);
+                SpanFace(end-half+low,end+half+low,end+half+high,end-half+high,false,tone*.78f);
+                SpanFace(end-half+low+back,end-half+low,end-half+high,end-half+high+back,false,tone*.57f);
+                SpanFace(end-half+high,end+half+high,end+half+high+back,end-half+high+back,true,tone);
             }
         }
     }

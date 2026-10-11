@@ -1,0 +1,7 @@
+Sprite:FoundryCavernV2; rect:1024x1536; pixels per unit:64; bounds:(16.00, 24.00, 0.20)
+Texture:FoundryCavernV2; dimensions:1024x1536; format:ASTC_6x6; graphics format:RGBA_ASTC6X6_UNorm; mipmaps:1; readable:False
+Renderer:Furnace Cavern; sorting order:-21; shader:Cryptforge/Foundry Cavern; color:RGBA(0.840, 0.870, 0.910, 1.000)
+Texture format is the actual graphics-capture import; it is not a physical Android texture observation.
+Editor target:Android; asset:Assets/_Project/Resources/FoundryCavernV2.png
+Android override:True; format:ASTC_6x6; max:2048; automatic:ASTC_6x6
+Direct asset format:ASTC_6x6; sprite texture memory:1401728 bytes

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3,0884668">
+  <test-suite type="TestSuite" id="1198" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="157" result="Passed" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3.088467" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1194" name="Project.PlayModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.PlayModeTests.dll" runstate="Runnable" testcasecount="157" result="Passed" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3.077409" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="37308" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1195" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="157" result="Passed" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3.074197" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1196" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="157" result="Passed" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3.072771" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1090" name="FoundryDistantMaterialCapture" fullname="Cryptforge.Tests.FoundryDistantMaterialCapture" classname="Cryptforge.Tests.FoundryDistantMaterialCapture" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3.066051" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1091" name="CaptureDistantMaterial" fullname="Cryptforge.Tests.FoundryDistantMaterialCapture.CaptureDistantMaterial" methodname="CaptureDistantMaterial" classname="Cryptforge.Tests.FoundryDistantMaterialCapture" runstate="Runnable" seed="2044230876" result="Passed" start-time="2026-10-11 11:57:54Z" end-time="2026-10-11 11:57:57Z" duration="3.050855" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: E:\MobileGame\TestResults\foundry-distant-material.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

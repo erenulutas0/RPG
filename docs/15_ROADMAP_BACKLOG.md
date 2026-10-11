@@ -588,3 +588,12 @@ Evidence and final verification: ArtDirection/2026-10-11/foundry-workyard-identi
 - [ ] Accumulated device/crowd/midrange/first-ramp acceptance remains pending; region encounter/boss progression remains deferred.
 
 Evidence and final verification: ArtDirection/2026-10-11/foundry-backdrop-depth-01.
+## 2026-10-11 - Distant architectural surface coherence
+
+- [x] Align native shaft and broken-span masonry scale, cap mapping and face/height light with the new cavern plate.
+- [x] Preserve two distant batches, the 2,500-vertex ceiling, ownership and world anchors; inspect matched Unity full-map/detail/portrait views.
+- [x] Repair the stale chest telemetry health ceiling with deterministic no-book and health-book regression coverage; production rules unchanged.
+- [ ] Next major art slice: authored north-shaft/broken-span silhouettes if navigation remains frozen, or a whole northwest-workyard layout with explicit circulation and blocked footprints.
+- [ ] Full reference fidelity and physical-device/crowd/midrange/first-ramp acceptance remain open. Regional gameplay/boss progression stays deferred.
+
+Evidence, final gate and package/device state: ArtDirection/2026-10-11/foundry-distant-material-01.

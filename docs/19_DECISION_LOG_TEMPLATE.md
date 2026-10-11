@@ -941,3 +941,11 @@ Recompose existing supported workstations instead of adding scatter to full shel
 ## 2026-10-11 - Recompose the plate, preserve camera coverage
 
 Do not shrink the entire background sprite to reduce perceived building size: that breaks edge coverage. Recompose the source instead and select the new borrowed sprite only for the foundry. Keep the original hall art/fallback, cover fit, bounded parallax, atmosphere material and render ranks. New FoundryCavernV2 generated using built-in image_gen; source pixels unchanged. Root/independent actual Unity review accepts whole-map depth improvement, with modest portrait gain. No geometry/gameplay/save change. Prompt, evidence and final test/build/import status: ArtDirection/2026-10-11/foundry-backdrop-depth-01. Phone deployment decision remains pending.
+
+## 2026-10-11 - Expose existing distant architectural volume before adding ornaments
+
+Options: more skyline geometry/trim; another painted plate; or native face/UV/material coherence. Chosen: the native material pass, because the existing recessed arches and shoulders were present but collapsed into near-black faces beside the new backdrop. Preserve the 2,388-vertex structure and borrowed wall art, apply finer coherent courses and controlled face/height light; do not change the shared backdrop shader. Root and independent actual Unity review accepted the improvement while recording rigid silhouettes as remaining work.
+
+Next meaningful options: a complete northwest workyard composition with explicit circulation/blocked footprints, or authored north-shaft/broken-span silhouette replacements if navigation stays frozen. Raised props must not be placed on walkable routes without matching navigation. Avoid another isolated tint/trim pass. Regional gameplay/boss progression remains deferred under the owner's art-first direction.
+
+The full gate separately exposed the old chest telemetry test's 100 HP ceiling: optional health books legitimately apply before Opened. Repair the test with deterministic no-book/health-book scenes and exact event-time HP/book checks, not production balance changes or a looser numeric ceiling. Failed/focused/final evidence is kept with the art proof.
