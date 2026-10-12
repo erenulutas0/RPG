@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/DamageContext.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/IDamageable.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/HealthState.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/WeaponRuntime.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/EncounterProgress.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/IHealable.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/RoomKind.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/FloorStepKind.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/FloorStep.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/FloorProgress.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/SwarmRule.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/SwarmDirector.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/ExitRule.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/PulseRule.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/CritSplashRule.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/PackLayout.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/PackMotion.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/ArenaFloor.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/WeaponBehavior.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/AttackPattern.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/AbilityRuntime.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/EntrySide.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/HeroMotion.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/HeroStamina.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/HeroRoute.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/ScriptedRoute.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/KiteRoute.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Combat/ChestRule.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Core/RunState.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Core/RunSeeds.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Core/RunPause.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Core/FrameStats.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Economy/RewardService.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Economy/GroundDrops.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Economy/RunBank.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Progression/*.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Art/*.cs" />
+    <!-- Pure telemetry only: the Unity subfolder is compiled by Unity and UnityCompileCheck. -->
+    <Compile Include="../../../../../../Assets/_Project/Scripts/Analytics/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="../../../../../../Assets/_Project/Scripts/Art/FoundryMap.cs" />
+    <Compile Include="FoundryMap.cs" />
+    <Compile Include="ImmortalCrowdDiagnostic.cs" />
+  </ItemGroup>
+</Project>
