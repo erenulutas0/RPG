@@ -14,6 +14,36 @@ namespace Cryptforge.Tests
     public sealed class FoundryRegionTests
     {
         private Scene _scene;
+        private static void AssertSouthChainContacts(ArenaView arena)
+        {
+            object selected=typeof(FoundryRegionView).GetField("_southChainPier",
+                System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(arena.Region);
+            Assert.That(selected,Is.Not.Null,"The built court needs a real unscreened major-pier socket.");
+            Vector2 pier=(Vector2)selected;
+            Assert.That(pier,Is.EqualTo(new Vector2(0,FoundryMap.South)),
+                "The current exterior arch cadence supplies this pier, not the former (-4,-14) anchor.");
+            Vector3 deck=FoundrySurface.Project(pier.x,pier.y),eye=deck+Vector3.down*3.9f;
+            var plate=new[]{deck+new Vector3(-.22f,-3.05f),deck+new Vector3(.22f,-3.05f),
+                deck+new Vector3(.22f,-4.25f),deck+new Vector3(-.22f,-4.25f)};
+            var seen=new bool[4];float headDistance=float.MaxValue,footDistance=float.MaxValue;
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+            {
+                if(renderer.sharedMaterial.mainTexture!=arena.PlatformMaterials.FoundryIron.mainTexture)continue;
+                var mesh=renderer.GetComponent<MeshFilter>().sharedMesh;var points=mesh.vertices;var uv=mesh.uv;
+                for(int i=0;i<points.Length;i++)
+                {
+                    for(int k=0;k<plate.Length;k++)if(Vector3.Distance(points[i],plate[k])<.0001f)seen[k]=true;
+                    // Forged links use the small plain-iron patch; rivets and the
+                    // plate itself cannot satisfy the attached-chain observation.
+                    if(uv[i].x<.45999f||uv[i].x>.54001f||uv[i].y<.45999f||uv[i].y>.54001f)continue;
+                    headDistance=Mathf.Min(headDistance,Vector3.Distance(points[i],eye));
+                    footDistance=Mathf.Min(footDistance,Vector3.Distance(points[i],eye+new Vector3(3,-10.2f)));
+                }
+            }
+            Assert.That(seen,Is.All.True,"All four corners of the actual supporting plate must exist.");
+            Assert.That(headDistance,Is.LessThan(.4f),"A forged link must reach the socket.");
+            Assert.That(footDistance,Is.LessThan(.6f),"The complete hanging chain must follow its moved socket.");
+        }
         private static void AssertBoilerDrainContacts(ArenaView arena)
         {
             bool CasingEdge(Vector3 centre,float halfWidth)
@@ -253,10 +283,20 @@ namespace Cryptforge.Tests
             Assert.That(paving,Is.Not.Null);
             AssertWorkIslandContacts(arena,paving);
             AssertBoilerDrainContacts(arena);
-            foreach(var sample in new[]{new Vector3(FoundryMap.West+1,-13,0),new Vector3(13,-13,0),
+            AssertSouthChainContacts(arena);
+            foreach(var sample in new[]{new Vector3(FoundryMap.West+1,FoundryMap.South+1,0),new Vector3(13,FoundryMap.South+1,0),
                 new Vector3(-26.17f,-9.77f,1),new Vector3(9.83f,-9.77f,1),new Vector3(-23,-23,1),
                 new Vector3(FoundryMap.West+1,17,0),new Vector3(13,17,0),new Vector3(FoundryMap.West+2.83f,14.77f,1),new Vector3(10.83f,14.77f,1),
-                new Vector3(-29,-13,1),new Vector3(-29,17,1),new Vector3(-34.17f,.23f,1),new Vector3(-32.17f,12.23f,1),
+                new Vector3(-29,-13,1),new Vector3(-28.83f,16.77f,1),new Vector3(-34.17f,.23f,0),new Vector3(-32.17f,12.23f,0),
+                new Vector3(-30.17f,.23f,1),new Vector3(-28.17f,12.23f,1),
+                // The forecourt replaces the removed western strip in the actual mesh,
+                // including both bridge joins and the new clipped southeast shoulder.
+                new Vector3(-10.17f,-17.77f,1),new Vector3(2.83f,-17.77f,1),new Vector3(10.83f,-14.77f,1),
+                new Vector3(-10.17f,-18.23f,0),new Vector3(2.83f,-18.23f,0),new Vector3(12.83f,-12.77f,1),
+                new Vector3(-22.77f,-18.03f,1),new Vector3(-22.77f,-17.97f,1),
+                new Vector3(-13.23f,-18.03f,1),new Vector3(-13.23f,-17.97f,1),
+                new Vector3(-23.23f,-17.97f,1),new Vector3(-23.23f,-18.03f,0),
+                new Vector3(-12.77f,-17.97f,1),new Vector3(-12.77f,-18.03f,0),
                 new Vector3(-23.17f,-12.77f,1),new Vector3(-23.17f,16.77f,1),new Vector3(-27.17f,6.23f,1),
                 new Vector3(-32.17f,-31.77f,1),new Vector3(-29.83f,-34.17f,1),new Vector3(-29.35f,-34.65f,0),
                 new Vector3(-15.17f,-14.23f,1),new Vector3(-15.17f,-13.77f,1),new Vector3(-10.17f,-13.77f,1),

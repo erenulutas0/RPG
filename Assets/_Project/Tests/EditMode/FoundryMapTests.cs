@@ -102,8 +102,8 @@ namespace Cryptforge.Tests
             }
         }
 
-        [TestCase(FoundryMap.West+1f,-13f,FoundryMap.West+4f,-9f)]
-        [TestCase(13f,-13f,9f,-9f)]
+        [TestCase(FoundryMap.West+1f,FoundryMap.South+1f,FoundryMap.West+4f,FoundryMap.South+5f)]
+        [TestCase(13f,FoundryMap.South+1f,9f,FoundryMap.South+5f)]
         [TestCase(FoundryMap.West+1f,17f,FoundryMap.West+3f,15f)]
         [TestCase(13f,17f,11f,15f)]
         public void ChamferRejectsRemovedCornerAndStopsLongMovement(float cutU,float cutV,float safeU,float safeV)
@@ -171,6 +171,61 @@ namespace Cryptforge.Tests
             }
             Assert.That(pack.HasArrived(0),Is.True,$"Enemy {x},{y}; hero {hx},{hy}; distance {ArenaFloor.FloorDistanceSquared(x,y,hx,hy)}");
         }
+        [Test] public void ActualTenEnemyPackFollowsAWalkingHeroAcrossTheBridgeJoinAndForecourt()
+        {
+            const float spacing=.9f,clearance=.6f;
+            FoundryMap.ToFloor(-25,-25,out float startX,out float startY);
+            var hero=new HeroMotion(2.5f);hero.Place(startX,startY,ArenaGeometry.Foundry);
+            var route=new[]{new[]{-18f,-18f},new[]{-10f,-15f},new[]{0f,-15f}};
+            int waypoint=0;
+            var entries=new EntryPlacement[10];
+            FoundryMap.PlacePack(0,10,startX,startY,spacing,entries);
+            var pack=new PackMotion(spacing,2f,ArenaGeometry.Foundry,startX,startY);
+            var oldX=new float[10];var oldY=new float[10];
+            for(int i=0;i<entries.Length;i++)
+            {
+                FoundryMap.ToDesign(entries[i].X,entries[i].Y,out _,out float v);
+                Assert.That(v,Is.LessThan(FoundryMap.South-clearance),"Every actor starts on the exposed bridge.");
+                pack.Add(new HealthState(50),entries[i],i<2?1.6f:2.2f,1.5f);
+            }
+            // Exercise both production movement classes on a real walking route.
+            // PackMotion permits immortal actors to wait permanently behind an
+            // occupied stopping point; this does not require every body to arrive.
+            for(int frame=0;frame<3600;frame++)
+            {
+                for(int i=0;i<pack.Count;i++){oldX[i]=pack.XOf(i);oldY[i]=pack.YOf(i);}
+                float oldHeroX=hero.X,oldHeroY=hero.Y;
+                if(waypoint<route.Length)
+                {
+                    FoundryMap.ToFloor(route[waypoint][0],route[waypoint][1],out float tx,out float ty);
+                    float dx=tx-hero.X,dy=ty-hero.Y,length=(float)System.Math.Sqrt(dx*dx+dy*dy);
+                    if(length<.08f)waypoint++;
+                    else hero.Move(dx/length,dy/length,1f/60,ArenaGeometry.Foundry);
+                }
+                Assert.That(FoundryMap.Segment(oldHeroX,oldHeroY,hero.X,hero.Y,clearance),Is.True);
+                pack.Step(1f/60,hero.X,hero.Y);
+                for(int i=0;i<pack.Count;i++)
+                {
+                    float x=pack.XOf(i),y=pack.YOf(i);
+                    Assert.That(FoundryMap.Contains(x,y,clearance),Is.True,$"Actor {i}, frame {frame}.");
+                    Assert.That(FoundryMap.Segment(oldX[i],oldY[i],x,y,clearance),Is.True,
+                        "No actor may cut across the outside corner while the pack turns off the bridge.");
+                    for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(x,y,pack.XOf(j),pack.YOf(j)),
+                        Is.GreaterThanOrEqualTo(spacing*spacing),"The physical join cannot defeat two-sided spacing.");
+                }
+            }
+            Assert.That(waypoint,Is.EqualTo(route.Length),"The hero really walked both joins and the new southern strip.");
+            int arrived=0;
+            for(int i=0;i<pack.Count;i++)
+            {
+                FoundryMap.ToDesign(pack.XOf(i),pack.YOf(i),out _,out float v);
+                Assert.That(v,Is.GreaterThan(FoundryMap.South+clearance),"No actor remains wedged at the bridge mouth.");
+                Assert.That(ArenaFloor.FloorDistanceSquared(pack.XOf(i),pack.YOf(i),hero.X,hero.Y),Is.LessThan(9),
+                    "Every actor reaches the nearby crowd, even when an occupied attack point makes it wait.");
+                if(pack.HasArrived(i))arrived++;
+            }
+            Assert.That(arrived,Is.GreaterThan(0),"The crowd must reach attack range, not merely collect beyond the seam.");
+        }
         [TestCase(.5f)]
         [TestCase(.61f)]
         [TestCase(.99f)]
@@ -231,13 +286,17 @@ namespace Cryptforge.Tests
             AssertRoute(u,v,goalU,goalV);
             AssertRoute(goalU,goalV,u,v);
         }
-        [Test] public void WiderCourtKeepsItsAreaAndPreservesPitAndBridge()
+        [Test] public void RebalancedCourtGivesTheForecourtDepthAndPreservesFixedLandmarks()
         {
-            Assert.That(FoundryMap.East-FoundryMap.West,Is.EqualTo(50),"The width change is physical floor, not camera framing.");
-            foreach(var design in new[]{new[]{-34f,0f},new[]{-32f,12f},new[]{-32f,-9f},new[]{-33f,15f}})
+            Assert.That(FoundryMap.East-FoundryMap.West,Is.EqualTo(46));
+            Assert.That(FoundryMap.North-FoundryMap.South,Is.EqualTo(36));
+            Assert.That(FoundryMap.PitWest-FoundryMap.West,Is.EqualTo(16));
+            Assert.That(FoundryMap.PitSouth-FoundryMap.South,Is.EqualTo(20),"Space is reassigned to the forecourt, not simulated by camera zoom.");
+            foreach(var design in new[]{new[]{-30f,0f},new[]{-30f,12f},new[]{-30f,-9f},
+                new[]{-24f,-16f},new[]{-10f,-16f},new[]{0f,-16f},new[]{8f,-15f}})
             {
                 FoundryMap.ToFloor(design[0],design[1],out float x,out float y);
-                Assert.That(FoundryMap.SurfaceContains(x,y,.6f),Is.True,"New western floor has actor clearance.");
+                Assert.That(FoundryMap.SurfaceContains(x,y,.6f),Is.True,"Retained yard and new forecourt have actor clearance.");
                 Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
                 FoundryMap.ToFloor(design[0]+.3f,design[1]+.2f,out float tx,out float ty);
                 Assert.That(FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f),Is.True);
@@ -247,10 +306,14 @@ namespace Cryptforge.Tests
             Assert.That(new[]{FoundryMap.BridgeStart,FoundryMap.BridgeEnd,FoundryMap.BridgeHalfWidth},Is.EqualTo(new[]{-66,-22,5}));
             Assert.That(new[]{FoundryMap.Bound(5,0),FoundryMap.Bound(5,1),FoundryMap.Bound(5,2),FoundryMap.Bound(5,3)},Is.EqualTo(new[]{24,-2,28,12}));
         }
-        [TestCase(-34f,0f)]
-        [TestCase(-32f,12f)]
-        [TestCase(-32f,-9f)]
-        public void NewWesternFloorSupportsFullPacksAndBothWayPursuit(float u,float v)
+        [TestCase(-30f,0f)]
+        [TestCase(-30f,12f)]
+        [TestCase(-30f,-9f)]
+        [TestCase(-24f,-16f)]
+        [TestCase(-10f,-16f)]
+        [TestCase(0f,-16f)]
+        [TestCase(8f,-15f)]
+        public void RebalancedYardAndForecourtSupportFullPacksAndBothWayPursuit(float u,float v)
         {
             var entries=new EntryPlacement[10];
             FoundryMap.ToFloor(u,v,out float hx,out float hy);
@@ -264,15 +327,65 @@ namespace Cryptforge.Tests
                     for(int j=0;j<i;j++)Assert.That(ArenaFloor.FloorDistanceSquared(entries[i].X,entries[i].Y,entries[j].X,entries[j].Y),Is.GreaterThanOrEqualTo(.9f*.9f));
                 }
             }
-            foreach(var goal in new[]{new[]{0f,6f},new[]{FoundryMap.GateLandingCentre,6f},new[]{-23f,-23f}})
+            foreach(var goal in new[]{new[]{0f,6f},new[]{FoundryMap.GateLandingCentre,6f},new[]{-23f,-23f},new[]{-18f,16f}})
             {
                 AssertRoute(u,v,goal[0],goal[1]);
                 AssertRoute(goal[0],goal[1],u,v);
             }
         }
-        [Test] public void CompactGateMovesTheLandingWithoutMovingTheMainCourt()
+        [TestCase(0f)]
+        [TestCase(12f)]
+        [TestCase(-9f)]
+        public void ReassignedWesternStripIsVoidAndLongMovementStopsAtTheNewRim(float v)
         {
-            Assert.That(new[]{FoundryMap.West,FoundryMap.East,FoundryMap.South,FoundryMap.North},Is.EqualTo(new[]{-36,14,-14,18}));
+            // These points were floor before the four-unit redistribution.
+            FoundryMap.ToFloor(-34,v,out float tx,out float ty);
+            Assert.That(FoundryMap.Cell(-34,(int)v),Is.False);
+            Assert.That(FoundryMap.SurfaceContains(tx,ty,0),Is.False);
+            Assert.That(FoundryMap.Contains(tx,ty,0),Is.False);
+            FoundryMap.ToFloor(-30,v,out float x,out float y);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            FoundryMap.ToDesign(x,y,out float stoppedU,out float stoppedV);
+            Assert.That(stoppedU,Is.GreaterThanOrEqualTo(FoundryMap.West+.599f));
+            Assert.That(stoppedV,Is.EqualTo(v).Within(.0001f));
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+        [TestCase(-10f)]
+        [TestCase(0f)]
+        [TestCase(6f)]
+        public void LongMovementUsesTheNewForecourtRimWithoutLeakingIntoTheVoid(float u)
+        {
+            FoundryMap.ToFloor(u,-16,out float x,out float y);
+            FoundryMap.ToFloor(u,-22,out float tx,out float ty);
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+            Assert.That(FoundryMap.SurfaceContains(tx,ty,0),Is.False);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.False);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            FoundryMap.ToDesign(x,y,out float stoppedU,out float stoppedV);
+            Assert.That(stoppedU,Is.EqualTo(u).Within(.0001f));
+            Assert.That(stoppedV,Is.InRange(-17.401f,-17.2f),"Movement reaches the new rim instead of the old -14 boundary.");
+            Assert.That(FoundryMap.Contains(x,y,.6f),Is.True);
+        }
+        [TestCase(-24f,-16f)]
+        [TestCase(-10f,-16f)]
+        public void BridgeHeadJoinsBothNewForecourtShouldersWithoutAHiddenBarrier(float u,float v)
+        {
+            FoundryMap.ToFloor(-18,-18,out float x,out float y);
+            FoundryMap.ToFloor(u,v,out float tx,out float ty);
+            Assert.That(FoundryMap.Contains(x,y,.6f)&&FoundryMap.Contains(tx,ty,.6f),Is.True);
+            Assert.That(FoundryMap.Segment(x,y,tx,ty,.6f),Is.True);
+            Assert.That(FoundryMap.Segment(tx,ty,x,y,.6f),Is.True);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            Assert.That(ArenaFloor.FloorDistanceSquared(x,y,tx,ty),Is.LessThan(.00001f));
+            FoundryMap.ToFloor(-18,-18,out tx,out ty);
+            FoundryMap.Move(ref x,ref y,tx-x,ty-y,.6f);
+            Assert.That(ArenaFloor.FloorDistanceSquared(x,y,tx,ty),Is.LessThan(.00001f));
+        }
+        [Test] public void CompactGateRetainsItsLandingBesideTheRebalancedCourt()
+        {
+            Assert.That(new[]{FoundryMap.West,FoundryMap.East,FoundryMap.South,FoundryMap.North},Is.EqualTo(new[]{-32,14,-18,18}));
             Assert.That(new[]{FoundryMap.Bound(4,0),FoundryMap.Bound(4,2)},Is.EqualTo(new[]{14,24}));
             // The landing retains its complete transverse width but now ends at28.
             foreach(var p in new[]{new[]{26f,-1f},new[]{26f,11f},new[]{27f,5f}})

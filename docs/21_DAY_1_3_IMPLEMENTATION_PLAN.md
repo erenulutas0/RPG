@@ -2370,3 +2370,15 @@ The western receiving edge, transfer turntable and stock/trolley approach now sh
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,263,938 bytes; SHA256 68C7867361911A55C3CAB46F01A8826B30EA2F3F725558EE8B1F46DD06033C8A; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.
+
+
+## 2026-10-12 - Foundry forecourt layout verified; device pending
+
+The main court now assigns four design units from the western working strip to the entrance forecourt: West -36 to -32 and South -14 to -18. The bounding rectangle changes from 50 by 32 to 46 by 36; the strip below the fixed furnace pit grows from 16 to 20 units, while the western strip decreases from 20 to 16. These are design coordinates, not measurements extracted from the concept. The projected outer span and comparison camera stay unchanged. Pit, gate landing and bridge endpoints retain their anchors; more of the same bridge now meets the expanded court.
+
+Perimeter masonry, southern bastions, finials, lantern pools and exterior chains follow the new boundary. The two bridge lantern rows and three below-deck supports fit the shorter exposed approach. The south brass guide and the stone packer's forced joints share one position. The long hanging chain uses an actually emitted, unscreened major-pier socket with deterministic tie-breaking. Western equipment and interior work islands use their existing derived offsets. No scene, encounter, balance, profile, camera or runtime texture change is included; the geometry change can affect encounter spacing and travel, so it is not balance acceptance.
+
+438 .NET / 535 EditMode / 159 PlayMode = 1,132 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 605 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,264,048 bytes; SHA256 3BE71A740AE61ADA3816815C0D05FCCFAE20E408D1F9AA7AFDD6D20BFA688CFB; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.

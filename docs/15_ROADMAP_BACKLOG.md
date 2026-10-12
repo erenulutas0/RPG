@@ -734,3 +734,12 @@ Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.
 - [ ] Reference footprint/massing comparison and physical-device acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.
+
+
+## 2026-10-12 - Foundry forecourt layout verified; device pending
+
+- [x] Combined forecourt redistribution, boundary architecture and shared movement validation package, actual matched captures, full suites and APK.
+- [ ] Reference footprint/massing comparison and physical-device acceptance.
+- [ ] Gameplay follow-up: investigate stationary immortal-crowd queues at pursuit waypoints; retained bounds-only A/B and failing diagnostic are in validation/crowd-diagnostic.md. No crowd convergence or balance acceptance is implied by this layout slice.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.

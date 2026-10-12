@@ -35,7 +35,8 @@ namespace Cryptforge.UI
         private static readonly Color CoolSlate=new Color(1f,.945f,1.09f),CourtAmbient=new Color(1.05f,.99f,1.11f);
         private static readonly Color FireAbsorb=new Color(0,.42f,.22f,0);
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
-        private static readonly Vector2[] CourtLanternPosts={WestPoint(-24.5f,-6),new Vector2(2,-14.5f),new Vector2(-14,18.5f),new Vector2(10,18.5f)};
+        private static readonly Vector2[] CourtLanternPosts={WestPoint(-24.5f,-6),new Vector2(2,FoundryMap.South-.5f),
+            new Vector2(-14,18.5f),new Vector2(10,18.5f)};
         private static readonly Vector2[] ForgeBeacons={DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD),
             new Vector2(GateU(32.5f),-2),new Vector2(GateU(32.5f),12)};
         private static ForgeLamp[] _forgeLamps;
@@ -238,7 +239,8 @@ namespace Cryptforge.UI
         // compass spokes are gone; their four artificial seams are retired too.
         private static readonly Vector4[] CourtBrassJoints=
         {
-            new Vector4(4,-1,30,-1),new Vector4(5,9,30,9),new Vector4(-16,-10,8,-10),new Vector4(-16,-10,-16,15),
+            new Vector4(4,-1,30,-1),new Vector4(5,9,30,9),new Vector4(-16,ForecourtGuideV,8,ForecourtGuideV),
+            new Vector4(-16,ForecourtGuideV,-16,15),
             new Vector4(-16,15,10,15)
         };
         // Stone sizes in half units (w along u, h along v) and weights, in the packer's order: court, then the apron's

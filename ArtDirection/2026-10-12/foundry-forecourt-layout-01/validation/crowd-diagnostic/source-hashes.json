@@ -1,0 +1,1006 @@
+[
+  {
+    "variant": "current",
+    "path": "ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic/current/FoundryMap.cs",
+    "sha256": "F60FE01740AB169B096D464FB55BB62EC0F8B4F987F25C0BA88486CF3BE50BA9",
+    "test_run_sha256": "721853935C8A32CA0AA47CE064570F319D22A93699F292264C2E5DEC24B42D87"
+  },
+  {
+    "variant": "current",
+    "path": "ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic/current/ImmortalCrowdDiagnostic.cs",
+    "sha256": "B34949DBB014625A1532A69A33B3F00D2B99840D6FAF5566FD418B72A06E2B8E",
+    "test_run_sha256": "9DABDBB68C078CCDEC117D5C0ECA51F7015D4A5EC0EE2C25B12C45C08566589B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/FileTelemetryStore.cs",
+    "sha256": "AE1BE03BAA3C794705C7FCC3F5EAA7273153D4C1F2D14C455FB72CE570AD5646"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/ITelemetryClock.cs",
+    "sha256": "E76ECF470144930D7C6A3076C52AE8EC62957C3DE70F61BE603A52F623E4C73B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/ITelemetryStore.cs",
+    "sha256": "645825E485DAB55AEF389F43EA55D017797D022FDBB94E1C96BCAAD95FBF6C89"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/RunTelemetry.cs",
+    "sha256": "EDDC6E0692A4516F862CFC66F90880E88FE1C166801FCDB10D7F3B5A4EDC8165"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/RunTelemetryContext.cs",
+    "sha256": "418224B339E2436CFE5D4A80344EE9FFB2AC9240A63C60E32EE06C8ACEF4DFA8"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/StopwatchTelemetryClock.cs",
+    "sha256": "0F68837211C25B1A48088E1D4A86D105D9DAC1107BB5F0F5C6F9E57A1421D989"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryFields.cs",
+    "sha256": "4DCA8E26DD656B403F126891CDBF60BD034C2781D8B79FC6BD8AA9099D2D3862"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryJson.cs",
+    "sha256": "EDE0C486B7797FB082D503AAE3A19628DE85220934017FE6CA8131BEA6BC62FA"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryLog.cs",
+    "sha256": "99E4694BCCF0AE15759171CF558ED50C29A42A836B7F65EA414F8FA7B03CEA0B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryRecord.cs",
+    "sha256": "D772172100EF7EFCA1EA168F5285A8BF364B7F7DD55CD75380DA1C30EF1CE193"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetrySession.cs",
+    "sha256": "4EDC351A15C5860392DAD3632034A972BBD37EF5D6915974E1246066ACAD1128"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/AbilityArt.cs",
+    "sha256": "7CEB622403348EAF78BED824E0BC90E76AE3F9653E324533B6BEF79983F24B80"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/ArenaGeometry.cs",
+    "sha256": "4B05B5C961C9D9786B7E3E0E17D47DA15DE20024ED3A5A3DCC05904F123AC9A6"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/ChestArt.cs",
+    "sha256": "B0AFBE2DBF61C863D3A034B8AC36F98447130E7C2EA7A79C64E5C261E1EC6B77"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/ContactShadowArt.cs",
+    "sha256": "D4ABDECB79AFF09D26C1001334387E2DEE48E914C984D9C1A9CC863E3C66E7CF"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/EffectArt.cs",
+    "sha256": "53E6C2D069ACD72537D0F0635472EB57299DC4D237822362989EB57788580FF6"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/EnemyArt.cs",
+    "sha256": "0C72AB38BD08146788800DF67BA9E9E4D606DDB1F674C1E385531448B60B4508"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/FollowFraming.cs",
+    "sha256": "8BC32468BF708AB32D2D40CD860D8174FFB34D67E957EE1CDF140877D2F6DB45"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/FoundryPursuit.cs",
+    "sha256": "DC0ECB6925D68EFD3B59728851799F9BE9FB2EA2F8EB1BEAC84416F0E4B0CFFC"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/HeroArt.cs",
+    "sha256": "CE025221713AFF79A90041D23829B9CB388B0638B418510A2FD995E1F2EC6D12"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/PixelCanvas.cs",
+    "sha256": "3830CFA65A37F7467A876CCA065C26A3163BE9198D3A548BCC87F65B780960B0"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/PixelNoise.cs",
+    "sha256": "4412AE2C00D101BBC91D7587A8D363E717C779F94BB319FE013A422C9C5C5331"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/PixelPalette.cs",
+    "sha256": "19DD7781ECA1D86A2DD6CC619AA8528AC3BFBB3845A2C48EB2757C822C34BD7D"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/PlatformArt.cs",
+    "sha256": "01F45329F2898A3D3B78D1BC89FF78ACD3C2BD028582961BCD310B41DFA87CF7"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/Rgba.cs",
+    "sha256": "3CCADF02F6137D9A5FF9CE7DE1A123E59F0A0CAE12B59C6106000C7EC73370D4"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Art/VoidArt.cs",
+    "sha256": "7E1A069E9BB7C1DB205F958C4C0FFAB2FDF1F59E5549FB93EF6B87CBE84835FA"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/AbilityRuntime.cs",
+    "sha256": "B7844BF238B81B0F3D9DB0821B92291AAF97CB3A3F69829D11F532A8902A000D"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/ArenaFloor.cs",
+    "sha256": "44BBFC2F9A296BB02E7BCB1E77B3DB5E90C7E65CBAA18452085103860F3F0AFA"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/AttackPattern.cs",
+    "sha256": "792C69F42045F2DD283139847254F422D65ECBB41629297D6BD9F0354F29C94B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/ChestRule.cs",
+    "sha256": "B84022758F78571B6CB40FF7E82889A6ED3F5962A3F098EA42954003A3B2BCFF"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/CritSplashRule.cs",
+    "sha256": "0ED9B7EE18EC11C2C3CA1E8120A4E4AC754244D08D3B53BCB6DA67FA0D82C9A0"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/DamageContext.cs",
+    "sha256": "EC630B65E29D11ADD26E425AE07FABE51385F2D70A1864A5AA3A70813AB85816"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/EncounterProgress.cs",
+    "sha256": "851C8EE034244C209BAA5B7134FA6FE3E52CE8AB008B51FEB7E09FF2848C48B1"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/EnrageRule.cs",
+    "sha256": "5D2B84627A3AE094AFE53871220F20BEAB9098612A2F123B9C61D48F876A0A24"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/EntrySide.cs",
+    "sha256": "B73B4702121BD70A24654F1372F26943B915F9DA63B5D33256CE19B0056680B8"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/ExitRule.cs",
+    "sha256": "B012DCCBE00DF71B2E931D01AA3E509D7177B1AC844E4E978112BA4B7AF70265"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/FloorProgress.cs",
+    "sha256": "1251D964B112124B0048C25D0A8536E085BB42C8844ED7347C8B91B96B09BCD7"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/FloorScaling.cs",
+    "sha256": "14411EACC427B86ECFA951CE2037186D740924F2F3BE95D61AA1CACF7A717820"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/FloorStep.cs",
+    "sha256": "23E3CD08AC265921B7CD5E799EC6DB2A358DA4560675F97EAE77DF8FD31D56A4"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/FloorStepKind.cs",
+    "sha256": "D049D943AD5F210D1B42B479046A44D52DE78B69562ED0B018CC8ACF6DA9C1B7"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/HealthState.cs",
+    "sha256": "2E2F1F2ED12AE08AE36A98AE030E5441B920DF2AF2947300FC322E91D14AB284"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/HeroMotion.cs",
+    "sha256": "545CAAA42E368B8F5CE17DEE37729003AAE5B10C85C12FA2ED7E918792568F8C"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/HeroRoute.cs",
+    "sha256": "09B7EB6A3DF49710AF1A797CB7CD44A42B6A43FE23F40BDD48E95E6E9CB14596"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/HeroStamina.cs",
+    "sha256": "B3F1224BF3139A1C9D0AA81BCE8263C6F5B478B28F34B9479F51E9F682885083"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/IDamageable.cs",
+    "sha256": "65790E00FB19717EAA3602EAFFE34B2B9CF931F94F401BF8707526E55D782546"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/IHealable.cs",
+    "sha256": "E0275916A98C8A0F65601B03AC317727242441CA443B1AB0305A585CB46A2F95"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/KiteRoute.cs",
+    "sha256": "10C060283468797C1418F8785F2B284C14C2D9CECEEB43831807F02B2C2D2764"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/PackLayout.cs",
+    "sha256": "BA22B2D5F9166CB8E82A5E1917399EEF7B3D97872C54FB502AB08FF8832940E2"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/PackMotion.cs",
+    "sha256": "44062B0E14FE1B95AB0951EBE54326F33395F2267939E85AA3E0E1C91CF056F6"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/PulseRule.cs",
+    "sha256": "F2C81147871A1C9FE93880E129AC73C6476B23F4E646BBC1756ACF5D4A64409B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/RoomKind.cs",
+    "sha256": "ADE219502EBA0B75143F7B12F2AE4639CA5EDEA6309C37CF0EB737F56DC92097"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/ScriptedRoute.cs",
+    "sha256": "196A062C0623FDC4BFE7AF77D22307DF6E0DBBD1D1566F6CFD56EAD684D68B61"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/SwarmDirector.cs",
+    "sha256": "B51DE88A10E0C107CC7D128131C3C793EF2736784AE22B56A26C00982FB4E598"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/SwarmRule.cs",
+    "sha256": "3D5006405458DF2619BBCF4571453E6CEA84C1BDDD695C266C1FA2E2963EC910"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/WeaponBehavior.cs",
+    "sha256": "FCBF325A98B1B4E4283F2365777918AEE3EE7521C3F85C5BC86DF3EBAF5403EB"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Combat/WeaponRuntime.cs",
+    "sha256": "17A041DC78C27B0CC7E9CA51FD6696D30E86F2D8983C1EEDEB04B791293E3A0B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Core/FrameStats.cs",
+    "sha256": "D1B4BC8164AE45CBF57FD6174FD530C0E0A783E3064B00E306CDF13221D8CF41"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Core/PlayerProfile.cs",
+    "sha256": "8CBF19E8F91DC402B5D26F67FC8A724E1750BDE70AA7807D8C42ABCB2E177847"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Core/RunOutcome.cs",
+    "sha256": "67C87A411D2268E99966D6275942EAE84B96F858978814C435A3E65BF3103EC1"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Core/RunPause.cs",
+    "sha256": "8B1C9E4FE7B5CCBD35F778DF9D2D3B99B7373292FDACC7141E7E3F37645F0EC8"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Core/RunSeeds.cs",
+    "sha256": "67A3F2F5F3D45A361DAE696792B3F27307A27AA95F84DC005144F6DA61324233"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Core/RunState.cs",
+    "sha256": "BC43B231FED7C8C6FE0F1964DB0CC98C828F557E8234C86CDC7B0F5E791AE3F1"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Economy/GroundDrops.cs",
+    "sha256": "92ED6C7C904B0967736B56A846D9784ECEFCC9A45579CC804B2FCF273284A769"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Economy/RewardService.cs",
+    "sha256": "D1DD469EBEA5241665175EDE61671FF2CC62D636FCA4A5A3C7CE35C04B9617E5"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Economy/RunBank.cs",
+    "sha256": "AFF29EC9DFDA71FAE083B62E732691EF55463A1BA136CEBF93930D032EFB84DF"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointKind.cs",
+    "sha256": "8A4AF6D32079B9F32F0D944B63F8DA89C09BACE1069DEA130C906DF4EED3D5C0"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointOffer.cs",
+    "sha256": "6D54CC94064D8E90431291664124757A9D651A4283D04B16A99C2F712A056A3B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointOption.cs",
+    "sha256": "0C14088A88014B907D8289A8146502147F823CD5F9321BD71407AB64E44D89ED"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointService.cs",
+    "sha256": "105CD6BF39B512E914953EF2DFBE788B3B529DCCEB58D1B1BF738A21AD6B6EED"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ChoiceCard.cs",
+    "sha256": "D43132B704E8DC1EEC10B4E5365C91F6D47598E34E87881197CB0BC553098C95"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ChoiceKind.cs",
+    "sha256": "DCFF068EE533E939A1DD7B3D33D8B2393F7D0DCB0DADB46A94C2195D79D0D397"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ChoicePrompt.cs",
+    "sha256": "3804A41039662FE3F944EA32EE87B7BC8CC8889179CF19315A65B89D140A97F7"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/EvolutionRule.cs",
+    "sha256": "3CA3D01EBE92A2DD72DCF3FA461EEE30F3D9D51B78F93BCEE36A96D311A28C3D"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ForgeEffect.cs",
+    "sha256": "5DC6CAB2BCBAD2AC39DC7790330CFAAA30AB8874F78974B7B24D84D63AE46DE6"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ForgeOffer.cs",
+    "sha256": "BD984F7108D3FD615B131D720354E8BB736DE3CF03F270E596E7770F26B601CF"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ForgeOption.cs",
+    "sha256": "54C9773057D216AF5F6410CD86C682656B0ACD6E7577DA852A73240A71724DBF"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ForgeService.cs",
+    "sha256": "D3D78948E6313D1DB421D70003BE29701A3D361CBDB725510CE78547EA77105C"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/HeroStats.cs",
+    "sha256": "5C8E4C08EF294461C3AEF2CDA5AE0E2ED9EFFAAE7E0544E176B50127ACF97B44"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/HeroStatsBinding.cs",
+    "sha256": "9B727A0F7FF32C6C64E7510711C6292E08310CEFB2D14B32CA64B27ACA9B844F"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ModifiableStat.cs",
+    "sha256": "3070640EBD6E6BD494785157CC417D1BAE12E545CF4C4FAE784E39CADB5EC6D1"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/ModifierOperation.cs",
+    "sha256": "3BC1C3D3FE8E28AA8634BEE07563EF1CE7F7C8D211293AF2879BC63F731F08F1"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/RelicEffect.cs",
+    "sha256": "88F9837219671E176FB0F3C9235359A7FCC5467E3307EC945D36A43E3C2DF0C3"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/RelicOption.cs",
+    "sha256": "B27E6A75C4D0BF7FE76631CBFE7D4B4791929016F59308A54E780FC233D0870B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/RelicRuntime.cs",
+    "sha256": "3DBE01DC5A7D1F57A0CA92CC2909899B2A5C4759D491279BCC0DC8491398E2C4"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/RelicShop.cs",
+    "sha256": "DE43D99380568A38632ADF4122CC2ADBA3DC3A8892120F0250698D5F47AC77C3"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/RunChoices.cs",
+    "sha256": "A34843AC1DED6B34A45A9EADABB6F1D812E8EABAC63AD8D3A1BCE1119B116D2D"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/RunRandom.cs",
+    "sha256": "6869AE17FA2915EF6A38FE5A1C262836714CEE6A97FEB2577880964C0381E11A"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/StatModifier.cs",
+    "sha256": "B8B0899F699A82D88F849EED537FDA60AB3C9B67AAFE0176945D2F0189168CF2"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/UnlockStatus.cs",
+    "sha256": "C5049D9469A1E732C698D96CFA06AF992BF18E33666B6AB81F98B2284A90A21D"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeOffer.cs",
+    "sha256": "AF1509181DBE57F011892631F91AB6E42CBB60216F6B0314698214E177C7F502"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeOption.cs",
+    "sha256": "9CD35CFE15B5D01BD86C641EBA2E3AA666DEA781C1973AFBE16B075DD5445CB5"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeRarity.cs",
+    "sha256": "E5502915AD49E44AC2C09033D3E801B13FE2A572F400E06356B418E1B46B12FD"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeService.cs",
+    "sha256": "B8BB090CE70EBFE20857F15F5A274F0D6D58B604CA6E63E37B038A7B91E14E4B"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeStat.cs",
+    "sha256": "9143EB0B0F61EC99341B5C8763DBC4AD67A28E0B8BDC61E6A2C059D31663FC1C"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/WeaponOption.cs",
+    "sha256": "2E1C86F5181FC16320C207A90915A47F3FC38AFA96AA2E7AFA4403628FCFA9CD"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Progression/WeaponShop.cs",
+    "sha256": "2FD27ADB113EA0972F66E7F46184F68CDFAF6A22FA57608D36A5C454130E3EA6"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Save/ProfileMigration.cs",
+    "sha256": "79C35CA1FD7DFEF69EDBFA82F7779CC188A37B8A5F52B7AFB5A5686F6B084EA4"
+  },
+  {
+    "variant": "current",
+    "path": "Assets/_Project/Scripts/Save/ProfileSaveData.cs",
+    "sha256": "BFCB3868DF2F5C482A3FAA796B73EB7508EEE5A7691A079CF4F6FF3B88DEB5E5"
+  },
+  {
+    "variant": "baseline",
+    "path": "ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic/baseline/FoundryMap.cs",
+    "sha256": "80B25F90A5094F639CDF2BB6795DE236803CB567F83C6529BBD561AD6CD41D5B",
+    "test_run_sha256": "E4BF93F0BB9B99E1FB2F1F8F5BB1A5416949FC567406393E67BE626931C7B18A"
+  },
+  {
+    "variant": "baseline",
+    "path": "ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic/baseline/ImmortalCrowdDiagnostic.cs",
+    "sha256": "C7E22421B5AB928C83753CDBB3B27278C6183857855679F0E9A0E9B2C31310F3",
+    "test_run_sha256": "410569AF1E505FBD5C735FF70177DCCAA613B3B50CC7C87A0933544AF3EFFEE3"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/FileTelemetryStore.cs",
+    "sha256": "AE1BE03BAA3C794705C7FCC3F5EAA7273153D4C1F2D14C455FB72CE570AD5646"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/ITelemetryClock.cs",
+    "sha256": "E76ECF470144930D7C6A3076C52AE8EC62957C3DE70F61BE603A52F623E4C73B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/ITelemetryStore.cs",
+    "sha256": "645825E485DAB55AEF389F43EA55D017797D022FDBB94E1C96BCAAD95FBF6C89"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/RunTelemetry.cs",
+    "sha256": "EDDC6E0692A4516F862CFC66F90880E88FE1C166801FCDB10D7F3B5A4EDC8165"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/RunTelemetryContext.cs",
+    "sha256": "418224B339E2436CFE5D4A80344EE9FFB2AC9240A63C60E32EE06C8ACEF4DFA8"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/StopwatchTelemetryClock.cs",
+    "sha256": "0F68837211C25B1A48088E1D4A86D105D9DAC1107BB5F0F5C6F9E57A1421D989"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryFields.cs",
+    "sha256": "4DCA8E26DD656B403F126891CDBF60BD034C2781D8B79FC6BD8AA9099D2D3862"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryJson.cs",
+    "sha256": "EDE0C486B7797FB082D503AAE3A19628DE85220934017FE6CA8131BEA6BC62FA"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryLog.cs",
+    "sha256": "99E4694BCCF0AE15759171CF558ED50C29A42A836B7F65EA414F8FA7B03CEA0B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetryRecord.cs",
+    "sha256": "D772172100EF7EFCA1EA168F5285A8BF364B7F7DD55CD75380DA1C30EF1CE193"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Analytics/TelemetrySession.cs",
+    "sha256": "4EDC351A15C5860392DAD3632034A972BBD37EF5D6915974E1246066ACAD1128"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/AbilityArt.cs",
+    "sha256": "7CEB622403348EAF78BED824E0BC90E76AE3F9653E324533B6BEF79983F24B80"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/ArenaGeometry.cs",
+    "sha256": "4B05B5C961C9D9786B7E3E0E17D47DA15DE20024ED3A5A3DCC05904F123AC9A6"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/ChestArt.cs",
+    "sha256": "B0AFBE2DBF61C863D3A034B8AC36F98447130E7C2EA7A79C64E5C261E1EC6B77"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/ContactShadowArt.cs",
+    "sha256": "D4ABDECB79AFF09D26C1001334387E2DEE48E914C984D9C1A9CC863E3C66E7CF"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/EffectArt.cs",
+    "sha256": "53E6C2D069ACD72537D0F0635472EB57299DC4D237822362989EB57788580FF6"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/EnemyArt.cs",
+    "sha256": "0C72AB38BD08146788800DF67BA9E9E4D606DDB1F674C1E385531448B60B4508"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/FollowFraming.cs",
+    "sha256": "8BC32468BF708AB32D2D40CD860D8174FFB34D67E957EE1CDF140877D2F6DB45"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/FoundryPursuit.cs",
+    "sha256": "DC0ECB6925D68EFD3B59728851799F9BE9FB2EA2F8EB1BEAC84416F0E4B0CFFC"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/HeroArt.cs",
+    "sha256": "CE025221713AFF79A90041D23829B9CB388B0638B418510A2FD995E1F2EC6D12"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/PixelCanvas.cs",
+    "sha256": "3830CFA65A37F7467A876CCA065C26A3163BE9198D3A548BCC87F65B780960B0"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/PixelNoise.cs",
+    "sha256": "4412AE2C00D101BBC91D7587A8D363E717C779F94BB319FE013A422C9C5C5331"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/PixelPalette.cs",
+    "sha256": "19DD7781ECA1D86A2DD6CC619AA8528AC3BFBB3845A2C48EB2757C822C34BD7D"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/PlatformArt.cs",
+    "sha256": "01F45329F2898A3D3B78D1BC89FF78ACD3C2BD028582961BCD310B41DFA87CF7"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/Rgba.cs",
+    "sha256": "3CCADF02F6137D9A5FF9CE7DE1A123E59F0A0CAE12B59C6106000C7EC73370D4"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Art/VoidArt.cs",
+    "sha256": "7E1A069E9BB7C1DB205F958C4C0FFAB2FDF1F59E5549FB93EF6B87CBE84835FA"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/AbilityRuntime.cs",
+    "sha256": "B7844BF238B81B0F3D9DB0821B92291AAF97CB3A3F69829D11F532A8902A000D"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/ArenaFloor.cs",
+    "sha256": "44BBFC2F9A296BB02E7BCB1E77B3DB5E90C7E65CBAA18452085103860F3F0AFA"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/AttackPattern.cs",
+    "sha256": "792C69F42045F2DD283139847254F422D65ECBB41629297D6BD9F0354F29C94B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/ChestRule.cs",
+    "sha256": "B84022758F78571B6CB40FF7E82889A6ED3F5962A3F098EA42954003A3B2BCFF"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/CritSplashRule.cs",
+    "sha256": "0ED9B7EE18EC11C2C3CA1E8120A4E4AC754244D08D3B53BCB6DA67FA0D82C9A0"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/DamageContext.cs",
+    "sha256": "EC630B65E29D11ADD26E425AE07FABE51385F2D70A1864A5AA3A70813AB85816"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/EncounterProgress.cs",
+    "sha256": "851C8EE034244C209BAA5B7134FA6FE3E52CE8AB008B51FEB7E09FF2848C48B1"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/EnrageRule.cs",
+    "sha256": "5D2B84627A3AE094AFE53871220F20BEAB9098612A2F123B9C61D48F876A0A24"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/EntrySide.cs",
+    "sha256": "B73B4702121BD70A24654F1372F26943B915F9DA63B5D33256CE19B0056680B8"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/ExitRule.cs",
+    "sha256": "B012DCCBE00DF71B2E931D01AA3E509D7177B1AC844E4E978112BA4B7AF70265"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/FloorProgress.cs",
+    "sha256": "1251D964B112124B0048C25D0A8536E085BB42C8844ED7347C8B91B96B09BCD7"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/FloorScaling.cs",
+    "sha256": "14411EACC427B86ECFA951CE2037186D740924F2F3BE95D61AA1CACF7A717820"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/FloorStep.cs",
+    "sha256": "23E3CD08AC265921B7CD5E799EC6DB2A358DA4560675F97EAE77DF8FD31D56A4"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/FloorStepKind.cs",
+    "sha256": "D049D943AD5F210D1B42B479046A44D52DE78B69562ED0B018CC8ACF6DA9C1B7"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/HealthState.cs",
+    "sha256": "2E2F1F2ED12AE08AE36A98AE030E5441B920DF2AF2947300FC322E91D14AB284"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/HeroMotion.cs",
+    "sha256": "545CAAA42E368B8F5CE17DEE37729003AAE5B10C85C12FA2ED7E918792568F8C"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/HeroRoute.cs",
+    "sha256": "09B7EB6A3DF49710AF1A797CB7CD44A42B6A43FE23F40BDD48E95E6E9CB14596"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/HeroStamina.cs",
+    "sha256": "B3F1224BF3139A1C9D0AA81BCE8263C6F5B478B28F34B9479F51E9F682885083"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/IDamageable.cs",
+    "sha256": "65790E00FB19717EAA3602EAFFE34B2B9CF931F94F401BF8707526E55D782546"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/IHealable.cs",
+    "sha256": "E0275916A98C8A0F65601B03AC317727242441CA443B1AB0305A585CB46A2F95"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/KiteRoute.cs",
+    "sha256": "10C060283468797C1418F8785F2B284C14C2D9CECEEB43831807F02B2C2D2764"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/PackLayout.cs",
+    "sha256": "BA22B2D5F9166CB8E82A5E1917399EEF7B3D97872C54FB502AB08FF8832940E2"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/PackMotion.cs",
+    "sha256": "44062B0E14FE1B95AB0951EBE54326F33395F2267939E85AA3E0E1C91CF056F6"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/PulseRule.cs",
+    "sha256": "F2C81147871A1C9FE93880E129AC73C6476B23F4E646BBC1756ACF5D4A64409B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/RoomKind.cs",
+    "sha256": "ADE219502EBA0B75143F7B12F2AE4639CA5EDEA6309C37CF0EB737F56DC92097"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/ScriptedRoute.cs",
+    "sha256": "196A062C0623FDC4BFE7AF77D22307DF6E0DBBD1D1566F6CFD56EAD684D68B61"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/SwarmDirector.cs",
+    "sha256": "B51DE88A10E0C107CC7D128131C3C793EF2736784AE22B56A26C00982FB4E598"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/SwarmRule.cs",
+    "sha256": "3D5006405458DF2619BBCF4571453E6CEA84C1BDDD695C266C1FA2E2963EC910"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/WeaponBehavior.cs",
+    "sha256": "FCBF325A98B1B4E4283F2365777918AEE3EE7521C3F85C5BC86DF3EBAF5403EB"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Combat/WeaponRuntime.cs",
+    "sha256": "17A041DC78C27B0CC7E9CA51FD6696D30E86F2D8983C1EEDEB04B791293E3A0B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Core/FrameStats.cs",
+    "sha256": "D1B4BC8164AE45CBF57FD6174FD530C0E0A783E3064B00E306CDF13221D8CF41"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Core/PlayerProfile.cs",
+    "sha256": "8CBF19E8F91DC402B5D26F67FC8A724E1750BDE70AA7807D8C42ABCB2E177847"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Core/RunOutcome.cs",
+    "sha256": "67C87A411D2268E99966D6275942EAE84B96F858978814C435A3E65BF3103EC1"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Core/RunPause.cs",
+    "sha256": "8B1C9E4FE7B5CCBD35F778DF9D2D3B99B7373292FDACC7141E7E3F37645F0EC8"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Core/RunSeeds.cs",
+    "sha256": "67A3F2F5F3D45A361DAE696792B3F27307A27AA95F84DC005144F6DA61324233"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Core/RunState.cs",
+    "sha256": "BC43B231FED7C8C6FE0F1964DB0CC98C828F557E8234C86CDC7B0F5E791AE3F1"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Economy/GroundDrops.cs",
+    "sha256": "92ED6C7C904B0967736B56A846D9784ECEFCC9A45579CC804B2FCF273284A769"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Economy/RewardService.cs",
+    "sha256": "D1DD469EBEA5241665175EDE61671FF2CC62D636FCA4A5A3C7CE35C04B9617E5"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Economy/RunBank.cs",
+    "sha256": "AFF29EC9DFDA71FAE083B62E732691EF55463A1BA136CEBF93930D032EFB84DF"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointKind.cs",
+    "sha256": "8A4AF6D32079B9F32F0D944B63F8DA89C09BACE1069DEA130C906DF4EED3D5C0"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointOffer.cs",
+    "sha256": "6D54CC94064D8E90431291664124757A9D651A4283D04B16A99C2F712A056A3B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointOption.cs",
+    "sha256": "0C14088A88014B907D8289A8146502147F823CD5F9321BD71407AB64E44D89ED"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/CheckpointService.cs",
+    "sha256": "105CD6BF39B512E914953EF2DFBE788B3B529DCCEB58D1B1BF738A21AD6B6EED"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ChoiceCard.cs",
+    "sha256": "D43132B704E8DC1EEC10B4E5365C91F6D47598E34E87881197CB0BC553098C95"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ChoiceKind.cs",
+    "sha256": "DCFF068EE533E939A1DD7B3D33D8B2393F7D0DCB0DADB46A94C2195D79D0D397"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ChoicePrompt.cs",
+    "sha256": "3804A41039662FE3F944EA32EE87B7BC8CC8889179CF19315A65B89D140A97F7"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/EvolutionRule.cs",
+    "sha256": "3CA3D01EBE92A2DD72DCF3FA461EEE30F3D9D51B78F93BCEE36A96D311A28C3D"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ForgeEffect.cs",
+    "sha256": "5DC6CAB2BCBAD2AC39DC7790330CFAAA30AB8874F78974B7B24D84D63AE46DE6"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ForgeOffer.cs",
+    "sha256": "BD984F7108D3FD615B131D720354E8BB736DE3CF03F270E596E7770F26B601CF"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ForgeOption.cs",
+    "sha256": "54C9773057D216AF5F6410CD86C682656B0ACD6E7577DA852A73240A71724DBF"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ForgeService.cs",
+    "sha256": "D3D78948E6313D1DB421D70003BE29701A3D361CBDB725510CE78547EA77105C"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/HeroStats.cs",
+    "sha256": "5C8E4C08EF294461C3AEF2CDA5AE0E2ED9EFFAAE7E0544E176B50127ACF97B44"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/HeroStatsBinding.cs",
+    "sha256": "9B727A0F7FF32C6C64E7510711C6292E08310CEFB2D14B32CA64B27ACA9B844F"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ModifiableStat.cs",
+    "sha256": "3070640EBD6E6BD494785157CC417D1BAE12E545CF4C4FAE784E39CADB5EC6D1"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/ModifierOperation.cs",
+    "sha256": "3BC1C3D3FE8E28AA8634BEE07563EF1CE7F7C8D211293AF2879BC63F731F08F1"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/RelicEffect.cs",
+    "sha256": "88F9837219671E176FB0F3C9235359A7FCC5467E3307EC945D36A43E3C2DF0C3"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/RelicOption.cs",
+    "sha256": "B27E6A75C4D0BF7FE76631CBFE7D4B4791929016F59308A54E780FC233D0870B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/RelicRuntime.cs",
+    "sha256": "3DBE01DC5A7D1F57A0CA92CC2909899B2A5C4759D491279BCC0DC8491398E2C4"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/RelicShop.cs",
+    "sha256": "DE43D99380568A38632ADF4122CC2ADBA3DC3A8892120F0250698D5F47AC77C3"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/RunChoices.cs",
+    "sha256": "A34843AC1DED6B34A45A9EADABB6F1D812E8EABAC63AD8D3A1BCE1119B116D2D"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/RunRandom.cs",
+    "sha256": "6869AE17FA2915EF6A38FE5A1C262836714CEE6A97FEB2577880964C0381E11A"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/StatModifier.cs",
+    "sha256": "B8B0899F699A82D88F849EED537FDA60AB3C9B67AAFE0176945D2F0189168CF2"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/UnlockStatus.cs",
+    "sha256": "C5049D9469A1E732C698D96CFA06AF992BF18E33666B6AB81F98B2284A90A21D"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeOffer.cs",
+    "sha256": "AF1509181DBE57F011892631F91AB6E42CBB60216F6B0314698214E177C7F502"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeOption.cs",
+    "sha256": "9CD35CFE15B5D01BD86C641EBA2E3AA666DEA781C1973AFBE16B075DD5445CB5"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeRarity.cs",
+    "sha256": "E5502915AD49E44AC2C09033D3E801B13FE2A572F400E06356B418E1B46B12FD"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeService.cs",
+    "sha256": "B8BB090CE70EBFE20857F15F5A274F0D6D58B604CA6E63E37B038A7B91E14E4B"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/UpgradeStat.cs",
+    "sha256": "9143EB0B0F61EC99341B5C8763DBC4AD67A28E0B8BDC61E6A2C059D31663FC1C"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/WeaponOption.cs",
+    "sha256": "2E1C86F5181FC16320C207A90915A47F3FC38AFA96AA2E7AFA4403628FCFA9CD"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Progression/WeaponShop.cs",
+    "sha256": "2FD27ADB113EA0972F66E7F46184F68CDFAF6A22FA57608D36A5C454130E3EA6"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Save/ProfileMigration.cs",
+    "sha256": "79C35CA1FD7DFEF69EDBFA82F7779CC188A37B8A5F52B7AFB5A5686F6B084EA4"
+  },
+  {
+    "variant": "baseline",
+    "path": "Assets/_Project/Scripts/Save/ProfileSaveData.cs",
+    "sha256": "BFCB3868DF2F5C482A3FAA796B73EB7508EEE5A7691A079CF4F6FF3B88DEB5E5"
+  }
+]

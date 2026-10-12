@@ -7,10 +7,11 @@ namespace Cryptforge.Art
     public static class FoundryMap
     {
         public const float Axis = .70710678f;
-        // Reference-led court: a broad west workshop, a large off-centre furnace opening,
-        // and a narrower gate causeway ending in a full-width landing. These same bounds
+        // Reference-led court: four units of west-yard span are reassigned to the
+        // entrance forecourt; pit, gate and bridge endpoints keep their anchors.
+        // A narrower gate causeway ends in a full-width landing. These same bounds
         // own the floor mesh, hero clearance, spawning and the pursuit visibility graph.
-        public const int West=-36,South=-14,North=18,East=14;
+        public const int West=-32,South=-18,North=18,East=14;
         // Shorter causeway; rigid landing and gate architecture translate together.
         // The court, furnace opening and arrival bridge retain their world anchors.
         public const int GateOffset=-4,GateLandingStart=28+GateOffset,GateLandingEnd=32+GateOffset;

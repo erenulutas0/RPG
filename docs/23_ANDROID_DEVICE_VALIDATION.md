@@ -2051,3 +2051,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Reference fidelity remains unfinished: the current walking outline is unchanged, and this package does not claim that material and skyline changes supply missing map width. Device motion/crowd/HUD/shimmer and midrange performance remain unverified. No ADB, installation or fresh phone observation. The earlier concrete restart/install decision remains pending; inspect current device state and preserve current original saves/telemetry before any later deployment. Never restore historical snapshots. Regional encounter/boss progression remains deferred under the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.
+
+
+## 2026-10-12 - Foundry forecourt layout verified; device pending
+
+438 .NET / 535 EditMode / 159 PlayMode = 1,132 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 605 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,264,048 bytes; SHA256 3BE71A740AE61ADA3816815C0D05FCCFAE20E408D1F9AA7AFDD6D20BFA688CFB; NOT INSTALLED.
+
+Reference fidelity remains unfinished. The forecourt distribution changes but the projected outer span and camera remain fixed. Existing immortal-crowd waypoint congestion remains unresolved; see crowd-diagnostic.md for baseline/candidate evidence. Moving-hero pack checks do not establish general crowd convergence or balance acceptance. Device motion/crowd/HUD/shimmer and midrange performance remain unverified. No ADB, installation or fresh phone observation. The earlier concrete restart/install decision remains pending; inspect current device state and preserve current original saves/telemetry before any later deployment. Never restore historical snapshots. Regional encounter/boss progression remains deferred under the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.

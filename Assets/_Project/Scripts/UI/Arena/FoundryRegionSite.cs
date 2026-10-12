@@ -135,8 +135,10 @@ namespace Cryptforge.UI
         // wholly outside the walking quad and each row has room below the next.
         internal static readonly Vector2[] BridgeLanterns=
         {
-            DeckDesign(-46,-(FoundryMap.BridgeHalfWidth+.7f)),DeckDesign(-46,FoundryMap.BridgeHalfWidth+.7f),
-            DeckDesign(-57,-(FoundryMap.BridgeHalfWidth+.7f)),DeckDesign(-57,FoundryMap.BridgeHalfWidth+.7f)
+            DeckDesign((2*BridgeHeadS+BridgeFootS)/3,-(FoundryMap.BridgeHalfWidth+.7f)),
+            DeckDesign((2*BridgeHeadS+BridgeFootS)/3,FoundryMap.BridgeHalfWidth+.7f),
+            DeckDesign((BridgeHeadS+2*BridgeFootS)/3,-(FoundryMap.BridgeHalfWidth+.7f)),
+            DeckDesign((BridgeHeadS+2*BridgeFootS)/3,FoundryMap.BridgeHalfWidth+.7f)
         };
 
         private void BuildBridgeLanterns(ArenaView arena)
@@ -272,8 +274,12 @@ namespace Cryptforge.UI
                 }
         }
 
-        private static bool CourtLantern(Vector2 p)=>(p.x==-24.5f+WestShift&&p.y==-6)||(p.x==2&&p.y==-14.5f)||
-            (p.x==-14&&p.y==18.5f)||(p.x==10&&p.y==18.5f);
+        private static bool CourtLantern(Vector2 p)
+        {
+            // The visible cage and its baked pool must always share one placement.
+            foreach(Vector2 lamp in CourtLanternPosts)if(p==lamp)return true;
+            return false;
+        }
 
         // A court post's stone, bottom-up: a stronger stepped silhouette than the old exterior posts - plinth, shaft, a mid
         // band and the cap course, and a crowning block on the finials (the lanterns carry their cage there). The

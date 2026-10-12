@@ -1059,3 +1059,14 @@ The western receiving edge, transfer turntable and stock/trolley approach now sh
 Region 32 renderers/164217 vertices versus 166467 (-2250); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.
+
+
+## 2026-10-12 - Foundry forecourt layout verified; device pending
+
+The main court now assigns four design units from the western working strip to the entrance forecourt: West -36 to -32 and South -14 to -18. The bounding rectangle changes from 50 by 32 to 46 by 36; the strip below the fixed furnace pit grows from 16 to 20 units, while the western strip decreases from 20 to 16. These are design coordinates, not measurements extracted from the concept. The projected outer span and comparison camera stay unchanged. Pit, gate landing and bridge endpoints retain their anchors; more of the same bridge now meets the expanded court.
+
+Perimeter masonry, southern bastions, finials, lantern pools and exterior chains follow the new boundary. The two bridge lantern rows and three below-deck supports fit the shorter exposed approach. The south brass guide and the stone packer's forced joints share one position. The long hanging chain uses an actually emitted, unscreened major-pier socket with deterministic tie-breaking. Western equipment and interior work islands use their existing derived offsets. No scene, encounter, balance, profile, camera or runtime texture change is included; the geometry change can affect encounter spacing and travel, so it is not balance acceptance.
+
+Region 32 renderers/161298 vertices versus 164217 (-2919); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.

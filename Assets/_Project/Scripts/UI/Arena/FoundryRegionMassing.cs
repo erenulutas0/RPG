@@ -1142,7 +1142,8 @@ namespace Cryptforge.UI
         // here among the rail pieces, their iron with the court borders (FoundryRegionSite.cs).
         private static readonly Vector2[] CourtFinials =
         {
-            WestPoint(-24.5f,-6),WestPoint(-24.5f,12),new Vector2(-9,-14.5f),new Vector2(2,-14.5f),new Vector2(7.5f,-14.5f),
+            WestPoint(-24.5f,-6),WestPoint(-24.5f,12),new Vector2(-9,FoundryMap.South-.5f),
+            new Vector2(2,FoundryMap.South-.5f),new Vector2(7.5f,FoundryMap.South-.5f),
             new Vector2(-14,18.5f),new Vector2(0,18.5f),new Vector2(10,18.5f)
         };
 
@@ -1186,7 +1187,7 @@ namespace Cryptforge.UI
                 AddPiece(pieces,new Vector4(p.x-.4f,p.y-.4f,p.x+.4f,p.y+.4f),2.85f,
                     ()=>{var stone=new Builder();CourtFinialMasonry(stone,p);Create("Outer stone finials",stone,wall,-11);});
                 // South and west finials face the camera: carry them down the wall as pilasters.
-                bool front=p.y<-14||p.x<-18;
+                bool front=p.y<FoundryMap.South||p.x<FoundryMap.West;
                 if(front&&!MassBlocked(box))
                     AddPiece(pieces,box,0,()=>{var below=new Builder();MassBox(below,box,DeckFace,0,true,true,.93f);Create("Balustrade pilaster",below,wall,-16);});
             }
@@ -1545,7 +1546,8 @@ namespace Cryptforge.UI
         // side is the platform (w for v-edges, z for u-edges).
         private static readonly Vector4[] Bastions =
         {
-            new Vector4(14,-8,16.6f,-5.4f),new Vector4(.7f,-16.6f,3.3f,-14),new Vector4(5.7f,-16.6f,8.3f,-14),
+            new Vector4(14,-8,16.6f,-5.4f),new Vector4(.7f,FoundryMap.South-2.6f,3.3f,FoundryMap.South),
+            new Vector4(5.7f,FoundryMap.South-2.6f,8.3f,FoundryMap.South),
             WestBox(-26.6f,-7.3f,-24,-4.7f),WestBox(-26.6f,-.3f,-24,2.3f),WestBox(-26.6f,11.4f,-24,14)
         };
 
@@ -1574,7 +1576,8 @@ namespace Cryptforge.UI
             // and per-segment; now hung, the anchor chains with a slight sag):
             AbyssChain(arena,new Vector3(14.8f,-8f,-3.4f),0,new Vector2(5.2f,-7.2f),.45f,.36f);
             AbyssChain(arena,new Vector3(-26.6f+WestShift,12.4f,-3.4f),1,new Vector2(-5.2f,-7.2f),.45f,.36f);
-            PierChain(arena,new Vector3(3f,-16.6f,-4f),0,new Vector3(7f,-16.6f,-4f),0,2f,.26f);
+            PierChain(arena,new Vector3(3f,FoundryMap.South-2.6f,-4f),0,
+                new Vector3(7f,FoundryMap.South-2.6f,-4f),0,2f,.26f);
             // Across the gap between the two south-west piers of the west rim, and from the nearer one into the void.
             PierChain(arena,new Vector3(-26.6f+WestShift,-5f,-3.5f),1,new Vector3(-26.6f+WestShift,.3f,-3.5f),1,1.5f,.3f);
             AbyssChain(arena,new Vector3(-26.6f+WestShift,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
@@ -1582,8 +1585,10 @@ namespace Cryptforge.UI
             // stone (-11) hides the anchor link, so the chain comes from behind it.
             AbyssChain(arena,new Vector3((BridgeFootS-BridgeFootD)*.5f-.255f,(BridgeFootS+BridgeFootD)*.5f+.255f,-2.2f),-1,new Vector2(-6.6f,-8.6f),.6f,.4f);
             AbyssChain(arena,new Vector3((BridgeFootS+BridgeFootD)*.5f+.255f,(BridgeFootS-BridgeFootD)*.5f-.255f,-2.2f),-1,new Vector2(6.6f,-8.6f),.6f,.4f);
-            // From the anchor plate of the undercroft's major pier right of the bridge head (FoundryRegionUndercroft.cs).
-            AbyssChain(arena,new Vector3(-4f,-14f,-3.9f),-1,new Vector2(3f,-10.2f),.5f,.38f);
+            // Only an actually emitted, unscreened major pier has the existing iron socket.
+            if(_southChainPier.HasValue)
+                AbyssChain(arena,new Vector3(_southChainPier.Value.x,_southChainPier.Value.y,-3.9f),-1,
+                    new Vector2(3f,-10.2f),.5f,.38f);
             // From the gate's south foundation, past the east edge of the frame.
             AbyssChain(arena,new Vector3(GateU(33.4f),-3f,-1.6f),0,new Vector2(10f,-11f),.9f,.42f);
         }

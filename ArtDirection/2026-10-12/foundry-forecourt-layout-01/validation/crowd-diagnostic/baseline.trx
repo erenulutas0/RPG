@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="097fa1d3-13a2-4c16-8f8b-0b1cfd1232b8" name="pc@DESKTOP-UBQR6C3 2026-10-12 21:20:25" runUser="DESKTOP-UBQR6C3\pc" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-12T21:20:25.4828058+03:00" queuing="2026-10-12T21:20:25.4828067+03:00" start="2026-10-12T21:20:22.3982121+03:00" finish="2026-10-12T21:20:25.7676905+03:00" />
+  <TestSettings name="default" id="0795206a-74fd-437f-9976-cea145ab0955">
+    <Deployment runDeploymentRoot="pc_DESKTOP-UBQR6C3_2026-10-12_21_20_25" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="25ef763f-cac9-4016-8d5e-54519ca4e04e" testId="baec4810-89cd-4fc7-490c-0bad0bb75c9e" testName="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(0.0f,-12.0f)" computerName="DESKTOP-UBQR6C3" duration="00:00:00.4392080" startTime="2026-10-12T21:20:25.2473202+03:00" endTime="2026-10-12T21:20:25.6865273+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="25ef763f-cac9-4016-8d5e-54519ca4e04e">
+      <Output>
+        <StdOut>Final actor 0: design=(-14,763277,-15,263871), arrived=False, stalled=True, distanceSquared=228,60724&#xD;
+Final actor 1: design=(-14,792482,-14,348199), arrived=False, stalled=True, distanceSquared=224,33157&#xD;
+Final actor 2: design=(-15,576943,-14,843667), arrived=False, stalled=True, distanceSquared=250,72763&#xD;
+Final actor 3: design=(-15,86469,-16,732132), arrived=False, stalled=True, distanceSquared=274,08148&#xD;
+Final actor 4: design=(-13,987073,-14,774333), arrived=False, stalled=True, distanceSquared=203,33513&#xD;
+Final actor 5: design=(-14,001832,-13,872618), arrived=False, stalled=True, distanceSquared=199,558&#xD;
+Final actor 6: design=(-16,141869,-15,568157), arrived=False, stalled=True, distanceSquared=273,2917&#xD;
+Final actor 7: design=(-15,337409,-15,991242), arrived=False, stalled=True, distanceSquared=251,16617&#xD;
+Final actor 8: design=(-1,28968,-11,521834), arrived=True, stalled=False, distanceSquared=1,8919165&#xD;
+Final actor 9: design=(-16,671299,-16,322454), arrived=False, stalled=True, distanceSquared=296,6158</StdOut>
+        <ErrorInfo>
+          <Message>  No actor remains wedged at the bridge mouth.&#xD;
+  Expected: greater than -13.3999996f&#xD;
+  But was:  -15.2638712f&#xD;
+</Message>
+          <StackTrace>   at Cryptforge.Tests.ImmortalCrowdDiagnostic.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(Single goalU, Single goalV) in E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\ImmortalCrowdDiagnostic.cs:line 48&#xD;
+   at InvokeStub_ImmortalCrowdDiagnostic.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(Object, Span`1)&#xD;
+
+1)    at Cryptforge.Tests.ImmortalCrowdDiagnostic.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(Single goalU, Single goalV) in E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\ImmortalCrowdDiagnostic.cs:line 48&#xD;
+   at InvokeStub_ImmortalCrowdDiagnostic.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(Object, Span`1)&#xD;
+
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="488f47c2-744c-44b6-84cb-ab4cb8422d12" testId="614f566a-dea0-759e-e9ae-0a599079a76b" testName="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(0.0f,0.0f)" computerName="DESKTOP-UBQR6C3" duration="00:00:00.2965610" startTime="2026-10-12T21:20:24.9506870+03:00" endTime="2026-10-12T21:20:25.2472471+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="488f47c2-744c-44b6-84cb-ab4cb8422d12">
+      <Output>
+        <StdOut>Final actor 0: design=(-1,8958014,-1,4487542), arrived=False, stalled=True, distanceSquared=5,692952&#xD;
+Final actor 1: design=(1,7191883,-1,4142942), arrived=False, stalled=True, distanceSquared=4,955837&#xD;
+Final actor 2: design=(-1,749197,-0,56016964), arrived=False, stalled=True, distanceSquared=3,3734803&#xD;
+Final actor 3: design=(-0,5829201,1,4929383), arrived=False, stalled=True, distanceSquared=2,5686605&#xD;
+Final actor 4: design=(-0,11153122,-1,3746952), arrived=True, stalled=False, distanceSquared=1,902226&#xD;
+Final actor 5: design=(0,85735285,-1,1039777), arrived=True, stalled=False, distanceSquared=1,9538206&#xD;
+Final actor 6: design=(-1,1177363,-1,9022295), arrived=False, stalled=True, distanceSquared=4,867812&#xD;
+Final actor 7: design=(-1,1603056,0,78087926), arrived=True, stalled=False, distanceSquared=1,9560815&#xD;
+Final actor 8: design=(-0,9393445,-1,0200652), arrived=True, stalled=False, distanceSquared=1,922901&#xD;
+Final actor 9: design=(1,5639958,-0,50273913), arrived=False, stalled=True, distanceSquared=2,6988297</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e70b724d-7fd7-480e-8e66-bee833c780fa" testId="457c85d5-cc91-0bfd-5fa7-cc2ecc6dd4c2" testName="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(-10.0f,-12.0f)" computerName="DESKTOP-UBQR6C3" duration="00:00:00.4296220" startTime="2026-10-12T21:20:24.5196316+03:00" endTime="2026-10-12T21:20:24.9491874+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e70b724d-7fd7-480e-8e66-bee833c780fa">
+      <Output>
+        <StdOut>Final actor 0: design=(-12,26504,-14,220654), arrived=False, stalled=True, distanceSquared=10,061716&#xD;
+Final actor 1: design=(-11,449123,-14,615345), arrived=False, stalled=True, distanceSquared=8,939995&#xD;
+Final actor 2: design=(-11,733908,-13,490731), arrived=False, stalled=True, distanceSquared=5,2287188&#xD;
+Final actor 3: design=(-11,056127,-11,082595), arrived=True, stalled=False, distanceSquared=1,9570346&#xD;
+Final actor 4: design=(-10,276345,-13,345566), arrived=True, stalled=False, distanceSquared=1,8869128&#xD;
+Final actor 5: design=(-10,677437,-14,152177), arrived=False, stalled=True, distanceSquared=5,090786&#xD;
+Final actor 6: design=(-11,935128,-12,603484), arrived=False, stalled=True, distanceSquared=4,108917&#xD;
+Final actor 7: design=(-10,466893,-10,399753), arrived=False, stalled=True, distanceSquared=2,7787812&#xD;
+Final actor 8: design=(-11,058187,-12,896218), arrived=True, stalled=False, distanceSquared=1,922967&#xD;
+Final actor 9: design=(-12,169691,-15,170566), arrived=False, stalled=False, distanceSquared=14,760051</StdOut>
+        <ErrorInfo>
+          <Message>  No actor remains wedged at the bridge mouth.&#xD;
+  Expected: greater than -13.3999996f&#xD;
+  But was:  -14.2206535f&#xD;
+</Message>
+          <StackTrace>   at Cryptforge.Tests.ImmortalCrowdDiagnostic.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(Single goalU, Single goalV) in E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\ImmortalCrowdDiagnostic.cs:line 48&#xD;
+
+1)    at Cryptforge.Tests.ImmortalCrowdDiagnostic.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(Single goalU, Single goalV) in E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\ImmortalCrowdDiagnostic.cs:line 48&#xD;
+
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(0.0f,-12.0f)" storage="e:\mobilegame\artdirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\debug\net9.0\diagnostic.dll" id="baec4810-89cd-4fc7-490c-0bad0bb75c9e">
+      <Execution id="25ef763f-cac9-4016-8d5e-54519ca4e04e" />
+      <TestMethod codeBase="E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\Debug\net9.0\Diagnostic.dll" adapterTypeName="executor://nunit3testexecutor/" className="Cryptforge.Tests.ImmortalCrowdDiagnostic" name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(0.0f,-12.0f)" />
+    </UnitTest>
+    <UnitTest name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(-10.0f,-12.0f)" storage="e:\mobilegame\artdirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\debug\net9.0\diagnostic.dll" id="457c85d5-cc91-0bfd-5fa7-cc2ecc6dd4c2">
+      <Execution id="e70b724d-7fd7-480e-8e66-bee833c780fa" />
+      <TestMethod codeBase="E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\Debug\net9.0\Diagnostic.dll" adapterTypeName="executor://nunit3testexecutor/" className="Cryptforge.Tests.ImmortalCrowdDiagnostic" name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(-10.0f,-12.0f)" />
+    </UnitTest>
+    <UnitTest name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(0.0f,0.0f)" storage="e:\mobilegame\artdirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\debug\net9.0\diagnostic.dll" id="614f566a-dea0-759e-e9ae-0a599079a76b">
+      <Execution id="488f47c2-744c-44b6-84cb-ab4cb8422d12" />
+      <TestMethod codeBase="E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\Debug\net9.0\Diagnostic.dll" adapterTypeName="executor://nunit3testexecutor/" className="Cryptforge.Tests.ImmortalCrowdDiagnostic" name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt(0.0f,0.0f)" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="baec4810-89cd-4fc7-490c-0bad0bb75c9e" executionId="25ef763f-cac9-4016-8d5e-54519ca4e04e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="614f566a-dea0-759e-e9ae-0a599079a76b" executionId="488f47c2-744c-44b6-84cb-ab4cb8422d12" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="457c85d5-cc91-0bfd-5fa7-cc2ecc6dd4c2" executionId="e70b724d-7fd7-480e-8e66-bee833c780fa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Bir Listede Olmayan Sonuçlar" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Yüklenen Tüm Sonuçlar" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="3" executed="3" passed="1" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>NUnit Adapter 4.6.0.0: Test execution started&#xD;
+Running all tests in E:\MobileGame\ArtDirection\2026-10-12\foundry-forecourt-layout-01\validation\crowd-diagnostic\baseline\bin\Debug\net9.0\Diagnostic.dll&#xD;
+   NUnit3TestExecutor discovered 3 of 3 NUnit test cases using Current Discovery mode, Non-Explicit run&#xD;
+Final actor 0: design=(-12,26504,-14,220654), arrived=False, stalled=True, distanceSquared=10,061716&#xD;
+Final actor 1: design=(-11,449123,-14,615345), arrived=False, stalled=True, distanceSquared=8,939995&#xD;
+Final actor 2: design=(-11,733908,-13,490731), arrived=False, stalled=True, distanceSquared=5,2287188&#xD;
+Final actor 3: design=(-11,056127,-11,082595), arrived=True, stalled=False, distanceSquared=1,9570346&#xD;
+Final actor 4: design=(-10,276345,-13,345566), arrived=True, stalled=False, distanceSquared=1,8869128&#xD;
+Final actor 5: design=(-10,677437,-14,152177), arrived=False, stalled=True, distanceSquared=5,090786&#xD;
+Final actor 6: design=(-11,935128,-12,603484), arrived=False, stalled=True, distanceSquared=4,108917&#xD;
+Final actor 7: design=(-10,466893,-10,399753), arrived=False, stalled=True, distanceSquared=2,7787812&#xD;
+Final actor 8: design=(-11,058187,-12,896218), arrived=True, stalled=False, distanceSquared=1,922967&#xD;
+Final actor 9: design=(-12,169691,-15,170566), arrived=False, stalled=False, distanceSquared=14,760051&#xD;
+&#xD;
+Final actor 0: design=(-1,8958014,-1,4487542), arrived=False, stalled=True, distanceSquared=5,692952&#xD;
+Final actor 1: design=(1,7191883,-1,4142942), arrived=False, stalled=True, distanceSquared=4,955837&#xD;
+Final actor 2: design=(-1,749197,-0,56016964), arrived=False, stalled=True, distanceSquared=3,3734803&#xD;
+Final actor 3: design=(-0,5829201,1,4929383), arrived=False, stalled=True, distanceSquared=2,5686605&#xD;
+Final actor 4: design=(-0,11153122,-1,3746952), arrived=True, stalled=False, distanceSquared=1,902226&#xD;
+Final actor 5: design=(0,85735285,-1,1039777), arrived=True, stalled=False, distanceSquared=1,9538206&#xD;
+Final actor 6: design=(-1,1177363,-1,9022295), arrived=False, stalled=True, distanceSquared=4,867812&#xD;
+Final actor 7: design=(-1,1603056,0,78087926), arrived=True, stalled=False, distanceSquared=1,9560815&#xD;
+Final actor 8: design=(-0,9393445,-1,0200652), arrived=True, stalled=False, distanceSquared=1,922901&#xD;
+Final actor 9: design=(1,5639958,-0,50273913), arrived=False, stalled=True, distanceSquared=2,6988297&#xD;
+&#xD;
+Final actor 0: design=(-14,763277,-15,263871), arrived=False, stalled=True, distanceSquared=228,60724&#xD;
+Final actor 1: design=(-14,792482,-14,348199), arrived=False, stalled=True, distanceSquared=224,33157&#xD;
+Final actor 2: design=(-15,576943,-14,843667), arrived=False, stalled=True, distanceSquared=250,72763&#xD;
+Final actor 3: design=(-15,86469,-16,732132), arrived=False, stalled=True, distanceSquared=274,08148&#xD;
+Final actor 4: design=(-13,987073,-14,774333), arrived=False, stalled=True, distanceSquared=203,33513&#xD;
+Final actor 5: design=(-14,001832,-13,872618), arrived=False, stalled=True, distanceSquared=199,558&#xD;
+Final actor 6: design=(-16,141869,-15,568157), arrived=False, stalled=True, distanceSquared=273,2917&#xD;
+Final actor 7: design=(-15,337409,-15,991242), arrived=False, stalled=True, distanceSquared=251,16617&#xD;
+Final actor 8: design=(-1,28968,-11,521834), arrived=True, stalled=False, distanceSquared=1,8919165&#xD;
+Final actor 9: design=(-16,671299,-16,322454), arrived=False, stalled=True, distanceSquared=296,6158&#xD;
+&#xD;
+NUnit Adapter 4.6.0.0: Test execution complete&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -7,6 +7,8 @@ namespace Cryptforge.UI
     // Static, below-deck architecture. The shared walking union remains authoritative.
     public sealed partial class FoundryRegionView
     {
+        private Vector2? _southChainPier;
+
         private void BuildUndercroft(ArenaView arena)
         {
             BuildFoundationCurtain(arena);
@@ -33,6 +35,7 @@ namespace Cryptforge.UI
                 UndercroftArch(arena,middle,b,corner*2+1,true,piers);
             }
             foreach(var pier in piers)UndercroftPier(arena,pier.at,pier.major);
+            _southChainPier=SelectSouthChainPier(piers);
             // Long suspension catenaries connect scenery anchors beneath the deck.
             SuspendedChain(arena,Project(FoundryMap.West-2,-10)+Vector3.down*4,
                 Project(-12,-10)+Vector3.down*4,2.1f);
@@ -46,6 +49,24 @@ namespace Cryptforge.UI
             Vector2 farDrain=BoilerCentres[3]+new Vector2(-.4f,-1.02f);
             FurnaceDrain(arena,Project(nearDrain.x,nearDrain.y),5.2f);
             FurnaceDrain(arena,Project(farDrain.x,farDrain.y),6.7f);
+        }
+
+        // Select after the real exterior arches have emitted their supports. A moved
+        // court edge changes major-pier cadence, and screened piers have no iron plate.
+        private static Vector2? SelectSouthChainPier(List<(Vector2 at,bool major)> piers)
+        {
+            Vector2? selected=null;
+            float nearest=float.MaxValue;
+            foreach(var pier in piers)
+            {
+                if(!pier.major||pier.at.y!=FoundryMap.South||PierScreened(pier.at))continue;
+                float distance=Mathf.Abs(pier.at.x+4);
+                // The cell source is a HashSet; equal distances must not choose
+                // different sockets under Mono, IL2CPP or a different insertion order.
+                if(distance>nearest||(distance==nearest&&selected.HasValue&&pier.at.x<=selected.Value.x))continue;
+                nearest=distance;selected=pier.at;
+            }
+            return selected;
         }
 
         // A fortress needs a connected body below its deck. The former arches joined

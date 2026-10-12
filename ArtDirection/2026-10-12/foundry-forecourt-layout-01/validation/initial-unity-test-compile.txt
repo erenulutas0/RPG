@@ -1,0 +1,4 @@
+Assets\_Project\Tests\EditMode\FoundryBridgeArchitectureTests.cs(76,45): error CS0117: 'FoundryRegionView' does not contain a definition for 'BridgeLanterns'
+Assets\_Project\Tests\EditMode\FoundryBridgeArchitectureTests.cs(78,48): error CS0117: 'FoundryRegionView' does not contain a definition for 'BridgeLanterns'
+Assets\_Project\Tests\EditMode\FoundryBridgeArchitectureTests.cs(78,90): error CS0117: 'FoundryRegionView' does not contain a definition for 'BridgeLanterns'
+Assets\_Project\Tests\EditMode\FoundryBridgeArchitectureTests.cs(98,55): error CS0117: 'FoundryRegionView' does not contain a definition for 'BridgeHeadPosts'

@@ -1,0 +1,11 @@
+# Actual forecourt layout review
+
+Reviewed fresh matching `before`/`after` images: `full-map.png`, `forecourt-detail.png`, `approach--8--12.png` and `approach--20-6.png`, alongside the approved `ArtDirection/2026-09-23/foundry-layout-01/foundry-v1.png`. These are actual Unity captures; no Assets were changed during review.
+
+**Result: visible structural improvement, with no visual blocker in these views.** At the fixed southern approach, the foreground wall and its statue move away from the hero while the medallion/enemies stay in place. This gives the hero a visibly broader floor margin and keeps the blue silhouette/range ring clear. The forecourt detail confirms a deeper continuous stone surface, coherent wall returns and a shorter exposed entrance bridge. I see no new void slit, floating floor strip or broken stone-grain transition at that join.
+
+The full map now devotes more of its lower half to the central court, and less to the western workyard. This is a redistribution of the footprint, not a wider camera or a blanket scale-up: `West -36 -> -32`, `South -14 -> -18`; pit, gate and bridge endpoints remain fixed. The reference's broad entrance court therefore reads more plausibly. The camera framing and actor scale remain comparable between captures.
+
+At the western approach, the shifted turntable, cart and parapet are more compact around the fixed pit. The hero and pit rim remain readable, with visible floor between them and the work equipment. The cart is partly cropped in this particular portrait view; that reflects its changed position within a moving-camera scene, not a missing assembly. Paving remains calm enough for the blue hero and orange enemies.
+
+This does **not** establish reference parity. The reference still has richer irregular paving, a more articulated entrance composition and a larger-feeling medallion/forecourt hierarchy; the current broad field retains long straight brass guides and regular tiles. Static images also do not prove collision correctness, frame cost or all-position crowd progress. Accepted pure/Unity gates and the separately retained `crowd-diagnostic.md` provide those qualifications; the immortal-crowd waypoint limitation remains unresolved.

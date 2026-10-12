@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -17,7 +18,7 @@ namespace Cryptforge.UI
             foreach(var p in new[]{DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD),
                 new Vector2(GateU(32.5f),-2),new Vector2(GateU(32.5f),12)})Beacon(arena,p.x,p.y);
             // Heavy exterior suspension links reinforce the floating foundry silhouette.
-            foreach(var p in new[]{WestPoint(-24,-8),new Vector2(5,-14),new Vector2(14,15)})
+            foreach(var p in new[]{WestPoint(-24,-8),new Vector2(5,FoundryMap.South),new Vector2(14,15)})
                 Chain(arena,Project(p.x,p.y)+Vector3.down*.3f,
                     Project(p.x-1,p.y)+Vector3.down*6.5f,.16f,-16);
         }

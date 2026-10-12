@@ -1,0 +1,9 @@
+# Actual image acceptance
+
+Root directly inspected the actual After full-map, forecourt-detail and approach--8--12 views against the freshly captured Before set and approved concept. Helpers independently inspected matched full-map, yard, crane, bridge, forecourt and actor-height views; their individual reports are retained beside this one.
+
+The entrance court now has visibly greater depth before the foreground wall, and the exposed bridge is shorter. The western working field no longer dominates quite as strongly. The main court reads less like the previous long diagonal bar. The outer projected span and camera are unchanged: this is floor redistribution, not zoom or a claim of increased screen width.
+
+Both bridge shoulder joins remain open and continuously paved. The keeper seats remain outside the passage; two lantern rows are visually separated and the revised supports stay below the exposed deck. Southern bastions, finials, chains and light pools follow the new edge. The south hanging chain visibly meets a plated support; precise plate/link contact is additionally covered by the constructed-scene guard. The crane shelves, transferred equipment and interior islands remain grounded. Actor feet and floor guide remain readable in the inspected portrait.
+
+Accepted for this bounded layout slice. Full reference fidelity is unfinished: repeated lower arches, straight guide lines, broad regular paving and simple facade masses remain less varied than the concept. The supplied reference is concept art, not a calibrated camera drawing. These paused, HUD-hidden Unity captures do not prove touch feel, crowd convergence, shimmer or physical-device performance. The retained immortal-crowd diagnostic is an unresolved gameplay limitation; the separate moving-hero acceptance case does not erase it.

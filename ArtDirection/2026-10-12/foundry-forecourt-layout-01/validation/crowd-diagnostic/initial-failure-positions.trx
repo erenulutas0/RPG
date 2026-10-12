@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="457ec9f2-4322-40a1-87c7-21b2d3168696" name="pc@DESKTOP-UBQR6C3 2026-10-12 21:13:21" runUser="DESKTOP-UBQR6C3\pc" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-12T21:13:21.7032190+03:00" queuing="2026-10-12T21:13:21.7032194+03:00" start="2026-10-12T21:13:20.7192746+03:00" finish="2026-10-12T21:13:21.7100066+03:00" />
+  <TestSettings name="default" id="855da59f-a86f-4542-a003-6f0399c70df6">
+    <Deployment runDeploymentRoot="pc_DESKTOP-UBQR6C3_2026-10-12_21_13_21" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b2eab94e-5997-4ce2-8077-c19e28cf2080" testId="87123380-15e7-384b-f846-acfb548d58ed" testName="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt" computerName="DESKTOP-UBQR6C3" duration="00:00:00.2837210" startTime="2026-10-12T21:13:21.2913864+03:00" endTime="2026-10-12T21:13:21.5750459+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b2eab94e-5997-4ce2-8077-c19e28cf2080">
+      <Output>
+        <StdOut>Final actor 0: design=(-11,771962,-16,32244), arrived=False, stalled=True, distanceSquared=4,888696&#xD;
+Final actor 1: design=(-22,879318,-22,921944), arrived=False, stalled=True, distanceSquared=228,63403&#xD;
+Final actor 2: design=(-11,372323,-17,139616), arrived=False, stalled=True, distanceSquared=6,4612317&#xD;
+Final actor 3: design=(-11,634394,-14,662404), arrived=False, stalled=True, distanceSquared=2,785215&#xD;
+Final actor 4: design=(-10,85681,-16,37193), arrived=False, stalled=True, distanceSquared=2,6163123&#xD;
+Final actor 5: design=(-9,924209,-16,397755), arrived=True, stalled=False, distanceSquared=1,9594607&#xD;
+Final actor 6: design=(-23,643911,-23,423906), arrived=False, stalled=True, distanceSquared=257,11856&#xD;
+Final actor 7: design=(-10,989949,-14,010051), arrived=False, stalled=False, distanceSquared=1,9600003&#xD;
+Final actor 8: design=(-11,263309,-15,568314), arrived=True, stalled=False, distanceSquared=1,9189292&#xD;
+Final actor 9: design=(-22,845272,-23,852642), arrived=False, stalled=True, distanceSquared=243,3703</StdOut>
+        <ErrorInfo>
+          <Message>  No actor remains wedged at the bridge mouth.&#xD;
+  Expected: greater than -17.3999996f&#xD;
+  But was:  -22.9219437f&#xD;
+</Message>
+          <StackTrace>   at Cryptforge.Tests.FoundryMapTests.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt() in E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryMapTests.cs:line 214&#xD;
+
+1)    at Cryptforge.Tests.FoundryMapTests.ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt() in E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryMapTests.cs:line 214&#xD;
+
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt" storage="e:\mobilegame\tools\combatchecks\bin\debug\net9.0\combatchecks.dll" id="87123380-15e7-384b-f846-acfb548d58ed">
+      <Execution id="b2eab94e-5997-4ce2-8077-c19e28cf2080" />
+      <TestMethod codeBase="E:\MobileGame\Tools\CombatChecks\bin\Debug\net9.0\CombatChecks.dll" adapterTypeName="executor://nunit3testexecutor/" className="Cryptforge.Tests.FoundryMapTests" name="ActualTenEnemyPackCrossesTheBridgeJoinIntoTheNewForecourt" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="87123380-15e7-384b-f846-acfb548d58ed" executionId="b2eab94e-5997-4ce2-8077-c19e28cf2080" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Bir Listede Olmayan Sonuçlar" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Yüklenen Tüm Sonuçlar" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>NUnit Adapter 4.6.0.0: Test execution started&#xD;
+Running selected tests in E:\MobileGame\Tools\CombatChecks\bin\Debug\net9.0\CombatChecks.dll&#xD;
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Non-Explicit run&#xD;
+Final actor 0: design=(-11,771962,-16,32244), arrived=False, stalled=True, distanceSquared=4,888696&#xD;
+Final actor 1: design=(-22,879318,-22,921944), arrived=False, stalled=True, distanceSquared=228,63403&#xD;
+Final actor 2: design=(-11,372323,-17,139616), arrived=False, stalled=True, distanceSquared=6,4612317&#xD;
+Final actor 3: design=(-11,634394,-14,662404), arrived=False, stalled=True, distanceSquared=2,785215&#xD;
+Final actor 4: design=(-10,85681,-16,37193), arrived=False, stalled=True, distanceSquared=2,6163123&#xD;
+Final actor 5: design=(-9,924209,-16,397755), arrived=True, stalled=False, distanceSquared=1,9594607&#xD;
+Final actor 6: design=(-23,643911,-23,423906), arrived=False, stalled=True, distanceSquared=257,11856&#xD;
+Final actor 7: design=(-10,989949,-14,010051), arrived=False, stalled=False, distanceSquared=1,9600003&#xD;
+Final actor 8: design=(-11,263309,-15,568314), arrived=True, stalled=False, distanceSquared=1,9189292&#xD;
+Final actor 9: design=(-22,845272,-23,852642), arrived=False, stalled=True, distanceSquared=243,3703&#xD;
+&#xD;
+NUnit Adapter 4.6.0.0: Test execution complete&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

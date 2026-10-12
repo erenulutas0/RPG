@@ -266,6 +266,8 @@ namespace Cryptforge.UI
                 LitFloorQuad(mesh,Project(q[0].x,q[0].y),Project(q[i].x,q[i].y),Project(q[i+1].x,q[i+1].y),
                     Project(q[Mathf.Min(i+2,n-1)].x,q[Mathf.Min(i+2,n-1)].y),tone);
         }
+        // Shared by visible brass and the forced slab joints beneath it.
+        private const float ForecourtGuideV=FoundryMap.South+4;
         // The photograph now owns the composition: broad court, inset shaft, south bridge, northeast gate.
         private void BuildLandmarks(ArenaView arena)
         {
@@ -279,7 +281,8 @@ namespace Cryptforge.UI
             }
             // Court guides stop before the gate's own centred processional panel.
             Strip(inlays,4,-1,13.5f,-1,.12f,brass,CopingTrim.Brass);Strip(inlays,5,9,13.5f,9,.12f,brass,CopingTrim.Brass);
-            Strip(inlays,-16,-10,8,-10,.1f,brass,CopingTrim.Brass);Strip(inlays,-16,-10,-16,15,.1f,brass,CopingTrim.Brass);
+            Strip(inlays,-16,ForecourtGuideV,8,ForecourtGuideV,.1f,brass,CopingTrim.Brass);
+            Strip(inlays,-16,ForecourtGuideV,-16,15,.1f,brass,CopingTrim.Brass);
             Strip(inlays,-16,15,10,15,.1f,brass,CopingTrim.Brass);
             BuildCourtCompass(inlays,brass);
             Create("Court brass inlays",inlays,arena.PlatformMaterials.Coping,FloorDecal);

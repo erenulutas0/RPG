@@ -13,6 +13,128 @@ namespace Cryptforge.Tests
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Members=BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
 
+        [Test]
+        public void PerimeterPostGeometryLightSourcesAndDepthOwnersShareTheCurrentBoundary()
+        {
+            var posts=(Vector2[])typeof(FoundryRegionView).GetField("CourtFinials",Static).GetValue(null);
+            var lamps=(Vector2[])typeof(FoundryRegionView).GetField("CourtLanternPosts",Static).GetValue(null);
+            Type builderType=typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);
+            var go=new GameObject("Perimeter ownership proof");
+            try
+            {
+                var view=go.AddComponent<FoundryRegionView>();
+                typeof(FoundryRegionView).GetMethod("RegisterDepthLandmarks",Members).Invoke(view,null);
+                var owners=(System.Collections.IEnumerable)typeof(FoundryRegionView).GetField("_depthFootprints",Members).GetValue(view);
+                foreach(Vector2 post in posts)
+                {
+                    AssertScenicBox(post,.4f);
+                    bool hasOwner=false;
+                    foreach(object owner in owners)
+                    {
+                        Type type=owner.GetType();
+                        Vector3 left=(Vector3)type.GetField("Left",Members).GetValue(owner);
+                        Vector3 right=(Vector3)type.GetField("Right",Members).GetValue(owner);
+                        if(Vector3.Distance(left,Project(post.x-.4f,post.y+.4f))<.00001f&&
+                            Vector3.Distance(right,Project(post.x+.4f,post.y-.4f))<.00001f)hasOwner=true;
+                    }
+                    Assert.That(hasOwner,Is.True,"The raised post must retain its own relocated depth footprint.");
+                    object stone=Activator.CreateInstance(builderType,true);
+                    typeof(FoundryRegionView).GetMethod("CourtFinialMasonry",Static).Invoke(null,new[]{stone,(object)post});
+                    var vertices=(List<Vector3>)builderType.GetField("V",Members).GetValue(stone);
+                    Assert.That(vertices.Count,Is.GreaterThan(0));
+                    float leftX=Project(post.x-.4f,post.y+.4f).x,rightX=Project(post.x+.4f,post.y-.4f).x;
+                    foreach(Vector3 vertex in vertices)Assert.That(vertex.x,Is.InRange(leftX,rightX));
+                }
+                var pools=(Array)typeof(FoundryRegionView).GetMethod("ForgeLamps",Static).Invoke(null,null);
+                foreach(Vector2 lamp in lamps)
+                {
+                    Assert.That(Array.Exists(posts,p=>p==lamp),Is.True,"No baked light may remain without its moved post.");
+                    Assert.That((bool)typeof(FoundryRegionView).GetMethod("CourtLantern",Static).Invoke(null,new object[]{lamp}),Is.True);
+                    bool hasPool=false;
+                    foreach(object pool in pools)
+                    {
+                        Vector4 box=(Vector4)pool.GetType().GetField("Box",Members).GetValue(pool);
+                        if(box==new Vector4(lamp.x,lamp.y,lamp.x,lamp.y))hasPool=true;
+                    }
+                    Assert.That(hasPool,Is.True,"A moved physical lantern must move its baked illumination too.");
+                }
+                var bastions=(Vector4[])typeof(FoundryRegionView).GetField("Bastions",Static).GetValue(null);
+                foreach(Vector4 box in bastions)
+                    for(int x=0;x<=4;x++)for(int y=0;y<=4;y++)
+                        AssertScenic(new Vector2(Mathf.Lerp(box.x+.0001f,box.z-.0001f,x*.25f),
+                            Mathf.Lerp(box.y+.0001f,box.w-.0001f,y*.25f)));
+            }
+            finally{UnityEngine.Object.DestroyImmediate(go);}
+        }
+
+        [Test]
+        public void ShortenedExposedBridgeKeepsSeparateLanternRowsAndBorneSupportRows()
+        {
+            float head=(float)typeof(FoundryRegionView).GetField("BridgeHeadS",Static).GetRawConstantValue();
+            float foot=(float)typeof(FoundryRegionView).GetField("BridgeFootS",Static).GetRawConstantValue();
+            var lanterns=(Vector2[])typeof(FoundryRegionView).GetField("BridgeLanterns",Static).GetValue(null);
+            float previous=head;
+            for(int i=0;i<lanterns.Length;i+=2)
+            {
+                Vector2 left=lanterns[i],right=lanterns[i+1];
+                float station=left.x+left.y;
+                Assert.That(right.x+right.y,Is.EqualTo(station).Within(.00001f));
+                Assert.That(previous-station,Is.GreaterThan(5),"Avoid burying a cage in the keeper or preceding lantern silhouette.");
+                Assert.That(station-foot,Is.GreaterThan(5),"The final lantern must clear the fixed mouth beacon.");
+                AssertScenicBox(left,.32f);AssertScenicBox(right,.32f);
+                previous=station;
+            }
+            var rows=(float[])typeof(FoundryRegionView).GetField("BridgeSupportStations",Static).GetValue(null);
+            previous=head;
+            foreach(float station in rows)
+            {
+                Assert.That(station,Is.LessThan(previous));
+                Assert.That(station,Is.GreaterThanOrEqualTo(FoundryMap.BridgeStart));
+                // Full rear return and outer arch shoulder stay below the exposed
+                // bridge, never hidden inside the expanded court foundation.
+                float furthestV=(station+1.3f+FoundryMap.BridgeHalfWidth+.18f)*.5f;
+                Assert.That(furthestV,Is.LessThan(FoundryMap.South));
+                previous=station;
+            }
+            var heads=(Vector2[])typeof(FoundryRegionView).GetField("BridgeHeadPosts",Static).GetValue(null);
+            foreach(Vector2 post in heads)AssertScenicBox(post,.7f);
+        }
+
+        [Test]
+        public void SouthHangingChainRequiresAnEmittedUnscreenedMajorPierSocket()
+        {
+            var choose=typeof(FoundryRegionView).GetMethod("SelectSouthChainPier",Static);
+            Vector2 valid=new Vector2(0,FoundryMap.South),screened=new Vector2(2,FoundryMap.South);
+            Assert.That((bool)typeof(FoundryRegionView).GetMethod("PierScreened",Static).Invoke(null,new object[]{screened}),Is.True);
+            var piers=new List<(Vector2 at,bool major)>
+            {
+                (new Vector2(-4,FoundryMap.South),false),
+                (new Vector2(-4,FoundryMap.South+4),true),(screened,true),(valid,true)
+            };
+            Assert.That(choose.Invoke(null,new object[]{piers}),Is.EqualTo(valid),
+                "A nearby minor, old-edge or screened support must not inherit the chain.");
+            piers.RemoveAt(piers.Count-1);
+            Assert.That(choose.Invoke(null,new object[]{piers}),Is.Null,"No emitted iron socket means no floating fallback chain.");
+            piers.Add((new Vector2(-8,FoundryMap.South),true));piers.Add((valid,true));
+            Assert.That(choose.Invoke(null,new object[]{piers}),Is.EqualTo(valid));
+            piers.Reverse();
+            Assert.That(choose.Invoke(null,new object[]{piers}),Is.EqualTo(valid),"Tied candidates must not depend on HashSet traversal order.");
+        }
+
+        private static Vector3 Project(float u,float v)=>(Vector3)typeof(FoundryRegionView)
+            .GetMethod("Project",Static).Invoke(null,new object[]{u,v});
+
+        private static void AssertScenic(Vector2 point)
+        {
+            FoundryMap.ToFloor(point.x,point.y,out float x,out float y);
+            Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False,"Raised scenery and its depth owner must remain outside the walking union.");
+        }
+
+        private static void AssertScenicBox(Vector2 centre,float half)
+        {
+            for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)AssertScenic(centre+new Vector2(x*half,y*half));
+        }
+
         [TestCase(-1f)]
         [TestCase(1f)]
         public void ParapetPanelsAndOwnersStayOutsidePassageThroughBothCourtSeams(float side)

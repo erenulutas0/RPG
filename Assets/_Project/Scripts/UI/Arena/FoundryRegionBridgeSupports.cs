@@ -206,11 +206,16 @@ namespace Cryptforge.UI
             stone.U.Add(BridgeFortressCapGrain(p,blockStart));
         }
 
+        private static readonly float[] BridgeSupportStations=
+        {
+            BridgeHeadS-2.9f,(BridgeHeadS-2.9f+FoundryMap.BridgeStart+1.2f)*.5f,FoundryMap.BridgeStart+1.2f
+        };
+
         private void BuildEntranceBridgeSupports(ArenaView arena)
         {
             // Repeated transverse masonry bents support the longer real deck. All
             // geometry is below its sidewall; the arch openings remain open void.
-            foreach(float s in new[]{-39.2f,-52f,FoundryMap.BridgeStart+1.2f})
+            foreach(float s in BridgeSupportStations)
             {
                 // Shared transparent stone batch: far rows precede near rows;
                 // all recessed returns precede that row's solid front silhouette.
