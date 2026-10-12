@@ -561,10 +561,10 @@ namespace Cryptforge.UI
                 for(int row=0;row+1<profile.Length;row++)
                 {
                     Vector2 upper=profile[row],lower=profile[row+1];
-                    PitLiningReliefFace(b,PitLiningPoint(a,na,lower),PitLiningPoint(c,nc,lower),
+                    PitBearingStoneFace(b,PitLiningPoint(a,na,lower),PitLiningPoint(c,nc,lower),
                         PitLiningPoint(c,nc,upper),PitLiningPoint(a,na,upper),
-                        new Vector4(.43f,.47f,.72f,.55f),upper.x,lower.x,(na+nc).normalized,
-                        row==0?1.03f:row==1?.84f:.61f,false);
+                        upper.x,lower.x,(na+nc).normalized,Vector2.Distance(a,c),
+                        row==0?1.03f:row==1?.92f:.65f);
                 }
             }
         }
@@ -590,13 +590,11 @@ namespace Cryptforge.UI
                 {
                     Vector2 upper=profile[row],lower=profile[row+1];
                     for(int half=0;half<2;half++)
-                        PitLiningReliefFace(b,PitLiningPoint(points[half],normals[half],lower),
+                        PitCastLiningFace(b,PitLiningPoint(points[half],normals[half],lower),
                             PitLiningPoint(points[half+1],normals[half+1],lower),
                             PitLiningPoint(points[half+1],normals[half+1],upper),
                             PitLiningPoint(points[half],normals[half],upper),
-                            new Vector4(.008f+half*.03f,1-lower.x/PitFrontScale,
-                                .038f+half*.03f,1-upper.x/PitFrontScale),
-                            upper.x,lower.x,normal,row==0?1.03f:row==1?.81f:1f,true);
+                            upper.x,lower.x,normal,row==0?1.03f:row==1?.81f:1f,half);
                     // Side returns end on the actual wall chord instead of
                     // floating over the texture or ending in a screen-space strip.
                     foreach(int edge in new[]{0,2})
@@ -605,9 +603,8 @@ namespace Cryptforge.UI
                         Vector3 wallHigh=Project(points[edge].x,points[edge].y)+Vector3.down*upper.x;
                         Vector3 faceLow=PitLiningPoint(points[edge],normals[edge],lower);
                         Vector3 faceHigh=PitLiningPoint(points[edge],normals[edge],upper);
-                        PitLiningReliefFace(b,wallLow,faceLow,faceHigh,wallHigh,
-                            new Vector4(.012f,1-lower.x/PitFrontScale,.064f,1-upper.x/PitFrontScale),
-                            upper.x,lower.x,normal,edge==0?.56f:.73f,true);
+                        PitCastLiningFace(b,wallLow,faceLow,faceHigh,wallHigh,
+                            upper.x,lower.x,normal,edge==0?.56f:.73f,-1);
                     }
                 }
             }
@@ -629,8 +626,8 @@ namespace Cryptforge.UI
             for(int i=0;i<4;i++)
             {
                 float depth=i<2?bottom:top;
-                Color tone=iron?PitHeat(depth,new Color(.65f,.69f,.77f),new Color(.98f,.76f,.50f),.85f):
-                    PitWallTone(depth,normal);
+                Color tone=iron?PitHeat(depth,new Color(.84f,.88f,.97f),new Color(1.18f,.86f,.57f),.85f):
+                    Tinted(PitWallTone(depth,normal),new Color(.93f,.98f,1.04f));
                 tone*=gain;tone.a=1;b.C[first+i]=tone;
             }
         }

@@ -718,3 +718,11 @@ Evidence/reproduction: ArtDirection/2026-10-11/foundry-service-shafts-01.
 - [ ] Full reference fidelity and device acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.
+
+
+## 2026-10-12 - Court, pit and gate material integration verified; device pending
+
+- [x] Combined gate stone grain, pit cast-iron/stone material and dressed court integration with actual image review, full suites and APK.
+- [ ] Full reference fidelity and device acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.

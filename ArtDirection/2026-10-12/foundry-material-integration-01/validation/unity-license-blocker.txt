@@ -1,0 +1,12 @@
+Graphics capture stopped during license initialization, before script import or test execution.
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+[Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+[Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+No valid Unity Editor license found. Please activate your license.
+Exiting without the bug reporter. Application will terminate with return code 198
+
+Unity CLI status: loggedIn=true; sessionState=stale; licenseActive=false; licenseCount=0.
+Both normal browser sign-in attempts timed out. Final CLI state remains stale with no active license. Owner must renew Unity Hub sign-in/license before verification resumes. No terms accepted by the assistant. No runtime capture/test/APK success claimed.
+
+RESOLVED: A later CLI login link was explicitly opened in the Codex browser and the owner completed sign-in. CLI session became fresh. Activation without terms acceptance refused to proceed. The owner then explicitly authorized accepting the Unity Personal terms and activation. Activation with --personal --accept-eula exited 0; license status reported active=true. Root resumed actual Unity capture. This recovery does not itself prove capture, suite or APK success.

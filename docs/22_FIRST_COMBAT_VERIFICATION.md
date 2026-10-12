@@ -1327,3 +1327,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Three helpers owned court, pit and gate implementation with disjoint files; root integrated and alone ran Unity. Fresh before images were captured at baseline 66e68d3 before any runtime edits, then nine matching after views used the same camera/actor setup. One additional broad-yard view was captured only after; it is excluded from the paired comparison. Source review was crossed between helpers; root and helpers inspected actual images. Initial full EditMode passed 509/510: the new court annulus RGB gain also multiplied alpha to 1.08. The local ring tone now explicitly preserves alpha 1; the strict test was retained. Initial failed XML is saved. Full final suites passed before the APK build.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.
+
+
+## 2026-10-12 - Court, pit and gate material integration verified; device pending
+
+425 .NET / 512 EditMode / 159 PlayMode = 1,096 distinct suite cases, zero failures/skips. Isolated compile zero warnings/errors; Android-target actual graphics capture passed. PASS: 602 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,260,221 bytes; SHA256 993B2DA7B72A5A7D6A0FF2923DF29EB41A55917D33B45AF2EE105760DB08D8D0; NOT INSTALLED.
+
+Three helpers owned gate, pit and court source; source reviews were crossed and root alone ran Unity. Nine Before images were copied from committed baseline 3d854256d88863793b9094a71e6017c32ef82a3f and verified byte-for-byte against Git objects. Nine matching actual After views retain the same camera/actor setup. Root and helpers inspected actual images. Two new court geometry cases guard dressed-face area, containment, noncollapsed shoulders and continuous world grain; existing guards were retained. Initial graphics launch exited 198 during license initialization. After browser sign-in succeeded, the owner explicitly authorized accepting the Unity Personal terms and activating the license; activation exited 0 and the license became active. Successful Unity results were obtained only after this renewal. The initial sanitized failure and recovery record are retained.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.

@@ -2350,3 +2350,13 @@ The court compass now uses restrained paired brass facets and a continuous engra
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,256,060 bytes; SHA256 3405AA3C2A261B803A36F7B25BCED0D1AEDDF64CB422BABB56EBC9E53F375501; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.
+
+
+## 2026-10-12 - Court, pit and gate material integration verified; device pending
+
+Gate recesses now map the existing stone grain by real block dimensions, continue it over bevels and retain inherited corner lighting plus a shaded-head/reflected-foot gradient. Pit ribs use a quiet cast-iron atlas interior at bounded grain scale with restrained integral worn arrises; the under-rail bearing uses cool masonry and actual narrow block beds. The medallion ring and fitted centre flags gain flush dressed shoulders and share the surrounding court quarry family, reducing the separate warm checker pattern. Existing footprints, silhouette, pit fire and vessels, door/lock, navigation, camera, scene, gameplay and saves remain unchanged.
+
+Verified: 425 .NET / 512 EditMode / 159 PlayMode = 1,096 distinct suite cases, zero failures/skips. Isolated compile zero warnings/errors; Android-target actual graphics capture passed. PASS: 602 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,260,221 bytes; SHA256 993B2DA7B72A5A7D6A0FF2923DF29EB41A55917D33B45AF2EE105760DB08D8D0; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.

@@ -501,14 +501,14 @@ namespace Cryptforge.UI
         private static void AshlarFlagFace(Builder mesh,AshlarStone s,bool repair)
         {
             float u0=s.I*.5f,v0=s.J*.5f,u1=(s.I+s.W)*.5f,v1=(s.J+s.H)*.5f,w=u1-u0,h=v1-v0,area=w*h;
-            // Keep the ceremonial seal regular. Other stone families follow broad
-            // mineral patches, so variation belongs to quarry batches and weathered
-            // work areas rather than an independent pale/dark checkerboard.
+            // Keep the ceremonial seal's regular bond, but share the court's broad
+            // mineral patches so its corners do not form a separate warm checker.
+            // Quarry batches and weathered work areas carry the stone variation.
             bool kept=s.Zone==1;
             int seedU=kept?(int)u0:s.I,seedV=kept?(int)v0:s.J;
             float grain=StoneSample(seedU,seedV),hue=StoneSample(seedU+131,seedV-57);
             bool court=!kept&&!repair&&s.Zone!=2;
-            if(court)
+            if(court||kept)
             {
                 // Neighbouring flags share quarry batches. Independent per-flag
                 // pale/dark samples made a checkerboard even with varied packing.
@@ -518,16 +518,16 @@ namespace Cryptforge.UI
                 grain=FloorPatina(cu*.16f+5.7f,cv*.16f-9.4f);
                 hue=FloorPatina(cu*.11f-13.2f,cv*.11f+4.6f);
             }
-            float tone=Mathf.Lerp(kept?.92f:.96f,kept?1.055f:1.03f,grain);
+            float tone=Mathf.Lerp(.96f,1.03f,grain);
             float stone=1+(tone-1)*(area<1?.5f:1f);
             Color flagTint=hue<.22f?new Color(.99f,1f,1.015f):hue>.82f?new Color(1.02f,1f,.98f):Color.white;
             // The gate apron's stone is a shade redder than the court's (hue ~281 against ~263 under the open light;
             // the concept's apron is ~287); its former blue cut (.93) turned it magenta-grey under the violet ambient.
-            Color tint=s.Zone==1?new Color(1.08f,1.065f,1.015f):
+            Color tint=s.Zone==1?Color.white:
                 s.Zone==2?new Color(1.01f,.985f,.96f):
                 s.Zone==3?new Color(.94f,.96f,.99f):Color.white;
             Color faceTint=flagTint*tint;
-            if(!kept&&!repair)faceTint*=PavingMineralFamily((u0+u1)*.5f,(v0+v1)*.5f);
+            if(!repair)faceTint*=PavingMineralFamily((u0+u1)*.5f,(v0+v1)*.5f);
             if(repair)
             {
                 // One cool replacement-stone family across each service repair, not
@@ -551,7 +551,7 @@ namespace Cryptforge.UI
             // Quarry setbacks expose more bed: keep mortar close to dusty stone in
             // value, so the floor reads as masonry rather than a dark outlined grid.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.68f:court?.84f:.90f;
+            float jointTone=kept?.82f:court?.84f:.90f;
             if(repair)jointTone=.80f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
@@ -685,8 +685,8 @@ namespace Cryptforge.UI
             {
                 float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
                 CourtRingFlag(mesh,a,b,2.70f,3.97f,.82f);
-                float tone=i%3==0?1.055f:1.025f;
-                CourtRingFlag(mesh,a+.004f,b-.004f,2.735f,3.945f,tone);
+                CourtDressedStone(mesh,new[]{SealPolar(a+.004f,2.735f),SealPolar(b-.004f,2.735f),
+                    SealPolar(b-.004f,3.945f),SealPolar(a+.004f,3.945f)});
             }
         }
 
@@ -705,7 +705,7 @@ namespace Cryptforge.UI
                 {
                     float next=cursor+(slab%2==0?1.92f:1.76f);
                     var flag=ClipFlagCell(field,cursor+joint,bottom+joint,next-joint,top-joint);
-                    if(flag.Count>=3)CeremonialStoneFace(mesh,flag.ToArray(),1.035f+.012f*((row+slab)%3));
+                    if(flag.Count>=3)CourtDressedStone(mesh,flag.ToArray());
                     cursor=next;
                 }
             }

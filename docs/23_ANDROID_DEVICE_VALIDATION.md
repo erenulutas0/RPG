@@ -2021,3 +2021,23 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Full reference material richness and physical-device movement/crowd/HUD/shimmer/midrange acceptance remain unfinished. No ADB, install or fresh device observation in this package. The earlier concrete restart/install decision remains pending. Future deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots. Regional encounter/boss progression stays deferred by the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.
+
+## 2026-10-12 - Material integration source ready; Unity verification blocked
+
+Three helpers completed the court dressed-stone surface, pit iron/masonry mapping and gate recess grain/lighting slice. Runtime ownership: FoundryRegionFinish/CourtSurface, FoundryRegionMassing/PitSurface and FoundryRegionGateRecesses; two court EditMode cases were added. Source reviews are complete. Pure .NET 425 passed, isolated compile zero warnings/errors, static integrity 602 project GUIDs/1099 package GUIDs/568 scene objects passed. These checks do not replace Unity import or visual acceptance.
+
+Graphics capture exited 198 before import/test execution because no active Unity license was found (stale signed-in session). The first browser sign-in timed out; the owner has been asked to complete a renewed normal sign-in. No EULA acceptance was performed. Full Unity suites, actual After captures and the new APK remain pending. No ADB/device change, commit or push occurred. Last verified/pushed commit remains 3d85425. Assets are frozen for the verification gate.
+
+Evidence and resume steps: ArtDirection/2026-10-12/foundry-material-integration-01/README.md. The gallery intentionally shows the prior verified baseline with After disabled. Preserve these pending source changes; do not interpret the baseline reference review as current-image acceptance. Earlier device restart/install decision remains pending; inspect fresh device state before any future deployment.
+
+Final license recheck: both normal browser sign-in attempts timed out. Session remains stale; no active license. Owner must renew Unity Hub sign-in/license before the pending verification resumes.
+
+
+## 2026-10-12 - Court, pit and gate material integration verified; device pending
+
+425 .NET / 512 EditMode / 159 PlayMode = 1,096 distinct suite cases, zero failures/skips. Isolated compile zero warnings/errors; Android-target actual graphics capture passed. PASS: 602 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,260,221 bytes; SHA256 993B2DA7B72A5A7D6A0FF2923DF29EB41A55917D33B45AF2EE105760DB08D8D0; NOT INSTALLED.
+
+Full reference material richness and physical-device motion/crowd/HUD/shimmer/midrange acceptance remain unfinished. No ADB, installation or fresh phone observation. The earlier concrete restart/install decision remains pending. Before future deployment inspect current device state and preserve current original saves/telemetry; never restore historical snapshots. Regional encounter/boss progression stays deferred under the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.

@@ -1,0 +1,54 @@
+{
+  "commit": "3d854256d88863793b9094a71e6017c32ef82a3f",
+  "method": "Copied committed actual Unity captures. PNGs verified byte-for-byte against Git objects and working files; report text permits CRLF normalization. Nine matching views.",
+  "files": {
+    "full-map.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/full-map.png",
+      "sha256": "d85094256ca23ff45684df636fcf704f9df746b1ebd741e4819938652e164904"
+    },
+    "court-detail.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/court-detail.png",
+      "sha256": "4f9b398c3113cffe694faa071c101908c1961e62cae14d73ea6453101de35b95"
+    },
+    "shaft-detail.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/shaft-detail.png",
+      "sha256": "a2ce81921b583a91c155961c2d2ae47a90d4d15a6f1f50217e28c2ade8258ef1"
+    },
+    "gate-detail.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/gate-detail.png",
+      "sha256": "a19b614c3a38162b22141dd3424961f4830ab71f5f5fee60441aec29bbf4e7ca"
+    },
+    "overview.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/overview.png",
+      "sha256": "91d134f2cdca65dd34a19f710b8a6e8424c73000f5f8752020fb9cbc093fe379"
+    },
+    "approach-0-0.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/approach-0-0.png",
+      "sha256": "93c01d6761b401f081fa662a356bcecf9b3f938af9d3d7e7d1ae8626432ccead"
+    },
+    "approach--20-6.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/approach--20-6.png",
+      "sha256": "3285e94851e3a97e6711443c1b24316bb6d7ac4cb28da4275dd9f65871f894e9"
+    },
+    "approach--16-15.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/approach--16-15.png",
+      "sha256": "362794aac7f8ab61b9a63bc5e13d1c8934a329e5a730891aba45bf122071d7d4"
+    },
+    "approach-20-1.png": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/approach-20-1.png",
+      "sha256": "c0fa034ad988a3a98fbb20cab87930f2921d6d2d8d56e3fce1aef0d997893040"
+    },
+    "runtime-budget.txt": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/runtime-budget.txt",
+      "sha256": "7c5c9927938e86fc31c98e1629d55a0140728fe16f31a040264274f5386759fc"
+    },
+    "distant-budget.txt": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/distant-budget.txt",
+      "sha256": "a552a5fc92ae2dde921291c9b154a6a6f43b366c10c1e4d7ceb15b3c2da539fe"
+    },
+    "distant-material.txt": {
+      "source": "ArtDirection/2026-10-11/foundry-court-pit-gate-01/after/distant-material.txt",
+      "sha256": "d89cdc9c42ed514490e375ad4572541026b80de3a646e29490825dbe8771dac9"
+    }
+  }
+}

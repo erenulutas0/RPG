@@ -1174,3 +1174,12 @@ The court compass now uses restrained paired brass facets and a continuous engra
 Region 32 renderers/165232 vertices versus 166468 (-1236); distant geometry 3572 unchanged. No new runtime texture, material, renderer or updater. Counts are resource observations, not device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.
+
+
+## 2026-10-12 - Court, pit and gate material integration verified; device pending
+
+Gate recesses now map the existing stone grain by real block dimensions, continue it over bevels and retain inherited corner lighting plus a shaded-head/reflected-foot gradient. Pit ribs use a quiet cast-iron atlas interior at bounded grain scale with restrained integral worn arrises; the under-rail bearing uses cool masonry and actual narrow block beds. The medallion ring and fitted centre flags gain flush dressed shoulders and share the surrounding court quarry family, reducing the separate warm checker pattern. Existing footprints, silhouette, pit fire and vessels, door/lock, navigation, camera, scene, gameplay and saves remain unchanged.
+
+Region 32 renderers/166467 vertices versus 165232 (+1235); distant geometry 3572 unchanged. No new runtime texture, material, renderer or per-frame updater. These resource observations are not device-performance measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.
