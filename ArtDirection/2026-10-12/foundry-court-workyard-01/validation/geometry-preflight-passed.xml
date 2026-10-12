@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="12" result="Passed" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:04Z" duration="2,1374548">
+  <test-suite type="TestSuite" id="1000" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="552" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:04Z" duration="2.137455" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1676" name="Project.EditModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.EditModeTests.dll" runstate="Runnable" testcasecount="552" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:04Z" duration="2.118428" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="35524" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1677" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="552" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:04Z" duration="2.116192" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1678" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="552" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:04Z" duration="2.113024" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1169" name="FoundryCourtCompassTests" fullname="Cryptforge.Tests.FoundryCourtCompassTests" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:04Z" duration="1.838960" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1170" name="CompassRemainsFlushBoundedAndReceivesOrdinaryFloorLighting" fullname="Cryptforge.Tests.FoundryCourtCompassTests.CompassRemainsFlushBoundedAndReceivesOrdinaryFloorLighting" methodname="CompassRemainsFlushBoundedAndReceivesOrdinaryFloorLighting" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="1545651108" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:02Z" duration="0.069363" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1175" name="CourtReplacementCutsEveryCrossingBaseLayerAndPreservesInterpolatedSourceData" fullname="Cryptforge.Tests.FoundryCourtCompassTests.CourtReplacementCutsEveryCrossingBaseLayerAndPreservesInterpolatedSourceData" methodname="CourtReplacementCutsEveryCrossingBaseLayerAndPreservesInterpolatedSourceData" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="1379279542" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:02Z" duration="0.167642" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1174" name="FittedCourtPartitionsTheExactFootprintsWithoutASecondJointBed" fullname="Cryptforge.Tests.FoundryCourtCompassTests.FittedCourtPartitionsTheExactFootprintsWithoutASecondJointBed" methodname="FittedCourtPartitionsTheExactFootprintsWithoutASecondJointBed" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="187639929" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:02Z" duration="0.087687" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1171" name="FittedInnerFlagsPreserveCompleteMedallionCoverageAndWorldGrain" fullname="Cryptforge.Tests.FoundryCourtCompassTests.FittedInnerFlagsPreserveCompleteMedallionCoverageAndWorldGrain" methodname="FittedInnerFlagsPreserveCompleteMedallionCoverageAndWorldGrain" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="1556577280" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:02Z" duration="0.122896" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1173" name="ProcessionalStoneFitsTheWalkingUnionAndStopsOutsideTheSingleMedallion" fullname="Cryptforge.Tests.FoundryCourtCompassTests.ProcessionalStoneFitsTheWalkingUnionAndStopsOutsideTheSingleMedallion" methodname="ProcessionalStoneFitsTheWalkingUnionAndStopsOutsideTheSingleMedallion" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="678472595" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:02Z" duration="0.139375" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1176" name="ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled" fullname="Cryptforge.Tests.FoundryCourtCompassTests.ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled" methodname="ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="2146353651" result="Passed" start-time="2026-10-12 20:42:02Z" end-time="2026-10-12 20:42:03Z" duration="0.938083" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Court floor vertices: raw base=38562; clipped base=38936; ring=4544; paths=3825; final=47305.
+]]></output>
+            </test-case>
+            <test-case id="1172" name="RelocatedMedallionHasOneCompleteStoneBedAndNoFormerOriginGhost" fullname="Cryptforge.Tests.FoundryCourtCompassTests.RelocatedMedallionHasOneCompleteStoneBedAndNoFormerOriginGhost" methodname="RelocatedMedallionHasOneCompleteStoneBedAndNoFormerOriginGhost" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="1665033162" result="Passed" start-time="2026-10-12 20:42:03Z" end-time="2026-10-12 20:42:04Z" duration="0.290855" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1177" name="FoundryCourtDressedStoneTests" fullname="Cryptforge.Tests.FoundryCourtDressedStoneTests" classname="Cryptforge.Tests.FoundryCourtDressedStoneTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.022275" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1180" name="DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain" fullname="Cryptforge.Tests.FoundryCourtDressedStoneTests.DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain" classname="Cryptforge.Tests.FoundryCourtDressedStoneTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.021240" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1178" name="DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain(False)" fullname="Cryptforge.Tests.FoundryCourtDressedStoneTests.DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain(False)" methodname="DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain" classname="Cryptforge.Tests.FoundryCourtDressedStoneTests" runstate="Runnable" seed="1042603397" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.006398" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1179" name="DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain(True)" fullname="Cryptforge.Tests.FoundryCourtDressedStoneTests.DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain(True)" methodname="DressedRingAndFittedEndsPartitionTheirOriginalFaceWithoutChangingWorldGrain" classname="Cryptforge.Tests.FoundryCourtDressedStoneTests" runstate="Runnable" seed="960392361" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.013744" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1181" name="FoundryCraneMachineryTests" fullname="Cryptforge.Tests.FoundryCraneMachineryTests" classname="Cryptforge.Tests.FoundryCraneMachineryTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.232683" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1184" name="ActualCheeksAndHeaderLeaveTheWorkingDrumVisiblyExposed" fullname="Cryptforge.Tests.FoundryCraneMachineryTests.ActualCheeksAndHeaderLeaveTheWorkingDrumVisiblyExposed" methodname="ActualCheeksAndHeaderLeaveTheWorkingDrumVisiblyExposed" classname="Cryptforge.Tests.FoundryCraneMachineryTests" runstate="Runnable" seed="443812960" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.050824" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1183" name="BroadCastSurfacesKeepTwoDimensionalGrainInsideTheIronAtlas" fullname="Cryptforge.Tests.FoundryCraneMachineryTests.BroadCastSurfacesKeepTwoDimensionalGrainInsideTheIronAtlas" methodname="BroadCastSurfacesKeepTwoDimensionalGrainInsideTheIronAtlas" classname="Cryptforge.Tests.FoundryCraneMachineryTests" runstate="Runnable" seed="1787439361" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.009901" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1182" name="CompleteCastingRemainsSeatedInsideTheExistingScenicFooting" fullname="Cryptforge.Tests.FoundryCraneMachineryTests.CompleteCastingRemainsSeatedInsideTheExistingScenicFooting" methodname="CompleteCastingRemainsSeatedInsideTheExistingScenicFooting" classname="Cryptforge.Tests.FoundryCraneMachineryTests" runstate="Runnable" seed="770719298" result="Passed" start-time="2026-10-12 20:42:04Z" end-time="2026-10-12 20:42:04Z" duration="0.169613" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: E:/MobileGame/TestResults/editmode-filter.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

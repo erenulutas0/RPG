@@ -81,6 +81,7 @@ namespace Cryptforge.UI
                 rail.WallQuad(a+Vector3.up*.3f,b+Vector3.up*.3f,b+Vector3.up*.3f+outward*.25f,a+Vector3.up*.3f+outward*.25f,true,Color.white);
                 Create("Bridge coping",rail,arena.PlatformMaterials.FoundryWall,-14);
             }
+            ReplaceCourtPavingBase(floor);
             BuildCourtStoneRing(floor);
             BuildCourtProcessionalStone(floor);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);

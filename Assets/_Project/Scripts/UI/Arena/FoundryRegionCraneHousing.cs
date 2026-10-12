@@ -4,6 +4,182 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        private static Vector4 CraneMachineryFoot=>WestBox(-26.12f,11.22f,-24.18f,14.70f);
+
+        private void BuildCraneMachineryBase(ArenaView arena)
+        {
+            // This grounded assembly is shared by the authored crane and fallback.
+            // Its broad lower mass surrounds the existing mast's lower bearing;
+            // the card source, upper pivot and live hoist anchors stay unchanged.
+            using(MassDepth(WestBox(-27,11,-24,15),8.6f))
+            {
+                var body=new Builder();
+                BuildCraneMachineryCasting(body);
+                Create("Grounded crane winch casting",body,arena.PlatformMaterials.FoundryIron,-11);
+            }
+        }
+
+        private static void BuildCraneMachineryCasting(Builder body)
+        {
+            Vector4 box=CraneMachineryFoot;
+            // One low sole is seated on the existing iron deck, clear of the
+            // barrel/crate corner. The rear casing carries the original mast.
+            WorkshopMetalHull(body,box.x,box.y,box.z,box.w,1.12f,1.32f,.045f,true);
+            WorkshopMetalHull(body,box.x+.08f,12.40f,box.z-.08f,box.w-.07f,1.32f,2.21f,.06f,true);
+            CraneMachineryHood(body,box);
+            // Backing and roof precede the exposed drum. The near cheeks come
+            // last; there is no solid face painted across the service opening.
+            Vector3 backA=Project(box.x+.34f,12.40f)+Vector3.up*1.40f;
+            Vector3 backB=Project(box.z-.34f,12.40f)+Vector3.up*1.40f;
+            CraneMachineryFace(body,backA,backB,backB+Vector3.up*.70f,backA+Vector3.up*.70f,
+                new Color(.20f,.24f,.31f),1.40f,2.10f);
+            // Higher design-u is the far bearing. Painting both cheeks after the
+            // drum lets that far side wall wrongly cover the exposed barrel.
+            CraneMachineryCheek(body,box.z-.41f);
+            BuildCraneMachineryDrum(body);
+            CraneMachineryCheek(body,box.x+.08f);
+            CraneMachineryHeader(body,box);
+            FinishCraneMachinery(body);
+        }
+
+        private static void CraneMachineryCheek(Builder body,float u)
+        {
+            Vector4 box=CraneMachineryFoot;
+            WorkshopMetalHull(body,u,box.y+.07f,u+.33f,12.12f,1.32f,2.17f,.055f,true);
+            YardTrestleGusset(body,u+.03f,u+.30f,box.y+.20f,12.45f,1.83f,2.26f);
+        }
+
+        private static void CraneMachineryHeader(Builder body,Vector4 box)
+        {
+            // Broad flat end seats bear on the bevelled cheek caps. The middle
+            // soffit rises, making an actual opening in the fixed projection;
+            // a full-depth rectangular lintel hid almost all of the drum.
+            float[] u={box.x+.15f,box.x+.34f,box.x+.60f,box.z-.60f,box.z-.34f,box.z-.15f};
+            float[] bottom={2.17f,2.17f,2.40f,2.40f,2.17f,2.17f};
+            float front=box.y+.14f;const float back=12.46f,top=2.56f;
+            for(int i=0;i<u.Length-1;i++)
+            {
+                CraneMachineryFace(body,Project(u[i],back)+Vector3.up*bottom[i],
+                    Project(u[i+1],back)+Vector3.up*bottom[i+1],Project(u[i+1],back)+Vector3.up*top,
+                    Project(u[i],back)+Vector3.up*top,new Color(.31f,.35f,.43f),bottom[i],top);
+                CraneMachineryFace(body,Project(u[i],front)+Vector3.up*bottom[i],
+                    Project(u[i+1],front)+Vector3.up*bottom[i+1],Project(u[i+1],back)+Vector3.up*bottom[i+1],
+                    Project(u[i],back)+Vector3.up*bottom[i],new Color(.23f,.27f,.34f),bottom[i],bottom[i+1]);
+            }
+            foreach(int i in new[]{0,u.Length-1})
+                CraneMachineryFace(body,Project(u[i],front)+Vector3.up*bottom[i],
+                    Project(u[i],back)+Vector3.up*bottom[i],Project(u[i],back)+Vector3.up*top,
+                    Project(u[i],front)+Vector3.up*top,new Color(.35f,.40f,.49f),bottom[i],top);
+            CraneMachineryFace(body,Project(u[0],front)+Vector3.up*top,Project(u[u.Length-1],front)+Vector3.up*top,
+                Project(u[u.Length-1],back)+Vector3.up*top,Project(u[0],back)+Vector3.up*top,
+                new Color(.58f,.63f,.71f),top,top);
+            for(int i=0;i<u.Length-1;i++)
+                CraneMachineryFace(body,Project(u[i],front)+Vector3.up*bottom[i],
+                    Project(u[i+1],front)+Vector3.up*bottom[i+1],Project(u[i+1],front)+Vector3.up*top,
+                    Project(u[i],front)+Vector3.up*top,new Color(.44f,.49f,.57f),bottom[i],top);
+        }
+
+        private static void CraneMachineryHood(Builder body,Vector4 box)
+        {
+            var lower=new[]{Project(box.x+.08f,12.40f),Project(box.z-.08f,12.40f),
+                Project(box.z-.08f,box.w-.07f),Project(box.x+.08f,box.w-.07f)};
+            var upper=new[]{Project(box.x+.24f,12.67f),Project(box.z-.24f,12.67f),
+                Project(box.z-.24f,box.w-.25f),Project(box.x+.24f,box.w-.25f)};
+            // A single long sloping shell gives the group a cast profile, with
+            // an uninterrupted upper seat under the fixed crane mast.
+            for(int edge=0;edge<4;edge++)
+            {
+                int next=(edge+1)%4;
+                Color tone=edge==0?new Color(.51f,.56f,.64f):new Color(.35f,.40f,.49f);
+                CraneMachineryFace(body,lower[edge]+Vector3.up*2.21f,lower[next]+Vector3.up*2.21f,
+                    upper[next]+Vector3.up*2.60f,upper[edge]+Vector3.up*2.60f,tone,2.21f,2.60f);
+            }
+            CraneMachineryFace(body,upper[0]+Vector3.up*2.60f,upper[1]+Vector3.up*2.60f,
+                upper[2]+Vector3.up*2.60f,upper[3]+Vector3.up*2.60f,new Color(.56f,.60f,.67f),2.60f,2.60f);
+        }
+
+        private static void BuildCraneMachineryDrum(Builder body)
+        {
+            Vector4 box=CraneMachineryFoot;
+            float left=box.x+.35f,right=box.z-.35f;
+            const float v=11.88f,axis=1.77f,radius=.30f;
+            // A real cylinder in design-v/elevation, borne at both ends by the
+            // side cheeks. The farther flange precedes the barrel and near end.
+            CraneMachineryDrumEnd(body,right,v,axis);
+            int[] sectors={0,1,2,3,12,13,14,15,4,5,6,7,8,9,10,11};
+            foreach(int sector in sectors)
+            {
+                float a=sector*Mathf.PI/8,b=(sector+1)*Mathf.PI/8;
+                float va=v+Mathf.Cos(a)*radius,vb=v+Mathf.Cos(b)*radius;
+                float ha=axis+Mathf.Sin(a)*radius,hb=axis+Mathf.Sin(b)*radius;
+                float light=.39f+.24f*Mathf.Max(0,Mathf.Sin((a+b)*.5f));
+                CraneMachineryFace(body,Project(left,va)+Vector3.up*ha,Project(right,va)+Vector3.up*ha,
+                    Project(right,vb)+Vector3.up*hb,Project(left,vb)+Vector3.up*hb,
+                    new Color(light*.91f,light*.96f,light),ha,hb);
+            }
+            // Three broad wound turns are connected to the drum's actual curved
+            // shell. They read as cable without scattering small loose machinery.
+            foreach(float u in new[]{left+.25f,left+.59f,left+.93f})
+                foreach(int sector in sectors)
+                {
+                    float a=sector*Mathf.PI/8,b=(sector+1)*Mathf.PI/8;
+                    float va=v+Mathf.Cos(a)*.304f,vb=v+Mathf.Cos(b)*.304f;
+                    float ha=axis+Mathf.Sin(a)*.304f,hb=axis+Mathf.Sin(b)*.304f;
+                    CraneMachineryFace(body,Project(u-.035f,va)+Vector3.up*ha,Project(u+.035f,va)+Vector3.up*ha,
+                        Project(u+.035f,vb)+Vector3.up*hb,Project(u-.035f,vb)+Vector3.up*hb,
+                        new Color(.27f,.30f,.36f),ha,hb);
+                }
+            CraneMachineryDrumEnd(body,left,v,axis);
+        }
+
+        private static void CraneMachineryDrumEnd(Builder body,float u,float v,float axis)
+        {
+            // Closed end discs and a broad annular flange use the same
+            // physical axis as the barrel, not a flat decal beside it.
+            Vector3 centre=Project(u,v)+Vector3.up*axis;
+            for(int sector=0;sector<16;sector++)
+            {
+                float a=sector*Mathf.PI/8,b=(sector+1)*Mathf.PI/8;
+                Vector3 A=Project(u,v+Mathf.Cos(a)*.35f)+Vector3.up*(axis+Mathf.Sin(a)*.35f);
+                Vector3 B=Project(u,v+Mathf.Cos(b)*.35f)+Vector3.up*(axis+Mathf.Sin(b)*.35f);
+                CraneMachineryFace(body,centre,A,B,centre,new Color(.38f,.42f,.50f),axis,axis);
+                body.T.RemoveRange(body.T.Count-3,3);
+                CraneMachineryFace(body,Vector3.Lerp(centre,A,.76f),A,B,Vector3.Lerp(centre,B,.76f),
+                    new Color(.68f,.60f,.46f),axis-.35f,axis+.35f);
+            }
+        }
+
+        private static void CraneMachineryFace(Builder body,Vector3 a,Vector3 b,Vector3 c,Vector3 d,
+            Color tone,float low,float high)
+        {
+            int first=body.V.Count;
+            FullFace(body,a,b,c,d,tone);
+            WorkedStockFace(body,first,Project(CraneMachineryFoot.x,CraneMachineryFoot.y),1.45f,low,high);
+        }
+
+        private static void FinishCraneMachinery(Builder body)
+        {
+            Vector4 box=CraneMachineryFoot;
+            Vector3 centre=Project((box.x+box.z)*.5f,(box.y+box.w)*.5f)+Vector3.up*1.86f;
+            for(int i=0;i<body.V.Count;i++)
+            {
+                // Shared stock mapping clamps elevated faces onto one atlas row.
+                // A centered, common field keeps real 2D grain over every plane,
+                // including the broad roof; no face UV is clamped or stretched.
+                Vector3 local=body.V[i]-centre;
+                body.U[i]=new Vector2(.50f+local.x*.105f,.50f+local.y*.105f);
+                Color old=body.C[i];
+                float value=old.r*.299f+old.g*.587f+old.b*.114f;
+                float aged=.83f+.045f*FloorPatina(local.x*.68f+3.1f,local.y*.68f-2.7f);
+                // Compensate the cool iron atlas with subdued warm cast metal.
+                // Keep any existing warm contact light as a restrained rust bias;
+                // shape lighting remains in the incoming vertex luminance.
+                float warmth=Mathf.Max(0,old.r-old.b)*.22f;
+                body.C[i]=new Color((value*1.09f+warmth)*aged,value*aged,
+                    (value*.89f-warmth*.18f)*aged,1);
+            }
+        }
+
         private void BuildCraneHousing(ArenaView arena,Vector3 foot)
         {
             // The original uprights already spanned +/-0.45 screen units. Keep the

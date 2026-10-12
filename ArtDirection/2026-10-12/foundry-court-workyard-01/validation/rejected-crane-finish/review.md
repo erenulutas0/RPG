@@ -1,0 +1,7 @@
+# First actual crane finish — rejected
+
+Inspected actual crane-detail, yard-detail and full-map after root's successful capture and geometry repair. The caster is visibly seated on the original deck; its service drum survives the housing and no card/pivot/load anchor moved. However the new broad hood is too blue and bright compared with the existing aged crane. Its roof looks corrugated and side faces have long straight streaks. At full-map scale this reads as a clean blue equipment box pasted onto the older assembly. That is a material-integration blocker, despite passing physical/aperture geometry checks.
+
+The existing shared stock sampler uses deck-floor anchoring plus a hard `.17..83` UV clamp. This elevated casting pushes high face V coordinates past the upper limit. Whole portions of the roof and side therefore sample a single atlas row, stretching its noise into lines. The bounded repair replaces that sampling only for the new crane casting, using centered common grain coordinates with no axis collapse, and neutralizes the overly blue/high material response. Geometry, depth/anchors, texture and material are unchanged. Root must recapture before art acceptance.
+
+These PNGs and resource report were copied unchanged from the first actual capture before the repair; `hashes.json` records their SHA256 values. They are retained diagnostic evidence, not the final After result. No `after/graphics.xml` existed at archival time, so this folder does not claim to contain that XML.

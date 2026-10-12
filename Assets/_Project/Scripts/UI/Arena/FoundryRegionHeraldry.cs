@@ -128,6 +128,9 @@ namespace Cryptforge.UI
                 }
             }
             BuildGateApronCourses(stone);
+            // The complete court approach owns its fitted tail where it meets
+            // this older gate paving; keep the two flush arrangements disjoint.
+            ReplaceCourtPavingBase(stone);
             Create("Gate dressed stone border",stone,arena.PlatformMaterials.FoundryPaving,-15);
             for(int pass=0;pass<2;pass++)
             {

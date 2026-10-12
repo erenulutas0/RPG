@@ -58,8 +58,8 @@ namespace Cryptforge.Tests
                 Vector2 expected=new Vector2(1+2*FoundryMap.Axis*design.x/span,1+2*FoundryMap.Axis*design.y/span);
                 Assert.That(Vector2.Distance(uv[i],expected),Is.LessThan(.00001f),"The fitted flags retain continuous world-space mineral grain.");
             }
-            // Sample the relocated inscribed polygon, including all four fitted
-            // courses and their clipped ends. The common stone bed closes them.
+            // Sample the relocated inscribed polygon, including the eight fan
+            // flags and their fitted joints. Each point has one stone owner.
             for(int x=-14;x<=14;x++)for(int y=-14;y<=14;y++)
             {
                 Vector2 local=new Vector2(x*.25f,y*.25f);
@@ -106,7 +106,7 @@ namespace Cryptforge.Tests
         {
             object mesh=NewBuilder();Invoke("BuildCourtProcessionalStone",mesh);
             var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
-            Assert.That(vertices.Count,Is.InRange(1,5000),"Four short stone courses must remain a bounded floor addition.");
+            Assert.That(vertices.Count,Is.InRange(1,5000),"Two complete fitted paths must remain a bounded floor replacement.");
             CheckStoneGrainAndColour(mesh);
             foreach(Vector3 vertex in vertices)
             {
@@ -137,15 +137,183 @@ namespace Cryptforge.Tests
             {
                 Vector2 direction=(end-CourtCentre).normalized,side=new Vector2(-direction.y,direction.x);
                 float distance=Vector2.Distance(end,CourtCentre);
-                for(int k=0;k<=12;k++)foreach(float lateral in new[]{-2.05f,-1.65f,1.65f,2.05f})
+                for(int k=0;k<=12;k++)foreach(float lateral in new[]{-2.05f,-1.65f,0f,1.65f,2.05f})
                 {
                     Vector2 point=CourtCentre+direction*Mathf.Lerp(6,distance-.1f,k/12f)+side*lateral;
                     Assert.That(Covered(Project(point),vertices,triangles),Is.True,
                         "Every course needs a continuous full-width stone bed, including its joints and fitted ends.");
                 }
             }
-            Assert.That(Covered(Project(new Vector2(-10,-11)),vertices,triangles),Is.False,
-                "The entrance setting leaves its central battle paving open rather than adding a solid carpet.");
+            Assert.That(Covered(Project(new Vector2(-10,-11)),vertices,triangles),Is.True,
+                "The complete approach replaces its former grid middle as well as the narrow shoulder courses.");
+        }
+
+        [Test]
+        public void FittedCourtPartitionsTheExactFootprintsWithoutASecondJointBed()
+        {
+            object circle=NewBuilder(),paths=NewBuilder();
+            Invoke("BuildCourtStoneRing",circle);Invoke("BuildCourtProcessionalStone",paths);
+            double circleArea=24*5.05*5.05*Math.Sin(Math.PI/24);
+            double pathArea=0;
+            foreach(Vector2 end in new[]{new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)})
+                pathArea+=4.18*(Vector2.Distance(end,CourtCentre)-5.21);
+            Assert.That(DesignArea(circle),Is.EqualTo(circleArea).Within(.002),
+                "Joint strips, radial shoulders and faces must partition the 48-gon, not cover a complete bed twice.");
+            Assert.That(DesignArea(paths),Is.EqualTo(pathArea).Within(.003),
+                "The whole approach width is fitted once, including mortar, with no layered middle or missing shoulders.");
+            // A noncardinal phase also keeps i=0 off the half-unit light grid.
+            // Golden-angle spacing alone starts on the v=-5 shared cell edge.
+            for(int i=0;i<111;i++)
+            {
+                float angle=.173f+i*2.399963f,radius=.19f+4.77f*(i%31)/31;
+                Vector2 point=Project(CourtCentre+new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*radius);
+                AssertOneOwner(point,circle,"Every sampled medallion point has one opaque floor owner.");
+            }
+        }
+
+        [Test]
+        public void CourtReplacementCutsEveryCrossingBaseLayerAndPreservesInterpolatedSourceData()
+        {
+            object mesh=NewBuilder();
+            // Two large original layers deliberately cross every new footprint.
+            // A flag-top-only removal or centroid-only rejection fails this test.
+            for(int layer=0;layer<2;layer++)
+            {
+                int start=Data<Vector3>(mesh,"V").Count;
+                foreach(Vector2 point in new[]{new Vector2(-22,-21),new Vector2(19,-21),new Vector2(19,9),new Vector2(-22,9)})
+                {
+                    Data<Vector3>(mesh,"V").Add(Project(point));
+                    Data<Vector2>(mesh,"U").Add(new Vector2(.3f+point.x*.013f,.6f+point.y*.009f));
+                    Data<Color>(mesh,"C").Add(new Color(.5f+point.x*.006f,.6f+point.y*.007f,.2f+layer*.3f,1));
+                }
+                Data<int>(mesh,"T").AddRange(new[]{start,start+1,start+2,start,start+2,start+3});
+            }
+            Invoke("ReplaceCourtPavingBase",mesh);
+            var vertices=Data<Vector3>(mesh,"V");var uv=Data<Vector2>(mesh,"U");var colours=Data<Color>(mesh,"C");
+            Assert.That(vertices.Count,Is.LessThan(1600),"Boundary clipping is bounded even for triangles spanning the whole court.");
+            for(int i=0;i<vertices.Count;i++)
+            {
+                Vector2 p=ToDesign(vertices[i]);
+                Assert.That(Vector2.Distance(uv[i],new Vector2(.3f+p.x*.013f,.6f+p.y*.009f)),Is.LessThan(.00001f));
+                Assert.That(colours[i].r,Is.EqualTo(.5f+p.x*.006f).Within(.00001f));
+                Assert.That(colours[i].g,Is.EqualTo(.6f+p.y*.007f).Within(.00001f));
+                Assert.That(Mathf.Min(Mathf.Abs(colours[i].b-.2f),Mathf.Abs(colours[i].b-.5f)),Is.LessThan(.00001f));
+                Assert.That(colours[i].a,Is.EqualTo(1));
+            }
+            Assert.That(Owners(Project(new Vector2(16.23f,-15.19f)),mesh),Is.EqualTo(2),"Unchanged outside stone retains both original source layers.");
+            for(int i=0;i<55;i++)
+            {
+                float angle=i*2.399963f,radius=.27f+4.69f*(i%23)/23;
+                Assert.That(Owners(Project(CourtCentre+new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*radius),mesh),Is.Zero,
+                    "No old axis-grid bed, bevel or top may survive beneath the fitted medallion.");
+            }
+            foreach(Vector2 end in new[]{new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)})
+            {
+                Vector2 direction=(end-CourtCentre).normalized,side=new Vector2(-direction.y,direction.x);
+                for(int k=0;k<13;k++)foreach(float lateral in new[]{-2.063f,-.719f,.153f,2.063f})
+                {
+                    Vector2 p=CourtCentre+direction*Mathf.Lerp(5.23f,Vector2.Distance(end,CourtCentre)-.021f,k/12f)+side*lateral;
+                    Assert.That(Owners(Project(p),mesh),Is.Zero,"The entire approach, including its centre and fitted ends, replaces the old paving.");
+                }
+            }
+            object replacement=NewBuilder();Invoke("BuildCourtStoneRing",replacement);Invoke("BuildCourtProcessionalStone",replacement);
+            Assert.That(DesignArea(mesh)+2*DesignArea(replacement),Is.EqualTo(2*41*30).Within(.015),
+                "Exact convex subtraction preserves all outside geometry and removes only the three agreed domains.");
+        }
+
+        [Test]
+        public void ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled()
+        {
+            var go=new GameObject("Court paving ownership test");
+            try
+            {
+                var view=go.AddComponent<FoundryRegionView>();
+                var cells=(HashSet<Vector2Int>)typeof(FoundryRegionView).GetField("_cells",Members).GetValue(view);
+                for(int r=0;r<FoundryMap.RectangleCount;r++)
+                    for(int x=FoundryMap.Bound(r,0);x<FoundryMap.Bound(r,2);x++)
+                        for(int y=FoundryMap.Bound(r,1);y<FoundryMap.Bound(r,3);y++)cells.Add(new Vector2Int(x,y));
+                object mesh=NewBuilder();
+                MethodInfo build=typeof(FoundryRegionView).GetMethod("BuildPavingCell",Members);
+                foreach(Vector2Int cell in cells)build.Invoke(view,new object[]{mesh,cell});
+                Invoke("ClipFloorCorners",mesh);Invoke("BuildBridgeDeck",mesh);
+                int originalVertices=Data<Vector3>(mesh,"V").Count;
+                Vector2 outside=Project(new Vector2(8.213f,-13.149f));
+                int outsideOwners=Owners(outside,mesh);
+                Assert.That(outsideOwners,Is.GreaterThan(0));
+                Invoke("ReplaceCourtPavingBase",mesh);
+                int clippedVertices=Data<Vector3>(mesh,"V").Count;
+                Assert.That(Owners(outside,mesh),Is.EqualTo(outsideOwners),"Court carving must preserve ordinary paving outside the agreed fields.");
+                var used=new HashSet<int>(Data<int>(mesh,"T"));
+                Assert.That(used.Count,Is.EqualTo(Data<Vector3>(mesh,"V").Count),"Removed source vertices must not inflate the uploaded mesh.");
+                var samples=new List<Vector2>();
+                for(int i=0;i<23;i++)
+                {
+                    float angle=.173f+i*2.399963f;
+                    samples.Add(CourtCentre+new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*(.31f+4.53f*(i%7)/7));
+                }
+                foreach(Vector2 end in new[]{new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)})
+                {
+                    Vector2 direction=(end-CourtCentre).normalized,side=new Vector2(-direction.y,direction.x);
+                    for(int i=0;i<11;i++)samples.Add(CourtCentre+direction*Mathf.Lerp(5.371f,Vector2.Distance(end,CourtCentre)-.131f,i/10f)+side*((i%3-1)*1.923f));
+                }
+                foreach(Vector2 p in samples)Assert.That(Owners(Project(p),mesh),Is.Zero,"Every real bed, bevel and flag top must be absent beneath the replacement.");
+                Invoke("BuildCourtStoneRing",mesh);
+                int ringVertices=Data<Vector3>(mesh,"V").Count-clippedVertices;
+                Invoke("BuildCourtProcessionalStone",mesh);
+                int pathVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices;
+                foreach(Vector2 p in samples)AssertOneOwner(Project(p),mesh,"The actual built floor must have exactly one replacement at the medallion and bridge approach.");
+                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; ring={ringVertices}; paths={pathVertices}; final={Data<Vector3>(mesh,"V").Count}.");
+                Assert.That(clippedVertices,Is.LessThanOrEqualTo(originalVertices+2000),
+                    "The three fixed footprint boundaries have a bounded intersection-vertex allowance.");
+                Assert.That(ringVertices,Is.LessThanOrEqualTo(6500));
+                Assert.That(pathVertices,Is.LessThanOrEqualTo(5000));
+                // Raw base excludes the previous medallion and paired courses;
+                // it cannot serve as a before/after full-floor measurement. This
+                // envelope uses both existing component budgets. The actual
+                // region still has its independent unchanged 174,000 hard cap.
+                Assert.That(Data<Vector3>(mesh,"V").Count,Is.LessThanOrEqualTo(originalVertices+6500+5000),
+                    "Complete floor stays within the raw base plus both bounded fitted assemblies.");
+            }
+            finally{UnityEngine.Object.DestroyImmediate(go);}
+        }
+
+        private static double DesignArea(object mesh)
+        {
+            var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");double area=0;
+            for(int i=0;i<triangles.Count;i+=3)
+                area+=Math.Abs(Cross(vertices[triangles[i]],vertices[triangles[i+1]],vertices[triangles[i+2]]));
+            // Project's determinant is one half, cancelling triangle's one half.
+            return area;
+        }
+
+        private static int Owners(Vector2 point,object mesh)
+        {
+            var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");int count=0;
+            for(int i=0;i<triangles.Count;i+=3)
+                if(InTriangle(point,vertices[triangles[i]],vertices[triangles[i+1]],vertices[triangles[i+2]]))count++;
+            return count;
+        }
+
+        private static void AssertOneOwner(Vector2 point,object mesh,string message)
+        {
+            int owners=Owners(point,mesh);
+            Assert.That(owners,Is.EqualTo(1),owners==1?message:message+" "+OwnerWitness(point,mesh));
+        }
+
+        private static string OwnerWitness(Vector2 point,object mesh)
+        {
+            Vector2 design=ToDesign(point);var text=new System.Text.StringBuilder();
+            text.AppendFormat("Design({0:R},{1:R}) projected({2:R},{3:R}). ",design.x,design.y,point.x,point.y);
+            var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
+            for(int i=0;i<triangles.Count;i+=3)
+            {
+                Vector2 a=vertices[triangles[i]],b=vertices[triangles[i+1]],c=vertices[triangles[i+2]];
+                if(!InTriangle(point,a,b,c))continue;
+                Vector2 da=ToDesign(a),db=ToDesign(b),dc=ToDesign(c);
+                text.AppendFormat("Triangle{0} design[({1:R},{2:R}),({3:R},{4:R}),({5:R},{6:R})] edgeCross[{7:R},{8:R},{9:R}]. ",
+                    i/3,da.x,da.y,db.x,db.y,dc.x,dc.y,Cross(a,b,point),Cross(b,c,point),Cross(c,a,point));
+            }
+            return text.ToString();
         }
 
         private static void CheckStoneGrainAndColour(object mesh)

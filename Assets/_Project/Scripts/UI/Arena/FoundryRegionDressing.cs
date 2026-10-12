@@ -54,6 +54,7 @@ namespace Cryptforge.UI
             CraneCase(arena,mast+new Vector3(-.48f,-.4f,0),.96f,.23f,new Vector3(.16f,.11f,0));
             BuildCraneSheave(arena,mast,.32f,true);
             }
+            BuildCraneMachineryBase(arena);
             Vector3 load=tip+Vector3.down*3.4f;
             Chain(arena,tip,load,.16f,-11);
             // A sheave seats the hoist chain in the jib instead of ending it on a bare rail.

@@ -674,54 +674,43 @@ namespace Cryptforge.UI
 
         private static void BuildCourtStoneRing(Builder mesh)
         {
-            // One larger stone assembly sits in the foreground court. The emblem
-            // remains modest; its extra footprint is fitted paving and radial stone.
-            var field=new Vector2[48];
-            for(int i=0;i<field.Length;i++)field[i]=CourtSealPoint(i*Mathf.PI/24,CourtFieldRadius);
+            Vector2[] field=CourtCircle(CourtFieldRadius);
             BuildCourtMedallionField(mesh,field);
-            const int segments=24;
-            for(int i=0;i<segments;i++)
+            // Twelve broad annular stones retain the exact 48-sided perimeter.
+            // Four convex pieces form each curved stone. Their internal radial
+            // edges have neither mortar nor bevel, avoiding a concave fan that
+            // would cross the central field or a return to 48 tiny blocks.
+            for(int stone=0;stone<12;stone++)
             {
-                float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
-                CourtRingFlag(mesh,a,b,CourtFieldRadius-.03f,CourtStoneRadius,.82f);
-                CourtDressedStone(mesh,new[]{CourtSealPoint(a+.004f,CourtFieldRadius+.005f),
-                    CourtSealPoint(b-.004f,CourtFieldRadius+.005f),
-                    CourtSealPoint(b-.004f,CourtStoneRadius-.025f),CourtSealPoint(a+.004f,CourtStoneRadius-.025f)});
+                Vector2 identity=CourtSealPoint((stone*4+2)*Mathf.PI/24,(CourtFieldRadius+CourtStoneRadius)*.5f);
+                for(int part=0;part<4;part++)
+                {
+                    float a=(stone*4+part)*Mathf.PI/24,b=(stone*4+part+1)*Mathf.PI/24;
+                    CourtFittedStone(mesh,new[]{CourtSealPoint(a,CourtFieldRadius),CourtSealPoint(a,CourtStoneRadius),
+                        CourtSealPoint(b,CourtStoneRadius),CourtSealPoint(b,CourtFieldRadius)},
+                        new[]{part==0?.028f:0,.028f,part==3?.028f:0,.028f},identity);
+                }
             }
         }
 
         private static void BuildCourtMedallionField(Builder mesh,Vector2[] field)
         {
-            // Fit broad flags to the supplied circle in world coordinates. The
-            // origin and radius may change without leaving an old centre disc,
-            // shifting the stone grain, or dropping the clipped row ends.
-            CeremonialStoneFace(mesh,field,.84f);
-            float left=field[0].x,right=left,bottomEdge=field[0].y,topEdge=bottomEdge;
-            foreach(Vector2 p in field)
+            // Eight large fitted fan flags surround a quiet octagonal keystone.
+            // Every outer arc point is retained; there is no full disc beneath
+            // the faces, and none of the ordinary square grid survives here.
+            Vector2 centre=Vector2.zero;
+            foreach(Vector2 point in field)centre+=point;
+            centre/=field.Length;
+            var key=new Vector2[8];
+            for(int i=0;i<key.Length;i++)key[i]=centre+(field[i*6]-centre).normalized*1.22f;
+            CourtFittedFlag(mesh,key);
+            for(int stone=0;stone<8;stone++)
             {
-                left=Mathf.Min(left,p.x);right=Mathf.Max(right,p.x);
-                bottomEdge=Mathf.Min(bottomEdge,p.y);topEdge=Mathf.Max(topEdge,p.y);
+                var points=new List<Vector2>{key[stone]};
+                for(int i=0;i<=6;i++)points.Add(field[(stone*6+i)%field.Length]);
+                points.Add(key[(stone+1)%8]);
+                CourtFittedFlag(mesh,points.ToArray());
             }
-            const int rows=4;const float joint=.022f;
-            float rowHeight=(topEdge-bottomEdge)/rows;
-            for(int row=0;row<rows;row++)
-            {
-                float bottom=bottomEdge+row*rowHeight,top=bottomEdge+(row+1)*rowHeight;
-                float cursor=left-(row%2==1?.94f:0);
-                for(int slab=0;cursor<right;slab++)
-                {
-                    float next=cursor+(slab%2==0?2.25f:1.95f);
-                    var flag=ClipFlagCell(field,cursor+joint,bottom+joint,next-joint,top-joint);
-                    if(flag.Count>=3)CourtDressedStone(mesh,flag.ToArray());
-                    cursor=next;
-                }
-            }
-        }
-
-        private static void CourtRingFlag(Builder mesh,float a,float b,float inner,float outer,float tone)
-        {
-            CeremonialStoneFace(mesh,new[]{CourtSealPoint(a,inner),CourtSealPoint(b,inner),
-                CourtSealPoint(b,outer),CourtSealPoint(a,outer)},tone);
         }
 
         private static void LitFloorQuad(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,float stone)

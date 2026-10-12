@@ -1218,3 +1218,14 @@ This is a combined visual mesh package. The accepted walking outline, map size, 
 Region 32 renderers/160781 vertices versus 161298 (-517); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-ceremonial-architecture-01.
+
+
+## 2026-10-12 - Foundry court paving and workyard verified; device pending
+
+The centre court and its two approaches now replace the ordinary paving within three exact, disjoint footprints. All old floor layers are cut out, including the bridge portion, while source grain and sampled lighting are retained at each clipped boundary. The radius5.05 medallion at (-3,-5) contains an octagonal keystone, eight fitted fan stones and twelve broad radial outer stones. Full-width4.18 approach fields use broad transverse flags and alternating fitted pairs. Mortar, dressed shoulders and faces partition each replacement; they do not cover another complete coplanar bed. Existing brass dimensions, map outline, camera and walking geometry stay fixed.
+
+The western crane gains a grounded native cast-iron machinery base on its original scenic deck. A sloped rear casing, joined cheeks and header surround an exposed cable drum. The active baked-crane path and fallback both receive the same base; the existing mast card, upper pivot, hoist chain and load retain their anchors. One existing iron batch and the original depth owner are reused. No runtime texture, material, renderer, per-frame updater, gameplay, encounter, scene or save change is included.
+
+Region 32 renderers/161850 vertices versus 160781 (+1069); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-workyard-01.

@@ -2398,3 +2398,15 @@ This is a combined visual mesh package. The accepted walking outline, map size, 
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,268,279 bytes; SHA256 6EE8F295DA4D39B0908B119F2D2E0B1BFEE583A9EB83B085CDE28744037FF70B; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-ceremonial-architecture-01.
+
+
+## 2026-10-12 - Foundry court paving and workyard verified; device pending
+
+The centre court and its two approaches now replace the ordinary paving within three exact, disjoint footprints. All old floor layers are cut out, including the bridge portion, while source grain and sampled lighting are retained at each clipped boundary. The radius5.05 medallion at (-3,-5) contains an octagonal keystone, eight fitted fan stones and twelve broad radial outer stones. Full-width4.18 approach fields use broad transverse flags and alternating fitted pairs. Mortar, dressed shoulders and faces partition each replacement; they do not cover another complete coplanar bed. Existing brass dimensions, map outline, camera and walking geometry stay fixed.
+
+The western crane gains a grounded native cast-iron machinery base on its original scenic deck. A sloped rear casing, joined cheeks and header surround an exposed cable drum. The active baked-crane path and fallback both receive the same base; the existing mast card, upper pivot, hoist chain and load retain their anchors. One existing iron batch and the original depth owner are reused. No runtime texture, material, renderer, per-frame updater, gameplay, encounter, scene or save change is included.
+
+438 .NET / 552 EditMode / 159 PlayMode = 1,149 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 608 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,291,532 bytes; SHA256 D3B7D53094316D3B89BA50C515D78A5BA7194ACC7FDC889D2E959F1DACE26804; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-workyard-01.

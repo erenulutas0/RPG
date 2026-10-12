@@ -29,10 +29,10 @@ namespace Cryptforge.Tests
             }
             else polygon=new[]{Polar(.004f,2.735f),Polar(Mathf.PI/12-.004f,2.735f),
                 Polar(Mathf.PI/12-.004f,3.945f),Polar(.004f,3.945f)};
-            // Production radial stones arrive clockwise while clipped field ends
-            // arrive counter-clockwise; both must retain precisely the same area.
+            // The shared fitted flag accepts either winding and cleans clipped
+            // collinear points; both inputs retain precisely the same area.
             object mesh=Activator.CreateInstance(BuilderType,true);
-            Call("CourtDressedStone",mesh,polygon);
+            Call("CourtFittedFlag",mesh,polygon);
             var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
             var uv=Data<Vector2>(mesh,"U");var colors=Data<Color>(mesh,"C");
             Assert.That(vertices.Count,Is.InRange(1,500));

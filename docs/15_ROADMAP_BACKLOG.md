@@ -752,3 +752,12 @@ Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-ceremonial-architecture-01.
+
+
+## 2026-10-12 - Foundry court paving and workyard verified; device pending
+
+- [x] Combined radial court paving, complete processional flag fields and live crane machinery housing; matched actual captures, full suites and APK.
+- [ ] Further reference material/landmark refinement and physical-device acceptance.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-workyard-01.

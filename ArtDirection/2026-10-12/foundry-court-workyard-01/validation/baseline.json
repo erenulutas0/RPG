@@ -1,0 +1,69 @@
+{
+  "head": "c4f66e6db17a3ad74b240f35c414d2bdbaf3ebab",
+  "files": {
+    "approach--16-15.png": {
+      "sha256": "e5dc5ff6e395ecd2b6fc8579675ce3a210575f94869ea9ba3735c6a6fded2b52",
+      "bytes": 3588416
+    },
+    "approach--20-6.png": {
+      "sha256": "2df05784760a485d4ab2b8f60ca8bd60d565909bef46eff7a748da778c884a5c",
+      "bytes": 4111907
+    },
+    "approach--8--12.png": {
+      "sha256": "5a631d26ff81507d8313c830e6a603029f4d6c73ce2797498d9f7de1377a88f9",
+      "bytes": 3822356
+    },
+    "approach-0-0.png": {
+      "sha256": "e134b189c9529a290ca4d180c04c52187bafe6ab38fa57412e77aef592b9bccd",
+      "bytes": 3821835
+    },
+    "approach-20-1.png": {
+      "sha256": "654d5282747b9e118027f0429bf042d333e848c694399e76378c63ee966e0eb5",
+      "bytes": 4315870
+    },
+    "bridge-detail.png": {
+      "sha256": "395d1fd3023231142436591036f4925fcb8d154183e1614925e52968fb852808",
+      "bytes": 2187002
+    },
+    "court-detail.png": {
+      "sha256": "a807fe7295384ade64828b8768112534a74a308ea2b242c7e8904e5d5f712bf9",
+      "bytes": 2215077
+    },
+    "crane-detail.png": {
+      "sha256": "a299104d3caf78973e7dba0cf534e26201d8dee091c854570d6588d5ac8eca5b",
+      "bytes": 1765597
+    },
+    "forecourt-detail.png": {
+      "sha256": "7577458d2745bafe8f1b36f0e32784f03150c3838f65e485f8c103e51c7fd6f4",
+      "bytes": 2217300
+    },
+    "full-map.png": {
+      "sha256": "d57747246ecfe6127dea97d4c4f902a8f12d54795cb04f583cc5695b8d2bb4fd",
+      "bytes": 2537001
+    },
+    "gate-detail.png": {
+      "sha256": "20a46fe128333985ba403c69b314abde4e5da51022d00e5ad09bf5ea2785cf40",
+      "bytes": 2383872
+    },
+    "overview.png": {
+      "sha256": "f55004a430b64222d2f665a16b410ef616946353ddab42340b598a7632f2d541",
+      "bytes": 2619140
+    },
+    "service-shaft-detail.png": {
+      "sha256": "e33fb1ca8adeb09795af059d1e5c76564d38fc4f66cde95b50a26c44c29d7ab6",
+      "bytes": 2087746
+    },
+    "shaft-detail.png": {
+      "sha256": "250b96854a9515516e2a526986ec7e5dfce027fe18ace8534d040d571c12710b",
+      "bytes": 2297326
+    },
+    "skyline-detail.png": {
+      "sha256": "d0d4682f00477ca26e441b259e78b42ab569d3922ae5445d5bfb42ff0d3b563a",
+      "bytes": 1923935
+    },
+    "yard-detail.png": {
+      "sha256": "34740dde859083e2352eeaa1ccd689bbbc1c3b000516aa78dd9cfacc766b3318",
+      "bytes": 2250230
+    }
+  }
+}
