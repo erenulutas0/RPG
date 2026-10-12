@@ -1361,3 +1361,19 @@ The first After launch caught test-only CS0117 errors: the separate Unity test a
 The additional stationary immortal-crowd end premise failed. A retained bounds-only A/B using unchanged movement code reproduces distant waypoint queues in the old layout too. Diagnostic cases remain separate failed evidence; no production solver was changed and no pre-existing test was weakened or ignored. A separate real HeroMotion plus ten-body PackMotion traversal checks every swept path and spacing over 3600 frames and finishes with all ten across the join. See crowd-diagnostic.md for exact scope, counterexamples and reproduction.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.
+
+
+## 2026-10-12 - Foundry ceremonial architecture verified; device pending
+
+438 .NET / 546 EditMode / 159 PlayMode = 1,143 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 606 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,268,279 bytes; SHA256 6EE8F295DA4D39B0908B119F2D2E0B1BFEE583A9EB83B085CDE28744037FF70B; NOT INSTALLED.
+
+Three helpers owned court composition, gate stone construction, and lower fortress/bridge hierarchy. Root captured sixteen fresh Before views on unchanged baseline7c0f057 before authorizing runtime edits. The camera and actor setup is shared by Before and After. Helpers reviewed neighbouring slices read-only; root reviewed integration, ran Unity and built the APK on frozen Assets.
+
+Geometry checks cover the moved single medallion, continuous stone settings, world grain, retired guide seams, gate recess visibility, L-jamb concave caps, fortress hierarchy and bridge support openings. Existing movement and scene suites remain in the acceptance run. Source inspection caught a proposed bearing course overlay before capture; it was changed to partition the spandrel.
+
+The retained actual screenshots pause combat and hide HUD. They establish the visible Editor composition at fixed cameras, not device performance or interactive acceptance. Resource totals are measured from the captured actual meshes. The final source and evidence hashes are retained for reproduction.
+
+The first Unity import caught test-only access to internal FoundrySurface from a separate assembly. Reflection into the same inverse projection replaced the direct reference; production visibility was unchanged. The first full EditMode run then passed544/546, with both new jamb containment cases failing, while PlayMode passed159/159. Investigation distinguished a chamfered-hull oracle mismatch from a real, small square-corner overhang at the existing base bearing. The initial XML, gate image and source hashes are retained. The final jamb trims .04 design units from each edge. Both mirrored cases now check the actual chamfered base cap and former jamb envelope, without widening tolerances or dropping the concave-cap assertions. The new complete EditMode run passed546/546. Graphics were recaptured and visually reviewed after the repair.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-ceremonial-architecture-01.

@@ -743,3 +743,12 @@ Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.
 - [ ] Gameplay follow-up: investigate stationary immortal-crowd queues at pursuit waypoints; retained bounds-only A/B and failing diagnostic are in validation/crowd-diagnostic.md. No crowd convergence or balance acceptance is implied by this layout slice.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.
+
+
+## 2026-10-12 - Foundry ceremonial architecture verified; device pending
+
+- [x] Combined ceremonial court composition, seated gate masonry and primary/secondary fortress/bridge hierarchy; matched actual captures, full suites and APK.
+- [ ] Further reference material/landmark refinement and physical-device acceptance.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-ceremonial-architecture-01.

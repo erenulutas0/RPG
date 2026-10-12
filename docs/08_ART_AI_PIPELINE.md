@@ -1203,3 +1203,18 @@ Perimeter masonry, southern bastions, finials, lantern pools and exterior chains
 Region 32 renderers/161298 vertices versus 164217 (-2919); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-forecourt-layout-01.
+
+
+## 2026-10-12 - Foundry ceremonial architecture verified; device pending
+
+The ceremonial medallion moves from the court origin to design (-3,-5), inside the deeper entrance forecourt. Its fitted stone field grows to radius3.75 and its outer dressed setting to radius5.05; the compass arms retain their existing small dimensions. One restrained brass setting remains. Two paired segmented stone courses connect the entrance and gate direction to this single assembly. The former angular brass court box, its forced packing seams and the unit-flag square at the old centre are retired. The global polar helper and the western working turntable remain independent.
+
+The two outer gate towers retain their footing and crown but replace the mid-height waist with a low battered plinth and one continuous tall recessed bay. Both inner jambs use a seated L-shaped stone section with a longitudinal rebate and a concave bearing cap. The existing painted door/banner/lock plane stays fixed; it is the masonry around it that changes.
+
+Lower fortress stone now distinguishes broad primary responds and arches from quieter secondary projected recesses. The bridge's existing three support stations remain, with one primary mouth bent and two subordinate rear bents. The mouth's bearing course partitions its old spandrel instead of layering over it. Existing open intrados, support contacts and chain socket eligibility are retained.
+
+This is a combined visual mesh package. The accepted walking outline, map size, camera, scene, actors, encounter data, movement solver, rewards and saves are unchanged. No new runtime texture, material, renderer or per-frame updater is introduced. It does not close the reference-fidelity or physical-device acceptance backlog.
+
+Region 32 renderers/160781 vertices versus 161298 (-517); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-ceremonial-architecture-01.
