@@ -93,16 +93,18 @@ namespace Cryptforge.UI
                     b+Vector3.up*top,a+Vector3.up*top,tone);
                 bool along=Mathf.Abs(p.x-q.x)>.001f;
                 float faceLight=along?(p.y<0?.89f:1f):.81f;
+                float blockStart=FoundryMap.BridgeStart+3*Mathf.Floor((Mathf.Min(p.x,q.x)-FoundryMap.BridgeStart)/3);
                 for(int k=0;k<4;k++)
                 {
                     Vector2 at=k==0||k==3?p:q;
                     float h=k<2?bottom:top;
-                    float grain=(at.x-FoundryMap.BridgeStart)%3f/3f;
                     // Keep grain continuous inside each three-unit fitted block;
                     // owner subdivisions must not become tiny repeated bricks.
-                    if(grain<.00001f&&at.x>FoundryMap.BridgeStart&&at.x>Mathf.Min(p.x,q.x)+.001f)grain=1;
-                    stone.U[first+k]=new Vector2(.275f+.14f*grain,.655f+.092f*Mathf.InverseLerp(-.9f,.78f,h));
-                    stone.C[first+k]=new Color(tone.r*faceLight,tone.g*faceLight,tone.b*faceLight,1);
+                    stone.U[first+k]=BridgeFortressWallGrain(at,h,blockStart,along);
+                    // The deep plinth stays seated against the existing bridge
+                    // fascia; readable cool upper stone still carries the lamps.
+                    float contact=Mathf.Lerp(.85f,1f,Mathf.InverseLerp(-.9f,-.1f,h));
+                    stone.C[first+k]=new Color(tone.r*faceLight*contact,tone.g*faceLight*contact,tone.b*faceLight*contact,1);
                 }
             }
             if(!cap)return;
@@ -132,9 +134,17 @@ namespace Cryptforge.UI
             {
                 if(cuts[i+1]-cuts[i]<.00001f)continue;
                 Vector2 a=Vector2.Lerp(p,q,cuts[i]),b=Vector2.Lerp(p,q,cuts[i+1]);
+                int start=stone.V.Count;
                 GateStonePatch(stone,Deck(a.x,a.y)+Vector3.up*bottom,Deck(b.x,b.y)+Vector3.up*bottom,
                     Deck(b.x,b.y)+Vector3.up*BridgeParapetCapHeight(b,top),
                     Deck(a.x,a.y)+Vector3.up*BridgeParapetCapHeight(a,top),tone*faceLight);
+                float blockStart=FoundryMap.BridgeStart+3*Mathf.Floor(((a.x+b.x)*.5f-FoundryMap.BridgeStart)/3);
+                bool along=Mathf.Abs(a.x-b.x)>.001f;
+                for(int k=0;k<4;k++)
+                {
+                    Vector2 point=k==0||k==3?a:b;
+                    stone.U[start+k]=BridgeFortressWallGrain(point,k<2?bottom:BridgeParapetCapHeight(point,top),blockStart,along);
+                }
             }
         }
 
@@ -193,8 +203,7 @@ namespace Cryptforge.UI
             stone.V.Add(Deck(p.x,p.y)+Vector3.up*BridgeParapetCapHeight(p,top));
             float joint=.76f+.24f*BridgeParapetCapJoint(p.x);
             Color value=tone*(light*joint);value.a=1;stone.C.Add(value);
-            stone.U.Add(new Vector2(.275f+.14f*(p.x-blockStart)/3,
-                .655f+.092f*(Mathf.Abs(p.y)-FoundryMap.BridgeHalfWidth)/BridgeParapetWidth));
+            stone.U.Add(BridgeFortressCapGrain(p,blockStart));
         }
 
         private void BuildEntranceBridgeSupports(ArenaView arena)
@@ -216,20 +225,20 @@ namespace Cryptforge.UI
                     Vector3 innerB=At(Mathf.Cos(b)*(half-1.05f),spring+Mathf.Sin(b)*2.35f);
                     Vector3 outerA=At(Mathf.Cos(a)*(half+.18f),spring+Mathf.Sin(a)*3.42f);
                     Vector3 outerB=At(Mathf.Cos(b)*(half+.18f),spring+Mathf.Sin(b)*3.42f);
-                    Color face=new Color(.60f,.59f,.66f)*(i==5?1.08f:1f);
-                    GateDressedFace(front,innerA,innerB,outerB,outerA,face,.07f);
+                    Color face=new Color(.61f,.64f,.72f)*(i==5?1.08f:1f);
+                    FortressDressedArch(front,innerA,innerB,outerB,outerA,face);
                     Vector3 back=Deck(s+depth,0)-Deck(s,0);
-                    GateStonePatch(stone,innerA,innerA+back,innerB+back,innerB,new Color(.31f,.34f,.43f));
+                    FortressMineralFace(stone,innerA,innerA+back,innerB+back,innerB,new Color(.31f,.35f,.45f),false);
                     // The filled spandrel bears the straight underside of the deck.
-                    GateStonePatch(front,outerA,outerB,At(Mathf.Cos(b)*(half+.18f),-2.7f),
-                        At(Mathf.Cos(a)*(half+.18f),-2.7f),new Color(.45f,.46f,.54f));
+                    FortressMineralFace(front,outerA,outerB,At(Mathf.Cos(b)*(half+.18f),-2.7f),
+                        At(Mathf.Cos(a)*(half+.18f),-2.7f),new Color(.49f,.53f,.62f),false);
                 }
                 foreach(float sign in new[]{-1f,1f})
                 {
                     float a=sign*(half-1.05f),b=sign*(half+.18f);
-                    UndercroftCoursedFace(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.54f,.54f,.62f),4,1);
-                    UndercroftCoursedFace(stone,At(b,-8.4f),At(b,-8.4f,depth),At(b,spring,depth),At(b,spring),new Color(.37f,.4f,.48f),4,1);
-                    UndercroftCoursedFace(stone,At(a,-8.4f,depth),At(a,-8.4f),At(a,spring),At(a,spring,depth),new Color(.3f,.33f,.42f),4,1);
+                    FortressCoursedFace(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.56f,.60f,.68f),3,1);
+                    FortressCoursedFace(stone,At(b,-8.4f),At(b,-8.4f,depth),At(b,spring,depth),At(b,spring),new Color(.39f,.43f,.52f),3,1);
+                    FortressCoursedFace(stone,At(a,-8.4f,depth),At(a,-8.4f),At(a,spring),At(a,spring,depth),new Color(.31f,.35f,.45f),3,1);
                 }
                 ShadeUndercroftDepth(stone,Deck(s,0),Deck(s,0));
                 ShadeUndercroftDepth(front,Deck(s,0),Deck(s,0));

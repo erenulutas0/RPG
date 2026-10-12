@@ -1,0 +1,48 @@
+{
+  "head": "2c2fa7c6e7c832febfa3930b8469c6fe69461762",
+  "method": "Fresh Android-target Unity capture on unchanged baseline Assets before agent GO",
+  "files": {
+    "approach--16-15.png": {
+      "sha256": "4be9148cf0eee3e573cc0638817e68c40fd6eed66e42505af85ebc1fa127b962"
+    },
+    "approach--20-6.png": {
+      "sha256": "b0da174e6f3ab6cd0aca14e6d12d0ea31ffc5c1e1966d7696250221031b997c6"
+    },
+    "approach-0-0.png": {
+      "sha256": "acc870b90726e39066674430c6ad6a4799b5644f26fef61064d5a6dff8e9ed72"
+    },
+    "approach-20-1.png": {
+      "sha256": "f078da10f8f6b95dd347aaabb4888632860e53ca472cd5333e7bff1835a604f4"
+    },
+    "bridge-detail.png": {
+      "sha256": "6fc310895e6e246f6bb0f2670d5825657481b4ee10f278b9e73b1874da7dde9b"
+    },
+    "court-detail.png": {
+      "sha256": "d22616b2ee1fd7d77d94d7578a5827998b9977aa6057366af237ebe9190d747c"
+    },
+    "crane-detail.png": {
+      "sha256": "142d208b0496384a23d9ee8caf00a4d3a81b560be9e150b9a7393c22d256dc6f"
+    },
+    "full-map.png": {
+      "sha256": "d882553b4763a80421b068e7bcc95eef9ae72d290699b8083c1f7cb33bfad5cc"
+    },
+    "gate-detail.png": {
+      "sha256": "33ba381cb8cd3217dbb9438fef6e8ff96923a0accb3e980c28daabfb28cf455b"
+    },
+    "overview.png": {
+      "sha256": "c040207065d746c41c7250c1a193e4b3bc4ff7a6966d671dc15fc114f39b268d"
+    },
+    "service-shaft-detail.png": {
+      "sha256": "bd3ca2789d8c6a7b40d677bf42a5d9657cba1f211d1003e5ac69f5ddb457058c"
+    },
+    "shaft-detail.png": {
+      "sha256": "2b45b9e477eb4664d2efa120e01a0a5b4c700d0152af5171fec346aa4e3cd591"
+    },
+    "skyline-detail.png": {
+      "sha256": "0062ee21098c1458a0abd9289c00b6ab84c0eec8ef85814faab6705c5c5074b5"
+    },
+    "yard-detail.png": {
+      "sha256": "24faafe910b778fc6f616bbfaf997006c7f3e242edd014751cb159a519944c82"
+    }
+  }
+}

@@ -726,3 +726,11 @@ Evidence/reproduction: ArtDirection/2026-10-11/foundry-court-pit-gate-01.
 - [ ] Full reference fidelity and device acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.
+
+
+## 2026-10-12 - Foundry court hierarchy verified; device pending
+
+- [x] Combined western working apron, lower service skyline and fortress/bridge masonry package, actual matched captures, full suites and APK.
+- [ ] Reference footprint/massing comparison and physical-device acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.

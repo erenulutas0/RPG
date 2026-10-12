@@ -13,31 +13,36 @@ namespace Cryptforge.Tests
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
         private const float Epsilon=.0001f;
 
-        [TestCase(1,12f,42f,3.7f,3.7f,-2f,-26f)]
-        [TestCase(2,-5f,39f,4.2f,3.8f,-4f,-25f)]
-        public void CompleteServiceShaftRetainsScenicEnvelopeAndFoundation(int variant,float u,float v,
+        [TestCase(1,12f,42f,3.7f,3.7f,-5.4f,-26f)]
+        [TestCase(2,-5f,39f,4.2f,3.8f,-6f,-25f)]
+        public void AuthoredServiceSkylineLowersCrownsAndRetainsFoundation(int variant,float u,float v,
             float width,float depth,float top,float bottom)
         {
             object stone=Builder(),fire=Builder();
-            Call("DistantTower",stone,fire,u,v,width,depth,top,bottom,Color.white,variant);
+            Call("DistantServiceTower",stone,fire,Color.white,variant);
             AssertMesh(stone);AssertMesh(fire);
             float u0=u-width*.5f,u1=u+width*.5f,v0=v-depth*.5f,v1=v+depth*.5f;
-            // Include the unchanged projecting arch imposts and buttresses, not
-            // just the narrower shaft. The cap remains at each original datum.
+            // These independently authored limits test the actual production
+            // configuration, not a test reconstruction of its top constants.
+            // Foundation feet stay fixed; each unequal crown must reach its new
+            // lower datum without merely disappearing or fading into the haze.
             AssertEnvelope(stone,u0-.24f,v0-.24f,u1+.16f,v1+.06f,bottom,top-(variant==2?.4f:0));
             AssertEnvelope(fire,u0-.24f,v0-.24f,u1+.16f,v1+.06f,bottom,top);
             var points=Field<List<Vector3>>(stone,"V");
             AssertPoint(points,Project(u0+.2f,v0+.2f)+Vector3.up*bottom);
             AssertPoint(points,Project(u1-.2f,v0+.2f)+Vector3.up*bottom);
             AssertPoint(points,Project(u0+.2f,v1-.2f)+Vector3.up*bottom);
+            float neck=variant==1?.94f:1.02f,crown=top-(variant==2?.4f:0);
+            AssertPoint(points,Project(u0+neck-.12f,v0+neck-.12f)+Vector3.up*crown);
+            AssertPoint(points,Project(u1-neck+.12f,v1-neck+.12f)+Vector3.up*crown);
         }
 
         [TestCase(1,3.7f,3.7f)]
         [TestCase(2,4.2f,3.8f)]
-        public void HeadIsOneConnectedAssemblySeatedOnOriginalShoulder(int variant,float width,float depth)
+        public void HeadIsOneConnectedAssemblySeatedOnLowerShoulder(int variant,float width,float depth)
         {
             const float u0=3.1f,v0=7.2f,top=-2f;
-            float u1=u0+width,v1=v0+depth,shoulder=top-(variant==1?4.8f:6.2f);
+            float u1=u0+width,v1=v0+depth,shoulder=(float)Call("ServiceShoulder",top,variant);
             object head=Builder();Call("DistantFurnaceHead",head,u0,v0,u1,v1,top,Color.white,variant);
             AssertMesh(head,finalColors:false);
             AssertEnvelope(head,u0-.06f,v0-.06f,u1+.06f,v1+.06f,shoulder,top-(variant==2?.4f:0));
@@ -48,26 +53,30 @@ namespace Cryptforge.Tests
             AssertConnected(head);
         }
 
-        [TestCase(1,12f,42f,3.7f,3.7f,-2f,-26f)]
-        [TestCase(2,-5f,39f,4.2f,3.8f,-4f,-25f)]
-        public void HeadReplacementLeavesOriginalSixFurnacePanesAndGapsUnchanged(int variant,float u,float v,
+        [TestCase(1,12f,42f,3.7f,3.7f,-5.4f,-26f)]
+        [TestCase(2,-5f,39f,4.2f,3.8f,-6f,-25f)]
+        public void CompressedServiceBayKeepsSixSeparatedFirePanesWithinRecess(int variant,float u,float v,
             float width,float depth,float top,float bottom)
         {
             object stone=Builder(),fire=Builder();
-            Call("DistantTower",stone,fire,u,v,width,depth,top,bottom,Color.white,variant);
+            Call("DistantServiceTower",stone,fire,Color.white,variant);
             var points=Field<List<Vector3>>(fire,"V");
             var uv=Field<List<Vector2>>(fire,"U");
             float u0=u-width*.5f,u1=u+width*.5f,v0=v-depth*.5f,v1=v+depth*.5f;
-            float sill=top-16.2f,head=top-(variant==1?4.8f:6.2f);
-            // These lower-bay values are a retained visual contract, independent
-            // of the new neck/crown helpers. In particular, no new fire face may
-            // fill a gap or rise into the revised head.
+            float sill=(float)Call("ServiceSill",top,variant),head=(float)Call("ServiceShoulder",top,variant);
+            // Fixed lower sills retain the original footing/bay contact; the
+            // upper bay is deliberately shorter. Six panes retain real gaps and
+            // remain below the new spring line rather than rising into the head.
+            Assert.That(sill,Is.EqualTo(variant==1?-18.2f:-20.2f).Within(Epsilon));
             var expected=new List<Vector3>();
             foreach(bool west in new[]{true,false})
             {
                 float span=west?depth:width,spring=head-.38f-.21f*span;
                 float fireBottom=sill+1.05f,step=(spring-.55f-fireBottom)/3f;
                 float paneHeight=Mathf.Min(1.65f,step*.57f);
+                Assert.That(paneHeight,Is.GreaterThan(.8f));
+                Assert.That(step-paneHeight,Is.GreaterThan(.6f),"Open gaps must survive compression.");
+                Assert.That(fireBottom+step*2+paneHeight,Is.LessThan(spring-.55f));
                 Vector3 At(float t,float z)=>(west?Project(u0+.452f,Mathf.Lerp(v1,v0,t)):
                     Project(Mathf.Lerp(u0,u1,t),v0+.452f))+Vector3.up*z;
                 for(int pane=0;pane<3;pane++)
@@ -83,7 +92,7 @@ namespace Cryptforge.Tests
             Assert.That(points.Count,Is.EqualTo(expected.Count));
             for(int i=0;i<points.Count;i++)
             {
-                Assert.That(Vector3.Distance(points[i],expected[i]),Is.LessThan(Epsilon),"Retained fire pane changed.");
+                Assert.That(Vector3.Distance(points[i],expected[i]),Is.LessThan(Epsilon),"Fire pane escaped its compressed bay contract.");
                 Assert.That(uv[i].x,Is.InRange(.7815f-Epsilon,.7825f+Epsilon));
                 Assert.That(uv[i].y,Is.InRange(.8375f-Epsilon,.8385f+Epsilon));
             }
@@ -119,25 +128,58 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void LowerBrokenServiceArchRemainsBorneByBothCoresWithOpenMiddle()
+        {
+            object span=Builder();Call("DistantServiceArch",span,Color.white);
+            AssertMesh(span,finalColors:false);
+            var points=Field<List<Vector3>>(span,"V");
+            var endpoints=new[]{Project(-5,39)+Vector3.down*7.4f,Project(12,42)+Vector3.down*6.8f};
+            for(int i=0;i<endpoints.Length;i++)
+            {
+                Vector3 end=endpoints[i];AssertPoint(points,end);
+                object stone=Builder(),fire=Builder();Call("DistantServiceTower",stone,fire,Color.white,i==0?2:1);
+                Assert.That(CoversPoint(stone,end),Is.True,"Arch deck must enter its supporting shaft.");
+                Assert.That(CoversPoint(stone,end+Vector3.down*5.2f),Is.True,
+                    "Arch springing must be borne by the retained furnace core.");
+            }
+            Vector3 middle=Vector3.Lerp(endpoints[0],endpoints[1],.535f)+Vector3.down*.70f;
+            Assert.That(CoversPoint(span,middle),Is.False,"The broken span must not become a continuous implied route.");
+        }
+
+        [Test]
         public void CombinedDistantAssemblyRemainsWithinApprovedStaticVertexBudget()
         {
             object stone=Builder(),fire=Builder();
-            Call("DistantArchSpan",stone,Project(-5,39)+Vector3.down*5.4f,
-                Project(12,42)+Vector3.down*3.4f,Color.white);
+            Call("DistantServiceArch",stone,Color.white);
             // Match BuildDistantWorks: the raw arch's lighting multipliers affect
             // alpha too; production fixes the span opaque before adding towers.
             var archColors=Field<List<Color>>(stone,"C");
             for(int i=0;i<archColors.Count;i++){Color c=archColors[i];c.a=1;archColors[i]=c;}
-            var towers=new[]{new[]{35f,28,3.2f,3.5f,-5,-25},new[]{12f,42,3.7f,3.7f,-2,-26},
-                new[]{-5f,39,4.2f,3.8f,-4,-25},new[]{27f,-20,3.8f,4.1f,-5,-28},new[]{-40f,0,4.1f,3.7f,-3,-25}};
+            var towers=new[]{new[]{35f,28,3.2f,3.5f,-5,-25},new[]{12f,42,3.7f,3.7f,-5.4f,-26},
+                new[]{-5f,39,4.2f,3.8f,-6f,-25},new[]{27f,-20,3.8f,4.1f,-5,-28},new[]{-40f,0,4.1f,3.7f,-3,-25}};
             for(int variant=0;variant<towers.Length;variant++)
             {
                 float[] t=towers[variant];
-                Call("DistantTower",stone,fire,t[0],t[1],t[2],t[3],t[4],t[5],Color.white,variant);
+                if(variant==1||variant==2)Call("DistantServiceTower",stone,fire,Color.white,variant);
+                else Call("DistantTower",stone,fire,t[0],t[1],t[2],t[3],t[4],t[5],Color.white,variant);
             }
             AssertMesh(stone);AssertMesh(fire);
             Assert.That(Field<List<Vector3>>(stone,"V").Count+Field<List<Vector3>>(fire,"V").Count,
                 Is.LessThanOrEqualTo(3600),"A pair of architectural heads must not cause unbounded background growth.");
+        }
+
+        private static bool CoversPoint(object mesh,Vector2 point)
+        {
+            var vertices=Field<List<Vector3>>(mesh,"V");var indices=Field<List<int>>(mesh,"T");
+            float Cross(Vector2 a,Vector2 b)=>a.x*b.y-a.y*b.x;
+            for(int i=0;i<indices.Count;i+=3)
+            {
+                Vector2 a=vertices[indices[i]],b=vertices[indices[i+1]],c=vertices[indices[i+2]];
+                float area=Cross(b-a,c-a);if(Mathf.Abs(area)<.0000001f)continue;
+                float x=Cross(b-point,c-point)/area,y=Cross(c-point,a-point)/area,z=1-x-y;
+                if(x>=-Epsilon&&y>=-Epsilon&&z>=-Epsilon)return true;
+            }
+            return false;
         }
 
         private static void AssertMesh(object mesh,bool finalColors=true)

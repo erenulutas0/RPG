@@ -1,0 +1,5 @@
+Exception: E:\MobileGame\Tools\Verify-Project.ps1:16
+Line |
+  16 |  … guidMatch.Success) { throw "Invalid GUID in $($assetFile.FullName)" }
+     |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Invalid GUID in E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryWorkingApronTests.cs.meta

@@ -2360,3 +2360,13 @@ Verified: 425 .NET / 512 EditMode / 159 PlayMode = 1,096 distinct suite cases, z
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0, no C# or shader diagnostics. APK 36,260,221 bytes; SHA256 993B2DA7B72A5A7D6A0FF2923DF29EB41A55917D33B45AF2EE105760DB08D8D0; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.
+
+
+## 2026-10-12 - Foundry court hierarchy verified; device pending
+
+The western receiving edge, transfer turntable and stock/trolley approach now share one connected flush working apron. Its broad repair flags replace existing packed parents, retain exact floor coverage and world lighting, and fade back to ordinary court stone before the pit-side passage. The two northwest scenic shafts have lower unequal crowns and flatter joined shoulders; their original feet and furnace sills remain fixed, six separated furnace panes fit the shorter bays, and the broken connecting span remains borne by the revised cores. Bridge and lower fortress masonry use fewer broader courses, locally scaled cool mineral grain, continuous spandrel/coping mapping and restrained contact shade. Existing walking outline, camera, pit/gate/bridge footprints, scene, encounters, gameplay and saves are unchanged.
+
+425 .NET / 519 EditMode / 159 PlayMode = 1,103 distinct suite cases, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 605 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,263,938 bytes; SHA256 68C7867361911A55C3CAB46F01A8826B30EA2F3F725558EE8B1F46DD06033C8A; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.

@@ -74,18 +74,18 @@ namespace Cryptforge.UI
             {
                 Vector3 a=Project(span.a.x,span.a.y),b=Project(span.b.x,span.b.y);
                 var stone=new Builder();
-                Color tone=span.a.x==span.b.x?new Color(.34f,.37f,.46f):new Color(.43f,.44f,.52f);
+                Color tone=span.a.x==span.b.x?new Color(.40f,.44f,.53f):new Color(.49f,.52f,.61f);
                 const float shoulder=5.95f,foot=7.25f;
                 int blocks=Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.75f));
-                UndercroftCoursedFace(stone,a+Vector3.down*shoulder,b+Vector3.down*shoulder,
-                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,tone,4,blocks);
+                FortressCoursedFace(stone,a+Vector3.down*shoulder,b+Vector3.down*shoulder,
+                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,tone,3,blocks);
                 // One shared contraction maps every adjoining endpoint identically,
                 // including diagonal corners, so the lower skirt has no seam gaps.
                 Vector2 centre=new Vector2(-8,2);
                 Vector2 innerA=Vector2.Lerp(span.a,centre,.035f),innerB=Vector2.Lerp(span.b,centre,.035f);
                 Vector3 lowerA=Project(innerA.x,innerA.y)+Vector3.down*foot;
                 Vector3 lowerB=Project(innerB.x,innerB.y)+Vector3.down*foot;
-                UndercroftCoursedFace(stone,lowerA,lowerB,b+Vector3.down*shoulder,a+Vector3.down*shoulder,
+                FortressCoursedFace(stone,lowerA,lowerB,b+Vector3.down*shoulder,a+Vector3.down*shoulder,
                     new Color(tone.r*.78f,tone.g*.81f,tone.b*.88f),2,blocks);
                 ShadeUndercroftDepth(stone,a,b);
                 Create("Continuous fortress foundation",stone,arena.PlatformMaterials.FoundryWall,-16);
@@ -223,8 +223,8 @@ namespace Cryptforge.UI
                 Vector3 upper=Vector3.up*(key?.96f:.78f);
                 float variation=1+(((i*7+Mathf.Abs(cadence))%5)-2)*.018f;
                 float across=(i+.5f)/count;
-                Color shade=Color.Lerp(new Color(.57f,.56f,.63f),new Color(.43f,.45f,.54f),across);
-                if(key)shade=new Color(.61f,.59f,.64f);
+                Color shade=Color.Lerp(new Color(.58f,.61f,.70f),new Color(.46f,.49f,.59f),across);
+                if(key)shade=new Color(.62f,.65f,.72f);
                 shade*=variation;shade.a=1;
                 // A broad inner return separates the load-bearing arch face from the
                 // opening. Both planes stay inside the existing wedge contour, with
@@ -232,15 +232,15 @@ namespace Cryptforge.UI
                 Vector3 returnTop=Vector3.Lerp(lower,upper,.32f);
                 Vector3 bevelTop=Vector3.Lerp(lower,upper,.40f);
                 Color returnShade=new Color(shade.r*.53f,shade.g*.58f,shade.b*.66f);
-                UndercroftMineralFace(stone,left+lower,right+lower,right+returnTop,left+returnTop,returnShade,false);
-                UndercroftMineralFace(stone,left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,
+                FortressMineralFace(stone,left+lower,right+lower,right+returnTop,left+returnTop,returnShade,false);
+                FortressMineralFace(stone,left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,
                     new Color(shade.r*.83f,shade.g*.87f,shade.b*.94f),false);
-                UndercroftMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,shade,true);
+                FortressMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,shade,true);
                 // A narrow lit upper arris and dark return give each wedge thickness.
-                stone.WallQuad(left+upper,right+upper,right+upper+Vector3.down*.045f,
-                    left+upper+Vector3.down*.045f,false,new Color(.57f,.57f,.64f));
-                stone.WallQuad(left+lower,right+lower,right+lower+Vector3.down*.11f,
-                    left+lower+Vector3.down*.11f,false,new Color(.17f,.19f,.26f));
+                FortressMineralFace(stone,left+upper,right+upper,right+upper+Vector3.down*.045f,
+                    left+upper+Vector3.down*.045f,new Color(.57f,.60f,.68f),false);
+                FortressMineralFace(stone,left+lower,right+lower,right+lower+Vector3.down*.11f,
+                    left+lower+Vector3.down*.11f,new Color(.17f,.19f,.26f),false);
             }
             ShadeUndercroftDepth(stone,a,b);
             Create("Undercroft arches and ribs",stone,arena.PlatformMaterials.FoundryWall,-16);
@@ -252,12 +252,13 @@ namespace Cryptforge.UI
 
         private static void UndercroftSpandrel(Builder stone,Vector3 a,Vector3 b)
         {
+            int first=stone.V.Count;
             const int segments=13;
             // Both exposed court faces share a material but face different ambient
             // light. Keep the backing lighter than the soffit and below the dressed
             // ring; this is a broad surface hierarchy, not black paint over the wall.
             float facing=Mathf.InverseLerp(-2.9f,2.9f,b.y-a.y);
-            Color tone=Color.Lerp(new Color(.38f,.40f,.49f),new Color(.46f,.46f,.53f),facing);
+            Color tone=Color.Lerp(new Color(.42f,.46f,.55f),new Color(.49f,.52f,.61f),facing);
             for(int i=0;i<segments;i++)
             {
                 float t=i/(float)segments,n=(i+1)/(float)segments;
@@ -274,6 +275,9 @@ namespace Cryptforge.UI
             Vector3 deckA=a+Vector3.down*2.8f,deckB=b+Vector3.down*2.8f;
             stone.WallQuad(deckA,deckB,deckB+Vector3.down*.16f,deckA+Vector3.down*.16f,
                 false,new Color(tone.r*.78f,tone.g*.80f,tone.b*.84f));
+            // One mineral field across the thirteen construction segments and the
+            // existing deck contact. Their emission seams are not tiny brick rows.
+            FortressMapGrain(stone,first,stone.V.Count,b-a);
         }
 
         private static Vector3 ArchIntrados(Vector3 a,Vector3 b,float t)
@@ -292,27 +296,27 @@ namespace Cryptforge.UI
             // Broad, shorter responds grow out of the connected curtain rather than
             // reading as separate needles. Only major responds reach below its skirt.
             float[] across={-1f,-.56f,.56f,1f};
-            Color[] front={new Color(.32f,.35f,.45f),new Color(.45f,.46f,.53f),
-                new Color(.39f,.41f,.50f)};
+            Color[] front={new Color(.35f,.39f,.49f),new Color(.51f,.55f,.64f),
+                new Color(.43f,.47f,.56f)};
             for(int face=0;face<3;face++)
             {
                 Vector3 p=top+Vector3.right*(half*across[face]),
                     q=top+Vector3.right*(half*across[face+1]),
                     r=foot+Vector3.right*(half*.55f*across[face+1]),
                     s=foot+Vector3.right*(half*.55f*across[face]);
-                if(face==1)UndercroftCoursedFace(stone,s,r,q,p,front[face],major?7:6,1);
-                else UndercroftMineralFace(stone,p,q,r,s,front[face],false);
+                if(face==1)FortressCoursedFace(stone,s,r,q,p,front[face],major?5:4,1);
+                else FortressMineralFace(stone,p,q,r,s,front[face],false);
             }
-            UndercroftMineralFace(stone,top+Vector3.left*half-bevel,top+Vector3.left*half,
+            FortressMineralFace(stone,top+Vector3.left*half-bevel,top+Vector3.left*half,
                 foot+Vector3.left*half*.55f,foot+Vector3.left*half*.55f-bevel*.45f,new Color(.26f,.29f,.39f),false);
-            UndercroftMineralFace(stone,top+Vector3.right*half,top+Vector3.right*half+bevel,
+            FortressMineralFace(stone,top+Vector3.right*half,top+Vector3.right*half+bevel,
                 foot+Vector3.right*half*.55f+bevel*.45f,foot+Vector3.right*half*.55f,new Color(.48f,.49f,.58f),false);
             // Shoulder and lower course join the pier to the deck and the arch spring.
             foreach(float drop in new[]{.22f,3.12f})
             {
                 Vector3 p=top+Vector3.down*drop;
                 float width=half*(drop<1?1.18f:.92f);
-                UndercroftMineralFace(stone,p+Vector3.left*width,p+Vector3.right*width,
+                FortressMineralFace(stone,p+Vector3.left*width,p+Vector3.right*width,
                     p+Vector3.right*width+Vector3.down*.2f,p+Vector3.left*width+Vector3.down*.2f,
                     new Color(.46f,.46f,.53f),true);
             }

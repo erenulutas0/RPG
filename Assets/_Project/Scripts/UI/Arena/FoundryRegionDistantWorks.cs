@@ -6,6 +6,27 @@ namespace Cryptforge.UI
     {
         private Material _distantMasonryMaterial;
         private const float DistantStoneWidth=2.1f,DistantStoneHeight=1.8f;
+        private const float ServiceTallTop=-5.4f,ServiceLowTop=-6f;
+
+        // Keep the furnace sills and foundation feet seated at their original
+        // depths while lowering the service skyline above the western yard.
+        private static float ServiceShoulder(float top,int variant)=>top-(variant==1?3.7f:4.6f);
+        private static float ServiceSill(float top,int variant)=>top-(variant==1?12.8f:14.2f);
+        private static float ServiceShoulderRise(int variant)=>variant==1?1.1f:1.3f;
+
+        private static void DistantServiceTower(Builder masonry,Builder fire,Color tone,int variant)
+        {
+            if(variant==1)DistantTower(masonry,fire,12,42,3.7f,3.7f,ServiceTallTop,-26,tone,1);
+            else DistantTower(masonry,fire,-5,39,4.2f,3.8f,ServiceLowTop,-25,tone*.93f,2);
+        }
+
+        private static void DistantServiceArch(Builder masonry,Color tone)
+        {
+            // Its endpoints descend with the supporting necks. The existing
+            // broken span stays borne by both cores instead of hanging above them.
+            DistantArchSpan(masonry,Project(-5,39)+Vector3.up*(ServiceLowTop-1.4f),
+                Project(12,42)+Vector3.up*(ServiceTallTop-1.4f),tone);
+        }
 
         // World-anchored architecture beyond the playable island, below its deck.
         // Separate far scenery rank: never an actor occluder or a navigable bridge.
@@ -16,12 +37,11 @@ namespace Cryptforge.UI
             var near=new Color(.82f,.83f,.89f);
             // Emit the distant span before its two bearing towers. The broken centre
             // makes it unmistakably scenery, with no route leading onto our court.
-            DistantArchSpan(masonry,Project(-5,39)+Vector3.down*5.4f,
-                Project(12,42)+Vector3.down*3.4f,far);
+            DistantServiceArch(masonry,far);
             for(int i=0;i<masonry.C.Count;i++){Color c=masonry.C[i];c.a=1;masonry.C[i]=c;}
             DistantTower(masonry,fire,35,28,3.2f,3.5f,-5,-25,far*.86f,0);
-            DistantTower(masonry,fire,12,42,3.7f,3.7f,-2,-26,far,1);
-            DistantTower(masonry,fire,-5,39,4.2f,3.8f,-4,-25,far*.93f,2);
+            DistantServiceTower(masonry,fire,far,1);
+            DistantServiceTower(masonry,fire,far,2);
             DistantTower(masonry,fire,27,-20,3.8f,4.1f,-5,-28,near*.91f,3);
             DistantTower(masonry,fire,-40,0,4.1f,3.7f,-3,-25,near,4);
             // Reuse the cavern's atmospheric shader with borrowed wall art; only
@@ -132,7 +152,7 @@ namespace Cryptforge.UI
         private static void DistantFurnaceShaft(Builder mesh,Builder fire,float u0,float v0,float u1,float v1,
             float top,float bottom,Color tone,int variant)
         {
-            float shoulder=top-(variant==1?4.8f:6.2f),sill=top-16.2f;
+            float shoulder=ServiceShoulder(top,variant),sill=ServiceSill(top,variant);
             const float recess=.46f;
             // Continuous narrow foundation, then a recessed core. No outer full
             // wall crosses either bay: the pier/spandrel geometry forms its opening.
@@ -154,7 +174,8 @@ namespace Cryptforge.UI
                 // bearing volume instead of a detached fin beside the neck.
                 float neck=variant==1?.94f:1.02f;
                 float inward=(x<(u0+u1)*.5f?1:-1)*(neck-.15f);
-                DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,shoulder+2.0f,.16f,tone*.94f,inward,neck+.04f);
+                DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,
+                    shoulder+ServiceShoulderRise(variant),.16f,tone*.94f,inward,neck+.04f);
             }
             DistantFurnaceHead(mesh,u0,v0,u1,v1,top,tone,variant);
         }
@@ -162,14 +183,15 @@ namespace Cryptforge.UI
         private static void DistantFurnaceHead(Builder mesh,float u0,float v0,float u1,float v1,
             float top,Color tone,int variant)
         {
-            float shoulder=top-(variant==1?4.8f:6.2f),neck=variant==1?.94f:1.02f;
-            float neckBottom=shoulder+(variant==1?1.85f:2.10f);
+            float shoulder=ServiceShoulder(top,variant),neck=variant==1?.94f:1.02f;
+            float neckBottom=shoulder+ServiceShoulderRise(variant);
             float exhaustTop=top-(variant==1?0:.40f),exhaustBottom=top-(variant==1?.90f:1.20f);
             Vector4 foot=new Vector4(u0-.06f,v0-.06f,u1+.06f,v1+.06f);
             Vector4 bearing=new Vector4(u0+.14f,v0+.14f,u1-.14f,v1-.14f);
             Vector4 shaft=new Vector4(u0+neck,v0+neck,u1-neck,v1-neck);
-            // The original shoulder datum/outer bearing stay fixed. Two joined
-            // raking courses taper to a slimmer neck; no hidden horizontal caps
+            // Two low joined haunch courses carry the narrower neck. Their outer
+            // bearing remains fixed in plan, while the reduced rise avoids the
+            // previous tall pyramidal head. No hidden horizontal caps
             // are laid across the next section or the open exhaust throat.
             DistantHeadShoulder(mesh,foot,bearing,shoulder,shoulder+.45f,tone*.93f);
             DistantHeadShoulder(mesh,bearing,shaft,shoulder+.45f,neckBottom,tone*.88f);

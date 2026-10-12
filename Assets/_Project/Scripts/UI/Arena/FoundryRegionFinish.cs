@@ -530,8 +530,9 @@ namespace Cryptforge.UI
             if(!repair)faceTint*=PavingMineralFamily((u0+u1)*.5f,(v0+v1)*.5f);
             if(repair)
             {
-                // One cool replacement-stone family across each service repair, not
-                // a random dark/light checkerboard. Lighting remains world-continuous.
+                // The connected working apron shares a broad quarry batch across
+                // several slabs, not a fresh random pale/dark value for each split.
+                grain=FloorPatina((u0+u1)*.08f+5.7f,(v0+v1)*.08f-9.4f);
                 stone=Mathf.Lerp(.965f,1.015f,grain);
                 tint=new Color(.87f,.91f,.965f);
                 faceTint=tint;
@@ -552,7 +553,7 @@ namespace Cryptforge.UI
             // value, so the floor reads as masonry rather than a dark outlined grid.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
             float jointTone=kept?.82f:court?.84f:.90f;
-            if(repair)jointTone=.80f;
+            if(repair)jointTone=.85f;
             if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
             else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
             if(UseFlagContour(s.Zone,repair,u0,v0,u1,v1))

@@ -1183,3 +1183,12 @@ Gate recesses now map the existing stone grain by real block dimensions, continu
 Region 32 renderers/166467 vertices versus 165232 (+1235); distant geometry 3572 unchanged. No new runtime texture, material, renderer or per-frame updater. These resource observations are not device-performance measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-material-integration-01.
+
+
+## 2026-10-12 - Foundry court hierarchy verified; device pending
+
+The western receiving edge, transfer turntable and stock/trolley approach now share one connected flush working apron. Its broad repair flags replace existing packed parents, retain exact floor coverage and world lighting, and fade back to ordinary court stone before the pit-side passage. The two northwest scenic shafts have lower unequal crowns and flatter joined shoulders; their original feet and furnace sills remain fixed, six separated furnace panes fit the shorter bays, and the broken connecting span remains borne by the revised cores. Bridge and lower fortress masonry use fewer broader courses, locally scaled cool mineral grain, continuous spandrel/coping mapping and restrained contact shade. Existing walking outline, camera, pit/gate/bridge footprints, scene, encounters, gameplay and saves are unchanged.
+
+Region 32 renderers/164217 vertices versus 166467 (-2250); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-hierarchy-01.
