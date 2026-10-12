@@ -4,6 +4,27 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        private static void FortressRecessedRespond(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone)
+        {
+            // One blind panel carved into the full parent face. Its four broad
+            // jamb/bearing pieces and four shaded returns partition that face;
+            // they add no floating trim or vertices outside the original taper.
+            Vector3 At(float x,float y)=>UndercroftFacePoint(a,b,c,d,x,y);
+            var frame=new[]{a,b,c,d};
+            var mouth=new[]{At(.18f,.10f),At(.82f,.10f),At(.82f,.90f),At(.18f,.90f)};
+            var back=new[]{At(.27f,.15f),At(.73f,.15f),At(.73f,.85f),At(.27f,.85f)};
+            for(int edge=0;edge<4;edge++)
+            {
+                int next=(edge+1)%4;
+                FortressMineralFace(mesh,frame[edge],frame[next],mouth[next],mouth[edge],tone,false);
+                float light=edge==0?.98f:edge==1?.74f:edge==2?.51f:.61f;
+                FortressMineralFace(mesh,mouth[edge],mouth[next],back[next],back[edge],
+                    new Color(tone.r*light,tone.g*light,tone.b*light,1),false);
+            }
+            FortressCoursedFace(mesh,back[0],back[1],back[2],back[3],
+                new Color(tone.r*.71f,tone.g*.74f,tone.b*.80f,1),2,1);
+        }
+
         // A local family for the bridge and lower fortress. Workshop supports,
         // court edge walls and gate ashlar retain their existing material helpers.
         private static void FortressCoursedFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,

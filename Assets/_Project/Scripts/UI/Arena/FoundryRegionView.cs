@@ -82,6 +82,7 @@ namespace Cryptforge.UI
                 Create("Bridge coping",rail,arena.PlatformMaterials.FoundryWall,-14);
             }
             BuildCourtStoneRing(floor);
+            BuildCourtProcessionalStone(floor);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);
             Create("Layout sidewalls",walls,arena.PlatformMaterials.FoundryWall,-16);
             Create("Layout coping",trim,arena.PlatformMaterials.Coping,FloorDecal);
@@ -266,8 +267,6 @@ namespace Cryptforge.UI
                 LitFloorQuad(mesh,Project(q[0].x,q[0].y),Project(q[i].x,q[i].y),Project(q[i+1].x,q[i+1].y),
                     Project(q[Mathf.Min(i+2,n-1)].x,q[Mathf.Min(i+2,n-1)].y),tone);
         }
-        // Shared by visible brass and the forced slab joints beneath it.
-        private const float ForecourtGuideV=FoundryMap.South+4;
         // The photograph now owns the composition: broad court, inset shaft, south bridge, northeast gate.
         private void BuildLandmarks(ArenaView arena)
         {
@@ -276,15 +275,11 @@ namespace Cryptforge.UI
             BuildCourtSeal(arena);
             foreach(float d in new[]{-BridgeLaneHalf,BridgeLaneHalf})
             {
-                Vector2 a=DeckDesign(FoundryMap.BridgeStart+2,d),b=DeckDesign(-18,d);
+                Vector2 a=DeckDesign(FoundryMap.BridgeStart+2,d),b=DeckDesign(2*FoundryMap.South-1,d);
                 Strip(inlays,a.x,a.y,b.x,b.y,.12f,brass,CopingTrim.Brass);
             }
-            // Court guides stop before the gate's own centred processional panel.
-            Strip(inlays,4,-1,13.5f,-1,.12f,brass,CopingTrim.Brass);Strip(inlays,5,9,13.5f,9,.12f,brass,CopingTrim.Brass);
-            Strip(inlays,-16,ForecourtGuideV,8,ForecourtGuideV,.1f,brass,CopingTrim.Brass);
-            Strip(inlays,-16,ForecourtGuideV,-16,15,.1f,brass,CopingTrim.Brass);
-            Strip(inlays,-16,15,10,15,.1f,brass,CopingTrim.Brass);
-            BuildCourtCompass(inlays,brass);
+            // The court's processional settings are stone in the existing floor
+            // mesh; only the exposed bridge retains its narrow brass lane inlays.
             Create("Court brass inlays",inlays,arena.PlatformMaterials.Coping,FloorDecal);
 
             BuildGate(arena);

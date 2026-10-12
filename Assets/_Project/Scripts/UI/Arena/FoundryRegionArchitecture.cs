@@ -327,8 +327,70 @@ namespace Cryptforge.UI
             bool near=v<0;
             float a=near?v+1.42f:v+.04f,b=near?v+1.96f:v+.58f;
             GateCraftTier(stone,GateU(32.02f),a,GateU(33.04f),b,.45f,1.15f,.03f,.94f);
-            GateCraftTier(stone,GateU(32.04f),a+.025f,GateU(33.04f),b-.025f,1.15f,height-.38f,.025f,.96f);
+            // Seat the square rebate corners inside the base's actual chamfered
+            // top and the former body's contracted upper footprint, not its AABB.
+            BuildGateJambRebate(stone,new Vector4(GateU(32.10f),a+.075f,GateU(32.96f),b-.075f),
+                1.15f,height-.38f,near);
             GateCraftTier(stone,GateU(32.02f),a-.02f,GateU(33.04f),b+.02f,height-.38f,height+.10f,.065f,.96f);
+        }
+
+        private static Vector2[] GateJambSection(Vector4 box,bool near)
+        {
+            // The inner longitudinal cut is real missing volume, not a dark stripe
+            // over the former solid column. Its backing remains inside this jamb;
+            // the unchanged painted facade and approach lie beyond its v edge.
+            float back=box.x+(box.z-box.x)*.53f;
+            float rebate=(box.w-box.y)*.36f;
+            if(near)return new[]{new Vector2(box.x,box.y),new Vector2(box.z,box.y),new Vector2(box.z,box.w),
+                new Vector2(back,box.w),new Vector2(back,box.w-rebate),new Vector2(box.x,box.w-rebate)};
+            return new[]{new Vector2(back,box.y),new Vector2(box.z,box.y),new Vector2(box.z,box.w),
+                new Vector2(box.x,box.w),new Vector2(box.x,box.y+rebate),new Vector2(back,box.y+rebate)};
+        }
+
+        private static void BuildGateJambRebate(Builder stone,Vector4 box,float bottom,float top,bool near)
+        {
+            Vector2[] section=GateJambSection(box,near);
+            var order=new int[section.Length];
+            for(int i=0;i<order.Length;i++)order[i]=i;
+            // Emit back planes first in the shared transparent stone material.
+            System.Array.Sort(order,(i,j)=>
+            {
+                Vector2 a=section[i]+section[(i+1)%section.Length],b=section[j]+section[(j+1)%section.Length];
+                return (b.x+b.y).CompareTo(a.x+a.y);
+            });
+            foreach(int edge in order)
+            {
+                Vector2 p=section[edge],q=section[(edge+1)%section.Length];
+                Vector3 a=Project(p.x,p.y),b=Project(q.x,q.y);
+                bool alongU=Mathf.Abs(p.x-q.x)>.01f;
+                bool reveal=near?edge==3||edge==4:edge==4||edge==5;
+                float shade=reveal?.72f:1f;
+                Color tone=(alongU?new Color(.56f,.59f,.67f):new Color(.45f,.49f,.58f))*shade;tone.a=1;
+                int first=stone.V.Count;
+                GateStonePatch(stone,a+Vector3.up*bottom,b+Vector3.up*bottom,
+                    b+Vector3.up*top,a+Vector3.up*top,new Color(tone.r*.72f,tone.g*.72f,tone.b*.72f));
+                GateRecessGrain(stone,first,stone.V.Count,Vector3.up,edge);
+                for(int course=0;course<3;course++)
+                {
+                    float lo=Mathf.Lerp(bottom,top,course/3f)+(course==0?0:.012f);
+                    float hi=Mathf.Lerp(bottom,top,(course+1)/3f)-(course==2?0:.012f);
+                    GateRecessDressedFace(stone,a+Vector3.up*lo,b+Vector3.up*lo,
+                        b+Vector3.up*hi,a+Vector3.up*hi,tone,.035f,edge);
+                }
+            }
+            // Two rectangles exactly tile the L-shaped bearing. A fan across the
+            // concave cut would silently fill the reveal with a triangular cap.
+            float split=section[4].y;
+            float backU=near?section[3].x:section[0].x;
+            void Cap(float u0,float v0,float u1,float v1)
+            {
+                int first=stone.V.Count;Vector3 rise=Vector3.up*top;
+                GateStonePatch(stone,Project(u0,v0)+rise,Project(u1,v0)+rise,
+                    Project(u1,v1)+rise,Project(u0,v1)+rise,new Color(.63f,.66f,.74f));
+                GateRecessGrain(stone,first,stone.V.Count,Project(1,0)-Project(0,0),0);
+            }
+            if(near){Cap(box.x,box.y,box.z,split);Cap(backU,split,box.z,box.w);}
+            else{Cap(backU,box.y,box.z,split);Cap(box.x,split,box.z,box.w);}
         }
 
         private static void TintedIronTier(Builder mesh,float u0,float v0,float u1,float v1,

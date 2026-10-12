@@ -224,6 +224,17 @@ namespace Cryptforge.UI
         {
             Vector3 a=Project(from.x,from.y),b=Project(to.x,to.y);
             var stone=new Builder();
+            BuildFortressArchFace(stone,a,b,cadence);
+            ShadeUndercroftDepth(stone,a,b);
+            Create("Undercroft arches and ribs",stone,arena.PlatformMaterials.FoundryWall,-16);
+            // Chain eligibility retains the original physical support cadence.
+            piers.Add((from,cadence%3==0));
+            if(terminal)piers.Add((to,true));
+        }
+
+        private static void BuildFortressArchFace(Builder stone,Vector3 a,Vector3 b,int cadence)
+        {
+            bool primary=cadence%3==0;
             // Close the spandrels between the existing opening and the deck underside.
             // The previous isolated rings read like thin ribs hanging below a slab.
             // This recessed backing gives the same intrados a load-bearing masonry
@@ -237,15 +248,21 @@ namespace Cryptforge.UI
             {
                 float t=i/(float)count,n=(i+1)/(float)count;
                 Vector3 p=ArchIntrados(a,b,t),q=ArchIntrados(a,b,n);
-                stone.WallQuad(p,q,q+Vector3.up*.8f,p+Vector3.up*.8f,false,new Color(.19f,.21f,.29f));
+                float bed=primary?.8f:.32f;
+                stone.WallQuad(p,q,q+Vector3.up*bed,p+Vector3.up*bed,false,new Color(.19f,.21f,.29f));
                 Vector3 left=Vector3.Lerp(p,q,.035f),right=Vector3.Lerp(p,q,.965f);
                 bool key=i==count/2;
-                Vector3 lower=Vector3.down*(key?.10f:0);
-                Vector3 upper=Vector3.up*(key?.96f:.78f);
+                // Secondary bays are shallow blind arches in the curtain. Their
+                // wide backing already closes the old ring envelope; only a small
+                // recessed reveal remains. The dressed primary arch carries the
+                // full original crown and reads with the broad major respond.
+                Vector3 lower=Vector3.down*(primary&&key?.10f:0);
+                Vector3 upper=Vector3.up*(primary?(key?.96f:.78f):.32f);
                 float variation=1+(((i*7+Mathf.Abs(cadence))%5)-2)*.018f;
                 float across=(i+.5f)/count;
                 Color shade=Color.Lerp(new Color(.58f,.61f,.70f),new Color(.46f,.49f,.59f),across);
-                if(key)shade=new Color(.62f,.65f,.72f);
+                if(key&&primary)shade=new Color(.62f,.65f,.72f);
+                if(!primary)shade=new Color(shade.r*.70f,shade.g*.74f,shade.b*.79f);
                 shade*=variation;shade.a=1;
                 // A broad inner return separates the load-bearing arch face from the
                 // opening. Both planes stay inside the existing wedge contour, with
@@ -256,19 +273,13 @@ namespace Cryptforge.UI
                 FortressMineralFace(stone,left+lower,right+lower,right+returnTop,left+returnTop,returnShade,false);
                 FortressMineralFace(stone,left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,
                     new Color(shade.r*.83f,shade.g*.87f,shade.b*.94f),false);
-                FortressMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,shade,true);
+                FortressMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,shade,primary);
                 // A narrow lit upper arris and dark return give each wedge thickness.
                 FortressMineralFace(stone,left+upper,right+upper,right+upper+Vector3.down*.045f,
-                    left+upper+Vector3.down*.045f,new Color(.57f,.60f,.68f),false);
+                    left+upper+Vector3.down*.045f,primary?new Color(.57f,.60f,.68f):new Color(.36f,.40f,.49f),false);
                 FortressMineralFace(stone,left+lower,right+lower,right+lower+Vector3.down*.11f,
                     left+lower+Vector3.down*.11f,new Color(.17f,.19f,.26f),false);
             }
-            ShadeUndercroftDepth(stone,a,b);
-            Create("Undercroft arches and ribs",stone,arena.PlatformMaterials.FoundryWall,-16);
-            // Every third pier carries a deeper buttress. End spans receive their own
-            // support so neither arch foot terminates as a floating masonry blade.
-            piers.Add((from,cadence%3==0));
-            if(terminal)piers.Add((to,true));
         }
 
         private static void UndercroftSpandrel(Builder stone,Vector3 a,Vector3 b)
@@ -309,14 +320,25 @@ namespace Cryptforge.UI
         private void UndercroftPier(ArenaView arena,Vector2 at,bool major)
         {
             Vector3 anchor=Project(at.x,at.y);
+            var stone=new Builder();
+            BuildFortressRespond(stone,anchor,major);
+            ShadeUndercroftDepth(stone,anchor,anchor);
+            Create("Faceted undercroft buttresses",stone,arena.PlatformMaterials.FoundryWall,-16);
+            BuildUndercroftSocket(arena,at,anchor,major);
+        }
+
+        private static void BuildFortressRespond(Builder stone,Vector3 anchor,bool major)
+        {
             float half=major?.58f:.44f,depth=major?7.9f:6.9f;
             Vector3 top=anchor+Vector3.down*2.5f;
             Vector3 foot=anchor+Vector3.down*depth;
             Vector3 bevel=new Vector3(half*.32f,.12f,0);
-            var stone=new Builder();
-            // Broad, shorter responds grow out of the connected curtain rather than
-            // reading as separate needles. Only major responds reach below its skirt.
-            float[] across={-1f,-.56f,.56f,1f};
+            // The original outer taper, foot and shoulder contacts are retained.
+            // Most of a major respond is now one broad load-bearing face instead
+            // of three equally prominent facets. Secondary responds receive a
+            // projected inset central panel and recede into the curtain.
+            float centre=major?.84f:.78f;
+            float[] across={-1f,-centre,centre,1f};
             Color[] front={new Color(.35f,.39f,.49f),new Color(.51f,.55f,.64f),
                 new Color(.43f,.47f,.56f)};
             for(int face=0;face<3;face++)
@@ -325,7 +347,8 @@ namespace Cryptforge.UI
                     q=top+Vector3.right*(half*across[face+1]),
                     r=foot+Vector3.right*(half*.55f*across[face+1]),
                     s=foot+Vector3.right*(half*.55f*across[face]);
-                if(face==1)FortressCoursedFace(stone,s,r,q,p,front[face],major?5:4,1);
+                if(face==1&&major)FortressCoursedFace(stone,s,r,q,p,front[face],3,1);
+                else if(face==1)FortressRecessedRespond(stone,s,r,q,p,new Color(.39f,.43f,.52f));
                 else FortressMineralFace(stone,p,q,r,s,front[face],false);
             }
             FortressMineralFace(stone,top+Vector3.left*half-bevel,top+Vector3.left*half,
@@ -339,10 +362,13 @@ namespace Cryptforge.UI
                 float width=half*(drop<1?1.18f:.92f);
                 FortressMineralFace(stone,p+Vector3.left*width,p+Vector3.right*width,
                     p+Vector3.right*width+Vector3.down*.2f,p+Vector3.left*width+Vector3.down*.2f,
-                    new Color(.46f,.46f,.53f),true);
+                    major?new Color(.46f,.49f,.57f):new Color(.35f,.39f,.48f),major);
             }
-            ShadeUndercroftDepth(stone,anchor,anchor);
-            Create("Faceted undercroft buttresses",stone,arena.PlatformMaterials.FoundryWall,-16);
+        }
+
+        private void BuildUndercroftSocket(ArenaView arena,Vector2 at,Vector3 anchor,bool major)
+        {
+            Vector3 top=anchor+Vector3.down*2.5f;
             // A bastion or a boiler's foundation stands in front of four major piers (12,-14; -18,0; -18,16; 20,-2). Their
             // stone paints under those masses (one batch, emitted first), but the plate's rank is over all the stone below
             // the deck, so it painted over the mass in front: across the top of the bastion at (12,-14), for one.

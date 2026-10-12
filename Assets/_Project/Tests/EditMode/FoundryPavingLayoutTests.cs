@@ -17,10 +17,11 @@ namespace Cryptforge.Tests
         [TestCase(24)]
         [TestCase(37)]
         [TestCase(91)]
-        public void VariedCourtPackingCoversEachHalfCellOnceAndPreservesBrass(int salt)
+        public void VariedCourtPackingCoversEachHalfCellOnceWithoutRetiredGuideSeams(int salt)
         {
-            // Representative actual foundry rooms, with ceremonial, work and approach
-            // zones. Reflection exercises the production packer without a test-only API.
+            // The room bounds are real; zone 1 is an intentional synthetic caller
+            // exercising the packer's reusable unit-bond support. Actual PavingZone
+            // no longer assigns it beneath either the old or new medallion centre.
             int u0=FoundryMap.West,v0=FoundryMap.South,maxU=u0,maxV=v0;
             for(int room=0;room<FoundryMap.RectangleCount;room++)
             {
@@ -41,6 +42,7 @@ namespace Cryptforge.Tests
             Assert.That(method,Is.Not.Null);
             var stones=(IEnumerable)method.Invoke(null,new object[]{zone,u0,v0,salt});
             var joints=(Vector4[])typeof(FoundryRegionView).GetField("CourtBrassJoints",Static).GetValue(null);
+            Assert.That(joints,Is.Empty,"Retiring the large brass box must retire its artificial paving seams too.");
             var coverage=new int[width,height];
             var workSizes=new HashSet<string>();
             int work=0,varied=0;
@@ -58,14 +60,6 @@ namespace Cryptforge.Tests
                 }
                 if(z==1){Assert.That(w,Is.EqualTo(2));Assert.That(h,Is.EqualTo(2));}
                 if(z==3){work++;if(w!=2||h!=2)varied++;workSizes.Add(w+"x"+h);}
-                float left=u0+i*.5f,right=left+w*.5f,bottom=v0+j*.5f,top=bottom+h*.5f;
-                foreach(var line in joints)
-                {
-                    bool crosses=line.y==line.w
-                        ?bottom<line.y&&top>line.y&&left<line.z&&right>line.x
-                        :left<line.x&&right>line.x&&bottom<line.w&&top>line.y;
-                    Assert.That(crosses,Is.False,$"Slab {left},{bottom},{right},{top} crosses forced brass {line}.");
-                }
             }
             for(int i=0;i<width;i++)for(int j=0;j<height;j++)
                 Assert.That(coverage[i,j],Is.EqualTo(zone[i,j]<0?0:1),$"Exact coverage at {i},{j}.");

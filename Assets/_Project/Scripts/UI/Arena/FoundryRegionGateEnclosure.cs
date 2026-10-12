@@ -44,26 +44,31 @@ namespace Cryptforge.UI
                 GateEnclosureTier(foundation,towerFoot.x,towerFoot.y,towerFoot.z,towerFoot.w,-3.45f,0,.10f,.84f);
                 Create("Gate buttress foundations",foundation,arena.PlatformMaterials.FoundryWall,-16);
                 var stone=new Builder();
-                GateEnclosureTier(stone,GateU(31.05f),towerV,GateU(34.9f),towerV+2.45f,0,.52f,.10f,.92f,true);
-                // Two connected masonry lifts carry a low roof shoulder. The
-                // original third storey competed with the doorway like a chimney;
-                // the new coping meets the curtain instead of looming above it.
-                GateEnclosureTier(stone,GateU(31.16f),towerV+.11f,GateU(34.79f),towerV+2.34f,.52f,3.38f,.32f,.87f);
-                GateEnclosureTier(stone,GateU(31.43f),towerV+.36f,GateU(34.52f),towerV+2.09f,3.38f,3.63f,.05f,1f,true);
-                GateRecessedShaft(stone,new Vector4(GateU(31.53f),towerV+.46f,GateU(34.42f),towerV+1.99f),
-                    3.63f,6.55f,.065f,.92f,.36f);
-                GateEnclosureTier(stone,GateU(31.42f),towerV+.35f,GateU(34.53f),towerV+2.10f,6.55f,6.82f,.07f,.98f,true);
-                // Broad hipped coping joins the wall's 6.82-7.02 roof level. Its
-                // full bearing stays on the body below and inside the old footprint.
-                GateEnclosureTier(stone,GateU(31.54f),towerV+.46f,GateU(34.41f),towerV+1.99f,6.82f,7.20f,.30f,.88f,true);
-                GateEnclosureTier(stone,GateU(31.84f),towerV+.76f,GateU(34.11f),towerV+1.69f,7.20f,7.35f,.04f,.94f,true);
-                var lower=new Vector4(GateU(31.16f),towerV+.11f,GateU(34.79f),towerV+2.34f);
-                foreach(bool front in new[]{true,false})
-                {
-                    GateEnclosureQuoins(stone,lower,front);
-                }
+                BuildGateOuterButtress(stone,towerFoot);
                 Create("Gate broad crowned buttresses",stone,arena.PlatformMaterials.FoundryWall,order);
             }
+        }
+
+        private static void BuildGateOuterButtress(Builder stone,Vector4 foot)
+        {
+            // A low battered plinth now carries one tall blind bay. Removing the
+            // mid-height waist and its applied corner blocks makes this a vertical
+            // gate pier instead of two square storeys stacked beside the door.
+            GateEnclosureTier(stone,foot.x,foot.y,foot.z,foot.w,0,.52f,.10f,.92f,true);
+            GateEnclosureTier(stone,foot.x+.11f,foot.y+.11f,foot.z-.11f,foot.w-.11f,
+                .52f,1.58f,.32f,.87f);
+            GateEnclosureTier(stone,foot.x+.38f,foot.y+.36f,foot.z-.38f,foot.w-.36f,
+                1.58f,1.84f,.05f,1f,true);
+            GateRecessedShaft(stone,new Vector4(foot.x+.48f,foot.y+.46f,foot.z-.48f,foot.w-.46f),
+                1.84f,6.55f,.065f,.92f,.36f);
+            // One capital and a seated shoulder meet the existing curtain roof.
+            // Keep the exact outer footprint, 7.35 crown and old rear bearing.
+            GateEnclosureTier(stone,foot.x+.37f,foot.y+.35f,foot.z-.37f,foot.w-.35f,
+                6.55f,6.82f,.07f,.98f,true);
+            GateEnclosureTier(stone,foot.x+.49f,foot.y+.46f,foot.z-.49f,foot.w-.46f,
+                6.82f,7.20f,.30f,.88f,true);
+            GateEnclosureTier(stone,foot.x+.79f,foot.y+.76f,foot.z-.79f,foot.w-.76f,
+                7.20f,7.35f,.04f,.94f,true);
         }
 
         private static void GateEnclosureTier(Builder mesh,float u0,float v0,float u1,float v1,

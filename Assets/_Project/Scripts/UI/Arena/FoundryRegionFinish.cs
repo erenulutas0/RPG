@@ -223,7 +223,8 @@ namespace Cryptforge.UI
         // These regions describe flush stonework only; the shared walking union is unchanged.
         private static int PavingZone(Vector2Int cell)
         {
-            if(cell.x>=-4&&cell.x<4&&cell.y>=-4&&cell.y<4)return 1;
+            // The moved medallion has its own clipped stonework. Do not leave a
+            // square of unit flags behind at the former origin or below its new bed.
             if(cell.x>=10&&cell.x<FoundryMap.GateLandingEnd&&cell.y>=0&&cell.y<10)return 2;
             if(cell.x>=FoundryMap.West&&cell.x<FoundryMap.PitWest&&cell.y>=2&&cell.y<12)return 3;
             return 0;
@@ -232,17 +233,12 @@ namespace Cryptforge.UI
         // Half-unit ashlar with broad unequal court flags and occasional 2.5x1 slabs
         // (maximum area3). The skyline packer limits long joints and four-way crossings;
         // matching neighbour heights is only a mild preference, not a regular course.
-        // Brass remains a forced joint and the ceremonial seal alone keeps unit flags.
+        // Authored court flags remain varied below the flush ceremonial assembly.
         private const int AshlarSub=2,AshlarRun=6,AshlarEdgeRun=4,AshlarLevel=2,AshlarSalt=37;
         private const byte AshlarFree=0,AshlarEdge=1,AshlarCovered=2;
-        // Forced joints under the surviving angular court guides. The old remote
-        // compass spokes are gone; their four artificial seams are retired too.
-        private static readonly Vector4[] CourtBrassJoints=
-        {
-            new Vector4(4,-1,30,-1),new Vector4(5,9,30,9),new Vector4(-16,ForecourtGuideV,8,ForecourtGuideV),
-            new Vector4(-16,ForecourtGuideV,-16,15),
-            new Vector4(-16,15,10,15)
-        };
+        // The large angular brass box has been retired together with its forced
+        // packing seams. Processional settings carry their own fitted stone beds.
+        private static readonly Vector4[] CourtBrassJoints=System.Array.Empty<Vector4>();
         // Stone sizes in half units (w along u, h along v) and weights, in the packer's order: court, then the apron's
         // crosswise set. Infill comes last, at weight 1: it is only ever laid as the least penalised stone.
         private static readonly int[][] AshlarSizes={AshlarFamily(false),AshlarFamily(true)};
@@ -313,8 +309,8 @@ namespace Cryptforge.UI
                 else lay.Cover(false,Mathf.RoundToInt((line.x-u0)*AshlarSub),
                     Mathf.RoundToInt((line.y-v0)*AshlarSub),Mathf.RoundToInt((line.w-v0)*AshlarSub));
             }
-            // Only the ceremonial seal keeps a regular one-unit bond. The workyard
-            // shares the varied ashlar sizes; long slab courses now break across it.
+            // A reserved unit-bond zone is retained for packer callers. The actual
+            // court no longer assigns it: the seal supplies its own fitted flags.
             for(int i=0;i<lay.W;i+=AshlarSub)
                 for(int j=0;j<lay.H;j+=AshlarSub)
                 {
@@ -678,35 +674,43 @@ namespace Cryptforge.UI
 
         private static void BuildCourtStoneRing(Builder mesh)
         {
-            // A single stone-built medallion occupies the same r3.97 envelope.
-            // Radial joints carry the composition; no extra dark disc or outer target.
+            // One larger stone assembly sits in the foreground court. The emblem
+            // remains modest; its extra footprint is fitted paving and radial stone.
             var field=new Vector2[48];
-            for(int i=0;i<field.Length;i++)field[i]=SealPolar(i*Mathf.PI/24,2.73f);
+            for(int i=0;i<field.Length;i++)field[i]=CourtSealPoint(i*Mathf.PI/24,CourtFieldRadius);
             BuildCourtMedallionField(mesh,field);
             const int segments=24;
             for(int i=0;i<segments;i++)
             {
                 float a=i*Mathf.PI*2/segments,b=(i+1)*Mathf.PI*2/segments;
-                CourtRingFlag(mesh,a,b,2.70f,3.97f,.82f);
-                CourtDressedStone(mesh,new[]{SealPolar(a+.004f,2.735f),SealPolar(b-.004f,2.735f),
-                    SealPolar(b-.004f,3.945f),SealPolar(a+.004f,3.945f)});
+                CourtRingFlag(mesh,a,b,CourtFieldRadius-.03f,CourtStoneRadius,.82f);
+                CourtDressedStone(mesh,new[]{CourtSealPoint(a+.004f,CourtFieldRadius+.005f),
+                    CourtSealPoint(b-.004f,CourtFieldRadius+.005f),
+                    CourtSealPoint(b-.004f,CourtStoneRadius-.025f),CourtSealPoint(a+.004f,CourtStoneRadius-.025f)});
             }
         }
 
         private static void BuildCourtMedallionField(Builder mesh,Vector2[] field)
         {
-            // Keep the exact circular bed and original continuous mineral/light
-            // projection. A few broad fitted flags replace its single dark slab;
-            // quiet open joints explain the assembly underneath the compass.
+            // Fit broad flags to the supplied circle in world coordinates. The
+            // origin and radius may change without leaving an old centre disc,
+            // shifting the stone grain, or dropping the clipped row ends.
             CeremonialStoneFace(mesh,field,.84f);
-            const float radius=2.73f,rowHeight=1.82f,joint=.022f;
-            for(int row=0;row<3;row++)
+            float left=field[0].x,right=left,bottomEdge=field[0].y,topEdge=bottomEdge;
+            foreach(Vector2 p in field)
             {
-                float bottom=-radius+row*rowHeight,top=bottom+rowHeight;
-                float cursor=-radius-(row==1?.88f:0);
-                for(int slab=0;cursor<radius;slab++)
+                left=Mathf.Min(left,p.x);right=Mathf.Max(right,p.x);
+                bottomEdge=Mathf.Min(bottomEdge,p.y);topEdge=Mathf.Max(topEdge,p.y);
+            }
+            const int rows=4;const float joint=.022f;
+            float rowHeight=(topEdge-bottomEdge)/rows;
+            for(int row=0;row<rows;row++)
+            {
+                float bottom=bottomEdge+row*rowHeight,top=bottomEdge+(row+1)*rowHeight;
+                float cursor=left-(row%2==1?.94f:0);
+                for(int slab=0;cursor<right;slab++)
                 {
-                    float next=cursor+(slab%2==0?1.92f:1.76f);
+                    float next=cursor+(slab%2==0?2.25f:1.95f);
                     var flag=ClipFlagCell(field,cursor+joint,bottom+joint,next-joint,top-joint);
                     if(flag.Count>=3)CourtDressedStone(mesh,flag.ToArray());
                     cursor=next;
@@ -716,8 +720,8 @@ namespace Cryptforge.UI
 
         private static void CourtRingFlag(Builder mesh,float a,float b,float inner,float outer,float tone)
         {
-            CeremonialStoneFace(mesh,new[]{SealPolar(a,inner),SealPolar(b,inner),
-                SealPolar(b,outer),SealPolar(a,outer)},tone);
+            CeremonialStoneFace(mesh,new[]{CourtSealPoint(a,inner),CourtSealPoint(b,inner),
+                CourtSealPoint(b,outer),CourtSealPoint(a,outer)},tone);
         }
 
         private static void LitFloorQuad(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,float stone)

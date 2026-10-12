@@ -215,13 +215,25 @@ namespace Cryptforge.UI
         {
             // Repeated transverse masonry bents support the longer real deck. All
             // geometry is below its sidewall; the arch openings remain open void.
-            foreach(float s in BridgeSupportStations)
+            for(int support=0;support<BridgeSupportStations.Length;support++)
             {
+                float s=BridgeSupportStations[support];
                 // Shared transparent stone batch: far rows precede near rows;
                 // all recessed returns precede that row's solid front silhouette.
                 var stone=new Builder();var front=new Builder();
+                BuildBridgeBent(stone,front,s,support==BridgeSupportStations.Length-1);
+                ShadeUndercroftDepth(stone,Deck(s,0),Deck(s,0));
+                ShadeUndercroftDepth(front,Deck(s,0),Deck(s,0));
+                Create("Entrance bridge masonry returns",stone,arena.PlatformMaterials.FoundryWall,-16);
+                Create("Entrance bridge masonry bents",front,arena.PlatformMaterials.FoundryWall,-16);
+            }
+        }
+
+        private static void BuildBridgeBent(Builder stone,Builder front,float s,bool primary)
+        {
                 const float spring=-6.1f,depth=1.3f;
                 float half=FoundryMap.BridgeHalfWidth;
+                float bearing=primary?-3.03f:-2.7f;
                 Vector3 At(float d,float h,float along=0)=>Deck(s+along,d)+Vector3.up*h;
                 for(int i=0;i<11;i++)
                 {
@@ -230,26 +242,44 @@ namespace Cryptforge.UI
                     Vector3 innerB=At(Mathf.Cos(b)*(half-1.05f),spring+Mathf.Sin(b)*2.35f);
                     Vector3 outerA=At(Mathf.Cos(a)*(half+.18f),spring+Mathf.Sin(a)*3.42f);
                     Vector3 outerB=At(Mathf.Cos(b)*(half+.18f),spring+Mathf.Sin(b)*3.42f);
-                    Color face=new Color(.61f,.64f,.72f)*(i==5?1.08f:1f);
-                    FortressDressedArch(front,innerA,innerB,outerB,outerA,face);
+                    if(primary)
+                    {
+                        // The bearing course replaces this upper part of the
+                        // parent face rather than overlaying a coplanar spandrel.
+                        float y=At(0,bearing).y;
+                        outerA.y=Mathf.Min(outerA.y,y);outerB.y=Mathf.Min(outerB.y,y);
+                    }
+                    Color face=primary?new Color(.61f,.64f,.72f):new Color(.39f,.44f,.53f);
+                    if(primary)FortressDressedArch(front,innerA,innerB,outerB,outerA,face*(i==5?1.08f:1f));
+                    else
+                    {
+                        // Two projected reveal faces occupy the original arch band.
+                        // The rear bents keep their complete aperture and support
+                        // volume, but read as recessed structure behind the mouth.
+                        Vector3 bevelA=Vector3.Lerp(innerA,outerA,.32f),bevelB=Vector3.Lerp(innerB,outerB,.32f);
+                        FortressMineralFace(front,innerA,innerB,bevelB,bevelA,new Color(.24f,.29f,.38f),false);
+                        FortressMineralFace(front,bevelA,bevelB,outerB,outerA,face,false);
+                    }
                     Vector3 back=Deck(s+depth,0)-Deck(s,0);
                     FortressMineralFace(stone,innerA,innerA+back,innerB+back,innerB,new Color(.31f,.35f,.45f),false);
                     // The filled spandrel bears the straight underside of the deck.
-                    FortressMineralFace(front,outerA,outerB,At(Mathf.Cos(b)*(half+.18f),-2.7f),
-                        At(Mathf.Cos(a)*(half+.18f),-2.7f),new Color(.49f,.53f,.62f),false);
+                    if(outerA.y<At(0,bearing).y-.00001f||outerB.y<At(0,bearing).y-.00001f)
+                        FortressMineralFace(front,outerA,outerB,At(Mathf.Cos(b)*(half+.18f),bearing),
+                            At(Mathf.Cos(a)*(half+.18f),bearing),primary?new Color(.49f,.53f,.62f):new Color(.34f,.39f,.48f),false);
                 }
                 foreach(float sign in new[]{-1f,1f})
                 {
                     float a=sign*(half-1.05f),b=sign*(half+.18f);
-                    FortressCoursedFace(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.56f,.60f,.68f),3,1);
+                    if(primary)FortressCoursedFace(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.56f,.60f,.68f),2,1);
+                    else FortressRecessedRespond(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.37f,.42f,.51f));
                     FortressCoursedFace(stone,At(b,-8.4f),At(b,-8.4f,depth),At(b,spring,depth),At(b,spring),new Color(.39f,.43f,.52f),3,1);
                     FortressCoursedFace(stone,At(a,-8.4f,depth),At(a,-8.4f),At(a,spring),At(a,spring,depth),new Color(.31f,.35f,.45f),3,1);
                 }
-                ShadeUndercroftDepth(stone,Deck(s,0),Deck(s,0));
-                ShadeUndercroftDepth(front,Deck(s,0),Deck(s,0));
-                Create("Entrance bridge masonry returns",stone,arena.PlatformMaterials.FoundryWall,-16);
-                Create("Entrance bridge masonry bents",front,arena.PlatformMaterials.FoundryWall,-16);
-            }
+                // A broad bearing course ties the primary mouth's two haunches
+                // together. It partitions the existing filled spandrel, retaining
+                // the exact -2.7 deck contact and every vertex of the open intrados.
+                if(primary)FortressCoursedFace(front,At(-half-.18f,-3.03f),At(half+.18f,-3.03f),
+                    At(half+.18f,-2.7f),At(-half-.18f,-2.7f),new Color(.54f,.58f,.66f),1,3);
         }
     }
 }

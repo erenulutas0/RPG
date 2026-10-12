@@ -5,6 +5,51 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        // The medallion belongs to the deeper entrance court. This local design
+        // contract never moves the walking floor, pit or global SealPolar helper.
+        private static readonly Vector2 CourtSealCentre=new Vector2(-3,-5);
+        private const float CourtStoneRadius=5.05f,CourtFieldRadius=3.75f,CourtMetalRadius=4.77f;
+        private static Vector2 CourtSealPoint(float angle,float radius)=>CourtSealCentre+SealPolar(angle,radius);
+
+        // Two paired dressed-stone settings relate the entrance and gate to the
+        // same court centre. Their plain open middles remain ordinary battle
+        // paving; there is no enclosing target, raised kerb or luminous route.
+        private static readonly Vector2[] CourtProcessionalEnds=
+            {new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)};
+        private const float CourtProcessionalHalfWidth=1.85f,CourtProcessionalStoneWidth=.48f;
+        private static void BuildCourtProcessionalStone(Builder mesh)
+        {
+            foreach(Vector2 end in CourtProcessionalEnds)
+            {
+                Vector2 direction=(end-CourtSealCentre).normalized;
+                Vector2 side=new Vector2(-direction.y,direction.x);
+                // All four setting courses stop outside the stone circle. Even
+                // their nearest inside corner retains a small plain-stone joint.
+                float start=Mathf.Sqrt((CourtStoneRadius+.16f)*(CourtStoneRadius+.16f)-
+                    (CourtProcessionalHalfWidth-CourtProcessionalStoneWidth*.5f)*
+                    (CourtProcessionalHalfWidth-CourtProcessionalStoneWidth*.5f));
+                float length=Vector2.Distance(CourtSealCentre,end)-start;
+                int blocks=Mathf.CeilToInt(length/2.2f);
+                foreach(float sign in new[]{-1f,1f})
+                {
+                    Vector2 offset=side*(sign*CourtProcessionalHalfWidth);
+                    for(int k=0;k<blocks;k++)
+                    {
+                        Vector2 a=CourtSealCentre+direction*(start+length*k/blocks)+offset;
+                        Vector2 b=CourtSealCentre+direction*(start+length*(k+1)/blocks)+offset;
+                        Vector2 half=side*(CourtProcessionalStoneWidth*.5f);
+                        var bed=new[]{a-half,b-half,b+half,a+half};
+                        CeremonialStoneFace(mesh,bed,.86f);
+                        // Shared floor grain/light, with short cross-joints in
+                        // broad blocks rather than another unbroken gold stripe.
+                        Vector2 inset=direction*.025f,edge=side*.022f;
+                        CourtDressedStone(mesh,new[]{a+inset-half+edge,b-inset-half+edge,
+                            b-inset+half-edge,a+inset+half-edge});
+                    }
+                }
+            }
+        }
+
         // The circular medallion is laid from the court's own stone. Its dressed
         // shoulders are a partition of each original face, never a raised decal
         // or an extra outline laid on top of the brass compass.
