@@ -180,7 +180,7 @@ namespace Cryptforge.Tests
             for(int layer=0;layer<2;layer++)
             {
                 int start=Data<Vector3>(mesh,"V").Count;
-                foreach(Vector2 point in new[]{new Vector2(-22,-21),new Vector2(19,-21),new Vector2(19,9),new Vector2(-22,9)})
+                foreach(Vector2 point in new[]{new Vector2(-36,-36),new Vector2(19,-36),new Vector2(19,9),new Vector2(-36,9)})
                 {
                     Data<Vector3>(mesh,"V").Add(Project(point));
                     Data<Vector2>(mesh,"U").Add(new Vector2(.3f+point.x*.013f,.6f+point.y*.009f));
@@ -216,9 +216,12 @@ namespace Cryptforge.Tests
                     Assert.That(Owners(Project(p),mesh),Is.Zero,"The entire approach, including its centre and fitted ends, replaces the old paving.");
                 }
             }
+            foreach(Vector2 p in BridgeContinuationSamples())
+                Assert.That(Owners(Project(p),mesh),Is.Zero,"No previous bridge bed, bevel or flag survives beneath the continuation.");
             object replacement=NewBuilder();Invoke("BuildCourtStoneRing",replacement);Invoke("BuildCourtProcessionalStone",replacement);
-            Assert.That(DesignArea(mesh)+2*DesignArea(replacement),Is.EqualTo(2*41*30).Within(.015),
-                "Exact convex subtraction preserves all outside geometry and removes only the three agreed domains.");
+            Invoke("BuildCourtBridgeStone",replacement);
+            Assert.That(DesignArea(mesh)+2*DesignArea(replacement),Is.EqualTo(2*55*45).Within(.015),
+                "Exact convex subtraction preserves all outside geometry and removes only the four agreed domains.");
         }
 
         [Test]
@@ -256,25 +259,62 @@ namespace Cryptforge.Tests
                     Vector2 direction=(end-CourtCentre).normalized,side=new Vector2(-direction.y,direction.x);
                     for(int i=0;i<11;i++)samples.Add(CourtCentre+direction*Mathf.Lerp(5.371f,Vector2.Distance(end,CourtCentre)-.131f,i/10f)+side*((i%3-1)*1.923f));
                 }
+                samples.AddRange(BridgeContinuationSamples());
                 foreach(Vector2 p in samples)Assert.That(Owners(Project(p),mesh),Is.Zero,"Every real bed, bevel and flag top must be absent beneath the replacement.");
                 Invoke("BuildCourtStoneRing",mesh);
                 int ringVertices=Data<Vector3>(mesh,"V").Count-clippedVertices;
                 Invoke("BuildCourtProcessionalStone",mesh);
                 int pathVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices;
+                Invoke("BuildCourtBridgeStone",mesh);
+                int bridgeVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices-pathVertices;
                 foreach(Vector2 p in samples)AssertOneOwner(Project(p),mesh,"The actual built floor must have exactly one replacement at the medallion and bridge approach.");
-                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; ring={ringVertices}; paths={pathVertices}; final={Data<Vector3>(mesh,"V").Count}.");
+                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; ring={ringVertices}; paths={pathVertices}; bridge={bridgeVertices}; final={Data<Vector3>(mesh,"V").Count}.");
                 Assert.That(clippedVertices,Is.LessThanOrEqualTo(originalVertices+2000),
-                    "The three fixed footprint boundaries have a bounded intersection-vertex allowance.");
+                    "The four fixed footprint boundaries retain the same bounded intersection-vertex allowance.");
                 Assert.That(ringVertices,Is.LessThanOrEqualTo(6500));
                 Assert.That(pathVertices,Is.LessThanOrEqualTo(5000));
+                Assert.That(bridgeVertices,Is.LessThanOrEqualTo(3000),"The newly fitted bridge domain has its own fixed allowance.");
                 // Raw base excludes the previous medallion and paired courses;
                 // it cannot serve as a before/after full-floor measurement. This
-                // envelope uses both existing component budgets. The actual
+                // envelope retains both existing component budgets and bounds
+                // the additional bridge continuation independently. The actual
                 // region still has its independent unchanged 174,000 hard cap.
-                Assert.That(Data<Vector3>(mesh,"V").Count,Is.LessThanOrEqualTo(originalVertices+6500+5000),
-                    "Complete floor stays within the raw base plus both bounded fitted assemblies.");
+                Assert.That(Data<Vector3>(mesh,"V").Count,Is.LessThanOrEqualTo(originalVertices+6500+5000+3000),
+                    "Complete floor stays within the raw base plus the independently bounded fitted assemblies.");
             }
             finally{UnityEngine.Object.DestroyImmediate(go);}
+        }
+
+        [Test]
+        public void BridgeContinuationAndOriginalApproachShareTheirCapWithoutAGapOrOverlap()
+        {
+            object approach=NewBuilder(),bridge=NewBuilder();
+            Invoke("BuildCourtProcessionalStone",approach);Invoke("BuildCourtBridgeStone",bridge);
+            Vector2 end=new Vector2(-17.5f,-17.5f),direction=(end-CourtCentre).normalized;
+            Vector2 side=new Vector2(-direction.y,direction.x);
+            foreach(float lateral in new[]{-2.041f,-1.317f,-.419f,.263f,1.681f,2.041f})
+            {
+                foreach(float offset in new[]{-.0713f,.0713f})
+                {
+                    Vector2 point=Project(end+side*lateral+direction*offset);
+                    int court=Owners(point,approach),continuation=Owners(point,bridge);
+                    Assert.That(court,Is.EqualTo(offset<0?1:0),"The original approach retains its exact end edge.");
+                    Assert.That(continuation,Is.EqualTo(offset>0?1:0),"The continuation starts on the other side of that same edge.");
+                }
+            }
+        }
+
+        private static IEnumerable<Vector2> BridgeContinuationSamples()
+        {
+            Vector2 end=new Vector2(-17.5f,-17.5f),direction=(end-CourtCentre).normalized;
+            Vector2 side=new Vector2(-direction.y,direction.x);
+            float threshold=FoundryMap.BridgeStart+.2f*1.41421356f;
+            Vector2 far=new Vector2(threshold*.5f,threshold*.5f),across=new Vector2(FoundryMap.Axis,-FoundryMap.Axis);
+            for(int i=0;i<17;i++)foreach(float lateral in new[]{-2.047f,-.713f,.163f,2.047f})
+            {
+                float t=.0131f+i*.06071f;
+                yield return Vector2.Lerp(end+side*lateral,far+across*lateral,t);
+            }
         }
 
         private static double DesignArea(object mesh)

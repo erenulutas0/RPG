@@ -1,0 +1,5 @@
+The fitted entrance field now continues from the existing court approach across the bridge to its actual far kerb. A shallow tapered quadrilateral shares the old rotated approach cap exactly. Broad transverse courses alternate with fitted pairs, with whole bearing stones at both ends. The exact new contour is subtracted from all old paving layers before its replacement is emitted.
+
+Quarry stone gains restrained per-stone mineral bedding within the existing continuous material family. Ordinary court mortar follows its stone tone more closely. Selected exposed contoured flags receive wider sampled mineral abrasion on their existing face. Their geometric bevel inset and exterior contour are retained; no additional crack or wear overlay is introduced.
+
+Map boundaries, bridge dimensions, brass routes, camera, collisions, actors, encounters, progression and saves retain their existing contracts. No new runtime texture, material, renderer or per-frame updater is added. The active V6 paving texture and world-space grain/light remain. This package improves route continuity and stone craft; the complete concept reference is still a work in progress.

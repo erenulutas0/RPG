@@ -788,3 +788,12 @@ Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-pit-craft-01.
+
+
+## 2026-10-13 - Foundry entrance craft verified; device pending
+
+- [x] Combined continuous bridge-to-court fitted paving and restrained quarry mineral/wear finish; matched actual captures, full suites and APK.
+- [ ] Further reference material/landmark refinement and physical-device acceptance.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.

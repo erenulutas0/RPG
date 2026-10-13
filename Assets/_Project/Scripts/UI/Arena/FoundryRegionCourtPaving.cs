@@ -29,6 +29,7 @@ namespace Cryptforge.UI
         {
             CutCourtPaving(mesh,CourtCircle(CourtStoneRadius));
             foreach(Vector2 end in CourtProcessionalEnds)CutCourtPaving(mesh,CourtPathContour(end));
+            CutCourtPaving(mesh,CourtBridgeContour());
         }
 
         private static void CutCourtPaving(Builder mesh,Vector2[] designContour)

@@ -1,0 +1,11 @@
+Two helpers owned disjoint route and paving-material source files. A third reviewed geometry, material direction and final actual images independently. Root alone ran Unity, captured and sealed eighteen fresh Before views at unchanged baseline 7518a0f4807a84b0de0a48447993cbbbf60292d4, and froze Assets for final verification. The far bridge threshold and bridge portrait were added to the capture set before implementation began.
+
+The route tests preserve the old medallion and paired-path limits. The additional physical bridge domain has a separate 3,000-vertex allowance, with the complete region's existing 174,000 cap retained. The synthetic subtraction test source rectangle was enlarged to enclose the new bridge domain. Actual production-floor checks remove every old layer before fitting stones and inspect the exact joint between old and new route fields.
+
+Root added seven independent actual merged-scene floor ownership probes along the bridge and oblique court join to the capture fixture. Camera and actor positions match across phases. The images pause combat and hide HUD; they are Editor visual evidence, not phone screenshots or frame-time measurements.
+
+No ADB operation or phone installation was performed. The device acceptance decision and current-state save/telemetry preservation remain required before later deployment.
+
+Source peer review strengthened the two shoulder-sampling cases to accept only vertices referenced by nondegenerate rendered triangles. Runtime source stayed byte-identical, and root rebuilt the compile check and refreshed the source freeze before the final capture. The first capture's source and image hashes are retained. A cloned descriptive budget line still said sixteen views although eighteen PNGs were captured and sealed; the final launcher fixture now reports eighteen. The original baseline report is retained with that label caveat. No camera or image pixels were edited to make this correction.
+
+Seven added EditMode cases cover both sides of the exact bridge/approach cap, new fitted-domain area and UVs, whole-stone colour under the existing light field, referenced shoulder samples and quieter mortar ratios. Existing packing, contour and full scene/movement tests remain in the verification gate.

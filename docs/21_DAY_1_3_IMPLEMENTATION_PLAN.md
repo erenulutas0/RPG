@@ -2454,3 +2454,17 @@ This package adds no runtime texture, material, renderer or per-frame updater. T
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,306,068 bytes; SHA256 0D88970AA95AAB3FF0C2F75CB1A64C40C609C4ED6392BA302C68417EB6AF0B23; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-pit-craft-01.
+
+
+## 2026-10-13 - Foundry entrance craft verified; device pending
+
+The fitted entrance field now continues from the existing court approach across the bridge to its actual far kerb. A shallow tapered quadrilateral shares the old rotated approach cap exactly. Broad transverse courses alternate with fitted pairs, with whole bearing stones at both ends. The exact new contour is subtracted from all old paving layers before its replacement is emitted.
+
+Quarry stone gains restrained per-stone mineral bedding within the existing continuous material family. Ordinary court mortar follows its stone tone more closely. Selected exposed contoured flags receive wider sampled mineral abrasion on their existing face. Their geometric bevel inset and exterior contour are retained; no additional crack or wear overlay is introduced.
+
+Map boundaries, bridge dimensions, brass routes, camera, collisions, actors, encounters, progression and saves retain their existing contracts. No new runtime texture, material, renderer or per-frame updater is added. The active V6 paving texture and world-space grain/light remain. This package improves route continuity and stone craft; the complete concept reference is still a work in progress.
+
+438 .NET / 586 EditMode / 159 PlayMode = 1,183 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 613 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,307,934 bytes; SHA256 35B17010AAB7E4A7075C602CE9DC9F0830868D939954C9C396E702B7B43FEAF5; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.

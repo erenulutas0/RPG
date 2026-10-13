@@ -553,10 +553,11 @@ namespace Cryptforge.UI
             // Quarry setbacks expose more bed: keep mortar close to dusty stone in
             // value, so the floor reads as masonry rather than a dark outlined grid.
             // Preserve inset/setts contrast and all stone footprints/light sampling.
-            float jointTone=kept?.82f:court?.84f:.90f;
+            float jointTone=kept?.82f:court?.90f*stone:.90f;
             if(repair)jointTone=.85f;
-            if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,tint);
-            else PavingGrid(mesh,us,vs,jointTone,tint,lattice);
+            Color jointTint=court?faceTint:tint;
+            if(step<1)PavingGrid(mesh,LightLines(u0,u1,step),LightLines(v0,v1,step),jointTone,jointTint);
+            else PavingGrid(mesh,us,vs,jointTone,jointTint,lattice);
             if(UseFlagContour(s.Zone,repair,u0,v0,u1,v1))
             {
                 ContouredFlagFace(mesh,u0,v0,u1,v1,joint,bevel,step,stone,faceTint,s.I,s.J);

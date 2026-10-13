@@ -15,8 +15,21 @@ namespace Cryptforge.UI
             // range: floor variation should read as material, not a purple grid.
             Color cool=new Color(.925f,.965f,1.025f),warm=new Color(1.065f,1.045f,.985f);
             Color family=Color.Lerp(cool,warm,Mathf.SmoothStep(.08f,.92f,quarry));
-            family*=Mathf.Lerp(.95f,1.035f,weather);family.a=1;
+            family*=Mathf.Lerp(.95f,1.035f,weather);
+            // Nearby slabs still share a quarry, but their cut exposes a slightly
+            // different mineral bed. Sample once per stone identity, not once per
+            // vertex: the face remains solid stone under continuous forge light.
+            float bedding=FloorPatina(u*.47f-7.1f,v*.47f+20.4f);
+            family*=Mathf.Lerp(.94f,1.06f,Mathf.SmoothStep(0,1,bedding));family.a=1;
             return family;
+        }
+
+        private static bool SampleQuarryShoulder(float u0,float v0,float u1,float v1,int seedU,int seedV)
+        {
+            // Reserve the broader mineral shoulder for a few worked flags. This
+            // also bounds the extra face samples; the quiet court stays sparse.
+            return PavingHash(seedU,seedV,853)%4==0&&
+                PavingWearExposure((u0+u1)*.5f,(v0+v1)*.5f)>.5f;
         }
 
         private static float PavingWearExposure(float u,float v)
@@ -39,9 +52,10 @@ namespace Cryptforge.UI
             float distance=side==0?p.y-v0:side==1?u1-p.x:side==2?v1-p.y:p.x-u0;
             float along=side%2==0?(p.x-u0)/(u1-u0):(p.y-v0)/(v1-v0);
             float middle=Mathf.Lerp(.35f,.65f,((hash>>8)&255)/255f);
-            float extent=Mathf.Lerp(.22f,.36f,((hash>>16)&255)/255f);
+            bool broad=SampleQuarryShoulder(u0,v0,u1,v1,seedU,seedV);
+            float extent=Mathf.Lerp(broad?.28f:.22f,broad?.42f:.36f,((hash>>16)&255)/255f);
             float patch=1-Mathf.SmoothStep(0,1,Mathf.Clamp01(Mathf.Abs(along-middle)/extent));
-            float edge=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.025f,.30f,Mathf.Max(0,distance)));
+            float edge=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.025f,broad?.44f:.30f,Mathf.Max(0,distance)));
             return edge*patch*Mathf.SmoothStep(0,1,Mathf.InverseLerp(.16f,.85f,exposure));
         }
 

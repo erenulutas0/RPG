@@ -38,5 +38,43 @@ namespace Cryptforge.UI
             }
         }
 
+        // Continue the original court approach across the bridge. The inner edge
+        // is the exact existing rotated path cap; the far edge lies across the
+        // physical entrance threshold. This small taper avoids a kinked overlap
+        // or a second ribbon beside the unchanged brass lanes.
+        private static Vector2[] CourtBridgeContour()
+        {
+            Vector2[] approach=CourtPathContour(CourtProcessionalEnds[0]);
+            float threshold=Cryptforge.Art.FoundryMap.BridgeStart+Kerb*1.41421356f;
+            float half=CourtPathHalfWidth*1.41421356f;
+            return new[]{approach[1],DeckDesign(threshold,-half),
+                DeckDesign(threshold,half),approach[2]};
+        }
+
+        private static void BuildCourtBridgeStone(Builder mesh)
+        {
+            Vector2[] field=CourtBridgeContour();
+            float length=Vector2.Distance((field[0]+field[3])*.5f,(field[1]+field[2])*.5f);
+            int rows=Mathf.CeilToInt(length/3.2f);
+            for(int row=0;row<rows;row++)
+            {
+                float from=row/(float)rows,to=(row+1)/(float)rows;
+                Vector2 leftA=Vector2.Lerp(field[0],field[1],from),leftB=Vector2.Lerp(field[0],field[1],to);
+                Vector2 rightA=Vector2.Lerp(field[3],field[2],from),rightB=Vector2.Lerp(field[3],field[2],to);
+                // Broad transverse flags alternate with a fitted pair. Each row
+                // shares its complete boundary with the next, including mortar.
+                // Both end courses remain whole bearing stones.
+                if(row%2==0||row==rows-1)
+                    CourtFittedFlag(mesh,new[]{leftA,leftB,rightB,rightA});
+                else
+                {
+                    float split=row%4==1?.39f:.61f;
+                    Vector2 middleA=Vector2.Lerp(leftA,rightA,split),middleB=Vector2.Lerp(leftB,rightB,split);
+                    CourtFittedFlag(mesh,new[]{leftA,leftB,middleB,middleA});
+                    CourtFittedFlag(mesh,new[]{middleA,middleB,rightB,rightA});
+                }
+            }
+        }
+
     }
 }

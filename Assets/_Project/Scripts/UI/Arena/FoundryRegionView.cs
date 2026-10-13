@@ -84,6 +84,7 @@ namespace Cryptforge.UI
             ReplaceCourtPavingBase(floor);
             BuildCourtStoneRing(floor);
             BuildCourtProcessionalStone(floor);
+            BuildCourtBridgeStone(floor);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);
             Create("Layout sidewalls",walls,arena.PlatformMaterials.FoundryWall,-16);
             Create("Layout coping",trim,arena.PlatformMaterials.Coping,FloorDecal);

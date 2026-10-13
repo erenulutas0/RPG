@@ -138,6 +138,28 @@ namespace Cryptforge.UI
                 mesh.T.Add(a);mesh.T.Add(b+1);mesh.T.Add(a+1);
             }
             float[] us=LightLines(u0,u1,step),vs=LightLines(v0,v1,step);
+            if(SampleQuarryShoulder(u0,v0,u1,v1,seedU,seedV))
+            {
+                // Tiny corner chamfers bound the geometric bevel width. Keep that
+                // valid inset and sample worn mineral on the existing stone face
+                // instead: its strongest edge point, shoulder, and fade boundary.
+                // These lines partition the same face; they add no coplanar layer.
+                uint hash=PavingHash(seedU,seedV,829);
+                int side=(int)(hash&3);
+                float middle=Mathf.Lerp(.35f,.65f,((hash>>8)&255)/255f);
+                if(side%2==0)
+                {
+                    us=QuarrySampleLines(us,Mathf.Lerp(u0,u1,middle));
+                    vs=side==0?QuarrySampleLines(vs,v0+.20f,v0+.44f):
+                        QuarrySampleLines(vs,v1-.44f,v1-.20f);
+                }
+                else
+                {
+                    vs=QuarrySampleLines(vs,Mathf.Lerp(v0,v1,middle));
+                    us=side==3?QuarrySampleLines(us,u0+.20f,u0+.44f):
+                        QuarrySampleLines(us,u1-.44f,u1-.20f);
+                }
+            }
             var shared=new Dictionary<Vector2Int,int>();
             for(int y=0;y+1<vs.Length;y++)for(int x=0;x+1<us.Length;x++)
             {
@@ -166,6 +188,19 @@ namespace Cryptforge.UI
                     mesh.T.Add(indices[0]);mesh.T.Add(indices[k]);mesh.T.Add(indices[k+1]);
                 }
             }
+        }
+
+        private static float[] QuarrySampleLines(float[] lines,params float[] samples)
+        {
+            var result=new List<float>(lines);
+            foreach(float sample in samples)
+            {
+                if(sample<=lines[0]+.0001f||sample>=lines[lines.Length-1]-.0001f)continue;
+                bool present=false;
+                foreach(float line in result)if(Mathf.Abs(line-sample)<.0001f){present=true;break;}
+                if(!present)result.Add(sample);
+            }
+            result.Sort();return result.ToArray();
         }
     }
 }

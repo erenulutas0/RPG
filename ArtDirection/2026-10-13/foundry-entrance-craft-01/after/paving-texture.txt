@@ -1,0 +1,1 @@
+FoundryPavingV6: 1024x1024 ASTC_6x6; mipmaps:11; readable:False; grain span:5,7
