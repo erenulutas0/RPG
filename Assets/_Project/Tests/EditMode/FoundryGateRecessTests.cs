@@ -13,6 +13,89 @@ namespace Cryptforge.Tests
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
 
+        [TestCase(2f,12f,.30f)]
+        [TestCase(2.5f,1.5f,1f)]
+        [TestCase(1.02f,.54f,.70f)]
+        public void HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(
+            float width,float length,float height)
+        {
+            object original=Builder();Call("LitFoundryTier",original,28f,0f,28f+width,length,6f,6f+height,.04f);
+            MeshData shell=Read(original);
+            for(int side=0;side<3;side++)
+            {
+                int first=side*4;
+                var face=new[]{shell.V[first],shell.V[first+1],shell.V[first+2],shell.V[first+3]};
+                var light=new[]{shell.C[first],shell.C[first+1],shell.C[first+2],shell.C[first+3]};
+                var source=new MeshData(new List<Vector3>(face),new List<Vector2>(),new List<Color>(),
+                    new List<int>{0,1,2,0,2,3});
+                object built=Builder();Call("GateCraftCourses",built,face,light,height,side,2307);
+                MeshData mesh=Read(built);AssertFinite(mesh);
+                Assert.That(TriangleArea(mesh),Is.EqualTo(TriangleArea(source)).Within(.0001),
+                    "Header mortar, arrises and faces partition the old wall; no hidden full-wall overlay remains.");
+                foreach(Vector3 point in mesh.V)
+                    Assert.That(LastCoveringTriangle(source,point),Is.GreaterThanOrEqualTo(0));
+                for(int x=0;x<19;x++)for(int y=0;y<11;y++)
+                {
+                    float u=(x+.371f)/19f,v=(y+.619f)/11f;
+                    Vector3 point=Vector3.Lerp(Vector3.Lerp(face[0],face[1],u),Vector3.Lerp(face[3],face[2],u),v);
+                    Assert.That(CoverCount(mesh,point),Is.EqualTo(1),"The wall has exactly one owner away from joints.");
+                }
+                AssertMineralGrain(mesh);
+            }
+        }
+
+        [Test]
+        public void HeaderCopingAndRetainedBayCapUseBoundedNoncollapsedGrainAtProductionDimensions()
+        {
+            object header=Builder();Call("GateCraftTier",header,28.08f,-.78f,29.92f,10.78f,6.93f,7.22f,.06f,1.02f);
+            MeshData cap=Read(header);AssertFinite(cap);AssertMineralGrain(cap);
+            object bay=Builder();Call("GateRecessedShaft",bay,new Vector4(27.53f,-6.14f,30.42f,-4.61f),
+                2.85f,6.55f,.065f,.92f,.36f);
+            MeshData recess=Read(bay);AssertFinite(recess);AssertMineralGrain(recess);
+        }
+
+        [Test]
+        public void StoneContactPreservesLocalLightRatiosAndStaysAtCrownAndBearing()
+        {
+            var sampled=new Color(.93f,.57f,.29f);
+            Color middle=(Color)Call("GateStoneContact",sampled,new Vector2(.8f,.5f),4f);
+            Color crown=(Color)Call("GateStoneContact",sampled,new Vector2(.8f,1f),4f);
+            Color foot=(Color)Call("GateStoneContact",sampled,new Vector2(.8f,0f),4f);
+            Assert.That(middle.r/sampled.r,Is.GreaterThan(.995f));
+            Assert.That(crown.r,Is.LessThan(middle.r*.93f));
+            Assert.That(foot.r,Is.LessThan(middle.r*.97f));
+            foreach(float height in new[]{.24f,.48f,1f,3.7f})
+            for(int x=0;x<=20;x++)for(int y=0;y<=20;y++)
+            {
+                Color actual=(Color)Call("GateStoneContact",sampled,new Vector2(x/20f,y/20f),height);
+                float gain=actual.r/sampled.r;
+                Assert.That(gain,Is.InRange(.82f,1f),"Surface finish cannot globally lift or black out its original illumination.");
+                Assert.That(actual.g/sampled.g,Is.EqualTo(gain).Within(.000001f));
+                Assert.That(actual.b/sampled.b,Is.EqualTo(gain).Within(.000001f));
+                Assert.That(actual.a,Is.EqualTo(1));
+            }
+        }
+
+        private static void AssertMineralGrain(MeshData mesh)
+        {
+            foreach(Vector2 uv in mesh.U)
+            {
+                Assert.That(uv.x,Is.InRange(.03499f,.39801f));
+                Assert.That(uv.y,Is.InRange(.43799f,.56701f));
+            }
+            for(int t=0;t<mesh.T.Count;t+=3)
+            {
+                int a=mesh.T[t],b=mesh.T[t+1],c=mesh.T[t+2];
+                double area=Math.Abs(CrossDouble((Vector2)(mesh.V[b]-mesh.V[a]),(Vector2)(mesh.V[c]-mesh.V[a])));
+                if(area<1e-7)continue;
+                double uvArea=Math.Abs(CrossDouble(mesh.U[b]-mesh.U[a],mesh.U[c]-mesh.U[a]));
+                Assert.That(uvArea,Is.GreaterThan(1e-12),
+                    $"Visible caps, bevels and returns must not collapse onto a single texture row. Triangle {t/3}, indices {a}/{b}/{c}, world area {area:R}, UV area {uvArea:R}. " +
+                    $"Positions {mesh.V[a].ToString("R")} / {mesh.V[b].ToString("R")} / {mesh.V[c].ToString("R")}; " +
+                    $"UV {mesh.U[a].ToString("R")} / {mesh.U[b].ToString("R")} / {mesh.U[c].ToString("R")}");
+            }
+        }
+
         [TestCase(0f,.48f,.08f)]
         [TestCase(.48f,2.05f,.09f)]
         [TestCase(2.05f,2.85f,.28f)]

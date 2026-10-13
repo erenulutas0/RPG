@@ -1,0 +1,5 @@
+The active paving surface now uses versioned FoundryPavingV6, a calmer jointless slate diffuse generated with the built-in image_gen tool. The selected PNG is copied byte-for-byte into the project; prompt and provenance are retained in texture-prompt.txt and paving-source-integration.json. Existing geometry still owns stone boundaries, chipped outlines, joints, metal inlays and authored forge light. The material tint, UV span, shader and Android import contract are unchanged.
+
+Gate header sidewalls use broad dressed stones partitioning the original faces into mortar, arrises and stone interiors. Coping, closed niche returns and caps use bounded mineral UVs; their original exterior envelope and bearings are preserved. A restrained local crown/bearing treatment multiplies the existing light rather than replacing it. MasonryV4 remains the existing five-course atlas; no global wall texture replacement is made.
+
+This is a combined surface-quality pass, not reference parity. The walkable outline, gameplay camera, encounters, collision, progression and shaders are unchanged. Further authored variation in landmark stone and machinery remains open.

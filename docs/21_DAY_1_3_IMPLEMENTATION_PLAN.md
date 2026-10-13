@@ -2426,3 +2426,17 @@ This combined visual package changes no walking outline, map dimensions, camera,
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,301,580 bytes; SHA256 27887CDF79CF6F5049ECC63BC103AAF0FAEA7B78C04C4E1FED98DA32646616A9; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-stone-craft-01.
+
+
+## 2026-10-13 - Foundry surface finish verified; device pending
+
+The active paving surface now uses versioned FoundryPavingV6, a calmer jointless slate diffuse generated with the built-in image_gen tool. The selected PNG is copied byte-for-byte into the project; prompt and provenance are retained in texture-prompt.txt and paving-source-integration.json. Existing geometry still owns stone boundaries, chipped outlines, joints, metal inlays and authored forge light. The material tint, UV span, shader and Android import contract are unchanged.
+
+Gate header sidewalls use broad dressed stones partitioning the original faces into mortar, arrises and stone interiors. Coping, closed niche returns and caps use bounded mineral UVs; their original exterior envelope and bearings are preserved. A restrained local crown/bearing treatment multiplies the existing light rather than replacing it. MasonryV4 remains the existing five-course atlas; no global wall texture replacement is made.
+
+This is a combined surface-quality pass, not reference parity. The walkable outline, gameplay camera, encounters, collision, progression and shaders are unchanged. Further authored variation in landmark stone and machinery remains open.
+
+438 .NET / 569 EditMode / 159 PlayMode = 1,166 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 612 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,300,736 bytes; SHA256 D8C3D2B0E284A57D74DBD9CB5EB3707DA934805C4966C8C851CE3E07765369CD; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.

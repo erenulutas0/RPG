@@ -138,31 +138,36 @@ namespace Cryptforge.UI
         private static void GateCraftTier(Builder mesh,float u0,float v0,float u1,float v1,
             float bottom,float top,float inset,float shade=1)
         {
-            int first=mesh.V.Count;
-            LitFoundryTier(mesh,u0,v0,u1,v1,bottom,top,inset);
-            // Keep the exact original battered faces, clipped corners and cap. The
-            // original face remains the mortar backing beneath its authored courses.
-            int last=mesh.V.Count;
-            for(int i=first;i<last;i++)
+            var shell=new Builder();
+            LitFoundryTier(shell,u0,v0,u1,v1,bottom,top,inset);
+            for(int i=0;i<shell.V.Count;i++)
             {
-                Color c=mesh.C[i];mesh.C[i]=new Color(c.r*shade,c.g*shade,c.b*shade,1);
+                Color c=shell.C[i];shell.C[i]=new Color(c.r*shade,c.g*shade,c.b*shade,1);
             }
+            // Courses, mortar and dressed arrises now partition each old wall.
+            // No complete face remains hidden beneath coplanar stone quads.
             for(int face=0;face<3;face++)
-                GateCraftCourses(mesh,first+face*4,top-bottom,face,
-                    Mathf.RoundToInt(u0*11+v0*17+bottom*23));
-            // Recess the retained cap into a mortar bed. Authored coping blocks
-            // above it restore real arrises and joints instead of a blank slab.
-            for(int i=first+12;i<last;i++)
             {
-                Vector3 floor=mesh.V[i]-Vector3.up*top;
-                FoundrySurface.ToDesign(floor.x,floor.y,out float u,out float v);
-                float x=Mathf.InverseLerp(u0,u1,u),y=Mathf.InverseLerp(v0,v1,v);
-                mesh.U[i]=new Vector2(.279f+x*.126f,.657f+y*.085f);
-                mesh.V[i]+=Vector3.down*.022f;
-                Color c=mesh.C[i];float wash=.79f-.035f*y;
-                mesh.C[i]=new Color(c.r*wash,c.g*wash,c.b*wash,1);
+                int first=face*4;
+                GateCraftCourses(mesh,new[]{shell.V[first],shell.V[first+1],shell.V[first+2],shell.V[first+3]},
+                    new[]{shell.C[first],shell.C[first+1],shell.C[first+2],shell.C[first+3]},top-bottom,face,
+                    Mathf.RoundToInt(u0*11+v0*17+bottom*23));
             }
-            Color cap=mesh.C[first+12]/.79f;cap.a=1;
+            // Retain the original cap bearing below the unchanged, raised coping.
+            // The backing is physically recessed, not another coplanar floor face.
+            int capStart=mesh.V.Count;
+            for(int first=12;first<shell.V.Count;first+=4)
+            {
+                int output=mesh.V.Count;
+                for(int i=0;i<4;i++)
+                {
+                    mesh.V.Add(shell.V[first+i]+Vector3.down*.022f);mesh.U.Add(Vector2.zero);
+                    Color c=shell.C[first+i]*.76f;c.a=1;mesh.C.Add(c);
+                }
+                mesh.T.AddRange(new[]{output,output+1,output+2,output,output+2,output+3});
+            }
+            GateRecessGrain(mesh,capStart,mesh.V.Count,Project(0,1)-Project(0,0),0);
+            Color cap=shell.C[12];cap.a=1;
             GateCraftCoping(mesh,u0,v0,u1,v1,top,inset,cap);
         }
 
@@ -200,10 +205,12 @@ namespace Cryptforge.UI
                 {
                     Vector2 p=ring==0?shape[i]:Vector2.Lerp(shape[i],centre,bevel);
                     mesh.V.Add(Project(p.x,p.y)+Vector3.up*(height-(ring==0?.022f:0)));
-                    mesh.U.Add(new Vector2(.28f+Mathf.Clamp01((p.x-left)/1.2f)*.12f,
-                        .658f+Mathf.Clamp01((p.y-low)/1.4f)*.080f));
+                    mesh.U.Add(Vector2.zero);
                     Color tint=tone*variation*(ring==0?.73f:1f);tint.a=1;mesh.C.Add(tint);
                 }
+                // The same physical cut of mineral grain crosses face and arris.
+                // Large coping stones no longer clamp their far edge to one texel.
+                GateRecessGrain(mesh,first,mesh.V.Count,Project(0,1)-Project(0,0),row+column*3);
                 for(int i=0;i<n;i++)
                 {
                     int next=(i+1)%n;
@@ -237,75 +244,48 @@ namespace Cryptforge.UI
             return result;
         }
 
-        private static void GateCraftCourses(Builder mesh,int first,float height,int side,int seed)
+        private static void GateCraftCourses(Builder mesh,Vector3[] face,Color[] light,float height,int side,int seed)
         {
-            var face=new[]{mesh.V[first],mesh.V[first+1],mesh.V[first+2],mesh.V[first+3]};
-            var light=new[]{mesh.C[first],mesh.C[first+1],mesh.C[first+2],mesh.C[first+3]};
             float width=Vector3.Distance(face[0],face[1]);
-            for(int i=0;i<4;i++)
+            if(side==2||width<.25f)
             {
-                mesh.U[first+i]=new Vector2(i==0||i==3?.279f:.406f,i<2?.657f:.742f);
-                Color c=light[i];mesh.C[first+i]=new Color(c.r*.81f,c.g*.82f,c.b*.84f,1);
+                int start=mesh.V.Count;
+                GateButtressPatch(mesh,face,light,Vector2.zero,Vector2.right,Vector2.one,Vector2.up,.91f);
+                GateRecessGrain(mesh,start,mesh.V.Count,face[1]-face[0],side);
+                return;
             }
-            if(side==2||width<.25f)return;
-            int rows=Mathf.Max(1,Mathf.RoundToInt(height/.48f));
-            int columns=Mathf.Max(1,Mathf.RoundToInt(width/.83f));
+            // Broad stock belongs to the same scale as the new lower buttresses.
+            // Thin header bands remain one course, rather than miniature brick rows.
+            int rows=Mathf.Max(1,Mathf.RoundToInt(height/.82f));
+            int columns=Mathf.Max(1,Mathf.RoundToInt(width/1.25f));
             float total=0;for(int row=0;row<rows;row++)total+=GateCourseWeight(row);
             float y=0;
             for(int row=0;row<rows;row++)
             {
-                float next=y+GateCourseWeight(row)/total;
+                float next=row==rows-1?1:y+GateCourseWeight(row)/total;
                 float x=row%2==0?0:-.42f/columns;int column=0;
                 while(x<1)
                 {
                     float advance=(column%3==0?1.11f:column%3==1?.93f:.96f)/columns;
                     float start=Mathf.Max(0,x),end=Mathf.Min(1,x+advance);
-                    float gapX=.006f/width,gapY=.006f/Mathf.Max(.1f,height);
-                    float a=start==0?0:start+gapX,b=end==1?1:end-gapX;
-                    float lo=row==0?0:y+gapY,hi=row==rows-1?1:next-gapY;
-                    if((b-a)*width>.045f)
-                        GateCraftStone(mesh,face,light,a,b,lo,hi,width,height,seed+row*31+column*7+side*13);
+                    if(end>start)
+                    {
+                        int first=mesh.V.Count;
+                        int cut=Mathf.Abs(seed+row*31+column*7+side*13);
+                        GateButtressBlock(mesh,face,light,new Vector4(start,y,end,next),width,height,
+                            1+(cut%5-2)*.012f);
+                        GateRecessGrain(mesh,first,mesh.V.Count,face[1]-face[0],cut);
+                    }
                     x+=advance;column++;
                 }
                 y=next;
             }
         }
 
-        private static void GateCraftStone(Builder mesh,Vector3[] face,Color[] light,float left,float right,
-            float bottom,float top,float width,float height,int seed)
-        {
-            // A few arrises lose a small corner; most dressed stones remain whole.
-            // Every contour stays inside its course and the retained bed covers it.
-            int rhythm=Mathf.Abs(seed);
-            float chip= rhythm%7==0?.018f:0;
-            float dx=Mathf.Min(chip/width,(right-left)*.08f),dy=Mathf.Min(chip/height,(top-bottom)*.10f);
-            var contour=chip>0?new[]{new Vector2(left,bottom),new Vector2(right,bottom),
-                new Vector2(right,top-dy),new Vector2(right-dx,top),new Vector2(left,top)}:
-                new[]{new Vector2(left,bottom),new Vector2(right,bottom),new Vector2(right,top),new Vector2(left,top)};
-            int first=mesh.V.Count;
-            float variation=1+(rhythm%5-2)*.012f;
-            float texX=.278f+(rhythm%4)*.004f,texY=.657f+((rhythm/4)%3)*.004f;
-            foreach(Vector2 p in contour)
-            {
-                mesh.V.Add(GateFaceLerp(face,p.x,p.y));
-                // Grain scale follows physical stone dimensions, bounded within the
-                // atlas's quiet mineral patch. Thin courses do not stretch it tall.
-                mesh.U.Add(new Vector2(Mathf.Min(.42f,texX+(p.x-left)*width*.092f),
-                    Mathf.Min(.749f,texY+(p.y-bottom)*height*.115f)));
-                Color c=Color.Lerp(Color.Lerp(light[0],light[1],p.x),Color.Lerp(light[3],light[2],p.x),p.y);
-                float damp=.095f*Mathf.Exp(-(1-p.y)*height/.22f);
-                float foot=.055f*Mathf.Exp(-p.y*height/.26f);
-                float run=Mathf.Clamp01(1-Mathf.Abs(p.x-.31f)/.14f)*.045f*p.y;
-                float mineral=.035f*Mathf.Sin(p.x*Mathf.PI)*Mathf.Sin(p.y*Mathf.PI);
-                float value=variation*(1-damp-foot-run+mineral);
-                mesh.C.Add(new Color(c.r*value*(1+mineral*.30f),c.g*value,c.b*value*(1+run*.2f),1));
-            }
-            for(int i=1;i+1<contour.Length;i++)mesh.T.AddRange(new[]{first,first+i,first+i+1});
-        }
-
         private static void HeaderDressedFace(Builder mesh,Vector3 a,Vector3 b,
             Vector3 c,Vector3 d,Color tint,float bevel)
         {
+            int first=mesh.V.Count;
             Vector3 center=(a+b+c+d)*.25f;
             Vector3 ia=Vector3.Lerp(a,center,bevel),ib=Vector3.Lerp(b,center,bevel);
             Vector3 ic=Vector3.Lerp(c,center,bevel),id=Vector3.Lerp(d,center,bevel);
@@ -316,6 +296,7 @@ namespace Cryptforge.UI
             HeaderStonePatch(mesh,b,c,ic,ib,tint*.88f,a,b,d);
             HeaderStonePatch(mesh,c,d,id,ic,tint*1.09f,a,b,d);
             HeaderStonePatch(mesh,d,a,ia,id,tint*.95f,a,b,d);
+            GateRecessGrain(mesh,first,mesh.V.Count,(b-a).sqrMagnitude>(d-a).sqrMagnitude?b-a:d-a,0);
         }
 
         private static void HeaderStonePatch(Builder mesh,Vector3 a,Vector3 b,

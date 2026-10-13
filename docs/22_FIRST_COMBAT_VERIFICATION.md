@@ -1407,3 +1407,19 @@ Twelve added EditMode cases cover broad contoured flags, abrasion localization, 
 The matched actual scene images pause combat and hide HUD. They establish Editor composition and measured mesh budgets, not physical-device performance or interactive acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-stone-craft-01.
+
+
+## 2026-10-13 - Foundry surface finish verified; device pending
+
+438 .NET / 569 EditMode / 159 PlayMode = 1,166 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 612 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,300,736 bytes; SHA256 D8C3D2B0E284A57D74DBD9CB5EB3707DA934805C4966C8C851CE3E07765369CD; NOT INSTALLED.
+
+Three helpers handled material binding/provenance, bounded gate surface work and independent visual acceptance. Root captured sixteen fresh Before views at unchanged HEAD 525d7594e7c25cdfe1da8e2b3162ab587918dbaf before authorizing runtime edits. Only root ran Unity. Source peer review and independent actual-image review were separate from implementation.
+
+The first full EditMode preflight passed 567 of 569. Two new UV-area assertions caught projected slivers from mathematically zero-area mortar strips: boundary endpoints had moved only along an edge, but the old condition still emitted a quad. A focused diagnostic rerun recorded the actual world/UV coordinates and approximately 6e-7 apparent world areas. Production geometry now emits boundary mortar only with positive perpendicular inset. No test threshold was relaxed. Both failed reports are retained. The repaired 569-case preflight passed, followed by the final full verification workflow.
+
+Five added EditMode cases cover three actual header proportions for face ownership and area, noncollapsed bounded cap/recess UVs, and localized contact shading preserving source RGB light ratios. Existing movement, resource, scene and court ownership coverage remains in the full suites. The selected PNG is unmodified built-in imagegen output; original V5 remains available as a versioned sibling. Assets and pre-Unity evidence were hashed before the final capture and complete suites/APK build.
+
+The captures preserve camera and actor positions. They establish visual composition, resource imports and geometry budgets, not device performance or interactive acceptance. No ADB operation or device installation was performed.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.

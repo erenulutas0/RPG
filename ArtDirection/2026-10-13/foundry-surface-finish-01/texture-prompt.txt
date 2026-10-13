@@ -1,0 +1,7 @@
+Mode: built-in image_gen, new image, opaque.
+
+Use case: stylized-concept
+Asset type: square 1024x1024 seamless tileable diffuse/albedo texture for a real-time isometric mobile foundry game.
+Primary request: a continuous, jointless field of matte old quarried slate, viewed exactly perpendicular to its flat surface. Broad calm mineral clouds and very subtle irregular layered stone flakes, painterly natural material craftsmanship with sparse abrasion. This is the interior grain of large stone flags; the game mesh supplies all tile edges, joints, bevels and illumination.
+Palette: restrained charcoal grey with extremely subtle warm mauve and cool slate variation. Target average sRGB roughly RGB(86,80,82), with most broad areas within about 12 RGB values of this. Even value distribution across the square. A dark mid-grey diffuse map, not black. Keep detail low contrast and restrained so small characters remain clear when this repeats under them.
+Constraints: perfectly flat orthographic material swatch filling every pixel, same scale throughout, seamless wrapping in both directions, diffuse colour only. No tile grid, no brickwork, no grout, no mortar, no network of cracks, no slab borders, no dramatic veins, no objects, no engraving, no rivets, no lettering, no vignette, no gradients from top to bottom, no baked light, no fire glow, no directional shadow or highlights. Avoid photographic concrete aggregate, salt-and-pepper noise, bright quartz speckles and glitter. Prefer quiet broad mineral masses over tiny grain. Opaque background.

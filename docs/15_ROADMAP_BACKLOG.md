@@ -770,3 +770,12 @@ Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-workyard-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-stone-craft-01.
+
+
+## 2026-10-13 - Foundry surface finish verified; device pending
+
+- [x] Combined calm quarry diffuse, partitioned gate header courses and local architectural contact finish; matched actual captures, full suites and APK.
+- [ ] Further reference material/landmark refinement and physical-device acceptance.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.

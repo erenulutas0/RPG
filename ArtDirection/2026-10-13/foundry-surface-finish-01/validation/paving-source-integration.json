@@ -1,0 +1,57 @@
+{
+  "status": "Accepted in matched actual Unity captures by root and independent reviewer; physical-device acceptance pending.",
+  "generated_source": "C:/Users/pc/.codex/generated_images/01a095bd-7c87-7c33-83a1-013aa1757c47/exec-82b7ac6f-db31-43f2-97c4-2952473a6410.png",
+  "source_sha256": "2bdf23894cef4feaf1c8a1c5de9c1e0afd091aee717818a5b6bf4d3228a7ba89",
+  "asset": "Assets/_Project/Art/Props/Foundry/FoundryPavingV6.png",
+  "guid": "b5b3f0c00422460b97359d3bfa71e56c",
+  "bitmap_processing": "None: generated PNG copied byte-for-byte.",
+  "material_change": "MAT_FoundryPaving _MainTex GUID only; shader, tint .8, UV scale/offset unchanged.",
+  "import_contract": "V5 metadata copied verbatim except fresh GUID: RGB source, alpha ignored, sRGB, non-readable, mipmapped, Repeat/Trilinear/aniso2, Android 1024 ASTC6x6.",
+  "measurement_note": "Raw uncompressed source RGB values in 0..1. Edge MAE does not by itself prove visually seamless tiling. No Unity or phone observation claimed.",
+  "samples": [
+    {
+      "name": "FoundryPavingV5.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "48bbe0d55d08e13edebce1f95e9a789185679cc5dfc4d2a28f9578be4188e650",
+      "mean_rgb": [
+        0.336939,
+        0.312541,
+        0.322064
+      ],
+      "std_rgb": [
+        0.072124,
+        0.071858,
+        0.066155
+      ],
+      "edge_mae_left_right": 0.057867,
+      "edge_mae_top_bottom": 0.058538,
+      "adjacent_horizontal_mae": 0.041057
+    },
+    {
+      "name": "FoundryPavingV6.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "2bdf23894cef4feaf1c8a1c5de9c1e0afd091aee717818a5b6bf4d3228a7ba89",
+      "mean_rgb": [
+        0.3678,
+        0.349859,
+        0.348285
+      ],
+      "std_rgb": [
+        0.023348,
+        0.022663,
+        0.021452
+      ],
+      "edge_mae_left_right": 0.018661,
+      "edge_mae_top_bottom": 0.019179,
+      "adjacent_horizontal_mae": 0.010072
+    }
+  ]
+}

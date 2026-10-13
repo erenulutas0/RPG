@@ -31,10 +31,12 @@ namespace Cryptforge.UI
                     Color light=Color.Lerp(Color.Lerp(shell.C[first],shell.C[first+1],p.x),
                         Color.Lerp(shell.C[first+3],shell.C[first+2],p.x),p.y)*shade;
                     Color c=stone.C[i];
-                    stone.C[i]=new Color(c.r*light.r/Mathf.Max(.01f,tint.r),
+                    Color sampled=new Color(c.r*light.r/Mathf.Max(.01f,tint.r),
                         c.g*light.g/Mathf.Max(.01f,tint.g),c.b*light.b/Mathf.Max(.01f,tint.b),1);
+                    stone.C[i]=GateStoneContact(sampled,p,top-bottom);
                 }
             }
+            int closedCorner=stone.V.Count;
             for(int first=8;first<shell.V.Count;first+=4)
             {
                 int output=stone.V.Count;
@@ -45,6 +47,8 @@ namespace Cryptforge.UI
                 }
                 stone.T.AddRange(new[]{output,output+1,output+2,output,output+2,output+3});
             }
+            GateRecessGrain(stone,closedCorner,closedCorner+4,Vector3.up,2);
+            GateRecessGrain(stone,closedCorner+4,stone.V.Count,Project(0,1)-Project(0,0),3);
         }
 
         private static Vector2[] GateRecessOpening()=>new[]{
@@ -155,6 +159,21 @@ namespace Cryptforge.UI
                 Vector2 p=mesh.V[i];var local=new Vector2(Vector2.Dot(p,axis),Vector2.Dot(p,normal));
                 mesh.U[i]=origin+(local-low)*scale;
             }
+        }
+
+        private static Color GateStoneContact(Color sampled,Vector2 face,float height)
+        {
+            // Contact belongs to the whole supported face, not each individual
+            // block. Adjacent stones share the same restrained crown/foot wash.
+            // Multiplication preserves the source forge-light ratio and never
+            // substitutes a grey or orange overlay for authored illumination.
+            float reach=Mathf.Clamp(height*.32f,.06f,.28f);
+            float crown=.085f*Mathf.Exp(-(1-face.y)*height/reach);
+            float bearing=.045f*Mathf.Exp(-face.y*height/reach);
+            float stream=Mathf.Clamp01(1-Mathf.Abs(face.x-.32f)/.20f);
+            float run=.045f*stream*stream*Mathf.SmoothStep(0,1,Mathf.InverseLerp(.15f,1,face.y));
+            float gain=1-crown-bearing-run;
+            return new Color(sampled.r*gain,sampled.g*gain,sampled.b*gain,1);
         }
     }
 }

@@ -88,8 +88,13 @@ namespace Cryptforge.UI
             for(int edge=0;edge<4;edge++)
             {
                 int next=(edge+1)%4;
-                if((outer[edge]-middle[edge]).sqrMagnitude>1e-12f||
-                    (outer[next]-middle[next]).sqrMagnitude>1e-12f)
+                // A boundary cell may move an endpoint only along this edge for
+                // its neighbouring joint. That has no mortar area: emitting it
+                // creates a float-rounding sliver after projection, with zero UV
+                // area. Test the perpendicular inset in the authored plane.
+                bool mortar=edge==0?bed.y>cell.y:edge==1?bed.z<cell.z:
+                    edge==2?bed.w<cell.w:bed.x>cell.x;
+                if(mortar)
                     GateButtressPatch(stone,face,light,outer[edge],outer[next],middle[next],middle[edge],shade*.69f);
                 float catchLight=edge==0?.83f:edge==2?1.08f:edge==1?.93f:1.015f;
                 GateButtressPatch(stone,face,light,middle[edge],middle[next],inner[next],inner[edge],shade*catchLight);
@@ -109,7 +114,7 @@ namespace Cryptforge.UI
                 Vector2 p=coords[i];
                 Color tint=Color.Lerp(Color.Lerp(light[0],light[1],p.x),
                     Color.Lerp(light[3],light[2],p.x),p.y)*shade;
-                tint.a=1;stone.C[first+i]=tint;
+                stone.C[first+i]=GateStoneContact(tint,p,Vector3.Distance(face[0],face[3]));
             }
         }
     }
