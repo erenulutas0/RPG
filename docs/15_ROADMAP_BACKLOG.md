@@ -779,3 +779,12 @@ Evidence/reproduction: ArtDirection/2026-10-13/foundry-stone-craft-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.
+
+
+## 2026-10-13 - Foundry pit craft verified; device pending
+
+- [x] Combined dressed pit coping and formed cast-iron hood finish; matched actual captures, full suites and APK.
+- [ ] Further reference material/landmark refinement and physical-device acceptance.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-pit-craft-01.

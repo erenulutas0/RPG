@@ -1,0 +1,5 @@
+The furnace pit guard now has broad fitted coping stones, restrained joints and selected worn arrises. The new faces partition the previous front and top planes, independently of the narrow panel and iron-stem cuts below. Grain unfolds over each stone edge. Actual guard openings, existing posts, contacts and the curved exterior envelope remain intact.
+
+The two formed pit hoods now use a continuous angular cast-metal light treatment, coherent local grain and restrained crown soot. Upright plate courses receive a narrow seating partition; sloping shoulders remain broad between their dark straps. The exposed head cap shares its adjoining shoulder material, while the recessed mouth remains dark. The existing pressure/receiver profiles, collars, mouths and below-deck vessel art retain their geometry.
+
+This package adds no runtime texture, material, renderer or per-frame updater. The new partial class separates bounded metal-surface generation from the existing hood assembly. Map outline, camera, scene, navigation, encounters, progression, economy and saves are unchanged. This is an incremental material-craft improvement; reference parity is not claimed.

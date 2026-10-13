@@ -57,10 +57,129 @@ namespace Cryptforge.UI
                             Vector2.Lerp(f0,r0,.65f),Vector2.Lerp(f1,r1,.65f),
                             PitGuardSill,PitGuardLintel,.46f,true,true);
                     }
-                    // No full opaque face crosses an opening. The coping owns the
-                    // old handrail envelope; its stone top has no added bright rail.
-                    PitGuardBlock(b,f0,f1,r0,r1,PitGuardLintel,RailTop,1.03f,false,false);
                 }
+                // Coping stock follows the whole bay, independently of the small
+                // cuts needed by the iron stems and recessed panels below it.
+                // It retains the original front and top planes and depth order.
+                PitGuardCoping(b,front[j],front[j+1],back[j],back[j+1],along[j],along[j+1],length,
+                    Mathf.RoundToInt(front[0].x*11+front[0].y*17),fromEnd);
+            }
+        }
+
+        private static void PitGuardCoping(Builder b,Vector2 f0,Vector2 f1,Vector2 r0,Vector2 r1,
+            float start,float end,float length,int seed,bool fromEnd)
+        {
+            int stones=Mathf.Max(2,Mathf.RoundToInt(length/1.2f));
+            float stock=length/stones;
+            const float halfJoint=.009f;
+            var cuts=new List<float>{start,end};
+            for(int stone=1;stone<stones;stone++)
+                foreach(float edge in new[]{stone*stock-halfJoint,stone*stock+halfJoint})
+                    if(edge>start+.00001f&&edge<end-.00001f)cuts.Add(edge);
+            // An uncut coping stone otherwise has only its end vertices, both
+            // outside the worn shoulder. Include the selected shoulder itself so
+            // actual mesh colours can carry it, not merely an unsampled function.
+            for(int stone=0;stone<stones;stone++)
+            {
+                int cut=Mathf.Abs(seed+stone*7);if(cut%4!=1)continue;
+                float shoulder=(stone+.32f+(cut%3)*.12f)*stock;
+                if(shoulder>start+.00001f&&shoulder<end-.00001f)cuts.Add(shoulder);
+            }
+            cuts.Sort();
+            Vector2 outward=((f0+f1)-(r0+r1)).normalized;
+            Color face=PitFacing(Mathf.Atan2(outward.y,outward.x))*1.03f;face.a=1;
+            Color top=Tinted(CapTone,new Color(.9682f,.9682f,.9682f));
+            for(int step=0;step+1<cuts.Count;step++)
+            {
+                int i=fromEnd?cuts.Count-2-step:step;
+                float a=cuts[i],z=cuts[i+1],mid=(a+z)*.5f;
+                // Cuts originate in one dimension; equal boundaries have no area
+                // and must never become projected rounding slivers.
+                if(z<=a)continue;
+                float s=(a-start)/(end-start),t=(z-start)/(end-start);
+                Vector2 left=Vector2.Lerp(f0,f1,s),right=Vector2.Lerp(f0,f1,t);
+                Vector2 rearLeft=Vector2.Lerp(r0,r1,s),rearRight=Vector2.Lerp(r0,r1,t);
+                int stone=Mathf.Clamp(Mathf.FloorToInt(mid/stock),0,stones-1);
+                int joint=Mathf.RoundToInt(mid/stock);
+                bool mortar=joint>0&&joint<stones&&Mathf.Abs(mid-joint*stock)<halfJoint+.000001f;
+                float offset=stone*stock;
+                int cut=Mathf.Abs(seed+stone*7);
+                float variant=1+(cut%5-2)*.012f;
+                var light=face*variant;light.a=1;
+                var cap=top*variant;cap.a=1;
+                if(mortar)
+                {
+                    PitCopingFront(b,left,right,a,z,offset,PitGuardLintel,RailTop,light*.60f,light*.60f,outward,0,0);
+                    PitCopingTop(b,left,right,rearLeft,rearRight,a,z,offset,0,1,cap*.63f,cap*.63f,0,0);
+                    continue;
+                }
+                float wearA=PitCopingWear((a-offset)/stock,cut),wearZ=PitCopingWear((z-offset)/stock,cut);
+                const float arris=.026f;
+                // The quiet upper arris and worn shoulder replace portions of the
+                // existing planes. There is no complete face below another decal.
+                PitCopingFront(b,left,right,a,z,offset,PitGuardLintel,RailTop-arris,
+                    light*.86f,light*.96f,outward,0,0);
+                PitCopingFront(b,left,right,a,z,offset,RailTop-arris,RailTop,
+                    light*.96f,light*.99f,outward,wearA,wearZ);
+                PitCopingTop(b,left,right,rearLeft,rearRight,a,z,offset,0,.22f,
+                    cap*.99f,cap,wearA,wearZ);
+                PitCopingTop(b,left,right,rearLeft,rearRight,a,z,offset,.22f,1,
+                    cap,cap*.97f,0,0);
+            }
+        }
+
+        private static float PitCopingWear(float along,int cut)
+        {
+            // Only selected broad stones carry a worn shoulder. It fades within
+            // that stone, avoiding an equally bright dashed outline around the pit.
+            if(cut%4!=1)return 0;
+            float position=.32f+(cut%3)*.12f;
+            float amount=Mathf.Clamp01(1-Mathf.Abs(along-position)/.34f);
+            return .09f*amount*amount;
+        }
+
+        private static Vector2 PitCopingGrain(float along,float depth,float height)=>
+            new Vector2(.045f+along*.095f,.448f+(height-PitGuardLintel+depth)*.095f);
+
+        private static void PitCopingFront(Builder b,Vector2 left,Vector2 right,float a,float z,float offset,
+            float bottom,float top,Color lower,Color upper,Vector2 outward,float wearA,float wearZ)
+        {
+            Vector3 p=Project(left.x,left.y),q=Project(right.x,right.y);
+            int first=b.V.Count;
+            FullFace(b,p+Vector3.up*bottom,q+Vector3.up*bottom,q+Vector3.up*top,p+Vector3.up*top,Color.white);
+            Vector2 toward=(PitCentre-(left+right)*.5f).normalized;
+            float facing=Mathf.Max(0,Vector2.Dot(outward,toward));
+            var rise=new[]{bottom,bottom,top,top};
+            var run=new[]{a,z,z,a};
+            for(int i=0;i<4;i++)
+            {
+                float bounce=facing*.10f*Mathf.Exp(-rise[i]/.7f);
+                Color tone=i<2?lower:upper;
+                float wear=i==2?wearZ:i==3?wearA:0;
+                b.C[first+i]=Tinted(tone,new Color((1+bounce)*(1+wear),(1+bounce*.28f)*(1+wear),
+                    (1-bounce*.24f)*(1+wear)));
+                b.C[first+i]=new Color(b.C[first+i].r,b.C[first+i].g,b.C[first+i].b,1);
+                b.U[first+i]=PitCopingGrain(run[i]-offset,0,rise[i]);
+            }
+        }
+
+        private static void PitCopingTop(Builder b,Vector2 left,Vector2 right,Vector2 rearLeft,Vector2 rearRight,
+            float a,float z,float offset,float front,float back,Color near,Color far,float wearA,float wearZ)
+        {
+            Vector2 p=Vector2.Lerp(left,rearLeft,front),q=Vector2.Lerp(right,rearRight,front);
+            Vector2 r=Vector2.Lerp(right,rearRight,back),s=Vector2.Lerp(left,rearLeft,back);
+            int first=b.V.Count;
+            FullFace(b,Project(p.x,p.y)+Vector3.up*RailTop,Project(q.x,q.y)+Vector3.up*RailTop,
+                Project(r.x,r.y)+Vector3.up*RailTop,Project(s.x,s.y)+Vector3.up*RailTop,Color.white);
+            float leftDepth=Vector2.Distance(left,rearLeft),rightDepth=Vector2.Distance(right,rearRight);
+            var depth=new[]{leftDepth*front,rightDepth*front,rightDepth*back,leftDepth*back};
+            var run=new[]{a,z,z,a};
+            for(int i=0;i<4;i++)
+            {
+                Color tone=i<2?near:far;
+                float wear=i==0?wearA:i==1?wearZ:0;
+                b.C[first+i]=new Color(tone.r*(1+wear),tone.g*(1+wear),tone.b*(1+wear),1);
+                b.U[first+i]=PitCopingGrain(run[i]-offset,depth[i],RailTop);
             }
         }
 

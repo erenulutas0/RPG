@@ -1,0 +1,73 @@
+using UnityEngine;
+
+namespace Cryptforge.UI
+{
+    public sealed partial class FoundryRegionView
+    {
+        private static void PitMetalPlate(Builder mesh,Vector2 centre,float r0,float r1,
+            float h0,float h1,float angle0,float angle1,float gain)
+        {
+            var face=new[]{OnRing(centre,r0,angle0,h0),OnRing(centre,r0,angle1,h0),
+                OnRing(centre,r1,angle1,h1),OnRing(centre,r1,angle0,h1)};
+            // The short dressed seating on upright plate courses is a partition
+            // of the existing face, never a ring extruded over the old silhouette.
+            // Sloping shoulders stay broad and uninterrupted between their straps.
+            bool seated=Mathf.Abs(r1-r0)<.001f&&r0>.6f;
+            float cut=seated?Mathf.Min(.18f,.025f/Mathf.Max(.01f,h1-h0)):1f;
+            int rows=seated?2:1;
+            for(int row=0;row<rows;row++)
+            {
+                float low=row==0?0:cut,high=row==rows-1?1:cut;
+                var station=new[]{new Vector2(0,low),new Vector2(1,low),
+                    new Vector2(1,high),new Vector2(0,high)};
+                int first=mesh.V.Count;
+                foreach(Vector2 p in station)
+                {
+                    Vector3 position=Vector3.Lerp(Vector3.Lerp(face[0],face[1],p.x),
+                        Vector3.Lerp(face[3],face[2],p.x),p.y);
+                    float angle=Mathf.Lerp(angle0,angle1,p.x),height=Mathf.Lerp(h0,h1,p.y);
+                    Color tone=PitMetalTone(centre,position,angle,height,gain);
+                    // Contact is confined to the lower seating. The narrow rubbed
+                    // shoulder shares its value on both sides of the partition.
+                    float seat=seated?Mathf.Lerp(.82f,1.015f,Mathf.Clamp01(p.y/cut)):1f;
+                    if(seated&&p.y>cut)seat=Mathf.Lerp(1.015f,1,(p.y-cut)/(1-cut));
+                    mesh.V.Add(position);mesh.U.Add(Vector2.zero);
+                    mesh.C.Add(new Color(tone.r*seat,tone.g*seat,tone.b*seat,1));
+                }
+                mesh.T.AddRange(new[]{first,first+1,first+2,first,first+2,first+3});
+                PitMetalGrain(mesh,first,mesh.V.Count,centre);
+            }
+        }
+
+        private static Color PitMetalTone(Vector2 centre,Vector3 position,float angle,float height,float gain)
+        {
+            // A continuous broad reflection follows angle, not facet index. Both
+            // sides of a pressed plate edge sample the same illumination, avoiding
+            // the previous alternating flat green-blue polygons on the hood.
+            float facing=(1+Mathf.Cos(angle-270f*Mathf.Deg2Rad))*.5f;
+            float glint=Mathf.Pow(Mathf.Max(0,Mathf.Cos(angle-258f*Mathf.Deg2Rad)),6);
+            Color tone=Color.Lerp(new Color(.37f,.38f,.41f),new Color(.88f,.84f,.79f),facing);
+            tone+=new Color(.075f,.065f,.052f,0)*glint;
+            Vector3 local=position-Project(centre.x,centre.y);
+            float forged=.94f+.06f*FloorPatina(local.x*.72f+4.3f,local.y*.72f-2.1f);
+            float soot=.13f*Mathf.SmoothStep(0,1,Mathf.InverseLerp(.66f,1.2f,height));
+            Color warmth=Color.Lerp(Color.white,Color.Lerp(PitDomeFoot,PitDomeGlow,
+                PitFacingPool(centre,angle)),.42f*Mathf.Exp(-height/.28f));
+            tone=Tinted(tone,warmth)*gain*forged*(1-soot);tone.a=1;
+            return MetalTone(tone,position,height);
+        }
+
+        private static void PitMetalGrain(Builder mesh,int first,int end,Vector2 centre)
+        {
+            // One unclamped local field covers plate, strap, collar and cap. Equal
+            // positions share grain and small hardware no longer stretches a tall
+            // rectangular atlas stamp. The complete hood stays inside plain iron.
+            Vector3 origin=Project(centre.x,centre.y)+Vector3.up*.63f;
+            for(int i=first;i<end;i++)
+            {
+                Vector3 p=mesh.V[i]-origin;
+                mesh.U[i]=new Vector2(.5f+p.x*.19f,.5f+p.y*.19f);
+            }
+        }
+    }
+}

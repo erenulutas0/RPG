@@ -2440,3 +2440,17 @@ This is a combined surface-quality pass, not reference parity. The walkable outl
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,300,736 bytes; SHA256 D8C3D2B0E284A57D74DBD9CB5EB3707DA934805C4966C8C851CE3E07765369CD; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.
+
+
+## 2026-10-13 - Foundry pit craft verified; device pending
+
+The furnace pit guard now has broad fitted coping stones, restrained joints and selected worn arrises. The new faces partition the previous front and top planes, independently of the narrow panel and iron-stem cuts below. Grain unfolds over each stone edge. Actual guard openings, existing posts, contacts and the curved exterior envelope remain intact.
+
+The two formed pit hoods now use a continuous angular cast-metal light treatment, coherent local grain and restrained crown soot. Upright plate courses receive a narrow seating partition; sloping shoulders remain broad between their dark straps. The exposed head cap shares its adjoining shoulder material, while the recessed mouth remains dark. The existing pressure/receiver profiles, collars, mouths and below-deck vessel art retain their geometry.
+
+This package adds no runtime texture, material, renderer or per-frame updater. The new partial class separates bounded metal-surface generation from the existing hood assembly. Map outline, camera, scene, navigation, encounters, progression, economy and saves are unchanged. This is an incremental material-craft improvement; reference parity is not claimed.
+
+438 .NET / 579 EditMode / 159 PlayMode = 1,176 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 613 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,306,068 bytes; SHA256 0D88970AA95AAB3FF0C2F75CB1A64C40C609C4ED6392BA302C68417EB6AF0B23; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-pit-craft-01.

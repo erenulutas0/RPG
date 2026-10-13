@@ -30,7 +30,7 @@ namespace Cryptforge.UI
                 PitHoodCourse(b,c,profile[i].x,profile[i+1].x,profile[i].y,profile[i+1].y,
                     i==0?.87f:1f,pressure?4:8);
             Vector2 last=profile[profile.Length-1];
-            PitHoodCap(b,c,last.x,last.y,new Color(.55f,.61f,.76f),pressure?4:8);
+            PitMetalHeadCap(b,c,last.x,last.y,pressure?4:8);
             PitHoodPlateRibs(b,c,profile,pressure?4:8);
             // Existing flue dimensions and open mouth retain their smoke attachment.
             PitHoodCourse(b,c,.24f,.24f,last.y,1.2f,.83f);
@@ -50,28 +50,7 @@ namespace Cryptforge.UI
             for(int k=-half;k<half;k++)
             {
                 float a=FrontAngle(k,half),e=FrontAngle(k+1,half);
-                int first=b.V.Count;
-                FullFace(b,OnRing(c,r0,a,h0),OnRing(c,r0,e,h0),
-                    OnRing(c,r1,e,h1),OnRing(c,r1,a,h1),Color.white);
-                for(int j=0;j<4;j++)
-                {
-                    float angle=j==0||j==3?a:e,height=j<2?h0:h1;
-                    float shoulder=Mathf.Clamp01((height-.18f)/.46f);
-                    float facing=(1+Mathf.Cos((a+e)*.5f-270f*Mathf.Deg2Rad))*.5f;
-                    float glint=Mathf.Pow(Mathf.Max(0,Mathf.Cos(angle-260f*Mathf.Deg2Rad)),6);
-                    Color tone=Color.Lerp(new Color(.30f,.36f,.48f),new Color(.74f,.85f,1.04f),facing);
-                    tone+=new Color(.12f,.13f,.15f,0)*glint;
-                    // Pool reflection remains strongest at the foot and on the inward
-                    // side; flue soot darkens the crown without making a black cap.
-                    Color warmth=Color.Lerp(Color.white,Color.Lerp(PitDomeFoot,PitDomeGlow,
-                        PitFacingPool(c,angle)),.60f*Mathf.Exp(-height/.30f));
-                    tone=Tinted(tone,warmth);
-                    tone*=gain*(1-.13f*shoulder*shoulder);tone.a=1;
-                    b.C[first+j]=MetalTone(tone,b.V[first+j],height);
-                    // Continuous local plain-plate grain, clear of riveted atlas borders.
-                    b.U[first+j]=new Vector2(.20f+.60f*(angle+45f*Mathf.Deg2Rad)/(2*Mathf.PI),
-                        .24f+.44f*Mathf.Clamp01(height/1.26f));
-                }
+                PitMetalPlate(b,c,r0,r1,h0,h1,a,e,gain);
             }
         }
 
@@ -89,7 +68,7 @@ namespace Cryptforge.UI
                     Vector2 p=profile[row],q=profile[row+1];
                     Vector3 pa=OnRing(c,p.x+.008f,a,p.y),pe=OnRing(c,p.x+.008f,e,p.y);
                     Vector3 qa=OnRing(c,q.x+.008f,a,q.y),qe=OnRing(c,q.x+.008f,e,q.y);
-                    PitHoodHardwareFace(b,Vector3.Lerp(pa,pe,.34f),Vector3.Lerp(pa,pe,.66f),
+                    PitHoodHardwareFace(b,c,Vector3.Lerp(pa,pe,.34f),Vector3.Lerp(pa,pe,.66f),
                         Vector3.Lerp(qa,qe,.66f),Vector3.Lerp(qa,qe,.34f),tone);
                 }
                 // A short solid saddle ties each strap to the flange; the depth is
@@ -99,19 +78,18 @@ namespace Cryptforge.UI
                 Vector3 a0=OnRing(c,heelInner,centre-wide,.10f),b0=OnRing(c,heelInner,centre+wide,.10f);
                 Vector3 a1=OnRing(c,1.085f,centre-wide,.10f),b1=OnRing(c,1.085f,centre+wide,.10f);
                 Vector3 rise=Vector3.up*.16f;
-                PitHoodHardwareFace(b,a1,b1,b1+rise,a1+rise,tone*.85f);
-                PitHoodHardwareFace(b,a0,a1,a1+rise,a0+rise,tone*.65f);
-                PitHoodHardwareFace(b,b1,b0,b0+rise,b1+rise,tone*.72f);
-                PitHoodHardwareFace(b,a0+rise,a1+rise,b1+rise,b0+rise,tone);
+                PitHoodHardwareFace(b,c,a1,b1,b1+rise,a1+rise,tone*.85f);
+                PitHoodHardwareFace(b,c,a0,a1,a1+rise,a0+rise,tone*.65f);
+                PitHoodHardwareFace(b,c,b1,b0,b0+rise,b1+rise,tone*.72f);
+                PitHoodHardwareFace(b,c,a0+rise,a1+rise,b1+rise,b0+rise,tone);
             }
         }
 
-        private static void PitHoodHardwareFace(Builder b,Vector3 a,Vector3 c,Vector3 d,Vector3 e,Color tone)
+        private static void PitHoodHardwareFace(Builder b,Vector2 centre,Vector3 a,Vector3 c,Vector3 d,Vector3 e,Color tone)
         {
             int first=b.U.Count;tone.a=1;
             FullFace(b,a,c,d,e,tone);
-            b.U[first]=new Vector2(.44f,.30f);b.U[first+1]=new Vector2(.52f,.30f);
-            b.U[first+2]=new Vector2(.52f,.65f);b.U[first+3]=new Vector2(.44f,.65f);
+            PitMetalGrain(b,first,b.V.Count,centre);
         }
 
         private static void PitHoodMouth(Builder b,Vector2 c)
@@ -122,9 +100,9 @@ namespace Cryptforge.UI
             for(int k=-8;k<8;k++)
             {
                 float a=FrontAngle(k,8),e=FrontAngle(k+1,8);
-                PitHoodHardwareFace(b,OnRing(c,.3f,a,1.26f),OnRing(c,.3f,e,1.26f),
+                PitHoodHardwareFace(b,c,OnRing(c,.3f,a,1.26f),OnRing(c,.3f,e,1.26f),
                     OnRing(c,.19f,e,1.26f),OnRing(c,.19f,a,1.26f),new Color(.68f,.66f,.60f));
-                PitHoodHardwareFace(b,OnRing(c,.19f,a,1.14f),OnRing(c,.19f,e,1.14f),
+                PitHoodHardwareFace(b,c,OnRing(c,.19f,a,1.14f),OnRing(c,.19f,e,1.14f),
                     OnRing(c,.19f,e,1.26f),OnRing(c,.19f,a,1.26f),new Color(.14f,.14f,.16f));
             }
         }
@@ -133,12 +111,7 @@ namespace Cryptforge.UI
         {
             int first=b.V.Count;
             MassDisk(b,c,radius,height,half,true,tone);
-            Vector3 centre=Project(c.x,c.y)+Vector3.up*height;
-            for(int i=first;i<b.V.Count;i++)
-            {
-                Vector3 offset=b.V[i]-centre;
-                b.U[i]=new Vector2(.5f+offset.x*.3f,.5f+offset.y*.6f);
-            }
+            PitMetalGrain(b,first,b.V.Count,c);
         }
     }
 }

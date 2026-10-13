@@ -1257,3 +1257,16 @@ This is a combined surface-quality pass, not reference parity. The walkable outl
 Region 32 renderers/159454 vertices versus 158653 (+801); distant geometry 3572 versus 3572. One versioned paving texture replaces the existing active texture; import format and maximum resolution are preserved. No new material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-surface-finish-01.
+
+
+## 2026-10-13 - Foundry pit craft verified; device pending
+
+The furnace pit guard now has broad fitted coping stones, restrained joints and selected worn arrises. The new faces partition the previous front and top planes, independently of the narrow panel and iron-stem cuts below. Grain unfolds over each stone edge. Actual guard openings, existing posts, contacts and the curved exterior envelope remain intact.
+
+The two formed pit hoods now use a continuous angular cast-metal light treatment, coherent local grain and restrained crown soot. Upright plate courses receive a narrow seating partition; sloping shoulders remain broad between their dark straps. The exposed head cap shares its adjoining shoulder material, while the recessed mouth remains dark. The existing pressure/receiver profiles, collars, mouths and below-deck vessel art retain their geometry.
+
+This package adds no runtime texture, material, renderer or per-frame updater. The new partial class separates bounded metal-surface generation from the existing hood assembly. Map outline, camera, scene, navigation, encounters, progression, economy and saves are unchanged. This is an incremental material-craft improvement; reference parity is not claimed.
+
+Region 32 renderers/160334 vertices versus 159454 (+880); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-pit-craft-01.

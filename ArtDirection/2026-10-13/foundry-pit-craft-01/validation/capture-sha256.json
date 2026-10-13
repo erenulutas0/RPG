@@ -1,0 +1,38 @@
+{
+  "before": {
+    "approach--16-15.png": "22aff272a35e04eb04651d210c9e0352cfd4c55d7eeb88d6c6d49b50fd4ac439",
+    "approach--20-6.png": "65f3f76a9993304759ac2237da3ab14040e8c93178937b8fc9e840819cf08ac6",
+    "approach--8--12.png": "5f77d89626ba1b10f32cdf6d6d5b2bf9a4c6812212b8a92f87f6b057836f1cda",
+    "approach-0-0.png": "0ad0c420c3511fac32ec18030376fac3a24668985e212a2ffcc7549fed2e6aaa",
+    "approach-20-1.png": "baba63785ef867d9022372c119bc4be9028096d4ff09aee4a5db96b19461e6ab",
+    "bridge-detail.png": "99c8593bf449f27d4420affddc4847f14b96040ceeebddf02310e24ae4b37ec7",
+    "court-detail.png": "bda949685ccfc10513728e99587c5f0ae2e11ecdef0f2660c4a6e3206e9a1cc4",
+    "crane-detail.png": "be7dadfc2c3262e6ae3bfda776f94153a46ddf12e2387d7133fd908ee1cb1699",
+    "forecourt-detail.png": "b7e7fb79ce6dc64985fa6a2f1f89444fd709094b8fed8544b2b61cdfc01d837a",
+    "full-map.png": "2e562a82b48a6abea6e6cded04ca1ee5458fbcf0fa669e84bb3713934ba2b0ef",
+    "gate-detail.png": "3761d1ed4475022a1d0bffddf5d068163b587019bc1be66e05dcc6f5b26e6f70",
+    "overview.png": "0664b4759e9edbfb95c79a9dccbcdc119b31795b2bf274a5140a7dab7e3ff4f9",
+    "service-shaft-detail.png": "0f18aa9ad0c2f33047d76ba0a3a6443f1c47ac50d9982e8bf182e7d3da875f9f",
+    "shaft-detail.png": "46d746c7e8bf31bee82742cd856ec2f1bc054f29d62f95a0c0c69a6b43c259bf",
+    "skyline-detail.png": "f7b68084a6526e477acc3b1deb9630c26ea51116946572f91084e611dbcb69d3",
+    "yard-detail.png": "1304119891211306051f723638e0bfec31299ddd27fc8578dfd02782381337db"
+  },
+  "after": {
+    "approach--16-15.png": "f4c824385e19129d440af4945aa264cb17917e6911701bbf26865467abf404d6",
+    "approach--20-6.png": "4b9350c8126b05d2789be24894ff2a620c9cc65a3d9ac3a030e04f86c06515ba",
+    "approach--8--12.png": "bc3a0e44a5f27d7ee2318f46b8a769cded5bbedf5120fdc57a3d3d89a2c6b192",
+    "approach-0-0.png": "b52243cc8930e76f7686782d369c2f72714b05de0b2ef44bb862417c32466f57",
+    "approach-20-1.png": "cb61a5fe16f478dad8352b69d2f82032f3b979ba94cbf7e6e43207c3effa210d",
+    "bridge-detail.png": "32d4b9bccd015fe539e6772b31f34505737e5cfc4d5aeb59316fb963b7dc7ed2",
+    "court-detail.png": "b1ad88f726f9614413a5f20ff315011f103825d375bb3c0965e4d5ae930f54c1",
+    "crane-detail.png": "be7dadfc2c3262e6ae3bfda776f94153a46ddf12e2387d7133fd908ee1cb1699",
+    "forecourt-detail.png": "a3a954261acc46b405d4d8ad8453cc65af22d0766eae2c104a1f813ac04b53bb",
+    "full-map.png": "d4080a1b2775fb7bdfe12d382f83623d4e9972b2849e63a99e0bb4940e2d2e1a",
+    "gate-detail.png": "e460781091c84c62b88fd3065dbe79a43ad6bae056aaee6fbdaeec57c78d494a",
+    "overview.png": "945948982aea3ec97c6082bd27d21f8480d4967d0b639353dc501817af4b0d89",
+    "service-shaft-detail.png": "515f64c594c77424e9a70dea8e8ddbed3b5f9525c71b16fd6670db97df68d376",
+    "shaft-detail.png": "7772ef522b0bc6e0c359258f50f747de52751f1db6f5b3cc1ca691036e9202c6",
+    "skyline-detail.png": "ac767072b2786f5f1d544cf5ad865c964fa4bcdf4b59299013884617757b0880",
+    "yard-detail.png": "f97e8bc09241fff2f5c94482cb47a30579cc9cd2783dc6b5ea43a3d2de399d11"
+  }
+}
