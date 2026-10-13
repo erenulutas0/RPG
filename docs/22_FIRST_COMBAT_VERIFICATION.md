@@ -1461,3 +1461,21 @@ Source peer review strengthened the two shoulder-sampling cases to accept only v
 Seven added EditMode cases cover both sides of the exact bridge/approach cap, new fitted-domain area and UVs, whole-stone colour under the existing light field, referenced shoulder samples and quieter mortar ratios. Existing packing, contour and full scene/movement tests remain in the verification gate.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.
+
+
+## 2026-10-14 - Foundry landmark craft verified; device pending
+
+438 .NET / 593 EditMode / 159 PlayMode = 1,190 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 613 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,308,109 bytes; SHA256 D5D31767220EADA46B523957EB97267FFCE5D68805698694D2CC91E5FB2C9793; NOT INSTALLED.
+
+Two helpers owned disjoint gate-recess and service-apron source/test files. A third independently reviewed source and actual Before/After views, with crossed source reviews by the implementation helpers. Root alone runs Unity and Android. Twenty fresh Before views were captured with clean Assets at f0ce77095ba814938f24f588a8a8173323699d9f before editing. Camera and actor setup stays identical between phases; the stock and casting closeups are included in both. The cloned budget report retained a stale short baseline label; baseline-label-note.md records the corrected descriptive label while preserving the original report and sealed baseline hashes.
+
+Seven added EditMode cases cover the two production gate profiles and actual apron material samples. Gate checks retain shared splay/return stations, unchanged backing, one frame-face owner, visible backing, noncollapsed mineral UVs and inherited vertex bounds. Apron checks require referenced nondegenerate rendered triangles, exact geometry/UV identity, shared world-position treatment across parents, original light hue and neutral unused paving.
+
+Actual scene captures pause combat and hide the HUD. They verify local visual composition and measured resource counts, not physical-device motion or performance. No ADB, installation or phone-save operation is included.
+
+The first captured gate splay was rejected by root and the independent reviewer because the geometric recession alone remained visually flat in the unlit renderer. Original images and source hashes remain in validation/first-capture. The final pass adds bounded direction-dependent shading to the same frame pieces and extends the existing two new gate cases with referenced colour/geometry checks; case count is unchanged. Apron runtime is unchanged from the first capture. Final graphics are recaptured from the newly frozen source.
+
+The first full verification passed592/593 EditMode and159/159 PlayMode, so the APK was skipped. The new backing-centre witness was behind the same jamb in the original flat geometry. Two independent reconstructions established that this was an invalid visibility precondition, not new overpainting. The test-only repair measures the independently clipped projected rear/throat intersection: full backing coverage, no later overpaint, and containment of the old visible domain at the same strict area tolerance. The complete targeted gate class then passed22/22. Runtime files remain byte-identical to the accepted directional image pass; only FoundryGateRecessTests.cs changed. The failed XMLs/source/captures and diagnosis are retained in first-gate-check and backing-visibility-diagnosis.md. Final images and full suites are regenerated from the new source freeze.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.

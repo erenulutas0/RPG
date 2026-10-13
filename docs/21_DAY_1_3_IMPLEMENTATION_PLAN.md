@@ -2468,3 +2468,17 @@ Map boundaries, bridge dimensions, brass routes, camera, collisions, actors, enc
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,307,934 bytes; SHA256 35B17010AAB7E4A7075C602CE9DC9F0830868D939954C9C396E702B7B43FEAF5; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.
+
+
+## 2026-10-14 - Foundry landmark craft verified; device pending
+
+The existing pointed gate bay frames now recede into a shallow splayed reveal. Their inner arrises consume one quarter of the existing niche depth, and connected returns shorten to meet the same stations. Backing, outer frame, caps, bearing contacts, door and tower envelopes remain fixed. A bounded directional scalar across the existing splay vertices darkens the receding far jamb and head while retaining the outer bearing and sill illumination. It preserves local forge-light RGB relationships. The changed geometry replaces the old flat frame; it adds no decorative layer or vertices.
+
+The working apron gains local material use beyond the trolley loading end and the stock bench, plus a restrained scrubbed receiving threshold. Existing emitted stone samples receive a bounded neutral scalar, preserving world grain, forge-light channel ratios, geometry, UVs and triangle ownership. The open transfer centre and unused repair stone remain neutral. No texture, material, renderer or per-frame updater is added.
+
+This package changes no map bounds, camera, walking geometry, gameplay, encounters, progression or saves. It is a local landmark/material improvement, not completion of the approved reference.
+
+438 .NET / 593 EditMode / 159 PlayMode = 1,190 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 613 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,308,109 bytes; SHA256 D5D31767220EADA46B523957EB97267FFCE5D68805698694D2CC91E5FB2C9793; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.

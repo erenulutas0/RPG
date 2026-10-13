@@ -1,0 +1,381 @@
+{
+  "views": [
+    {
+      "phase": "before",
+      "view": "full-map",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/full-map.png",
+      "width": 1600
+    },
+    {
+      "phase": "before",
+      "view": "court-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/court-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "shaft-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/shaft-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "gate-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/gate-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "overview",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/overview.png",
+      "width": 1600
+    },
+    {
+      "phase": "before",
+      "view": "approach-0-0",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "before/approach-0-0.png",
+      "width": 1080
+    },
+    {
+      "phase": "before",
+      "view": "approach--20-6",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "before/approach--20-6.png",
+      "width": 1080
+    },
+    {
+      "phase": "before",
+      "view": "approach--16-15",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "before/approach--16-15.png",
+      "width": 1080
+    },
+    {
+      "phase": "before",
+      "view": "approach-20-1",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "before/approach-20-1.png",
+      "width": 1080
+    },
+    {
+      "phase": "before",
+      "view": "yard-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/yard-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "crane-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/crane-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "service-shaft-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/service-shaft-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "skyline-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/skyline-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "bridge-foot",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/bridge-foot.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "approach--29--29",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "before/approach--29--29.png",
+      "width": 1080
+    },
+    {
+      "phase": "before",
+      "view": "bridge-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/bridge-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "forecourt-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/forecourt-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "approach--8--12",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "before/approach--8--12.png",
+      "width": 1080
+    },
+    {
+      "phase": "before",
+      "view": "stock-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/stock-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "before",
+      "view": "casting-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "before/casting-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "full-map",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/full-map.png",
+      "width": 1600
+    },
+    {
+      "phase": "after",
+      "view": "court-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/court-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "shaft-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/shaft-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "gate-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/gate-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "overview",
+      "complete": false,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/overview.png",
+      "width": 1600
+    },
+    {
+      "phase": "after",
+      "view": "approach-0-0",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "after/approach-0-0.png",
+      "width": 1080
+    },
+    {
+      "phase": "after",
+      "view": "approach--20-6",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "after/approach--20-6.png",
+      "width": 1080
+    },
+    {
+      "phase": "after",
+      "view": "approach--16-15",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "after/approach--16-15.png",
+      "width": 1080
+    },
+    {
+      "phase": "after",
+      "view": "approach-20-1",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "after/approach-20-1.png",
+      "width": 1080
+    },
+    {
+      "phase": "after",
+      "view": "yard-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/yard-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "crane-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/crane-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "service-shaft-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/service-shaft-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "skyline-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/skyline-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "bridge-foot",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/bridge-foot.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "approach--29--29",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "after/approach--29--29.png",
+      "width": 1080
+    },
+    {
+      "phase": "after",
+      "view": "bridge-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/bridge-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "forecourt-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/forecourt-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "approach--8--12",
+      "complete": true,
+      "height": 2340,
+      "hidden": false,
+      "src": "after/approach--8--12.png",
+      "width": 1080
+    },
+    {
+      "phase": "after",
+      "view": "stock-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/stock-detail.png",
+      "width": 1200
+    },
+    {
+      "phase": "after",
+      "view": "casting-detail",
+      "complete": true,
+      "height": 1200,
+      "hidden": false,
+      "src": "after/casting-detail.png",
+      "width": 1200
+    }
+  ],
+  "retry": {
+    "phase": "after",
+    "view": "overview",
+    "complete": true,
+    "height": 1200,
+    "hidden": false,
+    "src": "after/overview.png",
+    "width": 1600
+  },
+  "reference": {
+    "complete": true,
+    "height": 1024,
+    "hidden": false,
+    "src": "../../2026-09-23/foundry-layout-01/foundry-v1.png",
+    "width": 1536
+  },
+  "notes": "Final recapture after test-only backing-oracle repair. The asynchronously pending overview was rechecked after rendering."
+}

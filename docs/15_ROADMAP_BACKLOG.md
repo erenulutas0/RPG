@@ -797,3 +797,12 @@ Evidence/reproduction: ArtDirection/2026-10-13/foundry-pit-craft-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.
+
+
+## 2026-10-14 - Foundry landmark craft verified; device pending
+
+- [x] Combined splayed gate reveals and local work-apron use finish; matched actual captures, full suites and APK.
+- [ ] Further reference material/landmark refinement and physical-device acceptance.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.

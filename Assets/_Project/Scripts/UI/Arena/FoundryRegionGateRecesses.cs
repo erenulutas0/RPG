@@ -64,6 +64,10 @@ namespace Cryptforge.UI
             // There is no hidden full-face rectangle across the new blind niche.
             var border=new[]{Vector2.zero,Vector2.right,Vector2.one,new Vector2(.5f,1),Vector2.up};
             Vector3 At(Vector2 p)=>GateFaceLerp(face,p.x,p.y);
+            // The broad frame is cut into the shaft rather than painted flat on
+            // its front. Its inner arris consumes only a quarter of the existing
+            // reveal depth; backing and exterior bearing stations remain fixed.
+            Vector3 Throat(Vector2 p)=>At(p)+inward*.25f;
             Vector3 origin=face[0],along=face[1],across=face[3];
             Vector3 hub=At(new Vector2(.5f,.46f))+inward;
             Color back=tint*.75f;back.a=1;
@@ -94,7 +98,7 @@ namespace Cryptforge.UI
                 float light=i==0?1.03f:i==1?.64f:i==2?.62f:i==3?.77f:.90f;
                 Color reveal=tint*light;reveal.a=1;
                 int start=stone.V.Count;
-                HeaderStonePatch(stone,At(opening[i]),At(opening[j]),
+                HeaderStonePatch(stone,Throat(opening[i]),Throat(opening[j]),
                     At(opening[j])+inward,At(opening[i])+inward,reveal,origin,along,across);
                 GateRecessGrain(stone,start,stone.V.Count,At(opening[j])-At(opening[i]),i);
             }
@@ -110,7 +114,25 @@ namespace Cryptforge.UI
             {
                 int j=(i+1)%5;
                 Color dressed=tint*(i==0?1.12f:i==2||i==3?1.07f:1.04f);dressed.a=1;
-                GateRecessDressedFace(stone,At(frame[i]),At(frame[j]),At(opening[j]),At(opening[i]),dressed,.055f,i+5);
+                int first=stone.V.Count;
+                Vector3 a=At(frame[i]),b=At(frame[j]),c=Throat(opening[j]),d=Throat(opening[i]);
+                GateRecessDressedFace(stone,a,b,c,d,dressed,.055f,i+5);
+                // Projected scenery has no light normals. Describe the receding
+                // plane on its existing vertices: the far jamb/head lose light
+                // toward the throat, while the sill keeps its original warmth.
+                // Outer bearing edges stay unchanged; no bright perimeter is added.
+                float innerGain=i==0?1:i==1?.80f:i==2?.76f:i==3?.90f:.98f;
+                Vector2 outside=b-a,inside=d-c;
+                for(int k=first;k<stone.V.Count;k++)
+                {
+                    Vector2 p=stone.V[k];
+                    float front=Mathf.Abs(FlagCross(outside,p-(Vector2)a))/outside.magnitude;
+                    float rear=Mathf.Abs(FlagCross(inside,p-(Vector2)c))/inside.magnitude;
+                    float reach=front/Mathf.Max(.00001f,front+rear);
+                    float gain=Mathf.Lerp(1,innerGain,Mathf.SmoothStep(0,1,reach));
+                    Color color=stone.C[k];
+                    stone.C[k]=new Color(color.r*gain,color.g*gain,color.b*gain,1);
+                }
             }
         }
 

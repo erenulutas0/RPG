@@ -153,6 +153,98 @@ namespace Cryptforge.Tests
             }
         }
 
+        [TestCase(-26f,-1f,false)]
+        [TestCase(-24f,12f,false)]
+        [TestCase(-31f,7f,true)]
+        public void LoadingUseIsVisibleOnReferencedStoneFacesWithoutChangingTheirGeometryOrLightHue(float u,float v,bool scrubbed)
+        {
+            object stone=UnitStone(u,v),plain=Builder(),used=Builder();
+            Call("AshlarFlagFace",plain,stone,true);
+            Assert.That((bool)Call("ServiceApronFlag",used,stone),Is.True);
+            CollectionAssert.AreEqual(Data<Vector3>(plain,"V"),Data<Vector3>(used,"V"));
+            CollectionAssert.AreEqual(Data<Vector2>(plain,"U"),Data<Vector2>(used,"U"));
+            CollectionAssert.AreEqual(Data<int>(plain,"T"),Data<int>(used,"T"));
+            var before=Data<Color>(plain,"C");var after=Data<Color>(used,"C");
+            float low=1,high=1;int changed=0;
+            foreach(int i in ReferencedVertices(used))
+            {
+                float r=after[i].r/before[i].r,g=after[i].g/before[i].g,b=after[i].b/before[i].b;
+                Assert.That(r,Is.InRange(.86f,1.04001f));
+                Assert.That(g,Is.EqualTo(r).Within(.00001f));
+                Assert.That(b,Is.EqualTo(r).Within(.00001f),"Local use preserves the existing forge-light RGB relationship.");
+                Assert.That(after[i].a,Is.EqualTo(1));
+                low=Mathf.Min(low,r);high=Mathf.Max(high,r);
+                if(Mathf.Abs(r-1)>.015f)changed++;
+            }
+            Assert.That(changed,Is.GreaterThanOrEqualTo(3),"Evidence must live on rendered stone triangles, not a helper peak or an unused vertex.");
+            if(scrubbed)Assert.That(high,Is.GreaterThan(1.025f),"Receiving wear must be sampled at the actual threshold.");
+            else Assert.That(low,Is.LessThan(.96f),"Mill scale is visible beyond the real loading/stock footprint.");
+        }
+
+        [Test]
+        public void AdjacentRepairParentsShareOneWorldPositionUseField()
+        {
+            var left=UseRatios(-26,-1);var right=UseRatios(-25,-1);
+            int shared=0;bool visiblyUsed=false;
+            foreach(var sample in left)
+            {
+                if(!right.TryGetValue(sample.Key,out float other))continue;
+                Assert.That(sample.Value,Is.EqualTo(other).Within(.00001f),
+                    "A parent's split or new mineral identity must not restart the use field at its joint.");
+                visiblyUsed|=sample.Value<.96f;shared++;
+            }
+            Assert.That(shared,Is.GreaterThanOrEqualTo(2));
+            Assert.That(visiblyUsed,Is.True,"Check continuity across an actual used contact, not two unaffected stones.");
+        }
+
+        [Test]
+        public void UnusedServiceStoneAndOpenTransferCentreRemainExactlyUnchanged()
+        {
+            foreach(Vector2 origin in new[]{new Vector2(-27,3),new Vector2(-25,7)})
+            {
+                object stone=UnitStone(origin.x,origin.y),plain=Builder(),used=Builder();
+                Call("AshlarFlagFace",plain,stone,true);
+                Assert.That((bool)Call("ServiceApronFlag",used,stone),Is.True);
+                CollectionAssert.AreEqual(Data<Color>(plain,"C"),Data<Color>(used,"C"),
+                    "Local mill scale must fade to exact neutral, leaving broad unused paving and the open turntable clear.");
+            }
+        }
+
+        private static object UnitStone(float u,float v)
+        {
+            object stone=Activator.CreateInstance(View.GetNestedType("AshlarStone",BindingFlags.NonPublic));
+            Set(stone,"I",Mathf.RoundToInt(u*2));Set(stone,"J",Mathf.RoundToInt(v*2));
+            Set(stone,"W",2);Set(stone,"H",2);Set(stone,"Zone",3);return stone;
+        }
+
+        private static HashSet<int> ReferencedVertices(object mesh)
+        {
+            var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
+            var used=new HashSet<int>();
+            for(int t=0;t<triangles.Count;t+=3)
+            {
+                int a=triangles[t],b=triangles[t+1],c=triangles[t+2];
+                if(Math.Abs(Cross(vertices[b]-vertices[a],vertices[c]-vertices[a]))<=1e-8)continue;
+                used.Add(a);used.Add(b);used.Add(c);
+            }
+            return used;
+        }
+
+        private static Dictionary<Vector2Int,float> UseRatios(float u,float v)
+        {
+            object stone=UnitStone(u,v),plain=Builder(),used=Builder();
+            Call("AshlarFlagFace",plain,stone,true);Call("ServiceApronFlag",used,stone);
+            var positions=Data<Vector3>(used,"V");var before=Data<Color>(plain,"C");var after=Data<Color>(used,"C");
+            var ratios=new Dictionary<Vector2Int,float>();
+            foreach(int i in ReferencedVertices(used))
+            {
+                Vector2 design=ToDesign(positions[i]);
+                var key=new Vector2Int(Mathf.RoundToInt(design.x*10000),Mathf.RoundToInt(design.y*10000));
+                ratios[key]=after[i].r/before[i].r;
+            }
+            return ratios;
+        }
+
         private static Vector2 ToDesign(Vector2 p)=>new Vector2((p.x+2*p.y)*FoundryMap.Axis,(-p.x+2*p.y)*FoundryMap.Axis);
         private static Vector2 Project(Vector2 p)=>(Vector3)Call("Project",p.x,p.y);
         private static double Cross(Vector2 a,Vector2 b)=>(double)a.x*b.y-(double)a.y*b.x;

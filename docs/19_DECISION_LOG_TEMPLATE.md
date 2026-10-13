@@ -1150,3 +1150,16 @@ Map boundaries, bridge dimensions, brass routes, camera, collisions, actors, enc
 Region 32 renderers/162361 vertices versus 160334 (+2027); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.
+
+
+## 2026-10-14 - Foundry landmark craft verified; device pending
+
+The existing pointed gate bay frames now recede into a shallow splayed reveal. Their inner arrises consume one quarter of the existing niche depth, and connected returns shorten to meet the same stations. Backing, outer frame, caps, bearing contacts, door and tower envelopes remain fixed. A bounded directional scalar across the existing splay vertices darkens the receding far jamb and head while retaining the outer bearing and sill illumination. It preserves local forge-light RGB relationships. The changed geometry replaces the old flat frame; it adds no decorative layer or vertices.
+
+The working apron gains local material use beyond the trolley loading end and the stock bench, plus a restrained scrubbed receiving threshold. Existing emitted stone samples receive a bounded neutral scalar, preserving world grain, forge-light channel ratios, geometry, UVs and triangle ownership. The open transfer centre and unused repair stone remain neutral. No texture, material, renderer or per-frame updater is added.
+
+This package changes no map bounds, camera, walking geometry, gameplay, encounters, progression or saves. It is a local landmark/material improvement, not completion of the approved reference.
+
+Region 32 renderers/162361 vertices versus 162361 (+0); distant geometry 3572 versus 3572. No new runtime texture, material, renderer or per-frame updater. Resource counts are not physical-device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.

@@ -319,6 +319,180 @@ namespace Cryptforge.Tests
         }
 
         [TestCase(28.26f,-2.76f,30.74f,-1.24f,1.70f,5.45f,.04f,.28f)]
+        [TestCase(27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,.065f,.36f)]
+        public void ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking(
+            float u0,float v0,float u1,float v1,float bottom,float top,float inset,float depth)
+        {
+            object original=Builder();Call("LitFoundryTier",original,u0,v0,u1,v1,bottom,top,inset);
+            MeshData shell=Read(original);
+            var opening=new[]{new Vector2(.28f,.17f),new Vector2(.72f,.17f),new Vector2(.72f,.69f),
+                new Vector2(.5f,.84f),new Vector2(.28f,.69f)};
+            var frame=new[]{new Vector2(.14f,.08f),new Vector2(.86f,.08f),new Vector2(.86f,.75f),
+                new Vector2(.5f,.94f),new Vector2(.14f,.75f)};
+            for(int side=0;side<2;side++)
+            {
+                int first=side*4;
+                var face=new[]{shell.V[first],shell.V[first+1],shell.V[first+2],shell.V[first+3]};
+                Vector3 At(Vector2 p)=>Vector3.Lerp(Vector3.Lerp(face[0],face[1],p.x),Vector3.Lerp(face[3],face[2],p.x),p.y);
+                Vector3 inward=side==0?Project(u0,v0+depth)-Project(u0,v0):Project(u0+depth,v0)-Project(u0,v0);
+                object built=Builder();Call("GateRecessedFace",built,face,inward,new Color(.6f,.64f,.72f));
+                MeshData mesh=Read(built);AssertFinite(mesh);AssertMineralGrain(mesh);
+                Assert.That(mesh.V.Count,Is.EqualTo(240),"Splay replaces the flat frame; it does not append another architectural layer.");
+                // Backing fan and connected return slots retain their existing
+                // ownership order. Only each return's front edge moves inward.
+                for(int edge=0;edge<5;edge++)
+                {
+                    int next=(edge+1)%5,back=edge*4,returnStart=20+edge*4;
+                    Vector3 a=At(opening[edge]),b=At(opening[next]);
+                    Assert.That(Vector3.Distance(mesh.V[back],a+inward),Is.LessThan(.000001f));
+                    Assert.That(Vector3.Distance(mesh.V[back+1],b+inward),Is.LessThan(.000001f));
+                    Assert.That(Vector3.Distance(mesh.V[returnStart],a+inward*.25f),Is.LessThan(.000001f));
+                    Assert.That(Vector3.Distance(mesh.V[returnStart+1],b+inward*.25f),Is.LessThan(.000001f));
+                    Assert.That(Vector3.Distance(mesh.V[returnStart+2],mesh.V[back+1]),Is.LessThan(.000001f));
+                    Assert.That(Vector3.Distance(mesh.V[returnStart+3],mesh.V[back]),Is.LessThan(.000001f));
+                    Assert.That(Vector3.Distance(mesh.V[returnStart],a),Is.GreaterThan(.045f),
+                        "The production arris must actually recede from the old flat wall.");
+                    foreach(Vector3 point in new[]{mesh.V[returnStart],mesh.V[returnStart+1],At(frame[edge]),At(frame[next])})
+                    {
+                        bool shared=false;
+                        for(int i=140;i<mesh.V.Count;i++)shared|=Vector3.Distance(mesh.V[i],point)<.000001f;
+                        Assert.That(shared,Is.True,"Every splayed frame meets the unchanged exterior and shortened return at exact shared stations.");
+                    }
+                }
+                // The five visible frame stones partition their sloping faces.
+                // Their original exterior edges are fixed; no old flat polygon
+                // survives beneath the new splay or covers the visible throat.
+                var dressed=new MeshData(mesh.V,mesh.U,mesh.C,new List<int>());
+                for(int t=0;t<mesh.T.Count;t+=3)
+                    if(mesh.T[t]>=140&&mesh.T[t+1]>=140&&mesh.T[t+2]>=140)
+                        dressed.T.AddRange(new[]{mesh.T[t],mesh.T[t+1],mesh.T[t+2]});
+                double expectedArea=0;
+                for(int edge=0;edge<5;edge++)
+                {
+                    int next=(edge+1)%5;
+                    Vector3 a=At(frame[edge]),b=At(frame[next]),c=At(opening[next])+inward*.25f,d=At(opening[edge])+inward*.25f;
+                    expectedArea+=(Math.Abs(CrossDouble(b-a,c-a))+Math.Abs(CrossDouble(c-a,d-a)))*.5;
+                    foreach(float s in new[]{.217f,.573f,.839f})foreach(float h in new[]{.173f,.493f,.811f})
+                    {
+                        Vector3 point=Vector3.Lerp(Vector3.Lerp(a,b,s),Vector3.Lerp(d,c,s),h);
+                        Assert.That(CoverCount(dressed,point),Is.EqualTo(1),"Each physical frame face has one owner, including its inset arrises.");
+                    }
+                    // Compare with the same ordinary dressed stone emitter, so
+                    // relief light must live on the rendered splay, preserving
+                    // both its geometry and the original forge-tint ratios.
+                    Color tint=new Color(.6f,.64f,.72f)*(edge==0?1.12f:edge==2||edge==3?1.07f:1.04f);tint.a=1;
+                    object plainBuilder=Builder();Call("GateRecessDressedFace",plainBuilder,a,b,c,d,tint,.055f,edge+5);
+                    MeshData plain=Read(plainBuilder);int offset=140+edge*20;
+                    var referenced=new HashSet<int>();
+                    for(int t=0;t<plain.T.Count;t+=3)
+                    {
+                        int i=plain.T[t],j=plain.T[t+1],k=plain.T[t+2];
+                        if(Math.Abs(CrossDouble(plain.V[j]-plain.V[i],plain.V[k]-plain.V[i]))<=1e-8)continue;
+                        referenced.Add(i);referenced.Add(j);referenced.Add(k);
+                    }
+                    int outerSamples=0,innerSamples=0;float innerTotal=0;
+                    foreach(int index in referenced)
+                    {
+                        Assert.That(Vector3.Distance(mesh.V[offset+index],plain.V[index]),Is.LessThan(.000001f));
+                        Color actual=mesh.C[offset+index],source=plain.C[index];
+                        float gain=actual.r/source.r;
+                        Assert.That(gain,Is.InRange(.75f,1.00001f),"Splay shading cannot globally brighten or blacken the frame.");
+                        Assert.That(actual.g/source.g,Is.EqualTo(gain).Within(.00001f));
+                        Assert.That(actual.b/source.b,Is.EqualTo(gain).Within(.00001f));
+                        Vector3 p=plain.V[index];
+                        if(Vector3.Distance(p,a)<.000001f||Vector3.Distance(p,b)<.000001f)
+                        {Assert.That(gain,Is.EqualTo(1).Within(.00001f));outerSamples++;}
+                        if(Vector3.Distance(p,c)<.000001f||Vector3.Distance(p,d)<.000001f)
+                        {innerTotal+=gain;innerSamples++;}
+                    }
+                    Assert.That(outerSamples,Is.GreaterThanOrEqualTo(2));
+                    Assert.That(innerSamples,Is.GreaterThanOrEqualTo(2));
+                    float inner=innerTotal/innerSamples;
+                    if(edge==0)Assert.That(inner,Is.EqualTo(1).Within(.00001f),"The sill keeps its original reflected light.");
+                    else if(edge==1||edge==2)Assert.That(inner,Is.LessThan(.83f),"Far returns visibly recede instead of retaining the old flat frame tint.");
+                    else Assert.That(inner,Is.GreaterThan(.87f).And.LessThan(1),"Near planes remain distinguishable from the darker far reveal.");
+                }
+                Assert.That(TriangleArea(dressed),Is.EqualTo(expectedArea).Within(.0001));
+                // A translated backing's physical centre need not be visible:
+                // the narrow production face already hid it behind the far jamb
+                // before the splay. The legitimate visible backing is the convex
+                // intersection of its rear contour and the front throat. Test
+                // its entire projected area against actual emitted triangles.
+                var rear=new List<(double x,double y)>();
+                var flat=new List<(double x,double y)>();
+                var throat=new List<(double x,double y)>();
+                foreach(Vector2 station in opening)
+                {
+                    Vector3 p=At(station),back=p+inward,front=p+inward*.25f;
+                    flat.Add((p.x,p.y));rear.Add((back.x,back.y));throat.Add((front.x,front.y));
+                }
+                var visible=ClipProjectedPolygon(rear,throat);
+                var oldVisible=ClipProjectedPolygon(rear,flat);
+                double visibleArea=Math.Abs(ProjectedPolygonArea(visible));
+                double oldArea=Math.Abs(ProjectedPolygonArea(oldVisible));
+                Assert.That(oldArea,Is.GreaterThan(.01),$"Side {side}: the baseline has a real visible backing.");
+                Assert.That(visibleArea,Is.GreaterThan(oldArea),$"Side {side}: the splay must expose more of the unchanged backing.");
+                Assert.That(Math.Abs(ProjectedPolygonArea(ClipProjectedPolygon(oldVisible,visible))),
+                    Is.EqualTo(oldArea).Within(1e-8),$"Side {side}: no part of the old visible backing may be lost.");
+                double covered=0,overpaint=0;
+                for(int t=0;t<mesh.T.Count;t+=3)
+                {
+                    var triangle=new List<(double x,double y)>();
+                    for(int k=0;k<3;k++)
+                    {
+                        Vector3 p=mesh.V[mesh.T[t+k]];triangle.Add((p.x,p.y));
+                    }
+                    if(Math.Abs(ProjectedPolygonArea(triangle))<=1e-12)continue;
+                    double area=Math.Abs(ProjectedPolygonArea(ClipProjectedPolygon(visible,triangle)));
+                    if(mesh.T[t]<20)covered+=area;else overpaint+=area;
+                }
+                Assert.That(covered,Is.EqualTo(visibleArea).Within(1e-8),
+                    $"Side {side}: actual backing triangles must cover the complete visible domain without a hole.");
+                Assert.That(overpaint,Is.LessThan(1e-8),
+                    $"Side {side}: no later return, body or frame triangle may overpaint any visible backing area.");
+            }
+        }
+
+        // Independent double-precision convex clipping keeps the area oracle
+        // separate from production emitters and point-in-triangle tolerances.
+        private static List<(double x,double y)> ClipProjectedPolygon(
+            IReadOnlyList<(double x,double y)> subject,IReadOnlyList<(double x,double y)> window)
+        {
+            var result=new List<(double x,double y)>(subject);
+            double winding=Math.Sign(ProjectedPolygonArea(window));
+            for(int edge=0;edge<window.Count&&result.Count>0;edge++)
+            {
+                var a=window[edge];var b=window[(edge+1)%window.Count];
+                var source=result;result=new List<(double x,double y)>();
+                double Distance((double x,double y) p)=>winding*((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x));
+                for(int i=0;i<source.Count;i++)
+                {
+                    var p=source[i];var q=source[(i+1)%source.Count];
+                    double dp=Distance(p),dq=Distance(q);
+                    if(dp>=0)result.Add(p);
+                    if((dp>=0)!=(dq>=0))
+                    {
+                        double t=dp/(dp-dq);
+                        result.Add((p.x+(q.x-p.x)*t,p.y+(q.y-p.y)*t));
+                    }
+                }
+            }
+            return result;
+        }
+
+        private static double ProjectedPolygonArea(IReadOnlyList<(double x,double y)> polygon)
+        {
+            if(polygon.Count<3)return 0;
+            var origin=polygon[0];double area=0;
+            for(int i=1;i<polygon.Count-1;i++)
+            {
+                var a=polygon[i];var b=polygon[i+1];
+                area+=(a.x-origin.x)*(b.y-origin.y)-(a.y-origin.y)*(b.x-origin.x);
+            }
+            return area*.5;
+        }
+
+        [TestCase(28.26f,-2.76f,30.74f,-1.24f,1.70f,5.45f,.04f,.28f)]
         [TestCase(28.26f,11.24f,30.74f,12.76f,1.70f,5.45f,.04f,.28f)]
         [TestCase(27.53f,-6.14f,30.42f,-4.61f,1.84f,6.55f,.065f,.36f)]
         [TestCase(27.53f,14.61f,30.42f,16.14f,1.84f,6.55f,.065f,.36f)]
