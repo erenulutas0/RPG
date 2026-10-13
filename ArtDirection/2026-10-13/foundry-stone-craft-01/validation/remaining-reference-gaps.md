@@ -1,0 +1,9 @@
+# Remaining reference gaps after stone craft
+
+1. Foreground surface craftsmanship is now the largest shared gap. The floor layout has larger unequal slabs and the pit/gate have clearer support and guard structure, but close surfaces remain too evenly clean. Prepare one coherent stone/iron surface treatment against the active bindings, validate it on a pit corner and adjacent paving, then extend only after the portrait result reads. Preserve the existing calm gameplay floor; selective joint dirt, worn shoulders and material variation must not become random bright detail.
+2. Gate finish: its lower support now seats properly. The header, crown and tower faces still look more angular and plain than the painted door. A coordinated face/cap treatment should address that mismatch before further ornaments or taller blocks.
+3. West workyard: the supported crane base and machinery grouping remain simpler than the reference. The existing lantern/mast overlap persists. Future refinements must respect physical island clearance and the already shifted assembly.
+4. Full-map composition and atmospheric integration are still not equal to the concept. This package makes no further map-width or camera claim. The overview is not the gameplay camera; maintain distinct checks at full-map and portrait sizes.
+5. Physical-device motion, HUD overlap, shimmer, loading and midrange performance remain pending. Inspect the current device state and original save/telemetry files before installation. No historical snapshot should overwrite current player progress. The previous concrete restart/install decision is unresolved in this visual-only session.
+
+The existing stationary immortal-crowd waypoint queue issue remains a separate gameplay follow-up. Evidence: ../../2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md.

@@ -2410,3 +2410,19 @@ The western crane gains a grounded native cast-iron machinery base on its origin
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,291,532 bytes; SHA256 D3B7D53094316D3B89BA50C515D78A5BA7194ACC7FDC889D2E959F1DACE26804; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-workyard-01.
+
+
+## 2026-10-13 - Foundry stone craft verified; device pending
+
+Ordinary court quarry slabs now reach 3 by 2 design units with varied proportions, fewer joints and selected worn corners. Local mineral abrasion uses the existing bevel/face vertices and preserves world lighting and grain; no added crack overlay covers the court. The gate approach retains its previous smaller stock. The fitted central medallion and two processional fields retain their separate replacement domains.
+
+Both outer gate buttresses now rise from a broad coursed base through a seated battered shoulder into the recessed upper bay. The shoulder ends at height 2.85; the original footprint and crown 7.35 remain. Mortar, dressed edges and faces partition the lower masonry surfaces instead of adding coplanar stone over a full hidden wall. Door, banners, inner jambs, ramp and actual support boundaries are retained.
+
+The furnace pit replaces its repeated turned balusters with broad stone guard bays, recessed panels and sparse square iron stems. A continuous sill and substantial coping retain the original curved band and height. Actual openings remain visible above the sill. The existing posts, lining, fire, floor illumination, vessels and outer corner railing are unchanged; weak local reflected warmth describes pool-facing guard returns.
+
+This combined visual package changes no walking outline, map dimensions, camera, scene, actors, encounter data, movement, economy or saves. No runtime texture, material, renderer or per-frame updater is added.
+
+438 .NET / 564 EditMode / 159 PlayMode = 1,161 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 611 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,301,580 bytes; SHA256 27887CDF79CF6F5049ECC63BC103AAF0FAEA7B78C04C4E1FED98DA32646616A9; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-stone-craft-01.

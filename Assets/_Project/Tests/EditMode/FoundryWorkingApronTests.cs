@@ -39,6 +39,8 @@ namespace Cryptforge.Tests
             }
             var stones=(IEnumerable)Call("LayAshlar",zones,u0,v0,37);
             int selected=0,ordinaryCost=0,repairCost=0;
+            var selectedCells=new bool[zones.GetLength(0),zones.GetLength(1)];
+            double selectedArea=0;
             foreach(object stone in stones)
             {
                 Set(stone,"I",Field(stone,"I")+u0*2);Set(stone,"J",Field(stone,"J")+v0*2);
@@ -48,6 +50,16 @@ namespace Cryptforge.Tests
                 selected++;
                 int width=Field(stone,"W"),height=Field(stone,"H");
                 float left=Field(stone,"I")*.5f,bottom=Field(stone,"J")*.5f,right=left+width*.5f,top=bottom+height*.5f;
+                Assert.That(Field(stone,"Zone"),Is.EqualTo(0).Or.EqualTo(3),"Repairs belong to the court/workyard material regions only.");
+                Assert.That((float)Call("ServiceApronWeight",(left+right)*.5f,(bottom+top)*.5f),Is.GreaterThan(0),
+                    "A repaired parent's centre must belong to the authored working apron, including its soft shoulder.");
+                selectedArea+=width*height*.25;
+                int ix=Field(stone,"I")-u0*2,iy=Field(stone,"J")-v0*2;
+                for(int x=ix;x<ix+width;x++)for(int y=iy;y<iy+height;y++)
+                {
+                    Assert.That(selectedCells[x,y],Is.False,"Two selected parents must not own the same physical half-cell.");
+                    selectedCells[x,y]=true;
+                }
                 var uv=Data<Vector2>(mesh,"U");var colors=Data<Color>(mesh,"C");var triangles=Data<int>(mesh,"T");
                 Assert.That(uv.Count,Is.EqualTo(vertices.Count));Assert.That(colors.Count,Is.EqualTo(vertices.Count));
                 foreach(int index in triangles)Assert.That(index,Is.InRange(0,vertices.Count-1));
@@ -83,7 +95,39 @@ namespace Cryptforge.Tests
                 object ordinary=Builder();Call("AshlarFlagFace",ordinary,stone,false);
                 ordinaryCost+=Data<Vector3>(ordinary,"V").Count;repairCost+=vertices.Count;
             }
-            Assert.That(selected,Is.GreaterThan(80),"This is one connected working field, not two tiny repair spots.");
+            // Count measured ground area, not parent slabs: the same working field
+            // legitimately uses fewer parents when the quarry stock becomes larger.
+            // The lower bound is the independent area of the authored full-strength
+            // stock rectangle plus the part of its receiving arm outside that box.
+            float spine=-24+FoundryMap.WorkyardShift;
+            double coreArea=7.2*21.15+Math.Max(0,spine-3.6-FoundryMap.West)*4.8;
+            TestContext.WriteLine($"Working apron: {selected} parents, {selectedArea:F2} square units; authored core {coreArea:F2}; extra vertices {repairCost-ordinaryCost}.");
+            Assert.That(selectedArea,Is.GreaterThanOrEqualTo(coreArea),
+                "The full apron plus its soft shoulder must retain at least the authored working core's physical area.");
+            var connected=new bool[selectedCells.GetLength(0),selectedCells.GetLength(1)];
+            var pending=new Queue<Vector2Int>();
+            var start=new Vector2Int(Mathf.FloorToInt((spine-u0)*2),Mathf.FloorToInt((7-v0)*2));
+            Assert.That(selectedCells[start.x,start.y],Is.True,"The receiving/stock junction must actually contain repaired stone.");
+            pending.Enqueue(start);connected[start.x,start.y]=true;
+            var directions=new[]{Vector2Int.left,Vector2Int.right,Vector2Int.up,Vector2Int.down};
+            while(pending.Count>0)
+            {
+                Vector2Int cell=pending.Dequeue();
+                foreach(Vector2Int direction in directions)
+                {
+                    Vector2Int next=cell+direction;
+                    if(next.x<0||next.y<0||next.x>=selectedCells.GetLength(0)||next.y>=selectedCells.GetLength(1)||
+                        !selectedCells[next.x,next.y]||connected[next.x,next.y])continue;
+                    connected[next.x,next.y]=true;pending.Enqueue(next);
+                }
+            }
+            void RequireConnected(float u,float v)
+            {
+                int x=Mathf.FloorToInt((u-u0)*2),y=Mathf.FloorToInt((v-v0)*2);
+                Assert.That(connected[x,y],Is.True,$"Actual repaired stone must connect the receiving and stock tracks at ({u},{v}).");
+            }
+            for(float u=FoundryMap.West+.35f;u<=spine;u+=.2f)RequireConnected(u,7);
+            for(float v=-1.8f;v<=17.42f;v+=.2f)RequireConnected(spine,v);
             Assert.That(repairCost-ordinaryCost,Is.LessThanOrEqualTo(4000),"The complete apron must stay within its geometry allowance.");
         }
 

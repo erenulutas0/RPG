@@ -1391,3 +1391,19 @@ Initial geometry preflight retained three failures. Actual triangle witnesses sh
 The first actual crane finish was rejected visually despite passing geometry checks: clamped UVs collapsed upper faces onto one texture row, creating corrugated streaks. The local casting sampler is corrected before final acceptance, with a new UV-area regression. Initial failure XMLs, triangle diagnostics, first-capture images and review notes remain in validation.
 
 Evidence/reproduction: ArtDirection/2026-10-12/foundry-court-workyard-01.
+
+
+## 2026-10-13 - Foundry stone craft verified; device pending
+
+438 .NET / 564 EditMode / 159 PlayMode = 1,161 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 611 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,301,580 bytes; SHA256 27887CDF79CF6F5049ECC63BC103AAF0FAEA7B78C04C4E1FED98DA32646616A9; NOT INSTALLED.
+
+Three helpers owned quarry paving, gate buttresses and pit guards with disjoint source files. Root captured sixteen fresh Before views on unchanged baseline a826179 before authorizing edits. Gate and floor source reviews were crossed; root reviewed pit geometry and integration. Helpers reviewed their own resulting visuals and root separately inspected the combined actual views. Unity and Android operations ran only under root with frozen Assets.
+
+The first EditMode preflight returned 560/561: one legacy parent-count assertion failed after the intentional increase in stone size, and three pit tests were missing because their new metadata GUID had 33 characters. Static verification caught the invalid GUID. Root retained the failed reports, corrected test metadata after Unity exited, and replaced the count proxy with actual 216.50 square-unit apron coverage (minimum authored core 168.60), no overlaps and connected receiving/stock tracks. Existing per-parent geometry, UV and 4,000 extra-vertex bounds remain; measured extra cost 669. All 564 EditMode cases then passed. The source peer review also corrected a localized abrasion SmoothStep misuse before Unity, with a 41-seed regression.
+
+Twelve added EditMode cases cover broad contoured flags, abrasion localization, gate face ownership and bearing contacts, and pit guard bounds, real openings and post contacts. Existing court replacement ownership and full movement/scene suites remain in the final gate. Source hashes are retained. A stale short baseline label in the cloned capture's description was corrected; the launcher always pinned the correct HEAD. After captures were repeated with unchanged runtime/cameras, with that distinction recorded in validation/capture-label-correction.md.
+
+The matched actual scene images pause combat and hide HUD. They establish Editor composition and measured mesh budgets, not physical-device performance or interactive acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-13/foundry-stone-craft-01.

@@ -28,6 +28,23 @@ namespace Cryptforge.UI
             return Mathf.Clamp01(Mathf.Max(work,heat)*.65f+age*.35f);
         }
 
+        private static float QuarryEdgeAbrasion(Vector2 p,float u0,float v0,float u1,float v1,
+            int seedU,int seedV,float exposure)
+        {
+            // A short mineral shoulder along one selected edge of a worked slab.
+            // The same function colours the bevel and face: no floating overlay,
+            // full bright outline or isolated random chips across the combat field.
+            uint hash=PavingHash(seedU,seedV,829);
+            int side=(int)(hash&3);
+            float distance=side==0?p.y-v0:side==1?u1-p.x:side==2?v1-p.y:p.x-u0;
+            float along=side%2==0?(p.x-u0)/(u1-u0):(p.y-v0)/(v1-v0);
+            float middle=Mathf.Lerp(.35f,.65f,((hash>>8)&255)/255f);
+            float extent=Mathf.Lerp(.22f,.36f,((hash>>16)&255)/255f);
+            float patch=1-Mathf.SmoothStep(0,1,Mathf.Clamp01(Mathf.Abs(along-middle)/extent));
+            float edge=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.025f,.30f,Mathf.Max(0,distance)));
+            return edge*patch*Mathf.SmoothStep(0,1,Mathf.InverseLerp(.16f,.85f,exposure));
+        }
+
         private static void BrokenFlagCorner(Builder mesh,float u0,float v0,float u1,float v1,
             float joint,float bevel,float tone,Color tint,int i,int j,float exposure)
         {

@@ -13,9 +13,107 @@ namespace Cryptforge.Tests
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
 
+        [TestCase(0f,.48f,.08f)]
+        [TestCase(.48f,2.05f,.09f)]
+        [TestCase(2.05f,2.85f,.28f)]
+        public void CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(
+            float bottom,float top,float inset)
+        {
+            var box=new Vector4(27.16f,-6.51f,30.79f,-4.24f);
+            object original=Builder();Call("LitFoundryTier",original,box.x,box.y,box.z,box.w,bottom,top,inset);
+            MeshData shell=Read(original);
+            object built=Builder();Call("GateButtressTier",built,box,bottom,top,inset,.94f);
+            MeshData mesh=Read(built);AssertFinite(mesh);
+            Assert.That(mesh.V.Count,Is.LessThan(700),"Broad structural stone cannot become dense decorative strips.");
+            Assert.That(TriangleArea(mesh),Is.EqualTo(TriangleArea(shell)).Within(.0001),
+                "Mortar, dressed edges and interiors must partition the source walls rather than layer over them.");
+            foreach(Vector3 point in mesh.V)
+                Assert.That(LastCoveringTriangle(shell,point),Is.GreaterThanOrEqualTo(0));
+            // Offset samples avoid authored course/bevel boundaries. Test every
+            // source facet, including the narrow closed corner, in its actual plane.
+            for(int face=0;face<3;face++)for(int x=0;x<9;x++)for(int y=0;y<7;y++)
+            {
+                int first=face*4;
+                float u=(x+.371f)/9f,v=(y+.619f)/7f;
+                Vector3 lo=Vector3.Lerp(shell.V[first],shell.V[first+1],u);
+                Vector3 hi=Vector3.Lerp(shell.V[first+3],shell.V[first+2],u);
+                Assert.That(CoverCount(mesh,Vector3.Lerp(lo,hi,v)),Is.EqualTo(1),
+                    "Every source face point has one owner, including joints and battered shoulders.");
+            }
+            for(int t=0;t<mesh.T.Count;t+=3)
+            {
+                int a=mesh.T[t],b=mesh.T[t+1],c=mesh.T[t+2];
+                double area=Math.Abs(CrossDouble((Vector2)(mesh.V[b]-mesh.V[a]),(Vector2)(mesh.V[c]-mesh.V[a])));
+                if(area<1e-7)continue;
+                Assert.That(Math.Abs(CrossDouble(mesh.U[b]-mesh.U[a],mesh.U[c]-mesh.U[a])),Is.GreaterThan(1e-12),
+                    "The physical mineral field must not collapse a stone or shoulder onto one texture row.");
+            }
+        }
+
         [TestCase(-6.6f)]
         [TestCase(14.15f)]
-        public void OuterGateTowerKeepsItsFootprintAndExposesTheTallBayAcrossTheFormerWaist(float v)
+        public void JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap(float v)
+        {
+            var foot=new Vector4(31.05f+FoundryMap.GateOffset,v,34.9f+FoundryMap.GateOffset,v+2.45f);
+            object built=Builder();Call("BuildGateButtressLower",built,foot);
+            MeshData actual=Read(built);AssertFinite(actual);
+            var boxes=new[]{foot,new Vector4(foot.x+.11f,foot.y+.09f,foot.z-.11f,foot.w-.09f),
+                new Vector4(foot.x+.20f,foot.y+.18f,foot.z-.20f,foot.w-.18f),
+                new Vector4(foot.x+.48f,foot.y+.46f,foot.z-.48f,foot.w-.46f)};
+            var levels=new[]{0f,.48f,2.05f,2.85f,6.55f};
+            var insets=new[]{.08f,.09f,.28f,.065f};
+            int offset=0;
+            for(int tier=0;tier<3;tier++)
+            {
+                object part=Builder();Call("GateButtressTier",part,boxes[tier],levels[tier],levels[tier+1],insets[tier],tier==1?.90f:.94f);
+                MeshData stone=Read(part);
+                foreach(Vector3 point in stone.V)
+                    Assert.That(Vector3.Distance(actual.V[offset++],point),Is.LessThan(.00001f),
+                        "The supported tier under review must actually be emitted by the production lower mass.");
+                // GateButtressTier retains the original final eight cap patches.
+                int capStart=stone.V.Count-32;
+                var cap=new MeshData(stone.V,stone.U,stone.C,new List<int>());
+                for(int t=0;t<stone.T.Count;t+=3)
+                    if(stone.T[t]>=capStart&&stone.T[t+1]>=capStart&&stone.T[t+2]>=capStart)
+                        for(int k=0;k<3;k++)cap.T.Add(stone.T[t+k]);
+                Vector4 upper=boxes[tier+1];
+                float corner=Mathf.Min(.18f,Mathf.Min(upper.z-upper.x,upper.w-upper.y)*.15f);
+                var outline=(Vector3[])Call("Octagon",upper.x,upper.y,upper.z,upper.w,corner);
+                for(int i=0;i<outline.Length;i++)
+                    foreach(Vector3 point in new[]{outline[i],(outline[i]+outline[(i+1)%outline.Length])*.5f})
+                        Assert.That(LastCoveringTriangle(cap,point+Vector3.up*levels[tier+1]),Is.GreaterThanOrEqualTo(0),
+                            "Every upper section corner and midpoint must bear on real stone, including chamfered corners.");
+            }
+            Assert.That(offset,Is.EqualTo(actual.V.Count));
+        }
+
+        private static double CrossDouble(Vector2 a,Vector2 b)=>(double)a.x*b.y-(double)a.y*b.x;
+        private static double TriangleArea(MeshData mesh)
+        {
+            double area=0;
+            for(int t=0;t<mesh.T.Count;t+=3)
+            {
+                Vector2 a=mesh.V[mesh.T[t]],b=mesh.V[mesh.T[t+1]],c=mesh.V[mesh.T[t+2]];
+                area+=Math.Abs(CrossDouble(b-a,c-a))*.5;
+            }
+            return area;
+        }
+        private static int CoverCount(MeshData mesh,Vector2 p)
+        {
+            int count=0;
+            for(int t=0;t<mesh.T.Count;t+=3)
+            {
+                Vector2 a=mesh.V[mesh.T[t]],b=mesh.V[mesh.T[t+1]],c=mesh.V[mesh.T[t+2]];
+                double area=CrossDouble(b-a,c-a);if(Math.Abs(area)<1e-9)continue;
+                double x=CrossDouble(b-p,c-p)/area,y=CrossDouble(c-p,a-p)/area,z=1-x-y;
+                if(x>=-1e-7&&y>=-1e-7&&z>=-1e-7)count++;
+            }
+            return count;
+        }
+
+        [TestCase(-6.6f)]
+        [TestCase(14.15f)]
+        public void OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder(float v)
         {
             float u=31.05f+FoundryMap.GateOffset;
             var foot=new Vector4(u,v,u+3.85f,v+2.45f);
@@ -27,17 +125,17 @@ namespace Cryptforge.Tests
                 "The stronger tower body must stay inside its established footing and crown envelope.");
             Assert.That(mesh.V.Count,Is.LessThan(2400),"A longer bay must replace the waist rather than accumulate tiny trim.");
             var box=new Vector4(foot.x+.48f,foot.y+.46f,foot.z-.48f,foot.w-.46f);
-            object isolated=Builder();Call("GateRecessedShaft",isolated,box,1.84f,6.55f,.065f,.92f,.36f);
+            object isolated=Builder();Call("GateRecessedShaft",isolated,box,2.85f,6.55f,.065f,.92f,.36f);
             MeshData bay=Read(isolated);
-            object shell=Builder();Call("LitFoundryTier",shell,box.x,box.y,box.z,box.w,1.84f,6.55f,.065f);
+            object shell=Builder();Call("LitFoundryTier",shell,box.x,box.y,box.z,box.w,2.85f,6.55f,.065f);
             MeshData plane=Read(shell);
             foreach(int side in new[]{0,1})
             {
                 int first=side*4;
                 Vector3 inward=side==0?Project(box.x,box.y+.36f)-Project(box.x,box.y):
                     Project(box.x+.36f,box.y)-Project(box.x,box.y);
-                // Mid-height probes cross the old storey belt. The complete tower's
-                // final visible triangle must still be the real recessed bay.
+                // Probe the shortened upper bay above its new broad shoulder. The
+                // complete tower's last visible triangle must remain its real recess.
                 foreach(float rise in new[]{.30f,.37f,.44f,.51f,.58f})
                 {
                     Vector3 low=Vector3.Lerp(plane.V[first],plane.V[first+1],.5f);

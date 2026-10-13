@@ -230,8 +230,9 @@ namespace Cryptforge.UI
             return 0;
         }
 
-        // Half-unit ashlar with broad unequal court flags and occasional 2.5x1 slabs
-        // (maximum area3). The skyline packer limits long joints and four-way crossings;
+        // Half-unit ashlar with broad unequal court quarry slabs up to 3x2 (area6).
+        // The gate approach retains its smaller crosswise family (maximum area3).
+        // The skyline packer limits long joints and four-way crossings;
         // matching neighbour heights is only a mild preference, not a regular course.
         // Authored court flags remain varied below the flush ceremonial assembly.
         private const int AshlarSub=2,AshlarRun=6,AshlarEdgeRun=4,AshlarLevel=2,AshlarSalt=37;
@@ -245,16 +246,18 @@ namespace Cryptforge.UI
         private static int[] AshlarFamily(bool crosswise)
         {
             var sizes=new List<int>();
-            for(int h=2;h<=5;h++)
-                for(int w=2;w<=5;w++)
+            int maximumSide=crosswise?5:6,maximumArea=crosswise?12:24;
+            for(int h=2;h<=maximumSide;h++)
+                for(int w=2;w<=maximumSide;w++)
                 {
-                    if(w*h>12)continue;
-                    // The court is a field of unequal basalt flags, not small square
-                    // tiles. Keep the existing gate family and three-unit area cap;
-                    // broad 1x2 and 1.5x2 flags break up the repeated court grid.
+                    if(w*h>maximumArea)continue;
+                    // Broad quarry stock gives the open court fewer, unequal joints.
+                    // Small infill is still available where the exact floor boundary,
+                    // existing neighbours or a material zone cannot take a full slab.
                     int area=w*h;
                     int weight=crosswise?(area==4?18:area==6?18:area==8?4:area==9?2:1):
-                        area==4?3:area==6?12:area==8?18:area==9?9:area==10?7:area==12?12:1;
+                        area==4?1:area==6?2:area==8?5:area==9?5:area==10?7:
+                        area==12?14:area==15?15:area==16?20:area==18?20:area==20?16:area==24?14:1;
                     sizes.AddRange(new[]{w,h,crosswise&&w>h?Mathf.Max(1,weight/4):weight});
                 }
             sizes.AddRange(new[]{2,1,1,1,2,1,1,1,1});

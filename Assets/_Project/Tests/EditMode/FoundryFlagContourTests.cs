@@ -20,10 +20,36 @@ namespace Cryptforge.Tests
             return method.Invoke(null,args);
         }
 
+        [Test]
+        public void QuarryAbrasionStaysOnWorkedLipsAndLeavesBroadInteriorsUntouched()
+        {
+            const float u0=-10f,v0=-6f,u1=-7f,v1=-4f;
+            float Rub(Vector2 p,int seed,float exposure)=>(float)Call("QuarryEdgeAbrasion",p,u0,v0,u1,v1,seed,seed*7,exposure);
+            for(int seed=-20;seed<=20;seed++)
+            {
+                foreach(Vector2 inside in new[]{new Vector2(-9.5f,-5.5f),new Vector2(-8.5f,-5f),new Vector2(-7.5f,-4.5f)})
+                    Assert.That(Rub(inside,seed,1),Is.Zero,"A rubbed edge must not become a cloudy wash across a broad slab.");
+                float strongest=0;
+                for(int side=0;side<4;side++)for(int sample=0;sample<=16;sample++)
+                {
+                    float t=sample/16f;
+                    var point=side==0?new Vector2(Mathf.Lerp(u0,u1,t),v0):
+                        side==1?new Vector2(u1,Mathf.Lerp(v0,v1,t)):
+                        side==2?new Vector2(Mathf.Lerp(u0,u1,t),v1):new Vector2(u0,Mathf.Lerp(v0,v1,t));
+                    Assert.That(Rub(point,seed,.16f),Is.Zero,"Unworked quarry edges stay dressed.");
+                    float value=Rub(point,seed,1);
+                    Assert.That(value,Is.InRange(0,1));strongest=Mathf.Max(strongest,value);
+                }
+                Assert.That(strongest,Is.GreaterThan(.85f),"A worked slab exposes one actual mineral lip.");
+            }
+        }
+
         [TestCase(.5f,2f)]
         [TestCase(1f,1f)]
         [TestCase(1.5f,2f)]
         [TestCase(2.5f,1f)]
+        [TestCase(2.5f,2f)]
+        [TestCase(3f,2f)]
         public void ProductionSizedContoursAndInsetsStayConvexAndInsideTheirPackedFlag(float width,float height)
         {
             Vector2[] first=null;
@@ -125,6 +151,7 @@ namespace Cryptforge.Tests
         [TestCase(RampStart,3f,1f,1f,2,false)]
         [TestCase(0f,0f,1f,1f,1,false)]
         [TestCase(-24f,6f,1f,1f,3,true)]
+        [TestCase(1f,-10f,3f,2f,0,false)]
         public void ProductionMeshRetainsWholeBedContinuousUvsAndFlushTriangles(float u0,float v0,float width,float height,int zone,bool repair)
         {
             Type view=typeof(FoundryRegionView),builderType=view.GetNestedType("Builder",BindingFlags.NonPublic);

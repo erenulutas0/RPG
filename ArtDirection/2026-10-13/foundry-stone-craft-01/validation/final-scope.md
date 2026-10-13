@@ -1,0 +1,7 @@
+Ordinary court quarry slabs now reach 3 by 2 design units with varied proportions, fewer joints and selected worn corners. Local mineral abrasion uses the existing bevel/face vertices and preserves world lighting and grain; no added crack overlay covers the court. The gate approach retains its previous smaller stock. The fitted central medallion and two processional fields retain their separate replacement domains.
+
+Both outer gate buttresses now rise from a broad coursed base through a seated battered shoulder into the recessed upper bay. The shoulder ends at height 2.85; the original footprint and crown 7.35 remain. Mortar, dressed edges and faces partition the lower masonry surfaces instead of adding coplanar stone over a full hidden wall. Door, banners, inner jambs, ramp and actual support boundaries are retained.
+
+The furnace pit replaces its repeated turned balusters with broad stone guard bays, recessed panels and sparse square iron stems. A continuous sill and substantial coping retain the original curved band and height. Actual openings remain visible above the sill. The existing posts, lining, fire, floor illumination, vessels and outer corner railing are unchanged; weak local reflected warmth describes pool-facing guard returns.
+
+This combined visual package changes no walking outline, map dimensions, camera, scene, actors, encounter data, movement, economy or saves. No runtime texture, material, renderer or per-frame updater is added.

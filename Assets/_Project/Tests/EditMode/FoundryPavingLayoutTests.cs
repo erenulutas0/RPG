@@ -45,13 +45,18 @@ namespace Cryptforge.Tests
             Assert.That(joints,Is.Empty,"Retiring the large brass box must retire its artificial paving seams too.");
             var coverage=new int[width,height];
             var workSizes=new HashSet<string>();
-            int work=0,varied=0;
+            int work=0,varied=0,courtArea=0,broadCourtArea=0;
+            var broadCourtSizes=new HashSet<string>();
             foreach(var stone in stones)
             {
                 Type type=stone.GetType();
                 int Read(string name)=>(int)type.GetField(name,Fields).GetValue(stone);
                 int i=Read("I"),j=Read("J"),w=Read("W"),h=Read("H"),z=Read("Zone");
-                Assert.That(w*h,Is.LessThanOrEqualTo(12));
+                // Ordinary quarry stock now intentionally permits 3x2 design-unit
+                // slabs. Gate crosswise stock retains its previous area3 contract.
+                Assert.That(w*h,Is.LessThanOrEqualTo(z==2?12:24));
+                Assert.That(w,Is.LessThanOrEqualTo(z==2?5:6));
+                Assert.That(h,Is.LessThanOrEqualTo(z==2?5:6));
                 for(int x=i;x<i+w;x++)for(int y=j;y<j+h;y++)
                 {
                     Assert.That(x,Is.InRange(0,width-1));Assert.That(y,Is.InRange(0,height-1));
@@ -60,11 +65,20 @@ namespace Cryptforge.Tests
                 }
                 if(z==1){Assert.That(w,Is.EqualTo(2));Assert.That(h,Is.EqualTo(2));}
                 if(z==3){work++;if(w!=2||h!=2)varied++;workSizes.Add(w+"x"+h);}
+                if(z==0)
+                {
+                    courtArea+=w*h;
+                    if(w*h>12){broadCourtArea+=w*h;broadCourtSizes.Add(w+"x"+h);}
+                }
             }
             for(int i=0;i<width;i++)for(int j=0;j<height;j++)
                 Assert.That(coverage[i,j],Is.EqualTo(zone[i,j]<0?0:1),$"Exact coverage at {i},{j}.");
             Assert.That(workSizes.Count,Is.GreaterThanOrEqualTo(3),"The workyard must not return to a single square grid.");
             Assert.That(varied,Is.GreaterThan(work/2));
+            Assert.That(broadCourtArea,Is.GreaterThan(courtArea*.30f),
+                "Broader quarry slabs must own a meaningful share of the ordinary court, not just exist in the size catalogue.");
+            Assert.That(broadCourtSizes.Count,Is.GreaterThanOrEqualTo(3),
+                "Broad stock retains unequal proportions instead of becoming another square grid.");
         }
     }
 }

@@ -372,7 +372,7 @@ namespace Cryptforge.UI
                 });
                 var lines=PitRunLines(posts,k,out bool near);
                 AddPiece(pieces,PitBounds(lines[0],lines[2]),RailTop,
-                    ()=>{var above=new Builder();PitRailRun(above,lines,near);Create("Pit collar",above,wall,-11);});
+                    ()=>{var above=new Builder();PitGuardRun(above,lines,near);Create("Pit collar",above,wall,-11);});
             }
             // Collar stone in six stretches, split at the outline's silhouette diagonals, before every other piece of the pit:
             // the runs and posts all stand on or in front of it, and beyond it lies only the walkable floor.
@@ -1322,7 +1322,7 @@ namespace Cryptforge.UI
             return true;
         }
 
-        // The rounded pit keeps its open turned balustrade and these shared course dimensions.
+        // The corner returns keep the turned balustrade; the pit uses PitGuardRun and these shared course dimensions.
         // Exterior RailSpan uses a heavier stone sill with recessed square iron instead; it retains
         // the camera-facing RailDepth within the original footprint band and the same RailTop.
         private const float RailPlinth=.15f,RailHand=.57f,RailDepth=.24f,BalusterAxis=RailDepth*.5f;

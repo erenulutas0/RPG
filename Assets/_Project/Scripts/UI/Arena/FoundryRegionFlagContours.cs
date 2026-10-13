@@ -19,19 +19,23 @@ namespace Cryptforge.UI
         private static Vector2[] FlagContour(float u0,float v0,float u1,float v1,float inset,int seedU,int seedV)
         {
             float size=Mathf.Min(u1-u0,v1-v0);
+            float exposure=PavingWearExposure((u0+u1)*.5f,(v0+v1)*.5f);
+            int wornCorner=(int)(PavingHash(seedU,seedV,787)&3);
             var corners=new Vector2[4];
             for(int k=0;k<4;k++)
             {
                 uint hash=PavingHash(seedU+k*17,seedV-k*11,701);
-                float x=inset+size*(.004f+.017f*(hash&255)/255f);
-                float y=inset+size*(.004f+.017f*((hash>>8)&255)/255f);
+                float x=inset+size*(.004f+.024f*(hash&255)/255f);
+                float y=inset+size*(.004f+.024f*((hash>>8)&255)/255f);
                 corners[k]=new Vector2(k==0||k==3?u0+x:u1-x,k<2?v0+y:v1-y);
             }
             var result=new Vector2[8];
             for(int k=0;k<4;k++)
             {
                 uint hash=PavingHash(seedU+k*23,seedV-k*7,743);
-                float cut=size*((hash&3)==0?.095f:.026f);
+                // One worked shoulder responds to its location; the other corners
+                // remain mostly dressed. Avoid four equally broken octagon corners.
+                float cut=size*(k==wornCorner?.035f+.11f*exposure:.02f);
                 cut*=Mathf.Lerp(.65f,1.35f,((hash>>8)&255)/255f);
                 Vector2 c=corners[k],previous=corners[(k+3)%4],next=corners[(k+1)%4];
                 result[k*2]=c+(previous-c).normalized*cut;
@@ -106,6 +110,7 @@ namespace Cryptforge.UI
         {
             Vector2[] outer=FlagContour(u0,v0,u1,v1,joint,seedU,seedV);
             Vector2[] inner=InsetFlagContour(outer,Mathf.Max(.008f,bevel-joint));
+            float exposure=PavingWearExposure((u0+u1)*.5f,(v0+v1)*.5f);
             // Subdivide long bevel edges at the same maximum spacing as the face.
             int start=mesh.V.Count,points=0;
             for(int k=0;k<outer.Length;k++)
@@ -119,7 +124,8 @@ namespace Cryptforge.UI
                     float t=j/(float)count;
                     Vector2 a=Vector2.Lerp(outer[k],outer[next],t),b=Vector2.Lerp(inner[k],inner[next],t);
                     float wear=FloorPatina(a.x*1.7f+3,a.y*1.7f-7)*.6f;
-                    float tone=stone*Mathf.Lerp(Mathf.Lerp(.925f,1.035f,facing),1,wear);
+                    float rubbed=QuarryEdgeAbrasion(a,u0,v0,u1,v1,seedU,seedV,exposure);
+                    float tone=stone*Mathf.Lerp(Mathf.Lerp(Mathf.Lerp(.925f,1.035f,facing),1,wear),1.12f,rubbed);
                     PavingVertex(mesh,a.x,a.y,tone,tint,FloorLight(a.x,a.y));
                     PavingVertex(mesh,b.x,b.y,tone,tint,FloorLight(b.x,b.y));
                     points++;
@@ -147,7 +153,10 @@ namespace Cryptforge.UI
                         index=mesh.V.Count;shared.Add(key,index);
                         // Imported mineral grain carries the stone body; do not
                         // restart a broad cloudy vertex wash inside every flag.
-                        PavingVertex(mesh,p.x,p.y,stone,tint,FloorLight(p.x,p.y));
+                        // The rubbed mineral lip belongs to this face, not another
+                        // coplanar crack/patch. World light and grain stay continuous.
+                        float rubbed=QuarryEdgeAbrasion(p,u0,v0,u1,v1,seedU,seedV,exposure);
+                        PavingVertex(mesh,p.x,p.y,stone*Mathf.Lerp(1,1.045f,rubbed),tint,FloorLight(p.x,p.y));
                     }
                     indices[k]=index;
                 }

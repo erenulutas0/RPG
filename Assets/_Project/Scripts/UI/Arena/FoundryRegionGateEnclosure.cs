@@ -51,16 +51,12 @@ namespace Cryptforge.UI
 
         private static void BuildGateOuterButtress(Builder stone,Vector4 foot)
         {
-            // A low battered plinth now carries one tall blind bay. Removing the
-            // mid-height waist and its applied corner blocks makes this a vertical
-            // gate pier instead of two square storeys stacked beside the door.
-            GateEnclosureTier(stone,foot.x,foot.y,foot.z,foot.w,0,.52f,.10f,.92f,true);
-            GateEnclosureTier(stone,foot.x+.11f,foot.y+.11f,foot.z-.11f,foot.w-.11f,
-                .52f,1.58f,.32f,.87f);
-            GateEnclosureTier(stone,foot.x+.38f,foot.y+.36f,foot.z-.38f,foot.w-.36f,
-                1.58f,1.84f,.05f,1f,true);
+            // A broad coursed lower mass and one sloping shoulder seat the upper
+            // blind bay. The shoulder ends exactly at the bay's footprint; the
+            // original door, outer footing and crown remain in place.
+            BuildGateButtressLower(stone,foot);
             GateRecessedShaft(stone,new Vector4(foot.x+.48f,foot.y+.46f,foot.z-.48f,foot.w-.46f),
-                1.84f,6.55f,.065f,.92f,.36f);
+                2.85f,6.55f,.065f,.92f,.36f);
             // One capital and a seated shoulder meet the existing curtain roof.
             // Keep the exact outer footprint, 7.35 crown and old rear bearing.
             GateEnclosureTier(stone,foot.x+.37f,foot.y+.35f,foot.z-.37f,foot.w-.35f,
