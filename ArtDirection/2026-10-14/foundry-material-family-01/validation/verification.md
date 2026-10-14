@@ -1,0 +1,8 @@
+# Verification
+
+438 .NET / 691 EditMode / 160 PlayMode = 1,289 accepted suite executions, zero failures/skips. Focused Foundry 289/289 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 636 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 626F66A93A70DA7981C8DC53A6E0DE140DBD54A9D341A15B9297932C969602D0; NOT INSTALLED.
+
+Region 36 renderers / 172340 vertices versus 172735: -395. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 1660 / 28. V8 replaces the one paving texture at the same loaded 1024x1024 ASTC6 / 11-mip / non-readable budget; V7 remains versioned source history. No additional runtime texture layer, material, shader, renderer batch or updater. Static counts do not establish device performance.
+
+This is an incremental material/equipment improvement, not reference parity or a new layout. Map bounds, camera, navigation, equipment footprints, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved (ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md). No phone control, installation or save/telemetry change. Device motion, HUD, shimmer and midrange performance remain unverified. The earlier concrete restart/install decision remains pending; later deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots.

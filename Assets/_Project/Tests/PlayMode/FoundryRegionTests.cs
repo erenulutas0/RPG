@@ -379,6 +379,20 @@ namespace Cryptforge.Tests
             }
             foreach(var r in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 Assert.That(r.sharedMaterial.mainTexture,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade.mainTexture),"The four baked boilers retire the old furnace-wrap batch.");
+            // The paving is one replacement texture, not another runtime layer.
+            // Check loaded import state: source dimensions alone do not establish
+            // the Android memory/filtering contract.
+            var pavingTexture=(Texture2D)arena.PlatformMaterials.FoundryPaving.mainTexture;
+            Assert.That(pavingTexture.name,Is.EqualTo("FoundryPavingV8"));
+            Assert.That(pavingTexture.width,Is.EqualTo(1024));
+            Assert.That(pavingTexture.height,Is.EqualTo(1024));
+            Assert.That(pavingTexture.mipmapCount,Is.EqualTo(11));
+            Assert.That(pavingTexture.filterMode,Is.EqualTo(FilterMode.Trilinear));
+            Assert.That(pavingTexture.wrapMode,Is.EqualTo(TextureWrapMode.Repeat));
+            Assert.That(pavingTexture.anisoLevel,Is.EqualTo(2));
+#if UNITY_ANDROID
+            Assert.That(pavingTexture.format,Is.EqualTo(TextureFormat.ASTC_6x6));
+#endif
             var castIron=arena.PlatformMaterials.FoundryCastIron;
             var castTexture=(Texture2D)castIron.mainTexture;
             Assert.That(castIron,Is.Not.SameAs(arena.PlatformMaterials.FoundryIron),

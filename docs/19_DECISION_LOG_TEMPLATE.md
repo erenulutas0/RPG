@@ -1289,3 +1289,12 @@ Three coordinated scene changes: floor-only fire radii localize warmth to the pi
 Region 36 renderers / 172735 vertices versus 36 / 169119: +3616 (2.14%). Distant 3572 is included and unchanged. Global ceilings remain 174000 / 3600, leaving 1265 / 28 vertices. Workyard stock adds exactly 700 authored vertices; adaptive floor sampling and fortress grain subdivision account for the remaining combined delta. No new runtime texture, material, shader, renderer batch or updater. The independently reproduced full floor is 45,335 → 46,096 (+761); subtracting it and the 700-vertex stock addition leaves 2,155 for the fortress package. This exceeds its provisional 1,600 allocation by 555; root retains the measured package within the unchanged global ceiling, using reserved combined headroom. No component timing was measured. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.
+
+
+## 2026-10-14 - Foundry material family verified; device pending
+
+Three coordinated improvements: a versioned V8 paving bitmap replaces long shared streaks with restrained short mineral grain, with a neutral material gain calibrated to preserve the preceding mean value; the complete native moulding station gains oak flasks, real recessed ingot/bearing cavities, raked cast supports and properly seated clamp screws while recovering 395 vertices; exposed near-island and primary bridge bearings gain a more neutral value hierarchy while sheltered returns and voids retain their existing tones. The original walking layout, continuous paving UVs, exact flag ownership, forge-light sampling, material batches and actor depth are retained. Actual portrait benefit is clearest at the moulding station and across the floor; full-map equipment gain remains modest. Regular native stone and the mismatch with softer baked equipment remain unfinished reference gaps.
+
+Region 36 renderers / 172340 vertices versus 172735: -395. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 1660 / 28. V8 replaces the one paving texture at the same loaded 1024x1024 ASTC6 / 11-mip / non-readable budget; V7 remains versioned source history. No additional runtime texture layer, material, shader, renderer batch or updater. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.

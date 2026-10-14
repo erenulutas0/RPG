@@ -2231,3 +2231,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 This is an incremental scene-cohesion improvement, not reference parity or a new layout. Warm bands are narrower but still present; paving remains visibly directional and native stone more regular than the reference. Storage has modest close-view benefit, with much of the under-bench geometry naturally occluded. The open centre remains readable; its RGB is not bit-identical because the patina midpoint rises about 2.1%. Map bounds, camera, navigation, equipment stations, gameplay and encounters are unchanged. Existing immortal-crowd waypoint congestion remains unresolved (ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md). No phone control, installation or save/telemetry change. Device motion, HUD, shimmer and midrange performance remain unverified. The prior concrete restart/install decision remains pending; later deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.
+
+
+## 2026-10-14 - Foundry material family verified; device pending
+
+438 .NET / 691 EditMode / 160 PlayMode = 1,289 accepted suite executions, zero failures/skips. Focused Foundry 289/289 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 636 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 626F66A93A70DA7981C8DC53A6E0DE140DBD54A9D341A15B9297932C969602D0; NOT INSTALLED.
+
+This is an incremental material/equipment improvement, not reference parity or a new layout. Map bounds, camera, navigation, equipment footprints, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved (ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md). No phone control, installation or save/telemetry change. Device motion, HUD, shimmer and midrange performance remain unverified. The earlier concrete restart/install decision remains pending; later deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.

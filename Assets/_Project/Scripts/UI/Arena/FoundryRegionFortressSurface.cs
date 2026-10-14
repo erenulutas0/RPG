@@ -9,8 +9,11 @@ namespace Cryptforge.UI
         // and bridge bearings; their construction supplies the joints.
         private static readonly Vector4 FortressQuarryPatch=new Vector4(.68f,.44f,.97f,.564f);
 
+        // Broad exposed masonry catches neutral quarry light; the sheltered
+        // intrados, blind backs and skirt keep their separately authored tones.
+        // Apply before the existing depth falloff so feet still recede into void.
         private static Color FortressBearingTone(Color tone)=>
-            new Color(tone.r*1.12f,tone.g*1.09f,tone.b*1.055f,tone.a);
+            new Color(tone.r*1.30f,tone.g*1.25f,tone.b*1.16f,tone.a);
 
         private static void FortressRecessedRespond(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone)
         {

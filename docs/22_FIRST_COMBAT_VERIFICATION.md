@@ -1623,3 +1623,17 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Two helpers implemented disjoint workyard and fortress scopes; a third independently reviewed source/images and helped diagnose a floor test oracle. Root integrated floor lighting/grain and verification. Initial isolated compile rejected an unsupported NonParallelizable attribute in the local test shim; removed without changing Unity execution policy. First full EditMode passed 679/686: five stale atlas range checks, one flask screen-projection oracle and one degenerate floor-owner oracle failed. The superseded PlayMode run was stopped and no APK built. The revised tests retain strict tolerances: flask validation measures all four real rail caps/areas and excludes cross-aperture fillers; floor ownership rejects zero-area/out-of-bounds triangles while preserving actual overlap and winding checks. Runtime source did not change during these test repairs. An independent keeper-overpaint concern was disproven by original-image pixel evidence and withdrawn; no runtime repair was justified. Rejected diagnostics/source remain under validation. Final frozen Assets stayed unchanged through accepted capture, full suites and build.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.
+
+
+## 2026-10-14 - Foundry material family verified; device pending
+
+438 .NET / 691 EditMode / 160 PlayMode = 1,289 accepted suite executions, zero failures/skips. Focused Foundry 289/289 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 636 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 626F66A93A70DA7981C8DC53A6E0DE140DBD54A9D341A15B9297932C969602D0; NOT INSTALLED.
+
+Root integrated the built-in imagegen V8 paving replacement, neutral brightness calibration, loaded importer assertions, matched capture, gallery and verification. Two implementation helpers shared the native moulding station and exposed fortress-bearing family; a third reviewed source, source bitmap statistics and actual images independently. The bench test work was delegated to the fortress helper after its runtime scope froze, with disjoint file ownership.
+
+Source review caught a clamp screw that rested beyond the flat oak cap. Its axis was moved 0.08 design units onto the complete cap with 0.01 margin on each side, without geometry cost. The new bench test verifies actual flat-cap and screw-foot vertices. An initial isolated compile found a generic test collection accessor typed as a scalar; repaired before Unity. First focused run passed 288/289: the new fortress colour oracle selected the first underlying mortar triangle instead of the last visible course. Reversing the test sampling order preserves the original baseline expected RGB and strict 1e-6 tolerance; runtime was unchanged. Original failed XML/source and compile diagnostics are retained in rejected-tests. Baseline metadata also records an inherited diagnostic-label correction; sealed Before images remain unchanged.
+
+Final frozen Assets are required to remain unchanged through accepted After capture, full suites and Android build. Physical-device acceptance remains pending.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.

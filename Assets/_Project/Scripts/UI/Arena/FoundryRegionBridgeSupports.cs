@@ -273,7 +273,7 @@ namespace Cryptforge.UI
                 foreach(float sign in new[]{-1f,1f})
                 {
                     float a=sign*(half-1.05f),b=sign*(half+.18f);
-                    if(primary)FortressCoursedFace(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.56f,.60f,.68f),2,1);
+                    if(primary)FortressCoursedFace(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),FortressBearingTone(new Color(.56f,.60f,.68f)),2,1);
                     else FortressRecessedRespond(front,At(a,-8.4f),At(b,-8.4f),At(b,spring),At(a,spring),new Color(.37f,.42f,.51f));
                     FortressCoursedFace(stone,At(b,-8.4f),At(b,-8.4f,depth),At(b,spring,depth),At(b,spring),new Color(.39f,.43f,.52f),3,1);
                     FortressCoursedFace(stone,At(a,-8.4f,depth),At(a,-8.4f),At(a,spring),At(a,spring,depth),new Color(.31f,.35f,.45f),3,1);
@@ -282,7 +282,7 @@ namespace Cryptforge.UI
                 // together. It partitions the existing filled spandrel, retaining
                 // the exact -2.7 deck contact and every vertex of the open intrados.
                 if(primary)FortressCoursedFace(front,At(-half-.18f,-3.03f),At(half+.18f,-3.03f),
-                    At(half+.18f,-2.7f),At(-half-.18f,-2.7f),new Color(.54f,.58f,.66f),1,3);
+                    At(half+.18f,-2.7f),At(-half-.18f,-2.7f),FortressBearingTone(new Color(.54f,.58f,.66f)),1,3);
                 BridgeBearingGrain(front,Deck(s,0));
                 BridgeBearingGrain(stone,Deck(s,0));
         }

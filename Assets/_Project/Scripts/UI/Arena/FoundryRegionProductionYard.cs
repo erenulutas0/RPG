@@ -258,16 +258,10 @@ namespace Cryptforge.UI
             WorkshopMetalHull(kit,u0+1.52f,v0+.52f,u1-.42f,v1-.53f,.49f,.60f,.025f,true);
             WorkshopMetalHull(kit,u0+1.62f,v0+.57f,u1-.47f,v1-.58f,.60f,.71f,.025f,true);
             YardBenchTimberFinish(kit,first,kit.V.Count,origin);
-            // Four legs and lower ties leave visible air beneath the work surface.
+            // Raked cast legs meet the worktop directly. Their broad shoulders
+            // replace the old square posts and separate triangular gussets.
             first=kit.V.Count;
-            foreach(float u in new[]{u0+.16f,u1-.36f})
-            {
-                foreach(float v in new[]{v0+.18f,v1-.38f})
-                    WorkshopMetalHull(kit,u,v,u+.20f,v+.20f,.10f,1.05f,.025f,true);
-                WorkshopMetalHull(kit,u,v0+.20f,u+.20f,v1-.20f,.30f,.43f,.02f,true);
-                YardTrestleGusset(kit,u,u+.20f,v0+.38f,v0+.78f,.66f,.99f);
-                YardTrestleGusset(kit,u,u+.20f,v1-.38f,v1-.78f,.66f,.99f);
-            }
+            YardMouldingBenchFrame(kit,u0,v0,u1,v1);
             YardBenchIronFinish(kit,first,kit.V.Count,origin);
             // Three hardwood working planks sit on the iron frame. Reuse the iron
             // grain's unframed field with one long, unbroken timber direction.
@@ -279,21 +273,19 @@ namespace Cryptforge.UI
                 WorkshopMetalHull(kit,u0+.10f,start,u1-.10f,end,.99f,1.13f,.025f,true);
             }
             YardBenchTimberFinish(kit,first,kit.V.Count,origin);
-            // Two unequal open moulds, rather than another stack of closed boxes.
-            YardMould(kit,u0+.32f,v0+.31f,u0+1.42f,v1-.27f,1.13f,1.40f,false,origin);
-            YardMould(kit,u0+1.70f,v0+.40f,u1-.30f,v1-.47f,1.13f,1.32f,true,origin);
+            // Oak flasks and actual recessed sand faces match the neighbouring
+            // authored casting bench while retaining the two existing setups.
+            YardWorkingMould(kit,u0+.32f,v0+.31f,u0+1.42f,v1-.27f,1.13f,1.40f,false,origin);
+            YardWorkingMould(kit,u0+1.70f,v0+.40f,u1-.30f,v1-.47f,1.13f,1.32f,true,origin);
             // Two long-flask clamps have supported jaws and a visible screw crossbar.
             first=kit.V.Count;
             foreach(float v in new[]{v0+.55f,v1-.58f})
             {
-                WorkshopMetalHull(kit,u0+.24f,v,u0+.34f,v+.14f,1.13f,1.48f,.015f,true);
-                WorkshopMetalHull(kit,u0+.24f,v,u0+.52f,v+.14f,1.43f,1.49f,.015f,true);
-                WorkshopMetalHull(kit,u0+.43f,v+.035f,u0+.49f,v+.105f,1.39f,1.52f,.01f,true);
-                WorkshopMetalHull(kit,u0+.37f,v+.035f,u0+.55f,v+.105f,1.50f,1.54f,.01f,true);
+                YardMouldClamp(kit,u0+.24f,v);
             }
             // The small flask uses one broad end dog, making the setups asymmetric.
-            WorkshopMetalHull(kit,u1-.57f,v0+.25f,u1-.37f,v0+.43f,1.13f,1.34f,.025f,true);
-            WorkshopMetalHull(kit,u0+1.53f,v0+.26f,u0+1.61f,v1-.30f,1.13f,1.22f,.015f,true);
+            YardMouldHardwareBox(kit,u1-.57f,v0+.25f,u1-.37f,v0+.43f,1.13f,1.34f);
+            YardMouldHardwareBox(kit,u0+1.53f,v0+.26f,u0+1.61f,v1-.30f,1.13f,1.22f);
             YardBenchIronFinish(kit,first,kit.V.Count,origin);
         }
 
@@ -353,83 +345,6 @@ namespace Cryptforge.UI
                 // the upper working planks are rubbed, stored packing stays dull.
                 float finish=age*(1+rubbed*.09f);
                 kit.C[i]=new Color(value*1.18f*finish,value*.96f*finish,value*.68f*finish,1);
-            }
-        }
-
-        private static void YardMould(Builder kit,float u0,float v0,float u1,float v1,float bottom,float top,bool bearing,Vector3 origin)
-        {
-            int steel=kit.V.Count;
-            WorkshopMetalHull(kit,u0,v0,u1,v1,bottom,bottom+.055f,.025f,true);
-            YardBenchIronFinish(kit,steel,kit.V.Count,origin);
-            // Dark recessed casting sand remains below all four supported frame rails.
-            var sand=new Color(.80f,.57f,.34f);
-            int sandFirst=kit.V.Count;
-            FullFace(kit,Project(u0+.11f,v0+.11f)+Vector3.up*(bottom+.06f),
-                Project(u1-.11f,v0+.11f)+Vector3.up*(bottom+.06f),
-                Project(u1-.11f,v1-.11f)+Vector3.up*(bottom+.06f),
-                Project(u0+.11f,v1-.11f)+Vector3.up*(bottom+.06f),sand);
-            YardPatternGrain(kit,sandFirst,Project((u0+u1)*.5f,(v0+v1)*.5f)+Vector3.up*(bottom+.06f));
-            // The long flask has a seated ingot runner. The second has a circular
-            // bearing pattern: broad sand and dark cavity planes are readable at
-            // phone scale without a field of tiny bolts or labels.
-            float middle=(u0+u1)*.5f;
-            if(bearing)YardBearingPattern(kit,new Vector2(middle,(v0+v1)*.5f),
-                Mathf.Min(u1-u0,v1-v0)*.34f,bottom+.06f,v0+.10f);
-            else
-            {
-                WorkshopMetalHull(kit,middle-.21f,v0+.28f,middle+.21f,v1-.28f,bottom+.06f,bottom+.10f,.07f,true);
-                WorkshopMetalHull(kit,middle-.07f,v0+.12f,middle+.07f,v0+.31f,bottom+.06f,bottom+.09f,.012f,true);
-                // A second short runner leads from the cavity into a broad pouring
-                // cup, all recessed below the existing flask rails.
-                WorkshopMetalHull(kit,middle-.13f,v1-.32f,middle+.13f,v1-.12f,bottom+.06f,bottom+.09f,.04f,true);
-            }
-            steel=kit.V.Count;
-            WorkshopMetalHull(kit,u0,v1-.12f,u1,v1,bottom+.055f,top,.02f,true);
-            WorkshopMetalHull(kit,u1-.12f,v0+.12f,u1,v1-.12f,bottom+.055f,top,.02f,true);
-            WorkshopMetalHull(kit,u0,v0,u1,v0+.12f,bottom+.055f,top,.02f,true);
-            WorkshopMetalHull(kit,u0,v0+.12f,u0+.12f,v1-.12f,bottom+.055f,top,.02f,true);
-            // Lift handles join the front/rear flask rails; all projections stay
-            // within the enclosing worktop and shared collision footprint.
-            foreach(float edge in new[]{v0-.075f,v1-.02f})
-            {
-                foreach(float u in new[]{middle-.24f,middle+.17f})
-                    WorkshopMetalHull(kit,u,edge,u+.07f,edge+.095f,top-.12f,top-.055f,.012f,true);
-                WorkshopMetalHull(kit,middle-.24f,edge,middle+.24f,edge+.04f,top-.09f,top-.03f,.01f,true);
-            }
-            YardBenchIronFinish(kit,steel,kit.V.Count,origin);
-        }
-
-        private static void YardBearingPattern(Builder kit,Vector2 centre,float radius,float height,float feedV)
-        {
-            const int sides=16;
-            Vector3 c=Project(centre.x,centre.y)+Vector3.up*height;
-            for(int k=0;k<sides;k++)
-            {
-                float a=k*Mathf.PI*2/sides,b=(k+1)*Mathf.PI*2/sides;
-                Vector2 pa=centre+SealPolar(a,radius),pb=centre+SealPolar(b,radius);
-                Vector2 ia=centre+SealPolar(a,radius*.52f),ib=centre+SealPolar(b,radius*.52f);
-                Vector3 outsideA=Project(pa.x,pa.y)+Vector3.up*height,outsideB=Project(pb.x,pb.y)+Vector3.up*height;
-                Vector3 insideA=Project(ia.x,ia.y)+Vector3.up*(height+.035f),insideB=Project(ib.x,ib.y)+Vector3.up*(height+.035f);
-                int first=kit.V.Count;
-                FullFace(kit,outsideA,outsideB,insideB,insideA,new Color(.28f,.25f,.23f));
-                YardPatternGrain(kit,first,c);
-                first=kit.V.Count;
-                FullFace(kit,c+Vector3.up*.035f,insideA,insideB,c+Vector3.up*.035f,new Color(.88f,.66f,.39f));
-                kit.T.RemoveRange(kit.T.Count-3,3);
-                YardPatternGrain(kit,first,c);
-            }
-            // Seated feed neck intersects the circular cavity and the front flask
-            // wall. A single broad shape identifies its foundry purpose.
-            WorkshopMetalHull(kit,centre.x-.065f,feedV,centre.x+.065f,centre.y-radius*.80f,
-                height,height+.028f,.015f,true);
-        }
-
-        private static void YardPatternGrain(Builder kit,int first,Vector3 centre)
-        {
-            for(int i=first;i<first+4;i++)
-            {
-                Vector3 p=kit.V[i]-centre;
-                kit.U[i]=new Vector2(.50f+p.x*.21f,.50f+p.y*.21f);
             }
         }
 

@@ -13,6 +13,50 @@ namespace Cryptforge.Tests
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
 
+        [Test]
+        public void ExposedRespondSeparatesFromItsProtectedRecessWithoutRelightingTheBackOrReturns()
+        {
+            object mesh=Builder();
+            Call("FortressRecessedRespond",mesh,Vector3.zero,new Vector3(2,0),
+                new Vector3(2,4),new Vector3(0,4),new Color(.39f,.43f,.52f));
+            var points=Field<List<Vector3>>(mesh,"V");var colors=Field<List<Color>>(mesh,"C");
+            var triangles=Field<List<int>>(mesh,"T");
+            Color Sample(float x,float y)
+            {
+                Vector3 p=new Vector3(x*2,y*4);
+                // Coursed stone is emitted after its mortar underlay. Sample
+                // the final covering triangle, which owns the visible surface.
+                for(int i=triangles.Count-3;i>=0;i-=3)
+                {
+                    int a=triangles[i],b=triangles[i+1],c=triangles[i+2];
+                    double area=Cross(points[a],points[b],points[c]);
+                    if(Math.Abs(area)<1e-10)continue;
+                    double u=Cross(p,points[b],points[c])/area,v=Cross(points[a],p,points[c])/area,w=1-u-v;
+                    if(u>=-1e-7&&v>=-1e-7&&w>=-1e-7)
+                        return colors[a]*(float)u+colors[b]*(float)v+colors[c]*(float)w;
+                }
+                Assert.Fail("The original blind-panel sample must retain a masonry owner.");return Color.clear;
+            }
+            void Protected(Color actual,Color baseline)
+            {
+                Assert.That(actual.r,Is.EqualTo(baseline.r).Within(.000001f));
+                Assert.That(actual.g,Is.EqualTo(baseline.g).Within(.000001f));
+                Assert.That(actual.b,Is.EqualTo(baseline.b).Within(.000001f));
+                Assert.That(actual.a,Is.EqualTo(1).Within(.000001f));
+            }
+            // Interior samples from the accepted d4a3ecb family. They protect
+            // real shaded surfaces against accidentally applying the exposed
+            // stone lift to a completed mesh or its entire parent tone.
+            Protected(Sample(.5f,.875f),new Color(.1989f,.2193f,.2652f));
+            Protected(Sample(.5f,.125f),new Color(.3822f,.4214f,.5096f));
+            Color back=Sample(.47f,.30f);
+            Protected(back,new Color(.2691468f,.3092904f,.404352f));
+            Color bearing=Sample(.1f,.48f);
+            Assert.That(bearing.grayscale-back.grayscale,Is.GreaterThan(.20f),
+                "The broad exposed frame must separate from the sheltered field without crushing that field.");
+            Assert.That(bearing.grayscale,Is.LessThan(.58f),"Keep the stone below a pale or emissive-looking finish.");
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void FortressCoursesRetainSlopingOrTaperedFaceAndContinuousIsotropicGrain(bool pier)

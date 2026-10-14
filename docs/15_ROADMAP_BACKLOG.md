@@ -896,3 +896,11 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.
+
+
+## 2026-10-14 - Foundry material family verified; device pending
+
+- [x] Group one paving material replacement, complete moulding bench rework and broad bearing hierarchy with matched captures and full validation.
+- [ ] Reference fidelity, phone acceptance and the existing crowd congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.

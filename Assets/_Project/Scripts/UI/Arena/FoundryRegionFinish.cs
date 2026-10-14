@@ -27,11 +27,11 @@ namespace Cryptforge.UI
         // The flame tint is redder (hue ~26): a lantern's weak spill over violet stone then reads rose (hue ~5,
         // saturation ~.2) like the concept's brazier pools, where the former yellower tint over blue slate read tan.
         private static readonly Color FurnaceLight=new Color(.66f,.38f,.03f,0),FlameLight=new Color(.52f,.24f,.03f,0);
-        // Ambient: the open court and, within a fire's reach, ~5% brighter and a little less blue. Pixel = paving
-        // texel (.358 mean) x _Color .8 x light, so the open court renders ~(66,62,72): the concept's hue and
-        // saturation. Its value is lifted only ~9% from the former slate (.85,.895,1): the whole concept is ~40%
-        // brighter than this render (image mean value .26 against .18, void haze .35 against ~.2), and the violet
-        // golems' bodies (~(73,71,89)) would sink into a floor at the concept's full value.
+        // Ambient: the open court and, within a fire's reach, ~5% brighter and a little less blue.
+        // V8 encoded source luma mean .481358 x neutral material .587603232 preserves V7's
+        // .467846 x .604573943 mean product (~.28285), before vertex tint and forge light.
+        // Source colour alone is not a rendered-floor measurement; matched Android-target
+        // views retain the actor/readability check after each material replacement.
         private static readonly Color CoolSlate=new Color(1f,.945f,1.09f),CourtAmbient=new Color(1.05f,.99f,1.11f);
         private static readonly Color FireAbsorb=new Color(0,.42f,.22f,0);
         // Existing flame sources, from BuildCourtBorders (the four lantern finials) and BuildDressing (beacons).
@@ -93,13 +93,10 @@ namespace Cryptforge.UI
 
         // Soft shoulder on the brightest channel, scaling all three alike so a hot pool keeps its hue: the former
         // per-channel shoulder flattened red first while green kept climbing, bleaching saturated heat toward sand.
-        // The floor is Sprites/Default: float vertex colours (Mesh.SetColors) times _Color .8 land in a fixed4
-        // interpolator, whose guaranteed range is +/-2 on every mobile precision. Every FloorLight channel stays
-        // below 1.74, so even the brightest bevel of the palest, warm-tinted seal flag (1.15 x 1.1 x 1.05 x 1.08 =
-        // x1.435) stays below 1.74 x 1.435 x .8 = 1.998 in the shader (pools now peak at 1.62, at the pit's collar
-        // corners and where the seal's corner flags meet the pit rim: 1.86); the old apron pools reached 2.5..3.8
-        // there, outside that range. The open court (brightest channel, blue, at most 1.13, under the knee) is
-        // untouched.
+        // Sprites/Default multiplies float vertex colours by the neutral material gain before
+        // its mobile fixed4 interpolator. The original .8-gain upper-bound calculation was
+        // 1.74 x 1.435 x .8 = 1.998; V8's lower .587603232 gain retains that safety margin.
+        // The shoulder and its sampling lattice are independent of the bitmap replacement.
         private const float LightKnee=1.2f,LightCeiling=1.74f;
         private static float Shoulder(float c)=>c<=LightKnee?c:
             LightKnee+(LightCeiling-LightKnee)*(1-Mathf.Exp(-(c-LightKnee)/(LightCeiling-LightKnee)));

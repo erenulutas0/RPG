@@ -2628,3 +2628,13 @@ Files: FoundryRegionFinish, FortressSurface, Undercroft, Workshop, CastingBench,
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 2D4BAB5DBE3300908BAF8D3CC850FD9B07AE588A32709787C634AE48B0110B45; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.
+
+
+## 2026-10-14 - Foundry material family verified; device pending
+
+Three coordinated improvements: a versioned V8 paving bitmap replaces long shared streaks with restrained short mineral grain, with a neutral material gain calibrated to preserve the preceding mean value; the complete native moulding station gains oak flasks, real recessed ingot/bearing cavities, raked cast supports and properly seated clamp screws while recovering 395 vertices; exposed near-island and primary bridge bearings gain a more neutral value hierarchy while sheltered returns and voids retain their existing tones. The original walking layout, continuous paving UVs, exact flag ownership, forge-light sampling, material batches and actor depth are retained. Actual portrait benefit is clearest at the moulding station and across the floor; full-map equipment gain remains modest. Regular native stone and the mismatch with softer baked equipment remain unfinished reference gaps.
+
+438 .NET / 691 EditMode / 160 PlayMode = 1,289 accepted suite executions, zero failures/skips. Focused Foundry 289/289 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 636 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 626F66A93A70DA7981C8DC53A6E0DE140DBD54A9D341A15B9297932C969602D0; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.

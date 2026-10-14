@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 77de59edd81d40bea9124bf37f4ba5aa, type: 3}
+        m_Texture: {fileID: 2800000, guid: b438469135f249aa9a8c143d7a98d809, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -36,7 +36,7 @@ Material:
     - PixelSnap: 0
     - _EnableExternalAlpha: 0
     m_Colors:
-    - _Color: {r: 0.604573943, g: 0.604573943, b: 0.604573943, a: 1}
+    - _Color: {r: 0.587603232, g: 0.587603232, b: 0.587603232, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
