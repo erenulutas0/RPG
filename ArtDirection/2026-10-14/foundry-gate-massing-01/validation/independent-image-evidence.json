@@ -1,0 +1,296 @@
+{
+  "method": "Projected six-corner field/side masks from production source and capture camera. Bilinear old/new uncompressed bake alpha <1 excludes both baked bay silhouettes. RGB max-channel delta >3. Other native foreground occluders intentionally remain; changed clear pixels indicate actually exposed change. Not a complete renderer ID mask or device proof.",
+  "views": [
+    {
+      "image": "gate-detail.png",
+      "far": false,
+      "field": {
+        "projected_pixels": 0,
+        "clear_of_both_baked_cards": 0,
+        "clear_changed_gt3": 0,
+        "clear_changed_bounds": null
+      },
+      "whole_side": {
+        "projected_pixels": 0,
+        "clear_of_both_baked_cards": 0,
+        "clear_changed_gt3": 0,
+        "clear_changed_bounds": null
+      }
+    },
+    {
+      "image": "gate-detail.png",
+      "far": true,
+      "field": {
+        "projected_pixels": 12434,
+        "clear_of_both_baked_cards": 12434,
+        "clear_changed_gt3": 112,
+        "clear_changed_bounds": [
+          308,
+          133,
+          322,
+          153
+        ]
+      },
+      "whole_side": {
+        "projected_pixels": 35521,
+        "clear_of_both_baked_cards": 29399,
+        "clear_changed_gt3": 995,
+        "clear_changed_bounds": [
+          298,
+          50,
+          432,
+          233
+        ]
+      }
+    },
+    {
+      "image": "gate-crown-detail.png",
+      "far": false,
+      "field": {
+        "projected_pixels": 0,
+        "clear_of_both_baked_cards": 0,
+        "clear_changed_gt3": 0,
+        "clear_changed_bounds": null
+      },
+      "whole_side": {
+        "projected_pixels": 0,
+        "clear_of_both_baked_cards": 0,
+        "clear_changed_gt3": 0,
+        "clear_changed_bounds": null
+      }
+    },
+    {
+      "image": "gate-crown-detail.png",
+      "far": true,
+      "field": {
+        "projected_pixels": 20579,
+        "clear_of_both_baked_cards": 20579,
+        "clear_changed_gt3": 180,
+        "clear_changed_bounds": [
+          224,
+          385,
+          243,
+          411
+        ]
+      },
+      "whole_side": {
+        "projected_pixels": 58858,
+        "clear_of_both_baked_cards": 48735,
+        "clear_changed_gt3": 1629,
+        "clear_changed_bounds": [
+          212,
+          278,
+          384,
+          503
+        ]
+      }
+    },
+    {
+      "image": "full-map.png",
+      "far": false,
+      "field": {
+        "projected_pixels": 735,
+        "clear_of_both_baked_cards": 388,
+        "clear_changed_gt3": 364,
+        "clear_changed_bounds": [
+          1217,
+          374,
+          1229,
+          413
+        ]
+      },
+      "whole_side": {
+        "projected_pixels": 2125,
+        "clear_of_both_baked_cards": 1085,
+        "clear_changed_gt3": 495,
+        "clear_changed_bounds": [
+          1216,
+          367,
+          1237,
+          425
+        ]
+      }
+    },
+    {
+      "image": "full-map.png",
+      "far": true,
+      "field": {
+        "projected_pixels": 748,
+        "clear_of_both_baked_cards": 748,
+        "clear_changed_gt3": 7,
+        "clear_changed_bounds": [
+          981,
+          272,
+          984,
+          276
+        ]
+      },
+      "whole_side": {
+        "projected_pixels": 2126,
+        "clear_of_both_baked_cards": 1752,
+        "clear_changed_gt3": 61,
+        "clear_changed_bounds": [
+          979,
+          263,
+          989,
+          294
+        ]
+      }
+    }
+  ],
+  "images": {
+    "before": {
+      "approach--16-15.png": "9fe4d06d973607d300b7056cd21c3f0af593452a9f9c9c06aa3608e115e35f18",
+      "approach--20-6.png": "5afec917874fc733269039fe458beb2a6b9db367c62cc22ed0cc5f72a6ff840e",
+      "approach--29--29.png": "a579c24543a4cfae668c6b29a05b7b02ba6870bc1eee91927a3f98a40872ddd4",
+      "approach--8--12.png": "34181180e57592b081572700372532bfaef2f068220715935b8b58f448875789",
+      "approach-0-0.png": "193497e084feb47e5766bcb12c0ddeb12700fcf77f8161e9f69962e4e455f847",
+      "approach-20-1.png": "940c788fe6cb2a268dec9d68322dbecc6a6754e9c7e4d67c2bb34f72b060fd10",
+      "bridge-detail.png": "2893fc62c533e4b510db7ada6234da0c329354474078e3a243f0cf27e5e88960",
+      "bridge-foot.png": "a3a9785dca8a15dc3c9593a4fcb1e520363bb0462e53c1711481c379aee04c5e",
+      "casting-detail.png": "3b6f801f59d00aff7d9507d6b30ec598fc336a79974d4866bd14237c06de50bd",
+      "court-detail.png": "8549703b481721afe6ffcd00f71c072ef50b960ef81dc1f377c2c4636ca2e616",
+      "crane-detail.png": "d43c3d0f3296e8f71b17afdf3149ccbe426f3b80ef5a1f3fdf91818ef4e79e1e",
+      "forecourt-detail.png": "f1a7859fca1d01a61463d57245994af03656e0a8fb4c5046d764dec741aebec9",
+      "full-map.png": "169ae4cbd5f7fd77e4bd9c01e843f2d21120ed6590048859bc2e60abaf083f0e",
+      "gate-crown-detail.png": "1f6e457e228ad01e64479c6900ff399ea4e85af716174cdfa56a25387cccca67",
+      "gate-detail.png": "e15bf30339bdb3a0ac635b4359a33612d083c7c69c3878a1a9e706960fae6e85",
+      "overview.png": "fed3ee3dfcc21906342b143aefb5b5d88fdb90c75502e0c721b3e17558dc8973",
+      "service-shaft-detail.png": "e18ba9e510793245a96c279d195669b25d931c7ae710c2a6ba62c07efcbb7f14",
+      "shaft-detail.png": "ec30e8e9312c916f1e080a62512347ee92e78740e3284de1a722e0592c7829ac",
+      "skyline-detail.png": "b20e25ac520cda170a6ad23be0627eee72f23d2b3742f8223b723efe7b1fe737",
+      "stock-detail.png": "cac3b9cc965d8e3b6b7dd3b30dd4e6856e5b44435fc1dde6f1d34c709a02764a",
+      "yard-detail.png": "57daebdce066048ba36a46fd5873725f2e4c2f8e82e7668fa35622169c342969"
+    },
+    "after": {
+      "approach--16-15.png": "688ae87186a143f600e90c88793468f785197d95caad3064cc9b3e125374739d",
+      "approach--20-6.png": "a76f937de64ab66af93fb97f2252cee48e117d79d6790b66e635844ae19a86b4",
+      "approach--29--29.png": "966acea95b4dad5b81314ecef7737af647225362029d11bb2932c2650dd7c5f5",
+      "approach--8--12.png": "e05153dcbe42627e3e0f5b938bbac8c3d33d5461efbbbf1621a3839ac22894f9",
+      "approach-0-0.png": "032646b95e63d239f5bed097cc842aa774b2a4616f17833ba6e2b1abd94eee63",
+      "approach-20-1.png": "8c785c51bb1cf5fb343e9d82363d4d95f593a7ad6aed3198a8d0904496e6ffa7",
+      "bridge-detail.png": "bd5bcf678a89974bfc60557ad0a7da68c5b905b1c99cbcf7e61ff31c7ffdd957",
+      "bridge-foot.png": "5bcf8843b6db0ba09702ecefd01160ffe1b513403fbabddc5ece9d3fd2b95576",
+      "casting-detail.png": "3b6f801f59d00aff7d9507d6b30ec598fc336a79974d4866bd14237c06de50bd",
+      "court-detail.png": "2b27c154c0a231e6fca1f31ed4dfe24a632cddd80f8b6430e7b878082743bbd9",
+      "crane-detail.png": "d43c3d0f3296e8f71b17afdf3149ccbe426f3b80ef5a1f3fdf91818ef4e79e1e",
+      "forecourt-detail.png": "17c9b46fc9cc2f5e600e0e7d799bd9841f94158228a79bb182a042acf19f9c4f",
+      "full-map.png": "174a7e92301e905b330c455bd37aa59a90a476893a38e62a3ccfbd52f2cde123",
+      "gate-crown-detail.png": "bbde6135d7de4006e8ef3bc64e6282f1814947053d7b87d021549b5b84aae8f4",
+      "gate-detail.png": "f6f790fe4d9447499b1fa47dc6e70af4a4543407cade5066171dc0365335be28",
+      "overview.png": "139326e09fadb04a8af0ea2029c453ecff520634170cdcaded3475168d1d3817",
+      "service-shaft-detail.png": "e18ba9e510793245a96c279d195669b25d931c7ae710c2a6ba62c07efcbb7f14",
+      "shaft-detail.png": "488ca16958632ec943c3e3f6dd8cfd0cfd65125028a45d2da76b621dcc10f746",
+      "skyline-detail.png": "b20e25ac520cda170a6ad23be0627eee72f23d2b3742f8223b723efe7b1fe737",
+      "stock-detail.png": "cac3b9cc965d8e3b6b7dd3b30dd4e6856e5b44435fc1dde6f1d34c709a02764a",
+      "yard-detail.png": "57daebdce066048ba36a46fd5873725f2e4c2f8e82e7668fa35622169c342969"
+    }
+  },
+  "gate_detail_regression_samples": {
+    "far_pipe_core": {
+      "sampled_pixels": 1561,
+      "max_rgb_delta": 0,
+      "pixels_delta_gt1": 0,
+      "mean_before_rgb": [
+        73.1326,
+        76.9942,
+        79.5945
+      ],
+      "mean_after_rgb": [
+        73.1326,
+        76.9942,
+        79.5945
+      ]
+    },
+    "near_pipe_core": {
+      "sampled_pixels": 1647,
+      "max_rgb_delta": 0,
+      "pixels_delta_gt1": 0,
+      "mean_before_rgb": [
+        57.9138,
+        65.6727,
+        76.2095
+      ],
+      "mean_after_rgb": [
+        57.9138,
+        65.6727,
+        76.2095
+      ]
+    },
+    "portal_inner": {
+      "sampled_pixels": 37800,
+      "max_rgb_delta": 0,
+      "pixels_delta_gt1": 0,
+      "mean_before_rgb": [
+        57.3625,
+        51.3638,
+        48.2139
+      ],
+      "mean_after_rgb": [
+        57.3625,
+        51.3638,
+        48.2139
+      ]
+    },
+    "quiet_forecourt": {
+      "sampled_pixels": 56100,
+      "max_rgb_delta": 2,
+      "pixels_delta_gt1": 6,
+      "mean_before_rgb": [
+        81.0048,
+        72.1421,
+        76.0536
+      ],
+      "mean_after_rgb": [
+        81.0047,
+        72.1417,
+        76.0531
+      ]
+    }
+  },
+  "gate_detail_regression_sample_geometry": {
+    "coordinate_origin": "top-left; pixel-centre sampling",
+    "far_pipe_core": {
+      "segment": [
+        [
+          77,
+          568
+        ],
+        [
+          276,
+          409
+        ]
+      ],
+      "radius_pixels": 3
+    },
+    "near_pipe_core": {
+      "segment": [
+        [
+          982,
+          1085
+        ],
+        [
+          1181,
+          904
+        ]
+      ],
+      "radius_pixels": 3
+    },
+    "portal_inner": {
+      "rectangle_half_open": [
+        590,
+        420,
+        730,
+        690
+      ]
+    },
+    "quiet_forecourt": {
+      "rectangle_half_open": [
+        320,
+        820,
+        650,
+        990
+      ]
+    }
+  }
+}

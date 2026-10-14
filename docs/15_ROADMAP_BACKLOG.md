@@ -904,3 +904,11 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.
 - [ ] Reference fidelity, phone acceptance and the existing crowd congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.
+
+
+## 2026-10-14 - Foundry gate massing verified; device pending
+
+- [x] Group complete outer gate-bay massing and connected upper-curtain construction with matched captures and full validation.
+- [ ] Reference fidelity, phone acceptance and the existing crowd congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.

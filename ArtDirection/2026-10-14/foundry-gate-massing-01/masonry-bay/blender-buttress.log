@@ -1,0 +1,18 @@
+Sanitized native render summary; raw Blender diagnostics retained under ignored TestResults.
+Blender: 4.5.9 LTS
+Generator: Tools/ArtReview/BuildBlenderGateButtressMassing.py
+Execution: background, 12 threads, 48 Cycles samples
+Native save: gate-masonry.blend
+Render: gate-masonry.png, 1024 x 2048 RGBA
+Render duration reported by Blender: 45.34 seconds including image save
+Native mesh: 1314 vertices, 1584 triangles
+Physical bounds: u 27.0500000477..30.8999999523; v -6.60000002384..-4.14999997616
+Height range: 0..7.35000012618
+Actual station presence, outer bounds, join bearing and image margin assertions: passed
+Measured internal shoulder contact: 3.64999988287
+All six measured bearing joins: zero vertical gap
+Rendered alpha bounds, bottom origin: [80, 40, 942, 1864]
+PNG bytes: 2152206
+PNG SHA256: 07a65fe8c065c686cdb1ab509fffb8efed093ef718e9a0d17a9e23e6617cde70
+Completion marker: GATE_BUTTRESS_MASSING_COMPLETE
+Blender process exit code: 0

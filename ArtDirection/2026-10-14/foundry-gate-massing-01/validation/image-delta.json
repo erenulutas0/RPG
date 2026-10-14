@@ -1,0 +1,203 @@
+{
+  "approach--16-15.png": {
+    "changed_pixels": 5389,
+    "above_8_levels": 0,
+    "total_pixels": 2527200,
+    "bbox": [
+      236,
+      1049,
+      748,
+      1356
+    ]
+  },
+  "approach--20-6.png": {
+    "changed_pixels": 8397,
+    "above_8_levels": 0,
+    "total_pixels": 2527200,
+    "bbox": [
+      236,
+      949,
+      1075,
+      1356
+    ]
+  },
+  "approach--29--29.png": {
+    "changed_pixels": 8730,
+    "above_8_levels": 9,
+    "total_pixels": 2527200,
+    "bbox": [
+      41,
+      1049,
+      1036,
+      1356
+    ]
+  },
+  "approach--8--12.png": {
+    "changed_pixels": 19817,
+    "above_8_levels": 5322,
+    "total_pixels": 2527200,
+    "bbox": [
+      127,
+      62,
+      948,
+      2339
+    ]
+  },
+  "approach-0-0.png": {
+    "changed_pixels": 18160,
+    "above_8_levels": 4896,
+    "total_pixels": 2527200,
+    "bbox": [
+      236,
+      911,
+      1008,
+      1356
+    ]
+  },
+  "approach-20-1.png": {
+    "changed_pixels": 17041,
+    "above_8_levels": 16,
+    "total_pixels": 2527200,
+    "bbox": [
+      0,
+      0,
+      945,
+      1356
+    ]
+  },
+  "bridge-detail.png": {
+    "changed_pixels": 1350,
+    "above_8_levels": 5,
+    "total_pixels": 1440000,
+    "bbox": [
+      259,
+      580,
+      939,
+      856
+    ]
+  },
+  "bridge-foot.png": {
+    "changed_pixels": 3825,
+    "above_8_levels": 5,
+    "total_pixels": 1440000,
+    "bbox": [
+      244,
+      0,
+      956,
+      210
+    ]
+  },
+  "casting-detail.png": {
+    "changed_pixels": 0,
+    "above_8_levels": 0,
+    "total_pixels": 1440000,
+    "bbox": null
+  },
+  "court-detail.png": {
+    "changed_pixels": 5008,
+    "above_8_levels": 1347,
+    "total_pixels": 1440000,
+    "bbox": [
+      0,
+      321,
+      1003,
+      768
+    ]
+  },
+  "crane-detail.png": {
+    "changed_pixels": 0,
+    "above_8_levels": 0,
+    "total_pixels": 1440000,
+    "bbox": null
+  },
+  "forecourt-detail.png": {
+    "changed_pixels": 3500,
+    "above_8_levels": 1014,
+    "total_pixels": 1440000,
+    "bbox": [
+      27,
+      27,
+      708,
+      1168
+    ]
+  },
+  "full-map.png": {
+    "changed_pixels": 9882,
+    "above_8_levels": 1381,
+    "total_pixels": 1920000,
+    "bbox": [
+      575,
+      231,
+      1236,
+      985
+    ]
+  },
+  "gate-crown-detail.png": {
+    "changed_pixels": 87867,
+    "above_8_levels": 18562,
+    "total_pixels": 1440000,
+    "bbox": [
+      0,
+      170,
+      968,
+      1119
+    ]
+  },
+  "gate-detail.png": {
+    "changed_pixels": 103333,
+    "above_8_levels": 19048,
+    "total_pixels": 1440000,
+    "bbox": [
+      0,
+      0,
+      1199,
+      1142
+    ]
+  },
+  "overview.png": {
+    "changed_pixels": 13178,
+    "above_8_levels": 2052,
+    "total_pixels": 1920000,
+    "bbox": [
+      541,
+      211,
+      1304,
+      1066
+    ]
+  },
+  "service-shaft-detail.png": {
+    "changed_pixels": 0,
+    "above_8_levels": 0,
+    "total_pixels": 1440000,
+    "bbox": null
+  },
+  "shaft-detail.png": {
+    "changed_pixels": 1209,
+    "above_8_levels": 243,
+    "total_pixels": 1440000,
+    "bbox": [
+      481,
+      177,
+      718,
+      744
+    ]
+  },
+  "skyline-detail.png": {
+    "changed_pixels": 0,
+    "above_8_levels": 0,
+    "total_pixels": 1440000,
+    "bbox": null
+  },
+  "stock-detail.png": {
+    "changed_pixels": 0,
+    "above_8_levels": 0,
+    "total_pixels": 1440000,
+    "bbox": null
+  },
+  "yard-detail.png": {
+    "changed_pixels": 0,
+    "above_8_levels": 0,
+    "total_pixels": 1440000,
+    "bbox": null
+  }
+}

@@ -39,13 +39,9 @@ namespace Cryptforge.UI
         {
             var shell=new Builder();LitFoundryTier(shell,box.x,box.y,box.z,box.w,3.13f,6.55f,.05f);
             for(int i=0;i<shell.C.Count;i++){Color c=shell.C[i]*.85f;c.a=1;shell.C[i]=c;}
-            // The broad side keeps fitted stock. The front is completely replaced
-            // below: no old full wall survives behind its blind opening.
-            var side=new[]{shell.V[0],shell.V[1],shell.V[2],shell.V[3]};
-            var light=new[]{shell.C[0],shell.C[1],shell.C[2],shell.C[3]};
-            int sideStart=mesh.V.Count;
-            GateCraftCourses(mesh,side,light,3.42f,0,71);
-            GateRecessGrain(mesh,sideStart,mesh.V.Count,side[1]-side[0],0);
+            // A broad recessed field makes the side one supported stone mass.
+            // Its raked haunches and upper bed replace the old uniform grid.
+            GateCurtainBearingSide(mesh,shell,box);
             GateCurtainFront(mesh,shell,box,far);
             // Original closed chamfer and all eight cap triangles are retained.
             for(int first=8;first<shell.V.Count;first+=4)
@@ -54,6 +50,55 @@ namespace Cryptforge.UI
                 for(int i=0;i<4;i++){mesh.V.Add(shell.V[first+i]);mesh.U.Add(shell.U[first+i]);mesh.C.Add(shell.C[first+i]);}
                 mesh.T.AddRange(new[]{start,start+1,start+2,start,start+2,start+3});
             }
+        }
+
+        private static void GateCurtainBearingSide(Builder mesh,Builder shell,Vector4 box)
+        {
+            var face=new[]{shell.V[0],shell.V[1],shell.V[2],shell.V[3]};
+            Vector3 At(float x,float y)=>GateFaceLerp(face,x,y);
+            // The haunch rises .75 through the lower part of the field. Broad
+            // vertical cheeks then carry a continuous .55-high upper bearing.
+            var stations=new[]{new Vector2(.32f,.23f),new Vector2(.68f,.23f),
+                new Vector2(.81f,.45f),new Vector2(.81f,.84f),
+                new Vector2(.19f,.84f),new Vector2(.19f,.45f)};
+            var mouth=new Vector3[6];for(int i=0;i<6;i++)mouth[i]=At(stations[i].x,stations[i].y);
+            var border=new[]{face[0],face[1],At(1,.45f),face[2],face[3],At(0,.45f)};
+            Vector3 inward=Project(box.x,box.y+.18f)-Project(box.x,box.y);
+            Color tone=shell.C[2];int first=mesh.V.Count;
+            // The actual recessed back owns the opening. No full original side
+            // survives beneath it; its six corners meet the returns exactly.
+            for(int i=0;i<6;i++)
+            {
+                mesh.V.Add(mouth[i]+inward);mesh.U.Add(Vector2.zero);
+                Color back=tone*.70f;back.a=1;mesh.C.Add(back);
+            }
+            for(int i=1;i<5;i++)mesh.T.AddRange(new[]{first,first+i,first+i+1});
+            var returnLight=new[]{1.02f,.79f,.68f,.56f,.93f,1.02f};
+            for(int i=0;i<6;i++)
+            {
+                int next=(i+1)%6;
+                HeaderStonePatch(mesh,mouth[i],mouth[next],mouth[next]+inward,mouth[i]+inward,
+                    tone*returnLight[i],face[0],face[1],face[3]);
+            }
+            var courses=new[]{2,1,2,2,2,1};
+            for(int i=0;i<6;i++)
+            {
+                int next=(i+1)%6;
+                GateRecessCoursedFace(mesh,border[i],border[next],mouth[next],mouth[i],
+                    tone*(i==3?1.02f:.97f),.022f,i,courses[i],true);
+            }
+            // Keep the established parent light and one continuous quarry cut;
+            // the shelter value belongs only to the removed central stone.
+            for(int i=first;i<mesh.V.Count;i++)
+            {
+                Vector2 p=GateRecessCoordinates(face,mesh.V[i]);
+                Color inherited=Color.Lerp(Color.Lerp(shell.C[0],shell.C[1],p.x),
+                    Color.Lerp(shell.C[3],shell.C[2],p.x),p.y);
+                Color c=mesh.C[i];
+                mesh.C[i]=new Color(c.r*inherited.r/Mathf.Max(.01f,tone.r),
+                    c.g*inherited.g/Mathf.Max(.01f,tone.g),c.b*inherited.b/Mathf.Max(.01f,tone.b),1);
+            }
+            GateRecessGrain(mesh,first,mesh.V.Count,face[1]-face[0],0);
         }
 
         private static void GateCurtainFront(Builder mesh,Builder shell,Vector4 box,bool far)

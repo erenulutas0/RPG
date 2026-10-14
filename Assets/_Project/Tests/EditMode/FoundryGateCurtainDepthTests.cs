@@ -41,6 +41,60 @@ namespace Cryptforge.Tests
 
         [TestCase(false)]
         [TestCase(true)]
+        public void BroadBearingSideHasARealUncoveredFieldAndReclaimsFinishedGeometry(bool far)
+        {
+            Bounds(far,out _,out _,out Vector4 box,out _);
+            object shell=Shell(box),side=Builder();Call("GateCurtainBearingSide",side,shell,box);
+            var source=Data<Vector3>(shell,"V");
+            var face=new[]{source[0],source[1],source[2],source[3]};
+            Vector3 At(float x,float y)=>Vector3.Lerp(Vector3.Lerp(face[0],face[1],x),Vector3.Lerp(face[3],face[2],x),y);
+            var mouth=new[]{At(.32f,.23f),At(.68f,.23f),At(.81f,.45f),At(.81f,.84f),At(.19f,.84f),At(.19f,.45f)};
+            Vector3 depth=Project(box.x,box.y+.18f)-Project(box.x,box.y);
+            var rear=new Vector3[6];for(int i=0;i<6;i++)rear[i]=mouth[i]+depth;
+            var points=Data<Vector3>(side,"V");var triangles=Data<int>(side,"T");
+            foreach(Vector3 point in face)AssertPoint(points,point);
+            foreach(Vector3 point in mouth)AssertPoint(points,point);
+            foreach(Vector3 point in rear)AssertPoint(points,point);
+            // Sample the physically common back/mouth area; return walls may
+            // correctly hide the remaining part of the translated back.
+            var visible=Clip(Polygon(rear),Polygon(mouth));
+            double expected=Math.Abs(PolygonArea(visible));
+            Assert.That(expected,Is.GreaterThan(2),"A broad field, rather than a thin decorative recess, must remain open.");
+            double backing=0,overpaint=0,front=0;
+            for(int t=0;t<triangles.Count;t+=3)
+            {
+                var triangle=new List<(double x,double y)>();
+                for(int k=0;k<3;k++){Vector3 p=points[triangles[t+k]];triangle.Add((p.x,p.y));}
+                double area=Math.Abs(PolygonArea(triangle));if(area<1e-12)continue;
+                double overlap=Math.Abs(PolygonArea(Clip(visible,triangle)));
+                if(triangles[t]<6)backing+=overlap;else overpaint+=overlap;
+                if(triangles[t]>=30)front+=area;
+            }
+            Assert.That(backing,Is.EqualTo(expected).Within(1e-8));
+            Assert.That(overpaint,Is.LessThan(1e-8),"Returns and bearing stones cannot paint over the visible recessed back.");
+            Assert.That(front,Is.EqualTo(Math.Abs(PolygonArea(Polygon(face)))-Math.Abs(PolygonArea(Polygon(mouth)))).Within(.00008),
+                "The haunches and upper bed partition the original side outside the field without a duplicate solid wall.");
+            foreach(Vector3 point in points)for(int direction=0;direction<64;direction++)
+            {
+                var axis=new Vector3(Mathf.Cos(direction*Mathf.PI/32),Mathf.Sin(direction*Mathf.PI/32));
+                float limit=float.NegativeInfinity;foreach(Vector3 corner in face)limit=Mathf.Max(limit,Vector3.Dot(corner,axis));
+                Assert.That(Vector3.Dot(point,axis),Is.LessThanOrEqualTo(limit+.00002f));
+            }
+            object actual=Builder();Call("GateCurtainUpperTier",actual,box,far);AssertRange(side,actual,0);
+            object preservedFront=Builder();Call("GateCurtainFront",preservedFront,shell,box,far);
+            AssertRange(preservedFront,actual,points.Count);
+            object old=Builder();
+            Call("GateCraftCourses",old,face,new[]{Data<Color>(shell,"C")[0],Data<Color>(shell,"C")[1],
+                Data<Color>(shell,"C")[2],Data<Color>(shell,"C")[3]},3.42f,0,71);
+            int sourceOld=Data<Vector3>(old,"V").Count,sourceNew=points.Count;
+            Call("GateHouseGrain",old);Call("GateHouseGrain",side);
+            Assert.That(points.Count,Is.LessThanOrEqualTo(Data<Vector3>(old,"V").Count),
+                "The complete fixed-scale quarry finish must not consume geometry headroom reclaimed from the course grid.");
+            TestContext.WriteLine($"Bearing side {far}: source {sourceOld} -> {sourceNew}; finished {Data<Vector3>(old,"V").Count} -> {points.Count} vertices.");
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
         public void ActualBayKeepsItsThroatAndExposesARealBackWithoutAFrontOverlay(bool far)
         {
             Bounds(far,out _,out _,out Vector4 box,out _);

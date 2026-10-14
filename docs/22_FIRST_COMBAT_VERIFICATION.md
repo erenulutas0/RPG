@@ -1637,3 +1637,13 @@ Source review caught a clamp screw that rested beyond the flat oak cap. Its axis
 Final frozen Assets are required to remain unchanged through accepted After capture, full suites and Android build. Physical-device acceptance remains pending.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.
+
+
+## 2026-10-14 - Foundry gate massing verified; device pending
+
+438 .NET / 693 EditMode / 160 PlayMode = 1,291 accepted suite executions, zero failures/skips. Focused Foundry 291/291 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 636 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,382,273 bytes; SHA256 5C13765B77191B699EC464261CA376FC4646020704A021E6278C5E5E7AB966F2; NOT INSTALLED.
+
+Three helpers worked in disjoint scopes: a versioned native Blender outer-bay replacement, upper-curtain construction and matching geometry tests, and independent source/image review. Root sealed 21 fresh Before views at 0e44e8f before any runtime edit, imported the direct Blender PNG while preserving its importer, checked identical external projection/footprint fields, and coordinated compile, captures, full suites, gallery and Android build. The complete outer-bay source is editable native geometry and procedural stone; no bitmap retouching was used. Two additional EditMode cases verify the broad exposed side recess, exact bearing/face contacts, no front overpaint, original envelope/front and nonpositive finished geometry delta. The first focused run passed 291/291, including both new cases. Matched After capture passed on its first run. Source review found no actionable geometry issue. Independent image review restricted acceptance to a major outer-bay form change and subordinate, partly occluded curtain simplification; no runtime revision was required. The final Asset freeze is checked again after the complete suites and build. Gallery initial asynchronous image loads were rechecked after completion; all 43 controls passed. No phone operation was made.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.

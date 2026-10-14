@@ -1,0 +1,227 @@
+{
+  "blender": "4.5.9 LTS",
+  "vertices": 1314,
+  "triangles": 1584,
+  "anchor": [
+    28.975,
+    -5.375
+  ],
+  "far_anchor": [
+    28.975,
+    15.375
+  ],
+  "ortho_scale": 10,
+  "left": -2.5,
+  "right": 2.5,
+  "bottom": -1.25,
+  "top": 8.75,
+  "render_width": 1024,
+  "render_height": 2048,
+  "height_compensation": 1.1547005383792515,
+  "camera_direction": [
+    -12,
+    -12,
+    9.797958971132712
+  ],
+  "vertical_target": 3.75,
+  "depth_footprint": [
+    27.05,
+    -6.6,
+    30.9,
+    -4.15
+  ],
+  "far_depth_footprint": [
+    27.05,
+    14.15,
+    30.9,
+    16.6
+  ],
+  "depth_height": 7.35,
+  "physical_bounds": [
+    27.050000047683717,
+    -6.600000023841858,
+    30.899999952316286,
+    -4.149999976158142
+  ],
+  "height_range": [
+    0.0,
+    7.350000126176182
+  ],
+  "projected_normalized_bounds": [
+    0.07997842133045197,
+    0.019994545727968216,
+    0.9200212359428406,
+    0.9100409746170044
+  ],
+  "construction_contact_heights": [
+    0,
+    0.48,
+    2.05,
+    3.65,
+    6.55,
+    6.82,
+    7.2,
+    7.35
+  ],
+  "unchanged_external_contact_heights": [
+    0,
+    6.55,
+    6.82,
+    7.2,
+    7.35
+  ],
+  "replaced_internal_contact": {
+    "before": 2.85,
+    "after": 3.65
+  },
+  "shaft_box": [
+    27.53,
+    -6.14,
+    30.42,
+    -4.61
+  ],
+  "shaft_height": [
+    3.65,
+    6.55
+  ],
+  "shaft_taper": 0.065,
+  "verified_contact_station_count": 142,
+  "max_contact_station_error": 0.0,
+  "measured_bearings": [
+    {
+      "lower": "Broad footing",
+      "upper": "Lower ashlar pier",
+      "height": 0.48000000170867624,
+      "measured_contact_area": 8.175300163936612,
+      "upper_foot_area": 8.175300163936612,
+      "supported_fraction": 1.0,
+      "max_vertical_gap": 0.0
+    },
+    {
+      "lower": "Lower ashlar pier",
+      "upper": "Deep raked structural haunch",
+      "height": 2.049999911586989,
+      "measured_contact_area": 7.145699798393252,
+      "upper_foot_area": 7.145699798393252,
+      "supported_fraction": 1.0,
+      "max_vertical_gap": 0.0
+    },
+    {
+      "lower": "Deep raked structural haunch",
+      "upper": "Short blind upper bay",
+      "height": 3.649999882869819,
+      "measured_contact_area": 4.356900051212307,
+      "upper_foot_area": 4.356900051212307,
+      "supported_fraction": 1.0,
+      "max_vertical_gap": 0.0
+    },
+    {
+      "lower": "Short blind upper bay",
+      "upper": "Deep crown bearing",
+      "height": 6.550000140534767,
+      "measured_contact_area": 3.827549925994873,
+      "upper_foot_area": 5.377699832725526,
+      "supported_fraction": 0.7117448063394409,
+      "max_vertical_gap": 0.0
+    },
+    {
+      "lower": "Deep crown bearing",
+      "upper": "Raked crown",
+      "height": 6.820000022126644,
+      "measured_contact_area": 4.326299759101872,
+      "upper_foot_area": 4.326299759101872,
+      "supported_fraction": 1.0,
+      "max_vertical_gap": 0.0
+    },
+    {
+      "lower": "Raked crown",
+      "upper": "Crown coping",
+      "height": 7.199999870772734,
+      "measured_contact_area": 2.07217951120305,
+      "upper_foot_area": 2.07217951120305,
+      "supported_fraction": 1.0,
+      "max_vertical_gap": 0.0
+    }
+  ],
+  "blind_depth": 0.48,
+  "throat_depth_fraction": 0.25,
+  "opening": [
+    [
+      0.33,
+      0.17
+    ],
+    [
+      0.67,
+      0.17
+    ],
+    [
+      0.67,
+      0.69
+    ],
+    [
+      0.5,
+      0.84
+    ],
+    [
+      0.33,
+      0.69
+    ]
+  ],
+  "frame": [
+    [
+      0.12,
+      0.08
+    ],
+    [
+      0.88,
+      0.08
+    ],
+    [
+      0.88,
+      0.75
+    ],
+    [
+      0.5,
+      0.94
+    ],
+    [
+      0.12,
+      0.75
+    ]
+  ],
+  "projection": "X=(u-v)*0.70710678; Y=(u+v)*0.35355339+Height(u)+z; bake excludes Height(u)",
+  "unity_anchor_rise": 1.25,
+  "intended_import": [
+    512,
+    1024
+  ],
+  "android_format": "ASTC_6x6 with mipmaps",
+  "source": "Versioned native Blender massing replacement derived from BuildBlenderGateMasonry.py; no raster edit",
+  "expected_runtime_delta": {
+    "vertices": 0,
+    "renderers": 0,
+    "texture_resources": 0,
+    "material_resources": 0
+  },
+  "baseline_loaded_texture": {
+    "width": 512,
+    "height": 1024,
+    "format": "ASTC_6x6",
+    "mipmaps": 11,
+    "readable": false,
+    "editor_texture_memory_bytes": 630880
+  },
+  "limitation": "Fixed-view colour/normal-light bake, not realtime volumetric geometry. Existing texture replacement must be imported and measured in Unity; device acceptance is not proven by this render.",
+  "rendered_image": {
+    "width": 1024,
+    "height": 2048,
+    "alpha_bounds_bottom_origin": [
+      80,
+      40,
+      942,
+      1864
+    ],
+    "bytes": 2152206,
+    "sha256": "07a65fe8c065c686cdb1ab509fffb8efed093ef718e9a0d17a9e23e6617cde70"
+  }
+}

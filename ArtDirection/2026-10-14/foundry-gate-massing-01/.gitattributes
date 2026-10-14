@@ -1,0 +1,8 @@
+# Captured evidence is hashed as exact bytes, including original line endings.
+* whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+before/** -text
+after/** -text
+validation/*.xml -text
+validation/*.trx -text
+validation/*.txt -text
+masonry-bay/blender-buttress.log -text

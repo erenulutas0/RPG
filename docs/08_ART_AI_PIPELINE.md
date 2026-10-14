@@ -1435,3 +1435,12 @@ Three coordinated improvements: a versioned V8 paving bitmap replaces long share
 Region 36 renderers / 172340 vertices versus 172735: -395. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 1660 / 28. V8 replaces the one paving texture at the same loaded 1024x1024 ASTC6 / 11-mip / non-readable budget; V7 remains versioned source history. No additional runtime texture layer, material, shader, renderer batch or updater. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.
+
+
+## 2026-10-14 - Foundry gate massing verified; device pending
+
+The complete shared outer gate-bay bake now has a taller raked lower mass, shorter blind upper opening, wider stone cheeks and a deeper recess. The native Blender source retains the original external footprint, crown contacts, projection, lighting and 0.62 material gain; its internal shoulder rises from 2.85 to 3.65, so the opaque contour is intentionally different. The upper curtain side also replaces its uniform grid with a broad recessed field, raked haunches and continuous bearing. Actual images show the outer bays as the main visual gain; the curtain is a subordinate construction and geometry simplification because inner piers hide most of it in the gate close views. Its near side remains visible in the full-map view. Existing door, header, roof, walking layout, camera, actor depth and gameplay remain unchanged. This is an incremental gate improvement; reference fidelity is unfinished.
+
+Region 36 renderers / 171888 vertices versus 172340: -452. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 2112 / 28. The gate-bay bake replaces its existing resource at the same loaded 512x1024 ASTC6 / 11-mip / non-readable budget. The two existing cards retain their material, projection and depth owners. No additional runtime texture layer, shader, renderer batch or updater. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.

@@ -1,0 +1,33 @@
+{
+  "baseline": "0e44e8f",
+  "identical_external_projection_fields": [
+    "anchor",
+    "far_anchor",
+    "ortho_scale",
+    "left",
+    "right",
+    "bottom",
+    "top",
+    "render_width",
+    "render_height",
+    "height_compensation",
+    "camera_direction",
+    "vertical_target",
+    "depth_footprint",
+    "far_depth_footprint",
+    "depth_height",
+    "physical_bounds",
+    "height_range",
+    "projected_normalized_bounds"
+  ],
+  "source_png_sha256": "07a65fe8c065c686cdb1ab509fffb8efed093ef718e9a0d17a9e23e6617cde70",
+  "importer_sha256": "476247107dc8d34ef2bc5675a8d36b0b666d152509ce615300f8403cb239a500",
+  "importer_unchanged": true,
+  "runtime_material_gain": 0.62,
+  "blender_internal_contact_change": {
+    "before": 2.85,
+    "after": 3.65
+  },
+  "loaded_runtime_validation": "Verified in actual Android-target Unity capture: 512x1024 ASTC6, 11 mips, non-readable, 630880 Editor texture bytes, 2 existing card batches / 1 shared variant. Not a physical-device observation.",
+  "loaded_report_sha256": "775fc01d68dd17c929aa3d0e60feb837ddeaeb3fbf62682c440e091e60e7d1a3"
+}

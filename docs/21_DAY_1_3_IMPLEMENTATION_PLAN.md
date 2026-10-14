@@ -2638,3 +2638,13 @@ Three coordinated improvements: a versioned V8 paving bitmap replaces long share
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 626F66A93A70DA7981C8DC53A6E0DE140DBD54A9D341A15B9297932C969602D0; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.
+
+
+## 2026-10-14 - Foundry gate massing verified; device pending
+
+The complete shared outer gate-bay bake now has a taller raked lower mass, shorter blind upper opening, wider stone cheeks and a deeper recess. The native Blender source retains the original external footprint, crown contacts, projection, lighting and 0.62 material gain; its internal shoulder rises from 2.85 to 3.65, so the opaque contour is intentionally different. The upper curtain side also replaces its uniform grid with a broad recessed field, raked haunches and continuous bearing. Actual images show the outer bays as the main visual gain; the curtain is a subordinate construction and geometry simplification because inner piers hide most of it in the gate close views. Its near side remains visible in the full-map view. Existing door, header, roof, walking layout, camera, actor depth and gameplay remain unchanged. This is an incremental gate improvement; reference fidelity is unfinished.
+
+438 .NET / 693 EditMode / 160 PlayMode = 1,291 accepted suite executions, zero failures/skips. Focused Foundry 291/291 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 636 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,382,273 bytes; SHA256 5C13765B77191B699EC464261CA376FC4646020704A021E6278C5E5E7AB966F2; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
