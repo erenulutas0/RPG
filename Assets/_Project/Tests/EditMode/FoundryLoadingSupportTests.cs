@@ -33,6 +33,10 @@ namespace Cryptforge.Tests
                 .Invoke(null,new[]{cap,(object)box.x,box.y,box.z,box.w,rise});
             CheckMesh(foundation,Prism(box,-depth,0));
             CheckMesh(raised,Prism(box,0,crane?rise:rise-.15f));
+            CheckContinuousGrain(foundation,0,List<Vector3>(foundation,"V").Count);
+            CheckContinuousGrain(raised,0,List<Vector3>(raised,"V").Count);
+            object bearing=Bearing(box,-.42f,0,.085f);
+            AssertContainsTriangles(foundation,bearing);
             CheckMesh(cap,Prism(box,rise,rise));
             if(crane)Assert.That(List<Vector3>(iron,"V"),Is.Empty,"The crane retains its existing metal cap and socket.");
             else CheckMesh(iron,Prism(box,rise-.15f,rise));
@@ -70,6 +74,104 @@ namespace Cryptforge.Tests
                 Assert.That(Contains(first,p)||Contains(second,p),Is.True,
                     "A cantilever must not extend onto the walkable deck or beyond its established attachment box.");
             Assert.That(List<Vector3>(mesh,"V").Count,Is.LessThanOrEqualTo(280));
+            var vertices=List<Vector3>(mesh,"V");
+            // Each existing cantilever remains a complete connected piece, with
+            // its original four foot, shoulder and cap contacts, including the
+            // back corners that are easy to lose in a two-visible-face rewrite.
+            int partSize=vertices.Count/2;
+            int part=0;
+            foreach(float u in new[]{-17.4f,-14.3f})
+            {
+                var foot=new[]{new Vector2(u+.10f,17.8f),new Vector2(u+.60f,17.8f),
+                    new Vector2(u+.60f,18.35f),new Vector2(u+.10f,18.35f)};
+                foreach(Vector2 p in foot)
+                    Assert.That(vertices.Contains(Project(p.x,p.y)+Vector3.down*2.5f),Is.True);
+                Vector4 box=new Vector4(u,17.8f,u+.7f,19.5f);
+                foreach(Vector2 p in Corners(box))foreach(float height in new[]{-.68f,-.32f})
+                    Assert.That(vertices.Contains(Project(p.x,p.y)+Vector3.up*height),Is.True);
+                AssertContainsTriangles(mesh,Bearing(box,-.68f,-.32f,.055f));
+                CheckContinuousGrain(mesh,part*partSize,(part+1)*partSize);
+                part++;
+            }
+        }
+
+        [Test]
+        public void BearingProfileHasAConnectedRecessWithoutAnOverlaidFlatBed()
+        {
+            // The two production proportions must retain real depth, a common
+            // corner at every change of slope, and exactly one visible owner.
+            foreach(Vector4 spec in new[]{new Vector4(5f,3.9f,.42f,.085f),new Vector4(.7f,1.7f,.36f,.055f)})
+            {
+                Vector4 box=new Vector4(0,0,spec.x,spec.y);
+                object mesh=Bearing(box,-spec.z,0,spec.w);
+                var v=List<Vector3>(mesh,"V");var t=List<int>(mesh,"T");
+                CheckMesh(mesh,Prism(box,-spec.z,0));
+                Assert.That(v.Count,Is.EqualTo(24),"Only six profile faces: no old flat wall behind the recess.");
+                foreach(float height in new[]{-spec.z,0})foreach(int corner in new[]{0,1,3})
+                {
+                    Vector2 p=Corners(box)[corner];
+                    Assert.That(v.Contains(Project(p.x,p.y)+Vector3.up*height),Is.True);
+                }
+                foreach(float fraction in new[]{.28f,.76f})
+                {
+                    Vector3 shared=Project(spec.w,spec.w)+Vector3.up*(-spec.z+spec.z*fraction);
+                    Assert.That(v.FindAll(p=>p.Equals(shared)).Count,Is.EqualTo(4),
+                        "Both sides must terminate on the same inset corner, above and below the joint.");
+                }
+                for(int triangle=0;triangle<t.Count;triangle+=3)
+                {
+                    Vector2 a=v[t[triangle]],b=v[t[triangle+1]],c=v[t[triangle+2]];
+                    Assert.That(Math.Abs(Cross(a,b,c)),Is.GreaterThan(.000001));
+                    Vector2 sample=(a+b+c)/3f;int owners=0;
+                    for(int other=0;other<t.Count;other+=3)
+                        if(StrictlyInside(sample,v[t[other]],v[t[other+1]],v[t[other+2]]))owners++;
+                    Assert.That(owners,Is.EqualTo(1),"A carved bearing must not retain an overpainting full-depth face.");
+                }
+            }
+        }
+
+        private static object Bearing(Vector4 box,float bottom,float top,float retreat)
+        {
+            object mesh=Builder();
+            typeof(FoundryRegionView).GetMethod("ServiceShelfBearing",Static)
+                .Invoke(null,new[]{mesh,(object)box,bottom,top,retreat,Color.white});
+            return mesh;
+        }
+
+        private static bool StrictlyInside(Vector2 p,Vector2 a,Vector2 b,Vector2 c)
+        {
+            double x=Cross(a,b,p),y=Cross(b,c,p),z=Cross(c,a,p);
+            return x>1e-8&&y>1e-8&&z>1e-8||x< -1e-8&&y< -1e-8&&z< -1e-8;
+        }
+
+        private static void AssertContainsTriangles(object actual,object part)
+        {
+            var av=List<Vector3>(actual,"V");var at=List<int>(actual,"T");
+            var pv=List<Vector3>(part,"V");var pt=List<int>(part,"T");
+            for(int i=0;i<pt.Count;i+=3)
+            {
+                int owners=0;
+                for(int j=0;j<at.Count;j+=3)
+                    if(av[at[j]].Equals(pv[pt[i]])&&av[at[j+1]].Equals(pv[pt[i+1]])&&av[at[j+2]].Equals(pv[pt[i+2]]))owners++;
+                Assert.That(owners,Is.EqualTo(1),"The production foundation must consume each profile triangle exactly once.");
+            }
+        }
+
+        private static void CheckContinuousGrain(object mesh,int first,int end)
+        {
+            var v=List<Vector3>(mesh,"V");var uv=List<Vector2>(mesh,"U");
+            int left=first,right=first;
+            for(int i=first+1;i<end;i++){if(v[i].x<v[left].x)left=i;if(v[i].x>v[right].x)right=i;}
+            float scale=(uv[right].x-uv[left].x)/(v[right].x-v[left].x);
+            Assert.That(scale,Is.InRange(.001f,.035001f),"Mineral grain must have a non-collapsed, isotropic scale.");
+            for(int i=first;i<end;i++)
+            {
+                Vector2 expected=uv[first]+((Vector2)(v[i]-v[first]))*scale;
+                Assert.That(Vector2.Distance(expected,uv[i]),Is.LessThan(.000002f),
+                    "The complete foundation shares one affine mineral field, including every return and joint.");
+                Assert.That(uv[i].x,Is.InRange(.274999f,.415001f));
+                Assert.That(uv[i].y,Is.InRange(.654999f,.747001f));
+            }
         }
 
         private static void CheckMesh(object mesh,List<Vector2> boundary)

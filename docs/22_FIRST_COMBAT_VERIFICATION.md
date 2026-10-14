@@ -1563,3 +1563,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 The first full run passed 620 of 621 EditMode cases and all 159 PlayMode cases; APK production was skipped. A legacy mineral-isolation oracle removed world light but retained the new intentional broad use field. Its test helper now removes both fields, retaining all original tolerances and mineral/shoulder limits. Seven new actual-emission cases independently recover gain without invoking the new field function, preserving detection of missing, doubled or discontinuous use. Runtime source did not change for this repair. Root reran pure checks, isolated compile, matched After capture and the complete regression/build gate from a refreshed source freeze. The rejected run and original test source remain in first-suite/.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.
+
+
+## 2026-10-14 - Foundry bearing architecture verified; device pending
+
+438 .NET / 631 EditMode / 159 PlayMode = 1,228 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 620 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 6AF3C51E2A249A856391B4D5B214820C3E2E008AE78D4DDFDF842FAFD6B57DD4; NOT INSTALLED.
+
+Two helpers implemented disjoint tower and shelf scopes; root implemented bridge/undercroft and completed integration when a helper hit its usage limit. The independent reviewer resumed after the limit and completed both nine-file source review and fresh image review. No source blocker remained. Ten additional EditMode cases and strengthened existing cases cover actual geometry, envelope contacts, single profile ownership, aperture preservation and connected material fields. All source remained identical to the freeze through capture, suites and build.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.

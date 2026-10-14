@@ -1,0 +1,137 @@
+{
+  "head": "cf511c38f325f43ec3f9d9005ed5b638c1bc0db1",
+  "files": {
+    "approach--16-15.png": {
+      "sha256": "d9cb55dbfedc4f8386b3a9135b668f634545abc29f8b39ffabd176862a5e7b9a",
+      "bytes": 3271297
+    },
+    "approach--20-6.png": {
+      "sha256": "eb75dd4c247c988fdfac1f697f8c8398ccf761adcbf7a8f0cd68313aebd9a580",
+      "bytes": 3681208
+    },
+    "approach--29--29.png": {
+      "sha256": "559db977278a4adde5373db9ffbce32d7c51a0ac73498054a4003b50fa67833c",
+      "bytes": 3407682
+    },
+    "approach--8--12.png": {
+      "sha256": "8ed0fbc6b9604e13bfb20390daf61b9b78b821e19e659c3a5e98d7713d54591c",
+      "bytes": 3370470
+    },
+    "approach-0-0.png": {
+      "sha256": "15e151c20c02d93ebc00df154679fb05481eab0fe308dbe9e7d866ddd3f8cf5e",
+      "bytes": 3299828
+    },
+    "approach-20-1.png": {
+      "sha256": "6651da0b437ceb46581bcdbd7468fbbe5c099ec31ec656904b73dd562dee1d4e",
+      "bytes": 4029477
+    },
+    "bridge-detail.png": {
+      "sha256": "11aaa19a8f0cebe8984c02e105eae73e36a6992f85b5b5900051576880dd5adc",
+      "bytes": 2105414
+    },
+    "bridge-foot.png": {
+      "sha256": "9d22176bf53ac3f031e309a0d2a3a21d1856d8d1b201bdec433abe29e3b26ed0",
+      "bytes": 1967654
+    },
+    "casting-detail.png": {
+      "sha256": "da5628c153cb717db39e505213acd18f1c023fcf96e17c3cb47a54be3327dbf5",
+      "bytes": 1750520
+    },
+    "cavern-texture.txt": {
+      "sha256": "0e250043e69e22160a29887b5b15e9d58adb4dc9240c5e67e210d815bdece92f",
+      "bytes": 645
+    },
+    "court-detail.png": {
+      "sha256": "b071c1569d12b3ab31af24ee55bdcbda0a135073dbb136879050a3748f3696c6",
+      "bytes": 2021673
+    },
+    "crane-detail.png": {
+      "sha256": "92ee1c43ec704385d79e7749ae451688bd8019401b22a8738cbb191632c2ddf8",
+      "bytes": 1758074
+    },
+    "distant-budget.txt": {
+      "sha256": "9c67b76d3527f9a9c4c9756876d0b736ae0da054c7f011f174462163b85d3d61",
+      "bytes": 167
+    },
+    "distant-material.txt": {
+      "sha256": "70cde196daec18845ef29a75edc4396dfd2d68042647b82ec25c837ccabb06c7",
+      "bytes": 1010
+    },
+    "forecourt-detail.png": {
+      "sha256": "9a471b36a7aa32b04cd19ae844af7b25a7718f150ce5d32a50f1b0b0155951f3",
+      "bytes": 2076155
+    },
+    "FoundryBoiler-texture.txt": {
+      "sha256": "2b5d2f750a8c5679d1a37ec1e37a6d3cb682a2d3d520eea9016fbff33930df69",
+      "bytes": 99
+    },
+    "FoundryCastingBench-texture.txt": {
+      "sha256": "b730bcf092016880c80172614c438a96e77b36d3f49de24483ed892faa503990",
+      "bytes": 65
+    },
+    "FoundryCrane-texture.txt": {
+      "sha256": "a8e98dd5788146555a4ac85f08dd7496d73c3980a1e04546da95ed50a0767643",
+      "bytes": 60
+    },
+    "FoundryShortBoiler-texture.txt": {
+      "sha256": "cc72c753052f03066fbb613763c4c36480230c5d1863c575e639af4f5cd5405b",
+      "bytes": 104
+    },
+    "FoundryStockStation-texture.txt": {
+      "sha256": "9fac4fcfa67aed0f2621ea39080fe021dc4ba1cb4bdc06f16ea19bfc8e834fe0",
+      "bytes": 65
+    },
+    "full-map.png": {
+      "sha256": "ceae92f1cc96c39a53d30f9f637fa4939b97570413231d14bdbb576161cc283b",
+      "bytes": 2545911
+    },
+    "gate-crown-detail.png": {
+      "sha256": "ba8ea5457efe3575aec5560b7690af164bc303dfbdb4028c74b3dd5a3dfb4f8d",
+      "bytes": 2256278
+    },
+    "gate-detail.png": {
+      "sha256": "1402881e44dbd9d1e0d3649a9c01f68cd50dd713685d83c0e1ed7b9e8029aeb0",
+      "bytes": 2377504
+    },
+    "graphics.xml": {
+      "sha256": "ac4d1522a84b95c2f7201b8ee51c7af46304b14d66a7053e4e86655899e3aaf3",
+      "bytes": 3397
+    },
+    "hoist-texture.txt": {
+      "sha256": "de77dd777ed55776c11118bad36760589c2aa4d7d0faf994a5ddb0b947f970b5",
+      "bytes": 63
+    },
+    "overview.png": {
+      "sha256": "d5a754ecdf36c848969480f7320fcf262c89468893be2655f3cd7dd68509ea44",
+      "bytes": 2626750
+    },
+    "paving-texture.txt": {
+      "sha256": "5f74405656a5b2b7efcd7fde52a14b7da033267d52bbfe63687418a07285922f",
+      "bytes": 80
+    },
+    "runtime-budget.txt": {
+      "sha256": "cafff24bcbeb280b43f39ccdfa0bbd71960b16ce10c927360f3262eeb8ced1a0",
+      "bytes": 300
+    },
+    "service-shaft-detail.png": {
+      "sha256": "a32cb5c2aec405e281b4622706f530fb473a28fa43aa1da42c4c54a24b81c779",
+      "bytes": 2030556
+    },
+    "shaft-detail.png": {
+      "sha256": "5fb35b0641a1847c90182974d01b2d3e8fae45408cde2210f46fa99586e3e2f3",
+      "bytes": 2101008
+    },
+    "skyline-detail.png": {
+      "sha256": "e1eef3388b727d718b0ffaf086a59a77c81f120abea3515e95def2714ef91a9c",
+      "bytes": 1891633
+    },
+    "stock-detail.png": {
+      "sha256": "9e8ee33b375349092026cdda7b171c50d89712a4a4f3c703fd4d4351d5c0b887",
+      "bytes": 1840945
+    },
+    "yard-detail.png": {
+      "sha256": "ea45fc316703ac55c3a2dbe7b5fdd43f269829a01ee9ae7a016e09b1e3891363",
+      "bytes": 1976605
+    }
+  }
+}

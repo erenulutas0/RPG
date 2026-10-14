@@ -71,8 +71,30 @@ namespace Cryptforge.UI
         private static void FortressDressedArch(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone)
         {
             int first=mesh.V.Count;
-            GateDressedFace(mesh,a,b,c,d,tone,.07f);
+            // Carve a broad intrados return into each existing wedge. The return,
+            // sloped shoulder and dressed outer face partition its old contour;
+            // the opening itself and outer bearing stations never move.
+            Vector3 ra=Vector3.Lerp(a,d,.18f),rb=Vector3.Lerp(b,c,.18f);
+            Vector3 sa=Vector3.Lerp(a,d,.26f),sb=Vector3.Lerp(b,c,.26f);
+            GateStonePatch(mesh,a,b,rb,ra,new Color(tone.r*.58f,tone.g*.63f,tone.b*.71f,1));
+            GateStonePatch(mesh,ra,rb,sb,sa,new Color(tone.r*.86f,tone.g*.90f,tone.b*.96f,1));
+            GateDressedFace(mesh,sa,sb,c,d,tone,.05f);
             FortressMapGrain(mesh,first,mesh.V.Count,(b-a).sqrMagnitude>(d-a).sqrMagnitude?b-a:d-a);
+        }
+
+        private static void BridgeBearingGrain(Builder mesh,Vector3 origin)
+        {
+            // One physical field crosses the arch face, its recessed soffit and
+            // the deck bearing. Small construction pieces must not restart or
+            // rotate the mineral image at every joint. Both batches use the same
+            // datum, including contacts along the opening.
+            float half=(Cryptforge.Art.FoundryMap.BridgeHalfWidth+.18f)*Cryptforge.Art.FoundryMap.Axis;
+            float scale=Mathf.Min(.35f/(2*half),.124f/5.7f);
+            for(int i=0;i<mesh.V.Count;i++)
+            {
+                Vector3 p=mesh.V[i]-origin;
+                mesh.U[i]=new Vector2(.04f+(p.x+half)*scale,.44f+(p.y+8.4f)*scale);
+            }
         }
 
         private static void FortressMapGrain(Builder mesh,int first,int end,Vector3 direction)

@@ -234,6 +234,7 @@ namespace Cryptforge.UI
 
         private static void BuildFortressArchFace(Builder stone,Vector3 a,Vector3 b,int cadence)
         {
+            int first=stone.V.Count;
             bool primary=cadence%3==0;
             // Close the spandrels between the existing opening and the deck underside.
             // The previous isolated rings read like thin ribs hanging below a slab.
@@ -280,6 +281,9 @@ namespace Cryptforge.UI
                 FortressMineralFace(stone,left+lower,right+lower,right+lower+Vector3.down*.11f,
                     left+lower+Vector3.down*.11f,new Color(.17f,.19f,.26f),false);
             }
+            // The complete bay has one quarry field. Individual voussoirs keep
+            // their face lighting without rotating or enlarging the same stamp.
+            FortressMapGrain(stone,first,stone.V.Count,b-a);
         }
 
         private static void UndercroftSpandrel(Builder stone,Vector3 a,Vector3 b)
@@ -329,6 +333,7 @@ namespace Cryptforge.UI
 
         private static void BuildFortressRespond(Builder stone,Vector3 anchor,bool major)
         {
+            int first=stone.V.Count;
             float half=major?.58f:.44f,depth=major?7.9f:6.9f;
             Vector3 top=anchor+Vector3.down*2.5f;
             Vector3 foot=anchor+Vector3.down*depth;
@@ -364,6 +369,7 @@ namespace Cryptforge.UI
                     p+Vector3.right*width+Vector3.down*.2f,p+Vector3.left*width+Vector3.down*.2f,
                     major?new Color(.46f,.49f,.57f):new Color(.35f,.39f,.48f),major);
             }
+            FortressMapGrain(stone,first,stone.V.Count,Vector3.up);
         }
 
         private void BuildUndercroftSocket(ArenaView arena,Vector2 at,Vector3 anchor,bool major)

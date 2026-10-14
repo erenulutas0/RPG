@@ -92,6 +92,61 @@ namespace Cryptforge.Tests
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ActualBridgeBearingSharesOnePhysicalMineralFieldAcrossItsFrontAndSoffit(bool primary)
+        {
+            object returns=Builder(),front=Builder();
+            Call("BuildBridgeBent",returns,front,-64.8f,primary);
+            var points=Data<Vector3>(front,"V");var uv=Data<Vector2>(front,"U");
+            Vector3 origin=points[0];Vector2 field=uv[0];int other=1;
+            while(Vector3.Distance(points[other],origin)<.01f)other++;
+            float scale=Vector2.Distance(uv[other],field)/Vector3.Distance(points[other],origin);
+            Assert.That(scale,Is.GreaterThan(.01f).And.LessThan(.08f));
+            int compared=0;
+            foreach(object mesh in new[]{front,returns})
+            {
+                var p=Data<Vector3>(mesh,"V");var u=Data<Vector2>(mesh,"U");
+                foreach(int i in new HashSet<int>(Data<int>(mesh,"T")))
+                {
+                    Vector2 expected=field+(Vector2)(p[i]-origin)*scale;
+                    Assert.That(Vector2.Distance(u[i],expected),Is.LessThan(.000002f),
+                        "A fitted stone, dressed arris or separate soffit batch cannot restart the parent mineral field.");
+                    compared++;
+                }
+            }
+            Assert.That(compared,Is.GreaterThan(150));
+        }
+
+        [Test]
+        public void CarvedBridgeWedgePartitionsItsOriginalFaceAndRetainsOpenInnerEdge()
+        {
+            // A sloping load-bearing voussoir from the actual eleven-piece arch.
+            float a=3*Mathf.PI/11,b=4*Mathf.PI/11;
+            var face=new[]{new Vector3(Mathf.Cos(a)*3.95f*FoundryMap.Axis,-6.1f+Mathf.Sin(a)*2.35f),
+                new Vector3(Mathf.Cos(b)*3.95f*FoundryMap.Axis,-6.1f+Mathf.Sin(b)*2.35f),
+                new Vector3(Mathf.Cos(b)*5.18f*FoundryMap.Axis,-6.1f+Mathf.Sin(b)*3.42f),
+                new Vector3(Mathf.Cos(a)*5.18f*FoundryMap.Axis,-6.1f+Mathf.Sin(a)*3.42f)};
+            // The actual primary wedge ends at the straight bearing course.
+            face[2].y=Mathf.Min(face[2].y,-3.03f);face[3].y=Mathf.Min(face[3].y,-3.03f);
+            object mesh=Builder();Call("FortressDressedArch",mesh,face[0],face[1],face[2],face[3],Color.white);
+            var points=Data<Vector3>(mesh,"V");var colours=Data<Color>(mesh,"C");var triangles=Data<int>(mesh,"T");
+            double actual=0,expected=Math.Abs(Cross(face[0],face[1],face[2]))+Math.Abs(Cross(face[0],face[2],face[3]));
+            for(int t=0;t<triangles.Count;t+=3)
+            {
+                Vector3 p=points[triangles[t]],q=points[triangles[t+1]],r=points[triangles[t+2]];
+                double area=Math.Abs(Cross(p,q,r));Assert.That(area,Is.GreaterThan(1e-10));actual+=area;
+            }
+            Assert.That(actual,Is.EqualTo(expected).Within(.00001),"The carved return replaces its parent area without an underlying duplicate face.");
+            foreach(Vector3 p in points)Assert.That(InQuad(p,face),Is.True);
+            foreach(Vector3 p in face)Assert.That(points,Does.Contain(p));
+            float low=1,high=0;foreach(Color c in colours){low=Mathf.Min(low,c.grayscale);high=Mathf.Max(high,c.grayscale);}
+            Assert.That(high-low,Is.GreaterThan(.25f),"The exposed face must remain distinct from its recessed inner return.");
+            for(int x=0;x<13;x++)for(int y=0;y<11;y++)
+                Assert.That(Covers(mesh,Vector3.Lerp(Vector3.Lerp(face[0],face[1],(x+.37f)/13),
+                    Vector3.Lerp(face[3],face[2],(x+.37f)/13),(y+.41f)/11)),Is.True);
+        }
+
         private static float OriginalIntrados(float d)
         {
             // The baseline aperture is the eleven-segment polygon, not an

@@ -183,6 +183,7 @@ namespace Cryptforge.UI
         private static void DistantFurnaceHead(Builder mesh,float u0,float v0,float u1,float v1,
             float top,Color tone,int variant)
         {
+            int first=mesh.V.Count;
             float shoulder=ServiceShoulder(top,variant),neck=variant==1?.94f:1.02f;
             float neckBottom=shoulder+ServiceShoulderRise(variant);
             float exhaustTop=top-(variant==1?0:.40f),exhaustBottom=top-(variant==1?.90f:1.20f);
@@ -203,6 +204,9 @@ namespace Cryptforge.UI
             Vector4 crown=new Vector4(shaft.x-.12f,shaft.y-.12f,shaft.z+.12f,shaft.w+.12f);
             DistantHeadShoulder(mesh,shaft,crown,exhaustBottom-.16f,exhaustBottom,tone*.95f);
             DistantHollowExhaust(mesh,crown,exhaustBottom,exhaustTop,variant==1?.22f:.26f,tone);
+            // One physical mineral cut crosses the whole connected head. Narrow
+            // returns and crown facets must not each stretch/restart a full patch.
+            GateRecessGrain(mesh,first,mesh.V.Count,Project(1,0)-Project(0,0),variant);
         }
 
         private static void DistantHeadShoulder(Builder mesh,Vector4 lower,Vector4 upper,float bottom,float top,Color tone)
@@ -262,9 +266,7 @@ namespace Cryptforge.UI
             // a real open flue does. Their cap is four rim strips, never a full roof.
             foreach(int edge in new[]{3,0})
             {
-                int next=(edge+1)%4;
-                DistantMineralFace(mesh,rim[edge]+Vector3.up*bottom,rim[next]+Vector3.up*bottom,
-                    rim[next]+Vector3.up*top,rim[edge]+Vector3.up*top,tone*(edge==0?.96f:.69f),true);
+                DistantCrownBearing(mesh,outer,edge,bottom,top,tone*(edge==0?.96f:.69f));
             }
             foreach(int edge in new[]{1,2,3,0})
             {
@@ -272,6 +274,26 @@ namespace Cryptforge.UI
                 DistantMineralFace(mesh,rim[edge]+Vector3.up*top,rim[next]+Vector3.up*top,
                     throat[next]+Vector3.up*top,throat[edge]+Vector3.up*top,tone*(edge<2?.89f:1.07f),true);
             }
+        }
+
+        private static void DistantCrownBearing(Builder mesh,Vector4 outer,int edge,float bottom,float top,Color tone)
+        {
+            // Replace the flat dressed side with a broad recessed fascia between
+            // sloping bearings. Shared ring stations close the near corner; the
+            // outer top/bottom and actual open mouth keep their original planes.
+            var levels=new[]{bottom,Mathf.Lerp(bottom,top,.18f),Mathf.Lerp(bottom,top,.72f),top};
+            var insets=new[]{0f,.075f,.075f,0f};
+            Vector3 At(int corner,int band)
+            {
+                float inset=insets[band];
+                float u=corner==0||corner==3?outer.x+inset:outer.z-inset;
+                float v=corner<2?outer.y+inset:outer.w-inset;
+                return Project(u,v)+Vector3.up*levels[band];
+            }
+            int next=(edge+1)%4;
+            for(int band=0;band<3;band++)
+                DistantMineralFace(mesh,At(edge,band),At(next,band),At(next,band+1),At(edge,band+1),
+                    tone*(band==0?.78f:band==1?.94f:1.10f),false);
         }
 
         private static void DistantMineralFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone,bool dressed)
@@ -399,9 +421,20 @@ namespace Cryptforge.UI
                 Color ambient=Color.Lerp(new Color(.64f,.70f,.82f),new Color(1.08f,1.05f,1.02f),rise);
                 float stain=.96f+.04f*Mathf.Sin((p.x-origin.x)*1.1f+variant*1.7f);
                 float heat=(variant==1||variant==2)?Mathf.Clamp01(1-Mathf.Abs(height-(top-10))/7.5f):0;
+                float bearing=1;
+                if(variant==1||variant==2)
+                {
+                    // Exposed haunch stone catches a broad quarry value above
+                    // the damp shaft. The neck/crown retain less of that lift;
+                    // this is one supported head, not a global exposure change.
+                    float shoulder=ServiceShoulder(top,variant);
+                    float band=(height-shoulder-.55f)/1.65f;
+                    bearing+=.16f*Mathf.Exp(-band*band)+.075f*Mathf.SmoothStep(0,1,
+                        Mathf.InverseLerp(shoulder+ServiceShoulderRise(variant),top-.35f,height));
+                }
                 Color old=mesh.C[i];
-                mesh.C[i]=new Color(old.r*ambient.r*stain*(1+.10f*heat),old.g*ambient.g*stain*(1+.025f*heat),
-                    old.b*ambient.b*stain*(1-.025f*heat),old.a);
+                mesh.C[i]=new Color(old.r*ambient.r*stain*(1+.10f*heat)*bearing,old.g*ambient.g*stain*(1+.025f*heat)*bearing,
+                    old.b*ambient.b*stain*(1-.025f*heat)*bearing,old.a);
             }
         }
 

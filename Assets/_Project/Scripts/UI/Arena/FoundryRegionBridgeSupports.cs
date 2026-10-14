@@ -280,6 +280,8 @@ namespace Cryptforge.UI
                 // the exact -2.7 deck contact and every vertex of the open intrados.
                 if(primary)FortressCoursedFace(front,At(-half-.18f,-3.03f),At(half+.18f,-3.03f),
                     At(half+.18f,-2.7f),At(-half-.18f,-2.7f),new Color(.54f,.58f,.66f),1,3);
+                BridgeBearingGrain(front,Deck(s,0));
+                BridgeBearingGrain(stone,Deck(s,0));
         }
     }
 }

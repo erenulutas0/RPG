@@ -69,6 +69,7 @@ namespace Cryptforge.UI
         private static void ServiceShelfFaces(Builder foundation,Builder raised,Builder iron,
             Vector4 box,float rise,float depth,bool ironEdge)
         {
+            int foundationStart=foundation.V.Count,raisedStart=raised.V.Count;
             var points=new[]{new Vector2(box.x,box.y),new Vector2(box.z,box.y),
                 new Vector2(box.z,box.w),new Vector2(box.x,box.w)};
             foreach(int edge in new[]{0,3})
@@ -83,14 +84,17 @@ namespace Cryptforge.UI
                     pb+inset+Vector3.down*.42f,pa+inset+Vector3.down*.42f,face*.80f,2,1);
                 for(int corbel=2;corbel>=0;corbel--)
                     ServiceShelfCorbel(foundation,a,b,inward,corbel*.5f,depth,face);
-                // The continuous bearing course spans every bracket and closes
-                // the upper edge of the infill. Its top ends exactly at floor0.
-                UndercroftCoursedFace(foundation,pa+Vector3.down*.42f,pb+Vector3.down*.42f,pb,pa,face,1,2);
                 float stoneTop=ironEdge?rise-.15f:rise;
                 UndercroftCoursedFace(raised,pa,pb,pb+Vector3.up*stoneTop,pa+Vector3.up*stoneTop,
                     face,ironEdge?1:2,2);
                 if(ironEdge)ServiceShelfGirder(iron,pa,pb,inset*(.05f/.28f),rise,edge==0);
             }
+            // One substantial bearing course spans all brackets. Its connected
+            // recessed belly is cut into the old strip; there is no flat bed
+            // underneath it. Both visible sides share their corner stations.
+            ServiceShelfBearing(foundation,box,-.42f,0,.085f,new Color(.66f,.68f,.75f));
+            ServiceShelfGrain(foundation,foundationStart,foundation.V.Count);
+            ServiceShelfGrain(raised,raisedStart,raised.V.Count);
         }
 
         private static void ServiceShelfCorbel(Builder mesh,Vector2 a,Vector2 b,Vector2 inward,
@@ -100,11 +104,12 @@ namespace Cryptforge.UI
             Vector2 left=Vector2.Lerp(a,b,Mathf.Max(0,centre-half));
             Vector2 right=Vector2.Lerp(a,b,Mathf.Min(1,centre+half));
             Vector3 At(Vector2 p,float inset,float height)=>Project(p.x+inward.x*inset,p.y+inward.y*inset)+Vector3.up*height;
-            // Rooted foot, raked body and broad upper haunch. The original extent
-            // is retained at the foot and header, with a quiet inward waist.
-            float[] levels={-depth,-1.15f,-.42f};
-            float[] setbacks={0f,.23f,0f};
-            for(int tier=0;tier<2;tier++)
+            // The rooted foot and header retain their original stations. Three
+            // broad facets give the raked haunch a deliberate load-bearing curve;
+            // the middle knee recedes, without another band of decorative trim.
+            float[] levels={-depth,-1.55f,-.87f,-.42f};
+            float[] setbacks={0f,.25f,.16f,0f};
+            for(int tier=0;tier<3;tier++)
             {
                 Vector3 l0=At(left,setbacks[tier],levels[tier]),r0=At(right,setbacks[tier],levels[tier]);
                 Vector3 l1=At(left,setbacks[tier+1],levels[tier+1]),r1=At(right,setbacks[tier+1],levels[tier+1]);
@@ -113,8 +118,42 @@ namespace Cryptforge.UI
                     At(left,.28f,levels[tier+1]),tone*.71f,false);
                 UndercroftMineralFace(mesh,r0,At(right,.28f,levels[tier]),
                     At(right,.28f,levels[tier+1]),r1,tone*.84f,false);
-                UndercroftMineralFace(mesh,l0,r0,r1,l1,tone,true);
+                float face=tier==0?.84f:tier==1?.92f:1.03f;
+                UndercroftMineralFace(mesh,l0,r0,r1,l1,tone*face,false);
             }
+        }
+
+        private static void ServiceShelfBearing(Builder mesh,Vector4 box,float bottom,float top,
+            float retreat,Color tone)
+        {
+            float height=top-bottom;
+            float[] levels={bottom,bottom+height*.28f,bottom+height*.76f,top};
+            float[] inset={0,retreat,retreat,0};
+            Vector3 At(int corner,int row)
+            {
+                float u=corner==0||corner==3?box.x+inset[row]:box.z-inset[row];
+                float v=corner<2?box.y+inset[row]:box.w-inset[row];
+                return Project(u,v)+Vector3.up*levels[row];
+            }
+            foreach(int edge in new[]{0,3})for(int row=0;row<3;row++)
+            {
+                int next=(edge+1)%4;
+                float facet=row==0?.72f:row==1?.84f:1.06f;
+                UndercroftMineralFace(mesh,At(edge,row),At(next,row),At(next,row+1),At(edge,row+1),
+                    tone*(edge==0?1:.77f)*facet,false);
+            }
+        }
+
+        private static void ServiceShelfGrain(Builder mesh,int first,int end)
+        {
+            Vector2 low=new Vector2(float.MaxValue,float.MaxValue),high=new Vector2(float.MinValue,float.MinValue);
+            for(int i=first;i<end;i++){low=Vector2.Min(low,mesh.V[i]);high=Vector2.Max(high,mesh.V[i]);}
+            Vector2 span=high-low;
+            float scale=Mathf.Min(.035f,Mathf.Min(.14f/Mathf.Max(.001f,span.x),.092f/Mathf.Max(.001f,span.y)));
+            // The same broad mineral interior spans each complete supported piece.
+            // Returns, haunches and bearing facets no longer restart or stretch
+            // the atlas on every narrow quad. Existing light colours are retained.
+            for(int i=first;i<end;i++)mesh.U[i]=new Vector2(.275f,.655f)+((Vector2)mesh.V[i]-low)*scale;
         }
 
         private static void ServiceShelfGirder(Builder iron,Vector3 a,Vector3 b,Vector3 inset,float top,bool light)

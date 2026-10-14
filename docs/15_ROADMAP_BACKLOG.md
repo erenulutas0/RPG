@@ -842,3 +842,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.
+
+
+## 2026-10-14 - Foundry bearing architecture verified; device pending
+
+- [x] Combine service-crown bearings, workshop shelf/cantilever supports and entrance/undercroft mineral continuity; verify matched captures and full regression/build gate.
+- [ ] Recover fine mineral breakup at close range while preserving the new shared grain; then address remaining broad service-tower and perimeter stone hierarchy. See package next-visual-priorities.md.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.

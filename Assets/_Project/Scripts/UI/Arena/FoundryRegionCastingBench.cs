@@ -39,6 +39,7 @@ namespace Cryptforge.UI
             // every vertex stays below the deck and behind the unchanged rail.
             foreach(float u in new[]{-17.4f,-14.3f})
             {
+                int first=supports.V.Count;
                 Vector3 a=Project(u,17.8f),b=Project(u+.7f,17.8f);
                 Vector3 c=Project(u+.7f,19.5f),d=Project(u,19.5f);
                 Vector3 lowA=Project(u+.10f,17.8f)+Vector3.down*2.5f;
@@ -46,12 +47,30 @@ namespace Cryptforge.UI
                 Vector3 lowC=Project(u+.60f,18.35f)+Vector3.down*2.5f;
                 Vector3 lowD=Project(u+.10f,18.35f)+Vector3.down*2.5f;
                 Vector3 seat=Vector3.down*.68f,top=Vector3.down*.32f;
-                UndercroftCoursedFace(supports,lowA,lowB,b+seat,a+seat,new Color(.53f,.56f,.63f),2,1);
-                UndercroftCoursedFace(supports,lowD,lowA,a+seat,d+seat,new Color(.39f,.43f,.52f),2,1);
-                UndercroftMineralFace(supports,lowB,lowC,c+seat,b+seat,new Color(.31f,.35f,.43f),false);
-                UndercroftMineralFace(supports,a+seat,b+seat,b+top,a+top,new Color(.62f,.65f,.72f),true);
-                UndercroftMineralFace(supports,d+seat,a+seat,a+top,d+top,new Color(.47f,.51f,.60f),true);
+                var foot=new[]{lowA,lowB,lowC,lowD};var head=new[]{a+seat,b+seat,c+seat,d+seat};
+                float[] heights={-2.5f,-1.55f,-1.08f,-.68f};float[] reach={0,.28f,.58f,1};
+                Vector3 At(int corner,int row)
+                {
+                    if(row==0)return foot[corner];
+                    if(row==3)return head[corner];
+                    Vector3 p=Vector3.Lerp(foot[corner]+Vector3.up*2.5f,head[corner]-seat,reach[row]);
+                    return p+Vector3.up*heights[row];
+                }
+                // Broad knees carry the existing shoe. All intermediate stations
+                // stay inside the old attachment volume, with exact foot/head
+                // contacts and no additional wall underneath the raked faces.
+                for(int row=0;row<3;row++)foreach(int edge in new[]{0,3,1})
+                {
+                    int next=(edge+1)%4;
+                    Color tone=edge==0?new Color(.53f,.56f,.63f):edge==3?
+                        new Color(.39f,.43f,.52f):new Color(.31f,.35f,.43f);
+                    UndercroftMineralFace(supports,At(edge,row),At(next,row),At(next,row+1),At(edge,row+1),
+                        tone*(row==0?.84f:row==1?.93f:1.03f),false);
+                }
+                ServiceShelfBearing(supports,new Vector4(u,17.8f,u+.7f,19.5f),-.68f,-.32f,.055f,
+                    new Color(.62f,.65f,.72f));
                 UndercroftMineralFace(supports,a+top,b+top,c+top,d+top,new Color(.64f,.67f,.73f),false);
+                ServiceShelfGrain(supports,first,supports.V.Count);
             }
         }
 

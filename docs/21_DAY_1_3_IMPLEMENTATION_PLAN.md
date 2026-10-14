@@ -2556,3 +2556,15 @@ Files: FoundryRegionPavingWear/Finish, ProductionYard/CraneHousing, Architecture
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 4F696238FBB970EC4965E71B4D92E0210EBB453DBB5D9B5E231487E664BD390E; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.
+
+
+## 2026-10-14 - Foundry bearing architecture verified; device pending
+
+Service-tower crowns now have joined recessed bearing bands and whole-head mineral sampling. Four working shelves and two casting cantilevers use raked stone knees beneath continuous bearing beds. The entrance bridge gains a carved inner return and shoulder while its front and soffit share one physical grain field; near-island arch bays and responds receive coherent parent-surface grain.
+
+Files: FoundryRegionDistantWorks, Workshop, CastingBench, FortressSurface, BridgeSupports and Undercroft; focused ServiceShaft, LoadingSupport and FortressHierarchy tests. Capture: Tools/ArtReview/FoundryBearingArchitectureCapture.cs and launcher.
+
+438 .NET / 631 EditMode / 159 PlayMode = 1,228 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 620 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 6AF3C51E2A249A856391B4D5B214820C3E2E008AE78D4DDFDF842FAFD6B57DD4; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.

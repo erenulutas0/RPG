@@ -127,6 +127,107 @@ namespace Cryptforge.Tests
             }
         }
 
+        [TestCase(2.06f,2.06f,.9f,.22f)]
+        [TestCase(2.4f,2f,.8f,.26f)]
+        public void CrownBearingHasAJoinedRecessedFasciaWithinItsOriginalRimAndMouth(float width,float depth,float height,float wall)
+        {
+            const float u0=2.3f,v0=5.7f,bottom=-1.4f;
+            float top=bottom+height;object mesh=Builder();
+            Call("DistantHollowExhaust",mesh,new Vector4(u0,v0,u0+width,v0+depth),bottom,top,wall,Color.white);
+            AssertMesh(mesh,finalColors:false);AssertConnected(mesh);
+            AssertEnvelope(mesh,u0,v0,u0+width,v0+depth,bottom,top);
+            var points=Field<List<Vector3>>(mesh,"V");var indices=Field<List<int>>(mesh,"T");
+            Assert.That(points.Count,Is.EqualTo(124),"The profile replaces two dressed planes; it must not append another wall.");
+            Assert.That(indices.Count,Is.EqualTo(186));
+            float low=bottom+height*.18f,high=bottom+height*.72f;
+            Vector3 lowerCorner=Project(u0+.075f,v0+.075f)+Vector3.up*low;
+            Vector3 upperCorner=Project(u0+.075f,v0+.075f)+Vector3.up*high;
+            AssertPoint(points,lowerCorner);AssertPoint(points,upperCorner);
+            Assert.That(EdgeIncidence(points,indices,lowerCorner,upperCorner),Is.EqualTo(2),
+                "Both visible fascia planes meet at one shared recessed corner, not detached fins.");
+            foreach(float z in new[]{bottom,top})
+            {
+                AssertPoint(points,Project(u0,v0)+Vector3.up*z);
+                AssertPoint(points,Project(u0+width,v0)+Vector3.up*z);
+                AssertPoint(points,Project(u0,v0+depth)+Vector3.up*z);
+            }
+            Assert.That(wall-.075f,Is.GreaterThan(.14f),"The recessed fascia retains real stone before the unchanged throat.");
+            // The open mouth's actual inner edge is still borne by exactly one
+            // return and one annulus strip despite the replacement outer profile.
+            Vector3 a=Project(u0+wall,v0+wall)+Vector3.up*top;
+            Vector3 b=Project(u0+width-wall,v0+wall)+Vector3.up*top;
+            Assert.That(EdgeIncidence(points,indices,a,b),Is.EqualTo(2));
+        }
+
+        [TestCase(1,3.7f,3.7f)]
+        [TestCase(2,4.2f,3.8f)]
+        public void CompleteHeadSharesOnePhysicalMineralFieldAcrossItsBearingsReturnsAndCrown(int variant,float width,float depth)
+        {
+            object head=Builder();Call("DistantFurnaceHead",head,3.1f,7.2f,3.1f+width,7.2f+depth,-2f,Color.white,variant);
+            var points=Field<List<Vector3>>(head,"V");var uv=Field<List<Vector2>>(head,"U");var indices=Field<List<int>>(head,"T");
+            Assert.That(points.Count,Is.EqualTo(596),"Head grain may not allocate more geometric sampling.");
+            var used=new HashSet<int>(indices);Assert.That(used.Count,Is.EqualTo(points.Count));
+            float scale=0;int common=0,spans=0;
+            for(int i=0;i<points.Count;i++)
+            {
+                Assert.That(uv[i].x,Is.InRange(.035f,.39801f));Assert.That(uv[i].y,Is.InRange(.438f,.56701f));
+                float length=Vector3.Distance(points[0],points[i]);
+                if(length>.25f)
+                {
+                    float actual=Vector2.Distance(uv[0],uv[i])/length;
+                    if(scale==0)scale=actual;
+                    Assert.That(actual,Is.EqualTo(scale).Within(.00001f),
+                        "A narrow return cannot restart or stretch the full mineral patch.");spans++;
+                }
+                for(int j=0;j<i;j++)if(points[i]==points[j])
+                {
+                    Assert.That(uv[i],Is.EqualTo(uv[j]),"Coincident bearing and crown samples must share their grain.");common++;
+                }
+            }
+            Assert.That(common,Is.GreaterThan(40));Assert.That(spans,Is.GreaterThan(100));Assert.That(scale,Is.GreaterThan(.005f));
+            for(int i=0;i<indices.Count;i+=3)
+            {
+                int a=indices[i],b=indices[i+1],c=indices[i+2];
+                double worldArea=Area(points[a],points[b],points[c]);
+                if(Math.Abs(worldArea)<.0001)continue;
+                Assert.That(Math.Abs(Area(uv[a],uv[b],uv[c])),Is.GreaterThan(1e-10),
+                    "Actually visible head faces retain a two-dimensional material sample.");
+            }
+        }
+
+        [TestCase(1,3.7f,3.7f)]
+        [TestCase(2,4.2f,3.8f)]
+        public void ExposedHeadMaterialRetainsSourceAtmosphereWithABroadBearingResponse(int variant,float width,float depth)
+        {
+            const float u0=3.1f,v0=7.2f,top=-2,bottom=-20;
+            float u=u0+width*.5f,v=v0+depth*.5f;object head=Builder();
+            Call("DistantFurnaceHead",head,u0,v0,u0+width,v0+depth,top,Color.white,variant);
+            var points=Field<List<Vector3>>(head,"V");var uv=Field<List<Vector2>>(head,"U");
+            var indices=Field<List<int>>(head,"T");var colors=Field<List<Color>>(head,"C");
+            var originalPoints=points.ToArray();var originalUV=uv.ToArray();var originalIndices=indices.ToArray();var before=colors.ToArray();
+            Call("FinishDistantStone",head,0,u,v,top,bottom,variant);
+            CollectionAssert.AreEqual(originalPoints,points);CollectionAssert.AreEqual(originalUV,uv);CollectionAssert.AreEqual(originalIndices,indices);
+            Vector3 origin=Project(u,v);float low=float.MaxValue,high=float.MinValue;
+            foreach(int i in new HashSet<int>(indices))
+            {
+                Vector3 p=points[i];float h=p.y-origin.y;
+                float rise=Mathf.SmoothStep(0,1,Mathf.InverseLerp(bottom+3,top,h));
+                Color ambient=Color.Lerp(new Color(.64f,.70f,.82f),new Color(1.08f,1.05f,1.02f),rise);
+                float stain=.96f+.04f*Mathf.Sin((p.x-origin.x)*1.1f+variant*1.7f);
+                float heat=Mathf.Clamp01(1-Mathf.Abs(h-(top-10))/7.5f);
+                // Remove the unchanged atmospheric/weather/fire response from
+                // real head vertices to isolate the new supported-stone finish.
+                float r=colors[i].r/(before[i].r*ambient.r*stain*(1+.10f*heat));
+                float g=colors[i].g/(before[i].g*ambient.g*stain*(1+.025f*heat));
+                float b=colors[i].b/(before[i].b*ambient.b*stain*(1-.025f*heat));
+                Assert.That(r,Is.InRange(.99999f,1.23501f));Assert.That(g,Is.EqualTo(r).Within(.00001f));
+                Assert.That(b,Is.EqualTo(r).Within(.00001f));Assert.That(colors[i].a,Is.EqualTo(before[i].a));
+                low=Mathf.Min(low,r);high=Mathf.Max(high,r);
+            }
+            Assert.That(high,Is.GreaterThan(1.13f));Assert.That(high-low,Is.GreaterThan(.045f),
+                "The actual head must have a broad bearing/neck hierarchy, not one global exposure lift.");
+        }
+
         [Test]
         public void LowerBrokenServiceArchRemainsBorneByBothCoresWithOpenMiddle()
         {
@@ -261,6 +362,7 @@ namespace Cryptforge.Tests
             "The original attachment/datum point must remain present.");
         private static bool Near(Vector3 a,Vector3 b)=>(a-b).sqrMagnitude<Epsilon*Epsilon;
         private static bool Finite(float value)=>!float.IsNaN(value)&&!float.IsInfinity(value);
+        private static double Area(Vector2 a,Vector2 b,Vector2 c)=>((double)b.x-a.x)*((double)c.y-a.y)-((double)b.y-a.y)*((double)c.x-a.x);
         private static Vector3 Project(float u,float v)=>(Vector3)Call("Project",u,v);
         private static object Builder()=>Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
         private static T Field<T>(object builder,string name)=>(T)builder.GetType().GetField(name,Fields).GetValue(builder);

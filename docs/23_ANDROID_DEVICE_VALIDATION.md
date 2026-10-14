@@ -2171,3 +2171,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 This is a modest material-cohesion improvement, not a new layout or completed reference reproduction. Camera, map bounds, navigation, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer, crowd and midrange performance remain unverified. No ADB operation, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.
+
+
+## 2026-10-14 - Foundry bearing architecture verified; device pending
+
+438 .NET / 631 EditMode / 159 PlayMode = 1,228 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 620 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 6AF3C51E2A249A856391B4D5B214820C3E2E008AE78D4DDFDF842FAFD6B57DD4; NOT INSTALLED.
+
+This is a local bearing-architecture improvement. Map, camera, navigation, equipment placement, encounters and gameplay remain unchanged. Broader continuous grain reduces stamped repetition but is softer at close range than the reference; reference fidelity is unfinished. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer and midrange performance remain unverified. No phone control, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.

@@ -1364,3 +1364,14 @@ Broad material use now distinguishes the scrubbed entry from the settled working
 Region 34 renderers / 161385 vertices versus 34 / 161161 (+224 vertices); distant geometry remains 3572 vertices. No new runtime texture, material, renderer, updater or per-frame work is introduced. Existing startup paving and material generation performs the added bounded colour sampling. Static counts are not device performance evidence.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.
+
+
+## 2026-10-14 - Foundry bearing architecture verified; device pending
+
+Service-tower crowns now have joined recessed bearing bands and whole-head mineral sampling. Four working shelves and two casting cantilevers use raked stone knees beneath continuous bearing beds. The entrance bridge gains a carved inner return and shoulder while its front and soffit share one physical grain field; near-island arch bays and responds receive coherent parent-surface grain.
+
+Region 34 renderers / 160561 vertices versus 34 / 161385 (-824 vertices). This region total includes the distant meshes, which are 3540 versus 3572 vertices (-32); do not add that saving again. No new runtime texture, material, renderer, updater or per-frame work is introduced. The existing startup mesh/UV generation performs the changes. Static counts do not establish device frame time.
+
+Whole-parent grain is a continuity foundation; the next material pass should recover restrained fine stone detail without restarting the texture on every facet.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
