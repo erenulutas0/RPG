@@ -98,21 +98,32 @@ namespace Cryptforge.Tests
         {
             object returns=Builder(),front=Builder();
             Call("BuildBridgeBent",returns,front,-64.8f,primary);
-            var points=Data<Vector3>(front,"V");var uv=Data<Vector2>(front,"U");
-            Vector3 origin=points[0];Vector2 field=uv[0];int other=1;
-            while(Vector3.Distance(points[other],origin)<.01f)other++;
-            float scale=Vector2.Distance(uv[other],field)/Vector3.Distance(points[other],origin);
-            Assert.That(scale,Is.GreaterThan(.01f).And.LessThan(.08f));
+            // A fixed physical field now folds within the protected atlas region.
+            // The old globally affine fit enlarged grain on large supports. Keep
+            // the independent datum and require interpolated triangle interiors,
+            // not merely endpoints, to follow the same continuous physical field.
+            Vector3 origin=new Vector3(0,-64.8f*FoundryMap.Axis*.5f);
+            Vector2 Expected(Vector3 point)=>new Vector2(.04f+Mirror((point.x-origin.x)*.075f/.35f)*.35f,
+                .44f+Mirror((point.y-origin.y)*.075f/.124f)*.124f);
             int compared=0;
             foreach(object mesh in new[]{front,returns})
             {
                 var p=Data<Vector3>(mesh,"V");var u=Data<Vector2>(mesh,"U");
                 foreach(int i in new HashSet<int>(Data<int>(mesh,"T")))
                 {
-                    Vector2 expected=field+(Vector2)(p[i]-origin)*scale;
+                    Vector2 expected=Expected(p[i]);
                     Assert.That(Vector2.Distance(u[i],expected),Is.LessThan(.000002f),
                         "A fitted stone, dressed arris or separate soffit batch cannot restart the parent mineral field.");
                     compared++;
+                }
+                var indices=Data<int>(mesh,"T");
+                for(int i=0;i<indices.Count;i+=3)
+                {
+                    int a=indices[i],b=indices[i+1],c=indices[i+2];
+                    Vector3 sample=p[a]*.23f+p[b]*.31f+p[c]*.46f;
+                    Vector2 actual=u[a]*.23f+u[b]*.31f+u[c]*.46f;
+                    Assert.That(Vector2.Distance(actual,Expected(sample)),Is.LessThan(.000002f),
+                        "Triangles must split at a fold rather than smear across it.");
                 }
             }
             Assert.That(compared,Is.GreaterThan(150));
@@ -147,6 +158,94 @@ namespace Cryptforge.Tests
                     Vector3.Lerp(face[3],face[2],(x+.37f)/13),(y+.41f)/11)),Is.True);
         }
 
+        [Test]
+        public void PrimarySpandrelCoursesPartitionEveryOriginalHaunchFace()
+        {
+            Vector3 origin=new Vector3(0,-64.8f*FoundryMap.Axis*.5f);
+            int oldVertices=0,newVertices=0,checkedFaces=0;
+            for(int i=0;i<11;i++)
+            {
+                float a=i*Mathf.PI/11,b=(i+1)*Mathf.PI/11;
+                var face=new[]{origin+new Vector3(Mathf.Cos(a)*5.18f*FoundryMap.Axis,
+                        Mathf.Min(-3.03f,-6.1f+Mathf.Sin(a)*3.42f)),
+                    origin+new Vector3(Mathf.Cos(b)*5.18f*FoundryMap.Axis,
+                        Mathf.Min(-3.03f,-6.1f+Mathf.Sin(b)*3.42f)),
+                    origin+new Vector3(Mathf.Cos(b)*5.18f*FoundryMap.Axis,-3.03f),
+                    origin+new Vector3(Mathf.Cos(a)*5.18f*FoundryMap.Axis,-3.03f)};
+                double expected=Math.Abs(Cross(face[0],face[1],face[2]))+Math.Abs(Cross(face[0],face[2],face[3]));
+                if(expected<1e-9)continue;
+                object mesh=Builder();Call("BridgeSpandrelCourses",mesh,face[0],face[1],face[2],face[3],origin);
+                var points=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
+                double actual=0;
+                for(int triangle=0;triangle<triangles.Count;triangle+=3)
+                {
+                    Vector3 p=points[triangles[triangle]],q=points[triangles[triangle+1]],r=points[triangles[triangle+2]];
+                    double area=Math.Abs(Cross(p,q,r));Assert.That(area,Is.GreaterThan(1e-10));actual+=area;
+                    Assert.That(Owners(mesh,((double)p.x+q.x+r.x)/3,((double)p.y+q.y+r.y)/3),Is.EqualTo(1),
+                        "A fitted block or mortar bed cannot retain an underlying parent face.");
+                }
+                Assert.That(actual,Is.EqualTo(expected).Within(.00001),"The clipped courses must preserve the entire original haunch area.");
+                foreach(Vector3 p in points)Assert.That(InQuad(p,face),Is.True);
+                foreach(Vector3 p in face)Assert.That(points,Does.Contain(p),"Retain the original arch and straight bearing contact stations.");
+                oldVertices+=4;newVertices+=points.Count;checkedFaces++;
+            }
+            Assert.That(checkedFaces,Is.GreaterThan(4));
+            Assert.That(newVertices-oldVertices,Is.InRange(1,400),"Refine existing haunches within the declared bounded entry budget.");
+        }
+
+        [Test]
+        public void ActualPrimarySpandrelBedsRegisterAcrossWedgesWithoutAnOverpaintingBase()
+        {
+            object returns=Builder(),front=Builder();const float station=-64.8f;
+            Call("BuildBridgeBent",returns,front,station,true);
+            Vector3 origin=new Vector3(0,station*FoundryMap.Axis*.5f);
+            // Samples straddle the first/second original wedges on each side.
+            // Shared bed heights are architectural coordinates, independent of
+            // each wedge's different lower edge and internal triangulation.
+            foreach(float side in new[]{-1f,1f})foreach(float bed in new[]{-5.1f,-4.1f})
+            {
+                foreach(float d in new[]{5.05f,bed< -5?4.965f:4.6f})
+                {
+                    Vector3 joint=origin+new Vector3(side*d*FoundryMap.Axis,bed+.003f);
+                    Assert.That(Owners(front,joint),Is.EqualTo(1));
+                    float mortar=ColourAt(front,joint);
+                    Assert.That(ColourAt(front,joint+Vector3.up*.07f)-mortar,Is.GreaterThan(.08f),
+                        "A real dark bed must divide the two fitted courses across source wedge boundaries.");
+                    Assert.That(Owners(front,joint+Vector3.up*.07f),Is.EqualTo(1));
+                }
+            }
+        }
+
+        private static int Owners(object mesh,Vector3 point)=>Owners(mesh,point.x,point.y);
+
+        private static int Owners(object mesh,double px,double py)
+        {
+            var p=Data<Vector3>(mesh,"V");var t=Data<int>(mesh,"T");int owners=0;
+            for(int i=0;i<t.Count;i+=3)
+            {
+                Vector3 a=p[t[i]],b=p[t[i+1]],c=p[t[i+2]];
+                double area=Cross(a,b,c);if(Math.Abs(area)<1e-10)continue;
+                double x=((b.x-px)*(c.y-py)-(b.y-py)*(c.x-px))/area;
+                double y=((px-a.x)*(c.y-(double)a.y)-(py-a.y)*(c.x-(double)a.x))/area,z=1-x-y;
+                if(x>1e-6&&y>1e-6&&z>1e-6)owners++;
+            }
+            return owners;
+        }
+
+        private static float ColourAt(object mesh,Vector3 point)
+        {
+            var p=Data<Vector3>(mesh,"V");var t=Data<int>(mesh,"T");var c=Data<Color>(mesh,"C");
+            for(int i=0;i<t.Count;i+=3)
+            {
+                Vector3 a=p[t[i]],b=p[t[i+1]],d=p[t[i+2]];
+                double area=Cross(a,b,d);if(Math.Abs(area)<1e-10)continue;
+                double x=Cross(point,b,d)/area,y=Cross(a,point,d)/area,z=1-x-y;
+                if(x>=-1e-6&&y>=-1e-6&&z>=-1e-6)
+                    return (float)(c[t[i]].grayscale*x+c[t[i+1]].grayscale*y+c[t[i+2]].grayscale*z);
+            }
+            Assert.Fail("The expected fitted masonry sample has no owner.");return 0;
+        }
+
         private static float OriginalIntrados(float d)
         {
             // The baseline aperture is the eleven-segment polygon, not an
@@ -159,6 +258,11 @@ namespace Cryptforge.Tests
                 return Mathf.Lerp(-6.1f+Mathf.Sin(a)*2.35f,-6.1f+Mathf.Sin(b)*2.35f,(d-x0)/(x1-x0));
             }
             throw new ArgumentOutOfRangeException(nameof(d));
+        }
+        private static float Mirror(float value)
+        {
+            double period=value-System.Math.Floor(value/2d)*2d;
+            return (float)(period<=1d?period:2d-period);
         }
         private static void CheckMesh(object mesh)
         {

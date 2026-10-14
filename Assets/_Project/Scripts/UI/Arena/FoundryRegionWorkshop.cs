@@ -146,14 +146,11 @@ namespace Cryptforge.UI
 
         private static void ServiceShelfGrain(Builder mesh,int first,int end)
         {
-            Vector2 low=new Vector2(float.MaxValue,float.MaxValue),high=new Vector2(float.MinValue,float.MinValue);
-            for(int i=first;i<end;i++){low=Vector2.Min(low,mesh.V[i]);high=Vector2.Max(high,mesh.V[i]);}
-            Vector2 span=high-low;
-            float scale=Mathf.Min(.035f,Mathf.Min(.14f/Mathf.Max(.001f,span.x),.092f/Mathf.Max(.001f,span.y)));
-            // The same broad mineral interior spans each complete supported piece.
-            // Returns, haunches and bearing facets no longer restart or stretch
-            // the atlas on every narrow quad. Existing light colours are retained.
-            for(int i=first;i<end;i++)mesh.U[i]=new Vector2(.275f,.655f)+((Vector2)mesh.V[i]-low)*scale;
+            // One world field crosses the shelf's foundation, raised face and
+            // cantilevers. Mirror only inside the existing clean stone patch;
+            // physical texel density does not shrink as a support gets larger.
+            StoneDetailGrain(mesh,first,end,Vector2.zero,Vector2.right,
+                new Vector4(.275f,.655f,.415f,.747f),.075f);
         }
 
         private static void ServiceShelfGirder(Builder iron,Vector3 a,Vector3 b,Vector3 inset,float top,bool light)

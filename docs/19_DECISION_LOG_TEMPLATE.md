@@ -1240,3 +1240,12 @@ Decision: reshape existing bearing faces inside their current envelopes and use 
 Region 34 renderers / 160561 vertices versus 34 / 161385 (-824 vertices). This region total includes the distant meshes, which are 3540 versus 3572 vertices (-32); do not add that saving again. No new runtime texture, material, renderer, updater or per-frame work is introduced. The existing startup mesh/UV generation performs the changes. Static counts do not establish device frame time.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
+
+
+## 2026-10-14 - Foundry stone detail verified; device pending
+
+Decision: recover fixed physical-scale grain within existing atlas interiors using bounded static fold subdivision; reshape existing service piers and bridge haunches within their old contours. Fixed-scale mineral grain restores finer stone detail across bridge bearings, undercroft bays/responds and workshop shelf/casting supports. Service-tower piers gain recessed blind fields inside their existing outlines. The entrance bridge haunches gain broad joined courses with separately owned mortar cells.
+
+Region 34 renderers / 167208 vertices versus 34 / 160561 (+6647, about 4.14%). Distant geometry is 3572 versus 3540 (+32), already included in the region total. Global ceilings remain 174000 region and 3600 distant, leaving 6792 and 28 vertices. The local completed-support cap intentionally rises from 760 to 1024 for measured 925-991 supports; this is a real geometry-budget allowance. Fixed-scale grain adds startup mesh subdivision/cut caching, but no new runtime texture, material, renderer, shader or per-frame updater. Existing depth-shading functions now sample finer geometry, so rendered interpolation is not bit-identical. Static counts do not establish phone performance.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.

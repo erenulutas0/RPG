@@ -98,6 +98,86 @@ namespace Cryptforge.Tests
             }
         }
 
+        [TestCase(1,true)]
+        [TestCase(1,false)]
+        [TestCase(2,true)]
+        [TestCase(2,false)]
+        public void AuthoredBayPiersReplaceFlatFieldsWithClosedRecessesAndContinuousMasonry(int variant,bool west)
+        {
+            float u=variant==1?12:-5,v=variant==1?42:39;
+            float width=variant==1?3.7f:4.2f,depth=variant==1?3.7f:3.8f;
+            float sill=variant==1?-18.2f:-20.2f,head=variant==1?-9.1f:-10.6f;
+            float u0=u-width*.5f,u1=u+width*.5f,v0=v-depth*.5f,v1=v+depth*.5f;
+            Vector3 At(float t,float z,float inset)=>(west?Project(u0+inset,Mathf.Lerp(v1,v0,t)):
+                Project(Mathf.Lerp(u0,u1,t),v0+inset))+Vector3.up*z;
+            object facade=Builder(),fire=Builder();
+            Call("DistantRecessFace",facade,fire,u0,v0,u1,v1,west,sill,head,.46f,Color.white);
+            AssertMesh(facade,finalColors:false);
+            var points=Field<List<Vector3>>(facade,"V");var uv=Field<List<Vector2>>(facade,"U");
+            var indices=Field<List<int>>(facade,"T");var colors=Field<List<Color>>(facade,"C");
+            // Inspect the two actual pier owners emitted by the production bay,
+            // rather than constructing an isolated sample of the new helper.
+            for(int pier=0;pier<2;pier++)
+            {
+                float left=pier==0?0:.71f,right=pier==0?.29f:1,side=(right-left)*.22f;
+                int first=pier*8,indexStart=pier*30;
+                var outer=new[]{At(left,sill,0),At(right,sill,0),At(right,head,0),At(left,head,0)};
+                var inner=new[]{At(left+side,sill+.85f,.12f),At(right-side,sill+.85f,.12f),
+                    At(right-side,head-.85f,.12f),At(left+side,head-.85f,.12f)};
+                var faces=indices.GetRange(indexStart,30);var used=new HashSet<int>(faces);
+                Assert.That(used.Count,Is.EqualTo(8),"Four returns and one back must share their two indexed contours.");
+                foreach(int index in used)Assert.That(index,Is.InRange(first,first+7));
+                double total=0,expected=Area(outer[0],outer[1],outer[2])+Area(outer[0],outer[2],outer[3]);
+                for(int edge=0;edge<4;edge++)
+                {
+                    int next=(edge+1)%4;
+                    Assert.That(Vector3.Distance(points[first+edge],outer[edge]),Is.LessThan(Epsilon));
+                    Assert.That(Vector3.Distance(points[first+4+edge],inner[edge]),Is.LessThan(Epsilon));
+                    Assert.That(EdgeIncidence(points,faces,outer[edge],outer[next]),Is.EqualTo(1),
+                        "The original rectangular footprint has one owner, with no duplicate flat wall.");
+                    Assert.That(EdgeIncidence(points,faces,inner[edge],inner[next]),Is.EqualTo(2),
+                        "Every inset back edge must join its bearing return.");
+                }
+                foreach(int index in used)
+                {
+                    Vector3 p=points[index];
+                    for(int edge=0;edge<4;edge++)Assert.That(Area(outer[edge],outer[(edge+1)%4],p),
+                        Is.GreaterThanOrEqualTo(-1e-8),"No new pier surface may escape the retained projected wall.");
+                    Assert.That(uv[index].x,Is.EqualTo(p.x/2.1f).Within(.00001f));
+                    Assert.That(uv[index].y,Is.EqualTo((p.y-(west?-.5f:.5f)*p.x)/1.8f).Within(.00001f),
+                        "The inset and bearing must continue the existing facade field, not restart its atlas.");
+                }
+                for(int i=0;i<faces.Count;i+=3)
+                {
+                    double area=Area(points[faces[i]],points[faces[i+1]],points[faces[i+2]]);
+                    Assert.That(area,Is.GreaterThan(1e-7),"A reversed return would overlap its recessed field in the fixed view.");
+                    total+=area;
+                }
+                Assert.That(total,Is.EqualTo(expected).Within(1e-8),
+                    "The closed pier partition must cover exactly its former wall area, without a second base layer.");
+                for(int row=0;row<9;row++)for(int column=0;column<9;column++)
+                {
+                    Vector3 sample=At(Mathf.Lerp(left,right,(column+.317f)/9),Mathf.Lerp(sill,head,(row+.583f)/9),0);
+                    int coverage=0;
+                    for(int i=0;i<faces.Count;i+=3)
+                    {
+                        Vector3 a=points[faces[i]],b=points[faces[i+1]],c=points[faces[i+2]];
+                        double area=Area(a,b,c),x=Area(sample,b,c)/area,y=Area(a,sample,c)/area,z=1-x-y;
+                        if(x>1e-9&&y>1e-9&&z>1e-9)coverage++;
+                    }
+                    Assert.That(coverage,Is.EqualTo(1),"Actual wall interiors have one visible pier owner.");
+                }
+                for(int corner=0;corner<4;corner++)
+                {
+                    float height=corner<2?sill+.85f:head-.85f;
+                    float original=Mathf.Lerp(.88f,1.03f,Mathf.InverseLerp(sill,head,height));
+                    Assert.That(colors[first+4+corner].r/original,Is.EqualTo(.78f).Within(.00001f),
+                        "A broad recessed field must remain visibly subordinate to its outer bearing.");
+                    Assert.That(colors[first+4+corner].a,Is.EqualTo(1));
+                }
+            }
+        }
+
         [TestCase(2.06f,2.06f,.9f,.22f)]
         [TestCase(2.4f,2f,.8f,.26f)]
         public void HollowExhaustHasFourConnectedInnerWallsAndNoCapAcrossMouth(float width,float depth,float height,float wall)

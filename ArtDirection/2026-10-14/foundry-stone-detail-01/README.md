@@ -1,0 +1,34 @@
+# Foundry stone detail
+
+Verified 2026-10-14. Baseline `d9f33320bac6eb9fe9c5873e163337025f9ad747`.
+
+Fixed-scale mineral grain restores finer stone detail across bridge bearings, undercroft bays/responds and workshop shelf/casting supports. Service-tower piers gain recessed blind fields inside their existing outlines. The entrance bridge haunches gain broad joined courses with separately owned mortar cells.
+
+Region 34 renderers / 167208 vertices versus 34 / 160561 (+6647, about 4.14%). Distant geometry is 3572 versus 3540 (+32), already included in the region total. Global ceilings remain 174000 region and 3600 distant, leaving 6792 and 28 vertices. The local completed-support cap intentionally rises from 760 to 1024 for measured 925-991 supports; this is a real geometry-budget allowance. Fixed-scale grain adds startup mesh subdivision/cut caching, but no new runtime texture, material, renderer, shader or per-frame updater. Existing depth-shading functions now sample finer geometry, so rendered interpolation is not bit-identical. Static counts do not establish phone performance.
+
+## Verification
+
+438 .NET / 645 EditMode / 159 PlayMode = 1,242 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 622 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 7B9DF62AAB90B43B35713D07A14181BC2111EB63DDEE4852ABDC70D6D70E5FA3; NOT INSTALLED.
+
+Two helpers implemented disjoint service-pier and bridge-haunch geometry/test scopes; root implemented fixed-scale mineral subdivision and integration. A third helper independently reviewed source and fresh native images. Fourteen additional EditMode cases and strengthened existing cases cover actual geometry, folds, shared edges, UV/colour interpolation, exact coverage, preserved contacts and static-only use. First focused run: 236/241 passed; corrected an invalid global projected-ownership oracle. Second focused run: 239/243 passed; explicitly allowed the measured local support geometry cost. Rejected XML/source evidence is retained. Full final acceptance uses the frozen repaired source; no Assets changed through accepted capture, suites and build.
+
+## Evidence boundary
+
+Twenty-one fresh Before/After pairs use the same actual Android-target Unity scene, cameras and actor staging. Combat is paused and HUD hidden. The reference is concept art. See validation/actual-image-review.md, independent-image-review.md and final-scope.md.
+
+This is an incremental material/construction improvement; the full-map change is modest and reference fidelity remains unfinished. Map, camera, navigation, equipment placement, encounters and gameplay remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer and midrange performance remain unverified. No phone control, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
+
+## Reproduction
+
+Run from E:/MobileGame with Unity closed:
+
+```powershell
+dotnet test Tools/CombatChecks/CombatChecks.csproj --configuration Release
+dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj --nologo
+pwsh -NoProfile -File Tools/ArtReview/Run-FoundryStoneDetailProof.ps1 -Phase after
+pwsh -NoProfile -File Tools/Run-UnityTests.ps1
+pwsh -NoProfile -File Tools/Verify-Project.ps1
+```
+
+The Before launcher pins the baseline and requires unchanged Assets. Final source and image hashes are recorded under validation. Next work is scoped in validation/next-visual-priorities.md.

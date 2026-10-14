@@ -1375,3 +1375,14 @@ Region 34 renderers / 160561 vertices versus 34 / 161385 (-824 vertices). This r
 Whole-parent grain is a continuity foundation; the next material pass should recover restrained fine stone detail without restarting the texture on every facet.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
+
+
+## 2026-10-14 - Foundry stone detail verified; device pending
+
+Fixed-scale mineral grain restores finer stone detail across bridge bearings, undercroft bays/responds and workshop shelf/casting supports. Service-tower piers gain recessed blind fields inside their existing outlines. The entrance bridge haunches gain broad joined courses with separately owned mortar cells.
+
+Region 34 renderers / 167208 vertices versus 34 / 160561 (+6647, about 4.14%). Distant geometry is 3572 versus 3540 (+32), already included in the region total. Global ceilings remain 174000 region and 3600 distant, leaving 6792 and 28 vertices. The local completed-support cap intentionally rises from 760 to 1024 for measured 925-991 supports; this is a real geometry-budget allowance. Fixed-scale grain adds startup mesh subdivision/cut caching, but no new runtime texture, material, renderer, shader or per-frame updater. Existing depth-shading functions now sample finer geometry, so rendered interpolation is not bit-identical. Static counts do not establish phone performance.
+
+Mirrored grain repeats inside existing mortar-free atlas interiors. Split triangles at fold boundaries; cache canonical shared intersections. Apply once per completed parent before batching. Further art work should improve foreground material families and existing workyard composition, not consume the remaining budget on microscopic subdivisions.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.

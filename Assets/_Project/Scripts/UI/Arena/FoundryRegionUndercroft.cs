@@ -283,7 +283,7 @@ namespace Cryptforge.UI
             }
             // The complete bay has one quarry field. Individual voussoirs keep
             // their face lighting without rotating or enlarging the same stamp.
-            FortressMapGrain(stone,first,stone.V.Count,b-a);
+            FortressDetailGrain(stone,first,stone.V.Count,b-a);
         }
 
         private static void UndercroftSpandrel(Builder stone,Vector3 a,Vector3 b)
@@ -311,8 +311,8 @@ namespace Cryptforge.UI
             Vector3 deckA=a+Vector3.down*2.8f,deckB=b+Vector3.down*2.8f;
             stone.WallQuad(deckA,deckB,deckB+Vector3.down*.16f,deckA+Vector3.down*.16f,
                 false,new Color(tone.r*.78f,tone.g*.80f,tone.b*.84f));
-            // One mineral field across the thirteen construction segments and the
-            // existing deck contact. Their emission seams are not tiny brick rows.
+            // The final parent bay performs the detailed grain pass once, after
+            // adding its arch faces. This provisional map adds no subdivision.
             FortressMapGrain(stone,first,stone.V.Count,b-a);
         }
 
@@ -369,7 +369,7 @@ namespace Cryptforge.UI
                     p+Vector3.right*width+Vector3.down*.2f,p+Vector3.left*width+Vector3.down*.2f,
                     major?new Color(.46f,.49f,.57f):new Color(.35f,.39f,.48f),major);
             }
-            FortressMapGrain(stone,first,stone.V.Count,Vector3.up);
+            FortressDetailGrain(stone,first,stone.V.Count,Vector3.up);
         }
 
         private void BuildUndercroftSocket(ArenaView arena,Vector2 at,Vector3 anchor,bool major)

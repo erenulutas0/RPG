@@ -851,3 +851,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
+
+
+## 2026-10-14 - Foundry stone detail verified; device pending
+
+- [x] Combine fixed-scale stone detail, service-pier recesses and entrance haunch masonry; verify native matched captures and full regression/build gate.
+- [ ] Improve coherent foreground material/detail families and existing work-area composition; preserve quiet combat lanes and current budgets. See package next-visual-priorities.md.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.

@@ -264,8 +264,11 @@ namespace Cryptforge.UI
                     FortressMineralFace(stone,innerA,innerA+back,innerB+back,innerB,new Color(.31f,.35f,.45f),false);
                     // The filled spandrel bears the straight underside of the deck.
                     if(outerA.y<At(0,bearing).y-.00001f||outerB.y<At(0,bearing).y-.00001f)
-                        FortressMineralFace(front,outerA,outerB,At(Mathf.Cos(b)*(half+.18f),bearing),
-                            At(Mathf.Cos(a)*(half+.18f),bearing),primary?new Color(.49f,.53f,.62f):new Color(.34f,.39f,.48f),false);
+                    {
+                        Vector3 upperB=At(Mathf.Cos(b)*(half+.18f),bearing),upperA=At(Mathf.Cos(a)*(half+.18f),bearing);
+                        if(primary)BridgeSpandrelCourses(front,outerA,outerB,upperB,upperA,Deck(s,0));
+                        else FortressMineralFace(front,outerA,outerB,upperB,upperA,new Color(.34f,.39f,.48f),false);
+                    }
                 }
                 foreach(float sign in new[]{-1f,1f})
                 {
@@ -283,5 +286,89 @@ namespace Cryptforge.UI
                 BridgeBearingGrain(front,Deck(s,0));
                 BridgeBearingGrain(stone,Deck(s,0));
         }
+
+        private static void BridgeSpandrelCourses(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 origin)
+        {
+            // Three broad load-bearing courses are cut from the original haunch
+            // face. Their beds run across wedge boundaries at common world heights;
+            // they neither follow each wedge's taper nor overpaint a retained wall.
+            var face=new List<Vector2>{a,b,c,d};
+            float[] beds={-6.1f,-5.1f,-4.1f,-3.03f};
+            const float joint=.014f,blockWidth=2.25f;
+            float datum=origin.x-(FoundryMap.BridgeHalfWidth+.18f)*FoundryMap.Axis;
+            for(int row=0;row<3;row++)
+            {
+                float bottom=origin.y+beds[row]+(row==0?0:joint);
+                float top=origin.y+beds[row+1]-(row==2?0:joint);
+                var course=BridgeSpandrelClip(BridgeSpandrelClip(face,1,bottom,true),1,top,false);
+                float phase=datum+(row%2)*blockWidth*.5f;
+                for(int column=-1;column<5;column++)
+                {
+                    float left=phase+column*blockWidth,right=left+blockWidth;
+                    var block=BridgeSpandrelClip(BridgeSpandrelClip(course,0,left,true),0,right,false);
+                    BridgeSpandrelFace(mesh,BridgeSpandrelClip(block,0,left+joint,false),bottom,top,.57f);
+                    BridgeSpandrelFace(mesh,BridgeSpandrelClip(BridgeSpandrelClip(block,0,left+joint,true),
+                        0,right-joint,false),bottom,top,1+((row+column+4)%3-1)*.022f);
+                    BridgeSpandrelFace(mesh,BridgeSpandrelClip(block,0,right-joint,true),bottom,top,.57f);
+                }
+                if(row<2)
+                {
+                    float bed=origin.y+beds[row+1];
+                    BridgeSpandrelFace(mesh,BridgeSpandrelClip(BridgeSpandrelClip(face,1,bed-joint,true),
+                        1,bed+joint,false),bed-joint,bed+joint,.57f);
+                }
+            }
+        }
+
+        private static List<Vector2> BridgeSpandrelClip(List<Vector2> polygon,int axis,float boundary,bool greater)
+        {
+            var result=new List<Vector2>();if(polygon.Count==0)return result;
+            Vector2 previous=polygon[polygon.Count-1];
+            float previousValue=axis==0?previous.x:previous.y;
+            bool previousInside=greater?previousValue>=boundary:previousValue<=boundary;
+            foreach(Vector2 point in polygon)
+            {
+                float value=axis==0?point.x:point.y;
+                bool inside=greater?value>=boundary:value<=boundary;
+                if(inside!=previousInside)
+                {
+                    double t=((double)boundary-previousValue)/((double)value-previousValue);
+                    // Snap the cut axis to its shared authored station; double
+                    // interpolation avoids independently wandering joint corners.
+                    Vector2 hit=axis==0?new Vector2(boundary,(float)(previous.y+(point.y-(double)previous.y)*t)):
+                        new Vector2((float)(previous.x+(point.x-(double)previous.x)*t),boundary);
+                    Add(hit);
+                }
+                if(inside)Add(point);
+                previous=point;previousValue=value;previousInside=inside;
+            }
+            if(result.Count>1&&result[0].Equals(result[result.Count-1]))result.RemoveAt(result.Count-1);
+            return result;
+            void Add(Vector2 p){if(result.Count==0||!result[result.Count-1].Equals(p))result.Add(p);}
+        }
+
+        private static void BridgeSpandrelFace(Builder mesh,List<Vector2> polygon,float bottom,float top,float gain)
+        {
+            if(polygon.Count<3)return;
+            double area=0;
+            for(int i=1;i+1<polygon.Count;i++)
+                area+=System.Math.Abs(BridgeSpandrelArea(polygon[0],polygon[i],polygon[i+1]));
+            if(area<1e-9)return;
+            int first=mesh.V.Count;
+            foreach(Vector2 point in polygon)
+            {
+                // A low, broad upper-face catch sits within each real course,
+                // leaving the geometric mortar darker and the arch dominant.
+                float face=gain<.7f?gain:gain*Mathf.Lerp(.94f,1.06f,Mathf.InverseLerp(bottom,top,point.y));
+                mesh.V.Add(point);mesh.U.Add(Vector2.zero);
+                mesh.C.Add(new Color(.49f*face,.53f*face,.62f*face,1));
+            }
+            for(int i=1;i+1<polygon.Count;i++)
+                if(System.Math.Abs(BridgeSpandrelArea(polygon[0],polygon[i],polygon[i+1]))>1e-10)
+                    mesh.T.AddRange(new[]{first,first+i,first+i+1});
+        }
+
+        private static double BridgeSpandrelArea(Vector2 a,Vector2 b,Vector2 c)=>
+            ((double)b.x-a.x)*((double)c.y-a.y)-((double)b.y-a.y)*((double)c.x-a.x);
     }
 }

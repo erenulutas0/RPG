@@ -88,13 +88,16 @@ namespace Cryptforge.UI
             // the deck bearing. Small construction pieces must not restart or
             // rotate the mineral image at every joint. Both batches use the same
             // datum, including contacts along the opening.
-            float half=(Cryptforge.Art.FoundryMap.BridgeHalfWidth+.18f)*Cryptforge.Art.FoundryMap.Axis;
-            float scale=Mathf.Min(.35f/(2*half),.124f/5.7f);
-            for(int i=0;i<mesh.V.Count;i++)
-            {
-                Vector3 p=mesh.V[i]-origin;
-                mesh.U[i]=new Vector2(.04f+(p.x+half)*scale,.44f+(p.y+8.4f)*scale);
-            }
+            StoneDetailGrain(mesh,0,mesh.V.Count,origin,Vector2.right,
+                new Vector4(.04f,.44f,.39f,.564f),.075f);
+        }
+
+        private static void FortressDetailGrain(Builder mesh,int first,int end,Vector3 direction)
+        {
+            Vector2 axis=((Vector2)direction).normalized;
+            if(axis.sqrMagnitude<.5f)axis=Vector2.right;
+            StoneDetailGrain(mesh,first,end,Vector2.zero,axis,
+                new Vector4(.04f,.44f,.39f,.564f),.075f);
         }
 
         private static void FortressMapGrain(Builder mesh,int first,int end,Vector3 direction)

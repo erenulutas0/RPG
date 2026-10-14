@@ -321,8 +321,8 @@ namespace Cryptforge.UI
             int facadeStart=mesh.V.Count;
             float span=west?v1-v0:u1-u0,radius=(right-left)*span*.5f,spring=head-.38f-radius;
             System.Func<float,float,float,Vector3> p=(t,z,d)=>DistantFacePoint(u0,v0,u1,v1,west,t,z,d);
-            DistantMasonryFace(mesh,p(0,sill,0),p(left,sill,0),p(left,head,0),p(0,head,0),false,tone);
-            DistantMasonryFace(mesh,p(right,sill,0),p(1,sill,0),p(1,head,0),p(right,head,0),false,tone);
+            DistantShaftPier(mesh,p,0,left,sill,head,tone);
+            DistantShaftPier(mesh,p,right,1,sill,head,tone);
             // Jamb returns and deep sill expose the real distance to the core.
             DistantMasonryFace(mesh,p(left,sill,0),p(left,sill,recess),p(left,spring,recess),p(left,spring,0),false,tone*.64f);
             DistantMasonryFace(mesh,p(right,sill,recess),p(right,sill,0),p(right,spring,0),p(right,spring,recess),false,tone*.80f);
@@ -389,6 +389,37 @@ namespace Cryptforge.UI
             float facadeSlope=west?-.5f:.5f;
             for(int i=facadeStart;i<mesh.V.Count;i++)
                 mesh.U[i]=new Vector2(mesh.V[i].x/DistantStoneWidth,(mesh.V[i].y-facadeSlope*mesh.V[i].x)/DistantStoneHeight);
+        }
+
+        private static void DistantShaftPier(Builder mesh,System.Func<float,float,float,Vector3> point,
+            float left,float right,float bottom,float top,Color tone)
+        {
+            // One blind field replaces the whole former flat pier. Four broad
+            // sloping bearings meet its inset back, keeping the original outer
+            // rectangle and every neighbouring arch/shoulder contact. Shared
+            // indexed contours avoid both a hidden base and extra trim layers.
+            const float inset=.12f,verticalBearing=.85f;
+            float side=(right-left)*.22f;
+            int first=mesh.V.Count;
+            var t=new[]{left,right,right,left,left+side,right-side,right-side,left+side};
+            var z=new[]{bottom,bottom,top,top,bottom+verticalBearing,bottom+verticalBearing,
+                top-verticalBearing,top-verticalBearing};
+            for(int i=0;i<8;i++)
+            {
+                mesh.V.Add(point(t[i],z[i],i<4?0:inset));
+                // The existing facade-wide UV pass samples the same physical
+                // masonry field across the return and its actual recessed back.
+                mesh.U.Add(Vector2.zero);
+                float light=Mathf.Lerp(.88f,1.03f,Mathf.InverseLerp(bottom,top,z[i]));
+                Color color=tone*(light*(i<4?1f:.78f));color.a=tone.a;mesh.C.Add(color);
+            }
+            for(int edge=0;edge<4;edge++)
+            {
+                int next=(edge+1)%4;
+                mesh.T.AddRange(new[]{first+edge,first+next,first+4+next,
+                    first+edge,first+4+next,first+4+edge});
+            }
+            mesh.T.AddRange(new[]{first+4,first+5,first+6,first+4,first+6,first+7});
         }
 
         private static void DistantMasonryFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,bool cap,Color tone,

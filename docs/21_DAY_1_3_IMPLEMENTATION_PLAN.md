@@ -2568,3 +2568,15 @@ Files: FoundryRegionDistantWorks, Workshop, CastingBench, FortressSurface, Bridg
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 6AF3C51E2A249A856391B4D5B214820C3E2E008AE78D4DDFDF842FAFD6B57DD4; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
+
+
+## 2026-10-14 - Foundry stone detail verified; device pending
+
+Fixed-scale mineral grain restores finer stone detail across bridge bearings, undercroft bays/responds and workshop shelf/casting supports. Service-tower piers gain recessed blind fields inside their existing outlines. The entrance bridge haunches gain broad joined courses with separately owned mortar cells.
+
+Files: FoundryRegionStoneGrain (new), FortressSurface, Workshop, Undercroft, DistantWorks and BridgeSupports; StoneGrain (new), ServiceShaft, LoadingSupport and FortressHierarchy tests. Capture: Tools/ArtReview/FoundryStoneDetailCapture.cs and launcher.
+
+438 .NET / 645 EditMode / 159 PlayMode = 1,242 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 622 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 7B9DF62AAB90B43B35713D07A14181BC2111EB63DDEE4852ABDC70D6D70E5FA3; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.

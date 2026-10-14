@@ -1,0 +1,555 @@
+{
+  "checks": [
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/full-map.png",
+      "view": "full-map",
+      "viewDisabled": false,
+      "width": 1600
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/court-detail.png",
+      "view": "court-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/shaft-detail.png",
+      "view": "shaft-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/gate-crown-detail.png",
+      "view": "gate-crown-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/gate-detail.png",
+      "view": "gate-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/overview.png",
+      "view": "overview",
+      "viewDisabled": false,
+      "width": 1600
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach-0-0.png",
+      "view": "approach-0-0",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--20-6.png",
+      "view": "approach--20-6",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--16-15.png",
+      "view": "approach--16-15",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach-20-1.png",
+      "view": "approach-20-1",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/yard-detail.png",
+      "view": "yard-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/crane-detail.png",
+      "view": "crane-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/service-shaft-detail.png",
+      "view": "service-shaft-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/skyline-detail.png",
+      "view": "skyline-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/bridge-foot.png",
+      "view": "bridge-foot",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--29--29.png",
+      "view": "approach--29--29",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/bridge-detail.png",
+      "view": "bridge-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/forecourt-detail.png",
+      "view": "forecourt-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--8--12.png",
+      "view": "approach--8--12",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/stock-detail.png",
+      "view": "stock-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "before",
+      "src": "before/casting-detail.png",
+      "view": "casting-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/full-map.png",
+      "view": "full-map",
+      "viewDisabled": false,
+      "width": 1600
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/court-detail.png",
+      "view": "court-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/shaft-detail.png",
+      "view": "shaft-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/gate-crown-detail.png",
+      "view": "gate-crown-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/gate-detail.png",
+      "view": "gate-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/overview.png",
+      "view": "overview",
+      "viewDisabled": false,
+      "width": 1600
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach-0-0.png",
+      "view": "approach-0-0",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach--20-6.png",
+      "view": "approach--20-6",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach--16-15.png",
+      "view": "approach--16-15",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach-20-1.png",
+      "view": "approach-20-1",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/yard-detail.png",
+      "view": "yard-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/crane-detail.png",
+      "view": "crane-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/service-shaft-detail.png",
+      "view": "service-shaft-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/skyline-detail.png",
+      "view": "skyline-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/bridge-foot.png",
+      "view": "bridge-foot",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach--29--29.png",
+      "view": "approach--29--29",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/bridge-detail.png",
+      "view": "bridge-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/forecourt-detail.png",
+      "view": "forecourt-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach--8--12.png",
+      "view": "approach--8--12",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/stock-detail.png",
+      "view": "stock-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "after",
+      "src": "after/casting-detail.png",
+      "view": "casting-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": true,
+      "missing": false,
+      "phase": "reference",
+      "src": "../../2026-09-23/foundry-layout-01/foundry-v1.png",
+      "viewDisabled": true,
+      "width": 1536
+    }
+  ],
+  "initialImageLoadObservations": [
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/court-detail.png",
+      "view": "court-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/overview.png",
+      "view": "overview",
+      "viewDisabled": false,
+      "width": 1600
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach-0-0.png",
+      "view": "approach-0-0",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--20-6.png",
+      "view": "approach--20-6",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--16-15.png",
+      "view": "approach--16-15",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach-20-1.png",
+      "view": "approach-20-1",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/service-shaft-detail.png",
+      "view": "service-shaft-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "before",
+      "src": "before/approach--8--12.png",
+      "view": "approach--8--12",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/court-detail.png",
+      "view": "court-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/gate-detail.png",
+      "view": "gate-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/overview.png",
+      "view": "overview",
+      "viewDisabled": false,
+      "width": 1600
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach-0-0.png",
+      "view": "approach-0-0",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach--16-15.png",
+      "view": "approach--16-15",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach-20-1.png",
+      "view": "approach-20-1",
+      "viewDisabled": false,
+      "width": 1080
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/bridge-foot.png",
+      "view": "bridge-foot",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/bridge-detail.png",
+      "view": "bridge-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/forecourt-detail.png",
+      "view": "forecourt-detail",
+      "viewDisabled": false,
+      "width": 1200
+    },
+    {
+      "complete": false,
+      "missing": false,
+      "phase": "after",
+      "src": "after/approach--8--12.png",
+      "view": "approach--8--12",
+      "viewDisabled": false,
+      "width": 1080
+    }
+  ],
+  "note": "Initial immediate reads could precede image decode. Final checks follow state observations and all loaded successfully."
+}

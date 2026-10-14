@@ -1573,3 +1573,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Two helpers implemented disjoint tower and shelf scopes; root implemented bridge/undercroft and completed integration when a helper hit its usage limit. The independent reviewer resumed after the limit and completed both nine-file source review and fresh image review. No source blocker remained. Ten additional EditMode cases and strengthened existing cases cover actual geometry, envelope contacts, single profile ownership, aperture preservation and connected material fields. All source remained identical to the freeze through capture, suites and build.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
+
+
+## 2026-10-14 - Foundry stone detail verified; device pending
+
+438 .NET / 645 EditMode / 159 PlayMode = 1,242 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 622 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 7B9DF62AAB90B43B35713D07A14181BC2111EB63DDEE4852ABDC70D6D70E5FA3; NOT INSTALLED.
+
+Two helpers implemented disjoint service-pier and bridge-haunch geometry/test scopes; root implemented fixed-scale mineral subdivision and integration. A third helper independently reviewed source and fresh native images. Fourteen additional EditMode cases and strengthened existing cases cover actual geometry, folds, shared edges, UV/colour interpolation, exact coverage, preserved contacts and static-only use. First focused run: 236/241 passed; corrected an invalid global projected-ownership oracle. Second focused run: 239/243 passed; explicitly allowed the measured local support geometry cost. Rejected XML/source evidence is retained. Full final acceptance uses the frozen repaired source; no Assets changed through accepted capture, suites and build.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.

@@ -1,0 +1,251 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Cryptforge.Art;
+using Cryptforge.UI;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Cryptforge.Tests
+{
+    public sealed class FoundryLoadingSupportTests
+    {
+        private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
+        private const BindingFlags Members=BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
+        private static Type BuilderType=>typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);
+        private static object Builder()=>Activator.CreateInstance(BuilderType,true);
+        private static List<T> List<T>(object builder,string name)=>(List<T>)BuilderType.GetField(name,Members).GetValue(builder);
+
+        [TestCase("SalvageShelf")]
+        [TestCase("StockShelf")]
+        [TestCase("CastingShelf")]
+        [TestCase("Crane")]
+        public void LoadingFacadeRetainsPhysicalEnvelopeDeckAndBelowFloorSplit(string station)
+        {
+            bool crane=station=="Crane";
+            Vector4 box=crane?new Vector4(-27+FoundryMap.WestAssemblyOffset,11,-24+FoundryMap.WestAssemblyOffset,15):
+                (Vector4)typeof(FoundryRegionView).GetProperty(station,Static|BindingFlags.Public).GetValue(null);
+            float rise=crane?1.1f:.18f,depth=crane?3f:2.8f;
+            object foundation=Builder(),raised=Builder(),iron=Builder(),cap=Builder();
+            typeof(FoundryRegionView).GetMethod("ServiceShelfFaces",Static)
+                .Invoke(null,new[]{foundation,raised,iron,(object)box,rise,depth,!crane});
+            typeof(FoundryRegionView).GetMethod("BevelCap",Static)
+                .Invoke(null,new[]{cap,(object)box.x,box.y,box.z,box.w,rise});
+            CheckMesh(foundation,Prism(box,-depth,0));
+            CheckMesh(raised,Prism(box,0,crane?rise:rise-.15f));
+            CheckContinuousGrain(foundation,0,List<Vector3>(foundation,"V").Count);
+            CheckContinuousGrain(raised,0,List<Vector3>(raised,"V").Count);
+            object bearing=Bearing(box,-.42f,0,.085f);
+            AssertContainsTriangles(foundation,bearing);
+            CheckMesh(cap,Prism(box,rise,rise));
+            if(crane)Assert.That(List<Vector3>(iron,"V"),Is.Empty,"The crane retains its existing metal cap and socket.");
+            else CheckMesh(iron,Prism(box,rise-.15f,rise));
+            int cost=List<Vector3>(foundation,"V").Count+List<Vector3>(raised,"V").Count+
+                List<Vector3>(iron,"V").Count+List<Vector3>(cap,"V").Count;
+            Assert.That(cost,Is.LessThanOrEqualTo(760),"Keep the whole connected support bounded, not dozens of stacked trim pieces.");
+            // The unchanged cap supports the exact four deck corners. Its area is
+            // neither shrunk under the equipment nor expanded over the walking lane.
+            var capVertices=List<Vector3>(cap,"V");
+            foreach(Vector2 corner in Corners(box))
+            {
+                Vector3 target=Project(corner.x,corner.y)+Vector3.up*rise;
+                Assert.That(capVertices.Exists(p=>Vector3.Distance(p,target)<.000001f),Is.True);
+            }
+            // All four footprint interiors remain scenic. The original crane
+            // footing meets the West boundary exactly, so its boundary contact
+            // must not be mistaken for an added walkable-floor obstruction.
+            for(int u=0;u<=4;u++)for(int v=0;v<=4;v++)
+            {
+                FoundryMap.ToFloor(Mathf.Lerp(box.x+.0001f,box.z-.0001f,u*.25f),
+                    Mathf.Lerp(box.y+.0001f,box.w-.0001f,v*.25f),out float x,out float y);
+                Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False);
+            }
+        }
+
+        [Test]
+        public void CastingBearingsStayInsideOriginalBelowDeckAttachmentVolumes()
+        {
+            object mesh=Builder();
+            typeof(FoundryRegionView).GetMethod("CastingShelfBearings",Static).Invoke(null,new[]{mesh});
+            var first=Prism(new Vector4(-17.4f,17.8f,-16.7f,19.5f),-2.5f,-.32f);
+            var second=Prism(new Vector4(-14.3f,17.8f,-13.6f,19.5f),-2.5f,-.32f);
+            CheckMesh(mesh,null);
+            foreach(Vector3 p in List<Vector3>(mesh,"V"))
+                Assert.That(Contains(first,p)||Contains(second,p),Is.True,
+                    "A cantilever must not extend onto the walkable deck or beyond its established attachment box.");
+            Assert.That(List<Vector3>(mesh,"V").Count,Is.LessThanOrEqualTo(280));
+            var vertices=List<Vector3>(mesh,"V");
+            // Each existing cantilever remains a complete connected piece, with
+            // its original four foot, shoulder and cap contacts, including the
+            // back corners that are easy to lose in a two-visible-face rewrite.
+            CheckContinuousGrain(mesh,0,vertices.Count);
+            foreach(float u in new[]{-17.4f,-14.3f})
+            {
+                var foot=new[]{new Vector2(u+.10f,17.8f),new Vector2(u+.60f,17.8f),
+                    new Vector2(u+.60f,18.35f),new Vector2(u+.10f,18.35f)};
+                foreach(Vector2 p in foot)
+                    Assert.That(vertices.Contains(Project(p.x,p.y)+Vector3.down*2.5f),Is.True);
+                Vector4 box=new Vector4(u,17.8f,u+.7f,19.5f);
+                foreach(Vector2 p in Corners(box))foreach(float height in new[]{-.68f,-.32f})
+                    Assert.That(vertices.Contains(Project(p.x,p.y)+Vector3.up*height),Is.True);
+                AssertContainsTriangles(mesh,Bearing(box,-.68f,-.32f,.055f));
+            }
+        }
+
+        [Test]
+        public void BearingProfileHasAConnectedRecessWithoutAnOverlaidFlatBed()
+        {
+            // The two production proportions must retain real depth, a common
+            // corner at every change of slope, and exactly one visible owner.
+            foreach(Vector4 spec in new[]{new Vector4(5f,3.9f,.42f,.085f),new Vector4(.7f,1.7f,.36f,.055f)})
+            {
+                Vector4 box=new Vector4(0,0,spec.x,spec.y);
+                object mesh=Bearing(box,-spec.z,0,spec.w);
+                var v=List<Vector3>(mesh,"V");var t=List<int>(mesh,"T");
+                CheckMesh(mesh,Prism(box,-spec.z,0));
+                Assert.That(v.Count,Is.EqualTo(24),"Only six profile faces: no old flat wall behind the recess.");
+                foreach(float height in new[]{-spec.z,0})foreach(int corner in new[]{0,1,3})
+                {
+                    Vector2 p=Corners(box)[corner];
+                    Assert.That(v.Contains(Project(p.x,p.y)+Vector3.up*height),Is.True);
+                }
+                foreach(float fraction in new[]{.28f,.76f})
+                {
+                    Vector3 shared=Project(spec.w,spec.w)+Vector3.up*(-spec.z+spec.z*fraction);
+                    Assert.That(v.FindAll(p=>p.Equals(shared)).Count,Is.EqualTo(4),
+                        "Both sides must terminate on the same inset corner, above and below the joint.");
+                }
+                for(int triangle=0;triangle<t.Count;triangle+=3)
+                {
+                    Vector2 a=v[t[triangle]],b=v[t[triangle+1]],c=v[t[triangle+2]];
+                    Assert.That(Math.Abs(Cross(a,b,c)),Is.GreaterThan(.000001));
+                    Vector2 sample=(a+b+c)/3f;int owners=0;
+                    for(int other=0;other<t.Count;other+=3)
+                        if(StrictlyInside(sample,v[t[other]],v[t[other+1]],v[t[other+2]]))owners++;
+                    Assert.That(owners,Is.EqualTo(1),"A carved bearing must not retain an overpainting full-depth face.");
+                }
+            }
+        }
+
+        private static object Bearing(Vector4 box,float bottom,float top,float retreat)
+        {
+            object mesh=Builder();
+            typeof(FoundryRegionView).GetMethod("ServiceShelfBearing",Static)
+                .Invoke(null,new[]{mesh,(object)box,bottom,top,retreat,Color.white});
+            return mesh;
+        }
+
+        private static bool StrictlyInside(Vector2 p,Vector2 a,Vector2 b,Vector2 c)
+        {
+            double x=Cross(a,b,p),y=Cross(b,c,p),z=Cross(c,a,p);
+            return x>1e-8&&y>1e-8&&z>1e-8||x< -1e-8&&y< -1e-8&&z< -1e-8;
+        }
+
+        private static void AssertContainsTriangles(object actual,object part)
+        {
+            // Compare the emitted bearing itself after the common grain pass.
+            // Other existing support faces may overlap in the 2D projection;
+            // counting all projected hits would falsely reject those old returns.
+            // Fold coverage and single ownership are independently exercised in
+            // FoundryStoneGrainTests; this checks integration consumes the bearing.
+            typeof(FoundryRegionView).GetMethod("ServiceShelfGrain",Static)
+                .Invoke(null,new object[]{part,0,List<Vector3>(part,"V").Count});
+            var av=List<Vector3>(actual,"V");var at=List<int>(actual,"T");
+            var pv=List<Vector3>(part,"V");var pt=List<int>(part,"T");
+            for(int i=0;i<pt.Count;i+=3)
+            {
+                int owners=0;
+                for(int j=0;j<at.Count;j+=3)
+                    if(av[at[j]].Equals(pv[pt[i]])&&av[at[j+1]].Equals(pv[pt[i+1]])&&av[at[j+2]].Equals(pv[pt[i+2]]))owners++;
+                Assert.That(owners,Is.EqualTo(1),"The production foundation must consume each subdivided profile triangle exactly once.");
+            }
+        }
+
+        private static void CheckContinuousGrain(object mesh,int first,int end)
+        {
+            var v=List<Vector3>(mesh,"V");var uv=List<Vector2>(mesh,"U");
+            Vector2 Expected(Vector3 p)=>new Vector2(.275f+Mirror(p.x*.075f/.14f)*.14f,
+                .655f+Mirror(p.y*.075f/.092f)*.092f);
+            for(int i=first;i<end;i++)
+            {
+                Vector2 expected=Expected(v[i]);
+                Assert.That(Vector2.Distance(expected,uv[i]),Is.LessThan(.000002f),
+                    "All supports share one physical mineral field, including every return and joint.");
+                Assert.That(uv[i].x,Is.InRange(.274999f,.415001f));
+                Assert.That(uv[i].y,Is.InRange(.654999f,.747001f));
+            }
+            var triangles=List<int>(mesh,"T");
+            for(int i=0;i<triangles.Count;i+=3)
+            {
+                int a=triangles[i],b=triangles[i+1],c=triangles[i+2];
+                if(a<first||a>=end||b<first||b>=end||c<first||c>=end)continue;
+                Vector3 point=v[a]*.23f+v[b]*.31f+v[c]*.46f;
+                Vector2 actual=uv[a]*.23f+uv[b]*.31f+uv[c]*.46f;
+                Assert.That(Vector2.Distance(actual,Expected(point)),Is.LessThan(.000002f),
+                    "Triangle interpolation must not shortcut across a grain fold.");
+            }
+        }
+
+        private static float Mirror(float value)
+        {
+            double pair=value-Math.Floor(value/2d)*2d;
+            return (float)(pair<=1?pair:2-pair);
+        }
+
+        private static void CheckMesh(object mesh,List<Vector2> boundary)
+        {
+            var vertices=List<Vector3>(mesh,"V");var uv=List<Vector2>(mesh,"U");
+            var colors=List<Color>(mesh,"C");var triangles=List<int>(mesh,"T");
+            Assert.That(vertices.Count,Is.GreaterThan(0));
+            Assert.That(uv.Count,Is.EqualTo(vertices.Count));Assert.That(colors.Count,Is.EqualTo(vertices.Count));
+            foreach(Vector3 p in vertices)
+            {
+                Assert.That(float.IsNaN(p.x)||float.IsNaN(p.y)||float.IsInfinity(p.x)||float.IsInfinity(p.y),Is.False);
+                if(boundary!=null)Assert.That(Contains(boundary,p),Is.True,"Emitted masonry must stay within its original projected support volume.");
+            }
+            foreach(Vector2 p in uv)Assert.That(float.IsNaN(p.x)||float.IsNaN(p.y)||float.IsInfinity(p.x)||float.IsInfinity(p.y),Is.False);
+            Assert.That(triangles.Count%3,Is.Zero);
+            foreach(int index in triangles)Assert.That(index,Is.InRange(0,vertices.Count-1));
+        }
+
+        private static Vector2[] Corners(Vector4 box)=>new[]{new Vector2(box.x,box.y),new Vector2(box.z,box.y),
+            new Vector2(box.z,box.w),new Vector2(box.x,box.w)};
+
+        private static Vector3 Project(float u,float v)=>(Vector3)typeof(FoundryRegionView)
+            .GetMethod("Project",Static).Invoke(null,new object[]{u,v});
+
+        private static List<Vector2> Prism(Vector4 box,float bottom,float top)
+        {
+            var points=new List<Vector2>();
+            foreach(Vector2 corner in Corners(box))foreach(float height in new[]{bottom,top})
+                points.Add((Vector2)Project(corner.x,corner.y)+Vector2.up*height);
+            points.Sort((a,b)=>a.x!=b.x?a.x.CompareTo(b.x):a.y.CompareTo(b.y));
+            var lower=new List<Vector2>();var upper=new List<Vector2>();
+            foreach(Vector2 point in points)
+            {
+                while(lower.Count>=2&&Cross(lower[lower.Count-2],lower[lower.Count-1],point)<=0)lower.RemoveAt(lower.Count-1);
+                lower.Add(point);
+            }
+            for(int i=points.Count-1;i>=0;i--)
+            {
+                Vector2 point=points[i];
+                while(upper.Count>=2&&Cross(upper[upper.Count-2],upper[upper.Count-1],point)<=0)upper.RemoveAt(upper.Count-1);
+                upper.Add(point);
+            }
+            lower.RemoveAt(lower.Count-1);upper.RemoveAt(upper.Count-1);lower.AddRange(upper);return lower;
+        }
+
+        private static bool Contains(List<Vector2> hull,Vector2 p)
+        {
+            for(int i=0;i<hull.Count;i++)
+            {
+                Vector2 a=hull[i],b=hull[(i+1)%hull.Count];
+                if(Cross(a,b,p)<-.00002*Vector2.Distance(a,b))return false;
+            }
+            return true;
+        }
+
+        private static double Cross(Vector2 a,Vector2 b,Vector2 p)=>
+            ((double)b.x-a.x)*((double)p.y-a.y)-((double)b.y-a.y)*((double)p.x-a.x);
+    }
+}

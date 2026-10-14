@@ -42,7 +42,10 @@ namespace Cryptforge.Tests
             else CheckMesh(iron,Prism(box,rise-.15f,rise));
             int cost=List<Vector3>(foundation,"V").Count+List<Vector3>(raised,"V").Count+
                 List<Vector3>(iron,"V").Count+List<Vector3>(cap,"V").Count;
-            Assert.That(cost,Is.LessThanOrEqualTo(760),"Keep the whole connected support bounded, not dozens of stacked trim pieces.");
+            // Fine grain adds vertices only where a triangle crosses an atlas
+            // fold. Allow at most264 above the prior760 envelope; the actual
+            // production shelves use925..991. Overall region stays below174000.
+            Assert.That(cost,Is.LessThanOrEqualTo(1024),"Bound the complete support including fixed-scale grain cuts.");
             // The unchanged cap supports the exact four deck corners. Its area is
             // neither shrunk under the equipment nor expanded over the walking lane.
             var capVertices=List<Vector3>(cap,"V");
@@ -78,8 +81,7 @@ namespace Cryptforge.Tests
             // Each existing cantilever remains a complete connected piece, with
             // its original four foot, shoulder and cap contacts, including the
             // back corners that are easy to lose in a two-visible-face rewrite.
-            int partSize=vertices.Count/2;
-            int part=0;
+            CheckContinuousGrain(mesh,0,vertices.Count);
             foreach(float u in new[]{-17.4f,-14.3f})
             {
                 var foot=new[]{new Vector2(u+.10f,17.8f),new Vector2(u+.60f,17.8f),
@@ -90,8 +92,6 @@ namespace Cryptforge.Tests
                 foreach(Vector2 p in Corners(box))foreach(float height in new[]{-.68f,-.32f})
                     Assert.That(vertices.Contains(Project(p.x,p.y)+Vector3.up*height),Is.True);
                 AssertContainsTriangles(mesh,Bearing(box,-.68f,-.32f,.055f));
-                CheckContinuousGrain(mesh,part*partSize,(part+1)*partSize);
-                part++;
             }
         }
 
@@ -146,6 +146,13 @@ namespace Cryptforge.Tests
 
         private static void AssertContainsTriangles(object actual,object part)
         {
+            // Compare the emitted bearing itself after the common grain pass.
+            // Other existing support faces may overlap in the 2D projection;
+            // counting all projected hits would falsely reject those old returns.
+            // Fold coverage and single ownership are independently exercised in
+            // FoundryStoneGrainTests; this checks integration consumes the bearing.
+            typeof(FoundryRegionView).GetMethod("ServiceShelfGrain",Static)
+                .Invoke(null,new object[]{part,0,List<Vector3>(part,"V").Count});
             var av=List<Vector3>(actual,"V");var at=List<int>(actual,"T");
             var pv=List<Vector3>(part,"V");var pt=List<int>(part,"T");
             for(int i=0;i<pt.Count;i+=3)
@@ -153,25 +160,39 @@ namespace Cryptforge.Tests
                 int owners=0;
                 for(int j=0;j<at.Count;j+=3)
                     if(av[at[j]].Equals(pv[pt[i]])&&av[at[j+1]].Equals(pv[pt[i+1]])&&av[at[j+2]].Equals(pv[pt[i+2]]))owners++;
-                Assert.That(owners,Is.EqualTo(1),"The production foundation must consume each profile triangle exactly once.");
+                Assert.That(owners,Is.EqualTo(1),"The production foundation must consume each subdivided profile triangle exactly once.");
             }
         }
 
         private static void CheckContinuousGrain(object mesh,int first,int end)
         {
             var v=List<Vector3>(mesh,"V");var uv=List<Vector2>(mesh,"U");
-            int left=first,right=first;
-            for(int i=first+1;i<end;i++){if(v[i].x<v[left].x)left=i;if(v[i].x>v[right].x)right=i;}
-            float scale=(uv[right].x-uv[left].x)/(v[right].x-v[left].x);
-            Assert.That(scale,Is.InRange(.001f,.035001f),"Mineral grain must have a non-collapsed, isotropic scale.");
+            Vector2 Expected(Vector3 p)=>new Vector2(.275f+Mirror(p.x*.075f/.14f)*.14f,
+                .655f+Mirror(p.y*.075f/.092f)*.092f);
             for(int i=first;i<end;i++)
             {
-                Vector2 expected=uv[first]+((Vector2)(v[i]-v[first]))*scale;
+                Vector2 expected=Expected(v[i]);
                 Assert.That(Vector2.Distance(expected,uv[i]),Is.LessThan(.000002f),
-                    "The complete foundation shares one affine mineral field, including every return and joint.");
+                    "All supports share one physical mineral field, including every return and joint.");
                 Assert.That(uv[i].x,Is.InRange(.274999f,.415001f));
                 Assert.That(uv[i].y,Is.InRange(.654999f,.747001f));
             }
+            var triangles=List<int>(mesh,"T");
+            for(int i=0;i<triangles.Count;i+=3)
+            {
+                int a=triangles[i],b=triangles[i+1],c=triangles[i+2];
+                if(a<first||a>=end||b<first||b>=end||c<first||c>=end)continue;
+                Vector3 point=v[a]*.23f+v[b]*.31f+v[c]*.46f;
+                Vector2 actual=uv[a]*.23f+uv[b]*.31f+uv[c]*.46f;
+                Assert.That(Vector2.Distance(actual,Expected(point)),Is.LessThan(.000002f),
+                    "Triangle interpolation must not shortcut across a grain fold.");
+            }
+        }
+
+        private static float Mirror(float value)
+        {
+            double pair=value-Math.Floor(value/2d)*2d;
+            return (float)(pair<=1?pair:2-pair);
         }
 
         private static void CheckMesh(object mesh,List<Vector2> boundary)
