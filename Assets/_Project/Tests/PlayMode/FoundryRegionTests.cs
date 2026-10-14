@@ -108,7 +108,8 @@ namespace Cryptforge.Tests
             var iron=new System.Collections.Generic.List<(Vector3[] points,Vector2[] flags)>();
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
-                if(renderer.sharedMaterial.mainTexture!=arena.PlatformMaterials.FoundryIron.mainTexture)continue;
+                if(renderer.sharedMaterial.mainTexture!=arena.PlatformMaterials.FoundryIron.mainTexture&&
+                    renderer.sharedMaterial.mainTexture!=arena.PlatformMaterials.FoundryCastIron.mainTexture)continue;
                 if(renderer.sharedMaterial.shader.name!="Cryptforge/Foundry Cutaway")continue;
                 var mesh=renderer.GetComponent<MeshFilter>().sharedMesh;
                 var flags=new System.Collections.Generic.List<Vector2>();mesh.GetUVs(1,flags);
@@ -332,7 +333,7 @@ namespace Cryptforge.Tests
                 }
             Assert.That(usesGate,Is.True);
             Assert.That(arena.PlatformMaterials.FoundryPitLining,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade),"The pit lining must stay independent of the boiler wrap.");
-            var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving};
+            var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving,arena.PlatformMaterials.FoundryCastIron};
             foreach(var shared in surfaces)
             {
                 Assert.That(shared,Is.Not.Null);
@@ -345,6 +346,48 @@ namespace Cryptforge.Tests
             }
             foreach(var r in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 Assert.That(r.sharedMaterial.mainTexture,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade.mainTexture),"The four baked boilers retire the old furnace-wrap batch.");
+            var castIron=arena.PlatformMaterials.FoundryCastIron;
+            var castTexture=(Texture2D)castIron.mainTexture;
+            Assert.That(castIron,Is.Not.SameAs(arena.PlatformMaterials.FoundryIron),
+                "Only the formed hoods and loading trolley migrate; the framed iron atlas stays available.");
+            Assert.That(castTexture,Is.Not.SameAs(arena.PlatformMaterials.FoundryIron.mainTexture));
+            Assert.That(castTexture.width,Is.EqualTo(1024));Assert.That(castTexture.height,Is.EqualTo(1024));
+            Assert.That(castTexture.mipmapCount,Is.GreaterThan(1));
+            Assert.That(castTexture.filterMode,Is.EqualTo(FilterMode.Trilinear));
+            Assert.That(castTexture.wrapMode,Is.EqualTo(TextureWrapMode.Clamp));
+#if UNITY_ANDROID
+            Assert.That(castTexture.format,Is.EqualTo(TextureFormat.ASTC_6x6));
+#endif
+            var castRanks=new System.Collections.Generic.List<int>();
+            var castVariants=new System.Collections.Generic.HashSet<Material>();
+            var castMeshes=new System.Collections.Generic.List<Mesh>();
+            foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+            {
+                if(renderer.sharedMaterial.mainTexture!=castTexture)continue;
+                castRanks.Add(renderer.sortingOrder);castVariants.Add(renderer.sharedMaterial);
+                Mesh castMesh=renderer.GetComponent<MeshFilter>().sharedMesh;castMeshes.Add(castMesh);
+                Assert.That(renderer.sharedMaterial.shader.name,Is.EqualTo("Cryptforge/Foundry Cutaway"));
+                Assert.That(renderer.sharedMaterial,Is.Not.SameAs(castIron));
+                // These two borrowed-material batches must remain local to the two
+                // pit hoods and the trolley. The rest of the iron atlas is not migrated.
+                foreach(Vector3 point in castMesh.vertices)
+                {
+                    bool InBox(float u0,float v0,float u1,float v1,float height)
+                    {
+                        Vector3 a=FoundrySurface.Project(u0,v1),b=FoundrySurface.Project(u1,v0);
+                        Vector3 c=FoundrySurface.Project(u0,v0),d=FoundrySurface.Project(u1,v1);
+                        return point.x>=a.x-.001f&&point.x<=b.x+.001f&&
+                            point.y>=c.y-.001f&&point.y<=d.y+height+.001f;
+                    }
+                    bool expected=renderer.sortingOrder==-7?
+                        InBox(-13.7f,9.5f,-11.5f,11.7f,1.3f)||InBox(-8.5f,4.3f,-6.3f,6.5f,1.3f):
+                        InBox(FoundryMap.WorkIslandBound(0,0),FoundryMap.WorkIslandBound(0,1),
+                            FoundryMap.WorkIslandBound(0,2),FoundryMap.WorkIslandBound(0,3),1.55f);
+                    Assert.That(expected,Is.True,"Cast iron must not silently migrate another landmark.");
+                }
+            }
+            Assert.That(castRanks,Is.EquivalentTo(new[]{-7,-8}),"Exactly one hood and one trolley material batch.");
+            Assert.That(castVariants.Count,Is.EqualTo(1),"Two ranks share one scene-owned cutaway variant.");
             var keeper=arena.PlatformMaterials.ForgeKeeper;
             Assert.That(keeper,Is.Not.Null,"The paired bridge guardians use one imported material.");
             var keeperTexture=keeper.mainTexture as Texture2D;
@@ -539,9 +582,9 @@ namespace Cryptforge.Tests
             Assert.That(tallBoilerRanks,Is.EquivalentTo(new[]{-10,-7}));
             Assert.That(shortBoilerRanks,Is.EquivalentTo(new[]{-10,-7}));
             Assert.That(boilerMeshes.Count,Is.EqualTo(4),"Two atlases retain exactly four shared depth-band batches.");
-            Assert.That(otherBatches,Is.LessThanOrEqualTo(22),"The casting bench adds one card; its supports reuse the existing masonry batches.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(32),
-                "One casting bench card adds one renderer to the measured 31-renderer region.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(24),"Dedicated hood and trolley iron adds exactly two static material/rank batches.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(34),
+                "Isolated cast iron adds two static batches to the measured 32-renderer region.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
@@ -883,6 +926,9 @@ namespace Cryptforge.Tests
             Assert.That(stockStation!=null&&craneTexture!=null,Is.True,"Reload retains shared workshop textures.");
             Assert.That(keeper!=null&&keeperTexture!=null,Is.True,"Shared keeper assets survive reload.");
             Assert.That(gate!=null,Is.True,"Reload must not destroy shared facade assets.");
+            foreach(var castMesh in castMeshes)Assert.That(castMesh==null,Is.True,"Reload releases the cast iron target meshes.");
+            foreach(var variant in castVariants)Assert.That(variant==null,Is.True,"Reload releases the one shared cast iron cutaway variant.");
+            Assert.That(castIron!=null&&castTexture!=null,Is.True,"Borrowed cast iron assets survive scene teardown.");
             foreach(var variant in ownedMaterials)Assert.That(variant==null,Is.True,"Scene cutaway variants must be released on reload.");
             Assert.That(xray==null,Is.True,"The enemy silhouette material must be released on reload.");
             Assert.That(loot==null,Is.True,"The loot silhouette material must be released on reload.");

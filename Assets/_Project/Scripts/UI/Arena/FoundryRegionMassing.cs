@@ -397,7 +397,7 @@ namespace Cryptforge.UI
                     {
                         var dome=new Builder();PitHoodStoneFoot(dome,centre);Create("Pit boiler dome",dome,wall,-11);
                         var iron=new Builder();FormedPitHood(iron,centre);
-                        Create("Pit boiler retaining iron",iron,set.FoundryIron,-10.5f);
+                        Create("Pit boiler retaining iron",iron,set.FoundryCastIron,-10.5f);
                     });
             }
         }

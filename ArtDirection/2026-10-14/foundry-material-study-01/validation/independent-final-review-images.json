@@ -1,0 +1,42 @@
+[
+  {
+    "file": "before/approach--20-6.png",
+    "sha256": "580f2fb6c08538aca649d95f1f76e1f595320f5a9b4668c4b5baa37ffd077585"
+  },
+  {
+    "file": "before/yard-detail.png",
+    "sha256": "521bc7dec107ebac253607dccafb3dc15352d3d2ae19fa37096603660f4c46f4"
+  },
+  {
+    "file": "before/shaft-detail.png",
+    "sha256": "6a18ac9614ccba505f9183423bbc0056cc295256ac52756f7cf5069d5208736f"
+  },
+  {
+    "file": "before/approach-0-0.png",
+    "sha256": "4250ea5925886ae19e416960ae2e4622187137139352c511a95f56f439ef17bf"
+  },
+  {
+    "file": "before/bridge-detail.png",
+    "sha256": "3601ee9b462b0a1d36ef1f13e07c003c74144179a2935c86a38235719349a401"
+  },
+  {
+    "file": "after/approach--20-6.png",
+    "sha256": "941d8fa558c2999e92b53e6fe3b09cfd223becd4327d1e5f8fabf189912baca0"
+  },
+  {
+    "file": "after/yard-detail.png",
+    "sha256": "ba723fa793ad34d43a5a9924db48f832cc604af2911048171845d6e5323665c1"
+  },
+  {
+    "file": "after/shaft-detail.png",
+    "sha256": "baf5f6f434409669568862622ffd1fbeb967ad7e94945aaeb3702b882b8ef2b4"
+  },
+  {
+    "file": "after/approach-0-0.png",
+    "sha256": "299cebb0b417e5539e1791ebd39c34d9264b13544d546d9d69c5ac2a3b16da8b"
+  },
+  {
+    "file": "after/bridge-detail.png",
+    "sha256": "904fe57fc79e515d77bbf0a7e5157ddbd930fec529b198a3b71c593506ea7dd5"
+  }
+]

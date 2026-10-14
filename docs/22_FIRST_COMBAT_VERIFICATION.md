@@ -1479,3 +1479,19 @@ The first captured gate splay was rejected by root and the independent reviewer 
 The first full verification passed592/593 EditMode and159/159 PlayMode, so the APK was skipped. The new backing-centre witness was behind the same jamb in the original flat geometry. Two independent reconstructions established that this was an invalid visibility precondition, not new overpainting. The test-only repair measures the independently clipped projected rear/throat intersection: full backing coverage, no later overpaint, and containment of the old visible domain at the same strict area tolerance. The complete targeted gate class then passed22/22. Runtime files remain byte-identical to the accepted directional image pass; only FoundryGateRecessTests.cs changed. The failed XMLs/source/captures and diagnosis are retained in first-gate-check and backing-visibility-diagnosis.md. Final images and full suites are regenerated from the new source freeze.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.
+
+
+## 2026-10-14 - Foundry material source study verified; device pending
+
+438 .NET / 595 EditMode / 159 PlayMode = 1,192 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 616 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 15027ED59A3BAE423DA100723BF8A98F7598FADCFD0270F6D4B293FBF358E725; NOT INSTALLED.
+
+Two helpers owned independent paving and machinery integrations; another inspected source and actual portraits, with a crossed code review. Root alone ran Unity. Twenty fresh Before views were captured at clean Assets and baseline 66b83f5, sealed by hashes. The cloned capture report's stale short label is explicitly recorded in baseline-label-note.md; actual baseline identity was checked by the launcher.
+
+Initial After captures accepted the slate but rejected V1 metal for concrete-like aggregate. The exact first capture set and source freeze remain in initial-v1. V2 reduces granular noise and matches old iron RGB means, with unchanged geometry/vertex colour. Final captures use the same camera and actor setup.
+
+Source review corrected two test assumptions before suite execution: authored orders map to emitted -7/-8, and the existing skid-contact observation must include the newly isolated trolley material. Two additional EditMode cases cover actual trolley/skid UV continuity, noncollapsed rendered triangles and preservation of V/T/C. Existing PlayMode coverage now also checks cast import, two target-only batches, shared cutaway ownership and complete teardown while retaining borrowed assets.
+
+Captures pause combat and hide HUD. They verify Editor appearance and resource counts, not physical-device motion, shimmer, crowd readability or frame time. No ADB or phone-save operation was performed.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-study-01.

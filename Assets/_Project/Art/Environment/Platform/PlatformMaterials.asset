@@ -20,6 +20,7 @@ MonoBehaviour:
   _furnaceFacade: {fileID: 2100000, guid: 9ec69d10c2cd4194eab1d53da757a514, type: 2}
   _foundryPitLining: {fileID: 2100000, guid: 8739a5c9ac7d8494aa7da6bee2344080, type: 2}
   _foundryIron: {fileID: 2100000, guid: 1a4afb82f05df78458ed1035c7b37f3d, type: 2}
+  _foundryCastIron: {fileID: 2100000, guid: 857719c302f84784be4344b0a245dc7c, type: 2}
   _foundryEmbers: {fileID: 2100000, guid: 2bb991504960a7041a93e0c78c0bc9b2, type: 2}
   _foundryPaving: {fileID: 2100000, guid: bb0e7a77a8343c145bb92c982d7526df, type: 2}
   _forgeKeeper: {fileID: 2100000, guid: 735dd49b22004c4685f19a31c48d7184, type: 2}

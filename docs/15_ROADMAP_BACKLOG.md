@@ -806,3 +806,12 @@ Evidence/reproduction: ArtDirection/2026-10-13/foundry-entrance-craft-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.
+
+
+## 2026-10-14 - Foundry material source study verified; device pending
+
+- [x] V7 slate and isolated V2 cast iron integrated; matched actual captures, full suites and APK.
+- [ ] Coherent gate/adjacent masonry refinement at portrait scale; physical-device material/motion acceptance remains pending.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-study-01.

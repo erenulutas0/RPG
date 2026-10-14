@@ -1,0 +1,7 @@
+Two helpers owned independent paving and machinery integrations; another inspected source and actual portraits, with a crossed code review. Root alone ran Unity. Twenty fresh Before views were captured at clean Assets and baseline 66b83f5, sealed by hashes. The cloned capture report's stale short label is explicitly recorded in baseline-label-note.md; actual baseline identity was checked by the launcher.
+
+Initial After captures accepted the slate but rejected V1 metal for concrete-like aggregate. The exact first capture set and source freeze remain in initial-v1. V2 reduces granular noise and matches old iron RGB means, with unchanged geometry/vertex colour. Final captures use the same camera and actor setup.
+
+Source review corrected two test assumptions before suite execution: authored orders map to emitted -7/-8, and the existing skid-contact observation must include the newly isolated trolley material. Two additional EditMode cases cover actual trolley/skid UV continuity, noncollapsed rendered triangles and preservation of V/T/C. Existing PlayMode coverage now also checks cast import, two target-only batches, shared cutaway ownership and complete teardown while retaining borrowed assets.
+
+Captures pause combat and hide HUD. They verify Editor appearance and resource counts, not physical-device motion, shimmer, crowd readability or frame time. No ADB or phone-save operation was performed.

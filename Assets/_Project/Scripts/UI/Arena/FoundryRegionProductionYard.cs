@@ -83,7 +83,8 @@ namespace Cryptforge.UI
                     WorkshopMetalHull(kit,u0,v0,u1,v1,.015f,.10f,.035f,true);
                     if(island==0)BuildYardTrolley(kit,u0,v0,u1,v1);
                     else BuildYardMouldBench(kit,u0,v0,u1,v1);
-                    Create("Workyard island "+island,kit,arena.PlatformMaterials.FoundryIron,-11);
+                    Create("Workyard island "+island,kit,island==0?arena.PlatformMaterials.FoundryCastIron:
+                        arena.PlatformMaterials.FoundryIron,-11);
                 }
             }
         }
@@ -161,6 +162,21 @@ namespace Cryptforge.UI
             foreach(float u in new[]{u0+.27f,u1-.35f})
                 foreach(float v in new[]{v0+.29f,v1-.37f})
                     WorkshopMetalHull(kit,u,v,u+.08f,v+.08f,.60f,.65f,.02f,true);
+            // The complete trolley, including the skid already in this builder,
+            // uses one jointless cast field. Existing stock/frame light and all
+            // geometry remain; bands no longer repeat the framed global atlas.
+            YardTrolleyGrain(kit,Project((u0+u1)*.5f,(v0+v1)*.5f)+Vector3.up*.63f);
+        }
+
+        private static void YardTrolleyGrain(Builder kit,Vector3 origin)
+        {
+            // Same projected grain density as the formed pit hoods. No clamp or
+            // per-piece reset can stretch grain into a seam or collapse a face.
+            for(int i=0;i<kit.V.Count;i++)
+            {
+                Vector3 p=kit.V[i]-origin;
+                kit.U[i]=new Vector2(.5f+p.x*.19f,.5f+p.y*.19f);
+            }
         }
 
         private static void YardTrolleyYoke(Builder kit,float u,float v0,float v1)

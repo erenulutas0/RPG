@@ -1,0 +1,52 @@
+{
+  "status": "candidate awaiting Unity visual acceptance",
+  "baseline_commit": "66b83f5",
+  "v6": {
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGB",
+    "sha256": "2bdf23894cef4feaf1c8a1c5de9c1e0afd091aee717818a5b6bf4d3228a7ba89",
+    "mean_rgb": [
+      0.3677999822338957,
+      0.3498585656042105,
+      0.3482853904262878
+    ],
+    "std_rgb": [
+      0.02334787662815904,
+      0.02266346520283428,
+      0.02145151357877399
+    ],
+    "mean_luma": 0.35355932753550584,
+    "std_luma": 0.022585794296818323
+  },
+  "v7_source": {
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGB",
+    "sha256": "57e938eb1426675c002374c0e3e769349d7bcdf94e36102432f5226f704a29a5",
+    "mean_rgb": [
+      0.47705381744271536,
+      0.46706496181748497,
+      0.4484686087490188
+    ],
+    "std_rgb": [
+      0.054804213279726385,
+      0.05504139350905485,
+      0.0490202821702147
+    ],
+    "mean_luma": 0.46784593582738065,
+    "std_luma": 0.05442571469676303
+  },
+  "v7_runtime_asset_sha256": "57e938eb1426675c002374c0e3e769349d7bcdf94e36102432f5226f704a29a5",
+  "v6_meta_sha256": "bd8f44911a0c13d7947724ebc87c28146b8c8e24e637c530df880696cfb33f22",
+  "v7_guid": "77de59edd81d40bea9124bf37f4ba5aa",
+  "material_scalar_exact": 0.6045739427621443,
+  "material_scalar_serialized": 0.604573943,
+  "old_source_mean_output": 0.28284746202840466,
+  "new_source_mean_output": 0.2828474621396845,
+  "relative_contrast_ratio": 1.8210765852113993
+}
