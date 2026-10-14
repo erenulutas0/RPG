@@ -51,6 +51,21 @@ namespace Cryptforge.UI
                 // One physical mineral field crosses all stones and their edges.
                 // Per-cell UV restarts would make these large blocks look tiled.
                 GateRecessGrain(stone,start,stone.V.Count,points[1]-points[0],face);
+                // Mineral use belongs to the complete lower mass, not to each
+                // small dressed edge. Keep the existing contact shadow and forge
+                // hue; expose a restrained washed body above the damp foot.
+                for(int i=start;i<stone.V.Count;i++)
+                {
+                    Vector2 p=GateRecessCoordinates(points,stone.V[i]);
+                    float elevation=Mathf.Lerp(bottom,top,p.y);
+                    float rise=(elevation-.80f)/.70f;
+                    float middle=Mathf.Sin(p.x*Mathf.PI);
+                    float mineral=.065f*Mathf.Exp(-rise*rise)*(.55f+.45f*middle*middle);
+                    float damp=.055f*Mathf.Exp(-elevation/.24f);
+                    float gain=1+mineral-damp;
+                    Color c=stone.C[i];
+                    stone.C[i]=new Color(c.r*gain,c.g*gain,c.b*gain,1);
+                }
             }
             // Preserve the exact chamfered bearing. A new tier begins on this
             // cap; its lower footprint is always contained by this actual polygon.

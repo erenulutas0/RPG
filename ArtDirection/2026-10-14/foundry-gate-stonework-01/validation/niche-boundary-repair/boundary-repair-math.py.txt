@@ -1,0 +1,54 @@
+import json, math, pathlib, struct
+import numpy as np
+base=pathlib.Path('TestResults/niche-diagnostic')
+faces=json.loads((base/'actual-faces.json').read_text())
+f=lambda v:float(np.float32(v))
+def bits(v):return struct.unpack('<i',struct.pack('<f',v))[0]
+def value(v):return struct.unpack('<f',struct.pack('<i',v))[0]
+def nextf(v,d):
+    if d==0:return v
+    if v==0:return value(1) if d>0 else -value(1)
+    return value(bits(v)+(1 if ((d>0)==(v>0)) else -1))
+def candidate(start,end,stone,t):
+    dx=end[0]-start[0];dy=end[1]-start[1]
+    x=start[0]+dx*t;y=start[1]+dy*t
+    p=[f(x),f(y),0]
+    side=1 if dx*(stone[1]-start[1])-dy*(stone[0]-start[0])>=0 else -1
+    dist=lambda q:side*(dx*(q[1]-start[1])-dy*(q[0]-start[0]))
+    if dist(p)>=0:return p,p,dist,math.hypot(dx,dy)
+    sx=[nextf(p[0],-dy*side),p[1],0];sy=[p[0],nextf(p[1],dx*side),0]
+    error=lambda q:(q[0]-x)**2+(q[1]-y)**2
+    if dist(sx)>=0 and dist(sy)>=0:r=min([sx,sy],key=error)
+    elif dist(sx)>=0:r=sx
+    elif dist(sy)>=0:r=sy
+    else:r=[sx[0],sy[1],0]
+    return r,p,dist,math.hypot(dx,dy)
+rows=[]
+for face in faces:
+    offset=128
+    for edge,pieces in enumerate([1,3,2,2,3]):
+        stone=face['vertices'][offset]
+        start=face['throat'][edge];end=face['throat'][(edge+1)%5]
+        for piece in range(pieces):
+            if piece>0:
+                low=f(piece/pieces)
+                for sign,index in [(1,offset+2),(-1,offset+3)]:
+                    t=f(low+sign*f(.0045)); old=face['vertices'][index]
+                    new,nearest,distance,length=candidate(start,end,stone,t)
+                    steps=[abs(bits(new[c])-bits(nearest[c])) for c in [0,1]]
+                    assert min(distance(new),0)==0 and max(steps)<=1
+                    rows.append(dict(profile=face['profile'],side=face['side'],edge=edge,t=t,index=index,
+                        old=old,new=new,nearest=nearest,old_signed_distance=distance(old)/length,
+                        new_signed_distance=distance(new)/length,ulp_steps=steps,
+                        movement=math.dist(old,new)))
+                offset+=4
+            offset+=8
+
+summary=dict(stations=len(rows),old_inside=sum(r['old_signed_distance']<0 for r in rows),
+    new_inside=sum(r['new_signed_distance']<0 for r in rows),
+    max_original_inward_world_distance=max(-r['old_signed_distance'] for r in rows),
+    max_world_shift_from_failed_mesh=max(r['movement'] for r in rows),
+    max_steps_from_nearest_float=max(max(r['ulp_steps']) for r in rows),
+    note='Double/float mathematical replay of the preserved failed managed geometry; actual Unity rerun remains required.')
+(base/'boundary-repair-math.json').write_text(json.dumps(dict(summary=summary,stations=rows),indent=2))
+print(json.dumps(summary,indent=2))

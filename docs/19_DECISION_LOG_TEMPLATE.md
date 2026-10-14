@@ -1213,3 +1213,12 @@ No ADB operation, phone installation, save/telemetry operation or physical-devic
 Region 34 renderers/163073 vertices versus 34/162361 (+712 vertices); distant geometry 3572 versus 3572. This package adds no runtime texture, material, renderer, updater component or per-frame work. The previous material package already owns the additional iron batches and focus-vector update; they are unchanged here. Resource counts are not device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.
+
+
+## 2026-10-14 - Foundry gate stonework verified; device pending
+
+Decision: fitted structural stone and continuous mineral sampling were chosen over stronger global noise or additional decorative bands. Broad fitted courses now divide the existing recessed shaft jambs and pointed heads. Adjacent curtain ashlar partitions the old wall instead of retaining its duplicate base; existing decorative relief remains. A bounded neutral mineral/damp finish refines lower buttress faces. Openings, backing stations, caps, map, camera and gameplay contracts are retained.
+
+Region 34 renderers/161161 vertices versus 34/163073 (-1912 vertices); distant geometry 3572 versus 3572. This package adds no runtime texture, material, renderer, updater component or per-frame work. The previous material package already owns the additional iron batches and focus-vector update; they are unchanged here. The indexed niche emitter keeps its vertex budget but adds an expected 960 triangles across the four shafts; no total region index delta was measured. Resource counts are not device frame-time measurements.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.

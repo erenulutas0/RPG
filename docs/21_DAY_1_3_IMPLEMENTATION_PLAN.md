@@ -2534,3 +2534,13 @@ Verified: 438 .NET / 605 EditMode / 159 PlayMode = 1,202 accepted suite executio
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 5A7B64935F344A70089E8E7F304E1F105228C0E03C05ACF4B44521C62FE29C02; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.
+
+
+## 2026-10-14 - Foundry gate stonework verified; device pending
+
+Broad fitted courses now divide the existing recessed shaft jambs and pointed heads. Adjacent curtain ashlar partitions the old wall instead of retaining its duplicate base; existing decorative relief remains. A bounded neutral mineral/damp finish refines lower buttress faces. Openings, backing stations, caps, map, camera and gameplay contracts are retained. Files: FoundryRegionGateRecesses.cs, FoundryRegionGateEnclosure.cs, FoundryRegionGateButtress.cs; FoundryGateRecessTests.cs and new FoundryGateCurtainTests.cs; reproducible Tools/ArtReview/FoundryGateStoneworkCapture.cs and launcher.
+
+Verified: 438 .NET / 612 EditMode / 159 PlayMode = 1,209 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 619 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 EC908F08891544E2FE3939166ED5C327B2143721326A4ABA59C370AB2C55C639; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.

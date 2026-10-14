@@ -1,0 +1,19 @@
+using System;using System.Collections.Generic;using System.Reflection;using System.IO;using System.Text.Json;using Cryptforge.UI;using UnityEngine;
+class Program {
+static readonly BindingFlags St=BindingFlags.Static|BindingFlags.NonPublic,F=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
+static object Builder()=>Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+static object Call(string n,params object[] a)=>typeof(FoundryRegionView).GetMethod(n,St).Invoke(null,a);
+static List<Vector3> Vertices(object b)=>(List<Vector3>)b.GetType().GetField("V",F).GetValue(b);
+static double[][] Points(List<Vector3> points){var r=new double[points.Count][];for(int i=0;i<r.Length;i++)r[i]=new[]{(double)points[i].x,points[i].y,points[i].z};return r;}
+static void Main(){var results=new List<object>();int profile=0;foreach(var args in new[]{new[]{28.26f,-2.76f,30.74f,-1.24f,1.70f,5.45f,.04f,.28f},new[]{27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,.065f,.36f}}){
+float u0=args[0],v0=args[1],u1=args[2],v1=args[3],bottom=args[4],top=args[5],inset=args[6],depth=args[7];
+var shell=Builder();Call("LitFoundryTier",shell,u0,v0,u1,v1,bottom,top,inset);var sv=Vertices(shell);
+for(int side=0;side<2;side++){int first=side*4;var face=new[]{sv[first],sv[first+1],sv[first+2],sv[first+3]};
+Vector3 At(Vector2 p)=>Vector3.Lerp(Vector3.Lerp(face[0],face[1],p.x),Vector3.Lerp(face[3],face[2],p.x),p.y);
+Vector3 inward=side==0?(Vector3)Call("Project",u0,v0+depth)-(Vector3)Call("Project",u0,v0):(Vector3)Call("Project",u0+depth,v0)-(Vector3)Call("Project",u0,v0);
+var b=Builder();Call("GateRecessedFace",b,face,inward,new Color(.6f,.64f,.72f));var type=b.GetType();var vs=Vertices(b);var ts=(List<int>)type.GetField("T",F).GetValue(b);
+var opening=new[]{new Vector2(.28f,.17f),new Vector2(.72f,.17f),new Vector2(.72f,.69f),new Vector2(.5f,.84f),new Vector2(.28f,.69f)};
+var rear=new List<Vector3>();var throat=new List<Vector3>();foreach(var p in opening){rear.Add(At(p)+inward);throat.Add(At(p)+inward*.25f);}
+results.Add(new{profile,side,vertices=Points(vs),triangles=ts,rear=Points(rear),throat=Points(throat)});
+}profile++;}File.WriteAllText("TestResults/niche-diagnostic/actual-faces.json",JsonSerializer.Serialize(results));Console.WriteLine("Dumped "+results.Count+" actual niche faces.");}
+}

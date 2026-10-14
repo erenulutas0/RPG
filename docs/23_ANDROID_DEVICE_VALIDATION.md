@@ -2151,3 +2151,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Reference fidelity remains unfinished. This package refines the existing gate cornice, dressed enclosure tiers and central threshold rail. Camera, map bounds, movement, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; evidence remains in ../../2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion/crowd/HUD/shimmer and midrange performance remain unverified. No ADB, installation or fresh phone observation. The earlier concrete restart/install decision remains pending; inspect current device state and preserve current original saves/telemetry before later deployment. Never restore historical snapshots. Regional encounter/boss progression remains deferred under the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.
+
+
+## 2026-10-14 - Foundry gate stonework verified; device pending
+
+438 .NET / 612 EditMode / 159 PlayMode = 1,209 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 619 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 EC908F08891544E2FE3939166ED5C327B2143721326A4ABA59C370AB2C55C639; NOT INSTALLED.
+
+Reference fidelity remains unfinished. This package refines the recessed gate shafts, adjacent curtain masonry and lower buttress material finish. Camera, map bounds, movement, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; evidence remains in ../../2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion/crowd/HUD/shimmer and midrange performance remain unverified. No ADB, installation or fresh phone observation. The earlier concrete restart/install decision remains pending; inspect current device state and preserve current original saves/telemetry before later deployment. Never restore historical snapshots. Regional encounter/boss progression remains deferred under the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.

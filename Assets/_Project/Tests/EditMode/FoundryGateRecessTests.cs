@@ -337,7 +337,22 @@ namespace Cryptforge.Tests
                 Vector3 inward=side==0?Project(u0,v0+depth)-Project(u0,v0):Project(u0+depth,v0)-Project(u0,v0);
                 object built=Builder();Call("GateRecessedFace",built,face,inward,new Color(.6f,.64f,.72f));
                 MeshData mesh=Read(built);AssertFinite(mesh);AssertMineralGrain(mesh);
-                Assert.That(mesh.V.Count,Is.EqualTo(240),"Splay replaces the flat frame; it does not append another architectural layer.");
+                Assert.That(mesh.V.Count,Is.EqualTo(240),"Indexed courses retain the original face budget; no old solid face remains beneath them.");
+                // Derive the frame span from its semantic production pieces,
+                // rather than coupling coverage to the old 140/20 vertex layout.
+                var frameParts=new MeshData[5];int frameCount=0;
+                for(int edge=0;edge<5;edge++)
+                {
+                    int next=(edge+1)%5;
+                    Color color=new Color(.6f,.64f,.72f)*(edge==0?1.12f:edge==2||edge==3?1.07f:1.04f);color.a=1;
+                    object part=Builder();
+                    Call("GateRecessCoursedFace",part,At(frame[edge]),At(frame[next]),
+                        At(opening[next])+inward*.25f,At(opening[edge])+inward*.25f,color,.055f,edge+5,
+                        edge==0?1:edge==1||edge==4?3:2,true);
+                    frameParts[edge]=Read(part);frameCount+=frameParts[edge].V.Count;
+                }
+                int frameStart=mesh.V.Count-frameCount;
+                Assert.That(frameStart,Is.GreaterThanOrEqualTo(40),"The existing backing and connected returns keep their own prefix.");
                 // Backing fan and connected return slots retain their existing
                 // ownership order. Only each return's front edge moves inward.
                 for(int edge=0;edge<5;edge++)
@@ -355,7 +370,7 @@ namespace Cryptforge.Tests
                     foreach(Vector3 point in new[]{mesh.V[returnStart],mesh.V[returnStart+1],At(frame[edge]),At(frame[next])})
                     {
                         bool shared=false;
-                        for(int i=140;i<mesh.V.Count;i++)shared|=Vector3.Distance(mesh.V[i],point)<.000001f;
+                        for(int i=frameStart;i<mesh.V.Count;i++)shared|=Vector3.Distance(mesh.V[i],point)<.000001f;
                         Assert.That(shared,Is.True,"Every splayed frame meets the unchanged exterior and shortened return at exact shared stations.");
                     }
                 }
@@ -364,9 +379,9 @@ namespace Cryptforge.Tests
                 // survives beneath the new splay or covers the visible throat.
                 var dressed=new MeshData(mesh.V,mesh.U,mesh.C,new List<int>());
                 for(int t=0;t<mesh.T.Count;t+=3)
-                    if(mesh.T[t]>=140&&mesh.T[t+1]>=140&&mesh.T[t+2]>=140)
+                    if(mesh.T[t]>=frameStart&&mesh.T[t+1]>=frameStart&&mesh.T[t+2]>=frameStart)
                         dressed.T.AddRange(new[]{mesh.T[t],mesh.T[t+1],mesh.T[t+2]});
-                double expectedArea=0;
+                double expectedArea=0;int frameOffset=frameStart;
                 for(int edge=0;edge<5;edge++)
                 {
                     int next=(edge+1)%5;
@@ -380,9 +395,7 @@ namespace Cryptforge.Tests
                     // Compare with the same ordinary dressed stone emitter, so
                     // relief light must live on the rendered splay, preserving
                     // both its geometry and the original forge-tint ratios.
-                    Color tint=new Color(.6f,.64f,.72f)*(edge==0?1.12f:edge==2||edge==3?1.07f:1.04f);tint.a=1;
-                    object plainBuilder=Builder();Call("GateRecessDressedFace",plainBuilder,a,b,c,d,tint,.055f,edge+5);
-                    MeshData plain=Read(plainBuilder);int offset=140+edge*20;
+                    MeshData plain=frameParts[edge];int offset=frameOffset;frameOffset+=plain.V.Count;
                     var referenced=new HashSet<int>();
                     for(int t=0;t<plain.T.Count;t+=3)
                     {
@@ -394,6 +407,7 @@ namespace Cryptforge.Tests
                     foreach(int index in referenced)
                     {
                         Assert.That(Vector3.Distance(mesh.V[offset+index],plain.V[index]),Is.LessThan(.000001f));
+                        Assert.That(Vector2.Distance(mesh.U[offset+index],plain.U[index]),Is.LessThan(.000001f));
                         Color actual=mesh.C[offset+index],source=plain.C[index];
                         float gain=actual.r/source.r;
                         Assert.That(gain,Is.InRange(.75f,1.00001f),"Splay shading cannot globally brighten or blacken the frame.");
@@ -451,6 +465,123 @@ namespace Cryptforge.Tests
                 Assert.That(overpaint,Is.LessThan(1e-8),
                     $"Side {side}: no later return, body or frame triangle may overpaint any visible backing area.");
             }
+        }
+
+        [TestCase(28.26f,-2.76f,30.74f,-1.24f,1.70f,5.45f,.04f,.28f)]
+        [TestCase(27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,.065f,.36f)]
+        public void ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead(
+            float u0,float v0,float u1,float v1,float bottom,float top,float inset,float depth)
+        {
+            object original=Builder();Call("LitFoundryTier",original,u0,v0,u1,v1,bottom,top,inset);
+            MeshData shell=Read(original);
+            var opening=new[]{new Vector2(.28f,.17f),new Vector2(.72f,.17f),new Vector2(.72f,.69f),
+                new Vector2(.5f,.84f),new Vector2(.28f,.69f)};
+            var frame=new[]{new Vector2(.14f,.08f),new Vector2(.86f,.08f),new Vector2(.86f,.75f),
+                new Vector2(.5f,.94f),new Vector2(.14f,.75f)};
+            var border=new[]{Vector2.zero,Vector2.right,Vector2.one,new Vector2(.5f,1),Vector2.up};
+            for(int side=0;side<2;side++)
+            {
+                int first=side*4;
+                var face=new[]{shell.V[first],shell.V[first+1],shell.V[first+2],shell.V[first+3]};
+                Vector3 At(Vector2 p)=>Vector3.Lerp(Vector3.Lerp(face[0],face[1],p.x),Vector3.Lerp(face[3],face[2],p.x),p.y);
+                Vector3 inward=side==0?Project(u0,v0+depth)-Project(u0,v0):Project(u0+depth,v0)-Project(u0,v0);
+                object built=Builder();Call("GateRecessedFace",built,face,inward,new Color(.6f,.64f,.72f));
+                MeshData mesh=Read(built);
+                var referenced=new HashSet<int>();
+                for(int t=0;t<mesh.T.Count;t+=3)
+                {
+                    int a=mesh.T[t],b=mesh.T[t+1],c=mesh.T[t+2];
+                    if(Math.Abs(CrossDouble(mesh.V[b]-mesh.V[a],mesh.V[c]-mesh.V[a]))>1e-8)
+                    {referenced.Add(a);referenced.Add(b);referenced.Add(c);}
+                }
+                for(int edge=1;edge<5;edge++)
+                {
+                    int next=(edge+1)%5,pieces=edge==1||edge==4?3:2;
+                    Vector3 start=At(opening[edge])+inward*.25f,end=At(opening[next])+inward*.25f;
+                    for(int cut=1;cut<pieces;cut++)foreach(float offset in new[]{-.0045f,.0045f})
+                        AssertOpeningCourseStation(mesh,referenced,start,end,At(frame[edge]),cut/(float)pieces+offset);
+                }
+                foreach(int edge in new[]{1,4})foreach(float cut in new[]{1f/3,2f/3})
+                {
+                    int next=(edge+1)%5;
+                    foreach(float end in new[]{cut-.0045f,cut+.0045f})
+                    {
+                        Vector3 station=Vector3.Lerp(At(frame[edge]),At(frame[next]),end);
+                        int owners=0;
+                        foreach(int i in referenced)if(Vector3.Distance(mesh.V[i],station)<.000002f)owners++;
+                        Assert.That(owners,Is.GreaterThanOrEqualTo(4),
+                            "Each joint side is shared by the body stone/mortar and the splayed frame stone/mortar.");
+                    }
+                    var body=new[]{At(border[edge]),At(border[next]),At(frame[next]),At(frame[edge])};
+                    var jamb=new[]{At(frame[edge]),At(frame[next]),At(opening[next])+inward*.25f,At(opening[edge])+inward*.25f};
+                    AssertJointReadability(mesh,body,cut);
+                    AssertJointReadability(mesh,jamb,cut);
+                }
+                foreach(int edge in new[]{2,3})
+                {
+                    int next=(edge+1)%5;
+                    var head=new[]{At(frame[edge]),At(frame[next]),At(opening[next])+inward*.25f,At(opening[edge])+inward*.25f};
+                    AssertJointReadability(mesh,head,.5f);
+                }
+            }
+        }
+
+        private static void AssertOpeningCourseStation(MeshData mesh,HashSet<int> referenced,
+            Vector3 start,Vector3 end,Vector3 stone,float t)
+        {
+            // Read the emitted mesh, independently of the interpolation helper.
+            // A cut may round only one adjacent float from the nearest exact
+            // interpolation, and every stone/mortar copy must remain outside.
+            double dx=(double)end.x-start.x,dy=(double)end.y-start.y;
+            float nearestX=(float)(start.x+dx*t),nearestY=(float)(start.y+dy*t);
+            double side=dx*((double)stone.y-start.y)-dy*((double)stone.x-start.x)>=0?1:-1;
+            int copies=0;Vector3 shared=default;
+            foreach(int index in referenced)
+            {
+                Vector3 p=mesh.V[index];
+                long xSteps=Math.Abs((long)BitConverter.SingleToInt32Bits(p.x)-BitConverter.SingleToInt32Bits(nearestX));
+                long ySteps=Math.Abs((long)BitConverter.SingleToInt32Bits(p.y)-BitConverter.SingleToInt32Bits(nearestY));
+                if(xSteps>1||ySteps>1)continue;
+                Assert.That(side*(dx*((double)p.y-start.y)-dy*((double)p.x-start.x)),Is.GreaterThanOrEqualTo(0),
+                    "A float-rounded course cut must stay on the stone side of the unchanged throat edge.");
+                if(copies>0)Assert.That(p,Is.EqualTo(shared),"Stone and mortar must use exactly the same corrected station.");
+                shared=p;copies++;
+            }
+            Assert.That(copies,Is.GreaterThanOrEqualTo(2),"The bounded station must be emitted by both the stone and its mortar.");
+        }
+
+        private static void AssertJointReadability(MeshData mesh,Vector3[] face,float cut)
+        {
+            Vector3 At(float along)=>Vector3.Lerp(Vector3.Lerp(face[0],face[1],along),
+                Vector3.Lerp(face[3],face[2],along),.5f);
+            Color mortar=RecessColourAt(mesh,At(cut));
+            Color lower=RecessColourAt(mesh,At(cut-.07f)),upper=RecessColourAt(mesh,At(cut+.07f));
+            Assert.That(mortar.grayscale,Is.LessThan(Mathf.Min(lower.grayscale,upper.grayscale)*.86f),
+                "The actual mortar owner must separate broad stones, including both fitted pointed-head sides.");
+            // The texture field is affine across a whole original face. Three
+            // collinear witnesses crossing the mortar must not restart grain.
+            Vector2 uv0=RecessUvAt(mesh,At(cut-.07f)),uv1=RecessUvAt(mesh,At(cut)),uv2=RecessUvAt(mesh,At(cut+.07f));
+            Assert.That(Vector2.Distance(uv1,(uv0+uv2)*.5f),Is.LessThan(.000005f));
+        }
+
+        private static Color RecessColourAt(MeshData mesh,Vector3 p)
+        {
+            int t=LastCoveringTriangle(mesh,p);Assert.That(t,Is.GreaterThanOrEqualTo(0),"The physical course witness needs a rendered owner.");
+            Vector3 weights=RecessWeights(mesh,t,p);
+            return mesh.C[mesh.T[t]]*weights.x+mesh.C[mesh.T[t+1]]*weights.y+mesh.C[mesh.T[t+2]]*weights.z;
+        }
+        private static Vector2 RecessUvAt(MeshData mesh,Vector3 p)
+        {
+            int t=LastCoveringTriangle(mesh,p);Assert.That(t,Is.GreaterThanOrEqualTo(0));
+            Vector3 weights=RecessWeights(mesh,t,p);
+            return mesh.U[mesh.T[t]]*weights.x+mesh.U[mesh.T[t+1]]*weights.y+mesh.U[mesh.T[t+2]]*weights.z;
+        }
+        private static Vector3 RecessWeights(MeshData mesh,int t,Vector3 p)
+        {
+            Vector2 a=mesh.V[mesh.T[t]],b=mesh.V[mesh.T[t+1]],c=mesh.V[mesh.T[t+2]];
+            double area=CrossDouble(b-a,c-a);
+            float x=(float)(CrossDouble(b-(Vector2)p,c-(Vector2)p)/area),y=(float)(CrossDouble(c-(Vector2)p,a-(Vector2)p)/area);
+            return new Vector3(x,y,1-x-y);
         }
 
         // Independent double-precision convex clipping keeps the area oracle

@@ -1543,3 +1543,13 @@ The image comparison uses actual Editor output, with unchanged camera/actor stag
 No ADB, phone interaction, installation or profile/telemetry mutation is included. The prior concrete restart/install decision remains pending in authoritative device notes. Any later deployment requires a fresh device-state check and preservation of current original saves and telemetry; historical snapshots must never be restored as current state.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.
+
+
+## 2026-10-14 - Foundry gate stonework verified; device pending
+
+438 .NET / 612 EditMode / 159 PlayMode = 1,209 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 619 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 EC908F08891544E2FE3939166ED5C327B2143721326A4ABA59C370AB2C55C639; NOT INSTALLED.
+
+The same frozen Assets produced the accepted captures and full suites. Compare the 21 matched views; phone motion/HUD/shimmer acceptance remains pending. Any first-run failures and their repairs are preserved in package validation.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.

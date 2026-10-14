@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="24" result="Passed" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0,3846389">
+  <test-suite type="TestSuite" id="1000" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="612" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.384639" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1757" name="Project.EditModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.EditModeTests.dll" runstate="Runnable" testcasecount="612" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.373901" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40792" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1758" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="612" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.369653" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1759" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="612" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.367830" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1247" name="FoundryGateRecessTests" fullname="Cryptforge.Tests.FoundryGateRecessTests" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="24" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.356690" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1257" name="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed" fullname="Cryptforge.Tests.FoundryGateRecessTests.CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.057804" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1254" name="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(0.0f,0.48f,0.08f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(0.0f,0.48f,0.08f)" methodname="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="876951882" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.041529" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1255" name="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(0.48f,2.05f,0.09f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(0.48f,2.05f,0.09f)" methodname="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1815562197" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.005094" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1256" name="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(2.05f,2.85f,0.28f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed(2.05f,2.85f,0.28f)" methodname="CoursedButtressTierPartitionsEachOriginalFaceWithoutAHiddenSecondBed" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1514527541" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.004313" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1252" name="HeaderCopingAndRetainedBayCapUseBoundedNoncollapsedGrainAtProductionDimensions" fullname="Cryptforge.Tests.FoundryGateRecessTests.HeaderCopingAndRetainedBayCapUseBoundedNoncollapsedGrainAtProductionDimensions" methodname="HeaderCopingAndRetainedBayCapUseBoundedNoncollapsedGrainAtProductionDimensions" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1263816078" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.034157" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1251" name="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone" fullname="Cryptforge.Tests.FoundryGateRecessTests.HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.017420" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1248" name="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(2.0f,12.0f,0.3f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(2.0f,12.0f,0.3f)" methodname="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1556666788" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.009885" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1249" name="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(2.5f,1.5f,1.0f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(2.5f,1.5f,1.0f)" methodname="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="568388630" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.002332" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1250" name="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(1.02f,0.54f,0.7f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone(1.02f,0.54f,0.7f)" methodname="HeaderCoursesPartitionActualTaperedFacesAndRetainOneMineralFieldPerStone" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="324055619" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.004022" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1266" name="JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade" fullname="Cryptforge.Tests.FoundryGateRecessTests.JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.014530" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1264" name="JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade(True)" fullname="Cryptforge.Tests.FoundryGateRecessTests.JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade(True)" methodname="JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1646339710" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.008623" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1265" name="JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade(False)" fullname="Cryptforge.Tests.FoundryGateRecessTests.JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade(False)" methodname="JambRebateHasAClosedBearingWithoutFillingItsConcaveCutOrEnteringTheFacade" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="169167890" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.005135" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1260" name="JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap" fullname="Cryptforge.Tests.FoundryGateRecessTests.JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.013759" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1258" name="JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap(-6.6f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap(-6.6f)" methodname="JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="283620270" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.006667" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1259" name="JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap(14.15f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap(14.15f)" methodname="JoinedButtressLowerMassSeatsEveryFollowingCourseOnItsActualChamferedCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="270391047" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.006400" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1263" name="OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder" fullname="Cryptforge.Tests.FoundryGateRecessTests.OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.044418" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1261" name="OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder(-6.6f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder(-6.6f)" methodname="OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1510694352" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.026243" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1262" name="OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder(14.15f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder(14.15f)" methodname="OuterGateTowerKeepsItsFootprintAndExposesTheBayAboveTheSeatedShoulder" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1628593357" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.017406" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1275" name="ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead" fullname="Cryptforge.Tests.FoundryGateRecessTests.ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.018261" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1273" name="ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead(28.26f,-2.76f,30.74f,-1.24f,1.7f,5.45f,0.04f,0.28f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead(28.26f,-2.76f,30.74f,-1.24f,1.7f,5.45f,0.04f,0.28f)" methodname="ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="821981002" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.012119" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1274" name="ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead(27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,0.065f,0.36f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead(27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,0.065f,0.36f)" methodname="ProductionNicheHasRegisteredBroadCoursesAndFittedPointedHead" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="615572282" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.005347" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1272" name="ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking" fullname="Cryptforge.Tests.FoundryGateRecessTests.ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.048690" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1270" name="ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking(28.26f,-2.76f,30.74f,-1.24f,1.7f,5.45f,0.04f,0.28f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking(28.26f,-2.76f,30.74f,-1.24f,1.7f,5.45f,0.04f,0.28f)" methodname="ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1719958554" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.026942" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1271" name="ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking(27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,0.065f,0.36f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking(27.53f,-6.14f,30.42f,-4.61f,2.85f,6.55f,0.065f,0.36f)" methodname="ProductionSplayedFramesConsumeExistingDepthAndMeetTheirUnmovedBacking" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1505384446" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.020879" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1280" name="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.026473" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1276" name="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(28.26f,-2.76f,30.74f,-1.24f,1.7f,5.45f,0.04f,0.28f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(28.26f,-2.76f,30.74f,-1.24f,1.7f,5.45f,0.04f,0.28f)" methodname="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="735948078" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.006973" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1277" name="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(28.26f,11.24f,30.74f,12.76f,1.7f,5.45f,0.04f,0.28f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(28.26f,11.24f,30.74f,12.76f,1.7f,5.45f,0.04f,0.28f)" methodname="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1804214381" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.004717" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1278" name="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(27.53f,-6.14f,30.42f,-4.61f,1.84f,6.55f,0.065f,0.36f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(27.53f,-6.14f,30.42f,-4.61f,1.84f,6.55f,0.065f,0.36f)" methodname="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1979990545" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.006729" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1279" name="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(27.53f,14.61f,30.42f,16.14f,1.84f,6.55f,0.065f,0.36f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap(27.53f,14.61f,30.42f,16.14f,1.84f,6.55f,0.065f,0.36f)" methodname="RecessedShaftKeepsOriginalTaperedPrismAndClosedCornerAndCap" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="846351515" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.006947" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1269" name="RecessInteriorRemainsExposedAfterAllFrontStonesArePainted" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessInteriorRemainsExposedAfterAllFrontStonesArePainted" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.046717" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1267" name="RecessInteriorRemainsExposedAfterAllFrontStonesArePainted(0.25f,0.125f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessInteriorRemainsExposedAfterAllFrontStonesArePainted(0.25f,0.125f)" methodname="RecessInteriorRemainsExposedAfterAllFrontStonesArePainted" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="2086380976" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.023924" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1268" name="RecessInteriorRemainsExposedAfterAllFrontStonesArePainted(-0.25f,0.125f)" fullname="Cryptforge.Tests.FoundryGateRecessTests.RecessInteriorRemainsExposedAfterAllFrontStonesArePainted(-0.25f,0.125f)" methodname="RecessInteriorRemainsExposedAfterAllFrontStonesArePainted" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="2084883817" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.021986" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1253" name="StoneContactPreservesLocalLightRatiosAndStaysAtCrownAndBearing" fullname="Cryptforge.Tests.FoundryGateRecessTests.StoneContactPreservesLocalLightRatiosAndStaysAtCrownAndBearing" methodname="StoneContactPreservesLocalLightRatiosAndStaysAtCrownAndBearing" classname="Cryptforge.Tests.FoundryGateRecessTests" runstate="Runnable" seed="1651101224" result="Passed" start-time="2026-10-14 09:14:03Z" end-time="2026-10-14 09:14:03Z" duration="0.024705" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: E:/MobileGame/TestResults/editmode-filter.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

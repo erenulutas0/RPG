@@ -824,3 +824,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-study-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.
+
+
+## 2026-10-14 - Foundry gate stonework verified; device pending
+
+- [x] Fit broad stone courses to the recessed gate shafts, partition adjacent curtain masonry and refine lower buttress mineral finish; matched captures and full verification.
+- [ ] Continue courtyard surface hierarchy and larger architectural/material coherence toward the approved reference; see next-visual-priorities.md.
+- [ ] Physical-device material/motion acceptance and existing immortal-crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.
