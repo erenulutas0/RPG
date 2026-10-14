@@ -190,6 +190,30 @@ namespace Cryptforge.Tests
             Assert.That(shared,Is.EqualTo(3));
         }
 
+        [Test]
+        public void FloorSpillCanBeTightenedWithoutChangingWallOrIronIllumination()
+        {
+            FieldInfo cache=View.GetField("_forgeLamps",Static);
+            object saved=cache.GetValue(null);
+            object lamp=Call("Lamp",new Vector4(0,0,0,0),0f,6f,1f,new Color(.66f,.38f,.03f,0),1f,4f);
+            Array fixture=Array.CreateInstance(lamp.GetType(),1);fixture.SetValue(lamp,0);
+            try
+            {
+                cache.SetValue(null,fixture);
+                Color floor=(Color)Call("FloorLight",2f,0f);
+                Color wall=(Color)Call("ArchitectureLight",2f,0f,1f,1f);
+                Color iron=(Color)Call("MetalLight",2f,0f,1f);
+                lamp.GetType().GetField("FloorRadius",Members).SetValue(lamp,.8f);
+                fixture.SetValue(lamp,0);
+                Color tighter=(Color)Call("FloorLight",2f,0f);
+                Assert.That(floor.r-floor.b,Is.GreaterThan(tighter.r-tighter.b+.2f),
+                    "The real floor sampler must respond to its own source reach.");
+                Assert.That((Color)Call("ArchitectureLight",2f,0f,1f,1f),Is.EqualTo(wall));
+                Assert.That((Color)Call("MetalLight",2f,0f,1f),Is.EqualTo(iron));
+            }
+            finally { cache.SetValue(null,saved); }
+        }
+
         private static Color ContactAlbedo(object mesh,int index,float u,float v)
         {
             // Recover the new field from emitted colour using only its prior

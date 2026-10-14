@@ -16,6 +16,7 @@ namespace Cryptforge.UI
             var supports=new Builder();
             CastingShelfBearings(supports);
             Create("Casting shelf cantilevers",supports,arena.PlatformMaterials.FoundryWall,-16);
+            BuildCastingFlaskStorage(arena);
             if(BuildBakedCastingBench())return;
 
             // Bounded fallback shares the same scenic footprint and existing material.

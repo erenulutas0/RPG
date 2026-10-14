@@ -103,7 +103,7 @@ namespace Cryptforge.Tests
             // the independent datum and require interpolated triangle interiors,
             // not merely endpoints, to follow the same continuous physical field.
             Vector3 origin=new Vector3(0,-64.8f*FoundryMap.Axis*.5f);
-            Vector2 Expected(Vector3 point)=>new Vector2(.04f+Mirror((point.x-origin.x)*.075f/.35f)*.35f,
+            Vector2 Expected(Vector3 point)=>new Vector2(.68f+Mirror((point.x-origin.x)*.075f/.29f)*.29f,
                 .44f+Mirror((point.y-origin.y)*.075f/.124f)*.124f);
             int compared=0;
             foreach(object mesh in new[]{front,returns})
@@ -272,7 +272,7 @@ namespace Cryptforge.Tests
             {
                 Assert.That(float.IsNaN(vertices[i].x)||float.IsInfinity(vertices[i].x)||float.IsNaN(vertices[i].y)||float.IsInfinity(vertices[i].y),Is.False);
                 Assert.That(vertices[i].z,Is.Zero);Assert.That(colors[i].a,Is.EqualTo(1));
-                Assert.That(uv[i].x,Is.InRange(.03999f,.39001f));Assert.That(uv[i].y,Is.InRange(.43999f,.56401f));
+                Assert.That(uv[i].x,Is.InRange(.67999f,.97001f));Assert.That(uv[i].y,Is.InRange(.43999f,.56401f));
             }
             foreach(int index in Data<int>(mesh,"T"))Assert.That(index,Is.InRange(0,vertices.Count-1));
         }

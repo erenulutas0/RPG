@@ -1417,3 +1417,12 @@ Inner gate jambs now use four fitted stone courses and separately owned mortar b
 Region 36 renderers / 169119 vertices versus 36 / 164672: +4447 vertices (2.70%). Distant 3572 is included and unchanged. Retained ceilings are 174000 region / 3600 distant, leaving 4881 and 28 vertices. No new runtime texture, material, shader, renderer batch or updater. Each fitted jamb uses 272 vertices/280 triangles versus 392/196 before the final grain finish; each curtain uses 2032 versus 2372 vertices before finishing. Final grain adds construction-time tessellation and indices. Local vertex savings are not a performance claim; physical-device timing and shimmer remain unmeasured.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.
+
+
+## 2026-10-14 - Foundry scene cohesion verified; device pending
+
+Three coordinated scene changes: floor-only fire radii localize warmth to the pit collar, furnace fronts and lanterns while wall/iron source radii stay unchanged; shared paving grain uses a finer 4.3 span and quieter broad patina; supported billets and open casting flasks fill existing off-walkway shelf slots; lower fortress, bridge bearings and near-island curtains use a clean existing atlas field with restrained exposed-stone lift.
+
+Region 36 renderers / 172735 vertices versus 36 / 169119: +3616 (2.14%). Distant 3572 is included and unchanged. Global ceilings remain 174000 / 3600, leaving 1265 / 28 vertices. Workyard stock adds exactly 700 authored vertices; adaptive floor sampling and fortress grain subdivision account for the remaining combined delta. No new runtime texture, material, shader, renderer batch or updater. The independently reproduced full floor is 45,335 → 46,096 (+761); subtracting it and the 700-vertex stock addition leaves 2,155 for the fortress package. This exceeds its provisional 1,600 allocation by 555; root retains the measured package within the unchanged global ceiling, using reserved combined headroom. No component timing was measured. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.

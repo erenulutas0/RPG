@@ -18,10 +18,10 @@ namespace Cryptforge.UI
         // (the furnace pit's rectangle, the four boilers' round plinths) keep the hottest light, now a ~2.5 u rim;
         // lanterns, braziers and beacons are weaker point sources. The paving samples the light on one lattice that
         // every stone shares - each whole unit plus the stone's own edges, halved where that misses FloorLight by over
-        // .04 (AshlarLightStep) - and the bridge every 1 s / 2 d, so no falloff radius is below 3.4: a pool interpolates
-        // as one soft gradient across the joints rather than a lit disc or a pool that steps stone by stone (the old 2x1
+        // .04 (AshlarLightStep) - and the bridge every 1 s / 2 d. Floor pools now have their own shorter reach;
+        // architecture retains the original source radii. Shared samples keep a soft gradient across joints (the old 2x1
         // bond's staggered rows stepped by up to ~11/255 in R-B, its apron pools by ~14).
-        private struct ForgeLamp { internal Vector4 Box; internal float Round,Radius,Strength,Height; internal Color Tint; }
+        private struct ForgeLamp { internal Vector4 Box; internal float Round,Radius,FloorRadius,Strength,Height; internal Color Tint; }
         // The furnace tint is amber (hue ~33); heat deepens it. A pool absorbs blue in proportion to its glow and green
         // in proportion to the glow's square, so the pit and boiler rims run forge orange (hue ~22, saturation ~.5).
         // The flame tint is redder (hue ~26): a lantern's weak spill over violet stone then reads rose (hue ~5,
@@ -46,10 +46,9 @@ namespace Cryptforge.UI
         {
             if(_forgeLamps!=null)return _forgeLamps;
             var lamps=new System.Collections.Generic.List<ForgeLamp>();
-            // A hot rim: forge orange (saturation ~.5) to ~1.5 off the pit, rose-amber by 2.5, the court's violet by
-            // 3.5. It was orange to ~3.5 off and still warmed the seal centre, 4.5 away; the concept's pit lights no
-            // floor at all.
-            lamps.Add(Lamp(new Vector4(PitU0,PitV0,PitU1,PitV1),0,3.8f,1f,FurnaceLight,-1f));
+            // Confine floor heat to the collar rather than outlining the pit with a broad orange ribbon.
+            // The original 3.8 radius still lights the pit walls and surrounding architecture.
+            lamps.Add(Lamp(new Vector4(PitU0,PitV0,PitU1,PitV1),0,3.8f,1f,FurnaceLight,-1f,2.4f));
             // The tall rear boilers' fire fronts face the apron and reach furthest onto it; the squat front ones turn
             // their grates away. Their plinths sit at or past the walkable edge (the rear ones .5 and 1.8 behind it),
             // so the pools must reach in to it: a ~2-2.5 wide orange band along each apron rim, not the whole apron.
@@ -57,7 +56,7 @@ namespace Cryptforge.UI
             {
                 Vector2 c=BoilerCentres[i];
                 lamps.Add(Lamp(new Vector4(c.x,c.y,c.x,c.y),BoilerPlinth,SquatBoiler(i)?4.2f:4.6f,
-                    SquatBoiler(i)?.9f:1.4f,FurnaceLight,SquatBoiler(i)?.8f:1.5f));
+                    SquatBoiler(i)?.9f:1.4f,FurnaceLight,SquatBoiler(i)?.8f:1.5f,SquatBoiler(i)?3f:3.3f));
             }
             // The pit collar's corner lanterns (.9 pedestals, on the rounded collar's corner arcs) only round off the
             // pit's own glow at its corners.
@@ -82,8 +81,9 @@ namespace Cryptforge.UI
             return _forgeLamps=lamps.ToArray();
         }
 
-        private static ForgeLamp Lamp(Vector4 box,float round,float radius,float strength,Color tint,float height=2.6f)=>
-            new ForgeLamp{Box=box,Round=round,Radius=radius,Strength=strength,Tint=tint,Height=height};
+        // Point-source floor spill stays local; this is independent of wall/metal illumination.
+        private static ForgeLamp Lamp(Vector4 box,float round,float radius,float strength,Color tint,float height=2.6f,float floorRadius=2.8f)=>
+            new ForgeLamp{Box=box,Round=round,Radius=radius,FloorRadius=floorRadius,Strength=strength,Tint=tint,Height=height};
 
         private static float SmoothFall(float distance,float radius)
         {
@@ -116,10 +116,10 @@ namespace Cryptforge.UI
             foreach(var lamp in ForgeLamps())
             {
                 float d=Mathf.Max(0,DistanceFromFloorBox(u,v,lamp.Box.x,lamp.Box.y,lamp.Box.z,lamp.Box.w)-lamp.Round);
-                if(d>=lamp.Radius*FireReach)continue;
-                float f=lamp.Strength*SmoothFall(d,lamp.Radius);
+                if(d>=lamp.FloorRadius*FireReach)continue;
+                float f=lamp.Strength*SmoothFall(d,lamp.FloorRadius);
                 heat+=f;warm+=lamp.Tint*f;
-                reach+=lamp.Strength*SmoothFall(d,lamp.Radius*FireReach);
+                reach+=lamp.Strength*SmoothFall(d,lamp.FloorRadius*FireReach);
             }
             float glow=1-Mathf.Exp(-heat);
             if(heat>.0001f)warm*=FireGain*glow/heat;
@@ -129,7 +129,7 @@ namespace Cryptforge.UI
             // Broad, quiet deposits cross slab boundaries so wear belongs to the yard,
             // not to a repeated tile. This only modulates the existing texture colours.
             float patina=FloorPatina(u*.19f,v*.19f);
-            light*=Mathf.Lerp(.91f,1.025f,patina);
+            light*=Mathf.Lerp(.96f,1.015f,patina);
             // Soot belongs to working areas, not every slab. Smooth, irregular deposits
             // stay flush with the floor and never resemble cracks or blocking rubble.
             float shaftDistance=DistanceFromFloorBox(u,v,PitU0,PitV0,PitU1,PitV1);
@@ -665,7 +665,7 @@ namespace Cryptforge.UI
 
         // Foundry grain is denser than the separate small-arena paving. Every
         // foundry floor emitter shares this contract, including ceremonial stone.
-        public const float PavingGrainSpan=5.7f;
+        public const float PavingGrainSpan=4.3f;
         // One flush paving vertex: world-continuous floor UV, lit as LitFloorQuad lights its corners
         // (light: FloorLight at (u, v)).
         private static void PavingVertex(Builder mesh,float u,float v,float tone,Color tint,Color light)

@@ -225,6 +225,32 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void OwnershipOracleRejectsCollapsedRemoteTrianglesAndRetainsRealOverlappingFaces()
+        {
+            // Exact projected witnesses from the production failure: two ordinary
+            // paving layers cover this point. A remote collapsed corner triangle
+            // previously counted as a third owner because all edge crosses are zero.
+            Vector2 point=new Vector2(15.1052151f,-1.74513948f);
+            object mesh=NewBuilder();
+            Data<Vector3>(mesh,"V").AddRange(new[]{
+                new Vector3(15.5563488f,-2.12132025f),new Vector3(15.5563488f,-1.41421354f),new Vector3(14.8492422f,-1.767767f),
+                new Vector3(15.5563488f,-2.12132025f),new Vector3(15.603425f,-1.43775165f),new Vector3(14.9017639f,-1.79402781f),
+                new Vector3(18.3847752f,.353553385f),new Vector3(18.3847752f,.353553385f),new Vector3(18.3847752f,.353553385f)});
+            Data<int>(mesh,"T").AddRange(new[]{0,1,2,3,4,5,6,7,8});
+            Assert.That(Owners(point,mesh),Is.EqualTo(2),"Reject the phantom without hiding either real opaque layer.");
+            Vector2 collapsed=Data<Vector3>(mesh,"V")[6];
+            Assert.That(InTriangle(collapsed,collapsed,collapsed,collapsed),Is.False,
+                "A zero-area point cannot own rendered floor even at its own coordinate.");
+            // Positive-area slivers also need local bounds: the unchanged cross
+            // tolerance alone admits a remote point for this small real triangle.
+            Vector2 a=Vector2.zero,b=new Vector2(.0001f,0),c=new Vector2(0,.0001f);
+            Assert.That(InTriangle(new Vector2(.0005f,.0005f),a,b,c),Is.False);
+            Assert.That(InTriangle(new Vector2(.00002f,.00002f),a,b,c),Is.True);
+            Assert.That(InTriangle(new Vector2(.00002f,.00002f),a,c,b),Is.True,
+                "Real small faces remain detectable in either winding.");
+        }
+
+        [Test]
         public void ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled()
         {
             var go=new GameObject("Court paving ownership test");
@@ -242,10 +268,13 @@ namespace Cryptforge.Tests
                 int originalVertices=Data<Vector3>(mesh,"V").Count;
                 Vector2 outside=Project(new Vector2(8.213f,-13.149f));
                 int outsideOwners=Owners(outside,mesh);
+                string outsideWitness=OwnerWitness(outside,mesh);
                 Assert.That(outsideOwners,Is.GreaterThan(0));
                 Invoke("ReplaceCourtPavingBase",mesh);
                 int clippedVertices=Data<Vector3>(mesh,"V").Count;
-                Assert.That(Owners(outside,mesh),Is.EqualTo(outsideOwners),"Court carving must preserve ordinary paving outside the agreed fields.");
+                Assert.That(Owners(outside,mesh),Is.EqualTo(outsideOwners),
+                    "Court carving must preserve ordinary paving outside the agreed fields. Before: "+outsideWitness+
+                    " After: "+OwnerWitness(outside,mesh));
                 var used=new HashSet<int>(Data<int>(mesh,"T"));
                 Assert.That(used.Count,Is.EqualTo(Data<Vector3>(mesh,"V").Count),"Removed source vertices must not inflate the uploaded mesh.");
                 var samples=new List<Vector2>();
@@ -352,6 +381,10 @@ namespace Cryptforge.Tests
                 Vector2 da=ToDesign(a),db=ToDesign(b),dc=ToDesign(c);
                 text.AppendFormat("Triangle{0} design[({1:R},{2:R}),({3:R},{4:R}),({5:R},{6:R})] edgeCross[{7:R},{8:R},{9:R}]. ",
                     i/3,da.x,da.y,db.x,db.y,dc.x,dc.y,Cross(a,b,point),Cross(b,c,point),Cross(c,a,point));
+                text.AppendFormat("Projected[({0:R},{1:R}),({2:R},{3:R}),({4:R},{5:R})] area={6:R} inBounds={7}. ",
+                    a.x,a.y,b.x,b.y,c.x,c.y,Cross(a,b,c),
+                    point.x>=Mathf.Min(a.x,Mathf.Min(b.x,c.x))&&point.x<=Mathf.Max(a.x,Mathf.Max(b.x,c.x))&&
+                    point.y>=Mathf.Min(a.y,Mathf.Min(b.y,c.y))&&point.y<=Mathf.Max(a.y,Mathf.Max(b.y,c.y)));
             }
             return text.ToString();
         }
@@ -409,6 +442,15 @@ namespace Cryptforge.Tests
             ((double)b.x-a.x)*((double)p.y-a.y)-((double)b.y-a.y)*((double)p.x-a.x);
         private static bool InTriangle(Vector2 p,Vector2 a,Vector2 b,Vector2 c)
         {
+            // Corner clipping can leave collapsed triangles, removed later by
+            // court subtraction. They cannot own a remote point merely because
+            // all edge crosses are within tolerance. Keep the existing 1e-7
+            // edge tolerance and the production clipper's 1e-10 area threshold.
+            if(Math.Abs(Cross(a,b,c))<=1e-10)return false;
+            if((double)p.x<Mathf.Min(a.x,Mathf.Min(b.x,c.x))-1e-7||
+                (double)p.x>Mathf.Max(a.x,Mathf.Max(b.x,c.x))+1e-7||
+                (double)p.y<Mathf.Min(a.y,Mathf.Min(b.y,c.y))-1e-7||
+                (double)p.y>Mathf.Max(a.y,Mathf.Max(b.y,c.y))+1e-7)return false;
             double x=Cross(a,b,p),y=Cross(b,c,p),z=Cross(c,a,p);
             return x>=-1e-7&&y>=-1e-7&&z>=-1e-7||x<=1e-7&&y<=1e-7&&z<=1e-7;
         }

@@ -34,7 +34,7 @@ namespace Cryptforge.Tests
                 Vector3 p=points[i];
                 Assert.That(float.IsNaN(p.x)||float.IsInfinity(p.x)||float.IsNaN(p.y)||float.IsInfinity(p.y),Is.False);
                 for(int edge=0;edge<4;edge++)Assert.That(Cross(face[edge],face[(edge+1)%4],p),Is.GreaterThanOrEqualTo(-.00001));
-                Assert.That(uv[i].x,Is.InRange(.03999f,.39001f));Assert.That(uv[i].y,Is.InRange(.43999f,.56401f));
+                Assert.That(uv[i].x,Is.InRange(.67999f,.97001f));Assert.That(uv[i].y,Is.InRange(.43999f,.56401f));
                 Assert.That(colors[i].a,Is.EqualTo(1));
             }
             for(int i=0;i<triangles.Count;i+=3)

@@ -48,6 +48,7 @@ namespace Cryptforge.UI
             BuildStoredPipes(arena);
             BuildToolRack(arena);
             }
+            BuildStockReceivingGroup(arena);
             BuildProductionYard(arena);
         }
 

@@ -887,3 +887,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.
+
+
+## 2026-10-14 - Foundry scene cohesion verified; device pending
+
+- [x] Group localized floor heat/finer grain, supported workyard storage and near-island stone cohesion; verify matched native views, full suites and Android build.
+- [ ] Reduce directional paving appearance and improve meaningful workyard silhouettes/occlusion within the remaining geometry budget.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.

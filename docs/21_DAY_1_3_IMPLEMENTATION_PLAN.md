@@ -2616,3 +2616,15 @@ Files: FoundryRegionArchitecture, GateEnclosure, new GateCurtain and GateSurface
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 E7B574E2F7B9CA149DC978C338A3A669D92E906BD8A32C1379BB760D21A3C64C; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.
+
+
+## 2026-10-14 - Foundry scene cohesion verified; device pending
+
+Three coordinated scene changes: floor-only fire radii localize warmth to the pit collar, furnace fronts and lanterns while wall/iron source radii stay unchanged; shared paving grain uses a finer 4.3 span and quieter broad patina; supported billets and open casting flasks fill existing off-walkway shelf slots; lower fortress, bridge bearings and near-island curtains use a clean existing atlas field with restrained exposed-stone lift.
+
+Files: FoundryRegionFinish, FortressSurface, Undercroft, Workshop, CastingBench, new WorkyardStock; CourtMaterial, CourtCompass, FortressHierarchy, FortressSurface and new WorkyardStock EditMode tests. Matched capture: Tools/ArtReview/FoundrySceneCohesionCapture.cs and launcher.
+
+438 .NET / 687 EditMode / 160 PlayMode = 1,285 accepted suite executions, zero failures/skips. Focused Foundry 285/285 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 633 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 2D4BAB5DBE3300908BAF8D3CC850FD9B07AE588A32709787C634AE48B0110B45; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-scene-cohesion-01.

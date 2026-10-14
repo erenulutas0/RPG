@@ -1,0 +1,136 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Cryptforge.Art;
+using Cryptforge.UI;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Cryptforge.Tests
+{
+    public sealed class FoundryWorkyardStockTests
+    {
+        private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
+        private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
+        private const float StockOffset=-20+FoundryMap.WestAssemblyOffset;
+
+        [TestCase(false)] [TestCase(true)]
+        public void SupplyGroupsStayInsideTheirEstablishedFreeShelfSlots(bool casting)
+        {
+            object b=Build(casting?"CastingFlaskStore":"StockReceivingPack");
+            var points=Data<Vector3>(b,"V");var uv=Data<Vector2>(b,"U");
+            var colours=Data<Color>(b,"C");var triangles=Data<int>(b,"T");
+            Assert.That(points.Count,Is.GreaterThan(0).And.LessThanOrEqualTo(casting?520:220));
+            Assert.That(uv.Count,Is.EqualTo(points.Count));Assert.That(colours.Count,Is.EqualTo(points.Count));
+            Vector4 box=casting?new Vector4(-17,19.71f,-14,20.41f):
+                new Vector4(5.18f+StockOffset,18.67f,6.10f+StockOffset,19.38f);
+            float top=casting?.63f:.66f;
+            var corners=new[]{Project(box.x,box.y),Project(box.z,box.y),Project(box.z,box.w),Project(box.x,box.w)};
+            // Support lines independently constrain the actual emitted geometry
+            // to the small free slot, rather than the much larger shelf owner.
+            foreach(int i in new HashSet<int>(triangles))
+            {
+                Assert.That(i,Is.InRange(0,points.Count-1));
+                Assert.That(uv[i].x,Is.InRange(.17f,.83f));Assert.That(uv[i].y,Is.InRange(.17f,.83f));
+                Assert.That(colours[i].a,Is.EqualTo(1f));
+                for(int direction=0;direction<72;direction++)
+                {
+                    float a=direction*Mathf.PI/36;
+                    var axis=new Vector3(Mathf.Cos(a),Mathf.Sin(a),0);
+                    float limit=float.NegativeInfinity;
+                    foreach(Vector3 corner in corners)limit=Mathf.Max(limit,Vector3.Dot(axis,corner));
+                    limit+=axis.y*(axis.y>0?top:.18f);
+                    Assert.That(Vector3.Dot(axis,points[i]),Is.LessThanOrEqualTo(limit+.00002f));
+                }
+            }
+            for(int u=0;u<=12;u++)for(int v=0;v<=12;v++)
+            {
+                FoundryMap.ToFloor(Mathf.Lerp(box.x,box.z,u/12f),Mathf.Lerp(box.y,box.w,v/12f),out float x,out float y);
+                Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False,"Storage stays off every walking surface.");
+            }
+        }
+
+        [Test]
+        public void ReceivedBilletsBearOnTimberAndTheUpperBlankBearsOnBothLowerBlanks()
+        {
+            object b=Build("StockReceivingPack");
+            var points=Data<Vector3>(b,"V");var colours=Data<Color>(b,"C");
+            // The first two timber hulls are the actual contact beds. Check
+            // actual triangles at both ends of each lower billet, not just the
+            // bundle's projected bounds or a helper's declared dimensions.
+            foreach(float u in new[]{5.30f,5.70f})foreach(float v in new[]{18.78f,19.28f})
+                Assert.That(Covered(b,Project(u+StockOffset,v)+Vector3.up*.30f,0,56),Is.True);
+            foreach(float u in new[]{5.48f,5.69f})foreach(float v in new[]{18.80f,19.27f})
+                Assert.That(Covered(b,Project(u+StockOffset,v)+Vector3.up*.48f,56,112),Is.True,
+                    "The upper bar must bear on both real lower billet top faces.");
+            foreach(Vector3 foot in new[]{Project(5.24f+StockOffset,18.70f)+Vector3.up*.30f,
+                Project(5.63f+StockOffset,18.73f)+Vector3.up*.30f,
+                Project(5.43f+StockOffset,18.76f)+Vector3.up*.48f})
+                Assert.That(Find(points,foot),Is.GreaterThanOrEqualTo(0));
+            int timber=Find(points,Project(5.198f+StockOffset,18.688f)+Vector3.up*.30f);
+            Assert.That(timber,Is.GreaterThanOrEqualTo(0));
+            Assert.That(colours[timber].r/colours[timber].g,Is.InRange(1.19f,1.27f),
+                "Packing uses the moulding bench's muted timber family.");
+        }
+
+        [Test]
+        public void StoredFlasksHaveOpenCentresAndContactBothRunnersAndTheirLowerRings()
+        {
+            object b=Build("CastingFlaskStore");var points=Data<Vector3>(b,"V");
+            foreach(float u in new[]{-16.90f,-15.58f,-15.21f,-14.10f})
+                foreach(float v in new[]{19.78f,20.33f})
+                    Assert.That(Covered(b,Project(u,v)+Vector3.up*.31f,0,56),Is.True,
+                        "Each stored flask has two continuous timber bearings.");
+            // Lower rings are emitted after the runners. A point on each upper
+            // front/back rail must meet a real lower top, clear of its bevel.
+            foreach(var pair in new[]{new Vector2(-16.90f,56),new Vector2(-15.20f,280)})
+                foreach(float v in new[]{19.78f,20.33f})
+                {
+                    Vector3 contact=Project(pair.x,v)+Vector3.up*.47f;
+                    Assert.That(Covered(b,contact,(int)pair.y,(int)pair.y+112),Is.True);
+                }
+            foreach(var entry in new[]{new Vector4(-16.98f,19.73f,-15.50f,20.38f),
+                new Vector4(-15.29f,19.73f,-14.02f,20.38f)})
+            {
+                object ring=Build("YardStoredFlask",entry.x,entry.y,entry.z,entry.w,.31f,.47f);
+                Vector3 centre=Project((entry.x+entry.z)*.5f,(entry.y+entry.w)*.5f)+Vector3.up*.47f;
+                Assert.That(Covered(ring,centre,0,Data<Vector3>(ring,"V").Count),Is.False,
+                    "Empty tooling needs an actual open centre.");
+                foreach(Vector3 p in Data<Vector3>(ring,"V"))
+                    Assert.That(Find(points,p),Is.GreaterThanOrEqualTo(0),"The complete group must emit the tested rings.");
+            }
+        }
+
+        private static object Build(string method,params float[] values)
+        {
+            object b=Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+            var args=new object[values.Length+1];args[0]=b;
+            for(int i=0;i<values.Length;i++)args[i+1]=values[i];
+            typeof(FoundryRegionView).GetMethod(method,Static).Invoke(null,args);
+            return b;
+        }
+        private static Vector3 Project(float u,float v)
+        {
+            FoundryMap.ToFloor(u,v,out float x,out float y);
+            return new Vector3(x,y*.5f,0);
+        }
+        private static List<T> Data<T>(object b,string name)=>(List<T>)b.GetType().GetField(name,Fields).GetValue(b);
+        private static int Find(List<Vector3> points,Vector3 p)=>points.FindIndex(q=>Vector3.Distance(q,p)<.00002f);
+        private static bool Covered(object b,Vector2 point,int first,int end)
+        {
+            var points=Data<Vector3>(b,"V");var triangles=Data<int>(b,"T");
+            for(int t=0;t<triangles.Count;t+=3)
+            {
+                int ia=triangles[t],ib=triangles[t+1],ic=triangles[t+2];
+                if(ia<first||ib<first||ic<first||ia>=end||ib>=end||ic>=end)continue;
+                Vector2 a=points[ia],c=points[ib],d=points[ic];
+                double area=Cross(a,c,d);if(Math.Abs(area)<1e-8)continue;
+                double x=Cross(point,c,d)/area,y=Cross(a,point,d)/area,z=1-x-y;
+                if(x>=-.00001&&y>=-.00001&&z>=-.00001)return true;
+            }
+            return false;
+        }
+        private static double Cross(Vector2 a,Vector2 b,Vector2 c)=>
+            ((double)b.x-a.x)*((double)c.y-a.y)-((double)b.y-a.y)*((double)c.x-a.x);
+    }
+}

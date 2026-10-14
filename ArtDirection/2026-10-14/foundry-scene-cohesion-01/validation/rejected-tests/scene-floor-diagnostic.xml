@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0,7383308">
+  <test-suite type="TestSuite" id="1000" name="Project Cryptforge" fullname="Project Cryptforge" runstate="Runnable" testcasecount="686" result="Failed" site="Child" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0.738331" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1861" name="Project.EditModeTests.dll" fullname="E:/MobileGame/Library/ScriptAssemblies/Project.EditModeTests.dll" runstate="Runnable" testcasecount="686" result="Failed" site="Child" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0.725071" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40000" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1862" name="Cryptforge" fullname="Cryptforge" runstate="Runnable" testcasecount="686" result="Failed" site="Child" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0.723247" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1863" name="Tests" fullname="Cryptforge.Tests" runstate="Runnable" testcasecount="686" result="Failed" site="Child" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0.721791" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1170" name="FoundryCourtCompassTests" fullname="Cryptforge.Tests.FoundryCourtCompassTests" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" testcasecount="8" result="Failed" site="Child" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0.708282" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1177" name="ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled" fullname="Cryptforge.Tests.FoundryCourtCompassTests.ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled" methodname="ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled" classname="Cryptforge.Tests.FoundryCourtCompassTests" runstate="Runnable" seed="1850377080" result="Failed" start-time="2026-10-14 16:11:42Z" end-time="2026-10-14 16:11:43Z" duration="0.692732" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Court carving must preserve ordinary paving outside the agreed fields. Before: Design(8,213,-13,149) projected(15,1052151,-1,74513948). Triangle17726 design[(7,99999952,-13,999999),(9,-12,999999),(7,99999952,-13)] edgeCross[0,31899968596098915,0,074500044232991058,0,1065000841043684]. Projected[(15,5563488,-2,12132025),(15,5563488,-1,41421354),(14,8492422,-1,767767)] area=0,49999981429834861 inBounds=True. Triangle17773 design[(7,99999952,-13,999999),(9,-13,0665751),(7,99999952,-13,0742769)] edgeCross[0,32609002003607657,0,038181758844643809,0,09858958497511594]. Projected[(15,5563488,-2,12132025),(15,603425,-1,43775165),(14,9017639,-1,79402781)] area=0,46286136385583632 inBounds=True. Triangle21428 design[(13,499999,-12,499999),(13,499999,-12,499999),(13,499999,-12,499999)] edgeCross[0,0,0]. Projected[(18,3847752,0,353553385),(18,3847752,0,353553385),(18,3847752,0,353553385)] area=0 inBounds=False.  After: Design(8,213,-13,149) projected(15,1052151,-1,74513948). Triangle17398 design[(7,99999952,-13,999999),(9,-12,999999),(7,99999952,-13)] edgeCross[0,31899968596098915,0,074500044232991058,0,1065000841043684]. Projected[(15,5563488,-2,12132025),(15,5563488,-1,41421354),(14,8492422,-1,767767)] area=0,49999981429834861 inBounds=True. Triangle17445 design[(7,99999952,-13,999999),(9,-13,0665751),(7,99999952,-13,0742769)] edgeCross[0,32609002003607657,0,038181758844643809,0,09858958497511594]. Projected[(15,5563488,-2,12132025),(15,603425,-1,43775165),(14,9017639,-1,79402781)] area=0,46286136385583632 inBounds=True.
+  Expected: 3
+  But was:  2
+]]></message>
+                <stack-trace><![CDATA[at Cryptforge.Tests.FoundryCourtCompassTests.ProductionCourtAndBridgeRemoveTheOldGridBeforeTheirReplacementIsFilled () [0x00197] in E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryCourtCompassTests.cs:249
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[Saving results to: E:/MobileGame/TestResults/scene-floor-diagnostic.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

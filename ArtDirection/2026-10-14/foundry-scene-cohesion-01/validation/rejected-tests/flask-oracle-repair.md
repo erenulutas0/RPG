@@ -1,0 +1,9 @@
+# Stored-flask oracle repair
+
+The first executable EditMode run reported three passing workyard cases and one failure in `StoredFlasksHaveOpenCentresAndContactBothRunnersAndTheirLowerRings`. The original assertion treated coverage by any projected triangle as proof of a closed physical opening. That is not valid for an elevated, extruded ring in this oblique camera.
+
+For the first lower flask, the physical cap centre is `(u=-16.24, v=20.055, height=.47)`. The same screen point lies on the far rail's near vertical face at approximately `(u=-16.015, v=20.28, height=.310901)`. That height is between the rail bottom `.31` and shoulder `.438`. The camera ray therefore intersects a legitimate vertical wall beyond the opening. No top plate spans the ring.
+
+Runtime source is unchanged. The repaired test classifies every actual triangle against one of the four independently specified extruded rails. A triangle spanning the opening or introducing unrecognized vertices fails this classification; it cannot be silently excluded. The test then identifies the actual top-plane triangles by their top stations, requires exactly two cap triangles for each rail, verifies their combined physical area against the four inset rail tops and checks that those caps leave the centre open. All four stored rings, including both upper rings, are checked and required to appear in the complete emitted storage group. Existing support, envelope and walking-union assertions are retained.
+
+The original test source is retained as `FoundryWorkyardStockTests.cs.txt`; SHA256 `FAE8B0C1F85B1E9F09113A4D716D0447B6C469853E355D21448EB7D96A0E4DDE` matches the rejected source freeze exactly. The rejected XML and freeze remain alongside it. Parent-owned focused and full reruns must establish acceptance of the repaired oracle; this note does not claim those results.

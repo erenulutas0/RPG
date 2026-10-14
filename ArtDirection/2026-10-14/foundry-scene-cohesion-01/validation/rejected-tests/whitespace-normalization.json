@@ -1,0 +1,17 @@
+{
+  "InitTestScene649a68af-d275-426a-8bcf-5151b0b09c4c.unity.txt": {
+    "original_sha256": "14ae52fc014a4d2fc043015c0ce57734052464cfbd91a1704e0b00f82212c619",
+    "normalized_sha256": "3aabdcd1fb5460a584942b0cea2207e4b6d39ca4c13017155c642464c00e7997",
+    "operation": "Trailing spaces removed only; original is retained locally in ignored TestResults/scene-cohesion-rejected-raw."
+  },
+  "InitTestScene649a68af-d275-426a-8bcf-5151b0b09c4c.unity.meta.txt": {
+    "original_sha256": "515d48933841a7c900adf0c09615a708e8111d8be5d473cd940c6744e6e481e1",
+    "normalized_sha256": "d5e2ccde58804047caf56a4ab0a32d3056cf8e2b50a1bfca64e2d6d0953e0c91",
+    "operation": "Trailing spaces removed only; original is retained locally in ignored TestResults/scene-cohesion-rejected-raw."
+  },
+  "scene-floor-diagnostic.xml": {
+    "original_sha256": "68b12965862926ea9b9426fe46712cc468684160e3b1a5def71526dd7496ce12",
+    "normalized_sha256": "d15b8ffa89f9a3daae93ea5b4064d82fd8bae5ca228bdb5f97d44e3a9aaf9aad",
+    "operation": "Trailing spaces removed only; original is retained locally in ignored TestResults/scene-cohesion-rejected-raw."
+  }
+}

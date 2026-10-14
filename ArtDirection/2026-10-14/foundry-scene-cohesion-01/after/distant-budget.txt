@@ -1,0 +1,2 @@
+Distant foundry works: 3428 vertices; rank -20; shader Cryptforge/Foundry Cavern
+Distant foundry works furnace slits: 144 vertices; rank -19; shader Sprites/Default

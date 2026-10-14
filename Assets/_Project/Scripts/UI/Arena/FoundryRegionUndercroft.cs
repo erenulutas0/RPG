@@ -99,7 +99,7 @@ namespace Cryptforge.UI
                 const float shoulder=5.95f,foot=7.25f;
                 int blocks=Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.75f));
                 FortressCoursedFace(stone,a+Vector3.down*shoulder,b+Vector3.down*shoulder,
-                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,tone,3,blocks);
+                    b+Vector3.down*2.78f,a+Vector3.down*2.78f,FortressBearingTone(tone),3,blocks);
                 // One shared contraction maps every adjoining endpoint identically,
                 // including diagonal corners, so the lower skirt has no seam gaps.
                 Vector2 centre=new Vector2(-8,2);
@@ -108,6 +108,10 @@ namespace Cryptforge.UI
                 Vector3 lowerB=Project(innerB.x,innerB.y)+Vector3.down*foot;
                 FortressCoursedFace(stone,lowerA,lowerB,b+Vector3.down*shoulder,a+Vector3.down*shoulder,
                     new Color(tone.r*.78f,tone.g*.81f,tone.b*.88f),2,blocks);
+                // The broad curtain no longer restarts its grain on every block.
+                // Its shoulder and contracted skirt share the arch-bay field;
+                // split only the existing faces where the quarry image folds.
+                FortressDetailGrain(stone,0,stone.V.Count,b-a);
                 ShadeUndercroftDepth(stone,a,b);
                 Create("Continuous fortress foundation",stone,arena.PlatformMaterials.FoundryWall,-16);
             }
@@ -274,7 +278,8 @@ namespace Cryptforge.UI
                 FortressMineralFace(stone,left+lower,right+lower,right+returnTop,left+returnTop,returnShade,false);
                 FortressMineralFace(stone,left+returnTop,right+returnTop,right+bevelTop,left+bevelTop,
                     new Color(shade.r*.83f,shade.g*.87f,shade.b*.94f),false);
-                FortressMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,shade,primary);
+                FortressMineralFace(stone,left+bevelTop,right+bevelTop,right+upper,left+upper,
+                    primary?FortressBearingTone(shade):shade,primary);
                 // A narrow lit upper arris and dark return give each wedge thickness.
                 FortressMineralFace(stone,left+upper,right+upper,right+upper+Vector3.down*.045f,
                     left+upper+Vector3.down*.045f,primary?new Color(.57f,.60f,.68f):new Color(.36f,.40f,.49f),false);
@@ -352,7 +357,7 @@ namespace Cryptforge.UI
                     q=top+Vector3.right*(half*across[face+1]),
                     r=foot+Vector3.right*(half*.55f*across[face+1]),
                     s=foot+Vector3.right*(half*.55f*across[face]);
-                if(face==1&&major)FortressCoursedFace(stone,s,r,q,p,front[face],3,1);
+                if(face==1&&major)FortressCoursedFace(stone,s,r,q,p,FortressBearingTone(front[face]),3,1);
                 else if(face==1)FortressRecessedRespond(stone,s,r,q,p,new Color(.39f,.43f,.52f));
                 else FortressMineralFace(stone,p,q,r,s,front[face],false);
             }
@@ -367,7 +372,7 @@ namespace Cryptforge.UI
                 float width=half*(drop<1?1.18f:.92f);
                 FortressMineralFace(stone,p+Vector3.left*width,p+Vector3.right*width,
                     p+Vector3.right*width+Vector3.down*.2f,p+Vector3.left*width+Vector3.down*.2f,
-                    major?new Color(.46f,.49f,.57f):new Color(.35f,.39f,.48f),major);
+                    major?FortressBearingTone(new Color(.46f,.49f,.57f)):new Color(.35f,.39f,.48f),major);
             }
             FortressDetailGrain(stone,first,stone.V.Count,Vector3.up);
         }

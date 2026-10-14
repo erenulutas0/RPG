@@ -4,6 +4,14 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        // The broad cool stone at the right of the existing atlas has no dark
+        // drip. Keep one physical grain scale for the foundation, arch returns
+        // and bridge bearings; their construction supplies the joints.
+        private static readonly Vector4 FortressQuarryPatch=new Vector4(.68f,.44f,.97f,.564f);
+
+        private static Color FortressBearingTone(Color tone)=>
+            new Color(tone.r*1.12f,tone.g*1.09f,tone.b*1.055f,tone.a);
+
         private static void FortressRecessedRespond(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Color tone)
         {
             // One blind panel carved into the full parent face. Its four broad
@@ -16,7 +24,7 @@ namespace Cryptforge.UI
             for(int edge=0;edge<4;edge++)
             {
                 int next=(edge+1)%4;
-                FortressMineralFace(mesh,frame[edge],frame[next],mouth[next],mouth[edge],tone,false);
+                FortressMineralFace(mesh,frame[edge],frame[next],mouth[next],mouth[edge],FortressBearingTone(tone),false);
                 float light=edge==0?.98f:edge==1?.74f:edge==2?.51f:.61f;
                 FortressMineralFace(mesh,mouth[edge],mouth[next],back[next],back[edge],
                     new Color(tone.r*light,tone.g*light,tone.b*light,1),false);
@@ -78,7 +86,7 @@ namespace Cryptforge.UI
             Vector3 sa=Vector3.Lerp(a,d,.26f),sb=Vector3.Lerp(b,c,.26f);
             GateStonePatch(mesh,a,b,rb,ra,new Color(tone.r*.58f,tone.g*.63f,tone.b*.71f,1));
             GateStonePatch(mesh,ra,rb,sb,sa,new Color(tone.r*.86f,tone.g*.90f,tone.b*.96f,1));
-            GateDressedFace(mesh,sa,sb,c,d,tone,.05f);
+            GateDressedFace(mesh,sa,sb,c,d,FortressBearingTone(tone),.05f);
             FortressMapGrain(mesh,first,mesh.V.Count,(b-a).sqrMagnitude>(d-a).sqrMagnitude?b-a:d-a);
         }
 
@@ -89,7 +97,7 @@ namespace Cryptforge.UI
             // rotate the mineral image at every joint. Both batches use the same
             // datum, including contacts along the opening.
             StoneDetailGrain(mesh,0,mesh.V.Count,origin,Vector2.right,
-                new Vector4(.04f,.44f,.39f,.564f),.075f);
+                FortressQuarryPatch,.075f);
         }
 
         private static void FortressDetailGrain(Builder mesh,int first,int end,Vector3 direction)
@@ -97,7 +105,7 @@ namespace Cryptforge.UI
             Vector2 axis=((Vector2)direction).normalized;
             if(axis.sqrMagnitude<.5f)axis=Vector2.right;
             StoneDetailGrain(mesh,first,end,Vector2.zero,axis,
-                new Vector4(.04f,.44f,.39f,.564f),.075f);
+                FortressQuarryPatch,.075f);
         }
 
         private static void FortressMapGrain(Builder mesh,int first,int end,Vector3 direction)
@@ -112,13 +120,14 @@ namespace Cryptforge.UI
                 low=Vector2.Min(low,local);high=Vector2.Max(high,local);
             }
             Vector2 span=high-low;
-            float scale=Mathf.Min(.082f,Mathf.Min(.35f/Mathf.Max(.001f,span.x),.124f/Mathf.Max(.001f,span.y)));
-            // Interior of the broad cool V4 stone, clear of its black mortar.
+            float scale=Mathf.Min(.075f,Mathf.Min(.29f/Mathf.Max(.001f,span.x),.124f/Mathf.Max(.001f,span.y)));
+            // Provisional map in the same clean V4 quarry interior. Completed
+            // lower-fortress assemblies receive their connected field afterward.
             // A single uniform scale retains mineral aspect ratio on skewed faces.
             for(int i=first;i<end;i++)
             {
                 Vector2 p=mesh.V[i];var local=new Vector2(Vector2.Dot(p,axis),Vector2.Dot(p,across));
-                mesh.U[i]=new Vector2(.04f,.44f)+(local-low)*scale;
+                mesh.U[i]=new Vector2(FortressQuarryPatch.x,FortressQuarryPatch.y)+(local-low)*scale;
             }
         }
 
@@ -126,11 +135,11 @@ namespace Cryptforge.UI
         {
             float horizontal=along?(p.x-blockStart)*Cryptforge.Art.FoundryMap.Axis*.5f:
                 (Mathf.Abs(p.y)-Cryptforge.Art.FoundryMap.BridgeHalfWidth)*Cryptforge.Art.FoundryMap.Axis;
-            return new Vector2(.04f+horizontal*.082f,.44f+(height+.90f)*.073f);
+            return new Vector2(FortressQuarryPatch.x+horizontal*.082f,.44f+(height+.90f)*.073f);
         }
 
         private static Vector2 BridgeFortressCapGrain(Vector2 p,float blockStart)=>
-            new Vector2(.04f+(p.x-blockStart)*Cryptforge.Art.FoundryMap.Axis*.5f*.082f,
+            new Vector2(FortressQuarryPatch.x+(p.x-blockStart)*Cryptforge.Art.FoundryMap.Axis*.5f*.082f,
                 .44f+(Mathf.Abs(p.y)-Cryptforge.Art.FoundryMap.BridgeHalfWidth)*Cryptforge.Art.FoundryMap.Axis*.082f);
     }
 }

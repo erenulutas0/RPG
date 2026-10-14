@@ -1,0 +1,13 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryCourtMaterialTests.cs(193,15): error CS0246: 'NonParallelizableAttribute' türü veya ad alanı adı bulunamadı (bir using yönergeniz veya derleme başvurunuz mu eksik?) [E:\MobileGame\Tools\UnityCompileCheck\UnityCompileCheck.csproj]
+E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryCourtMaterialTests.cs(193,15): error CS0246: 'NonParallelizable' türü veya ad alanı adı bulunamadı (bir using yönergeniz veya derleme başvurunuz mu eksik?) [E:\MobileGame\Tools\UnityCompileCheck\UnityCompileCheck.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryCourtMaterialTests.cs(193,15): error CS0246: 'NonParallelizableAttribute' türü veya ad alanı adı bulunamadı (bir using yönergeniz veya derleme başvurunuz mu eksik?) [E:\MobileGame\Tools\UnityCompileCheck\UnityCompileCheck.csproj]
+E:\MobileGame\Assets\_Project\Tests\EditMode\FoundryCourtMaterialTests.cs(193,15): error CS0246: 'NonParallelizable' türü veya ad alanı adı bulunamadı (bir using yönergeniz veya derleme başvurunuz mu eksik?) [E:\MobileGame\Tools\UnityCompileCheck\UnityCompileCheck.csproj]
+    0 Uyarı
+    2 Hata
+
+Geçen Süre 00:00:05.02
