@@ -1647,3 +1647,19 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Three helpers worked in disjoint scopes: a versioned native Blender outer-bay replacement, upper-curtain construction and matching geometry tests, and independent source/image review. Root sealed 21 fresh Before views at 0e44e8f before any runtime edit, imported the direct Blender PNG while preserving its importer, checked identical external projection/footprint fields, and coordinated compile, captures, full suites, gallery and Android build. The complete outer-bay source is editable native geometry and procedural stone; no bitmap retouching was used. Two additional EditMode cases verify the broad exposed side recess, exact bearing/face contacts, no front overpaint, original envelope/front and nonpositive finished geometry delta. The first focused run passed 291/291, including both new cases. Matched After capture passed on its first run. Source review found no actionable geometry issue. Independent image review restricted acceptance to a major outer-bay form change and subordinate, partly occluded curtain simplification; no runtime revision was required. The final Asset freeze is checked again after the complete suites and build. Gallery initial asynchronous image loads were rechecked after completion; all 43 controls passed. No phone operation was made.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
+
+
+## 2026-10-14 - Foundry inner piers verified; device pending
+
+438 .NET / 699 EditMode / 160 PlayMode = 1,297 accepted suite executions, zero failures/skips. Focused Foundry 297/297 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 639 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,387,202 bytes; SHA256 C6EDF8C6975B336866423D848649FC3CC812F860E88697936A0F324E2A2839FC; NOT INSTALLED.
+
+Three helpers contributed disjoint native pier geometry, six meaningful geometry/finish tests, and independent source/image review plus the Claude handoff audit. Root sealed 21 fresh Before views at e6f6817 before any Assets edit, integrated the family-local finish and original-order append, and coordinated the final captures, test suites, build, gallery and handoff.
+
+Source review checked the intentional negative shaft inset, haunch/capital bearings, exposed recesses, unchanged foot/head and fixed iron contact. The six new cases check actual geometry, collar overlap, visible bay ownership, family UV/light isolation and the exact final append. The whole finished near/far pier pair changes from 3563 to 3559 vertices; the region measurement independently confirms -4.
+
+An unsupported legacy-cap-tail assumption was removed from the new test fixture while retaining exact legacy footing/head checks and direct checks of both new indexed-cap bearings. The first focused run passed 297/297, but a freeze comparison then found that test source had changed after the initial freeze. That passing run and initial freeze are retained as superseded evidence; the initial successful graphics XML is retained as pre-final-freeze evidence. No runtime source changed in this correction. Root reran the isolated compile, froze all Assets including tests/metas, reran focused 297/297 and regenerated the complete final After capture before starting full suites/build. A passing superseded result is not counted as final acceptance.
+
+The final source freeze must match after the complete suites and APK build. No phone operation, install, profile or telemetry change was made. The complete Claude handoff is finalized after this package's measured closure.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.

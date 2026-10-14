@@ -912,3 +912,11 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-family-01.
 - [ ] Reference fidelity, phone acceptance and the existing crowd congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
+
+
+## 2026-10-14 - Foundry inner piers verified; device pending
+
+- [x] Rework the complete inner-pier bearing/shaft/head and family finish with matched captures and full validation.
+- [ ] Reference fidelity, phone acceptance and the existing crowd congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.

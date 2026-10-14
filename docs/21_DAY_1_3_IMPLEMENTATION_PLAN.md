@@ -2648,3 +2648,13 @@ The complete shared outer gate-bay bake now has a taller raked lower mass, short
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,382,273 bytes; SHA256 5C13765B77191B699EC464261CA376FC4646020704A021E6278C5E5E7AB966F2; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
+
+
+## 2026-10-14 - Foundry inner piers verified; device pending
+
+The complete native inner-pier family now has a substantial raked lower haunch, a shorter recessed shaft and a single seated capital below the preserved sloping head. The shaft gently flares back to the previous upper contact planes so the fixed iron collar remains seated. Original footing, lower collar, inner returns, portal and 7.25 terminal bearing remain fixed. A family-local .11 quarry field replaces the .075 shared field only on these piers, using the same clean masonry atlas patch and preserving inherited face lighting. Header, returns and cartouche retain their existing finish and painter order. Matched images show a stronger lower bearing and a less elongated recess; the grain is finer but still visibly different from the smoother authored outer bays. This is a bounded gate-form improvement, not reference parity or a new map layout.
+
+438 .NET / 699 EditMode / 160 PlayMode = 1,297 accepted suite executions, zero failures/skips. Focused Foundry 297/297 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 639 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,387,202 bytes; SHA256 C6EDF8C6975B336866423D848649FC3CC812F860E88697936A0F324E2A2839FC; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.

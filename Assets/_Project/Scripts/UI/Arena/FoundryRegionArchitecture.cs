@@ -15,24 +15,16 @@ namespace Cryptforge.UI
             GateCraftTier(stone,GateU(32),-1,GateU(34),11,height-.12f,height+.12f,0);
             GateCraftTier(stone,GateU(32.12f),-.9f,GateU(33.88f),10.9f,height+.12f,height+.44f,.12f);
             BuildGateHeaderFinish(stone,height);
+            GateHouseGrain(stone);
             foreach(float v in new[]{-3f,11f})
             {
-                // Continuous vertical buttress shafts carry the heavy portal.
-                // Removing the intermediate stacked belts avoids a cage of small
-                // black windows alongside the uninterrupted painted door.
-                LitFoundryTier(stone,GateU(32),v,GateU(35),v+2,0,.45f,.08f);
-                GateEnclosureTier(stone,GateU(32.12f),v+.10f,GateU(34.88f),v+1.90f,.45f,1.45f,.14f,.91f);
-                GateEnclosureTier(stone,GateU(32.16f),v+.14f,GateU(34.84f),v+1.86f,1.45f,1.70f,.08f,.96f,true);
-                GateRecessedShaft(stone,new Vector4(GateU(32.26f),v+.24f,GateU(34.74f),v+1.76f),
-                    1.70f,5.45f,.04f,.96f,.28f);
-                GateEnclosureTier(stone,GateU(32.08f),v+.08f,GateU(34.92f),v+1.92f,5.45f,5.70f,.08f,.96f,true);
-                GateCraftTier(stone,GateU(32.02f),v+.02f,GateU(34.98f),v+1.98f,5.7f,6.05f,.12f);
-                GateCraftTier(stone,GateU(32.25f),v+.2f,GateU(34.75f),v+1.8f,6.05f,7.05f,.48f);
-                GateCraftTier(stone,GateU(32.62f),v+.57f,GateU(34.38f),v+1.43f,7.05f,7.25f,.05f);
-                BuildGateInnerReturn(stone,v,height);
+                var pier=new Builder();BuildGateInnerPier(pier,v);
+                GateInnerPierGrain(pier);AppendGateStone(stone,pier);
+                var innerReturn=new Builder();BuildGateInnerReturn(innerReturn,v,height);
+                GateHouseGrain(innerReturn);AppendGateStone(stone,innerReturn);
             }
-            BuildGateCartouche(stone,height);
-            GateHouseGrain(stone);
+            var cartouche=new Builder();BuildGateCartouche(cartouche,height);
+            GateHouseGrain(cartouche);AppendGateStone(stone,cartouche);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
             BuildGateEnclosure(arena,false);
             BuildGateInlays(arena,height);

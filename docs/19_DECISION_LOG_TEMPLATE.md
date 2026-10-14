@@ -1307,3 +1307,12 @@ The complete shared outer gate-bay bake now has a taller raked lower mass, short
 Region 36 renderers / 171888 vertices versus 172340: -452. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 2112 / 28. The gate-bay bake replaces its existing resource at the same loaded 512x1024 ASTC6 / 11-mip / non-readable budget. The two existing cards retain their material, projection and depth owners. No additional runtime texture layer, shader, renderer batch or updater. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
+
+
+## 2026-10-14 - Foundry inner piers verified; device pending
+
+The complete native inner-pier family now has a substantial raked lower haunch, a shorter recessed shaft and a single seated capital below the preserved sloping head. The shaft gently flares back to the previous upper contact planes so the fixed iron collar remains seated. Original footing, lower collar, inner returns, portal and 7.25 terminal bearing remain fixed. A family-local .11 quarry field replaces the .075 shared field only on these piers, using the same clean masonry atlas patch and preserving inherited face lighting. Header, returns and cartouche retain their existing finish and painter order. Matched images show a stronger lower bearing and a less elongated recess; the grain is finer but still visibly different from the smoother authored outer bays. This is a bounded gate-form improvement, not reference parity or a new map layout.
+
+Region 36 renderers / 171884 vertices versus 171888: -4. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 2116 / 28. The inner-pier family uses the existing masonry atlas/material with its own fine quarry field, preserving source lighting and the original painter/depth order. No new runtime bitmap, material, shader, renderer batch or updater. The preceding outer-bay resource retains its measured 512x1024 ASTC6 / 11-mip / non-readable budget. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.

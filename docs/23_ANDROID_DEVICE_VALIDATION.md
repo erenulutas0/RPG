@@ -2251,3 +2251,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 This is a bounded gate massing improvement, not reference parity or a new layout. Approach portrait crops most upper architecture; full-map gain is localized to the gate. Most curtain work is occluded by existing inner piers, so its visual contribution is small. Native inner-pier form and material disparity remain unfinished. Map bounds, camera, navigation, equipment footprints, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved (ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md). No phone control, installation or save/telemetry change. Device motion, HUD, shimmer and midrange performance remain unverified. The earlier concrete restart/install decision remains pending; later deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
+
+
+## 2026-10-14 - Foundry inner piers verified; device pending
+
+438 .NET / 699 EditMode / 160 PlayMode = 1,297 accepted suite executions, zero failures/skips. Focused Foundry 297/297 passed separately. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 639 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,387,202 bytes; SHA256 C6EDF8C6975B336866423D848649FC3CC812F860E88697936A0F324E2A2839FC; NOT INSTALLED.
+
+This is a bounded inner-pier form and finish improvement, not reference parity or a new layout. Approach portrait crops most upper architecture; full-map gain is localized to the gate. Native and baked materials still differ, and the inherited curtain remains largely occluded. Map bounds, camera, navigation, equipment footprints, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved (ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md). No phone control, installation or save/telemetry change. Device motion, HUD, shimmer and midrange performance remain unverified. The earlier concrete restart/install decision remains pending; later deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.

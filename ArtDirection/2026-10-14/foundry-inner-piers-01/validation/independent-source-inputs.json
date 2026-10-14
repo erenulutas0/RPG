@@ -1,0 +1,18 @@
+[
+  {
+    "path": "Assets/_Project/Scripts/UI/Arena/FoundryRegionGateInnerPiers.cs",
+    "sha256": "3AC2C6C45455AF5173C3EC7C1E287AAE50B8FD00B78CC3F5B50FDF3445A583C7"
+  },
+  {
+    "path": "Assets/_Project/Scripts/UI/Arena/FoundryRegionGatePierFinish.cs",
+    "sha256": "DB677874402894EA09F8C9C947558908B207253D0544F21350EED84AE68461FA"
+  },
+  {
+    "path": "Assets/_Project/Scripts/UI/Arena/FoundryRegionArchitecture.cs",
+    "sha256": "0E59691F6BEEA4869F33390B432735E02A8A6FBB45EA9C6C4B3837A3BD2944B3"
+  },
+  {
+    "path": "Assets/_Project/Tests/EditMode/FoundryGateInnerPierTests.cs",
+    "sha256": "3C1E93634712D003B6562D0A143C62C0545CC71934AB545CEDA02919355CE0E0"
+  }
+]
