@@ -815,3 +815,12 @@ Evidence/reproduction: ArtDirection/2026-10-13/foundry-landmark-craft-01.
 - [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this visual package changes no solver.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-material-study-01.
+
+
+## 2026-10-14 - Foundry gate masonry verified; device pending
+
+- [x] Refine the existing gate cornice, fit dressed enclosure coping and clear the central closed-door threshold rail; matched captures and full verification.
+- [ ] Continue the smoother side-tower masonry toward the approved concept; physical-device material/motion acceptance remains pending.
+- [ ] Existing stationary immortal-crowd waypoint queues remain a separate gameplay follow-up; this package changes no solver.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.

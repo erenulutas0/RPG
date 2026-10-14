@@ -1,0 +1,9 @@
+# Independent review of coping boundary correction
+
+The header helper reviewed the separate coping helper's test-only repair. The source still uses strict `Cover` for every interior ownership and colour witness. The area, original corner, noncollapsed texture and shared-UV checks retain their thresholds. Only rejected emitted boundary vertices may use a segment intersection with the immediately previous/next float-coordinate box. Segment parameters remain constrained to [0,1], so this does not accept an infinite-line extension.
+
+The added negative witness uses an actual outer cap edge (shell indices20/21), with the clockwise projected normal pointing beyond the far side of the raised cap. It moves the midpoint outward by eight maximum coordinate ULPs and requires rejection for all three production profiles. The retained diagnostic reports284/96/96 vertices, zero rejected actual vertices and all three outward counterexamples rejected. This does not replace the Unity rerun.
+
+An independent Python numeric reconstruction read the stored failing-profile shell/actual arrays, decoded values to exact float32, constructed the original projected convex hull and used segment/rectangle intersection rather than the production test's coordinate-clipping implementation. Twenty-one of284 vertices lie just outside the exact stored float hull; all lie within its one-ULP boundary representation. The retained eight-ULP outward counterexample is rejected. Results are stored in `coping-boundary-independent-review.json`. This corroborates the proposed representation correction for the profile that originally failed.
+
+No runtime repair is justified by the observed discrepancy. The correction does not relax the interior surface ownership or permit a meaningful envelope expansion. No source blocker found; fresh Unity targeted and full suites remain required. No Assets files were edited by this reviewer.

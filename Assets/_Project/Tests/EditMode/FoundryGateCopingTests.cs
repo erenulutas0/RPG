@@ -1,0 +1,195 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Cryptforge.Art;
+using Cryptforge.UI;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Cryptforge.Tests
+{
+    public sealed class FoundryGateCopingTests
+    {
+        private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
+        private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
+
+        [TestCase(3.96f,3.56f,6.55f,6.82f,.045f)] // curtain coping
+        [TestCase(2.87f,1.53f,6.82f,7.20f,.30f)] // broad tower shoulder
+        [TestCase(2.68f,1.72f,1.45f,1.70f,.08f)] // jamb belt
+        public void DressedEnclosurePartitionsOriginalWallsAndBearingWithoutHiddenLayers(
+            float width,float depth,float bottom,float top,float inset)
+        {
+            MeshData shell=Original(width,depth,bottom,top,inset);
+            MeshData actual=Production(width,depth,bottom,top,inset);
+            Assert.That(actual.V.Count,Is.LessThan(620),"Broad bearing stones must not become dense ornament.");
+            Assert.That(Area(actual),Is.EqualTo(Area(shell)).Within(.00012),
+                "Fitted faces and joints replace the original cap and fascia; no hidden duplicate bed survives.");
+            for(int i=0;i<actual.V.Count;i++)
+                Assert.That(ContainedAtFloatPrecision(shell,actual.V[i]),Is.True,
+                    $"Vertex {i} {actual.V[i].ToString("R")} must lie in the old shell or its one-ULP boundary representation.");
+            // An actual envelope expansion must still fail: the cap's outer
+            // far edge is displaced outward by eight representable float steps.
+            Vector2 edgeA=shell.V[20],edgeB=shell.V[21];
+            Vector2 midpoint=(edgeA+edgeB)*.5f,direction=edgeB-edgeA;
+            Vector2 outward=new Vector2(direction.y,-direction.x).normalized;
+            float step=8*Mathf.Max(FloatNeighbour(midpoint.x,true)-midpoint.x,
+                FloatNeighbour(midpoint.y,true)-midpoint.y);
+            Assert.That(ContainedAtFloatPrecision(shell,midpoint+outward*step),Is.False,
+                "The boundary oracle must reject a real eight-ULP outward expansion.");
+            for(int i=0;i<shell.V.Count;i++)
+            {
+                if(i>=12&&(i-12)%4>=2)continue; // internal fan hub is not a silhouette corner
+                Vector3 p=shell.V[i];
+                Assert.That(actual.V.Exists(v=>Vector3.Distance(v,p)<.000015f),Is.True,
+                    "The original tier corners and bearing outline remain represented.");
+            }
+            for(int t=0;t<shell.T.Count;t+=3)
+            {
+                Vector3 a=shell.V[shell.T[t]],b=shell.V[shell.T[t+1]],c=shell.V[shell.T[t+2]];
+                if(Math.Abs(Cross(b-a,c-a))<1e-8)continue;
+                foreach(Vector2 pair in new[]{new Vector2(.217f,.391f),new Vector2(.413f,.173f),new Vector2(.117f,.681f)})
+                {
+                    Vector3 p=a+(b-a)*pair.x+(c-a)*pair.y;
+                    Assert.That(Cover(actual,p),Is.EqualTo(Cover(shell,p)),
+                        "Each source facet keeps exactly its original coverage, including narrow mortar cells.");
+                }
+            }
+            AssertGrain(actual);
+        }
+
+        [TestCase(3.96f,3.56f,6.55f,6.82f,.045f)]
+        [TestCase(2.87f,1.53f,6.82f,7.20f,.30f)]
+        public void ProductionCapJointsContinueIntoFasciaAndKeepOriginalForgeHue(
+            float width,float depth,float bottom,float top,float inset)
+        {
+            MeshData shell=Original(width,depth,bottom,top,inset);
+            MeshData actual=Production(width,depth,bottom,top,inset);
+            float low=27f+inset,high=27f+width-inset;
+            int columns=Mathf.Max(1,Mathf.RoundToInt((high-low)/1.25f));
+            Assert.That(columns,Is.GreaterThanOrEqualTo(2));
+            float cut=Mathf.Lerp(low,high,1f/columns),edge=-6.6f+inset;
+            // These are interior witnesses on either side of the actual shared
+            // upper arris, safely away from triangle boundaries and joint sides.
+            Vector3 cap=Project(cut+.002f,edge+.003f)+Vector3.up*top;
+            Vector3 upperA=shell.V[3],upperB=shell.V[2];
+            float t=(cut-(27f+inset+Mathf.Min(.18f,depth*.15f)*.75f))/
+                (width-2*inset-2*Mathf.Min(.18f,depth*.15f)*.75f);
+            Vector3 fascia=Vector3.Lerp(Vector3.Lerp(shell.V[0],shell.V[1],t),
+                Vector3.Lerp(upperA,upperB,t),.997f);
+            float capGain=Gain(LastColor(actual,cap),LastColor(shell,cap));
+            float fasciaGain=Gain(LastColor(actual,fascia),LastColor(shell,fascia));
+            Assert.That(capGain,Is.EqualTo(.70f*.94f).Within(.0002f),"The cap witness lies inside the actual mortar owner.");
+            Assert.That(fasciaGain,Is.EqualTo(.70f*.94f).Within(.0002f),"Its fascia joint meets the same cut at the upper arris.");
+            foreach(Vector3 point in new[]{cap,fascia})
+            {
+                Color before=LastColor(shell,point),after=LastColor(actual,point);
+                Assert.That(after.r/before.r,Is.EqualTo(after.g/before.g).Within(.0002f));
+                Assert.That(after.b/before.b,Is.EqualTo(after.g/before.g).Within(.0002f),
+                    "Directional forge illumination is inherited, not repainted grey.");
+            }
+        }
+
+        private static MeshData Original(float width,float depth,float bottom,float top,float inset)
+        {
+            object b=Builder();Call("LitFoundryTier",b,27f,-6.6f,27f+width,-6.6f+depth,bottom,top,inset);return Read(b);
+        }
+        private static MeshData Production(float width,float depth,float bottom,float top,float inset)
+        {
+            object b=Builder();Call("GateEnclosureTier",b,27f,-6.6f,27f+width,-6.6f+depth,bottom,top,inset,.94f,true);return Read(b);
+        }
+        private static void AssertGrain(MeshData m)
+        {
+            Assert.That(m.U.Count,Is.EqualTo(m.V.Count));Assert.That(m.C.Count,Is.EqualTo(m.V.Count));
+            for(int i=0;i<m.V.Count;i++)
+            {
+                Assert.That(m.U[i].x,Is.InRange(.0349f,.4001f));Assert.That(m.U[i].y,Is.InRange(.4379f,.5631f));
+                Assert.That(m.C[i].a,Is.EqualTo(1));
+                for(int j=0;j<i;j++)if(Vector3.Distance(m.V[i],m.V[j])<.000001f)
+                    Assert.That(Vector2.Distance(m.U[i],m.U[j]),Is.LessThan(.000001f),
+                        "Cap, joint and fascia share the same physical mineral field at every shared point.");
+            }
+            for(int t=0;t<m.T.Count;t+=3)
+            {
+                int a=m.T[t],b=m.T[t+1],c=m.T[t+2];
+                if(Math.Abs(Cross(m.V[b]-m.V[a],m.V[c]-m.V[a]))<1e-7)continue;
+                Assert.That(Math.Abs(Cross(m.U[b]-m.U[a],m.U[c]-m.U[a])),Is.GreaterThan(1e-12),
+                    "The actual rendered cap, mortar and arris cannot collapse to one texel row.");
+            }
+        }
+        private static float Gain(Color a,Color b)=>(a.r+a.g+a.b)/(b.r+b.g+b.b);
+        private static Color LastColor(MeshData m,Vector2 p)
+        {
+            for(int t=m.T.Count-3;t>=0;t-=3)
+            {
+                int a=m.T[t],b=m.T[t+1],c=m.T[t+2];
+                if(Bary(p,m.V[a],m.V[b],m.V[c],out Vector3 weights))
+                    return m.C[a]*weights.x+m.C[b]*weights.y+m.C[c]*weights.z;
+            }
+            Assert.Fail("Witness is outside the actual emitted mesh.");return Color.clear;
+        }
+        private static bool ContainedAtFloatPrecision(MeshData m,Vector2 p)
+        {
+            if(Cover(m,p)>0)return true;
+            // A float-rounded point on an exact edge can have a negative
+            // dimensionless barycentric weight, especially on a thin fascia.
+            // Only boundary vertices use this representation guard. Interior
+            // ownership, area and UV assertions retain their strict thresholds.
+            for(int t=0;t<m.T.Count;t+=3)for(int edge=0;edge<3;edge++)
+            {
+                Vector2 a=m.V[m.T[t+edge]],b=m.V[m.T[t+(edge+1)%3]];
+                double enter=0,leave=1;
+                if(ClipFloatCoordinate(a.x,b.x,p.x,ref enter,ref leave)&&
+                    ClipFloatCoordinate(a.y,b.y,p.y,ref enter,ref leave)&&enter<=leave)return true;
+            }
+            return false;
+        }
+        private static bool ClipFloatCoordinate(float a,float b,float point,ref double enter,ref double leave)
+        {
+            double low=FloatNeighbour(point,false),high=FloatNeighbour(point,true),delta=(double)b-a;
+            if(delta==0)return a>=low&&a<=high;
+            double t0=(low-a)/delta,t1=(high-a)/delta;
+            enter=Math.Max(enter,Math.Min(t0,t1));leave=Math.Min(leave,Math.Max(t0,t1));
+            return enter<=leave;
+        }
+        private static float FloatNeighbour(float value,bool higher)
+        {
+            if(value==0)return higher?float.Epsilon:-float.Epsilon;
+            int bits=BitConverter.SingleToInt32Bits(value);
+            return BitConverter.Int32BitsToSingle(bits+((value>0)==higher?1:-1));
+        }
+
+        private static int Cover(MeshData m,Vector2 p)
+        {
+            int count=0;for(int t=0;t<m.T.Count;t+=3)
+                if(Bary(p,m.V[m.T[t]],m.V[m.T[t+1]],m.V[m.T[t+2]],out _))count++;
+            return count;
+        }
+        private static bool Bary(Vector2 p,Vector2 a,Vector2 b,Vector2 c,out Vector3 weights)
+        {
+            double area=Cross(b-a,c-a);weights=Vector3.zero;if(Math.Abs(area)<1e-9)return false;
+            double x=Cross(b-p,c-p)/area,y=Cross(c-p,a-p)/area,z=1-x-y;
+            weights=new Vector3((float)x,(float)y,(float)z);return x>=-1e-7&&y>=-1e-7&&z>=-1e-7;
+        }
+        private static double Area(MeshData m)
+        {
+            double sum=0;for(int t=0;t<m.T.Count;t+=3)
+                sum+=Math.Abs(Cross(m.V[m.T[t+1]]-m.V[m.T[t]],m.V[m.T[t+2]]-m.V[m.T[t]]))*.5;
+            return sum;
+        }
+        private static double Cross(Vector2 a,Vector2 b)=>(double)a.x*b.y-(double)a.y*b.x;
+        private static Vector3 Project(float u,float v)=>(Vector3)Call("Project",u,v);
+        private static object Builder()=>Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+        private static object Call(string name,params object[] args)=>typeof(FoundryRegionView).GetMethod(name,Static).Invoke(null,args);
+        private static MeshData Read(object b)
+        {
+            Type t=b.GetType();return new MeshData((List<Vector3>)t.GetField("V",Fields).GetValue(b),
+                (List<Vector2>)t.GetField("U",Fields).GetValue(b),(List<Color>)t.GetField("C",Fields).GetValue(b),
+                (List<int>)t.GetField("T",Fields).GetValue(b));
+        }
+        private readonly struct MeshData
+        {
+            internal readonly List<Vector3> V;internal readonly List<Vector2> U;internal readonly List<Color> C;internal readonly List<int> T;
+            internal MeshData(List<Vector3> v,List<Vector2> u,List<Color> c,List<int> t){V=v;U=u;C=c;T=t;}
+        }
+    }
+}

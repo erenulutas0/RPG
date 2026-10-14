@@ -103,6 +103,38 @@ namespace Cryptforge.Tests
             }
             finally {Object.DestroyImmediate(mesh);}
         }
+        private static void AssertGateThresholdPresentation(ArenaView arena)
+        {
+            var renderers=arena.Region.GetComponentsInChildren<MeshRenderer>();
+            foreach(float v in new[]{3.17f,5.23f,7.31f})
+            {
+                Vector3 witness=arena.Region.transform.TransformPoint(FoundrySurface.Project(27.99f,v)+Vector3.up*.37f);
+                int doorRank=int.MinValue;
+                foreach(var renderer in renderers)
+                    if(renderer.sharedMaterial.mainTexture==arena.PlatformMaterials.GateFacade.mainTexture&&
+                        FloorCovers(renderer.GetComponent<MeshFilter>().sharedMesh,renderer.transform.InverseTransformPoint(witness)))
+                        doorRank=Mathf.Max(doorRank,renderer.sortingOrder);
+                Assert.That(doorRank,Is.GreaterThan(int.MinValue),
+                    "The closed portal must physically back the former rail gap at v "+v);
+                foreach(var renderer in renderers)
+                    if(renderer.sortingOrder>=doorRank&&renderer.sharedMaterial.mainTexture==arena.PlatformMaterials.FoundryWall.mainTexture)
+                        Assert.That(FloorCovers(renderer.GetComponent<MeshFilter>().sharedMesh,
+                            renderer.transform.InverseTransformPoint(witness)),Is.False,
+                            "Later-painted masonry must not fence across the door sill at v "+v);
+
+                Vector3 floor=arena.Region.transform.TransformPoint(FoundrySurface.Project(27.71f,v));
+                int pavingBatches=0;
+                foreach(var renderer in renderers)
+                    if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving&&
+                        FloorCovers(renderer.GetComponent<MeshFilter>().sharedMesh,renderer.transform.InverseTransformPoint(floor)))
+                        pavingBatches++;
+                Assert.That(pavingBatches,Is.EqualTo(1),"The open visual approach retains coverage by one actual threshold paving batch.");
+            }
+            foreach(var post in arena.Region.RailPostBoxes)
+                Assert.That(post.x<27.9f||post.x>28.6f||post.w<=1.3f||post.y>=9.7f,Is.True,
+                    "Generated rail posts must not return across the central door; the two brazier posts stay outside this interval.");
+        }
+
         private static void AssertWorkIslandContacts(ArenaView arena,Mesh paving)
         {
             var iron=new System.Collections.Generic.List<(Vector3[] points,Vector2[] flags)>();
@@ -332,6 +364,7 @@ namespace Cryptforge.Tests
                     }
                 }
             Assert.That(usesGate,Is.True);
+            AssertGateThresholdPresentation(arena);
             Assert.That(arena.PlatformMaterials.FoundryPitLining,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade),"The pit lining must stay independent of the boiler wrap.");
             var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving,arena.PlatformMaterials.FoundryCastIron};
             foreach(var shared in surfaces)

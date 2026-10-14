@@ -10,7 +10,7 @@ namespace Cryptforge.UI
             // A continuous dressed lintel seats two broad shoulder stones around
             // the existing lock. The connected mass replaces four disconnected
             // coping ends without adding another silhouette tier or a tall crest.
-            GateCraftTier(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,1.02f);
+            GateHeaderCornice(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,1.02f);
             foreach(bool left in new[]{true,false})
             {
                 float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
@@ -153,6 +153,70 @@ namespace Cryptforge.UI
                     new[]{shell.C[first],shell.C[first+1],shell.C[first+2],shell.C[first+3]},top-bottom,face,
                     Mathf.RoundToInt(u0*11+v0*17+bottom*23));
             }
+            GateCraftCap(mesh,shell,u0,v0,u1,v1,top,inset);
+        }
+
+        // A carved middle fascia replaces the original flat lintel wall. Its two
+        // sloping returns remain inside the existing continuous bearing outline;
+        // this is removed stone, not another projecting moulding or decal tier.
+        private static void GateHeaderCornice(Builder mesh,float u0,float v0,float u1,float v1,
+            float bottom,float top,float inset,float shade)
+        {
+            var shell=new Builder();
+            LitFoundryTier(shell,u0,v0,u1,v1,bottom,top,inset);
+            for(int i=0;i<shell.C.Count;i++)
+            {
+                Color c=shell.C[i];shell.C[i]=new Color(c.r*shade,c.g*shade,c.b*shade,1);
+            }
+            var levels=new[]{0f,.28f,.65f,1f};
+            var depths=new[]{0f,.09f,.09f,0f};
+            var gains=new[]{.88f,.73f,1.04f};
+            for(int face=0;face<3;face++)
+            {
+                int first=face*4;
+                var original=new[]{shell.V[first],shell.V[first+1],shell.V[first+2],shell.V[first+3]};
+                var light=new[]{shell.C[first],shell.C[first+1],shell.C[first+2],shell.C[first+3]};
+                int start=mesh.V.Count;
+                for(int band=0;band<3;band++)
+                {
+                    float lo=levels[band],hi=levels[band+1];
+                    var points=new[]{
+                        GateCorniceStation(original,0,lo,depths[band],bottom,top,(u0+u1)*.5f,(v0+v1)*.5f),
+                        GateCorniceStation(original,1,lo,depths[band],bottom,top,(u0+u1)*.5f,(v0+v1)*.5f),
+                        GateCorniceStation(original,1,hi,depths[band+1],bottom,top,(u0+u1)*.5f,(v0+v1)*.5f),
+                        GateCorniceStation(original,0,hi,depths[band+1],bottom,top,(u0+u1)*.5f,(v0+v1)*.5f)};
+                    var tones=new[]{Color.Lerp(light[0],light[3],lo),Color.Lerp(light[1],light[2],lo),
+                        Color.Lerp(light[1],light[2],hi),Color.Lerp(light[0],light[3],hi)};
+                    for(int i=0;i<tones.Length;i++)
+                    {
+                        Color c=tones[i]*gains[band];c.a=1;tones[i]=c;
+                    }
+                    GateCraftCourses(mesh,points,tones,(top-bottom)*(hi-lo),face,
+                        Mathf.RoundToInt(u0*11+v0*17+bottom*23));
+                }
+                // One mineral field crosses all bands. Resetting its bounds at
+                // each carved return would draw horizontal texture stripes.
+                GateRecessGrain(mesh,start,mesh.V.Count,original[1]-original[0],face);
+            }
+            GateCraftCap(mesh,shell,u0,v0,u1,v1,top,inset);
+        }
+
+        private static Vector3 GateCorniceStation(Vector3[] face,int end,float rise,float depth,
+            float bottom,float top,float centreU,float centreV)
+        {
+            Vector3 p=end==0?Vector3.Lerp(face[0],face[3],rise):Vector3.Lerp(face[1],face[2],rise);
+            if(depth==0)return p;
+            Vector3 floor=p-Vector3.up*Mathf.Lerp(bottom,top,rise);
+            FoundrySurface.ToDesign(floor.x,floor.y,out float u,out float v);
+            // Shared octagonal corners retreat together. A separate face normal
+            // would pull the two meeting stones apart at the chamfer.
+            float du=u<centreU?depth:-depth,dv=v<centreV?depth:-depth;
+            return p+Project(u+du,v+dv)-Project(u,v);
+        }
+
+        private static void GateCraftCap(Builder mesh,Builder shell,float u0,float v0,float u1,float v1,
+            float top,float inset)
+        {
             // Retain the original cap bearing below the unchanged, raised coping.
             // The backing is physically recessed, not another coplanar floor face.
             int capStart=mesh.V.Count;

@@ -1,0 +1,27 @@
+using System;using System.Collections.Generic;using System.Reflection;using System.IO;using System.Text.Json;using Cryptforge.UI;using UnityEngine;
+class Program {
+static readonly BindingFlags St=BindingFlags.Static|BindingFlags.NonPublic, F=BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
+static object Builder()=>Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+static object Call(string n,params object[] a)=>typeof(FoundryRegionView).GetMethod(n,St).Invoke(null,a);
+static void Main(){try {float w=3.96f,d=3.56f;var a=Builder();var b=Builder();Call("LitFoundryTier",a,27f,-6.6f,27f+w,-6.6f+d,6.55f,6.82f,.045f);Call("GateEnclosureTier",b,27f,-6.6f,27f+w,-6.6f+d,6.55f,6.82f,.045f,.94f,true);Dump(a,"shell");Dump(b,"actual");TraceCap(a);CheckBoundary();}catch(Exception e){Console.WriteLine(e);}}
+static void CheckBoundary(){
+var type=typeof(Cryptforge.Tests.FoundryGateCopingTests);var results=new List<object>();
+foreach(var args in new[]{new object[]{3.96f,3.56f,6.55f,6.82f,.045f},new object[]{2.87f,1.53f,6.82f,7.20f,.30f},new object[]{2.68f,1.72f,1.45f,1.70f,.08f}}){
+var shell=type.GetMethod("Original",St).Invoke(null,args);var actual=type.GetMethod("Production",St).Invoke(null,args);var mt=shell.GetType();var vs=(List<Vector3>)mt.GetField("V",F).GetValue(shell);var va=(List<Vector3>)mt.GetField("V",F).GetValue(actual);var pred=type.GetMethod("ContainedAtFloatPrecision",St);var neighbour=type.GetMethod("FloatNeighbour",St);
+int rejected=0;foreach(var p in va)if(!(bool)pred.Invoke(null,new object[]{shell,(Vector2)p}))rejected++;
+Vector2 a=vs[20],b=vs[21],mid=(a+b)*.5f,dir=b-a,outside=new Vector2(dir.y,-dir.x).normalized;float step=8*Mathf.Max((float)neighbour.Invoke(null,new object[]{mid.x,true})-mid.x,(float)neighbour.Invoke(null,new object[]{mid.y,true})-mid.y);var negative=mid+outside*step;bool wrong=(bool)pred.Invoke(null,new object[]{shell,negative});
+results.Add(new{width=args[0],depth=args[1],vertices=va.Count,rejected,negative8UlpRejected=!wrong,negativeX=negative.x,negativeY=negative.y});Console.WriteLine($"Boundary case {args[0]}/{args[1]}: rejected {rejected}, negative rejected {!wrong}");}
+File.WriteAllText("TestResults/coping-diagnostic/final-boundary.json",JsonSerializer.Serialize(results));}
+static void TraceCap(object shell) {
+var ty=shell.GetType();var vertices=(List<Vector3>)ty.GetField("V",F).GetValue(shell);
+var surface=typeof(FoundryRegionView).Assembly.GetType("Cryptforge.UI.FoundrySurface");var inv=surface.GetMethod("ToDesign",St);
+var outline=new List<Vector2>();var low=new Vector2(float.MaxValue,float.MaxValue);var high=new Vector2(float.MinValue,float.MinValue);
+for(int i=12;i<vertices.Count;i+=4){var f=vertices[i]-Vector3.up*6.82f;object[] args={f.x,f.y,0f,0f};inv.Invoke(null,args);var p=new Vector2((float)args[2],(float)args[3]);outline.Add(p);low=Vector2.Min(low,p);high=Vector2.Max(high,p);Console.WriteLine($"outline {i} {p.x:R},{p.y:R} world {vertices[i].x:R},{vertices[i].y:R}");}
+int columns=Mathf.RoundToInt((high.x-low.x)/1.25f),rows=Mathf.RoundToInt((high.y-low.y)/1.25f);
+for(int col=0;col<columns*2-1;col++)for(int row=0;row<rows*2-1;row++){
+var u=(Vector2)Call("GateCopingInterval",low.x,high.x,columns,col);var v=(Vector2)Call("GateCopingInterval",low.y,high.y,rows,row);
+var shape=(List<Vector2>)Call("GateClipCoping",outline,0,u.x,true);shape=(List<Vector2>)Call("GateClipCoping",shape,0,u.y,false);shape=(List<Vector2>)Call("GateClipCoping",shape,1,v.x,true);shape=(List<Vector2>)Call("GateClipCoping",shape,1,v.y,false);
+foreach(var p in shape){var world=(Vector3)Call("Project",p.x,p.y)+Vector3.up*6.82f;if(Math.Abs(world.x-24.85386085510254)<1e-7&&Math.Abs(world.y-17.503276824951172)<1e-7)Console.WriteLine($"bad cap input col{col} row{row}: {p.x:R},{p.y:R} high {high.x:R},{high.y:R}");}}
+}
+static void Dump(object b,string name){var t=b.GetType();var v=(List<Vector3>)t.GetField("V",F).GetValue(b);var tris=(List<int>)t.GetField("T",F).GetValue(b);var rows=new List<float[]>();foreach(var p in v)rows.Add(new[]{p.x,p.y,p.z});File.WriteAllText("TestResults/coping-diagnostic/"+name+".json",JsonSerializer.Serialize(new {vertices=rows,triangles=tris}));Console.WriteLine(name+" "+v.Count);}
+}

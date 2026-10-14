@@ -1242,6 +1242,10 @@ namespace Cryptforge.UI
 
         private static bool RailUnitAllowed(int dir,int line,int unit)
         {
+            // The closed portal already backs this edge of the landing. Leave
+            // its central threshold visible instead of fencing across the door;
+            // the two explicit brazier supports and outer returns stay in place.
+            if(dir==3&&line==FoundryMap.GateLandingEnd&&unit>=1&&unit<10)return false;
             Vector4 box=EdgeBox(dir,line,unit,unit+1,0,RailBand);
             return MassClear(box)&&!MassBlocked(box)&&!MassConflicts(box,RailTop,true);
         }

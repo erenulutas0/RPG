@@ -1,0 +1,41 @@
+{
+  "method": "Independent convex-hull containment plus segment/rectangle intersections; exact float32 input decoding; first production profile only.",
+  "vertices": 284,
+  "strictHullOutside": 21,
+  "oneUlpHullGuardRejected": [],
+  "eightUlpCounterexampleRejected": true,
+  "outline": [
+    [
+      21.36876678466797,
+      16.207500457763672
+    ],
+    [
+      23.631507873535156,
+      15.076128959655762
+    ],
+    [
+      23.886066436767578,
+      15.076128959655762
+    ],
+    [
+      26.43164825439453,
+      16.348920822143555
+    ],
+    [
+      26.399829864501953,
+      16.730289459228516
+    ],
+    [
+      24.137088775634766,
+      17.861661911010742
+    ],
+    [
+      23.946168899536133,
+      17.861661911010742
+    ],
+    [
+      21.400585174560547,
+      16.588869094848633
+    ]
+  ]
+}

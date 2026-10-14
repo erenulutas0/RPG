@@ -1,0 +1,7 @@
+Compiler diagnostic excerpt. Unrelated machine/network/licensing diagnostics omitted.
+Raw log SHA256: 49928bfd0fa0f40a3a13d119e60ce0311a59e8285b9ab683c2c2de66d8b00054
+
+Assets\_Project\Tests\EditMode\FoundryGateCorniceTests.cs(171,36): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryGateCorniceTests.cs(171,36): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Assets\_Project\Tests\EditMode\FoundryGateCorniceTests.cs(171,36): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
+Scripts have compiler errors.

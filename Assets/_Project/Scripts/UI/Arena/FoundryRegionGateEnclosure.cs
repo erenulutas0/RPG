@@ -70,6 +70,17 @@ namespace Cryptforge.UI
         private static void GateEnclosureTier(Builder mesh,float u0,float v0,float u1,float v1,
             float bottom,float top,float inset,float shade,bool dressed=false)
         {
+            if(dressed)
+            {
+                var shell=new Builder();
+                LitFoundryTier(shell,u0,v0,u1,v1,bottom,top,inset);
+                for(int i=0;i<shell.C.Count;i++)
+                {
+                    Color c=shell.C[i]*shade;c.a=1;shell.C[i]=c;
+                }
+                GateEnclosureDressedTier(mesh,shell,top);
+                return;
+            }
             int first=mesh.C.Count;
             LitFoundryTier(mesh,u0,v0,u1,v1,bottom,top,inset);
             for(int i=first;i<mesh.C.Count;i++)
@@ -77,8 +88,7 @@ namespace Cryptforge.UI
                 Color tint=mesh.C[i];
                 mesh.C[i]=new Color(tint.r*shade,tint.g*shade,tint.b*shade,1);
             }
-            if(dressed)GateEnclosureDressedTier(mesh,first);
-            else if(bottom>=0&&top-bottom>.7f)GateEnclosureAshlar(mesh,first,bottom,top);
+            if(bottom>=0&&top-bottom>.7f)GateEnclosureAshlar(mesh,first,bottom,top);
         }
 
         private static void GateEnclosureAshlar(Builder mesh,int first,float bottom,float top)
@@ -206,56 +216,133 @@ namespace Cryptforge.UI
             }
         }
 
-        private static void GateEnclosureDressedTier(Builder mesh,int first)
+        private static void GateEnclosureDressedTier(Builder mesh,Builder shell,float height)
         {
-            int originalEnd=mesh.V.Count;
-            // Broad mouldings are solid dressed stones. Each face samples one
-            // continuous stone interior instead of a row of bricks wrapping a cap.
-            for(int f=0;f<3;f++)
+            int start=mesh.V.Count;
+            var outline=new System.Collections.Generic.List<Vector2>();
+            Vector2 low=new Vector2(float.MaxValue,float.MaxValue),high=new Vector2(float.MinValue,float.MinValue);
+            for(int i=12;i<shell.V.Count;i+=4)
             {
-                int i=first+f*4;
-                mesh.U[i]=new Vector2(.27f,.65f);mesh.U[i+1]=new Vector2(.42f,.65f);
-                mesh.U[i+2]=new Vector2(.42f,.75f);mesh.U[i+3]=new Vector2(.27f,.75f);
+                Vector3 floor=shell.V[i]-Vector3.up*height;
+                FoundrySurface.ToDesign(floor.x,floor.y,out float u,out float v);
+                var p=new Vector2(u,v);outline.Add(p);low=Vector2.Min(low,p);high=Vector2.Max(high,p);
             }
-            float minX=float.MaxValue,minY=float.MaxValue,maxX=float.MinValue,maxY=float.MinValue;
-            for(int i=first+12;i<originalEnd;i++)
+            // A single broad stock grid crosses each fascia and its bearing cap.
+            // Each joint owns real surface area; no full face remains underneath.
+            int columns=Mathf.Max(1,Mathf.RoundToInt((high.x-low.x)/1.25f));
+            int rows=Mathf.Max(1,Mathf.RoundToInt((high.y-low.y)/1.25f));
+            for(int face=0;face<3;face++)
             {
-                Vector3 p=mesh.V[i];minX=Mathf.Min(minX,p.x);maxX=Mathf.Max(maxX,p.x);
-                minY=Mathf.Min(minY,p.y);maxY=Mathf.Max(maxY,p.y);
-            }
-            for(int i=first+12;i<originalEnd;i++)
-            {
-                Vector3 p=mesh.V[i];
-                mesh.U[i]=new Vector2(Mathf.Lerp(.27f,.42f,Mathf.InverseLerp(minX,maxX,p.x)),
-                    Mathf.Lerp(.65f,.75f,Mathf.InverseLerp(minY,maxY,p.y)));
-            }
-            // Long mouldings are laid as broad fitted blocks instead of a single
-            // seamless extrusion. Keep the upper roof bearing/cap untouched; only
-            // divide its two visible vertical fascia faces inside their old corners.
-            for(int face=0;face<2;face++)
-            {
-                int index=first+face*4;
-                var points=new[]{mesh.V[index],mesh.V[index+1],mesh.V[index+2],mesh.V[index+3]};
-                var tones=new[]{mesh.C[index],mesh.C[index+1],mesh.C[index+2],mesh.C[index+3]};
-                float width=Vector3.Distance(points[0],points[1]);
-                int blocks=Mathf.Max(2,Mathf.RoundToInt(width/1.1f));
-                for(int i=0;i<4;i++){Color c=tones[i]*.73f;c.a=1;mesh.C[index+i]=c;}
-                for(int block=0;block<blocks;block++)
+                int first=face*4;
+                var points=new[]{shell.V[first],shell.V[first+1],shell.V[first+2],shell.V[first+3]};
+                var light=new[]{shell.C[first],shell.C[first+1],shell.C[first+2],shell.C[first+3]};
+                if(face==2)
                 {
-                    float a=(float)block/blocks,b=(float)(block+1)/blocks;
-                    float joint=.013f/Mathf.Max(.3f,width);
-                    if(block>0)a+=joint;if(block+1<blocks)b-=joint;
-                    int start=mesh.V.Count;
-                    mesh.Quad(GateFaceLerp(points,a,0),GateFaceLerp(points,b,0),GateFaceLerp(points,b,1),GateFaceLerp(points,a,1),false,Color.white);
-                    for(int i=0;i<4;i++)
-                    {
-                        float u=i==0||i==3?a:b,v=i<2?0:1;
-                        mesh.U[start+i]=new Vector2(.27f+.15f*u,.65f+.10f*v);
-                        mesh.C[start+i]=Color.Lerp(Color.Lerp(tones[0],tones[1],u),Color.Lerp(tones[3],tones[2],u),v);
-                    }
-                    GateStoneEdges(mesh,start,.028f,.022f);
+                    GateEnclosureFasciaPatch(mesh,points,light,0,1,.91f,false);
+                    continue;
+                }
+                Vector3 floorA=points[3]-Vector3.up*height,floorB=points[2]-Vector3.up*height;
+                FoundrySurface.ToDesign(floorA.x,floorA.y,out float au,out float av);
+                FoundrySurface.ToDesign(floorB.x,floorB.y,out float bu,out float bv);
+                float a=face==0?au:av,b=face==0?bu:bv;
+                float minimum=face==0?low.x:low.y,maximum=face==0?high.x:high.y;
+                int count=face==0?columns:rows;
+                for(int part=0;part<count*2-1;part++)
+                {
+                    Vector2 interval=GateCopingInterval(minimum,maximum,count,part);
+                    float left=Mathf.Max(Mathf.Min(a,b),interval.x),right=Mathf.Min(Mathf.Max(a,b),interval.y);
+                    if(right-left<.00001f)continue;
+                    float t0=(left-a)/(b-a),t1=(right-a)/(b-a);
+                    bool joint=part%2==1;
+                    GateEnclosureFasciaPatch(mesh,points,light,Mathf.Min(t0,t1),Mathf.Max(t0,t1),
+                        joint?.70f:1+(part/2%3-1)*.012f,!joint);
                 }
             }
+            // Clip the same stock grid to the original chamfered cap. Broad stone
+            // interiors, arrises and mortar partition its exact old plane.
+            for(int column=0;column<columns*2-1;column++)
+            for(int row=0;row<rows*2-1;row++)
+            {
+                Vector2 u=GateCopingInterval(low.x,high.x,columns,column);
+                Vector2 v=GateCopingInterval(low.y,high.y,rows,row);
+                var shape=GateClipCoping(outline,0,u.x,true);
+                shape=GateClipCoping(shape,0,u.y,false);
+                shape=GateClipCoping(shape,1,v.x,true);
+                shape=GateClipCoping(shape,1,v.y,false);
+                if(shape.Count<3)continue;
+                bool joint=column%2==1||row%2==1;
+                GateEnclosureCapPatch(mesh,shell,shape,height,joint?.70f:
+                    1+((column/2+row/2*2)%3-1)*.012f,!joint);
+            }
+            // One physical mineral field covers adjoining cap, arris and fascia.
+            // Shared points keep identical UVs instead of stretching/restarting an atlas tile.
+            GateRecessGrain(mesh,start,mesh.V.Count,Project(1,0)-Project(0,0),0);
+        }
+
+        private static Vector2 GateCopingInterval(float low,float high,int count,int part)
+        {
+            const float halfJoint=.008f;
+            int cell=part/2;
+            float a=Mathf.Lerp(low,high,cell/(float)count),b=Mathf.Lerp(low,high,(cell+1f)/count);
+            if(part%2==1)return new Vector2(b-halfJoint,b+halfJoint);
+            return new Vector2(a+(cell>0?halfJoint:0),b-(cell+1<count?halfJoint:0));
+        }
+
+        private static void GateEnclosureFasciaPatch(Builder mesh,Vector3[] points,Color[] light,
+            float low,float high,float gain,bool dressed)
+        {
+            int first=mesh.V.Count;
+            mesh.Quad(GateFaceLerp(points,low,0),GateFaceLerp(points,high,0),
+                GateFaceLerp(points,high,1),GateFaceLerp(points,low,1),false,Color.white);
+            for(int i=0;i<4;i++)
+            {
+                float u=i==0||i==3?low:high,v=i<2?0:1;
+                Color c=Color.Lerp(Color.Lerp(light[0],light[1],u),Color.Lerp(light[3],light[2],u),v)*gain;
+                c.a=1;mesh.C[first+i]=c;
+            }
+            if(dressed)GateStoneEdges(mesh,first,.028f,.022f);
+        }
+
+        private static void GateEnclosureCapPatch(Builder mesh,Builder shell,
+            System.Collections.Generic.List<Vector2> shape,float height,float gain,bool dressed)
+        {
+            int first=mesh.V.Count,n=shape.Count;
+            Vector2 centre=Vector2.zero;foreach(Vector2 p in shape)centre+=p;centre/=n;
+            int rings=dressed?2:1;
+            for(int ring=0;ring<rings;ring++)
+            for(int i=0;i<n;i++)
+            {
+                // This is a light-catching arris in the existing plane, preserving
+                // the exact bearing contact for the next architectural course.
+                Vector2 p=ring==0?shape[i]:Vector2.Lerp(shape[i],centre,.055f);
+                Vector3 point=Project(p.x,p.y)+Vector3.up*height;
+                mesh.V.Add(point);mesh.U.Add(Vector2.zero);
+                Color c=GateEnclosureCapLight(shell,point)*gain*(dressed&&ring==0?.85f:1);
+                c.a=1;mesh.C.Add(c);
+            }
+            if(dressed)for(int i=0;i<n;i++)
+            {
+                int next=(i+1)%n;
+                mesh.T.AddRange(new[]{first+i,first+next,first+n+next,first+i,first+n+next,first+n+i});
+            }
+            int interior=first+(dressed?n:0);
+            for(int i=1;i+1<n;i++)mesh.T.AddRange(new[]{interior,interior+i,interior+i+1});
+        }
+
+        private static Color GateEnclosureCapLight(Builder shell,Vector3 point)
+        {
+            // Sample the original lit cap's actual fan, including the shared forge
+            // illumination. The new cut never substitutes a neutral painted overlay.
+            for(int i=12;i<shell.V.Count;i+=4)
+            {
+                Vector2 a=shell.V[i],b=shell.V[i+1],c=shell.V[i+2],p=point;
+                float denominator=(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+                float u=((p.x-a.x)*(c.y-a.y)-(p.y-a.y)*(c.x-a.x))/denominator;
+                float v=((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x))/denominator;
+                if(u>=-.0001f&&v>=-.0001f&&u+v<=1.0001f)
+                    return shell.C[i]*(1-u-v)+shell.C[i+1]*u+shell.C[i+2]*v;
+            }
+            return shell.C[12];
         }
 
         private static Vector3 GateEnclosureFace(Vector4 box,bool front,float position,float y,

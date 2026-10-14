@@ -1,0 +1,8 @@
+# Final verification
+
+438 .NET / 605 EditMode / 159 PlayMode = 1,202 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed. PASS: 618 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 5A7B64935F344A70089E8E7F304E1F105228C0E03C05ACF4B44521C62FE29C02; NOT INSTALLED.
+
+Region 34 renderers/163073 vertices versus 34/162361 (+712 vertices); distant geometry 3572 versus 3572. This package adds no runtime texture, material, renderer, updater component or per-frame work. The previous material package already owns the additional iron batches and focus-vector update; they are unchanged here. Resource counts are not device frame-time measurements.
+
+Reference fidelity remains unfinished. This package refines the existing gate cornice, dressed enclosure tiers and central threshold rail. Camera, map bounds, movement, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; evidence remains in ../../2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion/crowd/HUD/shimmer and midrange performance remain unverified. No ADB, installation or fresh phone observation. The earlier concrete restart/install decision remains pending; inspect current device state and preserve current original saves/telemetry before later deployment. Never restore historical snapshots. Regional encounter/boss progression remains deferred under the art-first direction.
