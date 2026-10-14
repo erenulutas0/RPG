@@ -23,18 +23,8 @@ namespace Cryptforge.UI
                 Create("Gate curtain foundations",foundation,arena.PlatformMaterials.FoundryWall,-16);
 
                 var stone=new Builder();
-                GateEnclosureTier(stone,GateU(32),v0,GateU(36),v1,0,.46f,.06f,.91f,true);
-                // Three broad masonry lifts with recessed lower faces; the upper
-                // coping belongs to the wall instead of floating behind a thin panel.
-                GateEnclosureTier(stone,GateU(32.16f),v0+.12f,GateU(35.88f),v1-.12f,.46f,2.9f,.035f,.82f);
-                GateEnclosureTier(stone,GateU(32.05f),v0+.05f,GateU(35.98f),v1-.05f,2.9f,3.13f,.025f,.94f,true);
-                GateEnclosureTier(stone,GateU(32.2f),v0+.16f,GateU(35.84f),v1-.16f,3.13f,6.55f,.05f,.85f);
-                GateEnclosureTier(stone,GateU(32.02f),v0+.02f,GateU(36),v1-.02f,6.55f,6.82f,.045f,.98f,true);
-                GateEnclosureTier(stone,GateU(32.15f),v0+.14f,GateU(35.87f),v1-.14f,6.82f,7.02f,.11f,.91f,true);
-                // A tall dressed recess links the curtain to the paired jambs while
-                // remaining in the narrow exposed strip beside the broad buttress.
-                GateEnclosureRelief(stone,new Vector4(GateU(32.2f),v0+.16f,GateU(35.84f),v1-.16f),
-                    3.13f,6.55f,.05f,true,far?.155f:.845f,.085f,3.53f,6.12f);
+                GateCurtainWall(stone,far);
+                GateHouseGrain(stone);
                 Create("Gate fortified curtain wings",stone,arena.PlatformMaterials.FoundryWall,order);
             }
 

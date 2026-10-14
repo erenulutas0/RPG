@@ -1267,3 +1267,14 @@ Decision: replace both normal native outer gate bodies with one authored fixed-v
 Region 36 renderers / 164672 vertices versus 34 / 167208: +2 renderers and -2536 vertices. Each header shoulder remains 136 vertices. Distant 3572 is included and unchanged; ceilings remain 174000 region / 3600 distant. Added runtime resource: one 512x1024 ASTC6 texture, 11 mips, nonreadable; Editor texture memory 630880 bytes and calculated compressed mip payload 314992 bytes, excluding other overhead. One scene-owned source material and one shared cutaway variant are added. The variant joins the existing focus-uniform update; no new updater component or shader. Scoped south-feed ordering reuses an existing iron batch. Geometry savings do not establish phone performance; texture sampling and transparent fragment work are added.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.
+
+
+## 2026-10-14 - Foundry gate cohesion verified; device pending
+
+Decision: retain native gate footprints and inherited baked outer bays; improve the remaining gate construction and shared physical-scale grain inside existing renderers. Use stain-free atlas interior instead of accepting a new crown drip.
+
+Inner gate jambs now use four fitted stone courses and separately owned mortar beds instead of full backing faces with overlaid blocks. Active curtain wings gain real blind pointed bays with connected 0.18-unit returns and closed shallow pitched coping. A gate-local fixed-scale mineral field joins the native inner piers, crown, curtains and landing shoulders, using a clean area of the existing atlas and preserving the original face light, door opening and bearing stations.
+
+Region 36 renderers / 169119 vertices versus 36 / 164672: +4447 vertices (2.70%). Distant 3572 is included and unchanged. Retained ceilings are 174000 region / 3600 distant, leaving 4881 and 28 vertices. No new runtime texture, material, shader, renderer batch or updater. Each fitted jamb uses 272 vertices/280 triangles versus 392/196 before the final grain finish; each curtain uses 2032 versus 2372 vertices before finishing. Final grain adds construction-time tessellation and indices. Local vertex savings are not a performance claim; physical-device timing and shimmer remain unmeasured.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.

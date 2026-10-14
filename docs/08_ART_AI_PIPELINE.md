@@ -1408,3 +1408,12 @@ Region 36 renderers / 164672 vertices versus 34 / 167208: +2 renderers and -2536
 Editable Blender source, generator and physical projection metadata are retained in the proof package. Bake contact audit: 142 actual stations, zero maximum error. An imported fixed-view bake replaces the native above-deck body; native fallback remains only when the resource is missing. Baked lighting is not dynamic volumetric lighting.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.
+
+
+## 2026-10-14 - Foundry gate cohesion verified; device pending
+
+Inner gate jambs now use four fitted stone courses and separately owned mortar beds instead of full backing faces with overlaid blocks. Active curtain wings gain real blind pointed bays with connected 0.18-unit returns and closed shallow pitched coping. A gate-local fixed-scale mineral field joins the native inner piers, crown, curtains and landing shoulders, using a clean area of the existing atlas and preserving the original face light, door opening and bearing stations.
+
+Region 36 renderers / 169119 vertices versus 36 / 164672: +4447 vertices (2.70%). Distant 3572 is included and unchanged. Retained ceilings are 174000 region / 3600 distant, leaving 4881 and 28 vertices. No new runtime texture, material, shader, renderer batch or updater. Each fitted jamb uses 272 vertices/280 triangles versus 392/196 before the final grain finish; each curtain uses 2032 versus 2372 vertices before finishing. Final grain adds construction-time tessellation and indices. Local vertex savings are not a performance claim; physical-device timing and shimmer remain unmeasured.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.

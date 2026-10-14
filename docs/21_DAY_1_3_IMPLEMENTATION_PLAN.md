@@ -2604,3 +2604,15 @@ Files: FoundryRegionGateMasonry, GateEnclosure, GateHeader, Massing and View; Ga
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 649AB25FB971D8362CB0E08FA9EA60253531CEE2A3D7E834005B8AF10674D2A9; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.
+
+
+## 2026-10-14 - Foundry gate cohesion verified; device pending
+
+Inner gate jambs now use four fitted stone courses and separately owned mortar beds instead of full backing faces with overlaid blocks. Active curtain wings gain real blind pointed bays with connected 0.18-unit returns and closed shallow pitched coping. A gate-local fixed-scale mineral field joins the native inner piers, crown, curtains and landing shoulders, using a clean area of the existing atlas and preserving the original face light, door opening and bearing stations.
+
+Files: FoundryRegionArchitecture, GateEnclosure, new GateCurtain and GateSurface; GateJamb, GateCurtainDepth and GateSurface EditMode tests. Matched capture: Tools/ArtReview/FoundryGateCohesionCapture.cs and launcher.
+
+438 .NET / 681 EditMode / 160 PlayMode = 1,279 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. Focused Foundry 279/279 passed. PASS: 631 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 E7B574E2F7B9CA149DC978C338A3A669D92E906BD8A32C1379BB760D21A3C64C; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.

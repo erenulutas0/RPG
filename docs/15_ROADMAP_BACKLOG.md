@@ -878,3 +878,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.
+
+
+## 2026-10-14 - Foundry gate cohesion verified; device pending
+
+- [x] Group fitted inner jambs, real curtain bays/pitched coping and clean gate-local mineral mapping; verify native matched images, full suites and Android build.
+- [ ] Address larger court/landing paving hierarchy, existing workyard groups and near-island stone faces as coherent scene-level passes.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-cohesion-01.

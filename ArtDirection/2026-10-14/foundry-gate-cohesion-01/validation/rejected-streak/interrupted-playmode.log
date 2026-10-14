@@ -1,0 +1,9 @@
+SANITIZED DIAGNOSTIC EXCERPT
+
+Root intentionally stopped this superseded PlayMode run after274seconds to repair the visually rejected crown mapping. No completed PlayMode result or APK was produced.
+
+Original SHA256: 98441838402ba720621647e7b0af48811ddad632a4d2cbb740aa84020b5a524c
+Full raw log retained locally in ignored TestResults/gate-cohesion-rawlogs.
+Licensing, LAN/device and host details omitted from version control.
+
+Initialize engine version: 6000.0.65f1 (a18e2220bd50)

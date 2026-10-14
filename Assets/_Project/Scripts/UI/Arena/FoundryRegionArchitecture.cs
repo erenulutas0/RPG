@@ -32,6 +32,7 @@ namespace Cryptforge.UI
                 BuildGateInnerReturn(stone,v,height);
             }
             BuildGateCartouche(stone,height);
+            GateHouseGrain(stone);
             Create("Carved gate architecture",stone,arena.PlatformMaterials.FoundryWall,-11);
             BuildGateEnclosure(arena,false);
             BuildGateInlays(arena,height);
@@ -60,6 +61,7 @@ namespace Cryptforge.UI
                     GateCraftTier(stone,GateU(29.28f),v0+.08f,GateU(32),v1-.08f,.78f,1.02f,.055f,.95f);
                     // Separate below-deck faces so they never draw over the walking surface.
                     // The raised stonework is scoped to the completely outboard footprint.
+                    GateHouseGrain(stone);
                     Create("Gate landing stepped shoulders",stone,arena.PlatformMaterials.FoundryWall,-11);
                 }
             }
@@ -367,16 +369,23 @@ namespace Cryptforge.UI
                 float shade=reveal?.72f:1f;
                 Color tone=(alongU?new Color(.56f,.59f,.67f):new Color(.45f,.49f,.58f))*shade;tone.a=1;
                 int first=stone.V.Count;
-                GateStonePatch(stone,a+Vector3.up*bottom,b+Vector3.up*bottom,
-                    b+Vector3.up*top,a+Vector3.up*top,new Color(tone.r*.72f,tone.g*.72f,tone.b*.72f));
-                GateRecessGrain(stone,first,stone.V.Count,Vector3.up,edge);
-                for(int course=0;course<3;course++)
+                // The same four broad courses turn through the L-shaped reveal.
+                // Each stone and bed owns its exact part of the old face; no
+                // full backing remains under the fitted arrises and interiors.
+                var levels=new[]{0f,.23f,.51f,.76f,1f};const float halfBed=.009f;
+                for(int course=0;course<4;course++)
                 {
-                    float lo=Mathf.Lerp(bottom,top,course/3f)+(course==0?0:.012f);
-                    float hi=Mathf.Lerp(bottom,top,(course+1)/3f)-(course==2?0:.012f);
-                    GateRecessDressedFace(stone,a+Vector3.up*lo,b+Vector3.up*lo,
-                        b+Vector3.up*hi,a+Vector3.up*hi,tone,.035f,edge);
+                    float low=Mathf.Lerp(bottom,top,levels[course]),high=Mathf.Lerp(bottom,top,levels[course+1]);
+                    float lo=low+(course==0?0:halfBed),hi=high-(course==3?0:halfBed);
+                    GateRecessIndexedStone(stone,a+Vector3.up*lo,b+Vector3.up*lo,
+                        b+Vector3.up*hi,a+Vector3.up*hi,tone,.035f);
+                    if(course<3)
+                        GateStonePatch(stone,a+Vector3.up*(high-halfBed),b+Vector3.up*(high-halfBed),
+                            b+Vector3.up*(high+halfBed),a+Vector3.up*(high+halfBed),tone*.69f);
                 }
+                // One physical mineral cut spans the complete jamb face and its
+                // returns instead of restarting on each course and narrow edge.
+                GateRecessGrain(stone,first,stone.V.Count,Vector3.up,edge);
             }
             // Two rectangles exactly tile the L-shaped bearing. A fan across the
             // concave cut would silently fill the reveal with a triangular cap.

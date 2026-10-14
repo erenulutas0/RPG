@@ -1,0 +1,10 @@
+SANITIZED DIAGNOSTIC EXCERPT
+
+Real Unity compilation rejected test access to internal FoundrySurface; no test results were produced.
+
+Original SHA256: 8c690205823e18addc74d7735e90e70faba3b6bd0131fc708e862b179e544bcb
+Full raw log retained locally in ignored TestResults/gate-cohesion-rawlogs.
+Licensing, LAN/device and host details omitted from version control.
+
+Initialize engine version: 6000.0.65f1 (a18e2220bd50)
+Assets\_Project\Tests\EditMode\FoundryGateSurfaceTests.cs(38,27): error CS0122: 'FoundrySurface' is inaccessible due to its protection level
