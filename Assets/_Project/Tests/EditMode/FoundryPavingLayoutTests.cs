@@ -102,7 +102,7 @@ namespace Cryptforge.Tests
                     Vector2 p=Design(flag.U[i]);
                     var key=new Vector2Int(Mathf.RoundToInt(p.x*10000),Mathf.RoundToInt(p.y*10000));
                     if(!seen.Add(key)||Depth(p,origin,3,2)<.5f-.0001f)continue;
-                    Color material=Unlit(flag.C[i],p);
+                    Color material=StoneMineral(flag.C[i],p);
                     Assert.That(material.r,Is.EqualTo(body.r).Within(.0001f));
                     Assert.That(material.g,Is.EqualTo(body.g).Within(.0001f));
                     Assert.That(material.b,Is.EqualTo(body.b).Within(.0001f));
@@ -138,7 +138,7 @@ namespace Cryptforge.Tests
                 Assert.That(flag.C[i].a,Is.EqualTo(1));
                 float depth=Depth(p,origin,width,height);
                 if(!visible.Contains(i)||depth<.15f||depth>.30f)continue;
-                Color material=Unlit(flag.C[i],p);
+                Color material=StoneMineral(flag.C[i],p);
                 float r=material.r/body.r,g=material.g/body.g,b=material.b/body.b;
                 if(r<=1.01f)continue;
                 // Mortar and narrow geometric bevels cannot satisfy this: the
@@ -159,7 +159,7 @@ namespace Cryptforge.Tests
             Vector2 origin=new Vector2(u,v);
             var flag=BuildFlag(u,v,3,2,zone);
             Color body=InteriorMaterial(flag,origin,3,2);
-            Color mortar=Unlit(flag.C[0],Design(flag.U[0]));
+            Color mortar=StoneMineral(flag.C[0],Design(flag.U[0]));
             float r=mortar.r/body.r,g=mortar.g/body.g,b=mortar.b/body.b;
             Assert.That(r,Is.InRange(.88f,.93f));
             Assert.That(g,Is.EqualTo(r).Within(.0001f));
@@ -192,7 +192,7 @@ namespace Cryptforge.Tests
             for(int i=flag.U.Count-1;i>=0;i--)
             {
                 Vector2 p=Design(flag.U[i]);
-                if(Depth(p,origin,width,height)>=.5f-.0001f)return Unlit(flag.C[i],p);
+                if(Depth(p,origin,width,height)>=.5f-.0001f)return StoneMineral(flag.C[i],p);
             }
             Assert.Fail("Production flag has no sampled broad interior.");return Color.clear;
         }
@@ -203,10 +203,16 @@ namespace Cryptforge.Tests
         private static Vector2 Design(Vector2 uv)=>
             (uv-Vector2.one)*(FoundryRegionView.PavingGrainSpan/(2*FoundryMap.Axis));
 
-        private static Color Unlit(Color color,Vector2 p)
+        private static Color StoneMineral(Color color,Vector2 p)
         {
             var light=(Color)typeof(FoundryRegionView).GetMethod("FloorLight",Static).Invoke(null,new object[]{p.x,p.y});
-            return new Color(color.r/light.r,color.g/light.g,color.b/light.b,1);
+            // A laid stone retains one quarry body beneath world illumination
+            // and the broad entry/apron use field. Remove both spatial fields
+            // before testing that body and its local worn shoulder. The separate
+            // court-material tests verify the emitted use field exactly once,
+            // its world continuity, bounded gains and protected combat centre.
+            float use=(float)typeof(FoundryRegionView).GetMethod("PavingCourtUse",Static).Invoke(null,new object[]{p.x,p.y});
+            return new Color(color.r/(light.r*use),color.g/(light.g*use),color.b/(light.b*use),1);
         }
     }
 }

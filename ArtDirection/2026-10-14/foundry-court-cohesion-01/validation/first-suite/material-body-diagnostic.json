@@ -1,0 +1,122 @@
+[
+  {
+    "origin": [
+      -30.0,
+      8.0
+    ],
+    "bodyPoint": [
+      -28.0,
+      9.0
+    ],
+    "samples": 3,
+    "maximumOldResidual": 5.960464477539063E-08,
+    "maximumNormalizedResidual": 6.697151211376706E-08,
+    "firstOldFailure": null
+  },
+  {
+    "origin": [
+      -28.0,
+      6.0
+    ],
+    "bodyPoint": [
+      -25.999998,
+      6.9999995
+    ],
+    "samples": 3,
+    "maximumOldResidual": 5.960464477539063E-08,
+    "maximumNormalizedResidual": 6.697151211376706E-08,
+    "firstOldFailure": null
+  },
+  {
+    "origin": [
+      -23.0,
+      -10.0
+    ],
+    "bodyPoint": [
+      -20.999998,
+      -9.0
+    ],
+    "samples": 2,
+    "maximumOldResidual": 0.00021415948867797852,
+    "maximumNormalizedResidual": 4.7622466414765086E-08,
+    "firstOldFailure": {
+      "vertex": 44,
+      "u": -22.0,
+      "v": -9.0,
+      "channel": "r",
+      "actual": 0.8858678,
+      "expected": 0.886074,
+      "pointGain": 0.9870117,
+      "bodyGain": 0.98724145,
+      "normalizedActual": 0.8975251260499533,
+      "normalizedExpected": 0.8975251285035353
+    }
+  },
+  {
+    "origin": [
+      -15.0,
+      -12.0
+    ],
+    "bodyPoint": [
+      -12.999999,
+      -11.0
+    ],
+    "samples": 2,
+    "maximumOldResidual": 0.007117748260498047,
+    "maximumNormalizedResidual": 1.8046771932400674E-07,
+    "firstOldFailure": {
+      "vertex": 44,
+      "u": -14.0,
+      "v": -11.0,
+      "channel": "r",
+      "actual": 0.98749983,
+      "expected": 0.99442536,
+      "pointGain": 1.0755908,
+      "bodyGain": 1.0831342,
+      "normalizedActual": 0.9180998835161498,
+      "normalizedExpected": 0.9180998808274895
+    }
+  },
+  {
+    "origin": [
+      -8.0,
+      -6.0
+    ],
+    "bodyPoint": [
+      -5.9999995,
+      -5.0
+    ],
+    "samples": 2,
+    "maximumOldResidual": 0.0,
+    "maximumNormalizedResidual": 0.0,
+    "firstOldFailure": null
+  },
+  {
+    "origin": [
+      1.0,
+      2.0
+    ],
+    "bodyPoint": [
+      2.9999998,
+      2.9999998
+    ],
+    "samples": 2,
+    "maximumOldResidual": 1.1920928955078125E-07,
+    "maximumNormalizedResidual": 1.1920928955078125E-07,
+    "firstOldFailure": null
+  },
+  {
+    "origin": [
+      7.0,
+      8.0
+    ],
+    "bodyPoint": [
+      9.0,
+      9.0
+    ],
+    "samples": 2,
+    "maximumOldResidual": 5.960464477539063E-08,
+    "maximumNormalizedResidual": 5.960464477539063E-08,
+    "firstOldFailure": null
+  }
+]

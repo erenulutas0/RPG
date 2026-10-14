@@ -26,6 +26,8 @@ namespace Cryptforge.Tests
             var colors=Field<List<Color>>(builder,"C");
             var indices=Field<List<int>>(builder,"T");
             Assert.That(points.Count,Is.GreaterThan(0));
+            if(island==1)Assert.That(points.Count,Is.LessThanOrEqualTo(1800),
+                "The complete stocked moulding station retains a bounded static geometry budget.");
             Assert.That(uv.Count,Is.EqualTo(points.Count));
             Assert.That(colors.Count,Is.EqualTo(points.Count));
             Assert.That(indices.Count%3,Is.Zero);
@@ -51,6 +53,54 @@ namespace Cryptforge.Tests
                     Assert.That(Vector3.Dot(axis,points[i]),Is.LessThanOrEqualTo(limit+.0001f),
                         "Equipment must stay in its established projected island/depth envelope.");
                 }
+            }
+        }
+
+        [Test]
+        public void MouldingStationStoresOpenSupportedFlasksAndUsesDirectionalTimberGrain()
+        {
+            float u0=FoundryMap.WorkIslandBound(1,0),v0=FoundryMap.WorkIslandBound(1,1);
+            float u1=FoundryMap.WorkIslandBound(1,2),v1=FoundryMap.WorkIslandBound(1,3);
+            object complete=BuildEquipment("BuildYardMouldBench",u0,v0,u1,v1);
+            var points=Field<List<Vector3>>(complete,"V");var uv=Field<List<Vector2>>(complete,"U");
+            var colours=Field<List<Color>>(complete,"C");var triangles=Field<List<int>>(complete,"T");
+            var referenced=new HashSet<int>(triangles);
+            object lower=BuildEquipment("YardStoredFlask",u0+.44f,v0+.44f,u0+1.38f,v1-.42f,.49f,.63f);
+            object upper=BuildEquipment("YardStoredFlask",u0+.475f,v0+.475f,u0+1.345f,v1-.455f,.63f,.77f);
+            foreach(object flask in new[]{lower,upper})
+            {
+                var p=Field<List<Vector3>>(flask,"V");var indices=Field<List<int>>(flask,"T");
+                // The opening is intentionally much wider than a numerical edge:
+                // an empty stored flask must not retain the old closed top plate.
+                float top=flask==lower?.63f:.77f;
+                Vector3 centre=Project(u0+.91f,(v0+v1+.02f)*.5f)+Vector3.up*top;
+                Assert.That(Covered(p,indices,centre),Is.False,"Spare moulds need real open centres, not a painted box top.");
+                foreach(int i in new HashSet<int>(indices))
+                    Assert.That(Find(points,referenced,p[i]),Is.GreaterThanOrEqualTo(0),
+                        "The complete station must actually emit each supported spare flask.");
+            }
+            // The upper ring bears on the lower ring rather than hovering over it.
+            foreach(Vector2 station in new[]{new Vector2(u0+.475f,v0+.475f),
+                new Vector2(u0+1.345f,v0+.475f),new Vector2(u0+.475f,v1-.455f)})
+            {
+                Vector3 foot=Project(station.x,station.y)+Vector3.up*.63f;
+                Assert.That(Find(points,referenced,foot),Is.GreaterThanOrEqualTo(0));
+                Assert.That(Covered(Field<List<Vector3>>(lower,"V"),Field<List<int>>(lower,"T"),foot),Is.True);
+            }
+            float start=v0+.10f,end=v0+.10f+(v1-v0-.20f)/3-.016f;
+            Vector3 a=Project(u0+.125f,start+.025f)+Vector3.up*1.13f;
+            Vector3 b=Project(u1-.125f,start+.025f)+Vector3.up*1.13f;
+            Vector3 c=Project(u1-.125f,end-.025f)+Vector3.up*1.13f;
+            int ia=Find(points,referenced,a),ib=Find(points,referenced,b),ic=Find(points,referenced,c);
+            Assert.That(ia,Is.GreaterThanOrEqualTo(0));Assert.That(ib,Is.GreaterThanOrEqualTo(0));Assert.That(ic,Is.GreaterThanOrEqualTo(0));
+            float along=Vector2.Distance(uv[ia],uv[ib])/Vector3.Distance(a,b);
+            float across=Vector2.Distance(uv[ib],uv[ic])/Vector3.Distance(b,c);
+            Assert.That(across,Is.GreaterThan(along*1.8f).And.LessThan(along*4),
+                "Actual worktop grain must run along the substantial boards, with a noncollapsed cross-grain field.");
+            foreach(int i in new[]{ia,ib,ic})
+            {
+                Assert.That(colours[i].r,Is.GreaterThan(colours[i].g*1.3f));
+                Assert.That(colours[i].b,Is.LessThan(colours[i].g*.7f));
             }
         }
 
@@ -123,6 +173,33 @@ namespace Cryptforge.Tests
             typeof(FoundryRegionView).GetMethod("BuildYardTrolley",Static)
                 .Invoke(null,new object[]{builder,u0,v0,u1,v1});
             return builder;
+        }
+
+        private static object BuildEquipment(string method,params float[] values)
+        {
+            object builder=Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+            var args=new object[values.Length+1];args[0]=builder;
+            for(int i=0;i<values.Length;i++)args[i+1]=values[i];
+            typeof(FoundryRegionView).GetMethod(method,Static).Invoke(null,args);
+            return builder;
+        }
+
+        private static int Find(List<Vector3> points,HashSet<int> referenced,Vector3 point)
+        {
+            foreach(int i in referenced)if(Vector3.Distance(points[i],point)<.00001f)return i;
+            return -1;
+        }
+
+        private static bool Covered(List<Vector3> points,List<int> triangles,Vector2 point)
+        {
+            for(int t=0;t<triangles.Count;t+=3)
+            {
+                Vector2 a=points[triangles[t]],b=points[triangles[t+1]],c=points[triangles[t+2]];
+                double area=Cross(a,b,c);if(Math.Abs(area)<1e-8)continue;
+                double x=Cross(point,b,c)/area,y=Cross(a,point,c)/area,z=1-x-y;
+                if(x>=-.00001&&y>=-.00001&&z>=-.00001)return true;
+            }
+            return false;
         }
 
         private static double Cross(Vector2 a,Vector2 b,Vector2 c)=>

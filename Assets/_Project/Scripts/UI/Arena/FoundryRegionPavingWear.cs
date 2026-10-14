@@ -5,6 +5,39 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        // Broad material use belongs to places, not to individual flag identities.
+        // The entry is scrubbed by passage; the connected stock/receiving apron
+        // retains settled mill scale. Smooth multi-unit shoulders leave the quiet
+        // combat centre intact and never introduce another joint, stain mesh or
+        // light source. All paving emitters sample this once at their real vertex.
+        private static float PavingCourtUse(float u,float v)
+        {
+            if(u>=12)return 1; // The raised gate family owns its own finish.
+            Vector2 p=new Vector2(u,v);
+            float centreDistance=Vector2.Distance(p,CourtSealCentre);
+            if(centreDistance<=7)return 1;
+            float outsideCentre=Mathf.SmoothStep(0,1,Mathf.InverseLerp(7,11,centreDistance));
+            Vector2 arrival=CourtProcessionalEnds[0];
+            float threshold=FoundryMap.BridgeStart*.5f;
+            float entry=Mathf.Max(PavingPassageUse(p,new Vector2(threshold,threshold),arrival),
+                PavingPassageUse(p,arrival,CourtSealCentre));
+            float spine=-24+FoundryMap.WorkyardShift;
+            float stock=DistanceFromFloorBox(u,v,spine-3.6f,-3.5f,spine+3.6f,17.65f);
+            float receiving=DistanceFromFloorBox(u,v,FoundryMap.West,4.6f,spine-2.4f,9.4f);
+            float work=1-Mathf.SmoothStep(0,1,Mathf.Clamp01(Mathf.Min(stock,receiving)/7));
+            return 1+outsideCentre*(.085f*entry-.11f*work);
+        }
+
+        private static float PavingPassageUse(Vector2 p,Vector2 a,Vector2 b)
+        {
+            Vector2 direction=b-a;
+            float along=Mathf.Clamp01(Vector2.Dot(p-a,direction)/direction.sqrMagnitude);
+            float distance=Vector2.Distance(p,a+direction*along);
+            // A broad worn field spans both fitted flags and their surrounding
+            // quarry stone. Its soft shoulder does not outline the brass route.
+            return 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(1.5f,7,distance));
+        }
+
         private static Color PavingMineralFamily(float u,float v)
         {
             // Several neighbouring slabs come from the same mineral family. This

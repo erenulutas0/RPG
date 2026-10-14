@@ -673,6 +673,7 @@ namespace Cryptforge.UI
             Vector3 p=Project(u,v);
             mesh.V.Add(p);
             mesh.U.Add(new Vector2(1+2*FoundryMap.Axis*u/PavingGrainSpan,1+2*FoundryMap.Axis*v/PavingGrainSpan));
+            tone*=PavingCourtUse(u,v);
             mesh.C.Add(new Color(light.r*tone*tint.r,light.g*tone*tint.g,light.b*tone*tint.b,1));
         }
 

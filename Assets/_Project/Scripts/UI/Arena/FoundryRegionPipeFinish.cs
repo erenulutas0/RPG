@@ -70,7 +70,10 @@ namespace Cryptforge.UI
             float value=.24f+.91f*crown*crown;
             float millScale=.90f+.10f*Mathf.Sin(along*Mathf.PI);
             value*=gain*millScale;
-            return new Color(value*.96f,value,value*1.04f,1);
+            // Rolled service iron belongs to the cool boiler castings. The
+            // existing MetalTone stage still owns localized reflected fire;
+            // brass fittings and baked fire windows never use this stock tint.
+            return new Color(value*.86f,value*.98f,value*1.16f,1);
         }
     }
 }

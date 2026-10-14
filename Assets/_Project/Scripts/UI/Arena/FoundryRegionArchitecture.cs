@@ -433,7 +433,24 @@ namespace Cryptforge.UI
                 Vector3 floor=mesh.V[i]-Vector3.up*elevation;
                 FoundrySurface.ToDesign(floor.x,floor.y,out float u,out float v);
                 mesh.C[i]=SurfaceTone(mesh.C[i],u,v,elevation,local<12?top-elevation:2);
+                mesh.C[i]=GateStoneTone(mesh.C[i],u,v,elevation,local<12?local/4:3);
             }
+        }
+
+        private static Color GateStoneTone(Color tone,float u,float v,float height,int face)
+        {
+            // The gate's dressed stone shares the painted portal's cool quarry
+            // value. Keep the damp footing and recess light; lift exposed broad
+            // planes by different amounts rather than changing global ambient.
+            float distance=DistanceFromFloorBox(u,v,GateU(31),-7,GateU(36),17);
+            float place=1-Mathf.SmoothStep(0,1,distance/2f);
+            float exposed=place*Mathf.SmoothStep(0,1,Mathf.InverseLerp(.15f,1.5f,height));
+            if(exposed<=0)return tone;
+            float plane=face==0?1:face==1?.58f:face==2?.76f:.83f;
+            float quarry=.15f+.10f*FloorPatina(u*.43f+11,v*.43f+height*.10f);
+            float gain=1+exposed*plane*quarry;
+            return new Color(tone.r*gain,tone.g*(gain+.012f*exposed),
+                tone.b*(gain+.022f*exposed),tone.a);
         }
 
         private static void BuildGateHeaderTies(Builder iron,float height)

@@ -171,12 +171,16 @@ namespace Cryptforge.UI
                 Color old=body.C[i];
                 float value=old.r*.299f+old.g*.587f+old.b*.114f;
                 float aged=.83f+.045f*FloorPatina(local.x*.68f+3.1f,local.y*.68f-2.7f);
-                // Compensate the cool iron atlas with subdued warm cast metal.
-                // Keep any existing warm contact light as a restrained rust bias;
-                // shape lighting remains in the incoming vertex luminance.
+                float foot=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.65f,-.18f,local.y));
+                float shoulder=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.20f,.68f,local.y));
+                float contact=1-foot*.10f+shoulder*.045f;
+                // The working pocket shares cool cast iron with the crane and
+                // transfer bench. Oil-dark lower contact and a lightly rubbed
+                // shoulder retain depth, without globally raising the casting.
+                // Existing fire-facing warmth stays a restrained local rust bias.
                 float warmth=Mathf.Max(0,old.r-old.b)*.22f;
-                body.C[i]=new Color((value*1.09f+warmth)*aged,value*aged,
-                    (value*.89f-warmth*.18f)*aged,1);
+                body.C[i]=new Color((value*.97f+warmth)*aged*contact,value*aged*contact,
+                    (value*1.055f-warmth*.14f)*aged*contact,1);
             }
         }
 

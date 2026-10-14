@@ -1355,3 +1355,12 @@ Broad fitted courses now divide the existing recessed shaft jambs and pointed he
 Region 34 renderers/161161 vertices versus 34/163073 (-1912 vertices); distant geometry 3572 versus 3572. This package adds no runtime texture, material, renderer, updater component or per-frame work. The previous material package already owns the additional iron batches and focus-vector update; they are unchanged here. The indexed niche emitter keeps its vertex budget but adds an expected 960 triangles across the four shafts; no total region index delta was measured. Resource counts are not device frame-time measurements.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.
+
+
+## 2026-10-14 - Foundry court cohesion verified; device pending
+
+Broad material use now distinguishes the scrubbed entry from the settled working apron while preserving the quiet combat centre. The moulding bench stores supported open spare flasks and timber packing; its worked iron agrees with the crane casting. Exposed gate stone has a bounded face-dependent quarry value lift, and rolled service pipes use cooler iron beneath existing reflected fire.
+
+Region 34 renderers / 161385 vertices versus 34 / 161161 (+224 vertices); distant geometry remains 3572 vertices. No new runtime texture, material, renderer, updater or per-frame work is introduced. Existing startup paving and material generation performs the added bounded colour sampling. Static counts are not device performance evidence.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.

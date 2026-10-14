@@ -2544,3 +2544,15 @@ Verified: 438 .NET / 612 EditMode / 159 PlayMode = 1,209 accepted suite executio
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 EC908F08891544E2FE3939166ED5C327B2143721326A4ABA59C370AB2C55C639; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.
+
+
+## 2026-10-14 - Foundry court cohesion verified; device pending
+
+Broad material use now distinguishes the scrubbed entry from the settled working apron while preserving the quiet combat centre. The moulding bench stores supported open spare flasks and timber packing; its worked iron agrees with the crane casting. Exposed gate stone has a bounded face-dependent quarry value lift, and rolled service pipes use cooler iron beneath existing reflected fire.
+
+Files: FoundryRegionPavingWear/Finish, ProductionYard/CraneHousing, Architecture/PipeFinish; focused court, yard and crane tests plus the corrected mineral oracle. Capture: Tools/ArtReview/FoundryCourtCohesionCapture.cs and launcher.
+
+438 .NET / 621 EditMode / 159 PlayMode = 1,218 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 620 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 4F696238FBB970EC4965E71B4D92E0210EBB453DBB5D9B5E231487E664BD390E; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.

@@ -243,12 +243,23 @@ namespace Cryptforge.UI
 
         private static void BuildYardMouldBench(Builder kit,float u0,float v0,float u1,float v1)
         {
-            // A supported low tooling shelf joins the two trestles. The spare flask
-            // and timber packing live inside the bench, never scattered in the lane.
+            Vector3 origin=Project((u0+u1)*.5f,(v0+v1)*.5f)+Vector3.up*.84f;
+            int first=kit.V.Count;
+            // The receiving shelf carries two open spare flasks. Their broad
+            // stacked rails replace the old closed box, preserving clear air
+            // through the tooling instead of filling the bench with solid clutter.
             WorkshopMetalHull(kit,u0+.24f,v0+.30f,u1-.24f,v1-.30f,.40f,.49f,.025f,true);
-            WorkshopMetalHull(kit,u0+.44f,v0+.44f,u0+1.32f,v1-.42f,.49f,.69f,.055f,true);
-            WorkshopMetalHull(kit,u0+1.52f,v0+.52f,u1-.42f,v1-.53f,.49f,.60f,.04f,true);
+            YardStoredFlask(kit,u0+.44f,v0+.44f,u0+1.38f,v1-.42f,.49f,.63f);
+            YardStoredFlask(kit,u0+.475f,v0+.475f,u0+1.345f,v1-.455f,.63f,.77f);
+            YardBenchIronFinish(kit,first,kit.V.Count,origin);
+            // Two thick packing boards are visibly supported by the same shelf,
+            // kept under the right-hand flask, never on the walking floor.
+            first=kit.V.Count;
+            WorkshopMetalHull(kit,u0+1.52f,v0+.52f,u1-.42f,v1-.53f,.49f,.60f,.025f,true);
+            WorkshopMetalHull(kit,u0+1.62f,v0+.57f,u1-.47f,v1-.58f,.60f,.71f,.025f,true);
+            YardBenchTimberFinish(kit,first,kit.V.Count,origin);
             // Four legs and lower ties leave visible air beneath the work surface.
+            first=kit.V.Count;
             foreach(float u in new[]{u0+.16f,u1-.36f})
             {
                 foreach(float v in new[]{v0+.18f,v1-.38f})
@@ -257,24 +268,22 @@ namespace Cryptforge.UI
                 YardTrestleGusset(kit,u,u+.20f,v0+.38f,v0+.78f,.66f,.99f);
                 YardTrestleGusset(kit,u,u+.20f,v1-.38f,v1-.78f,.66f,.99f);
             }
+            YardBenchIronFinish(kit,first,kit.V.Count,origin);
             // Three hardwood working planks sit on the iron frame. Reuse the iron
-            // grain's unframed field, but separate the timber from cool hardware.
+            // grain's unframed field with one long, unbroken timber direction.
+            first=kit.V.Count;
             for(int plank=0;plank<3;plank++)
             {
                 float start=v0+.10f+plank*(v1-v0-.20f)/3;
                 float end=v0+.10f+(plank+1)*(v1-v0-.20f)/3-.016f;
-                int first=kit.C.Count;
                 WorkshopMetalHull(kit,u0+.10f,start,u1-.10f,end,.99f,1.13f,.025f,true);
-                for(int c=first;c<kit.C.Count;c++)
-                {
-                    Color tone=kit.C[c];tone.r*=1.32f;tone.g*=.91f;tone.b*=.56f;
-                    kit.C[c]=tone;
-                }
             }
+            YardBenchTimberFinish(kit,first,kit.V.Count,origin);
             // Two unequal open moulds, rather than another stack of closed boxes.
-            YardMould(kit,u0+.32f,v0+.31f,u0+1.42f,v1-.27f,1.13f,1.40f,false);
-            YardMould(kit,u0+1.70f,v0+.40f,u1-.30f,v1-.47f,1.13f,1.32f,true);
+            YardMould(kit,u0+.32f,v0+.31f,u0+1.42f,v1-.27f,1.13f,1.40f,false,origin);
+            YardMould(kit,u0+1.70f,v0+.40f,u1-.30f,v1-.47f,1.13f,1.32f,true,origin);
             // Two long-flask clamps have supported jaws and a visible screw crossbar.
+            first=kit.V.Count;
             foreach(float v in new[]{v0+.55f,v1-.58f})
             {
                 WorkshopMetalHull(kit,u0+.24f,v,u0+.34f,v+.14f,1.13f,1.48f,.015f,true);
@@ -285,11 +294,55 @@ namespace Cryptforge.UI
             // The small flask uses one broad end dog, making the setups asymmetric.
             WorkshopMetalHull(kit,u1-.57f,v0+.25f,u1-.37f,v0+.43f,1.13f,1.34f,.025f,true);
             WorkshopMetalHull(kit,u0+1.53f,v0+.26f,u0+1.61f,v1-.30f,1.13f,1.22f,.015f,true);
+            YardBenchIronFinish(kit,first,kit.V.Count,origin);
         }
 
-        private static void YardMould(Builder kit,float u0,float v0,float u1,float v1,float bottom,float top,bool bearing)
+        private static void YardStoredFlask(Builder kit,float u0,float v0,float u1,float v1,float bottom,float top)
         {
+            const float rail=.10f;
+            WorkshopMetalHull(kit,u0,v1-rail,u1,v1,bottom,top,.015f,true);
+            WorkshopMetalHull(kit,u1-rail,v0+rail,u1,v1-rail,bottom,top,.015f,true);
+            WorkshopMetalHull(kit,u0,v0,u1,v0+rail,bottom,top,.015f,true);
+            WorkshopMetalHull(kit,u0,v0+rail,u0+rail,v1-rail,bottom,top,.015f,true);
+        }
+
+        private static void YardBenchIronFinish(Builder kit,int first,int end,Vector3 origin)
+        {
+            for(int i=first;i<end;i++)
+            {
+                Vector3 p=kit.V[i]-origin;
+                kit.U[i]=new Vector2(.5f+p.x*.105f,.5f+p.y*.105f);
+                Color old=kit.C[i];float value=old.r*.299f+old.g*.587f+old.b*.114f;
+                float warmth=Mathf.Max(0,old.r-old.b)*.35f;
+                float age=.90f+.05f*FloorPatina(p.x*.62f+4.1f,p.y*.62f-1.7f);
+                // Quiet dark worked iron links the transfer bench to its crane;
+                // retain directional luminance and the original fire-facing bias.
+                kit.C[i]=new Color((value*.97f+warmth)*age,value*age,(value*1.055f-warmth*.14f)*age,1);
+            }
+        }
+
+        private static void YardBenchTimberFinish(Builder kit,int first,int end,Vector3 origin)
+        {
+            Vector2 along=((Vector2)(Project(1,0)-Project(0,0))).normalized;
+            Vector2 across=new Vector2(-along.y,along.x);
+            for(int i=first;i<end;i++)
+            {
+                Vector2 p=kit.V[i]-origin;
+                float length=Vector2.Dot(p,along),width=Vector2.Dot(p,across);
+                // The existing plain field is stretched along the real plank axis;
+                // shared projected contacts keep the same grain without clamping.
+                kit.U[i]=new Vector2(.5f+length*.055f,.5f+width*.18f);
+                Color old=kit.C[i];float value=old.r*.299f+old.g*.587f+old.b*.114f;
+                float age=.92f+.06f*FloorPatina(length*.38f+2.3f,width*.65f);
+                kit.C[i]=new Color(value*1.28f*age,value*.88f*age,value*.51f*age,1);
+            }
+        }
+
+        private static void YardMould(Builder kit,float u0,float v0,float u1,float v1,float bottom,float top,bool bearing,Vector3 origin)
+        {
+            int steel=kit.V.Count;
             WorkshopMetalHull(kit,u0,v0,u1,v1,bottom,bottom+.055f,.025f,true);
+            YardBenchIronFinish(kit,steel,kit.V.Count,origin);
             // Dark recessed casting sand remains below all four supported frame rails.
             var sand=new Color(.80f,.57f,.34f);
             int sandFirst=kit.V.Count;
@@ -312,6 +365,7 @@ namespace Cryptforge.UI
                 // cup, all recessed below the existing flask rails.
                 WorkshopMetalHull(kit,middle-.13f,v1-.32f,middle+.13f,v1-.12f,bottom+.06f,bottom+.09f,.04f,true);
             }
+            steel=kit.V.Count;
             WorkshopMetalHull(kit,u0,v1-.12f,u1,v1,bottom+.055f,top,.02f,true);
             WorkshopMetalHull(kit,u1-.12f,v0+.12f,u1,v1-.12f,bottom+.055f,top,.02f,true);
             WorkshopMetalHull(kit,u0,v0,u1,v0+.12f,bottom+.055f,top,.02f,true);
@@ -324,6 +378,7 @@ namespace Cryptforge.UI
                     WorkshopMetalHull(kit,u,edge,u+.07f,edge+.095f,top-.12f,top-.055f,.012f,true);
                 WorkshopMetalHull(kit,middle-.24f,edge,middle+.24f,edge+.04f,top-.09f,top-.03f,.01f,true);
             }
+            YardBenchIronFinish(kit,steel,kit.V.Count,origin);
         }
 
         private static void YardBearingPattern(Builder kit,Vector2 centre,float radius,float height,float feedV)

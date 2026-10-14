@@ -1553,3 +1553,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 The same frozen Assets produced the accepted captures and full suites. Compare the 21 matched views; phone motion/HUD/shimmer acceptance remains pending. Any first-run failures and their repairs are preserved in package validation.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.
+
+
+## 2026-10-14 - Foundry court cohesion verified; device pending
+
+438 .NET / 621 EditMode / 159 PlayMode = 1,218 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 620 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 4F696238FBB970EC4965E71B4D92E0210EBB453DBB5D9B5E231487E664BD390E; NOT INSTALLED.
+
+The first full run passed 620 of 621 EditMode cases and all 159 PlayMode cases; APK production was skipped. A legacy mineral-isolation oracle removed world light but retained the new intentional broad use field. Its test helper now removes both fields, retaining all original tolerances and mineral/shoulder limits. Seven new actual-emission cases independently recover gain without invoking the new field function, preserving detection of missing, doubled or discontinuous use. Runtime source did not change for this repair. Root reran pure checks, isolated compile, matched After capture and the complete regression/build gate from a refreshed source freeze. The rejected run and original test source remain in first-suite/.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.

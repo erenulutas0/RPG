@@ -833,3 +833,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-masonry-01.
 - [ ] Physical-device material/motion acceptance and existing immortal-crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-stonework-01.
+
+
+## 2026-10-14 - Foundry court cohesion verified; device pending
+
+- [x] Combine broad courtyard use, supported mould-bench storage, crane/gate/pipe material cohesion; verify matched captures and complete suites.
+- [ ] Continue secondary service architecture, working-shelf bearings and near-island masonry; see package next-visual-priorities.md.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-court-cohesion-01.

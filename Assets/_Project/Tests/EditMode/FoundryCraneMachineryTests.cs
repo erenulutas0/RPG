@@ -92,6 +92,37 @@ namespace Cryptforge.Tests
                 "The emitted housing must retain a substantial exposed drum, not overpaint it with a solid cast box.");
         }
 
+        [Test]
+        public void WorkingCastingFinishRetainsItsMeshAndSeparatesOiledFootFromWornShoulder()
+        {
+            Type type=typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);
+            object builder=Activator.CreateInstance(type,true);
+            typeof(FoundryRegionView).GetMethod("BuildCraneMachineryCasting",Static).Invoke(null,new[]{builder});
+            var points=(List<Vector3>)type.GetField("V",Fields).GetValue(builder);
+            var uv=(List<Vector2>)type.GetField("U",Fields).GetValue(builder);
+            var colours=(List<Color>)type.GetField("C",Fields).GetValue(builder);
+            var indices=(List<int>)type.GetField("T",Fields).GetValue(builder);
+            var savedPoints=points.ToArray();var savedUvs=uv.ToArray();var savedIndices=indices.ToArray();
+            // Equal source light on the actual casting exposes the local finish,
+            // independently of the existing face-light hierarchy it must retain.
+            for(int i=0;i<colours.Count;i++)colours[i]=new Color(.5f,.5f,.5f,1);
+            typeof(FoundryRegionView).GetMethod("FinishCraneMachinery",Static).Invoke(null,new[]{builder});
+            Assert.That(points,Is.EqualTo(savedPoints));Assert.That(uv,Is.EqualTo(savedUvs));Assert.That(indices,Is.EqualTo(savedIndices));
+            Vector3 centre=Project(-25.15f+FoundryMap.WestAssemblyOffset,12.96f)+Vector3.up*1.86f;
+            float low=0,high=0;int lowCount=0,highCount=0;
+            foreach(int index in new HashSet<int>(indices))
+            {
+                Color c=colours[index];float height=points[index].y-centre.y;
+                Assert.That(c.b,Is.GreaterThan(c.r),"Unlit neutral iron retains the crane pocket's cool cast family.");
+                Assert.That(c.grayscale,Is.LessThan(.5f),"The finish must not become a global exposure lift.");
+                if(height<=-.65f){low+=c.grayscale;lowCount++;}
+                if(height>=.68f){high+=c.grayscale;highCount++;}
+            }
+            Assert.That(lowCount,Is.GreaterThan(0));Assert.That(highCount,Is.GreaterThan(0));
+            Assert.That(low/lowCount,Is.LessThan(high/highCount*.94f),
+                "Oil-dark footing and rubbed upper shoulders need a broad material distinction.");
+        }
+
         private static MeshData Build(string method)
         {
             Type type=typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);
