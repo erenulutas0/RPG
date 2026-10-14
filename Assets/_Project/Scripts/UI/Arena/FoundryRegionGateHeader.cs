@@ -14,10 +14,10 @@ namespace Cryptforge.UI
             foreach(bool left in new[]{true,false})
             {
                 float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
-                GateCraftTier(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+1.16f,.065f,.99f);
+                GateHeaderShoulder(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+1.16f,.065f,.99f);
             }
             // The compact lock recess remains physically backed and side-seated.
-            // Its cap follows the same flat elevation as the flanking coping,
+            // Its cap stays at the ridge elevation of the flanking coping,
             // so the door seal stays the principal emblem from the walking lane.
             GateCraftTier(stone,GateU(32.65f),3.35f,GateU(33.85f),6.65f,height+.72f,height+.98f,.035f,.88f);
             GateCraftTier(stone,GateU(32.15f),3.35f,GateU(32.67f),3.95f,height+.72f,height+.98f,.025f,.88f);
@@ -154,6 +154,97 @@ namespace Cryptforge.UI
                     Mathf.RoundToInt(u0*11+v0*17+bottom*23));
             }
             GateCraftCap(mesh,shell,u0,v0,u1,v1,top,inset);
+        }
+
+        private static void GateHeaderShoulder(Builder mesh,float u0,float v0,float u1,float v1,
+            float bottom,float top,float inset,float shade)
+        {
+            var shell=new Builder();
+            LitFoundryTier(shell,u0,v0,u1,v1,bottom,top,inset);
+            for(int i=0;i<shell.C.Count;i++)
+            {
+                Color color=shell.C[i];shell.C[i]=new Color(color.r*shade,color.g*shade,color.b*shade,1);
+            }
+            int first=mesh.V.Count;
+            float a=u0+inset,b=v0+inset,c=u1-inset,d=v1-inset,middle=(a+c)*.5f;
+            // Weather the complete shoulder into two broad roof planes. Its
+            // bottom bearing and maximum ridge stay fixed; only stone inside the
+            // old envelope is removed. The visible end gable shares that ridge.
+            for(int face=0;face<3;face++)
+            {
+                int offset=face*4;int pieces=face==0?2:1;
+                for(int piece=0;piece<pieces;piece++)
+                {
+                    float lo=piece/(float)pieces,hi=(piece+1f)/pieces;
+                    var points=new[]{Vector3.Lerp(shell.V[offset],shell.V[offset+1],lo),
+                        Vector3.Lerp(shell.V[offset],shell.V[offset+1],hi),
+                        Vector3.Lerp(shell.V[offset+3],shell.V[offset+2],hi),
+                        Vector3.Lerp(shell.V[offset+3],shell.V[offset+2],lo)};
+                    var light=new[]{Color.Lerp(shell.C[offset],shell.C[offset+1],lo),
+                        Color.Lerp(shell.C[offset],shell.C[offset+1],hi),
+                        Color.Lerp(shell.C[offset+3],shell.C[offset+2],hi),
+                        Color.Lerp(shell.C[offset+3],shell.C[offset+2],lo)};
+                    for(int end=2;end<4;end++)
+                    {
+                        Vector3 floor=points[end]-Vector3.up*top;
+                        FoundrySurface.ToDesign(floor.x,floor.y,out float u,out _);
+                        float roof=GateShoulderRoofHeight(u,a,c,top);
+                        points[end]+=Vector3.up*(roof-top);
+                        int lower=end==2?1:0;
+                        light[end]=Color.Lerp(light[lower],light[end],(roof-bottom)/(top-bottom));
+                    }
+                    GateCraftCourses(mesh,points,light,top-bottom,face,
+                        Mathf.RoundToInt(u0*11+v0*17+bottom*23));
+                }
+            }
+            float corner=Mathf.Min(.18f,Mathf.Min(u1-u0,v1-v0)*.15f);
+            float cut=Mathf.Min(corner*.75f,Mathf.Min(c-a,d-b)*.25f);
+            var outline=new System.Collections.Generic.List<Vector2>{new Vector2(a+cut,b),new Vector2(c-cut,b),
+                new Vector2(c,b+cut),new Vector2(c,d-cut),new Vector2(c-cut,d),new Vector2(a+cut,d),
+                new Vector2(a,d-cut),new Vector2(a,b+cut)};
+            int rows=Mathf.Max(1,Mathf.RoundToInt((d-b)/1.25f));const float joint=.007f;
+            Color roofTone=shell.C[12];
+            // Broad stones and their mortar each own part of the pitched roof.
+            // There is no old flat cap or second full roof under these polygons.
+            for(int row=rows-1;row>=0;row--)
+            {
+                float low=Mathf.Lerp(b,d,row/(float)rows),high=Mathf.Lerp(b,d,(row+1f)/rows);
+                float stoneLow=low+(row==0?0:joint),stoneHigh=high-(row==rows-1?0:joint);
+                for(int slope=1;slope>=0;slope--)
+                {
+                    Color tone=roofTone*(slope==0?.97f:.90f)*(1+(row%3-1)*.012f);tone.a=1;
+                    GateShoulderRoofPatch(mesh,outline,slope==0?a:middle,slope==0?middle:c,
+                        stoneLow,stoneHigh,a,c,top,tone);
+                    if(row>0)
+                    {
+                        Color mortar=roofTone*.69f;mortar.a=1;
+                        GateShoulderRoofPatch(mesh,outline,slope==0?a:middle,slope==0?middle:c,
+                            low-joint,low+joint,a,c,top,mortar);
+                    }
+                }
+            }
+            // One physical cut spans gable, side bearing and both roof slopes.
+            GateRecessGrain(mesh,first,mesh.V.Count,Project(0,1)-Project(0,0),0);
+        }
+
+        private static float GateShoulderRoofHeight(float u,float left,float right,float top)=>
+            top-.12f*Mathf.Abs((u-(left+right)*.5f)/((right-left)*.5f));
+
+        private static void GateShoulderRoofPatch(Builder mesh,System.Collections.Generic.List<Vector2> outline,
+            float left,float right,float bottom,float upper,float roofLeft,float roofRight,float top,Color tone)
+        {
+            var polygon=GateClipCoping(outline,0,left,true);
+            polygon=GateClipCoping(polygon,0,right,false);
+            polygon=GateClipCoping(polygon,1,bottom,true);
+            polygon=GateClipCoping(polygon,1,upper,false);
+            if(polygon.Count<3)return;
+            int first=mesh.V.Count;
+            foreach(Vector2 p in polygon)
+            {
+                mesh.V.Add(Project(p.x,p.y)+Vector3.up*GateShoulderRoofHeight(p.x,roofLeft,roofRight,top));
+                mesh.U.Add(Vector2.zero);mesh.C.Add(tone);
+            }
+            for(int i=1;i+1<polygon.Count;i++)mesh.T.AddRange(new[]{first,first+i,first+i+1});
         }
 
         // A carved middle fascia replaces the original flat lintel wall. Its two

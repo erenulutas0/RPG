@@ -1258,3 +1258,12 @@ Decision: refine existing emitted material colours without new geometry or resou
 Region 34 renderers / 167208 vertices, unchanged from baseline; distant 3572 is included and unchanged. Global ceilings remain 174000 region and 3600 distant, leaving 6792 and 28 vertices. No new geometry, runtime textures, materials, shaders, renderer batches or per-frame updater components. Existing startup colour calculations change; counts alone are not device performance evidence. Floor geometry, UVs, ownership, contacts and the existing light function remain unchanged; the new contact albedo intentionally modifies the final RGB response near equipment.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
+
+
+## 2026-10-14 - Foundry gate depth verified; device pending
+
+Decision: replace both normal native outer gate bodies with one authored fixed-view bake, preserve footprint/depth/foundations and accept two renderer batches plus one texture to improve stone construction. Keep the native shoulder change inside its existing envelope. The two outer gate buttresses now use an authored Blender masonry bake with broad fitted courses, bevel light and pointed recessed niches, retaining the original contact stations and native foundations. The two native upper header shoulders gain shallow pitched roofs and closed gables within their original bounds. Runtime cards share an unmirrored texture and calibrated 0.62 RGB gain, retain physical depth ownership and paint after their curtains; the south boiler feed body, collars and elbow paint strictly in front of the opaque near bay.
+
+Region 36 renderers / 164672 vertices versus 34 / 167208: +2 renderers and -2536 vertices. Each header shoulder remains 136 vertices. Distant 3572 is included and unchanged; ceilings remain 174000 region / 3600 distant. Added runtime resource: one 512x1024 ASTC6 texture, 11 mips, nonreadable; Editor texture memory 630880 bytes and calculated compressed mip payload 314992 bytes, excluding other overhead. One scene-owned source material and one shared cutaway variant are added. The variant joins the existing focus-uniform update; no new updater component or shader. Scoped south-feed ordering reuses an existing iron batch. Geometry savings do not establish phone performance; texture sampling and transparent fragment work are added.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.

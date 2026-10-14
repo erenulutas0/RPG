@@ -43,9 +43,12 @@ namespace Cryptforge.UI
                 var foundation=new Builder();
                 GateEnclosureTier(foundation,towerFoot.x,towerFoot.y,towerFoot.z,towerFoot.w,-3.45f,0,.10f,.84f);
                 Create("Gate buttress foundations",foundation,arena.PlatformMaterials.FoundryWall,-16);
-                var stone=new Builder();
-                BuildGateOuterButtress(stone,towerFoot);
-                Create("Gate broad crowned buttresses",stone,arena.PlatformMaterials.FoundryWall,order);
+                if(!BuildBakedGateButtress(towerFoot,order))
+                {
+                    var stone=new Builder();
+                    BuildGateOuterButtress(stone,towerFoot);
+                    Create("Gate broad crowned buttresses",stone,arena.PlatformMaterials.FoundryWall,order);
+                }
             }
         }
 

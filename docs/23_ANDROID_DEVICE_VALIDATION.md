@@ -2201,3 +2201,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 This is a modest coordinated material improvement, not a workyard rebuild or reference parity. The existing warm floor band remains visible. Baked equipment, dense native iron grain, simpler prop silhouettes and broad native gate stone remain unfinished reference gaps. Map, camera, navigation, equipment placement, encounters and gameplay remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer and midrange performance remain unverified. No phone control, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
+
+
+## 2026-10-14 - Foundry gate depth verified; device pending
+
+438 .NET / 666 EditMode / 160 PlayMode = 1,264 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 626 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 649AB25FB971D8362CB0E08FA9EA60253531CEE2A3D7E834005B8AF10674D2A9; NOT INSTALLED.
+
+This is a gate-landmark improvement, not reference parity. Native inner piers, curtain/header grain and the simpler regular stone courses remain visible gaps. Existing approach-20-1 portrait crops the crown and most outer bays, so portrait benefit is limited. Map, camera, navigation, equipment placement, encounters and gameplay remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer and midrange performance remain unverified. No phone control, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.

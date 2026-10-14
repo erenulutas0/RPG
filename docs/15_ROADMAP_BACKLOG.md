@@ -869,3 +869,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
+
+
+## 2026-10-14 - Foundry gate depth verified; device pending
+
+- [x] Group outer gate masonry, native pitched header shoulders and deterministic runtime pipe/card integration; verify matched captures, full suites and Android build.
+- [ ] Extend coherent masonry/material treatment to inner gate piers and curtain/header transitions as one bounded landmark pass.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.

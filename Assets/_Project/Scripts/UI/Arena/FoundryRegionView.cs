@@ -549,6 +549,7 @@ namespace Cryptforge.UI
             if(_stockHoistMaterial!=null)Destroy(_stockHoistMaterial);
             if(_stockStationMaterial!=null)Destroy(_stockStationMaterial);
             if(_castingBenchMaterial!=null)Destroy(_castingBenchMaterial);
+            if(_gateMasonryMaterial!=null)Destroy(_gateMasonryMaterial);
             if(_craneMaterial!=null)Destroy(_craneMaterial);
             if(_reservoirMaterial!=null)Destroy(_reservoirMaterial);
             if(_bakedBoilerMaterial!=null)Destroy(_bakedBoilerMaterial);

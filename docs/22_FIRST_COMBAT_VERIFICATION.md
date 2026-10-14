@@ -1593,3 +1593,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Two helpers implemented disjoint service-stone and native iron/timber scopes; root implemented shared paving-contact albedo and integration. A third helper independently reviewed source and fresh native images. Fifteen additional EditMode cases cover actual emitted colour, exactly-once field application, shared-joint continuity, bounded shoulders, protected combat areas and unchanged geometry. Existing mineral/scalar-use isolators explicitly remove the new independent albedo; existing tolerances remain. The timber palette expectation intentionally changes to muted hardwood. Focused Foundry258/258 passed; no rejected run. All Assets remained identical to the freeze through accepted capture, full suites and build.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
+
+
+## 2026-10-14 - Foundry gate depth verified; device pending
+
+438 .NET / 666 EditMode / 160 PlayMode = 1,264 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 626 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 649AB25FB971D8362CB0E08FA9EA60253531CEE2A3D7E834005B8AF10674D2A9; NOT INSTALLED.
+
+Two helpers authored the masonry bake and native shoulder geometry/tests; root integrated runtime material, ordering and lifetime, while a third helper independently reviewed source and actual images. Six added EditMode cases cover production inclusion, original bearing/envelope, roof ownership, mortar and UV continuity. One added PlayMode case covers real imported texture, both card projections and depth ownership, south-feed opaque-overlap ordering, shared material gain and unload lifetime. Earlier focused Foundry 264/264 passed. Initial compile failed due to a local name collision and was repaired. First integrated graphics capture was visually rejected for curtain overpaint; second for excessive brightness. The first full PlayMode run passed159/160: the pre-existing other-batch cap counted the new gate cards and rejected25 against24. Gate cards are now counted separately (exactly2), the old other cap stays24, and the total cap explicitly rises34 to36 for the measured cost. Rejected XML/source evidence is retained. Final source freeze stayed unchanged through final capture, full suites and build.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.

@@ -1,0 +1,134 @@
+{
+  "blender": "4.5.9 LTS",
+  "vertices": 1242,
+  "triangles": 1476,
+  "anchor": [
+    28.975,
+    -5.375
+  ],
+  "far_anchor": [
+    28.975,
+    15.375
+  ],
+  "ortho_scale": 10,
+  "left": -2.5,
+  "right": 2.5,
+  "bottom": -1.25,
+  "top": 8.75,
+  "render_width": 1024,
+  "render_height": 2048,
+  "height_compensation": 1.1547005383792515,
+  "camera_direction": [
+    -12,
+    -12,
+    9.797958971132712
+  ],
+  "vertical_target": 3.75,
+  "depth_footprint": [
+    27.05,
+    -6.6,
+    30.9,
+    -4.15
+  ],
+  "far_depth_footprint": [
+    27.05,
+    14.15,
+    30.9,
+    16.6
+  ],
+  "depth_height": 7.35,
+  "physical_bounds": [
+    27.050000047683717,
+    -6.600000023841858,
+    30.899999952316286,
+    -4.149999976158142
+  ],
+  "height_range": [
+    0.0,
+    7.350000126176182
+  ],
+  "projected_normalized_bounds": [
+    0.07997842133045197,
+    0.019994545727968216,
+    0.9200212359428406,
+    0.9100409746170044
+  ],
+  "unchanged_contacts": [
+    0,
+    0.48,
+    2.05,
+    2.85,
+    6.55,
+    6.82,
+    7.2,
+    7.35
+  ],
+  "shaft_box": [
+    27.53,
+    -6.14,
+    30.42,
+    -4.61
+  ],
+  "shaft_height": [
+    2.85,
+    6.55
+  ],
+  "shaft_taper": 0.065,
+  "verified_contact_station_count": 142,
+  "max_contact_station_error": 0.0,
+  "blind_depth": 0.36,
+  "throat_depth_fraction": 0.25,
+  "opening": [
+    [
+      0.28,
+      0.17
+    ],
+    [
+      0.72,
+      0.17
+    ],
+    [
+      0.72,
+      0.69
+    ],
+    [
+      0.5,
+      0.84
+    ],
+    [
+      0.28,
+      0.69
+    ]
+  ],
+  "frame": [
+    [
+      0.14,
+      0.08
+    ],
+    [
+      0.86,
+      0.08
+    ],
+    [
+      0.86,
+      0.75
+    ],
+    [
+      0.5,
+      0.94
+    ],
+    [
+      0.14,
+      0.75
+    ]
+  ],
+  "projection": "X=(u-v)*0.70710678; Y=(u+v)*0.35355339+Height(u)+z; bake excludes Height(u)",
+  "unity_anchor_rise": 1.25,
+  "intended_import": [
+    512,
+    1024
+  ],
+  "android_format": "ASTC_6x6 with mipmaps",
+  "source": "Code-native authored masonry surfaces and procedural stone nodes; no generated-image edit",
+  "limitation": "Fixed-view colour/normal-light bake, not realtime volumetric geometry. Unity integration and device acceptance not proven by this render."
+}

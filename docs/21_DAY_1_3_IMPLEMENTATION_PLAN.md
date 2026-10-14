@@ -2592,3 +2592,15 @@ Files: FoundryRegionDistantWorks, CraneHousing, ProductionYard, PavingWear and F
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 A967EFA4B65337DD7F0B401611520600E47EC5D1172C8A416D8009676049774B; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
+
+
+## 2026-10-14 - Foundry gate depth verified; device pending
+
+The two outer gate buttresses now use an authored Blender masonry bake with broad fitted courses, bevel light and pointed recessed niches, retaining the original contact stations and native foundations. The two native upper header shoulders gain shallow pitched roofs and closed gables within their original bounds. Runtime cards share an unmirrored texture and calibrated 0.62 RGB gain, retain physical depth ownership and paint after their curtains; the south boiler feed body, collars and elbow paint strictly in front of the opaque near bay.
+
+Files: FoundryRegionGateMasonry, GateEnclosure, GateHeader, Massing and View; GateShoulder EditMode and GateMasonry PlayMode tests; gate masonry resource/import and Blender authoring tools. Capture: Tools/ArtReview/FoundryGateDepthCapture.cs and launcher.
+
+438 .NET / 666 EditMode / 160 PlayMode = 1,264 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and final After Android-target graphics captures passed separately. PASS: 626 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,485 bytes; SHA256 649AB25FB971D8362CB0E08FA9EA60253531CEE2A3D7E834005B8AF10674D2A9; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.

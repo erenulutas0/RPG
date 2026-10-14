@@ -1,0 +1,2 @@
+FoundryCastIronV2: 1024x1024 ASTC_6x6; mipmaps:11; readable:False; tint:RGBA(0.729, 0.797, 0.900, 1.000)
+Target batches:2; shared cutaway variants:1; one extra existing focus-uniform update per frame.

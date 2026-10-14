@@ -1,0 +1,2 @@
+FoundryGateMasonry:512x1024; ASTC_6x6; mipmaps:11; readable:False; Editor texture memory:630880 bytes
+Replacement batches:2; shared cutaway variants:1; one added existing focus-uniform update per frame. No device frame-time claim.

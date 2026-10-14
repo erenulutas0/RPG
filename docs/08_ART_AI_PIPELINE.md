@@ -1397,3 +1397,14 @@ Region 34 renderers / 167208 vertices, unchanged from baseline; distant 3572 is 
 Equipment-contact albedo samples world coordinates once across existing floor emitters. Its footprint influences form a minimum-distance union and fade into the court. Review stacked material/lighting at actual portrait size; this colour treatment does not replace baked props or author new surface detail.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.
+
+
+## 2026-10-14 - Foundry gate depth verified; device pending
+
+The two outer gate buttresses now use an authored Blender masonry bake with broad fitted courses, bevel light and pointed recessed niches, retaining the original contact stations and native foundations. The two native upper header shoulders gain shallow pitched roofs and closed gables within their original bounds. Runtime cards share an unmirrored texture and calibrated 0.62 RGB gain, retain physical depth ownership and paint after their curtains; the south boiler feed body, collars and elbow paint strictly in front of the opaque near bay.
+
+Region 36 renderers / 164672 vertices versus 34 / 167208: +2 renderers and -2536 vertices. Each header shoulder remains 136 vertices. Distant 3572 is included and unchanged; ceilings remain 174000 region / 3600 distant. Added runtime resource: one 512x1024 ASTC6 texture, 11 mips, nonreadable; Editor texture memory 630880 bytes and calculated compressed mip payload 314992 bytes, excluding other overhead. One scene-owned source material and one shared cutaway variant are added. The variant joins the existing focus-uniform update; no new updater component or shader. Scoped south-feed ordering reuses an existing iron batch. Geometry savings do not establish phone performance; texture sampling and transparent fragment work are added.
+
+Editable Blender source, generator and physical projection metadata are retained in the proof package. Bake contact audit: 142 actual stations, zero maximum error. An imported fixed-view bake replaces the native above-deck body; native fallback remains only when the resource is missing. Baked lighting is not dynamic volumetric lighting.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-depth-01.

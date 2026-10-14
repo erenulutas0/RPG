@@ -483,9 +483,18 @@ namespace Cryptforge.Tests
             var tallBoilerRanks=new System.Collections.Generic.HashSet<int>();
             var shortBoilerRanks=new System.Collections.Generic.HashSet<int>();
             int shortBatches=0;
+            var gateMasonry=Resources.Load<Texture2D>("FoundryGateMasonry");
+            Assert.That(gateMasonry,Is.Not.Null);
+            int gateMasonryBatches=0;
             int keeperBatches=0,otherBatches=0,bakedBatches=0,bakedDepthBands=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
             {
+                if(renderer.sharedMaterial.mainTexture==gateMasonry)
+                {
+                    gateMasonryBatches++;
+                    Assert.That(renderer.GetComponent<MeshFilter>().sharedMesh.vertexCount,Is.EqualTo(4));
+                    continue;
+                }
                 if(renderer.sharedMaterial.mainTexture==stockStation||renderer.sharedMaterial.mainTexture==craneTexture)
                 {
                     bool isCrane=renderer.sharedMaterial.mainTexture==craneTexture;
@@ -615,9 +624,10 @@ namespace Cryptforge.Tests
             Assert.That(tallBoilerRanks,Is.EquivalentTo(new[]{-10,-7}));
             Assert.That(shortBoilerRanks,Is.EquivalentTo(new[]{-10,-7}));
             Assert.That(boilerMeshes.Count,Is.EqualTo(4),"Two atlases retain exactly four shared depth-band batches.");
-            Assert.That(otherBatches,Is.LessThanOrEqualTo(24),"Dedicated hood and trolley iron adds exactly two static material/rank batches.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(34),
-                "Isolated cast iron adds two static batches to the measured 32-renderer region.");
+            Assert.That(gateMasonryBatches,Is.EqualTo(2),"The one borrowed gate texture uses exactly two depth-rank cards.");
+            Assert.That(otherBatches,Is.LessThanOrEqualTo(24),"The pre-existing native material/rank budget is unchanged.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(36),
+                "The two gate cards add two measured batches to the previous 34-renderer region.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

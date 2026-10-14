@@ -1,0 +1,11 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+E:\MobileGame\Assets\_Project\Scripts\UI\Arena\FoundryRegionGateHeader.cs(166,23): error CS0136: 'c' adlı bir yerel veya parametre, bu ad bir kapanış yerel kapsamında bir yereli veya parametreyi tanımlamak için kullanıldığından bu kapsamda ifade edilemiyor [E:\MobileGame\Tools\UnityCompileCheck\UnityCompileCheck.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+E:\MobileGame\Assets\_Project\Scripts\UI\Arena\FoundryRegionGateHeader.cs(166,23): error CS0136: 'c' adlı bir yerel veya parametre, bu ad bir kapanış yerel kapsamında bir yereli veya parametreyi tanımlamak için kullanıldığından bu kapsamda ifade edilemiyor [E:\MobileGame\Tools\UnityCompileCheck\UnityCompileCheck.csproj]
+    0 Uyarı
+    1 Hata
+
+Geçen Süre 00:00:31.71

@@ -256,13 +256,16 @@ namespace Cryptforge.UI
             // leaves its drum at knee height.
             const float southFeed=1f,northFeed=2.6f;
             Vector2 south=BoilerCentres[3]+new Vector2(.7071f,-.7071f)*BoilerDrum,elbow=new Vector2(GateU(33.3f),south.y);
-            MassPipe(arena,south,elbow,southFeed,.5f);
-            MassPipe(arena,elbow,new Vector2(GateU(33.3f),-2.76f),southFeed,.5f);
+            // This feed crosses the near buttress's opaque baked pixels. Keep
+            // body, collars and elbow strictly in front of that separate material.
+            const float southFeedOrder=-10;
+            MassPipe(arena,south,elbow,southFeed,.5f,southFeedOrder);
+            MassPipe(arena,elbow,new Vector2(GateU(33.3f),-2.76f),southFeed,.5f,southFeedOrder);
             using(MassDepth(new Vector4(GateU(33f),south.y-.3f,GateU(33.6f),south.y+.3f),southFeed+.34f))
             {
                 var joint=new Builder();
                 WorkshopMetalHull(joint,GateU(33f),south.y-.3f,GateU(33.6f),south.y+.3f,southFeed-.32f,southFeed+.34f,.05f);
-                Create("Boiler feed elbow",joint,arena.PlatformMaterials.FoundryIron,-10.5f);
+                Create("Boiler feed elbow",joint,arena.PlatformMaterials.FoundryIron,southFeedOrder);
             }
             Vector2 north=BoilerCentres[1];
             const float feedV=12.72f;
@@ -271,12 +274,12 @@ namespace Cryptforge.UI
         }
 
         // An elevated main between design points, with collars and end flanges, as one structure for depth.
-        private void MassPipe(ArenaView arena,Vector2 from,Vector2 to,float height,float width)
+        private void MassPipe(ArenaView arena,Vector2 from,Vector2 to,float height,float width,float order=-10.5f)
         {
             using var depth=MassDepth(new Vector4(Mathf.Min(from.x,to.x)-.25f,Mathf.Min(from.y,to.y)-.25f,
                 Mathf.Max(from.x,to.x)+.25f,Mathf.Max(from.y,to.y)+.25f),height+width);
             Vector3 lift=Vector3.up*height,a=Project(from.x,from.y)+lift,b=Project(to.x,to.y)+lift;
-            PressureTube(arena,a,b,width,-10.5f,height);
+            PressureTube(arena,a,b,width,order,height);
             Vector3 d=(b-a).normalized;
             int bands=Mathf.Max(1,Mathf.RoundToInt(Vector3.Distance(a,b)/1.5f));
             for(int i=0;i<=bands;i++)
@@ -284,7 +287,7 @@ namespace Cryptforge.UI
                 Vector3 p=Vector3.Lerp(a,b,i/(float)bands);
                 bool end=i==0||i==bands;
                 float halfLength=width*(end?.17f:.10f);
-                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),-10.5f,height);
+                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),order,height);
             }
         }
 

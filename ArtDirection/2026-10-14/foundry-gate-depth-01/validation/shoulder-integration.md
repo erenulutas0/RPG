@@ -1,0 +1,11 @@
+# Gate shoulder integration
+
+Baseline: `94243b7`. Scope is `FoundryRegionGateHeader.cs` and the new `FoundryGateShoulderTests.cs` with its Unity meta file.
+
+The two upper header shoulders now have a shallow, weathered ridge and two pitched roof planes. The original bottom bearing and maximum ridge elevation stay fixed; the eaves fall by 0.12 world units inside the old solid envelope. The visible end gable follows the ridge. Three broad stone rows and their mortar partition each roof directly; the former full flat backing cap is not retained underneath. One physical mineral field spans the entire shoulder, including its gable, side bearing and roof. Restrained slope values stay below the previous cap value.
+
+The lower carved cornice, its original coping, the central stone backing/cartouche/lock, all five corbels and iron-contact stations are unchanged. Shared `GateCraftTier`, course, clipping and grain helpers retain their existing behavior. Door assets, gameplay geometry, collision, camera, materials, renderers and per-frame behavior are outside this scope. The dedicated shoulder helper adds construction-time clipping and mapping only.
+
+Six focused test cases exercise the actual emitted geometry for both shoulders: production call/prefix identity, original bearing points and projected envelope, ridge/eave witnesses, empty lock space, complete roof area and strict interior ownership, separately owned mortar samples, noncollapsed continuous grain and restrained cap values. The construction budget permits at most 500 additional vertices per shoulder; the authored replacement is expected to be approximately cost-neutral, but only the root-run Unity measurements establish the actual count.
+
+An initial compile caught a local variable shadowing the roof-bound variable; it was corrected before this freeze. The exact production-prefix test uses the production height expressions rather than a separately rounded decimal 7.22, preserving its exact geometry/color comparison. Unity compilation, focused/full suites and native image acceptance are pending root validation. No device work occurred here. The shallow crown improvement alone does not establish portrait visibility where the crown lies outside the camera, or parity with the approved reference.

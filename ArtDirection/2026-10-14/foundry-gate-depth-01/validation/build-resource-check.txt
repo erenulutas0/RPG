@@ -1,0 +1,5 @@
+Rebuilding Data files because Assets/_Project/Resources/FoundryGateMasonry.png is dirty (Resource file added or removed)
+ 307.7 kb	 0.1% Assets/_Project/Resources/FoundryGateMasonry.png
+Android prototype built: E:/MobileGame/Builds/Android/Cryptforge-Prototype.apk (227105469 bytes)
+
+The final post-Unity static scan reports626 GUIDs; the earlier in-suite scan reported627 while Unity temporary assets were present. No runtime source change occurred; final frozen Assets equality verified.
