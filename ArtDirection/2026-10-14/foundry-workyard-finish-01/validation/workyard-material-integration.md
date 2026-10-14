@@ -1,0 +1,11 @@
+# Native workyard material integration
+
+Scope is limited to `FinishCraneMachinery` in `FoundryRegionCraneHousing.cs` and the iron/timber finish helpers in `FoundryRegionProductionYard.cs`, including their common private colour conversion. The baked crane, stock station, casting bench, service pipes, geometry, UV fields, material selection and all placements remain fixed comparison anchors.
+
+The previous native captures showed a bluer winch/bench family and more saturated orange native timber than the adjacent baked equipment. The revised native finishes use a narrower cool-grey iron range, retain existing warm source reflections and source face-light ordering, and distinguish worn shoulders from dark lower contacts. Broad timber working faces become less orange, with a modest rubbed upper value while stored packing remains quieter. This is a local colour relationship pass, not a new lighting system or whole-map exposure increase.
+
+Geometry/index count, texture/material/shader/renderer count and per-frame updater count are unchanged by this helper. Existing finish loops still run during mesh construction. Additional arithmetic for source-light-dependent wear and bench contact means startup CPU work is changed; no zero-cost or device-performance claim is made. UV coordinates and their continuous/directional sampling remain unchanged.
+
+Two additional EditMode cases exercise actual emitted crane/bench geometry: retained source-light ordering and warm reflections, bounded neutral iron chromaticity, broad contact separation and stable geometry/indices/UVs through finish application. Existing footprint, open-drum, spare-flask, timber-grain and resource-envelope tests remain. The existing actual-worktop palette assertion intentionally changes from strongly orange wood to bounded muted hardwood; it now includes upper and lower hue bounds rather than merely relaxing the previous lower bound. This represents the declared artistic palette revision.
+
+Source implementation is frozen for root verification. Compile, focused/full suites, fresh native After captures and integrated counts are pending root execution. No Unity, APK, Git or device operation was performed by this helper. Evaluate actual native crane/yard views against the unchanged baked stock/casting anchors before visual acceptance; reference parity remains unfinished.

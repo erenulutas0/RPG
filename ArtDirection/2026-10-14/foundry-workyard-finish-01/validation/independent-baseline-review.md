@@ -1,0 +1,23 @@
+# Independent workyard baseline review
+
+Baseline: `d442444`; current accepted region 34 renderers / 167208 vertices, including 3572 distant vertices. This is a read-only source/art review. No Assets or authoritative Docs edits, Unity, build, Git or device actions by this reviewer.
+
+I read the previous stone-detail `next-visual-priorities.md` and current handoff closure, and reopened its native After `full-map.png`, `yard-detail.png`, `gate-detail.png` and workyard portrait `approach--16-15.png`, alongside the approved `2026-09-23/foundry-layout-01/foundry-v1.png`. The parent is capturing a new matched Before before implementation; these observations describe the accepted starting result.
+
+The most practical remaining material mismatch is the workyard's collection of separate flat colour fields: cool blue-grey equipment/skids, relatively clean brown timber, broad regular stone and a long amber-lit band. The reference joins darker worked iron, selective exposed faces, weathered wood and localized warm contacts into one believable working edge. Current native architecture is more regular and sparse. Colour refinement can improve cohesion, but cannot by itself reproduce the reference's much richer authored detail or work-area density.
+
+## Coordinated direction
+
+1. **Paving and contact transition:** Use existing shelf, rail and bench relationships to give the apron a restrained used surface that fades into the quieter court. `PavingCourtUse` and its single application in `PavingVertex` are suitable bounded hooks. Keep mineral identity per existing stone and continuous existing `FloorLight`; do not add another stain mesh or uniformly darken every slab. Avoid expanding the amber band or introducing a bright route outline. Preserve the central seal's quiet radius, the gate-family exclusion, brass ownership and all camera/gameplay contracts. Success must be observable across the entire yard, not only on one enlarged flag.
+2. **Iron and timber:** `YardBenchIronFinish`, `YardBenchTimberFinish` and `FinishCraneMachinery` already provide targeted post-emission colour/UV scopes. Coordinate the neutral dark body range and lightly worked exposed faces, retaining directional shade and small fire-facing warmth. Timber should stay warmer and more matte-looking than iron without becoming flat orange. Do not make all equipment equally bright, add repeated bright edge outlines, clamp the existing continuous UV field or tint the borrowed material globally. The baked casting bench and stock props are separate art consumers; a procedural-only pass must be described honestly if those stay unchanged.
+3. **Service-tower hierarchy:** Existing exposed pier bearings/shoulders can separate more clearly from recessed fields, tying the shafts to nearby stone and equipment. Keep the deep bays/inner returns subordinate and the gate as the major landmark. Review targeted pier/head finishing against the existing `FinishDistantStone` atmosphere; a global tower exposure increase would flatten the new recesses or make background scenery compete with the play area. No additional tower geometry is justified by the remaining 28 distant vertices.
+
+## Acceptance guardrails
+
+- No new/relocated geometry, props, obstruction, resources, renderer, material or per-frame updater in this package. Actual region and distant counts should remain 34/167208 and 3572.
+- Preserve original V/T and UVs except an explicitly agreed existing-field material change. Local colour work must keep alpha, rank, depth owner, openings and equipment support contacts intact. Shared source materials may not be mutated globally.
+- New floor variation should sample existing world coordinates once, stay smooth across construction seams, and preserve actor/tell readability. Distinguish material finish from expanded light emission.
+- Use fresh matched full-map, yard, stock/casting, service-shaft, gate and workyard/entry portrait images. The broad material relationship should improve before accepting tiny close-up differences. Reject crushed recesses, blue metal glare, orange timber, a new floor checkerboard, false obstacle edges or disconnected painted contact halos.
+- Independent emitted-colour tests should verify the bounded affected ranges and untouched geometry/resources. Do not weaken geometry, ownership or global budget checks to pass a material package. Actual motion/shimmer and Android performance remain separate device acceptance.
+
+This is a coordinated material finish opportunity, not map completion. Remaining reference differences include foreground detail density, prop finish, construction variety and the relationship of the richer painted cavern to simpler native structures.

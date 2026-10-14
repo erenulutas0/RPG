@@ -178,6 +178,107 @@ namespace Cryptforge.Tests
             }
         }
 
+        [TestCase(1,true)]
+        [TestCase(1,false)]
+        [TestCase(2,true)]
+        [TestCase(2,false)]
+        public void ServiceBayQuarryValueSeparatesExposedBearingsWithoutLightingShelteredReturns(int variant,bool west)
+        {
+            float width=variant==1?3.7f:4.2f,depth=variant==1?3.7f:3.8f;
+            float sill=variant==1?-18.2f:-20.2f,head=variant==1?-9.1f:-10.6f;
+            var tone=new Color(.82f,.67f,.53f,.6f);object stone=Builder(),fire=Builder();
+            Call("DistantRecessFace",stone,fire,3.1f,7.2f,3.1f+width,7.2f+depth,west,sill,head,.46f,tone);
+            var points=Field<List<Vector3>>(stone,"V");var uv=Field<List<Vector2>>(stone,"U");
+            var colors=Field<List<Color>>(stone,"C");var indices=Field<List<int>>(stone,"T");
+            Assert.That(points.Count,Is.EqualTo(260));Assert.That(indices.Count,Is.EqualTo(426),
+                "Value hierarchy must reuse the complete existing bay, with no new geometry.");
+            for(int pier=0;pier<2;pier++)for(int corner=0;corner<4;corner++)
+            {
+                bool upper=corner>=2;int first=pier*8;
+                float baseLight=upper?1.03f:.88f;
+                Color original=tone*baseLight;original.a=tone.a;
+                float gain=west?(upper?1.18f:1.12f):(upper?1.12f:1.08f);
+                AssertNeutralValue(colors[first+corner],original,gain);
+                float z=upper?head-.85f:sill+.85f;
+                float innerLight=Mathf.Lerp(.88f,1.03f,Mathf.InverseLerp(sill,head,z));
+                Color sheltered=tone*(innerLight*.78f);sheltered.a=tone.a;
+                AssertNeutralValue(colors[first+4+corner],sheltered,1);
+            }
+            // The three original deep return/sill quads follow the two piers.
+            // Their values and alpha stay exact while the outer bearings change.
+            var returns=new[]{.64f,.80f,.85f};
+            for(int face=0;face<3;face++)for(int corner=0;corner<4;corner++)
+            {
+                Color original=tone*returns[face];float alpha=original.a;
+                original*=face==2?1f:corner<2?.88f:1.03f;original.a=alpha;
+                AssertNeutralValue(colors[16+face*4+corner],original,1);
+            }
+            // Each outer spandrel has one unchanged deep arch return after it.
+            for(int segment=0;segment<8;segment++)for(int corner=0;corner<4;corner++)
+            {
+                float light=corner<2?.88f:1.03f;
+                Color outer=tone*(segment%3==0?.92f:1f),inner=tone*.60f;
+                float outerAlpha=outer.a,innerAlpha=inner.a;outer*=light;inner*=light;
+                outer.a=outerAlpha;inner.a=innerAlpha;
+                AssertNeutralValue(colors[28+segment*8+corner],outer,west?1.08f:1.05f);
+                AssertNeutralValue(colors[32+segment*8+corner],inner,1);
+            }
+            // The projecting dressed arch keeps its old directional values; it
+            // must not turn into a brighter outline along with the broad pier.
+            for(int segment=0;segment<8;segment++)for(int face=0;face<3;face++)for(int corner=0;corner<4;corner++)
+            {
+                float baseValue=face==0?(segment%3==0?1.27f:1.38f):face==1?.87f:1.10f;
+                Color original=tone*baseValue;float alpha=original.a;
+                original*=corner<2?.88f:1.03f;original.a=alpha;
+                AssertNeutralValue(colors[92+segment*12+face*4+corner],original,1);
+            }
+            for(int i=0;i<points.Count;i++)
+            {
+                Vector3 p=points[i];Assert.That(uv[i].x,Is.EqualTo(p.x/2.1f).Within(.00001f));
+                Assert.That(uv[i].y,Is.EqualTo((p.y-(west?-.5f:.5f)*p.x)/1.8f).Within(.00001f));
+            }
+        }
+
+        [TestCase(1,3.7f,3.7f)]
+        [TestCase(2,4.2f,3.8f)]
+        public void CompleteServiceShaftKeepsCornerBearingGeometryAndHeadOutsideItsLocalQuarryFinish(int variant,float width,float depth)
+        {
+            const float u0=3.1f,v0=7.2f,top=-2,bottom=-24;
+            float u1=u0+width,v1=v0+depth,shoulder=(float)Call("ServiceShoulder",top,variant);
+            float sill=(float)Call("ServiceSill",top,variant),neck=variant==1?.94f:1.02f;
+            var tone=new Color(.82f,.67f,.53f,.6f);object shaft=Builder(),fire=Builder();
+            Call("DistantFurnaceShaft",shaft,fire,u0,v0,u1,v1,top,bottom,tone,variant);
+            var points=Field<List<Vector3>>(shaft,"V");var uv=Field<List<Vector2>>(shaft,"U");
+            var colors=Field<List<Color>>(shaft,"C");var indices=Field<List<int>>(shaft,"T");
+            Assert.That(points.Count,Is.EqualTo(1208));Assert.That(indices.Count,Is.EqualTo(1884),
+                "The complete service shaft retains its pre-finish construction budget.");
+            // Forty-four foundation/core vertices and two 260-vertex bays precede
+            // the two supported corner bearings. Compare their actual production
+            // output with the unchanged block/taper geometry at the old tone.
+            int start=564;
+            foreach(float x in new[]{u0-.16f,u1-.46f})
+            {
+                object old=Builder();
+                Call("DistantBlock",old,x,v0-.20f,x+.62f,v0+.44f,sill,shoulder-.75f,tone*.85f,true);
+                float inward=(x<(u0+u1)*.5f?1:-1)*(neck-.15f);
+                Call("DistantTaper",old,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,
+                    shoulder+(variant==1?1.1f:1.3f),.16f,tone*.94f,inward,neck+.04f);
+                var oldPoints=Field<List<Vector3>>(old,"V");var oldUv=Field<List<Vector2>>(old,"U");
+                var oldColors=Field<List<Color>>(old,"C");
+                Assert.That(oldPoints.Count,Is.EqualTo(24));
+                for(int i=0;i<24;i++)
+                {
+                    Assert.That(points[start+i],Is.EqualTo(oldPoints[i]));Assert.That(uv[start+i],Is.EqualTo(oldUv[i]));
+                    AssertNeutralValue(colors[start+i],oldColors[i],i<12?1.07f:1.085f);
+                }
+                start+=24;
+            }
+            object head=Builder();Call("DistantFurnaceHead",head,u0,v0,u1,v1,top,tone,variant);
+            CollectionAssert.AreEqual(Field<List<Vector3>>(head,"V"),points.GetRange(start,points.Count-start));
+            CollectionAssert.AreEqual(Field<List<Vector2>>(head,"U"),uv.GetRange(start,uv.Count-start));
+            CollectionAssert.AreEqual(Field<List<Color>>(head,"C"),colors.GetRange(start,colors.Count-start));
+        }
+
         [TestCase(2.06f,2.06f,.9f,.22f)]
         [TestCase(2.4f,2f,.8f,.26f)]
         public void HollowExhaustHasFourConnectedInnerWallsAndNoCapAcrossMouth(float width,float depth,float height,float wall)
@@ -347,6 +448,14 @@ namespace Cryptforge.Tests
             AssertMesh(stone);AssertMesh(fire);
             Assert.That(Field<List<Vector3>>(stone,"V").Count+Field<List<Vector3>>(fire,"V").Count,
                 Is.LessThanOrEqualTo(3600),"A pair of architectural heads must not cause unbounded background growth.");
+        }
+
+        private static void AssertNeutralValue(Color actual,Color original,float gain)
+        {
+            Assert.That(actual.r/original.r,Is.EqualTo(gain).Within(.00001f));
+            Assert.That(actual.g/original.g,Is.EqualTo(gain).Within(.00001f));
+            Assert.That(actual.b/original.b,Is.EqualTo(gain).Within(.00001f));
+            Assert.That(actual.a,Is.EqualTo(original.a),"Quarry value must not alter the existing atmospheric alpha.");
         }
 
         private static bool CoversPoint(object mesh,Vector2 point)

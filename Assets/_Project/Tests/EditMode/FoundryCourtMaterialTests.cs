@@ -122,6 +122,86 @@ namespace Cryptforge.Tests
             CollectionAssert.AreEqual(Data<Color>(plain,"C"),Data<Color>(used,"C"));
         }
 
+        [TestCase(-25f,-1.5f,true)]
+        [TestCase(-24f,18.25f,true)]
+        [TestCase(-3f,-5f,false)]
+        [TestCase(18f,5f,false)]
+        [TestCase(-18f,-18f,false)]
+        public void ActualPavingSamplesReceiveContactAlbedoOnceAndPreserveProtectedPlaces(float u,float v,bool contact)
+        {
+            object mesh=Builder();float[] us={u,u+.02f},vs={v,v+.02f};
+            Call("PavingGrid",mesh,us,vs,SourceTone,SourceTint,null);
+            Assert.That(Data<Vector3>(mesh,"V").Count,Is.EqualTo(4));
+            CollectionAssert.AreEqual(new[]{0,1,3,0,3,2},Data<int>(mesh,"T"));
+            Color expected=contact?new Color(.84f,.90f,.94f,1):Color.white;
+            for(int y=0;y<2;y++)for(int x=0;x<2;x++)
+            {
+                int i=y*2+x;Color actual=ContactAlbedo(mesh,i,us[x],vs[y]);
+                Assert.That(actual.r,Is.EqualTo(expected.r).Within(.000002f));
+                Assert.That(actual.g,Is.EqualTo(expected.g).Within(.000002f));
+                Assert.That(actual.b,Is.EqualTo(expected.b).Within(.000002f));
+                Assert.That(Data<Vector3>(mesh,"V")[i],Is.EqualTo((Vector3)Call("Project",us[x],vs[y])));
+                Assert.That(Design(mesh,i).x,Is.EqualTo(us[x]).Within(.00001f));
+                Assert.That(Design(mesh,i).y,Is.EqualTo(vs[y]).Within(.00001f));
+            }
+        }
+
+        [Test]
+        public void WorkyardContactAlbedoHasBoundedSoftShouldersAndAnUnchangedFightingCentre()
+        {
+            float[] us=Lines(-32,12,.5f),vs=Lines(-18,19,.5f);object mesh=Builder();
+            Call("PavingGrid",mesh,us,vs,SourceTone,SourceTint,null);
+            var samples=new Color[us.Length,vs.Length];int changed=0,quiet=0;
+            for(int y=0;y<vs.Length;y++)for(int x=0;x<us.Length;x++)
+            {
+                Color a=ContactAlbedo(mesh,y*us.Length+x,us[x],vs[y]);samples[x,y]=a;
+                Assert.That(a.r,Is.InRange(.83999f,1.00001f));
+                Assert.That(a.g,Is.InRange(.89999f,1.00001f));
+                Assert.That(a.b,Is.InRange(.93999f,1.00001f));
+                Assert.That(a.r,Is.LessThanOrEqualTo(a.g+.000002f));
+                Assert.That(a.g,Is.LessThanOrEqualTo(a.b+.000002f));
+                if(x>0)Assert.That(Mathf.Abs(a.r-samples[x-1,y].r),Is.LessThan(.0301f));
+                if(y>0)Assert.That(Mathf.Abs(a.r-samples[x,y-1].r),Is.LessThan(.0301f));
+                FoundryMap.ToFloor(us[x],vs[y],out float fx,out float fy);
+                if(!FoundryMap.SurfaceContains(fx,fy,0))continue;
+                if(a.r<.94f)changed++;
+                if(Vector2.Distance(new Vector2(us[x],vs[y]),new Vector2(-3,-5))<=7)
+                {Assert.That(a.r,Is.EqualTo(1).Within(.000002f));quiet++;}
+            }
+            Assert.That(changed,Is.GreaterThan(160),"Use must reach real walkable apron faces, not only hidden equipment centres.");
+            Assert.That(quiet,Is.GreaterThan(400));
+        }
+
+        [Test]
+        public void OrdinaryAndFittedPavingShareContactColourAcrossTheStockApronBoundary()
+        {
+            object ordinary=Builder(),fitted=Builder();
+            Call("PavingGrid",ordinary,new[]{-25f,-24.5f,-24f},new[]{16f,16.5f,17f},SourceTone,SourceTint,null);
+            Call("CourtFittedFace",fitted,new[]{new Vector2(-24,16),new Vector2(-23,16),
+                new Vector2(-23,17),new Vector2(-24,17)},SourceTone,SourceTint);
+            int shared=0;
+            foreach(int a in new HashSet<int>(Data<int>(ordinary,"T")))
+                foreach(int b in new HashSet<int>(Data<int>(fitted,"T")))
+                {
+                    if(Data<Vector3>(ordinary,"V")[a]!=Data<Vector3>(fitted,"V")[b])continue;
+                    Assert.That(Data<Color>(ordinary,"C")[a],Is.EqualTo(Data<Color>(fitted,"C")[b]));
+                    Vector2 p=Design(ordinary,a);Assert.That(ContactAlbedo(ordinary,a,p.x,p.y).r,Is.LessThan(.95f));shared++;
+                }
+            Assert.That(shared,Is.EqualTo(3));
+        }
+
+        private static Color ContactAlbedo(object mesh,int index,float u,float v)
+        {
+            // Recover the new field from emitted colour using only its prior
+            // light/scalar/source recipe. Never call PavingWorkshopTint here:
+            // missing, doubled or incorrectly applied tint must fail the tests.
+            Color actual=Data<Color>(mesh,"C")[index],light=(Color)Call("FloorLight",u,v);
+            float use=(float)Call("PavingCourtUse",u,v);
+            Assert.That(actual.a,Is.EqualTo(1));
+            return new Color(actual.r/(light.r*use*SourceTone*SourceTint.r),
+                actual.g/(light.g*use*SourceTone*SourceTint.g),actual.b/(light.b*use*SourceTone*SourceTint.b),1);
+        }
+
         private static float[] Lines(float start,float end,float step)
         {
             var result=new float[Mathf.RoundToInt((end-start)/step)+1];
@@ -134,7 +214,10 @@ namespace Cryptforge.Tests
         private static float Gain(object mesh,int index,float u,float v,float tone,Color tint)
         {
             Color actual=Data<Color>(mesh,"C")[index],light=(Color)Call("FloorLight",u,v);
-            float r=actual.r/(light.r*tone*tint.r),g=actual.g/(light.g*tone*tint.g),b=actual.b/(light.b*tone*tint.b);
+            // These legacy cases isolate the broad scalar use, while separate
+            // emission cases verify the equipment-contact albedo exactly once.
+            Color contact=(Color)Call("PavingWorkshopTint",u,v);
+            float r=actual.r/(light.r*tone*tint.r*contact.r),g=actual.g/(light.g*tone*tint.g*contact.g),b=actual.b/(light.b*tone*tint.b*contact.b);
             Assert.That(g,Is.EqualTo(r).Within(.00002f));Assert.That(b,Is.EqualTo(r).Within(.00002f),
                 "Material use preserves the original forge-light channel relationship.");
             Assert.That(actual.a,Is.EqualTo(1));return r;

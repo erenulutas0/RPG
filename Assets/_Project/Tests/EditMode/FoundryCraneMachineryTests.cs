@@ -123,6 +123,40 @@ namespace Cryptforge.Tests
                 "Oil-dark footing and rubbed upper shoulders need a broad material distinction.");
         }
 
+        [Test]
+        public void ActualCastingFinishKeepsFaceLightOrderingAndLocalizedWarmReflection()
+        {
+            Type type=typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);
+            object builder=Activator.CreateInstance(type,true);
+            typeof(FoundryRegionView).GetMethod("BuildCraneMachineryCasting",Static).Invoke(null,new[]{builder});
+            var points=(List<Vector3>)type.GetField("V",Fields).GetValue(builder);
+            var colours=(List<Color>)type.GetField("C",Fields).GetValue(builder);
+            var indices=(List<int>)type.GetField("T",Fields).GetValue(builder);
+            var uv=(List<Vector2>)type.GetField("U",Fields).GetValue(builder);
+            var savedPoints=points.ToArray();var savedIndices=indices.ToArray();var savedUvs=uv.ToArray();
+            Color[] Finish(Color source)
+            {
+                for(int i=0;i<colours.Count;i++)colours[i]=source;
+                typeof(FoundryRegionView).GetMethod("FinishCraneMachinery",Static).Invoke(null,new[]{builder});
+                return colours.ToArray();
+            }
+            var dark=Finish(new Color(.2f,.2f,.2f,1));var neutral=Finish(new Color(.5f,.5f,.5f,1));
+            var shoulder=Finish(new Color(.8f,.8f,.8f,1));var warm=Finish(new Color(.6f,.5f,.4f,1));
+            foreach(int i in new HashSet<int>(indices))
+            {
+                Assert.That(dark[i].grayscale,Is.LessThan(neutral[i].grayscale));
+                Assert.That(neutral[i].grayscale,Is.LessThan(shoulder[i].grayscale));
+                Assert.That(neutral[i].grayscale,Is.LessThan(.5f),"Neutral iron is not a uniform exposure increase.");
+                Assert.That(neutral[i].b/neutral[i].r,Is.InRange(1.015f,1.045f),
+                    "The native iron remains gently cool, without the old strongly blue cast.");
+                Assert.That(warm[i].r/warm[i].b-neutral[i].r/neutral[i].b,Is.GreaterThan(.06f),
+                    "A common iron family must retain existing local warm reflection.");
+                Assert.That(shoulder[i].grayscale/neutral[i].grayscale,Is.GreaterThan(1.6f),
+                    "Worn source shoulders must remain distinct from dark cast body planes.");
+            }
+            Assert.That(points,Is.EqualTo(savedPoints));Assert.That(indices,Is.EqualTo(savedIndices));Assert.That(uv,Is.EqualTo(savedUvs));
+        }
+
         private static MeshData Build(string method)
         {
             Type type=typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);

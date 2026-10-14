@@ -169,13 +169,13 @@ namespace Cryptforge.UI
             // bays. Their sloping heads meet the neck rather than ending as posts.
             foreach(float x in new[]{u0-.16f,u1-.46f})
             {
-                DistantBlock(mesh,x,v0-.20f,x+.62f,v0+.44f,sill,shoulder-.75f,tone*.85f);
+                DistantBlock(mesh,x,v0-.20f,x+.62f,v0+.44f,sill,shoulder-.75f,DistantQuarryValue(tone*.85f,1.07f));
                 // Lean the head into the receding shoulder, keeping a shared
                 // bearing volume instead of a detached fin beside the neck.
                 float neck=variant==1?.94f:1.02f;
                 float inward=(x<(u0+u1)*.5f?1:-1)*(neck-.15f);
                 DistantTaper(mesh,x,v0-.20f,x+.62f,v0+.44f,shoulder-.75f,
-                    shoulder+ServiceShoulderRise(variant),.16f,tone*.94f,inward,neck+.04f);
+                    shoulder+ServiceShoulderRise(variant),.16f,DistantQuarryValue(tone*.94f,1.085f),inward,neck+.04f);
             }
             DistantFurnaceHead(mesh,u0,v0,u1,v1,top,tone,variant);
         }
@@ -321,8 +321,8 @@ namespace Cryptforge.UI
             int facadeStart=mesh.V.Count;
             float span=west?v1-v0:u1-u0,radius=(right-left)*span*.5f,spring=head-.38f-radius;
             System.Func<float,float,float,Vector3> p=(t,z,d)=>DistantFacePoint(u0,v0,u1,v1,west,t,z,d);
-            DistantShaftPier(mesh,p,0,left,sill,head,tone);
-            DistantShaftPier(mesh,p,right,1,sill,head,tone);
+            DistantShaftPier(mesh,p,0,left,sill,head,tone,west);
+            DistantShaftPier(mesh,p,right,1,sill,head,tone,west);
             // Jamb returns and deep sill expose the real distance to the core.
             DistantMasonryFace(mesh,p(left,sill,0),p(left,sill,recess),p(left,spring,recess),p(left,spring,0),false,tone*.64f);
             DistantMasonryFace(mesh,p(right,sill,recess),p(right,sill,0),p(right,spring,0),p(right,spring,recess),false,tone*.80f);
@@ -335,7 +335,10 @@ namespace Cryptforge.UI
                 float a=Mathf.PI-i*Mathf.PI/segments,b=Mathf.PI-(i+1)*Mathf.PI/segments;
                 float ta=.5f+Mathf.Cos(a)*(right-left)*.5f,tb=.5f+Mathf.Cos(b)*(right-left)*.5f;
                 float za=spring+Mathf.Sin(a)*radius,zb=spring+Mathf.Sin(b)*radius;
-                Color course=tone*(i%3==0?.92f:1f);
+                // Quarry faces share the exposed piers' value family. The deep
+                // return and already dressed projecting arch remain sheltered
+                // and unchanged, so this does not outline the entire opening.
+                Color course=DistantQuarryValue(tone*(i%3==0?.92f:1f),west?1.08f:1.05f);
                 DistantMasonryFace(mesh,p(ta,za,0),p(tb,zb,0),p(tb,head,0),p(ta,head,0),false,course);
                 DistantMasonryFace(mesh,p(ta,za,recess),p(tb,zb,recess),p(tb,zb,0),p(ta,za,0),false,tone*.60f);
             }
@@ -392,7 +395,7 @@ namespace Cryptforge.UI
         }
 
         private static void DistantShaftPier(Builder mesh,System.Func<float,float,float,Vector3> point,
-            float left,float right,float bottom,float top,Color tone)
+            float left,float right,float bottom,float top,Color tone,bool west)
         {
             // One blind field replaces the whole former flat pier. Four broad
             // sloping bearings meet its inset back, keeping the original outer
@@ -410,8 +413,14 @@ namespace Cryptforge.UI
                 // The existing facade-wide UV pass samples the same physical
                 // masonry field across the return and its actual recessed back.
                 mesh.U.Add(Vector2.zero);
-                float light=Mathf.Lerp(.88f,1.03f,Mathf.InverseLerp(bottom,top,z[i]));
-                Color color=tone*(light*(i<4?1f:.78f));color.a=tone.a;mesh.C.Add(color);
+                float height=Mathf.InverseLerp(bottom,top,z[i]);
+                float light=Mathf.Lerp(.88f,1.03f,height);
+                // Exposed bearing stone recovers neutral quarry value while the
+                // inset keeps its existing sheltered response. The darker west
+                // face receives a little more lift, retaining its directional
+                // relation to the near face instead of a blanket tower exposure.
+                float quarry=i<4?Mathf.Lerp(west?1.12f:1.08f,west?1.18f:1.12f,height):.78f;
+                Color color=tone*(light*quarry);color.a=tone.a;mesh.C.Add(color);
             }
             for(int edge=0;edge<4;edge++)
             {
@@ -421,6 +430,9 @@ namespace Cryptforge.UI
             }
             mesh.T.AddRange(new[]{first+4,first+5,first+6,first+4,first+6,first+7});
         }
+
+        private static Color DistantQuarryValue(Color stone,float gain)=>
+            new Color(stone.r*gain,stone.g*gain,stone.b*gain,stone.a);
 
         private static void DistantMasonryFace(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,bool cap,Color tone,
             float? courseSlope=null)

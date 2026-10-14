@@ -169,18 +169,15 @@ namespace Cryptforge.UI
                 Vector3 local=body.V[i]-centre;
                 body.U[i]=new Vector2(.50f+local.x*.105f,.50f+local.y*.105f);
                 Color old=body.C[i];
-                float value=old.r*.299f+old.g*.587f+old.b*.114f;
-                float aged=.83f+.045f*FloorPatina(local.x*.68f+3.1f,local.y*.68f-2.7f);
+                float aged=.90f+.025f*FloorPatina(local.x*.68f+3.1f,local.y*.68f-2.7f);
                 float foot=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.65f,-.18f,local.y));
                 float shoulder=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.20f,.68f,local.y));
-                float contact=1-foot*.10f+shoulder*.045f;
+                float contact=1-foot*.14f+shoulder*.07f;
                 // The working pocket shares cool cast iron with the crane and
                 // transfer bench. Oil-dark lower contact and a lightly rubbed
                 // shoulder retain depth, without globally raising the casting.
                 // Existing fire-facing warmth stays a restrained local rust bias.
-                float warmth=Mathf.Max(0,old.r-old.b)*.22f;
-                body.C[i]=new Color((value*.97f+warmth)*aged*contact,value*aged*contact,
-                    (value*1.055f-warmth*.14f)*aged*contact,1);
+                body.C[i]=WorkyardCastTone(old,aged*contact);
             }
         }
 

@@ -212,7 +212,9 @@ namespace Cryptforge.Tests
             // court-material tests verify the emitted use field exactly once,
             // its world continuity, bounded gains and protected combat centre.
             float use=(float)typeof(FoundryRegionView).GetMethod("PavingCourtUse",Static).Invoke(null,new object[]{p.x,p.y});
-            return new Color(color.r/(light.r*use),color.g/(light.g*use),color.b/(light.b*use),1);
+            // Isolate quarry identity from the independently tested equipment-contact albedo.
+            Color contact=(Color)typeof(FoundryRegionView).GetMethod("PavingWorkshopTint",Static).Invoke(null,new object[]{p.x,p.y});
+            return new Color(color.r/(light.r*use*contact.r),color.g/(light.g*use*contact.g),color.b/(light.b*use*contact.b),1);
         }
     }
 }

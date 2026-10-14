@@ -1249,3 +1249,12 @@ Decision: recover fixed physical-scale grain within existing atlas interiors usi
 Region 34 renderers / 167208 vertices versus 34 / 160561 (+6647, about 4.14%). Distant geometry is 3572 versus 3540 (+32), already included in the region total. Global ceilings remain 174000 region and 3600 distant, leaving 6792 and 28 vertices. The local completed-support cap intentionally rises from 760 to 1024 for measured 925-991 supports; this is a real geometry-budget allowance. Fixed-scale grain adds startup mesh subdivision/cut caching, but no new runtime texture, material, renderer, shader or per-frame updater. Existing depth-shading functions now sample finer geometry, so rendered interpolation is not bit-identical. Static counts do not establish phone performance.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.
+
+
+## 2026-10-14 - Foundry workyard finish verified; device pending
+
+Decision: refine existing emitted material colours without new geometry or resource batches, preserving supported footprints, quiet fighting space and source light hierarchy. Existing service-tower exposed bearings gain restrained neutral quarry value while their sheltered fields remain dark. Native winch and mould-bench iron share a quieter cool finish, and workbench timber is less orange. Existing paving receives one soft equipment-contact albedo field that reduces the amber cast near supported stock/casting/salvage shelves and working islands, preserving the quiet centre and raised gate.
+
+Region 34 renderers / 167208 vertices, unchanged from baseline; distant 3572 is included and unchanged. Global ceilings remain 174000 region and 3600 distant, leaving 6792 and 28 vertices. No new geometry, runtime textures, materials, shaders, renderer batches or per-frame updater components. Existing startup colour calculations change; counts alone are not device performance evidence. Floor geometry, UVs, ownership, contacts and the existing light function remain unchanged; the new contact albedo intentionally modifies the final RGB response near equipment.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.

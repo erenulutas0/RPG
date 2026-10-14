@@ -1583,3 +1583,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 Two helpers implemented disjoint service-pier and bridge-haunch geometry/test scopes; root implemented fixed-scale mineral subdivision and integration. A third helper independently reviewed source and fresh native images. Fourteen additional EditMode cases and strengthened existing cases cover actual geometry, folds, shared edges, UV/colour interpolation, exact coverage, preserved contacts and static-only use. First focused run: 236/241 passed; corrected an invalid global projected-ownership oracle. Second focused run: 239/243 passed; explicitly allowed the measured local support geometry cost. Rejected XML/source evidence is retained. Full final acceptance uses the frozen repaired source; no Assets changed through accepted capture, suites and build.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.
+
+
+## 2026-10-14 - Foundry workyard finish verified; device pending
+
+438 .NET / 660 EditMode / 159 PlayMode = 1,257 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 622 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 A967EFA4B65337DD7F0B401611520600E47EC5D1172C8A416D8009676049774B; NOT INSTALLED.
+
+Two helpers implemented disjoint service-stone and native iron/timber scopes; root implemented shared paving-contact albedo and integration. A third helper independently reviewed source and fresh native images. Fifteen additional EditMode cases cover actual emitted colour, exactly-once field application, shared-joint continuity, bounded shoulders, protected combat areas and unchanged geometry. Existing mineral/scalar-use isolators explicitly remove the new independent albedo; existing tolerances remain. The timber palette expectation intentionally changes to muted hardwood. Focused Foundry258/258 passed; no rejected run. All Assets remained identical to the freeze through accepted capture, full suites and build.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.

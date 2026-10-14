@@ -312,13 +312,27 @@ namespace Cryptforge.UI
             {
                 Vector3 p=kit.V[i]-origin;
                 kit.U[i]=new Vector2(.5f+p.x*.105f,.5f+p.y*.105f);
-                Color old=kit.C[i];float value=old.r*.299f+old.g*.587f+old.b*.114f;
-                float warmth=Mathf.Max(0,old.r-old.b)*.35f;
-                float age=.90f+.05f*FloorPatina(p.x*.62f+4.1f,p.y*.62f-1.7f);
+                Color old=kit.C[i];
+                float age=.89f+.035f*FloorPatina(p.x*.62f+4.1f,p.y*.62f-1.7f);
+                float foot=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.64f,-.15f,p.y));
+                float shoulder=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.18f,.60f,p.y));
                 // Quiet dark worked iron links the transfer bench to its crane;
                 // retain directional luminance and the original fire-facing bias.
-                kit.C[i]=new Color((value*.97f+warmth)*age,value*age,(value*1.055f-warmth*.14f)*age,1);
+                kit.C[i]=WorkyardCastTone(old,age*(1-foot*.12f+shoulder*.045f));
             }
+        }
+
+        private static Color WorkyardCastTone(Color source,float finish)
+        {
+            // The native bench and winch share neutral cool iron beside the baked
+            // equipment. Preserve source face light and warm reflections; worn
+            // shoulders separate from mill scale without lifting every dark face.
+            float value=source.r*.299f+source.g*.587f+source.b*.114f;
+            float wear=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.38f,.95f,value));
+            float gain=finish*Mathf.Lerp(.94f,1.12f,wear);
+            float warmth=Mathf.Max(0,source.r-source.b)*.28f;
+            return new Color((value*.995f+warmth)*gain,value*1.005f*gain,
+                (value*1.025f-warmth*.14f)*gain,1);
         }
 
         private static void YardBenchTimberFinish(Builder kit,int first,int end,Vector3 origin)
@@ -334,7 +348,11 @@ namespace Cryptforge.UI
                 kit.U[i]=new Vector2(.5f+length*.055f,.5f+width*.18f);
                 Color old=kit.C[i];float value=old.r*.299f+old.g*.587f+old.b*.114f;
                 float age=.92f+.06f*FloorPatina(length*.38f+2.3f,width*.65f);
-                kit.C[i]=new Color(value*1.28f*age,value*.88f*age,value*.51f*age,1);
+                float rubbed=Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.10f,.45f,p.y));
+                // Desaturated hardwood agrees with the authored casting bench;
+                // the upper working planks are rubbed, stored packing stays dull.
+                float finish=age*(1+rubbed*.09f);
+                kit.C[i]=new Color(value*1.18f*finish,value*.96f*finish,value*.68f*finish,1);
             }
         }
 

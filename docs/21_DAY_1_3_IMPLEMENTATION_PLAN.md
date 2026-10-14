@@ -2580,3 +2580,15 @@ Files: FoundryRegionStoneGrain (new), FortressSurface, Workshop, Undercroft, Dis
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 7B9DF62AAB90B43B35713D07A14181BC2111EB63DDEE4852ABDC70D6D70E5FA3; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.
+
+
+## 2026-10-14 - Foundry workyard finish verified; device pending
+
+Existing service-tower exposed bearings gain restrained neutral quarry value while their sheltered fields remain dark. Native winch and mould-bench iron share a quieter cool finish, and workbench timber is less orange. Existing paving receives one soft equipment-contact albedo field that reduces the amber cast near supported stock/casting/salvage shelves and working islands, preserving the quiet centre and raised gate.
+
+Files: FoundryRegionDistantWorks, CraneHousing, ProductionYard, PavingWear and Finish; ServiceShaft, CraneMachinery, YardEquipment, CourtMaterial and PavingLayout tests. Capture: Tools/ArtReview/FoundryWorkyardFinishCapture.cs and launcher.
+
+438 .NET / 660 EditMode / 159 PlayMode = 1,257 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 622 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 A967EFA4B65337DD7F0B401611520600E47EC5D1172C8A416D8009676049774B; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.

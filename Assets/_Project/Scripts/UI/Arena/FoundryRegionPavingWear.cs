@@ -5,6 +5,26 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
+        // Settled iron/ash changes the stone's albedo beside supported equipment.
+        // It crosses paving identities in world space, fading into the open yard;
+        // it is neither another light nor an overlay with a second floor owner.
+        private static Color PavingWorkshopTint(float u,float v)
+        {
+            if(u>=12)return Color.white;
+            float centre=Vector2.Distance(new Vector2(u,v),CourtSealCentre);
+            if(centre<=7)return Color.white;
+            float Contact(Vector4 box)=>DistanceFromFloorBox(u,v,box.x,box.y,box.z,box.w);
+            float distance=Mathf.Min(Contact(StockShelf),Mathf.Min(Contact(CastingShelf),Contact(SalvageShelf)));
+            for(int i=0;i<2;i++)
+                distance=Mathf.Min(distance,DistanceFromFloorBox(u,v,FoundryMap.WorkIslandBound(i,0),
+                    FoundryMap.WorkIslandBound(i,1),FoundryMap.WorkIslandBound(i,2),FoundryMap.WorkIslandBound(i,3)));
+            float contact=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.35f,4.5f,distance));
+            contact*=Mathf.SmoothStep(0,1,Mathf.InverseLerp(7,11,centre));
+            // A broad muted deposit reduces the orange cast near working feet.
+            // Keep the underlying world forge light and each stone's quarry body.
+            return Color.Lerp(Color.white,new Color(.84f,.90f,.94f,1),contact);
+        }
+
         // Broad material use belongs to places, not to individual flag identities.
         // The entry is scrubbed by passage; the connected stock/receiving apron
         // retains settled mill scale. Smooth multi-unit shoulders leave the quiet

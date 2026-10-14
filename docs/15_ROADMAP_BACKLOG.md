@@ -860,3 +860,12 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-bearing-architecture-01.
 - [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.
+
+
+## 2026-10-14 - Foundry workyard finish verified; device pending
+
+- [x] Combine service-stone value hierarchy, native workyard iron/timber coherence and bounded equipment-contact paving; verify matched captures and full regression/build gate.
+- [ ] Address the large native gate-stone/authored-gate mismatch as one grouped landmark pass, judging full-map and portrait impact first. See package next-visual-priorities.md.
+- [ ] Physical-device acceptance and existing crowd waypoint congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.

@@ -2191,3 +2191,13 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 This is an incremental material/construction improvement; the full-map change is modest and reference fidelity remains unfinished. Map, camera, navigation, equipment placement, encounters and gameplay remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer and midrange performance remain unverified. No phone control, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-stone-detail-01.
+
+
+## 2026-10-14 - Foundry workyard finish verified; device pending
+
+438 .NET / 660 EditMode / 159 PlayMode = 1,257 accepted suite executions, zero failures/skips. Isolated compile zero warnings/errors. Fresh Before and After Android-target graphics captures passed separately. PASS: 622 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components, resolved references and valid JSON.
+This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 31,210,391 bytes; SHA256 A967EFA4B65337DD7F0B401611520600E47EC5D1172C8A416D8009676049774B; NOT INSTALLED.
+
+This is a modest coordinated material improvement, not a workyard rebuild or reference parity. The existing warm floor band remains visible. Baked equipment, dense native iron grain, simpler prop silhouettes and broad native gate stone remain unfinished reference gaps. Map, camera, navigation, equipment placement, encounters and gameplay remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved; see ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md. Device motion, HUD, shimmer and midrange performance remain unverified. No phone control, installation or save/telemetry change was made. The prior concrete restart/install decision remains pending; later deployment must inspect current device state and preserve current original saves and telemetry, never restore historical snapshots. Regional progression remains deferred under the art-first direction.
+
+Evidence/reproduction: ArtDirection/2026-10-14/foundry-workyard-finish-01.

@@ -99,9 +99,42 @@ namespace Cryptforge.Tests
                 "Actual worktop grain must run along the substantial boards, with a noncollapsed cross-grain field.");
             foreach(int i in new[]{ia,ib,ic})
             {
-                Assert.That(colours[i].r,Is.GreaterThan(colours[i].g*1.3f));
-                Assert.That(colours[i].b,Is.LessThan(colours[i].g*.7f));
+                // The accepted workyard palette is muted hardwood beside the
+                // baked casting bench, retaining warmth without saturated orange.
+                Assert.That(colours[i].r/colours[i].g,Is.InRange(1.19f,1.27f));
+                Assert.That(colours[i].b/colours[i].g,Is.InRange(.69f,.74f));
             }
+        }
+
+        [Test]
+        public void ActualBenchIronKeepsNeutralFamilyAndBroadContactWithoutMeshChanges()
+        {
+            float u0=FoundryMap.WorkIslandBound(1,0),v0=FoundryMap.WorkIslandBound(1,1);
+            float u1=FoundryMap.WorkIslandBound(1,2),v1=FoundryMap.WorkIslandBound(1,3);
+            object builder=BuildEquipment("BuildYardMouldBench",u0,v0,u1,v1);
+            var points=Field<List<Vector3>>(builder,"V");var colours=Field<List<Color>>(builder,"C");
+            var indices=Field<List<int>>(builder,"T");var uv=Field<List<Vector2>>(builder,"U");
+            var savedPoints=points.ToArray();var savedIndices=indices.ToArray();
+            Vector3 origin=Project((u0+u1)*.5f,(v0+v1)*.5f)+Vector3.up*.84f;
+            MethodInfo finish=typeof(FoundryRegionView).GetMethod("YardBenchIronFinish",Static);
+            // Equal input light on actual produced geometry isolates the material
+            // family and broad contacts from the original face-light differences.
+            for(int i=0;i<colours.Count;i++)colours[i]=new Color(.5f,.5f,.5f,1);
+            finish.Invoke(null,new[]{builder,(object)0,points.Count,origin});
+            var savedUvs=uv.ToArray();float low=0,high=0;int lowCount=0,highCount=0;
+            foreach(int i in new HashSet<int>(indices))
+            {
+                Color c=colours[i];float height=points[i].y-origin.y;
+                Assert.That(c.b/c.r,Is.InRange(1.015f,1.045f),"Bench and native winch use the same gently cool iron range.");
+                Assert.That(c.grayscale,Is.LessThan(.5f));
+                if(height<=-.64f){low+=c.grayscale;lowCount++;}
+                if(height>=.60f){high+=c.grayscale;highCount++;}
+            }
+            Assert.That(lowCount,Is.GreaterThan(0));Assert.That(highCount,Is.GreaterThan(0));
+            Assert.That(low/lowCount,Is.LessThan(high/highCount*.92f));
+            for(int i=0;i<colours.Count;i++)colours[i]=new Color(.5f,.5f,.5f,1);
+            finish.Invoke(null,new[]{builder,(object)0,points.Count,origin});
+            Assert.That(points,Is.EqualTo(savedPoints));Assert.That(indices,Is.EqualTo(savedIndices));Assert.That(uv,Is.EqualTo(savedUvs));
         }
 
         [Test]
