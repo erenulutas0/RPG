@@ -1,0 +1,8 @@
+2026-10-19 foundry-trolley-01 work record (single lead; no helpers)
+- Unity licence had lapsed (exit 198). Owner approved re-activation; owner signed in through `unity auth login`; `unity license activate --personal --accept-eula` -> Unity Personal (Assigned). A stale Temp/UnityLockfile from the failed run was removed after confirming no Unity process.
+- New versioned capture launcher pinned to 4e761e4 with clean Assets; first Before omitted the two new views (not in SelectedViews); tool fixed (Tools/ only), Before retaken and sealed (validation/baseline.json, 34 files).
+- Iterations (actual captures): 1) neutral iron family, dark skid, warm billets, broader yokes, larger wheels - billets read as pale timber; 2) oxide billet tone, iron gain 1.02, skid .70; 3) oak bearers + load lifted .06.
+- Focused EditMode failure 1 (real defect): stock peak 1.1999 > iron peak 1.1623 -> billet tone lowered ~6%.
+- Focused EditMode failure 2 (wrong oracle): bearer corner expected at the outer edge; hull top is inset by its .02 bevel -> oracle uses the inset top corner.
+- Scope check showed the moulding bench's pale blue skid beside the darkened trolley; same dark bearing plate applied to it, with a test.
+- Final: focused 299/299; freeze bc6aa864...; final After capture; full EditMode 701/701, PlayMode 160/160, APK built; freeze unchanged; Verify-Project PASS.

@@ -2658,3 +2658,11 @@ The complete native inner-pier family now has a substantial raked lower haunch, 
 This is a static integrity check. Unity import, compilation and Play Mode must be checked in the pinned Editor. Android build exit 0. APK 36,387,202 bytes; SHA256 C6EDF8C6975B336866423D848649FC3CC812F860E88697936A0F324E2A2839FC; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.
+
+## 2026-10-19 - Foundry loading trolley verified; device pending
+
+The active loading trolley (work island 0) now joins the moulding bench and winch's neutral worked-iron family instead of reading as a blue cage over a pale blue tray: frame, yokes, axle saddles and wheels take WorkyardCastTone (darker toward the floor, lighter worn edges), the skid becomes a dark bearing plate, and the six billets take individual oxide mill-scale values. Two oak dunnage bearers at the band stations carry the load .06 above the deck; the folded bands still start and end on the deck. Yoke legs (.24 x .34) and crown are broader, wheels slightly larger (radius .31) with unchanged ground contact. The moulding bench's skid gets the same dark bearing plate. Footprint, load placement, rail relationship, open spaces, shared cast UV field, batches and depth ownership are unchanged. Bounded material/value integration, not reference parity: the yokes still read as frames and the wheels stay mostly hidden.
+
+438 .NET / 701 EditMode / 160 PlayMode = 1,299 suite executions, zero failures/skips. Focused Foundry EditMode 299/299 passed separately (two new tests). Isolated compile 0 warnings/0 errors. Fresh Before (23 views, baseline 4e761e4, clean Assets) and final After Android-target graphics captures passed. PASS: 639 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,387,444 bytes; SHA256 43B67A2A5265B56601FC707B02DA3946D13766B714843005BECDC132E7C769A6; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.

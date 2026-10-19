@@ -920,3 +920,10 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-gate-massing-01.
 - [ ] Reference fidelity, phone acceptance and the existing crowd congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.
+
+## 2026-10-19 - Foundry loading trolley verified; device pending
+
+- [x] Integrate the active loading trolley (and both work-island skids) into the worked-iron family with matched captures and full validation.
+- [ ] Gate crown/header material study, reference fidelity, phone acceptance and the existing crowd congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.

@@ -1453,3 +1453,11 @@ The complete native inner-pier family now has a substantial raked lower haunch, 
 Region 36 renderers / 171884 vertices versus 171888: -4. Distant 3572 is included and unchanged. Ceilings remain 174000 / 3600, leaving 2116 / 28. The inner-pier family uses the existing masonry atlas/material with its own fine quarry field, preserving source lighting and the original painter/depth order. No new runtime bitmap, material, shader, renderer batch or updater. The preceding outer-bay resource retains its measured 512x1024 ASTC6 / 11-mip / non-readable budget. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.
+
+## 2026-10-19 - Foundry loading trolley verified; device pending
+
+The active loading trolley (work island 0) now joins the moulding bench and winch's neutral worked-iron family instead of reading as a blue cage over a pale blue tray: frame, yokes, axle saddles and wheels take WorkyardCastTone (darker toward the floor, lighter worn edges), the skid becomes a dark bearing plate, and the six billets take individual oxide mill-scale values. Two oak dunnage bearers at the band stations carry the load .06 above the deck; the folded bands still start and end on the deck. Yoke legs (.24 x .34) and crown are broader, wheels slightly larger (radius .31) with unchanged ground contact. The moulding bench's skid gets the same dark bearing plate. Footprint, load placement, rail relationship, open spaces, shared cast UV field, batches and depth ownership are unchanged. Bounded material/value integration, not reference parity: the yokes still read as frames and the wheels stay mostly hidden.
+
+Region 36 renderers / 171940 vertices versus 171884: +56 (the two bearers). Distant 3572 included and unchanged. Ceilings 174000 / 3600 remain; headroom 2060 / 28. No new bitmap, material, shader, batch or updater. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.

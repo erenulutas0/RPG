@@ -196,6 +196,58 @@ namespace Cryptforge.Tests
                     "The remap was actually exercised on every owned vertex.");
         }
 
+        [Test]
+        public void TrolleyJoinsTheWorkedIronFamilyWithADarkSkidAndWarmStockOnTimberBearers()
+        {
+            float u0=FoundryMap.WorkIslandBound(0,0),v0=FoundryMap.WorkIslandBound(0,1);
+            float u1=FoundryMap.WorkIslandBound(0,2),v1=FoundryMap.WorkIslandBound(0,3);
+            object skidOnly=Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+            typeof(FoundryRegionView).GetMethod("WorkshopMetalHull",Static)
+                .Invoke(null,new object[]{skidOnly,u0,v0,u1,v1,.015f,.10f,.035f,true});
+            int skid=Field<List<Vector3>>(skidOnly,"V").Count;
+            object builder=TrolleyWithSkid();
+            var points=Field<List<Vector3>>(builder,"V");var colours=Field<List<Color>>(builder,"C");
+            var referenced=new HashSet<int>(Field<List<int>>(builder,"T"));
+            float skidValue=0,ironValue=0,ironPeak=0,stockPeak=0;int ironCount=0,stock=0;
+            for(int i=0;i<colours.Count;i++)
+            {
+                Color c=colours[i];
+                // The old cart was a blue cage over a pale blue tray (b/r about 1.2).
+                Assert.That(c.b/c.r,Is.LessThanOrEqualTo(1.05f),"No vertex keeps the old blue cage tint.");
+                if(i<skid){skidValue+=c.grayscale;continue;}
+                if(c.r/c.b>1.5f){stock++;stockPeak=Mathf.Max(stockPeak,c.grayscale);continue;}
+                ironValue+=c.grayscale;ironCount++;ironPeak=Mathf.Max(ironPeak,c.grayscale);
+            }
+            Assert.That(ironCount,Is.GreaterThan(0));Assert.That(stock,Is.GreaterThan(0),"The freight is warm stock.");
+            Assert.That(skidValue/skid,Is.LessThan(ironValue/ironCount*.85f),"The skid is a dark bearing plate, not a pale tray.");
+            Assert.That(stockPeak,Is.LessThan(ironPeak),"Stock never outshines the worn iron edges.");
+            // Both oak bearers' tops (inset by their .02 bevel) carry the lowest billet course at the band stations.
+            foreach(float u in new[]{u0+.78f,u1-.97f})
+                Assert.That(Find(points,referenced,Project(u+.02f,v0+.42f)+Vector3.up*.66f),Is.GreaterThanOrEqualTo(0),
+                    "A timber bearer stands under the load.");
+            Assert.That(Find(points,referenced,Project(u0+.43f,v0+.48f)+Vector3.up*.66f),Is.GreaterThanOrEqualTo(0),
+                "The lowest billet rests on the bearers' top, not on the iron deck.");
+        }
+
+        [Test]
+        public void MouldingBenchSkidIsTheSameDarkBearingPlate()
+        {
+            float u0=FoundryMap.WorkIslandBound(1,0),v0=FoundryMap.WorkIslandBound(1,1);
+            float u1=FoundryMap.WorkIslandBound(1,2),v1=FoundryMap.WorkIslandBound(1,3);
+            object builder=Activator.CreateInstance(typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic),true);
+            typeof(FoundryRegionView).GetMethod("WorkshopMetalHull",Static)
+                .Invoke(null,new object[]{builder,u0,v0,u1,v1,.015f,.10f,.035f,true});
+            int skid=Field<List<Vector3>>(builder,"V").Count;
+            var raw=Field<List<Color>>(builder,"C").ToArray();
+            typeof(FoundryRegionView).GetMethod("BuildYardMouldBench",Static).Invoke(null,new object[]{builder,u0,v0,u1,v1});
+            var colours=Field<List<Color>>(builder,"C");
+            for(int i=0;i<skid;i++)
+            {
+                Assert.That(colours[i].b/colours[i].r,Is.LessThanOrEqualTo(1.05f),"No pale blue tray under the bench.");
+                Assert.That(colours[i].grayscale,Is.LessThan(raw[i].grayscale*.8f));
+            }
+        }
+
         private static object TrolleyWithSkid()
         {
             float u0=FoundryMap.WorkIslandBound(0,0),v0=FoundryMap.WorkIslandBound(0,1);

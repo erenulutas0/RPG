@@ -2261,3 +2261,7 @@ This is a static integrity check. Unity import, compilation and Play Mode must b
 This is a bounded inner-pier form and finish improvement, not reference parity or a new layout. Approach portrait crops most upper architecture; full-map gain is localized to the gate. Native and baked materials still differ, and the inherited curtain remains largely occluded. Map bounds, camera, navigation, equipment footprints, gameplay and encounters remain unchanged. Existing immortal-crowd waypoint congestion remains unresolved (ArtDirection/2026-10-12/foundry-forecourt-layout-01/validation/crowd-diagnostic.md). No phone control, installation or save/telemetry change. Device motion, HUD, shimmer and midrange performance remain unverified. The earlier concrete restart/install decision remains pending; later deployment must inspect current state and preserve current original saves/telemetry, never restore historical snapshots.
 
 Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.
+
+## 2026-10-19 - Foundry loading trolley verified; device pending
+
+APK 36,387,444 bytes, SHA256 43B67A2A5265B56601FC707B02DA3946D13766B714843005BECDC132E7C769A6: built, NOT INSTALLED. No phone operation, install, input, save or telemetry change; the restart/install decision remains pending.
