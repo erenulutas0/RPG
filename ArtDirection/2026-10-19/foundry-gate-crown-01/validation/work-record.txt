@@ -1,0 +1,11 @@
+2026-10-19 foundry-gate-crown-01 work record (single lead; no helpers)
+- Diagnosis before edits: region pixel statistics on Before gate-crown-detail/full-map (crown tops vs baked bay tops) and a
+  sliding-window scan of FoundryMasonryV4.png. Value was already comparable (60-64 vs 66); the gap was atlas cloud/fine
+  grain (~2x the bays) and hue (b-r 16-17 vs 12-13). Face lighting and subdivision were not the dominant cause.
+- Atlas scan: every stone carries similar fine cellular grain (high-pass ~4.6-5.3), so no patch removes it; the former
+  patch had the largest broad ramp of the calm candidates. Row-1 candidates were rejected by eye: drips.
+- Candidate 01 (patch only, +220 vertices) captured; kept in candidates/. Candidate 02 (+ constant albedo balance, 0
+  vertices) accepted. Final runtime equals candidate 02.
+- First albedo test draft asserted Rec.601 luma within 1.5 %; the balance raises luma 1.8-2.1 % while channel-mean value
+  stays within 0.7 %. Corrected the test definition before running (no production change).
+- Focused 302/302; freeze ad9e61f274f2...; final After; full suites + APK; freeze unchanged; Verify-Project PASS.

@@ -97,10 +97,11 @@ namespace Cryptforge.Tests
                 Assert.That(finished.C[i],Is.EqualTo(light[i]),"Family grain must retain source forge and contact illumination.");
             }
             Assert.That(Area(finished),Is.EqualTo(area).Within(.0006),"The finish partitions the surface without adding another layer.");
-            AssertField(finished,.11f);
+            AssertField(finished,.11f,new Vector4(.04f,.44f,.21f,.564f));
 
             object neighbour=Builder();Call("BuildGateInnerReturn",neighbour,v,6.5f);Call("GateHouseGrain",neighbour);
-            Mesh returned=Read(neighbour);AssertField(returned,.075f);
+            Mesh returned=Read(neighbour);
+            AssertField(returned,.075f,(Vector4)typeof(FoundryRegionView).GetField("GateHousePatch",Static).GetValue(null));
             object merged=Builder();Call("AppendGateStone",merged,pier);Call("AppendGateStone",merged,neighbour);
             Mesh combined=Read(merged);AssertPart(combined,finished,0,true);
             AssertPart(combined,returned,finished.V.Count,true);
@@ -129,7 +130,7 @@ namespace Cryptforge.Tests
                         "Every supported foot corner and edge midpoint must bear on the actual chamfered cap.");
         }
 
-        static void AssertField(Mesh mesh,float density)
+        static void AssertField(Mesh mesh,float density,Vector4 patch)
         {
             Vector3 datum=Project(G(32),-3);
             Assert.That(mesh.U.Count,Is.EqualTo(mesh.V.Count));Assert.That(mesh.C.Count,Is.EqualTo(mesh.V.Count));
@@ -139,9 +140,9 @@ namespace Cryptforge.Tests
                 Vector2 uv=mesh.U[mesh.T[t]]*.231f+mesh.U[mesh.T[t+1]]*.317f+mesh.U[mesh.T[t+2]]*.452f;
                 for(int axis=0;axis<2;axis++)
                 {
-                    double size=axis==0?.17:.124,physical=((double)p[axis]-datum[axis])*density/size;
+                    double size=axis==0?patch.z-patch.x:patch.w-patch.y,physical=((double)p[axis]-datum[axis])*density/size;
                     double cycle=physical-Math.Floor(physical/2)*2;
-                    double expected=(axis==0?.04:.44)+(1-Math.Abs(cycle-1))*size;
+                    double expected=(axis==0?patch.x:patch.y)+(1-Math.Abs(cycle-1))*size;
                     Assert.That(uv[axis],Is.EqualTo(expected).Within(.00002),
                         "The rendered triangle must sample the family field through its interior, including resolved mirror folds.");
                 }

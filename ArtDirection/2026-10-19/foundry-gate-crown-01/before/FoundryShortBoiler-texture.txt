@@ -1,0 +1,1 @@
+FoundryShortBoiler:2048x1024; ASTC_6x6; mipmaps:12; readable:False; Editor texture memory:2502304 bytes

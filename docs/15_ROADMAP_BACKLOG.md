@@ -927,3 +927,10 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.
 - [ ] Gate crown/header material study, reference fidelity, phone acceptance and the existing crowd congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.
+
+## 2026-10-19 - Foundry gate crown stone study verified; device pending
+
+- [x] Bounded crown/header stone study: level shared gate patch and slate albedo balance, matched captures and full validation.
+- [ ] Fine atlas grain versus baked bays (needs a new/re-baked stone source), inner-pier hue alignment, reference fidelity, phone acceptance and crowd congestion remain open.
+
+Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.

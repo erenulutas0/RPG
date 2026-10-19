@@ -2265,3 +2265,7 @@ Evidence/reproduction: ArtDirection/2026-10-14/foundry-inner-piers-01.
 ## 2026-10-19 - Foundry loading trolley verified; device pending
 
 APK 36,387,444 bytes, SHA256 43B67A2A5265B56601FC707B02DA3946D13766B714843005BECDC132E7C769A6: built, NOT INSTALLED. No phone operation, install, input, save or telemetry change; the restart/install decision remains pending.
+
+## 2026-10-19 - Foundry gate crown stone study verified; device pending
+
+APK 36,387,952 bytes, SHA256 405D15BE7118022258D85EDDD419848681BEB0350029D29B124E765F9597DF39: built, NOT INSTALLED. No phone operation, install, input, save or telemetry change; the restart/install decision remains pending.

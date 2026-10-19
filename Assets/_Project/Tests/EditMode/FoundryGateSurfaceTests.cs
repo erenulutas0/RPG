@@ -31,17 +31,18 @@ namespace Cryptforge.Tests
             for(int i=0;i<original.Length;i++)
             {
                 Assert.That(points[i],Is.EqualTo(original[i]),"No original contact, rebate or roof station may move.");
-                Assert.That(colours[i],Is.EqualTo(light[i]),"Source forge light and contact values survive the grain finish.");
+                Assert.That(colours[i],Is.EqualTo(Albedo(light[i])),"Source forge light and contact values survive the grain finish under one constant albedo balance.");
             }
             Assert.That(Area(points,triangles),Is.EqualTo(area).Within(.0006),"Grain subdivision cannot change coverage or create another stone layer.");
             Assert.That(uv.Count,Is.EqualTo(points.Count));Assert.That(colours.Count,Is.EqualTo(points.Count));
             FoundryMap.ToFloor(32+FoundryMap.GateOffset,-3,out float datumX,out float datumY);
             Vector2 datum=new Vector2(datumX,datumY*.5f+1.25f);
+            Vector4 patch=Patch();
             var seen=new Dictionary<Vector3,Vector2>();
             foreach(int i in triangles)
             {
-                Assert.That(uv[i].x,Is.InRange(.03999f,.21001f));
-                Assert.That(uv[i].y,Is.InRange(.43999f,.56401f));
+                Assert.That(uv[i].x,Is.InRange(patch.x-.00001f,patch.z+.00001f));
+                Assert.That(uv[i].y,Is.InRange(patch.y-.00001f,patch.w+.00001f));
                 if(seen.TryGetValue(points[i],out Vector2 previous))
                     Assert.That(Vector2.Distance(previous,uv[i]),Is.LessThan(.00001f),"Coincident course, mortar and arris points share one field.");
                 else seen.Add(points[i],uv[i]);
@@ -55,7 +56,7 @@ namespace Cryptforge.Tests
             Vector2 sampled=uv[triangles[i]]*.231f+uv[triangles[i+1]]*.317f+uv[triangles[i+2]]*.452f;
             for(int axis=0;axis<2;axis++)
             {
-                float size=axis==0?.17f:.124f,lo=float.MaxValue,hi=float.MinValue;
+                float size=axis==0?patch.z-patch.x:patch.w-patch.y,lo=float.MaxValue,hi=float.MinValue;
                 for(int j=0;j<3;j++)
                 {
                     float f=(points[triangles[i+j]][axis]-datum[axis])*.075f/size;
@@ -65,13 +66,16 @@ namespace Cryptforge.Tests
                     "A rendered triangle cannot bridge an uncut repeat fold.");
                 double physical=(probe[axis]-datum[axis])*.075/size;
                 double cycle=physical-Math.Floor(physical/2)*2;
-                double expected=(axis==0?.04:.44)+(1-Math.Abs(cycle-1))*size;
+                double expected=(axis==0?patch.x:patch.y)+(1-Math.Abs(cycle-1))*size;
                 Assert.That(sampled[axis],Is.EqualTo(expected).Within(.00002),
                     "Asymmetric interior interpolation must match the independently translated physical quarry field.");
             }
             }
             TestContext.WriteLine($"Gate grain part {part}: {original.Length}->{points.Count} vertices; {oldTriangles.Length/3}->{triangles.Count/3} triangles.");
         }
+
+        static Vector4 Patch()=>(Vector4)typeof(FoundryRegionView).GetField("GateHousePatch",Static).GetValue(null);
+        static Color Albedo(Color c)=>(Color)Call("GateHouseAlbedo",c);
 
         static double Area(IList<Vector3> p,IList<int> t)
         {

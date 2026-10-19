@@ -1461,3 +1461,11 @@ The active loading trolley (work island 0) now joins the moulding bench and winc
 Region 36 renderers / 171940 vertices versus 171884: +56 (the two bearers). Distant 3572 included and unchanged. Ceilings 174000 / 3600 remain; headroom 2060 / 28. No new bitmap, material, shader, batch or updater. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.
+
+## 2026-10-19 - Foundry gate crown stone study verified; device pending
+
+Gate crown/header stone study. Diagnosis from actual captures and the source atlas: the mottled native crown was dominated by atlas sampling, not face lighting or subdivision. The shared gate patch (U .04-.21) brightens toward its arris (column means range 9.3 levels); mirrored over the long crown that ramp printed as cloudy bands, and the native stone sat more violet than the baked slate bays. The shared GateHouseGrain field (header, crown, lower cornice, inner returns, cartouche, curtain wings, landing shoulders) now samples the level interior right of the authored drip (U .272-.43, same V, density and fold construction; column range 4.9, 16-texel block spread 3.58 vs 4.64), and one constant albedo balance (r x1.015, g x1.035, b x.95; channel-mean value within 0.5 %) moves it to the bays' slate hue while keeping every relative forge-light value. The inner-pier .11 field and its source light are untouched; painter order, depth owners and batches are unchanged. Measured on clouded crown samples: broad cloud -13 to -31 % and fine grain -10 to -27 % (one already calm shoulder sample stays within noise, 3.0 -> 3.4 / 2.4 -> 2.6); tops read 6-13 % darker, never brighter; blue-minus-red 17-18 -> 11-13 levels against the bays' 12-15. Bounded: the atlas's fine cellular grain remains (still finer than the baked bays), faint mirror blotches survive on the cartouche, and this is not reference parity.
+
+Region 36 renderers / 172160 vertices versus 171940: +220 from the narrower patch's extra mirror folds. Distant 3572 included and unchanged. Ceilings 174000 / 3600; headroom 1840 / 28. No new bitmap, material, shader, batch or updater. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.
