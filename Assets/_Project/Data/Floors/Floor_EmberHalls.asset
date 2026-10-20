@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Floor_EmberHalls
   m_EditorClassIdentifier: 
   _id: floor_ember_halls
-  _displayName: Ember Halls
+  _displayName: The Foundry
   _rooms:
   - _displayName: Ember Hall
     _kind: 0

@@ -28,13 +28,13 @@ MonoBehaviour:
   _experienceFormat: Level {0}  |  XP {1} / {2}
   _upgradeChoiceTitle: Level up! Choose one upgrade
   _forgeChoiceTitle: 'The forge: choose one'
-  _checkpointChoiceTitle: 'Checkpoint: extract or descend?'
+  _checkpointChoiceTitle: 'Checkpoint: extract or climb?'
   _extractName: Extract
   _extractDescriptionFormat: Bank all {0} gold and end the run
-  _descendName: Descend
+  _descendName: Climb
   _descendDescriptionFormat: 'Secure {0} gold. {1}: {2}'
   _noFloorModifier: no modifier
-  _resultVictoryTitle: Descent complete
+  _resultVictoryTitle: Ascent complete
   _resultExtractedTitle: Extracted
   _resultDefeatTitle: Defeated
   _resultVictoryCauseFormat: '{0} defeated the {1} and cleared {2}'
@@ -55,7 +55,7 @@ MonoBehaviour:
   _forgeHintCompleteFormat: 'Forge gold {0}: everything is forged'
   _forgeButtonLabel: Relic Forge
   _forgeTitle: Relic Forge
-  _forgeStatusFormat: 'Gold {0}  |  Deepest floor cleared: {1}'
+  _forgeStatusFormat: 'Gold {0}  |  Highest floor cleared: {1}'
   _forgeWeaponsHeader: 'Weapons: carry one'
   _forgeRelicsHeader: 'Relics: equip one'
   _unlockForgeFormat: Forge for {0} gold

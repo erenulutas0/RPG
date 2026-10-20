@@ -31,14 +31,18 @@ namespace Cryptforge.Core
         public static string RunSeedPath => Path.Combine(ProfileLocation.Resolve(), FolderName, RunSeedFileName);
         public static string RegionPreviewPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "region-preview.txt");
 
-        // Separate from floor selection: this changes only the development arena, not authored progression.
+        // Separate from floor selection: this changes only the arena, not authored progression. The foundry is the game's
+        // first floor and every release build plays it. The Editor and a development build may still name the legacy
+        // "hall" (the scene tests' default arena, see TestProfile) or the "wide" preview; "foundry" or no file is the
+        // foundry.
         public static bool WideRegionPreview() => (Application.isEditor || Debug.isDebugBuild) &&
             string.Equals(ReadFirstLine(RegionPreviewPath), "wide", StringComparison.Ordinal);
-        public static bool FoundryRegionPreview() => (Application.isEditor || Debug.isDebugBuild) &&
-            string.Equals(ReadFirstLine(RegionPreviewPath), "foundry", StringComparison.Ordinal);
+        public static bool HallRegion() => (Application.isEditor || Debug.isDebugBuild) &&
+            string.Equals(ReadFirstLine(RegionPreviewPath), "hall", StringComparison.Ordinal);
+        public static bool FoundryRegion() => !WideRegionPreview() && !HallRegion();
 
         public static string GateArrivalPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "gate-arrival.txt");
-        public static bool GateArrival() => FoundryRegionPreview() && !DepthProof() &&
+        public static bool GateArrival() => FoundryRegion() && !DepthProof() &&
             !string.IsNullOrEmpty(ReadFirstLine(GateArrivalPath));
 
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);

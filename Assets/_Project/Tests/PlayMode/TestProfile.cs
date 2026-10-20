@@ -17,6 +17,10 @@ namespace Cryptforge.Tests
             Folder = Path.Combine(Path.GetTempPath(), "cryptforge-scene-tests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(Folder);
             ProfileLocation.DirectoryOverride = Folder;
+            // The game plays the foundry by default. Scene tests that measure the legacy hall's geometry keep it by
+            // naming it; foundry tests overwrite this with "foundry" after Begin.
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath, "hall");
             if (seed != null)
                 new ProfileStore(Folder).Save(seed);
         }

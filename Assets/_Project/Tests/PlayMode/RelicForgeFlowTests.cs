@@ -54,7 +54,7 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(0.4f);
 
             Assert.That(Label("Forge Title"), Is.EqualTo("Relic Forge"));
-            Assert.That(Label("Forge Status Label"), Is.EqualTo("Gold 0  |  Deepest floor cleared: 0"));
+            Assert.That(Label("Forge Status Label"), Is.EqualTo("Gold 0  |  Highest floor cleared: 0"));
             Assert.That(CardText(0, "Name Label"), Is.EqualTo("Second Wind"));
             Assert.That(CardText(0, "Description Label"), Is.EqualTo("Once per run, at 25% health or less, restore 25% of your health"));
             Assert.That(CardText(1, "Name Label"), Is.EqualTo("Counterweight"));
@@ -87,7 +87,7 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(0.6f);
             Tap(FindButton("Forge Button"));
             yield return new WaitForSecondsRealtime(0.4f);
-            Assert.That(Label("Forge Status Label"), Is.EqualTo("Gold 250  |  Deepest floor cleared: 1"));
+            Assert.That(Label("Forge Status Label"), Is.EqualTo("Gold 250  |  Highest floor cleared: 1"));
             Assert.That(CardText(0, "State Label"), Is.EqualTo("Forge for 80 gold"));
             Assert.That(CardText(1, "State Label"), Is.EqualTo("Forge for 150 gold"));
             Assert.That(Card(0).transform.Find("Relic Artwork").GetComponent<Image>().sprite.name,

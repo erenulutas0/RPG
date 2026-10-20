@@ -34,7 +34,7 @@ namespace Cryptforge.UI
             get
             {
                 // Resolve once, including when combat asks before this view's Awake. No file IO per frame.
-                if (!_regionResolved) { _wideRegion = DevelopmentStart.WideRegionPreview(); _foundryRegion=DevelopmentStart.FoundryRegionPreview(); _regionResolved = true; }
+                if (!_regionResolved) { _wideRegion = DevelopmentStart.WideRegionPreview(); _foundryRegion=DevelopmentStart.FoundryRegion(); _regionResolved = true; }
                 return _wideRegion;
             }
         }

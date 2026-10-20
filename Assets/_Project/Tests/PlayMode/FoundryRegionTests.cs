@@ -979,7 +979,7 @@ namespace Cryptforge.Tests
             Vector3 before=movement.transform.position;movement.Hold(Vector2.right);yield return null;
             Assert.That(movement.transform.position,Is.EqualTo(before),"Paused map must not move.");
             Assert.That(atmosphereMesh.vertices,Is.EqualTo(pausedAtmosphere),"Atmosphere must freeze with combat.");
-            File.Delete(DevelopmentStart.RegionPreviewPath);
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath,"hall");
             Assert.That(arena.IsFoundryRegion,Is.True,"Mode is frozen for a loaded scene.");
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             _scene=SceneManager.GetActiveScene();yield return null;

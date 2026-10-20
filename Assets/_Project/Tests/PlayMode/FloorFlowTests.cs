@@ -92,10 +92,10 @@ namespace Cryptforge.Tests
             Assert.That(checkpoint, Is.Not.Null);
             Assert.That(checkpoint.Kind, Is.EqualTo(ChoiceKind.Checkpoint));
             Assert.That(Time.timeScale, Is.Zero, "The checkpoint pauses the run.");
-            Assert.That(Label("Choice Title"), Is.EqualTo("Checkpoint: extract or descend?"));
+            Assert.That(Label("Choice Title"), Is.EqualTo("Checkpoint: extract or climb?"));
             Assert.That(checkpoint.Cards[0].Name, Is.EqualTo("Extract"));
             Assert.That(checkpoint.Cards[0].Description, Is.EqualTo("Bank all 116 gold and end the run"));
-            Assert.That(checkpoint.Cards[1].Name, Is.EqualTo("Descend"));
+            Assert.That(checkpoint.Cards[1].Name, Is.EqualTo("Climb"));
             Assert.That(checkpoint.Cards[1].Description, Is.EqualTo("Secure 116 gold. Quicksilver Vaults: +20% enemy damage, +50% gold"));
             Assert.That(Label("Gold Label"), Is.EqualTo("Gold 116  (116 at risk)"));
             Assert.That(_result.IsOpen, Is.False);
@@ -112,7 +112,7 @@ namespace Cryptforge.Tests
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(_result.IsOpen, Is.True);
             Assert.That(Label("Result Title"), Is.EqualTo("Extracted"));
-            Assert.That(Label("Cause Label"), Does.Contain("escaped").And.Contain("Ember Halls"));
+            Assert.That(Label("Cause Label"), Does.Contain("escaped").And.Contain("The Foundry"));
             Assert.That(Label("Progress Label"), Does.Contain("Floor 1").And.Contain("6 rooms"));
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 116"));
             Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 116: Second Wind is ready to forge"));

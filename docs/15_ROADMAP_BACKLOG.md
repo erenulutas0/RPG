@@ -969,3 +969,20 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and A
 - [ ] Next: foundry boss and the upward map ladder; pipe collars; phone acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.
+
+## 2026-10-20 - The foundry is floor 1; the run climbs
+
+Decision (owner, 2026-10-20): the foundry is the normal game's first floor, not a development preview; the fiction turns
+from a descent into an upward climb (maps stacked above, each harder); per-floor difficulty will follow a formula; the
+floor's boss walks out of the gate and the opened gate is the way up (next slices).
+
+This slice: every release build plays the foundry (`DevelopmentStart.FoundryRegion()`); the Editor and development builds
+may still name `hall` (the legacy arena) or `wide` in `development/region-preview.txt`. Scene tests default to `hall`
+(`TestProfile.Begin`) so their measured hall geometry stays explicit; foundry tests already name `foundry`. Player-facing
+text: "Checkpoint: extract or climb?", "Climb", "Ascent complete", "Highest floor cleared"; floor 1's display name is
+"The Foundry" (its id `floor_ember_halls`, saves and telemetry are unchanged). Code identifiers (Descend, Descent) are
+not renamed yet.
+
+Verification: 438 .NET / 712 EditMode / 160 PlayMode, zero failures; Verify-Project PASS; APK 36,391,777 bytes,
+SHA256 F969E9A40CF0F7459FDC91D4AEBBCD4C039990C29424FFEDA8D2A7F7399D7A32, NOT INSTALLED. One PlayMode test encoded the old
+rule (unknown flag -> hall); it now asserts the new rule (explicit hall; missing/unknown flag -> foundry).
