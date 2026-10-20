@@ -69,6 +69,7 @@ namespace Cryptforge.Tests
             Assert.That(boss.x,Is.EqualTo(placements[0].X).Within(.3f),"The boss stands at the gate, not round the hero.");
             Assert.That(ArenaFloor.FloorY(boss.y),Is.EqualTo(placements[0].Y).Within(.3f));
             Assert.That(encounter.IsGateExitOpen,Is.False);Assert.That(view.IsVisible,Is.False,"The gate is shut while its boss stands.");
+            Assert.That(Object.FindFirstObjectByType<FoundryGateDoorMotion>().Opening,Is.Zero,"The leaves stay shut while the boss stands.");
 
             encounter.CurrentEnemy.ApplyDamage(new DamageContext(1000000f));yield return null;ResolveUpgrades(setup);yield return null;ResolveUpgrades(setup);yield return null;
             Assert.That(encounter.IsFloorCleared,Is.True);
@@ -78,9 +79,12 @@ namespace Cryptforge.Tests
             FoundryMap.GateExitSpot(out float gx,out float gy);
             Assert.That(encounter.ExitFloorX,Is.EqualTo(gx));Assert.That(encounter.ExitFloorY,Is.EqualTo(gy));
 
-            // Standing anywhere else, however long, leaves the floor open.
-            yield return Hold(setup,1.3f);
+            var door=Object.FindFirstObjectByType<FoundryGateDoorMotion>();
+            Assert.That(door,Is.Not.Null,"The foundry's gate has swinging leaves.");
+            // Standing anywhere else, however long, leaves the floor open; meanwhile the leaves swing fully open.
+            yield return Hold(setup,FoundryGateDoorMotion.SwingSeconds+.1f);
             Assert.That(encounter.IsGateExitOpen,Is.True);Assert.That(setup.Run.HasEnded,Is.False);
+            Assert.That(door.Opening,Is.EqualTo(1f),"The gate stands open once its boss has fallen.");
 
             hero.position=new Vector3(gx,ArenaFloor.WorldY(gy),0);yield return Hold(setup,.4f);
             Assert.That(encounter.IsGateExitOpen,Is.True,"The hold takes a full second.");
@@ -98,6 +102,7 @@ namespace Cryptforge.Tests
             yield return WaitForBoss(encounter);
             encounter.CurrentEnemy.ApplyDamage(new DamageContext(1000000f));yield return null;ResolveUpgrades(setup);yield return null;ResolveUpgrades(setup);yield return null;
             Assert.That(encounter.IsGateExitOpen,Is.False,"Only the foundry has a gate.");
+            Assert.That(Object.FindFirstObjectByType<FoundryGateDoorMotion>(),Is.Null);
             Assert.That(setup.Run.HasEnded,Is.True);
             LogAssert.NoUnexpectedReceived();
         }

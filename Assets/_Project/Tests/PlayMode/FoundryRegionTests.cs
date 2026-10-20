@@ -350,10 +350,12 @@ namespace Cryptforge.Tests
             Assert.That(gate,Is.Not.Null,"Foundry facade must be an imported shared material.");
             Assert.That(((Texture2D)gate.mainTexture).isReadable,Is.False);
             Assert.That(gate.mainTexture.wrapMode,Is.EqualTo(TextureWrapMode.Clamp));
-            bool usesGate=false;
+            bool usesGate=false;int doorBatches=0;
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
                 if(renderer.sharedMaterial.mainTexture==gate.mainTexture)
                 {
+                    // The swinging leaves re-lay only the door's part of the painting in their own batch.
+                    if(renderer.GetComponent<FoundryGateDoorMotion>()!=null){doorBatches++;continue;}
                     usesGate=true;
                     var facadeMesh=renderer.GetComponent<MeshFilter>().sharedMesh;
                     // Bridge banners share this material/batch. Inspect the actual portal
@@ -371,6 +373,7 @@ namespace Cryptforge.Tests
                     }
                 }
             Assert.That(usesGate,Is.True);
+            Assert.That(doorBatches,Is.EqualTo(1),"One batch owns the gate's two swinging leaves.");
             AssertGateThresholdPresentation(arena);
             Assert.That(arena.PlatformMaterials.FoundryPitLining,Is.Not.SameAs(arena.PlatformMaterials.FurnaceFacade),"The pit lining must stay independent of the boiler wrap.");
             var surfaces=new[]{arena.PlatformMaterials.FoundryWall,arena.PlatformMaterials.FoundryPitLining,arena.PlatformMaterials.FoundryIron,arena.PlatformMaterials.FoundryEmbers,arena.PlatformMaterials.FoundryPaving,arena.PlatformMaterials.FoundryCastIron};
@@ -610,6 +613,8 @@ namespace Cryptforge.Tests
                     }
                     continue;
                 }
+                // The gate's swinging leaves are their own measured batch (asserted with the portal above).
+                if(renderer.GetComponent<FoundryGateDoorMotion>()!=null)continue;
                 if(renderer.sharedMaterial.mainTexture!=keeperTexture){otherBatches++;continue;}
                 keeperBatches++;
                 keeperVariant=renderer.sharedMaterial;
@@ -658,8 +663,8 @@ namespace Cryptforge.Tests
             Assert.That(boilerMeshes.Count,Is.EqualTo(4),"Two atlases retain exactly four shared depth-band batches.");
             Assert.That(gateMasonryBatches,Is.EqualTo(2),"The one borrowed gate texture uses exactly two depth-rank cards.");
             Assert.That(otherBatches,Is.LessThanOrEqualTo(24),"The pre-existing native material/rank budget is unchanged.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(37),
-                "The two gate cards add two measured batches to the previous 34-renderer region; the laid court flagstone adds one material batch while removing ~19k paving vertices.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(38),
+                "The two gate cards add two measured batches to the previous 34-renderer region; the laid court flagstone adds one material batch while removing ~19k paving vertices; the swinging gate leaves own one batch so no other motion rewrites them.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

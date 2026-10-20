@@ -1509,3 +1509,12 @@ Causeway retorts joined to the reference towers' family. New native Blender rend
 Region 37 renderers / 154820 vertices: unchanged (texture-only). Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.
+
+## 2026-10-20 - The foundry gate opens when its boss falls
+
+The painted gate's two leaves swing outward onto the landing over a forge-lit doorway once the floor's boss falls (gate
+exit open), framing the gate exit; shut, they re-lay the painting exactly. Own batch (so the facade batch's flame motion
+never rewrites them): region 38 renderers / 154,832 vertices. 443 .NET / 718 EditMode / 163 PlayMode, zero failures; APK
+36,409,937 bytes, SHA256 D156A70A7B6A90CBA1844F18E7085ADDC6C3532D9BAFA4663BEE8D6FFBD02B7D, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-gate-door-01.

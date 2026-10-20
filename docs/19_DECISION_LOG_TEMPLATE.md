@@ -1414,3 +1414,12 @@ DescentSimulation stays valid.
 
 Verification: 443 .NET / 718 EditMode / 162 PlayMode, zero failures; Verify-Project PASS; APK 36,392,934 bytes, SHA256
 280B0AB067730FB8EE34AF7EE6ED900AE4F58C62071BF3984F43DD28AC87C07F, NOT INSTALLED.
+
+## 2026-10-20 - The foundry gate opens when its boss falls
+
+The painted gate's two leaves swing outward onto the landing over a forge-lit doorway once the floor's boss falls (gate
+exit open), framing the gate exit; shut, they re-lay the painting exactly. Own batch (so the facade batch's flame motion
+never rewrites them): region 38 renderers / 154,832 vertices. 443 .NET / 718 EditMode / 163 PlayMode, zero failures; APK
+36,409,937 bytes, SHA256 D156A70A7B6A90CBA1844F18E7085ADDC6C3532D9BAFA4663BEE8D6FFBD02B7D, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-gate-door-01.

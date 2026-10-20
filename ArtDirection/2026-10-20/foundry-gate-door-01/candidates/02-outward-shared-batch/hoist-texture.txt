@@ -1,0 +1,1 @@
+FoundryStockHoist:512x512 ASTC_6x6; mipmaps:10; readable:False

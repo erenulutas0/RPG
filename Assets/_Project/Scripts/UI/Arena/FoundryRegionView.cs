@@ -309,6 +309,7 @@ namespace Cryptforge.UI
             var face=new Builder();face.Quad(a,b,b+lift,a+lift,false,Color.white);
             face.U.Clear();face.U.AddRange(new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up});
             Create("Painted gate facade",face,facade,-12);
+            BuildGateDoorway(facade,height);
             BuildGateArchitecture(arena,height);
         }
         private void BuildFurnaceTower(ArenaView arena,float u,float v)
@@ -479,6 +480,7 @@ namespace Cryptforge.UI
             foreach(int index in b.T)target.Builder.T.Add(index+offset);
             foreach(var tip in b.Flames)target.Builder.Flames.Add(new FoundryFlameVertex(tip.Index+offset,tip.Weight,tip.Phase));
             foreach(var cloth in b.Cloth)target.Builder.Cloth.Add(new FoundryBannerVertex(cloth.Index+offset,cloth.Drop,cloth.Phase));
+            foreach(var leaf in b.Door)target.Builder.Door.Add(new FoundryDoorVertex(leaf.Index+offset,leaf.Hinge,leaf.Reach,leaf.Height));
             int owner=footprint>=0?footprint:_depthScope;
             for(int i=0;i<b.V.Count;i++)target.Owners.Add(owner);
         }
@@ -491,6 +493,13 @@ namespace Cryptforge.UI
             var obj=new GameObject(name);obj.transform.SetParent(transform,false);obj.AddComponent<MeshFilter>().sharedMesh=mesh;var r=obj.AddComponent<MeshRenderer>();r.sharedMaterial=structure?_visibility.ForStructure(material):material;r.sortingOrder=SceneryOrder(order);
             if(b.Flames.Count>0)obj.AddComponent<FoundryFlameMotion>().Initialize(mesh,b.Flames);
             if(b.Cloth.Count>0)obj.AddComponent<FoundryBannerMotion>().Initialize(mesh,b.Cloth);
+            if(b.Door.Count>0)
+            {
+                // Open leaves swing up to two units out onto the landing; reaching far below the map puts the batch's
+                // centre under the facade's, so in their shared sorting order the leaves always draw after the painting.
+                var bounds=mesh.bounds;bounds.Expand(4f);bounds.Encapsulate(bounds.min+Vector3.down*DecalSortReach);mesh.bounds=bounds;
+                obj.AddComponent<FoundryGateDoorMotion>().Initialize(mesh,b.Door,GateDoorFaceU);
+            }
             return mesh;
         }
         private static int SceneryOrder(float order)
@@ -506,6 +515,7 @@ namespace Cryptforge.UI
         {
             internal readonly List<FoundryFlameVertex> Flames=new List<FoundryFlameVertex>();
             internal readonly List<FoundryBannerVertex> Cloth=new List<FoundryBannerVertex>();
+            internal readonly List<FoundryDoorVertex> Door=new List<FoundryDoorVertex>();
             internal readonly List<Vector3> V=new List<Vector3>();internal readonly List<Vector2> U=new List<Vector2>();
             internal readonly List<Color> C=new List<Color>();internal readonly List<int> T=new List<int>();
             // World-continuous UVs keep masonry courses from restarting at every one-unit wall cell.
