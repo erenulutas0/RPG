@@ -28,6 +28,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/CritSplashRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/ClimbScaling.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PackLayout.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PackMotion.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/ArenaFloor.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PixelCanvasTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaGeometryTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryMapTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ClimbScalingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
     <!-- Pure telemetry only: the Unity subfolder is compiled by Unity and UnityCompileCheck. -->
     <Compile Include="../../Assets/_Project/Scripts/Analytics/*.cs" />

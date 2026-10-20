@@ -190,3 +190,16 @@ When added:
 - exponential costs without meaningful new mechanics,
 - upgrades that only increase numbers forever,
 - economy tuned around ad watching before retention is proven.
+
+## 2026-10-20 - Climb difficulty by formula
+
+Decision (owner): per-floor difficulty follows a formula. `Combat/ClimbScaling` (pure, in CombatChecks): enemy health
+x 1.4^(floor-1), damage 0.92 x 1.4^(floor-1), and a boss room's extra health x 1.15 per floor from floor 3. Floors opt in
+with `FloorDefinition._climbScaled`; The Foundry (floor 1) and Quicksilver Vaults (floor 2) climb, and because the formula
+reproduces their hand-tuned tiers exactly (1 / 0.92 and 1.4 / 1.288; boss extra 1 below floor 3) no existing balance
+changes. The finale swarm keeps its authored tier and its own clock ramp. A floor-3 Warden would have 300 x 1.96 x 1.15 =
+676.2 health. `ClimbFloorContentTests` keeps a climbing floor's authored fields equal to the formula, so the hand-mirrored
+DescentSimulation stays valid.
+
+Verification: 443 .NET / 718 EditMode / 162 PlayMode, zero failures; Verify-Project PASS; APK 36,392,934 bytes, SHA256
+280B0AB067730FB8EE34AF7EE6ED900AE4F58C62071BF3984F43DD28AC87C07F, NOT INSTALLED.

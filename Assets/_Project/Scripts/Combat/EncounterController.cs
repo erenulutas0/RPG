@@ -461,8 +461,8 @@ namespace Cryptforge.Combat
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
             float scale = spawn.Difficulty * RunDifficulty;
-            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * scale, damagePercent);
-            SpawnedEnemy enemy = CreateEnemy(definition, $"{definition.Prefab.name} {spawn.Slot + 1}", scale, healthPercent,
+            float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale, damagePercent);
+            SpawnedEnemy enemy = CreateEnemy(definition, $"{definition.Prefab.name} {spawn.Slot + 1}", FloorHealthMultiplier(false) * scale, healthPercent,
                 damageBonus, goldPercent, out float reach);
             enemy.Slot = spawn.Slot;
 
@@ -525,7 +525,7 @@ namespace Cryptforge.Combat
                     if (room.Kind == RoomKind.Swarm)
                         BeginSwarm(room);
                     else
-                        StartWave(room.WaveAt(step.WaveIndex), GateRoom(room));
+                        StartWave(room.WaveAt(step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
@@ -550,11 +550,19 @@ namespace Cryptforge.Combat
         // only by taking an evolution.
         public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
 
-        private void StartWave(WaveDefinition waveDefinition, bool atGate = false)
+        private void StartWave(WaveDefinition waveDefinition, bool atGate = false, bool boss = false)
         {
             using (PerformanceMarkers.StartWave.Auto())
-                SpawnWave(waveDefinition, atGate);
+                SpawnWave(waveDefinition, atGate, boss);
         }
+
+        // The floor's tier: authored, or the climb's formula by the floor's height with a boss room's own hardening.
+        private float FloorHealthMultiplier(bool boss) => _currentFloor.ClimbScaled
+            ? ClimbScaling.Health(FloorNumber) * (boss ? ClimbScaling.Boss(FloorNumber) : 1f)
+            : _currentFloor.EnemyHealthMultiplier;
+
+        private float FloorDamageMultiplier =>
+            _currentFloor.ClimbScaled ? ClimbScaling.Damage(FloorNumber) : _currentFloor.EnemyDamageMultiplier;
 
         // A boss room on the foundry: its pack walks out of the gate instead of entering round the hero.
         private bool GateRoom(RoomDefinition room) =>
@@ -588,7 +596,7 @@ namespace Cryptforge.Combat
             FloorCleared?.Invoke();
         }
 
-        private void SpawnWave(WaveDefinition waveDefinition, bool atGate = false)
+        private void SpawnWave(WaveDefinition waveDefinition, bool atGate = false, bool boss = false)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -598,7 +606,8 @@ namespace Cryptforge.Combat
             float goldPercent = modifier != null ? modifier.GoldPercent : 0f;
             // An ordinary wave hardens only by the run's difficulty, which every evolution raises.
             float scale = RunDifficulty;
-            float damageBonus = FloorScaling.DamageBonus(_currentFloor.EnemyDamageMultiplier * scale, damagePercent);
+            float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale, damagePercent);
+            float floorHealth = FloorHealthMultiplier(boss);
 
             int count = waveDefinition.EnemyCount;
             var candidates = new Health[count];
@@ -617,8 +626,8 @@ namespace Cryptforge.Combat
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);
                 SpawnedEnemy spawn = CreateEnemy(definition,
-                    count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}", scale, healthPercent,
-                    damageBonus, goldPercent, out float reach);
+                    count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}", floorHealth * scale,
+                    healthPercent, damageBonus, goldPercent, out float reach);
                 int slot = _motion.Add(spawn.Health, _placements[i], definition.MoveSpeed, reach);
                 spawn.Slot = slot;
                 spawn.Health.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
@@ -636,12 +645,13 @@ namespace Cryptforge.Combat
 
         // One enemy, built and wired but not yet placed: the setup a wave and a swarm share, so the two can never drift apart.
         // Its weapon's reach comes back for the pack, which stops each enemy just inside it.
-        private SpawnedEnemy CreateEnemy(EnemyDefinition definition, string name, float scale, float healthPercent,
+        // healthScale is the floor's health tier times the difficulty the enemy walks in at.
+        private SpawnedEnemy CreateEnemy(EnemyDefinition definition, string name, float healthScale, float healthPercent,
             float damageBonus, float goldPercent, out float reach)
         {
             Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
             enemy.name = name;
-            enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, _currentFloor.EnemyHealthMultiplier * scale,
+            enemy.Initialize(FloorScaling.Health(definition.MaximumHealth, healthScale,
                 healthPercent));
             WeaponRuntime weapon = definition.Weapon.CreateRuntime();
             if (damageBonus != 0f)
