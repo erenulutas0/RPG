@@ -95,6 +95,29 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        [UnityTest, Timeout(90000)] public IEnumerator TheCameraTurnsToTheArrivingBossWhileTheFightWaits()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var reveal=setup.GetComponent<BossRevealView>();
+            var camera=Camera.main;var follow=camera.GetComponent<ArenaCameraFollow>();
+            yield return WaitForBoss(encounter);
+            Assert.That(reveal.IsRevealing,Is.True,"The boss walking out of the gate is presented.");
+            Assert.That(encounter.IsRevealHeld,Is.True,"Nothing is fought while the camera is away.");
+            Assert.That(follow.enabled,Is.False);
+            Vector3 boss=encounter.CurrentEnemy.transform.position;
+            yield return Hold(setup,BossRevealView.TurnSeconds+.3f);
+            Assert.That(reveal.Turn,Is.EqualTo(1f).Within(.001f),"The camera has turned fully to the gate.");
+            Assert.That(camera.transform.position.x,Is.EqualTo(boss.x).Within(.01f),"It frames the boss.");
+            Assert.That(encounter.CurrentEnemy.transform.position,Is.EqualTo(boss),"The boss waits at the gate meanwhile.");
+            yield return Hold(setup,BossRevealView.HoldSeconds+BossRevealView.TurnSeconds);
+            Assert.That(reveal.IsRevealing,Is.False);Assert.That(encounter.IsRevealHeld,Is.False);
+            Assert.That(follow.enabled,Is.True,"The camera follows the hero again.");
+            yield return Hold(setup,.5f);
+            Assert.That(encounter.CurrentEnemy.transform.position,Is.Not.EqualTo(boss),"Then the boss walks.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest, Timeout(90000)] public IEnumerator TheHallKeepsItsBossAroundTheHeroAndClearsOnTheKill()
         {
             yield return Load("hall");
@@ -102,6 +125,7 @@ namespace Cryptforge.Tests
             yield return WaitForBoss(encounter);
             encounter.CurrentEnemy.ApplyDamage(new DamageContext(1000000f));yield return null;ResolveUpgrades(setup);yield return null;ResolveUpgrades(setup);yield return null;
             Assert.That(encounter.IsGateExitOpen,Is.False,"Only the foundry has a gate.");
+            Assert.That(setup.GetComponent<BossRevealView>().IsRevealing,Is.False,"The hall's boss is not presented.");
             Assert.That(Object.FindFirstObjectByType<FoundryGateDoorMotion>(),Is.Null);
             Assert.That(setup.Run.HasEnded,Is.True);
             LogAssert.NoUnexpectedReceived();

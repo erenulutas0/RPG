@@ -133,6 +133,7 @@ namespace Cryptforge.Core
             RunTelemetryBridge telemetry = AttachTelemetry(equipped);
             telemetry.WatchDrops(Drops);
             gameObject.AddComponent<ExitSealView>().Initialize(this, _text);
+            gameObject.AddComponent<BossRevealView>().Initialize(this, movement);
             gameObject.AddComponent<GroundDropView>().Initialize(Drops, Run, _hero.transform, _groundRewardSprite, _encounters, _groundExperienceSprite);
             // After telemetry, so the choice is logged before Extract ends the run or Descend moves on.
             Checkpoint.Chosen += OnCheckpointChosen;

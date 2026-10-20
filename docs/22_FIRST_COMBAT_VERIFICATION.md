@@ -1734,3 +1734,13 @@ never rewrites them): region 38 renderers / 154,832 vertices. 443 .NET / 718 Edi
 36,409,937 bytes, SHA256 D156A70A7B6A90CBA1844F18E7085ADDC6C3532D9BAFA4663BEE8D6FFBD02B7D, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-gate-door-01.
+
+## 2026-10-20 - The camera presents the foundry boss at the gate
+
+When the foundry's boss walks out of the gate (`EncounterController.GateBossArrived`), `BossRevealView` turns the camera
+to it over 0.7 s, holds 1.2 s and turns back over 0.7 s, on the game clock (a pause freezes it). Meanwhile the encounter
+holds (`HoldForReveal`: no pack movement, no fight clock) and hero movement waits; a tap, the boss falling or the run
+ending turns the camera back at once, and disabling the view restores everything. The hall has no reveal.
+Tests: `GateBossFlowTests.TheCameraTurnsToTheArrivingBossWhileTheFightWaits` plus the existing gate/door/arrival suites.
+443 .NET / 718 EditMode / 164 PlayMode, zero failures; Verify-Project PASS; APK 36,409,705 bytes, SHA256
+529544441F51CE8C0581A76187F03D6D42C9300CDB9565495934AE4AEF5271DF, NOT INSTALLED.

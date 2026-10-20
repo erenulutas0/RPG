@@ -74,6 +74,7 @@ namespace Cryptforge.Combat
         private float _swarmHeroY;
         private int _swarmStep = -1;
         private bool _gateExitOpen;
+        private bool _revealHold;
         private int _roomsClearedOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
@@ -140,6 +141,11 @@ namespace Cryptforge.Combat
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
         public event Action FloorCleared;
+        // The foundry's boss has walked out of the gate (BossRevealView turns the camera to it).
+        public event Action GateBossArrived;
+        // While a view presents the arriving boss, the encounter holds still: no pack moves, no fight clock runs.
+        public bool IsRevealHeld => _revealHold;
+        public void HoldForReveal(bool hold) => _revealHold = hold;
         // A swarm room's ramp has moved to its next step, and the hero has walked out of a swarm room: for telemetry.
         public event Action SwarmStepped;
         public event Action SwarmLeft;
@@ -330,7 +336,7 @@ namespace Cryptforge.Combat
 
         private void Update()
         {
-            if (_floorProgress == null || _firstEncounterPending || !_hero.IsAlive)
+            if (_floorProgress == null || _firstEncounterPending || _revealHold || !_hero.IsAlive)
                 return;
 
             MovePack(Time.deltaTime);
@@ -641,6 +647,8 @@ namespace Cryptforge.Combat
             _fight.Begin();
             EncounterStarted?.Invoke();
             ProgressChanged?.Invoke();
+            if (atGate)
+                GateBossArrived?.Invoke();
         }
 
         // One enemy, built and wired but not yet placed: the setup a wave and a swarm share, so the two can never drift apart.
