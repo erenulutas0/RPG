@@ -1699,3 +1699,9 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
 438 .NET / 711 EditMode / 160 PlayMode, zero failures/skips. One new test (atlas margins, dark upper iron below the rejected light-iron level, neutral-warm hue, lit window rings). Isolated compile 0/0. Fresh Before (25 views, baseline c021c9a, clean Assets) and final After Android-target captures passed. PASS: 648 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,392,292 bytes; SHA256 4AC6C3275E2A9518A631CA8D74086E2332A06953D8C6623DD097E52D1EBD204C; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.
+
+## 2026-10-20 - Foundry reference retorts verified; device pending
+
+438 .NET / 712 EditMode / 160 PlayMode, zero failures/skips. The furnace-atlas test now covers both atlases (retorts: neutral-warm hue, > 250 lit window pixels per tile where the rejected flat hood had 149 and the old hoods 0). Isolated compile 0/0. Fresh Before (25 views, baseline a8eae77, clean Assets) and final After Android-target captures passed. PASS: 648 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,392,292 bytes; SHA256 3BDA245DF12816004B78D83D5E802290926D54011C9C5E7C567A6BA8AC80F8CE; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.

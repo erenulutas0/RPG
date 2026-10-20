@@ -962,3 +962,10 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
 - [ ] Next: short retorts and pipe collars; foundry boss and the upward map ladder; phone acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.
+
+## 2026-10-20 - Foundry reference retorts verified; device pending
+
+- [x] Causeway retorts joined to the reference tower family.
+- [ ] Next: foundry boss and the upward map ladder; pipe collars; phone acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.

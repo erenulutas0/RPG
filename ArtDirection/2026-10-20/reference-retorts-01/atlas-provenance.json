@@ -1,0 +1,32 @@
+{
+  "atlas": "Assets\\_Project\\Resources\\FoundryShortBoiler.png",
+  "size": [
+    2048,
+    1024
+  ],
+  "tiles": [
+    {
+      "source": "ArtDirection\\2026-10-20\\reference-retorts-01\\variant-0.png",
+      "sha256": "d9c855b5bb1d308102552df91ce55e7b99007b14787061d2994b96e2c24d87d3",
+      "alpha_bounds": [
+        169,
+        232,
+        855,
+        875
+      ],
+      "tile": 0
+    },
+    {
+      "source": "ArtDirection\\2026-10-20\\reference-retorts-01\\variant-1.png",
+      "sha256": "8839f416e68e17a5a46d6797ef683bff300e9cae2a67595637b4524ff475869a",
+      "alpha_bounds": [
+        169,
+        207,
+        855,
+        875
+      ],
+      "tile": 1
+    }
+  ],
+  "sha256": "734dc718e66e995e62efb1d7396c5058bb79a27e764496bb4d1d3c7a00ddbec7"
+}

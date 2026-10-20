@@ -1501,3 +1501,11 @@ Tall furnace towers toward the concept. New native Blender renders (Tools/ArtRev
 Region 37 renderers / 154820 vertices: unchanged (texture-only). Editor texture memory 2,502,304 bytes unchanged. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.
+
+## 2026-10-20 - Foundry reference retorts verified; device pending
+
+Causeway retorts joined to the reference towers' family. New native Blender renders (Tools/ArtReview/BuildBlenderReferenceRetorts.py, source ArtDirection/2026-10-20/reference-retorts-01) reuse the original retort constructors for the footing, masonry, fire doors and cornice and replace the blue rolled-steel hoods with blackened iron, brass bands and a ring of small glowing windows under a stepped ribbed dome (variant 0) or a merloned parapet (variant 1). Height <= 2.28, exhaust (0,0,2.28) and physical bounds equal the original (asserted in the generator); the atlas is repacked losslessly into the same tiles, so cards, depth bands, steam and import settings are unchanged.
+
+Region 37 renderers / 154820 vertices: unchanged (texture-only). Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.

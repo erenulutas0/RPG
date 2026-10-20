@@ -1358,3 +1358,9 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
 Tall furnace towers toward the concept. New native Blender renders (Tools/ArtReview/BuildBlenderReferenceTowers.py, source ArtDirection/2026-10-20/reference-towers-01) keep the original stone foundation, fire mouths and cornice and rebuild the upper towers as stacked blackened-iron drums ringed with small glowing arched windows, brass bands and a crenellated (near) or stepped ribbed dome (far) crown. Pipe contact (4.05), flue (0,0,7.2), footprint, camera and lights are unchanged; the atlas is repacked losslessly into the same two tiles, so runtime cards, depth bands, steam anchors and import settings (2048x1024 ASTC_6x6, 12 mips) are unchanged. Iron moved from the source's cyan-leaning forged blue (read teal in the court) to neutral-warm black.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.
+
+## 2026-10-20 - Foundry reference retorts verified; device pending
+
+Causeway retorts joined to the reference towers' family. New native Blender renders (Tools/ArtReview/BuildBlenderReferenceRetorts.py, source ArtDirection/2026-10-20/reference-retorts-01) reuse the original retort constructors for the footing, masonry, fire doors and cornice and replace the blue rolled-steel hoods with blackened iron, brass bands and a ring of small glowing windows under a stepped ribbed dome (variant 0) or a merloned parapet (variant 1). Height <= 2.28, exhaust (0,0,2.28) and physical bounds equal the original (asserted in the generator); the atlas is repacked losslessly into the same tiles, so cards, depth bands, steam and import settings are unchanged.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.

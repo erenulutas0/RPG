@@ -1,0 +1,8 @@
+2026-10-20 foundry-reference-retorts-01 work record (single lead)
+- Owner: continue with the proposed items (retorts, then boss/floor system).
+- Render iterations: flat dome and tiny windows (rejected, kept as source evidence); taller drum, larger windows and a
+  raised dome (accepted). The generator asserts the original height, outlet and physical-bounds contract.
+- A cleanup `rm` of stale .blend files with a shell variable was refused by the safety check and not run; the generator
+  overwrites those files anyway.
+- Before captured at clean a8eae77 before the atlas was repacked.
+- Focused EditMode 310/310; freeze 295370d94298...; final After; full suites + APK; freeze unchanged; Verify-Project PASS.
