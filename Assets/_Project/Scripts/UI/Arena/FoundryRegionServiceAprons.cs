@@ -8,7 +8,7 @@ namespace Cryptforge.UI
         // trolley and north stock approach. Its east shoulder returns to ordinary
         // court flags before the pit-side passage. Only existing laid stones change;
         // the walking union, forced brass joints, seal and gate remain intact.
-        private static bool ServiceApronFlag(Builder mesh,AshlarStone s)
+        private static bool ServiceApronClaims(AshlarStone s)
         {
             if(s.Zone!=0&&s.Zone!=3)return false;
             float u=(s.I+s.W*.5f)*.5f,v=(s.J+s.H*.5f)*.5f;
@@ -17,7 +17,12 @@ namespace Cryptforge.UI
             // All stones in the core belong to one repair. Only its outer shoulder
             // admits existing flags, breaking a perfect rectangle without noisy holes.
             uint hash=PavingHash(s.I,s.J,117);
-            if(weight<1&&(hash&65535u)/65535f>weight)return false;
+            return weight>=1||(hash&65535u)/65535f<=weight;
+        }
+
+        private static bool ServiceApronFlag(Builder mesh,AshlarStone s)
+        {
+            if(!ServiceApronClaims(s))return false;
 
             bool alongU=s.W>=s.H;
             int span=alongU?s.W:s.H;

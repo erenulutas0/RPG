@@ -934,3 +934,10 @@ Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.
 - [ ] Fine atlas grain versus baked bays (needs a new/re-baked stone source), inner-pier hue alignment, reference fidelity, phone acceptance and crowd congestion remain open.
 
 Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.
+
+## 2026-10-20 - Foundry court flagstones verified; device pending
+
+- [x] Court laid as irregular flagstone (V9 raster + continuous light lattice), fitted stone cooled to one family; -19k vertices.
+- [ ] Next: concept brass inlay network (octagon ring, spokes, lane lines); denser rim braziers/props; furnace towers in dark iron + brass; foundry boss and the upward map ladder; phone acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.

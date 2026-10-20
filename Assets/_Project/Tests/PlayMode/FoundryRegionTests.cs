@@ -310,10 +310,16 @@ namespace Cryptforge.Tests
             Assert.That(arena.Region,Is.Not.Null);Assert.That(arena.Platform,Is.Null);
             // Test the actual generated triangles, not just the map predicates: clipped ashlar
             // must leave the removed tips empty and keep the lanes/bridge covered.
-            Mesh paving=null;
+            // The walking floor is the fitted V8 paving plus the open court's laid
+            // flagstone batch; coverage is tested on their actual union.
+            var floorParts=new System.Collections.Generic.List<CombineInstance>();
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
-                if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving)paving=renderer.GetComponent<MeshFilter>().sharedMesh;
-            Assert.That(paving,Is.Not.Null);
+                if(renderer.sharedMaterial==arena.PlatformMaterials.FoundryPaving||renderer.sharedMaterial==arena.PlatformMaterials.FoundryFlagstone)
+                    floorParts.Add(new CombineInstance{mesh=renderer.GetComponent<MeshFilter>().sharedMesh,transform=Matrix4x4.identity});
+            Assert.That(floorParts.Count,Is.EqualTo(2),"One fitted paving batch and one laid flagstone batch.");
+            Assert.That(arena.PlatformMaterials.FoundryFlagstone,Is.Not.SameAs(arena.PlatformMaterials.FoundryPaving));
+            Mesh paving=new Mesh{indexFormat=UnityEngine.Rendering.IndexFormat.UInt32};
+            paving.CombineMeshes(floorParts.ToArray(),true,true,false);
             AssertWorkIslandContacts(arena,paving);
             AssertBoilerDrainContacts(arena);
             AssertSouthChainContacts(arena);
@@ -339,6 +345,7 @@ namespace Cryptforge.Tests
                 Vector3 p=FoundrySurface.Project(sample.x,sample.y);
                 Assert.That(FloorCovers(paving,new Vector2(p.x,p.y)),Is.EqualTo(sample.z>0),$"Rendered floor at {sample}");
             }
+            Object.Destroy(paving);
             var gate=arena.PlatformMaterials.GateFacade;
             Assert.That(gate,Is.Not.Null,"Foundry facade must be an imported shared material.");
             Assert.That(((Texture2D)gate.mainTexture).isReadable,Is.False);
@@ -392,6 +399,17 @@ namespace Cryptforge.Tests
             Assert.That(pavingTexture.anisoLevel,Is.EqualTo(2));
 #if UNITY_ANDROID
             Assert.That(pavingTexture.format,Is.EqualTo(TextureFormat.ASTC_6x6));
+#endif
+            var flagstoneTexture=(Texture2D)arena.PlatformMaterials.FoundryFlagstone.mainTexture;
+            Assert.That(flagstoneTexture.name,Is.EqualTo("FoundryPavingV9"));
+            Assert.That(flagstoneTexture.width,Is.EqualTo(1024));
+            Assert.That(flagstoneTexture.height,Is.EqualTo(1024));
+            Assert.That(flagstoneTexture.mipmapCount,Is.EqualTo(11));
+            Assert.That(flagstoneTexture.filterMode,Is.EqualTo(FilterMode.Trilinear));
+            Assert.That(flagstoneTexture.wrapMode,Is.EqualTo(TextureWrapMode.Repeat));
+            Assert.That(flagstoneTexture.anisoLevel,Is.EqualTo(2));
+#if UNITY_ANDROID
+            Assert.That(flagstoneTexture.format,Is.EqualTo(TextureFormat.ASTC_6x6));
 #endif
             var castIron=arena.PlatformMaterials.FoundryCastIron;
             var castTexture=(Texture2D)castIron.mainTexture;
@@ -640,8 +658,8 @@ namespace Cryptforge.Tests
             Assert.That(boilerMeshes.Count,Is.EqualTo(4),"Two atlases retain exactly four shared depth-band batches.");
             Assert.That(gateMasonryBatches,Is.EqualTo(2),"The one borrowed gate texture uses exactly two depth-rank cards.");
             Assert.That(otherBatches,Is.LessThanOrEqualTo(24),"The pre-existing native material/rank budget is unchanged.");
-            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(36),
-                "The two gate cards add two measured batches to the previous 34-renderer region.");
+            Assert.That(arena.Region.GetComponentsInChildren<MeshRenderer>().Length,Is.LessThanOrEqualTo(37),
+                "The two gate cards add two measured batches to the previous 34-renderer region; the laid court flagstone adds one material batch while removing ~19k paving vertices.");
 
 
             foreach(var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())

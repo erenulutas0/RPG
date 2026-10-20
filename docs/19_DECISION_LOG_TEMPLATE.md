@@ -1332,3 +1332,11 @@ Gate crown/header stone study. Diagnosis from actual captures and the source atl
 Region 36 renderers / 172160 vertices versus 171940: +220 from the narrower patch's extra mirror folds. Distant 3572 included and unchanged. Ceilings 174000 / 3600; headroom 1840 / 28. No new bitmap, material, shader, batch or updater. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.
+
+## 2026-10-20 - Foundry court flagstones verified; device pending
+
+Decision: from 2026-10-20 Claude owns visuals and gameplay; the foundry is the first of upward-stacked maps and ends in a boss. Court flagstone package. The open court (packer zones 0 and 3, minus the claimed work-apron repairs) is now laid as irregular hand-fitted flags like the approved concept instead of rectangular ashlar. Joints, worn arrises, quarry value and grain live in a new seamlessly tiling 1024 raster FoundryPavingV9 (procedural source Tools/ArtReview/GenerateFoundryFlagstones.py: relaxed periodic Voronoi, ~60 flags per 12-unit tile, mean luma .520 = ~8 % above the V8 calibration, faintly cool). The mesh keeps only the packer footprints as tessellation for the continuous forge-light, use and contact field (no per-footprint tint, so no rectangular checker); a new MAT_FoundryFlagstone batch at the paving order. Ceremonial seal/ring, processional stones, bridge, gate apron and work-apron repairs keep their fitted V8 geometry; the V8 material gains one restrained cool balance (_Color .5717/.5894/.6252, luma unchanged) so they sit in the same stone family. Measured court value moves toward the concept: full-map (74,67,71) -> (76,71,80) against the concept's (83,79,89); actors stay readable.
+
+Region 37 renderers / 152889 vertices versus 36 / 172160: one new material batch, -19271 vertices (the laid ashlar's joint beds, bevel strips and contours). Distant 3572 unchanged. Ceilings 174000 / 3600; headroom now 21111 / 28. The PlayMode renderer guard moves 36 -> 37 for this batch. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.

@@ -1,0 +1,23 @@
+2026-10-20 foundry-court-flagstone-01 work record (lead + one read-only Explore helper)
+- Gap analysis against the concept: the largest visible gap is the court floor (shape: irregular flags vs rectangular
+  ashlar with a light/dark checker; hue warm vs cool; value ~13 % low). Flag size is already comparable (1-2 units).
+- Helper mapped the floor pipeline, colour constants, brass emitters and constraining tests (read-only, no edits).
+- Procedural raster iterations: v1 white aliased rims (raster distance transform) -> v2 continuous Voronoi edge distance
+  -> v3 domain-warped edges, veins, stronger grain; 60 flags per 12-unit tile for 1-2 unit flags.
+- MISTAKE: the first launcher copy was named FoundryFlagstoneCapture and overwrote the committed 2026-10-10 tools of the
+  same name. Detected from git diff, restored with git checkout, new tools renamed FoundryCourtFlagstone*. The prototype
+  package from that launcher is kept only as candidates/00; the Before was retaken with clean Assets at aa1f390.
+- Focused failures, each diagnosed before changing anything:
+  (1) the old compass ownership test called BuildPavingCell with the old signature -> updated to build both layers;
+  (2) the new continuity oracle compared coincident vertices after corner clipping, which interpolates along different
+      collinear edges (0.09 %, then 2.6 % inside a fire pool) -> replaced by an exact pre-clip field oracle (largest
+      deviation 0.000000);
+  (3) the new overlap oracle counted the V8 bed-under-face construction -> narrowed to flagstone-vs-fitted overlap;
+  (4) the repair oracle sampled the weight at the point, but repairs claim whole stones by centre -> requires the full
+      1.8-unit neighbourhood.
+  (5) the first full run failed PlayMode FlagCreatesPlayableMapAndReloadReleasesMeshes ("Raised work stands above real
+      continuous floor triangles"): the test took the single FoundryPaving mesh as the floor. It now tests the actual union
+      of the fitted and flagstone batches (and checks the V9 import state); the APK was skipped by that run, the freeze and
+      the final After were retaken after the test change.
+  No production change came from (2)-(5).
+- Final: freeze 248b71610238...; final After; full suites + APK; freeze unchanged; Verify-Project PASS.

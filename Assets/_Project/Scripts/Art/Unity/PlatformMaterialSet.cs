@@ -17,6 +17,7 @@ namespace Cryptforge.Art
         [SerializeField] private Material _foundryCastIron;
         [SerializeField] private Material _foundryEmbers;
         [SerializeField] private Material _foundryPaving;
+        [SerializeField] private Material _foundryFlagstone;
         [SerializeField] private Material _forgeKeeper;
         public Material ForgeKeeper => _forgeKeeper;
         public Material Floor => _floor;
@@ -30,6 +31,7 @@ namespace Cryptforge.Art
         public Material FoundryCastIron => _foundryCastIron != null ? _foundryCastIron : FoundryIron;
         public Material FoundryEmbers => _foundryEmbers;
         public Material FoundryPaving => _foundryPaving != null ? _foundryPaving : _floor;
+        public Material FoundryFlagstone => _foundryFlagstone != null ? _foundryFlagstone : FoundryPaving;
         public bool IsValid => Complete(_floor) && Complete(_coping) && Complete(_wall);
         private static bool Complete(Material material) => material != null && material.mainTexture != null;
         public Material ForPart(int index) => index == 0 ? _floor : index < 5 ? _coping : _wall;

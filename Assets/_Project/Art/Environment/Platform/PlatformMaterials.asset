@@ -23,4 +23,5 @@ MonoBehaviour:
   _foundryCastIron: {fileID: 2100000, guid: 857719c302f84784be4344b0a245dc7c, type: 2}
   _foundryEmbers: {fileID: 2100000, guid: 2bb991504960a7041a93e0c78c0bc9b2, type: 2}
   _foundryPaving: {fileID: 2100000, guid: bb0e7a77a8343c145bb92c982d7526df, type: 2}
+  _foundryFlagstone: {fileID: 2100000, guid: 1ed06d17ef6641aaa117e16b3303a402, type: 2}
   _forgeKeeper: {fileID: 2100000, guid: 735dd49b22004c4685f19a31c48d7184, type: 2}

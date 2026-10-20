@@ -266,12 +266,14 @@ namespace Cryptforge.UI
         // those cells is: every stone is built exactly once, whatever order Build visits the cells in.
         private Dictionary<Vector2Int,List<AshlarStone>> _ashlar;
 
-        private void BuildPavingCell(Builder mesh,Vector2Int cell)
+        private void BuildPavingCell(Builder mesh,Builder flags,Vector2Int cell)
         {
             if(_ashlar==null)LayCourtAshlar();
             if(!_ashlar.TryGetValue(cell,out var stones))return;
             _ashlar.Remove(cell);
-            foreach(var stone in stones)AshlarFlag(mesh,stone);
+            foreach(var stone in stones)
+                if(CourtFlagstone(stone))CourtFlagstoneFace(flags,stone);
+                else AshlarFlag(mesh,stone);
         }
 
         private void LayCourtAshlar()

@@ -261,20 +261,24 @@ namespace Cryptforge.Tests
                 for(int r=0;r<FoundryMap.RectangleCount;r++)
                     for(int x=FoundryMap.Bound(r,0);x<FoundryMap.Bound(r,2);x++)
                         for(int y=FoundryMap.Bound(r,1);y<FoundryMap.Bound(r,3);y++)cells.Add(new Vector2Int(x,y));
-                object mesh=NewBuilder();
+                // The open court's laid flagstones are a separate batch; both
+                // base layers are carved by the same ceremonial footprints.
+                object mesh=NewBuilder(),flags=NewBuilder();
                 MethodInfo build=typeof(FoundryRegionView).GetMethod("BuildPavingCell",Members);
-                foreach(Vector2Int cell in cells)build.Invoke(view,new object[]{mesh,cell});
-                Invoke("ClipFloorCorners",mesh);Invoke("BuildBridgeDeck",mesh);
-                int originalVertices=Data<Vector3>(mesh,"V").Count;
+                foreach(Vector2Int cell in cells)build.Invoke(view,new object[]{mesh,flags,cell});
+                Invoke("ClipFloorCorners",mesh);Invoke("ClipFloorCorners",flags);Invoke("BuildBridgeDeck",mesh);
+                int originalVertices=Data<Vector3>(mesh,"V").Count,originalFlags=Data<Vector3>(flags,"V").Count;
                 Vector2 outside=Project(new Vector2(8.213f,-13.149f));
-                int outsideOwners=Owners(outside,mesh);
-                string outsideWitness=OwnerWitness(outside,mesh);
+                int outsideOwners=Owners(outside,mesh)+Owners(outside,flags);
+                string outsideWitness=OwnerWitness(outside,mesh)+" / "+OwnerWitness(outside,flags);
                 Assert.That(outsideOwners,Is.GreaterThan(0));
-                Invoke("ReplaceCourtPavingBase",mesh);
-                int clippedVertices=Data<Vector3>(mesh,"V").Count;
-                Assert.That(Owners(outside,mesh),Is.EqualTo(outsideOwners),
+                Invoke("ReplaceCourtPavingBase",mesh);Invoke("ReplaceCourtPavingBase",flags);
+                int clippedVertices=Data<Vector3>(mesh,"V").Count,clippedFlags=Data<Vector3>(flags,"V").Count;
+                Assert.That(Owners(outside,mesh)+Owners(outside,flags),Is.EqualTo(outsideOwners),
                     "Court carving must preserve ordinary paving outside the agreed fields. Before: "+outsideWitness+
-                    " After: "+OwnerWitness(outside,mesh));
+                    " After: "+OwnerWitness(outside,mesh)+" / "+OwnerWitness(outside,flags));
+                var usedFlags=new HashSet<int>(Data<int>(flags,"T"));
+                Assert.That(usedFlags.Count,Is.EqualTo(clippedFlags),"Removed flagstone vertices must not inflate the uploaded mesh.");
                 var used=new HashSet<int>(Data<int>(mesh,"T"));
                 Assert.That(used.Count,Is.EqualTo(Data<Vector3>(mesh,"V").Count),"Removed source vertices must not inflate the uploaded mesh.");
                 var samples=new List<Vector2>();
@@ -289,7 +293,11 @@ namespace Cryptforge.Tests
                     for(int i=0;i<11;i++)samples.Add(CourtCentre+direction*Mathf.Lerp(5.371f,Vector2.Distance(end,CourtCentre)-.131f,i/10f)+side*((i%3-1)*1.923f));
                 }
                 samples.AddRange(BridgeContinuationSamples());
-                foreach(Vector2 p in samples)Assert.That(Owners(Project(p),mesh),Is.Zero,"Every real bed, bevel and flag top must be absent beneath the replacement.");
+                foreach(Vector2 p in samples)
+                {
+                    Assert.That(Owners(Project(p),mesh),Is.Zero,"Every real bed, bevel and flag top must be absent beneath the replacement.");
+                    Assert.That(Owners(Project(p),flags),Is.Zero,"No laid flagstone survives beneath the ceremonial replacement.");
+                }
                 Invoke("BuildCourtStoneRing",mesh);
                 int ringVertices=Data<Vector3>(mesh,"V").Count-clippedVertices;
                 Invoke("BuildCourtProcessionalStone",mesh);
@@ -297,7 +305,8 @@ namespace Cryptforge.Tests
                 Invoke("BuildCourtBridgeStone",mesh);
                 int bridgeVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices-pathVertices;
                 foreach(Vector2 p in samples)AssertOneOwner(Project(p),mesh,"The actual built floor must have exactly one replacement at the medallion and bridge approach.");
-                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; ring={ringVertices}; paths={pathVertices}; bridge={bridgeVertices}; final={Data<Vector3>(mesh,"V").Count}.");
+                Assert.That(clippedFlags,Is.LessThanOrEqualTo(originalFlags+2000));
+                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; flagstones {originalFlags}->{clippedFlags}; ring={ringVertices}; paths={pathVertices}; bridge={bridgeVertices}; final={Data<Vector3>(mesh,"V").Count}.");
                 Assert.That(clippedVertices,Is.LessThanOrEqualTo(originalVertices+2000),
                     "The four fixed footprint boundaries retain the same bounded intersection-vertex allowance.");
                 Assert.That(ringVertices,Is.LessThanOrEqualTo(6500));

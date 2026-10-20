@@ -1675,3 +1675,9 @@ Evidence/reproduction: ArtDirection/2026-10-19/foundry-trolley-01.
 438 .NET / 704 EditMode / 160 PlayMode, zero failures/skips. Focused Foundry EditMode 302/302 (three new crown-finish tests; the surface and inner-pier field oracles now read the shared patch). Isolated compile 0 warnings/0 errors. Fresh Before (24 views, baseline 3ce2626, clean Assets) and final After Android-target graphics captures passed. PASS: 640 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,387,952 bytes; SHA256 405D15BE7118022258D85EDDD419848681BEB0350029D29B124E765F9597DF39; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.
+
+## 2026-10-20 - Foundry court flagstones verified; device pending
+
+438 .NET / 707 EditMode / 160 PlayMode, zero failures/skips. Three new flagstone tests (continuous field and exact coverage; seamless calibrated raster and import; one cool stone family across both materials); the compass ownership test now builds both base layers. Isolated compile 0/0. Fresh Before (25 views, baseline aa1f390, clean Assets) and final After Android-target captures passed. PASS: 644 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 31,210,485 bytes; SHA256 D0441EF3D7721C1A61D986D31BEB91A507D488160213425FA8E2626125A2A857; NOT INSTALLED. V9 ships as 611.7 KB ASTC_6x6 (build report); the APK is ~5 MB smaller than the previous 36,387,952-byte build for reasons this package does not establish.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.

@@ -36,12 +36,12 @@ namespace Cryptforge.UI
             for(int r=0;r<FoundryMap.RectangleCount;r++)
                 for(int x=FoundryMap.Bound(r,0);x<FoundryMap.Bound(r,2);x++)
                     for(int y=FoundryMap.Bound(r,1);y<FoundryMap.Bound(r,3);y++)_cells.Add(new Vector2Int(x,y));
-            var floor=new Builder();var walls=new Builder();var trim=new Builder();
+            var floor=new Builder();var flags=new Builder();var walls=new Builder();var trim=new Builder();
             foreach(var cell in _cells)
             {
                 float x=cell.x,y=cell.y;
                 var p=new[]{Project(x,y),Project(x+1,y),Project(x+1,y+1),Project(x,y+1)};
-                BuildPavingCell(floor,cell);
+                BuildPavingCell(floor,flags,cell);
                 var neighbours=new[]{Vector2Int.down,Vector2Int.right,Vector2Int.up,Vector2Int.left};
                 for(int i=0;i<4;i++)if(!FoundryMap.UncutCell(cell.x+neighbours[i].x,cell.y+neighbours[i].y))
                 {
@@ -54,7 +54,7 @@ namespace Cryptforge.UI
                     MapCoping(trim,CopingTrim.Stone,cell.x*7+cell.y*13+i);
                 }
             }
-            ClipFloorCorners(floor);
+            ClipFloorCorners(floor);ClipFloorCorners(flags);
             BuildDiagonalCourtEdges(arena,walls,trim);
             // Exact straight bridge, using the same diagonal inequalities as movement.
             var bridge=new[]{Deck(FoundryMap.BridgeStart,-FoundryMap.BridgeHalfWidth),Deck(FoundryMap.BridgeStart,FoundryMap.BridgeHalfWidth),
@@ -81,11 +81,13 @@ namespace Cryptforge.UI
                 rail.WallQuad(a+Vector3.up*.3f,b+Vector3.up*.3f,b+Vector3.up*.3f+outward*.25f,a+Vector3.up*.3f+outward*.25f,true,Color.white);
                 Create("Bridge coping",rail,arena.PlatformMaterials.FoundryWall,-14);
             }
-            ReplaceCourtPavingBase(floor);
+            ReplaceCourtPavingBase(floor);ReplaceCourtPavingBase(flags);
+            CourtFlagstoneField(flags);
             BuildCourtStoneRing(floor);
             BuildCourtProcessionalStone(floor);
             BuildCourtBridgeStone(floor);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);
+            Create("Court laid flagstones",flags,arena.PlatformMaterials.FoundryFlagstone,-15);
             Create("Layout sidewalls",walls,arena.PlatformMaterials.FoundryWall,-16);
             Create("Layout coping",trim,arena.PlatformMaterials.Coping,FloorDecal);
             // The thin rim parapet gave way to the continuous balustrade BuildMassing raises (2026-09-30).
