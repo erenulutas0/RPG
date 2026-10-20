@@ -1,0 +1,8 @@
+2026-10-20 foundry-court-inlay-01 work record (single lead)
+- Planned the network on the actual full-map capture with a design->screen overlay (scratch brass_plan.py): R 7.5 touched
+  the pit corner and unclipped spokes left the court, so R 7 and walkability clipping were chosen.
+- PROCESS SLIP: the runtime file and BuildLandmarks call were written before the Before capture. They were moved aside
+  (file to scratch, View.cs via git diff/checkout), the Before was captured at clean 94a925f, then restored with git apply.
+- Candidate 01 too faint at map scale; candidate 02 accepted.
+- Focused EditMode 307/307 on the first run (two new tests).
+- Final: freeze 32fa83c6b6cc...; final After; full suites + APK; freeze unchanged; Verify-Project PASS.

@@ -1681,3 +1681,9 @@ Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.
 438 .NET / 707 EditMode / 160 PlayMode, zero failures/skips. Three new flagstone tests (continuous field and exact coverage; seamless calibrated raster and import; one cool stone family across both materials); the compass ownership test now builds both base layers. Isolated compile 0/0. Fresh Before (25 views, baseline aa1f390, clean Assets) and final After Android-target captures passed. PASS: 644 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 31,210,485 bytes; SHA256 D0441EF3D7721C1A61D986D31BEB91A507D488160213425FA8E2626125A2A857; NOT INSTALLED. V9 ships as 611.7 KB ASTC_6x6 (build report); the APK is ~5 MB smaller than the previous 36,387,952-byte build for reasons this package does not establish.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.
+
+## 2026-10-20 - Foundry court bronze inlay network verified; device pending
+
+438 .NET / 709 EditMode / 160 PlayMode, zero failures/skips. Two new inlay tests (open-floor clipping, seal and boiler clearance, metal course, bounded light; octagon edges, spokes kept off the processional stone, paired lane lines). Isolated compile 0/0. Fresh Before (25 views, baseline 94a925f, clean Assets) and final After Android-target captures passed. PASS: 646 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,391,867 bytes; SHA256 72B72988DFEF9F2CB7C2A587D4377D3FD137700A11887361EBC4A2B9E372F3CE; NOT INSTALLED. The APK is back near 36.39 MB, so the previous 31.2 MB build size was build-to-build variance, not this content.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.

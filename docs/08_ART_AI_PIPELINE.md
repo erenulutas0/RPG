@@ -1477,3 +1477,11 @@ Court flagstone package. The open court (packer zones 0 and 3, minus the claimed
 Region 37 renderers / 152889 vertices versus 36 / 172160: one new material batch, -19271 vertices (the laid ashlar's joint beds, bevel strips and contours). Distant 3572 unchanged. Ceilings 174000 / 3600; headroom now 21111 / 28. The PlayMode renderer guard moves 36 -> 37 for this batch. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.
+
+## 2026-10-20 - Foundry court bronze inlay network verified; device pending
+
+Court bronze inlay network after the concept: an octagon setting (R 7) around the seal, spokes from seven of its vertices to the rim and paired lane lines beside both processional ways (the eighth spoke would run down the bridge way and is replaced by its lane lines). Every line uses the seal's construction - a .14 stone channel with an .08 worn metal course on the coping rail, WeatherHeraldry and the ordinary LightFloorDecals response (<= 1.9) - and joins the existing single floor-decal batch. Lines are sampled every .25 units and clipped to open walking floor (FoundryMap.Contains with .55 clearance), outside the seal stone, boiler plinths and every forge-lamp box, so none runs into the pit, under equipment or past the kerb. First candidate (.085/.05) was too faint at map scale.
+
+Region 37 renderers / 154393 vertices versus 152889: +1504 (thin strips). No new batch, material or texture. Distant 3572 unchanged. Ceilings 174000 / 3600; headroom 19607 / 28. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.

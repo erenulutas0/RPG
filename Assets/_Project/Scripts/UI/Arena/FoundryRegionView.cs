@@ -277,6 +277,7 @@ namespace Cryptforge.UI
             var inlays=new Builder();
             Color brass=CeremonialBrass;
             BuildCourtSeal(arena);
+            BuildCourtInlayNetwork(arena);
             foreach(float d in new[]{-BridgeLaneHalf,BridgeLaneHalf})
             {
                 Vector2 a=DeckDesign(FoundryMap.BridgeStart+2,d),b=DeckDesign(2*FoundryMap.South-1,d);

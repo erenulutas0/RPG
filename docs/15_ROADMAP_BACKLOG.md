@@ -941,3 +941,10 @@ Evidence/reproduction: ArtDirection/2026-10-19/foundry-gate-crown-01.
 - [ ] Next: concept brass inlay network (octagon ring, spokes, lane lines); denser rim braziers/props; furnace towers in dark iron + brass; foundry boss and the upward map ladder; phone acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.
+
+## 2026-10-20 - Foundry court bronze inlay network verified; device pending
+
+- [x] Concept bronze inlay network (octagon, spokes, lane lines) clipped to open floor.
+- [ ] Next: denser rim braziers/props; furnace towers in dark iron + brass; foundry boss and the upward map ladder; phone acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.

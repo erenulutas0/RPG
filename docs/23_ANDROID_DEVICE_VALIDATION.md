@@ -2273,3 +2273,7 @@ APK 36,387,952 bytes, SHA256 405D15BE7118022258D85EDDD419848681BEB0350029D29B124
 ## 2026-10-20 - Foundry court flagstones verified; device pending
 
 APK 31,210,485 bytes, SHA256 D0441EF3D7721C1A61D986D31BEB91A507D488160213425FA8E2626125A2A857: built, NOT INSTALLED. No phone operation, install, input, save or telemetry change.
+
+## 2026-10-20 - Foundry court bronze inlay network verified; device pending
+
+APK 36,391,867 bytes, SHA256 72B72988DFEF9F2CB7C2A587D4377D3FD137700A11887361EBC4A2B9E372F3CE: built, NOT INSTALLED. No phone operation, install, input, save or telemetry change.
