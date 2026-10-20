@@ -78,7 +78,7 @@ namespace Cryptforge.UI
         {
             if(_plate==null)return;
             var encounter=_setup.Encounters;
-            bool visible=enabled&&encounter.IsInSwarmRoom&&!encounter.IsFloorCleared&&!_setup.Run.HasEnded;
+            bool visible=enabled&&encounter.IsExitOpen&&!_setup.Run.HasEnded;
             _plate.SetActive(visible);_label.gameObject.SetActive(visible);_arrow.enabled=false;
             ShownProgress=visible?Mathf.Clamp01(encounter.ExitHeldSeconds/ExitRule.DwellSeconds):0;
             if(!visible)return;
@@ -107,7 +107,8 @@ namespace Cryptforge.UI
                 _arrow.SetPosition(0,-direction*.16f+side*.10f);_arrow.SetPosition(1,Vector3.zero);_arrow.SetPosition(2,-direction*.16f-side*.10f);
             }
             _label.transform.position=cue+Vector3.down*.45f;
-            string instruction=outside?_text.ExitDirection:_text.ExitInstruction;
+            bool gate=encounter.IsGateExitOpen;
+            string instruction=outside?(gate?_text.GateDirection:_text.ExitDirection):(gate?_text.GateInstruction:_text.ExitInstruction);
             if(_label.text!=instruction)_label.text=instruction;
         }
         private void OnDisable(){if(_plate!=null)_plate.SetActive(false);if(_label!=null)_label.gameObject.SetActive(false);if(_arrow!=null)_arrow.enabled=false;}

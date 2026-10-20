@@ -457,5 +457,49 @@ namespace Cryptforge.Tests
                 Assert.That(ArenaFloor.FloorDistanceSquared(x,y,hx,hy),Is.LessThanOrEqualTo(.04f),"A routed enemy must reach the hero.");
             }
         }
+    
+        // A boss that walks out of the gate reaches a hero anywhere on the court by the same pursuit as every enemy.
+        [Test] public void GateBossRoutesFromTheLandingToTheCourt()
+        {
+            var placements=new EntryPlacement[1];FoundryMap.PlaceAtGate(1,placements);
+            foreach(var goal in new[]{new[]{0f,0f},new[]{-3f,-5f},new[]{-20f,6f},new[]{-23f,-23f}})
+            {
+                float x=placements[0].X,y=placements[0].Y;
+                FoundryMap.ToFloor(goal[0],goal[1],out float hx,out float hy);
+                var route=new FoundryPursuit();
+                for(int tick=0;tick<8000&&ArenaFloor.FloorDistanceSquared(x,y,hx,hy)>.04f;tick++)
+                {
+                    float tx=hx,ty=hy;route.Target(x,y,hx,hy,ref tx,ref ty);
+                    float dx=tx-x,dy=ty-y;float length=(float)System.Math.Sqrt(dx*dx+dy*dy);
+                    if(length>0)FoundryMap.Move(ref x,ref y,dx/length*System.Math.Min(.08f,length),dy/length*System.Math.Min(.08f,length),.6f);
+                }
+                Assert.That(ArenaFloor.FloorDistanceSquared(x,y,hx,hy),Is.LessThanOrEqualTo(.04f),$"The gate boss must reach a hero at ({goal[0]},{goal[1]}).");
+            }
+        }
+
+        // The boss walks out of the gate onto its landing and the opened gate is held from the landing's centre line: every
+        // spot is open walking floor the hero and the pack can reach, in front of the door, with the boss nearer the door.
+        [Test] public void GateBossAndOpenedGateExitStandOnTheLanding()
+        {
+            FoundryMap.GateExitSpot(out float ex,out float ey);
+            Assert.That(FoundryMap.Contains(ex,ey,HeroMotion.EdgeMargin+.02f),Is.True,"The hero can stand on the gate exit.");
+            FoundryMap.ToDesign(ex,ey,out float eu,out float ev);
+            Assert.That(eu,Is.InRange((float)FoundryMap.GateLandingStart,(float)FoundryMap.GateLandingEnd));
+            Assert.That(ev,Is.EqualTo(FoundryMap.GateExitV).Within(.001f),"The exit stands on the door's axis.");
+            var placements=new EntryPlacement[5];
+            FoundryMap.PlaceAtGate(placements.Length,placements);
+            for(int i=0;i<placements.Length;i++)
+            {
+                Assert.That(FoundryMap.Contains(placements[i].X,placements[i].Y,HeroMotion.EdgeMargin+.02f),Is.True,$"Gate arrival {i} is open floor.");
+                FoundryMap.ToDesign(placements[i].X,placements[i].Y,out float u,out _);
+                Assert.That(u,Is.GreaterThan(eu).And.LessThan(FoundryMap.GateLandingEnd),"The pack stands between the exit and the door.");
+                Assert.That(FoundryMap.Segment(placements[i].X,placements[i].Y,ex,ey,HeroMotion.EdgeMargin),Is.True,"It can walk off the landing.");
+                for(int j=0;j<i;j++)
+                    Assert.That(ArenaFloor.FloorDistanceSquared(placements[i].X,placements[i].Y,placements[j].X,placements[j].Y),
+                        Is.GreaterThanOrEqualTo(.9f*.9f),"Arrivals keep body spacing.");
+            }
+            FoundryMap.ToDesign(placements[0].X,placements[0].Y,out _,out float bv);
+            Assert.That(bv,Is.EqualTo(ev).Within(.001f),"The boss walks out on the door's axis.");
+        }
     }
 }

@@ -12,6 +12,10 @@ namespace Cryptforge.Content
         [SerializeField] private string _exitDirection = "EXIT";
         public string ExitInstruction => _exitInstruction;
         public string ExitDirection => _exitDirection;
+        [SerializeField] private string _gateInstruction = "GATE - Stand still to climb";
+        [SerializeField] private string _gateDirection = "GATE";
+        public string GateInstruction => _gateInstruction;
+        public string GateDirection => _gateDirection;
         [SerializeField] private string _floorProgressFormat;
         [SerializeField] private string _waveFormat;
         [SerializeField] private string _victoryFormat;

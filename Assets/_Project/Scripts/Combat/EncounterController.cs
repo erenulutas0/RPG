@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Economy;
@@ -72,6 +73,7 @@ namespace Cryptforge.Combat
         private float _swarmHeroX;
         private float _swarmHeroY;
         private int _swarmStep = -1;
+        private bool _gateExitOpen;
         private int _roomsClearedOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
@@ -125,6 +127,11 @@ namespace Cryptforge.Combat
         public float SwarmSeconds => _swarm != null ? _swarm.Seconds : 0f;
         public int SwarmWave => _swarm != null ? (int)(_swarm.Seconds / SwarmRule.StepSeconds) + 1 : 0;
         public float SwarmDifficulty => _swarm != null ? SwarmRule.DifficultyAtSeconds(_swarm.Seconds) : 1f;
+        // On the foundry a floor that ends in a boss is left through the gate: once the boss falls the gate opens and the
+        // floor clears only when the hero walks to it and holds still there (ExitRule), so the climb is a walk out.
+        public bool IsGateExitOpen => _gateExitOpen;
+        // Either way out the hero currently has to walk to: the finale's or the opened gate's.
+        public bool IsExitOpen => _swarm != null || _gateExitOpen;
         public float ExitFloorX => _exitX;
         public float ExitFloorY => _exitY;
         public float ExitHeldSeconds => _exitDwell != null ? _exitDwell.Held : 0f;
@@ -339,6 +346,14 @@ namespace Cryptforge.Combat
             if (_drops != null && Time.deltaTime > 0f)
                 _drops.CollectNear(HeroFloorX, HeroFloorY);
 
+            // The opened gate waits for the hero: nothing else advances, and an open choice freezes the hold.
+            if (_gateExitOpen)
+            {
+                if (Time.deltaTime > 0f && !_choices.IsOpen)
+                    TickGateExit(Time.deltaTime);
+                return;
+            }
+
             bool canAdvance = !_choices.IsOpen;
             if (_descending || IsInNonCombatRoom)
             {
@@ -510,7 +525,7 @@ namespace Cryptforge.Combat
                     if (room.Kind == RoomKind.Swarm)
                         BeginSwarm(room);
                     else
-                        StartWave(room.WaveAt(step.WaveIndex));
+                        StartWave(room.WaveAt(step.WaveIndex), GateRoom(room));
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
@@ -518,6 +533,11 @@ namespace Cryptforge.Combat
                     break;
                 default:
                     IsInNonCombatRoom = false;
+                    if (GateClosesFloor())
+                    {
+                        OpenGateExit();
+                        break;
+                    }
                     ProgressChanged?.Invoke();
                     FloorCleared?.Invoke();
                     break;
@@ -530,13 +550,45 @@ namespace Cryptforge.Combat
         // only by taking an evolution.
         public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
 
-        private void StartWave(WaveDefinition waveDefinition)
+        private void StartWave(WaveDefinition waveDefinition, bool atGate = false)
         {
             using (PerformanceMarkers.StartWave.Auto())
-                SpawnWave(waveDefinition);
+                SpawnWave(waveDefinition, atGate);
         }
 
-        private void SpawnWave(WaveDefinition waveDefinition)
+        // A boss room on the foundry: its pack walks out of the gate instead of entering round the hero.
+        private bool GateRoom(RoomDefinition room) =>
+            room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
+
+        private bool GateClosesFloor() =>
+            _currentFloor.RoomCount > 0 && GateRoom(_currentFloor.RoomAt(_currentFloor.RoomCount - 1));
+
+        private void OpenGateExit()
+        {
+            _gateExitOpen = true;
+            FoundryMap.GateExitSpot(out _exitX, out _exitY);
+            _exitDwell = new ExitDwell();
+            _swarmHeroX = HeroFloorX;
+            _swarmHeroY = HeroFloorY;
+            ProgressChanged?.Invoke();
+        }
+
+        // The same hold as the finale's exit: it counts only while the hero stood still on it this frame.
+        private void TickGateExit(float deltaTime)
+        {
+            float heroX = HeroFloorX;
+            float heroY = HeroFloorY;
+            bool moved = heroX != _swarmHeroX || heroY != _swarmHeroY;
+            _swarmHeroX = heroX;
+            _swarmHeroY = heroY;
+            if (!_exitDwell.Step(deltaTime, !moved && ExitRule.IsWithinReach(heroX, heroY, _exitX, _exitY)))
+                return;
+            _gateExitOpen = false;
+            ProgressChanged?.Invoke();
+            FloorCleared?.Invoke();
+        }
+
+        private void SpawnWave(WaveDefinition waveDefinition, bool atGate = false)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -559,6 +611,8 @@ namespace Cryptforge.Combat
             // near the centre and a pack the formations already keep 1.1 spacing units apart, it changes nothing.
             EntrySides.Place(_waveOrdinal, count, heroX, heroY, _arena.Geometry, _entryDepth, _formationSpacing, _bodySpacing,
                 _placements);
+            if (atGate)
+                FoundryMap.PlaceAtGate(count, _placements);
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition.EnemyAt(i);

@@ -138,6 +138,20 @@ namespace Cryptforge.Art
             }
             return x!=startX||y!=startY;
         }
+        // The gate landing in front of the door (design u 24..28, v -2..12): the floor's boss walks out of the gate onto
+        // it, and the opened gate is left from its centre line by standing still (ExitRule), as the finale's exit is.
+        public const float GateExitU=26.6f,GateExitV=5f,GateBossU=27.1f,GateBossSpacing=1.3f;
+        public static void GateExitSpot(out float x,out float y)=>ToFloor(GateExitU,GateExitV,out x,out y);
+        // The boss first, on the door's axis; any escort alternates either side of it along the landing.
+        public static void PlaceAtGate(int count,EntryPlacement[] output)
+        {
+            for(int slot=0;slot<count;slot++)
+            {
+                float v=GateExitV+((slot+1)/2)*(slot%2==1?-GateBossSpacing:GateBossSpacing);
+                ToFloor(GateBossU,v,out float x,out float y);
+                output[slot]=new EntryPlacement(EntrySide.Far,0,x,y);
+            }
+        }
         public static void PlacePack(int ordinal,int count,float hx,float hy,float separation,EntryPlacement[] output)
         {
             for(int slot=0;slot<count;slot++)

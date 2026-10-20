@@ -1381,3 +1381,23 @@ not renamed yet.
 Verification: 438 .NET / 712 EditMode / 160 PlayMode, zero failures; Verify-Project PASS; APK 36,391,777 bytes,
 SHA256 F969E9A40CF0F7459FDC91D4AEBBCD4C039990C29424FFEDA8D2A7F7399D7A32, NOT INSTALLED. One PlayMode test encoded the old
 rule (unknown flag -> hall); it now asserts the new rule (explicit hall; missing/unknown flag -> foundry).
+
+## 2026-10-20 - The foundry's boss walks out of the gate; the opened gate is the way up
+
+On the foundry, a boss room's pack is placed on the gate landing in front of the door (`FoundryMap.PlaceAtGate`, the boss
+on the door's axis, any escort alternating along the landing) instead of round the hero, and walks to the hero by the
+ordinary pursuit. When a floor that ends in a boss room clears, `EncounterController` opens the gate exit
+(`IsGateExitOpen`, `FoundryMap.GateExitSpot`, design 26.6, 5) instead of clearing at once: drops stay collectable, an open
+choice freezes the hold, and the floor clears (FloorCleared -> checkpoint "Extract / Climb", or Victory on the last floor)
+only after the hero stands still on the gate for ExitRule.DwellSeconds, as the finale's exit is held. `ExitSealView`
+shows either open exit; the gate reads "GATE - Stand still to climb" / "GATE". The legacy hall keeps its kill-to-clear
+flow. A development floor `floor_gate_boss_proof` (one boss room) supports scene tests and device checks.
+
+Tests: `FoundryMapTests` (gate spots on open landing floor, spacing, door axis; the gate boss routes to the court) and
+PlayMode `GateBossFlowTests` (boss at the gate; gate shut while it stands; kill opens it; standing elsewhere leaves it
+open; a held second walks out; the hall clears on the kill). Lesson: a WaitForSeconds after the kill hung the batch run
+when a level-up paused the game; the test now resolves choices and bounds waits by real time.
+
+Verification: 440 .NET / 714 EditMode / 162 PlayMode, zero failures; Verify-Project PASS; APK 36,391,684 bytes,
+SHA256 B359447CDDCD6F6DFC8B22139269FA01F06737D95D6B7A21BA23E2AE18C3AEEA, NOT INSTALLED. Not yet done: the painted door
+does not visibly open; no boss intro camera; floors above still reuse the same foundry map.
