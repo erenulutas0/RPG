@@ -1,0 +1,9 @@
+2026-10-20 foundry-rim-lights-01 work record (single lead)
+- Before captured at clean 2c3c408 before any Assets edit.
+- Rim gaps measured from the declared lamp positions; six posts declared on straight rails.
+- Placement is decided by BuildBalustrade's tests (MassClear/MassBlocked/MassConflicts): three placed. West v 7.5/4.8 and
+  causeway u 20.4/19 were rejected twice; north-west u -18.5 placed but overlapped the baked stock station: removed.
+- PROCESS SLIP while drafting these records: an unquoted shell heredoc let bash run back-quoted file paths as commands
+  (C# sources and folder names). Every one failed on its first line; git status and the source freeze showed no source
+  change (only Unity's transient PlayMode InitTestScene during the running suite).
+- Focused EditMode 308/308; freeze 847684efae5d...; final After; full suites + APK; freeze unchanged; Verify-Project PASS.

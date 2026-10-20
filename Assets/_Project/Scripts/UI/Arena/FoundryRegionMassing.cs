@@ -1156,9 +1156,16 @@ namespace Cryptforge.UI
         {
             CraneRearLantern,WestBox(-24.72f,.64f,-24,1.36f),
             new Vector4(-7.36f,18,-6.64f,18.72f),new Vector4(14,-8.36f,14.72f,-7.64f),new Vector4(14,-.72f,14.72f,0),
-            new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f)
+            new Vector4(15.14f,10,15.86f,10.72f),new Vector4(21.64f,10,22.36f,10.72f),
+            // The concept lines its rim with fire every few units. These fill the
+            // longest bare straight runs on the south and north rails. The west
+            // rail beside the workyard and the causeway between the boilers have
+            // no post position that clears the placement tests, and a northwest
+            // post would stand in front of the baked stock station.
+            new Vector4(-7.86f,FoundryMap.South-.72f,-7.14f,FoundryMap.South),new Vector4(6.14f,FoundryMap.South-.72f,6.86f,FoundryMap.South),
+            new Vector4(1.14f,FoundryMap.North,1.86f,FoundryMap.North+.72f)
         };
-        private static readonly bool[] RailLanternFront={true,true,false,false,true,false,false};
+        private static readonly bool[] RailLanternFront={true,true,false,false,true,false,false,true,true,false};
 
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =

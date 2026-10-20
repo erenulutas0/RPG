@@ -2690,3 +2690,11 @@ Court bronze inlay network after the concept: an octagon setting (R 7) around th
 438 .NET / 709 EditMode / 160 PlayMode, zero failures/skips. Two new inlay tests (open-floor clipping, seal and boiler clearance, metal course, bounded light; octagon edges, spokes kept off the processional stone, paired lane lines). Isolated compile 0/0. Fresh Before (25 views, baseline 94a925f, clean Assets) and final After Android-target captures passed. PASS: 646 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,391,867 bytes; SHA256 72B72988DFEF9F2CB7C2A587D4377D3FD137700A11887361EBC4A2B9E372F3CE; NOT INSTALLED. The APK is back near 36.39 MB, so the previous 31.2 MB build size was build-to-build variance, not this content.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
+
+## 2026-10-20 - Foundry rim lanterns verified; device pending
+
+Rim lantern density toward the concept, which lines its rim with fire every few units. Three balustrade lantern posts fill the longest bare straight rail runs: south rail at u -7.5 and 6.5 (camera-facing, with pilasters) and north rail at u 1.5. They reuse RailLanterns, so BuildBalustrade's placement tests, the post masonry, the lantern ironwork/panes and a matching ForgeLamps floor pool all follow from one declaration. Requested west (beside the workyard) and causeway (between the boilers) posts were rejected by the existing placement tests at two positions each; a north-west post placed but stood in front of the baked stock station and was removed.
+
+438 .NET / 710 EditMode / 160 PlayMode, zero failures/skips. One new test (declared posts, camera-facing flag, placement proven by the floor pool, outside the walking surface, >3.5 units from any other flame pool). Isolated compile 0/0. Fresh Before (25 views, baseline 2c3c408, clean Assets) and final After Android-target captures passed. PASS: 647 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,392,292 bytes; SHA256 C71EE7B839309CD352A2659E0C92055D50B7129A7602A443F0B3133C9D3663B6; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.

@@ -1485,3 +1485,11 @@ Court bronze inlay network after the concept: an octagon setting (R 7) around th
 Region 37 renderers / 154393 vertices versus 152889: +1504 (thin strips). No new batch, material or texture. Distant 3572 unchanged. Ceilings 174000 / 3600; headroom 19607 / 28. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
+
+## 2026-10-20 - Foundry rim lanterns verified; device pending
+
+Rim lantern density toward the concept, which lines its rim with fire every few units. Three balustrade lantern posts fill the longest bare straight rail runs: south rail at u -7.5 and 6.5 (camera-facing, with pilasters) and north rail at u 1.5. They reuse RailLanterns, so BuildBalustrade's placement tests, the post masonry, the lantern ironwork/panes and a matching ForgeLamps floor pool all follow from one declaration. Requested west (beside the workyard) and causeway (between the boilers) posts were rejected by the existing placement tests at two positions each; a north-west post placed but stood in front of the baked stock station and was removed.
+
+Region 37 renderers / 154820 vertices versus 154393: +427 (three posts). No new batch, material or texture. Distant 3572 unchanged. Ceilings 174000 / 3600; headroom 19180 / 28. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.

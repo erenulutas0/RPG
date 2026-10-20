@@ -948,3 +948,10 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.
 - [ ] Next: denser rim braziers/props; furnace towers in dark iron + brass; foundry boss and the upward map ladder; phone acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
+
+## 2026-10-20 - Foundry rim lanterns verified; device pending
+
+- [x] Three rim lanterns on the long south/north rail runs.
+- [ ] Next: furnace towers toward dark iron + brass (no local Blender for re-renders); foundry boss and the upward map ladder; phone acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.

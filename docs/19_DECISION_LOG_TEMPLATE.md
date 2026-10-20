@@ -1346,3 +1346,9 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-flagstone-01.
 Decision: reintroduce a court brass network, but as the concept's thin worn inlay clipped to open floor, not the 2026-10-10 rejected bright racing stripes or a second bullseye. Court bronze inlay network after the concept: an octagon setting (R 7) around the seal, spokes from seven of its vertices to the rim and paired lane lines beside both processional ways (the eighth spoke would run down the bridge way and is replaced by its lane lines). Every line uses the seal's construction - a .14 stone channel with an .08 worn metal course on the coping rail, WeatherHeraldry and the ordinary LightFloorDecals response (<= 1.9) - and joins the existing single floor-decal batch. Lines are sampled every .25 units and clipped to open walking floor (FoundryMap.Contains with .55 clearance), outside the seal stone, boiler plinths and every forge-lamp box, so none runs into the pit, under equipment or past the kerb. First candidate (.085/.05) was too faint at map scale.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
+
+## 2026-10-20 - Foundry rim lanterns verified; device pending
+
+Rim lantern density toward the concept, which lines its rim with fire every few units. Three balustrade lantern posts fill the longest bare straight rail runs: south rail at u -7.5 and 6.5 (camera-facing, with pilasters) and north rail at u 1.5. They reuse RailLanterns, so BuildBalustrade's placement tests, the post masonry, the lantern ironwork/panes and a matching ForgeLamps floor pool all follow from one declaration. Requested west (beside the workyard) and causeway (between the boilers) posts were rejected by the existing placement tests at two positions each; a north-west post placed but stood in front of the baked stock station and was removed.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
