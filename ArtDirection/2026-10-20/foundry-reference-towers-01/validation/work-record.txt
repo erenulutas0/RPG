@@ -1,0 +1,7 @@
+2026-10-20 foundry-reference-towers-01 work record (single lead)
+- Owner chose the furnace-tower visual. Blender 4.5.9 portable was already present under TestResults/tools (no download).
+- Inspected the source blend: camera from (-12,-12) (visible azimuth ~225 deg), cool skylight, cyan-leaning forged iron.
+- Render iterations: small windows (rejected), light iron (integrated as candidate 01, rejected as beige in Unity), blackened
+  iron with iron flue lips (accepted).
+- Before captured at clean c021c9a before the atlas was repacked.
+- Focused EditMode 309/309; freeze eddaaa245a9d...; final After; full suites + APK; freeze unchanged; Verify-Project PASS.

@@ -1352,3 +1352,9 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
 Rim lantern density toward the concept, which lines its rim with fire every few units. Three balustrade lantern posts fill the longest bare straight rail runs: south rail at u -7.5 and 6.5 (camera-facing, with pilasters) and north rail at u 1.5. They reuse RailLanterns, so BuildBalustrade's placement tests, the post masonry, the lantern ironwork/panes and a matching ForgeLamps floor pool all follow from one declaration. Requested west (beside the workyard) and causeway (between the boilers) posts were rejected by the existing placement tests at two positions each; a north-west post placed but stood in front of the baked stock station and was removed.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
+
+## 2026-10-20 - Foundry reference furnace towers verified; device pending
+
+Tall furnace towers toward the concept. New native Blender renders (Tools/ArtReview/BuildBlenderReferenceTowers.py, source ArtDirection/2026-10-20/reference-towers-01) keep the original stone foundation, fire mouths and cornice and rebuild the upper towers as stacked blackened-iron drums ringed with small glowing arched windows, brass bands and a crenellated (near) or stepped ribbed dome (far) crown. Pipe contact (4.05), flue (0,0,7.2), footprint, camera and lights are unchanged; the atlas is repacked losslessly into the same two tiles, so runtime cards, depth bands, steam anchors and import settings (2048x1024 ASTC_6x6, 12 mips) are unchanged. Iron moved from the source's cyan-leaning forged blue (read teal in the court) to neutral-warm black.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.

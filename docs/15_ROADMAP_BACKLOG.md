@@ -955,3 +955,10 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
 - [ ] Next: furnace towers toward dark iron + brass (no local Blender for re-renders); foundry boss and the upward map ladder; phone acceptance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
+
+## 2026-10-20 - Foundry reference furnace towers verified; device pending
+
+- [x] Tall furnace towers re-rendered toward the concept (dark iron drums, lit windows, brass bands).
+- [ ] Next: short retorts and pipe collars; foundry boss and the upward map ladder; phone acceptance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.

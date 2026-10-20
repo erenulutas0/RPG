@@ -1693,3 +1693,9 @@ Evidence/reproduction: ArtDirection/2026-10-20/foundry-court-inlay-01.
 438 .NET / 710 EditMode / 160 PlayMode, zero failures/skips. One new test (declared posts, camera-facing flag, placement proven by the floor pool, outside the walking surface, >3.5 units from any other flame pool). Isolated compile 0/0. Fresh Before (25 views, baseline 2c3c408, clean Assets) and final After Android-target captures passed. PASS: 647 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,392,292 bytes; SHA256 C71EE7B839309CD352A2659E0C92055D50B7129A7602A443F0B3133C9D3663B6; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
+
+## 2026-10-20 - Foundry reference furnace towers verified; device pending
+
+438 .NET / 711 EditMode / 160 PlayMode, zero failures/skips. One new test (atlas margins, dark upper iron below the rejected light-iron level, neutral-warm hue, lit window rings). Isolated compile 0/0. Fresh Before (25 views, baseline c021c9a, clean Assets) and final After Android-target captures passed. PASS: 648 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,392,292 bytes; SHA256 4AC6C3275E2A9518A631CA8D74086E2332A06953D8C6623DD097E52D1EBD204C; NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.

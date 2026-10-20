@@ -1493,3 +1493,11 @@ Rim lantern density toward the concept, which lines its rim with fire every few 
 Region 37 renderers / 154820 vertices versus 154393: +427 (three posts). No new batch, material or texture. Distant 3572 unchanged. Ceilings 174000 / 3600; headroom 19180 / 28. Static counts do not establish device performance.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-rim-lights-01.
+
+## 2026-10-20 - Foundry reference furnace towers verified; device pending
+
+Tall furnace towers toward the concept. New native Blender renders (Tools/ArtReview/BuildBlenderReferenceTowers.py, source ArtDirection/2026-10-20/reference-towers-01) keep the original stone foundation, fire mouths and cornice and rebuild the upper towers as stacked blackened-iron drums ringed with small glowing arched windows, brass bands and a crenellated (near) or stepped ribbed dome (far) crown. Pipe contact (4.05), flue (0,0,7.2), footprint, camera and lights are unchanged; the atlas is repacked losslessly into the same two tiles, so runtime cards, depth bands, steam anchors and import settings (2048x1024 ASTC_6x6, 12 mips) are unchanged. Iron moved from the source's cyan-leaning forged blue (read teal in the court) to neutral-warm black.
+
+Region 37 renderers / 154820 vertices: unchanged (texture-only). Editor texture memory 2,502,304 bytes unchanged. Static counts do not establish device performance.
+
+Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-towers-01 and ArtDirection/2026-10-20/reference-towers-01.

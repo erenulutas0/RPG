@@ -1,0 +1,32 @@
+{
+  "atlas": "Assets\\_Project\\Resources\\FoundryBoiler.png",
+  "size": [
+    2048,
+    1024
+  ],
+  "tiles": [
+    {
+      "source": "ArtDirection\\2026-10-20\\reference-towers-01\\variant-0.png",
+      "sha256": "5479ac90243753e5db4e51e10e634987525158834d9036d1977b611afe522f60",
+      "alpha_bounds": [
+        318,
+        110,
+        706,
+        948
+      ],
+      "tile": 0
+    },
+    {
+      "source": "ArtDirection\\2026-10-20\\reference-towers-01\\variant-1.png",
+      "sha256": "b14acde91b74762375fc7dd2c8c67b334025a46a20958a25b6ca45719793c9f4",
+      "alpha_bounds": [
+        318,
+        144,
+        706,
+        948
+      ],
+      "tile": 1
+    }
+  ],
+  "sha256": "5faf9160859195b7b2f2eae4a6fce3fd185f5194e89ea0afa9d37c982e129949"
+}
