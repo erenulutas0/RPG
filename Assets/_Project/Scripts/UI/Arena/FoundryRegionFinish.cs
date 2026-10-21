@@ -102,7 +102,8 @@ namespace Cryptforge.UI
         // per-channel shoulder flattened red first while green kept climbing, bleaching saturated heat toward sand.
         // Sprites/Default multiplies float vertex colours by the neutral material gain before
         // its mobile fixed4 interpolator. The original .8-gain upper-bound calculation was
-        // 1.74 x 1.435 x .8 = 1.998; V8's lower .587603232 gain retains that safety margin.
+        // 1.74 x 1.435 x .8 = 1.998. The floor gains were lifted 14 % on 2026-10-21 to the concept's measured court
+        // value (.30 -> .35): flagstone .67, V8 peak channel .7127, so 1.74 x 1.435 x .7127 = 1.78 keeps the margin.
         // The shoulder and its sampling lattice are independent of the bitmap replacement.
         private const float LightKnee=1.2f,LightCeiling=1.74f;
         private static float Shoulder(float c)=>c<=LightKnee?c:

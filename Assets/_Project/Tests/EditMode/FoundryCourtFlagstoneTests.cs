@@ -145,10 +145,13 @@ namespace Cryptforge.Tests
             var fitted=AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Props/Foundry/MAT_FoundryPaving.mat");
             Assert.That(laid.mainTexture.name,Is.EqualTo("FoundryPavingV9"));
             Assert.That(fitted.mainTexture.name,Is.EqualTo("FoundryPavingV8"));
-            Assert.That(laid.color.r,Is.EqualTo(.587603232f).Within(1e-6f));
+            // Lifted 14 % from the V8 calibration (.587603232) to the concept's measured court value (2026-10-21).
+            Assert.That(laid.color.r,Is.EqualTo(.67f).Within(1e-6f));
+            Assert.That(1.74f*1.435f*Mathf.Max(laid.color.r,Mathf.Max(fitted.color.r,Mathf.Max(fitted.color.g,fitted.color.b))),Is.LessThan(1.9f),
+                "Peak floor light x tone x gain stays inside the mobile fixed4 colour range.");
             Assert.That(laid.color.g,Is.EqualTo(laid.color.r));Assert.That(laid.color.b,Is.EqualTo(laid.color.r));
             Color c=fitted.color;float luma=.299f*c.r+.587f*c.g+.114f*c.b;
-            Assert.That(luma,Is.EqualTo(.587603232f).Within(.004f),"The V8 balance is a hue correction, not a value change.");
+            Assert.That(luma,Is.EqualTo(.67f).Within(.004f),"Fitted stone keeps the flagstone's value; its balance is a hue correction.");
             Assert.That(c.r<c.g&&c.g<c.b,Is.True,"Warm V8 grain is cooled toward the laid flagstone beside it.");
             Assert.That(c.b/c.r,Is.LessThan(1.12f),"A restrained cool cut; the former strong blue cut read magenta.");
         }

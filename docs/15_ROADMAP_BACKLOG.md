@@ -1111,3 +1111,11 @@ EditMode / 164 PlayMode, zero failures; APK 36,412,761 bytes, SHA256
 8895C265833F4B3DF1F845F72CE60E8E3E8ABCFE7DB3D021EA8EDF65B9017F66, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-rim-braziers-01.
+
+## 2026-10-21 - Floor value lifted to the concept's court brightness
+
+Flagstone and fitted paving gains rise 14 % (hue kept): court value .30 -> .35 (concept .35); fixed4 bound 1.78 < 2.
+457 .NET / 732 EditMode / 164 PlayMode, zero failures; APK 36,412,761 bytes, SHA256
+D2A071024BF8DB260E7E2B314024F7157319063309C8486B6970694BF421BDE3, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-floor-value-01.
