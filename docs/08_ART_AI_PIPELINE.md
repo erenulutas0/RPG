@@ -1571,3 +1571,12 @@ doubles the seal, as in the concept; +1,328 vertices, same decal batch. 457 .NET
 failures; APK 36,411,835 bytes, SHA256 9A36B4F5B84033DA778B7275DB7154AA0D20027138172351BF6FC64C430DFF67, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-gold-network-01.
+
+## 2026-10-21 - Open fire baskets on the rim posts
+
+Balustrade lantern posts (and the pit collar's corner posts) carry the gate's open fire basket instead of an enclosed
+lantern, as on the concept's rim; placement and floor pools unchanged, +2,108 vertices, no new batch. 457 .NET / 732
+EditMode / 164 PlayMode, zero failures; APK 36,412,761 bytes, SHA256
+8895C265833F4B3DF1F845F72CE60E8E3E8ABCFE7DB3D021EA8EDF65B9017F66, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-rim-braziers-01.

@@ -1211,7 +1211,8 @@ namespace Cryptforge.UI
                 bool front=RailLanternFront[i];
                 if(!MassClear(box)||MassBlocked(box)||MassConflicts(box,2.8f,true))continue;
                 placed.Add(box);
-                AddPiece(pieces,box,2.8f,()=>LanternPost(arena,box,front));
+                // The basket's flames reach ~3.1; placement keeps the lantern-era 2.8 screen test.
+                AddPiece(pieces,box,3.1f,()=>LanternPost(arena,box,front));
             }
             // Braziers are attached to explicit supports, not incidental gap subdivisions.
             // Elevation changes screen-overlap exclusions against boilers and therefore can
@@ -1520,6 +1521,9 @@ namespace Cryptforge.UI
             if(front&&below!=null)MassBox(below,box,DeckFace,0,true,true,.93f);
         }
 
+        // The post's cap top (1.69): the basket's cast foot starts there.
+        private const float RailBrazierRise=1.79f;
+
         private void LanternPost(ArenaView arena,Vector4 box,bool front,float foot=0)
         {
             var wall=arena.PlatformMaterials.FoundryWall;
@@ -1539,10 +1543,9 @@ namespace Cryptforge.UI
                 MassBox(below,box,DeckFace,0,true,true,.93f);
                 Create("Balustrade pilaster",below,wall,-16);
             }
-            // The existing court lantern: its iron cage and roof, and panes in the flame batch.
-            var iron=new Builder();
-            BuildCourtLantern(arena,iron,new Vector2((box.x+box.z)*.5f,(box.y+box.w)*.5f));
-            Create("Balustrade lantern ironwork",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
+            // As on the approved concept's rim, the post carries an open fire basket (the gate's and the bridge head's)
+            // seated on its cap, instead of an enclosed amber lantern that read small and pale at map scale.
+            Brazier(arena,new Vector2((box.x+box.z)*.5f,(box.y+box.w)*.5f),RailBrazierRise);
         }
 
         private void BuildBoilerFoundations(ArenaView arena)
