@@ -31,7 +31,7 @@ namespace Cryptforge.Tests
         {
             object inlay=NewBuilder();Invoke("BuildCourtInlayGeometry",inlay);
             var points=Data<Vector3>(inlay,"V");var triangles=Data<int>(inlay,"T");var uv=Data<Vector2>(inlay,"U");
-            Assert.That(points.Count,Is.InRange(800,2600),"Thin strips: a bounded share of the reclaimed paving vertices.");
+            Assert.That(points.Count,Is.InRange(2000,4000),"A stone band edged by two metal courses, plus the seal's outer ring: a bounded share of the reclaimed paving vertices.");
             var boilers=(Vector2[])typeof(FoundryRegionView).GetField("BoilerCentres",Static).GetValue(null);
             int metal=0;
             foreach(Vector3 p in points)
@@ -44,7 +44,7 @@ namespace Cryptforge.Tests
                 foreach(Vector2 b in boilers)Assert.That(Vector2.Distance(d,b),Is.GreaterThan(2.3f),"No inlay under a boiler plinth.");
             }
             foreach(Vector2 t in uv)if((bool)Invoke("OnCopingRail",t))metal++;
-            Assert.That(metal,Is.GreaterThan(points.Count/3),"Every line carries a metal course in its stone channel.");
+            Assert.That(metal,Is.GreaterThan(points.Count*3/5),"Every band carries two metal courses.");
             Invoke("LightFloorDecals",inlay);
             foreach(Color c in Data<Color>(inlay,"C"))
                 Assert.That(Mathf.Max(c.r,Mathf.Max(c.g,c.b)),Is.LessThanOrEqualTo(1.9f),"Bounded, non-emissive brass response.");
@@ -67,6 +67,11 @@ namespace Cryptforge.Tests
                 if(Covered(points,triangles,(a+b)*.5f))edges++;
             }
             Assert.That(edges,Is.GreaterThanOrEqualTo(6),"The octagon setting reads around the seal.");
+            // The seal reads as a double-ringed medallion: the outer ring is closed all round, outside the stone setting.
+            float outer=(float)typeof(FoundryRegionView).GetField("CourtOuterRingRadius",Static|BindingFlags.Public).GetValue(null);
+            Assert.That(outer,Is.GreaterThan(5.05f+.15f));
+            for(int k=0;k<16;k++)
+                Assert.That(Covered(points,triangles,Centre+new Vector2(Mathf.Cos(k*Mathf.PI/8+.1f),Mathf.Sin(k*Mathf.PI/8+.1f))*outer),Is.True,"Outer seal ring is closed.");
             // Paired lane lines run beside both processional ways.
             var ends=new[]{new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)};
             float lane=1.85f+.24f+.16f;

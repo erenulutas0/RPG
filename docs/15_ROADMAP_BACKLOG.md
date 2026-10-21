@@ -1094,3 +1094,11 @@ change. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; APK 36,413,268 by
 B7BE24A69A6DA77AE162C5527AEE9191586F9F224608134C3265D98144DF3344, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-atmosphere-01.
+
+## 2026-10-21 - Banded double gold lines and a double-ringed seal
+
+The court network lines become .30 stone bands edged by two bright .06 metal courses, and a closed outer ring at r 5.3
+doubles the seal, as in the concept; +1,328 vertices, same decal batch. 457 .NET / 732 EditMode / 164 PlayMode, zero
+failures; APK 36,411,835 bytes, SHA256 9A36B4F5B84033DA778B7275DB7154AA0D20027138172351BF6FC64C430DFF67, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-gold-network-01.

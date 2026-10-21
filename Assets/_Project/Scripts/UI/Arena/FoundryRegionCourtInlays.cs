@@ -46,6 +46,7 @@ namespace Cryptforge.UI
                     CourtInlayRun(inlay,CourtSealCentre+direction*t+offset,end+offset,false,ref seed);
                 }
             }
+            CourtOuterRing(inlay);
             WeatherHeraldry(inlay);
         }
 
@@ -75,11 +76,34 @@ namespace Cryptforge.UI
             }
         }
 
+        // As in the concept: a dressed stone band edged by two bright metal courses, which reads at map scale where a
+        // single thin line dissolved into the flagstone joints.
+        internal const float CourtInlayBand=.30f,CourtInlayCourse=.06f;
+        // A property, not a static field: partial-class field initialisers across files have no defined order.
+        private static Color CourtInlayBrass=>CeremonialBrass*1.18f;
         private static void CourtInlayLine(Builder inlay,Vector2 p,Vector2 q,int seed)
         {
-            var channel=new Color(.84f,.82f,.83f);
-            Strip(inlay,p.x,p.y,q.x,q.y,.14f,channel,CopingTrim.Stone,seed);
-            Strip(inlay,p.x,p.y,q.x,q.y,.08f,CeremonialBrass,CopingTrim.Brass,seed);
+            var channel=new Color(1.02f,.99f,1.02f);
+            Strip(inlay,p.x,p.y,q.x,q.y,CourtInlayBand,channel,CopingTrim.Stone,seed);
+            Vector2 side=new Vector2(p.y-q.y,q.x-p.x).normalized*(CourtInlayBand*.5f-CourtInlayCourse*.5f);
+            foreach(float sign in new[]{-1f,1f})
+            {
+                Vector2 a=p+side*sign,b=q+side*sign;
+                Strip(inlay,a.x,a.y,b.x,b.y,CourtInlayCourse,CourtInlayBrass,CopingTrim.Brass,seed);
+            }
+        }
+
+        // A second ring just outside the seal's stone setting, so the seal reads as the concept's double-ringed medallion.
+        internal const float CourtOuterRingRadius=5.3f;
+        private static void CourtOuterRing(Builder inlay)
+        {
+            const int segments=48;
+            for(int i=0;i<segments;i++)
+            {
+                Vector2 a=CourtSealPoint(i*Mathf.PI*2/segments,CourtOuterRingRadius);
+                Vector2 b=CourtSealPoint((i+1)*Mathf.PI*2/segments,CourtOuterRingRadius);
+                CourtInlayLine(inlay,a,b,100+i);
+            }
         }
 
         private static bool CourtInlayOpen(Vector2 design)
