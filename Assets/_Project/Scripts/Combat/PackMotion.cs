@@ -61,6 +61,10 @@ namespace Cryptforge.Combat
         private readonly float[] _stop = new float[PackLayout.MaxPackSize];
         private readonly float[] _stopSquared = new float[PackLayout.MaxPackSize];
         private readonly float[] _speed = new float[PackLayout.MaxPackSize];
+        // A marching enemy (the foundry boss walking out of its gate) covers the open court faster while it is farther than
+        // its march range from the hero, then fights at its own speed. 1 for every other enemy.
+        private readonly float[] _march = new float[PackLayout.MaxPackSize];
+        private readonly float[] _marchRange = new float[PackLayout.MaxPackSize];
         private readonly int[] _order = new int[PackLayout.MaxPackSize];
         private readonly bool[] _stalled = new bool[PackLayout.MaxPackSize];
 
@@ -134,6 +138,19 @@ namespace Cryptforge.Combat
         // Fills a place whose enemy has fallen with a fresh one, entering where EntrySides placed it - how a continuous
         // swarm keeps one pack of ten for its whole life without ever building a second (docs/27, S6c). The place keeps
         // its index, so everything that addresses the pack by slot keeps working.
+        // Lets enemy index march: factor times its speed while farther than range from the hero.
+        public void SetMarch(int index, float factor, float range)
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (float.IsNaN(factor) || float.IsInfinity(factor) || factor < 1f)
+                throw new ArgumentOutOfRangeException(nameof(factor));
+            if (float.IsNaN(range) || float.IsInfinity(range) || range < 0f)
+                throw new ArgumentOutOfRangeException(nameof(range));
+            _march[index] = factor;
+            _marchRange[index] = range;
+        }
+
         public void Replace(int index, IDamageable body, EntryPlacement placement, float speed, float reach)
         {
             if (index < 0 || index >= Count)
@@ -166,6 +183,8 @@ namespace Cryptforge.Combat
             _stop[index] = stop;
             _stopSquared[index] = stop * stop;
             _speed[index] = speed;
+            _march[index] = 1f;
+            _marchRange[index] = 0f;
         }
 
         public float XOf(int index) => _x[index];
@@ -198,7 +217,7 @@ namespace Cryptforge.Combat
 
             float fastest = 0f;
             for (int k = 0; k < living; k++)
-                fastest = Math.Max(fastest, _speed[_order[k]]);
+                fastest = Math.Max(fastest, _speed[_order[k]] * _march[_order[k]]);
             int steps = 1;
             if (fastest * deltaTime > MaxStride)
                 steps = (int)Math.Min(MaxSubSteps, Math.Ceiling(fastest * deltaTime / MaxStride));
@@ -266,6 +285,8 @@ namespace Cryptforge.Combat
             float remainingSquared = dx * dx + dy * dy;
             float remaining = (float)Math.Sqrt(remainingSquared);
             float stride = _speed[i] * deltaTime;
+            if (_march[i] > 1f && DistanceToHeroSquared(i) > _marchRange[i] * _marchRange[i])
+                stride *= _march[i];
             if (remaining <= 0f || stride <= 0f)
                 return Walk.Stood;
 

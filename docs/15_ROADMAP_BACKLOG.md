@@ -1038,3 +1038,14 @@ ending turns the camera back at once, and disabling the view restores everything
 Tests: `GateBossFlowTests.TheCameraTurnsToTheArrivingBossWhileTheFightWaits` plus the existing gate/door/arrival suites.
 443 .NET / 718 EditMode / 164 PlayMode, zero failures; Verify-Project PASS; APK 36,409,705 bytes, SHA256
 529544441F51CE8C0581A76187F03D6D42C9300CDB9565495934AE4AEF5271DF, NOT INSTALLED.
+
+## 2026-10-21 - Device check of the gate boss flow; the boss marches across the court
+
+Device (S23, development APK A80484CA..., floor_gate_boss_proof, region foundry): steady 59.9 fps, GPU ~3.0 ms, 49-54 draw
+calls, 135k triangles. Seen end to end: camera presents the Warden at the gate, the fight, level-up choice, gate leaves
+open over the forge-lit doorway, "GATE - Stand still to climb" with an off-screen arrow, walking to the gate, the hold,
+and "Ascent complete". The first device run showed the speed-1 Warden needed ~20 s to reach a waiting hero; the gate
+pack now marches at 3.5x its speed until within 4 units of the hero (`PackMotion.SetMarch`, `GateMarchFactor`), 26.3 s ->
+9.4 s to the court centre in the pure test, then fights at its own pace. Observation: the 0.9-unit hold radius took a few
+nudges to land on by touch. The test run banked 50 gold into the owner's profile (37668 -> 37718, revision 246; the
+pre-run profile is backed up). 444 .NET / 719 EditMode / 164 PlayMode, zero failures.

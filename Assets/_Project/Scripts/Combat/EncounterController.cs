@@ -570,6 +570,10 @@ namespace Cryptforge.Combat
         private float FloorDamageMultiplier =>
             _currentFloor.ClimbScaled ? ClimbScaling.Damage(FloorNumber) : _currentFloor.EnemyDamageMultiplier;
 
+        // The gate is far from the court: its pack marches across at GateMarchFactor times its speed until within
+        // GateMarchRange of the hero, so a waiting hero meets the boss in about ten seconds instead of twenty.
+        public const float GateMarchFactor = 3.5f, GateMarchRange = 4f;
+
         // A boss room on the foundry: its pack walks out of the gate instead of entering round the hero.
         private bool GateRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
@@ -635,6 +639,8 @@ namespace Cryptforge.Combat
                     count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}", floorHealth * scale,
                     healthPercent, damageBonus, goldPercent, out float reach);
                 int slot = _motion.Add(spawn.Health, _placements[i], definition.MoveSpeed, reach);
+                if (atGate)
+                    _motion.SetMarch(slot, GateMarchFactor, GateMarchRange);
                 spawn.Slot = slot;
                 spawn.Health.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
                 _wave.Add(spawn);

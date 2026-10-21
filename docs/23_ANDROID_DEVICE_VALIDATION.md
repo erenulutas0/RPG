@@ -2289,3 +2289,14 @@ APK 36,392,292 bytes, SHA256 4AC6C3275E2A9518A631CA8D74086E2332A06953D8C6623DD09
 ## 2026-10-20 - Foundry reference retorts verified; device pending
 
 APK 36,392,292 bytes, SHA256 3BDA245DF12816004B78D83D5E802290926D54011C9C5E7C567A6BA8AC80F8CE: built, NOT INSTALLED. No phone operation.
+
+## 2026-10-21 - Device check of the gate boss flow; the boss marches across the court
+
+Device (S23, development APK A80484CA..., floor_gate_boss_proof, region foundry): steady 59.9 fps, GPU ~3.0 ms, 49-54 draw
+calls, 135k triangles. Seen end to end: camera presents the Warden at the gate, the fight, level-up choice, gate leaves
+open over the forge-lit doorway, "GATE - Stand still to climb" with an off-screen arrow, walking to the gate, the hold,
+and "Ascent complete". The first device run showed the speed-1 Warden needed ~20 s to reach a waiting hero; the gate
+pack now marches at 3.5x its speed until within 4 units of the hero (`PackMotion.SetMarch`, `GateMarchFactor`), 26.3 s ->
+9.4 s to the court centre in the pure test, then fights at its own pace. Observation: the 0.9-unit hold radius took a few
+nudges to land on by touch. The test run banked 50 gold into the owner's profile (37668 -> 37718, revision 246; the
+pre-run profile is backed up). 444 .NET / 719 EditMode / 164 PlayMode, zero failures.

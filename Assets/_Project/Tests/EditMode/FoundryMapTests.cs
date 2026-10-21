@@ -458,6 +458,36 @@ namespace Cryptforge.Tests
             }
         }
     
+        // The gate boss marches across the court and then fights at its own pace: on the device a speed-1 Warden took about
+        // twenty seconds to reach a waiting hero at the court's centre.
+        [Test] public void GateBossMarchesToTheCourtThenSlowsToItsOwnPace()
+        {
+            var placements=new EntryPlacement[1];FoundryMap.PlaceAtGate(1,placements);
+            FoundryMap.ToFloor(0,0,out float hx,out float hy);
+            float Seconds(bool march,out float nearSpeed)
+            {
+                var pack=new PackMotion(.9f,2f,ArenaGeometry.Foundry,hx,hy);
+                pack.Add(new HealthState(300),placements[0],1f,1.7f);
+                if(march)pack.SetMarch(0,3.5f,4f);
+                nearSpeed=0;int frame=0;
+                for(;frame<60*60&&!pack.HasArrived(0);frame++)
+                {
+                    float x=pack.XOf(0),y=pack.YOf(0);
+                    pack.Step(1f/60,hx,hy);
+                    float d=(float)System.Math.Sqrt(ArenaFloor.FloorDistanceSquared(pack.XOf(0),pack.YOf(0),hx,hy));
+                    if(d<3.5f&&d>2.5f)nearSpeed=System.Math.Max(nearSpeed,(float)System.Math.Sqrt(ArenaFloor.FloorDistanceSquared(x,y,pack.XOf(0),pack.YOf(0)))*60);
+                }
+                Assert.That(pack.HasArrived(0),Is.True);
+                return frame/60f;
+            }
+            float walking=Seconds(false,out float walkNear),marching=Seconds(true,out float marchNear);
+            TestContext.WriteLine($"Gate boss to the court centre: {walking:F1}s walking, {marching:F1}s marching.");
+            Assert.That(marching,Is.LessThan(walking*.55f),"The march more than halves the empty walk.");
+            Assert.That(marching,Is.LessThan(12f));
+            Assert.That(marchNear,Is.EqualTo(walkNear).Within(.05f),"Within its march range the boss moves at its own speed.");
+            Assert.That(()=>new PackMotion(.9f,2f).SetMarch(0,2f,1f),Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
+
         // A boss that walks out of the gate reaches a hero anywhere on the court by the same pursuit as every enemy.
         [Test] public void GateBossRoutesFromTheLandingToTheCourt()
         {
