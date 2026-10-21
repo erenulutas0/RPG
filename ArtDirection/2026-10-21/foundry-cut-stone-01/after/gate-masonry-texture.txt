@@ -1,0 +1,2 @@
+FoundryGateMasonry:512x1024; ASTC_6x6; mipmaps:11; readable:False; Editor texture memory:630880 bytes
+Inherited gate-card batches:2; shared cutaway variants:1; existing focus-uniform update retained. The native Blender gate-bay render is unchanged by the cut stone package. No device frame-time claim.

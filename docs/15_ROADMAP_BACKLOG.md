@@ -1155,3 +1155,14 @@ is measured against the bare frame for runs seen edge-on. 457 .NET / 736 EditMod
 36,418,740 bytes, SHA256 DD31BA2BF112F6EEDECF522459EBD76427CAA7BDE22AD931FFF452466C1130AA, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-oval-pit-01.
+
+## 2026-10-21 - Court floor laid in the concept's cut stone
+
+The open court's raster is now FoundryPavingV10 (Tools/ArtReview/GenerateFoundryCutStone.py): hand-cut stones .8-1.6
+long in loose courses .72-1.2 deep, thin joints, rounded corners, a lit arris, quiet per-stone value and occasional
+cracks - about the concept's stone size (~.8 hero height) instead of V9's large honeycomb flags. Same mean value (.52),
+material gain, mesh and light field; ceremonial and fitted paving unchanged. 457 .NET / 736 EditMode / 164 PlayMode,
+zero failures; APK 36,418,740 bytes, SHA256 EE4F44FDDCE4CCE8F8A3C23443C110C0570DD24595217FB58B090CB453BDB8F9, NOT
+INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-cut-stone-01.

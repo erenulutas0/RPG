@@ -14,7 +14,7 @@ namespace Cryptforge.Tests
     {
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Members=BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
-        private const string Raster="Assets/_Project/Art/Props/Foundry/FoundryPavingV9.png";
+        private const string Raster="Assets/_Project/Art/Props/Foundry/FoundryPavingV10.png";
         private static Type BuilderType=>typeof(FoundryRegionView).GetNestedType("Builder",BindingFlags.NonPublic);
         private static object NewBuilder()=>Activator.CreateInstance(BuilderType,true);
         private static List<T> Data<T>(object builder,string field)=>(List<T>)BuilderType.GetField(field,Members).GetValue(builder);
@@ -143,7 +143,7 @@ namespace Cryptforge.Tests
         {
             var laid=AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Props/Foundry/MAT_FoundryFlagstone.mat");
             var fitted=AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Props/Foundry/MAT_FoundryPaving.mat");
-            Assert.That(laid.mainTexture.name,Is.EqualTo("FoundryPavingV9"));
+            Assert.That(laid.mainTexture.name,Is.EqualTo("FoundryPavingV10"));
             Assert.That(fitted.mainTexture.name,Is.EqualTo("FoundryPavingV8"));
             // Lifted 14 % from the V8 calibration (.587603232) to the concept's measured court value (2026-10-21).
             Assert.That(laid.color.r,Is.EqualTo(.67f).Within(1e-6f));

@@ -4,9 +4,9 @@ namespace Cryptforge.UI
 {
     public sealed partial class FoundryRegionView
     {
-        // The open court is laid as irregular hand-fitted flags, as in the approved
-        // concept. Those joints, arrises and quarry values live in the tiling
-        // FoundryPavingV9 raster (Tools/ArtReview/GenerateFoundryFlagstones.py);
+        // The open court is laid in small hand-cut stones in loose courses, as in
+        // the approved concept. Those joints, arrises, cracks and quarry values live
+        // in the tiling FoundryPavingV10 raster (Tools/ArtReview/GenerateFoundryCutStone.py);
         // the mesh keeps only the packer's footprints as tessellation for the
         // continuous forge-light, wear and contact field. Geometric rectangular
         // joints here would draw a second, contradictory bond over the raster.

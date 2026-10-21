@@ -404,7 +404,7 @@ namespace Cryptforge.Tests
             Assert.That(pavingTexture.format,Is.EqualTo(TextureFormat.ASTC_6x6));
 #endif
             var flagstoneTexture=(Texture2D)arena.PlatformMaterials.FoundryFlagstone.mainTexture;
-            Assert.That(flagstoneTexture.name,Is.EqualTo("FoundryPavingV9"));
+            Assert.That(flagstoneTexture.name,Is.EqualTo("FoundryPavingV10"));
             Assert.That(flagstoneTexture.width,Is.EqualTo(1024));
             Assert.That(flagstoneTexture.height,Is.EqualTo(1024));
             Assert.That(flagstoneTexture.mipmapCount,Is.EqualTo(11));
