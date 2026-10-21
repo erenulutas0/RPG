@@ -18,13 +18,11 @@ namespace Cryptforge.UI
         private const int PitGlow=SmokeCount+EmberCount+GlowCount,FirstHeat=PitGlow+1,FirstSpark=FirstHeat+HeatCount;
         private const int Discs=FirstSpark+SparkCount;
         // The pit, after FoundryRegionMassing (PitCentre, PitMolten, PitBoilers, and the collar band's inner edge - the
-        // opening, a rounded square PitHalf-PitCollar in half-size with corners of radius PitRound-RailDepth). Offsets run in
-        // design units across the screen (+x) and into it (along u+v) from its centre. The pool lies PitPool below the deck
-        // between the two inner boilers, whose drums' silhouettes lie 1.26 to either side of the centre column below the
-        // deck and their domes' 1.16 above it; the opening's far edge there is its corner arc, centred PitArc in along the
-        // diagonal, of radius PitArcRadius.
+        // opening, a circle of radius PitOpening). Offsets run in design units across the screen (+x) and into it (along
+        // u+v) from its centre. The pool lies PitPool below the deck between the two inner boilers, whose drums'
+        // silhouettes lie 1.26 to either side of the centre column below the deck and their domes' 1.16 above it.
         private static readonly Vector2 PitCentre=new Vector2((FoundryMap.PitWest+FoundryMap.PitEast)*.5f,(FoundryMap.PitSouth+FoundryMap.PitNorth)*.5f);
-        private const float PitPool=FoundryRegionView.PitMolten,PitArc=3.522f,PitArcRadius=2.96f,SparkAcross=1.12f;
+        private const float PitPool=FoundryRegionView.PitMolten,PitOpening=FoundryRegionView.PitOpening,SparkAcross=1.12f;
         // The pit's glow, heat and sparks are depth-tested against the structures (FoundryDepth), as actors are; the rest of
         // the mesh stays flat at z 0, over every structure. All take one depth, that of screen height 0 (about where the pool
         // shows past the near rail): behind the inner boilers' domes (their footprints' diagonal lies at -.71), the near
@@ -215,12 +213,11 @@ namespace Cryptforge.UI
 
         // Where spark `spark` is born in its life `life`, in design units: on the pool, at most SparkAcross to either side of
         // the pit's centre column - inside the drums' silhouettes - and from .8 beyond the centre (into the screen) to .35
-        // short of the lining's foot. All of it lies inside the rounded-square opening, never over walkable
-        // court.
+        // short of the lining's foot. All of it lies inside the round opening, never over walkable court.
         internal static Vector2 SparkSpawn(int spark,int life)
         {
             float across=(Hash(spark,life,1)*2-1)*SparkAcross;
-            float far=PitArc+Mathf.Sqrt(PitArcRadius*PitArcRadius-across*across)-.35f;
+            float far=Mathf.Sqrt(PitOpening*PitOpening-across*across)-.35f;
             return PitDesign(across,Mathf.Lerp(.8f,far,Hash(spark,life,2)));
         }
 

@@ -1143,3 +1143,15 @@ batch; layout unchanged. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; 
 F89C4F2522C2CCA5D21DF4D48E44BD2AE7DDA9233F7DB758C6E8FC945E4AFC0A, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-post-brass-01.
+
+## 2026-10-21 - Furnace pit: the concept's oval ring and raised corner pedestals
+
+The pit's collar band is now a circle (radius 5.69 about (-10, 8); a 2:1 oval on screen, as on the concept) instead of
+a rounded square; the walkable square is unchanged. The four non-walkable corners of the square are raised stone
+pedestals (.42 high, 15 degrees either side of each diagonal) carrying the rail's tall lantern posts at the far and side
+corners and a standing fire basket at the near one; eight band posts (four new .56 corner posts). The pool rises to 4.2
+down (courses below the deck scaled 4.2/5.2) so it shows past the round collar's near rail. The pit-guard openness test
+is measured against the bare frame for runs seen edge-on. 457 .NET / 736 EditMode / 164 PlayMode, zero failures; APK
+36,418,740 bytes, SHA256 DD31BA2BF112F6EEDECF522459EBD76427CAA7BDE22AD931FFF452466C1130AA, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-oval-pit-01.

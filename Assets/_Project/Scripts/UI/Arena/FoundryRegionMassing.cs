@@ -41,17 +41,27 @@ namespace Cryptforge.UI
         // Balustrade: a .42-deep footprint band on the void side of each exposed edge; the balustrade itself stands in
         // the band's camera-facing RailDepth (RailSpan).
         private const float RailBand=.42f,RailTop=.72f,DeckFace=-2.3f;
-        // Furnace pit: the existing non-walkable shaft square, its collar round after the approved layout. The balustrade
-        // stands on a band RailDepth deep whose outline is a rounded square about the pit's centre (half-size PitRim, corner
-        // radius PitRound): the band's inner edge keeps the old collar line, PitCollar in from the hole, on the short
-        // straights at the mid posts and rounds the corners; the lining follows that edge's far half down to a pool of molten
-        // metal PitMolten below the deck (over the deep coal bed), and collar stone fills the hole outside the band. The
-        // walkable edge stays the hole's.
+        // Furnace pit: the existing non-walkable shaft square, its collar a ring after the approved layout's oval. The
+        // balustrade stands on a band RailDepth deep whose outline is a circle about the pit's centre, of radius PitRim, which
+        // the camera sees as the concept's 2:1 oval: the band's inner edge keeps the old collar line, PitCollar in from the
+        // hole, at the mid posts; the lining follows that edge's far half down to a pool of molten metal PitMolten below the
+        // deck (over the deep coal bed), and collar stone fills the hole outside the band, raised in each of the square's
+        // corners to a lantern pedestal. The walkable edge stays the hole's.
         private const float PitU0=FoundryMap.PitWest,PitV0=FoundryMap.PitSouth,PitU1=FoundryMap.PitEast,PitV1=FoundryMap.PitNorth;
         private const float PitCollar=.55f,PitDepth=6.6f;
-        internal const float PitMolten=5.2f;
-        private const float PitHalf=(PitU1-PitU0)*.5f,PitRim=PitHalf-PitCollar+RailDepth,PitRound=3.2f;
-        private const float PitStraight=PitRim-PitRound,PitQuarter=2*PitStraight+PitRound*Mathf.PI*.5f;
+        // The pool stands 4.2 down: behind the round collar's near rail the camera sees the lining's foot and a band of the
+        // pool past it, as it did past the old square collar's farther rail with the pool 5.2 down. The shaft's courses
+        // below the deck were laid out for 5.2 and keep their proportions (PitScale), except the bearing course under the
+        // rail and the first row below it.
+        internal const float PitMolten=4.2f;
+        private const float PitScale=PitMolten/5.2f;
+        private const float PitHalf=(PitU1-PitU0)*.5f,PitRim=PitHalf-PitCollar+RailDepth,PitQuarter=PitRim*Mathf.PI*.5f;
+        // The opening inside the band, for the pit's atmosphere (FoundryAtmosphereView).
+        internal const float PitOpening=PitRim-RailDepth;
+        // The corner pedestals: the collar stone in each corner of the hole, PitPedestalHalf to either side of the diagonal
+        // and from PitPedestalReach out from the band to the hole's edge, raised to PitPedestalTop. On each a .9 lantern post
+        // stands on the diagonal PitLantern in from the hole's corner, its inner corner .17 clear of the pedestal's edge.
+        private const float PitLantern=.97f,PitPedestalReach=.62f,PitPedestalTop=.42f,PitPedestalHalf=15*Mathf.Deg2Rad;
         private static readonly Vector2 PitCentre=new Vector2((PitU0+PitU1)*.5f,(PitV0+PitV1)*.5f);
         private static readonly Vector2[] PitBoilers={new Vector2(-12.6f,10.6f),new Vector2(-7.4f,5.4f)};
         private static readonly Color LitFace=new Color(.63f,.66f,.77f),ShadeFace=new Color(.43f,.46f,.57f);
@@ -354,24 +364,19 @@ namespace Cryptforge.UI
                 Create("Furnace pit lining and inner boilers",walls,set.FoundryPitLining,-15.5f);
             }
             var wall=set.FoundryWall;
-            // Collar: lantern pedestals on the corner arcs and mid posts on the straights, each one structure for depth, and
-            // between each pair a run of the curved balustrade, one structure too; all sort far to near with the rim's
-            // pieces. The posts stand on the collar stone, from the plinth course's height; where a pedestal's camera face
-            // stands over the stone's lower step, a skirt carries it down to the step (PitSkirt). Under the far mid posts,
-            // which cut the far runs' plinth face, that face runs on behind their front, so the pit never shows below them.
+            // Collar: eight posts round the ring - mid posts at the sides' middles, corner posts on the diagonals with the
+            // corner pedestals and their lanterns (PitCorner), each one structure for depth - and between each pair a run of
+            // the curved balustrade, one structure too; all sort far to near with the rim's pieces. The posts stand on the
+            // collar stone, from the plinth course's height; where a corner post's camera face stands over the stone's lower
+            // step, a skirt carries it down to the step (PitSkirt). Under the far mid posts, which cut the far runs' plinth
+            // face, that face runs on behind their front, so the pit never shows below them.
             var posts=PitPosts();
             for(int k=0;k<8;k++)
             {
                 Vector4 post=posts[k];
                 Vector2 side=PitHeading(k*Mathf.PI*.25f);
                 bool farPost=k==0||k==2;
-                if(k%2==1)AddPiece(pieces,post,2.8f,()=>
-                {
-                    var skirt=new Builder();
-                    PitSkirt(skirt,post);
-                    Create("Pit collar post",RimStone(skirt),wall,-11);
-                    LanternPost(arena,post,false,RailPlinth);
-                });
+                if(k%2==1)PitCorner(arena,pieces,post,k);
                 else AddPiece(pieces,post,1.56f,()=>
                 {
                     var above=new Builder();
@@ -416,6 +421,70 @@ namespace Cryptforge.UI
                         Create("Pit boiler retaining iron",iron,set.FoundryCastIron,-10.5f);
                     });
             }
+        }
+
+        // A corner of the collar: its post on the band, the pedestal beyond it in two halves split at the diagonal (the
+        // outline's silhouette there) and the fire on the pedestal, as one piece sorted at the post. Far to near: the
+        // halves behind the post, the post, the halves in front of it, then the fire, which stands on both halves -
+        // except at the far corner, where the whole pedestal and its lantern lie behind the post, which comes last. The
+        // far and side corners carry the rail's tall lantern post; the near corner, which stands in front of the pit,
+        // a standing fire basket as in the workyard, so the molten glow shows past it.
+        private void PitCorner(ArenaView arena,List<MassPiece> pieces,Vector4 post,int k)
+        {
+            var wall=arena.PlatformMaterials.FoundryWall;
+            float diagonal=k*Mathf.PI*.25f;
+            Vector2 c=PitCentre+new Vector2(Mathf.Sign(Mathf.Cos(diagonal)),Mathf.Sign(Mathf.Sin(diagonal)))*(PitHalf-PitLantern);
+            var lantern=new Vector4(c.x-.45f,c.y-.45f,c.x+.45f,c.y+.45f);
+            float key=(post.x+post.z+post.y+post.w)*.5f;
+            var behind=new List<System.Action>();var front=new List<System.Action>();
+            foreach(float from in new[]{diagonal-PitPedestalHalf,diagonal})
+            {
+                float to=from+PitPedestalHalf;
+                var stone=new Builder();
+                Vector4 box=PitPedestal(stone,from,to);
+                ((box.x+box.z+box.y+box.w)*.5f>key?behind:front).Add(()=>
+                {
+                    using(MassDepth(box,PitPedestalTop))Create("Pit corner pedestal",stone,wall,-11);
+                });
+            }
+            System.Action standing=()=>{using(MassDepth(lantern,2.8f))LanternPost(arena,lantern,false,PitPedestalTop);};
+            // The basket's column stands on a capped stone block; the column is in the braziers' ironwork batch, which
+            // draws after the stone (and after the band post's brass, which lies behind it).
+            if(front.Count==2)standing=()=>
+            {
+                const float block=PitPedestalTop+.16f,rise=PitPedestalTop+YardBrazierRise;
+                using(MassDepth(lantern,rise+1.2f))
+                {
+                    var stone=new Builder();
+                    Vector4 foot=new Vector4(c.x-.3f,c.y-.3f,c.x+.3f,c.y+.3f);
+                    MassBox(stone,foot,PitPedestalTop,block,true,true,1.02f);
+                    MassCap(stone,foot,block,CapTone);
+                    Create("Pit corner brazier block",RimStone(stone),wall,-11);
+                    var column=new Builder();
+                    MassCourse(column,c,.16f,.13f,block,rise-.1f,6,true,new Color(.78f,.78f,.82f));
+                    Create("Bridge brazier ironwork",column,arena.PlatformMaterials.FoundryIron,-10.5f);
+                    Brazier(arena,c,rise);
+                }
+            };
+            System.Action bandPost=()=>
+            {
+                using(MassDepth(post,1.56f))
+                {
+                    var above=new Builder();
+                    PitSkirt(above,post);
+                    RailPost(above,null,post,false,RailPlinth);
+                    Create("Pit collar post",RimStone(above),wall,-11);
+                    RailPostBrass(arena.PlatformMaterials.FoundryIron,post,0);
+                }
+            };
+            pieces.Add(new MassPiece{Depth=key,Emit=()=>
+            {
+                foreach(var half in behind)half();
+                if(front.Count==0){standing();bandPost();return;}
+                bandPost();
+                foreach(var half in front)half();
+                standing();
+            }});
         }
 
         private static void PitDomeIron(Builder b,Vector2 c)
@@ -529,7 +598,8 @@ namespace Cryptforge.UI
         // The new texture has baked bottom heat and coals in its lowest 12%; its v=.06 meets the waterline.
         // A broad contact shadow under the collar releases into the painted stone. Shading
         // is evaluated at shared stations so the rounded wall does not read as flat stripes.
-        private static readonly float[] PitLiningRows={0,.18f,.55f,1.05f,1.75f,2.65f,4.1f,PitMolten-PitSeam};
+        private static readonly float[] PitLiningRows={0,.18f,.55f,1.05f*PitScale,1.75f*PitScale,2.65f*PitScale,4.1f*PitScale,
+            PitMolten-PitSeam};
         private const float PitSeam=.07f,PitFrontScale=PitMolten/.94f;
         private static void PitLiningFronts(Builder walls)
         {
@@ -592,7 +662,7 @@ namespace Cryptforge.UI
             // the bay. A deep shoulder meets the coping, then narrows into the
             // continuous rib and a low foot above the unchanged molten seam.
             var profile=new[]{new Vector2(.55f,0),new Vector2(.88f,.28f),
-                new Vector2(1.22f,.15f),new Vector2(4.54f,.15f),new Vector2(4.90f,0)};
+                new Vector2(1.22f,.15f),new Vector2(4.54f*PitScale,.15f),new Vector2(4.90f*PitScale,0)};
             foreach(int station in new[]{3,9,12,18})
             {
                 Vector2 centre=PitLiningStation(station,out Vector2 normal);
@@ -648,10 +718,10 @@ namespace Cryptforge.UI
             }
         }
         // A translucent sample of the painted coals joins the lining to the separate molten pool.
-        private static readonly float[] PitWashRows={1.8f,2.65f,4.1f,PitMolten-PitSeam};
+        private static readonly float[] PitWashRows={1.8f*PitScale,2.65f*PitScale,4.1f*PitScale,PitMolten-PitSeam};
         private static Color PitWash(float depth)
         {
-            float glow=Mathf.Pow(Mathf.InverseLerp(1.8f,PitMolten-PitSeam,depth),1.6f);
+            float glow=Mathf.Pow(Mathf.InverseLerp(1.8f*PitScale,PitMolten-PitSeam,depth),1.6f);
             return new Color(1,.92f,.8f,.16f*glow);
         }
         // The far wall receives the open pool's light; the two turning ends stay darker.
@@ -698,14 +768,14 @@ namespace Cryptforge.UI
                 Vector3 a=Project(Mathf.Lerp(p.x,q.x,.12f),Mathf.Lerp(p.y,q.y,.12f));
                 Vector3 c=Project(Mathf.Lerp(p.x,q.x,.88f),Mathf.Lerp(p.y,q.y,.88f));
                 Vector3 inward=Project(-normal.x*.12f,-normal.y*.12f)-Project(0,0);
-                const float top=.64f,bottom=4.94f;
+                const float top=.64f,bottom=4.94f*PitScale;
                 var soot=new Color(.56f,.59f,.66f);
                 // Broad dark channel, with a cool upper throat and a contained lower
                 // fire aperture. The painted coal sample never reaches the deck edge.
                 PitFront(b,a,c,top,bottom,new Vector4(.31f,.18f,.40f,.86f),soot,
                     new Color(.57f,.43f,.34f));
                 Vector3 left=Vector3.Lerp(a,c,.37f),right=Vector3.Lerp(a,c,.63f);
-                PitFront(b,left,right,3.4f,4.82f,PitFire,
+                PitFront(b,left,right,3.4f*PitScale,4.82f*PitScale,PitFire,
                     new Color(.21f,.12f,.065f),new Color(.78f,.46f,.24f));
                 // Recess returns and continuous iron jambs give the opening actual
                 // thickness rather than a bright stripe painted over the masonry.
@@ -716,7 +786,7 @@ namespace Cryptforge.UI
                 PitFront(b,a+inward,Vector3.Lerp(a,c,.16f)+inward,top,bottom,metal,upper,lower);
                 PitFront(b,Vector3.Lerp(a,c,.84f)+inward,c+inward,top,bottom,metal,upper,lower);
                 // Heavy lintel and two cross ties visually bind the long pair of ribs.
-                foreach(float depth in new[]{top,1.55f,3.75f})
+                foreach(float depth in new[]{top,1.55f*PitScale,3.75f*PitScale})
                     PitFront(b,a+inward,c+inward,depth,depth+.15f,
                         new Vector4(.0f,.69f,.08f,.745f),new Color(.52f,.55f,.63f),new Color(.47f,.49f,.56f));
             }
@@ -735,7 +805,7 @@ namespace Cryptforge.UI
 
         // The atlas's continuous dark pipe strip makes these long vessels read as machinery,
         // distinct from the large stone lining panels. Their original radius/hoods are retained.
-        private static readonly float[] PitDrumRows={0,.85f,1.75f,2.65f,4.1f,PitMolten-PitSeam};
+        private static readonly float[] PitDrumRows={0,.85f*PitScale,1.75f*PitScale,2.65f*PitScale,4.1f*PitScale,PitMolten-PitSeam};
         private static void PitDrum(Builder b,Vector2 c)
         {
             const int m=8;
@@ -774,9 +844,9 @@ namespace Cryptforge.UI
             // Wide closed inspection bays follow the cylinder facets. Their backing,
             // shallow iron returns and face are connected; no floating screen decals.
             foreach(int facet in pressure?new[]{2,5}:new[]{3})
-                PitVesselServiceBay(b,c,facet,pressure?.52f:.38f,pressure?1.94f:2.54f);
+                PitVesselServiceBay(b,c,facet,pressure?.52f:.38f,(pressure?1.94f:2.54f)*PitScale);
             // Retaining belts wrap the vessel's actual curved section; no floating screen bars.
-            foreach(float depth in pressure?new[]{.22f,2.12f,4.45f}:new[]{.22f,2.72f,4.45f})
+            foreach(float depth in pressure?new[]{.22f,2.12f*PitScale,4.45f*PitScale}:new[]{.22f,2.72f*PitScale,4.45f*PitScale})
                 for(int k=0;k<8;k++)
                 {
                     float a=FrontAngle(k,8),e=FrontAngle(k+1,8),angle=(a+e)*.5f;
@@ -827,32 +897,22 @@ namespace Cryptforge.UI
         }
 
         // A point of the collar's band in the design plane. t runs counterclockwise from the middle of the pit's +u side,
-        // along the band's outer edge; inset runs inward along the outline's normal (0 the outer edge, RailDepth the inner).
-        // Each quarter of the outline is a side's straight half, a corner arc of PitRound and the next side's straight half.
+        // along the band's outer edge, the circle of PitRim; inset runs inward along its normal (0 the outer edge,
+        // RailDepth the inner).
         private static Vector2 PitRing(float t,float inset,out Vector2 normal)
         {
-            int turn=Mathf.FloorToInt(t/PitQuarter);
-            float x=t-turn*PitQuarter,side=(turn%4+4)%4*Mathf.PI*.5f,arc=PitRound*Mathf.PI*.5f;
-            Vector2 point;
-            if(x<PitStraight){normal=PitHeading(side);point=PitCentre+normal*PitRim+new Vector2(-normal.y,normal.x)*x;}
-            else if(x<PitStraight+arc)
-            {
-                normal=PitHeading(side+(x-PitStraight)/PitRound);
-                point=PitCentre+(PitHeading(side)+PitHeading(side+Mathf.PI*.5f))*PitStraight+normal*PitRound;
-            }
-            else{normal=PitHeading(side+Mathf.PI*.5f);point=PitCentre+normal*PitRim+new Vector2(normal.y,-normal.x)*(PitQuarter-x);}
-            return point-normal*inset;
+            normal=PitHeading(t/PitRim);
+            return PitCentre+normal*(PitRim-inset);
         }
 
         private static Vector2 PitHeading(float angle)=>new Vector2(Mathf.Cos(angle),Mathf.Sin(angle));
 
-        // The collar's eight posts in outline order from the +u side's middle (post k at t = k half-quarters): mid posts on
-        // the straights, from the hole's edge to just past the band's inner edge, and .9 lantern pedestals on the corner
-        // arcs, PitLantern in from the hole's corners, where a pedestal's inner corner just passes the band's inner edge.
-        // So no post overhangs the pit by more than .01, and the band crosses one face of each post at either end of a run:
-        // a hidden face where the run passes behind the post, a camera-facing one where it stands in front of it - and the
-        // run's footprint then sorts after the post's.
-        private const float PitLantern=.97f;
+        // The collar's eight posts in outline order from the +u side's middle (post k at t = k half-quarters), each reach
+        // deep from just past the band's inner edge: mid posts at the sides' middles, out to the hole's edge, and reach-square
+        // corner posts on the diagonals, whose inner corner just passes the band's inner edge. So no post overhangs the pit
+        // by more than .01, and the band crosses one face of each post at either end of a run: a hidden face where the run
+        // passes behind the post, a camera-facing one where it stands in front of it - and the run's footprint then sorts
+        // after the post's. A corner post's outer corner stays .08 short of its pedestal.
         private static Vector4[] PitPosts()
         {
             var posts=new Vector4[8];
@@ -861,8 +921,8 @@ namespace Cryptforge.UI
             {
                 float angle=k*Mathf.PI*.25f;
                 Vector2 compass=new Vector2(Mathf.Round(Mathf.Cos(angle)*1.4f),Mathf.Round(Mathf.Sin(angle)*1.4f));
-                Vector2 c=PitCentre+compass*(k%2==1?PitHalf-PitLantern:PitHalf-reach*.5f);
-                Vector2 half=k%2==1?new Vector2(.45f,.45f):new Vector2(compass.x!=0?reach*.5f:.3f,compass.y!=0?reach*.5f:.3f);
+                Vector2 c=PitCentre+compass*(k%2==1?(PitOpening-.01f)/Mathf.Sqrt(2)+reach*.5f:PitHalf-reach*.5f);
+                Vector2 half=k%2==1?new Vector2(reach*.5f,reach*.5f):new Vector2(compass.x!=0?reach*.5f:.3f,compass.y!=0?reach*.5f:.3f);
                 posts[k]=new Vector4(c.x-half.x,c.y-half.y,c.x+half.x,c.y+half.y);
             }
             return posts;
@@ -960,31 +1020,31 @@ namespace Cryptforge.UI
             return Color.LerpUnclamped(ShadeFace,LitFace,(Mathf.Cos(angle-285*Mathf.Deg2Rad)-shade)/(lit-shade));
         }
 
-        // Collar stone filling the hole outside the band, t0..t1 of the outline: coping stones laid radially - each straight
-        // half one stone, the corner arcs in 15-degree stones, jointed along the outline's normals - in a profile that keeps
-        // the whole collar round. A coping lip PitLip wide follows the band at the plinth's height (a dark joint bed under an
-        // inset face, jointed at its outer edge too), a rounded chamfer falls PitChamfer outward to a lower step PitStep high,
-        // and the step fills the rest of the corner out to the hole's edge in a dark stone that darkens toward the corner's
-        // tip, so the square reads as a recess round the curve. The straights are lip throughout, so the mid posts and the
-        // straights' courses stand as before. Where the hole's edge faces the camera, a course drops to the deck at the
-        // profile's height there. Painted far to near: steps, chamfers, lips (on the far side the lip hides the step behind
-        // it; on the near side the three never overlap), then the courses. Returns the footprint.
+        // Collar stone filling the hole outside the band, t0..t1 of the outline: coping stones laid radially in 15-degree
+        // stones, jointed along the outline's normals, in a profile that keeps the whole collar round. A coping lip PitLip
+        // wide follows the band at the plinth's height (a dark joint bed under an inset face, jointed at its outer edge
+        // too), a rounded chamfer falls PitChamfer outward to a lower step PitStep high, and the step fills the rest out to
+        // the hole's edge in a dark stone that darkens toward the corner pedestals, so the ring reads as a recess between
+        // them; under a pedestal (PitPedestal) the step stops at its foot. At the sides' middles the lip runs to the hole's
+        // edge, so the mid posts stand as before. Where the hole's edge faces the camera beside the pedestals, a course drops
+        // to the deck at the profile's height there. Painted far to near: steps, chamfers, lips (on the far side the lip
+        // hides the step behind it; on the near side the three never overlap), then the courses. Returns the footprint.
         private const float PitJoint=.018f,PitLip=.32f,PitChamfer=.1f,PitStep=.05f;
         private static readonly float[] PitStoneTone={.84f,.78f,.88f,.81f,.75f,.86f,.8f};
         private static Vector4 PitCollarStone(Builder b,float t0,float t1)
         {
             var stations=new List<float>{t0,t1};
-            for(int q=0;q<4;q++)
-                for(int m=0;m<=6;m++)
-                {
-                    float t=q*PitQuarter+PitStraight+PitRound*Mathf.PI*m/12;
-                    if(t>t0+.01f&&t<t1-.01f)stations.Add(t);
-                }
+            for(int m=0;m<24;m++)
+            {
+                float t=PitRim*Mathf.PI*m/12;
+                if(t>t0+.01f&&t<t1-.01f)stations.Add(t);
+            }
             stations.Sort();
             var corners=new List<Vector2>();
             Vector3 lift=Vector3.up*RailPlinth;
-            // rim: the chamfer's foot; tip: from there to the corner's tip, where the step is darkest.
-            const float rim=PitLip+PitChamfer,tip=(PitHalf-PitStraight)*1.41421356f-PitRound-rim;
+            // rim: the chamfer's foot; tip: from there to the hole's edge at a pedestal's end, where the step is darkest.
+            const float rim=PitLip+PitChamfer;
+            float tip=PitHalf/Mathf.Cos(Mathf.PI*.25f-PitPedestalHalf)-PitRim-rim;
             Color joint=Tinted(CapTone,new Color(.42f,.42f,.42f)),arris=Tinted(CapTone,new Color(1.08f,1.08f,1.08f));
             Color step=Tinted(CapTone,new Color(.5f,.5f,.5f)),corner=Tinted(CapTone,new Color(.34f,.34f,.34f));
             for(int pass=0;pass<4;pass++)
@@ -993,6 +1053,9 @@ namespace Cryptforge.UI
                     Vector2 o0=PitRing(stations[j],0,out Vector2 n0),o1=PitRing(stations[j+1],0,out Vector2 n1);
                     Vector2 s0=PitEdge(o0,n0),s1=PitEdge(o1,n1);
                     float r0=Vector2.Distance(o0,s0),r1=Vector2.Distance(o1,s1);
+                    bool pedestal=PitUnderPedestal((stations[j]+stations[j+1])*.5f/PitRim);
+                    // The step's outer edge: the hole's, or a pedestal's foot.
+                    float foot0=pedestal?PitPedestalReach:r0,foot1=pedestal?PitPedestalReach:r1;
                     int stone=Mathf.RoundToInt(stations[j]*7);
                     float u=.33f+.04f*(stone%4),tone=PitStoneTone[stone%PitStoneTone.Length];
                     // Each radial edge's breaks - the lip's edge (p), the chamfer's foot (q) - cut short where the hole's edge
@@ -1003,8 +1066,8 @@ namespace Cryptforge.UI
                     {
                         corners.AddRange(new[]{o0,o1,s0,s1});
                         if(r0>rim||r1>rim)
-                            PitSlope(b,q0,q1,s1,s0,new[]{PitProfile(f0),PitProfile(f1),PitProfile(r1),PitProfile(r0)},u,
-                                new[]{step,step,Color.Lerp(step,corner,(r1-rim)/tip),Color.Lerp(step,corner,(r0-rim)/tip)});
+                            PitSlope(b,q0,q1,o1+n1*foot1,o0+n0*foot0,new[]{PitProfile(f0),PitProfile(f1),PitProfile(foot1),PitProfile(foot0)},
+                                u,new[]{step,step,Color.Lerp(step,corner,(foot1-rim)/tip),Color.Lerp(step,corner,(foot0-rim)/tip)});
                     }
                     else if(pass==1&&(r0>PitLip||r1>PitLip))
                     {
@@ -1022,7 +1085,7 @@ namespace Cryptforge.UI
                         PitStone(b,o0+inner+n0*PitJoint,o1-inner+n1*PitJoint,p1-outer-e1,p0+outer-e0,lift,u,
                             Tinted(CapTone,new Color(tone,tone,tone)));
                     }
-                    else if(pass==3)
+                    else if(pass==3&&!pedestal)
                     {
                         bool west=Mathf.Abs(s0.x-PitU0)<.001f&&Mathf.Abs(s1.x-PitU0)<.001f;
                         bool south=Mathf.Abs(s0.y-PitV0)<.001f&&Mathf.Abs(s1.y-PitV0)<.001f;
@@ -1067,19 +1130,19 @@ namespace Cryptforge.UI
             return new Color(tone,tone,tone);
         }
 
-        // How far out from the outline the collar stone at p is laid: on a straight, from its line; in a corner, measured along
-        // the middle normal of the 15-degree stone holding p and scaled to its radial joints, since each stone's breaks run
-        // on chords between them - so the profile there is exactly the stone's.
+        // How far out from the outline the collar stone at p is laid: measured along the middle normal of the 15-degree
+        // stone holding p and scaled to its radial joints, since each stone's breaks run on chords between them - so the
+        // profile there is exactly the stone's.
         private static float PitReach(Vector2 p)
         {
-            Vector2 q=p-PitCentre;
-            if(Mathf.Abs(q.y)<=PitStraight)return Mathf.Abs(q.x)-PitRim;
-            if(Mathf.Abs(q.x)<=PitStraight)return Mathf.Abs(q.y)-PitRim;
-            Vector2 w=q-new Vector2(Mathf.Sign(q.x),Mathf.Sign(q.y))*PitStraight;
+            Vector2 w=p-PitCentre;
             const float step=15*Mathf.Deg2Rad;
             float mid=(Mathf.Floor(Mathf.Atan2(w.y,w.x)/step)+.5f)*step;
-            return (w.x*Mathf.Cos(mid)+w.y*Mathf.Sin(mid))/Mathf.Cos(step*.5f)-PitRound;
+            return (w.x*Mathf.Cos(mid)+w.y*Mathf.Sin(mid))/Mathf.Cos(step*.5f)-PitRim;
         }
+
+        // Whether the collar stone at an outline angle (radians from +u) lies under a corner pedestal.
+        private static bool PitUnderPedestal(float angle)=>Mathf.Abs(Mathf.Repeat(angle*Mathf.Rad2Deg,90)-45)<PitPedestalHalf*Mathf.Rad2Deg-.01f;
 
         // A collar post's camera faces carried down from the plinth's height to the collar stone where it stands lower, as
         // MassBox draws the shaft above (tone, world-continuous masonry): in pieces between the points where the ground under
@@ -1092,14 +1155,13 @@ namespace Cryptforge.UI
         private static void PitSkirtFace(Builder b,Vector2 p,Vector2 q,Color face)
         {
             var cuts=new List<float>{0,1};
-            Vector2 mid=(p+q)*.5f-PitCentre,arc=PitCentre+new Vector2(Mathf.Sign(mid.x),Mathf.Sign(mid.y))*PitStraight;
             for(int k=0;k<24;k++)
             {
                 Vector2 ray=PitHeading(k*15*Mathf.Deg2Rad),along=q-p;
                 float cross=along.x*ray.y-along.y*ray.x;
                 if(Mathf.Abs(cross)<1e-6f)continue;
-                float s=((arc.x-p.x)*ray.y-(arc.y-p.y)*ray.x)/cross;
-                if(s>0&&s<1&&Vector2.Dot(p+along*s-arc,ray)>0)cuts.Add(s);
+                float s=((PitCentre.x-p.x)*ray.y-(PitCentre.y-p.y)*ray.x)/cross;
+                if(s>0&&s<1&&Vector2.Dot(p+along*s-PitCentre,ray)>0)cuts.Add(s);
             }
             cuts.Sort();
             // Within a stone the reach runs linearly along the face, so its breaks interpolate exactly.
@@ -1152,6 +1214,91 @@ namespace Cryptforge.UI
             foreach(var line in lines)
                 foreach(var p in line)box=new Vector4(Mathf.Min(box.x,p.x),Mathf.Min(box.y,p.y),Mathf.Max(box.z,p.x),Mathf.Max(box.w,p.y));
             return box;
+        }
+
+        // Half a corner pedestal, outline angles from..to (radians from +u; one end on the diagonal, the other the pedestal's
+        // end): the collar stone from PitPedestalReach out from the band to the hole's edge, raised as one block to
+        // PitPedestalTop, in 7.5-degree stones jointed as the collar's. First its faces where they turn to the camera, on
+        // masonry that runs on round them: the inner face round the band (the far corners'), the end - a radial joint face
+        // over the step - and the outer faces from the deck on the hole's west and south edges; then the top, a dark joint
+        // bed under each inset stone, lit toward its inner edge. Returns the footprint.
+        private const int PitPedestalStones=2;
+        private static Vector4 PitPedestal(Builder b,float from,float to)
+        {
+            const int n=PitPedestalStones;
+            const float radius=PitRim+PitPedestalReach;
+            var inner=new Vector2[n+1];var edge=new Vector2[n+1];var normal=new Vector2[n+1];var angle=new float[n+1];
+            for(int i=0;i<=n;i++)
+            {
+                angle[i]=Mathf.Lerp(from,to,i/(float)n);
+                Vector2 o=PitRing(angle[i]*PitRim,0,out normal[i]);
+                inner[i]=o+normal[i]*PitPedestalReach;edge[i]=PitEdge(o,normal[i]);
+            }
+            Color lift=new Color(1.02f,1.02f,1.02f);
+            for(int i=0;i<n;i++)
+            {
+                Vector2 facing=-(normal[i]+normal[i+1]);
+                if(facing.x+facing.y<0)
+                    PitPedestalFace(b,inner[i],inner[i+1],radius*angle[i],radius*angle[i+1],PitStep,
+                        Tinted(PitFacing(Mathf.Atan2(facing.y,facing.x)),lift));
+            }
+            foreach(int i in new[]{0,n})
+            {
+                if(PitUnderPedestal(angle[i]+(i==0?-.01f:.01f)))continue;
+                Vector2 away=i==0?new Vector2(normal[i].y,-normal[i].x):new Vector2(-normal[i].y,normal[i].x);
+                if(away.x+away.y<0)
+                    PitPedestalFace(b,inner[i],edge[i],0,Vector2.Distance(inner[i],edge[i]),PitStep,
+                        Tinted(PitFacing(Mathf.Atan2(away.y,away.x)),lift));
+            }
+            for(int i=0;i<n;i++)
+            {
+                bool west=Mathf.Abs(edge[i].x-PitU0)<.001f&&Mathf.Abs(edge[i+1].x-PitU0)<.001f;
+                bool south=Mathf.Abs(edge[i].y-PitV0)<.001f&&Mathf.Abs(edge[i+1].y-PitV0)<.001f;
+                if(west)PitPedestalFace(b,edge[i],edge[i+1],edge[i].y,edge[i+1].y,0,Tinted(ShadeFace,lift));
+                else if(south)PitPedestalFace(b,edge[i],edge[i+1],edge[i].x,edge[i+1].x,0,Tinted(LitFace,lift));
+            }
+            Vector3 top=Vector3.up*PitPedestalTop;
+            Color joint=Tinted(CapTone,new Color(.42f,.42f,.42f));
+            for(int i=0;i<n;i++)
+            {
+                int stone=Mathf.RoundToInt(angle[i]*PitRim*7)+i;
+                float u=.33f+.04f*(stone%4),tone=PitStoneTone[stone%PitStoneTone.Length];
+                var quad=new[]{inner[i],inner[i+1],edge[i+1],edge[i]};
+                PitStone(b,quad[0],quad[1],quad[2],quad[3],top,u,joint);
+                var face=PitInset(quad,PitJoint);
+                int start=b.C.Count;
+                PitStone(b,face[0],face[1],face[2],face[3],top,u,Tinted(CapTone,new Color(tone,tone,tone)));
+                for(int k=0;k<4;k++)b.C[start+k]=Tinted(b.C[start+k],k<2?new Color(1.08f,1.08f,1.08f):new Color(.94f,.94f,.94f));
+            }
+            return PitBounds(inner,edge);
+        }
+
+        // A vertical face of a pedestal from p to q, its foot at h up to the pedestal's top, on the wall's masonry: texture
+        // u from the distance along it (sp at p, sq at q), so the courses run on round the curve and from face to face.
+        private static void PitPedestalFace(Builder b,Vector2 p,Vector2 q,float sp,float sq,float h,Color face)
+        {
+            int start=b.U.Count;
+            Vector3 a=Project(p.x,p.y),c=Project(q.x,q.y);
+            b.Quad(a+Vector3.up*h,c+Vector3.up*h,c+Vector3.up*PitPedestalTop,a+Vector3.up*PitPedestalTop,false,face);
+            b.U[start]=new Vector2(sp/2.8f,h/2.4f);b.U[start+1]=new Vector2(sq/2.8f,h/2.4f);
+            b.U[start+2]=new Vector2(sq/2.8f,PitPedestalTop/2.4f);b.U[start+3]=new Vector2(sp/2.8f,PitPedestalTop/2.4f);
+        }
+
+        // A convex quad inset by d all round: the crossing of each corner's two edges moved d inward.
+        private static Vector2[] PitInset(Vector2[] quad,float d)
+        {
+            float area=0;
+            for(int i=0;i<4;i++){Vector2 p=quad[i],q=quad[(i+1)%4];area+=p.x*q.y-q.x*p.y;}
+            float side=area>0?d:-d;
+            var result=new Vector2[4];
+            for(int i=0;i<4;i++)
+            {
+                Vector2 p=quad[i],e0=(p-quad[(i+3)%4]).normalized,e1=(quad[(i+1)%4]-p).normalized;
+                Vector2 a=p+new Vector2(-e0.y,e0.x)*side,c=p+new Vector2(-e1.y,e1.x)*side;
+                float cross=e0.x*e1.y-e0.y*e1.x;
+                result[i]=Mathf.Abs(cross)<1e-6f?a:a+e0*(((c.x-a.x)*e1.y-(c.y-a.y)*e1.x)/cross);
+            }
+            return result;
         }
 
         // The court posts (finials and four lanterns) stand in the rail line; the rail stops at them. Their stone is emitted

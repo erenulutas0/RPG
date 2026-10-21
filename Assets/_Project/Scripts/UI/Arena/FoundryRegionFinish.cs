@@ -58,8 +58,8 @@ namespace Cryptforge.UI
                 lamps.Add(Lamp(new Vector4(c.x,c.y,c.x,c.y),BoilerPlinth,SquatBoiler(i)?4.2f:4.6f,
                     SquatBoiler(i)?.9f:1.4f,FurnaceLight,SquatBoiler(i)?.8f:1.5f,SquatBoiler(i)?3f:3.3f));
             }
-            // The pit collar's corner lanterns (.9 pedestals, on the rounded collar's corner arcs) only round off the
-            // pit's own glow at its corners.
+            // The fires on the pit's corner pedestals (three lantern posts and the near basket, on the diagonals) only
+            // round off the pit's own glow at its corners.
             foreach(var p in new[]{new Vector2(PitU0+PitLantern,PitV0+PitLantern),new Vector2(PitU1-PitLantern,PitV0+PitLantern),
                 new Vector2(PitU0+PitLantern,PitV1-PitLantern),new Vector2(PitU1-PitLantern,PitV1-PitLantern)})
                 lamps.Add(Lamp(new Vector4(p.x,p.y,p.x,p.y),0,3.4f,.3f,FlameLight));

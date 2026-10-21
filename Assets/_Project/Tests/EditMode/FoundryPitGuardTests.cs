@@ -189,7 +189,16 @@ namespace Cryptforge.Tests
             for(int run=0;run<8;run++)
             {
                 var lines=Lines(run,out bool near);object mesh=Builder();Call("PitGuardRun",mesh,lines,near);
-                int clear=0,samples=0;var axis=lines[1];
+                // The same run as a bare frame - its bearing sill and coping only, no responds, panel or bars.
+                object frame=Builder();var axis=lines[1];var along=new float[axis.Length];
+                for(int j=1;j<axis.Length;j++)along[j]=along[j-1]+Vector2.Distance(axis[j-1],axis[j]);
+                for(int j=0;j+1<axis.Length;j++)
+                {
+                    Call("PitGuardBlock",frame,lines[0][j],lines[0][j+1],lines[2][j],lines[2][j+1],near?.15f:0f,.26f,.96f,false,false);
+                    Call("PitGuardCoping",frame,lines[0][j],lines[0][j+1],lines[2][j],lines[2][j+1],along[j],along[j+1],
+                        along[along.Length-1],1,false);
+                }
+                int clear=0,open=0,samples=0;
                 for(int j=0;j+1<axis.Length;j++)for(int sample=0;sample<9;sample++)
                 {
                     Vector2 p=Vector2.Lerp(axis[j],axis[j+1],(sample+.371f)/9);
@@ -197,9 +206,14 @@ namespace Cryptforge.Tests
                     // and recessed panels all participate in the triangle query.
                     Vector3 screen=Project(p)+Vector3.up*.433f;
                     if(!Covered(mesh,screen))clear++;
+                    if(!Covered(frame,screen))open++;
                     samples++;
                 }
-                Assert.That(clear/(float)samples,Is.GreaterThan(.40f),
+                // Where the round collar turns toward the camera (beside the side corners) the run is seen nearly
+                // edge-on and its own coping hides part of every bay; the infill must still leave more than half of
+                // what the bare frame shows, and a run seen square-on keeps more than 40% of its band open.
+                Assert.That(clear,Is.GreaterThan(open*.5f),$"Run {run}: the infill must not close the bays the frame leaves open.");
+                if(open>=samples*.95f)Assert.That(clear/(float)samples,Is.GreaterThan(.40f),
                     "More than 40% of each real bay must stay visibly open to the shaft, not an opaque parapet.");
             }
         }
