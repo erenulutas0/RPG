@@ -1135,3 +1135,11 @@ Above-deck rim stone tinted (.80,.77,.92) -> value .18 / saturation .32 (concept
 36,413,341 bytes, SHA256 2AA02A3A7B3701DC093C18C04393DDE4495E84DDB46895FC28B3C132A0DDFAD0, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-rim-wall-01.
+
+## 2026-10-21 - Brass collars and finials on the rail posts
+
+Plain balustrade and pit collar posts gain brass collars and finials as on the concept, in the existing brazier ironwork
+batch; layout unchanged. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; APK 36,414,225 bytes, SHA256
+F89C4F2522C2CCA5D21DF4D48E44BD2AE7DDA9233F7DB758C6E8FC945E4AFC0A, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-post-brass-01.

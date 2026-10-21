@@ -372,7 +372,7 @@ namespace Cryptforge.UI
                     Create("Pit collar post",RimStone(skirt),wall,-11);
                     LanternPost(arena,post,false,RailPlinth);
                 });
-                else AddPiece(pieces,post,1.34f,()=>
+                else AddPiece(pieces,post,1.56f,()=>
                 {
                     var above=new Builder();
                     if(farPost)
@@ -384,6 +384,7 @@ namespace Cryptforge.UI
                     }
                     RailPost(above,null,post,false,RailPlinth);
                     Create("Pit collar post",RimStone(above),wall,-11);
+                    RailPostBrass(arena.PlatformMaterials.FoundryIron,post,0);
                 });
                 var lines=PitRunLines(posts,k,out bool near);
                 AddPiece(pieces,PitBounds(lines[0],lines[2]),RailTop,
@@ -1200,6 +1201,7 @@ namespace Cryptforge.UI
         private void BuildBalustrade(ArenaView arena,List<MassPiece> pieces)
         {
             var wall=arena.PlatformMaterials.FoundryWall;
+            _railIron=arena.PlatformMaterials.FoundryIron;
             var placed=new List<Vector4>();
             _railPostBoxes.Clear();
             for(int i=0;i<CourtFinials.Length;i++)
@@ -1341,14 +1343,16 @@ namespace Cryptforge.UI
             bool alongU,bool front,Material wall)
         {
             if(!MassClear(box)||MassBlocked(box)||MassConflicts(box,1.35f,true))return false;
+            // (The brass finial reaches 1.56; the 1.35 screen test is kept so the post layout is unchanged.)
             foreach(var other in placed)if(Overlap(other,box))return false;
             placed.Add(box);posts.Add(Along(box,alongU));_railPostBoxes.Add(box);
-            AddPiece(pieces,box,1.34f,()=>
+            AddPiece(pieces,box,1.56f,()=>
             {
                 var above=new Builder();var below=front?new Builder():null;
                 RailPost(above,below,box,front);
                 Create("Balustrade post",RimStone(above),wall,-11);
                 if(below!=null)Create("Balustrade pilaster",RimFace(below),wall,-16);
+                RailPostBrass(_railIron,box,0);
             });
             return true;
         }
@@ -1531,6 +1535,22 @@ namespace Cryptforge.UI
             above.WallQuad(Project(cap.x,cap.y)+lift,Project(cap.z,cap.y)+lift,apex,apex,false,new Color(.72f,.75f,.84f));
             above.WallQuad(Project(cap.x,cap.w)+lift,Project(cap.x,cap.y)+lift,apex,apex,false,new Color(.5f,.53f,.63f));
             if(front&&below!=null)MassBox(below,box,DeckFace,0,true,true,.93f);
+        }
+
+        // As on the concept's rail posts: a rubbed brass collar under the cap and a brass finial on the pyramid's point,
+        // in the brazier ironwork batch (no new renderer), drawn after the post's stone in its sorting order. The collar's
+        // octagon circumscribes the .52 post (corners at .37) so no stone corner shows through it.
+        private Material _railIron;
+        private void RailPostBrass(Material iron,Vector4 box,float foot)
+        {
+            Vector2 c=new Vector2((box.x+box.z)*.5f,(box.y+box.w)*.5f);
+            float half=Mathf.Max(box.z-box.x,box.w-box.y)*.5f;
+            var brass=new Builder();
+            // Polished a little beyond the braziers' rubbed bronze so the rail's brass glints at map scale, as on the concept.
+            MassCourse(brass,c,half*1.45f,half*1.45f,foot+.86f,foot+.97f,8,true,Bronze*1.3f);
+            MassCourse(brass,c,.10f,.05f,foot+1.30f,foot+1.44f,6,true,Bronze*1.3f);
+            MassCourse(brass,c,.05f,.012f,foot+1.44f,foot+1.56f,6,true,Bronze*1.45f);
+            Create("Balustrade post brass",brass,iron,-10.5f);
         }
 
         // The post's cap top (1.69): the basket's cast foot starts there.
