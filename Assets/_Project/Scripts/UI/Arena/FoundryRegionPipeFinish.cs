@@ -30,7 +30,7 @@ namespace Cryptforge.UI
         }
 
         private static void FinishedPipeSection(Builder mesh,Vector3 a,Vector3 b,Vector3 normal,
-            float radiusA,float radiusB,float height,float gain,float grainStart,float grainEnd)
+            float radiusA,float radiusB,float height,float gain,float grainStart,float grainEnd,bool brass=false)
         {
             const int strips=8;
             int spans=Mathf.Max(1,Mathf.CeilToInt(Vector3.Distance(a,b)/.75f));
@@ -46,10 +46,10 @@ namespace Cryptforge.UI
                     int first=mesh.V.Count;
                     LinkQuad(mesh,from+normal*x0*r0,to+normal*x0*r1,
                         to+normal*x1*r1,from+normal*x1*r0,
-                        MetalTone(FinishedPipeTone(t0,s0,gain),from,height),
-                        MetalTone(FinishedPipeTone(t0,s1,gain),to,height),
-                        MetalTone(FinishedPipeTone(t1,s1,gain),to,height),
-                        MetalTone(FinishedPipeTone(t1,s0,gain),from,height));
+                        MetalTone(FinishedPipeTone(t0,s0,gain,brass),from,height),
+                        MetalTone(FinishedPipeTone(t0,s1,gain,brass),to,height),
+                        MetalTone(FinishedPipeTone(t1,s1,gain,brass),to,height),
+                        MetalTone(FinishedPipeTone(t1,s0,gain,brass),from,height));
                     // One uninterrupted field of rolled plate along the whole section,
                     // clear of atlas straps/rivets; no patch restart at lighting samples.
                     float u0=.2f+Mathf.Lerp(grainStart,grainEnd,s0)*.6f;
@@ -62,7 +62,7 @@ namespace Cryptforge.UI
             }
         }
 
-        private static Color FinishedPipeTone(float around,float along,float gain)
+        private static Color FinishedPipeTone(float around,float along,float gain,bool brass=false)
         {
             // Broad rolled crown, cool unlit underside, dark sleeve contact. Eight
             // cross-section strips interpolate these values without a painted white line.
@@ -70,10 +70,11 @@ namespace Cryptforge.UI
             float value=.24f+.91f*crown*crown;
             float millScale=.90f+.10f*Mathf.Sin(along*Mathf.PI);
             value*=gain*millScale;
-            // Rolled service iron belongs to the cool boiler castings. The
-            // existing MetalTone stage still owns localized reflected fire;
-            // brass fittings and baked fire windows never use this stock tint.
-            return new Color(value*.86f,value*.98f,value*1.16f,1);
+            // Rolled service iron joins the blackened furnace towers (2026-10-20 reference towers): darker and
+            // neutral-warm instead of the former cool blue stock, which read pale teal beside them. Collars on the
+            // elevated mains are brass bands like the towers'. MetalTone still owns localized reflected fire.
+            if(brass)return new Color(value*.96f,value*.70f,value*.36f,1);
+            return new Color(value*.66f,value*.64f,value*.63f,1);
         }
     }
 }

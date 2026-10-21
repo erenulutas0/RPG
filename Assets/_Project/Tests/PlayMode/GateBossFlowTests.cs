@@ -86,7 +86,9 @@ namespace Cryptforge.Tests
             Assert.That(encounter.IsGateExitOpen,Is.True);Assert.That(setup.Run.HasEnded,Is.False);
             Assert.That(door.Opening,Is.EqualTo(1f),"The gate stands open once its boss has fallen.");
 
-            hero.position=new Vector3(gx,ArenaFloor.WorldY(gy),0);yield return Hold(setup,.4f);
+            // The gate's hold is wider than the finale's: 1.1 units off its centre still counts.
+            Assert.That(ExitRule.GateRadius,Is.GreaterThan(1.1f));Assert.That(encounter.ExitRadius,Is.EqualTo(ExitRule.GateRadius));
+            hero.position=new Vector3(gx+1.1f,ArenaFloor.WorldY(gy),0);yield return Hold(setup,.4f);
             Assert.That(encounter.IsGateExitOpen,Is.True,"The hold takes a full second.");
             yield return Hold(setup,1f);yield return null;
             Assert.That(encounter.IsGateExitOpen,Is.False);

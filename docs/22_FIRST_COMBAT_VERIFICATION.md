@@ -1755,3 +1755,11 @@ pack now marches at 3.5x its speed until within 4 units of the hero (`PackMotion
 9.4 s to the court centre in the pure test, then fights at its own pace. Observation: the 0.9-unit hold radius took a few
 nudges to land on by touch. The test run banked 50 gold into the owner's profile (37668 -> 37718, revision 246; the
 pre-run profile is backed up). 444 .NET / 719 EditMode / 164 PlayMode, zero failures.
+
+## 2026-10-21 - Dark iron pipework and a wider gate hold
+
+Service mains and boiler feeds join the blackened towers (dark neutral-warm iron, brass collars on elevated mains);
+the opened gate's hold radius is 1.3 (finale 0.9) after the device check. 444 .NET / 719 EditMode / 164 PlayMode, zero
+failures; APK 36,410,838 bytes, SHA256 DBBB5ADFB09BDA3774590EC991B96A40EF782D07CCDD7A5367A8D252EA5385A2, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-polish-01.

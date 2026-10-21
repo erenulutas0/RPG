@@ -427,14 +427,14 @@ namespace Cryptforge.UI
 
         // Plain iron and a curved cross-section keep pressure mains distinct from structural beams.
         // This shares the existing iron batch and leaves generic rods/rails untouched.
-        private void PressureTube(ArenaView arena,Vector3 a,Vector3 b,float width,float order=-11,float? surfaceHeight=null)
+        private void PressureTube(ArenaView arena,Vector3 a,Vector3 b,float width,float order=-11,float? surfaceHeight=null,bool brass=false)
         {
             Vector3 axis=(b-a).normalized,n=new Vector3(-axis.y,axis.x,0);
             if(Vector2.Dot(new Vector2(n.x,n.y),ChainLight)<0)n=-n;
             var mesh=new Builder();
             if(surfaceHeight.HasValue)
             {
-                FinishedPipeSection(mesh,a,b,n,width*.5f,width*.5f,surfaceHeight.Value,1,0,1);
+                FinishedPipeSection(mesh,a,b,n,width*.5f,width*.5f,surfaceHeight.Value,1,0,1,brass);
                 Create("Formed boiler feed",mesh,arena.PlatformMaterials.FoundryIron,order);
                 return;
             }

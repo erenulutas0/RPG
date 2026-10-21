@@ -287,7 +287,7 @@ namespace Cryptforge.UI
                 Vector3 p=Vector3.Lerp(a,b,i/(float)bands);
                 bool end=i==0||i==bands;
                 float halfLength=width*(end?.17f:.10f);
-                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),order,height);
+                PressureTube(arena,p-d*halfLength,p+d*halfLength,width*(end?1.6f:1.28f),order,height,!end);
             }
         }
 

@@ -85,6 +85,8 @@ namespace Cryptforge.UI
             Vector3 position=new Vector3(encounter.ExitFloorX,ArenaFloor.WorldY(encounter.ExitFloorY),0);
             if(_arena!=null&&_arena.IsFoundryRegion)position.y+=FoundrySurface.Lift(position,_arena.transform.position);
             _plate.transform.position=position;
+            // The seal is drawn at the finale's radius; the opened gate's wider hold scales the whole plate.
+            float scale=encounter.ExitRadius/ExitRule.Radius;_plate.transform.localScale=new Vector3(scale,scale,1);
             _progress.enabled=ShownProgress>0;
             for(int i=0;i<=Segments;i++)_arc[i]=Point(Mathf.PI/2-i*(Mathf.PI*2/Segments)*ShownProgress,ExitRule.Radius);
             _progress.positionCount=_arc.Length;_progress.SetPositions(_arc);

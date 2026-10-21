@@ -136,6 +136,7 @@ namespace Cryptforge.Combat
         public float ExitFloorX => _exitX;
         public float ExitFloorY => _exitY;
         public float ExitHeldSeconds => _exitDwell != null ? _exitDwell.Held : 0f;
+        public float ExitRadius => _gateExitOpen ? ExitRule.GateRadius : ExitRule.Radius;
 
         public event Action EncounterStarted;
         public event Action ProgressChanged;
@@ -599,7 +600,7 @@ namespace Cryptforge.Combat
             bool moved = heroX != _swarmHeroX || heroY != _swarmHeroY;
             _swarmHeroX = heroX;
             _swarmHeroY = heroY;
-            if (!_exitDwell.Step(deltaTime, !moved && ExitRule.IsWithinReach(heroX, heroY, _exitX, _exitY)))
+            if (!_exitDwell.Step(deltaTime, !moved && ExitRule.IsWithinReach(heroX, heroY, _exitX, _exitY, ExitRule.GateRadius)))
                 return;
             _gateExitOpen = false;
             ProgressChanged?.Invoke();

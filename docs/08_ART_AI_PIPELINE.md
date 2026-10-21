@@ -1518,3 +1518,11 @@ never rewrites them): region 38 renderers / 154,832 vertices. 443 .NET / 718 Edi
 36,409,937 bytes, SHA256 D156A70A7B6A90CBA1844F18E7085ADDC6C3532D9BAFA4663BEE8D6FFBD02B7D, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-gate-door-01.
+
+## 2026-10-21 - Dark iron pipework and a wider gate hold
+
+Service mains and boiler feeds join the blackened towers (dark neutral-warm iron, brass collars on elevated mains);
+the opened gate's hold radius is 1.3 (finale 0.9) after the device check. 444 .NET / 719 EditMode / 164 PlayMode, zero
+failures; APK 36,410,838 bytes, SHA256 DBBB5ADFB09BDA3774590EC991B96A40EF782D07CCDD7A5367A8D252EA5385A2, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-polish-01.

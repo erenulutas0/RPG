@@ -17,6 +17,9 @@ namespace Cryptforge.Combat
         public const float Distance = 5f;
         // How close the hero's feet must come to count as standing on it.
         public const float Radius = 0.9f;
+        // The opened gate's hold is wider: on the phone the finale's 0.9 took several nudges to land on by touch at the
+        // gate's camera distance (2026-10-21 device check).
+        public const float GateRadius = 1.3f;
         // How long the hero must stand still on it, without stepping off or moving, to leave.
         public const float DwellSeconds = 1f;
 
@@ -28,11 +31,14 @@ namespace Cryptforge.Combat
             floorY = geometry.Middle + Math.Max(0f, reach);
         }
 
-        public static bool IsWithinReach(float heroX, float heroY, float exitX, float exitY)
+        public static bool IsWithinReach(float heroX, float heroY, float exitX, float exitY) =>
+            IsWithinReach(heroX, heroY, exitX, exitY, Radius);
+
+        public static bool IsWithinReach(float heroX, float heroY, float exitX, float exitY, float radius)
         {
             float dx = heroX - exitX;
             float dy = heroY - exitY;
-            return dx * dx + dy * dy <= Radius * Radius;
+            return dx * dx + dy * dy <= radius * radius;
         }
     }
 
