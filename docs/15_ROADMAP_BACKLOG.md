@@ -1065,3 +1065,13 @@ and a dark vault instead of one gradient; +32 vertices. 444 .NET / 719 EditMode 
 36,412,123 bytes, SHA256 6F1993C9227E49DF9737A9BE5BE0AC39B88912C18DD3F906BA082712762A020A, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-doorway-01.
+
+## 2026-10-21 - Rim fire: the remaining open rail gaps
+
+A survey of every rail position against the placement rules found three open gaps (north rail u -2 and 6, causeway
+north rail u 18.5); each now carries a lantern post with its floor pool. The west rail (workyard obstacles, existing
+lanterns) and the causeway's south rail (behind the boilers on screen) have no valid position. +303 vertices.
+444 .NET / 719 EditMode / 164 PlayMode, zero failures; APK 36,411,342 bytes, SHA256
+98ACB99CD9354FB98C391E42147070C8A409FA0D15129B842AFC364E1DAB19E7, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-rim-fire-01.

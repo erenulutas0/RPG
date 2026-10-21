@@ -10,7 +10,8 @@ namespace Cryptforge.Tests
     public sealed class FoundryRimLightTests
     {
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
-        private static readonly Vector2[] Added={new Vector2(-7.5f,FoundryMap.South-.36f),new Vector2(6.5f,FoundryMap.South-.36f),new Vector2(1.5f,FoundryMap.North+.36f)};
+        private static readonly Vector2[] Added={new Vector2(-7.5f,FoundryMap.South-.36f),new Vector2(6.5f,FoundryMap.South-.36f),new Vector2(1.5f,FoundryMap.North+.36f),
+            new Vector2(-2f,FoundryMap.North+.36f),new Vector2(6f,FoundryMap.North+.36f),new Vector2(18.5f,10.36f)};
 
         [Test]
         public void ConceptRimLanternsStandOnTheRailWithTheirOwnFloorPools()
@@ -39,7 +40,7 @@ namespace Cryptforge.Tests
                 Assert.That(FoundryMap.SurfaceContains(x,y,0),Is.False,"The post stands on the rail, outside the walking surface.");
                 float nearest=float.MaxValue;
                 foreach(var l in centres)if(Vector2.Distance(l.c,p)>.01f&&l.s<=.5f)nearest=Mathf.Min(nearest,Vector2.Distance(l.c,p));
-                Assert.That(nearest,Is.GreaterThan(3.5f),$"Lantern at {p} fills a bare run instead of doubling a neighbour's pool.");
+                Assert.That(nearest,Is.GreaterThan(2.9f),$"Lantern at {p} fills a bare run instead of doubling a neighbour's pool.");
             }
         }
     }

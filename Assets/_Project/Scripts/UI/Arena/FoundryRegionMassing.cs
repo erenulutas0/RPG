@@ -1163,9 +1163,13 @@ namespace Cryptforge.UI
             // no post position that clears the placement tests, and a northwest
             // post would stand in front of the baked stock station.
             new Vector4(-7.86f,FoundryMap.South-.72f,-7.14f,FoundryMap.South),new Vector4(6.14f,FoundryMap.South-.72f,6.86f,FoundryMap.South),
-            new Vector4(1.14f,FoundryMap.North,1.86f,FoundryMap.North+.72f)
+            new Vector4(1.14f,FoundryMap.North,1.86f,FoundryMap.North+.72f),
+            // A 2026-10-21 survey of every rail position against the placement tests: the remaining open gaps are two
+            // on the north rail and one on the causeway's north rail (its south rail stands behind the boilers).
+            new Vector4(-2.36f,FoundryMap.North,-1.64f,FoundryMap.North+.72f),new Vector4(5.64f,FoundryMap.North,6.36f,FoundryMap.North+.72f),
+            new Vector4(18.14f,10,18.86f,10.72f)
         };
-        private static readonly bool[] RailLanternFront={true,true,false,false,true,false,false,true,true,false};
+        private static readonly bool[] RailLanternFront={true,true,false,false,true,false,false,true,true,false,false,false,false};
 
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =
