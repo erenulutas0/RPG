@@ -1057,3 +1057,11 @@ the opened gate's hold radius is 1.3 (finale 0.9) after the device check. 444 .N
 failures; APK 36,410,838 bytes, SHA256 DBBB5ADFB09BDA3774590EC991B96A40EF782D07CCDD7A5367A8D252EA5385A2, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-polish-01.
+
+## 2026-10-21 - The open gate shows a lit hall beyond
+
+The open doorway carries a warm receding floor, a far furnace glow (left of centre, where the open leaf leaves it seen)
+and a dark vault instead of one gradient; +32 vertices. 444 .NET / 719 EditMode / 164 PlayMode, zero failures; APK
+36,412,123 bytes, SHA256 6F1993C9227E49DF9737A9BE5BE0AC39B88912C18DD3F906BA082712762A020A, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-doorway-01.

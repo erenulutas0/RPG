@@ -31,21 +31,47 @@ namespace Cryptforge.UI
             float left=GateDoorWallV(GateDoorLeftU),seam=GateDoorWallV(GateDoorSeamU),right=GateDoorWallV(GateDoorRightU);
             float bottom=GateDoorBottomV*height,top=GateDoorTopV*height;
             var door=new Builder();
-            // The doorway: one flat patch of the door's brass bar, tinted from a low forge glow to darkness above.
-            var dark=new Vector2(.4844f,.789f);
-            Vector3 a=Project(face,left)+Vector3.up*bottom,b=Project(face,right)+Vector3.up*bottom;
-            Vector3 c=Project(face,right)+Vector3.up*top,d=Project(face,left)+Vector3.up*top;
+            // The doorway reads as the forge hall beyond: a warm lit floor receding from the threshold, the glow of a
+            // furnace mouth on the far wall at its centre, and darkness under the vault. One flat patch of the door's
+            // brass bar carries vertex colour on a small grid across the opening.
+            var flat=new Vector2(.4844f,.789f);
+            float[] across={0f,.16f,.32f,.5f,.74f,1f},up={0f,.18f,.34f,.52f,.76f,1f};
             int first=door.V.Count;
-            door.V.AddRange(new[]{a,b,c,d});door.U.AddRange(new[]{dark,dark,dark,dark});
-            Color glow=new Color(1.15f,.66f,.42f,1),shadow=new Color(.05f,.04f,.05f,1);
-            door.C.AddRange(new[]{glow,glow,shadow,shadow});
-            door.T.AddRange(new[]{first,first+1,first+2,first,first+2,first+3});
+            for(int row=0;row<up.Length;row++)
+                for(int column=0;column<across.Length;column++)
+                {
+                    float v=Mathf.Lerp(left,right,across[column]),h=Mathf.Lerp(bottom,top,up[row]);
+                    door.V.Add(Project(face,v)+Vector3.up*h);door.U.Add(flat);door.C.Add(HallLight(across[column],up[row]));
+                }
+            for(int row=0;row+1<up.Length;row++)
+                for(int column=0;column+1<across.Length;column++)
+                {
+                    int a0=first+row*across.Length+column,b0=a0+1,c0=a0+across.Length+1,d0=a0+across.Length;
+                    door.T.AddRange(new[]{a0,b0,c0,a0,c0,d0});
+                }
             // Two leaves, each on its own jamb: left (wall v left..seam) and right (seam..right).
             DoorLeaf(door,face,left,seam,GateDoorLeftU,GateDoorSeamU,bottom,top);
             DoorLeaf(door,face,right,seam,GateDoorRightU,GateDoorSeamU,bottom,top);
             // Its own batch, so no other motion (the facade batch's flames) ever rewrites the leaves' vertices; it shares
             // the facade's sorting order and sorts just after it (FoundryRegionView.Emit).
             Create("Gate door leaves",door,facade,GateDoorOrder);
+        }
+
+        // Light through the doorway at (across 0..1, up 0..1): the hall floor near the threshold, the far furnace's
+        // glow in the middle, the vault dark above. Below LightCeiling so the floor-decal clamp never bites.
+        internal static Color HallLight(float across,float up)
+        {
+            // The open right leaf hides the opening's right half from the camera, so the far furnace stands left of
+            // centre, where it is seen.
+            float centre=1f-Mathf.Clamp01(Mathf.Abs(across-.32f)/.42f);
+            float floor=Mathf.Clamp01(1f-up/.34f);
+            float furnace=Mathf.Clamp01(1f-Mathf.Abs(up-.34f)/.30f)*centre;
+            float vault=Mathf.Clamp01((up-.55f)/.45f);
+            float r=.30f+1.05f*floor+1.25f*furnace;
+            float g=.14f+.58f*floor+.70f*furnace;
+            float b=.08f+.30f*floor+.26f*furnace;
+            float dark=1f-.8f*vault;
+            return new Color(r*dark,g*dark,b*dark,1);
         }
 
         private static void DoorLeaf(Builder door,float face,float hinge,float seam,float hingeX,float seamX,float bottom,float top)
