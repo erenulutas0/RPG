@@ -1596,3 +1596,11 @@ chains; -496 vertices. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; AP
 66C39BEE7DBD8400EB13A971A12ADA6EDDFE966945C7EA6B22C020578DAA7EA4, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-chains-01.
+
+## 2026-10-21 - Rim stone takes the concept's violet battlement tone
+
+Above-deck rim stone tinted (.80,.77,.92) -> value .18 / saturation .32 (concept .18-.19 / .32); below-deck rim faces
+(.90,.88,1.06) -> saturation .25. No geometry change. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; APK
+36,413,341 bytes, SHA256 2AA02A3A7B3701DC093C18C04393DDE4495E84DDB46895FC28B3C132A0DDFAD0, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-rim-wall-01.

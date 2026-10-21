@@ -56,6 +56,18 @@ namespace Cryptforge.UI
         private static readonly Vector2[] PitBoilers={new Vector2(-12.6f,10.6f),new Vector2(-7.4f,5.4f)};
         private static readonly Color LitFace=new Color(.63f,.66f,.77f),ShadeFace=new Color(.43f,.46f,.57f);
         private static readonly Color CapTone=new Color(.86f,.89f,.98f),Bronze=new Color(1.22f,.95f,.6f);
+        // The rim's stone reads as the concept's violet battlement (saturation ~.32): above the deck (balustrade spans,
+        // posts, lantern posts, finials, the pit collar's guard) a little darker, value ~.20 -> ~.18; below it (cornice,
+        // pilasters, court sidewalls) only shifted toward violet at the same value (saturation ~.21 -> ~.3). Applied after
+        // construction, so geometry, texture mapping and relative light stay as built.
+        internal static readonly Color RimStoneTone=new Color(.80f,.77f,.92f),RimFaceTone=new Color(.90f,.88f,1.06f);
+        private static Builder RimStone(Builder b)=>RimTint(b,RimStoneTone);
+        private static Builder RimFace(Builder b)=>RimTint(b,RimFaceTone);
+        private static Builder RimTint(Builder b,Color tone)
+        {
+            for(int i=0;i<b.C.Count;i++)b.C[i]=Tinted(b.C[i],tone);
+            return b;
+        }
 
         private sealed class MassPiece
         {
@@ -357,7 +369,7 @@ namespace Cryptforge.UI
                 {
                     var skirt=new Builder();
                     PitSkirt(skirt,post);
-                    Create("Pit collar post",skirt,wall,-11);
+                    Create("Pit collar post",RimStone(skirt),wall,-11);
                     LanternPost(arena,post,false,RailPlinth);
                 });
                 else AddPiece(pieces,post,1.34f,()=>
@@ -371,11 +383,11 @@ namespace Cryptforge.UI
                         CourseFace(above,a,c,0,RailPlinth,Tinted(PitFacing(Mathf.Atan2(-side.y,-side.x)),new Color(1.02f,1.02f,1.02f)),PlinthCourse);
                     }
                     RailPost(above,null,post,false,RailPlinth);
-                    Create("Pit collar post",above,wall,-11);
+                    Create("Pit collar post",RimStone(above),wall,-11);
                 });
                 var lines=PitRunLines(posts,k,out bool near);
                 AddPiece(pieces,PitBounds(lines[0],lines[2]),RailTop,
-                    ()=>{var above=new Builder();PitGuardRun(above,lines,near);Create("Pit collar",above,wall,-11);});
+                    ()=>{var above=new Builder();PitGuardRun(above,lines,near);Create("Pit collar",RimStone(above),wall,-11);});
             }
             // Collar stone in six stretches, split at the outline's silhouette diagonals, before every other piece of the pit:
             // the runs and posts all stand on or in front of it, and beyond it lies only the walkable floor.
@@ -1199,11 +1211,11 @@ namespace Cryptforge.UI
                 // with the court borders, the span leaving its far side painted over its lower front. Its depth is the
                 // footprint its landmark registers (FoundryRegionDepth.cs), as for its iron (BuildCourtBorders).
                 AddPiece(pieces,new Vector4(p.x-.4f,p.y-.4f,p.x+.4f,p.y+.4f),2.85f,
-                    ()=>{var stone=new Builder();CourtFinialMasonry(stone,p);Create("Outer stone finials",stone,wall,-11);});
+                    ()=>{var stone=new Builder();CourtFinialMasonry(stone,p);Create("Outer stone finials",RimStone(stone),wall,-11);});
                 // South and west finials face the camera: carry them down the wall as pilasters.
                 bool front=p.y<FoundryMap.South||p.x<FoundryMap.West;
                 if(front&&!MassBlocked(box))
-                    AddPiece(pieces,box,0,()=>{var below=new Builder();MassBox(below,box,DeckFace,0,true,true,.93f);Create("Balustrade pilaster",below,wall,-16);});
+                    AddPiece(pieces,box,0,()=>{var below=new Builder();MassBox(below,box,DeckFace,0,true,true,.93f);Create("Balustrade pilaster",RimFace(below),wall,-16);});
             }
             for(int i=0;i<RailLanterns.Length;i++)
             {
@@ -1310,8 +1322,8 @@ namespace Cryptforge.UI
             {
                 var above=new Builder();var below=front?new Builder():null;
                 RailSpan(above,below,box,alongU,startFace,front,endFace);
-                Create("Balustrade rail",above,wall,-11);
-                if(below!=null)Create("Balustrade cornice",below,wall,-16);
+                Create("Balustrade rail",RimStone(above),wall,-11);
+                if(below!=null)Create("Balustrade cornice",RimFace(below),wall,-16);
             });
         }
 
@@ -1335,8 +1347,8 @@ namespace Cryptforge.UI
             {
                 var above=new Builder();var below=front?new Builder():null;
                 RailPost(above,below,box,front);
-                Create("Balustrade post",above,wall,-11);
-                if(below!=null)Create("Balustrade pilaster",below,wall,-16);
+                Create("Balustrade post",RimStone(above),wall,-11);
+                if(below!=null)Create("Balustrade pilaster",RimFace(below),wall,-16);
             });
             return true;
         }
@@ -1536,12 +1548,12 @@ namespace Cryptforge.UI
             // The northwest chamfer post stands behind the crane footing. Its
             // masonry must remain behind both the authored card and legacy mast;
             // the lantern cage/panes below retain their foreground ranks.
-            Create("Balustrade lantern post",above,wall,box==CraneRearLantern?-12:-11);
+            Create("Balustrade lantern post",RimStone(above),wall,box==CraneRearLantern?-12:-11);
             if(front)
             {
                 var below=new Builder();
                 MassBox(below,box,DeckFace,0,true,true,.93f);
-                Create("Balustrade pilaster",below,wall,-16);
+                Create("Balustrade pilaster",RimFace(below),wall,-16);
             }
             // As on the approved concept's rim, the post carries an open fire basket (the gate's and the bridge head's)
             // seated on its cap, instead of an enclosed amber lantern that read small and pale at map scale.

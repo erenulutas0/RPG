@@ -88,7 +88,7 @@ namespace Cryptforge.UI
             BuildCourtBridgeStone(floor);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);
             Create("Court laid flagstones",flags,arena.PlatformMaterials.FoundryFlagstone,-15);
-            Create("Layout sidewalls",walls,arena.PlatformMaterials.FoundryWall,-16);
+            Create("Layout sidewalls",RimFace(walls),arena.PlatformMaterials.FoundryWall,-16);
             Create("Layout coping",trim,arena.PlatformMaterials.Coping,FloorDecal);
             // The thin rim parapet gave way to the continuous balustrade BuildMassing raises (2026-09-30).
             BuildLandmarks(arena);
