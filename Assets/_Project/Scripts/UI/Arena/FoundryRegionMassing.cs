@@ -1602,6 +1602,10 @@ namespace Cryptforge.UI
             // Across the gap between the two south-west piers of the west rim, and from the nearer one into the void.
             PierChain(arena,new Vector3(-26.6f+WestShift,-5f,-3.5f),1,new Vector3(-26.6f+WestShift,.3f,-3.5f),1,1.5f,.3f);
             AbyssChain(arena,new Vector3(-26.6f+WestShift,-6.8f,-4.3f),1,new Vector2(-6.2f,-9.8f),.7f,.4f);
+            // Two more, as the concept hangs its rim with many: from the west rim's middle bastion, parallel to the one
+            // below it, and from the east south pier, out past the corner bastion's chain without crossing it.
+            AbyssChain(arena,new Vector3(-26.6f+WestShift,1.6f,-3.6f),1,new Vector2(-7f,-8.4f),.6f,.4f);
+            AbyssChain(arena,new Vector3(6.2f,FoundryMap.South-2.6f,-3.8f),0,new Vector2(4.5f,-9.5f),.55f,.38f);
             // From the far gateposts' outboard chamfers, out of frame on both sides of the bridge's end; each post's
             // stone (-11) hides the anchor link, so the chain comes from behind it.
             AbyssChain(arena,new Vector3((BridgeFootS-BridgeFootD)*.5f-.255f,(BridgeFootS+BridgeFootD)*.5f+.255f,-2.2f),-1,new Vector2(-6.6f,-8.6f),.6f,.4f);

@@ -519,6 +519,7 @@ namespace Cryptforge.UI
         // (Chain restarts them on every straight segment). Sag 0 lays them as Chain would. Shaded by depth under
         // the deck line deckA-deckB as the undercroft masonry is, so the lower reach sinks into the void's shade. Always
         // the below-deck chain rank (FoundryIron -15.4, a floor rank: no depth, drawn under the deck and actors).
+        internal const float ChainScale=1.4f;
         private void HangChain(ArenaView arena,Vector3 a,Vector3 b,float sag,float width,Vector3 deckA,Vector3 deckB)
         {
             const int samples=32;
@@ -529,7 +530,9 @@ namespace Cryptforge.UI
                 path[i]=Vector3.Lerp(a,b,t)+Vector3.down*(4*sag*t*(1-t));
                 if(i>0)along[i]=along[i-1]+Vector3.Distance(path[i-1],path[i]);
             }
-            float s=width*1.5f,wire=s*.4f,half=s*1.25f,radius=s*.8f,length=along[samples];
+            // The concept's abyss chains are massive; links at 1.4x the authored width read at map scale (and, being
+            // longer, need fewer links per chain).
+            float s=width*ChainScale*1.5f,wire=s*.4f,half=s*1.25f,radius=s*.8f,length=along[samples];
             int count=Mathf.CeilToInt(length/(2*(half-wire)));
             if(count==0)return;
             var mesh=new Builder();

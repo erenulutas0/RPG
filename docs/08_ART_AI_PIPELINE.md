@@ -1588,3 +1588,11 @@ Flagstone and fitted paving gains rise 14 % (hue kept): court value .30 -> .35 (
 D2A071024BF8DB260E7E2B314024F7157319063309C8486B6970694BF421BDE3, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-floor-value-01.
+
+## 2026-10-21 - Heavier abyss chains
+
+Chain links at 1.4x width and two more chains (west middle bastion, east south pier), as the concept's massive rim
+chains; -496 vertices. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; APK 36,412,611 bytes, SHA256
+66C39BEE7DBD8400EB13A971A12ADA6EDDFE966945C7EA6B22C020578DAA7EA4, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-chains-01.
