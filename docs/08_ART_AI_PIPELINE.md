@@ -1544,3 +1544,13 @@ lanterns) and the causeway's south rail (behind the boilers on screen) have no v
 98ACB99CD9354FB98C391E42147070C8A409FA0D15129B842AFC364E1DAB19E7, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-rim-fire-01.
+
+## 2026-10-21 - Standing braziers light the workyard
+
+No rail post was free beside the workyard, so three standing braziers become work islands 2-4 (solid .9-square
+footprints shared by rendering, movement, pack placement and pursuit), each with a floor pool, clear of the freight lanes,
+turntable and other islands by at least 1.9. Real obstacles in the yard. +1,197 vertices, no new batch. 457 .NET / 732
+EditMode / 164 PlayMode, zero failures; APK 36,413,279 bytes, SHA256
+2AC415A86ECFEFFEE73702644F183DBAED7DB3D97DA3777FE310D8A0C690A804, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-yard-braziers-01.

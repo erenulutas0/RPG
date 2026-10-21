@@ -1433,3 +1433,13 @@ ending turns the camera back at once, and disabling the view restores everything
 Tests: `GateBossFlowTests.TheCameraTurnsToTheArrivingBossWhileTheFightWaits` plus the existing gate/door/arrival suites.
 443 .NET / 718 EditMode / 164 PlayMode, zero failures; Verify-Project PASS; APK 36,409,705 bytes, SHA256
 529544441F51CE8C0581A76187F03D6D42C9300CDB9565495934AE4AEF5271DF, NOT INSTALLED.
+
+## 2026-10-21 - Standing braziers light the workyard
+
+No rail post was free beside the workyard, so three standing braziers become work islands 2-4 (solid .9-square
+footprints shared by rendering, movement, pack placement and pursuit), each with a floor pool, clear of the freight lanes,
+turntable and other islands by at least 1.9. Real obstacles in the yard. +1,197 vertices, no new batch. 457 .NET / 732
+EditMode / 164 PlayMode, zero failures; APK 36,413,279 bytes, SHA256
+2AC415A86ECFEFFEE73702644F183DBAED7DB3D97DA3777FE310D8A0C690A804, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-yard-braziers-01.

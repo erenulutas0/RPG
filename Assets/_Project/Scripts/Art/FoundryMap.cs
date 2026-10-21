@@ -29,8 +29,15 @@ namespace Cryptforge.Art
         private static readonly float[,] WorkIslands=
         {
             {-26f+WorkyardShift,-4f,-22f+WorkyardShift,-1.8f},
-            {-21.8f+WorkyardShift,11.8f,-18.6f+WorkyardShift,14.0f}
+            {-21.8f+WorkyardShift,11.8f,-18.6f+WorkyardShift,14.0f},
+            // Three standing yard braziers (2026-10-21) light the dark workyard as the concept's fire baskets do. Their
+            // .9-square footprints are solid like the equipment's, in the yard's open quadrants clear of the freight
+            // lanes, the turntable and the trolley, leaving actor passages of at least 1.9 units on every side, and out of
+            // the screen columns of the rail lanterns so no basket reads as a lantern's crown.
+            {-29.05f,11.95f,-28.15f,12.85f},{-28.85f,1.05f,-27.95f,1.95f},{-20.95f,2.05f,-20.05f,2.95f}
         };
+        // Islands from this index on are yard braziers rather than equipment.
+        public const int YardBrazierFirst=2;
         public static int WorkIslandCount=>WorkIslands.GetLength(0);
         public static float WorkIslandBound(int island,int coordinate)=>WorkIslands[island,coordinate];
         // Four diagonal edges share one boundary with render clipping and pursuit.

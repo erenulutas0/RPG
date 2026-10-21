@@ -67,6 +67,8 @@ namespace Cryptforge.UI
             BuildWorkIslands(arena);
         }
 
+        internal const float YardBrazierRise=.55f;
+
         private void BuildWorkIslands(ArenaView arena)
         {
             for(int island=0;island<Cryptforge.Art.FoundryMap.WorkIslandCount;island++)
@@ -77,10 +79,21 @@ namespace Cryptforge.UI
                 float v1=Cryptforge.Art.FoundryMap.WorkIslandBound(island,3);
                 // The shallow iron skid defines the complete collision footprint.
                 // Floor paving continues beneath it, and all loads stay inside it.
-                using(DepthStructure(u0,v0,u1,v1,1.55f))
+                bool brazier=island>=Cryptforge.Art.FoundryMap.YardBrazierFirst;
+                using(DepthStructure(u0,v0,u1,v1,brazier?YardBrazierRise+1.2f:1.55f))
                 {
                     var kit=new Builder();
                     WorkshopMetalHull(kit,u0,v0,u1,v1,.015f,.10f,.035f,true);
+                    if(brazier)
+                    {
+                        // A stepped cast foot and a short column carry the bridge head's fire basket at knee height.
+                        Vector2 c=new Vector2((u0+u1)*.5f,(v0+v1)*.5f);
+                        MassCourse(kit,c,.34f,.30f,.10f,.20f,6,true,new Color(.62f,.62f,.66f));
+                        MassCourse(kit,c,.16f,.13f,.20f,YardBrazierRise-.1f,6,true,new Color(.78f,.78f,.82f));
+                        Create("Workyard island "+island,kit,arena.PlatformMaterials.FoundryIron,-11);
+                        Brazier(arena,c,YardBrazierRise);
+                        continue;
+                    }
                     if(island==0)BuildYardTrolley(kit,u0,v0,u1,v1);
                     else BuildYardMouldBench(kit,u0,v0,u1,v1);
                     Create("Workyard island "+island,kit,island==0?arena.PlatformMaterials.FoundryCastIron:

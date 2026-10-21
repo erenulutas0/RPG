@@ -6,8 +6,41 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryMapTests
     {
+        // The yard braziers stand in the workyard's open quadrants: clear of the freight lanes, the turntable and every other
+        // island, with actor passages of at least 1.9 units, and inside the walkable floor with room to pass the rim.
+        [Test] public void YardBraziersStandClearOfTheFreightLanesAndLeavePassages()
+        {
+            Assert.That(FoundryMap.WorkIslandCount,Is.EqualTo(FoundryMap.YardBrazierFirst+3));
+            const float shift=FoundryMap.WorkyardShift;
+            for(int i=FoundryMap.YardBrazierFirst;i<FoundryMap.WorkIslandCount;i++)
+            {
+                float u0=FoundryMap.WorkIslandBound(i,0),v0=FoundryMap.WorkIslandBound(i,1),u1=FoundryMap.WorkIslandBound(i,2),v1=FoundryMap.WorkIslandBound(i,3);
+                Assert.That(u1-u0,Is.EqualTo(.9f).Within(.001f));Assert.That(v1-v0,Is.EqualTo(.9f).Within(.001f));
+                float cu=(u0+u1)*.5f,cv=(v0+v1)*.5f;
+                Assert.That(System.Math.Sqrt((cu+24-shift)*(cu+24-shift)+(cv-7)*(cv-7)),Is.GreaterThan(3.7f+1.9f),"Clear of the turntable bed.");
+                if(cu<-20.57f+shift)Assert.That(v1<6f-1.9f||v0>8f+1.9f,Is.True,"Clear of the west loading lane.");
+                foreach(float rail in new[]{-24.6f+shift,-23.4f+shift})Assert.That(System.Math.Abs(cu-rail),Is.GreaterThan(.45f+1.9f),"Clear of the freight rails.");
+                for(int j=0;j<FoundryMap.WorkIslandCount;j++)
+                {
+                    if(j==i)continue;
+                    float gu=System.Math.Max(FoundryMap.WorkIslandBound(j,0)-u1,u0-FoundryMap.WorkIslandBound(j,2));
+                    float gv=System.Math.Max(FoundryMap.WorkIslandBound(j,1)-v1,v0-FoundryMap.WorkIslandBound(j,3));
+                    Assert.That(System.Math.Max(gu,gv),Is.GreaterThanOrEqualTo(1.9f),$"Island {i} leaves a passage to island {j}.");
+                }
+                // The rim: every side of the footprint has walkable floor an actor can stand on beyond the brazier.
+                foreach(var side in new[]{new[]{u0-.9f,cv},new[]{u1+.9f,cv},new[]{cu,v0-.9f},new[]{cu,v1+.9f}})
+                {
+                    FoundryMap.ToFloor(side[0],side[1],out float x,out float y);
+                    Assert.That(FoundryMap.Contains(x,y,HeroMotion.EdgeMargin),Is.True,$"Passage beside yard brazier {i}.");
+                }
+            }
+        }
+
         [TestCase(0)]
         [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
         public void WorkIslandsBlockActorsButRetainTheirContinuousFloor(int island)
         {
             float u=(FoundryMap.WorkIslandBound(island,0)+FoundryMap.WorkIslandBound(island,2))*.5f;
@@ -22,6 +55,9 @@ namespace Cryptforge.Tests
 
         [TestCase(0)]
         [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
         public void WorkIslandSweepsRejectCrossingsAndClearanceGrazes(int island)
         {
             float left=FoundryMap.WorkIslandBound(island,0),right=FoundryMap.WorkIslandBound(island,2);
@@ -56,6 +92,9 @@ namespace Cryptforge.Tests
 
         [TestCase(0)]
         [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
         public void LongMovementStopsAtWorkIslandAndDiagonalInputSlidesAlongIt(int island)
         {
             float left=FoundryMap.WorkIslandBound(island,0),right=FoundryMap.WorkIslandBound(island,2);
@@ -76,6 +115,9 @@ namespace Cryptforge.Tests
 
         [TestCase(0)]
         [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
         public void PursuitAndTenEnemyEntriesRouteAroundEachWorkIsland(int island)
         {
             float left=FoundryMap.WorkIslandBound(island,0),right=FoundryMap.WorkIslandBound(island,2);

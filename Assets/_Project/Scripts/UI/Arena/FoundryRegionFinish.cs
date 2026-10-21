@@ -78,6 +78,13 @@ namespace Cryptforge.UI
             foreach(float v in GateBrazierPosts)lamps.Add(Lamp(new Vector4(GateBrazierU,v,GateBrazierU,v),0,3.6f,.45f,FlameLight));
             // The lantern posts along the bridge rails (BuildBridgeLanterns): pools that merge into a lit causeway.
             foreach(var p in BridgeLanterns)lamps.Add(Lamp(new Vector4(p.x,p.y,p.x,p.y),0,3.4f,.45f,FlameLight));
+            // The workyard's standing braziers: low, so their pools are a little stronger than a rail lantern's.
+            for(int i=Cryptforge.Art.FoundryMap.YardBrazierFirst;i<Cryptforge.Art.FoundryMap.WorkIslandCount;i++)
+            {
+                float cu=(Cryptforge.Art.FoundryMap.WorkIslandBound(i,0)+Cryptforge.Art.FoundryMap.WorkIslandBound(i,2))*.5f;
+                float cv=(Cryptforge.Art.FoundryMap.WorkIslandBound(i,1)+Cryptforge.Art.FoundryMap.WorkIslandBound(i,3))*.5f;
+                lamps.Add(Lamp(new Vector4(cu,cv,cu,cv),0,3.6f,.55f,FlameLight));
+            }
             return _forgeLamps=lamps.ToArray();
         }
 
