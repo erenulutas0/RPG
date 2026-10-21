@@ -1554,3 +1554,12 @@ EditMode / 164 PlayMode, zero failures; APK 36,413,279 bytes, SHA256
 2AC415A86ECFEFFEE73702644F183DBAED7DB3D97DA3777FE310D8A0C690A804, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-yard-braziers-01.
+
+## 2026-10-21 - The concept's violet void
+
+The cavern shader keeps the painting's saturation and blends 10 % toward a lighter violet instead of 72 % desaturation
+plus 22 % dark indigo and a dimming tint: void value .17-.18 -> .21-.25 (concept .24-.29), saturation up. No geometry
+change. 457 .NET / 732 EditMode / 164 PlayMode, zero failures; APK 36,413,268 bytes, SHA256
+B7BE24A69A6DA77AE162C5527AEE9191586F9F224608134C3265D98144DF3344, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-21/foundry-atmosphere-01.

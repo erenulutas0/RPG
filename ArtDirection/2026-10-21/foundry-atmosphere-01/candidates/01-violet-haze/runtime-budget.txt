@@ -1,0 +1,3 @@
+FoundryShortBoiler texture:2048x1024 ASTC_6x6; mipmaps:12; readable:False
+Region renderers:38; vertices:156364
+Actual production scene, HUD hidden; twenty-five matched camera views; fresh Before at baseline f682cdd, After from changed runtime. No synthetic architecture placement or phone acceptance.

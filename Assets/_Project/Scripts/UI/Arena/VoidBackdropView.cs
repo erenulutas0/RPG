@@ -21,9 +21,9 @@ namespace Cryptforge.UI
         private const float FlickerRate = 7f;
         private const float GlowRate = 5.3f;
         private const float TwoPi = Mathf.PI * 2f;
-        // Recede the painted distant furnaces behind the playable foundry. Keep alpha opaque so the sky does not
-        // wash out the cavern's dark gaps; a smaller blue reduction retains its cool depth and warm molten landmarks.
-        private static readonly Color FoundryCavernTint = new Color(.84f, .87f, .91f, 1f);
+        // The painted cavern sits behind the playable foundry at close to its own value, as in the approved concept;
+        // alpha stays opaque so the sky never washes out its dark gaps (the shader owns the violet haze).
+        private static readonly Color FoundryCavernTint = new Color(1.04f, 1f, 1.06f, 1f);
 
         private struct Drifter
         {
