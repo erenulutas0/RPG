@@ -97,7 +97,10 @@ namespace Cryptforge.Tests
                 previous=station;
             }
             var heads=(Vector2[])typeof(FoundryRegionView).GetField("BridgeHeadPosts",Static).GetValue(null);
-            foreach(Vector2 post in heads)AssertScenicBox(post,.7f);
+            // The keepers' plinths and depth footprints, scaled with their cards, stay outside the walking union.
+            float plinth=(float)typeof(FoundryRegionView).GetField("KeeperPlinthHalf",Static|BindingFlags.Public).GetRawConstantValue();
+            Assert.That(plinth,Is.GreaterThan(.7f));
+            foreach(Vector2 post in heads)AssertScenicBox(post,plinth);
         }
 
         [Test]

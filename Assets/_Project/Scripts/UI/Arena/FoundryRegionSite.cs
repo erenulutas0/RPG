@@ -18,7 +18,8 @@ namespace Cryptforge.UI
             // banners remain; all bases stand outside the walking union.
             BridgePiers(arena,BridgeHeadPosts,true);
             foreach(var post in BridgeHeadPosts)
-                using(MassDepth(new Vector4(post.x-.7f,post.y-.7f,post.x+.7f,post.y+.7f),4.3f))
+                using(MassDepth(new Vector4(post.x-KeeperPlinthHalf,post.y-KeeperPlinthHalf,post.x+KeeperPlinthHalf,post.y+KeeperPlinthHalf),
+                    KeeperPlinth+KeeperHeight+.5f))
                 {
                     BridgeKeeper(arena,post);
                     BridgeBanner(arena,post);
@@ -69,16 +70,18 @@ namespace Cryptforge.UI
                 {
                     // A below-deck console ties the outboard statue shaft back to the bridge rim.
                     float side=Mathf.Sign(p.x-p.y),sum=p.x+p.y;
-                    var rim=new[]{Deck(sum-.9f,side*(FoundryMap.BridgeHalfWidth-.05f)),Deck(sum-.9f,side*(FoundryMap.BridgeHalfWidth+2.6f)),
-                        Deck(sum+.9f,side*(FoundryMap.BridgeHalfWidth+2.6f)),Deck(sum+.9f,side*(FoundryMap.BridgeHalfWidth-.05f))};
+                    var rim=new[]{Deck(sum-.9f,side*(FoundryMap.BridgeHalfWidth-.05f)),Deck(sum-.9f,side*(BridgeHeadD+.8f)),
+                        Deck(sum+.9f,side*(BridgeHeadD+.8f)),Deck(sum+.9f,side*(FoundryMap.BridgeHalfWidth-.05f))};
                     for(int edge=0;edge<4;edge++)
                     {
                         Vector3 a=rim[edge],b=rim[(edge+1)%4];
                         stone.WallQuad(a-Vector3.up*.7f,b-Vector3.up*.7f,b-Vector3.up*.1f,a-Vector3.up*.1f,false,new Color(.65f,.65f,.73f));
                     }
                     stone.Quad(rim[0]-Vector3.up*.1f,rim[1]-Vector3.up*.1f,rim[2]-Vector3.up*.1f,rim[3]-Vector3.up*.1f,true,new Color(.8f,.8f,.88f));
-                    LitFoundryTier(stone,p.x-.48f,p.y-.48f,p.x+.48f,p.y+.48f,-.18f,.18f,.07f);
-                    DressedKeeperSeat(stone,p);
+                    LitFoundryTier(stone,p.x-.68f,p.y-.68f,p.x+.68f,p.y+.68f,-.18f,.18f,.07f);
+                    LitFoundryTier(stone,p.x-KeeperPlinthHalf,p.y-KeeperPlinthHalf,p.x+KeeperPlinthHalf,p.y+KeeperPlinthHalf,
+                        .18f,.18f+KeeperPlinth,.06f);
+                    DressedKeeperSeat(stone,p,KeeperPlinth);
                     continue;
                 }
                 LitFoundryTier(stone,p.x-.24f,p.y-.24f,p.x+.24f,p.y+.24f,.3f,1.1f,.03f);
@@ -103,12 +106,13 @@ namespace Cryptforge.UI
         {
             var material=arena.PlatformMaterials.ForgeKeeper;
             if(material==null)return;
-            // Preserve the source's 2:3 aspect and baked lighting on both sides; never mirror it.
-            const float height=3.8f,width=height*2f/3f;
-            Vector3 foot=Project(post.x,post.y)+Vector3.up*.38f;
+            // Preserve the source's 2:3 aspect and baked lighting on both sides; never mirror it. At the concept's scale,
+            // about four heroes tall, and in its dark iron: the pale painted stone is cooled and darkened, its bronze kept.
+            const float height=KeeperHeight,width=height*2f/3f;
+            Vector3 foot=Project(post.x,post.y)+Vector3.up*(.38f+KeeperPlinth);
             Vector3 a=foot-Vector3.right*(width*.5f),b=foot+Vector3.right*(width*.5f);
             var card=new Builder();
-            card.Quad(a,b,b+Vector3.up*height,a+Vector3.up*height,false,Color.white);
+            card.Quad(a,b,b+Vector3.up*height,a+Vector3.up*height,false,KeeperTone);
             card.U.Clear();card.U.AddRange(new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up});
             Create("Bridge forge keepers",card,material,-10);
         }
@@ -162,7 +166,14 @@ namespace Cryptforge.UI
                 }
         }
 
-        private const float BridgeHeadS=FoundryMap.BridgeWestSeam-3.3f,BridgeHeadD=FoundryMap.BridgeHalfWidth+1.8f;
+        // The keepers stand outboard of the bridge head, far enough out (BridgeHeadD) that their larger cards stay wholly
+        // outside the walking width on screen, and far enough down the bridge (BridgeHeadS) that the west one stays clear
+        // of the court's south rim.
+        private const float BridgeHeadS=FoundryMap.BridgeWestSeam-5f,BridgeHeadD=FoundryMap.BridgeHalfWidth+2.6f;
+        // The keeper's seat half-size, the card's height above its foot, and the plinth block that lifts seat and statue
+        // (KeeperPlinth above the .18 slab, KeeperPlinthHalf its half-size and the keeper's depth footprint), as the
+        // concept's keepers stand on the rim's blocks.
+        internal const float KeeperSeatHalf=1f,KeeperHeight=5.4f,KeeperPlinth=.62f,KeeperPlinthHalf=KeeperSeatHalf+.08f;
         private const float BridgeFootS=FoundryMap.BridgeStart-.6f,BridgeFootD=FoundryMap.BridgeHalfWidth+.7f;
         internal static readonly Vector2[] BridgeHeadPosts={DeckDesign(BridgeHeadS,-BridgeHeadD),DeckDesign(BridgeHeadS,BridgeHeadD)};
         internal static readonly Vector2[] BridgeFootPosts={DeckDesign(BridgeFootS,-BridgeFootD),DeckDesign(BridgeFootS,BridgeFootD)};
@@ -172,7 +183,8 @@ namespace Cryptforge.UI
         }
         // Camera-facing cloth hangs outside the guardian's support outside the widened guardian support.
         // The top bracket sits under the broad cap; the cloth remains in the existing facade batch.
-        private const float BannerInner=FoundryMap.BridgeHalfWidth+2.65f,BannerWidth=.83f,BannerTop=.4f;
+        private const float BannerInner=BridgeHeadD+.85f,BannerWidth=.83f,BannerTop=.4f;
+        private static readonly Color KeeperTone=new Color(.64f,.62f,.70f);
         // The facade's left banner (GateFacade.png, 1536 x 1024; pixels, y down), from the painted rod's shaft (y 100, under
         // the bracket's bar) to the swallow-tailed hem, measured and inset 1.8 px inside its gold trim so no stone around it
         // is sampled: the hem across its five columns - the edges x 288.3 / 416.7, the notches x 311 / 395 and the centre

@@ -1187,3 +1187,14 @@ every structure in front paints over them; none under the gate causeway. Region 
 39A753D5C24FB46DC08314A1C05AAA24B92A5CE02417E05E9244B7FF3FBB324B, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-22/foundry-keel-01.
+
+## 2026-10-22 - Bridge keepers at the concept's scale
+
+The bridge-head keepers grow from 3.8 to 5.4 high, darkened toward the concept's iron, on a .62 plinth block under a
+seat scaled with them; their posts move out (7.6 from the axis, so the cards stay outboard of the walking width on
+screen) and down the bridge (5 before the west seam, so the west plinth clears the court's south rim). Console,
+banners, depth footprints and the balustrade's post box follow. Region 159,317 vertices (+312). 457 .NET / 737 EditMode
+/ 164 PlayMode, zero failures; APK 36,458,659 bytes, SHA256 A7266655680FEB6CECCD4E749D0120FDEC8DF5B861B313F01DC9B39FFD27E07A,
+NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-22/foundry-keepers-01.

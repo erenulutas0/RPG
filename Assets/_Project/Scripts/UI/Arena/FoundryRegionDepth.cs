@@ -71,7 +71,8 @@ namespace Cryptforge.UI
                 DepthLandmark(p.x-.4f,p.y-.4f,p.x+.4f,p.y+.4f,2.85f); // Outer posts and court lanterns.
             foreach(var p in BridgeFootPosts)
                 DepthLandmark(p.x-.32f,p.y-.32f,p.x+.32f,p.y+.32f,3.2f); // Bridge piers with their beacons.
-            foreach(var p in BridgeHeadPosts)DepthLandmark(p.x-.7f,p.y-.7f,p.x+.7f,p.y+.7f,4.3f);
+            foreach(var p in BridgeHeadPosts)DepthLandmark(p.x-KeeperPlinthHalf,p.y-KeeperPlinthHalf,p.x+KeeperPlinthHalf,p.y+KeeperPlinthHalf,
+                KeeperPlinth+KeeperHeight+.5f);
             DepthLandmark(SalvageShelf.x,SalvageShelf.y,SalvageShelf.z,SalvageShelf.w,1.6f); // Salvage shelf with its anvil, crate and stock.
             DepthLandmark(StockShelf.x,StockShelf.y,StockShelf.z,StockShelf.w,1.6f); // Northwest pipe/tool station.
         }

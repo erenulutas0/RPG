@@ -1338,7 +1338,7 @@ namespace Cryptforge.UI
             new Vector4(GateU(32),-3,GateU(35),-1),new Vector4(GateU(32),11,GateU(35),13),
             ReservoirFootprint(SouthReservoirV),ReservoirFootprint(NorthReservoirV),ReservoirNeck(false),ReservoirNeck(true),
             BridgePostBox(BridgeFootS,-BridgeFootD,.3f),BridgePostBox(BridgeFootS,BridgeFootD,.3f),
-            BridgePostBox(BridgeHeadS,-BridgeHeadD,.7f),BridgePostBox(BridgeHeadS,BridgeHeadD,.7f)
+            BridgePostBox(BridgeHeadS,-BridgeHeadD,KeeperPlinthHalf),BridgePostBox(BridgeHeadS,BridgeHeadD,KeeperPlinthHalf)
         };
 
         // Every balustrade post the rail placed (design boxes), for checks that hang things on them (the gate braziers).
