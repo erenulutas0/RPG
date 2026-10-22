@@ -1645,3 +1645,14 @@ continuation and gate apron unchanged. Region 157,941 vertices (-4,395). 457 .NE
 failures; APK 36,419,732 bytes, SHA256 9924FBD1942383FC7C550BDDE2FB40807FA20B89D8D18ABA734258692DA97F26, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-22/foundry-seal-stone-01.
+
+## 2026-10-22 - Hanging keels below the platform
+
+Under every camera-facing foundation span, stepped inverted masonry keels (FoundryRegionKeels.cs) now hang from the
+curtain skirt's foot (7.1 down) in two or three steps to ~15, in the bastions' weathered masonry, fading into the
+cavern haze - the concept's floating-fortress underside instead of a level skirt. First in the below-deck batch, so
+every structure in front paints over them; none under the gate causeway. Region 159,005 vertices (+1,064). 457 .NET /
+737 EditMode / 164 PlayMode, zero failures; APK 36,458,123 bytes, SHA256
+39A753D5C24FB46DC08314A1C05AAA24B92A5CE02417E05E9244B7FF3FBB324B, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-22/foundry-keel-01.

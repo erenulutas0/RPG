@@ -75,23 +75,7 @@ namespace Cryptforge.UI
         // its foot. Arch faces and buttresses emitted later remain proud of this body.
         private void BuildFoundationCurtain(ArenaView arena)
         {
-            var spans=new List<(Vector2 a,Vector2 b)>();
-            foreach(var cell in _cells)
-            {
-                int u=cell.x,v=cell.y;
-                if(!FoundryMap.UncutCell(u,v-1)&&!InPit(u+.5f,v-.5f)&&CourtEdgeVisible(u+.5f,v))
-                    spans.Add((new Vector2(u,v),new Vector2(u+1,v)));
-                if(!FoundryMap.UncutCell(u-1,v)&&!InPit(u-.5f,v+.5f)&&CourtEdgeVisible(u,v+.5f))
-                    spans.Add((new Vector2(u,v),new Vector2(u,v+1)));
-            }
-            for(int corner=0;corner<2;corner++)
-            {
-                CornerEdge(corner,out var a,out var b,out _);
-                spans.Add((a,b));
-            }
-            // The bridge joins through the shared union's open edge; never close it
-            // with an invented cross-wall or fill the central smelting opening.
-            foreach(var span in JoinedFoundationSpans(spans))
+            foreach(var span in FoundationSpans())
             {
                 Vector3 a=Project(span.a.x,span.a.y),b=Project(span.b.x,span.b.y);
                 var stone=new Builder();
@@ -115,6 +99,28 @@ namespace Cryptforge.UI
                 ShadeUndercroftDepth(stone,a,b);
                 Create("Continuous fortress foundation",stone,arena.PlatformMaterials.FoundryWall,-16);
             }
+        }
+
+        // The camera-facing exterior edges the curtain stands under, joined.
+        private List<(Vector2 a,Vector2 b)> FoundationSpans()
+        {
+            var spans=new List<(Vector2 a,Vector2 b)>();
+            foreach(var cell in _cells)
+            {
+                int u=cell.x,v=cell.y;
+                if(!FoundryMap.UncutCell(u,v-1)&&!InPit(u+.5f,v-.5f)&&CourtEdgeVisible(u+.5f,v))
+                    spans.Add((new Vector2(u,v),new Vector2(u+1,v)));
+                if(!FoundryMap.UncutCell(u-1,v)&&!InPit(u-.5f,v+.5f)&&CourtEdgeVisible(u,v+.5f))
+                    spans.Add((new Vector2(u,v),new Vector2(u,v+1)));
+            }
+            for(int corner=0;corner<2;corner++)
+            {
+                CornerEdge(corner,out var a,out var b,out _);
+                spans.Add((a,b));
+            }
+            // The bridge joins through the shared union's open edge; never close it
+            // with an invented cross-wall or fill the central smelting opening.
+            return JoinedFoundationSpans(spans);
         }
 
         // Join only contiguous collinear exterior spans. This lets a large fitted
