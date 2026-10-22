@@ -11,29 +11,29 @@ namespace Cryptforge.UI
         private const float CourtStoneRadius=5.05f,CourtFieldRadius=3.75f,CourtMetalRadius=4.77f;
         private static Vector2 CourtSealPoint(float angle,float radius)=>CourtSealCentre+SealPolar(angle,radius);
 
-        // Complete broad stone settings connect the entrance and gate to the
-        // court. Their material stays quiet; fitted cross-joints carry the route.
+        // The processional ways connect the entrance and gate to the court between
+        // their brass lane lines. As on the concept they are laid in smaller cut
+        // stone than the court's, its courses turned across the way: the laid
+        // stone's raster, on its light lattice only, in a field that runs with
+        // each way (texture u across it, v along it, from the seal's centre) at
+        // CourtWayScale the court's density. Built after CourtFlagstoneField, which
+        // would otherwise give it the court's world field.
         private static readonly Vector2[] CourtProcessionalEnds=
             {new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)};
-        private const float CourtProcessionalHalfWidth=1.85f,CourtProcessionalStoneWidth=.48f;
-        private static void BuildCourtProcessionalStone(Builder mesh)
+        private const float CourtProcessionalHalfWidth=1.85f,CourtProcessionalStoneWidth=.48f,CourtWayScale=1.35f;
+        private static void BuildCourtProcessionalWay(Builder flags)
         {
             foreach(Vector2 end in CourtProcessionalEnds)
             {
                 Vector2 direction=(end-CourtSealCentre).normalized;
                 Vector2 side=new Vector2(-direction.y,direction.x);
-                float length=Vector2.Distance(CourtSealCentre,end)-CourtPathStart;
-                int rows=Mathf.CeilToInt(length/3.2f);
-                for(int row=0;row<rows;row++)
+                int first=flags.V.Count;
+                CourtFittedFace(flags,CourtPathContour(end),1,Color.white);
+                for(int i=first;i<flags.V.Count;i++)
                 {
-                    Vector2 a=CourtSealCentre+direction*(CourtPathStart+length*row/rows);
-                    Vector2 b=CourtSealCentre+direction*(CourtPathStart+length*(row+1)/rows);
-                    // Alternate broad cross-flags with a fitted pair. The offset
-                    // joint does not recreate the surrounding axis-aligned grid.
-                    float split=row%2==0?CourtPathHalfWidth:(row%4==1?.48f:-.48f);
-                    CourtFittedFlag(mesh,new[]{a-side*CourtPathHalfWidth,b-side*CourtPathHalfWidth,b+side*split,a+side*split});
-                    if(row%2==1)
-                        CourtFittedFlag(mesh,new[]{a+side*split,b+side*split,b+side*CourtPathHalfWidth,a+side*CourtPathHalfWidth});
+                    FoundrySurface.ToDesign(flags.V[i].x,flags.V[i].y,out float u,out float v);
+                    Vector2 p=new Vector2(u,v)-CourtSealCentre;
+                    flags.U[i]=new Vector2(Vector2.Dot(p,side),Vector2.Dot(p,direction))*CourtWayScale/FlagstoneSpan;
                 }
             }
         }

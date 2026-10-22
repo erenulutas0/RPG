@@ -82,9 +82,10 @@ namespace Cryptforge.UI
                 Create("Bridge coping",rail,arena.PlatformMaterials.FoundryWall,-14);
             }
             ReplaceCourtPavingBase(floor);ReplaceCourtPavingBase(flags);
+            BuildCourtSealField(flags);
             CourtFlagstoneField(flags);
             BuildCourtStoneRing(floor);
-            BuildCourtProcessionalStone(floor);
+            BuildCourtProcessionalWay(flags);
             BuildCourtBridgeStone(floor);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);
             Create("Court laid flagstones",flags,arena.PlatformMaterials.FoundryFlagstone,-15);

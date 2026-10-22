@@ -1166,3 +1166,13 @@ zero failures; APK 36,418,740 bytes, SHA256 EE4F44FDDCE4CCE8F8A3C23443C110C0570D
 INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-21/foundry-cut-stone-01.
+
+## 2026-10-22 - The seal's field and the processional ways in cut stone
+
+The seal's inner field (radius 3.75) and both processional ways are now laid in the court's V10 cut stone (flagstone
+batch, light lattice only) instead of large fitted slabs: the field in the court's world field, each way in a field
+turned to run with it at 1.35x density so its courses lie across the way. Ring stones, brass, compass, bridge
+continuation and gate apron unchanged. Region 157,941 vertices (-4,395). 457 .NET / 736 EditMode / 164 PlayMode, zero
+failures; APK 36,419,732 bytes, SHA256 9924FBD1942383FC7C550BDDE2FB40807FA20B89D8D18ABA734258692DA97F26, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-22/foundry-seal-stone-01.

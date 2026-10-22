@@ -17,6 +17,8 @@ namespace Cryptforge.Tests
         private static List<T> Data<T>(object builder,string field)=>(List<T>)BuilderType.GetField(field,Members).GetValue(builder);
         private static void Invoke(string method,params object[] arguments)=>
             typeof(FoundryRegionView).GetMethod(method,Static).Invoke(null,arguments);
+        private static object Call(string method,params object[] arguments)=>
+            typeof(FoundryRegionView).GetMethod(method,Static).Invoke(null,arguments);
         private static readonly Vector2 CourtCentre=new Vector2(-3,-5);
 
         [Test]
@@ -44,31 +46,24 @@ namespace Cryptforge.Tests
         }
 
         [Test]
-        public void FittedInnerFlagsPreserveCompleteMedallionCoverageAndWorldGrain()
+        public void SealFieldIsLaidInTheCourtsCutStoneOverTheWholeMedallionBed()
         {
-            var field=new Vector2[48];
-            for(int i=0;i<field.Length;i++)field[i]=CourtCentre+new Vector2(Mathf.Cos(i*Mathf.PI/24),Mathf.Sin(i*Mathf.PI/24))*3.75f;
-            object mesh=NewBuilder();Invoke("BuildCourtMedallionField",mesh,field);
-            CheckFlushMesh(mesh,CourtCentre,3.75f,3200);
-            var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");var uv=Data<Vector2>(mesh,"U");
-            float span=(float)typeof(FoundryRegionView).GetField("PavingGrainSpan",Static|BindingFlags.Public).GetRawConstantValue();
+            object flags=NewBuilder();Invoke("BuildCourtSealField",flags);
+            CheckFlushMesh(flags,CourtCentre,3.75f,1200);
+            CheckLaidStoneLight(flags);
+            var vertices=Data<Vector3>(flags,"V");var triangles=Data<int>(flags,"T");
+            // The field is the laid stone's: once CourtFlagstoneField runs, it samples the court's world-continuous raster.
+            Invoke("CourtFlagstoneField",flags);
+            float span=(float)typeof(FoundryRegionView).GetField("FlagstoneSpan",Static|BindingFlags.Public).GetValue(null);
+            var uv=Data<Vector2>(flags,"U");
             for(int i=0;i<vertices.Count;i++)
-            {
-                Vector2 design=ToDesign(vertices[i]);
-                Vector2 expected=new Vector2(1+2*FoundryMap.Axis*design.x/span,1+2*FoundryMap.Axis*design.y/span);
-                Assert.That(Vector2.Distance(uv[i],expected),Is.LessThan(.00001f),"The fitted flags retain continuous world-space mineral grain.");
-            }
-            // Sample the relocated inscribed polygon, including the eight fan
-            // flags and their fitted joints. Each point has one stone owner.
+                Assert.That(Vector2.Distance(uv[i],ToDesign(vertices[i])/span),Is.LessThan(2e-4f),"One world-continuous cut-stone field.");
+            // Sample the whole inscribed polygon: no hole in the medallion bed.
             for(int x=-14;x<=14;x++)for(int y=-14;y<=14;y++)
             {
                 Vector2 local=new Vector2(x*.25f,y*.25f);
                 if(local.magnitude>3.70f)continue;
-                Vector2 design=CourtCentre+local;
-                Vector2 point=Project(design);bool covered=false;
-                for(int t=0;t<triangles.Count&&!covered;t+=3)
-                    covered=InTriangle(point,vertices[triangles[t]],vertices[triangles[t+1]],vertices[triangles[t+2]]);
-                Assert.That(covered,Is.True,"No fitted flag or joint may cut a hole in the original medallion bed.");
+                Assert.That(Covered(Project(CourtCentre+local),vertices,triangles),Is.True,"The laid field may not leave a hole in the medallion bed.");
             }
         }
 
@@ -76,17 +71,19 @@ namespace Cryptforge.Tests
         public void RelocatedMedallionHasOneCompleteStoneBedAndNoFormerOriginGhost()
         {
             object mesh=NewBuilder();Invoke("BuildCourtStoneRing",mesh);
+            object field=NewBuilder();Invoke("BuildCourtSealField",field);
             CheckFlushMesh(mesh,CourtCentre,5.05f,6500);
             CheckStoneGrainAndColour(mesh);
             var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
-            Assert.That(Covered(Vector2.zero,vertices,triangles),Is.False,
+            Assert.That(Covered(Vector2.zero,vertices,triangles)||Covered(Vector2.zero,Data<Vector3>(field,"V"),Data<int>(field,"T")),Is.False,
                 "Moving the medallion must remove its old centre geometry rather than append a second circle.");
             for(int x=-19;x<=19;x++)for(int y=-19;y<=19;y++)
             {
                 Vector2 local=new Vector2(x*.25f,y*.25f);
                 if(local.magnitude>5f)continue;
-                Assert.That(Covered(Project(CourtCentre+local),vertices,triangles),Is.True,
-                    "The relocated field, radial bed and fitted ends retain continuous paving coverage.");
+                Vector2 point=Project(CourtCentre+local);
+                Assert.That(Owners(point,mesh)+Owners(point,field),Is.GreaterThanOrEqualTo(1),
+                    "The laid field and the ring's fitted stones retain continuous paving coverage.");
             }
             foreach(Vector3 p in vertices)
             {
@@ -104,10 +101,23 @@ namespace Cryptforge.Tests
         [Test]
         public void ProcessionalStoneFitsTheWalkingUnionAndStopsOutsideTheSingleMedallion()
         {
-            object mesh=NewBuilder();Invoke("BuildCourtProcessionalStone",mesh);
+            object mesh=NewBuilder();Invoke("BuildCourtProcessionalWay",mesh);
             var vertices=Data<Vector3>(mesh,"V");var triangles=Data<int>(mesh,"T");
-            Assert.That(vertices.Count,Is.InRange(1,5000),"Two complete fitted paths must remain a bounded floor replacement.");
-            CheckStoneGrainAndColour(mesh);
+            Assert.That(vertices.Count,Is.InRange(1,5000),"Two complete laid ways must remain a bounded floor replacement.");
+            CheckLaidStoneLight(mesh);
+            // Each way's field runs with it: u across the way, v along it, from the seal's centre, at 1.35x the court's density.
+            float span=(float)typeof(FoundryRegionView).GetField("FlagstoneSpan",Static|BindingFlags.Public).GetValue(null);
+            var uv=Data<Vector2>(mesh,"U");
+            for(int i=0;i<vertices.Count;i++)
+            {
+                Vector2 p=ToDesign(vertices[i])-CourtCentre;bool aligned=false;
+                foreach(Vector2 end in new[]{new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)})
+                {
+                    Vector2 direction=(end-CourtCentre).normalized,side=new Vector2(-direction.y,direction.x);
+                    aligned|=Vector2.Distance(uv[i],new Vector2(Vector2.Dot(p,side),Vector2.Dot(p,direction))*1.35f/span)<2e-4f;
+                }
+                Assert.That(aligned,Is.True,"The way's cut stone is laid across it.");
+            }
             foreach(Vector3 vertex in vertices)
             {
                 Vector2 design=ToDesign(vertex);
@@ -151,14 +161,14 @@ namespace Cryptforge.Tests
         [Test]
         public void FittedCourtPartitionsTheExactFootprintsWithoutASecondJointBed()
         {
-            object circle=NewBuilder(),paths=NewBuilder();
-            Invoke("BuildCourtStoneRing",circle);Invoke("BuildCourtProcessionalStone",paths);
+            object circle=NewBuilder(),field=NewBuilder(),paths=NewBuilder();
+            Invoke("BuildCourtStoneRing",circle);Invoke("BuildCourtSealField",field);Invoke("BuildCourtProcessionalWay",paths);
             double circleArea=24*5.05*5.05*Math.Sin(Math.PI/24);
             double pathArea=0;
             foreach(Vector2 end in new[]{new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)})
                 pathArea+=4.18*(Vector2.Distance(end,CourtCentre)-5.21);
-            Assert.That(DesignArea(circle),Is.EqualTo(circleArea).Within(.002),
-                "Joint strips, radial shoulders and faces must partition the 48-gon, not cover a complete bed twice.");
+            Assert.That(DesignArea(circle)+DesignArea(field),Is.EqualTo(circleArea).Within(.002),
+                "The ring's joint strips, shoulders and faces and the laid field partition the 48-gon, not cover a bed twice.");
             Assert.That(DesignArea(paths),Is.EqualTo(pathArea).Within(.003),
                 "The whole approach width is fitted once, including mortar, with no layered middle or missing shoulders.");
             // A noncardinal phase also keeps i=0 off the half-unit light grid.
@@ -167,7 +177,7 @@ namespace Cryptforge.Tests
             {
                 float angle=.173f+i*2.399963f,radius=.19f+4.77f*(i%31)/31;
                 Vector2 point=Project(CourtCentre+new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*radius);
-                AssertOneOwner(point,circle,"Every sampled medallion point has one opaque floor owner.");
+                Assert.That(Owners(point,circle)+Owners(point,field),Is.EqualTo(1),"Every sampled medallion point has one opaque floor owner.");
             }
         }
 
@@ -218,8 +228,8 @@ namespace Cryptforge.Tests
             }
             foreach(Vector2 p in BridgeContinuationSamples())
                 Assert.That(Owners(Project(p),mesh),Is.Zero,"No previous bridge bed, bevel or flag survives beneath the continuation.");
-            object replacement=NewBuilder();Invoke("BuildCourtStoneRing",replacement);Invoke("BuildCourtProcessionalStone",replacement);
-            Invoke("BuildCourtBridgeStone",replacement);
+            object replacement=NewBuilder();Invoke("BuildCourtStoneRing",replacement);Invoke("BuildCourtSealField",replacement);
+            Invoke("BuildCourtProcessionalWay",replacement);Invoke("BuildCourtBridgeStone",replacement);
             Assert.That(DesignArea(mesh)+2*DesignArea(replacement),Is.EqualTo(2*55*45).Within(.015),
                 "Exact convex subtraction preserves all outside geometry and removes only the four agreed domains.");
         }
@@ -300,13 +310,17 @@ namespace Cryptforge.Tests
                 }
                 Invoke("BuildCourtStoneRing",mesh);
                 int ringVertices=Data<Vector3>(mesh,"V").Count-clippedVertices;
-                Invoke("BuildCourtProcessionalStone",mesh);
-                int pathVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices;
+                // The seal's field and the processional ways are laid cut stone, in the flagstone batch.
+                Invoke("BuildCourtSealField",flags);Invoke("BuildCourtProcessionalWay",flags);
+                int pathVertices=Data<Vector3>(flags,"V").Count-clippedFlags;
                 Invoke("BuildCourtBridgeStone",mesh);
-                int bridgeVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices-pathVertices;
-                foreach(Vector2 p in samples)AssertOneOwner(Project(p),mesh,"The actual built floor must have exactly one replacement at the medallion and bridge approach.");
+                int bridgeVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices;
+                foreach(Vector2 p in samples)
+                    Assert.That(Owners(Project(p),mesh)+Owners(Project(p),flags),Is.EqualTo(1),
+                        "The actual built floor must have exactly one replacement at the medallion and bridge approach. "+
+                        OwnerWitness(Project(p),mesh)+" / "+OwnerWitness(Project(p),flags));
                 Assert.That(clippedFlags,Is.LessThanOrEqualTo(originalFlags+2000));
-                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; flagstones {originalFlags}->{clippedFlags}; ring={ringVertices}; paths={pathVertices}; bridge={bridgeVertices}; final={Data<Vector3>(mesh,"V").Count}.");
+                TestContext.WriteLine($"Court floor vertices: raw base={originalVertices}; clipped base={clippedVertices}; flagstones {originalFlags}->{clippedFlags}; ring={ringVertices}; laid field and ways={pathVertices}; bridge={bridgeVertices}; final={Data<Vector3>(mesh,"V").Count}.");
                 Assert.That(clippedVertices,Is.LessThanOrEqualTo(originalVertices+2000),
                     "The four fixed footprint boundaries retain the same bounded intersection-vertex allowance.");
                 Assert.That(ringVertices,Is.LessThanOrEqualTo(6500));
@@ -327,7 +341,7 @@ namespace Cryptforge.Tests
         public void BridgeContinuationAndOriginalApproachShareTheirCapWithoutAGapOrOverlap()
         {
             object approach=NewBuilder(),bridge=NewBuilder();
-            Invoke("BuildCourtProcessionalStone",approach);Invoke("BuildCourtBridgeStone",bridge);
+            Invoke("BuildCourtProcessionalWay",approach);Invoke("BuildCourtBridgeStone",bridge);
             Vector2 end=new Vector2(-17.5f,-17.5f),direction=(end-CourtCentre).normalized;
             Vector2 side=new Vector2(-direction.y,direction.x);
             foreach(float lateral in new[]{-2.041f,-1.317f,-.419f,.263f,1.681f,2.041f})
@@ -372,12 +386,6 @@ namespace Cryptforge.Tests
             return count;
         }
 
-        private static void AssertOneOwner(Vector2 point,object mesh,string message)
-        {
-            int owners=Owners(point,mesh);
-            Assert.That(owners,Is.EqualTo(1),owners==1?message:message+" "+OwnerWitness(point,mesh));
-        }
-
         private static string OwnerWitness(Vector2 point,object mesh)
         {
             Vector2 design=ToDesign(point);var text=new System.Text.StringBuilder();
@@ -396,6 +404,23 @@ namespace Cryptforge.Tests
                     point.y>=Mathf.Min(a.y,Mathf.Min(b.y,c.y))&&point.y<=Mathf.Max(a.y,Mathf.Max(b.y,c.y)));
             }
             return text.ToString();
+        }
+
+        // Laid cut stone carries only the continuous floor field (light x use x contact), as the court's flagstone does.
+        private static void CheckLaidStoneLight(object mesh)
+        {
+            var vertices=Data<Vector3>(mesh,"V");var colours=Data<Color>(mesh,"C");
+            Assert.That(colours.Count,Is.EqualTo(vertices.Count));
+            for(int k=0;k<vertices.Count;k++)
+            {
+                Vector2 p=ToDesign(vertices[k]);
+                Color light=(Color)Call("FloorLight",p.x,p.y);
+                float use=(float)Call("PavingCourtUse",p.x,p.y);
+                Color contact=(Color)Call("PavingWorkshopTint",p.x,p.y);
+                Assert.That(Mathf.Abs(light.r*use*contact.r-colours[k].r)+Mathf.Abs(light.g*use*contact.g-colours[k].g)+
+                    Mathf.Abs(light.b*use*contact.b-colours[k].b),Is.LessThan(3e-4f),"Laid stone at "+p+" carries only the floor field.");
+                Assert.That(colours[k].a,Is.EqualTo(1));
+            }
         }
 
         private static void CheckStoneGrainAndColour(object mesh)

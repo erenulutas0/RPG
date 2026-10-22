@@ -687,8 +687,6 @@ namespace Cryptforge.UI
 
         private static void BuildCourtStoneRing(Builder mesh)
         {
-            Vector2[] field=CourtCircle(CourtFieldRadius);
-            BuildCourtMedallionField(mesh,field);
             // Twelve broad annular stones retain the exact 48-sided perimeter.
             // Four convex pieces form each curved stone. Their internal radial
             // edges have neither mortar nor bevel, avoiding a concave fan that
@@ -706,25 +704,10 @@ namespace Cryptforge.UI
             }
         }
 
-        private static void BuildCourtMedallionField(Builder mesh,Vector2[] field)
-        {
-            // Eight large fitted fan flags surround a quiet octagonal keystone.
-            // Every outer arc point is retained; there is no full disc beneath
-            // the faces, and none of the ordinary square grid survives here.
-            Vector2 centre=Vector2.zero;
-            foreach(Vector2 point in field)centre+=point;
-            centre/=field.Length;
-            var key=new Vector2[8];
-            for(int i=0;i<key.Length;i++)key[i]=centre+(field[i*6]-centre).normalized*1.22f;
-            CourtFittedFlag(mesh,key);
-            for(int stone=0;stone<8;stone++)
-            {
-                var points=new List<Vector2>{key[stone]};
-                for(int i=0;i<=6;i++)points.Add(field[(stone*6+i)%field.Length]);
-                points.Add(key[(stone+1)%8]);
-                CourtFittedFlag(mesh,points.ToArray());
-            }
-        }
+        // Inside the ring the seal's field is laid in the court's cut stone, as on the concept: the exact 48-gon the ring's
+        // inner edge follows, on the laid stone's light lattice only (the raster carries the joints), in the open court's
+        // world-continuous field (CourtFlagstoneField assigns its UV with the rest of the laid stone).
+        private static void BuildCourtSealField(Builder flags)=>CourtFittedFace(flags,CourtCircle(CourtFieldRadius),1,Color.white);
 
         private static void LitFloorQuad(Builder mesh,Vector3 a,Vector3 b,Vector3 c,Vector3 d,float stone)
         {
