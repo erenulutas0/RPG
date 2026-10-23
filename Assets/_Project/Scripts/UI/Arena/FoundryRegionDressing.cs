@@ -11,6 +11,7 @@ namespace Cryptforge.UI
         {
             BuildCrane(arena);
             BuildPipework(arena);
+            BuildRimPipes(arena);
             // The shaft and the tower roofs are rebuilt as the furnace pit and round boilers (FoundryRegionMassing.cs).
             // Mark the bridge mouth and gate with sparse warm beacons; the pit carries its own corner lanterns. The two
             // court-side bridge gateposts carry carved keepers, and lantern posts line both rails between the head

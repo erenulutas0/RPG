@@ -1217,3 +1217,13 @@ PlayMode, zero failures; APK 36,454,649 bytes, SHA256 BC8F90144B9D802DD5E5B378B6
 INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-apron-stone-01.
+
+## 2026-10-23 - Rim main along the north rail
+
+A heavy brass-banded main (and a lighter return) runs from the north-west boiler along the outside of the court's north
+rail on brackets, behind the rail in the masonry batch, as on the concept. Region 155,354 vertices (+2,048). A first try,
+yard stock stacks as work islands, was reverted (pursuit stall, passage mouth, too small at map scale). 457 .NET / 738
+EditMode / 164 PlayMode, zero failures; APK 36,457,456 bytes, SHA256
+02AAE77877E59C1F43A6F5CF77FC27D04ECA46FAFCA42E8D5892B782714C5A0B, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-rim-pipes-01.
