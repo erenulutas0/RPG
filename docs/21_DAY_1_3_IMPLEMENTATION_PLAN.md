@@ -2714,3 +2714,14 @@ Causeway retorts joined to the reference towers' family. New native Blender rend
 438 .NET / 712 EditMode / 160 PlayMode, zero failures/skips. The furnace-atlas test now covers both atlases (retorts: neutral-warm hue, > 250 lit window pixels per tile where the rejected flat hood had 149 and the old hoods 0). Isolated compile 0/0. Fresh Before (25 views, baseline a8eae77, clean Assets) and final After Android-target captures passed. PASS: 648 unique asset/folder GUIDs, 1099 package GUIDs indexed, 568 scene objects/components. Android build exit 0. APK 36,392,292 bytes; SHA256 3BDA245DF12816004B78D83D5E802290926D54011C9C5E7C567A6BA8AC80F8CE; NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-20/foundry-reference-retorts-01 and ArtDirection/2026-10-20/reference-retorts-01.
+
+## 2026-10-23 - Foundry halls open at their own districts (gameplay)
+
+On the foundry, a floor's combat and elite rooms after its first open at districts of their own (workyard, north court,
+east court, forecourt): the room waits, marked with the exit seal and an off-screen arrow ("NEXT HALL"), until the hero
+walks onto it, then its pack forms up there. Forge, gate boss, swarm and the hall region unchanged; scene-only (the
+Descent simulation is unchanged). New RoomSiteFlowTests. 457 .NET / 738 EditMode / 166 PlayMode, zero failures; APK
+36,467,560 bytes, SHA256 B936F55EDF5DF2527DD670CA281E4A08421A2045AE348AC81336BFA4565DBEC4, NOT INSTALLED - pacing not yet
+played on device.
+
+Evidence: ArtDirection/2026-10-23/foundry-hall-sites-01.

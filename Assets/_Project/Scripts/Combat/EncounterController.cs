@@ -74,6 +74,10 @@ namespace Cryptforge.Combat
         private float _swarmHeroY;
         private int _swarmStep = -1;
         private bool _gateExitOpen;
+        private bool _roomSiteOpen;
+        private float _roomSiteX;
+        private float _roomSiteY;
+        private FloorStep _roomSiteStep;
         private bool _revealHold;
         private int _roomsClearedOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
@@ -137,6 +141,11 @@ namespace Cryptforge.Combat
         public float ExitFloorY => _exitY;
         public float ExitHeldSeconds => _exitDwell != null ? _exitDwell.Held : 0f;
         public float ExitRadius => _gateExitOpen ? ExitRule.GateRadius : ExitRule.Radius;
+        // On the foundry a floor's later combat rooms open at their own districts (FoundryMap.RoomSite): the room waits,
+        // marked, until the hero walks onto it, and its pack then forms up round the hero there.
+        public bool IsRoomSiteOpen => _roomSiteOpen;
+        public float RoomSiteFloorX => _roomSiteX;
+        public float RoomSiteFloorY => _roomSiteY;
 
         public event Action EncounterStarted;
         public event Action ProgressChanged;
@@ -353,6 +362,18 @@ namespace Cryptforge.Combat
             if (_drops != null && Time.deltaTime > 0f)
                 _drops.CollectNear(HeroFloorX, HeroFloorY);
 
+            // A marked room waits for the hero to walk onto its district; an open choice keeps it waiting.
+            if (_roomSiteOpen)
+            {
+                if (!_choices.IsOpen && ExitRule.IsWithinReach(HeroFloorX, HeroFloorY, _roomSiteX, _roomSiteY, FoundryMap.RoomSiteRadius))
+                {
+                    _roomSiteOpen = false;
+                    RoomDefinition sited = _currentFloor.RoomAt(_roomSiteStep.RoomIndex);
+                    StartWave(sited.WaveAt(_roomSiteStep.WaveIndex), false, sited.Kind == RoomKind.Boss);
+                }
+                return;
+            }
+
             // The opened gate waits for the hero: nothing else advances, and an open choice freezes the hold.
             if (_gateExitOpen)
             {
@@ -531,6 +552,13 @@ namespace Cryptforge.Combat
                     RoomDefinition room = _currentFloor.RoomAt(step.RoomIndex);
                     if (room.Kind == RoomKind.Swarm)
                         BeginSwarm(room);
+                    else if (step.WaveIndex == 0 && TryRoomSite(step.RoomIndex))
+                    {
+                        ReleaseWave(true);
+                        _roomSiteStep = step;
+                        _roomSiteOpen = true;
+                        ProgressChanged?.Invoke();
+                    }
                     else
                         StartWave(room.WaveAt(step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
                     break;
@@ -578,6 +606,25 @@ namespace Cryptforge.Combat
         // A boss room on the foundry: its pack walks out of the gate instead of entering round the hero.
         private bool GateRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
+
+        // A foundry floor's combat room after its first opens at its own district.
+        private bool TryRoomSite(int roomIndex)
+        {
+            RoomKind kind = _currentFloor.RoomAt(roomIndex).Kind;
+            if (_arena == null || !_arena.IsFoundryRegion || (kind != RoomKind.Combat && kind != RoomKind.Elite))
+                return false;
+            int ordinal = 0;
+            for (int i = 0; i < roomIndex; i++)
+            {
+                RoomKind earlier = _currentFloor.RoomAt(i).Kind;
+                if (earlier == RoomKind.Combat || earlier == RoomKind.Elite)
+                    ordinal++;
+            }
+            if (ordinal == 0)
+                return false;
+            FoundryMap.RoomSite(ordinal, out _roomSiteX, out _roomSiteY);
+            return true;
+        }
 
         private bool GateClosesFloor() =>
             _currentFloor.RoomCount > 0 && GateRoom(_currentFloor.RoomAt(_currentFloor.RoomCount - 1));

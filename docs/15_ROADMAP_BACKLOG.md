@@ -1260,3 +1260,14 @@ rim rhythm. Region 157,434 vertices (+1,784). 457 .NET / 738 EditMode / 164 Play
 bytes, SHA256 DD3B3B99BE4560598E0C4457264476F031A8B13E22726CDFF21D1DDE367FF0CF, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-rail-rhythm-01.
+
+## 2026-10-23 - Foundry halls open at their own districts (gameplay)
+
+On the foundry, a floor's combat and elite rooms after its first open at districts of their own (workyard, north court,
+east court, forecourt): the room waits, marked with the exit seal and an off-screen arrow ("NEXT HALL"), until the hero
+walks onto it, then its pack forms up there. Forge, gate boss, swarm and the hall region unchanged; scene-only (the
+Descent simulation is unchanged). New RoomSiteFlowTests. 457 .NET / 738 EditMode / 166 PlayMode, zero failures; APK
+36,467,560 bytes, SHA256 B936F55EDF5DF2527DD670CA281E4A08421A2045AE348AC81336BFA4565DBEC4, NOT INSTALLED - pacing not yet
+played on device.
+
+Evidence: ArtDirection/2026-10-23/foundry-hall-sites-01.
