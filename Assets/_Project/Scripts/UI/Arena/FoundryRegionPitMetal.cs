@@ -64,7 +64,8 @@ namespace Cryptforge.UI
             // the previous alternating flat green-blue polygons on the hood.
             float facing=(1+Mathf.Cos(angle-270f*Mathf.Deg2Rad))*.5f;
             float glint=Mathf.Pow(Mathf.Max(0,Mathf.Cos(angle-258f*Mathf.Deg2Rad)),6);
-            Color tone=Color.Lerp(new Color(.37f,.38f,.41f),new Color(.88f,.84f,.79f),facing);
+            // Blackened violet iron as the concept's pit vessels, not the cast-iron atlas's olive.
+            Color tone=Color.Lerp(new Color(.30f,.29f,.38f),new Color(.66f,.62f,.74f),facing);
             tone+=new Color(.075f,.065f,.052f,0)*glint;
             Vector3 local=position-Project(centre.x,centre.y);
             float forged=.94f+.06f*FloorPatina(local.x*.72f+4.3f,local.y*.72f-2.1f);

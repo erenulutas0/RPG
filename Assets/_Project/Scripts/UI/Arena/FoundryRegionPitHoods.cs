@@ -62,7 +62,8 @@ namespace Cryptforge.UI
             for(int k=0;k<half;k+=half/4)
             {
                 float a=FrontAngle(k,half),e=FrontAngle(k+1,half);
-                var tone=new Color(.74f,.72f,.65f);
+                // Brass hold-down straps, as the concept's vessels are banded.
+                var tone=Tinted(Bronze,new Color(.82f,.82f,.82f));
                 for(int row=0;row+1<profile.Length;row++)
                 {
                     Vector2 p=profile[row],q=profile[row+1];

@@ -1227,3 +1227,12 @@ EditMode / 164 PlayMode, zero failures; APK 36,457,456 bytes, SHA256
 02AAE77877E59C1F43A6F5CF77FC27D04ECA46FAFCA42E8D5892B782714C5A0B, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-rim-pipes-01.
+
+## 2026-10-23 - Pit vessels in blackened iron with brass straps
+
+PitMetalTone moves from olive-neutral to the concept's violet-black iron and the hood straps take the braziers' bronze.
+An east rim main was tried and reverted (crossed the squat boiler, hidden by the gate tower). 457 .NET / 738 EditMode /
+164 PlayMode, zero failures; APK 36,457,765 bytes, SHA256 FDDBEAD4B6F97AEC24C273CC637C4A9591B28C74A7F9D8FF9312D66939877A48,
+NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-pit-iron-01.
