@@ -1713,3 +1713,11 @@ Region 156,082 vertices (+728). 457 .NET / 738 EditMode / 164 PlayMode, zero fai
 F018FEA82414B73DE3CF4EB539640FD02B9A4D9E0F83F9D720A8BAB3A807FA0C, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-pit-stacks-01.
+
+## 2026-10-23 - Rail lantern shrines
+
+Four mid-run rail posts carry the concept's small stone lantern shrine (lit round-headed niches, cornice, pyramid roof,
+brass finial) instead of a fire basket; corner posts keep their fire. 457 .NET / 738 EditMode / 164 PlayMode, zero
+failures; APK 36,465,383 bytes, SHA256 F8C1C1491FA4D63DDC26B60A709086D9F41F04C906A02D6E1B79D61C35C7A4AB, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-rail-shrines-01.

@@ -1350,6 +1350,9 @@ namespace Cryptforge.UI
             new Vector4(18.14f,10,18.86f,10.72f)
         };
         private static readonly bool[] RailLanternFront={true,true,false,false,true,false,false,true,true,false,false,false,false};
+        // As on the concept, the long rail runs alternate open fire with small stone lantern shrines: these posts carry a
+        // shrine (RailShrine) instead of a fire basket.
+        internal static readonly int[] RailShrinePosts={7,8,9,11};
 
         // Existing exterior structures the rail must not run through.
         private static readonly Vector4[] MassObstacles =
@@ -1393,7 +1396,8 @@ namespace Cryptforge.UI
                 if(!MassClear(box)||MassBlocked(box)||MassConflicts(box,2.8f,true))continue;
                 placed.Add(box);
                 // The basket's flames reach ~3.1; placement keeps the lantern-era 2.8 screen test.
-                AddPiece(pieces,box,3.1f,()=>LanternPost(arena,box,front));
+                bool shrine=System.Array.IndexOf(RailShrinePosts,i)>=0;
+                AddPiece(pieces,box,3.1f,()=>LanternPost(arena,box,front,0,shrine));
             }
             // Braziers are attached to explicit supports, not incidental gap subdivisions.
             // Elevation changes screen-overlap exclusions against boilers and therefore can
@@ -1723,7 +1727,7 @@ namespace Cryptforge.UI
         // The post's cap top (1.69): the basket's cast foot starts there.
         private const float RailBrazierRise=1.79f;
 
-        private void LanternPost(ArenaView arena,Vector4 box,bool front,float foot=0)
+        private void LanternPost(ArenaView arena,Vector4 box,bool front,float foot=0,bool shrine=false)
         {
             var wall=arena.PlatformMaterials.FoundryWall;
             var above=new Builder();
@@ -1743,8 +1747,56 @@ namespace Cryptforge.UI
                 Create("Balustrade pilaster",RimFace(below),wall,-16);
             }
             // As on the approved concept's rim, the post carries an open fire basket (the gate's and the bridge head's)
-            // seated on its cap, instead of an enclosed amber lantern that read small and pale at map scale.
-            Brazier(arena,new Vector2((box.x+box.z)*.5f,(box.y+box.w)*.5f),RailBrazierRise);
+            // seated on its cap, instead of an enclosed amber lantern that read small and pale at map scale - or a shrine.
+            Vector2 c=new Vector2((box.x+box.z)*.5f,(box.y+box.w)*.5f);
+            if(shrine)RailShrine(arena,c);
+            else Brazier(arena,c,RailBrazierRise);
+        }
+
+        // A small stone lantern shrine on a post's cap (1.69), after the concept's rim: a block with a lit, round-headed
+        // niche in each camera face, a moulded cornice, a pyramid roof and a brass finial. Stone in the rim masonry batch
+        // (-11), the niches' glow in the flame batch (-10), the finial in the brazier iron batch (-10.5).
+        private const float ShrineHalf=.31f,ShrineBase=1.69f,ShrineTop=2.42f,ShrinePeak=2.8f;
+        private void RailShrine(ArenaView arena,Vector2 c)
+        {
+            var set=arena.PlatformMaterials;
+            var stone=new Builder();
+            Vector4 body=new Vector4(c.x-ShrineHalf,c.y-ShrineHalf,c.x+ShrineHalf,c.y+ShrineHalf);
+            MassBox(stone,body,ShrineBase,ShrineTop,true,true,1.04f);
+            Vector4 cornice=GrowSafe(body,.05f);
+            MassBox(stone,cornice,ShrineTop,ShrineTop+.09f,true,true,1.16f);
+            Vector3 apex=Project(c.x,c.y)+Vector3.up*ShrinePeak,lift=Vector3.up*(ShrineTop+.09f);
+            stone.WallQuad(Project(cornice.x,cornice.y)+lift,Project(cornice.z,cornice.y)+lift,apex,apex,false,new Color(.72f,.75f,.84f));
+            stone.WallQuad(Project(cornice.x,cornice.w)+lift,Project(cornice.x,cornice.y)+lift,apex,apex,false,new Color(.5f,.53f,.63f));
+            // The niche's dark reveal round the glow, on both camera faces.
+            var glow=new Builder();
+            foreach(var face in new[]{(new Vector2(body.x,body.y),new Vector2(body.z,body.y),1f),(new Vector2(body.x,body.w),new Vector2(body.x,body.y),.82f)})
+            {
+                Vector3 a=Project(face.Item1.x,face.Item1.y),b=Project(face.Item2.x,face.Item2.y);
+                Vector3 l=Vector3.Lerp(a,b,.27f),r=Vector3.Lerp(a,b,.73f);
+                const float sill=ShrineBase+.14f,head=ShrineTop-.2f;
+                int dark=stone.V.Count;
+                FullFace(stone,l+Vector3.up*(sill-.03f),r+Vector3.up*(sill-.03f),r+Vector3.up*(head+.03f),l+Vector3.up*(head+.03f),new Color(.12f,.1f,.12f));
+                LanternPane(glow,Vector3.Lerp(l,r,.08f)+Vector3.up*sill,Vector3.Lerp(l,r,.92f)+Vector3.up*sill,Vector3.up*(head-sill-.08f),face.Item3*1.5f);
+                // Round head: a fan of the glow over the opening.
+                Vector3 mid=(l+r)*.5f+Vector3.up*(head-.08f);
+                const int arc=6;
+                for(int k=0;k<arc;k++)
+                {
+                    float t0=k*Mathf.PI/arc,t1=(k+1)*Mathf.PI/arc;
+                    Vector3 half=(r-l)*.5f*.84f;
+                    Vector3 p0=mid+half*Mathf.Cos(t0)+Vector3.up*(Mathf.Sin(t0)*.09f),p1=mid+half*Mathf.Cos(t1)+Vector3.up*(Mathf.Sin(t1)*.09f);
+                    int first=glow.V.Count;
+                    FullFace(glow,mid,p0,p1,mid,new Color(.6f*face.Item3,.34f*face.Item3,.36f*face.Item3));
+                    for(int i=first;i<glow.U.Count;i++)glow.U[i]=new Vector2(.7815f+glow.U[i].x*.001f,.8375f+glow.U[i].y*.001f);
+                }
+            }
+            Create("Rail shrine",RimStone(stone),set.FoundryWall,-11);
+            if(set.FoundryEmbers!=null)Create("Rail shrine glow",glow,set.FoundryEmbers,-10);
+            var brass=new Builder();
+            MassCourse(brass,c,.07f,.03f,ShrinePeak-.04f,ShrinePeak+.1f,6,true,Bronze*1.3f);
+            MassCourse(brass,c,.03f,.008f,ShrinePeak+.1f,ShrinePeak+.2f,6,true,Bronze*1.45f);
+            Create("Balustrade post brass",brass,set.FoundryIron,-10.5f);
         }
 
         private void BuildBoilerFoundations(ArenaView arena)
