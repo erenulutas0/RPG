@@ -1721,3 +1721,11 @@ brass finial) instead of a fire basket; corner posts keep their fire. 457 .NET /
 failures; APK 36,465,383 bytes, SHA256 F8C1C1491FA4D63DDC26B60A709086D9F41F04C906A02D6E1B79D61C35C7A4AB, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-rail-shrines-01.
+
+## 2026-10-23 - Closer rim post rhythm
+
+Regular rail posts now stand at most about two units apart (RailPostSpacing, was three), closer to the concept's heavy
+rim rhythm. Region 157,434 vertices (+1,784). 457 .NET / 738 EditMode / 164 PlayMode, zero failures; APK 36,465,043
+bytes, SHA256 DD3B3B99BE4560598E0C4457264476F031A8B13E22726CDFF21D1DDE367FF0CF, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-rail-rhythm-01.

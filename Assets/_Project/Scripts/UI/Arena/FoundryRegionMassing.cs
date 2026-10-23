@@ -40,7 +40,7 @@ namespace Cryptforge.UI
         private const int BoilerFacets=10;
         // Balustrade: a .42-deep footprint band on the void side of each exposed edge; the balustrade itself stands in
         // the band's camera-facing RailDepth (RailSpan).
-        private const float RailBand=.42f,RailTop=.72f,DeckFace=-2.3f;
+        private const float RailBand=.42f,RailTop=.72f,DeckFace=-2.3f,RailPostSpacing=2f;
         // Furnace pit: the existing non-walkable shaft square, its collar a ring after the approved layout's oval. The
         // balustrade stands on a band RailDepth deep whose outline is a circle about the pit's centre, of radius PitRim, which
         // the camera sees as the concept's 2:1 oval: the band's inner edge keeps the old collar line, PitCollar in from the
@@ -1460,7 +1460,8 @@ namespace Cryptforge.UI
             TryRailPost(pieces,placed,posts,dir,line,a,true,front,wall);
             TryRailPost(pieces,placed,posts,dir,line,b,false,front,wall);
             posts.Sort((x,y)=>x.x.CompareTo(y.x));
-            // Regular posts at most about three units apart between the fixed ones.
+            // Regular posts at most about two units apart between the fixed ones: the concept's rim keeps a close, heavy
+            // rhythm of posts (2026-10-23; was three).
             float cursor=a;
             var gaps=new List<Vector2>();
             foreach(var p in posts){if(p.x>cursor)gaps.Add(new Vector2(cursor,p.x));cursor=Mathf.Max(cursor,p.y);}
@@ -1468,7 +1469,7 @@ namespace Cryptforge.UI
             foreach(var gap in gaps)
             {
                 float length=gap.y-gap.x;
-                int count=Mathf.CeilToInt(length/3f)-1;
+                int count=Mathf.CeilToInt(length/RailPostSpacing)-1;
                 for(int i=1;i<=count;i++)
                 {
                     float c=gap.x+length*i/(count+1);
