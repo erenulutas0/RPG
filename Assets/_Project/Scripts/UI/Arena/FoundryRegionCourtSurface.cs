@@ -16,8 +16,10 @@ namespace Cryptforge.UI
         // stone than the court's, its courses turned across the way: the laid
         // stone's raster, on its light lattice only, in a field that runs with
         // each way (texture u across it, v along it, from the seal's centre) at
-        // CourtWayScale the court's density. Built after CourtFlagstoneField, which
-        // would otherwise give it the court's world field.
+        // CourtWayScale the court's density - the way to the bridge in the bridge's
+        // own field (BridgeField), its axis 4 degrees off the way's, so it runs on
+        // into the deck without a seam. Built after CourtFlagstoneField, which would
+        // otherwise give it the court's world field.
         private static readonly Vector2[] CourtProcessionalEnds=
             {new Vector2(-17.5f,-17.5f),new Vector2(15.9f,5)};
         private const float CourtProcessionalHalfWidth=1.85f,CourtProcessionalStoneWidth=.48f,CourtWayScale=1.35f;
@@ -33,7 +35,8 @@ namespace Cryptforge.UI
                 {
                     FoundrySurface.ToDesign(flags.V[i].x,flags.V[i].y,out float u,out float v);
                     Vector2 p=new Vector2(u,v)-CourtSealCentre;
-                    flags.U[i]=new Vector2(Vector2.Dot(p,side),Vector2.Dot(p,direction))*CourtWayScale/FlagstoneSpan;
+                    flags.U[i]=end==CourtProcessionalEnds[0]?BridgeField(u,v):
+                        new Vector2(Vector2.Dot(p,side),Vector2.Dot(p,direction))*CourtWayScale/FlagstoneSpan;
                 }
             }
         }
@@ -50,31 +53,5 @@ namespace Cryptforge.UI
             return new[]{approach[1],DeckDesign(threshold,-half),
                 DeckDesign(threshold,half),approach[2]};
         }
-
-        private static void BuildCourtBridgeStone(Builder mesh)
-        {
-            Vector2[] field=CourtBridgeContour();
-            float length=Vector2.Distance((field[0]+field[3])*.5f,(field[1]+field[2])*.5f);
-            int rows=Mathf.CeilToInt(length/3.2f);
-            for(int row=0;row<rows;row++)
-            {
-                float from=row/(float)rows,to=(row+1)/(float)rows;
-                Vector2 leftA=Vector2.Lerp(field[0],field[1],from),leftB=Vector2.Lerp(field[0],field[1],to);
-                Vector2 rightA=Vector2.Lerp(field[3],field[2],from),rightB=Vector2.Lerp(field[3],field[2],to);
-                // Broad transverse flags alternate with a fitted pair. Each row
-                // shares its complete boundary with the next, including mortar.
-                // Both end courses remain whole bearing stones.
-                if(row%2==0||row==rows-1)
-                    CourtFittedFlag(mesh,new[]{leftA,leftB,rightB,rightA});
-                else
-                {
-                    float split=row%4==1?.39f:.61f;
-                    Vector2 middleA=Vector2.Lerp(leftA,rightA,split),middleB=Vector2.Lerp(leftB,rightB,split);
-                    CourtFittedFlag(mesh,new[]{leftA,leftB,middleB,middleA});
-                    CourtFittedFlag(mesh,new[]{middleA,middleB,rightB,rightA});
-                }
-            }
-        }
-
     }
 }

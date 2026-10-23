@@ -116,6 +116,9 @@ namespace Cryptforge.Tests
                     Vector2 direction=(end-CourtCentre).normalized,side=new Vector2(-direction.y,direction.x);
                     aligned|=Vector2.Distance(uv[i],new Vector2(Vector2.Dot(p,side),Vector2.Dot(p,direction))*1.35f/span)<2e-4f;
                 }
+                // The way to the bridge is laid in the bridge's own field, so it runs on into the deck.
+                Vector2 q=p+CourtCentre;
+                aligned|=Vector2.Distance(uv[i],new Vector2(q.x-q.y,q.x+q.y)*FoundryMap.Axis*1.35f/span)<2e-4f;
                 Assert.That(aligned,Is.True,"The way's cut stone is laid across it.");
             }
             foreach(Vector3 vertex in vertices)
@@ -229,7 +232,9 @@ namespace Cryptforge.Tests
             foreach(Vector2 p in BridgeContinuationSamples())
                 Assert.That(Owners(Project(p),mesh),Is.Zero,"No previous bridge bed, bevel or flag survives beneath the continuation.");
             object replacement=NewBuilder();Invoke("BuildCourtStoneRing",replacement);Invoke("BuildCourtSealField",replacement);
-            Invoke("BuildCourtProcessionalWay",replacement);Invoke("BuildCourtBridgeStone",replacement);
+            Invoke("BuildCourtProcessionalWay",replacement);
+            // The way's continuation down the bridge is laid once with the deck; here its exact footprint.
+            Invoke("CourtFittedFace",replacement,Call("CourtStoneContour",Call("CourtBridgeContour")),1f,Color.white);
             Assert.That(DesignArea(mesh)+2*DesignArea(replacement),Is.EqualTo(2*55*45).Within(.015),
                 "Exact convex subtraction preserves all outside geometry and removes only the four agreed domains.");
         }
@@ -276,7 +281,7 @@ namespace Cryptforge.Tests
                 object mesh=NewBuilder(),flags=NewBuilder();
                 MethodInfo build=typeof(FoundryRegionView).GetMethod("BuildPavingCell",Members);
                 foreach(Vector2Int cell in cells)build.Invoke(view,new object[]{mesh,flags,cell});
-                Invoke("ClipFloorCorners",mesh);Invoke("ClipFloorCorners",flags);Invoke("BuildBridgeDeck",mesh);
+                Invoke("ClipFloorCorners",mesh);Invoke("ClipFloorCorners",flags);
                 int originalVertices=Data<Vector3>(mesh,"V").Count,originalFlags=Data<Vector3>(flags,"V").Count;
                 Vector2 outside=Project(new Vector2(8.213f,-13.149f));
                 int outsideOwners=Owners(outside,mesh)+Owners(outside,flags);
@@ -310,11 +315,12 @@ namespace Cryptforge.Tests
                 }
                 Invoke("BuildCourtStoneRing",mesh);
                 int ringVertices=Data<Vector3>(mesh,"V").Count-clippedVertices;
-                // The seal's field and the processional ways are laid cut stone, in the flagstone batch.
+                // The seal's field, the processional ways and the bridge deck with the way's continuation are laid cut stone,
+                // in the flagstone batch.
                 Invoke("BuildCourtSealField",flags);Invoke("BuildCourtProcessionalWay",flags);
                 int pathVertices=Data<Vector3>(flags,"V").Count-clippedFlags;
-                Invoke("BuildCourtBridgeStone",mesh);
-                int bridgeVertices=Data<Vector3>(mesh,"V").Count-clippedVertices-ringVertices;
+                Invoke("BuildBridgeDeck",flags);
+                int bridgeVertices=Data<Vector3>(flags,"V").Count-clippedFlags-pathVertices;
                 foreach(Vector2 p in samples)
                     Assert.That(Owners(Project(p),mesh)+Owners(Project(p),flags),Is.EqualTo(1),
                         "The actual built floor must have exactly one replacement at the medallion and bridge approach. "+
@@ -325,7 +331,7 @@ namespace Cryptforge.Tests
                     "The four fixed footprint boundaries retain the same bounded intersection-vertex allowance.");
                 Assert.That(ringVertices,Is.LessThanOrEqualTo(6500));
                 Assert.That(pathVertices,Is.LessThanOrEqualTo(5000));
-                Assert.That(bridgeVertices,Is.LessThanOrEqualTo(3000),"The newly fitted bridge domain has its own fixed allowance.");
+                Assert.That(bridgeVertices,Is.LessThanOrEqualTo(3000),"The laid bridge deck has its own fixed allowance.");
                 // Raw base excludes the previous medallion and paired courses;
                 // it cannot serve as a before/after full-floor measurement. This
                 // envelope retains both existing component budgets and bounds
@@ -341,7 +347,7 @@ namespace Cryptforge.Tests
         public void BridgeContinuationAndOriginalApproachShareTheirCapWithoutAGapOrOverlap()
         {
             object approach=NewBuilder(),bridge=NewBuilder();
-            Invoke("BuildCourtProcessionalWay",approach);Invoke("BuildCourtBridgeStone",bridge);
+            Invoke("BuildCourtProcessionalWay",approach);Invoke("BuildBridgeDeck",bridge);
             Vector2 end=new Vector2(-17.5f,-17.5f),direction=(end-CourtCentre).normalized;
             Vector2 side=new Vector2(-direction.y,direction.x);
             foreach(float lateral in new[]{-2.041f,-1.317f,-.419f,.263f,1.681f,2.041f})

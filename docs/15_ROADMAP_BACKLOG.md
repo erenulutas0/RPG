@@ -1198,3 +1198,13 @@ banners, depth footprints and the balustrade's post box follow. Region 159,317 v
 NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-22/foundry-keepers-01.
+
+## 2026-10-23 - Bridge deck in cut stone, with the concept's diamond
+
+The bridge's walking quad is laid in the V10 cut stone (flagstone batch, light lattice only) in its own field, courses
+across the bridge; the way to the bridge and its continuation down the deck share that field, so they run on without a
+seam. The fitted deck lattice and continuation slabs are removed; a brass diamond inlay sits between the lanes below the
+keepers. Region 156,729 vertices (-2,588). 457 .NET / 737 EditMode / 164 PlayMode, zero failures; APK 36,454,646 bytes,
+SHA256 CB35D7379218BBF4C01CA2B20BB36EDF8222EC758D73BA39F3B1FB128E54EDBD, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-bridge-stone-01.

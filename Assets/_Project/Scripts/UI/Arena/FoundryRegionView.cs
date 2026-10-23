@@ -59,8 +59,6 @@ namespace Cryptforge.UI
             // Exact straight bridge, using the same diagonal inequalities as movement.
             var bridge=new[]{Deck(FoundryMap.BridgeStart,-FoundryMap.BridgeHalfWidth),Deck(FoundryMap.BridgeStart,FoundryMap.BridgeHalfWidth),
                 Deck(FoundryMap.BridgeEnd,FoundryMap.BridgeHalfWidth),Deck(FoundryMap.BridgeEnd,-FoundryMap.BridgeHalfWidth)};
-            // Diagonal paving exactly covers the same widened and lengthened walking quad.
-            BuildBridgeDeck(floor);
             for(int i=0;i<3;i++)
             {
                 int edge=i==2?3:i; Vector3 a=bridge[edge],b=bridge[(edge+1)%4];
@@ -86,7 +84,8 @@ namespace Cryptforge.UI
             CourtFlagstoneField(flags);
             BuildCourtStoneRing(floor);
             BuildCourtProcessionalWay(flags);
-            BuildCourtBridgeStone(floor);
+            // The laid deck exactly covers the same widened and lengthened walking quad.
+            BuildBridgeDeck(flags);
             Create("Layout surface",floor,arena.PlatformMaterials.FoundryPaving,-15);
             Create("Court laid flagstones",flags,arena.PlatformMaterials.FoundryFlagstone,-15);
             // First in the below-deck masonry batch: every other structure under the deck stands in front of the keels.
@@ -121,67 +120,35 @@ namespace Cryptforge.UI
         private static Vector2 DeckDesign(float s,float d)=>new Vector2((s+d)*.5f,(s-d)*.5f);
         private static Vector3 Deck(float s,float d)=>Project((s+d)*.5f,(s-d)*.5f);
         private const float BridgeLaneHalf=FoundryMap.BridgeHalfWidth*.5f;
-        private static void BuildBridgeDeck(Builder mesh)
+        // The bridge is laid in the court's cut stone, as on the concept: its whole walking quad short of the court (which
+        // owns v >= South), on the laid stone's light lattice only, in the bridge's own field (BridgeField) - which the
+        // processional way to the bridge shares (its end, which dips onto the deck, is cut from it), and the way's
+        // continuation down the deck (CourtBridgeContour), cut from the deck and laid once, so way, continuation and deck
+        // run on without a seam. Built after CourtFlagstoneField, which would otherwise give it the court's world field.
+        private static void BuildBridgeDeck(Builder flags)
         {
-            // Court-sized diagonal flags over one joint bed. The outer band stops at
-            // the kerb until its rail meets the court, then joins the court at full width.
-            for(int s=FoundryMap.BridgeStart;s<FoundryMap.BridgeEnd;s++)
-                for(int j=0;j<FoundryMap.BridgeHalfWidth;j++)
-                {
-                    float d=-FoundryMap.BridgeHalfWidth+j*2;
-                    var bed=BridgeCourtClip(new List<Vector2>{new Vector2(s,d),new Vector2(s,d+2),
-                        new Vector2(s+1,d+2),new Vector2(s+1,d)});
-                    if(bed.Count<3)continue;
-                    var design=new Vector2[bed.Count];
-                    for(int i=0;i<design.Length;i++)design[i]=DeckDesign(bed[i].x,bed[i].y);
-                    DeckPolygon(mesh,design,j==0||j==FoundryMap.BridgeHalfWidth-1?.70f:.72f);
-                }
-            DeckLattice(mesh,1,-BridgeLaneHalf,BridgeLaneHalf,false);
-            float margin=FoundryMap.BridgeHalfWidth-.5f;
-            DeckLattice(mesh,2,-margin,-BridgeLaneHalf,true,FoundryMap.BridgeStart,FoundryMap.BridgeWestSeam);
-            DeckLattice(mesh,2,-FoundryMap.BridgeHalfWidth,-BridgeLaneHalf,true,FoundryMap.BridgeWestSeam,FoundryMap.BridgeEnd);
-            DeckLattice(mesh,2,BridgeLaneHalf,margin,true,FoundryMap.BridgeStart,FoundryMap.BridgeEastSeam);
-            DeckLattice(mesh,2,BridgeLaneHalf,FoundryMap.BridgeHalfWidth,true,FoundryMap.BridgeEastSeam,FoundryMap.BridgeEnd);
-        }
-        // Clip the original u/v stone lattice against the real deck extent and bands.
-        private static void DeckLattice(Builder mesh,float g,float d0,float d1,bool margin,
-            float s0=FoundryMap.BridgeStart,float s1=FoundryMap.BridgeEnd)
-        {
-            int lo=Mathf.FloorToInt((s0-FoundryMap.BridgeHalfWidth)*.5f/g)-1;
-            int hi=Mathf.CeilToInt((s1+FoundryMap.BridgeHalfWidth)*.5f/g)+1;
-            if(!margin)
+            float half=FoundryMap.BridgeHalfWidth;
+            var quad=BridgeCourtClip(new List<Vector2>{new Vector2(FoundryMap.BridgeStart,-half),new Vector2(FoundryMap.BridgeStart,half),
+                new Vector2(FoundryMap.BridgeEnd,half),new Vector2(FoundryMap.BridgeEnd,-half)});
+            var outline=new Vector2[quad.Count];
+            for(int i=0;i<outline.Length;i++)outline[i]=DeckDesign(quad[i].x,quad[i].y);
+            var deck=new Builder();
+            CourtFittedFace(deck,CourtStoneContour(outline),1,Color.white);
+            // The way's end dips below the court's edge onto the deck; the way owns it.
+            CutCourtPaving(deck,CourtPathContour(CourtProcessionalEnds[0]));
+            CutCourtPaving(deck,CourtBridgeContour());
+            CourtFittedFace(deck,CourtStoneContour(CourtBridgeContour()),1,Color.white);
+            int offset=flags.V.Count;
+            for(int i=0;i<deck.V.Count;i++)
             {
-                // Stagger broad walkway flags in the same quarry axes as the court.
-                // Variable oblongs replace the repeated one-unit diamond grid; clipping
-                // still owns the exact bridge/court join and the two straight lane edges.
-                for(int row=lo;row<=hi;row++)
-                {
-                    float u=(lo-(row%2==0?0:.5f))*g;
-                    int block=0;
-                    while(u<=(hi+1)*g)
-                    {
-                        float width=(StoneSample(row+719,block+83)>.38f?2f:1f)*g;
-                        float v=row*g;
-                        var stone=new List<Vector2>{new Vector2(u+v,u-v),
-                            new Vector2(u+v+g,u-v-g),new Vector2(u+width+v+g,u+width-v-g),
-                            new Vector2(u+width+v,u+width-v)};
-                        stone=BridgeCourtClip(DeckClip(DeckClip(DeckClip(DeckClip(stone,0,s0,1),0,s1,-1),1,d0,1),1,d1,-1));
-                        if(stone.Count>=3)BridgeStone(mesh,stone,false,row,block);
-                        u+=width;block++;
-                    }
-                }
-                return;
+                FoundrySurface.ToDesign(deck.V[i].x,deck.V[i].y,out float u,out float v);
+                flags.V.Add(deck.V[i]);flags.C.Add(deck.C[i]);flags.U.Add(BridgeField(u,v));
             }
-            for(int k=lo;k<=hi;k++)
-                for(int m=lo;m<=hi;m++)
-                {
-                    float s=(k+m+1)*g,d=(k-m)*g;
-                    if(d+g<=d0||d-g>=d1||s+g<=s0||s-g>=s1)continue;
-                    var stone=new List<Vector2>{new Vector2(s-g,d),new Vector2(s,d+g),new Vector2(s+g,d),new Vector2(s,d-g)};
-                    stone=BridgeCourtClip(DeckClip(DeckClip(DeckClip(DeckClip(stone,0,s0,1),0,s1,-1),1,d0,1),1,d1,-1));
-                    if(stone.Count>=3)BridgeStone(mesh,stone,margin,k,m);
-                }
+            foreach(int index in deck.T)flags.T.Add(offset+index);
         }
+        // The bridge's laid-stone field: texture u across the bridge, v along it, at CourtWayScale the court's density, so
+        // its courses lie across the bridge like a laid road.
+        private static Vector2 BridgeField(float u,float v)=>new Vector2(u-v,u+v)*(FoundryMap.Axis*CourtWayScale/FlagstoneSpan);
         // The court already owns v >= South. Clip only bridge presentation at that
         // diagonal in deck space, so the physical overlap never paints a dark rectangle
         // over the court's existing ashlar. Collision retains its robust shared overlap.
@@ -210,70 +177,6 @@ namespace Cryptforge.UI
             }
             return kept;
         }
-        // One laid stone from its deck-frame outline, in three stacked flush layers over the joint bed: a shaded rim,
-        // a lit rim and the face, each inset per edge in the orthonormal u/v plane. Lattice edges take the court's light
-        // from screen right (lit where the outward normal points right, shaded where left); cut edges get no bevel, the
-        // face running to the joint, so a halved stone keeps its size and the lane and kerb lines stay clean verticals.
-        private static void BridgeStone(Builder mesh,List<Vector2> outline,bool margin,int k,int m)
-        {
-            int n=outline.Count;var p=new Vector2[n];float area=0;
-            for(int i=0;i<n;i++)p[i]=new Vector2((outline[i].x+outline[i].y)*.5f,(outline[i].x-outline[i].y)*.5f);
-            for(int i=0;i<n;i++)area+=p[i].x*p[(i+1)%n].y-p[(i+1)%n].x*p[i].y;
-            if(Mathf.Abs(area)<1e-4f)return;
-            if(area<0)System.Array.Reverse(p);
-            // Nearby bridge flags share the court's broad quarry field; independent
-            // pale/dark samples previously made the entrance a checkerboard. Margins
-            // retain their deliberately darker bearing under the existing kerbs.
-            Vector2 centre=Vector2.zero;
-            foreach(Vector2 point in p)centre+=point;
-            centre/=n;
-            float grain=FloorPatina(centre.x*.16f+5.7f,centre.y*.16f-9.4f);
-            float stone=Mathf.Lerp(margin?.88f:.96f,margin?.94f:1.03f,grain);
-            float hue=FloorPatina(centre.x*.11f-13.2f,centre.y*.11f+4.6f);
-            Color tint=hue<.22f?new Color(.99f,1f,1.015f):hue>.82f?new Color(1.02f,1f,.98f):Color.white;
-            if(margin)tint*=new Color(.97f,.985f,1.03f);
-            // Fine mortar and shallow worn arrises read as paving, not a heavy wire
-            // grid. The centre and margin share one restrained joint treatment.
-            const float joint=.018f,bevel=.032f,lit=1.04f,shade=.9f;
-            var rim=new float[n];var pale=new float[n];var face=new float[n];
-            for(int i=0;i<n;i++)
-            {
-                Vector2 e=p[(i+1)%n]-p[i];
-                bool cut=Mathf.Abs(e.x)>1e-4f&&Mathf.Abs(e.y)>1e-4f;
-                // CCW outline: outward normal (e.y,-e.x); screen x grows with u-v, so it faces right when e.x+e.y > 0.
-                bool bright=e.x+e.y>0;
-                rim[i]=joint;pale[i]=cut||bright?joint:bevel;face[i]=cut?joint:bevel;
-            }
-            int first=mesh.C.Count;
-            DeckPolygon(mesh,DeckInset(p,rim),stone*shade);
-            DeckPolygon(mesh,DeckInset(p,pale),stone*lit);
-            DeckPolygon(mesh,DeckInset(p,face),stone);
-            for(int i=first;i<mesh.C.Count;i++)mesh.C[i]*=tint;
-        }
-        // Offsets each edge of a convex CCW u/v outline inward by its own distance; vertices are the offset lines' meets.
-        private static Vector2[] DeckInset(Vector2[] p,float[] offset)
-        {
-            int n=p.Length;var inset=new Vector2[n];
-            for(int i=0;i<n;i++)
-            {
-                int h=(i+n-1)%n;
-                Vector2 e0=(p[i]-p[h]).normalized,e1=(p[(i+1)%n]-p[i]).normalized;
-                Vector2 q0=p[i]+new Vector2(-e0.y,e0.x)*offset[h],q1=p[i]+new Vector2(-e1.y,e1.x)*offset[i];
-                float cross=e0.x*e1.y-e0.y*e1.x;
-                if(Mathf.Abs(cross)<1e-5f){inset[i]=q1;continue;}
-                Vector2 w=q1-q0;
-                inset[i]=q0+e0*((w.x*e1.y-w.y*e1.x)/cross);
-            }
-            return inset;
-        }
-        // A convex u/v outline as lit floor quads fanned from its first vertex (a triangle is one degenerate quad).
-        private static void DeckPolygon(Builder mesh,Vector2[] q,float tone)
-        {
-            int n=q.Length;
-            for(int i=1;i+1<n;i+=2)
-                LitFloorQuad(mesh,Project(q[0].x,q[0].y),Project(q[i].x,q[i].y),Project(q[i+1].x,q[i+1].y),
-                    Project(q[Mathf.Min(i+2,n-1)].x,q[Mathf.Min(i+2,n-1)].y),tone);
-        }
         // The photograph now owns the composition: broad court, inset shaft, south bridge, northeast gate.
         private void BuildLandmarks(ArenaView arena)
         {
@@ -286,6 +189,7 @@ namespace Cryptforge.UI
                 Vector2 a=DeckDesign(FoundryMap.BridgeStart+2,d),b=DeckDesign(2*FoundryMap.South-1,d);
                 Strip(inlays,a.x,a.y,b.x,b.y,.12f,brass,CopingTrim.Brass);
             }
+            BridgeDiamond(inlays,brass);
             // The court's processional settings are stone in the existing floor
             // mesh; only the exposed bridge retains its narrow brass lane inlays.
             Create("Court brass inlays",inlays,arena.PlatformMaterials.Coping,FloorDecal);
@@ -294,6 +198,29 @@ namespace Cryptforge.UI
             // Four round banded boilers, piped to each other and to the gate, replace the 3x3 furnace boxes.
             BuildBoilerTowers(arena);
         }
+        // As on the concept, a brass diamond set into the bridge's deck between its lanes, below the keepers: a frame, an
+        // inner frame and a cross through them, the frames square in the design plane so they read as a diamond on screen,
+        // their corners clear of the lane inlays.
+        private const float BridgeDiamondS=-52f,BridgeDiamondHalf=1.1f;
+        private static void BridgeDiamond(Builder inlays,Color brass)
+        {
+            Vector2 c=DeckDesign(BridgeDiamondS,0);
+            foreach(float half in new[]{BridgeDiamondHalf,BridgeDiamondHalf*.5f})
+            {
+                var corner=new[]{c+new Vector2(-half,-half),c+new Vector2(half,-half),c+new Vector2(half,half),c+new Vector2(-half,half)};
+                for(int i=0;i<4;i++)
+                {
+                    Vector2 a=corner[i],b=corner[(i+1)%4];
+                    Strip(inlays,a.x,a.y,b.x,b.y,half==BridgeDiamondHalf?.11f:.08f,brass,CopingTrim.Brass,40+i);
+                }
+            }
+            foreach(Vector2 axis in new[]{new Vector2(1,0),new Vector2(0,1)})
+            {
+                Vector2 a=c-axis*BridgeDiamondHalf,b=c+axis*BridgeDiamondHalf;
+                Strip(inlays,a.x,a.y,b.x,b.y,.06f,brass,CopingTrim.Brass,48);
+            }
+        }
+
         private void BuildGate(ArenaView arena)
         {
             var facade=arena.PlatformMaterials.GateFacade;
