@@ -149,7 +149,7 @@ namespace Cryptforge.Art
         // begins when the hero walks onto it - the workyard, the court's north and east, the forecourt, then round again -
         // so the floor is crossed rather than fought on one spot. The first room is fought where the floor begins.
         public const float RoomSiteRadius=1.6f;
-        private static readonly float[,] RoomSites={{-25f,7f},{4f,12f},{8f,-8f},{-8f,-12f}};
+        private static readonly float[,] RoomSites={{-25f,7f},{4f,12f},{8f,-8f},{-10f,-9f}};
         public static int RoomSiteCount=>RoomSites.GetLength(0);
         // The district of a floor's combat room by its order among the floor's combat rooms (1 the second; 0 has none).
         public static void RoomSite(int ordinal,out float x,out float y)
@@ -158,6 +158,11 @@ namespace Cryptforge.Art
             int i=(ordinal-1)%RoomSites.GetLength(0);
             ToFloor(RoomSites[i,0],RoomSites[i,1],out x,out y);
         }
+        // The floor's two altars (AltarRule), before the lantern shrines on the court's south and north rails, far enough in
+        // that their sigils stay clear of the rail on screen.
+        private static readonly float[,] AltarSites={{-7.5f,-15.2f},{1.5f,15.4f}};
+        public static int AltarCount=>AltarSites.GetLength(0);
+        public static void AltarSite(int altar,out float x,out float y)=>ToFloor(AltarSites[altar,0],AltarSites[altar,1],out x,out y);
         // The gate landing in front of the door (design u 24..28, v -2..12): the floor's boss walks out of the gate onto
         // it, and the opened gate is left from its centre line by standing still (ExitRule), as the finale's exit is.
         public const float GateExitU=26.6f,GateExitV=5f,GateBossU=27.1f,GateBossSpacing=1.3f;

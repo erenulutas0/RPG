@@ -2725,3 +2725,13 @@ Descent simulation is unchanged). New RoomSiteFlowTests. 457 .NET / 738 EditMode
 played on device.
 
 Evidence: ArtDirection/2026-10-23/foundry-hall-sites-01.
+
+## 2026-10-23 - Foundry altars (S6d shrines; gameplay)
+
+Two altars per foundry floor (south and north court, before the lantern shrines): standing still on one for a second
+grants a bonus card offer and raises the run's difficulty by 0.1 (half an evolution); once per altar per floor. Scene
+only (AltarRule pure, AltarService, AltarView); forecourt hall district moved to (-10, -9). The 0.1 cost is chosen, not
+measured. 457 .NET / 742 EditMode / 168 PlayMode, zero failures; APK 36,472,489 bytes, SHA256
+FC7D832BC4FB22A3367C5D6AF5FF042B6CAD4AA9CD7D3366A9EAE5F39E1D0EE7, NOT INSTALLED.
+
+Evidence: ArtDirection/2026-10-23/foundry-altars-01.

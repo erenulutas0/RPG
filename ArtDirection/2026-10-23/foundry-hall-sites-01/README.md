@@ -5,7 +5,7 @@ Verified 2026-10-23. Baseline `03a311f`. Gameplay change, owner's choice (2026-1
 Until now every room of a foundry floor was fought on the spot where the hero stood, so the map's districts never
 mattered. Now, on the foundry region only, a floor's combat and elite rooms after its first open at a district of their
 own (`FoundryMap.RoomSite`: the workyard turntable (-25, 7), the court's north (4, 12) and east (8, -8), the forecourt
-(-8, -12), then round again): when the previous room clears, the next room waits, marked by the exit seal at that
+(-10, -9), then round again): when the previous room clears, the next room waits, marked by the exit seal at that
 district with the off-screen arrow and a "NEXT HALL" label (`PrototypeTextDefinition.HallInstruction/HallDirection`),
 until the hero walks within `FoundryMap.RoomSiteRadius` 1.6 of it; its first wave then forms up round the hero there as
 waves always have. Later waves of the same room, forge rooms (choices in place), the gate boss and the swarm are

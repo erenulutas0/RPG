@@ -46,6 +46,8 @@ namespace Cryptforge.Core
         public UpgradeService Upgrades { get; private set; }
         // The Descent's rewards lying on the floor (docs/27, S6d), for whatever shows them.
         public GroundDrops Drops { get; private set; }
+        // The foundry's altars (inactive elsewhere).
+        public AltarService Altars { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
@@ -135,6 +137,7 @@ namespace Cryptforge.Core
             gameObject.AddComponent<ExitSealView>().Initialize(this, _text);
             gameObject.AddComponent<BossRevealView>().Initialize(this, movement);
             gameObject.AddComponent<GroundDropView>().Initialize(Drops, Run, _hero.transform, _groundRewardSprite, _encounters, _groundExperienceSprite);
+            Altars = gameObject.AddComponent<AltarService>();
             // After telemetry, so the choice is logged before Extract ends the run or Descend moves on.
             Checkpoint.Chosen += OnCheckpointChosen;
             _hero.Damaged += OnHeroDamaged;
@@ -147,6 +150,9 @@ namespace Cryptforge.Core
             bool arrival = DevelopmentStart.GateArrival();
             _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival);
             if (arrival) gameObject.AddComponent<GateArrivalView>().Initialize(this, movement);
+            // After the encounter knows its floor.
+            Altars.Initialize(this, _hero.transform);
+            gameObject.AddComponent<AltarView>().Initialize(Altars, _text, _hero.transform);
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
