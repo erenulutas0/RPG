@@ -90,8 +90,7 @@ namespace Cryptforge.Tests
                         bool repair=(float)Invoke("ServiceApronWeight",u,v)>=1;
                         for(int k=0;k<16&&repair;k++)
                             repair=(float)Invoke("ServiceApronWeight",u+1.8f*Mathf.Cos(k*Mathf.PI/8),v+1.8f*Mathf.Sin(k*Mathf.PI/8))>=1;
-                        bool apron=cell.x>=10&&cell.x<FoundryMap.GateLandingEnd&&cell.y>=0&&cell.y<10;
-                        if(repair||apron)Assert.That(laid,Is.Zero,$"Work-apron repairs and the gate apron keep fitted stone at ({u},{v}).");
+                        if(repair)Assert.That(laid,Is.Zero,$"Work-apron repairs keep fitted stone at ({u},{v}).");
                         if(!FoundryMap.Cell(cell.x,cell.y)||!FoundryMap.CourtPlane(u,v))continue;
                         sampled++;
                         Assert.That(laid+fitted,Is.GreaterThanOrEqualTo(1),$"The walking floor stays fully paved at ({u},{v}).");

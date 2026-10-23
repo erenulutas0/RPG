@@ -1208,3 +1208,12 @@ keepers. Region 156,729 vertices (-2,588). 457 .NET / 737 EditMode / 164 PlayMod
 SHA256 CB35D7379218BBF4C01CA2B20BB36EDF8222EC758D73BA39F3B1FB128E54EDBD, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-bridge-stone-01.
+
+## 2026-10-23 - Gate apron in cut stone
+
+Paving zone 2 (the gate apron) joins the court's V10 laid stone; the gate seal inlay, dressed threshold and border, the
+seal ring and the work-apron repairs stay fitted. Region 153,306 vertices (-3,423). 457 .NET / 737 EditMode / 164
+PlayMode, zero failures; APK 36,454,649 bytes, SHA256 BC8F90144B9D802DD5E5B378B6B1639D040201961B889EA0B7F84B37179505B0, NOT
+INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-apron-stone-01.

@@ -10,11 +10,12 @@ namespace Cryptforge.UI
         // the mesh keeps only the packer's footprints as tessellation for the
         // continuous forge-light, wear and contact field. Geometric rectangular
         // joints here would draw a second, contradictory bond over the raster.
-        // Ceremonial, gate, bridge and repaired work-apron stone keep their own
-        // fitted geometry on the V8 grain.
+        // The gate apron is laid in it too, as on the concept; the seal's ring, the
+        // gate's dressed threshold and border and the repaired work aprons keep
+        // their own fitted geometry on the V8 grain.
         internal const float FlagstoneSpan=12f;
 
-        private static bool CourtFlagstone(AshlarStone s)=>(s.Zone==0||s.Zone==3)&&!ServiceApronClaims(s);
+        private static bool CourtFlagstone(AshlarStone s)=>(s.Zone==0||s.Zone==2||s.Zone==3)&&!ServiceApronClaims(s);
 
         private static void CourtFlagstoneFace(Builder mesh,AshlarStone s)
         {
