@@ -1705,3 +1705,11 @@ An east rim main was tried and reverted (crossed the squat boiler, hidden by the
 NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-pit-iron-01.
+
+## 2026-10-23 - Pit vessel stacks
+
+Each pit vessel's flue rises as a brass-banded blackened stack to 3.1 with a fire basket on top, as on the concept.
+Region 156,082 vertices (+728). 457 .NET / 738 EditMode / 164 PlayMode, zero failures; APK 36,459,130 bytes, SHA256
+F018FEA82414B73DE3CF4EB539640FD02B9A4D9E0F83F9D720A8BAB3A807FA0C, NOT INSTALLED.
+
+Evidence/reproduction: ArtDirection/2026-10-23/foundry-pit-stacks-01.

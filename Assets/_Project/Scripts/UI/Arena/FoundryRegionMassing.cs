@@ -419,6 +419,10 @@ namespace Cryptforge.UI
                         var dome=new Builder();PitHoodStoneFoot(dome,centre);Create("Pit boiler dome",dome,wall,-11);
                         var iron=new Builder();FormedPitHood(iron,centre);
                         Create("Pit boiler retaining iron",iron,set.FoundryCastIron,-10.5f);
+                        // As on the concept, each vessel's flue rises on as a tall banded stack over the rail, a fire
+                        // basket burning on its crown; its own footprint for depth, inside the hood's.
+                        using(MassDepth(new Vector4(centre.x-.4f,centre.y-.4f,centre.x+.4f,centre.y+.4f),PitStackTop+1.3f))
+                            PitStack(arena,centre);
                     });
             }
         }
@@ -485,6 +489,22 @@ namespace Cryptforge.UI
                 foreach(var half in front)half();
                 standing();
             }});
+        }
+
+        // The vessel's stack: blackened iron from the hood's flue mouth (1.26) to PitStackTop, a broader brass-banded
+        // collar at its foot and under its crown, then the fire basket.
+        private const float PitStackTop=3.1f;
+        private void PitStack(ArenaView arena,Vector2 c)
+        {
+            var iron=new Builder();
+            Color body=new Color(.52f,.5f,.6f);
+            MassCourse(iron,c,.27f,.24f,1.26f,PitStackTop-.18f,6,true,body);
+            MassCourse(iron,c,.31f,.31f,1.26f,1.42f,6,true,Bronze);
+            MassCourse(iron,c,.29f,.29f,2.12f,2.22f,6,true,Bronze);
+            MassCourse(iron,c,.32f,.32f,PitStackTop-.18f,PitStackTop,6,true,Bronze);
+            MassDisk(iron,c,.32f,PitStackTop,6,true,new Color(.42f,.4f,.46f));
+            Create("Pit vessel stack",iron,arena.PlatformMaterials.FoundryIron,-10.5f);
+            Brazier(arena,c,PitStackTop+.1f);
         }
 
         private static void PitDomeIron(Builder b,Vector2 c)
