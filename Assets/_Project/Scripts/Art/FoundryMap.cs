@@ -146,11 +146,11 @@ namespace Cryptforge.Art
             return x!=startX||y!=startY;
         }
         // The foundry's halls (2026-10-23): after a floor's first, each combat room opens at a district of its own and
-        // begins when the hero walks onto it - the workyard, the court's north and east, the pit's south rim (where the
-        // pit's eruptions reach into the pack: on the phone no fight came near enough for one to burn), then round again -
+        // begins when the hero walks onto it - the workyard, the pit's south rim (where the pit's eruptions reach into the
+        // pack: second, so floor 1's three later halls reach it), the court's east and north, then round again -
         // so the floor is crossed rather than fought on one spot. The first room is fought where the floor begins.
         public const float RoomSiteRadius=1.6f;
-        private static readonly float[,] RoomSites={{-25f,7f},{4f,12f},{8f,-8f},{-10f,-1.5f}};
+        private static readonly float[,] RoomSites={{-25f,7f},{-10f,-1.5f},{8f,-8f},{4f,12f}};
         public static int RoomSiteCount=>RoomSites.GetLength(0);
         // The district of a floor's combat room by its order among the floor's combat rooms (1 the second; 0 has none).
         public static void RoomSite(int ordinal,out float x,out float y)

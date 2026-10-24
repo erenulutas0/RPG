@@ -1318,3 +1318,12 @@ hero is "çok yavaş... yoruyor".
 
 457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK 41,156,658 bytes, SHA256
 3CC7868CB38CF955D7609992421F786797ED82B87B457F3AC17AF33319FA1B4B.
+
+## 2026-10-24 - Second device play: the pit never erupted
+
+Owner: speed good, altars work, "çukurun yanına gidince bir şey olmuyor". Telemetry: one `pit_eruption` in a whole
+three-floor run. The eruption clock started over whenever no enemy stood - between every wave - and waves rarely last
+the 10 s period; and floor 1 has only three later halls, so the pit-rim district (fourth) was never reached. Now the
+clock only pauses between waves (`PitEruptionService`), the period is 7 s, and the pit's south rim is the second hall
+district (workyard, pit rim, east court, north court). 457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK
+41,156,934 bytes, SHA256 FB363A51B49966A970929D1A6F5C5282AFBD4AA2E4DBB3B661F45A2B2C2F7C5E.

@@ -6,8 +6,9 @@ using UnityEngine;
 namespace Cryptforge.Core
 {
     // The foundry pit's eruptions in the scene (PitEruptionRule): the clock runs while a wave stands and nothing holds the
-    // fight - no open choice, no boss reveal - and starts over between fights; on the spill it burns the hero and every
-    // standing enemy inside the rim's band. Nothing happens off the foundry or once the run has ended.
+    // fight - no open choice, no boss reveal - and only pauses between waves (it first started over, and since a wave
+    // rarely lasts the period, the phone saw one eruption in a whole run, 2026-10-24); on the spill it burns the hero and
+    // every standing enemy inside the rim's band. Nothing happens off the foundry or once the run has ended.
     public sealed class PitEruptionService : MonoBehaviour
     {
         private CombatSetup _setup;
@@ -40,10 +41,7 @@ namespace Cryptforge.Core
             var encounter = _setup.Encounters;
             IsRunning = !_setup.Run.HasEnded && encounter.AliveEnemyCount > 0 && !encounter.IsInSwarmRoom;
             if (!IsRunning)
-            {
-                _clock.Reset();
                 return;
-            }
             if (Time.deltaTime <= 0f || _setup.Choices.IsOpen || encounter.IsRevealHeld || !_clock.Step(Time.deltaTime))
                 return;
             LastHeroBurnt = _hero.IsAlive && PitEruptionRule.InBand(_hero.transform.position.x, ArenaFloor.FloorY(_hero.transform.position.y));
