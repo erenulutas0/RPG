@@ -2735,3 +2735,13 @@ measured. 457 .NET / 742 EditMode / 168 PlayMode, zero failures; APK 36,472,489 
 FC7D832BC4FB22A3367C5D6AF5FF042B6CAD4AA9CD7D3366A9EAE5F39E1D0EE7, NOT INSTALLED.
 
 Evidence: ArtDirection/2026-10-23/foundry-altars-01.
+
+## 2026-10-24 - Foundry pit eruptions (gameplay)
+
+During a foundry fight the pit spills every 10 s after a 1.5 s glowing warning on its rim band (2 units beyond the hole):
+whoever stands in the band is burnt - the hero for 10% of its maximum health, each enemy for 40% of its own. Scene only
+(PitEruptionRule pure, PitEruptionService, PitEruptionView); values chosen, not measured. 457 .NET / 744 EditMode / 169
+PlayMode, zero failures; APK 35,889,848 bytes, SHA256 D69AF2811E7EA4B0CC7311DBD8374E78C4B95ED74E1F2EA1AEA55DA84560F8BB, NOT
+INSTALLED.
+
+Evidence: ArtDirection/2026-10-24/foundry-pit-eruption-01.

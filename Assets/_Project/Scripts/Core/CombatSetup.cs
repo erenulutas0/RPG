@@ -48,6 +48,8 @@ namespace Cryptforge.Core
         public GroundDrops Drops { get; private set; }
         // The foundry's altars (inactive elsewhere).
         public AltarService Altars { get; private set; }
+        // The foundry pit's eruptions (inactive elsewhere).
+        public PitEruptionService Pit { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
@@ -153,6 +155,9 @@ namespace Cryptforge.Core
             // After the encounter knows its floor.
             Altars.Initialize(this, _hero.transform);
             gameObject.AddComponent<AltarView>().Initialize(Altars, _text, _hero.transform);
+            Pit = gameObject.AddComponent<PitEruptionService>();
+            Pit.Initialize(this, _hero);
+            gameObject.AddComponent<PitEruptionView>().Initialize(Pit);
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
