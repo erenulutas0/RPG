@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Cryptforge.Core
 {
-    // The foundry's altars in the scene (AltarRule): reads where the hero stands each frame, and when it has stood still on
+    // The foundry's altars in the scene (AltarRule): reads where the hero stands each frame, and when it has stayed on
     // an unused altar long enough, raises the run's difficulty and grants a bonus upgrade, whose offer opens as a level-up's
     // does. Each floor's altars answer again. Nothing happens off the foundry, while a choice is open, or once the run ended.
     public sealed class AltarService : MonoBehaviour
@@ -16,7 +16,6 @@ namespace Cryptforge.Core
         private Transform _hero;
         private AltarField _field;
         private int _floor;
-        private float _lastX, _lastY;
 
         public AltarField Field => _field;
         public bool IsActive => _field != null;
@@ -36,8 +35,6 @@ namespace Cryptforge.Core
                 FoundryMap.AltarSite(i, out x[i], out y[i]);
             _field = new AltarField(x, y);
             _floor = setup.Encounters.FloorNumber;
-            _lastX = HeroX;
-            _lastY = HeroY;
         }
 
         private float HeroX => _hero.position.x;
@@ -53,12 +50,9 @@ namespace Cryptforge.Core
                 _field.Reset();
             }
             float x = HeroX, y = HeroY;
-            bool moved = x != _lastX || y != _lastY;
-            _lastX = x;
-            _lastY = y;
             if (Time.deltaTime <= 0f || _setup.Choices.IsOpen)
                 return;
-            int taken = _field.Step(x, y, moved, Time.deltaTime);
+            int taken = _field.Step(x, y, Time.deltaTime);
             if (taken < 0)
                 return;
             _setup.HeroStats.AddModifier(UpgradeStat.Difficulty, new StatModifier(ModifierOperation.Flat, AltarRule.DifficultyCost));

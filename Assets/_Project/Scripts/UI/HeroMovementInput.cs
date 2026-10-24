@@ -26,6 +26,7 @@ namespace Cryptforge.UI
         [SerializeField, Min(0.1f)] private float _staminaBar = HeroStamina.DefaultBar;
         [SerializeField, Min(0.1f)] private float _staminaRefill = HeroStamina.DefaultRefill;
         [SerializeField, Range(0f, 1f)] private float _staminaEmptySpeed = HeroStamina.DefaultEmptySpeed;
+        public const float FoundryPace = 1.4f;
         private HeroMotion _motion;
         private Vector2 _dragStart;
         private bool _dragging;
@@ -54,7 +55,9 @@ namespace Cryptforge.UI
                 return;
             }
 
-            _motion = new HeroMotion(_speed);
+            // The foundry is several times the hall's size: there the hero walks FoundryPace faster (owner, 2026-10-24 device
+            // play: "karakter cok yavas"). The hall and the Descent simulation keep the measured walk.
+            _motion = new HeroMotion(_arena.IsFoundryRegion ? _speed * FoundryPace : _speed);
             Stamina = new HeroStamina(_staminaBar, _staminaRefill, _staminaEmptySpeed, HeroStamina.CurrentRulesEnabled);
             _motion.Place(transform.position.x, ArenaFloor.FloorY(transform.position.y), _arena.Geometry);
             // Every wave starts with a full bar: the pause while the next pack forms up is the hero's breather, and it

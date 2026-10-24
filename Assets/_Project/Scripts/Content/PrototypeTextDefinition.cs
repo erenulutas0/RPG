@@ -20,7 +20,7 @@ namespace Cryptforge.Content
         [SerializeField] private string _hallDirection = "NEXT HALL";
         public string HallInstruction => _hallInstruction;
         public string HallDirection => _hallDirection;
-        [SerializeField] private string _altarInstruction = "ALTAR - Stand still: a power, +10% danger";
+        [SerializeField] private string _altarInstruction = "ALTAR - Step in: a power, +10% danger";
         public string AltarInstruction => _altarInstruction;
         [SerializeField] private string _floorProgressFormat;
         [SerializeField] private string _waveFormat;

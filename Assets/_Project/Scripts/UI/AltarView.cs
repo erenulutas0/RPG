@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // Presentation only: each unused altar as a glowing sigil on the floor - an ember ring, an inner ring and a flame
-    // glyph - with a hold arc while the hero stands still on it and the bargain spelled out when the hero is near.
+    // glyph - with a hold arc while the hero stays on it and the bargain spelled out when the hero is near.
     // A taken altar goes dark. AltarService owns the hold and the grant.
     [DefaultExecutionOrder(100)]
     public sealed class AltarView : MonoBehaviour

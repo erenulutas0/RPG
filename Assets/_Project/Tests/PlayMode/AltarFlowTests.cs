@@ -12,7 +12,7 @@ using UnityEngine.TestTools;
 
 namespace Cryptforge.Tests
 {
-    // The foundry's altars: standing still on one opens a card offer and makes the run harder, once per altar.
+    // The foundry's altars: stepping onto one opens a card offer and makes the run harder, once per altar.
     public sealed class AltarFlowTests
     {
         [UnitySetUp] public IEnumerator Begin(){TestProfile.Begin();Time.timeScale=1;yield return null;}
@@ -47,7 +47,7 @@ namespace Cryptforge.Tests
             while(Time.time<end&&Time.realtimeSinceStartup<deadline)yield return null;
         }
 
-        [UnityTest, Timeout(90000)] public IEnumerator StandingStillOnAnAltarGrantsACardAndMakesTheRunHarder()
+        [UnityTest, Timeout(90000)] public IEnumerator SteppingOntoAnAltarGrantsACardAndMakesTheRunHarder()
         {
             yield return Load("foundry");
             var setup=Object.FindFirstObjectByType<CombatSetup>();
@@ -60,10 +60,10 @@ namespace Cryptforge.Tests
             int bonus=setup.Run.BonusUpgrades;
             FoundryMap.AltarSite(0,out float x,out float y);
             hero.position=new Vector3(x,ArenaFloor.WorldY(y),0);
-            yield return Wait(.5f);
-            Assert.That(view.ShownProgress,Is.GreaterThan(0f),"The hold shows while the hero stands still.");
+            yield return Wait(AltarRule.DwellSeconds*.5f);
+            Assert.That(view.ShownProgress,Is.GreaterThan(0f),"The hold shows while the hero stays on it.");
             Assert.That(setup.Run.BonusUpgrades,Is.EqualTo(bonus));
-            yield return Wait(.7f);yield return null;
+            yield return Wait(AltarRule.DwellSeconds*.7f);yield return null;
             Assert.That(setup.Run.BonusUpgrades,Is.EqualTo(bonus+1),"The altar grants a card.");
             Assert.That(setup.Choices.Current,Is.Not.Null);Assert.That(setup.Choices.Current.Kind,Is.EqualTo(ChoiceKind.Upgrade),"Its offer opens.");
             Assert.That(setup.HeroStats.Difficulty,Is.EqualTo(before+AltarRule.DifficultyCost).Within(1e-5f),"The run grows harder.");

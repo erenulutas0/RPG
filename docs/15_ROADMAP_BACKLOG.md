@@ -1301,3 +1301,20 @@ The run log gains three events so the first device session shows how the new mec
 457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK 41,157,506 bytes (an incremental player build; the size has
 swung between builds without asset changes), SHA256 FC886A5D495C710251B3CAE868E178C42CCE4DF59364569BE41341ADD0C2FE7C, NOT
 INSTALLED.
+
+## 2026-10-24 - First device play of the foundry's mechanics, and the tuning it asked for
+
+Owner's session (telemetry `events.jsonl`, session of 2026-10-24 19:28): floor 1 cleared in 126 s active, descended;
+hall walks of 2.7, 20.9, 10.9 and 22.2 s; one altar taken (the north one, at level 3, difficulty 1.1); four pit
+eruptions, none burnt anyone - no fight came near the pit. Owner: "sunağa doğru gidiyorum bir şey olmuyor" and the
+hero is "çok yavaş... yoruyor".
+
+- Hero pace on the foundry x1.4 (`HeroMovementInput.FoundryPace`: 2.5 -> 3.5 units/s; the hall and the Descent
+  simulation keep the measured 2.5). The foundry is several times the hall's size.
+- Altars are stepped into, not stood still on: radius 0.9 -> 1.2, hold 1 s -> 0.4 s and walking no longer resets it
+  (`AltarField.Step` lost its moved flag); label "ALTAR - Step in: a power, +10% danger".
+- The fourth hall district moves from the forecourt to the pit's south rim (-10, -1.5), so one fight per round of
+  districts happens where the pit's eruptions reach into the pack.
+
+457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK 41,156,658 bytes, SHA256
+3CC7868CB38CF955D7609992421F786797ED82B87B457F3AC17AF33319FA1B4B.
