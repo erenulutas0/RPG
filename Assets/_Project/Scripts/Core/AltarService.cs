@@ -20,7 +20,7 @@ namespace Cryptforge.Core
 
         public AltarField Field => _field;
         public bool IsActive => _field != null;
-        // Raised once per altar taken, after the cost and the grant are applied.
+        // Raised once per altar taken, after the cost is applied and before the grant.
         public event Action<int> Taken;
 
         internal void Initialize(CombatSetup setup, Transform hero)
@@ -62,8 +62,9 @@ namespace Cryptforge.Core
             if (taken < 0)
                 return;
             _setup.HeroStats.AddModifier(UpgradeStat.Difficulty, new StatModifier(ModifierOperation.Flat, AltarRule.DifficultyCost));
-            _setup.Run.GrantBonusUpgrade();
+            // Reported before the grant, whose offer follows it in the run's log.
             Taken?.Invoke(taken);
+            _setup.Run.GrantBonusUpgrade();
         }
     }
 }

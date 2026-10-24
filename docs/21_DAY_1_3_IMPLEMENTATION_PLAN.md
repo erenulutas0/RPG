@@ -2745,3 +2745,13 @@ PlayMode, zero failures; APK 35,889,848 bytes, SHA256 D69AF2811E7EA4B0CC7311DBD8
 INSTALLED.
 
 Evidence: ArtDirection/2026-10-24/foundry-pit-eruption-01.
+
+## 2026-10-24 - Telemetry for the foundry's map mechanics
+
+The run log gains three events so the first device session shows how the new mechanics play: `hall_reached`
+(`walk_sec` from the hall being marked to the hero stepping in, hero_hp, level, floor/room), `altar_taken` (altar index,
+`difficulty` after the cost, hero_hp, level; written before the grant's `upgrade_offered`) and `pit_eruption`
+(`hero_burnt`, `enemies_burnt`, `enemies_killed`, hero_hp). AltarFlowTests checks the altar's event reaches the log.
+457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK 41,157,506 bytes (an incremental player build; the size has
+swung between builds without asset changes), SHA256 FC886A5D495C710251B3CAE868E178C42CCE4DF59364569BE41341ADD0C2FE7C, NOT
+INSTALLED.

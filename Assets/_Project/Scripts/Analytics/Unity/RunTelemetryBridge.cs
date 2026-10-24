@@ -56,6 +56,15 @@ namespace Cryptforge.Analytics
 
         private void OnDropCollecting(GroundDrops.Drop drop) => _telemetry.RecordDropCollecting(drop.Gold);
 
+        // The foundry's altars and pit: each altar taken and each eruption, as the composition root wires them up.
+        public void WatchFoundry(Cryptforge.Core.AltarService altars, Cryptforge.Core.PitEruptionService pit, Func<float> difficulty)
+        {
+            if (altars != null)
+                altars.Taken += altar => _telemetry.RecordAltarTaken(altar, difficulty());
+            if (pit != null)
+                pit.Erupted += () => _telemetry.RecordPitEruption(pit.LastHeroBurnt, pit.LastEnemiesBurnt, pit.LastEnemiesKilled);
+        }
+
         // Writes run_start; the run's other events follow it.
         public void Begin()
         {
@@ -73,6 +82,7 @@ namespace Cryptforge.Analytics
             _encounters.EncounterStarted += OnProgressChanged;
             _encounters.SwarmStepped += OnSwarmStepped;
             _encounters.SwarmLeft += OnSwarmLeft;
+            _encounters.HallReached += OnHallReached;
             _encounters.ProgressChanged += OnProgressChanged;
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
@@ -116,6 +126,8 @@ namespace Cryptforge.Analytics
         // A continuous swarm reports each step of its ramp and the moment the hero walks out.
         private void OnSwarmStepped() =>
             _telemetry.RecordSwarmStep(_encounters.SwarmWave, _encounters.SwarmSeconds, _encounters.SwarmDifficulty);
+
+        private void OnHallReached(float walkSeconds) => _telemetry.RecordHallReached(walkSeconds);
 
         private void OnSwarmLeft() => _telemetry.RecordSwarmExit(_encounters.SwarmSeconds, _encounters.SwarmWave);
 
@@ -166,6 +178,7 @@ namespace Cryptforge.Analytics
                 _encounters.EncounterStarted -= OnProgressChanged;
                 _encounters.SwarmStepped -= OnSwarmStepped;
                 _encounters.SwarmLeft -= OnSwarmLeft;
+                _encounters.HallReached -= OnHallReached;
                 _encounters.ProgressChanged -= OnProgressChanged;
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
                 _encounters.FloorCleared -= OnFloorCleared;

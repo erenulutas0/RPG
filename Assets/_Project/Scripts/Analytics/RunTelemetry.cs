@@ -222,6 +222,49 @@ namespace Cryptforge.Analytics
                 .Add("room_index", _roomIndex));
         }
 
+        // The foundry's map mechanics (2026-10-23/24), so a device session shows how they play: how long a marked hall took
+        // to reach, which altar was taken at what level and difficulty, and what each pit eruption burnt.
+        public void RecordHallReached(float walkSeconds)
+        {
+            if (!IsRecording)
+                return;
+
+            _session.Emit("hall_reached", new TelemetryFields()
+                .Add("walk_sec", (double)walkSeconds)
+                .Add("hero_hp", (double)_heroHealth())
+                .Add("level", _run.Level)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex));
+        }
+
+        public void RecordAltarTaken(int altar, float difficulty)
+        {
+            if (!IsRecording)
+                return;
+
+            _session.Emit("altar_taken", new TelemetryFields()
+                .Add("altar", altar)
+                .Add("difficulty", (double)difficulty)
+                .Add("hero_hp", (double)_heroHealth())
+                .Add("level", _run.Level)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex));
+        }
+
+        public void RecordPitEruption(bool heroBurnt, int enemiesBurnt, int enemiesKilled)
+        {
+            if (!IsRecording)
+                return;
+
+            _session.Emit("pit_eruption", new TelemetryFields()
+                .Add("hero_burnt", heroBurnt)
+                .Add("enemies_burnt", enemiesBurnt)
+                .Add("enemies_killed", enemiesKilled)
+                .Add("hero_hp", (double)_heroHealth())
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex));
+        }
+
         public void ObserveProgress(int floorNumber, string floorId, int roomNumber, RoomKind roomKind, string toughestEnemyId)
         {
             if (!IsRecording || floorNumber < 1 || roomNumber < 1)

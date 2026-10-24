@@ -19,6 +19,10 @@ namespace Cryptforge.Core
         // True while a fight is running the clock.
         public bool IsRunning { get; private set; }
         public event Action Erupted;
+        // What the last spill burnt, for telemetry.
+        public bool LastHeroBurnt { get; private set; }
+        public int LastEnemiesBurnt { get; private set; }
+        public int LastEnemiesKilled { get; private set; }
 
         internal void Initialize(CombatSetup setup, Health hero)
         {
@@ -42,7 +46,10 @@ namespace Cryptforge.Core
             }
             if (Time.deltaTime <= 0f || _setup.Choices.IsOpen || encounter.IsRevealHeld || !_clock.Step(Time.deltaTime))
                 return;
-            if (_hero.IsAlive && PitEruptionRule.InBand(_hero.transform.position.x, ArenaFloor.FloorY(_hero.transform.position.y)))
+            LastHeroBurnt = _hero.IsAlive && PitEruptionRule.InBand(_hero.transform.position.x, ArenaFloor.FloorY(_hero.transform.position.y));
+            LastEnemiesBurnt = 0;
+            LastEnemiesKilled = 0;
+            if (LastHeroBurnt)
                 _hero.ApplyDamage(new DamageContext(_hero.Maximum * PitEruptionRule.HeroShare));
             for (int i = 0; i < encounter.WaveEnemyCount; i++)
             {
@@ -50,8 +57,12 @@ namespace Cryptforge.Core
                 if (enemy == null || !enemy.IsAlive)
                     continue;
                 Vector3 p = enemy.transform.position;
-                if (PitEruptionRule.InBand(p.x, ArenaFloor.FloorY(p.y)))
-                    enemy.ApplyDamage(new DamageContext(enemy.Maximum * PitEruptionRule.EnemyShare));
+                if (!PitEruptionRule.InBand(p.x, ArenaFloor.FloorY(p.y)))
+                    continue;
+                enemy.ApplyDamage(new DamageContext(enemy.Maximum * PitEruptionRule.EnemyShare));
+                LastEnemiesBurnt++;
+                if (!enemy.IsAlive)
+                    LastEnemiesKilled++;
             }
             Erupted?.Invoke();
         }

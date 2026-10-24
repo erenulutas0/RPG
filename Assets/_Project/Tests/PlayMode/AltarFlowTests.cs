@@ -33,6 +33,14 @@ namespace Cryptforge.Tests
             Object.FindFirstObjectByType<HeroMovementInput>().enabled=false;
         }
 
+        private static string TelemetryText()
+        {
+            var text=new System.Text.StringBuilder();
+            string folder=Cryptforge.Analytics.TelemetryLocation.Resolve();
+            if(Directory.Exists(folder))foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))text.Append(File.ReadAllText(file));
+            return text.ToString();
+        }
+
         private static IEnumerator Wait(float seconds)
         {
             float end=Time.time+seconds,deadline=Time.realtimeSinceStartup+seconds+10;
@@ -60,6 +68,8 @@ namespace Cryptforge.Tests
             Assert.That(setup.Choices.Current,Is.Not.Null);Assert.That(setup.Choices.Current.Kind,Is.EqualTo(ChoiceKind.Upgrade),"Its offer opens.");
             Assert.That(setup.HeroStats.Difficulty,Is.EqualTo(before+AltarRule.DifficultyCost).Within(1e-5f),"The run grows harder.");
             Assert.That(view.IsShown(0),Is.False,"A taken altar goes dark.");
+            // The offer opening flushed the run's log, the altar before it.
+            Assert.That(TelemetryText(),Does.Contain("\"altar_taken\""),"The altar is in the run's log.");
             Assert.That(setup.Choices.TrySelect(setup.Choices.Current,0),Is.True);
             yield return Wait(2f);
             Assert.That(setup.Run.BonusUpgrades,Is.EqualTo(bonus+1),"It answers once.");

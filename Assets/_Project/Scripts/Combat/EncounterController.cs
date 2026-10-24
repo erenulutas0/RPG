@@ -146,6 +146,9 @@ namespace Cryptforge.Combat
         public bool IsRoomSiteOpen => _roomSiteOpen;
         public float RoomSiteFloorX => _roomSiteX;
         public float RoomSiteFloorY => _roomSiteY;
+        // A marked hall has been walked onto; how long it stood marked first.
+        public event Action<float> HallReached;
+        private float _roomSiteWait;
 
         public event Action EncounterStarted;
         public event Action ProgressChanged;
@@ -365,9 +368,11 @@ namespace Cryptforge.Combat
             // A marked room waits for the hero to walk onto its district; an open choice keeps it waiting.
             if (_roomSiteOpen)
             {
+                _roomSiteWait += Time.deltaTime;
                 if (!_choices.IsOpen && ExitRule.IsWithinReach(HeroFloorX, HeroFloorY, _roomSiteX, _roomSiteY, FoundryMap.RoomSiteRadius))
                 {
                     _roomSiteOpen = false;
+                    HallReached?.Invoke(_roomSiteWait);
                     RoomDefinition sited = _currentFloor.RoomAt(_roomSiteStep.RoomIndex);
                     StartWave(sited.WaveAt(_roomSiteStep.WaveIndex), false, sited.Kind == RoomKind.Boss);
                 }
@@ -557,6 +562,7 @@ namespace Cryptforge.Combat
                         ReleaseWave(true);
                         _roomSiteStep = step;
                         _roomSiteOpen = true;
+                        _roomSiteWait = 0f;
                         ProgressChanged?.Invoke();
                     }
                     else
