@@ -1,5 +1,6 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Economy;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using UnityEngine;
@@ -7,11 +8,11 @@ using UnityEngine;
 namespace Cryptforge.Core
 {
     // A development build's hands-off player for device checks of the foundry (DevelopmentStart.Autopilot): it walks the
-    // hero to each marked hall, takes both altars between fights, and in a fight draws the pack to the pit's rim and steps
-    // out of the band while the rim glows, so the run's log measures what the pit does to a hero who uses it. It answers
-    // every offer with its first card and every checkpoint with Descend, and walks onto an open exit (a minute into the
-    // finale's swarm). It steers through HeroMovementInput.Hold, so a finger on the screen still takes over. Never part of
-    // a player's build.
+    // hero to each marked hall, picks up the drops in sight and takes both altars between fights, and in a fight draws the
+    // pack to the pit's rim and steps out of the band while the rim glows, so the run's log measures what the pit does to a
+    // hero who uses it. It answers every offer with its first card and every checkpoint with Descend, and walks onto an
+    // open exit (a minute into the finale's swarm). It steers through HeroMovementInput.Hold, so a finger on the screen
+    // still takes over. Never part of a player's build.
     public sealed class DevelopmentAutopilot : MonoBehaviour
     {
         private const float ChoiceDelay = .8f;
@@ -21,6 +22,8 @@ namespace Cryptforge.Core
         private const float Arrived = .35f;
         private const float BackOff = 1.1f;
         private const float SwarmStay = 60f;
+        // How far between fights the autopilot walks for a drop; the floor's end sweeps up the rest.
+        private const float DropDetour = 10f;
         private CombatSetup _setup;
         private HeroMovementInput _movement;
         private Transform _hero;
@@ -82,12 +85,6 @@ namespace Cryptforge.Core
                 gx = encounter.ExitFloorX; gy = encounter.ExitFloorY;
                 return true;
             }
-            if (encounter.IsRoomSiteOpen)
-            {
-                gx = encounter.RoomSiteFloorX; gy = encounter.RoomSiteFloorY;
-                stop = FoundryMap.RoomSiteRadius * .5f;
-                return true;
-            }
             bool fighting = encounter.AliveEnemyCount > 0;
             if (fighting && _setup.Pit != null && _setup.Pit.IsActive)
             {
@@ -109,6 +106,45 @@ namespace Cryptforge.Core
                 stop = 0f;
                 return true;
             }
+            // Between fights, as a player would: the drops in sight, then the floor's altars, then the next hall.
+            if (Nearest(_setup.Drops, x, y, out gx, out gy))
+            {
+                stop = DropRule.PickupRadius * .5f;
+                return true;
+            }
+            if (NearestAltar(x, y, out gx, out gy))
+            {
+                stop = .1f;
+                return true;
+            }
+            if (encounter.IsRoomSiteOpen)
+            {
+                gx = encounter.RoomSiteFloorX; gy = encounter.RoomSiteFloorY;
+                stop = FoundryMap.RoomSiteRadius * .5f;
+                return true;
+            }
+            return false;
+        }
+
+        private static bool Nearest(GroundDrops drops, float x, float y, out float gx, out float gy)
+        {
+            gx = x; gy = y;
+            float best = DropDetour * DropDetour;
+            bool found = false;
+            for (int i = 0; drops != null && i < drops.Count; i++)
+            {
+                GroundDrops.Drop drop = drops.At(i);
+                float d = ArenaFloor.FloorDistanceSquared(x, y, drop.X, drop.Y);
+                if (d >= best)
+                    continue;
+                best = d; gx = drop.X; gy = drop.Y; found = true;
+            }
+            return found;
+        }
+
+        private bool NearestAltar(float x, float y, out float gx, out float gy)
+        {
+            gx = x; gy = y;
             AltarField altars = _setup.Altars != null && _setup.Altars.IsActive ? _setup.Altars.Field : null;
             if (altars == null)
                 return false;
@@ -122,7 +158,6 @@ namespace Cryptforge.Core
                     continue;
                 best = d; gx = altars.XOf(i); gy = altars.YOf(i);
             }
-            stop = .1f;
             return !float.IsPositiveInfinity(best);
         }
 
