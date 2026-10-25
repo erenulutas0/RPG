@@ -69,5 +69,43 @@ namespace Cryptforge.Tests
             Assert.That(erupted,Is.True);Assert.That(hero.Current,Is.EqualTo(after),"Out of the band nothing burns.");
             LogAssert.NoUnexpectedReceived();
         }
+
+        // Living wave enemies whose floor point lies in the band - the ones the warning holds.
+        private static int InBand(EncounterController encounter)
+        {
+            int n=0;
+            for(int i=0;i<encounter.WaveEnemyCount;i++)
+            {
+                var enemy=encounter.WaveEnemyAt(i);
+                if(enemy!=null&&enemy.IsAlive&&encounter.TryFloorPositionOf(enemy,out float x,out float y)&&PitEruptionRule.InBand(x,y))n++;
+            }
+            return n;
+        }
+
+        [UnityTest, Timeout(90000)] public IEnumerator EveryEnemyTheRimHoldsShowsAGripThroughTheWarning()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var view=setup.GetComponent<PitEruptionView>();var heroInput=Object.FindFirstObjectByType<HeroMovementInput>();
+            yield return Until(()=>encounter.AliveEnemyCount>0,20);
+            Assert.That(view.ShownHeldCount,Is.EqualTo(0),"No grip before the warning.");
+            // The hero waits at the rim, so the pack walks into the band.
+            FoundryMap.ToFloor(FoundryMap.PitWest-1.2f,8,out float x,out float y);
+            heroInput.transform.position=new Vector3(x,ArenaFloor.WorldY(y),0);
+            yield return Until(()=>InBand(encounter)>0,20);
+            yield return Until(()=>setup.Pit.Clock.IsWarning,20);
+            Assert.That(setup.Pit.Clock.IsWarning,Is.True);
+            // Freeze the moment so the view's last frame and the count read here see the same pack.
+            Time.timeScale=0;yield return null;yield return null;
+            int held=InBand(encounter);
+            Assert.That(held,Is.GreaterThan(0),"The pack reached the rim before the warning.");
+            Assert.That(view.ShownHeldCount,Is.EqualTo(held),"Every held enemy shows a grip, and no other.");
+            Time.timeScale=1;
+            bool erupted=false;setup.Pit.Erupted+=()=>erupted=true;
+            yield return Until(()=>erupted,5);
+            yield return null;
+            Assert.That(erupted,Is.True);Assert.That(view.ShownHeldCount,Is.EqualTo(0),"The spill lets the grips go.");
+            LogAssert.NoUnexpectedReceived();
+        }
     }
 }

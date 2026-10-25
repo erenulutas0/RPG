@@ -16,6 +16,8 @@ namespace Cryptforge.Core
         private PitEruptionClock _clock;
 
         public PitEruptionClock Clock => _clock;
+        // The fight the pit watches, for the view's held-enemy markers.
+        public EncounterController Encounters => _setup != null ? _setup.Encounters : null;
         public bool IsActive => _clock != null;
         // True while a fight is running the clock.
         public bool IsRunning { get; private set; }
