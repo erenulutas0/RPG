@@ -35,7 +35,7 @@ namespace Cryptforge.Tests
             while(!encounter.IsRoomSiteOpen&&Time.realtimeSinceStartup<deadline){Resolve(setup);yield return null;}
             Resolve(setup);for(int i=0;i<20;i++)yield return null;
             Capture(camera,arena,follow,"hall-marked-offscreen");
-            FoundryMap.RoomSite(1,out float x,out float y);
+            FoundryMap.RoomSite(0,1,out float x,out float y);
             // Half-way there: the district on screen.
             hero.position=new Vector3(x*.75f,ArenaFloor.WorldY(y*.75f),0);
             for(int i=0;i<30;i++)yield return null;

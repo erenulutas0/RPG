@@ -149,14 +149,19 @@ namespace Cryptforge.Art
         // begins when the hero walks onto it - the workyard, the pit's south rim (where the pit's eruptions reach into the
         // pack: second, so floor 1's three later halls reach it), the court's east and north, then round again -
         // so the floor is crossed rather than fought on one spot. The first room is fought where the floor begins.
+        // The round runs on across the climb (2026-10-25): a floor starts where the floor before it left off, so with
+        // three later halls a floor, floor 1 walks workyard, pit rim, east; floor 2 north, workyard, pit rim; floor 3
+        // east, north, workyard - every floor its own route over the same map, the north court among them.
         public const float RoomSiteRadius=1.6f;
         private static readonly float[,] RoomSites={{-25f,7f},{-10f,-1.5f},{8f,-8f},{4f,12f}};
         public static int RoomSiteCount=>RoomSites.GetLength(0);
-        // The district of a floor's combat room by its order among the floor's combat rooms (1 the second; 0 has none).
-        public static void RoomSite(int ordinal,out float x,out float y)
+        // The district of a floor's combat room by its order among the floor's combat rooms (1 the second; 0 has none),
+        // after the halls the run's earlier floors opened (0 on the first floor).
+        public static void RoomSite(int hallsBefore,int ordinal,out float x,out float y)
         {
+            if(hallsBefore<0)throw new ArgumentOutOfRangeException(nameof(hallsBefore));
             if(ordinal<1)throw new ArgumentOutOfRangeException(nameof(ordinal));
-            int i=(ordinal-1)%RoomSites.GetLength(0);
+            int i=(hallsBefore+ordinal-1)%RoomSites.GetLength(0);
             ToFloor(RoomSites[i,0],RoomSites[i,1],out x,out y);
         }
         // The floor's two altars (AltarRule), before the lantern shrines on the court's south and north rails, far enough in

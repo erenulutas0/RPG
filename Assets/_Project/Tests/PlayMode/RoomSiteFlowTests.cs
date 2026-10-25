@@ -67,7 +67,7 @@ namespace Cryptforge.Tests
             yield return Until(setup,()=>encounter.IsRoomSiteOpen,20);
             yield return null;
             Assert.That(encounter.IsRoomSiteOpen,Is.True,"The second hall opens at its district.");
-            FoundryMap.RoomSite(1,out float x1,out float y1);
+            FoundryMap.RoomSite(0,1,out float x1,out float y1);
             Assert.That(encounter.RoomSiteFloorX,Is.EqualTo(x1));Assert.That(encounter.RoomSiteFloorY,Is.EqualTo(y1));
             Assert.That(FoundryMap.Contains(x1,y1,HeroMotion.EdgeMargin),Is.True,"The district is walkable floor.");
             Assert.That(encounter.AliveEnemyCount,Is.Zero);Assert.That(view.IsVisible,Is.True,"The district is marked.");
@@ -87,7 +87,7 @@ namespace Cryptforge.Tests
             // The elite hall opens at the next district.
             encounter.CurrentEnemy.ApplyDamage(new DamageContext(1000000f));yield return null;ResolveUpgrades(setup);
             yield return Until(setup,()=>encounter.IsRoomSiteOpen,20);
-            FoundryMap.RoomSite(2,out float x2,out float y2);
+            FoundryMap.RoomSite(0,2,out float x2,out float y2);
             Assert.That(encounter.RoomSiteFloorX,Is.EqualTo(x2));Assert.That(encounter.RoomSiteFloorY,Is.EqualTo(y2));
             hero.position=new Vector3(x2,ArenaFloor.WorldY(y2),0);
             yield return Kill(setup,encounter);

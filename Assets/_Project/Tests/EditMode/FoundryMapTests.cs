@@ -6,6 +6,35 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryMapTests
     {
+        // Each floor's halls go on round the districts from where the floor before left off: floor 1 keeps its
+        // workyard, pit rim, east; the authored floors open three later halls each (combat, combat, elite after the first),
+        // so floors 2 and 3 begin at the north court and the east, and the climb walks every district.
+        [Test] public void EachFloorStartsItsHallRoundWhereThePreviousFloorLeftOff()
+        {
+            const int halls=3;
+            float[,] floorOne={{-25f,7f},{-10f,-1.5f},{8f,-8f}};
+            for(int ordinal=1;ordinal<=halls;ordinal++)
+            {
+                FoundryMap.RoomSite(0,ordinal,out float x,out float y);
+                FoundryMap.ToFloor(floorOne[ordinal-1,0],floorOne[ordinal-1,1],out float ex,out float ey);
+                Assert.That(x,Is.EqualTo(ex));Assert.That(y,Is.EqualTo(ey),$"Floor 1's hall {ordinal} is where it always was.");
+            }
+            FoundryMap.RoomSite(0,1,out float f1x,out float f1y);
+            FoundryMap.RoomSite(halls,1,out float f2x,out float f2y);
+            FoundryMap.RoomSite(2*halls,1,out float f3x,out float f3y);
+            Assert.That(f2x!=f1x||f2y!=f1y,Is.True,"Floor 2 begins at another district than floor 1.");
+            Assert.That(f3x!=f1x||f3y!=f1y,Is.True,"Floor 3 begins at another district than floor 1.");
+            Assert.That(f3x!=f2x||f3y!=f2y,Is.True,"Floor 3 begins at another district than floor 2.");
+            FoundryMap.ToFloor(4f,12f,out float nx,out float ny);
+            Assert.That(f2x,Is.EqualTo(nx));Assert.That(f2y,Is.EqualTo(ny),"Floor 2 opens at the north court, where floor 1 stopped short.");
+            var walked=new System.Collections.Generic.HashSet<(float,float)>();
+            for(int floor=0;floor<3;floor++)
+                for(int ordinal=1;ordinal<=halls;ordinal++){FoundryMap.RoomSite(floor*halls,ordinal,out float x,out float y);walked.Add((x,y));}
+            Assert.That(walked.Count,Is.EqualTo(FoundryMap.RoomSiteCount),"The climb walks every district.");
+            FoundryMap.RoomSite(halls,2,out float wx,out float wy);
+            Assert.That(wx,Is.EqualTo(f1x));Assert.That(wy,Is.EqualTo(f1y),"Past the north court the round comes back to the workyard.");
+        }
+
         // The yard braziers stand in the workyard's open quadrants: clear of the freight lanes, the turntable and every other
         // island, with actor passages of at least 1.9 units, and inside the walkable floor with room to pass the rim.
         [Test] public void YardBraziersStandClearOfTheFreightLanesAndLeavePassages()

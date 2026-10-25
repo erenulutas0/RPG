@@ -50,7 +50,7 @@ namespace Cryptforge.Tests
                 Assert.That(FoundryMap.Contains(x,y,HeroMotion.EdgeMargin),Is.True,$"Altar {i} stands on walkable floor.");
                 for(int r=1;r<=FoundryMap.RoomSiteCount;r++)
                 {
-                    FoundryMap.RoomSite(r,out float rx,out float ry);
+                    FoundryMap.RoomSite(0,r,out float rx,out float ry);
                     Assert.That(ArenaFloor.FloorDistanceSquared(x,y,rx,ry),Is.GreaterThan(4f*4f),"Clear of every hall's district.");
                 }
             }

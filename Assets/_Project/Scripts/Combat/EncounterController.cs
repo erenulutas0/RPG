@@ -80,6 +80,8 @@ namespace Cryptforge.Combat
         private FloorStep _roomSiteStep;
         private bool _revealHold;
         private int _roomsClearedOnEarlierFloors;
+        // The districts the run's earlier floors opened, so the next floor's halls go on round from where they left off.
+        private int _hallsOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
 
@@ -219,6 +221,7 @@ namespace Cryptforge.Combat
             _fight = new EncounterProgress(_advanceDelay);
             _currentFloor = first;
             FloorNumber = 1;
+            _hallsOnEarlierFloors = 0;
             _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
             _waveOrdinal = 0;
             _firstEncounterPending = true;
@@ -269,6 +272,7 @@ namespace Cryptforge.Combat
                 throw new InvalidOperationException("Descending requires a cleared floor with a next floor.");
 
             _roomsClearedOnEarlierFloors += _floorProgress.RoomsCleared;
+            _hallsOnEarlierFloors += LaterHalls(_currentFloor);
             _currentFloor = _currentFloor.NextFloor;
             FloorNumber++;
             _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
@@ -615,23 +619,36 @@ namespace Cryptforge.Combat
         private bool GateRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
 
-        // A foundry floor's combat room after its first opens at its own district.
+        // A foundry floor's combat room after its first opens at its own district, the round going on from the
+        // districts the run's earlier floors opened.
         private bool TryRoomSite(int roomIndex)
         {
-            RoomKind kind = _currentFloor.RoomAt(roomIndex).Kind;
-            if (_arena == null || !_arena.IsFoundryRegion || (kind != RoomKind.Combat && kind != RoomKind.Elite))
+            if (_arena == null || !_arena.IsFoundryRegion || !IsHallKind(_currentFloor.RoomAt(roomIndex).Kind))
                 return false;
             int ordinal = 0;
             for (int i = 0; i < roomIndex; i++)
             {
-                RoomKind earlier = _currentFloor.RoomAt(i).Kind;
-                if (earlier == RoomKind.Combat || earlier == RoomKind.Elite)
+                if (IsHallKind(_currentFloor.RoomAt(i).Kind))
                     ordinal++;
             }
             if (ordinal == 0)
                 return false;
-            FoundryMap.RoomSite(ordinal, out _roomSiteX, out _roomSiteY);
+            FoundryMap.RoomSite(_hallsOnEarlierFloors, ordinal, out _roomSiteX, out _roomSiteY);
             return true;
+        }
+
+        private static bool IsHallKind(RoomKind kind) => kind == RoomKind.Combat || kind == RoomKind.Elite;
+
+        // The rooms of a floor that open at a district: its combat and elite rooms after the first.
+        private static int LaterHalls(FloorDefinition floor)
+        {
+            int halls = 0;
+            for (int i = 0; i < floor.RoomCount; i++)
+            {
+                if (IsHallKind(floor.RoomAt(i).Kind))
+                    halls++;
+            }
+            return Math.Max(0, halls - 1);
         }
 
         private bool GateClosesFloor() =>
