@@ -42,6 +42,7 @@ namespace Cryptforge.Combat
         [SerializeField, Min(0.1f)] private float _formationSpacing = 1f;
         [SerializeField, Min(0f)] private float _bodySpacing = 0.9f;
         private readonly List<SpawnedEnemy> _wave = new List<SpawnedEnemy>();
+        private readonly List<EnemyDefinition> _waveEnemies = new List<EnemyDefinition>(PackLayout.MaxPackSize);
         private readonly EntryPlacement[] _placements = new EntryPlacement[PackLayout.MaxPackSize];
         private PackMotion _motion;
         private RunChoices _choices;
@@ -93,7 +94,7 @@ namespace Cryptforge.Combat
         public int RoomNumber => _floorProgress != null ? _floorProgress.RoomIndex + 1 : 0;
         public int RoomCount => _currentFloor != null ? _currentFloor.RoomCount : 0;
         public int WaveNumber => _floorProgress != null ? _floorProgress.WaveIndex + 1 : 0;
-        public int WaveCount => CurrentRoom?.WaveCount ?? 0;
+        public int WaveCount => CurrentRoom != null ? WavesIn(_currentFloor, CurrentRoom) : 0;
         public int RoomsCleared => _floorProgress?.RoomsCleared ?? 0;
         public int TotalRoomsCleared => _roomsClearedOnEarlierFloors + RoomsCleared;
         public bool IsFloorCleared => _floorProgress != null && _floorProgress.IsComplete;
@@ -336,12 +337,34 @@ namespace Cryptforge.Combat
             }
         }
 
-        private static int[] WavesOf(FloorDefinition floor)
+        private int[] WavesOf(FloorDefinition floor)
         {
             var waves = new int[floor.RoomCount];
             for (int i = 0; i < waves.Length; i++)
-                waves[i] = floor.RoomAt(i).Kind == RoomKind.Forge ? 0 : floor.RoomAt(i).WaveCount;
+                waves[i] = floor.RoomAt(i).Kind == RoomKind.Forge ? 0 : WavesIn(floor, floor.RoomAt(i));
             return waves;
+        }
+
+        // A room's waves: its authored ones, and on the foundry a combat room's surges after them (HallSurgeRule).
+        private int WavesIn(FloorDefinition floor, RoomDefinition room) => room.WaveCount + SurgesIn(floor, room);
+
+        private int SurgesIn(FloorDefinition floor, RoomDefinition room) =>
+            room.Kind == RoomKind.Combat && _arena != null && _arena.IsFoundryRegion ? floor.FoundryHallSurges : 0;
+
+        // The enemies of a room's wave into _waveEnemies: an authored wave as authored, a surge as the wave it repeats
+        // with that wave's last enemy added until the surge's size.
+        private List<EnemyDefinition> WaveEnemies(RoomDefinition room, int waveIndex)
+        {
+            _waveEnemies.Clear();
+            int authored = room.WaveCount;
+            int surge = waveIndex - authored;
+            WaveDefinition wave = room.WaveAt(surge < 0 ? waveIndex : HallSurgeRule.SourceWave(authored, surge));
+            for (int e = 0; e < wave.EnemyCount; e++)
+                _waveEnemies.Add(wave.EnemyAt(e));
+            if (surge >= 0)
+                for (int e = wave.EnemyCount; e < HallSurgeRule.Size(wave.EnemyCount, surge); e++)
+                    _waveEnemies.Add(wave.EnemyAt(wave.EnemyCount - 1));
+            return _waveEnemies;
         }
 
         // A swarm room's waves are a ladder rather than a list that finishes, so the floor never clears it on its own.
@@ -380,7 +403,7 @@ namespace Cryptforge.Combat
                     _roomSiteOpen = false;
                     HallReached?.Invoke(_roomSiteWait);
                     RoomDefinition sited = _currentFloor.RoomAt(_roomSiteStep.RoomIndex);
-                    StartWave(sited.WaveAt(_roomSiteStep.WaveIndex), false, sited.Kind == RoomKind.Boss);
+                    StartWave(WaveEnemies(sited, _roomSiteStep.WaveIndex), false, sited.Kind == RoomKind.Boss);
                 }
                 return;
             }
@@ -572,7 +595,7 @@ namespace Cryptforge.Combat
                         ProgressChanged?.Invoke();
                     }
                     else
-                        StartWave(room.WaveAt(step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
+                        StartWave(WaveEnemies(room, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
@@ -597,7 +620,7 @@ namespace Cryptforge.Combat
         // only by taking an evolution.
         public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
 
-        private void StartWave(WaveDefinition waveDefinition, bool atGate = false, bool boss = false)
+        private void StartWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false)
         {
             using (PerformanceMarkers.StartWave.Auto())
                 SpawnWave(waveDefinition, atGate, boss);
@@ -679,7 +702,7 @@ namespace Cryptforge.Combat
             FloorCleared?.Invoke();
         }
 
-        private void SpawnWave(WaveDefinition waveDefinition, bool atGate = false, bool boss = false)
+        private void SpawnWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -692,7 +715,7 @@ namespace Cryptforge.Combat
             float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale, damagePercent);
             float floorHealth = FloorHealthMultiplier(boss);
 
-            int count = waveDefinition.EnemyCount;
+            int count = waveDefinition.Count;
             var candidates = new Health[count];
             // The pack forms up round wherever the hero stands now, on the corners the platform leaves open.
             float heroX = HeroFloorX;
@@ -707,7 +730,7 @@ namespace Cryptforge.Combat
                 FoundryMap.PlaceAtGate(count, _placements);
             for (int i = 0; i < count; i++)
             {
-                EnemyDefinition definition = waveDefinition.EnemyAt(i);
+                EnemyDefinition definition = waveDefinition[i];
                 SpawnedEnemy spawn = CreateEnemy(definition,
                     count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}", floorHealth * scale,
                     healthPercent, damageBonus, goldPercent, out float reach);

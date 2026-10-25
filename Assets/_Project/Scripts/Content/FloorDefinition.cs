@@ -14,6 +14,9 @@ namespace Cryptforge.Content
         [SerializeField, Min(0.1f)] private float _enemyDamageMultiplier = 1f;
         // A floor of the climb takes its tier from its height (ClimbScaling) instead of the two authored multipliers.
         [SerializeField] private bool _climbScaled;
+        // On the foundry, how many surge waves each combat room sends after its authored ones (HallSurgeRule). The hall
+        // arena and the Descent simulation play the authored waves only.
+        [SerializeField, Min(0)] private int _foundryHallSurges;
         [SerializeField] private FloorModifierDefinition _modifier;
         [SerializeField] private FloorDefinition _nextFloor;
 
@@ -23,6 +26,7 @@ namespace Cryptforge.Content
         public float EnemyHealthMultiplier => _enemyHealthMultiplier;
         public float EnemyDamageMultiplier => _enemyDamageMultiplier;
         public bool ClimbScaled => _climbScaled;
+        public int FoundryHallSurges => _foundryHallSurges;
         public FloorModifierDefinition Modifier => _modifier;
         public FloorDefinition NextFloor => _nextFloor;
 
