@@ -45,11 +45,21 @@ namespace Cryptforge.Tests
 
             yield return WaitForUpgradeOffer();
             UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
-            List<Line> log = ReadLog();
-            AssertSessionEnvelopes(log);
-            AssertRunsAreBracketed(log);
+            List<Line> waved = ReadLog();
+            AssertSessionEnvelopes(waved);
+            AssertRunsAreBracketed(waved);
+            // The first wave spawns as its room opens; how many waves fell before the level-up depends on the pack.
+            Line firstWave = waved[3];
+            Assert.That(firstWave.Event, Is.EqualTo("wave_start"), "The first wave follows its room_start. " + Describe(waved));
+            Assert.That((firstWave.Number("floor_index"), firstWave.Number("room_index"), firstWave.Number("wave_index")),
+                Is.EqualTo((1.0, 1.0, 1.0)));
+            Assert.That(firstWave.Number("wave_count"), Is.GreaterThanOrEqualTo(1));
+            Assert.That(firstWave.Number("enemy_count"), Is.GreaterThanOrEqualTo(1));
+            Assert.That(firstWave.Number("hero_max_hp"), Is.EqualTo(_hero.Maximum).Within(1e-3));
+            Assert.That(firstWave.Number("hero_hp"), Is.GreaterThan(0).And.LessThanOrEqualTo(firstWave.Number("hero_max_hp")));
+            List<Line> log = WithoutWaves(waved);
             Assert.That(Names(log), Is.EqualTo(new[] { "session_start", "run_start", "room_start", "first_kill", "upgrade_offered" }),
-                "Opening the level-up choice wrote everything before it. " + Describe(log));
+                "Opening the level-up choice wrote everything before it. " + Describe(waved));
 
             Line sessionStart = log[0];
             Assert.That(sessionStart.Number("schema"), Is.EqualTo(TelemetryJson.SchemaVersion));
@@ -93,6 +103,7 @@ namespace Cryptforge.Tests
             log = ReadLog();
             AssertSessionEnvelopes(log);
             AssertRunsAreBracketed(log);
+            log = WithoutWaves(log);
             Assert.That(log.Count, Is.GreaterThanOrEqualTo(7), Describe(log));
             Line selected = log[5];
             Assert.That(selected.Event, Is.EqualTo("upgrade_selected"), Describe(log));
@@ -265,6 +276,7 @@ namespace Cryptforge.Tests
             List<Line> log = ReadLog();
             AssertSessionEnvelopes(log);
             AssertRunsAreBracketed(log);
+            log = WithoutWaves(log);
             Assert.That(Names(log), Is.EqualTo(new[] { "session_start", "run_start", "room_start", "chest_opened", "run_interrupted" }),
                 Describe(log));
             Line chest = log[3];
@@ -448,6 +460,18 @@ namespace Cryptforge.Tests
             for (int i = 0; i < log.Count; i++)
                 names[i] = log[i].Event;
             return names;
+        }
+
+        // The log without its per-wave lines, for checks about the events around them, whose count depends on the pack.
+        private static List<Line> WithoutWaves(List<Line> log)
+        {
+            var kept = new List<Line>(log.Count);
+            foreach (Line line in log)
+            {
+                if (line.Event != "wave_start" && line.Event != "wave_clear")
+                    kept.Add(line);
+            }
+            return kept;
         }
 
         private static List<int> IndicesOf(List<Line> log, string name)

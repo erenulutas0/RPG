@@ -1327,3 +1327,13 @@ the 10 s period; and floor 1 has only three later halls, so the pit-rim district
 clock only pauses between waves (`PitEruptionService`), the period is 7 s, and the pit's south rim is the second hall
 district (workyard, pit rim, east court, north court). 457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK
 41,156,934 bytes, SHA256 FB363A51B49966A970929D1A6F5C5282AFBD4AA2E4DBB3B661F45A2B2C2F7C5E.
+
+## 2026-10-25 - Telemetry for floor pacing: waves, and health beside its maximum
+
+A pacing analysis could not read health at a boss as a share once health cards raise the maximum, and saw no waves.
+Every event that writes `hero_hp` now writes `hero_max_hp` beside it (one helper, `AddHeroHealth`), and `room_start`,
+`boss_start`, `boss_end` and `run_end` gain both. Two events: `wave_start` (floor_index, room_index, `wave_index`
+one-based, `wave_count` with a hall's surges, `enemy_count`, hero_hp, hero_max_hp) as an ordinary wave spawns, and
+`wave_clear` (the same indices, `active_sec` of the run's active time since the spawn, `enemy_hits` - the hits its
+enemies took - hero_hp, hero_max_hp) on `EncounterController.WaveCleared`, raised once as a wave's last enemy falls and
+before the floor moves on. A swarm room keeps its own `swarm_step` and writes no wave lines. 460 .NET / 748 EditMode / 173 PlayMode, zero failures.

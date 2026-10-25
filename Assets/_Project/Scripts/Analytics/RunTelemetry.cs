@@ -72,6 +72,7 @@ namespace Cryptforge.Analytics
         private readonly int _seed;
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
+        private readonly Func<float> _heroMaximumHealth;
         private readonly Func<int> _pulses;
         private readonly StringBuilder _choiceIds = new StringBuilder();
         private readonly StringBuilder _choiceRarities = new StringBuilder();
@@ -108,6 +109,10 @@ namespace Cryptforge.Analytics
         private int _roomGoldChests;
         private string _bossId;
 
+        // The ordinary wave that spawned last and has not fallen yet, and the run's active seconds when it spawned.
+        private bool _waveOpen;
+        private double _waveActiveAtStart;
+
         // Gold attribution. The scene reports a kill before the reward service pays it and a chest after it paid, both
         // within one call chain: gold that a reported kill announced is kill gold, the rest waits for the chest report.
         private int _goldSeen;
@@ -135,6 +140,7 @@ namespace Cryptforge.Analytics
             _checkpoint = Require(context.Checkpoint, nameof(context.Checkpoint));
             _killerId = Require(context.KillerId, nameof(context.KillerId));
             _heroHealth = Require(context.HeroHealth, nameof(context.HeroHealth));
+            _heroMaximumHealth = Require(context.HeroMaximumHealth, nameof(context.HeroMaximumHealth));
             _pulses = context.Pulses;
             _relics = context.Relics;
             _weapons = context.Weapons;
@@ -200,7 +206,7 @@ namespace Cryptforge.Analytics
                 .Add("step", step)
                 .Add("seconds", (double)seconds)
                 .Add("difficulty", (double)difficulty)
-                .Add("hero_hp", (double)_heroHealth())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
                 .Add("level", _run.Level)
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex));
@@ -215,7 +221,7 @@ namespace Cryptforge.Analytics
             _session.Emit("swarm_exit", new TelemetryFields()
                 .Add("seconds", (double)seconds)
                 .Add("step", step)
-                .Add("hero_hp", (double)_heroHealth())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
                 .Add("level", _run.Level)
                 .Add("kills", _kills)
                 .Add("floor_index", _roomFloor)
@@ -231,7 +237,7 @@ namespace Cryptforge.Analytics
 
             _session.Emit("hall_reached", new TelemetryFields()
                 .Add("walk_sec", (double)walkSeconds)
-                .Add("hero_hp", (double)_heroHealth())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
                 .Add("level", _run.Level)
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex));
@@ -245,7 +251,7 @@ namespace Cryptforge.Analytics
             _session.Emit("altar_taken", new TelemetryFields()
                 .Add("altar", altar)
                 .Add("difficulty", (double)difficulty)
-                .Add("hero_hp", (double)_heroHealth())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
                 .Add("level", _run.Level)
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex));
@@ -260,9 +266,48 @@ namespace Cryptforge.Analytics
                 .Add("hero_burnt", heroBurnt)
                 .Add("enemies_burnt", enemiesBurnt)
                 .Add("enemies_killed", enemiesKilled)
-                .Add("hero_hp", (double)_heroHealth())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex));
+        }
+
+        // An ordinary room's waves, so a floor's pacing can be read wave by wave: called as a wave spawns, after the
+        // progress that opened its room, and once as its last enemy falls, before the floor moves on, so a wave's lines sit
+        // between its room's room_start and room_complete. wave is one-based and waveCount counts a hall's surges too. A
+        // swarm room reports swarm_step instead and never calls these.
+        public void RecordWaveStart(int wave, int waveCount, int enemyCount)
+        {
+            if (!IsRecording)
+                return;
+
+            _waveOpen = true;
+            _waveActiveAtStart = _runTime.Active;
+            _session.Emit("wave_start", new TelemetryFields()
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex)
+                .Add("wave_index", wave)
+                .Add("wave_count", waveCount)
+                .Add("enemy_count", enemyCount)
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+        }
+
+        // active_sec is the run's active time since the wave spawned; enemy_hits counts the hits its enemies took. A clear
+        // without a wave this recorder saw spawn (one that began before Begin, or in a room that has since changed) is
+        // not reported, since its time is unknown.
+        public void RecordWaveClear(int wave, int waveCount, int enemyHits)
+        {
+            if (!IsRecording || !_waveOpen)
+                return;
+
+            _waveOpen = false;
+            _session.Emit("wave_clear", new TelemetryFields()
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex)
+                .Add("wave_index", wave)
+                .Add("wave_count", waveCount)
+                .Add("active_sec", _runTime.Active - _waveActiveAtStart)
+                .Add("enemy_hits", enemyHits)
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
         }
 
         public void ObserveProgress(int floorNumber, string floorId, int roomNumber, RoomKind roomKind, string toughestEnemyId)
@@ -284,7 +329,8 @@ namespace Cryptforge.Analytics
                 _session.Emit("boss_start", new TelemetryFields()
                     .Add("floor_index", _roomFloor)
                     .Add("room_index", _roomIndex)
-                    .Add("enemy_id", _bossId));
+                    .Add("enemy_id", _bossId)
+                    .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
             }
         }
 
@@ -337,7 +383,7 @@ namespace Cryptforge.Analytics
                 .Add("heal_fraction", (double)healFraction)
                 .Add("book", bookId ?? "none")
                 .Add("book_rarity", bookId != null ? bookRarity.ToString() : "none")
-                .Add("hero_hp", (double)_heroHealth())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex));
         }
@@ -520,12 +566,14 @@ namespace Cryptforge.Analytics
             _roomGoldKills = 0;
             _roomGoldChests = 0;
             _bossId = null;
+            _waveOpen = false;
             _roomTime.Reset();
             _session.Emit("room_start", new TelemetryFields()
                 .Add("floor_index", floorNumber)
                 .Add("floor_id", floorId)
                 .Add("room_index", roomNumber)
-                .Add("room_kind", RoomKindName(roomKind)));
+                .Add("room_kind", RoomKindName(roomKind))
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
         }
 
         // The room's earnings directly precede its room_complete, and a boss room's boss_end follows it.
@@ -548,7 +596,7 @@ namespace Cryptforge.Analytics
                 .Add("kills", _roomKills)
                 .Add("gold_kills", _roomGoldKills)
                 .Add("gold_chests", _roomGoldChests)
-                .Add("hero_hp", (double)_heroHealth()));
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
             if (result == ResultCleared)
             {
                 _roomsCompleted++;
@@ -562,7 +610,8 @@ namespace Cryptforge.Analytics
                 .Add("room_index", _roomIndex)
                 .Add("enemy_id", _bossId)
                 .Add("result", heroDied ? "hero_died" : "defeated")
-                .Add("active_sec", _roomTime.Active));
+                .Add("active_sec", _roomTime.Active)
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
         }
 
         private void ReportRoomGold(string source, int amount)
@@ -612,7 +661,8 @@ namespace Cryptforge.Analytics
                 .Add("active_sec", _runTime.Active)
                 .Add("choice_sec", _runTime.Choice)
                 .Add("pause_sec", _runTime.Pause)
-                .Add("background_sec", RunBackgroundSeconds()));
+                .Add("background_sec", RunBackgroundSeconds())
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
             EndSessionRun();
             _session.Flush();
         }
@@ -842,5 +892,13 @@ namespace Cryptforge.Analytics
                 throw new ArgumentException($"RunTelemetryContext.{name} is required.", "context");
             return value;
         }
+    }
+
+    // The hero's health as every event writes it: the current value beside the maximum, which health cards raise, so a
+    // log reads health as a share wherever it reads it.
+    internal static class HeroHealthFields
+    {
+        public static TelemetryFields AddHeroHealth(this TelemetryFields fields, float current, float maximum) =>
+            fields.Add("hero_hp", (double)current).Add("hero_max_hp", (double)maximum);
     }
 }

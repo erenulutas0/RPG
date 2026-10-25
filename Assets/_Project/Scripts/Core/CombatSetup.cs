@@ -187,6 +187,7 @@ namespace Cryptforge.Core
                 Seed = Run.Seed,
                 KillerId = () => LastAttacker != null ? LastAttacker.Id : null,
                 HeroHealth = () => _hero.Current,
+                HeroMaximumHealth = () => _hero.Maximum,
                 Pulses = () => Weapon != null ? Weapon.PulsesFired : 0
             };
             return RunTelemetryBridge.Attach(gameObject, context, _encounters, _ability);

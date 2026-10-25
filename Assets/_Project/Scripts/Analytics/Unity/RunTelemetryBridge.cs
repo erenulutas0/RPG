@@ -7,8 +7,8 @@ using UnityEngine.SceneManagement;
 
 namespace Cryptforge.Analytics
 {
-    // Connects one scene's run recorder to the Unity side: encounter progress, kills, floor clears, the ability and the
-    // chest reach the pure RunTelemetry through here, as do frames and the app leaving the foreground. The composition
+    // Connects one scene's run recorder to the Unity side: encounter progress, waves, kills, floor clears, the ability and
+    // the chest reach the pure RunTelemetry through here, as do frames and the app leaving the foreground. The composition
     // root adds it at runtime (it is never placed in a scene) before its own reactions subscribe, and it goes away with
     // the scene, unsubscribing and disposing the recorder, so a restart never keeps an old subscription. It only reads
     // state and never logs: telemetry must not change a run or add console output that scene tests would flag.
@@ -79,7 +79,8 @@ namespace Cryptforge.Analytics
             _ability = ability;
             _chests = chests;
 
-            _encounters.EncounterStarted += OnProgressChanged;
+            _encounters.EncounterStarted += OnEncounterStarted;
+            _encounters.WaveCleared += OnWaveCleared;
             _encounters.SwarmStepped += OnSwarmStepped;
             _encounters.SwarmLeft += OnSwarmLeft;
             _encounters.HallReached += OnHallReached;
@@ -121,6 +122,22 @@ namespace Cryptforge.Analytics
             }
             _telemetry.ObserveProgress(_encounters.FloorNumber, floor != null ? floor.Id : null, _encounters.RoomNumber, room.Kind,
                 toughestId);
+        }
+
+        // A wave spawning: the room it opens is observed first, so wave_start follows its room_start. A swarm room opens
+        // once and reports the steps of its ramp instead, so it has no waves here.
+        private void OnEncounterStarted()
+        {
+            OnProgressChanged();
+            if (!_encounters.IsInSwarmRoom)
+                _telemetry.RecordWaveStart(_encounters.WaveNumber, _encounters.WaveCount, _encounters.WaveEnemyCount);
+        }
+
+        // Raised before the floor moves on, so the wave and room numbers are still the cleared wave's.
+        private void OnWaveCleared()
+        {
+            if (!_encounters.IsInSwarmRoom)
+                _telemetry.RecordWaveClear(_encounters.WaveNumber, _encounters.WaveCount, _encounters.HitsTaken);
         }
 
         // A continuous swarm reports each step of its ramp and the moment the hero walks out.
@@ -175,7 +192,8 @@ namespace Cryptforge.Analytics
         {
             if (!ReferenceEquals(_encounters, null))
             {
-                _encounters.EncounterStarted -= OnProgressChanged;
+                _encounters.EncounterStarted -= OnEncounterStarted;
+                _encounters.WaveCleared -= OnWaveCleared;
                 _encounters.SwarmStepped -= OnSwarmStepped;
                 _encounters.SwarmLeft -= OnSwarmLeft;
                 _encounters.HallReached -= OnHallReached;

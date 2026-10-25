@@ -156,6 +156,8 @@ namespace Cryptforge.Combat
         public event Action EncounterStarted;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
+        // An ordinary wave's last enemy has fallen, once per wave and before the floor moves on; a swarm never raises it.
+        public event Action WaveCleared;
         public event Action FloorCleared;
         // The foundry's boss has walked out of the gate (BossRevealView turns the camera to it).
         public event Action GateBossArrived;
@@ -826,6 +828,8 @@ namespace Cryptforge.Combat
 
             EnemyDefeated?.Invoke(enemy.Health);
             ProgressChanged?.Invoke();
+            if (AliveEnemyCount == 0)
+                WaveCleared?.Invoke();
             if (AliveEnemyCount == 0 && _floorProgress.IsFinalWave)
                 AdvanceFloor();
         }

@@ -103,7 +103,8 @@ namespace Cryptforge.Tests
             List<Line> rooms = All(lines, "room_start");
             Assert.That(rooms[0].Keys, Is.EqualTo(new[]
             {
-                "v", "seq", "t", "st", "session", "run", "event", "floor_index", "floor_id", "room_index", "room_kind"
+                "v", "seq", "t", "st", "session", "run", "event", "floor_index", "floor_id", "room_index", "room_kind", "hero_hp",
+                "hero_max_hp"
             }));
             Assert.That((rooms[1].Text("floor_id"), rooms[1].Integer("room_index"), rooms[1].Text("room_kind")),
                 Is.EqualTo((Floor1, 2L, "forge")));
@@ -152,7 +153,7 @@ namespace Cryptforge.Tests
             {
                 "v", "seq", "t", "st", "session", "run", "event",
                 "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "upgrades_applied", "pulses", "gold",
-                "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec"
+                "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec", "hero_hp", "hero_max_hp"
             }));
             Assert.That((end.Text("result"), end.Text("cause"), end.Integer("floors_completed"), end.Integer("rooms_completed")),
                 Is.EqualTo(("extracted", "extracted", 1L, 3L)));
@@ -261,6 +262,82 @@ namespace Cryptforge.Tests
             Assert.That(Events(quietLines), Is.EqualTo(new[] { "session_start", "run_start", "room_start", "room_complete", "run_end" }));
             Assert.That(Single(quietLines, "room_complete").Text("room_kind"), Is.EqualTo("elite"));
             Assert.That(Single(quietLines, "run_end").Text("cause"), Is.EqualTo("killed"));
+        }
+
+        [Test]
+        public void WavesAreLoggedInsideTheirRoomWithTheHeroHealthBesideItsMaximum()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            RunTelemetry recorder = scene.Recorder;
+
+            recorder.Begin();
+            recorder.RecordWaveClear(1, 2, 5);
+            scene.Room(1, Floor1, 1, RoomKind.Combat, "enemy_grunt");
+            recorder.RecordWaveStart(1, 2, 3);
+            recorder.Tick(1.5f, 1.5f);
+            scene.Hero.Current = 70f;
+            recorder.RecordWaveClear(1, 2, 9);
+            recorder.RecordWaveClear(1, 2, 9);
+            // Between waves the time counts for the room, not for either wave.
+            recorder.Tick(0.5f, 0.5f);
+            recorder.RecordWaveStart(2, 2, 4);
+            recorder.Tick(2f, 2f);
+            recorder.RecordWaveClear(2, 2, 12);
+            // A health card raises the maximum before the boss.
+            scene.Hero.Maximum = 120f;
+            scene.Room(1, Floor1, 2, RoomKind.Boss, "enemy_warden");
+            recorder.RecordWaveStart(1, 1, 1);
+            scene.Hero.Current = 30f;
+            scene.Kill("enemy_warden", 0, 5);
+            recorder.RecordWaveClear(1, 1, 20);
+            scene.ClearFloor(1, Floor1, true);
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Assert.That(Events(lines), Is.EqualTo(new[]
+            {
+                "session_start", "run_start",
+                "room_start", "wave_start", "wave_clear", "wave_start", "wave_clear", "room_complete",
+                "room_start", "boss_start", "wave_start", "first_kill", "wave_clear", "currency_earned", "room_complete", "boss_end",
+                "floor_complete", "currency_earned", "run_end"
+            }), "A clear without a spawn the recorder saw, and a repeated clear, write nothing.");
+
+            List<Line> starts = All(lines, "wave_start");
+            Assert.That(starts[0].Keys, Is.EqualTo(new[]
+            {
+                "v", "seq", "t", "st", "session", "run", "event",
+                "floor_index", "room_index", "wave_index", "wave_count", "enemy_count", "hero_hp", "hero_max_hp"
+            }));
+            Assert.That((starts[0].Integer("wave_index"), starts[0].Integer("wave_count"), starts[0].Integer("enemy_count"),
+                starts[0].Number("hero_hp"), starts[0].Number("hero_max_hp")), Is.EqualTo((1L, 2L, 3L, 100.0, 100.0)));
+            Assert.That((starts[1].Integer("wave_index"), starts[1].Integer("enemy_count")), Is.EqualTo((2L, 4L)));
+            Assert.That((starts[2].Integer("room_index"), starts[2].Integer("wave_index"), starts[2].Integer("wave_count")),
+                Is.EqualTo((2L, 1L, 1L)));
+
+            List<Line> clears = All(lines, "wave_clear");
+            Assert.That(clears[0].Keys, Is.EqualTo(new[]
+            {
+                "v", "seq", "t", "st", "session", "run", "event",
+                "floor_index", "room_index", "wave_index", "wave_count", "active_sec", "enemy_hits", "hero_hp", "hero_max_hp"
+            }));
+            Assert.That((clears[0].Integer("wave_index"), clears[0].Number("active_sec"), clears[0].Integer("enemy_hits"),
+                clears[0].Number("hero_hp"), clears[0].Number("hero_max_hp")), Is.EqualTo((1L, 1.5, 9L, 70.0, 100.0)));
+            Assert.That((clears[1].Integer("wave_index"), clears[1].Number("active_sec"), clears[1].Integer("enemy_hits")),
+                Is.EqualTo((2L, 2.0, 12L)), "A wave's time starts at its spawn.");
+            Assert.That(All(lines, "room_complete")[0].Number("active_sec"), Is.EqualTo(4.0));
+
+            // Health beside its maximum wherever health is reported, so the boss is read as a share of a raised maximum.
+            Line bossRoom = All(lines, "room_start")[1];
+            Line bossStart = Single(lines, "boss_start");
+            Line bossEnd = Single(lines, "boss_end");
+            Line end = Single(lines, "run_end");
+            Assert.That((bossRoom.Number("hero_hp"), bossRoom.Number("hero_max_hp")), Is.EqualTo((70.0, 120.0)));
+            Assert.That((bossStart.Number("hero_hp"), bossStart.Number("hero_max_hp")), Is.EqualTo((70.0, 120.0)));
+            Assert.That((clears[2].Number("hero_hp"), clears[2].Number("hero_max_hp")), Is.EqualTo((30.0, 120.0)));
+            Assert.That((bossEnd.Number("hero_hp"), bossEnd.Number("hero_max_hp")), Is.EqualTo((30.0, 120.0)));
+            Assert.That((end.Number("hero_hp"), end.Number("hero_max_hp")), Is.EqualTo((30.0, 120.0)));
+            Assert.That(All(lines, "room_complete")[1].Number("hero_max_hp"), Is.EqualTo(120.0));
         }
 
         [Test]
@@ -532,7 +609,8 @@ namespace Cryptforge.Tests
             Assert.That(chests[0].Keys, Is.EqualTo(new[]
             {
                 "v", "seq", "t", "st", "session", "run", "event",
-                "reward", "gold", "heal_fraction", "book", "book_rarity", "hero_hp", "floor_index", "room_index"
+                "reward", "gold", "heal_fraction", "book", "book_rarity", "hero_hp", "hero_max_hp", "floor_index",
+                "room_index"
             }));
             Assert.That((chests[0].Text("book"), chests[0].Text("book_rarity")), Is.EqualTo(("upgrade_damage", "Epic")),
                 "A chest that held a book names it and the tier it came at.");
@@ -701,6 +779,7 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.Checkpoint = null)));
             Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.KillerId = null)));
             Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.HeroHealth = null)));
+            Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.HeroMaximumHealth = null)));
             Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.HeroId = "")));
             Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.WeaponId = null)));
             Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(scene, telemetry, c => c.AbilityId = "")));
@@ -834,6 +913,11 @@ namespace Cryptforge.Tests
                         Assert.That((line.Integer("floor_index"), line.Integer("room_index")), Is.EqualTo((roomFloor, roomIndex)), where);
                         roomOpen = false;
                         break;
+                    case "wave_start":
+                    case "wave_clear":
+                        Assert.That(roomOpen, Is.True, "A wave belongs to the open room: " + where);
+                        Assert.That((line.Integer("floor_index"), line.Integer("room_index")), Is.EqualTo((roomFloor, roomIndex)), where);
+                        break;
                     case "boss_end":
                         Assert.That(lines[i - 1].Event, Is.EqualTo("room_complete"), "boss_end follows its room_complete: " + where);
                         Assert.That((line.Integer("floor_index"), line.Integer("room_index")),
@@ -917,7 +1001,8 @@ namespace Cryptforge.Tests
         private sealed class FakeHero : IHealable
         {
             public float Current { get; set; }
-            public float Maximum { get; }
+            // Settable so a test can raise it the way a health card does.
+            public float Maximum { get; set; }
             public bool IsAlive => Current > 0f;
 
             public FakeHero(float maximum)
@@ -993,7 +1078,8 @@ namespace Cryptforge.Tests
                     ForgeGold = Profile.Gold,
                     DeepestFloorCleared = Profile.DeepestFloorCleared,
                     KillerId = () => Killer,
-                    HeroHealth = () => Hero.Current
+                    HeroHealth = () => Hero.Current,
+                    HeroMaximumHealth = () => Hero.Maximum
                 };
             }
 

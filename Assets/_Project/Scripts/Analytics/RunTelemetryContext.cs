@@ -33,8 +33,10 @@ namespace Cryptforge.Analytics
 
         // The id of the enemy that last hit the hero, or null; read once when a defeat ends the run.
         public Func<string> KillerId;
-        // The hero's current health; read when a chest opens and when a room closes.
+        // The hero's current and maximum health, read together wherever an event reports health, so a log can read it as a
+        // share of a maximum that health cards raise.
         public Func<float> HeroHealth;
+        public Func<float> HeroMaximumHealth;
         // Pulses the hero weapon has fired, for run_end. Optional: a scene without a pulse reports none.
         public Func<int> Pulses;
     }
