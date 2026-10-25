@@ -9,8 +9,9 @@ namespace Cryptforge.Core
     // A development build's hands-off player for device checks of the foundry (DevelopmentStart.Autopilot): it walks the
     // hero to each marked hall, takes both altars between fights, and in a fight draws the pack to the pit's rim and steps
     // out of the band while the rim glows, so the run's log measures what the pit does to a hero who uses it. It answers
-    // every offer with its first card and every checkpoint with Descend, and walks onto an open exit. It steers through
-    // HeroMovementInput.Hold, so a finger on the screen still takes over. Never part of a player's build.
+    // every offer with its first card and every checkpoint with Descend, and walks onto an open exit (a minute into the
+    // finale's swarm). It steers through HeroMovementInput.Hold, so a finger on the screen still takes over. Never part of
+    // a player's build.
     public sealed class DevelopmentAutopilot : MonoBehaviour
     {
         private const float ChoiceDelay = .8f;
@@ -19,6 +20,7 @@ namespace Cryptforge.Core
         private const float ShelterDepth = PitEruptionRule.Reach + 1.4f;
         private const float Arrived = .35f;
         private const float BackOff = 1.1f;
+        private const float SwarmStay = 60f;
         private CombatSetup _setup;
         private HeroMovementInput _movement;
         private Transform _hero;
@@ -74,7 +76,8 @@ namespace Cryptforge.Core
             EncounterController encounter = _setup.Encounters;
             stop = Arrived;
             gx = x; gy = y;
-            if (encounter.IsExitOpen)
+            // The finale's exit opens at once; the autopilot fights the swarm a while first, as a player after depth does.
+            if (encounter.IsExitOpen && (!encounter.IsInSwarmRoom || encounter.SwarmSeconds >= SwarmStay))
             {
                 gx = encounter.ExitFloorX; gy = encounter.ExitFloorY;
                 return true;
