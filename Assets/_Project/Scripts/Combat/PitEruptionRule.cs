@@ -14,8 +14,10 @@ namespace Cryptforge.Combat
     {
         public const float Period = 7f;
         public const float Warning = 1.5f;
-        // Design units beyond the hole's edge: the hero keeps .6 off it, so the band is 1.4 wide where the hero can stand.
-        public const float Reach = 2f;
+        // Design units beyond the hole's edge: the hero keeps .6 off it, so the band is 2.4 wide where the hero can stand.
+        // It was 2: a pack forms up round a hero on the rim on the hero's far side, out of a band that narrow, and the
+        // autopilot's lured fights burnt nothing after floor 1's first rooms (2026-10-25).
+        public const float Reach = 3f;
         public const float HeroShare = .1f;
         public const float EnemyShare = .4f;
 

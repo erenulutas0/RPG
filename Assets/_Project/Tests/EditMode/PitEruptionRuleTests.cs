@@ -11,10 +11,14 @@ namespace Cryptforge.Tests
         [Test] public void TheBandRunsRoundThePitsEdgeAndNoFurther()
         {
             Assert.That(Band(FoundryMap.PitWest-1f,8),Is.True,"A unit off the west edge burns.");
-            Assert.That(Band(-10,FoundryMap.PitSouth-1.9f),Is.True);
-            Assert.That(Band(-10,FoundryMap.PitSouth-2.1f),Is.False,"Past the reach is safe.");
-            Assert.That(Band(FoundryMap.PitEast+1.3f,FoundryMap.PitNorth+1.3f),Is.True,"The corners round off: 1.84 from the corner.");
-            Assert.That(Band(FoundryMap.PitEast+1.5f,FoundryMap.PitNorth+1.5f),Is.False,"2.12 from the corner.");
+            Assert.That(Band(-10,FoundryMap.PitSouth-2.9f),Is.True);
+            Assert.That(Band(-10,FoundryMap.PitSouth-3.1f),Is.False,"Past the reach is safe.");
+            Assert.That(Band(FoundryMap.PitEast+2f,FoundryMap.PitNorth+2f),Is.True,"The corners round off: 2.83 from the corner.");
+            Assert.That(Band(FoundryMap.PitEast+2.2f,FoundryMap.PitNorth+2.2f),Is.False,"3.11 from the corner.");
+            // A pack standing round a hero on the rim stands in the band too: a hero 1.3 out, an enemy its reach beyond.
+            Assert.That(Band(FoundryMap.PitWest-1.3f-1.5f,8),Is.True);
+            FoundryMap.RoomSite(2,out float hx,out float hy);
+            Assert.That(PitEruptionRule.InBand(hx,hy),Is.False,"The pit-rim hall opens just outside it, so its fight starts safe.");
             Assert.That(Band(0,0),Is.False,"The court's middle is safe.");
             // The hero can stand in the band: walkable floor exists between the edge margin and the reach.
             FoundryMap.ToFloor(FoundryMap.PitWest-1.3f,8,out float x,out float y);
