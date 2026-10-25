@@ -45,6 +45,11 @@ namespace Cryptforge.Core
         public static bool GateArrival() => FoundryRegion() && !DepthProof() &&
             !string.IsNullOrEmpty(ReadFirstLine(GateArrivalPath));
 
+        // Any text in it hands the foundry run to DevelopmentAutopilot, a hands-off player for device checks.
+        public static string AutopilotPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "autopilot.txt");
+        public static bool Autopilot() => (Application.isEditor || Debug.isDebugBuild) && FoundryRegion() &&
+            !string.IsNullOrEmpty(ReadFirstLine(AutopilotPath));
+
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
         // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file

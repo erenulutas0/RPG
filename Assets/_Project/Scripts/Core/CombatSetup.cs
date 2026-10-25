@@ -159,6 +159,8 @@ namespace Cryptforge.Core
             Pit.Initialize(this, _hero);
             gameObject.AddComponent<PitEruptionView>().Initialize(Pit);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
+            if (movement != null && DevelopmentStart.Autopilot())
+                gameObject.AddComponent<DevelopmentAutopilot>().Initialize(this, movement, _hero.transform);
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
