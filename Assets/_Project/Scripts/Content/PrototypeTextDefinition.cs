@@ -22,6 +22,9 @@ namespace Cryptforge.Content
         public string HallDirection => _hallDirection;
         [SerializeField] private string _altarInstruction = "ALTAR - Step in: a power, +10% danger";
         public string AltarInstruction => _altarInstruction;
+        [SerializeField] private string _dangerFormat = "Danger +{0}%";
+        // {0} how much harder the run's enemies are than authored, in whole percent: 10 at difficulty 1.1.
+        public string DangerFormat => _dangerFormat;
         [SerializeField] private string _floorProgressFormat;
         [SerializeField] private string _waveFormat;
         [SerializeField] private string _victoryFormat;

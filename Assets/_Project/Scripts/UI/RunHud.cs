@@ -68,6 +68,9 @@ namespace Cryptforge.UI
             if (_setup.Relic != null)
                 _setup.Relic.Triggered += RefreshRelic;
             _subscribed = true;
+            // The danger readout sits on the compact top panel, so it needs the compact gold count to style itself on.
+            if (_compactGold != null)
+                gameObject.AddComponent<DangerReadoutView>().Initialize(_setup, _text, _compactGold);
             RefreshHero();
             RefreshEncounter();
             RefreshWeapon();
