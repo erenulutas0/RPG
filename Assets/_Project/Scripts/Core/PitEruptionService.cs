@@ -30,8 +30,11 @@ namespace Cryptforge.Core
             _setup = setup;
             _hero = hero;
             var arena = FindFirstObjectByType<ArenaView>();
-            if (arena != null && arena.IsFoundryRegion)
-                _clock = new PitEruptionClock();
+            if (arena == null || !arena.IsFoundryRegion)
+                return;
+            _clock = new PitEruptionClock();
+            // Through the warning the rim's slag holds the pack standing in the band, so a hero who steps out leaves it there.
+            setup.Encounters.PackHeld = (x, y) => IsRunning && _clock.IsWarning && PitEruptionRule.InBand(x, y);
         }
 
         private void Update()

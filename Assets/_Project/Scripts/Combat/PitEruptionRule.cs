@@ -6,8 +6,10 @@ namespace Cryptforge.Combat
     // The foundry's furnace pit erupts (2026-10-24): every Period seconds of fighting molten metal spills over the
     // pit's rim, after a Warning in which the rim's danger band glows. Everything standing within Reach of the pit's edge
     // when it spills is burnt - the hero for HeroShare of its maximum health, each enemy for EnemyShare of its own - so a
-    // hero who draws a pack to the rim and steps out of the band in time uses the pit as a weapon. Pure, so the band and
-    // the clock can be tested without a scene.
+    // hero who draws a pack to the rim and steps out of the band in time uses the pit as a weapon. Through the warning the
+    // glowing slag holds every enemy standing in the band where it is (the hero walks free): without the hold the pack
+    // simply followed the hero out, and a device run that lured to the rim on every fight burnt enemies on 2 of 17 spills
+    // (2026-10-25). Pure, so the band and the clock can be tested without a scene.
     public static class PitEruptionRule
     {
         public const float Period = 7f;

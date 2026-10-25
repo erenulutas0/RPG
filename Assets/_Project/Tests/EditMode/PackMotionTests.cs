@@ -39,6 +39,24 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void AHeldEnemyStandsWhereItIsAndWalksOnOnceReleased()
+        {
+            var motion = new PackMotion(0.9f, 2f);
+            motion.Add(new HealthState(50f), 0f, 6f, 2f, 1.2f);
+            motion.Add(new HealthState(50f), 3f, 6f, 2f, 1.2f);
+            float heldX = motion.XOf(0);
+            motion.Held = (x, y) => Math.Abs(x - heldX) < .01f;
+            float startY = motion.YOf(0);
+            motion.Step(1f);
+            Assert.That(motion.YOf(0), Is.EqualTo(startY), "The held enemy does not move.");
+            Assert.That(motion.IsStalled(0), Is.False, "Held is standing, not waiting on a neighbour.");
+            Assert.That(motion.YOf(1), Is.LessThan(startY), "The one outside the hold walks on.");
+            motion.Held = null;
+            motion.Step(1f);
+            Assert.That(motion.YOf(0), Is.LessThan(startY), "Released, it walks again.");
+        }
+
+        [Test]
         public void TheEntrySideDecidesTheApproachAngle()
         {
             var motion = new PackMotion(0.9f, 2f);

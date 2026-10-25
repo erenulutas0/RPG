@@ -158,6 +158,8 @@ namespace Cryptforge.Combat
         public event Action GateBossArrived;
         // While a view presents the arriving boss, the encounter holds still: no pack moves, no fight clock runs.
         public bool IsRevealHeld => _revealHold;
+        // Floor points where the pack cannot walk (PackMotion.Held); the foundry pit sets it, nothing else does.
+        public Func<float, float, bool> PackHeld { get; set; }
         public void HoldForReveal(bool hold) => _revealHold = hold;
         // A swarm room's ramp has moved to its next step, and the hero has walked out of a swarm room: for telemetry.
         public event Action SwarmStepped;
@@ -797,6 +799,7 @@ namespace Cryptforge.Combat
             if (_motion == null || IsCleared || deltaTime <= 0f)
                 return;
 
+            _motion.Held = PackHeld;
             _motion.Step(deltaTime, HeroFloorX, HeroFloorY);
             for (int i = 0; i < _wave.Count; i++)
             {

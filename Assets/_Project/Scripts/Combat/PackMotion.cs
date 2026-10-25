@@ -68,6 +68,10 @@ namespace Cryptforge.Combat
         private readonly int[] _order = new int[PackLayout.MaxPackSize];
         private readonly bool[] _stalled = new bool[PackLayout.MaxPackSize];
 
+        // Floor points where an enemy cannot walk this step (the scene's foundry pit holds the pack on its glowing rim,
+        // PitEruptionRule); null - always, in the Descent simulation - holds nobody.
+        public Func<float, float, bool> Held { get; set; }
+
         public int Count { get; private set; }
         // Where the hero stood at the last step; where the pack was told it stands until then.
         public float HeroX { get; private set; }
@@ -269,7 +273,7 @@ namespace Cryptforge.Combat
         // the way, else none.
         private Walk WalkOne(int i, int living, float deltaTime, float heroX, float heroY)
         {
-            if (HasArrived(i))
+            if (HasArrived(i) || (Held != null && Held(_x[i], _y[i])))
                 return Walk.Stood;
 
             // The enemy's own point on the arc round the hero: its corner's direction turned by its approach angle.

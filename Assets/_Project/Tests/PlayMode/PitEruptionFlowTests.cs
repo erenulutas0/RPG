@@ -53,10 +53,14 @@ namespace Cryptforge.Tests
             yield return Until(()=>setup.Pit.Clock.IsWarning,20);
             yield return null;
             Assert.That(view.ShownAlpha,Is.GreaterThan(0f),"The band glows through the warning.");
+            FoundryMap.ToFloor(FoundryMap.PitWest-1f,6,out float bx,out float by);
+            Assert.That(encounter.PackHeld(bx,by),Is.True,"Through the warning the band holds the pack.");
+            Assert.That(encounter.PackHeld(0,0),Is.False,"Away from the rim nothing is held.");
             Assert.That(hero.Current,Is.EqualTo(full),"Nothing burns before the spill.");
             bool erupted=false;setup.Pit.Erupted+=()=>erupted=true;
             yield return Until(()=>erupted,5);
             Assert.That(erupted,Is.True);
+            Assert.That(encounter.PackHeld(bx,by),Is.False,"The spill lets the pack go.");
             Assert.That(hero.Current,Is.EqualTo(full-hero.Maximum*PitEruptionRule.HeroShare).Within(.01f),"The hero in the band is burnt.");
             // Out of the band the next spill passes it by.
             heroInput.transform.position=new Vector3(0,0,0);
