@@ -2813,3 +2813,29 @@ renamed `.off` when the runs were done.
 
 458 .NET / 745 EditMode / 172 PlayMode, zero failures; APK 41,164,312 bytes, SHA256
 77BDA81054C157748F02F705693F6B255F8C81C6AEB5CB23341AE0FB1A18C393, installed (autopilot disarmed).
+
+## 2026-10-25 - Telemetry for floor pacing: waves, and health beside its maximum
+
+A pacing analysis could not read health at a boss as a share once health cards raise the maximum, and saw no waves.
+Every event that writes `hero_hp` now writes `hero_max_hp` beside it (one helper, `AddHeroHealth`), and `room_start`,
+`boss_start`, `boss_end` and `run_end` gain both. Two events: `wave_start` (floor_index, room_index, `wave_index`
+one-based, `wave_count` with a hall's surges, `enemy_count`, hero_hp, hero_max_hp) as an ordinary wave spawns, and
+`wave_clear` (the same indices, `active_sec` of the run's active time since the spawn, `enemy_hits` - the hits its
+enemies took - hero_hp, hero_max_hp) on `EncounterController.WaveCleared`, raised once as a wave's last enemy falls and
+before the floor moves on. A swarm room keeps its own `swarm_step` and writes no wave lines. 460 .NET / 748 EditMode / 173 PlayMode, zero failures.
+
+## 2026-10-25 - Hall surges: the first lever on floor length
+
+A pacing read of the phone's log (owner and autopilot runs) put foundry floors at 83-126 s active against the S6 target of
+240-360 s: about a third walking, a bit over half the halls' fights (26 enemies on floor 1, beats of ~5 s), a Warden
+costing the owner 6-11 HP. Of four levers offered (bigger halls, a real boss, a second elite, ambushes on the walks) the
+owner chose bigger halls.
+
+- `FloorDefinition.FoundryHallSurges` (both climb floors: 2) - on the foundry each combat room sends that many surge
+  waves after its authored ones (`HallSurgeRule`): surge k repeats the room's later waves counting back from its last,
+  with k + 1 more of that wave's last enemy, capped at a full pack. Floor 1's halls go from 26 enemies to 56. The hall arena and the Descent simulation keep the authored waves, so no pinned balance number moved.
+- Autopilot (Staff) on the phone, same build otherwise: floor 1 116 -> 128 s, floor 2 104 -> 127 s; the halls' fights on
+  floor 1 66 -> 85 s for 30 more enemies (0.6 s an enemy); level at the end 17 -> 20. The Staff's area strike clears a
+  bigger pack in about the same time, and the extra experience shortens the rooms after - so for this player the surges
+  are worth +12 to +23 s a floor, well short of the target. The owner's floor-1 rate (1.6 s an enemy, Daggers) predicts
+  more; the owner's own run is the measurement that decides the next lever.
