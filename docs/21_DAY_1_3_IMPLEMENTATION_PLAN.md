@@ -2781,3 +2781,35 @@ the 10 s period; and floor 1 has only three later halls, so the pit-rim district
 clock only pauses between waves (`PitEruptionService`), the period is 7 s, and the pit's south rim is the second hall
 district (workyard, pit rim, east court, north court). 457 .NET / 744 EditMode / 169 PlayMode, zero failures; APK
 41,156,934 bytes, SHA256 FB363A51B49966A970929D1A6F5C5282AFBD4AA2E4DBB3B661F45A2B2C2F7C5E.
+
+## 2026-10-25 - A development autopilot, and the pit made into a weapon by measuring it on the phone
+
+The owner handed the phone over for unattended device runs. Each run's profile was backed up first and restored
+afterwards (revision 251, 38,132 gold), so no autopilot gold reached the owner's save; `development/autopilot.txt` was
+renamed `.off` when the runs were done.
+
+- `DevelopmentAutopilot` (Core; Editor and development builds only, armed by `development/autopilot.txt`, foundry only):
+  steers through `HeroMovementInput.Hold`, so a finger still takes over. Between fights it walks to drops within 10 units,
+  then the floor's unused altars, then the next hall; in a fight it lures the pack to a spot 1.3 units off the pit's hole
+  and shelters `Reach + 1.4` out through the warning; it answers offers with the first card, checkpoints with Descend, and
+  leaves the finale's swarm after a minute. Routes use `FoundryPursuit`.
+- Device runs (S23, Staff, the owner's relic), each a different seed - `pit_eruption` spills that burnt at least one enemy:
+
+| Run | Build | Spills burning an enemy | Kills by the pit | Result |
+|---|---|---|---|---|
+| 1 | clock fix only (`feb561d`) | 2 of 17 | 0 | victory, level 11 |
+| 2 | + the rim holds the pack (`188a86f`); no drops picked up | 5 of 11 | 2 | died to the Forge Warden, level 4 |
+| 3 | + drops and altars on the way (`c060b07`) | 3 of 16 | 0 | victory, level 16 |
+| 4 | + band 3 units (`PitEruptionRule.Reach` 2 -> 3) | 12 of 17 | 4 | victory, level 17, 5 altars |
+
+- Why the pit missed: a hero stepping out at the warning took the pack with it (fixed: through the warning the slag
+  holds every enemy standing in the band, `PackMotion.Held` set by the scene's `PitEruptionService` only, so the Descent
+  simulation is unchanged); and a pack forms up round a hero on the rim on the hero's far side, outside a 2-unit band.
+  The gate boss fights stay away from the pit (the Warden comes out of the gate), so boss rooms rarely see a burn.
+- A molten grip (ember ring + closing crust) marks each held enemy through the warning (`PitEruptionView`); the top
+  panel reads "Danger +N%" once Difficulty rises above 1 and swells on each rise (`DangerReadoutView`, built in code by
+  `RunHud`), seen on the phone at +20% and +40%.
+- The second run's death is the autopilot's, not the game's: it walked past every drop and reached the boss at level 4.
+
+458 .NET / 745 EditMode / 172 PlayMode, zero failures; APK 41,164,312 bytes, SHA256
+77BDA81054C157748F02F705693F6B255F8C81C6AEB5CB23341AE0FB1A18C393, installed (autopilot disarmed).
