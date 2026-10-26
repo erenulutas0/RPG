@@ -56,6 +56,11 @@ namespace Cryptforge.Tests
             // The WeaponDefinition's id, which is what a loadout tells two weapons apart by; a hand-made weapon that
             // names none is held under UnnamedWeaponId.
             public string Id;
+            public string DisplayName;
+            // The weapon's own table, as its WeaponDefinition's _levelUps hold it, and the tome it evolves with; empty and
+            // null for a hand-made weapon. A run in category mode draws a carried weapon's upgrades from these.
+            public UpgradeOption[] Lines;
+            public string EvolvesWithTome;
             public float Damage = 10f;
             public float Interval = 0.8f;
             public float Range = 3f;
@@ -82,6 +87,11 @@ namespace Cryptforge.Tests
                     runtime.AddModifier(UpgradeStat.CritChance, new StatModifier(ModifierOperation.Flat, CritChance));
                 return runtime;
             }
+
+            // The weapon as category-mode offers see it, built the way WeaponDefinition.CreateCard builds the scene's.
+            public WeaponCard CreateCard() =>
+                new WeaponCard(Id ?? UnnamedWeaponId, DisplayName, string.Empty, CreateRuntime,
+                    Lines ?? new UpgradeOption[0], null, EvolvesWithTome);
         }
 
         // Ability_ForgeBurst.asset: the hero's burst, fired by the player; the simulation fires it whenever it is ready and
@@ -174,6 +184,12 @@ namespace Cryptforge.Tests
             public float Difficulty;
             // Recorded picks a replay could not make, because the card it named was not offered.
             public int ReplayMisses;
+            // What a category-mode run ended up carrying: weapons and distinct tomes held, and the highest level any one
+            // of each reached. One weapon, no tomes and level 1 for every legacy run.
+            public int WeaponsHeld;
+            public int TomesHeld;
+            public int HighestWeaponLevel;
+            public int HighestTomeLevel;
             // The cards the run took, in order: what a replay of this run would hand back.
             public string[] Picks;
 
@@ -194,15 +210,15 @@ namespace Cryptforge.Tests
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
-            new HeroWeapon { Id = "weapon_sword", Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
+            new HeroWeapon { Id = "weapon_sword", DisplayName = "Sword", Lines = SwordLines(), EvolvesWithTome = "tome_force", Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
 
         // Weapon_Staff.asset: 11 damage every 1.1 s from 2.1 units away, and 75% of it to every enemy within 3.5 units of the target.
         public static HeroWeapon Staff() =>
-            new HeroWeapon { Id = "weapon_staff", Damage = 11f, Interval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
+            new HeroWeapon { Id = "weapon_staff", DisplayName = "Staff", Lines = StaffLines(), Damage = 11f, Interval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
 
         // Weapon_Daggers.asset: 6 damage every 0.5 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
-            new HeroWeapon { Id = "weapon_daggers", Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
+            new HeroWeapon { Id = "weapon_daggers", DisplayName = "Daggers", Lines = DaggersLines(), EvolvesWithTome = "tome_precision", Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
@@ -432,6 +448,68 @@ namespace Cryptforge.Tests
         // the way and asks what a pool of exactly five does.
         public static UpgradeOption[] FiveCardPool() => new[] { Damage(), Speed(), Range(), Crit(), Health() };
 
+        // Data/Upgrades/WeaponLines, in the order each Weapon_*.asset's _levelUps holds them (docs/42 section 5). Every
+        // tier is the report's 1 / 1.25 / 1.5 / 2 times green (40 section 6.1), and a line on Damage is Flat so that a
+        // weapon's own damage adds up before the tomes' Force multiplies it (40 section 5.3). WeaponContentTests holds
+        // these equal to the assets.
+        public static UpgradeOption[] SwordLines() => new[]
+        {
+            Line("line_sword_damage", "Sword", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 2f, 2.5f, 3f, 4f),
+            Line("line_sword_area", "Sword", "+{0:0.#}% area", UpgradeStat.Area, ModifierOperation.Percent, 0.12f, 0.15f, 0.18f, 0.24f),
+            Line("line_sword_range", "Sword", "+{0:0.0#} reach", UpgradeStat.Range, ModifierOperation.Flat, 0.3f, 0.375f, 0.45f, 0.6f)
+        };
+
+        public static UpgradeOption[] StaffLines() => new[]
+        {
+            Line("line_staff_damage", "Staff", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 2f, 2.5f, 3f, 4f),
+            Line("line_staff_area", "Staff", "+{0:0.#}% area", UpgradeStat.Area, ModifierOperation.Percent, 0.12f, 0.15f, 0.18f, 0.24f),
+            Line("line_staff_attack_speed", "Staff", "+{0:0.#}% attack speed", UpgradeStat.AttackSpeed, ModifierOperation.Percent, 0.08f, 0.1f, 0.12f, 0.16f)
+        };
+
+        public static UpgradeOption[] DaggersLines() => new[]
+        {
+            Line("line_daggers_damage", "Daggers", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 1f, 1.25f, 1.5f, 2f),
+            Line("line_daggers_crit", "Daggers", "+{0:0.#%} crit chance", UpgradeStat.CritChance, ModifierOperation.Flat, 0.05f, 0.0625f, 0.075f, 0.1f),
+            Line("line_daggers_attack_speed", "Daggers", "+{0:0.#}% attack speed", UpgradeStat.AttackSpeed, ModifierOperation.Percent, 0.08f, 0.1f, 0.12f, 0.16f)
+        };
+
+        // Seven picks take a weapon from level 1 to its last, so no one line can be taken more often than that.
+        public const int LineMaxStacks = WeaponLoadout.MaxLevel - 1;
+
+        private static UpgradeOption Line(string id, string name, string format, UpgradeStat stat, ModifierOperation op,
+            float green, float orange, float red, float gold) =>
+            Tiered(id, name, format, stat, op, green, orange, red, gold, LineMaxStacks);
+
+        // Data/Upgrades/Tomes (docs/42 section 5): global grants to every weapon held and to every weapon picked up later,
+        // eight levels each, three distinct at most. Green values, and the report's tier multipliers above them.
+        public static UpgradeOption Force() =>
+            Tiered("tome_force", "Force", "+{0:0.#}% damage to every weapon", UpgradeStat.Damage, ModifierOperation.Percent,
+                0.08f, 0.1f, 0.12f, 0.16f, UpgradeService.MaxTomeLevel);
+
+        public static UpgradeOption Tempo() =>
+            Tiered("tome_tempo", "Tempo", "+{0:0.#}% attack speed to every weapon", UpgradeStat.AttackSpeed,
+                ModifierOperation.Percent, 0.06f, 0.075f, 0.09f, 0.12f, UpgradeService.MaxTomeLevel);
+
+        public static UpgradeOption Reach() =>
+            Tiered("tome_reach", "Reach", "+{0:0.#}% area to every weapon", UpgradeStat.Area, ModifierOperation.Percent,
+                0.08f, 0.1f, 0.12f, 0.16f, UpgradeService.MaxTomeLevel);
+
+        public static UpgradeOption Precision() =>
+            Tiered("tome_precision", "Precision", "+{0:0.#%} crit chance to every weapon", UpgradeStat.CritChance,
+                ModifierOperation.Flat, 0.04f, 0.05f, 0.06f, 0.08f, UpgradeService.MaxTomeLevel);
+
+        public static UpgradeOption[] Tomes() => new[] { Force(), Tempo(), Reach(), Precision() };
+
+        // The three hero weapons as category-mode offers draw them: all three drop whatever the forge owns (docs/42,
+        // owner decisions), the one a run starts with included, for its levels.
+        public static HeroWeapon[] WeaponCatalogue() => new[] { Sword(), Staff(), Daggers() };
+
+        private static UpgradeOption Tiered(string id, string name, string format, UpgradeStat stat, ModifierOperation op,
+            float green, float orange, float red, float gold, int maxStacks) =>
+            new UpgradeOption(id, name, format, stat,
+                new StatModifier(op, green), new StatModifier(op, orange), new StatModifier(op, red), new StatModifier(op, gold),
+                maxStacks);
+
         public static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
 
         // Data/Relics/Relic_SecondWind.asset and Relic_Counterweight.asset.
@@ -484,16 +562,20 @@ namespace Cryptforge.Tests
         // Always descends. cardSlot is the upgrade card taken every time (clamped when fewer cards remain); floor 2 and
         // later always Mend, floor 1 Mends only when mendOnFloorOne is set. A null route leaves the hero at the floor
         // origin for the whole run, which is the balance baseline; heroSpeed is the walking speed a route steers.
-        // moreWeapons fill the loadout's later slots from the first frame, fired after heroWeapon in their order; cards
-        // still write to heroWeapon alone, since nothing offers a weapon yet (docs/42, PR 4). Null is every run the
-        // game has measured: one weapon in slot 0, on the run's own seed.
+        // moreWeapons fill the loadout's later slots from the first frame, fired after heroWeapon in their order; a legacy
+        // card still writes to heroWeapon alone. Null is every run the game has measured: one weapon in slot 0, on the
+        // run's own seed.
+        //
+        // weaponCatalogue or tomes switch on category mode (docs/42, PR 4): offers are drawn by kind of pick, a picked-up
+        // weapon joins the loadout the strikes walk, and the card policy prefers kinds in a fixed order (CardPicker).
+        // Pass the starting weapon in the catalogue too, or it is never levelled. Null for both is the legacy engine.
         public static Result Run(Floor[] floors, int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null,
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
             HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
             IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, float swarmSeconds = DefaultSwarmSeconds,
             string[] replay = null, Action<int, float, int> onSwarmWave = null, bool groundDrops = true,
-            HeroWeapon[] moreWeapons = null)
+            HeroWeapon[] moreWeapons = null, HeroWeapon[] weaponCatalogue = null, UpgradeOption[] tomes = null)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
@@ -516,9 +598,21 @@ namespace Cryptforge.Tests
             // hands in its own bar (a test asking what the game was before the budget) must not have it overwritten.
             HeroStamina heroStamina = stamina ?? HeroStamina.ForCurrentRules();
             var heroStats = new HeroStats(100f, heroSpeed, heroStamina.Bar);
-            var upgrades = new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats, heroStamina.Enabled);
-            // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
-            var picker = new CardPicker(upgrades, cardSlot, preferIds, replay);
+            bool categories = weaponCatalogue != null || tomes != null;
+            WeaponCard[] cards = null;
+            if (weaponCatalogue != null)
+            {
+                cards = new WeaponCard[weaponCatalogue.Length];
+                for (int i = 0; i < cards.Length; i++)
+                    cards[i] = weaponCatalogue[i].CreateCard();
+            }
+            var upgrades = categories
+                ? new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats, heroStamina.Enabled, loadout,
+                    cards ?? new WeaponCard[0], tomes ?? new UpgradeOption[0])
+                : new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats, heroStamina.Enabled);
+            // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown;
+            // in category mode, before the slot, the first kind of pick in CardPicker's order.
+            var picker = new CardPicker(upgrades, cardSlot, preferIds, replay, categories);
             var forge = new ForgeService(run, hero);
             var choices = new RunChoices(upgrades, forge);
             RelicRuntime relic = relicOption != null ? new RelicRuntime(relicOption) : null;
@@ -577,6 +671,13 @@ namespace Cryptforge.Tests
             result.Difficulty = heroStats.Difficulty;
             result.EvolutionsTaken = upgrades.EvolutionsTaken;
             result.ReplayMisses = picker.ReplayMisses;
+            result.WeaponsHeld = loadout.Count;
+            for (int slot = 0; slot < loadout.Count; slot++)
+                result.HighestWeaponLevel = Math.Max(result.HighestWeaponLevel, loadout.At(slot).Level);
+            result.TomesHeld = upgrades.TomesHeld;
+            if (upgrades.Tomes != null)
+                foreach (UpgradeOption tome in upgrades.Tomes)
+                    result.HighestTomeLevel = Math.Max(result.HighestTomeLevel, upgrades.TomeLevel(tome.Id));
             result.Picks = picker.Taken.ToArray();
             result.UpgradesApplied = run.UpgradesApplied;
             result.HeroFloorX = heroMotion.X;
@@ -1470,6 +1571,7 @@ namespace Cryptforge.Tests
             private readonly int _slot;
             private readonly string[] _preferIds;
             private readonly string[] _replay;
+            private readonly bool _byCategory;
             private int _picks;
 
             // Every card this run took, in order, so a simulated run can be replayed exactly as a recorded one is.
@@ -1480,12 +1582,15 @@ namespace Cryptforge.Tests
             // that took every recorded card saw every recorded offer.
             public int ReplayMisses { get; private set; }
 
-            public CardPicker(UpgradeService upgrades, int slot, string[] preferIds, string[] replay = null)
+            // byCategory is category mode's policy, and false keeps every picker that existed before it exactly as it was.
+            public CardPicker(UpgradeService upgrades, int slot, string[] preferIds, string[] replay = null,
+                bool byCategory = false)
             {
                 _upgrades = upgrades;
                 _slot = slot;
                 _preferIds = preferIds;
                 _replay = replay;
+                _byCategory = byCategory;
             }
 
             public int Slot(int cardCount)
@@ -1516,7 +1621,38 @@ namespace Cryptforge.Tests
                             if (offer.Choices[i].Id == _preferIds[p])
                                 return i;
                 }
+                if (_byCategory && offer != null)
+                {
+                    int byCategory = ByCategory(offer, cardCount);
+                    if (byCategory >= 0)
+                        return byCategory;
+                }
                 return Math.Min(_slot, cardCount - 1);
+            }
+
+            // A simple build, not a good one: level a carried weapon whenever one is offered, pick weapons up until two
+            // are carried, tomes until two are held, then deepen the tomes, then take a general card. Anything else - a
+            // third weapon or tome - only when nothing in that list is offered, by the slot.
+            private int ByCategory(UpgradeOffer offer, int cardCount)
+            {
+                int found = Find(offer, cardCount, OfferCategory.WeaponUpgrade);
+                if (found < 0 && _upgrades.Loadout.Count < 2)
+                    found = Find(offer, cardCount, OfferCategory.NewWeapon);
+                if (found < 0 && _upgrades.TomesHeld < 2)
+                    found = Find(offer, cardCount, OfferCategory.NewTome);
+                if (found < 0)
+                    found = Find(offer, cardCount, OfferCategory.TomeUpgrade);
+                if (found < 0)
+                    found = Find(offer, cardCount, OfferCategory.General);
+                return found;
+            }
+
+            private static int Find(UpgradeOffer offer, int cardCount, OfferCategory category)
+            {
+                for (int i = 0; i < offer.Choices.Count && i < cardCount; i++)
+                    if (offer.Choices[i].Category == category)
+                        return i;
+                return -1;
             }
         }
     }

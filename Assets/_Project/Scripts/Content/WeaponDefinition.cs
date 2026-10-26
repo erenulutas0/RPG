@@ -25,6 +25,14 @@ namespace Cryptforge.Content
         // interval, splash fraction and crit multiplier as whole percentages, and the crit rhythm.
         [SerializeField] private string _forgeDescriptionFormat;
         [SerializeField, Min(0)] private int _forgePrice;
+        // The weapon's own table (docs/42, PR 3): what a later pick of it can give, one line drawn per offer. Each line is
+        // an ordinary upgrade card, so its tiers and text come with it. A line on Damage is authored Flat, never Percent:
+        // per-weapon damage then adds to the base before every tome's Force multiplies it, the report's per-weapon-first,
+        // global-bucket-second order (40 section 5.3), and a content test holds every asset to it.
+        [SerializeField] private UpgradeDefinition[] _levelUps;
+        // What the weapon evolves into, and the id of the tome it evolves with; none for a weapon with no evolution yet.
+        [SerializeField] private UpgradeDefinition _evolution;
+        [SerializeField] private string _evolvesWithTome;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -38,6 +46,11 @@ namespace Cryptforge.Content
         public int CritEvery => _critEvery;
         public float CritMultiplier => _critMultiplier;
         public int ForgePrice => _forgePrice;
+        public int LevelUpCount => _levelUps != null ? _levelUps.Length : 0;
+        public UpgradeDefinition LevelUpAt(int index) => _levelUps[index];
+        public UpgradeDefinition Evolution => _evolution;
+        // Null when the weapon evolves with no tome.
+        public string EvolvesWithTome => string.IsNullOrEmpty(_evolvesWithTome) ? null : _evolvesWithTome;
 
         public WeaponRuntime CreateRuntime() =>
             new WeaponRuntime(_damage, _interval, _range, _initialDelay,
@@ -48,5 +61,20 @@ namespace Cryptforge.Content
                 string.Format(_forgeDescriptionFormat ?? string.Empty, _damage, _interval, _splashFraction * 100f,
                     _critMultiplier * 100f, _critEvery),
                 _forgePrice);
+
+        // The weapon as a run's offers see it: the pure card UpgradeService draws from, so the service never holds this
+        // asset. Its text is the forge's description of the weapon.
+        public WeaponCard CreateCard()
+        {
+            var lines = new UpgradeOption[LevelUpCount];
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (_levelUps[i] == null)
+                    throw new System.InvalidOperationException($"Weapon {_id} has an empty level-up line at {i}.");
+                lines[i] = _levelUps[i].CreateOption();
+            }
+            return new WeaponCard(_id, _displayName, CreateForgeOption().Description, CreateRuntime, lines,
+                _evolution != null ? _evolution.CreateOption() : null, EvolvesWithTome);
+        }
     }
 }

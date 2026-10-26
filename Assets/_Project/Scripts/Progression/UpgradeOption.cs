@@ -23,6 +23,10 @@ namespace Cryptforge.Progression
         // apply to it (EvolutionRule).
         public string EvolvesFromId { get; }
         public bool IsEvolution => EvolvesFromId != null;
+        // What kind of pick this card is (docs/42). General for every card authored before a run could carry several
+        // weapons, which is what keeps every legacy offer exactly what it was; the weapon and tome cards a loadout's
+        // offers draw are copies of their authored option with the category the offer drew them as (WithCategory).
+        public OfferCategory Category { get; }
 
         // Percent amounts are authored as fractions but read as whole percentages ("+25%").
         public float DescriptionValue =>
@@ -53,15 +57,16 @@ namespace Cryptforge.Progression
         }
 
         public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
-            StatModifier modifier, int maxStacks, string requiresId = null, string evolvesFromId = null)
+            StatModifier modifier, int maxStacks, string requiresId = null, string evolvesFromId = null,
+            OfferCategory category = OfferCategory.General)
             : this(id, displayName, descriptionFormat, stat, modifier, modifier, modifier, modifier, maxStacks,
-                requiresId, evolvesFromId)
+                requiresId, evolvesFromId, category)
         {
         }
 
         public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
             StatModifier common, StatModifier rare, StatModifier epic, StatModifier gold, int maxStacks,
-            string requiresId = null, string evolvesFromId = null)
+            string requiresId = null, string evolvesFromId = null, OfferCategory category = OfferCategory.General)
         {
             StatModifier modifier = common;
             if (string.IsNullOrEmpty(id))
@@ -74,6 +79,8 @@ namespace Cryptforge.Progression
                 throw new ArgumentOutOfRangeException(nameof(stat));
             if (maxStacks < 1)
                 throw new ArgumentOutOfRangeException(nameof(maxStacks));
+            if (!Enum.IsDefined(typeof(OfferCategory), category))
+                throw new ArgumentOutOfRangeException(nameof(category));
 
             Id = id;
             DisplayName = displayName ?? string.Empty;
@@ -90,6 +97,13 @@ namespace Cryptforge.Progression
             MaxStacks = maxStacks;
             RequiresId = requiresId;
             EvolvesFromId = evolvesFromId;
+            Category = category;
         }
+
+        // The same card - id, text, stat, all four tiers, limits - as another kind of pick. A new instance, so an offer
+        // engine that counts stacks by reference never mistakes the copy for the authored card it came from.
+        public UpgradeOption WithCategory(OfferCategory category) =>
+            new UpgradeOption(Id, DisplayName, DescriptionFormat, Stat, Modifier, _rare, _epic, _gold, MaxStacks,
+                RequiresId, EvolvesFromId, category);
     }
 }

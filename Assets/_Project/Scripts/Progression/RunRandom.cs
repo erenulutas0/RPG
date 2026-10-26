@@ -19,8 +19,11 @@ namespace Cryptforge.Progression
         // Which book a chest holds, kept apart from Chests so that "does this chest hold one" and "which one is it"
         // never read the same word of the same stream.
         public const int Books = 4;
-        // The crit seed of a weapon held in a slot after the first (WeaponLoadout.SeedFor), one index per slot. 5 is left
-        // for the offers' category draws that docs/42 plans next, so the plan's numbers stay the code's.
+        // Which kind of pick each card of a loadout's offer is, and which card of that kind (OfferWeights, docs/42), one
+        // index per offer. Kept apart from Offers, which still draws the tiers, so "which card" and "which tier" never
+        // read the same word: a change to the category weights cannot move a tier, nor a change to luck a card.
+        public const int Categories = 5;
+        // The crit seed of a weapon held in a slot after the first (WeaponLoadout.SeedFor), one index per slot.
         public const int WeaponSeeds = 6;
 
         private uint _state;

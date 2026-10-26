@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0000000000000000000000000000000e, type: 3}
+  m_Name: Tome_Reach
+  m_EditorClassIdentifier:
+  _id: tome_reach
+  _displayName: Reach
+  _descriptionFormat: '+{0:0.#}% area to every weapon'
+  _stat: 12
+  _operation: 1
+  _amount: 0.08
+  _rareAmount: 0.1
+  _epicAmount: 0.12
+  _goldAmount: 0.16
+  _maxStacks: 8
+  _requires: {fileID: 0}
+  _evolvesFrom: {fileID: 0}

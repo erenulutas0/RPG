@@ -24,3 +24,9 @@ MonoBehaviour:
   _critMultiplier: 0
   _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s. Cleaves a second enemy for {2:0}%'
   _forgePrice: 0
+  _levelUps:
+  - {fileID: 11400000, guid: b5c1ed9cc5ae427a878d2854c82ad146, type: 2}
+  - {fileID: 11400000, guid: 5f14d7dd631b4ef69c4e6130b27fec7b, type: 2}
+  - {fileID: 11400000, guid: 519c08e74fb84ec5a229ba66c8b9cbbb, type: 2}
+  _evolution: {fileID: 0}
+  _evolvesWithTome: tome_force
