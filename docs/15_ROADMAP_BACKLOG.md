@@ -1337,3 +1337,10 @@ one-based, `wave_count` with a hall's surges, `enemy_count`, hero_hp, hero_max_h
 `wave_clear` (the same indices, `active_sec` of the run's active time since the spawn, `enemy_hits` - the hits its
 enemies took - hero_hp, hero_max_hp) on `EncounterController.WaveCleared`, raised once as a wave's last enemy falls and
 before the floor moves on. A swarm room keeps its own `swarm_step` and writes no wave lines. 460 .NET / 748 EditMode / 173 PlayMode, zero failures.
+
+## 2026-10-26 - The horde: the owner's Megabonk research report, and the plan drawn from it
+
+The owner's research report is `40` (copied as delivered, not edited). Decisions 9-12 in `27` record what he took from it:
+the hybrid shape (six nodes kept, enemies continuous), a crowd of 30-40 on the phone raised only by measurement, the
+evolution's +0.20 Difficulty kept until re-measured, V0.1 before characters. `41` maps the report's PR list onto this
+repo's real files, step by step, every step marked proposed and gated on a measured number.

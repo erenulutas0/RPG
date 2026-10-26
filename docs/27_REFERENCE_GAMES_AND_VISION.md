@@ -167,6 +167,35 @@ the HUD, a stat readout on the pause screen, and the evolution's presentation pe
    queue read one spawn at a time, so a hero who killed fast met the heaviest wave's Warden in every ten enemies within
    half a minute. Each of the pack's places now has a role in each wave, and the wave is the room's clock
    (`SwarmRule.LadderSeconds`): what stands on the floor at any moment is what that minute calls for (`36`).
+9. **The game goes Megabonk-shaped: hybrid** (the owner, 2026-10-26, on his own research report, `40`). The floor keeps
+   its six nodes on the foundry as objectives - three halls, the forge, the elite, the boss gate - but enemies no longer
+   wait for a hall: a horde director spawns them continuously while the hero crosses the map and through the node
+   fights, holding a standing crowd at a target, spawning faster as the hero kills faster, never past a cap; the boss
+   gate opens once the three halls are cleared. This is the report's "B combat + A progression" recommendation (`40`,
+   section 3.1), confirmed by the owner. The authored waves alone could not reach the floor target: 5 s beats measured
+   at 83-128 s a floor against 240-360 s, and the hall surges were worth +12 to +23 s (`21`, 2026-10-25).
+10. **The crowd target starts at 30-40 active enemies on the phone and rises only by measurement** (the owner,
+   2026-10-26). Until today a pack held at most ten (`PackLayout.MaxPackSize`, 10), and the S23 held 59.5-59.9 fps with
+   ten fighting (`23`); the constant is being split - `MaxFormationSize` keeps 10 for an authored wave, `MaxPackSize`
+   becomes the horde's ceiling at 40. The report's 60-120 (`40`, section 8.3) is a later target; the frame time measured
+   at 30-40 on the device decides whether to go there, not the number.
+11. **The evolution's +0.20 Difficulty cost stays until it is re-measured under the horde** (2026-10-26). `32` measured
+   0.20 (`EvolutionRule.DifficultyPerStack`) as the smallest cost that stops a Staff run wasting levels at the swarm
+   cap - under the swarm-as-farm framing that decision 5 retired. The report proposes removing it and offering an
+   optional "Overforge" instead (`40`, sections 11.3 and 12). Decision: no change now; re-measure with the Descent
+   simulation once the director exists, and let that run decide.
+12. **Order of work: V0.1 before characters** (the owner, 2026-10-26). V0.1 is one character (the Vanguard), one foundry
+   floor, the continuous horde, three weapons with distinct roles (Sword, Staff, Daggers), four tomes (Force, Tempo,
+   Reach, Precision), one elite, a 45-60 s Forge Warden and the extract. Its gate (`40`, section 17.5): a 4-6 min floor,
+   combat uptime of 75 % or more, at least one visible synergy, acceptable frame time on the device. Only past that gate
+   come multiple characters with a passive and one or two actives (skill dependence 1-5, the report's section 4.1),
+   3 weapon + 3 tome slots, four-colour rarity (green/orange/red/gold) with the report's Luck formula
+   (`w_i = p0_i * (1 + L/25)^(0.4 i)`, section 7.2) and its soft cap at 50. What already exists and maps onto the report:
+   rarity tiers and the Luck stat (S2b: `UpgradeRarity` Common/Rare/Epic, `RarityTable.Draw` weighting by
+   `HeroStats.Luck`); the `DescentSimulation` and the bot (`DevelopmentAutopilot`) for measurement; stamina off since
+   2026-09-23 (`HeroStamina.CurrentRulesEnabled` is false), which is the report's section 12.1 already; the pickup
+   radius of 1 (`GroundDrops.PickupRadius`) measured in `37`, to be A/B'd at 2.2 under continuous combat (section
+   12.3). The engineering plan is `41`.
 
 ## 6. S1 specification — the offer engine (agreed 2026-09-19)
 
