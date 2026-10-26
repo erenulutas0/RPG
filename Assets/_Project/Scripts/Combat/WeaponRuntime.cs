@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Cryptforge.Progression;
 
 namespace Cryptforge.Combat
@@ -11,6 +12,8 @@ namespace Cryptforge.Combat
         private const float MinimumDamage = 0f;
         private const float MinimumAttackSpeed = 0.1f;
         private const float MinimumRange = 0.1f;
+        // A shrinking card can take a circle down to nothing, never inside out.
+        private const float MinimumArea = 0f;
 
         // A rolled crit needs a multiplier even on a weapon whose pattern authors none, and doubling is the rhythm
         // the Daggers already use.
@@ -24,6 +27,10 @@ namespace Cryptforge.Combat
         private readonly ModifiableStat _pulseDamage;
         // The share of a critical strike that splinters near its target; 0 until a card grants it (CritSplashRule).
         private readonly ModifiableStat _critSplash;
+        // What every circle this weapon draws is multiplied by - the splash round its target, the pulse round its
+        // attacker, the splinter round a crit - 1 until a card or a tome widens it (docs/42, the Reach tome). One
+        // factor for all three, so Reach is worth something to the Daggers once they splinter, and nothing until then.
+        private readonly ModifiableStat _area;
         private readonly float _baseInterval;
         private float _cooldown;
 
@@ -39,8 +46,34 @@ namespace Cryptforge.Combat
         // The share of a critical strike that splinters, 0 for no splinter at all.
         public float CritSplash => _critSplash.Value;
         public int SplintersFired { get; private set; }
+        // The factor on every radius below, 1 for a weapon nothing has widened.
+        public float Area => _area.Value;
+
+        // The three circles, each its authored radius times Area. The scene's AttackController, the simulation and the
+        // strike art all read them here and nowhere else, and each is one body that is never inlined: a radius is
+        // squared into a reach comparison the moment it is read, and two copies of float arithmetic in two assemblies
+        // have already disagreed in the last bit once (docs/21, the movement budget). At Area 1 each is its authored
+        // radius exactly, since multiplying by 1 is exact.
+        public float SplashRadius
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => Pattern.SplashRadius * _area.Value;
+        }
+
+        public float PulseRadius
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => PulseRule.Radius * _area.Value;
+        }
+
+        public float CritSplashRadius
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => CritSplashRule.Radius * _area.Value;
+        }
+
         // The run seed the crit roll is drawn from; 0 for every weapon that never rolls, which is all of them until a
-        // card grants a chance.
+        // card grants a chance. A weapon in a loadout's later slot is handed a seed of its own (WeaponLoadout.SeedFor).
         public int Seed { get; set; }
         public AttackPattern Pattern { get; }
         // Successful attacks so far; the critical rhythm counts them.
@@ -68,6 +101,7 @@ namespace Cryptforge.Combat
             _critChance = new ModifiableStat(0f, 0f);
             _pulseDamage = new ModifiableStat(0f, 0f);
             _critSplash = new ModifiableStat(0f, 0f);
+            _area = new ModifiableStat(1f, MinimumArea);
             _baseInterval = interval;
             _cooldown = initialDelay;
             Pattern = pattern;
@@ -84,6 +118,12 @@ namespace Cryptforge.Combat
             const int Steps = 10000;
             return RunRandom.Stream(Seed, RunRandom.Crits, AttacksMade).NextBelow(Steps) < (int)(chance * Steps);
         }
+
+        // Whether a stat is this weapon's to carry rather than the hero's (HeroStats.Owns is the other half).
+        public static bool Owns(UpgradeStat stat) =>
+            stat == UpgradeStat.Damage || stat == UpgradeStat.AttackSpeed || stat == UpgradeStat.Range ||
+            stat == UpgradeStat.CritChance || stat == UpgradeStat.PulseDamage || stat == UpgradeStat.CritSplash ||
+            stat == UpgradeStat.Area;
 
         public void AddModifier(UpgradeStat stat, StatModifier modifier)
         {
@@ -108,6 +148,9 @@ namespace Cryptforge.Combat
                 case UpgradeStat.CritSplash:
                     _critSplash.AddModifier(modifier);
                     break;
+                case UpgradeStat.Area:
+                    _area.AddModifier(modifier);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stat));
             }
@@ -123,13 +166,13 @@ namespace Cryptforge.Combat
             _cooldown = Math.Max(0f, _cooldown - deltaTime);
         }
 
-        // source is the attacker, passed on so targets know who hit them. nearby lists other enemies within the pattern's
-        // splash radius of the target, nearest first: a cleave strikes the first living one, an area attack every living
-        // one, and a direct hit ignores the list. inPulseRadius lists the enemies within PulseRule.Radius of the
-        // attacker itself, which is a different circle from nearby's and drawn round a different centre; a caller whose
-        // weapon has no pulse may leave it null, and every enemy weapon does. inCritSplashRadius is a third circle,
-        // round the target again but at CritSplashRule.Radius rather than the pattern's, for the splinter a critical
-        // strike throws; null unless a card granted one.
+        // source is the attacker, passed on so targets know who hit them. nearby lists other enemies within
+        // SplashRadius of the target, nearest first: a cleave strikes the first living one, an area attack every living
+        // one, and a direct hit ignores the list. inPulseRadius lists the enemies within PulseRadius of the attacker
+        // itself, which is a different circle from nearby's and drawn round a different centre; a caller whose weapon
+        // has no pulse may leave it null, and every enemy weapon does. inCritSplashRadius is a third circle, round the
+        // target again but at CritSplashRadius rather than the splash's, for the splinter a critical strike throws;
+        // null unless a card granted one. The caller gathers all three, so this method never reads a radius itself.
         public bool TryAttack(IDamageable target, IDamageable source = null, IReadOnlyList<IDamageable> nearby = null,
             IReadOnlyList<IDamageable> inPulseRadius = null, IReadOnlyList<IDamageable> inCritSplashRadius = null)
         {

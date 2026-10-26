@@ -53,6 +53,9 @@ namespace Cryptforge.Tests
 
         internal sealed class HeroWeapon
         {
+            // The WeaponDefinition's id, which is what a loadout tells two weapons apart by; a hand-made weapon that
+            // names none is held under UnnamedWeaponId.
+            public string Id;
             public float Damage = 10f;
             public float Interval = 0.8f;
             public float Range = 3f;
@@ -162,7 +165,8 @@ namespace Cryptforge.Tests
             public int DropsSwept;
             // The run's level as floor one's last room - its boss - begins; -1 if the run never got there.
             public int FloorOneBossLevel;
-            // Pulses the hero's weapon fired, and splinters it threw; 0 until a card grants each.
+            // Pulses the hero's weapons fired, and splinters they threw, summed over the loadout; 0 until a card grants
+            // each.
             public int PulsesFired;
             public int SplintersFired;
             // Evolution stacks taken, and what the world ended up multiplying its enemies by for them.
@@ -190,15 +194,15 @@ namespace Cryptforge.Tests
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
-            new HeroWeapon { Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
+            new HeroWeapon { Id = "weapon_sword", Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
 
         // Weapon_Staff.asset: 11 damage every 1.1 s from 2.1 units away, and 75% of it to every enemy within 3.5 units of the target.
         public static HeroWeapon Staff() =>
-            new HeroWeapon { Damage = 11f, Interval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
+            new HeroWeapon { Id = "weapon_staff", Damage = 11f, Interval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
 
         // Weapon_Daggers.asset: 6 damage every 0.5 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
-            new HeroWeapon { Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
+            new HeroWeapon { Id = "weapon_daggers", Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
@@ -473,20 +477,39 @@ namespace Cryptforge.Tests
         // clear and the next wave, so a weapon slower than the delay starts the next wave still cooling down.
         public const float AdvanceDelay = 1f;
 
+        // The loadout id of a hand-made HeroWeapon that names none; a later unnamed one gets its slot's number after it.
+        public const string UnnamedWeaponId = "weapon_unnamed";
+
 
         // Always descends. cardSlot is the upgrade card taken every time (clamped when fewer cards remain); floor 2 and
         // later always Mend, floor 1 Mends only when mendOnFloorOne is set. A null route leaves the hero at the floor
         // origin for the whole run, which is the balance baseline; heroSpeed is the walking speed a route steers.
+        // moreWeapons fill the loadout's later slots from the first frame, fired after heroWeapon in their order; cards
+        // still write to heroWeapon alone, since nothing offers a weapon yet (docs/42, PR 4). Null is every run the
+        // game has measured: one weapon in slot 0, on the run's own seed.
         public static Result Run(Floor[] floors, int cardSlot, bool mendOnFloorOne, RelicOption relicOption = null,
             HeroWeapon heroWeapon = null, int experiencePerLevel = ExperiencePerLevel, int experienceGrowth = ExperienceGrowth,
             HeroAbility ability = null, IHeroRoute route = null, float heroSpeed = HeroSpeed,
             HeroStamina stamina = null, int seed = 0, string[] preferIds = null,
             IReadOnlyList<UpgradeOption> pool = null, int choiceCount = 2, float swarmSeconds = DefaultSwarmSeconds,
-            string[] replay = null, Action<int, float, int> onSwarmWave = null, bool groundDrops = true)
+            string[] replay = null, Action<int, float, int> onSwarmWave = null, bool groundDrops = true,
+            HeroWeapon[] moreWeapons = null)
         {
             var run = new RunState(experiencePerLevel, 0.5f, experienceGrowth, seed);
             var rewards = new RewardService(run);
-            WeaponRuntime weapon = (heroWeapon ?? Sword()).CreateRuntime();
+            // The loadout seeds each slot's crits as it adds it: slot 0 on the run's seed, as the one weapon always was.
+            var loadout = new WeaponLoadout(run.Seed);
+            HeroWeapon first = heroWeapon ?? Sword();
+            WeaponRuntime weapon = first.CreateRuntime();
+            loadout.TryAdd(first.Id ?? UnnamedWeaponId, weapon);
+            if (moreWeapons != null)
+            {
+                for (int i = 0; i < moreWeapons.Length; i++)
+                {
+                    if (!loadout.TryAdd(moreWeapons[i].Id ?? UnnamedWeaponId + (i + 1), moreWeapons[i].CreateRuntime()))
+                        throw new ArgumentException("A loadout holds three different weapons at most.", nameof(moreWeapons));
+                }
+            }
             AbilityRuntime burst = ability?.CreateRuntime();
             var hero = new HealthState(100f);
             // The budget is made first so the stat sheet starts from the bar this run actually carries; a caller that
@@ -494,7 +517,6 @@ namespace Cryptforge.Tests
             HeroStamina heroStamina = stamina ?? HeroStamina.ForCurrentRules();
             var heroStats = new HeroStats(100f, heroSpeed, heroStamina.Bar);
             var upgrades = new UpgradeService(run, weapon, pool ?? Pool(), choiceCount, heroStats, heroStamina.Enabled);
-            weapon.Seed = run.Seed;
             // Which card to take: the first offered id in preferIds when given, else the slot, clamped to the cards shown.
             var picker = new CardPicker(upgrades, cardSlot, preferIds, replay);
             var forge = new ForgeService(run, hero);
@@ -523,7 +545,7 @@ namespace Cryptforge.Tests
 
             for (int f = 0; f < floors.Length; f++)
             {
-                bool cleared = RunFloor(floors[f], run, rewards, weapon, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave, drops, ref result);
+                bool cleared = RunFloor(floors[f], run, rewards, loadout, burst, hero, forge, choices, relic, picker, f > 0 || mendOnFloorOne, heroMotion, heroStamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave, drops, ref result);
                 if (f == 0)
                 {
                     result.HealthAfterFloorOne = hero.Current;
@@ -547,8 +569,11 @@ namespace Cryptforge.Tests
             result.Gold = run.Gold;
             result.GoldBanked = run.GoldBanked;
             result.RelicTriggers = relic?.Triggers ?? 0;
-            result.PulsesFired = weapon.PulsesFired;
-            result.SplintersFired = weapon.SplintersFired;
+            for (int slot = 0; slot < loadout.Count; slot++)
+            {
+                result.PulsesFired += loadout.At(slot).Runtime.PulsesFired;
+                result.SplintersFired += loadout.At(slot).Runtime.SplintersFired;
+            }
             result.Difficulty = heroStats.Difficulty;
             result.EvolutionsTaken = upgrades.EvolutionsTaken;
             result.ReplayMisses = picker.ReplayMisses;
@@ -571,13 +596,15 @@ namespace Cryptforge.Tests
             public bool Open;
         }
 
-        private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponRuntime weapon, AbilityRuntime burst,
+        private static bool RunFloor(Floor floor, RunState run, RewardService rewards, WeaponLoadout loadout, AbilityRuntime burst,
             HealthState hero, ForgeService forge, RunChoices choices, RelicRuntime relic, CardPicker cardSlot, bool useMend,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
             HeroStats heroStats, ChestState chest, float swarmSeconds, Action<int, float, int> onSwarmWave, GroundDrops drops,
             ref Result result)
         {
             const float step = 1f / 60f;
+            // The first weapon, which everything written for one weapon reads: the route's reach, the relic's damage.
+            WeaponRuntime weapon = loadout.Primary;
             var waves = new int[floor.Rooms.Length];
             var endless = new bool[floor.Rooms.Length];
             for (int i = 0; i < waves.Length; i++)
@@ -611,7 +638,7 @@ namespace Cryptforge.Tests
                     if (route != null && drops != null && drops.Count > 0 && lastMotion != null)
                         Ask(route, view, lastMotion, lastEnemies, lastWeapons, heroMotion, weapon.Range, result.FightSeconds,
                             chest, false, drops, out forgeSteerX, out forgeSteerY);
-                    pauseLived = Linger(run, weapon, burst, hero, choices, cardSlot, heroMotion, stamina, route, view,
+                    pauseLived = Linger(run, loadout, burst, hero, choices, cardSlot, heroMotion, stamina, route, view,
                         lastMotion, lastEnemies, lastWeapons, chest, upgrades, floor, drops, ref forgeSteerX, ref forgeSteerY,
                         ref result);
                     continue;
@@ -632,7 +659,7 @@ namespace Cryptforge.Tests
                 // left by walking out (docs/27, S6c). It runs as one loop and hands the floor back when it is over.
                 if (floor.IsSwarm(next.RoomIndex))
                 {
-                    bool survived = RunSwarmRoom(floor, next.RoomIndex, run, rewards, weapon, burst, hero, choices, relic,
+                    bool survived = RunSwarmRoom(floor, next.RoomIndex, run, rewards, loadout, burst, hero, choices, relic,
                         cardSlot, heroMotion, stamina, route, view, upgrades, heroStats, chest, swarmSeconds, onSwarmWave,
                         ref waveOrdinal, ref result);
                     if (!survived)
@@ -685,7 +712,7 @@ namespace Cryptforge.Tests
                 float steerY = 0f;
                 float firstStrike = -1f;
                 if (!pauseLived)
-                    weapon.Tick(AdvanceDelay);
+                    Tick(loadout, AdvanceDelay);
                 pauseLived = false;
                 // Every wave starts with a full movement budget, as the scene does: HeroMovementInput fills it on
                 // EncounterController.EncounterStarted, which is the same moment as this line.
@@ -695,7 +722,7 @@ namespace Cryptforge.Tests
                     bool moved = false;
                     if (frame > 0)
                     {
-                        weapon.Tick(step);
+                        Tick(loadout, step);
                         burst?.Tick(step);
                         for (int i = 0; i < pack.Length; i++)
                             enemyWeapons[i].Tick(step);
@@ -719,21 +746,9 @@ namespace Cryptforge.Tests
                     // own Update; a hero already standing on a freshly placed chest opens it on the wave's first frame.
                     OpenChestIfReached(chest, hero, run, floor, upgrades, heroMotion, ref result);
 
-                    int target = Acquire(motion, enemies, weapon.Range, heroMotion.X, heroMotion.Y);
-                    if (target >= 0 && weapon.IsReady &&
-                        weapon.TryAttack(enemies[target], null,
-                            Nearby(motion, enemies, target, weapon.Pattern.SplashRadius),
-                            // The pulse's circle is drawn round the hero, so it is gathered by the same body
-                            // Targeting.CollectNear mirrors for the burst; nothing is gathered until a card grants a
-                            // pulse, exactly as AttackController skips it.
-                            weapon.PulseDamage > 0f
-                                ? WithinReachOfHero(motion, enemies, PulseRule.Radius, heroMotion.X, heroMotion.Y)
-                                : null,
-                            // The splinter's circle is round the struck enemy, which is what Nearby measures.
-                            weapon.CritSplash > 0f
-                                ? Nearby(motion, enemies, target, CritSplashRule.Radius)
-                                : null) && moved)
-                        result.StrikesWhileMoving++;
+                    int struck = StrikeInSlotOrder(loadout, motion, enemies, heroMotion.X, heroMotion.Y);
+                    if (moved)
+                        result.StrikesWhileMoving += struck;
                     Resolve(pack, enemies, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, drops, motion, ref result);
                     if (burst != null && burst.IsReady)
                     {
@@ -795,7 +810,7 @@ namespace Cryptforge.Tests
                 // The floor's last wave ends it on the kill, as EncounterController advances at once; every other wave is
                 // followed by the advance delay, which a hero can walk in.
                 if (!progress.IsFinalWave)
-                    pauseLived = Linger(run, weapon, burst, hero, choices, cardSlot, heroMotion, stamina, route, view, motion,
+                    pauseLived = Linger(run, loadout, burst, hero, choices, cardSlot, heroMotion, stamina, route, view, motion,
                         enemies, enemyWeapons, chest, upgrades, floor, drops, ref steerX, ref steerY, ref result);
             }
 
@@ -815,7 +830,7 @@ namespace Cryptforge.Tests
         // that frame does not count, so the pause is a frame longer in both. With nothing on the floor nothing can happen
         // in it, and the next wave adds the pause to the weapon's cooldown whole, as every number before drops was
         // measured. Returns whether the pause was lived frame by frame.
-        private static bool Linger(RunState run, WeaponRuntime weapon, AbilityRuntime burst, HealthState hero,
+        private static bool Linger(RunState run, WeaponLoadout loadout, AbilityRuntime burst, HealthState hero,
             RunChoices choices, CardPicker cardSlot, HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route,
             RouteView view, PackMotion motion, HealthState[] enemies, WeaponRuntime[] enemyWeapons, ChestState chest,
             UpgradeService upgrades, Floor floor, GroundDrops drops, ref float steerX, ref float steerY, ref Result result)
@@ -827,7 +842,7 @@ namespace Cryptforge.Tests
             float waited = 0f;
             for (int frame = 0; frame < 100000 && hero.IsAlive; frame++)
             {
-                weapon.Tick(step);
+                Tick(loadout, step);
                 burst?.Tick(step);
                 heroMotion.Move(steerX, steerY, step * stamina.SpeedFactor, Platform);
                 stamina.Step(step, false);
@@ -845,8 +860,8 @@ namespace Cryptforge.Tests
                 if (runsOut)
                     return true;
                 if (route != null && motion != null)
-                    Ask(route, view, motion, enemies, enemyWeapons, heroMotion, weapon.Range, result.FightSeconds, chest, false,
-                        drops, out steerX, out steerY);
+                    Ask(route, view, motion, enemies, enemyWeapons, heroMotion, loadout.Primary.Range, result.FightSeconds,
+                        chest, false, drops, out steerX, out steerY);
             }
             return true;
         }
@@ -856,13 +871,14 @@ namespace Cryptforge.Tests
         // which enemy of the ladder at what difficulty. The run leaves by standing on the exit for ExitRule.DwellSeconds,
         // which this simulation does once swarmSeconds have passed, walking straight at the exit through whatever stands
         // in the way. Returns false if the hero died.
-        private static bool RunSwarmRoom(Floor floor, int roomIndex, RunState run, RewardService rewards, WeaponRuntime weapon,
+        private static bool RunSwarmRoom(Floor floor, int roomIndex, RunState run, RewardService rewards, WeaponLoadout loadout,
             AbilityRuntime burst, HealthState hero, RunChoices choices, RelicRuntime relic, CardPicker cardSlot,
             HeroMotion heroMotion, HeroStamina stamina, IHeroRoute route, RouteView view, UpgradeService upgrades,
             HeroStats heroStats, ChestState chest, float swarmSeconds, Action<int, float, int> onSwarmWave,
             ref int waveOrdinal, ref Result result)
         {
             const float step = 1f / 60f;
+            WeaponRuntime weapon = loadout.Primary;
             const int Places = PackLayout.MaxPackSize;
             Enemy[][] ladder = floor.Rooms[roomIndex];
             var sizes = new int[ladder.Length];
@@ -965,7 +981,7 @@ namespace Cryptforge.Tests
             int reportedStep = -1;
             float steerX = 0f;
             float steerY = 0f;
-            weapon.Tick(AdvanceDelay);
+            Tick(loadout, AdvanceDelay);
             // The bar fills once, as the room opens: there are no wave starts left to fill it again, which is the point.
             stamina.Fill();
 
@@ -982,7 +998,7 @@ namespace Cryptforge.Tests
                 bool moved = false;
                 if (frame > 0)
                 {
-                    weapon.Tick(step);
+                    Tick(loadout, step);
                     burst?.Tick(step);
                     for (int i = 0; i < motion.Count; i++)
                         enemyWeapons[i].Tick(step);
@@ -1029,17 +1045,9 @@ namespace Cryptforge.Tests
                 OpenChestIfReached(chest, hero, run, floor, upgrades, heroMotion, ref result);
 
                 HealthState[] current = enemies;
-                int target = Acquire(motion, current, weapon.Range, heroMotion.X, heroMotion.Y);
-                if (target >= 0 && weapon.IsReady &&
-                    weapon.TryAttack(current[target], null,
-                        Nearby(motion, current, target, weapon.Pattern.SplashRadius),
-                        weapon.PulseDamage > 0f
-                            ? WithinReachOfHero(motion, current, PulseRule.Radius, heroMotion.X, heroMotion.Y)
-                            : null,
-                        weapon.CritSplash > 0f
-                            ? Nearby(motion, current, target, CritSplashRule.Radius)
-                            : null) && moved)
-                    result.StrikesWhileMoving++;
+                int struck = StrikeInSlotOrder(loadout, motion, current, heroMotion.X, heroMotion.Y);
+                if (moved)
+                    result.StrikesWhileMoving += struck;
                 Resolve(pack, current, enemyWeapons, enrages, rewarded, floor, rewards, choices, cardSlot, null, motion, ref result);
                 NoticeFallen();
                 // A sitting opened this frame is answered here even when nothing died, which is the only time Resolve
@@ -1167,6 +1175,44 @@ namespace Cryptforge.Tests
                 rewards.TryAwardKill(enemies[i], pack[i].Experience, gold);
                 ChooseUpgrades(choices, cardSlot);
             }
+        }
+
+        // Every held weapon's cooldown, in slot order, as AttackController ticks each before it fires it.
+        private static void Tick(WeaponLoadout loadout, float seconds)
+        {
+            for (int slot = 0; slot < loadout.Count; slot++)
+                loadout.At(slot).Runtime.Tick(seconds);
+        }
+
+        // Mirrors AttackController.Update for the hero: each held weapon in slot order acquires the nearest living enemy
+        // within its own reach and strikes it if it is ready, the next slot only after the one before has struck, so a
+        // later slot never strikes what an earlier one felled this frame - Acquire skips the fallen, as Targeting's
+        // IsValid does. Each gathers its circles through the runtime's own radii, and nothing for a pulse or a splinter
+        // it does not carry, exactly as AttackController skips them. Returns how many strikes landed. The caller
+        // resolves kills once every slot has struck, as the scene's death callbacks follow the one Update.
+        internal static int StrikeInSlotOrder(WeaponLoadout loadout, PackMotion motion, HealthState[] enemies, float heroX,
+            float heroY)
+        {
+            int struck = 0;
+            for (int slot = 0; slot < loadout.Count; slot++)
+            {
+                WeaponRuntime weapon = loadout.At(slot).Runtime;
+                int target = Acquire(motion, enemies, weapon.Range, heroX, heroY);
+                if (target >= 0 && weapon.IsReady &&
+                    weapon.TryAttack(enemies[target], null,
+                        Nearby(motion, enemies, target, weapon.SplashRadius),
+                        // The pulse's circle is drawn round the hero, so it is gathered by the same body
+                        // Targeting.CollectNear mirrors for the burst.
+                        weapon.PulseDamage > 0f
+                            ? WithinReachOfHero(motion, enemies, weapon.PulseRadius, heroX, heroY)
+                            : null,
+                        // The splinter's circle is round the struck enemy, which is what Nearby measures.
+                        weapon.CritSplash > 0f
+                            ? Nearby(motion, enemies, target, weapon.CritSplashRadius)
+                            : null))
+                    struck++;
+            }
+            return struck;
         }
 
         // Mirrors Targeting.Acquire for a hero at the floor origin, where it has always stood.

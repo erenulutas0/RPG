@@ -15,6 +15,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/IDamageable.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HealthState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponRuntime.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/WeaponLoadout.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EncounterProgress.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/IHealable.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/RoomKind.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponBehaviorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponForgeTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponLoadoutTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AbilityTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HeroMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HeroRouteTests.cs" />

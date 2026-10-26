@@ -1,7 +1,8 @@
 namespace Cryptforge.Progression
 {
     // What an upgrade card changes. Serialized by value in upgrade assets: append new stats, never reorder. Damage,
-    // AttackSpeed, Range and CritChance live on WeaponRuntime; the rest live on HeroStats (docs/27 slice S2).
+    // AttackSpeed, Range, CritChance, PulseDamage, CritSplash and Area live on WeaponRuntime; the rest live on HeroStats
+    // (docs/27 slice S2; WeaponRuntime.Owns and HeroStats.Owns split them).
     public enum UpgradeStat
     {
         Damage = 0,
@@ -23,6 +24,9 @@ namespace Cryptforge.Progression
         // What the world multiplies its enemies by. Starts at 1 and only ever rises, and only an evolution raises it:
         // the cost of a card that is itself a reward for a full build (docs/27, S5b). Megabonk keeps Difficulty on the
         // character sheet for the same reason - it is a thing about the run, and the run is what the sheet describes.
-        Difficulty = 11
+        Difficulty = 11,
+        // The factor on every circle a weapon draws - its splash, its pulse, its splinter - 1 until something widens it.
+        // The Reach tome's stat (docs/42); a weapon stat, so it rides the weapon's pipeline like Range does.
+        Area = 12
     }
 }

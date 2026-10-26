@@ -19,6 +19,9 @@ namespace Cryptforge.Progression
         // Which book a chest holds, kept apart from Chests so that "does this chest hold one" and "which one is it"
         // never read the same word of the same stream.
         public const int Books = 4;
+        // The crit seed of a weapon held in a slot after the first (WeaponLoadout.SeedFor), one index per slot. 5 is left
+        // for the offers' category draws that docs/42 plans next, so the plan's numbers stay the code's.
+        public const int WeaponSeeds = 6;
 
         private uint _state;
 

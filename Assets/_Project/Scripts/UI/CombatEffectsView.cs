@@ -512,9 +512,10 @@ namespace Cryptforge.UI
         }
 
         // The ring sprite's full frame reaches RingFullRadius texels either side; scale it to the shown part of the splash.
+        // The runtime's radius rather than the pattern's, so a ring widened by Area is drawn as wide as it strikes.
         private float RingScale(WeaponRuntime weapon)
         {
-            float wantedTexels = weapon.Pattern.SplashRadius * _ringSplashFraction * PixelSpriteFactory.PixelsPerUnit;
+            float wantedTexels = weapon.SplashRadius * _ringSplashFraction * PixelSpriteFactory.PixelsPerUnit;
             return Mathf.Clamp(wantedTexels / EffectArt.RingFullRadius, MinRingScale, MaxRingScale);
         }
 

@@ -421,6 +421,205 @@ namespace Cryptforge.Tests
             Assert.That(new AttackPattern(WeaponBehavior.DirectHit, critEvery: 3, critMultiplier: 2f).IsCritical(4), Is.False);
         }
 
+        // Area is one factor on all three circles (docs/42, the Reach tome). It starts at 1, where every radius is the
+        // authored one exactly - which is why no balance number moved when the circles began to be read through it.
+        [Test]
+        public void AnAreaModifierWidensTheStaffsSplash()
+        {
+            WeaponRuntime staff = DescentSimulation.Staff().CreateRuntime();
+            Assert.That(staff.Area, Is.EqualTo(1f));
+            Assert.That(staff.SplashRadius, Is.EqualTo(staff.Pattern.SplashRadius), "At Area 1 the authored splash, exactly.");
+            Assert.That(staff.PulseRadius, Is.EqualTo(PulseRule.Radius));
+            Assert.That(staff.CritSplashRadius, Is.EqualTo(CritSplashRule.Radius));
+
+            // The target one unit out, and a bystander four beyond it: outside the Staff's 3.5, inside 3.5 x 1.2 = 4.2.
+            var target = new HealthState(500f);
+            var bystander = new HealthState(500f);
+            var enemies = new[] { target, bystander };
+            var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
+            motion.Add(target, 0f, 1f, 0f, 1f);
+            motion.Add(bystander, 0f, 5f, 0f, 1f);
+            Assert.That(DescentSimulation.Nearby(motion, enemies, 0, staff.SplashRadius), Is.Empty,
+                "Four units is beyond the Staff's own splash.");
+
+            staff.AddModifier(UpgradeStat.Area, new StatModifier(ModifierOperation.Percent, 0.2f));
+
+            Assert.That(staff.SplashRadius, Is.EqualTo(4.2f).Within(1e-5f));
+            Assert.That(staff.PulseRadius, Is.EqualTo(PulseRule.Radius * 1.2f).Within(1e-5f), "The pulse widens with it.");
+            Assert.That(staff.CritSplashRadius, Is.EqualTo(CritSplashRule.Radius * 1.2f).Within(1e-5f), "And the splinter.");
+            Assert.That(staff.Damage, Is.EqualTo(11f), "Area changes how far, never how hard.");
+            Assert.That(staff.Range, Is.EqualTo(2.4f), "Nor how far away the Staff can strike from.");
+            Assert.That(staff.Pattern.SplashRadius, Is.EqualTo(3.5f), "The authored pattern is never written to.");
+
+            Assert.That(staff.TryAttack(target, null, DescentSimulation.Nearby(motion, enemies, 0, staff.SplashRadius)), Is.True);
+            Assert.That(target.Current, Is.EqualTo(489f));
+            Assert.That(bystander.Current, Is.EqualTo(491.75f).Within(1e-4f), "75% of the 11 now reaches four units out.");
+        }
+
+        // Two weapons in one loadout, as AttackController.Update and the simulation fire them (docs/42, PR 2). Each keeps
+        // the cadence it has alone: a second weapon neither slows the first nor is slowed by it.
+        [Test]
+        public void TwoWeaponsEachKeepTheirOwnCadence()
+        {
+            var loadout = new WeaponLoadout(0);
+            loadout.TryAdd("weapon_sword", DescentSimulation.Sword().CreateRuntime());
+            loadout.TryAdd("weapon_daggers", DescentSimulation.Daggers().CreateRuntime());
+            int strikes = StrikeFor(loadout, 10f, out _);
+
+            var sword = new WeaponLoadout(0);
+            sword.TryAdd("weapon_sword", DescentSimulation.Sword().CreateRuntime());
+            StrikeFor(sword, 10f, out _);
+            var daggers = new WeaponLoadout(0);
+            daggers.TryAdd("weapon_daggers", DescentSimulation.Daggers().CreateRuntime());
+            StrikeFor(daggers, 10f, out _);
+
+            Assert.That(loadout.At(0).Runtime.AttacksMade, Is.EqualTo(sword.Primary.AttacksMade), "The Sword's 0.8 s.");
+            Assert.That(loadout.At(1).Runtime.AttacksMade, Is.EqualTo(daggers.Primary.AttacksMade), "The Daggers' 0.5 s.");
+            Assert.That(loadout.At(1).Runtime.AttacksMade, Is.GreaterThan(loadout.At(0).Runtime.AttacksMade));
+            Assert.That(strikes, Is.EqualTo(sword.Primary.AttacksMade + daggers.Primary.AttacksMade),
+                "Every strike either weapon made landed, none twice.");
+        }
+
+        [Test]
+        public void WeaponsStrikeInSlotOrder()
+        {
+            var swordFirst = new WeaponLoadout(0);
+            swordFirst.TryAdd("weapon_sword", DescentSimulation.Sword().CreateRuntime());
+            swordFirst.TryAdd("weapon_daggers", DescentSimulation.Daggers().CreateRuntime());
+            StrikeFor(swordFirst, 0f, out List<float> swordThenDaggers);
+
+            var daggersFirst = new WeaponLoadout(0);
+            daggersFirst.TryAdd("weapon_daggers", DescentSimulation.Daggers().CreateRuntime());
+            daggersFirst.TryAdd("weapon_sword", DescentSimulation.Sword().CreateRuntime());
+            StrikeFor(daggersFirst, 0f, out List<float> daggersThenSword);
+
+            Assert.That(swordThenDaggers, Is.EqualTo(new[] { 10f, 6f }), "One frame, both ready: slot 0, then slot 1.");
+            Assert.That(daggersThenSword, Is.EqualTo(new[] { 6f, 10f }), "The slot decides, not the weapon.");
+        }
+
+        [Test]
+        public void ALaterSlotSkipsATargetAnEarlierSlotFelledThisFrame()
+        {
+            // The Daggers in slot 0 fell the near enemy with their first strike; the Sword in slot 1 must strike the
+            // one behind it in the same frame rather than waste its swing on the fallen.
+            var loadout = new WeaponLoadout(0);
+            loadout.TryAdd("weapon_daggers", DescentSimulation.Daggers().CreateRuntime());
+            loadout.TryAdd("weapon_sword", DescentSimulation.Sword().CreateRuntime());
+            var near = new HealthState(6f);
+            var behind = new HealthState(100f);
+            var enemies = new[] { near, behind };
+            var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
+            motion.Add(near, 0f, 1f, 0f, 1f);
+            motion.Add(behind, 0f, 1.5f, 0f, 1f);
+            int nearHits = 0;
+            near.Damaged += _ => nearHits++;
+
+            int struck = DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f);
+
+            Assert.That(struck, Is.EqualTo(2), "Both weapons struck this frame.");
+            Assert.That(near.IsAlive, Is.False);
+            Assert.That(nearHits, Is.EqualTo(1), "Only the Daggers touched the near enemy: nothing struck it once it fell.");
+            Assert.That(behind.Current, Is.EqualTo(90f), "The Sword's 10 went to the enemy behind, and its cleave found no one.");
+        }
+
+        [Test]
+        public void TwoWeaponsCritOnTheirOwnStreams()
+        {
+            const int Seed = 4242;
+            var loadout = new WeaponLoadout(Seed);
+            loadout.TryAdd("weapon_a", Critting(DescentSimulation.Sword()));
+            loadout.TryAdd("weapon_b", Critting(DescentSimulation.Sword()));
+            // What one weapon on this run's seed has always rolled, before loadouts existed.
+            WeaponRuntime alone = Critting(DescentSimulation.Sword());
+            alone.Seed = Seed;
+
+            List<int> first = CritsOver(loadout.At(0).Runtime, 40);
+            List<int> second = CritsOver(loadout.At(1).Runtime, 40);
+            List<int> before = CritsOver(alone, 40);
+
+            Assert.That(loadout.At(0).Runtime.Seed, Is.EqualTo(Seed), "Slot 0 keeps the run's seed.");
+            Assert.That(first, Is.EqualTo(before), "So slot 0 crits on exactly the attacks one weapon always did.");
+            Assert.That(loadout.At(1).Runtime.Seed, Is.Not.EqualTo(Seed));
+            Assert.That(second, Is.Not.EqualTo(first), "Slot 1 rolls its own: the same chance, different attacks.");
+            Assert.That(first.Count, Is.GreaterThan(0));
+            Assert.That(second.Count, Is.GreaterThan(0));
+        }
+
+        // A run with a second weapon in slot 1 reaches both of the simulation's strike sites - the Descent's waves and a
+        // swarm room - and the second weapon really fights there: its strikes are counted and the fights are shorter.
+        [Test]
+        public void ASecondWeaponFightsAtBothStrikeSites()
+        {
+            DescentSimulation.Result alone = DescentSimulation.Run(Descent, 0, true, heroWeapon: DescentSimulation.Sword(),
+                pool: DescentSimulation.TwoCardPool(), groundDrops: false);
+            DescentSimulation.Result paired = DescentSimulation.Run(Descent, 0, true, heroWeapon: DescentSimulation.Sword(),
+                pool: DescentSimulation.TwoCardPool(), groundDrops: false, moreWeapons: new[] { DescentSimulation.Daggers() });
+            Assert.That(alone.ClearedFloors, Is.GreaterThanOrEqualTo(1));
+            Assert.That(paired.ClearedFloors, Is.GreaterThanOrEqualTo(alone.ClearedFloors));
+            Assert.That(paired.FloorOneFightSeconds, Is.LessThan(alone.FloorOneFightSeconds),
+                "The Daggers' strikes shorten the first floor's fights.");
+
+            var swarm = new[] { DescentSimulation.SwarmProof };
+            DescentSimulation.Result swarmAlone = DescentSimulation.Run(swarm, 0, true, heroWeapon: DescentSimulation.Sword(),
+                pool: DescentSimulation.TwoCardPool(), swarmSeconds: 60f);
+            DescentSimulation.Result swarmPaired = DescentSimulation.Run(swarm, 0, true, heroWeapon: DescentSimulation.Sword(),
+                pool: DescentSimulation.TwoCardPool(), swarmSeconds: 60f, moreWeapons: new[] { DescentSimulation.Daggers() });
+            Assert.That(swarmPaired.Kills, Is.GreaterThan(swarmAlone.Kills), "And the swarm falls faster with two.");
+
+            Assert.Throws<ArgumentException>(() => DescentSimulation.Run(Descent, 0, true,
+                heroWeapon: DescentSimulation.Sword(), moreWeapons: new[] { DescentSimulation.Sword() }),
+                "A weapon is never held twice.");
+        }
+
+        // One sturdy enemy a unit in front of the hero, struck by the loadout every frame for the given seconds (one frame
+        // at 0): the strikes landed, and what each one dealt in order.
+        private static int StrikeFor(WeaponLoadout loadout, float seconds, out List<float> landed)
+        {
+            var enemy = new HealthState(1000000f);
+            var enemies = new[] { enemy };
+            var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
+            motion.Add(enemy, 0f, 1f, 0f, 1f);
+            var amounts = new List<float>();
+            enemy.Damaged += context => amounts.Add(context.Amount);
+            landed = amounts;
+
+            const float step = 1f / 60f;
+            int frames = (int)(seconds * 60f);
+            int struck = DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f);
+            for (int frame = 1; frame <= frames; frame++)
+            {
+                for (int slot = 0; slot < loadout.Count; slot++)
+                    loadout.At(slot).Runtime.Tick(step);
+                struck += DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f);
+            }
+            return struck;
+        }
+
+        // A weapon with a rolled even chance to crit and no rhythm, granted the way Keen Edge grants it.
+        private static WeaponRuntime Critting(DescentSimulation.HeroWeapon weapon)
+        {
+            WeaponRuntime runtime = weapon.CreateRuntime();
+            runtime.AddModifier(UpgradeStat.CritChance, new StatModifier(ModifierOperation.Flat, 0.5f));
+            return runtime;
+        }
+
+        // The attack numbers, from 1, on which the weapon crits over its next count attacks.
+        private static List<int> CritsOver(WeaponRuntime weapon, int count)
+        {
+            var target = new HealthState(1000000f);
+            bool critical = false;
+            target.Damaged += context => critical = context.IsCritical;
+            var crits = new List<int>();
+            for (int i = 0; i < count; i++)
+            {
+                weapon.Tick(10f);
+                Assert.That(weapon.TryAttack(target), Is.True);
+                if (critical)
+                    crits.Add(weapon.AttacksMade);
+            }
+            return crits;
+        }
+
         [Test]
         public void StaffClearsMitePacksFastestAndDaggersFellTheWardensFastest()
         {
