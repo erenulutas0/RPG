@@ -10,8 +10,9 @@ using UnityEngine.TestTools;
 
 namespace Cryptforge.Tests
 {
-    // On the foundry a combat room sends its floor's surges after its authored waves, each bigger than the last; the hall
-    // arena plays the authored waves only (FloorFlowTests pins those).
+    // A floor's hall surges (HallSurgeRule) are off on the authored climb since the horde carries the floor's length
+    // (docs/41, 2026-10-26): the foundry's first hall sends its three authored waves and moves on. HallSurgeRuleTests keeps
+    // the rule itself; a floor that names surges again gets them through EncounterController.WaveEnemies.
     public sealed class HallSurgeFlowTests
     {
         [UnitySetUp] public IEnumerator Begin(){TestProfile.Begin();Time.timeScale=1;yield return null;}
@@ -22,13 +23,13 @@ namespace Cryptforge.Tests
             yield return SceneManager.UnloadSceneAsync(old);TestProfile.End();
         }
 
-        [UnityTest, Timeout(90000)] public IEnumerator TheFirstHallSendsTwoGrowingSurgesAfterItsThreeWaves()
+        [UnityTest, Timeout(90000)] public IEnumerator TheFirstHallSendsItsThreeAuthoredWavesWithTheSurgesOff()
         {
             File.WriteAllText(DevelopmentStart.RegionPreviewPath,"foundry");
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");yield return null;
             var setup=Object.FindFirstObjectByType<CombatSetup>();var encounters=setup.Encounters;
-            Assert.That(encounters.CurrentRoom.WaveCount,Is.EqualTo(3),"Ember Hall authors three waves.");
-            Assert.That(encounters.WaveCount,Is.EqualTo(5),"The foundry adds two surges.");
+            Assert.That(encounters.Floor.FoundryHallSurges,Is.Zero,"The climb's floors name no surges.");
+            Assert.That(encounters.WaveCount,Is.EqualTo(encounters.CurrentRoom.WaveCount),"Ember Hall plays as authored.");
             float start=Time.realtimeSinceStartup+20;
             while(encounters.AliveEnemyCount==0&&Time.realtimeSinceStartup<start)yield return null;
             var seen=new List<string>{PackTestUtility.Describe(encounters)};
@@ -40,14 +41,12 @@ namespace Cryptforge.Tests
                 else PackTestUtility.KillWave(encounters);
                 yield return null;
             }
-            Assert.That(seen.GetRange(0,5),Is.EqualTo(new[]
+            Assert.That(seen.GetRange(0,3),Is.EqualTo(new[]
             {
                 "1.1:Ember Hall:Grunt+Cinder Mite","1.2:Ember Hall:Cinder Mite+Cinder Mite+Cinder Mite",
-                "1.3:Ember Hall:Grunt+Cinder Mite+Cinder Mite+Cinder Mite",
-                "1.4:Ember Hall:Grunt+Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite",
-                "1.5:Ember Hall:Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite"
-            }),"The surges repeat the last waves, one enemy bigger each time.");
-            Assert.That(encounters.RoomNumber,Is.EqualTo(2),"After the surges the floor moves on.");
+                "1.3:Ember Hall:Grunt+Cinder Mite+Cinder Mite+Cinder Mite"
+            }));
+            Assert.That(encounters.RoomNumber,Is.EqualTo(2),"After its waves the floor moves on.");
             LogAssert.NoUnexpectedReceived();
         }
     }

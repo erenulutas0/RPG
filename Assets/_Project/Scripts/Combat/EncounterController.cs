@@ -1122,9 +1122,9 @@ namespace Cryptforge.Combat
             float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float scale = RunDifficulty;
-            float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale, damagePercent);
+            float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale * HordeRule.DamageShare, damagePercent);
             SpawnedEnemy enemy = CreateEnemy(definition, $"Horde {definition.Prefab.name} {spawn.Ordinal + 1}",
-                FloorHealthMultiplier(false) * scale, healthPercent, damageBonus, 0f, out float reach, true);
+                FloorHealthMultiplier(false) * scale * HordeRule.HealthShare, healthPercent, damageBonus, 0f, out float reach, true);
             var placement = new EntryPlacement(EntrySides.SideOf(spawn.Ordinal, 0), 0f, x, y);
             if (slot >= 0)
             {

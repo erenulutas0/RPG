@@ -25,30 +25,30 @@ namespace Cryptforge.Tests
             Assert.That(HordeRule.StateFor(5,false),Is.EqualTo(HordeState.Pressure),"Past two it only presses.");
             Assert.That(HordeRule.StateFor(0,true),Is.EqualTo(HordeState.Boss),"The gate opening is the whole story.");
             Assert.That(()=>HordeRule.StateFor(-1,false),Throws.InstanceOf<ArgumentOutOfRangeException>());
-            Assert.That(HordeRule.TargetByState,Is.EqualTo(new[]{6,12,18,8}));
+            Assert.That(HordeRule.TargetByState,Is.EqualTo(new[]{4,10,16,6}));
             Assert.That(HordeRule.TargetByState[(int)HordeState.Boss],Is.LessThan(HordeRule.TargetByState[(int)HordeState.Horde]),
                 "The boss room thins the horde so the boss can be read.");
         }
 
         [Test] public void TheTargetRisesWithTheKillRatioAndNeverPassesTheCap()
         {
-            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,0,10,40),Is.EqualTo(18),"No kills: the plain target.");
-            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,5,10,40),Is.EqualTo(23),"Half the arrivals killed: 18 * 1.25, rounded.");
-            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,10,10,40),Is.EqualTo(27),"Killing as fast as they come: half again.");
-            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,50,10,40),Is.EqualTo(27),"The ratio clamps at one.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,0,10,40),Is.EqualTo(16),"No kills: the plain target.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,5,10,40),Is.EqualTo(20),"Half the arrivals killed: 16 * 1.25.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,10,10,40),Is.EqualTo(24),"Killing as fast as they come: half again.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,50,10,40),Is.EqualTo(24),"The ratio clamps at one.");
             Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,10,10,20),Is.EqualTo(20),"Never above the cap.");
-            Assert.That(HordeRule.EffectiveTarget(HordeState.Ramp,3,0,40),Is.EqualTo(9),"Kills with no spawns read against one.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Ramp,3,0,40),Is.EqualTo(6),"Kills with no spawns read against one.");
             Assert.That(()=>HordeRule.EffectiveTarget(HordeState.Ramp,0,0,0),Throws.InstanceOf<ArgumentOutOfRangeException>());
 
             var director = new HordeDirector(40,2,7);
             var spawns = new List<HordeDirector.Spawn>();
             director.SetState(HordeState.Pressure);
-            Assert.That(director.TargetNow,Is.EqualTo(18));
+            Assert.That(director.TargetNow,Is.EqualTo(16));
             director.Tick(3f,0,0,spawns);
             Assert.That(director.SpawnsInWindow,Is.EqualTo(spawns.Count));
             for (int i = 0; i < spawns.Count; i++) director.Fell();
             Assert.That(director.KillsInWindow,Is.EqualTo(spawns.Count));
-            Assert.That(director.TargetNow,Is.EqualTo(27),"Every arrival killed: the crowd aims half again higher.");
+            Assert.That(director.TargetNow,Is.EqualTo(24),"Every arrival killed: the crowd aims half again higher.");
             var small = new HordeDirector(10,2,7);
             small.SetState(HordeState.Pressure);
             Assert.That(small.TargetNow,Is.EqualTo(10),"A ten-enemy floor aims for ten.");
@@ -65,8 +65,8 @@ namespace Cryptforge.Tests
             Assert.That(Fill(director,2f,2,0,spawns),Is.EqualTo(3),"The hall cleared: the credit cap's worth walks in.");
 
             var ramp = new HordeDirector(40,1,1);
-            Assert.That(Fill(ramp,2f,5,30,spawns),Is.EqualTo(1),"Five of a six-target: one more, whatever the halls hold.");
-            Assert.That(Fill(ramp,2f,6,0,spawns),Is.Zero,"At target nothing walks in and no credit grows.");
+            Assert.That(Fill(ramp,2f,3,30,spawns),Is.EqualTo(1),"Three of a four-target: one more, whatever the halls hold.");
+            Assert.That(Fill(ramp,2f,4,0,spawns),Is.Zero,"At target nothing walks in and no credit grows.");
             Assert.That(Fill(ramp,2f,0,0,spawns),Is.EqualTo(3),"Dropping to nothing: at most the credit cap, never the deficit.");
             Assert.That(()=>ramp.Tick(float.NaN,0,0,spawns),Throws.InstanceOf<ArgumentOutOfRangeException>());
             Assert.That(()=>ramp.Tick(-Frame,0,0,spawns),Throws.InstanceOf<ArgumentOutOfRangeException>());
@@ -109,7 +109,7 @@ namespace Cryptforge.Tests
             // gap, not all in the frame the crowd fell.
             var burst = new HordeDirector(40,1,11);
             burst.SetState(HordeState.Pressure);
-            Assert.That(Fill(burst,2f,17,0,spawns),Is.EqualTo(1),"Room for one; the rest of the credit waits.");
+            Assert.That(Fill(burst,2f,HordeRule.TargetByState[(int)HordeState.Pressure]-1,0,spawns),Is.EqualTo(1),"Room for one; the rest of the credit waits.");
             Assert.That(Fill(burst,Frame,0,0,spawns),Is.EqualTo(1),"A frame places one, however much is owed.");
             Assert.That(Fill(burst,Frame,1,0,spawns),Is.Zero,"The gap is not up.");
             Assert.That(Fill(burst,HordeRule.MinSpawnGapSeconds,1,0,spawns),Is.EqualTo(1),"Now it is.");
@@ -171,12 +171,12 @@ namespace Cryptforge.Tests
             var spawns = new List<HordeDirector.Spawn>();
             director.Fell(); director.Fell(); director.Fell();
             Assert.That(director.KillsInWindow,Is.EqualTo(3));
-            Assert.That(director.TargetNow,Is.EqualTo(9),"Three kills against no spawns: the full boost.");
+            Assert.That(director.TargetNow,Is.EqualTo(6),"Three kills against no spawns: the full boost.");
             director.Tick(HordeRule.WindowSeconds - 0.5f,40,0,spawns);
             Assert.That(director.KillsInWindow,Is.EqualTo(3),"Still inside the window.");
             director.Tick(0.5f,40,0,spawns);
             Assert.That(director.KillsInWindow,Is.Zero,"WindowSeconds on, the kills are forgotten.");
-            Assert.That(director.TargetNow,Is.EqualTo(6),"And the target settles back.");
+            Assert.That(director.TargetNow,Is.EqualTo(4),"And the target settles back.");
 
             // Spawns are remembered the same way, and a stall longer than the window clears everything at once.
             var busy = new HordeDirector(40,1,1);
@@ -193,9 +193,10 @@ namespace Cryptforge.Tests
             Assert.That((HordeRule.Weight(HordeState.Ramp,0),HordeRule.Weight(HordeState.Ramp,1),HordeRule.Weight(HordeState.Ramp,2)),Is.EqualTo((2,1,0)),"The heaviest role waits.");
             Assert.That((HordeRule.Weight(HordeState.Pressure,0),HordeRule.Weight(HordeState.Pressure,1),HordeRule.Weight(HordeState.Pressure,2)),Is.EqualTo((4,3,2)));
             Assert.That(HordeRule.Weight(HordeState.Boss,2),Is.EqualTo(HordeRule.Weight(HordeState.Ramp,2)),"Boss minions stay light.");
-            Assert.That(HordeRule.Experience(10),Is.EqualTo(3));Assert.That(HordeRule.Experience(1),Is.EqualTo(1),"Never nothing for a kill.");
+            Assert.That(HordeRule.Experience(10),Is.EqualTo(2));Assert.That(HordeRule.Experience(1),Is.EqualTo(1),"Never nothing for a kill.");
             Assert.That(HordeRule.Experience(0),Is.Zero);
             Assert.That(HordeRule.SceneCap,Is.InRange(30,PackLayout.MaxPackSize),"The owner's first range, inside the pack.");
+            Assert.That(HordeRule.HealthShare,Is.InRange(0.05f,1f));Assert.That(HordeRule.DamageShare,Is.InRange(0.05f,1f),"Fodder, but never harmless.");
         }
 
         [Test] public void HordeSpotsLieOnTheFloorAtTheEdgeOfTheView()

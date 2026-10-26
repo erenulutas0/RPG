@@ -43,7 +43,9 @@ namespace Cryptforge.Combat
         // The standing crowd each state aims for, indexed by (int)HordeState: how many horde enemies may stand at once
         // before the director stops filling. A target and not a rate, because the alive count is what the phone pays for.
         // Boss sits below Horde on purpose: the boss room must stay readable (docs/27).
-        public static readonly int[] TargetByState = { 6, 12, 18, 8 };
+        // First set 6/12/18/8; beside the hall surges at full strength the autopilot died in the first hall, so the opening
+        // is thinner and the surges are off (docs/41, 2026-10-26).
+        public static readonly int[] TargetByState = { 4, 10, 16, 6 };
 
         // How much of itself the target may grow when the hero is killing as fast as the horde arrives: at a kill ratio of
         // one the crowd aims half again higher, so a hero who clears the floor meets more of it, and a hero who is
@@ -55,8 +57,17 @@ namespace Cryptforge.Combat
         public const int SceneCap = 30;
         // A horde enemy pays this share of its authored experience and no gold. The horde is the floor's pressure, not its
         // purse: at full experience a kill a second opened a card offer every second or two at the floor's opening levels,
-        // and its gold would have flooded the forge's economy, which the node waves and chests carry (docs/41).
-        public const float ExperienceShare = 0.3f;
+        // and its gold would have flooded the forge's economy, which the node waves and chests carry. At 0.3 the
+        // autopilot reached the floor-1 gate at level 19-25 against the report's 11-13 by the fifth minute; at 0.15 two of
+        // three seeds died in the first halls (docs/41).
+        public const float ExperienceShare = 0.2f;
+        // A horde enemy is fodder: this share of its authored health and of its damage. At full strength the autopilot,
+        // luring to the pit as the owner's own play does, died in the first hall on every seed (18-23 s, horde of 7
+        // beside the hall's waves): a Staff strike of 11 needs five hits for a Grunt of 50. At these shares a Mite falls to
+        // one strike and a Grunt to two - Megabonk's crowd that dies by the dozen - while the halls' own waves keep their
+        // authored strength (docs/41).
+        public const float HealthShare = 0.3f;
+        public const float DamageShare = 0.5f;
         // How long a fallen horde enemy's body stays on the floor before it is taken away.
         public const float RetireSeconds = 1.5f;
 
