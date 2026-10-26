@@ -77,6 +77,9 @@ namespace Cryptforge.Tests
             // run to be offered the card, and a run long enough to be offered it is a different run. 0 is every weapon
             // the game ships.
             public float PulseShare;
+            // A kill burst the weapon starts the run with, as a share of its damage, for the same reason: the Staff's
+            // evolution grants it in the game (KillBurstRule).
+            public float KillBurstShare;
             // The category-mode base (WeaponDefinition._categoryDamage/_categoryInterval); 0 keeps Damage and Interval.
             public float CategoryDamage;
             public float CategoryInterval;
@@ -95,6 +98,8 @@ namespace Cryptforge.Tests
                     runtime.AddModifier(UpgradeStat.CritSplash, new StatModifier(ModifierOperation.Flat, CritSplashShare));
                 if (CritChance > 0f)
                     runtime.AddModifier(UpgradeStat.CritChance, new StatModifier(ModifierOperation.Flat, CritChance));
+                if (KillBurstShare > 0f)
+                    runtime.AddModifier(UpgradeStat.KillBurst, new StatModifier(ModifierOperation.Flat, KillBurstShare));
                 return runtime;
             }
 
@@ -185,10 +190,11 @@ namespace Cryptforge.Tests
             public int DropsSwept;
             // The run's level as floor one's last room - its boss - begins; -1 if the run never got there.
             public int FloorOneBossLevel;
-            // Pulses the hero's weapons fired, and splinters they threw, summed over the loadout; 0 until a card grants
-            // each.
+            // Pulses the hero's weapons fired, splinters they threw and kills that burst, summed over the loadout; 0
+            // until a card grants each.
             public int PulsesFired;
             public int SplintersFired;
+            public int KillBurstsFired;
             // Evolution stacks taken, and what the world ended up multiplying its enemies by for them.
             public int EvolutionsTaken;
             public float Difficulty;
@@ -224,7 +230,7 @@ namespace Cryptforge.Tests
 
         // Weapon_Staff.asset: 11 damage every 1.1 s from 2.1 units away, and 75% of it to every enemy within 3.5 units of the target.
         public static HeroWeapon Staff() =>
-            new HeroWeapon { Id = "weapon_staff", DisplayName = "Staff", Lines = StaffLines(), Damage = 11f, Interval = 1.1f, CategoryDamage = 24f, CategoryInterval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
+            new HeroWeapon { Id = "weapon_staff", DisplayName = "Staff", Lines = StaffLines(), Evolution = StaffEvolution(), EvolvesWithTome = "tome_reach", Damage = 11f, Interval = 1.1f, CategoryDamage = 24f, CategoryInterval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
 
         // Weapon_Daggers.asset: 6 damage every 0.5 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
@@ -488,7 +494,9 @@ namespace Cryptforge.Tests
         // before - green, orange and red as that card's, gold a third above red as that card's is. The Sword, evolving
         // with Force, pulses (Forge Pulse's 0.4 / 0.65 / 1.0, docs/30 measured the pulse as the Sword's card); the
         // Daggers, evolving with Precision, splinter their crits (Splintering Crit's 0.4 / 0.6 / 1.0, the report's Rift
-        // Echo and docs/31's conclusion). The Staff has none yet. WeaponContentTests holds these equal to the assets.
+        // Echo and docs/31's conclusion). The Staff, evolving with Reach, makes its kills burst (Cinder Nova,
+        // KillBurstRule): a behaviour of its own, since it gained least from both of the others, at the splinter's
+        // 0.4 / 0.6 / 1.0 and not yet measured. WeaponContentTests holds these equal to the assets.
         public static UpgradeOption SwordEvolution() =>
             Tiered("evolution_sword", "Resonant Edge", "Every 4th strike bursts for {0:0%} damage nearby, and a harder world",
                 UpgradeStat.PulseDamage, ModifierOperation.Flat, 0.4f, 0.65f, 1f, 1.33f, 1);
@@ -496,6 +504,10 @@ namespace Cryptforge.Tests
         public static UpgradeOption DaggersEvolution() =>
             Tiered("evolution_daggers", "Rift Echo", "Crits splinter for {0:0%} nearby, and a harder world",
                 UpgradeStat.CritSplash, ModifierOperation.Flat, 0.4f, 0.6f, 1f, 1.33f, 1);
+
+        public static UpgradeOption StaffEvolution() =>
+            Tiered("evolution_staff", "Cinder Nova", "Kills burst for {0:0%} damage nearby, and a harder world",
+                UpgradeStat.KillBurst, ModifierOperation.Flat, 0.4f, 0.6f, 1f, 1.33f, 1);
 
         // Seven picks take a weapon from level 1 to its last, so no one line can be taken more often than that.
         public const int LineMaxStacks = WeaponLoadout.MaxLevel - 1;
@@ -695,6 +707,7 @@ namespace Cryptforge.Tests
             {
                 result.PulsesFired += loadout.At(slot).Runtime.PulsesFired;
                 result.SplintersFired += loadout.At(slot).Runtime.SplintersFired;
+                result.KillBurstsFired += loadout.At(slot).Runtime.KillBurstsFired;
             }
             result.Difficulty = heroStats.Difficulty;
             result.EvolutionsTaken = upgrades.EvolutionsTaken;
@@ -1316,9 +1329,9 @@ namespace Cryptforge.Tests
         // Mirrors AttackController.Update for the hero: each held weapon in slot order acquires the nearest living enemy
         // within its own reach and strikes it if it is ready, the next slot only after the one before has struck, so a
         // later slot never strikes what an earlier one felled this frame - Acquire skips the fallen, as Targeting's
-        // IsValid does. Each gathers its circles through the runtime's own radii, and nothing for a pulse or a splinter
-        // it does not carry, exactly as AttackController skips them. Returns how many strikes landed. The caller
-        // resolves kills once every slot has struck, as the scene's death callbacks follow the one Update.
+        // IsValid does. Each gathers its circles through the runtime's own radii, and nothing for a pulse, a splinter or
+        // a kill burst it does not carry, exactly as AttackController skips them. Returns how many strikes landed. The
+        // caller resolves kills once every slot has struck, as the scene's death callbacks follow the one Update.
         internal static int StrikeInSlotOrder(WeaponLoadout loadout, PackMotion motion, HealthState[] enemies, float heroX,
             float heroY)
         {
@@ -1338,7 +1351,10 @@ namespace Cryptforge.Tests
                         // The splinter's circle is round the struck enemy, which is what Nearby measures.
                         weapon.CritSplash > 0f
                             ? Nearby(motion, enemies, target, weapon.CritSplashRadius)
-                            : null))
+                            : null,
+                        // A burst's circle is round each enemy the strike fells, so the runtime asks for it once the
+                        // strike has landed, as it asks AttackController.
+                        weapon.KillBurst > 0f ? new FallenNeighbourhood(motion, enemies) : null))
                     struck++;
             }
             return struck;
@@ -1546,6 +1562,27 @@ namespace Cryptforge.Tests
                 view.Alive[i] = enemies[i].IsAlive;
             }
             route.Steer(view, out steerX, out steerY);
+        }
+
+        // Mirrors AttackController's answer to a kill burst: the enemies near a fallen one, through the same Nearby the
+        // splash and the splinter are gathered by. A fallen enemy keeps its place in the pack, as a fallen body keeps its
+        // place on the floor until it is retired.
+        private sealed class FallenNeighbourhood : INeighbourhood
+        {
+            private readonly PackMotion _motion;
+            private readonly HealthState[] _enemies;
+
+            public FallenNeighbourhood(PackMotion motion, HealthState[] enemies)
+            {
+                _motion = motion;
+                _enemies = enemies;
+            }
+
+            public IReadOnlyList<IDamageable> Near(IDamageable centre, float radius)
+            {
+                int index = Array.IndexOf(_enemies, centre as HealthState);
+                return index >= 0 ? Nearby(_motion, _enemies, index, radius) : Array.Empty<IDamageable>();
+            }
         }
 
         // Mirrors Targeting.CollectNear: living enemies within radius of the target on the floor, nearest first.

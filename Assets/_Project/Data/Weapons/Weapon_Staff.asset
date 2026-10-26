@@ -29,7 +29,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 283f5d94e678406fb978fcf15d40889a, type: 2}
   - {fileID: 11400000, guid: d28f09445e3d4f0695818477d1499cda, type: 2}
   - {fileID: 11400000, guid: 5da727b7305c4d7288cdf2bfbfb8b4e1, type: 2}
-  _evolution: {fileID: 0}
-  _evolvesWithTome: 
+  _evolution: {fileID: 11400000, guid: c17d8d4f9a3947eca652835d3974475e, type: 2}
+  _evolvesWithTome: tome_reach
   _categoryDamage: 24
   _categoryInterval: 1.1

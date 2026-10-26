@@ -301,7 +301,8 @@ namespace Cryptforge.Tests
                                 Assert.That(service.HasEvolved(card.EvolvesFromId), Is.False, $"{where}: evolved twice");
                                 Assert.That(EvolutionRule.WeaponUnlocked(
                                     loadout.At(loadout.IndexOf(card.EvolvesFromId)).Level,
-                                    service.TomeLevel(card.EvolvesFromId == "weapon_sword" ? "tome_force" : "tome_precision")),
+                                    service.TomeLevel(card.EvolvesFromId == "weapon_sword" ? "tome_force"
+                                        : card.EvolvesFromId == "weapon_staff" ? "tome_reach" : "tome_precision")),
                                     Is.True, $"{where}: offered before it unlocked");
                                 break;
                             case OfferCategory.WeaponUpgrade:

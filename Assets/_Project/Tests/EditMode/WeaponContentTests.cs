@@ -74,8 +74,8 @@ namespace Cryptforge.Tests
                 Is.EqualTo((18f, 24f, 7f)), "The report's bases (docs/40 section 5.2).");
         }
 
-        // The two V0.1 evolutions (docs/42, PR 5), and none on the Staff yet: as the simulation restates them, evolving
-        // from their own weapon with the tome the asset names.
+        // The three evolutions (docs/42, PR 5; the Staff's is Cinder Nova, KillBurstRule): as the simulation restates
+        // them, evolving from their own weapon with the tome the asset names.
         [Test]
         public void TheSimulationsEvolutionsAreTheAssets()
         {
@@ -83,14 +83,8 @@ namespace Cryptforge.Tests
             {
                 WeaponCard asset = Weapon(name).CreateCard();
                 WeaponCard simulated = Simulated(name).CreateCard();
-                if (name == "Staff")
-                {
-                    Assert.That(asset.Evolution, Is.Null, "The Staff's evolution needs a behaviour that does not exist yet.");
-                    Assert.That(simulated.Evolution, Is.Null);
-                    continue;
-                }
-
                 Assert.That(asset.Evolution, Is.Not.Null, name);
+                Assert.That(simulated.Evolution, Is.Not.Null, name);
                 AssertSameCard(simulated.Evolution, asset.Evolution, $"{name} evolution");
                 Assert.That(asset.Evolution.IsEvolution, Is.True, name);
                 Assert.That(asset.Evolution.EvolvesFromId, Is.EqualTo(asset.Id), name);
@@ -101,6 +95,8 @@ namespace Cryptforge.Tests
             Assert.That(Weapon("Sword").EvolvesWithTome, Is.EqualTo("tome_force"));
             Assert.That(Weapon("Daggers").Evolution.Stat, Is.EqualTo(UpgradeStat.CritSplash));
             Assert.That(Weapon("Daggers").EvolvesWithTome, Is.EqualTo("tome_precision"));
+            Assert.That(Weapon("Staff").Evolution.Stat, Is.EqualTo(UpgradeStat.KillBurst));
+            Assert.That(Weapon("Staff").EvolvesWithTome, Is.EqualTo("tome_reach"));
         }
 
         // Each evolution is the general card that used to grant its stat, tier for tier: Forge Pulse for the Sword and
@@ -110,6 +106,24 @@ namespace Cryptforge.Tests
         {
             AssertSameTiers("Upgrade_Pulse", Weapon("Sword").Evolution);
             AssertSameTiers("Upgrade_CritSplash", Weapon("Daggers").Evolution);
+        }
+
+        // The Staff's replaces no general card - no card ever made kills burst - so it takes the splinter's tiers, the
+        // other evolution that is a share of a strike landing near what it hit, and like both it is one stack whose gate
+        // is the weapon's and the tome's.
+        [Test]
+        public void TheStaffsEvolutionCarriesTheSplintersTiers()
+        {
+            UpgradeDefinition staff = Weapon("Staff").Evolution;
+            var splinter = AssetDatabase.LoadAssetAtPath<UpgradeDefinition>("Assets/_Project/Data/Upgrades/Upgrade_CritSplash.asset");
+            Assert.That(splinter, Is.Not.Null);
+            Assert.That(staff.Id, Is.EqualTo("evolution_staff"));
+            Assert.That(staff.Operation, Is.EqualTo(ModifierOperation.Flat));
+            Assert.That((staff.Amount, staff.RareAmount, staff.EpicAmount, staff.GoldAmount),
+                Is.EqualTo((splinter.Amount, splinter.RareAmount, splinter.EpicAmount, splinter.GoldAmount)));
+            Assert.That(staff.MaxStacks, Is.EqualTo(1));
+            Assert.That(staff.Requires, Is.Null);
+            Assert.That(staff.EvolvesFrom, Is.Null);
         }
 
         private static void AssertSameTiers(string generalAsset, UpgradeDefinition evolution)

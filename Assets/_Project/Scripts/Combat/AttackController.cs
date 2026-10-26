@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
-    public sealed class AttackController : MonoBehaviour
+    public sealed class AttackController : MonoBehaviour, INeighbourhood
     {
         [SerializeField] private Health _owner;
         [SerializeField] private Targeting _targeting;
@@ -15,6 +15,11 @@ namespace Cryptforge.Combat
         // Enemies within the weapon's CritSplashRadius of the target, for the splinter a critical strike throws. Gathered
         // before the strike, because whether the strike crits is the weapon's business and not this controller's.
         private readonly List<IDamageable> _inCritSplashRadius = new List<IDamageable>();
+        // Enemies within the weapon's KillBurstRadius of an enemy its strike has just felled, for that enemy's burst.
+        // Gathered when the runtime asks (INeighbourhood), once per kill, because where a burst is centred is only known
+        // once the strike has landed - and only asked for by a weapon that carries a burst, so an enemy's attack never
+        // gathers it.
+        private readonly List<IDamageable> _inKillBurstRadius = new List<IDamageable>();
         private WeaponRuntime _weapon;
         // The weapons after the first, in slot order; null on every attacker that carries one weapon, which is every
         // enemy, so a horde of forty pays one null check a frame for the hero's loadout - no list, no loop.
@@ -103,7 +108,8 @@ namespace Cryptforge.Combat
             _inCritSplashRadius.Clear();
             if (weapon.CritSplash > 0f)
                 _targeting.CollectNear(target, weapon.CritSplashRadius, _inCritSplashRadius);
-            if (!weapon.TryAttack(target, _owner, _nearby, _inPulseRadius, _inCritSplashRadius))
+            if (!weapon.TryAttack(target, _owner, _nearby, _inPulseRadius, _inCritSplashRadius,
+                    weapon.KillBurst > 0f ? this : null))
                 return;
 
             if (first)
@@ -113,6 +119,14 @@ namespace Cryptforge.Combat
                 Struck?.Invoke(target);
             }
             StruckWith?.Invoke(target, weapon);
+        }
+
+        // The fallen enemy is still where it fell: a body is hidden at once but retired only later, so its position is
+        // the one the strike reached it at. Explicit, so the controller's own surface stays what it was.
+        IReadOnlyList<IDamageable> INeighbourhood.Near(IDamageable centre, float radius)
+        {
+            _targeting.CollectNear(centre as Health, radius, _inKillBurstRadius);
+            return _inKillBurstRadius;
         }
     }
 }

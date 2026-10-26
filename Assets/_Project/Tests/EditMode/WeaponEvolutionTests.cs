@@ -80,6 +80,7 @@ namespace Cryptforge.Tests
         // then comes up within a few offers since it is one entry of four in the weapon's table.
         [TestCase("weapon_sword")]
         [TestCase("weapon_daggers")]
+        [TestCase("weapon_staff")]
         public void TheEvolutionIsOfferedAtWeaponLevelFiveWithItsTomeAtTwoAndNotBefore(string weaponId)
         {
             for (int seed = 0; seed < 20; seed++)
@@ -138,6 +139,8 @@ namespace Cryptforge.Tests
 
         [TestCase("weapon_sword", "weapon_daggers")]
         [TestCase("weapon_daggers", "weapon_sword")]
+        [TestCase("weapon_staff", "weapon_sword")]
+        [TestCase("weapon_sword", "weapon_staff")]
         public void TheEvolutionIsTakenOnceWritesToItsOwnWeaponOnlyAndMakesTheWorldHarder(string weaponId, string otherId)
         {
             UpgradeOption evolution = Start(weaponId).Evolution;
@@ -188,18 +191,16 @@ namespace Cryptforge.Tests
                 Assert.That(taken, Is.EqualTo(1), $"{where}: a run that fills its weapon and its tome evolves once");
                 Assert.That(heroStats.Difficulty, Is.EqualTo(1f + EvolutionRule.DifficultyPerStack).Within(1e-6f), where);
                 float granted = evolution.ModifierFor(tier).Amount;
-                if (evolution.Stat == UpgradeStat.PulseDamage)
-                {
-                    Assert.That(own.PulseDamage, Is.EqualTo(granted).Within(1e-6f), where);
-                    Assert.That(own.CritSplash, Is.Zero, where);
-                }
-                else
-                {
-                    Assert.That(own.CritSplash, Is.EqualTo(granted).Within(1e-6f), where);
-                    Assert.That(own.PulseDamage, Is.Zero, where);
-                }
+                // The evolution's own behaviour, at the tier it was taken at, and neither of the other two.
+                Assert.That(own.PulseDamage, Is.EqualTo(evolution.Stat == UpgradeStat.PulseDamage ? granted : 0f)
+                    .Within(1e-6f), where);
+                Assert.That(own.CritSplash, Is.EqualTo(evolution.Stat == UpgradeStat.CritSplash ? granted : 0f)
+                    .Within(1e-6f), where);
+                Assert.That(own.KillBurst, Is.EqualTo(evolution.Stat == UpgradeStat.KillBurst ? granted : 0f)
+                    .Within(1e-6f), where);
                 Assert.That(other.PulseDamage, Is.Zero, $"{where}: the second weapon pulses");
                 Assert.That(other.CritSplash, Is.Zero, $"{where}: the second weapon splinters");
+                Assert.That(other.KillBurst, Is.Zero, $"{where}: the second weapon's kills burst");
             }
         }
 
@@ -245,14 +246,22 @@ namespace Cryptforge.Tests
             }
         }
 
-        // The Staff carries no evolution, and a weapon whose tome is not in the catalogue never unlocks one.
+        // A weapon with no evolution authored never offers one, and a weapon whose tome is not in the catalogue never
+        // unlocks its own.
         [Test]
         public void NoEvolutionWithoutOneAuthoredOrWithoutItsTome()
         {
+            DescentSimulation.HeroWeapon unevolved = DescentSimulation.Staff();
+            unevolved.Evolution = null;
+            unevolved.EvolvesWithTome = null;
+            UpgradeService none = Service(3, unevolved, DescentSimulation.Reach(), out _, out RunState noneRun, out _);
+            Grant(noneRun, Many);
+            AssertNoEvolution(none, "A Staff with no evolution authored");
+
             UpgradeService staff = Service(3, DescentSimulation.Staff(), DescentSimulation.Force(), out _, out RunState staffRun,
                 out _);
             Grant(staffRun, Many);
-            AssertNoEvolution(staff, "Staff");
+            AssertNoEvolution(staff, "Staff with Force, not Reach");
 
             UpgradeService sword = Service(3, DescentSimulation.Sword(), DescentSimulation.Precision(), out _,
                 out RunState swordRun, out _);
@@ -312,10 +321,18 @@ namespace Cryptforge.Tests
             Assert.That(service.HasEvolved("weapon_sword"), Is.False);
         }
 
-        private static DescentSimulation.HeroWeapon Start(string weaponId) =>
-            weaponId == "weapon_sword" ? DescentSimulation.Sword() : DescentSimulation.Daggers();
+        private static DescentSimulation.HeroWeapon Start(string weaponId) => weaponId switch
+        {
+            "weapon_sword" => DescentSimulation.Sword(),
+            "weapon_staff" => DescentSimulation.Staff(),
+            _ => DescentSimulation.Daggers()
+        };
 
-        private static UpgradeOption TomeOf(string weaponId) =>
-            weaponId == "weapon_sword" ? DescentSimulation.Force() : DescentSimulation.Precision();
+        private static UpgradeOption TomeOf(string weaponId) => weaponId switch
+        {
+            "weapon_sword" => DescentSimulation.Force(),
+            "weapon_staff" => DescentSimulation.Reach(),
+            _ => DescentSimulation.Precision()
+        };
     }
 }

@@ -27,10 +27,17 @@ namespace Cryptforge.Combat
         private readonly ModifiableStat _pulseDamage;
         // The share of a critical strike that splinters near its target; 0 until a card grants it (CritSplashRule).
         private readonly ModifiableStat _critSplash;
+        // The share of this weapon's damage an enemy its strike fells bursts for; 0 until the Staff's evolution grants
+        // it (KillBurstRule).
+        private readonly ModifiableStat _killBurst;
         // What every circle this weapon draws is multiplied by - the splash round its target, the pulse round its
-        // attacker, the splinter round a crit - 1 until a card or a tome widens it (docs/42, the Reach tome). One
-        // factor for all three, so Reach is worth something to the Daggers once they splinter, and nothing until then.
+        // attacker, the splinter round a crit, the burst round a kill - 1 until a card or a tome widens it (docs/42, the
+        // Reach tome). One factor for all four, so Reach is worth something to the Daggers once they splinter, and
+        // nothing until then.
         private readonly ModifiableStat _area;
+        // The enemies the strike in progress has felled, for their bursts once it has landed. Made the first time a
+        // weapon with a burst fells anything, so a weapon without one - every enemy's - never holds a list.
+        private List<IDamageable> _felled;
         private readonly float _baseInterval;
         private float _cooldown;
 
@@ -46,10 +53,14 @@ namespace Cryptforge.Combat
         // The share of a critical strike that splinters, 0 for no splinter at all.
         public float CritSplash => _critSplash.Value;
         public int SplintersFired { get; private set; }
+        // The share of Damage a felled enemy bursts for, 0 for no burst at all.
+        public float KillBurst => _killBurst.Value;
+        // How many of this weapon's kills have burst: one for each enemy a strike felled while it carried a share.
+        public int KillBurstsFired { get; private set; }
         // The factor on every radius below, 1 for a weapon nothing has widened.
         public float Area => _area.Value;
 
-        // The three circles, each its authored radius times Area. The scene's AttackController, the simulation and the
+        // The four circles, each its authored radius times Area. The scene's AttackController, the simulation and the
         // strike art all read them here and nowhere else, and each is one body that is never inlined: a radius is
         // squared into a reach comparison the moment it is read, and two copies of float arithmetic in two assemblies
         // have already disagreed in the last bit once (docs/21, the movement budget). At Area 1 each is its authored
@@ -70,6 +81,12 @@ namespace Cryptforge.Combat
         {
             [MethodImpl(MethodImplOptions.NoInlining)]
             get => CritSplashRule.Radius * _area.Value;
+        }
+
+        public float KillBurstRadius
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => KillBurstRule.Radius * _area.Value;
         }
 
         // The run seed the crit roll is drawn from; 0 for every weapon that never rolls, which is all of them until a
@@ -101,6 +118,7 @@ namespace Cryptforge.Combat
             _critChance = new ModifiableStat(0f, 0f);
             _pulseDamage = new ModifiableStat(0f, 0f);
             _critSplash = new ModifiableStat(0f, 0f);
+            _killBurst = new ModifiableStat(0f, 0f);
             _area = new ModifiableStat(1f, MinimumArea);
             _baseInterval = interval;
             _cooldown = initialDelay;
@@ -123,7 +141,7 @@ namespace Cryptforge.Combat
         public static bool Owns(UpgradeStat stat) =>
             stat == UpgradeStat.Damage || stat == UpgradeStat.AttackSpeed || stat == UpgradeStat.Range ||
             stat == UpgradeStat.CritChance || stat == UpgradeStat.PulseDamage || stat == UpgradeStat.CritSplash ||
-            stat == UpgradeStat.Area;
+            stat == UpgradeStat.Area || stat == UpgradeStat.KillBurst;
 
         public void AddModifier(UpgradeStat stat, StatModifier modifier)
         {
@@ -151,6 +169,9 @@ namespace Cryptforge.Combat
                 case UpgradeStat.Area:
                     _area.AddModifier(modifier);
                     break;
+                case UpgradeStat.KillBurst:
+                    _killBurst.AddModifier(modifier);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stat));
             }
@@ -172,9 +193,13 @@ namespace Cryptforge.Combat
         // itself, which is a different circle from nearby's and drawn round a different centre; a caller whose weapon
         // has no pulse may leave it null, and every enemy weapon does. inCritSplashRadius is a third circle, round the
         // target again but at CritSplashRadius rather than the splash's, for the splinter a critical strike throws;
-        // null unless a card granted one. The caller gathers all three, so this method never reads a radius itself.
+        // null unless a card granted one. The caller gathers all three, so this method never reads their radii itself.
+        // The fourth circle cannot be gathered ahead: it is drawn round each enemy the strike fells, at KillBurstRadius,
+        // and which enemies those are is only known once the strike has landed. So aroundTheFallen is asked for it then,
+        // once per kill and only while the weapon carries a burst; null unless one was granted.
         public bool TryAttack(IDamageable target, IDamageable source = null, IReadOnlyList<IDamageable> nearby = null,
-            IReadOnlyList<IDamageable> inPulseRadius = null, IReadOnlyList<IDamageable> inCritSplashRadius = null)
+            IReadOnlyList<IDamageable> inPulseRadius = null, IReadOnlyList<IDamageable> inCritSplashRadius = null,
+            INeighbourhood aroundTheFallen = null)
         {
             if (_cooldown > 0f || target == null || !target.IsAlive)
                 return false;
@@ -189,7 +214,10 @@ namespace Cryptforge.Combat
             bool critical = rhythm || rolled;
             float multiplier = rhythm ? Pattern.CritMultiplier : RolledCritMultiplier;
             float damage = critical ? Damage * multiplier : Damage;
+            // Read once, so a share granted from a death callback mid-strike waits for the next strike.
+            float burstShare = KillBurst;
             target.ApplyDamage(new DamageContext(damage, source, critical));
+            NoteIfFelled(target, burstShare);
             if (Pattern.Behavior != WeaponBehavior.DirectHit && nearby != null)
             {
                 for (int i = 0; i < nearby.Count; i++)
@@ -198,10 +226,15 @@ namespace Cryptforge.Combat
                     if (other == null || ReferenceEquals(other, target) || !other.IsAlive)
                         continue;
                     other.ApplyDamage(new DamageContext(damage * Pattern.SplashFraction, source, critical));
+                    NoteIfFelled(other, burstShare);
                     if (Pattern.Behavior == WeaponBehavior.Cleave)
                         break;
                 }
             }
+
+            // What the strike felled bursts where it fell, once the strike has landed in full and before anything it
+            // sets off: the bursts are the strike's, and the splinter and the pulse are not part of it.
+            Burst(burstShare, source, aroundTheFallen);
 
             // A critical strike splinters where it landed, off the critical damage it just dealt.
             Splinter(critical, damage, source, target, inCritSplashRadius);
@@ -212,6 +245,49 @@ namespace Cryptforge.Combat
             // near what the attacker hit.
             Pulse(source, inPulseRadius);
             return true;
+        }
+
+        // Only the strike's own landings call this - its target, its splash, its cleave - so a burst's kills, a
+        // splinter's and a pulse's are never noted and never burst.
+        private void NoteIfFelled(IDamageable struck, float burstShare)
+        {
+            if (!KillBurstRule.Bursts(!struck.IsAlive, burstShare))
+                return;
+
+            if (_felled == null)
+                _felled = new List<IDamageable>();
+            _felled.Add(struck);
+        }
+
+        // Each enemy the strike felled bursts once, in the order it fell, onto every other living enemy near it. The
+        // list is spent and cleared here; a strike tried again from a death callback below is turned away by the
+        // cadence before it can touch it.
+        private void Burst(float burstShare, IDamageable source, INeighbourhood aroundTheFallen)
+        {
+            if (_felled == null || _felled.Count == 0)
+                return;
+
+            float amount = KillBurstRule.DamageOf(Damage, burstShare);
+            float radius = KillBurstRadius;
+            for (int i = 0; i < _felled.Count; i++)
+            {
+                IDamageable fallen = _felled[i];
+                KillBurstsFired++;
+                if (aroundTheFallen == null || amount <= 0f)
+                    continue;
+
+                IReadOnlyList<IDamageable> caught = aroundTheFallen.Near(fallen, radius);
+                if (caught == null)
+                    continue;
+                for (int j = 0; j < caught.Count; j++)
+                {
+                    IDamageable near = caught[j];
+                    // Never the fallen enemy itself, and nothing a burst before this one has already felled.
+                    if (near != null && !ReferenceEquals(near, fallen) && near.IsAlive)
+                        near.ApplyDamage(new DamageContext(amount, source));
+                }
+            }
+            _felled.Clear();
         }
 
         private void Splinter(bool critical, float criticalDamage, IDamageable source, IDamageable target,
