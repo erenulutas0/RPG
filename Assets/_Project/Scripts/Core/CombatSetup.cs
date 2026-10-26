@@ -127,8 +127,31 @@ namespace Cryptforge.Core
             HeroStats.Changed += ApplyHeroStats;
             ApplyHeroStats();
             Weapon.Seed = Run.Seed;
-            Upgrades = new UpgradeService(Run, Weapon, options, _economy.UpgradeChoiceCount, HeroStats,
-                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled);
+            // On the foundry a run builds Megabonk's way (docs/42, PR 7): the forge's weapon is the first of up to three,
+            // every weapon of the catalogue can come as a card whatever the forge owns (the owner, 2026-10-26), and the
+            // economy's tomes level every weapon at once. The hall arena keeps the legacy cards, so the scene tests that
+            // pin the scene to the Descent simulation still measure the same engine.
+            var arena = FindFirstObjectByType<ArenaView>();
+            bool categories = arena != null && arena.IsFoundryRegion && _economy.TomeCount > 0;
+            WeaponLoadout loadout = null;
+            WeaponCard[] weaponCards = null;
+            UpgradeOption[] tomes = null;
+            if (categories)
+            {
+                loadout = new WeaponLoadout(Run.Seed);
+                loadout.TryAdd(HeroWeapon.Id, Weapon);
+                weaponCards = new WeaponCard[_weapons.Length];
+                for (int i = 0; i < _weapons.Length; i++)
+                    weaponCards[i] = _weapons[i].CreateCard();
+                tomes = new UpgradeOption[_economy.TomeCount];
+                for (int i = 0; i < tomes.Length; i++)
+                    tomes[i] = _economy.TomeAt(i).CreateOption();
+            }
+            Upgrades = new UpgradeService(Run, Weapon, options,
+                categories ? _economy.CategoryChoiceCount : _economy.UpgradeChoiceCount, HeroStats,
+                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes);
+            // A weapon taken from an offer joins the hero's attack after the ones it already carries.
+            Upgrades.WeaponAcquired += (card, runtime) => _attack.AddWeapon(runtime);
             Forge = new ForgeService(Run, _hero);
             Checkpoint = new CheckpointService(Run);
             Choices = new RunChoices(Upgrades, Forge, Checkpoint);

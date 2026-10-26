@@ -16,3 +16,9 @@ MonoBehaviour:
   _experienceGrowth: 2
   _upgradeChoiceCount: 2
   _atRiskGoldLoss: 0.5
+  _tomes:
+  - {fileID: 11400000, guid: f60a9af6ce4f4d558863031f76df1dc2, type: 2}
+  - {fileID: 11400000, guid: 8345d323392f4736b6e8fffcc96c260b, type: 2}
+  - {fileID: 11400000, guid: c5252c8d4c934e38a8adad075c8bd4d7, type: 2}
+  - {fileID: 11400000, guid: 48e2f6f8e01046939d9935c39581e376, type: 2}
+  _categoryChoiceCount: 3
