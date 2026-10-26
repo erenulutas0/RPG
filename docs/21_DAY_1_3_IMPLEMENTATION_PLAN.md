@@ -2932,3 +2932,29 @@ half the report's) the horde and the Warden tuned against the legacy cards outpa
 until Vitality. The autopilot is a weak player (first-card picks before this, no burst); the owner's own run is the
 measurement that decides the next step. 550 .NET / 846 EditMode / 179 PlayMode (+1 explicit), zero failures; APK
 35,889,848 bytes, SHA256 48A12919C2938547962C575D11ED6620E90B5FA9354F41EB7755E9B93DE19D4B, not installed.
+
+## 2026-10-26 evening - The S23 at 10-40 enemies, and the first device run of the whole V0.1
+
+Installed APK 22AE3C26... plus a development-only change: with `development/horde-probe.txt` the probe's hero gets
++1,000,000 maximum health, so it stands through the crowd and the probe measures the fight, not the result screen.
+The owner's profile was backed up before and restored after (revision 252, 38,281 gold). Helper:
+`scratchpad/device_session.py` (check, install, probe N, autopilot, restore).
+
+**Density probe** (first wave padded to N, `[RenderStats]` every 5 s for 40 s, the hero standing; `[Perf] wave:` lines
+confirm the counts):
+
+| Enemies in the wave | fps (median) | p95 ms | GPU ms | draw calls (start -> 40 s) | wave spawn frame |
+|---|---|---|---|---|---|
+| 10 | 59.9 | 16.7 | 3.5 | 47 -> 194 | 16.7 ms (StartWave 20 ms) |
+| 20 | 59.9 | 16.7 | 3.6 | 59 -> 218 | 16.7 ms (18 ms) |
+| 30 | 59.9 | 16.7 | 3.6 | 66 -> 235 | 33.4 ms (28 ms) |
+| 40 | 59.9 | 16.7 | 3.8 | 71 -> 247 | 33.4 ms (33 ms) |
+
+The S23 holds 40 at the vsync cap with GPU under 4.2 ms; the only cost is one 33 ms frame when a wave of 30-40 spawns
+at once (the horde spawns one at a time). Draw calls climb steadily while the hero stands - most likely the drops piling
+up uncollected - to look at before raising `HordeRule.SceneCap` (30) past 40.
+
+**Autopilot on the device** (category mode, horde, Warden fight, three cards): **victory**, 449 s active - floor 1 180 s
+(boss 62 s, hero down to 8.8 health), floor 2 205 s (boss 98 s), finale 63 s; 762 kills (628 horde), level 31; build
+Staff + Daggers both Lv8, Reach Lv6, Vitality Lv8, maximum health 289. Floors are now 180-205 s against 240-360 s; the
+gate level remains high.
