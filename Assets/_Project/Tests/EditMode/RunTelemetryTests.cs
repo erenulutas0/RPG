@@ -28,7 +28,31 @@ namespace Cryptforge.Tests
             new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.5f), 5);
 
-        private static ForgeOption Mend() => new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
+        private static UpgradeOption Health() =>
+            new UpgradeOption("upgrade_health", "Vital Surge", "+{0:0} maximum health", UpgradeStat.MaxHealth,
+                new StatModifier(ModifierOperation.Flat, 20f), 5);
+
+        // The keys every line of these events has always had, in order. Category mode appends its own after them, so a
+        // legacy line and the front of a category line read the same.
+        private static readonly string[] Envelope = { "v", "seq", "t", "st", "session", "run", "event" };
+        private static readonly string[] OfferKeys =
+            With(Envelope, "choice_ids", "run_level", "pending", "offer_index", "choice_rarities");
+        private static readonly string[] SelectionKeys =
+            With(Envelope, "upgrade_id", "choice_slot", "run_level", "stacks", "offer_index", "rarity");
+        private static readonly string[] RunEndKeys = With(Envelope,
+            "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "horde_kills", "upgrades_applied",
+            "pulses", "gold", "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec", "hero_hp",
+            "hero_max_hp");
+
+        private static string[] With(string[] keys, params string[] more)
+        {
+            var all = new string[keys.Length + more.Length];
+            keys.CopyTo(all, 0);
+            more.CopyTo(all, keys.Length);
+            return all;
+        }
+
+        private static ForgeOption Mend() =>new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, 0.4f);
 
         private static ForgeOption Temper() =>
             new ForgeOption("forge_temper", "Temper", "Gain {0:0} extra upgrade choice", ForgeEffect.BonusUpgrade, 1f);
@@ -115,6 +139,9 @@ namespace Cryptforge.Tests
                 Is.EqualTo(("enemy_grunt", 1L, 1L)));
 
             List<Line> offers = All(lines, "upgrade_offered");
+            // A legacy run writes none of category mode's keys (docs/42, PR 8).
+            Assert.That(offers[0].Keys, Is.EqualTo(OfferKeys));
+            Assert.That(All(lines, "upgrade_selected")[0].Keys, Is.EqualTo(SelectionKeys));
             Assert.That((offers[0].Text("choice_ids"), offers[0].Integer("run_level"), offers[0].Integer("pending")),
                 Is.EqualTo(("upgrade_damage,upgrade_attack_speed", 1L, 1L)));
             Assert.That((offers[0].Integer("offer_index"), offers[1].Integer("offer_index")), Is.EqualTo((0L, 1L)),
@@ -150,19 +177,177 @@ namespace Cryptforge.Tests
                 Is.EqualTo(("extract", 1L, 35L, 35L)), "The choice is logged before the scene ends the run.");
 
             Line end = Single(lines, "run_end");
-            Assert.That(end.Keys, Is.EqualTo(new[]
-            {
-                "v", "seq", "t", "st", "session", "run", "event",
-                "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "horde_kills", "upgrades_applied",
-                "pulses", "gold", "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec", "hero_hp",
-                "hero_max_hp"
-            }));
+            Assert.That(end.Keys, Is.EqualTo(RunEndKeys));
             Assert.That((end.Text("result"), end.Text("cause"), end.Integer("floors_completed"), end.Integer("rooms_completed")),
                 Is.EqualTo(("extracted", "extracted", 1L, 3L)));
             Assert.That((end.Integer("run_level"), end.Integer("kills"), end.Integer("upgrades_applied")), Is.EqualTo((1L, 3L, 2L)));
             Assert.That(end.Integer("horde_kills"), Is.EqualTo(0L), "A run without a horde reports none.");
             Assert.That((end.Integer("gold"), end.Integer("gold_banked"), end.Integer("gold_lost")), Is.EqualTo((35L, 35L, 0L)));
             Assert.That(telemetry.Session.RunId, Is.Null);
+        }
+
+        // The foundry's category mode (docs/42, PR 8): each offer names its cards' kinds, a weapon picked up is logged with
+        // its slot, each pick names its kind and the level it left its weapon or tome at, and run_end reports the build.
+        // Every key a legacy line writes keeps its place; category mode's own come after them.
+        [Test]
+        public void ACategoryRunLogsItsPicksAndBuildAfterEveryLegacyKey()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session, true);
+            scene.Recorder.Begin();
+            scene.Room(1, Floor1, 1, RoomKind.Swarm, "enemy_mite");
+
+            // The first level-up comes from a kill, the rest are granted.
+            scene.Kill("enemy_mite", 10, 0);
+            UpgradeOffer first = scene.Upgrades.CurrentOffer;
+            var firstKinds = new List<string>();
+            for (int i = 0; i < first.Choices.Count; i++)
+                firstKinds.Add(first.Choices[i].Category.ToString());
+            Assert.That(scene.TryTake(card => card.Category == OfferCategory.NewWeapon), Is.True);
+            scene.LevelUpTaking(card => card.Category == OfferCategory.NewTome && card.Id == "tome_force", "Force");
+            scene.LevelUpTaking(card => card.Category == OfferCategory.TomeUpgrade, "Force's next level");
+            scene.LevelUpTaking(card => card.Category == OfferCategory.WeaponUpgrade
+                && card.Id.StartsWith("line_daggers", StringComparison.Ordinal), "a Daggers line");
+            scene.LevelUpTaking(card => card.Category == OfferCategory.General, "Vital Surge");
+            Assert.That(scene.Upgrades.CurrentOffer, Is.Null);
+            scene.Die("enemy_mite");
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Assert.That(Events(lines), Is.EqualTo(new[]
+            {
+                "session_start", "run_start", "room_start", "first_kill",
+                "upgrade_offered", "weapon_acquired", "upgrade_selected",
+                "upgrade_offered", "upgrade_selected",
+                "upgrade_offered", "upgrade_selected",
+                "upgrade_offered", "upgrade_selected",
+                "upgrade_offered", "upgrade_selected",
+                "room_complete", "run_end"
+            }), "A weapon picked up is logged as it joins the loadout, just before the pick that took it.");
+            Assert.That(Single(lines, "run_start").Text("weapon_id"), Is.EqualTo("weapon_sword"), "The weapon it started with.");
+
+            List<Line> offers = All(lines, "upgrade_offered");
+            Assert.That(offers[0].Keys, Is.EqualTo(With(OfferKeys, "choice_categories")));
+            Assert.That(offers[0].Text("choice_categories"), Is.EqualTo(string.Join(",", firstKinds)),
+                "A kind per card, in the order of choice_ids.");
+            firstKinds.Sort(StringComparer.Ordinal);
+            Assert.That(firstKinds, Is.EqualTo(new[] { "General", "NewTome", "NewTome", "NewWeapon", "WeaponUpgrade" }),
+                "The first offer shows every card a fresh run can take, so the line names every kind but a tome's level.");
+
+            Line acquired = Single(lines, "weapon_acquired");
+            Assert.That(acquired.Keys, Is.EqualTo(With(Envelope, "weapon_id", "slot", "run_level", "floor_index", "room_index")));
+            Assert.That((acquired.Text("weapon_id"), acquired.Integer("slot"), acquired.Integer("run_level"),
+                acquired.Integer("floor_index"), acquired.Integer("room_index")), Is.EqualTo(("weapon_daggers", 1L, 1L, 1L, 1L)));
+
+            List<Line> picks = All(lines, "upgrade_selected");
+            string[] weaponPick = With(SelectionKeys, "category", "weapon_id", "weapon_level");
+            string[] tomePick = With(SelectionKeys, "category", "tome_level");
+            Assert.That(picks[0].Keys, Is.EqualTo(weaponPick));
+            Assert.That((picks[0].Text("upgrade_id"), picks[0].Text("category"), picks[0].Text("weapon_id"),
+                picks[0].Integer("weapon_level")), Is.EqualTo(("weapon_daggers", "NewWeapon", "weapon_daggers", 1L)));
+            Assert.That(picks[1].Keys, Is.EqualTo(tomePick));
+            Assert.That((picks[1].Text("upgrade_id"), picks[1].Text("category"), picks[1].Integer("tome_level")),
+                Is.EqualTo(("tome_force", "NewTome", 1L)));
+            Assert.That(picks[2].Keys, Is.EqualTo(tomePick));
+            Assert.That((picks[2].Text("upgrade_id"), picks[2].Text("category"), picks[2].Integer("tome_level")),
+                Is.EqualTo(("tome_force", "TomeUpgrade", 2L)), "The level after the pick.");
+            Assert.That(picks[3].Keys, Is.EqualTo(weaponPick));
+            Assert.That((picks[3].Text("category"), picks[3].Text("weapon_id"), picks[3].Integer("weapon_level")),
+                Is.EqualTo(("WeaponUpgrade", "weapon_daggers", 2L)), "A line names the weapon it levelled.");
+            Assert.That(picks[4].Keys, Is.EqualTo(With(SelectionKeys, "category")),
+                "A general card's level is its stacks, which every line already writes.");
+            Assert.That((picks[4].Text("upgrade_id"), picks[4].Text("category"), picks[4].Integer("stacks")),
+                Is.EqualTo(("upgrade_health", "General", 1L)));
+
+            Line end = Single(lines, "run_end");
+            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, "weapon_ids", "weapon_levels", "tome_ids", "tome_levels",
+                "evolutions")));
+            Assert.That((end.Text("weapon_ids"), end.Text("weapon_levels")), Is.EqualTo(("weapon_sword,weapon_daggers", "1,2")),
+                "Slot order.");
+            Assert.That((end.Text("tome_ids"), end.Text("tome_levels")), Is.EqualTo(("tome_force", "2")),
+                "Only the tomes held.");
+            Assert.That((end.Integer("evolutions"), end.Integer("pulses"), end.Integer("upgrades_applied")),
+                Is.EqualTo((0L, 0L, 5L)));
+        }
+
+        // An evolution raises no level, so its pick carries the weapon's level as it stood; run_end counts it, and its
+        // pulses are every slot's.
+        [Test]
+        public void ACategoryRunEndCountsItsEvolutionAndEverySlotsPulses()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session, true);
+            scene.Recorder.Begin();
+            scene.Room(1, Floor1, 1, RoomKind.Swarm, "enemy_mite");
+
+            Func<UpgradeOption, bool> daggersLine = card => card.Category == OfferCategory.WeaponUpgrade && !card.IsEvolution
+                && card.Id.StartsWith("line_daggers", StringComparison.Ordinal);
+            scene.LevelUpTaking(card => card.Category == OfferCategory.NewWeapon, "the Daggers");
+            scene.LevelUpTaking(card => card.Category == OfferCategory.NewTome && card.Id == "tome_precision", "Precision");
+            scene.LevelUpTaking(card => card.Category == OfferCategory.TomeUpgrade && card.Id == "tome_precision",
+                "Precision's next level");
+            for (int i = 0; i < 4; i++)
+                scene.LevelUpTaking(daggersLine, "a Daggers line");
+            Assert.That(scene.Loadout.At(1).Level, Is.EqualTo(5));
+
+            // The evolution is one entry of the Daggers' table now; until it comes up, every other card is taken instead.
+            string evolutionId = DescentSimulation.DaggersEvolution().Id;
+            bool evolved = false;
+            for (int offer = 0; offer < 15 && !evolved; offer++)
+            {
+                scene.Run.GrantBonusUpgrade();
+                evolved = scene.TryTake(card => card.IsEvolution && card.EvolvesFromId == "weapon_daggers");
+                if (!evolved)
+                    Assert.That(scene.TryTake(card => !card.IsEvolution && !daggersLine(card)), Is.True);
+            }
+            Assert.That(evolved, Is.True, "The Daggers' evolution came up.");
+            Assert.That(scene.Upgrades.CurrentOffer, Is.Null);
+
+            // A pulse on every fourth strike of each weapon: one from each slot.
+            for (int slot = 0; slot < scene.Loadout.Count; slot++)
+            {
+                WeaponRuntime weapon = scene.Loadout.At(slot).Runtime;
+                weapon.AddModifier(UpgradeStat.PulseDamage, new StatModifier(ModifierOperation.Flat, 0.5f));
+                var target = new HealthState(100000f);
+                for (int strike = 0; strike < PulseRule.Every; strike++)
+                {
+                    weapon.Tick(10f);
+                    Assert.That(weapon.TryAttack(target), Is.True);
+                }
+                Assert.That(weapon.PulsesFired, Is.EqualTo(1));
+            }
+            scene.Die("enemy_mite");
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            List<Line> picks = All(lines, "upgrade_selected");
+            Line evolution = picks[picks.Count - 1];
+            Assert.That((evolution.Text("upgrade_id"), evolution.Text("category"), evolution.Text("weapon_id"),
+                evolution.Integer("weapon_level")), Is.EqualTo((evolutionId, "WeaponUpgrade", "weapon_daggers", 5L)));
+
+            Line end = Single(lines, "run_end");
+            Assert.That((end.Integer("evolutions"), end.Integer("pulses")), Is.EqualTo((1L, 2L)));
+            Assert.That((end.Text("weapon_ids"), end.Text("weapon_levels")),
+                Is.EqualTo(("weapon_sword,weapon_daggers", scene.Loadout.At(0).Level + ",5")));
+            Assert.That(end.Text("tome_ids").Split(','), Does.Contain("tome_precision"));
+        }
+
+        [Test]
+        public void PulsesAreTheOneWeaponsWithoutALoadout()
+        {
+            var weapon = new WeaponRuntime(10f, 1f, 1f);
+            weapon.AddModifier(UpgradeStat.PulseDamage, new StatModifier(ModifierOperation.Flat, 0.5f));
+            var target = new HealthState(1000f);
+            for (int strike = 0; strike < PulseRule.Every; strike++)
+            {
+                weapon.Tick(10f);
+                Assert.That(weapon.TryAttack(target), Is.True);
+            }
+
+            Assert.That(RunTelemetry.PulsesFired(null, weapon), Is.EqualTo(1));
+            Assert.That(RunTelemetry.PulsesFired(null, null), Is.Zero);
+            Assert.That(RunTelemetry.PulsesFired(new WeaponLoadout(0), weapon), Is.Zero,
+                "A loadout's pulses are its slots', and an empty one has none.");
         }
 
         [Test]
@@ -1139,9 +1324,15 @@ namespace Cryptforge.Tests
             public readonly RunChoices Choices;
             public readonly RunPause Pause;
             public readonly RunTelemetry Recorder;
+            // Category mode only: the hero starts with the Sword and may pick up the Daggers.
+            public readonly WeaponLoadout Loadout;
             public string Killer;
 
-            public Scene(TelemetrySession session)
+            // categories builds the foundry's engine (docs/42): the Sword in slot 0, the Sword and Daggers as weapon cards,
+            // Force and Precision as tomes, and Vital Surge as the only general card left once the weapon cards leave. Six
+            // choices outnumber every card such a run can be shown at once, so each offer shows them all and a test takes
+            // exactly the card it names.
+            public Scene(TelemetrySession session, bool categories = false)
             {
                 Relics = new RelicShop(Profile, new[]
                 {
@@ -1152,7 +1343,21 @@ namespace Cryptforge.Tests
                 Weapons = new WeaponShop(Profile, new[] { sword, new WeaponOption("weapon_axe", "Axe", string.Empty, 40) }, sword);
                 Rewards = new RewardService(Run);
                 Bank = new RunBank(Run, Profile);
-                Upgrades = new UpgradeService(Run, new WeaponRuntime(10f, 1f, 1f), new[] { Damage(), Speed() }, 2);
+                if (categories)
+                {
+                    WeaponCard swordCard = DescentSimulation.Sword().CreateCard();
+                    WeaponCard daggersCard = DescentSimulation.Daggers().CreateCard();
+                    Loadout = new WeaponLoadout(Run.Seed);
+                    WeaponRuntime primary = swordCard.CreateRuntime();
+                    Loadout.TryAdd(swordCard.Id, primary);
+                    Upgrades = new UpgradeService(Run, primary, new[] { Damage(), Speed(), Health() }, 6, null, false,
+                        Loadout, new[] { swordCard, daggersCard },
+                        new[] { DescentSimulation.Force(), DescentSimulation.Precision() });
+                }
+                else
+                {
+                    Upgrades = new UpgradeService(Run, new WeaponRuntime(10f, 1f, 1f), new[] { Damage(), Speed() }, 2);
+                }
                 Forge = new ForgeService(Run, Hero);
                 Checkpoint = new CheckpointService(Run);
                 Choices = new RunChoices(Upgrades, Forge, Checkpoint);
@@ -1184,8 +1389,30 @@ namespace Cryptforge.Tests
                     DeepestFloorCleared = Profile.DeepestFloorCleared,
                     KillerId = () => Killer,
                     HeroHealth = () => Hero.Current,
-                    HeroMaximumHealth = () => Hero.Maximum
+                    HeroMaximumHealth = () => Hero.Maximum,
+                    // As CombatSetup wires it; a legacy scene here never set one.
+                    Pulses = Loadout != null ? () => RunTelemetry.PulsesFired(Upgrades.Loadout, Loadout.Primary) : (Func<int>)null
                 };
+            }
+
+            // Takes the first card of the open offer that match accepts; false, and nothing taken, when it shows none.
+            public bool TryTake(Func<UpgradeOption, bool> match)
+            {
+                UpgradeOffer offer = Upgrades.CurrentOffer;
+                Assert.That(offer, Is.Not.Null, "An offer is open.");
+                for (int i = 0; i < offer.Choices.Count; i++)
+                {
+                    if (match(offer.Choices[i]))
+                        return Upgrades.TrySelect(offer, i);
+                }
+                return false;
+            }
+
+            // One level-up, answered with the card match names.
+            public void LevelUpTaking(Func<UpgradeOption, bool> match, string what)
+            {
+                Run.GrantBonusUpgrade();
+                Assert.That(TryTake(match), Is.True, "The offer shows " + what + ".");
             }
 
             public void Room(int floor, string floorId, int room, RoomKind kind, string toughestEnemyId)

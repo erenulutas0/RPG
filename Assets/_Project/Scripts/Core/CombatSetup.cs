@@ -216,7 +216,7 @@ namespace Cryptforge.Core
                 KillerId = () => LastAttacker != null ? LastAttacker.Id : null,
                 HeroHealth = () => _hero.Current,
                 HeroMaximumHealth = () => _hero.Maximum,
-                Pulses = () => Weapon != null ? Weapon.PulsesFired : 0
+                Pulses = () => RunTelemetry.PulsesFired(Upgrades.Loadout, Weapon)
             };
             return RunTelemetryBridge.Attach(gameObject, context, _encounters, _ability);
         }

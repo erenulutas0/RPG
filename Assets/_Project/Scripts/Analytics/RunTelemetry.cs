@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -79,6 +80,9 @@ namespace Cryptforge.Analytics
         private readonly Func<int> _pulses;
         private readonly StringBuilder _choiceIds = new StringBuilder();
         private readonly StringBuilder _choiceRarities = new StringBuilder();
+        private readonly StringBuilder _choiceCategories = new StringBuilder();
+        // run_end's loadout lists in category mode, built one after the other.
+        private readonly StringBuilder _loadoutList = new StringBuilder();
 
         private readonly TimeSplit _runTime = new TimeSplit();
         // Resets at each floor_complete, so a floor's time includes the checkpoint and descent that led into it.
@@ -572,6 +576,7 @@ namespace Cryptforge.Analytics
             _choices.Changed += OnChoicesChanged;
             _upgrades.OfferChanged += OnUpgradeOfferChanged;
             _upgrades.Selected += OnUpgradeSelected;
+            _upgrades.WeaponAcquired += OnWeaponAcquired;
             _forge.Selected += OnForgeSelected;
             _checkpoint.Chosen += OnCheckpointChosen;
             if (_relics != null)
@@ -591,6 +596,7 @@ namespace Cryptforge.Analytics
             _choices.Changed -= OnChoicesChanged;
             _upgrades.OfferChanged -= OnUpgradeOfferChanged;
             _upgrades.Selected -= OnUpgradeSelected;
+            _upgrades.WeaponAcquired -= OnWeaponAcquired;
             _forge.Selected -= OnForgeSelected;
             _checkpoint.Chosen -= OnCheckpointChosen;
             if (_relics != null)
@@ -719,7 +725,7 @@ namespace Cryptforge.Analytics
                     .Add("amount", _run.GoldBanked));
             }
 
-            _session.Emit("run_end", new TelemetryFields()
+            var end = new TelemetryFields()
                 .Add("result", ResultName(outcome))
                 .Add("cause", CauseOf(outcome))
                 .Add("floors_completed", _floorsCompleted)
@@ -736,9 +742,59 @@ namespace Cryptforge.Analytics
                 .Add("choice_sec", _runTime.Choice)
                 .Add("pause_sec", _runTime.Pause)
                 .Add("background_sec", RunBackgroundSeconds())
-                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth());
+            if (_upgrades.IsCategoryMode)
+                AddBuild(end);
+            _session.Emit("run_end", end);
             EndSessionRun();
             _session.Flush();
+        }
+
+        // The build a category-mode run ended with, after every key a legacy run_end writes: the weapons in slot order with
+        // their levels, the tomes held in catalogue order with theirs, and every evolution taken (a weapon's or a general
+        // card's, each of which raised the difficulty).
+        private void AddBuild(TelemetryFields fields)
+        {
+            WeaponLoadout loadout = _upgrades.Loadout;
+            _loadoutList.Clear();
+            for (int i = 0; i < loadout.Count; i++)
+                AppendItem(_loadoutList, i, loadout.At(i).WeaponId);
+            fields.Add("weapon_ids", _loadoutList.ToString());
+            _loadoutList.Clear();
+            for (int i = 0; i < loadout.Count; i++)
+                AppendItem(_loadoutList, i).Append(loadout.At(i).Level);
+            fields.Add("weapon_levels", _loadoutList.ToString());
+
+            IReadOnlyList<UpgradeOption> tomes = _upgrades.Tomes;
+            _loadoutList.Clear();
+            int held = 0;
+            for (int i = 0; i < tomes.Count; i++)
+                if (_upgrades.TomeLevel(tomes[i].Id) > 0)
+                    AppendItem(_loadoutList, held++, tomes[i].Id);
+            fields.Add("tome_ids", _loadoutList.ToString());
+            _loadoutList.Clear();
+            held = 0;
+            for (int i = 0; i < tomes.Count; i++)
+            {
+                int level = _upgrades.TomeLevel(tomes[i].Id);
+                if (level > 0)
+                    AppendItem(_loadoutList, held++).Append(level);
+            }
+            fields.Add("tome_levels", _loadoutList.ToString());
+            fields.Add("evolutions", _upgrades.EvolutionsTaken);
+        }
+
+        // Every pulse the run's weapons fired, for RunTelemetryContext.Pulses: each slot's in a category-mode loadout, or
+        // the one weapon's without a loadout. Read once, at run_end.
+        public static int PulsesFired(WeaponLoadout loadout, WeaponRuntime weapon)
+        {
+            if (loadout == null)
+                return weapon != null ? weapon.PulsesFired : 0;
+
+            int pulses = 0;
+            for (int i = 0; i < loadout.Count; i++)
+                pulses += loadout.At(i).Runtime.PulsesFired;
+            return pulses;
         }
 
         // Only this recorder's run is closed on the session, so a recorder disposed late cannot strip a newer run's id.
@@ -786,26 +842,39 @@ namespace Cryptforge.Analytics
                 return;
 
             _reportedOffer = offer;
+            bool categories = _upgrades.IsCategoryMode;
             _choiceIds.Clear();
             _choiceRarities.Clear();
+            _choiceCategories.Clear();
             for (int i = 0; i < offer.Choices.Count; i++)
             {
-                if (i > 0)
-                {
-                    _choiceIds.Append(',');
-                    _choiceRarities.Append(',');
-                }
-                _choiceIds.Append(offer.Choices[i].Id);
-                _choiceRarities.Append(offer.RarityAt(i).ToString());
+                AppendItem(_choiceIds, i, offer.Choices[i].Id);
+                AppendItem(_choiceRarities, i, offer.RarityAt(i).ToString());
+                if (categories)
+                    AppendItem(_choiceCategories, i, offer.Choices[i].Category.ToString());
             }
 
-            _session.Emit("upgrade_offered", new TelemetryFields()
+            var fields = new TelemetryFields()
                 .Add("choice_ids", _choiceIds.ToString())
                 .Add("run_level", _run.Level)
                 .Add("pending", _run.PendingUpgrades)
                 .Add("offer_index", offer.Index)
-                .Add("choice_rarities", _choiceRarities.ToString()));
+                .Add("choice_rarities", _choiceRarities.ToString());
+            // Category mode only, and after every legacy key, so a legacy line keeps exactly the keys it always had.
+            if (categories)
+                fields.Add("choice_categories", _choiceCategories.ToString());
+            _session.Emit("upgrade_offered", fields);
         }
+
+        // A comma before every item but the first, so each list reads like choice_ids.
+        private static StringBuilder AppendItem(StringBuilder list, int index)
+        {
+            if (index > 0)
+                list.Append(',');
+            return list;
+        }
+
+        private static void AppendItem(StringBuilder list, int index, string item) => AppendItem(list, index).Append(item);
 
         private void OnUpgradeSelected(UpgradeOption option, int slot)
         {
@@ -814,13 +883,73 @@ namespace Cryptforge.Analytics
 
             UpgradeOffer from = _upgrades.LastSelected;
 
-            _session.Emit("upgrade_selected", new TelemetryFields()
+            var fields = new TelemetryFields()
                 .Add("upgrade_id", option.Id)
                 .Add("choice_slot", slot)
                 .Add("run_level", _run.Level)
                 .Add("stacks", _upgrades.StacksOf(option))
                 .Add("offer_index", from != null ? from.Index : -1)
-                .Add("rarity", from != null ? from.RarityAt(slot).ToString() : "Common"));
+                .Add("rarity", from != null ? from.RarityAt(slot).ToString() : "Common");
+            if (_upgrades.IsCategoryMode)
+                AddCategoryPick(fields, option);
+            _session.Emit("upgrade_selected", fields);
+        }
+
+        // Category mode only, after every legacy key: the kind of pick and, once it is applied, the level of what it grew -
+        // the weapon (named, since a line's id is the line's own) or the tome. An evolution raises no level, so its line
+        // carries its weapon's level as it stands. A general card's level is its stacks, already written.
+        private void AddCategoryPick(TelemetryFields fields, UpgradeOption option)
+        {
+            fields.Add("category", option.Category.ToString());
+            switch (option.Category)
+            {
+                case OfferCategory.NewWeapon:
+                case OfferCategory.WeaponUpgrade:
+                {
+                    string weaponId = WeaponIdOf(option);
+                    WeaponLoadout loadout = _upgrades.Loadout;
+                    int slot = weaponId != null ? loadout.IndexOf(weaponId) : -1;
+                    fields.Add("weapon_id", weaponId)
+                        .Add("weapon_level", slot >= 0 ? loadout.At(slot).Level : 0);
+                    break;
+                }
+                case OfferCategory.NewTome:
+                case OfferCategory.TomeUpgrade:
+                    fields.Add("tome_level", _upgrades.StacksOf(option));
+                    break;
+            }
+        }
+
+        // The weapon a weapon card belongs to: its Acquire, one of its lines or its evolution. Null for any other card.
+        private string WeaponIdOf(UpgradeOption option)
+        {
+            IReadOnlyList<WeaponCard> cards = _upgrades.WeaponCards;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                WeaponCard card = cards[i];
+                if (option == card.Acquire || option == card.Evolution)
+                    return card.Id;
+                for (int j = 0; j < card.Lines.Count; j++)
+                    if (option == card.Lines[j])
+                        return card.Id;
+            }
+            return null;
+        }
+
+        // A weapon taken into the loadout. The service raises it while applying the pick, so this line precedes the
+        // upgrade_selected that took it. slot is the loadout's; slot 0 is the weapon the run started with, which run_start
+        // names and which no weapon_acquired reports.
+        private void OnWeaponAcquired(WeaponCard card, WeaponRuntime runtime)
+        {
+            if (!IsRecording || card == null || !_upgrades.IsCategoryMode)
+                return;
+
+            _session.Emit("weapon_acquired", new TelemetryFields()
+                .Add("weapon_id", card.Id)
+                .Add("slot", _upgrades.Loadout.IndexOf(card.Id))
+                .Add("run_level", _run.Level)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex));
         }
 
         private void OnForgeSelected(ForgeOption option, int slot)

@@ -37,7 +37,8 @@ namespace Cryptforge.Analytics
         // share of a maximum that health cards raise.
         public Func<float> HeroHealth;
         public Func<float> HeroMaximumHealth;
-        // Pulses the hero weapon has fired, for run_end. Optional: a scene without a pulse reports none.
+        // Pulses the hero's weapons have fired, for run_end: every slot's in category mode (RunTelemetry.PulsesFired).
+        // Optional: a scene without a pulse reports none.
         public Func<int> Pulses;
     }
 }
