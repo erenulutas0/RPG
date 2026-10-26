@@ -52,9 +52,12 @@ namespace Cryptforge.Combat
         // struggling is not buried (docs/27, Megabonk's own pressure curve). Never past the cap.
         public const float ReactiveShare = 0.5f;
 
-        // The most enemies the scene lets stand at once, horde and node waves together: the low end of the owner's first
-        // range (2026-10-26: 30-40 on the S23, raised by measurement) until the density probe has its number.
-        public const int SceneCap = 30;
+        // The most enemies the scene lets stand at once, horde and node waves together: the top of the owner's first
+        // range (2026-10-26: 30-40 on the S23, raised by measurement). The density probe held 10, 20, 30 and 40 at 59.9
+        // fps, p95 16.7 ms, GPU under 4.2 ms (docs/21); past 40 waits for the drops' draw calls. Larger targets at this
+        // cap (6/14/22/8, experience 0.1) were measured and kept the floor no longer while two seeds of six cleared
+        // against three, so the targets stay.
+        public const int SceneCap = 40;
         // A horde enemy pays this share of its authored experience and no gold. The horde is the floor's pressure, not its
         // purse: at full experience a kill a second opened a card offer every second or two at the floor's opening levels,
         // and its gold would have flooded the forge's economy, which the node waves and chests carry. At 0.3 the
