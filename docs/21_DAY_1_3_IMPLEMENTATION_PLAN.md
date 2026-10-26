@@ -2958,3 +2958,69 @@ up uncollected - to look at before raising `HordeRule.SceneCap` (30) past 40.
 (boss 62 s, hero down to 8.8 health), floor 2 205 s (boss 98 s), finale 63 s; 762 kills (628 horde), level 31; build
 Staff + Daggers both Lv8, Reach Lv6, Vitality Lv8, maximum health 289. Floors are now 180-205 s against 240-360 s; the
 gate level remains high.
+
+## 2026-10-26 night - The drop piles on the device, and the owner's first full V0.1 run
+
+**Probe 38 on APK 15065856...** (drop piles, Cinder Nova, run feedback, SceneCap 40): fps median 59.9, p95 16.7 ms,
+GPU 3.2 ms; draw calls 208 at 12 s, then 115-116 from 22 s to the end of the 40 s, where the old build climbed to 247.
+The Staff on category bases cleared the 40 in about 8 s, so the probe measured 40 fallen with their drops lying, not 40
+standing.
+
+**The owner's run** (same APK, session b3962a83, 21:01-21:34 local): **defeat in the finale at 164 s**, killed by a
+Runner. 1,709 s active, 256 s in choices; level 74, 3,366 kills (2,986 horde), 68 cards; build Staff + Sword + Daggers
+all Lv8 (Staff and Daggers evolved), Tempo, Reach and Precision all Lv8; 947 run gold, 623 banked, 324 lost. Perf held
+59.9 fps in 389 of 390 five-second windows (the other is the app's first second), main thread at most 23.8 ms, no
+exception in the Unity log.
+
+| Part | Active s | Level at end | Kills | Notes |
+|---|---|---|---|---|
+| Floor 1 | 1,209 (target 240-360) | 54 | 2,406 | walk 351 s to hall 2, 766 s to hall 3; Warden 28.6 s |
+| Floor 2 | 335 | 62 | 640 | walk 215 s; Warden 55.4 s |
+| Finale | 165 | 74 | 320 | exit open from the start, never taken; autopilot leaves at 63 s |
+
+What the log shows:
+- **The horde never stood.** Horde alive averaged 2.4-6.5 against targets of 15 (Horde) and 24 (Pressure); spawns and
+  kills both ran at 120 a minute, exactly `HordeRule.MaxSpawnsPerSecond` 2. From level ~26 the hero killed every horde
+  enemy before it arrived: health sat at 146.9 from 411 s to 1,248 s, 837 s without a hit.
+- **The walk has no clock.** Nothing grows with time on a floor - targets move with nodes cleared, fodder stays at
+  `HealthShare` 0.3 - so lingering is free experience and no risk. Floor 1 ran five times the target.
+- **The hero stood still for about nine minutes in room 3.** No level from 461 s to 987 s while about 1,050 horde
+  enemies fell (level 29 to 30 needs 68 experience, horde kills pay 1-2); then 20 levels in 83 s (987-1,070 s) as it
+  walked over the piles. Drops are only taken within `GroundDrops.PickupRadius` 1.0, and the Staff kills further out.
+- **The card pool ran dry.** With 3 weapons and 3 tomes at Lv8 the only cards left are general ones (about 70 levels in
+  all); from level 57 the offers had two cards, at level 62 one, and the twelve levels of the finale (63-74) offered nothing. A full build arrived on floor 2.
+- **New-weapon cards crowded the offers.** Daggers were in 27 of the 48 offers before the owner took
+  them at level 46; the open third slot kept the NewWeapon category drawing.
+- **Fights came overlevelled.** The floor-1 Warden fell in 28.6 s to level 54 (38 health lost); the floor-2 Warden in
+  55.4 s (104 lost).
+- **The finale is the only clock and it works as a wall.** Swarm difficulty 1.08 -> 2.91 over 162 s took a level-74
+  full build from 526 to 0 health between 87 s and 164 s.
+- Others: 6 chests (4 heal, 2 gold, no book); pit erupted 215 times, burnt the hero once and 103 enemies, killed none;
+  the floor-1 forge sat open 134 s.
+
+## 2026-10-26 night - The floor's clock (docs/27 decision 13)
+
+The owner chose "Sürü bassın" and a five-minute floor. `HordeClock` (HordeDirector.cs) grows the foundry's horde with
+the floor's active seconds: by 5:00 a horde enemy that walks in has twice its health and half again its damage, the
+crowd's target is half again higher and it fills at 4 a second instead of 2. From 5:00 the floor is overrun: the target
+is the scene's cap (40), the fill 8 a second (gap 1/8 s), health and damage climb 16 % and 10 % every 15 s, and an overrun
+enemy pays no experience. The boss room keeps its plain crowd target. `FloorClockView` counts down under the top panel
+(ember for the last minute, beating each second) and reads "OVERRUN +m:ss" in red after; it steps below the boss
+readout while the gate boss stands. `horde_sample` carries `clock`. Development: `development/floor-clock.txt` starts each
+floor's clock that many seconds on; `development/autopilot.txt` takes `linger` (fight the horde and gather every drop from
+room 2 on, never walk to the next hall) or `idle` (stand still from room 2 on); the measurement reads
+`TestResults/horde-linger.txt` and reports the clock.
+
+Autopilot measurement, floor 1, category mode (`HordePacingMeasurement`, fixed 1/60 s):
+
+| Mode | Seeds | Result | Floor s | Level | Horde avg / max |
+|---|---|---|---|---|---|
+| play, before the clock | 11-66 | 2/6 cleared | 134-229 | 12-17 | 5.4-9.8 / 15-19 |
+| play, with the clock | 11-66 | 2/6 cleared | 104-235 | 15-24 | 6.1-9.5 / 13-25 |
+| linger, overrun paying | 11, 33, 55 | 3/3 died at 498, 479, 332 s | - | 52, 48, 34 | 11.7-13.3 / 35-40 |
+| idle from room 2 | 11, 33, 55 | 3/3 died at 72, 50, 44 s | - | 2 | 5.1-6.6 / 9-12 |
+
+The playing autopilot never reaches 5:00, so the clock only thickens its floor (the crowd peaks at 25 against 19). The
+lingering one dies in the overrun but lived up to three minutes in it while the eight-a-second crowd paid it experience,
+levelling to 52; from this entry an overrun horde pays none (`HordeClock.PaysExperience`). The idle run stands from the
+second room at level 2 and only shows that standing is death early; the owner's own idle stretch was at level 29.

@@ -36,13 +36,24 @@ namespace Cryptforge.Core
         private Transform _hero;
         private readonly FoundryPursuit _route = new FoundryPursuit();
         private float _choiceWait;
+        // development/autopilot.txt's measurement modes for the floor's clock (docs/21, the owner's run of 2026-10-26):
+        // "linger" fights the horde and gathers every drop from the floor's second room on and never walks to the next
+        // hall - a player farming the walk; "idle" stands still from the second room on - the phone left on the floor.
+        // Either still answers every offer. Anything else plays the floor.
+        private bool _linger;
+        private bool _idle;
+        // How far a lingering hero walks for a drop: the whole court, since it has nowhere else to go.
+        private const float LingerDetour = 30f;
 
         internal void Initialize(CombatSetup setup, HeroMovementInput movement, Transform hero)
         {
             _setup = setup;
             _movement = movement;
             _hero = hero;
-            Debug.Log("[Autopilot] driving the hero (development/autopilot.txt)");
+            string mode = DevelopmentStart.AutopilotMode();
+            _linger = mode == "linger";
+            _idle = mode == "idle";
+            Debug.Log("[Autopilot] driving the hero (development/autopilot.txt" + (mode.Length > 0 ? ": " + mode : string.Empty) + ")");
         }
 
         private void Update()
@@ -64,6 +75,11 @@ namespace Cryptforge.Core
                 return;
             }
             _choiceWait = 0f;
+            if (_idle && Lingering())
+            {
+                _movement.Release();
+                return;
+            }
             float x = _hero.position.x, y = ArenaFloor.FloorY(_hero.position.y);
             if (Goal(x, y, out float gx, out float gy, out float stop))
                 Steer(x, y, gx, gy, stop);
@@ -159,7 +175,7 @@ namespace Cryptforge.Core
             if (fighting)
                 return false;
             // Between fights, as a player would: the drops in sight, then the floor's altars, then the next hall.
-            if (Nearest(_setup.Drops, x, y, out gx, out gy))
+            if (Nearest(_setup.Drops, x, y, _linger && Lingering() ? LingerDetour : DropDetour, out gx, out gy))
             {
                 stop = DropRule.PickupRadius * .5f;
                 return true;
@@ -169,7 +185,7 @@ namespace Cryptforge.Core
                 stop = .1f;
                 return true;
             }
-            if (encounter.IsRoomSiteOpen)
+            if (encounter.IsRoomSiteOpen && !(_linger && Lingering()))
             {
                 gx = encounter.RoomSiteFloorX; gy = encounter.RoomSiteFloorY;
                 stop = FoundryMap.RoomSiteRadius * .5f;
@@ -178,10 +194,14 @@ namespace Cryptforge.Core
             return false;
         }
 
-        private static bool Nearest(GroundDrops drops, float x, float y, out float gx, out float gy)
+        // From the floor's second room on, in the walk to its next hall: where a measurement mode stops playing.
+        private bool Lingering() => _setup.Encounters.RoomNumber >= 2 && _setup.Encounters.IsRoomSiteOpen &&
+            !_setup.Encounters.IsInSwarmRoom;
+
+        private static bool Nearest(GroundDrops drops, float x, float y, float detour, out float gx, out float gy)
         {
             gx = x; gy = y;
-            float best = DropDetour * DropDetour;
+            float best = detour * detour;
             bool found = false;
             for (int i = 0; drops != null && i < drops.Count; i++)
             {

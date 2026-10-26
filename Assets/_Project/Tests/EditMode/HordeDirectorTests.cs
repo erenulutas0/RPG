@@ -199,6 +199,111 @@ namespace Cryptforge.Tests
             Assert.That(HordeRule.HealthShare,Is.InRange(0.05f,1f));Assert.That(HordeRule.DamageShare,Is.InRange(0.05f,1f),"Fodder, but never harmless.");
         }
 
+        [Test] public void TheClockGrowsTheHordeForFiveMinutesThenStepsItUp()
+        {
+            Assert.That(HordeClock.TargetSeconds,Is.EqualTo(300f),"The owner's five-minute floor.");
+            Assert.That(HordeClock.HealthMultiplier(0f),Is.EqualTo(1f),"The floor opens at its authored horde.");
+            Assert.That(HordeClock.HealthMultiplier(150f),Is.EqualTo(1.5f).Within(1e-5f));
+            Assert.That(HordeClock.HealthMultiplier(299.9f),Is.LessThan(2f));
+            Assert.That(HordeClock.HealthMultiplier(300f),Is.EqualTo(2f).Within(1e-5f),"Twice the health at five minutes.");
+            Assert.That(HordeClock.DamageMultiplier(300f),Is.EqualTo(1.5f).Within(1e-5f),"Half again the damage.");
+            Assert.That(HordeClock.HealthMultiplier(314.9f),Is.EqualTo(2f).Within(1e-5f),"Overtime grows in whole steps.");
+            Assert.That(HordeClock.HealthMultiplier(315f),Is.EqualTo(2f*1.16f).Within(1e-4f));
+            Assert.That(HordeClock.HealthMultiplier(360f),Is.EqualTo(3.62f).Within(.01f),"A minute overrun: 3.6 times the opening.");
+            Assert.That(HordeClock.DamageMultiplier(360f),Is.EqualTo(2.2f).Within(.01f));
+            Assert.That(HordeClock.HealthMultiplier(420f),Is.EqualTo(6.55f).Within(.02f),"Two minutes: standing still is death.");
+            Assert.That(HordeClock.OvertimeSteps(1e7f),Is.EqualTo(HordeClock.MaxOvertimeSteps),"Hours on a floor never overflow.");
+            Assert.That(float.IsInfinity(HordeClock.HealthMultiplier(1e7f)),Is.False);
+            Assert.That(HordeClock.SpawnRate(0f),Is.EqualTo(HordeRule.MaxSpawnsPerSecond));
+            Assert.That(HordeClock.SpawnRate(150f),Is.EqualTo(3f).Within(1e-5f));
+            Assert.That(HordeClock.SpawnRate(300f),Is.EqualTo(HordeClock.OvertimeRate),"Overrun: the crowd floods in.");
+            Assert.That(HordeClock.SpawnGap(299f),Is.EqualTo(HordeRule.MinSpawnGapSeconds),"The phone's gap holds until the rate outruns it.");
+            Assert.That(HordeClock.SpawnGap(300f),Is.EqualTo(1f/HordeClock.OvertimeRate).Within(1e-6f));
+            Assert.That((HordeClock.Remaining(100f),HordeClock.Remaining(400f)),Is.EqualTo((200f,0f)));
+            Assert.That((HordeClock.IsOvertime(299.99f),HordeClock.IsOvertime(300f)),Is.EqualTo((false,true)));
+            Assert.That((HordeClock.PaysExperience(299.99f),HordeClock.PaysExperience(300f)),Is.EqualTo((true,false)),
+                "The overrun is not a farm.");
+            Assert.That(()=>HordeClock.HealthMultiplier(float.NaN),Throws.InstanceOf<ArgumentOutOfRangeException>());
+            Assert.That(()=>HordeClock.OvertimeSteps(-1f),Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+
+        [Test] public void TheClockedTargetGrowsAndTheOverrunAimsForTheCapButNotInTheBossRoom()
+        {
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,0,10,40,0f),Is.EqualTo(HordeRule.EffectiveTarget(HordeState.Pressure,0,10,40)),
+                "At the floor's first second the clock changes nothing.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,0,10,40,150f),Is.EqualTo(20),"16 grown by a quarter.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Pressure,10,10,40,150f),Is.EqualTo(30),"Then the reactive half again.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Horde,0,10,40,299f),Is.EqualTo(15));
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Ramp,0,10,40,300f),Is.EqualTo(40),"Overrun: the scene's cap, whatever the state.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Horde,0,10,30,600f),Is.EqualTo(30),"And never past it.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Boss,0,10,40,600f),Is.EqualTo(6),"The boss room stays readable.");
+            Assert.That(HordeRule.EffectiveTarget(HordeState.Boss,10,10,40,600f),Is.EqualTo(9));
+            Assert.That(()=>HordeRule.EffectiveTarget(HordeState.Horde,0,0,40,float.NaN),Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+
+        [Test] public void AClockedDirectorFloodsTheOverrunFloorAndAnUnclockedOneNeverDoes()
+        {
+            var clocked = new HordeDirector(40,1,9,true);
+            var plain = new HordeDirector(40,1,9);
+            var spawns = new List<HordeDirector.Spawn>();
+            clocked.SetState(HordeState.Horde);
+            plain.SetState(HordeState.Horde);
+            Assert.That((clocked.IsClocked,plain.IsClocked),Is.EqualTo((true,false)));
+            Assert.That(clocked.HealthMultiplier,Is.EqualTo(1f),"The floor opens at its authored horde.");
+            // Five minutes with the crowd at the cap: no credit is owed, only the clock runs.
+            for (int i = 0; i < 300; i++)
+            {
+                clocked.Tick(1f,40,0,spawns);
+                plain.Tick(1f,40,0,spawns);
+            }
+            Assert.That((clocked.IsOvertime,plain.IsOvertime),Is.EqualTo((true,false)));
+            Assert.That(clocked.HealthMultiplier,Is.EqualTo(2f).Within(1e-4f));
+            Assert.That(clocked.DamageMultiplier,Is.EqualTo(1.5f).Within(1e-4f));
+            Assert.That((plain.HealthMultiplier,plain.DamageMultiplier),Is.EqualTo((1f,1f)),"An unclocked horde never grows.");
+            Assert.That(clocked.TargetNow,Is.EqualTo(40),"Overrun: the crowd aims for the cap.");
+            Assert.That(plain.TargetNow,Is.EqualTo(HordeRule.TargetByState[(int)HordeState.Horde]));
+
+            var times = new List<float>();
+            int plainSpawns = 0;
+            for (int f = 0; f < (int)(2f / Frame); f++)
+            {
+                clocked.Tick(Frame,0,0,spawns);
+                Assert.That(spawns.Count,Is.LessThanOrEqualTo(1),"A frame still places one at most.");
+                if (spawns.Count == 1) times.Add(clocked.Seconds);
+                plainSpawns += Fill(plain,Frame,0,0,spawns);
+            }
+            for (int i = 1; i < times.Count; i++)
+                Assert.That(times[i] - times[i-1],Is.GreaterThanOrEqualTo(HordeClock.SpawnGap(300f) - Frame),
+                    "Spaced on the director's clock: an eighth of a second is seven or eight frames, never fewer.");
+            Assert.That(times.Count,Is.InRange(14,17),"Eight a second, after the credit's first spawn.");
+            Assert.That(plainSpawns,Is.InRange(3,5),"Two a second, as ever.");
+        }
+
+        [Test] public void SkippingTheClockMovesTheFloorOnWithoutWalkingAnyoneIn()
+        {
+            var director = new HordeDirector(40,1,9,true);
+            var spawns = new List<HordeDirector.Spawn>();
+            director.SetState(HordeState.Horde);
+            director.Fell();
+            director.SkipClock(297f);
+            Assert.That(director.Seconds,Is.EqualTo(297f));
+            Assert.That((director.Spawned,director.KillsInWindow),Is.EqualTo((0,0)),"Nobody walked in; the old kill is forgotten.");
+            Assert.That(director.HealthMultiplier,Is.EqualTo(1.99f).Within(1e-4f));
+            director.Tick(3f,0,0,spawns);
+            Assert.That(director.IsOvertime,Is.True);
+            Assert.That(spawns.Count,Is.GreaterThan(0),"The jump leaves the gap behind it.");
+            Assert.That(()=>director.SkipClock(-1f),Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+
+        [Test] public void TheFloorClockReadsDownToTheOverrunThenUp()
+        {
+            Assert.That(HordeClock.ShownSecond(0f),Is.EqualTo(300),"5:00 at the first step.");
+            Assert.That(HordeClock.ShownSecond(.2f),Is.EqualTo(300),"Rounded up, so a full second shows a full second.");
+            Assert.That(HordeClock.ShownSecond(299.5f),Is.EqualTo(1));
+            Assert.That(HordeClock.ShownSecond(300f),Is.EqualTo(0),"OVERRUN +0:00.");
+            Assert.That(HordeClock.ShownSecond(372.9f),Is.EqualTo(72),"OVERRUN +1:12.");
+        }
+
         [Test] public void HordeSpotsLieOnTheFloorAtTheEdgeOfTheView()
         {
             Cryptforge.Art.FoundryMap.ToFloor(0,0,out float hx,out float hy);

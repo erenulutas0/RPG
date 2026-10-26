@@ -50,6 +50,10 @@ namespace Cryptforge.Core
         public static bool Autopilot() => (Application.isEditor || Debug.isDebugBuild) && FoundryRegion() &&
             !string.IsNullOrEmpty(ReadFirstLine(AutopilotPath));
 
+        // How the autopilot plays, from the same file: "linger" and "idle" are measurement modes (DevelopmentAutopilot),
+        // anything else plays the floor.
+        public static string AutopilotMode() => Autopilot() ? (ReadFirstLine(AutopilotPath) ?? string.Empty).Trim() : string.Empty;
+
         // A whole number in it pads the foundry's first wave with that many more of its first enemy: a device probe of the
         // frame time at the horde's crowd before the horde itself exists (docs/41). Nothing without the file.
         public static string HordeProbePath => Path.Combine(ProfileLocation.Resolve(), FolderName, "horde-probe.txt");
@@ -58,6 +62,17 @@ namespace Cryptforge.Core
             if (!Application.isEditor && !Debug.isDebugBuild)
                 return 0;
             return int.TryParse(ReadFirstLine(HordeProbePath), out int count) && count > 0 ? count : 0;
+        }
+
+        // A number of seconds in it starts each foundry floor's clock that far on (HordeClock): a look at the last minute
+        // and the overrun on a device or in a test without waiting five minutes. Nothing without the file.
+        public static string FloorClockPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "floor-clock.txt");
+        public static float FloorClockStart()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return 0f;
+            return float.TryParse(ReadFirstLine(FloorClockPath), System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out float seconds) && seconds > 0f ? seconds : 0f;
         }
 
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);

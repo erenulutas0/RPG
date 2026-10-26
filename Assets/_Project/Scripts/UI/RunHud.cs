@@ -47,6 +47,8 @@ namespace Cryptforge.UI
 
         // The weapon and tome row on a category-mode run; null on the legacy cards. For tests.
         public LoadoutBadgesView LoadoutBadges => _loadoutBadges;
+        // The floor's clock under the top panel; null without the compact top panel. For tests.
+        public FloorClockView FloorClock { get; private set; }
 
         // Run state exists after CombatSetup.Awake, so Start is the earliest safe subscription point.
         private void Start()
@@ -75,6 +77,11 @@ namespace Cryptforge.UI
             // The danger readout sits on the compact top panel, so it needs the compact gold count to style itself on.
             if (_compactGold != null)
                 gameObject.AddComponent<DangerReadoutView>().Initialize(_setup, _text, _compactGold);
+            // The floor's clock (HordeClock) under the top panel, wherever a horde runs.
+            if (_compactGold != null)
+                FloorClock = gameObject.AddComponent<FloorClockView>();
+            if (FloorClock != null)
+                FloorClock.Initialize(_setup, _encounters, _text, _compactGold);
             // A category-mode run carries up to three weapons and three tomes, which the legacy row - the forge weapon's
             // name and two card stacks category mode never offers - can say none of. The loadout row takes that band of
             // the top panel, so the name is hidden here and the legacy badges in RefreshBadges; the first weapon badge is

@@ -25,6 +25,15 @@ namespace Cryptforge.Tests
         private const float FloorLimitSeconds = 900f;
         private static readonly int[] DefaultSeeds = { 11, 22, 33, 44, 55, 66 };
 
+        // TestResults/horde-linger.txt, one word, plays the autopilot's measurement mode instead of the floor: "linger"
+        // farms the walk after the first hall, "idle" stands there (DevelopmentAutopilot; the floor's clock, docs/21).
+        private static string Mode()
+        {
+            string path = Path.Combine(Application.dataPath, "..", "TestResults", "horde-linger.txt");
+            string mode = File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
+            return mode.Length > 0 ? mode : "on";
+        }
+
         // TestResults/horde-seeds.txt, one seed per line, narrows a run to the seeds being looked at.
         private static int[] Seeds()
         {
@@ -51,13 +60,15 @@ namespace Cryptforge.Tests
         [UnityTest, Timeout(3600000)] public IEnumerator TheAutopilotPlaysTheFirstFloorWithTheHorde()
         {
             var report = new StringBuilder();
-            report.AppendLine("seed\tresult\tfloor_s\tuptime\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\trooms");
+            string mode = Mode();
+            report.AppendLine("mode " + mode);
+            report.AppendLine("seed\tresult\tfloor_s\tuptime\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
             foreach (int seed in Seeds())
             {
                 TestProfile.Begin();
                 Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.AutopilotPath));
                 File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
-                File.WriteAllText(DevelopmentStart.AutopilotPath, "on");
+                File.WriteAllText(DevelopmentStart.AutopilotPath, mode);
                 File.WriteAllText(DevelopmentStart.RunSeedPath, seed.ToString());
                 Time.captureDeltaTime = Step;
                 yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
@@ -88,6 +99,7 @@ namespace Cryptforge.Tests
                 };
                 float start = Time.time, fighting = 0f, active = 0f, hordeSum = 0f;
                 int hordeMax = 0, frames = 0;
+                float clock = 0f;
                 var rooms = new StringBuilder();
                 int room = encounters.RoomNumber;
                 float roomStart = Time.time;
@@ -101,6 +113,7 @@ namespace Cryptforge.Tests
                         fighting += Time.deltaTime;
                     hordeSum += encounters.HordeAliveCount;
                     hordeMax = Mathf.Max(hordeMax, encounters.HordeAliveCount);
+                    clock = Mathf.Max(clock, encounters.FloorClockSeconds);
                     frames++;
                     if (setup.Warden.Boss != null)
                     {
@@ -120,7 +133,8 @@ namespace Cryptforge.Tests
                     (active > 0 ? fighting / active : 0).ToString("0.00"), waveKills, hordeKills, setup.Run.Level,
                     hero.Current.ToString("0"), hero.Maximum.ToString("0"),
                     (frames > 0 ? hordeSum / frames : 0).ToString("0.0"), hordeMax, slams, slamHits,
-                    bossSeconds.ToString("0"), bossLeft < 0 ? "-" : bossLeft.ToString("0.00"), rooms, "slam_d " + slamDistances));
+                    bossSeconds.ToString("0"), bossLeft < 0 ? "-" : bossLeft.ToString("0.00"), clock.ToString("0"), rooms,
+                    "slam_d " + slamDistances));
                 Time.captureDeltaTime = 0f;
                 var old = SceneManager.GetActiveScene();
                 SceneManager.SetActiveScene(SceneManager.CreateScene("Pacing between seeds " + seed));

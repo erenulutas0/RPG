@@ -25,6 +25,12 @@ namespace Cryptforge.Content
         [SerializeField] private string _dangerFormat = "Danger +{0}%";
         // {0} how much harder the run's enemies are than authored, in whole percent: 10 at difficulty 1.1.
         public string DangerFormat => _dangerFormat;
+        // The floor's clock under the top panel (HordeClock, the owner's five-minute floor): {0} minutes and {1} seconds
+        // left before the floor is overrun; once it is, how long ago.
+        [SerializeField] private string _floorClockFormat = "{0}:{1:00}";
+        [SerializeField] private string _overrunFormat = "OVERRUN +{0}:{1:00}";
+        public string FloorClockFormat => _floorClockFormat;
+        public string OverrunFormat => _overrunFormat;
         // The loadout badges on the foundry's top panel (docs/42 section 4). {0} a weapon's or tome's short name; the
         // evolved form marks a weapon that has taken its evolution.
         [SerializeField] private string _loadoutEvolvedFormat = "{0}+";

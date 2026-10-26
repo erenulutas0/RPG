@@ -203,7 +203,7 @@ namespace Cryptforge.Analytics
                 Time.unscaledDeltaTime);
             if (_encounters != null && _encounters.IsHordeActive)
                 _telemetry.ObserveHorde(_encounters.HordeStateNow, _encounters.HordeAliveCount, _encounters.HordeTarget,
-                    _encounters.AliveEnemyCount);
+                    _encounters.AliveEnemyCount, _encounters.FloorClockSeconds);
         }
 
         private void OnApplicationPause(bool paused)

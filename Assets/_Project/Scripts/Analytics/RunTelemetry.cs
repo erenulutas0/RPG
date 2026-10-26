@@ -347,7 +347,8 @@ namespace Cryptforge.Analytics
         // background, so a frozen run writes none, and only inside an open room. A long frame writes one sample, not a
         // burst. The window counts are the spawns and horde deaths since the previous sample (or since the horde began).
         // Called every frame, so it only compares numbers unless a sample is due.
-        public void ObserveHorde(HordeState state, int hordeAlive, int hordeTarget, int waveAlive)
+        // clockSeconds: the floor's clock (HordeClock), written as "clock" when the scene passes one; negative leaves it out.
+        public void ObserveHorde(HordeState state, int hordeAlive, int hordeTarget, int waveAlive, float clockSeconds = -1f)
         {
             if (!IsRecording)
                 return;
@@ -361,7 +362,7 @@ namespace Cryptforge.Analytics
             if (_runTime.Active < _hordeSampleDue || !_roomOpen || _inBackground || _pause.IsPlayerPaused || _pause.IsChoiceOpen)
                 return;
 
-            _session.Emit("horde_sample", new TelemetryFields()
+            var fields = new TelemetryFields()
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex)
                 .Add("state", HordeStateName(state))
@@ -369,8 +370,10 @@ namespace Cryptforge.Analytics
                 .Add("horde_target", hordeTarget)
                 .Add("wave_alive", waveAlive)
                 .Add("horde_spawned_window", _hordeSpawnedWindow)
-                .Add("horde_kills_window", _hordeKillsWindow)
-                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+                .Add("horde_kills_window", _hordeKillsWindow);
+            if (clockSeconds >= 0f)
+                fields.Add("clock", clockSeconds);
+            _session.Emit("horde_sample", fields.AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
             _hordeSpawnedWindow = 0;
             _hordeKillsWindow = 0;
             _hordeSampleDue += HordeSampleSeconds;

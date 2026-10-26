@@ -133,6 +133,138 @@ namespace Cryptforge.Combat
             int target = (int)(TargetByState[(int)state] * (1f + ReactiveShare * ratio) + 0.5f);
             return target < cap ? target : cap;
         }
+
+        // The same target on a clocked floor: the state's crowd grown by HordeClock for the seconds the floor has run, then
+        // the reactive boost; in overtime the cap. The boss room keeps its plain target so the boss can still be read -
+        // its horde grows in health and damage only. One body that is never inlined.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int EffectiveTarget(HordeState state, int killsInWindow, int spawnsInWindow, int cap, float clockSeconds)
+        {
+            int target = EffectiveTarget(state, killsInWindow, spawnsInWindow, cap);
+            if (float.IsNaN(clockSeconds) || clockSeconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(clockSeconds));
+            if (state == HordeState.Boss)
+                return target;
+            if (HordeClock.IsOvertime(clockSeconds))
+                return cap;
+            float ratio = killsInWindow / (float)Math.Max(1, spawnsInWindow);
+            if (ratio > 1f)
+                ratio = 1f;
+            float grown = TargetByState[(int)state] * HordeClock.TargetMultiplier(clockSeconds);
+            int clocked = (int)(grown * (1f + ReactiveShare * ratio) + 0.5f);
+            return clocked < cap ? clocked : cap;
+        }
+    }
+
+    // The floor's clock (the owner, 2026-10-26: "Sürü bassın", five minutes a floor). The owner's first full run spent
+    // 1,209 active seconds on floor 1 against 240-360: nothing on a floor grew with time, so the walk was free experience,
+    // the horde stood at 2-6 against targets of 15-24 and a hero left alone took no hit for nine minutes (docs/21). Now
+    // the horde grows with the seconds the floor has run - health, damage, the crowd it aims for and how fast it fills -
+    // and once TargetSeconds pass the floor is overrun: the crowd aims for the scene's cap, fills at OvertimeRate, and
+    // its health and damage climb a step every OvertimeStepSeconds until standing still is death. Megabonk's stage timer,
+    // which is what makes its players move. Only the horde grows; the halls keep their authored waves.
+    //
+    // Growth inside the five minutes is linear; overtime grows in whole steps by repeated multiplication in one body
+    // that is never inlined, never Math.Pow, for the reason SwarmRule.DifficultyAt gives (docs/21, the targeting
+    // divergence).
+    public static class HordeClock
+    {
+        // The floor the owner asked for: five minutes from the first step to the gate.
+        public const float TargetSeconds = 300f;
+        // How much each grows by TargetSeconds, as a share of its value at the floor's first second: at five minutes a
+        // horde enemy has twice its health, half again its damage, the crowd aims half again higher and fills twice as
+        // fast.
+        public const float HealthGrowth = 1f;
+        public const float DamageGrowth = .5f;
+        public const float TargetGrowth = .5f;
+        public const float RateGrowth = 1f;
+        // Overtime: every OvertimeStepSeconds past TargetSeconds a horde enemy that walks in has OvertimeHealthStep times
+        // the health and OvertimeDamageStep times the damage of the step before - 3.6 and 2.2 times the floor's opening a
+        // minute in, 6.6 and 3.2 two minutes in - and the crowd fills at OvertimeRate a second.
+        public const float OvertimeStepSeconds = 15f;
+        public const float OvertimeHealthStep = 1.16f;
+        public const float OvertimeDamageStep = 1.1f;
+        public const float OvertimeRate = 8f;
+        // Steps stop counting here, so a floor left running for hours never overflows a float.
+        public const int MaxOvertimeSteps = 200;
+
+        public static bool IsOvertime(float seconds) => seconds >= TargetSeconds;
+
+        // Whether a horde enemy that walks in now pays its experience. Not once the floor is overrun: a hero farming the
+        // walk with every drop gathered still reached level 34-52 and lived up to three minutes into the overrun while it
+        // paid, the eight-a-second crowd feeding the build that fought it (docs/21, 2026-10-26). The overrun is a reason
+        // to leave, not a farm; what the hero holds stops growing while the horde does not.
+        public static bool PaysExperience(float seconds) => !IsOvertime(seconds);
+
+        // Seconds left before the floor is overrun; zero from then on.
+        public static float Remaining(float seconds) => seconds < TargetSeconds ? TargetSeconds - seconds : 0f;
+
+        // The whole seconds a clock on the screen says: left before the overrun, rounded up so 0:00 is the overrun itself;
+        // once overrun, how long ago, rounded down.
+        public static int ShownSecond(float seconds)
+        {
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
+            if (IsOvertime(seconds))
+                return (int)(seconds - TargetSeconds);
+            float left = TargetSeconds - seconds;
+            int whole = (int)left;
+            return left > whole ? whole + 1 : whole;
+        }
+
+        // Whole overtime steps behind the clock: zero until the first OvertimeStepSeconds of overtime have passed.
+        public static int OvertimeSteps(float seconds)
+        {
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
+            if (seconds < TargetSeconds)
+                return 0;
+            int steps = (int)((seconds - TargetSeconds) / OvertimeStepSeconds);
+            return steps < MaxOvertimeSteps ? steps : MaxOvertimeSteps;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float HealthMultiplier(float seconds) =>
+            Grown(seconds, HealthGrowth) * Stepped(OvertimeSteps(seconds), OvertimeHealthStep);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float DamageMultiplier(float seconds) =>
+            Grown(seconds, DamageGrowth) * Stepped(OvertimeSteps(seconds), OvertimeDamageStep);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float TargetMultiplier(float seconds) => Grown(seconds, TargetGrowth);
+
+        // Spawns a second the horde may fill at: HordeRule.MaxSpawnsPerSecond at the first second, RateGrowth more of it
+        // by TargetSeconds, OvertimeRate once overrun.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float SpawnRate(float seconds) =>
+            IsOvertime(seconds) ? OvertimeRate : HordeRule.MaxSpawnsPerSecond * Grown(seconds, RateGrowth);
+
+        // The least time between two spawns: HordeRule.MinSpawnGapSeconds while the rate allows it, closer only when the
+        // rate itself asks for more than one a gap - at OvertimeRate one an eighth of a second, a spawn every seven or
+        // eight frames, which the S23's density probe showed costs nothing (docs/21).
+        public static float SpawnGap(float seconds)
+        {
+            float rate = SpawnRate(seconds);
+            float gap = 1f / rate;
+            return gap < HordeRule.MinSpawnGapSeconds ? gap : HordeRule.MinSpawnGapSeconds;
+        }
+
+        private static float Grown(float seconds, float growth)
+        {
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
+            float progress = seconds < TargetSeconds ? seconds / TargetSeconds : 1f;
+            return 1f + growth * progress;
+        }
+
+        private static float Stepped(int steps, float step)
+        {
+            float value = 1f;
+            for (int i = 0; i < steps; i++)
+                value *= step;
+            return value;
+        }
     }
 
     // Decides, frame by frame, when a horde enemy walks onto the floor and which role it has. Pure and shared, modelled
@@ -178,9 +310,16 @@ namespace Cryptforge.Combat
         // The clock time the next spawn is allowed; the gap is measured from it.
         private float _nextSpawnAt;
         private HordeState _state;
+        private readonly bool _clocked;
 
-        // Seconds the horde has been running.
+        // Seconds the horde has been running: on a clocked floor, the floor's clock.
         public float Seconds { get; private set; }
+        // Whether the floor's clock grows this horde (HordeClock); the scene's foundry horde is, the rule tests mostly not.
+        public bool IsClocked => _clocked;
+        public bool IsOvertime => _clocked && HordeClock.IsOvertime(Seconds);
+        // What a horde enemy walking in now multiplies its health and damage by: one on an unclocked horde.
+        public float HealthMultiplier => _clocked ? HordeClock.HealthMultiplier(Seconds) : 1f;
+        public float DamageMultiplier => _clocked ? HordeClock.DamageMultiplier(Seconds) : 1f;
         // Enemies spawned so far.
         public int Spawned { get; private set; }
         // The crowd the director aims for now, the reactive boost applied, never above the cap.
@@ -192,13 +331,15 @@ namespace Cryptforge.Combat
 
         // cap: the most enemies the floor may hold at once, horde and node waves together (the scene passes 30-40).
         // roleCount: how many roles the floor's horde table has. seed: the run's, so the horde reproduces with the run.
-        public HordeDirector(int cap, int roleCount, int seed)
+        // clocked: the floor's clock grows the horde with Seconds (HordeClock).
+        public HordeDirector(int cap, int roleCount, int seed, bool clocked = false)
         {
             if (cap < 1)
                 throw new ArgumentOutOfRangeException(nameof(cap));
             if (roleCount < 1)
                 throw new ArgumentOutOfRangeException(nameof(roleCount));
 
+            _clocked = clocked;
             _cap = cap;
             _roleCount = roleCount;
             // One stream, drawn in order. The run's other consumers derive a stream per draw (a chest, an attack), but
@@ -251,6 +392,19 @@ namespace Cryptforge.Combat
             Retarget();
         }
 
+        // Moves the clock on without walking anyone in: a development look at a late floor (DevelopmentStart's floor
+        // clock). The window forgets what the jump left behind and the next spawn's gap counts from the new time.
+        public void SkipClock(float seconds)
+        {
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
+
+            Seconds += seconds;
+            Advance((int)Seconds);
+            _nextSpawnAt = Seconds;
+            Retarget();
+        }
+
         // The scene reports a horde enemy's death: it counts in the window and raises the target while it is remembered.
         public void Fell()
         {
@@ -279,10 +433,12 @@ namespace Cryptforge.Combat
             Retarget();
 
             // Credit grows only while the crowd is short, and never past the cap: a frame that lasted ten seconds owes
-            // the floor a second and a half of spawns, not ten seconds of them.
+            // the floor a second and a half of spawns, not ten seconds of them. A clocked floor fills faster as it runs.
+            float rate = _clocked ? HordeClock.SpawnRate(Seconds) : HordeRule.MaxSpawnsPerSecond;
+            float gap = _clocked ? HordeClock.SpawnGap(Seconds) : HordeRule.MinSpawnGapSeconds;
             if (alive < TargetNow)
-                _credit += deltaTime * HordeRule.MaxSpawnsPerSecond;
-            float creditCap = HordeRule.CreditCapSeconds * HordeRule.MaxSpawnsPerSecond;
+                _credit += deltaTime * rate;
+            float creditCap = HordeRule.CreditCapSeconds * rate;
             if (_credit > creditCap)
                 _credit = creditCap;
 
@@ -294,7 +450,7 @@ namespace Cryptforge.Combat
                    && alive + otherAlive + spawns.Count < _cap)
             {
                 _credit -= 1f;
-                at += HordeRule.MinSpawnGapSeconds;
+                at += gap;
                 spawns.Add(Take());
             }
             _nextSpawnAt = at;
@@ -328,7 +484,9 @@ namespace Cryptforge.Combat
 
         private void Retarget()
         {
-            TargetNow = HordeRule.EffectiveTarget(_state, KillsInWindow, SpawnsInWindow, _cap);
+            TargetNow = _clocked
+                ? HordeRule.EffectiveTarget(_state, KillsInWindow, SpawnsInWindow, _cap, Seconds)
+                : HordeRule.EffectiveTarget(_state, KillsInWindow, SpawnsInWindow, _cap);
         }
 
         // One spawn: a role drawn by the state's weights, counted in the window and in the director's life.

@@ -334,6 +334,12 @@ namespace Cryptforge.Combat
         public int HordeAliveCount { get; private set; }
         public int HordeTarget => _horde != null ? _horde.TargetNow : 0;
         public HordeState HordeStateNow => _horde != null ? _horde.State : HordeState.Ramp;
+        // The floor's clock: active seconds of this floor's horde, frozen through choices and the forge (HordeClock).
+        // Zero where no horde runs - the finale, the walk up after the gate, a floor without horde roles.
+        public float FloorClockSeconds => _horde != null ? _horde.Seconds : 0f;
+        // Seconds before the floor is overrun, and whether it already is.
+        public float FloorClockRemaining => HordeClock.Remaining(FloorClockSeconds);
+        public bool IsFloorOvertime => _horde != null && _horde.IsOvertime;
         // Every enemy on the floor, the wave's first, then the horde's - what a hazard or a view that reads the whole
         // floor walks. An entry may be fallen or, for the horde, null.
         public int EnemyCount => _wave.Count + _hordeEnemies.Count;
@@ -862,7 +868,10 @@ namespace Cryptforge.Combat
                 Health = enemy,
                 Definition = definition,
                 Gold = horde ? 0 : FloorScaling.Gold(definition.GoldReward, goldPercent),
-                Experience = horde ? HordeRule.Experience(definition.ExperienceReward) : definition.ExperienceReward,
+                // An overrun floor's horde pays nothing (HordeClock.PaysExperience): the overrun is a reason to leave.
+                Experience = !horde ? definition.ExperienceReward :
+                    _horde != null && !HordeClock.PaysExperience(_horde.Seconds) ? 0 :
+                    HordeRule.Experience(definition.ExperienceReward),
                 Enrage = enemy.GetComponent<EnrageBehaviour>()
             };
             // A horde enemy's hits and death are the horde's: they never count towards the node wave's fight.
@@ -1099,7 +1108,11 @@ namespace Cryptforge.Combat
             _hordeSeconds = 0f;
             _bossEnraged = false;
             int roles = _currentFloor.HordeRoleCount;
-            _horde = new HordeDirector(HordeRule.SceneCap, roles, _hordeSeed + FloorNumber);
+            // Clocked: the floor's clock grows the horde and overruns the floor after HordeClock.TargetSeconds.
+            _horde = new HordeDirector(HordeRule.SceneCap, roles, _hordeSeed + FloorNumber, true);
+            float clockStart = DevelopmentStart.FloorClockStart();
+            if (clockStart > 0f)
+                _horde.SkipClock(clockStart);
             for (HordeState state = HordeState.Ramp; state <= HordeState.Boss; state++)
             {
                 var weights = new int[roles];
@@ -1135,9 +1148,12 @@ namespace Cryptforge.Combat
             float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
             float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
             float scale = RunDifficulty;
-            float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale * HordeRule.DamageShare, damagePercent);
+            // The floor's clock: a horde enemy that walks in later on the floor is tougher (HordeClock).
+            float damageBonus = FloorScaling.DamageBonus(
+                FloorDamageMultiplier * scale * HordeRule.DamageShare * _horde.DamageMultiplier, damagePercent);
             SpawnedEnemy enemy = CreateEnemy(definition, $"Horde {definition.Prefab.name} {spawn.Ordinal + 1}",
-                FloorHealthMultiplier(false) * scale * HordeRule.HealthShare, healthPercent, damageBonus, 0f, out float reach, true);
+                FloorHealthMultiplier(false) * scale * HordeRule.HealthShare * _horde.HealthMultiplier, healthPercent,
+                damageBonus, 0f, out float reach, true);
             var placement = new EntryPlacement(EntrySides.SideOf(spawn.Ordinal, 0), 0f, x, y);
             if (slot >= 0)
             {

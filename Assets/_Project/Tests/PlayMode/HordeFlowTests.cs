@@ -77,6 +77,41 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The floor's clock (HordeClock, the owner's five-minute floor): the HUD counts down under the top panel, in ember
+        // through the last minute, and once the floor is overrun counts up in red while the horde aims for the scene's cap.
+        // The development flag starts the clock three seconds short of the overrun.
+        [UnityTest, Timeout(60000)] public IEnumerator TheFloorClockCountsDownAndTheOverrunFloodsTheFloor()
+        {
+            File.WriteAllText(DevelopmentStart.FloorClockPath,"297");
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounters=setup.Encounters;
+            var clock=Object.FindFirstObjectByType<RunHud>().FloorClock;
+            Assert.That(clock,Is.Not.Null,"The HUD carries the floor's clock.");
+            yield return Until(()=>encounters.IsHordeActive&&clock.IsShown,10);
+            Assert.That(clock.IsShown,Is.True,"Shown wherever a horde runs.");
+            Assert.That(encounters.FloorClockSeconds,Is.InRange(297f,300f));
+            Assert.That(clock.ShownText,Does.Match("^0:0[0-3]$"),"Seconds left before the overrun.");
+            Assert.That(clock.IsOverrunShown,Is.False);
+            float before=encounters.FloorClockSeconds;
+            yield return Until(()=>clock.IsOverrunShown,10);
+            Assert.That(encounters.FloorClockSeconds,Is.GreaterThan(before),"The clock runs with the fight.");
+            Assert.That(encounters.IsFloorOvertime,Is.True);
+            Assert.That(clock.IsOverrunShown,Is.True,"Overrun: the clock says so.");
+            Assert.That(clock.ShownText,Does.StartWith("OVERRUN +0:0"));
+            Assert.That(encounters.HordeTarget,Is.EqualTo(HordeRule.SceneCap),"The horde aims for the scene's cap.");
+            Assert.That(encounters.FloorClockRemaining,Is.Zero);
+            // A horde enemy that walked in after the overrun pays nothing.
+            // Slots are reused, so the newcomer is read by the slot its arrival names.
+            int lateSlot=-1;System.Action<int> arrived=slot=>lateSlot=slot;encounters.HordeEnemySpawned+=arrived;
+            yield return Until(()=>lateSlot>=0,10);
+            encounters.HordeEnemySpawned-=arrived;
+            Assert.That(lateSlot,Is.GreaterThanOrEqualTo(0),"The overrun keeps walking in.");
+            Health late=encounters.HordeEnemyAt(lateSlot);
+            Assert.That(late,Is.Not.Null);
+            Assert.That(encounters.ExperienceRewardOf(late),Is.Zero,"The overrun is a reason to leave, not a farm.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // Presentation only: a newcomer fades in rather than popping into being, and a fallen one's bar goes at once while
         // its pooled remains fade (and settle) away before the encounter retires the body.
         [UnityTest, Timeout(90000)] public IEnumerator AHordeEnemyFadesInAndAFallenOneFadesOut()

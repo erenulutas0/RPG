@@ -196,6 +196,15 @@ the HUD, a stat readout on the pause screen, and the evolution's presentation pe
    2026-09-23 (`HeroStamina.CurrentRulesEnabled` is false), which is the report's section 12.1 already; the pickup
    radius of 1 (`GroundDrops.PickupRadius`) measured in `37`, to be A/B'd at 2.2 under continuous combat (section
    12.3). The engineering plan is `41`.
+13. **The floor has a clock: five minutes, then the horde overruns it** (the owner, 2026-10-26, after the first full
+   V0.1 run on the S23, `21` tail). That run spent 1,209 active seconds on floor 1 against 240-360: nothing grew with
+   time, the horde stood at 2-6 against targets of 15-24, and a hero left alone took no hit for nine minutes. Chosen:
+   "Sürü bassın" over a gentle growth or the boss walking to the hero, and five minutes over four or six. `HordeClock`:
+   over the five minutes a horde enemy that walks in grows to twice its health and half again its damage, the crowd's
+   target half again higher, its fill rate from 2 to 4 a second; past five minutes the floor is overrun - the target is
+   the scene's cap, the fill 8 a second, and health and damage climb 16 % and 10 % every 15 s. Only the horde grows; the
+   halls keep their authored waves, and the boss room keeps its readable crowd. The HUD counts down under the top panel
+   and says "OVERRUN +m:ss" in red after. The finale's exit stays as it is: the owner saw it and stayed for gold.
 
 ## 6. S1 specification — the offer engine (agreed 2026-09-19)
 
