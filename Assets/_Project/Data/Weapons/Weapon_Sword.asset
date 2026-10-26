@@ -28,5 +28,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b5c1ed9cc5ae427a878d2854c82ad146, type: 2}
   - {fileID: 11400000, guid: 5f14d7dd631b4ef69c4e6130b27fec7b, type: 2}
   - {fileID: 11400000, guid: 519c08e74fb84ec5a229ba66c8b9cbbb, type: 2}
-  _evolution: {fileID: 0}
+  _evolution: {fileID: 11400000, guid: 2b1352df6d59487291363a1f3f2f96d8, type: 2}
   _evolvesWithTome: tome_force

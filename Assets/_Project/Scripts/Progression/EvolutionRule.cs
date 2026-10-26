@@ -31,6 +31,16 @@ namespace Cryptforge.Progression
 
         public static bool Unlocked(int level, bool baseCardFull) => baseCardFull && level >= MinimumLevel;
 
+        // A weapon's evolution, once a run carries several (docs/42, PR 5; the report's 40 section 5.4), is gated on the
+        // two halves of a build meeting: the weapon taken to level 5 of its 8 and the tome it evolves with to level 2.
+        // Neither is a run level, so a run that spreads its picks evolves later than one that commits, which is the
+        // point. The cost is the same as any evolution's.
+        public const int WeaponEvolutionLevel = 5;
+        public const int WeaponEvolutionTomeLevel = 2;
+
+        public static bool WeaponUnlocked(int weaponLevel, int tomeLevel) =>
+            weaponLevel >= WeaponEvolutionLevel && tomeLevel >= WeaponEvolutionTomeLevel;
+
         public static StatModifier DifficultyCost() =>
             new StatModifier(ModifierOperation.Flat, DifficultyPerStack);
     }

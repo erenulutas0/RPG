@@ -57,9 +57,11 @@ namespace Cryptforge.Tests
             // names none is held under UnnamedWeaponId.
             public string Id;
             public string DisplayName;
-            // The weapon's own table, as its WeaponDefinition's _levelUps hold it, and the tome it evolves with; empty and
-            // null for a hand-made weapon. A run in category mode draws a carried weapon's upgrades from these.
+            // The weapon's own table, as its WeaponDefinition's _levelUps hold it, what it evolves into and the tome it
+            // evolves with; empty and null for a hand-made weapon. A run in category mode draws a carried weapon's
+            // upgrades, and once unlocked its evolution, from these.
             public UpgradeOption[] Lines;
+            public UpgradeOption Evolution;
             public string EvolvesWithTome;
             public float Damage = 10f;
             public float Interval = 0.8f;
@@ -91,7 +93,7 @@ namespace Cryptforge.Tests
             // The weapon as category-mode offers see it, built the way WeaponDefinition.CreateCard builds the scene's.
             public WeaponCard CreateCard() =>
                 new WeaponCard(Id ?? UnnamedWeaponId, DisplayName, string.Empty, CreateRuntime,
-                    Lines ?? new UpgradeOption[0], null, EvolvesWithTome);
+                    Lines ?? new UpgradeOption[0], Evolution, EvolvesWithTome);
         }
 
         // Ability_ForgeBurst.asset: the hero's burst, fired by the player; the simulation fires it whenever it is ready and
@@ -210,7 +212,7 @@ namespace Cryptforge.Tests
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
-            new HeroWeapon { Id = "weapon_sword", DisplayName = "Sword", Lines = SwordLines(), EvolvesWithTome = "tome_force", Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
+            new HeroWeapon { Id = "weapon_sword", DisplayName = "Sword", Lines = SwordLines(), Evolution = SwordEvolution(), EvolvesWithTome = "tome_force", Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
 
         // Weapon_Staff.asset: 11 damage every 1.1 s from 2.1 units away, and 75% of it to every enemy within 3.5 units of the target.
         public static HeroWeapon Staff() =>
@@ -218,7 +220,7 @@ namespace Cryptforge.Tests
 
         // Weapon_Daggers.asset: 6 damage every 0.5 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
-            new HeroWeapon { Id = "weapon_daggers", DisplayName = "Daggers", Lines = DaggersLines(), EvolvesWithTome = "tome_precision", Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
+            new HeroWeapon { Id = "weapon_daggers", DisplayName = "Daggers", Lines = DaggersLines(), Evolution = DaggersEvolution(), EvolvesWithTome = "tome_precision", Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
@@ -472,6 +474,20 @@ namespace Cryptforge.Tests
             Line("line_daggers_crit", "Daggers", "+{0:0.#%} crit chance", UpgradeStat.CritChance, ModifierOperation.Flat, 0.05f, 0.0625f, 0.075f, 0.1f),
             Line("line_daggers_attack_speed", "Daggers", "+{0:0.#}% attack speed", UpgradeStat.AttackSpeed, ModifierOperation.Percent, 0.08f, 0.1f, 0.12f, 0.16f)
         };
+
+        // Data/Upgrades/Evolutions (docs/42, PR 5): what a weapon becomes at level 5 with its tome at level 2, each an
+        // existing behavioural stat on that weapon's runtime alone, at the values of the general card that granted it
+        // before - green, orange and red as that card's, gold a third above red as that card's is. The Sword, evolving
+        // with Force, pulses (Forge Pulse's 0.4 / 0.65 / 1.0, docs/30 measured the pulse as the Sword's card); the
+        // Daggers, evolving with Precision, splinter their crits (Splintering Crit's 0.4 / 0.6 / 1.0, the report's Rift
+        // Echo and docs/31's conclusion). The Staff has none yet. WeaponContentTests holds these equal to the assets.
+        public static UpgradeOption SwordEvolution() =>
+            Tiered("evolution_sword", "Resonant Edge", "Every 4th strike bursts for {0:0%} damage nearby, and a harder world",
+                UpgradeStat.PulseDamage, ModifierOperation.Flat, 0.4f, 0.65f, 1f, 1.33f, 1);
+
+        public static UpgradeOption DaggersEvolution() =>
+            Tiered("evolution_daggers", "Rift Echo", "Crits splinter for {0:0%} nearby, and a harder world",
+                UpgradeStat.CritSplash, ModifierOperation.Flat, 0.4f, 0.6f, 1f, 1.33f, 1);
 
         // Seven picks take a weapon from level 1 to its last, so no one line can be taken more often than that.
         public const int LineMaxStacks = WeaponLoadout.MaxLevel - 1;

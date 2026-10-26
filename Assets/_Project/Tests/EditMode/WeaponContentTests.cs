@@ -60,6 +60,58 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The two V0.1 evolutions (docs/42, PR 5), and none on the Staff yet: as the simulation restates them, evolving
+        // from their own weapon with the tome the asset names.
+        [Test]
+        public void TheSimulationsEvolutionsAreTheAssets()
+        {
+            foreach (string name in HeroWeapons)
+            {
+                WeaponCard asset = Weapon(name).CreateCard();
+                WeaponCard simulated = Simulated(name).CreateCard();
+                if (name == "Staff")
+                {
+                    Assert.That(asset.Evolution, Is.Null, "The Staff's evolution needs a behaviour that does not exist yet.");
+                    Assert.That(simulated.Evolution, Is.Null);
+                    continue;
+                }
+
+                Assert.That(asset.Evolution, Is.Not.Null, name);
+                AssertSameCard(simulated.Evolution, asset.Evolution, $"{name} evolution");
+                Assert.That(asset.Evolution.IsEvolution, Is.True, name);
+                Assert.That(asset.Evolution.EvolvesFromId, Is.EqualTo(asset.Id), name);
+                Assert.That(asset.Evolution.Category, Is.EqualTo(OfferCategory.WeaponUpgrade), name);
+            }
+
+            Assert.That(Weapon("Sword").Evolution.Stat, Is.EqualTo(UpgradeStat.PulseDamage));
+            Assert.That(Weapon("Sword").EvolvesWithTome, Is.EqualTo("tome_force"));
+            Assert.That(Weapon("Daggers").Evolution.Stat, Is.EqualTo(UpgradeStat.CritSplash));
+            Assert.That(Weapon("Daggers").EvolvesWithTome, Is.EqualTo("tome_precision"));
+        }
+
+        // Each evolution is the general card that used to grant its stat, tier for tier: Forge Pulse for the Sword and
+        // Splintering Crit for the Daggers, which leave the general pool in category mode for exactly this.
+        [Test]
+        public void EachEvolutionCarriesTheValuesOfTheCardItReplaces()
+        {
+            AssertSameTiers("Upgrade_Pulse", Weapon("Sword").Evolution);
+            AssertSameTiers("Upgrade_CritSplash", Weapon("Daggers").Evolution);
+        }
+
+        private static void AssertSameTiers(string generalAsset, UpgradeDefinition evolution)
+        {
+            var general = AssetDatabase.LoadAssetAtPath<UpgradeDefinition>($"Assets/_Project/Data/Upgrades/{generalAsset}.asset");
+            Assert.That(general, Is.Not.Null, generalAsset);
+            Assert.That(evolution.Stat, Is.EqualTo(general.Stat), generalAsset);
+            Assert.That(evolution.Operation, Is.EqualTo(general.Operation), generalAsset);
+            Assert.That(evolution.Amount, Is.EqualTo(general.Amount), generalAsset);
+            Assert.That(evolution.RareAmount, Is.EqualTo(general.RareAmount), generalAsset);
+            Assert.That(evolution.EpicAmount, Is.EqualTo(general.EpicAmount), generalAsset);
+            Assert.That(evolution.GoldAmount, Is.EqualTo(general.GoldAmount), generalAsset);
+            Assert.That(evolution.Requires, Is.Null, generalAsset);
+            Assert.That(evolution.EvolvesFrom, Is.Null, generalAsset);
+        }
+
         [Test]
         public void TheSimulationsTomesAreTheAssets()
         {

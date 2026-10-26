@@ -23,8 +23,11 @@ namespace Cryptforge.Progression
         // level 1 to WeaponLoadout.MaxLevel (the report's 40 section 5.1); a line can come up again, so its MaxStacks is
         // informational and the weapon's level is the limit.
         public IReadOnlyList<UpgradeOption> Lines { get; }
-        // The card this weapon evolves into, and the tome it evolves with; null for a weapon with no evolution yet. Read
-        // by nothing until the weapon evolutions land (docs/42, PR 5).
+        // The card this weapon evolves into, and the tome it evolves with; null for a weapon with no evolution yet
+        // (docs/42, PR 5). The evolution is a WeaponUpgrade card that evolves from the weapon itself - its EvolvesFromId
+        // is this card's Id - so it is an evolution by the same property every other is, and pays the same cost
+        // (EvolutionRule). It is offered once the weapon and the tome are far enough along (EvolutionRule.WeaponUnlocked),
+        // once per run, and it writes to this weapon's runtime alone.
         public UpgradeOption Evolution { get; }
         public string EvolvesWithTomeId { get; }
 
@@ -63,8 +66,34 @@ namespace Cryptforge.Progression
             Acquire = new UpgradeOption(id, DisplayName, text, UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Flat, 0f), 1, null, null, OfferCategory.NewWeapon);
             Lines = new ReadOnlyCollection<UpgradeOption>(copies);
-            Evolution = evolution;
+            Evolution = evolution != null ? EvolutionOf(id, evolution, evolvesWithTomeId, copies) : null;
             EvolvesWithTomeId = evolvesWithTomeId;
+        }
+
+        // The authored evolution as this weapon's: a WeaponUpgrade card evolving from the weapon's id. An evolution with
+        // no tome to meet could never unlock, one on a hero stat would have no runtime to write to, and one with a gate of
+        // its own would have two, so each is refused when the card is built rather than found in a run.
+        private static UpgradeOption EvolutionOf(string id, UpgradeOption evolution, string tomeId,
+            UpgradeOption[] lines)
+        {
+            if (tomeId == null)
+                throw new ArgumentException("An evolution needs the tome it evolves with.", nameof(evolution));
+            if (!WeaponRuntime.Owns(evolution.Stat))
+                throw new ArgumentException($"Evolution {evolution.Id} is on {evolution.Stat}, which is not a weapon stat.",
+                    nameof(evolution));
+            if (evolution.RequiresId != null || (evolution.EvolvesFromId != null && evolution.EvolvesFromId != id))
+                throw new ArgumentException($"Evolution {evolution.Id} has a gate of its own; its gate is the weapon's.",
+                    nameof(evolution));
+            if (evolution.Id == id)
+                throw new ArgumentException("An evolution cannot share its weapon's id.", nameof(evolution));
+            for (int i = 0; i < lines.Length; i++)
+                if (lines[i].Id == evolution.Id)
+                    throw new ArgumentException($"Evolution {evolution.Id} is also a line.", nameof(evolution));
+
+            return new UpgradeOption(evolution.Id, evolution.DisplayName, evolution.DescriptionFormat, evolution.Stat,
+                evolution.ModifierFor(UpgradeRarity.Common), evolution.ModifierFor(UpgradeRarity.Rare),
+                evolution.ModifierFor(UpgradeRarity.Epic), evolution.ModifierFor(UpgradeRarity.Gold),
+                evolution.MaxStacks, null, id, OfferCategory.WeaponUpgrade);
         }
 
         // A new runtime each call: the loadout seeds it and replays the tomes onto it as it takes the slot.

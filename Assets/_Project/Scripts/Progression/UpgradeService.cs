@@ -65,6 +65,8 @@ namespace Cryptforge.Progression
         // Every weapon card's Acquire and lines to their weapon, and every tome card (authored or copy) to its index.
         private readonly Dictionary<UpgradeOption, WeaponCard> _weaponOf = new Dictionary<UpgradeOption, WeaponCard>();
         private readonly Dictionary<UpgradeOption, int> _tomeOf = new Dictionary<UpgradeOption, int>();
+        // The weapons whose evolution this run has taken: once each (docs/42, PR 5).
+        private readonly HashSet<string> _evolved = new HashSet<string>();
         // A swarm room holds level-ups back and offers them together (docs/27 decision 7). While held, a pending level-up
         // opens no offer; a sitting offers every pending one in a row, and the hold resumes once they are answered.
         private bool _held;
@@ -184,6 +186,9 @@ namespace Cryptforge.Progression
             return 0;
         }
 
+        // Whether the weapon with this id has taken its evolution this run; false in the legacy engine.
+        public bool HasEvolved(string weaponId) => weaponId != null && _evolved.Contains(weaponId);
+
         // From now on pending level-ups wait for a sitting. An offer already open stays open.
         public void Hold()
         {
@@ -213,8 +218,8 @@ namespace Cryptforge.Progression
             OnPendingUpgradesChanged();
         }
 
-        // A general card's stacks; in category mode also a tome card's level, and a weapon card's (its Acquire or one of
-        // its lines) carried weapon's level, 0 while it is not carried.
+        // A general card's stacks; in category mode also a tome card's level, a weapon card's (its Acquire or one of its
+        // lines) carried weapon's level, 0 while it is not carried, and a weapon's evolution's one stack once taken.
         public int StacksOf(UpgradeOption option)
         {
             if (option == null)
@@ -225,6 +230,8 @@ namespace Cryptforge.Progression
                 return _tomeLevels[tome];
             if (_loadout != null && _weaponOf.TryGetValue(option, out WeaponCard card))
             {
+                if (option == card.Evolution)
+                    return HasEvolved(card.Id) ? 1 : 0;
                 int slot = _loadout.IndexOf(card.Id);
                 return slot >= 0 ? _loadout.At(slot).Level : 0;
             }
@@ -267,13 +274,17 @@ namespace Cryptforge.Progression
         // ordinal so the same chest of the same run always holds the same book. It draws from the same eligibility a
         // level-up does, and grants nothing when every card is full or blocked. A card the open offer happens to show
         // is not excluded: whether an offer is open is true in the scene and never true in the simulation, and a draw
-        // that depended on it would diverge between them (docs/27 S3).
+        // that depended on it would diverge between them (docs/27 S3). In category mode a book is a tome level or a
+        // general card instead (TryGrantCategoryBook).
         public bool TryGrantBook(int chestIndex, out UpgradeOption book, out UpgradeRarity rarity)
         {
             book = null;
             rarity = UpgradeRarity.Common;
             if (_run.HasEnded)
                 return false;
+
+            if (_loadout != null)
+                return TryGrantCategoryBook(chestIndex, out book, out rarity);
 
             List<UpgradeOption> eligible = Eligible();
             if (eligible.Count == 0)
@@ -293,6 +304,56 @@ namespace Cryptforge.Progression
             else
                 _weapon.AddModifier(book.Stat, modifier);
             ApplyEvolutionCost(book);
+            BookGranted?.Invoke(book, rarity);
+            return true;
+        }
+
+        // A book in category mode (docs/42, PR 6; owner decision): a level of a tome the hero already holds, or a general
+        // card, and nothing else. Never a weapon - a chest is not where a build's weapons come from - and never a new tome
+        // either: the three tome slots are as much the build's choice as the three weapon slots, and a chest that filled
+        // one would make that choice for the player, for the rest of the run. So a hero holding no tome finds a general
+        // card, and a hero whose tomes are all full finds a general card, or nothing once those are full too.
+        //
+        // Which of the two is drawn by OfferWeights over just those two kinds, so a book leans the way the level-ups at the
+        // same run level lean (level early, five to two for the tome late); then a card of that kind and its tier. Every
+        // draw is on the books stream at this chest's ordinal, three words in that order, so the same chest of the same
+        // run always holds the same book, and an offer's draws never see a chest.
+        private bool TryGrantCategoryBook(int chestIndex, out UpgradeOption book, out UpgradeRarity rarity)
+        {
+            book = null;
+            rarity = UpgradeRarity.Common;
+            List<UpgradeOption> general = Eligible();
+            var tomes = new List<UpgradeOption>(_tomes.Length);
+            for (int i = 0; i < _tomes.Length; i++)
+                if (_tomeLevels[i] > 0 && _tomeLevels[i] < TomeCap(i))
+                    tomes.Add(_tomeUpgrades[i]);
+
+            var open = new bool[OfferWeights.CategoryCount];
+            open[(int)OfferCategory.General] = general.Count > 0;
+            open[(int)OfferCategory.TomeUpgrade] = tomes.Count > 0;
+            if (!OfferWeights.AnyOpen(_run.Level, open))
+                return false;
+
+            RunRandom stream = RunRandom.Stream(_run.Seed, RunRandom.Books, chestIndex);
+            OfferCategory category = OfferWeights.Draw(stream, _run.Level, open);
+            List<UpgradeOption> cards = category == OfferCategory.TomeUpgrade ? tomes : general;
+            book = cards[stream.NextBelow(cards.Count)];
+            rarity = RarityTable.Draw(stream, _heroStats.Luck);
+            // As a legacy book: no RecordUpgradeApplied, since a book answers no level-up.
+            BooksGranted++;
+            StatModifier modifier = book.ModifierFor(rarity);
+            if (category == OfferCategory.TomeUpgrade)
+            {
+                _tomeLevels[_tomeOf[book]]++;
+                _loadout.AddGlobal(book.Stat, modifier);
+            }
+            else
+            {
+                // A general card in category mode is always the hero's (Eligible).
+                _stacks[book]++;
+                _heroStats.AddModifier(book.Stat, modifier);
+                ApplyEvolutionCost(book);
+            }
             BookGranted?.Invoke(book, rarity);
             return true;
         }
@@ -382,9 +443,8 @@ namespace Cryptforge.Progression
         // two weapon evolutions - would write to slot 0 alone and double-dip with the tomes, so it leaves (docs/42,
         // risks); what a weapon gains comes from its own lines and the tomes instead. And the width answered a pool where
         // every card past a point thinned the chance of the one a run needed: in category mode the general cards are a
-        // tenth of the offer whatever their number, so the few hero cards left are all open from the start. A book draws
-        // from this same list, so in category mode a chest holds a general card only until books learn the tomes
-        // (docs/42, PR 6).
+        // tenth of the offer whatever their number, so the few hero cards left are all open from the start. A category
+        // book draws its general cards from this same list (TryGrantCategoryBook).
         private List<UpgradeOption> Eligible()
         {
             int width = _loadout != null ? _pool.Length : Math.Min(_pool.Length, UpgradePool.WidthAt(_run.Level));
@@ -458,10 +518,7 @@ namespace Cryptforge.Progression
                 Candidates(category, general, choices, candidates);
                 UpgradeOption pick = candidates[draws.NextBelow(candidates.Count)];
                 if (category == OfferCategory.WeaponUpgrade)
-                {
-                    IReadOnlyList<UpgradeOption> lines = _weaponOf[pick].Lines;
-                    pick = lines[draws.NextBelow(lines.Count)];
-                }
+                    pick = DrawWeaponUpgrade(_weaponOf[pick], draws);
                 choices.Add(pick);
             }
 
@@ -475,6 +532,35 @@ namespace Cryptforge.Progression
                 rarities[i] = choices[i].Category == OfferCategory.NewWeapon ? UpgradeRarity.Common : rarity;
             }
             return new UpgradeOffer(choices, index, rarities);
+        }
+
+        // A carried weapon's card for this offer: one entry of its table, which is its lines while it is below its last
+        // level and, once its evolution is unlocked and not yet taken, its evolution after them. The evolution joins the
+        // table rather than replacing it, so a player who would rather not pay its cost can still level the weapon; at the
+        // last level it is the table's only entry and is shown whenever the weapon's card comes up, and NextBelow(1)
+        // takes no word. With no evolution waiting the draw is the one PR 4 made, word for word.
+        private UpgradeOption DrawWeaponUpgrade(WeaponCard card, RunRandom draws)
+        {
+            int lines = LinesOpen(card) ? card.Lines.Count : 0;
+            int entries = lines + (EvolutionPending(card) ? 1 : 0);
+            int entry = draws.NextBelow(entries);
+            return entry < lines ? card.Lines[entry] : card.Evolution;
+        }
+
+        private bool LinesOpen(WeaponCard card)
+        {
+            int slot = _loadout.IndexOf(card.Id);
+            return slot >= 0 && _loadout.At(slot).Level < WeaponLoadout.MaxLevel && card.Lines.Count > 0;
+        }
+
+        // A carried weapon's evolution is waiting once the weapon and its tome have reached EvolutionRule's levels, until
+        // the run takes it; never for a weapon with none, and never in a run whose catalogue lacks the tome.
+        private bool EvolutionPending(WeaponCard card)
+        {
+            if (card.Evolution == null || _evolved.Contains(card.Id))
+                return false;
+            int slot = _loadout.IndexOf(card.Id);
+            return slot >= 0 && EvolutionRule.WeaponUnlocked(_loadout.At(slot).Level, TomeLevel(card.EvolvesWithTomeId));
         }
 
         // Which kinds of pick still hold a card this offer does not show yet; false when none does.
@@ -541,17 +627,17 @@ namespace Cryptforge.Progression
         }
 
         // A new weapon while a slot is free and the hero does not carry it; a carried one's upgrade while it is below
-        // its last level and has lines to draw. Either way at most one card per weapon in an offer.
+        // its last level and has lines to draw, or while its evolution waits. Either way at most one card per weapon in an
+        // offer.
         private bool WeaponOpen(OfferCategory category, WeaponCard card, List<UpgradeOption> choices)
         {
             for (int i = 0; i < choices.Count; i++)
                 if (_weaponOf.TryGetValue(choices[i], out WeaponCard shown) && shown == card)
                     return false;
 
-            int slot = _loadout.IndexOf(card.Id);
             if (category == OfferCategory.NewWeapon)
-                return slot < 0 && !_loadout.IsFull;
-            return slot >= 0 && _loadout.At(slot).Level < WeaponLoadout.MaxLevel && card.Lines.Count > 0;
+                return !_loadout.Owns(card.Id) && !_loadout.IsFull;
+            return LinesOpen(card) || EvolutionPending(card);
         }
 
         // A new tome while fewer than MaxTomes are held; a held one's next level while it is below its last.
@@ -571,7 +657,9 @@ namespace Cryptforge.Progression
 
         // What a weapon or tome card does once taken. A new weapon takes the next slot, seeded and with every tome
         // replayed onto it by the loadout, and is announced; a weapon's line goes to that weapon's runtime alone and
-        // raises its level; a tome goes to every weapon, now and later, through the loadout's global record.
+        // raises its level; its evolution goes to that weapon's runtime alone too, raises no level, is taken once and
+        // makes the world harder (EvolutionRule); a tome goes to every weapon, now and later, through the loadout's global
+        // record.
         private void ApplyCategoryPick(UpgradeOption choice, UpgradeRarity rarity)
         {
             switch (choice.Category)
@@ -589,6 +677,15 @@ namespace Cryptforge.Progression
                 {
                     WeaponCard card = _weaponOf[choice];
                     int slot = _loadout.IndexOf(card.Id);
+                    if (choice == card.Evolution)
+                    {
+                        if (!EvolutionPending(card))
+                            throw new InvalidOperationException($"Weapon {card.Id} was offered an evolution it cannot take.");
+                        _evolved.Add(card.Id);
+                        _loadout.At(slot).Runtime.AddModifier(choice.Stat, choice.ModifierFor(rarity));
+                        ApplyEvolutionCost(choice);
+                        break;
+                    }
                     if (slot < 0 || !_loadout.TryLevelUp(card.Id))
                         throw new InvalidOperationException($"Weapon {card.Id} was offered a level it cannot take.");
                     _loadout.At(slot).Runtime.AddModifier(choice.Stat, choice.ModifierFor(rarity));
@@ -621,6 +718,11 @@ namespace Cryptforge.Progression
                 {
                     RequireNewId(ids, card.Lines[j].Id);
                     _weaponOf.Add(card.Lines[j], card);
+                }
+                if (card.Evolution != null)
+                {
+                    RequireNewId(ids, card.Evolution.Id);
+                    _weaponOf.Add(card.Evolution, card);
                 }
             }
 

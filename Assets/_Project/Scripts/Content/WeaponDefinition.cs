@@ -31,6 +31,8 @@ namespace Cryptforge.Content
         // global-bucket-second order (40 section 5.3), and a content test holds every asset to it.
         [SerializeField] private UpgradeDefinition[] _levelUps;
         // What the weapon evolves into, and the id of the tome it evolves with; none for a weapon with no evolution yet.
+        // The evolution's own _requires and _evolvesFrom stay empty: its gate is this weapon's level and the tome's
+        // (EvolutionRule.WeaponUnlocked), and WeaponCard makes it evolve from this weapon.
         [SerializeField] private UpgradeDefinition _evolution;
         [SerializeField] private string _evolvesWithTome;
 

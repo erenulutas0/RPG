@@ -185,7 +185,9 @@ namespace Cryptforge.Tests
                 {
                     foreach (UpgradeOption card in offer.Choices)
                     {
-                        if (card.Category != OfferCategory.WeaponUpgrade)
+                        // An evolution is the one weapon card a weapon at its last level can still show
+                        // (WeaponEvolutionTests); it is held to its own gate there.
+                        if (card.Category != OfferCategory.WeaponUpgrade || card.IsEvolution)
                             continue;
                         Assert.That(service.StacksOf(card), Is.InRange(1, WeaponLoadout.MaxLevel - 1),
                             $"seed {seed}: {card.Id} offered on a weapon not carried or at its last level");
@@ -275,6 +277,13 @@ namespace Cryptforge.Tests
                             case OfferCategory.NewWeapon:
                                 Assert.That(loadout.Owns(card.Id), Is.False, where);
                                 Assert.That(loadout.IsFull, Is.False, where);
+                                break;
+                            case OfferCategory.WeaponUpgrade when card.IsEvolution:
+                                Assert.That(service.HasEvolved(card.EvolvesFromId), Is.False, $"{where}: evolved twice");
+                                Assert.That(EvolutionRule.WeaponUnlocked(
+                                    loadout.At(loadout.IndexOf(card.EvolvesFromId)).Level,
+                                    service.TomeLevel(card.EvolvesFromId == "weapon_sword" ? "tome_force" : "tome_precision")),
+                                    Is.True, $"{where}: offered before it unlocked");
                                 break;
                             case OfferCategory.WeaponUpgrade:
                                 Assert.That(service.StacksOf(card), Is.InRange(1, WeaponLoadout.MaxLevel - 1), where);
