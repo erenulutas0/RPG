@@ -131,6 +131,10 @@ namespace Cryptforge.Core
                 movement != null ? movement.Motion.Speed : 2.5f,
                 movement != null ? movement.Stamina.Bar : HeroStamina.DefaultBar);
             HeroStats.Changed += ApplyHeroStats;
+            // The density probe measures the phone with N enemies standing (development/horde-probe.txt); a hero that
+            // falls in the first seconds would leave it measuring the result screen, so the probe's hero cannot fall.
+            if (DevelopmentStart.HordeProbe() > 0)
+                HeroStats.AddModifier(UpgradeStat.MaxHealth, new StatModifier(ModifierOperation.Flat, 1000000f));
             ApplyHeroStats();
             Weapon.Seed = Run.Seed;
             WeaponLoadout loadout = null;
