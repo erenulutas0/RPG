@@ -55,7 +55,7 @@ namespace Cryptforge.Combat
             _sizes = new int[waveSizes.Count];
             for (int i = 0; i < _sizes.Length; i++)
             {
-                if (waveSizes[i] < 1 || waveSizes[i] > PackLayout.MaxPackSize)
+                if (waveSizes[i] < 1 || waveSizes[i] > PackLayout.MaxFormationSize)
                     throw new ArgumentOutOfRangeException(nameof(waveSizes));
                 _sizes[i] = waveSizes[i];
             }

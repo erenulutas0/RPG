@@ -11,7 +11,11 @@ namespace Cryptforge.Combat
     // forming up on one corner still starts apart and inside the platform.
     public static class PackLayout
     {
-        public const int MaxPackSize = 10;
+        // The most enemies an authored wave, a formation or a swarm's ladder wave may hold: the formations below go this far.
+        public const int MaxFormationSize = 10;
+        // The most enemies a pack may hold standing at once - the horde's ceiling on the phone (the owner, 2026-10-26:
+        // start at 30-40 and raise it by measurement). A formation never fills it; the horde and a probe do.
+        public const int MaxPackSize = 40;
         // The widest slot's distance from the centre line, in spacing units.
         public const float HalfWidth = 2f;
 
@@ -45,7 +49,7 @@ namespace Cryptforge.Combat
 
         public static void Offset(int index, int count, float spacing, out float x, out float y)
         {
-            if (count < 1 || count > MaxPackSize)
+            if (count < 1 || count > MaxFormationSize)
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (index < 0 || index >= count)
                 throw new ArgumentOutOfRangeException(nameof(index));

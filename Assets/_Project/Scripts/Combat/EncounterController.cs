@@ -325,8 +325,8 @@ namespace Cryptforge.Combat
                 for (int i = 0; i < room.WaveCount; i++)
                 {
                     WaveDefinition wave = room.WaveAt(i);
-                    if (wave == null || wave.EnemyCount < 1 || wave.EnemyCount > PackLayout.MaxPackSize)
-                        throw new InvalidOperationException($"Room {index} wave {i} needs one to {PackLayout.MaxPackSize} enemies.");
+                    if (wave == null || wave.EnemyCount < 1 || wave.EnemyCount > PackLayout.MaxFormationSize)
+                        throw new InvalidOperationException($"Room {index} wave {i} needs one to {PackLayout.MaxFormationSize} enemies.");
                     for (int e = 0; e < wave.EnemyCount; e++)
                     {
                         EnemyDefinition enemy = wave.EnemyAt(e);
@@ -366,6 +366,11 @@ namespace Cryptforge.Combat
             if (surge >= 0)
                 for (int e = wave.EnemyCount; e < HallSurgeRule.Size(wave.EnemyCount, surge); e++)
                     _waveEnemies.Add(wave.EnemyAt(wave.EnemyCount - 1));
+            // The density probe (development builds, DevelopmentStart.HordeProbe): the floor's first wave padded with
+            // copies of its first enemy, up to the pack's capacity, to measure the phone at the horde's crowd.
+            if (room == _currentFloor.RoomAt(0) && waveIndex == 0 && _arena.IsFoundryRegion)
+                for (int extra = DevelopmentStart.HordeProbe(); extra > 0 && _waveEnemies.Count < PackLayout.MaxPackSize; extra--)
+                    _waveEnemies.Add(wave.EnemyAt(0));
             return _waveEnemies;
         }
 

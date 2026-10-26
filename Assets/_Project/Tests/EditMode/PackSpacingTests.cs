@@ -213,7 +213,7 @@ namespace Cryptforge.Tests
                 whole.Step(0.375f, 0f, 0f);
                 for (int step = 0; step < 4; step++)
                     split.Step(0.09375f, 0f, 0f);
-                for (int i = 0; i < PackLayout.MaxPackSize; i++)
+                for (int i = 0; i < PackLayout.MaxFormationSize; i++)
                 {
                     Assert.That((whole.XOf(i), whole.YOf(i)), Is.EqualTo((split.XOf(i), split.YOf(i))),
                         $"Long frame {frame}, slot {i}: one call walks the four steps four calls do.");
@@ -256,9 +256,9 @@ namespace Cryptforge.Tests
             PackMotion motion = TenPack(0f, 0f, out HealthState[] bodies);
             var hero = new HeroMotion(DescentSimulation.HeroSpeed);
             hero.Place(0f, 0f, Arena);
-            var turns = new TurnCounter(PackLayout.MaxPackSize);
-            var lastX = new float[PackLayout.MaxPackSize];
-            var lastY = new float[PackLayout.MaxPackSize];
+            var turns = new TurnCounter(PackLayout.MaxFormationSize);
+            var lastX = new float[PackLayout.MaxFormationSize];
+            var lastY = new float[PackLayout.MaxFormationSize];
             int restingFrames = 0;
             for (int frame = 0; frame < 2400; frame++)
             {
@@ -272,10 +272,10 @@ namespace Cryptforge.Tests
                 }
                 // Turning to follow a hero that has just stopped is not turning back; count from the stop on.
                 if (frame == 600)
-                    turns = new TurnCounter(PackLayout.MaxPackSize);
+                    turns = new TurnCounter(PackLayout.MaxFormationSize);
 
                 bool moved = false;
-                for (int i = 0; i < PackLayout.MaxPackSize; i++)
+                for (int i = 0; i < PackLayout.MaxFormationSize; i++)
                 {
                     lastX[i] = motion.XOf(i);
                     lastY[i] = motion.YOf(i);
@@ -284,7 +284,7 @@ namespace Cryptforge.Tests
                 motion.Step(Frame, hero.X, hero.Y);
                 string breach = FirstBreach(motion, bodies, $"{walk}, frame {frame}");
                 Assert.That(breach, Is.Null);
-                for (int i = 0; i < PackLayout.MaxPackSize; i++)
+                for (int i = 0; i < PackLayout.MaxFormationSize; i++)
                 {
                     if (!bodies[i].IsAlive)
                         continue;
@@ -319,12 +319,12 @@ namespace Cryptforge.Tests
         // Two Grunts and eight Cinder Mites entering round the hero where the scene's spawn places them.
         private static PackMotion TenPack(float heroX, float heroY, out HealthState[] bodies)
         {
-            var placements = new EntryPlacement[PackLayout.MaxPackSize];
-            EntrySides.Place(0, PackLayout.MaxPackSize, heroX, heroY, Arena, DescentSimulation.EntryDepth,
+            var placements = new EntryPlacement[PackLayout.MaxFormationSize];
+            EntrySides.Place(0, PackLayout.MaxFormationSize, heroX, heroY, Arena, DescentSimulation.EntryDepth,
                 DescentSimulation.FormationSpacing, BodySpacing, placements);
             var motion = new PackMotion(BodySpacing, PackLayout.HalfWidth * DescentSimulation.FormationSpacing, Arena, heroX, heroY);
-            bodies = new HealthState[PackLayout.MaxPackSize];
-            for (int i = 0; i < PackLayout.MaxPackSize; i++)
+            bodies = new HealthState[PackLayout.MaxFormationSize];
+            for (int i = 0; i < PackLayout.MaxFormationSize; i++)
             {
                 bodies[i] = new HealthState(i < 2 ? 50f : 15f);
                 motion.Add(bodies[i], placements[i], i < 2 ? GruntSpeed : MiteSpeed, Reach);

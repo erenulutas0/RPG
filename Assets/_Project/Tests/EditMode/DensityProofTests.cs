@@ -113,7 +113,7 @@ namespace Cryptforge.Tests
                             Assert.That(Describe(second), Is.EqualTo(Describe(first)), where);
                             Assert.That(first.FightSeconds, Is.LessThan(1000f), $"{where}: the wave ended instead of running out the frame cap.");
                             Assert.That(first.FramesOffPlatform, Is.Zero, $"{where}: the hero never stands off the platform margin.");
-                            Assert.That(first.Kills, Is.LessThanOrEqualTo(PackLayout.MaxPackSize), where);
+                            Assert.That(first.Kills, Is.LessThanOrEqualTo(PackLayout.MaxFormationSize), where);
                             Assert.That(first.ClosestEnemyGap, Is.GreaterThan(0f), $"{where}: no two living enemies ever shared a spot.");
                             Assert.That(first.EarliestStrikeAfterSpawn, Is.GreaterThan(0f),
                                 $"{where}: the wave of ten landed nothing on the frame it spawned (earliest {first.EarliestStrikeAfterSpawn} s).");

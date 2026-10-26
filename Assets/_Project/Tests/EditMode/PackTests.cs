@@ -11,7 +11,7 @@ namespace Cryptforge.Tests
         [Test]
         public void PackSlotsFillTheFrontFirstAndStayInsideTheWidestSpread()
         {
-            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+            for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
             {
                 float previousDepth = 0f;
                 float sumX = 0f;
@@ -31,7 +31,7 @@ namespace Cryptforge.Tests
             PackLayout.Offset(1, 3, 1.5f, out float scaledX, out float scaledY);
             Assert.That(scaledX, Is.EqualTo(-2.1f).Within(1e-5f), "Offsets scale with the spacing.");
             Assert.That(scaledY, Is.EqualTo(1.2f).Within(1e-5f));
-            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(0, PackLayout.MaxPackSize + 1, 1f, out _, out _));
+            Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(0, PackLayout.MaxFormationSize + 1, 1f, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(2, 2, 1f, out _, out _));
             Assert.Throws<ArgumentOutOfRangeException>(() => PackLayout.Offset(0, 1, 0f, out _, out _));
         }
@@ -68,9 +68,9 @@ namespace Cryptforge.Tests
                 new[] { 0f, 0f, 1.2f, 1.2f, 1.2f, 2.4f, 2.4f, 3.6f, 3.6f },
                 new[] { 0f, 0f, 1.2f, 1.2f, 1.2f, 2.4f, 2.4f, 3.6f, 3.6f, 3.6f }
             };
-            Assert.That(slotX.Length, Is.EqualTo(PackLayout.MaxPackSize), "Every pack size has a formation.");
+            Assert.That(slotX.Length, Is.EqualTo(PackLayout.MaxFormationSize), "Every pack size has a formation.");
 
-            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+            for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
             {
                 for (int index = 0; index < count; index++)
                 {

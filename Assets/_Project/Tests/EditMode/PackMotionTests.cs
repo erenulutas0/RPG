@@ -138,7 +138,7 @@ namespace Cryptforge.Tests
             var placements = new EntryPlacement[PackLayout.MaxPackSize];
             for (int wave = 0; wave < EntrySides.Count; wave++)
             {
-                for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                 {
                     EntrySides.Place(wave, count, 0f, 0f, Arena, 5f, 1f, placements);
                     for (int slot = 0; slot < count; slot++)
@@ -208,7 +208,7 @@ namespace Cryptforge.Tests
                     openCount++;
                 for (int wave = 0; wave < EntrySides.Count; wave++)
                 {
-                    for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                    for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                     {
                         EntrySides.Place(wave, count, heroX, heroY, Arena, 5f, 1f, placements);
                         int used = 0;
@@ -266,7 +266,7 @@ namespace Cryptforge.Tests
                         continue;
                     for (int wave = 0; wave < EntrySides.Count; wave++)
                     {
-                        for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                        for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                         {
                             EntrySides.Place(wave, count, heroX, heroY, Arena, 5f, 1f, BodySpacing, swept);
                             string why = FirstBrokenEntry(swept, count, heroX, heroY);
@@ -290,7 +290,7 @@ namespace Cryptforge.Tests
                 var placements = new EntryPlacement[PackLayout.MaxPackSize];
                 for (int wave = 0; wave < EntrySides.Count; wave++)
                 {
-                    for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                    for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                     {
                         EntrySides.Place(wave, count, heroX, heroY, Arena, 5f, 1f, BodySpacing, placements);
                         Assert.That(FirstBrokenEntry(placements, count, heroX, heroY), Is.Null,
@@ -309,7 +309,7 @@ namespace Cryptforge.Tests
             var separated = new EntryPlacement[PackLayout.MaxPackSize];
             for (int wave = 0; wave < EntrySides.Count; wave++)
             {
-                for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                 {
                     EntrySides.Place(wave, count, 0f, 0f, Arena, 5f, 1f, plain);
                     EntrySides.Place(wave, count, 0f, 0f, Arena, 5f, 1f, BodySpacing, separated);
@@ -356,7 +356,7 @@ namespace Cryptforge.Tests
                         continue;
                     for (int wave = 0; wave < EntrySides.Count; wave++)
                     {
-                        for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                        for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                         {
                             EntrySides.Place(wave, count, heroX, heroY, Arena, 5f, 1f, plain);
                             EntrySides.Place(wave, count, heroX, heroY, Arena, 5f, 1f, BodySpacing, separated);
@@ -401,7 +401,7 @@ namespace Cryptforge.Tests
 
         private static void WalkInTenPack(float startX, float startY, float steerX, float steerY, string where)
         {
-            const int count = PackLayout.MaxPackSize;
+            const int count = PackLayout.MaxFormationSize;
             var placements = new EntryPlacement[count];
             EntrySides.Place(0, count, startX, startY, Arena, 5f, 1f, BodySpacing, placements);
             var hero = new HeroMotion(2.5f);

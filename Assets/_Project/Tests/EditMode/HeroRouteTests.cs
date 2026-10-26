@@ -184,7 +184,7 @@ namespace Cryptforge.Tests
 
                     view.HeroX = heroX;
                     view.HeroY = heroY;
-                    for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+                    for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
                     {
                         view.Count = count;
                         var placements = new EntryPlacement[count];

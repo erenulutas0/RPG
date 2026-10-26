@@ -50,6 +50,16 @@ namespace Cryptforge.Core
         public static bool Autopilot() => (Application.isEditor || Debug.isDebugBuild) && FoundryRegion() &&
             !string.IsNullOrEmpty(ReadFirstLine(AutopilotPath));
 
+        // A whole number in it pads the foundry's first wave with that many more of its first enemy: a device probe of the
+        // frame time at the horde's crowd before the horde itself exists (docs/41). Nothing without the file.
+        public static string HordeProbePath => Path.Combine(ProfileLocation.Resolve(), FolderName, "horde-probe.txt");
+        public static int HordeProbe()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return 0;
+            return int.TryParse(ReadFirstLine(HordeProbePath), out int count) && count > 0 ? count : 0;
+        }
+
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
         // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file

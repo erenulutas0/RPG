@@ -41,7 +41,7 @@ namespace Cryptforge.Tests
             var geometry = new ArenaGeometry(-3f, 14f, 3.3f);
             Assert.That(geometry.IsOnPlatform(0f, 0f), Is.True, "The hero stands on the platform.");
             Assert.That(geometry.IsOnPlatform(0f, -1f), Is.True);
-            for (int count = 1; count <= PackLayout.MaxPackSize; count++)
+            for (int count = 1; count <= PackLayout.MaxFormationSize; count++)
             {
                 for (int slot = 0; slot < count; slot++)
                 {
