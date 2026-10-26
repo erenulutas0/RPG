@@ -190,6 +190,7 @@ namespace Cryptforge.Core
             Warden = gameObject.AddComponent<WardenSlamService>();
             Warden.Initialize(this, _hero);
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
+            gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
             if (movement != null && DevelopmentStart.Autopilot())
                 gameObject.AddComponent<DevelopmentAutopilot>().Initialize(this, movement, _hero.transform);

@@ -54,6 +54,14 @@ namespace Cryptforge.UI
             new Color32(0xF5, 0xC5, 0x42, 0xFF)  // gold
         };
 
+        // A tier's colour, for whatever else marks a card's tier once it is taken (RunFeedbackView's flash at the hero);
+        // white for a value outside the four.
+        public static Color RarityColour(UpgradeRarity rarity)
+        {
+            int tier = (int)rarity;
+            return tier >= 0 && tier < RarityColours.Length ? (Color)RarityColours[tier] : Color.white;
+        }
+
         // The kind line's colours: what a pick adds to the build in a warm gold, a level in pale steel, an evolution in the
         // ember the danger readout wears, since an evolution is also what makes the run harder.
         private static readonly Color NewKindColour = new Color(1f, .86f, .45f, 1f);

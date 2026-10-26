@@ -57,6 +57,8 @@ namespace Cryptforge.UI
         public bool FrontFacing => _painted != null && _painted.FrontFacing;
         public bool Mirrored => _painted != null && _painted.Mirrored;
         public VanguardArtSet PaintedArt => _paintedArt;
+        // The body renderer, for presentation that lays its silhouette over it (RunFeedbackView's evolution flash).
+        public SpriteRenderer Body => _body;
 
         private void Awake()
         {
