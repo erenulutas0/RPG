@@ -2839,3 +2839,36 @@ owner chose bigger halls.
   bigger pack in about the same time, and the extra experience shortens the rooms after - so for this player the surges
   are worth +12 to +23 s a floor, well short of the target. The owner's floor-1 rate (1.6 s an enemy, Daggers) predicts
   more; the owner's own run is the measurement that decides the next lever.
+
+## 2026-10-26 - The horde on the foundry floor (V0.1 step 2), measured in the Editor
+
+Decisions 9-12 (`27`) after the owner's research report (`40`); plan `41`.
+
+- `PackLayout.MaxPackSize` 10 -> 40 (a pack's standing capacity) and `MaxFormationSize` 10 for formations, authored waves
+  and a swarm's ladder; `development/horde-probe.txt` pads the foundry's first wave with N more of its first enemy for a
+  device frame-time probe (not yet run: the phone was away).
+- `HordeDirector` (pure): standing-crowd target by state (Ramp/Horde/Pressure/Boss), kill-reactive up to +50 %, 2 spawns
+  a second, credit capped at 1.5 s, 0.25 s apart, node-wave enemies count against the cap but not the target, roles
+  drawn from the run's seed.
+- Scene (`EncounterController`): on a foundry floor naming `_foundryHorde` roles (both climb floors: Cinder Mite, Grunt,
+  Runner) the horde keeps its own pack walking in 7-12 units out (`FoundryMap.HordeSpot`) from the floor's first step to
+  its boss's fall, beside the node waves, never more than `HordeRule.SceneCap` 30 standing in all. Horde enemies are the
+  hero's targets, burn on the pit, show hits and falls (`CombatEffectsView` horde watches), pay `ExperienceShare` of
+  their experience and no gold, and never hold a wave's end back. Hall arena and Descent simulation unchanged.
+- `HordePacingMeasurement` (PlayMode, explicit): the autopilot plays floor 1 at 4x time over seeds 11/22/33 and writes
+  `TestResults/horde-pacing.txt`.
+
+| Setting | Result (3 seeds) | Floor s | Combat uptime | Level at gate |
+|---|---|---|---|---|
+| no horde (2026-10-25 device runs) | 3 cleared | 116-128 | - | ~11 |
+| horde at full strength, surges 2, targets 6/12/18/8, xp 0.3 | 3 died in hall 1 | 18-23 | 1.00 | 2-3 |
+| horde fodder (health 0.3, damage 0.5), xp 0.3 | 2 cleared, 1 died | 91-212 | 0.91-1.00 | 14-25 |
+| same, xp 0.15 | 1 cleared, 2 died | 49-288 | 0.97-1.00 | 8-26 |
+| + autopilot kites at 2.2 | 3 died | 45-195 | 1.00 | 1-16 |
+| **surges 0, targets 4/10/16/6, xp 0.2, kiting at 1.6, drops within 4** | **3 cleared** | **137-152** | **0.93-0.94** | **16-17** |
+
+Lessons: a bot that kites all the time never stops for a drop and starves; a bot that takes drops up to 10 units away
+chased the horde's drops for minutes (room 2 of seed 11 took 169 s). The floor is still short of the 240-360 s target
+and the gate level is above the report's 11-13; both wait for the owner's own run and the device frame-time probe.
+469 .NET, 757 EditMode, 175 PlayMode (+1 explicit), zero failures; APK 41,188,171 bytes, SHA256
+0320DFFF85BC50FDB4605B3C1E38DAA3CD3154C1328036EB328366272A253ACA, not installed.
