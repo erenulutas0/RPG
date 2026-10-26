@@ -15,8 +15,9 @@ namespace Cryptforge.Content
         // The tomes a run on the foundry draws by category, with every weapon of the forge's catalogue as a card
         // (docs/42, PR 7). Empty, and the foundry offers the legacy cards as everywhere else.
         [SerializeField] private UpgradeDefinition[] _tomes;
-        // Cards an offer shows in category mode: the report's three (docs/40 9.2).
-        [SerializeField, Min(1)] private int _categoryChoiceCount = 3;
+        // Cards an offer shows in category mode. The report's is three (docs/40 9.2), but the choice panel in the scene has
+        // two card buttons, so a third card was drawn and never shown; two until the panel gains a third (docs/42 PR 9).
+        [SerializeField, Min(1)] private int _categoryChoiceCount = 2;
 
         public int ExperiencePerLevel => _experiencePerLevel;
         public int ExperienceGrowth => _experienceGrowth;
