@@ -35,6 +35,13 @@ namespace Cryptforge.Content
         // (EvolutionRule.WeaponUnlocked), and WeaponCard makes it evolve from this weapon.
         [SerializeField] private UpgradeDefinition _evolution;
         [SerializeField] private string _evolvesWithTome;
+        // The weapon's base when a run builds by category (docs/42; the owner, 2026-10-26): the report's 18/0.8 s,
+        // 24/1.1 s and 7/0.3 s (docs/40 section 5.2) rather than the 10, 11 and 6 the legacy cards were measured on.
+        // A category step is a tome's +8 %, not Tempered Edge's +50 %, and on the legacy bases the autopilot died on the
+        // horde floor in five seeds of six. 0 keeps the legacy value. The hall and the Descent simulation's pinned claims
+        // keep the legacy bases.
+        [SerializeField, Min(0f)] private float _categoryDamage;
+        [SerializeField, Min(0f)] private float _categoryInterval;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -58,6 +65,14 @@ namespace Cryptforge.Content
             new WeaponRuntime(_damage, _interval, _range, _initialDelay,
                 new AttackPattern(_behavior, _splashRadius, _splashFraction, _critEvery, _critMultiplier));
 
+        public float CategoryDamage => _categoryDamage > 0f ? _categoryDamage : _damage;
+        public float CategoryInterval => _categoryInterval > 0f ? _categoryInterval : _interval;
+
+        // The weapon on its category-mode base, as a run that builds by category carries it.
+        public WeaponRuntime CreateCategoryRuntime() =>
+            new WeaponRuntime(CategoryDamage, CategoryInterval, _range, _initialDelay,
+                new AttackPattern(_behavior, _splashRadius, _splashFraction, _critEvery, _critMultiplier));
+
         public WeaponOption CreateForgeOption() =>
             new WeaponOption(_id, _displayName,
                 string.Format(_forgeDescriptionFormat ?? string.Empty, _damage, _interval, _splashFraction * 100f,
@@ -75,7 +90,7 @@ namespace Cryptforge.Content
                     throw new System.InvalidOperationException($"Weapon {_id} has an empty level-up line at {i}.");
                 lines[i] = _levelUps[i].CreateOption();
             }
-            return new WeaponCard(_id, _displayName, CreateForgeOption().Description, CreateRuntime, lines,
+            return new WeaponCard(_id, _displayName, CreateForgeOption().Description, CreateCategoryRuntime, lines,
                 _evolution != null ? _evolution.CreateOption() : null, EvolvesWithTome);
         }
     }

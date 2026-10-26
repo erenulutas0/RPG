@@ -13,8 +13,10 @@ namespace Cryptforge.Combat
     {
         // The gate boss's health against its authored 300, on the foundry only. With the horde's levels the autopilot
         // killed it in 20-28 s at 1, 15-27 s at 2.5 and 17 s at 5 (the report's own 1500 for a fifth-minute boss, docs/40
-        // section 8.9) once it dodged the marks; the fight is to last 45-60 s.
-        public const float GateHealthShare = 10f;
+        // section 8.9) once it dodged the marks; the fight is to last 45-60 s. 10 held that with the legacy cards; with
+        // the weapons-and-tomes offers (docs/42), whose steps are much smaller, the autopilot died at the Warden on every
+        // seed with half its health left.
+        public const float GateHealthShare = 5f;
         public const float SlamEvery = 6f;
         public const float SlamEveryEnraged = 4f;
         // Between the mark appearing and the hammer landing: the report's 0.8-1.2 s for a readable telegraph on a phone.

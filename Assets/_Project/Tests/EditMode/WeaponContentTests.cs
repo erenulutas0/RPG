@@ -12,7 +12,7 @@ namespace Cryptforge.Tests
     public sealed class WeaponContentTests
     {
         private static readonly string[] HeroWeapons = { "Sword", "Staff", "Daggers" };
-        private static readonly string[] TomeAssets = { "Tome_Force", "Tome_Tempo", "Tome_Reach", "Tome_Precision" };
+        private static readonly string[] TomeAssets = { "Tome_Force", "Tome_Tempo", "Tome_Reach", "Tome_Precision", "Tome_Vitality" };
 
         private static WeaponDefinition Weapon(string name)
         {
@@ -58,6 +58,20 @@ namespace Cryptforge.Tests
                 for (int i = 0; i < asset.Lines.Count; i++)
                     AssertSameCard(simulated.Lines[i], asset.Lines[i], $"{name} line {i}");
             }
+        }
+
+        // The category-mode bases (docs/42, the owner's choice of 2026-10-26: the report's) as the simulation restates them.
+        [Test]
+        public void TheSimulationsCategoryBasesAreTheAssets()
+        {
+            foreach (string name in HeroWeapons)
+            {
+                Assert.That(Simulated(name).CreateCategoryRuntime().Damage, Is.EqualTo(Weapon(name).CategoryDamage), name);
+                Assert.That(Simulated(name).CreateCategoryRuntime().Interval, Is.EqualTo(Weapon(name).CategoryInterval), name);
+                Assert.That(Weapon(name).CreateCategoryRuntime().Damage, Is.EqualTo(Weapon(name).CategoryDamage), name);
+            }
+            Assert.That((Weapon("Sword").CategoryDamage, Weapon("Staff").CategoryDamage, Weapon("Daggers").CategoryDamage),
+                Is.EqualTo((18f, 24f, 7f)), "The report's bases (docs/40 section 5.2).");
         }
 
         // The two V0.1 evolutions (docs/42, PR 5), and none on the Staff yet: as the simulation restates them, evolving

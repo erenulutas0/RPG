@@ -345,7 +345,7 @@ namespace Cryptforge.Progression
             if (category == OfferCategory.TomeUpgrade)
             {
                 _tomeLevels[_tomeOf[book]]++;
-                _loadout.AddGlobal(book.Stat, modifier);
+                ApplyTome(book.Stat, modifier);
             }
             else
             {
@@ -695,7 +695,7 @@ namespace Cryptforge.Progression
                 {
                     int tome = _tomeOf[choice];
                     _tomeLevels[tome]++;
-                    _loadout.AddGlobal(choice.Stat, choice.ModifierFor(rarity));
+                    ApplyTome(choice.Stat, choice.ModifierFor(rarity));
                     break;
                 }
             }
@@ -729,8 +729,8 @@ namespace Cryptforge.Progression
             for (int i = 0; i < _tomes.Length; i++)
             {
                 UpgradeOption tome = _tomes[i];
-                if (!WeaponRuntime.Owns(tome.Stat))
-                    throw new ArgumentException($"Tome {tome.Id} is on {tome.Stat}, which is not a weapon stat.", "tomes");
+                if (!WeaponRuntime.Owns(tome.Stat) && !HeroStats.Owns(tome.Stat))
+                    throw new ArgumentException($"Tome {tome.Id} is on {tome.Stat}, which neither a weapon nor the hero owns.", "tomes");
                 if (tome.IsEvolution || tome.RequiresId != null)
                     throw new ArgumentException($"Tome {tome.Id} has a gate; a tome's only gates are its level and the count.", "tomes");
                 RequireNewId(ids, tome.Id);
@@ -740,6 +740,17 @@ namespace Cryptforge.Progression
                 _tomeOf.Add(_newTomes[i], i);
                 _tomeOf.Add(_tomeUpgrades[i], i);
             }
+        }
+
+        // A tome on a weapon stat levels every weapon at once (and any picked up later); one on a hero stat - Vitality's
+        // health - levels the hero. Without a hero tome a category-mode run had no health beyond the general cards' 10 %
+        // and the autopilot met the Warden at its starting 100 on every seed (docs/42, 2026-10-26).
+        private void ApplyTome(UpgradeStat stat, StatModifier modifier)
+        {
+            if (HeroStats.Owns(stat))
+                _heroStats.AddModifier(stat, modifier);
+            else
+                _loadout.AddGlobal(stat, modifier);
         }
 
         private static void RequireNewId(HashSet<string> ids, string id)

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: upgrade_crit
   _displayName: Keen Edge
-  _descriptionFormat: '+{0:0}% chance to crit'
+  _descriptionFormat: '+{0:0%} chance to crit'
   _stat: 3
   _operation: 0
   _amount: 0.08

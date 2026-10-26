@@ -97,7 +97,13 @@ namespace Cryptforge.Core
             HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
 
             _hero.Initialize(_heroDefinition.MaximumHealth);
-            Weapon = HeroWeapon.CreateRuntime();
+            // On the foundry a run builds Megabonk's way (docs/42, PR 7): the forge's weapon is the first of up to three,
+            // every weapon of the catalogue can come as a card whatever the forge owns (the owner, 2026-10-26), and the
+            // economy's tomes level every weapon at once. The hall arena keeps the legacy cards, so the scene tests that
+            // pin the scene to the Descent simulation still measure the same engine.
+            var arena = FindFirstObjectByType<ArenaView>();
+            bool categories = arena != null && arena.IsFoundryRegion && _economy.TomeCount > 0;
+            Weapon = categories ? HeroWeapon.CreateCategoryRuntime() : HeroWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
             Ability = _heroDefinition.Ability.CreateRuntime();
             _ability.Initialize(Ability);
@@ -127,12 +133,6 @@ namespace Cryptforge.Core
             HeroStats.Changed += ApplyHeroStats;
             ApplyHeroStats();
             Weapon.Seed = Run.Seed;
-            // On the foundry a run builds Megabonk's way (docs/42, PR 7): the forge's weapon is the first of up to three,
-            // every weapon of the catalogue can come as a card whatever the forge owns (the owner, 2026-10-26), and the
-            // economy's tomes level every weapon at once. The hall arena keeps the legacy cards, so the scene tests that
-            // pin the scene to the Descent simulation still measure the same engine.
-            var arena = FindFirstObjectByType<ArenaView>();
-            bool categories = arena != null && arena.IsFoundryRegion && _economy.TomeCount > 0;
             WeaponLoadout loadout = null;
             WeaponCard[] weaponCards = null;
             UpgradeOption[] tomes = null;

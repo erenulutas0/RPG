@@ -77,10 +77,18 @@ namespace Cryptforge.Tests
             // run to be offered the card, and a run long enough to be offered it is a different run. 0 is every weapon
             // the game ships.
             public float PulseShare;
+            // The category-mode base (WeaponDefinition._categoryDamage/_categoryInterval); 0 keeps Damage and Interval.
+            public float CategoryDamage;
+            public float CategoryInterval;
 
-            public WeaponRuntime CreateRuntime()
+            public WeaponRuntime CreateRuntime() => Create(Damage, Interval);
+
+            public WeaponRuntime CreateCategoryRuntime() =>
+                Create(CategoryDamage > 0f ? CategoryDamage : Damage, CategoryInterval > 0f ? CategoryInterval : Interval);
+
+            private WeaponRuntime Create(float damage, float interval)
             {
-                var runtime = new WeaponRuntime(Damage, Interval, Range, 0f, Pattern);
+                var runtime = new WeaponRuntime(damage, interval, Range, 0f, Pattern);
                 if (PulseShare > 0f)
                     runtime.AddModifier(UpgradeStat.PulseDamage, new StatModifier(ModifierOperation.Flat, PulseShare));
                 if (CritSplashShare > 0f)
@@ -92,7 +100,7 @@ namespace Cryptforge.Tests
 
             // The weapon as category-mode offers see it, built the way WeaponDefinition.CreateCard builds the scene's.
             public WeaponCard CreateCard() =>
-                new WeaponCard(Id ?? UnnamedWeaponId, DisplayName, string.Empty, CreateRuntime,
+                new WeaponCard(Id ?? UnnamedWeaponId, DisplayName, string.Empty, CreateCategoryRuntime,
                     Lines ?? new UpgradeOption[0], Evolution, EvolvesWithTome);
         }
 
@@ -212,15 +220,15 @@ namespace Cryptforge.Tests
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
-            new HeroWeapon { Id = "weapon_sword", DisplayName = "Sword", Lines = SwordLines(), Evolution = SwordEvolution(), EvolvesWithTome = "tome_force", Damage = 10f, Interval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
+            new HeroWeapon { Id = "weapon_sword", DisplayName = "Sword", Lines = SwordLines(), Evolution = SwordEvolution(), EvolvesWithTome = "tome_force", Damage = 10f, Interval = 0.8f, CategoryDamage = 18f, CategoryInterval = 0.8f, Range = 2.1f, Pattern = new AttackPattern(WeaponBehavior.Cleave, 2f, 0.6f) };
 
         // Weapon_Staff.asset: 11 damage every 1.1 s from 2.1 units away, and 75% of it to every enemy within 3.5 units of the target.
         public static HeroWeapon Staff() =>
-            new HeroWeapon { Id = "weapon_staff", DisplayName = "Staff", Lines = StaffLines(), Damage = 11f, Interval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
+            new HeroWeapon { Id = "weapon_staff", DisplayName = "Staff", Lines = StaffLines(), Damage = 11f, Interval = 1.1f, CategoryDamage = 24f, CategoryInterval = 1.1f, Range = 2.4f, Pattern = new AttackPattern(WeaponBehavior.Area, 3.5f, 0.75f) };
 
         // Weapon_Daggers.asset: 6 damage every 0.5 s at close reach; every third strike crits for double damage.
         public static HeroWeapon Daggers() =>
-            new HeroWeapon { Id = "weapon_daggers", DisplayName = "Daggers", Lines = DaggersLines(), Evolution = DaggersEvolution(), EvolvesWithTome = "tome_precision", Damage = 6f, Interval = 0.5f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
+            new HeroWeapon { Id = "weapon_daggers", DisplayName = "Daggers", Lines = DaggersLines(), Evolution = DaggersEvolution(), EvolvesWithTome = "tome_precision", Damage = 6f, Interval = 0.5f, CategoryDamage = 7f, CategoryInterval = 0.3f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
@@ -329,7 +337,7 @@ namespace Cryptforge.Tests
                 new StatModifier(ModifierOperation.Flat, 1.33f), 3);
 
         public static UpgradeOption Crit() =>
-            new UpgradeOption("upgrade_crit", "Keen Edge", "+{0:0}% chance to crit", UpgradeStat.CritChance,
+            new UpgradeOption("upgrade_crit", "Keen Edge", "+{0:0%} chance to crit", UpgradeStat.CritChance,
                 new StatModifier(ModifierOperation.Flat, 0.08f),
                 new StatModifier(ModifierOperation.Flat, 0.15f),
                 new StatModifier(ModifierOperation.Flat, 0.25f),
@@ -376,7 +384,7 @@ namespace Cryptforge.Tests
         // One stack, not three: measured over sixteen seeds and three weapons (docs/30), a share of one already doubles
         // or trebles how deep a run reaches, so a card that stacked to four would not be a card.
         public static UpgradeOption Pulse() =>
-            new UpgradeOption("upgrade_pulse", "Forge Pulse", "Every 4th strike bursts for {0:0}% damage nearby",
+            new UpgradeOption("upgrade_pulse", "Forge Pulse", "Every 4th strike bursts for {0:0%} damage nearby",
                 UpgradeStat.PulseDamage,
                 new StatModifier(ModifierOperation.Flat, 0.4f),
                 new StatModifier(ModifierOperation.Flat, 0.65f),
@@ -388,7 +396,7 @@ namespace Cryptforge.Tests
         // Pulse: a share of one is already the knee of the measured curve (docs/31), and two would put a full card
         // outside anything that was measured.
         public static UpgradeOption CritSplash() =>
-            new UpgradeOption("upgrade_crit_splash", "Splintering Crit", "Crits splinter for {0:0}% nearby",
+            new UpgradeOption("upgrade_crit_splash", "Splintering Crit", "Crits splinter for {0:0%} nearby",
                 UpgradeStat.CritSplash,
                 new StatModifier(ModifierOperation.Flat, 0.4f),
                 new StatModifier(ModifierOperation.Flat, 0.6f),
@@ -514,7 +522,11 @@ namespace Cryptforge.Tests
             Tiered("tome_precision", "Precision", "+{0:0.#%} crit chance to every weapon", UpgradeStat.CritChance,
                 ModifierOperation.Flat, 0.04f, 0.05f, 0.06f, 0.08f, UpgradeService.MaxTomeLevel);
 
-        public static UpgradeOption[] Tomes() => new[] { Force(), Tempo(), Reach(), Precision() };
+        public static UpgradeOption Vitality() =>
+            Tiered("tome_vitality", "Vitality", "+{0:0} maximum health", UpgradeStat.MaxHealth, ModifierOperation.Flat,
+                12f, 15f, 18f, 24f, UpgradeService.MaxTomeLevel);
+
+        public static UpgradeOption[] Tomes() => new[] { Force(), Tempo(), Reach(), Precision(), Vitality() };
 
         // The three hero weapons as category-mode offers draw them: all three drop whatever the forge owns (docs/42,
         // owner decisions), the one a run starts with included, for its levels.
@@ -598,7 +610,8 @@ namespace Cryptforge.Tests
             // The loadout seeds each slot's crits as it adds it: slot 0 on the run's seed, as the one weapon always was.
             var loadout = new WeaponLoadout(run.Seed);
             HeroWeapon first = heroWeapon ?? Sword();
-            WeaponRuntime weapon = first.CreateRuntime();
+            bool categories = weaponCatalogue != null || tomes != null;
+            WeaponRuntime weapon = categories ? first.CreateCategoryRuntime() : first.CreateRuntime();
             loadout.TryAdd(first.Id ?? UnnamedWeaponId, weapon);
             if (moreWeapons != null)
             {
@@ -614,7 +627,6 @@ namespace Cryptforge.Tests
             // hands in its own bar (a test asking what the game was before the budget) must not have it overwritten.
             HeroStamina heroStamina = stamina ?? HeroStamina.ForCurrentRules();
             var heroStats = new HeroStats(100f, heroSpeed, heroStamina.Bar);
-            bool categories = weaponCatalogue != null || tomes != null;
             WeaponCard[] cards = null;
             if (weaponCatalogue != null)
             {

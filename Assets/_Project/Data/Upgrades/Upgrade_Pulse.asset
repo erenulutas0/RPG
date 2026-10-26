@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: upgrade_pulse
   _displayName: Forge Pulse
-  _descriptionFormat: 'Every 4th strike bursts for {0:0}% damage nearby'
+  _descriptionFormat: 'Every 4th strike bursts for {0:0%} damage nearby'
   _stat: 9
   _operation: 0
   _amount: 0.4

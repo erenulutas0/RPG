@@ -1,5 +1,6 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using Cryptforge.Economy;
 using Cryptforge.Progression;
 using Cryptforge.UI;
@@ -77,7 +78,37 @@ namespace Cryptforge.Core
                 for (int i = 0; i < offer.Choices.Count; i++)
                     if (offer.Choices[i].Kind == CheckpointKind.Descend)
                         return i;
-            return 0;
+            UpgradeOffer upgrade = _setup.Upgrades.CurrentOffer;
+            if (_setup.Choices.Current.Kind != ChoiceKind.Upgrade || upgrade == null || !_setup.Upgrades.IsCategoryMode)
+                return 0;
+            // A build, not the first card (docs/42's CardPicker order): health when the hero is low, then the weapons it
+            // holds, a second weapon, two tomes, their levels, then anything else.
+            int best = 0, bestScore = int.MinValue;
+            for (int i = 0; i < upgrade.Choices.Count; i++)
+            {
+                int score = CardScore(upgrade.Choices[i]);
+                if (score <= bestScore)
+                    continue;
+                best = i;
+                bestScore = score;
+            }
+            return best;
+        }
+
+        private int CardScore(UpgradeOption card)
+        {
+            Health hero = _hero.GetComponent<Health>();
+            bool low = hero != null && hero.Current < hero.Maximum * .5f;
+            if (low && card.Stat == UpgradeStat.MaxHealth)
+                return 100;
+            switch (card.Category)
+            {
+                case OfferCategory.WeaponUpgrade: return 50;
+                case OfferCategory.NewWeapon: return _setup.Upgrades.Loadout.Count < 2 ? 45 : 10;
+                case OfferCategory.NewTome: return _setup.Upgrades.TomesHeld < 2 ? 40 : 15;
+                case OfferCategory.TomeUpgrade: return 30;
+                default: return card.Stat == UpgradeStat.MaxHealth ? 25 : 20;
+            }
         }
 
         private bool Goal(float x, float y, out float gx, out float gy, out float stop)
@@ -226,7 +257,14 @@ namespace Cryptforge.Core
                 if (enemy == null || !enemy.IsAlive || !encounter.TryFloorPositionOf(enemy, out float px, out float py))
                     continue;
                 float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                if (d >= KiteReach * KiteReach || d < 1e-6f)
+                // Outside the gate boss's own reach - the Warden's hammer outreaches a grunt's, and kiting at a grunt's
+                // distance left the hero inside every swing; kiting every enemy that wide starved the hero of drops
+                // (docs/41, 2026-10-26).
+                float reach = KiteReach;
+                EnemyDefinition definition = ReferenceEquals(enemy, encounter.GateBoss) ? encounter.DefinitionOf(enemy) : null;
+                if (definition != null && definition.Weapon != null)
+                    reach = Mathf.Max(reach, definition.Weapon.Range + .3f);
+                if (d >= reach * reach || d < 1e-6f)
                     continue;
                 tx += (x - px) / d;
                 ty += (y - py) / d;

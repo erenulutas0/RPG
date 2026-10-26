@@ -226,6 +226,25 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void AVitalityTomeLevelsTheHeroNotTheWeapons()
+        {
+            // A tome on a hero stat writes to the hero: Vitality's health, every level of it, and no weapon changes.
+            var run = new RunState(10, 0.5f, 2, 3);
+            var loadout = new WeaponLoadout(3);
+            WeaponRuntime sword = DescentSimulation.Sword().CreateRuntime();
+            loadout.TryAdd("weapon_sword", sword);
+            var hero = new HeroStats(100f, 2.5f, HeroStamina.DefaultBar);
+            var service = new UpgradeService(run, sword, new UpgradeOption[0], 3, hero, false, loadout, new WeaponCard[0],
+                new[] { DescentSimulation.Vitality() });
+            float damage = sword.Damage;
+            Grant(run, 3);
+            Drive(service, offer => 0);
+            Assert.That(service.TomeLevel("tome_vitality"), Is.EqualTo(3));
+            Assert.That(hero.MaxHealth, Is.GreaterThanOrEqualTo(100f + 3 * 12f - 1e-3f), "Three levels of at least +12.");
+            Assert.That(sword.Damage, Is.EqualTo(damage), "The weapons are untouched.");
+        }
+
+        [Test]
         public void NeverAFourthTome()
         {
             for (int seed = 0; seed < 20; seed++)
@@ -370,15 +389,15 @@ namespace Cryptforge.Tests
             UpgradeOffer first = service.CurrentOffer;
             Assert.That(first.Choices.Count, Is.EqualTo(2), "Two cards are left, so both are shown.");
             Assert.That(service.TrySelect(first, SlotOf(first, OfferCategory.NewTome, -1)), Is.True);
-            Assert.That(loadout.Primary.Damage / 10f, Is.EqualTo(1.08f).Within(1e-5f));
-            Assert.That(staff.Damage / 11f, Is.EqualTo(1.08f).Within(1e-5f), "The same share on the second weapon.");
+            Assert.That(loadout.Primary.Damage / 18f, Is.EqualTo(1.08f).Within(1e-5f), "On the category base (18).");
+            Assert.That(staff.Damage / 24f, Is.EqualTo(1.08f).Within(1e-5f), "The same share on the second weapon.");
 
             UpgradeOffer second = service.CurrentOffer;
             Assert.That(service.TrySelect(second, SlotOf(second, OfferCategory.NewWeapon, -1)), Is.True);
             Assert.That(loadout.Count, Is.EqualTo(3));
             Assert.That(acquired, Is.SameAs(cards[2]));
             Assert.That(acquiredRuntime, Is.SameAs(loadout.At(2).Runtime), "The event hands over the runtime the slot holds.");
-            Assert.That(acquiredRuntime.Damage, Is.EqualTo(6f * 1.08f).Within(1e-4f),
+            Assert.That(acquiredRuntime.Damage, Is.EqualTo(7f * 1.08f).Within(1e-4f),
                 "A weapon picked up after Force carries it from its first strike.");
             Assert.That(acquiredRuntime.Seed, Is.EqualTo(WeaponLoadout.SeedFor(5, 2)), "Seeded for its slot by the loadout.");
         }
@@ -407,13 +426,13 @@ namespace Cryptforge.Tests
 
             Take(OfferCategory.WeaponUpgrade);
             Take(OfferCategory.NewTome);
-            Assert.That(loadout.Primary.Damage, Is.EqualTo(12.96f).Within(1e-4f), "(10 + 2) * 1.08");
+            Assert.That(loadout.Primary.Damage, Is.EqualTo(21.6f).Within(1e-4f), "(18 + 2) * 1.08, on the category base");
             Take(OfferCategory.TomeUpgrade);
-            Assert.That(loadout.Primary.Damage, Is.EqualTo(13.92f).Within(1e-4f),
-                "(10 + 2) * 1.16: two Force levels add, they do not compound to 1.1664");
+            Assert.That(loadout.Primary.Damage, Is.EqualTo(23.2f).Within(1e-4f),
+                "(18 + 2) * 1.16: two Force levels add, they do not compound to 1.1664");
             Take(OfferCategory.WeaponUpgrade);
-            Assert.That(loadout.Primary.Damage, Is.EqualTo(16.24f).Within(1e-4f), "(10 + 4) * 1.16");
-            Assert.That(loadout.Primary.Damage, Is.EqualTo((10f + 2f + 2f) * (1f + 0.08f + 0.08f)).Within(1e-4f));
+            Assert.That(loadout.Primary.Damage, Is.EqualTo(25.52f).Within(1e-4f), "(18 + 4) * 1.16");
+            Assert.That(loadout.Primary.Damage, Is.EqualTo((18f + 2f + 2f) * (1f + 0.08f + 0.08f)).Within(1e-4f));
             Assert.That(loadout.At(0).Level, Is.EqualTo(3));
             Assert.That(service.TomeLevel("tome_force"), Is.EqualTo(2));
         }
@@ -431,10 +450,10 @@ namespace Cryptforge.Tests
             Drive(service, offer => 0, offer => Assert.That(offer.Choices[0].Id, Does.StartWith("line_staff_")));
 
             Assert.That(loadout.At(1).Level, Is.EqualTo(WeaponLoadout.MaxLevel));
-            Assert.That(loadout.Primary.Damage, Is.EqualTo(10f), "The Sword is not in the catalogue and gains nothing.");
+            Assert.That(loadout.Primary.Damage, Is.EqualTo(18f), "The Sword is not in the catalogue and gains nothing.");
             Assert.That(loadout.Primary.Area, Is.EqualTo(1f));
             Assert.That(loadout.Primary.Interval, Is.EqualTo(0.8f));
-            Assert.That(staff.Damage > 11f || staff.Area > 1f || staff.Interval < 1.1f, Is.True);
+            Assert.That(staff.Damage > 24f || staff.Area > 1f || staff.Interval < 1.1f, Is.True);
         }
 
         [Test]

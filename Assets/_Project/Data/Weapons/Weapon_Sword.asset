@@ -30,3 +30,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 519c08e74fb84ec5a229ba66c8b9cbbb, type: 2}
   _evolution: {fileID: 11400000, guid: 2b1352df6d59487291363a1f3f2f96d8, type: 2}
   _evolvesWithTome: tome_force
+  _categoryDamage: 18
+  _categoryInterval: 0.8

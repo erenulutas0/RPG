@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: upgrade_crit_splash
   _displayName: Splintering Crit
-  _descriptionFormat: 'Crits splinter for {0:0}% nearby'
+  _descriptionFormat: 'Crits splinter for {0:0%} nearby'
   _stat: 10
   _operation: 0
   _amount: 0.4
