@@ -2900,3 +2900,35 @@ above the report's 11-13, which the weapons-and-tomes split (`42`: much smaller 
 decisions for `42`: all three weapons drop as cards whatever the forge owns; chest books give tomes and general cards,
 never a weapon. 505 .NET / 795 EditMode / 177 PlayMode (+1 explicit), zero failures; APK 41,194,237 bytes, SHA256
 7C814625D3C5888E8BF2102D006AA72FF6A40B6F9E2F4FA480B46A743F7E9186, not installed (the phone is away).
+
+## 2026-10-26 - Weapons and tomes on the foundry (docs/42 PRs 1-7)
+
+- PR 1-2: `UpgradeStat.Area` and `WeaponRuntime` radii through it; `WeaponLoadout` (3 slots, levels 1-8, per-slot crit
+  streams, global grants replayed onto later weapons); `AttackController.AddWeapon` fires extra weapons after the first
+  in one Update; the simulation strikes in the same slot order. No pin moved.
+- PR 3-4: weapon lines (flat damage, area, range, attack speed, crit), tomes Force/Tempo/Reach/Precision to level 8,
+  tiers x1.25/1.5/2; `OfferWeights` (27/28/25/10/10 early, 15/35/15/25/10 from level 6, renormalised), a
+  `RunRandom.Categories` stream, category mode in `UpgradeService` behind an optional loadout and catalogue.
+- PR 5-6: weapon evolutions at weapon Lv5 + tome Lv2 (Sword + Force -> Resonant Edge pulse, Daggers + Precision -> Rift
+  Echo splinter, +0.2 Difficulty each); chest books in category mode level a held tome or grant a general card, never a
+  weapon or a new tome slot.
+- PR 7: on the foundry `CombatSetup` builds the loadout, every catalogue weapon as a card (owner: whatever the forge
+  owns), the economy's tomes, three cards an offer; a weapon taken fires beside the first. The hall keeps the legacy
+  cards, so the scene-to-simulation parity tests still measure one engine.
+
+Measured with `HordePacingMeasurement` (autopilot, six seeds, floor 1, fixed 1/60 s):
+
+| Step | Cleared | Floor s | Boss room s | Max HP at end |
+|---|---|---|---|---|
+| legacy cards, boss x10 (before PR 7) | 6 / 6 | 152-329 | 34-55 | 115-425 |
+| category mode, boss x10 | 0 / 6 (all at the Warden, 49-76 % left) | 132-166 | 26-36 | 100-130 |
+| boss x5 | 0 / 6 (31-57 % left) | 129-163 | 26-34 | 100-130 |
+| + autopilot picks by docs/42's order, kites every enemy outside its reach | 1 / 6 | 54-220 | - | 100-217 |
+| + Vitality tome (hero stat), kiting wide only for the Warden | 1 / 6 | 54-220 | 45-71 | 100-217 |
+| **+ the report's weapon bases in category mode (18/0.8, 24/1.1, 7/0.3)** | **3 / 6** | **116-242** | **40-79** | **100-238** |
+
+Why: a category step is a tome's +8 %, where Tempered Edge gave +50 %, and on the legacy weapon bases (10/11/6, about
+half the report's) the horde and the Warden tuned against the legacy cards outpaced the build; no category gave health
+until Vitality. The autopilot is a weak player (first-card picks before this, no burst); the owner's own run is the
+measurement that decides the next step. 550 .NET / 846 EditMode / 179 PlayMode (+1 explicit), zero failures; APK
+35,889,848 bytes, SHA256 48A12919C2938547962C575D11ED6620E90B5FA9354F41EB7755E9B93DE19D4B, not installed.
