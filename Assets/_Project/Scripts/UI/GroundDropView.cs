@@ -7,7 +7,13 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Observes rewards; never collects or pays them. Pooled roots keep each resting drop sorted at its floor position.
+    // Observes rewards; never collects or pays them. Pooled roots keep each resting pile sorted at its floor position.
+    // Drops lying in one small square of the floor share one pile on show, and only the piles nearest the hero are drawn.
+    // Each visual is a reward sprite and its contact shadow, and on the device they did not batch: drops left lying added
+    // draw calls, and SetPass calls beside them, until the floor ended - 70 to 250 in 40 s of a standing hero on the S23
+    // (docs/21, the density probe). On the foundry a visual costs three: the body's two silhouette passes and its shadow.
+    // Piles are presentation only: GroundDrops still holds, picks up and pays every drop on its own, so the scene and the
+    // Descent simulation collect the same drops on the same frame, and a floor pays what its kills paid.
     public sealed class GroundDropView : MonoBehaviour
     {
         private sealed class Visual
@@ -15,21 +21,62 @@ namespace Cryptforge.UI
             public Transform Root;
             public SpriteRenderer Body;
             public GameObject Shadow;
-            public GroundDrops.Drop Drop;
             public Vector3 Origin;
             public float Elapsed;
             public float Duration;
             public float Scale;
         }
 
+        // The drops of one square of the floor, oldest first; it stands on the oldest.
+        private sealed class Pile
+        {
+            public long Cell;
+            public int Serial;
+            public readonly List<GroundDrops.Drop> Drops = new List<GroundDrops.Drop>(4);
+            public Visual Visual;
+            public float Distance;
+            public bool Touched;
+            public int TakenExperience;
+            public int TakenGold;
+        }
+
+        private sealed class NearestFirst : IComparer<Pile>
+        {
+            public int Compare(Pile a, Pile b)
+            {
+                int byDistance = a.Distance.CompareTo(b.Distance);
+                return byDistance != 0 ? byDistance : a.Serial.CompareTo(b.Serial);
+            }
+        }
+
+        // A pile is the drops of one square of the floor this wide. Its corners lie closer than the pickup reach
+        // (.7 x 1.414 < DropRule.PickupRadius), so a hero standing on any drop of a pile gathers the whole of it.
+        internal const float PileCell = .7f;
+        // Piles drawn at once, nearest the hero first: three draw calls each on the foundry, so drops left lying cost at
+        // most sixty however many there are. A pile beyond the cap waits unseen, still pays when walked over, and comes on
+        // show as the hero nears it. Twenty keeps every drop of the ground-reward review captures (eighteen) on show.
+        internal const int MaxShownPiles = 20;
+        // How far the hero walks, in floor units, before the piles on show are chosen again.
+        private const float RechooseDistance = 1f;
+        // A pile reads larger the more it holds, by this much for each drop past the first, up to five.
+        private const float PileGrowth = .06f;
+        private const int PileGrowthDrops = 5;
         // Fixed full-canvas registration of reward-v1. Width is based on the strong source silhouette, not padding.
         private const float PaintedScale = .45f / (96f / 128f * 835f / 1254f);
         private const float ExperienceScale = .30f / (96f / 128f * 800f / 1254f);
         private const float PickupSeconds = .22f;
         private const float DistantSeconds = .42f;
-        private readonly List<Visual> _ground = new List<Visual>(32);
+        private readonly List<Visual> _ground = new List<Visual>(MaxShownPiles);
         private readonly List<Visual> _flights = new List<Visual>(32);
         private readonly Stack<Visual> _free = new Stack<Visual>(32);
+        private readonly List<Pile> _piles = new List<Pile>(64);
+        private readonly Dictionary<long, Pile> _pileAt = new Dictionary<long, Pile>(64);
+        private readonly Stack<Pile> _freePiles = new Stack<Pile>(64);
+        private readonly List<Pile> _touched = new List<Pile>(8);
+        private readonly List<Pile> _ranked = new List<Pile>(64);
+        private readonly NearestFirst _nearestFirst = new NearestFirst();
+        // The drops as this view last saw GroundDrops hold them, in its order, so a missed event shows as a difference.
+        private readonly List<GroundDrops.Drop> _lying = new List<GroundDrops.Drop>(64);
         private GroundDrops _drops;
         private RunState _run;
         private Transform _hero;
@@ -39,8 +86,13 @@ namespace Cryptforge.UI
         private Sprite _coin;
         private Sprite _experience;
         private bool _subscribed;
+        private bool _lost;
         private int _floor;
+        private int _serial;
+        private float _chosenX;
+        private float _chosenY;
 
+        // Piles resting on show; each is one reward sprite and its shadow, however many drops it holds.
         public int GroundCount => _ground.Count;
         public int FlyingCount => _flights.Count;
         public int PoolCount { get; private set; }
@@ -51,6 +103,22 @@ namespace Cryptforge.UI
         internal int ShownCount => _ground.Count + _flights.Count;
         internal SpriteRenderer ShownBody(int index) =>
             index < _ground.Count ? _ground[index].Body : _flights[index - _ground.Count].Body;
+        // Every pile lying, on show or waiting beyond the cap, oldest first.
+        internal int PileCount => _piles.Count;
+        internal int PileSize(int index) => _piles[index].Drops.Count;
+        internal GroundDrops.Drop PileAnchor(int index) => _piles[index].Drops[0];
+        internal bool IsPileShown(int index) => _piles[index].Visual != null;
+        internal Transform PileRoot(int index) => _piles[index].Visual != null ? _piles[index].Visual.Root : null;
+        // The drops the piles hold: GroundDrops.Count while the view follows the floor.
+        internal int PiledDropCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (Pile pile in _piles) count += pile.Drops.Count;
+                return count;
+            }
+        }
 
         internal void Initialize(GroundDrops drops, RunState run, Transform hero, Sprite painted,
             EncounterController encounters, Sprite experience = null)
@@ -112,28 +180,111 @@ namespace Cryptforge.UI
         private void OnDropped(GroundDrops.Drop drop)
         {
             if (_run.HasEnded) return;
+            _lying.Add(drop);
+            Pile pile = Lay(drop);
+            if (pile.Visual != null) Dress(pile);
+            // A new pile: on show at once while the cap has room, or if it lies nearer than one on show.
+            else if (pile.Drops.Count == 1) ShowNearest();
+        }
+
+        private Pile Lay(GroundDrops.Drop drop)
+        {
+            long cell = CellOf(drop.X, drop.Y);
+            if (!_pileAt.TryGetValue(cell, out Pile pile))
+            {
+                pile = _freePiles.Count > 0 ? _freePiles.Pop() : new Pile();
+                pile.Cell = cell;
+                pile.Serial = _serial++;
+                _pileAt.Add(cell, pile);
+                _piles.Add(pile);
+            }
+            pile.Drops.Add(drop);
+            return pile;
+        }
+
+        private static long CellOf(float x, float y) =>
+            ((long)Mathf.FloorToInt(x / PileCell) << 32) | (uint)Mathf.FloorToInt(y / PileCell);
+
+        // Puts the piles nearest the hero on show, at most MaxShownPiles, and parks the rest with their drops still lying.
+        internal void ShowNearest()
+        {
+            float heroX = _hero.position.x;
+            float heroY = ArenaFloor.FloorY(_hero.position.y);
+            _chosenX = heroX;
+            _chosenY = heroY;
+            if (_piles.Count <= MaxShownPiles)
+            {
+                foreach (Pile pile in _piles)
+                    if (pile.Visual == null) Show(pile);
+                return;
+            }
+            _ranked.Clear();
+            foreach (Pile pile in _piles)
+            {
+                GroundDrops.Drop anchor = pile.Drops[0];
+                pile.Distance = ArenaFloor.FloorDistanceSquared(heroX, heroY, anchor.X, anchor.Y);
+                _ranked.Add(pile);
+            }
+            _ranked.Sort(_nearestFirst);
+            // Park first, so the piles coming on show take the visuals just parked rather than new ones.
+            for (int i = MaxShownPiles; i < _ranked.Count; i++) Park(_ranked[i]);
+            for (int i = 0; i < MaxShownPiles; i++)
+                if (_ranked[i].Visual == null) Show(_ranked[i]);
+            _ranked.Clear();
+        }
+
+        private void Show(Pile pile)
+        {
             Visual visual = _free.Count > 0 ? _free.Pop() : CreateVisual();
-            visual.Drop = drop;
-            visual.Origin = new Vector3(drop.X, ArenaFloor.WorldY(drop.Y), 0f);
-            visual.Root.position = visual.Origin;
+            pile.Visual = visual;
+            _ground.Add(visual);
+            Dress(pile);
+            visual.Root.gameObject.SetActive(true);
+        }
+
+        private void Park(Pile pile)
+        {
+            if (pile.Visual == null) return;
+            _ground.Remove(pile.Visual);
+            Release(pile.Visual);
+            pile.Visual = null;
+        }
+
+        // Stands a pile on its oldest drop, in the art of everything it holds and a little larger for each drop it adds.
+        private void Dress(Pile pile)
+        {
+            int experience = 0, gold = 0;
+            foreach (GroundDrops.Drop drop in pile.Drops)
+            {
+                experience += drop.Experience;
+                gold += drop.Gold;
+            }
+            GroundDrops.Drop anchor = pile.Drops[0];
+            float growth = 1f + PileGrowth * Mathf.Min(pile.Drops.Count - 1, PileGrowthDrops);
+            Place(pile.Visual, new Vector3(anchor.X, ArenaFloor.WorldY(anchor.Y), 0f), experience, gold, growth);
+        }
+
+        private void Place(Visual visual, Vector3 origin, int experience, int gold, float growth)
+        {
+            visual.Origin = origin;
+            visual.Root.position = origin;
             visual.Body.transform.localPosition = Vector3.zero;
-            visual.Body.sprite = SpriteFor(drop);
-            visual.Scale = visual.Body.sprite == _painted && _painted != null ? PaintedScale
+            visual.Body.sprite = SpriteFor(experience, gold);
+            float scale = visual.Body.sprite == _painted && _painted != null ? PaintedScale
                 : visual.Body.sprite == _paintedExperience && _paintedExperience != null ? ExperienceScale : 1f;
+            visual.Scale = scale * growth;
             visual.Body.transform.localScale = Vector3.one * visual.Scale;
             visual.Body.color = Color.white;
             visual.Body.enabled = visual.Body.sprite != null;
             visual.Shadow.SetActive(visual.Body.enabled);
-            visual.Root.gameObject.SetActive(true);
-            _ground.Add(visual);
         }
 
-        private Sprite SpriteFor(GroundDrops.Drop drop)
+        private Sprite SpriteFor(int experience, int gold)
         {
-            if (drop.Experience > 0 && drop.Gold > 0 && _painted != null) return _painted;
-            if (drop.Experience > 0 && drop.Gold == 0 && _paintedExperience != null) return _paintedExperience;
+            if (experience > 0 && gold > 0 && _painted != null) return _painted;
+            if (experience > 0 && gold == 0 && _paintedExperience != null) return _paintedExperience;
             // Missing-art fallbacks never imply absent gold. Imported sprites are borrowed.
-            if (drop.Experience > 0)
+            if (experience > 0)
             {
                 if (_experience == null)
                 {
@@ -145,7 +296,7 @@ namespace Cryptforge.UI
                 }
                 return _experience;
             }
-            if (drop.Gold <= 0) return null;
+            if (gold <= 0) return null;
             if (_coin == null)
                 _coin = PixelSpriteFactory.CreateSprite(EffectArt.CoinFrames()[0], "Reward Gold Fallback", PixelSpriteFactory.BottomCentre);
             return _coin;
@@ -154,31 +305,133 @@ namespace Cryptforge.UI
         private static bool Same(GroundDrops.Drop a, GroundDrops.Drop b) =>
             a.X == b.X && a.Y == b.Y && a.Experience == b.Experience && a.Gold == b.Gold;
 
+        private static int IndexOf(List<GroundDrops.Drop> drops, GroundDrops.Drop drop)
+        {
+            for (int i = 0; i < drops.Count; i++)
+                if (Same(drops[i], drop)) return i;
+            return -1;
+        }
+
+        // A drop leaves its pile as it pays; the pile shows what happened once GroundDrops has finished (Gather).
         private void OnCollecting(GroundDrops.Drop drop)
         {
-            for (int i = 0; i < _ground.Count; i++)
+            // First matching occurrence, as GroundDrops itself picks up the oldest of coincident, identical rewards.
+            int lying = IndexOf(_lying, drop);
+            if (lying < 0 || !_pileAt.TryGetValue(CellOf(drop.X, drop.Y), out Pile pile)) { _lost = true; return; }
+            int member = IndexOf(pile.Drops, drop);
+            if (member < 0) { _lost = true; return; }
+            _lying.RemoveAt(lying);
+            pile.Drops.RemoveAt(member);
+            if (!pile.Touched)
             {
-                Visual visual = _ground[i];
-                if (!Same(visual.Drop, drop)) continue;
-                _ground.RemoveAt(i); // First matching occurrence preserves coincident, identical rewards.
-                visual.Elapsed = 0f;
-                visual.Duration = DropRule.IsWithinReach(_hero.position.x, ArenaFloor.FloorY(_hero.position.y), drop.X, drop.Y)
-                    ? PickupSeconds : DistantSeconds;
-                visual.Shadow.SetActive(false);
-                _flights.Add(visual);
-                return;
+                pile.Touched = true;
+                _touched.Add(pile);
             }
+            pile.TakenExperience += drop.Experience;
+            pile.TakenGold += drop.Gold;
         }
 
         private void Reconcile()
         {
             if (_run.HasEnded) { Clear(); return; }
-            bool matches = _ground.Count == _drops.Count;
-            for (int i = 0; matches && i < _ground.Count; i++) matches = Same(_ground[i].Drop, _drops.At(i));
-            if (matches) return;
+            if (_lost || !Follows()) { Rebuild(); return; }
+            if (_touched.Count > 0) Gather();
+        }
+
+        private bool Follows()
+        {
+            if (_lying.Count != _drops.Count) return false;
+            for (int i = 0; i < _lying.Count; i++)
+                if (!Same(_lying[i], _drops.At(i))) return false;
+            return true;
+        }
+
+        // The drops just picked up leave their piles. A pile emptied flies to the hero whole; one still holding drops sends
+        // what was taken and stands again on its oldest drop left. A pile parked beyond the cap was never on show and sends
+        // nothing, so a floor's last sweep flies at most the piles on show.
+        private void Gather()
+        {
+            bool emptied = false;
+            foreach (Pile pile in _touched)
+            {
+                Visual visual = pile.Visual;
+                if (pile.Drops.Count == 0)
+                {
+                    if (visual != null)
+                    {
+                        _ground.Remove(visual);
+                        Fly(visual);
+                    }
+                    Retire(pile);
+                    emptied = true;
+                    continue;
+                }
+                if (visual != null)
+                {
+                    Visual taken = _free.Count > 0 ? _free.Pop() : CreateVisual();
+                    Place(taken, visual.Origin, pile.TakenExperience, pile.TakenGold, 1f);
+                    taken.Root.gameObject.SetActive(true);
+                    Fly(taken);
+                    Dress(pile);
+                }
+                pile.Touched = false;
+                pile.TakenExperience = 0;
+                pile.TakenGold = 0;
+            }
+            _touched.Clear();
+            // A place on show came free: the nearest pile waiting takes it.
+            if (emptied && _piles.Count > _ground.Count) ShowNearest();
+        }
+
+        private void Fly(Visual visual)
+        {
+            visual.Elapsed = 0f;
+            visual.Duration = DropRule.IsWithinReach(_hero.position.x, ArenaFloor.FloorY(_hero.position.y),
+                visual.Origin.x, ArenaFloor.FloorY(visual.Origin.y)) ? PickupSeconds : DistantSeconds;
+            visual.Shadow.SetActive(false);
+            _flights.Add(visual);
+        }
+
+        private void Retire(Pile pile)
+        {
+            _pileAt.Remove(pile.Cell);
+            _piles.Remove(pile);
+            Recycle(pile);
+        }
+
+        private void Recycle(Pile pile)
+        {
+            pile.Visual = null;
+            pile.Drops.Clear();
+            pile.Touched = false;
+            pile.TakenExperience = 0;
+            pile.TakenGold = 0;
+            _freePiles.Push(pile);
+        }
+
+        // Lays every drop again from GroundDrops, oldest first: after the view was off, or once it lost track of one.
+        private void Rebuild()
+        {
             foreach (Visual visual in _ground) Release(visual);
             _ground.Clear();
-            for (int i = 0; i < _drops.Count; i++) OnDropped(_drops.At(i));
+            ForgetPiles();
+            for (int i = 0; i < _drops.Count; i++)
+            {
+                GroundDrops.Drop drop = _drops.At(i);
+                _lying.Add(drop);
+                Lay(drop);
+            }
+            if (_piles.Count > 0) ShowNearest();
+        }
+
+        private void ForgetPiles()
+        {
+            foreach (Pile pile in _piles) Recycle(pile);
+            _piles.Clear();
+            _pileAt.Clear();
+            _touched.Clear();
+            _lying.Clear();
+            _lost = false;
         }
 
         private void OnEncounterStarted()
@@ -193,6 +446,10 @@ namespace Cryptforge.UI
         private void Update()
         {
             if (Time.deltaTime <= 0f || _hero == null) return;
+            // Piles wait beyond the cap: choose again once the hero has walked a step from where they were chosen.
+            if (_subscribed && _piles.Count > _ground.Count && ArenaFloor.FloorDistanceSquared(_hero.position.x,
+                    ArenaFloor.FloorY(_hero.position.y), _chosenX, _chosenY) >= RechooseDistance * RechooseDistance)
+                ShowNearest();
             for (int i = _flights.Count - 1; i >= 0; i--)
             {
                 Visual visual = _flights[i];
@@ -220,6 +477,7 @@ namespace Cryptforge.UI
             foreach (Visual visual in _flights) Release(visual);
             _ground.Clear();
             _flights.Clear();
+            ForgetPiles();
         }
 
         private void OnDestroy()
