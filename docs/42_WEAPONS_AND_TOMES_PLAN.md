@@ -232,3 +232,11 @@ evolution appears only at Lv5 + Lv2; with one slot every legacy pin is unchanged
 match for each starting weapon; on the horde floor `40` 9.3's ">= 2 weapons and >= 2 tomes by minute 5" holds in at
 least 85 % of simulated runs; every weapon has a viable run without a Luck pick; and the device holds step 1's frame
 time with three weapons firing.
+
+## 6. Owner decisions (2026-10-26)
+
+- All three weapons (Sword, Staff, Daggers) drop as cards in a run whatever the forge owns; the forge picks the starting
+  weapon.
+- Chest books draw from Owned Tome and General only: a chest never hands a weapon.
+- Rarity is already four colours (`RarityTable`, green/orange/red/gold); tomes and weapon lines use the report's
+  1/1.25/1.5/2 tier multipliers, while today's general cards keep their own tier values.

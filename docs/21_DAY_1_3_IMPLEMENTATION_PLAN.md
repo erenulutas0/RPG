@@ -2872,3 +2872,31 @@ chased the horde's drops for minutes (room 2 of seed 11 took 169 s). The floor i
 and the gate level is above the report's 11-13; both wait for the owner's own run and the device frame-time probe.
 469 .NET, 757 EditMode, 175 PlayMode (+1 explicit), zero failures; APK 41,188,171 bytes, SHA256
 0320DFFF85BC50FDB4605B3C1E38DAA3CD3154C1328036EB328366272A253ACA, not installed.
+
+## 2026-10-26 - The Warden as a fight, four-colour rarity, horde telemetry
+
+- `horde_sample` every 5 active seconds while the horde stands (state, standing vs target, wave standing, spawns and
+  horde kills in the window, hero health); `run_end.horde_kills`.
+- Forge Warden (V0.1 step 4, `WardenRule`, `WardenSlamService`, `WardenSlamView`): on the foundry's gate only, 10x its
+  authored 300; every 6 s a mark where the hero stands, the hammer lands 1.1 s later (2.2 wide, 20 % of the hero's
+  maximum); below half health every 4 s, and the boss room's horde thickens to the Horde crowd. The pit chips a boss for
+  5 % (`PitEruptionRule.BossShare`; at 40 % two lured spills took 80 % of it).
+- Rarity (owner decision): green/orange/red/gold from 60/25/12/3 with the report's Luck formula and soft cap past 50
+  (`RarityTable`, integer-only); each card keeps its own green/orange/red values (old Common/Rare/Epic), gold is a third
+  above red; Fortune re-authored to 6/7.5/9/12 Luck points. Every balance pin held.
+- `HordePacingMeasurement` now steps a fixed 1/60 s (`Time.captureDeltaTime`): at a raised time scale the same build
+  cleared a seed in one run and died on it in the next. Six seeds; `TestResults/horde-seeds.txt` narrows a run.
+
+| Step (autopilot, floor 1, 6 seeds) | Cleared | Floor s | Boss fight s | Slams hit | Level |
+|---|---|---|---|---|---|
+| boss x5, autopilot dodging straight out | 3 / 6 | 132-227 | 17-22 | 15 / 15 (stood still: wall) | 13-19 |
+| x5, dodge to the nearest walkable point | 1 / 1 (seed 11) | 148 | 17 | 0 / 2 | 17 |
+| x10, pit kills bosses at 40 % | 5 / 6 | 144-249 | 20-31 | 0 / 26 | 14-22 |
+| x10, pit chips 5 %, enraged horde = Pressure | 3 / 6 | 149-243 | 28-47 | 0 / 35 | 14-20 |
+| **x10, enraged horde = Horde, four-colour rarity** | **6 / 6** | **152-329** | **25-46 (room 34-55)** | **1 / 31** | **16-27** |
+
+The boss now lands in the report's 45-60 s room; floors approach the 240-360 s band from below; the gate level stays
+above the report's 11-13, which the weapons-and-tomes split (`42`: much smaller steps per pick) is expected to fix. Owner
+decisions for `42`: all three weapons drop as cards whatever the forge owns; chest books give tomes and general cards,
+never a weapon. 505 .NET / 795 EditMode / 177 PlayMode (+1 explicit), zero failures; APK 41,194,237 bytes, SHA256
+7C814625D3C5888E8BF2102D006AA72FF6A40B6F9E2F4FA480B46A743F7E9186, not installed (the phone is away).
