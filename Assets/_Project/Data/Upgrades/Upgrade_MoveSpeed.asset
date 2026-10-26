@@ -20,5 +20,6 @@ MonoBehaviour:
   _amount: 0.05
   _rareAmount: 0.1
   _epicAmount: 0.15
+  _goldAmount: 0.2
   _maxStacks: 3
   _requires: {fileID: 0}

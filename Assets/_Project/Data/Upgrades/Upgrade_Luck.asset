@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: upgrade_luck
   _displayName: Fortune
-  _descriptionFormat: '+{0:0}% luck'
+  _descriptionFormat: '+{0:0} luck'
   _stat: 8
   _operation: 0
-  _amount: 0.25
-  _rareAmount: 0.5
-  _epicAmount: 1
+  _amount: 6
+  _rareAmount: 7.5
+  _epicAmount: 9
+  _goldAmount: 12
   _maxStacks: 3
   _requires: {fileID: 0}

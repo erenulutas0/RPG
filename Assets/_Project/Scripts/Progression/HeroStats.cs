@@ -28,7 +28,8 @@ namespace Cryptforge.Progression
         public float Armor => _armor.Value;
         public float MoveSpeed => _moveSpeed.Value;
         public float StaminaBar => _staminaBar.Value;
-        // Luck never touches combat. It lowers how much of a rarity draw the common tier takes, and nothing else.
+        // Luck never touches combat. It moves a rarity draw's weight from green towards gold (RarityTable), and nothing
+        // else. Counted in points, as the report's formula reads it: 25 is where the curve is first felt, 50 its soft cap.
         public float Luck => _luck.Value;
         // What every enemy multiplies its authored health and damage by, on top of whatever its floor already applies.
         // 1 until an evolution is taken; it never falls below 1, because the floor of the stat says so.

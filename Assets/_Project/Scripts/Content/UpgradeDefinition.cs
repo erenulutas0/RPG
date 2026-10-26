@@ -13,11 +13,14 @@ namespace Cryptforge.Content
         [SerializeField] private string _descriptionFormat;
         [SerializeField] private UpgradeStat _stat;
         [SerializeField] private ModifierOperation _operation;
-        // The magnitude at each tier. A card authored before rarity existed carries only _amount, and its rare and
-        // epic magnitudes fall back to it, so it behaves exactly as it did.
+        // The magnitude at each tier: green (_amount), orange (_rareAmount), red (_epicAmount) and gold (_goldAmount),
+        // authored as numbers rather than derived so one card can differ from the rule; the shipped cards are written
+        // from RarityTable.Multiplier, 1 / 1.25 / 1.5 / 2 times green (docs/40 section 7.1). A card authored before a
+        // tier existed carries nothing for it and falls back to the tier below, so it behaves exactly as it did.
         [SerializeField] private float _amount;
         [SerializeField] private float _rareAmount;
         [SerializeField] private float _epicAmount;
+        [SerializeField] private float _goldAmount;
         [SerializeField, Min(1)] private int _maxStacks = 1;
         // A card that must hold a stack before this one can be offered; none for most cards.
         [SerializeField] private UpgradeDefinition _requires;
@@ -37,12 +40,14 @@ namespace Cryptforge.Content
 
         public float RareAmount => _rareAmount != 0f ? _rareAmount : _amount;
         public float EpicAmount => _epicAmount != 0f ? _epicAmount : RareAmount;
+        public float GoldAmount => _goldAmount != 0f ? _goldAmount : EpicAmount;
 
         public UpgradeOption CreateOption() =>
             new UpgradeOption(_id, _displayName, _descriptionFormat, _stat,
                 new StatModifier(_operation, _amount),
                 new StatModifier(_operation, RareAmount),
                 new StatModifier(_operation, EpicAmount),
+                new StatModifier(_operation, GoldAmount),
                 _maxStacks, _requires != null ? _requires.Id : null,
                 _evolvesFrom != null ? _evolvesFrom.Id : null);
     }

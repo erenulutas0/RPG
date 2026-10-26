@@ -26,7 +26,23 @@ namespace Cryptforge.UI
         [SerializeField] private Text[] _descriptionLabels;
         [SerializeField] private Image[] _cardIcons;
         [SerializeField] private UpgradeIcon[] _upgradeIcons;
+        // Optional, one per slot like the icons: a strip or frame the card's rarity colour is painted on. A slot without
+        // one still shows its tier, on the card's name.
+        [SerializeField] private Graphic[] _rarityAccents;
         [SerializeField, Min(0f)] private float _inputDelay = 0.25f;
+
+        // The owner's four colours, green to gold, indexed by UpgradeRarity (docs/27 decision 12, docs/40 section 7.1).
+        // Saturated and far apart in hue, so the tier reads at a glance on a phone; gold is a warm yellow rather than the
+        // orange's neighbour, which is the pair a player most needs to tell apart.
+        private static readonly Color32[] RarityColours =
+        {
+            new Color32(0x4C, 0xC3, 0x6A, 0xFF), // green
+            new Color32(0xF0, 0x8A, 0x24, 0xFF), // orange
+            new Color32(0xE0, 0x39, 0x3E, 0xFF), // red
+            new Color32(0xF5, 0xC5, 0x42, 0xFF)  // gold
+        };
+
+        private Color[] _authoredNameColours;
         private ChoicePrompt _shownPrompt;
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
@@ -44,10 +60,12 @@ namespace Cryptforge.UI
                 return;
             }
 
+            _authoredNameColours = new Color[_nameLabels.Length];
             for (int i = 0; i < _buttons.Length; i++)
             {
                 int slot = i;
                 _buttons[i].onClick.AddListener(() => OnChoice(slot));
+                _authoredNameColours[i] = _nameLabels[i].color;
             }
 
             _setup.Choices.Changed += OnChoicesChanged;
@@ -102,7 +120,24 @@ namespace Cryptforge.UI
                     _cardIcons[i].sprite = icon;
                     _cardIcons[i].enabled = icon != null;
                 }
+                ShowRarity(i, prompt.Kind == ChoiceKind.Upgrade, prompt.Cards[i].Rarity);
             }
+        }
+
+        // An upgrade card wears its tier's colour on its name and on its accent, if it has one. A forge or checkpoint
+        // card has no tier - its Rarity is Common only because that is the default - so it keeps the authored colour
+        // and hides the accent rather than claiming to be green.
+        private void ShowRarity(int slot, bool tiered, UpgradeRarity rarity)
+        {
+            int tier = (int)rarity;
+            bool known = tiered && tier >= 0 && tier < RarityColours.Length;
+            _nameLabels[slot].color = known ? (Color)RarityColours[tier] : _authoredNameColours[slot];
+            if (_rarityAccents == null || slot >= _rarityAccents.Length || _rarityAccents[slot] == null)
+                return;
+
+            _rarityAccents[slot].enabled = known;
+            if (known)
+                _rarityAccents[slot].color = RarityColours[tier];
         }
 
         private Sprite IconFor(ChoicePrompt prompt, int slot)

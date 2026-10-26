@@ -289,55 +289,64 @@ namespace Cryptforge.Tests
             new UpgradeOption("upgrade_damage", "Tempered Edge", "+{0:0}% damage per hit", UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Percent, 0.5f),
                 new StatModifier(ModifierOperation.Percent, 0.75f),
-                new StatModifier(ModifierOperation.Percent, 1.25f), 5);
+                new StatModifier(ModifierOperation.Percent, 1.25f),
+                new StatModifier(ModifierOperation.Percent, 1.67f), 5);
 
         public static UpgradeOption Speed() =>
             new UpgradeOption("upgrade_attack_speed", "Quickened Grip", "+{0:0}% attack speed", UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.5f),
                 new StatModifier(ModifierOperation.Percent, 0.75f),
-                new StatModifier(ModifierOperation.Percent, 1.25f), 5);
+                new StatModifier(ModifierOperation.Percent, 1.25f),
+                new StatModifier(ModifierOperation.Percent, 1.67f), 5);
 
         public static UpgradeOption Range() =>
             new UpgradeOption("upgrade_range", "Long Reach", "+{0:0.0#} reach", UpgradeStat.Range,
                 new StatModifier(ModifierOperation.Flat, 0.3f),
                 new StatModifier(ModifierOperation.Flat, 0.6f),
-                new StatModifier(ModifierOperation.Flat, 1f), 3);
+                new StatModifier(ModifierOperation.Flat, 1f),
+                new StatModifier(ModifierOperation.Flat, 1.33f), 3);
 
         public static UpgradeOption Crit() =>
             new UpgradeOption("upgrade_crit", "Keen Edge", "+{0:0}% chance to crit", UpgradeStat.CritChance,
                 new StatModifier(ModifierOperation.Flat, 0.08f),
                 new StatModifier(ModifierOperation.Flat, 0.15f),
-                new StatModifier(ModifierOperation.Flat, 0.25f), 4);
+                new StatModifier(ModifierOperation.Flat, 0.25f),
+                new StatModifier(ModifierOperation.Flat, 0.33f), 4);
 
         public static UpgradeOption Health() =>
             new UpgradeOption("upgrade_health", "Vital Surge", "+{0:0} maximum health", UpgradeStat.MaxHealth,
                 new StatModifier(ModifierOperation.Flat, 15f),
                 new StatModifier(ModifierOperation.Flat, 30f),
-                new StatModifier(ModifierOperation.Flat, 60f), 5);
+                new StatModifier(ModifierOperation.Flat, 60f),
+                new StatModifier(ModifierOperation.Flat, 80f), 5);
 
         public static UpgradeOption Armor() =>
             new UpgradeOption("upgrade_armor", "Iron Skin", "+{0:0} armor", UpgradeStat.Armor,
                 new StatModifier(ModifierOperation.Flat, 20f),
                 new StatModifier(ModifierOperation.Flat, 40f),
-                new StatModifier(ModifierOperation.Flat, 80f), 5);
+                new StatModifier(ModifierOperation.Flat, 80f),
+                new StatModifier(ModifierOperation.Flat, 107f), 5);
 
         public static UpgradeOption MoveSpeed() =>
             new UpgradeOption("upgrade_move_speed", "Swift Boots", "+{0:0}% movement speed", UpgradeStat.MoveSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.05f),
                 new StatModifier(ModifierOperation.Percent, 0.1f),
-                new StatModifier(ModifierOperation.Percent, 0.15f), 3);
+                new StatModifier(ModifierOperation.Percent, 0.15f),
+                new StatModifier(ModifierOperation.Percent, 0.2f), 3);
 
         public static UpgradeOption Stamina() =>
             new UpgradeOption("upgrade_stamina", "Deep Lungs", "+{0:0.0#}s of running", UpgradeStat.StaminaBar,
                 new StatModifier(ModifierOperation.Flat, 0.4f),
                 new StatModifier(ModifierOperation.Flat, 0.8f),
-                new StatModifier(ModifierOperation.Flat, 1.5f), 3);
+                new StatModifier(ModifierOperation.Flat, 1.5f),
+                new StatModifier(ModifierOperation.Flat, 2f), 3);
 
         public static UpgradeOption Luck() =>
-            new UpgradeOption("upgrade_luck", "Fortune", "+{0:0}% luck", UpgradeStat.Luck,
-                new StatModifier(ModifierOperation.Flat, 0.25f),
-                new StatModifier(ModifierOperation.Flat, 0.5f),
-                new StatModifier(ModifierOperation.Flat, 1f), 3);
+            new UpgradeOption("upgrade_luck", "Fortune", "+{0:0} luck", UpgradeStat.Luck,
+                new StatModifier(ModifierOperation.Flat, 6f),
+                new StatModifier(ModifierOperation.Flat, 7.5f),
+                new StatModifier(ModifierOperation.Flat, 9f),
+                new StatModifier(ModifierOperation.Flat, 12f), 3);
 
         // Upgrade_Pulse.asset: every fourth strike bursts round the hero for a share of its damage (PulseRule). The first
         // card that changes what an attack does rather than a number it carries, and the last in the authored order, so
@@ -349,7 +358,8 @@ namespace Cryptforge.Tests
                 UpgradeStat.PulseDamage,
                 new StatModifier(ModifierOperation.Flat, 0.4f),
                 new StatModifier(ModifierOperation.Flat, 0.65f),
-                new StatModifier(ModifierOperation.Flat, 1f), 1);
+                new StatModifier(ModifierOperation.Flat, 1f),
+                new StatModifier(ModifierOperation.Flat, 1.33f), 1);
 
         // Upgrade_CritSplash.asset: a critical strike splinters into everything near what it hit. Eleventh and last in
         // the authored order, so only a run that has levelled far past a Descent is offered it. One stack, like the
@@ -360,7 +370,8 @@ namespace Cryptforge.Tests
                 UpgradeStat.CritSplash,
                 new StatModifier(ModifierOperation.Flat, 0.4f),
                 new StatModifier(ModifierOperation.Flat, 0.6f),
-                new StatModifier(ModifierOperation.Flat, 1f), 1);
+                new StatModifier(ModifierOperation.Flat, 1f),
+                new StatModifier(ModifierOperation.Flat, 1.33f), 1);
 
         // The three evolutions. Each is gated on the card every measured run fills first being full, each is a stronger
         // version of the same stat, and each raises the world's difficulty by taking it (EvolutionRule). Positions twelve
@@ -370,21 +381,24 @@ namespace Cryptforge.Tests
                 UpgradeStat.Damage,
                 new StatModifier(ModifierOperation.Percent, 0.9f),
                 new StatModifier(ModifierOperation.Percent, 1.3f),
-                new StatModifier(ModifierOperation.Percent, 2f), 3, null, "upgrade_damage");
+                new StatModifier(ModifierOperation.Percent, 2f),
+                new StatModifier(ModifierOperation.Percent, 2.67f), 3, null, "upgrade_damage");
 
         public static UpgradeOption BlurredGrip() =>
             new UpgradeOption("upgrade_attack_speed_evolved", "Blurred Grip", "+{0:0}% attack speed, and a harder world",
                 UpgradeStat.AttackSpeed,
                 new StatModifier(ModifierOperation.Percent, 0.7f),
                 new StatModifier(ModifierOperation.Percent, 1f),
-                new StatModifier(ModifierOperation.Percent, 1.6f), 3, null, "upgrade_attack_speed");
+                new StatModifier(ModifierOperation.Percent, 1.6f),
+                new StatModifier(ModifierOperation.Percent, 2.13f), 3, null, "upgrade_attack_speed");
 
         public static UpgradeOption Ironblood() =>
             new UpgradeOption("upgrade_health_evolved", "Ironblood", "+{0:0} maximum health, and a harder world",
                 UpgradeStat.MaxHealth,
                 new StatModifier(ModifierOperation.Flat, 55f),
                 new StatModifier(ModifierOperation.Flat, 80f),
-                new StatModifier(ModifierOperation.Flat, 130f), 3, null, "upgrade_health");
+                new StatModifier(ModifierOperation.Flat, 130f),
+                new StatModifier(ModifierOperation.Flat, 173f), 3, null, "upgrade_health");
 
         // Data/Upgrades, in the order CombatSetup carries them. The scene and this must hold the same cards in the
         // same order, or a seed shows one thing in the game and another here.

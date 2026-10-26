@@ -220,9 +220,11 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator AHealthBookChestLogsTheHealthAfterBothRewards()
         {
-            // In the authored starting pool, seed 34 grants rare Vital Surge from the first chest.
+            // In the authored starting pool, seed 37 grants red (Epic) Vital Surge, +60, from the first chest. A green
+            // one (+15) would only bring 60 + 25 healed back to exactly 100, so the seed needs orange or better; seed 34
+            // served under the three-tier odds and draws green under the four colours.
             // This catches a stale pre-book snapshot even when healing raises HP past its original maximum.
-            yield return AssertFirstChestTelemetry(34, true);
+            yield return AssertFirstChestTelemetry(37, true);
         }
 
         private IEnumerator AssertFirstChestTelemetry(int seed, bool healthBook)

@@ -20,6 +20,7 @@ MonoBehaviour:
   _amount: 55
   _rareAmount: 80
   _epicAmount: 130
+  _goldAmount: 173
   _maxStacks: 3
   _requires: {fileID: 0}
   _evolvesFrom: {fileID: 11400000, guid: 20000000000000000000000000000012, type: 2}

@@ -9,11 +9,12 @@ namespace Cryptforge.Progression
         public string DisplayName { get; }
         public string DescriptionFormat { get; }
         public UpgradeStat Stat { get; }
-        // The card's magnitude at each tier. A card authored with one magnitude has the same at all three, which is how
-        // every option built before rarity existed still behaves exactly as it did.
+        // The card's magnitude at each tier, green to gold. A card authored with one magnitude has the same at all four,
+        // which is how every option built before rarity existed still behaves exactly as it did.
         public StatModifier Modifier { get; }
         private readonly StatModifier _rare;
         private readonly StatModifier _epic;
+        private readonly StatModifier _gold;
         public int MaxStacks { get; }
         // The id of a card that must hold at least one stack before this one is offered; null for none.
         public string RequiresId { get; }
@@ -37,6 +38,8 @@ namespace Cryptforge.Progression
                     return _rare;
                 case UpgradeRarity.Epic:
                     return _epic;
+                case UpgradeRarity.Gold:
+                    return _gold;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(rarity));
             }
@@ -51,14 +54,14 @@ namespace Cryptforge.Progression
 
         public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
             StatModifier modifier, int maxStacks, string requiresId = null, string evolvesFromId = null)
-            : this(id, displayName, descriptionFormat, stat, modifier, modifier, modifier, maxStacks, requiresId,
-                evolvesFromId)
+            : this(id, displayName, descriptionFormat, stat, modifier, modifier, modifier, modifier, maxStacks,
+                requiresId, evolvesFromId)
         {
         }
 
         public UpgradeOption(string id, string displayName, string descriptionFormat, UpgradeStat stat,
-            StatModifier common, StatModifier rare, StatModifier epic, int maxStacks, string requiresId = null,
-            string evolvesFromId = null)
+            StatModifier common, StatModifier rare, StatModifier epic, StatModifier gold, int maxStacks,
+            string requiresId = null, string evolvesFromId = null)
         {
             StatModifier modifier = common;
             if (string.IsNullOrEmpty(id))
@@ -76,12 +79,14 @@ namespace Cryptforge.Progression
             DisplayName = displayName ?? string.Empty;
             DescriptionFormat = descriptionFormat ?? string.Empty;
             Stat = stat;
-            if (rare.Operation != common.Operation || epic.Operation != common.Operation)
+            if (rare.Operation != common.Operation || epic.Operation != common.Operation ||
+                gold.Operation != common.Operation)
                 throw new ArgumentException("A card's tiers scale the same way.", nameof(rare));
 
             Modifier = common;
             _rare = rare;
             _epic = epic;
+            _gold = gold;
             MaxStacks = maxStacks;
             RequiresId = requiresId;
             EvolvesFromId = evolvesFromId;
