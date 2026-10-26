@@ -17,7 +17,7 @@ namespace Cryptforge.Tests
         [UnitySetUp] public IEnumerator Begin(){TestProfile.Begin();Time.timeScale=1;yield return null;}
         [UnityTearDown] public IEnumerator End()
         {
-            Time.timeScale=1;var old=SceneManager.GetActiveScene();
+            Time.timeScale=1;Time.captureDeltaTime=0;var old=SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(SceneManager.CreateScene("Horde cleanup"));
             yield return SceneManager.UnloadSceneAsync(old);TestProfile.End();
         }
@@ -74,6 +74,72 @@ namespace Cryptforge.Tests
             yield return Until(()=>encounters.HordeAliveCount>0,10);
             Health target=targeting.Acquire(1000f);
             Assert.That(target,Is.Not.Null);Assert.That(encounters.ExperienceRewardOf(target),Is.EqualTo(HordeRule.Experience(encounters.DefinitionOf(target).ExperienceReward)),"The hero aims at the horde.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Presentation only: a newcomer fades in rather than popping into being, and a fallen one's bar goes at once while
+        // its pooled remains fade (and settle) away before the encounter retires the body.
+        [UnityTest, Timeout(90000)] public IEnumerator AHordeEnemyFadesInAndAFallenOneFadesOut()
+        {
+            yield return Load("foundry");
+            // Even frames, so a slow batch frame cannot step over the short fades this watches.
+            Time.captureDeltaTime=1f/60;
+            var encounters=Object.FindFirstObjectByType<CombatSetup>().Encounters;
+            Health fresh=null;float startAlpha=-1f,spawnedAt=0f;
+            System.Action<int> spawned=slot=>
+            {
+                if(fresh!=null)return;
+                fresh=encounters.HordeEnemyAt(slot);
+                startAlpha=fresh.GetComponent<EnemyLookView>().Body.color.a;
+                spawnedAt=Time.time;
+            };
+            // The effects view listened first, so the arrival has begun by the time this hears of the newcomer.
+            encounters.HordeEnemySpawned+=spawned;
+            yield return Until(()=>fresh!=null,15);
+            encounters.HordeEnemySpawned-=spawned;
+            Assert.That(fresh,Is.Not.Null,"A horde enemy walks in.");
+            var look=fresh.GetComponent<EnemyLookView>();
+            Assert.That(startAlpha,Is.LessThan(1f),"It appears faded, not whole.");
+            float last=startAlpha;bool between=false;
+            float deadline=Time.realtimeSinceStartup+10;
+            while(Time.time-spawnedAt<.4f&&Time.realtimeSinceStartup<deadline)
+            {
+                yield return null;
+                float alpha=look.Body.color.a;
+                Assert.That(alpha,Is.GreaterThanOrEqualTo(last),"The arrival only ever brightens.");
+                between|=alpha>0f&&alpha<1f;
+                last=alpha;
+            }
+            Assert.That(Time.time-spawnedAt,Is.GreaterThanOrEqualTo(.4f),"The arrival had its game time.");
+            Assert.That(between,Is.True,"It fades in over frames.");
+            Assert.That(look.Body.color.a,Is.EqualTo(1f),"Whole within 0.4 s.");
+            Assert.That(look.ArrivalProgress,Is.EqualTo(1f));
+            Assert.That(look.Body.transform.localPosition,Is.EqualTo(Vector3.zero),"Risen to its rest.");
+            foreach(var part in look.Bar.GetComponentsInChildren<SpriteRenderer>())Assert.That(part.color.a,Is.EqualTo(1f));
+
+            var set=look.PaintedArt;
+            Assert.That(set,Is.Not.Null,"The foundry's horde wears painted art, whose remains are its fall.");
+            Assert.That(fresh.IsAlive,Is.True);
+            fresh.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(look.Bar.gameObject.activeSelf,Is.False,"The bar hides at once.");
+            Assert.That(look.Body.gameObject.activeSelf,Is.False,"The standing body gives way to its remains.");
+            SpriteRenderer remains=null;
+            foreach(var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())
+                if(renderer.enabled&&renderer.sprite==set.Death[0])remains=renderer;
+            Assert.That(remains,Is.Not.Null,"The fall shows where it happened.");
+            float fallAlpha=remains.color.a,fallY=remains.transform.position.y,fellAt=Time.time;
+            float faded=fallAlpha,lowest=fallY;
+            deadline=Time.realtimeSinceStartup+10;
+            while(remains.enabled&&Time.time-fellAt<HordeRule.RetireSeconds&&Time.realtimeSinceStartup<deadline)
+            {
+                yield return null;
+                if(!remains.enabled)break;
+                Assert.That(remains.color.a,Is.LessThanOrEqualTo(faded),"The remains only ever fade.");
+                faded=remains.color.a;lowest=Mathf.Min(lowest,remains.transform.position.y);
+            }
+            Assert.That(faded,Is.LessThan(fallAlpha),"The remains fade out.");
+            Assert.That(lowest,Is.LessThan(fallY),"They settle into the floor as they go.");
+            Assert.That(remains.enabled,Is.False,"Gone before the encounter retires the body.");
             LogAssert.NoUnexpectedReceived();
         }
 

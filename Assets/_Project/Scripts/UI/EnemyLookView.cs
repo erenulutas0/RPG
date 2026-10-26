@@ -6,7 +6,8 @@ namespace Cryptforge.UI
 {
     // Borrows either imported front/rear poses or the session-cached procedural look. Animation and renderers belong
     // to the enemy; neither path owns its sprites. Imported walking follows travelled floor distance, attacks use the
-    // actual struck target, and a brief body compression accompanies the existing silhouette flash.
+    // actual struck target, and a brief body compression accompanies the existing silhouette flash. A horde newcomer
+    // fades in on its arrival (Arrive); a fallen enemy's bar hides at once and its body is left to the pooled remains.
     public sealed class EnemyLookView : MonoBehaviour, ILookSprites
     {
         private const string BarName = "Health Bar";
@@ -34,9 +35,17 @@ namespace Cryptforge.UI
         [SerializeField] private float _barClearance = 0.12f;
         [SerializeField] private int _barSortingOrder = 10;
 
+        // How far below its rest the body starts an arrival, in world units: it rises out of the floor as it fades in.
+        private const float ArrivalSink = .1f;
+
         private EnemySprites _sprites;
         private GameObject _bar;
+        private SpriteRenderer _backRenderer;
         private SpriteRenderer _fillRenderer;
+        private SpriteRenderer _shadow;
+        private Vector3 _bodyRest;
+        private float _arrivalDuration;
+        private float _arrivalRemaining;
         private Vector3 _lastPosition;
         private bool _bobbed;
         private float _frameRemaining;
@@ -74,7 +83,8 @@ namespace Cryptforge.UI
             _body.sprite = _painted ? _paintedArt.GetFrame(0, false).Body : _sprites.Frame(EnemyPose.IdleA);
             CurrentPose = EnemyPose.IdleA;
             GroundedSorting.Attach(transform, _body.sortingLayerID, 1);
-            ContactShadowView.Attach(transform, _body, _painted ? _paintedArt.ShadowWidth : EnemyArt.WidthOf(_look) / PixelSpriteFactory.PixelsPerUnit * .82f, _health);
+            _shadow = ContactShadowView.Attach(transform, _body, _painted ? _paintedArt.ShadowWidth : EnemyArt.WidthOf(_look) / PixelSpriteFactory.PixelsPerUnit * .82f, _health).Renderer;
+            _bodyRest = _body.transform.localPosition;
             BuildBar();
             _lastPosition = transform.position;
             _frameRemaining = _breathFrameDuration;
@@ -117,7 +127,7 @@ namespace Cryptforge.UI
             if (_look == EnemyLook.Mite) _bar.transform.localScale = new Vector3(.65f, .8f, 1f);
             float top = _painted ? _paintedArt.VisualTop : EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;
             _bar.transform.localPosition = new Vector3(0f, top + _barClearance, 0f);
-            AddBarRenderer("Back", EnemySpriteCache.BarBack, Vector3.zero, _barSortingOrder);
+            _backRenderer = AddBarRenderer("Back", EnemySpriteCache.BarBack, Vector3.zero, _barSortingOrder);
             // The fill's left edge sits one texel inside the backing's frame.
             float fillLeft = -EnemyArt.HealthFillWidth * 0.5f / PixelSpriteFactory.PixelsPerUnit;
             _fillRenderer = AddBarRenderer("Fill", EnemySpriteCache.BarFill, new Vector3(fillLeft, 0f, 0f), _barSortingOrder + 1);
@@ -155,6 +165,64 @@ namespace Cryptforge.UI
         {
             if (_bar != null)
                 _bar.SetActive(false);
+            // The body is hidden at once (CombatantView) and its pooled remains take over; an arrival cut short ends here.
+            if (_arrivalRemaining > 0f)
+                EndArrival();
+        }
+
+        // A horde enemy walking onto the floor fades in over seconds, its body rising out of the floor, rather than
+        // popping into being. Body, bar and contact shadow share the fade through their renderer colours (no material is
+        // touched, so the foundry's shared x-ray material stays shared and its silhouette pass fades with the vertex alpha).
+        // Scaled time, so a pause holds it.
+        internal void Arrive(float seconds)
+        {
+            if (_body == null || seconds <= 0f || (_health != null && !_health.IsAlive))
+                return;
+            _arrivalDuration = seconds;
+            _arrivalRemaining = seconds;
+            ShowArrival(0f);
+        }
+
+        // From 0 as the enemy appears to 1 once it stands in full; 1 for any enemy that is not arriving.
+        internal float ArrivalProgress => _arrivalRemaining > 0f ? 1f - _arrivalRemaining / _arrivalDuration : 1f;
+
+        private void TickArrival()
+        {
+            _arrivalRemaining -= Time.deltaTime;
+            if (_arrivalRemaining <= 0f)
+            {
+                EndArrival();
+                return;
+            }
+            ShowArrival(ArrivalProgress);
+        }
+
+        private void EndArrival()
+        {
+            _arrivalRemaining = 0f;
+            ShowArrival(1f);
+        }
+
+        // Eases out: most of the body is there early, so a newcomer reads as a threat at once and only settles after.
+        private void ShowArrival(float progress)
+        {
+            float eased = 1f - (1f - progress) * (1f - progress);
+            SetAlpha(_body, eased);
+            SetAlpha(_backRenderer, eased);
+            SetAlpha(_fillRenderer, eased);
+            SetAlpha(_shadow, eased);
+            _body.transform.localPosition = _bodyRest + Vector3.down * (ArrivalSink * (1f - eased));
+        }
+
+        private static void SetAlpha(SpriteRenderer renderer, float alpha)
+        {
+            if (renderer == null)
+                return;
+            Color color = renderer.color;
+            if (color.a == alpha)
+                return;
+            color.a = alpha;
+            renderer.color = color;
         }
 
         private void OnAttacked()
@@ -212,6 +280,7 @@ namespace Cryptforge.UI
             Vector3 delta = position - _lastPosition;
             bool moving = (position - _lastPosition).sqrMagnitude > StillThreshold;
             _lastPosition = position;
+            if (_arrivalRemaining > 0f) TickArrival();
             if (_painted) { TickPainted(delta); return; }
 
             if (_attackRemaining > 0f)

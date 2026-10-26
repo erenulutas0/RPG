@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Pooled strikes, hit sparks, numbers, deaths and coins. Optional imported slash/spark/death frames are borrowed;
+    // Pooled strikes, hit sparks, numbers, deaths, arrivals and coins. Optional imported slash/spark/death frames are borrowed;
     // remaining procedural sprites are generated once in Awake. Per-hit effects reuse objects and arrays. Effects run
     // on scaled time so a pause freezes them; the shake runs on unscaled time so it always settles. Each effect above the
     // floor remembers the floor it stands on, which the foundry turns into depth while a camera renders
@@ -26,6 +26,10 @@ namespace Cryptforge.UI
             public float Gravity;
             public bool Active;
             public bool Fade;
+            // The colour a fading effect fades from; white for everything but the arrival puff.
+            public Color Tint;
+            // How far a fading effect settles into the floor as it goes, in world units.
+            public float Sink;
             public bool AbilityPulse;
             public bool StaffPulse;
             public float PulseRadius;
@@ -75,6 +79,19 @@ namespace Cryptforge.UI
         private const float SmokeFrameDuration = 0.12f;
         private const float SmokeRise = 0.4f;
         private const float SmokeScale = 0.55f;
+        // A horde enemy's arrival: its body fades in over this long (EnemyLookView.Arrive) over a faint ember puff at its
+        // feet, the death smoke's frames thinner, smaller and quicker. The puffs keep slots of their own past the shared
+        // pool, so a crowd walking in never cuts a death's remains short.
+        internal const float ArrivalSeconds = 0.25f;
+        private const int PuffSlots = 6;
+        private const float PuffFrameDuration = 0.1f;
+        private const float PuffRise = 0.25f;
+        // The puff's centre starts just above the feet, so it billows round the ankles rather than under the floor.
+        private const float PuffLift = 0.08f;
+        private const float PuffScale = 0.4f;
+        private static readonly Color PuffTint = new Color(1f, 1f, 1f, 0.55f);
+        // The remains settle this far into the floor as they fade, so a fall ends lying down rather than lifting off.
+        private const float RemainsSink = 0.05f;
         private const float CoinFrameDuration = 0.08f;
         private const float CoinGravity = 9.8f;
         private const float CoinLaunch = 2.4f;
@@ -138,6 +155,7 @@ namespace Cryptforge.UI
         private EnemyWatch[] _hordeWatches;
         private int _watchCount;
         private int _nextEffect;
+        private int _nextPuff;
         private int _nextNumber;
         private int _hitCount;
         private int _deathCount;
@@ -325,7 +343,7 @@ namespace Cryptforge.UI
             _poolRoot = new GameObject("Combat Effects");
             _poolRoot.transform.SetParent(transform, false);
 
-            _effects = new Effect[_effectPoolSize];
+            _effects = new Effect[_effectPoolSize + PuffSlots];
             for (int i = 0; i < _effects.Length; i++)
             {
                 SpriteRenderer renderer = CreateRenderer($"Effect {i}", _poolRoot.transform, _sortingOrder);
@@ -375,10 +393,27 @@ namespace Cryptforge.UI
         {
             if (slot < 0 || slot >= _hordeWatches.Length)
                 return;
-            Unbind(_hordeWatches[slot]);
+            EnemyWatch watch = _hordeWatches[slot];
+            Unbind(watch);
             Health enemy = _encounter.HordeEnemyAt(slot);
-            if (enemy != null)
-                Bind(_hordeWatches[slot], enemy);
+            if (enemy == null)
+                return;
+            Bind(watch, enemy);
+            if (watch.Look != null)
+                watch.Look.Arrive(ArrivalSeconds);
+            ShowArrivalPuff(watch.Root.position);
+        }
+
+        // Reserved slots, round robin among themselves: when all are busy the oldest puff gives way, never a remains.
+        private void ShowArrivalPuff(Vector3 feet)
+        {
+            Effect puff = Arm(_effects[_effectPoolSize + _nextPuff], _smoke, PuffFrameDuration, _smoke.Length * PuffFrameDuration,
+                feet + Vector3.up * PuffLift, _sortingOrder + SmokeOrder, Vector3.up * PuffRise, 0f, false, PuffScale);
+            _nextPuff = (_nextPuff + 1) % PuffSlots;
+            puff.Fade = true;
+            puff.Tint = PuffTint;
+            puff.Renderer.color = PuffTint;
+            StandOn(puff, feet);
         }
 
         private void ReleaseHorde()
@@ -582,6 +617,7 @@ namespace Cryptforge.UI
                     Vector3.zero, 0, false), ground);
                 remains.Renderer.flipX = watch.Look.Mirrored;
                 remains.Fade = true;
+                remains.Sink = RemainsSink;
             }
             else StandOn(ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
                 Vector3.up * SmokeRise, 0f, false, SmokeScale), ground);
@@ -625,7 +661,13 @@ namespace Cryptforge.UI
             Vector3 velocity, float gravity, bool loop, float scale = 1f)
         {
             Effect effect = _effects[_nextEffect];
-            _nextEffect = (_nextEffect + 1) % _effects.Length;
+            _nextEffect = (_nextEffect + 1) % _effectPoolSize;
+            return Arm(effect, frames, frameDuration, lifetime, origin, sortingOrder, velocity, gravity, loop, scale);
+        }
+
+        private static Effect Arm(Effect effect, Sprite[] frames, float frameDuration, float lifetime, Vector3 origin,
+            int sortingOrder, Vector3 velocity, float gravity, bool loop, float scale)
+        {
             effect.Frames = frames;
             effect.FrameDuration = frameDuration;
             effect.Lifetime = lifetime;
@@ -636,6 +678,8 @@ namespace Cryptforge.UI
             effect.Gravity = gravity;
             effect.Active = true;
             effect.Fade = false;
+            effect.Tint = Color.white;
+            effect.Sink = 0f;
             effect.AbilityPulse = false;
             effect.StaffPulse = false;
             effect.PulseRadius = 0f;
@@ -713,7 +757,15 @@ namespace Cryptforge.UI
                     float alpha = (effect.StaffPulse ? 1f : .85f) * Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .11f);
                     effect.Renderer.color = new Color(1f, 1f, 1f, alpha);
                 }
-                if (effect.Fade) effect.Renderer.color = new Color(1, 1, 1, Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .16f));
+                if (effect.Fade)
+                {
+                    float left = Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .16f);
+                    Color tint = effect.Tint;
+                    tint.a *= left;
+                    effect.Renderer.color = tint;
+                    if (effect.Sink != 0f)
+                        effect.Transform.position = effect.Origin + Vector3.down * (effect.Sink * (1f - left));
+                }
                 if (effect.Gravity != 0f || effect.Velocity != Vector3.zero)
                 {
                     float t = effect.Elapsed;
