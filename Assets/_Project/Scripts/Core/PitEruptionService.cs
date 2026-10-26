@@ -44,7 +44,7 @@ namespace Cryptforge.Core
             if (_clock == null)
                 return;
             var encounter = _setup.Encounters;
-            IsRunning = !_setup.Run.HasEnded && encounter.AliveEnemyCount > 0 && !encounter.IsInSwarmRoom;
+            IsRunning = !_setup.Run.HasEnded && encounter.AllAliveCount > 0 && !encounter.IsInSwarmRoom;
             if (!IsRunning)
                 return;
             if (Time.deltaTime <= 0f || _setup.Choices.IsOpen || encounter.IsRevealHeld || !_clock.Step(Time.deltaTime))
@@ -54,9 +54,10 @@ namespace Cryptforge.Core
             LastEnemiesKilled = 0;
             if (LastHeroBurnt)
                 _hero.ApplyDamage(new DamageContext(_hero.Maximum * PitEruptionRule.HeroShare));
-            for (int i = 0; i < encounter.WaveEnemyCount; i++)
+            // The wave's enemies and the horde's alike: the rim burns whatever stands on it.
+            for (int i = 0; i < encounter.EnemyCount; i++)
             {
-                Health enemy = encounter.WaveEnemyAt(i);
+                Health enemy = encounter.EnemyAt(i);
                 if (enemy == null || !enemy.IsAlive)
                     continue;
                 Vector3 p = enemy.transform.position;

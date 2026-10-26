@@ -187,5 +187,30 @@ namespace Cryptforge.Tests
             Assert.That((busy.KillsInWindow,busy.SpawnsInWindow),Is.EqualTo((0,0)));
             Assert.That(busy.Spawned,Is.EqualTo(3),"What was spawned stays spawned.");
         }
+
+        [Test] public void TheOpeningLeansOnTheLightestRoleAndThePressureOnTheHeavier()
+        {
+            Assert.That((HordeRule.Weight(HordeState.Ramp,0),HordeRule.Weight(HordeState.Ramp,1),HordeRule.Weight(HordeState.Ramp,2)),Is.EqualTo((2,1,0)),"The heaviest role waits.");
+            Assert.That((HordeRule.Weight(HordeState.Pressure,0),HordeRule.Weight(HordeState.Pressure,1),HordeRule.Weight(HordeState.Pressure,2)),Is.EqualTo((4,3,2)));
+            Assert.That(HordeRule.Weight(HordeState.Boss,2),Is.EqualTo(HordeRule.Weight(HordeState.Ramp,2)),"Boss minions stay light.");
+            Assert.That(HordeRule.Experience(10),Is.EqualTo(3));Assert.That(HordeRule.Experience(1),Is.EqualTo(1),"Never nothing for a kill.");
+            Assert.That(HordeRule.Experience(0),Is.Zero);
+            Assert.That(HordeRule.SceneCap,Is.InRange(30,PackLayout.MaxPackSize),"The owner's first range, inside the pack.");
+        }
+
+        [Test] public void HordeSpotsLieOnTheFloorAtTheEdgeOfTheView()
+        {
+            Cryptforge.Art.FoundryMap.ToFloor(0,0,out float hx,out float hy);
+            int found=0;
+            for(int attempt=0;attempt<Cryptforge.Art.FoundryMap.HordeSpotAttempts;attempt++)
+            {
+                if(!Cryptforge.Art.FoundryMap.HordeSpot(3,attempt,hx,hy,out float x,out float y))continue;
+                found++;
+                Assert.That(Cryptforge.Art.FoundryMap.Contains(x,y,HeroMotion.EdgeMargin),Is.True);
+                float d=(float)Math.Sqrt((x-hx)*(x-hx)+(y-hy)*(y-hy));
+                Assert.That(d,Is.InRange(Cryptforge.Art.FoundryMap.HordeSpotNear-1e-3f,Cryptforge.Art.FoundryMap.HordeSpotFar+1e-3f));
+            }
+            Assert.That(found,Is.GreaterThan(Cryptforge.Art.FoundryMap.HordeSpotAngles),"The court's middle has room all round.");
+        }
     }
 }

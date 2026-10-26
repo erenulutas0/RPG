@@ -25,8 +25,11 @@ namespace Cryptforge.Combat
             public Health Health;
             public EnemyDefinition Definition;
             public int Gold;
+            public int Experience;
             public EnrageBehaviour Enrage;
             public bool Defeated;
+            // When a horde enemy fell, on the horde's clock, so its body can be taken away a while after.
+            public float FellAt;
             public Action OnDied;
         }
 
@@ -85,6 +88,21 @@ namespace Cryptforge.Combat
         private int _hallsOnEarlierFloors;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
+        // The foundry floor's continuous horde (docs/27 decision 9, HordeDirector): its own pack, walking the map from the
+        // floor's first step to its boss, beside the node waves' pack. Its enemies are the hero's targets with the wave's,
+        // pay a share of their experience and no gold, and never count towards a wave being cleared. Null off the foundry,
+        // on a floor with no horde roles, in a swarm room and once the gate is open.
+        private HordeDirector _horde;
+        private PackMotion _hordeMotion;
+        private int _hordeFloor;
+        private int _hordeSeed;
+        private float _hordeSeconds;
+        private readonly List<SpawnedEnemy> _hordeEnemies = new List<SpawnedEnemy>(PackLayout.MaxPackSize);
+        private readonly List<HordeDirector.Spawn> _hordeSpawns = new List<HordeDirector.Spawn>(4);
+        // The hero's targets: the wave's (or the swarm's) as handed over, and while a horde stands, those and the horde's
+        // living enemies together in one array the hero's targeting keeps.
+        private Health[] _waveTargets = Array.Empty<Health>();
+        private readonly Health[] _targets = new Health[PackLayout.MaxPackSize * 2];
 
         public FloorDefinition Floor => _currentFloor;
         public int FloorNumber { get; private set; }
@@ -154,6 +172,10 @@ namespace Cryptforge.Combat
         private float _roomSiteWait;
 
         public event Action EncounterStarted;
+        // A horde enemy has walked onto the floor into this place of the horde (HordeEnemyAt), and the horde has left the
+        // floor: for views that follow every enemy, not only the wave's.
+        public event Action<int> HordeEnemySpawned;
+        public event Action HordeReleased;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
         // An ordinary wave's last enemy has fallen, once per wave and before the floor moves on; a swarm never raises it.
@@ -196,9 +218,10 @@ namespace Cryptforge.Combat
         // upgrades is what a swarm room holds level-ups back on and opens its sittings with; without it a swarm offers each
         // level-up as it comes. drops are the Descent's rewards on the floor, which the hero picks up as it walks.
         public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null,
-            UpgradeService upgrades = null, GroundDrops drops = null, bool deferFirstEncounter = false)
+            UpgradeService upgrades = null, GroundDrops drops = null, bool deferFirstEncounter = false, int hordeSeed = 0)
         {
             _difficulty = difficulty;
+            _hordeSeed = hordeSeed;
             _upgrades = upgrades;
             _drops = drops;
             if (_floor == null || _hero == null || _heroTargeting == null || _arena == null)
@@ -219,6 +242,7 @@ namespace Cryptforge.Combat
                 if (!visited.Add(floor))
                     throw new InvalidOperationException($"Floor {floor.name} links back into the descent.");
                 ValidateFloor(floor);
+                ValidateHorde(floor);
             }
 
             _fight = new EncounterProgress(_advanceDelay);
@@ -252,7 +276,18 @@ namespace Cryptforge.Combat
         {
             floorX = 0f;
             floorY = 0f;
-            if (enemy == null || _motion == null)
+            if (enemy == null)
+                return false;
+            for (int i = 0; _hordeMotion != null && i < _hordeEnemies.Count; i++)
+            {
+                SpawnedEnemy spawned = _hordeEnemies[i];
+                if (!ReferenceEquals(spawned.Health, enemy) || spawned.Slot >= _hordeMotion.Count)
+                    continue;
+                floorX = _hordeMotion.XOf(spawned.Slot);
+                floorY = _hordeMotion.YOf(spawned.Slot);
+                return true;
+            }
+            if (_motion == null)
                 return false;
             for (int i = 0; i < _wave.Count; i++)
             {
@@ -274,6 +309,7 @@ namespace Cryptforge.Combat
             if (!IsFloorCleared || !HasNextFloor || _descending)
                 throw new InvalidOperationException("Descending requires a cleared floor with a next floor.");
 
+            ReleaseHorde(true);
             _roomsClearedOnEarlierFloors += _floorProgress.RoomsCleared;
             _hallsOnEarlierFloors += LaterHalls(_currentFloor);
             _currentFloor = _currentFloor.NextFloor;
@@ -288,10 +324,27 @@ namespace Cryptforge.Combat
         // The current wave's enemies in slot order, alive or defeated, until the next wave or room replaces them.
         public Health WaveEnemyAt(int index) => _wave[index].Health;
 
+        // The floor's horde: whether one stands, its enemies by place (alive, fallen, or taken away - null), how many
+        // stand, the crowd it aims for and the state its director is in.
+        public bool IsHordeActive => _horde != null;
+        public int HordeEnemyCount => _hordeEnemies.Count;
+        public Health HordeEnemyAt(int index) => _hordeEnemies[index].Health;
+        public int HordeAliveCount { get; private set; }
+        public int HordeTarget => _horde != null ? _horde.TargetNow : 0;
+        public HordeState HordeStateNow => _horde != null ? _horde.State : HordeState.Ramp;
+        // Every enemy on the floor, the wave's first, then the horde's - what a hazard or a view that reads the whole
+        // floor walks. An entry may be fallen or, for the horde, null.
+        public int EnemyCount => _wave.Count + _hordeEnemies.Count;
+        public Health EnemyAt(int index) => index < _wave.Count ? _wave[index].Health : _hordeEnemies[index - _wave.Count].Health;
+        public int AllAliveCount => AliveEnemyCount + HordeAliveCount;
+
         // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
         public EnemyDefinition DefinitionOf(IDamageable enemy) => Find(enemy)?.Definition;
 
         public int GoldRewardOf(IDamageable enemy) => Find(enemy)?.Gold ?? 0;
+
+        // The experience an enemy of the floor pays: its authored reward, or the horde's share of it.
+        public int ExperienceRewardOf(IDamageable enemy) => Find(enemy)?.Experience ?? 0;
 
         // Fail at startup with the offending floor, room and wave rather than mid-run when it is first reached.
         private static void ValidateFloor(FloorDefinition floor)
@@ -336,6 +389,19 @@ namespace Cryptforge.Combat
                                 $"Room {index} wave {i} enemy {e} needs a definition with a weapon and a prefab carrying Health, Targeting and AttackController.");
                     }
                 }
+            }
+        }
+
+        // A floor's horde roles must each be an enemy the scene can spawn, as a wave's enemies must.
+        private static void ValidateHorde(FloorDefinition floor)
+        {
+            for (int i = 0; i < floor.HordeRoleCount; i++)
+            {
+                EnemyDefinition enemy = floor.HordeRoleAt(i);
+                if (enemy == null || enemy.Weapon == null || enemy.Prefab == null ||
+                    enemy.Prefab.GetComponent<AttackController>() == null || enemy.Prefab.GetComponent<Targeting>() == null)
+                    throw new InvalidOperationException(
+                        $"Floor {floor.name} horde role {i} needs a definition with a weapon and a prefab carrying Health, Targeting and AttackController.");
             }
         }
 
@@ -389,6 +455,7 @@ namespace Cryptforge.Combat
                 return;
 
             MovePack(Time.deltaTime);
+            TickHorde(Time.deltaTime);
             if (_swarm != null)
             {
                 TickSwarm(Time.deltaTime);
@@ -488,6 +555,7 @@ namespace Cryptforge.Combat
         // and the encounter started once - so the chest, the bar and the room's telemetry all see one room, not a wave.
         private void BeginSwarm(RoomDefinition room)
         {
+            ReleaseHorde(true);
             ReleaseWave(true);
             IsInNonCombatRoom = false;
             _swarmRoom = room;
@@ -509,7 +577,7 @@ namespace Cryptforge.Combat
             _swarm.Open(_swarmSpawns);
             for (int i = 0; i < _swarmSpawns.Count; i++)
                 SpawnSwarmEnemy(_swarmSpawns[i]);
-            _heroTargeting.SetCandidates(_swarmCandidates);
+            SetWaveTargets(_swarmCandidates);
             _fight.Begin();
             ReportSwarmStep();
             EncounterStarted?.Invoke();
@@ -577,7 +645,7 @@ namespace Cryptforge.Combat
             _floorProgress.LeaveEndlessRoom();
             ReleaseWave(true);
             Array.Clear(_swarmCandidates, 0, _swarmCandidates.Length);
-            _heroTargeting.SetCandidates(Array.Empty<Health>());
+            SetWaveTargets(Array.Empty<Health>());
             // Whatever the room still held back is offered now, before the floor moves on.
             _upgrades?.Release();
             AdvanceFloor();
@@ -686,6 +754,8 @@ namespace Cryptforge.Combat
 
         private void OpenGateExit()
         {
+            // The boss has fallen: the floor's fight is over, and its horde goes with it.
+            ReleaseHorde(true);
             _gateExitOpen = true;
             FoundryMap.GateExitSpot(out _exitX, out _exitY);
             _exitDwell = new ExitDwell();
@@ -752,7 +822,7 @@ namespace Cryptforge.Combat
 
             AliveEnemyCount = count;
             _waveOrdinal++;
-            _heroTargeting.SetCandidates(candidates);
+            SetWaveTargets(candidates);
             _fight.Begin();
             EncounterStarted?.Invoke();
             ProgressChanged?.Invoke();
@@ -764,7 +834,7 @@ namespace Cryptforge.Combat
         // Its weapon's reach comes back for the pack, which stops each enemy just inside it.
         // healthScale is the floor's health tier times the difficulty the enemy walks in at.
         private SpawnedEnemy CreateEnemy(EnemyDefinition definition, string name, float healthScale, float healthPercent,
-            float damageBonus, float goldPercent, out float reach)
+            float damageBonus, float goldPercent, out float reach, bool horde = false)
         {
             Health enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
             enemy.name = name;
@@ -781,11 +851,18 @@ namespace Cryptforge.Combat
             {
                 Health = enemy,
                 Definition = definition,
-                Gold = FloorScaling.Gold(definition.GoldReward, goldPercent),
+                Gold = horde ? 0 : FloorScaling.Gold(definition.GoldReward, goldPercent),
+                Experience = horde ? HordeRule.Experience(definition.ExperienceReward) : definition.ExperienceReward,
                 Enrage = enemy.GetComponent<EnrageBehaviour>()
             };
-            spawn.OnDied = () => OnEnemyDied(spawn);
-            enemy.Changed += OnEnemyChanged;
+            // A horde enemy's hits and death are the horde's: they never count towards the node wave's fight.
+            if (horde)
+                spawn.OnDied = () => OnHordeEnemyDied(spawn);
+            else
+            {
+                spawn.OnDied = () => OnEnemyDied(spawn);
+                enemy.Changed += OnEnemyChanged;
+            }
             enemy.Died += spawn.OnDied;
             if (spawn.Enrage != null)
                 spawn.Enrage.Enraged += OnEnemyEnraged;
@@ -795,7 +872,7 @@ namespace Cryptforge.Combat
         private void EnterForge(RoomDefinition room)
         {
             ReleaseWave(true);
-            _heroTargeting.SetCandidates(Array.Empty<Health>());
+            SetWaveTargets(Array.Empty<Health>());
             IsInNonCombatRoom = true;
             _transitionWait = 0f;
 
@@ -870,6 +947,11 @@ namespace Cryptforge.Combat
                 if (ReferenceEquals(_wave[i].Health, enemy))
                     return _wave[i];
             }
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+            {
+                if (ReferenceEquals(_hordeEnemies[i].Health, enemy))
+                    return _hordeEnemies[i];
+            }
             return null;
         }
 
@@ -906,6 +988,232 @@ namespace Cryptforge.Combat
             AliveEnemyCount = 0;
         }
 
-        private void OnDestroy() => ReleaseWave(false);
+        private void OnDestroy()
+        {
+            ReleaseWave(false);
+            ReleaseHorde(false);
+        }
+
+        // The hero's targets: the wave's, and while a horde stands, the horde's living enemies after them.
+        private void SetWaveTargets(Health[] wave)
+        {
+            _waveTargets = wave ?? Array.Empty<Health>();
+            RebuildTargets();
+        }
+
+        private void RebuildTargets()
+        {
+            if (_horde == null)
+            {
+                _heroTargeting.SetCandidates(_waveTargets);
+                return;
+            }
+            int n = 0;
+            for (int i = 0; i < _waveTargets.Length && n < _targets.Length; i++)
+                _targets[n++] = _waveTargets[i];
+            for (int i = 0; i < _hordeEnemies.Count && n < _targets.Length; i++)
+            {
+                SpawnedEnemy enemy = _hordeEnemies[i];
+                if (!enemy.Defeated && enemy.Health != null)
+                    _targets[n++] = enemy.Health;
+            }
+            Array.Clear(_targets, n, _targets.Length - n);
+            _heroTargeting.SetCandidates(_targets);
+        }
+
+        // Whether this moment of the floor has a horde: the foundry, a floor with horde roles, between its first step and
+        // its boss's fall, never in a swarm room or on the way up to the next floor.
+        private bool HordeWanted() =>
+            _arena != null && _arena.IsFoundryRegion && _currentFloor.HordeRoleCount > 0 && _swarm == null &&
+            !_floorProgress.IsComplete && !_gateExitOpen && !_descending;
+
+        // One frame of the horde: its pack walks, its director says what walks in, and fallen bodies are taken away. A
+        // frozen frame - an open choice, the forge, a level-up - moves nothing.
+        private void TickHorde(float deltaTime)
+        {
+            if (!HordeWanted())
+            {
+                if (_horde != null)
+                    ReleaseHorde(true);
+                return;
+            }
+            if (_horde == null || _hordeFloor != FloorNumber)
+                BeginHorde();
+            if (deltaTime <= 0f || _choices.IsOpen || IsInNonCombatRoom)
+                return;
+
+            _hordeSeconds += deltaTime;
+            _hordeMotion.Held = PackHeld;
+            _hordeMotion.Step(deltaTime, HeroFloorX, HeroFloorY);
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+            {
+                SpawnedEnemy enemy = _hordeEnemies[i];
+                if (enemy.Health == null)
+                    continue;
+                if (!enemy.Defeated)
+                    enemy.Health.transform.position = WorldPosition(_hordeMotion.XOf(enemy.Slot), _hordeMotion.YOf(enemy.Slot));
+                else if (_hordeSeconds - enemy.FellAt >= HordeRule.RetireSeconds)
+                    RetireHordeBody(enemy);
+            }
+
+            bool bossRoom = _currentFloor.RoomAt(_floorProgress.RoomIndex).Kind == RoomKind.Boss;
+            HordeState state = HordeRule.StateFor(HallsCleared(), bossRoom);
+            if (state != _horde.State)
+                _horde.SetState(state);
+            _horde.Tick(deltaTime, HordeAliveCount, AliveEnemyCount, _hordeSpawns);
+            bool spawned = false;
+            for (int i = 0; i < _hordeSpawns.Count; i++)
+                spawned |= SpawnHordeEnemy(_hordeSpawns[i]);
+            if (spawned)
+                RebuildTargets();
+        }
+
+        // The floor's halls and elites already behind the hero: the horde's state reads how far the floor has got.
+        private int HallsCleared()
+        {
+            int cleared = 0;
+            for (int i = 0; i < _floorProgress.RoomIndex && i < _currentFloor.RoomCount; i++)
+            {
+                if (IsHallKind(_currentFloor.RoomAt(i).Kind))
+                    cleared++;
+            }
+            return cleared;
+        }
+
+        private void BeginHorde()
+        {
+            ReleaseHorde(true);
+            _hordeFloor = FloorNumber;
+            _hordeSeconds = 0f;
+            int roles = _currentFloor.HordeRoleCount;
+            _horde = new HordeDirector(HordeRule.SceneCap, roles, _hordeSeed + FloorNumber);
+            for (HordeState state = HordeState.Ramp; state <= HordeState.Boss; state++)
+            {
+                var weights = new int[roles];
+                for (int role = 0; role < roles; role++)
+                    weights[role] = HordeRule.Weight(state, role);
+                _horde.SetRoleWeights(state, weights);
+            }
+            _hordeMotion = new PackMotion(_bodySpacing, PackLayout.HalfWidth * _formationSpacing, _arena.Geometry, HeroFloorX,
+                HeroFloorY);
+            RebuildTargets();
+        }
+
+        // One horde enemy walking in from the edge of the view, at the floor's tier and the run's difficulty, into a fallen
+        // enemy's place when there is one. False when the floor had no clear spot for it.
+        private bool SpawnHordeEnemy(HordeDirector.Spawn spawn)
+        {
+            if (!TryHordeSpot(spawn.Ordinal, out float x, out float y))
+                return false;
+            int slot = -1;
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+            {
+                if (_hordeEnemies[i].Defeated)
+                {
+                    slot = i;
+                    break;
+                }
+            }
+            if (slot < 0 && _hordeMotion.Count >= PackLayout.MaxPackSize)
+                return false;
+
+            EnemyDefinition definition = _currentFloor.HordeRoleAt(spawn.Role);
+            FloorModifierDefinition modifier = _currentFloor.Modifier;
+            float healthPercent = modifier != null ? modifier.EnemyHealthPercent : 0f;
+            float damagePercent = modifier != null ? modifier.EnemyDamagePercent : 0f;
+            float scale = RunDifficulty;
+            float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale, damagePercent);
+            SpawnedEnemy enemy = CreateEnemy(definition, $"Horde {definition.Prefab.name} {spawn.Ordinal + 1}",
+                FloorHealthMultiplier(false) * scale, healthPercent, damageBonus, 0f, out float reach, true);
+            var placement = new EntryPlacement(EntrySides.SideOf(spawn.Ordinal, 0), 0f, x, y);
+            if (slot >= 0)
+            {
+                RetireHordeBody(_hordeEnemies[slot]);
+                _hordeMotion.Replace(slot, enemy.Health, placement, definition.MoveSpeed, reach);
+                _hordeEnemies[slot] = enemy;
+            }
+            else
+            {
+                slot = _hordeMotion.Add(enemy.Health, placement, definition.MoveSpeed, reach);
+                _hordeEnemies.Add(enemy);
+            }
+            enemy.Slot = slot;
+            enemy.Health.transform.position = WorldPosition(x, y);
+            HordeAliveCount++;
+            HordeEnemySpawned?.Invoke(slot);
+            return true;
+        }
+
+        // The first of the floor's horde spots that is on the floor and a body clear of every living horde enemy.
+        private bool TryHordeSpot(int ordinal, out float x, out float y)
+        {
+            float clearSquared = _bodySpacing * _bodySpacing;
+            for (int attempt = 0; attempt < FoundryMap.HordeSpotAttempts; attempt++)
+            {
+                if (!FoundryMap.HordeSpot(ordinal, attempt, HeroFloorX, HeroFloorY, out x, out y))
+                    continue;
+                bool clear = true;
+                for (int i = 0; clear && i < _hordeEnemies.Count; i++)
+                {
+                    SpawnedEnemy other = _hordeEnemies[i];
+                    clear = other.Defeated || ArenaFloor.FloorDistanceSquared(x, y, _hordeMotion.XOf(other.Slot),
+                        _hordeMotion.YOf(other.Slot)) >= clearSquared;
+                }
+                if (clear)
+                    return true;
+            }
+            x = y = 0f;
+            return false;
+        }
+
+        private void OnHordeEnemyDied(SpawnedEnemy enemy)
+        {
+            if (enemy.Defeated)
+                return;
+            enemy.Defeated = true;
+            enemy.FellAt = _hordeSeconds;
+            HordeAliveCount--;
+            _horde?.Fell();
+            EnemyDefeated?.Invoke(enemy.Health);
+        }
+
+        // A fallen horde enemy's body leaves the floor; its place stays for the next to fill.
+        private void RetireHordeBody(SpawnedEnemy fallen)
+        {
+            if (ReferenceEquals(fallen.Health, null))
+                return;
+            fallen.Health.Died -= fallen.OnDied;
+            if (fallen.Enrage != null)
+                fallen.Enrage.Enraged -= OnEnemyEnraged;
+            if (fallen.Health != null)
+                Destroy(fallen.Health.gameObject);
+            fallen.Health = null;
+        }
+
+        // The horde leaves the floor: every body goes, and the hero's targets are the wave's again.
+        private void ReleaseHorde(bool destroy)
+        {
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+            {
+                SpawnedEnemy enemy = _hordeEnemies[i];
+                if (ReferenceEquals(enemy.Health, null))
+                    continue;
+                enemy.Health.Died -= enemy.OnDied;
+                if (enemy.Enrage != null)
+                    enemy.Enrage.Enraged -= OnEnemyEnraged;
+                if (destroy && enemy.Health != null)
+                    Destroy(enemy.Health.gameObject);
+            }
+            _hordeEnemies.Clear();
+            bool had = _horde != null;
+            _horde = null;
+            _hordeMotion = null;
+            HordeAliveCount = 0;
+            if (!had)
+                return;
+            if (_heroTargeting != null)
+                RebuildTargets();
+            HordeReleased?.Invoke();
+        }
     }
 }

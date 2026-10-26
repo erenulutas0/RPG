@@ -106,15 +106,15 @@ namespace Cryptforge.UI
             ShowGrips(warning, pulse);
         }
 
-        // The same test PitEruptionService gives the pack (PackHeld): a living wave enemy whose floor point lies in the band
+        // The same test PitEruptionService gives the pack (PackHeld): a living enemy, wave or horde, whose floor point lies in the band
         // while a fight's warning runs.
         private void ShowGrips(float warning, float pulse)
         {
             int shown = 0;
             if (enabled && _encounters != null && _service.IsRunning && _service.Clock.IsWarning)
-                for (int i = 0; i < _encounters.WaveEnemyCount && shown < _grips.Length; i++)
+                for (int i = 0; i < _encounters.EnemyCount && shown < _grips.Length; i++)
                 {
-                    Health enemy = _encounters.WaveEnemyAt(i);
+                    Health enemy = _encounters.EnemyAt(i);
                     if (enemy == null || !enemy.IsAlive || !_encounters.TryFloorPositionOf(enemy, out float x, out float y)
                         || !PitEruptionRule.InBand(x, y)) continue;
                     var p = new Vector3(x, ArenaFloor.WorldY(y), 0);

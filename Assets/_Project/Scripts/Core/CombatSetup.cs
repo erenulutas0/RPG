@@ -150,7 +150,7 @@ namespace Cryptforge.Core
             _encounters.FloorCleared += OnFloorCleared;
             telemetry.Begin();
             bool arrival = DevelopmentStart.GateArrival();
-            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival);
+            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival, Run.Seed);
             if (arrival) gameObject.AddComponent<GateArrivalView>().Initialize(this, movement);
             // After the encounter knows its floor.
             Altars.Initialize(this, _hero.transform);
@@ -249,8 +249,8 @@ namespace Cryptforge.Core
         // as the owner chose to keep it (docs/27, S6d).
         private void OnEnemyDefeated(Health enemy)
         {
-            EnemyDefinition definition = _encounters.DefinitionOf(enemy);
-            int experience = definition != null ? definition.ExperienceReward : 0;
+            // The enemy's own reward as the encounter spawned it: a horde enemy pays a share of its experience and no gold.
+            int experience = _encounters.ExperienceRewardOf(enemy);
             int gold = _encounters.GoldRewardOf(enemy);
             if (_encounters.IsInSwarmRoom)
             {

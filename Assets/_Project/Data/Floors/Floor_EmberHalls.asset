@@ -86,5 +86,9 @@ MonoBehaviour:
   _enemyDamageMultiplier: 0.92
   _climbScaled: 1
   _foundryHallSurges: 2
+  _foundryHorde:
+  - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+  - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
+  - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
   _modifier: {fileID: 0}
   _nextFloor: {fileID: 11400000, guid: 10000000000000000000000000000015, type: 2}

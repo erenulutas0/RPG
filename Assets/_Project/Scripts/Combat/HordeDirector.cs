@@ -50,6 +50,16 @@ namespace Cryptforge.Combat
         // struggling is not buried (docs/27, Megabonk's own pressure curve). Never past the cap.
         public const float ReactiveShare = 0.5f;
 
+        // The most enemies the scene lets stand at once, horde and node waves together: the low end of the owner's first
+        // range (2026-10-26: 30-40 on the S23, raised by measurement) until the density probe has its number.
+        public const int SceneCap = 30;
+        // A horde enemy pays this share of its authored experience and no gold. The horde is the floor's pressure, not its
+        // purse: at full experience a kill a second opened a card offer every second or two at the floor's opening levels,
+        // and its gold would have flooded the forge's economy, which the node waves and chests carry (docs/41).
+        public const float ExperienceShare = 0.3f;
+        // How long a fallen horde enemy's body stays on the floor before it is taken away.
+        public const float RetireSeconds = 1.5f;
+
         // The RunRandom purpose the horde's role draws come from. RunRandom lists its own purposes one to four; this is
         // the next, kept here so the horde slice touches no existing file. It must stay unique among them.
         public const int RandomPurpose = 5;
@@ -66,6 +76,26 @@ namespace Cryptforge.Combat
             if (nodesCleared == 0)
                 return HordeState.Ramp;
             return nodesCleared == 1 ? HordeState.Horde : HordeState.Pressure;
+        }
+
+        // A role's weight in a state: the lightest role leads the opening, and each state further on gives every heavier
+        // role one more share. The boss room weights the roles as the opening does, so its minions stay light.
+        public static int Weight(HordeState state, int role)
+        {
+            if (state < HordeState.Ramp || state > HordeState.Boss)
+                throw new ArgumentOutOfRangeException(nameof(state));
+            if (role < 0)
+                throw new ArgumentOutOfRangeException(nameof(role));
+            int pressure = state == HordeState.Boss ? 0 : (int)state;
+            return Math.Max(0, 2 + pressure - role);
+        }
+
+        // The experience a horde enemy pays, from its authored reward: ExperienceShare of it, rounded, at least one.
+        public static int Experience(int authored)
+        {
+            if (authored < 0)
+                throw new ArgumentOutOfRangeException(nameof(authored));
+            return authored == 0 ? 0 : Math.Max(1, (int)(authored * ExperienceShare + 0.5f));
         }
 
         // The crowd the director aims for now: the state's target, raised by ReactiveShare times the window's kill ratio

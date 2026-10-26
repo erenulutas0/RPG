@@ -179,9 +179,9 @@ namespace Cryptforge.Core
             EncounterController encounter = _setup.Encounters;
             float best = float.PositiveInfinity;
             ex = x; ey = y;
-            for (int i = 0; i < encounter.WaveEnemyCount; i++)
+            for (int i = 0; i < encounter.EnemyCount; i++)
             {
-                Health enemy = encounter.WaveEnemyAt(i);
+                Health enemy = encounter.EnemyAt(i);
                 if (enemy == null || !enemy.IsAlive || !encounter.TryFloorPositionOf(enemy, out float px, out float py))
                     continue;
                 float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);

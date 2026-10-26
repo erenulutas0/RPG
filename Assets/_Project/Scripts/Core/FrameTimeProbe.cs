@@ -90,7 +90,7 @@ namespace Cryptforge.Core
             if (wave > 0)
             {
                 var encounters = FindFirstObjectByType<EncounterController>();
-                int enemies = encounters != null ? encounters.WaveEnemyCount : 0;
+                int enemies = encounters != null ? encounters.WaveEnemyCount + encounters.HordeAliveCount : 0;
                 Write(FormattableString.Invariant(
                     $"{Tag} wave: {enemies} enemies, StartWave {Milliseconds(wave):0.00} ms, frame {frame * 1000f:0.0} ms, main thread {Milliseconds(mainThread):0.0} ms, allocated {allocated / 1024f:0.0} KB"));
             }

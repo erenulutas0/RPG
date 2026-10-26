@@ -134,6 +134,8 @@ namespace Cryptforge.UI
         private Effect[] _effects;
         private Number[] _numbers;
         private EnemyWatch[] _watches;
+        // The floor's horde, watched by its places, so its hits and falls show as the wave's do.
+        private EnemyWatch[] _hordeWatches;
         private int _watchCount;
         private int _nextEffect;
         private int _nextNumber;
@@ -216,6 +218,9 @@ namespace Cryptforge.UI
             _watches = new EnemyWatch[PackLayout.MaxPackSize];
             for (int i = 0; i < _watches.Length; i++)
                 _watches[i] = new EnemyWatch(this);
+            _hordeWatches = new EnemyWatch[PackLayout.MaxPackSize];
+            for (int i = 0; i < _hordeWatches.Length; i++)
+                _hordeWatches[i] = new EnemyWatch(this);
             _ready = true;
         }
 
@@ -233,6 +238,8 @@ namespace Cryptforge.UI
 
             _encounter.EncounterStarted += OnEncounterStarted;
             _encounter.EnemyDefeated += OnEnemyDefeated;
+            _encounter.HordeEnemySpawned += OnHordeEnemySpawned;
+            _encounter.HordeReleased += ReleaseHorde;
             _heroAttack.Struck += OnHeroStruck;
             _hero.Damaged += OnHeroDamaged;
             if (_heroAbility != null)
@@ -251,6 +258,9 @@ namespace Cryptforge.UI
             {
                 _encounter.EncounterStarted -= OnEncounterStarted;
                 _encounter.EnemyDefeated -= OnEnemyDefeated;
+                _encounter.HordeEnemySpawned -= OnHordeEnemySpawned;
+                _encounter.HordeReleased -= ReleaseHorde;
+                ReleaseHorde();
                 _heroAttack.Struck -= OnHeroStruck;
                 _hero.Damaged -= OnHeroDamaged;
                 if (_heroAbility != null)
@@ -352,22 +362,52 @@ namespace Cryptforge.UI
             for (int i = 0; i < count; i++)
             {
                 Health enemy = _encounter.WaveEnemyAt(i);
-                EnemyWatch watch = _watches[i];
-                if (enemy == null)
-                    continue;
-
-                watch.Enemy = enemy;
-                watch.Root = enemy.transform;
-                watch.Look = enemy.GetComponent<EnemyLookView>();
-                // Effects land at the middle of the body, whatever look the enemy was given. Only its place on screen: the
-                // foundry may have moved the body in z for a render (FoundryVisibilityView), which effects must not inherit.
-                SpriteRenderer body = enemy.GetComponentInChildren<SpriteRenderer>();
-                Vector3 offset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
-                offset.z = 0f;
-                watch.BodyOffset = offset;
-                enemy.Damaged += watch.OnDamaged;
+                if (enemy != null)
+                    Bind(_watches[i], enemy);
             }
             _watchCount = count;
+        }
+
+        // A horde enemy has walked into a place: its watch follows the newcomer instead of the body it replaced.
+        private void OnHordeEnemySpawned(int slot)
+        {
+            if (slot < 0 || slot >= _hordeWatches.Length)
+                return;
+            Unbind(_hordeWatches[slot]);
+            Health enemy = _encounter.HordeEnemyAt(slot);
+            if (enemy != null)
+                Bind(_hordeWatches[slot], enemy);
+        }
+
+        private void ReleaseHorde()
+        {
+            if (_hordeWatches == null)
+                return;
+            for (int i = 0; i < _hordeWatches.Length; i++)
+                Unbind(_hordeWatches[i]);
+        }
+
+        private void Unbind(EnemyWatch watch)
+        {
+            if (!ReferenceEquals(watch.Enemy, null))
+                watch.Enemy.Damaged -= watch.OnDamaged;
+            watch.Enemy = null;
+            watch.Root = null;
+            watch.Look = null;
+        }
+
+        private void Bind(EnemyWatch watch, Health enemy)
+        {
+            watch.Enemy = enemy;
+            watch.Root = enemy.transform;
+            watch.Look = enemy.GetComponent<EnemyLookView>();
+            // Effects land at the middle of the body, whatever look the enemy was given. Only its place on screen: the
+            // foundry may have moved the body in z for a render (FoundryVisibilityView), which effects must not inherit.
+            SpriteRenderer body = enemy.GetComponentInChildren<SpriteRenderer>();
+            Vector3 offset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
+            offset.z = 0f;
+            watch.BodyOffset = offset;
+            enemy.Damaged += watch.OnDamaged;
         }
 
         // Unsubscribing goes through the managed object, so it is safe after Unity destroyed the enemy.
@@ -391,6 +431,11 @@ namespace Cryptforge.UI
             {
                 if (ReferenceEquals(_watches[i].Enemy, enemy))
                     return _watches[i];
+            }
+            for (int i = 0; _hordeWatches != null && i < _hordeWatches.Length; i++)
+            {
+                if (ReferenceEquals(_hordeWatches[i].Enemy, enemy))
+                    return _hordeWatches[i];
             }
             return null;
         }

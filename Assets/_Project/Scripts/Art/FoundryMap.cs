@@ -183,6 +183,20 @@ namespace Cryptforge.Art
                 output[slot]=new EntryPlacement(EntrySide.Far,0,x,y);
             }
         }
+        // Where the horde's enemies walk in (HordeDirector): rings HordeSpotNear..HordeSpotFar units out from the hero, so they
+        // come in from the edge of the view rather than appear beside it; attempt picks the ring and the angle, the angle
+        // turned by the spawn's ordinal so successive spawns come from all round. False where the spot is off the floor.
+        public const float HordeSpotNear=7f,HordeSpotFar=12f;
+        public const int HordeSpotAngles=16,HordeSpotAttempts=HordeSpotAngles*6;
+        public static bool HordeSpot(int ordinal,int attempt,float hx,float hy,out float x,out float y)
+        {
+            if(attempt<0||attempt>=HordeSpotAttempts)throw new ArgumentOutOfRangeException(nameof(attempt));
+            int ring=attempt/HordeSpotAngles,turn=attempt%HordeSpotAngles;
+            float radius=HordeSpotNear+(HordeSpotFar-HordeSpotNear)*ring/5f;
+            double angle=(turn*7+ordinal*5)%HordeSpotAngles*Math.PI*2/HordeSpotAngles;
+            x=hx+(float)Math.Cos(angle)*radius;y=hy+(float)Math.Sin(angle)*radius;
+            return Contains(x,y,HeroMotion.EdgeMargin+.02f);
+        }
         public static void PlacePack(int ordinal,int count,float hx,float hy,float separation,EntryPlacement[] output)
         {
             for(int slot=0;slot<count;slot++)
