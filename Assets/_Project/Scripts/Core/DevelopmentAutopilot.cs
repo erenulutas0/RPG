@@ -8,11 +8,11 @@ using UnityEngine;
 namespace Cryptforge.Core
 {
     // A development build's hands-off player for device checks of the foundry (DevelopmentStart.Autopilot): it walks the
-    // hero to each marked hall, picks up the drops in sight and takes both altars between fights, and in a fight draws the
-    // pack to the pit's rim and steps out of the band while the rim glows, so the run's log measures what the pit does to a
-    // hero who uses it. It answers every offer with its first card and every checkpoint with Descend, and walks onto an
-    // open exit (a minute into the finale's swarm). It steers through HeroMovementInput.Hold, so a finger on the screen
-    // still takes over. Never part of a player's build.
+    // hero to each marked hall, picks up the drops beside it and takes both altars between fights, kites any enemy that
+    // comes close, draws a node fight to the pit's rim and steps out of the band while the rim glows, so the run's log
+    // measures what the floor does to a hero who plays it. It answers every offer with its first card and every
+    // checkpoint with Descend, and walks onto an open exit (a minute into the finale's swarm). It steers through
+    // HeroMovementInput.Hold, so a finger on the screen still takes over. Never part of a player's build.
     public sealed class DevelopmentAutopilot : MonoBehaviour
     {
         private const float ChoiceDelay = .8f;
@@ -20,10 +20,16 @@ namespace Cryptforge.Core
         private const float LureDepth = 1.3f;
         private const float ShelterDepth = PitEruptionRule.Reach + 1.4f;
         private const float Arrived = .35f;
-        private const float BackOff = 1.1f;
         private const float SwarmStay = 60f;
-        // How far between fights the autopilot walks for a drop; the floor's end sweeps up the rest.
-        private const float DropDetour = 10f;
+        // How far between fights the autopilot steps aside for a drop. It was 10, and with a horde dropping experience all
+        // round the hero it chased drops for minutes instead of walking to the next hall; the floor's end sweeps the rest.
+        private const float DropDetour = 4f;
+        // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach pushes the hero away, the nearer the
+        // harder, and the hero walks away from the push turned KiteTurn round it, so it circles the crowd instead of backing
+        // into a wall. Just beyond a melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
+        private const float KiteReach = 1.6f;
+        private const float KiteTurn = 35f * Mathf.Deg2Rad;
+        private const float KiteStride = 2f;
         private CombatSetup _setup;
         private HeroMovementInput _movement;
         private Transform _hero;
@@ -86,26 +92,29 @@ namespace Cryptforge.Core
                 return true;
             }
             bool fighting = encounter.AliveEnemyCount > 0;
-            if (fighting && _setup.Pit != null && _setup.Pit.IsActive)
+            bool pit = _setup.Pit != null && _setup.Pit.IsActive;
+            // A spill coming and the hero on the rim: shelter first, whatever is chasing.
+            if (pit && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning && PitEruptionRule.InBand(x, y))
             {
-                RimSpot(x, y, _setup.Pit.Clock.IsWarning ? ShelterDepth : LureDepth, out gx, out gy);
-                // At the lure spot, keep a step ahead of the nearest enemy along the rim instead of trading blows.
-                if (!_setup.Pit.Clock.IsWarning && Nearest(x, y, out float ex, out float ey) &&
-                    ArenaFloor.FloorDistanceSquared(x, y, gx, gy) < 1f && ArenaFloor.FloorDistanceSquared(x, y, ex, ey) < BackOff * BackOff)
-                {
-                    gx = x + (x - ex); gy = y + (y - ey);
-                    stop = 0f;
-                }
+                RimSpot(x, y, ShelterDepth, out gx, out gy);
                 return true;
             }
-            if (fighting)
+            if (Threat(x, y, out float tx, out float ty))
             {
-                if (!Nearest(x, y, out float ex, out float ey) || ArenaFloor.FloorDistanceSquared(x, y, ex, ey) >= BackOff * BackOff)
-                    return false;
-                gx = x + (x - ex); gy = y + (y - ey);
+                float cos = Mathf.Cos(KiteTurn), sin = Mathf.Sin(KiteTurn);
+                gx = x + (tx * cos - ty * sin) * KiteStride;
+                gy = y + (tx * sin + ty * cos) * KiteStride;
                 stop = 0f;
                 return true;
             }
+            // A node fight is drawn to the pit's rim; the horde alone is fought wherever the hero is going.
+            if (fighting && pit)
+            {
+                RimSpot(x, y, LureDepth, out gx, out gy);
+                return true;
+            }
+            if (fighting)
+                return false;
             // Between fights, as a player would: the drops in sight, then the floor's altars, then the next hall.
             if (Nearest(_setup.Drops, x, y, out gx, out gy))
             {
@@ -174,22 +183,28 @@ namespace Cryptforge.Core
             FoundryMap.ToFloor(cu + away.x * depth, cv + away.y * depth, out gx, out gy);
         }
 
-        private bool Nearest(float x, float y, out float ex, out float ey)
+        // The push of every living enemy within KiteReach, as a unit direction away from them; false when none is that close.
+        private bool Threat(float x, float y, out float tx, out float ty)
         {
             EncounterController encounter = _setup.Encounters;
-            float best = float.PositiveInfinity;
-            ex = x; ey = y;
+            tx = ty = 0f;
             for (int i = 0; i < encounter.EnemyCount; i++)
             {
                 Health enemy = encounter.EnemyAt(i);
                 if (enemy == null || !enemy.IsAlive || !encounter.TryFloorPositionOf(enemy, out float px, out float py))
                     continue;
                 float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                if (d >= best)
+                if (d >= KiteReach * KiteReach || d < 1e-6f)
                     continue;
-                best = d; ex = px; ey = py;
+                tx += (x - px) / d;
+                ty += (y - py) / d;
             }
-            return !float.IsPositiveInfinity(best);
+            float length = Mathf.Sqrt(tx * tx + ty * ty);
+            if (length < 1e-4f)
+                return false;
+            tx /= length;
+            ty /= length;
+            return true;
         }
 
         private void Steer(float x, float y, float gx, float gy, float stop)
