@@ -14,6 +14,9 @@ namespace Cryptforge.Analytics
     // Every call is cheap and allocation-free unless an event is written, because progress arrives on every hit.
     public sealed class RunTelemetry : IDisposable
     {
+        // How many seconds of the run's active time lie between two horde_sample lines.
+        public const double HordeSampleSeconds = 5.0;
+
         private const string ResultCleared = "cleared";
 
         private enum TimeKind
@@ -112,6 +115,14 @@ namespace Cryptforge.Analytics
         // The ordinary wave that spawned last and has not fallen yet, and the run's active seconds when it spawned.
         private bool _waveOpen;
         private double _waveActiveAtStart;
+
+        // The foundry floor's continuous horde: whether a horde is being sampled, the run's active seconds at which its next
+        // horde_sample is due, its spawns and deaths since the last sample, and the run's horde deaths for run_end.
+        private bool _hordeSampling;
+        private double _hordeSampleDue;
+        private int _hordeSpawnedWindow;
+        private int _hordeKillsWindow;
+        private int _hordeKills;
 
         // Gold attribution. The scene reports a kill before the reward service pays it and a chest after it paid, both
         // within one call chain: gold that a reported kill announced is kill gold, the rest waits for the chest report.
@@ -308,6 +319,68 @@ namespace Cryptforge.Analytics
                 .Add("active_sec", _runTime.Active - _waveActiveAtStart)
                 .Add("enemy_hits", enemyHits)
                 .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+        }
+
+        // The foundry floor's continuous horde beside the node waves (HordeDirector), sampled so its crowd can be tuned
+        // from the device log. The scene reports each horde enemy walking in, and each horde death after its RecordKill.
+        public void RecordHordeSpawn()
+        {
+            if (IsRecording)
+                _hordeSpawnedWindow++;
+        }
+
+        public void RecordHordeKill()
+        {
+            if (!IsRecording)
+                return;
+
+            _hordeKills++;
+            _hordeKillsWindow++;
+        }
+
+        // Once per frame while a horde stands, after Tick. The first call starts the cadence; horde_sample is then written
+        // every HordeSampleSeconds of the run's active time, which stops for a choice, the player's pause and the
+        // background, so a frozen run writes none, and only inside an open room. A long frame writes one sample, not a
+        // burst. The window counts are the spawns and horde deaths since the previous sample (or since the horde began).
+        // Called every frame, so it only compares numbers unless a sample is due.
+        public void ObserveHorde(HordeState state, int hordeAlive, int hordeTarget, int waveAlive)
+        {
+            if (!IsRecording)
+                return;
+
+            if (!_hordeSampling)
+            {
+                _hordeSampling = true;
+                _hordeSampleDue = _runTime.Active + HordeSampleSeconds;
+                return;
+            }
+            if (_runTime.Active < _hordeSampleDue || !_roomOpen || _inBackground || _pause.IsPlayerPaused || _pause.IsChoiceOpen)
+                return;
+
+            _session.Emit("horde_sample", new TelemetryFields()
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex)
+                .Add("state", HordeStateName(state))
+                .Add("horde_alive", hordeAlive)
+                .Add("horde_target", hordeTarget)
+                .Add("wave_alive", waveAlive)
+                .Add("horde_spawned_window", _hordeSpawnedWindow)
+                .Add("horde_kills_window", _hordeKillsWindow)
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+            _hordeSpawnedWindow = 0;
+            _hordeKillsWindow = 0;
+            _hordeSampleDue += HordeSampleSeconds;
+            if (_hordeSampleDue <= _runTime.Active)
+                _hordeSampleDue = _runTime.Active + HordeSampleSeconds;
+        }
+
+        // The horde has left the floor (the gate opened, the floor moved on, the scene is going): sampling stops, and the
+        // next horde starts its own cadence and window. Its deaths stay in the run's horde_kills.
+        public void RecordHordeReleased()
+        {
+            _hordeSampling = false;
+            _hordeSpawnedWindow = 0;
+            _hordeKillsWindow = 0;
         }
 
         public void ObserveProgress(int floorNumber, string floorId, int roomNumber, RoomKind roomKind, string toughestEnemyId)
@@ -653,6 +726,7 @@ namespace Cryptforge.Analytics
                 .Add("rooms_completed", _roomsCompleted)
                 .Add("run_level", _run.Level)
                 .Add("kills", _kills)
+                .Add("horde_kills", _hordeKills)
                 .Add("upgrades_applied", _run.UpgradesApplied)
                 .Add("pulses", _pulses != null ? _pulses() : 0)
                 .Add("gold", _run.Gold)
@@ -846,6 +920,23 @@ namespace Cryptforge.Analytics
                     return "boss";
                 case RoomKind.Swarm:
                     return "swarm";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private static string HordeStateName(HordeState state)
+        {
+            switch (state)
+            {
+                case HordeState.Ramp:
+                    return "ramp";
+                case HordeState.Horde:
+                    return "horde";
+                case HordeState.Pressure:
+                    return "pressure";
+                case HordeState.Boss:
+                    return "boss";
                 default:
                     return "unknown";
             }

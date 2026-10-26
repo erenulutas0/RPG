@@ -7,11 +7,11 @@ using UnityEngine.SceneManagement;
 
 namespace Cryptforge.Analytics
 {
-    // Connects one scene's run recorder to the Unity side: encounter progress, waves, kills, floor clears, the ability and
-    // the chest reach the pure RunTelemetry through here, as do frames and the app leaving the foreground. The composition
-    // root adds it at runtime (it is never placed in a scene) before its own reactions subscribe, and it goes away with
-    // the scene, unsubscribing and disposing the recorder, so a restart never keeps an old subscription. It only reads
-    // state and never logs: telemetry must not change a run or add console output that scene tests would flag.
+    // Connects one scene's run recorder to the Unity side: encounter progress, waves, the horde, kills, floor clears, the
+    // ability and the chest reach the pure RunTelemetry through here, as do frames and the app leaving the foreground. The
+    // composition root adds it at runtime (it is never placed in a scene) before its own reactions subscribe, and it goes
+    // away with the scene, unsubscribing and disposing the recorder, so a restart never keeps an old subscription. It only
+    // reads state and never logs: telemetry must not change a run or add console output that scene tests would flag.
     [AddComponentMenu("")]
     public sealed class RunTelemetryBridge : MonoBehaviour
     {
@@ -87,6 +87,8 @@ namespace Cryptforge.Analytics
             _encounters.ProgressChanged += OnProgressChanged;
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.FloorCleared += OnFloorCleared;
+            _encounters.HordeEnemySpawned += OnHordeEnemySpawned;
+            _encounters.HordeReleased += OnHordeReleased;
             _ability.Used += OnAbilityUsed;
             if (_chests != null)
                 _chests.Opened += OnChestOpened;
@@ -155,7 +157,25 @@ namespace Cryptforge.Analytics
             // A kill in the Descent drops its gold, which is expected when it is picked up rather than now.
             int gold = _encounters.IsInSwarmRoom || _drops == null ? _encounters.GoldRewardOf(enemy) : 0;
             _telemetry.RecordKill(definition != null ? definition.Id : null, gold);
+            if (_encounters.IsHordeActive && IsHordeEnemy(enemy))
+                _telemetry.RecordHordeKill();
         }
+
+        // EnemyDefeated is raised for a horde enemy while it still holds its place in the horde; its body is retired later.
+        private bool IsHordeEnemy(Health enemy)
+        {
+            int count = _encounters.HordeEnemyCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (ReferenceEquals(_encounters.HordeEnemyAt(i), enemy))
+                    return true;
+            }
+            return false;
+        }
+
+        private void OnHordeEnemySpawned(int slot) => _telemetry.RecordHordeSpawn();
+
+        private void OnHordeReleased() => _telemetry.RecordHordeReleased();
 
         // Heard before the composition root opens the checkpoint or ends the Descent.
         private void OnFloorCleared()
@@ -172,12 +192,18 @@ namespace Cryptforge.Analytics
                 _chests.LastBookRarity);
 
         // Scaled time for the run's active seconds, unscaled for choices and the player's pause, which stop scaled time.
+        // The horde is sampled after the frame's time is counted, on the same active clock.
         private void Update()
         {
-            if (_telemetry != null)
-                // A pre-encounter presentation is not active combat time. Keep unscaled flush/pause handling.
-                _telemetry.Tick(_encounters != null && _encounters.IsFirstEncounterPending ? 0f : Time.deltaTime,
-                    Time.unscaledDeltaTime);
+            if (_telemetry == null)
+                return;
+
+            // A pre-encounter presentation is not active combat time. Keep unscaled flush/pause handling.
+            _telemetry.Tick(_encounters != null && _encounters.IsFirstEncounterPending ? 0f : Time.deltaTime,
+                Time.unscaledDeltaTime);
+            if (_encounters != null && _encounters.IsHordeActive)
+                _telemetry.ObserveHorde(_encounters.HordeStateNow, _encounters.HordeAliveCount, _encounters.HordeTarget,
+                    _encounters.AliveEnemyCount);
         }
 
         private void OnApplicationPause(bool paused)
@@ -200,6 +226,8 @@ namespace Cryptforge.Analytics
                 _encounters.ProgressChanged -= OnProgressChanged;
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
                 _encounters.FloorCleared -= OnFloorCleared;
+                _encounters.HordeEnemySpawned -= OnHordeEnemySpawned;
+                _encounters.HordeReleased -= OnHordeReleased;
             }
             if (!ReferenceEquals(_ability, null))
                 _ability.Used -= OnAbilityUsed;

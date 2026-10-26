@@ -152,12 +152,14 @@ namespace Cryptforge.Tests
             Assert.That(end.Keys, Is.EqualTo(new[]
             {
                 "v", "seq", "t", "st", "session", "run", "event",
-                "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "upgrades_applied", "pulses", "gold",
-                "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec", "hero_hp", "hero_max_hp"
+                "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "horde_kills", "upgrades_applied",
+                "pulses", "gold", "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec", "hero_hp",
+                "hero_max_hp"
             }));
             Assert.That((end.Text("result"), end.Text("cause"), end.Integer("floors_completed"), end.Integer("rooms_completed")),
                 Is.EqualTo(("extracted", "extracted", 1L, 3L)));
             Assert.That((end.Integer("run_level"), end.Integer("kills"), end.Integer("upgrades_applied")), Is.EqualTo((1L, 3L, 2L)));
+            Assert.That(end.Integer("horde_kills"), Is.EqualTo(0L), "A run without a horde reports none.");
             Assert.That((end.Integer("gold"), end.Integer("gold_banked"), end.Integer("gold_lost")), Is.EqualTo((35L, 35L, 0L)));
             Assert.That(telemetry.Session.RunId, Is.Null);
         }
@@ -338,6 +340,107 @@ namespace Cryptforge.Tests
             Assert.That((bossEnd.Number("hero_hp"), bossEnd.Number("hero_max_hp")), Is.EqualTo((30.0, 120.0)));
             Assert.That((end.Number("hero_hp"), end.Number("hero_max_hp")), Is.EqualTo((30.0, 120.0)));
             Assert.That(All(lines, "room_complete")[1].Number("hero_max_hp"), Is.EqualTo(120.0));
+        }
+
+        [Test]
+        public void HordeSamplesAreLoggedInsideTheirRoomOnTheActiveClock()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            RunTelemetry recorder = scene.Recorder;
+
+            recorder.ObserveHorde(HordeState.Ramp, 1, 4, 0);
+            recorder.Begin();
+            scene.Room(1, Floor1, 1, RoomKind.Combat, "enemy_grunt");
+            // A spawn heard before the first observation counts in the first window; that observation starts the cadence.
+            recorder.RecordHordeSpawn();
+            recorder.ObserveHorde(HordeState.Ramp, 1, 4, 0);
+            recorder.RecordWaveStart(1, 2, 3);
+            recorder.Tick(2.5f, 2.5f);
+            recorder.RecordHordeSpawn();
+            recorder.RecordKill("enemy_mite", 0);
+            recorder.RecordHordeKill();
+            recorder.ObserveHorde(HordeState.Ramp, 1, 4, 3);
+            recorder.Tick(2.5f, 2.5f);
+            scene.Hero.Current = 80f;
+            recorder.ObserveHorde(HordeState.Ramp, 1, 5, 3);
+            recorder.ObserveHorde(HordeState.Ramp, 1, 5, 3);
+            // The player's pause and an open choice stop the clock, so a frozen run writes no sample however long it lasts.
+            recorder.Tick(5f, 5f);
+            Assert.That(scene.Pause.TryPause(), Is.True);
+            recorder.ObserveHorde(HordeState.Ramp, 2, 5, 3);
+            recorder.Tick(0f, 20f);
+            recorder.ObserveHorde(HordeState.Ramp, 2, 5, 3);
+            Assert.That(scene.Pause.TryResume(), Is.True);
+            recorder.ObserveHorde(HordeState.Ramp, 2, 5, 3);
+            recorder.RecordWaveClear(1, 2, 9);
+            scene.Kill("enemy_grunt", 10, 0);
+            Assert.That(scene.Pause.IsChoiceOpen, Is.True);
+            recorder.Tick(5f, 5f);
+            recorder.ObserveHorde(HordeState.Ramp, 2, 5, 0);
+            Assert.That(scene.PickUpgrade(0), Is.True);
+            // A long frame writes one sample, and the next is due a whole interval later.
+            recorder.Tick(12f, 12f);
+            recorder.RecordHordeSpawn();
+            recorder.RecordHordeSpawn();
+            recorder.RecordHordeSpawn();
+            recorder.ObserveHorde(HordeState.Horde, 5, 10, 0);
+            recorder.ObserveHorde(HordeState.Horde, 5, 10, 0);
+            recorder.Tick(4.5f, 4.5f);
+            recorder.ObserveHorde(HordeState.Horde, 5, 10, 0);
+            // A released horde takes its unsampled window with it; the next horde starts its own cadence.
+            recorder.RecordHordeSpawn();
+            recorder.RecordHordeReleased();
+            scene.Room(1, Floor1, 2, RoomKind.Combat, "enemy_grunt");
+            recorder.ObserveHorde(HordeState.Horde, 0, 10, 0);
+            recorder.Tick(0.5f, 0.5f);
+            recorder.ObserveHorde(HordeState.Horde, 0, 10, 0);
+            recorder.RecordHordeSpawn();
+            recorder.RecordKill("enemy_mite", 0);
+            recorder.RecordHordeKill();
+            recorder.Tick(4.5f, 4.5f);
+            recorder.ObserveHorde(HordeState.Pressure, 0, 16, 0);
+            recorder.Tick(5f, 5f);
+            recorder.ObserveHorde(HordeState.Boss, 1, 6, 1);
+            scene.Die("enemy_grunt");
+            recorder.Tick(10f, 10f);
+            recorder.RecordHordeKill();
+            recorder.ObserveHorde(HordeState.Boss, 1, 6, 1);
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Assert.That(Events(lines), Is.EqualTo(new[]
+            {
+                "session_start", "run_start",
+                "room_start", "wave_start", "first_kill", "horde_sample", "horde_sample", "wave_clear", "upgrade_offered",
+                "upgrade_selected", "horde_sample", "room_complete",
+                "room_start", "horde_sample", "horde_sample", "room_complete", "run_end"
+            }), "Nothing is sampled before the run begins, while it is frozen or after it ends.");
+
+            List<Line> samples = All(lines, "horde_sample");
+            Assert.That(samples[0].Keys, Is.EqualTo(new[]
+            {
+                "v", "seq", "t", "st", "session", "run", "event",
+                "floor_index", "room_index", "state", "horde_alive", "horde_target", "wave_alive", "horde_spawned_window",
+                "horde_kills_window", "hero_hp", "hero_max_hp"
+            }));
+            Assert.That((samples[0].Integer("floor_index"), samples[0].Integer("room_index"), samples[0].Text("state")),
+                Is.EqualTo((1L, 1L, "ramp")));
+            Assert.That((samples[0].Integer("horde_alive"), samples[0].Integer("horde_target"), samples[0].Integer("wave_alive")),
+                Is.EqualTo((1L, 5L, 3L)));
+            Assert.That((samples[0].Integer("horde_spawned_window"), samples[0].Integer("horde_kills_window"),
+                samples[0].Number("hero_hp"), samples[0].Number("hero_max_hp")), Is.EqualTo((2L, 1L, 80.0, 100.0)));
+            Assert.That((samples[1].Integer("horde_alive"), samples[1].Integer("horde_spawned_window"),
+                samples[1].Integer("horde_kills_window")), Is.EqualTo((2L, 0L, 0L)), "Each window starts at the last sample.");
+            Assert.That((samples[2].Text("state"), samples[2].Integer("horde_target"), samples[2].Integer("horde_spawned_window")),
+                Is.EqualTo(("horde", 10L, 3L)));
+            Assert.That((samples[3].Integer("room_index"), samples[3].Text("state"), samples[3].Integer("horde_spawned_window"),
+                samples[3].Integer("horde_kills_window")), Is.EqualTo((2L, "pressure", 1L, 1L)));
+            Assert.That((samples[4].Text("state"), samples[4].Integer("wave_alive")), Is.EqualTo(("boss", 1L)));
+
+            Line end = Single(lines, "run_end");
+            Assert.That((end.Integer("kills"), end.Integer("horde_kills")), Is.EqualTo((3L, 2L)),
+                "A horde death after the run ended counts for neither.");
         }
 
         [Test]
@@ -915,7 +1018,8 @@ namespace Cryptforge.Tests
                         break;
                     case "wave_start":
                     case "wave_clear":
-                        Assert.That(roomOpen, Is.True, "A wave belongs to the open room: " + where);
+                    case "horde_sample":
+                        Assert.That(roomOpen, Is.True, "A wave or a horde sample belongs to the open room: " + where);
                         Assert.That((line.Integer("floor_index"), line.Integer("room_index")), Is.EqualTo((roomFloor, roomIndex)), where);
                         break;
                     case "boss_end":
