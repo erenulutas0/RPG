@@ -20,6 +20,9 @@ namespace Cryptforge.Combat
         public const float Reach = 3f;
         public const float HeroShare = .1f;
         public const float EnemyShare = .4f;
+        // The gate boss is chipped, not felled: at EnemyShare two spills lured to the rim took 80% of the Warden and the
+        // autopilot's fights ended a frame after 38% (docs/41, 2026-10-26).
+        public const float BossShare = .05f;
 
         // How far a floor point lies outside the pit's square hole, in design units (0 inside it).
         public static float DistanceOutside(float floorX, float floorY)

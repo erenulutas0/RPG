@@ -94,6 +94,8 @@ namespace Cryptforge.Combat
         // on a floor with no horde roles, in a swarm room and once the gate is open.
         private HordeDirector _horde;
         private PackMotion _hordeMotion;
+        // The gate boss has fallen below WardenRule.PhaseTwoAt: the boss room's horde thickens instead of thinning.
+        private bool _bossEnraged;
         private int _hordeFloor;
         private int _hordeSeed;
         private float _hordeSeconds;
@@ -337,6 +339,12 @@ namespace Cryptforge.Combat
         public int EnemyCount => _wave.Count + _hordeEnemies.Count;
         public Health EnemyAt(int index) => index < _wave.Count ? _wave[index].Health : _hordeEnemies[index - _wave.Count].Health;
         public int AllAliveCount => AliveEnemyCount + HordeAliveCount;
+        // The gate boss's second phase (WardenSlamService): the boss room's horde presses round it.
+        public void SetBossEnraged(bool enraged) => _bossEnraged = enraged;
+        // The boss the foundry's gate sent out, while its wave stands; null otherwise.
+        public Health GateBoss => _gateBossWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0].Health : null;
+        private bool _gateBossWave;
+        public bool IsBossEnraged => _bossEnraged;
 
         // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
         public EnemyDefinition DefinitionOf(IDamageable enemy) => Find(enemy)?.Definition;
@@ -803,13 +811,15 @@ namespace Cryptforge.Combat
             // near the centre and a pack the formations already keep 1.1 spacing units apart, it changes nothing.
             EntrySides.Place(_waveOrdinal, count, heroX, heroY, _arena.Geometry, _entryDepth, _formationSpacing, _bodySpacing,
                 _placements);
+            _gateBossWave = atGate;
             if (atGate)
                 FoundryMap.PlaceAtGate(count, _placements);
             for (int i = 0; i < count; i++)
             {
                 EnemyDefinition definition = waveDefinition[i];
                 SpawnedEnemy spawn = CreateEnemy(definition,
-                    count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}", floorHealth * scale,
+                    count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}",
+                    floorHealth * scale * (atGate && i == 0 ? WardenRule.GateHealthShare : 1f),
                     healthPercent, damageBonus, goldPercent, out float reach);
                 int slot = _motion.Add(spawn.Health, _placements[i], definition.MoveSpeed, reach);
                 if (atGate)
@@ -1057,7 +1067,9 @@ namespace Cryptforge.Combat
             }
 
             bool bossRoom = _currentFloor.RoomAt(_floorProgress.RoomIndex).Kind == RoomKind.Boss;
-            HordeState state = HordeRule.StateFor(HallsCleared(), bossRoom);
+            // An enraged gate boss draws the horde's Horde crowd round it; Pressure there killed the autopilot in three
+            // fights of six (docs/41, 2026-10-26).
+            HordeState state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
             if (state != _horde.State)
                 _horde.SetState(state);
             _horde.Tick(deltaTime, HordeAliveCount, AliveEnemyCount, _hordeSpawns);
@@ -1085,6 +1097,7 @@ namespace Cryptforge.Combat
             ReleaseHorde(true);
             _hordeFloor = FloorNumber;
             _hordeSeconds = 0f;
+            _bossEnraged = false;
             int roles = _currentFloor.HordeRoleCount;
             _horde = new HordeDirector(HordeRule.SceneCap, roles, _hordeSeed + FloorNumber);
             for (HordeState state = HordeState.Ramp; state <= HordeState.Boss; state++)

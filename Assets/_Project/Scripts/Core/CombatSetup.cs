@@ -50,6 +50,8 @@ namespace Cryptforge.Core
         public AltarService Altars { get; private set; }
         // The foundry pit's eruptions (inactive elsewhere).
         public PitEruptionService Pit { get; private set; }
+        // The foundry gate boss's slams (WardenRule).
+        public WardenSlamService Warden { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
@@ -158,6 +160,9 @@ namespace Cryptforge.Core
             Pit = gameObject.AddComponent<PitEruptionService>();
             Pit.Initialize(this, _hero);
             gameObject.AddComponent<PitEruptionView>().Initialize(Pit);
+            Warden = gameObject.AddComponent<WardenSlamService>();
+            Warden.Initialize(this, _hero);
+            gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
             if (movement != null && DevelopmentStart.Autopilot())
                 gameObject.AddComponent<DevelopmentAutopilot>().Initialize(this, movement, _hero.transform);

@@ -93,6 +93,18 @@ namespace Cryptforge.Core
             }
             bool fighting = encounter.AliveEnemyCount > 0;
             bool pit = _setup.Pit != null && _setup.Pit.IsActive;
+            // The Warden's mark under the hero: out of it first, as a player who reads it does.
+            WardenSlamService warden = _setup.Warden;
+            if (warden != null && warden.IsFighting && warden.Clock.IsMarked)
+            {
+                float mx = x - warden.MarkX, my = y - warden.MarkY;
+                float reach = WardenRule.SlamRadius + .6f;
+                if (mx * mx + my * my < reach * reach && EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, out gx, out gy))
+                {
+                    stop = 0f;
+                    return true;
+                }
+            }
             // A spill coming and the hero on the rim: shelter first, whatever is chasing.
             if (pit && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning && PitEruptionRule.InBand(x, y))
             {
@@ -181,6 +193,26 @@ namespace Cryptforge.Core
                 away = new Vector2(0f, -1f);
             away.Normalize();
             FoundryMap.ToFloor(cu + away.x * depth, cv + away.y * depth, out gx, out gy);
+        }
+
+        // The nearest of eight points round the mark, just past its reach, that the hero can walk straight to: the straight
+        // line away from the centre ran into the gate's walls and the hero stood still on the mark.
+        private static bool EscapeMark(float x, float y, float markX, float markY, float radius, out float gx, out float gy)
+        {
+            gx = x; gy = y;
+            float best = float.PositiveInfinity;
+            for (int k = 0; k < 8; k++)
+            {
+                float a = k * Mathf.PI / 4f;
+                float px = markX + Mathf.Cos(a) * radius, py = markY + Mathf.Sin(a) * radius;
+                if (!FoundryMap.Contains(px, py, HeroMotion.EdgeMargin) || !FoundryMap.Segment(x, y, px, py, HeroMotion.EdgeMargin))
+                    continue;
+                float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
+                if (d >= best)
+                    continue;
+                best = d; gx = px; gy = py;
+            }
+            return !float.IsPositiveInfinity(best);
         }
 
         // The push of every living enemy within KiteReach, as a unit direction away from them; false when none is that close.

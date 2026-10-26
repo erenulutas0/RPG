@@ -63,7 +63,8 @@ namespace Cryptforge.Core
                 Vector3 p = enemy.transform.position;
                 if (!PitEruptionRule.InBand(p.x, ArenaFloor.FloorY(p.y)))
                     continue;
-                enemy.ApplyDamage(new DamageContext(enemy.Maximum * PitEruptionRule.EnemyShare));
+                float share = ReferenceEquals(enemy, encounter.GateBoss) ? PitEruptionRule.BossShare : PitEruptionRule.EnemyShare;
+                enemy.ApplyDamage(new DamageContext(enemy.Maximum * share));
                 LastEnemiesBurnt++;
                 if (!enemy.IsAlive)
                     LastEnemiesKilled++;
