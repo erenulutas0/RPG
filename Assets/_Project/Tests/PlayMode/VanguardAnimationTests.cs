@@ -308,6 +308,37 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The owner, 2026-10-26: the walk looked wrong. Every attack forced a standing pose for up to 0.2 s, so a hero
+        // attacking while it walked glided in that pose. Walking, every loadout keeps its stride and only the weapon moves.
+        [UnityTest]
+        public IEnumerator AWalkingHeroKeepsItsStrideThroughEveryAttack()
+        {
+            foreach (string id in new[] { "weapon_sword", "weapon_staff", "weapon_daggers" })
+            {
+                TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { id }, id));
+                yield return SceneManager.LoadSceneAsync(ScenePath);
+                yield return null;
+                Bind();
+                _attack.enabled = true;
+                int swingingFrames = 0, attacks = _attack.AttackCount;
+                for (int i = 0; i < 160; i++)
+                {
+                    // Back and forth, so no wall stops the walk; the target walks beside the hero so the weapon keeps
+                    // finding it.
+                    if (i % 40 == 0) _movement.Hold((i / 40) % 2 == 0 ? Vector2.right : Vector2.left);
+                    _target.transform.position = _look.transform.position + Vector3.up * .3f;
+                    yield return null;
+                    if (i % 40 < 6 || !_look.IsSwinging) continue;
+                    swingingFrames++;
+                    Assert.That(_look.PaintedFrame, Is.InRange(1, 4), id + ": the legs keep walking while the weapon swings.");
+                }
+                _movement.Release();
+                Assert.That(_attack.AttackCount, Is.GreaterThan(attacks + 1), id + " attacked on the move.");
+                Assert.That(swingingFrames, Is.GreaterThan(0));
+                LogAssert.NoUnexpectedReceived();
+            }
+        }
+
         [UnityTest]
         public IEnumerator OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody()
         {

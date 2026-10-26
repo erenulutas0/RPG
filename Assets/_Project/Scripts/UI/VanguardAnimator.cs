@@ -64,8 +64,10 @@ namespace Cryptforge.UI
             _duration=Mathf.Min(.20f,(_attack.Weapon?.Interval ?? 1f)*.65f);
             _remaining=_duration;
             ResetWeapons();
-            // Damage already happened in this event: enter the strike, never begin a delayed visual windup.
-            Show(_loadout==0?6:0);
+            // Damage already happened in this event: enter the strike, never begin a delayed visual windup. A walking hero
+            // keeps walking - only the weapon swings - so an attack never freezes the legs mid-stride (the owner,
+            // 2026-10-26: with Tempo a Staff attacked every half second and the hero glided in its idle pose).
+            if(_moving) ShowWalk(); else Show(_loadout==0?6:0);
             ApplyAttack(0);
         }
 
@@ -82,7 +84,8 @@ namespace Cryptforge.UI
                 if(_remaining>0)
                 {
                     float t=1-_remaining/_duration;
-                    if(_loadout==0) Show(t<.42f?6:7);
+                    if(_moving) ShowWalk();
+                    else if(_loadout==0) Show(t<.42f?6:7);
                     ApplyAttack(t); return;
                 }
                 ResetWeapons();
@@ -90,7 +93,7 @@ namespace Cryptforge.UI
             if (_moving) Face(delta);
             // Anticipate only when the next actual sword attack is close and a valid target is in range.
             var weapon=_attack.Weapon;
-            if(_parts[0].gameObject.activeInHierarchy && weapon!=null && weapon.CooldownRemaining>0
+            if(!_moving && _parts[0].gameObject.activeInHierarchy && weapon!=null && weapon.CooldownRemaining>0
                 && weapon.CooldownRemaining<=Mathf.Min(.09f,weapon.Interval*.25f)
                 && _targeting!=null && _targeting.Acquire(weapon.Range)!=null)
             {
@@ -98,8 +101,11 @@ namespace Cryptforge.UI
                 Show(5); _parts[0].transform.localRotation=Quaternion.Euler(0,0,FrontFacing?100:20); return;
             }
             ResetWeapons();
-            if(travel<.0001f){_distance=0;Show(0);}else Show(1+Mathf.Min(3,(int)(_distance/Stride*4)));
+            if(travel<.0001f){_distance=0;Show(0);}else ShowWalk();
         }
+
+        // The walk cycle's pose for the distance travelled: four poses a Stride.
+        private void ShowWalk() => Show(1+Mathf.Min(3,(int)(_distance/Stride*4)));
 
         private void Show(int index)
         {
