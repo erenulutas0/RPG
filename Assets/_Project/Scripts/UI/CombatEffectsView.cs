@@ -241,6 +241,7 @@ namespace Cryptforge.UI
             _encounter.HordeEnemySpawned += OnHordeEnemySpawned;
             _encounter.HordeReleased += ReleaseHorde;
             _heroAttack.Struck += OnHeroStruck;
+            _heroAttack.StruckWith += OnHeroStruckWith;
             _hero.Damaged += OnHeroDamaged;
             if (_heroAbility != null)
                 _heroAbility.Used += OnAbilityUsed;
@@ -262,6 +263,7 @@ namespace Cryptforge.UI
                 _encounter.HordeReleased -= ReleaseHorde;
                 ReleaseHorde();
                 _heroAttack.Struck -= OnHeroStruck;
+                _heroAttack.StruckWith -= OnHeroStruckWith;
                 _hero.Damaged -= OnHeroDamaged;
                 if (_heroAbility != null)
                     _heroAbility.Used -= OnAbilityUsed;
@@ -477,7 +479,21 @@ namespace Cryptforge.UI
         {
             bool critical = _critPending;
             _critPending = false;
-            WeaponRuntime weapon = _heroAttack.Weapon;
+            DrawStrike(target, _heroAttack.Weapon, critical);
+        }
+
+        // A weapon after the first (docs/42 PR 9) strikes with its own effect - a Staff picked up beside the Sword rings,
+        // the Sword beside the Staff slashes. The first weapon's strike is drawn by OnHeroStruck, which pairs it with its
+        // crit; a later weapon's crit is not paired yet, so it shows its strike without the star.
+        private void OnHeroStruckWith(Health target, WeaponRuntime weapon)
+        {
+            if (ReferenceEquals(weapon, _heroAttack.Weapon))
+                return;
+            DrawStrike(target, weapon, false);
+        }
+
+        private void DrawStrike(Health target, WeaponRuntime weapon, bool critical)
+        {
             if (weapon == null || target == null)
                 return;
 

@@ -42,7 +42,11 @@ namespace Cryptforge.UI
         [SerializeField] private Text _relicCount;
         [SerializeField] private Sprite _secondWindIcon;
         [SerializeField] private Sprite _counterweightIcon;
+        private LoadoutBadgesView _loadoutBadges;
         private bool _subscribed;
+
+        // The weapon and tome row on a category-mode run; null on the legacy cards. For tests.
+        public LoadoutBadgesView LoadoutBadges => _loadoutBadges;
 
         // Run state exists after CombatSetup.Awake, so Start is the earliest safe subscription point.
         private void Start()
@@ -71,6 +75,17 @@ namespace Cryptforge.UI
             // The danger readout sits on the compact top panel, so it needs the compact gold count to style itself on.
             if (_compactGold != null)
                 gameObject.AddComponent<DangerReadoutView>().Initialize(_setup, _text, _compactGold);
+            // A category-mode run carries up to three weapons and three tomes, which the legacy row - the forge weapon's
+            // name and two card stacks category mode never offers - can say none of. The loadout row takes that band of
+            // the top panel, so the name is hidden here and the legacy badges in RefreshBadges; the first weapon badge is
+            // the forge's weapon, and its name stays on the pause screen's detailed readout.
+            if (_setup.Upgrades.IsCategoryMode && _compactGold != null)
+            {
+                _loadoutBadges = gameObject.AddComponent<LoadoutBadgesView>();
+                _loadoutBadges.Initialize(_setup, _text, _compactGold);
+                if (_weaponName != null)
+                    _weaponName.gameObject.SetActive(false);
+            }
             RefreshHero();
             RefreshEncounter();
             RefreshWeapon();
@@ -94,6 +109,15 @@ namespace Cryptforge.UI
         {
             if (_badgeDefinitions == null || _upgradeBadges == null || _upgradeCounts == null)
                 return;
+            // The loadout row sits where these do; they are hidden whatever the pool holds, so a later pool change can
+            // never draw them over it.
+            if (_loadoutBadges != null)
+            {
+                for (int i = 0; i < _upgradeBadges.Length; i++)
+                    if (_upgradeBadges[i] != null)
+                        _upgradeBadges[i].SetActive(false);
+                return;
+            }
             int slots = Mathf.Min(_badgeDefinitions.Length, Mathf.Min(_upgradeBadges.Length, _upgradeCounts.Length));
             for (int i = 0; i < slots; i++)
             {

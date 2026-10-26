@@ -42,13 +42,31 @@ namespace Cryptforge.UI
             new Color32(0xF5, 0xC5, 0x42, 0xFF)  // gold
         };
 
+        // The kind line's colours: what a pick adds to the build in a warm gold, a level in pale steel, an evolution in the
+        // ember the danger readout wears, since an evolution is also what makes the run harder.
+        private static readonly Color NewKindColour = new Color(1f, .86f, .45f, 1f);
+        private static readonly Color LevelKindColour = new Color(.78f, .84f, .92f, 1f);
+        private static readonly Color EvolutionKindColour = new Color(1f, .55f, .22f, 1f);
+
         private Color[] _authoredNameColours;
+        // One per card, built in code in category mode only (docs/42 section 4); null on the legacy cards, which stay as
+        // they were.
+        private Text[] _kindLabels;
         private ChoicePrompt _shownPrompt;
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
         private bool _subscribed;
 
         public bool IsOpen => _shownPrompt != null;
+        // For tests: how many cards the panel can show, and the kind line a card shows (empty when it shows none).
+        public int CardSlots => _buttons != null ? _buttons.Length : 0;
+
+        public string CardKindText(int slot)
+        {
+            if (_kindLabels == null || slot < 0 || slot >= _kindLabels.Length || !_kindLabels[slot].gameObject.activeSelf)
+                return string.Empty;
+            return _kindLabels[slot].text;
+        }
 
         private void Start()
         {
@@ -67,6 +85,8 @@ namespace Cryptforge.UI
                 _buttons[i].onClick.AddListener(() => OnChoice(slot));
                 _authoredNameColours[i] = _nameLabels[i].color;
             }
+            if (_setup.Upgrades != null && _setup.Upgrades.IsCategoryMode)
+                BuildKindLabels();
 
             _setup.Choices.Changed += OnChoicesChanged;
             _subscribed = true;
@@ -121,7 +141,93 @@ namespace Cryptforge.UI
                     _cardIcons[i].enabled = icon != null;
                 }
                 ShowRarity(i, prompt.Kind == ChoiceKind.Upgrade, prompt.Cards[i].Rarity);
+                ShowKind(i, prompt.Kind == ChoiceKind.Upgrade);
             }
+        }
+
+        // A small line in each card's top-right corner. On the 896x252 card it spans x 488-868 and y 8-36 from the card's
+        // top: above the name label (from 36) and the description (from 116), right of the icon (to 194), and inside
+        // the card's right edge, so it touches none of the authored slots. Not a raycast target, so a tap on it still
+        // reaches the card's button.
+        private void BuildKindLabels()
+        {
+            _kindLabels = new Text[_buttons.Length];
+            for (int i = 0; i < _buttons.Length; i++)
+            {
+                var labelObject = new GameObject("Card Kind", typeof(RectTransform));
+                labelObject.layer = _buttons[i].gameObject.layer;
+                var rect = (RectTransform)labelObject.transform;
+                rect.SetParent(_buttons[i].transform, false);
+                rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(1f, 1f);
+                rect.anchoredPosition = new Vector2(-28f, -8f);
+                rect.sizeDelta = new Vector2(380f, 28f);
+                Text label = labelObject.AddComponent<Text>();
+                label.font = _nameLabels[i].font;
+                label.fontSize = 24;
+                label.fontStyle = FontStyle.Bold;
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = 18;
+                label.resizeTextMaxSize = 24;
+                label.alignment = TextAnchor.MiddleRight;
+                label.horizontalOverflow = HorizontalWrapMode.Wrap;
+                label.verticalOverflow = VerticalWrapMode.Truncate;
+                label.raycastTarget = false;
+                labelObject.SetActive(false);
+                _kindLabels[i] = label;
+            }
+        }
+
+        // What kind of pick a category-mode card is: a weapon or tome the hero does not have yet, the next level of one it
+        // has (its level read through StacksOf, which in category mode is the carried weapon's or the held tome's), or an
+        // evolution, which outranks its category because it is the card that also raises the danger. A general card says
+        // nothing: its name and effect are the whole of it, as on the legacy cards.
+        private void ShowKind(int slot, bool upgrade)
+        {
+            if (_kindLabels == null)
+                return;
+
+            Text label = _kindLabels[slot];
+            UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
+            if (!upgrade || offer == null || slot >= offer.Choices.Count)
+            {
+                label.gameObject.SetActive(false);
+                return;
+            }
+
+            UpgradeOption option = offer.Choices[slot];
+            string kind = null;
+            Color colour = LevelKindColour;
+            if (option.IsEvolution)
+            {
+                kind = _text.CardEvolution;
+                colour = EvolutionKindColour;
+            }
+            else
+            {
+                switch (option.Category)
+                {
+                    case OfferCategory.NewWeapon:
+                        kind = _text.CardNewWeapon;
+                        colour = NewKindColour;
+                        break;
+                    case OfferCategory.NewTome:
+                        kind = _text.CardNewTome;
+                        colour = NewKindColour;
+                        break;
+                    case OfferCategory.WeaponUpgrade:
+                    case OfferCategory.TomeUpgrade:
+                        int level = _setup.Upgrades.StacksOf(option);
+                        kind = string.Format(_text.CardLevelUpFormat, level, level + 1);
+                        break;
+                }
+            }
+
+            label.gameObject.SetActive(!string.IsNullOrEmpty(kind));
+            if (string.IsNullOrEmpty(kind))
+                return;
+            label.text = kind;
+            label.color = colour;
         }
 
         // An upgrade card wears its tier's colour on its name and on its accent, if it has one. A forge or checkpoint

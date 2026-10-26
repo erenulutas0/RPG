@@ -25,6 +25,20 @@ namespace Cryptforge.Content
         [SerializeField] private string _dangerFormat = "Danger +{0}%";
         // {0} how much harder the run's enemies are than authored, in whole percent: 10 at difficulty 1.1.
         public string DangerFormat => _dangerFormat;
+        // The loadout badges on the foundry's top panel (docs/42 section 4). {0} a weapon's or tome's short name; the
+        // evolved form marks a weapon that has taken its evolution.
+        [SerializeField] private string _loadoutEvolvedFormat = "{0}+";
+        public string LoadoutEvolvedFormat => _loadoutEvolvedFormat;
+        // The kind line on a category-mode card, so a pick says what it adds to the build before its effect does.
+        [SerializeField] private string _cardNewWeapon = "NEW WEAPON";
+        [SerializeField] private string _cardNewTome = "NEW TOME";
+        [SerializeField] private string _cardLevelUpFormat = "Lv {0} -> {1}";
+        [SerializeField] private string _cardEvolution = "EVOLUTION";
+        public string CardNewWeapon => _cardNewWeapon;
+        public string CardNewTome => _cardNewTome;
+        // {0} the carried weapon's or held tome's level now, {1} the level the card takes it to.
+        public string CardLevelUpFormat => _cardLevelUpFormat;
+        public string CardEvolution => _cardEvolution;
         [SerializeField] private string _floorProgressFormat;
         [SerializeField] private string _waveFormat;
         [SerializeField] private string _victoryFormat;
