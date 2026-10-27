@@ -14,216 +14,216 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _doubleSlash:
     Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
-    SheetWidth: 692
-    SheetHeight: 308
+    SheetWidth: 696
+    SheetHeight: 312
     TexelsPerUnit: 128
-    Pivot: {x: 0.4987234, y: 0.4844444}
+    Pivot: {x: 0.49875, y: 0.4848193}
     Frames:
     - X: 404
-      Y: 227
-      Width: 94
-      Height: 81
-    - X: 500
-      Y: 227
-      Width: 94
-      Height: 81
-    - X: 596
-      Y: 227
-      Width: 94
-      Height: 81
+      Y: 229
+      Width: 96
+      Height: 83
+    - X: 502
+      Y: 229
+      Width: 96
+      Height: 83
+    - X: 600
+      Y: 229
+      Width: 96
+      Height: 83
     - X: 0
-      Y: 126
-      Width: 94
-      Height: 81
-    - X: 96
-      Y: 126
-      Width: 94
-      Height: 81
+      Y: 128
+      Width: 96
+      Height: 83
+    - X: 98
+      Y: 128
+      Width: 96
+      Height: 83
   _critStar:
     Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
-    SheetWidth: 692
-    SheetHeight: 308
+    SheetWidth: 696
+    SheetHeight: 312
     TexelsPerUnit: 128
     Pivot: {x: 0.4981818, y: 0.5018182}
     Frames:
     - X: 0
-      Y: 209
+      Y: 213
       Width: 99
       Height: 99
     - X: 101
-      Y: 209
+      Y: 213
       Width: 99
       Height: 99
     - X: 202
-      Y: 209
+      Y: 213
       Width: 99
       Height: 99
     - X: 303
-      Y: 209
+      Y: 213
       Width: 99
       Height: 99
   _smoke:
     Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
-    SheetWidth: 692
-    SheetHeight: 308
+    SheetWidth: 696
+    SheetHeight: 312
     TexelsPerUnit: 72
-    Pivot: {x: 0.4987952, y: 0.3385}
+    Pivot: {x: 0.5047619, y: 0.3385}
     Frames:
-    - X: 192
-      Y: 127
-      Width: 83
+    - X: 196
+      Y: 131
+      Width: 84
       Height: 80
-    - X: 277
-      Y: 127
-      Width: 83
+    - X: 282
+      Y: 131
+      Width: 84
       Height: 80
-    - X: 362
-      Y: 127
-      Width: 83
+    - X: 368
+      Y: 131
+      Width: 84
       Height: 80
-    - X: 447
-      Y: 127
-      Width: 83
+    - X: 454
+      Y: 131
+      Width: 84
       Height: 80
-    - X: 532
-      Y: 127
-      Width: 83
+    - X: 540
+      Y: 131
+      Width: 84
       Height: 80
     - X: 0
-      Y: 44
-      Width: 83
+      Y: 46
+      Width: 84
       Height: 80
   _coin:
     Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
-    SheetWidth: 692
-    SheetHeight: 308
+    SheetWidth: 696
+    SheetHeight: 312
     TexelsPerUnit: 128
-    Pivot: {x: 0.522, y: 0.478}
+    Pivot: {x: 0.522, y: 0.4446512}
     Frames:
-    - X: 320
-      Y: 2
+    - X: 0
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 362
-      Y: 2
+      Height: 43
+    - X: 42
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 404
-      Y: 2
+      Height: 43
+    - X: 84
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 446
-      Y: 2
+      Height: 43
+    - X: 126
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 488
-      Y: 2
+      Height: 43
+    - X: 168
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 530
-      Y: 2
+      Height: 43
+    - X: 210
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 572
-      Y: 2
+      Height: 43
+    - X: 252
+      Y: 1
       Width: 40
-      Height: 40
-    - X: 614
-      Y: 2
+      Height: 43
+    - X: 294
+      Y: 1
       Width: 40
-      Height: 40
+      Height: 43
   _digits:
     Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
-    SheetWidth: 692
-    SheetHeight: 308
+    SheetWidth: 696
+    SheetHeight: 312
     TexelsPerUnit: 128
     Pivot: {x: 0, y: 0}
     Frames:
-    - X: 0
-      Y: 0
+    - X: 336
+      Y: 2
       Width: 30
       Height: 42
-    - X: 32
-      Y: 0
+    - X: 368
+      Y: 2
       Width: 30
       Height: 42
-    - X: 64
-      Y: 0
+    - X: 400
+      Y: 2
       Width: 30
       Height: 42
-    - X: 96
-      Y: 0
+    - X: 432
+      Y: 2
       Width: 30
       Height: 42
-    - X: 128
-      Y: 0
+    - X: 464
+      Y: 2
       Width: 30
       Height: 42
-    - X: 160
-      Y: 0
+    - X: 496
+      Y: 2
       Width: 30
       Height: 42
-    - X: 192
-      Y: 0
+    - X: 528
+      Y: 2
       Width: 30
       Height: 42
-    - X: 224
-      Y: 0
+    - X: 560
+      Y: 2
       Width: 30
       Height: 42
-    - X: 256
-      Y: 0
+    - X: 592
+      Y: 2
       Width: 30
       Height: 42
-    - X: 288
-      Y: 0
+    - X: 624
+      Y: 2
       Width: 30
       Height: 42
   _critDigits:
     Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
-    SheetWidth: 692
-    SheetHeight: 308
+    SheetWidth: 696
+    SheetHeight: 312
     TexelsPerUnit: 128
     Pivot: {x: 0, y: 0}
     Frames:
-    - X: 85
-      Y: 44
+    - X: 86
+      Y: 46
       Width: 56
       Height: 80
-    - X: 143
-      Y: 44
+    - X: 144
+      Y: 46
       Width: 56
       Height: 80
-    - X: 201
-      Y: 44
+    - X: 202
+      Y: 46
       Width: 56
       Height: 80
-    - X: 259
-      Y: 44
+    - X: 260
+      Y: 46
       Width: 56
       Height: 80
-    - X: 317
-      Y: 44
+    - X: 318
+      Y: 46
       Width: 56
       Height: 80
-    - X: 375
-      Y: 44
+    - X: 376
+      Y: 46
       Width: 56
       Height: 80
-    - X: 433
-      Y: 44
+    - X: 434
+      Y: 46
       Width: 56
       Height: 80
-    - X: 491
-      Y: 44
+    - X: 492
+      Y: 46
       Width: 56
       Height: 80
-    - X: 549
-      Y: 44
+    - X: 550
+      Y: 46
       Width: 56
       Height: 80
-    - X: 607
-      Y: 44
+    - X: 608
+      Y: 46
       Width: 56
       Height: 80
   _digitStride: 24

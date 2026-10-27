@@ -10,10 +10,10 @@ the actors' style, with the pixel art kept as the fallback:
   - Smoke: soft soot billows lit from above and warmed from below, with an ember fleck or two, thinning into wisps:
     the death puff of an enemy without painted remains, and (tinted faint) a horde enemy's arrival.
   - Coin: a small gold coin spinning on its upright axis, a brass rim, an embossed face and a glint.
-  - Numerals: bold, chunky, slightly tapered digits drawn from vector strokes (no font is rasterised), a soot outline and
-    a soft shadow so they read on orange lava and on dark stone; white over pale warm for a hit, larger warm gold with a
-    hot highlight for a crit. Each glyph is a fixed cell pinned at its bottom-left corner and set at a fixed stride, the
-    same size and spacing as the pixel numerals, so CombatEffectsView lays a number out as before.
+  - Numerals: bold, chunky, slightly tapered digits drawn from vector strokes (no font is rasterised), a soot outline
+    and a soft shadow so they read on orange lava and on dark stone; white over pale warm for a hit, larger warm gold
+    with a hot highlight for a crit. Each glyph is a fixed cell pinned at its bottom-left corner and set at a fixed
+    stride, the same size and spacing as the pixel numerals, so CombatEffectsView lays a number out as before.
 
 Every frame goes on one shared sheet, so everything this draws batches, the numbers on screen included, and
 Assets/_Project/Art/Effects/Feedback/CombatFeedbackArtSet.asset is written with every strip's cells, pivot and density
@@ -46,8 +46,8 @@ SHEET_NAME = "VFX_Feedback"
 
 TPU = 128.0  # the painted actors' density
 
-# The feedback palette beside the skills' (build_skill_vfx): soot for smoke and outlines, gold and brass for the coin and
-# the crits.
+# The feedback palette beside the skills' (build_skill_vfx): soot for smoke and outlines, gold and brass for the coin
+# and the crits.
 SOOT = hex_rgb("#201B22")
 SOOT_WARM = hex_rgb("#2A1416")
 SMOKE_DEEP = hex_rgb("#2A2226")
@@ -70,7 +70,7 @@ PALE_WARM = hex_rgb("#FFE6C4")
 
 
 class FixedStrip(skill.Strip):
-    """Frames of one effect, each exported whole at the frame's own size, with the pivot the world origin of the frame."""
+    """Frames of one effect, each exported whole at the frame's own size, pinned at the frame's world origin."""
 
     def __init__(self, name, frames):
         self.name = name
@@ -93,8 +93,8 @@ class FixedStrip(skill.Strip):
 # (a broad nib's contrast), and free ends taper a little, so the glyphs read chunky but drawn rather than typed.
 
 BOX_ASPECT = 1.4
-STROKE_V = 0.168  # half the stroke weight of a vertical run, in box widths
-STROKE_H = 0.136  # and of a horizontal one
+STROKE_V = 0.158  # half the stroke weight of a vertical run, in box widths
+STROKE_H = 0.128  # and of a horizontal one
 L, R = STROKE_V, 1.0 - STROKE_V  # centrelines whose stroke touches the box's sides
 B, T = STROKE_H, BOX_ASPECT - STROKE_H  # and its foot and top
 
@@ -209,7 +209,7 @@ def numeral_frame(digit, critical):
     outline = (CRIT_OUTLINE if critical else DIGIT_OUTLINE) / TPU
     inner = (CRIT_INNER if critical else DIGIT_INNER) / TPU
     frame = Frame(0.0, 0.0, cell_w / TPU, cell_h / TPU, TPU)
-    # The fill box sits centred across the cell, so a row of cells centres its numerals; over the shadow's drop.
+    # The fill box sits centred across the cell, so a row of cells centres its number, and stands over the shadow.
     x0 = (cell_w / TPU - fill_w) * 0.5
     drop = (2.4 if critical else 1.3) / TPU
     y0 = outline + drop + 3.6 * scale / TPU
@@ -305,7 +305,7 @@ def paint_cut(frame, coords, reach, width, strength, core, noise=None, breakup=0
         frame.paint(STEEL_LIGHT, blur(lane, 0.5) * 0.55 * strength)
     frame.paint(mix(STEEL_LIGHT, STEEL_PALE, 0.35), blur(body, 0.35) * strength)
     if core > 0:
-        centre = np.clip((half * 0.42 - np.abs(across)) / frame.px + 0.5, 0.0, 1.0) * (half > 0)
+        centre = np.clip((half * 0.48 - np.abs(across)) / frame.px + 0.5, 0.0, 1.0) * (half > 0)
         centre = centre * smoothstep(0.08, 0.3, u)
         frame.paint(WHITE, blur(centre, 0.45) * core * strength)
 
@@ -324,11 +324,12 @@ def paint_glint(frame, x, y, size, strength, color=WHITE, glow=STEEL_LIGHT, rays
 def double_slash_frame(index, noise):
     frame = Frame(-0.46, -0.42, 0.46, 0.42, TPU)
     a, b = (cut_coords(frame, *cut) for cut in CUTS)
-    # By frame: (reach, width, strength, core, breakup) of the first cut and of the second.
-    first = ((0.62, 0.03, 1.0, 1.0, 0.0), (1.0, 0.034, 1.0, 1.0, 0.0), (1.0, 0.028, 0.85, 0.7, 0.0),
-             (1.0, 0.018, 0.6, 0.0, 0.35), (1.0, 0.011, 0.32, 0.0, 0.55))[index]
-    second = (None, (0.55, 0.03, 1.0, 1.0, 0.0), (1.0, 0.035, 1.0, 1.0, 0.0), (1.0, 0.024, 0.75, 0.35, 0.2),
-              (1.0, 0.014, 0.45, 0.0, 0.5))[index]
+    # By frame: (reach, width, strength, core, breakup) of the first cut and of the second, broad enough that a dagger's
+    # cut reads at phone size beside the sword's sweep.
+    first = ((0.62, 0.037, 1.0, 1.0, 0.0), (1.0, 0.042, 1.0, 1.0, 0.0), (1.0, 0.034, 0.85, 0.75, 0.0),
+             (1.0, 0.022, 0.6, 0.0, 0.35), (1.0, 0.013, 0.32, 0.0, 0.55))[index]
+    second = (None, (0.55, 0.037, 1.0, 1.0, 0.0), (1.0, 0.043, 1.0, 1.0, 0.0), (1.0, 0.03, 0.75, 0.4, 0.2),
+              (1.0, 0.017, 0.45, 0.0, 0.5))[index]
     for coords, cut in ((a, first), (b, second)):
         if cut is None:
             continue
@@ -391,12 +392,12 @@ def crit_star_frame(index):
     frame = Frame(-0.44, -0.44, 0.44, 0.44, TPU)
     # By frame: long ray length and half width, short ray length and half width, glow radius, core radius, strength.
     long_len, long_half, short_len, short_half, glow, core, strength = (
-        (0.27, 0.024, 0.14, 0.015, 0.11, 0.05, 1.0),
-        (0.37, 0.026, 0.21, 0.017, 0.15, 0.058, 1.0),
-        (0.31, 0.016, 0.15, 0.011, 0.14, 0.04, 0.85),
-        (0.17, 0.009, 0.08, 0.007, 0.1, 0.026, 0.55))[index]
+        (0.27, 0.032, 0.14, 0.02, 0.12, 0.05, 1.0),
+        (0.37, 0.034, 0.21, 0.022, 0.16, 0.058, 1.0),
+        (0.31, 0.021, 0.15, 0.014, 0.15, 0.04, 0.85),
+        (0.17, 0.012, 0.08, 0.009, 0.1, 0.026, 0.55))[index]
     # A tight warm glow: a wide one hazed the body it lit over.
-    frame.paint(GOLD, disc(frame, 0.0, 0.0, glow, soft=glow) * 0.45 * strength)
+    frame.paint(GOLD, disc(frame, 0.0, 0.0, glow, soft=glow) * 0.5 * strength)
     if index in (1, 2):
         # The burst's ring, racing out and thinning.
         r = (0.16, 0.25)[index - 1]
@@ -456,17 +457,18 @@ def smoke_frame(index, noise):
         billows.append((k, by, r, dx, dy, d, r * wobble))
     union = np.zeros(X.shape, np.float32)
     for k, by, r, dx, dy, d, edge in billows:
-        union = np.maximum(union, smoothstep(edge, edge - r * 0.3, d))
+        union = np.maximum(union, smoothstep(edge, edge - r * 0.14, d))
     union = union * wisps * thick
     # A soft soot edge round the whole cloud, so it parts from the dark stone as well as from the lava.
-    frame.paint(SOOT, blur(grow(union, 1.0), 0.8) * 0.7)
+    frame.paint(SOOT, blur(grow(union, 1.0), 0.45) * 0.75)
     for k, by, r, dx, dy, d, edge in sorted(billows, key=lambda b: -b[1]):
-        cover = smoothstep(edge, edge - r * 0.3, d) * wisps * thick
+        # A defined edge, as the painted actors have, softened only by the brush: a soft one blurred at phone size.
+        cover = smoothstep(edge, edge - r * 0.14, d) * wisps * thick
         n = np.stack([dx, dy], -1) / np.maximum(d, 1e-6)[..., None]
         # Lit from the upper left, strongest toward each billow's edge, as round smoke is.
         lambert = np.clip((n @ light) * np.clip(d / r, 0.0, 1.0) ** 0.7 * 0.6 + 0.5, 0.0, 1.0)
-        tone = mix(SMOKE_DEEP, SMOKE, smoothstep(0.1, 0.45, lambert))
-        tone = mix(tone, SMOKE_LIT, smoothstep(0.5, 0.8, lambert))
+        tone = mix(SMOKE_DEEP, SMOKE, smoothstep(0.2, 0.4, lambert))
+        tone = mix(tone, SMOKE_LIT, smoothstep(0.55, 0.72, lambert))
         tone = mix(tone, SMOKE_RIM, smoothstep(0.8, 1.0, lambert) * smoothstep(0.55, 0.95, d / edge))
         # Brushed through with a soft turbulence, so a billow is never a flat ball.
         tone = tone * (0.92 + 0.12 * noise(X * 3.1 + k, Y * 3.1 - rise * 4.0))[..., None]
@@ -507,7 +509,7 @@ def paint_fleck(frame, x, y, radius, hot, angle):
 
 COIN_FRAMES = 8
 COIN_RADIUS = 0.125
-COIN_THICK = 0.05
+COIN_THICK = 0.06
 
 
 def coin_frame(index):
@@ -542,12 +544,15 @@ def coin_frame(index):
     outline = np.maximum(np.maximum(ellipse(shift, face_w, R, 1.4 / TPU), ellipse(-shift, face_w, R, 1.4 / TPU)),
                          band(1.4 / TPU))
     frame.paint(SOOT_WARM, outline * 0.92)
-    # The rim's side: brass, lit along its top, with fine milling.
+    # The rim's side: gold over brass, lit along its top and down the crown of its curve, with fine milling, bright
+    # enough that the coin still reads edge on.
     height = np.clip((Y + R) / (2 * R), 0.0, 1.0)
-    side = mix(BRASS_DARK, GOLD_DEEP, smoothstep(0.0, 0.45, height))
+    side = mix(BRASS, GOLD, smoothstep(0.0, 0.5, height))
     side = mix(side, GOLD_LIGHT, smoothstep(0.55, 0.92, height) * 0.85)
-    milling = 0.85 + 0.15 * np.cos(Y / R * 26.0) ** 2
+    milling = 0.86 + 0.14 * np.cos(Y / R * 26.0) ** 2
     frame.paint(side * milling[..., None], silhouette)
+    crown = smoothstep(abs(shift) * 0.55 + 0.3 / TPU, 0.0, np.abs(X)) * band()
+    frame.paint(GOLD_HOT, crown * smoothstep(0.15, 0.6, height) * 0.7)
     # The face turned to the camera, the front or the back alike.
     if face_w > 0.2 / TPU:
         fx = shift if c >= 0 else -shift
@@ -572,10 +577,12 @@ def coin_frame(index):
         sheen = np.clip(1.0 - np.hypot(u + 0.35, v - 0.4) / 0.45, 0.0, 1.0) * face
         frame.paint(GOLD_HOT, sheen ** 1.5 * 0.55 * abs(c))
     # The glint, as the face meets the light.
-    glint = (1.0, 0.45, 0.0, 0.0, 0.8, 0.35, 0.0, 0.0)[index]
+    # The glint, as the face meets the light and, fainter, as the rim does.
+    glint = (1.0, 0.45, 0.4, 0.0, 0.8, 0.35, 0.3, 0.0)[index]
     if glint > 0:
         gx = (shift if c >= 0 else -shift) - face_w * 0.42
-        paint_glint(frame, gx, R * 0.42, 0.05, glint, color=WHITE, glow=GOLD_HOT, rays=4)
+        paint_glint(frame, gx, R * (0.42 if face_w > 0.2 / TPU else 0.6), 0.05, glint, color=WHITE, glow=GOLD_HOT,
+                    rays=4)
     return frame
 
 
