@@ -319,6 +319,9 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // One step of a LineRenderer's eight-bit colour channels, with a little float slack.
+        private const float LineColourStep = 1f / 255f + 1e-4f;
+
         [UnityTest, Timeout(90000)]
         public IEnumerator WithoutTheSetAViewDrawsItsLinesWhereThePaintedRingStands()
         {
@@ -351,9 +354,11 @@ namespace Cryptforge.Tests
             Assert.That(line.loop, Is.True);
             Assert.That(line.positionCount, Is.EqualTo(40));
             Assert.That(line.startWidth, Is.EqualTo(.1f).Within(1e-5f));
+            // A LineRenderer keeps its colours to eight bits a channel, so they read back within one step of what was set.
             Color gold = line.startColor;
-            Assert.That(gold.r == 1f && Mathf.Abs(gold.g - .78f) < 1e-3f && Mathf.Abs(gold.b - .3f) < 1e-3f && gold.a == 1f, Is.True,
-                "In the level's gold.");
+            Assert.That(Mathf.Abs(gold.r - 1f) <= LineColourStep && Mathf.Abs(gold.g - .78f) <= LineColourStep &&
+                Mathf.Abs(gold.b - .3f) <= LineColourStep && Mathf.Abs(gold.a - 1f) <= LineColourStep, Is.True,
+                $"In the level's gold, not {gold}.");
             Assert.That(line.sortingOrder, Is.EqualTo(_arena.GroundEffectSortingOrder));
             Assert.That(LinesShown(lineRoot), Is.EqualTo(1 + 3), "The ring and the first of its sparks.");
             LineRenderer spark = lineRoot.Find("Feedback Spark 0").GetComponent<LineRenderer>();
@@ -371,7 +376,7 @@ namespace Cryptforge.Tests
                 Assert.That(painted.enabled, Is.True, $"Frame {i}: on show while the line is.");
                 Assert.That(painted.transform.localScale.x, Is.EqualTo(radius + .5f * line.startWidth).Within(1e-4f),
                     $"Frame {i}: the painted ring at the line's outer edge.");
-                Assert.That(painted.color.a, Is.EqualTo(line.startColor.a).Within(1e-3f), $"Frame {i}: fading as the line.");
+                Assert.That(painted.color.a, Is.EqualTo(line.startColor.a).Within(LineColourStep), $"Frame {i}: fading as the line.");
                 frames.Add(painted.sprite);
                 yield return null;
             }
