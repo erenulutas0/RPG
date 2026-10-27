@@ -246,3 +246,13 @@ stay for a later painted pass.
   - `development/puppet.txt` is the Vanguard's: the puppet attaches in `HeroLookView.Start`, after the hero is known,
     and never takes a hero with its own rendered art.
   - Known gaps: the carried weapon is always the rendered staff; the mirrored west side flips the light.
+- **Painted combat feedback** - `Tools/ArtReview/build_combat_feedback_vfx.py` (it reuses build_skill_vfx's painting
+  without changing its output) paints one sheet, `Assets/_Project/Art/Effects/Feedback/VFX_Feedback.png` (212 KiB as
+  ASTC 4x4), and `CombatFeedbackArtSet.asset`; `CombatEffectsView._feedbackArt` uses it when valid, the pixel art
+  stays the fallback.
+  - The Daggers' double slash (0.20 s, mirrored toward a target on the hero's left), the crit star (0.20 s), the
+    death and arrival smoke (the pixel timings), a spinning coin over the same 0.5 s pop, and damage numerals drawn
+    from the generator's own vector strokes (no font): white to pale warm, crits larger in gold, the pixel spacing
+    kept (0.1875 units, 0.375 crit). One texture, so every digit on screen can batch.
+  - Device checks: normal numbers over lava at a glance, and ASTC blocks on the thin numeral outlines (an uncompressed
+    sheet would be about 0.85 MB). GroundDropView's gold-only fallback still uses the pixel coin.
