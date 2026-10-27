@@ -328,11 +328,18 @@ namespace Cryptforge.Tests
                 safeArea.sizeDelta = new Vector2(1080f, height);
                 Canvas.ForceUpdateCanvases();
                 var spans = new List<(string Name, float Bottom, float Top)>();
+                RectTransform chooser = null;
                 foreach (RectTransform child in safeArea)
                 {
                     // The decorative background intentionally lies behind every row; only functional rows may not overlap.
                     if (child.GetComponent<Button>() == null && child.GetComponent<Text>() == null)
                         continue;
+                    // The hero chooser (docs/45) shares the start button's row, side by side: checked against it below.
+                    if (child.name == "Hero Choice")
+                    {
+                        chooser = child;
+                        continue;
+                    }
                     child.GetWorldCorners(corners);
                     Vector3 bottom = safeArea.InverseTransformPoint(corners[0]);
                     Vector3 top = safeArea.InverseTransformPoint(corners[2]);
@@ -343,6 +350,21 @@ namespace Cryptforge.Tests
 
                 spans.Sort((a, b) => a.Bottom.CompareTo(b.Bottom));
                 Assert.That(spans.Count, Is.EqualTo(10));
+                Assert.That(chooser, Is.Not.Null, "Two heroes: the start row carries the hero chooser.");
+                var start = safeArea.Find("Start Run Button").GetComponent<RectTransform>();
+                var chooserCorners = new Vector3[4];
+                chooser.GetWorldCorners(chooserCorners);
+                start.GetWorldCorners(corners);
+                Vector3 chooserMin = safeArea.InverseTransformPoint(chooserCorners[0]);
+                Vector3 chooserMax = safeArea.InverseTransformPoint(chooserCorners[2]);
+                Vector3 startMin = safeArea.InverseTransformPoint(corners[0]);
+                Vector3 startMax = safeArea.InverseTransformPoint(corners[2]);
+                Assert.That(chooserMin.x, Is.GreaterThanOrEqualTo(safeArea.rect.xMin - .5f));
+                Assert.That(chooserMax.x, Is.LessThanOrEqualTo(startMin.x + .5f), "The chooser sits left of the start button.");
+                Assert.That(chooserMin.y, Is.EqualTo(startMin.y).Within(.5f), "On the start button's row.");
+                Assert.That(chooserMax.y, Is.EqualTo(startMax.y).Within(.5f), "On the start button's row.");
+                Assert.That(startMax.x - startMin.x, Is.GreaterThan(chooserMax.x - chooserMin.x),
+                    "The start button keeps the larger share of the row.");
                 Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(-.5f));
                 Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(height + .5f), spans[spans.Count - 1].Name);
                 for (int i = 1; i < spans.Count; i++)

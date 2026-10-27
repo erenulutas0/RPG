@@ -3024,3 +3024,19 @@ The playing autopilot never reaches 5:00, so the clock only thickens its floor (
 lingering one dies in the overrun but lived up to three minutes in it while the eight-a-second crowd paid it experience,
 levelling to 52; from this entry an overrun horde pays none (`HordeClock.PaysExperience`). The idle run stands from the
 second room at level 2 and only shows that standing is death early; the owner's own idle stretch was at level 29.
+
+## 2026-10-27 - The Cinder Arcanist against the Vanguard, autopilot, floor 1
+
+`4282c42`: Burn, Crucible Vent, the hero roster (docs/45). The autopilot now fires its ability into a crowd (3 enemies in
+reach - burning ones for a Vent - or any beside the gate boss), so the Vanguard's row is not comparable with earlier
+ones, which never used Forge Burst. Category mode, fixed 1/60 s, seeds 11-66.
+
+| Hero | Result | Floor s | Level | HP left / max | Horde avg / max |
+|---|---|---|---|---|---|
+| Vanguard (Forge Burst used) | 3/6 cleared | 123-193 | 14-22 | 25-85 of 130-214 on the clears | 6.5-9.1 / 15-21 |
+| Cinder Arcanist | 6/6 cleared | 154-312 | 18-31 | 2-120 of 90-231 | 5.3-7.3 / 13-20 |
+
+Ilya clears where the Vanguard dies: Burn thins the horde (its average crowd is lower) and the Vent ends the Warden in
+34-47 s. Two clears finished on 2 and 5 health, so the 90 health glass cannon holds. The owner shelved gameplay the same
+morning for the art and animation work; the gap is recorded to tune later (likely a smaller Vent damage per stack or a
+shorter burn), not now.
