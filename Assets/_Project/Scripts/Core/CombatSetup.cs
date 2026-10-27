@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Cryptforge.Analytics;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Economy;
@@ -35,6 +36,8 @@ namespace Cryptforge.Core
         [SerializeField] private Sprite _groundExperienceSprite;
         // Gold alone (an overrun kill pays no experience): the pile's own two coins; empty, the pixel coin.
         [SerializeField] private Sprite _groundGoldSprite;
+        // The run's growth on the hero painted (RunFeedbackView); empty, it draws its lines.
+        [SerializeField] private RunFeedbackArtSet _runFeedbackArt;
         private RewardService _rewards;
         // The shop's weapons, in _weapons' order, to find a hero's starting weapon in the rack.
         private WeaponOption[] _weaponOptions;
@@ -218,7 +221,7 @@ namespace Cryptforge.Core
             Warden = gameObject.AddComponent<WardenSlamService>();
             Warden.Initialize(this, _hero);
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
-            gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero);
+            gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
             if (movement != null && DevelopmentStart.Autopilot())
                 gameObject.AddComponent<DevelopmentAutopilot>().Initialize(this, movement, _hero.transform);

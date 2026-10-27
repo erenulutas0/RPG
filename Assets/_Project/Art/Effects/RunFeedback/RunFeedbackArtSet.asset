@@ -1,0 +1,161 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e0f81ab33bc4d20a800e838f0219852, type: 3}
+  m_Name: RunFeedbackArtSet
+  m_EditorClassIdentifier: 
+  _levelRing:
+    Sheet: {fileID: 2800000, guid: 8283c7584a824d71b6cb45e9f3a7b268, type: 3}
+    SheetWidth: 432
+    SheetHeight: 1068
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5, y: 0.475}
+    Frames:
+    - X: 0
+      Y: 948
+      Width: 214
+      Height: 120
+    - X: 216
+      Y: 948
+      Width: 214
+      Height: 120
+    - X: 0
+      Y: 826
+      Width: 214
+      Height: 120
+    - X: 216
+      Y: 826
+      Width: 214
+      Height: 120
+    - X: 0
+      Y: 704
+      Width: 214
+      Height: 120
+  _cardRing:
+    Sheet: {fileID: 2800000, guid: 8283c7584a824d71b6cb45e9f3a7b268, type: 3}
+    SheetWidth: 432
+    SheetHeight: 1068
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5, y: 0.4953271}
+    Frames:
+    - X: 0
+      Y: 365
+      Width: 208
+      Height: 107
+    - X: 210
+      Y: 365
+      Width: 208
+      Height: 107
+    - X: 0
+      Y: 256
+      Width: 208
+      Height: 107
+    - X: 210
+      Y: 256
+      Width: 208
+      Height: 107
+    - X: 0
+      Y: 147
+      Width: 208
+      Height: 107
+    - X: 210
+      Y: 147
+      Width: 208
+      Height: 107
+  _cardCore:
+    Sheet: {fileID: 2800000, guid: 8283c7584a824d71b6cb45e9f3a7b268, type: 3}
+    SheetWidth: 432
+    SheetHeight: 1068
+    TexelsPerUnit: 64
+    Pivot: {x: 0.5014493, y: 0.4988571}
+    Frames:
+    - X: 0
+      Y: 75
+      Width: 138
+      Height: 70
+    - X: 140
+      Y: 75
+      Width: 138
+      Height: 70
+    - X: 280
+      Y: 75
+      Width: 138
+      Height: 70
+    - X: 0
+      Y: 3
+      Width: 138
+      Height: 70
+  _emberRing:
+    Sheet: {fileID: 2800000, guid: 8283c7584a824d71b6cb45e9f3a7b268, type: 3}
+    SheetWidth: 432
+    SheetHeight: 1068
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5, y: 0.4867257}
+    Frames:
+    - X: 216
+      Y: 711
+      Width: 214
+      Height: 113
+    - X: 0
+      Y: 589
+      Width: 214
+      Height: 113
+    - X: 216
+      Y: 589
+      Width: 214
+      Height: 113
+    - X: 0
+      Y: 474
+      Width: 214
+      Height: 113
+    - X: 216
+      Y: 474
+      Width: 214
+      Height: 113
+  _goldSpark:
+    Sheet: {fileID: 2800000, guid: 8283c7584a824d71b6cb45e9f3a7b268, type: 3}
+    SheetWidth: 432
+    SheetHeight: 1068
+    TexelsPerUnit: 128
+    Pivot: {x: 0.72, y: 0.4986667}
+    Frames:
+    - X: 140
+      Y: 58
+      Width: 28
+      Height: 15
+    - X: 170
+      Y: 58
+      Width: 28
+      Height: 15
+    - X: 200
+      Y: 58
+      Width: 28
+      Height: 15
+  _emberSpark:
+    Sheet: {fileID: 2800000, guid: 8283c7584a824d71b6cb45e9f3a7b268, type: 3}
+    SheetWidth: 432
+    SheetHeight: 1068
+    TexelsPerUnit: 128
+    Pivot: {x: 0.72, y: 0.4986667}
+    Frames:
+    - X: 230
+      Y: 58
+      Width: 28
+      Height: 15
+    - X: 260
+      Y: 58
+      Width: 28
+      Height: 15
+    - X: 290
+      Y: 58
+      Width: 28
+      Height: 15
+  _sparkWidth: 6.4
