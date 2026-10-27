@@ -249,6 +249,8 @@ namespace Cryptforge.UI
         private float _critDigitStride;
         private float _digitWidth;
         private float _critDigitWidth;
+        // The painted cuts are drawn leading rightward and mirror for a target on the hero's left; the pixel ones never do.
+        private bool _mirrorCuts;
         private GameObject _poolRoot;
         private Effect[] _effects;
         private BurnFlames _flames;
@@ -515,6 +517,7 @@ namespace Cryptforge.UI
                 _critDigitStride = _feedbackArt.CritDigitStride;
                 _digitWidth = _digits[0].bounds.size.x;
                 _critDigitWidth = _critDigits[0].bounds.size.x;
+                _mirrorCuts = true;
                 return;
             }
             _doubleSlash = Build(EffectArt.DoubleSlashFrames(), "VFX Double Slash", PixelSpriteFactory.Centre);
@@ -798,7 +801,7 @@ namespace Cryptforge.UI
                     Effect cuts = StandOn(Show(_doubleSlash, _doubleSlashFrameDuration, anchor, _sortingOrder + StrikeOrder),
                         ground);
                     // Painted, the first cut leads away from the hero, as the painted sword slash turns to its target.
-                    if (UsesPaintedFeedback)
+                    if (_mirrorCuts)
                         cuts.Renderer.flipX = target.transform.position.x < _hero.transform.position.x;
                     if (critical)
                         StandOn(Show(_star, _starFrameDuration, anchor, _sortingOrder + StarOrder), ground);

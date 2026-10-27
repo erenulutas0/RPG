@@ -322,7 +322,13 @@ namespace Cryptforge.Tests
                 Assert.That(coins[i].transform.position.y, Is.GreaterThan(start[i].y), $"Coin {i} pops up.");
                 Assert.That(coins[i].sprite, Is.Not.SameAs(faces[i]), $"Coin {i} spins.");
             }
-            Assert.That(Mathf.Abs(coins[2].transform.position.x - coins[0].transform.position.x), Is.GreaterThan(.1f), "They spread.");
+            float left = float.MaxValue, right = float.MinValue;
+            foreach (SpriteRenderer coin in coins)
+            {
+                left = Mathf.Min(left, coin.transform.position.x);
+                right = Mathf.Max(right, coin.transform.position.x);
+            }
+            Assert.That(right - left, Is.GreaterThan(.1f), "They spread.");
             // Up to the top of the arc and back down while they fly.
             float peak = coins[1].transform.position.y, last = peak;
             for (int i = 0; i < 22 && coins[1].enabled; i++)
