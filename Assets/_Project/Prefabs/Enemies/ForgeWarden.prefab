@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 6172054360323625414}
     - target: {fileID: 1023410629182842623, guid: 36d45a0bb08664c4096540ac4d1a679d, type: 3}
       propertyPath: _attackNudge
-      value: -0.15
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1023410629182842623, guid: 36d45a0bb08664c4096540ac4d1a679d, type: 3}
       propertyPath: _enragedColor.r
