@@ -48,6 +48,8 @@ namespace Cryptforge.UI
         private float _swingRemaining;
         private bool _casting;
         private bool _built;
+        // development/puppet.txt was there at Build; Start attaches the puppet unless the hero has its own art.
+        private bool _puppetRequested;
         private bool _subscribed;
 
         // The idle body as drawn, for anything that wants to derive from it; the hit-flash silhouettes are pre-built.
@@ -77,8 +79,15 @@ namespace Cryptforge.UI
         }
 
         // docs/45: a hero with its own pre-rendered art (Ilya) is drawn by RenderedCharacterAnimator, which disables this
-        // view first, as the puppet does. Start, because CombatSetup chooses the run's hero in its Awake.
-        private void Start() => RenderedCharacterAnimator.TakeOver(this, _body, _weapons, _attack);
+        // view first; otherwise a requested puppet takes the hero, this view stepping aside first so the two never drive
+        // the body or the weapons at once. Start, because CombatSetup chooses the run's hero in its Awake.
+        private void Start()
+        {
+            if (RenderedCharacterAnimator.TakeOver(this, _body, _weapons, _attack) != null || !_puppetRequested)
+                return;
+            enabled = false;
+            PuppetAnimator.Attach(gameObject, _body, _weapons, _attack, _litOrb, _puppetArt);
+        }
 
         private void OnEnable()
         {
@@ -195,12 +204,12 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _built = true;
             ShowPose(HeroPose.IdleA);
-            // Development hook (docs/45 section 4 B): development/puppet.txt hands the hero to the cut-out puppet. This view
-            // steps aside first, so the two never drive the body or the weapons at once. Without the file nothing changes.
+            // Development hook (docs/45 section 4 B): development/puppet.txt hands the hero to the cut-out puppet, in Start,
+            // once CombatSetup has chosen the run's hero, so a hero with its own rendered art keeps it. Without the file
+            // nothing changes.
             if (PuppetAnimator.Requested)
             {
-                enabled = false;
-                PuppetAnimator.Attach(gameObject, _body, _weapons, _attack, _litOrb, _puppetArt);
+                _puppetRequested = true;
                 return;
             }
             if (_paintedArt != null)

@@ -31,11 +31,13 @@ namespace Cryptforge.Tests
         private Health _hero;
         private Health _target;
 
-        private IEnumerator Load(bool arcanist = true)
+        private IEnumerator Load(bool arcanist = true, bool puppet = false)
         {
             TestProfile.Begin();
             if (arcanist)
                 File.WriteAllText(DevelopmentStart.HeroPath, ArcanistId);
+            if (puppet)
+                File.WriteAllText(DevelopmentStart.PuppetPath, "on");
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -60,6 +62,16 @@ namespace Cryptforge.Tests
             Vector2 step = floorDirection.normalized * (Speed * Time.deltaTime);
             _look.transform.position += new Vector3(step.x, ArenaFloor.WorldY(step.y), 0f);
             yield return null;
+        }
+
+        // development/puppet.txt is for the Vanguard: a hero with its own rendered art keeps it.
+        [UnityTest, Timeout(60000)]
+        public IEnumerator ThePuppetFlagLeavesIlyaItsOwnArt()
+        {
+            yield return Load(true, true);
+            Assert.That(_drawn, Is.Not.Null, "Ilya is drawn from its rendered art.");
+            Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Null, "The puppet never takes a hero with its own art.");
+            Assert.That(_look.enabled, Is.False, "The painted view stepped aside.");
         }
 
         [UnityTearDown]
