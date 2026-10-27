@@ -214,8 +214,13 @@ namespace Cryptforge.Tests
             Assert.That(sprite.pixelsPerUnit,Is.EqualTo(128));
             Assert.That(sprite.pivot.x,Is.EqualTo(96f*636/1254).Within(.01f));
             Assert.That(sprite.pivot.y,Is.EqualTo(96f*132/1254).Within(.01f));
+            // Gold alone lies as the pile's own two painted coins, borrowed like the pile and pinned at their base.
+            Sprite goldOnly=_view.GoldSprite;
+            Assert.That(goldOnly,Is.Not.Null);Assert.That(goldOnly.texture.isReadable,Is.False);
+            Assert.That(goldOnly.texture.format,Is.EqualTo(TextureFormat.ASTC_4x4));
+            Assert.That(goldOnly.pixelsPerUnit,Is.EqualTo(128));
             _setup.Drops.Add(2,0,0,1);
-            Assert.That(Body().sprite.name,Is.EqualTo("Reward Gold Fallback"));
+            Assert.That(Body().sprite,Is.SameAs(goldOnly));
             _setup.Drops.Add(-2,0,1,0);
             bool xpFound=false;
             foreach(var renderer in _view.GetComponentsInChildren<SpriteRenderer>())

@@ -83,6 +83,7 @@ namespace Cryptforge.UI
         private EncounterController _encounters;
         private Sprite _painted;
         private Sprite _paintedExperience;
+        private Sprite _paintedGold;
         private Sprite _coin;
         private Sprite _experience;
         private bool _subscribed;
@@ -98,6 +99,7 @@ namespace Cryptforge.UI
         public int PoolCount { get; private set; }
         public Sprite PaintedSprite => _painted;
         public Sprite ExperienceSprite => _paintedExperience;
+        public Sprite GoldSprite => _paintedGold;
         // The reward sprites on show, resting first and then flying, for presentation that restyles them without
         // touching their shadows (FoundryVisibilityView). Parked pool entries are not on show.
         internal int ShownCount => _ground.Count + _flights.Count;
@@ -121,7 +123,7 @@ namespace Cryptforge.UI
         }
 
         internal void Initialize(GroundDrops drops, RunState run, Transform hero, Sprite painted,
-            EncounterController encounters, Sprite experience = null)
+            EncounterController encounters, Sprite experience = null, Sprite gold = null)
         {
             Unsubscribe();
             Clear();
@@ -130,6 +132,7 @@ namespace Cryptforge.UI
             _hero = hero;
             _painted = painted;
             _paintedExperience = experience;
+            _paintedGold = gold;
             _encounters = encounters;
             _floor = encounters != null ? encounters.FloorNumber : 0;
             // A small initial pool, with growth rather than overwriting a still-uncollected reward.
@@ -270,7 +273,9 @@ namespace Cryptforge.UI
             visual.Root.position = origin;
             visual.Body.transform.localPosition = Vector3.zero;
             visual.Body.sprite = SpriteFor(experience, gold);
-            float scale = visual.Body.sprite == _painted && _painted != null ? PaintedScale
+            // The gold-only coins are the pile's own, painted at its size, so they keep its scale.
+            float scale = visual.Body.sprite != null && (visual.Body.sprite == _painted || visual.Body.sprite == _paintedGold)
+                ? PaintedScale
                 : visual.Body.sprite == _paintedExperience && _paintedExperience != null ? ExperienceScale : 1f;
             visual.Scale = scale * growth;
             visual.Body.transform.localScale = Vector3.one * visual.Scale;
@@ -283,6 +288,7 @@ namespace Cryptforge.UI
         {
             if (experience > 0 && gold > 0 && _painted != null) return _painted;
             if (experience > 0 && gold == 0 && _paintedExperience != null) return _paintedExperience;
+            if (experience == 0 && gold > 0 && _paintedGold != null) return _paintedGold;
             // Missing-art fallbacks never imply absent gold. Imported sprites are borrowed.
             if (experience > 0)
             {

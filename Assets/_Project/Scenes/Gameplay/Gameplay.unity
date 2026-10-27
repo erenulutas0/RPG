@@ -778,6 +778,7 @@ MonoBehaviour:
   _encounters: {fileID: 1243867566}
   _groundRewardSprite: {fileID: 21300000, guid: 54ed2a466e7707a48a0930d3e5cf3c67, type: 3}
   _groundExperienceSprite: {fileID: 21300000, guid: c580a7c9b1ad99a47a73f1691e6517d2, type: 3}
+  _groundGoldSprite: {fileID: 21300000, guid: c453efc4fbaf4c1281e17e962018ec67, type: 3}
 --- !u!1 &4587588
 GameObject:
   m_ObjectHideFlags: 0

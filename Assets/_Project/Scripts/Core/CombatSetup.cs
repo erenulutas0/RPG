@@ -33,6 +33,8 @@ namespace Cryptforge.Core
         [SerializeField] private EncounterController _encounters;
         [SerializeField] private Sprite _groundRewardSprite;
         [SerializeField] private Sprite _groundExperienceSprite;
+        // Gold alone (an overrun kill pays no experience): the pile's own two coins; empty, the pixel coin.
+        [SerializeField] private Sprite _groundGoldSprite;
         private RewardService _rewards;
         // The shop's weapons, in _weapons' order, to find a hero's starting weapon in the rack.
         private WeaponOption[] _weaponOptions;
@@ -192,7 +194,8 @@ namespace Cryptforge.Core
             telemetry.WatchDrops(Drops);
             gameObject.AddComponent<ExitSealView>().Initialize(this, _text);
             gameObject.AddComponent<BossRevealView>().Initialize(this, movement);
-            gameObject.AddComponent<GroundDropView>().Initialize(Drops, Run, _hero.transform, _groundRewardSprite, _encounters, _groundExperienceSprite);
+            gameObject.AddComponent<GroundDropView>().Initialize(Drops, Run, _hero.transform, _groundRewardSprite, _encounters, _groundExperienceSprite,
+                _groundGoldSprite);
             Altars = gameObject.AddComponent<AltarService>();
             // After telemetry, so the choice is logged before Extract ends the run or Descend moves on.
             Checkpoint.Chosen += OnCheckpointChosen;
