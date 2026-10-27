@@ -20,6 +20,8 @@ namespace Cryptforge.UI
         [SerializeField] private SpriteRenderer _daggerLeft;
         [SerializeField] private SpriteRenderer _daggerRight;
         [SerializeField] private VanguardArtSet _paintedArt;
+        // The cut-out puppet's painted parts, for the development puppet (PuppetAnimator); empty, it draws placeholders.
+        [SerializeField] private PuppetArtSet _puppetArt;
         private VanguardAnimator _painted;
         // Idle frames alternate at this interval; a swing lasts about as long as CombatantView's attack nudge.
         [SerializeField, Min(0.05f)] private float _breathInterval = 0.5f;
@@ -189,6 +191,14 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _built = true;
             ShowPose(HeroPose.IdleA);
+            // Development hook (docs/45 section 4 B): development/puppet.txt hands the hero to the cut-out puppet. This view
+            // steps aside first, so the two never drive the body or the weapons at once. Without the file nothing changes.
+            if (PuppetAnimator.Requested)
+            {
+                enabled = false;
+                PuppetAnimator.Attach(gameObject, _body, _weapons, _attack, _litOrb, _puppetArt);
+                return;
+            }
             if (_paintedArt != null)
             {
                 if (!_paintedArt.IsValid) Debug.LogError("Vanguard painted art set is incomplete.", this);

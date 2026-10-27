@@ -105,6 +105,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryMapTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ClimbScalingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
+    <!-- The puppet's pose math lives in Scripts/Art (above); its placeholder parts are tested by PuppetArtTests. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetGaitTests.cs" />
     <!-- Pure telemetry only: the Unity subfolder is compiled by Unity and UnityCompileCheck. -->
     <Compile Include="../../Assets/_Project/Scripts/Analytics/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryJsonTests.cs" />

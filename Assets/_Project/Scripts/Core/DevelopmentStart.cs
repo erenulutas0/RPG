@@ -82,6 +82,12 @@ namespace Cryptforge.Core
         // Development builds and the Editor may play any hero, locked or not, so the owner can try one early.
         public static bool AllHeroesOpen() => Application.isEditor || Debug.isDebugBuild;
 
+        // The file existing, whatever it holds (an empty one from `adb shell touch` counts), hands the hero's look to the
+        // cut-out puppet (PuppetAnimator, docs/45 section 4 B) while its painted parts are made. Nothing without the file.
+        public const string PuppetFileName = "puppet.txt";
+        public static string PuppetPath => Path.Combine(ProfileLocation.Resolve(), FolderName, PuppetFileName);
+        public static bool Puppet() => (Application.isEditor || Debug.isDebugBuild) && Exists(PuppetPath);
+
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
         // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file
@@ -129,6 +135,20 @@ namespace Cryptforge.Core
         // failure a path from outside this code can produce is swallowed, not only the two the storage itself raises:
         // an exception here would end the run inside Awake, before the player ever sees the arena.
         private static string ReadStartFloorId() => ReadFirstLine(StartFloorPath);
+
+        // Whether the file is there, under the same never-throw rule as ReadFirstLine.
+        private static bool Exists(string path)
+        {
+            try
+            {
+                return File.Exists(path);
+            }
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException ||
+                exception is ArgumentException || exception is NotSupportedException || exception is SecurityException)
+            {
+                return false;
+            }
+        }
 
         private static string ReadFirstLine(string path)
         {
