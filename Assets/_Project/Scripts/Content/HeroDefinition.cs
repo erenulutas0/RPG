@@ -34,6 +34,9 @@ namespace Cryptforge.Content
         // The hero's own pre-rendered look (docs/45: Ilya, rendered from one model in five facings). Empty, the hero
         // wears the painted Vanguard (HeroLookView).
         [SerializeField] private RenderedCharacterArtSet _renderedArt;
+        // The hero as the forge's chooser pictures it (HeroChoiceView): one of its own standing frames. Empty, the
+        // chooser shows the name alone.
+        [SerializeField] private Sprite _portrait;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -49,5 +52,6 @@ namespace Cryptforge.Content
         public string DeathLine => _deathLine ?? string.Empty;
         public string VictoryLine => _victoryLine ?? string.Empty;
         public RenderedCharacterArtSet RenderedArt => _renderedArt;
+        public Sprite Portrait => _portrait;
     }
 }
