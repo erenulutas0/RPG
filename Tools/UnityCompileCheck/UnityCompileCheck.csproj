@@ -6,7 +6,10 @@
 
     dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj
 
-  It needs Library/ScriptAssemblies and Library/PackageCache, which exist once Unity has opened the project.
+  It needs Library/ScriptAssemblies and Library/PackageCache, which exist once Unity has opened the project. A git
+  worktree has no Library of its own; point it at the main checkout's, read only:
+
+    dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj -p:UnityLibrary=E:/MobileGame/Library
 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -19,6 +22,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Library</OutputType>
     <UnityEditorRoot Condition="'$(UnityEditorRoot)' == ''">E:/Unity/Editors/6000.0.65f1/Editor</UnityEditorRoot>
+    <UnityLibrary Condition="'$(UnityLibrary)' == ''">../../Library</UnityLibrary>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Assets/_Project/Scripts/**/*.cs" Exclude="../../Assets/_Project/Scripts/Editor/**/*.cs" />
@@ -26,8 +30,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/PlayMode/**/*.cs" />
     <Reference Include="$(UnityEditorRoot)/Data/Managed/UnityEngine/*.dll" />
-    <Reference Include="../../Library/ScriptAssemblies/UnityEngine.UI.dll" />
-    <Reference Include="../../Library/ScriptAssemblies/UnityEngine.TestRunner.dll" />
-    <Reference Include="../../Library/PackageCache/com.unity.ext.nunit@*/net40/unity-custom/nunit.framework.dll" />
+    <Reference Include="$(UnityLibrary)/ScriptAssemblies/UnityEngine.UI.dll" />
+    <Reference Include="$(UnityLibrary)/ScriptAssemblies/UnityEngine.TestRunner.dll" />
+    <Reference Include="$(UnityLibrary)/PackageCache/com.unity.ext.nunit@*/net40/unity-custom/nunit.framework.dll" />
   </ItemGroup>
 </Project>

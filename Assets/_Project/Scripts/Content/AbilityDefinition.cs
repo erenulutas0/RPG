@@ -15,15 +15,18 @@ namespace Cryptforge.Content
         // Floor units from the hero.
         [SerializeField, Min(0.1f)] private float _radius = 2.5f;
         [SerializeField, Min(0.1f)] private float _cooldown = 8f;
+        // Burst: damage to everything in reach. Vent: damage per Burn stack each burning enemy in reach spends.
+        [SerializeField] private AbilityKind _kind = AbilityKind.Burst;
 
         public string Id => _id;
         public string DisplayName => _displayName;
         public float Damage => _damage;
         public float Radius => _radius;
         public float Cooldown => _cooldown;
+        public AbilityKind Kind => _kind;
         public string Description => string.Format(_descriptionFormat ?? string.Empty, _damage, _radius, _cooldown);
 
         // A fresh runtime per run; the definition stays untouched by upgrades.
-        public AbilityRuntime CreateRuntime() => new AbilityRuntime(_damage, _radius, _cooldown);
+        public AbilityRuntime CreateRuntime() => new AbilityRuntime(_damage, _radius, _cooldown, _kind);
     }
 }

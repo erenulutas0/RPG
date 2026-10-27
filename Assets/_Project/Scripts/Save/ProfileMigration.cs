@@ -18,6 +18,12 @@ namespace Cryptforge.Save
                     data.saveVersion = 2;
                     goto case 2;
                 case 2:
+                    // Version 2 predates heroes: only the ones open from the start, and the default chosen.
+                    data.unlockedHeroIds = new string[0];
+                    data.selectedHeroId = string.Empty;
+                    data.saveVersion = 3;
+                    goto case 3;
+                case 3:
                     return data;
                 default:
                     return null;

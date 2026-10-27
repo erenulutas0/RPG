@@ -75,6 +75,13 @@ namespace Cryptforge.Core
                 System.Globalization.CultureInfo.InvariantCulture, out float seconds) && seconds > 0f ? seconds : 0f;
         }
 
+        // A hero id in it plays that hero whatever the profile chose (docs/45). Nothing without the file.
+        public static string HeroPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "hero.txt");
+        public static string HeroId() => Application.isEditor || Debug.isDebugBuild ? ReadFirstLine(HeroPath) : null;
+
+        // Development builds and the Editor may play any hero, locked or not, so the owner can try one early.
+        public static bool AllHeroesOpen() => Application.isEditor || Debug.isDebugBuild;
+
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
         // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file

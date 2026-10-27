@@ -30,6 +30,12 @@ namespace Cryptforge.Content
         [SerializeField] private string _floorClockFormat = "{0}:{1:00}";
         [SerializeField] private string _overrunFormat = "OVERRUN +{0}:{1:00}";
         public string FloorClockFormat => _floorClockFormat;
+        // The hero chooser on the Relic Forge panel (docs/45): {0} the hero, {1} the character's own name or, while a hero
+        // is locked, HeroLockedFormat - {0} that hero, {1} how to unlock it.
+        [SerializeField] private string _heroChoiceFormat = "{0}\n<size=20>{1}</size>";
+        [SerializeField] private string _heroLockedFormat = "{0}: {1}";
+        public string HeroChoiceFormat => _heroChoiceFormat;
+        public string HeroLockedFormat => _heroLockedFormat;
         public string OverrunFormat => _overrunFormat;
         // The loadout badges on the foundry's top panel (docs/42 section 4). {0} a weapon's or tome's short name; the
         // evolved form marks a weapon that has taken its evolution.

@@ -34,6 +34,13 @@ namespace Cryptforge.Tests
             return mode.Length > 0 ? mode : "on";
         }
 
+        // TestResults/horde-hero.txt, a hero id, plays that hero instead of the default (docs/45).
+        private static string Hero()
+        {
+            string path = Path.Combine(Application.dataPath, "..", "TestResults", "horde-hero.txt");
+            return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
+        }
+
         // TestResults/horde-seeds.txt, one seed per line, narrows a run to the seeds being looked at.
         private static int[] Seeds()
         {
@@ -61,7 +68,8 @@ namespace Cryptforge.Tests
         {
             var report = new StringBuilder();
             string mode = Mode();
-            report.AppendLine("mode " + mode);
+            string heroId = Hero();
+            report.AppendLine("mode " + mode + (heroId.Length > 0 ? " hero " + heroId : string.Empty));
             report.AppendLine("seed\tresult\tfloor_s\tuptime\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
             foreach (int seed in Seeds())
             {
@@ -69,6 +77,8 @@ namespace Cryptforge.Tests
                 Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.AutopilotPath));
                 File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
                 File.WriteAllText(DevelopmentStart.AutopilotPath, mode);
+                if (heroId.Length > 0)
+                    File.WriteAllText(DevelopmentStart.HeroPath, heroId);
                 File.WriteAllText(DevelopmentStart.RunSeedPath, seed.ToString());
                 Time.captureDeltaTime = Step;
                 yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");

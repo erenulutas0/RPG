@@ -3,6 +3,15 @@ using System.Collections.Generic;
 
 namespace Cryptforge.Combat
 {
+    // What the ability does when fired. Burst strikes every enemy in reach for Damage (the Vanguard's Forge Burst). Vent
+    // is the Cinder Arcanist's Crucible Vent (docs/45): every burning enemy in reach spends its Burn stacks at once, and
+    // Damage is what each spent stack deals to it and to the enemies beside it (BurnRule.VentDamage).
+    public enum AbilityKind
+    {
+        Burst = 0,
+        Vent = 1
+    }
+
     // The hero's active ability this run: a burst that strikes every enemy within its radius of the hero, then cools down.
     // Plain state like WeaponRuntime; the scene's AbilityController and the Descent simulation both drive it.
     public sealed class AbilityRuntime
@@ -11,14 +20,17 @@ namespace Cryptforge.Combat
         // Floor units from the hero.
         public float Radius { get; }
         public float Cooldown { get; }
+        public AbilityKind Kind { get; }
         // Seconds until the ability is ready again; zero means ready.
         public float Remaining { get; private set; }
         public int UsesMade { get; private set; }
 
         public bool IsReady => Remaining <= 0f;
 
-        public AbilityRuntime(float damage, float radius, float cooldown)
+        public AbilityRuntime(float damage, float radius, float cooldown, AbilityKind kind = AbilityKind.Burst)
         {
+            if (kind != AbilityKind.Burst && kind != AbilityKind.Vent)
+                throw new ArgumentOutOfRangeException(nameof(kind));
             if (!(damage > 0f) || float.IsInfinity(damage))
                 throw new ArgumentOutOfRangeException(nameof(damage));
             if (!(radius > 0f) || float.IsInfinity(radius))
@@ -29,6 +41,7 @@ namespace Cryptforge.Combat
             Damage = damage;
             Radius = radius;
             Cooldown = cooldown;
+            Kind = kind;
         }
 
         public void Tick(float deltaTime)
@@ -37,6 +50,16 @@ namespace Cryptforge.Combat
                 throw new ArgumentOutOfRangeException(nameof(deltaTime));
             if (Remaining > 0f)
                 Remaining = Math.Max(0f, Remaining - deltaTime);
+        }
+
+        // Starts the cooldown without striking: the scene deals a Vent itself, burn by burn. False while cooling down.
+        public bool TrySpend()
+        {
+            if (!IsReady)
+                return false;
+            Remaining = Cooldown;
+            UsesMade++;
+            return true;
         }
 
         // Strikes every living target and starts the cooldown; a ready burst with nothing in reach is still spent, as the

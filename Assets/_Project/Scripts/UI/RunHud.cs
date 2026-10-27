@@ -162,7 +162,8 @@ namespace Cryptforge.UI
 
         private void RefreshHero()
         {
-            _heroLabel.text = string.Format(_text.HealthFormat, _heroDefinition.DisplayName, _hero.Current, _hero.Maximum);
+            string name = _setup.Hero != null ? _setup.Hero.DisplayName : _heroDefinition.DisplayName;
+            _heroLabel.text = string.Format(_text.HealthFormat, name, _hero.Current, _hero.Maximum);
             _heroBar.fillAmount = Fraction(_hero.Current, _hero.Maximum);
         }
 

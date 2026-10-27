@@ -42,8 +42,11 @@ namespace Cryptforge.UI
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
         private bool _subscribed;
+        private HeroChoiceView _heroChoice;
 
         public bool IsOpen => _panel != null && _panel.activeSelf;
+        // The hero chooser beside the start button; null while the roster has one hero. For tests.
+        public HeroChoiceView HeroChoice => _heroChoice;
 
         private void Start()
         {
@@ -73,6 +76,11 @@ namespace Cryptforge.UI
                 _relicCards[i].Button.onClick.AddListener(() => OnRelicCard(slot));
             }
             _startButton.onClick.AddListener(OnStart);
+            if (_setup.Heroes.Count > 1)
+            {
+                _heroChoice = gameObject.AddComponent<HeroChoiceView>();
+                _heroChoice.Initialize(_setup, _text, _startButton, _startLabel);
+            }
             _setup.Profile.Changed += OnProfileChanged;
             _subscribed = true;
         }
@@ -202,6 +210,8 @@ namespace Cryptforge.UI
             for (int i = 0; i < _relicCards.Length && i < relics.Relics.Count; i++)
                 _relicCards[i].Button.interactable = interactable && relics.StatusOf(relics.Relics[i]) != UnlockStatus.TooExpensive;
             _startButton.interactable = interactable;
+            if (_heroChoice != null)
+                _heroChoice.SetInteractable(interactable);
         }
 
         // A successful forge or equip changes the profile, which refreshes the cards and restarts the input delay.

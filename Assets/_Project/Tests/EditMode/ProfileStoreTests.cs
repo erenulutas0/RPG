@@ -58,8 +58,37 @@ namespace Cryptforge.Tests
             Assert.That(loaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
             Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 2").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
+            Assert.That(json, Does.Contain("\"saveVersion\": 3").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
             Assert.That(File.Exists(Path.Combine(_directory, ProfileStore.TempFileName)), Is.False);
+        }
+
+        // Version 3 (docs/45): the heroes unlocked by play and the one chosen for the next run.
+        [Test]
+        public void HeroesRoundTripAndAVersionTwoProfileLoadsWithTheDefaultHero()
+        {
+            var store = new ProfileStore(_directory);
+            store.Load();
+            var profile = new PlayerProfile(10, null, null, 1, null, null, new[] { "hero_cinder_arcanist", "hero_cinder_arcanist", "" },
+                "hero_cinder_arcanist");
+            Assert.That(profile.UnlockedHeroIds, Is.EqualTo(new[] { "hero_cinder_arcanist" }), "Duplicates and blanks dropped.");
+            store.Save(profile);
+            PlayerProfile loaded = new ProfileStore(_directory).Load();
+            Assert.That(loaded.UnlockedHeroIds, Is.EqualTo(new[] { "hero_cinder_arcanist" }));
+            Assert.That(loaded.SelectedHeroId, Is.EqualTo("hero_cinder_arcanist"));
+            Assert.That(loaded.UnlockHero("hero_cinder_arcanist"), Is.False, "Already unlocked.");
+            Assert.That(loaded.SelectHero(""), Is.True, "Back to the default.");
+            Assert.That(loaded.SelectedHeroId, Is.Null);
+            Assert.That(loaded.SelectHero(null), Is.False, "Nothing changed.");
+
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path, "{\"saveVersion\":2,\"revision\":9,\"gold\":75,\"ownedRelicIds\":[],\"equippedRelicId\":\"\"," +
+                "\"deepestFloorCleared\":3,\"ownedWeaponIds\":[\"weapon_staff\"],\"equippedWeaponId\":\"weapon_staff\"}");
+            File.Delete(Path.Combine(_directory, ProfileStore.BackupFileName));
+            PlayerProfile old = new ProfileStore(_directory).Load();
+            Assert.That((old.Gold, old.DeepestFloorCleared, old.EquippedWeaponId), Is.EqualTo((75, 3, "weapon_staff")));
+            Assert.That(old.UnlockedHeroIds, Is.Empty, "Version 2 predates heroes.");
+            Assert.That(old.SelectedHeroId, Is.Null, "The default hero.");
+            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 2 }).saveVersion, Is.EqualTo(3));
         }
 
         [Test]
@@ -85,7 +114,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(path);
-            Assert.That(json, Does.Contain("\"saveVersion\": 2").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
+            Assert.That(json, Does.Contain("\"saveVersion\": 3").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
             Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.BackupFileName)), Does.Contain("\"saveVersion\": 1"),
                 "The version 1 file stays behind as the backup.");
             PlayerProfile reloaded = new ProfileStore(_directory).Load();

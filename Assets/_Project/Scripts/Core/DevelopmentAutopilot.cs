@@ -44,12 +44,22 @@ namespace Cryptforge.Core
         private bool _idle;
         // How far a lingering hero walks for a drop: the whole court, since it has nowhere else to go.
         private const float LingerDetour = 30f;
+        // The ability fires once this many enemies stand in its reach - burning ones for a Vent - or at once beside the
+        // gate boss, as a player saves a burst for a crowd (docs/45: the Cinder Arcanist is measured with its Vent).
+        private const int AbilityCrowd = 3;
+        private AbilityController _ability;
+        private Targeting _targeting;
+        private Health _heroHealth;
+        private readonly System.Collections.Generic.List<IDamageable> _inReach = new System.Collections.Generic.List<IDamageable>();
 
         internal void Initialize(CombatSetup setup, HeroMovementInput movement, Transform hero)
         {
             _setup = setup;
             _movement = movement;
             _hero = hero;
+            _ability = hero.GetComponent<AbilityController>();
+            _targeting = hero.GetComponent<Targeting>();
+            _heroHealth = hero.GetComponent<Health>();
             string mode = DevelopmentStart.AutopilotMode();
             _linger = mode == "linger";
             _idle = mode == "idle";
@@ -80,11 +90,36 @@ namespace Cryptforge.Core
                 _movement.Release();
                 return;
             }
+            TryAbility();
             float x = _hero.position.x, y = ArenaFloor.FloorY(_hero.position.y);
             if (Goal(x, y, out float gx, out float gy, out float stop))
                 Steer(x, y, gx, gy, stop);
             else
                 _movement.Release();
+        }
+
+        private void TryAbility()
+        {
+            if (_ability == null || _ability.Ability == null || !_ability.Ability.IsReady || _targeting == null)
+                return;
+            _targeting.CollectNear(_heroHealth, _ability.Ability.Radius, _inReach);
+            int count = 0;
+            for (int i = 0; i < _inReach.Count; i++)
+            {
+                if (!(_inReach[i] is Health enemy) || !enemy.IsAlive)
+                    continue;
+                if (_ability.Ability.Kind == AbilityKind.Vent)
+                {
+                    BurnStatus burn = enemy.GetComponent<BurnStatus>();
+                    if (burn == null || !burn.IsBurning)
+                        continue;
+                }
+                count++;
+            }
+            _inReach.Clear();
+            bool boss = _setup.Warden != null && _setup.Warden.Boss != null && _setup.Warden.Boss.IsAlive;
+            if (count >= AbilityCrowd || (boss && count > 0))
+                _ability.TryUse();
         }
 
         private int ChoiceSlot()

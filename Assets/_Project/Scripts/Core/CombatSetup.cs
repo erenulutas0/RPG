@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Cryptforge.Analytics;
 using Cryptforge.Combat;
@@ -17,6 +18,8 @@ namespace Cryptforge.Core
     public sealed class CombatSetup : MonoBehaviour
     {
         [SerializeField] private HeroDefinition _heroDefinition;
+        // Every playable hero, the default first; the profile's choice picks one (docs/45, the Cinder Arcanist).
+        [SerializeField] private HeroDefinition[] _heroes;
         [SerializeField] private EconomyConfig _economy;
         [SerializeField] private UpgradeDefinition[] _upgrades;
         [SerializeField] private RelicDefinition[] _relics;
@@ -34,6 +37,12 @@ namespace Cryptforge.Core
         private ProfileStore _profileStore;
         private bool _timeFrozen;
         private bool _restarting;
+
+        // The hero this run plays: the profile's choice when it may be played, otherwise the default.
+        public HeroDefinition Hero { get; private set; }
+        // Every playable hero, the default first, for the select screen.
+        public IReadOnlyList<HeroDefinition> Heroes => _heroes != null && _heroes.Length > 0
+            ? (IReadOnlyList<HeroDefinition>)_heroes : new[] { _heroDefinition };
 
         // The wave the hero is fighting, for the few systems that follow the fight itself rather than the run.
         public EncounterController Encounters => _encounters;
@@ -93,10 +102,11 @@ namespace Cryptforge.Core
             Profile = _profileStore.Load();
             ReportLoadProblems();
             Relics = new RelicShop(Profile, relics);
-            Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, _heroDefinition.StartingWeapon)]);
+            Hero = ChooseHero();
+            Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)]);
             HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
 
-            _hero.Initialize(_heroDefinition.MaximumHealth);
+            _hero.Initialize(Hero.MaximumHealth);
             // On the foundry a run builds Megabonk's way (docs/42, PR 7): the forge's weapon is the first of up to three,
             // every weapon of the catalogue can come as a card whatever the forge owns (the owner, 2026-10-26), and the
             // economy's tomes level every weapon at once. The hall arena keeps the legacy cards, so the scene tests that
@@ -105,7 +115,10 @@ namespace Cryptforge.Core
             bool categories = arena != null && arena.IsFoundryRegion && _economy.TomeCount > 0;
             Weapon = categories ? HeroWeapon.CreateCategoryRuntime() : HeroWeapon.CreateRuntime();
             _attack.Initialize(Weapon);
-            Ability = _heroDefinition.Ability.CreateRuntime();
+            // Ember Memory (docs/45): every hit of every weapon the hero carries sets the struck enemy alight.
+            if (Hero.Passive == HeroPassive.EmberMemory)
+                _attack.StruckWith += IgniteStruck;
+            Ability = Hero.Ability.CreateRuntime();
             _ability.Initialize(Ability);
             // A development file may choose the seed; otherwise a fresh one. Either way it is recorded on run_start.
             int seed = DevelopmentStart.TryRunSeed(out int chosen) ? chosen : RunSeeds.Fresh();
@@ -127,7 +140,7 @@ namespace Cryptforge.Core
             // The run's stat sheet, bound to the three things that read it. HeroMovementInput builds the walk and the
             // bar in its own Awake, which runs before this one, so both exist to bind now.
             var movement = _hero.GetComponent<HeroMovementInput>();
-            HeroStats = new HeroStats(_heroDefinition.MaximumHealth,
+            HeroStats = new HeroStats(Hero.MaximumHealth,
                 movement != null ? movement.Motion.Speed : 2.5f,
                 movement != null ? movement.Stamina.Bar : HeroStamina.DefaultBar);
             HeroStats.Changed += ApplyHeroStats;
@@ -211,10 +224,10 @@ namespace Cryptforge.Core
                 Checkpoint = Checkpoint,
                 Relics = Relics,
                 Weapons = Weapons,
-                HeroId = _heroDefinition.Id,
+                HeroId = Hero.Id,
                 WeaponId = HeroWeapon.Id,
                 RelicId = equippedRelic != null ? equippedRelic.Id : null,
-                AbilityId = _heroDefinition.Ability.Id,
+                AbilityId = Hero.Ability.Id,
                 ForgeGold = Profile.Gold,
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
                 Seed = Run.Seed,
@@ -311,6 +324,51 @@ namespace Cryptforge.Core
 
         private void OnHeroDied() => Run.End(RunOutcome.Defeat);
 
+        // The hero the run plays (docs/45): development/hero.txt first, then the profile's choice, each only when it may be
+        // played; otherwise the default. A choice the roster no longer has falls back to the default.
+        private HeroDefinition ChooseHero()
+        {
+            string wanted = DevelopmentStart.HeroId();
+            if (string.IsNullOrEmpty(wanted))
+                wanted = Profile.SelectedHeroId;
+            if (!string.IsNullOrEmpty(wanted) && _heroes != null)
+            {
+                for (int i = 0; i < _heroes.Length; i++)
+                {
+                    HeroDefinition hero = _heroes[i];
+                    if (hero != null && hero.Id == wanted && IsHeroPlayable(hero) && hero.Ability != null &&
+                        hero.StartingWeapon != null && Array.IndexOf(_weapons, hero.StartingWeapon) >= 0)
+                        return hero;
+                }
+            }
+            return _heroDefinition;
+        }
+
+        // Open from the start, unlocked by play, or any hero on a development build so the owner can try one early.
+        public bool IsHeroPlayable(HeroDefinition hero) => HeroUnlock.IsPlayable(hero != null && hero.UnlockedFromStart,
+            hero != null && Profile.HasUnlockedHero(hero.Id), DevelopmentStart.AllHeroesOpen());
+
+        // The Foundry cleared: every hero unlocked by carrying a weapon through it, and carried this run, unlocks.
+        internal void UnlockHeroesForTheFoundry()
+        {
+            if (_heroes == null)
+                return;
+            for (int i = 0; i < _heroes.Length; i++)
+            {
+                HeroDefinition hero = _heroes[i];
+                if (hero == null || hero.UnlockedFromStart || hero.UnlockWeapon == null || Profile.HasUnlockedHero(hero.Id))
+                    continue;
+                bool carried = HeroWeapon == hero.UnlockWeapon ||
+                    (Upgrades.Loadout != null && Upgrades.Loadout.IndexOf(hero.UnlockWeapon.Id) >= 0);
+                if (carried)
+                    Profile.UnlockHero(hero.Id);
+            }
+        }
+
+        // Ember Memory: one direct Burn stack on the enemy each hit lands on; its fall then passes the burn on.
+        private void IgniteStruck(Health target, WeaponRuntime weapon) =>
+            BurnStatus.On(target)?.Ignite(1, false, _hero, _attack);
+
         // The final floor ends the Descent; every earlier floor offers Extract or Descend.
         private void OnFloorCleared()
         {
@@ -318,6 +376,8 @@ namespace Cryptforge.Core
             // whole when the checkpoint shows it and its level-ups are offered before the checkpoint opens.
             Drops.CollectAll();
             Profile.RecordFloorCleared(_encounters.FloorNumber);
+            if (_encounters.FloorNumber == 1)
+                UnlockHeroesForTheFoundry();
             if (!_encounters.HasNextFloor)
             {
                 Run.End(RunOutcome.Victory);

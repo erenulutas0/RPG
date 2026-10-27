@@ -153,7 +153,7 @@ namespace Cryptforge.Tests
 
             ProfileSaveData upgraded = ProfileMigration.Upgrade(versionOne);
 
-            Assert.That(ProfileSaveData.CurrentVersion, Is.EqualTo(2));
+            Assert.That(ProfileSaveData.CurrentVersion, Is.EqualTo(3), "Version 3 added heroes on top of version 2's weapons.");
             Assert.That(upgraded.saveVersion, Is.EqualTo(ProfileSaveData.CurrentVersion));
             Assert.That(upgraded.ownedWeaponIds, Is.Empty);
             Assert.That(upgraded.equippedWeaponId, Is.Empty);
@@ -164,8 +164,9 @@ namespace Cryptforge.Tests
             Assert.That(upgraded.deepestFloorCleared, Is.EqualTo(2));
 
             var current = new ProfileSaveData { saveVersion = 2, ownedWeaponIds = new[] { "weapon_staff" }, equippedWeaponId = "weapon_staff" };
-            Assert.That(ProfileMigration.Upgrade(current).ownedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }), "The current version passes through.");
-            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 3 }), Is.Null, "A newer build's save is never guessed at.");
+            Assert.That(ProfileMigration.Upgrade(current).ownedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }), "Version 2's weapons pass through.");
+            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = ProfileSaveData.CurrentVersion + 1 }), Is.Null,
+                "A newer build's save is never guessed at.");
             Assert.That(ProfileMigration.Upgrade(null), Is.Null);
         }
     }

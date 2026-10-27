@@ -138,3 +138,60 @@ background. Painted style. No text.
 
 What the owner sends back: the chosen P1 image, then P2 (or P3) for both facings, and P4. Claude cuts, registers,
 rigs and integrates, and shows matched before/after captures.
+
+## 6. Built (2026-10-27, before the art)
+
+- `BurnRule` + `BurnState` (Combat, pure, in the .NET checks) and `BurnStatus` (the scene component an enemy gains on
+  its first stack): stacks, ticks, refresh, one-generation spread through the hero's `INeighbourhood`, `Consume` for the
+  Vent. Ticks deal the hero's damage, so a burn kill drops and pays like any other.
+- `AbilityKind.Vent` on `AbilityRuntime`/`AbilityDefinition`; `AbilityController` spends every burn in reach before any
+  eruption lands, then deals `stacks x damage` to each burning enemy and its neighbours within `VentSplashRadius`;
+  `Vented` event. `Ability_CrucibleVent.asset`: 8 a stack, 3 units, 14 s.
+- `HeroDefinition`: subtitle, `HeroPassive` (Ember Memory), unlock (open from start, or clear The Foundry carrying a
+  weapon), three lines. `Hero_CinderArcanist.asset`: 90 health, Staff, Vent, Ember Memory, unlocked by the Staff.
+- `CombatSetup`: a hero roster (scene field `_heroes`, the Vanguard first), `Hero` chosen from `development/hero.txt`,
+  then the profile; any hero plays on a development build (`DevelopmentStart.AllHeroesOpen`). Floor 1 cleared unlocks a
+  hero whose weapon the run carried. Ember Memory hooks `AttackController.StruckWith`, so every weapon's hit burns.
+- Profile save version 3: `unlockedHeroIds`, `selectedHeroId`; version 2 migrates to the default hero.
+- Forge: `HeroChoiceView` shares the start button's row (left 40 %); a tap moves to the next playable hero.
+- Presentation: a burning enemy's hit sparks in ember (#E77232); each Vent eruption draws an ember ring of its splash.
+  The hero still wears the Vanguard's art until Ilya's arrives.
+- Telemetry: `run_end` gains `burn_kills` and `burn_spreads` (last, only when something burned); `run_start.hero_id`.
+- Autopilot: fires the ability when 3 enemies (burning ones for a Vent) stand in reach, or any beside the gate boss;
+  the measurement takes `TestResults/horde-hero.txt`.
+
+## 7. Today's art order (2026-10-27, the owner generates in ChatGPT)
+
+Gameplay is shelved for now; the work is characters, their walks, weapons and skills. In order:
+
+1. **Ilya - P1 design sheet** (section 5). Pick one; it fixes the look for everything after.
+2. **Vanguard - P5 parts sheet**, rear and front, each from its attached master (`ArtDirection/2026-09-16/
+   character-proof-01/vanguard-body-v2.png` rear, `ArtDirection/2026-09-17/vanguard-directions-01/front-idle-v1.png`
+   front). The Vanguard keeps its blue steel - blue is what reads on the Foundry's orange - and gains the bible's two
+   details: two scorched worker badges on the belt and a helmet visor cracked open on one side.
+3. **Ilya - P2 parts sheet** (or P3 frame sheet) from the approved P1, rear then front.
+4. **P6 Crucible Vent icon** for the ability button, beside the existing Forge Burst anvil.
+
+### P5 - Vanguard cut-out parts sheet (attach the master)
+
+```
+Edit the attached Vanguard sprite into a CUT-OUT ANIMATION PARTS SHEET for a 2D puppet rig. Keep the exact painted
+style, blue steel armour, brass trims, silver bevels, navy cape, the same camera (rear three-quarter, top-down, light
+from the upper left) and the same scale. Add two small scorched worker badges on the belt and crack the helmet visor
+open on one side. Separate the body into non-overlapping pieces on a transparent background, each with generous extra
+overlap where it joins the next (round joints, no hard cut edges, the hidden part of each joint painted in): helmet;
+torso with shoulder plates; cape (one piece); belt and skirt plates; left upper arm; left forearm with gauntlet; right
+upper arm; right forearm with gauntlet (hand closed around nothing); left thigh; left shin with boot; right thigh; right
+shin with boot. No sword, no shield, no effects, no shadow, no text.
+```
+
+Then the same with the attached front master (front three-quarter, facing down-left).
+
+### P6 - Crucible Vent icon
+
+```
+A round ability icon for a dark fantasy mobile game, matching an existing icon of a glowing blue anvil with flames on
+a dark navy disc: a cracked brass crucible erupting with ember-orange (#E77232) fire, three small sparks rising, on the
+same dark navy disc with a thin brass ring. Bold readable silhouette at 96 pixels. Painted style, transparent
+background, no text.
+```

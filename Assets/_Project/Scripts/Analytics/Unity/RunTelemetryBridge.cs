@@ -90,6 +90,8 @@ namespace Cryptforge.Analytics
             _encounters.HordeEnemySpawned += OnHordeEnemySpawned;
             _encounters.HordeReleased += OnHordeReleased;
             _ability.Used += OnAbilityUsed;
+            BurnStatus.BurnKill += OnBurnKill;
+            BurnStatus.Spread += OnBurnSpread;
             if (_chests != null)
                 _chests.Opened += OnChestOpened;
         }
@@ -175,6 +177,10 @@ namespace Cryptforge.Analytics
 
         private void OnHordeEnemySpawned(int slot) => _telemetry.RecordHordeSpawn();
 
+        private void OnBurnKill(Health enemy) => _telemetry?.RecordBurnKill();
+
+        private void OnBurnSpread(Health from, Health to) => _telemetry?.RecordBurnSpread();
+
         private void OnHordeReleased() => _telemetry.RecordHordeReleased();
 
         // Heard before the composition root opens the checkpoint or ends the Descent.
@@ -231,6 +237,8 @@ namespace Cryptforge.Analytics
             }
             if (!ReferenceEquals(_ability, null))
                 _ability.Used -= OnAbilityUsed;
+            BurnStatus.BurnKill -= OnBurnKill;
+            BurnStatus.Spread -= OnBurnSpread;
             if (!ReferenceEquals(_chests, null))
                 _chests.Opened -= OnChestOpened;
             if (_drops != null)

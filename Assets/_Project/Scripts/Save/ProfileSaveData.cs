@@ -7,8 +7,8 @@ namespace Cryptforge.Save
     [Serializable]
     public sealed class ProfileSaveData
     {
-        // Version 2 added forged weapons.
-        public const int CurrentVersion = 2;
+        // Version 2 added forged weapons; version 3 added heroes (docs/45).
+        public const int CurrentVersion = 3;
 
         public int saveVersion;
         // Increases with every save; loading prefers the readable file with the highest revision.
@@ -20,5 +20,8 @@ namespace Cryptforge.Save
         public string[] ownedWeaponIds;
         // Empty while the hero carries the starting weapon.
         public string equippedWeaponId;
+        // Heroes unlocked beyond the ones open from the start, and the hero chosen for the next run (empty: the default).
+        public string[] unlockedHeroIds;
+        public string selectedHeroId;
     }
 }

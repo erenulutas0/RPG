@@ -3,12 +3,21 @@ using System.Collections.Generic;
 
 namespace Cryptforge.Core
 {
-    // Permanent progress between runs: banked gold, forged relics and weapons, what is equipped and the depth record.
+    // Whether a hero may be played (docs/45): open from the start, unlocked by play, or any hero on a development build.
+    public static class HeroUnlock
+    {
+        public static bool IsPlayable(bool openFromStart, bool unlockedByPlay, bool developmentBuild) =>
+            openFromStart || unlockedByPlay || developmentBuild;
+    }
+
+    // Permanent progress between runs: banked gold, forged relics and weapons, what is equipped, the heroes unlocked and
+    // chosen, and the depth record.
     // Every successful change raises Changed exactly once, which is the save trigger.
     public sealed class PlayerProfile
     {
         private readonly List<string> _ownedRelicIds = new List<string>();
         private readonly List<string> _ownedWeaponIds = new List<string>();
+        private readonly List<string> _unlockedHeroIds = new List<string>();
 
         public int Gold { get; private set; }
         public string EquippedRelicId { get; private set; }
@@ -17,6 +26,10 @@ namespace Cryptforge.Core
         public int DeepestFloorCleared { get; private set; }
         public IReadOnlyList<string> OwnedRelicIds => _ownedRelicIds;
         public IReadOnlyList<string> OwnedWeaponIds => _ownedWeaponIds;
+        // Heroes unlocked by play; the heroes open from the start are never stored.
+        public IReadOnlyList<string> UnlockedHeroIds => _unlockedHeroIds;
+        // The hero chosen for the next run; null for the default. Whether the choice may be played is the run's to judge
+        // against what is unlocked (CombatSetup), so a development build can try a locked hero without unlocking it.
         public event Action Changed;
 
         public PlayerProfile()
@@ -26,7 +39,8 @@ namespace Cryptforge.Core
         // Restores saved progress. Damaged values are repaired instead of rejected so a hand-edited or partially
         // valid save still loads: negative numbers become zero, duplicates are dropped and unowned items are unequipped.
         public PlayerProfile(int gold, IEnumerable<string> ownedRelicIds, string equippedRelicId, int deepestFloorCleared,
-            IEnumerable<string> ownedWeaponIds = null, string equippedWeaponId = null)
+            IEnumerable<string> ownedWeaponIds = null, string equippedWeaponId = null,
+            IEnumerable<string> unlockedHeroIds = null, string selectedHeroId = null)
         {
             Gold = Math.Max(0, gold);
             DeepestFloorCleared = Math.Max(0, deepestFloorCleared);
@@ -34,6 +48,37 @@ namespace Cryptforge.Core
             AddUnique(_ownedWeaponIds, ownedWeaponIds);
             EquippedRelicId = Owns(equippedRelicId) ? equippedRelicId : null;
             EquippedWeaponId = OwnsWeapon(equippedWeaponId) ? equippedWeaponId : null;
+            AddUnique(_unlockedHeroIds, unlockedHeroIds);
+            SelectedHeroId = string.IsNullOrEmpty(selectedHeroId) ? null : selectedHeroId;
+        }
+
+        public string SelectedHeroId { get; private set; }
+
+        public bool HasUnlockedHero(string heroId) => !string.IsNullOrEmpty(heroId) && _unlockedHeroIds.Contains(heroId);
+
+        // Records a hero unlocked by play; false when it already was.
+        public bool UnlockHero(string heroId)
+        {
+            if (string.IsNullOrEmpty(heroId))
+                throw new ArgumentException("A hero id is required.", nameof(heroId));
+            if (_unlockedHeroIds.Contains(heroId))
+                return false;
+
+            _unlockedHeroIds.Add(heroId);
+            Changed?.Invoke();
+            return true;
+        }
+
+        // Chooses the hero for the next run; null or empty chooses the default. False when nothing changed.
+        public bool SelectHero(string heroId)
+        {
+            string chosen = string.IsNullOrEmpty(heroId) ? null : heroId;
+            if (chosen == SelectedHeroId)
+                return false;
+
+            SelectedHeroId = chosen;
+            Changed?.Invoke();
+            return true;
         }
 
         public bool Owns(string relicId) => !string.IsNullOrEmpty(relicId) && _ownedRelicIds.Contains(relicId);

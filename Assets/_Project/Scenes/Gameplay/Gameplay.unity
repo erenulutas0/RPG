@@ -743,6 +743,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _heroDefinition: {fileID: 11400000, guid: 10000000000000000000000000000002, type: 2}
+  _heroes:
+  - {fileID: 11400000, guid: 10000000000000000000000000000002, type: 2}
+  - {fileID: 11400000, guid: 59fe811ca98b46aaaea6ece71070bf9b, type: 2}
   _economy: {fileID: 11400000, guid: 10000000000000000000000000000005, type: 2}
   _upgrades:
   - {fileID: 11400000, guid: 10000000000000000000000000000006, type: 2}

@@ -66,7 +66,7 @@ namespace Cryptforge.UI
         private void Show()
         {
             RunState run = _setup.Run;
-            string hero = _heroDefinition.DisplayName;
+            string hero = _setup.Hero != null ? _setup.Hero.DisplayName : _heroDefinition.DisplayName;
             // A defeat names the enemy whose hit landed last; a victory names the final wave's boss, even when its pack
             // outlived it.
             EnemyDefinition killer = run.Outcome != RunOutcome.Defeat

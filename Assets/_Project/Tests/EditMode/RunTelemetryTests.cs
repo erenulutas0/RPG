@@ -629,6 +629,28 @@ namespace Cryptforge.Tests
                 "A horde death after the run ended counts for neither.");
         }
 
+        // Burn (docs/45): a run where something burned ends with its burn kills and spreads, after every other key.
+        [Test]
+        public void ARunThatBurnedEndsWithItsBurnCounts()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            RunTelemetry recorder = scene.Recorder;
+            recorder.Begin();
+            scene.Room(1, Floor1, 1, RoomKind.Combat, "enemy_grunt");
+            recorder.Tick(1f, 1f);
+            recorder.RecordBurnSpread();
+            recorder.RecordBurnSpread();
+            recorder.RecordBurnKill();
+            scene.Die("enemy_grunt");
+            recorder.RecordBurnKill();
+
+            Line end = Single(telemetry.Lines(), "run_end");
+            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, "burn_kills", "burn_spreads")), "Last, after every other key.");
+            Assert.That((end.Integer("burn_kills"), end.Integer("burn_spreads")), Is.EqualTo((1L, 2L)),
+                "A burn after the run ended counts for nothing.");
+        }
+
         [Test]
         public void ActiveChoicePauseAndBackgroundTimeAreKeptApart()
         {

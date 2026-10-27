@@ -127,6 +127,10 @@ namespace Cryptforge.Analytics
         private int _hordeSpawnedWindow;
         private int _hordeKillsWindow;
         private int _hordeKills;
+        // Burn (docs/45): enemies a burn tick felled and stacks a fall passed on, written on run_end once any burned.
+        private int _burnKills;
+        private int _burnSpreads;
+        private bool _burnSeen;
 
         // Gold attribution. The scene reports a kill before the reward service pays it and a chest after it paid, both
         // within one call chain: gold that a reported kill announced is kill gold, the rest waits for the chest report.
@@ -331,6 +335,22 @@ namespace Cryptforge.Analytics
         {
             if (IsRecording)
                 _hordeSpawnedWindow++;
+        }
+
+        public void RecordBurnKill()
+        {
+            if (!IsRecording)
+                return;
+            _burnSeen = true;
+            _burnKills++;
+        }
+
+        public void RecordBurnSpread()
+        {
+            if (!IsRecording)
+                return;
+            _burnSeen = true;
+            _burnSpreads++;
         }
 
         public void RecordHordeKill()
@@ -748,6 +768,9 @@ namespace Cryptforge.Analytics
                 .AddHeroHealth(_heroHealth(), _heroMaximumHealth());
             if (_upgrades.IsCategoryMode)
                 AddBuild(end);
+            // Last, and only on a run where something burned, so every other run_end keeps its keys.
+            if (_burnSeen)
+                end.Add("burn_kills", _burnKills).Add("burn_spreads", _burnSpreads);
             _session.Emit("run_end", end);
             EndSessionRun();
             _session.Flush();

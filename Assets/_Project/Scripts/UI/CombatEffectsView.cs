@@ -90,6 +90,8 @@ namespace Cryptforge.UI
         private const float PuffLift = 0.08f;
         private const float PuffScale = 0.4f;
         private static readonly Color PuffTint = new Color(1f, 1f, 1f, 0.55f);
+        // Burn's ember (docs/45): the Arcanist's accent, #E77232.
+        private static readonly Color BurnTint = new Color(.906f, .447f, .196f, 1f);
         // The remains settle this far into the floor as they fade, so a fall ends lying down rather than lifting off.
         private const float RemainsSink = 0.05f;
         private const float CoinFrameDuration = 0.08f;
@@ -262,7 +264,10 @@ namespace Cryptforge.UI
             _heroAttack.StruckWith += OnHeroStruckWith;
             _hero.Damaged += OnHeroDamaged;
             if (_heroAbility != null)
+            {
                 _heroAbility.Used += OnAbilityUsed;
+                _heroAbility.Vented += OnVented;
+            }
             if (_chests != null)
                 _chests.Opened += OnChestOpened;
             _subscribed = true;
@@ -284,7 +289,10 @@ namespace Cryptforge.UI
                 _heroAttack.StruckWith -= OnHeroStruckWith;
                 _hero.Damaged -= OnHeroDamaged;
                 if (_heroAbility != null)
+                {
                     _heroAbility.Used -= OnAbilityUsed;
+                    _heroAbility.Vented -= OnVented;
+                }
                 if (_chests != null)
                     _chests.Opened -= OnChestOpened;
                 _subscribed = false;
@@ -495,7 +503,15 @@ namespace Cryptforge.UI
         private void OnEnemyDamaged(EnemyWatch watch, DamageContext context)
         {
             Vector3 anchor = AnchorOf(watch, watch.Enemy);
-            StandOn(Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder), FeetOf(watch, watch.Enemy));
+            Effect spark = StandOn(Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder), FeetOf(watch, watch.Enemy));
+            // A burning enemy sparks in ember (docs/45), so a Burn reads on the floor without a status icon: its ticks
+            // spark twice a second until it goes out.
+            BurnStatus burn = watch.Enemy != null ? watch.Enemy.GetComponent<BurnStatus>() : null;
+            if (burn != null && burn.IsBurning)
+            {
+                spark.Tint = BurnTint;
+                spark.Renderer.color = BurnTint;
+            }
 
             bool fromHero = ReferenceEquals(context.Source, _hero);
             if (fromHero && context.IsCritical)
@@ -590,6 +606,22 @@ namespace Cryptforge.UI
                     new Vector3(spread, launch, 0f), CoinGravity, true), position);
             }
             ShowGroundNumber(reward.Gold, true, anchor, position);
+        }
+
+        // A Crucible Vent eruption (docs/45): an ember ring as wide as its splash where the burning enemy stood.
+        private void OnVented(Health enemy, int stacks)
+        {
+            if (enemy == null)
+                return;
+            EnemyWatch watch = FindWatch(enemy);
+            Vector3 feet = watch != null && watch.Root != null ? watch.Root.position : enemy.transform.position;
+            float radius = BurnRule.VentSplashRadius;
+            Effect ring = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, feet, _groundOrder,
+                Vector3.zero, 0, false, radius * (24f / 38));
+            ring.StaffPulse = true;
+            ring.PulseRadius = radius;
+            ring.Tint = BurnTint;
+            ring.Renderer.color = BurnTint;
         }
 
         // The burst's ring covers the ability's whole radius, unlike the staff's, which shows only part of its splash.

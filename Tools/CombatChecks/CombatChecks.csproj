@@ -29,6 +29,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/PulseRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/CritSplashRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/KillBurstRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/BurnRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/INeighbourhood.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EnrageRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/FloorScaling.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/SwarmDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EncounterTests.cs" />
