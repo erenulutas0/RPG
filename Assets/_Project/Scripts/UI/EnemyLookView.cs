@@ -8,11 +8,18 @@ namespace Cryptforge.UI
     // to the enemy; neither path owns its sprites. Imported walking follows travelled floor distance, attacks use the
     // actual struck target, and a brief body compression accompanies the existing silhouette flash. A horde newcomer
     // fades in on its arrival (Arrive); a fallen enemy's bar hides at once and its body is left to the pooled remains.
+    // A set with the optional boss poses adds two more: a telegraphed blow raises the windup pose until it lands
+    // (WindUp, Slam - the Forge Warden's slam, driven by WardenSlamView), and the enemy's enrage swaps every pose for
+    // its second phase's (EnrageBehaviour). Every other enemy behaves exactly as before.
     public sealed class EnemyLookView : MonoBehaviour, ILookSprites
     {
         private const string BarName = "Health Bar";
         // Below this squared distance per frame the enemy counts as standing (pack motion moves whole texels).
         private const float StillThreshold = 1e-8f;
+        // PaintedFrame while the windup pose shows: after the set's six frames.
+        public const int WindupFrame = 6;
+        // How long the strike pose holds once a telegraphed blow lands: long enough to read as the blow, not a swing.
+        private const float SlamFrameSeconds = .35f;
 
         [SerializeField] private EnemyLook _look = EnemyLook.Grunt;
         [SerializeField] private SpriteRenderer _body;
@@ -51,8 +58,16 @@ namespace Cryptforge.UI
         private float _frameRemaining;
         private float _attackRemaining;
         private bool _subscribed;
+        // Only with a painted second phase: the enrage that shows it.
+        private EnrageBehaviour _enrage;
 
         public EnemyLook Look => _look;
+        // A telegraphed blow is coming: the windup pose holds until Slam or CancelWindup.
+        public bool IsWindingUp { get; private set; }
+        // The painted second phase is showing.
+        public bool ShowsEnraged { get; private set; }
+        // This look draws its enemy's enrage itself, so the body keeps its colours (CombatantView skips its tint).
+        internal bool DrawsEnrage => _painted && _paintedArt.HasEnragedFrames;
         // The body renderer, for presentation that restyles it in place (the foundry's hidden-enemy silhouette).
         internal SpriteRenderer Body => _body;
         // The health bar root (a child of this enemy), for presentation that keeps it on top of scenery.
@@ -76,6 +91,7 @@ namespace Cryptforge.UI
             _painted = _paintedArt != null && _paintedArt.IsValid;
             if (_paintedArt != null && !_painted) Debug.LogError("Enemy painted art set is incomplete.", this);
             if (!_painted) _sprites = EnemySpriteCache.Get(_look);
+            if (DrawsEnrage) _enrage = GetComponent<EnrageBehaviour>();
             // The prefab variants tint and scale the old square placeholder; the drawn look carries its own colour
             // and is already the size it should be on the 32 texel grid.
             _body.color = Color.white;
@@ -104,6 +120,11 @@ namespace Cryptforge.UI
             {
                 _attack.Attacked += OnAttacked;
                 _attack.Struck += OnStruck;
+            }
+            if (_enrage != null)
+            {
+                _enrage.Enraged += OnEnraged;
+                ShowsEnraged |= _enrage.IsEnraged;
             }
             _subscribed = true;
             RefreshBar();
@@ -163,6 +184,7 @@ namespace Cryptforge.UI
 
         private void OnDied()
         {
+            IsWindingUp = false;
             if (_bar != null)
                 _bar.SetActive(false);
             // The body is hidden at once (CombatantView) and its pooled remains take over; an arrival cut short ends here.
@@ -227,7 +249,10 @@ namespace Cryptforge.UI
 
         private void OnAttacked()
         {
-            _attackRemaining = _attackFrameDuration;
+            // The raised hammer holds through the boss's own swings: the telegraph is the read that matters.
+            if (IsWindingUp) return;
+            // A landed blow's longer hold is not cut short by a swing (for any other enemy this is the plain duration).
+            _attackRemaining = Mathf.Max(_attackRemaining, _attackFrameDuration);
             if (_painted) { ShowPainted(3); return; }
             Show(EnemyPose.Attack);
         }
@@ -236,9 +261,41 @@ namespace Cryptforge.UI
 
         private void OnStruck(Health target)
         {
-            if (!_painted || target == null) return;
+            if (!_painted || target == null || IsWindingUp) return;
             Face(target.transform.position - transform.position);
             ShowPainted(3);
+        }
+
+        // A telegraphed blow is coming (WardenSlamView, as the Warden's mark goes down): a painted look with a windup
+        // pose raises it, turned toward where the blow will land, and holds it through walking and its own swings until
+        // Slam or CancelWindup. Without one nothing changes.
+        internal void WindUp(Vector3 target)
+        {
+            if (!_painted || !_paintedArt.HasWindup || (_health != null && !_health.IsAlive)) return;
+            Face(target - transform.position);
+            IsWindingUp = true;
+            _attackRemaining = 0f;
+            ShowWindup();
+        }
+
+        // The telegraphed blow lands: the strike pose, turned toward where it landed, held a beat longer than a swing.
+        internal void Slam(Vector3 target)
+        {
+            if (!_painted || (_health != null && !_health.IsAlive)) return;
+            IsWindingUp = false;
+            Face(target - transform.position);
+            _attackRemaining = SlamFrameSeconds;
+            ShowPainted(3);
+        }
+
+        // The mark was withdrawn without a blow (the fight stopped): the pose goes back to walking or standing.
+        internal void CancelWindup() => IsWindingUp = false;
+
+        private void OnEnraged()
+        {
+            ShowsEnraged = true;
+            if (IsWindingUp) ShowWindup();
+            else if (PaintedFrame < WindupFrame) ShowPainted(PaintedFrame);
         }
 
         private void Face(Vector3 delta)
@@ -256,6 +313,8 @@ namespace Cryptforge.UI
             _hitRemaining = Mathf.Max(0, _hitRemaining - Time.deltaTime);
             float compression = _hitRemaining / .09f;
             _body.transform.localScale = new Vector3((Mirrored ? -1 : 1) * (1 + .06f * compression), 1 - .08f * compression, 1);
+            // Walking on under a raised hammer keeps it raised, facing where the blow will land.
+            if (IsWindingUp) { _walkDistance = 0; ShowWindup(); return; }
             _attackRemaining = Mathf.Max(0, _attackRemaining - Time.deltaTime);
             if (_attackRemaining > 0) return;
             float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
@@ -270,7 +329,15 @@ namespace Cryptforge.UI
         {
             PaintedFrame = frame;
             CurrentPose = frame == 3 ? EnemyPose.Attack : frame == 2 ? EnemyPose.IdleB : EnemyPose.IdleA;
-            _body.sprite = _paintedArt.GetFrame(frame, RearFacing).Body;
+            _body.sprite = _paintedArt.GetFrame(frame, RearFacing, ShowsEnraged).Body;
+            var scale = _body.transform.localScale; scale.x = Mathf.Abs(scale.x) * (Mirrored ? -1 : 1); _body.transform.localScale = scale;
+        }
+
+        private void ShowWindup()
+        {
+            PaintedFrame = WindupFrame;
+            CurrentPose = EnemyPose.Attack;
+            _body.sprite = _paintedArt.GetWindup(RearFacing, ShowsEnraged).Body;
             var scale = _body.transform.localScale; scale.x = Mathf.Abs(scale.x) * (Mirrored ? -1 : 1); _body.transform.localScale = scale;
         }
 
@@ -326,6 +393,8 @@ namespace Cryptforge.UI
                 _attack.Attacked -= OnAttacked;
                 _attack.Struck -= OnStruck;
             }
+            if (_enrage != null)
+                _enrage.Enraged -= OnEnraged;
             _subscribed = false;
         }
 

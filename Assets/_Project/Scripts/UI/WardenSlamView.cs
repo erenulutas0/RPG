@@ -6,7 +6,9 @@ namespace Cryptforge.UI
 {
     // Presentation only: the Warden's mark on the floor - a ring the hammer's reach wide where the hero stood, and an inner
     // ring growing out to it through the telegraph, so the moment it fills is the moment the blow lands - then a flash
-    // where it lands. WardenSlamService owns the clock, the mark and the blow.
+    // where it lands. The Warden's body tells it too: a painted Warden raises its hammer while the mark is down and
+    // brings it down as the blow lands (EnemyLookView.WindUp and Slam). WardenSlamService owns the clock, the mark and
+    // the blow.
     [DefaultExecutionOrder(100)]
     public sealed class WardenSlamView : MonoBehaviour
     {
@@ -21,6 +23,8 @@ namespace Cryptforge.UI
         private LineRenderer _edge;
         private LineRenderer _fill;
         private float _flash;
+        // The boss look holding its hammer up for the mark that is down.
+        private EnemyLookView _windingUp;
         public bool IsMarkShown => _mark != null && _mark.gameObject.activeSelf;
         public float ShownFill { get; private set; }
 
@@ -36,7 +40,11 @@ namespace Cryptforge.UI
             _mark.gameObject.SetActive(false);
             service.Marked += OnMarked;
             service.Slammed += _ => _flash = FlashSeconds;
+            service.Slammed += OnSlammed;
         }
+
+        // Where the mark is down, on the floor, in world space.
+        private Vector3 MarkPoint => new Vector3(_service.MarkX, ArenaFloor.WorldY(_service.MarkY), 0f);
 
         private LineRenderer Ring(string name, float width)
         {
@@ -58,6 +66,17 @@ namespace Cryptforge.UI
             if (_arena != null && _arena.IsFoundryRegion) p.y += FoundrySurface.Lift(p, _arena.transform.position);
             _mark.position = p;
             _flash = 0f;
+            Health boss = enabled ? _service.Boss : null;
+            _windingUp = boss != null ? boss.GetComponent<EnemyLookView>() : null;
+            if (_windingUp != null)
+                _windingUp.WindUp(MarkPoint);
+        }
+
+        private void OnSlammed(bool hit)
+        {
+            if (_windingUp != null)
+                _windingUp.Slam(MarkPoint);
+            _windingUp = null;
         }
 
         private void LateUpdate()
@@ -67,6 +86,12 @@ namespace Cryptforge.UI
             if (_flash > 0f)
                 _flash -= Time.deltaTime;
             bool marked = enabled && _service.IsFighting && _service.Clock.IsMarked;
+            // A mark withdrawn without a blow (the boss fell or changed, the fight stopped): the hammer comes down.
+            if (!marked && _windingUp != null)
+            {
+                _windingUp.CancelWindup();
+                _windingUp = null;
+            }
             float flash = Mathf.Clamp01(_flash / FlashSeconds);
             bool shown = marked || flash > 0f;
             if (_mark.gameObject.activeSelf != shown)
@@ -92,7 +117,10 @@ namespace Cryptforge.UI
         private void OnDestroy()
         {
             if (_service != null)
+            {
                 _service.Marked -= OnMarked;
+                _service.Slammed -= OnSlammed;
+            }
             if (_material != null)
                 Destroy(_material);
         }
