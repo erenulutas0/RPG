@@ -177,18 +177,45 @@ namespace Cryptforge.Tests
             Assert.That(motion.Pose, Is.EqualTo(pose));
         }
 
+        // The stride's heading (PuppetGaitInput.Heading): taken at once from standing, eased while walking so a turn of
+        // the stick shows no corner in the legs, kept while standing, and mirrored with the figure on show.
         [Test]
-        public void TheLegsOfTheShownFacingCarryTheBob()
+        public void TheStridesHeadingIsTakenFromStandingEasedWhileWalkingAndMirroredWithTheFigure()
+        {
+            var motion = new PuppetMotion();
+            motion.Tick(Frame, Stride, 1.2f);
+            Assert.That(motion.Input.Heading, Is.EqualTo(1.2f).Within(1e-6f), "Nothing is swinging yet: taken at once.");
+            Run(motion, 0.3f, Stride);
+            Assert.That(motion.Input.Heading, Is.EqualTo(1.2f).Within(1e-6f), "A tick without one keeps it.");
+            motion.Tick(Frame, Stride, -0.4f);
+            Assert.That(motion.Input.Heading, Is.InRange(-0.3f, 1.1f), "Walking, a turn of the stick eases into the legs.");
+            for (int frame = 0; frame < 20; frame++)
+                motion.Tick(Frame, Stride, -0.4f);
+            Assert.That(motion.Input.Heading, Is.EqualTo(-0.4f).Within(0.01f), "within a third of a second.");
+            Run(motion, 0.5f, 0f);
+            Assert.That(motion.Input.Heading, Is.EqualTo(-0.4f).Within(0.01f), "Standing keeps the last heading.");
+            motion.Mirror();
+            Assert.That(motion.Input.Heading, Is.EqualTo(0.4f - (float)Math.PI).Within(0.02f),
+                "The figure on show turned round: the same travel is the other way in its terms.");
+            Assert.That(motion.Pose, Is.EqualTo(PuppetGait.Evaluate(motion.Input)));
+            motion.Front = true;
+            Assert.That(motion.Input.Front, Is.True, "The facing on show reaches the strikes' arcs.");
+            Assert.That(motion.Pose, Is.EqualTo(PuppetGait.Evaluate(motion.Input)));
+        }
+
+        [Test]
+        public void TheLegsOfTheShownFacingCarryTheStride()
         {
             var motion = new PuppetMotion();
             Run(motion, 0.37f, Stride);
-            float reference = motion.Pose.Lift;
+            PuppetPose reference = motion.Pose;
             motion.Legs = new PuppetLegs
             {
                 Right = new PuppetLeg { KneeY = -0.2f, HeelX = -0.08f, HeelY = -0.5f, ToeX = 0.08f, ToeY = -0.5f },
                 Left = new PuppetLeg { KneeY = -0.2f, HeelX = -0.08f, HeelY = -0.5f, ToeX = 0.08f, ToeY = -0.5f }
             };
-            Assert.That(motion.Pose.Lift, Is.Not.EqualTo(reference), "Longer legs drop further at the same stride.");
+            Assert.That(motion.Pose.HipRight, Is.Not.EqualTo(reference.HipRight),
+                "Longer legs turn less to keep the same boot on the same floor.");
             Assert.That(motion.Pose, Is.EqualTo(PuppetGait.Evaluate(motion.Input)));
         }
     }

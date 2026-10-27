@@ -16,7 +16,8 @@ namespace Cryptforge.UI
     // cooldown and strikes, its ability and its health, and never ticks a weapon, moves the hero or applies damage. A
     // paused combat (no scaled time) freezes it. An attack moves the arms and chest only, so a walking hero keeps its
     // stride; the draw before it reads the weapon's cooldown, as the Vanguard's anticipation did. It faces the travel, or
-    // the target while it stands. It allocates nothing per frame.
+    // the target while it stands, at once, and shows the change through a short turn (PuppetFacing). It allocates
+    // nothing per frame.
     //
     // The puppet hangs beside the body rather than under it: CombatantView hides the body, and the weapons under it, at
     // death, and the puppet stays to play the collapse. The body keeps its renderer with no sprite, so CombatantView's
@@ -38,6 +39,12 @@ namespace Cryptforge.UI
 
         private readonly List<Sprite> _owned = new List<Sprite>();
         private readonly PuppetMotion _motion = new PuppetMotion();
+        private readonly PuppetFacing _facing = new PuppetFacing();
+        // Each rig's head part, which leads a turn by its own scale, or -1.
+        private int _rearHead = -1;
+        private int _frontHead = -1;
+        // The mirror the stride's heading is kept in: the facing on show's.
+        private bool _strideMirrored;
         private SpriteRenderer _body;
         // HeroLookView's weapon renderers in HeroWeaponPart order, borrowed: HeroWeaponView still shows and hides them.
         private SpriteRenderer[] _weapons;
@@ -59,6 +66,13 @@ namespace Cryptforge.UI
         private bool _orbLit;
         private bool _flashing;
         private Color _flashColor = Color.white;
+        // The weapons have no white copies to swap to as the parts do, and a tint only darkens painted steel, so a flash
+        // draws them through a silhouette material instead: Resources/RenderedCharacterFlash.shader, the rendered hero's,
+        // borrowed as it is, which fills a sprite's coverage with the renderer's colour. Made once; null where the shader
+        // is missing or unsupported, and then the weapons simply do not flash. Each weapon's own material comes back after.
+        private const string WeaponFlashShader = "RenderedCharacterFlash";
+        private Material _weaponFlash;
+        private Material[] _weaponMaterials;
         private bool _subscribed;
         // Painted parts swap whole to their white copies and cannot fade, so the evolution flash shows while strong.
         private const float OverlayFlashShown = .3f;
@@ -74,14 +88,20 @@ namespace Cryptforge.UI
         public bool IsWalking => _motion.IsWalking;
         public bool IsCasting => _motion.IsCasting;
         public bool IsDying => _motion.IsDying;
-        public bool FrontFacing { get; private set; }
-        public bool Mirrored { get; private set; }
+        // The facing the travel or the target asks for, taken at once.
+        public bool FrontFacing => _facing.Front;
+        public bool Mirrored => _facing.Mirrored;
+        // The facing on show, which follows through a short turn (PuppetFacing): narrowing, swapping at its narrowest,
+        // widening again.
+        public bool ShownFront => _facing.ShownFront;
+        public bool ShownMirrored => _facing.ShownMirrored;
+        public bool IsTurning => _facing.IsTurning;
         public bool UsesPlaceholder => _ownedArt != null;
         public PuppetArtSet Art => _art;
         public Transform Root => _root;
         internal PuppetRig RearRig => _rear;
         internal PuppetRig FrontRig => _front;
-        internal PuppetRig ActiveRig => FrontFacing ? _front : _rear;
+        internal PuppetRig ActiveRig => _facing.ShownFront ? _front : _rear;
 
         // Whether this run asked for the puppet: only the Editor and a development build ever look.
         public static bool Requested => DevelopmentStart.Puppet();
@@ -124,6 +144,8 @@ namespace Cryptforge.UI
             _root = root.transform;
             _rear = PuppetRig.Build(art.Rear, _root, "Puppet Rear", body.sharedMaterial, body.sortingLayerID, body.sortingOrder);
             _front = PuppetRig.Build(art.Front, _root, "Puppet Front", body.sharedMaterial, body.sortingLayerID, body.sortingOrder);
+            _rearHead = _rear.IndexOf(PuppetBone.Head);
+            _frontHead = _front.IndexOf(PuppetBone.Head);
 
             // Painted weapons, when the set brings them, are registered on their grips as the parts are on their joints.
             if (art.Sword != null)
@@ -139,6 +161,14 @@ namespace Cryptforge.UI
             if (art.Dagger != null)
                 weapons[(int)HeroWeaponPart.DaggerLeft].sprite = weapons[(int)HeroWeaponPart.DaggerRight].sprite = art.Dagger;
             _leftDaggerGrip = art.Dagger != null ? 0f : MirroredDaggerGrip;
+            var flashShader = Resources.Load<Shader>(WeaponFlashShader);
+            if (flashShader != null && flashShader.isSupported)
+            {
+                _weaponFlash = new Material(flashShader) { name = "Puppet weapon flash (scene)" };
+                _weaponMaterials = new Material[weapons.Length];
+                for (int i = 0; i < weapons.Length; i++)
+                    _weaponMaterials[i] = weapons[i].sharedMaterial;
+            }
 
             body.sprite = null;
             _previous = transform.position;
@@ -161,17 +191,27 @@ namespace Cryptforge.UI
             {
                 _motion.Interrupt();
                 UnlightOrb();
+                // A flash under way would otherwise stay lit until the puppet came back.
+                if (_flashing)
+                {
+                    _flashing = false;
+                    ActiveRig.Flash(false, Color.white);
+                    FlashWeapons(false, Color.white);
+                }
             }
         }
 
         private void OnDestroy()
         {
             Unsubscribe();
+            FlashWeapons(false, Color.white);
             foreach (Sprite sprite in _owned)
                 PixelSpriteFactory.Destroy(sprite);
             _owned.Clear();
             if (_ownedArt != null)
                 Destroy(_ownedArt);
+            if (_weaponFlash != null)
+                Destroy(_weaponFlash);
         }
 
         // After every Update, so the hero's movement and its weapon's cooldown this frame are already in.
@@ -193,16 +233,21 @@ namespace Cryptforge.UI
                 OnDied();
             if (_motion.IsDying)
             {
+                // A turn under way finishes as the figure falls.
+                Turn(dt);
                 _motion.Tick(dt, 0f);
                 ApplyPose();
                 return;
             }
 
-            float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
+            var floor = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale);
+            float travel = floor.magnitude;
             if (travel >= PuppetMotion.MinimumTravel)
-                Face(delta);
+                _facing.Face(floor.x, floor.y);
+            Turn(dt);
             Anticipate();
-            _motion.Tick(dt, travel);
+            // The stride's heading is the floor's travel in the shown facing's own terms: forward along it, up the screen.
+            _motion.Tick(dt, travel, Mathf.Atan2(floor.y, _facing.ShownMirrored ? -floor.x : floor.x));
             if (!_motion.IsAttacking)
                 UnlightOrb();
             ApplyPose();
@@ -238,17 +283,20 @@ namespace Cryptforge.UI
         {
             if (_rear == null || _motion.IsWalking || _motion.IsDying)
                 return;
-            Face(target - transform.position);
+            Vector3 toward = target - transform.position;
+            _facing.Face(toward.x, toward.y / ArenaFloor.DepthScale);
             ApplyPose();
         }
 
-        // Back to standing, as VanguardAnimator.Reset: no stride, no strike, no draw, no cast, no flinch. Not named
-        // Reset, which Unity reserves for a component's Inspector defaults.
+        // Back to standing, as VanguardAnimator.Reset: no stride, no strike, no draw, no cast, no flinch, and the facing
+        // asked for on show at once. Not named Reset, which Unity reserves for a component's Inspector defaults.
         public void ResetPose()
         {
             if (_rear == null)
                 return;
             _motion.Reset();
+            _facing.Settle();
+            ShowFacing();
             UnlightOrb();
             _previous = transform.position;
             ApplyPose();
@@ -280,7 +328,30 @@ namespace Cryptforge.UI
         {
             PuppetRig rig = ActiveRig;
             rig.Apply(_motion.Pose);
+            ApplyTurn(rig);
             PlaceWeapons(rig);
+        }
+
+        // One frame of a turn: the facing on show swaps at its narrowest.
+        private void Turn(float dt)
+        {
+            if (_facing.Step(dt))
+                ShowFacing();
+        }
+
+        // The turn's width on the puppet and the body together, so the weapons under the body narrow with the figure,
+        // mirrored as the facing on show is; the head runs its own turn a little ahead, as a share of the body's.
+        private void ApplyTurn(PuppetRig rig)
+        {
+            float width = _facing.Width;
+            var scale = new Vector3(_facing.ShownMirrored ? -width : width, 1f, 1f);
+            _root.localScale = scale;
+            _body.transform.localScale = scale;
+            int head = rig == _front ? _frontHead : _rearHead;
+            if (head < 0)
+                return;
+            float headWidth = _facing.HeadWidth / width;
+            rig.Bone(head).localScale = new Vector3(_facing.HeadMirrored ? -headWidth : headWidth, 1f, 1f);
         }
 
         private void UnlightOrb()
@@ -294,36 +365,19 @@ namespace Cryptforge.UI
                 orb.sprite = _orb;
         }
 
-        private void Face(Vector3 delta)
-        {
-            var direction = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale);
-            if (direction.sqrMagnitude < .00000001f)
-                return;
-            direction.Normalize();
-            bool mirrored = Mirrored;
-            bool front = FrontFacing;
-            // Each axis keeps its facing inside a small dead band, so nearly horizontal or vertical travel never flickers.
-            if (Mathf.Abs(direction.x) > .15f)
-                mirrored = direction.x < 0f;
-            if (Mathf.Abs(direction.y) > .15f)
-                front = direction.y < 0f;
-            if (mirrored == Mirrored && front == FrontFacing)
-                return;
-            Mirrored = mirrored;
-            FrontFacing = front;
-            ShowFacing();
-        }
-
-        // Mirrors the puppet and the body (so the weapons under it) together and stands the bob on the shown facing's
-        // legs; movement, targeting and the shadow are not touched.
+        // Shows the facing on show's rig, mirrors the stride's heading with it and stands the stride on that rig's legs;
+        // movement, targeting and the shadow are not touched. ApplyTurn mirrors the puppet and the body.
         private void ShowFacing()
         {
-            _rear.Root.SetActive(!FrontFacing);
-            _front.Root.SetActive(FrontFacing);
-            var scale = new Vector3(Mirrored ? -1f : 1f, 1f, 1f);
-            _root.localScale = scale;
-            _body.transform.localScale = scale;
+            _rear.Root.SetActive(!_facing.ShownFront);
+            _front.Root.SetActive(_facing.ShownFront);
+            if (_facing.ShownMirrored != _strideMirrored)
+            {
+                _strideMirrored = _facing.ShownMirrored;
+                _motion.Mirror();
+            }
             _motion.Legs = ActiveRig.Legs;
+            _motion.Front = _facing.ShownFront;
             ActiveRig.Flash(_flashing, _flashColor);
         }
 
@@ -337,6 +391,24 @@ namespace Cryptforge.UI
             _flashing = on;
             _flashColor = color;
             ActiveRig.Flash(on, color);
+            FlashWeapons(on, color);
+        }
+
+        // Every weapon renderer, shown or not, so one the loadout shows mid-flash flashes with the rest: its silhouette
+        // in the flash colour, or its own material and an untinted colour again. A scene unload may already have
+        // destroyed a weapon when this runs from OnDestroy.
+        private void FlashWeapons(bool on, Color color)
+        {
+            if (_weaponFlash == null || _weapons == null)
+                return;
+            for (int i = 0; i < _weapons.Length; i++)
+            {
+                SpriteRenderer weapon = _weapons[i];
+                if (weapon == null)
+                    continue;
+                weapon.sharedMaterial = on ? _weaponFlash : _weaponMaterials[i];
+                weapon.color = on ? color : Color.white;
+            }
         }
 
         // Each shown weapon on its hand's grip, turned with the hand. Worked out in the body's space, where the weapons
@@ -350,7 +422,7 @@ namespace Cryptforge.UI
             GripPose(toBody, rig.LeftGrip, out Vector3 left, out float leftAngle);
             int rightOrder = _body.sortingOrder + rig.RightItemSorting;
             int leftOrder = _body.sortingOrder + rig.LeftItemSorting;
-            float carry = FrontFacing ? 1f - _motion.Pose.Wield : 0f;
+            float carry = _facing.ShownFront ? 1f - _motion.Pose.Wield : 0f;
             Hold(HeroWeaponPart.Sword, right, rightAngle + carry * FrontSwordCarry, rightOrder);
             Hold(HeroWeaponPart.StaffShaft, right, rightAngle, rightOrder);
             Hold(HeroWeaponPart.DaggerRight, right, rightAngle + carry * FrontDaggerCarry, rightOrder);

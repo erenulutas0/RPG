@@ -136,9 +136,10 @@ namespace Cryptforge.Art
             return grip;
         }
 
-        // A leg for the bob, in the terms of a figure facing right: the knee is the shin's joint on its thigh, the sole
-        // the set's or, without one, the bottom corners of the shin's sprite a texel in from its edges. No thigh with a
-        // shin hung from it gives the gait's reference leg.
+        // A leg for the stride, in the terms of a figure facing right: the hip is the thigh's joint on the pelvis (none
+        // for a thigh hung elsewhere), the knee the shin's joint on its thigh, the sole the set's or, without one, the
+        // bottom corners of the shin's sprite a texel in from its edges. No thigh with a shin hung from it gives the
+        // gait's reference leg.
         private static PuppetLeg Leg(PuppetArtSet.Part[] parts, PuppetBone thighBone, PuppetBone shinBone, Vector4 sole,
             float turn)
         {
@@ -160,10 +161,12 @@ namespace Cryptforge.Art
                 sole = new Vector4(bounds.min.x + texel, bounds.min.y + texel, bounds.max.x - texel, bounds.min.y + texel);
             }
             Vector2 knee = parts[shin].Joint;
+            int pelvis = parts[thigh].Parent;
+            Vector2 hip = pelvis >= 0 && parts[pelvis].Bone == PuppetBone.Pelvis ? parts[thigh].Joint : Vector2.zero;
             return new PuppetLeg
             {
-                KneeX = turn * knee.x, KneeY = knee.y, HeelX = turn * sole.x, HeelY = sole.y, ToeX = turn * sole.z,
-                ToeY = sole.w
+                HipX = turn * hip.x, HipY = hip.y, KneeX = turn * knee.x, KneeY = knee.y, HeelX = turn * sole.x,
+                HeelY = sole.y, ToeX = turn * sole.z, ToeY = sole.w
             };
         }
     }
