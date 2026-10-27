@@ -51,6 +51,11 @@ namespace Cryptforge.Art
             public int LeftHand;
             public Vector2 LeftGrip;
             public int LeftItemSorting;
+            // Optional: the two ends of each boot's sole, heel and toe, in its shin part's space (world units from the
+            // knee, x then y of one end, then of the other), so the walk's bob plants the boot it stands on; all zero,
+            // the rig takes the bottom corners of the shin's sprite.
+            public Vector4 RightSole;
+            public Vector4 LeftSole;
             // True when the sheet was painted facing screen-left (docs/45's front prompt asks for down-left): the rig then
             // mirrors it and turns every joint the other way, so the poses need not know.
             public bool FacesLeft;

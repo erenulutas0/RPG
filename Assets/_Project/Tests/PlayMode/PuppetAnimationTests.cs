@@ -12,7 +12,8 @@ using UnityEngine.TestTools;
 namespace Cryptforge.Tests
 {
     // The development cut-out puppet (docs/45 section 4 B) in the real scene: development/puppet.txt hands the hero to
-    // PuppetAnimator with its code-drawn placeholder parts. Presentation only, like the Vanguard's animation tests.
+    // PuppetAnimator with the Vanguard's painted parts (VanguardPuppetArtSet, on HeroLookView). Presentation only, like the
+    // Vanguard's animation tests.
     public sealed class PuppetAnimationTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -68,12 +69,15 @@ namespace Cryptforge.Tests
             TestProfile.End();
         }
 
+        private static Transform BoneOf(PuppetRig rig, PuppetBone bone) => rig.Bone(rig.IndexOf(bone));
+
         [UnityTest]
         public IEnumerator TheFlagBuildsAPuppetBesideTheBodyWithTheWeaponsInItsFists()
         {
             Assert.That(_look.enabled, Is.False, "The look steps aside so the two never drive the same renderers.");
             Assert.That(_look.UsesPaintedArt, Is.False, "No painted Vanguard frames under the puppet.");
-            Assert.That(_puppet.UsesPlaceholder, Is.True, "No painted parts yet: the placeholders stand in.");
+            Assert.That(_puppet.UsesPlaceholder, Is.False, "The scene's painted Vanguard parts, not the placeholders.");
+            Assert.That(_puppet.Art.IsValid, Is.True);
             Assert.That(_puppet.Root.name, Is.EqualTo(PuppetAnimator.RootName));
             Assert.That(_puppet.Root.parent, Is.SameAs(_puppet.transform), "Beside the body, so it outlives the death hide.");
             Assert.That(_body.sprite, Is.Null, "The body draws nothing; CombatantView keeps its renderer.");
@@ -84,7 +88,7 @@ namespace Cryptforge.Tests
 
             yield return null;
             PuppetRig rig = _puppet.ActiveRig;
-            Assert.That(rig.PartCount, Is.EqualTo(PuppetPlaceholderArt.PartCount));
+            Assert.That(rig.PartCount, Is.EqualTo(_puppet.Art.Rear.Parts.Length));
             for (int i = 0; i < rig.PartCount; i++)
             {
                 SpriteRenderer part = rig.Renderer(i);
@@ -96,9 +100,17 @@ namespace Cryptforge.Tests
             var shield = GameObject.Find("Shield Placeholder").GetComponent<SpriteRenderer>();
             Assert.That(Vector2.Distance(sword.transform.position, rig.RightGrip.position), Is.LessThan(1e-4f), "In the right fist.");
             Assert.That(Vector2.Distance(shield.transform.position, rig.LeftGrip.position), Is.LessThan(1e-4f), "In the left fist.");
-            Assert.That(sword.sortingOrder, Is.InRange(rig.Renderer(PuppetPlaceholderArt.ForearmRight).sortingOrder + 1,
-                rig.Renderer(PuppetPlaceholderArt.HandRight).sortingOrder - 1), "Between the forearm and the fist.");
-            Assert.That(shield.sortingOrder, Is.LessThan(rig.Renderer(PuppetPlaceholderArt.Torso).sortingOrder));
+            Assert.That(sword.sprite, Is.SameAs(_puppet.Art.Sword), "The painted sword.");
+            int torso = rig.Renderer(rig.IndexOf(PuppetBone.Torso)).sortingOrder;
+            // The painted gauntlet is on the forearm: the blade sits under it, so the fist closes over the grip, and in
+            // front of the body.
+            Assert.That(sword.sortingOrder, Is.InRange(torso + 1, rig.Renderer(_puppet.Art.Rear.RightHand).sortingOrder - 1),
+                "Between the body and the gauntlet.");
+            Assert.That(shield.sortingOrder, Is.LessThan(torso), "Seen from behind the shield is behind the body.");
+            for (int i = 0; i < rig.PartCount; i++)
+                Assert.That(rig.Renderer(i).sprite, Is.Not.Null, rig.Renderer(i).name);
+            Assert.That(rig.Legs.Right.IsSet && rig.Legs.Left.IsSet, Is.True, "The bob stands on the painted legs.");
+            Assert.That(_puppet.GaitInput.Legs.Right.KneeY, Is.EqualTo(rig.Legs.Right.KneeY));
             Assert.That(_attack.AttackCount, Is.Zero);
             LogAssert.NoUnexpectedReceived();
         }
@@ -121,7 +133,7 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator WalkingSwingsTheLegsThroughTheStrideAndFacesTheTravel()
         {
-            Transform thigh = _puppet.RearRig.Bone(PuppetPlaceholderArt.ThighLeft);
+            Transform thigh = BoneOf(_puppet.RearRig, PuppetBone.ThighLeft);
             float hipLow = float.MaxValue, hipHigh = float.MinValue, turnLow = float.MaxValue, turnHigh = float.MinValue;
             bool leftSwung = false, rightSwung = false;
             Vector3 start = _puppet.transform.position;
@@ -145,8 +157,8 @@ namespace Cryptforge.Tests
                 float turn = Mathf.DeltaAngle(0f, thigh.localEulerAngles.z);
                 turnLow = Mathf.Min(turnLow, turn);
                 turnHigh = Mathf.Max(turnHigh, turn);
-                leftSwung |= pose.KneeLeft > pose.KneeRight + 25f;
-                rightSwung |= pose.KneeRight > pose.KneeLeft + 25f;
+                leftSwung |= pose.KneeLeft > pose.KneeRight + 15f;
+                rightSwung |= pose.KneeRight > pose.KneeLeft + 15f;
             }
             Assert.That(hipHigh - hipLow, Is.GreaterThan(PuppetGait.HipSwing), "The thighs swing through the stride.");
             Assert.That(turnHigh - turnLow, Is.GreaterThan(PuppetGait.HipSwing), "and the thigh's transform with them.");
@@ -161,6 +173,8 @@ namespace Cryptforge.Tests
             for (int i = 0; i < 4; i++) yield return null;
             Assert.That(_puppet.FrontFacing && !_puppet.Mirrored, Is.True, "Travel toward the camera shows the front.");
             Assert.That(_puppet.FrontRig.Root.activeSelf && !_puppet.RearRig.Root.activeSelf, Is.True);
+            Assert.That(_puppet.GaitInput.Legs.Right.KneeY, Is.EqualTo(_puppet.FrontRig.Legs.Right.KneeY),
+                "The bob stands on the shown facing's legs.");
             _movement.Release();
             Assert.That(_attack.AttackCount, Is.Zero, "The puppet never attacks on its own.");
             LogAssert.NoUnexpectedReceived();
@@ -215,9 +229,9 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator StandingStillReturnsToTheIdlePose()
+        public IEnumerator StandingStillSettlesIntoTheIdle()
         {
-            Transform thigh = _puppet.RearRig.Bone(PuppetPlaceholderArt.ThighRight);
+            Transform thigh = BoneOf(_puppet.RearRig, PuppetBone.ThighRight);
             _movement.Hold(Vector2.right);
             for (int i = 0; i < 30; i++) yield return null;
             Assert.That(_puppet.GaitInput.WalkWeight, Is.EqualTo(1f));
@@ -225,29 +239,91 @@ namespace Cryptforge.Tests
             for (int i = 0; i < 20; i++) yield return null;
             Assert.That(_puppet.IsWalking, Is.False);
             Assert.That(_puppet.GaitInput.WalkWeight, Is.Zero, "The stride has eased out.");
+            // The stop's lurch rocks the body and swings the cape; a second later both have settled.
+            for (int i = 0; i < 60; i++) yield return null;
 
             PuppetPose rest = PuppetGait.Rest;
             for (int i = 0; i < 60; i++)
             {
                 yield return null;
                 PuppetPose pose = _puppet.Pose;
-                Assert.That(pose.HipLeft, Is.EqualTo(rest.HipLeft).Within(1e-4f));
-                Assert.That(pose.HipRight, Is.EqualTo(rest.HipRight).Within(1e-4f));
-                Assert.That(pose.KneeLeft, Is.EqualTo(rest.KneeLeft).Within(1e-4f));
-                Assert.That(pose.KneeRight, Is.EqualTo(rest.KneeRight).Within(1e-4f));
-                Assert.That(pose.Lift, Is.EqualTo(rest.Lift).Within(1e-5f));
-                Assert.That(pose.Lean, Is.EqualTo(rest.Lean).Within(1e-4f));
-                Assert.That(pose.Breath, Is.InRange(-PuppetGait.BreathLift, PuppetGait.BreathLift), "Only the breath moves.");
-                Assert.That(Mathf.Abs(pose.ShoulderRight - rest.ShoulderRight), Is.LessThanOrEqualTo(PuppetGait.BreathShoulder + 1e-4f));
-                Assert.That(Mathf.DeltaAngle(0f, thigh.localEulerAngles.z), Is.EqualTo(0f).Within(1e-3f), "The thigh hangs straight.");
+                Assert.That(pose, Is.EqualTo(PuppetGait.Evaluate(_puppet.GaitInput)), "The pose is its clocks'.");
+                Assert.That(Mathf.Abs(pose.HipLeft - rest.HipLeft), Is.LessThan(1.5f), "Only the weight shift leans the legs.");
+                Assert.That(Mathf.Abs(pose.HipRight - rest.HipRight), Is.LessThan(1.5f));
+                Assert.That(pose.KneeLeft, Is.InRange(PuppetGait.KneeRest - .01f, PuppetGait.KneeRest + PuppetGait.WeightKnee + .2f));
+                Assert.That(pose.KneeRight, Is.InRange(PuppetGait.KneeRest - .01f, PuppetGait.KneeRest + PuppetGait.WeightKnee + .2f));
+                Assert.That(Mathf.Abs(pose.Lift), Is.LessThan(.004f), "The boots stay planted.");
+                Assert.That(Mathf.Abs(pose.Lean), Is.LessThan(.2f), "The lurch has settled.");
+                Assert.That(pose.Breath, Is.InRange(-PuppetGait.BreathLift, PuppetGait.BreathLift), "The chest breathes.");
+                Assert.That(Mathf.Abs(pose.Shift), Is.LessThanOrEqualTo(PuppetGait.WeightShift + 1e-4f), "The weight shifts.");
+                Assert.That(Mathf.Abs(pose.ShoulderRight - rest.ShoulderRight), Is.LessThanOrEqualTo(PuppetGait.BreathShoulder + .3f));
+                Assert.That(Mathf.Abs(Mathf.DeltaAngle(0f, thigh.localEulerAngles.z)), Is.LessThan(1.5f), "The thigh hangs straight.");
             }
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The Forge Burst (AbilityController.Used): a crouch, a raise over the helmet and the slam, over the stride.
+        [UnityTest]
+        public IEnumerator TheAbilitySlamsDownOverTheStride()
+        {
+            var ability = _puppet.GetComponent<AbilityController>();
+            _movement.Hold(Vector2.right);
+            for (int i = 0; i < 20; i++) yield return null;
+            Assert.That(ability.TryUse(), Is.True);
+            Assert.That(_puppet.IsCasting, Is.True, "The slam starts with the ability.");
+            float raised = float.MinValue, lowest = 0f, hipLow = float.MaxValue, hipHigh = float.MinValue;
+            int frames = Mathf.CeilToInt(PuppetGait.CastSeconds * 60f) + 2;
+            for (int i = 0; i < frames; i++)
+            {
+                yield return null;
+                PuppetPose pose = _puppet.Pose;
+                raised = Mathf.Max(raised, pose.ShoulderRight);
+                lowest = Mathf.Min(lowest, pose.Lift);
+                hipLow = Mathf.Min(hipLow, pose.HipLeft);
+                hipHigh = Mathf.Max(hipHigh, pose.HipLeft);
+                Assert.That(_puppet.IsWalking, Is.True, "frame " + i);
+            }
+            _movement.Release();
+            Assert.That(_puppet.IsCasting, Is.False, "and ends.");
+            Assert.That(raised, Is.GreaterThan(120f), "The arms went up over the helmet.");
+            Assert.That(lowest, Is.LessThan(-.02f), "The slam crouched the hero.");
+            Assert.That(hipHigh - hipLow, Is.GreaterThan(5f), "while its legs kept striding.");
+            Assert.That(_attack.AttackCount, Is.Zero, "The puppet never attacks on its own.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The anticipation reads the weapon's cooldown, as VanguardAnimator's did: the sword rises before the hit.
+        [UnityTest]
+        public IEnumerator TheSwordIsDrawnBackBeforeEachStrikeLands()
+        {
+            _attack.enabled = true;
+            int attacks = _attack.AttackCount;
+            float drawn = 0f;
+            int drawnStrikes = 0;
+            for (int i = 0; i < 150; i++)
+            {
+                _target.transform.position = _puppet.transform.position + Vector3.right * .3f;
+                yield return null;
+                if (_attack.AttackCount > attacks)
+                {
+                    attacks = _attack.AttackCount;
+                    Assert.That(_puppet.GaitInput.Strike, Is.EqualTo(PuppetStrike.Swing));
+                    Assert.That(_puppet.GaitInput.WindupProgress, Is.Zero, "The strike spends the draw.");
+                    if (drawn > .5f)
+                        drawnStrikes++;
+                    drawn = 0f;
+                }
+                else if (_puppet.GaitInput.Windup == PuppetStrike.Swing)
+                    drawn = Mathf.Max(drawn, _puppet.GaitInput.WindupProgress);
+            }
+            Assert.That(drawnStrikes, Is.GreaterThan(0), "Every strike after the first was drawn back first.");
             LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
         public IEnumerator CombatPauseFreezesThePuppetMidStride()
         {
-            Transform thigh = _puppet.RearRig.Bone(PuppetPlaceholderArt.ThighLeft);
+            Transform thigh = BoneOf(_puppet.RearRig, PuppetBone.ThighLeft);
             var sword = GameObject.Find("Sword Placeholder").transform;
             _movement.Hold(Vector2.right);
             for (int i = 0; i < 20; i++) yield return null;

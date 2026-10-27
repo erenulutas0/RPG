@@ -7,14 +7,16 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // The hero as a cut-out puppet (docs/45 section 4 B): one painting per facing, cut into parts and animated by
-    // PuppetGait, so walk, strike, flinch, death and idle all come from the same pieces with nothing boiling between
-    // frames. Development builds and the Editor only for now: development/puppet.txt asks for it (DevelopmentStart.Puppet)
-    // and HeroLookView hands the hero over and steps aside. Without a PuppetArtSet it builds code-drawn placeholder parts.
+    // PuppetMotion and PuppetGait, so walk, strike, cast, flinch, death and idle all come from the same pieces with nothing
+    // boiling between frames. Development builds and the Editor only for now: development/puppet.txt asks for it
+    // (DevelopmentStart.Puppet) and HeroLookView hands the hero over and steps aside. Without a PuppetArtSet it builds
+    // code-drawn placeholder parts.
     //
     // VanguardAnimator's contract, kept: presentation only - it observes the hero's floor displacement, its first weapon's
-    // strikes and its health, and never ticks a weapon, moves the hero or applies damage. A paused combat (no scaled time)
-    // freezes it. An attack moves the arms only, so a walking hero keeps its stride. It faces the travel, or the target
-    // while it stands. It allocates nothing per frame.
+    // cooldown and strikes, its ability and its health, and never ticks a weapon, moves the hero or applies damage. A
+    // paused combat (no scaled time) freezes it. An attack moves the arms and chest only, so a walking hero keeps its
+    // stride; the draw before it reads the weapon's cooldown, as the Vanguard's anticipation did. It faces the travel, or
+    // the target while it stands. It allocates nothing per frame.
     //
     // The puppet hangs beside the body rather than under it: CombatantView hides the body, and the weapons under it, at
     // death, and the puppet stays to play the collapse. The body keeps its renderer with no sprite, so CombatantView's
@@ -24,20 +26,24 @@ namespace Cryptforge.UI
     public sealed class PuppetAnimator : MonoBehaviour
     {
         public const string RootName = "Hero Puppet";
-        // Below this a frame's floor travel is standing, as for VanguardAnimator.
-        private const float MinimumTravel = .0001f;
-        private const float FlinchRate = 1f / PuppetGait.FlinchSeconds;
-        private const float DeathRate = 1f / PuppetGait.DeathSeconds;
         // HeroArt's left dagger is the right one mirrored, pointing up and back; a quarter turn points it forward too.
         private const float MirroredDaggerGrip = -90f;
         // The orb's centre above the staff's grip: three texels over the cap its cradle rests on (HeroArt.Anchor).
         private const float StaffCap = (HeroArt.StaffCapRow - HeroArt.StaffGripRow + 4) / PixelSpriteFactory.PixelsPerUnit;
+        // Seen from the front the painted Vanguard frames carried the sword point-down and back and the daggers tilted out
+        // from the body, so neither crosses the chest; from behind each is carried as drawn, pointing up and forward. As
+        // a weapon is used (PuppetPose.Wield) it turns back to the angle it was drawn at, so strikes play as authored.
+        public const float FrontSwordCarry = -180f;
+        public const float FrontDaggerCarry = 35f;
 
         private readonly List<Sprite> _owned = new List<Sprite>();
+        private readonly PuppetMotion _motion = new PuppetMotion();
         private SpriteRenderer _body;
         // HeroLookView's weapon renderers in HeroWeaponPart order, borrowed: HeroWeaponView still shows and hides them.
         private SpriteRenderer[] _weapons;
         private AttackController _attack;
+        private AbilityController _ability;
+        private Targeting _targeting;
         private Health _health;
         private CombatantView _combatant;
         private Sprite _orb;
@@ -47,24 +53,21 @@ namespace Cryptforge.UI
         private Transform _root;
         private PuppetRig _rear;
         private PuppetRig _front;
-        private PuppetGaitInput _input;
-        private PuppetPose _pose;
         private Vector3 _previous;
-        private float _strikeRate;
         private float _leftDaggerGrip;
         private bool _paintedStaff;
-        private bool _moving;
-        private bool _dying;
+        private bool _orbLit;
         private bool _flashing;
         private Color _flashColor = Color.white;
         private bool _subscribed;
 
         // The pose shown this frame and the clocks it came from, so a test can rebuild it with PuppetGait.
-        public PuppetPose Pose => _pose;
-        public PuppetGaitInput GaitInput => _input;
-        public bool IsAttacking => _input.Strike != PuppetStrike.None;
-        public bool IsWalking => _moving;
-        public bool IsDying => _dying;
+        public PuppetPose Pose => _motion.Pose;
+        public PuppetGaitInput GaitInput => _motion.Input;
+        public bool IsAttacking => _motion.IsAttacking;
+        public bool IsWalking => _motion.IsWalking;
+        public bool IsCasting => _motion.IsCasting;
+        public bool IsDying => _motion.IsDying;
         public bool FrontFacing { get; private set; }
         public bool Mirrored { get; private set; }
         public bool UsesPlaceholder => _ownedArt != null;
@@ -98,6 +101,8 @@ namespace Cryptforge.UI
             _litOrb = litOrb;
             _health = GetComponent<Health>();
             _combatant = GetComponent<CombatantView>();
+            _ability = GetComponent<AbilityController>();
+            _targeting = GetComponent<Targeting>();
             _orb = weapons[(int)HeroWeaponPart.StaffOrb].sprite;
             if (art != null && !art.IsValid)
             {
@@ -147,7 +152,10 @@ namespace Cryptforge.UI
         {
             Unsubscribe();
             if (_rear != null)
-                EndStrike();
+            {
+                _motion.Interrupt();
+                UnlightOrb();
+            }
         }
 
         private void OnDestroy()
@@ -160,7 +168,7 @@ namespace Cryptforge.UI
                 Destroy(_ownedArt);
         }
 
-        // After every Update, so the hero's movement this frame is already in its position.
+        // After every Update, so the hero's movement and its weapon's cooldown this frame are already in.
         private void LateUpdate() => Tick(Time.deltaTime);
 
         public void Tick(float dt)
@@ -175,52 +183,46 @@ namespace Cryptforge.UI
             if (dt <= 0f)
                 return;
 
-            if (_dying || (_health != null && !_health.IsAlive))
+            if (!_motion.IsDying && _health != null && !_health.IsAlive)
+                OnDied();
+            if (_motion.IsDying)
             {
-                if (!_dying)
-                    OnDied();
-                _input.DeathProgress = Mathf.Min(1f, _input.DeathProgress + dt * DeathRate);
+                _motion.Tick(dt, 0f);
                 ApplyPose();
                 return;
             }
 
             float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
-            _moving = travel >= MinimumTravel;
-            if (_moving)
-            {
-                _input.WalkPhase = PuppetGait.Advance(_input.WalkPhase, travel);
+            if (travel >= PuppetMotion.MinimumTravel)
                 Face(delta);
-            }
-            _input.WalkWeight = PuppetGait.Blend(_input.WalkWeight, _moving, dt);
-            // Settled: the next walk starts on a contact, whatever the last one stopped on.
-            if (_input.WalkWeight <= 0f)
-                _input.WalkPhase = 0f;
-            _input.IdleTime += dt;
-            if (_input.IdleTime >= PuppetGait.BreathPeriod)
-                _input.IdleTime -= PuppetGait.BreathPeriod;
-            if (_input.Strike != PuppetStrike.None)
-            {
-                _input.StrikeProgress += dt * _strikeRate;
-                if (_input.StrikeProgress >= 1f)
-                    EndStrike();
-            }
-            if (_input.Flinch > 0f)
-                _input.Flinch = Mathf.Max(0f, _input.Flinch - dt * FlinchRate);
+            Anticipate();
+            _motion.Tick(dt, travel);
+            if (!_motion.IsAttacking)
+                UnlightOrb();
             ApplyPose();
         }
 
-        // The damage has already happened at this event: the arms show the strike at once, never a delayed windup.
+        // The damage has already happened at this event: the arms show the blow at once, never a delayed windup.
         public void Attacked()
         {
-            if (_rear == null || _dying)
+            if (_rear == null || _motion.IsDying)
                 return;
-            _input.Strike = _weapons[(int)HeroWeaponPart.StaffShaft].gameObject.activeInHierarchy ? PuppetStrike.Cast
-                : _weapons[(int)HeroWeaponPart.DaggerLeft].gameObject.activeInHierarchy ? PuppetStrike.Thrust
-                : PuppetStrike.Swing;
-            _input.StrikeProgress = 0f;
-            _strikeRate = 1f / PuppetGait.StrikeSeconds(_attack.Weapon?.Interval ?? 1f);
-            if (_input.Strike == PuppetStrike.Cast && !_paintedStaff)
+            PuppetStrike strike = CarriedStrike();
+            _motion.Strike(strike, _attack.Weapon?.Interval ?? 1f);
+            if (strike == PuppetStrike.Cast && !_paintedStaff)
+            {
                 _weapons[(int)HeroWeaponPart.StaffOrb].sprite = _litOrb;
+                _orbLit = true;
+            }
+            ApplyPose();
+        }
+
+        // The ability fired: the crouch, raise and slam play over whatever the legs and the weapon are doing.
+        public void Cast()
+        {
+            if (_rear == null || _motion.IsDying)
+                return;
+            _motion.Cast();
             ApplyPose();
         }
 
@@ -228,42 +230,61 @@ namespace Cryptforge.UI
         // nearby enemy cannot turn the stride round every swing.
         public void FaceAttack(Vector3 target)
         {
-            if (_rear == null || _moving || _dying)
+            if (_rear == null || _motion.IsWalking || _motion.IsDying)
                 return;
             Face(target - transform.position);
             ApplyPose();
         }
 
-        // Back to standing, as VanguardAnimator.Reset: no stride, no strike, no flinch. Not named Reset, which Unity reserves
-        // for a component's Inspector defaults.
+        // Back to standing, as VanguardAnimator.Reset: no stride, no strike, no draw, no cast, no flinch. Not named
+        // Reset, which Unity reserves for a component's Inspector defaults.
         public void ResetPose()
         {
             if (_rear == null)
                 return;
-            EndStrike();
-            _input.WalkWeight = 0f;
-            _input.WalkPhase = 0f;
-            _input.Flinch = 0f;
-            _moving = false;
+            _motion.Reset();
+            UnlightOrb();
             _previous = transform.position;
             ApplyPose();
         }
 
+        // The draw before the next attack, read off the first weapon's cooldown as AttackController will fire it: once
+        // the cooldown is inside its draw and a target stands in reach, the weapon rises so its top meets the damage
+        // event. A disabled controller ticks no cooldown, so it draws nothing.
+        private void Anticipate()
+        {
+            WeaponRuntime weapon = _attack != null && _attack.isActiveAndEnabled ? _attack.Weapon : null;
+            float progress = 0f;
+            if (weapon != null && weapon.CooldownRemaining > 0f)
+            {
+                float window = PuppetGait.WindupSeconds(weapon.Interval);
+                if (weapon.CooldownRemaining <= window && _targeting != null && _targeting.Acquire(weapon.Range) != null)
+                    progress = 1f - weapon.CooldownRemaining / window;
+            }
+            _motion.Anticipate(progress > 0f ? CarriedStrike() : PuppetStrike.None, progress);
+        }
+
+        // The strike the shown loadout plays.
+        private PuppetStrike CarriedStrike() =>
+            _weapons[(int)HeroWeaponPart.StaffShaft].gameObject.activeInHierarchy ? PuppetStrike.Cast
+            : _weapons[(int)HeroWeaponPart.DaggerLeft].gameObject.activeInHierarchy ? PuppetStrike.Thrust
+            : PuppetStrike.Swing;
+
         private void ApplyPose()
         {
-            _pose = PuppetGait.Evaluate(_input);
             PuppetRig rig = ActiveRig;
-            rig.Apply(_pose);
+            rig.Apply(_motion.Pose);
             PlaceWeapons(rig);
         }
 
-        private void EndStrike()
+        private void UnlightOrb()
         {
-            _input.Strike = PuppetStrike.None;
-            _input.StrikeProgress = 0f;
+            if (!_orbLit)
+                return;
+            _orbLit = false;
             // A scene unload may already have destroyed the orb when this runs from OnDisable.
             SpriteRenderer orb = _weapons[(int)HeroWeaponPart.StaffOrb];
-            if (!_paintedStaff && orb != null)
+            if (orb != null)
                 orb.sprite = _orb;
         }
 
@@ -287,8 +308,8 @@ namespace Cryptforge.UI
             ShowFacing();
         }
 
-        // Mirrors the puppet and the body (so the weapons under it) together; movement, targeting and the shadow are not
-        // touched.
+        // Mirrors the puppet and the body (so the weapons under it) together and stands the bob on the shown facing's
+        // legs; movement, targeting and the shadow are not touched.
         private void ShowFacing()
         {
             _rear.Root.SetActive(!FrontFacing);
@@ -296,6 +317,7 @@ namespace Cryptforge.UI
             var scale = new Vector3(Mirrored ? -1f : 1f, 1f, 1f);
             _root.localScale = scale;
             _body.transform.localScale = scale;
+            _motion.Legs = ActiveRig.Legs;
             ActiveRig.Flash(_flashing, _flashColor);
         }
 
@@ -321,11 +343,12 @@ namespace Cryptforge.UI
             GripPose(toBody, rig.LeftGrip, out Vector3 left, out float leftAngle);
             int rightOrder = _body.sortingOrder + rig.RightItemSorting;
             int leftOrder = _body.sortingOrder + rig.LeftItemSorting;
-            Hold(HeroWeaponPart.Sword, right, rightAngle, rightOrder);
+            float carry = FrontFacing ? 1f - _motion.Pose.Wield : 0f;
+            Hold(HeroWeaponPart.Sword, right, rightAngle + carry * FrontSwordCarry, rightOrder);
             Hold(HeroWeaponPart.StaffShaft, right, rightAngle, rightOrder);
-            Hold(HeroWeaponPart.DaggerRight, right, rightAngle, rightOrder);
+            Hold(HeroWeaponPart.DaggerRight, right, rightAngle + carry * FrontDaggerCarry, rightOrder);
             Hold(HeroWeaponPart.Shield, left, leftAngle, leftOrder);
-            Hold(HeroWeaponPart.DaggerLeft, left, leftAngle + _leftDaggerGrip, leftOrder);
+            Hold(HeroWeaponPart.DaggerLeft, left, leftAngle + _leftDaggerGrip - carry * FrontDaggerCarry, leftOrder);
             if (_paintedStaff)
                 return;
             // The orb is its own renderer, not a child of the shaft: carried on the cap and turned with it.
@@ -356,23 +379,20 @@ namespace Cryptforge.UI
 
         private void OnAttacked() => Attacked();
 
+        private void OnCast() => Cast();
+
         private void OnStruck(Health target)
         {
             if (target != null)
                 FaceAttack(target.transform.position);
         }
 
-        private void OnDamaged(DamageContext context)
-        {
-            if (!_dying)
-                _input.Flinch = 1f;
-        }
+        private void OnDamaged(DamageContext context) => _motion.Hit();
 
         private void OnDied()
         {
-            _dying = true;
-            EndStrike();
-            _input.Flinch = 0f;
+            _motion.Die();
+            UnlightOrb();
         }
 
         private void Subscribe()
@@ -381,6 +401,8 @@ namespace Cryptforge.UI
                 return;
             _attack.Attacked += OnAttacked;
             _attack.Struck += OnStruck;
+            if (_ability != null)
+                _ability.Used += OnCast;
             if (_health != null)
             {
                 _health.Damaged += OnDamaged;
@@ -398,6 +420,8 @@ namespace Cryptforge.UI
                 _attack.Attacked -= OnAttacked;
                 _attack.Struck -= OnStruck;
             }
+            if (_ability != null)
+                _ability.Used -= OnCast;
             if (_health != null)
             {
                 _health.Damaged -= OnDamaged;
