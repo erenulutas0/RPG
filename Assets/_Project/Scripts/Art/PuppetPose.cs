@@ -42,7 +42,8 @@ namespace Cryptforge.Art
     // One frame of a cut-out puppet: joint angles in degrees and a few offsets in world units, in the character's own
     // terms (positive is forward, flexion is positive), each relative to the pose the character was painted in. Everything
     // is described for a figure facing screen-right; the rig mirrors the whole puppet for leftward travel and for parts
-    // painted facing left, so no value here knows about facing. Rotation turns these terms into the counter-clockwise
+    // painted facing left, so no value here knows about the mirror (only the sword's and the staff's arcs differ between
+    // the rear and front three-quarters, PuppetGaitInput.Front). Rotation turns these terms into the counter-clockwise
     // screen angle of each part, Rise and Forward into the offset of its joint.
     public struct PuppetPose
     {
@@ -85,6 +86,22 @@ namespace Cryptforge.Art
         // How far the held weapons are in use, 0 carried to 1 swinging: a facing that carries its weapons at another
         // angle than they are drawn (seen from the front the sword hangs point-down) turns them back as they are used.
         public float Wield;
+        // How far each leg's hip joint rises and moves forward beyond the bob and the hips' turn (world units). A cut-out
+        // leg turns in the screen's plane, so a stride that runs up or down the screen steps its whole leg up as the boot
+        // reaches away from the camera and down as it comes back; and a walk pulls the far leg in under the body from
+        // the painted wide stance.
+        public float LegRiseRight;
+        public float LegRiseLeft;
+        public float LegShiftRight;
+        public float LegShiftLeft;
+        // Which boots stand on the floor: one at a time through the walk's stances, neither in its flights, both at rest.
+        public bool RightPlanted;
+        public bool LeftPlanted;
+        // How far each boot's floor line stands above the one it was painted on (world units): up the screen with the
+        // boot's depth on a stride that runs up or down it, and for the far boot by the walk's narrowing. A planted boot
+        // stands on it; a footfall lands on it.
+        public float FloorRight;
+        public float FloorLeft;
 
         // The part's counter-clockwise screen angle in degrees for a figure facing screen-right. A limb hanging down swings
         // its far end forward (toward +x) when it turns counter-clockwise, so swings and elbows keep their sign; a knee
@@ -128,7 +145,8 @@ namespace Cryptforge.Art
             }
         }
 
-        // How far the part's joint rises, in world units: the pelvis carries the bob and the torso the breath.
+        // How far the part's joint rises, in world units: the pelvis carries the bob, the torso the breath and each thigh
+        // its leg's step up or down the screen.
         public readonly float Rise(PuppetBone bone)
         {
             switch (bone)
@@ -137,6 +155,10 @@ namespace Cryptforge.Art
                     return Lift;
                 case PuppetBone.Torso:
                     return Breath;
+                case PuppetBone.ThighRight:
+                    return LegRiseRight;
+                case PuppetBone.ThighLeft:
+                    return LegRiseLeft;
                 default:
                     return 0f;
             }
@@ -152,9 +174,9 @@ namespace Cryptforge.Art
                 case PuppetBone.Pelvis:
                     return Shift;
                 case PuppetBone.ThighRight:
-                    return HipTwist;
+                    return HipTwist + LegShiftRight;
                 case PuppetBone.ThighLeft:
-                    return -HipTwist;
+                    return -HipTwist + LegShiftLeft;
                 case PuppetBone.UpperArmRight:
                     return Twist;
                 case PuppetBone.UpperArmLeft:

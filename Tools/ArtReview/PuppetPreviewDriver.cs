@@ -1,8 +1,9 @@
 // Not part of the game: Tools/ArtReview/preview_vanguard_puppet.py compiles this with the pure puppet sources
-// (Scripts/Art/PuppetPose.cs, PuppetGait.cs, PuppetMotion.cs) into a throwaway console app and reads what it prints.
-// It plays scripted scenes through PuppetMotion at 60 frames a second - walking, standing, striking with the weapon's
-// real interval and the draw PuppetAnimator gives it from the cooldown, casting, being hit, dying - and prints every
-// frame's pose, floor position and facing as JSON lines, so the previewer draws exactly what the game would.
+// (Scripts/Art/PuppetPose.cs, PuppetGait.cs, PuppetMotion.cs, PuppetFacing.cs) into a throwaway console app and reads
+// what it prints. It plays scripted scenes through PuppetMotion and PuppetFacing at 60 frames a second - walking on
+// every heading, turning, standing, striking with the weapon's real interval and the draw PuppetAnimator gives it from
+// the cooldown, casting, being hit, dying - and prints every frame's pose, floor position and facing as JSON lines, so
+// the previewer draws exactly what the game would.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -32,13 +33,17 @@ namespace Cryptforge.Preview
             public float DieAt = -1f;
             // A target stays in reach throughout, so the draw before each attack plays.
             public bool TargetInReach = true;
+            // A standing hero turned to face this floor direction as the segment starts (PuppetAnimator.FaceAttack);
+            // zero for none.
+            public float FaceX;
+            public float FaceY;
         }
 
         public static int Main(string[] args)
         {
             if (args.Length < 1)
             {
-                Console.Error.WriteLine("usage: driver <scene> [weapon: sword|staff|daggers] [24 leg floats: rear, front]");
+                Console.Error.WriteLine("usage: driver <scene> [weapon: sword|staff|daggers] [32 leg floats: rear, front]");
                 return 2;
             }
             string weapon = args.Length > 1 ? args[1] : "sword";
@@ -53,12 +58,12 @@ namespace Cryptforge.Preview
             }
             // The painted legs of each facing (PuppetRig.Legs), as the previewer read them off the art set.
             var legs = new PuppetLegs[2];
-            if (args.Length >= 2 + 24)
+            if (args.Length >= 2 + 2 * 2 * LegFloats)
             {
                 for (int f = 0; f < 2; f++)
                 {
-                    legs[f].Right = Leg(args, 2 + f * 12);
-                    legs[f].Left = Leg(args, 2 + f * 12 + 6);
+                    legs[f].Right = Leg(args, 2 + f * 2 * LegFloats);
+                    legs[f].Left = Leg(args, 2 + f * 2 * LegFloats + LegFloats);
                 }
             }
             Play(scene, kind, interval, weapon, legs);
@@ -80,6 +85,65 @@ namespace Cryptforge.Preview
                     return Walk(-0.6f, 0.7071f);
                 case "walk-front-left":
                     return Walk(-0.6f, -0.7071f);
+                // The eight headings of a stick, each run in, held and stopped: the planted boot should hold the floor on
+                // every one (Tools/ArtReview's slip report measures it).
+                case "heading-E":
+                    return Walk(1f, 0f);
+                case "heading-NE":
+                    return Walk(0.7071f, 0.7071f);
+                case "heading-N":
+                    return Walk(0f, 1f);
+                case "heading-NW":
+                    return Walk(-0.7071f, 0.7071f);
+                case "heading-W":
+                    return Walk(-1f, 0f);
+                case "heading-SW":
+                    return Walk(-0.7071f, -0.7071f);
+                case "heading-S":
+                    return Walk(0f, -1f);
+                case "heading-SE":
+                    return Walk(0.7071f, -0.7071f);
+                // Turns: reversing across the screen (the mirror), up and down it (rear and front), round the
+                // diagonals (both at once), and standing to face a target on each side.
+                case "turn-mirror":
+                    return new List<Segment>
+                    {
+                        new Segment { Seconds = 0.3f },
+                        new Segment { Seconds = 0.9f, Speed = 3.5f, DirX = 1f },
+                        new Segment { Seconds = 0.9f, Speed = 3.5f, DirX = -1f },
+                        new Segment { Seconds = 0.9f, Speed = 3.5f, DirX = 1f },
+                        new Segment { Seconds = 0.6f },
+                    };
+                case "turn-front":
+                    return new List<Segment>
+                    {
+                        new Segment { Seconds = 0.3f },
+                        new Segment { Seconds = 0.8f, Speed = 3.5f, DirX = 0.3f, DirY = 0.954f },
+                        new Segment { Seconds = 0.8f, Speed = 3.5f, DirX = 0.3f, DirY = -0.954f },
+                        new Segment { Seconds = 0.8f, Speed = 3.5f, DirX = 0.3f, DirY = 0.954f },
+                        new Segment { Seconds = 0.6f },
+                    };
+                case "turn-diagonal":
+                    return new List<Segment>
+                    {
+                        new Segment { Seconds = 0.3f },
+                        new Segment { Seconds = 0.7f, Speed = 3.5f, DirX = 0.7071f, DirY = 0.7071f },
+                        new Segment { Seconds = 0.7f, Speed = 3.5f, DirX = 0.7071f, DirY = -0.7071f },
+                        new Segment { Seconds = 0.7f, Speed = 3.5f, DirX = -0.7071f, DirY = -0.7071f },
+                        new Segment { Seconds = 0.7f, Speed = 3.5f, DirX = -0.7071f, DirY = 0.7071f },
+                        new Segment { Seconds = 0.7f, Speed = 3.5f, DirX = 0.7071f, DirY = -0.7071f },
+                        new Segment { Seconds = 0.6f },
+                    };
+                case "turn-stand":
+                    return new List<Segment>
+                    {
+                        new Segment { Seconds = 0.6f },
+                        new Segment { Seconds = 0.6f, FaceX = -1f },
+                        new Segment { Seconds = 0.6f, FaceX = -0.5f, FaceY = -1f },
+                        new Segment { Seconds = 0.6f, FaceX = 1f, FaceY = -1f },
+                        new Segment { Seconds = 0.6f, FaceX = 1f, FaceY = 1f },
+                        new Segment { Seconds = 0.6f },
+                    };
                 case "walk-hall":
                     return new List<Segment>
                     {
@@ -128,10 +192,16 @@ namespace Cryptforge.Preview
             }
         }
 
+        // A leg on the command line: hip, knee, heel and toe, x then y each.
+        private const int LegFloats = 8;
+
         private static PuppetLeg Leg(string[] args, int at)
         {
             float F(int i) => float.Parse(args[at + i], CultureInfo.InvariantCulture);
-            return new PuppetLeg { KneeX = F(0), KneeY = F(1), HeelX = F(2), HeelY = F(3), ToeX = F(4), ToeY = F(5) };
+            return new PuppetLeg
+            {
+                HipX = F(0), HipY = F(1), KneeX = F(2), KneeY = F(3), HeelX = F(4), HeelY = F(5), ToeX = F(6), ToeY = F(7)
+            };
         }
 
         private static List<Segment> Walk(float x, float y)
@@ -148,16 +218,20 @@ namespace Cryptforge.Preview
         private static void Play(List<Segment> scene, PuppetStrike kind, float interval, string weapon, PuppetLegs[] legs)
         {
             var motion = new PuppetMotion();
+            var facing = new PuppetFacing();
             motion.Legs = legs[0];
             var output = new StringBuilder();
             float x = 0f, y = 0f, time = 0f;
             float cooldown = 0f;
-            bool front = false, mirrored = false;
+            bool strideMirrored = false;
             bool lit = false;
             int frame = 0;
             foreach (Segment segment in scene)
             {
                 int frames = (int)Math.Round(segment.Seconds / Dt);
+                // PuppetAnimator.FaceAttack: a standing hero turns to its target.
+                if ((segment.FaceX != 0f || segment.FaceY != 0f) && !motion.IsWalking)
+                    facing.Face(segment.FaceX, segment.FaceY);
                 for (int i = 0; i < frames; i++, frame++)
                 {
                     float local = i * Dt;
@@ -168,13 +242,19 @@ namespace Cryptforge.Preview
                     x += dx;
                     y += dy;
                     float travel = (float)Math.Sqrt(dx * dx + dy * dy);
+                    // PuppetAnimator.Tick: the facing asked for at once, the facing on show through its turn, whose swap
+                    // shows the other rig (and its legs) and mirrors the stride's heading.
                     if (travel >= PuppetMotion.MinimumTravel)
+                        facing.Face(dx, dy);
+                    if (facing.Step(Dt))
                     {
-                        bool wasFront = front;
-                        Face(dx, dy, ref front, ref mirrored);
-                        // PuppetAnimator shows the other facing's rig, whose legs the bob must stand on.
-                        if (front != wasFront)
-                            motion.Legs = legs[front ? 1 : 0];
+                        if (facing.ShownMirrored != strideMirrored)
+                        {
+                            strideMirrored = facing.ShownMirrored;
+                            motion.Mirror();
+                        }
+                        motion.Legs = legs[facing.ShownFront ? 1 : 0];
+                        motion.Front = facing.ShownFront;
                     }
 
                     // The weapon, as AttackController fires it: the cooldown runs, and a ready weapon with a target in
@@ -196,38 +276,28 @@ namespace Cryptforge.Preview
                     }
                     else
                         motion.Anticipate(PuppetStrike.None, 0f);
-                    if (segment.CastAt >= 0f && Math.Abs(local - segment.CastAt) < Dt * 0.5f)
+                    bool cast = segment.CastAt >= 0f && Math.Abs(local - segment.CastAt) < Dt * 0.5f;
+                    if (cast)
                         motion.Cast();
                     bool hit = segment.HitAt >= 0f && Math.Abs(local - segment.HitAt) < Dt * 0.5f;
                     if (hit)
                         motion.Hit();
                     if (segment.DieAt >= 0f && Math.Abs(local - segment.DieAt) < Dt * 0.5f)
                         motion.Die();
-                    motion.Tick(Dt, travel);
+                    // PuppetAnimator's heading: the floor's travel in the shown facing's own terms.
+                    float heading = (float)Math.Atan2(segment.DirY, segment.DirX * (facing.ShownMirrored ? -1f : 1f));
+                    motion.Tick(Dt, travel, heading);
                     if (!motion.IsAttacking)
                         lit = false;
-                    Write(output, frame, time, x, y, dx, dy, front, mirrored, weapon, attacked, hit, lit, motion);
+                    Write(output, frame, time, x, y, dx, dy, facing, weapon, attacked, cast, hit, lit, motion);
                     time += Dt;
                 }
             }
             Console.Out.Write(output.ToString());
         }
 
-        // PuppetAnimator.Face: each axis keeps its facing inside a small dead band.
-        private static void Face(float dx, float dy, ref bool front, ref bool mirrored)
-        {
-            float length = (float)Math.Sqrt(dx * dx + dy * dy);
-            if (length < 1e-4f)
-                return;
-            float nx = dx / length, ny = dy / length;
-            if (Math.Abs(nx) > .15f)
-                mirrored = nx < 0f;
-            if (Math.Abs(ny) > .15f)
-                front = ny < 0f;
-        }
-
         private static void Write(StringBuilder output, int frame, float time, float x, float y, float dx, float dy,
-            bool front, bool mirrored, string weapon, bool attacked, bool hit, bool lit, PuppetMotion motion)
+            PuppetFacing facing, string weapon, bool attacked, bool cast, bool hit, bool lit, PuppetMotion motion)
         {
             PuppetPose p = motion.Pose;
             PuppetGaitInput input = motion.Input;
@@ -238,15 +308,29 @@ namespace Cryptforge.Preview
             Field(output, "y", y * DepthScale);
             Field(output, "dx", dx);
             Field(output, "dy", dy * DepthScale);
-            output.Append("\"front\":").Append(front ? "true" : "false").Append(',');
-            output.Append("\"mirrored\":").Append(mirrored ? "true" : "false").Append(',');
+            // The facing on show, which the previewer draws, and the turn's widths.
+            output.Append("\"front\":").Append(facing.ShownFront ? "true" : "false").Append(',');
+            output.Append("\"mirrored\":").Append(facing.ShownMirrored ? "true" : "false").Append(',');
+            output.Append("\"askFront\":").Append(facing.Front ? "true" : "false").Append(',');
+            output.Append("\"askMirrored\":").Append(facing.Mirrored ? "true" : "false").Append(',');
+            output.Append("\"headMirrored\":").Append(facing.HeadMirrored ? "true" : "false").Append(',');
+            Field(output, "width", facing.Width);
+            Field(output, "headWidth", facing.HeadWidth);
             output.Append("\"weapon\":\"").Append(weapon).Append("\",");
             output.Append("\"attacked\":").Append(attacked ? "true" : "false").Append(',');
+            output.Append("\"cast\":").Append(cast ? "true" : "false").Append(',');
             output.Append("\"hit\":").Append(hit ? "true" : "false").Append(',');
             output.Append("\"lit\":").Append(lit ? "true" : "false").Append(',');
             output.Append("\"dying\":").Append(motion.IsDying ? "true" : "false").Append(',');
             Field(output, "walk", input.WalkWeight);
             Field(output, "phase", input.WalkPhase);
+            Field(output, "heading", input.Heading);
+            output.Append("\"PlantedRight\":").Append(p.RightPlanted ? "true" : "false").Append(',');
+            output.Append("\"PlantedLeft\":").Append(p.LeftPlanted ? "true" : "false").Append(',');
+            Field(output, "LegRiseRight", p.LegRiseRight);
+            Field(output, "LegRiseLeft", p.LegRiseLeft);
+            Field(output, "LegShiftRight", p.LegShiftRight);
+            Field(output, "LegShiftLeft", p.LegShiftLeft);
             Field(output, "Fall", p.Fall);
             Field(output, "Lift", p.Lift);
             Field(output, "Shift", p.Shift);

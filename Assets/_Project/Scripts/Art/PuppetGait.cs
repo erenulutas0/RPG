@@ -3,10 +3,13 @@ using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Art
 {
-    // One leg as it was painted, for the bob: the knee from the hip, and the heel and toe of the boot's sole from the
-    // knee, in world units for the figure facing right. PuppetRig reads it off the parts; all zero is a reference leg.
+    // One leg as it was painted: the hip from the pelvis's joint, the knee from the hip, and the heel and toe of the
+    // boot's sole from the knee, in world units for the figure facing right. PuppetRig reads it off the parts; all zero
+    // is a reference leg.
     public struct PuppetLeg
     {
+        public float HipX;
+        public float HipY;
         public float KneeX;
         public float KneeY;
         public float HeelX;
@@ -33,6 +36,12 @@ namespace Cryptforge.Art
         public float WalkPhase;
         // 0 standing, 1 walking. Ramped (PuppetGait.Blend) so starting and stopping ease in and out.
         public float WalkWeight;
+        // Which way the travel runs on the floor, in radians in the figure's own terms: 0 straight across the screen the
+        // way the figure faces, positive turning up the screen (away from the camera), negative down it; past a quarter
+        // turn either way the figure walks backward. The floor's depth shows at FloorDepth on the screen, so a stride off
+        // the screen's axis is foreshortened: the legs swing across the screen by its cosine and step up or down it for
+        // the rest. PuppetMotion eases it.
+        public float Heading;
         // Seconds of the idle, wrapped into one IdleCycle so the sines never lose precision.
         public float IdleTime;
         // The strike playing: 0 at the attack's damage event, 1 once the arms are back on the walk.
@@ -40,6 +49,8 @@ namespace Cryptforge.Art
         public float StrikeProgress;
         // Which hand jabs a Thrust: the daggers alternate.
         public bool LeftLeads;
+        // Whether the front three-quarter is on show rather than the rear: the sword's and the staff's arcs differ there.
+        public bool Front;
         // The next strike being drawn back before its damage event: 0 at rest, 1 at the top of the draw.
         public PuppetStrike Windup;
         public float WindupProgress;
@@ -59,21 +70,23 @@ namespace Cryptforge.Art
     }
 
     // How a cut-out puppet moves (docs/45 section 4 B), pure and stateless, so the motion is tested without Unity and
-    // every character shares it. A distance-driven jog with weight - the hips drop as each foot lands and rise as they
-    // pass, the shoulders and arms swing against the legs, the cape and skirt flutter behind - an idle that breathes and
-    // shifts its weight, strikes drawn back before the hit and followed through after it on the arms and chest only, the
-    // ability's crouch-raise-slam, a flinch that snaps back and rebounds, and a collapse that buckles and then falls.
+    // every character shares it. A distance-driven run with weight - each boot planted on the floor while the floor
+    // carries it back, the hips dropping as it takes the weight and lifting through the flight, the shoulders and arms
+    // swinging against the legs, the cape and skirt fluttering behind - an idle that breathes and shifts its weight,
+    // strikes drawn back before the hit and followed through after it on the arms and chest only, the ability's slam, a
+    // flinch that snaps back and rebounds, and a collapse that buckles and then falls.
     //
-    // Only float multiplies, adds and Math.Sin / Cos / Sqrt / Exp, each formula in one body that is never inlined: this
-    // project has already paid for two copies of float arithmetic disagreeing in the last bit (docs/21). The puppet is
-    // presentation and touches no combat state, but a pose that is a pure function of its input keeps captures and tests
-    // repeatable.
+    // Only float multiplies, adds and Math.Sin / Cos / Sqrt / Exp / Asin / Atan2, each formula in one body that is never
+    // inlined: this project has already paid for two copies of float arithmetic disagreeing in the last bit (docs/21).
+    // The puppet is presentation and touches no combat state, but a pose that is a pure function of its input keeps
+    // captures and tests repeatable.
     //
     // Angles are degrees in PuppetPose's terms (positive forward, flexion positive), offsets from the painted pose, for a
     // figure facing screen-right. Every amount here was tuned on the Vanguard at the game's framing, where it stands about
     // 165 phone pixels tall (1.375 world units at 120 pixels a unit).
     public static class PuppetGait
     {
+        private const float Pi = 3.14159274f;
         private const float TwoPi = 6.28318548f;
         private const float DegToRad = 0.0174532924f;
 
@@ -88,35 +101,62 @@ namespace Cryptforge.Art
         // How fast the walk weight ramps, per second: an eighth of a second from standing to the full stride and back,
         // quick enough that a tap still shows a step, slow enough that stopping settles instead of snapping.
         public const float WalkBlendPerSecond = 8f;
+        // ArenaFloor.DepthScale: a floor unit of depth shows as half a unit up the screen.
+        public const float FloorDepth = 0.5f;
 
-        // The legs over one cycle, sixteen keys from the right foot's contact; the left leg plays them half a cycle later.
-        // Each foot lands reaching forward with the knee nearly straight (the contact), takes the weight on a bending knee
-        // (the down), carries the body over it while it sweeps back near-linearly so the planted boot keeps pace with the
-        // floor (the passing), pushes off behind (the up), then folds the knee and swings through faster than it swept
-        // back. The planted sweep is about half a unit, what the floor travels across the screen under a foot in its
-        // stance at the stride above, walking on the diagonal the three-quarter facings show.
-        public const int StrideKeys = 16;
-        // The stance keys were solved on the Vanguard's near leg so the boot's sole sweeps back at an even pace, the
-        // knee's give included: a planted boot that stays planted.
-        private static readonly float[] ThighKeys =
-        {
-            26f, 24.9f, 20.9f, 11.5f, 1.4f, -7.1f, -14.2f, -19.1f, -22f, -22f, -14f, -3f, 8.5f, 18f, 25f, 27.5f
-        };
-        // The swing knee folds no further than about forty degrees: a cut-out shin turns in the screen's plane, so a
-        // deeper fold reads, at this three-quarter view, as a kick back rather than a lifted foot.
-        private static readonly float[] KneeKeys =
-        {
-            4f, 12f, 16f, 13f, 9f, 7f, 7f, 10f, 16f, 25f, 33f, 38f, 34f, 24f, 12f, 5f
-        };
-        // The thigh's swing at contact: the widest a stride spreads the legs.
-        public const float HipSwing = 26f;
+        // A run with weight. Each boot lands on its heel ahead of the hip, takes the weight on a bending knee (the down),
+        // rolls onto its toe and pushes off behind, held on the floor the whole time while the floor carries it back:
+        // the stance, StanceShare of the cycle, the right boot's from 0 and the left's from a half. Then it swings
+        // forward, both boots off the floor between one push-off and the next strike (the flight). The stride's floor
+        // travel is set by StrideLength, so a boot down for a whole step would have to reach most of a leg's length
+        // either side of the hip; the flight is what lets the short armoured legs keep pace with the floor instead of
+        // skating over it.
+        public const float StanceShare = 0.3f;
+        // That share is for a leg as long on the screen as the Vanguard's near leg (world units, hip to floor line); a
+        // leg drawn shorter takes a shorter stance (Share), within these bounds.
+        private const float StanceLeg = 0.54f;
+        private const float MinStanceShare = 0.12f;
+        private const float MaxStanceShare = 0.4f;
+        // How much shorter the stance is for a stride straight up or down the screen, and how far such a stance moves
+        // toward the far side of the rest place (Stance).
+        private const float EndOnStance = 0.37f;
+        private const float DepthBias = 0.3f;
+        // The heel lands this much further ahead of its rest place than the toe pushes off behind its own (floor
+        // units): a runner reaches out a little more than it pushes back.
+        private const float ReachAhead = 0.06f;
+        // The run's bob: the hips this far under their rest height at mid-stance, as the planted leg takes the weight,
+        // and FlightHop over it at mid-flight (world units). Four texels in all: weight, not a hop.
+        public const float BobDrop = 0.025f;
+        // The stance knee: nearly straight at the strike, giving most at mid-stance, firming for the push-off (degrees).
+        private const float KneeStrike = 6f;
+        private const float KneeGive = 24f;
+        private const float KneePush = 12f;
+        // The swing knee folds this far over the ease from the push-off's knee to the strike's: no further than about
+        // forty degrees in all, since a cut-out shin turns in the screen's plane and a deeper fold reads, at this
+        // three-quarter view, as a kick back rather than a lifted foot.
+        public const float SwingFold = 30f;
+        // Off the screen's axis the legs turn by their share across the screen, but the swing knee keeps at least this
+        // share of its fold, so a boot walking straight up or down the screen still tips as it lifts; and the leg lifts
+        // this much more there, where turning gives it no clearance (world units).
+        private const float FoldFloor = 0.35f;
+        private const float StepLift = 0.015f;
+        // Every swing lifts its leg this much at mid-swing besides (world units): the painted boots' heels stand behind
+        // their shins, so swinging a leg forward first swings its heel down, and the hips ride lowest while the other
+        // boot takes the weight.
+        private const float SwingLift = 0.04f;
+        // The hips' rise over their rest height at mid-flight (world units): a texel, a lift rather than a hop.
+        public const float FlightHop = 0.008f;
+        // How far a walk pulls the far boot in toward the near one from the painted stance. The painting stands wide, and
+        // seen in three-quarter that puts the far boot sixteen texels up the screen: on the move the figure looked lifted
+        // off its shadow whenever the far boot alone was down, and the near leg's back-swing crossed toward it.
+        public const float TrackNarrowing = 0.6f;
+        // Across the screen it moves less, since the far thigh's painted top hides behind the cape seen from behind and
+        // behind the skirt's side from the front, and further in it would come out from under them.
+        public const float TrackNarrowingAcross = 0.3f;
         // A standing knee is never locked straight; a soft knee reads as weight.
         public const float KneeRest = 3f;
-        // The geometric hip drop: a leg spread by its swing, or shortened by its bent knee, reaches less far below the hip,
-        // so the pelvis sinks until the boot that reaches lowest meets its floor - lowest just after each contact,
-        // highest as the feet pass, with no foot sinking into the floor or hovering over it. The boot's sole is a heel
-        // and a toe, so a foot thrown forward lands on its heel and one behind rolls onto its toe. Without painted legs
-        // (PuppetGaitInput.Legs), a reference leg about the Vanguard's (world units).
+        // Without painted legs (PuppetGaitInput.Legs), a reference leg about the Vanguard's (world units): the knee below
+        // the hip, and the heel behind and the toe ahead under it.
         public const float ThighReach = 0.12f;
         public const float ShinReach = 0.44f;
         private const float HeelBack = 0.07f;
@@ -219,12 +259,36 @@ namespace Cryptforge.Art
             45f, 4f, -105f, 28f, 50f, 0f, 10f, 0.035f,
             22f, 14f, -122f, 22f, 50f, 0f, 9f, 0.04f,
         };
+        // The Swing seen from the front (PuppetGaitInput.Front). The near arm hangs behind the body's centre there, so the
+        // rear's draw - the arm swung forward and up - carried the blade up across the helmet: this one draws it back and
+        // up behind the near shoulder instead, the blade cocked up and back, and the blow crosses the chest below the
+        // helmet, level at the damage event, down through the target, down and across after. The shield arm braces at
+        // the side, lifting a little rather than swinging out from the body, which the far arm cannot pass in front of.
+        private static readonly float[] FrontSwingPoses =
+        {
+            -150f, 30f, -156f, 8f, 25f, 0f, -6f, -0.03f,
+            100f, 10f, -168f, 8f, 25f, 0f, 2f, 0f,
+            50f, 4f, -149f, 6f, 28f, 0f, 10f, 0.035f,
+            25f, 14f, -160f, 4f, 25f, 0f, 9f, 0.04f,
+        };
+        // The staff's draw tips its head back only a little past where the blow starts: drawn further, it turned the
+        // staff head-down at the hip and flipped it upright on the damage event's frame.
         private static readonly float[] CastPoses =
         {
-            40f, 55f, 25f, 15f, 30f, 0f, -5f, -0.015f,
+            45f, 45f, -20f, 15f, 30f, 0f, -5f, -0.015f,
             62f, 25f, -15f, 35f, 20f, 10f, 2f, 0.01f,
             78f, 4f, -48f, 55f, 8f, 12f, 7f, 0.025f,
             68f, 10f, -38f, 45f, 12f, 8f, 5f, 0.02f,
+        };
+        // The Cast seen from the front: the rear's thrust brought the near hand across to the chest, and the upright staff
+        // stood in front of the helmet. Here the hand stays low at the near side and the staff's head tips back from the
+        // helmet, then is pushed up toward the target and held, the free palm following behind the body.
+        private static readonly float[] FrontCastPoses =
+        {
+            -15f, 45f, 5f, 15f, 30f, 0f, -5f, -0.015f,
+            -5f, 40f, -8f, 25f, 20f, 10f, 2f, 0.01f,
+            5f, 35f, -21f, 40f, 8f, 12f, 7f, 0.025f,
+            2f, 38f, -19f, 32f, 12f, 8f, 5f, 0.02f,
         };
         private static readonly float[] ThrustPoses =
         {
@@ -236,24 +300,34 @@ namespace Cryptforge.Art
 
         // ---- The ability's cast ----
 
-        // The Forge Burst: a quick crouch and raise, the slam a tenth of a second after the button (the shockwave is still
-        // racing out from the feet as it lands), a held impact with a small rebound, then up again. Columns: thighs,
-        // knees, lean, head, both shoulders, both elbows, the weapon wrist, one row for each of CastKeyTimes. A stride
-        // under the slam shortens by CastStride so the crouched legs stay under the body.
+        // The Forge Burst. Its shockwave races out from the feet on the button's own frame, so the slam has no wind-up to
+        // play: the body drops straight into the impact - crouched, leaning in, the weapon driven point-down into the
+        // floor - within a frame of the press (ImpactAt), sinks a little further with the recoil, holds, and only then
+        // rises, drawing the weapon up out of the floor and in front as it straightens - never back over the shoulder,
+        // where it would read as the next blow's wind-up - and settles onto the walk. Columns: thighs, knees, lean, head,
+        // both shoulders, both elbows, the weapon wrist, one row for each of CastKeyTimes. A stride under the slam bends
+        // its knees a little, so its planted boot holds the floor while the hips sink (CastStrideKnee).
         public const float CastSeconds = 0.55f;
+        // The impact's share of the cast: 0.022 seconds. PuppetMotion.Cast runs in the button's Update and the frame's
+        // own tick follows, so the impact is mostly on screen on the press's frame and whole on the next.
+        public const float ImpactAt = 0.04f;
         private const float OffHandRaise = 0.65f;
-        private const float CastStride = 0.4f;
+        // A stride takes only this share of the crouch's knee: the hips sink by the standing crouch's depth and the
+        // planted leg steps up under the skirt to meet them, since the Vanguard's thigh is too short for a bent knee alone
+        // to shorten the leg without throwing the thigh out level.
+        private const float CastStrideKnee = 0.25f;
+        // How much of the slam's lean the cape takes back as it hangs.
+        private const float CapeHang = 0.35f;
         private const int CastColumns = 7;
-        private static readonly float[] CastKeyTimes = { 0f, 0.07f, 0.14f, 0.2f, 0.32f, 0.44f, 0.58f, 1f };
+        private static readonly float[] CastKeyTimes = { 0f, ImpactAt, 0.11f, 0.22f, 0.42f, 0.68f, 1f };
         private static readonly float[] CastKeys =
         {
             0f, 0f, 0f, 0f, 0f, 0f, 0f,
-            10f, 26f, 16f, 6f, -22f, 35f, 0f,
-            -2f, 6f, -10f, -10f, 160f, 22f, 25f,
-            22f, 48f, 32f, 14f, 38f, 6f, -95f,
-            14f, 34f, 22f, 10f, 44f, 10f, -85f,
-            20f, 44f, 28f, 12f, 40f, 8f, -92f,
-            8f, 16f, 10f, 4f, 16f, 6f, -40f,
+            22f, 48f, 32f, 14f, 40f, 6f, -95f,
+            26f, 56f, 36f, 16f, 34f, 4f, -100f,
+            20f, 44f, 28f, 12f, 42f, 8f, -90f,
+            6f, 14f, 6f, 2f, 38f, 18f, -48f,
+            2f, 6f, 2f, 0f, 12f, 10f, -16f,
             0f, 0f, 0f, 0f, 0f, 0f, 0f,
         };
 
@@ -356,37 +430,34 @@ namespace Cryptforge.Art
             float drape = Finite(input.Drape);
 
             var pose = new PuppetPose();
-            // The legs: each plays the keys from its own contact, the left half a cycle after the right.
-            float left = phase + 0.5f;
-            if (left >= 1f)
-                left -= 1f;
-            pose.HipRight = walk * Keyed(ThighKeys, phase);
-            pose.HipLeft = walk * Keyed(ThighKeys, left);
-            pose.KneeRight = KneeRest + walk * (Keyed(KneeKeys, phase) - KneeRest);
-            pose.KneeLeft = KneeRest + walk * (Keyed(KneeKeys, left) - KneeRest);
+            pose.HipTwist = walk * HipTurn * c + WeightHipTurn * weight;
             // Standing, the weight rolls from foot to foot: the pelvis drifts, the legs lean to keep the boots where
             // they are, the unweighted knee softens.
             pose.Shift = WeightShift * weight;
             float plant = WeightShift * weight / (ThighReach + ShinReach) / DegToRad;
-            pose.HipRight -= plant;
-            pose.HipLeft -= plant;
-            pose.KneeRight += WeightKnee * (weight < 0f ? -weight : 0f);
-            pose.KneeLeft += WeightKnee * (weight > 0f ? weight : 0f);
+            pose.HipRight = -plant;
+            pose.HipLeft = -plant;
+            pose.KneeRight = KneeRest + WeightKnee * (weight < 0f ? -weight : 0f);
+            pose.KneeLeft = KneeRest + WeightKnee * (weight > 0f ? weight : 0f);
             // The lurch of a stop lands in the knees.
             float dip = surge > 0f ? SurgeKnee * surge * still : 0f;
             pose.KneeRight += dip;
             pose.KneeLeft += dip;
+            float castKnee = 0f;
             if (input.Casting)
-                CastLegs(ref pose, Clamp01(input.CastProgress));
+                castKnee = CastLegs(ref pose, Clamp01(input.CastProgress));
             pose.Lift = Bob(input.Legs, pose.HipRight, pose.KneeRight, pose.HipLeft, pose.KneeLeft);
+            pose.RightPlanted = pose.LeftPlanted = true;
+            // Walking, the stride takes the legs over, eased in from the standing pose.
+            if (walk > 0f)
+                Walk(ref pose, input.Legs, phase, Finite(input.Heading), CastStrideKnee * castKnee, walk);
 
-            // Twice a cycle, a little after each contact: the down.
-            float down = (float)Math.Cos(2f * theta - 0.75f);
+            // Twice a cycle, at each mid-stance: the down.
+            float down = (float)Math.Cos(2f * theta - DownRadians);
             pose.Lean = walk * (WalkLean + LeanBob * down) + SurgeLean * surge;
             pose.Head = walk * HeadNod * down - HeadSteady * pose.Lean + BreathHead * breath;
             pose.Breath = BreathLift * breath;
             pose.Twist = -walk * ShoulderTwist * c;
-            pose.HipTwist = walk * HipTurn * c + WeightHipTurn * weight;
             pose.Cape = walk * (CapeTrail + CapeFlutter * (float)Math.Sin(2f * theta - CapeLagRadians))
                 + BreathCape * breath - DrapeCape * drape;
             pose.Skirt = walk * (SkirtTrail + SkirtFlutter * (float)Math.Sin(2f * theta - SkirtLagRadians))
@@ -401,9 +472,9 @@ namespace Cryptforge.Art
             pose.WristLeft = -WristCarry * (pose.ShoulderLeft - ShoulderRest + pose.ElbowLeft - ElbowRest);
 
             if (input.Windup != PuppetStrike.None && input.WindupProgress > 0f)
-                Windup(ref pose, input.Windup, Clamp01(input.WindupProgress), input.LeftLeads);
+                Windup(ref pose, input.Windup, Clamp01(input.WindupProgress), input.LeftLeads, input.Front);
             if (input.Strike != PuppetStrike.None)
-                Strike(ref pose, input.Strike, Clamp01(input.StrikeProgress), input.LeftLeads);
+                Strike(ref pose, input.Strike, Clamp01(input.StrikeProgress), input.LeftLeads, input.Front);
             if (input.Casting)
                 CastArms(ref pose, Clamp01(input.CastProgress));
 
@@ -455,9 +526,9 @@ namespace Cryptforge.Art
         // The draw before a strike, over whatever the walk gave the arms: eased out, so the weapon rises quickly and
         // settles at the top, the held breath before the blow.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void Windup(ref PuppetPose pose, PuppetStrike strike, float progress, bool leftLeads)
+        private static void Windup(ref PuppetPose pose, PuppetStrike strike, float progress, bool leftLeads, bool front)
         {
-            float[] poses = Poses(strike);
+            float[] poses = Poses(strike, front);
             if (poses == null)
                 return;
             float t = 1f - (1f - progress) * (1f - progress);
@@ -469,9 +540,9 @@ namespace Cryptforge.Art
         // The strike over the walk, the windup or both: the passing pose at the event, the hit a frame later, the
         // follow-through, a hold, then an ease back onto whatever the arms were doing.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void Strike(ref PuppetPose pose, PuppetStrike strike, float progress, bool leftLeads)
+        private static void Strike(ref PuppetPose pose, PuppetStrike strike, float progress, bool leftLeads, bool front)
         {
-            float[] poses = Poses(strike);
+            float[] poses = Poses(strike, front);
             if (poses == null)
                 return;
             bool mirror = strike == PuppetStrike.Thrust && leftLeads;
@@ -487,14 +558,14 @@ namespace Cryptforge.Art
                 pose.Wield = hold;
         }
 
-        private static float[] Poses(PuppetStrike strike)
+        private static float[] Poses(PuppetStrike strike, bool front)
         {
             switch (strike)
             {
                 case PuppetStrike.Swing:
-                    return SwingPoses;
+                    return front ? FrontSwingPoses : SwingPoses;
                 case PuppetStrike.Cast:
-                    return CastPoses;
+                    return front ? FrontCastPoses : CastPoses;
                 case PuppetStrike.Thrust:
                     return ThrustPoses;
                 default:
@@ -538,23 +609,27 @@ namespace Cryptforge.Art
             return CastKeys[a] + t * (CastKeys[a + CastColumns] - CastKeys[a]);
         }
 
-        // How much the cast owns the figure: all of it but its first and last moments, where it blends from and back to
-        // whatever the walk and any strike gave.
-        private static float CastHold(float progress) =>
-            progress < CastKeyTimes[1] ? Ease(progress / CastKeyTimes[1])
-            : progress > CastKeyTimes[6] ? 1f - Ease((progress - CastKeyTimes[6]) / (1f - CastKeyTimes[6])) : 1f;
-
-        // The Forge Burst bends the legs into its crouch while they keep a shortened stride.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void CastLegs(ref PuppetPose pose, float progress)
+        // How much the cast owns the figure: all of it but its first moment, the drop into the impact, and its last key,
+        // where it blends back to whatever the walk and any strike gave.
+        private static float CastHold(float progress)
         {
-            float stride = 1f - CastStride * CastHold(progress);
+            float settle = CastKeyTimes[CastKeyTimes.Length - 2];
+            return progress < CastKeyTimes[1] ? Ease(progress / CastKeyTimes[1])
+                : progress > settle ? 1f - Ease((progress - settle) / (1f - settle)) : 1f;
+        }
+
+        // The Forge Burst bends the standing legs into its crouch. A stride takes a share of the knees' flexion instead
+        // (returned; CastStrideKnee), so its planted boot keeps holding the floor while the hips sink.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float CastLegs(ref PuppetPose pose, float progress)
+        {
             float thigh = CastKey(progress, 0);
             float knee = CastKey(progress, 1);
-            pose.HipRight = stride * pose.HipRight + thigh;
-            pose.HipLeft = stride * pose.HipLeft + thigh;
+            pose.HipRight += thigh;
+            pose.HipLeft += thigh;
             pose.KneeRight += knee;
             pose.KneeLeft += knee;
+            return knee;
         }
 
         // The arms are the cast's alone while it holds; the chest pitches with the slam.
@@ -568,6 +643,9 @@ namespace Cryptforge.Art
             float wrist = CastKey(progress, 6);
             pose.Lean += lean;
             pose.Head += CastKey(progress, 3) - HeadSteady * lean;
+            // The cape hangs from the shoulders, so it tips less than the chest: tipped all the way, its hem swung up and
+            // back off the far leg it covers from behind.
+            pose.Cape -= CapeHang * lean;
             pose.ShoulderRight += own * (shoulder - pose.ShoulderRight);
             // The off hand follows the raise only part of the way, so a shield stays beside the helmet, not over it.
             pose.ShoulderLeft += own * (OffHandRaise * shoulder - pose.ShoulderLeft);
@@ -620,6 +698,13 @@ namespace Cryptforge.Art
             pose.Shift -= buckle * pose.Shift;
             pose.Twist -= buckle * pose.Twist;
             pose.HipTwist -= buckle * pose.HipTwist;
+            // The stride's steps let go as the knees buckle: the kneel and the fall are the painted legs'.
+            pose.LegRiseRight -= buckle * pose.LegRiseRight;
+            pose.LegRiseLeft -= buckle * pose.LegRiseLeft;
+            pose.LegShiftRight -= buckle * pose.LegShiftRight;
+            pose.LegShiftLeft -= buckle * pose.LegShiftLeft;
+            pose.FloorRight -= buckle * pose.FloorRight;
+            pose.FloorLeft -= buckle * pose.FloorLeft;
             float hip = Kneel[4] + topple * (Lying[4] - Kneel[4]);
             float knee = Kneel[5] + topple * (Lying[5] - Kneel[5]);
             float shoulder = Kneel[6] + topple * (Lying[6] - Kneel[6]) + 18f * bounce;
@@ -636,20 +721,302 @@ namespace Cryptforge.Art
             pose.WristRight -= buckle * pose.WristRight;
         }
 
-        // A periodic Catmull-Rom curve through StrideKeys evenly spaced keys: smooth through every key, so a stride has no
-        // corners.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static float Keyed(float[] keys, float phase)
+        // ---- The stride's legs ----
+
+        // One leg's share of a stride: its thigh's and knee's screen angles (degrees), how far the whole leg steps up the
+        // screen (world units) and how much of that is the boot's depth rather than the planted leg reaching its floor
+        // under the run's bob, and whether its boot is planted.
+        private struct Stride
         {
-            float u = phase * StrideKeys;
-            int i = (int)u;
-            float f = u - i;
-            float p0 = keys[(i + StrideKeys - 1) % StrideKeys];
-            float p1 = keys[i % StrideKeys];
-            float p2 = keys[(i + 1) % StrideKeys];
-            float p3 = keys[(i + 2) % StrideKeys];
-            return 0.5f * (2f * p1 + (p2 - p0) * f + (2f * p0 - 5f * p1 + 4f * p2 - p3) * f * f
-                + (3f * p1 - p0 - 3f * p2 + p3) * f * f * f);
+            public float Hip;
+            public float Knee;
+            public float Step;
+            public float Depth;
+            public bool Planted;
+        }
+
+        // A thousandth of a cycle: the step over which a stance's pace is read at its ends.
+        private const float Pace = 0.001f;
+        // The share of the push-off's sweep the swinging thigh keeps: it slows at once, so it never kicks far back.
+        private const float PushOffPace = 0.4f;
+        // Each mid-stance, twice a cycle, in radians of the doubled stride angle.
+        private const float DownRadians = TwoPi * StanceShare;
+
+        // The stride over the standing legs, by the walk's weight: each leg's thigh and knee as the screen shows them at
+        // this heading and its step up or down the screen, the far leg pulled in under the body, and the run's bob on
+        // whatever the standing legs gave the hips (a cast's crouch).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void Walk(ref PuppetPose pose, PuppetLegs legs, float phase, float heading, float castKnee, float walk)
+        {
+            PuppetLeg right = legs.Right.IsSet ? legs.Right : Reference;
+            PuppetLeg left = legs.Left.IsSet ? legs.Left : Reference;
+            float depth = FloorDepth * (float)Math.Sin(heading);
+            var run = new Run
+            {
+                Across = (float)Math.Cos(heading),
+                Depth = depth,
+                RightShare = Share(right, depth),
+                LeftShare = Share(left, depth),
+                Crouch = pose.Lift,
+                CastKnee = castKnee
+            };
+            float leftPhase = phase + 0.5f;
+            if (leftPhase >= 1f)
+                leftPhase -= 1f;
+            Stride r = Leg(right, phase, 0f, run.RightShare, run);
+            Stride l = Leg(left, leftPhase, 0.5f, run.LeftShare, run);
+            Narrowing(right, left, out float narrowX, out float narrowY);
+            pose.HipRight += walk * (r.Hip - pose.HipRight);
+            pose.HipLeft += walk * (l.Hip - pose.HipLeft);
+            pose.KneeRight += walk * (r.Knee - pose.KneeRight);
+            pose.KneeLeft += walk * (l.Knee - pose.KneeLeft);
+            pose.Lift += walk * Bob(phase, run);
+            pose.LegRiseRight = walk * r.Step;
+            pose.LegRiseLeft = walk * (l.Step + narrowY);
+            pose.LegShiftLeft = walk * narrowX;
+            pose.FloorRight = walk * r.Depth;
+            pose.FloorLeft = walk * (l.Depth + narrowY);
+            if (walk >= 0.5f)
+            {
+                pose.RightPlanted = r.Planted;
+                pose.LeftPlanted = l.Planted;
+            }
+        }
+
+        // What every leg of one stride shares: the heading's share across the screen and up it, each leg's stance share,
+        // and what the standing legs already did to the hips and knees (a cast's crouch).
+        private struct Run
+        {
+            public float Across;
+            public float Depth;
+            public float RightShare;
+            public float LeftShare;
+            public float Crouch;
+            public float CastKnee;
+        }
+
+        // How much of the cycle a leg's boot spends planted: StanceShare for a leg as long on the screen as the Vanguard's
+        // near leg, a shorter stance for a shorter leg, so both swing through the same angle - seen in three-quarter the
+        // far leg is painted reaching back in depth and stands a fifth shorter on the screen, and with the near leg's
+        // stance it had to swing half as far again to keep pace with the same floor. A stride running up or down the
+        // screen takes shorter stances still (EndOnStance): its planted boot has to travel with the floor along the
+        // leg, which a cut-out can only show by stepping the whole leg out from under the skirt.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Share(PuppetLeg leg, float depth)
+        {
+            float endOn = depth / FloorDepth;
+            endOn *= endOn;
+            float share = StanceShare * -RestLowest(leg) / StanceLeg * (1f - EndOnStance * endOn);
+            return share < MinStanceShare ? MinStanceShare : share > MaxStanceShare ? MaxStanceShare : share;
+        }
+
+        // The run's bob on the hips, from the step's own stance: lowest at mid-stance as the planted leg takes the weight,
+        // highest at mid-flight. Each half of a step - the stance and the flight - spans half a turn of the curve, so a
+        // leg with a shorter stance still lands on the same height.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Bob(float phase, Run run)
+        {
+            float step = phase < 0.5f ? phase : phase - 0.5f;
+            float share = phase < 0.5f ? run.RightShare : run.LeftShare;
+            float turn = step < share ? 0.5f * step / share : 0.5f + 0.5f * (step - share) / (0.5f - share);
+            float low = 0.5f + 0.5f * (float)Math.Cos(TwoPi * (turn - 0.25f));
+            return FlightHop - (FlightHop + BobDrop) * low;
+        }
+
+        // One leg at its own point q of the cycle, 0 at its heel strike (offset is where that falls in the right leg's
+        // cycle): planted through its stance, then swinging to the next strike - its thigh, knee and step each eased
+        // from the push-off to the strike, both ends' pace kept so neither shows a corner, the knee folding on top and,
+        // off the screen's axis, the leg lifting where turning gives it no clearance.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Stride Leg(PuppetLeg leg, float q, float offset, float share, Run run)
+        {
+            if (q < share)
+                return Stance(leg, q, offset, share, run);
+            Stride off = Stance(leg, share, offset, share, run);
+            Stride beforeOff = Stance(leg, share - Pace, offset, share, run);
+            Stride land = Stance(leg, 0f, offset + 1f, share, run);
+            Stride afterLand = Stance(leg, Pace, offset + 1f, share, run);
+            float span = 1f - share;
+            float u = (q - share) / span;
+            float scale = span / Pace;
+            float bump = (float)Math.Sin(u * Pi);
+            bump *= bump;
+            float across = run.Across < 0f ? -run.Across : run.Across;
+            // The thigh leaves the push-off slowing its sweep back and reaches the strike already sweeping back with the
+            // floor, so the boot lands at the floor's pace. The leg's step leaves and meets its stances at rest: its
+            // depth eases from behind to ahead, and the stretch a planted leg needed to reach the floor under the bob
+            // lets go in mid-swing, where the folded leg hangs at its own length.
+            float depth = Hermite(off.Depth, land.Depth, 0f, 0f, u);
+            float reach = Hermite(off.Step - off.Depth, land.Step - land.Depth, 0f, 0f, u);
+            return new Stride
+            {
+                Hip = Hermite(off.Hip, land.Hip, PushOffPace * (off.Hip - beforeOff.Hip) * scale,
+                    (afterLand.Hip - land.Hip) * scale, u),
+                Knee = Hermite(off.Knee, land.Knee, (off.Knee - beforeOff.Knee) * scale,
+                        (afterLand.Knee - land.Knee) * scale, u)
+                    + SwingFold * (across > FoldFloor ? across : FoldFloor) * bump,
+                Step = depth + reach * (1f - bump) + (SwingLift + (1f - across) * StepLift) * bump,
+                Depth = depth
+            };
+        }
+
+        // One boot's stance at q, 0 its heel strike, share its push-off. The knee gives as designed and the thigh turns
+        // so the boot's pivot - its heel, then its toe once the sole has rolled flat - is where the floor has carried it,
+        // as the screen shows it at this heading: its reach across the screen foreshortened, the knee with it, and the
+        // whole leg stepped up or down the screen so the pivot stands on the floor at its depth, under hips that ride
+        // the run's bob rather than the leg's reach (the leg's step takes up the difference, a texel or two). The hips'
+        // turn moves the hip, so the boot is held against it too.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Stride Stance(PuppetLeg leg, float q, float offset, float share, Run run)
+        {
+            float v = q / share;
+            // The give peaks at mid-stance and eases at both ends, so the swings either side need no sudden knee.
+            float give = (float)Math.Sin(v * Pi);
+            float knee = KneeStrike + (KneePush - KneeStrike) * v + KneeGive * give * give + run.CastKnee;
+            float sole = SoleLength(leg);
+            // Centred on where the boot stands at rest, so each painted leg swings about its own painted angle: the heel
+            // lands land ahead of its rest place, and the floor carries it, then the toe, back.
+            float restHeel = Ahead(leg, leg.HeelX, leg.HeelY, 0f, KneeRest);
+            float restToe = Ahead(leg, leg.ToeX, leg.ToeY, 0f, KneeRest);
+            float land = (StrideLength * share + restToe - restHeel - sole + ReachAhead) * 0.5f;
+            // Up or down the screen the stance moves toward the far side of the rest place - ahead walking away from the
+            // camera, behind walking toward it - so the planted boot steps its leg up under the skirt more than it draws
+            // it out below: up reads as a leg reaching away, and far enough down the thigh's hidden top would show.
+            land += DepthBias * 0.5f * StrideLength * share * run.Depth / FloorDepth;
+            float carried = land - StrideLength * q;
+            float twist = HipTurn * (float)Math.Cos(q * TwoPi);
+            float across = run.Across < 0f ? -run.Across : run.Across;
+            float screenKnee = across * knee;
+            float hip = Pivot(leg, screenKnee, restHeel + run.Across * carried - twist, sole, out float pivot);
+            float phase = q + offset;
+            float hips = Bob(phase - (float)Math.Floor(phase), run) + run.Crouch;
+            return new Stride
+            {
+                Hip = hip,
+                Knee = screenKnee,
+                Step = RestLowest(leg) + run.Depth * carried - hips - pivot,
+                Depth = run.Depth * carried,
+                Planted = true
+            };
+        }
+
+        // Where a boot's sole ends - heel, then toe - are for this pose, from where the painting put its hip (world units,
+        // the figure facing right): the pelvis's shift and bob, the leg's own step and the hips' turn, then the thigh and
+        // the knee, as PuppetRig hangs them. So a test can follow a planted boot from frame to frame.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void Sole(in PuppetPose pose, PuppetLeg leg, bool right, out float heelX, out float heelY,
+            out float toeX, out float toeY)
+        {
+            PuppetLeg l = leg.IsSet ? leg : Reference;
+            PuppetBone thigh = right ? PuppetBone.ThighRight : PuppetBone.ThighLeft;
+            float hipX = pose.Shift + pose.Forward(thigh);
+            float hipY = pose.Lift + pose.Rise(thigh);
+            float hip = right ? pose.HipRight : pose.HipLeft;
+            float knee = right ? pose.KneeRight : pose.KneeLeft;
+            heelX = hipX + Ahead(l, l.HeelX, l.HeelY, hip, knee);
+            heelY = hipY + Height(l, l.HeelX, l.HeelY, hip, knee);
+            toeX = hipX + Ahead(l, l.ToeX, l.ToeY, hip, knee);
+            toeY = hipY + Height(l, l.ToeX, l.ToeY, hip, knee);
+        }
+
+        // The height of the boot's lowest point under its painted hip when it stands as painted: its floor line.
+        public static float FloorLine(PuppetLeg leg) => RestLowest(leg.IsSet ? leg : Reference);
+
+        // The thigh angle that stands the boot on its pivot at reach ahead of the hip, the knee folded by knee degrees:
+        // the heel while it is the lower end of the sole, else the toe, a sole's length further on since the toe came
+        // down where the flat sole put it. The pivot's height under the hip comes out too.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Pivot(PuppetLeg leg, float knee, float reach, float sole, out float height)
+        {
+            float hip = Reach(leg, leg.HeelX, leg.HeelY, knee, reach);
+            float heel = Height(leg, leg.HeelX, leg.HeelY, hip, knee);
+            float toe = Height(leg, leg.ToeX, leg.ToeY, hip, knee);
+            if (toe >= heel)
+            {
+                height = heel;
+                return hip;
+            }
+            hip = Reach(leg, leg.ToeX, leg.ToeY, knee, reach + sole);
+            height = Height(leg, leg.ToeX, leg.ToeY, hip, knee);
+            return hip;
+        }
+
+        // The thigh angle (degrees) that puts the boot's point (x, y from the knee) at reach ahead of the hip with the
+        // knee folded by knee degrees. Turned h, the point is A cos h + B sin h ahead, which is R sin(h + a): so
+        // h = asin(reach / R) - a, on the branch where the leg hangs.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Reach(PuppetLeg leg, float x, float y, float knee, float reach)
+        {
+            float k = knee * DegToRad;
+            float ck = (float)Math.Cos(k), sk = (float)Math.Sin(k);
+            float a = leg.KneeX + x * ck + y * sk;
+            float b = -leg.KneeY + x * sk - y * ck;
+            float s = reach / (float)Math.Sqrt(a * a + b * b);
+            s = s > 1f ? 1f : s < -1f ? -1f : s;
+            return ((float)Math.Asin(s) - (float)Math.Atan2(a, b)) / DegToRad;
+        }
+
+        // The height of the boot's point (x, y from the knee) relative to the hip, the thigh turned hip degrees and the
+        // knee folded knee degrees (both turns counter-clockwise for a figure facing right).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Height(PuppetLeg leg, float x, float y, float hip, float knee)
+        {
+            float h = hip * DegToRad;
+            float s = (hip - knee) * DegToRad;
+            return leg.KneeX * (float)Math.Sin(h) + leg.KneeY * (float)Math.Cos(h) + x * (float)Math.Sin(s)
+                + y * (float)Math.Cos(s);
+        }
+
+        // How far ahead of the hip the boot's point is, turned as for Height.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Ahead(PuppetLeg leg, float x, float y, float hip, float knee)
+        {
+            float h = hip * DegToRad;
+            float s = (hip - knee) * DegToRad;
+            return leg.KneeX * (float)Math.Cos(h) - leg.KneeY * (float)Math.Sin(h) + x * (float)Math.Cos(s)
+                - y * (float)Math.Sin(s);
+        }
+
+        // The heel-to-toe length of the boot's sole: how far its pivot moves on as it rolls flat.
+        private static float SoleLength(PuppetLeg leg)
+        {
+            float x = leg.ToeX - leg.HeelX, y = leg.ToeY - leg.HeelY;
+            return (float)Math.Sqrt(x * x + y * y);
+        }
+
+        // The height of the boot's lowest point under its hip as it stands at rest: its floor line.
+        private static float RestLowest(PuppetLeg leg) => Lowest(leg, 0f, KneeRest);
+
+        // How far a walk moves the far (left) leg toward the near one: the given share of the way from where its boot
+        // stands at rest to where the near boot does.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void Narrowing(PuppetLeg near, PuppetLeg far, out float x, out float y)
+        {
+            RestContact(near, out float nearX, out float nearY);
+            RestContact(far, out float farX, out float farY);
+            float across = nearX - farX;
+            x = across < 0f ? TrackNarrowingAcross * across : 0f;
+            y = TrackNarrowing * (nearY - farY);
+        }
+
+        // Where the boot stands at rest, from the pelvis's joint: across the screen and on its floor line.
+        private static void RestContact(PuppetLeg leg, out float x, out float y)
+        {
+            float heel = Height(leg, leg.HeelX, leg.HeelY, 0f, KneeRest);
+            float toe = Height(leg, leg.ToeX, leg.ToeY, 0f, KneeRest);
+            // Across the screen the boot stands at its sole's middle: a boot painted toe-down would otherwise seem to
+            // stand at its toe.
+            float heelAhead = Ahead(leg, leg.HeelX, leg.HeelY, 0f, KneeRest);
+            float toeAhead = Ahead(leg, leg.ToeX, leg.ToeY, 0f, KneeRest);
+            x = leg.HipX + 0.5f * (heelAhead + toeAhead);
+            y = leg.HipY + (heel <= toe ? heel : toe);
+        }
+
+        // A cubic from a to b over t in [0, 1], leaving a at slope da and reaching b at slope db.
+        private static float Hermite(float a, float b, float da, float db, float t)
+        {
+            float t2 = t * t, t3 = t2 * t;
+            return (2f * t3 - 3f * t2 + 1f) * a + (t3 - 2f * t2 + t) * da + (3f * t2 - 2f * t3) * b + (t3 - t2) * db;
         }
 
         // Smoothstep: eases a 0..1 ramp in and out.

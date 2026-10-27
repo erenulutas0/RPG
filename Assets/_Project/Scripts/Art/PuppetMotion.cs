@@ -44,6 +44,10 @@ namespace Cryptforge.Art
         public const float ClothOmega = 9f;
         public const float ClothDamping = 0.3f;
         public const float ClothGain = 11f;
+        // How quickly the stride's heading follows the travel's, per second: a turn of the stick reads in the legs within
+        // a few frames, without a corner in their swing.
+        public const float HeadingRate = 20f;
+        private const float Pi = 3.14159274f;
 
         private const float FlinchRate = 1f / PuppetGait.FlinchSeconds;
         private const float DeathRate = 1f / PuppetGait.DeathSeconds;
@@ -71,7 +75,7 @@ namespace Cryptforge.Art
         public bool IsCasting => _input.Casting;
         public bool IsDying => _dying;
 
-        // The painted legs of the facing on show (PuppetRig.Legs), so the bob keeps the supporting boot on its floor.
+        // The painted legs of the facing on show (PuppetRig.Legs), so the stride plants the boots it draws.
         public PuppetLegs Legs
         {
             get => _input.Legs;
@@ -82,9 +86,24 @@ namespace Cryptforge.Art
             }
         }
 
-        // One live, unpaused frame of dt seconds in which the hero travelled this far along the floor. A paused combat
-        // (no dt) changes nothing.
-        public void Tick(float dt, float travel)
+        // Whether the facing on show is the front three-quarter, whose sword and staff arcs are its own.
+        public bool Front
+        {
+            get => _input.Front;
+            set
+            {
+                _input.Front = value;
+                Pose = PuppetGait.Evaluate(_input);
+            }
+        }
+
+        // One live, unpaused frame of dt seconds in which the hero travelled this far along the floor, the way it last
+        // went. A paused combat (no dt) changes nothing.
+        public void Tick(float dt, float travel) => Tick(dt, travel, _input.Heading);
+
+        // As above, the travel running this way in the figure's own terms (PuppetGaitInput.Heading). The stride eases
+        // toward it while walking and takes it at once from standing, where no leg is swinging yet.
+        public void Tick(float dt, float travel, float heading)
         {
             if (!(dt > 0f))
                 return;
@@ -97,7 +116,10 @@ namespace Cryptforge.Art
 
             _moving = travel >= MinimumTravel;
             if (_moving)
+            {
                 _input.WalkPhase = PuppetGait.Advance(_input.WalkPhase, travel);
+                _input.Heading = _input.WalkWeight > 0f ? Ease(_input.Heading, heading, dt) : Wrap(heading);
+            }
             float before = _input.WalkWeight;
             _input.WalkWeight = PuppetGait.Blend(before, _moving, dt);
             // Settled: the next walk starts on a contact, whatever the last one stopped on.
@@ -210,6 +232,14 @@ namespace Cryptforge.Art
             Pose = PuppetGait.Evaluate(_input);
         }
 
+        // The figure on show turned to face the other way (PuppetFacing's swap): the stride's heading is kept in the
+        // figure's own terms, so it mirrors with it and the legs carry on the way the hero is going.
+        public void Mirror()
+        {
+            _input.Heading = Wrap(Pi - _input.Heading);
+            Pose = PuppetGait.Evaluate(_input);
+        }
+
         // Drops the strike, its draw and the cast and leaves the stride alone: a hero switched off mid-swing comes back
         // with its arms on the walk.
         public void Interrupt()
@@ -252,5 +282,21 @@ namespace Cryptforge.Art
         }
 
         private static float Min1(float value) => value < 1f ? value : 1f;
+
+        // The heading turned dt's share of the shorter way toward the target.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Ease(float heading, float target, float dt)
+        {
+            float turn = Wrap(Wrap(target) - heading);
+            return Wrap(heading + turn * (1f - (float)System.Math.Exp(-HeadingRate * dt)));
+        }
+
+        // An angle into [-pi, pi); anything not finite is straight ahead.
+        private static float Wrap(float angle)
+        {
+            if (float.IsNaN(angle) || float.IsInfinity(angle))
+                return 0f;
+            return angle - 2f * Pi * (float)System.Math.Floor((angle + Pi) / (2f * Pi));
+        }
     }
 }
