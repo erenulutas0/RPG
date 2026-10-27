@@ -16,8 +16,8 @@ namespace Cryptforge.Tests
 {
     // The Staff's painted hit in the Gameplay scene (StrikeArtSet's staff strips): a real Staff strike rings its target's
     // feet with the painted ring, grown to exactly the radius the procedural ring showed and widened with Area as it
-    // was, and bursts on the struck body; a Crucible Vent's eruptions keep the procedural ring in ember; and a strike set
-    // without the painted frames, or with broken ones, draws the procedural ring as before.
+    // was, and bursts on the struck body; a Crucible Vent's eruptions ring in their own ember, never the Staff's violet;
+    // and a strike set without the painted frames, or with broken ones, draws the procedural ring as before.
     public sealed class PaintedStaffBlastTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -209,7 +209,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator ACrucibleVentStillEruptsInEmberOnTheProceduralRing()
+        public IEnumerator ACrucibleVentEruptsInItsOwnEmberRingNeverTheStaffsViolet()
         {
             yield return Load();
             Transform pool = GameObject.Find("Combat Effects").transform;
@@ -220,16 +220,22 @@ namespace Cryptforge.Tests
             Assert.That(_effects.UsesPaintedStaffBlast, Is.True);
 
             Assert.That(_hero.GetComponent<AbilityController>().TryUse(), Is.True);
-            List<SpriteRenderer> rings = ShowingProceduralRing(pool);
-            Assert.That(rings.Count, Is.EqualTo(2), "Each eruption rings its splash with the procedural ring.");
+            // The skill set carries the Vent's own painted eruption ring (PaintedVentEruptionTests); without it the
+            // eruptions keep the procedural ring in ember, never the Staff's painted one.
+            List<SpriteRenderer> rings = Shown(pool, "VFX Vent Splash ");
+            Assert.That(rings.Count, Is.EqualTo(2), "Each eruption rings its splash in the Vent's own painted ember.");
+            Assert.That(ShowingProceduralRing(pool), Is.Empty, "Not the procedural ring.");
             Assert.That(Shown(pool, "VFX Staff").Count, Is.Zero, "Never the Staff's violet frames tinted ember.");
             foreach (SpriteRenderer ring in rings)
+            {
                 Assert.That(ring.sortingOrder, Is.EqualTo(GroundOrder(_effects)), "On the floor, as the Staff's ring.");
+                Assert.That(ring.sprite.texture.name, Is.Not.EqualTo(SheetName), "Cut from the Vent's sheet, not the Staff's.");
+            }
             for (int i = 0; i < 6; i++)
             {
                 yield return null;
                 foreach (SpriteRenderer ring in rings)
-                    Assert.That(ring.color.r, Is.GreaterThan(ring.color.b + .3f), "It stays ember as it grows.");
+                    Assert.That(ring.color.r >= ring.color.g && ring.color.g >= ring.color.b, Is.True, "It stays warm as it grows.");
                 Assert.That(Shown(pool, "VFX Staff").Count, Is.Zero);
             }
             LogAssert.NoUnexpectedReceived();

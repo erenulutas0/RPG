@@ -5,10 +5,11 @@ using UnityEngine;
 namespace Cryptforge.Art
 {
     // The skills' painted effects (docs/45), drawn to match the painted actors: a burning enemy's flame at each Burn stack
-    // count, Ember Memory's passed ember, the Crucible Vent's eruption, embers and cast ring, and the Forge Burst's
-    // shockwave, sparks and flash. Tools/ArtReview/build_skill_vfx.py paints the sheets and writes this asset. Each effect
-    // family is one texture, so a crowd of burning enemies or a Vent across a crowd batches; each strip is a run of frames
-    // on its family's sheet, which the views cut into sprites at startup. Views borrow the sheets and own those sprites.
+    // count, Ember Memory's passed ember, the Crucible Vent's eruption, embers, cast ring and eruption ring, and the Forge
+    // Burst's shockwave, sparks and flash. Tools/ArtReview/build_skill_vfx.py paints the sheets and writes this asset. Each
+    // effect family is one texture, so a crowd of burning enemies or a Vent across a crowd batches (the optional eruption
+    // ring rides one of its own, drawn on the floor apart from the column and embers); each strip is a run of frames on
+    // its family's sheet, which the views cut into sprites at startup. Views borrow the sheets and own those sprites.
     [CreateAssetMenu(menuName = "Cryptforge/Art/Skill Effect Set")]
     public sealed class SkillEffectArtSet : ScriptableObject
     {
@@ -79,6 +80,8 @@ namespace Cryptforge.Art
         [SerializeField] private Strip _ventColumn;
         [SerializeField] private Strip _ventEmbers;
         [SerializeField] private Strip _ventRing;
+        // Optional, on a sheet of its own: a set painted before it is still whole without it (IsValid never asks).
+        [SerializeField] private Strip _ventSplash;
         [SerializeField] private Strip _shockwave;
         [SerializeField] private Strip _forgeSpark;
         [SerializeField] private Strip _forgeFlash;
@@ -90,6 +93,10 @@ namespace Cryptforge.Art
         public Strip VentEmbers => _ventEmbers;
         // A unit-radius ring: the view scales it to the radius it marks.
         public Strip VentRing => _ventRing;
+        // The eruption ring each Vent eruption draws round its enemy: a unit-radius floor ring like the cast's, which the
+        // view grows to BurnRule.VentSplashRadius. Without it the eruptions draw the procedural ember ring.
+        public Strip VentSplash => _ventSplash;
+        public bool HasVentSplash => Valid(_ventSplash);
         // A unit-radius floor ring, like the Vent's.
         public Strip Shockwave => _shockwave;
         public Strip ForgeSpark => _forgeSpark;

@@ -319,3 +319,21 @@ stay for a later painted pass.
   - Known flaws: the ring shows half the splash (`_ringSplashFraction` 0.5) and reaches its largest at Area 1.02, so
     Area cards barely widen it (unchanged rule); the burst's wisps are 3-4 px on a phone; each hit takes two of the
     shared pool's slots; the Vent's thin procedural ember ring now looks the least finished.
+- **The Vent's eruption ring painted** - `Tools/ArtReview/build_skill_vfx.py` paints a fourth sheet,
+  `Assets/_Project/Art/Effects/Skills/VFX_Skill_VentSplash.png` (313 KiB as ASTC 4x4, imported as the other skill
+  sheets), an optional strip on `SkillEffectArtSet` (`_ventSplash`, `HasVentSplash`; `IsValid` unchanged); the three
+  sheets before it rebuild byte for byte. `Tools/ArtReview/review_vent_splash.py` composites it at the phone's scale.
+  - Each eruption's floor ring (6 frames, 0.33 s, 136 texels a unit) is a unit floor ellipse whose soot rim ends on
+    the splash, grown to `BurnRule.VentSplashRadius` by the procedural ring's own pulse, so it shows the splash that
+    strikes at every stack count. A white-hot line of ignition; flames leaping off the far side of a burning band in
+    clusters (they die away round the sides, so the floor in front of the enemy stays a clean band); wisps tearing
+    off them as the band tears into burning pieces; embers and a scorched ring. Ember, crimson and yellow with a soot
+    edge for the lava, never the Staff's violet.
+  - It burns as painted on a full burn and cooler, redder and fainter with fewer stacks (a tint, so one sheet serves
+    every count); every other eruption is mirrored about its centre, so a crowd's rings never repeat side by side. It
+    still takes one burst slot an eruption. Without the strip, or with the set invalid, the eruptions keep the
+    procedural ember ring; the Staff's painted ring and its fallback are untouched.
+  - Known flaws: the stacks change only its heat, not its flames' height (the column carries the count); a Vent's
+    eruptions all start on one frame, so a crowd's rings burn in step; the far side's flames draw on the floor order,
+    behind every actor, so the erupting enemy hides the middle of its own ring's flames; on lava it reads by its soot
+    edge and pale-hot core more than as fire; the thin ignition line under ASTC 4x4 is still to see on a device.
