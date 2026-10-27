@@ -35,6 +35,10 @@ namespace Cryptforge.UI
                 return;
             }
 
+            // The run's hero brings its own ability's art (docs/45: the Arcanist's crucible beside the Vanguard's anvil).
+            Sprite own = _setup.Hero != null && _setup.Hero.Ability != null ? _setup.Hero.Ability.Icon : null;
+            if (own != null)
+                _icon.sprite = own;
             // Imported UI artwork belongs to the asset database. Only own and destroy the procedural fallback.
             if (_icon.sprite == null)
             {

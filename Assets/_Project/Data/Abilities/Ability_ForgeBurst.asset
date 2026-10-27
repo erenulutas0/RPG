@@ -18,3 +18,4 @@ MonoBehaviour:
   _damage: 20
   _radius: 2.5
   _cooldown: 8
+  _icon: {fileID: 21300000, guid: 64d81e2d236cbd942b039d93f1290857, type: 3}

@@ -17,6 +17,8 @@ namespace Cryptforge.Content
         [SerializeField, Min(0.1f)] private float _cooldown = 8f;
         // Burst: damage to everything in reach. Vent: damage per Burn stack each burning enemy in reach spends.
         [SerializeField] private AbilityKind _kind = AbilityKind.Burst;
+        // The ability button's art: the Forge Burst anvil, the Crucible Vent crucible. Empty keeps the scene's icon.
+        [SerializeField] private Sprite _icon;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -24,6 +26,7 @@ namespace Cryptforge.Content
         public float Radius => _radius;
         public float Cooldown => _cooldown;
         public AbilityKind Kind => _kind;
+        public Sprite Icon => _icon;
         public string Description => string.Format(_descriptionFormat ?? string.Empty, _damage, _radius, _cooldown);
 
         // A fresh runtime per run; the definition stays untouched by upgrades.

@@ -64,6 +64,15 @@ namespace Cryptforge.Tests
             return dummies;
         }
 
+        // The name of the sprite the ability button shows.
+        private static string AbilityIcon()
+        {
+            foreach (var image in GameObject.Find("Ability Button").GetComponentsInChildren<Image>(true))
+                if (image.sprite != null && image.sprite.name.StartsWith("UI_Icon_"))
+                    return image.sprite.name;
+            return string.Empty;
+        }
+
         [UnityTest]
         public IEnumerator TheArcanistPlaysWithItsOwnHealthAbilityAndName()
         {
@@ -74,6 +83,7 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Ability.Kind, Is.EqualTo(AbilityKind.Vent), "Crucible Vent on the one button.");
             Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_staff"), "The Staff is the Arcanist's own.");
             Assert.That(GameObject.Find("Hero Label").GetComponent<Text>().text, Does.Contain("Cinder Arcanist"));
+            Assert.That(AbilityIcon(), Does.Contain("CrucibleVent"), "The ability button wears the crucible.");
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -83,6 +93,7 @@ namespace Cryptforge.Tests
             yield return Load(false);
             Assert.That(_setup.Hero.Id, Is.EqualTo("hero_vanguard"));
             Assert.That(_setup.Ability.Kind, Is.EqualTo(AbilityKind.Burst));
+            Assert.That(AbilityIcon(), Does.Contain("ForgeBurst"), "And the Vanguard's button keeps its anvil.");
             Health[] dummies = Dummies(.3f);
             _attack.enabled = true;
             for (int i = 0; i < 90 && _attack.AttackCount == 0; i++) yield return null;
