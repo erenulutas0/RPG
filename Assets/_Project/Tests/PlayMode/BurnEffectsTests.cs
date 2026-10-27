@@ -257,16 +257,17 @@ namespace Cryptforge.Tests
             Assert.That(atA.transform.localScale.x, Is.GreaterThan(atB.transform.localScale.x), "Three stacks erupt larger than one.");
             List<SpriteRenderer> embers = Shown("VFX Vent Embers");
             Assert.That(embers.Count, Is.EqualTo(3), "Two clusters of embers from three stacks, one from one.");
-            var rings = new List<SpriteRenderer>();
+            List<SpriteRenderer> rings = Shown("VFX Vent Splash");
+            Assert.That(rings.Count, Is.EqualTo(2), "And a painted ember ring as wide as each splash.");
             foreach (var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())
-                if (renderer.enabled && renderer.sprite == StaffSplashArt.Get()) rings.Add(renderer);
-            Assert.That(rings.Count, Is.EqualTo(2), "And an ember ring as wide as each splash.");
+                Assert.That(renderer.enabled && renderer.sprite == StaffSplashArt.Get(), Is.False, "Not the procedural ring.");
+            Assert.That(rings[1].sprite.texture, Is.SameAs(rings[0].sprite.texture), "Every eruption's ring on one sheet.");
             Assert.That(Shown("VFX Forge").Count, Is.Zero, "The Vent's blast is its eruptions, not the Forge Burst's.");
             List<SpriteRenderer> cast = Shown("VFX Vent Cast");
             Assert.That(cast.Count, Is.EqualTo(1), "The cast rings the hero in burning ember.");
             Assert.That(cast[0].transform.position.x, Is.EqualTo(_hero.transform.position.x).Within(1e-4f));
             Assert.That(cast[0].sortingOrder, Is.EqualTo(rings[0].sortingOrder), "On the floor with the splash rings.");
-            Assert.That(cast[0].sprite.texture, Is.SameAs(columns[0].sprite.texture), "One sheet for the Vent's effects.");
+            Assert.That(cast[0].sprite.texture, Is.SameAs(columns[0].sprite.texture), "One sheet for the column and the cast.");
             foreach (var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())
                 Assert.That(renderer.enabled && renderer.sprite == AbilityRingArt.Get(), Is.False,
                     "Not the Forge Burst's steel seal.");
@@ -274,7 +275,11 @@ namespace Cryptforge.Tests
             float risenFrom = embers[0].transform.position.y;
             for (int i = 0; i < 6; i++) yield return null;
             Assert.That(embers[0].transform.position.y, Is.GreaterThan(risenFrom), "The embers rise.");
-            foreach (var ring in rings) Assert.That(ring.color.r, Is.GreaterThan(ring.color.b + .3f), "The ring stays ember as it grows.");
+            foreach (var ring in rings)
+            {
+                Assert.That(ring.sprite.name, Does.StartWith("VFX Vent Splash"), "The ring burns on through its painted frames.");
+                Assert.That(ring.color.r >= ring.color.g && ring.color.g >= ring.color.b, Is.True, "Warmed, never cooled.");
+            }
             Assert.That(_effects.BurnFlameOn(a), Is.Null, "The Vent spent the burn, so its flame is out.");
             Assert.That(_effects.BurnFlameOn(b), Is.Null);
 
