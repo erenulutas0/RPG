@@ -202,8 +202,8 @@ beside(lava, 'lava')
 ZOOM = 2
 
 
-def gif(name, frames, delays):
-    frames = [f.convert('RGB').resize((f.width * ZOOM, f.height * ZOOM), Image.NEAREST) for f in frames]
+def gif(name, frames, delays, zoom=ZOOM):
+    frames = [f.convert('RGB').resize((f.width * zoom, f.height * zoom), Image.NEAREST) for f in frames]
     frames[0].save(OUT / name, save_all=True, append_images=frames[1:], duration=delays, loop=0, disposal=1)
 
 
@@ -256,12 +256,13 @@ def mark_layer(size, centre, ppu, fill, flash, pulse):
 def telegraph_gif():
     """The Warden left of the hero; the mark goes down where the hero stands, the hammer goes up and holds for the
     telegraph while the fill grows to the edge, the blow lands on the strike pose as the mark flashes."""
+    # At the phone's own scale (not doubled), stepped at 0.1 s: the floor's photograph makes every frame costly.
     k = PHONE / 128
-    w, h = 900, 520
+    w, h = 820, 560
     base = stone((w, h))
-    warden_at, hero_at = (250, 330), (560, 400)
+    warden_at, hero_at = (190, 400), (530, 405)
     images, delays = [], []
-    step = 0.05
+    step = 0.1
 
     def frame(sprite, fill=0.0, flash=0.0, marked=False, t=0.0):
         canvas = base.copy()
@@ -278,8 +279,7 @@ def telegraph_gif():
     for kind in ('cool', 'hot'):
         # Facing the hero, on its right: the drawings mirrored.
         idle = mirrored(warden('front', 'idle', kind))
-        for _ in range(8):
-            images.append(frame(idle)); delays.append(int(step * 1000))
+        images.append(frame(idle)); delays.append(600)
         n = int(round(TELEGRAPH / step))
         for i in range(n):
             images.append(frame(mirrored(warden('front', 'windup', kind)), fill=(i + 1) / n, marked=True, t=i * step))
@@ -288,9 +288,8 @@ def telegraph_gif():
         for i in range(m):
             images.append(frame(mirrored(warden('front', 'strike', kind)), flash=1 - i / m))
             delays.append(int(step * 1000))
-        for _ in range(12):
-            images.append(frame(idle)); delays.append(int(step * 1000))
-    gif('warden-telegraph.gif', images, delays)
+        images.append(frame(idle)); delays.append(900)
+    gif('warden-telegraph.gif', images, delays, zoom=1)
 
 
 telegraph_gif()
