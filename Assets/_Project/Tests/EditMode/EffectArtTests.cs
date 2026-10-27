@@ -172,6 +172,50 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void TheForgeShockwaveLeadsWithWhiteOverADarkRimThenBreaksUp()
+        {
+            PixelCanvas[] frames = EffectArt.ShockwaveFrames();
+            Assert.That(frames.Length, Is.EqualTo(3));
+            int centreX = EffectArt.ShockwaveWidth / 2;
+            int centreY = EffectArt.ShockwaveHeight / 2;
+            // The texel the rim of the floor ellipse passes through on the right, at the centre's height.
+            int rim = centreX + EffectArt.ShockwaveRadius;
+            foreach (PixelCanvas frame in frames)
+            {
+                Assert.That((frame.Width, frame.Height), Is.EqualTo((EffectArt.ShockwaveWidth, EffectArt.ShockwaveHeight)));
+                Assert.That(frame.Get(centreX, centreY), Is.EqualTo(Rgba.Transparent), "The hero stands in a clear centre.");
+                Assert.That(frame.Get(0, 0), Is.EqualTo(Rgba.Transparent));
+                Assert.That(Has(frame, PixelPalette.SteelLight), Is.True, "Steel blue, which reads on the orange lava.");
+            }
+            Assert.That(frames[0].Get(rim, centreY), Is.EqualTo(Rgba.White), "A white leading edge at the rim.");
+            Assert.That(frames[1].Get(rim, centreY), Is.EqualTo(Rgba.White));
+            Assert.That(frames[0].Get(rim + 1, centreY), Is.EqualTo(PixelPalette.Outline.WithAlpha(200)), "A dark rim outside it.");
+            Assert.That(frames[0].Get(rim - 12, centreY).A, Is.InRange(1, 254), "The flash glows faintly inside the band.");
+            Assert.That(frames[1].Get(rim - 12, centreY), Is.EqualTo(Rgba.Transparent), "Then only the band.");
+            Assert.That(frames[1].CountVisible(), Is.LessThan(frames[0].CountVisible()), "The band thins.");
+            Assert.That(Has(frames[2], Rgba.White), Is.False, "Breaking up, it has lost its white.");
+            Assert.That(frames[2].CountVisible(), Is.LessThan(frames[1].CountVisible()));
+            Assert.That(frames[0].Get(centreX, centreY + EffectArt.ShockwaveRadius / 2).A, Is.GreaterThan(0),
+                "Half as tall as wide: a floor circle seen from above.");
+        }
+
+        [Test]
+        public void ForgeSparksAreOutlinedStreaksLedByAWhiteHead()
+        {
+            PixelCanvas[] frames = EffectArt.ForgeSparkFrames();
+            Assert.That(frames.Length, Is.EqualTo(2));
+            foreach (PixelCanvas frame in frames)
+            {
+                Assert.That((frame.Width, frame.Height), Is.EqualTo((EffectArt.ForgeSparkWidth, EffectArt.ForgeSparkHeight)));
+                Assert.That(frame.Get(EffectArt.ForgeSparkHeadX, 2), Is.EqualTo(Rgba.White), "The head leads along +x.");
+                Assert.That(frame.Get(EffectArt.ForgeSparkHeadX + 1, 2), Is.EqualTo(PixelPalette.Outline));
+                Assert.That(Has(frame, PixelPalette.SteelLight), Is.True);
+                Assert.That(Has(frame, PixelPalette.Spell), Is.True, "A spell-blue tail behind it.");
+            }
+            Assert.That(frames[1].CountVisible(), Is.LessThan(frames[0].CountVisible()), "The streak shortens as it slows.");
+        }
+
+        [Test]
         public void EffectsAreDeterministic()
         {
             Assert.That(SamePixels(EffectArt.SlashFrames()[1], EffectArt.SlashFrames()[1]));

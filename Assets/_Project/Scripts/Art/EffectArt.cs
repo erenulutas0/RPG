@@ -13,7 +13,8 @@ namespace Cryptforge.Art
     }
 
     // Combat effect placeholders drawn from code in the astral foundry palette: the hero's strike effects, hit sparks, crit
-    // bursts, death smoke, coins and the 5x7 numerals of floating damage numbers. Pure and deterministic so every frame can
+    // bursts, death smoke, coins, the Forge Burst's shockwave and sparks, and the 5x7 numerals of floating damage numbers
+    // (the Cinder Arcanist's own effects are BurnArt's). Pure and deterministic so every frame can
     // be tested without Unity; CombatEffectsView turns them into sprites once at startup. Row 0 of a canvas is its bottom.
     public static class EffectArt
     {
@@ -36,6 +37,17 @@ namespace Cryptforge.Art
         public const int SparkSize = 16;
         public const int SmokeSize = 32;
         public const int CoinSize = 8;
+        // The Forge Burst's shockwave is drawn at 2.5 world units of radius, the burst's own reach, so it shows texel for
+        // texel at full size; the view grows it there from the hero and scales it to whatever reach the ability has.
+        public const int ShockwaveRadius = 80;
+        public const int ShockwaveWidth = 2 * ShockwaveRadius + 5;
+        public const int ShockwaveHeight = ShockwaveRadius + 5;
+        public const int ForgeSparkWidth = 9;
+        public const int ForgeSparkHeight = 5;
+        // The spark's head, where the view pins the sprite, so the streak trails behind the point it flies through.
+        public const int ForgeSparkHeadX = 7;
+        // How far, in texels, the shockwave's flash glows inside its band.
+        private const float FlashTrail = 22f;
 
         // Smoke tones: a lit maroon over the slag tones, so a puff still reads on the violet-grey tiles.
         public static readonly Rgba SmokeLight = Rgba.FromHex("#5C3C4C");
@@ -338,6 +350,35 @@ namespace Cryptforge.Art
             return frames;
         }
 
+        // The Forge Burst's shockwave on the floor, so the Vanguard's skill hits as hard as it reads on the ring: a white
+        // leading edge on a steel-blue band with a dark rim outside it (blue and the rim are what read on the Foundry's
+        // orange), first over a pale flash, then thinner, then breaking up.
+        public static PixelCanvas[] ShockwaveFrames() =>
+            new[]
+            {
+                Shockwave(8, true, false),
+                Shockwave(5, false, false),
+                Shockwave(3, false, true)
+            };
+
+        // A forge spark flung by the burst: a white head, a steel body and a spell-blue tail, outlined, facing +x so the
+        // view can turn it along its flight; the second frame is the streak shortening as it slows.
+        public static PixelCanvas[] ForgeSparkFrames()
+        {
+            var full = new PixelCanvas(ForgeSparkWidth, ForgeSparkHeight);
+            full.FillRect(ForgeSparkHeadX - 1, 2, 2, 1, Rgba.White);
+            full.FillRect(3, 2, 3, 1, PixelPalette.SteelLight);
+            full.FillRect(1, 2, 2, 1, PixelPalette.Spell);
+            full.Outline(PixelPalette.Outline);
+
+            var shorter = new PixelCanvas(ForgeSparkWidth, ForgeSparkHeight);
+            shorter.FillRect(ForgeSparkHeadX - 1, 2, 2, 1, Rgba.White);
+            shorter.FillRect(4, 2, 2, 1, PixelPalette.SteelLight);
+            shorter.Set(3, 2, PixelPalette.Spell);
+            shorter.Outline(PixelPalette.Outline);
+            return new[] { full, shorter };
+        }
+
         // Nearest-neighbour integer upscale, so a larger crit numeral keeps the pixel grid.
         public static PixelCanvas Upscale(PixelCanvas source, int factor)
         {
@@ -418,6 +459,48 @@ namespace Cryptforge.Art
             Diamond(canvas, centreX, centreY - radiusY, edge, inner);
             Diamond(canvas, centreX - radiusX, centreY, edge, inner);
             Diamond(canvas, centreX + radiusX, centreY, edge, inner);
+            return canvas;
+        }
+
+        // A floor ellipse of ShockwaveRadius, half as tall as wide. Depth is measured inward from the rim in texels along x,
+        // so the band is half as thick at the top and bottom, as a floor circle seen from above is: two texels of white
+        // leading edge, steel light, then spell blue to the band's inner edge. A flash fills the inside with a pale wash; a
+        // broken band keeps only a checker of its texels and drops the white and the rim.
+        private static PixelCanvas Shockwave(int band, bool flash, bool broken)
+        {
+            var canvas = new PixelCanvas(ShockwaveWidth, ShockwaveHeight);
+            float centreX = ShockwaveWidth / 2f;
+            float centreY = ShockwaveHeight / 2f;
+            float radiusX = ShockwaveRadius + .5f;
+            float radiusY = ShockwaveRadius / 2f + .5f;
+            Rgba rim = PixelPalette.Outline.WithAlpha(200);
+            for (int y = 0; y < canvas.Height; y++)
+            {
+                for (int x = 0; x < canvas.Width; x++)
+                {
+                    float nx = (x + .5f - centreX) / radiusX;
+                    float ny = (y + .5f - centreY) / radiusY;
+                    float depth = (1f - (float)Math.Sqrt(nx * nx + ny * ny)) * radiusX;
+                    if (depth < -1.5f)
+                        continue;
+                    if (broken && ((x + y) & 1) == 1)
+                        continue;
+                    if (depth < 0f)
+                    {
+                        if (!broken)
+                            canvas.Set(x, y, rim);
+                    }
+                    else if (depth < 2f)
+                        canvas.Set(x, y, broken ? PixelPalette.SteelLight : Rgba.White);
+                    else if (depth < band * .6f + 1f)
+                        canvas.Set(x, y, broken ? PixelPalette.Spell : PixelPalette.SteelLight);
+                    else if (depth < band)
+                        canvas.Set(x, y, PixelPalette.Spell);
+                    else if (flash && depth < band + FlashTrail)
+                        // A glow trailing inside the band, fading toward the hero: a full wash muddied the orange lava.
+                        canvas.Set(x, y, PixelPalette.SteelLight.WithAlpha((byte)(80f * (1f - (depth - band) / FlashTrail))));
+                }
+            }
             return canvas;
         }
 
