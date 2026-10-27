@@ -46,8 +46,9 @@ namespace Cryptforge.Tests
             Assert.That(struck,Is.True);
             Assert.That(target.Current,Is.EqualTo(10000-attack.Weapon.Damage));
             attack.enabled=false;
+            // The scene's strike set paints the Staff's ring (PaintedStaffBlastTests); without it the procedural ring shows.
             var pulse=GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>()
-                .Single(r=>r.enabled&&r.sprite==StaffSplashArt.Get());
+                .Single(r=>r.enabled&&r.sprite!=null&&(r.sprite==StaffSplashArt.Get()||r.sprite.name.StartsWith("VFX Staff Ring ")));
             Assert.That(pulse.sortingOrder,Is.Zero);
             Vector3 origin=pulse.transform.position,scale=pulse.transform.localScale;
             Color color=pulse.color;
