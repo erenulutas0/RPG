@@ -8,7 +8,8 @@ Run with Blender 4.5 LTS, headless:
 Options after the "--":
     --out DIR        raw frames and frames.json (default TestResults/warden-render, git-ignored)
     --blend PATH     the saved scene (default ArtDirection/2026-10-27/warden-blender-01/forge-warden.blend)
-    --poses LIST     a comma-separated subset of idle,step-a,step-b,strike,pass-a,pass-b,windup,death-0,death-1
+    --poses LIST     a comma-separated subset of idle,step-a,step-b,strike,pass-a,pass-b,windup,windup-step-a,
+                     windup-pass-a,windup-pass-b,fall-struck,fall-knee,fall-topple,fall-down
     --facings LIST   a comma-separated subset of front,rear
     --variants LIST  cool (the first phase), hot (the second: visor and seams burning hotter)
     --samples N      Cycles samples per render pixel (default 10)
@@ -63,6 +64,9 @@ PPU = 128                      # final texels per world unit: the painted Grunt'
 SS = 4                         # render at 4x and box-filter down: area-exact anti-aliasing, the pivot stays on a corner
 CANVAS_PX = (336, 416)         # the render canvas in final texels: room for the raised hammer and the slam's reach
 PIVOT_PX = (168, 56)           # the floor origin in final texels from the canvas's bottom-left corner
+# The fall's canvas: wider and shallower, for a body lying at full length beside where it stood.
+FALL_CANVAS_PX = (544, 384)
+FALL_PIVOT_PX = (272, 120)
 ELEVATION = math.radians(30)
 HEIGHT = 1 / math.cos(ELEVATION)
 # Both facings look left; the game mirrors them for the right. Degrees as BuildBlenderArcanist.py (270 faces the
@@ -73,8 +77,13 @@ FACINGS = [('front', 234), ('rear', 130)]
 SCALE = 0.96
 # Floor units (in the model's units, before SCALE) one walk cycle of two heavy steps covers.
 STRIDE = 1.12
-POSES = ['idle', 'step-a', 'step-b', 'strike', 'pass-a', 'pass-b', 'windup', 'death-0', 'death-1']
-DEATHS = {'death-0', 'death-1'}
+# The raised hammer carried at a walk, at the walk's own phases: contact A, passing A, contact B, passing B.
+WINDUP_WALK = {'windup-step-a': 0.0, 'windup-pass-a': 0.25, 'windup-step-b': 0.5, 'windup-pass-b': 0.75}
+# The boss's own fall (fall() below): struck, down on a knee, toppling, down. Both facings come down the same way -
+# turned toward the screen's left - so the last two drawings are drawn once and shared.
+FALLS = ['fall-struck', 'fall-knee', 'fall-topple', 'fall-down']
+SHARED_FALLS = {'fall-topple', 'fall-down'}
+POSES = ['idle', 'step-a', 'step-b', 'strike', 'pass-a', 'pass-b', 'windup', *WINDUP_WALK, *FALLS]
 VARIANTS = ['cool', 'hot']
 GLOW_SCALE = 0.25              # the glow pass writes emission at a quarter, so the 8-bit file never clips it
 
@@ -1207,6 +1216,7 @@ for k in range(LINKS):
     bone('chain%d' % k, tuple(top), tuple(top + Vector((0, 0, -LINK))), 'root')
 bpy.ops.object.mode_set(mode='OBJECT')
 REST = {b.name: b.matrix_local.copy() for b in arm_data.bones}
+REST_TAIL = {b.name: b.tail_local.copy() for b in arm_data.bones}
 PARENT = {b.name: (b.parent.name if b.parent else None) for b in arm_data.bones}
 FOLLOWERS = {'pauldron.L': ('upper_arm.L', 0.24), 'pauldron.R': ('upper_arm.R', 0.24),
              'tasset.L': ('thigh.L', 0.62), 'tasset.R': ('thigh.R', 0.62)}
@@ -1298,6 +1308,9 @@ class Pose:
         self.chain = None         # (swing about x, swing about y) in degrees
         self.heat_flare = 1.0     # the visor's and seams' brightness this pose (the windup flares)
         self.life = 1.0           # the furnace dying in death
+        self.knee_poles = {}      # 'L'/'R' -> where the knee points, for a leg the stance's forward knee cannot pose
+        self.foot_rolls = {}      # 'L'/'R' -> degrees a foot rolls onto its side (a body lying on its side)
+        self.chain_turn = 0.0     # degrees the chain's swing turns with a pose turned about the root (turned())
 
     def add(self, bone_name, m):
         self.rot[bone_name] = m @ self.rot.get(bone_name, Matrix.Identity(3))
@@ -1403,13 +1416,13 @@ class Solver:
         l1 = (knee0 - REST['thigh.' + s].to_translation()).length
         l2 = (ankle0 - knee0).length
         yawm = rot(z=yaw)
-        pole = yawm @ Vector((0, -1, 0.15))
+        pole = self.pose.knee_poles.get(s, yawm @ Vector((0, -1, 0.15)))
         knee, ankle, hinge = two_bone(hip, Vector(target), l1, l2, pole)
         rest_pole = Vector((0, -1, 0.15))
         _, _, rest_hinge = two_bone(REST['thigh.' + s].to_translation(), ankle0, l1, l2, rest_pole)
         W_thigh = frame_from(knee - hip, hinge) @ frame_from(knee0 - REST['thigh.' + s].to_translation(), rest_hinge).transposed()
         W_shin = frame_from(ankle - knee, hinge) @ frame_from(ankle0 - knee0, rest_hinge).transposed()
-        W_foot = yawm @ rot(x=pitch)
+        W_foot = yawm @ rot(x=pitch) if s not in self.pose.foot_rolls else rot(x=pitch, y=self.pose.foot_rolls[s], z=yaw)
         return {'thigh.' + s: W_thigh, 'shin.' + s: W_shin, 'foot.' + s: W_foot}
 
     def arm(self, s):
@@ -1441,6 +1454,8 @@ class Solver:
         for k in range(LINKS):
             share = (k + 1) / LINKS
             down = (rot(x=swing_x * (0.6 + 0.5 * share), y=swing_y * (0.6 + 0.5 * share)) @ Vector((0, 0, -1))).normalized()
+            if self.pose.chain_turn:
+                down = rot(z=self.pose.chain_turn) @ down
             centre = top + down * (LINK * 0.5)
             rest_centre = SHACKLE_EYE + Vector((0, 0, -(k + 0.5) * LINK))
             turn = Vector((0, 0, -1)).rotation_difference(down).to_matrix().to_4x4()
@@ -1583,66 +1598,162 @@ def strike(variant, degrees):
     return p
 
 
-def windup(variant):
-    """The telegraph: the hammer hauled high over the head in both fists, the body arched back, the furnace flaring
-    in the slit and the seams. Readable at a glance: the tallest silhouette the Warden has, every other pose holding
-    the hammer low."""
-    p = stance()
-    p.offset = Vector((0, 0.03, -0.035))
+WINDUP_OFFSET = Vector((0, 0.03, -0.035))     # the standing windup's weight, back and down under the raised hammer
+
+
+def windup_upper(p, lift=0.0, sway=0.0, dip=0.0):
+    """The telegraph above the hips: the hammer hauled high over the head in both fists, the body arched back, the
+    furnace flaring in the slit and the seams. lift and sway carry the hammer on a walk's rise, fall and sway; dip lets
+    its head nod on the stride."""
     p.add('pelvis', rot(x=-4))
     p.add('spine', rot(x=-8))
     p.add('chest', rot(x=-12))
     p.add('neck', rot(x=-6))
     p.add('head', rot(x=-8))
-    p.feet['L'] = (Vector((0.21, -0.13, ANKLE_Z)), 0, 14)
-    p.feet['R'] = (Vector((-0.2, 0.12, ANKLE_Z)), 0, -16)
     # Both fists close together above the helm, the haft running up and back from them, the head high behind.
-    grip = Vector((-0.07, 0.05, 1.66))
-    direction = Vector((0.1, 0.8, 0.62))
+    grip = Vector((-0.07 + sway, 0.05, 1.66 + lift))
+    direction = Vector((0.1 + dip * 0.5, 0.8, 0.62 - dip))
     hold(p, grip, direction, Vector((0, -0.7, 0.7)), s_r=0.28, s_l=0.48, pole_r=(-0.9, -0.1, -0.3),
          pole_l=(0.9, -0.1, -0.3))
     p.chain = (-26.0, 12.0)
     p.heat_flare = 1.45
-    return p
 
 
-def death(k):
-    """The furnace failing: first the knees go and the hammer slips, then the Warden kneels, slumped over itself as
-    if still on guard, the helm bowed, the slit dark, the hammer on the floor and the broken chain at rest."""
+def windup_walk(phase):
+    """The telegraph carried at a walk, so a Warden that keeps coming through the 1.1 s telegraph steps rather than
+    glides: the walk's own legs at the walk's own phase (the game steps both by the distance travelled, and the
+    stride is the walk's, so a planted foot keeps its place on the floor from one drawing to the next) under the
+    windup's raised hammer. The feet come down flatter, the hammer's weight on them, and the hammer rides the body's
+    rise and fall."""
     p = stance()
-    c = [dict(drop=0.24, slump=0.35, life=0.55), dict(drop=0.4, slump=1.0, life=0.12)][k]
-    drop, slump = c['drop'], c['slump']
-    p.offset = Vector((0, 0.05 + 0.04 * slump, -drop))
-    p.add('pelvis', rot(x=8 * slump))
-    p.add('spine', rot(x=10 + 14 * slump))
-    p.add('chest', rot(x=12 + 16 * slump, y=-4 * slump))
-    p.add('neck', rot(x=10 + 14 * slump))
-    p.add('head', rot(x=6 + 12 * slump, z=-6 * slump))
-    kneel = smooth(0.1, 0.36, drop)
-    for s, x in (('R', -0.18), ('L', 0.185)):
-        p.feet[s] = (Vector((x, lerp(0.0, 0.38, kneel), lerp(ANKLE_Z, 0.075, kneel))), lerp(0, 72, kneel), 0)
-    # The left hand rests on the floor or the knee, the chain lying by it; the hammer falls to the right.
-    p.hands['L'] = (Vector((lerp(0.47, 0.38, slump), lerp(-0.12, -0.42, slump), lerp(0.55, 0.13, slump))),
-                    Vector((0.6, 0.8, -0.2)))
-    if k == 0:
-        # The head has hit the floor to the right; the fist still holds the haft, slipping.
-        head = Vector((-0.6, -0.46, HEAD_W / 2 + 0.004))
-        grip = Vector((-0.34, -0.2, 0.5))
-        direction = head - grip
-        g = hammer_placement(grip, direction, Vector((0, 0, 1)), HAFT - direction.length)
-        p.free['hammer'] = g
-        p.hands['R'] = (grip, Vector((-0.9, 0.3, -0.4)))
-    else:
-        # Let go: the hammer lies on the floor at the kneeling figure's side, its head clear of the body toward the
-        # screen's left, the haft running back to the open hand.
-        head = local_floor(-0.78, -0.12, FACINGS[0][1]) + Vector((0, 0, HEAD_W / 2 + 0.002))
-        pommel = local_floor(-0.08, -0.5, FACINGS[0][1]) + Vector((0, 0, 0.04))
-        g = hammer_placement(head, head - pommel, Vector((0, 0, 1)), HAFT)
-        p.free['hammer'] = g
-        p.hands['R'] = (pommel.lerp(head, 0.3) + Vector((0, 0, 0.09)), Vector((-0.9, 0.3, -0.4)))
-    p.chain = (40.0 * slump, 0.0)
-    p.life = c['life']
+    swing = walk_legs(p, phase)
+    for s in ('L', 'R'):
+        target, pitch, yaw = p.feet[s]
+        p.feet[s] = (target, pitch * 0.4, yaw)
+    # The windup's weight back under the raised hammer, a little lower than the walk's.
+    p.offset = p.offset + Vector((0, WINDUP_OFFSET.y, -0.014))
+    windup_upper(p, lift=p.offset.z - WINDUP_OFFSET.z, sway=p.offset.x, dip=0.03 * math.cos(4 * math.pi * phase))
+    lag = math.sin(2 * math.pi * (phase - 0.12))
+    p.chain = (-26.0 - 12 * lag, 12.0 - 5 * swing)
     return p
+
+
+# The boss's own fall (EnemyArtSet._fallFront/_fallRear, CombatEffectsView), in its second phase's colours with the
+# furnace dying as it goes. The killing blow rocks it back in a last white-hot flare, the knees buckling and the
+# hammer's head hitting the floor in a fist that will not let go; it drops onto its right knee, slumped over itself as
+# if still on guard - the held beat; it twists toward the screen's left as it folds and topples; and it lies on its
+# face at full length, the fist still round the haft, the seams' glow nearly out. Both facings turn toward the
+# screen's left as they fall (the way both drawings look), so from the topple on they share their drawings. How long
+# each drawing holds (EnemyArtSet._fallSeconds); the last holds until the remains fade, as every painted enemy's
+# remains do.
+FALL_SECONDS = {'fall-struck': 0.16, 'fall-knee': 0.44, 'fall-topple': 0.16, 'fall-down': 0.56}
+#                                life  flare
+FALL_HEAT = {'fall-struck': (1.0, 1.75), 'fall-knee': (0.55, 1.0), 'fall-topple': (0.3, 1.0), 'fall-down': (0.12, 1.0)}
+# How far through the turn toward the screen's left each drawing is.
+FALL_TURN = {'fall-struck': 0.0, 'fall-knee': 0.0, 'fall-topple': 1.0, 'fall-down': 1.0}
+# Where the hammer's head lies on the floor, as the camera sees it (x to screen right, y away), front then rear: at the
+# right side the hammer is carried on, clear of the body in each facing. From the topple on, the fist drags it along.
+FALL_HAMMER = {'fall-struck': ((-0.88, 0.2), (0.78, 0.3)), 'fall-knee': ((-0.92, 0.05), (0.8, 0.15))}
+
+
+def fall_yaw(degrees):
+    """The turn (degrees, rot(z=+) to its left) that points a facing at the screen's left: the way both drawings look."""
+    d = local_floor(-1.0, 0.0, degrees).normalized()
+    return math.degrees(math.atan2(d.x, -d.y))
+
+
+def turned(p, yaw):
+    """A pose built facing -Y turned by yaw degrees about the root: the pelvis, the feet, the hands and their poles,
+    the free hammer and the chain's swing."""
+    t = rot(z=yaw)
+    p.offset = t @ p.offset
+    p.rot['pelvis'] = t @ p.rot.get('pelvis', Matrix.Identity(3))
+    p.feet = {s: (t @ target, pitch, foot_yaw + yaw) for s, (target, pitch, foot_yaw) in p.feet.items()}
+    p.knee_poles = {s: t @ v for s, v in p.knee_poles.items()}
+    p.hands = {s: (t @ target, t @ pole) for s, (target, pole) in p.hands.items()}
+    p.free = {b: t.to_4x4() @ g for b, g in p.free.items()}
+    p.chain_turn = yaw
+    return p
+
+
+def gripped(p, grip, head, axis=Vector((0, 0, 1)), pole=(-0.9, 0.3, -0.4)):
+    """The right fist round the haft at grip, the hammer's head (its centre) at head: the fist slides along the haft
+    to wherever that leaves it."""
+    reach = (head - grip).length
+    p.free['hammer'] = hammer_placement(grip, head - grip, axis, HAFT - reach)
+    p.hands['R'] = (Vector(grip), Vector(pole))
+
+
+def fall(name, degrees):
+    """One drawing of the fall, built outright rather than on the stance (the body leaves it) in the rig's space
+    facing -Y, the Warden's left +X, then turned toward the screen's left as far as the drawing has come."""
+    p = Pose()
+    p.life, p.heat_flare = FALL_HEAT[name]
+    yaw = fall_yaw(degrees) * FALL_TURN[name]
+    if name in FALL_HAMMER:
+        # The head on the floor where this facing shows it, in the pose's own unturned frame.
+        floor = FALL_HAMMER[name][0 if degrees > 180 else 1]
+        hammer_head = rot(z=-yaw) @ local_floor(floor[0], floor[1], degrees)
+    if name == 'fall-struck':
+        # Rocked back on its heels and buckling, the shackled arm flung out with its chain, the hammer's head
+        # slipping down onto the floor in the fist.
+        p.offset = Vector((0, 0.08, -0.1))
+        p.add('pelvis', rot(x=-7, z=6))
+        p.add('spine', rot(x=-4))
+        p.add('chest', rot(x=-5, y=-5))
+        p.add('neck', rot(x=2))
+        p.add('head', rot(x=-14, z=10))
+        p.feet['L'] = (Vector((0.2, 0.02, ANKLE_Z)), 0, 12)
+        p.feet['R'] = (Vector((-0.19, -0.08, ANKLE_Z)), 0, -14)
+        gripped(p, Vector((-0.52, -0.12, 0.7)), hammer_head + Vector((0, 0, 0.22)), pole=(-0.9, 0.3, -0.3))
+        p.hands['L'] = (Vector((0.7, 0.05, 0.8)), Vector((0.6, 0.8, -0.2)))
+        p.chain = (-35.0, 30.0)
+    elif name == 'fall-knee':
+        # Down on the right knee, the left foot planted and the forearm across that knee, slumped over itself as if
+        # still on guard; the fist low on the haft, the hammer's head on the floor.
+        p.offset = Vector((0, 0.04, -0.3))
+        p.add('pelvis', rot(x=10))
+        p.add('spine', rot(x=15))
+        p.add('chest', rot(x=22))
+        p.add('neck', rot(x=24))
+        p.add('head', rot(x=-6, z=-4))
+        p.feet['R'] = (Vector((-0.19, 0.34, 0.08)), 70, -6)
+        p.feet['L'] = (Vector((0.21, -0.2, ANKLE_Z)), 0, 10)
+        gripped(p, Vector((-0.46, -0.2, 0.34)), hammer_head + Vector((0, 0, 0.22)))
+        p.hands['L'] = (Vector((0.26, -0.34, 0.5)), Vector((0.6, 0.8, -0.2)))
+        p.chain = (30.0, 0.0)
+    elif name == 'fall-topple':
+        # Both knees gone, it folds forward onto its hands, dragging the hammer with it.
+        p.offset = Vector((0, -0.12, -0.42))
+        p.add('pelvis', rot(x=44))
+        p.add('spine', rot(x=10))
+        p.add('chest', rot(x=8))
+        p.add('neck', rot(x=10))
+        p.add('head', rot(x=-8, z=-20))
+        for s, x in (('R', -0.18), ('L', 0.185)):
+            p.feet[s] = (Vector((x, 0.36, 0.075)), 72, 0)
+        head = Vector((-0.42, -1.25, HEAD_W / 2 + 0.002))
+        p.free['hammer'] = hammer_placement(head, Vector((0.02, -1, 0.06)), Vector((1, 0, 0)), HAFT)
+        p.hands['R'] = (p.free['hammer'] @ (HAMMER_REST + Vector((0, 0, 0.75))), Vector((-0.9, 0.1, -0.4)))
+        p.hands['L'] = (Vector((0.38, -0.7, 0.08)), Vector((0.9, 0.1, -0.4)))
+        p.chain = (60.0, 0.0)
+    else:
+        # On its face at full length, rolled a little onto its left side so the back's grate and the helm turn to the
+        # camera: the right arm out along the floor with the fist still round the haft and the hammer beyond it, the
+        # left arm back along its side, the legs straight behind.
+        p.offset = Vector((0, -0.3, -0.5))
+        p.add('pelvis', rot(x=84, y=22))
+        p.add('neck', rot(x=14))
+        p.add('head', rot(x=-6, z=50))
+        for s, x in (('R', -0.17), ('L', 0.17)):
+            p.feet[s] = (Vector((x, 0.36, 0.13)), 150, 0)
+            p.knee_poles[s] = Vector((0, 0, -1))
+        head = Vector((-0.4, -1.6, HEAD_W / 2 + 0.002))
+        p.free['hammer'] = hammer_placement(head, Vector((0, -1, 0.06)), Vector((1, 0, 0)), HAFT)
+        p.hands['R'] = (p.free['hammer'] @ (HAMMER_REST + Vector((0, 0, 0.8))), Vector((-0.9, 0.2, 0.4)))
+        p.hands['L'] = (Vector((0.46, -0.32, 0.08)), Vector((0.9, 0.2, 0.4)))
+        p.chain = (82.0, 0.0)
+    return turned(p, yaw) if yaw else p
 
 
 def pose_for(name, variant, degrees=FACINGS[0][1]):
@@ -1655,8 +1766,12 @@ def pose_for(name, variant, degrees=FACINGS[0][1]):
     if name == 'strike':
         return strike(variant, degrees)
     if name == 'windup':
-        return windup(variant)
-    return death(int(name[-1]))
+        # The telegraph standing: the walking windup's contact B, the left foot forward, so the standing and the
+        # walking drawings of the raised hammer are one figure and one drawing serves both.
+        return windup_walk(0.5)
+    if name in WINDUP_WALK:
+        return windup_walk(WINDUP_WALK[name])
+    return fall(name, degrees)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -1720,17 +1835,27 @@ for obj in PARTS.values():
 RIG.scale = (SCALE, SCALE, SCALE * HEIGHT)
 camera_data = bpy.data.cameras.new('Game view: orthographic, 30 degrees down, looking north')
 camera_data.type = 'ORTHO'
-camera_data.ortho_scale = max(CANVAS_PX) / PPU
 camera_data.sensor_fit = 'AUTO'
 camera_data.clip_start = 0.1
 camera_data.clip_end = 100
 camera = bpy.data.objects.new('Camera', camera_data)
 collection.objects.link(camera)
 scene.camera = camera
-# The canvas centre sits this far from the floor origin, so the origin lands on PIVOT_PX.
-centre = ((CANVAS_PX[0] / 2 - PIVOT_PX[0]) / PPU) * RIGHT + ((CANVAS_PX[1] / 2 - PIVOT_PX[1]) / PPU) * UP
-camera.location = centre - FORWARD * 20
 camera.rotation_euler = (math.pi / 2 - ELEVATION, 0, 0)
+
+
+def frame_camera(canvas, pivot):
+    """The render canvas in final texels and where the floor origin lands on it, at PPU texels a unit: the body's frames
+    on CANVAS_PX, the fall's on its wider FALL_CANVAS_PX. The pivot stays on a texel corner either way."""
+    scene.render.resolution_x = canvas[0] * SS
+    scene.render.resolution_y = canvas[1] * SS
+    camera_data.ortho_scale = max(canvas) / PPU
+    # The canvas centre sits this far from the floor origin, so the origin lands on the pivot.
+    centre = ((canvas[0] / 2 - pivot[0]) / PPU) * RIGHT + ((canvas[1] / 2 - pivot[1]) / PPU) * UP
+    camera.location = centre - FORWARD * 20
+
+
+frame_camera(CANVAS_PX, PIVOT_PX)
 
 
 def set_facing(degrees):
@@ -1749,6 +1874,34 @@ def show_cracks(hot):
             obj.hide_render = not hot
 
 
+# Where the body meets the floor, for the contact shadow PackWardenSprites.py lays under the fall's drawings (the live
+# shadow under the enemy hides as it dies): bones sampled head to tail, with how far round the body is there (design
+# units, before SCALE).
+FOOTPRINT = [('pelvis', 0.27), ('spine', 0.27), ('chest', 0.3), ('neck', 0.17), ('head', 0.15), ('thigh.L', 0.13),
+             ('thigh.R', 0.13), ('shin.L', 0.11), ('shin.R', 0.11), ('foot.L', 0.1), ('foot.R', 0.1),
+             ('upper_arm.L', 0.1), ('upper_arm.R', 0.1), ('forearm.L', 0.1), ('forearm.R', 0.1), ('hand.L', 0.08),
+             ('hand.R', 0.08), ('hammer', 0.07)]
+
+
+def footprint(solver):
+    """[screen x, screen y of the floor under it, height above the floor, radius] in world units from the floor
+    origin, unmirrored, for every sample: the pack weighs each by how near the floor it is."""
+    out = []
+    m = rig_matrix()
+    for bone_name, radius in FOOTPRINT:
+        head = REST[bone_name].to_translation()
+        tail = REST_TAIL[bone_name]
+        for i in range(5):
+            world = m @ (solver.G[bone_name] @ head.lerp(tail, i / 4))
+            out.append([round(world.x, 4), round(world.y * math.sin(ELEVATION), 4), round(world.z / HEIGHT, 4),
+                        round(radius * SCALE, 4)])
+    # The hammer's head is broader than its haft.
+    world = m @ (solver.G['hammer'] @ HAMMER_HEAD_C)
+    out.append([round(world.x, 4), round(world.y * math.sin(ELEVATION), 4), round(world.z / HEIGHT, 4),
+                round(0.2 * SCALE, 4)])
+    return out
+
+
 def render_all():
     OUT.mkdir(parents=True, exist_ok=True)
     records = []
@@ -1756,9 +1909,14 @@ def render_all():
     for facing, degrees in FACING_SET:
         set_facing(degrees)
         for pose_name in POSE_SET:
-            if pose_name in DEATHS and facing != 'front':
-                continue     # the remains are one drawing, mirrored by the game
-            variants = ['cool'] if pose_name in DEATHS else VARIANT_SET
+            if pose_name in SHARED_FALLS and facing != 'front':
+                continue     # both facings come down to the same pose: drawn once
+            # The boss falls in its second phase (EnrageRule fires on the way down through half health; only a single
+            # blow from above half could skip it), so its fall is drawn in that phase only, cracks and all, cooling.
+            falling = pose_name in FALLS
+            variants = ['hot'] if falling else VARIANT_SET
+            canvas, pivot = (FALL_CANVAS_PX, FALL_PIVOT_PX) if falling else (CANVAS_PX, PIVOT_PX)
+            frame_camera(canvas, pivot)
             for variant in variants:
                 pose = pose_for(pose_name, variant, degrees)
                 solver = apply(pose)
@@ -1773,12 +1931,17 @@ def render_all():
                     scene.render.filepath = str(path)
                     bpy.ops.render.render(write_still=True)
                 set_state(glow_pass=0.0)
-                records.append(dict(facing=facing, pose=pose_name, variant=variant,
-                                    file=str((OUT / facing / (stem + '.png')).relative_to(OUT)).replace('\\', '/'),
-                                    glow=str((OUT / facing / (stem + '_glow.png')).relative_to(OUT)).replace('\\', '/'),
-                                    visor=screen_point(solver, HEAD_BASE + Vector((0, -0.17, 0.118)), 'head'),
-                                    hammer=screen_point(solver, HAMMER_HEAD_C, 'hammer')))
+                record = dict(facing=facing, pose=pose_name, variant=variant,
+                              file=str((OUT / facing / (stem + '.png')).relative_to(OUT)).replace('\\', '/'),
+                              glow=str((OUT / facing / (stem + '_glow.png')).relative_to(OUT)).replace('\\', '/'),
+                              visor=screen_point(solver, HEAD_BASE + Vector((0, -0.17, 0.118)), 'head'),
+                              hammer=screen_point(solver, HAMMER_HEAD_C, 'hammer'))
+                if falling:
+                    record.update(canvas=list(canvas), pivot=list(pivot), seconds=FALL_SECONDS[pose_name],
+                                  footprint=footprint(solver))
+                records.append(record)
                 print('WARDEN_FRAME', facing, pose_name, variant, '%.1fs' % (time.time() - started), flush=True)
+    frame_camera(CANVAS_PX, PIVOT_PX)
     meta = dict(blender=bpy.app.version_string, ppu=PPU, supersample=SS, canvas=list(CANVAS_PX), pivot=list(PIVOT_PX),
                 elevation_degrees=30, height_compensation=HEIGHT, scale=SCALE, stride=round(STRIDE * SCALE, 4),
                 glow_scale=GLOW_SCALE,

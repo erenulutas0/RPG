@@ -1,22 +1,31 @@
 """Review material for the Forge Warden's packed sprites (PackWardenSprites.py): exactly the pixels Unity imports, at
 the phone's scale (the Samsung S23 shows 120 pixels a world unit: 1080 across a 9-unit view) and zoomed.
 
-    python Tools/ArtReview/ReviewWardenSprites.py --out DIR [--pixel DIR]
+    python Tools/ArtReview/ReviewWardenSprites.py --out DIR [--pixel DIR] [--before DIR]
+
+--before takes a folder holding the Warden's sprites before the walking windup and the fall (ForgeWarden/ as git
+archive of an earlier commit unpacks it under Assets/_Project/Art/Characters), for the before/after GIFs.
 
 Writes to DIR:
     warden-beside-roster-{stone,lava}.png (+ -x3): the Warden beside the painted Vanguard, Grunt and Cinder Mite, with
         the game's contact shadows and health bars, on the Foundry's dark stone (cropped from an in-game capture) and
         on molten orange (a patch in the pit's sampled colours)
     warden-walk.gif: the heavy walk in the four drawn directions at the Warden's fighting speed
-    warden-telegraph.gif: the mark goes down, the hammer goes up for the telegraph, the blow lands - first phase, then
-        the second
-    warden-hit.gif, warden-death.gif: the white and the critical flash with the body's squash; the fall to the remains
+    warden-windup-walk-{stone,lava}.gif: the raised hammer carried at a walk in the four directions, crossing the floor
+        at the Warden's speed, its legs stepped by the distance travelled as EnemyLookView steps them
+    warden-windup-walk-frames-{stone,lava}.png: its quarters held still, at the phone's scale and tripled
+    warden-telegraph-walking-{stone,lava}.gif: the mark goes down and the Warden keeps coming through the telegraph,
+        the blow lands at the mark - before (the standing windup gliding) and after (the walking windup), both phases
+    warden-death-{stone,lava}.gif: the killing blow at real timing, front and rear - before (the two remains every
+        painted enemy leaves, 0.4 s) and after (the boss's own fall, 1.32 s), the live shadow hiding as the game hides it
+    warden-hit.gif: the white and the critical flash with the body's squash
     warden-phase2.png: each pose in the first phase and the second side by side
     warden-in-game.png: a mock of the fight at phone scale - bar, shadow, a Burn flame sized as BurnFlames sizes it,
         the slam mark round the hero
     warden-before-after.png: the pixel Warden (EnemyArt, from --pixel, the raw dumps of EnemyArt.Draw), what the prefab
         showed before this set (the painted Grunt's frames, inherited from Grunt.prefab), and the new Warden
     warden-sheet.png: every packed sprite with its pivot marked
+    warden-new-sprites.png: the drawings the walking windup and the fall added or redrew, pivots marked
 """
 import json
 import math
@@ -32,6 +41,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ARGS = sys.argv[1:]
 OUT = Path(ARGS[ARGS.index('--out') + 1]) if '--out' in ARGS else ROOT / 'TestResults/warden-review'
 PIXEL = Path(ARGS[ARGS.index('--pixel') + 1]) if '--pixel' in ARGS else None
+BEFORE = Path(ARGS[ARGS.index('--before') + 1]) if '--before' in ARGS else None
 OUT.mkdir(parents=True, exist_ok=True)
 ART = ROOT / 'Assets/_Project/Art/Characters'
 CAPTURE = ROOT / 'ArtDirection/2026-10-24/foundry-pit-eruption-01/pit-spill.png'
@@ -42,6 +52,13 @@ SLAM_RADIUS = 2.2           # WardenRule.SlamRadius, floor units
 TELEGRAPH = 1.1             # WardenRule.Telegraph
 SLAM_HOLD = 0.35            # EnemyLookView.SlamFrameSeconds
 BAR_CLEARANCE = 0.12        # EnemyLookView._barClearance
+SPEED = 1.0                 # Enemy_ForgeWarden's move speed, floor units a second
+REACH = 1.7                 # Weapon_WardenHammer's range: nearer than this the Warden stands and swings
+FADE, SINK = 0.16, 0.05     # CombatEffectsView: the remains fade over their last 0.16 s, settling 0.05 into the floor
+REMAINS = (0.16, 0.4)       # every painted enemy's two remains: the first for 0.16 s, the second to 0.4 s
+GIF_STEP = 0.04             # 25 frames a second, which every GIF viewer keeps
+# EnemyArtSet._windupWalk's quarters, as WalkingQuarter steps them.
+WALK_QUARTERS = ['windup-step-a', 'windup-pass-a', 'windup', 'windup-pass-b']
 EMBER, HOT = (255, 82, 31), (255, 209, 115)      # WardenSlamView's mark colours
 
 
@@ -57,10 +74,34 @@ def load(path):
     return image, pivot_of(str(path) + '.meta', image.size)
 
 
-def warden(facing, pose, kind='cool'):
+def warden(facing, pose, kind='cool', folder=None):
     stem = 'CHR_Warden_%s_%s' % (facing, pose)
     name = stem + {'cool': '', 'hot': '_hot', 'flash': '_Flash'}[kind]
-    return load(ART / 'ForgeWarden' / (name + '.png'))
+    return load((folder or ART / 'ForgeWarden') / (name + '.png'))
+
+
+def by_file(name, folder=None):
+    return load((folder or ART / 'ForgeWarden') / name)
+
+
+def before_folder():
+    """The Warden's sprites before the walking windup and the fall, or None."""
+    if BEFORE is None:
+        return None
+    nested = BEFORE / 'Assets/_Project/Art/Characters/ForgeWarden'
+    return nested if nested.exists() else BEFORE
+
+
+def fall_of(rear):
+    """The boss's fall in a facing: [(sprite, seconds held)], as ForgeWardenArtSet lists it (frames.json)."""
+    fall = report['fall']
+    sprites = {(s['facing'], s['pose']): s for s in report['sprites'] if s['kind'] in ('fall', 'remains')}
+    facing = 'rear' if rear else 'front'
+    out = []
+    for pose, seconds in zip(fall['poses'], fall['seconds']):
+        s = sprites.get((facing, pose)) or sprites.get(('both', pose))
+        out.append((by_file(s['file']), seconds))
+    return out
 
 
 def warden_death(k):
@@ -204,7 +245,16 @@ ZOOM = 2
 
 def gif(name, frames, delays, zoom=ZOOM):
     frames = [f.convert('RGB').resize((f.width * zoom, f.height * zoom), Image.NEAREST) for f in frames]
-    frames[0].save(OUT / name, save_all=True, append_images=frames[1:], duration=delays, loop=0, disposal=1)
+    # One palette for every frame (from a spread of them), undithered, so the floor's photograph is the same in each and
+    # only what moves is written again.
+    picks = frames[::max(1, len(frames) // 6)][:6]
+    mosaic = Image.new('RGB', (frames[0].width * len(picks), frames[0].height))
+    for i, f in enumerate(picks):
+        mosaic.paste(f, (i * f.width, 0))
+    palette = mosaic.quantize(colors=255, method=Image.Quantize.MEDIANCUT)
+    frames = [f.quantize(palette=palette, dither=Image.Dither.NONE) for f in frames]
+    frames[0].save(OUT / name, save_all=True, append_images=frames[1:], duration=delays, loop=0, disposal=1,
+                   optimize=False)
 
 
 def cell(background, w, h):
@@ -253,46 +303,182 @@ def mark_layer(size, centre, ppu, fill, flash, pulse):
     return layer
 
 
-def telegraph_gif():
-    """The Warden left of the hero; the mark goes down where the hero stands, the hammer goes up and holds for the
-    telegraph while the fill grows to the edge, the blow lands on the strike pose as the mark flashes."""
-    # At the phone's own scale (not doubled), stepped at 0.1 s: the floor's photograph makes every frame costly.
+def label(canvas, text_, at):
+    draw = ImageDraw.Draw(canvas)
+    x, y = at
+    draw.rectangle((x - 3, y - 2, x + 7 * len(text_) + 3, y + 12), fill=(14, 12, 18, 200))
+    draw.text((x, y), text_, fill=(236, 226, 214, 255))
+
+
+def raised(quarter, facing, kind, folder=None):
+    """The raised hammer: standing (quarter None) or carried at a walk."""
+    return warden(facing, 'windup' if quarter is None else WALK_QUARTERS[quarter], kind, folder)
+
+
+def quarter_at(distance):
+    return min(3, int((distance % CYCLE) / CYCLE * 4))
+
+
+def walk_frame(distance):
+    """EnemyArtSet.WalkingFrame's pose: contact A, passing A, contact B, passing B."""
+    return ['step-a', 'pass-a', 'step-b', 'pass-b'][quarter_at(distance)]
+
+
+def windup_walk_gif(background, title):
+    """The raised hammer carried at a walk in the four drawn directions, each crossing its lane of floor at the
+    Warden's speed and at the phone's own scale, one stride and round again: the drawing changes every quarter stride
+    by the distance travelled, while the root glides between, as the game draws it; the shadow and bar ride the root."""
     k = PHONE / 128
-    w, h = 820, 560
-    base = stone((w, h))
-    warden_at, hero_at = (190, 400), (530, 405)
+    lane_w, lane_h = 330, 500
+    lanes = [('front', False, (-1, -1)), ('front', True, (1, -1)), ('rear', False, (-1, 1)), ('rear', True, (1, 1))]
+    base = background((lane_w * 4, lane_h)).copy()
     images, delays = [], []
-    step = 0.1
-
-    def frame(sprite, fill=0.0, flash=0.0, marked=False, t=0.0):
+    span = CYCLE
+    steps = int(round(span / SPEED / GIF_STEP))
+    for i in range(steps):
+        distance = i * GIF_STEP * SPEED
         canvas = base.copy()
-        if marked or flash > 0:
-            pulse = .6 + .4 * math.sin(t * (9 + 15 * fill))
-            canvas.alpha_composite(mark_layer((w, h), hero_at, PHONE, fill, flash, pulse))
-        shadow(canvas, hero_at, PHONE, 0.78)
-        paste(canvas, mirrored(vanguard(True)), hero_at, k)
-        shadow(canvas, warden_at, PHONE, SHADOW)
-        paste(canvas, sprite, warden_at, k)
-        bar(canvas, warden_at, VISUAL_TOP, PHONE, 0.7)
-        return canvas
+        for j, (facing, flip, (dx, dy)) in enumerate(lanes):
+            # Along the floor's diagonal (the 2:1 floor halves its depth on screen), centred on the lane.
+            n = math.sqrt(dx * dx + dy * dy)
+            fx, fy = dx / n * (distance - span / 2), dy / n * (distance - span / 2)
+            at = (j * lane_w + lane_w / 2 + fx * PHONE, lane_h - 70 - fy * 0.5 * PHONE)
+            shadow(canvas, at, PHONE, SHADOW)
+            sprite = raised(quarter_at(distance), facing, 'cool')
+            paste(canvas, mirrored(sprite) if flip else sprite, at, k)
+            bar(canvas, at, VISUAL_TOP, PHONE, 0.8)
+            label(canvas, '%s %s' % (facing, 'right' if flip else 'left'), (j * lane_w + 10, 8))
+        images.append(canvas)
+        delays.append(int(GIF_STEP * 1000))
+    gif('warden-windup-walk-%s.gif' % title, images, delays, zoom=1)
 
+
+def windup_walk_frames(background, title):
+    """The quarters held still, front then rear, at the phone's scale and tripled."""
+    k = PHONE / 128
+    cw, ch = 190, 400
+    canvas = background((cw * 8, ch)).copy()
+    for j, facing in enumerate(('front', 'rear')):
+        for q in range(4):
+            at = ((j * 4 + q) * cw + cw / 2, ch - 30)
+            shadow(canvas, at, PHONE, SHADOW)
+            paste(canvas, raised(q, facing, 'cool'), at, k)
+            bar(canvas, at, VISUAL_TOP, PHONE, 0.8)
+            label(canvas, '%s %s' % (facing, WALK_QUARTERS[q]), ((j * 4 + q) * cw + 6, 6))
+    canvas = canvas.convert('RGB')
+    canvas.save(OUT / ('warden-windup-walk-frames-%s.png' % title))
+    canvas.crop((0, 0, cw * 4, ch)).resize((cw * 4 * 3, ch * 3), Image.NEAREST).save(
+        OUT / ('warden-windup-walk-frames-%s-x3.png' % title))
+
+
+def telegraph_walking_gif(background, title):
+    """The Warden 3.6 units from the hero walks in at its speed; the mark goes down round the hero and it keeps coming
+    through the 1.1 s telegraph, the hammer raised; the blow lands at the mark wherever the Warden has got to, on the
+    strike pose held 0.35 s while it walks on. Left the Warden before this work (the standing windup, gliding), right
+    after (the walking windup); the first phase, then the second."""
+    k = PHONE / 128
+    old = before_folder()
+    variants = [('after', None)] if old is None else [('before', old), ('after', None)]
+    pw, ph = 800, 560
+    base = background((pw * len(variants), ph)).copy()
+    hero_at = (pw - 270, 470)
+    images, delays = [], []
     for kind in ('cool', 'hot'):
-        # Facing the hero, on its right: the drawings mirrored.
-        idle = mirrored(warden('front', 'idle', kind))
-        images.append(frame(idle)); delays.append(600)
-        n = int(round(TELEGRAPH / step))
-        for i in range(n):
-            images.append(frame(mirrored(warden('front', 'windup', kind)), fill=(i + 1) / n, marked=True, t=i * step))
-            delays.append(int(step * 1000))
-        m = int(round(SLAM_HOLD / step))
-        for i in range(m):
-            images.append(frame(mirrored(warden('front', 'strike', kind)), flash=1 - i / m))
-            delays.append(int(step * 1000))
-        images.append(frame(idle)); delays.append(900)
-    gif('warden-telegraph.gif', images, delays, zoom=1)
+        lead, total = 0.6, 0.6 + TELEGRAPH + SLAM_HOLD + 0.5
+        steps = int(round(total / GIF_STEP))
+        for i in range(steps):
+            t = i * GIF_STEP
+            canvas = base.copy()
+            for j, (name, folder) in enumerate(variants):
+                ox = j * pw
+                # The floor distance from the hero shrinks at the Warden's speed until it is within the hammer's reach.
+                gap = max(REACH, 3.6 - SPEED * t)
+                walked = 3.6 - gap
+                at = (ox + hero_at[0] - gap * PHONE * 0.94, hero_at[1] - gap * 0.34 * 0.5 * PHONE)
+                hero = (ox + hero_at[0], hero_at[1])
+                marked = lead <= t < lead + TELEGRAPH
+                after_blow = t - lead - TELEGRAPH
+                if marked or 0 <= after_blow < SLAM_HOLD:
+                    fill = min(1.0, (t - lead) / TELEGRAPH) if marked else 0.0
+                    flash = 0.0 if marked else 1 - after_blow / SLAM_HOLD
+                    pulse = .6 + .4 * math.sin(t * (9 + 15 * fill))
+                    layer = mark_layer((pw, ph), (hero_at[0], hero_at[1]), PHONE, fill, flash, pulse)
+                    canvas.alpha_composite(layer, (ox, 0))
+                shadow(canvas, hero, PHONE, 0.78)
+                paste(canvas, mirrored(vanguard(True)), hero, k)
+                moving = gap > REACH
+                if marked:
+                    quarter = quarter_at(walked) if (moving and folder is None) else None
+                    sprite = raised(quarter, 'front', kind, folder)
+                elif 0 <= after_blow < SLAM_HOLD:
+                    sprite = warden('front', 'strike', kind)
+                else:
+                    sprite = warden('front', walk_frame(walked) if moving else 'idle', kind)
+                shadow(canvas, at, PHONE, SHADOW)
+                paste(canvas, mirrored(sprite), at, k)
+                bar(canvas, at, VISUAL_TOP, PHONE, 0.8 if kind == 'cool' else 0.4)
+                label(canvas, '%s - %s phase' % (name, 'first' if kind == 'cool' else 'second'), (ox + 10, 8))
+            images.append(canvas)
+            delays.append(int(GIF_STEP * 1000))
+    gif('warden-telegraph-walking-%s.gif' % title, images, delays, zoom=1)
 
 
-telegraph_gif()
+def death_gif(background, title):
+    """The killing blow at real timing, the boss in its second phase, front (looking left) and rear (looking right): the
+    body and its live shadow and bar hide at once and the pooled remains take over where it stood, fading over the
+    last 0.16 s and settling 0.05 into the floor. Left before this work (the two remains, the front's drawings for
+    both facings), right after (the boss's own fall in the facing it fell in)."""
+    k = PHONE / 128
+    old = before_folder()
+    columns = [('before', old), ('after', None)] if old is not None else [('after', None)]
+    cw, ch = 460, 300
+    base = background((cw * len(columns), ch * 2)).copy()
+    images, delays = [], []
+    alive, longest = 0.5, max(sum(s for _, s in fall_of(False)), REMAINS[1])
+    steps = int(round((alive + longest + 0.6) / GIF_STEP))
+    for i in range(steps):
+        t = i * GIF_STEP
+        canvas = base.copy()
+        for row, (facing, flip) in enumerate((('front', False), ('rear', True))):
+            for col, (name, folder) in enumerate(columns):
+                # Room on the side the body falls toward: the drawings' left, mirrored with them.
+                at = (col * cw + cw / 2 + (-60 if flip else 60), row * ch + ch - 70)
+                if t < alive:
+                    shadow(canvas, at, PHONE, SHADOW)
+                    body = warden(facing, 'idle', 'hot')
+                    paste(canvas, mirrored(body) if flip else body, at, k)
+                    bar(canvas, at, VISUAL_TOP, PHONE, 0.06)
+                else:
+                    dt = t - alive
+                    if folder is not None:
+                        lifetime = REMAINS[1]
+                        drawing = by_file('CHR_Warden_death_%d.png' % (0 if dt < REMAINS[0] else 1), folder)
+                    else:
+                        fall = fall_of(facing == 'rear')
+                        lifetime = sum(s for _, s in fall)
+                        drawing, held = fall[-1][0], 0.0
+                        for sprite, seconds in fall:
+                            if dt < held + seconds:
+                                drawing = sprite
+                                break
+                            held += seconds
+                    if dt < lifetime:
+                        left = min(1.0, max(0.0, (lifetime - dt) / FADE))
+                        sunk = (at[0], at[1] + SINK * PHONE * (1 - left))
+                        paste(canvas, mirrored(drawing) if flip else drawing, sunk, k, alpha=left)
+                if row == 0:
+                    label(canvas, name, (col * cw + 10, 8))
+            label(canvas, '%s %s' % (facing, 'right' if flip else 'left'), (10, row * ch + 26))
+        images.append(canvas)
+        delays.append(int(GIF_STEP * 1000))
+    gif('warden-death-%s.gif' % title, images, delays, zoom=1)
+
+
+for background, title in ((stone, 'stone'), (lava, 'lava')):
+    windup_walk_gif(background, title)
+    windup_walk_frames(background, title)
+    telegraph_walking_gif(background, title)
+    death_gif(background, title)
 
 
 def hit_gif():
@@ -330,48 +516,6 @@ def hit_gif():
 
 
 hit_gif()
-
-
-def death_gif():
-    """The body hides and the pooled remains take its place: the first drawing for 0.16 s, the second to 0.4 s,
-    fading over the last 0.16 s and sinking 0.05 units (CombatEffectsView.OnEnemyDefeated)."""
-    k = PHONE / 128
-    w, h = 2 * 300, 300
-    base = stone((w, h))
-    images, delays = [], []
-    step = 1 / 30
-    for _ in range(15):
-        canvas = base.copy()
-        for i, flip in enumerate((False, True)):
-            at = (150 + i * 300, 260)
-            shadow(canvas, at, PHONE, SHADOW)
-            sprite = warden('front', 'idle', 'hot')
-            paste(canvas, mirrored(sprite) if flip else sprite, at, k)
-        images.append(canvas); delays.append(33)
-    t = 0.0
-    while t <= 0.4 + 1e-6:
-        canvas = base.copy()
-        left = min(1.0, max(0.0, (0.4 - t) / .16))
-        for i, flip in enumerate((False, True)):
-            at = (150 + i * 300, 260 + 0.05 * PHONE * (1 - left))
-            sprite = warden_death(0 if t < .16 else 1)
-            paste(canvas, mirrored(sprite) if flip else sprite, at, k, alpha=left)
-        images.append(canvas); delays.append(33)
-        t += step
-    canvas = base.copy()
-    images.append(canvas); delays.append(900)
-    # And the two drawings held, to see them.
-    for k_ in (0, 1):
-        canvas = base.copy()
-        for i, flip in enumerate((False, True)):
-            at = (150 + i * 300, 260)
-            sprite = warden_death(k_)
-            paste(canvas, mirrored(sprite) if flip else sprite, at, k)
-        images.append(canvas); delays.append(1000)
-    gif('warden-death.gif', images, delays)
-
-
-death_gif()
 
 
 # ---- The two phases side by side, doubled ----
@@ -483,7 +627,7 @@ before_after()
 # ---- Every packed sprite, pivot marked ----
 def contact_sheet():
     sprites = report['sprites']
-    cell_w, cell_h = 300, 420
+    cell_w, cell_h = 360, 420
     cols = 8
     rows = (len(sprites) + cols - 1) // cols
     sheet = Image.new('RGBA', (cols * cell_w, rows * cell_h), (74, 72, 80, 255))
@@ -499,4 +643,30 @@ def contact_sheet():
 
 
 contact_sheet()
+
+
+def new_sprites_sheet():
+    """The drawings the walking windup and the fall added or redrew, at 1x on mid grey, each pivot marked."""
+    names = []
+    for facing in ('front', 'rear'):
+        for pose in WALK_QUARTERS:
+            names += ['CHR_Warden_%s_%s%s.png' % (facing, pose, suffix) for suffix in ('', '_hot', '_Flash')]
+    names += [s['file'] for s in report['sprites'] if s['kind'] in ('fall', 'remains')]
+    cell_w, cell_h, cols = 360, 420, 6
+    rows = (len(names) + cols - 1) // cols
+    sheet = Image.new('RGBA', (cols * cell_w, rows * cell_h), (74, 72, 80, 255))
+    draw = ImageDraw.Draw(sheet)
+    for i, name in enumerate(names):
+        sprite = by_file(name)
+        image, (px, py) = sprite
+        at = ((i % cols) * cell_w + cell_w / 2, (i // cols) * cell_h + cell_h - 60)
+        paste(sheet, sprite, at, 1.0)
+        draw.line((at[0] - 6, at[1], at[0] + 6, at[1]), fill=(90, 200, 255, 255))
+        draw.line((at[0], at[1] - 6, at[0], at[1] + 6), fill=(90, 200, 255, 255))
+        draw.text(((i % cols) * cell_w + 4, (i // cols) * cell_h + 4), '%s %dx%d' % (name.replace('CHR_Warden_', '')[:-4],
+                  image.width, image.height), fill=(230, 220, 210, 255))
+    sheet.convert('RGB').save(OUT / 'warden-new-sprites.png')
+
+
+new_sprites_sheet()
 print('WARDEN_REVIEW', OUT)
