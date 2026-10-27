@@ -14,16 +14,27 @@ namespace Cryptforge.Tests
 
         private static PuppetGaitInput Walking(float phase) => new PuppetGaitInput { WalkPhase = phase, WalkWeight = 1f };
 
-        // The Vanguard's rear legs as its art set paints them: the near leg longer on the screen than the far one.
-        private static readonly PuppetLegs Vanguard = new PuppetLegs
+        // The Vanguard's legs as its art set paints them, from behind and from the front: the near leg longer on the
+        // screen than the far one, whose boot stands sixteen texels up the screen.
+        internal static readonly PuppetLegs Vanguard = new PuppetLegs
         {
-            Right = new PuppetLeg { KneeX = -0.0049f, KneeY = -0.1042f, HeelX = -0.0613f, HeelY = -0.4375f, ToeX = 0.152f, ToeY = -0.3824f },
-            Left = new PuppetLeg { KneeX = -0.0453f, KneeY = -0.1324f, HeelX = -0.0821f, HeelY = -0.3088f, ToeX = -0.0061f, ToeY = -0.3027f }
+            Right = new PuppetLeg { HipX = 0.0417f, HipY = -0.1679f, KneeX = -0.0049f, KneeY = -0.1042f, HeelX = -0.0613f, HeelY = -0.4375f, ToeX = 0.152f, ToeY = -0.3824f },
+            Left = new PuppetLeg { HipX = -0.2512f, HipY = -0.1434f, KneeX = -0.0453f, KneeY = -0.1324f, HeelX = -0.0821f, HeelY = -0.3088f, ToeX = -0.0061f, ToeY = -0.3027f }
+        };
+        internal static readonly PuppetLegs VanguardFront = new PuppetLegs
+        {
+            Right = new PuppetLeg { HipX = -0.1287f, HipY = -0.174f, KneeX = -0.027f, KneeY = -0.1446f, HeelX = -0.0993f, HeelY = -0.4301f, ToeX = 0.0184f, ToeY = -0.4252f },
+            Left = new PuppetLeg { HipX = 0.1667f, HipY = -0.1679f, KneeX = 0.0208f, KneeY = -0.1225f, HeelX = -0.0931f, HeelY = -0.3051f, ToeX = 0.1385f, ToeY = -0.3297f }
         };
 
         // The weapon's screen angle relative to the angle it is drawn at: every joint from the shoulder down turns it, and
         // the torso's lean (clockwise) carries the shoulder.
         private static float Blade(PuppetPose pose) => pose.ShoulderRight + pose.ElbowRight + pose.WristRight - pose.Lean;
+
+        // How far the weapon arm's joints have moved between two poses, in degrees all told.
+        private static float Arm(PuppetPose pose, PuppetPose from) =>
+            Math.Abs(pose.ShoulderRight - from.ShoulderRight) + Math.Abs(pose.ElbowRight - from.ElbowRight)
+            + Math.Abs(pose.WristRight - from.WristRight);
 
         [Test]
         public void TheTwoContactsMirrorEachOther()
@@ -31,12 +42,16 @@ namespace Cryptforge.Tests
             PuppetPose a = PuppetGait.Evaluate(Walking(0f));
             PuppetPose b = PuppetGait.Evaluate(Walking(0.5f));
 
-            Assert.That(a.HipRight, Is.EqualTo(PuppetGait.HipSwing).Within(Tolerance), "Contact A: the right foot lands ahead.");
-            Assert.That(a.HipLeft, Is.LessThan(-15f), "and the left pushes off behind.");
+            Assert.That(a.HipRight, Is.GreaterThan(15f), "Contact A: the right foot lands ahead.");
+            Assert.That(a.HipLeft, Is.LessThan(0f), "while the left, just off the floor, swings through behind.");
+            Assert.That(a.RightPlanted && !a.LeftPlanted, Is.True, "The right boot takes the weight.");
+            Assert.That(b.LeftPlanted && !b.RightPlanted, Is.True, "and half a cycle on the left.");
             Assert.That(b.HipLeft, Is.EqualTo(a.HipRight).Within(Tolerance));
             Assert.That(b.HipRight, Is.EqualTo(a.HipLeft).Within(Tolerance));
             Assert.That(b.KneeLeft, Is.EqualTo(a.KneeRight).Within(Tolerance));
             Assert.That(b.KneeRight, Is.EqualTo(a.KneeLeft).Within(Tolerance));
+            Assert.That(b.LegRiseLeft, Is.EqualTo(a.LegRiseRight).Within(Tolerance));
+            Assert.That(b.LegRiseRight, Is.EqualTo(a.LegRiseLeft).Within(Tolerance));
             Assert.That(b.ShoulderLeft, Is.EqualTo(a.ShoulderRight).Within(Tolerance));
             Assert.That(b.ShoulderRight, Is.EqualTo(a.ShoulderLeft).Within(Tolerance));
             Assert.That(b.ElbowLeft, Is.EqualTo(a.ElbowRight).Within(Tolerance));
@@ -56,62 +71,80 @@ namespace Cryptforge.Tests
             Assert.That(a.Lean, Is.GreaterThan(0f), "A walking figure leans into its travel.");
         }
 
+        // A run (docs/45 section 4 B): each boot is planted for its stance, sweeping back with the floor, then both are
+        // off the floor for a flight while the one behind folds and swings through.
         [Test]
-        public void TheSwingFootFoldsAndPassesWhileTheStanceFootSweepsBackPlanted()
+        public void EachBootSweepsBackPlantedThroughItsStanceThenFoldsAndSwingsThrough()
         {
-            PuppetPose leftPasses = PuppetGait.Evaluate(Walking(0.25f));
-            PuppetPose rightPasses = PuppetGait.Evaluate(Walking(0.75f));
-            Assert.That(leftPasses.KneeLeft, Is.GreaterThan(leftPasses.KneeRight + 15f), "The left foot swings through.");
-            Assert.That(rightPasses.KneeRight, Is.GreaterThan(rightPasses.KneeLeft + 15f), "The right foot swings through.");
-            Assert.That(Math.Abs(leftPasses.HipLeft - leftPasses.HipRight), Is.LessThan(10f), "The thighs pass each other.");
-            Assert.That(leftPasses.KneeRight, Is.LessThan(20f), "The stance knee gives but never folds like the swing knee.");
-            // The swing foot travels forward, the stance foot back the whole time it is down.
-            Assert.That(PuppetGait.Evaluate(Walking(0.3f)).HipLeft, Is.GreaterThan(PuppetGait.Evaluate(Walking(0.2f)).HipLeft));
-            Assert.That(PuppetGait.Evaluate(Walking(0.8f)).HipRight, Is.GreaterThan(PuppetGait.Evaluate(Walking(0.7f)).HipRight));
-            float previous = float.MaxValue;
-            for (float phase = 0f; phase <= 0.5f; phase += 0.02f)
+            float previous = float.MaxValue, stanceKnee = 0f, pushOff = -1f;
+            for (float phase = 0f; phase < 0.5f; phase += 0.005f)
             {
-                float thigh = PuppetGait.Evaluate(Walking(phase)).HipRight;
-                Assert.That(thigh, Is.LessThan(previous + 1e-3f), "The planted thigh only sweeps back, at " + phase);
-                previous = thigh;
+                PuppetPose pose = PuppetGait.Evaluate(Walking(phase));
+                if (!pose.RightPlanted)
+                {
+                    pushOff = phase;
+                    break;
+                }
+                Assert.That(pose.LeftPlanted, Is.False, "One boot down at a time, at " + phase);
+                // The knee gives as the weight comes on, so the short thigh may tip forward a degree; the shin, which
+                // carries the boot, only ever sweeps back.
+                float shin = pose.HipRight - pose.KneeRight;
+                Assert.That(shin, Is.LessThan(previous + 1e-3f), "The planted shin only sweeps back, at " + phase);
+                previous = shin;
+                stanceKnee = Math.Max(stanceKnee, pose.KneeRight);
+            }
+            Assert.That(pushOff, Is.InRange(0.2f, 0.4f), "A run's stance: about a third of the cycle.");
+            Assert.That(stanceKnee, Is.InRange(20f, 40f), "The stance knee gives under the weight.");
+            PuppetPose flight = PuppetGait.Evaluate(Walking((pushOff + 0.5f) * 0.5f));
+            Assert.That(flight.RightPlanted || flight.LeftPlanted, Is.False, "Then both boots are off the floor.");
+            PuppetPose swinging = PuppetGait.Evaluate(Walking(0.65f));
+            Assert.That(swinging.KneeRight, Is.GreaterThan(stanceKnee + 5f), "The swing knee folds deeper than the stance's.");
+            Assert.That(swinging.KneeRight, Is.LessThan(45f), "but no further than a cut-out shin reads as a lifted foot.");
+            Assert.That(PuppetGait.Evaluate(Walking(0.85f)).HipRight, Is.GreaterThan(PuppetGait.Evaluate(Walking(0.6f)).HipRight),
+                "and the thigh swings through to the next strike.");
+        }
+
+        // The run's bob rides the hips - lowest as a planted leg takes the weight, highest in the flight - and whatever the
+        // hips do, a planted boot stands exactly on its floor line and a swinging one stays above it: rebuilt here from
+        // the painted legs through PuppetGait.Sole, side on.
+        [Test]
+        public void ThePlantedBootStandsOnItsFloorAndTheBobReadsAsWeight()
+        {
+            foreach (PuppetLegs legs in new[] { Vanguard, VanguardFront })
+            {
+                float lowest = float.MaxValue, highest = float.MinValue;
+                for (float phase = 0f; phase < 1f; phase += 0.01f)
+                {
+                    PuppetGaitInput input = Walking(phase);
+                    input.Legs = legs;
+                    PuppetPose pose = PuppetGait.Evaluate(input);
+                    string at = "at phase " + phase;
+                    float right = Height(pose, legs.Right, true) - pose.FloorRight;
+                    float left = Height(pose, legs.Left, false) - pose.FloorLeft;
+                    if (pose.RightPlanted)
+                        Assert.That(right, Is.EqualTo(0f).Within(0.002f), at + ": the right boot stands on its floor.");
+                    else
+                        Assert.That(right, Is.GreaterThan(-0.004f), at + ": the swinging right boot clears it.");
+                    if (pose.LeftPlanted)
+                        Assert.That(left, Is.EqualTo(0f).Within(0.002f), at + ": the left boot stands on its floor.");
+                    else
+                        Assert.That(left, Is.GreaterThan(-0.004f), at + ": the swinging left boot clears it.");
+                    Assert.That(Math.Max(right, left), Is.LessThan(0.15f), at + ": the other stays low.");
+                    lowest = Math.Min(lowest, pose.Lift);
+                    highest = Math.Max(highest, pose.Lift);
+                }
+                Assert.That(highest - lowest, Is.InRange(0.008f, 0.05f), "A bob that reads as weight, not a hop.");
+                PuppetGaitInput rest = default;
+                rest.Legs = legs;
+                Assert.That(PuppetGait.Evaluate(rest).Lift, Is.EqualTo(0f).Within(1e-6f), "Standing, nothing drops.");
             }
         }
 
-        // The hips drop where the legs spread and rise as they pass, by exactly what keeps the boot carrying the weight on
-        // its own floor line: rebuilt here with the leg as painted, turned through the pose's angles.
-        [Test]
-        public void TheBobKeepsTheSupportingBootOnItsFloorAndTheOtherOffIt()
+        // A boot's lowest point over the floor line it was painted on.
+        internal static float Height(PuppetPose pose, PuppetLeg leg, bool right)
         {
-            float lowest = float.MaxValue, highest = float.MinValue;
-            for (float phase = 0f; phase < 1f; phase += 0.01f)
-            {
-                PuppetGaitInput input = Walking(phase);
-                input.Legs = Vanguard;
-                PuppetPose pose = PuppetGait.Evaluate(input);
-                float right = Sole(Vanguard.Right, pose.HipRight, pose.KneeRight) - Sole(Vanguard.Right, 0f, PuppetGait.KneeRest);
-                float left = Sole(Vanguard.Left, pose.HipLeft, pose.KneeLeft) - Sole(Vanguard.Left, 0f, PuppetGait.KneeRest);
-                // Each boot's height over its own floor once the pelvis has dropped by Lift.
-                float rightHeight = right + pose.Lift;
-                float leftHeight = left + pose.Lift;
-                string at = "at phase " + phase;
-                Assert.That(Math.Min(rightHeight, leftHeight), Is.InRange(-0.002f, 0.008f), at + ": one boot stands on its floor.");
-                Assert.That(Math.Max(rightHeight, leftHeight), Is.LessThan(0.15f), at + ": the other stays low.");
-                lowest = Math.Min(lowest, pose.Lift);
-                highest = Math.Max(highest, pose.Lift);
-            }
-            Assert.That(highest - lowest, Is.InRange(0.008f, 0.05f), "A bob that reads as weight, not a hop.");
-            PuppetGaitInput rest = default;
-            rest.Legs = Vanguard;
-            Assert.That(PuppetGait.Evaluate(rest).Lift, Is.EqualTo(0f).Within(1e-6f), "Standing, nothing drops.");
-        }
-
-        private static float Sole(PuppetLeg leg, float hip, float knee)
-        {
-            double h = hip * Math.PI / 180, s = (hip - knee) * Math.PI / 180;
-            double kneeY = leg.KneeX * Math.Sin(h) + leg.KneeY * Math.Cos(h);
-            double heel = leg.HeelX * Math.Sin(s) + leg.HeelY * Math.Cos(s);
-            double toe = leg.ToeX * Math.Sin(s) + leg.ToeY * Math.Cos(s);
-            return (float)(kneeY + Math.Min(heel, toe));
+            PuppetGait.Sole(pose, leg, right, out _, out float heel, out _, out float toe);
+            return Math.Min(heel, toe) - PuppetGait.FloorLine(leg);
         }
 
         [Test]
@@ -163,6 +196,7 @@ namespace Cryptforge.Tests
         [Test]
         public void AStrikeAndItsDrawMoveTheArmsAndChestButNeverTheLegs()
         {
+            foreach (bool front in new[] { false, true })
             foreach (PuppetStrike strike in Strikes)
             {
                 foreach (float phase in new[] { 0f, 0.13f, 0.25f, 0.5f, 0.8f })
@@ -172,6 +206,8 @@ namespace Cryptforge.Tests
                         PuppetGaitInput walking = Walking(phase);
                         walking.WalkWeight = weight;
                         walking.IdleTime = 0.4f;
+                        walking.Front = front;
+                        walking.Heading = front ? -0.7f : 0.7f;
                         PuppetPose bare = PuppetGait.Evaluate(walking);
                         foreach (float progress in new[] { 0f, 0.1f, 0.3f, 0.6f, 1f })
                         {
@@ -181,11 +217,13 @@ namespace Cryptforge.Tests
                             struck.Windup = strike;
                             struck.WindupProgress = 1f - progress;
                             PuppetPose pose = PuppetGait.Evaluate(struck);
-                            string at = $"{strike} at phase {phase}, weight {weight}, progress {progress}";
+                            string at = $"{strike} from the {(front ? "front" : "rear")} at phase {phase}, weight {weight}, progress {progress}";
                             Assert.That(pose.HipLeft, Is.EqualTo(bare.HipLeft), at);
                             Assert.That(pose.HipRight, Is.EqualTo(bare.HipRight), at);
                             Assert.That(pose.KneeLeft, Is.EqualTo(bare.KneeLeft), at);
                             Assert.That(pose.KneeRight, Is.EqualTo(bare.KneeRight), at);
+                            Assert.That(pose.LegRiseLeft, Is.EqualTo(bare.LegRiseLeft), at);
+                            Assert.That(pose.LegRiseRight, Is.EqualTo(bare.LegRiseRight), at);
                             Assert.That(pose.Lift, Is.EqualTo(bare.Lift), at);
                             Assert.That(pose.Shift, Is.EqualTo(bare.Shift), at);
                             Assert.That(pose.HipTwist, Is.EqualTo(bare.HipTwist), at);
@@ -199,13 +237,13 @@ namespace Cryptforge.Tests
                         drawn.Windup = strike;
                         drawn.WindupProgress = 1f;
                         PuppetPose top = PuppetGait.Evaluate(drawn);
-                        Assert.That(Math.Abs(top.ShoulderRight - bare.ShoulderRight), Is.GreaterThan(10f), $"{strike}: the weapon is drawn back.");
+                        Assert.That(Arm(top, bare), Is.GreaterThan(15f), $"{strike}: the weapon is drawn back.");
                         Assert.That(top.Wield, Is.EqualTo(1f), $"{strike}: and held as drawn.");
 
                         PuppetGaitInput hit = walking;
                         hit.Strike = strike;
                         PuppetPose atHit = PuppetGait.Evaluate(hit);
-                        Assert.That(Math.Abs(atHit.ShoulderRight - bare.ShoulderRight), Is.GreaterThan(10f),
+                        Assert.That(Arm(atHit, bare), Is.GreaterThan(15f),
                             $"{strike}: the weapon arm shows the strike at the damage event.");
                         // A blade turns through its blow; the staff is thrust nearly upright, its head tipped at the target.
                         hit.StrikeProgress = PuppetGait.HitAt;
@@ -255,6 +293,56 @@ namespace Cryptforge.Tests
             Assert.That(done, Is.EqualTo(carried).Within(Tolerance));
         }
 
+        // Seen from the front the near arm hangs behind the body's centre: the draw goes back and up behind the near
+        // shoulder, never forward across the helmet as the rear's does, the blow still chops down through the target, and
+        // the shield braces at the side instead of swinging out from it.
+        [Test]
+        public void SeenFromTheFrontTheSwordIsDrawnBackBehindTheShoulderAndTheShieldStaysBraced()
+        {
+            foreach (float phase in new[] { 0.1f, 0.4f, 0.7f })
+            {
+                PuppetGaitInput input = Walking(phase);
+                input.Front = true;
+                PuppetPose bare = PuppetGait.Evaluate(input);
+                float carried = Blade(bare);
+                for (float progress = 0.05f; progress <= 1.0001f; progress += 0.05f)
+                {
+                    input.Windup = PuppetStrike.Swing;
+                    input.WindupProgress = progress;
+                    PuppetPose drawing = PuppetGait.Evaluate(input);
+                    string at = $"phase {phase}, draw {progress}";
+                    Assert.That(drawing.ShoulderRight, Is.LessThan(bare.ShoulderRight + 1e-3f), at + ": the arm swings back, never forward.");
+                    // Partway, the shield is still on its way from the walk's swing to its brace; never further out.
+                    Assert.That(drawing.ShoulderLeft, Is.InRange(Math.Min(bare.ShoulderLeft, -5f), Math.Max(bare.ShoulderLeft, 20f)), at);
+                    Assert.That(drawing.ElbowLeft, Is.LessThanOrEqualTo(Math.Max(bare.ElbowLeft, 30f)), at);
+                }
+                PuppetPose top = PuppetGait.Evaluate(input);
+                Assert.That(top.ShoulderRight, Is.LessThan(-120f), "Drawn up behind the near shoulder.");
+                Assert.That(top.ShoulderLeft, Is.InRange(-5f, 20f), "The shield braces at the side.");
+                Assert.That(top.ElbowLeft, Is.LessThanOrEqualTo(30f));
+                input.Windup = PuppetStrike.None;
+                input.WindupProgress = 0f;
+                input.Strike = PuppetStrike.Swing;
+                for (float progress = 0f; progress <= PuppetGait.StrikeHold; progress += 0.02f)
+                {
+                    input.StrikeProgress = progress;
+                    PuppetPose blow = PuppetGait.Evaluate(input);
+                    Assert.That(blow.ShoulderRight, Is.InRange(20f, 105f), $"The blow crosses the chest, under the helmet, at {progress}.");
+                    Assert.That(blow.ShoulderLeft, Is.InRange(-5f, 20f), "and the shield stays braced through it.");
+                }
+                input.StrikeProgress = PuppetGait.HitAt;
+                Assert.That(Blade(PuppetGait.Evaluate(input)), Is.LessThan(carried - 60f), "It chops down through the target.");
+                input.StrikeProgress = 1f;
+                Assert.That(Blade(PuppetGait.Evaluate(input)), Is.EqualTo(carried).Within(Tolerance), "and is carried again.");
+            }
+
+            // The rear's draw is the one that goes forward and up over the helmet, as before.
+            PuppetGaitInput rear = Walking(0.1f);
+            rear.Windup = PuppetStrike.Swing;
+            rear.WindupProgress = 1f;
+            Assert.That(PuppetGait.Evaluate(rear).ShoulderRight, Is.GreaterThan(100f));
+        }
+
         [Test]
         public void TheDaggersJabWithTheLeadingHandAndCockTheOther()
         {
@@ -268,30 +356,40 @@ namespace Cryptforge.Tests
             Assert.That(b.Twist, Is.EqualTo(-a.Twist).Within(Tolerance), "The chest turns behind each.");
         }
 
+        // The Forge Burst's shockwave leaves on the press's frame, so the slam plays no wind-up: the impact is on screen
+        // within a frame or two, then the recoil, then the rise, with the weapon kept in front rather than raised again.
         [Test]
-        public void TheForgeBurstCrouchesRaisesSlamsAndRisesOverTheStride()
+        public void TheForgeBurstDropsIntoItsImpactAtOnceThenRisesOverTheStride()
         {
             var standing = new PuppetGaitInput { Casting = true };
-            float raised = float.MinValue, deepest = 0f, raisedAt = 0f, slamAt = 0f;
-            for (float progress = 0f; progress <= 1f; progress += 0.01f)
+            float twoFrames = 2f / 60f / PuppetGait.CastSeconds;
+            standing.CastProgress = twoFrames;
+            PuppetPose impact = PuppetGait.Evaluate(standing);
+            Assert.That(impact.Lift, Is.LessThan(-0.03f), "Two frames after the press the body has dropped into the slam.");
+            Assert.That(Blade(impact), Is.LessThan(Blade(PuppetGait.Rest) - 60f), "with the weapon driven point-down.");
+            Assert.That(PuppetGait.ImpactAt * PuppetGait.CastSeconds, Is.LessThan(1.5f / 60f), "The impact pose itself, inside a frame and a half.");
+            standing.CastProgress = PuppetGait.ImpactAt;
+            float impactArm = PuppetGait.Evaluate(standing).ShoulderRight;
+            float deepest = 0f, deepestAt = 0f, highestArm = float.MinValue;
+            bool raisedBeforeImpact = false;
+            for (float progress = 0f; progress <= 1f; progress += 0.005f)
             {
                 standing.CastProgress = progress;
                 PuppetPose pose = PuppetGait.Evaluate(standing);
-                if (pose.ShoulderRight > raised)
-                {
-                    raised = pose.ShoulderRight;
-                    raisedAt = progress;
-                }
                 if (pose.Lift < deepest)
                 {
                     deepest = pose.Lift;
-                    slamAt = progress;
+                    deepestAt = progress;
                 }
+                highestArm = Math.Max(highestArm, pose.ShoulderRight);
+                if (progress <= PuppetGait.ImpactAt && pose.ShoulderRight > impactArm + 1e-3f)
+                    raisedBeforeImpact = true;
             }
-            Assert.That(raised, Is.GreaterThan(120f), "The arms go up over the helmet.");
-            Assert.That(deepest, Is.LessThan(-0.03f), "and the slam drops the body into a crouch.");
-            Assert.That(raisedAt, Is.LessThan(slamAt), "Raised first, slammed after.");
-            Assert.That(slamAt * PuppetGait.CastSeconds, Is.LessThan(0.3f), "The impact lands while the shockwave races out.");
+            Assert.That(raisedBeforeImpact, Is.False, "No raise before the blow: the arms go straight to it.");
+            Assert.That(deepestAt * PuppetGait.CastSeconds, Is.LessThan(0.1f), "The crouch is deepest in the impact's recoil.");
+            Assert.That(highestArm, Is.LessThan(90f), "The rise keeps the weapon in front, never back over the helmet.");
+            standing.CastProgress = 0.6f;
+            Assert.That(PuppetGait.Evaluate(standing).Lift, Is.GreaterThan(deepest + 0.025f), "Then the body rises.");
             standing.CastProgress = 1f;
             PuppetPose after = PuppetGait.Evaluate(standing);
             PuppetPose rest = PuppetGait.Rest;
@@ -299,11 +397,12 @@ namespace Cryptforge.Tests
             Assert.That(after.KneeLeft, Is.EqualTo(rest.KneeLeft).Within(Tolerance));
             Assert.That(after.Lift, Is.EqualTo(rest.Lift).Within(Tolerance));
 
-            // On the move the legs keep striding through the slam.
+            // On the move the legs keep striding through the slam, and the hips still sink into it.
             PuppetGaitInput a = Walking(0.1f), b = Walking(0.35f);
             a.Casting = b.Casting = true;
-            a.CastProgress = b.CastProgress = 0.3f;
+            a.CastProgress = b.CastProgress = 0.15f;
             Assert.That(Math.Abs(PuppetGait.Evaluate(a).HipLeft - PuppetGait.Evaluate(b).HipLeft), Is.GreaterThan(10f));
+            Assert.That(PuppetGait.Evaluate(a).Lift, Is.LessThan(PuppetGait.Evaluate(Walking(0.1f)).Lift - 0.02f));
         }
 
         [Test]
@@ -391,6 +490,9 @@ namespace Cryptforge.Tests
                 input.Windup = strike;
                 input.WindupProgress = 1f - progress;
                 input.LeftLeads = phase > 0.5f;
+                input.Front = phase > 0.3f && phase < 0.8f;
+                input.Heading = (phase * 7f % 1f - 0.5f) * 3.4f;
+                input.Legs = phase > 0.5f ? VanguardFront : Vanguard;
                 input.Casting = casting;
                 input.CastProgress = progress;
                 input.Flinch = flinch;
@@ -398,7 +500,7 @@ namespace Cryptforge.Tests
                 input.Surge = surge;
                 input.Drape = -surge;
                 PuppetPose pose = PuppetGait.Evaluate(input);
-                string at = $"{strike} phase {phase} weight {weight} progress {progress} cast {casting} flinch {flinch} death {death} surge {surge}";
+                string at = $"{strike} phase {phase} weight {weight} progress {progress} cast {casting} flinch {flinch} death {death} surge {surge} heading {input.Heading}";
                 foreach (float angle in new[] { pose.Lean, pose.Head, pose.Cape, pose.Skirt, pose.HipLeft, pose.HipRight,
                     pose.ShoulderLeft, pose.ShoulderRight, pose.WristLeft, pose.WristRight })
                     Assert.That(angle, Is.InRange(-180f, 180f), at);
@@ -411,6 +513,10 @@ namespace Cryptforge.Tests
                 Assert.That(Math.Abs(pose.Twist), Is.LessThan(0.08f), at);
                 Assert.That(pose.Wield, Is.InRange(0f, 1f), at);
                 Assert.That(Math.Abs(pose.HipLeft), Is.LessThanOrEqualTo(60f), at);
+                Assert.That(Math.Abs(pose.HipRight), Is.LessThanOrEqualTo(60f), at);
+                foreach (float step in new[] { pose.LegRiseLeft, pose.LegRiseRight, pose.FloorLeft, pose.FloorRight })
+                    Assert.That(Math.Abs(step), Is.LessThan(0.2f), at + ": a leg steps a texel or two, never out of the skirt.");
+                Assert.That(Math.Abs(pose.LegShiftLeft) + Math.Abs(pose.LegShiftRight), Is.LessThan(0.15f), at);
             }
         }
 
@@ -421,7 +527,7 @@ namespace Cryptforge.Tests
             {
                 WalkPhase = 0.37f, WalkWeight = 0.8f, IdleTime = 1.3f, Strike = PuppetStrike.Cast, StrikeProgress = 0.2f,
                 Windup = PuppetStrike.Cast, WindupProgress = 0.4f, Casting = true, CastProgress = 0.3f, Flinch = 0.4f,
-                Surge = 0.3f, Drape = -0.2f, Legs = Vanguard
+                Surge = 0.3f, Drape = -0.2f, Legs = Vanguard, Heading = 0.7f, Front = true
             };
             PuppetPose first = PuppetGait.Evaluate(input);
             PuppetPose second = PuppetGait.Evaluate(input);
@@ -487,7 +593,8 @@ namespace Cryptforge.Tests
             {
                 Fall = 1f, Lift = 0.02f, Shift = 0.03f, Lean = 3f, Twist = 0.04f, HipTwist = 0.05f, Breath = 0.01f, Head = 4f,
                 Cape = 8f, Skirt = 2f, HipLeft = 5f, HipRight = 6f, KneeLeft = 7f, KneeRight = 9f, ShoulderLeft = 10f,
-                ShoulderRight = 11f, ElbowLeft = 12f, ElbowRight = 13f, WristLeft = 14f, WristRight = 15f
+                ShoulderRight = 11f, ElbowLeft = 12f, ElbowRight = 13f, WristLeft = 14f, WristRight = 15f,
+                LegRiseRight = 0.06f, LegRiseLeft = 0.07f, LegShiftRight = 0.01f, LegShiftLeft = 0.02f
             };
             // A hanging limb swings forward counter-clockwise; folding a knee, trailing a cape or a skirt and leaning the
             // upright torso and head forward are clockwise.
@@ -510,11 +617,13 @@ namespace Cryptforge.Tests
             Assert.That(pose.Rise(PuppetBone.Pelvis), Is.EqualTo(0.02f));
             Assert.That(pose.Rise(PuppetBone.Torso), Is.EqualTo(0.01f));
             Assert.That(pose.Rise(PuppetBone.Head), Is.Zero);
+            Assert.That(pose.Rise(PuppetBone.ThighRight), Is.EqualTo(0.06f), "Each leg steps up or down the screen on its own.");
+            Assert.That(pose.Rise(PuppetBone.ThighLeft), Is.EqualTo(0.07f));
             Assert.That(pose.Forward(PuppetBone.Pelvis), Is.EqualTo(0.03f), "The weight shift moves the whole body.");
             Assert.That(pose.Forward(PuppetBone.UpperArmRight), Is.EqualTo(0.04f), "The near shoulder turns forward...");
             Assert.That(pose.Forward(PuppetBone.UpperArmLeft), Is.EqualTo(-0.04f), "...as the far one turns back.");
-            Assert.That(pose.Forward(PuppetBone.ThighRight), Is.EqualTo(0.05f));
-            Assert.That(pose.Forward(PuppetBone.ThighLeft), Is.EqualTo(-0.05f));
+            Assert.That(pose.Forward(PuppetBone.ThighRight), Is.EqualTo(0.06f).Within(1e-6f), "The hips' turn and the leg's own shift.");
+            Assert.That(pose.Forward(PuppetBone.ThighLeft), Is.EqualTo(-0.03f).Within(1e-6f));
             Assert.That(pose.Forward(PuppetBone.Torso), Is.Zero);
             Assert.That(pose.Forward(PuppetBone.Fixed), Is.Zero);
         }

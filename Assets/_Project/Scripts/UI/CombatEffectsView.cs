@@ -16,7 +16,9 @@ namespace Cryptforge.UI
     // borrowed; without it they fall back to the pixel art BurnArt and EffectArt draw. Painted, the Vent's cast rings the
     // hero in ember rather than in the ability's steel seal, and the Forge Burst flashes at the hero. The Daggers' double
     // slash, the crit star, the smoke, the coins and the numbers are painted too when a CombatFeedbackArtSet is given (one
-    // sheet for them all, cut here likewise), and otherwise EffectArt's pixel art.
+    // sheet for them all, cut here likewise), and otherwise EffectArt's pixel art. The Staff's hit is painted when the
+    // strike set carries its ring and burst (cut here likewise), and otherwise the procedural ring StaffSplashArt draws,
+    // which the Vent's eruptions always use, tinted ember.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -85,6 +87,10 @@ namespace Cryptforge.UI
         private const float NumberJitter = 0.35f;
         private const float StrikeFrameDuration = 0.05f;
         private const float StaffPulseDuration = .21f;
+        // The painted Staff hit's frame times: its floor ring a little longer than the procedural ring's 0.21 s, so its
+        // break into four arcs reads as it fades, and the burst on the struck body over its first part.
+        private const float PaintedStaffRingFrameDuration = .048f;
+        private const float PaintedStaffBurstFrameDuration = .04f;
         private const float StarFrameDuration = 0.07f;
         private const float SparkFrameDuration = 0.06f;
         private const float SmokeFrameDuration = 0.12f;
@@ -195,6 +201,8 @@ namespace Cryptforge.UI
         [SerializeField] private Material _material;
         [SerializeField] private StrikeArtSet _paintedArt;
         public bool UsesPaintedStrikes => _paintedArt != null && _paintedArt.IsValid;
+        // The Staff's painted ring and burst ride the strike set too, but neither needs nor is needed by its slash and spark.
+        public bool UsesPaintedStaffBlast => _paintedArt != null && _paintedArt.HasStaffBlast;
         // Optional: the skills' painted effects; without them the skills draw the pixel art.
         [SerializeField] private SkillEffectArtSet _skillArt;
         public bool UsesPaintedSkills => _skillArt != null && _skillArt.IsValid;
@@ -219,6 +227,11 @@ namespace Cryptforge.UI
         private readonly List<Sprite> _cutSprites = new List<Sprite>();
         private Sprite[] _slash;
         private Sprite[] _ring;
+        // The Staff's hit: the painted ring, or the procedural _ring when the strike set has none, and the painted burst on
+        // the struck body (null without the painted ring), with the ring's frame time.
+        private Sprite[] _staffRing;
+        private Sprite[] _staffBurst;
+        private float _staffRingFrameDuration;
         private Sprite[] _abilityPulse;
         private int _groundOrder;
         private Sprite[] _doubleSlash;
@@ -459,6 +472,18 @@ namespace Cryptforge.UI
         {
             _slash = UsesPaintedStrikes ? _paintedArt.Slash : Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
             _ring = new[] { StaffSplashArt.Get() }; // Borrowed session art.
+            if (UsesPaintedStaffBlast)
+            {
+                // The ring pins at its centre, on the target's feet; the burst at the middle of the struck body.
+                _staffRing = Cut(_paintedArt.StaffRing, "VFX Staff Ring ");
+                _staffBurst = Cut(_paintedArt.StaffBurst, "VFX Staff Burst ");
+                _staffRingFrameDuration = PaintedStaffRingFrameDuration;
+            }
+            else
+            {
+                _staffRing = _ring;
+                _staffRingFrameDuration = StaffPulseDuration;
+            }
             _abilityPulse = new[] { AbilityRingArt.Get() }; // Borrowed; never added to _sprites.
             _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
             // Imported references are borrowed; only generated sprites enter the destruction list.
@@ -795,10 +820,15 @@ namespace Cryptforge.UI
                 case StrikeEffect.StaffBlast:
                     Vector3 feet = watch != null && watch.Root != null ? watch.Root.position : target.transform.position;
                     float radius = RingScale(weapon) * EffectArt.RingFullRadius / PixelSpriteFactory.PixelsPerUnit;
-                    Effect impact = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, feet, _groundOrder,
-                        Vector3.zero, 0, false, radius * (24f / 38));
+                    // Either ring is a unit ring the pulse grows to the radius and fades; the painted one's frames carry
+                    // its flash and its break into arcs over that.
+                    Effect impact = ShowMoving(_staffRing, _staffRingFrameDuration, _staffRing.Length * _staffRingFrameDuration,
+                        feet, _groundOrder, Vector3.zero, 0, false, radius * (24f / 38));
                     impact.StaffPulse = true;
                     impact.PulseRadius = radius;
+                    // Painted, the Staff's orb bursts on the struck body as well, over its hit spark as the other strikes are.
+                    if (_staffBurst != null)
+                        StandOn(Show(_staffBurst, PaintedStaffBurstFrameDuration, anchor, _sortingOrder + StrikeOrder), ground);
                     break;
                 default:
                     Effect cuts = StandOn(Show(_doubleSlash, _doubleSlashFrameDuration, anchor, _sortingOrder + StrikeOrder),

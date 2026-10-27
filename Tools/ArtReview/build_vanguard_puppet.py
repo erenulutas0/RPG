@@ -205,10 +205,12 @@ REAR = Facing(
              take=[[(588, 650), (720, 645), (765, 700), (770, 800), (740, 812), (650, 806), (590, 800)]],
              hidden=[[(565, 645), (600, 640), (600, 790), (565, 795)], [(600, 636), (735, 636), (735, 672), (600, 672)]],
              fill='smear', axis=(0.0, 1.0)),
+        # The far thigh shows through the slit in the cape. A walk lowers the far leg toward the near one's floor line
+        # (PuppetGait.TrackNarrowing), so its mail runs on up under the cape, past what the slit could ever show.
         Part('Thigh Left', 'ThighLeft', 'Pelvis', (445, 745), -8,
              seeds=[(431, 793)],
              take=[[(412, 752), (448, 752), (448, 822), (412, 822)]],
-             mail=[circle(408, 853, 36)],
+             mail=[circle(408, 853, 36), [(406, 636), (476, 636), (484, 760), (392, 760)]],
              clone=('Thigh Right', -239, -20, 0.8)),
         Part('Shin Left', 'ShinLeft', 'Thigh Left', (408, 853), -7,
              seeds=[(400, 927), (409, 855), (392, 1046), (423, 1026)],

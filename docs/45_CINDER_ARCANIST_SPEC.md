@@ -224,10 +224,18 @@ stay for a later painted pass.
     hips, breath and weight shift at rest, the cape and skirt swinging on after a stop; each weapon draws back while its
     cooldown runs out and then chops (sword), thrusts (staff) or jabs (daggers) over the striding legs; the Forge Burst
     crouches, raises and slams; a hit flinches; death staggers, buckles and falls.
-  - `Tools/ArtReview/preview_vanguard_puppet.py` drives the real C# pose code outside Unity for review GIFs.
-  - Known flaws: on a diagonal the planted boot slides up or down the screen; the far boot sits about 16 texels above
-    the near one in the painted stance; changing facing is still an instant switch; the slam lands about 0.1 s after
-    the button while the shockwave starts at the press.
+  - `Tools/ArtReview/preview_vanguard_puppet.py` drives the real C# pose code outside Unity for review GIFs; `--slip`
+    measures the planted boot against the floor on the stick's eight headings.
+  - Polish (2026-10-27, second pass): the stride is a run whose stance is solved on the painted leg, each boot's heel
+    then toe held where the floor has carried it, with a flight between stances; the heading projects it onto the
+    screen (legs across by the cosine, stepping up or down with the boot's depth), so the planted boot's slip fell from
+    3.7-6.4 to 0.00-0.08 px a frame on all eight headings. Walking brings the far boot from 16 texels above the near
+    one's line to about 6; facing changes are taken at once and shown through a 0.1 s turn (narrow, swap at the
+    narrowest, widen, head first); the Forge Burst's impact is on screen on the press's frame and the rise follows;
+    seen from the front the sword draws back behind the near shoulder, the shield braces at the side and the staff
+    keeps clear of the helmet; the weapons flash white with the parts.
+  - Still to check on a device: the run's flight and bob at the phone's framing, end-on walks (the legs step under
+    the skirt), the turn's narrowest width, and the weapon flash, which borrows `Resources/RenderedCharacterFlash.shader`.
 - **Ilya rendered from one model** - `Tools/ArtReview/BuildBlenderArcanist.py` builds Ilya procedurally in Blender 4.5
   (toon shading, an inverted-hull outline, a rig with IK, every clip as an action; `ArtDirection/2026-10-27/
   arcanist-blender-01/` holds the .blend, frames.json and a README), `PackArcanistSprites.py` packs 210 frames into
@@ -280,3 +288,29 @@ stay for a later painted pass.
   - Known flaws: one windup frame per facing, so a Warden walking through the 1.1 s telegraph glides with the hammer
     up; the mirrored right side swaps the hammer and chain hands; the raised hammer can pass under the top HUD at the
     top of the view (the camera-fit test still measures the pixel Warden); the fall is the horde's, not a boss's.
+- **The Runner, the Tank and the Grunt Captain** - each had walked as the painted Grunt inherited from
+  `Grunt.prefab`; each prefab now sets its own `EnemyArtSet` in the Grunt's format (six frames front and rear, two
+  remains) under `Assets/_Project/Art/Characters/{Runner,Tank,GruntCaptain}/` (1.97 MB as ASTC 4x4 for the three).
+  `Tools/ArtReview/BuildBlenderFoundryEnemies.py` renders the Runner and the Tank in Blender with the material tuned
+  against the painted Grunt's own value bands; `build_foundry_enemies.py` kitbashes the Captain from the Grunt's
+  masters (scaled 1.15, ember red) under a rendered brass helm and Warning Bell, and writes the sprites and sets;
+  `ArtDirection/2026-10-27/foundry-enemies-01/` holds the .blend files and a README.
+  - The Runner is a lean shard sprinter on reverse-jointed legs with a white-hot heart; the Tank a basalt slab under
+    riveted soot-iron plates with a furnace grille.
+  - Their pixel-era attack nudges (and the Warden's) went to zero, as the Grunt's did when it was painted: on painted
+    frames the dip sank the feet below the contact shadow.
+  - Known flaws: zoomed in, the Runner and the Tank show flat rendered facets beside the Grunt's painted gradients (at
+    phone scale they read as one family); the Captain's brass was placed by eye per frame; like the Grunt, no windup
+    frames and mirroring flips the light.
+- **The Staff's hit painted** - `Tools/ArtReview/build_staff_impact_vfx.py` (build_skill_vfx's painting) paints
+  `Assets/_Project/Art/Effects/FoundryStrikes/VFX_StaffBlast.png` (416 KiB as ASTC 4x4), two strips on
+  `FoundryStrikeArtSet` (`StrikeArtSet._staffRing`/`_staffBurst`, `HasStaffBlast`; `IsValid` unchanged).
+  - A violet floor ring (5 frames, 0.24 s): a flash at the target's feet, a white edge on a violet band over a thin dark
+    rim (the rim reads on lava, the edge on stone), motes lifting off it, then the band tearing into four swirling
+    arcs; it covers exactly the floor the procedural ring did at every Area. An orb bursts on the struck body (4
+    frames, 0.16 s), curved wisps with no straight rays, unlike the crit star and the Forge Burst flash.
+  - Violet from the staff's crystal: ember stays the Burn's and the Vent's, steel blue the Vanguard's. The Vent's
+    eruptions keep the procedural ring tinted ember; a strike set without the frames falls back to it.
+  - Known flaws: the ring shows half the splash (`_ringSplashFraction` 0.5) and reaches its largest at Area 1.02, so
+    Area cards barely widen it (unchanged rule); the burst's wisps are 3-4 px on a phone; each hit takes two of the
+    shared pool's slots; the Vent's thin procedural ember ring now looks the least finished.

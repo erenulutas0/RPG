@@ -15,6 +15,8 @@ Usage:
 Writes NAME.gif per scene at real time (50 frames a second, the fastest every GIF viewer plays, sampled from the 60 fps
 motion), plus walk-compare.gif: the painted four-frame walk VanguardAnimator plays today beside the puppet's. --frames
 also writes each scene's frames as a contact sheet PNG. --zoom scales the images (default 1, the phone's own pixels).
+--slip instead measures the planted boot's slip against the floor on each of the stick's eight headings (phone pixels a
+frame) and writes slip.json.
 """
 from __future__ import annotations
 
@@ -37,7 +39,8 @@ ROOT = Path(__file__).resolve().parents[2]
 ART = ROOT / 'Assets/_Project/Art/Characters/Vanguard'
 ASSET = ART / 'Puppet/VanguardPuppetArtSet.asset'
 SOURCES = ['Assets/_Project/Scripts/Art/PuppetPose.cs', 'Assets/_Project/Scripts/Art/PuppetGait.cs',
-           'Assets/_Project/Scripts/Art/PuppetMotion.cs', 'Tools/ArtReview/PuppetPreviewDriver.cs']
+           'Assets/_Project/Scripts/Art/PuppetMotion.cs', 'Assets/_Project/Scripts/Art/PuppetFacing.cs',
+           'Tools/ArtReview/PuppetPreviewDriver.cs']
 PAVING = ROOT / 'Assets/_Project/Art/Props/Foundry/FoundryPavingV8.png'
 
 # The game's framing: ArenaCameraFollow shows 9 world units across the screen; a 1080-pixel phone draws 120 a unit.
@@ -48,7 +51,8 @@ BONES = ['Fixed', 'Pelvis', 'Torso', 'Head', 'Cape', 'Skirt', 'ThighLeft', 'Shin
 FLASH_SECONDS = 0.14
 # The feet stand this far down the image, leaving room above the helmet for a raised sword.
 FEET_ROW = 0.7
-SCENES = ['idle', 'walk-rear', 'walk-front', 'walk-rear-left', 'walk-front-left', 'strike-walk', 'strike-walk-front',
+SCENES = ['idle', 'heading-E', 'heading-NE', 'heading-N', 'heading-NW', 'heading-W', 'heading-SW', 'heading-S',
+          'heading-SE', 'turn-mirror', 'turn-front', 'turn-diagonal', 'turn-stand', 'strike-walk', 'strike-walk-front',
           'strike-stand', 'cast', 'hit', 'death', 'staff-strike-walk', 'daggers-strike-walk']
 
 
@@ -145,17 +149,23 @@ def parse_facing(block, files):
                   left_grip=vec('LeftGrip'), left_item=int(value('LeftItemSorting')),
                   faces_left=value('FacesLeft').strip() == '1')
     turn = -1.0 if facing['faces_left'] else 1.0
+    facing['soles'] = {'right': vec4('RightSole'), 'left': vec4('LeftSole')}
     facing['legs'] = (leg(parts, 'ThighRight', 'ShinRight', vec4('RightSole'), turn)
                       + leg(parts, 'ThighLeft', 'ShinLeft', vec4('LeftSole'), turn))
     return facing
 
 
 def leg(parts, thigh_bone, shin_bone, sole, turn):
-    """PuppetRig.Leg: the knee from the hip and the sole's heel and toe from the knee, for a figure facing right."""
+    """PuppetRig.Leg: the hip from the pelvis, the knee from the hip and the sole's heel and toe from the knee, for a
+    figure facing right."""
     thigh = next((i for i, p in enumerate(parts) if p['bone'] == thigh_bone), -1)
     shin = next((i for i, p in enumerate(parts) if p['bone'] == shin_bone), -1)
     if thigh < 0 or shin < 0 or parts[shin]['parent'] != thigh:
-        return (0.0,) * 6
+        return (0.0,) * 8
+    hip = (0.0, 0.0)
+    parent = parts[thigh]['parent']
+    if parent >= 0 and parts[parent]['bone'] == 'Pelvis':
+        hip = (turn * parts[thigh]['joint'][0], parts[thigh]['joint'][1])
     if all(v == 0 for v in sole):
         sprite = parts[shin]['sprite']
         h, w = sprite.rgba.shape[:2]
@@ -164,7 +174,7 @@ def leg(parts, thigh_bone, shin_bone, sole, turn):
         lo_x, hi_x, lo_y = -px * w * texel, (1 - px) * w * texel, -py * h * texel
         sole = (lo_x + texel, lo_y + texel, hi_x - texel, lo_y + texel)
     kx, ky = parts[shin]['joint']
-    return (turn * kx, ky, turn * sole[0], sole[1], turn * sole[2], sole[3])
+    return hip + (turn * kx, ky, turn * sole[0], sole[1], turn * sole[2], sole[3])
 
 
 def load_art():
@@ -192,12 +202,16 @@ def rotation(pose, bone):
 
 
 def rise(pose, bone):
-    return {'Pelvis': pose['Lift'], 'Torso': pose['Breath']}.get(bone, 0.0)
+    """PuppetPose.Rise."""
+    return {'Pelvis': pose['Lift'], 'Torso': pose['Breath'], 'ThighRight': pose['LegRiseRight'],
+            'ThighLeft': pose['LegRiseLeft']}.get(bone, 0.0)
 
 
 def forward(pose, bone):
-    return {'Pelvis': pose['Shift'], 'ThighRight': pose['HipTwist'], 'ThighLeft': -pose['HipTwist'],
-            'UpperArmRight': pose['Twist'], 'UpperArmLeft': -pose['Twist']}.get(bone, 0.0)
+    """PuppetPose.Forward."""
+    return {'Pelvis': pose['Shift'], 'ThighRight': pose['HipTwist'] + pose['LegShiftRight'],
+            'ThighLeft': -pose['HipTwist'] + pose['LegShiftLeft'], 'UpperArmRight': pose['Twist'],
+            'UpperArmLeft': -pose['Twist']}.get(bone, 0.0)
 
 
 def trs(tx, ty, degrees, sx=1.0, sy=1.0):
@@ -211,10 +225,12 @@ def pose_rig(facing, pose):
     turn = -1.0 if facing['faces_left'] else 1.0
     root = trs(0, 0, pose['Fall'], -1.0 if facing['faces_left'] else 1.0, 1.0)
     world = []
+    # PuppetAnimator.ApplyTurn: the head runs its own turn, as a share of the body's width.
+    head = pose.get('headWidth', 1.0) / pose.get('width', 1.0) * (-1.0 if pose.get('headMirrored') else 1.0)
     for part in facing['parts']:
         jx, jy = part['joint']
         local = trs(jx + turn * forward(pose, part['bone']), jy + rise(pose, part['bone']),
-                    turn * rotation(pose, part['bone']))
+                    turn * rotation(pose, part['bone']), head if part['bone'] == 'Head' else 1.0)
         parent = world[part['parent']] if part['parent'] >= 0 else root
         world.append(parent @ local)
     grips = {}
@@ -321,9 +337,11 @@ def weapon_items(art, weapon, front):
 
 
 def render_figure(art, frame, width, height, origin, zoom, flash=False):
-    """The puppet alone (premultiplied RGBA), mirrored for leftward travel as the hero's presentation is."""
+    """The puppet alone (premultiplied RGBA), mirrored for leftward travel and narrowed through a turn about its feet
+    as the hero's presentation is (PuppetAnimator.ApplyTurn), the weapons with it."""
     facing = art['Front' if frame['front'] else 'Rear']
     world, grips = pose_rig(facing, frame)
+    outer = np.diag([(-1.0 if frame['mirrored'] else 1.0) * frame.get('width', 1.0), 1.0, 1.0])
     canvas = Canvas(width, height, zoom)
     draws = []
     for i, part in enumerate(facing['parts']):
@@ -334,15 +352,12 @@ def render_figure(art, frame, width, height, origin, zoom, flash=False):
         for k, (side, sprite, carry) in enumerate(weapon_items(art, frame['weapon'], frame['front'])):
             x, y, angle = grip_pose(grips[side])
             sorting = facing['right_item'] if side == 'right' else facing['left_item']
-            draws.append((sorting, 100 + k, sprite, trs(x, y, angle + (1 - frame['Wield']) * carry), None))
+            # PuppetAnimator.FlashWeapons: a flash draws each weapon as its silhouette in the flash colour.
+            draws.append((sorting, 100 + k, sprite, trs(x, y, angle + (1 - frame['Wield']) * carry),
+                          (1, 1, 1) if flash else None))
     for _, _, sprite, matrix, tint in sorted(draws, key=lambda d: (d[0], d[1])):
-        canvas.draw(sprite, matrix, origin, tint)
-    figure = canvas.rgba
-    if frame['mirrored']:
-        # Mirror about the feet.
-        m = np.float32([[-1, 0, 2 * origin[0]], [0, 1, 0]])
-        figure = cv2.warpAffine(figure, m, (width, height), flags=cv2.INTER_NEAREST)
-    return figure
+        canvas.draw(sprite, outer @ matrix, origin, tint)
+    return canvas.rgba
 
 
 def compose(art, frame, width, height, zoom, paving, flash):
@@ -430,6 +445,60 @@ class OldWalk:
         return canvas.rgba
 
 
+# ------------------------------------------------------------------------------------------------- the slip
+
+HEADINGS = ['heading-E', 'heading-NE', 'heading-N', 'heading-NW', 'heading-W', 'heading-SW', 'heading-S', 'heading-SE']
+
+
+def soles(facing, frame):
+    """Heel and toe of each boot in figure space (feet at the origin, unmirrored), off the posed shins."""
+    world, _ = pose_rig(facing, frame)
+    ends = {}
+    for side, bone in (('right', 'ShinRight'), ('left', 'ShinLeft')):
+        shin = next(i for i, p in enumerate(facing['parts']) if p['bone'] == bone)
+        x0, y0, x1, y1 = facing['soles'][side]
+        ends[side] = np.array([(world[shin] @ np.array([x, y, 1.0]))[:2] for x, y in ((x0, y0), (x1, y1))])
+    return ends
+
+
+def slip(art, frames):
+    """The planted boot's slip over a scene's steady walk, in phone pixels a frame: each end of its sole followed in the
+    world from one frame to the next (the hero's floor position plus the shown figure, mirrored as shown) - a planted
+    boot pivots about one end, heel then toe as it rolls, so the less moved end's travel is the slip. Frames where the
+    roll hands over from heel to toe move both ends a little; they count toward the mean but not the worst."""
+    slips, worst, last = [], 0.0, None
+    for frame in frames:
+        boot = 'right' if frame['PlantedRight'] else 'left' if frame['PlantedLeft'] else None
+        steady = frame['walk'] >= 0.999 and frame['width'] >= 1.0 and frame['frame'] >= 40
+        if not steady or boot is None:
+            last = None
+            continue
+        ends = soles(art['Front' if frame['front'] else 'Rear'], frame)[boot]
+        ends[:, 0] *= -1.0 if frame['mirrored'] else 1.0
+        ends += np.array([frame['x'], frame['y']])
+        heel_down = ends[0, 1] <= ends[1, 1]
+        if last is not None and last[0] == boot and last[1] == (frame['front'], frame['mirrored']):
+            moved = float(np.min(np.linalg.norm(ends - last[2], axis=1))) * PIXELS_PER_UNIT
+            slips.append(moved)
+            if heel_down == last[3]:
+                worst = max(worst, moved)
+        last = (boot, (frame['front'], frame['mirrored']), ends, heel_down)
+    values = np.array(slips) if slips else np.zeros(1)
+    return dict(mean=float(values.mean()), p95=float(np.percentile(values, 95)), worst=worst, frames=len(slips))
+
+
+def slip_report(art, dll, out):
+    report = {}
+    for name in HEADINGS:
+        frames = run_driver(dll, name, 'sword', art)
+        floor = float(np.hypot(frames[60]['dx'], frames[60]['dy'])) * PIXELS_PER_UNIT
+        report[name] = dict(slip(art, frames), floor=floor)
+        r = report[name]
+        print(f"{name:11s} slip mean {r['mean']:4.2f}  p95 {r['p95']:4.2f}  worst {r['worst']:4.2f} px a frame "
+              f"over {r['frames']} planted frames; the floor moves {floor:4.2f}")
+    (out / 'slip.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+
+
 # ----------------------------------------------------------------------------------------------------- output
 
 def save_gif(path, images, fps=50):
@@ -475,6 +544,8 @@ def main(argv=None):
     parser.add_argument('--frames', action='store_true', help='also write contact sheets')
     parser.add_argument('--every', type=int, default=3, help='contact sheet: every Nth 60 fps frame (default 3)')
     parser.add_argument('--no-compare', action='store_true')
+    parser.add_argument('--slip', action='store_true',
+                        help='print the planted boot\'s slip on each of the eight headings and write slip.json')
     args = parser.parse_args(argv)
     args.out.mkdir(parents=True, exist_ok=True)
     art = load_art()
@@ -483,6 +554,9 @@ def main(argv=None):
     work = Path(tempfile.mkdtemp(prefix='puppet-preview-'))
     try:
         dll = build_driver(work)
+        if args.slip:
+            slip_report(art, dll, args.out)
+            return 0
         width, height = int(320 * args.zoom), int(330 * args.zoom)
         for name in args.scene or SCENES:
             scene, weapon = scene_weapon(name)

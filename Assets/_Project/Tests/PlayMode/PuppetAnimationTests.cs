@@ -136,6 +136,8 @@ namespace Cryptforge.Tests
             Transform thigh = BoneOf(_puppet.RearRig, PuppetBone.ThighLeft);
             float hipLow = float.MaxValue, hipHigh = float.MinValue, turnLow = float.MaxValue, turnHigh = float.MinValue;
             bool leftSwung = false, rightSwung = false;
+            int askedAt = -1, shownAt = -1;
+            float narrowest = 1f;
             Vector3 start = _puppet.transform.position;
             _movement.Hold(Vector2.right);
             // Out and back, the span the Vanguard's tests walk unblocked: over a stride and a half once the walk is full.
@@ -149,6 +151,20 @@ namespace Cryptforge.Tests
                     _movement.Hold(Vector2.left);
                 }
                 yield return null;
+                // The reversal: the facing asked for flips at once, the one on show follows through a short turn,
+                // narrowing the puppet and the body (so the weapons) together.
+                if (i >= 40)
+                {
+                    if (askedAt < 0 && _puppet.Mirrored)
+                    {
+                        askedAt = i;
+                        Assert.That(_puppet.ShownMirrored, Is.False, "The figure on show is still turning.");
+                    }
+                    if (shownAt < 0 && _puppet.ShownMirrored)
+                        shownAt = i;
+                    narrowest = Mathf.Min(narrowest, Mathf.Abs(_puppet.Root.localScale.x));
+                    Assert.That(_body.transform.localScale, Is.EqualTo(_puppet.Root.localScale), "The weapons turn with it.");
+                }
                 if (i < 10 || (i >= 40 && i < 44)) continue;
                 PuppetPose pose = _puppet.Pose;
                 Assert.That(_puppet.IsWalking, Is.True, "frame " + i);
@@ -160,8 +176,11 @@ namespace Cryptforge.Tests
                 leftSwung |= pose.KneeLeft > pose.KneeRight + 15f;
                 rightSwung |= pose.KneeRight > pose.KneeLeft + 15f;
             }
-            Assert.That(hipHigh - hipLow, Is.GreaterThan(PuppetGait.HipSwing), "The thighs swing through the stride.");
-            Assert.That(turnHigh - turnLow, Is.GreaterThan(PuppetGait.HipSwing), "and the thigh's transform with them.");
+            Assert.That(hipHigh - hipLow, Is.GreaterThan(30f), "The thighs swing through the stride.");
+            Assert.That(turnHigh - turnLow, Is.GreaterThan(30f), "and the thigh's transform with them.");
+            Assert.That(askedAt, Is.GreaterThan(0), "Leftward travel asks for the mirror.");
+            Assert.That(shownAt - askedAt, Is.InRange(1, 4), "The figure on show swaps a few frames later, mid-turn.");
+            Assert.That(narrowest, Is.LessThan(.6f), "through a narrow width.");
             Assert.That(leftSwung && rightSwung, Is.True, "Each foot swings through in turn.");
             Assert.That(_puppet.Mirrored, Is.True, "Leftward travel mirrors the puppet.");
             Assert.That(_puppet.Root.localScale.x, Is.EqualTo(-1f));
@@ -262,22 +281,26 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        // The Forge Burst (AbilityController.Used): a crouch, a raise over the helmet and the slam, over the stride.
+        // The Forge Burst (AbilityController.Used): its shockwave leaves on the press, so the slam's impact is on screen
+        // within two frames, then the hero rises with the weapon in front; all over the stride.
         [UnityTest]
-        public IEnumerator TheAbilitySlamsDownOverTheStride()
+        public IEnumerator TheAbilitySlamsDownAtOnceOverTheStride()
         {
             var ability = _puppet.GetComponent<AbilityController>();
             _movement.Hold(Vector2.right);
             for (int i = 0; i < 20; i++) yield return null;
+            float before = _puppet.Pose.Lift;
             Assert.That(ability.TryUse(), Is.True);
             Assert.That(_puppet.IsCasting, Is.True, "The slam starts with the ability.");
-            float raised = float.MinValue, lowest = 0f, hipLow = float.MaxValue, hipHigh = float.MinValue;
+            float highest = float.MinValue, lowest = 0f, hipLow = float.MaxValue, hipHigh = float.MinValue;
             int frames = Mathf.CeilToInt(PuppetGait.CastSeconds * 60f) + 2;
             for (int i = 0; i < frames; i++)
             {
                 yield return null;
                 PuppetPose pose = _puppet.Pose;
-                raised = Mathf.Max(raised, pose.ShoulderRight);
+                if (i == 1)
+                    Assert.That(pose.Lift, Is.LessThan(before - .015f), "Two frames after the press the hero is in the slam.");
+                highest = Mathf.Max(highest, pose.ShoulderRight);
                 lowest = Mathf.Min(lowest, pose.Lift);
                 hipLow = Mathf.Min(hipLow, pose.HipLeft);
                 hipHigh = Mathf.Max(hipHigh, pose.HipLeft);
@@ -285,8 +308,8 @@ namespace Cryptforge.Tests
             }
             _movement.Release();
             Assert.That(_puppet.IsCasting, Is.False, "and ends.");
-            Assert.That(raised, Is.GreaterThan(120f), "The arms went up over the helmet.");
             Assert.That(lowest, Is.LessThan(-.02f), "The slam crouched the hero.");
+            Assert.That(highest, Is.LessThan(90f), "and it rose with the weapon in front, never back over the helmet.");
             Assert.That(hipHigh - hipLow, Is.GreaterThan(5f), "while its legs kept striding.");
             Assert.That(_attack.AttackCount, Is.Zero, "The puppet never attacks on its own.");
             LogAssert.NoUnexpectedReceived();
@@ -351,6 +374,9 @@ namespace Cryptforge.Tests
         public IEnumerator AHitFlinchesTheUpperBodyAndFlashesEveryPart()
         {
             PuppetPose rest = _puppet.Pose;
+            var sword = GameObject.Find("Sword Placeholder").GetComponent<SpriteRenderer>();
+            var shield = GameObject.Find("Shield Placeholder").GetComponent<SpriteRenderer>();
+            Material swordMaterial = sword.sharedMaterial;
             _look.GetComponent<Health>().ApplyDamage(new DamageContext(1));
             Assert.That(_puppet.GaitInput.Flinch, Is.EqualTo(1f), "The hit starts the flinch at once.");
             yield return null;
@@ -361,11 +387,18 @@ namespace Cryptforge.Tests
                 Assert.That(rig.Renderer(i).sprite, Is.SameAs(_puppet.Art.Rear.Parts[i].Flash), rig.Renderer(i).name);
                 Assert.That(rig.Renderer(i).color, Is.EqualTo(Color.white));
             }
+            // The weapons have no white copies: they flash through the silhouette material instead.
+            foreach (SpriteRenderer weapon in new[] { sword, shield })
+            {
+                Assert.That(weapon.sharedMaterial.shader.name, Is.EqualTo("Cryptforge/Rendered Character Flash"), weapon.name);
+                Assert.That(weapon.color, Is.EqualTo(Color.white), weapon.name);
+            }
             for (int i = 0; i < 30; i++) yield return null;
             Assert.That(_puppet.GaitInput.Flinch, Is.Zero);
             Assert.That(_puppet.Pose.Lean, Is.EqualTo(rest.Lean).Within(1e-4f), "It recovers.");
             for (int i = 0; i < rig.PartCount; i++)
                 Assert.That(rig.Renderer(i).sprite, Is.SameAs(_puppet.Art.Rear.Parts[i].Sprite), "The flash ends.");
+            Assert.That(sword.sharedMaterial, Is.SameAs(swordMaterial), "and the weapons have their own material back.");
             LogAssert.NoUnexpectedReceived();
         }
 
