@@ -280,3 +280,17 @@ stay for a later painted pass.
   - Known flaws: one windup frame per facing, so a Warden walking through the 1.1 s telegraph glides with the hammer
     up; the mirrored right side swaps the hammer and chain hands; the raised hammer can pass under the top HUD at the
     top of the view (the camera-fit test still measures the pixel Warden); the fall is the horde's, not a boss's.
+- **The Runner, the Tank and the Grunt Captain** - each had walked as the painted Grunt inherited from
+  `Grunt.prefab`; each prefab now sets its own `EnemyArtSet` in the Grunt's format (six frames front and rear, two
+  remains) under `Assets/_Project/Art/Characters/{Runner,Tank,GruntCaptain}/` (1.97 MB as ASTC 4x4 for the three).
+  `Tools/ArtReview/BuildBlenderFoundryEnemies.py` renders the Runner and the Tank in Blender with the material tuned
+  against the painted Grunt's own value bands; `build_foundry_enemies.py` kitbashes the Captain from the Grunt's
+  masters (scaled 1.15, ember red) under a rendered brass helm and Warning Bell, and writes the sprites and sets;
+  `ArtDirection/2026-10-27/foundry-enemies-01/` holds the .blend files and a README.
+  - The Runner is a lean shard sprinter on reverse-jointed legs with a white-hot heart; the Tank a basalt slab under
+    riveted soot-iron plates with a furnace grille.
+  - Their pixel-era attack nudges (and the Warden's) went to zero, as the Grunt's did when it was painted: on painted
+    frames the dip sank the feet below the contact shadow.
+  - Known flaws: zoomed in, the Runner and the Tank show flat rendered facets beside the Grunt's painted gradients (at
+    phone scale they read as one family); the Captain's brass was placed by eye per frame; like the Grunt, no windup
+    frames and mirroring flips the light.
