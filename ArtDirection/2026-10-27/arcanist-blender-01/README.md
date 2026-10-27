@@ -39,10 +39,18 @@ mantle, robe), frames the face, and is very legible on orange. `--hood light` re
 - Five facings (south, south-east, east, north-east, north) by turning the rig; the camera and the key light never
   move, so the light comes from the screen's upper left in every frame. The game mirrors the east facings for the west.
 - The root stays on the floor origin, which projects to the same pixel corner in every frame: the sprite pivot.
-- Cycles CPU, materials emit their own toon shading (no lights): soft painted value steps, a brush-like value drift
-  fixed to the undeformed surface, baked contact occlusion (rays from every vertex in the stance), a cool rim, a faint
-  ember bounce from below, a brass highlight. Rendered at 4x (880 px for 2.2 units) and box-filtered down in linear
-  light with premultiplied alpha, then given a one-texel dark outline: 100 texels a world unit.
+- Cycles CPU, materials emit their own toon shading (no lights): soft painted value steps under a strong top-left key
+  (the planes turned full to it lift further, as on the painted Vanguard), a brush-like value drift fixed to the
+  undeformed surface, deep baked occlusion in the folds and under hood, mantle and belt (rays from every vertex in the
+  stance), a cool rim, a thin warm rim from behind on the lower right (the foundry's fires), a faint ember bounce from
+  below, brass highlights with pin-point glints, and a soot gradient climbing the robe toward its scorched hem.
+- The crucible is a light: a warm point placed at the staff's head every frame and scaled with its flare lights what
+  faces it (the cowl's side, the shoulder, the fist, the brass cup); its embers and flame are emissive cores; and the
+  pack step lays a soft ember halo round it after the outline (no dark ring), wider and stronger at the strike's and
+  the Vent's flare, nearly out in death.
+- Rendered at 4x (880 px for 2.2 units) and box-filtered down in linear light with premultiplied alpha, then given a
+  one-texel dark outline: 100 texels a world unit. The cyan pivot marks on the review contact sheets are drawn by
+  `ReviewArcanistSprites.py` only; the renders and the atlases contain none.
 
 ## Clips
 
@@ -60,9 +68,9 @@ mantle, robe), frames the face, and is very legible on orange. `--hood light` re
 
 ## Atlases and memory
 
-`Assets/_Project/Art/Characters/CinderArcanist/CHR_CinderArcanist_{0,1,2}.png`: 1024x1024, 1024x1024 and 1024x664,
-2,777,088 texels at 90% fill. As ASTC 4x4 (8 bits a texel, the Android override in each .meta): **2.65 MB**, against
-the 4 MB budget (RGBA32 would be 10.6 MB). Sprite rects and pivots are in each texture's .meta; the art set
+`Assets/_Project/Art/Characters/CinderArcanist/CHR_CinderArcanist_{0,1,2}.png`: 1024x1024, 1024x1024 and 1024x652,
+2,764,800 texels at 91% fill. As ASTC 4x4 (8 bits a texel, the Android override in each .meta): **2.64 MB**, against
+the 4 MB budget (RGBA32 would be 10.5 MB). Sprite rects and pivots are in each texture's .meta; the art set
 `CinderArcanistArtSet.asset` (a `RenderedCharacterArtSet`) lists the frames per motion and facing. Bilinear, no mipmaps,
 not readable, 100 pixels a unit; the S23 shows 120 pixels a unit, so Ilya is drawn at 1.2x (the painted Vanguard,
 at 128, slightly below 1x).
@@ -86,8 +94,9 @@ The raw 4x frames go to `TestResults/arcanist-render` (ignored). Re-packing keep
 
 ## Limits and next steps
 
-- Shading is a clean toon, flatter and less rendered than the painted Vanguard's metal; the robe could take deeper
-  modelled folds and a painted cloth texture.
+- The value range is now close to the painted Vanguard's, but the surfaces stay cleaner and more matte than its
+  painted metal; the robe could take deeper modelled folds and a painted cloth texture. The soot-dark cowl sits near
+  the dark stone floor's value and separates there by its outline, rim and ash tip (on orange it reads at once).
 - The flame in the lens is about 3 pixels on the phone: it reads as a living ember in the goggles, not as a face. The
   four flame faces (docs/45 P4) would be a separate small overlay.
 - Mirroring the west facings flips the light and the asymmetric details (hood lean, flame lens) to the other side, as

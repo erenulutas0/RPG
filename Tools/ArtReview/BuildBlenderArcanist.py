@@ -141,6 +141,8 @@ TOWARD = -FORWARD
 KEY = (-0.52 * RIGHT + 0.78 * UP + 0.36 * TOWARD).normalized()
 # A cool rim from behind the upper left, so the far edge of a light robe still separates from a light floor.
 RIM = (-0.65 * RIGHT + 0.55 * UP - 0.52 * TOWARD).normalized()
+# A thin warm rim from behind, low on the right: the foundry's fires, opposite the cool key.
+WARM_RIM = (0.55 * RIGHT - 0.3 * UP - 0.78 * TOWARD).normalized()
 HALF = (KEY + TOWARD).normalized()
 
 
@@ -155,7 +157,8 @@ def build_toon_group():
             ('Shadow', 'NodeSocketColor', (.2, .2, .2, 1)), ('Deep', 'NodeSocketColor', (.05, .05, .05, 1)),
             ('Glow', 'NodeSocketColor', (0, 0, 0, 1)), ('Spec', 'NodeSocketFloat', 0.0),
             ('Spec Color', 'NodeSocketColor', (1, 1, 1, 1)), ('Rim', 'NodeSocketFloat', 0.35),
-            ('Occlusion', 'NodeSocketFloat', 1.0), ('Band Shift', 'NodeSocketFloat', 0.0)]:
+            ('Occlusion', 'NodeSocketFloat', 1.0), ('Band Shift', 'NodeSocketFloat', 0.0),
+            ('Glint', 'NodeSocketFloat', 0.0)]:
         socket = io.new_socket(name, in_out='INPUT', socket_type=kind)
         socket.default_value = default
     # A colour, not a shader: materials mix zones as colours and emit once. (Cycles 4.5 here evaluated a Mix Shader
@@ -220,11 +223,13 @@ def build_toon_group():
     half_lambert = math_node('MULTIPLY_ADD', dot(normal, vec(KEY)), 0.5, 0.5)
     lit = math_node('ADD', half_lambert, gi.outputs['Band Shift'])
     # Painted value steps with wide, soft transitions - shadow, the local colour, the lit plane - so folds and the
-    # body's turn read as gradients, as on the painted Vanguard, while the large planes keep a clean colour.
-    first = step(lit, 0.3, 0.56)
-    second = step(lit, 0.64, 0.9)
+    # body's turn read as gradients, as on the painted Vanguard, while the large planes keep a clean colour. The planes
+    # turned full to the key lift further still: the Vanguard's strong top-left key.
+    first = step(lit, 0.32, 0.56)
+    second = step(lit, 0.6, 0.86)
     colour = mix(first, gi.outputs['Shadow'], gi.outputs['Mid'])
     colour = mix(second, colour, gi.outputs['Light'])
+    colour = add_colour(colour, gi.outputs['Light'], math_node('MULTIPLY', step(lit, 0.86, 0.98), 0.1))
     # A loose brush breakup, about six per cent either way: a low-frequency drift on the undeformed surface (Generated
     # coordinates), so it sticks to the cloth in every pose instead of crawling.
     coords = n.new('ShaderNodeTexCoord')
@@ -241,14 +246,40 @@ def build_toon_group():
     l.new(colour, paint.inputs['Color1'])
     l.new(drift.outputs[0], paint.inputs['Color2'])
     colour = paint.outputs['Color']
-    # Baked contact occlusion (1 open, 0 closed) pulls toward the deep colour: under the hood, the mantle, the belt.
-    closed = math_node('SUBTRACT', 1.0, step(gi.outputs['Occlusion'], 0.2, 0.95))
-    colour = mix(math_node('MULTIPLY', closed, 0.9), colour, gi.outputs['Deep'])
+    # Baked contact occlusion (1 open, 0 closed) pulls hard toward the deep colour: the fold valleys, under the hood,
+    # the mantle and the belt.
+    closed = math_node('SUBTRACT', 1.0, step(gi.outputs['Occlusion'], 0.3, 0.97))
+    colour = mix(closed, colour, gi.outputs['Deep'])
     # The foundry's glow from below: surfaces turned down catch a faint ember bounce.
     bounce = math_node('MULTIPLY', math_node('MAXIMUM', dot(normal, vec(Vector((0, 0, -1)))), 0.0), 0.16)
     warm = n.new('ShaderNodeRGB')
     warm.outputs[0].default_value = lin('#FF7A3A')
     colour = add_colour(colour, warm.outputs[0], bounce)
+    # The crucible is a light: a warm point at the staff's head, placed and scaled with its flare every frame by
+    # apply(), lights what faces it - the hood's side, the shoulder, the fist, the brass of the cup - and falls off
+    # within a few tenths of a unit.
+    crucible = n.new('ShaderNodeCombineXYZ')
+    crucible.name = 'Crucible position'
+    crucible_strength = n.new('ShaderNodeValue')
+    crucible_strength.name = 'Crucible strength'
+    crucible_strength.outputs[0].default_value = 1.0
+    to_light = n.new('ShaderNodeVectorMath')
+    to_light.operation = 'SUBTRACT'
+    l.new(crucible.outputs[0], to_light.inputs[0])
+    l.new(geo.outputs['Position'], to_light.inputs[1])
+    length = n.new('ShaderNodeVectorMath')
+    length.operation = 'LENGTH'
+    l.new(to_light.outputs['Vector'], length.inputs[0])
+    toward = n.new('ShaderNodeVectorMath')
+    toward.operation = 'NORMALIZE'
+    l.new(to_light.outputs['Vector'], toward.inputs[0])
+    falloff = math_node('DIVIDE', 1.0, math_node('ADD', 1.0, math_node('POWER', math_node(
+        'DIVIDE', length.outputs['Value'], 0.13), 2.0)))
+    ember_light = math_node('MULTIPLY', math_node('MAXIMUM', dot(normal, toward.outputs['Vector']), 0.0), falloff)
+    ember_light = math_node('MULTIPLY', math_node('MULTIPLY', ember_light, crucible_strength.outputs[0]), 0.32)
+    ember = n.new('ShaderNodeRGB')
+    ember.outputs[0].default_value = lin('#FF8A3D')
+    colour = add_colour(colour, ember.outputs[0], ember_light)
     # A cool rim on edges turned to the upper left and away: separates the light robe from a light floor.
     facing = n.new('ShaderNodeLayerWeight')
     facing.inputs['Blend'].default_value = 0.4
@@ -258,10 +289,20 @@ def build_toon_group():
     rim_colour = n.new('ShaderNodeRGB')
     rim_colour.outputs[0].default_value = lin('#C9D6FF')
     colour = add_colour(colour, rim_colour.outputs[0], math_node('MULTIPLY', rim, 0.45))
-    # A hard painted highlight for brass and glass.
-    spec = math_node('POWER', math_node('MAXIMUM', dot(normal, vec(HALF)), 0.0), 48.0)
-    spec = math_node('MULTIPLY', step(spec, 0.35, 0.55), gi.outputs['Spec'])
+    # A thin warm rim from behind on the lower right, the foundry's fires: only the last sliver of the silhouette.
+    warm_rim = math_node('MULTIPLY', step(facing.outputs['Facing'], 0.7, 0.92),
+                         math_node('MAXIMUM', dot(normal, vec(WARM_RIM)), 0.0))
+    warm_rim_colour = n.new('ShaderNodeRGB')
+    warm_rim_colour.outputs[0].default_value = lin('#FF9C55')
+    colour = add_colour(colour, warm_rim_colour.outputs[0], math_node('MULTIPLY', warm_rim, 0.55))
+    # A hard painted highlight for brass and glass, and a pin-point glint inside it.
+    half = math_node('MAXIMUM', dot(normal, vec(HALF)), 0.0)
+    spec = math_node('MULTIPLY', step(math_node('POWER', half, 48.0), 0.35, 0.55), gi.outputs['Spec'])
     colour = add_colour(colour, gi.outputs['Spec Color'], spec)
+    glint_colour = n.new('ShaderNodeRGB')
+    glint_colour.outputs[0].default_value = lin('#FFFDF0')
+    glint = math_node('MULTIPLY', step(math_node('POWER', half, 220.0), 0.4, 0.7), gi.outputs['Glint'])
+    colour = add_colour(colour, glint_colour.outputs[0], glint)
     glow = n.new('ShaderNodeMixRGB')
     glow.blend_type = 'ADD'
     glow.inputs['Fac'].default_value = 1.0
@@ -275,11 +316,13 @@ TOON = build_toon_group()
 
 PALETTES = {
     # light, mid, shadow, deep
-    'robe': ('#F1ECE2', '#D8CFC2', '#B3A9B3', '#7A707E'),
+    'robe': ('#F8F4EC', '#D8CFC2', '#A59BA8', '#665C6C'),
+    # The robe's soot, deepening toward the hem.
+    'sooted': ('#C2B9B4', '#9B9190', '#6E6468', '#3A3236'),
     'lining': ('#8E7F86', '#6E6068', '#4E434B', '#2E262D'),
-    'soot': ('#5A4E5C', '#352C38', '#201B22', '#120E14'),
+    'soot': ('#66596C', '#352C38', '#1C171E', '#0F0C11'),
     'scorch': ('#8A786C', '#6A5A52', '#4A3D3A', '#2A2120'),
-    'charcoal': ('#8C7F86', '#544950', '#2F282F', '#181418'),
+    'charcoal': ('#7F7279', '#4D434A', '#2A242A', '#141015'),
     'ash': ('#CFC7C0', '#A89F9A', '#7B7275', '#463E42'),
     'leather': ('#7A5A48', '#54392E', '#33221C', '#1C120F'),
     'skin': ('#F7D7BC', '#E5B494', '#B07D6C', '#6E4842'),
@@ -325,7 +368,7 @@ class Shading:
         node.outputs[0].default_value = v
         return node.outputs[0], node
 
-    def toon(self, palette, spec=0.0, spec_color='#FFF4D6', rim=0.35, band_shift=0.0, occlusion=True):
+    def toon(self, palette, spec=0.0, spec_color='#FFF4D6', rim=0.35, band_shift=0.0, occlusion=True, glint=0.0):
         light, mid, shadow, deep = PALETTES[palette] if isinstance(palette, str) else palette
         g = self.nodes.new('ShaderNodeGroup')
         g.node_tree = TOON
@@ -334,6 +377,7 @@ class Shading:
         g.inputs['Shadow'].default_value = lin(shadow)
         g.inputs['Deep'].default_value = lin(deep)
         g.inputs['Spec'].default_value = spec
+        g.inputs['Glint'].default_value = glint
         g.inputs['Spec Color'].default_value = lin(spec_color)
         g.inputs['Rim'].default_value = rim
         g.inputs['Band Shift'].default_value = band_shift
@@ -438,7 +482,7 @@ def build_materials():
     m['outline'] = outline_material()
     for name in ['skin', 'hair', 'glove', 'cloth', 'boot', 'eye', 'soot', 'leather']:
         m[name] = plain(name.title(), name)
-    m['brass'] = plain('Brass', 'brass', spec=0.9)
+    m['brass'] = plain('Brass', 'brass', spec=1.2, spec_color='#FFF1C4', glint=1.6)
     m['piping'] = plain('Ash piping', 'ash' if HOOD == 'dark' else 'soot', rim=0.5)
     m['wood'] = plain('Cracked wood', 'wood', spec=0.15, spec_color='#C9A27A')
     ember = EMBER
@@ -453,7 +497,10 @@ def build_materials():
     front_seam = s.math('MAXIMUM', s.band(u, 0.035, 0.048), s.band(u, 0.952, 0.965))
     front_seam = s.math('MULTIPLY', front_seam, s.step(s.noise(11.0), 0.46, 0.56))
     glow = s.math('MAXIMUM', seam, front_seam)
-    colour = s.mix(scorch, s.toon('robe'), s.toon('scorch'))
+    # Soot climbs the robe from the hem: a smooth gradient over its lower half, then the scorched, ragged edge.
+    sooted = s.math('MULTIPLY', s.math('POWER', s.math('SUBTRACT', 1.0, s.step(v, 0.05, 0.55)), 1.5), 0.8)
+    colour = s.mix(sooted, s.toon('robe'), s.toon('sooted'))
+    colour = s.mix(scorch, colour, s.toon('scorch'))
     colour = s.mix(trim, colour, s.toon('soot'))
     colour = s.mix(s.backfacing(), colour, s.toon('lining', rim=0.0))
     colour = s.mix(glow, colour, s.rgb(ember))
@@ -489,10 +536,10 @@ def build_materials():
     # light) was rejected: a tall pale hood over a pale robe read as one white column. Lining soot inside.
     s = Shading('Cowl')
     u, v = s.uv()
-    scorch = s.math('MULTIPLY', s.step(v, 0.5, 0.68), s.math('ADD', 0.78, s.math('MULTIPLY', 0.22, s.noise(12.0))))
+    scorch = s.math('MULTIPLY', s.step(v, 0.66, 0.84), s.math('ADD', 0.78, s.math('MULTIPLY', 0.22, s.noise(12.0))))
     colour = s.mix(scorch, s.toon('robe', band_shift=0.02), s.toon('charcoal'))
     if HOOD == 'dark':
-        colour = s.mix(scorch, s.toon('charcoal', rim=0.9), s.toon('ash', rim=0.5))
+        colour = s.mix(scorch, s.toon('charcoal', rim=0.4), s.toon('ash', rim=0.3))
     colour = s.mix(s.backfacing(), colour, s.toon('lining', rim=0.0))
     colour = s.mix(s.step(v, 0.95, 0.98), colour, s.rgb('#F28A3C'))
     m['hood'] = s.finish(colour)
@@ -507,8 +554,8 @@ def build_materials():
     m['sleeve'] = s.finish(s.mix(glow, colour, s.rgb(ember)))
 
     # Emissive accents. Their strength is a Value node the frame loop drives (flicker, flare, death).
-    for key, core, edge in [('lens-flame', '#FFE7A0', '#F2862F'), ('crucible', '#FFC56A', '#E77232'),
-                            ('flask', '#FFB25A', '#E2652A'), ('flame', '#FFF0B0', '#F08A30'),
+    for key, core, edge in [('lens-flame', '#FFE7A0', '#F2862F'), ('crucible', '#FFEBB0', '#F07A30'),
+                            ('flask', '#FFB25A', '#E2652A'), ('flame', '#FFFBE2', '#F59040'),
                             ('crack', '#FFB070', '#E77232')]:
         s = Shading('Ember ' + key)
         strength, node = s.value(1.0)
@@ -1364,23 +1411,39 @@ class Solver:
         return {'upper_arm.' + s: W_upper, 'forearm.' + s: W_fore, 'hand.' + s: hand_rot}
 
 
+def rig_matrix():
+    # From the rig's channels rather than matrix_world, which lags a facing change until the next depsgraph update.
+    return Matrix.LocRotScale(RIG.location, RIG.rotation_euler, RIG.scale)
+
+
+def crucible_world(solver):
+    return rig_matrix() @ (solver.G['staff'] @ CRUCIBLE_REST)
+
+
 def apply(pose):
-    basis = Solver(pose).solve()
+    solver = Solver(pose)
+    basis = solver.solve()
     for b, m in basis.items():
         RIG.pose.bones[b].matrix_basis = m
     for key, value in pose.glow.items():
         node = MATERIALS[key].node_tree.nodes.get('Ember strength')
         if node:
             node.outputs[0].default_value = value
+    # The crucible's light (the toon group's warm point) follows the staff's head and its flare.
+    at = crucible_world(solver)
+    light = TOON.nodes['Crucible position']
+    for i in range(3):
+        light.inputs[i].default_value = at[i]
+    TOON.nodes['Crucible strength'].outputs[0].default_value = pose.glow['crucible']
     return basis
 
 
 def crucible_screen(pose):
     """The crucible's mouth on screen, in world units from the floor origin (unmirrored), recorded per frame in
-    frames.json for effects that want to start at the staff's head."""
+    frames.json: the pack step lays the crucible's glow there, and effects may start there."""
     solver = Solver(pose)
     solver.solve()
-    world = RIG.matrix_world @ (solver.G['staff'] @ CRUCIBLE_REST)
+    world = crucible_world(solver)
     return (world.dot(RIGHT), world.dot(UP))
 
 
@@ -1689,7 +1752,7 @@ def bake_occlusion():
         norm = sum(d.z for d in dirs)
         attr = obj.data.color_attributes.new('occlusion', 'FLOAT_COLOR', 'POINT')
         for i, o in enumerate(values):
-            open_ = max(0.0, 1 - 1.6 * o / norm)
+            open_ = max(0.0, 1 - 2.1 * o / norm)
             attr.data[i].color = (open_, open_, open_, 1.0)
 
 
@@ -1740,7 +1803,7 @@ def render_all():
                 bpy.ops.render.render(write_still=True)
                 cx, cy = crucible_screen(pose)
                 records.append(dict(facing=facing, clip=clip, frame=k, file=str(path.relative_to(OUT)).replace('\\', '/'),
-                                    crucible=[round(cx, 5), round(cy, 5)]))
+                                    crucible=[round(cx, 5), round(cy, 5)], flare=round(pose.glow['crucible'], 4)))
                 print('ARCANIST_FRAME', facing, clip, k, '%.1fs' % (time.time() - started), flush=True)
     meta = dict(blender=bpy.app.version_string, ppu=PPU, supersample=SS, canvas=CANVAS, pivot=PIVOT,
                 elevation_degrees=30, height_compensation=HEIGHT, stride=STRIDE,

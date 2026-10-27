@@ -102,9 +102,6 @@ TextureImporter:
       213: -7945665454920899118
     second: walk_east_4
   - first:
-      213: 5260170767055621062
-    second: walk_east_6
-  - first:
       213: -2004089670328156900
     second: walk_east_7
   - first:
@@ -147,6 +144,9 @@ TextureImporter:
       213: -4504354172697856092
     second: strike_south_4
   - first:
+      213: 1480747568094224070
+    second: strike_east_0
+  - first:
       213: 5588302223107105861
     second: strike_east_1
   - first:
@@ -159,11 +159,17 @@ TextureImporter:
       213: -1867209742572994855
     second: strike_east_4
   - first:
-      213: -764129080295411726
-    second: strike_north-east_4
+      213: 3627093924205106622
+    second: cast_south_2
   - first:
       213: 9141414144203439173
     second: cast_south_4
+  - first:
+      213: -6437370680682678399
+    second: cast_south-east_4
+  - first:
+      213: -8193302974832018312
+    second: cast_east_1
   - first:
       213: 6012767471448100631
     second: cast_east_2
@@ -189,8 +195,8 @@ TextureImporter:
       213: 4442075814084163663
     second: hit_south-east_1
   - first:
-      213: 5507329006472728994
-    second: hit_south-east_2
+      213: 1404803787735137532
+    second: hit_north-east_1
   - first:
       213: -2865724026052067422
     second: hit_north-east_2
@@ -219,9 +225,6 @@ TextureImporter:
       213: -964224932764981510
     second: death_south-east_4
   - first:
-      213: -5816071480006833532
-    second: death_east_0
-  - first:
       213: -7215747290211994172
     second: death_east_3
   - first:
@@ -233,12 +236,6 @@ TextureImporter:
   - first:
       213: 1513489284442786347
     second: death_north-east_1
-  - first:
-      213: 6183888894540540538
-    second: death_north-east_4
-  - first:
-      213: 676418898349107961
-    second: death_north_0
   - first:
       213: -4954472039243696838
     second: death_north_1
@@ -356,8 +353,8 @@ TextureImporter:
       name: idle_south_0
       rect:
         serializedVersion: 2
-        x: 284
-        y: 401
+        x: 394
+        y: 399
         width: 66
         height: 152
       alignment: 9
@@ -378,8 +375,8 @@ TextureImporter:
       name: idle_south_1
       rect:
         serializedVersion: 2
-        x: 350
-        y: 401
+        x: 460
+        y: 399
         width: 66
         height: 152
       alignment: 9
@@ -400,12 +397,12 @@ TextureImporter:
       name: idle_south_2
       rect:
         serializedVersion: 2
-        x: 812
-        y: 250
+        x: 743
+        y: 399
         width: 66
-        height: 151
+        height: 153
       alignment: 9
-      pivot: {x: 0.53030303, y: 0.04635762}
+      pivot: {x: 0.53030303, y: 0.04575163}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -422,8 +419,8 @@ TextureImporter:
       name: idle_south_3
       rect:
         serializedVersion: 2
-        x: 416
-        y: 401
+        x: 929
+        y: 248
         width: 66
         height: 152
       alignment: 9
@@ -444,12 +441,12 @@ TextureImporter:
       name: idle_south_4
       rect:
         serializedVersion: 2
-        x: 878
-        y: 250
+        x: 195
+        y: 247
         width: 66
-        height: 151
+        height: 152
       alignment: 9
-      pivot: {x: 0.53030303, y: 0.04635762}
+      pivot: {x: 0.53030303, y: 0.04605263}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -466,12 +463,12 @@ TextureImporter:
       name: idle_south_5
       rect:
         serializedVersion: 2
-        x: 944
-        y: 250
+        x: 261
+        y: 247
         width: 66
-        height: 151
+        height: 152
       alignment: 9
-      pivot: {x: 0.53030303, y: 0.04635762}
+      pivot: {x: 0.53030303, y: 0.04605263}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -488,12 +485,12 @@ TextureImporter:
       name: idle_south_6
       rect:
         serializedVersion: 2
-        x: 724
-        y: 249
+        x: 327
+        y: 247
         width: 66
-        height: 151
+        height: 152
       alignment: 9
-      pivot: {x: 0.53030303, y: 0.04635762}
+      pivot: {x: 0.53030303, y: 0.04605263}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -510,12 +507,12 @@ TextureImporter:
       name: idle_south_7
       rect:
         serializedVersion: 2
-        x: 930
-        y: 100
+        x: 393
+        y: 247
         width: 66
-        height: 150
+        height: 152
       alignment: 9
-      pivot: {x: 0.53030303, y: 0.04666667}
+      pivot: {x: 0.53030303, y: 0.04605263}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -532,8 +529,8 @@ TextureImporter:
       name: idle_east_0
       rect:
         serializedVersion: 2
-        x: 544
-        y: 401
+        x: 0
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -554,8 +551,8 @@ TextureImporter:
       name: idle_east_1
       rect:
         serializedVersion: 2
-        x: 604
-        y: 401
+        x: 523
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -576,8 +573,8 @@ TextureImporter:
       name: idle_east_2
       rect:
         serializedVersion: 2
-        x: 60
-        y: 249
+        x: 583
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -598,8 +595,8 @@ TextureImporter:
       name: idle_east_3
       rect:
         serializedVersion: 2
-        x: 120
-        y: 249
+        x: 643
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -620,8 +617,8 @@ TextureImporter:
       name: idle_east_4
       rect:
         serializedVersion: 2
-        x: 0
-        y: 400
+        x: 809
+        y: 399
         width: 60
         height: 153
       alignment: 9
@@ -642,8 +639,8 @@ TextureImporter:
       name: idle_east_5
       rect:
         serializedVersion: 2
-        x: 180
-        y: 249
+        x: 703
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -664,8 +661,8 @@ TextureImporter:
       name: idle_east_6
       rect:
         serializedVersion: 2
-        x: 240
-        y: 249
+        x: 763
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -686,8 +683,8 @@ TextureImporter:
       name: idle_east_7
       rect:
         serializedVersion: 2
-        x: 300
-        y: 249
+        x: 823
+        y: 247
         width: 60
         height: 152
       alignment: 9
@@ -708,8 +705,8 @@ TextureImporter:
       name: idle_north-east_0
       rect:
         serializedVersion: 2
-        x: 486
-        y: 553
+        x: 949
+        y: 552
         width: 63
         height: 155
       alignment: 9
@@ -730,8 +727,8 @@ TextureImporter:
       name: idle_north-east_1
       rect:
         serializedVersion: 2
-        x: 389
-        y: 708
+        x: 87
+        y: 707
         width: 63
         height: 156
       alignment: 9
@@ -752,7 +749,7 @@ TextureImporter:
       name: idle_north-east_2
       rect:
         serializedVersion: 2
-        x: 0
+        x: 150
         y: 707
         width: 63
         height: 156
@@ -774,7 +771,7 @@ TextureImporter:
       name: idle_north-east_3
       rect:
         serializedVersion: 2
-        x: 63
+        x: 213
         y: 707
         width: 63
         height: 156
@@ -796,8 +793,8 @@ TextureImporter:
       name: idle_north-east_4
       rect:
         serializedVersion: 2
-        x: 705
-        y: 710
+        x: 348
+        y: 551
         width: 62
         height: 155
       alignment: 9
@@ -818,8 +815,8 @@ TextureImporter:
       name: idle_north-east_5
       rect:
         serializedVersion: 2
-        x: 705
-        y: 555
+        x: 410
+        y: 551
         width: 62
         height: 155
       alignment: 9
@@ -840,8 +837,8 @@ TextureImporter:
       name: idle_north-east_6
       rect:
         serializedVersion: 2
-        x: 612
-        y: 553
+        x: 472
+        y: 551
         width: 62
         height: 155
       alignment: 9
@@ -862,8 +859,8 @@ TextureImporter:
       name: idle_north-east_7
       rect:
         serializedVersion: 2
-        x: 549
-        y: 553
+        x: 0
+        y: 551
         width: 63
         height: 155
       alignment: 9
@@ -884,12 +881,12 @@ TextureImporter:
       name: walk_south_5
       rect:
         serializedVersion: 2
-        x: 654
-        y: 250
+        x: 324
+        y: 399
         width: 70
-        height: 151
+        height: 152
       alignment: 9
-      pivot: {x: 0.54285714, y: 0.07947020}
+      pivot: {x: 0.54285714, y: 0.07894737}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -906,8 +903,8 @@ TextureImporter:
       name: walk_south_6
       rect:
         serializedVersion: 2
-        x: 674
-        y: 401
+        x: 534
+        y: 552
         width: 70
         height: 154
       alignment: 9
@@ -928,12 +925,12 @@ TextureImporter:
       name: walk_south_7
       rect:
         serializedVersion: 2
-        x: 719
-        y: 102
+        x: 743
+        y: 99
         width: 70
-        height: 147
+        height: 148
       alignment: 9
-      pivot: {x: 0.54285714, y: 0.05442177}
+      pivot: {x: 0.54285714, y: 0.05405405}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -950,8 +947,8 @@ TextureImporter:
       name: walk_south-east_1
       rect:
         serializedVersion: 2
-        x: 223
-        y: 101
+        x: 672
+        y: 99
         width: 71
         height: 148
       alignment: 9
@@ -972,8 +969,8 @@ TextureImporter:
       name: walk_east_0
       rect:
         serializedVersion: 2
-        x: 502
-        y: 250
+        x: 883
+        y: 97
         width: 78
         height: 151
       alignment: 9
@@ -994,8 +991,8 @@ TextureImporter:
       name: walk_east_1
       rect:
         serializedVersion: 2
-        x: 192
-        y: 401
+        x: 929
+        y: 400
         width: 92
         height: 152
       alignment: 9
@@ -1016,8 +1013,8 @@ TextureImporter:
       name: walk_east_2
       rect:
         serializedVersion: 2
-        x: 0
-        y: 553
+        x: 234
+        y: 399
         width: 90
         height: 154
       alignment: 9
@@ -1038,8 +1035,8 @@ TextureImporter:
       name: walk_east_3
       rect:
         serializedVersion: 2
-        x: 420
-        y: 250
+        x: 60
+        y: 247
         width: 82
         height: 151
       alignment: 9
@@ -1060,8 +1057,8 @@ TextureImporter:
       name: walk_east_4
       rect:
         serializedVersion: 2
-        x: 145
-        y: 101
+        x: 594
+        y: 99
         width: 78
         height: 148
       alignment: 9
@@ -1079,33 +1076,11 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: walk_east_6
-      rect:
-        serializedVersion: 2
-        x: 294
-        y: 102
-        width: 74
-        height: 147
-      alignment: 9
-      pivot: {x: 0.51351351, y: 0.06802721}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: da9172521673eecfd17b1b90ea640cb9
-      internalID: 5260170767055621062
-      vertices: []
-      indices:
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: walk_east_7
       rect:
         serializedVersion: 2
-        x: 790
-        y: 100
+        x: 379
+        y: 97
         width: 70
         height: 150
       alignment: 9
@@ -1126,12 +1101,12 @@ TextureImporter:
       name: walk_north-east_4
       rect:
         serializedVersion: 2
-        x: 767
-        y: 708
+        x: 629
+        y: 864
         width: 85
-        height: 158
+        height: 160
       alignment: 9
-      pivot: {x: 0.43529412, y: 0.08860759}
+      pivot: {x: 0.43529412, y: 0.08750000}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1148,12 +1123,12 @@ TextureImporter:
       name: walk_north-east_5
       rect:
         serializedVersion: 2
-        x: 767
-        y: 554
+        x: 276
+        y: 708
         width: 80
-        height: 154
+        height: 155
       alignment: 9
-      pivot: {x: 0.48750000, y: 0.07142857}
+      pivot: {x: 0.48750000, y: 0.07096774}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1170,12 +1145,12 @@ TextureImporter:
       name: walk_north-east_6
       rect:
         serializedVersion: 2
-        x: 90
+        x: 276
         y: 553
         width: 72
-        height: 154
+        height: 155
       alignment: 9
-      pivot: {x: 0.48611111, y: 0.07792208}
+      pivot: {x: 0.48611111, y: 0.07741935}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1192,12 +1167,12 @@ TextureImporter:
       name: walk_north-east_7
       rect:
         serializedVersion: 2
-        x: 144
-        y: 707
+        x: 923
+        y: 865
         width: 75
-        height: 157
+        height: 159
       alignment: 9
-      pivot: {x: 0.45333333, y: 0.09554140}
+      pivot: {x: 0.45333333, y: 0.09433962}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1214,7 +1189,7 @@ TextureImporter:
       name: walk-strike_east_0
       rect:
         serializedVersion: 2
-        x: 144
+        x: 360
         y: 864
         width: 135
         height: 160
@@ -1236,7 +1211,7 @@ TextureImporter:
       name: walk-strike_east_1
       rect:
         serializedVersion: 2
-        x: 491
+        x: 786
         y: 865
         width: 137
         height: 159
@@ -1258,12 +1233,12 @@ TextureImporter:
       name: walk-strike_east_2
       rect:
         serializedVersion: 2
-        x: 852
-        y: 709
+        x: 786
+        y: 707
         width: 129
-        height: 157
+        height: 158
       alignment: 9
-      pivot: {x: 0.27906977, y: 0.08917197}
+      pivot: {x: 0.27906977, y: 0.08860759}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1280,8 +1255,8 @@ TextureImporter:
       name: walk-strike_east_3
       rect:
         serializedVersion: 2
-        x: 767
-        y: 866
+        x: 360
+        y: 706
         width: 127
         height: 158
       alignment: 9
@@ -1302,8 +1277,8 @@ TextureImporter:
       name: walk-strike_east_4
       rect:
         serializedVersion: 2
-        x: 219
-        y: 553
+        x: 614
+        y: 552
         width: 134
         height: 155
       alignment: 9
@@ -1324,8 +1299,8 @@ TextureImporter:
       name: walk-strike_east_5
       rect:
         serializedVersion: 2
-        x: 812
-        y: 401
+        x: 534
+        y: 399
         width: 138
         height: 153
       alignment: 9
@@ -1346,8 +1321,8 @@ TextureImporter:
       name: walk-strike_east_6
       rect:
         serializedVersion: 2
-        x: 353
-        y: 553
+        x: 748
+        y: 552
         width: 133
         height: 155
       alignment: 9
@@ -1368,12 +1343,12 @@ TextureImporter:
       name: walk-strike_east_7
       rect:
         serializedVersion: 2
-        x: 491
-        y: 708
+        x: 487
+        y: 706
         width: 127
-        height: 157
+        height: 158
       alignment: 9
-      pivot: {x: 0.26771654, y: 0.08917197}
+      pivot: {x: 0.26771654, y: 0.08860759}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1390,12 +1365,12 @@ TextureImporter:
       name: strike_south_4
       rect:
         serializedVersion: 2
-        x: 80
-        y: 100
+        x: 449
+        y: 97
         width: 65
-        height: 149
+        height: 150
       alignment: 9
-      pivot: {x: 0.52307692, y: 0.06040268}
+      pivot: {x: 0.52307692, y: 0.06000000}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1409,10 +1384,32 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: strike_east_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 863
+        width: 107
+        height: 161
+      alignment: 9
+      pivot: {x: 0.31775701, y: 0.08074534}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0481dfa3fe69ba687a03fb76bf20cdd
+      internalID: 1480747568094224070
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: strike_east_1
       rect:
         serializedVersion: 2
-        x: 279
+        x: 495
         y: 864
         width: 134
         height: 160
@@ -1434,12 +1431,12 @@ TextureImporter:
       name: strike_east_2
       rect:
         serializedVersion: 2
-        x: 60
-        y: 401
+        x: 63
+        y: 398
         width: 132
-        height: 152
+        height: 154
       alignment: 9
-      pivot: {x: 0.28030303, y: 0.08552632}
+      pivot: {x: 0.28030303, y: 0.08441558}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1456,8 +1453,8 @@ TextureImporter:
       name: strike_east_3
       rect:
         serializedVersion: 2
-        x: 618
-        y: 708
+        x: 0
+        y: 706
         width: 87
         height: 157
       alignment: 9
@@ -1478,8 +1475,8 @@ TextureImporter:
       name: strike_east_4
       rect:
         serializedVersion: 2
-        x: 482
-        y: 401
+        x: 0
+        y: 399
         width: 62
         height: 152
       alignment: 9
@@ -1497,23 +1494,23 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: strike_north-east_4
+      name: cast_south_2
       rect:
         serializedVersion: 2
-        x: 700
-        y: 865
-        width: 67
-        height: 159
+        x: 142
+        y: 271
+        width: 52
+        height: 127
       alignment: 9
-      pivot: {x: 0.44776119, y: 0.08176101}
+      pivot: {x: 0.50000000, y: 0.08661417}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dc9d5271c30cf64b2cdd9c23be867d29
-      internalID: -764129080295411726
+      spriteID: 80078ac0f16a8b57bdbb5202ea64a1f2
+      internalID: 3627093924205106622
       vertices: []
       indices:
       edges: []
@@ -1522,12 +1519,12 @@ TextureImporter:
       name: cast_south_4
       rect:
         serializedVersion: 2
-        x: 486
-        y: 99
+        x: 459
+        y: 247
         width: 64
-        height: 151
+        height: 152
       alignment: 9
-      pivot: {x: 0.51562500, y: 0.06622517}
+      pivot: {x: 0.51562500, y: 0.06578947}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1541,11 +1538,55 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: cast_south-east_4
+      rect:
+        serializedVersion: 2
+        x: 961
+        y: 101
+        width: 63
+        height: 147
+      alignment: 9
+      pivot: {x: 0.52380952, y: 0.07482993}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84b56238a496431ceaa30b9ffa3c8736
+      internalID: -6437370680682678399
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cast_east_1
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 863
+        width: 97
+        height: 161
+      alignment: 9
+      pivot: {x: 0.43298969, y: 0.08695652}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38c5736c2894b00f8ed20a1e84ee89d7
+      internalID: -8193302974832018312
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: cast_east_2
       rect:
         serializedVersion: 2
-        x: 852
-        y: 554
+        x: 87
+        y: 552
         width: 147
         height: 155
       alignment: 9
@@ -1566,8 +1607,8 @@ TextureImporter:
       name: cast_east_3
       rect:
         serializedVersion: 2
-        x: 894
-        y: 866
+        x: 915
+        y: 707
         width: 101
         height: 158
       alignment: 9
@@ -1588,8 +1629,8 @@ TextureImporter:
       name: cast_east_4
       rect:
         serializedVersion: 2
-        x: 950
-        y: 401
+        x: 672
+        y: 399
         width: 71
         height: 153
       alignment: 9
@@ -1610,12 +1651,12 @@ TextureImporter:
       name: cast_north-east_4
       rect:
         serializedVersion: 2
-        x: 628
-        y: 865
+        x: 714
+        y: 864
         width: 72
-        height: 159
+        height: 160
       alignment: 9
-      pivot: {x: 0.50000000, y: 0.08805031}
+      pivot: {x: 0.50000000, y: 0.08750000}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1632,7 +1673,7 @@ TextureImporter:
       name: hit_south_1
       rect:
         serializedVersion: 2
-        x: 0
+        x: 204
         y: 863
         width: 78
         height: 161
@@ -1654,12 +1695,12 @@ TextureImporter:
       name: hit_south_2
       rect:
         serializedVersion: 2
-        x: 744
-        y: 400
+        x: 881
+        y: 552
         width: 68
-        height: 154
+        height: 155
       alignment: 9
-      pivot: {x: 0.51470588, y: 0.04545455}
+      pivot: {x: 0.51470588, y: 0.04516129}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1676,8 +1717,8 @@ TextureImporter:
       name: hit_south-east_0
       rect:
         serializedVersion: 2
-        x: 550
-        y: 100
+        x: 210
+        y: 97
         width: 85
         height: 150
       alignment: 9
@@ -1698,8 +1739,8 @@ TextureImporter:
       name: hit_south-east_1
       rect:
         serializedVersion: 2
-        x: 580
-        y: 250
+        x: 0
+        y: 96
         width: 74
         height: 151
       alignment: 9
@@ -1717,23 +1758,23 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: hit_south-east_2
+      name: hit_north-east_1
       rect:
         serializedVersion: 2
-        x: 0
-        y: 251
-        width: 59
-        height: 149
+        x: 813
+        y: 100
+        width: 66
+        height: 147
       alignment: 9
-      pivot: {x: 0.49152542, y: 0.06711409}
+      pivot: {x: 0.53030303, y: 0.09523810}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7b3028bdd6075278e515ba11bc0236b7
-      internalID: 5507329006472728994
+      spriteID: f5a6877db72b90ac9ea4d58201fdecd8
+      internalID: 1404803787735137532
       vertices: []
       indices:
       edges: []
@@ -1742,12 +1783,12 @@ TextureImporter:
       name: hit_north-east_2
       rect:
         serializedVersion: 2
-        x: 360
-        y: 249
+        x: 869
+        y: 399
         width: 60
-        height: 152
+        height: 153
       alignment: 9
-      pivot: {x: 0.46666667, y: 0.08552632}
+      pivot: {x: 0.46666667, y: 0.08496732}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -1764,8 +1805,8 @@ TextureImporter:
       name: hit_north_0
       rect:
         serializedVersion: 2
-        x: 635
-        y: 100
+        x: 295
+        y: 97
         width: 84
         height: 150
       alignment: 9
@@ -1786,7 +1827,7 @@ TextureImporter:
       name: hit_north_1
       rect:
         serializedVersion: 2
-        x: 312
+        x: 707
         y: 708
         width: 77
         height: 156
@@ -1808,8 +1849,8 @@ TextureImporter:
       name: death_south_0
       rect:
         serializedVersion: 2
-        x: 420
-        y: 99
+        x: 144
+        y: 96
         width: 66
         height: 151
       alignment: 9
@@ -1830,8 +1871,8 @@ TextureImporter:
       name: death_south_3
       rect:
         serializedVersion: 2
-        x: 795
-        y: 23
+        x: 455
+        y: 20
         width: 105
         height: 77
       alignment: 9
@@ -1852,8 +1893,8 @@ TextureImporter:
       name: death_south_4
       rect:
         serializedVersion: 2
-        x: 392
-        y: 29
+        x: 0
+        y: 26
         width: 109
         height: 70
       alignment: 9
@@ -1874,8 +1915,8 @@ TextureImporter:
       name: death_south-east_2
       rect:
         serializedVersion: 2
-        x: 299
-        y: 4
+        x: 594
+        y: 1
         width: 93
         height: 98
       alignment: 9
@@ -1896,8 +1937,8 @@ TextureImporter:
       name: death_south-east_3
       rect:
         serializedVersion: 2
-        x: 688
-        y: 23
+        x: 348
+        y: 20
         width: 107
         height: 77
       alignment: 9
@@ -1918,8 +1959,8 @@ TextureImporter:
       name: death_south-east_4
       rect:
         serializedVersion: 2
-        x: 900
-        y: 25
+        x: 813
+        y: 22
         width: 109
         height: 75
       alignment: 9
@@ -1937,33 +1978,11 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: death_east_0
-      rect:
-        serializedVersion: 2
-        x: 162
-        y: 559
-        width: 53
-        height: 148
-      alignment: 9
-      pivot: {x: 0.60377358, y: 0.08108108}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3fb197b41369c9e7e4a5aa13352a63e7
-      internalID: -5816071480006833532
-      vertices: []
-      indices:
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: death_east_3
       rect:
         serializedVersion: 2
-        x: 0
-        y: 16
+        x: 687
+        y: 15
         width: 126
         height: 84
       alignment: 9
@@ -1984,8 +2003,8 @@ TextureImporter:
       name: death_east_4
       rect:
         serializedVersion: 2
-        x: 550
-        y: 20
+        x: 210
+        y: 17
         width: 138
         height: 80
       alignment: 9
@@ -2006,12 +2025,12 @@ TextureImporter:
       name: death_north-east_0
       rect:
         serializedVersion: 2
-        x: 860
-        y: 100
+        x: 74
+        y: 96
         width: 70
-        height: 150
+        height: 151
       alignment: 9
-      pivot: {x: 0.52857143, y: 0.09333333}
+      pivot: {x: 0.52857143, y: 0.09271523}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -2028,8 +2047,8 @@ TextureImporter:
       name: death_north-east_1
       rect:
         serializedVersion: 2
-        x: 0
-        y: 100
+        x: 514
+        y: 98
         width: 80
         height: 149
       alignment: 9
@@ -2047,59 +2066,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: death_north-east_4
-      rect:
-        serializedVersion: 2
-        x: 145
-        y: 0
-        width: 154
-        height: 101
-      alignment: 9
-      pivot: {x: 0.30519481, y: 0.24752475}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 45738e63e855acaa893658fbfcd17dc1
-      internalID: 6183888894540540538
-      vertices: []
-      indices:
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: death_north_0
-      rect:
-        serializedVersion: 2
-        x: 78
-        y: 863
-        width: 66
-        height: 161
-      alignment: 9
-      pivot: {x: 0.46969697, y: 0.08695652}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0eaee6e826839eb4080f2c392ae816c4
-      internalID: 676418898349107961
-      vertices: []
-      indices:
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: death_north_1
       rect:
         serializedVersion: 2
-        x: 413
-        y: 864
+        x: 282
+        y: 863
         width: 78
-        height: 160
+        height: 161
       alignment: 9
-      pivot: {x: 0.38461538, y: 0.10625000}
+      pivot: {x: 0.38461538, y: 0.10559006}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -2116,12 +2091,12 @@ TextureImporter:
       name: death_north_2
       rect:
         serializedVersion: 2
-        x: 219
-        y: 708
+        x: 614
+        y: 707
         width: 93
-        height: 156
+        height: 157
       alignment: 9
-      pivot: {x: 0.31182796, y: 0.16666667}
+      pivot: {x: 0.31182796, y: 0.16560510}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -2181,7 +2156,6 @@ TextureImporter:
       walk_east_2: -8605124469487436484
       walk_east_3: -6734196462256403331
       walk_east_4: -7945665454920899118
-      walk_east_6: 5260170767055621062
       walk_east_7: -2004089670328156900
       walk_north-east_4: 2797061264936213571
       walk_north-east_5: 4755328427356610339
@@ -2196,12 +2170,15 @@ TextureImporter:
       walk-strike_east_6: 3723292241397938612
       walk-strike_east_7: -3359796833731405049
       strike_south_4: -4504354172697856092
+      strike_east_0: 1480747568094224070
       strike_east_1: 5588302223107105861
       strike_east_2: 8725854788807915107
       strike_east_3: -6197512194261017866
       strike_east_4: -1867209742572994855
-      strike_north-east_4: -764129080295411726
+      cast_south_2: 3627093924205106622
       cast_south_4: 9141414144203439173
+      cast_south-east_4: -6437370680682678399
+      cast_east_1: -8193302974832018312
       cast_east_2: 6012767471448100631
       cast_east_3: -7809824789999791670
       cast_east_4: 3573826418920868493
@@ -2210,7 +2187,7 @@ TextureImporter:
       hit_south_2: 7740734923763780944
       hit_south-east_0: 4645982681151459810
       hit_south-east_1: 4442075814084163663
-      hit_south-east_2: 5507329006472728994
+      hit_north-east_1: 1404803787735137532
       hit_north-east_2: -2865724026052067422
       hit_north_0: -6668429812955194096
       hit_north_1: -4353771137861461520
@@ -2220,13 +2197,10 @@ TextureImporter:
       death_south-east_2: 996804258457420319
       death_south-east_3: 5037472383509653661
       death_south-east_4: -964224932764981510
-      death_east_0: -5816071480006833532
       death_east_3: -7215747290211994172
       death_east_4: -8378621778869524724
       death_north-east_0: 3259109534681529241
       death_north-east_1: 1513489284442786347
-      death_north-east_4: 6183888894540540538
-      death_north_0: 676418898349107961
       death_north_1: -4954472039243696838
       death_north_2: 5676454558632521678
   mipmapLimitGroupName:

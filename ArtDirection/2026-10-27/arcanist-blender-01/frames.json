@@ -11,8 +11,8 @@
     1024,
     1024
    ],
-   "sprites": 76,
-   "sha256": "cd23bde5ab0cac987478c3b884c581f95bebbff4659433c68a9c44fc025c2fd5"
+   "sprites": 79,
+   "sha256": "ca22a6ac12aa0f1e0a60e3730c356a8878788adce4371e91bb90c4d2b0638def"
   },
   {
    "file": "CHR_CinderArcanist_1.png",
@@ -21,18 +21,18 @@
     1024,
     1024
    ],
-   "sprites": 81,
-   "sha256": "fa888be2cd502c11e569e8c00d0b5ecc035de3e74ad424960f828c7062aeeeb6"
+   "sprites": 80,
+   "sha256": "2b198b9c0c51129cd82171f3b542fd94dcca8477f1ef333b42d002455b729064"
   },
   {
    "file": "CHR_CinderArcanist_2.png",
    "guid": "4bbd6d49cdbc42db9ccfa6222ed9f430",
    "size": [
     1024,
-    664
+    652
    ],
-   "sprites": 53,
-   "sha256": "a5827261f83876fe4d9b81e53c4afb9070e370f00eed70d192e46c614f0e6341"
+   "sprites": 51,
+   "sha256": "3bfd35e7485df29b12432f9a271c29db7ba09077dd1037be837b0bf0c949b5ae"
   }
  ],
  "pixels_per_unit": 100,
@@ -46,18 +46,18 @@
  ],
  "stride": 1.2,
  "memory": {
-  "astc_4x4_bytes": 2777088,
-  "rgba32_bytes": 11108352,
-  "frame_texels": 2496480,
-  "fill": 0.899
+  "astc_4x4_bytes": 2764800,
+  "rgba32_bytes": 11059200,
+  "frame_texels": 2511477,
+  "fill": 0.908
  },
  "frames": [
   {
    "name": "idle_south_0",
    "atlas": 1,
    "rect": [
-    284,
-    401,
+    394,
+    399,
     66,
     152
    ],
@@ -69,14 +69,15 @@
     -0.25422,
     1.33197
    ],
+   "flare": 0.9841,
    "source": "south/idle_0.png"
   },
   {
    "name": "idle_south_1",
    "atlas": 1,
    "rect": [
-    350,
-    401,
+    460,
+    399,
     66,
     152
    ],
@@ -88,33 +89,35 @@
     -0.25422,
     1.3348
    ],
+   "flare": 0.9988,
    "source": "south/idle_1.png"
   },
   {
    "name": "idle_south_2",
    "atlas": 1,
    "rect": [
-    812,
-    250,
+    743,
+    399,
     66,
-    151
+    153
    ],
    "pivot": [
     0.530303,
-    0.046358
+    0.045752
    ],
    "crucible": [
     -0.25422,
     1.33597
    ],
+   "flare": 0.9687,
    "source": "south/idle_2.png"
   },
   {
    "name": "idle_south_3",
    "atlas": 1,
    "rect": [
-    416,
-    401,
+    929,
+    248,
     66,
     152
    ],
@@ -126,90 +129,95 @@
     -0.25422,
     1.3348
    ],
+   "flare": 0.9763,
    "source": "south/idle_3.png"
   },
   {
    "name": "idle_south_4",
    "atlas": 1,
    "rect": [
-    878,
-    250,
+    195,
+    247,
     66,
-    151
+    152
    ],
    "pivot": [
     0.530303,
-    0.046358
+    0.046053
    ],
    "crucible": [
     -0.25422,
     1.33197
    ],
+   "flare": 0.9529,
    "source": "south/idle_4.png"
   },
   {
    "name": "idle_south_5",
    "atlas": 1,
    "rect": [
-    944,
-    250,
+    261,
+    247,
     66,
-    151
+    152
    ],
    "pivot": [
     0.530303,
-    0.046358
+    0.046053
    ],
    "crucible": [
     -0.25422,
     1.32915
    ],
+   "flare": 0.9581,
    "source": "south/idle_5.png"
   },
   {
    "name": "idle_south_6",
    "atlas": 1,
    "rect": [
-    724,
-    249,
+    327,
+    247,
     66,
-    151
+    152
    ],
    "pivot": [
     0.530303,
-    0.046358
+    0.046053
    ],
    "crucible": [
     -0.25422,
     1.32797
    ],
+   "flare": 0.9457,
    "source": "south/idle_6.png"
   },
   {
    "name": "idle_south_7",
    "atlas": 1,
    "rect": [
-    930,
-    100,
+    393,
+    247,
     66,
-    150
+    152
    ],
    "pivot": [
     0.530303,
-    0.046667
+    0.046053
    ],
    "crucible": [
     -0.25422,
     1.32915
    ],
+   "flare": 0.9518,
    "source": "south/idle_7.png"
   },
   {
    "name": "idle_south-east_0",
-   "atlas": 2,
+   "atlas": 0,
    "rect": [
-    0,
-    517,
+    965,
+    8,
     58,
     147
    ],
@@ -221,14 +229,15 @@
     -0.13849,
     1.25064
    ],
+   "flare": 0.9841,
    "source": "south-east/idle_0.png"
   },
   {
    "name": "idle_south-east_1",
    "atlas": 2,
    "rect": [
-    58,
-    517,
+    74,
+    505,
     58,
     147
    ],
@@ -240,14 +249,15 @@
     -0.13849,
     1.25347
    ],
+   "flare": 0.9988,
    "source": "south-east/idle_1.png"
   },
   {
    "name": "idle_south-east_2",
    "atlas": 2,
    "rect": [
-    116,
-    517,
+    132,
+    505,
     58,
     147
    ],
@@ -259,14 +269,15 @@
     -0.13849,
     1.25464
    ],
+   "flare": 0.9687,
    "source": "south-east/idle_2.png"
   },
   {
    "name": "idle_south-east_3",
    "atlas": 2,
    "rect": [
-    174,
-    517,
+    190,
+    505,
     58,
     147
    ],
@@ -278,14 +289,15 @@
     -0.13849,
     1.25347
    ],
+   "flare": 0.9763,
    "source": "south-east/idle_3.png"
   },
   {
    "name": "idle_south-east_4",
    "atlas": 2,
    "rect": [
-    232,
-    517,
+    248,
+    505,
     58,
     147
    ],
@@ -297,14 +309,15 @@
     -0.13849,
     1.25064
    ],
+   "flare": 0.9529,
    "source": "south-east/idle_4.png"
   },
   {
    "name": "idle_south-east_5",
    "atlas": 2,
    "rect": [
-    290,
-    517,
+    306,
+    505,
     58,
     147
    ],
@@ -316,33 +329,35 @@
     -0.13849,
     1.24781
    ],
+   "flare": 0.9581,
    "source": "south-east/idle_5.png"
   },
   {
    "name": "idle_south-east_6",
    "atlas": 2,
    "rect": [
-    727,
-    518,
+    364,
+    505,
     58,
-    146
+    147
    ],
    "pivot": [
     0.5,
-    0.068493
+    0.068027
    ],
    "crucible": [
     -0.13849,
     1.24664
    ],
+   "flare": 0.9457,
    "source": "south-east/idle_6.png"
   },
   {
    "name": "idle_south-east_7",
    "atlas": 2,
    "rect": [
-    348,
-    517,
+    422,
+    505,
     58,
     147
    ],
@@ -354,14 +369,15 @@
     -0.13849,
     1.24781
    ],
+   "flare": 0.9518,
    "source": "south-east/idle_7.png"
   },
   {
    "name": "idle_east_0",
    "atlas": 1,
    "rect": [
-    544,
-    401,
+    0,
+    247,
     60,
     152
    ],
@@ -373,14 +389,15 @@
     0.05836,
     1.23405
    ],
+   "flare": 0.9841,
    "source": "east/idle_0.png"
   },
   {
    "name": "idle_east_1",
    "atlas": 1,
    "rect": [
-    604,
-    401,
+    523,
+    247,
     60,
     152
    ],
@@ -392,14 +409,15 @@
     0.05836,
     1.23688
    ],
+   "flare": 0.9988,
    "source": "east/idle_1.png"
   },
   {
    "name": "idle_east_2",
    "atlas": 1,
    "rect": [
-    60,
-    249,
+    583,
+    247,
     60,
     152
    ],
@@ -411,14 +429,15 @@
     0.05836,
     1.23805
    ],
+   "flare": 0.9687,
    "source": "east/idle_2.png"
   },
   {
    "name": "idle_east_3",
    "atlas": 1,
    "rect": [
-    120,
-    249,
+    643,
+    247,
     60,
     152
    ],
@@ -430,14 +449,15 @@
     0.05836,
     1.23688
    ],
+   "flare": 0.9763,
    "source": "east/idle_3.png"
   },
   {
    "name": "idle_east_4",
    "atlas": 1,
    "rect": [
-    0,
-    400,
+    809,
+    399,
     60,
     153
    ],
@@ -449,14 +469,15 @@
     0.05836,
     1.23405
    ],
+   "flare": 0.9529,
    "source": "east/idle_4.png"
   },
   {
    "name": "idle_east_5",
    "atlas": 1,
    "rect": [
-    180,
-    249,
+    703,
+    247,
     60,
     152
    ],
@@ -468,14 +489,15 @@
     0.05836,
     1.23122
    ],
+   "flare": 0.9581,
    "source": "east/idle_5.png"
   },
   {
    "name": "idle_east_6",
    "atlas": 1,
    "rect": [
-    240,
-    249,
+    763,
+    247,
     60,
     152
    ],
@@ -487,14 +509,15 @@
     0.05836,
     1.23005
    ],
+   "flare": 0.9457,
    "source": "east/idle_6.png"
   },
   {
    "name": "idle_east_7",
    "atlas": 1,
    "rect": [
-    300,
-    249,
+    823,
+    247,
     60,
     152
    ],
@@ -506,14 +529,15 @@
     0.05836,
     1.23122
    ],
+   "flare": 0.9518,
    "source": "east/idle_7.png"
   },
   {
    "name": "idle_north-east_0",
    "atlas": 1,
    "rect": [
-    486,
-    553,
+    949,
+    552,
     63,
     155
    ],
@@ -525,14 +549,15 @@
     0.22103,
     1.29191
    ],
+   "flare": 0.9841,
    "source": "north-east/idle_0.png"
   },
   {
    "name": "idle_north-east_1",
    "atlas": 1,
    "rect": [
-    389,
-    708,
+    87,
+    707,
     63,
     156
    ],
@@ -544,13 +569,14 @@
     0.22103,
     1.29474
    ],
+   "flare": 0.9988,
    "source": "north-east/idle_1.png"
   },
   {
    "name": "idle_north-east_2",
    "atlas": 1,
    "rect": [
-    0,
+    150,
     707,
     63,
     156
@@ -563,13 +589,14 @@
     0.22103,
     1.29591
    ],
+   "flare": 0.9687,
    "source": "north-east/idle_2.png"
   },
   {
    "name": "idle_north-east_3",
    "atlas": 1,
    "rect": [
-    63,
+    213,
     707,
     63,
     156
@@ -582,14 +609,15 @@
     0.22103,
     1.29474
    ],
+   "flare": 0.9763,
    "source": "north-east/idle_3.png"
   },
   {
    "name": "idle_north-east_4",
    "atlas": 1,
    "rect": [
-    705,
-    710,
+    348,
+    551,
     62,
     155
    ],
@@ -601,14 +629,15 @@
     0.22103,
     1.29191
    ],
+   "flare": 0.9529,
    "source": "north-east/idle_4.png"
   },
   {
    "name": "idle_north-east_5",
    "atlas": 1,
    "rect": [
-    705,
-    555,
+    410,
+    551,
     62,
     155
    ],
@@ -620,14 +649,15 @@
     0.22103,
     1.28908
    ],
+   "flare": 0.9581,
    "source": "north-east/idle_5.png"
   },
   {
    "name": "idle_north-east_6",
    "atlas": 1,
    "rect": [
-    612,
-    553,
+    472,
+    551,
     62,
     155
    ],
@@ -639,14 +669,15 @@
     0.22103,
     1.28791
    ],
+   "flare": 0.9457,
    "source": "north-east/idle_6.png"
   },
   {
    "name": "idle_north-east_7",
    "atlas": 1,
    "rect": [
-    549,
-    553,
+    0,
+    551,
     63,
     155
    ],
@@ -658,14 +689,15 @@
     0.22103,
     1.28908
    ],
+   "flare": 0.9518,
    "source": "north-east/idle_7.png"
   },
   {
    "name": "idle_north_0",
    "atlas": 0,
    "rect": [
-    913,
-    307,
+    684,
+    305,
     66,
     164
    ],
@@ -677,14 +709,15 @@
     0.25422,
     1.39034
    ],
+   "flare": 0.9841,
    "source": "north/idle_0.png"
   },
   {
    "name": "idle_north_1",
    "atlas": 0,
    "rect": [
-    63,
-    300,
+    839,
+    143,
     66,
     163
    ],
@@ -696,14 +729,15 @@
     0.25422,
     1.39317
    ],
+   "flare": 0.9988,
    "source": "north/idle_1.png"
   },
   {
    "name": "idle_north_2",
    "atlas": 0,
    "rect": [
-    281,
-    145,
+    287,
+    142,
     66,
     163
    ],
@@ -715,14 +749,15 @@
     0.25422,
     1.39434
    ],
+   "flare": 0.9687,
    "source": "north/idle_2.png"
   },
   {
    "name": "idle_north_3",
    "atlas": 0,
    "rect": [
-    449,
-    144,
+    671,
+    142,
     66,
     163
    ],
@@ -734,14 +769,15 @@
     0.25422,
     1.39317
    ],
+   "flare": 0.9763,
    "source": "north/idle_3.png"
   },
   {
    "name": "idle_north_4",
    "atlas": 0,
    "rect": [
-    759,
-    306,
+    539,
+    303,
     66,
     164
    ],
@@ -753,51 +789,14 @@
     0.25422,
     1.39034
    ],
+   "flare": 0.9529,
    "source": "north/idle_4.png"
   },
   {
    "name": "idle_north_5",
    "atlas": 0,
    "rect": [
-    669,
-    305,
-    66,
-    164
-   ],
-   "pivot": [
-    0.469697,
-    0.079268
-   ],
-   "crucible": [
-    0.25422,
-    1.38751
-   ],
-   "source": "north/idle_5.png"
-  },
-  {
-   "name": "idle_north_6",
-   "atlas": 0,
-   "rect": [
-    825,
-    144,
-    66,
-    163
-   ],
-   "pivot": [
-    0.469697,
-    0.079755
-   ],
-   "crucible": [
-    0.25422,
-    1.38634
-   ],
-   "source": "north/idle_6.png"
-  },
-  {
-   "name": "idle_north_7",
-   "atlas": 0,
-   "rect": [
-    580,
+    605,
     303,
     66,
     164
@@ -810,52 +809,95 @@
     0.25422,
     1.38751
    ],
+   "flare": 0.9581,
+   "source": "north/idle_5.png"
+  },
+  {
+   "name": "idle_north_6",
+   "atlas": 0,
+   "rect": [
+    354,
+    302,
+    66,
+    164
+   ],
+   "pivot": [
+    0.469697,
+    0.079268
+   ],
+   "crucible": [
+    0.25422,
+    1.38634
+   ],
+   "flare": 0.9457,
+   "source": "north/idle_6.png"
+  },
+  {
+   "name": "idle_north_7",
+   "atlas": 0,
+   "rect": [
+    70,
+    299,
+    66,
+    164
+   ],
+   "pivot": [
+    0.469697,
+    0.079268
+   ],
+   "crucible": [
+    0.25422,
+    1.38751
+   ],
+   "flare": 0.9518,
    "source": "north/idle_7.png"
   },
   {
    "name": "walk_south_0",
-   "atlas": 0,
+   "atlas": 2,
    "rect": [
-    712,
-    1,
+    894,
+    507,
     70,
-    143
+    145
    ],
    "pivot": [
     0.542857,
-    0.083916
+    0.082759
    ],
    "crucible": [
     -0.27905,
     1.21101
    ],
+   "flare": 0.9841,
    "source": "south/walk_0.png"
   },
   {
    "name": "walk_south_1",
-   "atlas": 2,
+   "atlas": 0,
    "rect": [
-    406,
-    381,
+    328,
+    3,
     70,
-    137
+    138
    ],
    "pivot": [
     0.542857,
-    0.087591
+    0.086957
    ],
    "crucible": [
     -0.27704,
     1.14483
    ],
+   "flare": 0.9988,
    "source": "south/walk_1.png"
   },
   {
    "name": "walk_south_2",
    "atlas": 2,
    "rect": [
-    476,
-    248,
+    929,
+    237,
     69,
     134
    ],
@@ -867,71 +909,75 @@
     -0.27599,
     1.11565
    ],
+   "flare": 0.9687,
    "source": "south/walk_2.png"
   },
   {
    "name": "walk_south_3",
    "atlas": 2,
    "rect": [
-    281,
-    248,
+    407,
+    370,
     70,
-    134
+    135
    ],
    "pivot": [
     0.542857,
-    0.067164
+    0.066667
    ],
    "crucible": [
     -0.27704,
     1.14483
    ],
+   "flare": 0.9763,
    "source": "south/walk_3.png"
   },
   {
    "name": "walk_south_4",
-   "atlas": 0,
+   "atlas": 2,
    "rect": [
-    444,
-    0,
+    480,
+    506,
     70,
-    144
+    146
    ],
    "pivot": [
     0.542857,
-    0.090278
+    0.089041
    ],
    "crucible": [
     -0.27905,
     1.21101
    ],
+   "flare": 0.9529,
    "source": "south/walk_4.png"
   },
   {
    "name": "walk_south_5",
    "atlas": 1,
    "rect": [
-    654,
-    250,
+    324,
+    399,
     70,
-    151
+    152
    ],
    "pivot": [
     0.542857,
-    0.07947
+    0.078947
    ],
    "crucible": [
     -0.28031,
     1.28488
    ],
+   "flare": 0.9581,
    "source": "south/walk_5.png"
   },
   {
    "name": "walk_south_6",
    "atlas": 1,
    "rect": [
-    674,
-    401,
+    534,
+    552,
     70,
     154
    ],
@@ -943,33 +989,35 @@
     -0.2806,
     1.31347
    ],
+   "flare": 0.9457,
    "source": "south/walk_6.png"
   },
   {
    "name": "walk_south_7",
    "atlas": 1,
    "rect": [
-    719,
-    102,
+    743,
+    99,
     70,
-    147
+    148
    ],
    "pivot": [
     0.542857,
-    0.054422
+    0.054054
    ],
    "crucible": [
     -0.28031,
     1.28488
    ],
+   "flare": 0.9518,
    "source": "south/walk_7.png"
   },
   {
    "name": "walk_south-east_0",
    "atlas": 2,
    "rect": [
-    473,
-    518,
+    617,
+    506,
     66,
     146
    ],
@@ -981,14 +1029,15 @@
     -0.01087,
     1.15097
    ],
+   "flare": 0.9841,
    "source": "south-east/walk_0.png"
   },
   {
    "name": "walk_south-east_1",
    "atlas": 1,
    "rect": [
-    223,
-    101,
+    672,
+    99,
     71,
     148
    ],
@@ -1000,14 +1049,15 @@
     0.06704,
     1.10134
    ],
+   "flare": 0.9988,
    "source": "south-east/walk_1.png"
   },
   {
    "name": "walk_south-east_2",
    "atlas": 2,
    "rect": [
-    406,
-    518,
+    550,
+    506,
     67,
     146
    ],
@@ -1019,14 +1069,15 @@
     0.09903,
     1.079
    ],
+   "flare": 0.9687,
    "source": "south-east/walk_2.png"
   },
   {
    "name": "walk_south-east_3",
    "atlas": 0,
    "rect": [
-    160,
-    2,
+    0,
+    1,
     64,
     141
    ],
@@ -1038,14 +1089,15 @@
     0.06704,
     1.10134
    ],
+   "flare": 0.9763,
    "source": "south-east/walk_3.png"
   },
   {
    "name": "walk_south-east_4",
    "atlas": 2,
    "rect": [
-    711,
-    382,
+    105,
+    369,
     73,
     136
    ],
@@ -1057,14 +1109,15 @@
     -0.01087,
     1.15097
    ],
+   "flare": 0.9529,
    "source": "south-east/walk_4.png"
   },
   {
    "name": "walk_south-east_5",
    "atlas": 0,
    "rect": [
-    0,
-    1,
+    881,
+    4,
     76,
     138
    ],
@@ -1076,13 +1129,14 @@
     -0.08934,
     1.20832
    ],
+   "flare": 0.9581,
    "source": "south-east/walk_5.png"
   },
   {
    "name": "walk_south-east_6",
    "atlas": 0,
    "rect": [
-    345,
+    195,
     2,
     69,
     140
@@ -1095,14 +1149,15 @@
     -0.12188,
     1.23011
    ],
+   "flare": 0.9457,
    "source": "south-east/walk_6.png"
   },
   {
    "name": "walk_south-east_7",
    "atlas": 2,
    "rect": [
-    785,
-    519,
+    742,
+    362,
     63,
     145
    ],
@@ -1114,14 +1169,15 @@
     -0.08934,
     1.20832
    ],
+   "flare": 0.9518,
    "source": "south-east/walk_7.png"
   },
   {
    "name": "walk_east_0",
    "atlas": 1,
    "rect": [
-    502,
-    250,
+    883,
+    97,
     78,
     151
    ],
@@ -1133,14 +1189,15 @@
     0.26368,
     1.20332
    ],
+   "flare": 0.9841,
    "source": "east/walk_0.png"
   },
   {
    "name": "walk_east_1",
    "atlas": 1,
    "rect": [
-    192,
-    401,
+    929,
+    400,
     92,
     152
    ],
@@ -1152,14 +1209,15 @@
     0.37185,
     1.19223
    ],
+   "flare": 0.9988,
    "source": "east/walk_1.png"
   },
   {
    "name": "walk_east_2",
    "atlas": 1,
    "rect": [
-    0,
-    553,
+    234,
+    399,
     90,
     154
    ],
@@ -1171,14 +1229,15 @@
     0.41603,
     1.18567
    ],
+   "flare": 0.9687,
    "source": "east/walk_2.png"
   },
   {
    "name": "walk_east_3",
    "atlas": 1,
    "rect": [
-    420,
-    250,
+    60,
+    247,
     82,
     151
    ],
@@ -1190,14 +1249,15 @@
     0.37185,
     1.19223
    ],
+   "flare": 0.9763,
    "source": "east/walk_3.png"
   },
   {
    "name": "walk_east_4",
    "atlas": 1,
    "rect": [
-    145,
-    101,
+    594,
+    99,
     78,
     148
    ],
@@ -1209,14 +1269,15 @@
     0.26368,
     1.20332
    ],
+   "flare": 0.9529,
    "source": "east/walk_4.png"
   },
   {
    "name": "walk_east_5",
-   "atlas": 0,
+   "atlas": 2,
    "rect": [
-    891,
-    0,
+    742,
+    507,
     80,
     145
    ],
@@ -1228,14 +1289,15 @@
     0.15397,
     1.22171
    ],
+   "flare": 0.9581,
    "source": "east/walk_5.png"
   },
   {
    "name": "walk_east_6",
-   "atlas": 1,
+   "atlas": 2,
    "rect": [
-    294,
-    102,
+    0,
+    505,
     74,
     147
    ],
@@ -1247,14 +1309,15 @@
     0.10824,
     1.22729
    ],
+   "flare": 0.9457,
    "source": "east/walk_6.png"
   },
   {
    "name": "walk_east_7",
    "atlas": 1,
    "rect": [
-    790,
-    100,
+    379,
+    97,
     70,
     150
    ],
@@ -1266,33 +1329,35 @@
     0.15397,
     1.22171
    ],
+   "flare": 0.9518,
    "source": "east/walk_7.png"
   },
   {
    "name": "walk_north-east_0",
    "atlas": 0,
    "rect": [
-    0,
-    139,
+    515,
+    141,
     87,
-    161
+    162
    ],
    "pivot": [
     0.448276,
-    0.099379
+    0.098765
    ],
    "crucible": [
     0.38377,
     1.33741
    ],
+   "flare": 0.9841,
    "source": "north-east/walk_0.png"
   },
   {
    "name": "walk_north-east_1",
    "atlas": 0,
    "rect": [
-    891,
-    145,
+    136,
+    142,
     96,
     162
    ],
@@ -1304,33 +1369,35 @@
     0.45883,
     1.36427
    ],
+   "flare": 0.9988,
    "source": "north-east/walk_1.png"
   },
   {
    "name": "walk_north-east_2",
    "atlas": 0,
    "rect": [
-    129,
-    143,
+    420,
+    144,
     95,
-    162
+    163
    ],
    "pivot": [
     0.378947,
-    0.08642
+    0.08589
    ],
    "crucible": [
     0.48933,
     1.37318
    ],
+   "flare": 0.9687,
    "source": "north-east/walk_2.png"
   },
   {
    "name": "walk_north-east_3",
    "atlas": 0,
    "rect": [
-    360,
-    303,
+    750,
+    143,
     89,
     163
    ],
@@ -1342,89 +1409,94 @@
     0.45883,
     1.36427
    ],
+   "flare": 0.9763,
    "source": "north-east/walk_3.png"
   },
   {
    "name": "walk_north-east_4",
    "atlas": 1,
    "rect": [
-    767,
-    708,
+    629,
+    864,
     85,
-    158
+    160
    ],
    "pivot": [
     0.435294,
-    0.088608
+    0.0875
    ],
    "crucible": [
     0.38377,
     1.33741
    ],
+   "flare": 0.9529,
    "source": "north-east/walk_4.png"
   },
   {
    "name": "walk_north-east_5",
    "atlas": 1,
    "rect": [
-    767,
-    554,
+    276,
+    708,
     80,
-    154
+    155
    ],
    "pivot": [
     0.4875,
-    0.071429
+    0.070968
    ],
    "crucible": [
     0.30708,
     1.31719
    ],
+   "flare": 0.9581,
    "source": "north-east/walk_5.png"
   },
   {
    "name": "walk_north-east_6",
    "atlas": 1,
    "rect": [
-    90,
+    276,
     553,
     72,
-    154
+    155
    ],
    "pivot": [
     0.486111,
-    0.077922
+    0.077419
    ],
    "crucible": [
     0.27495,
     1.30665
    ],
+   "flare": 0.9457,
    "source": "north-east/walk_6.png"
   },
   {
    "name": "walk_north-east_7",
    "atlas": 1,
    "rect": [
-    144,
-    707,
+    923,
+    865,
     75,
-    157
+    159
    ],
    "pivot": [
     0.453333,
-    0.095541
+    0.09434
    ],
    "crucible": [
     0.30708,
     1.31719
    ],
+   "flare": 0.9518,
    "source": "north-east/walk_7.png"
   },
   {
    "name": "walk_north_0",
    "atlas": 0,
    "rect": [
-    150,
+    153,
     472,
     70,
     175
@@ -1437,13 +1509,14 @@
     0.27905,
     1.47469
    ],
+   "flare": 0.9841,
    "source": "north/walk_0.png"
   },
   {
    "name": "walk_north_1",
    "atlas": 0,
    "rect": [
-    829,
+    914,
     471,
     70,
     177
@@ -1456,32 +1529,34 @@
     0.27704,
     1.51667
    ],
+   "flare": 0.9988,
    "source": "north/walk_1.png"
   },
   {
    "name": "walk_north_2",
    "atlas": 0,
    "rect": [
-    899,
-    471,
+    845,
+    470,
     69,
-    177
+    178
    ],
    "pivot": [
     0.463768,
-    0.073446
+    0.073034
    ],
    "crucible": [
     0.27599,
     1.53168
    ],
+   "flare": 0.9687,
    "source": "north/walk_2.png"
   },
   {
    "name": "walk_north_3",
    "atlas": 0,
    "rect": [
-    759,
+    775,
     470,
     70,
     178
@@ -1494,13 +1569,14 @@
     0.27704,
     1.51667
    ],
+   "flare": 0.9763,
    "source": "north/walk_3.png"
   },
   {
    "name": "walk_north_4",
    "atlas": 0,
    "rect": [
-    220,
+    223,
     473,
     70,
     174
@@ -1513,33 +1589,35 @@
     0.27905,
     1.47469
    ],
+   "flare": 0.9529,
    "source": "north/walk_4.png"
   },
   {
    "name": "walk_north_5",
    "atlas": 0,
    "rect": [
-    290,
-    308,
+    469,
+    307,
     70,
-    168
+    169
    ],
    "pivot": [
     0.457143,
-    0.077381
+    0.076923
    ],
    "crucible": [
     0.28031,
     1.43884
    ],
+   "flare": 0.9581,
    "source": "north/walk_5.png"
   },
   {
    "name": "walk_north_6",
    "atlas": 0,
    "rect": [
-    150,
-    305,
+    0,
+    304,
     70,
     167
    ],
@@ -1551,33 +1629,35 @@
     0.2806,
     1.42171
    ],
+   "flare": 0.9457,
    "source": "north/walk_6.png"
   },
   {
    "name": "walk_north_7",
    "atlas": 0,
    "rect": [
-    451,
-    477,
+    293,
+    476,
     70,
-    170
+    171
    ],
    "pivot": [
     0.457143,
-    0.088235
+    0.087719
    ],
    "crucible": [
     0.28031,
     1.43884
    ],
+   "flare": 0.9518,
    "source": "north/walk_7.png"
   },
   {
    "name": "walk-strike_south_0",
    "atlas": 2,
    "rect": [
-    164,
-    123,
+    595,
+    115,
     67,
     125
    ],
@@ -1589,14 +1669,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.165,
    "source": "south/walk-strike_0.png"
   },
   {
    "name": "walk-strike_south_1",
    "atlas": 2,
    "rect": [
-    0,
-    125,
+    837,
+    236,
     67,
     126
    ],
@@ -1608,14 +1689,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.1974,
    "source": "south/walk-strike_1.png"
   },
   {
    "name": "walk-strike_south_2",
    "atlas": 2,
    "rect": [
-    231,
-    123,
+    295,
+    112,
     67,
     125
    ],
@@ -1627,14 +1709,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.1312,
    "source": "south/walk-strike_2.png"
   },
   {
    "name": "walk-strike_south_3",
    "atlas": 2,
    "rect": [
-    539,
-    124,
+    362,
+    113,
     67,
     124
    ],
@@ -1646,14 +1729,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.1479,
    "source": "south/walk-strike_3.png"
   },
   {
    "name": "walk-strike_south_4",
    "atlas": 2,
    "rect": [
-    351,
-    125,
+    66,
+    114,
     67,
     126
    ],
@@ -1665,14 +1749,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.0963,
    "source": "south/walk-strike_4.png"
   },
   {
    "name": "walk-strike_south_5",
    "atlas": 2,
    "rect": [
-    858,
-    125,
+    705,
+    235,
     66,
     127
    ],
@@ -1684,14 +1769,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.1077,
    "source": "south/walk-strike_5.png"
   },
   {
    "name": "walk-strike_south_6",
    "atlas": 2,
    "rect": [
-    924,
-    125,
+    771,
+    235,
     66,
     127
    ],
@@ -1703,14 +1789,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.0805,
    "source": "south/walk-strike_6.png"
   },
   {
    "name": "walk-strike_south_7",
    "atlas": 2,
    "rect": [
-    298,
-    2,
+    0,
+    116,
     66,
     123
    ],
@@ -1722,14 +1809,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.0939,
    "source": "south/walk-strike_7.png"
   },
   {
    "name": "walk-strike_south-east_0",
    "atlas": 2,
    "rect": [
-    105,
-    382,
+    178,
+    370,
     116,
     135
    ],
@@ -1741,14 +1829,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.165,
    "source": "south-east/walk-strike_0.png"
   },
   {
    "name": "walk-strike_south-east_1",
-   "atlas": 2,
+   "atlas": 0,
    "rect": [
-    785,
-    382,
+    485,
+    4,
     120,
     137
    ],
@@ -1760,14 +1849,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.1974,
    "source": "south-east/walk-strike_1.png"
   },
   {
    "name": "walk-strike_south-east_2",
    "atlas": 2,
    "rect": [
-    221,
-    382,
+    294,
+    370,
     113,
     135
    ],
@@ -1779,14 +1869,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.1312,
    "source": "south-east/walk-strike_2.png"
   },
   {
    "name": "walk-strike_south-east_3",
    "atlas": 2,
    "rect": [
-    351,
-    251,
+    477,
+    240,
     115,
     130
    ],
@@ -1798,14 +1889,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.1479,
    "source": "south-east/walk-strike_3.png"
   },
   {
    "name": "walk-strike_south-east_4",
    "atlas": 2,
    "rect": [
-    609,
-    124,
+    477,
+    115,
     118,
     125
    ],
@@ -1817,14 +1909,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.0963,
    "source": "south-east/walk-strike_4.png"
   },
   {
    "name": "walk-strike_south-east_5",
    "atlas": 2,
    "rect": [
-    418,
-    124,
+    133,
+    112,
     121,
     124
    ],
@@ -1836,14 +1929,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.1077,
    "source": "south-east/walk-strike_5.png"
   },
   {
    "name": "walk-strike_south-east_6",
    "atlas": 2,
    "rect": [
-    0,
-    1,
+    904,
+    113,
     117,
     124
    ],
@@ -1855,14 +1949,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.0805,
    "source": "south-east/walk-strike_6.png"
   },
   {
    "name": "walk-strike_south-east_7",
    "atlas": 2,
    "rect": [
-    791,
-    252,
+    592,
+    240,
     113,
     130
    ],
@@ -1874,13 +1969,14 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.0939,
    "source": "south-east/walk-strike_7.png"
   },
   {
    "name": "walk-strike_east_0",
    "atlas": 1,
    "rect": [
-    144,
+    360,
     864,
     135,
     160
@@ -1893,13 +1989,14 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.165,
    "source": "east/walk-strike_0.png"
   },
   {
    "name": "walk-strike_east_1",
    "atlas": 1,
    "rect": [
-    491,
+    786,
     865,
     137,
     159
@@ -1912,33 +2009,35 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.1974,
    "source": "east/walk-strike_1.png"
   },
   {
    "name": "walk-strike_east_2",
    "atlas": 1,
    "rect": [
-    852,
-    709,
+    786,
+    707,
     129,
-    157
+    158
    ],
    "pivot": [
     0.27907,
-    0.089172
+    0.088608
    ],
    "crucible": [
     0.78371,
     1.26993
    ],
+   "flare": 2.1312,
    "source": "east/walk-strike_2.png"
   },
   {
    "name": "walk-strike_east_3",
    "atlas": 1,
    "rect": [
-    767,
-    866,
+    360,
+    706,
     127,
     158
    ],
@@ -1950,14 +2049,15 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.1479,
    "source": "east/walk-strike_3.png"
   },
   {
    "name": "walk-strike_east_4",
    "atlas": 1,
    "rect": [
-    219,
-    553,
+    614,
+    552,
     134,
     155
    ],
@@ -1969,14 +2069,15 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.0963,
    "source": "east/walk-strike_4.png"
   },
   {
    "name": "walk-strike_east_5",
    "atlas": 1,
    "rect": [
-    812,
-    401,
+    534,
+    399,
     138,
     153
    ],
@@ -1988,14 +2089,15 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.1077,
    "source": "east/walk-strike_5.png"
   },
   {
    "name": "walk-strike_east_6",
    "atlas": 1,
    "rect": [
-    353,
-    553,
+    748,
+    552,
     133,
     155
    ],
@@ -2007,184 +2109,194 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.0805,
    "source": "east/walk-strike_6.png"
   },
   {
    "name": "walk-strike_east_7",
    "atlas": 1,
    "rect": [
-    491,
-    708,
+    487,
+    706,
     127,
-    157
+    158
    ],
    "pivot": [
     0.267717,
-    0.089172
+    0.088608
    ],
    "crucible": [
     0.78371,
     1.26993
    ],
+   "flare": 2.0939,
    "source": "east/walk-strike_7.png"
   },
   {
    "name": "walk-strike_north-east_0",
    "atlas": 0,
    "rect": [
-    108,
+    113,
     833,
-    95,
+    99,
     191
    ],
    "pivot": [
-    0.410526,
+    0.393939,
     0.08377
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.165,
    "source": "north-east/walk-strike_0.png"
   },
   {
    "name": "walk-strike_north-east_1",
    "atlas": 0,
    "rect": [
-    775,
+    793,
     836,
-    96,
+    100,
     188
    ],
    "pivot": [
-    0.416667,
+    0.4,
     0.074468
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.1974,
    "source": "north-east/walk-strike_1.png"
   },
   {
    "name": "walk-strike_north-east_2",
    "atlas": 0,
    "rect": [
-    360,
+    374,
     648,
-    91,
+    96,
     186
    ],
    "pivot": [
-    0.395604,
+    0.375,
     0.075269
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.1312,
    "source": "north-east/walk-strike_2.png"
   },
   {
    "name": "walk-strike_north-east_3",
    "atlas": 0,
    "rect": [
-    558,
+    572,
     835,
-    89,
+    93,
     189
    ],
    "pivot": [
-    0.370787,
+    0.354839,
     0.079365
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.1479,
    "source": "north-east/walk-strike_3.png"
   },
   {
    "name": "walk-strike_north-east_4",
    "atlas": 0,
    "rect": [
-    581,
+    593,
     648,
-    92,
+    97,
     187
    ],
    "pivot": [
-    0.402174,
+    0.381443,
     0.074866
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.0963,
    "source": "north-east/walk-strike_4.png"
   },
   {
    "name": "walk-strike_north-east_5",
    "atlas": 0,
    "rect": [
-    86,
+    89,
     648,
-    95,
+    99,
     185
    ],
    "pivot": [
-    0.410526,
+    0.393939,
     0.059459
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.1077,
    "source": "north-east/walk-strike_5.png"
   },
   {
    "name": "walk-strike_north-east_6",
    "atlas": 0,
    "rect": [
-    673,
+    690,
     648,
-    91,
+    95,
     187
    ],
    "pivot": [
-    0.384615,
+    0.368421,
     0.064171
    ],
    "crucible": [
     0.46269,
     1.52807
    ],
+   "flare": 2.0805,
    "source": "north-east/walk-strike_6.png"
   },
   {
    "name": "walk-strike_north-east_7",
    "atlas": 0,
    "rect": [
-    203,
+    212,
     647,
-    89,
+    94,
     187
    ],
    "pivot": [
-    0.382022,
+    0.361702,
     0.080214
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.0939,
    "source": "north-east/walk-strike_7.png"
   },
   {
    "name": "walk-strike_north_0",
    "atlas": 0,
    "rect": [
-    203,
+    212,
     834,
     67,
     190
@@ -2197,13 +2309,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.165,
    "source": "north/walk-strike_0.png"
   },
   {
    "name": "walk-strike_north_1",
    "atlas": 0,
    "rect": [
-    871,
+    893,
     836,
     67,
     188
@@ -2216,14 +2329,15 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.1974,
    "source": "north/walk-strike_1.png"
   },
   {
    "name": "walk-strike_north_2",
    "atlas": 0,
    "rect": [
-    938,
-    836,
+    793,
+    648,
     67,
     188
    ],
@@ -2235,13 +2349,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.1312,
    "source": "north/walk-strike_2.png"
   },
   {
    "name": "walk-strike_north_3",
    "atlas": 0,
    "rect": [
-    647,
+    665,
     835,
     67,
     189
@@ -2254,13 +2369,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.1479,
    "source": "north/walk-strike_3.png"
   },
   {
    "name": "walk-strike_north_4",
    "atlas": 0,
    "rect": [
-    270,
+    279,
     834,
     67,
     190
@@ -2273,13 +2389,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.0963,
    "source": "north/walk-strike_4.png"
   },
   {
    "name": "walk-strike_north_5",
    "atlas": 0,
    "rect": [
-    775,
+    860,
     648,
     67,
     188
@@ -2292,13 +2409,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.1077,
    "source": "north/walk-strike_5.png"
   },
   {
    "name": "walk-strike_north_6",
    "atlas": 0,
    "rect": [
-    842,
+    927,
     648,
     67,
     188
@@ -2311,13 +2429,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.0805,
    "source": "north/walk-strike_6.png"
   },
   {
    "name": "walk-strike_north_7",
    "atlas": 0,
    "rect": [
-    337,
+    346,
     834,
     67,
     190
@@ -2330,14 +2449,15 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.0939,
    "source": "north/walk-strike_7.png"
   },
   {
    "name": "strike_south_0",
    "atlas": 2,
    "rect": [
-    728,
-    250,
+    414,
+    238,
     63,
     132
    ],
@@ -2349,6 +2469,7 @@
     -0.0004,
     1.00662
    ],
+   "flare": 1.6729,
    "source": "south/strike_0.png"
   },
   {
@@ -2356,7 +2477,7 @@
    "atlas": 2,
    "rect": [
     0,
-    251,
+    239,
     66,
     130
    ],
@@ -2368,14 +2489,15 @@
     0.12937,
     0.81339
    ],
+   "flare": 2.597,
    "source": "south/strike_1.png"
   },
   {
    "name": "strike_south_2",
    "atlas": 2,
    "rect": [
-    791,
-    123,
+    66,
+    240,
     67,
     129
    ],
@@ -2387,71 +2509,75 @@
     0.16207,
     0.75932
    ],
+   "flare": 1.8406,
    "source": "south/strike_2.png"
   },
   {
    "name": "strike_south_3",
-   "atlas": 2,
+   "atlas": 0,
    "rect": [
-    545,
-    248,
     64,
-    134
+    2,
+    64,
+    137
    ],
    "pivot": [
     0.5,
-    0.067164
+    0.065693
    ],
    "crucible": [
     -0.10637,
     1.1483
    ],
+   "flare": 1.2204,
    "source": "south/strike_3.png"
   },
   {
    "name": "strike_south_4",
    "atlas": 1,
    "rect": [
-    80,
-    100,
+    449,
+    97,
     65,
-    149
+    150
    ],
    "pivot": [
     0.523077,
-    0.060403
+    0.06
    ],
    "crucible": [
     -0.22265,
     1.29377
    ],
+   "flare": 0.9529,
    "source": "south/strike_4.png"
   },
   {
    "name": "strike_south-east_0",
-   "atlas": 2,
+   "atlas": 0,
    "rect": [
-    911,
-    387,
-    85,
+    605,
+    4,
+    87,
     137
    ],
    "pivot": [
-    0.376471,
+    0.367816,
     0.072993
    ],
    "crucible": [
     0.43097,
     1.09579
    ],
+   "flare": 1.6729,
    "source": "south-east/strike_0.png"
   },
   {
    "name": "strike_south-east_1",
    "atlas": 2,
    "rect": [
-    164,
-    248,
+    178,
+    236,
     117,
     134
    ],
@@ -2463,14 +2589,15 @@
     0.64564,
     0.9739
    ],
+   "flare": 2.597,
    "source": "south-east/strike_1.png"
   },
   {
    "name": "strike_south-east_2",
    "atlas": 2,
    "rect": [
-    609,
-    249,
+    295,
+    237,
     119,
     133
    ],
@@ -2482,13 +2609,14 @@
     0.69594,
     0.93702
    ],
+   "flare": 1.8406,
    "source": "south-east/strike_2.png"
   },
   {
    "name": "strike_south-east_3",
    "atlas": 0,
    "rect": [
-    514,
+    264,
     2,
     64,
     140
@@ -2501,14 +2629,15 @@
     0.23021,
     1.17395
    ],
+   "flare": 1.2204,
    "source": "south-east/strike_3.png"
   },
   {
    "name": "strike_south-east_4",
    "atlas": 2,
    "rect": [
-    668,
-    518,
+    683,
+    506,
     59,
     146
    ],
@@ -2520,14 +2649,15 @@
     -0.04266,
     1.23882
    ],
+   "flare": 0.9529,
    "source": "south-east/strike_4.png"
   },
   {
    "name": "strike_east_0",
-   "atlas": 0,
+   "atlas": 1,
    "rect": [
-    515,
-    142,
+    0,
+    863,
     107,
     161
    ],
@@ -2539,13 +2669,14 @@
     0.60989,
     1.31136
    ],
+   "flare": 1.6729,
    "source": "east/strike_0.png"
   },
   {
    "name": "strike_east_1",
    "atlas": 1,
    "rect": [
-    279,
+    495,
     864,
     134,
     160
@@ -2558,33 +2689,35 @@
     0.78371,
     1.26993
    ],
+   "flare": 2.597,
    "source": "east/strike_1.png"
   },
   {
    "name": "strike_east_2",
    "atlas": 1,
    "rect": [
-    60,
-    401,
+    63,
+    398,
     132,
-    152
+    154
    ],
    "pivot": [
     0.280303,
-    0.085526
+    0.084416
    ],
    "crucible": [
     0.82214,
     1.25143
    ],
+   "flare": 1.8406,
    "source": "east/strike_2.png"
   },
   {
    "name": "strike_east_3",
    "atlas": 1,
    "rect": [
-    618,
-    708,
+    0,
+    706,
     87,
     157
    ],
@@ -2596,14 +2729,15 @@
     0.43194,
     1.31109
    ],
+   "flare": 1.2204,
    "source": "east/strike_3.png"
   },
   {
    "name": "strike_east_4",
    "atlas": 1,
    "rect": [
-    482,
-    401,
+    0,
+    399,
     62,
     152
    ],
@@ -2615,6 +2749,7 @@
     0.16232,
     1.2636
    ],
+   "flare": 0.9529,
    "source": "east/strike_4.png"
   },
   {
@@ -2623,55 +2758,58 @@
    "rect": [
     0,
     647,
-    86,
+    89,
     186
    ],
    "pivot": [
-    0.395349,
+    0.382022,
     0.075269
    ],
    "crucible": [
     0.43154,
     1.52705
    ],
+   "flare": 1.6729,
    "source": "north-east/strike_0.png"
   },
   {
    "name": "strike_north-east_1",
    "atlas": 0,
    "rect": [
-    465,
+    474,
     835,
-    93,
+    98,
     189
    ],
    "pivot": [
-    0.387097,
+    0.367347,
     0.074074
    ],
    "crucible": [
     0.46269,
     1.52806
    ],
+   "flare": 2.597,
    "source": "north-east/strike_1.png"
   },
   {
    "name": "strike_north-east_2",
    "atlas": 0,
    "rect": [
-    360,
+    374,
     466,
-    91,
+    95,
     182
    ],
    "pivot": [
-    0.395604,
+    0.378947,
     0.076923
    ],
    "crucible": [
     0.46674,
     1.51837
    ],
+   "flare": 1.8406,
    "source": "north-east/strike_2.png"
   },
   {
@@ -2680,44 +2818,46 @@
    "rect": [
     0,
     471,
-    79,
+    80,
     176
    ],
    "pivot": [
-    0.405063,
+    0.4,
     0.079545
    ],
    "crucible": [
     0.38064,
     1.47938
    ],
+   "flare": 1.2204,
    "source": "north-east/strike_3.png"
   },
   {
    "name": "strike_north-east_4",
-   "atlas": 1,
+   "atlas": 0,
    "rect": [
-    700,
-    865,
     67,
-    159
+    139,
+    67,
+    160
    ],
    "pivot": [
     0.447761,
-    0.081761
+    0.08125
    ],
    "crucible": [
     0.27221,
     1.3536
    ],
+   "flare": 0.9529,
    "source": "north-east/strike_4.png"
   },
   {
    "name": "strike_north_0",
    "atlas": 0,
    "rect": [
-    465,
-    647,
+    960,
+    836,
     64,
     188
    ],
@@ -2729,14 +2869,15 @@
     0.0004,
     1.61651
    ],
+   "flare": 1.6729,
    "source": "north/strike_0.png"
   },
   {
    "name": "strike_north_1",
    "atlas": 0,
    "rect": [
-    909,
-    648,
+    474,
+    647,
     67,
     188
    ],
@@ -2748,13 +2889,14 @@
     -0.12937,
     1.5971
    ],
+   "flare": 2.597,
    "source": "north/strike_1.png"
   },
   {
    "name": "strike_north_2",
    "atlas": 0,
    "rect": [
-    292,
+    306,
     647,
     68,
     187
@@ -2767,13 +2909,14 @@
     -0.16207,
     1.58147
    ],
+   "flare": 1.8406,
    "source": "north/strike_2.png"
   },
   {
    "name": "strike_north_3",
    "atlas": 0,
    "rect": [
-    86,
+    89,
     463,
     64,
     185
@@ -2786,33 +2929,35 @@
     0.10637,
     1.58024
    ],
+   "flare": 1.2204,
    "source": "north/strike_3.png"
   },
   {
    "name": "strike_north_4",
    "atlas": 0,
    "rect": [
-    451,
-    307,
+    469,
+    476,
     65,
-    170
+    171
    ],
    "pivot": [
     0.476923,
-    0.076471
+    0.076023
    ],
    "crucible": [
     0.22265,
     1.45609
    ],
+   "flare": 0.9529,
    "source": "north/strike_4.png"
   },
   {
    "name": "cast_south_0",
    "atlas": 0,
    "rect": [
-    220,
-    305,
+    153,
+    304,
     61,
     168
    ],
@@ -2824,33 +2969,35 @@
     -0.16673,
     1.42632
    ],
+   "flare": 1.2793,
    "source": "south/cast_0.png"
   },
   {
    "name": "cast_south_1",
-   "atlas": 2,
+   "atlas": 0,
    "rect": [
-    911,
-    524,
+    134,
+    1,
     61,
-    140
+    141
    ],
    "pivot": [
     0.508197,
-    0.078571
+    0.078014
    ],
    "crucible": [
     -0.1306,
     1.13704
    ],
+   "flare": 1.8978,
    "source": "south/cast_1.png"
   },
   {
    "name": "cast_south_2",
-   "atlas": 0,
+   "atlas": 1,
    "rect": [
-    971,
-    18,
+    142,
+    271,
     52,
     127
    ],
@@ -2862,52 +3009,55 @@
     0.05371,
     0.8
    ],
+   "flare": 2.7125,
    "source": "south/cast_2.png"
   },
   {
    "name": "cast_south_3",
    "atlas": 2,
    "rect": [
-    334,
-    382,
+    868,
+    370,
     61,
-    135
+    137
    ],
    "pivot": [
     0.508197,
-    0.081481
+    0.080292
    ],
    "crucible": [
     -0.11468,
     1.1102
    ],
+   "flare": 1.5621,
    "source": "south/cast_3.png"
   },
   {
    "name": "cast_south_4",
    "atlas": 1,
    "rect": [
-    486,
-    99,
+    459,
+    247,
     64,
-    151
+    152
    ],
    "pivot": [
     0.515625,
-    0.066225
+    0.065789
    ],
    "crucible": [
     -0.23046,
     1.29655
    ],
+   "flare": 1.0481,
    "source": "south/cast_4.png"
   },
   {
    "name": "cast_south-east_0",
    "atlas": 0,
    "rect": [
-    521,
-    484,
+    905,
+    142,
     60,
     163
    ],
@@ -2919,14 +3069,15 @@
     -0.11805,
     1.36734
    ],
+   "flare": 1.2793,
    "source": "south-east/cast_0.png"
   },
   {
    "name": "cast_south-east_1",
-   "atlas": 0,
+   "atlas": 2,
    "rect": [
-    273,
-    0,
+    822,
+    507,
     72,
     145
    ],
@@ -2938,32 +3089,34 @@
     0.20872,
     1.15322
    ],
+   "flare": 1.8978,
    "source": "south-east/cast_1.png"
   },
   {
    "name": "cast_south-east_2",
    "atlas": 2,
    "rect": [
-    476,
-    382,
-    119,
+    480,
+    370,
+    120,
     136
    ],
    "pivot": [
-    0.352941,
+    0.35,
     0.088235
    ],
    "crucible": [
     0.6141,
     0.93831
    ],
+   "flare": 2.7125,
    "source": "south-east/cast_2.png"
   },
   {
    "name": "cast_south-east_3",
    "atlas": 0,
    "rect": [
-    87,
+    737,
     1,
     73,
     142
@@ -2976,33 +3129,35 @@
     0.24744,
     1.1377
    ],
+   "flare": 1.5621,
    "source": "south-east/cast_3.png"
   },
   {
    "name": "cast_south-east_4",
-   "atlas": 2,
+   "atlas": 1,
    "rect": [
-    605,
-    518,
+    961,
+    101,
     63,
-    146
+    147
    ],
    "pivot": [
     0.52381,
-    0.075342
+    0.07483
    ],
    "crucible": [
     -0.0627,
     1.23584
    ],
+   "flare": 1.0481,
    "source": "south-east/cast_4.png"
   },
   {
    "name": "cast_east_0",
    "atlas": 0,
    "rect": [
-    646,
-    143,
+    602,
+    141,
     66,
     162
    ],
@@ -3014,14 +3169,15 @@
     -0.00022,
     1.34285
    ],
+   "flare": 1.2793,
    "source": "east/cast_0.png"
   },
   {
    "name": "cast_east_1",
-   "atlas": 0,
+   "atlas": 1,
    "rect": [
-    347,
-    142,
+    107,
+    863,
     97,
     161
    ],
@@ -3033,14 +3189,15 @@
     0.42577,
     1.28462
    ],
+   "flare": 1.8978,
    "source": "east/cast_1.png"
   },
   {
    "name": "cast_east_2",
    "atlas": 1,
    "rect": [
-    852,
-    554,
+    87,
+    552,
     147,
     155
    ],
@@ -3052,14 +3209,15 @@
     0.81477,
     1.23424
    ],
+   "flare": 2.7125,
    "source": "east/cast_2.png"
   },
   {
    "name": "cast_east_3",
    "atlas": 1,
    "rect": [
-    894,
-    866,
+    915,
+    707,
     101,
     158
    ],
@@ -3071,14 +3229,15 @@
     0.46462,
     1.28517
    ],
+   "flare": 1.5621,
    "source": "east/cast_3.png"
   },
   {
    "name": "cast_east_4",
    "atlas": 1,
    "rect": [
-    950,
-    401,
+    672,
+    399,
     71,
     153
    ],
@@ -3090,13 +3249,14 @@
     0.14179,
     1.25222
    ],
+   "flare": 1.0481,
    "source": "east/cast_4.png"
   },
   {
    "name": "cast_north-east_0",
    "atlas": 0,
    "rect": [
-    0,
+    914,
     305,
     63,
     166
@@ -3109,25 +3269,27 @@
     0.11774,
     1.36719
    ],
+   "flare": 1.2793,
    "source": "north-east/cast_0.png"
   },
   {
    "name": "cast_north-east_1",
    "atlas": 0,
    "rect": [
-    581,
+    593,
     467,
-    88,
+    91,
     181
    ],
    "pivot": [
-    0.443182,
+    0.428571,
     0.088398
    ],
    "crucible": [
     0.39341,
     1.45428
    ],
+   "flare": 1.8978,
    "source": "north-east/cast_1.png"
   },
   {
@@ -3136,63 +3298,66 @@
    "rect": [
     0,
     833,
-    108,
+    113,
     191
    ],
    "pivot": [
-    0.398148,
+    0.380531,
     0.08377
    ],
    "crucible": [
     0.53815,
     1.51443
    ],
+   "flare": 2.7125,
    "source": "north-east/cast_2.png"
   },
   {
    "name": "cast_north-east_3",
    "atlas": 0,
    "rect": [
-    669,
+    684,
     469,
-    90,
+    91,
     179
    ],
    "pivot": [
-    0.433333,
+    0.428571,
     0.083799
    ],
    "crucible": [
     0.40962,
     1.46623
    ],
+   "flare": 1.5621,
    "source": "north-east/cast_3.png"
   },
   {
    "name": "cast_north-east_4",
    "atlas": 1,
    "rect": [
-    628,
-    865,
+    714,
+    864,
     72,
-    159
+    160
    ],
    "pivot": [
     0.5,
-    0.08805
+    0.0875
    ],
    "crucible": [
     0.26322,
     1.3361
    ],
+   "flare": 1.0481,
    "source": "north-east/cast_4.png"
   },
   {
    "name": "cast_north_0",
    "atlas": 0,
    "rect": [
-    290,
-    476,
+    293,
+    305,
     61,
     171
    ],
@@ -3204,13 +3369,14 @@
     0.16673,
     1.4261
    ],
+   "flare": 1.2793,
    "source": "north/cast_0.png"
   },
   {
    "name": "cast_north_1",
    "atlas": 0,
    "rect": [
-    404,
+    413,
     834,
     61,
     190
@@ -3223,13 +3389,14 @@
     0.1306,
     1.56281
    ],
+   "flare": 1.8978,
    "source": "north/cast_1.png"
   },
   {
    "name": "cast_north_2",
    "atlas": 0,
    "rect": [
-    529,
+    541,
     647,
     52,
     188
@@ -3242,13 +3409,14 @@
     -0.05371,
     1.61477
    ],
+   "flare": 2.7125,
    "source": "north/cast_2.png"
   },
   {
    "name": "cast_north_3",
    "atlas": 0,
    "rect": [
-    714,
+    732,
     835,
     61,
     189
@@ -3261,14 +3429,15 @@
     0.11468,
     1.57482
    ],
+   "flare": 1.5621,
    "source": "north/cast_3.png"
   },
   {
    "name": "cast_north_4",
    "atlas": 0,
    "rect": [
-    516,
-    308,
+    223,
+    304,
     64,
     169
    ],
@@ -3280,14 +3449,15 @@
     0.23046,
     1.43834
    ],
+   "flare": 1.0481,
    "source": "north/cast_4.png"
   },
   {
    "name": "hit_south_0",
    "atlas": 0,
    "rect": [
-    829,
-    307,
+    775,
+    306,
     84,
     164
    ],
@@ -3299,13 +3469,14 @@
     -0.37862,
     1.44612
    ],
+   "flare": 0.9841,
    "source": "south/hit_0.png"
   },
   {
    "name": "hit_south_1",
    "atlas": 1,
    "rect": [
-    0,
+    204,
     863,
     78,
     161
@@ -3318,33 +3489,35 @@
     -0.32791,
     1.41834
    ],
+   "flare": 0.9988,
    "source": "south/hit_1.png"
   },
   {
    "name": "hit_south_2",
    "atlas": 1,
    "rect": [
-    744,
-    400,
+    881,
+    552,
     68,
-    154
+    155
    ],
    "pivot": [
     0.514706,
-    0.045455
+    0.045161
    ],
    "crucible": [
     -0.2526,
     1.3653
    ],
+   "flare": 0.9687,
    "source": "south/hit_2.png"
   },
   {
    "name": "hit_south-east_0",
    "atlas": 1,
    "rect": [
-    550,
-    100,
+    210,
+    97,
     85,
     150
    ],
@@ -3356,14 +3529,15 @@
     -0.3988,
     1.28511
    ],
+   "flare": 0.9841,
    "source": "south-east/hit_0.png"
   },
   {
    "name": "hit_south-east_1",
    "atlas": 1,
    "rect": [
-    580,
-    250,
+    0,
+    96,
     74,
     151
    ],
@@ -3375,33 +3549,35 @@
     -0.30628,
     1.28699
    ],
+   "flare": 0.9988,
    "source": "south-east/hit_1.png"
   },
   {
    "name": "hit_south-east_2",
-   "atlas": 1,
+   "atlas": 0,
    "rect": [
-    0,
-    251,
+    965,
+    155,
     59,
-    149
+    150
    ],
    "pivot": [
     0.491525,
-    0.067114
+    0.066667
    ],
    "crucible": [
     -0.17254,
     1.27725
    ],
+   "flare": 0.9687,
    "source": "south-east/hit_2.png"
   },
   {
    "name": "hit_east_0",
    "atlas": 2,
    "rect": [
-    848,
-    519,
+    805,
+    362,
     63,
     145
    ],
@@ -3413,14 +3589,15 @@
     -0.18537,
     1.16413
    ],
+   "flare": 0.9841,
    "source": "east/hit_0.png"
   },
   {
    "name": "hit_east_1",
    "atlas": 0,
    "rect": [
-    224,
-    2,
+    420,
+    317,
     49,
     149
    ],
@@ -3432,14 +3609,15 @@
     -0.10524,
     1.20176
    ],
+   "flare": 0.9988,
    "source": "east/hit_1.png"
   },
   {
    "name": "hit_east_2",
    "atlas": 0,
    "rect": [
-    968,
-    495,
+    859,
+    317,
     51,
     153
    ],
@@ -3451,71 +3629,75 @@
     0.00859,
     1.24329
    ],
+   "flare": 0.9687,
    "source": "east/hit_2.png"
   },
   {
    "name": "hit_north-east_0",
    "atlas": 0,
    "rect": [
-    622,
-    3,
+    810,
+    2,
     71,
-    140
+    141
    ],
    "pivot": [
     0.577465,
-    0.1
+    0.099291
    ],
    "crucible": [
     0.13665,
     1.15404
    ],
+   "flare": 0.9841,
    "source": "north-east/hit_0.png"
   },
   {
    "name": "hit_north-east_1",
-   "atlas": 2,
+   "atlas": 1,
    "rect": [
-    539,
-    518,
+    813,
+    100,
     66,
-    146
+    147
    ],
    "pivot": [
     0.530303,
-    0.09589
+    0.095238
    ],
    "crucible": [
     0.15745,
     1.21258
    ],
+   "flare": 0.9988,
    "source": "north-east/hit_1.png"
   },
   {
    "name": "hit_north-east_2",
    "atlas": 1,
    "rect": [
-    360,
-    249,
+    869,
+    399,
     60,
-    152
+    153
    ],
    "pivot": [
     0.466667,
-    0.085526
+    0.084967
    ],
    "crucible": [
     0.18469,
     1.28332
    ],
+   "flare": 0.9687,
    "source": "north-east/hit_2.png"
   },
   {
    "name": "hit_north_0",
    "atlas": 1,
    "rect": [
-    635,
-    100,
+    295,
+    97,
     84,
     150
    ],
@@ -3527,13 +3709,14 @@
     0.37862,
     1.26075
    ],
+   "flare": 0.9841,
    "source": "north/hit_0.png"
   },
   {
    "name": "hit_north_1",
    "atlas": 1,
    "rect": [
-    312,
+    707,
     708,
     77,
     156
@@ -3546,14 +3729,15 @@
     0.32791,
     1.3131
    ],
+   "flare": 0.9988,
    "source": "north/hit_1.png"
   },
   {
    "name": "hit_north_2",
    "atlas": 0,
    "rect": [
-    735,
-    144,
+    0,
+    142,
     67,
     162
    ],
@@ -3565,14 +3749,15 @@
     0.2526,
     1.37389
    ],
+   "flare": 0.9687,
    "source": "north/hit_2.png"
   },
   {
    "name": "death_south_0",
    "atlas": 1,
    "rect": [
-    420,
-    99,
+    144,
+    96,
     66,
     151
    ],
@@ -3584,33 +3769,35 @@
     -0.25422,
     1.29197
    ],
+   "flare": 0.9841,
    "source": "south/death_0.png"
   },
   {
    "name": "death_south_1",
    "atlas": 2,
    "rect": [
-    905,
-    252,
+    929,
+    371,
     78,
-    135
+    136
    ],
    "pivot": [
     0.615385,
-    0.074074
+    0.073529
    ],
    "crucible": [
     -0.37362,
     1.14105
    ],
+   "flare": 0.846,
    "source": "south/death_1.png"
   },
   {
    "name": "death_south_2",
    "atlas": 2,
    "rect": [
-    67,
-    133,
+    771,
+    121,
     93,
     114
    ],
@@ -3622,14 +3809,15 @@
     -0.53267,
     0.83798
    ],
+   "flare": 0.5982,
    "source": "south/death_2.png"
   },
   {
    "name": "death_south_3",
    "atlas": 1,
    "rect": [
-    795,
-    23,
+    455,
+    20,
     105,
     77
    ],
@@ -3641,14 +3829,15 @@
     -0.66335,
     0.39057
    ],
+   "flare": 0.329,
    "source": "south/death_3.png"
   },
   {
    "name": "death_south_4",
    "atlas": 1,
    "rect": [
-    392,
-    29,
+    0,
+    26,
     109,
     70
    ],
@@ -3660,14 +3849,15 @@
     -0.69824,
     0.07781
    ],
+   "flare": 0.1429,
    "source": "south/death_4.png"
   },
   {
    "name": "death_south-east_0",
    "atlas": 0,
    "rect": [
-    224,
-    151,
+    534,
+    493,
     57,
     154
    ],
@@ -3679,14 +3869,15 @@
     -0.13849,
     1.21064
    ],
+   "flare": 0.9841,
    "source": "south-east/death_0.png"
   },
   {
    "name": "death_south-east_1",
    "atlas": 2,
    "rect": [
-    105,
-    247,
+    964,
+    517,
     59,
     135
    ],
@@ -3698,14 +3889,15 @@
     -0.13716,
     1.03527
    ],
+   "flare": 0.846,
    "source": "south-east/death_1.png"
   },
   {
    "name": "death_south-east_2",
    "atlas": 1,
    "rect": [
-    299,
-    4,
+    594,
+    1,
     93,
     98
    ],
@@ -3717,14 +3909,15 @@
     -0.12308,
     0.70217
    ],
+   "flare": 0.5982,
    "source": "south-east/death_2.png"
   },
   {
    "name": "death_south-east_3",
    "atlas": 1,
    "rect": [
-    688,
-    23,
+    348,
+    20,
     107,
     77
    ],
@@ -3736,14 +3929,15 @@
     -0.06952,
     0.23879
    ],
+   "flare": 0.329,
    "source": "south-east/death_3.png"
   },
   {
    "name": "death_south-east_4",
    "atlas": 1,
    "rect": [
-    900,
-    25,
+    813,
+    22,
     109,
     75
    ],
@@ -3755,14 +3949,15 @@
     -0.00542,
     -0.06793
    ],
+   "flare": 0.1429,
    "source": "south-east/death_4.png"
   },
   {
    "name": "death_east_0",
-   "atlas": 1,
+   "atlas": 0,
    "rect": [
-    162,
-    559,
+    232,
+    156,
     53,
     148
    ],
@@ -3774,13 +3969,14 @@
     0.05836,
     1.19405
    ],
+   "flare": 0.9841,
    "source": "east/death_0.png"
   },
   {
    "name": "death_east_1",
    "atlas": 0,
    "rect": [
-    782,
+    419,
     1,
     66,
     143
@@ -3793,14 +3989,15 @@
     0.17965,
     1.04407
    ],
+   "flare": 0.846,
    "source": "east/death_1.png"
   },
   {
    "name": "death_east_2",
    "atlas": 2,
    "rect": [
-    507,
-    15,
+    429,
+    6,
     109,
     109
    ],
@@ -3812,14 +4009,15 @@
     0.35861,
     0.75095
    ],
+   "flare": 0.5982,
    "source": "east/death_2.png"
   },
   {
    "name": "death_east_3",
    "atlas": 1,
    "rect": [
-    0,
-    16,
+    687,
+    15,
     126,
     84
    ],
@@ -3831,14 +4029,15 @@
     0.56503,
     0.34141
    ],
+   "flare": 0.329,
    "source": "east/death_3.png"
   },
   {
    "name": "death_east_4",
    "atlas": 1,
    "rect": [
-    550,
-    20,
+    210,
+    17,
     138,
     80
    ],
@@ -3850,33 +4049,35 @@
     0.69058,
     0.07397
    ],
+   "flare": 0.1429,
    "source": "east/death_4.png"
   },
   {
    "name": "death_north-east_0",
    "atlas": 1,
    "rect": [
-    860,
-    100,
+    74,
+    96,
     70,
-    150
+    151
    ],
    "pivot": [
     0.528571,
-    0.093333
+    0.092715
    ],
    "crucible": [
     0.22103,
     1.25191
    ],
+   "flare": 0.9841,
    "source": "north-east/death_0.png"
   },
   {
    "name": "death_north-east_1",
    "atlas": 1,
    "rect": [
-    0,
-    100,
+    514,
+    98,
     80,
     149
    ],
@@ -3888,14 +4089,15 @@
     0.39122,
     1.16229
    ],
+   "flare": 0.846,
    "source": "north-east/death_1.png"
   },
   {
    "name": "death_north-east_2",
    "atlas": 2,
    "rect": [
-    595,
-    382,
+    600,
+    370,
     116,
     136
    ],
@@ -3907,14 +4109,15 @@
     0.63023,
     0.95574
    ],
+   "flare": 0.5982,
    "source": "north-east/death_2.png"
   },
   {
    "name": "death_north-east_3",
    "atlas": 2,
    "rect": [
-    364,
-    9,
+    662,
+    2,
     143,
     115
    ],
@@ -3926,14 +4129,15 @@
     0.8686,
     0.63833
    ],
+   "flare": 0.329,
    "source": "north-east/death_3.png"
   },
   {
    "name": "death_north-east_4",
-   "atlas": 1,
+   "atlas": 2,
    "rect": [
-    145,
-    0,
+    805,
+    12,
     154,
     101
    ],
@@ -3945,14 +4149,15 @@
     0.98204,
     0.42038
    ],
+   "flare": 0.1429,
    "source": "north-east/death_4.png"
   },
   {
    "name": "death_north_0",
-   "atlas": 1,
+   "atlas": 0,
    "rect": [
-    78,
-    863,
+    353,
+    141,
     66,
     161
    ],
@@ -3964,44 +4169,47 @@
     0.25422,
     1.35034
    ],
+   "flare": 0.9841,
    "source": "north/death_0.png"
   },
   {
    "name": "death_north_1",
    "atlas": 1,
    "rect": [
-    413,
-    864,
+    282,
+    863,
     78,
-    160
+    161
    ],
    "pivot": [
     0.384615,
-    0.10625
+    0.10559
    ],
    "crucible": [
     0.37362,
     1.3207
    ],
+   "flare": 0.846,
    "source": "north/death_1.png"
   },
   {
    "name": "death_north_2",
    "atlas": 1,
    "rect": [
-    219,
-    708,
+    614,
+    707,
     93,
-    156
+    157
    ],
    "pivot": [
     0.311828,
-    0.166667
+    0.165605
    ],
    "crucible": [
     0.53267,
     1.19659
    ],
+   "flare": 0.5982,
    "source": "north/death_2.png"
   },
   {
@@ -4009,7 +4217,7 @@
    "atlas": 2,
    "rect": [
     0,
-    381,
+    369,
     105,
     136
    ],
@@ -4021,14 +4229,15 @@
     0.66335,
     0.95561
    ],
+   "flare": 0.329,
    "source": "north/death_3.png"
   },
   {
    "name": "death_north_4",
    "atlas": 2,
    "rect": [
-    858,
-    7,
+    662,
+    117,
     109,
     118
    ],
@@ -4040,6 +4249,7 @@
     0.69824,
     0.76838
    ],
+   "flare": 0.1429,
    "source": "north/death_4.png"
   }
  ]

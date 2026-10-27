@@ -3,8 +3,9 @@
     python Tools/ArtReview/PackArcanistSprites.py [--render DIR] [--page 1024]
 
 Per frame: the 4x render is box-filtered down in linear light with premultiplied alpha (area-exact anti-aliasing; the
-floor pivot stays on a pixel corner), given a one-pixel dark outline, trimmed to its pixels plus a transparent margin
-(always keeping the pivot inside), and packed with MaxRects into 1024 pages. Writes, all regenerated on every run:
+floor pivot stays on a pixel corner), given a one-pixel dark outline and the crucible's soft ember halo (at the anchor
+and flare frames.json records), trimmed to its pixels plus a transparent margin (always keeping the pivot inside), and
+packed with MaxRects into 1024 pages. Writes, all regenerated on every run:
 
     Assets/_Project/Art/Characters/CinderArcanist/CHR_CinderArcanist_<n>.png (+ .meta: sprite rects and pivots,
         bilinear, no mipmaps, ASTC 4x4 on Android - modelled on the Vanguard's character textures)
@@ -40,6 +41,13 @@ FOLDER_GUID = '45e42a0cc5514f69a7aec6efd3515b68'
 MOTIONS = ['idle', 'walk', 'walk-strike', 'strike', 'cast', 'hit', 'death']        # RenderedMotion order
 FACINGS = ['south', 'south-east', 'east', 'north-east', 'north']                  # RenderedFacing order
 OUTLINE = (0x16, 0x0F, 0x17)
+# The crucible's halo: ember orange, centred a little above the cup's mouth (on the flame), about three texels wide at
+# a resting flare and wider as it flares, strongest a little over half over the figure.
+GLOW = (0xFF, 0x9A, 0x45)
+GLOW_LIFT = 0.035
+GLOW_SIGMA = 2.8
+GLOW_GAIN = 0.26
+GLOW_PEAK = 0.6
 MARGIN = 1      # transparent texels kept round each frame, so bilinear filtering never reads a neighbour
 PADDING = 0     # more between packed rects (none needed: each rect's own margin is already transparent)
 
@@ -53,7 +61,7 @@ def to_srgb(c):
     return np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(c, 1 / 2.4) - 0.055)
 
 
-def process(path, ss):
+def process(path, ss, crucible=None, flare=0.0):
     """The final sprite pixels for one raw frame: straight-alpha sRGB uint8, the canvas at the game's resolution."""
     a = np.asarray(Image.open(path).convert('RGBA')).astype(np.float64) / 255.0
     alpha = a[..., 3:4]
@@ -68,6 +76,17 @@ def process(path, ss):
     ink = to_linear(np.array(OUTLINE) / 255.0)
     lin = lin + ink * grown * (1 - alpha)
     alpha = alpha + grown * (1 - alpha)
+    # The crucible glows: a soft ember halo round the staff's head (frames.json records where it projects and how hard
+    # it flares), added in light after the outline so it never gets a dark ring. Over the figure it brightens; beyond
+    # it the halo is a translucent ember the floor shows through.
+    if crucible is not None and flare > 0.05:
+        cx = pivot_x + crucible[0] * PPU
+        cy = pivot_top - (crucible[1] + GLOW_LIFT) * PPU
+        yy, xx = np.mgrid[0:h, 0:w] + 0.5
+        sigma = GLOW_SIGMA * (1 + 0.5 * max(0.0, flare - 1))
+        amount = (min(GLOW_PEAK, GLOW_GAIN * flare) * np.exp(-((xx - cx) ** 2 + (yy - cy) ** 2) / (2 * sigma ** 2)))[..., None]
+        lin = lin + to_linear(np.array(GLOW) / 255.0) * amount
+        alpha = alpha + amount * 0.8 * (1 - alpha)
     straight = np.where(alpha > 1e-6, lin / np.maximum(alpha, 1e-6), 0)
     rgb = to_srgb(straight)
     out = np.concatenate([rgb, alpha], axis=-1)
@@ -323,11 +342,11 @@ for clip in MOTIONS:
             r = records.get((facing, clip, k))
             if r is None:
                 sys.exit('Missing render: %s %s %d (render every frame first)' % (facing, clip, k))
-            pixels = process(RENDER / r['file'], SS)
+            pixels = process(RENDER / r['file'], SS, r.get('crucible'), r.get('flare', 0.0))
             x0, y0, x1, y1 = trim(pixels, pivot_x, pivot_top)
             frames.append(dict(name='%s_%s_%d' % (clip, facing, k), clip=clip, facing=facing, frame=k,
                                pixels=pixels[y0:y1, x0:x1], crop=(x0, y0, x1, y1), crucible=r.get('crucible'),
-                               source=r['file']))
+                               flare=r.get('flare'), source=r['file']))
 
 # Pack, tallest first, onto as many pages as it takes; each page is cropped to the rows it uses, rounded up to the
 # 4-texel ASTC block (the importer keeps non-power-of-two sizes: nPOTScale 0).
@@ -419,7 +438,7 @@ report = dict(art_set=dict(file=set_path.name, guid=set_guid), atlases=atlases, 
                           fill=round(used / texels, 3)),
               frames=[dict(name=f['name'], atlas=f['page'], rect=list(f['unity_rect']),
                            pivot=[round(f['pivot'][0], 6), round(f['pivot'][1], 6)],
-                           crucible=f['crucible'], source=f['source']) for f in frames])
+                           crucible=f['crucible'], flare=f['flare'], source=f['source']) for f in frames])
 (DOCS / 'frames.json').write_text(json.dumps(report, indent=1), encoding='utf-8', newline='\n')
 print('ARCANIST_PACKED frames %d atlases %s ASTC4x4 %.2f MB (%d texels, fill %.0f%%) set %s'
       % (len(frames), [tuple(a['size']) for a in atlases], texels / 2 ** 20, texels, 100 * used / texels, set_guid))
