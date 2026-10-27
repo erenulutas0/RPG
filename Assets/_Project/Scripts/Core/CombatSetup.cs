@@ -34,6 +34,10 @@ namespace Cryptforge.Core
         [SerializeField] private Sprite _groundRewardSprite;
         [SerializeField] private Sprite _groundExperienceSprite;
         private RewardService _rewards;
+        // The shop's weapons, in _weapons' order, to find a hero's starting weapon in the rack.
+        private WeaponOption[] _weaponOptions;
+        // Burn's own neighbourhood (TargetingNeighbourhood): never the AttackController's, whose list a burst walks.
+        private INeighbourhood _burnNeighbourhood;
         private ProfileStore _profileStore;
         private bool _timeFrozen;
         private bool _restarting;
@@ -103,7 +107,10 @@ namespace Cryptforge.Core
             ReportLoadProblems();
             Relics = new RelicShop(Profile, relics);
             Hero = ChooseHero();
+            _weaponOptions = weapons;
             Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)]);
+            // Before any view: the rack follows the forge's hero chooser before the forge redraws for the same change.
+            Profile.Changed += FollowNextHero;
             HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
 
             _hero.Initialize(Hero.MaximumHealth);
@@ -117,7 +124,10 @@ namespace Cryptforge.Core
             _attack.Initialize(Weapon);
             // Ember Memory (docs/45): every hit of every weapon the hero carries sets the struck enemy alight.
             if (Hero.Passive == HeroPassive.EmberMemory)
+            {
+                _burnNeighbourhood = new TargetingNeighbourhood(_hero.GetComponent<Targeting>());
                 _attack.StruckWith += IgniteStruck;
+            }
             Ability = Hero.Ability.CreateRuntime();
             _ability.Initialize(Ability);
             // A development file may choose the seed; otherwise a fresh one. Either way it is recorded on run_start.
@@ -127,6 +137,8 @@ namespace Cryptforge.Core
             // Created before any view subscribes to Run.Ended, so banked gold reaches the profile before results show.
             Bank = new RunBank(Run, Profile);
             Profile.Changed += SaveProfile;
+            // Nothing burns on behind the result screen (review, 2026-10-27).
+            Run.Ended += BurnStatus.ExtinguishAll;
             RelicOption equipped = Relics.Equipped;
             if (equipped != null)
             {
@@ -367,7 +379,19 @@ namespace Cryptforge.Core
 
         // Ember Memory: one direct Burn stack on the enemy each hit lands on; its fall then passes the burn on.
         private void IgniteStruck(Health target, WeaponRuntime weapon) =>
-            BurnStatus.On(target)?.Ignite(1, false, _hero, _attack);
+            BurnStatus.On(target)?.Ignite(1, false, _hero, _burnNeighbourhood);
+
+        // For tests: the neighbourhood a burn's fall asks.
+        internal INeighbourhood BurnNeighbourhood => _burnNeighbourhood;
+
+        // The forge's hero chooser changed the next run's hero: its starting weapon becomes the rack's free one.
+        private void FollowNextHero()
+        {
+            HeroDefinition next = ChooseHero();
+            int index = Array.IndexOf(_weapons, next.StartingWeapon);
+            if (index >= 0)
+                Weapons.SetStartingWeapon(_weaponOptions[index]);
+        }
 
         // The final floor ends the Descent; every earlier floor offers Extract or Descend.
         private void OnFloorCleared()

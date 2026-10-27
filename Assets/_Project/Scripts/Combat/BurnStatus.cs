@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Cryptforge.Combat
@@ -9,6 +10,8 @@ namespace Cryptforge.Combat
     // hero's own hit, it passes one stack to its nearest living neighbours; spread stacks pass nothing on.
     public sealed class BurnStatus : MonoBehaviour
     {
+        // Every burn in the scene, so a run's end can put them all out at once.
+        private static readonly List<BurnStatus> Live = new List<BurnStatus>();
         private Health _health;
         private IDamageable _source;
         private INeighbourhood _neighbourhood;
@@ -34,6 +37,7 @@ namespace Cryptforge.Combat
                 status = enemy.gameObject.AddComponent<BurnStatus>();
                 status._health = enemy;
                 enemy.Died += status.OnDied;
+                Live.Add(status);
             }
             return status;
         }
@@ -52,10 +56,24 @@ namespace Cryptforge.Combat
         // Crucible Vent: every stack spent at once; how many there were.
         public int Consume() => State.Consume();
 
+        // The run has ended (CombatSetup, on Run.Ended): every burn goes out, so nothing dies behind the result screen
+        // and no burn kill advances a wave, opens a gate or clears a floor after a defeat or an extract.
+        public static void ExtinguishAll()
+        {
+            for (int i = 0; i < Live.Count; i++)
+                Live[i].State.Clear();
+        }
+
         private void Update()
         {
             if (!State.IsBurning || _health == null || !_health.IsAlive || Time.deltaTime <= 0f)
                 return;
+            // A burn is the hero's damage: once the hero has fallen, it deals no more.
+            if (_source is Health hero && !hero.IsAlive)
+            {
+                State.Clear();
+                return;
+            }
             float damage = State.Tick(Time.deltaTime);
             if (damage <= 0f)
                 return;
@@ -88,8 +106,30 @@ namespace Cryptforge.Combat
 
         private void OnDestroy()
         {
+            Live.Remove(this);
             if (_health != null)
                 _health.Died -= OnDied;
+        }
+    }
+
+    // Who stands beside a burning enemy that falls, gathered into a list of the burn's own. A burn must never borrow the
+    // AttackController's neighbourhood: its list is the one a Cinder Nova burst is still walking when the burst fells a
+    // burning enemy, and refilling it from that enemy's fall would send the rest of the burst to the wrong enemies
+    // (review, 2026-10-27).
+    public sealed class TargetingNeighbourhood : INeighbourhood
+    {
+        private readonly Targeting _targeting;
+        private readonly List<IDamageable> _near = new List<IDamageable>();
+
+        public TargetingNeighbourhood(Targeting targeting)
+        {
+            _targeting = targeting != null ? targeting : throw new ArgumentNullException(nameof(targeting));
+        }
+
+        public IReadOnlyList<IDamageable> Near(IDamageable centre, float radius)
+        {
+            _targeting.CollectNear(centre as Health, radius, _near);
+            return _near;
         }
     }
 }

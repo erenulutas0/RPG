@@ -13,7 +13,8 @@ namespace Cryptforge.Progression
 
         public PlayerProfile Profile { get; }
         public IReadOnlyList<WeaponOption> Weapons { get; }
-        public WeaponOption StartingWeapon { get; }
+        // The free weapon of the hero the next run plays; it follows the forge's hero chooser (SetStartingWeapon).
+        public WeaponOption StartingWeapon { get; private set; }
 
         // Raised once when a tap spends gold on a weapon, after the profile accepted the purchase, so observers such as
         // telemetry can count forge gold spent; profile.Changed cannot tell a purchase from an equip. Not raised for
@@ -39,6 +40,18 @@ namespace Cryptforge.Progression
             if (startingWeapon == null || Find(startingWeapon.Id) != startingWeapon)
                 throw new ArgumentException("The starting weapon must be one of the listed weapons.", nameof(startingWeapon));
             StartingWeapon = startingWeapon;
+        }
+
+        // The hero chosen for the next run carries another starting weapon (docs/45: the Arcanist's Staff): the rack follows,
+        // so the forge shows that weapon as free and equipped rather than for sale. False when nothing changed.
+        public bool SetStartingWeapon(WeaponOption startingWeapon)
+        {
+            if (startingWeapon == null || Find(startingWeapon.Id) != startingWeapon)
+                throw new ArgumentException("The starting weapon must be one of the listed weapons.", nameof(startingWeapon));
+            if (startingWeapon == StartingWeapon)
+                return false;
+            StartingWeapon = startingWeapon;
+            return true;
         }
 
         // The saved weapon while this build still sells it and the profile owns it; otherwise the starting weapon.

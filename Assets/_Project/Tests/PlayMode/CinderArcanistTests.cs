@@ -159,6 +159,56 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // Review, 2026-10-27: a burn that borrowed the AttackController's neighbourhood refilled the very list a Cinder Nova
+        // burst was still walking when the burst felled a burning enemy.
+        [UnityTest]
+        public IEnumerator ABurningFallNeverRefillsTheListAStrikeIsWalking()
+        {
+            yield return Load(true);
+            Health[] dummies = Dummies(1f, 1.5f, 2f, 6f, 6.5f);
+            Health burning = dummies[0];
+            Assert.That(_setup.BurnNeighbourhood, Is.Not.Null.And.Not.SameAs(_attack), "A burn has a neighbourhood of its own.");
+            var walking = ((INeighbourhood)_attack).Near(dummies[3], 1f);
+            Assert.That(walking, Is.EqualTo(new IDamageable[] { dummies[4] }), "The strike's list, mid-walk.");
+            BurnStatus.On(burning).Ignite(1, false, _hero, _setup.BurnNeighbourhood);
+            burning.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(dummies[1].GetComponent<BurnStatus>()?.IsBurning, Is.True, "The fall still passed the burn on.");
+            Assert.That(walking, Is.EqualTo(new IDamageable[] { dummies[4] }), "And left the strike's list alone.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator BurnsGoOutWhenTheHeroFallsOrTheRunEnds()
+        {
+            yield return Load(true);
+            Health[] dummies = Dummies(1f, 3f);
+            BurnStatus.On(dummies[0]).Ignite(3, false, _hero, _setup.BurnNeighbourhood);
+            BurnStatus.On(dummies[1]).Ignite(3, false, _hero, _setup.BurnNeighbourhood);
+            _hero.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            float before = dummies[0].Current;
+            for (int i = 0; i < 70; i++) yield return null;
+            Assert.That(dummies[0].Current, Is.EqualTo(before), "A fallen hero's burns deal nothing.");
+            Assert.That(dummies[0].GetComponent<BurnStatus>().IsBurning, Is.False);
+            Assert.That(dummies[1].GetComponent<BurnStatus>().IsBurning, Is.False, "The run's end put every burn out.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator TheForgeRackFollowsTheChosenHerosStartingWeapon()
+        {
+            yield return Load(false);
+            var forge = Object.FindFirstObjectByType<RelicForgeView>();
+            forge.Open();
+            yield return null;
+            Assert.That(_setup.Weapons.StartingWeapon.Id, Is.EqualTo("weapon_sword"));
+            forge.HeroChoice.Cycle();
+            Assert.That(_setup.Weapons.StartingWeapon.Id, Is.EqualTo("weapon_staff"), "The Arcanist's Staff is free.");
+            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_staff"), "And carried, with nothing else equipped.");
+            forge.HeroChoice.Cycle();
+            Assert.That(_setup.Weapons.StartingWeapon.Id, Is.EqualTo("weapon_sword"), "Back with the Vanguard.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest]
         public IEnumerator TheForgeChoosesTheNextRunsHero()
         {
