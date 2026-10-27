@@ -521,16 +521,17 @@ def vent_column_frame(index, noise):
 
 def vent_ember_frame(index):
     """The embers an eruption throws up, which the view sends rising: hot as they leave, then cooling to crimson and
-    thinning out, each frame a little higher."""
-    frame = Frame(-0.24, -0.24, 0.24, 0.38, VENT_TPU)
+    thinning out, each frame a little higher and further out. The view centres them on the column, which still burns
+    under them, so they keep clear of its middle and fly up either side of it rather than speckling its fire."""
+    frame = Frame(-0.4, -0.26, 0.4, 0.42, VENT_TPU)
     cool = index / (VENT_EMBER_FRAMES - 1)
-    seeds = ((-0.11, -0.1, 1.0), (0.06, -0.05, 0.75), (-0.03, 0.06, 0.9), (0.13, 0.07, 0.55), (-0.14, 0.15, 0.45),
-             (0.03, 0.18, 0.65), (0.11, -0.13, 0.4), (-0.06, -0.02, 0.35), (0.0, 0.11, 0.3))
+    seeds = ((-0.2, -0.1, 1.0), (0.18, -0.06, 0.8), (-0.25, 0.07, 0.9), (0.23, 0.09, 0.6), (-0.18, 0.18, 0.5),
+             (0.27, 0.2, 0.7), (0.2, -0.15, 0.45), (-0.29, -0.02, 0.35), (0.16, 0.14, 0.3))
     for k, (x, y, size) in enumerate(seeds):
         if k >= len(seeds) - 2 * index:
             continue  # thinning out as they cool
         lift = 0.04 * index * (0.6 + 0.4 * size)
-        drift = 0.014 * index * (1 if k % 2 else -1)
+        drift = 0.02 * index * (1 if x > 0 else -1)
         hot = max(0.0, 1.0 - cool * (0.8 + 0.35 * (1.0 - size)))
         paint_ember(frame, x + drift, y + lift, (0.008 + 0.011 * size) * (1.0 - 0.25 * cool), hot, stretch=1.35,
                     angle=90 + 25 * (x * 5))

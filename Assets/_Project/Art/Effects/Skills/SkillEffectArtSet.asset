@@ -229,82 +229,82 @@ MonoBehaviour:
   _ventColumn:
     Sheet: {fileID: 2800000, guid: f5100309c5d54d76a8b920ed812cf069, type: 3}
     SheetWidth: 440
-    SheetHeight: 1080
+    SheetHeight: 1084
     TexelsPerUnit: 100
     Pivot: {x: 0.5092593, y: 0.1021505}
     Frames:
     - X: 0
-      Y: 240
+      Y: 244
       Width: 108
       Height: 186
     - X: 110
-      Y: 240
+      Y: 244
       Width: 108
       Height: 186
     - X: 220
-      Y: 240
+      Y: 244
       Width: 108
       Height: 186
     - X: 330
-      Y: 240
+      Y: 244
       Width: 108
       Height: 186
     - X: 0
-      Y: 52
+      Y: 56
       Width: 108
       Height: 186
     - X: 110
-      Y: 52
+      Y: 56
       Width: 108
       Height: 186
     - X: 220
-      Y: 52
+      Y: 56
       Width: 108
       Height: 186
     - X: 330
-      Y: 52
+      Y: 56
       Width: 108
       Height: 186
   _ventEmbers:
     Sheet: {fileID: 2800000, guid: f5100309c5d54d76a8b920ed812cf069, type: 3}
     SheetWidth: 440
-    SheetHeight: 1080
+    SheetHeight: 1084
     TexelsPerUnit: 100
-    Pivot: {x: 0.5116279, y: 0.4081633}
+    Pivot: {x: 0.5138889, y: 0.4150943}
     Frames:
     - X: 0
       Y: 1
-      Width: 43
-      Height: 49
-    - X: 45
+      Width: 72
+      Height: 53
+    - X: 74
       Y: 1
-      Width: 43
-      Height: 49
-    - X: 90
+      Width: 72
+      Height: 53
+    - X: 148
       Y: 1
-      Width: 43
-      Height: 49
-    - X: 135
+      Width: 72
+      Height: 53
+    - X: 222
       Y: 1
-      Width: 43
-      Height: 49
+      Width: 72
+      Height: 53
   _ventRing:
     Sheet: {fileID: 2800000, guid: f5100309c5d54d76a8b920ed812cf069, type: 3}
     SheetWidth: 440
-    SheetHeight: 1080
+    SheetHeight: 1084
     TexelsPerUnit: 180
     Pivot: {x: 0.4995098, y: 0.4703704}
     Frames:
     - X: 0
-      Y: 864
+      Y: 868
       Width: 408
       Height: 216
     - X: 0
-      Y: 646
+      Y: 650
       Width: 408
       Height: 216
     - X: 0
-      Y: 428
+      Y: 432
       Width: 408
       Height: 216
   _shockwave:
