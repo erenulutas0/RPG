@@ -285,9 +285,14 @@ stay for a later painted pass.
   - `EnemyArtSet` carries the optional windup and second-phase frames. `WardenSlamView` raises the hammer
     (`EnemyLookView.WindUp`) while `WardenSlamService`'s mark is down and holds the strike 0.35 s as the blow lands
     (`Slam`); at the enrage the frames swap and `CombatantView` skips its rust tint, which buried the steel on lava.
-  - Known flaws: one windup frame per facing, so a Warden walking through the 1.1 s telegraph glides with the hammer
-    up; the mirrored right side swaps the hammer and chain hands; the raised hammer can pass under the top HUD at the
-    top of the view (the camera-fit test still measures the pixel Warden); the fall is the horde's, not a boss's.
+  - Second pass: a walking windup (contact A, passing A, contact B, passing B per facing, both phases; the legs are
+    the walk's own under the raised upper body, stepped by distance like the walk; the standing windup is redrawn as
+    contact B) and the boss's own fall over 1.32 s in the facing it died in - struck in a white-hot flare, a held
+    kneel, a topple onto its face, lying - cooling as it goes, from a pool slot of its own (`FallSlots`), so nothing
+    waits on it. 66 textures, 3.27 MB.
+  - Known flaws: the mirrored right side swaps the hammer and chain hands; the raised hammer can pass under the top HUD
+    at the top of the view (the camera-fit test still measures the pixel Warden); the rear fall's hammer jumps sides in
+    one 0.16 s drawing; the fall is drawn in phase 2 only, and like all remains it draws over the combatants.
 - **The Runner, the Tank and the Grunt Captain** - each had walked as the painted Grunt inherited from
   `Grunt.prefab`; each prefab now sets its own `EnemyArtSet` in the Grunt's format (six frames front and rear, two
   remains) under `Assets/_Project/Art/Characters/{Runner,Tank,GruntCaptain}/` (1.97 MB as ASTC 4x4 for the three).
