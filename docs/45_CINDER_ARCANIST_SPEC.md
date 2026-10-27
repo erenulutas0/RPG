@@ -318,7 +318,7 @@ stay for a later painted pass.
     eruptions keep the procedural ring tinted ember; a strike set without the frames falls back to it.
   - Known flaws: the ring shows half the splash (`_ringSplashFraction` 0.5) and reaches its largest at Area 1.02, so
     Area cards barely widen it (unchanged rule); the burst's wisps are 3-4 px on a phone; each hit takes two of the
-    shared pool's slots; the Vent's thin procedural ember ring now looks the least finished.
+    shared pool's slots.
 - **The Vent's eruption ring painted** - `Tools/ArtReview/build_skill_vfx.py` paints a fourth sheet,
   `Assets/_Project/Art/Effects/Skills/VFX_Skill_VentSplash.png` (313 KiB as ASTC 4x4, imported as the other skill
   sheets), an optional strip on `SkillEffectArtSet` (`_ventSplash`, `HasVentSplash`; `IsValid` unchanged); the three
