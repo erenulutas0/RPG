@@ -256,3 +256,8 @@ stay for a later painted pass.
     kept (0.1875 units, 0.375 crit). One texture, so every digit on screen can batch.
   - Device checks: normal numbers over lava at a glance, and ASTC blocks on the thin numeral outlines (an uncompressed
     sheet would be about 0.85 MB). GroundDropView's gold-only fallback still uses the pixel coin.
+- **The forge's hero chooser** pictures each hero (`HeroDefinition._portrait`: the Vanguard's painted front idle,
+  Ilya's rendered south idle) beside its name.
+  - Open question for the owner: with Ilya chosen, the Sword reads "Forge for 0 gold" (it is owned only as the
+    Vanguard's starting weapon) and forging it lets Ilya carry it under the staff render. Should a hero be able to
+    carry another hero's starting weapon at all?
