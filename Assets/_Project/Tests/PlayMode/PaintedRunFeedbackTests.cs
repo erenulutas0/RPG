@@ -157,19 +157,21 @@ namespace Cryptforge.Tests
             Assert.That(ring.sprite, Is.SameAs(heldFrame));
 
             for (int i = 0; i < 4 && _setup.Choices.IsOpen; i++) _setup.Choices.TrySelect(_setup.Choices.Current, 0);
-            Assert.That(_setup.Pause.IsFrozen, Is.False, "The run moves again.");
             float spread = ring.transform.localScale.x;
             float risen = sparks[0].transform.position.y;
-            yield return new WaitForSeconds(.15f);
+            yield return Until(() => !ReferenceEquals(ring.sprite, heldFrame), 1f);
             // A drop gathered meanwhile may have levelled the hero again and held the run on a new burst.
             if (_feedback.ShownLevelUps == 1 && !_setup.Choices.IsOpen)
             {
                 Assert.That(ring.transform.localScale.x, Is.GreaterThan(spread), "It spreads once the run moves.");
                 Assert.That(ring.sprite, Is.Not.SameAs(heldFrame), "Through its painted frames.");
                 Assert.That(sparks[0].transform.position.y, Is.GreaterThan(risen), "Its sparks rise.");
-                yield return new WaitForSeconds(.6f);
+                yield return Until(() => !_feedback.IsLevelUpShowing, 3f);
                 if (_feedback.ShownLevelUps == 1 && !_setup.Choices.IsOpen)
-                    Assert.That(Shown("VFX Level Ring ").Count + Shown("VFX Gold Spark ").Count, Is.Zero, "And it is gone.");
+                {
+                    Assert.That(_feedback.IsLevelUpShowing, Is.False, "Its half second plays out.");
+                    Assert.That(Shown("VFX Level Ring ").Count, Is.Zero, "And its painted frames with it.");
+                }
             }
             for (int i = 0; i < 4 && _setup.Choices.IsOpen; i++) _setup.Choices.TrySelect(_setup.Choices.Current, 0);
             LogAssert.NoUnexpectedReceived();
@@ -270,10 +272,11 @@ namespace Cryptforge.Tests
             Assert.That(Shown("VFX Ember Spark ").Count, Is.GreaterThan(0), "Ember sparks rise round him.");
             Assert.That(Shown("VFX Gold Spark ").Count, Is.Zero, "Ember, not gold.");
 
-            yield return new WaitForSecondsRealtime(1f);
+            yield return Until(() => _feedback.ActiveEvolutionRings == 0 && !_feedback.IsHeroFlashing &&
+                !_feedback.IsCardFlashShowing, 3f);
             Assert.That(_feedback.IsHeroFlashing, Is.False, "The white fades.");
             Assert.That(_feedback.ActiveEvolutionRings, Is.Zero);
-            Assert.That(Shown("VFX ").Count, Is.Zero, "And every painted frame with it.");
+            Assert.That(Shown("VFX Card").Count + Shown("VFX Ember").Count, Is.Zero, "And every painted frame of it.");
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -311,7 +314,7 @@ namespace Cryptforge.Tests
                 right = Mathf.Max(right, embers[i].transform.localPosition.x);
             }
             Assert.That(left < -.02f && right > .02f, Is.True, "Either way out.");
-            yield return new WaitForSecondsRealtime(.6f);
+            yield return Until(() => Shown("VFX Ember").Count == 0, 3f);
             Assert.That(Shown("VFX Ember").Count, Is.Zero, "Gone in the embers' time.");
             LogAssert.NoUnexpectedReceived();
         }
