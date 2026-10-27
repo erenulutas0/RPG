@@ -8,8 +8,10 @@ namespace Cryptforge.UI
     // stacks, flickering on scaled time so a pause holds it, following the enemy and gone the frame the burn goes out,
     // the enemy falls or its body is taken away. CombatEffectsView owns it and tells it who may have caught fire - the
     // hero's struck target, a burn tick, a spread - so it never searches the scene: a crowd of forty costs one pass over
-    // its slots a frame and allocates nothing. Every frame of every size is cut from one sheet texture this owns, so the
-    // crowd's flames share one texture and batch together.
+    // its slots a frame and allocates nothing. Every frame of every size is cut from one sheet texture, so the crowd's
+    // flames share one texture and batch together: the painted sheet of the skills' art set when the scene gives one
+    // (borrowed), else BurnArt's pixel sheet (owned). The painted flame frames its body from the feet up - tongues out of
+    // the shoulders and flanks, a crown behind the head - where the pixel one stands on its belly.
     internal sealed class BurnFlames
     {
         private sealed class Flame
@@ -37,7 +39,12 @@ namespace Cryptforge.UI
         private const float MinScale = .7f;
         private const float MaxScale = 1.3f;
         private const float FrameSeconds = .09f;
-        private const float CycleSeconds = FrameSeconds * BurnArt.FlameFrameCount;
+        // The painted flame was laid out round a body as tall as the painted Grunt stands (ReferenceBodyHeight, its art
+        // set's VisualTop) and scales with the body it burns on, from the Mite's size to a Warden's.
+        private const float PaintedMinScale = .56f;
+        private const float PaintedMaxScale = 1.5f;
+        // Its loop is longer and smoother than the pixel one's: more frames at about the same rate.
+        private const float PaintedFrameSeconds = .07f;
         // The last moments of a burn gutter out over this long rather than blink off.
         private const float GutterSeconds = .3f;
         private const int PhaseSeed = 53;
@@ -49,28 +56,46 @@ namespace Cryptforge.UI
         private readonly Health[] _pending = new Health[PendingCapacity];
         // [stacks - 1][frame]
         private readonly Sprite[][] _frames;
+        // The pixel sheet, which this owns; null while the frames are cut from the painted sheet, which it borrows.
         private readonly Texture2D _sheet;
+        private readonly bool _painted;
+        private readonly float _frameSeconds;
+        private readonly float _cycleSeconds;
         private int _pendingCount;
         private int _tracked;
         private float _clock;
 
-        public BurnFlames(Transform parent, Material material, int sortingOrder, int capacity)
+        // painted: the skills' art set, or null for BurnArt's pixel flames.
+        public BurnFlames(Transform parent, Material material, int sortingOrder, int capacity, SkillEffectArtSet painted)
         {
-            _sheet = PixelSpriteFactory.CreateTexture(BurnArt.FlameSheet(), "VFX Burn Flames");
+            _painted = painted != null && painted.IsValid;
             _frames = new Sprite[BurnRule.MaxStacks][];
-            for (int stacks = 1; stacks <= BurnRule.MaxStacks; stacks++)
+            if (_painted)
             {
-                _frames[stacks - 1] = new Sprite[BurnArt.FlameFrameCount];
-                for (int frame = 0; frame < BurnArt.FlameFrameCount; frame++)
-                {
-                    BurnArt.FlameCell(stacks, frame, out int x, out int y);
-                    var rect = new Rect(x, y, BurnArt.FlameWidth(stacks), BurnArt.FlameHeight(stacks));
-                    Sprite sprite = Sprite.Create(_sheet, rect, PixelSpriteFactory.BottomCentre, BurnArt.TexelsPerUnit, 0,
-                        SpriteMeshType.FullRect);
-                    sprite.name = $"VFX Burn Flame {stacks}-{frame}";
-                    _frames[stacks - 1][frame] = sprite;
-                }
+                // Named as the pixel frames are, "VFX Burn Flame {stacks}-{frame}".
+                for (int stacks = 1; stacks <= BurnRule.MaxStacks; stacks++)
+                    _frames[stacks - 1] = painted.Flames(stacks).Cut($"VFX Burn Flame {stacks}-");
+                _frameSeconds = PaintedFrameSeconds;
             }
+            else
+            {
+                _sheet = PixelSpriteFactory.CreateTexture(BurnArt.FlameSheet(), "VFX Burn Flames");
+                for (int stacks = 1; stacks <= BurnRule.MaxStacks; stacks++)
+                {
+                    _frames[stacks - 1] = new Sprite[BurnArt.FlameFrameCount];
+                    for (int frame = 0; frame < BurnArt.FlameFrameCount; frame++)
+                    {
+                        BurnArt.FlameCell(stacks, frame, out int x, out int y);
+                        var rect = new Rect(x, y, BurnArt.FlameWidth(stacks), BurnArt.FlameHeight(stacks));
+                        Sprite sprite = Sprite.Create(_sheet, rect, PixelSpriteFactory.BottomCentre, BurnArt.TexelsPerUnit,
+                            0, SpriteMeshType.FullRect);
+                        sprite.name = $"VFX Burn Flame {stacks}-{frame}";
+                        _frames[stacks - 1][frame] = sprite;
+                    }
+                }
+                _frameSeconds = FrameSeconds;
+            }
+            _cycleSeconds = _frameSeconds * _frames[0].Length;
 
             var root = new GameObject("Burn Flames").transform;
             root.SetParent(parent, false);
@@ -88,6 +113,11 @@ namespace Cryptforge.UI
         }
 
         public int SlotCount => _flames.Length;
+
+        public bool IsPainted => _painted;
+
+        // Every frame of the flicker at this many stacks, for the tests.
+        public Sprite[] Frames(int stacks) => _frames[stacks - 1];
 
         public int ShownCount
         {
@@ -136,8 +166,8 @@ namespace Cryptforge.UI
         public void Tick(float deltaTime)
         {
             _clock += deltaTime;
-            if (_clock >= CycleSeconds)
-                _clock -= CycleSeconds * Mathf.Floor(_clock / CycleSeconds);
+            if (_clock >= _cycleSeconds)
+                _clock -= _cycleSeconds * Mathf.Floor(_clock / _cycleSeconds);
             for (int i = 0; i < _pendingCount; i++)
             {
                 Track(_pending[i], 0f);
@@ -166,8 +196,8 @@ namespace Cryptforge.UI
 
                 int stacks = Mathf.Clamp(flame.Burn.Stacks, 1, BurnRule.MaxStacks);
                 float time = _clock + flame.Phase;
-                int frame = (int)(time / FrameSeconds) % BurnArt.FlameFrameCount;
-                Sprite sprite = _frames[stacks - 1][frame];
+                Sprite[] frames = _frames[stacks - 1];
+                Sprite sprite = frames[(int)(time / _frameSeconds) % frames.Length];
                 if (!ReferenceEquals(flame.Renderer.sprite, sprite))
                     flame.Renderer.sprite = sprite;
                 float alpha = Mathf.Clamp01(flame.Burn.State.Remaining / GutterSeconds);
@@ -191,7 +221,8 @@ namespace Cryptforge.UI
             _pendingCount = 0;
         }
 
-        // The sprites are cut from the one sheet, so each sprite goes and the sheet goes once.
+        // The sprites are cut from the one sheet, so each sprite goes and the sheet goes once - the pixel sheet only, as
+        // the painted one is the art set's.
         public void Dispose()
         {
             Clear();
@@ -231,16 +262,18 @@ namespace Cryptforge.UI
             free.Root = enemy.transform;
             free.Hidden = delay;
             free.Alpha = -1f;
-            free.Phase = PixelNoise.Value(_tracked++, 0, PhaseSeed) * CycleSeconds;
-            Place(free);
+            free.Phase = PixelNoise.Value(_tracked++, 0, PhaseSeed) * _cycleSeconds;
+            if (_painted)
+                PlacePainted(free);
+            else
+                Place(free);
         }
 
         // Where on the body the flame stands and how large it is, from the body as it is now: the look's own renderer
         // when the enemy has one, as the hit sparks find it, and only its place on screen, not the foundry's depth.
         private static void Place(Flame flame)
         {
-            SpriteRenderer body = flame.Enemy.TryGetComponent(out EnemyLookView look) && look.Body != null
-                ? look.Body : flame.Enemy.GetComponentInChildren<SpriteRenderer>();
+            SpriteRenderer body = BodyOf(flame.Enemy, out _);
             Vector3 offset;
             float height;
             if (body != null)
@@ -261,6 +294,30 @@ namespace Cryptforge.UI
             flame.Transform.localScale = new Vector3(scale, scale, 1f);
             flame.Transform.position = flame.Root.position + offset;
         }
+
+        // The painted flame pins at the enemy's feet under the middle of its body and is sized by how tall the body
+        // stands: a painted look's own measure of that (its art set's VisualTop, which its bar hangs from) rather than
+        // its sprite rect, which leaves the Grunt room to strike in; a drawn look's sprite top, drawn to its size.
+        private static void PlacePainted(Flame flame)
+        {
+            SpriteRenderer body = BodyOf(flame.Enemy, out EnemyLookView look);
+            Vector3 offset = Vector3.zero;
+            float top = ReferenceBodyHeight;
+            if (body != null)
+            {
+                Bounds bounds = body.bounds;
+                offset.x = bounds.center.x - flame.Root.position.x;
+                EnemyArtSet painted = look != null ? look.PaintedArt : null;
+                top = painted != null ? painted.VisualTop : bounds.max.y - flame.Root.position.y;
+            }
+            flame.Offset = offset;
+            float scale = Mathf.Clamp(top / ReferenceBodyHeight, PaintedMinScale, PaintedMaxScale);
+            flame.Transform.localScale = new Vector3(scale, scale, 1f);
+            flame.Transform.position = flame.Root.position + offset;
+        }
+
+        private static SpriteRenderer BodyOf(Health enemy, out EnemyLookView look) =>
+            enemy.TryGetComponent(out look) && look.Body != null ? look.Body : enemy.GetComponentInChildren<SpriteRenderer>();
 
         private static void Release(Flame flame)
         {

@@ -5328,6 +5328,7 @@ MonoBehaviour:
   _camera: {fileID: 102}
   _material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   _paintedArt: {fileID: 11400000, guid: a51314096c68ecd4190a4d4cfa91f178, type: 2}
+  _skillArt: {fileID: 11400000, guid: 237c43cdee394178980ffd8616d1eeb2, type: 2}
   _effectPoolSize: 24
   _numberPoolSize: 12
   _sortingOrder: 5
