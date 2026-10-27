@@ -1,0 +1,4046 @@
+{
+ "art_set": {
+  "file": "CinderArcanistArtSet.asset",
+  "guid": "4f0a324f67c44d32be3cb8d0d6e07e69"
+ },
+ "atlases": [
+  {
+   "file": "CHR_CinderArcanist_0.png",
+   "guid": "383b2a3de0c74854bb782b60dceacb93",
+   "size": [
+    1024,
+    1024
+   ],
+   "sprites": 76,
+   "sha256": "1f0bdb5472343129beb45846d03679793258f079554e8bcd88c55b210fae062c"
+  },
+  {
+   "file": "CHR_CinderArcanist_1.png",
+   "guid": "2b41752ea9164a3f9f1a64517c11a1df",
+   "size": [
+    1024,
+    1016
+   ],
+   "sprites": 81,
+   "sha256": "9f997efae0ec9bc96a0470171d02ad94d7ff2d3e3d5e7a091e63d512c14dbc0a"
+  },
+  {
+   "file": "CHR_CinderArcanist_2.png",
+   "guid": "4bbd6d49cdbc42db9ccfa6222ed9f430",
+   "size": [
+    1024,
+    656
+   ],
+   "sprites": 53,
+   "sha256": "2ca4689c6a8ca7ea63f2a5354bdd5354f4e64374621fcdf7e353ff1bf23512ef"
+  }
+ ],
+ "pixels_per_unit": 100,
+ "canvas": [
+  220,
+  220
+ ],
+ "pivot": [
+  110,
+  45
+ ],
+ "stride": 1.2,
+ "memory": {
+  "astc_4x4_bytes": 2760704,
+  "rgba32_bytes": 11042816,
+  "frame_texels": 2510295,
+  "fill": 0.909
+ },
+ "frames": [
+  {
+   "name": "idle_south_0",
+   "atlas": 1,
+   "rect": [
+    365,
+    237,
+    66,
+    152
+   ],
+   "pivot": [
+    0.530303,
+    0.046053
+   ],
+   "crucible": [
+    -0.25422,
+    1.33197
+   ],
+   "source": "south/idle_0.png"
+  },
+  {
+   "name": "idle_south_1",
+   "atlas": 1,
+   "rect": [
+    431,
+    237,
+    66,
+    152
+   ],
+   "pivot": [
+    0.530303,
+    0.046053
+   ],
+   "crucible": [
+    -0.25422,
+    1.3348
+   ],
+   "source": "south/idle_1.png"
+  },
+  {
+   "name": "idle_south_2",
+   "atlas": 1,
+   "rect": [
+    713,
+    238,
+    66,
+    151
+   ],
+   "pivot": [
+    0.530303,
+    0.046358
+   ],
+   "crucible": [
+    -0.25422,
+    1.33597
+   ],
+   "source": "south/idle_2.png"
+  },
+  {
+   "name": "idle_south_3",
+   "atlas": 1,
+   "rect": [
+    497,
+    237,
+    66,
+    152
+   ],
+   "pivot": [
+    0.530303,
+    0.046053
+   ],
+   "crucible": [
+    -0.25422,
+    1.3348
+   ],
+   "source": "south/idle_3.png"
+  },
+  {
+   "name": "idle_south_4",
+   "atlas": 1,
+   "rect": [
+    563,
+    87,
+    66,
+    151
+   ],
+   "pivot": [
+    0.530303,
+    0.046358
+   ],
+   "crucible": [
+    -0.25422,
+    1.33197
+   ],
+   "source": "south/idle_4.png"
+  },
+  {
+   "name": "idle_south_5",
+   "atlas": 1,
+   "rect": [
+    629,
+    87,
+    66,
+    151
+   ],
+   "pivot": [
+    0.530303,
+    0.046358
+   ],
+   "crucible": [
+    -0.25422,
+    1.32915
+   ],
+   "source": "south/idle_5.png"
+  },
+  {
+   "name": "idle_south_6",
+   "atlas": 1,
+   "rect": [
+    695,
+    87,
+    66,
+    151
+   ],
+   "pivot": [
+    0.530303,
+    0.046358
+   ],
+   "crucible": [
+    -0.25422,
+    1.32797
+   ],
+   "source": "south/idle_6.png"
+  },
+  {
+   "name": "idle_south_7",
+   "atlas": 1,
+   "rect": [
+    831,
+    87,
+    66,
+    150
+   ],
+   "pivot": [
+    0.530303,
+    0.046667
+   ],
+   "crucible": [
+    -0.25422,
+    1.32915
+   ],
+   "source": "south/idle_7.png"
+  },
+  {
+   "name": "idle_south-east_0",
+   "atlas": 1,
+   "rect": [
+    962,
+    90,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.25064
+   ],
+   "source": "south-east/idle_0.png"
+  },
+  {
+   "name": "idle_south-east_1",
+   "atlas": 2,
+   "rect": [
+    343,
+    509,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.25347
+   ],
+   "source": "south-east/idle_1.png"
+  },
+  {
+   "name": "idle_south-east_2",
+   "atlas": 2,
+   "rect": [
+    401,
+    509,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.25464
+   ],
+   "source": "south-east/idle_2.png"
+  },
+  {
+   "name": "idle_south-east_3",
+   "atlas": 2,
+   "rect": [
+    459,
+    509,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.25347
+   ],
+   "source": "south-east/idle_3.png"
+  },
+  {
+   "name": "idle_south-east_4",
+   "atlas": 2,
+   "rect": [
+    517,
+    509,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.25064
+   ],
+   "source": "south-east/idle_4.png"
+  },
+  {
+   "name": "idle_south-east_5",
+   "atlas": 2,
+   "rect": [
+    575,
+    509,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.24781
+   ],
+   "source": "south-east/idle_5.png"
+  },
+  {
+   "name": "idle_south-east_6",
+   "atlas": 2,
+   "rect": [
+    818,
+    510,
+    58,
+    146
+   ],
+   "pivot": [
+    0.5,
+    0.068493
+   ],
+   "crucible": [
+    -0.13849,
+    1.24664
+   ],
+   "source": "south-east/idle_6.png"
+  },
+  {
+   "name": "idle_south-east_7",
+   "atlas": 2,
+   "rect": [
+    633,
+    509,
+    58,
+    147
+   ],
+   "pivot": [
+    0.5,
+    0.068027
+   ],
+   "crucible": [
+    -0.13849,
+    1.24781
+   ],
+   "source": "south-east/idle_7.png"
+  },
+  {
+   "name": "idle_east_0",
+   "atlas": 1,
+   "rect": [
+    693,
+    390,
+    60,
+    154
+   ],
+   "pivot": [
+    0.45,
+    0.077922
+   ],
+   "crucible": [
+    0.05836,
+    1.23405
+   ],
+   "source": "east/idle_0.png"
+  },
+  {
+   "name": "idle_east_1",
+   "atlas": 1,
+   "rect": [
+    273,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.077419
+   ],
+   "crucible": [
+    0.05836,
+    1.23688
+   ],
+   "source": "east/idle_1.png"
+  },
+  {
+   "name": "idle_east_2",
+   "atlas": 1,
+   "rect": [
+    333,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.077419
+   ],
+   "crucible": [
+    0.05836,
+    1.23805
+   ],
+   "source": "east/idle_2.png"
+  },
+  {
+   "name": "idle_east_3",
+   "atlas": 1,
+   "rect": [
+    393,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.077419
+   ],
+   "crucible": [
+    0.05836,
+    1.23688
+   ],
+   "source": "east/idle_3.png"
+  },
+  {
+   "name": "idle_east_4",
+   "atlas": 1,
+   "rect": [
+    453,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.083871
+   ],
+   "crucible": [
+    0.05836,
+    1.23405
+   ],
+   "source": "east/idle_4.png"
+  },
+  {
+   "name": "idle_east_5",
+   "atlas": 1,
+   "rect": [
+    513,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.083871
+   ],
+   "crucible": [
+    0.05836,
+    1.23122
+   ],
+   "source": "east/idle_5.png"
+  },
+  {
+   "name": "idle_east_6",
+   "atlas": 1,
+   "rect": [
+    573,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.083871
+   ],
+   "crucible": [
+    0.05836,
+    1.23005
+   ],
+   "source": "east/idle_6.png"
+  },
+  {
+   "name": "idle_east_7",
+   "atlas": 1,
+   "rect": [
+    633,
+    389,
+    60,
+    155
+   ],
+   "pivot": [
+    0.45,
+    0.083871
+   ],
+   "crucible": [
+    0.05836,
+    1.23122
+   ],
+   "source": "east/idle_7.png"
+  },
+  {
+   "name": "idle_north-east_0",
+   "atlas": 1,
+   "rect": [
+    957,
+    858,
+    63,
+    158
+   ],
+   "pivot": [
+    0.47619,
+    0.082278
+   ],
+   "crucible": [
+    0.22103,
+    1.29191
+   ],
+   "source": "north-east/idle_0.png"
+  },
+  {
+   "name": "idle_north-east_1",
+   "atlas": 1,
+   "rect": [
+    566,
+    699,
+    63,
+    158
+   ],
+   "pivot": [
+    0.47619,
+    0.082278
+   ],
+   "crucible": [
+    0.22103,
+    1.29474
+   ],
+   "source": "north-east/idle_1.png"
+  },
+  {
+   "name": "idle_north-east_2",
+   "atlas": 1,
+   "rect": [
+    767,
+    857,
+    63,
+    159
+   ],
+   "pivot": [
+    0.47619,
+    0.081761
+   ],
+   "crucible": [
+    0.22103,
+    1.29591
+   ],
+   "source": "north-east/idle_2.png"
+  },
+  {
+   "name": "idle_north-east_3",
+   "atlas": 1,
+   "rect": [
+    629,
+    699,
+    63,
+    158
+   ],
+   "pivot": [
+    0.47619,
+    0.082278
+   ],
+   "crucible": [
+    0.22103,
+    1.29474
+   ],
+   "source": "north-east/idle_3.png"
+  },
+  {
+   "name": "idle_north-east_4",
+   "atlas": 1,
+   "rect": [
+    692,
+    699,
+    62,
+    158
+   ],
+   "pivot": [
+    0.467742,
+    0.082278
+   ],
+   "crucible": [
+    0.22103,
+    1.29191
+   ],
+   "source": "north-east/idle_4.png"
+  },
+  {
+   "name": "idle_north-east_5",
+   "atlas": 1,
+   "rect": [
+    63,
+    698,
+    62,
+    157
+   ],
+   "pivot": [
+    0.467742,
+    0.082803
+   ],
+   "crucible": [
+    0.22103,
+    1.28908
+   ],
+   "source": "north-east/idle_5.png"
+  },
+  {
+   "name": "idle_north-east_6",
+   "atlas": 1,
+   "rect": [
+    754,
+    543,
+    62,
+    157
+   ],
+   "pivot": [
+    0.467742,
+    0.082803
+   ],
+   "crucible": [
+    0.22103,
+    1.28791
+   ],
+   "source": "north-east/idle_6.png"
+  },
+  {
+   "name": "idle_north-east_7",
+   "atlas": 1,
+   "rect": [
+    0,
+    698,
+    63,
+    157
+   ],
+   "pivot": [
+    0.47619,
+    0.082803
+   ],
+   "crucible": [
+    0.22103,
+    1.28908
+   ],
+   "source": "north-east/idle_7.png"
+  },
+  {
+   "name": "idle_north_0",
+   "atlas": 0,
+   "rect": [
+    913,
+    307,
+    66,
+    164
+   ],
+   "pivot": [
+    0.469697,
+    0.079268
+   ],
+   "crucible": [
+    0.25422,
+    1.39034
+   ],
+   "source": "north/idle_0.png"
+  },
+  {
+   "name": "idle_north_1",
+   "atlas": 0,
+   "rect": [
+    63,
+    300,
+    66,
+    163
+   ],
+   "pivot": [
+    0.469697,
+    0.07362
+   ],
+   "crucible": [
+    0.25422,
+    1.39317
+   ],
+   "source": "north/idle_1.png"
+  },
+  {
+   "name": "idle_north_2",
+   "atlas": 0,
+   "rect": [
+    281,
+    145,
+    66,
+    163
+   ],
+   "pivot": [
+    0.469697,
+    0.07362
+   ],
+   "crucible": [
+    0.25422,
+    1.39434
+   ],
+   "source": "north/idle_2.png"
+  },
+  {
+   "name": "idle_north_3",
+   "atlas": 0,
+   "rect": [
+    449,
+    144,
+    66,
+    163
+   ],
+   "pivot": [
+    0.469697,
+    0.07362
+   ],
+   "crucible": [
+    0.25422,
+    1.39317
+   ],
+   "source": "north/idle_3.png"
+  },
+  {
+   "name": "idle_north_4",
+   "atlas": 0,
+   "rect": [
+    759,
+    306,
+    66,
+    164
+   ],
+   "pivot": [
+    0.469697,
+    0.079268
+   ],
+   "crucible": [
+    0.25422,
+    1.39034
+   ],
+   "source": "north/idle_4.png"
+  },
+  {
+   "name": "idle_north_5",
+   "atlas": 0,
+   "rect": [
+    669,
+    305,
+    66,
+    164
+   ],
+   "pivot": [
+    0.469697,
+    0.079268
+   ],
+   "crucible": [
+    0.25422,
+    1.38751
+   ],
+   "source": "north/idle_5.png"
+  },
+  {
+   "name": "idle_north_6",
+   "atlas": 0,
+   "rect": [
+    825,
+    144,
+    66,
+    163
+   ],
+   "pivot": [
+    0.469697,
+    0.079755
+   ],
+   "crucible": [
+    0.25422,
+    1.38634
+   ],
+   "source": "north/idle_6.png"
+  },
+  {
+   "name": "idle_north_7",
+   "atlas": 0,
+   "rect": [
+    580,
+    303,
+    66,
+    164
+   ],
+   "pivot": [
+    0.469697,
+    0.079268
+   ],
+   "crucible": [
+    0.25422,
+    1.38751
+   ],
+   "source": "north/idle_7.png"
+  },
+  {
+   "name": "walk_south_0",
+   "atlas": 0,
+   "rect": [
+    785,
+    1,
+    70,
+    143
+   ],
+   "pivot": [
+    0.542857,
+    0.083916
+   ],
+   "crucible": [
+    -0.27905,
+    1.21101
+   ],
+   "source": "south/walk_0.png"
+  },
+  {
+   "name": "walk_south_1",
+   "atlas": 2,
+   "rect": [
+    252,
+    372,
+    70,
+    137
+   ],
+   "pivot": [
+    0.542857,
+    0.087591
+   ],
+   "crucible": [
+    -0.27704,
+    1.14483
+   ],
+   "source": "south/walk_1.png"
+  },
+  {
+   "name": "walk_south_2",
+   "atlas": 2,
+   "rect": [
+    866,
+    244,
+    69,
+    136
+   ],
+   "pivot": [
+    0.536232,
+    0.073529
+   ],
+   "crucible": [
+    -0.27599,
+    1.11565
+   ],
+   "source": "south/walk_2.png"
+  },
+  {
+   "name": "walk_south_3",
+   "atlas": 2,
+   "rect": [
+    441,
+    238,
+    70,
+    135
+   ],
+   "pivot": [
+    0.542857,
+    0.066667
+   ],
+   "crucible": [
+    -0.27704,
+    1.14483
+   ],
+   "source": "south/walk_3.png"
+  },
+  {
+   "name": "walk_south_4",
+   "atlas": 0,
+   "rect": [
+    444,
+    0,
+    70,
+    144
+   ],
+   "pivot": [
+    0.542857,
+    0.090278
+   ],
+   "crucible": [
+    -0.27905,
+    1.21101
+   ],
+   "source": "south/walk_4.png"
+  },
+  {
+   "name": "walk_south_5",
+   "atlas": 1,
+   "rect": [
+    643,
+    238,
+    70,
+    151
+   ],
+   "pivot": [
+    0.542857,
+    0.07947
+   ],
+   "crucible": [
+    -0.28031,
+    1.28488
+   ],
+   "source": "south/walk_5.png"
+  },
+  {
+   "name": "walk_south_6",
+   "atlas": 1,
+   "rect": [
+    0,
+    389,
+    70,
+    154
+   ],
+   "pivot": [
+    0.542857,
+    0.071429
+   ],
+   "crucible": [
+    -0.2806,
+    1.31347
+   ],
+   "source": "south/walk_6.png"
+  },
+  {
+   "name": "walk_south_7",
+   "atlas": 2,
+   "rect": [
+    146,
+    509,
+    70,
+    147
+   ],
+   "pivot": [
+    0.542857,
+    0.054422
+   ],
+   "crucible": [
+    -0.28031,
+    1.28488
+   ],
+   "source": "south/walk_7.png"
+  },
+  {
+   "name": "walk_south-east_0",
+   "atlas": 2,
+   "rect": [
+    0,
+    508,
+    66,
+    148
+   ],
+   "pivot": [
+    0.530303,
+    0.114865
+   ],
+   "crucible": [
+    -0.01087,
+    1.15097
+   ],
+   "source": "south-east/walk_0.png"
+  },
+  {
+   "name": "walk_south-east_1",
+   "atlas": 1,
+   "rect": [
+    437,
+    87,
+    71,
+    150
+   ],
+   "pivot": [
+    0.549296,
+    0.113333
+   ],
+   "crucible": [
+    0.06704,
+    1.10134
+   ],
+   "source": "south-east/walk_1.png"
+  },
+  {
+   "name": "walk_south-east_2",
+   "atlas": 1,
+   "rect": [
+    0,
+    88,
+    67,
+    148
+   ],
+   "pivot": [
+    0.507463,
+    0.094595
+   ],
+   "crucible": [
+    0.09903,
+    1.079
+   ],
+   "source": "south-east/walk_2.png"
+  },
+  {
+   "name": "walk_south-east_3",
+   "atlas": 0,
+   "rect": [
+    87,
+    0,
+    64,
+    143
+   ],
+   "pivot": [
+    0.5,
+    0.06993
+   ],
+   "crucible": [
+    0.06704,
+    1.10134
+   ],
+   "source": "south-east/walk_3.png"
+  },
+  {
+   "name": "walk_south-east_4",
+   "atlas": 2,
+   "rect": [
+    66,
+    371,
+    73,
+    138
+   ],
+   "pivot": [
+    0.520548,
+    0.050725
+   ],
+   "crucible": [
+    -0.01087,
+    1.15097
+   ],
+   "source": "south-east/walk_4.png"
+  },
+  {
+   "name": "walk_south-east_5",
+   "atlas": 0,
+   "rect": [
+    0,
+    1,
+    76,
+    138
+   ],
+   "pivot": [
+    0.526316,
+    0.036232
+   ],
+   "crucible": [
+    -0.08934,
+    1.20832
+   ],
+   "source": "south-east/walk_5.png"
+  },
+  {
+   "name": "walk_south-east_6",
+   "atlas": 0,
+   "rect": [
+    296,
+    2,
+    69,
+    140
+   ],
+   "pivot": [
+    0.521739,
+    0.035714
+   ],
+   "crucible": [
+    -0.12188,
+    1.23011
+   ],
+   "source": "south-east/walk_6.png"
+  },
+  {
+   "name": "walk_south-east_7",
+   "atlas": 0,
+   "rect": [
+    957,
+    0,
+    63,
+    145
+   ],
+   "pivot": [
+    0.492063,
+    0.082759
+   ],
+   "crucible": [
+    -0.08934,
+    1.20832
+   ],
+   "source": "south-east/walk_7.png"
+  },
+  {
+   "name": "walk_east_0",
+   "atlas": 1,
+   "rect": [
+    0,
+    236,
+    78,
+    153
+   ],
+   "pivot": [
+    0.512821,
+    0.098039
+   ],
+   "crucible": [
+    0.26368,
+    1.20332
+   ],
+   "source": "east/walk_0.png"
+  },
+  {
+   "name": "walk_east_1",
+   "atlas": 1,
+   "rect": [
+    616,
+    544,
+    92,
+    155
+   ],
+   "pivot": [
+    0.467391,
+    0.090323
+   ],
+   "crucible": [
+    0.37185,
+    1.19223
+   ],
+   "source": "east/walk_1.png"
+  },
+  {
+   "name": "walk_east_2",
+   "atlas": 1,
+   "rect": [
+    909,
+    544,
+    90,
+    156
+   ],
+   "pivot": [
+    0.4,
+    0.089744
+   ],
+   "crucible": [
+    0.41603,
+    1.18567
+   ],
+   "source": "east/walk_2.png"
+  },
+  {
+   "name": "walk_east_3",
+   "atlas": 1,
+   "rect": [
+    816,
+    390,
+    82,
+    154
+   ],
+   "pivot": [
+    0.402439,
+    0.084416
+   ],
+   "crucible": [
+    0.37185,
+    1.19223
+   ],
+   "source": "east/walk_3.png"
+  },
+  {
+   "name": "walk_east_4",
+   "atlas": 1,
+   "rect": [
+    285,
+    87,
+    78,
+    150
+   ],
+   "pivot": [
+    0.512821,
+    0.073333
+   ],
+   "crucible": [
+    0.26368,
+    1.20332
+   ],
+   "source": "east/walk_4.png"
+  },
+  {
+   "name": "walk_east_5",
+   "atlas": 2,
+   "rect": [
+    66,
+    509,
+    80,
+    147
+   ],
+   "pivot": [
+    0.55,
+    0.054422
+   ],
+   "crucible": [
+    0.15397,
+    1.22171
+   ],
+   "source": "east/walk_5.png"
+  },
+  {
+   "name": "walk_east_6",
+   "atlas": 1,
+   "rect": [
+    363,
+    87,
+    74,
+    150
+   ],
+   "pivot": [
+    0.513514,
+    0.066667
+   ],
+   "crucible": [
+    0.10824,
+    1.22729
+   ],
+   "source": "east/walk_6.png"
+  },
+  {
+   "name": "walk_east_7",
+   "atlas": 1,
+   "rect": [
+    295,
+    237,
+    70,
+    152
+   ],
+   "pivot": [
+    0.485714,
+    0.092105
+   ],
+   "crucible": [
+    0.15397,
+    1.22171
+   ],
+   "source": "east/walk_7.png"
+  },
+  {
+   "name": "walk_north-east_0",
+   "atlas": 0,
+   "rect": [
+    0,
+    139,
+    87,
+    161
+   ],
+   "pivot": [
+    0.448276,
+    0.099379
+   ],
+   "crucible": [
+    0.38377,
+    1.33741
+   ],
+   "source": "north-east/walk_0.png"
+  },
+  {
+   "name": "walk_north-east_1",
+   "atlas": 0,
+   "rect": [
+    891,
+    145,
+    96,
+    162
+   ],
+   "pivot": [
+    0.416667,
+    0.08642
+   ],
+   "crucible": [
+    0.45883,
+    1.36427
+   ],
+   "source": "north-east/walk_1.png"
+  },
+  {
+   "name": "walk_north-east_2",
+   "atlas": 0,
+   "rect": [
+    129,
+    143,
+    95,
+    162
+   ],
+   "pivot": [
+    0.378947,
+    0.08642
+   ],
+   "crucible": [
+    0.48933,
+    1.37318
+   ],
+   "source": "north-east/walk_2.png"
+  },
+  {
+   "name": "walk_north-east_3",
+   "atlas": 0,
+   "rect": [
+    360,
+    303,
+    89,
+    163
+   ],
+   "pivot": [
+    0.370787,
+    0.092025
+   ],
+   "crucible": [
+    0.45883,
+    1.36427
+   ],
+   "source": "north-east/walk_3.png"
+  },
+  {
+   "name": "walk_north-east_4",
+   "atlas": 1,
+   "rect": [
+    931,
+    700,
+    85,
+    158
+   ],
+   "pivot": [
+    0.435294,
+    0.088608
+   ],
+   "crucible": [
+    0.38377,
+    1.33741
+   ],
+   "source": "north-east/walk_4.png"
+  },
+  {
+   "name": "walk_north-east_5",
+   "atlas": 1,
+   "rect": [
+    0,
+    543,
+    80,
+    155
+   ],
+   "pivot": [
+    0.4875,
+    0.070968
+   ],
+   "crucible": [
+    0.30708,
+    1.31719
+   ],
+   "source": "north-east/walk_5.png"
+  },
+  {
+   "name": "walk_north-east_6",
+   "atlas": 1,
+   "rect": [
+    754,
+    700,
+    72,
+    157
+   ],
+   "pivot": [
+    0.486111,
+    0.076433
+   ],
+   "crucible": [
+    0.27495,
+    1.30665
+   ],
+   "source": "north-east/walk_6.png"
+  },
+  {
+   "name": "walk_north-east_7",
+   "atlas": 1,
+   "rect": [
+    491,
+    699,
+    75,
+    158
+   ],
+   "pivot": [
+    0.453333,
+    0.094937
+   ],
+   "crucible": [
+    0.30708,
+    1.31719
+   ],
+   "source": "north-east/walk_7.png"
+  },
+  {
+   "name": "walk_north_0",
+   "atlas": 0,
+   "rect": [
+    150,
+    472,
+    70,
+    175
+   ],
+   "pivot": [
+    0.457143,
+    0.085714
+   ],
+   "crucible": [
+    0.27905,
+    1.47469
+   ],
+   "source": "north/walk_0.png"
+  },
+  {
+   "name": "walk_north_1",
+   "atlas": 0,
+   "rect": [
+    829,
+    471,
+    70,
+    177
+   ],
+   "pivot": [
+    0.457143,
+    0.073446
+   ],
+   "crucible": [
+    0.27704,
+    1.51667
+   ],
+   "source": "north/walk_1.png"
+  },
+  {
+   "name": "walk_north_2",
+   "atlas": 0,
+   "rect": [
+    899,
+    471,
+    69,
+    177
+   ],
+   "pivot": [
+    0.463768,
+    0.073446
+   ],
+   "crucible": [
+    0.27599,
+    1.53168
+   ],
+   "source": "north/walk_2.png"
+  },
+  {
+   "name": "walk_north_3",
+   "atlas": 0,
+   "rect": [
+    759,
+    470,
+    70,
+    178
+   ],
+   "pivot": [
+    0.457143,
+    0.078652
+   ],
+   "crucible": [
+    0.27704,
+    1.51667
+   ],
+   "source": "north/walk_3.png"
+  },
+  {
+   "name": "walk_north_4",
+   "atlas": 0,
+   "rect": [
+    220,
+    473,
+    70,
+    174
+   ],
+   "pivot": [
+    0.457143,
+    0.086207
+   ],
+   "crucible": [
+    0.27905,
+    1.47469
+   ],
+   "source": "north/walk_4.png"
+  },
+  {
+   "name": "walk_north_5",
+   "atlas": 0,
+   "rect": [
+    290,
+    308,
+    70,
+    168
+   ],
+   "pivot": [
+    0.457143,
+    0.077381
+   ],
+   "crucible": [
+    0.28031,
+    1.43884
+   ],
+   "source": "north/walk_5.png"
+  },
+  {
+   "name": "walk_north_6",
+   "atlas": 0,
+   "rect": [
+    150,
+    305,
+    70,
+    167
+   ],
+   "pivot": [
+    0.457143,
+    0.077844
+   ],
+   "crucible": [
+    0.2806,
+    1.42171
+   ],
+   "source": "north/walk_6.png"
+  },
+  {
+   "name": "walk_north_7",
+   "atlas": 0,
+   "rect": [
+    451,
+    477,
+    70,
+    170
+   ],
+   "pivot": [
+    0.457143,
+    0.088235
+   ],
+   "crucible": [
+    0.28031,
+    1.43884
+   ],
+   "source": "north/walk_7.png"
+  },
+  {
+   "name": "walk-strike_south_0",
+   "atlas": 2,
+   "rect": [
+    868,
+    117,
+    67,
+    127
+   ],
+   "pivot": [
+    0.507463,
+    0.094488
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_0.png"
+  },
+  {
+   "name": "walk-strike_south_1",
+   "atlas": 2,
+   "rect": [
+    66,
+    116,
+    67,
+    127
+   ],
+   "pivot": [
+    0.507463,
+    0.094488
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_1.png"
+  },
+  {
+   "name": "walk-strike_south_2",
+   "atlas": 2,
+   "rect": [
+    252,
+    114,
+    67,
+    127
+   ],
+   "pivot": [
+    0.507463,
+    0.07874
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_2.png"
+  },
+  {
+   "name": "walk-strike_south_3",
+   "atlas": 2,
+   "rect": [
+    440,
+    113,
+    67,
+    125
+   ],
+   "pivot": [
+    0.507463,
+    0.072
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_3.png"
+  },
+  {
+   "name": "walk-strike_south_4",
+   "atlas": 2,
+   "rect": [
+    66,
+    243,
+    67,
+    128
+   ],
+   "pivot": [
+    0.507463,
+    0.101562
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_4.png"
+  },
+  {
+   "name": "walk-strike_south_5",
+   "atlas": 2,
+   "rect": [
+    935,
+    117,
+    66,
+    128
+   ],
+   "pivot": [
+    0.515152,
+    0.09375
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_5.png"
+  },
+  {
+   "name": "walk-strike_south_6",
+   "atlas": 2,
+   "rect": [
+    750,
+    243,
+    66,
+    129
+   ],
+   "pivot": [
+    0.515152,
+    0.085271
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_6.png"
+  },
+  {
+   "name": "walk-strike_south_7",
+   "atlas": 2,
+   "rect": [
+    0,
+    115,
+    66,
+    125
+   ],
+   "pivot": [
+    0.515152,
+    0.064
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/walk-strike_7.png"
+  },
+  {
+   "name": "walk-strike_south-east_0",
+   "atlas": 2,
+   "rect": [
+    439,
+    373,
+    116,
+    136
+   ],
+   "pivot": [
+    0.301724,
+    0.125
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_0.png"
+  },
+  {
+   "name": "walk-strike_south-east_1",
+   "atlas": 2,
+   "rect": [
+    876,
+    518,
+    120,
+    138
+   ],
+   "pivot": [
+    0.325,
+    0.123188
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_1.png"
+  },
+  {
+   "name": "walk-strike_south-east_2",
+   "atlas": 2,
+   "rect": [
+    139,
+    372,
+    113,
+    137
+   ],
+   "pivot": [
+    0.300885,
+    0.10219
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_2.png"
+  },
+  {
+   "name": "walk-strike_south-east_3",
+   "atlas": 2,
+   "rect": [
+    635,
+    241,
+    115,
+    131
+   ],
+   "pivot": [
+    0.295652,
+    0.076336
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_3.png"
+  },
+  {
+   "name": "walk-strike_south-east_4",
+   "atlas": 2,
+   "rect": [
+    635,
+    114,
+    118,
+    127
+   ],
+   "pivot": [
+    0.322034,
+    0.055118
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_4.png"
+  },
+  {
+   "name": "walk-strike_south-east_5",
+   "atlas": 2,
+   "rect": [
+    319,
+    113,
+    121,
+    125
+   ],
+   "pivot": [
+    0.330579,
+    0.04
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_5.png"
+  },
+  {
+   "name": "walk-strike_south-east_6",
+   "atlas": 2,
+   "rect": [
+    133,
+    114,
+    117,
+    126
+   ],
+   "pivot": [
+    0.307692,
+    0.039683
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_6.png"
+  },
+  {
+   "name": "walk-strike_south-east_7",
+   "atlas": 2,
+   "rect": [
+    139,
+    240,
+    113,
+    132
+   ],
+   "pivot": [
+    0.300885,
+    0.090909
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/walk-strike_7.png"
+  },
+  {
+   "name": "walk-strike_east_0",
+   "atlas": 1,
+   "rect": [
+    144,
+    856,
+    135,
+    160
+   ],
+   "pivot": [
+    0.296296,
+    0.09375
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_0.png"
+  },
+  {
+   "name": "walk-strike_east_1",
+   "atlas": 1,
+   "rect": [
+    491,
+    857,
+    137,
+    159
+   ],
+   "pivot": [
+    0.313869,
+    0.08805
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_1.png"
+  },
+  {
+   "name": "walk-strike_east_2",
+   "atlas": 1,
+   "rect": [
+    144,
+    699,
+    129,
+    157
+   ],
+   "pivot": [
+    0.27907,
+    0.089172
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_2.png"
+  },
+  {
+   "name": "walk-strike_east_3",
+   "atlas": 1,
+   "rect": [
+    830,
+    858,
+    127,
+    158
+   ],
+   "pivot": [
+    0.259843,
+    0.082278
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_3.png"
+  },
+  {
+   "name": "walk-strike_east_4",
+   "atlas": 1,
+   "rect": [
+    349,
+    544,
+    134,
+    155
+   ],
+   "pivot": [
+    0.298507,
+    0.070968
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_4.png"
+  },
+  {
+   "name": "walk-strike_east_5",
+   "atlas": 1,
+   "rect": [
+    813,
+    237,
+    138,
+    153
+   ],
+   "pivot": [
+    0.318841,
+    0.052288
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_5.png"
+  },
+  {
+   "name": "walk-strike_east_6",
+   "atlas": 1,
+   "rect": [
+    483,
+    544,
+    133,
+    155
+   ],
+   "pivot": [
+    0.285714,
+    0.064516
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_6.png"
+  },
+  {
+   "name": "walk-strike_east_7",
+   "atlas": 1,
+   "rect": [
+    273,
+    699,
+    127,
+    157
+   ],
+   "pivot": [
+    0.267717,
+    0.089172
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/walk-strike_7.png"
+  },
+  {
+   "name": "walk-strike_north-east_0",
+   "atlas": 0,
+   "rect": [
+    108,
+    833,
+    95,
+    191
+   ],
+   "pivot": [
+    0.410526,
+    0.08377
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_0.png"
+  },
+  {
+   "name": "walk-strike_north-east_1",
+   "atlas": 0,
+   "rect": [
+    775,
+    836,
+    96,
+    188
+   ],
+   "pivot": [
+    0.416667,
+    0.074468
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_1.png"
+  },
+  {
+   "name": "walk-strike_north-east_2",
+   "atlas": 0,
+   "rect": [
+    360,
+    648,
+    91,
+    186
+   ],
+   "pivot": [
+    0.395604,
+    0.075269
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_2.png"
+  },
+  {
+   "name": "walk-strike_north-east_3",
+   "atlas": 0,
+   "rect": [
+    558,
+    835,
+    89,
+    189
+   ],
+   "pivot": [
+    0.370787,
+    0.079365
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_3.png"
+  },
+  {
+   "name": "walk-strike_north-east_4",
+   "atlas": 0,
+   "rect": [
+    581,
+    648,
+    92,
+    187
+   ],
+   "pivot": [
+    0.402174,
+    0.074866
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_4.png"
+  },
+  {
+   "name": "walk-strike_north-east_5",
+   "atlas": 0,
+   "rect": [
+    86,
+    648,
+    95,
+    185
+   ],
+   "pivot": [
+    0.410526,
+    0.059459
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_5.png"
+  },
+  {
+   "name": "walk-strike_north-east_6",
+   "atlas": 0,
+   "rect": [
+    673,
+    648,
+    91,
+    187
+   ],
+   "pivot": [
+    0.384615,
+    0.064171
+   ],
+   "crucible": [
+    0.46269,
+    1.52807
+   ],
+   "source": "north-east/walk-strike_6.png"
+  },
+  {
+   "name": "walk-strike_north-east_7",
+   "atlas": 0,
+   "rect": [
+    203,
+    647,
+    89,
+    187
+   ],
+   "pivot": [
+    0.382022,
+    0.080214
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/walk-strike_7.png"
+  },
+  {
+   "name": "walk-strike_north_0",
+   "atlas": 0,
+   "rect": [
+    203,
+    834,
+    67,
+    190
+   ],
+   "pivot": [
+    0.492537,
+    0.078947
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_0.png"
+  },
+  {
+   "name": "walk-strike_north_1",
+   "atlas": 0,
+   "rect": [
+    871,
+    836,
+    67,
+    188
+   ],
+   "pivot": [
+    0.492537,
+    0.069149
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_1.png"
+  },
+  {
+   "name": "walk-strike_north_2",
+   "atlas": 0,
+   "rect": [
+    938,
+    836,
+    67,
+    188
+   ],
+   "pivot": [
+    0.492537,
+    0.069149
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_2.png"
+  },
+  {
+   "name": "walk-strike_north_3",
+   "atlas": 0,
+   "rect": [
+    647,
+    835,
+    67,
+    189
+   ],
+   "pivot": [
+    0.492537,
+    0.074074
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_3.png"
+  },
+  {
+   "name": "walk-strike_north_4",
+   "atlas": 0,
+   "rect": [
+    270,
+    834,
+    67,
+    190
+   ],
+   "pivot": [
+    0.492537,
+    0.078947
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_4.png"
+  },
+  {
+   "name": "walk-strike_north_5",
+   "atlas": 0,
+   "rect": [
+    775,
+    648,
+    67,
+    188
+   ],
+   "pivot": [
+    0.492537,
+    0.069149
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_5.png"
+  },
+  {
+   "name": "walk-strike_north_6",
+   "atlas": 0,
+   "rect": [
+    842,
+    648,
+    67,
+    188
+   ],
+   "pivot": [
+    0.492537,
+    0.069149
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_6.png"
+  },
+  {
+   "name": "walk-strike_north_7",
+   "atlas": 0,
+   "rect": [
+    337,
+    834,
+    67,
+    190
+   ],
+   "pivot": [
+    0.492537,
+    0.078947
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/walk-strike_7.png"
+  },
+  {
+   "name": "strike_south_0",
+   "atlas": 2,
+   "rect": [
+    572,
+    239,
+    63,
+    134
+   ],
+   "pivot": [
+    0.492063,
+    0.067164
+   ],
+   "crucible": [
+    -0.0004,
+    1.00662
+   ],
+   "source": "south/strike_0.png"
+  },
+  {
+   "name": "strike_south_1",
+   "atlas": 2,
+   "rect": [
+    0,
+    240,
+    66,
+    132
+   ],
+   "pivot": [
+    0.515152,
+    0.068182
+   ],
+   "crucible": [
+    0.12937,
+    0.81339
+   ],
+   "source": "south/strike_1.png"
+  },
+  {
+   "name": "strike_south_2",
+   "atlas": 2,
+   "rect": [
+    252,
+    241,
+    67,
+    131
+   ],
+   "pivot": [
+    0.522388,
+    0.068702
+   ],
+   "crucible": [
+    0.16207,
+    0.75932
+   ],
+   "source": "south/strike_2.png"
+  },
+  {
+   "name": "strike_south_3",
+   "atlas": 2,
+   "rect": [
+    0,
+    372,
+    64,
+    136
+   ],
+   "pivot": [
+    0.5,
+    0.066176
+   ],
+   "crucible": [
+    -0.10637,
+    1.1483
+   ],
+   "source": "south/strike_3.png"
+  },
+  {
+   "name": "strike_south_4",
+   "atlas": 1,
+   "rect": [
+    897,
+    88,
+    65,
+    149
+   ],
+   "pivot": [
+    0.523077,
+    0.060403
+   ],
+   "crucible": [
+    -0.22265,
+    1.29377
+   ],
+   "source": "south/strike_4.png"
+  },
+  {
+   "name": "strike_south-east_0",
+   "atlas": 0,
+   "rect": [
+    514,
+    3,
+    85,
+    139
+   ],
+   "pivot": [
+    0.376471,
+    0.071942
+   ],
+   "crucible": [
+    0.43097,
+    1.09579
+   ],
+   "source": "south-east/strike_0.png"
+  },
+  {
+   "name": "strike_south-east_1",
+   "atlas": 2,
+   "rect": [
+    322,
+    373,
+    117,
+    136
+   ],
+   "pivot": [
+    0.290598,
+    0.073529
+   ],
+   "crucible": [
+    0.64564,
+    0.9739
+   ],
+   "source": "south-east/strike_1.png"
+  },
+  {
+   "name": "strike_south-east_2",
+   "atlas": 2,
+   "rect": [
+    322,
+    238,
+    119,
+    135
+   ],
+   "pivot": [
+    0.302521,
+    0.074074
+   ],
+   "crucible": [
+    0.69594,
+    0.93702
+   ],
+   "source": "south-east/strike_2.png"
+  },
+  {
+   "name": "strike_south-east_3",
+   "atlas": 0,
+   "rect": [
+    151,
+    1,
+    64,
+    142
+   ],
+   "pivot": [
+    0.484375,
+    0.070423
+   ],
+   "crucible": [
+    0.23021,
+    1.17395
+   ],
+   "source": "south-east/strike_3.png"
+  },
+  {
+   "name": "strike_south-east_4",
+   "atlas": 2,
+   "rect": [
+    759,
+    510,
+    59,
+    146
+   ],
+   "pivot": [
+    0.508475,
+    0.068493
+   ],
+   "crucible": [
+    -0.04266,
+    1.23882
+   ],
+   "source": "south-east/strike_4.png"
+  },
+  {
+   "name": "strike_east_0",
+   "atlas": 0,
+   "rect": [
+    515,
+    142,
+    107,
+    161
+   ],
+   "pivot": [
+    0.317757,
+    0.080745
+   ],
+   "crucible": [
+    0.60989,
+    1.31136
+   ],
+   "source": "east/strike_0.png"
+  },
+  {
+   "name": "strike_east_1",
+   "atlas": 1,
+   "rect": [
+    279,
+    856,
+    134,
+    160
+   ],
+   "pivot": [
+    0.276119,
+    0.08125
+   ],
+   "crucible": [
+    0.78371,
+    1.26993
+   ],
+   "source": "east/strike_1.png"
+  },
+  {
+   "name": "strike_east_2",
+   "atlas": 1,
+   "rect": [
+    78,
+    237,
+    132,
+    152
+   ],
+   "pivot": [
+    0.280303,
+    0.085526
+   ],
+   "crucible": [
+    0.82214,
+    1.25143
+   ],
+   "source": "east/strike_2.png"
+  },
+  {
+   "name": "strike_east_3",
+   "atlas": 1,
+   "rect": [
+    400,
+    699,
+    87,
+    157
+   ],
+   "pivot": [
+    0.367816,
+    0.082803
+   ],
+   "crucible": [
+    0.43194,
+    1.31109
+   ],
+   "source": "east/strike_3.png"
+  },
+  {
+   "name": "strike_east_4",
+   "atlas": 1,
+   "rect": [
+    138,
+    389,
+    62,
+    154
+   ],
+   "pivot": [
+    0.451613,
+    0.084416
+   ],
+   "crucible": [
+    0.16232,
+    1.2636
+   ],
+   "source": "east/strike_4.png"
+  },
+  {
+   "name": "strike_north-east_0",
+   "atlas": 0,
+   "rect": [
+    0,
+    647,
+    86,
+    186
+   ],
+   "pivot": [
+    0.395349,
+    0.075269
+   ],
+   "crucible": [
+    0.43154,
+    1.52705
+   ],
+   "source": "north-east/strike_0.png"
+  },
+  {
+   "name": "strike_north-east_1",
+   "atlas": 0,
+   "rect": [
+    465,
+    835,
+    93,
+    189
+   ],
+   "pivot": [
+    0.387097,
+    0.074074
+   ],
+   "crucible": [
+    0.46269,
+    1.52806
+   ],
+   "source": "north-east/strike_1.png"
+  },
+  {
+   "name": "strike_north-east_2",
+   "atlas": 0,
+   "rect": [
+    360,
+    466,
+    91,
+    182
+   ],
+   "pivot": [
+    0.395604,
+    0.076923
+   ],
+   "crucible": [
+    0.46674,
+    1.51837
+   ],
+   "source": "north-east/strike_2.png"
+  },
+  {
+   "name": "strike_north-east_3",
+   "atlas": 0,
+   "rect": [
+    0,
+    471,
+    79,
+    176
+   ],
+   "pivot": [
+    0.405063,
+    0.079545
+   ],
+   "crucible": [
+    0.38064,
+    1.47938
+   ],
+   "source": "north-east/strike_3.png"
+  },
+  {
+   "name": "strike_north-east_4",
+   "atlas": 1,
+   "rect": [
+    700,
+    857,
+    67,
+    159
+   ],
+   "pivot": [
+    0.447761,
+    0.081761
+   ],
+   "crucible": [
+    0.27221,
+    1.3536
+   ],
+   "source": "north-east/strike_4.png"
+  },
+  {
+   "name": "strike_north_0",
+   "atlas": 0,
+   "rect": [
+    465,
+    647,
+    64,
+    188
+   ],
+   "pivot": [
+    0.515625,
+    0.069149
+   ],
+   "crucible": [
+    0.0004,
+    1.61651
+   ],
+   "source": "north/strike_0.png"
+  },
+  {
+   "name": "strike_north_1",
+   "atlas": 0,
+   "rect": [
+    909,
+    648,
+    67,
+    188
+   ],
+   "pivot": [
+    0.492537,
+    0.069149
+   ],
+   "crucible": [
+    -0.12937,
+    1.5971
+   ],
+   "source": "north/strike_1.png"
+  },
+  {
+   "name": "strike_north_2",
+   "atlas": 0,
+   "rect": [
+    292,
+    647,
+    68,
+    187
+   ],
+   "pivot": [
+    0.485294,
+    0.069519
+   ],
+   "crucible": [
+    -0.16207,
+    1.58147
+   ],
+   "source": "north/strike_2.png"
+  },
+  {
+   "name": "strike_north_3",
+   "atlas": 0,
+   "rect": [
+    86,
+    463,
+    64,
+    185
+   ],
+   "pivot": [
+    0.5,
+    0.07027
+   ],
+   "crucible": [
+    0.10637,
+    1.58024
+   ],
+   "source": "north/strike_3.png"
+  },
+  {
+   "name": "strike_north_4",
+   "atlas": 0,
+   "rect": [
+    451,
+    307,
+    65,
+    170
+   ],
+   "pivot": [
+    0.476923,
+    0.076471
+   ],
+   "crucible": [
+    0.22265,
+    1.45609
+   ],
+   "source": "north/strike_4.png"
+  },
+  {
+   "name": "cast_south_0",
+   "atlas": 0,
+   "rect": [
+    220,
+    305,
+    61,
+    168
+   ],
+   "pivot": [
+    0.491803,
+    0.065476
+   ],
+   "crucible": [
+    -0.16673,
+    1.42632
+   ],
+   "source": "south/cast_0.png"
+  },
+  {
+   "name": "cast_south_1",
+   "atlas": 0,
+   "rect": [
+    365,
+    2,
+    61,
+    140
+   ],
+   "pivot": [
+    0.508197,
+    0.078571
+   ],
+   "crucible": [
+    -0.1306,
+    1.13704
+   ],
+   "source": "south/cast_1.png"
+  },
+  {
+   "name": "cast_south_2",
+   "atlas": 2,
+   "rect": [
+    816,
+    116,
+    52,
+    128
+   ],
+   "pivot": [
+    0.5,
+    0.085938
+   ],
+   "crucible": [
+    0.05371,
+    0.8
+   ],
+   "source": "south/cast_2.png"
+  },
+  {
+   "name": "cast_south_3",
+   "atlas": 2,
+   "rect": [
+    511,
+    238,
+    61,
+    135
+   ],
+   "pivot": [
+    0.508197,
+    0.081481
+   ],
+   "crucible": [
+    -0.11468,
+    1.1102
+   ],
+   "source": "south/cast_3.png"
+  },
+  {
+   "name": "cast_south_4",
+   "atlas": 1,
+   "rect": [
+    78,
+    86,
+    64,
+    151
+   ],
+   "pivot": [
+    0.515625,
+    0.066225
+   ],
+   "crucible": [
+    -0.23046,
+    1.29655
+   ],
+   "source": "south/cast_4.png"
+  },
+  {
+   "name": "cast_south-east_0",
+   "atlas": 0,
+   "rect": [
+    521,
+    484,
+    60,
+    163
+   ],
+   "pivot": [
+    0.533333,
+    0.07362
+   ],
+   "crucible": [
+    -0.11805,
+    1.36734
+   ],
+   "source": "south-east/cast_0.png"
+  },
+  {
+   "name": "cast_south-east_1",
+   "atlas": 0,
+   "rect": [
+    224,
+    0,
+    72,
+    145
+   ],
+   "pivot": [
+    0.513889,
+    0.089655
+   ],
+   "crucible": [
+    0.20872,
+    1.15322
+   ],
+   "source": "south-east/cast_1.png"
+  },
+  {
+   "name": "cast_south-east_2",
+   "atlas": 2,
+   "rect": [
+    876,
+    380,
+    119,
+    138
+   ],
+   "pivot": [
+    0.352941,
+    0.086957
+   ],
+   "crucible": [
+    0.6141,
+    0.93831
+   ],
+   "source": "south-east/cast_2.png"
+  },
+  {
+   "name": "cast_south-east_3",
+   "atlas": 0,
+   "rect": [
+    712,
+    1,
+    73,
+    143
+   ],
+   "pivot": [
+    0.506849,
+    0.083916
+   ],
+   "crucible": [
+    0.24744,
+    1.1377
+   ],
+   "source": "south-east/cast_3.png"
+  },
+  {
+   "name": "cast_south-east_4",
+   "atlas": 2,
+   "rect": [
+    280,
+    509,
+    63,
+    147
+   ],
+   "pivot": [
+    0.52381,
+    0.07483
+   ],
+   "crucible": [
+    -0.0627,
+    1.23584
+   ],
+   "source": "south-east/cast_4.png"
+  },
+  {
+   "name": "cast_east_0",
+   "atlas": 0,
+   "rect": [
+    646,
+    143,
+    66,
+    162
+   ],
+   "pivot": [
+    0.530303,
+    0.08642
+   ],
+   "crucible": [
+    -0.00022,
+    1.34285
+   ],
+   "source": "east/cast_0.png"
+  },
+  {
+   "name": "cast_east_1",
+   "atlas": 0,
+   "rect": [
+    347,
+    142,
+    97,
+    161
+   ],
+   "pivot": [
+    0.43299,
+    0.086957
+   ],
+   "crucible": [
+    0.42577,
+    1.28462
+   ],
+   "source": "east/cast_1.png"
+  },
+  {
+   "name": "cast_east_2",
+   "atlas": 1,
+   "rect": [
+    202,
+    544,
+    147,
+    155
+   ],
+   "pivot": [
+    0.333333,
+    0.077419
+   ],
+   "crucible": [
+    0.81477,
+    1.23424
+   ],
+   "source": "east/cast_2.png"
+  },
+  {
+   "name": "cast_east_3",
+   "atlas": 1,
+   "rect": [
+    830,
+    700,
+    101,
+    158
+   ],
+   "pivot": [
+    0.425743,
+    0.088608
+   ],
+   "crucible": [
+    0.46462,
+    1.28517
+   ],
+   "source": "east/cast_3.png"
+  },
+  {
+   "name": "cast_east_4",
+   "atlas": 1,
+   "rect": [
+    202,
+    389,
+    71,
+    155
+   ],
+   "pivot": [
+    0.521127,
+    0.083871
+   ],
+   "crucible": [
+    0.14179,
+    1.25222
+   ],
+   "source": "east/cast_4.png"
+  },
+  {
+   "name": "cast_north-east_0",
+   "atlas": 0,
+   "rect": [
+    0,
+    305,
+    63,
+    166
+   ],
+   "pivot": [
+    0.539683,
+    0.096386
+   ],
+   "crucible": [
+    0.11774,
+    1.36719
+   ],
+   "source": "north-east/cast_0.png"
+  },
+  {
+   "name": "cast_north-east_1",
+   "atlas": 0,
+   "rect": [
+    581,
+    467,
+    88,
+    181
+   ],
+   "pivot": [
+    0.443182,
+    0.088398
+   ],
+   "crucible": [
+    0.39341,
+    1.45428
+   ],
+   "source": "north-east/cast_1.png"
+  },
+  {
+   "name": "cast_north-east_2",
+   "atlas": 0,
+   "rect": [
+    0,
+    833,
+    108,
+    191
+   ],
+   "pivot": [
+    0.398148,
+    0.08377
+   ],
+   "crucible": [
+    0.53815,
+    1.51443
+   ],
+   "source": "north-east/cast_2.png"
+  },
+  {
+   "name": "cast_north-east_3",
+   "atlas": 0,
+   "rect": [
+    669,
+    469,
+    90,
+    179
+   ],
+   "pivot": [
+    0.433333,
+    0.083799
+   ],
+   "crucible": [
+    0.40962,
+    1.46623
+   ],
+   "source": "north-east/cast_3.png"
+  },
+  {
+   "name": "cast_north-east_4",
+   "atlas": 1,
+   "rect": [
+    628,
+    857,
+    72,
+    159
+   ],
+   "pivot": [
+    0.5,
+    0.08805
+   ],
+   "crucible": [
+    0.26322,
+    1.3361
+   ],
+   "source": "north-east/cast_4.png"
+  },
+  {
+   "name": "cast_north_0",
+   "atlas": 0,
+   "rect": [
+    290,
+    476,
+    61,
+    171
+   ],
+   "pivot": [
+    0.508197,
+    0.087719
+   ],
+   "crucible": [
+    0.16673,
+    1.4261
+   ],
+   "source": "north/cast_0.png"
+  },
+  {
+   "name": "cast_north_1",
+   "atlas": 0,
+   "rect": [
+    404,
+    834,
+    61,
+    190
+   ],
+   "pivot": [
+    0.491803,
+    0.078947
+   ],
+   "crucible": [
+    0.1306,
+    1.56281
+   ],
+   "source": "north/cast_1.png"
+  },
+  {
+   "name": "cast_north_2",
+   "atlas": 0,
+   "rect": [
+    529,
+    647,
+    52,
+    188
+   ],
+   "pivot": [
+    0.5,
+    0.069149
+   ],
+   "crucible": [
+    -0.05371,
+    1.61477
+   ],
+   "source": "north/cast_2.png"
+  },
+  {
+   "name": "cast_north_3",
+   "atlas": 0,
+   "rect": [
+    714,
+    835,
+    61,
+    189
+   ],
+   "pivot": [
+    0.491803,
+    0.074074
+   ],
+   "crucible": [
+    0.11468,
+    1.57482
+   ],
+   "source": "north/cast_3.png"
+  },
+  {
+   "name": "cast_north_4",
+   "atlas": 0,
+   "rect": [
+    516,
+    308,
+    64,
+    169
+   ],
+   "pivot": [
+    0.484375,
+    0.076923
+   ],
+   "crucible": [
+    0.23046,
+    1.43834
+   ],
+   "source": "north/cast_4.png"
+  },
+  {
+   "name": "hit_south_0",
+   "atlas": 0,
+   "rect": [
+    829,
+    307,
+    84,
+    164
+   ],
+   "pivot": [
+    0.571429,
+    0.042683
+   ],
+   "crucible": [
+    -0.37862,
+    1.44612
+   ],
+   "source": "south/hit_0.png"
+  },
+  {
+   "name": "hit_south_1",
+   "atlas": 1,
+   "rect": [
+    0,
+    855,
+    78,
+    161
+   ],
+   "pivot": [
+    0.551282,
+    0.043478
+   ],
+   "crucible": [
+    -0.32791,
+    1.41834
+   ],
+   "source": "south/hit_1.png"
+  },
+  {
+   "name": "hit_south_2",
+   "atlas": 1,
+   "rect": [
+    70,
+    389,
+    68,
+    154
+   ],
+   "pivot": [
+    0.514706,
+    0.045455
+   ],
+   "crucible": [
+    -0.2526,
+    1.3653
+   ],
+   "source": "south/hit_2.png"
+  },
+  {
+   "name": "hit_south-east_0",
+   "atlas": 1,
+   "rect": [
+    210,
+    237,
+    85,
+    152
+   ],
+   "pivot": [
+    0.611765,
+    0.065789
+   ],
+   "crucible": [
+    -0.3988,
+    1.28511
+   ],
+   "source": "south-east/hit_0.png"
+  },
+  {
+   "name": "hit_south-east_1",
+   "atlas": 1,
+   "rect": [
+    898,
+    390,
+    74,
+    154
+   ],
+   "pivot": [
+    0.567568,
+    0.064935
+   ],
+   "crucible": [
+    -0.30628,
+    1.28699
+   ],
+   "source": "south-east/hit_1.png"
+  },
+  {
+   "name": "hit_south-east_2",
+   "atlas": 1,
+   "rect": [
+    142,
+    86,
+    59,
+    151
+   ],
+   "pivot": [
+    0.491525,
+    0.066225
+   ],
+   "crucible": [
+    -0.17254,
+    1.27725
+   ],
+   "source": "south-east/hit_2.png"
+  },
+  {
+   "name": "hit_east_0",
+   "atlas": 2,
+   "rect": [
+    216,
+    509,
+    64,
+    147
+   ],
+   "pivot": [
+    0.65625,
+    0.095238
+   ],
+   "crucible": [
+    -0.18537,
+    1.16413
+   ],
+   "source": "east/hit_0.png"
+  },
+  {
+   "name": "hit_east_1",
+   "atlas": 1,
+   "rect": [
+    972,
+    392,
+    50,
+    152
+   ],
+   "pivot": [
+    0.62,
+    0.085526
+   ],
+   "crucible": [
+    -0.10524,
+    1.20176
+   ],
+   "source": "east/hit_1.png"
+  },
+  {
+   "name": "hit_east_2",
+   "atlas": 0,
+   "rect": [
+    968,
+    493,
+    51,
+    155
+   ],
+   "pivot": [
+    0.490196,
+    0.083871
+   ],
+   "crucible": [
+    0.00859,
+    1.24329
+   ],
+   "source": "east/hit_2.png"
+  },
+  {
+   "name": "hit_north-east_0",
+   "atlas": 0,
+   "rect": [
+    622,
+    3,
+    72,
+    140
+   ],
+   "pivot": [
+    0.583333,
+    0.1
+   ],
+   "crucible": [
+    0.13665,
+    1.15404
+   ],
+   "source": "north-east/hit_0.png"
+  },
+  {
+   "name": "hit_north-east_1",
+   "atlas": 2,
+   "rect": [
+    691,
+    510,
+    68,
+    146
+   ],
+   "pivot": [
+    0.544118,
+    0.09589
+   ],
+   "crucible": [
+    0.15745,
+    1.21258
+   ],
+   "source": "north-east/hit_1.png"
+  },
+  {
+   "name": "hit_north-east_2",
+   "atlas": 1,
+   "rect": [
+    753,
+    389,
+    60,
+    154
+   ],
+   "pivot": [
+    0.466667,
+    0.084416
+   ],
+   "crucible": [
+    0.18469,
+    1.28332
+   ],
+   "source": "north-east/hit_2.png"
+  },
+  {
+   "name": "hit_north_0",
+   "atlas": 1,
+   "rect": [
+    201,
+    87,
+    84,
+    150
+   ],
+   "pivot": [
+    0.428571,
+    0.073333
+   ],
+   "crucible": [
+    0.37862,
+    1.26075
+   ],
+   "source": "north/hit_0.png"
+  },
+  {
+   "name": "hit_north_1",
+   "atlas": 1,
+   "rect": [
+    125,
+    543,
+    77,
+    156
+   ],
+   "pivot": [
+    0.441558,
+    0.076923
+   ],
+   "crucible": [
+    0.32791,
+    1.3131
+   ],
+   "source": "north/hit_1.png"
+  },
+  {
+   "name": "hit_north_2",
+   "atlas": 0,
+   "rect": [
+    735,
+    144,
+    67,
+    162
+   ],
+   "pivot": [
+    0.477612,
+    0.080247
+   ],
+   "crucible": [
+    0.2526,
+    1.37389
+   ],
+   "source": "north/hit_2.png"
+  },
+  {
+   "name": "death_south_0",
+   "atlas": 1,
+   "rect": [
+    951,
+    237,
+    66,
+    153
+   ],
+   "pivot": [
+    0.530303,
+    0.052288
+   ],
+   "crucible": [
+    -0.25422,
+    1.29197
+   ],
+   "source": "south/death_0.png"
+  },
+  {
+   "name": "death_south_1",
+   "atlas": 2,
+   "rect": [
+    935,
+    245,
+    78,
+    135
+   ],
+   "pivot": [
+    0.615385,
+    0.074074
+   ],
+   "crucible": [
+    -0.37362,
+    1.14105
+   ],
+   "source": "south/death_1.png"
+  },
+  {
+   "name": "death_south_2",
+   "atlas": 2,
+   "rect": [
+    507,
+    6,
+    93,
+    114
+   ],
+   "pivot": [
+    0.688172,
+    0.157895
+   ],
+   "crucible": [
+    -0.53267,
+    0.83798
+   ],
+   "source": "south/death_2.png"
+  },
+  {
+   "name": "death_south_3",
+   "atlas": 1,
+   "rect": [
+    467,
+    10,
+    105,
+    77
+   ],
+   "pivot": [
+    0.742857,
+    0.25974
+   ],
+   "crucible": [
+    -0.66335,
+    0.39057
+   ],
+   "source": "south/death_3.png"
+  },
+  {
+   "name": "death_south_4",
+   "atlas": 1,
+   "rect": [
+    683,
+    17,
+    108,
+    70
+   ],
+   "pivot": [
+    0.759259,
+    0.271429
+   ],
+   "crucible": [
+    -0.69824,
+    0.07781
+   ],
+   "source": "south/death_4.png"
+  },
+  {
+   "name": "death_south-east_0",
+   "atlas": 0,
+   "rect": [
+    224,
+    148,
+    57,
+    157
+   ],
+   "pivot": [
+    0.508772,
+    0.076433
+   ],
+   "crucible": [
+    -0.13849,
+    1.21064
+   ],
+   "source": "south-east/death_0.png"
+  },
+  {
+   "name": "death_south-east_1",
+   "atlas": 2,
+   "rect": [
+    807,
+    373,
+    59,
+    137
+   ],
+   "pivot": [
+    0.491525,
+    0.094891
+   ],
+   "crucible": [
+    -0.13716,
+    1.03527
+   ],
+   "source": "south-east/death_1.png"
+  },
+  {
+   "name": "death_south-east_2",
+   "atlas": 2,
+   "rect": [
+    154,
+    15,
+    95,
+    99
+   ],
+   "pivot": [
+    0.442105,
+    0.141414
+   ],
+   "crucible": [
+    -0.12308,
+    0.70217
+   ],
+   "source": "south-east/death_2.png"
+  },
+  {
+   "name": "death_south-east_3",
+   "atlas": 1,
+   "rect": [
+    897,
+    11,
+    109,
+    77
+   ],
+   "pivot": [
+    0.431193,
+    0.220779
+   ],
+   "crucible": [
+    -0.06952,
+    0.23879
+   ],
+   "source": "south-east/death_3.png"
+  },
+  {
+   "name": "death_south-east_4",
+   "atlas": 1,
+   "rect": [
+    572,
+    12,
+    111,
+    75
+   ],
+   "pivot": [
+    0.423423,
+    0.28
+   ],
+   "crucible": [
+    -0.00542,
+    -0.06793
+   ],
+   "source": "south-east/death_4.png"
+  },
+  {
+   "name": "death_east_0",
+   "atlas": 1,
+   "rect": [
+    508,
+    87,
+    54,
+    150
+   ],
+   "pivot": [
+    0.611111,
+    0.08
+   ],
+   "crucible": [
+    0.05836,
+    1.19405
+   ],
+   "source": "east/death_0.png"
+  },
+  {
+   "name": "death_east_1",
+   "atlas": 0,
+   "rect": [
+    891,
+    0,
+    66,
+    145
+   ],
+   "pivot": [
+    0.484848,
+    0.096552
+   ],
+   "crucible": [
+    0.17965,
+    1.04407
+   ],
+   "source": "east/death_1.png"
+  },
+  {
+   "name": "death_east_2",
+   "atlas": 2,
+   "rect": [
+    753,
+    6,
+    111,
+    110
+   ],
+   "pivot": [
+    0.45045,
+    0.081818
+   ],
+   "crucible": [
+    0.35861,
+    0.75095
+   ],
+   "source": "east/death_2.png"
+  },
+  {
+   "name": "death_east_3",
+   "atlas": 1,
+   "rect": [
+    201,
+    2,
+    128,
+    85
+   ],
+   "pivot": [
+    0.4375,
+    0.094118
+   ],
+   "crucible": [
+    0.56503,
+    0.34141
+   ],
+   "source": "east/death_3.png"
+  },
+  {
+   "name": "death_east_4",
+   "atlas": 1,
+   "rect": [
+    329,
+    7,
+    138,
+    80
+   ],
+   "pivot": [
+    0.413043,
+    0.225
+   ],
+   "crucible": [
+    0.69058,
+    0.07397
+   ],
+   "source": "east/death_4.png"
+  },
+  {
+   "name": "death_north-east_0",
+   "atlas": 1,
+   "rect": [
+    761,
+    87,
+    70,
+    150
+   ],
+   "pivot": [
+    0.528571,
+    0.093333
+   ],
+   "crucible": [
+    0.22103,
+    1.25191
+   ],
+   "source": "north-east/death_0.png"
+  },
+  {
+   "name": "death_north-east_1",
+   "atlas": 1,
+   "rect": [
+    563,
+    238,
+    80,
+    151
+   ],
+   "pivot": [
+    0.3875,
+    0.10596
+   ],
+   "crucible": [
+    0.39122,
+    1.16229
+   ],
+   "source": "north-east/death_1.png"
+  },
+  {
+   "name": "death_north-east_2",
+   "atlas": 2,
+   "rect": [
+    691,
+    372,
+    116,
+    138
+   ],
+   "pivot": [
+    0.362069,
+    0.15942
+   ],
+   "crucible": [
+    0.63023,
+    0.95574
+   ],
+   "source": "north-east/death_2.png"
+  },
+  {
+   "name": "death_north-east_3",
+   "atlas": 2,
+   "rect": [
+    868,
+    1,
+    143,
+    116
+   ],
+   "pivot": [
+    0.321678,
+    0.206897
+   ],
+   "crucible": [
+    0.8686,
+    0.63833
+   ],
+   "source": "north-east/death_3.png"
+  },
+  {
+   "name": "death_north-east_4",
+   "atlas": 2,
+   "rect": [
+    0,
+    12,
+    154,
+    102
+   ],
+   "pivot": [
+    0.305195,
+    0.245098
+   ],
+   "crucible": [
+    0.98204,
+    0.42038
+   ],
+   "source": "north-east/death_4.png"
+  },
+  {
+   "name": "death_north_0",
+   "atlas": 1,
+   "rect": [
+    78,
+    855,
+    66,
+    161
+   ],
+   "pivot": [
+    0.469697,
+    0.086957
+   ],
+   "crucible": [
+    0.25422,
+    1.35034
+   ],
+   "source": "north/death_0.png"
+  },
+  {
+   "name": "death_north_1",
+   "atlas": 1,
+   "rect": [
+    413,
+    856,
+    78,
+    160
+   ],
+   "pivot": [
+    0.384615,
+    0.10625
+   ],
+   "crucible": [
+    0.37362,
+    1.3207
+   ],
+   "source": "north/death_1.png"
+  },
+  {
+   "name": "death_north_2",
+   "atlas": 1,
+   "rect": [
+    816,
+    544,
+    93,
+    156
+   ],
+   "pivot": [
+    0.311828,
+    0.166667
+   ],
+   "crucible": [
+    0.53267,
+    1.19659
+   ],
+   "source": "north/death_2.png"
+  },
+  {
+   "name": "death_north_3",
+   "atlas": 2,
+   "rect": [
+    555,
+    373,
+    105,
+    136
+   ],
+   "pivot": [
+    0.257143,
+    0.213235
+   ],
+   "crucible": [
+    0.66335,
+    0.95561
+   ],
+   "source": "north/death_3.png"
+  },
+  {
+   "name": "death_north_4",
+   "atlas": 2,
+   "rect": [
+    507,
+    120,
+    108,
+    118
+   ],
+   "pivot": [
+    0.240741,
+    0.245763
+   ],
+   "crucible": [
+    0.69824,
+    0.76838
+   ],
+   "source": "north/death_4.png"
+  }
+ ]
+}

@@ -76,6 +76,10 @@ namespace Cryptforge.UI
             ContactShadowView.Attach(transform, _body, .78f, GetComponent<Health>());
         }
 
+        // docs/45: a hero with its own pre-rendered art (Ilya) is drawn by RenderedCharacterAnimator, which disables this
+        // view first, as the puppet does. Start, because CombatSetup chooses the run's hero in its Awake.
+        private void Start() => RenderedCharacterAnimator.TakeOver(this, _body, _weapons, _attack);
+
         private void OnEnable()
         {
             if (!_built)
