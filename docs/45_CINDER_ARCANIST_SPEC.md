@@ -228,3 +228,19 @@ stay for a later painted pass.
   - Known flaws: on a diagonal the planted boot slides up or down the screen; the far boot sits about 16 texels above
     the near one in the painted stance; changing facing is still an instant switch; the slam lands about 0.1 s after
     the button while the shockwave starts at the press.
+- **Ilya rendered from one model** - `Tools/ArtReview/BuildBlenderArcanist.py` builds Ilya procedurally in Blender 4.5
+  (toon shading, an inverted-hull outline, a rig with IK, every clip as an action; `ArtDirection/2026-10-27/
+  arcanist-blender-01/` holds the .blend, frames.json and a README), `PackArcanistSprites.py` packs 210 frames into
+  three atlases under `Assets/_Project/Art/Characters/CinderArcanist/` (2.64 MB as ASTC 4x4, 100 texels a unit) with
+  `CinderArcanistArtSet.asset`. Five rendered facings (the west side mirrored): idle 8, walk 8 and walking strike 8
+  (driven by distance, 1.2 floor units a stride), strike 5, Vent cast 5, hit 3, death 5. Because every frame comes from
+  one model, nothing drifts between frames or facings.
+  - `HeroDefinition._renderedArt` + `RenderedCharacterAnimator.TakeOver` (from `HeroLookView.Start`, after
+    `CombatSetup` has chosen the hero) draw a hero with its own art; `RenderedCharacterPlayer` (pure) picks motion,
+    facing and frame; `RenderedCharacterFlash.shader` gives the white hit flash.
+  - Look: the robe ash-white with scorched orange hems, the cowl and mantle soot-dark (an ash cowl read as one pale
+    column; `--hood light` rebuilds it), brass goggles with a living lens flame, the crucible staff lighting the cowl
+    and shoulder with a warm halo that flares on the strike and the Vent.
+  - Known gaps: `RunFeedbackView`'s evolution flash draws nothing for Ilya; the carried weapon is always the rendered
+    staff; with `development/puppet.txt` the puppet still takes the hero (the puppet attaches in `OnEnable`, before
+    the hero is known); the mirrored west side flips the light.
