@@ -9,11 +9,14 @@ Mite was hard to read. This paints them again in the actors' smooth style:
     white-hot heart, a thin soot edge so an orange flame still parts from orange lava and fiery enemies, ember
     highlights, and a faint warm glow over the body as its ember tint.
   - Ember Memory: the ember that hops from a fallen enemy to each neighbour it lights.
-  - Crucible Vent: the eruption column at each vented enemy, the embers it throws up and the ember cast ring.
+  - Crucible Vent: the eruption column at each vented enemy, the embers it throws up, the ember cast ring, and the
+    eruption ring each eruption draws on the floor at its splash's radius: a burning band with flames leaping off its
+    far side, tearing into embers and leaving a scorched ring.
   - Forge Burst: the forge-hammer shockwave ring (white edge, steel-blue band, heat ripples, soot rim), its steel
     sparks and the flash at the hero.
 
-Each family is packed onto one sheet, so a crowd's flames or a Vent across a crowd batch, and
+Each family is packed onto one sheet, so a crowd's flames or a Vent across a crowd batch (the Vent's eruption ring rides
+a sheet of its own, VFX_Skill_VentSplash, which the art set holds as optional), and
 Assets/_Project/Art/Effects/Skills/SkillEffectArtSet.asset is written with every strip's cells, pivot and density
 (Cryptforge.Art.SkillEffectArtSet). Frames are painted supersampled, then box-filtered down, in sRGB as the project
 blends (gamma colour space), and exported straight-alpha with colour bled into the clear texels so bilinear filtering
@@ -583,6 +586,121 @@ def vent_ring_frame(index, noise):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Crucible Vent: the eruption ring each eruption draws on the floor round the enemy it spends, at the splash's radius.
+# It rides a sheet of its own (VFX_Skill_VentSplash): the art set holds it as optional, so a set painted before it is
+# still whole and the three sheets above stay as they were painted, and it draws on the floor order apart from the
+# column and embers, so a sheet of its own costs a Vent across a crowd no batch.
+
+SPLASH_TPU = 136.0  # about a texel a phone pixel once grown to the 1.2-unit splash (144 pixels a unit)
+SPLASH_FRAMES = 6
+# Room round the unit contour for the soot rim and the embers thrown off it, and over its far side for the flames.
+SPLASH_EXTENT = (-1.16, -0.6, 1.16, 0.84)
+SPLASH_LICKS = 30
+# The band burns this far inside the contour, so the soot rim round it, its outermost paint, ends on the splash.
+SPLASH_RIM = 0.02
+SCORCH = hex_rgb("#2B1715")
+
+
+def vent_splash_frame(index, noise, fine, fire_noise):
+    """The eruption ring, a unit radius across the floor and half as deep (ArenaFloor.DepthScale), which the view grows
+    from 24/38 of the splash to all of it over its first 0.14 s and fades over its last 0.11 s, as it grew the
+    procedural ring; so the frames carry the burst. A white-hot line of ignition with the first licks; flames leaping
+    off a burning band, tallest in clusters along the far side so the near side keeps its floor; the licks shedding
+    wisps as the band tears into burning pieces; then embers, the last pieces and a scorched ring. Its leading edge
+    holds the splash's radius throughout; only its inner side burns ragged into the floor."""
+    frame = Frame(*SPLASH_EXTENT, SPLASH_TPU)
+    X, Y = frame.X, frame.Y
+    d = np.sqrt(X ** 2 + (Y / 0.5) ** 2)
+    angle = np.arctan2(Y / 0.5, X)
+    ca, sa = np.cos(angle), np.sin(angle)
+    # Inward from the band's leading edge, in units of the radius across; it wavers a little, as a painted line does.
+    depth = (1.0 - d) - SPLASH_RIM + noise(ca * 0.7, sa * 0.7) * 0.008
+    # By frame: the band's width, its strength and heat, how far it has torn apart (None while whole), the licks'
+    # height, the scorch it leaves and the heat trailing it toward the feet.
+    band, strength, heat, breakup, tall, scorch, trail = (
+        (0.05, 1.0, 1.0, None, 0.15, 0.0, 0.16),
+        (0.08, 1.0, 0.92, None, 0.3, 0.0, 0.1),
+        (0.075, 1.0, 0.74, 0.1, 0.25, 0.08, 0.0),
+        (0.065, 0.96, 0.52, 0.3, 0.13, 0.15, 0.0),
+        (0.058, 0.9, 0.36, 0.48, 0.05, 0.2, 0.0),
+        (0.05, 0.78, 0.22, 0.64, 0.0, 0.2, 0.0))[index]
+    # The ignition's white-hot flash down the band's middle, gone by the third frame.
+    flash = (1.0, 0.35, 0.0, 0.0, 0.0, 0.0)[index]
+    band = band * (1.0 + 0.4 * noise(ca * 1.3 + 2.0, sa * 1.3))
+    width = band * (0.82 + 0.42 * fine(X + 0.3, Y * 2.0 - 0.11 * index))
+    whole = np.ones_like(X)
+    if breakup is not None:
+        whole = smoothstep(-0.7 + 1.5 * breakup, -0.35 + 1.5 * breakup, noise(ca * 2.2 + 3.0, sa * 2.2) * 0.9 + 0.1)
+    mid = depth - width * 0.5
+    across = np.abs(mid) / np.maximum(width * 0.5, 1e-4)  # 0 on the band's middle line, 1 at its edges
+    # Hot spots and cooler stretches round the band, flickering frame to frame.
+    along = noise(ca * 4.0 + 7.0, sa * 4.0 - 0.9 * index)
+    hot = np.clip(heat * (0.8 + 0.32 * noise(ca * 1.8 + 6.0, sa * 1.8) + 0.16 * along), 0.0, 1.0)
+
+    if scorch > 0:
+        frame.paint(SCORCH, smoothstep(band * 1.4, band * 0.3, np.abs(depth - band * 0.5)) * scorch)
+    if trail > 0:
+        # Heat trailing the band toward the feet, never a wash over the whole floor.
+        frame.paint(EMBER, smoothstep(0.22, 0.0, depth - width) * (depth > width) * trail)
+    frame.paint(EMBER, smoothstep(width * 0.5 + 0.045, 0.0, np.abs(mid)) * 0.28 * strength * whole)
+    # The soot rim just outside the leading edge, which is what reads on the Foundry's orange lava.
+    frame.paint(SOOT, smoothstep(0.03, 0.0, np.abs(depth + 0.012)) * (depth < 0.01) * 0.6 * strength * whole)
+    edge = mix(CRIMSON_DEEP, CRIMSON, smoothstep(0.1, 0.5, hot))
+    body = mix(CRIMSON, EMBER, smoothstep(0.15, 0.6, hot))
+    core = mix(mix(EMBER, YELLOW, smoothstep(0.35, 0.75, hot)), WHITE_HOT, smoothstep(0.85, 1.0, hot))
+    if flash > 0:
+        core = mix(core, WHITE_HOT, flash * smoothstep(0.62, 0.1, across))
+    frame.paint(edge, smoothstep(1.24, 0.92, across) * strength * whole)
+    frame.paint(body, smoothstep(0.92, 0.56, across) * strength * whole)
+    frame.paint(core, smoothstep(0.56, 0.06, across) * strength * whole)
+
+    if tall > 0:
+        tongues, wisps = [], []
+        for k in range(SPLASH_LICKS):
+            a = 2 * np.pi * (k + 0.3 * math.sin(k * 2.3)) / SPLASH_LICKS + 0.15
+            # Tallest along the far side and in clusters round it, with lower licks between, never an even crown; they
+            # die away round the sides, so the near side is a clean burning band and keeps its floor, never a row of
+            # thorns in front of the enemy.
+            back = smoothstep(-0.5, 0.75, math.sin(a))
+            cluster = float(noise(np.array([math.cos(a) * 1.1 + 4.0]), np.array([math.sin(a) * 1.1]))[0])
+            h = tall * (0.5 + 0.65 * ((k * 0.618) % 1.0)) * (0.1 + 0.9 * back) * (0.8 + 0.45 * cluster)
+            if back < 0.12 or h < 0.03:
+                continue
+            x, y = math.cos(a) * 0.955, math.sin(a) * 0.4775
+            tg = dict(x=x, y=y - 0.02, h=h, w=0.056 + 0.02 * ((k * 0.37) % 1.0),
+                      lean=0.06 * math.cos(a) + 0.015 * math.sin(k * 1.7), wave=0.012, ph=k, sharp=1.2, flick=0.12,
+                      sway=0.015, foot=0.04)
+            tongues.append(tg)
+            if h > 0.17 and index in (1, 2):
+                tongues.append(fork(tg, 1 if k % 2 else -1, 0.38, 0.5, 0.08))
+            if index >= 2 and h > 0.1:
+                # A wisp tears off the tip and rises on, smaller each frame.
+                rise = (index - 1) * 0.5
+                wisps.append(dict(x=x + tg["lean"] * 1.2, y=y + h * (0.85 + 0.35 * rise), h=0.05 * (1.2 - 0.3 * rise),
+                                  w=0.018, lean=tg["lean"] * 0.3, wave=0.0, ph=float(k), flick=0.0, sway=0.0,
+                                  sharp=1.4))
+        paint_fire(frame, tongues, 2 * np.pi * index / SPLASH_FRAMES, heat, fire_noise, wisps=wisps, glow=0.1,
+                   rim=0.8)
+
+    if index >= 1:
+        # Embers thrown up off the band, the same ones frame to frame: every one's flight is drawn before any is skipped.
+        rng = np.random.default_rng(17)
+        for k in range(18):
+            a, start = rng.uniform(0, 2 * np.pi), int(rng.integers(1, 3))
+            out, up = rng.uniform(0.01, 0.028), rng.uniform(0.03, 0.06)
+            size, cool = rng.uniform(0.007, 0.012), rng.random()
+            if index < start or math.sin(a) < -0.35:
+                continue
+            age = index - start + 0.5
+            reach = 0.97 + out * age
+            x, y = math.cos(a) * reach, math.sin(a) * 0.5 * reach + 0.02 + up * age
+            flight = math.degrees(math.atan2(math.sin(a) * 0.5 * out + up, math.cos(a) * out))
+            paint_ember(frame, x, y, size * (1.0 - 0.08 * age), max(0.0, 0.95 - 0.18 * age - 0.2 * cool), stretch=1.6,
+                        angle=flight)
+    return frame
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Forge Burst: the Vanguard's hammer-blow shockwave on the floor (a unit radius), its steel sparks (facing +x, head at
 # the pivot) and the flash at the hero.
 
@@ -993,8 +1111,8 @@ def write_asset(families, script_guid):
         strip, guid, sheet = fields[f"flame{stacks}"]
         body.append("  - " + strip_yaml(strip, guid, sheet, 4)[4:])
     for field, name in (("_emberArc", "emberArc"), ("_ventColumn", "ventColumn"), ("_ventEmbers", "ventEmbers"),
-                        ("_ventRing", "ventRing"), ("_shockwave", "shockwave"), ("_forgeSpark", "forgeSpark"),
-                        ("_forgeFlash", "forgeFlash")):
+                        ("_ventRing", "ventRing"), ("_ventSplash", "ventSplash"), ("_shockwave", "shockwave"),
+                        ("_forgeSpark", "forgeSpark"), ("_forgeFlash", "forgeFlash")):
         strip, guid, sheet = fields[name]
         body.append(f"  {field}:")
         body.append(strip_yaml(strip, guid, sheet, 4))
@@ -1022,7 +1140,11 @@ def build_families():
     forge = [Strip("shockwave", [shockwave_frame(i, ring_noise) for i in range(SHOCK_FRAMES)]),
              Strip("forgeSpark", [forge_spark_frame(i) for i in range(SPARK_FRAMES)]),
              Strip("forgeFlash", [forge_flash_frame(i) for i in range(FLASH_FRAMES)])]
-    return {"VFX_Skill_Burn": burn, "VFX_Skill_Vent": vent, "VFX_Skill_Forge": forge}
+    splash_noise = Noise(23, period=1.0, feature=0.08)
+    splash_fine = Noise(31, period=1.0, feature=0.03)
+    splash = [Strip("ventSplash", [vent_splash_frame(i, splash_noise, splash_fine, noise)
+                                   for i in range(SPLASH_FRAMES)])]
+    return {"VFX_Skill_Burn": burn, "VFX_Skill_Vent": vent, "VFX_Skill_Forge": forge, "VFX_Skill_VentSplash": splash}
 
 
 def main():

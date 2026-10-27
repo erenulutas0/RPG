@@ -307,6 +307,37 @@ MonoBehaviour:
       Y: 432
       Width: 408
       Height: 216
+  _ventSplash:
+    Sheet: {fileID: 2800000, guid: 9136c210063d414da0fe337b3a2772e5, type: 3}
+    SheetWidth: 296
+    SheetHeight: 1084
+    TexelsPerUnit: 136
+    Pivot: {x: 0.5059459, y: 0.3953073}
+    Frames:
+    - X: 0
+      Y: 905
+      Width: 296
+      Height: 179
+    - X: 0
+      Y: 724
+      Width: 296
+      Height: 179
+    - X: 0
+      Y: 543
+      Width: 296
+      Height: 179
+    - X: 0
+      Y: 362
+      Width: 296
+      Height: 179
+    - X: 0
+      Y: 181
+      Width: 296
+      Height: 179
+    - X: 0
+      Y: 0
+      Width: 296
+      Height: 179
   _shockwave:
     Sheet: {fileID: 2800000, guid: cf02761a6f25404caeca4ccf44c8e1d0, type: 3}
     SheetWidth: 752
