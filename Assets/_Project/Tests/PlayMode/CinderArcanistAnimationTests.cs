@@ -15,13 +15,18 @@ namespace Cryptforge.Tests
     // Ilya Kest drawn from the pre-rendered art set (docs/45) in the real scene: development/hero.txt plays the Cinder
     // Arcanist, whose HeroDefinition carries a RenderedCharacterArtSet, and HeroLookView hands the hero to
     // RenderedCharacterAnimator. Presentation only, like the Vanguard's and the puppet's animation tests.
+    //
+    // The drawing only observes the hero's floor displacement, so these tests walk the hero by moving its transform a
+    // known floor distance each frame, with HeroMovementInput switched off: no rim, pit wall or other obstacle round the
+    // spawn can stop or turn a walk aside.
     public sealed class CinderArcanistAnimationTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const string ArcanistId = "hero_cinder_arcanist";
+        // Floor units a second: the foundry's walking pace (HeroMovementInput, 2.5 x FoundryPace).
+        private const float Speed = 3.5f;
         private RenderedCharacterAnimator _drawn;
         private HeroLookView _look;
-        private HeroMovementInput _movement;
         private AttackController _attack;
         private Health _hero;
         private Health _target;
@@ -38,14 +43,23 @@ namespace Cryptforge.Tests
             Object.FindFirstObjectByType<EncounterController>().enabled = false;
             foreach (var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None)) attack.enabled = false;
             _look = Object.FindFirstObjectByType<HeroLookView>();
+            _look.GetComponent<HeroMovementInput>().enabled = false;
             _drawn = _look.GetComponent<RenderedCharacterAnimator>();
-            _movement = _look.GetComponent<HeroMovementInput>();
             _attack = _look.GetComponent<AttackController>();
             _hero = _look.GetComponent<Health>();
             _target = new GameObject("Arcanist animation target").AddComponent<Health>();
             _target.Initialize(100000);
             _target.transform.position = _look.transform.position + Vector3.right * .3f;
             _look.GetComponent<Targeting>().SetCandidates(new[] { _target });
+        }
+
+        // One frame of walking along a floor direction at Speed: the step lands before this frame's LateUpdate, where
+        // the drawing reads it. A paused combat (no scaled time) steps nowhere.
+        private IEnumerator Step(Vector2 floorDirection)
+        {
+            Vector2 step = floorDirection.normalized * (Speed * Time.deltaTime);
+            _look.transform.position += new Vector3(step.x, ArenaFloor.WorldY(step.y), 0f);
+            yield return null;
         }
 
         [UnityTearDown]
@@ -99,22 +113,21 @@ namespace Cryptforge.Tests
         public IEnumerator WalkingTurnsTheDrawingToTheTravelAndStepsThroughTheStride()
         {
             yield return Load();
-            // Out and back on each axis, so no wall stops the walk.
             var walks = new (Vector2 steer, RenderedFacing facing, bool mirrored)[]
             {
                 (Vector2.right, RenderedFacing.East, false), (Vector2.left, RenderedFacing.East, true),
                 (Vector2.up, RenderedFacing.North, false), (Vector2.down, RenderedFacing.South, false),
-                (new Vector2(1, 1), RenderedFacing.NorthEast, false), (new Vector2(-1, -1), RenderedFacing.SouthEast, true)
+                (new Vector2(1, 1), RenderedFacing.NorthEast, false), (new Vector2(-1, -1), RenderedFacing.SouthEast, true),
+                (new Vector2(-1, 1), RenderedFacing.NorthEast, true), (new Vector2(1, -1), RenderedFacing.SouthEast, false)
             };
+            int stride = _drawn.Art.FrameCount(RenderedMotion.Walk);
             foreach (var walk in walks)
             {
-                _movement.Hold(walk.steer);
+                // Two strides each way: every pose shows, drawn in the facing of the travel.
                 var poses = new HashSet<int>();
-                for (int i = 0; i < 30; i++)
+                for (int i = 0; i < 40; i++)
                 {
-                    yield return null;
-                    if (i < 3)
-                        continue;
+                    yield return Step(walk.steer);
                     string at = walk.steer + " frame " + i;
                     Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Walk), at);
                     Assert.That(_drawn.Facing, Is.EqualTo(walk.facing), at);
@@ -122,15 +135,16 @@ namespace Cryptforge.Tests
                     Assert.That(_drawn.Root.localScale.x, Is.EqualTo(walk.mirrored ? -1f : 1f), at);
                     Assert.That(_drawn.Renderer.sprite, Is.SameAs(_drawn.Art.Frame(RenderedMotion.Walk, walk.facing,
                         _drawn.FrameIndex)), at);
+                    Assert.That(_drawn.FrameIndex, Is.EqualTo(RenderedCharacterFrames.WalkFrame(_drawn.Player.WalkDistance,
+                        _drawn.Art.StrideLength, stride)), at + ": the pose follows the distance walked.");
                     poses.Add(_drawn.FrameIndex);
                 }
-                Assert.That(poses.Count, Is.GreaterThanOrEqualTo(5), walk.steer + ": the stride steps through its poses.");
-                _movement.Release();
-                for (int i = 0; i < 12; i++)
-                    yield return null;
-                Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Idle), walk.steer + ": standing idles.");
-                Assert.That(_drawn.Facing, Is.EqualTo(walk.facing), walk.steer + ": and keeps the facing it walked in.");
+                Assert.That(poses.Count, Is.EqualTo(stride), walk.steer + ": every pose of the stride shows.");
             }
+            for (int i = 0; i < 12; i++)
+                yield return null;
+            Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Idle), "Standing idles.");
+            Assert.That(_drawn.Facing, Is.EqualTo(RenderedFacing.SouthEast), "And keeps the facing it last walked in.");
             Assert.That(_look.transform.localScale, Is.EqualTo(Vector3.one), "Only the drawing mirrors.");
             Assert.That(_attack.AttackCount, Is.Zero, "The drawing never attacks.");
             LogAssert.NoUnexpectedReceived();
@@ -175,11 +189,10 @@ namespace Cryptforge.Tests
             int walkingStrikes = 0, attacks = _attack.AttackCount;
             for (int i = 0; i < 160; i++)
             {
-                if (i % 40 == 0)
-                    _movement.Hold((i / 40) % 2 == 0 ? Vector2.right : Vector2.left);
+                // The target walks beside the hero, so the staff keeps finding it.
                 _target.transform.position = _look.transform.position + Vector3.up * .3f;
-                yield return null;
-                if (i % 40 < 6 || !_drawn.Player.IsStriking)
+                yield return Step((i / 40) % 2 == 0 ? Vector2.right : Vector2.left);
+                if (!_drawn.Player.IsStriking)
                     continue;
                 walkingStrikes++;
                 Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.WalkStrike), "frame " + i);
@@ -187,7 +200,6 @@ namespace Cryptforge.Tests
                     _drawn.Art.StrideLength, _drawn.Art.FrameCount(RenderedMotion.WalkStrike))), "The legs are the walk's.");
                 Assert.That(_drawn.Facing, Is.EqualTo(RenderedFacing.East), "Walking, the travel keeps the facing.");
             }
-            _movement.Release();
             Assert.That(_attack.AttackCount, Is.GreaterThan(attacks + 1), "It attacked on the move.");
             Assert.That(walkingStrikes, Is.GreaterThan(0));
             LogAssert.NoUnexpectedReceived();
@@ -226,8 +238,7 @@ namespace Cryptforge.Tests
             {
                 Assert.That(_drawn.FlashRenderer.sprite, Is.SameAs(_drawn.Renderer.sprite), "The shown frame's silhouette.");
                 Assert.That(_drawn.FlashRenderer.sortingOrder, Is.GreaterThan(_drawn.Renderer.sortingOrder));
-                Assert.That(_drawn.FlashRenderer.transform.lossyScale.x * _drawn.Root.lossyScale.x, Is.GreaterThan(0f),
-                    "It mirrors with the frame.");
+                Assert.That(_drawn.FlashRenderer.transform.parent, Is.SameAs(_drawn.Root), "It mirrors with the frame.");
             }
             for (int i = 0; i < 30; i++)
                 yield return null;
@@ -256,30 +267,29 @@ namespace Cryptforge.Tests
         public IEnumerator APausedCombatFreezesTheDrawingMidStride()
         {
             yield return Load();
-            _movement.Hold(Vector2.right);
             for (int i = 0; i < 15; i++)
-                yield return null;
+                yield return Step(Vector2.right);
+            Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Walk));
             Time.timeScale = 0;
             // This frame's late update may still carry the time it began with; from the next frame on time stands.
-            yield return null;
+            yield return Step(Vector2.right);
             Sprite shown = _drawn.Renderer.sprite;
             int frame = _drawn.FrameIndex;
-            RenderedMotion motion = _drawn.Motion;
             Vector3 position = _look.transform.position;
-            yield return new WaitForSecondsRealtime(.06f);
+            for (int i = 0; i < 6; i++)
+                yield return Step(Vector2.right);
             Assert.That(_drawn.Renderer.sprite, Is.SameAs(shown), "A paused combat freezes the frame.");
             Assert.That(_drawn.FrameIndex, Is.EqualTo(frame));
-            Assert.That(_drawn.Motion, Is.EqualTo(motion));
+            Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Walk), "Mid-stride, not dropped to the idle.");
             Assert.That(_look.transform.position, Is.EqualTo(position));
             Time.timeScale = 1;
             var after = new HashSet<int>();
             for (int i = 0; i < 12; i++)
             {
-                yield return null;
+                yield return Step(Vector2.right);
                 after.Add(_drawn.FrameIndex);
             }
             Assert.That(after.Count, Is.GreaterThan(1), "And the stride carries on afterwards.");
-            _movement.Release();
             LogAssert.NoUnexpectedReceived();
         }
     }
