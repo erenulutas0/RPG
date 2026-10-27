@@ -214,3 +214,17 @@ stay for a later painted pass.
   - The Forge Burst: a ring shockwave with heat ripples and a soot rim, steel sparks, and a 0.12 s flash at the hero.
   - Device checks still open: burn readability at 1-2 stacks on Mites and on lava, ASTC banding in the soft gradients,
     frame time with about 40 burning enemies, and occlusion behind Foundry structures.
+- **The Vanguard's painted puppet** (section 4 B, behind `development/puppet.txt`) - `Tools/ArtReview/
+  build_vanguard_puppet.py` cuts the two painted masters (rear and front three-quarter) into 14 parts each, along their
+  painted outlines, under `Assets/_Project/Art/Characters/Vanguard/Puppet/` with `VanguardPuppetArtSet.asset` (122 KiB
+  as ASTC 4x4 with the hit-flash copies). Joints that open when a limb bends show the master's own chainmail; the
+  standing puppet matches the master to within 0.3 of 255 on average.
+  - Motion (`PuppetPose`, `PuppetGait`, `PuppetMotion`, `PuppetRig`, `PuppetAnimator`): a jog that runs in and settles,
+    planted boots that hold their floor line (hip drop from each leg's heel and toe), counter-turning shoulders and
+    hips, breath and weight shift at rest, the cape and skirt swinging on after a stop; each weapon draws back while its
+    cooldown runs out and then chops (sword), thrusts (staff) or jabs (daggers) over the striding legs; the Forge Burst
+    crouches, raises and slams; a hit flinches; death staggers, buckles and falls.
+  - `Tools/ArtReview/preview_vanguard_puppet.py` drives the real C# pose code outside Unity for review GIFs.
+  - Known flaws: on a diagonal the planted boot slides up or down the screen; the far boot sits about 16 texels above
+    the near one in the painted stance; changing facing is still an instant switch; the slam lands about 0.1 s after
+    the button while the shockwave starts at the press.
