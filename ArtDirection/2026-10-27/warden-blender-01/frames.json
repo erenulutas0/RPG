@@ -15,10 +15,33 @@
  "visual_top": 1.642,
  "shadow_width": 1.12,
  "walk_cycle_distance": 1.0752,
+ "fall": {
+  "poses": [
+   "fall-struck",
+   "fall-knee",
+   "fall-topple",
+   "fall-down"
+  ],
+  "seconds": [
+   0.16,
+   0.44,
+   0.16,
+   0.56
+  ],
+  "total_seconds": 1.32
+ },
  "memory": {
-  "textures": 44,
-  "astc_4x4_bytes": 2097088,
-  "rgba32_bytes": 8388352
+  "textures": 66,
+  "astc_4x4_bytes": 3433568,
+  "rgba32_bytes": 13734272,
+  "by_kind": {
+   "cool": 666992,
+   "hot": 666992,
+   "flash": 666992,
+   "windup-walk": 1131936,
+   "fall": 204272,
+   "remains": 96384
+  }
  },
  "sprites": [
   {
@@ -313,14 +336,14 @@
    "file": "CHR_Warden_front_windup.png",
    "guid": "b7d5ee85a31b4e489a0ae0a77f8daca8",
    "size": [
-    184,
+    188,
     388
    ],
    "pivot": [
     0.5,
-    0.085052
+    0.092784
    ],
-   "sha256": "a0f6b524f101bc805797b1fc4f366ba0239324e28efd59e38f41d6c1ea133b14",
+   "sha256": "5bbc954e6370089969f4fa404bebb01ee09fa3d09b12d3464ee5374de6431904",
    "facing": "front",
    "pose": "windup",
    "kind": "cool"
@@ -329,14 +352,14 @@
    "file": "CHR_Warden_front_windup_hot.png",
    "guid": "2c3871cebd4a442491e305fa65c96c4f",
    "size": [
-    184,
+    188,
     388
    ],
    "pivot": [
     0.5,
-    0.085052
+    0.092784
    ],
-   "sha256": "0e2f2e509d22e063ce764f9a0c68c1e2bf356a73a08c4d50cf4ce6dfedf53c57",
+   "sha256": "3f60aafd036971b82a184b0588bed11d1b12af77a685a57dd515a961a0f286f4",
    "facing": "front",
    "pose": "windup",
    "kind": "hot"
@@ -345,16 +368,160 @@
    "file": "CHR_Warden_front_windup_Flash.png",
    "guid": "663ef92536df437abd9efa471a3ba969",
    "size": [
-    184,
+    188,
     388
    ],
    "pivot": [
     0.5,
-    0.085052
+    0.092784
    ],
-   "sha256": "74172770c465c260ff23f526eb0900b3a37d93a9efd35fd7d52c830bfb8d466f",
+   "sha256": "9a37a82ffd26c932d206384ae10a9a5ddf4b22adeb538cb33477d4893fc8d18c",
    "facing": "front",
    "pose": "windup",
+   "kind": "flash"
+  },
+  {
+   "file": "CHR_Warden_front_windup-step-a.png",
+   "guid": "05607bb0a4bc4935a1f1704114cd5f10",
+   "size": [
+    188,
+    372
+   ],
+   "pivot": [
+    0.5,
+    0.056452
+   ],
+   "sha256": "a94e384b5c943f5dafb2df2416cb9cfcd9cae535954bad88f71cd10627e620ff",
+   "facing": "front",
+   "pose": "windup-step-a",
+   "kind": "cool"
+  },
+  {
+   "file": "CHR_Warden_front_windup-step-a_hot.png",
+   "guid": "0841e5caaede4b3c9ed02d5070495eae",
+   "size": [
+    188,
+    372
+   ],
+   "pivot": [
+    0.5,
+    0.056452
+   ],
+   "sha256": "47f40b60b572207f16ecc124897912ab52ba57a7b2d4e5acdc77806ac31a844f",
+   "facing": "front",
+   "pose": "windup-step-a",
+   "kind": "hot"
+  },
+  {
+   "file": "CHR_Warden_front_windup-step-a_Flash.png",
+   "guid": "36e91fd966054356a8c913a5dfae3743",
+   "size": [
+    188,
+    372
+   ],
+   "pivot": [
+    0.5,
+    0.056452
+   ],
+   "sha256": "e2c5af1ddfc607763bd3316a4a69094cc70f0eacc203b154f82f3ac5a6571ed2",
+   "facing": "front",
+   "pose": "windup-step-a",
+   "kind": "flash"
+  },
+  {
+   "file": "CHR_Warden_front_windup-pass-a.png",
+   "guid": "b9ca5cd9706e4f88b13444f88d81be8d",
+   "size": [
+    180,
+    368
+   ],
+   "pivot": [
+    0.5,
+    0.035326
+   ],
+   "sha256": "0b2e01a24d1033fb6fdfbd4f4df0b7b7e5ea177a58f3d61b132b05b5b93df8d1",
+   "facing": "front",
+   "pose": "windup-pass-a",
+   "kind": "cool"
+  },
+  {
+   "file": "CHR_Warden_front_windup-pass-a_hot.png",
+   "guid": "33df955665fb47bd9c835ead1e5b2770",
+   "size": [
+    180,
+    368
+   ],
+   "pivot": [
+    0.5,
+    0.035326
+   ],
+   "sha256": "e497c63a1fd1705be47a318abd1addd76f0666d19237531fab848c20ba3723c7",
+   "facing": "front",
+   "pose": "windup-pass-a",
+   "kind": "hot"
+  },
+  {
+   "file": "CHR_Warden_front_windup-pass-a_Flash.png",
+   "guid": "cc0336d5e6f441f3aeb64b1197d85d48",
+   "size": [
+    180,
+    368
+   ],
+   "pivot": [
+    0.5,
+    0.035326
+   ],
+   "sha256": "783148b6f8b64ab61b95558de25e68e36758a476086a1aa48165dd66c60bb044",
+   "facing": "front",
+   "pose": "windup-pass-a",
+   "kind": "flash"
+  },
+  {
+   "file": "CHR_Warden_front_windup-pass-b.png",
+   "guid": "aa5c2edaeb074e7191fb32e0a9fcf240",
+   "size": [
+    176,
+    384
+   ],
+   "pivot": [
+    0.5,
+    0.065104
+   ],
+   "sha256": "d0da7118b015a55f0aec9390ae6065f2c6fd1a0a3539284f88d2df0379244256",
+   "facing": "front",
+   "pose": "windup-pass-b",
+   "kind": "cool"
+  },
+  {
+   "file": "CHR_Warden_front_windup-pass-b_hot.png",
+   "guid": "936df9163d6d498e857be7956fc28877",
+   "size": [
+    176,
+    384
+   ],
+   "pivot": [
+    0.5,
+    0.065104
+   ],
+   "sha256": "e7d86ec0d102faf5f037e0bfe587ec1caa8e51be7f08b5651b72c5a898c92a99",
+   "facing": "front",
+   "pose": "windup-pass-b",
+   "kind": "hot"
+  },
+  {
+   "file": "CHR_Warden_front_windup-pass-b_Flash.png",
+   "guid": "cf7f2dc83471439cb48ba25ea1260af5",
+   "size": [
+    176,
+    384
+   ],
+   "pivot": [
+    0.5,
+    0.065104
+   ],
+   "sha256": "303113cc334eef09834d3c95281c820202ec37db9dfac85febfc73ce8c6079c7",
+   "facing": "front",
+   "pose": "windup-pass-b",
    "kind": "flash"
   },
   {
@@ -649,14 +816,14 @@
    "file": "CHR_Warden_rear_windup.png",
    "guid": "fdbddf470cc6456eaeb37604e7eeaa79",
    "size": [
-    192,
-    296
+    188,
+    292
    ],
    "pivot": [
     0.5,
-    0.033784
+    0.05137
    ],
-   "sha256": "ad9c0ebefe49194e35e1f2b9d637c986aaf561125703889662aa3cef531c8b0f",
+   "sha256": "cd7e18d2427b31a5b851918b2b3fd19240436fd0d5ff6af7cd52b3807fca27de",
    "facing": "rear",
    "pose": "windup",
    "kind": "cool"
@@ -665,14 +832,14 @@
    "file": "CHR_Warden_rear_windup_hot.png",
    "guid": "97e27d82037e4342992f8420d8957690",
    "size": [
-    192,
-    296
+    188,
+    292
    ],
    "pivot": [
     0.5,
-    0.033784
+    0.05137
    ],
-   "sha256": "fedf7272ac0dc89c797202dd93e612fbec17cd7af79a25aca7bf78deb29097dd",
+   "sha256": "45fb5cde74cea187bdd1f05736a7ddf82f0d59dfc7e3cb172b6e7daa8c86756d",
    "facing": "rear",
    "pose": "windup",
    "kind": "hot"
@@ -681,49 +848,263 @@
    "file": "CHR_Warden_rear_windup_Flash.png",
    "guid": "bde3620d1ce442e6a191d2e6632ee48d",
    "size": [
-    192,
-    296
+    188,
+    292
    ],
    "pivot": [
     0.5,
-    0.033784
+    0.05137
    ],
-   "sha256": "67952f102ff83cd192bceba02dbe4434b392e5d02b1961c635a51b716afd38f1",
+   "sha256": "30fa48e38894ca67b387d1b18f9b3fbd50b5e9bb6684c9a9826ea740a255c113",
    "facing": "rear",
    "pose": "windup",
    "kind": "flash"
   },
   {
-   "file": "CHR_Warden_death_0.png",
-   "guid": "0aa814ba62334ada8546b9905f740a75",
+   "file": "CHR_Warden_rear_windup-step-a.png",
+   "guid": "548e3a5929f349649c74579a8504bfa7",
    "size": [
-    260,
-    188
+    188,
+    308
    ],
    "pivot": [
     0.5,
-    0.148936
+    0.090909
    ],
-   "sha256": "26624c0fc44e11d545baf49b345b74d8aa4a137d01f793d56436e7e0d5aade29",
+   "sha256": "5b0926e2ca7478f2f8c060f906cd2b4c52da508ec4d5b2228f5abb4aabee18c8",
+   "facing": "rear",
+   "pose": "windup-step-a",
+   "kind": "cool"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-step-a_hot.png",
+   "guid": "78e7c156d63543e995a5603225d499ec",
+   "size": [
+    188,
+    308
+   ],
+   "pivot": [
+    0.5,
+    0.090909
+   ],
+   "sha256": "4c4860ae1e31ac4fdaf5eb602ac3e899dcffa9776bff9a178b3f41b89d108435",
+   "facing": "rear",
+   "pose": "windup-step-a",
+   "kind": "hot"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-step-a_Flash.png",
+   "guid": "aa6f2e36c0654d5e8c2e6b59bde3a478",
+   "size": [
+    188,
+    308
+   ],
+   "pivot": [
+    0.5,
+    0.090909
+   ],
+   "sha256": "d02bd24f80331d73fd6e31c978852f3f585087e8848f3663c77533f16726d4a4",
+   "facing": "rear",
+   "pose": "windup-step-a",
+   "kind": "flash"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-pass-a.png",
+   "guid": "463f076f90f244269fb331f3460b68f2",
+   "size": [
+    192,
+    292
+   ],
+   "pivot": [
+    0.5,
+    0.006849
+   ],
+   "sha256": "0d6e0e0b233e80167df58e108a167a8b758416857e03c0fcb96f3f80e4064de5",
+   "facing": "rear",
+   "pose": "windup-pass-a",
+   "kind": "cool"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-pass-a_hot.png",
+   "guid": "3f3dc6e64c8c44e39a4566759c43632d",
+   "size": [
+    192,
+    292
+   ],
+   "pivot": [
+    0.5,
+    0.006849
+   ],
+   "sha256": "0c82398cdbedad31f1e81de9a9ea0ff8906fe136bae86151310131d936a8710e",
+   "facing": "rear",
+   "pose": "windup-pass-a",
+   "kind": "hot"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-pass-a_Flash.png",
+   "guid": "fea9fc105460436a8c9606a9f5c4c3ce",
+   "size": [
+    192,
+    292
+   ],
+   "pivot": [
+    0.5,
+    0.006849
+   ],
+   "sha256": "f92845f783f0b571a2da15a9ccc3931df377dc046537a9689f22f142d971c6b1",
+   "facing": "rear",
+   "pose": "windup-pass-a",
+   "kind": "flash"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-pass-b.png",
+   "guid": "0f0f442dd21945e984a1250207d0db64",
+   "size": [
+    196,
+    304
+   ],
+   "pivot": [
+    0.5,
+    0.049342
+   ],
+   "sha256": "3e6736c1966d12969e9a57fc3eb109e251b3f3ceab9c849366d873cdfd673349",
+   "facing": "rear",
+   "pose": "windup-pass-b",
+   "kind": "cool"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-pass-b_hot.png",
+   "guid": "f1904430892248ca8dd645e38c28f483",
+   "size": [
+    196,
+    304
+   ],
+   "pivot": [
+    0.5,
+    0.049342
+   ],
+   "sha256": "29cc3ac86f0cf8baa6be11ca0e8730ae9219229e3d97e4c4df9e02c74e031c17",
+   "facing": "rear",
+   "pose": "windup-pass-b",
+   "kind": "hot"
+  },
+  {
+   "file": "CHR_Warden_rear_windup-pass-b_Flash.png",
+   "guid": "5df02206189f4a838111f6e5b2e0e5f5",
+   "size": [
+    196,
+    304
+   ],
+   "pivot": [
+    0.5,
+    0.049342
+   ],
+   "sha256": "60e1a844ae395b559dd96d2833df41be275c8bb37e4674aba3d1faf4cc321ba5",
+   "facing": "rear",
+   "pose": "windup-pass-b",
+   "kind": "flash"
+  },
+  {
+   "file": "CHR_Warden_front_fall-struck.png",
+   "guid": "3107d90ddfb849aaa14c6b87a3b715a7",
+   "size": [
+    248,
+    244
+   ],
+   "pivot": [
+    0.641129,
+    0.135246
+   ],
+   "sha256": "bc52b5e8e578c9ec5c049950db7b8735e16197f4b39c01e8a2e44ec1120828ef",
    "facing": "front",
-   "pose": "death-0",
-   "kind": "death"
+   "pose": "fall-struck",
+   "kind": "fall",
+   "seconds": 0.16
+  },
+  {
+   "file": "CHR_Warden_death_0.png",
+   "guid": "0aa814ba62334ada8546b9905f740a75",
+   "size": [
+    224,
+    196
+   ],
+   "pivot": [
+    0.691964,
+    0.214286
+   ],
+   "sha256": "dee7ca307b20fa0c5455437060f668489c0bc4526a8fa0a8414c76eb2dc8d01a",
+   "facing": "front",
+   "pose": "fall-knee",
+   "kind": "remains",
+   "seconds": 0.44
+  },
+  {
+   "file": "CHR_Warden_fall-topple.png",
+   "guid": "84a767e6c7164f338fec9daed4d68f22",
+   "size": [
+    260,
+    184
+   ],
+   "pivot": [
+    0.734615,
+    0.23913
+   ],
+   "sha256": "511667d7645b728335851e48dc710b85c9cf3bbda8a8d6fed906ca104871b037",
+   "facing": "both",
+   "pose": "fall-topple",
+   "kind": "fall",
+   "seconds": 0.16
   },
   {
    "file": "CHR_Warden_death_1.png",
    "guid": "e109c6d82e0a4eddb054639025698b34",
    "size": [
-    256,
-    180
+    328,
+    160
    ],
    "pivot": [
-    0.5,
-    0.3
+    0.719512,
+    0.30625
    ],
-   "sha256": "2772d980214ae1e8247d6b27e3445c96a0767ce760f098f2700b5a98e9943697",
-   "facing": "front",
-   "pose": "death-1",
-   "kind": "death"
+   "sha256": "a913ec5743a2026b7449c00b10744627c7ceebb562cb355e36c8f1fa132057e8",
+   "facing": "both",
+   "pose": "fall-down",
+   "kind": "remains",
+   "seconds": 0.56
+  },
+  {
+   "file": "CHR_Warden_rear_fall-struck.png",
+   "guid": "2b3940b0559448eb9fd7aa7c84e1de38",
+   "size": [
+    224,
+    220
+   ],
+   "pivot": [
+    0.361607,
+    0.15
+   ],
+   "sha256": "e2d346573e0d545f358838d67b70a5d36adc2cf438420d2caea973e1b497e58f",
+   "facing": "rear",
+   "pose": "fall-struck",
+   "kind": "fall",
+   "seconds": 0.16
+  },
+  {
+   "file": "CHR_Warden_rear_fall-knee.png",
+   "guid": "3845249cc3944725af192ddca18ae9b3",
+   "size": [
+    220,
+    212
+   ],
+   "pivot": [
+    0.359091,
+    0.183962
+   ],
+   "sha256": "0c5a7e8ec9d9abbcec5a647ae545e58aa7de7675ccfa59589fad8152550c35ca",
+   "facing": "rear",
+   "pose": "fall-knee",
+   "kind": "fall",
+   "seconds": 0.44
   }
  ]
 }
