@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: ForgeWardenArtSet
+  m_EditorClassIdentifier: 
+  _front:
+  - Body: {fileID: 21300000, guid: 8332dd9483c343aca6d3ffea467f145b, type: 3}
+    Flash: {fileID: 21300000, guid: ae62387f47c1492d80bc498f0168cc85, type: 3}
+  - Body: {fileID: 21300000, guid: 43d872ceb94249a781d4bafcc0c91d74, type: 3}
+    Flash: {fileID: 21300000, guid: 26b0fa6e4d9245da90eba8b1de6796cf, type: 3}
+  - Body: {fileID: 21300000, guid: 050b097fe3c94481929002a3ab745e4f, type: 3}
+    Flash: {fileID: 21300000, guid: 287ddad4670c4062a35635bbee8d1fee, type: 3}
+  - Body: {fileID: 21300000, guid: 8db4402abf1b48f7a7cdf3b729d312fb, type: 3}
+    Flash: {fileID: 21300000, guid: 26958364a253444a9303237c2a621fb8, type: 3}
+  - Body: {fileID: 21300000, guid: 74e082c4e2914f25a07b16d0bb5e9222, type: 3}
+    Flash: {fileID: 21300000, guid: a8dcc691764344e6a2d63c7a47cedc62, type: 3}
+  - Body: {fileID: 21300000, guid: fca65d6e6c664ef38eccc5d5901ae1c1, type: 3}
+    Flash: {fileID: 21300000, guid: caf02bba7d1e48baab1959a301a80cd2, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: a6bffc40a6d74f2f9f0c592be0ab13bf, type: 3}
+    Flash: {fileID: 21300000, guid: e4691b5d90ec46ac9bde6ae9fdc85d6c, type: 3}
+  - Body: {fileID: 21300000, guid: cd8bc383fcc64976b07e1ddcb4eae51e, type: 3}
+    Flash: {fileID: 21300000, guid: dfe84b5410cd493aa3bb04dbb6041bbb, type: 3}
+  - Body: {fileID: 21300000, guid: 8b9941af0ffc4b0bac40039f9414274d, type: 3}
+    Flash: {fileID: 21300000, guid: f4c23cb51dd64a3086e5364362cc778c, type: 3}
+  - Body: {fileID: 21300000, guid: 46d2ecac3d4946829217d9aa0ed1c376, type: 3}
+    Flash: {fileID: 21300000, guid: 8a55cc46603e40f1a658b3760bb9d7c5, type: 3}
+  - Body: {fileID: 21300000, guid: d5b83323b9074bbf9da2e71eb82af2c9, type: 3}
+    Flash: {fileID: 21300000, guid: 35db2d4ac40049b082d259da70743f83, type: 3}
+  - Body: {fileID: 21300000, guid: d16185f5e7064f9c945f485109678c20, type: 3}
+    Flash: {fileID: 21300000, guid: 27db18f24023465cba06c763c778d9a5, type: 3}
+  _death:
+  - {fileID: 21300000, guid: 0aa814ba62334ada8546b9905f740a75, type: 3}
+  - {fileID: 21300000, guid: e109c6d82e0a4eddb054639025698b34, type: 3}
+  _visualTop: 1.642
+  _shadowWidth: 1.12
+  _walkCycleDistance: 1.0752
+  _windup:
+  - Body: {fileID: 21300000, guid: b7d5ee85a31b4e489a0ae0a77f8daca8, type: 3}
+    Flash: {fileID: 21300000, guid: 663ef92536df437abd9efa471a3ba969, type: 3}
+  - Body: {fileID: 21300000, guid: fdbddf470cc6456eaeb37604e7eeaa79, type: 3}
+    Flash: {fileID: 21300000, guid: bde3620d1ce442e6a191d2e6632ee48d, type: 3}
+  _enragedFront:
+  - Body: {fileID: 21300000, guid: 8966b7aa020b4a26b526b16603d00b5e, type: 3}
+    Flash: {fileID: 21300000, guid: ae62387f47c1492d80bc498f0168cc85, type: 3}
+  - Body: {fileID: 21300000, guid: ead7448518b04340ac7b0f46390c6006, type: 3}
+    Flash: {fileID: 21300000, guid: 26b0fa6e4d9245da90eba8b1de6796cf, type: 3}
+  - Body: {fileID: 21300000, guid: e042e5bb9d8540c9bbc74154be64c5fb, type: 3}
+    Flash: {fileID: 21300000, guid: 287ddad4670c4062a35635bbee8d1fee, type: 3}
+  - Body: {fileID: 21300000, guid: 974ffb8f1ec14aa78b68c5c4f4891ed7, type: 3}
+    Flash: {fileID: 21300000, guid: 26958364a253444a9303237c2a621fb8, type: 3}
+  - Body: {fileID: 21300000, guid: 5f29c29d1fab497d99178952265995e0, type: 3}
+    Flash: {fileID: 21300000, guid: a8dcc691764344e6a2d63c7a47cedc62, type: 3}
+  - Body: {fileID: 21300000, guid: b196706d1e674ebba0b3d20592ad2943, type: 3}
+    Flash: {fileID: 21300000, guid: caf02bba7d1e48baab1959a301a80cd2, type: 3}
+  _enragedRear:
+  - Body: {fileID: 21300000, guid: 6689286488074fac9dbca8e9b7b9b152, type: 3}
+    Flash: {fileID: 21300000, guid: e4691b5d90ec46ac9bde6ae9fdc85d6c, type: 3}
+  - Body: {fileID: 21300000, guid: 96a8cada479f479a98514b7382630c10, type: 3}
+    Flash: {fileID: 21300000, guid: dfe84b5410cd493aa3bb04dbb6041bbb, type: 3}
+  - Body: {fileID: 21300000, guid: fb50bbb999ae46ec96540812c581e368, type: 3}
+    Flash: {fileID: 21300000, guid: f4c23cb51dd64a3086e5364362cc778c, type: 3}
+  - Body: {fileID: 21300000, guid: fe5e72bb9135479aa49c9cdd922b521d, type: 3}
+    Flash: {fileID: 21300000, guid: 8a55cc46603e40f1a658b3760bb9d7c5, type: 3}
+  - Body: {fileID: 21300000, guid: 9017c4539738464ba8933c46e2a6a029, type: 3}
+    Flash: {fileID: 21300000, guid: 35db2d4ac40049b082d259da70743f83, type: 3}
+  - Body: {fileID: 21300000, guid: 2a9ec928b5224e56b43d618436926397, type: 3}
+    Flash: {fileID: 21300000, guid: 27db18f24023465cba06c763c778d9a5, type: 3}
+  _enragedWindup:
+  - Body: {fileID: 21300000, guid: 2c3871cebd4a442491e305fa65c96c4f, type: 3}
+    Flash: {fileID: 21300000, guid: 663ef92536df437abd9efa471a3ba969, type: 3}
+  - Body: {fileID: 21300000, guid: 97e27d82037e4342992f8420d8957690, type: 3}
+    Flash: {fileID: 21300000, guid: bde3620d1ce442e6a191d2e6632ee48d, type: 3}

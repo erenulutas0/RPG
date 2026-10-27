@@ -10,19 +10,25 @@ namespace Cryptforge.UI
     // playable hero and the profile remembers it; Start then reloads the scene with that hero. It shares the start
     // button's row - the chooser on the left, the start button narrowed to the right - and its look, so the scene does
     // not change. Built in code by RelicForgeView when the roster has more than one hero. When a hero is still locked,
-    // the chooser's second line says how to unlock it.
+    // the chooser's second line says how to unlock it. A hero with a portrait stands at the chooser's left.
     public sealed class HeroChoiceView : MonoBehaviour
     {
         // The share of the start row the chooser takes, from the left.
         public const float RowShare = .4f;
+        // The share of the chooser its portrait takes, from the left; the name fills the rest.
+        public const float PortraitShare = .3f;
         private CombatSetup _setup;
         private PrototypeTextDefinition _text;
         private Button _button;
         private Text _label;
+        private RectTransform _labelRect;
+        private Image _portrait;
         private readonly List<HeroDefinition> _playable = new List<HeroDefinition>();
 
         public Button Button => _button;
         public string ShownText => _label != null ? _label.text : string.Empty;
+        // The portrait on show, or null when the current hero has none.
+        public Sprite ShownPortrait => _portrait != null && _portrait.enabled ? _portrait.sprite : null;
         // The hero the next run will play.
         public HeroDefinition Current { get; private set; }
 
@@ -57,6 +63,20 @@ namespace Cryptforge.UI
             _button.targetGraphic = image;
             _button.onClick.AddListener(Cycle);
 
+            // The figure keeps its proportions inside the left share, standing on the button's lower edge.
+            var portraitObject = new GameObject("Hero Choice Portrait", typeof(RectTransform), typeof(Image));
+            portraitObject.layer = chooser.layer;
+            var portraitRect = (RectTransform)portraitObject.transform;
+            portraitRect.SetParent(rect, false);
+            portraitRect.anchorMin = Vector2.zero;
+            portraitRect.anchorMax = new Vector2(PortraitShare, 1f);
+            portraitRect.offsetMin = new Vector2(10f, 6f);
+            portraitRect.offsetMax = new Vector2(0f, -6f);
+            _portrait = portraitObject.GetComponent<Image>();
+            _portrait.preserveAspect = true;
+            _portrait.raycastTarget = false;
+            _portrait.enabled = false;
+
             var labelObject = new GameObject("Hero Choice Label", typeof(RectTransform));
             labelObject.layer = chooser.layer;
             var labelRect = (RectTransform)labelObject.transform;
@@ -65,6 +85,7 @@ namespace Cryptforge.UI
             labelRect.anchorMax = Vector2.one;
             labelRect.offsetMin = new Vector2(16f, 6f);
             labelRect.offsetMax = new Vector2(-16f, -6f);
+            _labelRect = labelRect;
             _label = labelObject.AddComponent<Text>();
             _label.font = startLabel.font;
             _label.fontSize = 30;
@@ -134,6 +155,11 @@ namespace Cryptforge.UI
                 }
             }
             _label.text = string.Format(_text.HeroChoiceFormat, Current.DisplayName, second);
+            Sprite portrait = Current.Portrait;
+            _portrait.sprite = portrait;
+            _portrait.enabled = portrait != null;
+            // With a portrait the name moves right of it; without one it keeps the whole chooser.
+            _labelRect.anchorMin = new Vector2(portrait != null ? PortraitShare : 0f, 0f);
         }
 
         private void OnDestroy()

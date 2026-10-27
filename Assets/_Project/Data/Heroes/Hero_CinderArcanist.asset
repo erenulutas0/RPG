@@ -26,3 +26,4 @@ MonoBehaviour:
   _deathLine: Ah. That one was mine.
   _victoryLine: Not every fire needs a victim.
   _renderedArt: {fileID: 11400000, guid: 4f0a324f67c44d32be3cb8d0d6e07e69, type: 2}
+  _portrait: {fileID: -162986488548649134, guid: 2b41752ea9164a3f9f1a64517c11a1df, type: 3}

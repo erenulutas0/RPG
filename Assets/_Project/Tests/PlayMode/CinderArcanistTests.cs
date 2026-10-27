@@ -230,9 +230,14 @@ namespace Cryptforge.Tests
             yield return null;
             Assert.That(forge.HeroChoice.Current.Id, Is.EqualTo("hero_vanguard"));
             Assert.That(forge.HeroChoice.ShownText, Does.StartWith("Vanguard"));
+            Sprite vanguard = forge.HeroChoice.ShownPortrait;
+            Assert.That(vanguard, Is.Not.Null, "The chooser pictures the hero.");
+            Assert.That(vanguard, Is.SameAs(forge.HeroChoice.Current.Portrait));
             forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.EqualTo(ArcanistId), "The profile remembers the choice.");
             Assert.That(forge.HeroChoice.ShownText, Does.StartWith("Cinder Arcanist").And.Contain("Ilya Kest"));
+            Assert.That(forge.HeroChoice.ShownPortrait, Is.Not.Null.And.Not.SameAs(vanguard), "Ilya stands in its own art.");
+            Assert.That(forge.HeroChoice.ShownPortrait.texture.name, Does.StartWith("CHR_CinderArcanist"));
             Assert.That(TestProfile.ReadSaved().SelectedHeroId, Is.EqualTo(ArcanistId), "And saves it.");
             forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "Back to the default, stored as no choice.");

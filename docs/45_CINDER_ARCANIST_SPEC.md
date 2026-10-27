@@ -255,4 +255,42 @@ stay for a later painted pass.
     from the generator's own vector strokes (no font): white to pale warm, crits larger in gold, the pixel spacing
     kept (0.1875 units, 0.375 crit). One texture, so every digit on screen can batch.
   - Device checks: normal numbers over lava at a glance, and ASTC blocks on the thin numeral outlines (an uncompressed
-    sheet would be about 0.85 MB). GroundDropView's gold-only fallback still uses the pixel coin.
+    sheet would be about 0.85 MB).
+- **Gold alone on the ground** (an overtime kill pays no experience) lies as the painted pile's own two coins,
+  `Assets/_Project/Art/Props/GroundRewards/Reward_Gold.tga` cut from `Reward_ExperienceGold.tga` by
+  `Tools/ArtReview/build_ground_gold.py`, instead of the pixel coin.
+- **The forge's hero chooser** pictures each hero (`HeroDefinition._portrait`: the Vanguard's painted front idle,
+  Ilya's rendered south idle) beside its name.
+  - Open question for the owner: with Ilya chosen, the Sword reads "Forge for 0 gold" (it is owned only as the
+    Vanguard's starting weapon) and forging it lets Ilya carry it under the staff render. Should a hero be able to
+    carry another hero's starting weapon at all?
+- **The Forge Warden from one model** - `Tools/ArtReview/BuildBlenderWarden.py` builds the Warden in Blender 4.5 the
+  way Ilya was built (`ArtDirection/2026-10-27/warden-blender-01/` holds the .blend, frames.json and a README);
+  `PackWardenSprites.py` packs 44 sprites under `Assets/_Project/Art/Characters/ForgeWarden/` (2.00 MB as ASTC 4x4)
+  with `ForgeWardenArtSet.asset`, which `ForgeWarden.prefab` now sets. Until now the Warden, like the Runner, the Tank
+  and the Grunt Captain, wore the painted Grunt it inherits from `Grunt.prefab`.
+  - Look: about 1.8 times the Grunt's height; blackened iron with cool steel highlights and brass rivets, ember seams,
+    one glowing visor slit in a riveted helm; a long hammer held head-down like a sentry's, a broken shackle and chain
+    at the wrist.
+  - The Grunt's six frames front and rear, a windup pair (the hammer raised), all of them again burning hotter for the
+    second phase, and the shared two-frame fall.
+  - `EnemyArtSet` carries the optional windup and second-phase frames. `WardenSlamView` raises the hammer
+    (`EnemyLookView.WindUp`) while `WardenSlamService`'s mark is down and holds the strike 0.35 s as the blow lands
+    (`Slam`); at the enrage the frames swap and `CombatantView` skips its rust tint, which buried the steel on lava.
+  - Known flaws: one windup frame per facing, so a Warden walking through the 1.1 s telegraph glides with the hammer
+    up; the mirrored right side swaps the hammer and chain hands; the raised hammer can pass under the top HUD at the
+    top of the view (the camera-fit test still measures the pixel Warden); the fall is the horde's, not a boss's.
+- **The Runner, the Tank and the Grunt Captain** - each had walked as the painted Grunt inherited from
+  `Grunt.prefab`; each prefab now sets its own `EnemyArtSet` in the Grunt's format (six frames front and rear, two
+  remains) under `Assets/_Project/Art/Characters/{Runner,Tank,GruntCaptain}/` (1.97 MB as ASTC 4x4 for the three).
+  `Tools/ArtReview/BuildBlenderFoundryEnemies.py` renders the Runner and the Tank in Blender with the material tuned
+  against the painted Grunt's own value bands; `build_foundry_enemies.py` kitbashes the Captain from the Grunt's
+  masters (scaled 1.15, ember red) under a rendered brass helm and Warning Bell, and writes the sprites and sets;
+  `ArtDirection/2026-10-27/foundry-enemies-01/` holds the .blend files and a README.
+  - The Runner is a lean shard sprinter on reverse-jointed legs with a white-hot heart; the Tank a basalt slab under
+    riveted soot-iron plates with a furnace grille.
+  - Their pixel-era attack nudges (and the Warden's) went to zero, as the Grunt's did when it was painted: on painted
+    frames the dip sank the feet below the contact shadow.
+  - Known flaws: zoomed in, the Runner and the Tank show flat rendered facets beside the Grunt's painted gradients (at
+    phone scale they read as one family); the Captain's brass was placed by eye per frame; like the Grunt, no windup
+    frames and mirroring flips the light.

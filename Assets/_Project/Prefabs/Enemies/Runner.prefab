@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: _look
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2680837988061780092, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
+      propertyPath: _paintedArt
+      value:
+      objectReference: {fileID: 11400000, guid: 272c9c9df7d24a0d8486f2a6709ae9b1, type: 2}
     - target: {fileID: 2929661284420213925, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
@@ -74,7 +78,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7272496857767471138, guid: afb24c95c54df984699f9a45a28406bd, type: 3}
       propertyPath: _attackNudge
-      value: -0.3
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
