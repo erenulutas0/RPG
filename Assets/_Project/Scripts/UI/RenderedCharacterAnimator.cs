@@ -55,6 +55,9 @@ namespace Cryptforge.UI
         public bool Mirrored => _player != null && _player.Mirrored;
         public int FrameIndex => _player != null ? _player.Frame : 0;
         public bool IsFlashing => (_flash != null && _flash.enabled) || _tinted;
+        // RunFeedbackView's evolution flash, from 0 to 1, while no hit flash shows: the body this animator hides cannot
+        // carry it.
+        internal float OverlayFlash { get; set; }
 
         // The run's hero's rendered set, when it has one; null keeps the painted Vanguard. An incomplete set is reported
         // and ignored, so a broken import never leaves the hero invisible.
@@ -188,13 +191,14 @@ namespace Cryptforge.UI
 
         private void RefreshFlash()
         {
-            bool on = _combatant != null && _combatant.IsFlashing && !_player.IsDying;
+            bool hit = _combatant != null && _combatant.IsFlashing;
+            bool on = (hit || OverlayFlash > 0f) && !_player.IsDying;
             if (_flash != null)
             {
                 if (on)
                 {
-                    Color colour = _combatant.FlashColor;
-                    colour.a = FlashAlpha;
+                    Color colour = hit ? _combatant.FlashColor : Color.white;
+                    colour.a = hit ? FlashAlpha : FlashAlpha * OverlayFlash;
                     _flash.color = colour;
                     _flash.sprite = _renderer.sprite;
                 }

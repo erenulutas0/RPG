@@ -241,6 +241,7 @@ stay for a later painted pass.
   - Look: the robe ash-white with scorched orange hems, the cowl and mantle soot-dark (an ash cowl read as one pale
     column; `--hood light` rebuilds it), brass goggles with a living lens flame, the crucible staff lighting the cowl
     and shoulder with a warm halo that flares on the strike and the Vent.
-  - Known gaps: `RunFeedbackView`'s evolution flash draws nothing for Ilya; the carried weapon is always the rendered
-    staff; with `development/puppet.txt` the puppet still takes the hero (the puppet attaches in `OnEnable`, before
-    the hero is known); the mirrored west side flips the light.
+  - The evolution flash (`RunFeedbackView`) reaches a hero whose animator hides the body: the rendered hero fades its
+    own white silhouette, the puppet swaps in its white parts while the flash is strong.
+  - Known gaps: the carried weapon is always the rendered staff; with `development/puppet.txt` the puppet still takes
+    the hero (the puppet attaches in `OnEnable`, before the hero is known); the mirrored west side flips the light.

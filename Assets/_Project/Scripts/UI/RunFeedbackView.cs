@@ -111,6 +111,9 @@ namespace Cryptforge.UI
         private SpriteRenderer _heroFlash;
         private Sprite _flashSource;
         private float _heroFlashRemaining;
+        // A hero the puppet or its own rendered art draws hides the body, so that animator carries the flash instead.
+        private RenderedCharacterAnimator _drawnHero;
+        private PuppetAnimator _puppetHero;
         private bool _subscribed;
 
         // For tests and for anything that wants to know what the player was shown.
@@ -125,7 +128,9 @@ namespace Cryptforge.UI
         public bool IsLevelUpShowing => AnyActive(Kind.LevelUp);
         public bool IsCardFlashShowing => AnyActive(Kind.Card) || AnyActive(Kind.Evolution);
         public int ActiveEvolutionRings => ActiveRings(Kind.Evolution);
-        public bool IsHeroFlashing => _heroFlash != null && _heroFlash.enabled && _heroFlash.sprite != null;
+        public bool IsHeroFlashing => (_heroFlash != null && _heroFlash.enabled && _heroFlash.sprite != null) ||
+            (DrawsOwnFlash && _heroFlashRemaining > 0f);
+        private bool DrawsOwnFlash => _drawnHero != null || _puppetHero != null;
 
         internal void Initialize(RunState run, UpgradeService upgrades, Health hero)
         {
@@ -318,6 +323,14 @@ namespace Cryptforge.UI
 
         private void ShowHeroFlash()
         {
+            _drawnHero = _look != null ? _look.GetComponent<RenderedCharacterAnimator>() : null;
+            _puppetHero = _look != null ? _look.GetComponent<PuppetAnimator>() : null;
+            if (DrawsOwnFlash)
+            {
+                _heroFlashRemaining = HeroFlashSeconds;
+                DrawHeroFlash();
+                return;
+            }
             if (_heroFlash == null)
                 return;
             _heroFlash.sortingLayerID = _heroBody.sortingLayerID;
@@ -436,6 +449,17 @@ namespace Cryptforge.UI
         // touches the body's own colour, so there is nothing to restore when it ends.
         private void DrawHeroFlash()
         {
+            if (DrawsOwnFlash)
+            {
+                if (_heroFlashRemaining <= 0f)
+                    EndHeroFlash();
+                else
+                {
+                    float strength = _heroFlashRemaining / HeroFlashSeconds;
+                    SetOwnFlash(.9f * strength * strength);
+                }
+                return;
+            }
             if (_heroFlashRemaining <= 0f || !_heroBody.enabled)
             {
                 EndHeroFlash();
@@ -457,6 +481,17 @@ namespace Cryptforge.UI
             _flashSource = null;
             if (_heroFlash != null)
                 _heroFlash.enabled = false;
+            SetOwnFlash(0f);
+            _drawnHero = null;
+            _puppetHero = null;
+        }
+
+        private void SetOwnFlash(float strength)
+        {
+            if (_drawnHero != null)
+                _drawnHero.OverlayFlash = strength;
+            if (_puppetHero != null)
+                _puppetHero.OverlayFlash = strength;
         }
 
         private bool AnyActive(Kind kind)

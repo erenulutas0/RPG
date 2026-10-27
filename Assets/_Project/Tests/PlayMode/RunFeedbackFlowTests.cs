@@ -111,6 +111,41 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // Ilya's rendered art hides the body the flash usually rides on, so its own animator lights it (docs/45 section 8).
+        [UnityTest, Timeout(120000)] public IEnumerator AnEvolutionLightsARenderedHeroToo()
+        {
+            File.WriteAllText(DevelopmentStart.HeroPath,"hero_cinder_arcanist");
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var upgrades=setup.Upgrades;
+            var feedback=Object.FindFirstObjectByType<RunFeedbackView>();
+            var drawn=Object.FindFirstObjectByType<RenderedCharacterAnimator>();
+            Assert.That(drawn,Is.Not.Null,"Ilya is drawn from its rendered art.");
+            Assert.That(drawn.FlashRenderer,Is.Not.Null,"The flash shader is available.");
+            WeaponCard target=EvolvingWeapon(upgrades);
+            Assert.That(target,Is.Not.Null);
+            bool evolved=false;
+            upgrades.Selected+=(option,slot)=>{if(option.IsEvolution)evolved=true;};
+            for(int i=0;i<300&&!evolved;i++)
+            {
+                if(upgrades.CurrentOffer==null)setup.Run.GrantBonusUpgrade();
+                yield return null;
+                UpgradeOffer offer=upgrades.CurrentOffer;
+                if(offer==null)continue;
+                Assert.That(setup.Choices.TrySelect(setup.Choices.Current,Preferred(offer,target)),Is.True);
+            }
+            Assert.That(evolved,Is.True,"An evolution came within three hundred offers.");
+            setup.Run.GrantBonusUpgrade();
+            yield return null;
+            Assert.That(feedback.IsHeroFlashing,Is.True,"The hero is lit white.");
+            Assert.That(drawn.FlashRenderer.enabled,Is.True,"The rendered hero's own silhouette carries the white.");
+            yield return new WaitForSecondsRealtime(1.2f);
+            Assert.That(feedback.IsHeroFlashing,Is.False,"The white fades behind the next offer.");
+            Assert.That(drawn.FlashRenderer.enabled,Is.False);
+            Assert.That(drawn.OverlayFlash,Is.EqualTo(0f));
+            for(int i=0;i<4&&setup.Choices.IsOpen;i++)setup.Choices.TrySelect(setup.Choices.Current,0);
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // The weapon the hero carries if it can evolve, else the first in the catalogue that can and whose tome is there.
         private static WeaponCard EvolvingWeapon(UpgradeService upgrades)
         {

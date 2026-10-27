@@ -60,6 +60,12 @@ namespace Cryptforge.UI
         private bool _flashing;
         private Color _flashColor = Color.white;
         private bool _subscribed;
+        // Painted parts swap whole to their white copies and cannot fade, so the evolution flash shows while strong.
+        private const float OverlayFlashShown = .3f;
+
+        // RunFeedbackView's evolution flash, from 0 to 1, while no hit flash shows: the body this puppet hides cannot
+        // carry it.
+        internal float OverlayFlash { get; set; }
 
         // The pose shown this frame and the clocks it came from, so a test can rebuild it with PuppetGait.
         public PuppetPose Pose => _motion.Pose;
@@ -323,8 +329,9 @@ namespace Cryptforge.UI
 
         private void RefreshFlash()
         {
-            bool on = _combatant != null && _combatant.IsFlashing;
-            Color color = on ? _combatant.FlashColor : Color.white;
+            bool hit = _combatant != null && _combatant.IsFlashing;
+            bool on = hit || OverlayFlash > OverlayFlashShown;
+            Color color = hit ? _combatant.FlashColor : Color.white;
             if (on == _flashing && color == _flashColor)
                 return;
             _flashing = on;
