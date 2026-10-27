@@ -39,10 +39,23 @@ namespace Cryptforge.Art
         public Transform LeftGrip { get; private set; }
         public int RightItemSorting { get; private set; }
         public int LeftItemSorting { get; private set; }
+        // Both legs as painted, for the walk's bob (PuppetGaitInput.Legs).
+        public PuppetLegs Legs { get; private set; }
         public int PartCount => _bones.Length;
         public Transform Bone(int index) => _bones[index];
         public SpriteRenderer Renderer(int index) => _renderers[index];
         public PuppetBone Kind(int index) => _kinds[index];
+
+        // The first part on this bone, or -1.
+        public int IndexOf(PuppetBone bone)
+        {
+            for (int i = 0; i < _kinds.Length; i++)
+            {
+                if (_kinds[i] == bone)
+                    return i;
+            }
+            return -1;
+        }
 
         // Builds the facing under parent. Every renderer takes the body's material and sorting layer and sorts at the
         // body's order plus the part's offset, inside the actor's sorting group.
@@ -79,10 +92,15 @@ namespace Cryptforge.Art
             rig._leftGripTurns = parts[facing.LeftHand].Bone != PuppetBone.HandLeft;
             rig.RightItemSorting = facing.RightItemSorting;
             rig.LeftItemSorting = facing.LeftItemSorting;
+            rig.Legs = new PuppetLegs
+            {
+                Right = Leg(parts, PuppetBone.ThighRight, PuppetBone.ShinRight, facing.RightSole, rig._turn),
+                Left = Leg(parts, PuppetBone.ThighLeft, PuppetBone.ShinLeft, facing.LeftSole, rig._turn)
+            };
             return rig;
         }
 
-        // Every part at its joint plus the pose's rise, turned by its bone's angle; the root falls about the feet.
+        // Every part at its joint plus the pose's offsets, turned by its bone's angle; the root falls about the feet.
         public void Apply(in PuppetPose pose)
         {
             Root.transform.localRotation = Quaternion.Euler(0f, 0f, pose.Fall);
@@ -90,7 +108,7 @@ namespace Cryptforge.Art
             {
                 PuppetBone kind = _kinds[i];
                 Vector2 joint = _joints[i];
-                _bones[i].localPosition = new Vector3(joint.x, joint.y + pose.Rise(kind), 0f);
+                _bones[i].localPosition = new Vector3(joint.x + _turn * pose.Forward(kind), joint.y + pose.Rise(kind), 0f);
                 _bones[i].localRotation = Quaternion.Euler(0f, 0f, _turn * pose.Rotation(kind));
             }
             if (_rightGripTurns)
@@ -116,6 +134,37 @@ namespace Cryptforge.Art
             grip.SetParent(hand, false);
             grip.localPosition = offset;
             return grip;
+        }
+
+        // A leg for the bob, in the terms of a figure facing right: the knee is the shin's joint on its thigh, the sole
+        // the set's or, without one, the bottom corners of the shin's sprite a texel in from its edges. No thigh with a
+        // shin hung from it gives the gait's reference leg.
+        private static PuppetLeg Leg(PuppetArtSet.Part[] parts, PuppetBone thighBone, PuppetBone shinBone, Vector4 sole,
+            float turn)
+        {
+            int thigh = -1;
+            int shin = -1;
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i].Bone == thighBone && thigh < 0)
+                    thigh = i;
+                else if (parts[i].Bone == shinBone && shin < 0)
+                    shin = i;
+            }
+            if (thigh < 0 || shin < 0 || parts[shin].Parent != thigh || parts[shin].Sprite == null)
+                return default;
+            if (sole == Vector4.zero)
+            {
+                Bounds bounds = parts[shin].Sprite.bounds;
+                float texel = 1f / parts[shin].Sprite.pixelsPerUnit;
+                sole = new Vector4(bounds.min.x + texel, bounds.min.y + texel, bounds.max.x - texel, bounds.min.y + texel);
+            }
+            Vector2 knee = parts[shin].Joint;
+            return new PuppetLeg
+            {
+                KneeX = turn * knee.x, KneeY = knee.y, HeelX = turn * sole.x, HeelY = sole.y, ToeX = turn * sole.z,
+                ToeY = sole.w
+            };
         }
     }
 }

@@ -377,6 +377,7 @@ MonoBehaviour:
   _daggerLeft: {fileID: 944431175}
   _daggerRight: {fileID: 853401213}
   _paintedArt: {fileID: 11400000, guid: e2049ff64e5cd1747ad06725ee22c0f6, type: 2}
+  _puppetArt: {fileID: 11400000, guid: 482deb751a004573a0db978083f3ef1c, type: 2}
   _breathInterval: 0.5
   _swingDuration: 0.12
   _swingAngle: 40

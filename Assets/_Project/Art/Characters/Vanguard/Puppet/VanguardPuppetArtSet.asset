@@ -1,0 +1,236 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a6bddb1dafd41088d0eb98abe955add, type: 3}
+  m_Name: VanguardPuppetArtSet
+  m_EditorClassIdentifier: 
+  _rear:
+    Parts:
+    - Name: Pelvis
+      Sprite: {fileID: 21300000, guid: 60649b8729fc4bf88eb1a88dba804cc4, type: 3}
+      Flash: {fileID: 21300000, guid: 138386c9e4844003ac97787b068fb0ee, type: 3}
+      Parent: -1
+      Joint: {x: 0.06862745, y: 0.7169118}
+      Bone: 1
+      Sorting: 5
+    - Name: Torso
+      Sprite: {fileID: 21300000, guid: 64b70b853c5a4e3ea2915ac926aa0053, type: 3}
+      Flash: {fileID: 21300000, guid: c0ec1a3a8ae643ec914c75751b1d1371, type: 3}
+      Parent: 0
+      Joint: {x: 0, y: 0}
+      Bone: 2
+      Sorting: 0
+    - Name: Head
+      Sprite: {fileID: 21300000, guid: b429201be8274622a96355112f5aa18d, type: 3}
+      Flash: {fileID: 21300000, guid: 9bdc1b65c15c4f4e94f5cb720a726f9e, type: 3}
+      Parent: 1
+      Joint: {x: -0.06127451, y: 0.3651961}
+      Bone: 3
+      Sorting: 7
+    - Name: Cape
+      Sprite: {fileID: 21300000, guid: 2905aac66700457fa44fe0aed7f6da9d, type: 3}
+      Flash: {fileID: 21300000, guid: 0da47d622fc244b79fa9a846746cc203, type: 3}
+      Parent: 1
+      Joint: {x: -0.09803922, y: 0.3284314}
+      Bone: 4
+      Sorting: 6
+    - Name: Skirt
+      Sprite: {fileID: 21300000, guid: a42506f11d814a3aa6be1bf46b1e0cef, type: 3}
+      Flash: {fileID: 21300000, guid: 134b21ac85ab40fea057ae8b9fc3ff33, type: 3}
+      Parent: 0
+      Joint: {x: 0.0245098, y: -0.02696078}
+      Bone: 5
+      Sorting: 4
+    - Name: Thigh Left
+      Sprite: {fileID: 21300000, guid: 79b2bd6708cb4582863016a96790ba67, type: 3}
+      Flash: {fileID: 21300000, guid: 92d2cf40348544f58de1794f03db14ca, type: 3}
+      Parent: 0
+      Joint: {x: -0.2512255, y: -0.1433824}
+      Bone: 6
+      Sorting: -8
+    - Name: Shin Left
+      Sprite: {fileID: 21300000, guid: eb8869cd46a043b9a9fdafb936fd9bdb, type: 3}
+      Flash: {fileID: 21300000, guid: e4655b140dee4e3892dc7c77334ee584, type: 3}
+      Parent: 5
+      Joint: {x: -0.04534314, y: -0.1323529}
+      Bone: 7
+      Sorting: -7
+    - Name: Thigh Right
+      Sprite: {fileID: 21300000, guid: a9cfc5d975d04c41a39dcdc733449aea, type: 3}
+      Flash: {fileID: 21300000, guid: f7eb24f15603479cb2f2b3dfb97d5887, type: 3}
+      Parent: 0
+      Joint: {x: 0.04166667, y: -0.1678922}
+      Bone: 8
+      Sorting: 2
+    - Name: Shin Right
+      Sprite: {fileID: 21300000, guid: af91a36abc1b451898bd3d87083d4d4e, type: 3}
+      Flash: {fileID: 21300000, guid: b9423957dbce439c8c51578eeab647a0, type: 3}
+      Parent: 7
+      Joint: {x: -0.004901961, y: -0.1041667}
+      Bone: 9
+      Sorting: 3
+    - Name: Upper Arm Left
+      Sprite: {fileID: 21300000, guid: 6887504ad4c4449cb02a36bb55063635, type: 3}
+      Flash: {fileID: 21300000, guid: 2758a1de067046a284070ca770c1808d, type: 3}
+      Parent: 1
+      Joint: {x: -0.3161765, y: 0.2892157}
+      Bone: 10
+      Sorting: -11
+    - Name: Forearm Left
+      Sprite: {fileID: 21300000, guid: d9d26d70e70b4b9cb6b45fb84cee400e, type: 3}
+      Flash: {fileID: 21300000, guid: 8126c0e7063e43509ea405e398dd58fe, type: 3}
+      Parent: 9
+      Joint: {x: -0.08088235, y: -0.08578431}
+      Bone: 11
+      Sorting: -12
+    - Name: Upper Arm Right
+      Sprite: {fileID: 21300000, guid: f118869d099e44b089bc445efd0322ee, type: 3}
+      Flash: {fileID: 21300000, guid: 9b6a0a33d831456abffc56f18ff88640, type: 3}
+      Parent: 1
+      Joint: {x: 0.09558824, y: 0.1789216}
+      Bone: 13
+      Sorting: 8
+    - Name: Pauldron Right
+      Sprite: {fileID: 21300000, guid: 52d8b38d86ff4a40bf6272aa8e945e52, type: 3}
+      Flash: {fileID: 21300000, guid: 33275db161ad4ae0b70d2c44d440f5e2, type: 3}
+      Parent: 1
+      Joint: {x: 0.07720588, y: 0.2144608}
+      Bone: 0
+      Sorting: 9
+    - Name: Forearm Right
+      Sprite: {fileID: 21300000, guid: 85ee18b022054544bba6131545cd8988, type: 3}
+      Flash: {fileID: 21300000, guid: 88cff5b97b624014802106b705c2f822, type: 3}
+      Parent: 11
+      Joint: {x: 0.03553922, y: -0.1936275}
+      Bone: 14
+      Sorting: 11
+    RightHand: 13
+    RightGrip: {x: 0.1115196, y: -0.1887255}
+    RightItemSorting: 10
+    LeftHand: 10
+    LeftGrip: {x: 0.02328431, y: -0.1642157}
+    LeftItemSorting: -13
+    RightSole: {x: -0.06127451, y: -0.4375, z: 0.1519608, w: -0.3823529}
+    LeftSole: {x: -0.08210784, y: -0.3088235, z: -0.006127451, w: -0.3026961}
+    FacesLeft: 0
+  _front:
+    Parts:
+    - Name: Pelvis
+      Sprite: {fileID: 21300000, guid: 7f6427e7ea284284a5af9ca9d3ea5321, type: 3}
+      Flash: {fileID: 21300000, guid: 40c48131a4b5462bb4c55ee5f3a76c66, type: 3}
+      Parent: -1
+      Joint: {x: 0.04656863, y: 0.7561275}
+      Bone: 1
+      Sorting: 5
+    - Name: Torso
+      Sprite: {fileID: 21300000, guid: 5675957b67d34ad9927b1e7eee852da4, type: 3}
+      Flash: {fileID: 21300000, guid: ad863129465840d6b40a0f9a5f69e850, type: 3}
+      Parent: 0
+      Joint: {x: 0, y: 0}
+      Bone: 2
+      Sorting: 0
+    - Name: Head
+      Sprite: {fileID: 21300000, guid: 97add260396c4672a0aaf33b769d4c77, type: 3}
+      Flash: {fileID: 21300000, guid: 719ead950c794f94a6e9a35603527c80, type: 3}
+      Parent: 1
+      Joint: {x: 0, y: 0.2818627}
+      Bone: 3
+      Sorting: 6
+    - Name: Cape
+      Sprite: {fileID: 21300000, guid: 5f985378970a48d9819e323c4aa71730, type: 3}
+      Flash: {fileID: 21300000, guid: 42b15271f6114e18af22eb95c98ffa55, type: 3}
+      Parent: 1
+      Joint: {x: 0, y: 0.3039216}
+      Bone: 4
+      Sorting: -20
+    - Name: Skirt
+      Sprite: {fileID: 21300000, guid: 278e5a59edb74fc2a50ed29216382f51, type: 3}
+      Flash: {fileID: 21300000, guid: 3b2f11d9a0f24fb58e0661ae9ba9ba04, type: 3}
+      Parent: 0
+      Joint: {x: 0.009803922, y: -0.02696078}
+      Bone: 5
+      Sorting: 4
+    - Name: Thigh Left
+      Sprite: {fileID: 21300000, guid: 02301c8440dd443f8e70d0a40d2df214, type: 3}
+      Flash: {fileID: 21300000, guid: 22f8a0a58ab549418d7b39d740b88fa8, type: 3}
+      Parent: 0
+      Joint: {x: 0.1666667, y: -0.1678922}
+      Bone: 6
+      Sorting: -7
+    - Name: Shin Left
+      Sprite: {fileID: 21300000, guid: a972d39bd657494f885e19131361aceb, type: 3}
+      Flash: {fileID: 21300000, guid: 9793e1158b4f4e799bad948351d107b7, type: 3}
+      Parent: 5
+      Joint: {x: 0.02083333, y: -0.122549}
+      Bone: 7
+      Sorting: -8
+    - Name: Thigh Right
+      Sprite: {fileID: 21300000, guid: d870d37355954b3fb9deed2eb56396c4, type: 3}
+      Flash: {fileID: 21300000, guid: c9845e97c52b4741b84a91b8a6d66c05, type: 3}
+      Parent: 0
+      Joint: {x: -0.1286765, y: -0.1740196}
+      Bone: 8
+      Sorting: 3
+    - Name: Shin Right
+      Sprite: {fileID: 21300000, guid: 7fd1fb0dd6bb4208b6c6f06ff7bcc3a0, type: 3}
+      Flash: {fileID: 21300000, guid: 50a429f3efa14a37bebedea37ff24561, type: 3}
+      Parent: 7
+      Joint: {x: -0.02696078, y: -0.1446078}
+      Bone: 9
+      Sorting: 2
+    - Name: Upper Arm Left
+      Sprite: {fileID: 21300000, guid: fc0db88f5c1c42328207cfbfced6cb4a, type: 3}
+      Flash: {fileID: 21300000, guid: c3a551425571484896942bdd77386108, type: 3}
+      Parent: 1
+      Joint: {x: 0.1997549, y: 0.2487745}
+      Bone: 10
+      Sorting: -11
+    - Name: Forearm Left
+      Sprite: {fileID: 21300000, guid: d8107c7eaed44f28a40b8428b742a0e8, type: 3}
+      Flash: {fileID: 21300000, guid: 55ec2ca0292a4098a7112b97f986c894, type: 3}
+      Parent: 9
+      Joint: {x: 0.06127451, y: -0.1470588}
+      Bone: 11
+      Sorting: -12
+    - Name: Upper Arm Right
+      Sprite: {fileID: 21300000, guid: 543eb3c991634771a83104c682c59939, type: 3}
+      Flash: {fileID: 21300000, guid: 878100aa040147aabe4e9f77f8c86d1e, type: 3}
+      Parent: 1
+      Joint: {x: -0.2536765, y: 0.1997549}
+      Bone: 13
+      Sorting: 8
+    - Name: Pauldron Right
+      Sprite: {fileID: 21300000, guid: 3ea7df94ad4c48d690adb43182b09292, type: 3}
+      Flash: {fileID: 21300000, guid: 5e30af26e83d4762806ca749514f7cf1, type: 3}
+      Parent: 1
+      Joint: {x: -0.2303922, y: 0.2181373}
+      Bone: 0
+      Sorting: 9
+    - Name: Forearm Right
+      Sprite: {fileID: 21300000, guid: 3a7b059dc490437e81abe048b1174cda, type: 3}
+      Flash: {fileID: 21300000, guid: 8d28c4dc801a4ae6bc39168d80b287a0, type: 3}
+      Parent: 11
+      Joint: {x: -0.05269608, y: -0.1654412}
+      Bone: 14
+      Sorting: 11
+    RightHand: 13
+    RightGrip: {x: -0.02083333, y: -0.2573529}
+    RightItemSorting: 10
+    LeftHand: 10
+    LeftGrip: {x: 0.07352941, y: -0.1973039}
+    LeftItemSorting: -10
+    RightSole: {x: -0.0992647, y: -0.4301471, z: 0.01838235, w: -0.4252451}
+    LeftSole: {x: -0.09313726, y: -0.3051471, z: 0.1384804, w: -0.3296569}
+    FacesLeft: 0
+  _sword: {fileID: 21300000, guid: b7996aab80f254f40bb3e2c608f52154, type: 3}
+  _shield: {fileID: 21300000, guid: 5200d5d81ad172d4495c003563506036, type: 3}
+  _staff: {fileID: 21300000, guid: f836b39fc7021994ab018e4e7571f01a, type: 3}
+  _dagger: {fileID: 21300000, guid: 3b97a0e46fb7eb94bbb598ba885ad645, type: 3}
