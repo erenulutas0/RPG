@@ -15,6 +15,14 @@ namespace Cryptforge.Art
         [SerializeField, Min(0)] private float _visualTop;
         [SerializeField, Min(.01f)] private float _shadowWidth = .48f;
         [SerializeField, Min(.01f)] private float _walkCycleDistance = .55f;
+        // Optional, for a boss whose blow is telegraphed (the Forge Warden's slam): its raised pose, front then rear,
+        // each looking left like the frames above. Empty on every other enemy, which never winds up.
+        [SerializeField] private Frame[] _windup;
+        // Optional, for a boss's second phase: the same poses burning hotter, index for index with the front, rear and
+        // windup frames. Their flashes may be the first phase's own, since the silhouette is the same.
+        [SerializeField] private Frame[] _enragedFront;
+        [SerializeField] private Frame[] _enragedRear;
+        [SerializeField] private Frame[] _enragedWindup;
         public float VisualTop => _visualTop > 0 ? _visualTop : GetFrame(0, false).Body.bounds.max.y;
         public float ShadowWidth => _shadowWidth;
         public float WalkCycleDistance => _walkCycleDistance;
@@ -30,17 +38,43 @@ namespace Cryptforge.Art
         public Sprite[] Death => _death;
         public Frame GetFrame(int index, bool rear) => (rear ? _rear : _front)[index];
         public bool IsValid => Complete(_front) && Complete(_rear) && _front.Length == _rear.Length && _walkCycleDistance > 0 && _shadowWidth > 0 && _death != null && _death.Length == 2 && _death[0] != null && _death[1] != null;
+        // A partly filled optional part counts as absent, so its enemy behaves as one without it.
+        public bool HasWindup => _windup != null && _windup.Length == 2 && Filled(_windup);
+        public bool HasEnragedFrames => Matches(_enragedFront, _front) && Matches(_enragedRear, _rear) &&
+            (HasWindup ? Matches(_enragedWindup, _windup) : _enragedWindup == null || _enragedWindup.Length == 0);
+        // The frame at index, from the second phase's when it is asked for and the set has one.
+        public Frame GetFrame(int index, bool rear, bool enraged) =>
+            enraged && HasEnragedFrames ? (rear ? _enragedRear : _enragedFront)[index] : GetFrame(index, rear);
+        // Only with HasWindup.
+        public Frame GetWindup(bool rear, bool enraged = false) =>
+            (enraged && HasEnragedFrames ? _enragedWindup : _windup)[rear ? 1 : 0];
         private static bool Complete(Frame[] frames)
         {
             if (frames == null || (frames.Length != 4 && frames.Length != 6)) return false;
             foreach (var f in frames) if (f.Body == null || f.Flash == null) return false;
             return true;
         }
+        private static bool Filled(Frame[] frames)
+        {
+            foreach (var f in frames) if (f.Body == null || f.Flash == null) return false;
+            return true;
+        }
+        private static bool Matches(Frame[] frames, Frame[] like) => frames != null && like != null && frames.Length == like.Length && Filled(frames);
         public Sprite FlashOf(Sprite body)
         {
             if (_front != null) foreach (var f in _front) if (f.Body == body) return f.Flash;
             if (_rear != null) foreach (var f in _rear) if (f.Body == body) return f.Flash;
+            // The optional poses: a boss's windup and its second phase.
+            if (FlashIn(_windup, body, out Sprite flash) || FlashIn(_enragedFront, body, out flash) ||
+                FlashIn(_enragedRear, body, out flash) || FlashIn(_enragedWindup, body, out flash)) return flash;
             return null;
+        }
+        private static bool FlashIn(Frame[] frames, Sprite body, out Sprite flash)
+        {
+            flash = null;
+            if (frames == null) return false;
+            foreach (var f in frames) if (f.Body == body) { flash = f.Flash; return true; }
+            return false;
         }
     }
 }

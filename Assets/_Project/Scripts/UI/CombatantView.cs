@@ -57,6 +57,10 @@ namespace Cryptforge.UI
 
         private void OnEnraged()
         {
+            // A painted look with its own second phase (the Forge Warden's hotter frames) shows the enrage itself; the
+            // tint would bury the cool steel that keeps it readable on the lava.
+            if (_look is EnemyLookView enemy && enemy.DrawsEnrage)
+                return;
             _baseColor = _enragedColor;
             if (!_tinted)
                 _body.color = _enragedColor;

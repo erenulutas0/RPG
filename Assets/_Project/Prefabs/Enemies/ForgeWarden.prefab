@@ -84,6 +84,10 @@ PrefabInstance:
       propertyPath: _look
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 5758630739228300961, guid: 36d45a0bb08664c4096540ac4d1a679d, type: 3}
+      propertyPath: _paintedArt
+      value:
+      objectReference: {fileID: 11400000, guid: b9b69d073fc64715a3e590b1ef37bdd9, type: 2}
     - target: {fileID: 9047341194848045315, guid: 36d45a0bb08664c4096540ac4d1a679d, type: 3}
       propertyPath: m_Name
       value: ForgeWarden
