@@ -195,3 +195,22 @@ a dark navy disc: a cracked brass crucible erupting with ember-orange (#E77232) 
 same dark navy disc with a thin brass ring. Bold readable silhouette at 96 pixels. Painted style, transparent
 background, no text.
 ```
+
+## 8. Art built in code (2026-10-27)
+
+The owner was away for the day, so the art order above was built in code and Blender instead of ChatGPT; the prompts
+stay for a later painted pass.
+
+- **P6 Crucible Vent icon** - `Tools/ArtReview/build_ability_icons.py` draws a cracked crucible with three flame tongues
+  on the Forge Burst icon's own navy field (its anvil painted out), on the same chunky cell grid, so the two buttons
+  read as one family. `AbilityDefinition` carries its icon; the ability button shows the hero's own.
+- **Painted skill effects** - `Tools/ArtReview/build_skill_vfx.py` (deterministic; a rerun is byte-identical) paints
+  three sheets under `Assets/_Project/Art/Effects/Skills/` (Burn, Vent, Forge; 1.59 MiB as ASTC 4x4 together) and
+  `SkillEffectArtSet.asset`; `CombatEffectsView._skillArt` uses them when valid and falls back to the pixel art.
+  - Burn flames frame the burning enemy (feet, flanks, shoulders, a crown from 3 stacks) instead of sitting on its
+    belly; 8-frame loops, all stack counts on one texture so a burning crowd batches; sized by the enemy's art top.
+  - The Vent: an 8-frame eruption column (0.40 s), embers that rise beside it, and an ember cast ring at the hero in
+    place of the steel seal pulse. Ember Memory's spread is a comet ember cooling to crimson.
+  - The Forge Burst: a ring shockwave with heat ripples and a soot rim, steel sparks, and a 0.12 s flash at the hero.
+  - Device checks still open: burn readability at 1-2 stacks on Mites and on lava, ASTC banding in the soft gradients,
+    frame time with about 40 burning enemies, and occlusion behind Foundry structures.
