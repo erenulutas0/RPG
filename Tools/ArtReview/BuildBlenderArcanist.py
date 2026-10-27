@@ -279,7 +279,7 @@ PALETTES = {
     'lining': ('#8E7F86', '#6E6068', '#4E434B', '#2E262D'),
     'soot': ('#5A4E5C', '#352C38', '#201B22', '#120E14'),
     'scorch': ('#8A786C', '#6A5A52', '#4A3D3A', '#2A2120'),
-    'charcoal': ('#6E6266', '#4A4046', '#302A30', '#1A1619'),
+    'charcoal': ('#8C7F86', '#544950', '#2F282F', '#181418'),
     'ash': ('#CFC7C0', '#A89F9A', '#7B7275', '#463E42'),
     'leather': ('#7A5A48', '#54392E', '#33221C', '#1C120F'),
     'skin': ('#F7D7BC', '#E5B494', '#B07D6C', '#6E4842'),
@@ -856,9 +856,9 @@ def build_hood():
     # The tip: rings carried along a curve (parallel transport keeps them untwisted), shrinking to the point.
     top = levels[-1]
     b0 = Vector((0, top[3], top[0]))
-    b1 = Vector((0.0, top[3] + 0.0, 1.28))
-    b2 = Vector((0.10, top[3] + 0.06, 1.39))
-    b3 = Vector((0.21, top[3] + 0.12, 1.15))
+    b1 = Vector((0.0, top[3] + 0.0, 1.26))
+    b2 = Vector((0.10, top[3] + 0.06, 1.355))
+    b3 = Vector((0.21, top[3] + 0.12, 1.13))
     steps = 14
     x_axis, y_axis, tangent = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
     points = [bezier(b0, b1, b2, b3, k / steps) for k in range(steps + 1)]

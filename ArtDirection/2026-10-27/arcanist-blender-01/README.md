@@ -60,9 +60,9 @@ mantle, robe), frames the face, and is very legible on orange. `--hood light` re
 
 ## Atlases and memory
 
-`Assets/_Project/Art/Characters/CinderArcanist/CHR_CinderArcanist_{0,1,2}.png`: 1024x1024, 1024x1016 and 1024x656,
-2,760,704 texels at 91% fill. As ASTC 4x4 (8 bits a texel, the Android override in each .meta): **2.63 MB**, against
-the 4 MB budget (RGBA32 would be 10.5 MB). Sprite rects and pivots are in each texture's .meta; the art set
+`Assets/_Project/Art/Characters/CinderArcanist/CHR_CinderArcanist_{0,1,2}.png`: 1024x1024, 1024x1024 and 1024x664,
+2,777,088 texels at 90% fill. As ASTC 4x4 (8 bits a texel, the Android override in each .meta): **2.65 MB**, against
+the 4 MB budget (RGBA32 would be 10.6 MB). Sprite rects and pivots are in each texture's .meta; the art set
 `CinderArcanistArtSet.asset` (a `RenderedCharacterArtSet`) lists the frames per motion and facing. Bilinear, no mipmaps,
 not readable, 100 pixels a unit; the S23 shows 120 pixels a unit, so Ilya is drawn at 1.2x (the painted Vanguard,
 at 128, slightly below 1x).
