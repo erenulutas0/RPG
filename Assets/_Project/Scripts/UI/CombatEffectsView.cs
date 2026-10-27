@@ -18,7 +18,7 @@ namespace Cryptforge.UI
     // slash, the crit star, the smoke, the coins and the numbers are painted too when a CombatFeedbackArtSet is given (one
     // sheet for them all, cut here likewise), and otherwise EffectArt's pixel art. The Staff's hit is painted when the
     // strike set carries its ring and burst (cut here likewise), and otherwise the procedural ring StaffSplashArt draws,
-    // which the Vent's eruptions always use, tinted ember.
+    // which the Vent's eruptions fall back to, tinted ember, when the skill set carries no painted eruption ring.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -151,6 +151,11 @@ namespace Cryptforge.UI
         private const float PaintedVentEmberFrameDuration = 0.15f;
         private const float PaintedShockwaveFrameDuration = 0.06f;
         private const float PaintedForgeSparkFrameDuration = 0.1f;
+        // The painted eruption ring outlasts the procedural ring's 0.21 s a little, so its flames read at phone size before
+        // it tears into embers and fades. It burns as painted on a full burn, cooler, redder and fainter the fewer stacks
+        // the eruption spent.
+        private const float PaintedVentSplashFrameDuration = 0.055f;
+        private static readonly Color VentSplashCool = new Color(1f, .7f, .55f, .75f);
         // The painted Vent's cast ring burns out over the ability pulse's life; the Forge Burst's flash is gone faster,
         // centred on the hero's body this high over its feet.
         private const float VentCastFrameDuration = 0.07f;
@@ -246,6 +251,8 @@ namespace Cryptforge.UI
         // Painted only: the Vent's ember cast ring and the Forge Burst's flash.
         private Sprite[] _ventCast;
         private Sprite[] _forgeFlash;
+        // Painted only, when the skill set carries it: the Vent's eruption ring; without it, the procedural _ring in ember.
+        private Sprite[] _ventSplash;
         // The frame times of the art in use, painted or pixel, and the shockwave sprite's world radius at scale 1.
         private float _ventColumnFrameDuration;
         private float _ventEmberFrameDuration;
@@ -493,6 +500,8 @@ namespace Cryptforge.UI
                 _ventColumn = Cut(_skillArt.VentColumn, "VFX Vent Column ");
                 _ventEmbers = Cut(_skillArt.VentEmbers, "VFX Vent Embers ");
                 _ventCast = Cut(_skillArt.VentRing, "VFX Vent Cast ");
+                if (_skillArt.HasVentSplash)
+                    _ventSplash = Cut(_skillArt.VentSplash, "VFX Vent Splash ");
                 _emberArc = Cut(_skillArt.EmberArc, "VFX Ember Arc ");
                 _shockwave = Cut(_skillArt.Shockwave, "VFX Forge Shockwave ");
                 _forgeSpark = Cut(_skillArt.ForgeSpark, "VFX Forge Spark ");
@@ -871,7 +880,10 @@ namespace Cryptforge.UI
 
         // A Crucible Vent eruption (docs/45) where the burning enemy stood: an ember ring as wide as its splash, a column of
         // flame from its feet and embers rising off it, both larger the more stacks it spent. The burst slots, so a Vent
-        // through a crowd keeps every eruption beside the sparks, numbers and falls it causes.
+        // through a crowd keeps every eruption beside the sparks, numbers and falls it causes. The ring is painted when the
+        // skill set carries it - a burning band that leaps into flame and tears into embers, hotter the more stacks it
+        // spent, every other one mirrored so a crowd's rings never repeat side by side - and otherwise the procedural ring
+        // in ember. Either is a unit floor ring the pulse grows to the splash and fades, as the Staff's are.
         private void OnVented(Health enemy, int stacks)
         {
             if (enemy == null)
@@ -879,14 +891,18 @@ namespace Cryptforge.UI
             EnemyWatch watch = FindWatch(enemy);
             Vector3 feet = FeetOf(watch, enemy);
             float radius = BurnRule.VentSplashRadius;
-            Effect ring = ShowBurst(_ring, StaffPulseDuration, StaffPulseDuration, feet, _groundOrder,
+            int spent = Mathf.Clamp(stacks, 1, BurnRule.MaxStacks);
+            bool painted = _ventSplash != null;
+            Sprite[] frames = painted ? _ventSplash : _ring;
+            float frameDuration = painted ? PaintedVentSplashFrameDuration : StaffPulseDuration;
+            Effect ring = ShowBurst(frames, frameDuration, frames.Length * frameDuration, feet, _groundOrder,
                 Vector3.zero, 0f, radius * (24f / 38), false);
             ring.StaffPulse = true;
             ring.PulseRadius = radius;
-            ring.Tint = BurnTint;
-            ring.Renderer.color = BurnTint;
+            ring.Tint = painted ? Color.Lerp(VentSplashCool, Color.white, (spent - 1f) / (BurnRule.MaxStacks - 1)) : BurnTint;
+            ring.Renderer.color = ring.Tint;
+            ring.Renderer.flipX = painted && (_ventCount & 1) == 1;
 
-            int spent = Mathf.Clamp(stacks, 1, BurnRule.MaxStacks);
             float scale = VentColumnScale + VentColumnScalePerStack * spent;
             StandOn(ShowBurst(_ventColumn, _ventColumnFrameDuration, _ventColumn.Length * _ventColumnFrameDuration, feet,
                 _sortingOrder + StrikeOrder, Vector3.zero, 0f, scale, false), feet);
