@@ -1,0 +1,230 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1283c5d3e22141a08b0791a5a457c1d6, type: 3}
+  m_Name: CombatFeedbackArtSet
+  m_EditorClassIdentifier: 
+  _doubleSlash:
+    Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
+    SheetWidth: 692
+    SheetHeight: 308
+    TexelsPerUnit: 128
+    Pivot: {x: 0.4987234, y: 0.4844444}
+    Frames:
+    - X: 404
+      Y: 227
+      Width: 94
+      Height: 81
+    - X: 500
+      Y: 227
+      Width: 94
+      Height: 81
+    - X: 596
+      Y: 227
+      Width: 94
+      Height: 81
+    - X: 0
+      Y: 126
+      Width: 94
+      Height: 81
+    - X: 96
+      Y: 126
+      Width: 94
+      Height: 81
+  _critStar:
+    Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
+    SheetWidth: 692
+    SheetHeight: 308
+    TexelsPerUnit: 128
+    Pivot: {x: 0.4981818, y: 0.5018182}
+    Frames:
+    - X: 0
+      Y: 209
+      Width: 99
+      Height: 99
+    - X: 101
+      Y: 209
+      Width: 99
+      Height: 99
+    - X: 202
+      Y: 209
+      Width: 99
+      Height: 99
+    - X: 303
+      Y: 209
+      Width: 99
+      Height: 99
+  _smoke:
+    Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
+    SheetWidth: 692
+    SheetHeight: 308
+    TexelsPerUnit: 72
+    Pivot: {x: 0.4987952, y: 0.3385}
+    Frames:
+    - X: 192
+      Y: 127
+      Width: 83
+      Height: 80
+    - X: 277
+      Y: 127
+      Width: 83
+      Height: 80
+    - X: 362
+      Y: 127
+      Width: 83
+      Height: 80
+    - X: 447
+      Y: 127
+      Width: 83
+      Height: 80
+    - X: 532
+      Y: 127
+      Width: 83
+      Height: 80
+    - X: 0
+      Y: 44
+      Width: 83
+      Height: 80
+  _coin:
+    Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
+    SheetWidth: 692
+    SheetHeight: 308
+    TexelsPerUnit: 128
+    Pivot: {x: 0.522, y: 0.478}
+    Frames:
+    - X: 320
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 362
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 404
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 446
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 488
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 530
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 572
+      Y: 2
+      Width: 40
+      Height: 40
+    - X: 614
+      Y: 2
+      Width: 40
+      Height: 40
+  _digits:
+    Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
+    SheetWidth: 692
+    SheetHeight: 308
+    TexelsPerUnit: 128
+    Pivot: {x: 0, y: 0}
+    Frames:
+    - X: 0
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 32
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 64
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 96
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 128
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 160
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 192
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 224
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 256
+      Y: 0
+      Width: 30
+      Height: 42
+    - X: 288
+      Y: 0
+      Width: 30
+      Height: 42
+  _critDigits:
+    Sheet: {fileID: 2800000, guid: 50981c0deda44343b2dd6deb70656167, type: 3}
+    SheetWidth: 692
+    SheetHeight: 308
+    TexelsPerUnit: 128
+    Pivot: {x: 0, y: 0}
+    Frames:
+    - X: 85
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 143
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 201
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 259
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 317
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 375
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 433
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 491
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 549
+      Y: 44
+      Width: 56
+      Height: 80
+    - X: 607
+      Y: 44
+      Width: 56
+      Height: 80
+  _digitStride: 24
+  _critDigitStride: 48

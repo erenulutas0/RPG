@@ -14,7 +14,9 @@ namespace Cryptforge.UI
     // Ember Memory passes to a neighbour, and the Forge Burst's shockwave and sparks. Their painted art (a
     // SkillEffectArtSet, one sheet per effect family) is borrowed and cut into sprites here, as the painted strikes are
     // borrowed; without it they fall back to the pixel art BurnArt and EffectArt draw. Painted, the Vent's cast rings the
-    // hero in ember rather than in the ability's steel seal, and the Forge Burst flashes at the hero.
+    // hero in ember rather than in the ability's steel seal, and the Forge Burst flashes at the hero. The Daggers' double
+    // slash, the crit star, the smoke, the coins and the numbers are painted too when a CombatFeedbackArtSet is given (one
+    // sheet for them all, cut here likewise), and otherwise EffectArt's pixel art.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -156,6 +158,13 @@ namespace Cryptforge.UI
         private const float ForgeSparkLift = 0.3f;
         private const float ForgeSparkSpeed = 1.6f;
         private const float ForgeSparkSpeedSpread = 0.8f;
+        // The painted feedback's frame times: its strips carry more frames than the pixel ones, the cuts and the star over
+        // about as long, the death smoke and the arrival puff over exactly as long, and the coin one whole turn in eight.
+        private const float PaintedDoubleSlashFrameDuration = 0.04f;
+        private const float PaintedStarFrameDuration = 0.05f;
+        private const float PaintedSmokeFrameDuration = 0.06f;
+        private const float PaintedPuffFrameDuration = 0.05f;
+        private const float PaintedCoinFrameDuration = 0.04f;
         // Sorting orders above the base: the floor ring lowest, coins highest. A burning enemy's flame sits on the base
         // itself, over the combatants and under every spark and strike that lands on it.
 
@@ -186,6 +195,9 @@ namespace Cryptforge.UI
         // Optional: the skills' painted effects; without them the skills draw the pixel art.
         [SerializeField] private SkillEffectArtSet _skillArt;
         public bool UsesPaintedSkills => _skillArt != null && _skillArt.IsValid;
+        // Optional: the painted double slash, crit star, smoke, coin and numerals; without them, EffectArt's pixel art.
+        [SerializeField] private CombatFeedbackArtSet _feedbackArt;
+        public bool UsesPaintedFeedback => _feedbackArt != null && _feedbackArt.IsValid;
         [SerializeField, Min(1)] private int _effectPoolSize = 24;
         [SerializeField, Min(1)] private int _numberPoolSize = 12;
         // Effects draw from this order up to four above it, over the combatants; numbers draw over the health bars.
@@ -227,6 +239,16 @@ namespace Cryptforge.UI
         private float _shockwaveFrameDuration;
         private float _forgeSparkFrameDuration;
         private float _shockwaveSpriteRadius;
+        // The same for the feedback art in use, and its numerals' stride and glyph width, normal and crit, in world units.
+        private float _doubleSlashFrameDuration;
+        private float _starFrameDuration;
+        private float _smokeFrameDuration;
+        private float _puffFrameDuration;
+        private float _coinFrameDuration;
+        private float _digitStride;
+        private float _critDigitStride;
+        private float _digitWidth;
+        private float _critDigitWidth;
         private GameObject _poolRoot;
         private Effect[] _effects;
         private BurnFlames _flames;
@@ -433,23 +455,9 @@ namespace Cryptforge.UI
             _slash = UsesPaintedStrikes ? _paintedArt.Slash : Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
             _ring = new[] { StaffSplashArt.Get() }; // Borrowed session art.
             _abilityPulse = new[] { AbilityRingArt.Get() }; // Borrowed; never added to _sprites.
-            _doubleSlash = Build(EffectArt.DoubleSlashFrames(), "VFX Double Slash", PixelSpriteFactory.Centre);
-            _star = Build(EffectArt.StarBurstFrames(), "VFX Crit Star", PixelSpriteFactory.Centre);
             _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
-            _smoke = Build(EffectArt.SmokeFrames(), "VFX Smoke", PixelSpriteFactory.Centre);
-            _coin = Build(EffectArt.CoinFrames(), "VFX Coin", PixelSpriteFactory.Centre);
             // Imported references are borrowed; only generated sprites enter the destruction list.
-
-            // Numerals pivot at their bottom-left corner so a number is laid out left to right by stride.
-            var digits = new PixelCanvas[10];
-            var critDigits = new PixelCanvas[10];
-            for (int digit = 0; digit < 10; digit++)
-            {
-                digits[digit] = EffectArt.DigitCanvas(digit, Rgba.White);
-                critDigits[digit] = EffectArt.DigitCanvas(digit, PixelPalette.CoinLight, EffectArt.CritNumberScale);
-            }
-            _digits = Build(digits, "VFX Digit", Vector2.zero);
-            _critDigits = Build(critDigits, "VFX Crit Digit", Vector2.zero);
+            BuildFeedbackSprites();
 
             if (UsesPaintedSkills)
             {
@@ -483,6 +491,57 @@ namespace Cryptforge.UI
             _shockwaveFrameDuration = ShockwaveFrameDuration;
             _forgeSparkFrameDuration = ForgeSparkDuration * .5f;
             _shockwaveSpriteRadius = PixelShockwaveSpriteRadius;
+        }
+
+        // The double slash, crit star, smoke, coin and numerals, and the times and layout of the art in use. Either way the
+        // numerals pivot at their bottom-left corners, so a number is laid out left to right by stride.
+        private void BuildFeedbackSprites()
+        {
+            if (UsesPaintedFeedback)
+            {
+                // Cut from the set's one sheet, so the strikes, puffs, coins and every number on screen batch together.
+                _doubleSlash = Cut(_feedbackArt.DoubleSlash, "VFX Double Slash ");
+                _star = Cut(_feedbackArt.CritStar, "VFX Crit Star ");
+                _smoke = Cut(_feedbackArt.Smoke, "VFX Smoke ");
+                _coin = Cut(_feedbackArt.Coin, "VFX Coin ");
+                _digits = Cut(_feedbackArt.Digits, "VFX Digit ");
+                _critDigits = Cut(_feedbackArt.CritDigits, "VFX Crit Digit ");
+                _doubleSlashFrameDuration = PaintedDoubleSlashFrameDuration;
+                _starFrameDuration = PaintedStarFrameDuration;
+                _smokeFrameDuration = PaintedSmokeFrameDuration;
+                _puffFrameDuration = PaintedPuffFrameDuration;
+                _coinFrameDuration = PaintedCoinFrameDuration;
+                _digitStride = _feedbackArt.DigitStride;
+                _critDigitStride = _feedbackArt.CritDigitStride;
+                _digitWidth = _digits[0].bounds.size.x;
+                _critDigitWidth = _critDigits[0].bounds.size.x;
+                return;
+            }
+            _doubleSlash = Build(EffectArt.DoubleSlashFrames(), "VFX Double Slash", PixelSpriteFactory.Centre);
+            _star = Build(EffectArt.StarBurstFrames(), "VFX Crit Star", PixelSpriteFactory.Centre);
+            _smoke = Build(EffectArt.SmokeFrames(), "VFX Smoke", PixelSpriteFactory.Centre);
+            _coin = Build(EffectArt.CoinFrames(), "VFX Coin", PixelSpriteFactory.Centre);
+            var digits = new PixelCanvas[10];
+            var critDigits = new PixelCanvas[10];
+            for (int digit = 0; digit < 10; digit++)
+            {
+                digits[digit] = EffectArt.DigitCanvas(digit, Rgba.White);
+                critDigits[digit] = EffectArt.DigitCanvas(digit, PixelPalette.CoinLight, EffectArt.CritNumberScale);
+            }
+            _digits = Build(digits, "VFX Digit", Vector2.zero);
+            _critDigits = Build(critDigits, "VFX Crit Digit", Vector2.zero);
+            _doubleSlashFrameDuration = StrikeFrameDuration;
+            _starFrameDuration = StarFrameDuration;
+            _smokeFrameDuration = SmokeFrameDuration;
+            _puffFrameDuration = PuffFrameDuration;
+            _coinFrameDuration = CoinFrameDuration;
+            // Outlined numerals overlap their outlines at the stride, so a glyph is the bare numeral and an outline each
+            // side; a crit is all of it at CritNumberScale.
+            const float texel = 1f / PixelSpriteFactory.PixelsPerUnit;
+            _digitStride = EffectArt.DigitStride * texel;
+            _critDigitStride = EffectArt.DigitStride * EffectArt.CritNumberScale * texel;
+            _digitWidth = (EffectArt.DigitWidth + 2) * texel;
+            _critDigitWidth = (EffectArt.DigitWidth + 2) * EffectArt.CritNumberScale * texel;
         }
 
         private Sprite[] Cut(SkillEffectArtSet.Strip strip, string prefix)
@@ -577,7 +636,7 @@ namespace Cryptforge.UI
         // Reserved slots, round robin among themselves: when all are busy the oldest puff gives way, never a remains.
         private void ShowArrivalPuff(Vector3 feet)
         {
-            Effect puff = Arm(_effects[_effectPoolSize + _nextPuff], _smoke, PuffFrameDuration, _smoke.Length * PuffFrameDuration,
+            Effect puff = Arm(_effects[_effectPoolSize + _nextPuff], _smoke, _puffFrameDuration, _smoke.Length * _puffFrameDuration,
                 feet + Vector3.up * PuffLift, _sortingOrder + SmokeOrder, Vector3.up * PuffRise, 0f, false, PuffScale);
             _nextPuff = (_nextPuff + 1) % PuffSlots;
             puff.Fade = true;
@@ -736,9 +795,13 @@ namespace Cryptforge.UI
                     impact.PulseRadius = radius;
                     break;
                 default:
-                    StandOn(Show(_doubleSlash, StrikeFrameDuration, anchor, _sortingOrder + StrikeOrder), ground);
+                    Effect cuts = StandOn(Show(_doubleSlash, _doubleSlashFrameDuration, anchor, _sortingOrder + StrikeOrder),
+                        ground);
+                    // Painted, the first cut leads away from the hero, as the painted sword slash turns to its target.
+                    if (UsesPaintedFeedback)
+                        cuts.Renderer.flipX = target.transform.position.x < _hero.transform.position.x;
                     if (critical)
-                        StandOn(Show(_star, StarFrameDuration, anchor, _sortingOrder + StarOrder), ground);
+                        StandOn(Show(_star, _starFrameDuration, anchor, _sortingOrder + StarOrder), ground);
                     break;
             }
         }
@@ -767,7 +830,7 @@ namespace Cryptforge.UI
             {
                 float spread = (i - (CoinCount - 1) * 0.5f) * CoinSpread + (PixelNoise.Value(i, _deathCount, CoinSeed) - 0.5f) * 0.4f;
                 float launch = CoinLaunch + PixelNoise.Value(i, _deathCount, CoinSeed + 1) * 0.6f;
-                StandOn(ShowMoving(_coin, CoinFrameDuration, _coinDuration, position, _sortingOrder + CoinOrder,
+                StandOn(ShowMoving(_coin, _coinFrameDuration, _coinDuration, position, _sortingOrder + CoinOrder,
                     new Vector3(spread, launch, 0f), CoinGravity, true), position);
             }
             ShowGroundNumber(reward.Gold, true, anchor, position);
@@ -889,7 +952,7 @@ namespace Cryptforge.UI
                 remains.Fade = true;
                 remains.Sink = RemainsSink;
             }
-            else StandOn(ShowMoving(_smoke, SmokeFrameDuration, _smoke.Length * SmokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
+            else StandOn(ShowMoving(_smoke, _smokeFrameDuration, _smoke.Length * _smokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
                 Vector3.up * SmokeRise, 0f, false, SmokeScale), ground);
             // Descent rewards now remain on the floor; its drop view is the collectible cue. Swarm pays immediately.
             if (!_encounter.IsInSwarmRoom || _encounter.GoldRewardOf(enemy) <= 0)
@@ -900,7 +963,7 @@ namespace Cryptforge.UI
             {
                 float spread = (i - (CoinCount - 1) * 0.5f) * CoinSpread + (PixelNoise.Value(i, _deathCount, CoinSeed) - 0.5f) * 0.4f;
                 float launch = CoinLaunch + PixelNoise.Value(i, _deathCount, CoinSeed + 1) * 0.6f;
-                StandOn(ShowMoving(_coin, CoinFrameDuration, _coinDuration, anchor, _sortingOrder + CoinOrder,
+                StandOn(ShowMoving(_coin, _coinFrameDuration, _coinDuration, anchor, _sortingOrder + CoinOrder,
                     new Vector3(spread, launch, 0f), CoinGravity, true), ground);
             }
         }
@@ -984,11 +1047,11 @@ namespace Cryptforge.UI
             Number number = _numbers[_nextNumber];
             _nextNumber = (_nextNumber + 1) % _numbers.Length;
             Sprite[] font = critical ? _critDigits : _digits;
-            int scale = critical ? EffectArt.CritNumberScale : 1;
             int count = EffectArt.DigitCount(value);
-            float stride = EffectArt.DigitStride * scale / PixelSpriteFactory.PixelsPerUnit;
-            // Outlined numerals overlap their outlines at the stride, so the row is the bare width plus one outline each side.
-            float width = (EffectArt.NumberWidth(count) + 2) * scale / PixelSpriteFactory.PixelsPerUnit;
+            float stride = critical ? _critDigitStride : _digitStride;
+            // The row runs from the first glyph's left edge to the last one's right: a stride for each glyph after the
+            // first, and one glyph's width.
+            float width = (count - 1) * stride + (critical ? _critDigitWidth : _digitWidth);
             float left = -width * 0.5f;
             for (int i = 0; i < number.Digits.Length; i++)
             {
