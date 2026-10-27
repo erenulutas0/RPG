@@ -53,8 +53,9 @@ namespace Cryptforge.Tests
             {
                 if (look.Look != EnemyLook.Mite)
                 {
+                    // Every other kind wears its own frames (or its drawn look), never the Mite's.
                     if (look.Look == EnemyLook.Grunt) Assert.That(look.PaintedArt, Is.Not.Null.And.Not.SameAs(set));
-                    else Assert.That(look.PaintedArt, Is.Null);
+                    else Assert.That(look.PaintedArt, Is.Not.SameAs(set));
                     continue;
                 }
                 mites++; Assert.That(look.PaintedArt, Is.SameAs(set));

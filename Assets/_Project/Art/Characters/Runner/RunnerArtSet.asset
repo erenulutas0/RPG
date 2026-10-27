@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: RunnerArtSet
+  m_EditorClassIdentifier: 
+  _front:
+  - Body: {fileID: 21300000, guid: ccd93994e9b64aa8a43068f3fcc5dfc5, type: 3}
+    Flash: {fileID: 21300000, guid: 112c68082c904d489077d84713c59d2a, type: 3}
+  - Body: {fileID: 21300000, guid: 79dc09ea8bc64f77b5f0d6ba5983b90e, type: 3}
+    Flash: {fileID: 21300000, guid: 0d06e5f8e6884dcb90b21a8aa4891b56, type: 3}
+  - Body: {fileID: 21300000, guid: b233e2b0ec924e97ae8e98cc78111f20, type: 3}
+    Flash: {fileID: 21300000, guid: 13631f098a7a4b2c8a2ab701909b06c4, type: 3}
+  - Body: {fileID: 21300000, guid: 1875c6e48b0e48b683d9e78877d1f42f, type: 3}
+    Flash: {fileID: 21300000, guid: c44869ae90f2480986fcb589521f61f2, type: 3}
+  - Body: {fileID: 21300000, guid: c9a485c600294f4a91874285ac311bb0, type: 3}
+    Flash: {fileID: 21300000, guid: 950e0453255341efa8af0ec80f926dc3, type: 3}
+  - Body: {fileID: 21300000, guid: 993f361c9a39467eba931b4ccbee5120, type: 3}
+    Flash: {fileID: 21300000, guid: a19c98e0d11c420f93141048ad33c256, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: 302924a0c41d43d1bfaee535591de263, type: 3}
+    Flash: {fileID: 21300000, guid: af57e33065ce44ca9abb5a14870d7b2d, type: 3}
+  - Body: {fileID: 21300000, guid: 1139c98dc9d74732907c3781c127f955, type: 3}
+    Flash: {fileID: 21300000, guid: 22b0de135ba546239d3cfd5e232a83b4, type: 3}
+  - Body: {fileID: 21300000, guid: 20de6ae16c584e54b0c3e0cd2f0f74f8, type: 3}
+    Flash: {fileID: 21300000, guid: cfc7e7bb69d3484b8ad2d38c02a57a0a, type: 3}
+  - Body: {fileID: 21300000, guid: ac44bf252c964022a2260b832b7b5bd3, type: 3}
+    Flash: {fileID: 21300000, guid: 673dcee17def483d8bd84db0f31e2e31, type: 3}
+  - Body: {fileID: 21300000, guid: 5f2fdaa393084acebda7cf4291a6d739, type: 3}
+    Flash: {fileID: 21300000, guid: 4b30d2a73b9e4d54a28424140f9db909, type: 3}
+  - Body: {fileID: 21300000, guid: fecbd6c6388648e095fe2b4f098e079c, type: 3}
+    Flash: {fileID: 21300000, guid: d53097140e1149ce80bfb7b86fe09f3a, type: 3}
+  _death:
+  - {fileID: 21300000, guid: 5a5fc289167c431285765401c681f6b5, type: 3}
+  - {fileID: 21300000, guid: 22c260518085474c8abfd30355cedec7, type: 3}
+  _visualTop: 1.05
+  _shadowWidth: 0.44
+  _walkCycleDistance: 1.0
