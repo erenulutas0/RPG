@@ -253,7 +253,7 @@ namespace Cryptforge.Tests
         public IEnumerator PaintedSmokeRisesFromAFallWithoutRemainsAndPuffsFaintAtAnArrival()
         {
             yield return Load();
-            // The enemies without painted remains (the Runner, the Tank, the Grunt Captain, the Forge Warden) fall in smoke.
+            // An enemy without painted remains (a drawn look) falls in smoke.
             var fallen = new GameObject("Fallen without remains").AddComponent<Health>();
             fallen.Initialize(10f);
             fallen.transform.position = _hero.transform.position + Vector3.right * 1.5f;

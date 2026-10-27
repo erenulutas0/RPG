@@ -1,0 +1,783 @@
+{
+ "pixels_per_unit": 128,
+ "enemies": [
+  {
+   "enemy": "runner",
+   "art_set": {
+    "file": "RunnerArtSet.asset",
+    "guid": "272c9c9df7d24a0d8486f2a6709ae9b1"
+   },
+   "size": [
+    100,
+    152
+   ],
+   "pivot": [
+    50,
+    20
+   ],
+   "pivot_normalised": [
+    0.5,
+    0.13157895
+   ],
+   "visual_top": 1.05,
+   "shadow_width": 0.44,
+   "walk_cycle_distance": 1.0,
+   "textures": [
+    {
+     "file": "CHR_Runner_front-idle.tga",
+     "guid": "ccd93994e9b64aa8a43068f3fcc5dfc5",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-idle_Flash.tga",
+     "guid": "112c68082c904d489077d84713c59d2a",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-step-a.tga",
+     "guid": "79dc09ea8bc64f77b5f0d6ba5983b90e",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-step-a_Flash.tga",
+     "guid": "0d06e5f8e6884dcb90b21a8aa4891b56",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-step-b.tga",
+     "guid": "b233e2b0ec924e97ae8e98cc78111f20",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-step-b_Flash.tga",
+     "guid": "13631f098a7a4b2c8a2ab701909b06c4",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-strike.tga",
+     "guid": "1875c6e48b0e48b683d9e78877d1f42f",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-strike_Flash.tga",
+     "guid": "c44869ae90f2480986fcb589521f61f2",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-pass-a.tga",
+     "guid": "c9a485c600294f4a91874285ac311bb0",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-pass-a_Flash.tga",
+     "guid": "950e0453255341efa8af0ec80f926dc3",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-pass-b.tga",
+     "guid": "993f361c9a39467eba931b4ccbee5120",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-pass-b_Flash.tga",
+     "guid": "a19c98e0d11c420f93141048ad33c256",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-idle.tga",
+     "guid": "302924a0c41d43d1bfaee535591de263",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-idle_Flash.tga",
+     "guid": "af57e33065ce44ca9abb5a14870d7b2d",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-step-a.tga",
+     "guid": "1139c98dc9d74732907c3781c127f955",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-step-a_Flash.tga",
+     "guid": "22b0de135ba546239d3cfd5e232a83b4",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-step-b.tga",
+     "guid": "20de6ae16c584e54b0c3e0cd2f0f74f8",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-step-b_Flash.tga",
+     "guid": "cfc7e7bb69d3484b8ad2d38c02a57a0a",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-strike.tga",
+     "guid": "ac44bf252c964022a2260b832b7b5bd3",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-strike_Flash.tga",
+     "guid": "673dcee17def483d8bd84db0f31e2e31",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-pass-a.tga",
+     "guid": "5f2fdaa393084acebda7cf4291a6d739",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-pass-a_Flash.tga",
+     "guid": "4b30d2a73b9e4d54a28424140f9db909",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-pass-b.tga",
+     "guid": "fecbd6c6388648e095fe2b4f098e079c",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-pass-b_Flash.tga",
+     "guid": "d53097140e1149ce80bfb7b86fe09f3a",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_death-collapse.tga",
+     "guid": "5a5fc289167c431285765401c681f6b5",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_death-cool.tga",
+     "guid": "22c260518085474c8abfd30355cedec7",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    }
+   ],
+   "astc_4x4_bytes": 395200
+  },
+  {
+   "enemy": "tank",
+   "art_set": {
+    "file": "TankArtSet.asset",
+    "guid": "c1986320524b498883f170240f8ce8e1"
+   },
+   "size": [
+    212,
+    164
+   ],
+   "pivot": [
+    106,
+    26
+   ],
+   "pivot_normalised": [
+    0.5,
+    0.15853659
+   ],
+   "visual_top": 1.09,
+   "shadow_width": 0.93,
+   "walk_cycle_distance": 0.6,
+   "textures": [
+    {
+     "file": "CHR_Tank_front-idle.tga",
+     "guid": "87f291b134244795a05aee3ce93dcf59",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-idle_Flash.tga",
+     "guid": "a92c08be06e2459ab7abec1591e2074d",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-step-a.tga",
+     "guid": "fd7f2b3551194688aa721cc6f6184a60",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-step-a_Flash.tga",
+     "guid": "eb60cbdda48e4bd1811a15ce81d8bce6",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-step-b.tga",
+     "guid": "b109f0a27b5f4ddcb636b91d0f851c68",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-step-b_Flash.tga",
+     "guid": "73318810089e49359935e189e1e0489d",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-strike.tga",
+     "guid": "cff284d9601f4ad1af4eb051ce712633",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-strike_Flash.tga",
+     "guid": "815e08a56e9744bebeae4080da1b5236",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-pass-a.tga",
+     "guid": "ba66e070683f46e29c2e87e098f57d79",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-pass-a_Flash.tga",
+     "guid": "a3a2e9658fd14e789d2eddf629d99fb5",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-pass-b.tga",
+     "guid": "2b81f0cc22fb42cebe5cb7961744d3d9",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-pass-b_Flash.tga",
+     "guid": "79d0a447c10c4d09a138d6bf71457463",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-idle.tga",
+     "guid": "d1914a32e818478c97f707da2e569a62",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-idle_Flash.tga",
+     "guid": "c4cc712a7a4d43819350f37006ff1e53",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-step-a.tga",
+     "guid": "37832dcde921492080002c40396a1a9a",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-step-a_Flash.tga",
+     "guid": "2c0b5f83933e4730b1540db0be64d471",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-step-b.tga",
+     "guid": "af7d22bd1f424f048a21edc0296c4670",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-step-b_Flash.tga",
+     "guid": "4bf53f880a3d4b0e994aab54ac6d86ee",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-strike.tga",
+     "guid": "ed386f6878ea44718a909d217c6be837",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-strike_Flash.tga",
+     "guid": "8ccaf3f906104a10aa194864fb96c28b",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-pass-a.tga",
+     "guid": "c625f68556f24c0da3ce68a4c34ee2f6",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-pass-a_Flash.tga",
+     "guid": "41bd0fb5b4a543049e9fd7304e7475af",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-pass-b.tga",
+     "guid": "8deb7940369c4c0581777d3a83202051",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-pass-b_Flash.tga",
+     "guid": "0aa94c77b73e4932851e14f5fff11938",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_death-collapse.tga",
+     "guid": "5d5ee71f44584641be843d95cdbdbe31",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_death-cool.tga",
+     "guid": "9c8a417433f446eaa0693eca9795ccbd",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    }
+   ],
+   "astc_4x4_bytes": 903968
+  },
+  {
+   "enemy": "captain",
+   "art_set": {
+    "file": "GruntCaptainArtSet.asset",
+    "guid": "80b82391bc404b48a275fdf8d224eb79"
+   },
+   "size": [
+    168,
+    176
+   ],
+   "pivot": [
+    84,
+    18
+   ],
+   "pivot_normalised": [
+    0.5,
+    0.10227273
+   ],
+   "visual_top": 1.26,
+   "shadow_width": 0.88,
+   "walk_cycle_distance": 0.8,
+   "textures": [
+    {
+     "file": "CHR_Captain_front-idle.tga",
+     "guid": "bec47cedbb224ff8ab7298c2b8fe2333",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-idle_Flash.tga",
+     "guid": "65b8cc201f3f449d8f4953263ab767b8",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-step-a.tga",
+     "guid": "0caf0040c55c4cd8b81c79c9233156ba",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-step-a_Flash.tga",
+     "guid": "54e3a040284745bc95f6af2a2e81f8fb",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-step-b.tga",
+     "guid": "2b26419f5033496a98e366bfb5fdb053",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-step-b_Flash.tga",
+     "guid": "135072d75ede48d8b721a0b93f9d741b",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-strike.tga",
+     "guid": "5ac69b74a1994e379793fdcc13e433f4",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-strike_Flash.tga",
+     "guid": "080d5180eb094000bb272389b5cab444",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-pass-a.tga",
+     "guid": "5414297212b4491fb0bd9925d62b8d75",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-pass-a_Flash.tga",
+     "guid": "ac99c94621554ea9ae08d31b4ac92fb8",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-pass-b.tga",
+     "guid": "f9f6340b5429466f88afbb6746d9023f",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-pass-b_Flash.tga",
+     "guid": "d535ff92c9c64882b53a8469e6a8fc51",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-idle.tga",
+     "guid": "68d91f03458141ccb13e46bfbc4babbe",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-idle_Flash.tga",
+     "guid": "7bd09e5d1582476186143ab7a41642fe",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-step-a.tga",
+     "guid": "bd12ad4a5939437080bed5361d00a56b",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-step-a_Flash.tga",
+     "guid": "0f965845ac3a46bebcca763c45e6a822",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-step-b.tga",
+     "guid": "85cad19fcff64399868e75d053b46691",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-step-b_Flash.tga",
+     "guid": "a596b3ed29b04927b8fdaa3ac37a9e1a",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-strike.tga",
+     "guid": "401920c8f48f48268be0a4f223a3fbfb",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-strike_Flash.tga",
+     "guid": "29779491af4c4ea39e3971b44b54bf8a",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-pass-a.tga",
+     "guid": "a247e1b22fb344f6a0c91f8df494ce10",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-pass-a_Flash.tga",
+     "guid": "4b63d637fd6d416ca444793dae5b4f07",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-pass-b.tga",
+     "guid": "54e9f2b2ef134453b346b19e84ac18a6",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-pass-b_Flash.tga",
+     "guid": "7982bb3dfe9643e78722161525a85807",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_death-collapse.tga",
+     "guid": "edad40933fd04f1589a52189e8fd5b90",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_death-cool.tga",
+     "guid": "70720f45618a49d1b0dfd33ca28c6895",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    }
+   ],
+   "astc_4x4_bytes": 768768
+  }
+ ],
+ "total_astc_4x4_bytes": 2067936
+}
