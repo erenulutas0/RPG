@@ -71,10 +71,11 @@ namespace Cryptforge.Tests
             Time.timeScale=1;attack.enabled=true;
             for(int i=0;i<100&&!struck;i++)yield return null;
             Assert.That(struck,Is.True);attack.enabled=false;
+            // The painted ring when the strike set carries it (0.24 s), else the procedural one (0.21 s).
             var pulse=System.Linq.Enumerable.Single(GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>(),
-                r=>r.enabled&&r.sprite==StaffSplashArt.Get());
+                r=>r.enabled&&r.sprite!=null&&(r.sprite==StaffSplashArt.Get()||r.sprite.name.StartsWith("VFX Staff Ring ")));
             Assert.That(pulse.sortingOrder,Is.Zero);
-            for(int frame=0;frame<=14;frame++)
+            for(int frame=0;frame<=15;frame++)
             {
                 if(frame==0||frame==5||frame==9||frame==14)Capture("pulse-"+frame.ToString("000"),1080,2340);
                 if(frame==5)

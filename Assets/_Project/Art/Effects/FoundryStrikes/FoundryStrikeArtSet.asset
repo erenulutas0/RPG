@@ -22,3 +22,53 @@ MonoBehaviour:
   - {fileID: 21300000, guid: beb8bfd93afdf8d43a6da1e15b7a6251, type: 3}
   - {fileID: 21300000, guid: 7f9a8fae180913842b177909cf1d2bcb, type: 3}
   - {fileID: 21300000, guid: 9b191d35596c0ff4ca97cd8c61e2f57c, type: 3}
+  _staffRing:
+    Sheet: {fileID: 2800000, guid: ecadee9375fd4ee5a2f6bc9a8058f52c, type: 3}
+    SheetWidth: 376
+    SheetHeight: 1132
+    TexelsPerUnit: 180
+    Pivot: {x: 0.5, y: 0.4634615}
+    Frames:
+    - X: 0
+      Y: 924
+      Width: 374
+      Height: 208
+    - X: 0
+      Y: 714
+      Width: 374
+      Height: 208
+    - X: 0
+      Y: 504
+      Width: 374
+      Height: 208
+    - X: 0
+      Y: 294
+      Width: 374
+      Height: 208
+    - X: 0
+      Y: 84
+      Width: 374
+      Height: 208
+  _staffBurst:
+    Sheet: {fileID: 2800000, guid: ecadee9375fd4ee5a2f6bc9a8058f52c, type: 3}
+    SheetWidth: 376
+    SheetHeight: 1132
+    TexelsPerUnit: 128
+    Pivot: {x: 0.5580723, y: 0.471}
+    Frames:
+    - X: 0
+      Y: 2
+      Width: 83
+      Height: 80
+    - X: 85
+      Y: 2
+      Width: 83
+      Height: 80
+    - X: 170
+      Y: 2
+      Width: 83
+      Height: 80
+    - X: 255
+      Y: 2
+      Width: 83
+      Height: 80
