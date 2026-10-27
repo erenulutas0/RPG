@@ -1,0 +1,1456 @@
+fileFormatVersion: 2
+guid: 4bbd6d49cdbc42db9ccfa6222ed9f430
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 265464369761374471
+    second: idle_south-east_1
+  - first:
+      213: -4820012745803186336
+    second: idle_south-east_2
+  - first:
+      213: -1111977745936544198
+    second: idle_south-east_3
+  - first:
+      213: -5568029749325136364
+    second: idle_south-east_4
+  - first:
+      213: 649198942592007441
+    second: idle_south-east_5
+  - first:
+      213: -4870486865481110557
+    second: idle_south-east_6
+  - first:
+      213: -5989975204271566367
+    second: idle_south-east_7
+  - first:
+      213: 5435027953346661414
+    second: walk_south_0
+  - first:
+      213: 3472419981697736207
+    second: walk_south_2
+  - first:
+      213: 2714418116154751848
+    second: walk_south_3
+  - first:
+      213: -6654538234118426217
+    second: walk_south_4
+  - first:
+      213: -8356114939998745138
+    second: walk_south-east_0
+  - first:
+      213: 4362336700827644472
+    second: walk_south-east_2
+  - first:
+      213: 2369353656194500093
+    second: walk_south-east_4
+  - first:
+      213: 4134764585785389204
+    second: walk_south-east_7
+  - first:
+      213: 1614348293628524536
+    second: walk_east_5
+  - first:
+      213: 5260170767055621062
+    second: walk_east_6
+  - first:
+      213: -3856589788934967449
+    second: walk-strike_south_0
+  - first:
+      213: -2908672765009954955
+    second: walk-strike_south_1
+  - first:
+      213: -304179699852242680
+    second: walk-strike_south_2
+  - first:
+      213: 3259170058450023729
+    second: walk-strike_south_3
+  - first:
+      213: -1105984199832953988
+    second: walk-strike_south_4
+  - first:
+      213: 9002199900578050675
+    second: walk-strike_south_5
+  - first:
+      213: -4158847288532160877
+    second: walk-strike_south_6
+  - first:
+      213: 3703804370539847549
+    second: walk-strike_south_7
+  - first:
+      213: -7179402961356909346
+    second: walk-strike_south-east_0
+  - first:
+      213: 3822015549560779960
+    second: walk-strike_south-east_2
+  - first:
+      213: 3008225031849042956
+    second: walk-strike_south-east_3
+  - first:
+      213: -2004520517639601298
+    second: walk-strike_south-east_4
+  - first:
+      213: 1318392943869613053
+    second: walk-strike_south-east_5
+  - first:
+      213: 2020242811959164865
+    second: walk-strike_south-east_6
+  - first:
+      213: -5985585618418511356
+    second: walk-strike_south-east_7
+  - first:
+      213: -2568023011972999865
+    second: strike_south_0
+  - first:
+      213: -3861849073389725535
+    second: strike_south_1
+  - first:
+      213: 8948406965180297768
+    second: strike_south_2
+  - first:
+      213: -6934971398437166172
+    second: strike_south-east_1
+  - first:
+      213: -7295290487991885192
+    second: strike_south-east_2
+  - first:
+      213: -7425883952353633238
+    second: strike_south-east_4
+  - first:
+      213: -2387761405574503917
+    second: cast_south_3
+  - first:
+      213: 5437421650046699205
+    second: cast_south-east_1
+  - first:
+      213: -7932383000074324937
+    second: cast_south-east_2
+  - first:
+      213: 219975093629589664
+    second: hit_east_0
+  - first:
+      213: -3899377894743218023
+    second: death_south_1
+  - first:
+      213: 7761684739869650931
+    second: death_south_2
+  - first:
+      213: 771671244424946461
+    second: death_south-east_1
+  - first:
+      213: -7891893296669520596
+    second: death_east_2
+  - first:
+      213: -614917106875907457
+    second: death_north-east_2
+  - first:
+      213: 2438450463217495690
+    second: death_north-east_3
+  - first:
+      213: 6183888894540540538
+    second: death_north-east_4
+  - first:
+      213: 3424150333297238722
+    second: death_north_3
+  - first:
+      213: -8163554287810717715
+    second: death_north_4
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 9
+  spritePivot: {x: 0.5, y: 0}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: idle_south-east_1
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d578917201ba82ee0c08c34df2325fdd
+      internalID: 265464369761374471
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: idle_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c266a58aa8a44b45280b34c2ceaf5ac3
+      internalID: -4820012745803186336
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: idle_south-east_3
+      rect:
+        serializedVersion: 2
+        x: 190
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c4eb1924b3bcbaedaf584047fff7374
+      internalID: -1111977745936544198
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: idle_south-east_4
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b8bc20664e48609d1b9852f1f63f637
+      internalID: -5568029749325136364
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: idle_south-east_5
+      rect:
+        serializedVersion: 2
+        x: 306
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41a10ed033e9ef5e0d984483471f7699
+      internalID: 649198942592007441
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: idle_south-east_6
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92936375ce5139c0c689a78ce9c70dac
+      internalID: -4870486865481110557
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: idle_south-east_7
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 505
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a95ea022ec234846df3ded2d9f9191b
+      internalID: -5989975204271566367
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south_0
+      rect:
+        serializedVersion: 2
+        x: 894
+        y: 507
+        width: 70
+        height: 145
+      alignment: 9
+      pivot: {x: 0.54285714, y: 0.08275862}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 114d052e4d7fe4ba35f97f668178c53a
+      internalID: 5435027953346661414
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south_2
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 237
+        width: 69
+        height: 134
+      alignment: 9
+      pivot: {x: 0.53623188, y: 0.07462687}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 619bfa4cf67481b153ca13c72b5674c5
+      internalID: 3472419981697736207
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south_3
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 370
+        width: 70
+        height: 135
+      alignment: 9
+      pivot: {x: 0.54285714, y: 0.06666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf4fb014741b547527e9d2bc3dfd276b
+      internalID: 2714418116154751848
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south_4
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 506
+        width: 70
+        height: 146
+      alignment: 9
+      pivot: {x: 0.54285714, y: 0.08904110}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89f07688c758ff868733eb9d57e7c24f
+      internalID: -6654538234118426217
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south-east_0
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 506
+        width: 66
+        height: 146
+      alignment: 9
+      pivot: {x: 0.53030303, y: 0.11643836}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e507f05fbaf27d5639e7c0a36e90a6df
+      internalID: -8356114939998745138
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 506
+        width: 67
+        height: 146
+      alignment: 9
+      pivot: {x: 0.50746269, y: 0.09589041}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ec1c5c2e672b251ab7c8b4cb50619e9
+      internalID: 4362336700827644472
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south-east_4
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 369
+        width: 73
+        height: 136
+      alignment: 9
+      pivot: {x: 0.52054795, y: 0.05147059}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e5db1951c12c18d3cd8144786126cce
+      internalID: 2369353656194500093
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_south-east_7
+      rect:
+        serializedVersion: 2
+        x: 742
+        y: 362
+        width: 63
+        height: 145
+      alignment: 9
+      pivot: {x: 0.49206349, y: 0.08275862}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ddbb51bc5c23b0438f129b96d361ed1
+      internalID: 4134764585785389204
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_east_5
+      rect:
+        serializedVersion: 2
+        x: 742
+        y: 507
+        width: 80
+        height: 145
+      alignment: 9
+      pivot: {x: 0.55000000, y: 0.05517241}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfa857985a00aa7deaac670d290538ae
+      internalID: 1614348293628524536
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk_east_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 505
+        width: 74
+        height: 147
+      alignment: 9
+      pivot: {x: 0.51351351, y: 0.06802721}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da9172521673eecfd17b1b90ea640cb9
+      internalID: 5260170767055621062
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_0
+      rect:
+        serializedVersion: 2
+        x: 595
+        y: 115
+        width: 67
+        height: 125
+      alignment: 9
+      pivot: {x: 0.50746269, y: 0.09600000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51e2b2680aa32e5b373dad74d660b6fe
+      internalID: -3856589788934967449
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_1
+      rect:
+        serializedVersion: 2
+        x: 837
+        y: 236
+        width: 67
+        height: 126
+      alignment: 9
+      pivot: {x: 0.50746269, y: 0.09523810}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2eaa043a3ef730aea281d8d61abea9eb
+      internalID: -2908672765009954955
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_2
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 112
+        width: 67
+        height: 125
+      alignment: 9
+      pivot: {x: 0.50746269, y: 0.08000000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d0d406536bbfc7f6aee35c1a9ad9f66
+      internalID: -304179699852242680
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_3
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 113
+        width: 67
+        height: 124
+      alignment: 9
+      pivot: {x: 0.50746269, y: 0.07258065}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 456260a800f17155c84ab5966cdf6321
+      internalID: 3259170058450023729
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_4
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 114
+        width: 67
+        height: 126
+      alignment: 9
+      pivot: {x: 0.50746269, y: 0.10317460}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48d77d1d4af42e13d1af21b6e475d64d
+      internalID: -1105984199832953988
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_5
+      rect:
+        serializedVersion: 2
+        x: 705
+        y: 235
+        width: 66
+        height: 127
+      alignment: 9
+      pivot: {x: 0.51515152, y: 0.09448819}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a71eaf44a9f78f10f5494e234e33dba
+      internalID: 9002199900578050675
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_6
+      rect:
+        serializedVersion: 2
+        x: 771
+        y: 235
+        width: 66
+        height: 127
+      alignment: 9
+      pivot: {x: 0.51515152, y: 0.08661417}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61fd76d3b7c9e5e6c012ed9634c126a2
+      internalID: -4158847288532160877
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south_7
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 116
+        width: 66
+        height: 123
+      alignment: 9
+      pivot: {x: 0.51515152, y: 0.06504065}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b324490bc07aba72a416ac0b684469ba
+      internalID: 3703804370539847549
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_0
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 370
+        width: 116
+        height: 135
+      alignment: 9
+      pivot: {x: 0.30172414, y: 0.12592593}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bd22be25c1e38a888e3303d0d41adc8
+      internalID: -7179402961356909346
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 370
+        width: 113
+        height: 135
+      alignment: 9
+      pivot: {x: 0.30088496, y: 0.10370370}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd39b18bb1c8d7784bb086fe67941195
+      internalID: 3822015549560779960
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_3
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 240
+        width: 115
+        height: 130
+      alignment: 9
+      pivot: {x: 0.29565217, y: 0.07692308}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb8b7369d248380e05a250aeae401ec6
+      internalID: 3008225031849042956
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_4
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 115
+        width: 118
+        height: 125
+      alignment: 9
+      pivot: {x: 0.32203390, y: 0.05600000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 596ddc5b63d7fce843e9fd0d93814e7b
+      internalID: -2004520517639601298
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_5
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 112
+        width: 121
+        height: 124
+      alignment: 9
+      pivot: {x: 0.33057851, y: 0.04032258}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29a271fc1316df9b8f0f140ff4ead273
+      internalID: 1318392943869613053
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_6
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 113
+        width: 117
+        height: 124
+      alignment: 9
+      pivot: {x: 0.30769231, y: 0.04032258}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cc2e83d09f0d89cbc04ac2a05498907
+      internalID: 2020242811959164865
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: walk-strike_south-east_7
+      rect:
+        serializedVersion: 2
+        x: 592
+        y: 240
+        width: 113
+        height: 130
+      alignment: 9
+      pivot: {x: 0.30088496, y: 0.09230769}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0928551a2ed1c4a21e6b2f42d24708f
+      internalID: -5985585618418511356
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: strike_south_0
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 238
+        width: 63
+        height: 132
+      alignment: 9
+      pivot: {x: 0.49206349, y: 0.06818182}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58d4bf1cdcf3f935bbc3c300082e0b92
+      internalID: -2568023011972999865
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: strike_south_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 239
+        width: 66
+        height: 130
+      alignment: 9
+      pivot: {x: 0.51515152, y: 0.06923077}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb0dd5fa1dc97a865b0672a89e17af1b
+      internalID: -3861849073389725535
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: strike_south_2
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 240
+        width: 67
+        height: 129
+      alignment: 9
+      pivot: {x: 0.52238806, y: 0.06976744}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be660dc3cf3af1e0fa31babcbf0571a2
+      internalID: 8948406965180297768
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: strike_south-east_1
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 236
+        width: 117
+        height: 134
+      alignment: 9
+      pivot: {x: 0.29059829, y: 0.07462687}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7ddd5a0b2e2ddee2b9c41b8ef5b8912
+      internalID: -6934971398437166172
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: strike_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 237
+        width: 119
+        height: 133
+      alignment: 9
+      pivot: {x: 0.30252101, y: 0.07518797}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a87c99bcf7f162e93695977dff874771
+      internalID: -7295290487991885192
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: strike_south-east_4
+      rect:
+        serializedVersion: 2
+        x: 683
+        y: 506
+        width: 59
+        height: 146
+      alignment: 9
+      pivot: {x: 0.50847458, y: 0.06849315}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ee64d2f748b7bf8877304b427eb732c
+      internalID: -7425883952353633238
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cast_south_3
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 370
+        width: 61
+        height: 137
+      alignment: 9
+      pivot: {x: 0.50819672, y: 0.08029197}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0dbe62dca5164e7c516c7adf0fbfd176
+      internalID: -2387761405574503917
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cast_south-east_1
+      rect:
+        serializedVersion: 2
+        x: 822
+        y: 507
+        width: 72
+        height: 145
+      alignment: 9
+      pivot: {x: 0.51388889, y: 0.08965517}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd44bbcafc572528625f38912d4fd08e
+      internalID: 5437421650046699205
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cast_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 370
+        width: 120
+        height: 136
+      alignment: 9
+      pivot: {x: 0.35000000, y: 0.08823529}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88d96328eb2b322633b61b2ad911b857
+      internalID: -7932383000074324937
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hit_east_0
+      rect:
+        serializedVersion: 2
+        x: 805
+        y: 362
+        width: 63
+        height: 145
+      alignment: 9
+      pivot: {x: 0.65079365, y: 0.09655172}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d69b1b836936a29bb5389e2a8178bc2
+      internalID: 219975093629589664
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_south_1
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 371
+        width: 78
+        height: 136
+      alignment: 9
+      pivot: {x: 0.61538462, y: 0.07352941}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1eec9b4ff0cce207e52304093a865ac8
+      internalID: -3899377894743218023
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_south_2
+      rect:
+        serializedVersion: 2
+        x: 771
+        y: 121
+        width: 93
+        height: 114
+      alignment: 9
+      pivot: {x: 0.68817204, y: 0.15789474}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 528a64073fc50443e6664ca54d701671
+      internalID: 7761684739869650931
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_south-east_1
+      rect:
+        serializedVersion: 2
+        x: 964
+        y: 517
+        width: 59
+        height: 135
+      alignment: 9
+      pivot: {x: 0.49152542, y: 0.09629630}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf91e91211d1881cbb56f819f520a4d0
+      internalID: 771671244424946461
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_east_2
+      rect:
+        serializedVersion: 2
+        x: 429
+        y: 6
+        width: 109
+        height: 109
+      alignment: 9
+      pivot: {x: 0.45871560, y: 0.08256881}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63348ad99540d08c24f6789278e62a3a
+      internalID: -7891893296669520596
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_north-east_2
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 370
+        width: 116
+        height: 136
+      alignment: 9
+      pivot: {x: 0.36206897, y: 0.16176471}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b59db2b1985e16fb67352231901b970
+      internalID: -614917106875907457
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_north-east_3
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 2
+        width: 143
+        height: 115
+      alignment: 9
+      pivot: {x: 0.32167832, y: 0.20869565}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6287d0d53e6c9443847b4a49e46eaf2
+      internalID: 2438450463217495690
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_north-east_4
+      rect:
+        serializedVersion: 2
+        x: 805
+        y: 12
+        width: 154
+        height: 101
+      alignment: 9
+      pivot: {x: 0.30519481, y: 0.24752475}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45738e63e855acaa893658fbfcd17dc1
+      internalID: 6183888894540540538
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_north_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 369
+        width: 105
+        height: 136
+      alignment: 9
+      pivot: {x: 0.25714286, y: 0.21323529}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23416a0f5da61660a49bfb7be974ac22
+      internalID: 3424150333297238722
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: death_north_4
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 117
+        width: 109
+        height: 118
+      alignment: 9
+      pivot: {x: 0.24770642, y: 0.24576271}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c022c4dc37ceaa1ccb765292258ca326
+      internalID: -8163554287810717715
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID:
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      idle_south-east_1: 265464369761374471
+      idle_south-east_2: -4820012745803186336
+      idle_south-east_3: -1111977745936544198
+      idle_south-east_4: -5568029749325136364
+      idle_south-east_5: 649198942592007441
+      idle_south-east_6: -4870486865481110557
+      idle_south-east_7: -5989975204271566367
+      walk_south_0: 5435027953346661414
+      walk_south_2: 3472419981697736207
+      walk_south_3: 2714418116154751848
+      walk_south_4: -6654538234118426217
+      walk_south-east_0: -8356114939998745138
+      walk_south-east_2: 4362336700827644472
+      walk_south-east_4: 2369353656194500093
+      walk_south-east_7: 4134764585785389204
+      walk_east_5: 1614348293628524536
+      walk_east_6: 5260170767055621062
+      walk-strike_south_0: -3856589788934967449
+      walk-strike_south_1: -2908672765009954955
+      walk-strike_south_2: -304179699852242680
+      walk-strike_south_3: 3259170058450023729
+      walk-strike_south_4: -1105984199832953988
+      walk-strike_south_5: 9002199900578050675
+      walk-strike_south_6: -4158847288532160877
+      walk-strike_south_7: 3703804370539847549
+      walk-strike_south-east_0: -7179402961356909346
+      walk-strike_south-east_2: 3822015549560779960
+      walk-strike_south-east_3: 3008225031849042956
+      walk-strike_south-east_4: -2004520517639601298
+      walk-strike_south-east_5: 1318392943869613053
+      walk-strike_south-east_6: 2020242811959164865
+      walk-strike_south-east_7: -5985585618418511356
+      strike_south_0: -2568023011972999865
+      strike_south_1: -3861849073389725535
+      strike_south_2: 8948406965180297768
+      strike_south-east_1: -6934971398437166172
+      strike_south-east_2: -7295290487991885192
+      strike_south-east_4: -7425883952353633238
+      cast_south_3: -2387761405574503917
+      cast_south-east_1: 5437421650046699205
+      cast_south-east_2: -7932383000074324937
+      hit_east_0: 219975093629589664
+      death_south_1: -3899377894743218023
+      death_south_2: 7761684739869650931
+      death_south-east_1: 771671244424946461
+      death_east_2: -7891893296669520596
+      death_north-east_2: -614917106875907457
+      death_north-east_3: 2438450463217495690
+      death_north-east_4: 6183888894540540538
+      death_north_3: 3424150333297238722
+      death_north_4: -8163554287810717715
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

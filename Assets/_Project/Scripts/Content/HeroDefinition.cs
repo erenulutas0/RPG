@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using UnityEngine;
 
 namespace Cryptforge.Content
@@ -30,6 +31,9 @@ namespace Cryptforge.Content
         [SerializeField] private string _selectLine;
         [SerializeField] private string _deathLine;
         [SerializeField] private string _victoryLine;
+        // The hero's own pre-rendered look (docs/45: Ilya, rendered from one model in five facings). Empty, the hero
+        // wears the painted Vanguard (HeroLookView).
+        [SerializeField] private RenderedCharacterArtSet _renderedArt;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -44,5 +48,6 @@ namespace Cryptforge.Content
         public string SelectLine => _selectLine ?? string.Empty;
         public string DeathLine => _deathLine ?? string.Empty;
         public string VictoryLine => _victoryLine ?? string.Empty;
+        public RenderedCharacterArtSet RenderedArt => _renderedArt;
     }
 }

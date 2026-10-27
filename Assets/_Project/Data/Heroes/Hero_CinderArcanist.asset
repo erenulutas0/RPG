@@ -25,3 +25,4 @@ MonoBehaviour:
   _selectLine: If it burns, it can tell us something.
   _deathLine: Ah. That one was mine.
   _victoryLine: Not every fire needs a victim.
+  _renderedArt: {fileID: 11400000, guid: 4f0a324f67c44d32be3cb8d0d6e07e69, type: 2}
