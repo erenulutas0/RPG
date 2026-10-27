@@ -104,15 +104,18 @@ namespace Cryptforge.Tests
 
             var burn = dummy.GetComponent<BurnStatus>();
             Assert.That(burn != null && burn.IsBurning, Is.True, "Ember Memory set it alight.");
+            Assert.That(_effects.UsesPaintedSkills && _effects.PaintsBurnFlames, Is.True, "The scene's painted skill art.");
             SpriteRenderer flame = _effects.BurnFlameOn(dummy);
             Assert.That(flame, Is.Not.Null, "The flame shows by the frame after the hit, not at the burn's first tick.");
             Assert.That(flame.sprite, Is.Not.Null);
             Assert.That(_effects.ShownFlameCount, Is.EqualTo(1));
-            Assert.That(flame.sprite.rect.height, Is.EqualTo(BurnArt.FlameHeight(burn.Stacks)), "Sized by its stacks.");
+            Assert.That(_effects.BurnFlameFrames(burn.Stacks), Does.Contain(flame.sprite), "Sized by its stacks.");
+            Assert.That(flame.sprite.texture, Is.SameAs(_effects.BurnFlameFrames(BurnRule.MaxStacks)[0].texture),
+                "Every size is cut from the one sheet, so a crowd's flames batch.");
             Vector3 feet = dummy.transform.position;
             float lift = flame.transform.position.y - feet.y;
             Assert.That(flame.transform.position.x, Is.EqualTo(feet.x).Within(1e-4f));
-            Assert.That(lift, Is.InRange(0f, .6f), "On the body, above its feet.");
+            Assert.That(lift, Is.InRange(0f, .6f), "Pinned at its feet, rising round its body.");
 
             dummy.transform.position += new Vector3(1f, .5f, 0f);
             yield return null;
@@ -123,7 +126,9 @@ namespace Cryptforge.Tests
             yield return null;
             Assert.That(_effects.BurnFlameOn(dummy), Is.SameAs(flame), "One renderer per burning enemy, however many stacks.");
             Assert.That(_effects.ShownFlameCount, Is.EqualTo(1));
-            Assert.That(flame.sprite.rect.height, Is.EqualTo(BurnArt.FlameHeight(BurnRule.MaxStacks)), "A full burn stands tallest.");
+            Assert.That(_effects.BurnFlameFrames(BurnRule.MaxStacks), Does.Contain(flame.sprite));
+            Assert.That(flame.sprite.bounds.size.y, Is.GreaterThan(_effects.BurnFlameFrames(1)[0].bounds.size.y),
+                "A full burn stands tallest.");
             Sprite first = flame.sprite;
             bool flickered = false;
             for (int i = 0; i < 30 && !flickered; i++)
@@ -257,6 +262,14 @@ namespace Cryptforge.Tests
                 if (renderer.enabled && renderer.sprite == StaffSplashArt.Get()) rings.Add(renderer);
             Assert.That(rings.Count, Is.EqualTo(2), "And an ember ring as wide as each splash.");
             Assert.That(Shown("VFX Forge").Count, Is.Zero, "The Vent's blast is its eruptions, not the Forge Burst's.");
+            List<SpriteRenderer> cast = Shown("VFX Vent Cast");
+            Assert.That(cast.Count, Is.EqualTo(1), "The cast rings the hero in burning ember.");
+            Assert.That(cast[0].transform.position.x, Is.EqualTo(_hero.transform.position.x).Within(1e-4f));
+            Assert.That(cast[0].sortingOrder, Is.EqualTo(rings[0].sortingOrder), "On the floor with the splash rings.");
+            Assert.That(cast[0].sprite.texture, Is.SameAs(columns[0].sprite.texture), "One sheet for the Vent's effects.");
+            foreach (var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())
+                Assert.That(renderer.enabled && renderer.sprite == AbilityRingArt.Get(), Is.False,
+                    "Not the Forge Burst's steel seal.");
 
             float risenFrom = embers[0].transform.position.y;
             for (int i = 0; i < 6; i++) yield return null;
@@ -312,6 +325,11 @@ namespace Cryptforge.Tests
             List<SpriteRenderer> sparks = Shown("VFX Forge Spark");
             Assert.That(sparks.Count, Is.EqualTo(CombatEffectsView.ForgeSparkCount), "And a spray of forge sparks.");
             Assert.That(Shown("VFX Vent").Count, Is.Zero);
+            List<SpriteRenderer> flash = Shown("VFX Forge Flash");
+            Assert.That(flash.Count, Is.EqualTo(1), "A flash at the hero.");
+            Assert.That(flash[0].transform.position.x, Is.EqualTo(_hero.transform.position.x).Within(1e-4f));
+            Assert.That(flash[0].sortingOrder, Is.GreaterThan(ring[0].sortingOrder), "Over the hero, not on the floor.");
+            Assert.That(flash[0].sprite.texture, Is.SameAs(waves[0].sprite.texture), "One sheet for the burst's effects.");
 
             float size = waves[0].transform.localScale.x;
             float heroX = _hero.transform.position.x;
@@ -319,7 +337,7 @@ namespace Cryptforge.Tests
             for (int i = 0; i < 6; i++) yield return null;
             Assert.That(waves[0].transform.localScale.x, Is.GreaterThan(size), "The shockwave races out.");
             float reach = _hero.GetComponent<AbilityController>().Ability.Radius;
-            Assert.That(waves[0].transform.localScale.x * EffectArt.ShockwaveRadius / PixelSpriteFactory.PixelsPerUnit,
+            Assert.That(waves[0].transform.localScale.x * _effects.ShockwaveSpriteRadius,
                 Is.LessThanOrEqualTo(reach + 1e-3f), "Never past the burst's reach.");
             float spread = 0f;
             foreach (var spark in sparks) spread += Mathf.Abs(spark.transform.position.x - heroX) / sparks.Count;

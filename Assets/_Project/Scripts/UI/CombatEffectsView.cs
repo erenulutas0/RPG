@@ -11,7 +11,10 @@ namespace Cryptforge.UI
     // floor remembers the floor it stands on, which the foundry turns into depth while a camera renders
     // (FoundryVisibilityView); everywhere else that height is never read. The skills draw here too (docs/45): a burning
     // enemy's flame (BurnFlames, its own pool of one renderer per burning enemy), each Crucible Vent eruption, the ember
-    // Ember Memory passes to a neighbour, and the Forge Burst's shockwave and sparks.
+    // Ember Memory passes to a neighbour, and the Forge Burst's shockwave and sparks. Their painted art (a
+    // SkillEffectArtSet, one sheet per effect family) is borrowed and cut into sprites here, as the painted strikes are
+    // borrowed; without it they fall back to the pixel art BurnArt and EffectArt draw. Painted, the Vent's cast rings the
+    // hero in ember rather than in the ability's steel seal, and the Forge Burst flashes at the hero.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -132,8 +135,19 @@ namespace Cryptforge.UI
         private const float ShockwaveFrameDuration = 0.07f;
         private const float ShockwaveGrowSeconds = 0.16f;
         private const float ShockwaveStart = 0.25f;
-        // World radius of the shockwave sprite at scale 1.
-        private const float ShockwaveSpriteRadius = EffectArt.ShockwaveRadius / PixelSpriteFactory.PixelsPerUnit;
+        // World radius of the pixel shockwave sprite at scale 1; the painted one is a unit ring.
+        private const float PixelShockwaveSpriteRadius = EffectArt.ShockwaveRadius / PixelSpriteFactory.PixelsPerUnit;
+        // The painted bursts' frame times: the painted strips carry more frames than the pixel ones, over about as long
+        // (the eruption a little longer, so its column reads at phone size before it breaks).
+        private const float PaintedVentColumnFrameDuration = 0.05f;
+        private const float PaintedVentEmberFrameDuration = 0.15f;
+        private const float PaintedShockwaveFrameDuration = 0.06f;
+        private const float PaintedForgeSparkFrameDuration = 0.1f;
+        // The painted Vent's cast ring burns out over the ability pulse's life; the Forge Burst's flash is gone faster,
+        // centred on the hero's body this high over its feet.
+        private const float VentCastFrameDuration = 0.07f;
+        private const float ForgeFlashFrameDuration = 0.04f;
+        private const float ForgeFlashLift = 0.5f;
         // Its sparks fly out along the floor at 1.6-2.4 times the reach a second, popping up as they go.
         internal const int ForgeSparkCount = 8;
         private const float ForgeSparkDuration = 0.3f;
@@ -169,6 +183,9 @@ namespace Cryptforge.UI
         [SerializeField] private Material _material;
         [SerializeField] private StrikeArtSet _paintedArt;
         public bool UsesPaintedStrikes => _paintedArt != null && _paintedArt.IsValid;
+        // Optional: the skills' painted effects; without them the skills draw the pixel art.
+        [SerializeField] private SkillEffectArtSet _skillArt;
+        public bool UsesPaintedSkills => _skillArt != null && _skillArt.IsValid;
         [SerializeField, Min(1)] private int _effectPoolSize = 24;
         [SerializeField, Min(1)] private int _numberPoolSize = 12;
         // Effects draw from this order up to four above it, over the combatants; numbers draw over the health bars.
@@ -183,6 +200,8 @@ namespace Cryptforge.UI
         [SerializeField, Min(0.01f)] private float _shakeDuration = 0.1f;
 
         private readonly List<Sprite> _sprites = new List<Sprite>();
+        // Sprites cut from the painted skill sheets: this view owns them, the art set owns the sheets.
+        private readonly List<Sprite> _cutSprites = new List<Sprite>();
         private Sprite[] _slash;
         private Sprite[] _ring;
         private Sprite[] _abilityPulse;
@@ -199,6 +218,15 @@ namespace Cryptforge.UI
         private Sprite[] _emberArc;
         private Sprite[] _shockwave;
         private Sprite[] _forgeSpark;
+        // Painted only: the Vent's ember cast ring and the Forge Burst's flash.
+        private Sprite[] _ventCast;
+        private Sprite[] _forgeFlash;
+        // The frame times of the art in use, painted or pixel, and the shockwave sprite's world radius at scale 1.
+        private float _ventColumnFrameDuration;
+        private float _ventEmberFrameDuration;
+        private float _shockwaveFrameDuration;
+        private float _forgeSparkFrameDuration;
+        private float _shockwaveSpriteRadius;
         private GameObject _poolRoot;
         private Effect[] _effects;
         private BurnFlames _flames;
@@ -253,10 +281,14 @@ namespace Cryptforge.UI
 
         public bool IsShaking => _shakeRemaining > 0f;
 
-        // The flame on show on this burning enemy, or null, and how many are on show and may be: for the tests.
+        // The flame on show on this burning enemy, or null, how many are on show and may be, every frame of the flame
+        // at a stack count, and the shockwave sprite's world radius at scale 1: for the tests.
         internal SpriteRenderer BurnFlameOn(Health enemy) => _flames?.On(enemy);
         internal int ShownFlameCount => _flames != null ? _flames.ShownCount : 0;
         internal int FlameCapacity => _flames != null ? _flames.SlotCount : 0;
+        internal Sprite[] BurnFlameFrames(int stacks) => _flames?.Frames(stacks);
+        internal bool PaintsBurnFlames => _flames != null && _flames.IsPainted;
+        internal float ShockwaveSpriteRadius => _shockwaveSpriteRadius;
 
         // Pool slots, and the effect on show above the floor in one with the world height of the floor it stands on, for
         // presentation that depth-tests effects against scenery (FoundryVisibilityView). Floor pulses and numbers are
@@ -386,6 +418,10 @@ namespace Cryptforge.UI
             for (int i = 0; i < _sprites.Count; i++)
                 PixelSpriteFactory.Destroy(_sprites[i]);
             _sprites.Clear();
+            // Only the sprites: their sheets are the art set's.
+            for (int i = 0; i < _cutSprites.Count; i++)
+                Destroy(_cutSprites[i]);
+            _cutSprites.Clear();
             _flames?.Dispose();
             _flames = null;
             if (_poolRoot != null)
@@ -415,6 +451,24 @@ namespace Cryptforge.UI
             _digits = Build(digits, "VFX Digit", Vector2.zero);
             _critDigits = Build(critDigits, "VFX Crit Digit", Vector2.zero);
 
+            if (UsesPaintedSkills)
+            {
+                // Each strip pins where its painted frames say: the column at its foot, the streaks at their heads so
+                // they trail behind the point they fly through, the rings at their centres.
+                _ventColumn = Cut(_skillArt.VentColumn, "VFX Vent Column ");
+                _ventEmbers = Cut(_skillArt.VentEmbers, "VFX Vent Embers ");
+                _ventCast = Cut(_skillArt.VentRing, "VFX Vent Cast ");
+                _emberArc = Cut(_skillArt.EmberArc, "VFX Ember Arc ");
+                _shockwave = Cut(_skillArt.Shockwave, "VFX Forge Shockwave ");
+                _forgeSpark = Cut(_skillArt.ForgeSpark, "VFX Forge Spark ");
+                _forgeFlash = Cut(_skillArt.ForgeFlash, "VFX Forge Flash ");
+                _ventColumnFrameDuration = PaintedVentColumnFrameDuration;
+                _ventEmberFrameDuration = PaintedVentEmberFrameDuration;
+                _shockwaveFrameDuration = PaintedShockwaveFrameDuration;
+                _forgeSparkFrameDuration = PaintedForgeSparkFrameDuration;
+                _shockwaveSpriteRadius = 1f;
+                return;
+            }
             // The Arcanist's bursts are drawn on BurnArt's finer grid; the column stands on the floor at its foot, and the
             // streaks pin at their heads so they trail behind the point they fly through.
             _ventColumn = Build(BurnArt.VentColumnFrames(), "VFX Vent Column", PixelSpriteFactory.BottomCentre, BurnArt.TexelsPerUnit);
@@ -424,6 +478,18 @@ namespace Cryptforge.UI
             _shockwave = Build(EffectArt.ShockwaveFrames(), "VFX Forge Shockwave", PixelSpriteFactory.Centre);
             _forgeSpark = Build(EffectArt.ForgeSparkFrames(), "VFX Forge Spark",
                 new Vector2((EffectArt.ForgeSparkHeadX + .5f) / EffectArt.ForgeSparkWidth, .5f));
+            _ventColumnFrameDuration = VentColumnFrameDuration;
+            _ventEmberFrameDuration = VentEmberFrameDuration;
+            _shockwaveFrameDuration = ShockwaveFrameDuration;
+            _forgeSparkFrameDuration = ForgeSparkDuration * .5f;
+            _shockwaveSpriteRadius = PixelShockwaveSpriteRadius;
+        }
+
+        private Sprite[] Cut(SkillEffectArtSet.Strip strip, string prefix)
+        {
+            Sprite[] sprites = strip.Cut(prefix);
+            _cutSprites.AddRange(sprites);
+            return sprites;
         }
 
         private Sprite[] Build(PixelCanvas[] canvases, string name, Vector2 pivot,
@@ -451,7 +517,8 @@ namespace Cryptforge.UI
             }
             // One flame for every enemy the scene lets stand at once (HordeRule.SceneCap, horde and waves together); a
             // burning enemy past that waits for a free one.
-            _flames = new BurnFlames(_poolRoot.transform, _material, _sortingOrder + FlameOrder, PackLayout.MaxPackSize);
+            _flames = new BurnFlames(_poolRoot.transform, _material, _sortingOrder + FlameOrder, PackLayout.MaxPackSize,
+                UsesPaintedSkills ? _skillArt : null);
 
             _numbers = new Number[_numberPoolSize];
             for (int i = 0; i < _numbers.Length; i++)
@@ -725,7 +792,7 @@ namespace Cryptforge.UI
 
             int spent = Mathf.Clamp(stacks, 1, BurnRule.MaxStacks);
             float scale = VentColumnScale + VentColumnScalePerStack * spent;
-            StandOn(ShowBurst(_ventColumn, VentColumnFrameDuration, _ventColumn.Length * VentColumnFrameDuration, feet,
+            StandOn(ShowBurst(_ventColumn, _ventColumnFrameDuration, _ventColumn.Length * _ventColumnFrameDuration, feet,
                 _sortingOrder + StrikeOrder, Vector3.zero, 0f, scale, false), feet);
             _ventCount++;
             int clusters = spent >= 3 ? 2 : 1;
@@ -736,7 +803,7 @@ namespace Cryptforge.UI
                 float drift = side * (.1f + .15f * PixelNoise.Value(i, _ventCount, VentEmberSeed));
                 var velocity = new Vector3(drift, VentEmberRise + VentEmberRisePerStack * spent, 0f);
                 Vector3 origin = feet + Vector3.up * (VentEmberLift * scale);
-                Effect embers = StandOn(ShowBurst(_ventEmbers, VentEmberFrameDuration, VentEmberDuration, origin,
+                Effect embers = StandOn(ShowBurst(_ventEmbers, _ventEmberFrameDuration, VentEmberDuration, origin,
                     _sortingOrder + StarOrder, velocity, 0f, VentEmberScale + VentEmberScalePerStack * spent, false), feet);
                 embers.Fade = true;
                 embers.Renderer.flipX = i == 1;
@@ -765,25 +832,32 @@ namespace Cryptforge.UI
             _flames.Track(neighbour, flight);
         }
 
-        // The burst's ring covers the ability's whole radius, unlike the staff's, which shows only part of its splash.
-        // The Forge Burst also sends a shockwave out to that radius and flings forge sparks; the Vent's own eruptions
-        // are its blast.
+        // The burst's ring covers the ability's whole radius, unlike the staff's, which shows only part of its splash; the
+        // painted Vent's cast rings it in burning ember instead of the ability's steel seal. The Forge Burst also sends a
+        // shockwave out to that radius and flings forge sparks, painted with a flash at the hero; the Vent's own
+        // eruptions are its blast.
         private void OnAbilityUsed()
         {
             float radius = _heroAbility.Ability.Radius;
             Vector3 feet = _hero.transform.position;
-            Effect pulse = ShowMoving(_abilityPulse, .21f, .21f, feet, _groundOrder,
-                Vector3.zero, 0f, false, radius * .6f);
+            AbilityKind kind = _heroAbility.Ability.Kind;
+            bool ember = kind == AbilityKind.Vent && _ventCast != null;
+            Effect pulse = ember
+                ? ShowBurst(_ventCast, VentCastFrameDuration, .21f, feet, _groundOrder, Vector3.zero, 0f, radius * .6f, false)
+                : ShowMoving(_abilityPulse, .21f, .21f, feet, _groundOrder, Vector3.zero, 0f, false, radius * .6f);
             pulse.AbilityPulse = true;
             pulse.PulseRadius = radius;
             pulse.Renderer.color = new Color(1f, 1f, 1f, .85f);
-            if (_heroAbility.Ability.Kind != AbilityKind.Burst)
+            if (kind != AbilityKind.Burst)
                 return;
 
-            Effect wave = ShowBurst(_shockwave, ShockwaveFrameDuration, _shockwave.Length * ShockwaveFrameDuration, feet,
-                _groundOrder, Vector3.zero, 0f, ShockwaveStart * radius / ShockwaveSpriteRadius, false);
+            Effect wave = ShowBurst(_shockwave, _shockwaveFrameDuration, _shockwave.Length * _shockwaveFrameDuration, feet,
+                _groundOrder, Vector3.zero, 0f, ShockwaveStart * radius / _shockwaveSpriteRadius, false);
             wave.Shockwave = true;
             wave.PulseRadius = radius;
+            if (_forgeFlash != null)
+                StandOn(ShowBurst(_forgeFlash, ForgeFlashFrameDuration, _forgeFlash.Length * ForgeFlashFrameDuration,
+                    feet + Vector3.up * ForgeFlashLift, _sortingOrder + SparkOrder, Vector3.zero, 0f, 1f, false), feet);
             _forgeBursts++;
             Vector3 origin = feet + Vector3.up * ForgeSparkLift;
             for (int i = 0; i < ForgeSparkCount; i++)
@@ -792,7 +866,7 @@ namespace Cryptforge.UI
                 float speed = radius * (ForgeSparkSpeed + ForgeSparkSpeedSpread * PixelNoise.Value(i, _forgeBursts, ForgeSparkSeed + 1));
                 // Out along the floor, which the camera sees at half its depth, with a pop upward that gravity takes back.
                 var velocity = new Vector3(Mathf.Cos(angle) * speed, Mathf.Sin(angle) * speed * .5f + ForgeSparkPop, 0f);
-                Effect spark = StandOn(ShowBurst(_forgeSpark, ForgeSparkDuration * .5f, ForgeSparkDuration, origin,
+                Effect spark = StandOn(ShowBurst(_forgeSpark, _forgeSparkFrameDuration, ForgeSparkDuration, origin,
                     _sortingOrder + SparkOrder, velocity, ForgeSparkGravity, 1f, false), feet);
                 spark.FaceMotion = true;
                 spark.Fade = true;
@@ -970,7 +1044,7 @@ namespace Cryptforge.UI
                 {
                     float grow = Mathf.Clamp01(effect.Elapsed / ShockwaveGrowSeconds);
                     float reach = Mathf.Lerp(ShockwaveStart, 1f, 1f - (1f - grow) * (1f - grow));
-                    float size = effect.PulseRadius / ShockwaveSpriteRadius * reach;
+                    float size = effect.PulseRadius / _shockwaveSpriteRadius * reach;
                     effect.Transform.localScale = new Vector3(size, size, 1f);
                     Color wave = effect.Tint;
                     wave.a *= Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .1f);
