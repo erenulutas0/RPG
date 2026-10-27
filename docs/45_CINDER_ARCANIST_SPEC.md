@@ -302,3 +302,15 @@ stay for a later painted pass.
   - Known flaws: zoomed in, the Runner and the Tank show flat rendered facets beside the Grunt's painted gradients (at
     phone scale they read as one family); the Captain's brass was placed by eye per frame; like the Grunt, no windup
     frames and mirroring flips the light.
+- **The Staff's hit painted** - `Tools/ArtReview/build_staff_impact_vfx.py` (build_skill_vfx's painting) paints
+  `Assets/_Project/Art/Effects/FoundryStrikes/VFX_StaffBlast.png` (416 KiB as ASTC 4x4), two strips on
+  `FoundryStrikeArtSet` (`StrikeArtSet._staffRing`/`_staffBurst`, `HasStaffBlast`; `IsValid` unchanged).
+  - A violet floor ring (5 frames, 0.24 s): a flash at the target's feet, a white edge on a violet band over a thin dark
+    rim (the rim reads on lava, the edge on stone), motes lifting off it, then the band tearing into four swirling
+    arcs; it covers exactly the floor the procedural ring did at every Area. An orb bursts on the struck body (4
+    frames, 0.16 s), curved wisps with no straight rays, unlike the crit star and the Forge Burst flash.
+  - Violet from the staff's crystal: ember stays the Burn's and the Vent's, steel blue the Vanguard's. The Vent's
+    eruptions keep the procedural ring tinted ember; a strike set without the frames falls back to it.
+  - Known flaws: the ring shows half the splash (`_ringSplashFraction` 0.5) and reaches its largest at Area 1.02, so
+    Area cards barely widen it (unchanged rule); the burst's wisps are 3-4 px on a phone; each hit takes two of the
+    shared pool's slots; the Vent's thin procedural ember ring now looks the least finished.
