@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -21,6 +22,13 @@ namespace Cryptforge.UI
     // way. The effects follow the hero's feet, raised on the foundry onto the surface he stands on (FoundrySurface), the
     // rings at the floor's order like his contact shadow and ability ring, the sparks over the combatants like the hit
     // sparks. It reads the run and the upgrade service and writes nothing to either.
+    //
+    // Given a RunFeedbackArtSet, the same slots are sprites cut from its painted sheet instead (one texture, so every ring
+    // batches), armed, timed, placed, sorted and faded exactly as the lines: each ring a unit floor ellipse scaled to the
+    // outer edge of the line it stands for, showing the frame for the share of its life it has lived - the level's ring
+    // of light and the ember ring in their own colours, the card's ring and core painted light and tinted in the tier's
+    // colour - and each spark a streak turned along its flight, gold from a level-up or a card, ember from an evolution or
+    // a weapon. Without the set, or with a broken one, it draws the lines.
     [DefaultExecutionOrder(100)]
     public sealed class RunFeedbackView : MonoBehaviour
     {
@@ -32,10 +40,22 @@ namespace Cryptforge.UI
             Weapon
         }
 
+        // The painted strip a ring is drawn with; the lines ignore it.
+        private enum Look
+        {
+            Level,
+            Card,
+            Core,
+            Ember
+        }
+
         private sealed class Ring
         {
             public LineRenderer Line;
+            // Painted, the ring is this sprite instead of the line.
+            public SpriteRenderer Sprite;
             public Kind Kind;
+            public Look Look;
             public bool Active;
             public bool Unscaled;
             // Seconds after arming before the ring shows, so a second ring can follow the first.
@@ -54,6 +74,7 @@ namespace Cryptforge.UI
         private sealed class Spark
         {
             public LineRenderer Line;
+            public SpriteRenderer Sprite;
             public Kind Kind;
             public bool Active;
             public bool Unscaled;
@@ -115,6 +136,15 @@ namespace Cryptforge.UI
         private RenderedCharacterAnimator _drawnHero;
         private PuppetAnimator _puppetHero;
         private bool _subscribed;
+        // The painted frames, cut from the art set's sheet: this view owns the sprites, the set the sheet. Null for the lines.
+        private readonly List<Sprite> _cutSprites = new List<Sprite>();
+        private Sprite[] _levelFrames;
+        private Sprite[] _cardFrames;
+        private Sprite[] _coreFrames;
+        private Sprite[] _emberFrames;
+        private Sprite[] _goldSparkFrames;
+        private Sprite[] _emberSparkFrames;
+        private float _sparkWidth;
 
         // For tests and for anything that wants to know what the player was shown.
         public int ShownLevelUps { get; private set; }
@@ -131,8 +161,10 @@ namespace Cryptforge.UI
         public bool IsHeroFlashing => (_heroFlash != null && _heroFlash.enabled && _heroFlash.sprite != null) ||
             (DrawsOwnFlash && _heroFlashRemaining > 0f);
         private bool DrawsOwnFlash => _drawnHero != null || _puppetHero != null;
+        // Whether the rings and sparks are the painted frames rather than the lines.
+        public bool UsesPaintedArt => _levelFrames != null;
 
-        internal void Initialize(RunState run, UpgradeService upgrades, Health hero)
+        internal void Initialize(RunState run, UpgradeService upgrades, Health hero, RunFeedbackArtSet art = null)
         {
             _run = run;
             _upgrades = upgrades;
@@ -149,9 +181,17 @@ namespace Cryptforge.UI
                 _unit[k] = new Vector3(Mathf.Cos(a), ArenaFloor.WorldY(Mathf.Sin(a)), 0f);
             }
 
+            bool painted = art != null && art.IsValid;
+            if (painted)
+                CutPaintedArt(art);
             _rings = new Ring[RingSlots];
             for (int i = 0; i < _rings.Length; i++)
             {
+                if (painted)
+                {
+                    _rings[i] = new Ring { Sprite = PaintedSlot("Feedback Ring " + i, floorOrder) };
+                    continue;
+                }
                 LineRenderer line = Line("Feedback Ring " + i, floorOrder);
                 line.loop = true;
                 line.positionCount = RingSegments;
@@ -160,6 +200,11 @@ namespace Cryptforge.UI
             _sparks = new Spark[SparkSlots];
             for (int i = 0; i < _sparks.Length; i++)
             {
+                if (painted)
+                {
+                    _sparks[i] = new Spark { Sprite = PaintedSlot("Feedback Spark " + i, AirOrder) };
+                    continue;
+                }
                 LineRenderer line = Line("Feedback Spark " + i, AirOrder);
                 line.numCapVertices = 2;
                 line.positionCount = 2;
@@ -196,13 +241,43 @@ namespace Cryptforge.UI
             return line;
         }
 
+        // A painted slot draws with the lines' material at the line's order, under the same root, so it follows the feet
+        // and sorts as the line did.
+        private SpriteRenderer PaintedSlot(string name, int order)
+        {
+            var sprite = new GameObject(name).AddComponent<SpriteRenderer>();
+            sprite.transform.SetParent(_root, false);
+            sprite.sharedMaterial = _material;
+            sprite.sortingOrder = order;
+            sprite.enabled = false;
+            return sprite;
+        }
+
+        private void CutPaintedArt(RunFeedbackArtSet art)
+        {
+            _levelFrames = Cut(art.LevelRing, "VFX Level Ring ");
+            _cardFrames = Cut(art.CardRing, "VFX Card Ring ");
+            _coreFrames = Cut(art.CardCore, "VFX Card Core ");
+            _emberFrames = Cut(art.EmberRing, "VFX Ember Ring ");
+            _goldSparkFrames = Cut(art.GoldSpark, "VFX Gold Spark ");
+            _emberSparkFrames = Cut(art.EmberSpark, "VFX Ember Spark ");
+            _sparkWidth = art.SparkWidth;
+        }
+
+        private Sprite[] Cut(SkillEffectArtSet.Strip strip, string prefix)
+        {
+            Sprite[] sprites = strip.Cut(prefix);
+            _cutSprites.AddRange(sprites);
+            return sprites;
+        }
+
         // A disabled view shows nothing and counts nothing: a line armed now would stand frozen until it was enabled.
         private void OnLevelChanged()
         {
             if (!isActiveAndEnabled)
                 return;
             ShownLevelUps++;
-            ArmRing(Kind.LevelUp, false, 0f, LevelUpSeconds, LevelGold, .2f, .95f, .1f, .02f);
+            ArmRing(Kind.LevelUp, Look.Level, false, 0f, LevelUpSeconds, LevelGold, .2f, .95f, .1f, .02f);
             Rise(Kind.LevelUp, false, 7, .32f, 1.8f, LevelUpSeconds, LevelSpark);
         }
 
@@ -227,13 +302,13 @@ namespace Cryptforge.UI
             Color core = Color.Lerp(colour, Color.white, .55f);
             if (gold)
             {
-                ArmRing(Kind.Card, true, 0f, GoldCoreSeconds, core, .16f, .42f, .28f, .08f);
-                ArmRing(Kind.Card, true, .04f, GoldSeconds, colour, .2f, 1.3f, .12f, .03f);
+                ArmRing(Kind.Card, Look.Core, true, 0f, GoldCoreSeconds, core, .16f, .42f, .28f, .08f);
+                ArmRing(Kind.Card, Look.Card, true, .04f, GoldSeconds, colour, .2f, 1.3f, .12f, .03f);
                 Rise(Kind.Card, true, 6, .4f, 2.1f, .6f, Color.Lerp(colour, Color.white, .35f));
                 return;
             }
-            ArmRing(Kind.Card, true, 0f, CoreSeconds, core, .12f, .3f, .22f, .06f);
-            ArmRing(Kind.Card, true, .03f, CardSeconds, colour, .2f, .85f, .08f, .02f);
+            ArmRing(Kind.Card, Look.Core, true, 0f, CoreSeconds, core, .12f, .3f, .22f, .06f);
+            ArmRing(Kind.Card, Look.Card, true, .03f, CardSeconds, colour, .2f, .85f, .08f, .02f);
         }
 
         // The card's own ring, as wide as a gold one, and a second in ember just behind it; a white core; ember sparks;
@@ -241,9 +316,10 @@ namespace Cryptforge.UI
         private void ShowEvolution(Color colour)
         {
             ShownEvolutions++;
-            ArmRing(Kind.Evolution, true, 0f, GoldCoreSeconds, Color.Lerp(colour, Color.white, .7f), .14f, .4f, .3f, .08f);
-            ArmRing(Kind.Evolution, true, .04f, GoldSeconds, colour, .2f, 1.25f, .13f, .03f);
-            ArmRing(Kind.Evolution, true, .18f, .6f, Ember, .15f, .95f, .1f, .025f);
+            ArmRing(Kind.Evolution, Look.Core, true, 0f, GoldCoreSeconds, Color.Lerp(colour, Color.white, .7f), .14f, .4f,
+                .3f, .08f);
+            ArmRing(Kind.Evolution, Look.Card, true, .04f, GoldSeconds, colour, .2f, 1.25f, .13f, .03f);
+            ArmRing(Kind.Evolution, Look.Ember, true, .18f, .6f, Ember, .15f, .95f, .1f, .025f);
             Rise(Kind.Evolution, true, 8, .45f, 2.4f, .6f, Color.Lerp(Ember, Color.white, .3f));
             ShowHeroFlash();
         }
@@ -254,7 +330,7 @@ namespace Cryptforge.UI
             if (!isActiveAndEnabled)
                 return;
             ShownWeaponPops++;
-            ArmRing(Kind.Weapon, true, 0f, .3f, Ember, .1f, .45f, .06f, .015f);
+            ArmRing(Kind.Weapon, Look.Ember, true, 0f, .3f, Ember, .1f, .45f, .06f, .015f);
             const int count = 6;
             Color hot = Color.Lerp(Ember, Color.white, .25f);
             _sparkBursts++;
@@ -282,12 +358,13 @@ namespace Cryptforge.UI
             }
         }
 
-        private void ArmRing(Kind kind, bool unscaled, float delay, float lifetime, Color colour, float fromRadius,
+        private void ArmRing(Kind kind, Look look, bool unscaled, float delay, float lifetime, Color colour, float fromRadius,
             float toRadius, float fromWidth, float toWidth)
         {
             Ring ring = _rings[_nextRing];
             _nextRing = (_nextRing + 1) % _rings.Length;
             ring.Kind = kind;
+            ring.Look = look;
             ring.Active = true;
             ring.Unscaled = unscaled;
             ring.Delay = delay;
@@ -388,27 +465,51 @@ namespace Cryptforge.UI
             if (shown >= ring.Lifetime)
             {
                 ring.Active = false;
-                ring.Line.enabled = false;
+                Hide(ring.Line, ring.Sprite);
                 return;
             }
             if (shown < 0f)
             {
-                ring.Line.enabled = false;
+                Hide(ring.Line, ring.Sprite);
                 return;
             }
 
             float t = shown / ring.Lifetime;
             float ease = 1f - (1f - t) * (1f - t) * (1f - t);
             float radius = Mathf.Lerp(ring.FromRadius, ring.ToRadius, ease);
+            float width = Mathf.Lerp(ring.FromWidth, ring.ToWidth, t);
+            Color colour = ring.Colour;
+            colour.a *= 1f - Mathf.SmoothStep(0f, 1f, (t - .3f) / .7f);
+            if (UsesPaintedArt)
+            {
+                DrawPainted(ring, t, radius + .5f * width, colour);
+                return;
+            }
             for (int k = 0; k < RingSegments; k++)
                 _points[k] = _unit[k] * radius;
             LineRenderer line = ring.Line;
             line.SetPositions(_points);
-            line.startWidth = line.endWidth = Mathf.Lerp(ring.FromWidth, ring.ToWidth, t);
-            Color colour = ring.Colour;
-            colour.a *= 1f - Mathf.SmoothStep(0f, 1f, (t - .3f) / .7f);
+            line.startWidth = line.endWidth = width;
             line.startColor = line.endColor = colour;
             line.enabled = true;
+        }
+
+        // A painted ring covers the floor its line did, out to the line's outer edge, through its frames as the share of
+        // its life it has lived; the card's ring and core take the line's colour, the level ring and the ember ring their
+        // own, and every one the line's fade.
+        private void DrawPainted(Ring ring, float t, float reach, Color colour)
+        {
+            Sprite[] frames = ring.Look == Look.Level ? _levelFrames : ring.Look == Look.Card ? _cardFrames :
+                ring.Look == Look.Core ? _coreFrames : _emberFrames;
+            SpriteRenderer sprite = ring.Sprite;
+            Sprite frame = frames[Mathf.Min((int)(t * frames.Length), frames.Length - 1)];
+            if (!ReferenceEquals(sprite.sprite, frame))
+                sprite.sprite = frame;
+            sprite.transform.localScale = new Vector3(reach, reach, 1f);
+            if (ring.Look == Look.Level || ring.Look == Look.Ember)
+                colour = new Color(1f, 1f, 1f, colour.a);
+            sprite.color = colour;
+            sprite.enabled = true;
         }
 
         private void Draw(Spark spark)
@@ -417,12 +518,12 @@ namespace Cryptforge.UI
             if (shown >= spark.Lifetime)
             {
                 spark.Active = false;
-                spark.Line.enabled = false;
+                Hide(spark.Line, spark.Sprite);
                 return;
             }
             if (shown < 0f)
             {
-                spark.Line.enabled = false;
+                Hide(spark.Line, spark.Sprite);
                 return;
             }
 
@@ -432,6 +533,11 @@ namespace Cryptforge.UI
             Vector3 heading = spark.Velocity;
             heading.y -= spark.Gravity * shown;
             heading = heading.sqrMagnitude > 1e-4f ? heading.normalized : Vector3.up;
+            if (UsesPaintedArt)
+            {
+                DrawPainted(spark, t, head, heading);
+                return;
+            }
             LineRenderer line = spark.Line;
             line.SetPosition(0, head);
             line.SetPosition(1, head - heading * spark.Length);
@@ -443,6 +549,33 @@ namespace Cryptforge.UI
             colour.a = 0f;
             line.endColor = colour;
             line.enabled = true;
+        }
+
+        // A painted spark is a streak with its head where the line's was, turned along its flight, as wide as the line
+        // and thinning as it did, in its burst's own colours under the line's fade.
+        private void DrawPainted(Spark spark, float t, Vector3 head, Vector3 heading)
+        {
+            Sprite[] frames = spark.Kind == Kind.Evolution || spark.Kind == Kind.Weapon ? _emberSparkFrames : _goldSparkFrames;
+            SpriteRenderer sprite = spark.Sprite;
+            Sprite frame = frames[Mathf.Min((int)(t * frames.Length), frames.Length - 1)];
+            if (!ReferenceEquals(sprite.sprite, frame))
+                sprite.sprite = frame;
+            Transform streak = sprite.transform;
+            streak.localPosition = head;
+            streak.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(heading.y, heading.x) * Mathf.Rad2Deg);
+            float size = spark.Width / _sparkWidth;
+            streak.localScale = new Vector3(size, size * (1f - .5f * t), 1f);
+            sprite.color = new Color(1f, 1f, 1f, spark.Colour.a * (1f - Mathf.SmoothStep(0f, 1f, (t - .35f) / .65f)));
+            sprite.enabled = true;
+        }
+
+        // Whichever renderer a slot draws with; also on the way out of the scene, where it may already be gone.
+        private static void Hide(LineRenderer line, SpriteRenderer sprite)
+        {
+            if (line != null)
+                line.enabled = false;
+            if (sprite != null)
+                sprite.enabled = false;
         }
 
         // The look may change the body's frame mid-flash; the overlay keeps to the silhouette of what is shown. It never
@@ -514,20 +647,18 @@ namespace Cryptforge.UI
             return count;
         }
 
-        // Also on the way out of the scene, where a pooled line may already be gone.
+        // Also on the way out of the scene, where a pooled line or sprite may already be gone.
         private void HideAll()
         {
             for (int i = 0; _rings != null && i < _rings.Length; i++)
             {
                 _rings[i].Active = false;
-                if (_rings[i].Line != null)
-                    _rings[i].Line.enabled = false;
+                Hide(_rings[i].Line, _rings[i].Sprite);
             }
             for (int i = 0; _sparks != null && i < _sparks.Length; i++)
             {
                 _sparks[i].Active = false;
-                if (_sparks[i].Line != null)
-                    _sparks[i].Line.enabled = false;
+                Hide(_sparks[i].Line, _sparks[i].Sprite);
             }
             EndHeroFlash();
         }
@@ -547,6 +678,10 @@ namespace Cryptforge.UI
                 Destroy(_heroFlash.gameObject);
             if (_material != null)
                 Destroy(_material);
+            // Only the sprites: their sheet is the art set's.
+            for (int i = 0; i < _cutSprites.Count; i++)
+                Destroy(_cutSprites[i]);
+            _cutSprites.Clear();
         }
     }
 }
