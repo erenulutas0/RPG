@@ -105,6 +105,9 @@ namespace Cryptforge.UI
         private static readonly Color BurnTint = new Color(.906f, .447f, .196f, 1f);
         // The remains settle this far into the floor as they fade, so a fall ends lying down rather than lifting off.
         private const float RemainsSink = 0.05f;
+        // A boss's own fall (EnemyArtSet.HasFall) plays for over a second, so it keeps a slot of its own past the bursts:
+        // the sparks, falls and coins of a crowd meanwhile never cut it short. One boss falls at a time.
+        private const int FallSlots = 1;
         private const float CoinFrameDuration = 0.08f;
         private const float CoinGravity = 9.8f;
         private const float CoinLaunch = 2.4f;
@@ -571,7 +574,7 @@ namespace Cryptforge.UI
             _poolRoot = new GameObject("Combat Effects");
             _poolRoot.transform.SetParent(transform, false);
 
-            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots];
+            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots];
             for (int i = 0; i < _effects.Length; i++)
             {
                 SpriteRenderer renderer = CreateRenderer($"Effect {i}", _poolRoot.transform, _sortingOrder);
@@ -945,12 +948,17 @@ namespace Cryptforge.UI
             Vector3 anchor = AnchorOf(watch, enemy);
             // The collapse, the smoke and the swarm's coins all stand where the enemy fell.
             Vector3 ground = FeetOf(watch, enemy);
-            // Remains outlive the actor without delaying death rewards or the next wave; fallback smoke stays small.
+            // Remains outlive the actor without delaying death rewards or the next wave; fallback smoke stays small. A boss
+            // with its own fall plays that instead, in the facing it fell in, from its reserved slot.
             var painted = watch != null && watch.Look != null ? watch.Look.PaintedArt : null;
             if (painted != null)
             {
-                Effect remains = StandOn(ShowMoving(painted.Death, .16f, .4f, enemy.transform.position, _sortingOrder + SmokeOrder,
-                    Vector3.zero, 0, false), ground);
+                Effect remains = StandOn(painted.HasFall
+                    ? Arm(_effects[_effectPoolSize + PuffSlots + BurstSlots], painted.FallTimeline(watch.Look.RearFacing),
+                        EnemyArtSet.FallStep, painted.FallSeconds, enemy.transform.position, _sortingOrder + SmokeOrder,
+                        Vector3.zero, 0f, false, 1f)
+                    : ShowMoving(painted.Death, .16f, .4f, enemy.transform.position, _sortingOrder + SmokeOrder,
+                        Vector3.zero, 0, false), ground);
                 remains.Renderer.flipX = watch.Look.Mirrored;
                 remains.Fade = true;
                 remains.Sink = RemainsSink;

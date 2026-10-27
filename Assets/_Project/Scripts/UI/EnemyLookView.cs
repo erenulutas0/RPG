@@ -9,8 +9,9 @@ namespace Cryptforge.UI
     // actual struck target, and a brief body compression accompanies the existing silhouette flash. A horde newcomer
     // fades in on its arrival (Arrive); a fallen enemy's bar hides at once and its body is left to the pooled remains.
     // A set with the optional boss poses adds two more: a telegraphed blow raises the windup pose until it lands
-    // (WindUp, Slam - the Forge Warden's slam, driven by WardenSlamView), and the enemy's enrage swaps every pose for
-    // its second phase's (EnrageBehaviour). Every other enemy behaves exactly as before.
+    // (WindUp, Slam - the Forge Warden's slam, driven by WardenSlamView), carried at a walk by the distance travelled
+    // when the set draws that, and the enemy's enrage swaps every pose for its second phase's (EnrageBehaviour). Every
+    // other enemy behaves exactly as before.
     public sealed class EnemyLookView : MonoBehaviour, ILookSprites
     {
         private const string BarName = "Health Bar";
@@ -64,6 +65,8 @@ namespace Cryptforge.UI
         public EnemyLook Look => _look;
         // A telegraphed blow is coming: the windup pose holds until Slam or CancelWindup.
         public bool IsWindingUp { get; private set; }
+        // While the windup pose shows: the walking windup's quarter (EnemyArtSet.WalkingQuarter), or -1 standing.
+        public int WindupStep { get; private set; } = -1;
         // The painted second phase is showing.
         public bool ShowsEnraged { get; private set; }
         // This look draws its enemy's enrage itself, so the body keeps its colours (CombatantView skips its tint).
@@ -185,6 +188,7 @@ namespace Cryptforge.UI
         private void OnDied()
         {
             IsWindingUp = false;
+            WindupStep = -1;
             if (_bar != null)
                 _bar.SetActive(false);
             // The body is hidden at once (CombatantView) and its pooled remains take over; an arrival cut short ends here.
@@ -268,14 +272,17 @@ namespace Cryptforge.UI
 
         // A telegraphed blow is coming (WardenSlamView, as the Warden's mark goes down): a painted look with a windup
         // pose raises it, turned toward where the blow will land, and holds it through walking and its own swings until
-        // Slam or CancelWindup. Without one nothing changes.
+        // Slam or CancelWindup - carried at a walk if the set draws that, standing otherwise. Without one nothing
+        // changes.
         internal void WindUp(Vector3 target)
         {
             if (!_painted || !_paintedArt.HasWindup || (_health != null && !_health.IsAlive)) return;
             Face(target - transform.position);
             IsWindingUp = true;
+            // Caught mid-stride, the legs carry on where the walk had them.
+            bool striding = _attackRemaining <= 0f && PaintedFrame != 0 && PaintedFrame != 3 && PaintedFrame < WindupFrame;
             _attackRemaining = 0f;
-            ShowWindup();
+            ShowWindup(striding && _paintedArt.HasWalkingWindup(ShowsEnraged) ? _paintedArt.WalkingQuarter(_walkDistance) : -1);
         }
 
         // The telegraphed blow lands: the strike pose, turned toward where it landed, held a beat longer than a swing.
@@ -283,18 +290,23 @@ namespace Cryptforge.UI
         {
             if (!_painted || (_health != null && !_health.IsAlive)) return;
             IsWindingUp = false;
+            WindupStep = -1;
             Face(target - transform.position);
             _attackRemaining = SlamFrameSeconds;
             ShowPainted(3);
         }
 
         // The mark was withdrawn without a blow (the fight stopped): the pose goes back to walking or standing.
-        internal void CancelWindup() => IsWindingUp = false;
+        internal void CancelWindup()
+        {
+            IsWindingUp = false;
+            WindupStep = -1;
+        }
 
         private void OnEnraged()
         {
             ShowsEnraged = true;
-            if (IsWindingUp) ShowWindup();
+            if (IsWindingUp) ShowWindup(WindupStep >= 0 && _paintedArt.HasWalkingWindup(true) ? WindupStep : -1);
             else if (PaintedFrame < WindupFrame) ShowPainted(PaintedFrame);
         }
 
@@ -314,7 +326,7 @@ namespace Cryptforge.UI
             float compression = _hitRemaining / .09f;
             _body.transform.localScale = new Vector3((Mirrored ? -1 : 1) * (1 + .06f * compression), 1 - .08f * compression, 1);
             // Walking on under a raised hammer keeps it raised, facing where the blow will land.
-            if (IsWindingUp) { _walkDistance = 0; ShowWindup(); return; }
+            if (IsWindingUp) { TickWindup(delta); return; }
             _attackRemaining = Mathf.Max(0, _attackRemaining - Time.deltaTime);
             if (_attackRemaining > 0) return;
             float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
@@ -333,11 +345,24 @@ namespace Cryptforge.UI
             var scale = _body.transform.localScale; scale.x = Mathf.Abs(scale.x) * (Mirrored ? -1 : 1); _body.transform.localScale = scale;
         }
 
-        private void ShowWindup()
+        // The raised hammer steps with the legs by the distance travelled, as the walk does, in a set that draws it at a
+        // walk (in the phase on show); standing still, or without those drawings, it holds the standing windup.
+        private void TickWindup(Vector3 delta)
+        {
+            float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
+            if (travel < .0001f || !_paintedArt.HasWalkingWindup(ShowsEnraged)) { _walkDistance = 0; ShowWindup(-1); return; }
+            _walkDistance = (_walkDistance + travel) % _paintedArt.WalkCycleDistance;
+            ShowWindup(_paintedArt.WalkingQuarter(_walkDistance));
+        }
+
+        // step: the walking windup's quarter, or -1 for the standing windup.
+        private void ShowWindup(int step)
         {
             PaintedFrame = WindupFrame;
+            WindupStep = step;
             CurrentPose = EnemyPose.Attack;
-            _body.sprite = _paintedArt.GetWindup(RearFacing, ShowsEnraged).Body;
+            _body.sprite = (step < 0 ? _paintedArt.GetWindup(RearFacing, ShowsEnraged)
+                : _paintedArt.GetWalkingWindup(step, RearFacing, ShowsEnraged)).Body;
             var scale = _body.transform.localScale; scale.x = Mathf.Abs(scale.x) * (Mirrored ? -1 : 1); _body.transform.localScale = scale;
         }
 
