@@ -339,6 +339,216 @@ namespace Cryptforge.Tests
             }
         }
 
+        // docs/45 section 4: the painted poses had no weight. The weight moves the presentation transform between the actor
+        // and its body, so the body keeps CombatantView's rest and the contact shadow stays on the floor.
+        [UnityTest]
+        public IEnumerator AWalkBobsLowOnContactsHighOnPassingsAndLeansIntoTravel()
+        {
+            Transform pose = Pose();
+            Vector3 resting = _body.transform.localPosition;
+            Transform shadow = _look.GetComponentInChildren<ContactShadowView>().transform;
+            Assert.That(shadow.parent, Is.SameAs(_look.transform), "The shadow is not carried by the weight.");
+            Vector3 shadowRest = shadow.localPosition;
+            foreach (var direction in new[] { Vector2.right, Vector2.left })
+            {
+                _movement.Hold(direction);
+                float contactHigh = float.MinValue, contactLow = float.MaxValue;
+                float passingHigh = float.MinValue, passingLow = float.MaxValue;
+                float leanLow = float.MaxValue, leanHigh = float.MinValue;
+                // Out from the centre and back, the span AWalkingHeroKeepsItsStrideThroughEveryAttack walks unblocked.
+                for (int i = 0; i < 40; i++)
+                {
+                    yield return null;
+                    Assert.That(_body.transform.localPosition, Is.EqualTo(resting), "CombatantView keeps the body's own rest.");
+                    Assert.That(shadow.localPosition, Is.EqualTo(shadowRest), "The contact shadow stays on the floor.");
+                    // The gait grows in over 0.1 s and a full lean in about 0.12 s; after that the stride shows whole.
+                    if (i < 12) continue;
+                    int frame = _look.PaintedFrame;
+                    Assert.That(frame, Is.InRange(1, 4));
+                    float bob = pose.localPosition.y, lean = Mathf.DeltaAngle(0, pose.localEulerAngles.z);
+                    Assert.That(pose.localPosition.x, Is.Zero);
+                    Assert.That(bob, Is.InRange(0f, VanguardAnimator.BobHeight + 1e-6f));
+                    // Moving right the top leans right (clockwise), mirrored with the facing.
+                    Assert.That(direction.x > 0 ? -lean : lean, Is.InRange(
+                        VanguardAnimator.LeanDegrees * (1 - VanguardAnimator.LeanSway) - .01f,
+                        VanguardAnimator.LeanDegrees * (1 + VanguardAnimator.LeanSway) + .01f));
+                    Assert.That(_look.Mirrored, Is.EqualTo(direction.x < 0));
+                    leanLow = Mathf.Min(leanLow, lean); leanHigh = Mathf.Max(leanHigh, lean);
+                    if (frame == 1 || frame == 3)
+                    {
+                        contactHigh = Mathf.Max(contactHigh, bob); contactLow = Mathf.Min(contactLow, bob);
+                        Assert.That(pose.localScale.y, Is.LessThanOrEqualTo(1f + 1e-6f), "A contact squashes.");
+                    }
+                    else
+                    {
+                        passingHigh = Mathf.Max(passingHigh, bob); passingLow = Mathf.Min(passingLow, bob);
+                        Assert.That(pose.localScale.y, Is.GreaterThanOrEqualTo(1f - 1e-6f), "A passing stretches.");
+                    }
+                }
+                Assert.That(passingLow, Is.GreaterThanOrEqualTo(contactHigh - 1e-5f), "Every passing rides above every contact.");
+                Assert.That(contactLow, Is.LessThan(VanguardAnimator.BobHeight * .25f), "The contacts come down to the floor.");
+                Assert.That(passingHigh, Is.GreaterThan(VanguardAnimator.BobHeight * .75f));
+                Assert.That(leanHigh - leanLow, Is.GreaterThan(VanguardAnimator.LeanDegrees * VanguardAnimator.LeanSway),
+                    "The lean dips with each step.");
+                _movement.Release();
+                for (int i = 0; i < 30; i++) yield return null;
+            }
+            Assert.That(_attack.AttackCount, Is.Zero, "The weight never attacks.");
+        }
+
+        [UnityTest]
+        public IEnumerator StoppingSettlesToTheExactStanceWhereOnlyTheBreathMoves()
+        {
+            Transform pose = Pose();
+            float breathHigh = 1f, previous = pose.localScale.y;
+            for (int i = 0; i < 90; i++)
+            {
+                yield return null;
+                AssertStance(pose);
+                Assert.That(Mathf.Abs(pose.localScale.y - previous), Is.LessThan(VanguardAnimator.BreathStretch * .05f), "Slow.");
+                previous = pose.localScale.y;
+                breathHigh = Mathf.Max(breathHigh, pose.localScale.y);
+            }
+            Assert.That(breathHigh, Is.GreaterThan(1f + VanguardAnimator.BreathStretch * .3f), "The stance breathes.");
+
+            _movement.Hold(Vector2.right);
+            for (int i = 0; i < 30; i++) yield return null;
+            _movement.Release();
+            // The stop settles: the weight lands (a dip) and fades, then the stance is exact again (with a few frames'
+            // margin over SettleDuration at the tests' fixed 60 fps).
+            int settleFrames = Mathf.CeilToInt(VanguardAnimator.SettleDuration * 60) + 3;
+            float settleLow = float.MaxValue;
+            for (int i = 0; i < settleFrames; i++)
+            {
+                yield return null;
+                settleLow = Mathf.Min(settleLow, pose.localScale.y);
+            }
+            Assert.That(_look.PaintedFrame, Is.Zero);
+            Assert.That(settleLow, Is.LessThan(1f - VanguardAnimator.SettleSquash * .5f), "The weight lands on the stop.");
+            for (int i = 0; i < 30; i++)
+            {
+                AssertStance(pose);
+                yield return null;
+            }
+            AssertStance(pose);
+        }
+
+        // The hands' anchors are body-relative, so every weapon and the front grip ride the bob and the lean, through
+        // attacks on the move in both facings and with every loadout.
+        [UnityTest]
+        public IEnumerator WeaponsAndTheGripStayInTheHandsWhileTheFigureBobsAndLeans()
+        {
+            foreach (string id in new[] { "weapon_sword", "weapon_staff", "weapon_daggers" })
+            {
+                TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { id }, id));
+                yield return SceneManager.LoadSceneAsync(ScenePath);
+                yield return null;
+                Bind();
+                Transform pose = Pose();
+                var grip = _body.transform.Find("Sword Grip").GetComponent<SpriteRenderer>();
+                SpriteRenderer sword = PartShowing(_look.PaintedArt.Sword), shield = PartShowing(_look.PaintedArt.Shield);
+                var staff = GameObject.Find("Staff Shaft")?.GetComponent<SpriteRenderer>();
+                var left = GameObject.Find("Dagger Left")?.GetComponent<SpriteRenderer>();
+                var right = GameObject.Find("Dagger Right")?.GetComponent<SpriteRenderer>();
+                _attack.enabled = true;
+                float bobLow = float.MaxValue, bobHigh = float.MinValue, leanHigh = 0;
+                int gripChecks = 0, weaponChecks = 0, attacks = _attack.AttackCount;
+                var directions = new[] { new Vector2(1, 1), new Vector2(-1, 1), new Vector2(1, -1), new Vector2(-1, -1) };
+                for (int i = 0; i < 120; i++)
+                {
+                    if (i % 30 == 0) _movement.Hold(directions[i / 30]);
+                    _target.transform.position = _look.transform.position + Vector3.up * .3f;
+                    yield return null;
+                    var frame = _look.PaintedArt.GetFrame(_look.PaintedFrame, _look.FrontFacing);
+                    weaponChecks += InHand(sword, frame.RightHand) + InHand(shield, frame.LeftHand) + InHand(staff, frame.RightHand)
+                        + InHand(left, frame.LeftHand) + InHand(right, frame.RightHand);
+                    if (grip.enabled) gripChecks += InHand(grip, frame.GripOffset);
+                    float bob = (_body.transform.position - _look.transform.position).y;
+                    bobLow = Mathf.Min(bobLow, bob); bobHigh = Mathf.Max(bobHigh, bob);
+                    leanHigh = Mathf.Max(leanHigh, Quaternion.Angle(pose.localRotation, Quaternion.identity));
+                }
+                _movement.Release();
+                Assert.That(bobHigh - bobLow, Is.GreaterThan(VanguardAnimator.BobHeight * .5f), id + ": checked while bobbing.");
+                Assert.That(leanHigh, Is.GreaterThan(VanguardAnimator.LeanDegrees * .5f), id + ": checked while leaning.");
+                // The sword and shield, the staff alone (its crystal is part of the imported staff), or both daggers.
+                int parts = id == "weapon_staff" ? 1 : 2;
+                Assert.That(weaponChecks, Is.GreaterThanOrEqualTo(120 * parts), id + ": the equipment was checked every frame.");
+                if (id != "weapon_daggers") Assert.That(gripChecks, Is.GreaterThan(0), id + ": the front grip was checked.");
+                Assert.That(_attack.AttackCount, Is.GreaterThan(attacks), id + " attacked on the move.");
+                LogAssert.NoUnexpectedReceived();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator PauseFreezesTheWeightMidStrideAndInTheStance()
+        {
+            Transform pose = Pose();
+            _movement.Hold(Vector2.right);
+            for (int i = 0; i < 20; i++) yield return null;
+            Assert.That(Quaternion.Angle(pose.localRotation, Quaternion.identity), Is.GreaterThan(1f), "Mid-stride, leaning.");
+            yield return Frozen(pose);
+            // A release under the pause changes nothing until play resumes; then the stop settles into the stance.
+            Time.timeScale = 0;
+            _movement.Release();
+            Vector3 position = pose.localPosition;
+            yield return new WaitForSecondsRealtime(.05f);
+            Assert.That(pose.localPosition, Is.EqualTo(position));
+            Time.timeScale = 1;
+            for (int i = 0; i < 60; i++) yield return null;
+            AssertStance(pose);
+            Assert.That(pose.localScale.y, Is.GreaterThan(1f), "Breathing.");
+            yield return Frozen(pose);
+        }
+
+        // Pauses combat for a few rendered frames and asserts the weight held still, then resumes.
+        private static IEnumerator Frozen(Transform pose)
+        {
+            Vector3 position = pose.localPosition, scale = pose.localScale;
+            Quaternion rotation = pose.localRotation;
+            Time.timeScale = 0;
+            yield return new WaitForSecondsRealtime(.06f);
+            Assert.That(pose.localPosition, Is.EqualTo(position));
+            Assert.That(pose.localRotation, Is.EqualTo(rotation));
+            Assert.That(pose.localScale, Is.EqualTo(scale));
+            Time.timeScale = 1;
+        }
+
+        private Transform Pose()
+        {
+            Transform pose = _body.transform.parent;
+            Assert.That(pose.name, Is.EqualTo(VanguardAnimator.PoseName));
+            Assert.That(pose.parent, Is.SameAs(_look.transform), "The weight sits between the actor and its body.");
+            return pose;
+        }
+
+        // The stance: no bob, no lean, no squash; only the height breathes, within its amplitude.
+        private static void AssertStance(Transform pose)
+        {
+            Assert.That(pose.localPosition, Is.EqualTo(Vector3.zero));
+            Assert.That(pose.localRotation, Is.EqualTo(Quaternion.identity));
+            Assert.That(pose.localScale.x, Is.EqualTo(1f));
+            Assert.That(pose.localScale.z, Is.EqualTo(1f));
+            Assert.That(pose.localScale.y, Is.InRange(1f, 1f + VanguardAnimator.BreathStretch + 1e-6f));
+        }
+
+        // The equipment renderer under the body showing this sprite, or null when no loadout shows it.
+        private SpriteRenderer PartShowing(Sprite sprite)
+        {
+            foreach (var renderer in _body.GetComponentsInChildren<SpriteRenderer>())
+                if (renderer.sprite == sprite) return renderer;
+            return null;
+        }
+
+        // 1 when an active part sits on its hand anchor in the body's own space (whatever the weight does above the
+        // body), 0 when the part is not shown.
+        private int InHand(SpriteRenderer part, Vector2 anchor)
+        {
+            if (part == null || !part.gameObject.activeInHierarchy) return 0;
+            Vector3 local = _body.transform.InverseTransformPoint(part.transform.position);
+            Assert.That(Vector3.Distance(local, anchor), Is.LessThan(1e-4f), part.name + " left its hand.");
+            return 1;
+        }
+
         [UnityTest]
         public IEnumerator OwnedStaffAndDaggersAttackAndWalkWithTheImportedBody()
         {

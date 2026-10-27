@@ -17,14 +17,56 @@ namespace Cryptforge.UI
         private readonly Sprite _orb;
         private readonly Sprite _litOrb;
         private readonly SpriteRenderer _grip;
+        private readonly Transform _pose;
         private Vector3 _previous;
         private float _distance;
         private float _remaining;
         private float _duration;
         private int _loadout;
         private bool _moving;
+        // The weight's state: how much of the stride's motion shows, the stride phase it follows, the unswayed lean in
+        // degrees, the stop's settle time left and the stride weight it settles from, and the breath clock.
+        private float _gait;
+        private float _phase;
+        private float _lean;
+        private float _settle;
+        private float _settleWeight;
+        private float _breath;
+        private bool _striding;
         // A full four-pose cycle: shorter contacts reduce sliding without changing movement speed.
         private const float Stride = .8f;
+
+        // The weight the four painted poses lack (docs/45 section 4). It moves a presentation transform between the actor
+        // and its body, never the body: CombatantView owns the body's local position, the hand anchors and the grip stay
+        // body-relative so every weapon rides along, and the contact shadow, a child of the actor, stays on the floor.
+        // The transform's origin is the boots, so the lean and the squash pivot where the figure meets the floor.
+        // Heights are world units or shares of the 176-texel (1.375 unit) figure, which stands about 80 px tall on a phone;
+        // each is sized to read as weight there without turning the walk into a bounce.
+        internal const string PoseName = "Hero Pose";
+        // The passing poses ride this high above the contacts (4 texels, about 2 px on the phone): a step that reads as
+        // weight, not a hop; at the contacts the boots are exactly on the shadow.
+        internal const float BobHeight = .03f;
+        // Each contact shortens the figure this share and each passing stretches it as much; the width moves half as
+        // far the other way so the shield and the sword barely shift. About 1 px on the phone.
+        internal const float StepSquash = .015f;
+        // The lean into the travel direction, about the boots: the helmet leads by about 9 texels (4 px). It follows the
+        // painted facing, so the figure never leans back against the way its sprite looks.
+        internal const float LeanDegrees = 3f;
+        // The lean deepens by this share on each contact and eases as much on each passing: the torso dips forward as the
+        // weight lands and rises upright as it passes over the boot.
+        internal const float LeanSway = .2f;
+        // Degrees a second: a full lean builds or clears in about 0.12 s, so a turn rolls the figure over, never snaps it.
+        internal const float LeanRate = 25f;
+        // The stride's bob and squash grow in over this first part of a walk, so the first step does not pop.
+        internal const float GaitRise = .1f;
+        // On stopping, the stride's motion fades over this time while the figure dips this share and recovers: the weight
+        // lands instead of the idle pose freezing mid-bob.
+        internal const float SettleDuration = .18f;
+        internal const float SettleSquash = .025f;
+        // Standing, the figure rises this share (2 texels, about 1 px) and falls over this period: slow and small enough
+        // to read as breath, not bounce. The width stays, so only the height breathes.
+        internal const float BreathStretch = .012f;
+        internal const float BreathPeriod = 2.6f;
         public int FrameIndex { get; private set; } = -1;
         public bool IsAttacking => _remaining > 0;
         public bool FrontFacing { get; private set; }
@@ -49,13 +91,28 @@ namespace Cryptforge.UI
             _grip = grip.AddComponent<SpriteRenderer>();
             _grip.sharedMaterial = body.sharedMaterial;
             _grip.sortingLayerID = body.sortingLayerID;
+            _pose = PoseOf(body.transform);
             Show(0);
+        }
+
+        // Inserts the weight's transform above the body at the body's old place, so nothing moves on screen and the body's
+        // local position, which CombatantView reads as its rest, is unchanged. A clone that already has one reuses it.
+        private static Transform PoseOf(Transform body)
+        {
+            Transform parent = body.parent;
+            if (parent != null && parent.name == PoseName) return parent;
+            var pose = new GameObject(PoseName).transform;
+            pose.SetParent(parent, false);
+            pose.SetSiblingIndex(body.GetSiblingIndex());
+            body.SetParent(pose, false);
+            return pose;
         }
 
         public void Reset()
         {
             _remaining=0; _distance=0; _moving=false; _previous=_root.position;
-            ResetWeapons(); Show(0);
+            _gait=_lean=_settle=_settleWeight=_breath=0; _striding=false;
+            ResetWeapons(); Show(0); ApplyWeight();
         }
 
         public void Attacked()
@@ -78,6 +135,14 @@ namespace Cryptforge.UI
             float travel=new Vector2(delta.x,delta.y/ArenaFloor.DepthScale).magnitude;
             _moving=travel>=.0001f;
             if(travel>0) _distance=(_distance+travel)%Stride;
+            Animate(dt,delta,travel);
+            // After the pose, whichever branch chose it: the weight reads this tick's stride phase and facing.
+            Carry(dt,delta,travel);
+        }
+
+        // This tick's painted pose: an attack's, the sword's windup, the walk cycle's or the stance.
+        private void Animate(float dt, Vector3 delta, float travel)
+        {
             if(_remaining>0)
             {
                 _remaining=Mathf.Max(0,_remaining-dt);
@@ -106,6 +171,44 @@ namespace Cryptforge.UI
 
         // The walk cycle's pose for the distance travelled: four poses a Stride.
         private void ShowWalk() => Show(1+Mathf.Min(3,(int)(_distance/Stride*4)));
+
+        // Advances the weight by one live, unpaused tick. Walking, it follows the distance-driven stride phase that picks the
+        // painted pose, so it can never drift from the legs; stopping, it settles to the stance in SettleDuration.
+        private void Carry(float dt, Vector3 delta, float travel)
+        {
+            float lean=0;
+            if(_moving)
+            {
+                _settle=0;
+                _gait=Mathf.Min(1,_gait+dt/GaitRise);
+                _phase=_distance/Stride;
+                // Only the screen-horizontal share of the floor direction leans: walking up or down the screen stays upright.
+                lean=(Mirrored?LeanDegrees:-LeanDegrees)*Mathf.Abs(delta.x)/travel;
+            }
+            else
+            {
+                if(_striding){_settle=SettleDuration;_settleWeight=_gait;}
+                _settle=Mathf.Max(0,_settle-dt);
+                _gait=_settleWeight*_settle/SettleDuration;
+            }
+            _striding=_moving;
+            _lean=Mathf.MoveTowards(_lean,lean,LeanRate*dt);
+            // The breath restarts from its low point once the stride fully hides it, so it always grows in from rest.
+            _breath=_gait>=1?0:(_breath+dt)%BreathPeriod;
+            ApplyWeight();
+        }
+
+        private void ApplyWeight()
+        {
+            // +1 at a contact pose's centre and -1 at a passing pose's (two steps a Stride, frames 1-4), scaled by the gait.
+            float step=_gait>0?_gait*Mathf.Cos(4*Mathf.PI*(_phase-.125f)):0;
+            float land=_settle>0?SettleSquash*_settleWeight*Mathf.Sin(Mathf.PI*(1-_settle/SettleDuration)):0;
+            float breath=BreathStretch*(1-_gait)*.5f*(1-Mathf.Cos(2*Mathf.PI*_breath/BreathPeriod));
+            float squash=StepSquash*step+land;
+            _pose.localPosition=new Vector3(0,BobHeight*.5f*(_gait-step),0);
+            _pose.localRotation=Quaternion.Euler(0,0,_lean*(1+LeanSway*step));
+            _pose.localScale=new Vector3(1+squash*.5f,1-squash+breath,1);
+        }
 
         private void Show(int index)
         {
