@@ -224,10 +224,18 @@ stay for a later painted pass.
     hips, breath and weight shift at rest, the cape and skirt swinging on after a stop; each weapon draws back while its
     cooldown runs out and then chops (sword), thrusts (staff) or jabs (daggers) over the striding legs; the Forge Burst
     crouches, raises and slams; a hit flinches; death staggers, buckles and falls.
-  - `Tools/ArtReview/preview_vanguard_puppet.py` drives the real C# pose code outside Unity for review GIFs.
-  - Known flaws: on a diagonal the planted boot slides up or down the screen; the far boot sits about 16 texels above
-    the near one in the painted stance; changing facing is still an instant switch; the slam lands about 0.1 s after
-    the button while the shockwave starts at the press.
+  - `Tools/ArtReview/preview_vanguard_puppet.py` drives the real C# pose code outside Unity for review GIFs; `--slip`
+    measures the planted boot against the floor on the stick's eight headings.
+  - Polish (2026-10-27, second pass): the stride is a run whose stance is solved on the painted leg, each boot's heel
+    then toe held where the floor has carried it, with a flight between stances; the heading projects it onto the
+    screen (legs across by the cosine, stepping up or down with the boot's depth), so the planted boot's slip fell from
+    3.7-6.4 to 0.00-0.08 px a frame on all eight headings. Walking brings the far boot from 16 texels above the near
+    one's line to about 6; facing changes are taken at once and shown through a 0.1 s turn (narrow, swap at the
+    narrowest, widen, head first); the Forge Burst's impact is on screen on the press's frame and the rise follows;
+    seen from the front the sword draws back behind the near shoulder, the shield braces at the side and the staff
+    keeps clear of the helmet; the weapons flash white with the parts.
+  - Still to check on a device: the run's flight and bob at the phone's framing, end-on walks (the legs step under
+    the skirt), the turn's narrowest width, and the weapon flash, which borrows `Resources/RenderedCharacterFlash.shader`.
 - **Ilya rendered from one model** - `Tools/ArtReview/BuildBlenderArcanist.py` builds Ilya procedurally in Blender 4.5
   (toon shading, an inverted-hull outline, a rig with IK, every clip as an action; `ArtDirection/2026-10-27/
   arcanist-blender-01/` holds the .blend, frames.json and a README), `PackArcanistSprites.py` packs 210 frames into
