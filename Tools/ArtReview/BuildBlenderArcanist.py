@@ -7,7 +7,7 @@ Run with Blender 4.5 LTS, headless:
 Options after the "--":
     --out DIR        raw frames and frames.json (default TestResults/arcanist-render, git-ignored)
     --blend PATH     the saved scene (default ArtDirection/2026-10-27/arcanist-blender-01/ilya-kest.blend)
-    --facings LIST   a comma-separated subset of south,south-east,east,north-east,north
+    --facings LIST   a comma-separated subset of south,south-east,east,north-east,north,north-west,west,south-west
     --clips LIST     a comma-separated subset of idle,walk,walk-strike,strike,cast,hit,death
     --samples N      Cycles samples per render pixel (default 10)
     --preview        only the first frame of each clip
@@ -19,9 +19,9 @@ functions below. One model renders every frame and every facing, so details cann
 
 Camera: orthographic, looking north and down 30 degrees, the game's 2:1 floor (ArenaFloor.DepthScale). Heights are
 modelled in design units and the rig is stretched by 1/cos(30) (as BuildBlenderFurnace.py), so one design unit of
-height is one world unit on screen. The rig rotates for the five facings; the camera and the key light never move,
-so the light comes from the screen's upper left in every frame. The root stays on the floor origin, which projects
-to the same render pixel in every frame: the sprite pivot.
+height is one world unit on screen. The rig rotates for the eight facings; the camera and the key light never move,
+so the light comes from the screen's upper left in every frame and nothing is mirrored. The root stays on the floor
+origin, which projects to the same render pixel in every frame: the sprite pivot.
 """
 import bpy
 import json
@@ -43,8 +43,9 @@ def option(name, default=None):
     return default
 
 
-OUT = Path(option('--out', str(ROOT / 'TestResults/arcanist-render')))
-BLEND = Path(option('--blend', str(ROOT / 'ArtDirection/2026-10-27/arcanist-blender-01/ilya-kest.blend')))
+# Resolved: Blender reads a relative render path against the .blend's folder, not the working directory.
+OUT = Path(option('--out', str(ROOT / 'TestResults/arcanist-render'))).resolve()
+BLEND = Path(option('--blend', str(ROOT / 'ArtDirection/2026-10-27/arcanist-blender-01/ilya-kest.blend'))).resolve()
 SAMPLES = int(option('--samples', 10))
 PREVIEW = bool(option('--preview', False))
 PREVIEW_FRAME = option('--frame')         # with --preview: this frame of each clip (clamped), else the first
@@ -54,11 +55,17 @@ HOOD = option('--hood', 'dark')           # design comparison: a soot cowl with 
 # ---- The sprite contract (Tools/ArtReview/PackArcanistSprites.py reads frames.json) ----
 PPU = 100                      # final texels per world unit; the sprites import at 100 pixels per unit
 SS = 4                         # render at 4x and box-filter down: area-exact anti-aliasing, the pivot stays on a corner
-CANVAS = 2.2                   # world units across and up the square canvas
+CANVAS = 2.2                   # world units across the canvas
+# World units up it: taller than wide, so the staff's flame and halo held overhead (the north strikes and the Vent)
+# stay inside it. Rows only add at the top: the pivot keeps its pixel and Cycles its per-pixel sampling.
+CANVAS_HEIGHT = float(option('--canvas-height', 2.5))
 PIVOT = (110, 45)              # the floor origin in final pixels from the canvas's bottom-left corner
 ELEVATION = math.radians(30)
 HEIGHT = 1 / math.cos(ELEVATION)
-FACINGS = [('south', 270), ('south-east', 315), ('east', 0), ('north-east', 45), ('north', 90)]
+# The eight facings, counter-clockwise round the compass from the camera (RenderedFacing's order). The west three are
+# rendered like the rest, not mirrored: the light stays on the screen's upper left and the staff in the right hand.
+FACINGS = [('south', 270), ('south-east', 315), ('east', 0), ('north-east', 45), ('north', 90),
+           ('north-west', 135), ('west', 180), ('south-west', 225)]
 # Distance-driven walk: floor units one cycle of two steps covers (RenderedCharacterArtSet.StrideLength).
 STRIDE = 1.2
 CLIPS = {  # frames, frames a second, loops
@@ -116,7 +123,8 @@ scene.cycles.transparent_max_bounces = 24
 scene.cycles.pixel_filter_type = 'BOX'
 scene.cycles.filter_width = 1.0
 scene.render.film_transparent = True
-scene.render.resolution_x = scene.render.resolution_y = int(CANVAS * PPU * SS)
+scene.render.resolution_x = int(CANVAS * PPU * SS)
+scene.render.resolution_y = int(round(CANVAS_HEIGHT * PPU * SS))
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'PNG'
 scene.render.image_settings.color_mode = 'RGBA'
@@ -1767,14 +1775,14 @@ for obj in PARTS.values():
 RIG.scale = (1, 1, HEIGHT)
 camera_data = bpy.data.cameras.new('Game view: orthographic, 30 degrees down, looking north')
 camera_data.type = 'ORTHO'
-camera_data.ortho_scale = CANVAS
+camera_data.ortho_scale = max(CANVAS, CANVAS_HEIGHT)
 camera_data.clip_start = 0.1
 camera_data.clip_end = 100
 camera = bpy.data.objects.new('Camera', camera_data)
 collection.objects.link(camera)
 scene.camera = camera
 # The canvas centre sits this far up the screen from the floor origin, so the origin lands on PIVOT.
-centre = (CANVAS * PPU / 2 - PIVOT[0]) / PPU * RIGHT + (CANVAS * PPU / 2 - PIVOT[1]) / PPU * UP
+centre = (CANVAS * PPU / 2 - PIVOT[0]) / PPU * RIGHT + (CANVAS_HEIGHT * PPU / 2 - PIVOT[1]) / PPU * UP
 camera.location = centre - FORWARD * 20
 camera.rotation_euler = (math.pi / 2 - ELEVATION, 0, 0)
 
@@ -1805,8 +1813,8 @@ def render_all():
                 records.append(dict(facing=facing, clip=clip, frame=k, file=str(path.relative_to(OUT)).replace('\\', '/'),
                                     crucible=[round(cx, 5), round(cy, 5)], flare=round(pose.glow['crucible'], 4)))
                 print('ARCANIST_FRAME', facing, clip, k, '%.1fs' % (time.time() - started), flush=True)
-    meta = dict(blender=bpy.app.version_string, ppu=PPU, supersample=SS, canvas=CANVAS, pivot=PIVOT,
-                elevation_degrees=30, height_compensation=HEIGHT, stride=STRIDE,
+    meta = dict(blender=bpy.app.version_string, ppu=PPU, supersample=SS, canvas=CANVAS, canvas_height=CANVAS_HEIGHT,
+                pivot=PIVOT, elevation_degrees=30, height_compensation=HEIGHT, stride=STRIDE,
                 clips={c: dict(frames=CLIPS[c][0], fps=CLIPS[c][1], loops=CLIPS[c][2]) for c in CLIPS},
                 facings=[f for f, _ in FACINGS], frames=records, preview=PREVIEW)
     existing = OUT / 'frames.json'
