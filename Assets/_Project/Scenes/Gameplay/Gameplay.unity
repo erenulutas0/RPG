@@ -6696,6 +6696,7 @@ MonoBehaviour:
   - Definition: {fileID: 11400000, guid: 10000000000000000000000000000007, type: 2}
     Sprite: {fileID: 21300000, guid: 88764345d127cbb44a4d17b6acf6f48d, type: 3}
   _inputDelay: 0.25
+  _cardArt: {fileID: 11400000, guid: 50e308d6ad994ac698105de696d2ea70, type: 2}
 --- !u!114 &1154073862
 MonoBehaviour:
   m_ObjectHideFlags: 0

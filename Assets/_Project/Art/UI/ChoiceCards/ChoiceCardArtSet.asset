@@ -1,0 +1,97 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e212a83ef1c4c529f78daf7c206a0cd, type: 3}
+  m_Name: ChoiceCardArtSet
+  m_EditorClassIdentifier: 
+  _backdrop: {fileID: -5097499464675870634, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _surface: {fileID: 3406872330605701225, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _titlePlate: {fileID: -3005304384184358613, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _titleCrest: {fileID: 306885167499856490, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _description: {fileID: 9100914014907211622, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _wellLip: {fileID: 957552035794782707, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _press: {fileID: -4664634710907262011, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+  _disabledColour: {r: 0.02, g: 0.03, b: 0.06, a: 0.8}
+  _namePlateMargin: {x: 8, y: 2, z: 0, w: 0}
+  _descriptionMargin: {x: 8, y: -4, z: 8, w: -4}
+  _titlePlateMargin: {x: -20, y: -17, z: -20, w: -17}
+  _titleRuleHeight: 6
+  _wellMargin: 10
+  _sigilScale: 0.84
+  _tiers:
+  - _frame: {fileID: -4302026801503921103, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 0}
+    _auraOutset: {x: 0, y: 0, z: 0, w: 0}
+    _crest: {fileID: 0}
+    _namePlate: {fileID: -988498981720247006, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: 1461543893333893022, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: 6000633754969301941, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 0.55, g: 1, b: 0.68, a: 0.85}
+  - _frame: {fileID: -3872526445276267752, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 0}
+    _auraOutset: {x: 0, y: 0, z: 0, w: 0}
+    _crest: {fileID: 0}
+    _namePlate: {fileID: -8697169583272768659, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: 6290761748157743799, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: 1534043838168245002, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 1, g: 0.74, b: 0.4, a: 0.85}
+  - _frame: {fileID: -8626933205699606910, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 0}
+    _auraOutset: {x: 0, y: 0, z: 0, w: 0}
+    _crest: {fileID: 0}
+    _namePlate: {fileID: -843853342341486369, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: 4199108141317408198, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: 1892158750185250929, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 1, g: 0.5, b: 0.5, a: 0.85}
+  - _frame: {fileID: -268014077894330582, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 1965372614914444658, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _auraOutset: {x: 14, y: 12, z: 14, w: 12}
+    _crest: {fileID: -7329977725881091956, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _namePlate: {fileID: -6394380266655175050, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: -4662736151544318235, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: -3005775255962564131, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 1, g: 0.9, b: 0.55, a: 0.9}
+  _evolution:
+    _frame: {fileID: 1174790654020541577, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: -7833357916802199539, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _auraOutset: {x: 26, y: 12, z: 26, w: 12}
+    _crest: {fileID: -1277304214555122243, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _namePlate: {fileID: 1246892655214469488, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: 9099378790449031814, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: -2717526635796764748, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 1, g: 0.6, b: 0.28, a: 0.9}
+  _neutral:
+    _frame: {fileID: -2789038473554276429, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 0}
+    _auraOutset: {x: 0, y: 0, z: 0, w: 0}
+    _crest: {fileID: 0}
+    _namePlate: {fileID: 1247474735390353995, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: -8627368152604694964, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: 2901130168057850055, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 1, g: 0.84, b: 0.5, a: 0.8}
+  _extract:
+    _frame: {fileID: 5929713862534262228, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 0}
+    _auraOutset: {x: 0, y: 0, z: 0, w: 0}
+    _crest: {fileID: 0}
+    _namePlate: {fileID: 7587829163441889172, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: -8914695322826288979, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: 6144117929954470363, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 0.62, g: 0.82, b: 1, a: 0.85}
+  _climb:
+    _frame: {fileID: 8233085056104023226, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _aura: {fileID: 0}
+    _auraOutset: {x: 0, y: 0, z: 0, w: 0}
+    _crest: {fileID: 0}
+    _namePlate: {fileID: 5783258298712186542, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _well: {fileID: -3728633917728778339, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _sigil: {fileID: -2503023261768608984, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _pressColour: {r: 1, g: 0.6, b: 0.32, a: 0.85}
