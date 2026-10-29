@@ -45,6 +45,7 @@ namespace Cryptforge.Tests
             "Render.TransparentGeometry", "RenderForward.RenderLoopJob", "Batch.DrawDynamic", "Batch.DrawStatic",
             "Gfx.WaitForPresentOnGfxThread", "GC.Collect", "Instantiate", "Destroy", PerformanceMarkers.StartWaveName,
             "PostLateUpdate.UpdateSortingGroups", "SortingGroupManager.Update", "PostLateUpdate.UpdateRectTransform",
+            "WaitForTargetFPS", "Gfx.WaitForPresent", "EditorLoop",
         };
         internal static readonly string[] ScriptNames =
         {

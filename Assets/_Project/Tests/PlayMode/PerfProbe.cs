@@ -195,6 +195,10 @@ namespace Cryptforge.Tests
             }
             if (follow != null)
                 follow.Frame(PhoneWidth, PhoneHeight, BandBottom, BandTop);
+            // CombatSetup caps the frame rate at 60; game time is fixed by captureDeltaTime, so the Editor runs uncapped
+            // and the wall time is the frame's own work rather than a wait for the next 1/60 s.
+            int targetFrameRate = Application.targetFrameRate;
+            Application.targetFrameRate = -1;
             var recorder = new GameObject("Perf Probe Recorder").AddComponent<PerfProbeRecorder>();
             recorder.Initialize(setup, hero, camera, run.ManualRender);
 
@@ -204,6 +208,7 @@ namespace Cryptforge.Tests
                 yield return Horde(run, setup, hero, camera, recorder);
             recorder.End();
             Summarize(run, recorder);
+            Application.targetFrameRate = targetFrameRate;
 
             for (int i = 0; i < canvases.Count; i++)
                 if (canvases[i] != null)
@@ -339,7 +344,8 @@ namespace Cryptforge.Tests
                 .Append(", floor clock from ").Append(F(FloorClockStart, 0)).Append(" s, overrun at 300 s); Warden ")
                 .Append(F(WardenFirstSeconds, 0)).Append(" s + ").Append(F(WardenSecondSeconds, 0)).Append(" s phase 2 + ")
                 .Append(F(WardenFallSeconds, 0)).Append(" s fall; autopilot on; offers answered with the first card at once; ")
-                .Append("hero healed below ").Append(F(HealBelow * 100f, 0)).AppendLine("%; frames are 1/60 s of game time.");
+                .Append("hero healed below ").Append(F(HealBelow * 100f, 0))
+                .AppendLine("%; frames are 1/60 s of game time, run uncapped (targetFrameRate -1 while measuring).");
             report.AppendLine("left out: frames the probe worked in (census every " + CensusEvery +
                 " frames, the depth timing) and paused frames (an open choice). The recorders' values are the frame's own.");
             report.AppendLine("caution: Editor CPU and GC are the Editor's, not the S23's - compare builds against each other " +
