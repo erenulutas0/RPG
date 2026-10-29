@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -9,6 +11,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace Cryptforge.Tests
 {
@@ -19,6 +22,9 @@ namespace Cryptforge.Tests
     // The drawing only observes the hero's floor displacement, so these tests walk the hero by moving its transform a
     // known floor distance each frame, with HeroMovementInput switched off: no rim, pit wall or other obstacle round the
     // spawn can stop or turn a walk aside.
+    //
+    // Since 2026-10-29 Ilya's set draws all eight facings, so a west heading shows the west frames as rendered, never
+    // mirrored; a set of only the five east facings (any other rendered set) still mirrors them for the west.
     public sealed class CinderArcanistAnimationTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -30,6 +36,7 @@ namespace Cryptforge.Tests
         private AttackController _attack;
         private Health _hero;
         private Health _target;
+        private RenderedCharacterArtSet _fiveFacings;
 
         private IEnumerator Load(bool arcanist = true, bool puppet = false)
         {
@@ -77,6 +84,9 @@ namespace Cryptforge.Tests
         [UnityTearDown]
         public IEnumerator Unload()
         {
+            if (_fiveFacings != null)
+                Object.Destroy(_fiveFacings);
+            _fiveFacings = null;
             Time.timeScale = 1;
             Time.captureDeltaTime = 0;
             var scene = SceneManager.GetActiveScene();
@@ -93,6 +103,8 @@ namespace Cryptforge.Tests
             Assert.That(_look.enabled, Is.False, "The painted Vanguard look steps aside.");
             Assert.That(_drawn.Art, Is.SameAs(Object.FindFirstObjectByType<CombatSetup>().Hero.RenderedArt));
             Assert.That(_drawn.Art.IsValid, Is.True);
+            Assert.That(_drawn.Art.DrawsWest, Is.True, "All eight facings rendered.");
+            Assert.That(_drawn.Player.WestDrawn, Is.True, "So the player never mirrors.");
             Assert.That(_drawn.Root.name, Is.EqualTo(RenderedCharacterAnimator.RootName));
             Assert.That(_drawn.Root.parent, Is.SameAs(_look.transform), "Beside the body, so it outlives the death hide.");
             Assert.That(_look.Body.sprite, Is.Null, "The body draws nothing; CombatantView keeps its renderer.");
@@ -127,10 +139,10 @@ namespace Cryptforge.Tests
             yield return Load();
             var walks = new (Vector2 steer, RenderedFacing facing, bool mirrored)[]
             {
-                (Vector2.right, RenderedFacing.East, false), (Vector2.left, RenderedFacing.East, true),
+                (Vector2.right, RenderedFacing.East, false), (Vector2.left, RenderedFacing.West, false),
                 (Vector2.up, RenderedFacing.North, false), (Vector2.down, RenderedFacing.South, false),
-                (new Vector2(1, 1), RenderedFacing.NorthEast, false), (new Vector2(-1, -1), RenderedFacing.SouthEast, true),
-                (new Vector2(-1, 1), RenderedFacing.NorthEast, true), (new Vector2(1, -1), RenderedFacing.SouthEast, false)
+                (new Vector2(1, 1), RenderedFacing.NorthEast, false), (new Vector2(-1, -1), RenderedFacing.SouthWest, false),
+                (new Vector2(-1, 1), RenderedFacing.NorthWest, false), (new Vector2(1, -1), RenderedFacing.SouthEast, false)
             };
             int stride = _drawn.Art.FrameCount(RenderedMotion.Walk);
             foreach (var walk in walks)
@@ -183,8 +195,9 @@ namespace Cryptforge.Tests
             Assert.That(strikes, Is.GreaterThan(0));
             Assert.That(atTheHit, Is.EqualTo(RenderedMotion.Strike), "The damage has landed: the strike shows at once.");
             Assert.That(poses.Count, Is.GreaterThanOrEqualTo(3), "The strike plays through its frames.");
-            Assert.That(_drawn.Facing, Is.EqualTo(RenderedFacing.East));
-            Assert.That(_drawn.Mirrored, Is.True, "Turned to the target on its left.");
+            Assert.That(_drawn.Facing, Is.EqualTo(RenderedFacing.West), "Turned to the target on its left.");
+            Assert.That(_drawn.Mirrored, Is.False, "As rendered: the staff stays in the right hand.");
+            Assert.That(_drawn.Root.localScale.x, Is.EqualTo(1f));
             for (int i = 0; i < 30; i++)
                 yield return null;
             Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Idle));
@@ -203,18 +216,112 @@ namespace Cryptforge.Tests
             {
                 // The target walks beside the hero, so the staff keeps finding it.
                 _target.transform.position = _look.transform.position + Vector3.up * .3f;
-                yield return Step((i / 40) % 2 == 0 ? Vector2.right : Vector2.left);
+                bool east = (i / 40) % 2 == 0;
+                yield return Step(east ? Vector2.right : Vector2.left);
                 if (!_drawn.Player.IsStriking)
                     continue;
                 walkingStrikes++;
                 Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.WalkStrike), "frame " + i);
                 Assert.That(_drawn.FrameIndex, Is.EqualTo(RenderedCharacterFrames.WalkFrame(_drawn.Player.WalkDistance,
                     _drawn.Art.StrideLength, _drawn.Art.FrameCount(RenderedMotion.WalkStrike))), "The legs are the walk's.");
-                Assert.That(_drawn.Facing, Is.EqualTo(RenderedFacing.East), "Walking, the travel keeps the facing.");
+                Assert.That(_drawn.Facing, Is.EqualTo(east ? RenderedFacing.East : RenderedFacing.West),
+                    "Walking, the travel keeps the facing.");
+                Assert.That(_drawn.Mirrored, Is.False, "The west walking strike is drawn, not mirrored.");
             }
             Assert.That(_attack.AttackCount, Is.GreaterThan(attacks + 1), "It attacked on the move.");
             Assert.That(walkingStrikes, Is.GreaterThan(0));
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // The mirrored west flipped the light and put the staff in the other hand. Walking, standing, striking and
+        // casting to the west, the drawing shows the west frames as rendered and never mirrors.
+        [UnityTest]
+        public IEnumerator AWestHeadingShowsTheWestFramesUnmirrored()
+        {
+            yield return Load();
+            RenderedCharacterArtSet art = _drawn.Art;
+            var poses = new HashSet<int>();
+            for (int i = 0; i < 40; i++)
+            {
+                yield return Step(Vector2.left);
+                string at = "west frame " + i;
+                Assert.That(_drawn.Facing, Is.EqualTo(RenderedFacing.West), at);
+                Assert.That(_drawn.Mirrored, Is.False, at);
+                Assert.That(_drawn.Root.localScale, Is.EqualTo(Vector3.one), at + ": nothing is flipped.");
+                Assert.That(_drawn.Renderer.sprite, Is.SameAs(art.Frame(RenderedMotion.Walk, RenderedFacing.West,
+                    _drawn.FrameIndex)), at);
+                Assert.That(_drawn.Renderer.sprite, Is.Not.SameAs(art.Frame(RenderedMotion.Walk, RenderedFacing.East,
+                    _drawn.FrameIndex)), at + ": its own drawing, not the east one.");
+                Assert.That(_drawn.Renderer.flipX, Is.False, at);
+                poses.Add(_drawn.FrameIndex);
+            }
+            Assert.That(poses.Count, Is.EqualTo(art.FrameCount(RenderedMotion.Walk)), "The west walk steps the whole stride.");
+            for (int i = 0; i < 12; i++)
+                yield return null;
+            Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Idle));
+            Assert.That(_drawn.Renderer.sprite, Is.SameAs(art.Frame(RenderedMotion.Idle, RenderedFacing.West, _drawn.FrameIndex)),
+                "Standing west idles in the west drawing.");
+
+            var ability = _hero.GetComponent<AbilityController>();
+            Assert.That(ability.TryUse(), Is.True, "The Vent is ready at the start.");
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Cast));
+                Assert.That(_drawn.Renderer.sprite, Is.SameAs(art.Frame(RenderedMotion.Cast, RenderedFacing.West,
+                    _drawn.FrameIndex)), "The Vent cast to the west, frame " + i);
+                Assert.That(_drawn.Root.localScale.x, Is.EqualTo(1f));
+                yield return null;
+            }
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Any set with only the five east facings - Ilya's until 2026-10-29 - is drawn exactly as before: the west
+        // mirrors the east twin by flipping the drawing, and only the drawing.
+        [UnityTest]
+        public IEnumerator AFiveFacingSetStillMirrorsTheWest()
+        {
+            yield return Load();
+            _fiveFacings = EastFacingsOf(_drawn.Art);
+            Assert.That(_fiveFacings.IsValid && !_fiveFacings.DrawsWest, Is.True);
+            Object.Destroy(_drawn.Root.gameObject);
+            Object.Destroy(_drawn);
+            yield return null;
+            _drawn = RenderedCharacterAnimator.Attach(_look.gameObject, _look.Body, null, _attack, _fiveFacings);
+            Assert.That(_drawn.Art, Is.SameAs(_fiveFacings));
+            Assert.That(_drawn.Player.WestDrawn, Is.False);
+            var walks = new (Vector2 steer, RenderedFacing facing, bool mirrored)[]
+            {
+                (Vector2.left, RenderedFacing.East, true), (new Vector2(-1, 1), RenderedFacing.NorthEast, true),
+                (new Vector2(-1, -1), RenderedFacing.SouthEast, true), (Vector2.right, RenderedFacing.East, false)
+            };
+            foreach (var walk in walks)
+                for (int i = 0; i < 20; i++)
+                {
+                    yield return Step(walk.steer);
+                    string at = walk.steer + " frame " + i;
+                    Assert.That(_drawn.Motion, Is.EqualTo(RenderedMotion.Walk), at);
+                    Assert.That(_drawn.Facing, Is.EqualTo(walk.facing), at);
+                    Assert.That(_drawn.Mirrored, Is.EqualTo(walk.mirrored), at);
+                    Assert.That(_drawn.Root.localScale.x, Is.EqualTo(walk.mirrored ? -1f : 1f), at);
+                    Assert.That(_drawn.Renderer.sprite, Is.SameAs(_fiveFacings.Frame(RenderedMotion.Walk, walk.facing,
+                        _drawn.FrameIndex)), at);
+                }
+            Assert.That(_look.transform.localScale, Is.EqualTo(Vector3.one), "Only the drawing mirrors.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A runtime copy of a set with its five east facings only.
+        private static RenderedCharacterArtSet EastFacingsOf(RenderedCharacterArtSet set)
+        {
+            const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
+            var copy = ScriptableObject.CreateInstance<RenderedCharacterArtSet>();
+            foreach (string field in new[] { "_strideLength", "_timings" })
+                typeof(RenderedCharacterArtSet).GetField(field, Private).SetValue(copy,
+                    typeof(RenderedCharacterArtSet).GetField(field, Private).GetValue(set));
+            FieldInfo clips = typeof(RenderedCharacterArtSet).GetField("_clips", Private);
+            clips.SetValue(copy, Array.FindAll((RenderedCharacterArtSet.Clip[])clips.GetValue(set),
+                clip => !RenderedCharacterFrames.IsWest(clip.Facing)));
+            return copy;
         }
 
         [UnityTest]

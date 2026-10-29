@@ -238,11 +238,16 @@ stay for a later painted pass.
     the skirt), the turn's narrowest width, and the weapon flash, which borrows `Resources/RenderedCharacterFlash.shader`.
 - **Ilya rendered from one model** - `Tools/ArtReview/BuildBlenderArcanist.py` builds Ilya procedurally in Blender 4.5
   (toon shading, an inverted-hull outline, a rig with IK, every clip as an action; `ArtDirection/2026-10-27/
-  arcanist-blender-01/` holds the .blend, frames.json and a README), `PackArcanistSprites.py` packs 210 frames into
-  three atlases under `Assets/_Project/Art/Characters/CinderArcanist/` (2.64 MB as ASTC 4x4, 100 texels a unit) with
-  `CinderArcanistArtSet.asset`. Five rendered facings (the west side mirrored): idle 8, walk 8 and walking strike 8
-  (driven by distance, 1.2 floor units a stride), strike 5, Vent cast 5, hit 3, death 5. Because every frame comes from
-  one model, nothing drifts between frames or facings.
+  arcanist-blender-01/` holds the .blend, frames.json and a README), `PackArcanistSprites.py` packs 336 frames into
+  three atlases under `Assets/_Project/Art/Characters/CinderArcanist/` with `CinderArcanistArtSet.asset`: idle 8,
+  walk 8 and walking strike 8 (driven by distance, 1.2 floor units a stride), strike 5, Vent cast 5, hit 3, death 5.
+  Because every frame comes from one model, nothing drifts between frames or facings.
+  - 2026-10-29: all eight facings rendered (336 frames, 4.20 MB as ASTC 4x4 in 2048x1024, 2048x1024 and 820x252, 96%
+    fill; the five alone were 2.64 MB). Until then the west three mirrored the east ones, which moved the light to the
+    upper right and the staff to the left hand whenever Ilya turned west. `RenderedFacing` has eight values; a set that
+    draws them all (`RenderedCharacterArtSet.DrawsWest`) is never mirrored, a set of the five east facings still is,
+    and a half-drawn west is invalid. The canvas grew to 2.5 units tall, so the north strikes and the Vent's peak no
+    longer lose the crucible's flame off the top.
   - `HeroDefinition._renderedArt` + `RenderedCharacterAnimator.TakeOver` (from `HeroLookView.Start`, after
     `CombatSetup` has chosen the hero) draw a hero with its own art; `RenderedCharacterPlayer` (pure) picks motion,
     facing and frame; `RenderedCharacterFlash.shader` gives the white hit flash.
@@ -253,7 +258,8 @@ stay for a later painted pass.
     own white silhouette, the puppet swaps in its white parts while the flash is strong.
   - `development/puppet.txt` is the Vanguard's: the puppet attaches in `HeroLookView.Start`, after the hero is known,
     and never takes a hero with its own rendered art.
-  - Known gaps: the carried weapon is always the rendered staff; the mirrored west side flips the light.
+  - Known gaps: the carried weapon is always the rendered staff; struck or cast toward the south-west (as toward the
+    south) the staff points at the camera and reads as a flare before the face.
 - **Painted combat feedback** - `Tools/ArtReview/build_combat_feedback_vfx.py` (it reuses build_skill_vfx's painting
   without changing its output) paints one sheet, `Assets/_Project/Art/Effects/Feedback/VFX_Feedback.png` (212 KiB as
   ASTC 4x4), and `CombatFeedbackArtSet.asset`; `CombatEffectsView._feedbackArt` uses it when valid, the pixel art
