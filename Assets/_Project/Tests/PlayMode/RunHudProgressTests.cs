@@ -80,8 +80,8 @@ namespace Cryptforge.Tests
             Assert.That(floor.text, Does.StartWith("Floor "));
             Assert.That(status.text, Does.StartWith("Wave "));
 
-            // The target's health is shown the moment it changes.
-            target.ApplyDamage(new DamageContext(1f));
+            // The target's health is shown the moment it changes (a tenth of it, so the whole number shown changes).
+            target.ApplyDamage(new DamageContext(target.Maximum * .1f));
             Assert.That(enemyLabel.text, Is.Not.EqualTo(enemyText));
             Assert.That(enemyLabel.text, Does.Contain(target.Current.ToString("0") + " / " + target.Maximum.ToString("0") + " HP"));
             yield return null;
