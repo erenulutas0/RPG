@@ -159,8 +159,10 @@ namespace Cryptforge.Tests
             Assert.That(look.Bar.gameObject.activeSelf,Is.False,"The bar hides at once.");
             Assert.That(look.Body.gameObject.activeSelf,Is.False,"The standing body gives way to its remains.");
             SpriteRenderer remains=null;
+            // Each of the Foundry's kinds falls in a death of its own (art round 3); a set without one, in the two remains.
+            Sprite first=set.HasOwnDeath?set.GetOwnDeath(look.RearFacing)[0]:set.Death[0];
             foreach(var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())
-                if(renderer.enabled&&renderer.sprite==set.Death[0])remains=renderer;
+                if(renderer.enabled&&renderer.sprite==first)remains=renderer;
             Assert.That(remains,Is.Not.Null,"The fall shows where it happened.");
             float fallAlpha=remains.color.a,fallY=remains.transform.position.y,fellAt=Time.time;
             float faded=fallAlpha,lowest=fallY;
