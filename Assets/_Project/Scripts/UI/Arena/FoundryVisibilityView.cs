@@ -134,13 +134,18 @@ namespace Cryptforge.UI
                 float z = FoundryDepth.ActorZ(region, actor.position.y + lift);
                 int children = actor.childCount;
                 if (children == 0) MoveToDepth(actor, z, lift);
+                // The hero's ability ring lies on the floor as a contact shadow does. It is found by its name once per
+                // actor, natively: reading each child's name would allocate a string for every child of every actor on
+                // every frame, and a failed GetComponent allocates in the Editor, so the shadow is asked for with
+                // TryGetComponent. The pass allocates nothing once its lists have grown.
+                Transform ring = children > 0 ? actor.Find(AbilityRingView.RingName) : null;
                 // An enemy's health bar shares height but keeps its readout depth, even when a structure
                 // hides the body, so a silhouetted enemy still shows how hurt it is.
                 for (int c = 0; c < children; c++)
                 {
                     Transform child = actor.GetChild(c);
-                    bool floor = child.GetComponent<ContactShadowView>() != null || child.name == "Ability Ring";
-                    if (floor) _ground.Apply(child.GetComponent<SpriteRenderer>(), region);
+                    bool floor = child.TryGetComponent(out ContactShadowView _) || child == ring;
+                    if (floor && child.TryGetComponent(out SpriteRenderer flat)) _ground.Apply(flat, region);
                     MoveToDepth(child, child == bar ? child.position.z : z, floor ? 0 : lift);
                 }
             }
