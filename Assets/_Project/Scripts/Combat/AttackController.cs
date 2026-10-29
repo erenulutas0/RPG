@@ -121,6 +121,19 @@ namespace Cryptforge.Combat
             StruckWith?.Invoke(target, weapon);
         }
 
+        // For presentation that anticipates a blow (an enemy's strike windup, EnemyLookView): the target the first weapon
+        // will strike when its cooldown runs out, if no more than `within` seconds of it are left and that target - the
+        // strike's own Acquire at the weapon's reach - stands in reach now; null otherwise, and while this attacker cannot
+        // strike at all. It reads the cooldown and the candidates and changes neither, so every strike still comes when
+        // and where it would have: the cooldown ticks and the strike fires in Update alone.
+        public Health StrikeDue(float within)
+        {
+            if (_weapon == null || !isActiveAndEnabled || !_owner.isActiveAndEnabled || !_owner.IsAlive ||
+                _weapon.CooldownRemaining > within)
+                return null;
+            return _targeting.Acquire(_weapon.Range);
+        }
+
         // The fallen enemy is still where it fell: a body is hidden at once but retired only later, so its position is
         // the one the strike reached it at. Explicit, so the controller's own surface stays what it was.
         IReadOnlyList<IDamageable> INeighbourhood.Near(IDamageable centre, float radius)

@@ -10,8 +10,10 @@ namespace Cryptforge.UI
     // fades in on its arrival (Arrive); a fallen enemy's bar hides at once and its body is left to the pooled remains.
     // A set with the optional boss poses adds two more: a telegraphed blow raises the windup pose until it lands
     // (WindUp, Slam - the Forge Warden's slam, driven by WardenSlamView), carried at a walk by the distance travelled
-    // when the set draws that, and the enemy's enrage swaps every pose for its second phase's (EnrageBehaviour). Every
-    // other enemy behaves exactly as before.
+    // when the set draws that, and the enemy's enrage swaps every pose for its second phase's (EnrageBehaviour). A set
+    // with a horde enemy's own strike windup draws back to strike, facing its target, in the beat before each blow that
+    // is due on a target in reach (AttackController.StrikeDue), and the strike frame takes over when the blow lands; the
+    // blow's timing is the attacker's alone. Every other enemy behaves exactly as before.
     public sealed class EnemyLookView : MonoBehaviour, ILookSprites
     {
         private const string BarName = "Health Bar";
@@ -21,6 +23,11 @@ namespace Cryptforge.UI
         public const int WindupFrame = 6;
         // How long the strike pose holds once a telegraphed blow lands: long enough to read as the blow, not a swing.
         private const float SlamFrameSeconds = .35f;
+        // PaintedFrame while a horde enemy's strike windup shows (EnemyArtSet.HasStrikeWindup): after the boss's windup.
+        public const int StrikeWindupFrame = 7;
+        // The strike windup never takes more than this share of a blow's interval, so a quick attacker still walks
+        // between its blows.
+        private const float StrikeWindupShare = .5f;
 
         [SerializeField] private EnemyLook _look = EnemyLook.Grunt;
         [SerializeField] private SpriteRenderer _body;
@@ -61,6 +68,8 @@ namespace Cryptforge.UI
         private bool _subscribed;
         // Only with a painted second phase: the enrage that shows it.
         private EnrageBehaviour _enrage;
+        // The set draws a horde enemy's strike windup and there is an attacker to anticipate.
+        private bool _anticipates;
 
         public EnemyLook Look => _look;
         // A telegraphed blow is coming: the windup pose holds until Slam or CancelWindup.
@@ -69,6 +78,8 @@ namespace Cryptforge.UI
         public int WindupStep { get; private set; } = -1;
         // The painted second phase is showing.
         public bool ShowsEnraged { get; private set; }
+        // A horde enemy's strike windup is showing: a blow is due on a target in reach.
+        public bool ShowsStrikeWindup => PaintedFrame == StrikeWindupFrame;
         // This look draws its enemy's enrage itself, so the body keeps its colours (CombatantView skips its tint).
         internal bool DrawsEnrage => _painted && _paintedArt.HasEnragedFrames;
         // The body renderer, for presentation that restyles it in place (the foundry's hidden-enemy silhouette).
@@ -95,6 +106,7 @@ namespace Cryptforge.UI
             if (_paintedArt != null && !_painted) Debug.LogError("Enemy painted art set is incomplete.", this);
             if (!_painted) _sprites = EnemySpriteCache.Get(_look);
             if (DrawsEnrage) _enrage = GetComponent<EnrageBehaviour>();
+            _anticipates = _painted && _paintedArt.HasStrikeWindup && _attack != null;
             // The prefab variants tint and scale the old square placeholder; the drawn look carries its own colour
             // and is already the size it should be on the 32 texel grid.
             _body.color = Color.white;
@@ -329,6 +341,7 @@ namespace Cryptforge.UI
             if (IsWindingUp) { TickWindup(delta); return; }
             _attackRemaining = Mathf.Max(0, _attackRemaining - Time.deltaTime);
             if (_attackRemaining > 0) return;
+            if (_anticipates && TickStrikeWindup()) return;
             float travel = new Vector2(delta.x, delta.y / ArenaFloor.DepthScale).magnitude;
             if (travel < .0001f) { _walkDistance = 0; ShowPainted(0); return; }
             Face(delta);
@@ -343,6 +356,24 @@ namespace Cryptforge.UI
             CurrentPose = frame == 3 ? EnemyPose.Attack : frame == 2 ? EnemyPose.IdleB : EnemyPose.IdleA;
             _body.sprite = _paintedArt.GetFrame(frame, RearFacing, ShowsEnraged).Body;
             var scale = _body.transform.localScale; scale.x = Mathf.Abs(scale.x) * (Mirrored ? -1 : 1); _body.transform.localScale = scale;
+        }
+
+        // A blow is due within the set's beat (never more than StrikeWindupShare of the interval) on a target in reach:
+        // the windup shows, turned toward that target and held through walking, until the strike frame takes over
+        // (OnAttacked) - or, the target gone out of reach first, the walk resumes. One float comparison a frame until the
+        // beat begins, then one distance to the enemy's one candidate.
+        private bool TickStrikeWindup()
+        {
+            WeaponRuntime weapon = _attack.Weapon;
+            if (weapon == null || weapon.CooldownRemaining > _paintedArt.StrikeWindupSeconds) return false;
+            Health target = _attack.StrikeDue(Mathf.Min(_paintedArt.StrikeWindupSeconds, weapon.Interval * StrikeWindupShare));
+            if (target == null) return false;
+            Face(target.transform.position - transform.position);
+            PaintedFrame = StrikeWindupFrame;
+            CurrentPose = EnemyPose.Attack;
+            _body.sprite = _paintedArt.GetStrikeWindup(RearFacing).Body;
+            var scale = _body.transform.localScale; scale.x = Mathf.Abs(scale.x) * (Mirrored ? -1 : 1); _body.transform.localScale = scale;
+            return true;
         }
 
         // The raised hammer steps with the legs by the distance travelled, as the walk does, in a set that draws it at a
