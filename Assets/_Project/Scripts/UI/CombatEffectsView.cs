@@ -418,6 +418,7 @@ namespace Cryptforge.UI
             _encounter.EncounterStarted += OnEncounterStarted;
             _encounter.EnemyDefeated += OnEnemyDefeated;
             _encounter.HordeEnemySpawned += OnHordeEnemySpawned;
+            _encounter.SwarmEnemySpawned += OnSwarmEnemySpawned;
             _encounter.HordeReleased += ReleaseHorde;
             _heroAttack.Struck += OnHeroStruck;
             _heroAttack.StruckWith += OnHeroStruckWith;
@@ -446,6 +447,7 @@ namespace Cryptforge.UI
                 _encounter.EncounterStarted -= OnEncounterStarted;
                 _encounter.EnemyDefeated -= OnEnemyDefeated;
                 _encounter.HordeEnemySpawned -= OnHordeEnemySpawned;
+                _encounter.SwarmEnemySpawned -= OnSwarmEnemySpawned;
                 _encounter.HordeReleased -= ReleaseHorde;
                 ReleaseHorde();
                 _heroAttack.Struck -= OnHeroStruck;
@@ -679,6 +681,22 @@ namespace Cryptforge.UI
             if (watch.Look != null)
                 watch.Look.Arrive(ArrivalSeconds);
             ShowArrivalPuff(watch.Root.position);
+        }
+
+        // A swarm room fills a fallen place, or opens a new one, for its whole life after the one EncounterStarted: the
+        // place's watch follows the newcomer, so its hits, numbers and fall are drawn like the opening wave's.
+        private void OnSwarmEnemySpawned(int slot)
+        {
+            if (slot < 0 || slot >= _watches.Length)
+                return;
+            EnemyWatch watch = _watches[slot];
+            Unbind(watch);
+            Health enemy = slot < _encounter.WaveEnemyCount ? _encounter.WaveEnemyAt(slot) : null;
+            if (enemy == null)
+                return;
+            Bind(watch, enemy);
+            if (slot >= _watchCount)
+                _watchCount = slot + 1;
         }
 
         // Reserved slots, round robin among themselves: when all are busy the oldest puff gives way, never a remains.

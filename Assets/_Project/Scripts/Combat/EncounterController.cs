@@ -177,6 +177,9 @@ namespace Cryptforge.Combat
         // A horde enemy has walked onto the floor into this place of the horde (HordeEnemyAt), and the horde has left the
         // floor: for views that follow every enemy, not only the wave's.
         public event Action<int> HordeEnemySpawned;
+        // A swarm room's enemy walked into its place in the wave (WaveEnemyAt), the opening ladder's and every refill's
+        // after it, so presentation that follows the wave can follow the newcomer.
+        public event Action<int> SwarmEnemySpawned;
         public event Action HordeReleased;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
@@ -631,6 +634,7 @@ namespace Cryptforge.Combat
             enemy.Health.transform.position = WorldPosition(_motion.XOf(spawn.Slot), _motion.YOf(spawn.Slot));
             _swarmCandidates[spawn.Slot] = enemy.Health;
             AliveEnemyCount++;
+            SwarmEnemySpawned?.Invoke(spawn.Slot);
         }
 
         // A fallen enemy's body leaves as its place is filled again: a second after it fell, long enough to be seen to.
