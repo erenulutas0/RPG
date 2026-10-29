@@ -341,7 +341,8 @@ namespace Cryptforge.Tests
             report.Append("rendering: ").AppendLine(rendering);
             report.Append("scenario: seed ").Append(seed).Append("; horde window ").Append(F(hordeSeconds, 0))
                 .Append(" s after the crowd of ").Append(WarmCrowd).Append(" stands (first wave padded to ").Append(Crowd)
-                .Append(", floor clock from ").Append(F(FloorClockStart, 0)).Append(" s, overrun at 300 s); Warden ")
+                .Append(", floor clock from ").Append(F(FloorClockStart, 0))
+                .Append(" s, overrun at 300 s; the padding flag also gives the hero +1,000,000 health, as on the phone); Warden ")
                 .Append(F(WardenFirstSeconds, 0)).Append(" s + ").Append(F(WardenSecondSeconds, 0)).Append(" s phase 2 + ")
                 .Append(F(WardenFallSeconds, 0)).Append(" s fall; autopilot on; offers answered with the first card at once; ")
                 .Append("hero healed below ").Append(F(HealBelow * 100f, 0))
