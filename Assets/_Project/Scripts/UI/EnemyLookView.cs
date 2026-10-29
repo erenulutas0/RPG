@@ -42,6 +42,8 @@ namespace Cryptforge.UI
         // Gap between the top of the look's canvas and the bar, in world units.
         [SerializeField] private float _barClearance = 0.12f;
         [SerializeField] private int _barSortingOrder = 10;
+        // The painted bar (Art/UI/Hud, Tools/ArtReview/build_hud_art.py). Without it, or with a broken one, the pixel bar.
+        [SerializeField] private EnemyBarArtSet _barArt;
 
         // How far below its rest the body starts an arrival, in world units: it rises out of the floor as it fades in.
         private const float ArrivalSink = .1f;
@@ -50,6 +52,11 @@ namespace Cryptforge.UI
         private GameObject _bar;
         private SpriteRenderer _backRenderer;
         private SpriteRenderer _fillRenderer;
+        // Only on a painted bar: the pale chunk a hit takes, under the fill.
+        private SpriteRenderer _trailRenderer;
+        private EnemyBarTrail _barTrail;
+        // The fill's width in its own texels: the steps it drains in.
+        private float _fillTexels = EnemyArt.HealthFillWidth;
         private SpriteRenderer _shadow;
         private Vector3 _bodyRest;
         private float _arrivalDuration;
@@ -75,6 +82,10 @@ namespace Cryptforge.UI
         internal SpriteRenderer Body => _body;
         // The health bar root (a child of this enemy), for presentation that keeps it on top of scenery.
         internal Transform Bar => _bar != null ? _bar.transform : null;
+        // The painted bar's set while this enemy wears it; null on the pixel bar. For tests.
+        internal EnemyBarArtSet PaintedBar => _barTrail != null ? _barArt : null;
+        // The painted bar's chunk; null on the pixel bar. For tests.
+        internal EnemyBarTrail BarChunk => _barTrail;
         public EnemyPose CurrentPose { get; private set; }
         public bool HasSprites => _painted || (_sprites != null && _sprites.Frame(EnemyPose.IdleA) != null);
 
@@ -143,7 +154,9 @@ namespace Cryptforge.UI
         // hidden on death separately.
         private void BuildBar()
         {
-            EnemySpriteCache.EnsureBars();
+            bool paintedBar = _barArt != null && _barArt.IsValid;
+            if (!paintedBar)
+                EnemySpriteCache.EnsureBars();
             _bar = new GameObject(BarName);
             _bar.transform.SetParent(transform, false);
             GroundedSorting.Attach(_bar.transform, _body.sortingLayerID, _barSortingOrder);
@@ -151,10 +164,32 @@ namespace Cryptforge.UI
             if (_look == EnemyLook.Mite) _bar.transform.localScale = new Vector3(.65f, .8f, 1f);
             float top = _painted ? _paintedArt.VisualTop : EnemyArt.HeightOf(_look) / PixelSpriteFactory.PixelsPerUnit;
             _bar.transform.localPosition = new Vector3(0f, top + _barClearance, 0f);
+            if (paintedBar)
+            {
+                BuildPaintedBar();
+                return;
+            }
             _backRenderer = AddBarRenderer("Back", EnemySpriteCache.BarBack, Vector3.zero, _barSortingOrder);
             // The fill's left edge sits one texel inside the backing's frame.
             float fillLeft = -EnemyArt.HealthFillWidth * 0.5f / PixelSpriteFactory.PixelsPerUnit;
             _fillRenderer = AddBarRenderer("Fill", EnemySpriteCache.BarFill, new Vector3(fillLeft, 0f, 0f), _barSortingOrder + 1);
+        }
+
+        // The same root, place and size, painted: the backing (the pixel bar's 26 by 5 of its texels), the pale chunk a
+        // hit takes and the fill over it, both centred in the backing's channel and pinned at their left edge. The Mite
+        // wears the compact sprites, whose frame is painted thicker across for the squeeze above. Every bar of a crowd
+        // shares the set's sprites, on one texture.
+        private void BuildPaintedBar()
+        {
+            bool compact = _look == EnemyLook.Mite;
+            Sprite fill = _barArt.FillFor(compact);
+            _fillTexels = fill.rect.width;
+            var fillLeft = new Vector3(-fill.rect.width * .5f / fill.pixelsPerUnit, 0f, 0f);
+            _backRenderer = AddBarRenderer("Back", _barArt.BackFor(compact), Vector3.zero, _barSortingOrder);
+            _trailRenderer = AddBarRenderer("Trail", _barArt.TrailFor(compact), fillLeft, _barSortingOrder + 1);
+            _fillRenderer = AddBarRenderer("Fill", fill, fillLeft, _barSortingOrder + 2);
+            _barTrail = _bar.AddComponent<EnemyBarTrail>();
+            _barTrail.Initialize(_trailRenderer, _fillTexels);
         }
 
         private SpriteRenderer AddBarRenderer(string name, Sprite sprite, Vector3 localPosition, int sortingOrder)
@@ -180,9 +215,11 @@ namespace Cryptforge.UI
                 return;
             float fraction = _health.Maximum > 0f ? Mathf.Clamp01(_health.Current / _health.Maximum) : 1f;
             // Whole texels keep the fill on the pixel grid; ceiling keeps a one-texel sliver while any health is left.
-            float texels = Mathf.Ceil(fraction * EnemyArt.HealthFillWidth);
+            float texels = Mathf.Ceil(fraction * _fillTexels);
             _fillRenderer.enabled = texels > 0f;
-            _fillRenderer.transform.localScale = new Vector3(texels / EnemyArt.HealthFillWidth, 1f, 1f);
+            _fillRenderer.transform.localScale = new Vector3(texels / _fillTexels, 1f, 1f);
+            if (_barTrail != null)
+                _barTrail.Follow(texels / _fillTexels);
         }
 
         private void OnDied()
@@ -235,6 +272,7 @@ namespace Cryptforge.UI
             float eased = 1f - (1f - progress) * (1f - progress);
             SetAlpha(_body, eased);
             SetAlpha(_backRenderer, eased);
+            SetAlpha(_trailRenderer, eased);
             SetAlpha(_fillRenderer, eased);
             SetAlpha(_shadow, eased);
             _body.transform.localPosition = _bodyRest + Vector3.down * (ArrivalSink * (1f - eased));
