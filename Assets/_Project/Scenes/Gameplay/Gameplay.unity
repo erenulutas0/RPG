@@ -6649,6 +6649,7 @@ MonoBehaviour:
     Sprite: {fileID: 21300000, guid: 23024dac82412604ba5673446ea95e5e, type: 3}
   - Definition: {fileID: 11400000, guid: 10000000000000000000000000000007, type: 2}
     Sprite: {fileID: 21300000, guid: 88764345d127cbb44a4d17b6acf6f48d, type: 3}
+  _iconSet: {fileID: 11400000, guid: b7177aca432045528ceb4d54d57a512b, type: 2}
   _inputDelay: 0.25
 --- !u!114 &1154073862
 MonoBehaviour:
@@ -7783,6 +7784,7 @@ MonoBehaviour:
   _relicCount: {fileID: 1456325226}
   _secondWindIcon: {fileID: 21300000, guid: 2dd998d8bc321574091f38e77ee2eeb7, type: 3}
   _counterweightIcon: {fileID: 21300000, guid: ad590130c43b4f444ac27992f28c94d3, type: 3}
+  _upgradeIcons: {fileID: 11400000, guid: b7177aca432045528ceb4d54d57a512b, type: 2}
 --- !u!114 &6460282016781158400
 MonoBehaviour:
   m_ObjectHideFlags: 0
