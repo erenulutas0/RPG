@@ -1,7 +1,8 @@
 // Temporary graphics-enabled PlayMode fixture (Tools/ArtReview/Run-HeroMotionCapture.ps1 installs and removes it):
 // records the hero's actual runtime motion in the Foundry - stance, walks in four directions, attacks on the move and
-// the ability - as numbered frames for review GIFs, for each presentation the build offers: the painted frames, the
-// cut-out puppet (development/puppet.txt) and the Cinder Arcanist (development/hero.txt). Nothing here ships.
+// the ability - as numbered frames for review GIFs, for each presentation the build offers: the painted frames
+// (development/painted-frames.txt), the cut-out puppet (the Vanguard's look) and the Cinder Arcanist
+// (development/hero.txt). Nothing here ships.
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -54,7 +55,7 @@ namespace Cryptforge.Tests
                 TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { "weapon_staff", "weapon_daggers" },
                     setup.Weapon == "weapon_sword" ? null : setup.Weapon));
                 File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
-                if (setup.Puppet) File.WriteAllText(DevelopmentStart.PuppetPath, "on");
+                if (!setup.Puppet && setup.HeroId == null) File.WriteAllText(DevelopmentStart.PaintedFramesPath, "on");
                 if (setup.HeroId != null) File.WriteAllText(DevelopmentStart.HeroPath, setup.HeroId);
                 Time.timeScale = 1;
                 yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");

@@ -82,11 +82,12 @@ namespace Cryptforge.Core
         // Development builds and the Editor may play any hero, locked or not, so the owner can try one early.
         public static bool AllHeroesOpen() => Application.isEditor || Debug.isDebugBuild;
 
-        // The file existing, whatever it holds (an empty one from `adb shell touch` counts), hands the hero's look to the
-        // cut-out puppet (PuppetAnimator, docs/45 section 4 B) while its painted parts are made. Nothing without the file.
-        public const string PuppetFileName = "puppet.txt";
-        public static string PuppetPath => Path.Combine(ProfileLocation.Resolve(), FolderName, PuppetFileName);
-        public static bool Puppet() => (Application.isEditor || Debug.isDebugBuild) && Exists(PuppetPath);
+        // The Vanguard wears the cut-out puppet (PuppetAnimator; the owner, 2026-10-29). The file existing, whatever it
+        // holds (an empty one from `adb shell touch` counts), gives it back its painted frames (VanguardAnimator), so the
+        // two can be compared. Nothing without the file.
+        public const string PaintedFramesFileName = "painted-frames.txt";
+        public static string PaintedFramesPath => Path.Combine(ProfileLocation.Resolve(), FolderName, PaintedFramesFileName);
+        public static bool PaintedFrames() => (Application.isEditor || Debug.isDebugBuild) && Exists(PaintedFramesPath);
 
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
