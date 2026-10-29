@@ -7720,6 +7720,7 @@ GameObject:
   - component: {fileID: 1316246713}
   - component: {fileID: 1316246712}
   - component: {fileID: 1316246716}
+  - component: {fileID: 6460282016781158400}
   m_Layer: 5
   m_Name: HUD Canvas
   m_TagString: Untagged
@@ -7782,6 +7783,36 @@ MonoBehaviour:
   _relicCount: {fileID: 1456325226}
   _secondWindIcon: {fileID: 21300000, guid: 2dd998d8bc321574091f38e77ee2eeb7, type: 3}
   _counterweightIcon: {fileID: 21300000, guid: ad590130c43b4f444ac27992f28c94d3, type: 3}
+--- !u!114 &6460282016781158400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1316246711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8be31b80339c41d6b714d6d0babc1f84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _art: {fileID: 11400000, guid: 8b6bb1b354b344a787b87ae12e2e87e2, type: 2}
+  _topSurface: {fileID: 299952830}
+  _lowerSurface: {fileID: 1735050149}
+  _pauseButton: {fileID: 1191302736}
+  _roomPips:
+  - {fileID: 1497357263}
+  - {fileID: 487875918}
+  - {fileID: 1265087294}
+  - {fileID: 866789145}
+  - {fileID: 37276387}
+  - {fileID: 1156733688}
+  _heroFill: {fileID: 989659191}
+  _experienceFill: {fileID: 710454198}
+  _bossFill: {fileID: 566586902}
+  _bossName: {fileID: 1752917491}
+  _abilityBezel: {fileID: 1417742741}
+  _abilityCooldown: {fileID: 230618213}
+  _hud: {fileID: 1316246712}
 --- !u!114 &1316246713
 MonoBehaviour:
   m_ObjectHideFlags: 0
