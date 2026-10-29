@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -11,9 +12,13 @@ using UnityEngine.TestTools;
 
 namespace Cryptforge.Tests
 {
+    // The Vanguard's painted frames (VanguardAnimator), which the cut-out puppet replaced as its look on 2026-10-29: each
+    // test asks for them with development/painted-frames.txt, so the frames behind the puppet stay as they were.
     public sealed class VanguardAnimationTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
+
+        private static void PaintedFrames() => File.WriteAllText(DevelopmentStart.PaintedFramesPath, "on");
         private HeroLookView _look;
         private HeroMovementInput _movement;
         private AttackController _attack;
@@ -24,6 +29,7 @@ namespace Cryptforge.Tests
         public IEnumerator Load()
         {
             TestProfile.Begin();
+            PaintedFrames();
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -220,6 +226,7 @@ namespace Cryptforge.Tests
         public IEnumerator PaintedStaffKeepsGripAcrossFacingsAndCastAndSurvivesReload()
         {
             TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { "weapon_staff" }, "weapon_staff"));
+            PaintedFrames();
             yield return SceneManager.LoadSceneAsync(ScenePath); yield return null; Bind();
             var staff=GameObject.Find("Staff Shaft").GetComponent<SpriteRenderer>();
             var orb=GameObject.Find("Staff Orb").GetComponent<SpriteRenderer>();
@@ -263,6 +270,7 @@ namespace Cryptforge.Tests
         public IEnumerator PaintedDaggersKeepBothHandsThroughTravelCastPauseAndReload()
         {
             TestProfile.Begin(new PlayerProfile(0,null,null,0,new[]{"weapon_daggers"},"weapon_daggers"));
+            PaintedFrames();
             yield return SceneManager.LoadSceneAsync(ScenePath); yield return null; Bind();
             var left=GameObject.Find("Dagger Left").GetComponent<SpriteRenderer>();
             var right=GameObject.Find("Dagger Right").GetComponent<SpriteRenderer>();
@@ -316,6 +324,7 @@ namespace Cryptforge.Tests
             foreach (string id in new[] { "weapon_sword", "weapon_staff", "weapon_daggers" })
             {
                 TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { id }, id));
+                PaintedFrames();
                 yield return SceneManager.LoadSceneAsync(ScenePath);
                 yield return null;
                 Bind();
@@ -441,6 +450,7 @@ namespace Cryptforge.Tests
             foreach (string id in new[] { "weapon_sword", "weapon_staff", "weapon_daggers" })
             {
                 TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { id }, id));
+                PaintedFrames();
                 yield return SceneManager.LoadSceneAsync(ScenePath);
                 yield return null;
                 Bind();
@@ -555,6 +565,7 @@ namespace Cryptforge.Tests
             foreach (string id in new[] { "weapon_staff", "weapon_daggers" })
             {
                 TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { id }, id));
+                PaintedFrames();
                 yield return SceneManager.LoadSceneAsync(ScenePath);
                 yield return null;
                 Bind();

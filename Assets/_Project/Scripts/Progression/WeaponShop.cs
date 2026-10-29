@@ -6,7 +6,9 @@ using Cryptforge.Core;
 namespace Cryptforge.Progression
 {
     // The Relic Forge's weapon rack over the profile. The hero's starting weapon is always owned and is carried whenever no
-    // other owned weapon is equipped. A tap forges an affordable weapon (which also equips it) or equips an owned one.
+    // other owned weapon is equipped. A tap forges an affordable weapon (which also equips it) or equips an owned one. A
+    // hero that starts with its own weapon only (OnlyStartingWeapon) is offered that one alone and always carries it; the
+    // profile's equipped weapon stays the other heroes' choice.
     public sealed class WeaponShop
     {
         private readonly WeaponOption[] _weapons;
@@ -15,13 +17,15 @@ namespace Cryptforge.Progression
         public IReadOnlyList<WeaponOption> Weapons { get; }
         // The free weapon of the hero the next run plays; it follows the forge's hero chooser (SetStartingWeapon).
         public WeaponOption StartingWeapon { get; private set; }
+        public bool OnlyStartingWeapon { get; private set; }
 
         // Raised once when a tap spends gold on a weapon, after the profile accepted the purchase, so observers such as
         // telemetry can count forge gold spent; profile.Changed cannot tell a purchase from an equip. Not raised for
         // equipping an owned weapon (the starting weapon included) or for a tap that spends nothing.
         public event Action<WeaponOption> Forged;
 
-        public WeaponShop(PlayerProfile profile, IReadOnlyList<WeaponOption> weapons, WeaponOption startingWeapon)
+        public WeaponShop(PlayerProfile profile, IReadOnlyList<WeaponOption> weapons, WeaponOption startingWeapon,
+            bool onlyStartingWeapon = false)
         {
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
             if (weapons == null)
@@ -40,35 +44,51 @@ namespace Cryptforge.Progression
             if (startingWeapon == null || Find(startingWeapon.Id) != startingWeapon)
                 throw new ArgumentException("The starting weapon must be one of the listed weapons.", nameof(startingWeapon));
             StartingWeapon = startingWeapon;
+            OnlyStartingWeapon = onlyStartingWeapon;
         }
 
         // The hero chosen for the next run carries another starting weapon (docs/45: the Arcanist's Staff): the rack follows,
-        // so the forge shows that weapon as free and equipped rather than for sale. False when nothing changed.
-        public bool SetStartingWeapon(WeaponOption startingWeapon)
+        // so the forge shows that weapon as free and equipped rather than for sale, alone when that hero starts with its own
+        // weapon only. False when nothing changed.
+        public bool SetStartingWeapon(WeaponOption startingWeapon, bool only = false)
         {
             if (startingWeapon == null || Find(startingWeapon.Id) != startingWeapon)
                 throw new ArgumentException("The starting weapon must be one of the listed weapons.", nameof(startingWeapon));
-            if (startingWeapon == StartingWeapon)
+            if (startingWeapon == StartingWeapon && only == OnlyStartingWeapon)
                 return false;
             StartingWeapon = startingWeapon;
+            OnlyStartingWeapon = only;
             return true;
         }
 
-        // The saved weapon while this build still sells it and the profile owns it; otherwise the starting weapon.
+        // Whether the rack offers this weapon to the next run's hero: every weapon, or only the hero's own.
+        public bool IsOffered(WeaponOption weapon)
+        {
+            RequireListed(weapon);
+            return !OnlyStartingWeapon || weapon == StartingWeapon;
+        }
+
+        // The saved weapon while this build still sells it and the profile owns it; otherwise, and for a hero that starts
+        // with its own weapon only, the starting weapon.
         public WeaponOption Equipped
         {
             get
             {
+                if (OnlyStartingWeapon)
+                    return StartingWeapon;
                 WeaponOption saved = Find(Profile.EquippedWeaponId);
                 return saved != null && IsOwned(saved) ? saved : StartingWeapon;
             }
         }
 
-        // The cheapest weapon not yet owned (first in catalog order on ties); null once every weapon is forged.
+        // The cheapest weapon not yet owned (first in catalog order on ties); null once every weapon is forged, and for a
+        // hero offered its own weapon alone, which it always owns.
         public WeaponOption NextUnlock
         {
             get
             {
+                if (OnlyStartingWeapon)
+                    return null;
                 WeaponOption next = null;
                 for (int i = 0; i < _weapons.Length; i++)
                 {
@@ -97,6 +117,8 @@ namespace Cryptforge.Progression
 
         public bool TrySelect(WeaponOption weapon)
         {
+            if (!IsOffered(weapon))
+                return false;
             switch (StatusOf(weapon))
             {
                 case UnlockStatus.Affordable:

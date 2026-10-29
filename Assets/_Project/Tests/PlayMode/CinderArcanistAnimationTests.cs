@@ -38,13 +38,13 @@ namespace Cryptforge.Tests
         private Health _target;
         private RenderedCharacterArtSet _fiveFacings;
 
-        private IEnumerator Load(bool arcanist = true, bool puppet = false)
+        private IEnumerator Load(bool arcanist = true, bool paintedFrames = false)
         {
             TestProfile.Begin();
             if (arcanist)
                 File.WriteAllText(DevelopmentStart.HeroPath, ArcanistId);
-            if (puppet)
-                File.WriteAllText(DevelopmentStart.PuppetPath, "on");
+            if (paintedFrames)
+                File.WriteAllText(DevelopmentStart.PaintedFramesPath, "on");
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -71,11 +71,11 @@ namespace Cryptforge.Tests
             yield return null;
         }
 
-        // development/puppet.txt is for the Vanguard: a hero with its own rendered art keeps it.
+        // The puppet is the Vanguard's: a hero with its own rendered art keeps it.
         [UnityTest, Timeout(60000)]
-        public IEnumerator ThePuppetFlagLeavesIlyaItsOwnArt()
+        public IEnumerator ThePuppetLeavesIlyaItsOwnArt()
         {
-            yield return Load(true, true);
+            yield return Load(true);
             Assert.That(_drawn, Is.Not.Null, "Ilya is drawn from its rendered art.");
             Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Null, "The puppet never takes a hero with its own art.");
             Assert.That(_look.enabled, Is.False, "The painted view stepped aside.");
@@ -121,14 +121,25 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The Vanguard has no rendered art: it wears the puppet, or with development/painted-frames.txt its painted frames.
         [UnityTest]
-        public IEnumerator TheVanguardKeepsItsPaintedFrames()
+        public IEnumerator TheVanguardWearsThePuppetOrItsPaintedFrames()
         {
             yield return Load(false);
             Assert.That(_drawn, Is.Null);
             Assert.That(GameObject.Find(RenderedCharacterAnimator.RootName), Is.Null);
+            Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Not.Null, "The Vanguard's look is the puppet.");
+            Assert.That(_look.enabled, Is.False, "The painted view stepped aside for it.");
+            LogAssert.NoUnexpectedReceived();
+            var scene = SceneManager.GetActiveScene();
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Arcanist animation reload"));
+            yield return SceneManager.UnloadSceneAsync(scene);
+            TestProfile.End();
+            yield return Load(false, true);
+            Assert.That(_drawn, Is.Null);
+            Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Null);
             Assert.That(_look.enabled, Is.True);
-            Assert.That(_look.UsesPaintedArt, Is.True, "The scene's imported Vanguard set, as before.");
+            Assert.That(_look.UsesPaintedArt, Is.True, "The scene's imported Vanguard set, as before the puppet.");
             Assert.That(_look.Body.sprite, Is.Not.Null);
             LogAssert.NoUnexpectedReceived();
         }

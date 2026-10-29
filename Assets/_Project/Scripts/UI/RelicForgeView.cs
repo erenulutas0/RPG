@@ -120,7 +120,8 @@ namespace Cryptforge.UI
             WeaponShop weapons = _setup.Weapons;
             for (int i = 0; i < _weaponCards.Length; i++)
             {
-                bool used = i < weapons.Weapons.Count;
+                // A hero that starts with its own weapon only (Ilya) is shown that one card.
+                bool used = i < weapons.Weapons.Count && weapons.IsOffered(weapons.Weapons[i]);
                 _weaponCards[i].Button.gameObject.SetActive(used);
                 if (!used)
                     continue;

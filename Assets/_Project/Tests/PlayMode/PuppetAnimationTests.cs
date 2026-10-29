@@ -30,11 +30,10 @@ namespace Cryptforge.Tests
             yield return LoadPuppet(null);
         }
 
-        // A fresh profile folder holding the flag (TestProfile.Begin creates the development folder), then the scene.
+        // A fresh profile folder, then the scene: the Vanguard wears the puppet by default.
         private IEnumerator LoadPuppet(PlayerProfile seed)
         {
             TestProfile.Begin(seed);
-            File.WriteAllText(DevelopmentStart.PuppetPath, string.Empty);
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -47,7 +46,7 @@ namespace Cryptforge.Tests
             Object.FindFirstObjectByType<EncounterController>().enabled = false;
             foreach (var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None)) attack.enabled = false;
             _puppet = Object.FindFirstObjectByType<PuppetAnimator>();
-            Assert.That(_puppet, Is.Not.Null, "development/puppet.txt hands the hero to the puppet.");
+            Assert.That(_puppet, Is.Not.Null, "The Vanguard wears the puppet.");
             _look = _puppet.GetComponent<HeroLookView>();
             _movement = _puppet.GetComponent<HeroMovementInput>();
             _attack = _puppet.GetComponent<AttackController>();
@@ -116,9 +115,10 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator WithoutTheFlagTheHeroKeepsItsPaintedFrames()
+        public IEnumerator ThePaintedFramesFlagGivesTheHeroItsPaintedFramesBack()
         {
             TestProfile.Begin();
+            File.WriteAllText(DevelopmentStart.PaintedFramesPath, string.Empty);
             yield return SceneManager.LoadSceneAsync(ScenePath);
             yield return null;
             Assert.That(Object.FindFirstObjectByType<PuppetAnimator>(), Is.Null);

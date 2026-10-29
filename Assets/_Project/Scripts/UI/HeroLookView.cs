@@ -48,7 +48,7 @@ namespace Cryptforge.UI
         private float _swingRemaining;
         private bool _casting;
         private bool _built;
-        // development/puppet.txt was there at Build; Start attaches the puppet unless the hero has its own art.
+        // The puppet was chosen at Build; Start attaches it unless the hero has its own art.
         private bool _puppetRequested;
         private bool _subscribed;
 
@@ -204,13 +204,17 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _built = true;
             ShowPose(HeroPose.IdleA);
-            // Development hook (docs/45 section 4 B): development/puppet.txt hands the hero to the cut-out puppet, in Start,
-            // once CombatSetup has chosen the run's hero, so a hero with its own rendered art keeps it. Without the file
-            // nothing changes.
-            if (PuppetAnimator.Requested)
+            // The Vanguard wears the cut-out puppet (docs/45 section 8; the owner, 2026-10-29), handed over in Start once
+            // CombatSetup has chosen the run's hero, so a hero with its own rendered art keeps it. The painted frames stay
+            // behind it: development/painted-frames.txt asks for them, and an incomplete puppet set falls back to them.
+            if (_puppetArt != null && !PuppetAnimator.PaintedFramesRequested)
             {
-                _puppetRequested = true;
-                return;
+                if (_puppetArt.IsValid)
+                {
+                    _puppetRequested = true;
+                    return;
+                }
+                Debug.LogError("Vanguard puppet art set is incomplete.", this);
             }
             if (_paintedArt != null)
             {

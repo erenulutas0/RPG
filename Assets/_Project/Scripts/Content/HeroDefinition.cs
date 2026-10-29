@@ -20,6 +20,9 @@ namespace Cryptforge.Content
         [SerializeField] private string _subtitle;
         [SerializeField, Min(1f)] private float _maximumHealth;
         [SerializeField] private WeaponDefinition _startingWeapon;
+        // The hero starts every run with its own weapon and no other the forge sells (Ilya and its crucible Staff, the
+        // owner 2026-10-29); in the run it may still take any weapon a card offers.
+        [SerializeField] private bool _startsWithItsOwnWeaponOnly;
         // The active ability the hero fires by touch.
         [SerializeField] private AbilityDefinition _ability;
         [SerializeField] private HeroPassive _passive = HeroPassive.None;
@@ -43,6 +46,7 @@ namespace Cryptforge.Content
         public string Subtitle => _subtitle ?? string.Empty;
         public float MaximumHealth => _maximumHealth;
         public WeaponDefinition StartingWeapon => _startingWeapon;
+        public bool StartsWithItsOwnWeaponOnly => _startsWithItsOwnWeaponOnly;
         public AbilityDefinition Ability => _ability;
         public HeroPassive Passive => _passive;
         public bool UnlockedFromStart => _unlockedFromStart;
