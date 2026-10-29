@@ -633,8 +633,15 @@ def pack(enemy):
     visual_top, shadow = measures(frames, pivot)
     set_path = folder / (spec['set'] + '.asset')
     set_guid = existing_guid(Path(str(set_path) + '.meta'))
+    # The optional parts build_horde_motion.py appends to the set (the strike windup, the enemy's own death) are that
+    # script's: they are kept as they are.
+    tail = ''
+    if set_path.exists():
+        old = set_path.read_text(encoding='utf-8')
+        if '\n  _strikeWindup:' in old:
+            tail = old[old.index('\n  _strikeWindup:') + 1:]
     set_path.write_text(art_set(spec['set'], refs, [deaths[0], deaths[1]] if len(deaths) == 2 else deaths,
-                                visual_top, shadow, spec['cycle']), encoding='utf-8', newline='\n')
+                                visual_top, shadow, spec['cycle']) + tail, encoding='utf-8', newline='\n')
     Path(str(set_path) + '.meta').write_text('fileFormatVersion: 2\nguid: %s\nNativeFormatImporter:\n  externalObjects: {}\n'
                                              '  mainObjectFileID: 11400000\n  userData: \n  assetBundleName: \n'
                                              '  assetBundleVariant: \n' % set_guid, encoding='utf-8', newline='\n')
