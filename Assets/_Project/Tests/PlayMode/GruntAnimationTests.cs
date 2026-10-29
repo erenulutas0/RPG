@@ -129,17 +129,29 @@ namespace Cryptforge.Tests
             Assert.That(setup.Run.Gold, Is.EqualTo(before));
             Assert.That(setup.Drops.At(setup.Drops.Count - 1).Gold, Is.EqualTo(reward));
             Assert.That(_body.gameObject.activeSelf, Is.False);
+            // The Grunt crumbles in its own death (art round 3), in the facing it fell in.
+            Assert.That(set.HasOwnDeath, Is.True);
+            Sprite[] death = set.GetOwnDeath(_look.RearFacing);
             SpriteRenderer remains = null;
             foreach (var renderer in GameObject.Find("Combat Effects").GetComponentsInChildren<SpriteRenderer>())
-                if (renderer.enabled && renderer.sprite == set.Death[0]) remains = renderer;
+                if (renderer.enabled && renderer.sprite == death[0]) remains = renderer;
             Assert.That(remains, Is.Not.Null);
             Object.Destroy(_look.gameObject); Time.timeScale = 0;
             yield return new WaitForSecondsRealtime(.1f);
-            Assert.That(remains.enabled, Is.True); Assert.That(remains.sprite, Is.SameAs(set.Death[0]));
+            Assert.That(remains.enabled, Is.True); Assert.That(remains.sprite, Is.SameAs(death[0]));
             Time.timeScale = 1;
-            for (int i = 0; i < 12; i++) yield return null;
-            Assert.That(remains.sprite, Is.SameAs(set.Death[1]));
-            for (int i = 0; i < 16; i++) yield return null;
+            var shown = new List<Sprite> { death[0] };
+            int frames = 0;
+            while (remains.enabled && frames < 90)
+            {
+                yield return null;
+                frames++;
+                if (remains.enabled && remains.sprite != shown[shown.Count - 1]) shown.Add(remains.sprite);
+            }
+            var drawings = new List<Sprite>();
+            foreach (Sprite s in death) if (drawings.Count == 0 || drawings[drawings.Count - 1] != s) drawings.Add(s);
+            CollectionAssert.AreEqual(drawings, shown, "Every drawing of the crumble, in order.");
+            Assert.That(frames / 60f, Is.EqualTo(set.OwnDeathSeconds).Within(2.5f / 60));
             Assert.That(remains.enabled, Is.False);
             Assert.That(GameObject.Find("Combat Effects").transform.childCount, Is.EqualTo(children));
             Assert.That(set.Death[0] != null, Is.True); LogAssert.NoUnexpectedReceived();

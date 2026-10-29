@@ -15,6 +15,9 @@ Options after the "--":
     --frames LIST    a comma-separated subset of the frame names (front-idle, rear-strike, death-collapse, ...)
     --samples N      Cycles samples per render pixel (default 12)
     --no-render      build and save the .blend, render nothing
+    --motion         render the Runner's or the Tank's strike windup and its own death (front-windup, rear-dying-3,
+                     ...) instead of its walk, on a taller canvas, into TestResults/horde-motion-render
+                     (build_horde_motion.py packs them)
 
 Nothing here is generated imagery. Every rock is the convex hull of points on a rounded box, its near-flat facets
 merged and its edges bevelled, so it shades in the painted Grunt's broad planes; the lava is emissive geometry seen
@@ -51,7 +54,9 @@ def option(name, default=None):
 
 
 ENEMY = option('--enemy', 'runner')
-OUT = Path(option('--out', str(ROOT / 'TestResults/foundry-enemies-render'))) / ENEMY
+MOTION = bool(option('--motion', False))
+OUT = Path(option('--out', str(ROOT / ('TestResults/horde-motion-render' if MOTION else
+                                       'TestResults/foundry-enemies-render')))) / ENEMY
 BLEND = Path(option('--blend', str(ROOT / 'ArtDirection/2026-10-27/foundry-enemies-01' / (ENEMY + '.blend'))))
 SAMPLES = int(option('--samples', 12))
 WANTED = option('--frames')
@@ -1156,10 +1161,58 @@ def dome(name, segment, centre, radii, rot_, material):
     for v in bm.verts:
         v.co = Vector((v.co.x * radii[0], v.co.y * radii[1], max(v.co.z, 0.0) * radii[2]))
     bmesh.ops.contextual_create(bm, geom=[e for e in bm.edges if e.is_boundary])
+    pin_face_order(bm, DOME_FACES.get(name))
     obj = mesh_object(name, bm)
     finish(obj, material, seed=name_seed(name))
     place(obj, segment, centre, rot_)
     return obj
+
+
+def face_key(face):
+    """A face's centre, summed over its corners in vertex order so it is the same to the last bit whichever corner the
+    face starts at."""
+    corners = sorted(face.verts, key=lambda v: v.index)
+    c = sum((v.co for v in corners), Vector()) / len(corners)
+    return (round(c.x, 6), round(c.y, 6), round(c.z, 6), len(corners))
+
+
+# The bmesh operators above leave a dome's faces, and the corner each face starts at, in an order that follows memory
+# addresses, so it changed from run to run (eleven face orders turned up in forty runs), and finish() shades each face by
+# its index: the pauldrons and the helm rendered a little differently every time, so no rebuild reproduced the shipped
+# Tank or Captain, nor any frame drawn after them. Each dome is now rebuilt with its faces in the order its shipped frames
+# were rendered with - the canonical index (faces sorted by centre) of the face at each position, found by rendering
+# every order seen against the shipped TGAs - and every face starting at its lowest vertex. A rebuild is now the same
+# every time, and within a few levels of 255 of the shipped frames on under one texel in a hundred (the corners the
+# shipped run started its faces at are not known; they decide how the domes' quads were cut into triangles).
+DOME_FACES = {
+    'Pauldron L': [26, 20, 22, 34, 24, 30, 28, 33, 36, 32, 35, 27, 29, 31, 23, 21, 25, 19, 14, 10, 16, 6, 2, 12, 0, 8, 3, 1,
+                   9, 4, 18, 5, 13, 7, 11, 17, 15],
+    'Pauldron R': [26, 20, 22, 30, 34, 24, 33, 36, 28, 32, 35, 27, 29, 31, 23, 25, 19, 21, 10, 16, 14, 2, 12, 6, 0, 8, 3, 1,
+                   9, 4, 13, 7, 18, 5, 15, 11, 17],
+    'Helm dome': [22, 26, 20, 34, 24, 30, 36, 28, 33, 35, 27, 32, 31, 23, 29, 19, 21, 25, 14, 10, 16, 6, 2, 12, 3, 0, 8, 4, 1,
+                  9, 7, 18, 5, 13, 11, 17, 15],
+}
+
+
+def pin_face_order(bm, order):
+    """Rebuilds the mesh with its faces in `order` (the canonical index of the face at each position; canonically
+    without one), each face starting at its lowest vertex, so neither the face order nor where a face's corners start
+    (which decides how it is cut into triangles) depends on memory."""
+    bm.verts.index_update()
+    keys = sorted(face_key(f) for f in bm.faces)
+    rank = {k: i for i, k in enumerate(keys)}
+    position = {c: i for i, c in enumerate(order)} if order else None
+    faces = sorted(bm.faces, key=lambda f: position[rank[face_key(f)]] if position else rank[face_key(f)])
+    corners = []
+    for f in faces:
+        ring = [v.index for v in f.verts]
+        start = ring.index(min(ring))
+        corners.append(ring[start:] + ring[:start])
+    points = [v.co.copy() for v in bm.verts]
+    bm.clear()
+    verts = [bm.verts.new(p) for p in points]
+    for ring in corners:
+        bm.faces.new([verts[i] for i in ring])
 
 
 def band(name, segment, centre, radius, half_height, material, count=20):
@@ -1210,6 +1263,163 @@ def tank_poses():
         poses[name].offset += Vector((0.02 * side, 0, -0.01))
     for name, side in (('pass-a', 1), ('pass-b', -1)):
         poses[name].add('spine', rot(y=6 * side))
+    return poses
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Art round 3 (2026-10-29): the beat before each blow and each kind's own death, for EnemyArtSet's optional
+# _strikeWindup and _deathFront/_deathRear (build_horde_motion.py packs them). Rendered with --motion, into
+# TestResults/horde-motion-render on a canvas with room below the feet for a body lying toward the camera.
+# ---------------------------------------------------------------------------------------------------------------------
+DYING = 5                     # drawings of each death, per facing
+
+
+def pitch(pose, degrees, about):
+    """The whole pose tipped forward (toward the facing, -Y) by `degrees` about a point on the floor, as a felled body
+    pivots on its toes: the pelvis carried round that point and turned with it."""
+    pelvis = RIG.joint['pelvis']
+    turned = rot(x=degrees)
+    centre = Vector(about)
+    pose.offset = (centre + turned @ (pelvis + pose.offset - centre)) - pelvis
+    pose.add('pelvis', turned)
+
+
+def on_floor(pose, degrees, clearance=0.006):
+    """Lifts (or lowers) the pose so its lowest part just clears the floor - a fallen body lies on it, never in it."""
+    for _ in range(3):
+        RIG.root.rotation_euler = (0, 0, math.radians(degrees - 270))
+        G, _ = solve(pose)
+        lowest = min(segment_bounds(s, G[s])[0] for s in RIG.order)
+        if abs(lowest - clearance) < 1e-4:
+            break
+        pose.offset += Vector((0, 0, clearance - lowest))
+
+
+def runner_windup():
+    """Coiled for the pounce: sunk on the trailing leg, the near foot reaching ahead, the body drawn back and low,
+    both claws cocked back past the shoulders, the head down and thrust at the target."""
+    p = runner_stance(0.075, RUNNER_LEAN + 8)
+    heel, W = runner_foot((0.08, -0.13, 0.012), -2, 1)
+    p.feet['L'] = (heel, W)
+    heel, W = runner_foot((-0.075, 0.17, 0.028), 34, -1)
+    p.feet['R'] = (heel, W)
+    p.offset += Vector((0, 0.05, 0))
+    p.add('head', rot(x=-6))
+    for side, s in ((1, 'L'), (-1, 'R')):
+        p.add('upper_arm.' + s, swing(-48) @ spread(side, 30))
+        p.add('forearm.' + s, swing(70))
+    return p
+
+
+def runner_dying(k):
+    """The Runner pitching forward onto its face: struck upright, its heart flaring; its legs giving way; falling
+    forward; down on its chest, arms flung ahead; lying still as the heart goes out."""
+    if k == 1:
+        p = runner_stance(0.0, RUNNER_LEAN - 22)
+        p.add('head', rot(x=-22))
+        for side, s in ((1, 'L'), (-1, 'R')):
+            p.add('upper_arm.' + s, swing(-40) @ spread(side, 40))
+            p.add('forearm.' + s, swing(20))
+        p.lava = 1.6
+        return p
+    p = Pose()
+    if k == 2:
+        p = runner_stance(0.11, RUNNER_LEAN + 26)
+        heel, W = runner_foot((0.08, -0.16, 0.012), -6, 1)
+        p.feet['L'] = (heel, W)
+        heel, W = runner_foot((-0.075, 0.12, 0.012), 10, -1)
+        p.feet['R'] = (heel, W)
+        p.add('head', rot(x=10))
+        for side, s in ((1, 'L'), (-1, 'R')):
+            p.add('upper_arm.' + s, swing(30) @ spread(side, 18))
+            p.add('forearm.' + s, swing(10))
+        p.lava = 1.3
+        return p
+    # From here it has left its feet: the legs go with the body, bent as it falls.
+    p = runner_stance(0.0, RUNNER_LEAN)
+    p.feet = {}
+    if k == 3:
+        pitch(p, 36, (0, -0.15, 0))
+        p.add('head', rot(x=-18))
+        for side, s in ((1, 'L'), (-1, 'R')):
+            p.add('upper_arm.' + s, swing(70) @ spread(side, 22))
+            p.add('forearm.' + s, swing(-10))
+            p.add('thigh.' + s, swing(34 if side > 0 else 12))
+            p.add('shin.' + s, swing(-62 if side > 0 else -40))
+        p.lava = 1.15
+        return p
+    pitch(p, 62, (0, -0.25, 0))
+    p.add('head', rot(x=-40, z=14))
+    for side, s in ((1, 'L'), (-1, 'R')):
+        p.add('upper_arm.' + s, swing(100) @ spread(side, 38))
+        p.add('forearm.' + s, swing(-20))
+        p.add('thigh.' + s, swing(-22 + 8 * side) @ spread(side, 8))
+        p.add('shin.' + s, swing(-14 if side > 0 else -30))
+        p.add('foot.' + s, rot(x=34))
+    p.lava = 1.0 if k == 4 else 0.12
+    if k == 5:
+        p.pile = 0.16
+    return p
+
+
+def tank_windup(g, facing):
+    """Reared back for the slam: up on its heels, the body tipped back, both great fists raised. Seen from the front
+    they come up ahead of it, toward the camera; seen from behind, ahead of it is up the screen, so there they are
+    flung out wide at the shoulders instead - either way inside the walk's own canvas, under the health bar."""
+    p = stance(g, -0.01)
+    p.feet['L'] = (Vector((g.foot_x, -0.05, g.ankle_z)), rot(z=g.toe_out))
+    p.feet['R'] = (Vector((-g.foot_x, 0.06, g.ankle_z)), rot(x=-6, z=-g.toe_out))
+    p.add('spine', rot(x=-10))
+    p.add('head', rot(x=8))
+    for side, s in ((1, 'L'), (-1, 'R')):
+        if facing == 'front':
+            p.add('upper_arm.' + s, swing(66) @ spread(side, 8))
+            p.add('forearm.' + s, swing(26))
+        else:
+            p.add('upper_arm.' + s, swing(-30) @ spread(side, 30))
+            p.add('forearm.' + s, swing(62))
+    return p
+
+
+def tank_dying(k, g):
+    """The Tank toppling forward like a felled slab: struck and rocked back on its heels, its grille flaring; tipping
+    over its toes; falling; down on its face, arms thrown ahead; lying still as the grille dims."""
+    p = stance(g, 0.0)
+    if k == 1:
+        p.add('spine', rot(x=-14))
+        p.add('head', rot(x=12))
+        for side, s in ((1, 'L'), (-1, 'R')):
+            p.add('upper_arm.' + s, spread(side, 26) @ swing(-18))
+        p.lava = 1.7
+        return p
+    # From here the legs go with the body: no planted feet.
+    p.feet = {}
+    tip = {2: 18, 3: 48, 4: 86, 5: 88}[k]
+    pitch(p, tip, (0, -0.12, 0))
+    p.add('head', rot(x=-12 * (k - 1)))
+    for side, s in ((1, 'L'), (-1, 'R')):
+        p.add('upper_arm.' + s, swing(24 + 34 * (k - 2)) @ spread(side, 10 + 6 * (k - 2)))
+        p.add('forearm.' + s, swing(10))
+    p.lava = {2: 1.35, 3: 1.15, 4: 1.0, 5: 0.25}[k]
+    if k == 5:
+        p.pile = 0.12
+    return p
+
+
+def motion_poses():
+    """The windup and the death drawings, for the enemy being built."""
+    if ENEMY == 'runner':
+        poses = {'windup': runner_windup()}
+        for k in range(1, DYING + 1):
+            poses['dying-%d' % k] = runner_dying(k)
+    elif ENEMY == 'tank':
+        g = Gait(0.2, 0.085, 0.06, 0.045, 0.03, 0.045, 12, 6, 7, toe_out=10)
+        # A pose that differs by facing is a dict of the two.
+        poses = {'windup': {'front': tank_windup(g, 'front'), 'rear': tank_windup(g, 'rear')}}
+        for k in range(1, DYING + 1):
+            poses['dying-%d' % k] = tank_dying(k, g)
+    else:
+        return {}
     return poses
 
 
@@ -1312,8 +1522,20 @@ elif ENEMY == 'captain-brass':
 else:
     sys.exit('Unknown enemy ' + ENEMY)
 
-CANVAS = SPECS[ENEMY]['canvas']
-PIVOT = SPECS[ENEMY]['pivot']
+# The windup and the deaths (--motion): their own canvases, with room below the feet for a body fallen toward the
+# camera; the pivot stays on a texel corner, so a windup cropped from it to the walk's canvas lines up texel for texel.
+MOTION_SPECS = {
+    'runner': dict(canvas=(240, 216), pivot=(120, 76)),
+    'tank': dict(canvas=(400, 288), pivot=(200, 104)),
+}
+MOTION_SET = motion_poses()
+for _name, _pose in MOTION_SET.items():
+    if _name.startswith('dying') and not _pose.feet:
+        on_floor(_pose, 0)
+if MOTION and ENEMY not in MOTION_SPECS:
+    sys.exit('No windup or death is built for ' + ENEMY)
+CANVAS = (MOTION_SPECS if MOTION else SPECS)[ENEMY]['canvas']
+PIVOT = (MOTION_SPECS if MOTION else SPECS)[ENEMY]['pivot']
 # The whole figure's size on screen (SPECS 'scale'): a design drawn in its own units, set to its pixel look's size.
 SCALE = SPECS[ENEMY].get('scale', 1.0)
 RIG.root.scale = (SCALE, SCALE, SCALE * HEIGHT)
@@ -1359,8 +1581,14 @@ def all_frame_names():
     return ['%s-%s' % (facing, pose) for facing in FACINGS for pose in POSES] + DEATHS
 
 
+def motion_frame_names():
+    """The windup and death drawings (--motion), in both facings: front-windup, ..., rear-dying-5."""
+    return ['%s-%s' % (facing, pose) for facing in FACINGS for pose in MOTION_SET]
+
+
 def frame_names():
-    return [n for n in all_frame_names() if not WANTED or n in WANTED.split(',')]
+    names = motion_frame_names() if MOTION else all_frame_names()
+    return [n for n in names if not WANTED or n in WANTED.split(',')]
 
 
 def pose_of(name):
@@ -1370,6 +1598,9 @@ def pose_of(name):
     if name.startswith('death'):
         return POSE_SET[name], facings['front']
     facing, pose = name.split('-', 1)
+    if pose in MOTION_SET:
+        chosen = MOTION_SET[pose]
+        return (chosen[facing] if isinstance(chosen, dict) else chosen), facings[facing]
     return POSE_SET[pose], facings[facing]
 
 
@@ -1422,7 +1653,7 @@ def render_all():
 
 def bake_timeline():
     """Every pose keyed on the joints and rocks along the timeline, a marker naming each, so the .blend scrubs."""
-    names = all_frame_names()
+    names = all_frame_names() + (motion_frame_names() if POSE_SET is not None else [])
     for frame, name in enumerate(names, start=1):
         pose, degrees = pose_of(name)
         apply(pose, degrees)

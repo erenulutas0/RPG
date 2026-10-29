@@ -204,8 +204,14 @@ namespace Cryptforge.Tests
             long bytes = 0;
             foreach (Enemy enemy in Enemies)
             {
-                string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { Art + enemy.Folder });
-                Assert.That(guids.Length, Is.EqualTo(26), enemy.Folder + ": twelve bodies, twelve flashes, two remains.");
+                // The windups and deaths beside them are the horde motion's (HordeMotionArtSetTests, its own budget).
+                var guids = new List<string>();
+                foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { Art + enemy.Folder }))
+                {
+                    string file = Path.GetFileName(AssetDatabase.GUIDToAssetPath(guid));
+                    if (!file.Contains("-windup") && !file.Contains("_dying-")) guids.Add(guid);
+                }
+                Assert.That(guids.Count, Is.EqualTo(26), enemy.Folder + ": twelve bodies, twelve flashes, two remains.");
                 foreach (string guid in guids)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(guid);

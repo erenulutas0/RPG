@@ -35,6 +35,19 @@ namespace Cryptforge.Art
         [SerializeField] private Sprite[] _fallFront;
         [SerializeField] private Sprite[] _fallRear;
         [SerializeField] private float[] _fallSeconds;
+        // Optional, for a horde enemy: its own beat before each blow, drawn back to strike - front then rear, each
+        // looking left like the frames above - shown while a strike is due within StrikeWindupSeconds on a target
+        // already in reach (EnemyLookView, AttackController.StrikeDue) until the strike frame takes over. Not the boss's
+        // _windup above, which a telegraph raises and holds (WardenSlamView). Without it the strike comes as before.
+        [SerializeField] private Frame[] _strikeWindup;
+        [SerializeField, Min(0f)] private float _strikeWindupSeconds;
+        // Optional, for a horde enemy: its own death in place of the two remains (CombatEffectsView), front then rear
+        // (without the rear's, the front's serve both, mirrored as the remains are), each looking left, one drawing a
+        // step of _deathStep seconds - a drawing held longer is listed again, and the rear may share the front's later
+        // drawings - the last fading as the remains do. Played from the crowd's own death slots, not the boss's.
+        [SerializeField] private Sprite[] _deathFront;
+        [SerializeField] private Sprite[] _deathRear;
+        [SerializeField, Min(0f)] private float _deathStep;
         // The fall as frames FallStep apart, built once for each facing.
         [NonSerialized] private Sprite[] _fallTimelineFront;
         [NonSerialized] private Sprite[] _fallTimelineRear;
@@ -116,6 +129,20 @@ namespace Cryptforge.Art
             else _fallTimelineFront = timeline;
             return timeline;
         }
+        // The horde's strike windup, complete in both facings with a beat to show it in.
+        public bool HasStrikeWindup => _strikeWindup != null && _strikeWindup.Length == 2 && Filled(_strikeWindup) &&
+            _strikeWindupSeconds > 0f;
+        public float StrikeWindupSeconds => _strikeWindupSeconds;
+        // Only with HasStrikeWindup.
+        public Frame GetStrikeWindup(bool rear) => _strikeWindup[rear ? 1 : 0];
+        // The horde's own death; its rear only when it is as long as the front's and complete.
+        public bool HasOwnDeath => Filled(_deathFront) && _deathStep > 0f;
+        public bool HasOwnRearDeath => HasOwnDeath && _deathRear != null && _deathRear.Length == _deathFront.Length &&
+            Filled(_deathRear);
+        // Only with HasOwnDeath: a facing's drawings, step by step, how long a step holds and the whole death.
+        public Sprite[] GetOwnDeath(bool rear) => rear && HasOwnRearDeath ? _deathRear : _deathFront;
+        public float OwnDeathStep => _deathStep;
+        public float OwnDeathSeconds => _deathFront.Length * _deathStep;
         private void OnValidate() => _fallTimelineFront = _fallTimelineRear = null;
         private static bool Complete(Frame[] frames)
         {
@@ -144,10 +171,11 @@ namespace Cryptforge.Art
         {
             if (_front != null) foreach (var f in _front) if (f.Body == body) return f.Flash;
             if (_rear != null) foreach (var f in _rear) if (f.Body == body) return f.Flash;
-            // The optional poses: a boss's windup, carried at a walk too, and its second phase.
+            // The optional poses: a boss's windup, carried at a walk too, and its second phase; a horde enemy's windup.
             if (FlashIn(_windup, body, out Sprite flash) || FlashIn(_enragedFront, body, out flash) ||
                 FlashIn(_enragedRear, body, out flash) || FlashIn(_enragedWindup, body, out flash) ||
-                FlashIn(_windupWalk, body, out flash) || FlashIn(_enragedWindupWalk, body, out flash)) return flash;
+                FlashIn(_windupWalk, body, out flash) || FlashIn(_enragedWindupWalk, body, out flash) ||
+                FlashIn(_strikeWindup, body, out flash)) return flash;
             return null;
         }
         private static bool FlashIn(Frame[] frames, Sprite body, out Sprite flash)

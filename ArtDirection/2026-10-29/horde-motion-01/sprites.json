@@ -1,0 +1,1077 @@
+{
+ "pixels_per_unit": 128,
+ "enemies": [
+  {
+   "enemy": "grunt",
+   "art_set": "SlagBruteArtSet.asset",
+   "strike_windup_seconds": 0.2,
+   "death_step": 0.06,
+   "death_seconds": 0.6,
+   "death_steps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    5,
+    5,
+    5,
+    5
+   ],
+   "textures": [
+    {
+     "file": "CHR_Grunt_front-windup.tga",
+     "guid": "b60540bd7046442cacb574f1483622dd",
+     "size": [
+      180,
+      180
+     ],
+     "astc_4x4_bytes": 32400
+    },
+    {
+     "file": "CHR_Grunt_front-windup_Flash.tga",
+     "guid": "6eba6c0132fa4dbdaa0b105eee98fc47",
+     "size": [
+      180,
+      180
+     ],
+     "astc_4x4_bytes": 32400
+    },
+    {
+     "file": "CHR_Grunt_rear-windup.tga",
+     "guid": "4deb09215a494990a0bb0fd840e71841",
+     "size": [
+      180,
+      180
+     ],
+     "astc_4x4_bytes": 32400
+    },
+    {
+     "file": "CHR_Grunt_rear-windup_Flash.tga",
+     "guid": "800a954e7aca4cad971904a2be0f31fd",
+     "size": [
+      180,
+      180
+     ],
+     "astc_4x4_bytes": 32400
+    },
+    {
+     "file": "CHR_Grunt_dying-front-0.tga",
+     "guid": "0635cfdf1fbc46e1bd4d2e566fadb35c",
+     "size": [
+      136,
+      132
+     ],
+     "astc_4x4_bytes": 17952,
+     "pivot": [
+      66,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-front-1.tga",
+     "guid": "6af02baedec14e54a5fc0401c96baa11",
+     "size": [
+      152,
+      124
+     ],
+     "astc_4x4_bytes": 18848,
+     "pivot": [
+      74,
+      12
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-front-2.tga",
+     "guid": "dfea2011038e4fe59bda542d8fb366fb",
+     "size": [
+      168,
+      116
+     ],
+     "astc_4x4_bytes": 19488,
+     "pivot": [
+      83,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-front-3.tga",
+     "guid": "49459e4957b24484895a2311f6a89a4d",
+     "size": [
+      168,
+      100
+     ],
+     "astc_4x4_bytes": 16800,
+     "pivot": [
+      84,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-front-4.tga",
+     "guid": "374f6161e06542da82c7f6ef484902f1",
+     "size": [
+      168,
+      96
+     ],
+     "astc_4x4_bytes": 16128,
+     "pivot": [
+      84,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-front-5.tga",
+     "guid": "738b8b60434c468386c5dbd5a0a9975c",
+     "size": [
+      168,
+      92
+     ],
+     "astc_4x4_bytes": 15456,
+     "pivot": [
+      84,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-rear-0.tga",
+     "guid": "92e6a31115b442dca0bf85a4613bec7a",
+     "size": [
+      124,
+      132
+     ],
+     "astc_4x4_bytes": 16368,
+     "pivot": [
+      63,
+      9
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-rear-1.tga",
+     "guid": "91bf622b1cd34c89938580c8344e9cb4",
+     "size": [
+      136,
+      136
+     ],
+     "astc_4x4_bytes": 18496,
+     "pivot": [
+      72,
+      15
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-rear-2.tga",
+     "guid": "5d7efe8b20c34deab1d8453792cc0293",
+     "size": [
+      148,
+      128
+     ],
+     "astc_4x4_bytes": 18944,
+     "pivot": [
+      75,
+      16
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-rear-3.tga",
+     "guid": "606772c4674e41bc941a273f9ca1da3b",
+     "size": [
+      152,
+      112
+     ],
+     "astc_4x4_bytes": 17024,
+     "pivot": [
+      75,
+      16
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-rear-4.tga",
+     "guid": "e2226c9fb8984029aadedb446bc5d3fb",
+     "size": [
+      152,
+      96
+     ],
+     "astc_4x4_bytes": 14592,
+     "pivot": [
+      75,
+      16
+     ]
+    },
+    {
+     "file": "CHR_Grunt_dying-rear-5.tga",
+     "guid": "cad7174355ac48b58750fc411b5a2783",
+     "size": [
+      152,
+      96
+     ],
+     "astc_4x4_bytes": 14592,
+     "pivot": [
+      75,
+      16
+     ]
+    }
+   ],
+   "astc_4x4_bytes": 334288
+  },
+  {
+   "enemy": "mite",
+   "art_set": "CinderMiteArtSet.asset",
+   "strike_windup_seconds": 0.18,
+   "death_step": 0.06,
+   "death_seconds": 0.54,
+   "death_steps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    5,
+    6,
+    6
+   ],
+   "textures": [
+    {
+     "file": "CHR_Mite_front_windup.tga",
+     "guid": "e3d701cb09da4096a5d785f917118a3c",
+     "size": [
+      80,
+      68
+     ],
+     "astc_4x4_bytes": 5440
+    },
+    {
+     "file": "CHR_Mite_front_windup_Flash.tga",
+     "guid": "0e57b1a352004c4fbb8b922d636f491a",
+     "size": [
+      80,
+      68
+     ],
+     "astc_4x4_bytes": 5440
+    },
+    {
+     "file": "CHR_Mite_rear_windup.tga",
+     "guid": "d301d2333cf24fe3a0edd750ca745937",
+     "size": [
+      80,
+      68
+     ],
+     "astc_4x4_bytes": 5440
+    },
+    {
+     "file": "CHR_Mite_rear_windup_Flash.tga",
+     "guid": "b63357a6bbbb4a909eb44884d6fcd977",
+     "size": [
+      80,
+      68
+     ],
+     "astc_4x4_bytes": 5440
+    },
+    {
+     "file": "CHR_Mite_dying_front_0.tga",
+     "guid": "3dc95d1564a44147a4d8318ddb614d08",
+     "size": [
+      80,
+      76
+     ],
+     "astc_4x4_bytes": 6080,
+     "pivot": [
+      40,
+      4
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_front_1.tga",
+     "guid": "e02d63080a7743948959ebca8e79d352",
+     "size": [
+      80,
+      64
+     ],
+     "astc_4x4_bytes": 5120,
+     "pivot": [
+      39,
+      4
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_front_2.tga",
+     "guid": "ea213f1f5b2b4935961b43d4458259cf",
+     "size": [
+      116,
+      92
+     ],
+     "astc_4x4_bytes": 10672,
+     "pivot": [
+      57,
+      18
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_front_3.tga",
+     "guid": "1578753fd6b64df7b9a35936e8a8f648",
+     "size": [
+      132,
+      68
+     ],
+     "astc_4x4_bytes": 8976,
+     "pivot": [
+      65,
+      3
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_front_4.tga",
+     "guid": "b5edfe08f2a64a34866e50cda660930c",
+     "size": [
+      148,
+      84
+     ],
+     "astc_4x4_bytes": 12432,
+     "pivot": [
+      71,
+      9
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_front_5.tga",
+     "guid": "47606cfd27c041be938cf6e265e6a57a",
+     "size": [
+      148,
+      88
+     ],
+     "astc_4x4_bytes": 13024,
+     "pivot": [
+      71,
+      12
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_front_6.tga",
+     "guid": "174dfc7758c34a5bafbde0cc5e8d33a9",
+     "size": [
+      148,
+      88
+     ],
+     "astc_4x4_bytes": 13024,
+     "pivot": [
+      71,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_0.tga",
+     "guid": "2badde5ab6114a27bbb0ed00189f2c37",
+     "size": [
+      80,
+      76
+     ],
+     "astc_4x4_bytes": 6080,
+     "pivot": [
+      40,
+      4
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_1.tga",
+     "guid": "6019ea6ea6474f91b69b6bfee7bf0e31",
+     "size": [
+      80,
+      64
+     ],
+     "astc_4x4_bytes": 5120,
+     "pivot": [
+      39,
+      4
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_2.tga",
+     "guid": "16009b9c9e00440ba8c35c91f5e9b3c2",
+     "size": [
+      116,
+      92
+     ],
+     "astc_4x4_bytes": 10672,
+     "pivot": [
+      57,
+      18
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_3.tga",
+     "guid": "936d9efb5bc14b8c86131ca5dd95ac66",
+     "size": [
+      128,
+      64
+     ],
+     "astc_4x4_bytes": 8192,
+     "pivot": [
+      61,
+      3
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_4.tga",
+     "guid": "9077260c9ea243bab1ed36e886c5c8e4",
+     "size": [
+      144,
+      84
+     ],
+     "astc_4x4_bytes": 12096,
+     "pivot": [
+      69,
+      9
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_5.tga",
+     "guid": "5fdb1ead6a3347f581ff871b4bde65bc",
+     "size": [
+      148,
+      88
+     ],
+     "astc_4x4_bytes": 13024,
+     "pivot": [
+      72,
+      12
+     ]
+    },
+    {
+     "file": "CHR_Mite_dying_rear_6.tga",
+     "guid": "14f4e9541a6f45dd9533a56154c7b08e",
+     "size": [
+      148,
+      84
+     ],
+     "astc_4x4_bytes": 12432,
+     "pivot": [
+      72,
+      13
+     ]
+    }
+   ],
+   "astc_4x4_bytes": 158704
+  },
+  {
+   "enemy": "runner",
+   "art_set": "RunnerArtSet.asset",
+   "strike_windup_seconds": 0.15,
+   "death_step": 0.06,
+   "death_seconds": 0.6,
+   "death_steps": [
+    0,
+    1,
+    2,
+    3,
+    3,
+    4,
+    4,
+    4,
+    4,
+    4
+   ],
+   "textures": [
+    {
+     "file": "CHR_Runner_front-windup.tga",
+     "guid": "2738936f210f4f50a407e9a195733c0a",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_front-windup_Flash.tga",
+     "guid": "3e0e4573094b40a7906ac25b6ccf2797",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-windup.tga",
+     "guid": "09278d8ede914a498844e53ab382831e",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_rear-windup_Flash.tga",
+     "guid": "48f33e6a7c104e09a29054694499127b",
+     "size": [
+      100,
+      152
+     ],
+     "astc_4x4_bytes": 15200
+    },
+    {
+     "file": "CHR_Runner_dying-front-0.tga",
+     "guid": "dff6bd9ca1f4470caa3c7ba57bb51acc",
+     "size": [
+      92,
+      140
+     ],
+     "astc_4x4_bytes": 12880,
+     "pivot": [
+      31,
+      12
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-front-1.tga",
+     "guid": "7340c91d18ea45c5b50f844bebbdc690",
+     "size": [
+      84,
+      108
+     ],
+     "astc_4x4_bytes": 9072,
+     "pivot": [
+      43,
+      16
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-front-2.tga",
+     "guid": "c1d55c8a288d40ab89e3c9c1d4bce268",
+     "size": [
+      80,
+      80
+     ],
+     "astc_4x4_bytes": 6400,
+     "pivot": [
+      75,
+      12
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-front-3.tga",
+     "guid": "85e06b8642e446b58436d1a91fad6e01",
+     "size": [
+      112,
+      116
+     ],
+     "astc_4x4_bytes": 12992,
+     "pivot": [
+      95,
+      47
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-front-4.tga",
+     "guid": "6072cb0d439a4c1fb46ddd82742659a6",
+     "size": [
+      112,
+      108
+     ],
+     "astc_4x4_bytes": 12096,
+     "pivot": [
+      91,
+      43
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-rear-0.tga",
+     "guid": "4c9c409925bf47c49879ac751f208b5d",
+     "size": [
+      88,
+      148
+     ],
+     "astc_4x4_bytes": 13024,
+     "pivot": [
+      31,
+      5
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-rear-1.tga",
+     "guid": "8f5be69503cf4c08830fcb9d12a5282e",
+     "size": [
+      84,
+      116
+     ],
+     "astc_4x4_bytes": 9744,
+     "pivot": [
+      43,
+      8
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-rear-2.tga",
+     "guid": "2afc5aeaa9c149ea945bc913e01f7f86",
+     "size": [
+      88,
+      124
+     ],
+     "astc_4x4_bytes": 10912,
+     "pivot": [
+      75,
+      3
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-rear-3.tga",
+     "guid": "43e300e46b1e4b6e9b0bbd93c54471a1",
+     "size": [
+      108,
+      112
+     ],
+     "astc_4x4_bytes": 12096,
+     "pivot": [
+      96,
+      3
+     ]
+    },
+    {
+     "file": "CHR_Runner_dying-rear-4.tga",
+     "guid": "f1ee4455b4ff48c78b32303ca27189d4",
+     "size": [
+      104,
+      108
+     ],
+     "astc_4x4_bytes": 11232,
+     "pivot": [
+      92,
+      3
+     ]
+    }
+   ],
+   "astc_4x4_bytes": 171248
+  },
+  {
+   "enemy": "tank",
+   "art_set": "TankArtSet.asset",
+   "strike_windup_seconds": 0.25,
+   "death_step": 0.06,
+   "death_seconds": 0.66,
+   "death_steps": [
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    4,
+    4,
+    4,
+    4,
+    4
+   ],
+   "textures": [
+    {
+     "file": "CHR_Tank_front-windup.tga",
+     "guid": "a3cefe53a5e44c1a99ca30e779aff263",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_front-windup_Flash.tga",
+     "guid": "7ee3fce3e2ad4986a2c3bcde24462a0d",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-windup.tga",
+     "guid": "0bfd34e027ad4e59bc871263f5044f6a",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_rear-windup_Flash.tga",
+     "guid": "a4d4128da890411a860345932d99c427",
+     "size": [
+      212,
+      164
+     ],
+     "astc_4x4_bytes": 34768
+    },
+    {
+     "file": "CHR_Tank_dying-front-0.tga",
+     "guid": "7e71f6523f6349f89da091ca952013a4",
+     "size": [
+      208,
+      160
+     ],
+     "astc_4x4_bytes": 33280,
+     "pivot": [
+      101,
+      20
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-front-1.tga",
+     "guid": "ef9570a5b8454d6eb0398e333843b217",
+     "size": [
+      176,
+      144
+     ],
+     "astc_4x4_bytes": 25344,
+     "pivot": [
+      110,
+      19
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-front-2.tga",
+     "guid": "997f2719937340359ca580af41c91785",
+     "size": [
+      188,
+      144
+     ],
+     "astc_4x4_bytes": 27072,
+     "pivot": [
+      136,
+      51
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-front-3.tga",
+     "guid": "e832c2f9b980428093c6265cf139dc58",
+     "size": [
+      200,
+      156
+     ],
+     "astc_4x4_bytes": 31200,
+     "pivot": [
+      155,
+      77
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-front-4.tga",
+     "guid": "fb39f2c0e14c4aaea48c1875596f6eb9",
+     "size": [
+      204,
+      136
+     ],
+     "astc_4x4_bytes": 27744,
+     "pivot": [
+      164,
+      81
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-rear-0.tga",
+     "guid": "b7909f1aa9184167b2b54de354926d41",
+     "size": [
+      204,
+      148
+     ],
+     "astc_4x4_bytes": 30192,
+     "pivot": [
+      98,
+      16
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-rear-1.tga",
+     "guid": "15e07d98fefd4d02bb66370ff9b66d7c",
+     "size": [
+      172,
+      160
+     ],
+     "astc_4x4_bytes": 27520,
+     "pivot": [
+      113,
+      5
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-rear-2.tga",
+     "guid": "555eedd6b9684f69ad3bb01d0092b57e",
+     "size": [
+      180,
+      164
+     ],
+     "astc_4x4_bytes": 29520,
+     "pivot": [
+      142,
+      3
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-rear-3.tga",
+     "guid": "8f903335bcb445ab9f4857790a512d6c",
+     "size": [
+      196,
+      168
+     ],
+     "astc_4x4_bytes": 32928,
+     "pivot": [
+      162,
+      3
+     ]
+    },
+    {
+     "file": "CHR_Tank_dying-rear-4.tga",
+     "guid": "32a0499c90a547ea8dbc1b504fa4f9dc",
+     "size": [
+      204,
+      148
+     ],
+     "astc_4x4_bytes": 30192,
+     "pivot": [
+      170,
+      3
+     ]
+    }
+   ],
+   "astc_4x4_bytes": 434064
+  },
+  {
+   "enemy": "captain",
+   "art_set": "GruntCaptainArtSet.asset",
+   "strike_windup_seconds": 0.22,
+   "death_step": 0.06,
+   "death_seconds": 0.66,
+   "death_steps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    6,
+    6,
+    6,
+    6
+   ],
+   "textures": [
+    {
+     "file": "CHR_Captain_front-windup.tga",
+     "guid": "3a27188f954040548ac42850f217ba1e",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_front-windup_Flash.tga",
+     "guid": "fe06fbb049084e668ea7f4bb5183a282",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-windup.tga",
+     "guid": "41e60de5ce414332a70e41f6d918e689",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_rear-windup_Flash.tga",
+     "guid": "d65188e40b874b85b06d53056e2a5651",
+     "size": [
+      168,
+      176
+     ],
+     "astc_4x4_bytes": 29568
+    },
+    {
+     "file": "CHR_Captain_dying-front-0.tga",
+     "guid": "e8b814daeaf54fa4ab59b8de9306856f",
+     "size": [
+      156,
+      152
+     ],
+     "astc_4x4_bytes": 23712,
+     "pivot": [
+      74,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-front-1.tga",
+     "guid": "a8aa5fb8fb644d1a9b05e3900695d142",
+     "size": [
+      172,
+      152
+     ],
+     "astc_4x4_bytes": 26144,
+     "pivot": [
+      81,
+      15
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-front-2.tga",
+     "guid": "5c632fd89d754bec90933fe097884a9b",
+     "size": [
+      184,
+      136
+     ],
+     "astc_4x4_bytes": 25024,
+     "pivot": [
+      88,
+      14
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-front-3.tga",
+     "guid": "000d524c42bf4882a232fc53b769df72",
+     "size": [
+      184,
+      120
+     ],
+     "astc_4x4_bytes": 22080,
+     "pivot": [
+      90,
+      15
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-front-4.tga",
+     "guid": "a8a0d21282f04353990272beddd12663",
+     "size": [
+      184,
+      100
+     ],
+     "astc_4x4_bytes": 18400,
+     "pivot": [
+      90,
+      15
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-front-5.tga",
+     "guid": "8eedbf7982a14a6ebc817a82bbf861ef",
+     "size": [
+      184,
+      100
+     ],
+     "astc_4x4_bytes": 18400,
+     "pivot": [
+      90,
+      15
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-front-6.tga",
+     "guid": "440c46c0cb33482b99ce8afc5a4851bc",
+     "size": [
+      184,
+      100
+     ],
+     "astc_4x4_bytes": 18400,
+     "pivot": [
+      90,
+      15
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-0.tga",
+     "guid": "5af1e651b4794f559ba167ea2670ffd4",
+     "size": [
+      136,
+      168
+     ],
+     "astc_4x4_bytes": 22848,
+     "pivot": [
+      71,
+      10
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-1.tga",
+     "guid": "2bd1fba312c14d588637ee4c274194b1",
+     "size": [
+      152,
+      172
+     ],
+     "astc_4x4_bytes": 26144,
+     "pivot": [
+      77,
+      13
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-2.tga",
+     "guid": "f28144d0571a4978a0a6f99eb7127f26",
+     "size": [
+      168,
+      160
+     ],
+     "astc_4x4_bytes": 26880,
+     "pivot": [
+      84,
+      14
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-3.tga",
+     "guid": "b5580b1189ce44548dc76a0d335e5105",
+     "size": [
+      172,
+      140
+     ],
+     "astc_4x4_bytes": 24080,
+     "pivot": [
+      87,
+      14
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-4.tga",
+     "guid": "03cc418a28ed4831b113ec8942eb451f",
+     "size": [
+      172,
+      116
+     ],
+     "astc_4x4_bytes": 19952,
+     "pivot": [
+      87,
+      14
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-5.tga",
+     "guid": "ed538aa3a8324542bda13d4206cc5f20",
+     "size": [
+      172,
+      108
+     ],
+     "astc_4x4_bytes": 18576,
+     "pivot": [
+      87,
+      14
+     ]
+    },
+    {
+     "file": "CHR_Captain_dying-rear-6.tga",
+     "guid": "7645520b5a98427e8b0dccfdc6f10abd",
+     "size": [
+      172,
+      104
+     ],
+     "astc_4x4_bytes": 17888,
+     "pivot": [
+      87,
+      14
+     ]
+    }
+   ],
+   "astc_4x4_bytes": 426800
+  }
+ ],
+ "total_astc_4x4_bytes": 1525104
+}

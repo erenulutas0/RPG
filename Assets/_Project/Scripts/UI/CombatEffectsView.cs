@@ -114,6 +114,13 @@ namespace Cryptforge.UI
         // A boss's own fall (EnemyArtSet.HasFall) plays for over a second, so it keeps a slot of its own past the bursts:
         // the sparks, falls and coins of a crowd meanwhile never cut it short. One boss falls at a time.
         private const int FallSlots = 1;
+        // A horde enemy's own death (EnemyArtSet.HasOwnDeath) plays for about 0.6 s where a crowd may be dying round it,
+        // so the deaths keep slots of their own past the boss's fall, round robin among themselves: one for each enemy
+        // the scene lets stand at once (PackLayout.MaxPackSize, horde and waves together) and eight for the newcomers
+        // that could walk in and die within one death (the horde's spawns are a quarter of a second apart, and a node's
+        // next wave waits a second). So a crowd falling together never cuts a death short, and the deaths never take the
+        // shared pool's slots from the sparks, strikes and coins they fall among.
+        internal const int DeathSlots = PackLayout.MaxPackSize + 8;
         private const float CoinFrameDuration = 0.08f;
         private const float CoinGravity = 9.8f;
         private const float CoinLaunch = 2.4f;
@@ -287,6 +294,7 @@ namespace Cryptforge.UI
         private int _watchCount;
         private int _nextEffect;
         private int _nextPuff;
+        private int _nextDeath;
         private int _nextNumber;
         private int _hitCount;
         private int _deathCount;
@@ -608,7 +616,7 @@ namespace Cryptforge.UI
             _poolRoot = new GameObject("Combat Effects");
             _poolRoot.transform.SetParent(transform, false);
 
-            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots];
+            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots];
             for (int i = 0; i < _effects.Length; i++)
             {
                 SpriteRenderer renderer = CreateRenderer($"Effect {i}", _poolRoot.transform, _sortingOrder);
@@ -995,7 +1003,8 @@ namespace Cryptforge.UI
             // The collapse, the smoke and the swarm's coins all stand where the enemy fell.
             Vector3 ground = FeetOf(watch, enemy);
             // Remains outlive the actor without delaying death rewards or the next wave; fallback smoke stays small. A boss
-            // with its own fall plays that instead, in the facing it fell in, from its reserved slot.
+            // with its own fall plays that instead, in the facing it fell in, from its reserved slot; a horde enemy with
+            // its own death likewise, from the deaths' slots.
             var painted = watch != null && watch.Look != null ? watch.Look.PaintedArt : null;
             if (painted != null)
             {
@@ -1003,6 +1012,9 @@ namespace Cryptforge.UI
                     ? Arm(_effects[_effectPoolSize + PuffSlots + BurstSlots], painted.FallTimeline(watch.Look.RearFacing),
                         EnemyArtSet.FallStep, painted.FallSeconds, enemy.transform.position, _sortingOrder + SmokeOrder,
                         Vector3.zero, 0f, false, 1f)
+                    : painted.HasOwnDeath
+                    ? ShowDeath(painted.GetOwnDeath(watch.Look.RearFacing), painted.OwnDeathStep, painted.OwnDeathSeconds,
+                        enemy.transform.position)
                     : ShowMoving(painted.Death, .16f, .4f, enemy.transform.position, _sortingOrder + SmokeOrder,
                         Vector3.zero, 0, false), ground);
                 remains.Renderer.flipX = watch.Look.Mirrored;
@@ -1062,6 +1074,14 @@ namespace Cryptforge.UI
             Effect effect = _effects[_effectPoolSize + PuffSlots + _nextBurst];
             _nextBurst = (_nextBurst + 1) % BurstSlots;
             return Arm(effect, frames, frameDuration, lifetime, origin, sortingOrder, velocity, gravity, loop, scale);
+        }
+
+        // The deaths' reserved slots (DeathSlots), round robin among themselves, on the remains' sorting order.
+        private Effect ShowDeath(Sprite[] frames, float step, float lifetime, Vector3 origin)
+        {
+            Effect effect = _effects[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + _nextDeath];
+            _nextDeath = (_nextDeath + 1) % DeathSlots;
+            return Arm(effect, frames, step, lifetime, origin, _sortingOrder + SmokeOrder, Vector3.zero, 0f, false, 1f);
         }
 
         private static Effect Arm(Effect effect, Sprite[] frames, float frameDuration, float lifetime, Vector3 origin,

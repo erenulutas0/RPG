@@ -44,3 +44,34 @@ MonoBehaviour:
   _visualTop: 1.26
   _shadowWidth: 0.88
   _walkCycleDistance: 0.8
+  _strikeWindup:
+  - Body: {fileID: 21300000, guid: 3a27188f954040548ac42850f217ba1e, type: 3}
+    Flash: {fileID: 21300000, guid: fe06fbb049084e668ea7f4bb5183a282, type: 3}
+  - Body: {fileID: 21300000, guid: 41e60de5ce414332a70e41f6d918e689, type: 3}
+    Flash: {fileID: 21300000, guid: d65188e40b874b85b06d53056e2a5651, type: 3}
+  _strikeWindupSeconds: 0.22
+  _deathFront:
+  - {fileID: 21300000, guid: e8b814daeaf54fa4ab59b8de9306856f, type: 3}
+  - {fileID: 21300000, guid: a8aa5fb8fb644d1a9b05e3900695d142, type: 3}
+  - {fileID: 21300000, guid: 5c632fd89d754bec90933fe097884a9b, type: 3}
+  - {fileID: 21300000, guid: 000d524c42bf4882a232fc53b769df72, type: 3}
+  - {fileID: 21300000, guid: a8a0d21282f04353990272beddd12663, type: 3}
+  - {fileID: 21300000, guid: 8eedbf7982a14a6ebc817a82bbf861ef, type: 3}
+  - {fileID: 21300000, guid: 440c46c0cb33482b99ce8afc5a4851bc, type: 3}
+  - {fileID: 21300000, guid: 440c46c0cb33482b99ce8afc5a4851bc, type: 3}
+  - {fileID: 21300000, guid: 440c46c0cb33482b99ce8afc5a4851bc, type: 3}
+  - {fileID: 21300000, guid: 440c46c0cb33482b99ce8afc5a4851bc, type: 3}
+  - {fileID: 21300000, guid: 440c46c0cb33482b99ce8afc5a4851bc, type: 3}
+  _deathRear:
+  - {fileID: 21300000, guid: 5af1e651b4794f559ba167ea2670ffd4, type: 3}
+  - {fileID: 21300000, guid: 2bd1fba312c14d588637ee4c274194b1, type: 3}
+  - {fileID: 21300000, guid: f28144d0571a4978a0a6f99eb7127f26, type: 3}
+  - {fileID: 21300000, guid: b5580b1189ce44548dc76a0d335e5105, type: 3}
+  - {fileID: 21300000, guid: 03cc418a28ed4831b113ec8942eb451f, type: 3}
+  - {fileID: 21300000, guid: ed538aa3a8324542bda13d4206cc5f20, type: 3}
+  - {fileID: 21300000, guid: 7645520b5a98427e8b0dccfdc6f10abd, type: 3}
+  - {fileID: 21300000, guid: 7645520b5a98427e8b0dccfdc6f10abd, type: 3}
+  - {fileID: 21300000, guid: 7645520b5a98427e8b0dccfdc6f10abd, type: 3}
+  - {fileID: 21300000, guid: 7645520b5a98427e8b0dccfdc6f10abd, type: 3}
+  - {fileID: 21300000, guid: 7645520b5a98427e8b0dccfdc6f10abd, type: 3}
+  _deathStep: 0.06

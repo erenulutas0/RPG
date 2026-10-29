@@ -347,3 +347,27 @@ stay for a later painted pass.
     eruptions all start on one frame, so a crowd's rings burn in step; the far side's flames draw on the floor order,
     behind every actor, so the erupting enemy hides the middle of its own ring's flames; on lava it reads by its soot
     edge and pale-hot core more than as fire; the thin ignition line under ASTC 4x4 is still to see on a device.
+- **The horde's anticipation and deaths (art round 3, 2026-10-29)** - `Tools/ArtReview/build_horde_motion.py` gives the
+  Grunt, the Cinder Mite, the Runner, the Tank and the Grunt Captain a strike windup in both facings and a death of
+  each kind's own, as two optional parts of their `EnemyArtSet` (`_strikeWindup` + `_strikeWindupSeconds`,
+  `_deathFront`/`_deathRear` + `_deathStep`; `IsValid` unchanged): 80 textures, 1.45 MiB as ASTC 4x4, beside each walk.
+  `ArtDirection/2026-10-29/horde-motion-01/` holds the README and sprites.json.
+  - The windup: `EnemyLookView` shows it, turned to the target, while `AttackController.StrikeDue` (read-only: the
+    first weapon's cooldown and the strike's own `Acquire`) reports a blow due within the set's beat - the Runner
+    0.15 s, the Mite 0.18, the Grunt 0.2, the Captain 0.22, the Tank 0.25, never more than half the interval - on a
+    target already in reach; the strike frame takes over as it lands. Timing, damage and AI are unchanged; the
+    Warden's telegraph (`_windup`, `WardenSlamView`) is a different part and untouched.
+  - The deaths: the Grunt crumbles into its own painted rocks (cut along their outlines and seams, the seams flaring
+    white as it cracks, the rocks falling onto a heap, cooling); the Mite swells white-hot and bursts, its rocks flung
+    round the spot, embers rising; the Runner pitches forward onto its face, its heart going out; the Tank topples
+    forward like a felled slab; the Captain crumbles as the Grunt does while its bell drops on its snapped chain and
+    its helm is knocked off onto the heap. 0.54-0.66 s, in the facing it fell in, fading as the remains did.
+  - `CombatEffectsView` plays them from `DeathSlots` (48) of their own past the boss's fall slot: one for each enemy
+    the scene lets stand and eight for newcomers, so a crowd felled at once never cuts a death short and the deaths
+    no longer take the shared pool's 24 slots from the sparks, strikes and coins.
+  - The Tank's and Captain's Blender domes now rebuild in one fixed face order (they never reproduced the shipped
+    TGAs; the shipped files are unchanged).
+  - Known flaws: a blow whose cooldown had already run out when its target stepped into reach (the first blow of an
+    arrival, mostly) lands with no windup - presentation cannot hold it back; the windup holds through walking, as
+    the strike frame does; a rock half hidden in the painted master tumbles as a crescent; mirroring flips the
+    light; the Runner's fall and the Tank's rear windup are the weakest drawings.
