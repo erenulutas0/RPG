@@ -774,9 +774,9 @@ namespace Cryptforge.UI
             Vector3 anchor = AnchorOf(watch, watch.Enemy);
             Effect spark = StandOn(Show(_spark, SparkFrameDuration, anchor, _sortingOrder + SparkOrder), FeetOf(watch, watch.Enemy));
             // A burning enemy sparks in ember (docs/45), so a Burn reads on the floor without a status icon: its ticks
-            // spark twice a second until it goes out.
-            BurnStatus burn = watch.Enemy != null ? watch.Enemy.GetComponent<BurnStatus>() : null;
-            if (burn != null && burn.IsBurning)
+            // spark twice a second until it goes out. TryGetComponent: most enemies never burn, and a failed
+            // GetComponent allocates in the Editor on every hit.
+            if (watch.Enemy != null && watch.Enemy.TryGetComponent(out BurnStatus burn) && burn.IsBurning)
             {
                 spark.Tint = BurnTint;
                 spark.Renderer.color = BurnTint;

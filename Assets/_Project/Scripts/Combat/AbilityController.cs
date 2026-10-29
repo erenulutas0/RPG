@@ -61,8 +61,8 @@ namespace Cryptforge.Combat
             {
                 if (!(_targets[i] is Health enemy) || !enemy.IsAlive)
                     continue;
-                BurnStatus burn = enemy.GetComponent<BurnStatus>();
-                if (burn == null || !burn.IsBurning)
+                // TryGetComponent: a failed GetComponent allocates in the Editor for every unburnt enemy in reach.
+                if (!enemy.TryGetComponent(out BurnStatus burn) || !burn.IsBurning)
                     continue;
                 _vented.Add(enemy);
                 _ventedStacks.Add(burn.Consume());
