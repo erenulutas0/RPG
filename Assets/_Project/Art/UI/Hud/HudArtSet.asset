@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afa7640e7e5040e288051418db925973, type: 3}
+  m_Name: HudArtSet
+  m_EditorClassIdentifier: 
+  _panel: {fileID: 7803594606057958559, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _button: {fileID: -4951182462862722877, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _pip: {fileID: -5890050759841529556, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _weaponSlot: {fileID: -7183695996521208160, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _tomeSlot: {fileID: 2326359129994704793, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _slotAccent: {fileID: -121876841510433542, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _abilityRing: {fileID: -6751408771757528263, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _abilityCooldown: {fileID: 1675877370448306834, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _bossNamePlate: {fileID: 9099471874034364599, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+  _hero:
+    _trough: {fileID: 526845364076358146, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _fill: {fileID: -1347742599905886718, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _trail: {fileID: -2359718328693625096, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _glint: {fileID: -4088918302378210124, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _frame: {fileID: 7584374318160281976, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _window: {x: 0, y: 0, z: 0, w: 0}
+    _frameOutset: {x: 12, y: 6, z: 12, w: 6}
+    _glintWidth: 14
+  _experience:
+    _trough: {fileID: 9173631702015974392, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _fill: {fileID: 3190896448089584126, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _trail: {fileID: 0}
+    _glint: {fileID: -5093927196113107797, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _frame: {fileID: 3044965973192202071, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _window: {x: 0, y: 0, z: 0, w: 0}
+    _frameOutset: {x: 7, y: 4, z: 7, w: 4}
+    _glintWidth: 10
+  _boss:
+    _trough: {fileID: 19789676993104237, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _fill: {fileID: -3872703042714165723, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _trail: {fileID: 6864542138044809936, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _glint: {fileID: -3438763174579602715, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _frame: {fileID: -5238905784245424389, guid: 82b9c527c6fc48e1871adb5050d7b99d, type: 3}
+    _window: {x: 0, y: -4, z: 0, w: 6}
+    _frameOutset: {x: 48, y: 4, z: 48, w: 30}
+    _glintWidth: 14

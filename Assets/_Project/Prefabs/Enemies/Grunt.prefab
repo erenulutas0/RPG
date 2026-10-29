@@ -118,6 +118,7 @@ MonoBehaviour:
   _attackFrameDuration: 0.14
   _barClearance: 0.12
   _barSortingOrder: 10
+  _barArt: {fileID: 11400000, guid: 6441eae903ab4a9584d7c5ecedaee6bd, type: 2}
 --- !u!1 &2159935233389229391
 GameObject:
   m_ObjectHideFlags: 0

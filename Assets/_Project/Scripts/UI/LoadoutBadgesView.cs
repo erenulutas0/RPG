@@ -186,6 +186,35 @@ namespace Cryptforge.UI
             return label;
         }
 
+        // The painted HUD's sockets (HudArtView): each plate becomes its group's socket, sliced and in its own colours, and
+        // each accent strip the painted strip its group's colour tints; an empty slot stays the faint plate it was. What
+        // the row shows, and when, is unchanged.
+        internal void UsePaintedPlates(Sprite weaponPlate, Sprite tomePlate, Sprite accent)
+        {
+            Paint(_weapons, weaponPlate, accent);
+            Paint(_tomes, tomePlate, accent);
+            if (_setup != null)
+                Refresh();
+        }
+
+        private static void Paint(Badge[] badges, Sprite plate, Sprite accent)
+        {
+            foreach (Badge badge in badges)
+            {
+                if (badge == null)
+                    continue;
+                badge.Plate.sprite = plate;
+                badge.Plate.type = Image.Type.Sliced;
+                badge.Accent.sprite = accent;
+                badge.Accent.type = Image.Type.Sliced;
+                badge.PlateColour = Color.white;
+                // Shown again, in the painted colours, by the next refresh.
+                badge.Filled = false;
+                badge.ShownEmpty = false;
+                badge.ShownId = null;
+            }
+        }
+
         private void OnBookGranted(UpgradeOption book, UpgradeRarity rarity) => Refresh();
 
         // On the service's change events only; a badge's strings are rebuilt when what it shows changes, never per frame.
