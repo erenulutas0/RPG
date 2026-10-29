@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
@@ -42,6 +43,8 @@ namespace Cryptforge.UI
         [SerializeField] private Text _relicCount;
         [SerializeField] private Sprite _secondWindIcon;
         [SerializeField] private Sprite _counterweightIcon;
+        // Optional: the painted weapon and tome icons the loadout row's badges show.
+        [SerializeField] private UpgradeIconSet _upgradeIcons;
         private LoadoutBadgesView _loadoutBadges;
         private bool _subscribed;
         // What the encounter's three labels were last formatted from, and the text each was given. Progress is reported
@@ -113,6 +116,8 @@ namespace Cryptforge.UI
             {
                 _loadoutBadges = gameObject.AddComponent<LoadoutBadgesView>();
                 _loadoutBadges.Initialize(_setup, _text, _compactGold);
+                if (_upgradeIcons != null)
+                    _loadoutBadges.UseIcons(_upgradeIcons);
                 if (_weaponName != null)
                     _weaponName.gameObject.SetActive(false);
             }
