@@ -11,8 +11,8 @@ using UnityEngine.TestTools;
 
 namespace Cryptforge.Tests
 {
-    // The development cut-out puppet (docs/45 section 4 B) in the real scene: development/puppet.txt hands the hero to
-    // PuppetAnimator with the Vanguard's painted parts (VanguardPuppetArtSet, on HeroLookView). Presentation only, like the
+    // The cut-out puppet (docs/45 section 4 B), the Vanguard's look since 2026-10-29, in the real scene: HeroLookView hands
+    // the hero to PuppetAnimator with the Vanguard's painted parts (VanguardPuppetArtSet). Presentation only, like the
     // Vanguard's animation tests.
     public sealed class PuppetAnimationTests
     {

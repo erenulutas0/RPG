@@ -68,7 +68,7 @@ namespace Cryptforge.UI
             RenderedCharacterArtSet art = setup != null && setup.Hero != null ? setup.Hero.RenderedArt : null;
             if (art != null && !art.IsValid)
             {
-                Debug.LogError("The hero's rendered art set is incomplete; the painted hero stands in for it.", art);
+                Debug.LogError("The hero's rendered art set is incomplete; the Vanguard's look stands in for it.", art);
                 return null;
             }
             return art;
