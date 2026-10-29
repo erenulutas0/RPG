@@ -273,7 +273,7 @@ namespace Cryptforge.Tests
                 int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue;
                 for (int y = r.y; y < r.yMax; y++)
                     for (int x = r.x; x < r.xMax; x++)
-                        if (_painted.GetPixel(x, y).a > 230)
+                        if (((Color32)_painted.GetPixel(x, y)).a > 230)
                         {
                             x0 = Mathf.Min(x0, x);
                             y0 = Mathf.Min(y0, y);
