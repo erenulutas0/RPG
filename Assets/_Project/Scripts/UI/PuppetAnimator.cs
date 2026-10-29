@@ -384,7 +384,8 @@ namespace Cryptforge.UI
         private void RefreshFlash()
         {
             bool hit = _combatant != null && _combatant.IsFlashing;
-            bool on = hit || OverlayFlash > OverlayFlashShown;
+            // The evolution's white never lights a hero already falling, as the rendered hero's does not.
+            bool on = hit || (OverlayFlash > OverlayFlashShown && !_motion.IsDying);
             Color color = hit ? _combatant.FlashColor : Color.white;
             if (on == _flashing && color == _flashColor)
                 return;

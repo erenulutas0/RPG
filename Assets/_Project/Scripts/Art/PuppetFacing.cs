@@ -98,8 +98,12 @@ namespace Cryptforge.Art
                 _direction = shown ? -1f : 1f;
             else if (!shown)
             {
-                // Swapped already and widening: narrow again from the same width toward the newer facing.
+                // Swapped already and widening: narrow again from the same width toward the newer facing. A swap that
+                // landed exactly at the middle leaves it at its narrowest, so it swaps on the next step rather than
+                // widening into the old facing first.
                 _progress = 1f - _progress;
+                if (_progress >= 0.5f)
+                    _progress = 0.4999f;
                 _direction = 1f;
             }
             return true;

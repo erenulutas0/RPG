@@ -156,9 +156,13 @@ namespace Cryptforge.Art
                 return default;
             if (sole == Vector4.zero)
             {
+                // Heel then toe as painted: a sheet painted facing left has its toe at the boot's left end, so the turn
+                // that follows puts the toe ahead either way.
                 Bounds bounds = parts[shin].Sprite.bounds;
                 float texel = 1f / parts[shin].Sprite.pixelsPerUnit;
-                sole = new Vector4(bounds.min.x + texel, bounds.min.y + texel, bounds.max.x - texel, bounds.min.y + texel);
+                float back = turn > 0f ? bounds.min.x + texel : bounds.max.x - texel;
+                float ahead = turn > 0f ? bounds.max.x - texel : bounds.min.x + texel;
+                sole = new Vector4(back, bounds.min.y + texel, ahead, bounds.min.y + texel);
             }
             Vector2 knee = parts[shin].Joint;
             int pelvis = parts[thigh].Parent;

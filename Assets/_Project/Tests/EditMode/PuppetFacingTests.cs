@@ -11,6 +11,29 @@ namespace Cryptforge.Tests
     {
         private const float Frame = 1f / 60f;
 
+        // At exactly 60 frames a second three steps land the swap exactly at the middle of the turn; a new facing asked for
+        // on the next frame narrows straight on to it rather than widening into the one just swapped to first.
+        [Test]
+        public void ANewFacingAskedForAtTheExactMiddleSwapsOnTheNextStep()
+        {
+            var facing = new PuppetFacing();
+            Assert.That(facing.Face(-1f, 0f), Is.True);
+            bool swapped = false;
+            for (int i = 0; i < 3; i++)
+                swapped |= facing.Step(Frame);
+            Assert.That(swapped && facing.ShownMirrored, Is.True, "The mirror swapped three frames in.");
+            Assert.That(facing.Face(-1f, -1f), Is.True, "Now toward the camera as well.");
+            Assert.That(facing.Step(Frame), Is.True, "It swaps on the very next step.");
+            Assert.That(facing.ShownFront && facing.ShownMirrored, Is.True);
+            int frames = 0;
+            while (facing.IsTurning && frames < 60)
+            {
+                Assert.That(facing.Step(Frame), Is.False, "No second turn.");
+                frames++;
+            }
+            Assert.That(frames, Is.LessThanOrEqualTo(3), "It widens out and is done.");
+        }
+
         [Test]
         public void TheFacingAskedForIsTakenAtOnceAndShownThroughAShortTurn()
         {
