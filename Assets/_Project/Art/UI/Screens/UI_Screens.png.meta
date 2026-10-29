@@ -1,0 +1,780 @@
+fileFormatVersion: 2
+guid: 4a7a8f8523ab4197b2033e9a108a2091
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4231010969867677319
+    second: UI_Screens_Surface
+  - first:
+      213: -1710512313942523751
+    second: UI_Screens_PausePlate
+  - first:
+      213: 9025708068818855663
+    second: UI_Screens_CardEquipped
+  - first:
+      213: 6507533631112319494
+    second: UI_Screens_CardAffordable
+  - first:
+      213: 6795509434838104204
+    second: UI_Screens_CardOwned
+  - first:
+      213: -6754040311650561518
+    second: UI_Screens_CardLocked
+  - first:
+      213: 3333456395645771824
+    second: UI_Screens_StateAccent
+  - first:
+      213: 6794716526180276554
+    second: UI_Screens_IconWell
+  - first:
+      213: -7185846304517907781
+    second: UI_Screens_HeaderPlate
+  - first:
+      213: -5888470335816510580
+    second: UI_Screens_VictoryPlate
+  - first:
+      213: 741320628750289400
+    second: UI_Screens_DefeatPlate
+  - first:
+      213: 598761312782438011
+    second: UI_Screens_VictoryCrest
+  - first:
+      213: 6864437173394777830
+    second: UI_Screens_DefeatCrest
+  - first:
+      213: 2543672066911168507
+    second: UI_Screens_PortraitFrame
+  - first:
+      213: -6392242170524800489
+    second: UI_Screens_PipLit
+  - first:
+      213: -6250890751170948130
+    second: UI_Screens_PipDark
+  - first:
+      213: 7587617296213992786
+    second: UI_Screens_Rule
+  - first:
+      213: 5494404300390886654
+    second: UI_Screens_Stud
+  - first:
+      213: -7113078370116223254
+    second: UI_Screens_Seal
+  - first:
+      213: -7475941657085403123
+    second: UI_Screens_Primary
+  - first:
+      213: 2396203269322944479
+    second: UI_Screens_PrimaryPressed
+  - first:
+      213: -6608858883582306800
+    second: UI_Screens_PrimaryDisabled
+  - first:
+      213: -7331727029576527108
+    second: UI_Screens_Secondary
+  - first:
+      213: 810957342497694460
+    second: UI_Screens_SecondaryPressed
+  - first:
+      213: -7400978732008144209
+    second: UI_Screens_SecondaryDisabled
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: UI_Screens_Surface
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 456
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 44, y: 44, z: 44, w: 44}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 041846c94e3b4087ac86e108f044c81d
+      internalID: -4231010969867677319
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_PausePlate
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 456
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7022247929d043b59a8ac75fdd4e42b3
+      internalID: -1710512313942523751
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_CardEquipped
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 30
+        width: 112
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 30, y: 30, z: 30, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f4c38c68ea740749b301068be129e68
+      internalID: 9025708068818855663
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_CardAffordable
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 30
+        width: 112
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 30, y: 30, z: 30, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd7bd1e3ce8e414b94463f8011c37bb8
+      internalID: 6507533631112319494
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_CardOwned
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 30
+        width: 112
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 30, y: 30, z: 30, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aaf2287533da4c98bd4d81f765b68143
+      internalID: 6795509434838104204
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_CardLocked
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 30
+        width: 112
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 30, y: 30, z: 30, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 409b8df9ab6848efa979cd290a6e2290
+      internalID: -6754040311650561518
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_StateAccent
+      rect:
+        serializedVersion: 2
+        x: 640
+        y: 94
+        width: 4
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 4, z: 0, w: 4}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a9fbbd1984e4df6a1b9969b9731604a
+      internalID: 3333456395645771824
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_IconWell
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 460
+        width: 140
+        height: 140
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f90f51fd85f84a41a967a9fe724f0c13
+      internalID: 6794716526180276554
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_HeaderPlate
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 226
+        width: 216
+        height: 100
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 84, y: 28, z: 84, w: 28}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 139335021cfe4cb7b20dabfef3c870c7
+      internalID: -7185846304517907781
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_VictoryPlate
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 328
+        width: 288
+        height: 126
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 130, y: 28, z: 130, w: 28}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f24538f3b05442f94c268b8f7f9fc85
+      internalID: -5888470335816510580
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_DefeatPlate
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 328
+        width: 288
+        height: 126
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 130, y: 28, z: 130, w: 28}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e4e45aa65234a908375476a3400961f
+      internalID: 741320628750289400
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_VictoryCrest
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 230
+        width: 208
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 543cf377ddf84398ac0b82c0f790f122
+      internalID: 598761312782438011
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_DefeatCrest
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 230
+        width: 208
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4e63855f94f41a387d0800097dd0f0e
+      internalID: 6864437173394777830
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_PortraitFrame
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 472
+        width: 108
+        height: 128
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 30, y: 30, z: 30, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 938ffec4d46d418692bbc33862d44003
+      internalID: 2543672066911168507
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_PipLit
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 12
+        width: 16
+        height: 16
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54a5fb7aeda04c6d8c67ca438e6c612c
+      internalID: -6392242170524800489
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_PipDark
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 12
+        width: 16
+        height: 16
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c33a428cbde548ac80e970f1ffa4fa4f
+      internalID: -6250890751170948130
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_Rule
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 16
+        width: 128
+        height: 12
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 52, y: 0, z: 52, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba5b0e499e154f7b8dead7d92fe0231c
+      internalID: 7587617296213992786
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_Stud
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 44
+        height: 28
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd4874265f5d4049a0c115ca2ada488e
+      internalID: 5494404300390886654
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_Seal
+      rect:
+        serializedVersion: 2
+        x: 578
+        y: 66
+        width: 60
+        height: 60
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 580599a0b6bb42069ef1bbdfaa5ee5dc
+      internalID: -7113078370116223254
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_Primary
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 128
+        width: 120
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 34, y: 30, z: 34, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29be4c71256d4274b896834d0317a839
+      internalID: -7475941657085403123
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_PrimaryPressed
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 128
+        width: 120
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 34, y: 30, z: 34, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cb53e12c188478eb813f3be51997dd2
+      internalID: 2396203269322944479
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_PrimaryDisabled
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 128
+        width: 120
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 34, y: 30, z: 34, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0430facb67847628753fe386fbaa413
+      internalID: -6608858883582306800
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_Secondary
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 128
+        width: 120
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 34, y: 30, z: 34, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a81f745a61cd4f3ab9f9407126a2dbe2
+      internalID: -7331727029576527108
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_SecondaryPressed
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 128
+        width: 120
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 34, y: 30, z: 34, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 177b83c00f2747a7bb6b27b5fefee8c9
+      internalID: 810957342497694460
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Screens_SecondaryDisabled
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 30
+        width: 120
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 34, y: 30, z: 34, w: 30}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8496c913725b4f39a7e6d5fcafeff830
+      internalID: -7400978732008144209
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      UI_Screens_Surface: -4231010969867677319
+      UI_Screens_PausePlate: -1710512313942523751
+      UI_Screens_CardEquipped: 9025708068818855663
+      UI_Screens_CardAffordable: 6507533631112319494
+      UI_Screens_CardOwned: 6795509434838104204
+      UI_Screens_CardLocked: -6754040311650561518
+      UI_Screens_StateAccent: 3333456395645771824
+      UI_Screens_IconWell: 6794716526180276554
+      UI_Screens_HeaderPlate: -7185846304517907781
+      UI_Screens_VictoryPlate: -5888470335816510580
+      UI_Screens_DefeatPlate: 741320628750289400
+      UI_Screens_VictoryCrest: 598761312782438011
+      UI_Screens_DefeatCrest: 6864437173394777830
+      UI_Screens_PortraitFrame: 2543672066911168507
+      UI_Screens_PipLit: -6392242170524800489
+      UI_Screens_PipDark: -6250890751170948130
+      UI_Screens_Rule: 7587617296213992786
+      UI_Screens_Stud: 5494404300390886654
+      UI_Screens_Seal: -7113078370116223254
+      UI_Screens_Primary: -7475941657085403123
+      UI_Screens_PrimaryPressed: 2396203269322944479
+      UI_Screens_PrimaryDisabled: -6608858883582306800
+      UI_Screens_Secondary: -7331727029576527108
+      UI_Screens_SecondaryPressed: 810957342497694460
+      UI_Screens_SecondaryDisabled: -7400978732008144209
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

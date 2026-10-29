@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85ed5ac6ac3c4353840e4b2088485393, type: 3}
+  m_Name: ScreenArtSet
+  m_EditorClassIdentifier: 
+  _surface: {fileID: -4231010969867677319, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _pausePlate: {fileID: -1710512313942523751, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _headerPlate: {fileID: -7185846304517907781, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _victoryPlate: {fileID: -5888470335816510580, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _defeatPlate: {fileID: 741320628750289400, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _victoryCrest: {fileID: 598761312782438011, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _defeatCrest: {fileID: 6864437173394777830, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _equippedCard: {fileID: 9025708068818855663, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _affordableCard: {fileID: 6507533631112319494, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _ownedCard: {fileID: 6795509434838104204, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _lockedCard: {fileID: -6754040311650561518, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _stateAccent: {fileID: 3333456395645771824, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _iconWell: {fileID: 6794716526180276554, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _primary: {fileID: -7475941657085403123, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _primaryPressed: {fileID: 2396203269322944479, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _primaryDisabled: {fileID: -6608858883582306800, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _secondary: {fileID: -7331727029576527108, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _secondaryPressed: {fileID: 810957342497694460, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _secondaryDisabled: {fileID: -7400978732008144209, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _portraitFrame: {fileID: 2543672066911168507, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _pipLit: {fileID: -6392242170524800489, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _pipDark: {fileID: -6250890751170948130, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _rule: {fileID: 7587617296213992786, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _stud: {fileID: 5494404300390886654, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _seal: {fileID: -7113078370116223254, guid: 4a7a8f8523ab4197b2033e9a108a2091, type: 3}
+  _titlePlateOutset: {x: 28, y: 13, z: 28, w: 13}
+  _crestSink: 28
+  _headerPlateWidth: 600
+  _pausePlateOutset: {x: 24, y: 30, z: 24, w: 22}
+  _iconWellMargin: 10
+  _headerRuleLift: 6
+  _portraitFrameOutset: {x: 10, y: 6, z: 3, w: 6}
+  _pipSpacing: 20
+  _emptySlotRuleShare: 0.6
