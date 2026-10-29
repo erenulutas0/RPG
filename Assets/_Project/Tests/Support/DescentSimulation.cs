@@ -19,7 +19,7 @@ namespace Cryptforge.Tests
     // input lag the scene's PlayMode driver has when it calls HeroMovementInput.Hold after a frame's Update calls. Without
     // a route the hero stands at the floor origin, where it has always stood: subtracting 0f is exact, so every distance,
     // every placement and every balance number is bit for bit the one the stationary baseline was measured with.
-    internal static class DescentSimulation
+    internal static partial class DescentSimulation
     {
         internal sealed class Enemy
         {
@@ -110,14 +110,16 @@ namespace Cryptforge.Tests
         }
 
         // Ability_ForgeBurst.asset: the hero's burst, fired by the player; the simulation fires it whenever it is ready and
-        // an enemy stands within its radius of the hero.
+        // an enemy stands within its radius of the hero. Kind is Burst for every ability the Descent has measured; the
+        // foundry floor's Cinder Arcanist carries a Vent (Ability_CrucibleVent.asset, RunFoundry).
         internal sealed class HeroAbility
         {
             public float Damage = 20f;
             public float Radius = 2.5f;
             public float Cooldown = 8f;
+            public AbilityKind Kind = AbilityKind.Burst;
 
-            public AbilityRuntime CreateRuntime() => new AbilityRuntime(Damage, Radius, Cooldown);
+            public AbilityRuntime CreateRuntime() => new AbilityRuntime(Damage, Radius, Cooldown, Kind);
         }
 
         internal struct Result

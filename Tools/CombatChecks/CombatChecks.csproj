@@ -47,6 +47,11 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/ScriptedRoute.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/KiteRoute.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/ChestRule.cs" />
+    <!-- The foundry floor's pure rules, for the horde floor of the Descent simulation (docs/41 step 5). -->
+    <Compile Include="../../Assets/_Project/Scripts/Combat/WardenRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunSeeds.cs" />
@@ -64,6 +69,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/SwarmDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
@@ -76,6 +82,11 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunPauseTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FrameStatsTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Foundry.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
+    <!-- The batch report on demand: an explicit test, skipped by a plain dotnet test (docs/41 step 5). -->
+    <Compile Include="FoundryBatchReport.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
