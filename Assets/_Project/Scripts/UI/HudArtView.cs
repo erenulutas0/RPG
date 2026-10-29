@@ -1,4 +1,5 @@
 using Cryptforge.Art;
+using Cryptforge.Combat;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,6 +52,8 @@ namespace Cryptforge.UI
         [SerializeField] private Image _abilityCooldown;
         // Its loadout row, built in its Start on a category-mode run.
         [SerializeField] private RunHud _hud;
+        // Whose health the boss bar showed at the last reading.
+        private Health _bossSubject;
         private bool _loadoutChecked;
 
         public bool UsesPaintedArt { get; private set; }
@@ -114,6 +117,13 @@ namespace Cryptforge.UI
             float deltaTime = Time.deltaTime;
             Track(Hero, deltaTime);
             Track(Experience, deltaTime);
+            // The boss bar shows whichever enemy is nearest: a new one is a new bar, not a hit on the old.
+            Health shown = _hud != null ? _hud.ShownEnemy : null;
+            if (Boss != null && !ReferenceEquals(shown, _bossSubject))
+            {
+                _bossSubject = shown;
+                Boss.ShownFill = -1f;
+            }
             Track(Boss, deltaTime);
         }
 

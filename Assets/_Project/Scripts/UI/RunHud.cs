@@ -47,6 +47,9 @@ namespace Cryptforge.UI
 
         // The weapon and tome row on a category-mode run; null on the legacy cards. For tests.
         public LoadoutBadgesView LoadoutBadges => _loadoutBadges;
+        // Whose health the enemy (boss) bar shows: the encounter's current enemy, which changes as the nearest one does.
+        // Null when the bar shows nobody.
+        internal Health ShownEnemy { get; private set; }
         // The floor's clock under the top panel; null without the compact top panel. For tests.
         public FloorClockView FloorClock { get; private set; }
 
@@ -187,6 +190,7 @@ namespace Cryptforge.UI
 
             if (_encounters.IsInNonCombatRoom)
             {
+                ShownEnemy = null;
                 _enemyLabel.text = room != null ? room.DisplayName : string.Empty;
                 _enemyBar.fillAmount = 0f;
                 _statusLabel.text = _text.ForgeStatus;
@@ -199,6 +203,7 @@ namespace Cryptforge.UI
 
             // The bar follows the hero's current target; the label counts the rest of the pack still standing.
             Health enemy = _encounters.CurrentEnemy;
+            ShownEnemy = enemy;
             float current = enemy != null ? enemy.Current : 0f;
             float maximum = enemy != null ? enemy.Maximum : definition.MaximumHealth;
             int othersAlive = _encounters.AliveEnemyCount - (enemy != null && enemy.IsAlive ? 1 : 0);
