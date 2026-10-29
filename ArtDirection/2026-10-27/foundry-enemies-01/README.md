@@ -119,8 +119,13 @@ python Tools/ArtReview/build_foundry_enemies.py                  # TGAs, metas, 
 python Tools/ArtReview/review_foundry_enemies.py --out <dir>     # line-ups, crowd, GIFs, before/after, approaches
 ```
 
-Raw frames go to `TestResults/foundry-enemies-render` (ignored). Each Blender run takes seconds, and a rebuild from
-nothing reproduces the TGAs byte for byte. Re-packing keeps every GUID, and refuses a frame its render canvas clips. `python Tools/ArtReview/build_foundry_enemies.py --captain-work <dir>` writes the Captain's registered, recoloured
+Raw frames go to `TestResults/foundry-enemies-render` (ignored). Each Blender run takes seconds. A rebuild from
+nothing reproduces the Runner's TGAs byte for byte; the Tank's and the Captain's it did not (2026-10-29, art round 3):
+the pauldrons' and the helm's faces came out of bmesh in a memory-dependent order, and each face's shade follows its
+index. Those domes are now rebuilt in the face order the shipped frames were rendered with (`DOME_FACES`), so every
+rebuild is the same and within a few levels of 255 of the shipped TGAs on under one texel in a hundred; the shipped
+TGAs were left as they are. The horde's windups and deaths (`--motion`, `build_horde_motion.py`) are in
+`ArtDirection/2026-10-29/horde-motion-01`. Re-packing keeps every GUID, and refuses a frame its render canvas clips. `python Tools/ArtReview/build_foundry_enemies.py --captain-work <dir>` writes the Captain's registered, recoloured
 frames with a placement grid, for moving the brass (`CAPTAIN_DRESS`).
 
 ## Limits and next steps
@@ -132,4 +137,5 @@ frames with a placement grid, for moving the brass (`CAPTAIN_DRESS`).
   Its front frames stand lower than its rear ones because the painted Grunt's head sits lower in its front sheet.
 - Mirroring for the right-facing directions flips the light, as it does for the Grunt.
 - The Runner's strike frame is a pounce that reads best from the front; from behind the claws are half hidden.
-- Four poses and a strike per facing, as the Grunt: no windup frames and no world-space foot locking.
+- Four poses and a strike per facing, as the Grunt, and no world-space foot locking. (A strike windup and a death of
+  each kind's own were added in art round 3: `ArtDirection/2026-10-29/horde-motion-01`.)

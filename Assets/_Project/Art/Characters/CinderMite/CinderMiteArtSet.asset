@@ -33,3 +33,30 @@ MonoBehaviour:
   _death:
   - {fileID: 21300000, guid: c8d4110e6a2c9614b876576f632440b5, type: 3}
   - {fileID: 21300000, guid: 12c25a87c16d1c242add11b1e0101b40, type: 3}
+  _strikeWindup:
+  - Body: {fileID: 21300000, guid: e3d701cb09da4096a5d785f917118a3c, type: 3}
+    Flash: {fileID: 21300000, guid: 0e57b1a352004c4fbb8b922d636f491a, type: 3}
+  - Body: {fileID: 21300000, guid: d301d2333cf24fe3a0edd750ca745937, type: 3}
+    Flash: {fileID: 21300000, guid: b63357a6bbbb4a909eb44884d6fcd977, type: 3}
+  _strikeWindupSeconds: 0.18
+  _deathFront:
+  - {fileID: 21300000, guid: 3dc95d1564a44147a4d8318ddb614d08, type: 3}
+  - {fileID: 21300000, guid: e02d63080a7743948959ebca8e79d352, type: 3}
+  - {fileID: 21300000, guid: ea213f1f5b2b4935961b43d4458259cf, type: 3}
+  - {fileID: 21300000, guid: 1578753fd6b64df7b9a35936e8a8f648, type: 3}
+  - {fileID: 21300000, guid: b5edfe08f2a64a34866e50cda660930c, type: 3}
+  - {fileID: 21300000, guid: 47606cfd27c041be938cf6e265e6a57a, type: 3}
+  - {fileID: 21300000, guid: 47606cfd27c041be938cf6e265e6a57a, type: 3}
+  - {fileID: 21300000, guid: 174dfc7758c34a5bafbde0cc5e8d33a9, type: 3}
+  - {fileID: 21300000, guid: 174dfc7758c34a5bafbde0cc5e8d33a9, type: 3}
+  _deathRear:
+  - {fileID: 21300000, guid: 2badde5ab6114a27bbb0ed00189f2c37, type: 3}
+  - {fileID: 21300000, guid: 6019ea6ea6474f91b69b6bfee7bf0e31, type: 3}
+  - {fileID: 21300000, guid: 16009b9c9e00440ba8c35c91f5e9b3c2, type: 3}
+  - {fileID: 21300000, guid: 936d9efb5bc14b8c86131ca5dd95ac66, type: 3}
+  - {fileID: 21300000, guid: 9077260c9ea243bab1ed36e886c5c8e4, type: 3}
+  - {fileID: 21300000, guid: 5fdb1ead6a3347f581ff871b4bde65bc, type: 3}
+  - {fileID: 21300000, guid: 5fdb1ead6a3347f581ff871b4bde65bc, type: 3}
+  - {fileID: 21300000, guid: 14f4e9541a6f45dd9533a56154c7b08e, type: 3}
+  - {fileID: 21300000, guid: 14f4e9541a6f45dd9533a56154c7b08e, type: 3}
+  _deathStep: 0.06
