@@ -242,8 +242,9 @@ namespace Cryptforge.Tests
             var setup = Object.FindFirstObjectByType<CombatSetup>();
             var view = Object.FindFirstObjectByType<RunChoiceView>();
             ChoiceCardArtSet art = view.CardArt;
-            bool iconSeen = false, emptySeen = false;
-            for (int i = 0; i < 30 && !(iconSeen && emptySeen); i++)
+            // With the icon set every hall card shows its icon; a handful of offers is enough, before the pool runs short.
+            bool iconSeen = false;
+            for (int i = 0; i < 6 && !iconSeen; i++)
             {
                 setup.Run.GrantBonusUpgrade();
                 UpgradeOffer offer = setup.Upgrades.CurrentOffer;
@@ -257,13 +258,11 @@ namespace Cryptforge.Tests
                     Image icon = card.transform.Find("Choice Icon").GetComponent<Image>();
                     if (icon.enabled && icon.sprite != null)
                         iconSeen = true;
-                    else
-                        emptySeen = true;
                 }
                 Assert.That(setup.Choices.TrySelect(setup.Choices.Current, 0), Is.True);
                 yield return null;
             }
-            Assert.That(iconSeen && emptySeen, Is.True, "Both a card with an icon and one without were seen.");
+            Assert.That(iconSeen, Is.True, "A card's icon sits in its well.");
             // A tap through the icon and its well still reaches the card's button.
             setup.Run.GrantBonusUpgrade();
             yield return new WaitForSecondsRealtime(.3f);

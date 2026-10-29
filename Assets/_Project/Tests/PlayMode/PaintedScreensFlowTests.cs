@@ -312,7 +312,9 @@ namespace Cryptforge.Tests
                 Assert.That((crestMin.x + crestMax.x) / 2f, Is.EqualTo((plateMin.x + plateMax.x) / 2f).Within(.5f));
                 Vector2 surfaceTop = Corners(area.Find("Result Surface").GetComponent<RectTransform>()).max;
                 Assert.That(crestMax.y, Is.LessThan(surfaceTop.y - 17f * scale), "Inside the ledger, clear of its frame.");
-                Assert.That(crestMin.y, Is.GreaterThan(titleMax.y - 1f * scale), "Clear of the title's words.");
+                // The words, not the title's rect: the rect is taller than the line it holds.
+                float wordsTop = (titleMin.y + titleMax.y) / 2f + title.preferredHeight / 2f * scale;
+                Assert.That(crestMin.y, Is.GreaterThan(wordsTop - 1f * scale), "Clear of the title's words.");
 
                 // The divider a rule now, its rect where it was.
                 Image divider = area.Find("Result Divider").GetComponent<Image>();
