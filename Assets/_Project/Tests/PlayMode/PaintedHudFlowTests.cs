@@ -223,8 +223,9 @@ namespace Cryptforge.Tests
                 right = Mathf.Max(right, world.x);
             }
             Assert.That(lowest, Is.LessThan(float.MaxValue), "The name is set.");
-            // Glyph quads carry a texel or so of the font's padding below the ink.
-            Assert.That(lowest, Is.GreaterThanOrEqualTo(fillMax.y + 6f * scale - 2f * scale), "The rim keeps under the name.");
+            // Glyph quads carry a texel or so of the font's padding below the ink, and the batch window's small canvas
+            // rasterises the font up to a screen pixel lower.
+            Assert.That(lowest, Is.GreaterThanOrEqualTo(fillMax.y + 6f * scale - 2f * scale - 1f), "The rim keeps under the name.");
             Assert.That(left, Is.GreaterThan(fillMin.x), "The name lies between the end caps.");
             Assert.That(right, Is.LessThan(fillMax.x));
             Image plate = view.BossNamePlate;
@@ -357,12 +358,13 @@ namespace Cryptforge.Tests
             float side = (back.bounds.size.x - fill.sprite.rect.width / 128f * .65f) / 2f;
             float fullSide = (fullBack.bounds.size.x - fullFill.sprite.rect.width / 128f) / 2f;
             Assert.That(side, Is.EqualTo(fullSide).Within(1f / 128f));
-            float left = fill.bounds.min.x;
+            // Measured from the bar, which walks on with the Mite between the two frames.
+            float left = fill.bounds.min.x - bar.position.x;
             Health health = mite.GetComponent<Health>();
             health.ApplyDamage(new DamageContext(health.Current - health.Maximum * .5f));
             yield return null;
             Assert.That(fill.transform.localScale.x, Is.EqualTo(.5f).Within(1f / fill.sprite.rect.width), "It drains in its own texels.");
-            Assert.That(fill.bounds.min.x, Is.EqualTo(left).Within(1e-5f));
+            Assert.That(fill.bounds.min.x - bar.position.x, Is.EqualTo(left).Within(1e-5f), "From its left end.");
             LogAssert.NoUnexpectedReceived();
         }
 
