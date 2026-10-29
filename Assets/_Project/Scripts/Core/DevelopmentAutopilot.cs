@@ -108,12 +108,11 @@ namespace Cryptforge.Core
             {
                 if (!(_inReach[i] is Health enemy) || !enemy.IsAlive)
                     continue;
-                if (_ability.Ability.Kind == AbilityKind.Vent)
-                {
-                    BurnStatus burn = enemy.GetComponent<BurnStatus>();
-                    if (burn == null || !burn.IsBurning)
-                        continue;
-                }
+                // TryGetComponent: this runs every frame the Vent is ready, and a failed GetComponent allocates in the
+                // Editor for each enemy in reach that has never burned.
+                if (_ability.Ability.Kind == AbilityKind.Vent &&
+                    (!enemy.TryGetComponent(out BurnStatus burn) || !burn.IsBurning))
+                    continue;
                 count++;
             }
             _inReach.Clear();

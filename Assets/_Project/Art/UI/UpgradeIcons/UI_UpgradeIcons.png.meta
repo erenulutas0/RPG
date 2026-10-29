@@ -1,0 +1,1248 @@
+fileFormatVersion: 2
+guid: 52bf72cc1a77477c9cad1d80dbd7d630
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5930403728363345398
+    second: UI_UpgradeIcons_weapon_sword
+  - first:
+      213: 1387880694216388731
+    second: UI_UpgradeIcons_line_sword_damage
+  - first:
+      213: 6867509410376795677
+    second: UI_UpgradeIcons_line_sword_area
+  - first:
+      213: -5095196608177750901
+    second: UI_UpgradeIcons_line_sword_range
+  - first:
+      213: -5385393041635504562
+    second: UI_UpgradeIcons_evolution_sword
+  - first:
+      213: -4232539688267567579
+    second: UI_UpgradeIcons_weapon_staff
+  - first:
+      213: 7944701257509512318
+    second: UI_UpgradeIcons_line_staff_damage
+  - first:
+      213: 4993928846061239673
+    second: UI_UpgradeIcons_line_staff_area
+  - first:
+      213: 4128056375536781426
+    second: UI_UpgradeIcons_line_staff_attack_speed
+  - first:
+      213: -3510855150835919260
+    second: UI_UpgradeIcons_evolution_staff
+  - first:
+      213: -6826019574019591384
+    second: UI_UpgradeIcons_weapon_daggers
+  - first:
+      213: -8412671093284342407
+    second: UI_UpgradeIcons_line_daggers_damage
+  - first:
+      213: -3439652042767758729
+    second: UI_UpgradeIcons_line_daggers_crit
+  - first:
+      213: 4345612164907714447
+    second: UI_UpgradeIcons_line_daggers_attack_speed
+  - first:
+      213: 9099686634955059611
+    second: UI_UpgradeIcons_evolution_daggers
+  - first:
+      213: -6031211694142368368
+    second: UI_UpgradeIcons_tome_force
+  - first:
+      213: 2469889380848395874
+    second: UI_UpgradeIcons_tome_precision
+  - first:
+      213: 8524981367463133035
+    second: UI_UpgradeIcons_tome_reach
+  - first:
+      213: -8192149228796378884
+    second: UI_UpgradeIcons_tome_tempo
+  - first:
+      213: 2685147767208689323
+    second: UI_UpgradeIcons_tome_vitality
+  - first:
+      213: -6176788853688503413
+    second: UI_UpgradeIcons_upgrade_armor
+  - first:
+      213: -7761629820200907850
+    second: UI_UpgradeIcons_upgrade_attack_speed_evolved
+  - first:
+      213: -340851883126439283
+    second: UI_UpgradeIcons_upgrade_crit
+  - first:
+      213: 6650640792628931531
+    second: UI_UpgradeIcons_upgrade_crit_splash
+  - first:
+      213: -2645522215811205242
+    second: UI_UpgradeIcons_upgrade_damage_evolved
+  - first:
+      213: -770289214026010672
+    second: UI_UpgradeIcons_upgrade_health
+  - first:
+      213: 2540423575620337267
+    second: UI_UpgradeIcons_upgrade_health_evolved
+  - first:
+      213: -4519282074032965639
+    second: UI_UpgradeIcons_upgrade_luck
+  - first:
+      213: 4633606055418456946
+    second: UI_UpgradeIcons_upgrade_move_speed
+  - first:
+      213: 5136158449571180895
+    second: UI_UpgradeIcons_upgrade_pulse
+  - first:
+      213: -9060572391286235075
+    second: UI_UpgradeIcons_upgrade_range
+  - first:
+      213: -1059241235656373839
+    second: UI_UpgradeIcons_upgrade_stamina
+  - first:
+      213: -1924785798386527760
+    second: UI_UpgradeIcons_weapon_sword_slot
+  - first:
+      213: -5168988756300703283
+    second: UI_UpgradeIcons_evolution_sword_slot
+  - first:
+      213: 20727574208815442
+    second: UI_UpgradeIcons_weapon_staff_slot
+  - first:
+      213: -6968713616808256631
+    second: UI_UpgradeIcons_evolution_staff_slot
+  - first:
+      213: -1636177728084987024
+    second: UI_UpgradeIcons_weapon_daggers_slot
+  - first:
+      213: 8090006565960370726
+    second: UI_UpgradeIcons_evolution_daggers_slot
+  - first:
+      213: -3437459670255238137
+    second: UI_UpgradeIcons_tome_force_slot
+  - first:
+      213: 6360151737979265595
+    second: UI_UpgradeIcons_tome_precision_slot
+  - first:
+      213: -7688749451627665479
+    second: UI_UpgradeIcons_tome_reach_slot
+  - first:
+      213: -3365962534202881396
+    second: UI_UpgradeIcons_tome_tempo_slot
+  - first:
+      213: 4345089787454119415
+    second: UI_UpgradeIcons_tome_vitality_slot
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_sword
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e65279c180044fc3b8708a4f22ced301
+      internalID: 5930403728363345398
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_sword_damage
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76f7a0dbe8cc493f890f1a093fe5afed
+      internalID: 1387880694216388731
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_sword_area
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c29b4bcc90f44bea3e635a12e57f5a6
+      internalID: 6867509410376795677
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_sword_range
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9523aa6fa7e54581be7222cd6396d987
+      internalID: -5095196608177750901
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_evolution_sword
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1965cbd8552249c7952228eadf134e78
+      internalID: -5385393041635504562
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_staff
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23199aa1509242c78e01354350e42c00
+      internalID: -4232539688267567579
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_staff_damage
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 584
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e4a01478b524bfb8ee914719af64194
+      internalID: 7944701257509512318
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_staff_area
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7097f4788820445a909d33678148759a
+      internalID: 4993928846061239673
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_staff_attack_speed
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5f47f073dab487096216fc3a92d94fb
+      internalID: 4128056375536781426
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_evolution_staff
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7e7db17d1054f75ae8d38a95e16c78c
+      internalID: -3510855150835919260
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_daggers
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6493b6e010e5479d886a302ed30ecf77
+      internalID: -6826019574019591384
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_daggers_damage
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 232a2da2527b4bceb48bb9b8c10c5a29
+      internalID: -8412671093284342407
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_daggers_crit
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 699356b8d8614e06bde6fb8e18055112
+      internalID: -3439652042767758729
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_line_daggers_attack_speed
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 438
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24f3de4d3f164beea76fdb287308cc26
+      internalID: 4345612164907714447
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_evolution_daggers
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adb7cf6742504200a63b6375ab4b090b
+      internalID: 9099686634955059611
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_force
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72af84ddfa9f4b8e8fe7e4826213f028
+      internalID: -6031211694142368368
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_precision
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f603dab6f0ca48d3af657595e8ce041f
+      internalID: 2469889380848395874
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_reach
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26eb5bf70c8646fca43198cf703692ee
+      internalID: 8524981367463133035
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_tempo
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d2d9b620a7c48e394f9218013462e7a
+      internalID: -8192149228796378884
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_vitality
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 421b1b9d4bcb4db5a0278c9564b07dd7
+      internalID: 2685147767208689323
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_armor
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 292
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2a0fc6631894f9a9cb984e822e3831b
+      internalID: -6176788853688503413
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_attack_speed_evolved
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86f9c5b8c49b4b5dbb9714e2f0f7da5f
+      internalID: -7761629820200907850
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_crit
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b2c2da008704dea8e867c8c0d05c4df
+      internalID: -340851883126439283
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_crit_splash
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4733de4079c0480483e9c16d349364b6
+      internalID: 6650640792628931531
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_damage_evolved
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbde060689fc449bbfea847b9f14e211
+      internalID: -2645522215811205242
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_health
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15d0489e73794fb09f7dff176ad7c681
+      internalID: -770289214026010672
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_health_evolved
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd2c5f4d297a447183d87478c258d61d
+      internalID: 2540423575620337267
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_luck
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 146
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d21009e789b4ddca1c3e0429f72a025
+      internalID: -4519282074032965639
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_move_speed
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4ea7580ba564001aa78b8ec5dc3b946
+      internalID: 4633606055418456946
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_pulse
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 0
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 414fb22bc1c1448482678ffdc351c69f
+      internalID: 5136158449571180895
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_range
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 0
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e56de32e679450893291b0048c77086
+      internalID: -9060572391286235075
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_stamina
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 0
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a8f2bb1f3914d6582a55046218c632f
+      internalID: -1059241235656373839
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_sword_slot
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 962a75117d8d444b92bfd4177c1342d6
+      internalID: -1924785798386527760
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_evolution_sword_slot
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01666d5482f744a688ae1c0b54bf9a67
+      internalID: -5168988756300703283
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_staff_slot
+      rect:
+        serializedVersion: 2
+        x: 700
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2d352eddf164c2e8a5a0be86526799f
+      internalID: 20727574208815442
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_evolution_staff_slot
+      rect:
+        serializedVersion: 2
+        x: 758
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a0c38956b4d46889a9a25e5f5d50b36
+      internalID: -6968713616808256631
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_daggers_slot
+      rect:
+        serializedVersion: 2
+        x: 816
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: baa645914aba4e6ca376a6f6fb18f172
+      internalID: -1636177728084987024
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_evolution_daggers_slot
+      rect:
+        serializedVersion: 2
+        x: 874
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e8e60677f6f4cff9403ef8de0e3b62d
+      internalID: 8090006565960370726
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_force_slot
+      rect:
+        serializedVersion: 2
+        x: 932
+        y: 88
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a115330db67b4736970e6a36dca13614
+      internalID: -3437459670255238137
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_precision_slot
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 30
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fb789fa8aa143c0a9a677b936ab72c5
+      internalID: 6360151737979265595
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_reach_slot
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 30
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32f28dade8474a5682f5b1ad9c194165
+      internalID: -7688749451627665479
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_tempo_slot
+      rect:
+        serializedVersion: 2
+        x: 700
+        y: 30
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7cfbe7dd2b4f4918bcea325cf5cdbbdb
+      internalID: -3365962534202881396
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_tome_vitality_slot
+      rect:
+        serializedVersion: 2
+        x: 758
+        y: 30
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 841a11129da945cf9bcbabb664711788
+      internalID: 4345089787454119415
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      UI_UpgradeIcons_weapon_sword: 5930403728363345398
+      UI_UpgradeIcons_line_sword_damage: 1387880694216388731
+      UI_UpgradeIcons_line_sword_area: 6867509410376795677
+      UI_UpgradeIcons_line_sword_range: -5095196608177750901
+      UI_UpgradeIcons_evolution_sword: -5385393041635504562
+      UI_UpgradeIcons_weapon_staff: -4232539688267567579
+      UI_UpgradeIcons_line_staff_damage: 7944701257509512318
+      UI_UpgradeIcons_line_staff_area: 4993928846061239673
+      UI_UpgradeIcons_line_staff_attack_speed: 4128056375536781426
+      UI_UpgradeIcons_evolution_staff: -3510855150835919260
+      UI_UpgradeIcons_weapon_daggers: -6826019574019591384
+      UI_UpgradeIcons_line_daggers_damage: -8412671093284342407
+      UI_UpgradeIcons_line_daggers_crit: -3439652042767758729
+      UI_UpgradeIcons_line_daggers_attack_speed: 4345612164907714447
+      UI_UpgradeIcons_evolution_daggers: 9099686634955059611
+      UI_UpgradeIcons_tome_force: -6031211694142368368
+      UI_UpgradeIcons_tome_precision: 2469889380848395874
+      UI_UpgradeIcons_tome_reach: 8524981367463133035
+      UI_UpgradeIcons_tome_tempo: -8192149228796378884
+      UI_UpgradeIcons_tome_vitality: 2685147767208689323
+      UI_UpgradeIcons_upgrade_armor: -6176788853688503413
+      UI_UpgradeIcons_upgrade_attack_speed_evolved: -7761629820200907850
+      UI_UpgradeIcons_upgrade_crit: -340851883126439283
+      UI_UpgradeIcons_upgrade_crit_splash: 6650640792628931531
+      UI_UpgradeIcons_upgrade_damage_evolved: -2645522215811205242
+      UI_UpgradeIcons_upgrade_health: -770289214026010672
+      UI_UpgradeIcons_upgrade_health_evolved: 2540423575620337267
+      UI_UpgradeIcons_upgrade_luck: -4519282074032965639
+      UI_UpgradeIcons_upgrade_move_speed: 4633606055418456946
+      UI_UpgradeIcons_upgrade_pulse: 5136158449571180895
+      UI_UpgradeIcons_upgrade_range: -9060572391286235075
+      UI_UpgradeIcons_upgrade_stamina: -1059241235656373839
+      UI_UpgradeIcons_weapon_sword_slot: -1924785798386527760
+      UI_UpgradeIcons_evolution_sword_slot: -5168988756300703283
+      UI_UpgradeIcons_weapon_staff_slot: 20727574208815442
+      UI_UpgradeIcons_evolution_staff_slot: -6968713616808256631
+      UI_UpgradeIcons_weapon_daggers_slot: -1636177728084987024
+      UI_UpgradeIcons_evolution_daggers_slot: 8090006565960370726
+      UI_UpgradeIcons_tome_force_slot: -3437459670255238137
+      UI_UpgradeIcons_tome_precision_slot: 6360151737979265595
+      UI_UpgradeIcons_tome_reach_slot: -7688749451627665479
+      UI_UpgradeIcons_tome_tempo_slot: -3365962534202881396
+      UI_UpgradeIcons_tome_vitality_slot: 4345089787454119415
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

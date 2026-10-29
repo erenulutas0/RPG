@@ -9,7 +9,8 @@ namespace Cryptforge.UI
     // while it cools down. Built in Start, after CombatSetup has created the ability.
     public sealed class AbilityRingView : MonoBehaviour
     {
-        private const string RingName = "Ability Ring";
+        // The ring's object name: the foundry's depth (FoundryVisibilityView) finds the ring on the floor by it.
+        internal const string RingName = "Ability Ring";
 
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private AbilityController _controller;

@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
@@ -42,8 +43,30 @@ namespace Cryptforge.UI
         [SerializeField] private Text _relicCount;
         [SerializeField] private Sprite _secondWindIcon;
         [SerializeField] private Sprite _counterweightIcon;
+        // Optional: the painted weapon and tome icons the loadout row's badges show.
+        [SerializeField] private UpgradeIconSet _upgradeIcons;
         private LoadoutBadgesView _loadoutBadges;
         private bool _subscribed;
+        // What the encounter's three labels were last formatted from, and the text each was given. Progress is reported
+        // on every hit any enemy of the wave takes - several a frame in a crowd, and a burn ticks twice a second - while
+        // what these labels say rarely changes, so a label is formatted again only when a value it shows has changed or
+        // its text is no longer the one formatted here. The text is the same as formatting it every time.
+        private string _floorText;
+        private int _floorNumber;
+        private int _floorRoom;
+        private int _floorRooms;
+        private string _floorRoomName;
+        private string _enemyText;
+        private string _enemyName;
+        private float _enemyCurrent;
+        private float _enemyMaximum;
+        private int _enemyOthers;
+        private string _statusText;
+        private int _statusKind;
+        private int _statusFirst;
+        private int _statusSecond;
+        private float _statusSeconds;
+        private string _statusName;
 
         // The weapon and tome row on a category-mode run; null on the legacy cards. For tests.
         public LoadoutBadgesView LoadoutBadges => _loadoutBadges;
@@ -93,6 +116,8 @@ namespace Cryptforge.UI
             {
                 _loadoutBadges = gameObject.AddComponent<LoadoutBadgesView>();
                 _loadoutBadges.Initialize(_setup, _text, _compactGold);
+                if (_upgradeIcons != null)
+                    _loadoutBadges.UseIcons(_upgradeIcons);
                 if (_weaponName != null)
                     _weaponName.gameObject.SetActive(false);
             }
@@ -173,8 +198,21 @@ namespace Cryptforge.UI
         private void RefreshEncounter()
         {
             RoomDefinition room = _encounters.CurrentRoom;
-            _floorLabel.text = string.Format(_text.FloorProgressFormat, _encounters.FloorNumber,
-                Mathf.Max(1, _encounters.RoomNumber), _encounters.RoomCount, room != null ? room.DisplayName : string.Empty);
+            int floorNumber = _encounters.FloorNumber;
+            int roomNumber = Mathf.Max(1, _encounters.RoomNumber);
+            int rooms = _encounters.RoomCount;
+            string roomName = room != null ? room.DisplayName : string.Empty;
+            if (!ReferenceEquals(_floorLabel.text, _floorText) || floorNumber != _floorNumber || roomNumber != _floorRoom ||
+                rooms != _floorRooms || !string.Equals(roomName, _floorRoomName, System.StringComparison.Ordinal))
+            {
+                _floorLabel.text = string.Format(_text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName);
+                // Read back: the label keeps its old string when the new one has the same characters.
+                _floorText = _floorLabel.text;
+                _floorNumber = floorNumber;
+                _floorRoom = roomNumber;
+                _floorRooms = rooms;
+                _floorRoomName = roomName;
+            }
             if (_roomPips != null)
                 for (int i = 0; i < _roomPips.Length; i++)
                 {
@@ -207,19 +245,69 @@ namespace Cryptforge.UI
             float current = enemy != null ? enemy.Current : 0f;
             float maximum = enemy != null ? enemy.Maximum : definition.MaximumHealth;
             int othersAlive = _encounters.AliveEnemyCount - (enemy != null && enemy.IsAlive ? 1 : 0);
-            _enemyLabel.text = othersAlive > 0
-                ? string.Format(_text.PackHealthFormat, definition.DisplayName, current, maximum, othersAlive)
-                : string.Format(_text.HealthFormat, definition.DisplayName, current, maximum);
+            string name = definition.DisplayName;
+            if (!ReferenceEquals(_enemyLabel.text, _enemyText) || othersAlive != _enemyOthers || current != _enemyCurrent ||
+                maximum != _enemyMaximum || !string.Equals(name, _enemyName, System.StringComparison.Ordinal))
+            {
+                _enemyLabel.text = othersAlive > 0
+                    ? string.Format(_text.PackHealthFormat, name, current, maximum, othersAlive)
+                    : string.Format(_text.HealthFormat, name, current, maximum);
+                _enemyText = _enemyLabel.text;
+                _enemyName = name;
+                _enemyCurrent = current;
+                _enemyMaximum = maximum;
+                _enemyOthers = othersAlive;
+            }
             _enemyBar.fillAmount = Fraction(current, maximum);
+            RefreshStatus(definition);
+        }
+
+        // The wave's line on the details: the pack's or the enemy's victory, an enrage, or the wave under way.
+        private void RefreshStatus(EnemyDefinition definition)
+        {
             EnemyDefinition enraged = _encounters.EnragedDefinition;
+            int kind, first = 0, second = 0;
+            float seconds = 0f;
+            string name = null;
             if (_encounters.IsCleared && _encounters.WaveEnemyCount > 1)
-                _statusLabel.text = string.Format(_text.PackVictoryFormat, _encounters.WaveEnemyCount, _encounters.HitsTaken, _encounters.Elapsed);
+            {
+                kind = 1;
+                first = _encounters.WaveEnemyCount;
+                second = _encounters.HitsTaken;
+                seconds = _encounters.Elapsed;
+            }
             else if (_encounters.IsCleared)
-                _statusLabel.text = string.Format(_text.VictoryFormat, definition.DisplayName, _encounters.HitsTaken, _encounters.Elapsed);
+            {
+                kind = 2;
+                name = definition.DisplayName;
+                second = _encounters.HitsTaken;
+                seconds = _encounters.Elapsed;
+            }
             else if (enraged != null)
-                _statusLabel.text = string.Format(_text.EnragedFormat, enraged.DisplayName);
+            {
+                kind = 3;
+                name = enraged.DisplayName;
+            }
             else
-                _statusLabel.text = string.Format(_text.WaveFormat, _encounters.WaveNumber, _encounters.WaveCount);
+            {
+                kind = 4;
+                first = _encounters.WaveNumber;
+                second = _encounters.WaveCount;
+            }
+            if (ReferenceEquals(_statusLabel.text, _statusText) && kind == _statusKind && first == _statusFirst &&
+                second == _statusSecond && seconds == _statusSeconds &&
+                string.Equals(name, _statusName, System.StringComparison.Ordinal))
+                return;
+            _statusLabel.text = kind == 1 ? string.Format(_text.PackVictoryFormat, first, second, seconds)
+                : kind == 2 ? string.Format(_text.VictoryFormat, name, second, seconds)
+                : kind == 3 ? string.Format(_text.EnragedFormat, name)
+                : string.Format(_text.WaveFormat, first, second);
+            _statusText = _statusLabel.text;
+            _statusKind = kind;
+            _statusFirst = first;
+            _statusSecond = second;
+            _statusSeconds = seconds;
+            _statusName = name;
         }
 
         private void RefreshGold()

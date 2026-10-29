@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d3adf224f0d46889e975a276101507b, type: 3}
+  m_Name: UpgradeIconSet
+  m_EditorClassIdentifier: 
+  _icons:
+  - _id: weapon_sword
+    _card: {fileID: 5930403728363345398, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -1924785798386527760, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: line_sword_damage
+    _card: {fileID: 1387880694216388731, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_sword_area
+    _card: {fileID: 6867509410376795677, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_sword_range
+    _card: {fileID: -5095196608177750901, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: evolution_sword
+    _card: {fileID: -5385393041635504562, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -5168988756300703283, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: weapon_staff
+    _card: {fileID: -4232539688267567579, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 20727574208815442, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: line_staff_damage
+    _card: {fileID: 7944701257509512318, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_staff_area
+    _card: {fileID: 4993928846061239673, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_staff_attack_speed
+    _card: {fileID: 4128056375536781426, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: evolution_staff
+    _card: {fileID: -3510855150835919260, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -6968713616808256631, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: weapon_daggers
+    _card: {fileID: -6826019574019591384, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -1636177728084987024, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: line_daggers_damage
+    _card: {fileID: -8412671093284342407, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_daggers_crit
+    _card: {fileID: -3439652042767758729, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_daggers_attack_speed
+    _card: {fileID: 4345612164907714447, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: evolution_daggers
+    _card: {fileID: 9099686634955059611, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 8090006565960370726, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: tome_force
+    _card: {fileID: -6031211694142368368, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -3437459670255238137, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: tome_precision
+    _card: {fileID: 2469889380848395874, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 6360151737979265595, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: tome_reach
+    _card: {fileID: 8524981367463133035, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -7688749451627665479, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: tome_tempo
+    _card: {fileID: -8192149228796378884, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -3365962534202881396, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: tome_vitality
+    _card: {fileID: 2685147767208689323, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 4345089787454119415, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: upgrade_armor
+    _card: {fileID: -6176788853688503413, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_attack_speed_evolved
+    _card: {fileID: -7761629820200907850, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_crit
+    _card: {fileID: -340851883126439283, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_crit_splash
+    _card: {fileID: 6650640792628931531, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_damage_evolved
+    _card: {fileID: -2645522215811205242, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_health
+    _card: {fileID: -770289214026010672, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_health_evolved
+    _card: {fileID: 2540423575620337267, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_luck
+    _card: {fileID: -4519282074032965639, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_move_speed
+    _card: {fileID: 4633606055418456946, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_pulse
+    _card: {fileID: 5136158449571180895, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_range
+    _card: {fileID: -9060572391286235075, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_stamina
+    _card: {fileID: -1059241235656373839, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}

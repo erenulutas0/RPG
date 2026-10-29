@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -38,10 +39,15 @@ namespace Cryptforge.UI
         [SerializeField] private Text[] _descriptionLabels;
         [SerializeField] private Image[] _cardIcons;
         [SerializeField] private UpgradeIcon[] _upgradeIcons;
+        // Optional: every card's painted icon by content id, looked in after _upgradeIcons (IconFor).
+        [SerializeField] private UpgradeIconSet _iconSet;
         // Optional, one per slot like the icons: a strip or frame the card's rarity colour is painted on. A slot without
         // one still shows its tier, on the card's name.
         [SerializeField] private Graphic[] _rarityAccents;
         [SerializeField, Min(0f)] private float _inputDelay = 0.25f;
+        // Optional: the cards and the panel painted (ChoiceCardPainter), a treatment per tier, the evolution's, the
+        // forge's and the checkpoint's. Without a whole set the panel keeps the scene's own look.
+        [SerializeField] private ChoiceCardArtSet _cardArt;
 
         // The owner's four colours, green to gold, indexed by UpgradeRarity (docs/27 decision 12, docs/40 section 7.1).
         // Saturated and far apart in hue, so the tier reads at a glance on a phone; gold is a warm yellow rather than the
@@ -89,6 +95,7 @@ namespace Cryptforge.UI
         // they were.
         private Text[] _kindLabels;
         private ChoicePrompt _shownPrompt;
+        private ChoiceCardPainter _painter;
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
         private bool _subscribed;
@@ -97,6 +104,9 @@ namespace Cryptforge.UI
         // For tests: how many cards the panel can show, and the kind line a card shows (empty when it shows none).
         public int CardSlots => _buttons != null ? _buttons.Length : 0;
         public Button CardButton(int slot) => _buttons[slot];
+        // For tests: the set the cards are painted from, and whether they are.
+        public ChoiceCardArtSet CardArt => _cardArt;
+        public bool PaintsCards => _painter != null;
 
         public string CardKindText(int slot)
         {
@@ -128,6 +138,9 @@ namespace Cryptforge.UI
             }
             if (_setup.Upgrades != null && _setup.Upgrades.IsCategoryMode)
                 BuildKindLabels();
+            if (_cardArt != null && _cardArt.IsValid)
+                _painter = new ChoiceCardPainter(_cardArt, _panel.GetComponent<Image>(),
+                    _buttons[0].transform.parent.GetComponent<Image>(), _titleLabel);
 
             _setup.Choices.Changed += OnChoicesChanged;
             _subscribed = true;
@@ -368,6 +381,9 @@ namespace Cryptforge.UI
                 }
                 ShowRarity(i, prompt.Kind == ChoiceKind.Upgrade, prompt.Cards[i].Rarity);
                 ShowKind(i, prompt.Kind == ChoiceKind.Upgrade);
+                if (_painter != null)
+                    _painter.Paint(i, _buttons[i], _nameLabels[i], _descriptionLabels[i], IconAt(i),
+                        TreatmentFor(prompt, i));
             }
         }
 
@@ -475,18 +491,24 @@ namespace Cryptforge.UI
         private Sprite IconFor(ChoicePrompt prompt, int slot)
         {
             // Resolve by content identity, not slot order or translated display names. Forge/checkpoint and future
-            // upgrades without artwork keep their text cards instead of inheriting an unrelated weapon icon.
+            // upgrades without artwork keep their text cards instead of inheriting an unrelated weapon icon. The scene's
+            // own table wins; the icon set answers every other id - a category card's weapon, line, evolution or tome
+            // included, since each is its own id.
             UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
-            if (prompt.Kind != ChoiceKind.Upgrade || offer == null || slot >= offer.Choices.Count || _upgradeIcons == null)
+            if (prompt.Kind != ChoiceKind.Upgrade || offer == null || slot >= offer.Choices.Count)
                 return null;
-            foreach (UpgradeIcon icon in _upgradeIcons)
-                if (icon.Definition != null && icon.Definition.Id == offer.Choices[slot].Id)
-                    return icon.Sprite;
-            return null;
+            string id = offer.Choices[slot].Id;
+            if (_upgradeIcons != null)
+                foreach (UpgradeIcon icon in _upgradeIcons)
+                    if (icon.Definition != null && icon.Definition.Id == id)
+                        return icon.Sprite;
+            return _iconSet != null ? _iconSet.CardIconFor(id) : null;
         }
 
         private void Update()
         {
+            if (_painter != null && _shownPrompt != null)
+                _painter.Tick(Time.unscaledTime);
             if (!_awaitingInputDelay || Time.unscaledTime < _inputEnabledAt)
                 return;
 
@@ -523,6 +545,27 @@ namespace Cryptforge.UI
                 if (_buttons[i] != null)
                     _buttons[i].onClick.RemoveAllListeners();
             }
+        }
+
+        // What a painted card wears: an upgrade its tier's treatment, or the evolution's, which outranks every tier; a
+        // checkpoint card Extract's or Climb's, read from the offer behind the prompt as IconFor reads the upgrade's; a
+        // forge card, or anything else, the neutral one.
+        private ChoiceCardArtSet.Treatment TreatmentFor(ChoicePrompt prompt, int slot)
+        {
+            if (prompt.Kind == ChoiceKind.Upgrade)
+            {
+                UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
+                if (offer != null && slot < offer.Choices.Count && offer.Choices[slot].IsEvolution)
+                    return _cardArt.Evolution;
+                return _cardArt.Tier(prompt.Cards[slot].Rarity) ?? _cardArt.Neutral;
+            }
+            if (prompt.Kind == ChoiceKind.Checkpoint)
+            {
+                CheckpointOffer checkpoint = _setup.Checkpoint != null ? _setup.Checkpoint.CurrentOffer : null;
+                if (checkpoint != null && slot < checkpoint.Choices.Count)
+                    return checkpoint.Choices[slot].Kind == CheckpointKind.Extract ? _cardArt.Extract : _cardArt.Climb;
+            }
+            return _cardArt.Neutral;
         }
     }
 }

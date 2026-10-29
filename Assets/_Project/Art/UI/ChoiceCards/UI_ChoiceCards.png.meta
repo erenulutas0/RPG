@@ -1,0 +1,1248 @@
+fileFormatVersion: 2
+guid: 12d9977056b2426d9d51d153e3c19a78
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5097499464675870634
+    second: UI_ChoiceCards_Backdrop
+  - first:
+      213: 3406872330605701225
+    second: UI_ChoiceCards_Surface
+  - first:
+      213: -3005304384184358613
+    second: UI_ChoiceCards_TitlePlate
+  - first:
+      213: 306885167499856490
+    second: UI_ChoiceCards_TitleCrest
+  - first:
+      213: 9100914014907211622
+    second: UI_ChoiceCards_Description
+  - first:
+      213: 957552035794782707
+    second: UI_ChoiceCards_WellLip
+  - first:
+      213: -4664634710907262011
+    second: UI_ChoiceCards_Press
+  - first:
+      213: -4302026801503921103
+    second: UI_ChoiceCards_GreenFrame
+  - first:
+      213: -988498981720247006
+    second: UI_ChoiceCards_GreenNamePlate
+  - first:
+      213: 1461543893333893022
+    second: UI_ChoiceCards_GreenWell
+  - first:
+      213: 6000633754969301941
+    second: UI_ChoiceCards_GreenSigil
+  - first:
+      213: -3872526445276267752
+    second: UI_ChoiceCards_OrangeFrame
+  - first:
+      213: -8697169583272768659
+    second: UI_ChoiceCards_OrangeNamePlate
+  - first:
+      213: 6290761748157743799
+    second: UI_ChoiceCards_OrangeWell
+  - first:
+      213: 1534043838168245002
+    second: UI_ChoiceCards_OrangeSigil
+  - first:
+      213: -8626933205699606910
+    second: UI_ChoiceCards_RedFrame
+  - first:
+      213: -843853342341486369
+    second: UI_ChoiceCards_RedNamePlate
+  - first:
+      213: 4199108141317408198
+    second: UI_ChoiceCards_RedWell
+  - first:
+      213: 1892158750185250929
+    second: UI_ChoiceCards_RedSigil
+  - first:
+      213: -268014077894330582
+    second: UI_ChoiceCards_GoldFrame
+  - first:
+      213: 1965372614914444658
+    second: UI_ChoiceCards_GoldAura
+  - first:
+      213: -7329977725881091956
+    second: UI_ChoiceCards_GoldCrest
+  - first:
+      213: -6394380266655175050
+    second: UI_ChoiceCards_GoldNamePlate
+  - first:
+      213: -4662736151544318235
+    second: UI_ChoiceCards_GoldWell
+  - first:
+      213: -3005775255962564131
+    second: UI_ChoiceCards_GoldSigil
+  - first:
+      213: 1174790654020541577
+    second: UI_ChoiceCards_EvolutionFrame
+  - first:
+      213: -7833357916802199539
+    second: UI_ChoiceCards_EvolutionAura
+  - first:
+      213: -1277304214555122243
+    second: UI_ChoiceCards_EvolutionCrest
+  - first:
+      213: 1246892655214469488
+    second: UI_ChoiceCards_EvolutionNamePlate
+  - first:
+      213: 9099378790449031814
+    second: UI_ChoiceCards_EvolutionWell
+  - first:
+      213: -2717526635796764748
+    second: UI_ChoiceCards_EvolutionSigil
+  - first:
+      213: -2789038473554276429
+    second: UI_ChoiceCards_NeutralFrame
+  - first:
+      213: 1247474735390353995
+    second: UI_ChoiceCards_NeutralNamePlate
+  - first:
+      213: -8627368152604694964
+    second: UI_ChoiceCards_NeutralWell
+  - first:
+      213: 2901130168057850055
+    second: UI_ChoiceCards_NeutralSigil
+  - first:
+      213: 5929713862534262228
+    second: UI_ChoiceCards_ExtractFrame
+  - first:
+      213: 7587829163441889172
+    second: UI_ChoiceCards_ExtractNamePlate
+  - first:
+      213: -8914695322826288979
+    second: UI_ChoiceCards_ExtractWell
+  - first:
+      213: 6144117929954470363
+    second: UI_ChoiceCards_ExtractSigil
+  - first:
+      213: 8233085056104023226
+    second: UI_ChoiceCards_ClimbFrame
+  - first:
+      213: 5783258298712186542
+    second: UI_ChoiceCards_ClimbNamePlate
+  - first:
+      213: -3728633917728778339
+    second: UI_ChoiceCards_ClimbWell
+  - first:
+      213: -2503023261768608984
+    second: UI_ChoiceCards_ClimbSigil
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: UI_ChoiceCards_Backdrop
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 506
+        width: 90
+        height: 196
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eeb1c71a64dc4b2c916c2b80c3f356f9
+      internalID: -5097499464675870634
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_Surface
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 406
+        width: 96
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9ea432e9921472aa29b9c6fafb6be90
+      internalID: 3406872330605701225
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_TitlePlate
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 292
+        width: 176
+        height: 92
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 80, y: 14, z: 80, w: 14}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf868d33d1024c6f88f1290e888bf474
+      internalID: -3005304384184358613
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_TitleCrest
+      rect:
+        serializedVersion: 2
+        x: 330
+        y: 54
+        width: 96
+        height: 30
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ac1cd5397004f139989f96b49cad9bf
+      internalID: 306885167499856490
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_Description
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 44
+        width: 96
+        height: 40
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 12, y: 12, z: 12, w: 12}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d68c5435b69d4a7cae7982c46380e3e8
+      internalID: 9100914014907211622
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_WellLip
+      rect:
+        serializedVersion: 2
+        x: 502
+        y: 2
+        width: 24
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 8, y: 8, z: 8, w: 8}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5ef668e5cff4eed9139982040d35128
+      internalID: 957552035794782707
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_Press
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 296
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09848e4e51ea4f92a0bd62d743a858ab
+      internalID: -4664634710907262011
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GreenFrame
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 296
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea2b450b8c9741bc9b6de95c6b716c72
+      internalID: -4302026801503921103
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GreenNamePlate
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 144
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bedb8b4d1e9c4cfaababb980088d4f05
+      internalID: -988498981720247006
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GreenWell
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 86
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f844d329c1f498aa02a05393eccafa1
+      internalID: 1461543893333893022
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GreenSigil
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 588
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4660d4df47384f0984e4649cbfc13e81
+      internalID: 6000633754969301941
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_OrangeFrame
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b1599831fb74bbb8dc0afe8926843c5
+      internalID: -3872526445276267752
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_OrangeNamePlate
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 144
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e93f992eae21479696d353231e717a8f
+      internalID: -8697169583272768659
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_OrangeWell
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 86
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be84e649c98b490e855d92e673af268d
+      internalID: 6290761748157743799
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_OrangeSigil
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 588
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33960b18232c4400881f3bc62d2959b2
+      internalID: 1534043838168245002
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_RedFrame
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61e4580976f14d5c82c37e6799ab13a5
+      internalID: -8626933205699606910
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_RedNamePlate
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 144
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a27355478eca4b87875aff6b7e0a78d0
+      internalID: -843853342341486369
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_RedWell
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 86
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bf8e6562bf04ad3ad9f4ce1c68b278d
+      internalID: 4199108141317408198
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_RedSigil
+      rect:
+        serializedVersion: 2
+        x: 332
+        y: 588
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b739c1c5c2584740a0ce0ac8573cb4c4
+      internalID: 1892158750185250929
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GoldFrame
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29cefb1eff4b48719598274b110e2685
+      internalID: -268014077894330582
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GoldAura
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 292
+        width: 96
+        height: 92
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 44, y: 42, z: 44, w: 42}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2d096d02ab041f8833b85b3147f9031
+      internalID: 1965372614914444658
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GoldCrest
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 54
+        width: 80
+        height: 30
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bd88dccc15c40d68f86fa1d6d422677
+      internalID: -7329977725881091956
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GoldNamePlate
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 144
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2756d09e49bb42aa828426d7ae74ba03
+      internalID: -6394380266655175050
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GoldWell
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 86
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca8ef97116224302b8837e0c37fb45fa
+      internalID: -4662736151544318235
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_GoldSigil
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 588
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75ccf26c41c541efb581d80a2c14210f
+      internalID: -3005775255962564131
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_EvolutionFrame
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 949c9922dbbe4d5e8fa9ad744480dcd8
+      internalID: 1174790654020541577
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_EvolutionAura
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 292
+        width: 120
+        height: 92
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 56, y: 42, z: 56, w: 42}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af20f8a7697b498aa027652a44704e5b
+      internalID: -7833357916802199539
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_EvolutionCrest
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 500
+        height: 26
+      alignment: 9
+      pivot: {x: 0.5, y: 0.3846154}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6e2c506c19a4c82be2b52ca9fbb7359
+      internalID: -1277304214555122243
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_EvolutionNamePlate
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 144
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dedfb51a0544db88197859644d67de9
+      internalID: 1246892655214469488
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_EvolutionWell
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 28
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5bf2d4c0c8244189c694cc8576a3b14
+      internalID: 9099378790449031814
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_EvolutionSigil
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 386
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c2ac81fe3c84ea4950357ef29971b3f
+      internalID: -2717526635796764748
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_NeutralFrame
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fc8c6bb6ebe4f5ab5cdf5244aaefed1
+      internalID: -2789038473554276429
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_NeutralNamePlate
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 86
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0e5ec913ecf4f79a26b98137740d34a
+      internalID: 1247474735390353995
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_NeutralWell
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 28
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2d10efd0e774f6c92c9dc1b3d4058c9
+      internalID: -8627368152604694964
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_NeutralSigil
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 386
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ed069f3218048638fb32275e3679162
+      internalID: 2901130168057850055
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ExtractFrame
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a492e1c6e8094f4bae4a2144d2452df6
+      internalID: 5929713862534262228
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ExtractNamePlate
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 86
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a865d40e5364290bd5505c54f650dab
+      internalID: 7587829163441889172
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ExtractWell
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 28
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 163d8f4e02a44ab790d97481e2a3ec5d
+      internalID: -8914695322826288979
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ExtractSigil
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 386
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 434e0ca8fe1347c190e6feaacf63c1db
+      internalID: 6144117929954470363
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ClimbFrame
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 202
+        width: 88
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 40, y: 40, z: 40, w: 40}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 619fad4918b8477f83b0f99848381b3c
+      internalID: 8233085056104023226
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ClimbNamePlate
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 86
+        width: 120
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 32, y: 8, z: 8, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5400c2ba2bbe4bb98e9b368c9deced70
+      internalID: 5783258298712186542
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ClimbWell
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 28
+        width: 56
+        height: 56
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 24, y: 24, z: 24, w: 24}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56733553ece5472ea09f930c6420f89c
+      internalID: -3728633917728778339
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_ChoiceCards_ClimbSigil
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 386
+        width: 116
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 608035564e7b42be876772e89089f46c
+      internalID: -2503023261768608984
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      UI_ChoiceCards_Backdrop: -5097499464675870634
+      UI_ChoiceCards_Surface: 3406872330605701225
+      UI_ChoiceCards_TitlePlate: -3005304384184358613
+      UI_ChoiceCards_TitleCrest: 306885167499856490
+      UI_ChoiceCards_Description: 9100914014907211622
+      UI_ChoiceCards_WellLip: 957552035794782707
+      UI_ChoiceCards_Press: -4664634710907262011
+      UI_ChoiceCards_GreenFrame: -4302026801503921103
+      UI_ChoiceCards_GreenNamePlate: -988498981720247006
+      UI_ChoiceCards_GreenWell: 1461543893333893022
+      UI_ChoiceCards_GreenSigil: 6000633754969301941
+      UI_ChoiceCards_OrangeFrame: -3872526445276267752
+      UI_ChoiceCards_OrangeNamePlate: -8697169583272768659
+      UI_ChoiceCards_OrangeWell: 6290761748157743799
+      UI_ChoiceCards_OrangeSigil: 1534043838168245002
+      UI_ChoiceCards_RedFrame: -8626933205699606910
+      UI_ChoiceCards_RedNamePlate: -843853342341486369
+      UI_ChoiceCards_RedWell: 4199108141317408198
+      UI_ChoiceCards_RedSigil: 1892158750185250929
+      UI_ChoiceCards_GoldFrame: -268014077894330582
+      UI_ChoiceCards_GoldAura: 1965372614914444658
+      UI_ChoiceCards_GoldCrest: -7329977725881091956
+      UI_ChoiceCards_GoldNamePlate: -6394380266655175050
+      UI_ChoiceCards_GoldWell: -4662736151544318235
+      UI_ChoiceCards_GoldSigil: -3005775255962564131
+      UI_ChoiceCards_EvolutionFrame: 1174790654020541577
+      UI_ChoiceCards_EvolutionAura: -7833357916802199539
+      UI_ChoiceCards_EvolutionCrest: -1277304214555122243
+      UI_ChoiceCards_EvolutionNamePlate: 1246892655214469488
+      UI_ChoiceCards_EvolutionWell: 9099378790449031814
+      UI_ChoiceCards_EvolutionSigil: -2717526635796764748
+      UI_ChoiceCards_NeutralFrame: -2789038473554276429
+      UI_ChoiceCards_NeutralNamePlate: 1247474735390353995
+      UI_ChoiceCards_NeutralWell: -8627368152604694964
+      UI_ChoiceCards_NeutralSigil: 2901130168057850055
+      UI_ChoiceCards_ExtractFrame: 5929713862534262228
+      UI_ChoiceCards_ExtractNamePlate: 7587829163441889172
+      UI_ChoiceCards_ExtractWell: -8914695322826288979
+      UI_ChoiceCards_ExtractSigil: 6144117929954470363
+      UI_ChoiceCards_ClimbFrame: 8233085056104023226
+      UI_ChoiceCards_ClimbNamePlate: 5783258298712186542
+      UI_ChoiceCards_ClimbWell: -3728633917728778339
+      UI_ChoiceCards_ClimbSigil: -2503023261768608984
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:
