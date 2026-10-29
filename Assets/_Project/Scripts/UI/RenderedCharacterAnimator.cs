@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // A hero drawn from a pre-rendered art set (docs/45: Ilya Kest, rendered from one Blender model in five facings) in
+    // A hero drawn from a pre-rendered art set (docs/45: Ilya Kest, rendered from one Blender model in eight facings) in
     // place of HeroLookView's painted Vanguard. HeroLookView hands over in its Start when the run's hero (CombatSetup.Hero)
     // carries a RenderedCharacterArtSet, and steps aside; without one nothing here runs.
     //
@@ -13,7 +13,9 @@ namespace Cryptforge.UI
     // weapon's strikes, its ability and its health, and never ticks a weapon, moves the hero or applies damage. The floor
     // travel (ArenaFloor.DepthScale) picks one of eight facings and drives the walk by distance; a strike while walking
     // keeps the stride; a paused combat (no scaled time) freezes the frame; nothing is allocated per frame. The rules live
-    // in RenderedCharacterPlayer, pure and tested without Unity; this only feeds it and draws what it says.
+    // in RenderedCharacterPlayer, pure and tested without Unity; this only feeds it and draws what it says. A set that
+    // draws the west facings (RenderedCharacterArtSet.DrawsWest) is shown as drawn, never mirrored, so the light and the
+    // staff's hand never change sides as the hero turns; a set of only the five east facings mirrors them for the west.
     //
     // The drawing hangs beside the body rather than under it, as PuppetAnimator's does: CombatantView hides the body, and
     // the weapons under it, at death, and the drawing stays to play the fall. The body keeps its renderer with no sprite
@@ -104,7 +106,7 @@ namespace Cryptforge.UI
             _health = GetComponent<Health>();
             _ability = GetComponent<AbilityController>();
             _combatant = GetComponent<CombatantView>();
-            _player = new RenderedCharacterPlayer(art.Timings(), art.StrideLength);
+            _player = new RenderedCharacterPlayer(art.Timings(), art.StrideLength, art.DrawsWest);
 
             var root = new GameObject(RootName);
             root.transform.SetParent(transform, false);
@@ -183,7 +185,8 @@ namespace Cryptforge.UI
                 _renderer.sprite = sprite;
             if (_flash != null && _flash.enabled && _flash.sprite != sprite)
                 _flash.sprite = sprite;
-            // Mirror the drawing only; movement, targeting and the floor shadow are not touched.
+            // Mirror the drawing only (a set without the west facings, drawn west); movement, targeting and the floor
+            // shadow are not touched.
             float x = _player.Mirrored ? -1f : 1f;
             if (_root.localScale.x != x)
                 _root.localScale = new Vector3(x, 1f, 1f);

@@ -6,8 +6,8 @@ using NUnit.Framework;
 namespace Cryptforge.Tests
 {
     // A pre-rendered character's frame selection (docs/45: Ilya, rendered from one model): which facing a floor
-    // direction is drawn in, which frame a distance or a clock shows, and the rules RenderedCharacterAnimator follows,
-    // without Unity.
+    // direction is drawn in - mirrored for a set of the five east facings, as drawn for one with all eight - which frame
+    // a distance or a clock shows, and the rules RenderedCharacterAnimator follows, without Unity.
     public sealed class RenderedCharacterArtTests
     {
         private const float Stride = 1.2f;
@@ -26,6 +26,8 @@ namespace Cryptforge.Tests
         };
 
         private static RenderedCharacterPlayer Player() => new RenderedCharacterPlayer(Timings(), Stride);
+        // A set that draws the west three as well, as Ilya's does since 2026-10-29.
+        private static RenderedCharacterPlayer EightFacingPlayer() => new RenderedCharacterPlayer(Timings(), Stride, true);
 
         [Test]
         public void TheEightSectorsFollowTheFloorCompass()
@@ -59,7 +61,81 @@ namespace Cryptforge.Tests
                 Assert.That(mirrored, Is.EqualTo(expected[sector].mirrored), "sector " + sector);
                 drawn.Add(facing);
             }
-            Assert.That(drawn.Count, Is.EqualTo(RenderedCharacterFrames.FacingCount), "Five drawings cover the compass.");
+            Assert.That(drawn.Count, Is.EqualTo(RenderedCharacterFrames.EastFacingCount), "Five drawings cover the compass.");
+            Assert.That(Player().WestDrawn, Is.False, "A player is for a set of five unless told otherwise.");
+        }
+
+        // The mirrored west flipped the light and swapped the staff's hand; a set with the west drawn shows every sector
+        // in its own facing, never mirrored, and the mirror rule still names the east twin of each west facing.
+        [Test]
+        public void ASetThatDrawsTheWestShowsEverySectorAsDrawn()
+        {
+            var expected = new[]
+            {
+                RenderedFacing.East, RenderedFacing.NorthEast, RenderedFacing.North, RenderedFacing.NorthWest,
+                RenderedFacing.West, RenderedFacing.SouthWest, RenderedFacing.South, RenderedFacing.SouthEast
+            };
+            var drawn = new HashSet<RenderedFacing>();
+            for (int sector = 0; sector < RenderedCharacterFrames.SectorCount; sector++)
+            {
+                RenderedFacing facing = RenderedCharacterFrames.FacingOf(sector, true, out bool mirrored);
+                Assert.That(facing, Is.EqualTo(expected[sector]), "sector " + sector);
+                Assert.That(mirrored, Is.False, "sector " + sector);
+                drawn.Add(facing);
+                RenderedFacing five = RenderedCharacterFrames.FacingOf(sector, false, out bool fiveMirrored);
+                Assert.That(five, Is.EqualTo(RenderedCharacterFrames.EastMirrorOf(facing)), "sector " + sector);
+                Assert.That(fiveMirrored, Is.EqualTo(RenderedCharacterFrames.IsWest(facing)), "sector " + sector);
+                Assert.That(RenderedCharacterFrames.IsWest(five), Is.False, "A set of five only ever draws the east five.");
+            }
+            Assert.That(drawn.Count, Is.EqualTo(RenderedCharacterFrames.FacingCount), "Eight drawings, one a direction.");
+            Assert.That(RenderedCharacterFrames.FacingOf(-1, true, out bool none), Is.EqualTo(RenderedFacing.South));
+            Assert.That(none, Is.False, "No direction draws the south, as before.");
+            for (int f = 0; f < RenderedCharacterFrames.FacingCount; f++)
+                Assert.That(RenderedCharacterFrames.IsWest((RenderedFacing)f), Is.EqualTo(f >= RenderedCharacterFrames.EastFacingCount),
+                    "The west three follow the east five in the enum: " + (RenderedFacing)f);
+        }
+
+        [Test]
+        public void WithTheWestDrawnWalkingAndStrikingWestNeverMirror()
+        {
+            RenderedCharacterPlayer player = EightFacingPlayer();
+            Assert.That(player.WestDrawn, Is.True);
+            const float speed = 3.5f;
+            var walks = new (float x, float y, RenderedFacing facing)[]
+            {
+                (1, 0, RenderedFacing.East), (-1, 0, RenderedFacing.West), (-1, 1, RenderedFacing.NorthWest),
+                (-1, -1, RenderedFacing.SouthWest), (0, -1, RenderedFacing.South), (1, 1, RenderedFacing.NorthEast)
+            };
+            foreach (var walk in walks)
+                for (int i = 0; i < 20; i++)
+                {
+                    player.Step(Tick, walk.x * speed * Tick, walk.y * speed * Tick);
+                    Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Walk));
+                    Assert.That(player.Facing, Is.EqualTo(walk.facing), walk.facing + " tick " + i);
+                    Assert.That(player.Mirrored, Is.False, walk.facing + " tick " + i);
+                    Assert.That(player.Frame, Is.EqualTo(RenderedCharacterFrames.WalkFrame(player.WalkDistance, Stride, 8)),
+                        "The west walks step through the same stride.");
+                }
+            for (int i = 0; i < 10; i++)
+                player.Step(Tick, 0, 0);
+            player.FaceToward(-1, 0.2f);
+            Assert.That(player.Facing, Is.EqualTo(RenderedFacing.West), "Turned to the target on its left.");
+            Assert.That(player.Mirrored, Is.False, "As drawn: the light and the staff's hand stay where they were.");
+            player.Strike(RenderedCharacterFrames.StrikeSeconds(0.5f));
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Strike));
+            Assert.That(player.Facing, Is.EqualTo(RenderedFacing.West));
+            Assert.That(player.Mirrored, Is.False);
+            player.Die();
+            for (int i = 0; i < 60; i++)
+                player.Step(Tick, 0, 0);
+            Assert.That(player.Facing, Is.EqualTo(RenderedFacing.West), "It falls in the facing it stood in.");
+            Assert.That(player.Mirrored, Is.False);
+
+            // The same travel drawn by a set of five mirrors the east twin, exactly as before.
+            RenderedCharacterPlayer five = Player();
+            five.Step(Tick, -speed * Tick, speed * Tick);
+            Assert.That(five.Facing, Is.EqualTo(RenderedFacing.NorthEast));
+            Assert.That(five.Mirrored, Is.True);
         }
 
         [Test]

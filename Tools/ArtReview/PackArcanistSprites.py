@@ -1,24 +1,29 @@
 """Packs Ilya Kest's raw Blender frames (BuildBlenderArcanist.py) into the game's sprite atlases.
 
-    python Tools/ArtReview/PackArcanistSprites.py [--render DIR] [--page 1024]
+    python Tools/ArtReview/PackArcanistSprites.py [--render DIR]
 
 Per frame: the 4x render is box-filtered down in linear light with premultiplied alpha (area-exact anti-aliasing; the
 floor pivot stays on a pixel corner), given a one-pixel dark outline and the crucible's soft ember halo (at the anchor
-and flare frames.json records), trimmed to its pixels plus a transparent margin (always keeping the pivot inside), and
-packed with MaxRects into 1024 pages. Writes, all regenerated on every run:
+and flare frames.json records), and trimmed to its pixels plus a transparent margin (always keeping the pivot inside).
+Every facing is packed, the west three included (they are rendered, not mirrored). The packing tries a few page shapes
+(2048x1024, 2048x2048, 1024x1024), MaxRects rules and orders and keeps the layout with the fewest atlas texels; its
+last page is then repacked into the smallest bin that holds it. Pages are cropped to whole 4x4 ASTC blocks. Writes, all
+regenerated on every run (a rerun on the same renders is byte-identical):
 
     Assets/_Project/Art/Characters/CinderArcanist/CHR_CinderArcanist_<n>.png (+ .meta: sprite rects and pivots,
         bilinear, no mipmaps, ASTC 4x4 on Android - modelled on the Vanguard's character textures)
     Assets/_Project/Art/Characters/CinderArcanist/CinderArcanistArtSet.asset (+ .meta): the RenderedCharacterArtSet
     ArtDirection/2026-10-27/arcanist-blender-01/frames.json: every frame's atlas rect, pivot and crucible anchor
 
-Existing GUIDs are kept, so re-running never breaks a reference. Sprite IDs are derived from the frame names.
+Existing GUIDs are kept, so re-running never breaks a reference; a page beyond the existing ones takes a GUID derived
+from its name. Sprite IDs are derived from the frame names. A sprite referenced from outside the set (the hero's portrait,
+Hero_CinderArcanist._portrait, names idle_south_0 by its texture's GUID) is kept on the texture it was on: the pages are
+ordered so that every such frame lands on the page whose GUID the reference holds.
 """
 import hashlib
 import json
 import re
 import sys
-import uuid
 from pathlib import Path
 
 import numpy as np
@@ -33,13 +38,14 @@ def arg(name, default):
 
 
 RENDER = Path(arg('--render', str(ROOT / 'TestResults/arcanist-render')))
-PAGE = int(arg('--page', 1024))
+# Page shapes the packing may use (width, height); the largest an atlas gets is the platforms' 2048 import limit.
+PAGE_SHAPES = [(2048, 1024), (2048, 2048), (1024, 1024)]
 OUT = ROOT / 'Assets/_Project/Art/Characters/CinderArcanist'
 DOCS = ROOT / 'ArtDirection/2026-10-27/arcanist-blender-01'
 SET_SCRIPT_GUID = '9a023454e5b64792879bd5578ca2bdac'   # Scripts/Art/Unity/RenderedCharacterArtSet.cs.meta
 FOLDER_GUID = '45e42a0cc5514f69a7aec6efd3515b68'
 MOTIONS = ['idle', 'walk', 'walk-strike', 'strike', 'cast', 'hit', 'death']        # RenderedMotion order
-FACINGS = ['south', 'south-east', 'east', 'north-east', 'north']                  # RenderedFacing order
+FACINGS = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']  # RenderedFacing
 OUTLINE = (0x16, 0x0F, 0x17)
 # The crucible's halo: ember orange, centred a little above the cup's mouth (on the flame), about three texels wide at
 # a resting flare and wider as it flares, strongest a little over half over the figure.
@@ -105,32 +111,54 @@ def trim(pixels, pivot_x, pivot_top):
 
 
 class MaxRects:
-    """A MaxRects bin (Jylanki 2010), top-left origin: best short side fit, or top-left first ('tl', which keeps a
-    page's used rows few so it crops short)."""
+    """A MaxRects bin (Jylanki 2010), top-left origin. Rules: best short side fit ('bssf'), best area fit ('baf'),
+    top-left first ('tl', which keeps a page's used rows few so it crops short) and contact point ('cp': the most edge
+    shared with the bin's sides and the rects already placed, which packs these similar figures tightest)."""
 
     def __init__(self, w, h, rule='bssf'):
         self.w, self.h, self.rule = w, h, rule
         self.free = [(0, 0, w, h)]
+        self.used = []
+
+    def _score(self, fx, fy, fw, fh, w, h):
+        if self.rule == 'tl':
+            return (fy + h, fx)
+        if self.rule == 'baf':
+            return (fw * fh - w * h, min(fw - w, fh - h), fy, fx)
+        if self.rule == 'cp':
+            return (-self._contact(fx, fy, w, h), fy, fx)
+        return (min(fw - w, fh - h), max(fw - w, fh - h), fy, fx)
+
+    def _contact(self, x, y, w, h):
+        edge = (h if x == 0 or x + w == self.w else 0) + (w if y == 0 or y + h == self.h else 0)
+        for ux, uy, uw, uh in self.used:
+            if ux == x + w or ux + uw == x:
+                edge += max(0, min(uy + uh, y + h) - max(uy, y))
+            if uy == y + h or uy + uh == y:
+                edge += max(0, min(ux + uw, x + w) - max(ux, x))
+        return edge
 
     def insert(self, w, h):
         best = None
         for fx, fy, fw, fh in self.free:
             if w <= fw and h <= fh:
-                if self.rule == 'tl':
-                    score = (fy + h, fx)
-                else:
-                    score = (min(fw - w, fh - h), max(fw - w, fh - h))
+                score = self._score(fx, fy, fw, fh, w, h)
                 if best is None or score < best[0]:
                     best = (score, (fx, fy))
         if best is None:
             return None
         x, y = best[1]
         placed = (x, y, w, h)
-        free = []
+        self.used.append(placed)
+        free = set()
         for f in self.free:
-            free.extend(self._split(f, placed))
-        self.free = [f for i, f in enumerate(free)
-                     if not any(i != j and self._contains(g, f) for j, g in enumerate(free))]
+            free.update(self._split(f, placed))
+        # Largest first, in a fixed order, dropping every free rect another one holds (a duplicate is kept once).
+        kept = []
+        for f in sorted(free, key=lambda r: (-r[2] * r[3], r)):
+            if not any(self._contains(g, f) for g in kept):
+                kept.append(f)
+        self.free = kept
         return x, y
 
     @staticmethod
@@ -156,11 +184,13 @@ class MaxRects:
 
 
 def existing_guid(meta):
+    """The GUID an asset already has or, for a new one, a GUID derived from its file name, so a fresh pack names it
+    the same way every time."""
     if meta.exists():
         m = re.search(r'^guid: ([0-9a-f]{32})', meta.read_text(encoding='utf-8'), re.M)
         if m:
             return m.group(1)
-    return uuid.uuid4().hex
+    return hashlib.md5(('Cryptforge guid ' + meta.name[:-len('.meta')]).encode()).hexdigest()
 
 
 def internal_id(name):
@@ -200,12 +230,13 @@ def texture_meta(guid, size, sprites):
       edges: []
       weights: []""")
     table = '\n'.join('      %s: %d' % (s['name'], s['id']) for s in sprites)
+    # The Android override's size limit is the power of two that holds the page (the importer offers only those).
     platform = []
     for target, compression, fmt, overridden in [('DefaultTexturePlatform', 0, -1, 0), ('Standalone', 1, -1, 0),
                                                  ('Android', 1, 48, 1)]:
         platform.append(f"""  - serializedVersion: 4
     buildTarget: {target}
-    maxTextureSize: {max(size) if target == 'Android' else 2048}
+    maxTextureSize: {1 << (max(size) - 1).bit_length() if target == 'Android' else 2048}
     resizeAlgorithm: 0
     textureFormat: {fmt}
     textureCompression: {compression}
@@ -331,8 +362,8 @@ def art_set(clips, timings, stride):
 
 meta_in = json.loads((RENDER / 'frames.json').read_text())
 PPU, SS, CANVAS = meta_in['ppu'], meta_in['supersample'], meta_in['canvas']
-size = int(round(CANVAS * PPU))
-pivot_x, pivot_top = meta_in['pivot'][0], size - meta_in['pivot'][1]
+size = (int(round(CANVAS * PPU)), int(round(meta_in.get('canvas_height', CANVAS) * PPU)))   # width, height
+pivot_x, pivot_top = meta_in['pivot'][0], size[1] - meta_in['pivot'][1]
 records = {(r['facing'], r['clip'], r['frame']): r for r in meta_in['frames']}
 frames = []
 for clip in MOTIONS:
@@ -348,9 +379,9 @@ for clip in MOTIONS:
                                pixels=pixels[y0:y1, x0:x1], crop=(x0, y0, x1, y1), crucible=r.get('crucible'),
                                flare=r.get('flare'), source=r['file']))
 
-# Pack, tallest first, onto as many pages as it takes; each page is cropped to the rows it uses, rounded up to the
-# 4-texel ASTC block (the importer keeps non-power-of-two sizes: nPOTScale 0).
-def pack(order, rule):
+# Pack onto as many pages of a shape as it takes; each page is cropped to the rows and columns it uses, rounded up to
+# whole 4x4 ASTC blocks (the importer keeps non-power-of-two sizes: nPOTScale 0).
+def pack(order, shape, rule):
     pages, placed = [], []
     for f in order:
         h, w = f['pixels'].shape[:2]
@@ -359,32 +390,115 @@ def pack(order, rule):
             if at is not None:
                 break
         else:
-            pages.append(MaxRects(PAGE, PAGE, rule))
+            pages.append(MaxRects(shape[0], shape[1], rule))
             index, at = len(pages) - 1, pages[-1].insert(w + PADDING, h + PADDING)
+            if at is None:
+                return None
         placed.append((f, index, at))
-    heights = []
+    sizes = []
     for index in range(len(pages)):
-        used = max(at[1] + f['pixels'].shape[0] for f, i, at in placed if i == index)
-        heights.append(min(PAGE, (used + 3) // 4 * 4))
-    return placed, heights
+        used_w = max(at[0] + f['pixels'].shape[1] for f, i, at in placed if i == index)
+        used_h = max(at[1] + f['pixels'].shape[0] for f, i, at in placed if i == index)
+        sizes.append(((used_w + 3) // 4 * 4, (used_h + 3) // 4 * 4))
+    return placed, sizes
 
 
-# A few orders; the one needing the fewest atlas texels wins.
-orders = [lambda f: (-f['pixels'].shape[0], -f['pixels'].shape[1]),
-          lambda f: (-f['pixels'].shape[0] * f['pixels'].shape[1],),
-          lambda f: (-max(f['pixels'].shape[:2]), -min(f['pixels'].shape[:2])),
-          lambda f: (-f['pixels'].shape[1], -f['pixels'].shape[0])]
-best = min((pack(sorted(frames, key=key), rule) for key in orders for rule in ('bssf', 'tl')),
-           key=lambda result: sum(result[1]))
+def texels(result):
+    return sum(w * h for w, h in result[1])
+
+
+ORDERS = [lambda f: (-f['pixels'].shape[0], -f['pixels'].shape[1]),                  # tallest first
+          lambda f: (-f['pixels'].shape[0], f['pixels'].shape[1]),                   # tallest, the narrow first
+          lambda f: (-f['pixels'].shape[0] * f['pixels'].shape[1],),                 # largest first
+          lambda f: (-max(f['pixels'].shape[:2]), -min(f['pixels'].shape[:2])),      # longest side first
+          lambda f: (-f['pixels'].shape[1], -f['pixels'].shape[0])]                  # widest first
+RULES = ('cp', 'bssf', 'baf', 'tl')
+
+
+def ordered(group, key):
+    # Ties fall by name, so an order is the same on every run.
+    return sorted(group, key=lambda f: (key(f), f['name']))
+
+
+candidates = []
+for s, shape in enumerate(PAGE_SHAPES):
+    for r, rule in enumerate(RULES):
+        for k, key in enumerate(ORDERS):
+            result = pack(ordered(frames, key), shape, rule)
+            if result is not None:
+                candidates.append(((texels(result), len(result[1]), s, r, k), result))
+candidates.sort(key=lambda c: c[0])
+
+
+def repack_last(result):
+    """The layout with its last page repacked into the smallest bin of any width that holds it on one page."""
+    placed, sizes = result
+    last = len(sizes) - 1
+    rest = [f for f, i, at in placed if i == last]
+    best = None
+    for width in range(128, max(s[0] for s in PAGE_SHAPES) + 1, 64):
+        for rule in RULES:
+            for key in ORDERS[:3]:
+                one = pack(ordered(rest, key), (width, max(s[1] for s in PAGE_SHAPES)), rule)
+                if one is not None and len(one[1]) == 1 and (best is None or texels(one) < texels(best)):
+                    best = one
+    if best is None or texels(best) >= sizes[last][0] * sizes[last][1]:
+        return result
+    return ([(f, i, at) for f, i, at in placed if i != last] + [(f, last, at) for f, _, at in best[0]],
+            sizes[:last] + best[1])
+
+
+# The few best layouts get their last page repacked; the fewest texels wins, then the fewest pages.
+best = min((repack_last(result) for _, result in candidates[:4]), key=lambda r: (texels(r), len(r[1])))
 for f, index, at in best[0]:
     f['page'], f['at'] = index, at
-heights = best[1]
-pages = heights
+shapes = best[1]
+
+
+def page_guid(index):
+    return existing_guid(OUT / ('CHR_CinderArcanist_%d.png.meta' % index))
+
+
+def references_from_outside(set_path):
+    """{frame name: (texture GUID, referencing asset)} for every frame another asset references by sprite ID and
+    texture GUID: the art set, rewritten below, aside."""
+    ids = {internal_id(f['name']): f['name'] for f in frames}
+    known = {page_guid(i) for i in range(max(len(shapes), len(list(OUT.glob('CHR_CinderArcanist_*.png.meta')))))}
+    found = {}
+    for path in sorted((ROOT / 'Assets').rglob('*')):
+        if path.suffix not in ('.asset', '.prefab', '.unity', '.mat', '.anim', '.controller') or path == set_path:
+            continue
+        text = path.read_text(encoding='utf-8', errors='ignore')
+        if not any(g in text for g in known):
+            continue
+        for file_id, guid in re.findall(r'fileID: (-?\d+), guid: ([0-9a-f]{32})', text):
+            if guid in known and int(file_id) in ids:
+                found[ids[int(file_id)]] = (guid, path.relative_to(ROOT).as_posix())
+    return found
+
+
+# Order the pages so that every frame referenced from outside the set stays on the texture (the GUID) it was on.
+pins = references_from_outside(OUT / 'CinderArcanistArtSet.asset')
+by_name = {f['name']: f for f in frames}
+final = {}                       # packed page -> atlas index
+for name, (guid, where) in sorted(pins.items()):
+    target = next((i for i in range(len(shapes)) if page_guid(i) == guid), None)
+    page = by_name[name]['page']
+    if target is None or final.get(page, target) != target or any(t == target and p != page for p, t in final.items()):
+        sys.exit('%s references %s on texture %s, where this packing cannot keep it' % (where, name, guid))
+    final[page] = target
+spare = [i for i in range(len(shapes)) if i not in final.values()]
+for page in range(len(shapes)):
+    if page not in final:
+        final[page] = spare.pop(0)
+for f in frames:
+    f['page'] = final[f['page']]
+shapes = [shapes[p] for p in sorted(range(len(shapes)), key=lambda p: final[p])]
 
 OUT.mkdir(parents=True, exist_ok=True)
 DOCS.mkdir(parents=True, exist_ok=True)
 for stale in OUT.glob('CHR_CinderArcanist_*.png'):
-    if int(stale.stem.rsplit('_', 1)[1]) >= len(pages):
+    if int(stale.stem.rsplit('_', 1)[1]) >= len(shapes):
         stale.unlink()
         Path(str(stale) + '.meta').unlink(missing_ok=True)
 folder_meta = ROOT / 'Assets/_Project/Art/Characters/CinderArcanist.meta'
@@ -393,11 +507,11 @@ if not folder_meta.exists():
                            '  userData: \n  assetBundleName: \n  assetBundleVariant: \n' % FOLDER_GUID, encoding='utf-8', newline='\n')
 
 atlases = []
-for index, page_h in enumerate(heights):
+for index, (page_w, page_h) in enumerate(shapes):
     name = 'CHR_CinderArcanist_%d' % index
     path = OUT / (name + '.png')
     guid = existing_guid(Path(str(path) + '.meta'))
-    canvas = np.zeros((page_h, PAGE, 4), np.uint8)
+    canvas = np.zeros((page_h, page_w, 4), np.uint8)
     sprites = []
     for f in frames:
         if f['page'] != index:
@@ -412,8 +526,8 @@ for index, page_h in enumerate(heights):
         f['guid'] = guid
         sprites.append(f)
     Image.fromarray(canvas, 'RGBA').save(path, optimize=True)
-    Path(str(path) + '.meta').write_text(texture_meta(guid, (PAGE, page_h), sprites), encoding='utf-8', newline='\n')
-    atlases.append(dict(file=path.name, guid=guid, size=[PAGE, page_h], sprites=len(sprites),
+    Path(str(path) + '.meta').write_text(texture_meta(guid, (page_w, page_h), sprites), encoding='utf-8', newline='\n')
+    atlases.append(dict(file=path.name, guid=guid, size=[page_w, page_h], sprites=len(sprites),
                         sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
 
 by_key = {(f['clip'], f['facing'], f['frame']): f for f in frames}
@@ -433,11 +547,12 @@ Path(str(set_path) + '.meta').write_text('fileFormatVersion: 2\nguid: %s\nNative
 texels = sum(a['size'][0] * a['size'][1] for a in atlases)
 used = sum(f['pixels'].shape[0] * f['pixels'].shape[1] for f in frames)
 report = dict(art_set=dict(file=set_path.name, guid=set_guid), atlases=atlases, pixels_per_unit=PPU,
-              canvas=[size, size], pivot=meta_in['pivot'], stride=meta_in['stride'],
+              canvas=list(size), pivot=meta_in['pivot'], stride=meta_in['stride'], facings=FACINGS,
+              kept_on_their_texture={name: where for name, (guid, where) in sorted(pins.items())},
               memory=dict(astc_4x4_bytes=texels, rgba32_bytes=texels * 4, frame_texels=used,
                           fill=round(used / texels, 3)),
               frames=[dict(name=f['name'], atlas=f['page'], rect=list(f['unity_rect']),
-                           pivot=[round(f['pivot'][0], 6), round(f['pivot'][1], 6)],
+                           pivot=[round(f['pivot'][0], 6), round(f['pivot'][1], 6)], crop=[int(v) for v in f['crop']],
                            crucible=f['crucible'], flare=f['flare'], source=f['source']) for f in frames])
 (DOCS / 'frames.json').write_text(json.dumps(report, indent=1), encoding='utf-8', newline='\n')
 print('ARCANIST_PACKED frames %d atlases %s ASTC4x4 %.2f MB (%d texels, fill %.0f%%) set %s'

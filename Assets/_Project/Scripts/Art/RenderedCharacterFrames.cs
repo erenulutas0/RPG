@@ -2,15 +2,21 @@ using System;
 
 namespace Cryptforge.Art
 {
-    // The five facings a pre-rendered character is drawn in (docs/45: Ilya, rendered from one Blender model). The game
-    // mirrors the east ones for the west, so south-west, west and north-west come from south-east, east and north-east.
+    // The facings a pre-rendered character is drawn in (docs/45: Ilya, rendered from one Blender model), counter-clockwise
+    // round the compass from the camera. Every set draws the first five, south through north on the east side. A set
+    // that draws the west three as well shows every direction as drawn, so its light and its held weapon's hand never
+    // change sides; a set with only the five mirrors the east ones for the west (south-west from south-east, west from
+    // east, north-west from north-east), which flips both.
     public enum RenderedFacing
     {
         South = 0,
         SouthEast = 1,
         East = 2,
         NorthEast = 3,
-        North = 4
+        North = 4,
+        NorthWest = 5,
+        West = 6,
+        SouthWest = 7
     }
 
     // What a pre-rendered character can be doing. The walk is driven by distance, every other motion by time. The walk
@@ -50,7 +56,9 @@ namespace Cryptforge.Art
     // tested in the .NET checks.
     public static class RenderedCharacterFrames
     {
-        public const int FacingCount = 5;
+        // The facings every set draws (south through north on the east side), and all of them with the west three.
+        public const int EastFacingCount = 5;
+        public const int FacingCount = 8;
         public const int MotionCount = 7;
         public const int SectorCount = 8;
         // Sectors count counter-clockwise from east on the floor: 2 is north (up the screen), 6 south (toward the camera).
@@ -89,19 +97,43 @@ namespace Cryptforge.Art
             return off <= DegreesPerSector * 0.5f + marginDegrees ? current : next;
         }
 
-        // The rendered facing that draws a sector, and whether it is drawn mirrored (the west half of the compass).
-        public static RenderedFacing FacingOf(int sector, out bool mirrored)
+        // The rendered facing that draws a sector for a set of the five east facings, and whether it is drawn mirrored
+        // (the west half of the compass).
+        public static RenderedFacing FacingOf(int sector, out bool mirrored) => FacingOf(sector, false, out mirrored);
+
+        // The rendered facing that draws a sector. A set that draws the west (westDrawn) shows each sector in its own
+        // facing, never mirrored; one that does not mirrors the east facing across the north-south line for the west.
+        public static RenderedFacing FacingOf(int sector, bool westDrawn, out bool mirrored)
         {
+            RenderedFacing facing;
             switch (sector)
             {
-                case 0: mirrored = false; return RenderedFacing.East;
-                case 1: mirrored = false; return RenderedFacing.NorthEast;
-                case 2: mirrored = false; return RenderedFacing.North;
-                case 3: mirrored = true; return RenderedFacing.NorthEast;
-                case 4: mirrored = true; return RenderedFacing.East;
-                case 5: mirrored = true; return RenderedFacing.SouthEast;
-                case 7: mirrored = false; return RenderedFacing.SouthEast;
-                default: mirrored = false; return RenderedFacing.South;
+                case 0: facing = RenderedFacing.East; break;
+                case 1: facing = RenderedFacing.NorthEast; break;
+                case 2: facing = RenderedFacing.North; break;
+                case 3: facing = RenderedFacing.NorthWest; break;
+                case 4: facing = RenderedFacing.West; break;
+                case 5: facing = RenderedFacing.SouthWest; break;
+                case 7: facing = RenderedFacing.SouthEast; break;
+                default: facing = RenderedFacing.South; break;
+            }
+            mirrored = !westDrawn && IsWest(facing);
+            return mirrored ? EastMirrorOf(facing) : facing;
+        }
+
+        // The three facings a set of only the five draws by mirroring.
+        public static bool IsWest(RenderedFacing facing) =>
+            facing == RenderedFacing.NorthWest || facing == RenderedFacing.West || facing == RenderedFacing.SouthWest;
+
+        // The east facing whose mirror image stands in for a west one; every other facing is its own.
+        public static RenderedFacing EastMirrorOf(RenderedFacing facing)
+        {
+            switch (facing)
+            {
+                case RenderedFacing.NorthWest: return RenderedFacing.NorthEast;
+                case RenderedFacing.West: return RenderedFacing.East;
+                case RenderedFacing.SouthWest: return RenderedFacing.SouthEast;
+                default: return facing;
             }
         }
 
@@ -156,8 +188,9 @@ namespace Cryptforge.Art
     }
 
     // Everything a pre-rendered character decides each live tick, pure: the motion it shows, the facing it is drawn in,
-    // whether that drawing is mirrored, and the frame. RenderedCharacterAnimator feeds it the floor displacement and the
-    // combat events and draws what it says; it allocates nothing after construction.
+    // whether that drawing is mirrored (only ever for a set without the west facings), and the frame.
+    // RenderedCharacterAnimator feeds it the floor displacement and the combat events and draws what it says; it
+    // allocates nothing after construction.
     //
     // The rules, as VanguardAnimator's and PuppetAnimator's: travel turns the facing (with a margin), a standing strike
     // faces its target while a walking one keeps the travel facing, a strike never stops the legs (the walk strike), a
@@ -173,6 +206,7 @@ namespace Cryptforge.Art
 
         private readonly RenderedClipTiming[] _timings;
         private readonly float _strideLength;
+        private readonly bool _westDrawn;
         private int _sector = RenderedCharacterFrames.SouthSector;
         private float _distance;
         private float _standing;
@@ -184,7 +218,8 @@ namespace Cryptforge.Art
         private float _deathTime = -1f;
 
         // timings: one per RenderedMotion, in its order. strideLength: floor units of one walk cycle (two steps).
-        public RenderedCharacterPlayer(RenderedClipTiming[] timings, float strideLength)
+        // westDrawn: the set draws all eight facings, so nothing is mirrored; without it the west mirrors the east.
+        public RenderedCharacterPlayer(RenderedClipTiming[] timings, float strideLength, bool westDrawn = false)
         {
             if (timings == null || timings.Length != RenderedCharacterFrames.MotionCount)
                 throw new ArgumentException("One timing per rendered motion.", nameof(timings));
@@ -192,6 +227,7 @@ namespace Cryptforge.Art
                 throw new ArgumentOutOfRangeException(nameof(strideLength));
             _timings = (RenderedClipTiming[])timings.Clone();
             _strideLength = strideLength;
+            _westDrawn = westDrawn;
             Show();
         }
 
@@ -200,6 +236,7 @@ namespace Cryptforge.Art
         public RenderedFacing Facing { get; private set; }
         public bool Mirrored { get; private set; }
         public int Sector => _sector;
+        public bool WestDrawn => _westDrawn;
         public bool IsMoving { get; private set; }
         public bool IsStriking => _strikeRemaining > 0f;
         public bool IsCasting => _castTime >= 0f;
@@ -320,7 +357,7 @@ namespace Cryptforge.Art
 
         private void Show()
         {
-            Facing = RenderedCharacterFrames.FacingOf(_sector, out bool mirrored);
+            Facing = RenderedCharacterFrames.FacingOf(_sector, _westDrawn, out bool mirrored);
             Mirrored = mirrored;
             if (IsDying)
             {
