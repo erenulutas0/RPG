@@ -29,6 +29,8 @@ namespace Cryptforge.UI
         public string ShownText => _label != null ? _label.text : string.Empty;
         // The portrait on show, or null when the current hero has none.
         public Sprite ShownPortrait => _portrait != null && _portrait.enabled ? _portrait.sprite : null;
+        // The portrait's image, which the painted screens frame.
+        internal Image Portrait => _portrait;
         // The hero the next run will play.
         public HeroDefinition Current { get; private set; }
 

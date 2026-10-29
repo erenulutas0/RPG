@@ -47,6 +47,8 @@ namespace Cryptforge.UI
         public bool IsOpen => _panel != null && _panel.activeSelf;
         // The hero chooser beside the start button; null while the roster has one hero. For tests.
         public HeroChoiceView HeroChoice => _heroChoice;
+        // Each card shown, with the state it shows, as the panel refreshes: the painted screens dress the card by it.
+        public event Action<Button, UnlockStatus> CardShown;
 
         private void Start()
         {
@@ -189,6 +191,7 @@ namespace Cryptforge.UI
                     card.State.text = _text.UnlockEquippedLabel;
                     break;
             }
+            CardShown?.Invoke(card.Button, status);
         }
 
         private void Update()
