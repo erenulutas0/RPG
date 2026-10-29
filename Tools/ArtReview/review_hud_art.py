@@ -249,19 +249,30 @@ def lift(capture, rect, ink, background=None):
     return rgba
 
 
+def lift_light(capture, rect, ink):
+    """A light label lifted off the floor it was drawn over (the boss's name): only what is far lighter than the
+    stone and its gold inlays counts as ink."""
+    x, y, w, h = rect
+    patch = capture[y:y + h, x:x + w].astype(np.float32)
+    lum = patch @ np.array([.299, .587, .114], np.float32)
+    a = np.clip((lum - 125.0) / (226.0 - 125.0), 0, 1) * (patch.min(-1) > 60)
+    rgba = np.zeros((h, w, 4), np.float32)
+    rgba[..., :3] = np.asarray(ink, np.float32) / 255.0 * a[..., None]
+    rgba[..., 3] = a
+    return rgba
+
+
 def paint_hud(capture, boss, fills=None, icon_name="UI_Icon_ForgeBurst_v1"):
     """The capture with the painted HUD laid over the old one."""
     fills = fills or {}
     canvas = to_canvas(capture)
     s = HUD_SPRITES
     # What the old HUD showed, lifted before it is painted over: the labels, the coin, the badges' text.
-    floor = capture[FLOOR_LABEL[1]:FLOOR_LABEL[1] + FLOOR_LABEL[3], FLOOR_LABEL[0]:FLOOR_LABEL[0] + FLOOR_LABEL[2]]
     keep = {name: capture[r[1]:r[1] + r[3], r[0]:r[0] + r[2]].copy() for name, r in
             (("floor", FLOOR_LABEL), ("coin", GOLD_ICON), ("gold", GOLD_COUNT), ("hero", HERO_LABEL), ("xp", XP_LABEL))}
     pause_ink = lift(capture, (PAUSE[0] + 22, PAUSE[1] + 22, 60, 60), INK)
     badge_ink = [lift(capture, (b[0] + 4, b[1] + 2, b[2] - 8, b[3] - 8), INK) for b in BADGES]
-    boss_ink = lift(capture, BOSS_NAME, INK) if boss else None
-    del floor
+    boss_ink = lift_light(capture, BOSS_NAME, INK) if boss else None
     # The panels: the forged frame, its face the old navy.
     for rect in (TOP, LOWER):
         draw(canvas, s["Panel"], rect, "sliced")
@@ -421,7 +432,7 @@ def phone(name, path, boss):
     sheet.paste(before, (20, 70))
     sheet.paste(after, (W + 40, 70))
     label(sheet, "before (in-game capture, 1080x2340)", (20, 20), 34)
-    label(sheet, f"after (painted HUD and {len(bars)} enemy bars laid over the same frame)", (W + 40, 20), 34)
+    label(sheet, f"after (the painted HUD, and the painted bar over each of the {len(bars)} enemies)", (W + 40, 20), 34)
     sheet.save(OUT / f"phone-{name}-before-after.png")
     after.save(OUT / f"phone-{name}-after.png")
     return capture, after
@@ -474,26 +485,35 @@ def bars_sheet(capture):
             for i, compact in enumerate((False, True, False, True)):
                 enemy_bar(enemies, 120 + 230 * i, 35, fill, compact, trail)
             block = np.concatenate([boss_canvas, canvas, enemies], 0)
-            rows.append((f"{state} on {ground_name}", to_image(block)))
+            rows.append((f"{state} on {ground_name}", to_image(block), fill))
     sheet_w = 1080 + 40
-    height = sum(img.height + 50 for _, img in rows) + 20
+    height = sum(img.height + 50 for _, img, _ in rows) + 20
     sheet = Image.new("RGB", (sheet_w, height), (24, 22, 28))
     y = 10
-    for title, img in rows:
+    for title, img, _ in rows:
         label(sheet, title, (20, y + 6), 28)
         sheet.paste(img, (20, y + 44))
         y += img.height + 50
     sheet.save(OUT / "bars-on-stone-and-lava.png")
-    # Enlarged: the left ends of the three HUD bars and the enemy bars, x3.
-    crops = []
-    for title, img in rows:
-        crops.append(zoom(img.crop((30, 40, 380, 300)), 3))
-    grid = Image.new("RGB", (crops[0].width * 2 + 30, (crops[0].height + 50) * 3 + 10), (24, 22, 28))
-    for i, (crop, (title, _)) in enumerate(zip(crops, rows)):
-        cx, cy = (i // 3) * (crop.width + 10) + 10, (i % 3) * (crop.height + 50) + 10
-        label(grid, title + " (x3)", (cx, cy), 28)
-        grid.paste(crop, (cx, cy + 40))
-    grid.save(OUT / "bars-on-stone-and-lava-x3.png")
+    # Enlarged x2: the bars' left ends (the boss's furnace cap, the frames' caps, the enemy bars) and, beside them, the
+    # hero's fill end, where the light and the chunk are.
+    rows_out = []
+    for title, img, fill in rows:
+        ends = zoom(img.crop((20, 0, 400, img.height)), 2)
+        cut = int(round(64 + 698 * fill))
+        lo = max(0, min(img.width - 380, cut - 190))
+        middle = zoom(img.crop((lo, 0, lo + 380, img.height)), 2)
+        rows_out.append((title, ends, middle))
+    w = rows_out[0][1].width + rows_out[0][2].width + 30
+    h = sum(e.height + 50 for _, e, _ in rows_out) + 10
+    grid = Image.new("RGB", (w, h), (24, 22, 28))
+    y = 10
+    for title, ends, middle in rows_out:
+        label(grid, title + " (x2): the left ends, and the hero bar's fill end", (10, y), 26)
+        grid.paste(ends, (10, y + 40))
+        grid.paste(middle, (ends.width + 20, y + 40))
+        y += ends.height + 50
+    grid.save(OUT / "bars-on-stone-and-lava-x2.png")
 
 
 def crowd_sheet(after, capture):
@@ -512,6 +532,40 @@ def crowd_sheet(after, capture):
     label(phone_size, "before (phone pixels)", (10, 10), 28)
     label(phone_size, "after (phone pixels)", (before.width + 20, 10), 28)
     phone_size.save(OUT / "enemy-bars-crowd.png")
+
+
+def ability_sheet(capture):
+    """The ability button on the bottom panel, ready and cooling (AbilityButtonView: the icon at 35% while it cools, the
+    cooldown band's radial sweep from the top, clockwise, in the scene's cooling blue, the seconds left over it), for
+    the Vanguard's icon and the Arcanist's; the old ring beside them."""
+    blue = (0.584, 0.812, 0.937, 1.0)
+    tiles = []
+    for icon_name in ("UI_Icon_ForgeBurst_v1", "UI_Icon_CrucibleVent_v1"):
+        for cooling in (0.0, 0.6):
+            canvas = to_canvas(capture[2000:2320, 760:1080])
+            draw(canvas, HUD_SPRITES["Panel"], (-200, 28, 496, 252), "sliced")
+            icon = np.asarray(Image.open(UI / f"{icon_name}.png").convert("RGBA").resize((154, 154), Image.LANCZOS),
+                              np.float32) / 255.0
+            icon[..., :3] *= icon[..., 3:]
+            yy, xx = np.mgrid[0:154, 0:154]
+            well = np.clip(77.0 - np.hypot(xx + 0.5 - 77, yy + 0.5 - 77) + 0.5, 0, 1).astype(np.float32)
+            blit(canvas, icon, 86, 78, tint=(1, 1, 1, 0.35 if cooling else 1.0), mask=well)
+            draw(canvas, HUD_SPRITES["AbilityRing"], (46, 38, 234, 234))
+            if cooling:
+                band = resize(HUD_SPRITES["AbilityCooldown"].rgba, 234, 234)
+                yy, xx = np.mgrid[0:234, 0:234]
+                angle = (np.degrees(np.arctan2(xx + 0.5 - 117, 117 - (yy + 0.5))) + 360) % 360  # clockwise from the top
+                band = band * (angle < 360 * cooling)[..., None]
+                blit(canvas, band, 46, 38, tint=blue)
+                text(canvas, "3", (46 + 63, 38 + 75, 108, 84), 56, INK, align="centre")
+            tiles.append(to_image(canvas))
+    old = Image.fromarray(capture[2000:2320, 760:1080])
+    sheet = Image.new("RGB", (330 * 5 + 10, 380), (24, 22, 28))
+    for i, (tile, title) in enumerate(zip([old] + tiles, ["before", "Vanguard, ready", "Vanguard, cooling 60%",
+                                                        "Arcanist, ready", "Arcanist, cooling 60%"])):
+        label(sheet, title, (10 + 330 * i, 10), 24)
+        sheet.paste(tile, (10 + 330 * i, 50))
+    sheet.save(OUT / "ability-ring-states.png")
 
 
 def sprites_sheet():
@@ -569,6 +623,7 @@ def main():
         capture = np.asarray(Image.open(CAPTURES["warden"]).convert("RGB"))
     if capture is not None:
         bars_sheet(capture)
+        ability_sheet(capture)
     sprites_sheet()
     print("wrote", OUT)
 

@@ -186,7 +186,7 @@ namespace Cryptforge.Tests
             {
                 for (int i = 0; i < 8 && setup.Choices.Current != null && setup.Choices.Current.Kind == ChoiceKind.Upgrade; i++)
                     setup.Choices.TrySelect(setup.Choices.Current, 0);
-                return setup.Encounters.GateBoss != null && readout.alpha == 1f;
+                return setup.Encounters.GateBoss != null && setup.Encounters.CurrentEnemy != null && readout.alpha == 1f;
             }, 30f);
             Assert.That(readout.alpha, Is.EqualTo(1f), "The gate boss's readout shows.");
             var view = Object.FindFirstObjectByType<HudArtView>();

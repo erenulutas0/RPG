@@ -631,8 +631,8 @@ def glint(colour):
     cv = Canvas(w, h)
     dx = np.abs(cv.X - w / 2)
     along = np.clip(1 - np.abs(cv.Y - h / 2) / (h / 2), 0, 1) ** 0.6
-    core = np.clip(1 - dx / 1.3, 0, 1)
-    halo = np.exp(-(dx / 3.2) ** 2) * 0.55
+    core = np.clip(1.6 - dx / 1.2, 0, 1)
+    halo = np.exp(-(dx / 3.6) ** 2) * 0.72
     alpha = np.clip(np.maximum(core, halo) * along, 0, 1)
     col = np.where((core > halo)[..., None], hex_rgb("#FFFFFF"), hex_rgb(colour))
     cv.lay(alpha, Mat("#FFFFFF"), albedo=col)
