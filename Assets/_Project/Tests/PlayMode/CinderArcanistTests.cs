@@ -239,9 +239,38 @@ namespace Cryptforge.Tests
             Assert.That(forge.HeroChoice.ShownPortrait, Is.Not.Null.And.Not.SameAs(vanguard), "Ilya stands in its own art.");
             Assert.That(forge.HeroChoice.ShownPortrait.texture.name, Does.StartWith("CHR_CinderArcanist"));
             Assert.That(TestProfile.ReadSaved().SelectedHeroId, Is.EqualTo(ArcanistId), "And saves it.");
+            // Ilya starts with its own Staff and no other (the owner, 2026-10-29): the rack shows that card alone.
+            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.True);
+            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_staff"));
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Staff" }), "Not the Vanguard's Sword for 0 gold.");
             forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "Back to the default, stored as no choice.");
+            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.False);
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Sword", "Staff", "Daggers" }), "The Vanguard's whole rack.");
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // A run played by Ilya carries the Staff even when the profile equips another weapon for the Vanguard.
+        [UnityTest]
+        public IEnumerator IlyaStartsWithItsStaffWhateverTheProfileEquips()
+        {
+            yield return Load(true, new PlayerProfile(500, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
+            Assert.That(_setup.Hero.Id, Is.EqualTo(ArcanistId));
+            Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
+            Assert.That(TestProfile.ReadSaved().EquippedWeaponId, Is.EqualTo("weapon_daggers"), "The Vanguard's choice stands.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private static string[] ShownWeaponCards(RelicForgeView forge)
+        {
+            var names = new System.Collections.Generic.List<string>();
+            for (int i = 1; i <= 3; i++)
+            {
+                Transform card = forge.transform.Find($"Forge Panel/Safe Area/Weapon Card {i}");
+                if (card != null && card.gameObject.activeSelf)
+                    names.Add(card.Find("Name Label").GetComponent<UnityEngine.UI.Text>().text);
+            }
+            return names.ToArray();
         }
 
         [UnityTest]

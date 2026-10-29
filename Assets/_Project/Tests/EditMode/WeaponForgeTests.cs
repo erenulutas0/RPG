@@ -82,6 +82,37 @@ namespace Cryptforge.Tests
             Assert.That(shop.NextUnlock, Is.Null);
         }
 
+        // Ilya starts with its own Staff and no other weapon the forge sells (the owner, 2026-10-29): the rack offers that
+        // one alone and carries it whatever the profile equips, and the profile's choice is the Vanguard's again after.
+        [Test]
+        public void AHeroThatStartsWithItsOwnWeaponOnlyIsOfferedItAlone()
+        {
+            var profile = new PlayerProfile(500, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers");
+            WeaponOption sword = Sword();
+            WeaponOption staff = Staff();
+            WeaponOption daggers = Daggers();
+            var shop = new WeaponShop(profile, new[] { sword, staff, daggers }, staff, true);
+
+            Assert.That(shop.OnlyStartingWeapon, Is.True);
+            Assert.That(shop.Equipped, Is.SameAs(staff), "Its own weapon, whatever the profile equips.");
+            Assert.That(shop.IsOffered(staff), Is.True);
+            Assert.That(shop.IsOffered(sword), Is.False, "Not another hero's weapon, free or not.");
+            Assert.That(shop.IsOffered(daggers), Is.False);
+            Assert.That(shop.NextUnlock, Is.Null, "Nothing to forge toward.");
+            Assert.That(shop.TrySelect(sword), Is.False);
+            Assert.That(shop.TrySelect(daggers), Is.False);
+            Assert.That(profile.Gold, Is.EqualTo(500), "Nothing is bought.");
+            Assert.That(profile.EquippedWeaponId, Is.EqualTo("weapon_daggers"), "The other heroes' choice stands.");
+
+            Assert.That(shop.SetStartingWeapon(sword), Is.True, "The Vanguard is chosen again.");
+            Assert.That(shop.OnlyStartingWeapon, Is.False);
+            Assert.That(shop.Equipped, Is.SameAs(daggers), "And carries the profile's weapon again.");
+            Assert.That(shop.IsOffered(staff) && shop.IsOffered(sword) && shop.IsOffered(daggers), Is.True);
+            Assert.That(shop.SetStartingWeapon(staff, true), Is.True);
+            Assert.That(shop.SetStartingWeapon(staff, true), Is.False, "Nothing changed.");
+            Assert.That(shop.Equipped, Is.SameAs(staff));
+        }
+
         [Test]
         public void ShopReportsForgedOnlyForPurchasesTheProfileAccepted()
         {

@@ -113,7 +113,8 @@ namespace Cryptforge.Core
             Relics = new RelicShop(Profile, relics);
             Hero = ChooseHero();
             _weaponOptions = weapons;
-            Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)]);
+            Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)],
+                Hero.StartsWithItsOwnWeaponOnly);
             // Before any view: the rack follows the forge's hero chooser before the forge redraws for the same change.
             Profile.Changed += FollowNextHero;
             HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
@@ -390,13 +391,14 @@ namespace Cryptforge.Core
         // For tests: the neighbourhood a burn's fall asks.
         internal INeighbourhood BurnNeighbourhood => _burnNeighbourhood;
 
-        // The forge's hero chooser changed the next run's hero: its starting weapon becomes the rack's free one.
+        // The forge's hero chooser changed the next run's hero: its starting weapon becomes the rack's free one, the only
+        // one on offer for a hero that starts with its own weapon only.
         private void FollowNextHero()
         {
             HeroDefinition next = ChooseHero();
             int index = Array.IndexOf(_weapons, next.StartingWeapon);
             if (index >= 0)
-                Weapons.SetStartingWeapon(_weaponOptions[index]);
+                Weapons.SetStartingWeapon(_weaponOptions[index], next.StartsWithItsOwnWeaponOnly);
         }
 
         // The final floor ends the Descent; every earlier floor offers Extract or Descend.
