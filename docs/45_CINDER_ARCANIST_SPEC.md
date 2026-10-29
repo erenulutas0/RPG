@@ -214,7 +214,8 @@ stay for a later painted pass.
   - The Forge Burst: a ring shockwave with heat ripples and a soot rim, steel sparks, and a 0.12 s flash at the hero.
   - Device checks still open: burn readability at 1-2 stacks on Mites and on lava, ASTC banding in the soft gradients,
     frame time with about 40 burning enemies, and occlusion behind Foundry structures.
-- **The Vanguard's painted puppet** (section 4 B, behind `development/puppet.txt`) - `Tools/ArtReview/
+- **The Vanguard's painted puppet** (section 4 B; the Vanguard's look since 2026-10-29, the owner's choice - its painted
+  frames stay behind it, asked for by `development/painted-frames.txt`) - `Tools/ArtReview/
   build_vanguard_puppet.py` cuts the two painted masters (rear and front three-quarter) into 14 parts each, along their
   painted outlines, under `Assets/_Project/Art/Characters/Vanguard/Puppet/` with `VanguardPuppetArtSet.asset` (122 KiB
   as ASTC 4x4 with the hit-flash copies). Joints that open when a limb bends show the master's own chainmail; the
@@ -247,13 +248,18 @@ stay for a later painted pass.
     `CombatSetup` has chosen the hero) draw a hero with its own art; `RenderedCharacterPlayer` (pure) picks motion,
     facing and frame; `RenderedCharacterFlash.shader` gives the white hit flash.
   - Look: the robe ash-white with scorched orange hems, the cowl and mantle soot-dark (an ash cowl read as one pale
-    column; `--hood light` rebuilds it), brass goggles with a living lens flame, the crucible staff lighting the cowl
+    column; `--hood light` rebuilds it; the owner kept the dark cowl on 2026-10-29), brass goggles with a living lens flame, the crucible staff lighting the cowl
     and shoulder with a warm halo that flares on the strike and the Vent.
   - The evolution flash (`RunFeedbackView`) reaches a hero whose animator hides the body: the rendered hero fades its
     own white silhouette, the puppet swaps in its white parts while the flash is strong.
-  - `development/puppet.txt` is the Vanguard's: the puppet attaches in `HeroLookView.Start`, after the hero is known,
-    and never takes a hero with its own rendered art.
-  - Known gaps: the carried weapon is always the rendered staff; the mirrored west side flips the light.
+  - The puppet is the Vanguard's: it attaches in `HeroLookView.Start`, after the hero is known, and never takes a hero
+    with its own rendered art.
+  - Ilya starts every run with its own Staff and no other weapon the forge sells (the owner, 2026-10-29):
+    `HeroDefinition._startsWithItsOwnWeaponOnly`, under which `WeaponShop` offers and carries the starting weapon alone
+    (`OnlyStartingWeapon`, `IsOffered`) while the profile's equipped weapon stays the Vanguard's choice; the forge shows
+    Ilya the one card. A card in the run may still hand it any weapon.
+  - Known gaps: a weapon taken in the run is not drawn (the staff is part of the render); the mirrored west side flips
+    the light.
 - **Painted combat feedback** - `Tools/ArtReview/build_combat_feedback_vfx.py` (it reuses build_skill_vfx's painting
   without changing its output) paints one sheet, `Assets/_Project/Art/Effects/Feedback/VFX_Feedback.png` (212 KiB as
   ASTC 4x4), and `CombatFeedbackArtSet.asset`; `CombatEffectsView._feedbackArt` uses it when valid, the pixel art
@@ -269,9 +275,8 @@ stay for a later painted pass.
   `Tools/ArtReview/build_ground_gold.py`, instead of the pixel coin.
 - **The forge's hero chooser** pictures each hero (`HeroDefinition._portrait`: the Vanguard's painted front idle,
   Ilya's rendered south idle) beside its name.
-  - Open question for the owner: with Ilya chosen, the Sword reads "Forge for 0 gold" (it is owned only as the
-    Vanguard's starting weapon) and forging it lets Ilya carry it under the staff render. Should a hero be able to
-    carry another hero's starting weapon at all?
+  - With Ilya chosen the Sword read "Forge for 0 gold" and could be carried under the staff render; settled by Ilya's
+    own-weapon-only rule above.
 - **The Forge Warden from one model** - `Tools/ArtReview/BuildBlenderWarden.py` builds the Warden in Blender 4.5 the
   way Ilya was built (`ArtDirection/2026-10-27/warden-blender-01/` holds the .blend, frames.json and a README);
   `PackWardenSprites.py` packs 44 sprites under `Assets/_Project/Art/Characters/ForgeWarden/` (2.00 MB as ASTC 4x4)
