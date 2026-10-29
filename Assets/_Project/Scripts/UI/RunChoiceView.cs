@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -38,6 +39,8 @@ namespace Cryptforge.UI
         [SerializeField] private Text[] _descriptionLabels;
         [SerializeField] private Image[] _cardIcons;
         [SerializeField] private UpgradeIcon[] _upgradeIcons;
+        // Optional: every card's painted icon by content id, looked in after _upgradeIcons (IconFor).
+        [SerializeField] private UpgradeIconSet _iconSet;
         // Optional, one per slot like the icons: a strip or frame the card's rarity colour is painted on. A slot without
         // one still shows its tier, on the card's name.
         [SerializeField] private Graphic[] _rarityAccents;
@@ -475,14 +478,18 @@ namespace Cryptforge.UI
         private Sprite IconFor(ChoicePrompt prompt, int slot)
         {
             // Resolve by content identity, not slot order or translated display names. Forge/checkpoint and future
-            // upgrades without artwork keep their text cards instead of inheriting an unrelated weapon icon.
+            // upgrades without artwork keep their text cards instead of inheriting an unrelated weapon icon. The scene's
+            // own table wins; the icon set answers every other id - a category card's weapon, line, evolution or tome
+            // included, since each is its own id.
             UpgradeOffer offer = _setup.Upgrades.CurrentOffer;
-            if (prompt.Kind != ChoiceKind.Upgrade || offer == null || slot >= offer.Choices.Count || _upgradeIcons == null)
+            if (prompt.Kind != ChoiceKind.Upgrade || offer == null || slot >= offer.Choices.Count)
                 return null;
-            foreach (UpgradeIcon icon in _upgradeIcons)
-                if (icon.Definition != null && icon.Definition.Id == offer.Choices[slot].Id)
-                    return icon.Sprite;
-            return null;
+            string id = offer.Choices[slot].Id;
+            if (_upgradeIcons != null)
+                foreach (UpgradeIcon icon in _upgradeIcons)
+                    if (icon.Definition != null && icon.Definition.Id == id)
+                        return icon.Sprite;
+            return _iconSet != null ? _iconSet.CardIconFor(id) : null;
         }
 
         private void Update()

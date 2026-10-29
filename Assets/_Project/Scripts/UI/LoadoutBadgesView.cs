@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
@@ -14,7 +15,8 @@ namespace Cryptforge.UI
     // left in slot order, tomes right in the order they were taken - each a short name over its level, with the evolved
     // mark on a weapon that has taken its evolution. An empty slot shows as a faint plate, so the row also says how many
     // more a build can take. RunHud adds it in category mode only; it builds itself in code on the HUD's safe area, so the
-    // scene does not change.
+    // scene does not change. Given the painted icons (UseIcons), a filled badge shows its icon beside its level instead
+    // of its name.
     public sealed class LoadoutBadgesView : MonoBehaviour
     {
         public const int WeaponSlots = WeaponLoadout.MaxSlots;
@@ -37,6 +39,12 @@ namespace Cryptforge.UI
         private const int WholeNameLength = 5;
         private const int AbbreviationLength = 3;
         private const float EmptyAlpha = .3f;
+        // With an icon set (UseIcons) a filled badge shows its weapon's or tome's painted icon in place of its name: the
+        // icon square at the left (x 4-60, y 6-62, inside the socket's well and above the accent strip) and the level
+        // in the column right of it (x 60-88), at its own size, so it still reads at a glance.
+        private const float IconInset = 4f;
+        private const float IconTop = 6f;
+        private const float IconSize = 56f;
 
         private static readonly Color WeaponPlate = new Color(.16f, .11f, .08f, .86f);
         private static readonly Color TomePlate = new Color(.08f, .10f, .17f, .86f);
@@ -53,6 +61,8 @@ namespace Cryptforge.UI
             public Image Accent;
             public Text Name;
             public Text Level;
+            public Image Icon;
+            public bool ShowsIcon;
             public Color PlateColour;
             public Color AccentColour;
             public string ShownId;
@@ -69,6 +79,9 @@ namespace Cryptforge.UI
         private readonly Badge[] _tomes = new Badge[TomeSlots];
         // Short names by weapon or tome id, made once from the catalogue.
         private readonly Dictionary<string, string> _shortNames = new Dictionary<string, string>();
+        // Each weapon's evolution's id, so an evolved weapon's badge shows the evolution's icon.
+        private readonly Dictionary<string, string> _evolutionOf = new Dictionary<string, string>();
+        private UpgradeIconSet _icons;
         // The tomes in the order this run took them, so a tome taken later joins on the right instead of reshuffling the
         // ones already shown; the service keeps only the catalogue order.
         private readonly List<string> _tomeOrder = new List<string>(TomeSlots);
@@ -80,6 +93,9 @@ namespace Cryptforge.UI
         public int ShownTomeBadges => CountFilled(_tomes);
         public string WeaponBadgeText(int slot) => TextOf(_weapons, slot);
         public string TomeBadgeText(int slot) => TextOf(_tomes, slot);
+        // The painted icon a badge shows, null while it shows its name instead (no icon set, or none for its id).
+        public Sprite WeaponBadgeIcon(int slot) => IconOf(_weapons, slot);
+        public Sprite TomeBadgeIcon(int slot) => IconOf(_tomes, slot);
 
         // style is the compact gold count: the row shares its parent, font and layer.
         internal void Initialize(CombatSetup setup, PrototypeTextDefinition text, Text style)
@@ -88,7 +104,12 @@ namespace Cryptforge.UI
             UpgradeService upgrades = _setup.Upgrades;
             if (upgrades.WeaponCards != null)
                 for (int i = 0; i < upgrades.WeaponCards.Count; i++)
-                    AddShortName(upgrades.WeaponCards[i].Id, upgrades.WeaponCards[i].DisplayName);
+                {
+                    WeaponCard card = upgrades.WeaponCards[i];
+                    AddShortName(card.Id, card.DisplayName);
+                    if (card.Evolution != null && !_evolutionOf.ContainsKey(card.Id))
+                        _evolutionOf.Add(card.Id, card.Evolution.Id);
+                }
             if (upgrades.Tomes != null)
                 for (int i = 0; i < upgrades.Tomes.Count; i++)
                     AddShortName(upgrades.Tomes[i].Id, upgrades.Tomes[i].DisplayName);
@@ -145,6 +166,17 @@ namespace Cryptforge.UI
             badge.Accent = strip.gameObject.AddComponent<Image>();
             badge.Accent.raycastTarget = false;
 
+            // The icon, under the labels and hidden until an icon set gives it a sprite (Arrange).
+            RectTransform icon = Child("Icon", rect, style);
+            icon.anchorMin = icon.anchorMax = new Vector2(0f, 1f);
+            icon.pivot = new Vector2(0f, 1f);
+            icon.anchoredPosition = new Vector2(IconInset, -IconTop);
+            icon.sizeDelta = new Vector2(IconSize, IconSize);
+            badge.Icon = icon.gameObject.AddComponent<Image>();
+            badge.Icon.raycastTarget = false;
+            badge.Icon.preserveAspect = true;
+            badge.Icon.enabled = false;
+
             // The name on top (y 3-31) and the level under it (y 31-67), so neither crowds the other or the strip.
             badge.Name = Label("Name", rect, style, 1f, -3f, 28f, 24, 16, FontStyle.Normal);
             badge.Level = Label("Level", rect, style, 0f, AccentHeight + 1f, 36f, 34, 24, FontStyle.Bold);
@@ -195,6 +227,67 @@ namespace Cryptforge.UI
             Paint(_tomes, tomePlate, accent);
             if (_setup != null)
                 Refresh();
+        }
+
+        // The painted icons (UpgradeIconSet's socket icons): a filled badge whose weapon or tome has one shows it in place
+        // of its name, an evolved weapon its evolution's; the level, the plates and when anything shows are unchanged.
+        // Null takes them away again, back to the names.
+        internal void UseIcons(UpgradeIconSet icons)
+        {
+            _icons = icons;
+            Invalidate(_weapons);
+            Invalidate(_tomes);
+            if (_setup != null)
+                Refresh();
+        }
+
+        private static void Invalidate(Badge[] badges)
+        {
+            foreach (Badge badge in badges)
+            {
+                if (badge == null)
+                    continue;
+                badge.Filled = false;
+                badge.ShownEmpty = false;
+                badge.ShownId = null;
+            }
+        }
+
+        private Sprite IconFor(string id, bool evolved)
+        {
+            if (_icons == null)
+                return null;
+            Sprite icon = evolved && _evolutionOf.TryGetValue(id, out string evolution) ? _icons.SlotIconFor(evolution) : null;
+            return icon != null ? icon : _icons.SlotIconFor(id);
+        }
+
+        // An icon at the left and the level beside it, or the name over the level as the row was built.
+        private static void Arrange(Badge badge, Sprite icon)
+        {
+            badge.Icon.sprite = icon;
+            bool showsIcon = icon != null;
+            badge.Icon.enabled = showsIcon;
+            if (badge.ShowsIcon == showsIcon)
+                return;
+            badge.ShowsIcon = showsIcon;
+            badge.Name.enabled = !showsIcon;
+            RectTransform level = badge.Level.rectTransform;
+            if (showsIcon)
+            {
+                level.anchorMin = Vector2.zero;
+                level.anchorMax = Vector2.one;
+                level.pivot = new Vector2(.5f, .5f);
+                level.offsetMin = new Vector2(IconInset + IconSize, BadgeHeight - IconTop - IconSize);
+                level.offsetMax = new Vector2(-2f, -IconTop);
+            }
+            else
+            {
+                level.anchorMin = new Vector2(0f, 0f);
+                level.anchorMax = new Vector2(1f, 0f);
+                level.pivot = new Vector2(.5f, 0f);
+                level.anchoredPosition = new Vector2(0f, AccentHeight + 1f);
+                level.sizeDelta = new Vector2(-8f, 36f);
+            }
         }
 
         private static void Paint(Badge[] badges, Sprite plate, Sprite accent)
@@ -262,6 +355,7 @@ namespace Cryptforge.UI
             badge.Name.color = badge.Level.color = evolved ? EvolvedInk : Ink;
             badge.Plate.color = badge.PlateColour;
             badge.Accent.color = evolved ? EvolvedInk : badge.AccentColour;
+            Arrange(badge, IconFor(id, evolved));
             badge.ShownId = id;
             badge.ShownLevel = level;
             badge.ShownEvolved = evolved;
@@ -276,6 +370,7 @@ namespace Cryptforge.UI
 
             badge.Name.text = string.Empty;
             badge.Level.text = string.Empty;
+            Arrange(badge, null);
             Color plate = badge.PlateColour;
             plate.a *= EmptyAlpha;
             badge.Plate.color = plate;
@@ -294,6 +389,13 @@ namespace Cryptforge.UI
                 if (badges[i] != null && badges[i].Filled)
                     filled++;
             return filled;
+        }
+
+        private static Sprite IconOf(Badge[] badges, int slot)
+        {
+            if (slot < 0 || slot >= badges.Length || badges[slot] == null || !badges[slot].Filled || !badges[slot].Icon.enabled)
+                return null;
+            return badges[slot].Icon.sprite;
         }
 
         private static string TextOf(Badge[] badges, int slot)
