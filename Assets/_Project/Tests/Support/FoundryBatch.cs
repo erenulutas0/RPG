@@ -43,6 +43,14 @@ namespace Cryptforge.Tests
             return seeds;
         }
 
+        // A floor whose walks add up past this has had the autopilot's drop detour (DevelopmentAutopilot.DropDetour) fire
+        // again and again: the horde keeps dying within reach of the hero, every fall drops something closer than the next
+        // hall, and the hall waits. The Editor's Ilya seed 22 spent 195 s so in its second room. About twice the shipped
+        // floor's median walk; the reports count such runs and read the levers with and without them.
+        public const float LongWalkSeconds = 150f;
+
+        public static bool WalkedLong(DescentSimulation.FoundryResult run) => run.WalkTotal > LongWalkSeconds;
+
         // The Editor measurement's seeds (HordePacingMeasurement.DefaultSeeds).
         public static readonly int[] EditorSeeds = { 11, 22, 33, 44, 55, 66 };
 
@@ -164,8 +172,8 @@ namespace Cryptforge.Tests
         {
             md.AppendLine("### Where the time goes (cleared runs; P10 / P50 / P90 seconds)").AppendLine();
             md.AppendLine("Walk: from a hall marked to its district reached (hall_reached). Node fights: the non-boss rooms less their walks (the waves, their 1 s advance delays and the forge's second). Warden: the boss wave from walking out of the gate to its fall, the 2.6 s reveal included. Exit: the Warden's fall to the gate held.").AppendLine();
-            md.AppendLine("| Hero | Walk | Node fights | Hall waves only | Warden | Exit | Gate wait | Room 1 / 2 / 3 / forge / elite / boss (P50) |");
-            md.AppendLine("|---|---|---|---|---|---|---|---|");
+            md.AppendLine("| Hero | Walk | Node fights | Hall waves only | Warden | Exit | Gate wait | Room 1 / 2 / 3 / forge / elite / boss (P50) | Walks over " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (all runs) |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|");
             foreach (Batch b in batches)
             {
                 DescentSimulation.FoundryResult[] cleared = b.Cleared.ToArray();
@@ -176,7 +184,8 @@ namespace Cryptforge.Tests
                 md.AppendLine($"| {b.Hero.Name} | {Spread(cleared.Select(r => r.WalkTotal))} | {Spread(cleared.Select(r => r.NodeSeconds))} | " +
                               $"{Spread(cleared.Select(r => r.WaveSeconds.Where(w => w > 0f).Sum()))} | " +
                               $"{Spread(cleared.Select(r => r.BossSeconds))} | {Spread(cleared.Select(r => r.ExitSeconds))} | " +
-                              $"{Spread(cleared.Select(r => r.GateWaitSeconds))} | {string.Join(" / ", perRoom)} |");
+                              $"{Spread(cleared.Select(r => r.GateWaitSeconds))} | {string.Join(" / ", perRoom)} | " +
+                              $"{b.Runs.Count(WalkedLong)} ({Pct(b.Runs.Count(WalkedLong), b.Runs.Length)}) |");
             }
             md.AppendLine();
         }
@@ -364,8 +373,8 @@ namespace Cryptforge.Tests
             IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
         {
             md.AppendLine("### Levers against the shipped floor (same seeds)").AppendLine();
-            md.AppendLine("Delta P50 is the lever's median floor time less the shipped median over all runs; paired is the median of per-seed differences over the seeds both cleared. Research: v01-research report.md section 3, against its 170 s baseline.").AppendLine();
-            md.AppendLine("| Lever | Research estimate | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: P50 (delta) / paired delta / cleared / gate level P50 / uptime P50")) + " |");
+            md.AppendLine("Delta P50 is the lever's median floor time less the shipped median over all runs (a death shortens a floor). Paired is the median of per-seed differences over the seeds both runs cleared; paired, short walks leaves out the seeds where either run's walks passed " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (the drop-detour loop) and so reads the lever's own content. Long walks counts the lever's runs that passed it. Research: v01-research report.md section 3, against its 170 s baseline.").AppendLine();
+            md.AppendLine("| Lever | Research estimate | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: P50 (delta) / paired / paired, short walks / cleared / long walks / gate level P50")) + " |");
             md.AppendLine("|---|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
             foreach ((Lever lever, Batch[] batches) in levers)
             {
@@ -377,11 +386,19 @@ namespace Cryptforge.Tests
                     double p50 = Median(with.Runs.Select(r => r.FloorSeconds));
                     double basis = Median(baseline.Runs.Select(r => r.FloorSeconds));
                     var paired = new List<float>();
+                    var shortWalks = new List<float>();
                     for (int i = 0; i < with.Runs.Length && i < baseline.Runs.Length; i++)
-                        if (with.Runs[i].Cleared && baseline.Runs[i].Cleared)
-                            paired.Add(with.Runs[i].FloorSeconds - baseline.Runs[i].FloorSeconds);
+                    {
+                        if (!with.Runs[i].Cleared || !baseline.Runs[i].Cleared)
+                            continue;
+                        float delta = with.Runs[i].FloorSeconds - baseline.Runs[i].FloorSeconds;
+                        paired.Add(delta);
+                        if (!WalkedLong(with.Runs[i]) && !WalkedLong(baseline.Runs[i]))
+                            shortWalks.Add(delta);
+                    }
                     double gate = Median(with.Runs.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate));
-                    cells.Add($"{F(p50)} ({Signed(p50 - basis)}) / {Signed(Median(paired))} / {Pct(with.ClearedCount, with.Runs.Length)} / {F(gate)} / {F(Median(with.Runs.Select(r => r.Uptime)), "0.00")}");
+                    cells.Add($"{F(p50)} ({Signed(p50 - basis)}) / {Signed(Median(paired))} / {Signed(Median(shortWalks))} (n={shortWalks.Count}) / " +
+                              $"{Pct(with.ClearedCount, with.Runs.Length)} / {Pct(with.Runs.Count(WalkedLong), with.Runs.Length)} / {F(gate)}");
                 }
                 md.AppendLine($"| {lever.Name} | {lever.Estimate} | " + string.Join(" | ", cells) + " |");
             }

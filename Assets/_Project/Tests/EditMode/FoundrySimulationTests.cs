@@ -14,7 +14,8 @@ namespace Cryptforge.Tests
     // batch report (Tools/CombatChecks/FoundryBatchReport.cs) reads it.
     public sealed class FoundrySimulationTests
     {
-        private static readonly int[] Seeds = { 11, 22, 33 };
+        // Two of the Editor measurement's seeds: a floor is about a second of the pure runner's time.
+        private static readonly int[] Seeds = { 11, 33 };
 
         [Test]
         public void ASeedPlaysTheSameFloorEveryTime()

@@ -14,7 +14,11 @@ namespace Cryptforge.Tests
     // written to TestResults/foundry-batch.md and foundry-batch.csv. Explicit, so a plain `dotnet test` skips it; run it by
     // name:
     //
-    //   dotnet test Tools/CombatChecks --filter "FullyQualifiedName~FoundryBatchReport"
+    //   dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"
+    //
+    // A floor costs about a third of a second of one core in Release (two to three times that in Debug): the shipped floor
+    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the twelve levers about three minutes more
+    // (FOUNDRY_LEVERS=0 skips them). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
     // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
@@ -49,7 +53,7 @@ namespace Cryptforge.Tests
             md.AppendLine($"Seeds {first}-{first + seeds - 1} a hero, the development autopilot's policy, DescentSimulation.RunFoundry " +
                           $"({DateTime.Now:yyyy-MM-dd HH:mm}). Computed, not measured: see the parity table for how far it stands from the Editor.").AppendLine();
             md.Append(FoundryBatch.Report(baselines, leverRuns));
-            string parity = Parity(editor, heroes, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
+            string parity = Parity(editor, heroes, baselines, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
             if (parity != null)
                 md.AppendLine(parity);
 
@@ -115,8 +119,8 @@ namespace Cryptforge.Tests
             public float[] Rooms = new float[0];
         }
 
-        private static string Parity(string editorFolder, DescentSimulation.FoundryHero[] heroes, int parallel,
-            out List<FoundryBatch.Batch> simulated)
+        private static string Parity(string editorFolder, DescentSimulation.FoundryHero[] heroes,
+            IReadOnlyList<FoundryBatch.Batch> baselines, int parallel, out List<FoundryBatch.Batch> simulated)
         {
             simulated = new List<FoundryBatch.Batch>();
             if (!Directory.Exists(editorFolder))
@@ -154,6 +158,19 @@ namespace Cryptforge.Tests
                               $"{M(batch.Runs.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {M(batch.Runs.Select(r => (float)r.Level))} | " +
                               $"{M(batch.Runs.Select(r => r.Uptime), "0.00")} | {M(batch.Runs.Select(r => r.Engaged), "0.00")} | " +
                               $"{string.Join(", ", batch.Runs.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died).Select(r => $"{r.DeathRoom} {r.DeathPhase}"))} |");
+                // Six Editor seeds against the whole batch's spread: each cell P10 / P50 / P90.
+                if (h < baselines.Count)
+                {
+                    FoundryBatch.Batch all = baselines[h];
+                    DescentSimulation.FoundryResult[] allClears = all.Cleared.ToArray();
+                    md.AppendLine($"| {heroes[h].Name} | Simulation, {all.Runs.Length} seeds (P10 / P50 / P90) | {all.ClearedCount}/{all.Runs.Length} | " +
+                                  $"{S(all.Runs.Select(r => r.FloorSeconds))} | {S(allClears.Select(r => r.WalkTotal))} | {S(allClears.Select(r => r.NodeSeconds))} | " +
+                                  $"{S(allClears.Select(r => r.BossSeconds))} | {S(allClears.Select(r => r.ExitSeconds))} | " +
+                                  $"{S(all.Runs.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {S(all.Runs.Select(r => (float)r.Level))} | " +
+                                  $"{S(all.Runs.Select(r => r.Uptime), "0.00")} | {S(all.Runs.Select(r => r.Engaged), "0.00")} | " +
+                                  $"{all.Runs.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f && r.LevelAtGate >= 0)} of " +
+                                  $"{all.Runs.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died)} deaths at the Warden |");
+                }
 
                 perSeed.AppendLine($"| {heroes[h].Name} | seed | Editor: result, floor, walk / node / Warden / exit, level gate / end, rooms | Simulation: the same |");
                 perSeed.AppendLine("|---|---|---|---|");
@@ -177,6 +194,15 @@ namespace Cryptforge.Tests
         {
             double value = FoundryBatch.Median(values.Where(v => !float.IsNaN(v) && v >= 0f));
             return double.IsNaN(value) ? "-" : value.ToString(format, CultureInfo.InvariantCulture);
+        }
+
+        private static string S(IEnumerable<float> values, string format = "0")
+        {
+            float[] kept = values.Where(v => !float.IsNaN(v) && v >= 0f).ToArray();
+            if (kept.Length == 0)
+                return "-";
+            string P(double p) => FoundryBatch.Percentile(kept, p).ToString(format, CultureInfo.InvariantCulture);
+            return $"{P(10)} / {P(50)} / {P(90)}";
         }
 
         private static string N(float value) =>

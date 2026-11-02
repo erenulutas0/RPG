@@ -2031,6 +2031,9 @@ namespace Cryptforge.Tests
             {
                 if (_roomIndex >= 0 && _result.RoomSeconds[_roomIndex] < 0f)
                     _result.RoomSeconds[_roomIndex] = _seconds - _roomStartedAt;
+                // A floor that ended on the way to a hall walked for as long as the hall stood marked.
+                if (_roomSiteOpen && _result.WalkSeconds[_siteStep.RoomIndex] < 0f)
+                    _result.WalkSeconds[_siteStep.RoomIndex] = _siteWait;
                 _result.Outcome = _cleared ? FoundryOutcome.Cleared
                     : !_heroHealth.IsAlive ? FoundryOutcome.Died : FoundryOutcome.Timeout;
                 _result.FloorSeconds = _seconds;
