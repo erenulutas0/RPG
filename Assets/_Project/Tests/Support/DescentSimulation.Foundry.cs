@@ -45,6 +45,8 @@ namespace Cryptforge.Tests
         public const float PilotShelterDepth = PitEruptionRule.Reach + 1.4f;
         public const float PilotArrived = .35f;
         public const float PilotDropDetour = 4f;
+        public const float PilotDetourSlack = 2f;
+        public const float PilotDetourBudget = 12f;
         public const float PilotKiteReach = 1.6f;
         // 35 degrees as UnityEngine.Mathf.Deg2Rad (PI * 2 / 360 in float) turns it.
         public const float PilotKiteTurn = 35f * (3.14159274f * 2f / 360f);
@@ -603,6 +605,9 @@ namespace Cryptforge.Tests
             private readonly FoundryPursuit _route = new FoundryPursuit();
             private float _steerX;
             private float _steerY;
+            // The autopilot's drops across a walk (DropDetourRule.Walk).
+            private readonly DropDetourRule.Walk _detour =
+                new DropDetourRule.Walk(PilotDropDetour, PilotDetourSlack, PilotDetourBudget);
 
             // The one chest, as ChestSpawner keeps it.
             private int _chestIndex = -1;
@@ -1869,13 +1874,15 @@ namespace Cryptforge.Tests
                 stop = PilotArrived;
                 gx = x;
                 gy = y;
+                bool fighting = _waveAlive > 0;
+                // A fight, or a hall newly marked, gives the walk after it its whole drop budget.
+                _detour.Track(fighting, _roomSiteOpen);
                 if (_gateExitOpen)
                 {
                     gx = _exitX;
                     gy = _exitY;
                     return true;
                 }
-                bool fighting = _waveAlive > 0;
                 if (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked)
                 {
                     float mx = x - _markX;
@@ -1906,44 +1913,41 @@ namespace Cryptforge.Tests
                     RimSpot(x, y, PilotLureDepth, out gx, out gy);
                     return true;
                 }
-                if (NearestDrop(x, y, PilotDropDetour, out gx, out gy))
+                // Between fights: the altars, then the marked hall, with the drops beside the way there (the slack, the
+                // budget); with nowhere to go, every drop in sight.
+                bool altar = NearestAltar(x, y, out float wx, out float wy);
+                bool hall = !altar && _roomSiteOpen;
+                if (hall)
+                {
+                    wx = _siteX;
+                    wy = _siteY;
+                }
+                if (!altar && !hall)
+                {
+                    if (DropDetourRule.Nearest(_drops, x, y, PilotDropDetour, out gx, out gy))
+                    {
+                        stop = DropRule.PickupRadius * .5f;
+                        return true;
+                    }
+                }
+                else if (_detour.Choose(_drops, x, y, wx, wy, Step, out gx, out gy))
                 {
                     stop = DropRule.PickupRadius * .5f;
                     return true;
                 }
-                if (NearestAltar(x, y, out gx, out gy))
+                gx = wx;
+                gy = wy;
+                if (altar)
                 {
                     stop = .1f;
                     return true;
                 }
-                if (_roomSiteOpen)
+                if (hall)
                 {
-                    gx = _siteX;
-                    gy = _siteY;
                     stop = FoundryMap.RoomSiteRadius * .5f;
                     return true;
                 }
                 return false;
-            }
-
-            private bool NearestDrop(float x, float y, float detour, out float gx, out float gy)
-            {
-                gx = x;
-                gy = y;
-                float best = detour * detour;
-                bool found = false;
-                for (int i = 0; i < _drops.Count; i++)
-                {
-                    GroundDrops.Drop drop = _drops.At(i);
-                    float d = ArenaFloor.FloorDistanceSquared(x, y, drop.X, drop.Y);
-                    if (d >= best)
-                        continue;
-                    best = d;
-                    gx = drop.X;
-                    gy = drop.Y;
-                    found = true;
-                }
-                return found;
             }
 
             private bool NearestAltar(float x, float y, out float gx, out float gy)

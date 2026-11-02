@@ -15,8 +15,6 @@ namespace Cryptforge.UI
     // so duplicated quad edges remain welded visually. The hanging rod never moves.
     public sealed class FoundryBannerMotion : MonoBehaviour
     {
-        // Cloth billows across in two waves and heaves in one, each at most this far times its drop squared.
-        private const float Billow=.09f,Ripple=.025f,Heave=.025f;
         private Mesh _mesh;
         private Vector3[] _rest, _working;
         private FoundryBannerVertex[] _cloth;
@@ -40,19 +38,11 @@ namespace Cryptforge.UI
                 float weight=cloth.Drop*cloth.Drop;
                 float phase=_elapsed*1.8f+cloth.Phase-cloth.Drop*2.8f;
                 Vector3 point=_rest[cloth.Index];
-                point.x+=weight*(Billow*Mathf.Sin(phase)+Ripple*Mathf.Sin(phase*1.7f));
-                point.y+=weight*Heave*Mathf.Sin(phase+.8f);
+                point.x+=weight*(.09f*Mathf.Sin(phase)+.025f*Mathf.Sin(phase*1.7f));
+                point.y+=weight*.025f*Mathf.Sin(phase+.8f);
                 _working[cloth.Index]=point;
             }
             _mesh.SetVertices(_working,0,_working.Length,UnityEngine.Rendering.MeshUpdateFlags.DontRecalculateBounds);
-        }
-
-        // The farthest a cloth vertex strays from its rest across and up, for the depth cover of the structure the
-        // banner hangs on (FoundryDepthCover).
-        internal static Vector2 Reach(FoundryBannerVertex cloth)
-        {
-            float weight=cloth.Drop*cloth.Drop;
-            return new Vector2((Billow+Ripple)*weight,Heave*weight);
         }
 
         private void OnDisable()
