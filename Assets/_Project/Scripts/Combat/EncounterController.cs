@@ -256,6 +256,8 @@ namespace Cryptforge.Combat
             FloorNumber = 1;
             _hallsOnEarlierFloors = 0;
             EnterFloor(first);
+            // A fallen hero ends the gate's hold at once, so nothing reads a hold the run has left behind.
+            _hero.Died += OnHeroDied;
             _firstEncounterPending = true;
             if (!deferFirstEncounter)
                 BeginFirstEncounter();
@@ -339,8 +341,9 @@ namespace Cryptforge.Combat
         // Zero where no horde runs - the finale, the walk up after the gate, a floor without horde roles.
         public float FloorClockSeconds => _horde != null ? _horde.Seconds : 0f;
         // The room before the gate is cleared and holds for the floor's clock (FloorDefinition.FoundryGateNotBeforeSeconds);
-        // GateOpensIn says how long is left.
-        public bool IsHoldingForGate { get; private set; }
+        // GateOpensIn says how long is left. The hold ends as the floor moves on, the floor changes or the hero falls.
+        public bool IsHoldingForGate => _holdingForGate;
+        private bool _holdingForGate;
         public float GateOpensIn => IsHoldingForGate && _currentFloor != null
             ? Mathf.Max(0f, _currentFloor.FoundryGateNotBeforeSeconds - FloorClockSeconds) : 0f;
         // Seconds before the floor is overrun, and whether it already is.
@@ -410,6 +413,36 @@ namespace Cryptforge.Combat
                     }
                 }
             }
+            ValidateGateHold(floor);
+        }
+
+        // The gate's clock holds the cleared room before the gate boss on the foundry (GateHoldsForClock): a time inside
+        // the floor's clock, before the overrun, on a floor whose horde runs that clock, and a combat or elite room before
+        // every boss room as the foundry plays them. Neither a forge nor a swarm room holds, so the gate would open early
+        // after one; nor could a forge hold, as it freezes the floor's clock and the wait would never end.
+        private static void ValidateGateHold(FloorDefinition floor)
+        {
+            float gate = floor.FoundryGateNotBeforeSeconds;
+            if (gate == 0f)
+                return;
+            if (!(gate > 0f && gate < HordeClock.TargetSeconds))
+                throw new InvalidOperationException(
+                    $"Floor {floor.name} holds its gate until {gate} s; the time must be 0 or inside the floor's {HordeClock.TargetSeconds} s clock.");
+            if (floor.HordeRoleCount == 0)
+                throw new InvalidOperationException($"Floor {floor.name} holds its gate for the floor's clock but has no horde to run it.");
+            RoomDefinition[] rooms = FoundryRooms(floor);
+            bool gated = false;
+            for (int i = 0; i < rooms.Length; i++)
+            {
+                if (rooms[i].Kind != RoomKind.Boss)
+                    continue;
+                gated = true;
+                if (i == 0 || !IsHallKind(rooms[i - 1].Kind))
+                    throw new InvalidOperationException(
+                        $"Floor {floor.name} holds its gate for the floor's clock, but no combat or elite room stands before its boss room {i}.");
+            }
+            if (!gated)
+                throw new InvalidOperationException($"Floor {floor.name} holds its gate for the floor's clock but has no boss room.");
         }
 
         // A floor's horde roles must each be an enemy the scene can spawn, as a wave's enemies must.
@@ -468,7 +501,10 @@ namespace Cryptforge.Combat
             _rooms = RoomsAsPlayed(floor);
             _floorProgress = new FloorProgress(WavesOf(_rooms), EndlessOf(_rooms));
             _waveOrdinal = 0;
+            _holdingForGate = false;
         }
+
+        private void OnHeroDied() => _holdingForGate = false;
 
         private int[] WavesOf(RoomDefinition[] rooms)
         {
@@ -575,9 +611,9 @@ namespace Cryptforge.Combat
 
             // The gate opens on the floor's clock, not before: the cleared room before it holds while the horde presses.
             bool holding = GateHoldsForClock();
-            if (holding != IsHoldingForGate)
+            if (holding != _holdingForGate)
             {
-                IsHoldingForGate = holding;
+                _holdingForGate = holding;
                 ProgressChanged?.Invoke();
             }
             if (holding)
@@ -587,6 +623,7 @@ namespace Cryptforge.Combat
         }
 
         // The next step is the gate boss's room and the floor's clock has not reached the time the floor sets for it.
+        // ValidateGateHold makes that room's predecessor a combat or elite room, whose last wave this follows.
         private bool GateHoldsForClock()
         {
             if (_currentFloor == null || _horde == null || _arena == null || !_arena.IsFoundryRegion ||
@@ -742,6 +779,8 @@ namespace Cryptforge.Combat
 
         private void AdvanceFloor()
         {
+            // Whatever held the floor no longer does once it moves on.
+            _holdingForGate = false;
             FloorStep step = _floorProgress.Advance();
             switch (step.Kind)
             {
@@ -1102,6 +1141,8 @@ namespace Cryptforge.Combat
         {
             ReleaseWave(false);
             ReleaseHorde(false);
+            if (!ReferenceEquals(_hero, null))
+                _hero.Died -= OnHeroDied;
         }
 
         // The hero's targets: the wave's, and while a horde stands, the horde's living enemies after them.
