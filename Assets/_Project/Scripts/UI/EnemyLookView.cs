@@ -336,9 +336,11 @@ namespace Cryptforge.UI
         }
 
         // The telegraphed blow lands: the strike pose, turned toward where it landed, held a beat longer than a swing.
+        // Only a look holding its windup takes it; one that never wound up (a set without the windup pose) is left as
+        // WindUp left it.
         internal void Slam(Vector3 target)
         {
-            if (!_painted || (_health != null && !_health.IsAlive)) return;
+            if (!_painted || !IsWindingUp || (_health != null && !_health.IsAlive)) return;
             IsWindingUp = false;
             WindupStep = -1;
             Face(target - transform.position);
