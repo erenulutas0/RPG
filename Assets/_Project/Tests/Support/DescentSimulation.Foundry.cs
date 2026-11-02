@@ -124,6 +124,17 @@ namespace Cryptforge.Tests
             public int ExtraHalls;
             // The gate boss's health against its authored (WardenRule.GateHealthShare).
             public float WardenHealthShare = WardenRule.GateHealthShare;
+            // How long after a blow the Warden still holds its weapon (WardenRule.RecoverySeconds; it always holds it
+            // through the telegraph); below zero it never holds it, as the floor was before 2026-11-03.
+            public float WardenRecoverySeconds = WardenRule.RecoverySeconds;
+            // docs/41 step 4's other candidates, off at the shipped floor (2026-11-03). Health that grows with the floor's
+            // clock as the Warden walks out, as a horde enemy's does before the overrun (HordeClock.HealthGrowth), so that a
+            // gate opening at WardenClockFrom seconds gives WardenHealthShare; 0 is off.
+            public float WardenClockFrom;
+            // A vulnerability window as damage: outside the WardenGuardOpenSeconds after each blow the Warden takes only
+            // this share of what lands on it; 1 is off.
+            public float WardenGuardShare = 1f;
+            public float WardenGuardOpenSeconds;
             // A horde enemy's share of its authored experience (HordeRule.ExperienceShare) and of its health
             // (HordeRule.HealthShare).
             public float HordeExperienceShare = HordeRule.ExperienceShare;
@@ -908,7 +919,7 @@ namespace Cryptforge.Tests
                 for (int i = 0; i < count; i++)
                 {
                     Enemy definition = definitions[i];
-                    float healthScale = floorHealth * scale * (atGate && i == 0 ? _levers.WardenHealthShare : 1f);
+                    float healthScale = floorHealth * scale * (atGate && i == 0 ? WardenHealthShare() : 1f);
                     if (!boss)
                         healthScale *= _levers.NodeHealthScale;
                     Foe foe = CreateFoe(definition, FloorScaling.Health(definition.Health, healthScale, 0f), damageBonus,
@@ -932,6 +943,19 @@ namespace Cryptforge.Tests
                 if (atGate)
                     GateBossArrived();
             }
+
+            // WardenRule.GateHealthShare, or a lever's share, grown with the floor's clock where FoundryLevers.WardenClockFrom
+            // asks for it.
+            private float WardenHealthShare()
+            {
+                float share = _levers.WardenHealthShare;
+                if (_levers.WardenClockFrom > 0f && _horde != null)
+                    share *= ClockGrowth(_horde.Seconds) / ClockGrowth(_levers.WardenClockFrom);
+                return share;
+            }
+
+            private static float ClockGrowth(float seconds) =>
+                1f + HordeClock.HealthGrowth * Math.Min(seconds, HordeClock.TargetSeconds) / HordeClock.TargetSeconds;
 
             // EncounterController.CreateEnemy: the definition's weapon, hardened by the floor's damage.
             private Foe CreateFoe(Enemy definition, float health, float damageBonus, bool horde)
@@ -1198,6 +1222,10 @@ namespace Cryptforge.Tests
                 float before = foe.Health.Current;
                 if (foe.FirstHitAt < 0f && context.Amount > 0f)
                     foe.FirstHitAt = _seconds;
+                // FoundryLevers.WardenGuardShare: the Warden takes all of a blow only in the window after its own.
+                if (foe.GateBoss && _levers.WardenGuardShare != 1f &&
+                    (_slam.IsMarked || !_slam.HoldsWeaponFor(_levers.WardenGuardOpenSeconds)))
+                    context = new DamageContext(context.Amount * _levers.WardenGuardShare, context.Source, context.IsCritical);
                 DamageSource source = _source;
                 foe.Health.ApplyDamage(context);
                 float dealt = before - foe.Health.Current;
@@ -1480,6 +1508,11 @@ namespace Cryptforge.Tests
             private void EnemyAttack(Foe foe)
             {
                 if (foe.Released || !foe.IsAlive || foe.SpawnFrame == _frame)
+                    return;
+                // WardenSlamService holds the gate boss's AttackController from the mark until the hammer is out of the
+                // floor: its weapon neither ticks nor strikes meanwhile.
+                if (ReferenceEquals(foe, _slamBoss) && _levers.WardenRecoverySeconds >= 0f &&
+                    _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds))
                     return;
                 foe.Weapon.Tick(Step);
                 if (!foe.Weapon.IsReady)

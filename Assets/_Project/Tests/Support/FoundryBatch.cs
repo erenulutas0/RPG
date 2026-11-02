@@ -72,7 +72,7 @@ namespace Cryptforge.Tests
                 Make("Gate not before 4:00", "+119..+124", l => l.GateNotBeforeSeconds = 240f),
                 Make("Halls held 45 s", "+99..+111", l => l.HallHoldSeconds = 45f),
                 Make("+2 halls", "+34..+54", l => l.ExtraHalls = 2),
-                Make("Warden health x1.5 (share 7.5)", "+17..+24", l => l.WardenHealthShare = 7.5f),
+                Make("Warden health x1.5", "+17..+24", l => l.WardenHealthShare = WardenRule.GateHealthShare * 1.5f),
                 // V0.1 shipped the surges, the second elite and the gate at 3:30 (2026-11-02): these read them taken away.
                 Make("No hall surges (2 -> 0)", "-12..-26", l => l.HallSurges = 0),
                 Make("No second elite", "-12..-26", l => l.ExtraElites = 0),
@@ -101,7 +101,7 @@ namespace Cryptforge.Tests
             {
                 Make("Surges 2 + second elite", l => { l.HallSurges = 2; l.ExtraElites = 1; }),
                 Make("Surges 2 + second elite + 2 halls", l => { l.HallSurges = 2; l.ExtraElites = 1; l.ExtraHalls = 2; }),
-                Make("Surges 2 + second elite + Warden x1.25", l => { l.HallSurges = 2; l.ExtraElites = 1; l.WardenHealthShare = 6.25f; }),
+                Make("Surges 2 + second elite + Warden x1.25", l => { l.HallSurges = 2; l.ExtraElites = 1; l.WardenHealthShare = WardenRule.GateHealthShare * 1.25f; }),
                 Make("Gate not before 3:30", l => l.GateNotBeforeSeconds = 210f),
                 Make("Surges 2 + second elite + gate 3:30", l => { l.HallSurges = 2; l.ExtraElites = 1; l.GateNotBeforeSeconds = 210f; }),
                 Make("Halls held 30 s", l => l.HallHoldSeconds = 30f),
@@ -110,7 +110,10 @@ namespace Cryptforge.Tests
             };
         }
 
-        // docs/41 step 4's candidates for a 45-65 s Warden (FOUNDRY_LEVERS=3): the gate boss's health share alone.
+        // docs/41 step 4's candidates for a 45-65 s Warden (FOUNDRY_LEVERS=3), as the 2026-11-03 measurement ran them
+        // (docs/41, status): the floor before it, then health alone, health that grows with the floor's clock, a blow
+        // landing in full only in a window after the Warden's own, and the Warden holding its weapon through the windup
+        // and a recovery after the blow - the shipped floor holds it WardenRule.RecoverySeconds at GateHealthShare.
         public static Lever[] WardenLevers()
         {
             Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
@@ -120,13 +123,38 @@ namespace Cryptforge.Tests
                 return new Lever { Name = name, Estimate = "warden", Levers = levers };
             }
 
+            // The Warden as it was before 2026-11-03, its weapon never held, at a health share.
+            Action<DescentSimulation.FoundryLevers> Unheld(float share) => l =>
+            {
+                l.WardenHealthShare = share;
+                l.WardenRecoverySeconds = -1f;
+            };
+            Action<DescentSimulation.FoundryLevers> Held(float recovery, float share) => l =>
+            {
+                l.WardenHealthShare = share;
+                l.WardenRecoverySeconds = recovery;
+            };
+
             return new[]
             {
-                Make("Warden share 6", l => l.WardenHealthShare = 6f),
-                Make("Warden share 7", l => l.WardenHealthShare = 7f),
-                Make("Warden share 8", l => l.WardenHealthShare = 8f),
-                Make("Warden share 9", l => l.WardenHealthShare = 9f),
-                Make("Warden share 10", l => l.WardenHealthShare = 10f)
+                Make("Before 2026-11-03: share 5, never held", Unheld(5f)),
+                Make("A: share 6", Unheld(6f)),
+                Make("A: share 7", Unheld(7f)),
+                Make("A: share 8", Unheld(8f)),
+                Make("A: share 9", Unheld(9f)),
+                Make("A: share 10", Unheld(10f)),
+                Make("B: share 7 at 3:30, growing with the clock", l => { Unheld(7f)(l); l.WardenClockFrom = 210f; }),
+                Make("B: share 8 at 3:30, growing with the clock", l => { Unheld(8f)(l); l.WardenClockFrom = 210f; }),
+                Make("C: share 5, blows at 0.5 outside 2 s after its own", l => { Unheld(5f)(l); l.WardenGuardShare = .5f; l.WardenGuardOpenSeconds = 2f; }),
+                Make("C: share 5, blows at 0.6 outside 2 s after its own", l => { Unheld(5f)(l); l.WardenGuardShare = .6f; l.WardenGuardOpenSeconds = 2f; }),
+                Make("D: share 5, held through the windup", Held(0f, 5f)),
+                Make("D: share 5, held through the windup and 1.5 s after", Held(1.5f, 5f)),
+                Make("W: share 8.5, held through the windup", Held(0f, 8.5f)),
+                Make("W: share 8.5, held + 1 s", Held(1f, 8.5f)),
+                Make("W: share 8.5, held + 2 s", Held(2f, 8.5f)),
+                Make("W: share 8, held + 1.5 s", Held(1.5f, 8f)),
+                Make("W: share 9, held + 1.5 s", Held(1.5f, 9f)),
+                Make("W: share 9, held + 2 s", Held(2f, 9f))
             };
         }
 
@@ -208,20 +236,26 @@ namespace Cryptforge.Tests
             IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
         {
             md.AppendLine("### The Warden's fight by lever (same seeds)").AppendLine();
-            md.AppendLine("Fight: felled fights, P10 / P50 / P90 seconds from walking out of the gate to falling. Cleared: the floor's clears and the change against the shipped floor in points. At the Warden: deaths there of the runs that reached it. Cost: the hero's health lost in the fight, mean over the runs that reached it.").AppendLine();
-            md.AppendLine("| Lever | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: fight P10 / P50 / P90 / cleared (change) / at the Warden / Warden health P50 / cost")) + " |");
+            md.AppendLine("Fight: felled fights, P10 / P50 / P90 seconds from walking out of the gate to falling. Cleared: the floor's clears and the change against the shipped floor in points. At the Warden: deaths there of the runs that reached it. Cost: the hero's health lost in the fight, mean over the runs that reached it. " +
+                          "Clock at clear: the floor's clock as the Warden fell, P50 / P90 of the clears. Into the overrun: the runs that reached the Warden before the clock's " + HordeClock.TargetSeconds.ToString("0", CultureInfo.InvariantCulture) + " s and were still fighting it at " + HordeClock.TargetSeconds.ToString("0", CultureInfo.InvariantCulture) + " s, then the clears that ended past it.").AppendLine();
+            md.AppendLine("| Lever | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: fight P10 / P50 / P90 / cleared (change) / at the Warden / Warden health P50 / cost / clock at clear P50, P90 / into the overrun: fights, clears")) + " |");
             md.AppendLine("|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
 
             string Cells(Batch with, Batch baseline)
             {
                 DescentSimulation.FoundryResult[] reached = with.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
                 DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
+                DescentSimulation.FoundryResult[] cleared = with.Cleared.ToArray();
                 int died = reached.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f);
                 double change = 100.0 * (with.ClearedCount - baseline.ClearedCount) / Math.Max(1, with.Runs.Length);
                 double cost = reached.Length == 0 ? double.NaN
                     : reached.Average(r => r.TakenFromWarden + r.TakenFromSlams + r.FightTakenFromHorde + r.FightTakenFromPit);
+                int crossed = reached.Count(r => r.ClockAtGate < HordeClock.TargetSeconds && r.Clock >= HordeClock.TargetSeconds);
+                int overrun = cleared.Count(r => r.Clock >= HordeClock.TargetSeconds);
                 return $"{Spread(felled.Select(r => r.BossSeconds))} / {Pct(with.ClearedCount, with.Runs.Length)} ({Signed(change)}) / " +
-                       $"{died} of {reached.Length} / {F(Median(reached.Select(r => r.WardenHealth)))} / {F(cost)}";
+                       $"{died} of {reached.Length} / {F(Median(reached.Select(r => r.WardenHealth)))} / {F(cost)} / " +
+                       $"{F(Median(cleared.Select(r => r.Clock)))}, {F(Percentile(cleared.Select(r => r.Clock), 90))} / " +
+                       $"{crossed} ({Pct(crossed, reached.Length)}), {overrun} ({Pct(overrun, cleared.Length)})";
             }
 
             md.AppendLine("| shipped | " + string.Join(" | ", baselines.Select(b => Cells(b, b))) + " |");
