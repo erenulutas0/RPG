@@ -10,8 +10,9 @@ namespace Cryptforge.UI
     // floor). It counts down to the overrun in parchment, turns ember for the last LastMinuteSeconds with a beat on every
     // second, and once the floor is overrun counts up in red - "OVERRUN +0:12" - beating harder, so the player knows the
     // horde is growing and why. Shown only while a horde runs: hidden in the finale, on the walk up after the gate and on
-    // floors without one. When the gate boss stands, its name and bar take the band under the panel and the clock steps
-    // below them. RunHud adds it; it builds its label in code on the HUD's safe area, so the scene does not change.
+    // floors without one. While the room before the gate holds for the floor's clock it says when the gate opens instead,
+    // unless the floor is overrun. When the gate boss stands, its name and bar take the band under the panel and the clock
+    // steps below them. RunHud adds it; it builds its label in code on the HUD's safe area, so the scene does not change.
     public sealed class FloorClockView : MonoBehaviour
     {
         public const float LastMinuteSeconds = 60f;
@@ -106,7 +107,8 @@ namespace Cryptforge.UI
 
             float clock = _encounters.FloorClockSeconds;
             bool overrun = HordeClock.IsOvertime(clock);
-            bool gate = _encounters.IsHoldingForGate;
+            // An overrun floor says so in red and beats, whatever else holds it: the overrun is what the player must see.
+            bool gate = !overrun && _encounters.IsHoldingForGate;
             int second = gate ? Mathf.CeilToInt(_encounters.GateOpensIn) : HordeClock.ShownSecond(clock);
             if (second == _shownSecond && overrun == _shownOverrun && gate == _shownGate)
                 return;
@@ -114,7 +116,7 @@ namespace Cryptforge.UI
             {
                 // The gate's own count, in ember and without the beat: a wait, not a warning.
                 _shownSecond = second;
-                _shownOverrun = overrun;
+                _shownOverrun = false;
                 _shownGate = true;
                 _beatStart = -1f;
                 _label.rectTransform.localScale = Vector3.one;

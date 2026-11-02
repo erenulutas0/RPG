@@ -17,15 +17,17 @@ namespace Cryptforge.Tests
     //   dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"
     //
     // A floor costs about a third of a second of one core in Release (two to three times that in Debug): the shipped floor
-    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the twelve levers about three minutes more
-    // (FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead, 3 the Warden's candidates,
+    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, and each lever about fifteen seconds more
+    // (FoundryBatch.ResearchLevers: the pre-V0.1 floor, the research's twelve on it and V0.1's three taken away;
+    // FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead, 3 the Warden's candidates,
     // FoundryBatch.WardenLevers). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
     // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
     // TestResults), FOUNDRY_EDITOR (folder holding the Editor measurement - horde-pacing-*.txt and horde-telemetry/ - the
     // repository's TestResults; nothing there skips the parity table), FOUNDRY_EDITOR_FILES (the two pacing files to read,
-    // Vanguard's then Ilya's, comma separated; the newest horde-pacing-m0-* by default).
+    // Vanguard's then Ilya's, comma separated; the newest horde-pacing-m0-* by default). The parity table flags a pacing
+    // file whose header names other floor levers than the simulation's shipped ones, or none (written before 2026-11-03).
     [Explicit("The regression harness's batch report: run it by name.")]
     public sealed class FoundryBatchReport
     {
@@ -115,6 +117,9 @@ namespace Cryptforge.Tests
             public int Level;
             public float Walk = float.NaN;
             public float Node = float.NaN;
+            // The room before the gate holding for the floor's clock: room_complete's gate_hold_sec, which telemetry
+            // before 2026-11-03 never wrote (its node fights include the wait).
+            public float GateWait = float.NaN;
             public float Boss = float.NaN;
             public float Exit = float.NaN;
             public int LevelAtGate = -1;
@@ -134,10 +139,26 @@ namespace Cryptforge.Tests
 
             var md = new StringBuilder();
             md.AppendLine("### Parity with the Editor measurement (the same seeds)").AppendLine();
-            md.AppendLine("Editor: HordePacingMeasurement at a fixed 1/60 s, its per-seed telemetry split as the research's floor_breakdown splits it. " +
+            md.AppendLine("Editor: HordePacingMeasurement at a fixed 1/60 s, its per-seed telemetry split as the research's floor_breakdown splits it, the gate wait (room_complete's gate_hold_sec) apart from the node fights. " +
                           "Simulation: RunFoundry on the same seeds. Medians over the six seeds (cleared runs for the segments), then the seeds one by one.").AppendLine();
-            md.AppendLine("| Hero | Source | Cleared | Floor P50 (all) | Walk | Node fights | Warden | Exit | Level at the gate | Level at the end | Uptime | Engaged | Deaths (room) |");
-            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            // A file measured on another floor than the simulation's - another V0.1 lever, or written before files named
+            // theirs - is flagged rather than refused: its rows still read, but not as the same floor.
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            var otherFloor = new bool[files.Length];
+            var mismatches = new List<string>();
+            for (int h = 0; h < heroes.Length && h < files.Length; h++)
+            {
+                string mismatch = LeverMismatch(ReadLevers(files[h]), shipped);
+                otherFloor[h] = mismatch != null;
+                if (mismatch != null)
+                    mismatches.Add($"{heroes[h].Name}'s {Path.GetFileName(files[h])} {mismatch}");
+            }
+            if (mismatches.Count > 0)
+                md.AppendLine($"**Not the simulated floor** (hall_surges {shipped.HallSurges}, extra_elites {shipped.ExtraElites}, gate_s " +
+                              $"{shipped.GateNotBeforeSeconds.ToString("0.###", CultureInfo.InvariantCulture)}): " +
+                              string.Join("; ", mismatches) + ". Read those rows as another floor's.").AppendLine();
+            md.AppendLine("| Hero | Source | Cleared | Floor P50 (all) | Walk | Node fights | Gate wait | Warden | Exit | Level at the gate | Level at the end | Uptime | Engaged | Deaths (room) |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
             var perSeed = new StringBuilder();
             for (int h = 0; h < heroes.Length && h < files.Length; h++)
             {
@@ -149,15 +170,15 @@ namespace Cryptforge.Tests
                 simulated.Add(batch);
                 EditorRun[] editorClears = editor.Where(run => run.Cleared).ToArray();
                 DescentSimulation.FoundryResult[] simClears = batch.Cleared.ToArray();
-                md.AppendLine($"| {heroes[h].Name} | Editor ({Path.GetFileName(files[h])}) | {editorClears.Length}/{editor.Count} | " +
+                md.AppendLine($"| {heroes[h].Name} | Editor ({Path.GetFileName(files[h])}{(otherFloor[h] ? ", **another floor**" : string.Empty)}) | {editorClears.Length}/{editor.Count} | " +
                               $"{M(editor.Select(r => r.Floor))} | {M(editorClears.Select(r => r.Walk))} | {M(editorClears.Select(r => r.Node))} | " +
-                              $"{M(editorClears.Select(r => r.Boss))} | {M(editorClears.Select(r => r.Exit))} | " +
+                              $"{M(editorClears.Select(r => r.GateWait))} | {M(editorClears.Select(r => r.Boss))} | {M(editorClears.Select(r => r.Exit))} | " +
                               $"{M(editor.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {M(editor.Select(r => (float)r.Level))} | " +
                               $"{M(editor.Select(r => r.Uptime), "0.00")} | {M(editor.Select(r => r.Engaged), "0.00")} | " +
                               $"{string.Join(", ", editor.Where(r => !r.Cleared).Select(r => r.Death))} |");
                 md.AppendLine($"| {heroes[h].Name} | Simulation | {simClears.Length}/{batch.Runs.Length} | " +
                               $"{M(batch.Runs.Select(r => r.FloorSeconds))} | {M(simClears.Select(r => r.WalkTotal))} | {M(simClears.Select(r => r.NodeSeconds))} | " +
-                              $"{M(simClears.Select(r => r.BossSeconds))} | {M(simClears.Select(r => r.ExitSeconds))} | " +
+                              $"{M(simClears.Select(r => r.GateWaitSeconds))} | {M(simClears.Select(r => r.BossSeconds))} | {M(simClears.Select(r => r.ExitSeconds))} | " +
                               $"{M(batch.Runs.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {M(batch.Runs.Select(r => (float)r.Level))} | " +
                               $"{M(batch.Runs.Select(r => r.Uptime), "0.00")} | {M(batch.Runs.Select(r => r.Engaged), "0.00")} | " +
                               $"{string.Join(", ", batch.Runs.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died).Select(r => $"{r.DeathRoom} {r.DeathPhase}"))} |");
@@ -168,23 +189,23 @@ namespace Cryptforge.Tests
                     DescentSimulation.FoundryResult[] allClears = all.Cleared.ToArray();
                     md.AppendLine($"| {heroes[h].Name} | Simulation, {all.Runs.Length} seeds (P10 / P50 / P90) | {all.ClearedCount}/{all.Runs.Length} | " +
                                   $"{S(all.Runs.Select(r => r.FloorSeconds))} | {S(allClears.Select(r => r.WalkTotal))} | {S(allClears.Select(r => r.NodeSeconds))} | " +
-                                  $"{S(allClears.Select(r => r.BossSeconds))} | {S(allClears.Select(r => r.ExitSeconds))} | " +
+                                  $"{S(allClears.Select(r => r.GateWaitSeconds))} | {S(allClears.Select(r => r.BossSeconds))} | {S(allClears.Select(r => r.ExitSeconds))} | " +
                                   $"{S(all.Runs.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {S(all.Runs.Select(r => (float)r.Level))} | " +
                                   $"{S(all.Runs.Select(r => r.Uptime), "0.00")} | {S(all.Runs.Select(r => r.Engaged), "0.00")} | " +
                                   $"{all.Runs.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f && r.LevelAtGate >= 0)} of " +
                                   $"{all.Runs.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died)} deaths at the Warden |");
                 }
 
-                perSeed.AppendLine($"| {heroes[h].Name} | seed | Editor: result, floor, walk / node / Warden / exit, level gate / end, rooms | Simulation: the same |");
+                perSeed.AppendLine($"| {heroes[h].Name} | seed | Editor: result, floor, walk / node / gate wait / Warden / exit, level gate / end, rooms | Simulation: the same |");
                 perSeed.AppendLine("|---|---|---|---|");
                 for (int i = 0; i < editor.Count; i++)
                 {
                     EditorRun e = editor[i];
                     DescentSimulation.FoundryResult s = batch.Runs[i];
                     perSeed.AppendLine($"| {heroes[h].Name} | {e.Seed} | {(e.Cleared ? "cleared" : "died " + e.Death)}, {N(e.Floor)}, " +
-                                       $"{N(e.Walk)} / {N(e.Node)} / {N(e.Boss)} / {N(e.Exit)}, L{e.LevelAtGate} / L{e.Level}, {string.Join(" ", e.Rooms.Select(r => N(r)))} | " +
+                                       $"{N(e.Walk)} / {N(e.Node)} / {N(e.GateWait)} / {N(e.Boss)} / {N(e.Exit)}, L{e.LevelAtGate} / L{e.Level}, {string.Join(" ", e.Rooms.Select(r => N(r)))} | " +
                                        $"{(s.Cleared ? "cleared" : $"died {s.DeathRoom} {s.DeathPhase}")}, {N(s.FloorSeconds)}, " +
-                                       $"{N(s.WalkTotal)} / {N(s.NodeSeconds)} / {N(s.BossSeconds)} / {N(s.ExitSeconds)}, L{s.LevelAtGate} / L{s.Level}, " +
+                                       $"{N(s.WalkTotal)} / {N(s.NodeSeconds)} / {N(s.GateWaitSeconds)} / {N(s.BossSeconds)} / {N(s.ExitSeconds)}, L{s.LevelAtGate} / L{s.Level}, " +
                                        $"{string.Join(" ", s.RoomSeconds.Select(r => N(r)))} |");
                 }
                 perSeed.AppendLine();
@@ -260,6 +281,38 @@ namespace Cryptforge.Tests
             return runs;
         }
 
+        // The pacing file's floor levers, from its header line "levers floor <id> hall_surges <n> extra_elites <n> gate_s
+        // <seconds>" (HordePacingMeasurement, since 2026-11-03); null for a file that names none.
+        private static Dictionary<string, string> ReadLevers(string pacing)
+        {
+            if (!File.Exists(pacing))
+                return null;
+            string line = File.ReadLines(pacing).FirstOrDefault(l => l.StartsWith("levers ", StringComparison.Ordinal));
+            if (line == null)
+                return null;
+            string[] words = line.Split(' ');
+            var levers = new Dictionary<string, string>();
+            for (int i = 1; i + 1 < words.Length; i += 2)
+                levers[words[i]] = words[i + 1];
+            return levers;
+        }
+
+        // Why a pacing file's floor is not the one the simulation plays (its surges, extra elites or gate time differ, or
+        // it names none); null when it is.
+        private static string LeverMismatch(Dictionary<string, string> levers, DescentSimulation.FoundryLevers shipped)
+        {
+            if (levers == null)
+                return "names no floor levers (written before 2026-11-03; the m0 files are the floor before V0.1)";
+            string Read(string key) => levers.TryGetValue(key, out string value) ? value : "?";
+            bool same = int.TryParse(Read("hall_surges"), out int surges) && surges == shipped.HallSurges &&
+                        int.TryParse(Read("extra_elites"), out int elites) && elites == shipped.ExtraElites &&
+                        float.TryParse(Read("gate_s").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out float gate) &&
+                        Math.Abs(gate - shipped.GateNotBeforeSeconds) < 1e-3f;
+            return same
+                ? null
+                : $"measured hall_surges {Read("hall_surges")}, extra_elites {Read("extra_elites")}, gate_s {Read("gate_s")}";
+        }
+
         // Pacing files from a Turkish-locale Editor write a decimal comma.
         private static float Float(string text) =>
             float.Parse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture);
@@ -278,7 +331,7 @@ namespace Cryptforge.Tests
                 if (e.TryGetProperty("seq", out JsonElement seq))
                     events[seq.GetInt64()] = e;
             }
-            float walk = 0f, node = 0f;
+            float walk = 0f, node = 0f, held = 0f;
             int level = 0;
             string roomKind = null;
             float roomWalk = 0f;
@@ -308,6 +361,9 @@ namespace Cryptforge.Tests
                         break;
                     case "room_complete":
                         float active = (float)e.GetProperty("active_sec").GetDouble();
+                        // The wait for the gate is part of its room's active seconds, but no node fight.
+                        float hold = e.TryGetProperty("gate_hold_sec", out JsonElement gateHold) ? (float)gateHold.GetDouble() : 0f;
+                        held += hold;
                         if (roomKind == "boss")
                         {
                             run.Boss = bossWave;
@@ -315,7 +371,7 @@ namespace Cryptforge.Tests
                         }
                         else
                         {
-                            node += active - roomWalk;
+                            node += active - roomWalk - hold;
                         }
                         break;
                     case "run_end":
@@ -326,6 +382,7 @@ namespace Cryptforge.Tests
             }
             run.Walk = walk;
             run.Node = node;
+            run.GateWait = held;
         }
     }
 }
