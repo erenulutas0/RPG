@@ -103,6 +103,7 @@ namespace Cryptforge.UI
             // Last: round boilers' foundations, balustrade, furnace pit and bastions (FoundryRegionMassing.cs).
             BuildMassing(arena);
             BuildDistantWorks(arena);
+            BeginDepthCover();
             foreach(var batch in _batches)
             {
                 bool decal=batch.Order==FloorDecal;
@@ -112,6 +113,7 @@ namespace Cryptforge.UI
                 // map puts the decals' centre under the paving's, so they always draw just after it. Culling only widens.
                 if(decal){var bounds=emitted.bounds;bounds.Encapsulate(bounds.min+Vector3.down*DecalSortReach);emitted.bounds=bounds;}
             }
+            _visibility.CompleteDepthCover();
             _batches.Clear();
             _depthFootprints.Clear();_depthLandmarks.Clear();_depthScope=-1;
         }
@@ -416,9 +418,9 @@ namespace Cryptforge.UI
         }
         private Mesh Emit(string name,Builder b,Material material,float order,List<int> owners=null)
         {
-            // Above-floor ranks carry structure depth in vertex z and write it in a second pass; floor ranks stay flat.
-            bool structure=order>=-14;
+            bool structure=IsStructureRank(order);
             List<Vector2> flags=structure?ApplyStructureDepth(b,owners):null;
+            if(structure)CoverStructureDepth(b,flags);
             var mesh=new Mesh{name=name};mesh.SetVertices(b.V);mesh.SetUVs(0,b.U);if(flags!=null)mesh.SetUVs(1,flags);mesh.SetColors(b.C);mesh.SetTriangles(b.T,0);mesh.RecalculateBounds();_owned.Add(mesh);
             var obj=new GameObject(name);obj.transform.SetParent(transform,false);obj.AddComponent<MeshFilter>().sharedMesh=mesh;var r=obj.AddComponent<MeshRenderer>();r.sharedMaterial=structure?_visibility.ForStructure(material):material;r.sortingOrder=SceneryOrder(order);
             if(b.Flames.Count>0)obj.AddComponent<FoundryFlameMotion>().Initialize(mesh,b.Flames);

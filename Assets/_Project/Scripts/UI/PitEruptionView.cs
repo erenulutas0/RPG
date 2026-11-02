@@ -35,13 +35,13 @@ namespace Cryptforge.UI
         {
             _service = service;
             if (!service.IsActive) return;
-            _material = new Material(Shader.Find("Sprites/Default"));
+            var arena = _arena = FindFirstObjectByType<ArenaView>();
+            _material = SharedSpriteMaterial.For(arena);
             _band = new GameObject("Pit Eruption Band").AddComponent<LineRenderer>();
             _band.transform.SetParent(transform, false);
             _band.sharedMaterial = _material; _band.useWorldSpace = true; _band.loop = true; _band.numCapVertices = 2;
             _band.sortingOrder = 0;
             _encounters = service.Encounters;
-            var arena = _arena = FindFirstObjectByType<ArenaView>();
             var points = new Vector3[CornerSteps * 4 + 4];
             float[] cu = { FoundryMap.PitEast, FoundryMap.PitWest, FoundryMap.PitWest, FoundryMap.PitEast };
             float[] cv = { FoundryMap.PitNorth, FoundryMap.PitNorth, FoundryMap.PitSouth, FoundryMap.PitSouth };
@@ -137,7 +137,5 @@ namespace Cryptforge.UI
                 if (_grips[i].gameObject.activeSelf) _grips[i].gameObject.SetActive(false);
             ShownHeldCount = shown;
         }
-
-        private void OnDestroy() { if (_material != null) Destroy(_material); }
     }
 }
