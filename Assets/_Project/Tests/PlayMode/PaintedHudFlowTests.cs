@@ -418,6 +418,22 @@ namespace Cryptforge.Tests
                     Assert.That(fill.color, Is.EqualTo(Color.red));
                     Assert.That(view.enabled, Is.False, $"{root.name}: and nothing left running.");
                 }
+                else
+                {
+                    // Relaid out after its Start (the canvas or the safe area resizing the bar), the light still
+                    // stands 3 past the fill's foot and top.
+                    RectTransform glint = view.Hero.Glint.rectTransform, fillRect = fill.rectTransform;
+                    foreach (float height in new[] { 22f, 40f })
+                    {
+                        backing.rectTransform.sizeDelta = new Vector2(698, height);
+                        yield return null;
+                        float y = glint.localPosition.y;
+                        Assert.That(y + glint.rect.yMin, Is.EqualTo(fillRect.rect.yMin - 3f).Within(1e-3f),
+                            $"The light's foot over a bar {height} tall.");
+                        Assert.That(y + glint.rect.yMax, Is.EqualTo(fillRect.rect.yMax + 3f).Within(1e-3f),
+                            $"Its top over a bar {height} tall.");
+                    }
+                }
             }
             Object.Destroy(canvas.gameObject);
             Object.Destroy(broken);

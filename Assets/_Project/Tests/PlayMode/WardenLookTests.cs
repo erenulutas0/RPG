@@ -19,8 +19,9 @@ namespace Cryptforge.Tests
     // to it; its hammer goes up while the slam's mark is down - standing, or carried at a walk by the distance it
     // travels - and lands on the strike pose with the blow; below half health its visor and seams burn hotter instead
     // of the old enrage tint, its raised hammer too; it falls in its own beat, in the facing it fell in, while its
-    // rewards and the open gate come at once; and a set without those drawings winds up and falls as before, a broken
-    // one still falling back to the pixel Warden. The slam's clock and damage are WardenFlowTests'.
+    // rewards and the open gate come at once; and a set without those drawings winds up and falls as before, one
+    // without the raised hammer at all is left alone by the telegraph and the blow, a broken one still falling back
+    // to the pixel Warden. The slam's clock and damage are WardenFlowTests'.
     public sealed class WardenLookTests
     {
         [UnitySetUp] public IEnumerator Begin() { TestProfile.Begin(); Time.timeScale = 1; yield return null; }
@@ -105,6 +106,17 @@ namespace Cryptforge.Tests
                 typeof(EnemyArtSet).GetField(field, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(bare, null);
             Assert.That(bare.IsValid && bare.HasWindup && bare.HasEnragedFrames, Is.True);
             Assert.That(bare.HasWalkingWindup(false) || bare.HasFall, Is.False);
+            return bare;
+        }
+
+        // The Warden's set without the raised hammer, standing or at a walk: a painted boss whose set draws no windup.
+        private static EnemyArtSet WithoutTheWindup(EnemyArtSet set)
+        {
+            EnemyArtSet bare = Object.Instantiate(set);
+            foreach (string field in new[] { "_windup", "_enragedWindup", "_windupWalk", "_enragedWindupWalk" })
+                typeof(EnemyArtSet).GetField(field, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(bare, null);
+            Assert.That(bare.IsValid, Is.True, "Still a whole painted set.");
+            Assert.That(bare.HasWindup, Is.False);
             return bare;
         }
 
@@ -431,6 +443,43 @@ namespace Cryptforge.Tests
             Assert.That(remains.sprite, Is.SameAs(bare.Death[1]));
             for (int i = 0; i < 16; i++) { yield return null; ResolveUpgrades(setup); }
             Assert.That(remains.enabled, Is.False, "Gone at 0.4 s, as before.");
+            Object.Destroy(bare);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A painted gate boss whose set draws no raised hammer: the telegraph leaves its body alone, and so does the
+        // blow - no strike pose is forced on it as the blow lands, so it walks straight on rather than gliding on a
+        // held strike.
+        [UnityTest, Timeout(90000)]
+        public IEnumerator APaintedSetWithoutTheWindupIsLeftAloneByTheTelegraphAndTheBlow()
+        {
+            yield return Load();
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            yield return GateBoss(setup);
+            Time.captureDeltaTime = 1f / 60;
+            Health gate = setup.Encounters.GateBoss;
+            EnemyArtSet bare = WithoutTheWindup(gate.GetComponent<EnemyLookView>().PaintedArt);
+
+            Vector3 start = gate.transform.position + new Vector3(2.5f, -1.5f, 0f);
+            EnemyLookView look = SpawnWarden(setup, start, bare);
+            yield return null;
+            Assert.That(look.PaintedArt, Is.SameAs(bare), "Painted, with no windup to raise.");
+            Vector3 mark = start + Vector3.left * 3f;
+            look.WindUp(mark);
+            Assert.That(look.IsWindingUp, Is.False, "Without a windup pose the telegraph leaves the body alone.");
+            int frame = look.PaintedFrame;
+            Sprite body = look.Body.sprite;
+            look.Slam(mark);
+            Assert.That(look.PaintedFrame, Is.EqualTo(frame), "And so does the blow: no strike pose forced on it.");
+            Assert.That(look.Body.sprite, Is.SameAs(body));
+
+            // Walking on at once, never held on the strike for the blow's beat.
+            var steps = new List<int>();
+            bool walking = true;
+            yield return Walk(look, Vector3.left * .02f, 12, steps, () =>
+                walking &= look.PaintedFrame != 3 && look.PaintedFrame != 0);
+            Assert.That(walking, Is.True, "It walks straight on.");
+            Object.Destroy(look.gameObject);
             Object.Destroy(bare);
             LogAssert.NoUnexpectedReceived();
         }

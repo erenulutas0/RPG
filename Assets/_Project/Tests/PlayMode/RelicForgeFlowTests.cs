@@ -152,6 +152,32 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Run.HasEnded, Is.False);
         }
 
+        // Ilya carries its own Staff and no other weapon (docs/45), so once every relic is forged its rack holds
+        // nothing to forge: the hint says every relic is forged, not that the whole forge is, since the Vanguard's
+        // rack still sells the Staff.
+        [UnityTest]
+        public IEnumerator IlyasResultSaysEveryRelicIsForgedWhileTheVanguardStillHasAWeaponToForge()
+        {
+            const string arcanist = "hero_cinder_arcanist";
+            yield return LoadGameplay(new PlayerProfile(500, new[] { "relic_second_wind", "relic_counterweight" },
+                null, 0, null, null, new[] { arcanist }, arcanist));
+            Assert.That(_setup.Hero.Id, Is.EqualTo(arcanist));
+            Assert.That(_setup.Weapons.NextUnlock, Is.Null, "The Staff alone on its rack, always its own.");
+            _hero.ApplyDamage(new DamageContext(1000f));
+            yield return null;
+            Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 500: every relic is forged"));
+
+            yield return new WaitForSecondsRealtime(0.6f);
+            Tap(FindButton("Forge Button"));
+            Assert.That(_forge.IsOpen, Is.True);
+            _forge.HeroChoice.Cycle();
+            Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "The Vanguard for the next run.");
+            Assert.That(WeaponCardText(1, "Name Label"), Is.EqualTo("Staff"));
+            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"),
+                "The Vanguard's rack still sells the Staff.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest]
         public IEnumerator CounterweightStrikesBackAtWhicheverEnemyHitsTheHero()
         {
