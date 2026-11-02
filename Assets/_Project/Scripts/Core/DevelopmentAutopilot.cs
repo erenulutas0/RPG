@@ -25,6 +25,19 @@ namespace Cryptforge.Core
         // How far between fights the autopilot steps aside for a drop. It was 10, and with a horde dropping experience all
         // round the hero it chased drops for minutes instead of walking to the next hall; the floor's end sweeps the rest.
         private const float DropDetour = 4f;
+        // At 4 the horde still fell within reach of the hero all along a walk, and the autopilot chased one drop after
+        // another, hundreds a walk, while the next hall waited minutes (the Editor's Ilya seed 22: 195 s to its second
+        // hall). So while it has somewhere to go - an altar still to take or a marked hall - it steps aside only for a drop
+        // beside the way, one adding at most DetourSlack to it (DropDetourRule.AddedPath): anything ahead within
+        // DropDetour, a step to either side, nothing behind. The slack alone left a tail - a drop just within it on either
+        // side in turn can hold the hero on the spot - so a walk also spends at most DetourBudget seconds steering at
+        // drops, about the longest hundredth of the foundry simulation's walks under the slack alone; a fight or a newly
+        // marked hall starts the count again. However thick the horde, the drops hold a walk at most twice DetourBudget
+        // beyond its way (DropDetourRule.Walk). With nowhere to go - waiting on the gate's clock, between a hall's waves
+        // once the altars are taken - nothing waits on the hero and it takes every drop within DropDetour, as before.
+        private const float DetourSlack = 2f;
+        private const float DetourBudget = 12f;
+        private readonly DropDetourRule.Walk _detour = new DropDetourRule.Walk(DropDetour, DetourSlack, DetourBudget);
         // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach pushes the hero away, the nearer the
         // harder, and the hero walks away from the push turned KiteTurn round it, so it circles the crowd instead of backing
         // into a wall. Just beyond a melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
@@ -166,13 +179,15 @@ namespace Cryptforge.Core
             EncounterController encounter = _setup.Encounters;
             stop = Arrived;
             gx = x; gy = y;
+            bool fighting = encounter.AliveEnemyCount > 0;
+            // A fight, or a hall newly marked, gives the walk after it its whole drop budget.
+            _detour.Track(fighting, encounter.IsRoomSiteOpen);
             // The finale's exit opens at once; the autopilot fights the swarm a while first, as a player after depth does.
             if (encounter.IsExitOpen && (!encounter.IsInSwarmRoom || encounter.SwarmSeconds >= SwarmStay))
             {
                 gx = encounter.ExitFloorX; gy = encounter.ExitFloorY;
                 return true;
             }
-            bool fighting = encounter.AliveEnemyCount > 0;
             bool pit = _setup.Pit != null && _setup.Pit.IsActive;
             // The Warden's mark under the hero: out of it first, as a player who reads it does.
             WardenSlamService warden = _setup.Warden;
@@ -208,20 +223,36 @@ namespace Cryptforge.Core
             }
             if (fighting)
                 return false;
-            // Between fights, as a player would: the drops in sight, then the floor's altars, then the next hall.
-            if (Nearest(_setup.Drops, x, y, _linger && Lingering() ? LingerDetour : DropDetour, out gx, out gy))
+            // Between fights, as a player would: the floor's altars, then the next hall, with the drops beside the way
+            // there (DetourSlack, DetourBudget); with nowhere to go, or lingering, every drop in sight.
+            bool lingering = _linger && Lingering();
+            bool altar = NearestAltar(x, y, out float wx, out float wy);
+            bool hall = !altar && encounter.IsRoomSiteOpen && !lingering;
+            if (hall)
+            {
+                wx = encounter.RoomSiteFloorX; wy = encounter.RoomSiteFloorY;
+            }
+            if (lingering || (!altar && !hall))
+            {
+                if (DropDetourRule.Nearest(_setup.Drops, x, y, lingering ? LingerDetour : DropDetour, out gx, out gy))
+                {
+                    stop = DropRule.PickupRadius * .5f;
+                    return true;
+                }
+            }
+            else if (_detour.Choose(_setup.Drops, x, y, wx, wy, Time.deltaTime, out gx, out gy))
             {
                 stop = DropRule.PickupRadius * .5f;
                 return true;
             }
-            if (NearestAltar(x, y, out gx, out gy))
+            gx = wx; gy = wy;
+            if (altar)
             {
                 stop = .1f;
                 return true;
             }
-            if (encounter.IsRoomSiteOpen && !(_linger && Lingering()))
+            if (hall)
             {
-                gx = encounter.RoomSiteFloorX; gy = encounter.RoomSiteFloorY;
                 stop = FoundryMap.RoomSiteRadius * .5f;
                 return true;
             }
@@ -231,22 +262,6 @@ namespace Cryptforge.Core
         // From the floor's second room on, in the walk to its next hall: where a measurement mode stops playing.
         private bool Lingering() => _setup.Encounters.RoomNumber >= 2 && _setup.Encounters.IsRoomSiteOpen &&
             !_setup.Encounters.IsInSwarmRoom;
-
-        private static bool Nearest(GroundDrops drops, float x, float y, float detour, out float gx, out float gy)
-        {
-            gx = x; gy = y;
-            float best = detour * detour;
-            bool found = false;
-            for (int i = 0; drops != null && i < drops.Count; i++)
-            {
-                GroundDrops.Drop drop = drops.At(i);
-                float d = ArenaFloor.FloorDistanceSquared(x, y, drop.X, drop.Y);
-                if (d >= best)
-                    continue;
-                best = d; gx = drop.X; gy = drop.Y; found = true;
-            }
-            return found;
-        }
 
         private bool NearestAltar(float x, float y, out float gx, out float gy)
         {
