@@ -70,6 +70,22 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The autopilot's walks to the halls are bounded (DropDetourRule.Walk): with the horde filling at 3 a second, the
+        // thickest of the research's levers, the drop chase it had before walked each of these floors 440-466 s, and the
+        // Vanguard's 153 and Ilya's 191 of seeds 1-200 past FoundryBatch.LongWalkSeconds. Now none walks long.
+        [Test]
+        public void OnAThickHordeTheWalksToTheHallsStayShort()
+        {
+            DescentSimulation.FoundryLevers thick = FoundryBatch.Shipped().Copy("fill rate 3");
+            thick.HordeFillRate = 3f;
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in new[] { 3, 12 })
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(hero, seed, thick);
+                Assert.That(FoundryBatch.WalkedLong(run), Is.False, $"{hero.Name} seed {seed}: walked {run.WalkTotal:0} s");
+            }
+        }
+
         // The tuned director with no tuning is the game's HordeDirector: frame for frame, over a floor's worth of frames
         // whose crowd, node waves, state and kills are drawn at random, the same spawns, roles and targets.
         [Test]
