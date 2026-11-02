@@ -213,13 +213,17 @@ namespace Cryptforge.UI
                 _floorRooms = rooms;
                 _floorRoomName = roomName;
             }
-            if (_roomPips != null)
+            if (_roomPips != null && _roomPips.Length > 0)
+            {
+                if (rooms > _roomPips.Length)
+                    GrowRoomPips(rooms);
+                int reached = _encounters.RoomNumber;
                 for (int i = 0; i < _roomPips.Length; i++)
                 {
-                    _roomPips[i].gameObject.SetActive(i < _encounters.RoomCount);
-                    _roomPips[i].color = i < _encounters.RoomNumber
-                        ? new Color32(218, 165, 84, 255) : new Color32(60, 60, 79, 255);
+                    _roomPips[i].gameObject.SetActive(i < rooms);
+                    _roomPips[i].color = i < reached ? new Color32(218, 165, 84, 255) : new Color32(60, 60, 79, 255);
                 }
+            }
             if (_bossGroup != null)
             {
                 _bossGroup.alpha = room != null && room.Kind == RoomKind.Boss ? 1f : 0f;
@@ -261,6 +265,35 @@ namespace Cryptforge.UI
             _enemyBar.fillAmount = Fraction(current, maximum);
             RefreshStatus(definition);
         }
+
+        // One pip a room: a floor with more rooms than the scene has pips (the foundry's floor 1, its V0.1 elite before the
+        // gate making seven) gets copies of the last pip, each a step further along the row at the scene's own spacing.
+        // On the 1080-wide canvas the scene's six span x 52-614 and y 133-141 down from the safe area's top; a seventh
+        // spans x 628-710: below the gold (to 106), above the relic badge and the loadout row (from 155), left of the
+        // pause button (from 936) and inside the top surface (to 1056). The row has room for nine before the pause button.
+        private void GrowRoomPips(int count)
+        {
+            int last = _roomPips.Length - 1;
+            Vector2 step = last > 0
+                ? _roomPips[last].rectTransform.anchoredPosition - _roomPips[last - 1].rectTransform.anchoredPosition
+                : new Vector2(_roomPips[last].rectTransform.sizeDelta.x, 0f);
+            var pips = new Image[count];
+            System.Array.Copy(_roomPips, pips, _roomPips.Length);
+            for (int i = _roomPips.Length; i < count; i++)
+            {
+                Image source = pips[i - 1];
+                Image pip = Instantiate(source, source.transform.parent, false);
+                pip.name = "Room Pip " + (i + 1);
+                pip.transform.SetSiblingIndex(source.transform.GetSiblingIndex() + 1);
+                pip.rectTransform.anchoredPosition = source.rectTransform.anchoredPosition + step;
+                pips[i] = pip;
+            }
+            _roomPips = pips;
+        }
+
+        // The pips as shown, the scene's and any copies GrowRoomPips made: HudArtView paints the copies too.
+        internal int RoomPipCount => _roomPips?.Length ?? 0;
+        internal Image RoomPipAt(int index) => _roomPips[index];
 
         // The wave's line on the details: the pack's or the enemy's victory, an enrage, or the wave under way.
         private void RefreshStatus(EnemyDefinition definition)

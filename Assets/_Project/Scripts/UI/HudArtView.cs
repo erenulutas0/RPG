@@ -55,6 +55,8 @@ namespace Cryptforge.UI
         // Whose health the boss bar showed at the last reading.
         private Health _bossSubject;
         private bool _loadoutChecked;
+        // How many of RunHud's pips are painted: it copies the last for a floor with more rooms than the scene has pips.
+        private int _hudPipsPainted;
 
         public bool UsesPaintedArt { get; private set; }
         public HudArtSet Art => _art;
@@ -77,13 +79,7 @@ namespace Cryptforge.UI
             Restyle(_pauseButton, _art.Button);
             if (_roomPips != null)
                 foreach (Image pip in _roomPips)
-                    if (pip != null)
-                    {
-                        // RunHud keeps tinting each pip in the room's colour.
-                        pip.sprite = _art.Pip;
-                        pip.type = Image.Type.Sliced;
-                        pip.pixelsPerUnitMultiplier = 1f;
-                    }
+                    PaintPip(pip);
             Hero = PaintBar(_heroFill, _art.Hero);
             Experience = PaintBar(_experienceFill, _art.Experience);
             Boss = PaintBar(_bossFill, _art.Boss);
@@ -113,6 +109,13 @@ namespace Cryptforge.UI
                     _hud.LoadoutBadges.UsePaintedPlates(_art.WeaponSlot, _art.TomeSlot, _art.SlotAccent);
                     PaintsLoadout = true;
                 }
+            }
+            // The pips RunHud added since the last frame, before the frame that first shows them is drawn.
+            if (_hud != null && _hud.RoomPipCount > _hudPipsPainted)
+            {
+                for (int i = _hudPipsPainted; i < _hud.RoomPipCount; i++)
+                    PaintPip(_hud.RoomPipAt(i));
+                _hudPipsPainted = _hud.RoomPipCount;
             }
             float deltaTime = Time.deltaTime;
             Track(Hero, deltaTime);
@@ -160,6 +163,16 @@ namespace Cryptforge.UI
         {
             glint.anchorMin = new Vector2(fill, 0f);
             glint.anchorMax = new Vector2(fill, 1f);
+        }
+
+        // RunHud keeps tinting each pip in the room's colour.
+        private void PaintPip(Image pip)
+        {
+            if (pip == null)
+                return;
+            pip.sprite = _art.Pip;
+            pip.type = Image.Type.Sliced;
+            pip.pixelsPerUnitMultiplier = 1f;
         }
 
         private static void Restyle(Image image, Sprite sprite)

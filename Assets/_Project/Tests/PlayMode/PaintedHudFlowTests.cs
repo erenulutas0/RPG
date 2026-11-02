@@ -175,6 +175,81 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        private static Rect ScreenRect(RectTransform rect)
+        {
+            (Vector2 min, Vector2 max) = Screen(rect);
+            return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+
+        // Floor 1 as the foundry plays it (EncounterController.FoundryRooms: its V0.1 elite before the gate makes seven
+        // rooms against the scene's six pips): a pip a room, the seventh a copy of the sixth a step further along the row,
+        // painted like the rest and clear of its neighbours; and the Warden's room lights every pip, the last with it. The
+        // floor's clock starts a minute short of the overrun, past the gate's time, so the gate does not hold.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator TheFoundryFloorShowsAPipForEveryRoomAndTheWardensRoomLightsTheLast()
+        {
+            float clockStart = HordeClock.TargetSeconds - 60f;
+            File.WriteAllText(DevelopmentStart.FloorClockPath, clockStart.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            yield return Load();
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            EncounterController encounters = setup.Encounters;
+            var hud = Object.FindFirstObjectByType<RunHud>();
+            HudArtSet art = Object.FindFirstObjectByType<HudArtView>().Art;
+            var movement = Object.FindFirstObjectByType<HeroMovementInput>();
+            movement.enabled = false;
+            Health hero = movement.GetComponent<Health>();
+            int rooms = encounters.RoomCount;
+            Assert.That(rooms, Is.EqualTo(encounters.Floor.RoomCount + encounters.Floor.FoundryExtraElites), "The extra elite is a room.");
+            Assert.That(rooms, Is.GreaterThan(6), "More rooms than the scene's six pips.");
+            Assert.That(encounters.Floor.FoundryGateNotBeforeSeconds, Is.LessThan(clockStart));
+
+            RectTransform first = ImageOf("Room Pip 1").rectTransform;
+            Transform safeArea = first.parent;
+            Vector2 step = ImageOf("Room Pip 2").rectTransform.anchoredPosition - first.anchoredPosition;
+            for (int p = 1; p <= rooms; p++)
+            {
+                Transform found = safeArea.Find("Room Pip " + p);
+                Assert.That(found, Is.Not.Null, $"Pip {p} stands on the safe area.");
+                Image pip = found.GetComponent<Image>();
+                Assert.That(pip.gameObject.activeSelf, Is.True, $"Pip {p} is shown.");
+                Assert.That(pip.sprite, Is.SameAs(art.Pip), $"Pip {p} is painted.");
+                Assert.That(pip.rectTransform.sizeDelta, Is.EqualTo(first.sizeDelta), $"Pip {p} is the scene's size.");
+                Assert.That(pip.rectTransform.anchoredPosition, Is.EqualTo(first.anchoredPosition + step * (p - 1)),
+                    $"Pip {p} stands in the row at the scene's step.");
+            }
+            Assert.That(safeArea.Find("Room Pip " + (rooms + 1)), Is.Null, "No pip past the floor's rooms.");
+            Canvas.ForceUpdateCanvases();
+            Rect last = ScreenRect(ImageOf("Room Pip " + rooms).rectTransform);
+            foreach (string neighbour in new[] { "Floor Label", "Gold Icon", "Gold Count", "Pause Button", "Equipped Relic Badge", "Danger Readout" })
+                Assert.That(last.Overlaps(ScreenRect((RectTransform)safeArea.Find(neighbour))), Is.False, $"The last pip keeps clear of {neighbour}.");
+            Assert.That(last.Overlaps(ScreenRect(hud.LoadoutBadges.Row)), Is.False, "And of the loadout row.");
+            Rect panel = ScreenRect(ImageOf("Top Surface").rectTransform);
+            Assert.That(panel.Contains(last.min) && panel.Contains(last.max), Is.True, "It stands on the top surface.");
+
+            // The floor played to the Warden: offers answered, the hero kept standing and carried to each hall's district,
+            // every node wave felled as it comes.
+            float deadline = Time.realtimeSinceStartup + 120f;
+            while ((encounters.CurrentRoom == null || encounters.CurrentRoom.Kind != RoomKind.Boss) && !setup.Run.HasEnded &&
+                   Time.realtimeSinceStartup < deadline)
+            {
+                for (int i = 0; i < 4 && setup.Choices.IsOpen; i++)
+                    setup.Choices.TrySelect(setup.Choices.Current, 0);
+                if (hero.IsAlive)
+                    hero.Heal(hero.Maximum);
+                if (encounters.IsRoomSiteOpen)
+                    hero.transform.position = new Vector3(encounters.RoomSiteFloorX, ArenaFloor.WorldY(encounters.RoomSiteFloorY), 0f);
+                else if (!encounters.IsInNonCombatRoom)
+                    PackTestUtility.KillWave(encounters);
+                yield return null;
+            }
+            Assert.That(encounters.CurrentRoom.Kind, Is.EqualTo(RoomKind.Boss), $"The Warden's room is reached; stopped in room {encounters.RoomNumber}.");
+            Assert.That(encounters.RoomNumber, Is.EqualTo(rooms), "It is the floor's last.");
+            for (int p = 1; p <= rooms; p++)
+                Assert.That((Color32)ImageOf("Room Pip " + p).color, Is.EqualTo(new Color32(218, 165, 84, 255)),
+                    $"Pip {p} is lit in the Warden's room.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest, Timeout(90000)]
         public IEnumerator TheBossBarIsPaintedHeavierKeepingToItsFootAndClearOfItsName()
         {
