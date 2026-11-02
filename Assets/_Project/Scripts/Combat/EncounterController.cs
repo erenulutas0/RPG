@@ -54,6 +54,8 @@ namespace Cryptforge.Combat
         // caller that never hands one over, so a scene or a test without a stat sheet fights the floor as authored.
         private Func<float> _difficulty;
         private FloorDefinition _currentFloor;
+        // The current floor's rooms as this arena plays them (RoomsAsPlayed), set with _currentFloor and only with it.
+        private RoomDefinition[] _rooms = Array.Empty<RoomDefinition>();
         private FloorProgress _floorProgress;
         private EncounterProgress _fight;
         private SpawnedEnemy _lastDefeated;
@@ -110,9 +112,9 @@ namespace Cryptforge.Combat
         public int FloorNumber { get; private set; }
         public bool HasNextFloor => _currentFloor != null && _currentFloor.NextFloor != null;
         public RoomDefinition CurrentRoom =>
-            _floorProgress != null && _floorProgress.RoomIndex >= 0 ? RoomOf(_currentFloor, _floorProgress.RoomIndex) : null;
+            _floorProgress != null && _floorProgress.RoomIndex >= 0 ? _rooms[_floorProgress.RoomIndex] : null;
         public int RoomNumber => _floorProgress != null ? _floorProgress.RoomIndex + 1 : 0;
-        public int RoomCount => _currentFloor != null ? RoomsOf(_currentFloor) : 0;
+        public int RoomCount => _rooms.Length;
         public int WaveNumber => _floorProgress != null ? _floorProgress.WaveIndex + 1 : 0;
         public int WaveCount => CurrentRoom != null ? WavesIn(_currentFloor, CurrentRoom) : 0;
         public int RoomsCleared => _floorProgress?.RoomsCleared ?? 0;
@@ -251,11 +253,9 @@ namespace Cryptforge.Combat
             }
 
             _fight = new EncounterProgress(_advanceDelay);
-            _currentFloor = first;
             FloorNumber = 1;
             _hallsOnEarlierFloors = 0;
-            _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
-            _waveOrdinal = 0;
+            EnterFloor(first);
             _firstEncounterPending = true;
             if (!deferFirstEncounter)
                 BeginFirstEncounter();
@@ -317,10 +317,8 @@ namespace Cryptforge.Combat
             ReleaseHorde(true);
             _roomsClearedOnEarlierFloors += _floorProgress.RoomsCleared;
             _hallsOnEarlierFloors += LaterHalls(_currentFloor);
-            _currentFloor = _currentFloor.NextFloor;
             FloorNumber++;
-            _floorProgress = new FloorProgress(WavesOf(_currentFloor), EndlessOf(_currentFloor));
-            _waveOrdinal = 0;
+            EnterFloor(_currentFloor.NextFloor);
             _descending = true;
             _transitionWait = 0f;
             ProgressChanged?.Invoke();
@@ -427,45 +425,56 @@ namespace Cryptforge.Combat
             }
         }
 
-        // The floor's rooms as this arena plays them: on the foundry its extra elites (FloorDefinition.FoundryExtraElites,
-        // copies of its first elite room) stand before its gate boss; the hall arena plays the authored rooms.
-        private int ExtraElitesOf(FloorDefinition floor) =>
-            _arena != null && _arena.IsFoundryRegion && FirstEliteOf(floor) >= 0 && BossOf(floor) >= 0 ? floor.FoundryExtraElites : 0;
-
-        private int RoomsOf(FloorDefinition floor) => floor.RoomCount + ExtraElitesOf(floor);
-
-        private RoomDefinition RoomOf(FloorDefinition floor, int index)
+        // A floor's rooms as the foundry plays them: its extra elites (FloorDefinition.FoundryExtraElites, copies of its first
+        // elite room) stand before its gate boss, its last boss room. A floor without an elite or a boss plays as authored.
+        public static RoomDefinition[] FoundryRooms(FloorDefinition floor)
         {
-            int extra = ExtraElitesOf(floor);
-            if (extra == 0)
-                return floor.RoomAt(index);
-            int boss = BossOf(floor);
-            if (index < boss)
-                return floor.RoomAt(index);
-            return index < boss + extra ? floor.RoomAt(FirstEliteOf(floor)) : floor.RoomAt(index - extra);
-        }
-
-        private static int FirstEliteOf(FloorDefinition floor)
-        {
+            int elite = -1, boss = -1;
             for (int i = 0; i < floor.RoomCount; i++)
-                if (floor.RoomAt(i) != null && floor.RoomAt(i).Kind == RoomKind.Elite)
-                    return i;
-            return -1;
+            {
+                RoomDefinition room = floor.RoomAt(i);
+                if (room != null && room.Kind == RoomKind.Elite && elite < 0)
+                    elite = i;
+                if (room != null && room.Kind == RoomKind.Boss)
+                    boss = i;
+            }
+            int extra = elite >= 0 && boss >= 0 ? Math.Max(0, floor.FoundryExtraElites) : 0;
+            var rooms = new RoomDefinition[floor.RoomCount + extra];
+            for (int i = 0, r = 0; i < floor.RoomCount; i++)
+            {
+                if (i == boss)
+                    for (int e = 0; e < extra; e++)
+                        rooms[r++] = floor.RoomAt(elite);
+                rooms[r++] = floor.RoomAt(i);
+            }
+            return rooms;
         }
 
-        private static int BossOf(FloorDefinition floor)
+        // The floor's rooms as this arena plays them: the foundry's (FoundryRooms), the authored ones on the hall arena.
+        private RoomDefinition[] RoomsAsPlayed(FloorDefinition floor)
         {
-            for (int i = floor.RoomCount - 1; i >= 0; i--)
-                if (floor.RoomAt(i) != null && floor.RoomAt(i).Kind == RoomKind.Boss)
-                    return i;
-            return -1;
+            if (_arena != null && _arena.IsFoundryRegion)
+                return FoundryRooms(floor);
+            var rooms = new RoomDefinition[floor.RoomCount];
+            for (int i = 0; i < rooms.Length; i++)
+                rooms[i] = floor.RoomAt(i);
+            return rooms;
         }
 
-        private int[] WavesOf(FloorDefinition floor)
+        // The floor the Descent is on, its rooms as played and its progress through them change together, only here.
+        private void EnterFloor(FloorDefinition floor)
         {
-            var waves = new int[RoomsOf(floor)];
+            _currentFloor = floor;
+            _rooms = RoomsAsPlayed(floor);
+            _floorProgress = new FloorProgress(WavesOf(_rooms), EndlessOf(_rooms));
+            _waveOrdinal = 0;
+        }
+
+        private int[] WavesOf(RoomDefinition[] rooms)
+        {
+            var waves = new int[rooms.Length];
             for (int i = 0; i < waves.Length; i++)
-                waves[i] = RoomOf(floor, i).Kind == RoomKind.Forge ? 0 : WavesIn(floor, RoomOf(floor, i));
+                waves[i] = rooms[i].Kind == RoomKind.Forge ? 0 : WavesIn(_currentFloor, rooms[i]);
             return waves;
         }
 
@@ -477,9 +486,10 @@ namespace Cryptforge.Combat
 
         // The enemies of a room's wave into _waveEnemies: an authored wave as authored, a surge as the wave it repeats
         // with that wave's last enemy added until the surge's size.
-        private List<EnemyDefinition> WaveEnemies(RoomDefinition room, int waveIndex)
+        private List<EnemyDefinition> WaveEnemies(int roomIndex, int waveIndex)
         {
             _waveEnemies.Clear();
+            RoomDefinition room = _rooms[roomIndex];
             int authored = room.WaveCount;
             int surge = waveIndex - authored;
             WaveDefinition wave = room.WaveAt(surge < 0 ? waveIndex : HallSurgeRule.SourceWave(authored, surge));
@@ -489,19 +499,20 @@ namespace Cryptforge.Combat
                 for (int e = wave.EnemyCount; e < HallSurgeRule.Size(wave.EnemyCount, surge); e++)
                     _waveEnemies.Add(wave.EnemyAt(wave.EnemyCount - 1));
             // The density probe (development builds, DevelopmentStart.HordeProbe): the floor's first wave padded with
-            // copies of its first enemy, up to the pack's capacity, to measure the phone at the horde's crowd.
-            if (room == RoomOf(_currentFloor, 0) && waveIndex == 0 && _arena.IsFoundryRegion)
+            // copies of its first enemy, up to the pack's capacity, to measure the phone at the horde's crowd. By index: an
+            // extra elite is the same room as the elite it copies.
+            if (roomIndex == 0 && waveIndex == 0 && _arena.IsFoundryRegion)
                 for (int extra = DevelopmentStart.HordeProbe(); extra > 0 && _waveEnemies.Count < PackLayout.MaxPackSize; extra--)
                     _waveEnemies.Add(wave.EnemyAt(0));
             return _waveEnemies;
         }
 
         // A swarm room's waves are a ladder rather than a list that finishes, so the floor never clears it on its own.
-        private bool[] EndlessOf(FloorDefinition floor)
+        private static bool[] EndlessOf(RoomDefinition[] rooms)
         {
-            var endless = new bool[RoomsOf(floor)];
+            var endless = new bool[rooms.Length];
             for (int i = 0; i < endless.Length; i++)
-                endless[i] = RoomOf(floor, i).Kind == RoomKind.Swarm;
+                endless[i] = rooms[i].Kind == RoomKind.Swarm;
             return endless;
         }
 
@@ -532,8 +543,8 @@ namespace Cryptforge.Combat
                 {
                     _roomSiteOpen = false;
                     HallReached?.Invoke(_roomSiteWait);
-                    RoomDefinition sited = RoomOf(_currentFloor, _roomSiteStep.RoomIndex);
-                    StartWave(WaveEnemies(sited, _roomSiteStep.WaveIndex), false, sited.Kind == RoomKind.Boss);
+                    StartWave(WaveEnemies(_roomSiteStep.RoomIndex, _roomSiteStep.WaveIndex), false,
+                        _rooms[_roomSiteStep.RoomIndex].Kind == RoomKind.Boss);
                 }
                 return;
             }
@@ -582,7 +593,7 @@ namespace Cryptforge.Combat
                 _currentFloor.FoundryGateNotBeforeSeconds <= 0f || !_floorProgress.IsLastWaveOfRoom)
                 return false;
             int next = _floorProgress.RoomIndex + 1;
-            return next < RoomsOf(_currentFloor) && RoomOf(_currentFloor, next).Kind == RoomKind.Boss &&
+            return next < _rooms.Length && _rooms[next].Kind == RoomKind.Boss &&
                    FloorClockSeconds < _currentFloor.FoundryGateNotBeforeSeconds;
         }
 
@@ -736,7 +747,7 @@ namespace Cryptforge.Combat
             {
                 case FloorStepKind.Wave:
                 {
-                    RoomDefinition room = RoomOf(_currentFloor, step.RoomIndex);
+                    RoomDefinition room = _rooms[step.RoomIndex];
                     if (room.Kind == RoomKind.Swarm)
                         BeginSwarm(room);
                     else if (step.WaveIndex == 0 && TryRoomSite(step.RoomIndex))
@@ -748,11 +759,11 @@ namespace Cryptforge.Combat
                         ProgressChanged?.Invoke();
                     }
                     else
-                        StartWave(WaveEnemies(room, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
+                        StartWave(WaveEnemies(step.RoomIndex, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
-                    EnterForge(RoomOf(_currentFloor, step.RoomIndex));
+                    EnterForge(_rooms[step.RoomIndex]);
                     break;
                 default:
                     IsInNonCombatRoom = false;
@@ -799,36 +810,52 @@ namespace Cryptforge.Combat
         // districts the run's earlier floors opened.
         private bool TryRoomSite(int roomIndex)
         {
-            if (_arena == null || !_arena.IsFoundryRegion || !IsHallKind(RoomOf(_currentFloor, roomIndex).Kind))
+            if (_arena == null || !_arena.IsFoundryRegion ||
+                !TryRoomSite(_rooms, roomIndex, _hallsOnEarlierFloors, out float x, out float y))
+                return false;
+            _roomSiteX = x;
+            _roomSiteY = y;
+            return true;
+        }
+
+        // Where a floor's room opens on the foundry: a combat or elite room after the floor's first, rooms as the foundry
+        // plays them (FoundryRooms), at the district of its order among them after hallsBefore, the halls the run's
+        // earlier floors added to the round (LaterHalls). False for anything else.
+        public static bool TryRoomSite(IReadOnlyList<RoomDefinition> rooms, int roomIndex, int hallsBefore, out float x,
+            out float y)
+        {
+            x = y = 0f;
+            if (!IsHallKind(rooms[roomIndex].Kind))
                 return false;
             int ordinal = 0;
             for (int i = 0; i < roomIndex; i++)
             {
-                if (IsHallKind(RoomOf(_currentFloor, i).Kind))
+                if (IsHallKind(rooms[i].Kind))
                     ordinal++;
             }
             if (ordinal == 0)
                 return false;
-            FoundryMap.RoomSite(_hallsOnEarlierFloors, ordinal, out _roomSiteX, out _roomSiteY);
+            FoundryMap.RoomSite(hallsBefore, ordinal, out x, out y);
             return true;
         }
 
         private static bool IsHallKind(RoomKind kind) => kind == RoomKind.Combat || kind == RoomKind.Elite;
 
-        // The rooms of a floor that open at a district: its combat and elite rooms after the first.
-        private int LaterHalls(FloorDefinition floor)
+        // The halls a floor adds to the round across the climb: its authored combat and elite rooms after the first. A
+        // foundry's extra elite (V0.1) takes the next district on its own floor, but the floors above go on from the
+        // authored count, so each keeps the route it had before (FoundryMap.RoomSite).
+        public static int LaterHalls(FloorDefinition floor)
         {
             int halls = 0;
-            for (int i = 0; i < RoomsOf(floor); i++)
+            for (int i = 0; i < floor.RoomCount; i++)
             {
-                if (IsHallKind(RoomOf(floor, i).Kind))
+                if (IsHallKind(floor.RoomAt(i).Kind))
                     halls++;
             }
             return Math.Max(0, halls - 1);
         }
 
-        private bool GateClosesFloor() =>
-            RoomsOf(_currentFloor) > 0 && GateRoom(RoomOf(_currentFloor, RoomsOf(_currentFloor) - 1));
+        private bool GateClosesFloor() => _rooms.Length > 0 && GateRoom(_rooms[_rooms.Length - 1]);
 
         private void OpenGateExit()
         {
@@ -1139,7 +1166,7 @@ namespace Cryptforge.Combat
                     RetireHordeBody(enemy);
             }
 
-            bool bossRoom = RoomOf(_currentFloor, _floorProgress.RoomIndex).Kind == RoomKind.Boss;
+            bool bossRoom = _rooms[_floorProgress.RoomIndex].Kind == RoomKind.Boss;
             // An enraged gate boss draws the horde's Horde crowd round it; Pressure there killed the autopilot in three
             // fights of six (docs/41, 2026-10-26).
             HordeState state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
@@ -1157,9 +1184,10 @@ namespace Cryptforge.Combat
         private int HallsCleared()
         {
             int cleared = 0;
-            for (int i = 0; i < _floorProgress.RoomIndex && i < RoomsOf(_currentFloor); i++)
+            int before = Math.Min(_floorProgress.RoomIndex, _rooms.Length);
+            for (int i = 0; i < before; i++)
             {
-                if (IsHallKind(RoomOf(_currentFloor, i).Kind))
+                if (IsHallKind(_rooms[i].Kind))
                     cleared++;
             }
             return cleared;

@@ -6,14 +6,17 @@ namespace Cryptforge.Tests
 {
     public sealed class FoundryMapTests
     {
-        // Each floor's halls go on round the districts from where the floor before left off: floor 1 keeps its
-        // workyard, pit rim, east; the authored floors open three later halls each (combat, combat, elite after the first),
-        // so floors 2 and 3 begin at the north court and the east, and the climb walks every district.
+        // Each floor's halls go on round the districts from where the floor before left off. The authored floors open three
+        // later halls each (combat, combat, elite after the first), and the round across the climb goes on by those
+        // (EncounterController.LaterHalls), so floors 2 and 3 begin at the north court and the east and the climb walks
+        // every district. Floor 1 as the foundry plays it has a fourth, V0.1's copy of its elite before the gate: workyard,
+        // pit rim, east and then the north court, on floor 1 only. ClimbFloorContentTests reads both off the real floors.
         [Test] public void EachFloorStartsItsHallRoundWhereThePreviousFloorLeftOff()
         {
+            // The later halls of each authored floor; floor 1's fourth, its extra elite, is the foundry's alone.
             const int halls=3;
-            float[,] floorOne={{-25f,7f},{-10f,-1.5f},{8f,-8f}};
-            for(int ordinal=1;ordinal<=halls;ordinal++)
+            float[,] floorOne={{-25f,7f},{-10f,-1.5f},{8f,-8f},{4f,12f}};
+            for(int ordinal=1;ordinal<=floorOne.GetLength(0);ordinal++)
             {
                 FoundryMap.RoomSite(0,ordinal,out float x,out float y);
                 FoundryMap.ToFloor(floorOne[ordinal-1,0],floorOne[ordinal-1,1],out float ex,out float ey);
@@ -26,7 +29,7 @@ namespace Cryptforge.Tests
             Assert.That(f3x!=f1x||f3y!=f1y,Is.True,"Floor 3 begins at another district than floor 1.");
             Assert.That(f3x!=f2x||f3y!=f2y,Is.True,"Floor 3 begins at another district than floor 2.");
             FoundryMap.ToFloor(4f,12f,out float nx,out float ny);
-            Assert.That(f2x,Is.EqualTo(nx));Assert.That(f2y,Is.EqualTo(ny),"Floor 2 opens at the north court, where floor 1 stopped short.");
+            Assert.That(f2x,Is.EqualTo(nx));Assert.That(f2y,Is.EqualTo(ny),"Floor 2 opens at the north court, a short walk from the gate, as before V0.1.");
             var walked=new System.Collections.Generic.HashSet<(float,float)>();
             for(int floor=0;floor<3;floor++)
                 for(int ordinal=1;ordinal<=halls;ordinal++){FoundryMap.RoomSite(floor*halls,ordinal,out float x,out float y);walked.Add((x,y));}
