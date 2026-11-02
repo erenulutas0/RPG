@@ -32,6 +32,10 @@ namespace Cryptforge.Combat
         public WeaponRuntime Weapon => _weapon;
         // How many weapons this attacker fires, 1 once initialised.
         public int WeaponCount => _weapon == null ? 0 : 1 + (_moreWeapons?.Count ?? 0);
+        // While set, this attacker neither readies nor strikes: its cooldowns stand still and no strike is due. The foundry's
+        // gate boss is held so while it winds up a slam and while its hammer is in the floor (WardenSlamService,
+        // WardenRule.RecoverySeconds); nothing else holds an attacker.
+        public bool IsHeld { get; set; }
         public event Action Attacked;
         // The target of each successful attack, right after Attacked, so views can place a strike effect at it.
         public event Action<Health> Struck;
@@ -73,7 +77,7 @@ namespace Cryptforge.Combat
         // one felled this frame - Targeting skips the fallen.
         private void Update()
         {
-            if (_weapon == null || !_owner.isActiveAndEnabled || !_owner.IsAlive || Time.deltaTime <= 0f)
+            if (_weapon == null || IsHeld || !_owner.isActiveAndEnabled || !_owner.IsAlive || Time.deltaTime <= 0f)
                 return;
 
             float deltaTime = Time.deltaTime;
@@ -128,7 +132,7 @@ namespace Cryptforge.Combat
         // and where it would have: the cooldown ticks and the strike fires in Update alone.
         public Health StrikeDue(float within)
         {
-            if (_weapon == null || !isActiveAndEnabled || !_owner.isActiveAndEnabled || !_owner.IsAlive ||
+            if (_weapon == null || IsHeld || !isActiveAndEnabled || !_owner.isActiveAndEnabled || !_owner.IsAlive ||
                 _weapon.CooldownRemaining > within)
                 return null;
             return _targeting.Acquire(_weapon.Range);

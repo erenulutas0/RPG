@@ -12,7 +12,8 @@ using UnityEngine.TestTools;
 namespace Cryptforge.Tests
 {
     // The foundry's gate boss is a fight (WardenRule): more health than its authored 300, a mark where the hero stands, the
-    // hammer landing on it a telegraph later, and faster blows below half health.
+    // hammer landing on it a telegraph later, its own weapon held from the mark until the hammer is out of the floor, and
+    // faster blows below half health.
     public sealed class WardenFlowTests
     {
         [UnitySetUp] public IEnumerator Begin(){TestProfile.Begin();Time.timeScale=1;yield return null;}
@@ -55,16 +56,24 @@ namespace Cryptforge.Tests
             Health boss=warden.Boss;
             Assert.That(boss.Maximum,Is.EqualTo(encounter.DefinitionOf(boss).MaximumHealth*WardenRule.GateHealthShare).Within(1f),
                 "The gate boss stands longer than its authored health.");
+            var hammer=boss.GetComponent<AttackController>();
+            Assert.That(hammer.IsHeld,Is.False,"Its weapon is free until the first mark.");
             bool marked=false;warden.Marked+=()=>marked=true;
             yield return Until(setup,()=>marked,WardenRule.SlamEvery+5);
             Assert.That(marked,Is.True);yield return null;
             Assert.That(view.IsMarkShown,Is.True,"The mark shows on the floor.");
             Assert.That(ArenaFloor.FloorDistanceSquared(warden.MarkX,warden.MarkY,hero.transform.position.x,ArenaFloor.FloorY(hero.transform.position.y)),
                 Is.LessThan(.01f),"Where the hero stood.");
-            float full=hero.Current;bool? hit=null;warden.Slammed+=h=>hit=h;
+            Assert.That(hammer.IsHeld,Is.True,"It swings nothing while the hammer goes up.");
+            float full=hero.Current;bool? hit=null;float slammedAt=0;warden.Slammed+=h=>{hit=h;slammedAt=Time.time;};
             yield return Until(setup,()=>hit.HasValue,WardenRule.Telegraph+3);
             Assert.That(hit,Is.True,"A hero who stays on the mark is caught.");
             Assert.That(hero.Current,Is.EqualTo(full-hero.Maximum*WardenRule.HeroShare).Within(.5f));
+            // The hammer stays in the floor for the recovery, the Warden's weapon still: docs/41 step 4's window.
+            Assert.That(hammer.IsHeld,Is.True,"Nor while the hammer is in the floor.");
+            yield return Until(setup,()=>!hammer.IsHeld,WardenRule.RecoverySeconds+3);
+            Assert.That(hammer.IsHeld,Is.False,"Then it swings again.");
+            Assert.That(Time.time-slammedAt,Is.InRange(WardenRule.RecoverySeconds-.02f,WardenRule.RecoverySeconds+.5f));
             // The next mark, and the hero steps off it before the blow.
             marked=false;hit=null;
             yield return Until(setup,()=>marked,WardenRule.SlamEvery+5);
