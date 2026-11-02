@@ -143,11 +143,7 @@ namespace Cryptforge.UI
                 bool inside = fill > 0f && fill < 1f;
                 bar.Glint.enabled = inside;
                 if (inside)
-                {
-                    var at = new Vector2(fill, .5f);
-                    bar.Glint.rectTransform.anchorMin = at;
-                    bar.Glint.rectTransform.anchorMax = at;
-                }
+                    PlaceGlint(bar.Glint.rectTransform, fill);
             }
             if (bar.Trail == null)
                 return;
@@ -157,6 +153,13 @@ namespace Cryptforge.UI
                 bar.Trail.enabled = showing;
             if (showing && bar.Trail.fillAmount != bar.Chunk.Shown)
                 bar.Trail.fillAmount = bar.Chunk.Shown;
+        }
+
+        // The light's anchors: across, the fill's end; up and down, the fill's foot and top, so it spans the fill.
+        private static void PlaceGlint(RectTransform glint, float fill)
+        {
+            glint.anchorMin = new Vector2(fill, 0f);
+            glint.anchorMax = new Vector2(fill, 1f);
         }
 
         private static void Restyle(Image image, Sprite sprite)
@@ -202,10 +205,12 @@ namespace Cryptforge.UI
                 trail.enabled = false;
                 trail.transform.SetSiblingIndex(1);
             }
+            // The light stands 6 taller than the fill, 3 past its foot and its top. Anchored to both, it keeps that
+            // through any later relayout (the canvas or the safe area resizing the bar) with nothing done per frame.
             Image glint = Child("Painted Glint", fillRect, art.Glint, Image.Type.Simple, Vector2.zero, Vector2.zero);
             RectTransform glintRect = glint.rectTransform;
-            glintRect.anchorMin = glintRect.anchorMax = new Vector2(fill.fillAmount, .5f);
-            glintRect.sizeDelta = new Vector2(art.GlintWidth, fillRect.rect.height + 6f);
+            PlaceGlint(glintRect, fill.fillAmount);
+            glintRect.sizeDelta = new Vector2(art.GlintWidth, 6f);
             glint.enabled = false;
             Vector4 outset = art.FrameOutset;
             Image frame = Child("Painted Frame", bar, art.Frame, Image.Type.Sliced, min - new Vector2(outset.x, outset.y),
