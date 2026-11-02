@@ -25,7 +25,8 @@ namespace Cryptforge.Tests
     // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
     // TestResults), FOUNDRY_EDITOR (folder holding the Editor measurement - horde-pacing-*.txt and horde-telemetry/ - the
     // repository's TestResults; nothing there skips the parity table), FOUNDRY_EDITOR_FILES (the two pacing files to read,
-    // Vanguard's then Ilya's, comma separated; the newest horde-pacing-m0-* by default).
+    // Vanguard's then Ilya's, comma separated; the newest horde-pacing-m0-* by default). The parity table flags a pacing
+    // file whose header names other floor levers than the simulation's shipped ones, or none (written before 2026-11-03).
     [Explicit("The regression harness's batch report: run it by name.")]
     public sealed class FoundryBatchReport
     {
@@ -138,6 +139,22 @@ namespace Cryptforge.Tests
             md.AppendLine("### Parity with the Editor measurement (the same seeds)").AppendLine();
             md.AppendLine("Editor: HordePacingMeasurement at a fixed 1/60 s, its per-seed telemetry split as the research's floor_breakdown splits it, the gate wait (room_complete's gate_hold_sec) apart from the node fights. " +
                           "Simulation: RunFoundry on the same seeds. Medians over the six seeds (cleared runs for the segments), then the seeds one by one.").AppendLine();
+            // A file measured on another floor than the simulation's - another V0.1 lever, or written before files named
+            // theirs - is flagged rather than refused: its rows still read, but not as the same floor.
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            var otherFloor = new bool[files.Length];
+            var mismatches = new List<string>();
+            for (int h = 0; h < heroes.Length && h < files.Length; h++)
+            {
+                string mismatch = LeverMismatch(ReadLevers(files[h]), shipped);
+                otherFloor[h] = mismatch != null;
+                if (mismatch != null)
+                    mismatches.Add($"{heroes[h].Name}'s {Path.GetFileName(files[h])} {mismatch}");
+            }
+            if (mismatches.Count > 0)
+                md.AppendLine($"**Not the simulated floor** (hall_surges {shipped.HallSurges}, extra_elites {shipped.ExtraElites}, gate_s " +
+                              $"{shipped.GateNotBeforeSeconds.ToString("0.###", CultureInfo.InvariantCulture)}): " +
+                              string.Join("; ", mismatches) + ". Read those rows as another floor's.").AppendLine();
             md.AppendLine("| Hero | Source | Cleared | Floor P50 (all) | Walk | Node fights | Gate wait | Warden | Exit | Level at the gate | Level at the end | Uptime | Engaged | Deaths (room) |");
             md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
             var perSeed = new StringBuilder();
@@ -151,7 +168,7 @@ namespace Cryptforge.Tests
                 simulated.Add(batch);
                 EditorRun[] editorClears = editor.Where(run => run.Cleared).ToArray();
                 DescentSimulation.FoundryResult[] simClears = batch.Cleared.ToArray();
-                md.AppendLine($"| {heroes[h].Name} | Editor ({Path.GetFileName(files[h])}) | {editorClears.Length}/{editor.Count} | " +
+                md.AppendLine($"| {heroes[h].Name} | Editor ({Path.GetFileName(files[h])}{(otherFloor[h] ? ", **another floor**" : string.Empty)}) | {editorClears.Length}/{editor.Count} | " +
                               $"{M(editor.Select(r => r.Floor))} | {M(editorClears.Select(r => r.Walk))} | {M(editorClears.Select(r => r.Node))} | " +
                               $"{M(editorClears.Select(r => r.GateWait))} | {M(editorClears.Select(r => r.Boss))} | {M(editorClears.Select(r => r.Exit))} | " +
                               $"{M(editor.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {M(editor.Select(r => (float)r.Level))} | " +
@@ -260,6 +277,38 @@ namespace Cryptforge.Tests
                 runs.Add(run);
             }
             return runs;
+        }
+
+        // The pacing file's floor levers, from its header line "levers floor <id> hall_surges <n> extra_elites <n> gate_s
+        // <seconds>" (HordePacingMeasurement, since 2026-11-03); null for a file that names none.
+        private static Dictionary<string, string> ReadLevers(string pacing)
+        {
+            if (!File.Exists(pacing))
+                return null;
+            string line = File.ReadLines(pacing).FirstOrDefault(l => l.StartsWith("levers ", StringComparison.Ordinal));
+            if (line == null)
+                return null;
+            string[] words = line.Split(' ');
+            var levers = new Dictionary<string, string>();
+            for (int i = 1; i + 1 < words.Length; i += 2)
+                levers[words[i]] = words[i + 1];
+            return levers;
+        }
+
+        // Why a pacing file's floor is not the one the simulation plays (its surges, extra elites or gate time differ, or
+        // it names none); null when it is.
+        private static string LeverMismatch(Dictionary<string, string> levers, DescentSimulation.FoundryLevers shipped)
+        {
+            if (levers == null)
+                return "names no floor levers (written before 2026-11-03; the m0 files are the floor before V0.1)";
+            string Read(string key) => levers.TryGetValue(key, out string value) ? value : "?";
+            bool same = int.TryParse(Read("hall_surges"), out int surges) && surges == shipped.HallSurges &&
+                        int.TryParse(Read("extra_elites"), out int elites) && elites == shipped.ExtraElites &&
+                        float.TryParse(Read("gate_s").Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out float gate) &&
+                        Math.Abs(gate - shipped.GateNotBeforeSeconds) < 1e-3f;
+            return same
+                ? null
+                : $"measured hall_surges {Read("hall_surges")}, extra_elites {Read("extra_elites")}, gate_s {Read("gate_s")}";
         }
 
         // Pacing files from a Turkish-locale Editor write a decimal comma.

@@ -1,7 +1,9 @@
 using System.Collections;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -15,7 +17,8 @@ namespace Cryptforge.Tests
     // horde on, over several seeds, and writes how long the floor took, how much of it had an enemy standing (combat
     // uptime), how much of it the hero was actually engaged (an enemy within its reach plus a unit, or a hit taken in the
     // last 1.5 s), what it killed, how the Warden's fight went and what state the hero reached the gate in to
-    // TestResults/horde-pacing.txt, and keeps each seed's telemetry under TestResults/horde-telemetry/<hero>-<seed>/
+    // TestResults/horde-pacing.txt (its header names the floor and its foundry levers: surges, extra elites, the gate's
+    // time), and keeps each seed's telemetry under TestResults/horde-telemetry/<hero>-<seed>/
     // (the v01 research's floor_breakdown.py splits it into walk, node fights, Warden and exit). Every frame is a fixed 1/60 s of game time (Time.captureDeltaTime), as fast as the
     // Editor can run it, so a seed replays the same floor every time - a raised time scale made the same build clear a
     // seed in one run and die on it in the next. Explicit, so only a run that names it plays it; it asserts nothing about
@@ -85,7 +88,7 @@ namespace Cryptforge.Tests
             string weaponId = Weapon();
             report.AppendLine("mode " + mode + (heroId.Length > 0 ? " hero " + heroId : string.Empty) +
                 (weaponId.Length > 0 ? " weapon " + weaponId : string.Empty));
-            report.AppendLine("seed\tresult\tfloor_s\tuptime\tengaged\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
+            bool headed = false;
             foreach (int seed in Seeds())
             {
                 TestProfile.Begin(weaponId.Length > 0
@@ -102,6 +105,17 @@ namespace Cryptforge.Tests
                 yield return null;
                 var setup = Object.FindFirstObjectByType<CombatSetup>();
                 var encounters = setup.Encounters;
+                // The floor's own foundry levers, once, before the columns: the batch report holds them beside the
+                // simulation's (FoundryBatchReport's parity), so a file measured on another floor is not read as this one.
+                if (!headed)
+                {
+                    headed = true;
+                    FloorDefinition floor = encounters.Floor;
+                    report.AppendLine(string.Format(CultureInfo.InvariantCulture,
+                        "levers floor {0} hall_surges {1} extra_elites {2} gate_s {3:0.###}", floor.Id, floor.FoundryHallSurges,
+                        floor.FoundryExtraElites, floor.FoundryGateNotBeforeSeconds));
+                    report.AppendLine("seed\tresult\tfloor_s\tuptime\tengaged\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
+                }
                 var hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
                 bool cleared = false;
                 int waveKills = 0, hordeKills = 0, slams = 0, slamHits = 0;
