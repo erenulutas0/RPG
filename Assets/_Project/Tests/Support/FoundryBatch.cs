@@ -43,10 +43,12 @@ namespace Cryptforge.Tests
             return seeds;
         }
 
-        // A floor whose walks add up past this has had the autopilot's drop detour (DevelopmentAutopilot.DropDetour) fire
-        // again and again: the horde keeps dying within reach of the hero, every fall drops something closer than the next
-        // hall, and the hall waits. The Editor's Ilya seed 22 spent 195 s so in its second room. About twice the shipped
-        // floor's median walk; the reports count such runs and read the levers with and without them.
+        // A floor whose walks added up past this was the autopilot's drop-detour loop: the horde kept dying within reach of
+        // the hero, every fall dropped something closer than the next hall, the autopilot walked to each in turn and the
+        // hall waited - the Editor's Ilya seed 22 spent 195 s so in its second room, and of seeds 1-200 the Vanguard's 53
+        // and Ilya's 81 walked this long on the shipped floor, 153 and 191 with the horde filling at 3 a second. The detour
+        // is bounded now (DropDetourRule.Walk) and no run of those batches walks this long; the reports still count such
+        // runs, as a guard, and read the levers with and without them.
         public const float LongWalkSeconds = 150f;
 
         public static bool WalkedLong(DescentSimulation.FoundryResult run) => run.WalkTotal > LongWalkSeconds;
@@ -399,7 +401,7 @@ namespace Cryptforge.Tests
             IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
         {
             md.AppendLine("### Levers against the shipped floor (same seeds)").AppendLine();
-            md.AppendLine("Delta P50 is the lever's median floor time less the shipped median over all runs (a death shortens a floor). Paired is the median of per-seed differences over the seeds both runs cleared; paired, short walks leaves out the seeds where either run's walks passed " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (the drop-detour loop) and so reads the lever's own content. Long walks counts the lever's runs that passed it. Research: v01-research report.md section 3, against its 170 s baseline.").AppendLine();
+            md.AppendLine("Delta P50 is the lever's median floor time less the shipped median over all runs (a death shortens a floor). Paired is the median of per-seed differences over the seeds both runs cleared; paired, short walks leaves out the seeds where either run's walks passed " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s, which the autopilot's drop-detour loop did until it was bounded (2026-11-03): now it should leave none out, and any it does are worth a look. Long walks counts the lever's runs that passed it. Research: v01-research report.md section 3, against its 170 s baseline.").AppendLine();
             md.AppendLine("| Lever | Research estimate | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: P50 (delta) / paired / paired, short walks / cleared / long walks / gate level P50")) + " |");
             md.AppendLine("|---|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
             foreach ((Lever lever, Batch[] batches) in levers)
