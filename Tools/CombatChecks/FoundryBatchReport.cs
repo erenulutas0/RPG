@@ -46,7 +46,8 @@ namespace Cryptforge.Tests
             var baselines = heroes.Select(hero => FoundryBatch.Run(hero, FoundryBatch.Shipped(), batchSeeds, parallel)).ToArray();
             var leverRuns = new List<(FoundryBatch.Lever, FoundryBatch.Batch[])>();
             if (levers)
-                foreach (FoundryBatch.Lever lever in leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
+                foreach (FoundryBatch.Lever lever in leverSet == 3 ? FoundryBatch.WardenLevers() :
+                         leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
                     leverRuns.Add((lever, heroes.Select(hero => FoundryBatch.Run(hero, lever.Levers, batchSeeds, parallel)).ToArray()));
 
             var md = new StringBuilder();

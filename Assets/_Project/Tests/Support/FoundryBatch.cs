@@ -110,6 +110,26 @@ namespace Cryptforge.Tests
             };
         }
 
+        // docs/41 step 4's candidates for a 45-65 s Warden (FOUNDRY_LEVERS=3): the gate boss's health share alone.
+        public static Lever[] WardenLevers()
+        {
+            Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
+            {
+                DescentSimulation.FoundryLevers levers = Shipped().Copy(name);
+                set(levers);
+                return new Lever { Name = name, Estimate = "warden", Levers = levers };
+            }
+
+            return new[]
+            {
+                Make("Warden share 6", l => l.WardenHealthShare = 6f),
+                Make("Warden share 7", l => l.WardenHealthShare = 7f),
+                Make("Warden share 8", l => l.WardenHealthShare = 8f),
+                Make("Warden share 9", l => l.WardenHealthShare = 9f),
+                Make("Warden share 10", l => l.WardenHealthShare = 10f)
+            };
+        }
+
         public static Batch Run(DescentSimulation.FoundryHero hero, DescentSimulation.FoundryLevers levers, int[] seeds,
             int parallelism)
         {
@@ -168,14 +188,46 @@ namespace Cryptforge.Tests
             SegmentTable(md, baselines);
             LevelTable(md, baselines);
             WardenTable(md, baselines);
+            WardenBudgetTable(md, baselines);
             DeathTable(md, baselines);
             TtkTable(md, baselines);
             BucketTable(md, baselines);
             OfferTable(md, baselines);
             GateLines(md, baselines);
             if (levers != null && levers.Count > 0)
+            {
                 LeverTable(md, baselines, levers);
+                WardenLeverTable(md, baselines, levers);
+            }
             return md.ToString();
+        }
+
+        // Each lever's Warden against the shipped floor's on the same seeds: the fight, the floor's clears and the deaths at
+        // the Warden, the gate's acceptance (docs/41 step 4: a P50 fight of 45-65 s) and the clears the lever costs.
+        private static void WardenLeverTable(StringBuilder md, IReadOnlyList<Batch> baselines,
+            IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
+        {
+            md.AppendLine("### The Warden's fight by lever (same seeds)").AppendLine();
+            md.AppendLine("Fight: felled fights, P10 / P50 / P90 seconds from walking out of the gate to falling. Cleared: the floor's clears and the change against the shipped floor in points. At the Warden: deaths there of the runs that reached it. Cost: the hero's health lost in the fight, mean over the runs that reached it.").AppendLine();
+            md.AppendLine("| Lever | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: fight P10 / P50 / P90 / cleared (change) / at the Warden / Warden health P50 / cost")) + " |");
+            md.AppendLine("|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
+
+            string Cells(Batch with, Batch baseline)
+            {
+                DescentSimulation.FoundryResult[] reached = with.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
+                DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
+                int died = reached.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f);
+                double change = 100.0 * (with.ClearedCount - baseline.ClearedCount) / Math.Max(1, with.Runs.Length);
+                double cost = reached.Length == 0 ? double.NaN
+                    : reached.Average(r => r.TakenFromWarden + r.TakenFromSlams + r.FightTakenFromHorde + r.FightTakenFromPit);
+                return $"{Spread(felled.Select(r => r.BossSeconds))} / {Pct(with.ClearedCount, with.Runs.Length)} ({Signed(change)}) / " +
+                       $"{died} of {reached.Length} / {F(Median(reached.Select(r => r.WardenHealth)))} / {F(cost)}";
+            }
+
+            md.AppendLine("| shipped | " + string.Join(" | ", baselines.Select(b => Cells(b, b))) + " |");
+            foreach ((Lever lever, Batch[] batches) in levers)
+                md.AppendLine($"| {lever.Name} | " + string.Join(" | ", baselines.Select((b, h) => Cells(batches[h], b))) + " |");
+            md.AppendLine();
         }
 
         private static void FloorTable(StringBuilder md, IReadOnlyList<Batch> batches)
@@ -248,6 +300,40 @@ namespace Cryptforge.Tests
                               $"{felled.Count(r => r.BossSeconds <= 5f)} | {diedThere.Length} ({F(Median(diedThere.Select(r => r.BossLeft)), "0.00")}) | " +
                               $"{F(Median(reached.Select(r => r.WardenHealth)))} | {F(slams, "0.0")} / {F(hits, "0.00")} | " +
                               $"{F(Median(reached.Select(r => r.TakenFromWarden + r.TakenFromSlams)))} |");
+            }
+            md.AppendLine();
+        }
+
+        // docs/41 step 4's budget, HP_boss = D_focus * uptime * damageable_seconds, read from the fights the hero won: its
+        // own damage on the Warden per second the Warden stood within the reach of its longest weapon, the share of the
+        // fight after the reveal the Warden stood there, and those seconds; what each source took off the Warden; and,
+        // over every run that reached it, the hero's health as it walked out, what the fight cost and who killed whom.
+        private static void WardenBudgetTable(StringBuilder md, IReadOnlyList<Batch> batches)
+        {
+            md.AppendLine("### The Warden's health budget (docs/41 step 4)").AppendLine();
+            md.AppendLine("Felled fights: D_focus is the hero's own damage on the Warden (weapons, burn, ability) per second the Warden stood within the reach of the hero's longest weapon; uptime is those seconds over the fight after the 2.6 s reveal. " +
+                          "Taken off: the Warden's health by source, as a share of its maximum (mean). Health and cost: every run that reached the Warden; cost is the hero's health lost in the fight by what dealt it.").AppendLine();
+            md.AppendLine("| Hero | Felled | Level at the gate P50 | D_focus P10 / P50 / P90 | Uptime P10 / P50 / P90 | After the reveal s P10 / P50 / P90 | Taken off: weapons / burn / ability / pit | Hero health at the gate P50 (maximum P50) | Fight cost mean: Warden / slams / horde / pit | Died at the Warden (of reached), killing blow |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|");
+            foreach (Batch b in batches)
+            {
+                DescentSimulation.FoundryResult[] reached = b.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
+                DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
+                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f).ToArray();
+                string Share(Func<DescentSimulation.FoundryResult, float> part) =>
+                    felled.Length == 0 ? "-" : F(100.0 * felled.Average(r => part(r) / Math.Max(1f, r.WardenHealth))) + "%";
+                double Mean(Func<DescentSimulation.FoundryResult, float> value) =>
+                    reached.Length == 0 ? double.NaN : reached.Average(value);
+                string killers = string.Join(", ", diedThere.GroupBy(r => r.Killer ?? "?").OrderByDescending(g => g.Count())
+                    .Select(g => $"{g.Key} x{g.Count()}"));
+                md.AppendLine($"| {b.Hero.Name} | {felled.Length} | {F(Median(reached.Select(r => (float)r.LevelAtGate)))} | " +
+                              $"{Spread(felled.Where(r => r.WardenInReach > 0f).Select(r => (r.WardenFromWeapons + r.WardenFromBurn + r.WardenFromAbility) / r.WardenInReach))} | " +
+                              $"{Spread(felled.Where(r => r.WardenFought > 0f).Select(r => r.WardenInReach / r.WardenFought), "0.00")} | " +
+                              $"{Spread(felled.Select(r => r.WardenFought))} | " +
+                              $"{Share(r => r.WardenFromWeapons)} / {Share(r => r.WardenFromBurn)} / {Share(r => r.WardenFromAbility)} / {Share(r => r.WardenFromPit)} | " +
+                              $"{F(Median(reached.Select(r => r.HeroHealthAtGate)))} ({F(Median(reached.Select(r => r.HeroMaximumAtGate)))}) | " +
+                              $"{F(Mean(r => r.TakenFromWarden))} / {F(Mean(r => r.TakenFromSlams))} / {F(Mean(r => r.FightTakenFromHorde))} / {F(Mean(r => r.FightTakenFromPit))} | " +
+                              $"{diedThere.Length} ({Pct(diedThere.Length, reached.Length)}){(killers.Length > 0 ? ": " + killers : string.Empty)} |");
             }
             md.AppendLine();
         }
@@ -438,7 +524,8 @@ namespace Cryptforge.Tests
         public static string Csv(IEnumerable<Batch> batches)
         {
             var csv = new StringBuilder();
-            csv.AppendLine("hero,levers,seed,outcome,floor_s,uptime,engaged,walk_s,node_s,boss_s,exit_s,gate_wait_s,level_gate,level_end,hp,max_hp,wave_kills,horde_kills,horde_mean,horde_max,clock_gate,clock_end,slams,slam_hits,eruptions,pit_hero,warden_hp,boss_left,death_room,death_phase,killer,first_strike_s,weapons,tomes,offers,drops,swept,altars,chests,room_s,walks");
+            csv.AppendLine("hero,levers,seed,outcome,floor_s,uptime,engaged,walk_s,node_s,boss_s,exit_s,gate_wait_s,level_gate,level_end,hp,max_hp,wave_kills,horde_kills,horde_mean,horde_max,clock_gate,clock_end,slams,slam_hits,eruptions,pit_hero,warden_hp,boss_left,death_room,death_phase,killer,first_strike_s,weapons,tomes,offers,drops,swept,altars,chests,room_s,walks," +
+                           "difficulty_gate,hp_gate,max_hp_gate,warden_weapons,warden_burn,warden_ability,warden_pit,warden_fought_s,warden_in_reach_s,fight_warden,fight_slams,fight_horde,fight_pit");
             foreach (Batch b in batches)
             foreach (DescentSimulation.FoundryResult r in b.Runs)
             {
@@ -451,7 +538,11 @@ namespace Cryptforge.Tests
                     Quote(r.Killer), Num(r.FirstStrikeSeconds), Quote(r.Weapons), Quote(r.Tomes), r.Offers, r.DropsCollected,
                     r.DropsSwept, r.AltarsTaken, r.ChestsOpened,
                     Quote(string.Join(" ", r.RoomSeconds.Select(s => Num(s, "0.0")))),
-                    Quote(string.Join(" ", r.WalkSeconds.Select(s => Num(s, "0.0"))))));
+                    Quote(string.Join(" ", r.WalkSeconds.Select(s => Num(s, "0.0")))),
+                    Num(r.DifficultyAtGate), Num(r.HeroHealthAtGate, "0.0"), Num(r.HeroMaximumAtGate, "0"), Num(r.WardenFromWeapons, "0"),
+                    Num(r.WardenFromBurn, "0"), Num(r.WardenFromAbility, "0"), Num(r.WardenFromPit, "0"), Num(r.WardenFought),
+                    Num(r.WardenInReach), Num(r.TakenFromWarden, "0.0"), Num(r.TakenFromSlams, "0.0"), Num(r.FightTakenFromHorde, "0.0"),
+                    Num(r.FightTakenFromPit, "0.0")));
             }
             return csv.ToString();
         }

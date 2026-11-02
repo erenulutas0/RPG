@@ -241,6 +241,20 @@ namespace Cryptforge.Tests
             public float DealtByBurn;
             public float DealtByAbility;
             public float DealtByPit;
+            // The Warden's fight as docs/41 step 4 budgets its health (HP_boss = D_focus * uptime * damageable_seconds):
+            // what each source took off it; the seconds of the fight after the reveal, and of those the seconds it stood
+            // within the reach of the hero's longest weapon; the hero's health as it walked out; and what the hero took in
+            // the fight from the horde and the pit (the Warden's own blows are TakenFromWarden and TakenFromSlams).
+            public float WardenFromWeapons;
+            public float WardenFromBurn;
+            public float WardenFromAbility;
+            public float WardenFromPit;
+            public float WardenFought;
+            public float WardenInReach;
+            public float HeroHealthAtGate = -1f;
+            public float HeroMaximumAtGate = -1f;
+            public float FightTakenFromHorde;
+            public float FightTakenFromPit;
             // Offers and what was taken, by OfferCategory; weapons and tomes held at the gate and at the end.
             public int Offers;
             public int[] PicksByCategory = new int[OfferWeights.CategoryCount];
@@ -961,6 +975,8 @@ namespace Cryptforge.Tests
                 _result.WeaponsAtGate = _loadout.Count;
                 _result.TomesAtGate = _upgrades.TomesHeld;
                 _result.WardenHealth = _wave[0].Health.Maximum;
+                _result.HeroHealthAtGate = _heroHealth.Current;
+                _result.HeroMaximumAtGate = _heroHealth.Maximum;
                 _result.DifficultyAtGate = _heroStats.Difficulty;
                 _result.ClockAtGate = _horde != null ? _horde.Seconds : 0f;
                 if (_trace != null)
@@ -1189,15 +1205,23 @@ namespace Cryptforge.Tests
                 {
                     case DamageSource.Weapon:
                         _result.DealtByWeapons += dealt;
+                        if (foe.GateBoss)
+                            _result.WardenFromWeapons += dealt;
                         break;
                     case DamageSource.Burn:
                         _result.DealtByBurn += dealt;
+                        if (foe.GateBoss)
+                            _result.WardenFromBurn += dealt;
                         break;
                     case DamageSource.Ability:
                         _result.DealtByAbility += dealt;
+                        if (foe.GateBoss)
+                            _result.WardenFromAbility += dealt;
                         break;
                     default:
                         _result.DealtByPit += dealt;
+                        if (foe.GateBoss)
+                            _result.WardenFromPit += dealt;
                         break;
                 }
                 _result.BucketDamage[Bucket()] += dealt;
@@ -1294,6 +1318,8 @@ namespace Cryptforge.Tests
                 {
                     _lastAttacker = foe;
                     _lastHarm = (foe.Horde ? "horde " : foe.GateBoss ? string.Empty : "wave ") + foe.Definition.Name;
+                    if (foe.Horde && GateBoss != null)
+                        _result.FightTakenFromHorde += taken;
                     if (foe.Horde)
                         _result.TakenFromHorde += taken;
                     else if (foe.GateBoss && _harmIsSlam)
@@ -1308,6 +1334,8 @@ namespace Cryptforge.Tests
                 else
                 {
                     _result.TakenFromPit += taken;
+                    if (GateBoss != null)
+                        _result.FightTakenFromPit += taken;
                     _lastHarm = "pit";
                 }
                 if (!_heroHealth.IsAlive && _result.DeathRoom < 0)
@@ -1998,6 +2026,16 @@ namespace Cryptforge.Tests
                     _fighting += Step;
                 if (_seconds - _lastHeroHit <= EngagedAfterHitSeconds || EnemyNear(_loadout.Primary.Range + EngagedMargin))
                     _engaged += Step;
+                Foe warden = GateBoss;
+                if (warden != null && !_revealHold && _heroHealth.IsAlive)
+                {
+                    _result.WardenFought += Step;
+                    float reach = 0f;
+                    for (int i = 0; i < _loadout.Count; i++)
+                        reach = Math.Max(reach, _loadout.At(i).Runtime.Range);
+                    if (ArenaFloor.FloorDistanceSquared(warden.X, warden.Y, HeroX, HeroY) <= reach * reach)
+                        _result.WardenInReach += Step;
+                }
                 _hordeAliveSum += _hordeAlive;
                 _hordeTargetSum += _horde != null ? _horde.TargetNow : 0;
                 _hordeFrames++;
