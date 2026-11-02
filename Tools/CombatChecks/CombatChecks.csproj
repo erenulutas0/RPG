@@ -73,6 +73,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
