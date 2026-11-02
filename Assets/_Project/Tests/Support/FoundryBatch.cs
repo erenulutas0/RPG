@@ -66,7 +66,8 @@ namespace Cryptforge.Tests
         public const string PreV01Name = "pre-V0.1";
 
         // The floor before V0.1 (2026-11-02): no hall surges, no second elite, the gate open as its room clears - the
-        // floor the research's table (v01-research report.md section 3) estimated its levers on, from its 170 s baseline.
+        // floor the research's table (v01-research report.md section 3) estimated its levers on, from its 170 s baseline -
+        // with the shipped Warden (WardenLevers' first row reads the Warden before 2026-11-03).
         public static DescentSimulation.FoundryLevers PreV01()
         {
             DescentSimulation.FoundryLevers levers = Shipped().Copy(PreV01Name);
@@ -102,7 +103,9 @@ namespace Cryptforge.Tests
                 Research("Gate not before 4:00", "+119..+124", l => l.GateNotBeforeSeconds = 240f),
                 Research("Halls held 45 s", "+99..+111", l => l.HallHoldSeconds = 45f),
                 Research("+2 halls", "+34..+54", l => l.ExtraHalls = 2),
-                Research("Warden health x1.5 (share 7.5)", "+17..+24", l => l.WardenHealthShare = 7.5f),
+                // Half again the shipped Warden's health; the research estimated it on the Warden before 2026-11-03.
+                Research("Warden health x1.5", "+17..+24 (Warden before 2026-11-03)",
+                    l => l.WardenHealthShare = WardenRule.GateHealthShare * 1.5f),
                 Research("Hall surges 0 -> 2", "+12..+26", l => l.HallSurges = 2),
                 Research("Second elite", "+12..+26", l => l.ExtraElites = 1),
                 Research("Node waves x1.5 health", "+5..+15", l => l.NodeHealthScale = 1.5f),
@@ -132,9 +135,57 @@ namespace Cryptforge.Tests
             return new[]
             {
                 Make("V0.1 + 2 halls", l => l.ExtraHalls = 2),
-                Make("V0.1 + Warden x1.25 (share 6.25)", l => l.WardenHealthShare = 6.25f),
+                Make("V0.1 + Warden x1.25", l => l.WardenHealthShare = WardenRule.GateHealthShare * 1.25f),
                 Make("V0.1 + halls held 30 s", l => l.HallHoldSeconds = 30f),
                 Make("V0.1 + halls held 45 s + XP 0.1", l => { l.HallHoldSeconds = 45f; l.HordeExperienceShare = 0.1f; })
+            };
+        }
+
+        // docs/41 step 4's candidates for a 45-65 s Warden (FOUNDRY_LEVERS=3), as the 2026-11-03 measurement ran them
+        // (docs/41, status): the floor before it, then health alone, health that grows with the floor's clock, a blow
+        // landing in full only in a window after the Warden's own, and the Warden holding its weapon through the windup
+        // and a recovery after the blow - the shipped floor holds it WardenRule.RecoverySeconds at GateHealthShare.
+        public static Lever[] WardenLevers()
+        {
+            Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
+            {
+                DescentSimulation.FoundryLevers levers = Shipped().Copy(name);
+                set(levers);
+                return new Lever { Name = name, Estimate = "warden", Levers = levers };
+            }
+
+            // The Warden as it was before 2026-11-03, its weapon never held, at a health share.
+            Action<DescentSimulation.FoundryLevers> Unheld(float share) => l =>
+            {
+                l.WardenHealthShare = share;
+                l.WardenRecoverySeconds = -1f;
+            };
+            Action<DescentSimulation.FoundryLevers> Held(float recovery, float share) => l =>
+            {
+                l.WardenHealthShare = share;
+                l.WardenRecoverySeconds = recovery;
+            };
+
+            return new[]
+            {
+                Make("Before 2026-11-03: share 5, never held", Unheld(5f)),
+                Make("A: share 6", Unheld(6f)),
+                Make("A: share 7", Unheld(7f)),
+                Make("A: share 8", Unheld(8f)),
+                Make("A: share 9", Unheld(9f)),
+                Make("A: share 10", Unheld(10f)),
+                Make("B: share 7 at 3:30, growing with the clock", l => { Unheld(7f)(l); l.WardenClockFrom = 210f; }),
+                Make("B: share 8 at 3:30, growing with the clock", l => { Unheld(8f)(l); l.WardenClockFrom = 210f; }),
+                Make("C: share 5, blows at 0.5 outside 2 s after its own", l => { Unheld(5f)(l); l.WardenGuardShare = .5f; l.WardenGuardOpenSeconds = 2f; }),
+                Make("C: share 5, blows at 0.6 outside 2 s after its own", l => { Unheld(5f)(l); l.WardenGuardShare = .6f; l.WardenGuardOpenSeconds = 2f; }),
+                Make("D: share 5, held through the windup", Held(0f, 5f)),
+                Make("D: share 5, held through the windup and 1.5 s after", Held(1.5f, 5f)),
+                Make("W: share 8.5, held through the windup", Held(0f, 8.5f)),
+                Make("W: share 8.5, held + 1 s", Held(1f, 8.5f)),
+                Make("W: share 8.5, held + 2 s", Held(2f, 8.5f)),
+                Make("W: share 8, held + 1.5 s", Held(1.5f, 8f)),
+                Make("W: share 9, held + 1.5 s", Held(1.5f, 9f)),
+                Make("W: share 9, held + 2 s", Held(2f, 9f))
             };
         }
 
@@ -196,14 +247,55 @@ namespace Cryptforge.Tests
             SegmentTable(md, baselines);
             LevelTable(md, baselines);
             WardenTable(md, baselines);
+            WardenBudgetTable(md, baselines);
             DeathTable(md, baselines);
             TtkTable(md, baselines);
             BucketTable(md, baselines);
             OfferTable(md, baselines);
             GateLines(md, baselines);
             if (levers != null && levers.Count > 0)
+            {
                 LeverTable(md, baselines, levers);
+                WardenLeverTable(md, baselines, levers);
+            }
             return md.ToString();
+        }
+
+        // Each lever's Warden against the shipped floor's on the same seeds: the fight, the floor's clears and the deaths at
+        // the Warden, the gate's acceptance (docs/41 step 4: a P50 fight of 45-65 s) and the clears the lever costs.
+        private static void WardenLeverTable(StringBuilder md, IReadOnlyList<Batch> baselines,
+            IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
+        {
+            md.AppendLine("### The Warden's fight by lever (same seeds)").AppendLine();
+            md.AppendLine("Fight: felled fights, P10 / P50 / P90 seconds from walking out of the gate to falling. Cleared: the floor's clears and the change in points against the floor the lever is read against (Against, as in the levers' table). At the Warden: deaths there of the runs that reached it. Cost: the hero's health lost in the fight, mean over the runs that reached it. " +
+                          "Clock at clear: the floor's clock as the Warden fell, P50 / P90 of the clears. Into the overrun: the runs that reached the Warden before the clock's " + HordeClock.TargetSeconds.ToString("0", CultureInfo.InvariantCulture) + " s and were still fighting it at " + HordeClock.TargetSeconds.ToString("0", CultureInfo.InvariantCulture) + " s, then the clears that ended past it.").AppendLine();
+            md.AppendLine("| Lever | Against | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: fight P10 / P50 / P90 / cleared (change) / at the Warden / Warden health P50 / cost / clock at clear P50, P90 / into the overrun: fights, clears")) + " |");
+            md.AppendLine("|---|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
+
+            string Cells(Batch with, Batch baseline)
+            {
+                DescentSimulation.FoundryResult[] reached = with.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
+                DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
+                DescentSimulation.FoundryResult[] cleared = with.Cleared.ToArray();
+                int died = reached.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f);
+                double change = 100.0 * (with.ClearedCount - baseline.ClearedCount) / Math.Max(1, with.Runs.Length);
+                double cost = reached.Length == 0 ? double.NaN
+                    : reached.Average(r => r.TakenFromWarden + r.TakenFromSlams + r.FightTakenFromHorde + r.FightTakenFromPit);
+                int crossed = reached.Count(r => r.ClockAtGate < HordeClock.TargetSeconds && r.Clock >= HordeClock.TargetSeconds);
+                int overrun = cleared.Count(r => r.Clock >= HordeClock.TargetSeconds);
+                return $"{Spread(felled.Select(r => r.BossSeconds))} / {Pct(with.ClearedCount, with.Runs.Length)} ({Signed(change)}) / " +
+                       $"{died} of {reached.Length} / {F(Median(reached.Select(r => r.WardenHealth)))} / {F(cost)} / " +
+                       $"{F(Median(cleared.Select(r => r.Clock)))}, {F(Percentile(cleared.Select(r => r.Clock), 90))} / " +
+                       $"{crossed} ({Pct(crossed, reached.Length)}), {overrun} ({Pct(overrun, cleared.Length)})";
+            }
+
+            md.AppendLine("| shipped | - | " + string.Join(" | ", baselines.Select(b => Cells(b, b))) + " |");
+            foreach ((Lever lever, Batch[] batches) in levers)
+            {
+                IReadOnlyList<Batch> against = Against(lever, baselines, levers, out string againstName);
+                md.AppendLine($"| {lever.Name} | {againstName} | " + string.Join(" | ", baselines.Select((b, h) => Cells(batches[h], against[h]))) + " |");
+            }
+            md.AppendLine();
         }
 
         private static void FloorTable(StringBuilder md, IReadOnlyList<Batch> batches)
@@ -285,6 +377,40 @@ namespace Cryptforge.Tests
                               $"{felled.Count(r => r.BossSeconds <= 5f)} | {diedThere.Length} ({F(Median(diedThere.Select(r => r.BossLeft)), "0.00")}) | " +
                               $"{F(Median(reached.Select(r => r.WardenHealth)))} | {F(slams, "0.0")} / {F(hits, "0.00")} | " +
                               $"{F(Median(reached.Select(r => r.TakenFromWarden + r.TakenFromSlams)))} |");
+            }
+            md.AppendLine();
+        }
+
+        // docs/41 step 4's budget, HP_boss = D_focus * uptime * damageable_seconds, read from the fights the hero won: its
+        // own damage on the Warden per second the Warden stood within the reach of its longest weapon, the share of the
+        // fight after the reveal the Warden stood there, and those seconds; what each source took off the Warden; and,
+        // over every run that reached it, the hero's health as it walked out, what the fight cost and who killed whom.
+        private static void WardenBudgetTable(StringBuilder md, IReadOnlyList<Batch> batches)
+        {
+            md.AppendLine("### The Warden's health budget (docs/41 step 4)").AppendLine();
+            md.AppendLine("Felled fights: D_focus is the hero's own damage on the Warden (weapons, burn, ability) per second the Warden stood within the reach of the hero's longest weapon; uptime is those seconds over the fight after the 2.6 s reveal. " +
+                          "Taken off: the Warden's health by source, as a share of its maximum (mean). Health and cost: every run that reached the Warden; cost is the hero's health lost in the fight by what dealt it.").AppendLine();
+            md.AppendLine("| Hero | Felled | Level at the gate P50 | D_focus P10 / P50 / P90 | Uptime P10 / P50 / P90 | After the reveal s P10 / P50 / P90 | Taken off: weapons / burn / ability / pit | Hero health at the gate P50 (maximum P50) | Fight cost mean: Warden / slams / horde / pit | Died at the Warden (of reached), killing blow |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|");
+            foreach (Batch b in batches)
+            {
+                DescentSimulation.FoundryResult[] reached = b.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
+                DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
+                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f).ToArray();
+                string Share(Func<DescentSimulation.FoundryResult, float> part) =>
+                    felled.Length == 0 ? "-" : F(100.0 * felled.Average(r => part(r) / Math.Max(1f, r.WardenHealth))) + "%";
+                double Mean(Func<DescentSimulation.FoundryResult, float> value) =>
+                    reached.Length == 0 ? double.NaN : reached.Average(value);
+                string killers = string.Join(", ", diedThere.GroupBy(r => r.Killer ?? "?").OrderByDescending(g => g.Count())
+                    .Select(g => $"{g.Key} x{g.Count()}"));
+                md.AppendLine($"| {b.Hero.Name} | {felled.Length} | {F(Median(reached.Select(r => (float)r.LevelAtGate)))} | " +
+                              $"{Spread(felled.Where(r => r.WardenInReach > 0f).Select(r => (r.WardenFromWeapons + r.WardenFromBurn + r.WardenFromAbility) / r.WardenInReach))} | " +
+                              $"{Spread(felled.Where(r => r.WardenFought > 0f).Select(r => r.WardenInReach / r.WardenFought), "0.00")} | " +
+                              $"{Spread(felled.Select(r => r.WardenFought))} | " +
+                              $"{Share(r => r.WardenFromWeapons)} / {Share(r => r.WardenFromBurn)} / {Share(r => r.WardenFromAbility)} / {Share(r => r.WardenFromPit)} | " +
+                              $"{F(Median(reached.Select(r => r.HeroHealthAtGate)))} ({F(Median(reached.Select(r => r.HeroMaximumAtGate)))}) | " +
+                              $"{F(Mean(r => r.TakenFromWarden))} / {F(Mean(r => r.TakenFromSlams))} / {F(Mean(r => r.FightTakenFromHorde))} / {F(Mean(r => r.FightTakenFromPit))} | " +
+                              $"{diedThere.Length} ({Pct(diedThere.Length, reached.Length)}){(killers.Length > 0 ? ": " + killers : string.Empty)} |");
             }
             md.AppendLine();
         }
@@ -432,6 +558,23 @@ namespace Cryptforge.Tests
             md.AppendLine();
         }
 
+        // The floor a lever is read against: the shipped one, or the row of its list that its Basis names.
+        private static IReadOnlyList<Batch> Against(Lever lever, IReadOnlyList<Batch> baselines,
+            IReadOnlyList<(Lever Lever, Batch[] Batches)> levers, out string name)
+        {
+            name = "shipped";
+            if (lever.Basis == null)
+                return baselines;
+            foreach ((Lever row, Batch[] rowBatches) in levers)
+                if (row.Levers.Name == lever.Basis)
+                {
+                    name = lever.Basis;
+                    return rowBatches;
+                }
+            name = $"shipped (no {lever.Basis} row)";
+            return baselines;
+        }
+
         private static void LeverTable(StringBuilder md, IReadOnlyList<Batch> baselines,
             IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
         {
@@ -441,19 +584,7 @@ namespace Cryptforge.Tests
             md.AppendLine("|---|---|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
             foreach ((Lever lever, Batch[] batches) in levers)
             {
-                // The lever's floor: the shipped one, or the row of this list its Basis names.
-                IReadOnlyList<Batch> against = baselines;
-                string againstName = "shipped";
-                if (lever.Basis != null)
-                {
-                    againstName = $"shipped (no {lever.Basis} row)";
-                    foreach ((Lever row, Batch[] rowBatches) in levers)
-                        if (row.Levers.Name == lever.Basis)
-                        {
-                            against = rowBatches;
-                            againstName = lever.Basis;
-                        }
-                }
+                IReadOnlyList<Batch> against = Against(lever, baselines, levers, out string againstName);
                 var cells = new List<string>();
                 for (int h = 0; h < baselines.Count; h++)
                 {
@@ -488,7 +619,8 @@ namespace Cryptforge.Tests
         public static string Csv(IEnumerable<Batch> batches)
         {
             var csv = new StringBuilder();
-            csv.AppendLine("hero,levers,seed,outcome,floor_s,uptime,engaged,walk_s,node_s,boss_s,exit_s,gate_wait_s,level_gate,level_end,hp,max_hp,wave_kills,horde_kills,horde_mean,horde_max,clock_gate,clock_end,slams,slam_hits,eruptions,pit_hero,warden_hp,boss_left,death_room,death_phase,killer,first_strike_s,weapons,tomes,offers,drops,swept,altars,chests,room_s,walks");
+            csv.AppendLine("hero,levers,seed,outcome,floor_s,uptime,engaged,walk_s,node_s,boss_s,exit_s,gate_wait_s,level_gate,level_end,hp,max_hp,wave_kills,horde_kills,horde_mean,horde_max,clock_gate,clock_end,slams,slam_hits,eruptions,pit_hero,warden_hp,boss_left,death_room,death_phase,killer,first_strike_s,weapons,tomes,offers,drops,swept,altars,chests,room_s,walks," +
+                           "difficulty_gate,hp_gate,max_hp_gate,warden_weapons,warden_burn,warden_ability,warden_pit,warden_fought_s,warden_in_reach_s,fight_warden,fight_slams,fight_horde,fight_pit");
             foreach (Batch b in batches)
             foreach (DescentSimulation.FoundryResult r in b.Runs)
             {
@@ -501,7 +633,11 @@ namespace Cryptforge.Tests
                     Quote(r.Killer), Num(r.FirstStrikeSeconds), Quote(r.Weapons), Quote(r.Tomes), r.Offers, r.DropsCollected,
                     r.DropsSwept, r.AltarsTaken, r.ChestsOpened,
                     Quote(string.Join(" ", r.RoomSeconds.Select(s => Num(s, "0.0")))),
-                    Quote(string.Join(" ", r.WalkSeconds.Select(s => Num(s, "0.0"))))));
+                    Quote(string.Join(" ", r.WalkSeconds.Select(s => Num(s, "0.0")))),
+                    Num(r.DifficultyAtGate), Num(r.HeroHealthAtGate, "0.0"), Num(r.HeroMaximumAtGate, "0"), Num(r.WardenFromWeapons, "0"),
+                    Num(r.WardenFromBurn, "0"), Num(r.WardenFromAbility, "0"), Num(r.WardenFromPit, "0"), Num(r.WardenFought),
+                    Num(r.WardenInReach), Num(r.TakenFromWarden, "0.0"), Num(r.TakenFromSlams, "0.0"), Num(r.FightTakenFromHorde, "0.0"),
+                    Num(r.FightTakenFromPit, "0.0")));
             }
             return csv.ToString();
         }

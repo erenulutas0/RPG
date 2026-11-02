@@ -18,6 +18,28 @@ namespace Cryptforge.Tests
             Assert.That(clock.IsMarked,Is.False);Assert.That(clock.Seconds,Is.Zero,"And round again from the blow.");
         }
 
+        // The Warden swings nothing from the mark until its hammer is out of the floor again (docs/41 step 4's window).
+        [Test] public void TheWeaponIsHeldFromTheMarkUntilTheHammerIsOutOfTheFloor()
+        {
+            var clock=new WardenSlamClock();
+            Assert.That(clock.HoldsWeapon,Is.False,"Free before the first mark.");
+            clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph-.01f,false);
+            Assert.That(clock.HoldsWeapon,Is.False);
+            Assert.That(clock.Advance(.02f,false),Is.EqualTo(WardenSlamClock.Step.Marked));
+            Assert.That(clock.HoldsWeapon,Is.True,"Winding the hammer up.");
+            Assert.That(clock.Advance(WardenRule.Telegraph+.01f,false),Is.EqualTo(WardenSlamClock.Step.Slammed));
+            Assert.That(clock.HoldsWeapon,Is.True,"The hammer is in the floor.");
+            clock.Advance(WardenRule.RecoverySeconds-.02f,false);
+            Assert.That(clock.HoldsWeapon,Is.True);
+            clock.Advance(.04f,false);
+            Assert.That(clock.HoldsWeapon,Is.False,"Then it swings again until the next mark.");
+            Assert.That(clock.HoldsWeaponFor(WardenRule.RecoverySeconds+1f),Is.True,"A longer recovery holds it longer.");
+            Assert.That(WardenRule.RecoverySeconds,Is.LessThan(WardenRule.SlamEveryEnraged-WardenRule.Telegraph),
+                "Even enraged it swings between one blow and the next mark.");
+            clock.Reset();
+            Assert.That(clock.HoldsWeapon,Is.False,"A new fight starts free.");
+        }
+
         [Test] public void EnragedTheBlowsComeFasterBelowHalfHealth()
         {
             var calm=new WardenSlamClock();var enraged=new WardenSlamClock();

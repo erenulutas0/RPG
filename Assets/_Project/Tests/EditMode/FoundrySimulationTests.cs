@@ -201,6 +201,13 @@ namespace Cryptforge.Tests
             if (warden.LevelAtGate >= 0)
                 Assert.That(warden.WardenHealth / warden.DifficultyAtGate, Is.EqualTo(DescentSimulation.Warden.Health * 7.5f).Within(1e-3f));
 
+            // The Warden's health grown with the floor's clock as it walks out, as a horde enemy's is before the overrun.
+            DescentSimulation.FoundryResult clocked = Run(l => { l.WardenHealthShare = 7f; l.WardenClockFrom = 210f; });
+            float Grown(float seconds) => 1f + HordeClock.HealthGrowth * Math.Min(seconds, HordeClock.TargetSeconds) / HordeClock.TargetSeconds;
+            if (clocked.LevelAtGate >= 0)
+                Assert.That(clocked.WardenHealth / clocked.DifficultyAtGate,
+                    Is.EqualTo(DescentSimulation.Warden.Health * 7f * Grown(clocked.ClockAtGate) / Grown(210f)).Within(.01f));
+
             DescentSimulation.FoundryResult gate = Run(l => l.GateNotBeforeSeconds = 240f);
             if (gate.LevelAtGate >= 0)
                 Assert.That(gate.ClockAtGate, Is.GreaterThanOrEqualTo(240f), "the gate waits for the clock");
@@ -209,14 +216,34 @@ namespace Cryptforge.Tests
             Assert.That(thin.Outcome, Is.Not.EqualTo(DescentSimulation.FoundryOutcome.Timeout));
         }
 
-        // Every lever and combination names a floor the shipped one is not, and a research lever one its own floor (the
-        // pre-V0.1 row it is read against) is not either, so no row of the tables reads a floor against itself.
+        // The shipped floor's Warden is the game's - WardenRule's health share and recovery, no other candidate on - and every
+        // candidate of the Warden's batch (FOUNDRY_LEVERS=3) is another Warden.
+        [Test]
+        public void TheShippedWardenIsTheGamesAndEveryWardenLeverMovesIt()
+        {
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            Assert.That(shipped.WardenHealthShare, Is.EqualTo(WardenRule.GateHealthShare));
+            Assert.That(shipped.WardenRecoverySeconds, Is.EqualTo(WardenRule.RecoverySeconds));
+            Assert.That(shipped.WardenClockFrom, Is.Zero);
+            Assert.That(shipped.WardenGuardShare, Is.EqualTo(1f));
+            foreach (FoundryBatch.Lever lever in FoundryBatch.WardenLevers())
+            {
+                DescentSimulation.FoundryLevers l = lever.Levers;
+                bool moves = l.WardenHealthShare != shipped.WardenHealthShare ||
+                             l.WardenRecoverySeconds != shipped.WardenRecoverySeconds ||
+                             l.WardenClockFrom != shipped.WardenClockFrom || l.WardenGuardShare != shipped.WardenGuardShare;
+                Assert.That(moves, Is.True, lever.Name);
+            }
+        }
+
+        // Every lever, combination and Warden candidate names a floor the shipped one is not, and a research lever one its
+        // own floor (the pre-V0.1 row it is read against) is not either, so no row of the tables reads a floor against itself.
         [Test]
         public void EveryLeverAndComboMovesAKnob()
         {
             DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
             FoundryBatch.Lever[] research = FoundryBatch.ResearchLevers();
-            foreach (FoundryBatch.Lever lever in research.Concat(FoundryBatch.ComboLevers()))
+            foreach (FoundryBatch.Lever lever in research.Concat(FoundryBatch.ComboLevers()).Concat(FoundryBatch.WardenLevers()))
             {
                 Assert.That(SameKnobs(lever.Levers, shipped), Is.False, lever.Name + " moves a knob of the shipped floor");
                 if (lever.Basis == null)

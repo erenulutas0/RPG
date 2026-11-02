@@ -19,7 +19,8 @@ namespace Cryptforge.Tests
     // A floor costs about a third of a second of one core in Release (two to three times that in Debug): the shipped floor
     // for both heroes at 200 seeds takes about fifteen seconds on ten threads, and each lever about fifteen seconds more
     // (FoundryBatch.ResearchLevers: the pre-V0.1 floor, the research's twelve on it and V0.1's three taken away;
-    // FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
+    // FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead, 3 the Warden's candidates,
+    // FoundryBatch.WardenLevers). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
     // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
@@ -48,7 +49,8 @@ namespace Cryptforge.Tests
             var baselines = heroes.Select(hero => FoundryBatch.Run(hero, FoundryBatch.Shipped(), batchSeeds, parallel)).ToArray();
             var leverRuns = new List<(FoundryBatch.Lever, FoundryBatch.Batch[])>();
             if (levers)
-                foreach (FoundryBatch.Lever lever in leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
+                foreach (FoundryBatch.Lever lever in leverSet == 3 ? FoundryBatch.WardenLevers() :
+                         leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
                     leverRuns.Add((lever, heroes.Select(hero => FoundryBatch.Run(hero, lever.Levers, batchSeeds, parallel)).ToArray()));
 
             var md = new StringBuilder();

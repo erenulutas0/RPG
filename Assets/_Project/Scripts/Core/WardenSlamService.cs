@@ -6,13 +6,16 @@ using UnityEngine;
 namespace Cryptforge.Core
 {
     // The foundry gate boss's slams in the scene (WardenRule): from the moment the Warden has walked out of the gate and
-    // the camera has come back, the clock marks where the hero stands and the hammer lands there a telegraph later. Only
-    // the foundry's gate boss slams; the hall's Warden, the Descent simulation and every other enemy fight as authored.
+    // the camera has come back, the clock marks where the hero stands and the hammer lands there a telegraph later. From
+    // the mark until the hammer is out of the floor again the Warden's own weapon is held (WardenSlamClock.HoldsWeapon).
+    // Only the foundry's gate boss slams; the hall's Warden, the Descent simulation and every other enemy fight as
+    // authored.
     public sealed class WardenSlamService : MonoBehaviour
     {
         private CombatSetup _setup;
         private Health _hero;
         private Health _boss;
+        private AttackController _bossAttack;
         private readonly WardenSlamClock _clock = new WardenSlamClock();
 
         public WardenSlamClock Clock => _clock;
@@ -43,7 +46,9 @@ namespace Cryptforge.Core
             Health gate = encounter.GateBoss;
             if (gate != _boss)
             {
+                Hold(false);
                 _boss = gate;
+                _bossAttack = gate != null ? gate.GetComponent<AttackController>() : null;
                 IsEnraged = false;
                 encounter.SetBossEnraged(false);
                 _clock.Reset();
@@ -77,6 +82,14 @@ namespace Cryptforge.Core
                     Slammed?.Invoke(LastSlamHit);
                     break;
             }
+            Hold(_clock.HoldsWeapon);
+        }
+
+        // The Warden's weapon waits while its hammer is going up or is in the floor.
+        private void Hold(bool held)
+        {
+            if (_bossAttack != null)
+                _bossAttack.IsHeld = held;
         }
     }
 }
