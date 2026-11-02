@@ -92,6 +92,7 @@ namespace Cryptforge.Content
         [SerializeField] private string _forgeHintReadyFormat;
         [SerializeField] private string _forgeHintNextFormat;
         [SerializeField] private string _forgeHintCompleteFormat;
+        [SerializeField] private string _forgeHintRelicsCompleteFormat = "Forge gold {0}: every relic is forged";
         [SerializeField] private string _forgeButtonLabel;
         [SerializeField] private string _forgeTitle;
         [SerializeField] private string _forgeStatusFormat;
@@ -169,6 +170,9 @@ namespace Cryptforge.Content
         public string ForgeHintNextFormat => _forgeHintNextFormat;
         // {0} profile gold.
         public string ForgeHintCompleteFormat => _forgeHintCompleteFormat;
+        // In its place when the next run's hero carries its own weapon only (Ilya): its rack has nothing to forge while
+        // the Vanguard's may, so only the relics are said to be complete. {0} profile gold.
+        public string ForgeHintRelicsCompleteFormat => _forgeHintRelicsCompleteFormat;
         public string ForgeButtonLabel => _forgeButtonLabel;
         public string ForgeTitle => _forgeTitle;
         // {0} profile gold, {1} deepest floor cleared.

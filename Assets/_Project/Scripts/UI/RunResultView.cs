@@ -126,14 +126,18 @@ namespace Cryptforge.UI
             return entries.Count > 0 ? string.Join(", ", entries) : _text.ResultNoUpgrades;
         }
 
-        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock, relic or weapon.
+        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock, relic or weapon, that
+        // the next run's hero can use.
         private string DescribeForge()
         {
             int gold = _setup.Profile.Gold;
             RelicOption relic = _setup.Relics.NextUnlock;
             WeaponOption weapon = _setup.Weapons.NextUnlock;
+            // A hero offered its own weapon alone (Ilya) has no weapon to forge toward while the Vanguard's rack may
+            // still sell some: with every relic forged, only the relics are complete, not the whole forge.
             if (relic == null && weapon == null)
-                return string.Format(_text.ForgeHintCompleteFormat, gold);
+                return string.Format(_setup.Weapons.OnlyStartingWeapon ? _text.ForgeHintRelicsCompleteFormat
+                    : _text.ForgeHintCompleteFormat, gold);
 
             // The cheaper one is nearer; a relic wins a tie.
             bool relicFirst = weapon == null || (relic != null && relic.Price <= weapon.Price);
