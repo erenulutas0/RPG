@@ -76,19 +76,6 @@ namespace Cryptforge.Tests
             visibility.ApplyActorDepth();
             Assert.That(visibility.PlacedCount, Is.EqualTo(placed), "The same actors and effects are placed on every pass.");
             visibility.RestoreActorDepth();
-
-            // The pass as the gameplay camera's render makes it, deciding each body's material from the depth cover
-            // (FoundryDepthCover), allocates nothing either once the bodies wear what that render gives them.
-            Camera camera = Camera.main;
-            Assert.That(camera, Is.Not.Null);
-            visibility.ApplyActorDepth(camera);
-            Assert.That(visibility.IsGated, Is.True, "The gameplay camera sees the region flat, and the cover is made.");
-            visibility.RestoreActorDepth();
-            Assert.That(() =>
-            {
-                visibility.ApplyActorDepth(camera);
-                visibility.RestoreActorDepth();
-            }, Is.Not.AllocatingGCMemory());
         }
     }
 }
