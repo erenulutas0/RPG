@@ -28,6 +28,10 @@ namespace Cryptforge.Combat
             !IsComplete && RoomIndex == _waves.Length - 1 && _waves[RoomIndex] > 0 && !_endless[RoomIndex] &&
             WaveIndex == _waves[RoomIndex] - 1;
 
+        // The current room's last wave is the one under way (an endless room has none).
+        public bool IsLastWaveOfRoom =>
+            !IsComplete && RoomIndex >= 0 && !_endless[RoomIndex] && WaveIndex == _waves[RoomIndex] - 1;
+
         public FloorProgress(IReadOnlyList<int> wavesPerRoom, IReadOnlyList<bool> endlessRooms = null)
         {
             if (wavesPerRoom == null || wavesPerRoom.Count == 0)

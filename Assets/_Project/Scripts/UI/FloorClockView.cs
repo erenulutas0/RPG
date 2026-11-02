@@ -34,6 +34,7 @@ namespace Cryptforge.UI
         // The whole second the label says, and in which mode; the string is rebuilt only when either moves.
         private int _shownSecond = -1;
         private bool _shownOverrun;
+        private bool _shownGate;
         private bool _underBoss;
         private float _beatStart = -1f;
 
@@ -41,6 +42,7 @@ namespace Cryptforge.UI
         public bool IsShown => _label != null && _label.gameObject.activeSelf;
         public string ShownText => _label != null ? _label.text : string.Empty;
         public bool IsOverrunShown => IsShown && _shownOverrun;
+        public bool IsGateShown => IsShown && _shownGate;
         public bool IsUnderBoss => _underBoss;
         public Color ShownColor => _label != null ? _label.color : Color.clear;
 
@@ -104,9 +106,23 @@ namespace Cryptforge.UI
 
             float clock = _encounters.FloorClockSeconds;
             bool overrun = HordeClock.IsOvertime(clock);
-            int second = HordeClock.ShownSecond(clock);
-            if (second == _shownSecond && overrun == _shownOverrun)
+            bool gate = _encounters.IsHoldingForGate;
+            int second = gate ? Mathf.CeilToInt(_encounters.GateOpensIn) : HordeClock.ShownSecond(clock);
+            if (second == _shownSecond && overrun == _shownOverrun && gate == _shownGate)
                 return;
+            if (gate)
+            {
+                // The gate's own count, in ember and without the beat: a wait, not a warning.
+                _shownSecond = second;
+                _shownOverrun = overrun;
+                _shownGate = true;
+                _beatStart = -1f;
+                _label.rectTransform.localScale = Vector3.one;
+                _label.text = string.Format(_text.GateOpensFormat, second / 60, second % 60);
+                _label.color = Ember;
+                return;
+            }
+            _shownGate = false;
             bool lastMinute = !overrun && HordeClock.Remaining(clock) <= LastMinuteSeconds;
             // A beat on each new second of the last minute and of the overrun, not on the label's first showing.
             if (_shownSecond >= 0 && (overrun || lastMinute))

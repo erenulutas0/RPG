@@ -185,8 +185,8 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryResult halls = Run(l => l.ExtraHalls = 2);
             Assert.That(halls.Kinds.Count(k => k == RoomKind.Combat), Is.EqualTo(5));
 
-            DescentSimulation.FoundryResult surges = Run(l => l.HallSurges = 2);
-            Assert.That(surges.WaveKills, Is.GreaterThan(shipped.WaveKills), "two surges a hall send more node enemies");
+            DescentSimulation.FoundryResult surges = Run(l => l.HallSurges += 2);
+            Assert.That(surges.WaveKills, Is.GreaterThan(shipped.WaveKills), "two more surges a hall send more node enemies");
 
             DescentSimulation.FoundryResult held = Run(l => l.HallHoldSeconds = 45f);
             for (int room = 0; room < 3; room++)

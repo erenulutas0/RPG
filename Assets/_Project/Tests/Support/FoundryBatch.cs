@@ -73,8 +73,10 @@ namespace Cryptforge.Tests
                 Make("Halls held 45 s", "+99..+111", l => l.HallHoldSeconds = 45f),
                 Make("+2 halls", "+34..+54", l => l.ExtraHalls = 2),
                 Make("Warden health x1.5 (share 7.5)", "+17..+24", l => l.WardenHealthShare = 7.5f),
-                Make("Hall surges 0 -> 2", "+12..+26", l => l.HallSurges = 2),
-                Make("Second elite", "+12..+26", l => l.ExtraElites = 1),
+                // V0.1 shipped the surges, the second elite and the gate at 3:30 (2026-11-02): these read them taken away.
+                Make("No hall surges (2 -> 0)", "-12..-26", l => l.HallSurges = 0),
+                Make("No second elite", "-12..-26", l => l.ExtraElites = 0),
+                Make("Gate opens as the room clears (no 3:30)", "about -100", l => l.GateNotBeforeSeconds = 0f),
                 Make("Node waves x1.5 health", "+5..+15", l => l.NodeHealthScale = 1.5f),
                 Make("ExperienceShare 0.2 -> 0.1", "+4..+10", l => l.HordeExperienceShare = 0.1f),
                 Make("Horde health share 0.3 -> 0.6", "0..+3", l => l.HordeHealthShare = 0.6f),

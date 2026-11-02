@@ -45,7 +45,8 @@ namespace Cryptforge.Tests
             return (T)field.GetValue(null);
         }
 
-        // Floor_EmberHalls as the foundry plays it: the rooms' kinds and waves, the horde's roles, no surges, climb-scaled.
+        // Floor_EmberHalls as the foundry plays it: the rooms' kinds and waves, the horde's roles, climb-scaled, and its V0.1
+        // knobs (surges, extra elites, the gate's clock) as the simulation's shipped levers.
         [Test]
         public void TheFoundryFloorIsTheAsset()
         {
@@ -54,6 +55,8 @@ namespace Cryptforge.Tests
             Assert.That(asset.Id, Is.EqualTo(floor.Id));
             Assert.That(asset.ClimbScaled, Is.True, "the simulation scales the floor by ClimbScaling");
             Assert.That(asset.FoundryHallSurges, Is.EqualTo(FoundryBatch.Shipped().HallSurges));
+            Assert.That(asset.FoundryExtraElites, Is.EqualTo(FoundryBatch.Shipped().ExtraElites));
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(FoundryBatch.Shipped().GateNotBeforeSeconds));
             Assert.That(asset.RoomCount, Is.EqualTo(floor.Kinds.Length));
             for (int room = 0; room < asset.RoomCount; room++)
             {

@@ -29,6 +29,8 @@ namespace Cryptforge.Content
         // left before the floor is overrun; once it is, how long ago.
         [SerializeField] private string _floorClockFormat = "{0}:{1:00}";
         [SerializeField] private string _overrunFormat = "OVERRUN +{0}:{1:00}";
+        // Said by the floor clock while the cleared room before the gate holds for the floor's clock.
+        [SerializeField] private string _gateOpensFormat = "Gate opens in {0}:{1:00}";
         public string FloorClockFormat => _floorClockFormat;
         // The hero chooser on the Relic Forge panel (docs/45): {0} the hero, {1} the character's own name or, while a hero
         // is locked, HeroLockedFormat - {0} that hero, {1} how to unlock it.
@@ -37,6 +39,7 @@ namespace Cryptforge.Content
         public string HeroChoiceFormat => _heroChoiceFormat;
         public string HeroLockedFormat => _heroLockedFormat;
         public string OverrunFormat => _overrunFormat;
+        public string GateOpensFormat => _gateOpensFormat;
         // The loadout badges on the foundry's top panel (docs/42 section 4). {0} a weapon's or tome's short name; the
         // evolved form marks a weapon that has taken its evolution.
         [SerializeField] private string _loadoutEvolvedFormat = "{0}+";

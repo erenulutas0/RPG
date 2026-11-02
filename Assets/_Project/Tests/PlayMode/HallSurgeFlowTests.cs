@@ -23,13 +23,14 @@ namespace Cryptforge.Tests
             yield return SceneManager.UnloadSceneAsync(old);TestProfile.End();
         }
 
-        [UnityTest, Timeout(90000)] public IEnumerator TheFirstHallSendsItsThreeAuthoredWavesWithTheSurgesOff()
+        [UnityTest, Timeout(90000)] public IEnumerator TheFirstHallSendsItsThreeAuthoredWavesThenTwoSurges()
         {
             File.WriteAllText(DevelopmentStart.RegionPreviewPath,"foundry");
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");yield return null;
             var setup=Object.FindFirstObjectByType<CombatSetup>();var encounters=setup.Encounters;
-            Assert.That(encounters.Floor.FoundryHallSurges,Is.Zero,"The climb's floors name no surges.");
-            Assert.That(encounters.WaveCount,Is.EqualTo(encounters.CurrentRoom.WaveCount),"Ember Hall plays as authored.");
+            // V0.1 (the owner, 2026-11-02): the first floor's halls send two surges after their authored waves.
+            Assert.That(encounters.Floor.FoundryHallSurges,Is.EqualTo(2),"Two surges a hall on the first floor.");
+            Assert.That(encounters.WaveCount,Is.EqualTo(encounters.CurrentRoom.WaveCount+2),"Ember Hall's three, then two surges.");
             float start=Time.realtimeSinceStartup+20;
             while(encounters.AliveEnemyCount==0&&Time.realtimeSinceStartup<start)yield return null;
             var seen=new List<string>{PackTestUtility.Describe(encounters)};
@@ -46,6 +47,9 @@ namespace Cryptforge.Tests
                 "1.1:Ember Hall:Grunt+Cinder Mite","1.2:Ember Hall:Cinder Mite+Cinder Mite+Cinder Mite",
                 "1.3:Ember Hall:Grunt+Cinder Mite+Cinder Mite+Cinder Mite"
             }));
+            Assert.That(seen.Count,Is.GreaterThanOrEqualTo(5),"Two surge waves follow the authored three.");
+            Assert.That(seen[3],Does.StartWith("1.4:Ember Hall:"));
+            Assert.That(seen[4],Does.StartWith("1.5:Ember Hall:"));
             Assert.That(encounters.RoomNumber,Is.EqualTo(2),"After its waves the floor moves on.");
             LogAssert.NoUnexpectedReceived();
         }

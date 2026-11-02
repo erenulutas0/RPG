@@ -17,6 +17,13 @@ namespace Cryptforge.Content
         // On the foundry, how many surge waves each combat room sends after its authored ones (HallSurgeRule). The hall
         // arena and the Descent simulation play the authored waves only.
         [SerializeField, Min(0)] private int _foundryHallSurges;
+        // On the foundry, the floor clock (HordeClock) the gate waits for: the room before the gate boss holds once
+        // cleared until the clock reads this many seconds, the horde pressing on meanwhile (V0.1 decision, the owner
+        // 2026-11-02: a 4-6 minute floor). Zero, the gate opens as the room clears.
+        [SerializeField, Min(0f)] private float _foundryGateNotBeforeSeconds;
+        // On the foundry, how many more elite rooms - copies of the floor's first - stand before its gate boss (V0.1, the
+        // owner 2026-11-02). The hall arena and the Descent play the authored rooms only.
+        [SerializeField, Min(0)] private int _foundryExtraElites;
         // On the foundry, the roles of the floor's continuous horde (HordeDirector), lightest first: the director weights
         // the early roles in the floor's opening and the later ones as it presses. None, no horde.
         [SerializeField] private EnemyDefinition[] _foundryHorde;
@@ -30,6 +37,8 @@ namespace Cryptforge.Content
         public float EnemyDamageMultiplier => _enemyDamageMultiplier;
         public bool ClimbScaled => _climbScaled;
         public int FoundryHallSurges => _foundryHallSurges;
+        public float FoundryGateNotBeforeSeconds => _foundryGateNotBeforeSeconds;
+        public int FoundryExtraElites => _foundryExtraElites;
         public int HordeRoleCount => _foundryHorde?.Length ?? 0;
         public EnemyDefinition HordeRoleAt(int index) => _foundryHorde[index];
         public FloorModifierDefinition Modifier => _modifier;

@@ -117,9 +117,9 @@ namespace Cryptforge.Tests
         {
             public string Name = "shipped";
             // FloorDefinition.FoundryHallSurges: surge waves each combat hall gains after its authored ones (HallSurgeRule).
-            public int HallSurges;
+            public int HallSurges = 2;
             // More copies of the floor's elite room before the gate; the district round gives the first the north court.
-            public int ExtraElites;
+            public int ExtraElites = 1;
             // More combat halls after the floor's last, copies of its second and third halls in turn.
             public int ExtraHalls;
             // The gate boss's health against its authored (WardenRule.GateHealthShare).
@@ -138,7 +138,7 @@ namespace Cryptforge.Tests
             // standing then is finished; 0 is off. The elite and the boss are never held.
             public float HallHoldSeconds;
             // The gate does not open before the floor's clock reads this; 0 is off.
-            public float GateNotBeforeSeconds;
+            public float GateNotBeforeSeconds = 210f;
             public float LimitSeconds = FoundryFloorLimitSeconds;
 
             public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond;
