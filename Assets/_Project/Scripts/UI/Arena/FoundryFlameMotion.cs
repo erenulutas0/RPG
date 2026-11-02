@@ -15,6 +15,8 @@ namespace Cryptforge.UI
     // coal beds, window panes and structure depth remain at their authored positions.
     public sealed class FoundryFlameMotion : MonoBehaviour
     {
+        // A tip sways across in two waves and rises in one, each at most this far times the tip's weight.
+        private const float SwayWide=.055f,SwayQuick=.025f,RiseHeight=.055f;
         private Mesh _mesh;
         private Vector3[] _rest, _working;
         private FoundryFlameVertex[] _tips;
@@ -36,15 +38,20 @@ namespace Cryptforge.UI
             foreach(var tip in _tips)
             {
                 Vector3 point=_rest[tip.Index];
-                float sway=Mathf.Sin(_elapsed*5.1f+tip.Phase)*.055f+
-                    Mathf.Sin(_elapsed*8.3f+tip.Phase*1.7f)*.025f;
-                float rise=Mathf.Sin(_elapsed*6.7f+tip.Phase*.8f)*.055f;
+                float sway=Mathf.Sin(_elapsed*5.1f+tip.Phase)*SwayWide+
+                    Mathf.Sin(_elapsed*8.3f+tip.Phase*1.7f)*SwayQuick;
+                float rise=Mathf.Sin(_elapsed*6.7f+tip.Phase*.8f)*RiseHeight;
                 point.x+=sway*tip.Weight;point.y+=rise*tip.Weight;
                 _working[tip.Index]=point;
             }
             // Reuse arrays; no per-frame mesh reads, allocations or bounds recalculation.
             _mesh.SetVertices(_working,0,_working.Length,UnityEngine.Rendering.MeshUpdateFlags.DontRecalculateBounds);
         }
+
+        // The farthest a tip strays from its rest across and up, for the depth cover of the structures it belongs to
+        // (FoundryDepthCover).
+        internal static Vector2 Reach(FoundryFlameVertex tip)=>
+            new Vector2((SwayWide+SwayQuick)*Mathf.Abs(tip.Weight),RiseHeight*Mathf.Abs(tip.Weight));
 
         private void OnDisable()
         {

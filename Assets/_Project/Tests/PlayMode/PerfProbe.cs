@@ -295,7 +295,7 @@ namespace Cryptforge.Tests
                 if (i == frames / 2 && visibility != null)
                 {
                     recorder.MarkProbeWork();
-                    run.DepthMicros = TimeActorDepth(visibility, out run.DepthPlaced);
+                    run.DepthMicros = TimeActorDepth(visibility, camera, out run.DepthPlaced);
                 }
             }
             run.EndedEarly = setup.Run.HasEnded;
@@ -310,16 +310,17 @@ namespace Cryptforge.Tests
                 hero.Heal(hero.Maximum);
         }
 
-        // The foundry's depth pass with everything on show now, as every camera render pays it: once to warm, then timed.
-        private static float TimeActorDepth(FoundryVisibilityView visibility, out int placed)
+        // The foundry's depth pass with everything on show now, as the gameplay camera's render pays it (its silhouette
+        // gate included): once to warm, then timed.
+        private static float TimeActorDepth(FoundryVisibilityView visibility, Camera camera, out int placed)
         {
-            visibility.ApplyActorDepth();
+            visibility.ApplyActorDepth(camera);
             placed = visibility.PlacedCount;
             visibility.RestoreActorDepth();
             var watch = Stopwatch.StartNew();
             for (int i = 0; i < DepthRuns; i++)
             {
-                visibility.ApplyActorDepth();
+                visibility.ApplyActorDepth(camera);
                 visibility.RestoreActorDepth();
             }
             watch.Stop();
@@ -436,7 +437,7 @@ namespace Cryptforge.Tests
             AppendSlowest(t, r);
             AppendMarkers(t, r);
             AppendCensus(t, run);
-            t.Append("   foundry depth pass (apply + restore, all on show): ")
+            t.Append("   foundry depth pass (apply + restore for the gameplay camera, all on show): ")
                 .Append(run.DepthMicros >= 0f ? F(run.DepthMicros, 1) + " us for " + run.DepthPlaced + " transforms placed, mean of " + DepthRuns : "na")
                 .AppendLine();
             t.Append("   memory at the end: total allocated ").Append(F(Profiler.GetTotalAllocatedMemoryLong() / 1048576f, 0))
