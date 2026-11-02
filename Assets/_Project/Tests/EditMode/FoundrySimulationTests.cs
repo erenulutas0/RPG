@@ -179,8 +179,11 @@ namespace Cryptforge.Tests
                 return DescentSimulation.RunFoundry(ilya, seed, levers);
             }
 
-            DescentSimulation.FoundryResult elite = Run(l => l.ExtraElites = 1);
-            Assert.That(elite.Kinds, Is.EqualTo(new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Elite, RoomKind.Boss }));
+            DescentSimulation.FoundryResult elite = Run(l => l.ExtraElites += 1);
+            Assert.That(elite.Kinds.Count(k => k == RoomKind.Elite), Is.EqualTo(shipped.Kinds.Count(k => k == RoomKind.Elite) + 1),
+                "one more elite room");
+            Assert.That(elite.Kinds, Is.EqualTo(new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Elite, RoomKind.Elite, RoomKind.Boss }),
+                "the copies stand before the gate");
 
             DescentSimulation.FoundryResult halls = Run(l => l.ExtraHalls = 2);
             Assert.That(halls.Kinds.Count(k => k == RoomKind.Combat), Is.EqualTo(5));
