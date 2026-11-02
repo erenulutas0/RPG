@@ -304,8 +304,9 @@ namespace Cryptforge.Tests
                 }
             }
 
-            // The non-boss rooms' active seconds less their walks: the node fights with their advance delays, and the
-            // forge's second, as the research's floor_breakdown splits the telemetry.
+            // The non-boss rooms' active seconds less their walks and the gate wait: the node fights with their advance
+            // delays, and the forge's second, as the research's floor_breakdown splits the telemetry (less room_complete's
+            // gate_hold_sec). The wait is the room before the gate's, which its RoomSeconds include.
             public float NodeSeconds
             {
                 get
@@ -317,7 +318,7 @@ namespace Cryptforge.Tests
                             continue;
                         sum += RoomSeconds[i] - Math.Max(0f, WalkSeconds[i]);
                     }
-                    return sum;
+                    return sum - GateWaitSeconds;
                 }
             }
         }

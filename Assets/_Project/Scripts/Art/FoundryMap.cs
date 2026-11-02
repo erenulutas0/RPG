@@ -149,9 +149,11 @@ namespace Cryptforge.Art
         // begins when the hero walks onto it - the workyard, the pit's south rim (where the pit's eruptions reach into the
         // pack: second, so floor 1's three later halls reach it), the court's east and north, then round again -
         // so the floor is crossed rather than fought on one spot. The first room is fought where the floor begins.
-        // The round runs on across the climb (2026-10-25): a floor starts where the floor before it left off, so with
-        // three later halls a floor, floor 1 walks workyard, pit rim, east; floor 2 north, workyard, pit rim; floor 3
-        // east, north, workyard - every floor its own route over the same map, the north court among them.
+        // The round runs on across the climb (2026-10-25): a floor starts where the floor before it left off, by the
+        // authored floors' later halls (EncounterController.LaterHalls), three a floor, so floor 1 walks workyard, pit rim,
+        // east; floor 2 north, workyard, pit rim; floor 3 east, north, workyard - every floor its own route over the same
+        // map, the north court among them. On the foundry floor 1's extra elite (V0.1, FloorDefinition.FoundryExtraElites)
+        // takes the next district, the north court, on floor 1 alone: the floors above keep their routes.
         public const float RoomSiteRadius=1.6f;
         private static readonly float[,] RoomSites={{-25f,7f},{-10f,-1.5f},{8f,-8f},{4f,12f}};
         public static int RoomSiteCount=>RoomSites.GetLength(0);

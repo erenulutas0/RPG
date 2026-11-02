@@ -140,6 +140,28 @@ namespace Cryptforge.Tests
             Assert.That(floor.RoomsCleared, Is.EqualTo(3), "Advancing a cleared floor changes nothing.");
         }
 
+        // The gate's hold follows the last wave of the room before the gate (EncounterController.GateHoldsForClock): a room
+        // with waves has one; a forge room, whose wave index of -1 is its zero waves less one, and a swarm room have none.
+        [Test]
+        public void OnlyARoomWithWavesHasALastWave()
+        {
+            var floor = new FloorProgress(new[] { 2, 0, 1, 1 }, new[] { false, false, false, true });
+            floor.Advance();
+            Assert.That(floor.IsLastWaveOfRoom, Is.False, "The first of two waves.");
+            floor.Advance();
+            Assert.That(floor.IsLastWaveOfRoom, Is.True, "The second of two.");
+            AssertStep(floor.Advance(), FloorStepKind.NonCombatRoom, 1, -1);
+            Assert.That(floor.IsLastWaveOfRoom, Is.False, "A forge room has no wave to end on.");
+            floor.Advance();
+            Assert.That(floor.IsLastWaveOfRoom, Is.True, "A one-wave room's only wave.");
+            floor.Advance();
+            Assert.That(floor.IsInEndlessRoom, Is.True);
+            Assert.That(floor.IsLastWaveOfRoom, Is.False, "A swarm room never ends on a wave.");
+            floor.LeaveEndlessRoom();
+            Assert.That(floor.Advance().Kind, Is.EqualTo(FloorStepKind.Cleared));
+            Assert.That(floor.IsLastWaveOfRoom, Is.False);
+        }
+
         [Test]
         public void FloorRejectsEmptyOrNegativeLayouts()
         {

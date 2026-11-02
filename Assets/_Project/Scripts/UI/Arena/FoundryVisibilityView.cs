@@ -28,14 +28,6 @@ namespace Cryptforge.UI
     // an ember silhouette only where structure depth covers them. Ground drops behind a structure stay findable the same way,
     // with a second scene-owned material of the same shader in a warm loot gold, and so does the room's chest. Disabling the
     // view gives the bodies their material back. The hero never gets a silhouette: structures fade over him instead.
-    // The second pass costs every body a draw and a material switch, and a two-pass material never batches, so a body
-    // wears the silhouette material only in a render where a structure may cover it. A camera that sees the region flat
-    // (orthographic, straight along z, its depth cleared first, as the game's is) draws a body's pixels inside its bounds'
-    // x and y, over no depth but what that render's structures write. Where the depth cover (FoundryDepthCover, made with
-    // the region) shows no structure depth over a body's bounds nearer than the body's own depth plus CoverMargin, the
-    // second pass would draw nothing, so the body wears its own material instead - one pass of Sprites/Default, which is
-    // what the first pass is. Every other body, and every body in any other camera's render or a placement made with no
-    // camera, wears the silhouette material as before: a hidden body shows its silhouette exactly where it did.
     // Combat effects drawn above the floor (sparks, strikes, collapses, smoke, coins) stand at the depth of the floor they
     // stand on in the same render window, so the structure that hides an enemy hides its hit and its fall too. Their pooled
     // transforms are asked for afresh on every apply, never remembered. Floor pulses already sort under the structures and
@@ -48,13 +40,6 @@ namespace Cryptforge.UI
         internal const string XrayShaderName = "Cryptforge/Foundry Actor Xray";
         // Reads as reward, not threat: the gold of coins and chests rather than the enemies' ember.
         internal static readonly Color LootXrayColor = new Color(1f, .8f, .32f, 1f);
-        // How much farther than a body the nearest structure depth over it must be for the body to go without its second
-        // pass: many steps of any depth buffer over the camera's .3 to 1000 range (a 16-bit one steps about .015), and five
-        // times FoundryDepth.ActorBias.
-        internal const float CoverMargin = .1f;
-        private const float BoundsDepthSlack = 1e-3f;
-        // About 640 thousand cells, 2.5 MB; the foundry's structures span an estimated 70 by 55 units.
-        private const float MaxCoverArea = 200f * 200f;
         private readonly Dictionary<Material, Material> _variants = new Dictionary<Material, Material>();
         private readonly List<Transform> _moved = new List<Transform>();
         private readonly List<Vector3> _restPosition = new List<Vector3>();
@@ -75,10 +60,6 @@ namespace Cryptforge.UI
         private Transform _hero;
         private Health _health;
         private Shader _shader;
-        private FoundryDepthCover _cover;
-        private bool _coverAbandoned;
-        // The placement on show gives the silhouette material only to bodies a structure may cover (the gate above).
-        private bool _gated;
 
         internal Material ForStructure(Material source)
         {
@@ -91,37 +72,6 @@ namespace Cryptforge.UI
             variant.SetVector(FocusId, Vector4.zero);
             _variants.Add(source, variant);
             return variant;
-        }
-
-        // Off, every body wears its silhouette material in every render, as before the gate: for comparing the two.
-        internal bool GateByCover { get; set; } = true;
-        // Where structures can write depth: null until the region begins it, and for good once structure depth is emitted
-        // without it (FoundryRegionView.CoverStructureDepth).
-        internal FoundryDepthCover DepthCover => _coverAbandoned ? null : _cover;
-        // Whether the placement on show gives the silhouette material only to bodies a structure may cover. For tests.
-        internal bool IsGated => _applied && _gated;
-
-        // A cover over more than MaxCoverArea square units (a stray vertex far off the map) is not made: every body then
-        // keeps its silhouette, and FoundryActorDepthTests notices the gate is off.
-        internal void BeginDepthCover(Vector2 min, Vector2 max)
-        {
-            // With a unit to spare each way, as the cover's own spare cells take, so a long thin span is counted too.
-            if (!((max.x - min.x + 1f) * (max.y - min.y + 1f) <= MaxCoverArea))
-                AbandonDepthCover();
-            if (!_coverAbandoned)
-                _cover = new FoundryDepthCover(min, max);
-        }
-
-        internal void CompleteDepthCover()
-        {
-            if (_cover != null)
-                _cover.Complete = true;
-        }
-
-        internal void AbandonDepthCover()
-        {
-            _coverAbandoned = true;
-            _cover = null;
         }
 
         private void OnEnable()
@@ -159,41 +109,27 @@ namespace Cryptforge.UI
             // Height is applied only in camera callbacks, never left for the next gameplay Update.
         }
 
-        // Also covers cameras rendered by hand (review captures) after the last post-render restore. A placement gated for
-        // a flat view is never reused for a camera that is not one.
+        // Also covers cameras rendered by hand (review captures) after the last post-render restore.
         private void OnCameraPreCull(Camera camera)
         {
-            bool flat = SeesRegionFlat(camera);
-            if (!_applied || _appliedFrame != Time.frameCount || (_gated && !flat)) ApplyActorDepth(flat);
+            if (!_applied || _appliedFrame != Time.frameCount) ApplyActorDepth();
         }
 
         private void OnCameraPostRender(Camera camera) => RestoreActorDepth();
 
-        // The placement for a render whose camera is not known (tests, the probe's timing): every enemy, drop and chest body
-        // wears its silhouette material.
-        internal void ApplyActorDepth() => ApplyActorDepth(false);
-
-        // The placement for this camera's render: in a flat view, only the bodies a structure may cover wear it.
-        internal void ApplyActorDepth(Camera camera) => ApplyActorDepth(SeesRegionFlat(camera));
-
         // Moves each live actor's direct children (body, equipment, shadow, bar) to the depth of its feet; a childless root
-        // (the chest, whose root is its sprite) moves itself. Then each enemy, drop and chest body, where it now stands,
-        // takes the material this render needs.
-        private void ApplyActorDepth(bool flatView)
+        // (the chest, whose root is its sprite) moves itself.
+        internal void ApplyActorDepth()
         {
             RestoreActorDepth();
             Vector3 region = transform.position;
-            _gated = flatView && GateByCover && DepthCover != null && _cover.Complete && Plain(transform);
             var actors = GroundedSorting.Actors;
             for (int i = actors.Count - 1; i >= 0; i--)
             {
                 Transform actor = actors[i];
                 if (actor == null) { actors.RemoveAt(i); continue; }
                 if (!actor.gameObject.activeInHierarchy) continue;
-                actor.TryGetComponent(out EnemyLookView look);
-                // An enemy's health bar shares height but keeps its readout depth, even when a structure hides the body,
-                // so a silhouetted enemy still shows how hurt it is.
-                Transform bar = look != null ? look.Bar : null;
+                Transform bar = ShowEnemyWhenHidden(actor);
                 float lift = FoundrySurface.Lift(actor.position, region);
                 float z = FoundryDepth.ActorZ(region, actor.position.y + lift);
                 int children = actor.childCount;
@@ -203,6 +139,8 @@ namespace Cryptforge.UI
                 // every frame, and a failed GetComponent allocates in the Editor, so the shadow is asked for with
                 // TryGetComponent. The pass allocates nothing once its lists have grown.
                 Transform ring = children > 0 ? actor.Find(AbilityRingView.RingName) : null;
+                // An enemy's health bar shares height but keeps its readout depth, even when a structure
+                // hides the body, so a silhouetted enemy still shows how hurt it is.
                 for (int c = 0; c < children; c++)
                 {
                     Transform child = actor.GetChild(c);
@@ -210,9 +148,8 @@ namespace Cryptforge.UI
                     if (floor && child.TryGetComponent(out SpriteRenderer flat)) _ground.Apply(flat, region);
                     MoveToDepth(child, child == bar ? child.position.z : z, floor ? 0 : lift);
                 }
-                if (look != null) ShowWhenHidden(look.Body, EnemyXray(), region);
             }
-            ShowLootWhenHidden(region);
+            ShowLootWhenHidden();
             PlaceEffects(region);
             _applied = true;
             _appliedFrame = Time.frameCount;
@@ -250,52 +187,31 @@ namespace Cryptforge.UI
             moved.position = new Vector3(p.x, p.y + lift, z);
         }
 
+        // Gives an enemy's body the silhouette material, once; the original is kept for OnDisable.
+        // Returns the enemy's health bar, which keeps its authored depth; null for anything that is not an enemy.
+        private Transform ShowEnemyWhenHidden(Transform actor)
+        {
+            if (!actor.TryGetComponent(out EnemyLookView look)) return null;
+            ShowWhenHidden(look.Body, EnemyXray());
+            return look.Bar;
+        }
+
         // Only the reward sprite of each drop on show (resting or flying), never its contact shadow. Pooled drops keep the
-        // material they last wore while parked, so a re-used one is recognised and never registered twice. The chest's one
-        // renderer lives as long as the scene and only swaps sprites, so it keeps its material from one render to the next.
-        private void ShowLootWhenHidden(Vector3 region)
+        // loot material while parked, so a re-used one is recognised and never registered twice. The chest's one renderer
+        // lives as long as the scene and only swaps sprites, so it keeps the material from its first registration on.
+        private void ShowLootWhenHidden()
         {
             SpriteRenderer chest = _chest != null ? _chest.Body : null;
             int shown = _drops != null ? _drops.ShownCount : 0;
             if (chest == null && shown == 0) return;
             Material loot = LootXray();
-            ShowWhenHidden(chest, loot, region);
-            for (int i = 0; i < shown; i++) ShowWhenHidden(_drops.ShownBody(i), loot, region);
+            ShowWhenHidden(chest, loot);
+            for (int i = 0; i < shown; i++) ShowWhenHidden(_drops.ShownBody(i), loot);
         }
 
-        // A body a structure may cover in this render wears the silhouette material, registered with the material it had
-        // so that it can be given back; a body none can cover wears its own. A body already wearing the silhouette
-        // material is never registered again.
-        private void ShowWhenHidden(SpriteRenderer body, Material xray, Vector3 region)
+        private void ShowWhenHidden(SpriteRenderer body, Material xray)
         {
-            if (body == null || xray == null) return;
-            bool wearing = body.sharedMaterial == xray;
-            if (MayBeHidden(body, region))
-            {
-                if (!wearing) Register(body, xray);
-            }
-            else if (wearing)
-            {
-                GiveBack(body);
-            }
-        }
-
-        // Always, unless the placement is gated; then whenever the cover shows structure depth over the body's bounds that
-        // is not CoverMargin farther than the body's farthest point. A flat sprite's bounds lie at its own depth, where the
-        // placement has just put it: bounds anywhere else (a tilted body, or bounds not yet following the move) answer
-        // yes. Allocates nothing.
-        private bool MayBeHidden(SpriteRenderer body, Vector3 region)
-        {
-            if (!_gated) return true;
-            Bounds bounds = body.bounds;
-            float depth = body.transform.position.z;
-            if (!(Mathf.Abs(bounds.min.z - depth) <= BoundsDepthSlack && Mathf.Abs(bounds.max.z - depth) <= BoundsDepthSlack)) return true;
-            Vector3 min = bounds.min - region, max = bounds.max - region;
-            return _cover.MayHide(new Vector2(min.x, min.y), new Vector2(max.x, max.y), max.z, CoverMargin);
-        }
-
-        private void Register(SpriteRenderer body, Material xray)
-        {
+            if (body == null || xray == null || body.sharedMaterial == xray) return;
             // Enemies are spawned and destroyed all run long; drop the dead before remembering another. Pooled drops
             // live as long as the scene, so the threshold grows with what survives rather than pruning on every add.
             if (_xrayed.Count >= _pruneAt)
@@ -306,42 +222,6 @@ namespace Cryptforge.UI
             _xrayed.Add(body);
             _xrayedFrom.Add(body.sharedMaterial);
             body.sharedMaterial = xray;
-        }
-
-        // A body no structure can cover in this render gets back the material it wore when it took the silhouette, and
-        // is forgotten until it takes it again. One wearing it unregistered (someone else's doing) keeps it.
-        private void GiveBack(SpriteRenderer body)
-        {
-            for (int i = _xrayed.Count - 1; i >= 0; i--)
-            {
-                if (!ReferenceEquals(_xrayed[i], body)) continue;
-                body.sharedMaterial = _xrayedFrom[i];
-                _xrayed.RemoveAt(i);
-                _xrayedFrom.RemoveAt(i);
-                return;
-            }
-        }
-
-        // A camera that sees the region flat: orthographic, looking straight along +z, with depth to test against that it
-        // clears before it draws. Its pixels then lie in the scene's x and y, and the only depth in them is what its own
-        // render writes.
-        private static bool SeesRegionFlat(Camera camera)
-        {
-            if (camera == null || !camera.orthographic || camera.clearFlags == CameraClearFlags.Nothing) return false;
-            RenderTexture target = camera.targetTexture;
-            if (target != null && target.depth == 0) return false;
-            Vector3 forward = camera.transform.forward;
-            return Mathf.Abs(forward.x) + Mathf.Abs(forward.y) < 1e-5f && forward.z > 0f;
-        }
-
-        // The depth cover is in the region's own space, where its meshes stand: an unrotated, unscaled region (as ArenaView
-        // makes it) maps that to the world by its position alone.
-        private static bool Plain(Transform region)
-        {
-            Quaternion r = region.rotation;
-            Vector3 s = region.lossyScale;
-            return Mathf.Abs(r.x) + Mathf.Abs(r.y) + Mathf.Abs(r.z) < 1e-6f &&
-                   Mathf.Abs(s.x - 1f) + Mathf.Abs(s.y - 1f) + Mathf.Abs(s.z - 1f) < 1e-5f;
         }
 
         private Material EnemyXray()

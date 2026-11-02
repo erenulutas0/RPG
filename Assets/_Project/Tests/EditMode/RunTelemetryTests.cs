@@ -528,6 +528,43 @@ namespace Cryptforge.Tests
             Assert.That(All(lines, "room_complete")[1].Number("hero_max_hp"), Is.EqualTo(120.0));
         }
 
+        // The foundry's gate holds the cleared room before it for the floor's clock (V0.1): that room's room_complete says
+        // how much of its active time was the wait, after every key a room has always had. Time paused while it held is not
+        // the wait, and a room that never held keeps exactly the keys it had.
+        [Test]
+        public void ARoomHeldForTheGateReportsItsWaitAfterEveryOtherKey()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            RunTelemetry recorder = scene.Recorder;
+
+            recorder.Begin();
+            scene.Room(1, Floor1, 6, RoomKind.Elite, "enemy_captain");
+            recorder.Tick(4f, 4f);
+            recorder.ObserveGateHold(true);
+            recorder.Tick(1.5f, 1.5f);
+            Assert.That(scene.Pause.TryPause(), Is.True);
+            recorder.Tick(0f, 0.25f);
+            Assert.That(scene.Pause.TryResume(), Is.True);
+            recorder.Tick(0.5f, 0.5f);
+            recorder.ObserveGateHold(false);
+            scene.Room(1, Floor1, 7, RoomKind.Boss, "enemy_warden");
+            recorder.Tick(2f, 2f);
+            scene.Kill("enemy_warden", 0, 5);
+            scene.ClearFloor(1, Floor1, true);
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            List<Line> rooms = All(lines, "room_complete");
+            Assert.That(rooms.Count, Is.EqualTo(2));
+            Assert.That(rooms[0].Keys, Is.EqualTo(With(rooms[1].Keys.ToArray(), "gate_hold_sec")),
+                "The wait follows every key a room has always had.");
+            Assert.That((rooms[0].Number("active_sec"), rooms[0].Number("pause_sec"), rooms[0].Number("gate_hold_sec")),
+                Is.EqualTo((6.0, 0.25, 2.0)), "Two of the held room's six active seconds were the wait.");
+            Assert.That(rooms[1].Has("gate_hold_sec"), Is.False, "The gate boss's room never held.");
+            Assert.That(rooms[1].Number("active_sec"), Is.EqualTo(2.0));
+        }
+
         [Test]
         public void HordeSamplesAreLoggedInsideTheirRoomOnTheActiveClock()
         {
