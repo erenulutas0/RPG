@@ -83,7 +83,8 @@ namespace Cryptforge.Tests
             AssertClear(badges.Row,safeArea,"Floor Label");
             AssertClear(badges.Row,safeArea,"Gold Count");
             AssertClear(badges.Row,safeArea,"Pause Button");
-            for(int p=1;p<=6;p++)AssertClear(badges.Row,safeArea,"Room Pip "+p);
+            // A pip a room: floor 1's V0.1 elite makes seven on the foundry.
+            for(int p=1;p<=setup.Encounters.RoomCount;p++)AssertClear(badges.Row,safeArea,"Room Pip "+p);
 
             // Bonus offers until one shows a new weapon, which is taken; every other offer takes its first card. Each shown
             // card's kind line is checked on the way.
