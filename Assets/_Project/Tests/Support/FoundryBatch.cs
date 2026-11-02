@@ -12,8 +12,9 @@ namespace Cryptforge.Tests
     // The regression harness's batches (docs/41 step 5): a hero's foundry floor over a seed batch, read as the report's
     // tables in Markdown - floor time, uptime, the segments, levels, the Warden, deaths, observed TTK, the
     // time_bucket_summary and offer_health of docs/40 section 17.3 - with docs/40 section 9.6's quality gates as report
-    // lines, and each lever of the research's table (v01-research report.md section 3) against the shipped floor on the
-    // same seeds. Pure: it only runs DescentSimulation.RunFoundry and counts.
+    // lines, and each lever of the research's table (v01-research report.md section 3) against the floor it was estimated
+    // on, the pre-V0.1 one, and V0.1's own knobs against the shipped floor, on the same seeds. Pure: it only runs
+    // DescentSimulation.RunFoundry and counts.
     internal static class FoundryBatch
     {
         internal sealed class Batch
@@ -27,13 +28,19 @@ namespace Cryptforge.Tests
             public int ClearedCount => Runs.Count(run => run.Cleared);
         }
 
-        // One lever of the research's table: what it sets, and the research's own estimate of what it does to floor 1.
+        // One lever of the research's table: what it sets, and the research's own estimate of what it does to floor 1
+        // (NotMeasured where nothing measured it).
         internal sealed class Lever
         {
             public string Name;
             public string Estimate;
             public DescentSimulation.FoundryLevers Levers;
+            // What the lever is read against: null for the shipped floor, else the levers' name of another row of its list
+            // (PreV01Name, the floor the research's estimates were made on).
+            public string Basis;
         }
+
+        public const string NotMeasured = "not measured";
 
         public static int[] Seeds(int first, int count)
         {
@@ -56,57 +63,78 @@ namespace Cryptforge.Tests
 
         public static DescentSimulation.FoundryLevers Shipped() => new DescentSimulation.FoundryLevers();
 
-        // The research's ranked levers that the floor's knobs reach, at the values its table names. Ambushes, a timed
-        // boss phase and a longer route are not knobs of this harness: each is new content or new art rather than a value.
+        public const string PreV01Name = "pre-V0.1";
+
+        // The floor before V0.1 (2026-11-02): no hall surges, no second elite, the gate open as its room clears - the
+        // floor the research's table (v01-research report.md section 3) estimated its levers on, from its 170 s baseline.
+        public static DescentSimulation.FoundryLevers PreV01()
+        {
+            DescentSimulation.FoundryLevers levers = Shipped().Copy(PreV01Name);
+            levers.HallSurges = 0;
+            levers.ExtraElites = 0;
+            levers.GateNotBeforeSeconds = 0f;
+            return levers;
+        }
+
+        // The research's ranked levers that the floor's knobs reach, at the values its table names, each set on the
+        // pre-V0.1 floor its estimate was made on and read against it (the first row, itself read against the shipped
+        // floor); then V0.1's three knobs, each taken away from the shipped floor. Ambushes, a timed boss phase and a longer
+        // route are not knobs of this harness: each is new content or new art rather than a value.
         public static Lever[] ResearchLevers()
         {
-            Lever Make(string name, string estimate, Action<DescentSimulation.FoundryLevers> set)
+            Lever Research(string name, string estimate, Action<DescentSimulation.FoundryLevers> set)
+            {
+                DescentSimulation.FoundryLevers levers = PreV01().Copy(name);
+                set(levers);
+                return new Lever { Name = name, Estimate = estimate, Levers = levers, Basis = PreV01Name };
+            }
+
+            Lever TakenAway(string name, Action<DescentSimulation.FoundryLevers> set)
             {
                 DescentSimulation.FoundryLevers levers = Shipped().Copy(name);
                 set(levers);
-                return new Lever { Name = name, Estimate = estimate, Levers = levers };
+                return new Lever { Name = name, Estimate = NotMeasured, Levers = levers };
             }
 
             return new[]
             {
-                Make("Gate not before 4:00", "+119..+124", l => l.GateNotBeforeSeconds = 240f),
-                Make("Halls held 45 s", "+99..+111", l => l.HallHoldSeconds = 45f),
-                Make("+2 halls", "+34..+54", l => l.ExtraHalls = 2),
-                Make("Warden health x1.5 (share 7.5)", "+17..+24", l => l.WardenHealthShare = 7.5f),
-                // V0.1 shipped the surges, the second elite and the gate at 3:30 (2026-11-02): these read them taken away.
-                Make("No hall surges (2 -> 0)", "-12..-26", l => l.HallSurges = 0),
-                Make("No second elite", "-12..-26", l => l.ExtraElites = 0),
-                Make("Gate opens as the room clears (no 3:30)", "about -100", l => l.GateNotBeforeSeconds = 0f),
-                Make("Node waves x1.5 health", "+5..+15", l => l.NodeHealthScale = 1.5f),
-                Make("ExperienceShare 0.2 -> 0.1", "+4..+10", l => l.HordeExperienceShare = 0.1f),
-                Make("Horde health share 0.3 -> 0.6", "0..+3", l => l.HordeHealthShare = 0.6f),
-                Make("Horde targets x1.5 (6/15/24/9)", "0..+2", l => l.HordeTargets = new[] { 6, 15, 24, 9 }),
-                Make("Horde targets x2 (8/20/32/12)", "0..+2", l => l.HordeTargets = new[] { 8, 20, 32, 12 }),
-                Make("Horde fill rate 2 -> 3 /s", "-6..0", l => l.HordeFillRate = 3f)
+                new Lever { Name = "The pre-V0.1 floor (no surges, no second elite, no gate)", Estimate = NotMeasured, Levers = PreV01() },
+                Research("Gate not before 4:00", "+119..+124", l => l.GateNotBeforeSeconds = 240f),
+                Research("Halls held 45 s", "+99..+111", l => l.HallHoldSeconds = 45f),
+                Research("+2 halls", "+34..+54", l => l.ExtraHalls = 2),
+                Research("Warden health x1.5 (share 7.5)", "+17..+24", l => l.WardenHealthShare = 7.5f),
+                Research("Hall surges 0 -> 2", "+12..+26", l => l.HallSurges = 2),
+                Research("Second elite", "+12..+26", l => l.ExtraElites = 1),
+                Research("Node waves x1.5 health", "+5..+15", l => l.NodeHealthScale = 1.5f),
+                Research("ExperienceShare 0.2 -> 0.1", "+4..+10", l => l.HordeExperienceShare = 0.1f),
+                Research("Horde health share 0.3 -> 0.6", "0..+3", l => l.HordeHealthShare = 0.6f),
+                Research("Horde targets x1.5 (6/15/24/9)", "0..+2", l => l.HordeTargets = new[] { 6, 15, 24, 9 }),
+                Research("Horde targets x2 (8/20/32/12)", "0..+2", l => l.HordeTargets = new[] { 8, 20, 32, 12 }),
+                Research("Horde fill rate 2 -> 3 /s", "-6..0", l => l.HordeFillRate = 3f),
+                TakenAway("V0.1 without its hall surges (2 -> 0)", l => l.HallSurges = 0),
+                TakenAway("V0.1 without its second elite", l => l.ExtraElites = 0),
+                TakenAway("V0.1 with the gate open as its room clears (no 3:30)", l => l.GateNotBeforeSeconds = 0f)
             };
         }
 
-        // Combinations of the cheap levers, toward the 240-360 s band without the deaths a single big lever brings
-        // (FOUNDRY_LEVERS=2 runs these instead of the research's list).
+        // Combinations of the cheap levers on the shipped floor, toward the band's upper half and the Warden's 45-65 s
+        // without the deaths a single big lever brings (FOUNDRY_LEVERS=2 runs these instead of the research's list). The
+        // combination V0.1 took - surges 2, a second elite, the gate at 3:30 - is the shipped floor itself.
         public static Lever[] ComboLevers()
         {
             Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
             {
                 DescentSimulation.FoundryLevers levers = Shipped().Copy(name);
                 set(levers);
-                return new Lever { Name = name, Estimate = "combo", Levers = levers };
+                return new Lever { Name = name, Estimate = NotMeasured, Levers = levers };
             }
 
             return new[]
             {
-                Make("Surges 2 + second elite", l => { l.HallSurges = 2; l.ExtraElites = 1; }),
-                Make("Surges 2 + second elite + 2 halls", l => { l.HallSurges = 2; l.ExtraElites = 1; l.ExtraHalls = 2; }),
-                Make("Surges 2 + second elite + Warden x1.25", l => { l.HallSurges = 2; l.ExtraElites = 1; l.WardenHealthShare = 6.25f; }),
-                Make("Gate not before 3:30", l => l.GateNotBeforeSeconds = 210f),
-                Make("Surges 2 + second elite + gate 3:30", l => { l.HallSurges = 2; l.ExtraElites = 1; l.GateNotBeforeSeconds = 210f; }),
-                Make("Halls held 30 s", l => l.HallHoldSeconds = 30f),
-                Make("Halls held 30 s + second elite", l => { l.HallHoldSeconds = 30f; l.ExtraElites = 1; }),
-                Make("Halls held 45 s + XP 0.1", l => { l.HallHoldSeconds = 45f; l.HordeExperienceShare = 0.1f; })
+                Make("V0.1 + 2 halls", l => l.ExtraHalls = 2),
+                Make("V0.1 + Warden x1.25 (share 6.25)", l => l.WardenHealthShare = 6.25f),
+                Make("V0.1 + halls held 30 s", l => l.HallHoldSeconds = 30f),
+                Make("V0.1 + halls held 45 s + XP 0.1", l => { l.HallHoldSeconds = 45f; l.HordeExperienceShare = 0.1f; })
             };
         }
 
@@ -407,16 +435,29 @@ namespace Cryptforge.Tests
         private static void LeverTable(StringBuilder md, IReadOnlyList<Batch> baselines,
             IReadOnlyList<(Lever Lever, Batch[] Batches)> levers)
         {
-            md.AppendLine("### Levers against the shipped floor (same seeds)").AppendLine();
-            md.AppendLine("Delta P50 is the lever's median floor time less the shipped median over all runs (a death shortens a floor). Paired is the median of per-seed differences over the seeds both runs cleared; paired, short walks leaves out the seeds where either run's walks passed " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (the drop-detour loop) and so reads the lever's own content. Long walks counts the lever's runs that passed it. Research: v01-research report.md section 3, against its 170 s baseline.").AppendLine();
-            md.AppendLine("| Lever | Research estimate | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: P50 (delta) / paired / paired, short walks / cleared / long walks / gate level P50")) + " |");
-            md.AppendLine("|---|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
+            md.AppendLine("### Levers against their floors (same seeds)").AppendLine();
+            md.AppendLine("Against: the floor a lever is read against - the shipped floor, or for the research's levers the pre-V0.1 floor (no surges, no second elite, no gate; its own row reads it against the shipped one), the floor the research estimated them on. Delta P50 is the lever's median floor time less that floor's median over all runs (a death shortens a floor). Paired is the median of per-seed differences over the seeds both runs cleared; paired, short walks leaves out the seeds where either run's walks passed " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (the drop-detour loop) and so reads the lever's own content. Long walks counts the lever's runs that passed it. Research: v01-research report.md section 3, against its 170 s baseline; " + NotMeasured + " where nothing measured it.").AppendLine();
+            md.AppendLine("| Lever | Against | Research estimate | " + string.Join(" | ", baselines.Select(b => $"{b.Hero.Name}: P50 (delta) / paired / paired, short walks / cleared / long walks / gate level P50")) + " |");
+            md.AppendLine("|---|---|---|" + string.Join("|", baselines.Select(_ => "---")) + "|");
             foreach ((Lever lever, Batch[] batches) in levers)
             {
+                // The lever's floor: the shipped one, or the row of this list its Basis names.
+                IReadOnlyList<Batch> against = baselines;
+                string againstName = "shipped";
+                if (lever.Basis != null)
+                {
+                    againstName = $"shipped (no {lever.Basis} row)";
+                    foreach ((Lever row, Batch[] rowBatches) in levers)
+                        if (row.Levers.Name == lever.Basis)
+                        {
+                            against = rowBatches;
+                            againstName = lever.Basis;
+                        }
+                }
                 var cells = new List<string>();
                 for (int h = 0; h < baselines.Count; h++)
                 {
-                    Batch baseline = baselines[h];
+                    Batch baseline = against[h];
                     Batch with = batches[h];
                     double p50 = Median(with.Runs.Select(r => r.FloorSeconds));
                     double basis = Median(baseline.Runs.Select(r => r.FloorSeconds));
@@ -435,7 +476,7 @@ namespace Cryptforge.Tests
                     cells.Add($"{F(p50)} ({Signed(p50 - basis)}) / {Signed(Median(paired))} / {Signed(Median(shortWalks))} (n={shortWalks.Count}) / " +
                               $"{Pct(with.ClearedCount, with.Runs.Length)} / {Pct(with.Runs.Count(WalkedLong), with.Runs.Length)} / {F(gate)}");
                 }
-                md.AppendLine($"| {lever.Name} | {lever.Estimate} | " + string.Join(" | ", cells) + " |");
+                md.AppendLine($"| {lever.Name} | {againstName} | {lever.Estimate} | " + string.Join(" | ", cells) + " |");
             }
             md.AppendLine();
         }

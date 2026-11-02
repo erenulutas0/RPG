@@ -17,8 +17,9 @@ namespace Cryptforge.Tests
     //   dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"
     //
     // A floor costs about a third of a second of one core in Release (two to three times that in Debug): the shipped floor
-    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the twelve levers about three minutes more
-    // (FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
+    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, and each lever about fifteen seconds more
+    // (FoundryBatch.ResearchLevers: the pre-V0.1 floor, the research's twelve on it and V0.1's three taken away;
+    // FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
     // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's

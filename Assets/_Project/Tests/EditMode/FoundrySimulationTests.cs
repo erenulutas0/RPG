@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Cryptforge.Combat;
 using Cryptforge.Progression;
 using NUnit.Framework;
@@ -208,22 +209,51 @@ namespace Cryptforge.Tests
             Assert.That(thin.Outcome, Is.Not.EqualTo(DescentSimulation.FoundryOutcome.Timeout));
         }
 
-        // The research's levers each name a value the shipped floor does not have, so every lever run is another floor.
+        // Every lever and combination names a floor the shipped one is not, and a research lever one its own floor (the
+        // pre-V0.1 row it is read against) is not either, so no row of the tables reads a floor against itself.
         [Test]
-        public void EveryResearchLeverMovesAKnob()
+        public void EveryLeverAndComboMovesAKnob()
         {
             DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
-            foreach (FoundryBatch.Lever lever in FoundryBatch.ResearchLevers())
+            FoundryBatch.Lever[] research = FoundryBatch.ResearchLevers();
+            foreach (FoundryBatch.Lever lever in research.Concat(FoundryBatch.ComboLevers()))
             {
-                DescentSimulation.FoundryLevers l = lever.Levers;
-                bool moves = l.HallSurges != shipped.HallSurges || l.ExtraElites != shipped.ExtraElites ||
-                             l.ExtraHalls != shipped.ExtraHalls || l.WardenHealthShare != shipped.WardenHealthShare ||
-                             l.HordeExperienceShare != shipped.HordeExperienceShare ||
-                             l.HordeHealthShare != shipped.HordeHealthShare || l.TunesDirector ||
-                             l.NodeHealthScale != shipped.NodeHealthScale || l.HallHoldSeconds != shipped.HallHoldSeconds ||
-                             l.GateNotBeforeSeconds != shipped.GateNotBeforeSeconds;
-                Assert.That(moves, Is.True, lever.Name);
+                Assert.That(SameKnobs(lever.Levers, shipped), Is.False, lever.Name + " moves a knob of the shipped floor");
+                if (lever.Basis == null)
+                    continue;
+                FoundryBatch.Lever basis = research.SingleOrDefault(row => row.Levers.Name == lever.Basis);
+                Assert.That(basis, Is.Not.Null, lever.Name + " is read against a row of its list");
+                Assert.That(SameKnobs(lever.Levers, basis.Levers), Is.False, lever.Name + " moves a knob of " + lever.Basis);
             }
+
+            DescentSimulation.FoundryLevers before = FoundryBatch.PreV01();
+            Assert.That((before.HallSurges, before.ExtraElites, before.GateNotBeforeSeconds), Is.EqualTo((0, 0, 0f)),
+                "the floor before V0.1: no surges, no second elite, no gate");
+            Assert.That(SameKnobs(shipped, shipped.Copy("again")), Is.True, "a copy is the same floor");
+            DescentSimulation.FoundryLevers tuned = shipped.Copy("tuned at shipped");
+            tuned.HordeTargets = (int[])HordeRule.TargetByState.Clone();
+            Assert.That(SameKnobs(shipped, tuned), Is.True, "the director's shipped crowds are the shipped floor's");
+        }
+
+        // Every knob of a lever set, read off its fields, so a knob added later is compared too; the director's crowds
+        // unset are the shipped ones (HordeRule.TargetByState).
+        private static bool SameKnobs(DescentSimulation.FoundryLevers a, DescentSimulation.FoundryLevers b)
+        {
+            foreach (FieldInfo field in typeof(DescentSimulation.FoundryLevers).GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (field.Name == nameof(DescentSimulation.FoundryLevers.Name))
+                    continue;
+                object x = field.GetValue(a), y = field.GetValue(b);
+                if (field.Name == nameof(DescentSimulation.FoundryLevers.HordeTargets))
+                {
+                    x = x ?? HordeRule.TargetByState;
+                    y = y ?? HordeRule.TargetByState;
+                }
+                bool same = x is int[] xs && y is int[] ys ? xs.SequenceEqual(ys) : Equals(x, y);
+                if (!same)
+                    return false;
+            }
+            return true;
         }
     }
 }
