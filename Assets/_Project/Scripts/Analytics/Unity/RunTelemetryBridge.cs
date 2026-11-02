@@ -204,7 +204,9 @@ namespace Cryptforge.Analytics
             if (_telemetry == null)
                 return;
 
-            // A pre-encounter presentation is not active combat time. Keep unscaled flush/pause handling.
+            // A pre-encounter presentation is not active combat time. Keep unscaled flush/pause handling. The encounter has
+            // already run this frame (it runs first), so the gate's hold it reports is the one this frame's time belongs to.
+            _telemetry.ObserveGateHold(_encounters != null && _encounters.IsHoldingForGate);
             _telemetry.Tick(_encounters != null && _encounters.IsFirstEncounterPending ? 0f : Time.deltaTime,
                 Time.unscaledDeltaTime);
             if (_encounters != null && _encounters.IsHordeActive)

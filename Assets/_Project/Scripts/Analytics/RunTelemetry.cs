@@ -120,6 +120,11 @@ namespace Cryptforge.Analytics
         private bool _waveOpen;
         private double _waveActiveAtStart;
 
+        // The foundry's gate holding the open room for the floor's clock (EncounterController.IsHoldingForGate), and the
+        // room's active seconds spent so: its room_complete's gate_hold_sec, a part of its active_sec.
+        private bool _holdingForGate;
+        private double _roomGateHold;
+
         // The foundry floor's continuous horde: whether a horde is being sampled, the run's active seconds at which its next
         // horde_sample is due, its spawns and deaths since the last sample, and the run's horde deaths for run_end.
         private bool _hordeSampling;
@@ -522,6 +527,10 @@ namespace Cryptforge.Analytics
             _floorRoomsCompleted = 0;
         }
 
+        // Whether the gate holds the open room for the floor's clock this frame: said before the frame's Tick, whose active
+        // time then counts as the room's wait for the gate as well.
+        public void ObserveGateHold(bool holding) => _holdingForGate = holding;
+
         // Once per frame. The player's pause and open choices count on unscaled time because scaled time stops for them;
         // everything else in a run counts on scaled time. Bad deltas are skipped rather than rejected: this runs in Update.
         public void Tick(float scaledDeltaTime, float unscaledDeltaTime)
@@ -654,8 +663,11 @@ namespace Cryptforge.Analytics
 
             _runTime.Add(kind, delta);
             _floorTime.Add(kind, delta);
-            if (_roomOpen)
-                _roomTime.Add(kind, delta);
+            if (!_roomOpen)
+                return;
+            _roomTime.Add(kind, delta);
+            if (kind == TimeKind.Active && _holdingForGate)
+                _roomGateHold += delta;
         }
 
         private void OpenRoom(int floorNumber, string floorId, int roomNumber, RoomKind roomKind)
@@ -670,6 +682,7 @@ namespace Cryptforge.Analytics
             _bossId = null;
             _waveOpen = false;
             _roomTime.Reset();
+            _roomGateHold = 0;
             _session.Emit("room_start", new TelemetryFields()
                 .Add("floor_index", floorNumber)
                 .Add("floor_id", floorId)
@@ -687,7 +700,7 @@ namespace Cryptforge.Analytics
             if (_roomGoldChests > 0)
                 ReportRoomGold("chest", _roomGoldChests);
 
-            _session.Emit("room_complete", new TelemetryFields()
+            TelemetryFields complete = new TelemetryFields()
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex)
                 .Add("room_kind", RoomKindName(_roomKind))
@@ -698,7 +711,11 @@ namespace Cryptforge.Analytics
                 .Add("kills", _roomKills)
                 .Add("gold_kills", _roomGoldKills)
                 .Add("gold_chests", _roomGoldChests)
-                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth());
+            // A room the gate held (V0.1) says how much of its active_sec was the wait, after every key a room always had.
+            if (_roomGateHold > 0)
+                complete.Add("gate_hold_sec", _roomGateHold);
+            _session.Emit("room_complete", complete);
             if (result == ResultCleared)
             {
                 _roomsCompleted++;
