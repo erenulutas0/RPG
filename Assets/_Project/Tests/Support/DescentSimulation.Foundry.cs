@@ -171,21 +171,56 @@ namespace Cryptforge.Tests
         }
 
         // One enemy's life, for the observed TTK: its kind, whether it was the horde's, from walking in to falling, and
-        // from the first damage it took to falling (the time it stood under fire).
+        // from the first damage it took to falling (the time it stood under fire). And the killing blow, for docs/40
+        // section 17.3's weapon_effectiveness: the weapon id that landed it (KilledByBurn, KilledByAbility or KilledByPit
+        // otherwise), whether its evolution's proc landed it (the pulse, the splinter, the kill burst), and when.
         internal readonly struct FoundryKill
         {
+            public const string KilledByBurn = "burn";
+            public const string KilledByAbility = "ability";
+            public const string KilledByPit = "pit";
+
             public readonly string Kind;
             public readonly bool Horde;
             public readonly float Lifetime;
             public readonly float UnderFire;
+            public readonly string By;
+            public readonly bool Proc;
+            public readonly float At;
 
-            public FoundryKill(string kind, bool horde, float lifetime, float underFire)
+            public FoundryKill(string kind, bool horde, float lifetime, float underFire, string by = null, bool proc = false,
+                float at = -1f)
             {
                 Kind = kind;
                 Horde = horde;
                 Lifetime = lifetime;
                 UnderFire = underFire;
+                By = by;
+                Proc = proc;
+                At = at;
             }
+        }
+
+        // One weapon of the hero's loadout over a floor (docs/40 section 17.3's weapon_effectiveness): when it joined the
+        // loadout and when its evolution was taken, in active seconds (-1 for never); its strikes and their own landings
+        // (the target, the splash or the cleave), its evolution's proc landings; and what it took off the horde, the node
+        // waves and the Warden, the procs' part of it, and what it dealt after it evolved. Accounting only: the run plays
+        // the same with or without it. Its kills are the FoundryKills whose By is its Id.
+        internal sealed class FoundryWeaponWork
+        {
+            public string Id;
+            public float HeldFrom;
+            public float EvolvedAt = -1f;
+            public int Strikes;
+            public int Landings;
+            public int ProcLandings;
+            public float DealtHorde;
+            public float DealtNode;
+            public float DealtWarden;
+            public float DealtByProcs;
+            public float DealtAfterEvolving;
+
+            public float Dealt => DealtHorde + DealtNode + DealtWarden;
         }
 
         // What one foundry floor did, in the Editor measurement's terms (HordePacingMeasurement and the telemetry's
@@ -280,6 +315,8 @@ namespace Cryptforge.Tests
             // The run's difficulty as the Warden walked out: what its health was multiplied by.
             public float DifficultyAtGate = -1f;
             public List<FoundryKill> Kills = new List<FoundryKill>();
+            // Each weapon the hero held, in loadout order: the starting weapon first.
+            public List<FoundryWeaponWork> WeaponWork = new List<FoundryWeaponWork>();
             // docs/40's time_bucket_summary, per FoundryBucketSeconds of active time: damage dealt, mean enemies standing,
             // kills, and the level at the bucket's end.
             public float[] BucketDamage;
@@ -580,6 +617,11 @@ namespace Cryptforge.Tests
             private float _seconds;
             private float _lastHeroHit = float.NegativeInfinity;
             private DamageSource _source;
+            // The weapon striking now, for weapon_effectiveness: its work, its runtime and the procs it had fired before
+            // this strike (a proc's counter rises before its damage lands, so any landing after it is the proc's).
+            private FoundryWeaponWork _striking;
+            private WeaponRuntime _strikingWeapon;
+            private int _procsBeforeStrike;
             private Foe _lastAttacker;
             private string _lastHarm;
             private double _hordeAliveSum;
@@ -1228,8 +1270,12 @@ namespace Cryptforge.Tests
                     (_slam.IsMarked || !_slam.HoldsWeaponFor(_levers.WardenGuardOpenSeconds)))
                     context = new DamageContext(context.Amount * _levers.WardenGuardShare, context.Source, context.IsCritical);
                 DamageSource source = _source;
+                FoundryWeaponWork striking = source == DamageSource.Weapon ? _striking : null;
+                bool proc = striking != null && StrikeHasProcced();
                 foe.Health.ApplyDamage(context);
                 float dealt = before - foe.Health.Current;
+                if (striking != null && dealt > 0f)
+                    Attribute(striking, foe, dealt, proc);
                 switch (source)
                 {
                     case DamageSource.Weapon:
@@ -1258,6 +1304,64 @@ namespace Cryptforge.Tests
                     foe.Weapon.AddModifier(UpgradeStat.AttackSpeed, new StatModifier(ModifierOperation.Percent, 1f));
             }
 
+            // weapon_effectiveness: a landing of the striking weapon's, on what it fell, and whether its evolution's proc
+            // dealt it.
+            private void Attribute(FoundryWeaponWork work, Foe foe, float dealt, bool proc)
+            {
+                if (proc)
+                {
+                    work.ProcLandings++;
+                    work.DealtByProcs += dealt;
+                }
+                else
+                {
+                    work.Landings++;
+                }
+                if (foe.GateBoss)
+                    work.DealtWarden += dealt;
+                else if (foe.Horde)
+                    work.DealtHorde += dealt;
+                else
+                    work.DealtNode += dealt;
+                if (work.EvolvedAt >= 0f)
+                    work.DealtAfterEvolving += dealt;
+            }
+
+            // Whether the weapon striking now has fired a pulse, a splinter or a kill burst since the strike began: each
+            // counter rises before its damage lands, and all three come after the strike's own landings (WeaponRuntime).
+            private bool StrikeHasProcced() =>
+                _strikingWeapon != null && ProcsFired(_strikingWeapon) > _procsBeforeStrike;
+
+            private static int ProcsFired(WeaponRuntime weapon) =>
+                weapon.PulsesFired + weapon.SplintersFired + weapon.KillBurstsFired;
+
+            // The work of the weapon in this loadout slot, from the frame it was first seen there.
+            private FoundryWeaponWork WorkAt(int slot)
+            {
+                while (_result.WeaponWork.Count <= slot && _result.WeaponWork.Count < _loadout.Count)
+                    _result.WeaponWork.Add(new FoundryWeaponWork
+                    {
+                        Id = _loadout.At(_result.WeaponWork.Count).WeaponId, HeldFrom = _seconds
+                    });
+                return _result.WeaponWork[slot];
+            }
+
+            // Who landed the blow being applied now: the striking weapon, the burn, the ability or the pit.
+            private string KillingBlow()
+            {
+                switch (_source)
+                {
+                    case DamageSource.Weapon:
+                        return _striking?.Id;
+                    case DamageSource.Burn:
+                        return FoundryKill.KilledByBurn;
+                    case DamageSource.Ability:
+                        return FoundryKill.KilledByAbility;
+                    default:
+                        return FoundryKill.KilledByPit;
+                }
+            }
+
             // EncounterController.OnEnemyDied / OnHordeEnemyDied, CombatSetup.OnEnemyDefeated's drop, then the enemy's
             // BurnStatus.OnDied - the order their Died handlers were subscribed in.
             private void FoeDied(Foe foe)
@@ -1266,7 +1370,8 @@ namespace Cryptforge.Tests
                     return;
                 foe.Defeated = true;
                 _result.Kills.Add(new FoundryKill(foe.Definition.Name, foe.Horde, _seconds - foe.SpawnedAt,
-                    foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f));
+                    foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f, KillingBlow(),
+                    _source == DamageSource.Weapon && StrikeHasProcced(), _seconds));
                 _result.BucketKills[Bucket()]++;
                 _roomKills++;
                 if (foe.Horde)
@@ -1487,7 +1592,15 @@ namespace Cryptforge.Tests
                     if (weapon.CritSplash > 0f)
                         CollectNear(target, weapon.CritSplashRadius, _crit);
                     _source = DamageSource.Weapon;
-                    if (!weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null))
+                    _striking = WorkAt(slot);
+                    _strikingWeapon = weapon;
+                    _procsBeforeStrike = ProcsFired(weapon);
+                    bool struck = weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null);
+                    if (struck)
+                        _striking.Strikes++;
+                    _striking = null;
+                    _strikingWeapon = null;
+                    if (!struck)
                         continue;
                     if (_result.FirstStrikeSeconds < 0f)
                         _result.FirstStrikeSeconds = _seconds;
@@ -2069,6 +2182,16 @@ namespace Cryptforge.Tests
                         reach = Math.Max(reach, _loadout.At(i).Runtime.Range);
                     if (ArenaFloor.FloorDistanceSquared(warden.X, warden.Y, HeroX, HeroY) <= reach * reach)
                         _result.WardenInReach += Step;
+                }
+                // weapon_effectiveness: a weapon picked up this frame is held from now, and an evolution taken this frame
+                // counts from now.
+                if (_loadout.Count > 0)
+                    WorkAt(_loadout.Count - 1);
+                for (int i = 0; i < _result.WeaponWork.Count; i++)
+                {
+                    FoundryWeaponWork work = _result.WeaponWork[i];
+                    if (work.EvolvedAt < 0f && _upgrades.HasEvolved(work.Id))
+                        work.EvolvedAt = _seconds;
                 }
                 _hordeAliveSum += _hordeAlive;
                 _hordeTargetSum += _horde != null ? _horde.TargetNow : 0;
