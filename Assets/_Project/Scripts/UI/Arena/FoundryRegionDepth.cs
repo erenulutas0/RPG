@@ -11,6 +11,8 @@ namespace Cryptforge.UI
     // pass, and actors (whose sprite z follows their feet) are depth-tested against it by the default sprite shader.
     // Vertices find their structure, in order: an explicit footprint (Block), the enclosing DepthStructure scope, or the
     // landmark whose volume holds their quad. Anything else writes no depth and draws under actors, as before.
+    // Every triangle that may write depth also marks the cells of the view's depth cover (FoundryDepthCover), so that a
+    // render can tell which actors no structure can hide (FoundryVisibilityView).
     public sealed partial class FoundryRegionView
     {
         private sealed class DepthFootprint
@@ -130,6 +132,64 @@ namespace Cryptforge.UI
             }
             return flags;
         }
+        // Above-floor ranks carry structure depth in vertex z and write it in a second pass; floor ranks stay flat.
+        private static bool IsStructureRank(float order)=>order>=-14;
+        // Room round the structures' vertices for every pose of the moving ones (a gate leaf swings the furthest, under two
+        // units); a body reaching beyond the cover is answered as possibly hidden anyway.
+        private const float DepthCoverRoom=4f;
+        // The view's depth cover, over every structure batch's vertices, made before any of them is emitted.
+        private void BeginDepthCover()
+        {
+            var min=new Vector2(float.MaxValue,float.MaxValue);var max=new Vector2(float.MinValue,float.MinValue);
+            foreach(var batch in _batches)
+            {
+                if(!IsStructureRank(batch.Order))continue;
+                foreach(var p in batch.Builder.V){min=Vector2.Min(min,p);max=Vector2.Max(max,p);}
+            }
+            if(min.x<=max.x)_visibility.BeginDepthCover(min-Vector2.one*DepthCoverRoom,max+Vector2.one*DepthCoverRoom);
+        }
+        // Marks the cover's cells under this batch's depth-writing triangles - those with a vertex whose flag x is set -
+        // where they stand, or, for a triangle with a moving vertex, over the box every pose of its vertices stays inside.
+        // Structure depth emitted with no cover to mark leaves the view without one: every body then keeps its silhouette.
+        private void CoverStructureDepth(Builder b,List<Vector2> flags)
+        {
+            var cover=_visibility.DepthCover;
+            if(cover==null){_visibility.AbandonDepthCover();return;}
+            Vector4[] reach=MovingReach(b);
+            for(int t=0;t+2<b.T.Count;t+=3)
+            {
+                int i=b.T[t],j=b.T[t+1],k=b.T[t+2];
+                if(flags[i].x<=0&&flags[j].x<=0&&flags[k].x<=0)continue;
+                Vector3 p=b.V[i],q=b.V[j],r=b.V[k];
+                if(reach==null||Still(reach[i],p)&&Still(reach[j],q)&&Still(reach[k],r)){cover.AddTriangle(p,q,r);continue;}
+                Vector4 box=Union(reach[i],Union(reach[j],reach[k]));
+                cover.AddBox(new Vector2(box.x,box.y),new Vector2(box.z,box.w),Mathf.Min(p.z,Mathf.Min(q.z,r.z)));
+            }
+        }
+        // Per vertex, the box (min x, min y, max x, max y) of every place it takes: its rest, widened for a flame tip, a
+        // banner's cloth or a gate leaf by the reach its motion gives it. Null when nothing in the batch moves.
+        private static Vector4[] MovingReach(Builder b)
+        {
+            if(b.Flames.Count==0&&b.Cloth.Count==0&&b.Door.Count==0)return null;
+            var reach=new Vector4[b.V.Count];
+            for(int i=0;i<reach.Length;i++){Vector3 p=b.V[i];reach[i]=new Vector4(p.x,p.y,p.x,p.y);}
+            foreach(var tip in b.Flames)Widen(reach,tip.Index,FoundryFlameMotion.Reach(tip));
+            foreach(var cloth in b.Cloth)Widen(reach,cloth.Index,FoundryBannerMotion.Reach(cloth));
+            foreach(var leaf in b.Door)
+            {
+                FoundryGateDoorMotion.Sweep(leaf,GateDoorFaceU,out Vector2 low,out Vector2 high);
+                reach[leaf.Index]=Union(reach[leaf.Index],new Vector4(low.x,low.y,high.x,high.y));
+            }
+            return reach;
+        }
+        private static void Widen(Vector4[] reach,int index,Vector2 by)
+        {
+            Vector4 r=reach[index];
+            reach[index]=new Vector4(r.x-by.x,r.y-by.y,r.z+by.x,r.w+by.y);
+        }
+        private static Vector4 Union(Vector4 a,Vector4 b)=>
+            new Vector4(Mathf.Min(a.x,b.x),Mathf.Min(a.y,b.y),Mathf.Max(a.z,b.z),Mathf.Max(a.w,b.w));
+        private static bool Still(Vector4 reach,Vector3 p)=>reach.x==p.x&&reach.y==p.y&&reach.z==p.x&&reach.w==p.y;
         private static int DepthRoot(int[] parent,int i)
         {
             int root=i;while(parent[root]!=root)root=parent[root];
