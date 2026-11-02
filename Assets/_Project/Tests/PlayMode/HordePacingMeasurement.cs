@@ -46,6 +46,14 @@ namespace Cryptforge.Tests
             return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
         }
 
+        // TestResults/horde-weapon.txt, a weapon id, starts the run with that weapon owned and equipped (the research's M1:
+        // the Vanguard with the Staff, to tell the Staff's share from Ilya's Ember Memory).
+        private static string Weapon()
+        {
+            string path = Path.Combine(Application.dataPath, "..", "TestResults", "horde-weapon.txt");
+            return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
+        }
+
         // TestResults/horde-seeds.txt, one seed per line, narrows a run to the seeds being looked at.
         private static int[] Seeds()
         {
@@ -74,11 +82,15 @@ namespace Cryptforge.Tests
             var report = new StringBuilder();
             string mode = Mode();
             string heroId = Hero();
-            report.AppendLine("mode " + mode + (heroId.Length > 0 ? " hero " + heroId : string.Empty));
+            string weaponId = Weapon();
+            report.AppendLine("mode " + mode + (heroId.Length > 0 ? " hero " + heroId : string.Empty) +
+                (weaponId.Length > 0 ? " weapon " + weaponId : string.Empty));
             report.AppendLine("seed\tresult\tfloor_s\tuptime\tengaged\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
             foreach (int seed in Seeds())
             {
-                TestProfile.Begin();
+                TestProfile.Begin(weaponId.Length > 0
+                    ? new PlayerProfile(0, null, null, 0, new[] { weaponId }, weaponId)
+                    : null);
                 Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.AutopilotPath));
                 File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
                 File.WriteAllText(DevelopmentStart.AutopilotPath, mode);
