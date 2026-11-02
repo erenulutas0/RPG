@@ -131,3 +131,16 @@ second character is authored.
 
 Six characters and active abilities beyond the Forge Burst, Overforge and Heat, run items, meta unlock quests, the
 60-120 crowd, an elite with its own attack beyond one. Each waits for the gate above.
+
+## Status 2026-11-02: the floor's length
+
+- The research (2026-10-29) found floor 1 at about 170 s, short on content rather than power. The foundry simulation
+  (`DescentSimulation.RunFoundry`, `FoundryBatchReport`, docs/41 step 5) then measured the levers over 200 seeds a hero.
+- The owner chose two surges a hall, a second elite before the gate and the gate on the floor's clock at 3:30
+  (`FloorDefinition._foundryHallSurges` 2, `_foundryExtraElites` 1, `_foundryGateNotBeforeSeconds` 210; foundry only,
+  the hall arena and the Descent keep their authored rooms). While the cleared room before the gate holds, the floor
+  clock reads "Gate opens in m:ss".
+- Scene measurement (HordePacingMeasurement, seeds 11-66): the Vanguard clears 3/6 at 267-321 s, dying 3 times in the
+  halls (112-177 s); Ilya clears 5/6 at 259-289 s, one death at the Warden. The 4-6 minute floor is met for a clear.
+- Still open against the gate: the Warden's fight is 33-44 s (target 45-65), engaged uptime is 0.5-0.7, and the
+  Vanguard's autopilot dies in half its runs.
