@@ -197,8 +197,10 @@ namespace Cryptforge.Tests
         private static void SegmentTable(StringBuilder md, IReadOnlyList<Batch> batches)
         {
             md.AppendLine("### Where the time goes (cleared runs; P10 / P50 / P90 seconds)").AppendLine();
-            md.AppendLine("Walk: from a hall marked to its district reached (hall_reached). Node fights: the non-boss rooms less their walks (the waves, their 1 s advance delays and the forge's second). Warden: the boss wave from walking out of the gate to its fall, the 2.6 s reveal included. Exit: the Warden's fall to the gate held.").AppendLine();
-            md.AppendLine("| Hero | Walk | Node fights | Hall waves only | Warden | Exit | Gate wait | Room 1 / 2 / 3 / forge / elite / boss (P50) | Walks over " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (all runs) |");
+            md.AppendLine("Walk: from a hall marked to its district reached (hall_reached). Node fights: the non-boss rooms less their walks and the gate wait (the waves, their 1 s advance delays and the forge's second). Warden: the boss wave from walking out of the gate to its fall, the 2.6 s reveal included. Exit: the Warden's fall to the gate held. Gate wait: the cleared room before the gate holding for the floor's clock; the rooms' own seconds include it in the room before the gate.").AppendLine();
+            // The rooms by kind, as the runs played them (a batch on another floor names its own in its row).
+            RoomKind[] kinds = batches.SelectMany(b => b.Cleared).Select(r => r.Kinds).FirstOrDefault() ?? new RoomKind[0];
+            md.AppendLine("| Hero | Walk | Node fights | Hall waves only | Warden | Exit | Gate wait | Rooms " + RoomNames(kinds) + " (P50) | Walks over " + LongWalkSeconds.ToString("0", CultureInfo.InvariantCulture) + " s (all runs) |");
             md.AppendLine("|---|---|---|---|---|---|---|---|---|");
             foreach (Batch b in batches)
             {
@@ -207,14 +209,21 @@ namespace Cryptforge.Tests
                 var perRoom = new List<string>();
                 for (int i = 0; i < rooms; i++)
                     perRoom.Add(F(Median(cleared.Select(r => r.RoomSeconds[i]))));
+                string roomCell = string.Join(" / ", perRoom);
+                if (cleared.Length > 0 && !cleared[0].Kinds.SequenceEqual(kinds))
+                    roomCell = RoomNames(cleared[0].Kinds) + ": " + roomCell;
                 md.AppendLine($"| {b.Hero.Name} | {Spread(cleared.Select(r => r.WalkTotal))} | {Spread(cleared.Select(r => r.NodeSeconds))} | " +
                               $"{Spread(cleared.Select(r => r.WaveSeconds.Where(w => w > 0f).Sum()))} | " +
                               $"{Spread(cleared.Select(r => r.BossSeconds))} | {Spread(cleared.Select(r => r.ExitSeconds))} | " +
-                              $"{Spread(cleared.Select(r => r.GateWaitSeconds))} | {string.Join(" / ", perRoom)} | " +
+                              $"{Spread(cleared.Select(r => r.GateWaitSeconds))} | {roomCell} | " +
                               $"{b.Runs.Count(WalkedLong)} ({Pct(b.Runs.Count(WalkedLong), b.Runs.Length)}) |");
             }
             md.AppendLine();
         }
+
+        // "hall / hall / hall / forge / elite / elite / boss".
+        private static string RoomNames(IEnumerable<RoomKind> kinds) =>
+            string.Join(" / ", kinds.Select(k => k == RoomKind.Combat ? "hall" : k.ToString().ToLowerInvariant()));
 
         private static void LevelTable(StringBuilder md, IReadOnlyList<Batch> batches)
         {
