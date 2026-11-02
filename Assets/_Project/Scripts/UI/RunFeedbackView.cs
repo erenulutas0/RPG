@@ -17,11 +17,11 @@ namespace Cryptforge.UI
     // flash is seen as the panel closes, or behind the next one. No camera nudge: the only shake is CombatEffectsView's
     // own, which nothing outside it can start.
     //
-    // Everything is made up front - rings and sparks as LineRenderers on one Sprites/Default material, and one overlay on
-    // the hero's body - and an effect only moves, recolours and re-widens them; when every slot is busy the oldest gives
-    // way. The effects follow the hero's feet, raised on the foundry onto the surface he stands on (FoundrySurface), the
-    // rings at the floor's order like his contact shadow and ability ring, the sparks over the combatants like the hit
-    // sparks. It reads the run and the upgrade service and writes nothing to either.
+    // Everything is made up front - rings and sparks as LineRenderers on the Sprites/Default material the effects share
+    // (SharedSpriteMaterial), and one overlay on the hero's body - and an effect only moves, recolours and re-widens them;
+    // when every slot is busy the oldest gives way. The effects follow the hero's feet, raised on the foundry onto the
+    // surface he stands on (FoundrySurface), the rings at the floor's order like his contact shadow and ability ring, the
+    // sparks over the combatants like the hit sparks. It reads the run and the upgrade service and writes nothing to either.
     //
     // Given a RunFeedbackArtSet, the same slots are sprites cut from its painted sheet instead (one texture, so every ring
     // batches), armed, timed, placed, sorted and faded exactly as the lines: each ring a unit floor ellipse scaled to the
@@ -172,7 +172,7 @@ namespace Cryptforge.UI
             _arena = FindFirstObjectByType<ArenaView>();
             _foundry = _arena != null && _arena.IsFoundryRegion;
             int floorOrder = _foundry ? _arena.GroundEffectSortingOrder : 0;
-            _material = new Material(Shader.Find("Sprites/Default"));
+            _material = SharedSpriteMaterial.For(_arena);
             _root = new GameObject("Run Feedback").transform;
             _root.SetParent(transform, false);
             for (int k = 0; k < RingSegments; k++)
@@ -676,9 +676,7 @@ namespace Cryptforge.UI
             }
             if (_heroFlash != null)
                 Destroy(_heroFlash.gameObject);
-            if (_material != null)
-                Destroy(_material);
-            // Only the sprites: their sheet is the art set's.
+            // Not the material, which is shared (SharedSpriteMaterial); only the sprites: their sheet is the art set's.
             for (int i = 0; i < _cutSprites.Count; i++)
                 Destroy(_cutSprites[i]);
             _cutSprites.Clear();

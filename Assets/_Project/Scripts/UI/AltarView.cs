@@ -30,7 +30,7 @@ namespace Cryptforge.UI
             _service = service; _text = text; _hero = hero;
             if (!service.IsActive) return;
             _arena = FindFirstObjectByType<ArenaView>();
-            _material = new Material(Shader.Find("Sprites/Default"));
+            _material = SharedSpriteMaterial.For(_arena);
             var ember = new Color(1f, .55f, .22f, 1); var violet = new Color(.72f, .5f, 1f, 1);
             _sigils = new GameObject[service.Field.Count];
             for (int i = 0; i < _sigils.Length; i++)
@@ -110,7 +110,5 @@ namespace Cryptforge.UI
             _label.transform.position = _sigils[nearest].transform.position + Vector3.down * .62f;
             if (_label.text != _text.AltarInstruction) _label.text = _text.AltarInstruction;
         }
-
-        private void OnDestroy() { if (_material != null) Destroy(_material); }
     }
 }

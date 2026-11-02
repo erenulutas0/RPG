@@ -33,7 +33,7 @@ namespace Cryptforge.UI
             _setup = setup; _text = text; _camera = Camera.main;
             _framing = _camera.GetComponent<ArenaCameraFollow>();
             _arena = FindFirstObjectByType<ArenaView>();
-            _material = new Material(Shader.Find("Sprites/Default"));
+            _material = SharedSpriteMaterial.For(_arena);
             _plate = new GameObject("Finale Exit Seal"); _plate.transform.SetParent(transform, false);
             var brass = new Color(.78f,.63f,.36f,1);
             var ivory = new Color(.78f,.93f,.87f,1);
@@ -119,6 +119,6 @@ namespace Cryptforge.UI
             if(_label.text!=instruction)_label.text=instruction;
         }
         private void OnDisable(){if(_plate!=null)_plate.SetActive(false);if(_label!=null)_label.gameObject.SetActive(false);if(_arrow!=null)_arrow.enabled=false;}
-        private void OnDestroy(){if(_material!=null)Destroy(_material);if(_plate!=null)Destroy(_plate);if(_arrow!=null)Destroy(_arrow.gameObject);if(_label!=null)Destroy(_label.gameObject);}
+        private void OnDestroy(){if(_plate!=null)Destroy(_plate);if(_arrow!=null)Destroy(_arrow.gameObject);if(_label!=null)Destroy(_label.gameObject);}
     }
 }

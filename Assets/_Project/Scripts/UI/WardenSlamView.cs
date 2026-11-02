@@ -32,7 +32,7 @@ namespace Cryptforge.UI
         {
             _service = service;
             _arena = FindFirstObjectByType<ArenaView>();
-            _material = new Material(Shader.Find("Sprites/Default"));
+            _material = SharedSpriteMaterial.For(_arena);
             _mark = new GameObject("Warden Mark").transform;
             _mark.SetParent(transform, false);
             _edge = Ring("Warden Mark Edge", .07f);
@@ -121,8 +121,7 @@ namespace Cryptforge.UI
                 _service.Marked -= OnMarked;
                 _service.Slammed -= OnSlammed;
             }
-            if (_material != null)
-                Destroy(_material);
+            // The material is shared (SharedSpriteMaterial), not this view's to destroy.
         }
     }
 }
