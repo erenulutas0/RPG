@@ -84,6 +84,30 @@ namespace Cryptforge.Tests
             };
         }
 
+        // Combinations of the cheap levers, toward the 240-360 s band without the deaths a single big lever brings
+        // (FOUNDRY_LEVERS=2 runs these instead of the research's list).
+        public static Lever[] ComboLevers()
+        {
+            Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
+            {
+                DescentSimulation.FoundryLevers levers = Shipped().Copy(name);
+                set(levers);
+                return new Lever { Name = name, Estimate = "combo", Levers = levers };
+            }
+
+            return new[]
+            {
+                Make("Surges 2 + second elite", l => { l.HallSurges = 2; l.ExtraElites = 1; }),
+                Make("Surges 2 + second elite + 2 halls", l => { l.HallSurges = 2; l.ExtraElites = 1; l.ExtraHalls = 2; }),
+                Make("Surges 2 + second elite + Warden x1.25", l => { l.HallSurges = 2; l.ExtraElites = 1; l.WardenHealthShare = 6.25f; }),
+                Make("Gate not before 3:30", l => l.GateNotBeforeSeconds = 210f),
+                Make("Surges 2 + second elite + gate 3:30", l => { l.HallSurges = 2; l.ExtraElites = 1; l.GateNotBeforeSeconds = 210f; }),
+                Make("Halls held 30 s", l => l.HallHoldSeconds = 30f),
+                Make("Halls held 30 s + second elite", l => { l.HallHoldSeconds = 30f; l.ExtraElites = 1; }),
+                Make("Halls held 45 s + XP 0.1", l => { l.HallHoldSeconds = 45f; l.HordeExperienceShare = 0.1f; })
+            };
+        }
+
         public static Batch Run(DescentSimulation.FoundryHero hero, DescentSimulation.FoundryLevers levers, int[] seeds,
             int parallelism)
         {
