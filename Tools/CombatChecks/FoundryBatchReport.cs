@@ -21,11 +21,12 @@ namespace Cryptforge.Tests
     // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the gate's Vanguard started with the Staff
     // and the Daggers about as long again, and each lever about fifteen seconds more (FoundryBatch.ResearchLevers: the
     // pre-V0.1 floor, the research's twelve on it and V0.1's three taken away; FOUNDRY_LEVERS=0 skips them, 2 runs
-    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers).
+    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers). FOUNDRY_COHORTS=1 adds the
+    // autopilot's cohorts on the same seeds (FoundryCohorts: four more batches a hero, alone in foundry-cohorts.md too).
     // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
-    // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
+    // lever runs), FOUNDRY_COHORTS (1 adds the cohorts), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
     // TestResults), FOUNDRY_EDITOR (folder holding the Editor measurement - horde-pacing-*.txt, horde-telemetry/ and the
     // perf probe's summary - the repository's TestResults; nothing there skips the parity table and leaves the gate's Editor
     // column empty), FOUNDRY_EDITOR_FILES (the two pacing files the gate and the parity read, Vanguard's then Ilya's, comma
@@ -70,6 +71,15 @@ namespace Cryptforge.Tests
             string parity = Parity(editor, heroes, baselines, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
             if (parity != null)
                 md.AppendLine(parity);
+            // The autopilot's cohorts on the same seeds (docs/41 step 5), on demand.
+            var cohortRuns = new List<(Cryptforge.Core.AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)>();
+            if (Setting("FOUNDRY_COHORTS", 0) != 0)
+            {
+                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines);
+                string cohorts = FoundryCohorts.Section(cohortRuns);
+                md.Append(cohorts);
+                File.WriteAllText(Path.Combine(output, "foundry-cohorts.md"), cohorts);
+            }
 
             File.WriteAllText(Path.Combine(output, "foundry-batch.md"), md.ToString());
             File.WriteAllText(Path.Combine(output, "foundry-gate.md"), gate);
@@ -78,6 +88,7 @@ namespace Cryptforge.Tests
             foreach ((FoundryBatch.Lever _, FoundryBatch.Batch[] batches) in leverRuns)
                 all.AddRange(batches);
             all.AddRange(editorSeedBatches);
+            all.AddRange(cohortRuns.SelectMany(c => c.Batches).Where(batch => !baselines.Contains(batch)));
             File.WriteAllText(Path.Combine(output, "foundry-batch.csv"), FoundryBatch.Csv(all));
             TestContext.WriteLine(md.ToString());
             Assert.That(baselines.All(b => b.Runs.Length == seeds), "every seed ran");

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using NUnit.Framework;
@@ -8,23 +9,28 @@ namespace Cryptforge.Tests
 {
     // The autopilot's cohorts on the foundry floor (AutopilotCohort, as DescentSimulation.FoundryLevers.Cohort): with no
     // lever the careful pilot plays, and each cohort changes what it says it changes - on the same seeds, as docs/40
-    // section 9.4 pairs its bots. Balance is not pinned here: how often a cohort clears is the batch report's
-    // (Tools/CombatChecks/FoundryBatchReport.cs, FOUNDRY_COHORTS=1).
+    // section 9.4 pairs its bots - and the batch report's cohort section (FoundryCohorts) has a row for each. Balance is
+    // not pinned here: how often a cohort clears is the batch report's (Tools/CombatChecks/FoundryBatchReport.cs,
+    // FOUNDRY_COHORTS=1).
     public sealed class FoundryCohortTests
     {
-        // Two of the Editor measurement's seeds, as FoundrySimulationTests reads them.
+        // Two of the Editor measurement's seeds, as FoundrySimulationTests reads them; the cohorts' batches play the first.
         private static readonly int[] Seeds = { 11, 33 };
+        private List<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> _cohorts;
+
+        [OneTimeSetUp]
+        public void RunTheCohorts() => _cohorts = FoundryCohorts.Run(Heroes(), new[] { Seeds[0] }, 2);
 
         private static DescentSimulation.FoundryHero[] Heroes() =>
             new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() };
 
+        // The cohort's run of the first seed for the hero at index h of Heroes().
+        private DescentSimulation.FoundryResult Played(AutopilotCohort cohort, int h) =>
+            _cohorts.First(c => c.Cohort == cohort).Batches[h].Runs[0];
+
         private static DescentSimulation.FoundryResult Run(DescentSimulation.FoundryHero hero, int seed,
-            AutopilotCohort cohort, Action<string> trace = null)
-        {
-            DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("cohort " + cohort.Name);
-            levers.Cohort = cohort;
-            return DescentSimulation.RunFoundry(hero, seed, levers, trace: trace);
-        }
+            AutopilotCohort cohort, Action<string> trace = null) =>
+            DescentSimulation.RunFoundry(hero, seed, FoundryCohorts.Levers(cohort), trace: trace);
 
         private static AutopilotCohort CarefulLess(AutopilotCohort.Habit habit) =>
             new AutopilotCohort("careful less " + habit, AutopilotCohort.Habit.All & ~habit);
@@ -38,24 +44,27 @@ namespace Cryptforge.Tests
             Assert.That(new DescentSimulation.FoundryLevers().Cohort, Is.SameAs(AutopilotCohort.Careful));
             Assert.That(FoundryBatch.Shipped().Cohort, Is.SameAs(AutopilotCohort.Careful));
             var anew = new AutopilotCohort("careful, anew", AutopilotCohort.Habit.All);
-            foreach (DescentSimulation.FoundryHero hero in Heroes())
+            DescentSimulation.FoundryHero[] heroes = Heroes();
+            for (int h = 0; h < heroes.Length; h++)
             {
-                DescentSimulation.FoundryResult plain = DescentSimulation.RunFoundry(hero, 11);
-                DescentSimulation.FoundryResult careful = Run(hero, 11, anew);
-                string where = hero.Name;
-                Assert.That(careful.Outcome, Is.EqualTo(plain.Outcome), where);
-                Assert.That(careful.FloorSeconds, Is.EqualTo(plain.FloorSeconds), where);
-                Assert.That(careful.RoomSeconds, Is.EqualTo(plain.RoomSeconds), where);
-                Assert.That(careful.Picks, Is.EqualTo(plain.Picks), where);
-                Assert.That(careful.HordeKills, Is.EqualTo(plain.HordeKills), where);
-                Assert.That(careful.WaveKills, Is.EqualTo(plain.WaveKills), where);
-                Assert.That(careful.HeroHealth, Is.EqualTo(plain.HeroHealth), where);
-                Assert.That(careful.BossSeconds, Is.EqualTo(plain.BossSeconds), where);
-                Assert.That(careful.DropsCollected, Is.EqualTo(plain.DropsCollected), where);
-                Assert.That((careful.KiteSeconds, careful.EscapeSeconds, careful.ShelterSeconds, careful.LureSeconds),
-                    Is.EqualTo((plain.KiteSeconds, plain.EscapeSeconds, plain.ShelterSeconds, plain.LureSeconds)), where);
-                Assert.That((careful.AbilityUses, careful.SlamHits, careful.EruptionsOnHero),
-                    Is.EqualTo((plain.AbilityUses, plain.SlamHits, plain.EruptionsOnHero)), where);
+                DescentSimulation.FoundryResult plain = DescentSimulation.RunFoundry(heroes[h], Seeds[0]);
+                foreach (DescentSimulation.FoundryResult careful in new[] { Played(AutopilotCohort.Careful, h), Run(heroes[h], Seeds[0], anew) })
+                {
+                    string where = $"{heroes[h].Name}, {careful.Levers}";
+                    Assert.That(careful.Outcome, Is.EqualTo(plain.Outcome), where);
+                    Assert.That(careful.FloorSeconds, Is.EqualTo(plain.FloorSeconds), where);
+                    Assert.That(careful.RoomSeconds, Is.EqualTo(plain.RoomSeconds), where);
+                    Assert.That(careful.Picks, Is.EqualTo(plain.Picks), where);
+                    Assert.That(careful.HordeKills, Is.EqualTo(plain.HordeKills), where);
+                    Assert.That(careful.WaveKills, Is.EqualTo(plain.WaveKills), where);
+                    Assert.That(careful.HeroHealth, Is.EqualTo(plain.HeroHealth), where);
+                    Assert.That(careful.BossSeconds, Is.EqualTo(plain.BossSeconds), where);
+                    Assert.That(careful.DropsCollected, Is.EqualTo(plain.DropsCollected), where);
+                    Assert.That((careful.KiteSeconds, careful.EscapeSeconds, careful.ShelterSeconds, careful.LureSeconds),
+                        Is.EqualTo((plain.KiteSeconds, plain.EscapeSeconds, plain.ShelterSeconds, plain.LureSeconds)), where);
+                    Assert.That((careful.AbilityUses, careful.SlamHits, careful.EruptionsOnHero),
+                        Is.EqualTo((plain.AbilityUses, plain.SlamHits, plain.EruptionsOnHero)), where);
+                }
             }
         }
 
@@ -65,11 +74,12 @@ namespace Cryptforge.Tests
         [Test]
         public void TheStandingCohortNeverKitesAndKeepsEveryOtherHabit()
         {
-            foreach (DescentSimulation.FoundryHero hero in Heroes())
+            DescentSimulation.FoundryHero[] heroes = Heroes();
+            for (int h = 0; h < heroes.Length; h++)
             {
-                DescentSimulation.FoundryResult careful = DescentSimulation.RunFoundry(hero, 11);
-                DescentSimulation.FoundryResult standing = Run(hero, 11, AutopilotCohort.Standing);
-                string where = hero.Name;
+                DescentSimulation.FoundryResult careful = Played(AutopilotCohort.Careful, h);
+                DescentSimulation.FoundryResult standing = Played(AutopilotCohort.Standing, h);
+                string where = heroes[h].Name;
                 Assert.That(careful.KiteSeconds, Is.GreaterThan(0f), where + ": the careful pilot kites");
                 Assert.That(standing.KiteSeconds, Is.Zero, where);
                 Assert.That(standing.LevelAtGate, Is.GreaterThan(0), where + ": it met the Warden");
@@ -91,9 +101,9 @@ namespace Cryptforge.Tests
             foreach (DescentSimulation.FoundryHero hero in Heroes())
             {
                 var careful = new List<string>();
-                DescentSimulation.RunFoundry(hero, 11, trace: careful.Add);
+                DescentSimulation.RunFoundry(hero, Seeds[0], trace: careful.Add);
                 var first = new List<string>();
-                Run(hero, 11, AutopilotCohort.FirstCard, first.Add);
+                Run(hero, Seeds[0], AutopilotCohort.FirstCard, first.Add);
                 AssertEveryPickIsTheFirstCard(first, hero.Name);
                 int part = 0;
                 while (part < careful.Count && part < first.Count && careful[part] == first[part])
@@ -114,16 +124,19 @@ namespace Cryptforge.Tests
         {
             AutopilotCohort glow = CarefulLess(AutopilotCohort.Habit.KeepsOutOfTheGlow);
             AutopilotCohort weapons = CarefulLess(AutopilotCohort.Habit.FillsWeaponSlots);
-            foreach (DescentSimulation.FoundryHero hero in Heroes())
+            DescentSimulation.FoundryHero[] heroes = Heroes();
+            for (int h = 0; h < heroes.Length; h++)
             foreach (int seed in Seeds)
             {
-                string where = $"{hero.Name} seed {seed}";
-                DescentSimulation.FoundryResult clumsy = Run(hero, seed, AutopilotCohort.Clumsy);
+                string where = $"{heroes[h].Name} seed {seed}";
+                DescentSimulation.FoundryResult clumsy = seed == Seeds[0]
+                    ? Played(AutopilotCohort.Clumsy, h)
+                    : Run(heroes[h], seed, AutopilotCohort.Clumsy);
                 Assert.That(clumsy.EruptionsOnHero, Is.GreaterThan(1), where + ": " + clumsy.Eruptions + " spills");
                 Assert.That(clumsy.WeaponsAtGate, Is.EqualTo(2), where + ": " + clumsy.Weapons);
-                DescentSimulation.FoundryResult glowing = Run(hero, seed, glow);
+                DescentSimulation.FoundryResult glowing = Run(heroes[h], seed, glow);
                 Assert.That(glowing.EruptionsOnHero, Is.GreaterThan(1), where + ", " + glow.Name);
-                DescentSimulation.FoundryResult two = Run(hero, seed, weapons);
+                DescentSimulation.FoundryResult two = Run(heroes[h], seed, weapons);
                 Assert.That(two.WeaponsAtGate, Is.EqualTo(2), where + ", " + weapons.Name + ": " + two.Weapons);
             }
         }
@@ -134,11 +147,13 @@ namespace Cryptforge.Tests
         [Test]
         public void TheAutoFarmerWalksTheFloorAndDoesNothingElse()
         {
-            foreach (DescentSimulation.FoundryHero hero in Heroes())
+            DescentSimulation.FoundryHero[] heroes = Heroes();
+            for (int h = 0; h < heroes.Length; h++)
             {
                 var trace = new List<string>();
-                DescentSimulation.FoundryResult farmer = Run(hero, 11, AutopilotCohort.AutoFarmer, trace.Add);
-                string where = hero.Name;
+                DescentSimulation.FoundryResult farmer = Run(heroes[h], Seeds[0], AutopilotCohort.AutoFarmer, trace.Add);
+                string where = heroes[h].Name;
+                Assert.That(farmer.FloorSeconds, Is.EqualTo(Played(AutopilotCohort.AutoFarmer, h).FloorSeconds), where + ": traced or not");
                 Assert.That((farmer.KiteSeconds, farmer.EscapeSeconds, farmer.ShelterSeconds, farmer.LureSeconds),
                     Is.EqualTo((0f, 0f, 0f, 0f)), where);
                 Assert.That(farmer.AbilityUses, Is.Zero, where);
@@ -148,6 +163,34 @@ namespace Cryptforge.Tests
                 Assert.That(farmer.DropsCollected, Is.GreaterThan(0), where);
                 Assert.That(farmer.Slams, Is.GreaterThan(0), where + ": it met the Warden");
                 Assert.That(farmer.SlamHits, Is.EqualTo(farmer.Slams), where);
+            }
+        }
+
+        // The batch report's section: every cohort in AutopilotCohort's order, each with a batch a hero on the same seeds,
+        // and a row a cohort and hero in its table, paired with the careful pilot's seed for seed.
+        [Test]
+        public void TheReportsSectionHasARowForEachCohortAndHero()
+        {
+            Assert.That(_cohorts.Select(c => c.Cohort), Is.EqualTo(AutopilotCohort.Cohorts));
+            foreach ((AutopilotCohort cohort, FoundryBatch.Batch[] batches) in _cohorts)
+            {
+                Assert.That(batches.Select(b => b.Hero.Id), Is.EqualTo(Heroes().Select(hero => hero.Id)), cohort.Name);
+                Assert.That(batches.All(b => b.Levers.Cohort == cohort && b.Runs.Select(r => r.Seed).SequenceEqual(new[] { Seeds[0] })),
+                    Is.True, cohort.Name);
+            }
+
+            string section = FoundryCohorts.Section(_cohorts);
+            Assert.That(section, Does.StartWith("## The autopilot's cohorts"));
+            string[] rows = section.Split('\n').Where(line => line.StartsWith("| ", StringComparison.Ordinal)).ToArray();
+            foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
+            foreach (DescentSimulation.FoundryHero hero in Heroes())
+            {
+                string[] cells = rows.Select(line => line.Split('|').Select(c => c.Trim()).ToArray())
+                    .Where(c => c.Length > 3 && c[1] == cohort.Name && c[2] == hero.Name).ToArray()[0];
+                Assert.That(cells.Length, Is.EqualTo(13), $"{cohort.Name} {hero.Name}: eleven columns");
+                Assert.That(cells[3], Does.Match(@"^[01] \(\d+%\)$"), $"{cohort.Name} {hero.Name}: cleared");
+                Assert.That(cells[11], cohort == AutopilotCohort.Careful ? Is.EqualTo("-") : Does.Match(@"^\d+ / \d+ / \d+$"),
+                    $"{cohort.Name} {hero.Name}: paired with careful");
             }
         }
 
