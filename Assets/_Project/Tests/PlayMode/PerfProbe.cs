@@ -88,6 +88,8 @@ namespace Cryptforge.Tests
             public string Note = string.Empty;
             public float DepthMicros = -1f;
             public int DepthPlaced;
+            // The silhouette gate's verdict on the timed placement (FoundryVisibilityView.DescribeGate).
+            public string DepthGate = "na";
             public readonly List<PerfCensus> Censuses = new List<PerfCensus>();
             public readonly StringBuilder Text = new StringBuilder();
             public readonly StringBuilder Frames = new StringBuilder();
@@ -336,6 +338,7 @@ namespace Cryptforge.Tests
                 {
                     recorder.MarkProbeWork();
                     run.DepthMicros = TimeActorDepth(visibility, camera, out run.DepthPlaced);
+                    run.DepthGate = visibility.DescribeGate();
                 }
             }
             run.EndedEarly = setup.Run.HasEnded;
@@ -480,6 +483,7 @@ namespace Cryptforge.Tests
             t.Append("   foundry depth pass (apply + restore for the gameplay camera, all on show): ")
                 .Append(run.DepthMicros >= 0f ? F(run.DepthMicros, 1) + " us for " + run.DepthPlaced + " transforms placed, mean of " + DepthRuns : "na")
                 .AppendLine();
+            t.Append("   silhouette gate on that placement: ").AppendLine(run.DepthGate);
             t.Append("   memory at the end: total allocated ").Append(F(Profiler.GetTotalAllocatedMemoryLong() / 1048576f, 0))
                 .Append(" MB, managed heap ").Append(F(Profiler.GetMonoHeapSizeLong() / 1048576f, 0)).Append(" MB (")
                 .Append(F(Profiler.GetMonoUsedSizeLong() / 1048576f, 0)).Append(" used), graphics driver ")
