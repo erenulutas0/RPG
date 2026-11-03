@@ -15,7 +15,7 @@ namespace Cryptforge.Tests
     // lines, and each lever of the research's table (v01-research report.md section 3) against the floor it was estimated
     // on, the pre-V0.1 one, and V0.1's own knobs against the shipped floor, on the same seeds. Pure: it only runs
     // DescentSimulation.RunFoundry and counts.
-    internal static class FoundryBatch
+    internal static partial class FoundryBatch
     {
         internal sealed class Batch
         {

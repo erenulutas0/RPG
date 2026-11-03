@@ -101,16 +101,58 @@ namespace Cryptforge.Tests
             public RoomKind[] Kinds;
             public Enemy[] HordeRoles;
             public int FloorNumber = 1;
+            // Its modifier (FloorDefinition.Modifier) as FloorScaling reads it: enemy health and damage, and gold.
+            public float ModifierHealthPercent;
+            public float ModifierDamagePercent;
+            public float ModifierGoldPercent;
+            // Its foundry knobs (FloorDefinition.FoundryHallSurges, FoundryExtraElites, FoundryGateNotBeforeSeconds). A floor
+            // after the first plays these; the first plays the run's levers instead, whose defaults are its own.
+            public int HallSurges;
+            public int ExtraElites;
+            public float GateNotBeforeSeconds;
+            // The floor its checkpoint descends to (FloorDefinition.NextFloor); null where the climb goes on into a floor
+            // this run does not play - floor 2's next is the finale's swarm room - or ends.
+            public FoundryFloor Next;
+
+            // This floor with the rooms a run's levers give it.
+            public FoundryFloor Reshaped(Enemy[][][] rooms, RoomKind[] kinds)
+            {
+                var shaped = (FoundryFloor)MemberwiseClone();
+                shaped.Rooms = rooms;
+                shaped.Kinds = kinds;
+                return shaped;
+            }
         }
 
         // Data/Floors/Floor_EmberHalls.asset as the foundry plays it: the Descent's six rooms (EmberHalls, which the floor
-        // tests already hold to the asset), climb-scaled from floor 1, its horde's three roles and no hall surges.
+        // tests already hold to the asset), climb-scaled from floor 1, its horde's three roles, its V0.1 knobs (as the
+        // shipped levers' defaults too) and floor 2 below it.
         public static FoundryFloor FoundryFloorOne() => new FoundryFloor
         {
             Id = "floor_ember_halls",
             Rooms = EmberHalls.Rooms,
             Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
-            HordeRoles = new[] { Mite, Grunt, Runner }
+            HordeRoles = new[] { Mite, Grunt, Runner },
+            HallSurges = 2,
+            ExtraElites = 1,
+            GateNotBeforeSeconds = 210f,
+            Next = FoundryFloorTwo()
+        };
+
+        // Data/Floors/Floor_QuicksilverVaults.asset, the climb's floor 2, as the foundry plays it: the Descent's floor 2
+        // (QuicksilverVaults) - three halls, the Deep Forge, the Sentry Hall and the Warden's Vault, whose Forge Warden walks
+        // out of the gate with two Cinder Mites - climb-scaled at floor 2, floor 1's three horde roles, Cursed Gold (+20%
+        // enemy damage, +50% gold) and none of V0.1's knobs: no surges, no extra elite, the gate open as its room clears.
+        public static FoundryFloor FoundryFloorTwo() => new FoundryFloor
+        {
+            Id = "floor_quicksilver_vaults",
+            Rooms = QuicksilverVaults.Rooms,
+            Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
+            HordeRoles = new[] { Mite, Grunt, Runner },
+            FloorNumber = 2,
+            ModifierHealthPercent = 0f,
+            ModifierDamagePercent = QuicksilverVaults.ModifierDamagePercent,
+            ModifierGoldPercent = QuicksilverVaults.ModifierGoldPercent
         };
 
         // The floor's knobs, as parameters of a run rather than edits of the game: each default is the shipped value, read
@@ -153,6 +195,11 @@ namespace Cryptforge.Tests
             // The gate does not open before the floor's clock reads this; 0 is off.
             public float GateNotBeforeSeconds = 210f;
             public float LimitSeconds = FoundryFloorLimitSeconds;
+            // How many floors of the climb a run plays: 1, floor 1 alone, as every report did before 2026-11-04; 2 goes on
+            // after a floor-1 clear, as the autopilot answers the checkpoint with Descend, into floor 2 (FoundryFloor.Next),
+            // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's,
+            // under the Warden's and the horde's levers (LaterFloorLevers).
+            public int Floors = 1;
 
             public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond;
 
@@ -204,7 +251,8 @@ namespace Cryptforge.Tests
         }
 
         // One weapon of the hero's loadout over a floor (docs/40 section 17.3's weapon_effectiveness): when it joined the
-        // loadout and when its evolution was taken, in active seconds (-1 for never); its strikes and their own landings
+        // loadout and when its evolution was taken, in the floor's active seconds (-1 for never; a weapon carried down to
+        // floor 2 joins it, evolved or not, on its first frame); its strikes and their own landings
         // (the target, the splash or the cleave), its evolution's proc landings; and what it took off the horde, the node
         // waves and the Warden, the procs' part of it, and what it dealt after it evolved. Accounting only: the run plays
         // the same with or without it. Its kills are the FoundryKills whose By is its Id.
@@ -232,9 +280,17 @@ namespace Cryptforge.Tests
             public int Seed;
             public string Hero;
             public string Levers;
+            // The climb's floor this is, and the next floor's result when the run went down to it (FoundryLevers.Floors):
+            // null when it did not - one floor asked for, this one not cleared, or none below it.
+            public int Floor = 1;
+            public FoundryResult NextFloor;
             public FoundryOutcome Outcome;
-            // Active seconds from the floor's first frame to the gate held, a death or the limit.
+            // Active seconds from the floor's first frame - a later floor's, the checkpoint's Descend - to the gate held, a
+            // death or the limit.
             public float FloorSeconds;
+            // A later floor's descent: active seconds from the checkpoint to its first room's wave (EncounterController's
+            // advance delay), part of FloorSeconds and of no room. 0 on floor 1.
+            public float DescentSeconds;
             // Per room, by index: active seconds from the room's start to the next room's (or the floor's end), the walk to
             // its district (hall_reached), and its node-wave seconds; -1 for a room never entered.
             public float[] RoomSeconds;
@@ -244,6 +300,9 @@ namespace Cryptforge.Tests
             // The Warden: its fight from walking out of the gate to falling, its health, what was left of it at the end,
             // and the walk from its fall to the gate held. -1 where the floor never got there.
             public float BossSeconds = -1f;
+            // The Warden's own fight, from walking out of the gate to its fall: BossSeconds where it walks out alone, as on
+            // floor 1; floor 2's walks out with two Cinder Mites, and its wave ends with the last of the three.
+            public float WardenSeconds = -1f;
             public float WardenHealth;
             public float BossLeft = -1f;
             public float ExitSeconds = -1f;
@@ -292,7 +351,8 @@ namespace Cryptforge.Tests
             // The Warden's fight as docs/41 step 4 budgets its health (HP_boss = D_focus * uptime * damageable_seconds):
             // what each source took off it; the seconds of the fight after the reveal, and of those the seconds it stood
             // within the reach of the hero's longest weapon; the hero's health as it walked out; and what the hero took in
-            // the fight from the horde and the pit (the Warden's own blows are TakenFromWarden and TakenFromSlams).
+            // the fight from the horde, the pit and the Warden's escort - floor 2's two Mites - (the Warden's own blows are
+            // TakenFromWarden and TakenFromSlams).
             public float WardenFromWeapons;
             public float WardenFromBurn;
             public float WardenFromAbility;
@@ -303,6 +363,7 @@ namespace Cryptforge.Tests
             public float HeroMaximumAtGate = -1f;
             public float FightTakenFromHorde;
             public float FightTakenFromPit;
+            public float FightTakenFromEscort;
             // Offers and what was taken, by OfferCategory; weapons and tomes held at the gate and at the end.
             public int Offers;
             public int[] PicksByCategory = new int[OfferWeights.CategoryCount];
@@ -360,13 +421,39 @@ namespace Cryptforge.Tests
             }
         }
 
-        // One foundry floor for this hero on this seed. Null levers and floor are the scene's floor 1. trace, when given,
-        // hears the run as the scene's telemetry would write it - one line an event, in the telemetry's own names and
-        // fields - so a seed can be laid beside the Editor's copy of its events and the first difference found.
+        // One foundry floor for this hero on this seed, and the floors below it the levers ask for (FoundryLevers.Floors).
+        // Null levers and floor are the scene's floor 1. trace, when given, hears the run as the scene's telemetry would
+        // write it - one line an event, in the telemetry's own names and fields - so a seed can be laid beside the
+        // Editor's copy of its events and the first difference found.
         public static FoundryResult RunFoundry(FoundryHero hero, int seed, FoundryLevers levers = null,
             FoundryFloor floor = null, Action<string> trace = null) =>
-            new FoundryRun(hero ?? Vanguard(), Shape(floor ?? FoundryFloorOne(), levers ?? new FoundryLevers()),
-                levers ?? new FoundryLevers(), seed, trace).Play();
+            new FoundryRun(hero ?? Vanguard(), floor ?? FoundryFloorOne(), levers ?? new FoundryLevers(), seed, trace).Play();
+
+        // The levers a floor after the first plays: the run's Warden and horde levers, which stand for WardenRule's and
+        // HordeRule's constants that the scene reads alike on every floor, with the floor's own asset knobs and none of the
+        // floor-1 experiments (extra halls, held halls, node health).
+        internal static FoundryLevers LaterFloorLevers(FoundryLevers run, FoundryFloor floor)
+        {
+            FoundryLevers levers = run.Copy(run.Name);
+            levers.HallSurges = floor.HallSurges;
+            levers.ExtraElites = floor.ExtraElites;
+            levers.GateNotBeforeSeconds = floor.GateNotBeforeSeconds;
+            levers.ExtraHalls = 0;
+            levers.HallHoldSeconds = 0f;
+            levers.NodeHealthScale = 1f;
+            return levers;
+        }
+
+        // EncounterController.LaterHalls: the districts a floor adds to the climb's round - its authored combat and elite
+        // rooms after the first, the foundry's extra elites not counted (FoundryMap.RoomSite).
+        internal static int LaterHalls(FoundryFloor floor)
+        {
+            int halls = 0;
+            for (int i = 0; i < floor.Kinds.Length; i++)
+                if (floor.Kinds[i] == RoomKind.Combat || floor.Kinds[i] == RoomKind.Elite)
+                    halls++;
+            return Math.Max(0, halls - 1);
+        }
 
         // The floor a run's levers make: extra halls after the last, extra elites before the gate.
         private static FoundryFloor Shape(FoundryFloor floor, FoundryLevers levers)
@@ -403,11 +490,7 @@ namespace Cryptforge.Tests
                         kinds.Add(RoomKind.Combat);
                     }
             }
-            return new FoundryFloor
-            {
-                Id = floor.Id, Rooms = rooms.ToArray(), Kinds = kinds.ToArray(), HordeRoles = floor.HordeRoles,
-                FloorNumber = floor.FloorNumber
-            };
+            return floor.Reshaped(rooms.ToArray(), kinds.ToArray());
         }
 
         // The hero, as the enemies' weapons and the pit see it: its health, with the last thing that hurt it remembered for
@@ -434,6 +517,8 @@ namespace Cryptforge.Tests
             public bool BurnFresh;
             public bool Horde;
             public bool GateBoss;
+            // Walked out of the gate beside the gate boss: floor 2's two Cinder Mites.
+            public bool Escort;
             public PackMotion Motion;
             public int Slot;
             public int Experience;
@@ -525,9 +610,14 @@ namespace Cryptforge.Tests
             private static readonly ArenaGeometry Map = ArenaGeometry.Foundry;
 
             private readonly FoundryHero _heroDefinition;
-            private readonly FoundryFloor _floor;
-            private readonly FoundryLevers _levers;
-            private readonly FoundryResult _result;
+            // The floor being played: as its asset authors it, as the levers shape it, and the levers it plays (the run's
+            // on floor 1, LaterFloorLevers below it); its result; and where the floor began on the run's active seconds.
+            private FoundryFloor _authored;
+            private FoundryFloor _floor;
+            private FoundryLevers _levers;
+            private readonly FoundryLevers _runLevers;
+            private FoundryResult _result;
+            private float _floorStartedAt;
 
             private readonly RunState _run;
             private readonly RewardService _rewards;
@@ -552,11 +642,15 @@ namespace Cryptforge.Tests
             private float _markY;
 
             // The floor's flow, as EncounterController keeps it.
-            private readonly FloorProgress _progress;
+            private FloorProgress _progress;
             private readonly EncounterProgress _fight = new EncounterProgress(AdvanceDelay);
-            private readonly int[] _wavesPerRoom;
+            private int[] _wavesPerRoom;
             private bool _nonCombat;
             private float _transitionWait;
+            // The checkpoint's Descend waits the advance delay before the next floor's first room; the districts the run's
+            // earlier floors opened (EncounterController._hallsOnEarlierFloors).
+            private bool _descending;
+            private int _hallsOnEarlierFloors;
             private bool _roomSiteOpen;
             private float _siteX;
             private float _siteY;
@@ -609,9 +703,10 @@ namespace Cryptforge.Tests
             private readonly DropDetourRule.Walk _detour =
                 new DropDetourRule.Walk(PilotDropDetour, PilotDetourSlack, PilotDetourBudget);
 
-            // The one chest, as ChestSpawner keeps it.
+            // The one chest, as ChestSpawner keeps it: a new one for each room of each floor, counted across the climb.
             private int _chestIndex = -1;
             private int _chestRoom = -1;
+            private int _chestFloor = -1;
             private bool _chestPlaced;
             private bool _chestOpen;
             private float _chestX;
@@ -654,23 +749,16 @@ namespace Cryptforge.Tests
 
             private static string N(float value) => value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
 
+            // floor is the run's first floor as its asset authors it; levers shape it (Shape) and set the run.
             public FoundryRun(FoundryHero hero, FoundryFloor floor, FoundryLevers levers, int seed, Action<string> trace)
             {
                 _trace = trace;
                 _heroDefinition = hero;
-                _floor = floor;
+                _authored = floor;
+                _runLevers = levers;
                 _levers = levers;
-                _result = new FoundryResult
-                {
-                    Seed = seed, Hero = hero.Id, Levers = levers.Name, Kinds = floor.Kinds,
-                    RoomSeconds = Filled(floor.Kinds.Length, -1f), WalkSeconds = Filled(floor.Kinds.Length, -1f),
-                    WaveSeconds = Filled(floor.Kinds.Length, -1f)
-                };
-                int buckets = (int)Math.Ceiling(levers.LimitSeconds / FoundryBucketSeconds) + 1;
-                _result.BucketDamage = new float[buckets];
-                _result.BucketAlive = new float[buckets];
-                _result.BucketKills = new int[buckets];
-                _result.BucketLevel = new int[buckets];
+                _floor = Shape(floor, levers);
+                _result = NewResult(seed);
 
                 // CombatSetup.Awake on the foundry, in its order.
                 _run = new RunState(ExperiencePerLevel, 0.5f, ExperienceGrowth, seed);
@@ -708,21 +796,102 @@ namespace Cryptforge.Tests
                 _pitHeld = (x, y) => _pitRunning && _pit.IsWarning && PitEruptionRule.InBand(x, y);
                 _revealFrames = RevealFrames();
 
-                _wavesPerRoom = new int[floor.Rooms.Length];
-                for (int i = 0; i < _wavesPerRoom.Length; i++)
-                    _wavesPerRoom[i] = floor.Rooms[i] == null ? 0 : floor.Rooms[i].Length + SurgesIn(i);
-                _progress = new FloorProgress(_wavesPerRoom);
+                EnterFloor();
             }
 
+            // What one floor did, sized to the floor as the levers shape it.
+            private FoundryResult NewResult(int seed)
+            {
+                var result = new FoundryResult
+                {
+                    Seed = seed, Hero = _heroDefinition.Id, Levers = _levers.Name, Floor = _floor.FloorNumber,
+                    Kinds = _floor.Kinds, RoomSeconds = Filled(_floor.Kinds.Length, -1f),
+                    WalkSeconds = Filled(_floor.Kinds.Length, -1f), WaveSeconds = Filled(_floor.Kinds.Length, -1f)
+                };
+                int buckets = (int)Math.Ceiling(_levers.LimitSeconds / FoundryBucketSeconds) + 1;
+                result.BucketDamage = new float[buckets];
+                result.BucketAlive = new float[buckets];
+                result.BucketKills = new int[buckets];
+                result.BucketLevel = new int[buckets];
+                return result;
+            }
+
+            // EncounterController.EnterFloor: the floor's waves room by room (a combat hall's surges after its authored
+            // waves), its progress through them, and its packs entering from the first corner again.
+            private void EnterFloor()
+            {
+                _wavesPerRoom = new int[_floor.Rooms.Length];
+                for (int i = 0; i < _wavesPerRoom.Length; i++)
+                    _wavesPerRoom[i] = _floor.Rooms[i] == null ? 0 : _floor.Rooms[i].Length + SurgesIn(i);
+                _progress = new FloorProgress(_wavesPerRoom);
+                _waveOrdinal = 0;
+            }
+
+            // The checkpoint's Descend (CombatSetup.OnCheckpointChosen): the run's gold secured, then
+            // EncounterController.DescendToNextFloor - the districts go on from this floor's authored halls, the next
+            // floor's rooms, and the advance delay before its first room, through which no horde stands - and AltarService's
+            // altars answer again on the new floor. Nothing else changes: the hero stands where it held the gate, with its
+            // health, level, weapons, tomes and difficulty; the pit's clock stays where it stopped; the chests count on
+            // across the climb; and the horde, gone with the gate's opening, comes back with the floor's first room on a
+            // clock of its own.
+            private void Descend()
+            {
+                _run.SecureGold();
+                _hallsOnEarlierFloors += LaterHalls(_authored);
+                _authored = _authored.Next;
+                _levers = LaterFloorLevers(_runLevers, _authored);
+                _floor = Shape(_authored, _levers);
+                EnterFloor();
+                _descending = true;
+                _transitionWait = 0f;
+                _altars.Reset();
+                // The checkpoint was a choice: the autopilot let go of the stick while it stood open.
+                _steerX = 0f;
+                _steerY = 0f;
+
+                // The new floor's own accounting.
+                _cleared = false;
+                _roomIndex = -1;
+                _waveIndex = -1;
+                _roomKills = 0;
+                _bossFellAt = -1f;
+                _floorStartedAt = _seconds;
+                _fighting = 0f;
+                _engaged = 0f;
+                _hordeAliveSum = 0;
+                _hordeTargetSum = 0;
+                _hordeFrames = 0;
+                _result = NewResult(_run.Seed);
+                if (_trace != null)
+                    Emit($"floor_descend floor={_floor.FloorNumber} level={_run.Level} hp={N(_heroHealth.Current)}");
+            }
 
             private float HeroX => _heroMotion.X;
             private float HeroY => _heroMotion.Y;
+
+            // Active seconds since the floor began: since the run's start on floor 1, since the checkpoint below it.
+            private float FloorTime => _seconds - _floorStartedAt;
 
             public FoundryResult Play()
             {
                 // EncounterController.Initialize: the floor's first wave forms up round the hero before the first frame.
                 AdvanceFloor();
-                while (!_cleared && _heroHealth.IsAlive && _seconds < _levers.LimitSeconds)
+                FoundryResult first = PlayFloor(), last = first;
+                // CombatSetup.OnFloorCleared opens the checkpoint on a floor with a next one, once the sweep's level-ups are
+                // answered (RunChoices offers them first), and the autopilot answers it with Descend.
+                for (int floors = 1; floors < _runLevers.Floors && last.Cleared && _authored.Next != null; floors++)
+                {
+                    Descend();
+                    last.NextFloor = PlayFloor();
+                    last = last.NextFloor;
+                }
+                return first;
+            }
+
+            // The floor's frames until its gate is held, the hero falls or the floor's limit.
+            private FoundryResult PlayFloor()
+            {
+                while (!_cleared && _heroHealth.IsAlive && FloorTime < _levers.LimitSeconds)
                     Frame();
                 return Finish();
             }
@@ -797,13 +966,18 @@ namespace Cryptforge.Tests
                 }
 
                 bool canAdvance = !_choices.IsOpen;
-                if (_nonCombat)
+                if (_descending || _nonCombat)
                 {
                     if (!canAdvance)
                         return;
                     _transitionWait += Step;
                     if (_transitionWait < AdvanceDelay)
                         return;
+                    if (_descending)
+                    {
+                        _descending = false;
+                        _result.DescentSeconds = FloorTime;
+                    }
                     AdvanceFloor();
                     return;
                 }
@@ -899,7 +1073,8 @@ namespace Cryptforge.Tests
 
             private float _roomStartedAt;
 
-            // EncounterController.TryRoomSite: a hall or elite after the floor's first opens at its own district.
+            // EncounterController.TryRoomSite: a hall or elite after the floor's first opens at its own district, the round
+            // going on from the districts the run's earlier floors opened.
             private bool TryRoomSite(int roomIndex, out float x, out float y)
             {
                 x = y = 0f;
@@ -911,7 +1086,7 @@ namespace Cryptforge.Tests
                         ordinal++;
                 if (ordinal == 0)
                     return false;
-                FoundryMap.RoomSite(0, ordinal, out x, out y);
+                FoundryMap.RoomSite(_hallsOnEarlierFloors, ordinal, out x, out y);
                 return true;
             }
 
@@ -953,7 +1128,7 @@ namespace Cryptforge.Tests
                 _nonCombat = false;
                 int n = _floor.FloorNumber;
                 float scale = _heroStats.Difficulty;
-                float damageBonus = FloorScaling.DamageBonus(ClimbScaling.Damage(n) * scale, 0f);
+                float damageBonus = FloorScaling.DamageBonus(ClimbScaling.Damage(n) * scale, _floor.ModifierDamagePercent);
                 float floorHealth = ClimbScaling.Health(n) * (boss ? ClimbScaling.Boss(n) : 1f);
                 int count = definitions.Count;
                 float heroX = HeroX;
@@ -970,9 +1145,9 @@ namespace Cryptforge.Tests
                     float healthScale = floorHealth * scale * (atGate && i == 0 ? WardenHealthShare() : 1f);
                     if (!boss)
                         healthScale *= _levers.NodeHealthScale;
-                    Foe foe = CreateFoe(definition, FloorScaling.Health(definition.Health, healthScale, 0f), damageBonus,
-                        false);
-                    foe.Gold = FloorScaling.Gold(definition.Gold, 0f);
+                    Foe foe = CreateFoe(definition,
+                        FloorScaling.Health(definition.Health, healthScale, _floor.ModifierHealthPercent), damageBonus, false);
+                    foe.Gold = FloorScaling.Gold(definition.Gold, _floor.ModifierGoldPercent);
                     foe.Experience = definition.Experience;
                     foe.Motion = _waveMotion;
                     foe.Slot = _waveMotion.Add(foe, _placements[i], definition.Speed, foe.Weapon.Range);
@@ -980,6 +1155,7 @@ namespace Cryptforge.Tests
                     {
                         _waveMotion.SetMarch(foe.Slot, GateMarchFactor, GateMarchRange);
                         foe.GateBoss = i == 0;
+                        foe.Escort = i > 0;
                     }
                     _wave.Add(foe);
                 }
@@ -1027,9 +1203,10 @@ namespace Cryptforge.Tests
             private void EncounterStarted()
             {
                 _stamina.Fill();
-                if (_chestRoom == _roomIndex)
+                if (_chestRoom == _roomIndex && _chestFloor == _floor.FloorNumber)
                     return;
                 _chestRoom = _roomIndex;
+                _chestFloor = _floor.FloorNumber;
                 _chestIndex++;
                 ChestRule.SpotFor(_roomIndex, Map, out _chestX, out _chestY);
                 _chestReward = ChestRule.RewardFor(_roomIndex, _chestIndex, _run.Seed);
@@ -1088,7 +1265,7 @@ namespace Cryptforge.Tests
                 ReleaseWave();
                 _nonCombat = true;
                 _transitionWait = 0f;
-                // The room's options in the asset's order: Forge_Mend, Forge_Temper.
+                // The room's options in the asset's order, the same on floor 1 and floor 2: Forge_Mend, Forge_Temper.
                 _forge.Open(new[] { Mend(), Temper() });
                 if (_trace != null)
                     Emit("forge_opened");
@@ -1129,11 +1306,12 @@ namespace Cryptforge.Tests
                 _waveMotion.Step(Step, HeroX, HeroY);
             }
 
-            // EncounterController.TickHorde: the horde stands from the floor's first step to the boss's fall, and the forge
-            // freezes it - from the forge's offer until the next hall's wave forms up, as IsInNonCombatRoom reads.
+            // EncounterController.TickHorde: the horde stands from the floor's first step to the boss's fall - never on the
+            // way down to the next floor - and the forge freezes it, from the forge's offer until the next hall's wave forms
+            // up, as IsInNonCombatRoom reads.
             private void TickHorde()
             {
-                bool wanted = !_progress.IsComplete && !_gateExitOpen;
+                bool wanted = !_progress.IsComplete && !_gateExitOpen && !_descending;
                 if (!wanted)
                 {
                     if (_horde != null)
@@ -1198,10 +1376,11 @@ namespace Cryptforge.Tests
                 int n = _floor.FloorNumber;
                 float scale = _heroStats.Difficulty;
                 float damageBonus = FloorScaling.DamageBonus(
-                    ClimbScaling.Damage(n) * scale * HordeRule.DamageShare * _horde.DamageMultiplier, 0f);
+                    ClimbScaling.Damage(n) * scale * HordeRule.DamageShare * _horde.DamageMultiplier, _floor.ModifierDamagePercent);
                 Foe foe = CreateFoe(definition,
                     FloorScaling.Health(definition.Health,
-                        ClimbScaling.Health(n) * scale * _levers.HordeHealthShare * _horde.HealthMultiplier, 0f),
+                        ClimbScaling.Health(n) * scale * _levers.HordeHealthShare * _horde.HealthMultiplier,
+                        _floor.ModifierHealthPercent),
                     damageBonus, true);
                 // An overrun floor's horde pays nothing (HordeClock.PaysExperience); otherwise its share.
                 foe.Experience = !HordeClock.PaysExperience(_horde.Seconds)
@@ -1346,7 +1525,7 @@ namespace Cryptforge.Tests
                 while (_result.WeaponWork.Count <= slot && _result.WeaponWork.Count < _loadout.Count)
                     _result.WeaponWork.Add(new FoundryWeaponWork
                     {
-                        Id = _loadout.At(_result.WeaponWork.Count).WeaponId, HeldFrom = _seconds
+                        Id = _loadout.At(_result.WeaponWork.Count).WeaponId, HeldFrom = FloorTime
                     });
                 return _result.WeaponWork[slot];
             }
@@ -1376,7 +1555,7 @@ namespace Cryptforge.Tests
                 foe.Defeated = true;
                 _result.Kills.Add(new FoundryKill(foe.Definition.Name, foe.Horde, _seconds - foe.SpawnedAt,
                     foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f, KillingBlow(),
-                    _source == DamageSource.Weapon && StrikeHasProcced(), _seconds));
+                    _source == DamageSource.Weapon && StrikeHasProcced(), FloorTime));
                 _result.BucketKills[Bucket()]++;
                 _roomKills++;
                 if (foe.Horde)
@@ -1390,6 +1569,11 @@ namespace Cryptforge.Tests
                 {
                     _waveAlive--;
                     _result.WaveKills++;
+                    if (foe.GateBoss)
+                    {
+                        _result.WardenSeconds = _seconds - _waveStartedAt;
+                        _result.BossLeft = 0f;
+                    }
                     if (_waveAlive == 0)
                         _fight.Clear();
                     _rewards.TryDropKill(foe, foe.Experience, foe.Gold, foe.X, foe.Y, _drops);
@@ -1456,9 +1640,12 @@ namespace Cryptforge.Tests
                 if (context.Source is Foe foe)
                 {
                     _lastAttacker = foe;
-                    _lastHarm = (foe.Horde ? "horde " : foe.GateBoss ? string.Empty : "wave ") + foe.Definition.Name;
+                    _lastHarm = (foe.Horde ? "horde " : foe.GateBoss ? string.Empty : foe.Escort ? "escort " : "wave ") +
+                                foe.Definition.Name;
                     if (foe.Horde && GateBoss != null)
                         _result.FightTakenFromHorde += taken;
+                    if (foe.Escort && GateBoss != null)
+                        _result.FightTakenFromEscort += taken;
                     if (foe.Horde)
                         _result.TakenFromHorde += taken;
                     else if (foe.GateBoss && _harmIsSlam)
@@ -1493,6 +1680,8 @@ namespace Cryptforge.Tests
                     _result.DeathPhase = "walk";
                 else if (_gateExitOpen)
                     _result.DeathPhase = "exit";
+                else if (_descending)
+                    _result.DeathPhase = "descent";
                 else if (_nonCombat)
                     _result.DeathPhase = "forge";
                 else if (_gateBossWave && _waveAlive > 0)
@@ -1608,7 +1797,7 @@ namespace Cryptforge.Tests
                     if (!struck)
                         continue;
                     if (_result.FirstStrikeSeconds < 0f)
-                        _result.FirstStrikeSeconds = _seconds;
+                        _result.FirstStrikeSeconds = FloorTime;
                     if (_heroDefinition.EmberMemory)
                         Ignite(target, 1, false);
                 }
@@ -1779,7 +1968,7 @@ namespace Cryptforge.Tests
                 if (_chestReward.Kind == ChestRewardKind.Heal)
                     _heroHealth.Heal(_heroHealth.Maximum * _chestReward.HealFraction);
                 else
-                    _run.AddGold(FloorScaling.Gold(_chestReward.Gold, 0f));
+                    _run.AddGold(FloorScaling.Gold(_chestReward.Gold, _floor.ModifierGoldPercent));
                 if (_chestReward.HoldsBook)
                     _upgrades.TryGrantBook(_chestIndex, out _, out _);
             }
@@ -2167,7 +2356,7 @@ namespace Cryptforge.Tests
             // The measurement
             // ---------------------------------------------------------------------------------------------------------
 
-            private int Bucket() => Math.Min(_result.BucketDamage.Length - 1, (int)(_seconds / FoundryBucketSeconds));
+            private int Bucket() => Math.Min(_result.BucketDamage.Length - 1, (int)(FloorTime / FoundryBucketSeconds));
 
             // HordePacingMeasurement's per-frame reading, after the frame.
             private void Sample()
@@ -2195,7 +2384,7 @@ namespace Cryptforge.Tests
                 {
                     FoundryWeaponWork work = _result.WeaponWork[i];
                     if (work.EvolvedAt < 0f && _upgrades.HasEvolved(work.Id))
-                        work.EvolvedAt = _seconds;
+                        work.EvolvedAt = FloorTime;
                 }
                 _hordeAliveSum += _hordeAlive;
                 _hordeTargetSum += _horde != null ? _horde.TargetNow : 0;
@@ -2235,14 +2424,15 @@ namespace Cryptforge.Tests
                     _result.WalkSeconds[_siteStep.RoomIndex] = _siteWait;
                 _result.Outcome = _cleared ? FoundryOutcome.Cleared
                     : !_heroHealth.IsAlive ? FoundryOutcome.Died : FoundryOutcome.Timeout;
-                _result.FloorSeconds = _seconds;
+                float floorTime = FloorTime;
+                _result.FloorSeconds = floorTime;
                 if (_bossFellAt >= 0f && _cleared)
                     _result.ExitSeconds = _seconds - _bossFellAt;
                 _result.Level = _run.Level;
                 _result.HeroHealth = _heroHealth.Current;
                 _result.HeroMaximum = _heroHealth.Maximum;
-                _result.Uptime = _seconds > 0f ? _fighting / _seconds : 0f;
-                _result.Engaged = _seconds > 0f ? _engaged / _seconds : 0f;
+                _result.Uptime = floorTime > 0f ? _fighting / floorTime : 0f;
+                _result.Engaged = floorTime > 0f ? _engaged / floorTime : 0f;
                 _result.HordeMeanAlive = _hordeFrames > 0 ? (float)(_hordeAliveSum / _hordeFrames) : 0f;
                 _result.HordeMeanTarget = _hordeFrames > 0 ? (float)(_hordeTargetSum / _hordeFrames) : 0f;
                 _result.Evolutions = _upgrades.EvolutionsTaken;

@@ -47,42 +47,92 @@ namespace Cryptforge.Tests
             return (T)field.GetValue(null);
         }
 
+        private const string FirstFloor = "Assets/_Project/Data/Floors/Floor_EmberHalls.asset";
+
         // Floor_EmberHalls as the foundry plays it: the rooms' kinds and waves, the horde's roles, climb-scaled, and its V0.1
         // knobs (surges, extra elites, the gate's clock) as the simulation's shipped levers.
         [Test]
         public void TheFoundryFloorIsTheAsset()
         {
-            var asset = AssetDatabase.LoadAssetAtPath<FloorDefinition>("Assets/_Project/Data/Floors/Floor_EmberHalls.asset");
-            DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne();
-            Assert.That(asset.Id, Is.EqualTo(floor.Id));
-            Assert.That(asset.ClimbScaled, Is.True, "the simulation scales the floor by ClimbScaling");
+            var asset = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
+            AssertFloor(asset, DescentSimulation.FoundryFloorOne());
             Assert.That(asset.FoundryHallSurges, Is.EqualTo(FoundryBatch.Shipped().HallSurges));
             Assert.That(asset.FoundryExtraElites, Is.EqualTo(FoundryBatch.Shipped().ExtraElites));
             Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(FoundryBatch.Shipped().GateNotBeforeSeconds));
-            Assert.That(asset.RoomCount, Is.EqualTo(floor.Kinds.Length));
+        }
+
+        // The climb's floor 2, which a run goes down to after a floor-1 clear (FoundryLevers.Floors = 2): Floor_EmberHalls'
+        // next floor as the foundry plays it - its rooms, horde, climb scaling, Cursed Gold and its own V0.1 knobs (none) -
+        // its gate boss the Forge Warden with two Cinder Mites, the districts the round goes on from, and below it the
+        // finale's swarm room, which the simulation does not play.
+        [Test]
+        public void TheFoundrysSecondFloorIsTheAsset()
+        {
+            var first = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
+            FloorDefinition asset = first.NextFloor;
+            DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next;
+            Assert.That(floor, Is.Not.Null);
+            Assert.That(floor.FloorNumber, Is.EqualTo(2));
+            AssertFloor(asset, floor);
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.Zero, "floor 2's gate opens as its room clears");
+
+            // Its gate boss: the boss room's first enemy walks out of the gate and WardenRule's share and hold are its; the
+            // others walk out beside it.
+            int boss = System.Array.IndexOf(floor.Kinds, RoomKind.Boss);
+            int firstBoss = System.Array.IndexOf(DescentSimulation.FoundryFloorOne().Kinds, RoomKind.Boss);
+            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo(first.RoomAt(firstBoss).WaveAt(0).EnemyAt(0).Id),
+                "floor 1's gate boss, the Forge Warden");
+            Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
+            Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
+
+            // The districts go on from floor 1's authored halls.
+            Assert.That(DescentSimulation.LaterHalls(DescentSimulation.FoundryFloorOne()), Is.EqualTo(EncounterController.LaterHalls(first)));
+            Assert.That(DescentSimulation.LaterHalls(floor), Is.EqualTo(EncounterController.LaterHalls(asset)));
+
+            Assert.That(asset.NextFloor, Is.Not.Null);
+            Assert.That(asset.NextFloor.RoomAt(0).Kind, Is.EqualTo(RoomKind.Swarm), "the finale");
+            Assert.That(floor.Next, Is.Null, "the simulation does not play the finale's swarm room");
+        }
+
+        // A foundry floor of the simulation against its asset: id, climb scaling, modifier, its own foundry knobs, the rooms'
+        // kinds, waves and enemies (a forge's options in the order the autopilot takes them) and the horde's roles.
+        private static void AssertFloor(FloorDefinition asset, DescentSimulation.FoundryFloor floor)
+        {
+            Assert.That(asset, Is.Not.Null);
+            string where = asset.Id;
+            Assert.That(asset.Id, Is.EqualTo(floor.Id));
+            Assert.That(asset.ClimbScaled, Is.True, where + ": the simulation scales the floor by ClimbScaling");
+            FloorModifierDefinition modifier = asset.Modifier;
+            Assert.That(modifier != null ? modifier.EnemyHealthPercent : 0f, Is.EqualTo(floor.ModifierHealthPercent), where);
+            Assert.That(modifier != null ? modifier.EnemyDamagePercent : 0f, Is.EqualTo(floor.ModifierDamagePercent), where);
+            Assert.That(modifier != null ? modifier.GoldPercent : 0f, Is.EqualTo(floor.ModifierGoldPercent), where);
+            Assert.That(asset.FoundryHallSurges, Is.EqualTo(floor.HallSurges), where);
+            Assert.That(asset.FoundryExtraElites, Is.EqualTo(floor.ExtraElites), where);
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(floor.GateNotBeforeSeconds), where);
+            Assert.That(asset.RoomCount, Is.EqualTo(floor.Kinds.Length), where);
             for (int room = 0; room < asset.RoomCount; room++)
             {
                 RoomDefinition definition = asset.RoomAt(room);
-                Assert.That(definition.Kind, Is.EqualTo(floor.Kinds[room]), $"room {room}");
+                Assert.That(definition.Kind, Is.EqualTo(floor.Kinds[room]), $"{where} room {room}");
                 if (definition.Kind == RoomKind.Forge)
                 {
-                    Assert.That(floor.Rooms[room], Is.Null, $"room {room}");
+                    Assert.That(floor.Rooms[room], Is.Null, $"{where} room {room}");
                     Assert.That(definition.ForgeOptionAt(0).Id, Is.EqualTo(DescentSimulation.Mend().Id), "the autopilot takes the first");
                     Assert.That(definition.ForgeOptionAt(1).Id, Is.EqualTo(DescentSimulation.Temper().Id));
                     continue;
                 }
-                Assert.That(definition.WaveCount, Is.EqualTo(floor.Rooms[room].Length), $"room {room}");
+                Assert.That(definition.WaveCount, Is.EqualTo(floor.Rooms[room].Length), $"{where} room {room}");
                 for (int wave = 0; wave < definition.WaveCount; wave++)
                 {
                     WaveDefinition waveDefinition = definition.WaveAt(wave);
-                    Assert.That(waveDefinition.EnemyCount, Is.EqualTo(floor.Rooms[room][wave].Length), $"room {room} wave {wave}");
+                    Assert.That(waveDefinition.EnemyCount, Is.EqualTo(floor.Rooms[room][wave].Length), $"{where} room {room} wave {wave}");
                     for (int e = 0; e < waveDefinition.EnemyCount; e++)
-                        AssertEnemy(waveDefinition.EnemyAt(e), floor.Rooms[room][wave][e], $"room {room} wave {wave} enemy {e}");
+                        AssertEnemy(waveDefinition.EnemyAt(e), floor.Rooms[room][wave][e], $"{where} room {room} wave {wave} enemy {e}");
                 }
             }
-            Assert.That(asset.HordeRoleCount, Is.EqualTo(floor.HordeRoles.Length));
+            Assert.That(asset.HordeRoleCount, Is.EqualTo(floor.HordeRoles.Length), where);
             for (int role = 0; role < asset.HordeRoleCount; role++)
-                AssertEnemy(asset.HordeRoleAt(role), floor.HordeRoles[role], $"horde role {role}");
+                AssertEnemy(asset.HordeRoleAt(role), floor.HordeRoles[role], $"{where} horde role {role}");
         }
 
         private static void AssertEnemy(EnemyDefinition definition, DescentSimulation.Enemy enemy, string where)

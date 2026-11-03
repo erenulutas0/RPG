@@ -32,7 +32,9 @@ namespace Cryptforge.Tests
     // separated; by default each hero's newest file of the plain autopilot, the newest naming the simulated floor's levers
     // first), FOUNDRY_PERF_PROBE (the perf probe's file; the newest perf-probe-baseline-*.txt by default). Both flag a
     // pacing file whose header names other floor levers than the simulation's shipped ones, or none (written before
-    // 2026-11-03).
+    // 2026-11-03). FOUNDRY_FLOORS (1): 2 has the shipped floor's runs go down to floor 2 after a floor-1 clear
+    // (FoundryLevers.Floors) and adds floor 2's section and foundry-batch-floor2.csv; the gate, floor 1's tables, the
+    // levers' and the parity table stay floor 1's.
     [Explicit("The regression harness's batch report: run it by name.")]
     public sealed class FoundryBatchReport
     {
@@ -51,7 +53,10 @@ namespace Cryptforge.Tests
 
             var heroes = new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() };
             int[] batchSeeds = FoundryBatch.Seeds(first, seeds);
-            var baselines = heroes.Select(hero => FoundryBatch.Run(hero, FoundryBatch.Shipped(), batchSeeds, parallel)).ToArray();
+            int floors = Setting("FOUNDRY_FLOORS", 1);
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            shipped.Floors = floors;
+            var baselines = heroes.Select(hero => FoundryBatch.Run(hero, shipped, batchSeeds, parallel)).ToArray();
             FoundryBatch.Batch[] weapons = FoundryBatch.RunWeapons(baselines[0], batchSeeds, parallel);
             var leverRuns = new List<(FoundryBatch.Lever, FoundryBatch.Batch[])>();
             if (levers)
@@ -67,6 +72,11 @@ namespace Cryptforge.Tests
             md.Append(gate);
             md.AppendLine("## The batch").AppendLine();
             md.Append(FoundryBatch.Report(baselines, leverRuns));
+            if (floors >= 2)
+            {
+                md.Append(FoundryBatch.FloorTwoReport(baselines));
+                File.WriteAllText(Path.Combine(output, "foundry-batch-floor2.csv"), FoundryBatch.FloorTwoCsv(baselines));
+            }
             string parity = Parity(editor, heroes, baselines, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
             if (parity != null)
                 md.AppendLine(parity);
@@ -84,7 +94,8 @@ namespace Cryptforge.Tests
         }
 
         // One seed's run as the scene's telemetry would write it, to lay beside the Editor's copy of the same seed's events:
-        // FOUNDRY_TRACE_HERO (hero_vanguard or hero_cinder_arcanist) and FOUNDRY_TRACE_SEED, into FOUNDRY_OUT.
+        // FOUNDRY_TRACE_HERO (hero_vanguard or hero_cinder_arcanist) and FOUNDRY_TRACE_SEED, into FOUNDRY_OUT; FOUNDRY_FLOORS=2
+        // traces floor 2 after a floor-1 clear too.
         [Test]
         public void OneSeedAsTheTelemetryWouldWriteIt()
         {
@@ -96,8 +107,12 @@ namespace Cryptforge.Tests
                 ? DescentSimulation.CinderArcanist()
                 : DescentSimulation.Vanguard();
             var lines = new List<string>();
-            DescentSimulation.FoundryResult result = DescentSimulation.RunFoundry(hero, seed, trace: lines.Add);
+            DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped();
+            levers.Floors = Setting("FOUNDRY_FLOORS", 1);
+            DescentSimulation.FoundryResult result = DescentSimulation.RunFoundry(hero, seed, levers, trace: lines.Add);
             lines.Add($"{result.FloorSeconds:0.000} end {result.Outcome} level={result.Level}");
+            for (DescentSimulation.FoundryResult floor = result.NextFloor; floor != null; floor = floor.NextFloor)
+                lines.Add($"floor {floor.Floor}: {floor.FloorSeconds:0.000} end {floor.Outcome} level={floor.Level}");
             File.WriteAllLines(Path.Combine(output, $"foundry-trace-{heroId}-{seed}.txt"), lines);
             Assert.That(lines.Count, Is.GreaterThan(1));
         }
