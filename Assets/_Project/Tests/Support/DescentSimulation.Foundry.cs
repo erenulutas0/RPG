@@ -1879,8 +1879,8 @@ namespace Cryptforge.Tests
                 }
             }
 
-            // The push of every living enemy within the kite reach - the gate boss's own reach and a little more for it -
-            // as a unit direction away from them.
+            // The push of every living enemy within its kite reach (FootworkRule.ThreatReach: the kite reach, or its own
+            // reach and a margin), as a unit direction away from them.
             private bool Threat(float x, float y, out float tx, out float ty)
             {
                 tx = ty = 0f;
@@ -1893,9 +1893,7 @@ namespace Cryptforge.Tests
                     float px = enemy.X;
                     float py = enemy.Y;
                     float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                    float reach = PilotKiteReach;
-                    if (ReferenceEquals(enemy, gate))
-                        reach = Math.Max(reach, enemy.Definition.Reach + .3f);
+                    float reach = FootworkRule.ThreatReach(PilotKiteReach, enemy.Definition.Reach, ReferenceEquals(enemy, gate));
                     if (d >= reach * reach || d < 1e-6f)
                         continue;
                     tx += (x - px) / d;

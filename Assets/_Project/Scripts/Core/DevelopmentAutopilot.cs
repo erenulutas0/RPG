@@ -42,9 +42,10 @@ namespace Cryptforge.Core
         // autopilot stepped out to shelter and was drawn straight back in to lure or kite, and four in five of the pit's
         // burns in the foundry simulation were that (2026-11-04, seeds 1-200 a hero).
         private bool _bandGuard;
-        // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach pushes the hero away, the nearer the
-        // harder, and the hero walks away from the push turned KiteTurn round it, so it circles the crowd instead of backing
-        // into a wall. Just beyond a melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
+        // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach - or within its own reach and a margin,
+        // where that is longer (FootworkRule.ThreatReach) - pushes the hero away, the nearer the harder, and the hero walks
+        // away from the push turned KiteTurn round it, so it circles the crowd instead of backing into a wall. Just beyond a
+        // melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
         private const float KiteReach = 1.6f;
         private const float KiteTurn = 35f * Mathf.Deg2Rad;
         private const float KiteStride = 2f;
@@ -300,7 +301,8 @@ namespace Cryptforge.Core
             return !float.IsPositiveInfinity(best);
         }
 
-        // The push of every living enemy within KiteReach, as a unit direction away from them; false when none is that close.
+        // The push of every living enemy within its kite reach (FootworkRule.ThreatReach: KiteReach, or its own reach and a
+        // margin), as a unit direction away from them; false when none is that close.
         private bool Threat(float x, float y, out float tx, out float ty)
         {
             EncounterController encounter = _setup.Encounters;
@@ -311,13 +313,10 @@ namespace Cryptforge.Core
                 if (enemy == null || !enemy.IsAlive || !encounter.TryFloorPositionOf(enemy, out float px, out float py))
                     continue;
                 float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                // Outside the gate boss's own reach - the Warden's hammer outreaches a grunt's, and kiting at a grunt's
-                // distance left the hero inside every swing; kiting every enemy that wide starved the hero of drops
-                // (docs/41, 2026-10-26).
-                float reach = KiteReach;
-                EnemyDefinition definition = ReferenceEquals(enemy, encounter.GateBoss) ? encounter.DefinitionOf(enemy) : null;
-                if (definition != null && definition.Weapon != null)
-                    reach = Mathf.Max(reach, definition.Weapon.Range + .3f);
+                EnemyDefinition definition = encounter.DefinitionOf(enemy);
+                float reach = definition != null && definition.Weapon != null
+                    ? FootworkRule.ThreatReach(KiteReach, definition.Weapon.Range, ReferenceEquals(enemy, encounter.GateBoss))
+                    : KiteReach;
                 if (d >= reach * reach || d < 1e-6f)
                     continue;
                 tx += (x - px) / d;

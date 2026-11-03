@@ -28,6 +28,17 @@ namespace Cryptforge.Core
         // ShelterRings of them, EscapePoints points a ring.
         public const float ShelterStep = 1.5f;
         public const int ShelterRings = 4;
+        // How far past an enemy's own reach the autopilot already kites from it: the gate boss's hammer outreaches a
+        // grunt's, and kiting at a grunt's distance left the hero inside every swing; kiting every enemy that wide starved
+        // the hero of drops (docs/41, 2026-10-26), so every other enemy is kited just past its own reach - a Tank's 1.7
+        // stood beyond the autopilot's kite reach of 1.6, and it struck a hero who stood inside it.
+        public const float GateKiteMargin = .3f;
+        public const float KiteMargin = .15f;
+
+        // How near an enemy whose weapon reaches enemyReach comes before the autopilot kites from it: its reach and the
+        // margin, or kiteReach where that is longer.
+        public static float ThreatReach(float kiteReach, float enemyReach, bool gateBoss) =>
+            Math.Max(kiteReach, enemyReach + (gateBoss ? GateKiteMargin : KiteMargin));
 
         // A kite stride ahead of (x, y): the push (a unit vector away from what presses the hero) turned by turn, as the
         // autopilot circles a crowd; or, where that runs into a wall or a work island - or, while the pit glows

@@ -161,6 +161,19 @@ namespace Cryptforge.Tests
             Assert.That(FootworkRule.StepsIntoBand(inside, insideY, inside + 1f, insideY), Is.False, "already in it");
         }
 
+        // A Tank's 1.7 outreaches the kite reach of 1.6: it is kited just past its own reach, as a Mite's 1.5 is; a reach
+        // well inside the kite reach is kited at the kite reach; the gate boss with its wider margin, as before.
+        [Test]
+        public void EachEnemyIsKitedJustPastItsOwnReach()
+        {
+            const float kiteReach = 1.6f;
+            Assert.That(FootworkRule.ThreatReach(kiteReach, 1.7f, false), Is.EqualTo(1.7f + FootworkRule.KiteMargin));
+            Assert.That(FootworkRule.ThreatReach(kiteReach, 1.5f, false), Is.EqualTo(1.5f + FootworkRule.KiteMargin));
+            Assert.That(FootworkRule.ThreatReach(kiteReach, 1.2f, false), Is.EqualTo(kiteReach));
+            Assert.That(FootworkRule.ThreatReach(kiteReach, 1.7f, true), Is.EqualTo(1.7f + FootworkRule.GateKiteMargin));
+            Assert.That(FootworkRule.ThreatReach(kiteReach, 1f, true), Is.EqualTo(kiteReach));
+        }
+
         // Nowhere to walk - a point the floor does not hold - and there is no escape.
         [Test]
         public void WithNoPointToWalkToThereIsNoEscape()
