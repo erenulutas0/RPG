@@ -10,6 +10,12 @@ namespace Cryptforge.Core
     // the mark until the hammer is out of the floor again the Warden's own weapon is held (WardenSlamClock.HoldsWeapon).
     // Only the foundry's gate boss slams; the hall's Warden, the Descent simulation and every other enemy fight as
     // authored.
+    //
+    // It runs after EncounterController (-50), which brings the gate boss out, and before every script of the default
+    // order, every AttackController among them: the Warden's weapon is held from the very frame its mark goes down, not
+    // one frame later as Unity happens to order the two, and the foundry simulation steps the clock at the same point of
+    // its frame (DescentSimulation.Foundry, FoundrySimulationSceneValueTests).
+    [DefaultExecutionOrder(-40)]
     public sealed class WardenSlamService : MonoBehaviour
     {
         private CombatSetup _setup;

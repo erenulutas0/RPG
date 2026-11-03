@@ -352,3 +352,20 @@ RenderStatsProbe on the S23 at 30-40 alive with a current APK (`21` has 10-40 on
 The parity table defaults to the same Editor files now (it read the 2026-10-29 m0 files), and reads a seed's telemetry
 only when it is that pacing line's run: the measurement overwrites horde-telemetry/ with every run, and the m0 lines had
 been read beside the night run's walks and fights.
+
+## Status 2026-11-04 (later): the Warden's slam keeps its telegraph
+
+Two defects in the slam, found by review and fixed in the scene and the simulation alike:
+
+- `WardenSlamClock` re-read the slam's pace every frame, so a Warden that enraged under a calm mark (4 s enraged
+  against the 4.9 s a calm mark goes down at) brought the hammer down the next frame - a telegraph of one frame. The
+  blow's time is now fixed as the mark goes down; an enrage only brings the next mark sooner.
+- Unity ordered `WardenSlamService` and the Warden's `AttackController` as it pleased, so the weapon's hold began on the
+  mark's frame or one frame after it. The service now runs at -40 (after EncounterController, before every
+  AttackController), and the simulation steps the clock at the same point of its frame;
+  `FoundrySimulationSceneValueTests.TheScenesScriptOrderIsTheSimulations` holds the order.
+
+Every slam hit the autopilot took was the first defect: seeds 1-200 a hero, slam hits a fight 0.06 -> 0 (Vanguard) and
+0.12 -> 0 (Ilya), the fight's P50 unchanged (53 and 51 s), clears 37.0 -> 37.0 % and 79.0 -> 80.0 % (Ilya's two
+deaths to a slam came at the enrage). The Warden lever table moves within a few points; the 2026-11-03 choice of share
+8.5 with a 1.5 s recovery stands (TestResults/warden-fix-1104/).

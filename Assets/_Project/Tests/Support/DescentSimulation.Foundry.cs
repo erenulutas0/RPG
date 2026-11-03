@@ -15,12 +15,13 @@ namespace Cryptforge.Tests
     // What it mirrors, frame by frame, in the scene's order: HeroMovementInput (-60) walks the hero on the steer the
     // autopilot held last frame; EncounterController (-50) steps the node wave's pack, then the horde's pack and its
     // HordeDirector, picks up the drops where the hero stands, waits for a marked hall to be reached, holds the opened gate,
-    // runs the forge's transition and the advance delay; then the default-order scripts: the hero's AttackController (every
-    // weapon in slot order, Ember Memory on each strike), its AbilityController's cooldown, every enemy's AttackController,
-    // the burns, AltarService, PitEruptionService, WardenSlamService, the chest, and DevelopmentAutopilot, which fires the
-    // ability and chooses next frame's steer. An offer that opens is answered at the frame's end with the autopilot's own
-    // card score, and the frame after it the hero stands, as the scene's autopilot releases the stick while a panel is
-    // open. The boss's arrival holds the encounter for BossRevealView's turn, hold and turn back.
+    // runs the forge's transition and the advance delay; WardenSlamService (-40) marks, lands the blow and holds the gate
+    // boss's weapon before anything attacks; then the default-order scripts: the hero's AttackController (every weapon in
+    // slot order, Ember Memory on each strike), its AbilityController's cooldown, every enemy's AttackController, the burns,
+    // AltarService, PitEruptionService, the chest, and DevelopmentAutopilot, which fires the ability and chooses next
+    // frame's steer. An offer that opens is answered at the frame's end with the autopilot's own card score, and the frame
+    // after it the hero stands, as the scene's autopilot releases the stick while a panel is open. The boss's arrival holds
+    // the encounter for BossRevealView's turn, hold and turn back.
     //
     // The order of the default-order scripts is Unity's to choose and is not part of the game's contract; this one puts
     // the hero first and the enemies after it, as the Descent always has. A seed here is the same seed as the scene's -
@@ -908,6 +909,7 @@ namespace Cryptforge.Tests
 
                 if (!_revealHold && _heroHealth.IsAlive)
                     Encounter();
+                StepWarden();
 
                 HeroAttacks();
                 if (_heroHealth.IsAlive)
@@ -916,7 +918,6 @@ namespace Cryptforge.Tests
                 TickBurns();
                 StepAltars();
                 StepPit();
-                StepWarden();
                 StepChest();
                 Pilot();
                 AnswerChoices();
@@ -1818,7 +1819,8 @@ namespace Cryptforge.Tests
                 if (foe.Released || !foe.IsAlive || foe.SpawnFrame == _frame)
                     return;
                 // WardenSlamService holds the gate boss's AttackController from the mark until the hammer is out of the
-                // floor: its weapon neither ticks nor strikes meanwhile.
+                // floor: its weapon neither ticks nor strikes meanwhile, the mark's own frame included (StepWarden runs
+                // first).
                 if (ReferenceEquals(foe, _slamBoss) && _levers.WardenRecoverySeconds >= 0f &&
                     _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds))
                     return;
@@ -1829,7 +1831,8 @@ namespace Cryptforge.Tests
                 if (ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) > reach * reach)
                     return;
                 _harmIsSlam = false;
-                foe.Weapon.TryAttack(_hero, foe);
+                if (foe.Weapon.TryAttack(_hero, foe) && _trace != null && ReferenceEquals(foe, _slamBoss))
+                    Emit($"warden_strike hp={N(_heroHealth.Current)}");
             }
 
             // BurnStatus.Update on every burning enemy, in the order the statuses were added; a status added this frame
@@ -1913,7 +1916,8 @@ namespace Cryptforge.Tests
             private Foe GateBoss => _gateBossWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0] : null;
 
             // WardenSlamService: the mark where the hero stands, the hammer a telegraph later, the horde thickening below
-            // half health.
+            // half health. Stepped where the service's order (-40) runs it, after the encounter and before anything
+            // attacks, so the gate boss's weapon is held from the frame its mark goes down (EnemyAttack).
             private void StepWarden()
             {
                 Foe gate = GateBoss;
@@ -1927,7 +1931,6 @@ namespace Cryptforge.Tests
                 Foe boss = _slamBoss != null && _slamBoss.IsAlive ? _slamBoss : null;
                 if (boss == null)
                     return;
-                _result.BossLeft = boss.Health.Current / boss.Health.Maximum;
                 if (_run.HasEnded || _choices.IsOpen || _revealHold)
                     return;
                 if (!_slamEnraged && WardenRule.IsEnraged(boss.Health.Current, boss.Health.Maximum))
@@ -1940,17 +1943,22 @@ namespace Cryptforge.Tests
                     case WardenSlamClock.Step.Marked:
                         _markX = HeroX;
                         _markY = HeroY;
+                        if (_trace != null)
+                            Emit($"slam_mark enraged={_slamEnraged} x={N(_markX)} y={N(_markY)} hp={N(_heroHealth.Current)}");
                         break;
                     case WardenSlamClock.Step.Slammed:
                         _result.Slams++;
                         float distanceSquared = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, _markX, _markY);
-                        if (_heroHealth.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius)
+                        bool hit = _heroHealth.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
+                        if (hit)
                         {
                             _result.SlamHits++;
                             _harmIsSlam = true;
                             _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * WardenRule.HeroShare, boss));
                             _harmIsSlam = false;
                         }
+                        if (_trace != null)
+                            Emit($"slam_blow hit={hit} enraged={_slamEnraged} hp={N(_heroHealth.Current)}");
                         break;
                 }
             }
@@ -2367,6 +2375,9 @@ namespace Cryptforge.Tests
                 if (_seconds - _lastHeroHit <= EngagedAfterHitSeconds || EnemyNear(_loadout.Primary.Range + EngagedMargin))
                     _engaged += Step;
                 Foe warden = GateBoss;
+                // What is left of the Warden as the frame ends: its clock is stepped before the frame's blows land on it.
+                if (warden != null)
+                    _result.BossLeft = warden.Health.Current / warden.Health.Maximum;
                 if (warden != null && !_revealHold && _heroHealth.IsAlive)
                 {
                     _result.WardenFought += Step;
