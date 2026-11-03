@@ -4,6 +4,7 @@ using System.Linq;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace Cryptforge.Tests
 {
@@ -189,8 +190,10 @@ namespace Cryptforge.Tests
                     .Where(c => c.Length > 3 && c[1] == cohort.Name && c[2] == hero.Name).ToArray()[0];
                 Assert.That(cells.Length, Is.EqualTo(13), $"{cohort.Name} {hero.Name}: eleven columns");
                 Assert.That(cells[3], Does.Match(@"^[01] \(\d+%\)$"), $"{cohort.Name} {hero.Name}: cleared");
-                Assert.That(cells[11], cohort == AutopilotCohort.Careful ? Is.EqualTo("-") : Does.Match(@"^\d+ / \d+ / \d+$"),
-                    $"{cohort.Name} {hero.Name}: paired with careful");
+                IResolveConstraint paired = cohort == AutopilotCohort.Careful
+                    ? (IResolveConstraint)Is.EqualTo("-")
+                    : Does.Match(@"^\d+ / \d+ / \d+$");
+                Assert.That(cells[11], paired, $"{cohort.Name} {hero.Name}: paired with careful");
             }
         }
 
