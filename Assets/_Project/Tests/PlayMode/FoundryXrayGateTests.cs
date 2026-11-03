@@ -7,6 +7,7 @@ using Cryptforge.Core;
 using Cryptforge.UI;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
@@ -15,10 +16,13 @@ namespace Cryptforge.Tests
     // The foundry's silhouette gate (FoundryVisibilityView with FoundryDepthCover): an enemy, drop or chest body wears the
     // two-pass silhouette material only in a render where a structure may cover it. In the depth proof (DepthProofArrangement)
     // the enemy, the chest and the drop behind the south-west boiler keep their silhouettes for the gameplay camera, and the
-    // enemy in the open court in front of the hero draws in one pass, in its own material. A view that is not flat
-    // (perspective, tilted, over depth it did not clear), the gate turned off, or a placement made with no camera, puts every
-    // body in its silhouette material as before. And the cover holds every structure triangle that may write depth, in the
-    // pose it stands in and with the gate's leaves swung open. FoundryXrayGateRenderTests compares the pixels themselves.
+    // enemy in the open court in front of the hero draws in one pass, in its own material; so it does for the perf probe's
+    // phone target (checked with a graphics device only). A view that is not flat (perspective, tilted, over depth it did
+    // not clear, into a target without depth), the gate turned off, or a placement made with no camera, puts every body in
+    // its silhouette material as before, and the view names the condition that failed (GateRefusal). Every body's footprint
+    // holds every vertex its sprite draws, at the body's own depth. And the cover holds every structure triangle that may
+    // write depth, in the pose it stands in and with the gate's leaves swung open. FoundryXrayGateRenderTests compares the
+    // pixels themselves.
     public sealed class FoundryXrayGateTests
     {
         private const string GameplayScene = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -72,8 +76,16 @@ namespace Cryptforge.Tests
             Assert.That(own.passCount, Is.EqualTo(1));
             visibility.enabled = true;
 
+            // The gameplay camera as the scene has it: orthographic, clearing to a colour, straight along +z, onto the screen.
+            Assert.That(camera.orthographic, Is.True);
+            Assert.That(camera.clearFlags, Is.Not.EqualTo(CameraClearFlags.Nothing));
+            Assert.That(camera.targetTexture, Is.Null);
+            Assert.That(Vector3.Angle(camera.transform.forward, Vector3.forward), Is.LessThan(1e-3f));
             visibility.ApplyActorDepth(camera);
+            TestContext.Out.WriteLine("The gameplay camera on the depth proof: " + visibility.DescribeGate());
+            Assert.That(visibility.GateRefusal, Is.Null, visibility.DescribeGate());
             Assert.That(visibility.IsGated, Is.True, "The gameplay camera sees the region flat.");
+            AssertFootprints(visibility, hidden, exposed, chest, drop);
             Material xray = hidden.sharedMaterial;
             Assert.That(xray.shader.name, Is.EqualTo(FoundryVisibilityView.XrayShaderName),
                 "The boiler stands in front of the hidden enemy: it keeps its silhouette.");
@@ -84,6 +96,13 @@ namespace Cryptforge.Tests
             Assert.That(loot.shader.name, Is.EqualTo(FoundryVisibilityView.XrayShaderName), "The chest behind the boiler keeps its loot silhouette.");
             Assert.That(loot, Is.Not.SameAs(xray));
             Assert.That(drop.sharedMaterial, Is.SameAs(loot), "So does the drop behind it.");
+            // The view's own count agrees: the three behind the boiler covered, the court enemy (and whoever else stands in
+            // the open) in one pass, and every body measured inside the cover.
+            Assert.That(visibility.CoveredBodies, Is.GreaterThanOrEqualTo(3), visibility.DescribeGate());
+            Assert.That(visibility.OnePassBodies, Is.GreaterThanOrEqualTo(1), visibility.DescribeGate());
+            Assert.That(visibility.UnmeasuredBodies, Is.Zero, visibility.DescribeGate());
+            Assert.That(visibility.ShownBodies,
+                Is.EqualTo(visibility.CoveredBodies + visibility.OnePassBodies + visibility.UnmeasuredBodies));
             int registered = visibility.XrayedCount;
             visibility.RestoreActorDepth();
             Assert.That(exposed.sharedMaterial, Is.SameAs(own), "Between renders each body keeps what the last render gave it.");
@@ -93,6 +112,7 @@ namespace Cryptforge.Tests
             // the court enemy its own back and forgets it, so nobody is ever registered twice.
             visibility.ApplyActorDepth();
             Assert.That(visibility.IsGated, Is.False);
+            Assert.That(visibility.GateRefusal, Is.EqualTo(FoundryVisibilityView.NoCamera));
             Assert.That(exposed.sharedMaterial, Is.SameAs(xray));
             Assert.That(hidden.sharedMaterial, Is.SameAs(xray));
             visibility.RestoreActorDepth();
@@ -102,17 +122,49 @@ namespace Cryptforge.Tests
             Assert.That(visibility.XrayedCount, Is.EqualTo(registered), "Given back, the court enemy is forgotten.");
             visibility.RestoreActorDepth();
 
-            // Views that are not flat, and the gate turned off, put every body in its silhouette material.
+            // The perf probe's phone target (1080 by 2340 with a 24-bit depth buffer) is gated as the screen is, and a target
+            // without depth is not. Only with a graphics device (Tools/Run-UnityTests.ps1 -Graphics), where a camera may own
+            // a target; the render tests draw into one.
+            bool graphics = SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null;
+            if (graphics)
+            {
+                var phone = new RenderTexture(1080, 2340, 24) { name = "Silhouette gate phone target" };
+                try
+                {
+                    camera.targetTexture = phone;
+                    visibility.ApplyActorDepth(camera);
+                    Assert.That(visibility.GateRefusal, Is.Null, "The probe's target: " + visibility.DescribeGate());
+                    Assert.That(exposed.sharedMaterial, Is.SameAs(own));
+                    visibility.RestoreActorDepth();
+                }
+                finally
+                {
+                    camera.targetTexture = null;
+                    Object.Destroy(phone);
+                }
+                var flatTarget = new RenderTexture(64, 64, 0) { name = "Silhouette gate target without depth" };
+                try
+                {
+                    AssertUngated(visibility, camera, () => camera.targetTexture = flatTarget, () => camera.targetTexture = null,
+                        exposed, xray, FoundryVisibilityView.TargetWithoutDepth);
+                }
+                finally
+                {
+                    Object.Destroy(flatTarget);
+                }
+            }
+
+            // Views that are not flat, and the gate turned off, put every body in its silhouette material and say why.
             AssertUngated(visibility, camera, () => camera.orthographic = false, () => camera.orthographic = true, exposed, xray,
-                "A perspective view");
+                FoundryVisibilityView.PerspectiveCamera);
             Quaternion straight = camera.transform.rotation;
             AssertUngated(visibility, camera, () => camera.transform.rotation = Quaternion.Euler(0f, 2f, 0f),
-                () => camera.transform.rotation = straight, exposed, xray, "A tilted view");
+                () => camera.transform.rotation = straight, exposed, xray, FoundryVisibilityView.TurnedCamera);
             CameraClearFlags clear = camera.clearFlags;
             AssertUngated(visibility, camera, () => camera.clearFlags = CameraClearFlags.Nothing, () => camera.clearFlags = clear,
-                exposed, xray, "A view over depth it did not clear");
+                exposed, xray, FoundryVisibilityView.UnclearedCamera);
             AssertUngated(visibility, camera, () => visibility.GateByCover = false, () => visibility.GateByCover = true, exposed, xray,
-                "The gate turned off");
+                FoundryVisibilityView.GateOff);
 
             // Stopped, the view gives every body its own material back, whichever it wore.
             visibility.ApplyActorDepth(camera);
@@ -137,8 +189,13 @@ namespace Cryptforge.Tests
             FoundryDepthCover cover = visibility.DepthCover;
             Assert.That(cover, Is.Not.Null);
             Assert.That(cover.Complete, Is.True);
+            Vector2 size = cover.Max - cover.Min;
             TestContext.Out.WriteLine("Depth cover: " + cover.CellCount + " cells of " + FoundryDepthCover.CellSize + " units, " +
-                cover.CellCount * 4 / 1024 + " KB.");
+                cover.CellCount * 4 / 1024 + " KB, region-local " + cover.Min.ToString("F1") + " to " + cover.Max.ToString("F1") +
+                " (" + (size.x * size.y).ToString("F0") + " square units against the cap of " + 200 * 200 + ").");
+            // Only the structure ranks span it: the distant works beyond the island (FoundryRegionDistantWorks) are far
+            // scenery ranks that write no depth, so they do not stretch it towards the cap that would abandon it.
+            Assert.That(size.x * size.y, Is.LessThan(200f * 200f));
 
             // The flames and banners in a few of the poses their motion gives them.
             int triangles = AssertCovered(arena, cover, "now");
@@ -162,21 +219,58 @@ namespace Cryptforge.Tests
                 door.Pose(0f);
         }
 
-        // The view in a placement it cannot gate puts the court enemy, as every body, in its silhouette material.
+        // The view in a placement it cannot gate puts the court enemy, as every body, in its silhouette material, and names
+        // the condition that failed.
         private static void AssertUngated(FoundryVisibilityView visibility, Camera camera, System.Action change, System.Action undo,
-            SpriteRenderer exposed, Material xray, string what)
+            SpriteRenderer exposed, Material xray, string refusal)
         {
             change();
             try
             {
                 visibility.ApplyActorDepth(camera);
-                Assert.That(visibility.IsGated, Is.False, what + " is not gated.");
-                Assert.That(exposed.sharedMaterial, Is.SameAs(xray), what + ": every body wears its silhouette material.");
+                Assert.That(visibility.IsGated, Is.False, refusal + ": not gated.");
+                Assert.That(visibility.GateRefusal, Is.EqualTo(refusal));
+                Assert.That(exposed.sharedMaterial, Is.SameAs(xray), refusal + ": every body wears its silhouette material.");
+                Assert.That(visibility.OnePassBodies + visibility.CoveredBodies + visibility.UnmeasuredBodies, Is.Zero);
                 visibility.RestoreActorDepth();
             }
             finally
             {
                 undo();
+            }
+        }
+
+        // Where the view says each body draws (FoundryVisibilityView.Footprint), as the placement has just put it: every
+        // vertex of the sprite the body shows, flipped as Sprites/Default flips it and through the body's transform, lies
+        // inside the footprint's box and no farther than its depth, and an unturned body's depth is its own z. The bodies
+        // named and every enemy body in the scene.
+        private static void AssertFootprints(FoundryVisibilityView visibility, params SpriteRenderer[] named)
+        {
+            var bodies = new List<SpriteRenderer>(named);
+            foreach (EnemyLookView look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
+                if (look.Body != null && !bodies.Contains(look.Body))
+                    bodies.Add(look.Body);
+            Vector3 region = visibility.transform.position;
+            foreach (SpriteRenderer body in bodies)
+            {
+                Assert.That(FoundryVisibilityView.Footprint(body, region, out Vector2 min, out Vector2 max, out float far), Is.True,
+                    body.name + " is measured.");
+                Matrix4x4 toWorld = body.transform.localToWorldMatrix;
+                var flip = new Vector2(body.flipX ? -1f : 1f, body.flipY ? -1f : 1f);
+                foreach (Vector2 vertex in body.sprite.vertices)
+                {
+                    Vector3 p = toWorld.MultiplyPoint3x4(new Vector3(vertex.x * flip.x, vertex.y * flip.y, 0f)) - region;
+                    Assert.That(p.x >= min.x - 1e-4f && p.x <= max.x + 1e-4f && p.y >= min.y - 1e-4f && p.y <= max.y + 1e-4f &&
+                                p.z <= far + 1e-4f, Is.True,
+                        body.name + " vertex " + p.ToString("F4") + " lies outside its footprint " + min.ToString("F4") + " to " +
+                        max.ToString("F4") + ", depth " + far.ToString("F4"));
+                }
+                Assert.That(far, Is.EqualTo(body.transform.position.z - region.z).Within(1e-4f), body.name + "'s footprint depth.");
+                // Unity's own bounds, for the record: the same box, a tenth of a unit deep either way.
+                Bounds bounds = body.bounds;
+                TestContext.Out.WriteLine(body.name + ": footprint " + min.ToString("F3") + " to " + max.ToString("F3") + " at z " +
+                    far.ToString("F3") + "; Renderer.bounds " + (bounds.min - region).ToString("F3") + " to " +
+                    (bounds.max - region).ToString("F3"));
             }
         }
 
@@ -229,14 +323,17 @@ namespace Cryptforge.Tests
             return triangles;
         }
 
-        // The cover's answer for a body, for a failure's message.
+        // The cover's answer for a body's footprint, beside its Renderer.bounds and the placement's counts, for a
+        // failure's message.
         private static string Describe(FoundryVisibilityView visibility, SpriteRenderer body)
         {
             Bounds bounds = body.bounds;
             Vector3 region = visibility.transform.position;
-            return "bounds " + bounds.min.ToString("F2") + " to " + bounds.max.ToString("F2") + ", cover " +
-                   visibility.DepthCover.MayHide(bounds.min - region, bounds.max - region, bounds.max.z - region.z,
-                       FoundryVisibilityView.CoverMargin);
+            if (!FoundryVisibilityView.Footprint(body, region, out Vector2 min, out Vector2 max, out float far))
+                return "no footprint; " + visibility.DescribeGate();
+            return "footprint " + min.ToString("F2") + " to " + max.ToString("F2") + " at z " + far.ToString("F2") + ", cover " +
+                   visibility.DepthCover.Ask(min, max, far, FoundryVisibilityView.CoverMargin) + "; bounds " +
+                   bounds.min.ToString("F2") + " to " + bounds.max.ToString("F2") + "; " + visibility.DescribeGate();
         }
 
         private IEnumerator Load()

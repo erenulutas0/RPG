@@ -36,6 +36,9 @@ namespace Cryptforge.UI
         // Every structure has marked its cells. Until then the cover answers that anything may be hidden.
         internal bool Complete { get; set; }
         internal int CellCount => _nearest.Length;
+        // The corners of the cells (region-local), for tests.
+        internal Vector2 Min => new Vector2(_left, _bottom);
+        internal Vector2 Max => new Vector2(_right, _top);
 
         // A depth-writing triangle where it stands. A triangle over at most two cells each way marks them whole; a larger
         // one marks only the cells it touches, so a long diagonal wall does not claim the open floor beside it.

@@ -82,7 +82,10 @@ namespace Cryptforge.Tests
             Camera camera = Camera.main;
             Assert.That(camera, Is.Not.Null);
             visibility.ApplyActorDepth(camera);
-            Assert.That(visibility.IsGated, Is.True, "The gameplay camera sees the region flat, and the cover is made.");
+            TestContext.Out.WriteLine("The proof floor's wave for the gameplay camera: " + visibility.DescribeGate());
+            Assert.That(visibility.IsGated, Is.True,
+                "The gameplay camera sees the region flat, and the cover is made: " + visibility.DescribeGate());
+            Assert.That(visibility.ShownBodies, Is.GreaterThanOrEqualTo(encounters.AllAliveCount));
             visibility.RestoreActorDepth();
             Assert.That(() =>
             {
