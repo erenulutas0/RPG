@@ -108,9 +108,24 @@ namespace Cryptforge.Tests
             ? Path.Combine(Application.dataPath, "..", "TestResults")
             : Path.Combine(Application.persistentDataPath, "TestResults");
 
+        // What a phase changes beyond its own scene's lifetime or for its camera, kept until the phase puts it back
+        // (RestorePhase): the frame rate cap, the camera's target (a 1080x2340 texture the Editor would keep alive) and the
+        // overlay canvases drawn through the camera. Static, as Play is; a phase that throws or times out leaves them to
+        // End, so a failed run leaves the Editor as it found it.
+        private static bool _frameRateTaken;
+        private static int _frameRateBefore;
+        private static Camera _targetCamera;
+        private static RenderTexture _targetBefore;
+        private static RenderTexture _target;
+        private static readonly List<Canvas> Canvases = new List<Canvas>();
+        private static readonly List<RenderMode> CanvasModes = new List<RenderMode>();
+        private static readonly List<Camera> CanvasCameras = new List<Camera>();
+        private static readonly List<float> CanvasDistances = new List<float>();
+
         [UnityTearDown]
         public IEnumerator End()
         {
+            RestorePhase();
             Time.captureDeltaTime = 0f;
             Time.timeScale = 1;
             var old = SceneManager.GetActiveScene();
@@ -174,20 +189,22 @@ namespace Cryptforge.Tests
             run.ManualRender = run.Graphics && Application.isBatchMode && camera != null;
 
             // The phone's framing, and in a batch Editor the phone's target with every overlay canvas drawn through the
-            // camera, so the HUD's draws count as they do on the device.
-            RenderTexture target = null;
-            var canvases = new List<Canvas>();
-            var modes = new List<RenderMode>();
+            // camera, so the HUD's draws count as they do on the device. Everything changed here is recorded for
+            // RestorePhase.
             if (run.ManualRender)
             {
-                target = new RenderTexture(PhoneWidth, PhoneHeight, 24) { name = "Perf probe target" };
-                camera.targetTexture = target;
+                _targetCamera = camera;
+                _targetBefore = camera.targetTexture;
+                _target = new RenderTexture(PhoneWidth, PhoneHeight, 24) { name = "Perf probe target" };
+                camera.targetTexture = _target;
                 foreach (Canvas canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
                     if (!canvas.isRootCanvas || canvas.renderMode != RenderMode.ScreenSpaceOverlay)
                         continue;
-                    canvases.Add(canvas);
-                    modes.Add(canvas.renderMode);
+                    Canvases.Add(canvas);
+                    CanvasModes.Add(canvas.renderMode);
+                    CanvasCameras.Add(canvas.worldCamera);
+                    CanvasDistances.Add(canvas.planeDistance);
                     canvas.renderMode = RenderMode.ScreenSpaceCamera;
                     canvas.worldCamera = camera;
                     canvas.planeDistance = 1f;
@@ -197,7 +214,8 @@ namespace Cryptforge.Tests
                 follow.Frame(PhoneWidth, PhoneHeight, BandBottom, BandTop);
             // CombatSetup caps the frame rate at 60; game time is fixed by captureDeltaTime, so the Editor runs uncapped
             // and the wall time is the frame's own work rather than a wait for the next 1/60 s.
-            int targetFrameRate = Application.targetFrameRate;
+            _frameRateBefore = Application.targetFrameRate;
+            _frameRateTaken = true;
             Application.targetFrameRate = -1;
             var recorder = new GameObject("Perf Probe Recorder").AddComponent<PerfProbeRecorder>();
             recorder.Initialize(setup, hero, camera, run.ManualRender);
@@ -208,23 +226,45 @@ namespace Cryptforge.Tests
                 yield return Horde(run, setup, hero, camera, recorder);
             recorder.End();
             Summarize(run, recorder);
-            Application.targetFrameRate = targetFrameRate;
-
-            for (int i = 0; i < canvases.Count; i++)
-                if (canvases[i] != null)
-                    canvases[i].renderMode = modes[i];
-            if (camera != null)
-                camera.targetTexture = null;
-            if (target != null)
-            {
-                target.Release();
-                Object.Destroy(target);
-            }
+            RestorePhase();
             Time.captureDeltaTime = 0f;
             var old = SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(SceneManager.CreateScene("Perf probe between " + run.Hero + " " + run.Phase));
             yield return SceneManager.UnloadSceneAsync(old);
             TestProfile.End();
+        }
+
+        // Puts back what a phase changed (see the fields above): the frame rate cap, the canvases' render mode, camera and
+        // distance, the camera's target, and the phone's target released and destroyed. Safe to call twice and after a
+        // phase that never got as far as changing anything; a camera or canvas already gone with its scene is skipped.
+        private static void RestorePhase()
+        {
+            for (int i = 0; i < Canvases.Count; i++)
+            {
+                Canvas canvas = Canvases[i];
+                if (canvas == null)
+                    continue;
+                canvas.renderMode = CanvasModes[i];
+                canvas.worldCamera = CanvasCameras[i];
+                canvas.planeDistance = CanvasDistances[i];
+            }
+            Canvases.Clear();
+            CanvasModes.Clear();
+            CanvasCameras.Clear();
+            CanvasDistances.Clear();
+            if (_targetCamera != null && _targetCamera.targetTexture == _target)
+                _targetCamera.targetTexture = _targetBefore;
+            _targetCamera = null;
+            _targetBefore = null;
+            if (_target != null)
+            {
+                _target.Release();
+                Object.Destroy(_target);
+            }
+            _target = null;
+            if (_frameRateTaken)
+                Application.targetFrameRate = _frameRateBefore;
+            _frameRateTaken = false;
         }
 
         // The crowd walks in - the first wave padded to the crowd, then the horde - and the window opens once it stands.
