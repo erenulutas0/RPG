@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Progression;
 using NUnit.Framework;
@@ -69,6 +71,155 @@ namespace Cryptforge.Tests
                 Assert.That(run.HordeMaxAlive, Is.LessThanOrEqualTo(HordeRule.SceneCap), where + ": the scene's cap");
                 Assert.That(run.FirstStrikeSeconds, Is.InRange(0f, 10f), where + ": the first hall's first wave is fought at once");
             }
+        }
+
+        // A run plays floor 1 alone unless its levers ask for more (FoundryLevers.Floors), and asking changes nothing before
+        // the checkpoint: a seed's floor 1 is the same floor, field for field, whether or not the run goes on to floor 2. On
+        // the floor as it ships both heroes die on floor 1 on seed 2 and clear it on seed 11.
+        [Test]
+        public void FloorOneIsTheSameFloorWhetherOrNotTheRunGoesOnToFloorTwo()
+        {
+            Assert.That(FoundryBatch.Shipped().Floors, Is.EqualTo(1), "the shipped floor is floor 1 alone");
+            DescentSimulation.FoundryLevers two = FoundryBatch.Shipped();
+            two.Floors = 2;
+            int wentDown = 0;
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in new[] { 2, 11 })
+            {
+                string where = $"{hero.Name} seed {seed}";
+                DescentSimulation.FoundryResult alone = DescentSimulation.RunFoundry(hero, seed);
+                DescentSimulation.FoundryResult climb = DescentSimulation.RunFoundry(hero, seed, two);
+                Assert.That(alone.NextFloor, Is.Null, where + ": one floor");
+                foreach (FieldInfo field in typeof(DescentSimulation.FoundryResult).GetFields(BindingFlags.Public | BindingFlags.Instance))
+                    if (field.Name != nameof(DescentSimulation.FoundryResult.NextFloor))
+                        Assert.That(field.GetValue(climb), Is.EqualTo(field.GetValue(alone)), $"{where}: {field.Name}");
+                Assert.That(climb.NextFloor != null, Is.EqualTo(climb.Cleared), where + ": a clear goes down, anything else ends the run");
+                if (climb.NextFloor != null)
+                    wentDown++;
+            }
+            Assert.That(wentDown, Is.GreaterThan(0), "a run went down to floor 2, so floor 1 was compared with a floor 2 after it");
+        }
+
+        // A floor-1 clear goes down to floor 2 as the scene does: after the checkpoint and its advance delay, floor 2's rooms
+        // in the asset's order - three halls, the forge, the elite, the Warden - the first fought where the hero stands, the
+        // later halls at the districts the climb's round reaches next (the north court, the workyard, the pit's rim; the
+        // scene's own route in ClimbFloorContentTests), the gate open as its room clears, its Warden at floor 2's tier and
+        // the run's difficulty; the hero carries its level and health down, and the floor's clock starts again.
+        [Test]
+        public void AFloorOneClearGoesDownToFloorTwoAndPlaysItsRoomsInTheScenesOrder()
+        {
+            DescentSimulation.FoundryLevers two = FoundryBatch.Shipped();
+            two.Floors = 2;
+            RoomKind[] rooms = { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss };
+            float[][] districts = { new[] { 4f, 12f }, new[] { -25f, 7f }, new[] { -10f, -1.5f } };
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            {
+                int wentDown = 0;
+                foreach (int seed in Seeds)
+                {
+                    string where = $"{hero.Name} seed {seed}";
+                    var lines = new List<string>();
+                    DescentSimulation.FoundryResult first = DescentSimulation.RunFoundry(hero, seed, two, trace: lines.Add);
+                    DescentSimulation.FoundryResult run = first.NextFloor;
+                    if (run == null)
+                        continue;
+                    wentDown++;
+                    Assert.That(run.Floor, Is.EqualTo(2), where);
+                    Assert.That(run.NextFloor, Is.Null, where + ": two floors asked for");
+                    Assert.That(run.Outcome, Is.Not.EqualTo(DescentSimulation.FoundryOutcome.Timeout), where);
+                    Assert.That(run.Kinds, Is.EqualTo(rooms), where + ": the asset's rooms, no extra elite");
+
+                    // The checkpoint: the hero goes down as floor 1 left it, and the first room waits the advance delay.
+                    int descent = lines.FindIndex(l => l.Contains(" floor_descend "));
+                    Assert.That(lines[descent], Does.EndWith($"floor=2 level={first.Level} hp={first.HeroHealth.ToString("0.###", CultureInfo.InvariantCulture)}"), where);
+                    Assert.That(run.DescentSeconds, Is.EqualTo(DescentSimulation.AdvanceDelay).Within(2.5f / 60f), where);
+                    float roomTime = run.RoomSeconds.Where(s => s >= 0f).Sum();
+                    Assert.That(roomTime + run.DescentSeconds, Is.EqualTo(run.FloorSeconds).Within(0.05f), where + ": the descent and the rooms are the floor");
+
+                    // Its rooms in order, as far as the run got.
+                    var started = lines.Skip(descent).Where(l => l.Contains(" room_start ")).ToList();
+                    Assert.That(started.Count, Is.InRange(1, rooms.Length), where);
+                    for (int i = 0; i < started.Count; i++)
+                        Assert.That(started[i], Does.Contain($"room_start room={i + 1} kind={rooms[i]} "), where);
+                    if (run.Cleared)
+                        Assert.That(started.Count, Is.EqualTo(rooms.Length), where + ": every room played");
+                    Assert.That(run.WalkSeconds[0], Is.EqualTo(-1f), where + ": the first hall is fought where the hero stands");
+
+                    // Every hall reached at its district, the round going on from floor 1's.
+                    int hall = 0;
+                    for (int i = descent; i < lines.Count; i++)
+                    {
+                        if (!lines[i].Contains(" hall_reached "))
+                            continue;
+                        Assert.That(hall, Is.LessThan(districts.Length), where + ": floor 2's later halls");
+                        string frame = lines.Skip(i + 1).First(l => l.Contains(" frame "));
+                        FoundryMap.ToFloor(districts[hall][0], districts[hall][1], out float x, out float y);
+                        float dx = Field(frame, "x") - x, dy = Field(frame, "y") - y;
+                        Assert.That(Math.Sqrt(dx * dx + dy * dy), Is.LessThanOrEqualTo(FoundryMap.RoomSiteRadius + .01f),
+                            $"{where}: floor 2's hall {hall + 2} at its district");
+                        hall++;
+                    }
+                    if (run.Cleared)
+                        Assert.That(hall, Is.EqualTo(districts.Length), where);
+
+                    Assert.That(run.GateWaitSeconds, Is.Zero, where + ": floor 2's gate opens as its room clears");
+                    if (run.LevelAtGate >= 0)
+                    {
+                        Assert.That(run.LevelAtGate, Is.GreaterThanOrEqualTo(first.Level), where + ": the level carried down");
+                        Assert.That(run.DifficultyAtGate, Is.GreaterThanOrEqualTo(first.Difficulty), where + ": the difficulty carried down");
+                        Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.Warden.Health * WardenRule.GateHealthShare *
+                                                                 ClimbScaling.Health(2) * run.DifficultyAtGate).Within(.01f), where);
+                        Assert.That(run.ClockAtGate, Is.InRange(1f, run.FloorSeconds - run.DescentSeconds), where + ": the floor's own clock");
+                    }
+                    if (run.Cleared)
+                    {
+                        Assert.That(run.WardenSeconds, Is.GreaterThan(DescentSimulation.RevealTurnSeconds * 2f + DescentSimulation.RevealHoldSeconds), where);
+                        Assert.That(run.BossSeconds, Is.GreaterThanOrEqualTo(run.WardenSeconds), where + ": the wave ends with the last of the three");
+                        Assert.That(run.ExitSeconds, Is.GreaterThanOrEqualTo(ExitRule.DwellSeconds), where + ": the gate is held");
+                    }
+                    else
+                    {
+                        Assert.That(run.DeathRoom, Is.InRange(1, rooms.Length), where);
+                    }
+                }
+                Assert.That(wentDown, Is.GreaterThan(0), hero.Name + ": a seed went down to floor 2");
+            }
+        }
+
+        // The floor-1 knobs a run's levers set stay on floor 1: floor 2 plays its asset's own (FoundryFloor), under the run's
+        // Warden and horde levers, which stand for rules every floor of the scene reads.
+        [Test]
+        public void AFloorAfterTheFirstPlaysItsOwnKnobsUnderTheRunsRuleLevers()
+        {
+            DescentSimulation.FoundryLevers run = FoundryBatch.Shipped().Copy("every knob");
+            run.HallSurges = 4;
+            run.ExtraElites = 2;
+            run.ExtraHalls = 2;
+            run.HallHoldSeconds = 30f;
+            run.NodeHealthScale = 1.5f;
+            run.GateNotBeforeSeconds = 240f;
+            run.WardenHealthShare = 7f;
+            run.WardenRecoverySeconds = 1f;
+            run.HordeHealthShare = .6f;
+            run.HordeFillRate = 3f;
+            run.Floors = 2;
+            DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next;
+            DescentSimulation.FoundryLevers later = DescentSimulation.LaterFloorLevers(run, floor);
+            Assert.That((later.HallSurges, later.ExtraElites, later.GateNotBeforeSeconds), Is.EqualTo((floor.HallSurges, floor.ExtraElites, floor.GateNotBeforeSeconds)));
+            Assert.That((later.ExtraHalls, later.HallHoldSeconds, later.NodeHealthScale), Is.EqualTo((0, 0f, 1f)));
+            Assert.That((later.WardenHealthShare, later.WardenRecoverySeconds, later.HordeHealthShare, later.HordeFillRate, later.Floors),
+                Is.EqualTo((7f, 1f, .6f, 3f, 2)));
+            Assert.That(later.Name, Is.EqualTo(run.Name));
+            Assert.That(DescentSimulation.LaterHalls(DescentSimulation.FoundryFloorOne()), Is.EqualTo(3),
+                "floor 1's later halls - the workyard, the pit's rim, the east - its extra elite not counted");
+        }
+
+        // A number from a trace line's "name=value".
+        private static float Field(string line, string name)
+        {
+            int start = line.IndexOf(" " + name + "=", StringComparison.Ordinal) + name.Length + 2;
+            int end = line.IndexOf(' ', start);
+            return float.Parse(end < 0 ? line.Substring(start) : line.Substring(start, end - start), CultureInfo.InvariantCulture);
         }
 
         // The autopilot's walks to the halls are bounded (DropDetourRule.Walk): with the horde filling at 3 a second, the
