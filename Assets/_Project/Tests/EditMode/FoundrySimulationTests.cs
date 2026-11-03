@@ -478,6 +478,62 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The Warden's own weapon is held from the frame its mark goes down until its hammer is out of the floor again -
+        // WardenSlamService runs before every AttackController, and the simulation steps the clock before anything
+        // attacks - and every blow lands a whole telegraph after its mark, the Warden enraged under it or not
+        // (WardenSlamClock). On these seeds the Warden enrages under a calm mark, whose hammer landed the frame after
+        // when the clock read its pace each frame; and its weapon comes ready on a mark's own frame with the hero in reach,
+        // where it struck while the clock was stepped after the attackers.
+        [Test]
+        public void TheWardenStrikesNothingFromItsMarksFrameAndEveryBlowKeepsItsTelegraph()
+        {
+            const float frame = 1f / 60f;
+            int marks = 0, strikes = 0, enragedUnderAMark = 0;
+            foreach ((DescentSimulation.FoundryHero hero, int seed) in new[] { (DescentSimulation.Vanguard(), 37), (DescentSimulation.CinderArcanist(), 97) })
+            {
+                string where = $"{hero.Name} seed {seed}";
+                var lines = new List<string>();
+                DescentSimulation.RunFoundry(hero, seed, trace: lines.Add);
+                // A trace line starts with its frame's time, so the lines of one frame share it.
+                var marked = new List<(string Frame, float At, bool Enraged)>();
+                var blows = new List<(float At, bool Enraged)>();
+                var struck = new List<(string Frame, float At)>();
+                foreach (string line in lines)
+                {
+                    string time = line.Substring(0, line.IndexOf(' '));
+                    float at = float.Parse(time, CultureInfo.InvariantCulture);
+                    if (line.Contains(" slam_mark "))
+                        marked.Add((time, at, line.Contains(" enraged=True")));
+                    else if (line.Contains(" slam_blow "))
+                        blows.Add((at, line.Contains(" enraged=True")));
+                    else if (line.Contains(" warden_strike "))
+                        struck.Add((time, at));
+                }
+                Assert.That(blows.Count, Is.InRange(marked.Count - 1, marked.Count), where + ": a blow for every mark but one the fight ended under");
+                for (int i = 0; i < marked.Count; i++)
+                {
+                    float freeFrom = i < blows.Count ? blows[i].At + WardenRule.RecoverySeconds - frame / 2f : float.MaxValue;
+                    foreach ((string strikeFrame, float at) in struck)
+                    {
+                        Assert.That(strikeFrame, Is.Not.EqualTo(marked[i].Frame), $"{where}: the Warden struck on its mark's frame");
+                        Assert.That(at >= marked[i].At && at < freeFrom, Is.False,
+                            $"{where}: the Warden struck at {strikeFrame}, its weapon held from the mark at {marked[i].Frame} to the recovery's end");
+                    }
+                    if (i >= blows.Count)
+                        continue;
+                    Assert.That(blows[i].At - marked[i].At, Is.GreaterThanOrEqualTo(WardenRule.Telegraph - frame / 2f),
+                        $"{where}: the blow after the mark at {marked[i].Frame} lands a telegraph after it");
+                    if (!marked[i].Enraged && blows[i].Enraged)
+                        enragedUnderAMark++;
+                }
+                marks += marked.Count;
+                strikes += struck.Count;
+            }
+            Assert.That(marks, Is.GreaterThan(0), "the Warden was fought");
+            Assert.That(strikes, Is.GreaterThan(0), "its own weapon struck between its marks");
+            Assert.That(enragedUnderAMark, Is.GreaterThan(0), "it enraged under a calm mark");
+        }
+
         // Every lever, combination and Warden candidate names a floor the shipped one is not, and a research lever one its
         // own floor (the pre-V0.1 row it is read against) is not either, so no row of the tables reads a floor against itself.
         [Test]
