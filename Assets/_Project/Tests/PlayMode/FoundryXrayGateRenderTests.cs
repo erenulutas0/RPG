@@ -248,9 +248,9 @@ namespace Cryptforge.Tests
         }
 
         // The wave stood on a grid of walkable floor round the framing's centre, inside the view: some in the open, some by
-        // the structures there. Rendering follows at once, so nothing walks in between. No two spots share a height, so no
-        // two bodies tie in the sort along the camera's up axis, whose order would otherwise be left to the materials -
-        // which the game's bodies, walking, never share for long.
+        // the structures there. Rendering follows at once, so nothing walks in between. No two spots share a height: two
+        // overlapping bodies at one height tie in the sort along the camera's up axis, and the order of a tie may fall to
+        // their materials, which the gate changes. A walking crowd all but never holds such a tie; the grid would.
         private static void Spread(List<EnemyLookView> looks, Vector3 centre, float halfWidth, float halfHeight)
         {
             int placed = 0, tries = 0;
