@@ -410,8 +410,8 @@ namespace Cryptforge.UI
 
         // Null for a camera that sees the region flat: orthographic, looking straight along +z, with depth to test against
         // that it clears before it draws. Its pixels then lie in the scene's x and y, and the only depth in them is what its
-        // own render writes. Otherwise the first condition that fails.
-        private static string CameraRefusal(Camera camera)
+        // own render writes. Otherwise the first condition that fails. Internal for FoundryActorDepthTests' allocation count.
+        internal static string CameraRefusal(Camera camera)
         {
             if (camera == null) return NoCamera;
             if (!camera.orthographic) return PerspectiveCamera;
@@ -423,8 +423,8 @@ namespace Cryptforge.UI
         }
 
         // Null when the cover can answer for the region: the gate on, the cover made over every structure and the region
-        // plain. Otherwise the first condition that fails.
-        private string CoverRefusal()
+        // plain. Otherwise the first condition that fails. Internal for FoundryActorDepthTests' allocation count.
+        internal string CoverRefusal()
         {
             if (!GateByCover) return GateOff;
             if (_coverAbandoned) return CoverAbandoned;

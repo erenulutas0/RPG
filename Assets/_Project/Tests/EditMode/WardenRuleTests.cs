@@ -55,5 +55,41 @@ namespace Cryptforge.Tests
             Assert.That(WardenRule.Telegraph,Is.InRange(.8f,1.2f),"The report's readable telegraph on a phone.");
             Assert.That(()=>calm.Advance(-1f,false),Throws.InstanceOf<System.ArgumentOutOfRangeException>());
         }
+
+        // An enrage while a mark is down speeds only the marks after it: the blow still lands a whole telegraph after its
+        // own mark. Read from the enraged pace, a calm mark (down at 4.9 s) was already past the enraged blow's 4 s, and
+        // the hammer came down the frame after the enrage.
+        [Test] public void AnEnrageTheFrameAfterACalmMarkLeavesTheWholeTelegraph()
+        {
+            var clock=new WardenSlamClock();
+            Assert.That(clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false),Is.EqualTo(WardenSlamClock.Step.Marked),"A calm mark.");
+            Assert.That(clock.Advance(1f/60f,true),Is.EqualTo(WardenSlamClock.Step.None),"Enraged a frame later, the hammer is still going up.");
+            Assert.That(clock.IsMarked,Is.True);Assert.That(clock.HoldsWeapon,Is.True);
+            Assert.That(clock.TelegraphProgress,Is.EqualTo(1f/60f/WardenRule.Telegraph).Within(1e-3f),"A frame into the telegraph.");
+            Assert.That(1f/60f+SecondsToTheBlow(clock,true),Is.EqualTo(WardenRule.Telegraph).Within(1.01f/60f),
+                "The blow lands a telegraph after its mark.");
+            // Enraged from that blow on, the next mark comes sooner, and it too keeps its telegraph.
+            Assert.That(clock.Advance(WardenRule.SlamEveryEnraged-WardenRule.Telegraph-.01f,true),Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.Advance(.02f,true),Is.EqualTo(WardenSlamClock.Step.Marked),"The next mark, SlamEveryEnraged after the blow.");
+            Assert.That(SecondsToTheBlow(clock,true),Is.EqualTo(WardenRule.Telegraph).Within(1.01f/60f));
+        }
+
+        [Test] public void AnEnrageHalfwayThroughTheTelegraphDoesNotBringTheBlowEarly()
+        {
+            var clock=new WardenSlamClock();
+            Assert.That(clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false),Is.EqualTo(WardenSlamClock.Step.Marked));
+            Assert.That(clock.Advance(.5f,false),Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.Advance(1f/60f,true),Is.EqualTo(WardenSlamClock.Step.None),"Enraged 0.5 s into the telegraph, the hammer is still going up.");
+            Assert.That(clock.TelegraphProgress,Is.EqualTo((.5f+1f/60f)/WardenRule.Telegraph).Within(1e-3f));
+            Assert.That(.5f+1f/60f+SecondsToTheBlow(clock,true),Is.EqualTo(WardenRule.Telegraph).Within(1.01f/60f),
+                "The blow lands a telegraph after its mark.");
+        }
+
+        // Frames of 1/60 s from now to the blow, in seconds; -1 if none lands within ten seconds.
+        private static float SecondsToTheBlow(WardenSlamClock clock,bool enraged)
+        {
+            for(int frame=1;frame<=600;frame++)if(clock.Advance(1f/60f,enraged)==WardenSlamClock.Step.Slammed)return frame/60f;
+            return -1f;
+        }
     }
 }
