@@ -79,6 +79,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FootworkRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AutopilotCohortTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryCohortTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />

@@ -118,6 +118,9 @@ namespace Cryptforge.Tests
         internal sealed class FoundryLevers
         {
             public string Name = "shipped";
+            // Who plays the floor (AutopilotCohort, as development/autopilot.txt names one in the scene): the careful pilot,
+            // or one of docs/41 step 5's and docs/40 section 9.4's cohorts - the same floor in another hand.
+            public AutopilotCohort Cohort = AutopilotCohort.Careful;
             // FloorDefinition.FoundryHallSurges: surge waves each combat hall gains after its authored ones (HallSurgeRule).
             public int HallSurges = 2;
             // More copies of the floor's elite room before the gate; the district round gives the first the north court.
@@ -269,6 +272,12 @@ namespace Cryptforge.Tests
             public int Eruptions;
             public int EruptionsOnHero;
             public int AbilityUses;
+            // What the autopilot's steer was doing, in active seconds (its cohort's habits, AutopilotCohort): kiting,
+            // leaving the Warden's mark, sheltering from a spill, drawing a node fight to the rim. Accounting only.
+            public float KiteSeconds;
+            public float EscapeSeconds;
+            public float ShelterSeconds;
+            public float LureSeconds;
             public int AltarsTaken;
             public int ChestsOpened;
             public int DropsCollected;
@@ -1798,7 +1807,8 @@ namespace Cryptforge.Tests
                     _steerY = 0f;
                     return;
                 }
-                PilotAbility();
+                if (_levers.Cohort.UsesTheAbility)
+                    PilotAbility();
                 float x = HeroX;
                 float y = HeroY;
                 if (PilotGoal(x, y, out float gx, out float gy, out float stop))
@@ -1871,53 +1881,61 @@ namespace Cryptforge.Tests
                 }
             }
 
+            // DevelopmentAutopilot.Goal, its cohort's habits read in the same order (AutopilotCohort).
             private bool PilotGoal(float x, float y, out float gx, out float gy, out float stop)
             {
+                AutopilotCohort cohort = _levers.Cohort;
                 stop = PilotArrived;
                 gx = x;
                 gy = y;
                 bool fighting = _waveAlive > 0;
                 // A fight, or a hall newly marked, gives the walk after it its whole drop budget.
                 _detour.Track(fighting, _roomSiteOpen);
-                // While the pit's band glows the hero steps into it only to leave the Warden's mark (PilotSteer).
+                // While the pit's band glows a cohort that keeps out of it steps into it only to leave the Warden's mark
+                // (PilotSteer).
                 bool glowing = _pitRunning && _pit.IsWarning;
-                _bandGuard = glowing;
+                bool guarded = cohort.Guards(glowing);
+                _bandGuard = guarded;
                 if (_gateExitOpen)
                 {
                     gx = _exitX;
                     gy = _exitY;
                     return true;
                 }
-                if (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked)
+                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked)
                 {
                     float mx = x - _markX;
                     float my = y - _markY;
                     float reach = WardenRule.SlamRadius + .6f;
                     if (mx * mx + my * my < reach * reach &&
-                        FootworkRule.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out gx, out gy))
+                        cohort.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out gx, out gy))
                     {
                         stop = 0f;
                         _bandGuard = false;
+                        _result.EscapeSeconds += Step;
                         return true;
                     }
                 }
-                if (glowing && PitEruptionRule.InBand(x, y))
+                if (cohort.Shelters && glowing && PitEruptionRule.InBand(x, y))
                 {
-                    FootworkRule.Shelter(x, y, PilotShelterDepth, out gx, out gy);
+                    cohort.Shelter(x, y, PilotShelterDepth, out gx, out gy);
+                    _result.ShelterSeconds += Step;
                     return true;
                 }
-                if (Threat(x, y, out float tx, out float ty) &&
-                    FootworkRule.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out gx, out gy))
+                if (cohort.Kites && Threat(cohort, x, y, out float tx, out float ty) &&
+                    cohort.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out gx, out gy))
                 {
                     stop = 0f;
+                    _result.KiteSeconds += Step;
                     return true;
                 }
-                // A node fight is drawn to the pit's rim, but not while the band glows: then the hero waits out of it.
+                // A node fight is drawn to the pit's rim, but not while a guarded band glows: then the hero waits out of it.
                 if (fighting)
                 {
-                    if (glowing)
+                    if (guarded || !cohort.Lures)
                         return false;
                     FootworkRule.RimSpot(x, y, PilotLureDepth, out gx, out gy);
+                    _result.LureSeconds += Step;
                     return true;
                 }
                 // Between fights: the altars, then the marked hall, with the drops beside the way there (the slack, the
@@ -1992,9 +2010,9 @@ namespace Cryptforge.Tests
                 }
             }
 
-            // The push of every living enemy within its kite reach (FootworkRule.ThreatReach: the kite reach, or its own
-            // reach and a margin), as a unit direction away from them.
-            private bool Threat(float x, float y, out float tx, out float ty)
+            // The push of every living enemy within its kite reach (the cohort's AutopilotCohort.ThreatReach: the kite
+            // reach, or its own reach and a margin), as a unit direction away from them.
+            private bool Threat(AutopilotCohort cohort, float x, float y, out float tx, out float ty)
             {
                 tx = ty = 0f;
                 Foe gate = GateBoss;
@@ -2006,7 +2024,7 @@ namespace Cryptforge.Tests
                     float px = enemy.X;
                     float py = enemy.Y;
                     float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                    float reach = FootworkRule.ThreatReach(PilotKiteReach, enemy.Definition.Reach, ReferenceEquals(enemy, gate));
+                    float reach = cohort.ThreatReach(PilotKiteReach, enemy.Definition.Reach, ReferenceEquals(enemy, gate));
                     if (d >= reach * reach || d < 1e-6f)
                         continue;
                     tx += (x - px) / d;
@@ -2090,39 +2108,16 @@ namespace Cryptforge.Tests
                 UpgradeOffer offer = _upgrades.CurrentOffer;
                 if (_choices.Current.Kind != ChoiceKind.Upgrade || offer == null)
                     return 0;
-                int best = 0;
-                int bestScore = int.MinValue;
-                for (int i = 0; i < offer.Choices.Count; i++)
-                {
-                    int score = CardScore(offer.Choices[i]);
-                    if (score <= bestScore)
-                        continue;
-                    best = i;
-                    bestScore = score;
-                }
+                // DevelopmentAutopilot.ChoiceSlot: the cohort's pick (AutopilotCohort.Pick, the CardPicker order or the
+                // first card), health first when the hero is under half.
+                int best = _levers.Cohort.Pick(offer, _heroHealth.Current < _heroHealth.Maximum * .5f, _upgrades.Loadout.Count,
+                    _upgrades.TomesHeld);
                 UpgradeOption pick = offer.Choices[best];
                 if (_trace != null)
                     Emit($"upgrade_selected {pick.Id} level={_run.Level} hp={N(_heroHealth.Current)}/{N(_heroHealth.Maximum)}");
                 _result.Picks.Add(pick.Id);
                 _result.PicksByCategory[(int)pick.Category]++;
                 return best;
-            }
-
-            // DevelopmentAutopilot.CardScore: health when low, then the weapons it holds, a new weapon while a slot is free,
-            // two tomes, their levels, then anything else.
-            private int CardScore(UpgradeOption card)
-            {
-                bool low = _heroHealth.Current < _heroHealth.Maximum * .5f;
-                if (low && card.Stat == UpgradeStat.MaxHealth)
-                    return 100;
-                switch (card.Category)
-                {
-                    case OfferCategory.WeaponUpgrade: return 50;
-                    case OfferCategory.NewWeapon: return _upgrades.Loadout.Count < WeaponLoadout.MaxSlots ? 45 : 10;
-                    case OfferCategory.NewTome: return _upgrades.TomesHeld < 2 ? 40 : 15;
-                    case OfferCategory.TomeUpgrade: return 30;
-                    default: return card.Stat == UpgradeStat.MaxHealth ? 25 : 20;
-                }
             }
 
             // ---------------------------------------------------------------------------------------------------------
