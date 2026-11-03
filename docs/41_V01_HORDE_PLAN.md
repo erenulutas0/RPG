@@ -246,6 +246,54 @@ boss_s column (the simulation now expects 50-52 s for the Vanguard's three clear
 at 294 with a 35 s fight, and 15 s more puts it past 300. WardenFlowTests holds the weapon's hold; WardenLookTests the
 raised hammer. And a look: no swing while the hammer is up, and 1.5 s after each blow the Warden walks without swinging.
 
+## Status 2026-11-03 (night): the autopilot's drop detour, and the floor without it
+
+**The loop.** Between fights the development autopilot walked to any drop within 4 units before it went on to the next
+hall. On the foundry the horde keeps dying within reach of the hero, so a fresh drop was nearly always there: in walks
+over 60 s the pilot steered at a drop 82-87 % of the time, about 400 drops and 400 units for a hall 17-18 units away
+(the Vanguard's seed 1 spent 166 s of its second room on 528 drops). 53-191 of 200 runs a hero walked over 150 s on the
+shipped floor and on the horde-thickening levers. Every floor-length reading above carries it.
+
+**The rule.** `DropDetourRule`, one body called by `DevelopmentAutopilot` and the simulation's pilot: on the way to an
+altar or a marked hall the pilot steps aside only for a drop within the old 4 units that adds at most 2 units to the way
+(`DetourSlack`), and for at most 12 s of a walk (`DetourBudget`; a fight or a newly marked hall resets it). With nowhere
+to go - the wait for the gate - it takes any drop within 4 units as before; the linger and idle modes are unchanged.
+The slack ends the loop; the budget bounds it, since drops alternating sides could otherwise hold the hero in place.
+`FoundrySimulationSceneValueTests` holds the two constants to the autopilot's. 0 of 200 runs a hero now walk long, on
+every lever.
+
+**The scene agrees** (HordePacingMeasurement on main d6664d2, seeds 11-66, against the simulation on the same seeds;
+TestResults/night-parity/foundry-batch.md):
+
+| Hero | Source | Cleared | Walk | Node fights | Gate wait | Warden | Exit | Engaged |
+|---|---|---|---|---|---|---|---|---|
+| Vanguard | Editor | 3/6 | 38 | 65 | 114 | 52 | 11 | 0.77 |
+| Vanguard | Simulation | 3/6 | 38 | 65 | 114 | 54 | 9 | 0.76 |
+| Ilya | Editor | 6/6 | 36 | 67 | 114 | 52 | 10 | 0.55 |
+| Ilya | Simulation | 5/6 | 36 | 66 | 117 | 54 | 9 | 0.54 |
+
+The Warden's fight in the scene: the Vanguard's three clears 51-54 s, Ilya's six 45-66 s, no slam hit, the clock at
+clear 252-273 s (no overrun). The 2026-11-03 Warden change stands confirmed.
+
+**The floor without the loop** (simulation, seeds 1-200 a hero, main d6664d2):
+
+| Hero | Cleared | Floor P50 (all) | Cleared floor P50 | Walk | Node fights | Gate wait | Warden | Deaths: where, killing blow |
+|---|---|---|---|---|---|---|---|---|
+| Vanguard | 74 (37 %) | 102 s | 281 s | 39 | 73 | 108 | 53 | 126: room 3 x72, room 2 x29, boss x20, room 6 x5; pit 36, horde Grunt 33, wave Tank 30 |
+| Ilya | 158 (79 %) | 276 s | 278 s | 37 | 67 | 116 | 51 | 42: boss x39; pit 23, Warden 15 |
+
+- A cleared floor is 278-281 s, and 108-116 s of it is the cleared room before the gate holding for 3:30. Without the
+  3:30 rule a cleared floor would be about 166-181 s: the 4-6 minutes are now mostly the gate's wait (with the horde
+  pressing on), not halls.
+- The Vanguard's "met" floor length of 2026-11-02 was in good part the loop padding runs that died: its deaths barely
+  moved (122 -> 126 of 200) but come earlier (P50 113 -> 82 s).
+- Lever readings that were mostly the loop (paired median per seed against the shipped floor, Vanguard / Ilya, before ->
+  after): +2 halls +61/+68 -> +5/+7 s; halls held 45 s +58/+110 -> -3/+1; fill rate 3/s +78/+26 -> -4/-1; the gate as
+  the room clears -18/-21 -> -102/-114; gate at 4:00 +24/+25 -> +28/+30; Warden x1.5 +16/+14 -> +18/+15.
+
+Open for the owner: whether the gate's wait should carry the floor's length or more halls and content should; and the
+Vanguard's survival (room 3; the pit, the horde's Grunts and the wave's Tanks).
+
 ## Status 2026-11-04: the gate in one report
 
 **What exists.** The batch report opens with the V0.1 gate (`FoundryGate` in Tests/Support; alone in
