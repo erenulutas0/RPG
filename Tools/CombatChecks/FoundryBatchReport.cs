@@ -106,7 +106,7 @@ namespace Cryptforge.Tests
         // Parity with the Editor's HordePacingMeasurement
         // ---------------------------------------------------------------------------------------------------------
 
-        // One Editor seed, from its pacing line and its copied telemetry.
+        // One Editor seed, from its pacing line and, where it is this line's run, its copied telemetry.
         private sealed class EditorRun
         {
             public int Seed;
@@ -125,7 +125,15 @@ namespace Cryptforge.Tests
             public int LevelAtGate = -1;
             public string Death;
             public float[] Rooms = new float[0];
+            // The room the run ended in, the rooms column's last; 0 where it names none.
+            public int LastRoom;
+            // Whether the seed's telemetry folder held this line's run (the measurement overwrites it with every run).
+            public bool TelemetryRead;
         }
+
+        // A seed's telemetry is this pacing line's run when the run's last active second is the line's floor_s, which the
+        // pacing file rounds to the second; a later measurement of the same seed overwrote any other.
+        private const float TelemetryMatchSeconds = 1.5f;
 
         private static string Parity(string editorFolder, DescentSimulation.FoundryHero[] heroes,
             IReadOnlyList<FoundryBatch.Batch> baselines, int parallel, out List<FoundryBatch.Batch> simulated)
@@ -273,9 +281,17 @@ namespace Cryptforge.Tests
                 if (Column("engaged") >= 0)
                     run.Engaged = Float(cells[Column("engaged")]);
                 if (Column("rooms") >= 0)
-                    run.Rooms = cells[Column("rooms")].Split(' ').Where(r => r.Contains(":"))
-                        .Select(r => Float(r.Substring(r.IndexOf(':') + 1).TrimEnd('s'))).ToArray();
-                ReadTelemetry(Path.Combine(folder, "horde-telemetry", heroId + "-" + seed), run);
+                {
+                    string[] rooms = cells[Column("rooms")].Split(' ').Where(r => r.Contains(":")).ToArray();
+                    run.Rooms = rooms.Select(r => Float(r.Substring(r.IndexOf(':') + 1).TrimEnd('s'))).ToArray();
+                    if (rooms.Length > 0 && int.TryParse(rooms[rooms.Length - 1].Substring(0, rooms[rooms.Length - 1].IndexOf(':')),
+                            NumberStyles.Integer, CultureInfo.InvariantCulture, out int last))
+                        run.LastRoom = last;
+                }
+                // gate_hold_sec came with the levers line (2026-11-03): before it, no wait was ever written, not none.
+                ReadTelemetry(Path.Combine(folder, "horde-telemetry", heroId + "-" + seed), run, ReadLevers(pacing) != null);
+                if (!run.Cleared && run.Death == null)
+                    run.Death = run.LastRoom > 0 ? run.LastRoom.ToString(CultureInfo.InvariantCulture) : "?";
                 runs.Add(run);
             }
             return runs;
@@ -317,7 +333,9 @@ namespace Cryptforge.Tests
         private static float Float(string text) =>
             float.Parse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture);
 
-        private static void ReadTelemetry(string folder, EditorRun run)
+        // The seed's telemetry, if it is this pacing line's run: walks, node fights, the gate's hold where the telemetry
+        // wrote it (gateHoldWritten), the Warden's wave and exit, the level at the gate and the cause of a death.
+        private static void ReadTelemetry(string folder, EditorRun run, bool gateHoldWritten)
         {
             if (!Directory.Exists(folder))
                 return;
@@ -332,10 +350,10 @@ namespace Cryptforge.Tests
                     events[seq.GetInt64()] = e;
             }
             float walk = 0f, node = 0f, held = 0f;
-            int level = 0;
-            string roomKind = null;
+            int level = 0, levelAtGate = -1;
+            string roomKind = null, death = null;
             float roomWalk = 0f;
-            float bossWave = float.NaN;
+            float bossWave = float.NaN, boss = float.NaN, exit = float.NaN, end = float.NaN;
             foreach (JsonElement e in events.Values)
             {
                 string name = e.GetProperty("event").GetString();
@@ -354,7 +372,7 @@ namespace Cryptforge.Tests
                         walk += (float)e.GetProperty("walk_sec").GetDouble();
                         break;
                     case "boss_start":
-                        run.LevelAtGate = level;
+                        levelAtGate = level;
                         break;
                     case "wave_clear" when roomKind == "boss":
                         bossWave = (float)e.GetProperty("active_sec").GetDouble();
@@ -366,8 +384,8 @@ namespace Cryptforge.Tests
                         held += hold;
                         if (roomKind == "boss")
                         {
-                            run.Boss = bossWave;
-                            run.Exit = active - bossWave;
+                            boss = bossWave;
+                            exit = active - bossWave;
                         }
                         else
                         {
@@ -376,13 +394,24 @@ namespace Cryptforge.Tests
                         break;
                     case "run_end":
                         if (e.TryGetProperty("result", out JsonElement result) && result.GetString() == "defeat")
-                            run.Death = $"{e.GetProperty("rooms_completed").GetInt32() + 1} ({e.GetProperty("cause").GetString()})";
+                            death = $"{e.GetProperty("rooms_completed").GetInt32() + 1} ({e.GetProperty("cause").GetString()})";
                         break;
                 }
+                if ((name == "floor_complete" || name == "run_end" || name == "run_interrupted") &&
+                    e.TryGetProperty("active_sec", out JsonElement endSec))
+                    end = float.IsNaN(end) ? (float)endSec.GetDouble() : Math.Max(end, (float)endSec.GetDouble());
             }
+            if (float.IsNaN(end) || Math.Abs(end - run.Floor) > TelemetryMatchSeconds)
+                return;
+            run.TelemetryRead = true;
             run.Walk = walk;
             run.Node = node;
-            run.GateWait = held;
+            run.GateWait = gateHoldWritten ? held : float.NaN;
+            run.Boss = boss;
+            run.Exit = exit;
+            run.LevelAtGate = levelAtGate;
+            if (death != null)
+                run.Death = death;
         }
     }
 }
