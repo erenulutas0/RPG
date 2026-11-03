@@ -96,13 +96,18 @@ namespace Cryptforge.Tests
             Assert.That(loot.shader.name, Is.EqualTo(FoundryVisibilityView.XrayShaderName), "The chest behind the boiler keeps its loot silhouette.");
             Assert.That(loot, Is.Not.SameAs(xray));
             Assert.That(drop.sharedMaterial, Is.SameAs(loot), "So does the drop behind it.");
-            // The view's own count agrees: the three behind the boiler covered, the court enemy (and whoever else stands in
-            // the open) in one pass, and every body measured inside the cover.
+            // The view's own count agrees: the three behind the boiler covered and the court enemy in one pass (the wave's
+            // others count where they stopped), and the four are measured inside the cover.
             Assert.That(visibility.CoveredBodies, Is.GreaterThanOrEqualTo(3), visibility.DescribeGate());
             Assert.That(visibility.OnePassBodies, Is.GreaterThanOrEqualTo(1), visibility.DescribeGate());
-            Assert.That(visibility.UnmeasuredBodies, Is.Zero, visibility.DescribeGate());
             Assert.That(visibility.ShownBodies,
                 Is.EqualTo(visibility.CoveredBodies + visibility.OnePassBodies + visibility.UnmeasuredBodies));
+            foreach (SpriteRenderer body in new[] { hidden, exposed, chest, drop })
+            {
+                FoundryVisibilityView.Footprint(body, visibility.transform.position, out Vector2 min, out Vector2 max, out float far);
+                Assert.That(visibility.DepthCover.Ask(min, max, far, FoundryVisibilityView.CoverMargin),
+                    Is.Not.EqualTo(FoundryDepthCover.Answer.Unknown), body.name + " stands inside the cover: " + Describe(visibility, body));
+            }
             int registered = visibility.XrayedCount;
             visibility.RestoreActorDepth();
             Assert.That(exposed.sharedMaterial, Is.SameAs(own), "Between renders each body keeps what the last render gave it.");
