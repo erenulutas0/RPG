@@ -189,13 +189,19 @@ namespace Cryptforge.Core
                 return true;
             }
             bool pit = _setup.Pit != null && _setup.Pit.IsActive;
-            // The Warden's mark under the hero: out of it first, as a player who reads it does.
+            // The Warden's mark under the hero: out of it first, as a player who reads it does - away from the Warden, with
+            // room (FootworkRule.EscapeMark; from the mark itself, the nearest way out, if the Warden cannot be found).
             WardenSlamService warden = _setup.Warden;
             if (warden != null && warden.IsFighting && warden.Clock.IsMarked)
             {
                 float mx = x - warden.MarkX, my = y - warden.MarkY;
                 float reach = WardenRule.SlamRadius + .6f;
-                if (mx * mx + my * my < reach * reach && EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, out gx, out gy))
+                if (!encounter.TryFloorPositionOf(warden.Boss, out float bossX, out float bossY))
+                {
+                    bossX = warden.MarkX; bossY = warden.MarkY;
+                }
+                if (mx * mx + my * my < reach * reach &&
+                    FootworkRule.EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, bossX, bossY, out gx, out gy))
                 {
                     stop = 0f;
                     return true;
@@ -207,11 +213,10 @@ namespace Cryptforge.Core
                 RimSpot(x, y, ShelterDepth, out gx, out gy);
                 return true;
             }
-            if (Threat(x, y, out float tx, out float ty))
+            // Kiting with room (FootworkRule.Kite): along a wall or turned away from it, never into it.
+            if (Threat(x, y, out float tx, out float ty) &&
+                FootworkRule.Kite(x, y, tx, ty, KiteTurn, KiteStride, out gx, out gy))
             {
-                float cos = Mathf.Cos(KiteTurn), sin = Mathf.Sin(KiteTurn);
-                gx = x + (tx * cos - ty * sin) * KiteStride;
-                gy = y + (tx * sin + ty * cos) * KiteStride;
                 stop = 0f;
                 return true;
             }
@@ -293,26 +298,6 @@ namespace Cryptforge.Core
                 away = new Vector2(0f, -1f);
             away.Normalize();
             FoundryMap.ToFloor(cu + away.x * depth, cv + away.y * depth, out gx, out gy);
-        }
-
-        // The nearest of eight points round the mark, just past its reach, that the hero can walk straight to: the straight
-        // line away from the centre ran into the gate's walls and the hero stood still on the mark.
-        private static bool EscapeMark(float x, float y, float markX, float markY, float radius, out float gx, out float gy)
-        {
-            gx = x; gy = y;
-            float best = float.PositiveInfinity;
-            for (int k = 0; k < 8; k++)
-            {
-                float a = k * Mathf.PI / 4f;
-                float px = markX + Mathf.Cos(a) * radius, py = markY + Mathf.Sin(a) * radius;
-                if (!FoundryMap.Contains(px, py, HeroMotion.EdgeMargin) || !FoundryMap.Segment(x, y, px, py, HeroMotion.EdgeMargin))
-                    continue;
-                float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                if (d >= best)
-                    continue;
-                best = d; gx = px; gy = py;
-            }
-            return !float.IsPositiveInfinity(best);
         }
 
         // The push of every living enemy within KiteReach, as a unit direction away from them; false when none is that close.

@@ -1775,7 +1775,8 @@ namespace Cryptforge.Tests
                     float mx = x - _markX;
                     float my = y - _markY;
                     float reach = WardenRule.SlamRadius + .6f;
-                    if (mx * mx + my * my < reach * reach && EscapeMark(x, y, _markX, _markY, reach + .4f, out gx, out gy))
+                    if (mx * mx + my * my < reach * reach &&
+                        FootworkRule.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, out gx, out gy))
                     {
                         stop = 0f;
                         return true;
@@ -1786,12 +1787,9 @@ namespace Cryptforge.Tests
                     RimSpot(x, y, PilotShelterDepth, out gx, out gy);
                     return true;
                 }
-                if (Threat(x, y, out float tx, out float ty))
+                if (Threat(x, y, out float tx, out float ty) &&
+                    FootworkRule.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, out gx, out gy))
                 {
-                    float cos = (float)Math.Cos(PilotKiteTurn);
-                    float sin = (float)Math.Sin(PilotKiteTurn);
-                    gx = x + (tx * cos - ty * sin) * PilotKiteStride;
-                    gy = y + (tx * sin + ty * cos) * PilotKiteStride;
                     stop = 0f;
                     return true;
                 }
@@ -1889,30 +1887,6 @@ namespace Cryptforge.Tests
                     x = 0f;
                     y = 0f;
                 }
-            }
-
-            // The nearest of eight points round the mark, just past its reach, the hero can walk straight to.
-            private static bool EscapeMark(float x, float y, float markX, float markY, float radius, out float gx, out float gy)
-            {
-                gx = x;
-                gy = y;
-                float best = float.PositiveInfinity;
-                for (int k = 0; k < 8; k++)
-                {
-                    float a = k * 3.14159274f / 4f;
-                    float px = markX + (float)Math.Cos(a) * radius;
-                    float py = markY + (float)Math.Sin(a) * radius;
-                    if (!FoundryMap.Contains(px, py, HeroMotion.EdgeMargin) ||
-                        !FoundryMap.Segment(x, y, px, py, HeroMotion.EdgeMargin))
-                        continue;
-                    float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                    if (d >= best)
-                        continue;
-                    best = d;
-                    gx = px;
-                    gy = py;
-                }
-                return !float.IsPositiveInfinity(best);
             }
 
             // The push of every living enemy within the kite reach - the gate boss's own reach and a little more for it -
