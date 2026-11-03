@@ -64,25 +64,32 @@ namespace Cryptforge.UI
                     Mark(i, j, near);
         }
 
+        // What the cover can tell of a box: no structure can write depth over it nearer than the limit (Open), one may
+        // (Covered), or nothing is known there - an unfinished cover, a box reaching beyond the cells, or NaN (Unknown).
+        internal enum Answer { Open, Covered, Unknown }
+
         // Whether a structure may write depth over the box (region-local x and y) that is not at least `margin` farther
         // than `far`: any cell under the box nearer than far + margin, a box reaching beyond the cells (none of whose
         // depth is known here) and an unfinished cover all may. Allocates nothing.
-        internal bool MayHide(Vector2 min, Vector2 max, float far, float margin)
+        internal bool MayHide(Vector2 min, Vector2 max, float far, float margin) => Ask(min, max, far, margin) != Answer.Open;
+
+        // MayHide, telling a box a structure may cover from one the cover knows nothing of. Allocates nothing.
+        internal Answer Ask(Vector2 min, Vector2 max, float far, float margin)
         {
             float limit = far + margin;
             float x0 = min.x - Slack, y0 = min.y - Slack, x1 = max.x + Slack, y1 = max.y + Slack;
-            // Written so that NaN anywhere answers yes.
+            // Written so that NaN anywhere answers Unknown.
             if (!Complete || !(x0 >= _left && y0 >= _bottom && x1 < _right && y1 < _top && limit > float.MinValue))
-                return true;
+                return Answer.Unknown;
             int i0 = Column(x0), j0 = Row(y0), i1 = Column(x1), j1 = Row(y1);
             for (int j = j0; j <= j1; j++)
             {
                 int row = j * _columns;
                 for (int i = i0; i <= i1; i++)
                     if (_nearest[row + i] < limit)
-                        return true;
+                        return Answer.Covered;
             }
-            return false;
+            return Answer.Open;
         }
 
         // The nearest depth a structure can write at a point (region-local), +infinity where none can and outside the

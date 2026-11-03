@@ -30,12 +30,14 @@ namespace Cryptforge.UI
     // view gives the bodies their material back. The hero never gets a silhouette: structures fade over him instead.
     // The second pass costs every body a draw and a material switch, and a two-pass material never batches, so a body
     // wears the silhouette material only in a render where a structure may cover it. A camera that sees the region flat
-    // (orthographic, straight along z, its depth cleared first, as the game's is) draws a body's pixels inside its bounds'
-    // x and y, over no depth but what that render's structures write. Where the depth cover (FoundryDepthCover, made with
-    // the region) shows no structure depth over a body's bounds nearer than the body's own depth plus CoverMargin, the
-    // second pass would draw nothing, so the body wears its own material instead - one pass of Sprites/Default, which is
-    // what the first pass is. Every other body, and every body in any other camera's render or a placement made with no
-    // camera, wears the silhouette material as before: a hidden body shows its silhouette exactly where it did.
+    // (orthographic, straight along z, its depth cleared first, as the game's is) draws a body's pixels inside its
+    // footprint - the box of its sprite's quad where the placement has just put it (Footprint) - over no depth but what
+    // that render's structures write. Where the depth cover (FoundryDepthCover, made with the region) shows no structure
+    // depth over the footprint nearer than the body's farthest depth plus CoverMargin, the second pass would draw nothing,
+    // so the body wears its own material instead - one pass of Sprites/Default, which is what the first pass is. Every
+    // other body, and every body in any other camera's render or a placement made with no camera, wears the silhouette
+    // material as before: a hidden body shows its silhouette exactly where it did. What the last placement decided, and
+    // why it was not gated when it was not, stays readable (GateRefusal, DescribeGate) for the tests and the probe.
     // Combat effects drawn above the floor (sparks, strikes, collapses, smoke, coins) stand at the depth of the floor they
     // stand on in the same render window, so the structure that hides an enemy hides its hit and its fall too. Their pooled
     // transforms are asked for afresh on every apply, never remembered. Floor pulses already sort under the structures and
@@ -52,9 +54,20 @@ namespace Cryptforge.UI
         // pass: many steps of any depth buffer over the camera's .3 to 1000 range (a 16-bit one steps about .015), and five
         // times FoundryDepth.ActorBias.
         internal const float CoverMargin = .1f;
-        private const float BoundsDepthSlack = 1e-3f;
         // About 640 thousand cells, 2.5 MB; the foundry's structures span an estimated 70 by 55 units.
         private const float MaxCoverArea = 200f * 200f;
+        // Why a placement is not gated (GateRefusal): the first of the gate's conditions that failed, one constant each, so
+        // that keeping the answer costs a frame nothing.
+        internal const string NoCamera = "no camera: a placement made without one";
+        internal const string PerspectiveCamera = "a perspective camera";
+        internal const string UnclearedCamera = "a camera that clears nothing, so earlier depth may remain";
+        internal const string TargetWithoutDepth = "a target without a depth buffer";
+        internal const string TurnedCamera = "a camera not looking straight along +z";
+        internal const string GateOff = "the gate turned off (GateByCover)";
+        internal const string CoverAbandoned = "the depth cover abandoned: over MaxCoverArea, or structure depth emitted without it";
+        internal const string NoCover = "no depth cover: the region never began one";
+        internal const string CoverUnfinished = "the depth cover unfinished";
+        internal const string RegionNotPlain = "the region rotated or scaled";
         private readonly Dictionary<Material, Material> _variants = new Dictionary<Material, Material>();
         private readonly List<Transform> _moved = new List<Transform>();
         private readonly List<Vector3> _restPosition = new List<Vector3>();
@@ -100,6 +113,22 @@ namespace Cryptforge.UI
         internal FoundryDepthCover DepthCover => _coverAbandoned ? null : _cover;
         // Whether the placement on show gives the silhouette material only to bodies a structure may cover. For tests.
         internal bool IsGated => _applied && _gated;
+        // Why the last placement was not gated - the first of the gate's conditions that failed - or null when it was.
+        internal string GateRefusal { get; private set; } = NoCamera;
+        // The enemy, drop and chest bodies the last placement looked at; when it was gated, how many it gave one pass, how
+        // many it kept in the silhouette because a structure may cover them, and how many because their footprint could
+        // not be measured or reaches beyond the cover. A placement that is not gated keeps every body in the silhouette and
+        // counts none of the three.
+        internal int ShownBodies { get; private set; }
+        internal int OnePassBodies { get; private set; }
+        internal int CoveredBodies { get; private set; }
+        internal int UnmeasuredBodies { get; private set; }
+
+        // The last placement's gate in words, for a test's message or the probe's report (allocates).
+        internal string DescribeGate() => GateRefusal == null
+            ? "gated: " + ShownBodies + " bodies, " + OnePassBodies + " in one pass, " + CoveredBodies +
+              " a structure may cover, " + UnmeasuredBodies + " unmeasured"
+            : "not gated (" + GateRefusal + "): all " + ShownBodies + " bodies in the silhouette";
 
         // A cover over more than MaxCoverArea square units (a stray vertex far off the map) is not made: every body then
         // keeps its silhouette, and FoundryActorDepthTests notices the gate is off.
@@ -163,27 +192,29 @@ namespace Cryptforge.UI
         // a flat view is never reused for a camera that is not one.
         private void OnCameraPreCull(Camera camera)
         {
-            bool flat = SeesRegionFlat(camera);
-            if (!_applied || _appliedFrame != Time.frameCount || (_gated && !flat)) ApplyActorDepth(flat);
+            string refusal = CameraRefusal(camera);
+            if (!_applied || _appliedFrame != Time.frameCount || (_gated && refusal != null)) Place(refusal);
         }
 
         private void OnCameraPostRender(Camera camera) => RestoreActorDepth();
 
         // The placement for a render whose camera is not known (tests, the probe's timing): every enemy, drop and chest body
         // wears its silhouette material.
-        internal void ApplyActorDepth() => ApplyActorDepth(false);
+        internal void ApplyActorDepth() => Place(NoCamera);
 
         // The placement for this camera's render: in a flat view, only the bodies a structure may cover wear it.
-        internal void ApplyActorDepth(Camera camera) => ApplyActorDepth(SeesRegionFlat(camera));
+        internal void ApplyActorDepth(Camera camera) => Place(CameraRefusal(camera));
 
         // Moves each live actor's direct children (body, equipment, shadow, bar) to the depth of its feet; a childless root
         // (the chest, whose root is its sprite) moves itself. Then each enemy, drop and chest body, where it now stands,
-        // takes the material this render needs.
-        private void ApplyActorDepth(bool flatView)
+        // takes the material this render needs. cameraRefusal: why the camera does not see the region flat, null if it does.
+        private void Place(string cameraRefusal)
         {
             RestoreActorDepth();
             Vector3 region = transform.position;
-            _gated = flatView && GateByCover && DepthCover != null && _cover.Complete && Plain(transform);
+            GateRefusal = cameraRefusal ?? CoverRefusal();
+            _gated = GateRefusal == null;
+            ShownBodies = OnePassBodies = CoveredBodies = UnmeasuredBodies = 0;
             var actors = GroundedSorting.Actors;
             for (int i = actors.Count - 1; i >= 0; i--)
             {
@@ -210,7 +241,7 @@ namespace Cryptforge.UI
                     if (floor && child.TryGetComponent(out SpriteRenderer flat)) _ground.Apply(flat, region);
                     MoveToDepth(child, child == bar ? child.position.z : z, floor ? 0 : lift);
                 }
-                if (look != null) ShowWhenHidden(look.Body, EnemyXray(), region);
+                if (look != null) ShowWhenHidden(look.Body, null, EnemyXray(), region);
             }
             ShowLootWhenHidden(region);
             PlaceEffects(region);
@@ -259,18 +290,19 @@ namespace Cryptforge.UI
             int shown = _drops != null ? _drops.ShownCount : 0;
             if (chest == null && shown == 0) return;
             Material loot = LootXray();
-            ShowWhenHidden(chest, loot, region);
-            for (int i = 0; i < shown; i++) ShowWhenHidden(_drops.ShownBody(i), loot, region);
+            ShowWhenHidden(chest, null, loot, region);
+            for (int i = 0; i < shown; i++) ShowWhenHidden(_drops.ShownBody(i), null, loot, region);
         }
 
         // A body a structure may cover in this render wears the silhouette material, registered with the material it had
         // so that it can be given back; a body none can cover wears its own. A body already wearing the silhouette
-        // material is never registered again.
-        private void ShowWhenHidden(SpriteRenderer body, Material xray, Vector3 region)
+        // material is never registered again. at: the body's transform when the caller has it already, else null.
+        private void ShowWhenHidden(SpriteRenderer body, Transform at, Material xray, Vector3 region)
         {
             if (body == null || xray == null) return;
+            ShownBodies++;
             bool wearing = body.sharedMaterial == xray;
-            if (MayBeHidden(body, region))
+            if (MayBeHidden(body, at, region))
             {
                 if (!wearing) Register(body, xray);
             }
@@ -280,18 +312,63 @@ namespace Cryptforge.UI
             }
         }
 
-        // Always, unless the placement is gated; then whenever the cover shows structure depth over the body's bounds that
-        // is not CoverMargin farther than the body's farthest point. A flat sprite's bounds lie at its own depth, where the
-        // placement has just put it: bounds anywhere else (a tilted body, or bounds not yet following the move) answer
-        // yes. Allocates nothing.
-        private bool MayBeHidden(SpriteRenderer body, Vector3 region)
+        // Always, unless the placement is gated; then whenever the cover shows structure depth over the body's footprint
+        // that is not CoverMargin farther than the body's farthest point, and whenever the footprint cannot be measured or
+        // reaches beyond the cover. Counts the answer. Allocates nothing.
+        private bool MayBeHidden(SpriteRenderer body, Transform at, Vector3 region)
         {
             if (!_gated) return true;
-            Bounds bounds = body.bounds;
-            float depth = body.transform.position.z;
-            if (!(Mathf.Abs(bounds.min.z - depth) <= BoundsDepthSlack && Mathf.Abs(bounds.max.z - depth) <= BoundsDepthSlack)) return true;
-            Vector3 min = bounds.min - region, max = bounds.max - region;
-            return _cover.MayHide(new Vector2(min.x, min.y), new Vector2(max.x, max.y), max.z, CoverMargin);
+            if (ReferenceEquals(at, null)) at = body.transform;
+            FoundryDepthCover.Answer answer = Footprint(body, at, region, out Vector2 min, out Vector2 max, out float far)
+                ? _cover.Ask(min, max, far, CoverMargin)
+                : FoundryDepthCover.Answer.Unknown;
+            if (answer == FoundryDepthCover.Answer.Open)
+            {
+                OnePassBodies++;
+                return false;
+            }
+            if (answer == FoundryDepthCover.Answer.Covered) CoveredBodies++;
+            else UnmeasuredBodies++;
+            return true;
+        }
+
+        // Where a sprite body draws, as it stands now: the box (region-local x and y) of its quad - its sprite's bounds,
+        // flipped as the renderer flips them, through the body's own transform - and the farthest depth (region-local z)
+        // of any of its pixels. The quad is flat: a sprite's vertices lie at z 0, so the depth its bounds report is no
+        // geometry and is left out (Renderer.bounds gives every sprite a tenth either way: the court enemy's spanned 50.73
+        // to 50.93 at z 50.83), and an unturned body's pixels all lie at its own z. Read from the transform rather than
+        // Renderer.bounds, which for a body this pass has just moved cost about 10 us each in the probe (the pass took 584
+        // against 176 us). False when it cannot be measured from the sprite: none, or a draw mode that sizes the quad by
+        // the renderer. Allocates nothing.
+        internal static bool Footprint(SpriteRenderer body, Vector3 region, out Vector2 min, out Vector2 max, out float far) =>
+            Footprint(body, body.transform, region, out min, out max, out far);
+
+        // The same, with the body's transform (at) already in hand.
+        private static bool Footprint(SpriteRenderer body, Transform at, Vector3 region, out Vector2 min, out Vector2 max,
+            out float far)
+        {
+            min = max = default;
+            far = 0f;
+            Sprite sprite = body.sprite;
+            if (sprite == null || body.drawMode != SpriteDrawMode.Simple) return false;
+            Bounds local = sprite.bounds;
+            Vector3 centre = local.center, extents = local.extents;
+            float x0 = centre.x - extents.x, x1 = centre.x + extents.x, y0 = centre.y - extents.y, y1 = centre.y + extents.y;
+            // Sprites/Default flips the quad's vertices about the sprite's pivot, the transform's origin (_Flip).
+            if (body.flipX) { float left = x0; x0 = -x1; x1 = -left; }
+            if (body.flipY) { float low = y0; y0 = -y1; y1 = -low; }
+            Matrix4x4 m = at.localToWorldMatrix;
+            // The box round the quad's four corners: its centre through the matrix, its half sizes through the matrix's
+            // absolute values (exact for an affine transform, whatever it turns or mirrors).
+            float cx = (x0 + x1) * .5f, cy = (y0 + y1) * .5f, hx = (x1 - x0) * .5f, hy = (y1 - y0) * .5f;
+            float wx = m.m00 * cx + m.m01 * cy + m.m03, wy = m.m10 * cx + m.m11 * cy + m.m13, wz = m.m20 * cx + m.m21 * cy + m.m23;
+            float rx = Mathf.Abs(m.m00) * hx + Mathf.Abs(m.m01) * hy;
+            float ry = Mathf.Abs(m.m10) * hx + Mathf.Abs(m.m11) * hy;
+            float rz = Mathf.Abs(m.m20) * hx + Mathf.Abs(m.m21) * hy;
+            min = new Vector2(wx - rx - region.x, wy - ry - region.y);
+            max = new Vector2(wx + rx - region.x, wy + ry - region.y);
+            far = wz + rz - region.z;
+            return true;
         }
 
         private void Register(SpriteRenderer body, Material xray)
@@ -322,16 +399,29 @@ namespace Cryptforge.UI
             }
         }
 
-        // A camera that sees the region flat: orthographic, looking straight along +z, with depth to test against that it
-        // clears before it draws. Its pixels then lie in the scene's x and y, and the only depth in them is what its own
-        // render writes.
-        private static bool SeesRegionFlat(Camera camera)
+        // Null for a camera that sees the region flat: orthographic, looking straight along +z, with depth to test against
+        // that it clears before it draws. Its pixels then lie in the scene's x and y, and the only depth in them is what its
+        // own render writes. Otherwise the first condition that fails.
+        private static string CameraRefusal(Camera camera)
         {
-            if (camera == null || !camera.orthographic || camera.clearFlags == CameraClearFlags.Nothing) return false;
+            if (camera == null) return NoCamera;
+            if (!camera.orthographic) return PerspectiveCamera;
+            if (camera.clearFlags == CameraClearFlags.Nothing) return UnclearedCamera;
             RenderTexture target = camera.targetTexture;
-            if (target != null && target.depth == 0) return false;
+            if (target != null && target.depth == 0) return TargetWithoutDepth;
             Vector3 forward = camera.transform.forward;
-            return Mathf.Abs(forward.x) + Mathf.Abs(forward.y) < 1e-5f && forward.z > 0f;
+            return Mathf.Abs(forward.x) + Mathf.Abs(forward.y) < 1e-5f && forward.z > 0f ? null : TurnedCamera;
+        }
+
+        // Null when the cover can answer for the region: the gate on, the cover made over every structure and the region
+        // plain. Otherwise the first condition that fails.
+        private string CoverRefusal()
+        {
+            if (!GateByCover) return GateOff;
+            if (_coverAbandoned) return CoverAbandoned;
+            if (_cover == null) return NoCover;
+            if (!_cover.Complete) return CoverUnfinished;
+            return Plain(transform) ? null : RegionNotPlain;
         }
 
         // The depth cover is in the region's own space, where its meshes stand: an unrotated, unscaled region (as ArenaView
