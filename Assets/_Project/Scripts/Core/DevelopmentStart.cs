@@ -51,7 +51,8 @@ namespace Cryptforge.Core
             !string.IsNullOrEmpty(ReadFirstLine(AutopilotPath));
 
         // How the autopilot plays, from the same file: "linger" and "idle" are measurement modes (DevelopmentAutopilot),
-        // anything else plays the floor.
+        // anything else plays the floor; a cohort's name among the words ("standing", "first-card", "clumsy",
+        // "auto-farmer"; AutopilotCohort.FromSwitch) says who plays it, the careful pilot when none does.
         public static string AutopilotMode() => Autopilot() ? (ReadFirstLine(AutopilotPath) ?? string.Empty).Trim() : string.Empty;
 
         // A whole number in it pads the foundry's first wave with that many more of its first enemy: a device probe of the
