@@ -245,3 +245,62 @@ boss_s column (the simulation now expects 50-52 s for the Vanguard's three clear
 35-40 and 32-37 before), the clears (3/6 and 5/6), the slam hits, and the clock column - the Vanguard's seed 11 cleared
 at 294 with a 35 s fight, and 15 s more puts it past 300. WardenFlowTests holds the weapon's hold; WardenLookTests the
 raised hammer. And a look: no swing while the hammer is up, and 1.5 s after each blow the Warden walks without swinging.
+
+## Status 2026-11-04: the gate in one report
+
+**What exists.** The batch report opens with the V0.1 gate (`FoundryGate` in Tests/Support; alone in
+TestResults/foundry-gate.md): one row a criterion of step 5 and of steps 1-4, with its target, the simulation's reading
+over the batch (P10 / P50 / P90), the Editor's newest `HordePacingMeasurement` file a hero (the one naming the simulated
+floor's levers first), a status and its basis. Run it with `dotnet test Tools/CombatChecks -c Release --filter
+"FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"` (from a worktree, `FOUNDRY_EDITOR` names the main
+checkout's TestResults). The status reads the Vanguard, V0.1's hero (`27` decision 12); the basis names where Ilya, the
+clears, or an Editor file of the simulated floor read otherwise. Four statuses: met, not met, not measured (with what
+would measure it), reported (asked without a target, as step 4's "reported, not targeted").
+
+**Readings chosen for it, for the owner to confirm.**
+
+- Three weapons with distinct roles: the Vanguard started with each weapon on the batch's seeds (as `horde-weapon.txt`
+  starts it in the Editor), the others still offered; each weapon's own damage on the horde a second of the floor and on
+  the Warden a second of the fight (`40` section 17.3's horde and boss efficiency, from the simulation's new per-weapon
+  accounting). A weapon has a role when it leads every other by more than 10 % on one of the two.
+- One synergy: a weapon's evolution - the weapon at level 5 with its tome at level 2, each a behaviour (the Sword's
+  pulse, the Staff's kill bursts, the Daggers' splinters) - in 80 % of the Vanguard's clears by the floor's end (`40`
+  section 9.3's share, which it reads at minute 10), its procs landing kills.
+- A Warden dead within 5 s "near zero": at most 1 % of the felled fights. Floor time and uptime over every run, as step 2
+  states them, with the clears' P50 beside.
+
+**The first reading** (main d6664d2, the bounded drop detour; seeds 1-200 a hero; the Editor's 2026-11-03 night files,
+seeds 11-66, the simulated floor's levers):
+
+| Criterion | Status | Vanguard | Ilya |
+|---|---|---|---|
+| Floor time, P50 of every run | not met | 102 s (clears 281 s) | 276 s (clears 278 s) |
+| Time waiting for the gate, clears | reported | 108 s, 38 % of their floor; clears less the wait 173 s | 116 s, 41 %; 164 s |
+| Combat uptime | met | 1.00 | 0.97 |
+| Engaged uptime | met (the clears' not) | 0.77 (clears 0.71) | 0.57 (0.58) |
+| First combat, P90 | met | 1.6 s | 1.4 s |
+| Three weapons with distinct roles | not met | the Staff ahead on the horde (36 a second; Sword 10, Daggers 4) and the Warden (30; Sword 26, Daggers 13) | - |
+| One synergy | not met | 79.7 % of the clears | 80.4 % |
+| Warden fight, P50 | met | 53 s | 51 s |
+| Warden within 5 s | met | 0 of 74 | 0 of 159 |
+| Health lost at the Warden, mean | reported | 79 of 198; died there 20 of 94 | 72 of 162; 38 of 197 |
+| Clears and deaths | reported | 37 %; deaths in the halls 101, at the Warden 20, the elites 5 | 79 %; at the Warden 39 |
+| Clears past the 300 s overrun | reported | 0 of 74 (clock P90 268 s) | 0 of 158 (272 s) |
+| Extract available | met | offered at every clear: Floor_EmberHalls leads to Quicksilver Vaults | |
+| Frame time on the S23 | not measured | the Editor's probe: p95 5.9 ms, max 31.7 ms at 40 alive | |
+| Floor time on the owner | not measured | | |
+
+The Editor's six seeds agree where they read the same thing: the Vanguard 3/6 cleared (deaths in two halls and an
+elite), its clears 280 s with 114 s at the gate, the Warden 52 s, engaged 0.77 (clears 0.71); Ilya 6/6, 281 s, Warden
+52 s, engaged 0.55. On synergy they read met (3 of 3 and 5 of 6 clears evolved) where the 200 seeds stand at the line.
+About 40 % of a clear's 4-6 minutes is the wait for the gate: a clear less its wait is P50 173 s (2:53) for the
+Vanguard and 164 s for Ilya. The weapons' roles are not met because the Staff outdoes the other two at both jobs;
+started with the Sword, the Vanguard's later weapons deal 63 % of its weapons' damage.
+
+**Not measured, and what would measure it.** The owner's floor time and health at the Warden: the owner's telemetry on
+a current APK (floor_complete / run_end active_sec, boss_start / boss_end hero_hp). The device's frame time:
+RenderStatsProbe on the S23 at 30-40 alive with a current APK (`21` has 10-40 on 2026-10-26, before V0.1's floor).
+
+The parity table defaults to the same Editor files now (it read the 2026-10-29 m0 files), and reads a seed's telemetry
+only when it is that pacing line's run: the measurement overwrites horde-telemetry/ with every run, and the m0 lines had
+been read beside the night run's walks and fights.
