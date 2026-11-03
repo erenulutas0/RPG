@@ -1995,8 +1995,8 @@ namespace Cryptforge.Tests
                 return best;
             }
 
-            // DevelopmentAutopilot.CardScore: health when low, then the weapons it holds, a second weapon, two tomes, their
-            // levels, then anything else.
+            // DevelopmentAutopilot.CardScore: health when low, then the weapons it holds, a new weapon while a slot is free,
+            // two tomes, their levels, then anything else.
             private int CardScore(UpgradeOption card)
             {
                 bool low = _heroHealth.Current < _heroHealth.Maximum * .5f;
@@ -2005,7 +2005,7 @@ namespace Cryptforge.Tests
                 switch (card.Category)
                 {
                     case OfferCategory.WeaponUpgrade: return 50;
-                    case OfferCategory.NewWeapon: return _upgrades.Loadout.Count < 2 ? 45 : 10;
+                    case OfferCategory.NewWeapon: return _upgrades.Loadout.Count < WeaponLoadout.MaxSlots ? 45 : 10;
                     case OfferCategory.NewTome: return _upgrades.TomesHeld < 2 ? 40 : 15;
                     case OfferCategory.TomeUpgrade: return 30;
                     default: return card.Stat == UpgradeStat.MaxHealth ? 25 : 20;

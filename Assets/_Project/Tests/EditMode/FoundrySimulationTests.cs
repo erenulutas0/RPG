@@ -85,6 +85,19 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The autopilot takes a new weapon while a slot is free (CardScore): it scored a third 10, under every tome level,
+        // and walked out to the Warden with two on every seed; on these it now has three.
+        [Test]
+        public void TheAutopilotFillsItsWeaponSlotsBeforeTheGate()
+        {
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in Seeds)
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(hero, seed);
+                Assert.That(run.WeaponsAtGate, Is.EqualTo(WeaponLoadout.MaxSlots), $"{hero.Name} seed {seed}: {run.Weapons}");
+            }
+        }
+
         // The autopilot's walks to the halls are bounded (DropDetourRule.Walk): with the horde filling at 3 a second, the
         // thickest of the research's levers, the drop chase it had before walked each of these floors 440-466 s, and the
         // Vanguard's 153 and Ilya's 191 of seeds 1-200 past FoundryBatch.LongWalkSeconds. Now none walks long.

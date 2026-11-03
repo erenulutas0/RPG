@@ -150,7 +150,9 @@ namespace Cryptforge.Core
             if (_setup.Choices.Current.Kind != ChoiceKind.Upgrade || upgrade == null || !_setup.Upgrades.IsCategoryMode)
                 return 0;
             // A build, not the first card (docs/42's CardPicker order): health when the hero is low, then the weapons it
-            // holds, a second weapon, two tomes, their levels, then anything else.
+            // holds, a new weapon while a slot is free, two tomes, their levels, then anything else. A third weapon scored
+            // 10, under every tome level, so the autopilot never took one and a Vanguard whose second was the Daggers
+            // never got the Staff (the survival research, 2026-11-04).
             int best = 0, bestScore = int.MinValue;
             for (int i = 0; i < upgrade.Choices.Count; i++)
             {
@@ -172,7 +174,7 @@ namespace Cryptforge.Core
             switch (card.Category)
             {
                 case OfferCategory.WeaponUpgrade: return 50;
-                case OfferCategory.NewWeapon: return _setup.Upgrades.Loadout.Count < 2 ? 45 : 10;
+                case OfferCategory.NewWeapon: return _setup.Upgrades.Loadout.Count < WeaponLoadout.MaxSlots ? 45 : 10;
                 case OfferCategory.NewTome: return _setup.Upgrades.TomesHeld < 2 ? 40 : 15;
                 case OfferCategory.TomeUpgrade: return 30;
                 default: return card.Stat == UpgradeStat.MaxHealth ? 25 : 20;
