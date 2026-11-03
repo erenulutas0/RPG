@@ -39,7 +39,8 @@ namespace Cryptforge.Combat
         public static bool IsEnraged(float current, float maximum) => maximum > 0f && current <= maximum * PhaseTwoAt;
     }
 
-    // The Warden's slam clock: idle until the next mark, then a telegraph, then the blow.
+    // The Warden's slam clock: idle until the next mark, then a telegraph, then the blow. Enraged, the next mark comes
+    // sooner; a mark already down keeps its whole telegraph.
     public sealed class WardenSlamClock
     {
         public enum Step { None, Marked, Slammed }
@@ -55,6 +56,10 @@ namespace Cryptforge.Combat
 
         // Whether a blow has landed since the fight began.
         private bool _struck;
+        // When the mark that is down lands, on Seconds: a telegraph after the mark, fixed as it goes down. The pace read
+        // each frame instead brought the hammer down the frame after the Warden enraged under a calm mark - 4 s enraged
+        // against the 4.9 s a calm mark goes down at - a telegraph of one frame and a fifth of the hero's health.
+        private float _blowAt;
 
         // HoldsWeapon with another recovery, for a measurement that sweeps it (the Descent simulation's foundry levers).
         public bool HoldsWeaponFor(float recoverySeconds) => IsMarked || (_struck && Seconds < recoverySeconds);
@@ -64,6 +69,7 @@ namespace Cryptforge.Combat
             Seconds = 0f;
             IsMarked = false;
             TelegraphProgress = 0f;
+            _blowAt = 0f;
             _struck = false;
         }
 
@@ -74,18 +80,19 @@ namespace Cryptforge.Combat
                 throw new ArgumentOutOfRangeException(nameof(deltaTime));
 
             Seconds += deltaTime;
-            float every = enraged ? WardenRule.SlamEveryEnraged : WardenRule.SlamEvery;
             if (!IsMarked)
             {
+                float every = enraged ? WardenRule.SlamEveryEnraged : WardenRule.SlamEvery;
                 if (Seconds < every - WardenRule.Telegraph)
                     return Step.None;
                 IsMarked = true;
                 Seconds = every - WardenRule.Telegraph;
+                _blowAt = every;
                 TelegraphProgress = 0f;
                 return Step.Marked;
             }
-            TelegraphProgress = Math.Min(1f, (Seconds - (every - WardenRule.Telegraph)) / WardenRule.Telegraph);
-            if (Seconds < every)
+            TelegraphProgress = Math.Min(1f, (Seconds - (_blowAt - WardenRule.Telegraph)) / WardenRule.Telegraph);
+            if (Seconds < _blowAt)
                 return Step.None;
             IsMarked = false;
             TelegraphProgress = 0f;

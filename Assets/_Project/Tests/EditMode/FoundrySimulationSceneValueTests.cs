@@ -47,6 +47,44 @@ namespace Cryptforge.Tests
             return (T)field.GetValue(null);
         }
 
+        // The scene's script order, as the simulation steps a frame (DescentSimulation.Foundry's header): the hero walks,
+        // the encounter moves the packs and brings the gate boss out, the Warden's slam clock marks and holds the gate
+        // boss's weapon, and only then the default-order scripts - every AttackController, the hero's ability, the burns,
+        // the altars, the pit, the chest, the autopilot. While WardenSlamService had no order of its own Unity ran it before
+        // or after the attackers as it pleased, and the Warden could swing on the frame its mark went down.
+        [Test]
+        public void TheScenesScriptOrderIsTheSimulations()
+        {
+            int walk = ScriptOrder<HeroMovementInput>("UI/HeroMovementInput.cs");
+            int encounter = ScriptOrder<EncounterController>("Combat/EncounterController.cs");
+            int slams = ScriptOrder<WardenSlamService>("Core/WardenSlamService.cs");
+            Assert.That(walk, Is.LessThan(encounter), "the hero walks before the packs move");
+            Assert.That(encounter, Is.LessThan(slams), "the gate boss is out before its clock reads it");
+            var after = new (string Name, int Order)[]
+            {
+                (nameof(AttackController), ScriptOrder<AttackController>("Combat/AttackController.cs")),
+                (nameof(AbilityController), ScriptOrder<AbilityController>("Combat/AbilityController.cs")),
+                (nameof(BurnStatus), ScriptOrder<BurnStatus>("Combat/BurnStatus.cs")),
+                (nameof(AltarService), ScriptOrder<AltarService>("Core/AltarService.cs")),
+                (nameof(PitEruptionService), ScriptOrder<PitEruptionService>("Core/PitEruptionService.cs")),
+                (nameof(ChestSpawner), ScriptOrder<ChestSpawner>("Combat/ChestSpawner.cs")),
+                (nameof(DevelopmentAutopilot), ScriptOrder<DevelopmentAutopilot>("Core/DevelopmentAutopilot.cs"))
+            };
+            foreach ((string name, int order) in after)
+                Assert.That(order, Is.GreaterThan(slams), name + " runs after the Warden's slam clock");
+        }
+
+        // The order Unity runs a script in: its Script Execution Order setting where one is set, else its
+        // DefaultExecutionOrder, else 0.
+        private static int ScriptOrder<T>(string path) where T : UnityEngine.MonoBehaviour
+        {
+            var script = AssetDatabase.LoadAssetAtPath<MonoScript>("Assets/_Project/Scripts/" + path);
+            Assert.That(script, Is.Not.Null, path);
+            Assert.That(script.GetClass(), Is.EqualTo(typeof(T)), path);
+            int set = MonoImporter.GetExecutionOrder(script);
+            return set != 0 ? set : typeof(T).GetCustomAttribute<UnityEngine.DefaultExecutionOrder>()?.order ?? 0;
+        }
+
         private const string FirstFloor = "Assets/_Project/Data/Floors/Floor_EmberHalls.asset";
 
         // Floor_EmberHalls as the foundry plays it: the rooms' kinds and waves, the horde's roles, climb-scaled, and its V0.1
