@@ -32,6 +32,8 @@ namespace Cryptforge.Tests
             Assert.That(Autopilot<float>("ShelterDepth"), Is.EqualTo(DescentSimulation.PilotShelterDepth));
             Assert.That(Autopilot<float>("Arrived"), Is.EqualTo(DescentSimulation.PilotArrived));
             Assert.That(Autopilot<float>("DropDetour"), Is.EqualTo(DescentSimulation.PilotDropDetour));
+            Assert.That(Autopilot<float>("DetourSlack"), Is.EqualTo(DescentSimulation.PilotDetourSlack));
+            Assert.That(Autopilot<float>("DetourBudget"), Is.EqualTo(DescentSimulation.PilotDetourBudget));
             Assert.That(Autopilot<float>("KiteReach"), Is.EqualTo(DescentSimulation.PilotKiteReach));
             Assert.That(Autopilot<float>("KiteTurn"), Is.EqualTo(DescentSimulation.PilotKiteTurn));
             Assert.That(Autopilot<float>("KiteStride"), Is.EqualTo(DescentSimulation.PilotKiteStride));
