@@ -3040,3 +3040,33 @@ Ilya clears where the Vanguard dies: Burn thins the horde (its average crowd is 
 34-47 s. Two clears finished on 2 and 5 health, so the 90 health glass cannon holds. The owner shelved gameplay the same
 morning for the art and animation work; the gap is recorded to tune later (likely a smaller Vent damage per stack or a
 shorter burn), not now.
+
+## 2026-11-03 - The Warden's fight, the review's fixes, the bounded drop detour
+
+Three merges, each detailed in docs/41's statuses of 2026-11-03 and 2026-11-04:
+
+- `21286e9`: the foundry's gate boss at `WardenRule.GateHealthShare` 8.5 (was 5), its own weapon held from the slam's
+  mark until `RecoverySeconds` (1.5 s) after the blow (`AttackController.IsHeld`, set by `WardenSlamService`).
+- `0472bfb`: a HUD pip for every room as played (the foundry's floor 1 has seven), floor 2 back on its own district
+  route, the gate's hold validated at startup and cleared on death or a new floor, the overrun shown over the gate's
+  count, `gate_hold_sec` on `room_complete` (docs/10).
+- `d6664d2`: the development autopilot's drop detour as one rule (`DropDetourRule`) in the scene and the simulation -
+  drops within 4 units that add at most 2 to the way, for at most 12 s a walk. Before it, the autopilot chased drops
+  between halls for minutes on end, and every floor-length reading carried that.
+- `ef76ef5` / `f8a0636`: run feedback, slam, altar, exit-seal and pit views share the arena's Sprites-Default; the UI
+  icons import as ASTC 4x4 on Android; the foundry's silhouette-pass gate from the same merge was reverted (it never
+  engaged in the scene).
+
+Autopilot measurement on `d6664d2`, floor 1 (the V0.1 floor), category mode, fixed 1/60 s, seeds 11-66
+(`TestResults/horde-pacing-night-*-1103.txt`):
+
+| Hero | Result | Floor s (clears) | Walk / node fights / gate wait / Warden / exit (P50 of clears) | Clock at clear |
+|---|---|---|---|---|
+| Vanguard | 3/6 cleared; died at 88, 94 (hall 3) and 128 s (the second elite) | 277-286 | 38 / 65 / 114 / 52 / 11 | 258-262 |
+| Cinder Arcanist | 6/6 cleared | 272-296 | 36 / 67 / 114 / 52 / 10 | 252-273 |
+
+The simulation on the same seeds agreed within a few seconds on every segment (docs/41). The Vanguard's three deaths
+all held the Sword and the Daggers; its three clears took the Staff.
+
+`08f9703` (2026-11-04): the foundry batch report opens with the V0.1 gate, one row for each of docs/41's criteria (docs/41,
+status 2026-11-04).

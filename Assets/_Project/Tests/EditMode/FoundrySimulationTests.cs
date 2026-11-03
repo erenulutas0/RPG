@@ -92,7 +92,7 @@ namespace Cryptforge.Tests
                 Assert.That(alone.NextFloor, Is.Null, where + ": one floor");
                 foreach (FieldInfo field in typeof(DescentSimulation.FoundryResult).GetFields(BindingFlags.Public | BindingFlags.Instance))
                     if (field.Name != nameof(DescentSimulation.FoundryResult.NextFloor))
-                        Assert.That(field.GetValue(climb), Is.EqualTo(field.GetValue(alone)), $"{where}: {field.Name}");
+                        AssertSameValue(field.GetValue(climb), field.GetValue(alone), $"{where}: {field.Name}");
                 Assert.That(climb.NextFloor != null, Is.EqualTo(climb.Cleared), where + ": a clear goes down, anything else ends the run");
                 if (climb.NextFloor != null)
                     wentDown++;
@@ -135,6 +135,11 @@ namespace Cryptforge.Tests
                     Assert.That(run.DescentSeconds, Is.EqualTo(DescentSimulation.AdvanceDelay).Within(2.5f / 60f), where);
                     float roomTime = run.RoomSeconds.Where(s => s >= 0f).Sum();
                     Assert.That(roomTime + run.DescentSeconds, Is.EqualTo(run.FloorSeconds).Within(0.05f), where + ": the descent and the rooms are the floor");
+                    // Floor 2's accounting on its own seconds: the weapons carried down held from its first frame, its kills
+                    // within it.
+                    Assert.That(run.WeaponWork.Select(w => w.Id).Take(first.WeaponWork.Count), Is.EqualTo(first.WeaponWork.Select(w => w.Id)), where);
+                    Assert.That(run.WeaponWork.Take(first.WeaponWork.Count).All(w => w.HeldFrom < 0.05f), Is.True, where);
+                    Assert.That(run.Kills.All(k => k.At >= 0f && k.At <= run.FloorSeconds + 1e-3f), Is.True, where);
 
                     // Its rooms in order, as far as the run got.
                     var started = lines.Skip(descent).Where(l => l.Contains(" room_start ")).ToList();
@@ -214,12 +219,82 @@ namespace Cryptforge.Tests
                 "floor 1's later halls - the workyard, the pit's rim, the east - its extra elite not counted");
         }
 
+        // Two values alike all the way down: a value, a string or a struct equal, a list element by element, a class (a
+        // weapon's work) field by field.
+        private static void AssertSameValue(object actual, object expected, string where)
+        {
+            if (actual == null || expected == null || actual is string || actual.GetType().IsValueType)
+            {
+                Assert.That(actual, Is.EqualTo(expected), where);
+                return;
+            }
+            Assert.That(actual.GetType(), Is.EqualTo(expected.GetType()), where);
+            if (actual is System.Collections.IEnumerable list)
+            {
+                object[] a = list.Cast<object>().ToArray(), b = ((System.Collections.IEnumerable)expected).Cast<object>().ToArray();
+                Assert.That(a.Length, Is.EqualTo(b.Length), where + " (count)");
+                for (int i = 0; i < a.Length; i++)
+                    AssertSameValue(a[i], b[i], $"{where}[{i}]");
+                return;
+            }
+            foreach (FieldInfo field in actual.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+                AssertSameValue(field.GetValue(actual), field.GetValue(expected), where + "." + field.Name);
+        }
+
         // A number from a trace line's "name=value".
         private static float Field(string line, string name)
         {
             int start = line.IndexOf(" " + name + "=", StringComparison.Ordinal) + name.Length + 2;
             int end = line.IndexOf(' ', start);
             return float.Parse(end < 0 ? line.Substring(start) : line.Substring(start, end - start), CultureInfo.InvariantCulture);
+        }
+
+        // docs/40 section 17.3's weapon_effectiveness: each weapon's own accounting adds up to the floor's - what the
+        // weapons dealt is what each of them dealt, and every kill has one killing blow - the starting weapon is held from
+        // the first frame, and an evolution's procs land nothing before it is taken.
+        [Test]
+        public void EveryWeaponsWorkAddsUpToTheFloors()
+        {
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in Seeds)
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(hero, seed);
+                string where = $"{hero.Name} seed {seed}";
+                List<DescentSimulation.FoundryWeaponWork> work = run.WeaponWork;
+                Assert.That(work.Count, Is.EqualTo(run.Weapons.Split(',').Length), where + ": one entry a weapon held");
+                Assert.That(work.Select(w => w.Id).Distinct().Count(), Is.EqualTo(work.Count), where);
+                Assert.That(work[0].Id, Is.EqualTo(hero.Weapon.Id), where + ": the starting weapon first");
+                Assert.That(work[0].HeldFrom, Is.LessThan(0.05f), where + ": held from the first frame");
+                Assert.That(work.Sum(w => w.Dealt), Is.EqualTo(run.DealtByWeapons).Within(run.DealtByWeapons * 1e-4f + 0.01f),
+                    where + ": the weapons' damage is theirs, every bit of it");
+                Assert.That(work.Sum(w => w.DealtWarden), Is.EqualTo(run.WardenFromWeapons).Within(run.WardenFromWeapons * 1e-4f + 0.01f), where);
+                Assert.That(work.Sum(w => w.Strikes), Is.GreaterThan(0), where);
+
+                var killers = new HashSet<string>(work.Select(w => w.Id))
+                {
+                    DescentSimulation.FoundryKill.KilledByBurn, DescentSimulation.FoundryKill.KilledByAbility,
+                    DescentSimulation.FoundryKill.KilledByPit
+                };
+                Assert.That(run.Kills.All(k => k.By != null && killers.Contains(k.By)), Is.True, where + ": every kill has its blow");
+                Assert.That(run.Kills.All(k => k.At >= 0f && k.At <= run.FloorSeconds + 1e-3f), Is.True, where);
+                Assert.That(run.Kills.Where(k => k.Proc).All(k => work.Any(w => w.Id == k.By)), Is.True,
+                    where + ": a proc is a weapon's");
+                if (!hero.EmberMemory)
+                    Assert.That(run.Kills.Count(k => k.By == DescentSimulation.FoundryKill.KilledByBurn), Is.Zero,
+                        where + ": nothing burns without Ember Memory");
+                foreach (DescentSimulation.FoundryWeaponWork w in work)
+                {
+                    Assert.That(w.DealtByProcs, Is.LessThanOrEqualTo(w.DealtAfterEvolving + 1e-3f), where + " " + w.Id);
+                    if (w.EvolvedAt >= 0f)
+                    {
+                        Assert.That(w.EvolvedAt, Is.GreaterThanOrEqualTo(w.HeldFrom), where + " " + w.Id);
+                        continue;
+                    }
+                    Assert.That((w.ProcLandings, w.DealtByProcs, w.DealtAfterEvolving), Is.EqualTo((0, 0f, 0f)),
+                        where + " " + w.Id + ": no proc before an evolution");
+                    Assert.That(run.Kills.Any(k => k.By == w.Id && k.Proc), Is.False, where + " " + w.Id);
+                }
+            }
         }
 
         // The autopilot's walks to the halls are bounded (DropDetourRule.Walk): with the horde filling at 3 a second, the

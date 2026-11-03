@@ -58,6 +58,21 @@ namespace Cryptforge.UI
             _mesh.SetVertices(_working,0,_working.Length,UnityEngine.Rendering.MeshUpdateFlags.DontRecalculateBounds);
         }
 
+        // Every place a leaf vertex takes on its swing, as a box on screen, for the gate's depth cover (FoundryDepthCover).
+        // Opening, the vertex's design u only falls and its v only moves one way (Pose), and FoundrySurface.Project is
+        // monotone in u and in v on both screen axes, so the corners of the design box the arc spans bound it on screen.
+        internal static void Sweep(FoundryDoorVertex leaf,float face,out Vector2 min,out Vector2 max)
+        {
+            float angle=OpenAngleDegrees*Mathf.Deg2Rad;
+            float open=face-Mathf.Abs(leaf.Reach)*Mathf.Sin(angle);
+            float shutV=leaf.Hinge+leaf.Reach,openV=leaf.Hinge+leaf.Reach*Mathf.Cos(angle);
+            Vector3 lift=Vector3.up*leaf.Height;
+            Vector3 a=FoundrySurface.Project(face,shutV)+lift,b=FoundrySurface.Project(face,openV)+lift;
+            Vector3 c=FoundrySurface.Project(open,shutV)+lift,d=FoundrySurface.Project(open,openV)+lift;
+            min=new Vector2(Mathf.Min(Mathf.Min(a.x,b.x),Mathf.Min(c.x,d.x)),Mathf.Min(Mathf.Min(a.y,b.y),Mathf.Min(c.y,d.y)));
+            max=new Vector2(Mathf.Max(Mathf.Max(a.x,b.x),Mathf.Max(c.x,d.x)),Mathf.Max(Mathf.Max(a.y,b.y),Mathf.Max(c.y,d.y)));
+        }
+
         private void OnDisable()
         {
             if(_mesh!=null&&_rest!=null)_mesh.SetVertices(_rest,0,_rest.Length,UnityEngine.Rendering.MeshUpdateFlags.DontRecalculateBounds);

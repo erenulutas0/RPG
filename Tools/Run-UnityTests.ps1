@@ -7,6 +7,10 @@ The APK is never built on a failing suite. Close any Editor that has this projec
   pwsh -File Tools/Run-UnityTests.ps1 -SkipApk                 # the suites only
   pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -Filter ArenaWalkTests -SkipApk
   pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk
+  pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -Filter Cryptforge.Tests.FoundryXrayGateRenderTests -Graphics -SkipApk
+
+-Graphics keeps the graphics device (no -nographics), for the explicit tests that compare rendered images; they run by
+name only.
 
 Results land in TestResults/ (ignored by Git): <platform>.xml and .log, android-build.log, and the APK under
 Builds/Android/. A Unity exit code of 198 means the license lapsed (docs/23). Run this outside restricted sandboxes;
@@ -17,6 +21,7 @@ param(
   [ValidateSet('Both', 'EditMode', 'PlayMode')] [string] $Platform = 'Both',
   [string] $Filter = '',
   [switch] $SkipApk,
+  [switch] $Graphics,
   [string] $UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe'
 )
 $ErrorActionPreference = 'Stop'
@@ -31,7 +36,9 @@ $allPassed = $true
 foreach ($p in $platforms) {
   $name = $p.ToLower() + $(if ($Filter) { '-filter' } else { '' })
   Remove-Item -LiteralPath "$out/$name.xml" -Force -ErrorAction SilentlyContinue
-  $arguments = @('-batchmode', '-nographics', '-projectPath', $root, '-runTests', '-testPlatform', $p, '-testResults', "$out/$name.xml", '-logFile', "$out/$name.log")
+  $arguments = @('-batchmode')
+  if (-not $Graphics) { $arguments += '-nographics' }
+  $arguments += @('-projectPath', $root, '-runTests', '-testPlatform', $p, '-testResults', "$out/$name.xml", '-logFile', "$out/$name.log")
   if ($Filter) { $arguments += @('-testFilter', $Filter) }
   $started = Get-Date
   $process = Start-Process -FilePath $UnityEditor -ArgumentList $arguments -PassThru -WindowStyle Hidden
