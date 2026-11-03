@@ -101,7 +101,8 @@ namespace Cryptforge.Tests
             Assert.That(visibility.CoveredBodies, Is.GreaterThanOrEqualTo(3), visibility.DescribeGate());
             Assert.That(visibility.OnePassBodies, Is.GreaterThanOrEqualTo(1), visibility.DescribeGate());
             Assert.That(visibility.ShownBodies,
-                Is.EqualTo(visibility.CoveredBodies + visibility.OnePassBodies + visibility.UnmeasuredBodies));
+                Is.EqualTo(visibility.CoveredBodies + visibility.OnePassBodies + visibility.BeyondCoverBodies +
+                           visibility.UnmeasuredBodies));
             foreach (SpriteRenderer body in new[] { hidden, exposed, chest, drop })
             {
                 FoundryVisibilityView.Footprint(body, visibility.transform.position, out Vector2 min, out Vector2 max, out float far);
@@ -236,7 +237,8 @@ namespace Cryptforge.Tests
                 Assert.That(visibility.IsGated, Is.False, refusal + ": not gated.");
                 Assert.That(visibility.GateRefusal, Is.EqualTo(refusal));
                 Assert.That(exposed.sharedMaterial, Is.SameAs(xray), refusal + ": every body wears its silhouette material.");
-                Assert.That(visibility.OnePassBodies + visibility.CoveredBodies + visibility.UnmeasuredBodies, Is.Zero);
+                Assert.That(visibility.OnePassBodies + visibility.CoveredBodies + visibility.BeyondCoverBodies +
+                            visibility.UnmeasuredBodies, Is.Zero);
                 visibility.RestoreActorDepth();
             }
             finally

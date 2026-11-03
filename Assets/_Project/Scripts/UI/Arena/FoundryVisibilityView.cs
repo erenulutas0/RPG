@@ -115,19 +115,20 @@ namespace Cryptforge.UI
         internal bool IsGated => _applied && _gated;
         // Why the last placement was not gated - the first of the gate's conditions that failed - or null when it was.
         internal string GateRefusal { get; private set; } = NoCamera;
-        // The enemy, drop and chest bodies the last placement looked at; when it was gated, how many it gave one pass, how
-        // many it kept in the silhouette because a structure may cover them, and how many because their footprint could
-        // not be measured or reaches beyond the cover. A placement that is not gated keeps every body in the silhouette and
-        // counts none of the three.
+        // The enemy, drop and chest bodies the last placement looked at; when it was gated, how many it gave one pass, and
+        // how many it kept in the silhouette: because a structure may cover them, because their footprint reaches beyond
+        // the cover, or because it could not be measured (no sprite, or a draw mode other than Simple). A placement that is
+        // not gated keeps every body in the silhouette and counts none of the four.
         internal int ShownBodies { get; private set; }
         internal int OnePassBodies { get; private set; }
         internal int CoveredBodies { get; private set; }
+        internal int BeyondCoverBodies { get; private set; }
         internal int UnmeasuredBodies { get; private set; }
 
         // The last placement's gate in words, for a test's message or the probe's report (allocates).
         internal string DescribeGate() => GateRefusal == null
             ? "gated: " + ShownBodies + " bodies, " + OnePassBodies + " in one pass, " + CoveredBodies +
-              " a structure may cover, " + UnmeasuredBodies + " unmeasured"
+              " a structure may cover, " + BeyondCoverBodies + " beyond the cover, " + UnmeasuredBodies + " unmeasured"
             : "not gated (" + GateRefusal + "): all " + ShownBodies + " bodies in the silhouette";
 
         // A cover over more than MaxCoverArea square units (a stray vertex far off the map) is not made: every body then
@@ -214,7 +215,7 @@ namespace Cryptforge.UI
             Vector3 region = transform.position;
             GateRefusal = cameraRefusal ?? CoverRefusal();
             _gated = GateRefusal == null;
-            ShownBodies = OnePassBodies = CoveredBodies = UnmeasuredBodies = 0;
+            ShownBodies = OnePassBodies = CoveredBodies = BeyondCoverBodies = UnmeasuredBodies = 0;
             var actors = GroundedSorting.Actors;
             for (int i = actors.Count - 1; i >= 0; i--)
             {
@@ -319,21 +320,24 @@ namespace Cryptforge.UI
 
         // Always, unless the placement is gated; then whenever the cover shows structure depth over the body's footprint
         // that is not CoverMargin farther than the body's farthest point, and whenever the footprint cannot be measured or
-        // reaches beyond the cover. Counts the answer. Allocates nothing.
+        // reaches beyond the cover (or is not a number). Counts the answer. Allocates nothing.
         private bool MayBeHidden(SpriteRenderer body, Transform at, Vector3 region)
         {
             if (!_gated) return true;
             if (ReferenceEquals(at, null)) at = body.transform;
-            FoundryDepthCover.Answer answer = Footprint(body, at, region, out Vector2 min, out Vector2 max, out float far)
-                ? _cover.Ask(min, max, far, CoverMargin)
-                : FoundryDepthCover.Answer.Unknown;
+            if (!Footprint(body, at, region, out Vector2 min, out Vector2 max, out float far))
+            {
+                UnmeasuredBodies++;
+                return true;
+            }
+            FoundryDepthCover.Answer answer = _cover.Ask(min, max, far, CoverMargin);
             if (answer == FoundryDepthCover.Answer.Open)
             {
                 OnePassBodies++;
                 return false;
             }
             if (answer == FoundryDepthCover.Answer.Covered) CoveredBodies++;
-            else UnmeasuredBodies++;
+            else BeyondCoverBodies++;
             return true;
         }
 

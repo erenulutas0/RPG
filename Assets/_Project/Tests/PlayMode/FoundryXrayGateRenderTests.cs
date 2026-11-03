@@ -151,13 +151,14 @@ namespace Cryptforge.Tests
         {
             public int Plain, Silhouetted, Images, Different, OnOnePass, Noisy, Worst;
             // The view's own counts over the gated renders (FoundryVisibilityView.DescribeGate), and the first refusal.
-            public int OnePass, Covered, Unmeasured;
+            public int OnePass, Covered, BeyondCover, Unmeasured;
             public string First, Refusal;
             public override string ToString() =>
                 Images + " image pairs; " + Different + " pixels differ by more than " + Tolerance + "/255 (worst " + Worst + ", first " +
                 First + "; " + OnOnePass + " of them on a body gated to one pass), " + Noisy + " by 1-" + Tolerance +
                 "; bodies in view gated to one pass " + Plain + ", in their silhouette " + Silhouetted + "; the view's counts: " +
-                OnePass + " one pass, " + Covered + " a structure may cover, " + Unmeasured + " unmeasured" +
+                OnePass + " one pass, " + Covered + " a structure may cover, " + BeyondCover + " beyond the cover, " +
+                Unmeasured + " unmeasured" +
                 (Refusal != null ? "; NOT GATED: " + Refusal : string.Empty);
         }
 
@@ -176,6 +177,7 @@ namespace Cryptforge.Tests
                 tally.Refusal = where + ": " + visibility.GateRefusal;
             tally.OnePass += visibility.OnePassBodies;
             tally.Covered += visibility.CoveredBodies;
+            tally.BeyondCover += visibility.BeyondCoverBodies;
             tally.Unmeasured += visibility.UnmeasuredBodies;
             _onePass.Clear();
             foreach (EnemyLookView look in looks)
