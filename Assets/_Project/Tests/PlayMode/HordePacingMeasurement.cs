@@ -18,7 +18,8 @@ namespace Cryptforge.Tests
     // uptime), how much of it the hero was actually engaged (an enemy within its reach plus a unit, or a hit taken in the
     // last 1.5 s), what it killed, how the Warden's fight went and what state the hero reached the gate in to
     // TestResults/horde-pacing.txt (its header names the floor and its foundry levers: surges, extra elites, the gate's
-    // time), and keeps each seed's telemetry under TestResults/horde-telemetry/<hero>-<seed>/
+    // time, and the autopilot's cohort where horde-cohort.txt names one), and keeps each seed's telemetry under
+    // TestResults/horde-telemetry/<hero>-<seed>/ (<hero>-<cohort>-<seed>/ for a cohort's run)
     // (the v01 research's floor_breakdown.py splits it into walk, node fights, Warden and exit). Every frame is a fixed 1/60 s of game time (Time.captureDeltaTime), as fast as the
     // Editor can run it, so a seed replays the same floor every time - a raised time scale made the same build clear a
     // seed in one run and die on it in the next. Explicit, so only a run that names it plays it; it asserts nothing about
@@ -57,6 +58,15 @@ namespace Cryptforge.Tests
             return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
         }
 
+        // TestResults/horde-cohort.txt, a cohort's name (AutopilotCohort: standing, first-card, clumsy, auto-farmer), plays
+        // the autopilot as that cohort instead of the careful pilot (docs/41 step 5); written after the mode into
+        // development/autopilot.txt, and into the header, so the batch report reads the file as that cohort's.
+        private static string Cohort()
+        {
+            string path = Path.Combine(Application.dataPath, "..", "TestResults", "horde-cohort.txt");
+            return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
+        }
+
         // TestResults/horde-seeds.txt, one seed per line, narrows a run to the seeds being looked at.
         private static int[] Seeds()
         {
@@ -86,8 +96,11 @@ namespace Cryptforge.Tests
             string mode = Mode();
             string heroId = Hero();
             string weaponId = Weapon();
+            string cohort = Cohort();
+            Assert.That(cohort.Length == 0 || AutopilotCohort.TryNamed(cohort, out _), Is.True,
+                $"horde-cohort.txt names no cohort: '{cohort}'");
             report.AppendLine("mode " + mode + (heroId.Length > 0 ? " hero " + heroId : string.Empty) +
-                (weaponId.Length > 0 ? " weapon " + weaponId : string.Empty));
+                (weaponId.Length > 0 ? " weapon " + weaponId : string.Empty) + (cohort.Length > 0 ? " cohort " + cohort : string.Empty));
             bool headed = false;
             foreach (int seed in Seeds())
             {
@@ -96,7 +109,7 @@ namespace Cryptforge.Tests
                     : null);
                 Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.AutopilotPath));
                 File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
-                File.WriteAllText(DevelopmentStart.AutopilotPath, mode);
+                File.WriteAllText(DevelopmentStart.AutopilotPath, mode + (cohort.Length > 0 ? " " + cohort : string.Empty));
                 if (heroId.Length > 0)
                     File.WriteAllText(DevelopmentStart.HeroPath, heroId);
                 File.WriteAllText(DevelopmentStart.RunSeedPath, seed.ToString());
@@ -190,8 +203,9 @@ namespace Cryptforge.Tests
                 string telemetry = Path.Combine(TestProfile.Folder, "telemetry");
                 if (Directory.Exists(telemetry))
                 {
+                    // A cohort's run keeps its own folder, so the careful pilot's telemetry the parity reads stays.
                     string kept = Path.Combine(Application.dataPath, "..", "TestResults", "horde-telemetry",
-                        (heroId.Length > 0 ? heroId : "hero_vanguard") + "-" + seed);
+                        (heroId.Length > 0 ? heroId : "hero_vanguard") + (cohort.Length > 0 ? "-" + cohort : string.Empty) + "-" + seed);
                     if (Directory.Exists(kept))
                         Directory.Delete(kept, true);
                     Directory.CreateDirectory(kept);

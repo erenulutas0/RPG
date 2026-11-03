@@ -384,8 +384,9 @@ namespace Cryptforge.Tests
         }
 
         // A hero's newest pacing file of the autopilot playing the floor - its mode line "mode on", naming that hero and
-        // the weapon it started with (null for the hero's own) - the newest naming the simulated floor's levers before any
-        // other, and of two written together the named copy rather than the measurement's own horde-pacing.txt.
+        // the weapon it started with (null for the hero's own) and no cohort but the careful pilot, the simulation's
+        // default - the newest naming the simulated floor's levers before any other, and of two written together the
+        // named copy rather than the measurement's own horde-pacing.txt.
         private static string NewestPacing(string folder, string heroId, string weaponId)
         {
             if (!Directory.Exists(folder))
@@ -393,7 +394,8 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
             return Directory.GetFiles(folder, "horde-pacing*.txt")
                 .Select(path => (Path: path, Header: PacingHeader(path)))
-                .Where(file => file.Header.Mode == "on" && file.Header.Hero == heroId && file.Header.Weapon == weaponId)
+                .Where(file => file.Header.Mode == "on" && file.Header.Hero == heroId && file.Header.Weapon == weaponId &&
+                               (file.Header.Cohort == null || file.Header.Cohort == shipped.Cohort.Name))
                 .OrderBy(file => LeverMismatch(ReadLevers(file.Path), shipped) == null ? 0 : 1)
                 .ThenByDescending(file => File.GetLastWriteTimeUtc(file.Path))
                 .ThenByDescending(file => Path.GetFileName(file.Path).Length)
@@ -401,22 +403,24 @@ namespace Cryptforge.Tests
                 .FirstOrDefault();
         }
 
-        // A pacing file's first line, "mode <mode>[ hero <id>][ weapon <id>]" (HordePacingMeasurement): the scene's
-        // default hero, the Vanguard, when it names none.
-        private static (string Mode, string Hero, string Weapon) PacingHeader(string path)
+        // A pacing file's first line, "mode <mode>[ hero <id>][ weapon <id>][ cohort <name>]" (HordePacingMeasurement): the
+        // scene's default hero, the Vanguard, when it names none, and no cohort - the careful pilot - when it names none.
+        private static (string Mode, string Hero, string Weapon, string Cohort) PacingHeader(string path)
         {
             string[] words = (File.ReadLines(path).FirstOrDefault() ?? string.Empty).Split(' ');
             if (words.Length < 2 || words[0] != "mode")
-                return (null, null, null);
-            string hero = FoundryGate.V01HeroId, weapon = null;
+                return (null, null, null, null);
+            string hero = FoundryGate.V01HeroId, weapon = null, cohort = null;
             for (int i = 2; i + 1 < words.Length; i += 2)
             {
                 if (words[i] == "hero")
                     hero = words[i + 1];
                 else if (words[i] == "weapon")
                     weapon = words[i + 1];
+                else if (words[i] == "cohort")
+                    cohort = words[i + 1];
             }
-            return (words[1], hero, weapon);
+            return (words[1], hero, weapon, cohort);
         }
 
         // The pacing file's tab-separated lines (seed, result, floor_s, uptime[, engaged], ..., level, ..., rooms), and,
