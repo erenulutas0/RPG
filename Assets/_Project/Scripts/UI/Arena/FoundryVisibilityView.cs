@@ -225,23 +225,28 @@ namespace Cryptforge.UI
                 // An enemy's health bar shares height but keeps its readout depth, even when a structure hides the body,
                 // so a silhouetted enemy still shows how hurt it is.
                 Transform bar = look != null ? look.Bar : null;
-                float lift = FoundrySurface.Lift(actor.position, region);
-                float z = FoundryDepth.ActorZ(region, actor.position.y + lift);
+                SpriteRenderer body = look != null ? look.Body : null;
+                Transform bodyTransform = body != null ? body.transform : null;
+                Vector3 feet = actor.position;
+                float lift = FoundrySurface.Lift(feet, region);
+                float z = FoundryDepth.ActorZ(region, feet.y + lift);
                 int children = actor.childCount;
                 if (children == 0) MoveToDepth(actor, z, lift);
-                // The hero's ability ring lies on the floor as a contact shadow does. It is found by its name once per
-                // actor, natively: reading each child's name would allocate a string for every child of every actor on
-                // every frame, and a failed GetComponent allocates in the Editor, so the shadow is asked for with
-                // TryGetComponent. The pass allocates nothing once its lists have grown.
-                Transform ring = children > 0 ? actor.Find(AbilityRingView.RingName) : null;
+                // The hero's ability ring lies on the floor as a contact shadow does. It is found by its name, natively, on
+                // every actor that is not an enemy (no enemy carries one): reading each child's name would allocate a string
+                // for every child of every actor on every frame, and a failed GetComponent allocates in the Editor, so the
+                // shadow is asked for with TryGetComponent - on every child but an enemy's body and bar, which never lie on
+                // the floor. The pass allocates nothing once its lists have grown.
+                Transform ring = look == null && children > 0 ? actor.Find(AbilityRingView.RingName) : null;
                 for (int c = 0; c < children; c++)
                 {
                     Transform child = actor.GetChild(c);
-                    bool floor = child.TryGetComponent(out ContactShadowView _) || child == ring;
+                    bool floor = !ReferenceEquals(child, bodyTransform) && !ReferenceEquals(child, bar) &&
+                                 (child.TryGetComponent(out ContactShadowView _) || child == ring);
                     if (floor && child.TryGetComponent(out SpriteRenderer flat)) _ground.Apply(flat, region);
                     MoveToDepth(child, child == bar ? child.position.z : z, floor ? 0 : lift);
                 }
-                if (look != null) ShowWhenHidden(look.Body, null, EnemyXray(), region);
+                if (look != null) ShowWhenHidden(body, bodyTransform, EnemyXray(), region);
             }
             ShowLootWhenHidden(region);
             PlaceEffects(region);
