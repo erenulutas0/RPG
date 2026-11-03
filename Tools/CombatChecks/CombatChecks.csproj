@@ -62,6 +62,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/DropDetourRule.cs" />
     <!-- The development autopilot's footwork in a fight, one body for the scene's autopilot and the simulation's copy. -->
     <Compile Include="../../Assets/_Project/Scripts/Core/FootworkRule.cs" />
+    <!-- Who the development autopilot plays as (docs/41 step 5's cohorts), one body for the scene's and the simulation's. -->
+    <Compile Include="../../Assets/_Project/Scripts/Core/AutopilotCohort.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/GroundDrops.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FootworkRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/AutopilotCohortTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />

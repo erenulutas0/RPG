@@ -63,6 +63,44 @@ namespace Cryptforge.Core
             return false;
         }
 
+        // The kite's stride before 2026-11-04, kept for the clumsy cohorts (AutopilotCohort): the push turned by turn, a
+        // stride on, whatever stands there - off the floor, a work island, the glowing band. Against a wall the hero held
+        // the stick into it and stood. Kite's first turn, unchecked.
+        public static void KiteStraight(float x, float y, float pushX, float pushY, float turn, float stride, out float gx,
+            out float gy)
+        {
+            float cos = (float)Math.Cos(turn);
+            float sin = (float)Math.Sin(turn);
+            gx = x + (pushX * cos - pushY * sin) * stride;
+            gy = y + (pushX * sin + pushY * cos) * stride;
+        }
+
+        // The escape from the Warden's mark before 2026-11-04, kept for the clumsy cohorts: of eight points radius out from
+        // the mark that the hero can stand on and walk to in a straight line, the nearest, whichever side the Warden stands
+        // and whatever stands round it. False when no point can be walked to.
+        public static bool EscapeMarkNearest(float x, float y, float markX, float markY, float radius, out float gx,
+            out float gy)
+        {
+            gx = x;
+            gy = y;
+            float best = float.PositiveInfinity;
+            for (int k = 0; k < 8; k++)
+            {
+                float a = k * 3.14159274f / 4f;
+                float px = markX + (float)Math.Cos(a) * radius;
+                float py = markY + (float)Math.Sin(a) * radius;
+                if (!Clear(x, y, px, py))
+                    continue;
+                float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
+                if (d >= best)
+                    continue;
+                best = d;
+                gx = px;
+                gy = py;
+            }
+            return !float.IsPositiveInfinity(best);
+        }
+
         // The escape from the Warden's mark: of EscapePoints points radius out from the mark that the hero can stand on
         // and walk to in a straight line, the one farthest round from the Warden (wardenX, wardenY) less its walk as a share
         // of radius, one without room round it - or, while the pit glows (avoidBand), across its band - counting against
