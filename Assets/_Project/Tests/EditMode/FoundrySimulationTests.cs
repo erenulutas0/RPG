@@ -71,6 +71,54 @@ namespace Cryptforge.Tests
             }
         }
 
+        // docs/40 section 17.3's weapon_effectiveness: each weapon's own accounting adds up to the floor's - what the
+        // weapons dealt is what each of them dealt, and every kill has one killing blow - the starting weapon is held from
+        // the first frame, and an evolution's procs land nothing before it is taken.
+        [Test]
+        public void EveryWeaponsWorkAddsUpToTheFloors()
+        {
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in Seeds)
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(hero, seed);
+                string where = $"{hero.Name} seed {seed}";
+                List<DescentSimulation.FoundryWeaponWork> work = run.WeaponWork;
+                Assert.That(work.Count, Is.EqualTo(run.Weapons.Split(',').Length), where + ": one entry a weapon held");
+                Assert.That(work.Select(w => w.Id).Distinct().Count(), Is.EqualTo(work.Count), where);
+                Assert.That(work[0].Id, Is.EqualTo(hero.Weapon.Id), where + ": the starting weapon first");
+                Assert.That(work[0].HeldFrom, Is.LessThan(0.05f), where + ": held from the first frame");
+                Assert.That(work.Sum(w => w.Dealt), Is.EqualTo(run.DealtByWeapons).Within(run.DealtByWeapons * 1e-4f + 0.01f),
+                    where + ": the weapons' damage is theirs, every bit of it");
+                Assert.That(work.Sum(w => w.DealtWarden), Is.EqualTo(run.WardenFromWeapons).Within(run.WardenFromWeapons * 1e-4f + 0.01f), where);
+                Assert.That(work.Sum(w => w.Strikes), Is.GreaterThan(0), where);
+
+                var killers = new HashSet<string>(work.Select(w => w.Id))
+                {
+                    DescentSimulation.FoundryKill.KilledByBurn, DescentSimulation.FoundryKill.KilledByAbility,
+                    DescentSimulation.FoundryKill.KilledByPit
+                };
+                Assert.That(run.Kills.All(k => k.By != null && killers.Contains(k.By)), Is.True, where + ": every kill has its blow");
+                Assert.That(run.Kills.All(k => k.At >= 0f && k.At <= run.FloorSeconds + 1e-3f), Is.True, where);
+                Assert.That(run.Kills.Where(k => k.Proc).All(k => work.Any(w => w.Id == k.By)), Is.True,
+                    where + ": a proc is a weapon's");
+                if (!hero.EmberMemory)
+                    Assert.That(run.Kills.Count(k => k.By == DescentSimulation.FoundryKill.KilledByBurn), Is.Zero,
+                        where + ": nothing burns without Ember Memory");
+                foreach (DescentSimulation.FoundryWeaponWork w in work)
+                {
+                    Assert.That(w.DealtByProcs, Is.LessThanOrEqualTo(w.DealtAfterEvolving + 1e-3f), where + " " + w.Id);
+                    if (w.EvolvedAt >= 0f)
+                    {
+                        Assert.That(w.EvolvedAt, Is.GreaterThanOrEqualTo(w.HeldFrom), where + " " + w.Id);
+                        continue;
+                    }
+                    Assert.That((w.ProcLandings, w.DealtByProcs, w.DealtAfterEvolving), Is.EqualTo((0, 0f, 0f)),
+                        where + " " + w.Id + ": no proc before an evolution");
+                    Assert.That(run.Kills.Any(k => k.By == w.Id && k.Proc), Is.False, where + " " + w.Id);
+                }
+            }
+        }
+
         // The autopilot's walks to the halls are bounded (DropDetourRule.Walk): with the horde filling at 3 a second, the
         // thickest of the research's levers, the drop chase it had before walked each of these floors 440-466 s, and the
         // Vanguard's 153 and Ilya's 191 of seeds 1-200 past FoundryBatch.LongWalkSeconds. Now none walks long.

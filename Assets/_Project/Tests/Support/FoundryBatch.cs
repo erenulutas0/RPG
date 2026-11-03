@@ -202,6 +202,28 @@ namespace Cryptforge.Tests
             return new Batch { Hero = hero, Levers = levers, Runs = runs, WallSeconds = watch.Elapsed.TotalSeconds };
         }
 
+        // The Vanguard started with each weapon of the catalogue on the shipped floor, as the Editor's horde-weapon.txt
+        // starts it (the research's M1), for the V0.1 gate's three weapons (FoundryGate): the offers may still bring the
+        // other two, as in the game. A batch of the Vanguard's own weapon on the same seeds is that weapon's.
+        public static Batch[] RunWeapons(Batch vanguard, int[] seeds, int parallelism)
+        {
+            var batches = new List<Batch>();
+            foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
+            {
+                if (vanguard != null && vanguard.Hero.Weapon.Id == weapon.Id && vanguard.Levers.Name == Shipped().Name &&
+                    vanguard.Runs.Select(run => run.Seed).SequenceEqual(seeds))
+                {
+                    batches.Add(vanguard);
+                    continue;
+                }
+                DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+                hero.Weapon = weapon;
+                hero.Name = "Vanguard + " + weapon.DisplayName;
+                batches.Add(Run(hero, Shipped().Copy("shipped, starting " + weapon.Id), seeds, parallelism));
+            }
+            return batches.ToArray();
+        }
+
         // ---------------------------------------------------------------------------------------------------------
         // Statistics
         // ---------------------------------------------------------------------------------------------------------

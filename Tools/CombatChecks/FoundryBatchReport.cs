@@ -5,29 +5,34 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // The regression harness on demand (docs/41 step 5): both heroes' foundry floor 1 over a seed batch, the research's
-    // levers against it on the same seeds, and the simulation beside the Editor's own measurement on the Editor's seeds,
-    // written to TestResults/foundry-batch.md and foundry-batch.csv. Explicit, so a plain `dotnet test` skips it; run it by
-    // name:
+    // The regression harness on demand (docs/41 step 5): the V0.1 gate read from one report (FoundryGate, first, and alone
+    // in foundry-gate.md), both heroes' foundry floor 1 over a seed batch, the research's levers against it on the same
+    // seeds, and the simulation beside the Editor's own measurement on the Editor's seeds, written to
+    // TestResults/foundry-batch.md and foundry-batch.csv. Explicit, so a plain `dotnet test` skips it; run it by name:
     //
     //   dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"
     //
     // A floor costs about a third of a second of one core in Release (two to three times that in Debug): the shipped floor
-    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, and each lever about fifteen seconds more
-    // (FoundryBatch.ResearchLevers: the pre-V0.1 floor, the research's twelve on it and V0.1's three taken away;
-    // FOUNDRY_LEVERS=0 skips them, 2 runs FoundryBatch.ComboLevers instead, 3 the Warden's candidates,
-    // FoundryBatch.WardenLevers). OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
+    // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the gate's Vanguard started with the Staff
+    // and the Daggers about as long again, and each lever about fifteen seconds more (FoundryBatch.ResearchLevers: the
+    // pre-V0.1 floor, the research's twelve on it and V0.1's three taken away; FOUNDRY_LEVERS=0 skips them, 2 runs
+    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers).
+    // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
     // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
-    // TestResults), FOUNDRY_EDITOR (folder holding the Editor measurement - horde-pacing-*.txt and horde-telemetry/ - the
-    // repository's TestResults; nothing there skips the parity table), FOUNDRY_EDITOR_FILES (the two pacing files to read,
-    // Vanguard's then Ilya's, comma separated; the newest horde-pacing-m0-* by default). The parity table flags a pacing
-    // file whose header names other floor levers than the simulation's shipped ones, or none (written before 2026-11-03).
+    // TestResults), FOUNDRY_EDITOR (folder holding the Editor measurement - horde-pacing-*.txt, horde-telemetry/ and the
+    // perf probe's summary - the repository's TestResults; nothing there skips the parity table and leaves the gate's Editor
+    // column empty), FOUNDRY_EDITOR_FILES (the two pacing files the gate and the parity read, Vanguard's then Ilya's, comma
+    // separated; by default each hero's newest file of the plain autopilot, the newest naming the simulated floor's levers
+    // first), FOUNDRY_PERF_PROBE (the perf probe's file; the newest perf-probe-baseline-*.txt by default). Both flag a
+    // pacing file whose header names other floor levers than the simulation's shipped ones, or none (written before
+    // 2026-11-03).
     [Explicit("The regression harness's batch report: run it by name.")]
     public sealed class FoundryBatchReport
     {
@@ -47,23 +52,29 @@ namespace Cryptforge.Tests
             var heroes = new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() };
             int[] batchSeeds = FoundryBatch.Seeds(first, seeds);
             var baselines = heroes.Select(hero => FoundryBatch.Run(hero, FoundryBatch.Shipped(), batchSeeds, parallel)).ToArray();
+            FoundryBatch.Batch[] weapons = FoundryBatch.RunWeapons(baselines[0], batchSeeds, parallel);
             var leverRuns = new List<(FoundryBatch.Lever, FoundryBatch.Batch[])>();
             if (levers)
                 foreach (FoundryBatch.Lever lever in leverSet == 3 ? FoundryBatch.WardenLevers() :
                          leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
                     leverRuns.Add((lever, heroes.Select(hero => FoundryBatch.Run(hero, lever.Levers, batchSeeds, parallel)).ToArray()));
 
+            string gate = FoundryGate.Section(baselines, weapons, GateEvidence(root, editor, heroes));
             var md = new StringBuilder();
             md.AppendLine("# Foundry floor 1: the regression harness's batch").AppendLine();
             md.AppendLine($"Seeds {first}-{first + seeds - 1} a hero, the development autopilot's policy, DescentSimulation.RunFoundry " +
                           $"({DateTime.Now:yyyy-MM-dd HH:mm}). Computed, not measured: see the parity table for how far it stands from the Editor.").AppendLine();
+            md.Append(gate);
+            md.AppendLine("## The batch").AppendLine();
             md.Append(FoundryBatch.Report(baselines, leverRuns));
             string parity = Parity(editor, heroes, baselines, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
             if (parity != null)
                 md.AppendLine(parity);
 
             File.WriteAllText(Path.Combine(output, "foundry-batch.md"), md.ToString());
+            File.WriteAllText(Path.Combine(output, "foundry-gate.md"), gate);
             var all = new List<FoundryBatch.Batch>(baselines);
+            all.AddRange(weapons.Where(batch => !baselines.Contains(batch)));
             foreach ((FoundryBatch.Lever _, FoundryBatch.Batch[] batches) in leverRuns)
                 all.AddRange(batches);
             all.AddRange(editorSeedBatches);
@@ -103,10 +114,126 @@ namespace Cryptforge.Tests
         }
 
         // ---------------------------------------------------------------------------------------------------------
+        // The V0.1 gate's evidence (FoundryGate)
+        // ---------------------------------------------------------------------------------------------------------
+
+        // What the gate reads beside the batch: each hero's pacing file (as the parity's), the newest file a weapon started
+        // (horde-weapon.txt, the research's M1), the perf probe's summary and floor 1's asset.
+        private static FoundryGate.Evidence GateEvidence(string root, string folder, DescentSimulation.FoundryHero[] heroes)
+        {
+            var evidence = new FoundryGate.Evidence();
+            ReadNextFloor(root, evidence);
+            if (!Directory.Exists(folder))
+                return evidence;
+            string[] files = PacingFiles(folder, heroes) ?? heroes.Select(hero => NewestPacing(folder, hero.Id, null)).ToArray();
+            for (int h = 0; h < heroes.Length && h < files.Length; h++)
+                if (files[h] != null && File.Exists(files[h]))
+                    evidence.Files.Add(GateFile(folder, files[h], heroes[h].Id, null));
+            foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
+            {
+                string file = NewestPacing(folder, FoundryGate.V01HeroId, weapon.Id);
+                if (file != null)
+                    evidence.Files.Add(GateFile(folder, file, FoundryGate.V01HeroId, weapon.Id));
+            }
+            evidence.Frames = ReadFrames(folder);
+            return evidence;
+        }
+
+        private static FoundryGate.EditorFile GateFile(string folder, string pacing, string heroId, string weaponId)
+        {
+            Dictionary<string, string> levers = ReadLevers(pacing);
+            string mismatch = LeverMismatch(levers, FoundryBatch.Shipped());
+            var file = new FoundryGate.EditorFile
+            {
+                Source = Path.GetFileName(pacing),
+                HeroId = heroId,
+                WeaponId = weaponId,
+                OtherFloor = mismatch == null ? null
+                    : levers == null ? "it names no floor levers (written before 2026-11-03, before that day's Warden and bounded drop detour)"
+                    : "it was " + mismatch
+            };
+            foreach (EditorRun run in ReadEditor(folder, pacing, heroId))
+                file.Seeds.Add(new FoundryGate.EditorSeed
+                {
+                    Seed = run.Seed, Cleared = run.Cleared, Floor = run.Floor, Uptime = run.Uptime, Engaged = run.Engaged,
+                    Boss = run.BossColumn, Clock = run.Clock, LastRoom = run.LastRoom,
+                    Evolutions = run.TelemetryRead ? run.Evolutions : -1, GateWait = run.TelemetryRead ? run.GateWait : float.NaN
+                });
+            return file;
+        }
+
+        // The Editor perf probe's summary (Tests/PlayMode/PerfProbe.cs): FOUNDRY_PERF_PROBE names the file in the Editor
+        // folder; by default the newest perf-probe-baseline-*.txt, the baseline kept, else the probe's own perf-probe.txt.
+        private static FoundryGate.EditorFrames ReadFrames(string folder)
+        {
+            string chosen = Environment.GetEnvironmentVariable("FOUNDRY_PERF_PROBE");
+            string path = !string.IsNullOrEmpty(chosen) ? Path.Combine(folder, chosen)
+                : Directory.GetFiles(folder, "perf-probe-baseline-*.txt").OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault()
+                  ?? Path.Combine(folder, "perf-probe.txt");
+            if (!File.Exists(path))
+                return null;
+            const string title = "Cryptforge perf probe, ";
+            var frames = new FoundryGate.EditorFrames { Source = Path.GetFileName(path), Machine = "?" };
+            FoundryGate.FrameWindow window = null;
+            foreach (string line in File.ReadLines(path))
+            {
+                if (line.StartsWith(title, StringComparison.Ordinal))
+                {
+                    frames.Machine = line.Substring(title.Length);
+                    continue;
+                }
+                Match section = Regex.Match(line, @"^== (.+?): (\d+) frames measured");
+                if (section.Success)
+                {
+                    window = new FoundryGate.FrameWindow
+                    {
+                        Name = section.Groups[1].Value, Frames = int.Parse(section.Groups[2].Value, CultureInfo.InvariantCulture)
+                    };
+                    frames.Windows.Add(window);
+                    continue;
+                }
+                if (window == null)
+                    continue;
+                Match crowd = Regex.Match(line, @"crowd: enemies alive [\d.]+ / [\d.]+ / ([\d.]+)");
+                if (crowd.Success)
+                    window.AliveMax = Float(crowd.Groups[1].Value);
+                Match wall = Regex.Match(line, @"frame ms \(wall\): median [\d.]+, p95 ([\d.]+), p99 [\d.]+, max ([\d.]+).*over 16\.7 ms: (\d+), over 33\.3 ms: (\d+)");
+                if (wall.Success)
+                {
+                    window.P95 = Float(wall.Groups[1].Value);
+                    window.Max = Float(wall.Groups[2].Value);
+                    window.Over16 = int.Parse(wall.Groups[3].Value, CultureInfo.InvariantCulture);
+                    window.Over33 = int.Parse(wall.Groups[4].Value, CultureInfo.InvariantCulture);
+                }
+            }
+            return frames;
+        }
+
+        // Floor 1's asset (the foundry simulation's FoundryFloorOne): the floor it leads to, by the asset that holds the
+        // _nextFloor reference's guid, or none.
+        private static void ReadNextFloor(string root, FoundryGate.Evidence evidence)
+        {
+            string floors = Path.Combine(root, "Assets", "_Project", "Data", "Floors");
+            string asset = Path.Combine(floors, "Floor_EmberHalls.asset");
+            if (!File.Exists(asset))
+                return;
+            evidence.FloorRead = true;
+            evidence.FloorAsset = Path.GetFileNameWithoutExtension(asset);
+            string reference = File.ReadLines(asset).FirstOrDefault(l => l.TrimStart().StartsWith("_nextFloor:", StringComparison.Ordinal));
+            Match next = Regex.Match(reference ?? string.Empty, @"fileID:\s*(-?\d+)(?:,\s*guid:\s*([0-9a-f]{32}))?");
+            if (!next.Success || next.Groups[1].Value == "0")
+                return;
+            string guid = next.Groups[2].Value;
+            string meta = Directory.GetFiles(Path.Combine(root, "Assets", "_Project", "Data"), "*.asset.meta", SearchOption.AllDirectories)
+                .FirstOrDefault(path => guid.Length > 0 && File.ReadLines(path).Any(l => l.Trim() == "guid: " + guid));
+            evidence.NextFloor = meta != null ? Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(meta)) : "guid " + guid;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------
         // Parity with the Editor's HordePacingMeasurement
         // ---------------------------------------------------------------------------------------------------------
 
-        // One Editor seed, from its pacing line and its copied telemetry.
+        // One Editor seed, from its pacing line and, where it is this line's run, its copied telemetry.
         private sealed class EditorRun
         {
             public int Seed;
@@ -125,7 +252,20 @@ namespace Cryptforge.Tests
             public int LevelAtGate = -1;
             public string Death;
             public float[] Rooms = new float[0];
+            // The room the run ended in, the rooms column's last; 0 where it names none.
+            public int LastRoom;
+            // The pacing line's boss_s (the Warden's fight) and clock (the floor's clock at the end).
+            public float BossColumn = float.NaN;
+            public float Clock = float.NaN;
+            // Whether the seed's telemetry folder held this line's run (the measurement overwrites it with every run), and
+            // the evolutions it took (upgrade_selected of an evolution).
+            public bool TelemetryRead;
+            public int Evolutions = -1;
         }
+
+        // A seed's telemetry is this pacing line's run when the run's last active second is the line's floor_s, which the
+        // pacing file rounds to the second; a later measurement of the same seed overwrote any other.
+        private const float TelemetryMatchSeconds = 1.5f;
 
         private static string Parity(string editorFolder, DescentSimulation.FoundryHero[] heroes,
             IReadOnlyList<FoundryBatch.Batch> baselines, int parallel, out List<FoundryBatch.Batch> simulated)
@@ -133,7 +273,7 @@ namespace Cryptforge.Tests
             simulated = new List<FoundryBatch.Batch>();
             if (!Directory.Exists(editorFolder))
                 return null;
-            string[] files = PacingFiles(editorFolder);
+            string[] files = PacingFiles(editorFolder, heroes);
             if (files == null)
                 return null;
 
@@ -232,18 +372,52 @@ namespace Cryptforge.Tests
         private static string N(float value) =>
             float.IsNaN(value) || value < 0f ? "-" : value.ToString("0", CultureInfo.InvariantCulture);
 
-        private static string[] PacingFiles(string folder)
+        // The heroes' pacing files, in the heroes' order: FOUNDRY_EDITOR_FILES names them; by default each hero's newest
+        // plain autopilot file (NewestPacing). Null unless every hero has one.
+        private static string[] PacingFiles(string folder, DescentSimulation.FoundryHero[] heroes)
         {
             string chosen = Environment.GetEnvironmentVariable("FOUNDRY_EDITOR_FILES");
             if (!string.IsNullOrEmpty(chosen))
                 return chosen.Split(',').Select(name => Path.Combine(folder, name.Trim())).ToArray();
-            string vanguard = Newest(folder, "horde-pacing-m0-vanguard*.txt") ?? Newest(folder, "horde-pacing-hero_vanguard*.txt");
-            string ilya = Newest(folder, "horde-pacing-m0-ilya*.txt") ?? Newest(folder, "horde-pacing-hero_cinder_arcanist*.txt");
-            return vanguard != null && ilya != null ? new[] { vanguard, ilya } : null;
+            string[] files = heroes.Select(hero => NewestPacing(folder, hero.Id, null)).ToArray();
+            return files.All(file => file != null) ? files : null;
         }
 
-        private static string Newest(string folder, string pattern) =>
-            Directory.GetFiles(folder, pattern).OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault();
+        // A hero's newest pacing file of the autopilot playing the floor - its mode line "mode on", naming that hero and
+        // the weapon it started with (null for the hero's own) - the newest naming the simulated floor's levers before any
+        // other, and of two written together the named copy rather than the measurement's own horde-pacing.txt.
+        private static string NewestPacing(string folder, string heroId, string weaponId)
+        {
+            if (!Directory.Exists(folder))
+                return null;
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            return Directory.GetFiles(folder, "horde-pacing*.txt")
+                .Select(path => (Path: path, Header: PacingHeader(path)))
+                .Where(file => file.Header.Mode == "on" && file.Header.Hero == heroId && file.Header.Weapon == weaponId)
+                .OrderBy(file => LeverMismatch(ReadLevers(file.Path), shipped) == null ? 0 : 1)
+                .ThenByDescending(file => File.GetLastWriteTimeUtc(file.Path))
+                .ThenByDescending(file => Path.GetFileName(file.Path).Length)
+                .Select(file => file.Path)
+                .FirstOrDefault();
+        }
+
+        // A pacing file's first line, "mode <mode>[ hero <id>][ weapon <id>]" (HordePacingMeasurement): the scene's
+        // default hero, the Vanguard, when it names none.
+        private static (string Mode, string Hero, string Weapon) PacingHeader(string path)
+        {
+            string[] words = (File.ReadLines(path).FirstOrDefault() ?? string.Empty).Split(' ');
+            if (words.Length < 2 || words[0] != "mode")
+                return (null, null, null);
+            string hero = FoundryGate.V01HeroId, weapon = null;
+            for (int i = 2; i + 1 < words.Length; i += 2)
+            {
+                if (words[i] == "hero")
+                    hero = words[i + 1];
+                else if (words[i] == "weapon")
+                    weapon = words[i + 1];
+            }
+            return (words[1], hero, weapon);
+        }
 
         // The pacing file's tab-separated lines (seed, result, floor_s, uptime[, engaged], ..., level, ..., rooms), and,
         // where the seed's telemetry was kept, its walks, node fights, the Warden's wave and the level at the gate.
@@ -272,10 +446,22 @@ namespace Cryptforge.Tests
                 };
                 if (Column("engaged") >= 0)
                     run.Engaged = Float(cells[Column("engaged")]);
+                if (Column("boss_s") >= 0)
+                    run.BossColumn = Float(cells[Column("boss_s")]);
+                if (Column("clock") >= 0)
+                    run.Clock = Float(cells[Column("clock")]);
                 if (Column("rooms") >= 0)
-                    run.Rooms = cells[Column("rooms")].Split(' ').Where(r => r.Contains(":"))
-                        .Select(r => Float(r.Substring(r.IndexOf(':') + 1).TrimEnd('s'))).ToArray();
-                ReadTelemetry(Path.Combine(folder, "horde-telemetry", heroId + "-" + seed), run);
+                {
+                    string[] rooms = cells[Column("rooms")].Split(' ').Where(r => r.Contains(":")).ToArray();
+                    run.Rooms = rooms.Select(r => Float(r.Substring(r.IndexOf(':') + 1).TrimEnd('s'))).ToArray();
+                    if (rooms.Length > 0 && int.TryParse(rooms[rooms.Length - 1].Substring(0, rooms[rooms.Length - 1].IndexOf(':')),
+                            NumberStyles.Integer, CultureInfo.InvariantCulture, out int last))
+                        run.LastRoom = last;
+                }
+                // gate_hold_sec came with the levers line (2026-11-03): before it, no wait was ever written, not none.
+                ReadTelemetry(Path.Combine(folder, "horde-telemetry", heroId + "-" + seed), run, ReadLevers(pacing) != null);
+                if (!run.Cleared && run.Death == null)
+                    run.Death = run.LastRoom > 0 ? run.LastRoom.ToString(CultureInfo.InvariantCulture) : "?";
                 runs.Add(run);
             }
             return runs;
@@ -317,7 +503,9 @@ namespace Cryptforge.Tests
         private static float Float(string text) =>
             float.Parse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture);
 
-        private static void ReadTelemetry(string folder, EditorRun run)
+        // The seed's telemetry, if it is this pacing line's run: walks, node fights, the gate's hold where the telemetry
+        // wrote it (gateHoldWritten), the Warden's wave and exit, the level at the gate and the cause of a death.
+        private static void ReadTelemetry(string folder, EditorRun run, bool gateHoldWritten)
         {
             if (!Directory.Exists(folder))
                 return;
@@ -332,10 +520,10 @@ namespace Cryptforge.Tests
                     events[seq.GetInt64()] = e;
             }
             float walk = 0f, node = 0f, held = 0f;
-            int level = 0;
-            string roomKind = null;
+            int level = 0, levelAtGate = -1, evolutions = 0;
+            string roomKind = null, death = null;
             float roomWalk = 0f;
-            float bossWave = float.NaN;
+            float bossWave = float.NaN, boss = float.NaN, exit = float.NaN, end = float.NaN;
             foreach (JsonElement e in events.Values)
             {
                 string name = e.GetProperty("event").GetString();
@@ -354,7 +542,7 @@ namespace Cryptforge.Tests
                         walk += (float)e.GetProperty("walk_sec").GetDouble();
                         break;
                     case "boss_start":
-                        run.LevelAtGate = level;
+                        levelAtGate = level;
                         break;
                     case "wave_clear" when roomKind == "boss":
                         bossWave = (float)e.GetProperty("active_sec").GetDouble();
@@ -366,8 +554,8 @@ namespace Cryptforge.Tests
                         held += hold;
                         if (roomKind == "boss")
                         {
-                            run.Boss = bossWave;
-                            run.Exit = active - bossWave;
+                            boss = bossWave;
+                            exit = active - bossWave;
                         }
                         else
                         {
@@ -376,13 +564,30 @@ namespace Cryptforge.Tests
                         break;
                     case "run_end":
                         if (e.TryGetProperty("result", out JsonElement result) && result.GetString() == "defeat")
-                            run.Death = $"{e.GetProperty("rooms_completed").GetInt32() + 1} ({e.GetProperty("cause").GetString()})";
+                            death = $"{e.GetProperty("rooms_completed").GetInt32() + 1} ({e.GetProperty("cause").GetString()})";
+                        break;
+                    case "upgrade_selected":
+                        if (e.TryGetProperty("upgrade_id", out JsonElement picked) &&
+                            (picked.GetString() ?? string.Empty).StartsWith("evolution_", StringComparison.Ordinal))
+                            evolutions++;
                         break;
                 }
+                if ((name == "floor_complete" || name == "run_end" || name == "run_interrupted") &&
+                    e.TryGetProperty("active_sec", out JsonElement endSec))
+                    end = float.IsNaN(end) ? (float)endSec.GetDouble() : Math.Max(end, (float)endSec.GetDouble());
             }
+            if (float.IsNaN(end) || Math.Abs(end - run.Floor) > TelemetryMatchSeconds)
+                return;
+            run.TelemetryRead = true;
             run.Walk = walk;
             run.Node = node;
-            run.GateWait = held;
+            run.GateWait = gateHoldWritten ? held : float.NaN;
+            run.Boss = boss;
+            run.Exit = exit;
+            run.LevelAtGate = levelAtGate;
+            run.Evolutions = evolutions;
+            if (death != null)
+                run.Death = death;
         }
     }
 }
