@@ -402,7 +402,7 @@ namespace Cryptforge.Tests
                 {
                     Evolving e = Evolutions(b);
                     bool? met = e.Clears == 0 ? (bool?)null : e.EvolvedClears >= e.Clears * SynergyShare && e.ProcKills > 0;
-                    return ($"{e.EvolvedClears} of {Many(e.Clears, "clear")} ({Pct(e.EvolvedClears, e.Clears)}), first at P50 {F(e.FirstP50)} s; " +
+                    return ($"{e.EvolvedClears} of {Many(e.Clears, "clear")} ({Pct(e.EvolvedClears, e.Clears, "0.0")}), first at P50 {F(e.FirstP50)} s; " +
                             $"procs land {Pct(e.ProcKills, e.KillsAfter)} of the evolved weapons' kills after", met);
                 },
                 file =>
@@ -424,7 +424,7 @@ namespace Cryptforge.Tests
             string basis = !evidence.FloorRead
                 ? "Floor 1's asset was not read: FloorFlowTests (Unity PlayMode) holds floor 1's checkpoint and Extract's bank."
                 : evidence.NextFloor != null
-                    ? $"Built: the gate's hold raises FloorCleared, and CombatSetup.OnFloorCleared offers Extract or Climb while the floor leads on - {evidence.FloorAsset} leads to {evidence.NextFloor}; FloorFlowTests holds the offer and Extract's bank. Offered at the clear only, and neither measurement chooses it."
+                    ? $"Built: the gate's hold raises FloorCleared (GateBossFlowTests), and CombatSetup.OnFloorCleared offers Extract or Climb while the floor leads on - {evidence.FloorAsset} leads to {evidence.NextFloor}; FloorFlowTests holds the offer and Extract's bank on the hall arena's floor 1. Offered at the clear only, and neither measurement chooses it."
                     : $"{evidence.FloorAsset} leads nowhere: its clear ends the run as a victory, with no choice to make.";
             return PerHero(gate, Extract, "offered once floor 1 is cleared (docs/40 section 17.5: a selectable Extract)", basis,
                 b => ($"cleared, so offered, in {Pct(b.ClearedCount, b.Runs.Length)}", null),
@@ -711,7 +711,7 @@ namespace Cryptforge.Tests
             {
                 Evolving e = Evolutions(b);
                 string which = string.Join(", ", e.Which.OrderByDescending(p => p.Value).Select(p => $"{WeaponName(p.Key)} {p.Value}"));
-                md.AppendLine($"| {b.Hero.Name} | {e.Evolved} of {e.Runs} ({Pct(e.Evolved, e.Runs)}) / {e.EvolvedClears} of {e.Clears} ({Pct(e.EvolvedClears, e.Clears)}) | " +
+                md.AppendLine($"| {b.Hero.Name} | {e.Evolved} of {e.Runs} ({Pct(e.Evolved, e.Runs)}) / {e.EvolvedClears} of {e.Clears} ({Pct(e.EvolvedClears, e.Clears, "0.0")}) | " +
                               $"{(which.Length > 0 ? which : "-")} | {F(e.FirstP50)} s | {Pct(e.ProcDealt, e.DealtAfter)} / {Pct(e.ProcKills, e.KillsAfter)} |");
             }
             md.AppendLine();
@@ -780,8 +780,9 @@ namespace Cryptforge.Tests
         private static string F(double value, string format = "0") =>
             double.IsNaN(value) ? "-" : value.ToString(format, CultureInfo.InvariantCulture);
 
-        private static string Pct(double part, double whole) =>
-            whole <= 0 ? "-" : (100.0 * part / whole).ToString("0", CultureInfo.InvariantCulture) + "%";
+        // A share in whole percent; one decimal where it is set against a threshold, so the figure never rounds across it.
+        private static string Pct(double part, double whole, string format = "0") =>
+            whole <= 0 ? "-" : (100.0 * part / whole).ToString(format, CultureInfo.InvariantCulture) + "%";
 
         private static string Count(int value) => value < 0 ? "-" : value.ToString(CultureInfo.InvariantCulture);
 
