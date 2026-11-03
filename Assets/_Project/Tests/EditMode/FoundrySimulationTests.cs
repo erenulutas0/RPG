@@ -71,6 +71,20 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The autopilot waits out the pit's glowing band (FootworkRule): it stepped out of it to shelter and straight back in
+        // to lure or kite, and the spill burnt it 3-5 times a floor on these seeds; now it does not step in while the band
+        // glows, so at most once.
+        [Test]
+        public void TheAutopilotWaitsOutThePitsGlowingBand()
+        {
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in Seeds)
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(hero, seed);
+                Assert.That(run.EruptionsOnHero, Is.LessThanOrEqualTo(1), $"{hero.Name} seed {seed}: {run.Eruptions} spills");
+            }
+        }
+
         // The autopilot's walks to the halls are bounded (DropDetourRule.Walk): with the horde filling at 3 a second, the
         // thickest of the research's levers, the drop chase it had before walked each of these floors 440-466 s, and the
         // Vanguard's 153 and Ilya's 191 of seeds 1-200 past FoundryBatch.LongWalkSeconds. Now none walks long.

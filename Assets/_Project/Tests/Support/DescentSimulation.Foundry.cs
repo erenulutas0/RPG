@@ -571,6 +571,8 @@ namespace Cryptforge.Tests
             // The autopilot's drops across a walk (DropDetourRule.Walk).
             private readonly DropDetourRule.Walk _detour =
                 new DropDetourRule.Walk(PilotDropDetour, PilotDetourSlack, PilotDetourBudget);
+            // While the pit's band glows the autopilot steps into it only to leave the Warden's mark (PilotSteer).
+            private bool _bandGuard;
 
             // The one chest, as ChestSpawner keeps it.
             private int _chestIndex = -1;
@@ -1764,6 +1766,9 @@ namespace Cryptforge.Tests
                 bool fighting = _waveAlive > 0;
                 // A fight, or a hall newly marked, gives the walk after it its whole drop budget.
                 _detour.Track(fighting, _roomSiteOpen);
+                // While the pit's band glows the hero steps into it only to leave the Warden's mark (PilotSteer).
+                bool glowing = _pitRunning && _pit.IsWarning;
+                _bandGuard = glowing;
                 if (_gateExitOpen)
                 {
                     gx = _exitX;
@@ -1776,26 +1781,30 @@ namespace Cryptforge.Tests
                     float my = y - _markY;
                     float reach = WardenRule.SlamRadius + .6f;
                     if (mx * mx + my * my < reach * reach &&
-                        FootworkRule.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, out gx, out gy))
+                        FootworkRule.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out gx, out gy))
                     {
                         stop = 0f;
+                        _bandGuard = false;
                         return true;
                     }
                 }
-                if (_pitRunning && _pit.IsWarning && PitEruptionRule.InBand(x, y))
+                if (glowing && PitEruptionRule.InBand(x, y))
                 {
-                    RimSpot(x, y, PilotShelterDepth, out gx, out gy);
+                    FootworkRule.Shelter(x, y, PilotShelterDepth, out gx, out gy);
                     return true;
                 }
                 if (Threat(x, y, out float tx, out float ty) &&
-                    FootworkRule.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, out gx, out gy))
+                    FootworkRule.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out gx, out gy))
                 {
                     stop = 0f;
                     return true;
                 }
+                // A node fight is drawn to the pit's rim, but not while the band glows: then the hero waits out of it.
                 if (fighting)
                 {
-                    RimSpot(x, y, PilotLureDepth, out gx, out gy);
+                    if (glowing)
+                        return false;
+                    FootworkRule.RimSpot(x, y, PilotLureDepth, out gx, out gy);
                     return true;
                 }
                 // Between fights: the altars, then the marked hall, with the drops beside the way there (the slack, the
@@ -1853,25 +1862,6 @@ namespace Cryptforge.Tests
                 }
                 return !float.IsPositiveInfinity(best);
             }
-
-            // The point depth design units out from the pit's hole on the side the hero stands.
-            private static void RimSpot(float x, float y, float depth, out float gx, out float gy)
-            {
-                FoundryMap.ToDesign(x, y, out float u, out float v);
-                float cu = Clamp(u, FoundryMap.PitWest, FoundryMap.PitEast);
-                float cv = Clamp(v, FoundryMap.PitSouth, FoundryMap.PitNorth);
-                float awayX = u - cu;
-                float awayY = v - cv;
-                if (awayX * awayX + awayY * awayY < 1e-4f)
-                {
-                    awayX = 0f;
-                    awayY = -1f;
-                }
-                Normalize(ref awayX, ref awayY);
-                FoundryMap.ToFloor(cu + awayX * depth, cv + awayY * depth, out gx, out gy);
-            }
-
-            private static float Clamp(float value, float min, float max) => value < min ? min : value > max ? max : value;
 
             // UnityEngine.Vector2.Normalize: divided by its magnitude, or zero below Vector2.kEpsilon.
             private static void Normalize(ref float x, ref float y)
@@ -1935,7 +1925,7 @@ namespace Cryptforge.Tests
                     _route.Target(x, y, gx, gy, ref tx, ref ty);
                 float steerX = tx - x;
                 float steerY = ty - y;
-                if (steerX * steerX + steerY * steerY < 1e-6f)
+                if (steerX * steerX + steerY * steerY < 1e-6f || (_bandGuard && FootworkRule.StepsIntoBand(x, y, tx, ty)))
                 {
                     _steerX = 0f;
                     _steerY = 0f;

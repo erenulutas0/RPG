@@ -38,6 +38,10 @@ namespace Cryptforge.Core
         private const float DetourSlack = 2f;
         private const float DetourBudget = 12f;
         private readonly DropDetourRule.Walk _detour = new DropDetourRule.Walk(DropDetour, DetourSlack, DetourBudget);
+        // While the pit's band glows the autopilot steps into it only to leave the Warden's mark (Goal, Steer): the old
+        // autopilot stepped out to shelter and was drawn straight back in to lure or kite, and four in five of the pit's
+        // burns in the foundry simulation were that (2026-11-04, seeds 1-200 a hero).
+        private bool _bandGuard;
         // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach pushes the hero away, the nearer the
         // harder, and the hero walks away from the push turned KiteTurn round it, so it circles the crowd instead of backing
         // into a wall. Just beyond a melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
@@ -182,15 +186,19 @@ namespace Cryptforge.Core
             bool fighting = encounter.AliveEnemyCount > 0;
             // A fight, or a hall newly marked, gives the walk after it its whole drop budget.
             _detour.Track(fighting, encounter.IsRoomSiteOpen);
+            // While the pit's band glows the hero steps into it only to leave the Warden's mark (Steer).
+            bool pit = _setup.Pit != null && _setup.Pit.IsActive;
+            bool glowing = pit && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning;
+            _bandGuard = glowing;
             // The finale's exit opens at once; the autopilot fights the swarm a while first, as a player after depth does.
             if (encounter.IsExitOpen && (!encounter.IsInSwarmRoom || encounter.SwarmSeconds >= SwarmStay))
             {
                 gx = encounter.ExitFloorX; gy = encounter.ExitFloorY;
                 return true;
             }
-            bool pit = _setup.Pit != null && _setup.Pit.IsActive;
             // The Warden's mark under the hero: out of it first, as a player who reads it does - away from the Warden, with
-            // room (FootworkRule.EscapeMark; from the mark itself, the nearest way out, if the Warden cannot be found).
+            // room, not across the glowing band if it can help it (FootworkRule.EscapeMark; from the mark itself, the
+            // nearest way out, if the Warden cannot be found).
             WardenSlamService warden = _setup.Warden;
             if (warden != null && warden.IsFighting && warden.Clock.IsMarked)
             {
@@ -201,29 +209,34 @@ namespace Cryptforge.Core
                     bossX = warden.MarkX; bossY = warden.MarkY;
                 }
                 if (mx * mx + my * my < reach * reach &&
-                    FootworkRule.EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, bossX, bossY, out gx, out gy))
+                    FootworkRule.EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, bossX, bossY, glowing, out gx, out gy))
                 {
                     stop = 0f;
+                    _bandGuard = false;
                     return true;
                 }
             }
-            // A spill coming and the hero on the rim: shelter first, whatever is chasing.
-            if (pit && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning && PitEruptionRule.InBand(x, y))
+            // A spill coming and the hero on the rim: shelter first, whatever is chasing (FootworkRule.Shelter).
+            if (glowing && PitEruptionRule.InBand(x, y))
             {
-                RimSpot(x, y, ShelterDepth, out gx, out gy);
+                FootworkRule.Shelter(x, y, ShelterDepth, out gx, out gy);
                 return true;
             }
-            // Kiting with room (FootworkRule.Kite): along a wall or turned away from it, never into it.
+            // Kiting with room (FootworkRule.Kite): along a wall or turned away from it, never into it, nor into the band
+            // while it glows.
             if (Threat(x, y, out float tx, out float ty) &&
-                FootworkRule.Kite(x, y, tx, ty, KiteTurn, KiteStride, out gx, out gy))
+                FootworkRule.Kite(x, y, tx, ty, KiteTurn, KiteStride, glowing, out gx, out gy))
             {
                 stop = 0f;
                 return true;
             }
-            // A node fight is drawn to the pit's rim; the horde alone is fought wherever the hero is going.
+            // A node fight is drawn to the pit's rim, but not while the band glows: then the hero waits out of it. The horde
+            // alone is fought wherever the hero is going.
             if (fighting && pit)
             {
-                RimSpot(x, y, LureDepth, out gx, out gy);
+                if (glowing)
+                    return false;
+                FootworkRule.RimSpot(x, y, LureDepth, out gx, out gy);
                 return true;
             }
             if (fighting)
@@ -287,19 +300,6 @@ namespace Cryptforge.Core
             return !float.IsPositiveInfinity(best);
         }
 
-        // The point Depth design units out from the pit's hole on the side the hero stands.
-        private static void RimSpot(float x, float y, float depth, out float gx, out float gy)
-        {
-            FoundryMap.ToDesign(x, y, out float u, out float v);
-            float cu = Mathf.Clamp(u, FoundryMap.PitWest, FoundryMap.PitEast);
-            float cv = Mathf.Clamp(v, FoundryMap.PitSouth, FoundryMap.PitNorth);
-            Vector2 away = new Vector2(u - cu, v - cv);
-            if (away.sqrMagnitude < 1e-4f)
-                away = new Vector2(0f, -1f);
-            away.Normalize();
-            FoundryMap.ToFloor(cu + away.x * depth, cv + away.y * depth, out gx, out gy);
-        }
-
         // The push of every living enemy within KiteReach, as a unit direction away from them; false when none is that close.
         private bool Threat(float x, float y, out float tx, out float ty)
         {
@@ -342,7 +342,7 @@ namespace Cryptforge.Core
             if (!FoundryMap.Segment(x, y, gx, gy, .6f))
                 _route.Target(x, y, gx, gy, ref tx, ref ty);
             var steer = new Vector2(tx - x, ty - y);
-            if (steer.sqrMagnitude < 1e-6f)
+            if (steer.sqrMagnitude < 1e-6f || (_bandGuard && FootworkRule.StepsIntoBand(x, y, tx, ty)))
             {
                 _movement.Release();
                 return;
