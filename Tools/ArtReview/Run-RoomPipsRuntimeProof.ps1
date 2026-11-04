@@ -23,6 +23,8 @@ try {
     dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'Compile check failed.' }
     if (Test-Path $proofResults) { Remove-Item -LiteralPath $proofResults }
+    # A BMP here is only ever left by a run that stopped before converting; this run's frames are the ones to keep.
+    if (Test-Path $proofFrames) { Get-ChildItem -LiteralPath $proofFrames -Filter '*.bmp' -File | Remove-Item }
     $proofProcess = Start-Process -FilePath $UnityEditor -ArgumentList @('-batchmode','-projectPath',"`"$proofRoot`"",'-runTests','-testPlatform','PlayMode','-testFilter','Cryptforge.Tests.RoomPipsRuntimeCapture','-testResults',"`"$proofResults`"",'-logFile',"`"$proofRoot/TestResults/room-pips-runtime.log`"") -PassThru -WindowStyle Hidden
     $proofProcess.WaitForExit()
     if (!(Test-Path $proofResults)) { throw 'Unity capture failed; inspect TestResults/room-pips-runtime.log.' }

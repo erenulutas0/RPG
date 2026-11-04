@@ -250,7 +250,11 @@ namespace Cryptforge.Tests
 
         // The phone's safe area on every safe area of the scene, every overlay canvas drawn through the camera into a
         // texture the phone's size, the camera framed from the HUD as ArenaCameraFollow frames the phone; then everything
-        // put back. The frame and its top band are written as BMP before the layout is checked, so a wrong frame stays.
+        // put back. A canvas drawn through a camera measures itself against the camera's target only when its scale
+        // changes, and CanvasScaler sets the scale only when it differs from the one it set last: switched over with its
+        // scale already 1 it kept the batch Editor's 640x480 screen (the second phone of a frame, 2026-11-04). So the
+        // camera takes the phone's texture first, each canvas's scale is moved and put back to make it measure itself
+        // against that texture, and nothing is drawn unless every canvas then covers the frame (AssertCovers).
         private void Shoot(string file, Phone phone, int shown, int lit, StringBuilder rects)
         {
             var fitters = Object.FindObjectsByType<SafeAreaFitter>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -280,6 +284,8 @@ namespace Cryptforge.Tests
                     rect.anchorMax = new Vector2(1f, 1f - phone.TopInset / (float)phone.Height);
                     rect.offsetMin = rect.offsetMax = Vector2.zero;
                 }
+                _camera.aspect = (float)phone.Width / phone.Height;
+                _camera.targetTexture = target;
                 for (int i = 0; i < canvases.Length; i++)
                 {
                     Canvas canvas = canvases[i];
@@ -293,10 +299,15 @@ namespace Cryptforge.Tests
                     canvas.worldCamera = _camera;
                     canvas.planeDistance = 1f;
                     canvas.sortingOrder = orders[i] + OverWorld;
+                    // Measured against the phone's texture at once; the scaler then gives the phone's scale, measuring
+                    // again whenever that differs.
+                    float scaleBefore = canvas.scaleFactor;
+                    canvas.scaleFactor = scaleBefore * .5f;
+                    canvas.scaleFactor = scaleBefore;
                 }
-                _camera.aspect = (float)phone.Width / phone.Height;
-                _camera.targetTexture = target;
                 Canvas.ForceUpdateCanvases();
+                Canvas root = _hud.RoomPipAt(0).canvas.rootCanvas;
+                AssertCovers(canvases, drawn, root, phone, file);
                 // The free band runs from the bottom block's head to the top block's foot, read off the HUD as this phone
                 // lays it out (ArenaCameraFollow.LateUpdate on the device).
                 float bandTop = OnFrame(_follow.TopHud).yMin;
@@ -304,11 +315,9 @@ namespace Cryptforge.Tests
                 _follow.Frame(phone.Width, phone.Height, bandBottom, bandTop);
                 _arena.Backdrop.FrameCavern();
                 Canvas.ForceUpdateCanvases();
+                AssertCovers(canvases, drawn, root, phone, file);
                 UnityEngine.Rendering.SortingGroup.UpdateAllSortingGroups();
-                Canvas root = _hud.RoomPipAt(0).canvas.rootCanvas;
-                Vector2 size = ((RectTransform)root.transform).rect.size;
-                float scale = root.scaleFactor;
-                Record(rects, file, phone, shown, lit, root, size, scale);
+                Record(rects, file, phone, shown, lit, root, ((RectTransform)root.transform).rect.size, root.scaleFactor);
 
                 _camera.Render();
                 RenderTexture.active = target;
@@ -319,10 +328,6 @@ namespace Cryptforge.Tests
                 WriteBmp(Output + file + ".bmp", colours, phone.Width, 0, phone.Height);
                 int band = Mathf.Min(phone.Height, phone.TopInset + TopBand);
                 WriteBmp(Output + file + "-top.bmp", colours, phone.Width, phone.Height - band, band);
-
-                Assert.That(scale, Is.EqualTo(1f).Within(1e-3f), $"{file}: the HUD at the scale a 1080-wide phone gives it.");
-                Assert.That(size.x, Is.EqualTo(phone.Width).Within(.5f), $"{file}: the HUD canvas as wide as the frame.");
-                Assert.That(size.y, Is.EqualTo(phone.Height).Within(.5f), $"{file}: the HUD canvas as tall as the frame.");
             }
             finally
             {
@@ -353,6 +358,25 @@ namespace Cryptforge.Tests
                     fitters[i].enabled = fitted[i];
                 }
             }
+        }
+
+        // Every canvas drawn into the frame covers it exactly - its rect at its scale is the phone's texture, not the batch
+        // Editor's 640x480 screen - and the HUD lies at the scale a 1080-wide phone gives it. Checked before anything is
+        // drawn or written, so a canvas measured for anything but this phone stops the capture instead of leaving a frame.
+        private static void AssertCovers(Canvas[] canvases, bool[] drawn, Canvas hud, Phone phone, string file)
+        {
+            Assert.That(hud.renderMode, Is.EqualTo(RenderMode.ScreenSpaceCamera), $"{file}: the HUD is drawn through the camera.");
+            for (int i = 0; i < canvases.Length; i++)
+            {
+                if (!drawn[i] || !canvases[i].isActiveAndEnabled)
+                    continue;
+                Vector2 covered = ((RectTransform)canvases[i].transform).rect.size * canvases[i].scaleFactor;
+                string measured = $"{file}: {canvases[i].name} covers {F(covered.x)}x{F(covered.y)} px of the {phone.Name} frame.";
+                Assert.That(covered.x, Is.EqualTo(phone.Width).Within(.5f), measured);
+                Assert.That(covered.y, Is.EqualTo(phone.Height).Within(.5f), measured);
+            }
+            Assert.That(hud.scaleFactor, Is.EqualTo(1f).Within(1e-3f),
+                $"{file}: the HUD at scale {hud.scaleFactor.ToString("0.###", CultureInfo.InvariantCulture)}, not a 1080-wide phone's 1.");
         }
 
         // Where every pip landed in this frame, and whether the seventh keeps clear of its neighbours and on the top surface.
