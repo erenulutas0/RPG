@@ -21,7 +21,8 @@ namespace Cryptforge.Tests
     // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the gate's Vanguard started with the Staff
     // and the Daggers about as long again, and each lever about fifteen seconds more (FoundryBatch.ResearchLevers: the
     // pre-V0.1 floor, the research's twelve on it and V0.1's three taken away; FOUNDRY_LEVERS=0 skips them, 2 runs
-    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers). FOUNDRY_COHORTS=1 adds the
+    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers, 4 the Sword's research
+    // patterns, FoundryBatch.SwordLevers - TheSwordsRoleOverASeedBatch reads those as the gate's roles row). FOUNDRY_COHORTS=1 adds the
     // autopilot's cohorts on the same seeds and floors (FoundryCohorts: four more batches a hero, alone in
     // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it).
     // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
@@ -62,7 +63,8 @@ namespace Cryptforge.Tests
             FoundryBatch.Batch[] weapons = FoundryBatch.RunWeapons(baselines[0], batchSeeds, parallel);
             var leverRuns = new List<(FoundryBatch.Lever, FoundryBatch.Batch[])>();
             if (levers)
-                foreach (FoundryBatch.Lever lever in leverSet == 3 ? FoundryBatch.WardenLevers() :
+                foreach (FoundryBatch.Lever lever in leverSet == 4 ? FoundryBatch.SwordLevers() :
+                         leverSet == 3 ? FoundryBatch.WardenLevers() :
                          leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
                     leverRuns.Add((lever, heroes.Select(hero => FoundryBatch.Run(hero, lever.Levers, batchSeeds, parallel)).ToArray()));
 
@@ -106,6 +108,42 @@ namespace Cryptforge.Tests
             File.WriteAllText(Path.Combine(output, "foundry-batch.csv"), FoundryBatch.Csv(all));
             TestContext.WriteLine(md.ToString());
             Assert.That(baselines.All(b => b.Runs.Length == seeds), "every seed ran");
+        }
+
+        // The Sword's role (docs/cloud/2026-11-04-sword-role.md): each of FoundryBatch.SwordLevers - foundry-only Sword
+        // patterns behind research levers - for both heroes in every cohort's hands and with the Vanguard started with each
+        // weapon, read as the gate's roles row beside clears, floor, Warden and its cost. Into FOUNDRY_OUT: sword-role.md
+        // (a row a lever) and sword-role.csv. SWORD_LEVERS picks rows by index (comma separated, all by default);
+        // FOUNDRY_SEEDS, FOUNDRY_FIRST_SEED and FOUNDRY_PARALLEL as above.
+        [Test]
+        public void TheSwordsRoleOverASeedBatch()
+        {
+            int seeds = Setting("FOUNDRY_SEEDS", 200);
+            int first = Setting("FOUNDRY_FIRST_SEED", 1);
+            int parallel = Setting("FOUNDRY_PARALLEL", Math.Max(1, Environment.ProcessorCount / 2));
+            string output = Environment.GetEnvironmentVariable("FOUNDRY_OUT") ?? Path.Combine(RepositoryRoot(), "TestResults");
+            Directory.CreateDirectory(output);
+            FoundryBatch.Lever[] all = FoundryBatch.SwordLevers();
+            string pick = Environment.GetEnvironmentVariable("SWORD_LEVERS");
+            IEnumerable<int> chosen = string.IsNullOrEmpty(pick)
+                ? Enumerable.Range(0, all.Length)
+                : pick.Split(',').Select(p => int.Parse(p.Trim(), CultureInfo.InvariantCulture));
+            int[] batchSeeds = FoundryBatch.Seeds(first, seeds);
+            var md = new StringBuilder();
+            md.AppendLine($"# The Sword's role: seeds {first}-{first + seeds - 1} a hero ({DateTime.Now:yyyy-MM-dd HH:mm})").AppendLine();
+            md.AppendLine(FoundryBatch.SwordHeader());
+            var csv = new StringBuilder().AppendLine(FoundryBatch.SwordCsvHeader());
+            foreach (int index in chosen)
+            {
+                FoundryBatch.SwordRun run = FoundryBatch.RunSword(all[index], batchSeeds, parallel);
+                md.AppendLine(FoundryBatch.SwordRow(run));
+                foreach (string line in FoundryBatch.SwordCsv(run))
+                    csv.AppendLine(line);
+                File.WriteAllText(Path.Combine(output, "sword-role.md"), md.ToString());
+                File.WriteAllText(Path.Combine(output, "sword-role.csv"), csv.ToString());
+            }
+            TestContext.WriteLine(md.ToString());
+            Assert.That(md.Length, Is.GreaterThan(0));
         }
 
         // One seed's run as the scene's telemetry would write it, to lay beside the Editor's copy of the same seed's events:
