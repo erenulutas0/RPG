@@ -60,6 +60,10 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
     <!-- The development autopilot's drop detour, one body for the scene's autopilot and the foundry simulation's copy. -->
     <Compile Include="../../Assets/_Project/Scripts/Core/DropDetourRule.cs" />
+    <!-- The development autopilot's footwork in a fight, one body for the scene's autopilot and the simulation's copy. -->
+    <Compile Include="../../Assets/_Project/Scripts/Core/FootworkRule.cs" />
+    <!-- Who the development autopilot plays as (docs/41 step 5's cohorts), one body for the scene's and the simulation's. -->
+    <Compile Include="../../Assets/_Project/Scripts/Core/AutopilotCohort.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/GroundDrops.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
@@ -73,6 +77,9 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FootworkRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/AutopilotCohortTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryCohortTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
@@ -90,6 +97,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
+    <!-- The autopilot's cohorts over the batch's seeds (docs/41 step 5), the report's FOUNDRY_COHORTS section. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryCohorts.cs" />
     <!-- docs/41 step 5's V0.1 gate, the batch report's first section, and its test on a small batch. -->
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryGate.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryGateTests.cs" />
