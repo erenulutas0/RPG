@@ -500,7 +500,7 @@ namespace Cryptforge.Tests
                    (where.Length > 0 ? ": " + where : string.Empty) + (timedOut > 0 ? $"; timed out {timedOut}" : string.Empty);
         }
 
-        private static string DeathPlace(DescentSimulation.FoundryResult r) =>
+        internal static string DeathPlace(DescentSimulation.FoundryResult r) =>
             r.DeathPhase == "exit" ? "exit" : RoomPlace(r.Kinds, r.DeathRoom);
 
         // A room by its kind, 1-based: "halls", "elites", "Warden".

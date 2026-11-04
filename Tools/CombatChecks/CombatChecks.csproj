@@ -97,6 +97,7 @@
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.GateLevers.cs" />
     <!-- The autopilot's cohorts over the batch's seeds (docs/41 step 5), the report's FOUNDRY_COHORTS section. -->
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryCohorts.cs" />
     <!-- docs/41 step 5's V0.1 gate, the batch report's first section, and its test on a small batch. -->
