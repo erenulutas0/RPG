@@ -64,7 +64,15 @@ namespace Cryptforge.Tests
         // The lever sets for the owner (docs/cloud/2026-11-04-v01-levers.md), each against the shipped floor.
         public static Lever[] GateLeverSets() => new[]
         {
-            OnShipped("Shipped: surges 2, elites +1, gate 3:30", l => { })
+            OnShipped("Shipped: surges 2, elites +1, gate 3:30", l => { }),
+            OnShipped("+2 halls, surges 3, gate 2:45", l => { l.ExtraHalls = 2; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; }),
+            OnShipped("+2 halls, surges 3, gate 3:00", l => { l.ExtraHalls = 2; l.HallSurges = 3; l.GateNotBeforeSeconds = 180f; }),
+            OnShipped("+2 halls, surges 3, gate 2:45, horde XP 0.25", l => { l.ExtraHalls = 2; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; l.HordeExperienceShare = .25f; }),
+            OnShipped("Halls held 30 s, surges 3, gate 2:45", l => { l.HallHoldSeconds = 30f; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; }),
+            OnShipped("Halls held 30 s, surges 3, gate 2:45, horde XP 0.25", l => { l.HallHoldSeconds = 30f; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; l.HordeExperienceShare = .25f; }),
+            OnShipped("+1 hall, halls held 30 s, gate 2:45", l => { l.ExtraHalls = 1; l.HallHoldSeconds = 30f; l.GateNotBeforeSeconds = 165f; }),
+            OnShipped("+2 halls, gate on 450 kills (no time)", l => { l.ExtraHalls = 2; l.GateNotBeforeSeconds = 0f; l.GateKillQuota = 450; }),
+            OnShipped("+3 halls, gate 3:00", l => { l.ExtraHalls = 3; l.GateNotBeforeSeconds = 180f; })
         };
 
         // Only the levers whose names hold one of FOUNDRY_LEVER_FILTER's comma-separated words, the shipped row kept.
