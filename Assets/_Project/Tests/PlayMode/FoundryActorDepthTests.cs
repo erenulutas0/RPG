@@ -25,7 +25,10 @@ namespace Cryptforge.Tests
     // three passes of each placement in a row, and again right after a full collection; and the pass's calls are counted
     // piece by piece over the same actors and bodies. All of it is printed, and a failure carries it, with a reading:
     //   - the passes allocate every time and a piece does too: that piece's calls allocate on every call;
-    //   - only the first pass after the warm-up allocates: something is made lazily on a second pass;
+    //   - only the first pass after the warm-up allocates: something is made once - an object made lazily, or the JIT
+    //     compiling the measured call site there (Mono allocates a temporary string for every string literal it compiles
+    //     in, inlined callees' included: so ApplyActorDepth() read FoundryVisibilityView.NoCamera as a constant, and the
+    //     first measured cameraless pass counted 1 until the refusal reasons became static fields);
     //   - the passes allocate nothing, but do right after a collection: Unity let native objects' managed wrappers go and
     //     made them again, so a collection that falls between a warm-up and its measurement shows up as an allocation.
     // A collection runs before each warm-up, so that none falls inside a measurement by chance.
@@ -360,7 +363,9 @@ namespace Cryptforge.Tests
                 return "reading: the passes allocate on every call - the pieces above that allocate on their second count " +
                        "name the calls";
             if (firstOnly)
-                return "reading: only the first pass after the warm-up allocates - something is made lazily on a second pass";
+                return "reading: only the first pass after the warm-up allocates - something is made once: an object made " +
+                       "lazily, or the JIT compiling the measured call site (a string literal compiled into it, an inlined " +
+                       "callee's included, allocates a temporary string)";
             if (collected)
                 return "reading: the passes allocate nothing in a row, but do right after a collection - Unity made native " +
                        "objects' managed wrappers again; a collection between a warm-up and its measurement shows up so";

@@ -56,18 +56,23 @@ namespace Cryptforge.UI
         internal const float CoverMargin = .1f;
         // About 640 thousand cells, 2.5 MB; the foundry's structures span an estimated 70 by 55 units.
         private const float MaxCoverArea = 200f * 200f;
-        // Why a placement is not gated (GateRefusal): the first of the gate's conditions that failed, one constant each, so
-        // that keeping the answer costs a frame nothing.
-        internal const string NoCamera = "no camera: a placement made without one";
-        internal const string PerspectiveCamera = "a perspective camera";
-        internal const string UnclearedCamera = "a camera that clears nothing, so earlier depth may remain";
-        internal const string TargetWithoutDepth = "a target without a depth buffer";
-        internal const string TurnedCamera = "a camera not looking straight along +z";
-        internal const string GateOff = "the gate turned off (GateByCover)";
-        internal const string CoverAbandoned = "the depth cover abandoned: over MaxCoverArea, or structure depth emitted without it";
-        internal const string NoCover = "no depth cover: the region never began one";
-        internal const string CoverUnfinished = "the depth cover unfinished";
-        internal const string RegionNotPlain = "the region rotated or scaled";
+        // Why a placement is not gated (GateRefusal): the first of the gate's conditions that failed, one string each, so
+        // that keeping the answer costs a frame nothing. Static fields, not constants: a constant string is a literal
+        // (ldstr) in every method that names it, and ApplyActorDepth() is small enough for Mono to inline into its callers;
+        // Mono allocates a temporary string for every literal it compiles in, before finding the interned one, so each new
+        // caller of the cameraless placement allocated once when the JIT compiled it (FoundryActorDepthTests' measured
+        // delegate, the first time it ran). A static field is read with ldsfld, which compiles to a plain load.
+        internal static readonly string NoCamera = "no camera: a placement made without one";
+        internal static readonly string PerspectiveCamera = "a perspective camera";
+        internal static readonly string UnclearedCamera = "a camera that clears nothing, so earlier depth may remain";
+        internal static readonly string TargetWithoutDepth = "a target without a depth buffer";
+        internal static readonly string TurnedCamera = "a camera not looking straight along +z";
+        internal static readonly string GateOff = "the gate turned off (GateByCover)";
+        internal static readonly string CoverAbandoned =
+            "the depth cover abandoned: over MaxCoverArea, or structure depth emitted without it";
+        internal static readonly string NoCover = "no depth cover: the region never began one";
+        internal static readonly string CoverUnfinished = "the depth cover unfinished";
+        internal static readonly string RegionNotPlain = "the region rotated or scaled";
         private readonly Dictionary<Material, Material> _variants = new Dictionary<Material, Material>();
         private readonly List<Transform> _moved = new List<Transform>();
         private readonly List<Vector3> _restPosition = new List<Vector3>();
