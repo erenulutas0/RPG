@@ -80,6 +80,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FootworkRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AutopilotCohortTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryCohortTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryRealismTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
@@ -99,11 +100,15 @@
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
     <!-- The autopilot's cohorts over the batch's seeds (docs/41 step 5), the report's FOUNDRY_COHORTS section. -->
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryCohorts.cs" />
+    <!-- A human's hands on the simulation's autopilot: reaction, aim and attention (research 2026-11-04). -->
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryRealism.cs" />
     <!-- docs/41 step 5's V0.1 gate, the batch report's first section, and its test on a small batch. -->
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryGate.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryGateTests.cs" />
     <!-- The batch report on demand: an explicit test, skipped by a plain dotnet test (docs/41 step 5). -->
     <Compile Include="FoundryBatchReport.cs" />
+    <!-- The difficulty research of 2026-11-04 on demand: realism, why Ilya is safe, the structural candidates. -->
+    <Compile Include="FoundryDifficultyResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />

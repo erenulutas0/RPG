@@ -21,9 +21,11 @@ namespace Cryptforge.Tests
     // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the gate's Vanguard started with the Staff
     // and the Daggers about as long again, and each lever about fifteen seconds more (FoundryBatch.ResearchLevers: the
     // pre-V0.1 floor, the research's twelve on it and V0.1's three taken away; FOUNDRY_LEVERS=0 skips them, 2 runs
-    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers). FOUNDRY_COHORTS=1 adds the
+    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers, 4 the difficulty research's
+    // structural candidates, FoundryBatch.DifficultyLevers). FOUNDRY_COHORTS=1 adds the
     // autopilot's cohorts on the same seeds and floors (FoundryCohorts: four more batches a hero, alone in
-    // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it).
+    // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it;
+    // FOUNDRY_REALISM - typical, slow or a reaction in seconds - plays every cohort with a human's hands, PilotRealism).
     // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
@@ -62,7 +64,8 @@ namespace Cryptforge.Tests
             FoundryBatch.Batch[] weapons = FoundryBatch.RunWeapons(baselines[0], batchSeeds, parallel);
             var leverRuns = new List<(FoundryBatch.Lever, FoundryBatch.Batch[])>();
             if (levers)
-                foreach (FoundryBatch.Lever lever in leverSet == 3 ? FoundryBatch.WardenLevers() :
+                foreach (FoundryBatch.Lever lever in leverSet == 4 ? FoundryBatch.DifficultyLevers() :
+                         leverSet == 3 ? FoundryBatch.WardenLevers() :
                          leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
                     leverRuns.Add((lever, heroes.Select(hero => FoundryBatch.Run(hero, lever.Levers, batchSeeds, parallel)).ToArray()));
 
@@ -86,7 +89,8 @@ namespace Cryptforge.Tests
             var cohortRuns = new List<(Cryptforge.Core.AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)>();
             if (Setting("FOUNDRY_COHORTS", 0) != 0)
             {
-                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines, floors);
+                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines, floors,
+                    PilotRealism.Named(Environment.GetEnvironmentVariable("FOUNDRY_REALISM")));
                 string cohorts = FoundryCohorts.Section(cohortRuns);
                 md.Append(cohorts);
                 File.WriteAllText(Path.Combine(output, "foundry-cohorts.md"), cohorts);
