@@ -210,8 +210,9 @@ namespace Cryptforge.Tests
             // Structural candidates that separate a player who reads the floor from one who does not, each a mark on the
             // floor that lands a telegraph after it goes down, read by a cohort that EscapesMarks as it reads the
             // Warden's. The Warden's echo: after each blow a second mark where the hero stands then, landing this many
-            // seconds later, with the slam's radius and share; 0 is off.
+            // seconds later, with the slam's radius and WardenEchoShare of the hero's maximum health; 0 is off.
             public float WardenEchoTelegraph;
+            public float WardenEchoShare = WardenRule.HeroShare;
             // Slag lobbed from the foundry's furnaces at the hero in the halls and the elite rooms (not at the Warden):
             // every SlagEvery seconds while a wave or the horde stands outside the Warden's fight, a mark of SlagRadius
             // where the hero stands, SlagShare of its maximum health a SlagTelegraph later - range does not help,
@@ -2102,7 +2103,7 @@ namespace Cryptforge.Tests
                         if (_trace != null)
                             Emit($"slam_blow hit={hit} enraged={_slamEnraged} hp={N(_heroHealth.Current)}");
                         if (_levers.WardenEchoTelegraph > 0f && _heroHealth.IsAlive)
-                            Mark(HeroX, HeroY, WardenRule.SlamRadius, _levers.WardenEchoTelegraph, WardenRule.HeroShare,
+                            Mark(HeroX, HeroY, WardenRule.SlamRadius, _levers.WardenEchoTelegraph, _levers.WardenEchoShare,
                                 "Warden echo", boss.X, boss.Y);
                         break;
                 }

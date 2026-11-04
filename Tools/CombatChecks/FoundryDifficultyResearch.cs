@@ -18,7 +18,8 @@ namespace Cryptforge.Tests
     //
     // Environment, all optional: FOUNDRY_SEEDS (200), FOUNDRY_FIRST_SEED (1), FOUNDRY_PARALLEL (the processors), FOUNDRY_OUT
     // (the repository's TestResults), DIFFICULTY_PARTS (comma separated, every part by default: reaction, threats, parts,
-    // why, structural). Each part writes difficulty-<part>.md and the rows of every batch to difficulty-<part>.csv.
+    // fine, why, staff, structural, structural2). Each part writes difficulty-<part>.md and the rows of every batch to
+    // difficulty-<part>.csv. All eight take about 75 minutes on four cores at 200 seeds.
     [Explicit("The difficulty research's batches: run them by name.")]
     public sealed class FoundryDifficultyResearch
     {
@@ -40,7 +41,7 @@ namespace Cryptforge.Tests
             _seeds = FoundryBatch.Seeds(first, count);
             string output = Environment.GetEnvironmentVariable("FOUNDRY_OUT") ?? Path.Combine(RepositoryRoot(), "TestResults");
             Directory.CreateDirectory(output);
-            string parts = Environment.GetEnvironmentVariable("DIFFICULTY_PARTS") ?? "reaction,threats,parts,why,structural";
+            string parts = Environment.GetEnvironmentVariable("DIFFICULTY_PARTS") ?? "reaction,threats,parts,fine,why,staff,structural,structural2";
             foreach (string part in parts.Split(',').Select(p => p.Trim()).Where(p => p.Length > 0))
             {
                 var rows = new List<Row>();
@@ -52,6 +53,9 @@ namespace Cryptforge.Tests
                     case "parts": md = Parts(rows); break;
                     case "why": md = Why(rows); break;
                     case "structural": md = Structural(rows); break;
+                    case "fine": md = Fine(rows); break;
+                    case "staff": md = StaffParts(rows); break;
+                    case "structural2": md = StructuralTuned(rows); break;
                     default: throw new ArgumentException("No such part: " + part);
                 }
                 File.WriteAllText(Path.Combine(output, $"difficulty-{part}.md"), md);
@@ -74,6 +78,26 @@ namespace Cryptforge.Tests
             configs.Add(("typical human: " + Describe(Typical()), Typical(), null));
             configs.Add(("slow human: " + Describe(Slow()), Slow(), null));
             return "## Reaction on every threat\n\n" + Matrix(configs, AutopilotCohort.Cohorts, rows);
+        }
+
+        // (1) The reaction between the sweep's steps where the careful cohort crosses 80-90 %, alone and with the typical
+        // human's aim and attention.
+        private string Fine(List<Row> rows)
+        {
+            // A perturbation too small to matter as skill - a step 0.05 units off - reads how far the floor's chaos alone
+            // moves a cell: the noise floor of every comparison here.
+            var configs = new List<(string, PilotRealism, Action<DescentSimulation.FoundryLevers>)>
+            {
+                ("noise floor: aim error 0.05", new PilotRealism { Name = "aim .05", AimError = .05f }, null)
+            };
+            foreach (float r in new[] { .30f, .40f, .45f })
+                configs.Add(($"reaction {r:0.00} s", new PilotRealism { Name = $"reaction {r:0.00}", MarkReaction = r, GlowReaction = r, FoeReaction = r }, null));
+            foreach (float r in new[] { .15f, .20f, .30f, .35f })
+            {
+                PilotRealism human = PilotRealism.Human(r, .5f, 4f, .4f, .5f);
+                configs.Add(("typical's aim and attention, " + human.Name, human, null));
+            }
+            return "## Reaction, finer\n\n" + Matrix(configs, AutopilotCohort.Cohorts, rows);
         }
 
         // (1) Which threats the reaction matters for: one threat at a time, the others read at once.
@@ -132,10 +156,46 @@ namespace Cryptforge.Tests
             }
 
             md.AppendLine("### The heroes swapped piece by piece").AppendLine();
+            md.Append(VariantTable(Variants(), cohorts, rows));
+            return md.ToString();
+        }
+
+        // (2) The Staff taken apart: its reach, its splash's radius and its splash's share, on Ilya.
+        private string StaffParts(List<Row> rows)
+        {
+            var variants = new List<(string, DescentSimulation.FoundryHero)> { ("Ilya", DescentSimulation.CinderArcanist()) };
+            DescentSimulation.FoundryHero Ilya(string name, float range, float splashRadius, float splashFraction)
+            {
+                DescentSimulation.FoundryHero hero = DescentSimulation.CinderArcanist();
+                DescentSimulation.HeroWeapon staff = DescentSimulation.Staff();
+                staff.Range = range;
+                staff.Pattern = splashRadius > 0f
+                    ? new Cryptforge.Combat.AttackPattern(Cryptforge.Combat.WeaponBehavior.Area, splashRadius, splashFraction)
+                    : new Cryptforge.Combat.AttackPattern(Cryptforge.Combat.WeaponBehavior.DirectHit);
+                hero.Weapon = staff;
+                hero.Name = name;
+                return hero;
+            }
+            foreach ((string name, float range, float radius, float fraction) in new[]
+                     {
+                         ("Ilya, Staff reach 2.1 (the Sword's)", 2.1f, 3.5f, .75f),
+                         ("Ilya, Staff splash radius 2.0 (the Sword's cleave)", 2.4f, 2f, .75f),
+                         ("Ilya, Staff splash share 0.4", 2.4f, 3.5f, .4f),
+                         ("Ilya, Staff without splash", 2.4f, 0f, 0f),
+                         ("Ilya, Staff reach 2.1, splash 2.0", 2.1f, 2f, .75f)
+                     })
+                variants.Add((name, Ilya(name, range, radius, fraction)));
+            return "## The Staff taken apart\n\n" +
+                   VariantTable(variants, new[] { AutopilotCohort.Careful, AutopilotCohort.Standing, AutopilotCohort.Clumsy }, rows);
+        }
+
+        private string VariantTable(IEnumerable<(string, DescentSimulation.FoundryHero)> variants, AutopilotCohort[] cohorts, List<Row> rows)
+        {
+            var md = new StringBuilder();
             md.AppendLine("Each row changes one thing of a hero's definition and plays the same seeds; clears for the careful, standing and clumsy cohorts, frame-perfect / typical human.").AppendLine();
             md.AppendLine("| Hero | Careful | Standing | Clumsy | Mean health lost (careful, frame-perfect / typical) |");
             md.AppendLine("|---|---|---|---|---|");
-            foreach ((string name, DescentSimulation.FoundryHero hero) in Variants())
+            foreach ((string name, DescentSimulation.FoundryHero hero) in variants)
             {
                 var cells = new List<string>();
                 string taken = "";
@@ -168,6 +228,27 @@ namespace Cryptforge.Tests
                 var configs = options.Select(o => (o.Name, realism, o.Apply)).ToList();
                 md.AppendLine($"### {(realism == null ? "Frame-perfect" : realism.Name + ": " + Describe(realism))}").AppendLine();
                 md.Append(Matrix(configs, AutopilotCohort.Cohorts, rows));
+            }
+            return md.ToString();
+        }
+
+        // (3) The candidates the first round found worth tuning: an echo a human can read (the slam's own telegraph) at
+        // half the blow, slag less often, and the two together.
+        private string StructuralTuned(List<Row> rows)
+        {
+            var options = new List<(string, Action<DescentSimulation.FoundryLevers>)>
+            {
+                ("shipped", null),
+                ("Warden echo 1.1 s, 10 %", l => { l.WardenEchoTelegraph = 1.1f; l.WardenEchoShare = .1f; }),
+                ("Warden echo 1.1 s, 20 %", l => l.WardenEchoTelegraph = 1.1f),
+                ("slag every 8 s", l => l.SlagEvery = 8f),
+                ("slag every 8 s + echo 1.1 s, 10 %", l => { l.SlagEvery = 8f; l.WardenEchoTelegraph = 1.1f; l.WardenEchoShare = .1f; }),
+            };
+            var md = new StringBuilder("## Structural candidates, tuned\n\n");
+            foreach (PilotRealism realism in new[] { null, Typical(), Slow() })
+            {
+                md.AppendLine($"### {(realism == null ? "Frame-perfect" : realism.Name + ": " + Describe(realism))}").AppendLine();
+                md.Append(Matrix(options.Select(o => (o.Item1, realism, o.Item2)).ToList(), AutopilotCohort.Cohorts, rows));
             }
             return md.ToString();
         }
