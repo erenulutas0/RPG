@@ -57,7 +57,10 @@ namespace Cryptforge.Tests
                 Make("Evolved sweep 2.5 + Warden x1.3", l => { l.SwordSweepRadius = 2.5f; l.SwordSweepAtEvolution = true; l.SwordWardenDamage = 1.3f; }),
                 // What the Daggers would need (their values, so not candidates for the Sword's question).
                 Make("Daggers: reach 1.8 -> 2.2", l => l.DaggersReach = 2.2f),
-                Make("Daggers: reach 1.8 -> 2.5", l => l.DaggersReach = 2.5f)
+                Make("Daggers: reach 1.8 -> 2.5", l => l.DaggersReach = 2.5f),
+                Make("Warden x1.4", l => l.SwordWardenDamage = 1.4f),
+                Make("Warden x1.5 + Daggers reach 2.5", l => { l.SwordWardenDamage = 1.5f; l.DaggersReach = 2.5f; }),
+                Make("Warden x1.5 + Daggers reach 2.5, Warden x2", l => { l.SwordWardenDamage = 1.5f; l.DaggersReach = 2.5f; l.DaggersWardenDamage = 2f; })
             };
         }
 
