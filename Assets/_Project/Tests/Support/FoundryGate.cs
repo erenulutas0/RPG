@@ -221,7 +221,7 @@ namespace Cryptforge.Tests
                     b => (CostText(b), null),
                     e => ("the pacing file keeps no cost", null), Reported),
                 PerHero(gate, Clears, "none set (docs/41's 2026-11-02 status lists the Vanguard's deaths as open against the gate)",
-                    "Where: the kind of room the hero died in, the walk to it included and the exit after the Warden apart (an Editor file of another floor: its room numbers).",
+                    "Where: the kind of room the hero died in, the walk to it included, and apart the wait for the gate in the cleared room before it and the exit after the Warden (an Editor file of another floor: its room numbers).",
                     b => (ClearsText(b), null),
                     e => (EditorClearsText(e, e.OtherFloor == null ? v01.Runs.FirstOrDefault()?.Kinds : null), null), Reported),
                 PerHero(gate, Overrun, $"none set: the owner's call how many clears may end past the overrun at {overrun} s (docs/41's 2026-11-03 status)",
@@ -484,7 +484,7 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryResult[] reached = Reached(b);
             if (reached.Length == 0)
                 return "never reached the Warden";
-            int died = reached.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f);
+            int died = reached.Count(r => r.DiedAtWarden);
             double Mean(Func<DescentSimulation.FoundryResult, float> part) => reached.Average(part);
             return $"{F(Mean(r => r.TakenFromWarden + r.TakenFromSlams + r.FightTakenFromHorde + r.FightTakenFromPit))} health lost of " +
                    $"{F(Median(reached.Select(r => r.HeroMaximumAtGate)))} (Warden {F(Mean(r => r.TakenFromWarden))}, slams {F(Mean(r => r.TakenFromSlams))}, " +
@@ -501,7 +501,9 @@ namespace Cryptforge.Tests
         }
 
         private static string DeathPlace(DescentSimulation.FoundryResult r) =>
-            r.DeathPhase == "exit" ? "exit" : RoomPlace(r.Kinds, r.DeathRoom);
+            r.DeathPhase == "exit" ? "exit"
+            : r.DeathPhase == DescentSimulation.GateWaitPhase ? "the gate's wait"
+            : RoomPlace(r.Kinds, r.DeathRoom);
 
         // A room by its kind, 1-based: "halls", "elites", "Warden".
         private static string RoomPlace(RoomKind[] kinds, int room)

@@ -61,6 +61,8 @@ namespace Cryptforge.Tests
         // this much more, or a hit taken this recently.
         public const float EngagedMargin = 1f;
         public const float EngagedAfterHitSeconds = 1.5f;
+        // FoundryResult.DeathPhase of a death while the cleared room before the gate holds for the floor's clock.
+        public const string GateWaitPhase = "gate wait";
         // The 30-second buckets of docs/40's time_bucket_summary.
         public const float FoundryBucketSeconds = 30f;
 
@@ -336,6 +338,10 @@ namespace Cryptforge.Tests
             // Where a death happened: its room (1-based), the phase (walk, wave, forge, boss, exit) and what dealt the blow.
             public int DeathRoom = -1;
             public string DeathPhase;
+            // Whether the run died at the Warden: after it walked out (the reveal included), before the exit - a hero felled
+            // by the eruption that fells the Warden too among them, which the boss's wave clearing records as BossSeconds.
+            public bool DiedAtWarden =>
+                Outcome == FoundryOutcome.Died && LevelAtGate >= 0 && DeathPhase == "boss";
             public string Killer;
             // The first strike the hero landed, in active seconds.
             public float FirstStrikeSeconds = -1f;
@@ -651,6 +657,9 @@ namespace Cryptforge.Tests
             // The checkpoint's Descend waits the advance delay before the next floor's first room; the districts the run's
             // earlier floors opened (EncounterController._hallsOnEarlierFloors).
             private bool _descending;
+            // The cleared room before the gate holding for the floor's clock (FoundryLevers.GateNotBeforeSeconds), for the
+            // death report: a death then is the gate's wait's, not its room's.
+            private bool _gateHeld;
             private int _hallsOnEarlierFloors;
             private bool _roomSiteOpen;
             private float _siteX;
@@ -990,6 +999,7 @@ namespace Cryptforge.Tests
                     _horde.Seconds < _levers.GateNotBeforeSeconds)
                 {
                     _result.GateWaitSeconds += Step;
+                    _gateHeld = true;
                     return;
                 }
                 AdvanceFloor();
@@ -997,6 +1007,7 @@ namespace Cryptforge.Tests
 
             private void AdvanceFloor()
             {
+                _gateHeld = false;
                 if (RepeatsHall())
                     return;
 
@@ -1685,6 +1696,8 @@ namespace Cryptforge.Tests
                     _result.DeathPhase = "descent";
                 else if (_nonCombat)
                     _result.DeathPhase = "forge";
+                else if (_gateHeld)
+                    _result.DeathPhase = GateWaitPhase;
                 else if (_gateBossWave && _waveAlive > 0)
                     _result.DeathPhase = "boss";
                 else if (_waveAlive > 0)

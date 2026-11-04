@@ -105,8 +105,7 @@ namespace Cryptforge.Tests
             {
                 DescentSimulation.FoundryResult[] reached = runs.Where(r => r.LevelAtGate >= 0).ToArray();
                 DescentSimulation.FoundryResult[] felled = reached.Where(r => r.WardenSeconds >= 0f).ToArray();
-                DescentSimulation.FoundryResult[] diedThere = reached
-                    .Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.DeathPhase == "boss").ToArray();
+                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.DiedAtWarden).ToArray();
                 int together = diedThere.Count(r => r.BossSeconds >= 0f);
                 double Mean(Func<DescentSimulation.FoundryResult, float> value) =>
                     reached.Length == 0 ? double.NaN : reached.Average(value);

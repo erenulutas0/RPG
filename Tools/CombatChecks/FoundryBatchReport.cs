@@ -347,7 +347,7 @@ namespace Cryptforge.Tests
                                   $"{S(allClears.Select(r => r.GateWaitSeconds))} | {S(allClears.Select(r => r.BossSeconds))} | {S(allClears.Select(r => r.ExitSeconds))} | " +
                                   $"{S(all.Runs.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.LevelAtGate))} | {S(all.Runs.Select(r => (float)r.Level))} | " +
                                   $"{S(all.Runs.Select(r => r.Uptime), "0.00")} | {S(all.Runs.Select(r => r.Engaged), "0.00")} | " +
-                                  $"{all.Runs.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f && r.LevelAtGate >= 0)} of " +
+                                  $"{all.Runs.Count(r => r.DiedAtWarden)} of " +
                                   $"{all.Runs.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died)} deaths at the Warden |");
                 }
 
