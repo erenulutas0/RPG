@@ -85,6 +85,42 @@ namespace Cryptforge.Tests
                 "The blow lands a telegraph after its mark.");
         }
 
+        // An enrage while the hammer is in the floor neither cuts the recovery short nor stretches it, and the first enraged
+        // mark still comes SlamEveryEnraged less the telegraph after the blow (review 2026-11-04).
+        [Test] public void AnEnrageDuringTheRecoveryKeepsItAndBringsOnlyTheNextMarkSooner()
+        {
+            var clock=new WardenSlamClock();
+            Assert.That(clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false),Is.EqualTo(WardenSlamClock.Step.Marked));
+            Assert.That(clock.Advance(WardenRule.Telegraph+.01f,false),Is.EqualTo(WardenSlamClock.Step.Slammed));
+            Assert.That(clock.Advance(.5f,false),Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.Advance(.5f,true),Is.EqualTo(WardenSlamClock.Step.None),"Enraged a second after the blow.");
+            Assert.That(clock.HoldsWeapon,Is.True,"Still in the floor.");
+            Assert.That(clock.Advance(WardenRule.RecoverySeconds-1f+.01f,true),Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.HoldsWeapon,Is.False,"Out of the floor on time.");
+            Assert.That(clock.Advance(WardenRule.SlamEveryEnraged-WardenRule.Telegraph-WardenRule.RecoverySeconds-.02f,true),
+                Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.Advance(.02f,true),Is.EqualTo(WardenSlamClock.Step.Marked),"The enraged mark, on the enraged pace from the blow.");
+        }
+
+        // A Warden felled under its mark: WardenSlamService resets the clock as the gate boss goes, so no mark stays down,
+        // nothing reads the weapon held, and the next gate boss (floor 2's) starts free (review 2026-11-04).
+        [Test] public void AResetUnderAMarkOrInTheRecoveryLeavesNothingHeld()
+        {
+            var clock=new WardenSlamClock();
+            clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false);
+            Assert.That(clock.IsMarked,Is.True);
+            clock.Reset();
+            Assert.That(clock.IsMarked,Is.False);Assert.That(clock.HoldsWeapon,Is.False);Assert.That(clock.TelegraphProgress,Is.Zero);
+            clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false);
+            clock.Advance(WardenRule.Telegraph+.01f,false);
+            Assert.That(clock.HoldsWeapon,Is.True,"In the recovery.");
+            clock.Reset();
+            Assert.That(clock.HoldsWeapon,Is.False);
+            Assert.That(clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph-.01f,false),Is.EqualTo(WardenSlamClock.Step.None),
+                "The next fight's first mark comes on its own pace.");
+            Assert.That(clock.HoldsWeapon,Is.False);
+        }
+
         // Frames of 1/60 s from now to the blow, in seconds; -1 if none lands within ten seconds.
         private static float SecondsToTheBlow(WardenSlamClock clock,bool enraged)
         {

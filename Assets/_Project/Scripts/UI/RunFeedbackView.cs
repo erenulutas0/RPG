@@ -20,7 +20,7 @@ namespace Cryptforge.UI
     // Everything is made up front - rings and sparks as LineRenderers on the Sprites/Default material the effects share
     // (SharedSpriteMaterial), and one overlay on the hero's body - and an effect only moves, recolours and re-widens them;
     // when every slot is busy the oldest gives way. The effects follow the hero's feet, raised on the foundry onto the
-    // surface he stands on (FoundrySurface), the rings at the floor's order like his contact shadow and ability ring, the
+    // surface it stands on (FoundrySurface), the rings at the floor's order like its contact shadow and ability ring, the
     // sparks over the combatants like the hit sparks. It reads the run and the upgrade service and writes nothing to either.
     //
     // Given a RunFeedbackArtSet, the same slots are sprites cut from its painted sheet instead (one texture, so every ring

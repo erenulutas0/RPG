@@ -15,7 +15,7 @@ namespace Cryptforge.Tests
     // own measurement measured where a file of it exists, a status and the basis of the status.
     //
     // V0.1 is one character, the Vanguard (docs/27 decision 12), so a row's status reads the Vanguard's batch; Ilya's
-    // numbers stand beside it and the basis says where hers, or an Editor file of the simulated floor, read otherwise.
+    // numbers stand beside it and the basis says where Ilya's, or an Editor file of the simulated floor, read otherwise.
     // Nothing here is estimated: a criterion nothing measures is "not measured" with what would measure it, and a number
     // the plan asks for without a target (docs/41 step 4's "reported, not targeted") is "reported". Pure: the batch report
     // (Tools/CombatChecks/FoundryBatchReport.cs) reads the Editor's files and the floor's asset and hands them in.
