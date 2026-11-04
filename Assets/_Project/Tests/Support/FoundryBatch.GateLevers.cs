@@ -62,6 +62,8 @@ namespace Cryptforge.Tests
         };
 
         // The lever sets for the owner (docs/cloud/2026-11-04-v01-levers.md), each against the shipped floor.
+        // The lever sets for the owner (docs/cloud/2026-11-04-v01-levers.md), each against the shipped floor: the first
+        // round, then the second that tuned its best two.
         public static Lever[] GateLeverSets() => new[]
         {
             OnShipped("Shipped: surges 2, elites +1, gate 3:30", l => { }),
@@ -72,7 +74,14 @@ namespace Cryptforge.Tests
             OnShipped("Halls held 30 s, surges 3, gate 2:45, horde XP 0.25", l => { l.HallHoldSeconds = 30f; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; l.HordeExperienceShare = .25f; }),
             OnShipped("+1 hall, halls held 30 s, gate 2:45", l => { l.ExtraHalls = 1; l.HallHoldSeconds = 30f; l.GateNotBeforeSeconds = 165f; }),
             OnShipped("+2 halls, gate on 450 kills (no time)", l => { l.ExtraHalls = 2; l.GateNotBeforeSeconds = 0f; l.GateKillQuota = 450; }),
-            OnShipped("+3 halls, gate 3:00", l => { l.ExtraHalls = 3; l.GateNotBeforeSeconds = 180f; })
+            OnShipped("+3 halls, gate 3:00", l => { l.ExtraHalls = 3; l.GateNotBeforeSeconds = 180f; }),
+            // The second round.
+            OnShipped("R2 +2 halls, surges 2, gate 2:45, horde XP 0.25", l => { l.ExtraHalls = 2; l.GateNotBeforeSeconds = 165f; l.HordeExperienceShare = .25f; }),
+            OnShipped("R2 +2 halls, surges 3, gate 2:45, horde XP 0.3", l => { l.ExtraHalls = 2; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; l.HordeExperienceShare = .3f; }),
+            OnShipped("R2 +2 halls, surges 3, gate 2:45, horde XP 0.25, siege of hall 1", l => { l.ExtraHalls = 2; l.HallSurges = 3; l.GateNotBeforeSeconds = 165f; l.HordeExperienceShare = .25f; l.GateSiegeHall = 1; }),
+            OnShipped("R2 Halls held 30 s, surges 3, gate 2:30, horde XP 0.25", l => { l.HallHoldSeconds = 30f; l.HallSurges = 3; l.GateNotBeforeSeconds = 150f; l.HordeExperienceShare = .25f; }),
+            OnShipped("R2 Halls held 30 s, surges 2, gate 2:30, horde XP 0.25", l => { l.HallHoldSeconds = 30f; l.GateNotBeforeSeconds = 150f; l.HordeExperienceShare = .25f; }),
+            OnShipped("R2 Halls held 30 s, surges 3, gate 2:30, horde XP 0.25, siege of hall 1", l => { l.HallHoldSeconds = 30f; l.HallSurges = 3; l.GateNotBeforeSeconds = 150f; l.HordeExperienceShare = .25f; l.GateSiegeHall = 1; })
         };
 
         // Only the levers whose names hold one of FOUNDRY_LEVER_FILTER's comma-separated words, the shipped row kept.
