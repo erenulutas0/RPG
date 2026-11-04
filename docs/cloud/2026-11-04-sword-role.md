@@ -172,3 +172,32 @@ weapon). `SWORD_LEVERS=0,18,26` picks rows of `FoundryBatch.SwordLevers()` by in
 second seed set. About 1 m 50 s a lever on four cores (12 batches of 200 floors). The batch report runs the same list
 as levers with `FOUNDRY_LEVERS=4`. The baseline above: `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1
 FOUNDRY_FLOORS=2` on `TheFoundryFloorOverASeedBatch`.
+
+## Independent replication (a second run of the same task, 2026-11-04 15:10 UTC)
+
+A second run of this task, started before it saw this branch, wrote its own levers from scratch and ran 35 candidates.
+Its shape: a hero-centred arc sweep that replaces the cleave, cleave on kill, a stagger standing for knockback, an
+evolution pulse bonus, and damage by horde / nodes / Warden, on the Sword and on the Daggers. It used seeds 1-200 a
+hero with every cohort, and the Vanguard's three starts in both the careful and the clumsy pilot's hands. Its code is
+not on this branch, because the two implementations overlap file for file. The figures below are what it adds to the
+sections above, and every conclusion above held:
+
+- **Warden x1.4 / x1.5 on fresh seeds 201-600** (careful starts): Sword 25.3 / 26.9 against the Staff's 22.2 / 21.9 on
+  the Warden, leads of 14 % / 23 %; the Warden's P50 59 / 57 s (Vanguard) and 52 / 51 s (Ilya). x1.3 falls short (23.2
+  to 22.6 on seeds 1-200). On seeds 1-200 the Vanguard's cohorts with x1.5: careful 199, standing 139, first-card 196,
+  clumsy 80, auto-farmer 9 (shipped 199 / 130 / 196 / 74 / 6). Ilya's standing cohort rises 156 -> 170: it picks up the
+  Sword.
+- **Under the clumsy pilot** (the old pilot, which main's gate report reads), x1.3 already gives the Sword the Warden
+  (33.1 to the Staff's 29.7), and x1.4 / x1.5 give 35.4 / 37.5. The Sword's Warden role holds under both pilots.
+- **The smallest measured three-role set**: Sword Warden x1.4 with Daggers reach 2.4 and Daggers Warden x1.3 (Sword
+  10.5 / 21.3, Staff 27.5 / 19.1, Daggers 7.2 / 28.6 horde / Warden a second; roles met, careful). Daggers reach 2.4
+  alone gives the Daggers the Warden (24.1 to the Staff's 20.4), but then no Sword value fits between them: the Sword
+  would need more than 22.4 on the Warden to pass the Staff and less than 21.9 to stay under the Daggers. The Warden's
+  fight falls to 43 / 39 s, and with the Warden's share raised from 8.5 to 10 it is still 44 / 41 s, so the share would
+  need about 11 or more. **Under the clumsy pilot this set fails**: the Sword's horde lead over the longer-reach Daggers
+  is 1.08 (9.5 against 8.8), so the Sword reads "none".
+- **Survival levers** (Vanguard clumsy / standing clears, shipped 74 / 130): a 360° sweep of 2.5 units at 60 % replacing
+  the cleave 127 / 172; with Warden x1.5, 149 / 180; a 1.0 s stagger 88 / 163 (Ilya's auto-farmer 19 -> 37); cleave on
+  kill at 100 % for up to 3 hops 109 / 176. A 120-180° sweep at 2.5 units *lowers* the Sword's horde damage (8.4-9.4
+  against the cleave's 10.3), because the careful pilot's enemies stand off the hero. The evolution-tied levers (a sweep
+  from the evolution, a pulse share +0.6) move nothing: the Sword evolves in 36 % of the Vanguard's runs, late.
