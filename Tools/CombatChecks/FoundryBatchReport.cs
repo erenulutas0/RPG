@@ -22,7 +22,8 @@ namespace Cryptforge.Tests
     // and the Daggers about as long again, and each lever about fifteen seconds more (FoundryBatch.ResearchLevers: the
     // pre-V0.1 floor, the research's twelve on it and V0.1's three taken away; FOUNDRY_LEVERS=0 skips them, 2 runs
     // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers). FOUNDRY_COHORTS=1 adds the
-    // autopilot's cohorts on the same seeds (FoundryCohorts: four more batches a hero, alone in foundry-cohorts.md too).
+    // autopilot's cohorts on the same seeds and floors (FoundryCohorts: four more batches a hero, alone in
+    // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it).
     // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
@@ -85,10 +86,13 @@ namespace Cryptforge.Tests
             var cohortRuns = new List<(Cryptforge.Core.AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)>();
             if (Setting("FOUNDRY_COHORTS", 0) != 0)
             {
-                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines);
+                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines, floors);
                 string cohorts = FoundryCohorts.Section(cohortRuns);
                 md.Append(cohorts);
                 File.WriteAllText(Path.Combine(output, "foundry-cohorts.md"), cohorts);
+                if (floors >= 2)
+                    File.WriteAllText(Path.Combine(output, "foundry-cohorts-floor2.csv"),
+                        FoundryBatch.FloorTwoCsv(cohortRuns.SelectMany(c => c.Batches)));
             }
 
             File.WriteAllText(Path.Combine(output, "foundry-batch.md"), md.ToString());

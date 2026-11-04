@@ -11,8 +11,9 @@ namespace Cryptforge.Tests
     // The autopilot's cohorts over a seed batch (docs/41 step 5; docs/40 section 9.4, whose cohorts are run on the same
     // seeds so that a policy is compared with a policy and not with luck): the shipped floor 1 played by each cohort
     // (AutopilotCohort) for each hero, read as one table - clears, deaths, the floor's length, the Warden, engagement,
-    // the level at the gate and the clock - and a second of what the cohort's steer did. FoundryBatchReport writes it on
-    // demand (FOUNDRY_COHORTS=1). Pure: it only runs DescentSimulation.RunFoundry and counts.
+    // the level at the gate and the clock - and a second of what the cohort's steer did; with the climb's floor 2 on
+    // (FoundryLevers.Floors = 2), a third of floor 2 after each cohort's floor-1 clears. FoundryBatchReport writes it on
+    // demand (FOUNDRY_COHORTS=1, FOUNDRY_FLOORS=2). Pure: it only runs DescentSimulation.RunFoundry and counts.
     internal static class FoundryCohorts
     {
         // Where each cohort comes from, for the table's legend.
@@ -31,18 +32,21 @@ namespace Cryptforge.Tests
             return "-";
         }
 
-        public static DescentSimulation.FoundryLevers Levers(AutopilotCohort cohort)
+        // The shipped floor in the cohort's hands, down as many floors of the climb as asked (FoundryLevers.Floors).
+        public static DescentSimulation.FoundryLevers Levers(AutopilotCohort cohort, int floors = 1)
         {
             DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("cohort " + cohort.Name);
             levers.Cohort = cohort;
+            levers.Floors = floors;
             return levers;
         }
 
-        // Every cohort's batch for each hero, in AutopilotCohort.Cohorts' order. The careful cohort is the shipped floor's
-        // own batch where one is given for the same seeds (careful, in the heroes' order).
+        // Every cohort's batch for each hero, in AutopilotCohort.Cohorts' order, each down the same floors. The careful
+        // cohort is the shipped floor's own batch where one is given for the same seeds and floors (careful, in the heroes'
+        // order).
         public static List<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> Run(
             IReadOnlyList<DescentSimulation.FoundryHero> heroes, int[] seeds, int parallelism,
-            IReadOnlyList<FoundryBatch.Batch> careful = null)
+            IReadOnlyList<FoundryBatch.Batch> careful = null, int floors = 1)
         {
             var cohorts = new List<(AutopilotCohort, FoundryBatch.Batch[])>();
             foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
@@ -53,9 +57,9 @@ namespace Cryptforge.Tests
                     FoundryBatch.Batch shipped = careful != null && h < careful.Count ? careful[h] : null;
                     batches[h] = cohort == AutopilotCohort.Careful && shipped != null && shipped.Hero.Id == heroes[h].Id &&
                                  shipped.Levers.Name == FoundryBatch.Shipped().Name && shipped.Levers.Cohort == AutopilotCohort.Careful &&
-                                 shipped.Runs.Select(r => r.Seed).SequenceEqual(seeds)
+                                 shipped.Levers.Floors == floors && shipped.Runs.Select(r => r.Seed).SequenceEqual(seeds)
                         ? shipped
-                        : FoundryBatch.Run(heroes[h], Levers(cohort), seeds, parallelism);
+                        : FoundryBatch.Run(heroes[h], Levers(cohort, floors), seeds, parallelism);
                 }
                 cohorts.Add((cohort, batches));
             }
@@ -118,8 +122,44 @@ namespace Cryptforge.Tests
                                   $"{Mean(b.Runs.Select(r => r.TakenFromSlams))} / {Mean(b.Runs.Select(r => r.TakenFromPit))} |");
                 }
             md.AppendLine();
+            if (cohorts.Any(c => c.Batches.Any(b => b.Levers.Floors >= 2)))
+                FloorTwo(md, cohorts, careful);
             return md.ToString();
         }
+
+        // Floor 2 (Quicksilver Vaults) after each cohort's floor-1 clears, as FoundryBatch.FloorTwoReport reads the shipped
+        // batch: who went down and with what health, who cleared it and both floors, where and by what blow the rest fell,
+        // floor 2's Warden, and the floor-2 clears' length and level at the gate.
+        private static void FloorTwo(StringBuilder md, IReadOnlyList<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> cohorts,
+            FoundryBatch.Batch[] careful)
+        {
+            md.AppendLine("### Floor 2 (Quicksilver Vaults) after a floor-1 clear").AppendLine();
+            md.AppendLine("Every run that cleared floor 1 answers the checkpoint with Descend and plays floor 2 in the same hands, with the health, level, weapons and tomes floor 1 left it " +
+                          "(FoundryBatch.FloorTwoReport has the shipped pilot's floor 2 in full). Went down: floor 1's clears. Health going down: what floor 1 left the hero, as a share of its maximum (P50). " +
+                          "Cleared floor 2: of those who went down; both floors: of all the seeds. Deaths: floor 2's room (1-3 its halls, 4 the Deep Forge, 5 the Sentry Hall, the boss the Warden's Vault) and the blow. " +
+                          "Warden: floor 2's Warden's own fight, from walking out of the gate to its fall, over the fights in which it fell. Floor 2: active seconds from the checkpoint, its clears. " +
+                          "Paired with careful: seeds on which both / only the careful pilot / only this cohort cleared both floors.").AppendLine();
+            md.AppendLine("| Cohort | Hero | Went down | Health going down P50 | Cleared floor 2 (of those) | Cleared both (of all) | Deaths on floor 2: where, killing blow | Floor 2 Warden fight P50 / P90 | Floor 2 cleared P50 | Level at floor 2's gate P50 | Paired with careful, both floors |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
+            foreach ((AutopilotCohort cohort, FoundryBatch.Batch[] batches) in cohorts)
+                for (int h = 0; h < batches.Length; h++)
+                {
+                    FoundryBatch.Batch b = batches[h];
+                    DescentSimulation.FoundryResult[] down = b.Runs.Where(r => r.NextFloor != null).ToArray();
+                    FoundryBatch.Batch two = FoundryBatch.FloorTwo(b);
+                    DescentSimulation.FoundryResult[] felled = two.Runs.Where(r => r.WardenSeconds >= 0f).ToArray();
+                    DescentSimulation.FoundryResult[] gated = two.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
+                    md.AppendLine($"| {cohort.Name} | {b.Hero.Name} | {down.Length} | " +
+                                  $"{P(down.Select(r => 100f * r.HeroHealth / Math.Max(1f, r.HeroMaximum)), 50)}% | " +
+                                  $"{two.ClearedCount} ({Pct(two.ClearedCount, two.Runs.Length)}) | {two.ClearedCount} ({Pct(two.ClearedCount, b.Runs.Length)}) | " +
+                                  $"{Deaths(two)} | {P(felled.Select(r => r.WardenSeconds), 50)} / {P(felled.Select(r => r.WardenSeconds), 90)} | " +
+                                  $"{P(two.Cleared.Select(r => r.FloorSeconds), 50)} | {P(gated.Select(r => (float)r.LevelAtGate), 50)} | " +
+                                  $"{(cohort == AutopilotCohort.Careful || careful == null || h >= careful.Length ? "-" : Paired(careful[h], b, BothFloors))} |");
+                }
+            md.AppendLine();
+        }
+
+        private static bool BothFloors(DescentSimulation.FoundryResult run) => run.Cleared && run.NextFloor != null && run.NextFloor.Cleared;
 
         // "126: room 3 x72, room 2 x29, boss x20; pit 36, horde Grunt 33", as docs/41's tables read; "-" for none.
         private static string Deaths(FoundryBatch.Batch b)
@@ -135,18 +175,21 @@ namespace Cryptforge.Tests
         }
 
         private static string Room(DescentSimulation.FoundryResult run) =>
-            run.DeathRoom >= 1 && run.DeathRoom <= run.Kinds.Length && run.Kinds[run.DeathRoom - 1] == RoomKind.Boss
-                ? "boss"
-                : "room " + run.DeathRoom.ToString(CultureInfo.InvariantCulture);
+            run.DeathRoom < 1 ? "the descent"
+            : run.DeathRoom <= run.Kinds.Length && run.Kinds[run.DeathRoom - 1] == RoomKind.Boss ? "boss"
+            : "room " + run.DeathRoom.ToString(CultureInfo.InvariantCulture);
 
-        private static string Paired(FoundryBatch.Batch careful, FoundryBatch.Batch other)
+        // Seed for seed, the seeds both batches won (by default, cleared the floor), only the careful one, only the other.
+        private static string Paired(FoundryBatch.Batch careful, FoundryBatch.Batch other,
+            Func<DescentSimulation.FoundryResult, bool> won = null)
         {
+            won = won ?? (run => run.Cleared);
             int both = 0, carefulOnly = 0, otherOnly = 0;
             for (int i = 0; i < careful.Runs.Length && i < other.Runs.Length; i++)
             {
                 if (careful.Runs[i].Seed != other.Runs[i].Seed)
                     return "-";
-                bool a = careful.Runs[i].Cleared, b = other.Runs[i].Cleared;
+                bool a = won(careful.Runs[i]), b = won(other.Runs[i]);
                 if (a && b)
                     both++;
                 else if (a)

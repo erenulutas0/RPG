@@ -15,12 +15,13 @@ namespace Cryptforge.Tests
     // FOUNDRY_COHORTS=1).
     public sealed class FoundryCohortTests
     {
-        // Two of the Editor measurement's seeds, as FoundrySimulationTests reads them; the cohorts' batches play the first.
+        // Two of the Editor measurement's seeds, as FoundrySimulationTests reads them; the cohorts' batches play the first,
+        // down to floor 2 after a floor-1 clear.
         private static readonly int[] Seeds = { 11, 33 };
         private List<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> _cohorts;
 
         [OneTimeSetUp]
-        public void RunTheCohorts() => _cohorts = FoundryCohorts.Run(Heroes(), new[] { Seeds[0] }, 2);
+        public void RunTheCohorts() => _cohorts = FoundryCohorts.Run(Heroes(), new[] { Seeds[0] }, 2, floors: 2);
 
         private static DescentSimulation.FoundryHero[] Heroes() =>
             new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() };
@@ -37,8 +38,9 @@ namespace Cryptforge.Tests
             new AutopilotCohort("careful less " + habit, AutopilotCohort.Habit.All & ~habit);
 
         // With no lever the careful pilot plays; a careful cohort built anew - the pilot reads the habits, not the name -
-        // plays the very same floor. When the cohorts came in, the default played seeds 1-200 of both heroes exactly as
-        // the careful pilot of 7946396 had, every column of the batch's CSV alike.
+        // plays the very same floor, and so does the cohorts' batch, which went on down to floor 2 after it. When the
+        // cohorts came in, the default played seeds 1-200 of both heroes exactly as the careful pilot of 7946396 had, every
+        // column of the batch's CSV alike.
         [Test]
         public void WithNoLeverTheCarefulPilotPlays()
         {
@@ -195,6 +197,44 @@ namespace Cryptforge.Tests
                     : Does.Match(@"^\d+ / \d+ / \d+$");
                 Assert.That(cells[11], paired, $"{cohort.Name} {hero.Name}: paired with careful");
             }
+        }
+
+        // With floor 2 on (FoundryLevers.Floors), every cohort goes down after a floor-1 clear, and only then, and plays
+        // floor 2 in the same hands - the careful pilot kites there, a cohort that does not kite no more than on floor 1,
+        // one without its ability never fires it - and the section reads floor 2 a row a cohort and hero.
+        [Test]
+        public void EachCohortGoesDownToFloorTwoInItsOwnHands()
+        {
+            DescentSimulation.FoundryHero[] heroes = Heroes();
+            var wentDown = new HashSet<AutopilotCohort>();
+            foreach ((AutopilotCohort cohort, FoundryBatch.Batch[] batches) in _cohorts)
+            foreach (FoundryBatch.Batch b in batches)
+            foreach (DescentSimulation.FoundryResult run in b.Runs)
+            {
+                string where = $"{cohort.Name} {b.Hero.Name} seed {run.Seed}";
+                Assert.That(run.NextFloor != null, Is.EqualTo(run.Cleared), where + ": down after a clear, and only then");
+                DescentSimulation.FoundryResult two = run.NextFloor;
+                if (two == null)
+                    continue;
+                wentDown.Add(cohort);
+                Assert.That(two.Floor, Is.EqualTo(2), where);
+                if (cohort == AutopilotCohort.Careful)
+                    Assert.That(two.KiteSeconds, Is.GreaterThan(0f), where + ": the careful pilot kites on floor 2");
+                if (!cohort.Kites)
+                    Assert.That(two.KiteSeconds, Is.Zero, where);
+                if (!cohort.UsesTheAbility)
+                    Assert.That(two.AbilityUses, Is.Zero, where);
+            }
+            Assert.That(wentDown.Contains(AutopilotCohort.Careful), Is.True, "the careful pilot went down on this seed");
+            Assert.That(wentDown.Contains(AutopilotCohort.Standing), Is.True, "the standing cohort went down on this seed");
+
+            string section = FoundryCohorts.Section(_cohorts);
+            int floorTwo = section.IndexOf("### Floor 2", StringComparison.Ordinal);
+            Assert.That(floorTwo, Is.GreaterThan(0), "a floor-2 table");
+            string[] rows = section.Substring(floorTwo).Split('\n')
+                .Where(line => line.StartsWith("| ", StringComparison.Ordinal) && !line.StartsWith("| Cohort ", StringComparison.Ordinal))
+                .ToArray();
+            Assert.That(rows.Length, Is.EqualTo(AutopilotCohort.Cohorts.Count * heroes.Length), "a row a cohort and hero");
         }
 
         // The trace's event name: "12.345 upgrade_selected ..." is upgrade_selected.
