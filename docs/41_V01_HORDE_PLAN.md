@@ -431,6 +431,12 @@ Taken, on the 2026-11-04 cloud research (docs/cloud/) and its local verification
   FOUNDRY_LEVERS=7), and the Staff's splash is not cut: at 0.4 it takes the clumsy Ilya from 94 to 21 clears of 200,
   and it moves the Staff the Sword's share was measured against.
 
+Also taken: **the Warden room's chest stays a heal** - since the extra elite moved the Warden's room from index 5 to 6,
+ChestRule's room-by-room rule makes its chest a heal (a quarter of the hero's health) where it was gold; it opens after
+the Warden falls, so it heals the hero for floor 2, the floor human hands lose most on. **The sprite atlas waits** for a
+frame-time reading on the S23 (Sprite Packer V2 is a ProjectSettings change; the Editor's probe reads p95 5.9 ms at 40
+alive, nothing to buy yet).
+
 Still open: what the Daggers are (their Warden damage is reach inside the careful pilot's kite ring); floor 2's Warden
 (careful P50 70 s Vanguard / 64 s Ilya with the Sword, against 45-65 s - its 2026-11-04 options were a share of about 6
 with floor 2's Mend at 100 %, or RecoverySeconds 2.5); the Warden room's heal chest; the sprite atlas (a ProjectSettings
