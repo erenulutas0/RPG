@@ -14,10 +14,11 @@ namespace Cryptforge.Core
     // round the south-west boiler, design (17.9, -4.08): one enemy on the apron behind it, at the spot
     // Tools/ArtReview/FoundryRuntimeCapture uses; the room's chest and one ground drop behind it too; the hero on open
     // floor in front of it; and a second enemy of the wave, when it has one, on open court floor just in front of the
-    // hero, where nothing covers it. The camera keeps following the hero, and at the portrait width only that boiler fits
-    // the frame beside him, so everything hidden stands behind it, spread across its width: the enemy at its left with
-    // its head above the crown, the chest left of centre and the drop right of centre, low enough on the apron that the
-    // crown covers most or all of them. One "[DepthProof] arranged ..." line in the log gives every world position.
+    // hero, where nothing covers it. The camera keeps following the hero, and at the portrait width only that boiler
+    // fits the frame beside the hero, so everything hidden stands behind it, spread across its width: the enemy at its
+    // left with its head above the crown, the chest left of centre and the drop right of centre, low enough on the apron
+    // that the crown covers most or all of them. One "[DepthProof] arranged ..." line in the log gives every world
+    // position.
     //
     // Nothing walks after that. The encounter's update stops, so no pack walks, no drop is picked up and no wave, room or
     // floor follows; every attack stops, so nobody fights and the hero needs no protection; the wave's health is
@@ -74,7 +75,7 @@ namespace Cryptforge.Core
         internal static readonly Vector2 DropSpot = new Vector2(21f, -1.9f);
         // The west court just in front of the boiler, clear of the court's edge by more than the hero's margin.
         internal static readonly Vector2 HeroSpot = new Vector2(13f, -7.6f);
-        // Open court in front of the hero and a little to his left, under the hidden enemy on screen: three units inside
+        // Open court in front of the hero and a little to its left, under the hidden enemy on screen: three units inside
         // the court's east edge and five inside its south edge, where no structure stands in front of it.
         internal static readonly Vector2 CourtSpot = new Vector2(11f, -8.6f);
 

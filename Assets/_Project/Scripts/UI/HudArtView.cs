@@ -43,7 +43,7 @@ namespace Cryptforge.UI
         [SerializeField] private Image _lowerSurface;
         [SerializeField] private Image _pauseButton;
         [SerializeField] private Image[] _roomPips;
-        // The fills RunHud drives: the hero's health, his experience and the boss's (the HUD's enemy bar).
+        // The fills RunHud drives: the hero's health, its experience and the boss's (the HUD's enemy bar).
         [SerializeField] private Image _heroFill;
         [SerializeField] private Image _experienceFill;
         [SerializeField] private Image _bossFill;

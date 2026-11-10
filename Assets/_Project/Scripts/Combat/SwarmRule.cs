@@ -41,7 +41,7 @@ namespace Cryptforge.Combat
 
         // How many seconds of the room's clock each wave of its ladder lasts before the next one's make-up takes over
         // (docs/27 decision 8): the heavies of the last wave arrive at two minutes twelve, for everyone. The owner's first
-        // run of the continuous room met a Warden in every ten enemies within half a minute because he killed fast, and
+        // run of the continuous room met a Warden in every ten enemies within half a minute because they killed fast, and
         // asked for the crowd to harden with time instead. Measured in docs/36, where it turned out not to move the
         // finale at all - a hero with a Descent's build lives as long at 2.6 seconds as at twelve - and to decide
         // everything for a hero without one: at 2.6 a level-zero Staff dies in half a minute, at twelve it lasts three.

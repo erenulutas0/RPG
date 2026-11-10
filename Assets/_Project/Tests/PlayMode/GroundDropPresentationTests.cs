@@ -151,8 +151,8 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        // A row of lone drops east of the hero, more than the view draws: the far end comes on show as he nears it, and the
-        // near end, which still lies, waits unseen until he comes back.
+        // A row of lone drops east of the hero, more than the view draws: the far end comes on show as the hero nears
+        // it, and the near end, which still lies, waits unseen until the hero comes back.
         [UnityTest] public IEnumerator PilesBeyondTheCapComeOnShowAsTheHeroNearsThem()
         {
             Transform hero=Object.FindFirstObjectByType<HeroLookView>().transform;

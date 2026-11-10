@@ -104,7 +104,7 @@ namespace Cryptforge.Tests
         [UnityTest, Timeout(90000)]
         public IEnumerator TheForgeWearsItsFramesAndEachCardTheFrameOfItsState()
         {
-            // The Vanguard's rack in every state: the Sword he carries, the Staff he owns, the Daggers out of reach (160 of
+            // The Vanguard's rack in every state: the Sword it carries, the Staff it owns, the Daggers out of reach (160 of
             // 180), Second Wind worn and Counterweight ready to forge (150).
             yield return Load(new PlayerProfile(160, new[] { "relic_second_wind" }, "relic_second_wind", 2, new[] { "weapon_staff" }));
             yield return OpenForge();
@@ -243,7 +243,7 @@ namespace Cryptforge.Tests
             for (int i = 0; i < 3; i++)
                 Assert.That(_view.EmptyPlace(i).activeSelf, Is.False, "His whole rack: no place empty.");
 
-            // Ilya: her Staff alone, in the rack's middle place, the others painted.
+            // Ilya: its Staff alone, in the rack's middle place, the others painted.
             choice.Cycle();
             yield return null;
             Assert.That(choice.Current.Id, Is.EqualTo("hero_cinder_arcanist"));
@@ -268,7 +268,7 @@ namespace Cryptforge.Tests
             }
             Assert.That(_view.EmptyPlace(1).activeSelf, Is.False, "The Staff's own place holds the Staff.");
 
-            // Back to the Vanguard: his whole rack again.
+            // Back to the Vanguard: its whole rack again.
             choice.Cycle();
             yield return null;
             Assert.That(_view.HeroPips[0].sprite, Is.SameAs(_art.PipLit));

@@ -93,7 +93,7 @@ namespace Cryptforge.Tests
             Assert.That(movement.transform.position.y, Is.LessThan(boilerY - ArenaFloor.WorldY(BoilerPlinth)),
                 "The hero stands in front of the boiler's plinth.");
 
-            // The wave's second enemy on open court floor in front of the hero, where nothing covers it, clear of him.
+            // The wave's second enemy on open court floor in front of the hero, clear of it, where nothing covers it.
             Health exposed = proof.Exposed;
             Assert.That(exposed, Is.Not.Null, "The foundry's first wave has a second enemy for the open court.");
             Assert.That(exposed, Is.Not.SameAs(hidden));
@@ -282,7 +282,7 @@ namespace Cryptforge.Tests
             var movement = Object.FindFirstObjectByType<HeroMovementInput>();
             FoundryMap.ToFloor(13f, -7.6f, out float heroX, out float heroY);
             Assert.That(Vector2.Distance(new Vector2(movement.Motion.X, movement.Motion.Y), new Vector2(heroX, heroY)),
-                Is.GreaterThan(1f), "The hero starts where the scene puts him.");
+                Is.GreaterThan(1f), "The hero starts where the scene puts it.");
         }
 
         private static bool InWave(EncounterController encounters, Health enemy)

@@ -7,13 +7,13 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Presentation only: what the run's growth looks like on the hero (docs/43, item 1). A level gained bursts at his feet
-    // - a warm gold ring spreading over the floor and a few sparks rising round him - on scaled time, so a level-up that
-    // opens an offer holds its burst under the panel and plays it out as the run moves again. A card taken rings him in
+    // Presentation only: what the run's growth looks like on the hero (docs/43, item 1). A level gained bursts at its feet
+    // - a warm gold ring spreading over the floor and a few sparks rising round it - on scaled time, so a level-up that
+    // opens an offer holds its burst under the panel and plays it out as the run moves again. A card taken rings it in
     // its tier's colour (RunChoiceView's four): a bright core first, the ring spreading after it; a gold card's ring is
     // wider and slower and sends gold sparks up. An evolution doubles the ring with a second in ember, the colour that
-    // also marks the danger it brings, and flashes the hero white over his own silhouette. A weapon picked up pops a few
-    // embers off his waist. The picks play on unscaled time: a pick is made while the offer holds the run still, and its
+    // also marks the danger it brings, and flashes the hero white over its own silhouette. A weapon picked up pops a few
+    // embers off its waist. The picks play on unscaled time: a pick is made while the offer holds the run still, and its
     // flash is seen as the panel closes, or behind the next one. No camera nudge: the only shake is CombatEffectsView's
     // own, which nothing outside it can start.
     //
@@ -312,7 +312,7 @@ namespace Cryptforge.UI
         }
 
         // The card's own ring, as wide as a gold one, and a second in ember just behind it; a white core; ember sparks;
-        // and the hero's silhouette lit white over him.
+        // and the hero's silhouette lit white over it.
         private void ShowEvolution(Color colour)
         {
             ShownEvolutions++;
@@ -448,7 +448,7 @@ namespace Cryptforge.UI
             }
         }
 
-        // The hero's feet as drawn: his root, raised on the foundry onto the surface under it.
+        // The hero's feet as drawn: its root, raised on the foundry onto the surface under it.
         private void Follow()
         {
             Vector3 feet = _hero.position;

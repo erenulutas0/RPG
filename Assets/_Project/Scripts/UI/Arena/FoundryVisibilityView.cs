@@ -22,12 +22,12 @@ namespace Cryptforge.UI
     // during camera rendering and restored afterwards, including the childless chest. Gameplay
     // always reads flat roots; actor bodies, bars and airborne effects share their floor contact.
     // Ground sprites instead bend over the surface using a scene-owned grid/shader cache.
-    // The hero stays readable: structures in front of him (never those behind) fade over his body, and a faded
+    // The hero stays readable: structures in front of it (never those behind) fade over its body, and a faded
     // fragment writes no depth. Static meshes/batches remain intact. Each source material has one scene-owned variant.
     // Enemies hidden by a structure stay locatable: their bodies share one scene-owned material whose second pass draws
     // an ember silhouette only where structure depth covers them. Ground drops behind a structure stay findable the same way,
     // with a second scene-owned material of the same shader in a warm loot gold, and so does the room's chest. Disabling the
-    // view gives the bodies their material back. The hero never gets a silhouette: structures fade over him instead.
+    // view gives the bodies their material back. The hero never gets a silhouette: structures fade over it instead.
     // The second pass costs every body a draw and a material switch, and a two-pass material never batches, so a body
     // wears the silhouette material only in a render where a structure may cover it. A camera that sees the region flat
     // (orthographic, straight along z, its depth cleared first, as the game's is) draws a body's pixels inside its

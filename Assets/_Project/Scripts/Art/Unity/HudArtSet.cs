@@ -5,7 +5,7 @@ namespace Cryptforge.Art
 {
     // The in-run HUD painted (HudArtView): the forged frame of the two panels, the pause button's plate, the room pips,
     // the loadout row's sockets, the ability button's ring and its cooldown band, and three bars - the hero's health,
-    // his experience and the boss's - each a trough under its fill and a frame over it, with the chunk a hit takes in
+    // its experience and the boss's - each a trough under its fill and a frame over it, with the chunk a hit takes in
     // pale and a light at the fill's end. Tools/ArtReview/build_hud_art.py paints the one sheet they share
     // (Art/UI/Hud/UI_Hud.png, imported as sprites with their 9-slice borders) and writes this asset. One sheet, so the
     // HUD batches as one texture.

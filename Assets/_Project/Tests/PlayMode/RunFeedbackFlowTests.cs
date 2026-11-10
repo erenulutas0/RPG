@@ -10,8 +10,8 @@ using UnityEngine.TestTools;
 
 namespace Cryptforge.Tests
 {
-    // The run's growth on the hero (docs/43 item 1): a level bursts at his feet on scaled time, a card taken rings him in
-    // its tier's colour on unscaled time, an evolution doubles the ring and flashes him white, a weapon picked up pops
+    // The run's growth on the hero (docs/43 item 1): a level bursts at its feet on scaled time, a card taken rings it in
+    // its tier's colour on unscaled time, an evolution doubles the ring and flashes it white, a weapon picked up pops
     // embers. Presentation only; RunFeedbackView reads the run and the upgrade service.
     public sealed class RunFeedbackFlowTests
     {

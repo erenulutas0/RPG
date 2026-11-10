@@ -15,7 +15,7 @@ namespace Cryptforge.UI
     //   - The Relic Forge: its surface; a nameplate behind its title; a rule under each section's header; each card's frame
     //     in the state RelicForgeView shows it in (CardShown) and its state strip; a well behind each relic's picture, the
     //     two dimmed together while the relic is out of reach; a seal on a rule in each place of the weapon rack a hero
-    //     leaves empty (Ilya carries her Staff alone); the start button; and the hero chooser - its plate, a niche round
+    //     leaves empty (Ilya carries its Staff alone); the start button; and the hero chooser - its plate, a niche round
     //     its portrait and a pip a hero along its foot, the chosen one lit.
     //   - The run result: the ledger's surface; the title's plate and crest, gilded and alight for a victory or an
     //     extraction, cracked and gone cold for a defeat; the divider as a rule; its two buttons.

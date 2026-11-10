@@ -16,8 +16,8 @@ namespace Cryptforge.Tests
 {
     // The run's growth painted in the Gameplay scene (RunFeedbackArtSet, handed to the view by CombatSetup): a level-up
     // rings the hero's feet in painted light and sends gold sparks up, on scaled time, so it waits under the offer; a
-    // taken card rings him in its tier's own colour after its bright core; an evolution doubles the ring with the ember
-    // ring and lights him white; a weapon pops painted embers off his waist; and a view without the set, or with a broken
+    // taken card rings it in its tier's own colour after its bright core; an evolution doubles the ring with the ember
+    // ring and lights it white; a weapon pops painted embers off its waist; and a view without the set, or with a broken
     // one, draws the lines, the painted ring standing exactly at the line's outer edge. RunFeedbackFlowTests covers the
     // view's timing and pools, unchanged by the paint.
     public sealed class PaintedRunFeedbackTests
@@ -88,7 +88,7 @@ namespace Cryptforge.Tests
             return shown;
         }
 
-        // The hero's feet as the view draws them: his root, raised on the foundry onto the surface under it.
+        // The hero's feet as the view draws them: its root, raised on the foundry onto the surface under it.
         private Vector3 Feet()
         {
             Vector3 feet = _hero.position;
@@ -129,7 +129,7 @@ namespace Cryptforge.Tests
             Assert.That(ring.sprite.name, Is.EqualTo("VFX Level Ring 0"), "From its first frame.");
             Assert.That(ring.sortingOrder, Is.EqualTo(_arena.GroundEffectSortingOrder), "On the floor's order, as the line.");
             Vector3 feet = Feet();
-            Assert.That(ring.transform.position.x, Is.EqualTo(feet.x).Within(1e-3f), "At his feet.");
+            Assert.That(ring.transform.position.x, Is.EqualTo(feet.x).Within(1e-3f), "At its feet.");
             Assert.That(ring.transform.position.y, Is.EqualTo(feet.y).Within(1e-3f), "Raised onto the surface it stands on.");
             Assert.That(ring.transform.localScale.x, Is.EqualTo(.2f + .5f * .1f).Within(1e-4f),
                 "Out to the line's outer edge: its radius and half its width.");
@@ -269,7 +269,7 @@ namespace Cryptforge.Tests
             Assert.That(embers[0].sprite.texture, Is.SameAs(rings[0].sprite.texture), "One sheet for both.");
             Assert.That(embers[0].sortingOrder, Is.EqualTo(rings[0].sortingOrder), "Both on the floor.");
             Assert.That(embers[0].transform.localScale.x, Is.LessThan(rings[0].transform.localScale.x), "Inside the card's.");
-            Assert.That(Shown("VFX Ember Spark ").Count, Is.GreaterThan(0), "Ember sparks rise round him.");
+            Assert.That(Shown("VFX Ember Spark ").Count, Is.GreaterThan(0), "Ember sparks rise round it.");
             Assert.That(Shown("VFX Gold Spark ").Count, Is.Zero, "Ember, not gold.");
 
             yield return Until(() => _feedback.ActiveEvolutionRings == 0 && !_feedback.IsHeroFlashing &&
@@ -293,12 +293,12 @@ namespace Cryptforge.Tests
             Assert.That(rings[0].transform.localScale.x, Is.EqualTo(.1f + .5f * .06f).Within(1e-4f), "At its line's outer edge.");
             Assert.That(rings[0].sortingOrder, Is.EqualTo(_arena.GroundEffectSortingOrder));
             List<SpriteRenderer> embers = Shown("VFX Ember Spark ");
-            Assert.That(embers.Count, Is.EqualTo(6), "Six embers pop off him.");
+            Assert.That(embers.Count, Is.EqualTo(6), "Six embers pop off it.");
             var from = new Vector3[embers.Count];
             for (int i = 0; i < embers.Count; i++)
             {
                 SpriteRenderer ember = embers[i];
-                Assert.That(ember.transform.localPosition.x, Is.EqualTo(0f).Within(1e-4f), "From his waist.");
+                Assert.That(ember.transform.localPosition.x, Is.EqualTo(0f).Within(1e-4f), "From its waist.");
                 Assert.That(ember.transform.localPosition.y, Is.EqualTo(.35f).Within(1e-4f));
                 Assert.That(ember.transform.localEulerAngles.z, Is.InRange(20f, 160f), "Flying up and out.");
                 Assert.That(ember.transform.localScale.x, Is.EqualTo(.045f / .05f).Within(1e-4f), "As wide as its line.");
@@ -350,7 +350,7 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Choices.IsOpen, Is.False);
             Transform lineRoot = lines.transform.Find("Run Feedback");
             LineRenderer line = lineRoot.Find("Feedback Ring 0").GetComponent<LineRenderer>();
-            Assert.That(line.enabled, Is.True, "The line rings his feet.");
+            Assert.That(line.enabled, Is.True, "The line rings its feet.");
             Assert.That(line.loop, Is.True);
             Assert.That(line.positionCount, Is.EqualTo(40));
             Assert.That(line.startWidth, Is.EqualTo(.1f).Within(1e-5f));
