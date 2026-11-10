@@ -593,6 +593,69 @@ namespace Cryptforge.Tests
             Assert.That(SameKnobs(shipped, tuned), Is.True, "the director's shipped crowds are the shipped floor's");
         }
 
+        // docs/41's open decision 2: the horde's growth as a lever is HordeClock's own at the shipped growth, and its body
+        // elsewhere.
+        [Test]
+        public void TheTunedTargetGrowthAtTheShippedGrowthIsTheClocks()
+        {
+            for (float clock = 0f; clock <= 330f; clock += 3.7f)
+                Assert.That(TunedHordeDirector.TargetMultiplier(clock, HordeClock.TargetGrowth),
+                    Is.EqualTo(HordeClock.TargetMultiplier(clock)), $"at {clock}");
+            Assert.That(TunedHordeDirector.TargetMultiplier(150f, 1.5f), Is.EqualTo(1.75f).Within(1e-6f));
+            Assert.That(TunedHordeDirector.TargetMultiplier(400f, 3f), Is.EqualTo(4f).Within(1e-6f));
+            int[] shipped = (int[])HordeRule.TargetByState.Clone();
+            for (float clock = 0f; clock <= 330f; clock += 7.3f)
+                Assert.That(TunedHordeDirector.EffectiveTarget(shipped, HordeState.Pressure, 5, 5, HordeRule.SceneCap, clock,
+                        HordeClock.TargetGrowth),
+                    Is.EqualTo(HordeRule.EffectiveTarget(HordeState.Pressure, 5, 5, HordeRule.SceneCap, clock)), $"at {clock}");
+        }
+
+        // The shipped gate's wait is accounted frame by frame: what the steer did adds up to the wait, the room before the
+        // gate cleared before the gate's time, and a gate without a time does not hold.
+        [Test]
+        public void TheGatesWaitIsAccountedAndATimelessGateDoesNotHold()
+        {
+            DescentSimulation.FoundryResult shipped = DescentSimulation.RunFoundry(DescentSimulation.Vanguard(), 1, FoundryBatch.Shipped());
+            Assert.That(shipped.Cleared, Is.True);
+            Assert.That(shipped.GateWaitSeconds, Is.GreaterThan(0f));
+            Assert.That(shipped.WaitKite + shipped.WaitDrop + shipped.WaitFight + shipped.WaitWalk + shipped.WaitStill,
+                Is.EqualTo(shipped.GateWaitSeconds).Within(0.05f));
+            Assert.That(shipped.WaitEngaged, Is.InRange(0f, shipped.GateWaitSeconds + 0.01f));
+            Assert.That(shipped.GateReadyClock, Is.InRange(0f, 210f));
+            Assert.That(shipped.WaitKills, Is.GreaterThan(0));
+            Assert.That(shipped.WaitSiegeWaves, Is.EqualTo(0));
+
+            DescentSimulation.FoundryLevers open = FoundryBatch.Shipped().Copy("no gate time");
+            open.GateNotBeforeSeconds = 0f;
+            DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(DescentSimulation.Vanguard(), 1, open);
+            Assert.That(run.GateWaitSeconds, Is.EqualTo(0f));
+            Assert.That(run.GateReadyClock, Is.EqualTo(shipped.GateReadyClock), "the same floor up to the gate");
+        }
+
+        // A gate on a kill quota alone holds until the floor's kills reach it; a siege fills the wait with node waves; a
+        // floor below the first plays none of floor 1's gate experiments.
+        [Test]
+        public void AQuotaGateOpensOnItsKillsAndASiegeSendsWaves()
+        {
+            DescentSimulation.FoundryLevers quota = FoundryBatch.Shipped().Copy("quota");
+            quota.GateNotBeforeSeconds = 0f;
+            quota.GateKillQuota = 400;
+            DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(DescentSimulation.Vanguard(), 1, quota);
+            Assert.That(run.GateReadyKills, Is.LessThan(400), "seed 1 reaches the gate short of the quota");
+            Assert.That(run.GateWaitSeconds, Is.GreaterThan(0f));
+            if (run.Cleared)
+                Assert.That(run.GateReadyKills + run.WaitKills, Is.GreaterThanOrEqualTo(400));
+
+            DescentSimulation.FoundryLevers siege = FoundryBatch.Shipped().Copy("siege");
+            siege.GateSiegeHall = 1;
+            DescentSimulation.FoundryResult sieged = DescentSimulation.RunFoundry(DescentSimulation.CinderArcanist(), 1, siege);
+            Assert.That(sieged.WaitSiegeWaves, Is.GreaterThan(0));
+            Assert.That(sieged.WaitFight, Is.GreaterThan(0f));
+
+            DescentSimulation.FoundryLevers later = DescentSimulation.LaterFloorLevers(siege, DescentSimulation.FoundryFloorOne());
+            Assert.That((later.GateKillQuota, later.GateOpenLevel, later.GateSiegeHall), Is.EqualTo((0, 0, 0)));
+        }
+
         // Every knob of a lever set, read off its fields, so a knob added later is compared too; the director's crowds
         // unset are the shipped ones (HordeRule.TargetByState).
         private static bool SameKnobs(DescentSimulation.FoundryLevers a, DescentSimulation.FoundryLevers b)

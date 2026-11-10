@@ -33,11 +33,14 @@ namespace Cryptforge.Tests
         }
 
         // The shipped floor in the cohort's hands, down as many floors of the climb as asked (FoundryLevers.Floors).
-        public static DescentSimulation.FoundryLevers Levers(AutopilotCohort cohort, int floors = 1)
+        // With realism (PilotRealism, research 2026-11-04), the cohort plays with a human's reaction, aim and attention.
+        public static DescentSimulation.FoundryLevers Levers(AutopilotCohort cohort, int floors = 1, PilotRealism realism = null)
         {
-            DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("cohort " + cohort.Name);
+            DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("cohort " + cohort.Name +
+                                                                                (realism != null ? ", " + realism.Name : string.Empty));
             levers.Cohort = cohort;
             levers.Floors = floors;
+            levers.Realism = realism;
             return levers;
         }
 
@@ -46,7 +49,7 @@ namespace Cryptforge.Tests
         // order).
         public static List<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> Run(
             IReadOnlyList<DescentSimulation.FoundryHero> heroes, int[] seeds, int parallelism,
-            IReadOnlyList<FoundryBatch.Batch> careful = null, int floors = 1)
+            IReadOnlyList<FoundryBatch.Batch> careful = null, int floors = 1, PilotRealism realism = null)
         {
             var cohorts = new List<(AutopilotCohort, FoundryBatch.Batch[])>();
             foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
@@ -55,11 +58,11 @@ namespace Cryptforge.Tests
                 for (int h = 0; h < heroes.Count; h++)
                 {
                     FoundryBatch.Batch shipped = careful != null && h < careful.Count ? careful[h] : null;
-                    batches[h] = cohort == AutopilotCohort.Careful && shipped != null && shipped.Hero.Id == heroes[h].Id &&
+                    batches[h] = realism == null && cohort == AutopilotCohort.Careful && shipped != null && shipped.Hero.Id == heroes[h].Id &&
                                  shipped.Levers.Name == FoundryBatch.Shipped().Name && shipped.Levers.Cohort == AutopilotCohort.Careful &&
                                  shipped.Levers.Floors == floors && shipped.Runs.Select(r => r.Seed).SequenceEqual(seeds)
                         ? shipped
-                        : FoundryBatch.Run(heroes[h], Levers(cohort, floors), seeds, parallelism);
+                        : FoundryBatch.Run(heroes[h], Levers(cohort, floors, realism), seeds, parallelism);
                 }
                 cohorts.Add((cohort, batches));
             }
