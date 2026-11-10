@@ -220,7 +220,7 @@ namespace Cryptforge.Core
             Pit.Initialize(this, _hero);
             gameObject.AddComponent<PitEruptionView>().Initialize(Pit);
             Warden = gameObject.AddComponent<WardenSlamService>();
-            Warden.Initialize(this, _hero);
+            Warden.Initialize(this, _hero, _attack);
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);

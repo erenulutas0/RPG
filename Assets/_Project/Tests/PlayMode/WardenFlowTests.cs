@@ -56,6 +56,8 @@ namespace Cryptforge.Tests
             Health boss=warden.Boss;
             Assert.That(boss.Maximum,Is.EqualTo(encounter.DefinitionOf(boss).MaximumHealth*WardenRule.GateHealthShare).Within(1f),
                 "The gate boss stands longer than its authored health.");
+            Assert.That(heroInput.GetComponent<AttackController>().GateBoss,Is.SameAs(boss),
+                "The hero's strikes are handed the gate boss: the Sword's land half again on it (WardenRule.SwordShare).");
             var hammer=boss.GetComponent<AttackController>();
             Assert.That(hammer.IsHeld,Is.False,"Its weapon is free until the first mark.");
             bool marked=false;warden.Marked+=()=>marked=true;
@@ -96,6 +98,8 @@ namespace Cryptforge.Tests
             yield return Until(setup,()=>encounter.AliveEnemyCount>0,20);
             Assert.That(setup.Warden.IsFighting,Is.False,"Only the foundry's gate boss slams.");
             Assert.That(encounter.CurrentEnemy.Maximum,Is.EqualTo(encounter.CurrentDefinition.MaximumHealth).Within(1f));
+            Assert.That(Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<AttackController>().GateBoss,Is.Null,
+                "Nor is the Sword's share dealt there: the hall's Warden is no gate boss.");
             LogAssert.NoUnexpectedReceived();
         }
     }
