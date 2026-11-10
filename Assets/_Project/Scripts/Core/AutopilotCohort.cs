@@ -178,7 +178,7 @@ namespace Cryptforge.Core
         // The tomes' levels come before the weapons' lines since 2026-11-10 (docs/41): a tome's level raises every weapon
         // held - Force, Tempo, Reach and Precision each weapon's damage, speed, circles or crits, Vitality the hero's health -
         // where a line raises one weapon. With every line at 50 the careful pilot spent two thirds of its cards on them, each
-        // weapon to its last level, the Daggers too, and the tomes' levels came after the fourth minute: frame-perfect it
+        // weapon to its last level, the Daggers too, and half its few tome levels after the fourth minute: frame-perfect it
         // cleared, but with a human's hands (the cohorts' PilotRealism) the horde reached the hero and the first-card cohort
         // outlived it, 181 to 154 Vanguards of 200. A line still comes before the tomes' levels while it builds toward its
         // weapon's evolution (the weapon below EvolutionRule.WeaponEvolutionLevel with its tome held), so the careful pilot

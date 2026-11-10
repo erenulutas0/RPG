@@ -470,3 +470,99 @@ TestResults/f2-warden-ship-1110/; Vanguard / Ilya):
 The numbers are the measurement's "F2 share 6.07" row to the seed. Floor 1 is the same floor run for run: its
 cohort tables, its gate and every floor-1 row of foundry-batch.csv are identical before and after. Floor 2's careful
 Warden now sits inside 45-65 s with either hands; the standing pilot, who trades blows with the Warden, gains most.
+
+## Status 2026-11-10 (night): the careful pilot's cards
+
+**The finding.** With human hands (`FOUNDRY_REALISM=typical`) the first-card cohort cleared more of floor 1 than the
+careful one, 181 / 199 against 154 / 194 (Vanguard / Ilya, seeds 1-200), though frame-perfect they tie. The careful
+cohort is meant to be the best play, so this was a defect of the measuring pilot, and the difficulty research's
+reading held: `AutopilotCohort.CardScore` was tuned for a pilot that is never hit.
+
+**The cause: every weapon line scored above every tome level.** The score was health when low 100, a weapon's line or
+evolution 50, a new weapon 45, the first two tomes 40, a tome's level 30, a health card 25, anything else 20. So the
+careful pilot spent two thirds of its cards on lines - every weapon to its last level, the Daggers too - and took
+half of its few tome levels after the fourth minute. A tome's level raises every weapon held (Force, Tempo and Precision each
+weapon's damage, speed or crits, Reach every circle - the Sword's cleave and the Staff's splash) or the hero (Vitality);
+a line raises one weapon. Frame-perfect, the kite keeps the horde off whatever the kill speed. With a 0.25 s reaction
+the late kite is struck, and the horde reached the careful Vanguard: 42 health a run from the horde against the
+first-card pilot's 29, and deaths in the halls (rooms 2-3, the horde's Grunts) where the first-card pilot had few.
+CardScoreResearch (below) laid the two side by side over the batch (typical hands, floor 1, the Vanguard; Ilya alike):
+
+| | Careful (main 18715c94) | First-card | Careful now |
+|---|---|---|---|
+| Cleared, Vanguard / Ilya | 154 / 194 | 181 / 199 | 195 / 199 |
+| Deaths, Vanguard: where / blow | 46: room 3 18, boss 12, room 2 12, elite 4 / horde Grunt 15, slam 9 | 19: room 3 8, room 2 7, boss 4 / horde Grunt 7, wave Tank 7 | 5: boss 4, room 2 1 / slam 2 |
+| Health lost a run: wave / horde / Warden / slams / pit | 56 / 42 / 10 / 19 / 10 | 50 / 29 / 8 / 17 / 10 | 46 / 23 / 10 / 32 / 11 |
+| Cards a run: lines / new weapons / new tomes / tome levels / hero cards | 19.5 / 1.8 / 2.1 / 4.6 / 1.0 | 13.3 / 1.9 / 3.0 / 8.5 / 4.2 | 12.7 / 2.0 / 2.3 / 13.1 / 2.4 |
+| Tome levels in the first three minutes | 1.7 | 5.6 | 8.9 |
+| Maximum health / armour at the Warden, P50 | 127 / 0 | 151 / 20 | 190 / 40 |
+| Lowest health, P50 | 27 % | 48 % | 54 % |
+| Clears with an evolution | 116 | 70 | 163 |
+
+Moving one weight at a time on the careful score (typical hands, clears V / I) singled the lines out: health or armour
+cards over every line 154 / 200; health and armour by tier alone 159 / 194; Vitality first among the tomes and its
+levels over the lines 151 / 199; no evolutions 160 / 195; a third tome 160 / 191; health first under 70 % instead of
+50 % 153 / 198. Against that, the Sword's lines under the tomes' levels 193 / 194, the Daggers' 182 / 198, every line
+199 / 196 - while the Staff's lines under them 145 / 175 (its lines earn their place), and the first card unless a line
+is offered 91 / 186.
+
+**The fix** (`AutopilotCohort.CardScore`, one integer body that `DevelopmentAutopilot.ChoiceSlot` and the simulation's
+`ChoiceSlot` both reach through `AutopilotCohort.Pick(offer, low, upgrades)`; each card at the tier it is offered):
+
+| Score | Card |
+|---|---|
+| 100 | health when the hero is under half (unchanged) |
+| 50 | an evolution |
+| 45 / 10 | a new weapon while a slot is free / past the cohort's wanted count (unchanged) |
+| 40 / 15 | a new tome while under two / a third (unchanged) |
+| 31 | a line toward its weapon's evolution (`LeadsToEvolution`: the weapon held, not evolved, below level 5, its tome held) |
+| 30 | a tome's level (unchanged) |
+| 28 | any other line (was 50) |
+| 25 / 20, + 10 a tier | a health card / an armour card (`TierStep`; was 25 / 20 at every tier) |
+| 20 | any other card (unchanged) |
+
+The lines under the tomes' levels are the fix. The other two parts keep the pilot measuring what it measured: with
+every line at 28 the careful pilot clears as many (200 / 199 with human hands) but evolves in 21 / 18 clears of 200, and
+the gate's synergy row, which reads it, would fall from 86 % to about 12 %; a line toward its weapon's evolution at 31
+keeps the evolutions (84 %, first evolution P50 217 -> 132 s). Without the tiers that path costs Ilya (190 / 194 with
+human hands); a health or armour card's tiers scale 1 / 2 / 4 / 5.3 where a line's scale 1 / 1.25 / 1.5 / 2, so a rare
+one now outranks a line and a tome's level, an epic one a new tome, a gold health card a new weapon. On seeds 201-400
+(the check that this is not fitted to 1-200) with human hands: before 149 / 189, first-card 175 / 200, now 199 / 197;
+frame-perfect 199 / 200, 190 / 200, 200 / 200. Ilya's 197 against 200 there is within the batch's noise.
+
+**Before and after** (the foundry simulation, seeds 1-200 a hero, `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1
+FOUNDRY_FLOORS=2`, frame-perfect and `FOUNDRY_REALISM=typical`; TestResults/cardscore-1110/before-* and after-*;
+Vanguard / Ilya):
+
+| Cohort | Floor 1, frame-perfect | Floor 1, human hands | Both floors, frame-perfect | Both floors, human hands |
+|---|---|---|---|---|
+| careful | 199 / 200 -> 200 / 200 | 154 / 194 -> **195 / 199** | 199 / 200 -> 200 / 200 | 147 / 181 -> 193 / 195 |
+| standing | 139 / 170 -> 193 / 193 | 110 / 141 -> 179 / 180 | 100 / 121 -> 176 / 176 | 63 / 80 -> 151 / 155 |
+| first-card | 196 / 200 (the same) | 181 / 199 (the same) | 196 / 200 (the same) | 179 / 197 (the same) |
+| clumsy | 80 / 164 -> 104 / 184 | 43 / 98 -> 82 / 141 | 67 / 137 -> 96 / 162 | 23 / 46 -> 66 / 105 |
+| auto-farmer | 9 / 30 (the same) | 9 / 23 (the same) | 1 / 4 (the same) | 1 / 3 (the same) |
+
+The careful cohort now clears at least as many as the first-card one with human hands on both floors and both heroes,
+and frame-perfect it loses none. The standing and clumsy cohorts score their cards the same way and gain most; the
+first-card and auto-farmer cohorts take the first card and do not move. The gate (frame-perfect careful): synergy
+85.9 % -> 84.0 % of the Vanguard's clears (met); Warden fight P50 (P90) 56 (64) -> 58 (70) s and Ilya 50 (57) -> 51 (62) s,
+floor 2's 58 / 51 s unchanged (inside 45-65 s); maximum health at the Warden 112 -> 184 and 90 -> 172; floor time P50
+289 -> 292 s and 284 -> 285 s; engaged uptime P50 0.70 -> 0.60 and 0.56 -> 0.58 (not met before or after: the horde
+dies before it closes); the roles row moves within a point or two a second (Sword 10 -> 8 on the horde, 27 -> 26 on the
+Warden; Staff 30 -> 31, 22 -> 23) and stays not met on the Daggers. Only the autopilot's choices changed: no card,
+weapon or floor value moved.
+
+**What this changes in the readings.** With the corrected pilot the floor is easier in human hands than the 2026-11-04
+difficulty research read: careful 98 % / 100 % on floor 1 with the typical human (the research read 75 % / 93 %, main 18715c94
+77 % / 97 %), standing 90 % / 90 %, clumsy 41 % / 71 %. Its cohort bands and its structural candidates (slag, the enraged echo) were measured on the
+old picker and want a re-read before any band is pinned.
+
+**What was built.** `AutopilotCohort.CardScore(card, tier, low, weaponsHeld, tomesHeld, towardEvolution)`, `TierStep`,
+`LeadsToEvolution` and `Pick(offer, low, upgrades)`. In the simulation, research only and off by default:
+`FoundryLevers.LogsPicks` (every offer and the card taken, `FoundryResult.PickLog` of `FoundryPick`) and
+`FoundryLevers.Picker` (a picker in place of a scoring cohort's own). `Tools/CombatChecks/CardScoreResearch.cs`
+(explicit; `CARDS_REALISM`, `CARDS_PICKERS`, `CARDS_DETAIL`): the cohorts' cards side by side and every candidate and
+ablation above by name (`before` is main 18715c94's score, `syn-dt31` the shipped one, `lines-under-tomes` the fix
+without its way to the evolutions). `AutopilotCohortTests` holds the order, the tiers and `LeadsToEvolution` on
+constructed offers; `FoundryCohortTests` counts the clumsy cohort's weapons over the floor rather than at the gate (its
+Vanguard of seed 33 now dies before the Warden walks out).
