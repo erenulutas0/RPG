@@ -84,6 +84,9 @@ namespace Cryptforge.Tests
             public float CategoryDamage;
             public float CategoryInterval;
 
+            // A copy to reshape (the foundry's research levers, DescentSimulation.FoundrySword).
+            public HeroWeapon Copy() => (HeroWeapon)MemberwiseClone();
+
             public WeaponRuntime CreateRuntime() => Create(Damage, Interval);
 
             public WeaponRuntime CreateCategoryRuntime() =>

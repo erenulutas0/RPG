@@ -206,6 +206,40 @@ namespace Cryptforge.Tests
             // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's,
             // under the Warden's and the horde's levers (LaterFloorLevers).
             public int Floors = 1;
+            // Research only (docs/cloud/2026-11-04-sword-role.md, FoundryBatch.SwordLevers): a foundry-only Sword pattern,
+            // read by this simulation alone and never by the scene, the hall arena or the Descent, whose Sword stays
+            // Weapon_Sword.asset (docs/26, docs/30). Every default is the shipped Sword. The Sword's reach (0 keeps 2.1).
+            public float SwordReach;
+            // A sweep: every enemy within SwordSweepRadius of the hero and within SwordSweepArcDegrees (the whole arc,
+            // centred on the target) takes SwordSweepShare of the strike, the target its full damage; 0 keeps the cleave.
+            public float SwordSweepRadius;
+            public float SwordSweepArcDegrees = 360f;
+            public float SwordSweepShare = .6f;
+            // The sweep only once the Sword has evolved (Resonant Edge); before it the shipped cleave.
+            public bool SwordSweepAtEvolution;
+            // The Sword's strike interval against the shipped 0.8 s (0.75 strikes a third more often).
+            public float SwordIntervalScale = 1f;
+            // Resonant Edge's pulse share against the shipped tiers.
+            public float SwordEvolutionPulseScale = 1f;
+            // A cleave on kill: each enemy a Sword strike fells bursts for this share onto the enemies near it
+            // (KillBurstRule's circle, the Staff evolution's mechanic on the Sword from the start); 0 is off.
+            public float SwordKillCleaveShare;
+            // Knockback, modelled as a stagger: an enemy the Sword lands on (not the Warden) cannot strike for this many
+            // units of its own walk (units / its speed seconds); 0 is off. The simulation's packs cannot be displaced.
+            public float SwordKnockbackUnits;
+            // What the Sword's landings deal, its procs included, by what they land on: the horde, the node waves
+            // (halls and elites) and the Warden.
+            public float SwordHordeDamage = 1f;
+            public float SwordNodeDamage = 1f;
+            public float SwordWardenDamage = 1f;
+
+            // Research only, for the question what the Daggers would need: their reach (0 keeps 1.8) and their damage on
+            // the Warden.
+            public float DaggersReach;
+            public float DaggersWardenDamage = 1f;
+
+            public bool ReshapesSword => SwordReach > 0f || SwordSweepRadius > 0f || SwordIntervalScale != 1f ||
+                                         SwordEvolutionPulseScale != 1f || SwordKillCleaveShare > 0f;
 
             public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond;
 
@@ -448,6 +482,47 @@ namespace Cryptforge.Tests
         // The levers a floor after the first plays: the run's Warden and horde levers, which stand for WardenRule's and
         // HordeRule's constants that the scene reads alike on every floor, with the floor's own asset knobs and none of the
         // floor-1 experiments (extra halls, held halls, node health).
+        public const string SwordId = "weapon_sword";
+        public const string DaggersId = "weapon_daggers";
+
+        // FoundryLevers' Sword pattern on a weapon of the run (the hero's own or the catalogue's card): the Sword reshaped by
+        // the research levers, any other weapon - and the Sword at the shipped levers - as it is. The sweep is an area
+        // pattern whose circle HeroAttacks draws round the hero rather than the target.
+        internal static HeroWeapon FoundrySword(HeroWeapon weapon, FoundryLevers levers)
+        {
+            if (weapon != null && weapon.Id == DaggersId && levers.DaggersReach > 0f)
+            {
+                HeroWeapon daggers = weapon.Copy();
+                daggers.Range = levers.DaggersReach;
+                return daggers;
+            }
+            if (weapon == null || weapon.Id != SwordId || !levers.ReshapesSword)
+                return weapon;
+            HeroWeapon sword = weapon.Copy();
+            if (levers.SwordReach > 0f)
+                sword.Range = levers.SwordReach;
+            if (levers.SwordSweepRadius > 0f)
+                sword.Pattern = new AttackPattern(WeaponBehavior.Area, levers.SwordSweepRadius, levers.SwordSweepShare);
+            if (levers.SwordIntervalScale != 1f)
+            {
+                sword.Interval = ScaleOf(weapon.Interval, levers.SwordIntervalScale);
+                sword.CategoryInterval = ScaleOf(weapon.CategoryInterval, levers.SwordIntervalScale);
+            }
+            if (levers.SwordEvolutionPulseScale != 1f)
+            {
+                float s = levers.SwordEvolutionPulseScale;
+                sword.Evolution = Tiered("evolution_sword", "Resonant Edge",
+                    "Every 4th strike bursts for {0:0%} damage nearby, and a harder world", UpgradeStat.PulseDamage,
+                    ModifierOperation.Flat, ScaleOf(.4f, s), ScaleOf(.65f, s), ScaleOf(1f, s), ScaleOf(1.33f, s), 1);
+            }
+            if (levers.SwordKillCleaveShare > 0f)
+                sword.KillBurstShare = levers.SwordKillCleaveShare;
+            return sword;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static float ScaleOf(float value, float scale) => value * scale;
+
         internal static FoundryLevers LaterFloorLevers(FoundryLevers run, FoundryFloor floor)
         {
             FoundryLevers levers = run.Copy(run.Name);
@@ -545,6 +620,8 @@ namespace Cryptforge.Tests
             public int SpawnFrame;
             public float SpawnedAt;
             public float FirstHitAt = -1f;
+            // FoundryLevers.SwordKnockbackUnits (research): no strike before this run second.
+            public float StaggeredUntil;
             public FoundryRun Run;
 
             public bool IsAlive => Health.IsAlive;
@@ -792,14 +869,16 @@ namespace Cryptforge.Tests
                 _heroStats = new HeroStats(hero.MaximumHealth, _heroMotion.Speed, _stamina.Bar);
                 _heroStats.Changed += () => HeroStatsBinding.Apply(_heroStats, _heroHealth, _heroMotion, _stamina);
                 HeroStatsBinding.Apply(_heroStats, _heroHealth, _heroMotion, _stamina);
-                WeaponRuntime weapon = hero.Weapon.CreateCategoryRuntime();
+                // The Sword as the research levers shape it (FoundrySword; the shipped Sword at the shipped levers).
+                HeroWeapon first = FoundrySword(hero.Weapon, levers);
+                WeaponRuntime weapon = first.CreateCategoryRuntime();
                 weapon.Seed = seed;
                 _loadout = new WeaponLoadout(seed);
-                _loadout.TryAdd(hero.Weapon.Id, weapon);
+                _loadout.TryAdd(first.Id, weapon);
                 HeroWeapon[] catalogue = WeaponCatalogue();
                 var cards = new WeaponCard[catalogue.Length];
                 for (int i = 0; i < cards.Length; i++)
-                    cards[i] = catalogue[i].CreateCard();
+                    cards[i] = FoundrySword(catalogue[i], levers).CreateCard();
                 _upgrades = new UpgradeService(_run, weapon, Pool(), FoundryChoiceCount, _heroStats, _stamina.Enabled,
                     _loadout, cards, Tomes());
                 _upgrades.OfferChanged += OnOfferChanged;
@@ -1478,6 +1557,16 @@ namespace Cryptforge.Tests
                     context = new DamageContext(context.Amount * _levers.WardenGuardShare, context.Source, context.IsCritical);
                 DamageSource source = _source;
                 FoundryWeaponWork striking = source == DamageSource.Weapon ? _striking : null;
+                if (striking != null && striking.Id == DaggersId && foe.GateBoss && _levers.DaggersWardenDamage != 1f)
+                    context = new DamageContext(ScaleOf(context.Amount, _levers.DaggersWardenDamage), context.Source, context.IsCritical);
+                if (striking != null && striking.Id == SwordId)
+                {
+                    float scale = SwordDamageScale(foe);
+                    if (scale != 1f)
+                        context = new DamageContext(ScaleOf(context.Amount, scale), context.Source, context.IsCritical);
+                    if (_levers.SwordKnockbackUnits > 0f && !foe.GateBoss && foe.Definition.Speed > 0f)
+                        foe.StaggeredUntil = Math.Max(foe.StaggeredUntil, _seconds + _levers.SwordKnockbackUnits / foe.Definition.Speed);
+                }
                 bool proc = striking != null && StrikeHasProcced();
                 foe.Health.ApplyDamage(context);
                 float dealt = before - foe.Health.Current;
@@ -1802,7 +1891,9 @@ namespace Cryptforge.Tests
                         continue;
                     _nearby.Clear();
                     float splashRadius = weapon.SplashRadius;
-                    if (splashRadius > 0f)
+                    if (_levers.SwordSweepRadius > 0f && WorkAt(slot).Id == SwordId)
+                        SwordSweep(target, WorkAt(slot).EvolvedAt >= 0f);
+                    else if (splashRadius > 0f)
                         CollectNear(target, splashRadius, _nearby);
                     _pulse.Clear();
                     if (weapon.PulseDamage > 0f)
@@ -1828,6 +1919,45 @@ namespace Cryptforge.Tests
                 }
             }
 
+            // FoundryLevers' Sword sweep (research): the enemies within the sweep's circle round the hero and within its arc
+            // centred on the target, nearest the hero first; before the Sword evolves, under SwordSweepAtEvolution, the
+            // shipped cleave's one neighbour within 2 units of the target instead (the sweep's share is then the cleave's).
+            private void SwordSweep(Foe target, bool evolved)
+            {
+                if (_levers.SwordSweepAtEvolution && !evolved)
+                {
+                    CollectNear(target, ShippedCleaveRadius, _nearby);
+                    if (_nearby.Count > 1)
+                        _nearby.RemoveRange(1, _nearby.Count - 1);
+                    return;
+                }
+                CollectNear(target, HeroX, HeroY, _levers.SwordSweepRadius, _nearby);
+                if (_levers.SwordSweepArcDegrees >= 360f)
+                    return;
+                float half = _levers.SwordSweepArcDegrees * .5f;
+                for (int i = _nearby.Count - 1; i >= 0; i--)
+                    if (!WithinArc((Foe)_nearby[i], target, half))
+                        _nearby.RemoveAt(i);
+            }
+
+            private const float ShippedCleaveRadius = 2f;
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+            private bool WithinArc(Foe foe, Foe target, float halfDegrees)
+            {
+                float ax = target.X - HeroX, ay = target.Y - HeroY, bx = foe.X - HeroX, by = foe.Y - HeroY;
+                float la = (float)Math.Sqrt(ax * ax + ay * ay), lb = (float)Math.Sqrt(bx * bx + by * by);
+                if (la <= 0f || lb <= 0f)
+                    return true;
+                float cos = (ax * bx + ay * by) / (la * lb);
+                return cos >= (float)Math.Cos(halfDegrees * Math.PI / 180.0);
+            }
+
+            // FoundryLevers' Sword damage by what it lands on (research); 1 at the shipped levers.
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+            private float SwordDamageScale(Foe foe) =>
+                foe.GateBoss ? _levers.SwordWardenDamage : foe.Horde ? _levers.SwordHordeDamage : _levers.SwordNodeDamage;
+
             // Every enemy's AttackController: its weapon ticks, and strikes the hero once it stands in reach. An enemy
             // spawned this frame starts next frame, as a component instantiated in an Update does.
             private void EnemyAttacks()
@@ -1850,6 +1980,9 @@ namespace Cryptforge.Tests
                     return;
                 foe.Weapon.Tick(Step);
                 if (!foe.Weapon.IsReady)
+                    return;
+                // FoundryLevers.SwordKnockbackUnits (research): knocked back, it cannot reach the hero yet.
+                if (_seconds < foe.StaggeredUntil)
                     return;
                 float reach = foe.Weapon.Range;
                 if (ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) > reach * reach)
