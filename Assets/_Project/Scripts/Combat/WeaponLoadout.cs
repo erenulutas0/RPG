@@ -67,8 +67,9 @@ namespace Cryptforge.Combat
             return -1;
         }
 
-        // Puts a weapon in the next slot, seeds its crits for that slot and replays every global grant onto it. False,
-        // and nothing changed, when every slot is held or the hero already carries this weapon.
+        // Puts a weapon in the next slot, seeds its crits for that slot, hands it its share on the foundry's gate boss by
+        // its id (WardenRule.GateBossShareOf: the Sword's 1.5) and replays every global grant onto it. False, and nothing
+        // changed, when every slot is held or the hero already carries this weapon.
         public bool TryAdd(string weaponId, WeaponRuntime runtime)
         {
             if (string.IsNullOrEmpty(weaponId))
@@ -82,6 +83,7 @@ namespace Cryptforge.Combat
                     throw new InvalidOperationException("One runtime cannot fill two slots.");
 
             runtime.Seed = SeedFor(_runSeed, _slots.Count);
+            runtime.GateBossShare = WardenRule.GateBossShareOf(weaponId);
             for (int i = 0; i < _globalStats.Count; i++)
                 runtime.AddModifier(_globalStats[i], _globalModifiers[i]);
             _slots.Add(new Slot(weaponId, runtime));

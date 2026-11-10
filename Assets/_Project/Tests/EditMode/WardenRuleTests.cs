@@ -1,4 +1,5 @@
 using Cryptforge.Combat;
+using Cryptforge.Progression;
 using NUnit.Framework;
 
 namespace Cryptforge.Tests
@@ -122,6 +123,84 @@ namespace Cryptforge.Tests
                 "The next fight's first mark comes on its own pace.");
             Assert.That(clock.HoldsWeapon,Is.False);
         }
+
+        // The Sword is the Warden's weapon (docs/41, status 2026-11-10): what it lands on the foundry's gate boss deals half
+        // again, and nothing else moves - not its landings on anything else, not another weapon's on the gate boss.
+        [Test] public void TheSwordDealsTheGateBossHalfAgainAndEveryOtherWeaponItsOwn()
+        {
+            Assert.That(WardenRule.SwordId,Is.EqualTo("weapon_sword"),"The Sword's WeaponDefinition id.");
+            Assert.That(WardenRule.SwordShare,Is.EqualTo(1.5f));
+            Assert.That(WardenRule.GateBossShareOf(WardenRule.SwordId),Is.EqualTo(WardenRule.SwordShare));
+            Assert.That(WardenRule.GateBossShareOf("weapon_staff"),Is.EqualTo(1f));
+            Assert.That(WardenRule.GateBossShareOf("weapon_daggers"),Is.EqualTo(1f));
+            Assert.That(WardenRule.GateBossShareOf(null),Is.EqualTo(1f));
+            Assert.That(WardenRule.DamageOn(18f,WardenRule.SwordShare,true),Is.EqualTo(27f),"The Sword on the gate boss.");
+            Assert.That(WardenRule.DamageOn(18f,WardenRule.SwordShare,false),Is.EqualTo(18f),"The Sword on anything else.");
+            Assert.That(WardenRule.DamageOn(24f,WardenRule.GateBossShareOf("weapon_staff"),true),Is.EqualTo(24f),"The Staff on the gate boss.");
+            Assert.That(WardenRule.DamageOn(7f,WardenRule.GateBossShareOf("weapon_daggers"),true),Is.EqualTo(7f),"The Daggers on the gate boss.");
+        }
+
+        // The same rule through the strike the scene's AttackController and the foundry simulation both fire
+        // (WeaponRuntime.TryAttack), with the share the loadout hands each weapon by its id.
+        [Test] public void ThroughTheStrikeOnlyTheSwordsLandingsOnTheGateBossTakeTheShare()
+        {
+            var loadout=new WeaponLoadout(7);
+            WeaponRuntime sword=Held(loadout,WardenRule.SwordId,new AttackPattern(WeaponBehavior.Cleave,2f,.5f));
+            WeaponRuntime staff=Held(loadout,"weapon_staff",new AttackPattern(WeaponBehavior.Area,3.5f,.5f));
+            WeaponRuntime daggers=Held(loadout,"weapon_daggers",new AttackPattern(WeaponBehavior.DirectHit));
+            Assert.That(sword.GateBossShare,Is.EqualTo(WardenRule.SwordShare));
+            Assert.That(staff.GateBossShare,Is.EqualTo(1f));Assert.That(daggers.GateBossShare,Is.EqualTo(1f));
+
+            // The Sword strikes the gate boss and cleaves the elite beside it, then strikes the elite and cleaves the boss.
+            var boss=new HealthState(1000f);var elite=new HealthState(1000f);
+            Assert.That(sword.TryAttack(boss,null,new IDamageable[]{boss,elite},gateBoss:boss),Is.True);
+            Assert.That(Lost(boss),Is.EqualTo(15f),"Its strike on the gate boss, half again.");
+            Assert.That(Lost(elite),Is.EqualTo(5f),"Its cleave on an elite, as authored.");
+            sword.Tick(1f);
+            Assert.That(sword.TryAttack(elite,null,new IDamageable[]{elite,boss},gateBoss:boss),Is.True);
+            Assert.That(Lost(elite),Is.EqualTo(15f),"Its strike on an elite with the gate boss standing, as authored.");
+            Assert.That(Lost(boss),Is.EqualTo(22.5f),"Its cleave on the gate boss, half again.");
+
+            // Its procs too: the fourth strike's pulse round the hero reaches the gate boss and the elite.
+            sword.AddModifier(UpgradeStat.PulseDamage,new StatModifier(ModifierOperation.Flat,.5f));
+            for(int i=0;i<2;i++){sword.Tick(1f);sword.TryAttack(elite,null,null,new IDamageable[]{boss,elite},gateBoss:boss);}
+            Assert.That(sword.PulsesFired,Is.EqualTo(1));
+            Assert.That(Lost(boss),Is.EqualTo(22.5f+7.5f),"The pulse on the gate boss, half again.");
+            Assert.That(Lost(elite),Is.EqualTo(15f+20f+5f),"The pulse on an elite, as authored.");
+
+            // The Staff and the Daggers deal the gate boss their own.
+            var other=new HealthState(1000f);
+            Assert.That(staff.TryAttack(other,null,new IDamageable[]{other},gateBoss:other),Is.True);
+            Assert.That(Lost(other),Is.EqualTo(10f),"The Staff on the gate boss, as authored.");
+            Assert.That(daggers.TryAttack(other,null,null,gateBoss:other),Is.True);
+            Assert.That(Lost(other),Is.EqualTo(20f),"The Daggers on the gate boss, as authored.");
+        }
+
+        // Where no gate boss stands - the hall arena, the Descent, the foundry's halls - and on a weapon no loadout holds
+        // (every enemy's, the hall arena's hero), the Sword deals what it is authored to.
+        [Test] public void WithoutAGateBossOrALoadoutTheSwordDealsItsOwn()
+        {
+            WeaponRuntime sword=Held(new WeaponLoadout(7),WardenRule.SwordId,new AttackPattern(WeaponBehavior.Cleave,2f,.5f));
+            var boss=new HealthState(1000f);
+            Assert.That(sword.TryAttack(boss),Is.True);
+            Assert.That(Lost(boss),Is.EqualTo(10f),"No gate boss handed to the strike.");
+
+            var unheld=new WeaponRuntime(10f,.8f,2.1f,0f,new AttackPattern(WeaponBehavior.Cleave,2f,.5f));
+            Assert.That(unheld.GateBossShare,Is.EqualTo(1f));
+            var warden=new HealthState(1000f);
+            Assert.That(unheld.TryAttack(warden,null,null,gateBoss:warden),Is.True);
+            Assert.That(Lost(warden),Is.EqualTo(10f),"A Sword no loadout holds.");
+            Assert.That(()=>unheld.GateBossShare=0f,Throws.InstanceOf<System.ArgumentOutOfRangeException>());
+        }
+
+        private static WeaponRuntime Held(WeaponLoadout loadout,string id,AttackPattern pattern)
+        {
+            var runtime=new WeaponRuntime(10f,.8f,2.1f,0f,pattern);
+            Assert.That(loadout.TryAdd(id,runtime),Is.True,id);
+            return runtime;
+        }
+
+        private static float Lost(HealthState health)=>health.Maximum-health.Current;
 
         // Frames of 1/60 s from now to the blow, in seconds; -1 if none lands within ten seconds.
         private static float SecondsToTheBlow(WardenSlamClock clock,bool enraged)

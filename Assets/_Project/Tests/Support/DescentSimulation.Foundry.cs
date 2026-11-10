@@ -2226,7 +2226,10 @@ namespace Cryptforge.Tests
                     _striking = WorkAt(slot);
                     _strikingWeapon = weapon;
                     _procsBeforeStrike = ProcsFired(weapon);
-                    bool struck = weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null);
+                    // AttackController.GateBoss: the gate boss WardenSlamService handed the hero's attacker at its step
+                    // (StepWarden's _slamBoss), on which each weapon lands its share (WardenRule: the Sword's 1.5).
+                    bool struck = weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null,
+                        _slamBoss);
                     if (struck)
                         _striking.Strikes++;
                     _striking = null;

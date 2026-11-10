@@ -9,7 +9,8 @@ namespace Cryptforge.Core
     // the camera has come back, the clock marks where the hero stands and the hammer lands there a telegraph later. From
     // the mark until the hammer is out of the floor again the Warden's own weapon is held (WardenSlamClock.HoldsWeapon).
     // Only the foundry's gate boss slams; the hall's Warden, the Descent simulation and every other enemy fight as
-    // authored.
+    // authored. It also hands the gate boss to the hero's attacker (AttackController.GateBoss), so a weapon's landings on
+    // it take the weapon's share (WardenRule.SwordShare: the Sword is the Warden's weapon).
     //
     // It runs after EncounterController (-50), which brings the gate boss out, and before every script of the default
     // order, every AttackController among them: the Warden's weapon is held from the very frame its mark goes down, not
@@ -20,6 +21,7 @@ namespace Cryptforge.Core
     {
         private CombatSetup _setup;
         private Health _hero;
+        private AttackController _heroAttack;
         private Health _boss;
         private AttackController _bossAttack;
         private readonly WardenSlamClock _clock = new WardenSlamClock();
@@ -38,10 +40,11 @@ namespace Cryptforge.Core
         // How far from the mark's centre the hero stood when the last blow landed, on the floor.
         public float LastSlamDistance { get; private set; }
 
-        internal void Initialize(CombatSetup setup, Health hero)
+        internal void Initialize(CombatSetup setup, Health hero, AttackController heroAttack)
         {
             _setup = setup;
             _hero = hero;
+            _heroAttack = heroAttack;
         }
 
         private void Update()
@@ -55,6 +58,8 @@ namespace Cryptforge.Core
                 Hold(false);
                 _boss = gate;
                 _bossAttack = gate != null ? gate.GetComponent<AttackController>() : null;
+                if (_heroAttack != null)
+                    _heroAttack.GateBoss = gate;
                 IsEnraged = false;
                 encounter.SetBossEnraged(false);
                 _clock.Reset();

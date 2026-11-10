@@ -505,6 +505,35 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The Sword is the Warden's weapon in the simulation as in the scene (WardenRule.SwordShare, docs/41 status
+        // 2026-11-10), through the one body both strike with: the simulation's Sword is WardenRule's by its id, every weapon
+        // it builds - its hero's and its cards' - takes its share from the game's WeaponLoadout as the scene's does, and its
+        // strikes land through WeaponRuntime.TryAttack, which the scene's AttackController fires too, with the gate boss
+        // WardenSlamService hands the hero's attacker (HeroAttacks, StepWarden's _slamBoss). The simulation has no copy of
+        // the rule's arithmetic to drift: WardenRule.DamageOn is its only body.
+        [Test]
+        public void TheSimulationsWeaponsTakeTheGamesShareOnTheWarden()
+        {
+            Assert.That(DescentSimulation.Sword().Id, Is.EqualTo(WardenRule.SwordId));
+            foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
+            {
+                float share = weapon.Id == WardenRule.SwordId ? WardenRule.SwordShare : 1f;
+                WeaponRuntime started = weapon.CreateCategoryRuntime();
+                Assert.That(new WeaponLoadout(1).TryAdd(weapon.Id, started), Is.True, weapon.Id);
+                Assert.That(started.GateBossShare, Is.EqualTo(share), weapon.Id + " as the hero's own");
+                WeaponCard card = weapon.CreateCard();
+                WeaponRuntime picked = card.CreateRuntime();
+                Assert.That(new WeaponLoadout(1).TryAdd(card.Id, picked), Is.True, card.Id);
+                Assert.That(picked.GateBossShare, Is.EqualTo(share), weapon.Id + " picked up from a card");
+
+                // Its first strike on a gate boss of the Warden's health, as HeroAttacks fires it.
+                var warden = new HealthState(DescentSimulation.Warden.Health * WardenRule.GateHealthShare);
+                Assert.That(started.TryAttack(warden, null, null, null, null, null, warden), Is.True, weapon.Id);
+                Assert.That(warden.Maximum - warden.Current,
+                    Is.EqualTo(started.Damage * share).Within(1e-3f), weapon.Id);
+            }
+        }
+
         // The Warden's own weapon is held from the frame its mark goes down until its hammer is out of the floor again -
         // WardenSlamService runs before every AttackController, and the simulation steps the clock before anything
         // attacks - and every blow lands a whole telegraph after its mark, the Warden enraged under it or not

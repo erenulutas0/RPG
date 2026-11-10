@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
@@ -35,6 +36,27 @@ namespace Cryptforge.Combat
         // points - while 2 s leaves the enraged Warden under a second to swing between a blow and the next mark (docs/41,
         // status 2026-11-03).
         public const float RecoverySeconds = 1.5f;
+
+        // The Sword is the Warden's weapon (docs/41, status 2026-11-10; open decision 3, the Sword's role without the
+        // Staff): every landing of the Sword on the foundry's gate boss - its strike, its cleave and its procs - deals
+        // SwordShare of what it would. The Staff leads the horde; on the Warden the Sword now leads it (27 a second to
+        // 22, P50 of 200 seeds, the Vanguard started with each; docs/cloud/2026-11-04-sword-role.md), and the Warden's
+        // fight shortens from 64 to 56 s (Vanguard) and 55 to 50 s (Ilya), the careful clears unchanged (199 and 200 of
+        // 200). Measured, not chosen: change it only with a re-measurement. Nothing else of the Sword moves: the hall
+        // arena's Warden, the Descent's bosses, the elites and the horde take its authored damage, and every other weapon
+        // deals the gate boss its own. The id is the WeaponDefinition's (Data/Weapons/Weapon_Sword.asset).
+        public const string SwordId = "weapon_sword";
+        public const float SwordShare = 1.5f;
+
+        // What a weapon's landings on the gate boss are multiplied by, by its id: SwordShare for the Sword, 1 for any
+        // other. WeaponLoadout hands it to each weapon it takes up (WeaponRuntime.GateBossShare).
+        public static float GateBossShareOf(string weaponId) => weaponId == SwordId ? SwordShare : 1f;
+
+        // One landing of amount from a weapon whose gate-boss share is share: on the gate boss times the share, on
+        // anything else the amount. One body, never inlined, for WeaponRuntime.TryAttack, which the scene's
+        // AttackController and the foundry simulation both strike through, so the two round the product alike.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float DamageOn(float amount, float share, bool gateBoss) => gateBoss ? amount * share : amount;
 
         public static bool IsEnraged(float current, float maximum) => maximum > 0f && current <= maximum * PhaseTwoAt;
     }

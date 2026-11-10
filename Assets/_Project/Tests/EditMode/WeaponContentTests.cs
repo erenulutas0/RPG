@@ -74,6 +74,17 @@ namespace Cryptforge.Tests
                 Is.EqualTo((18f, 24f, 7f)), "The report's bases (docs/40 section 5.2).");
         }
 
+        // The Sword is the Warden's weapon (WardenRule.SwordShare, docs/41 status 2026-11-10) by its asset's id: the rule
+        // names the Sword the scene loads, and only the Sword.
+        [Test]
+        public void TheWardensWeaponIsTheSwordAsset()
+        {
+            Assert.That(Weapon("Sword").Id, Is.EqualTo(Cryptforge.Combat.WardenRule.SwordId));
+            foreach (string name in HeroWeapons)
+                Assert.That(Cryptforge.Combat.WardenRule.GateBossShareOf(Weapon(name).Id),
+                    Is.EqualTo(name == "Sword" ? Cryptforge.Combat.WardenRule.SwordShare : 1f), name);
+        }
+
         // The three evolutions (docs/42, PR 5; the Staff's is Cinder Nova, KillBurstRule): as the simulation restates
         // them, evolving from their own weapon with the tome the asset names.
         [Test]
