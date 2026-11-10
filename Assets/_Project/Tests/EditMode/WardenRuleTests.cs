@@ -193,6 +193,22 @@ namespace Cryptforge.Tests
             Assert.That(()=>unheld.GateBossShare=0f,Throws.InstanceOf<System.ArgumentOutOfRangeException>());
         }
 
+        // A floor's own gate share (FloorDefinition.FoundryGateHealthShare): 0 takes GateHealthShare, as floor 1 does; a
+        // share above 0 is the floor's, as floor 2's 8.5 / 1.4; NaN, a negative or an infinite share is refused.
+        [Test] public void AFloorsOwnGateShareStandsInForTheRulesAndZeroKeepsTheRules()
+        {
+            Assert.That(WardenRule.GateHealthShareOn(0f),Is.EqualTo(WardenRule.GateHealthShare));
+            Assert.That(WardenRule.GateHealthShareOn(6.071429f),Is.EqualTo(8.5f/1.4f),"floor 2's asset value is 8.5 / 1.4 as a float");
+            Assert.That(WardenRule.GateHealthShareOn(12f),Is.EqualTo(12f));
+            foreach(float share in new[]{float.NaN,-1f,-.01f,float.PositiveInfinity,float.NegativeInfinity})
+            {
+                Assert.That(WardenRule.IsFloorGateHealthShare(share),Is.False,share.ToString());
+                Assert.That(()=>WardenRule.GateHealthShareOn(share),Throws.InstanceOf<System.ArgumentOutOfRangeException>(),share.ToString());
+            }
+            Assert.That(WardenRule.IsFloorGateHealthShare(0f),Is.True);
+            Assert.That(WardenRule.IsFloorGateHealthShare(8.5f/1.4f),Is.True);
+        }
+
         private static WeaponRuntime Held(WeaponLoadout loadout,string id,AttackPattern pattern)
         {
             var runtime=new WeaponRuntime(10f,.8f,2.1f,0f,pattern);

@@ -24,6 +24,10 @@ namespace Cryptforge.Content
         // On the foundry, how many more elite rooms - copies of the floor's first - stand before its gate boss (V0.1, the
         // owner 2026-11-02). The hall arena and the Descent play the authored rooms only.
         [SerializeField, Min(0)] private int _foundryExtraElites;
+        // On the foundry, the gate boss's health against its authored on this floor (WardenRule.GateHealthShareOn): zero
+        // takes WardenRule.GateHealthShare. Floor 2 sets 8.5 / 1.4, its climb's x1.4 cancelled on its Warden, so the fight
+        // lands in docs/41 step 4's 45-65 s (docs/41, status 2026-11-10 later). The hall arena never reads it.
+        [SerializeField, Min(0f)] private float _foundryGateHealthShare;
         // On the foundry, the roles of the floor's continuous horde (HordeDirector), lightest first: the director weights
         // the early roles in the floor's opening and the later ones as it presses. None, no horde.
         [SerializeField] private EnemyDefinition[] _foundryHorde;
@@ -39,6 +43,7 @@ namespace Cryptforge.Content
         public int FoundryHallSurges => _foundryHallSurges;
         public float FoundryGateNotBeforeSeconds => _foundryGateNotBeforeSeconds;
         public int FoundryExtraElites => _foundryExtraElites;
+        public float FoundryGateHealthShare => _foundryGateHealthShare;
         public int HordeRoleCount => _foundryHorde?.Length ?? 0;
         public EnemyDefinition HordeRoleAt(int index) => _foundryHorde[index];
         public FloorModifierDefinition Modifier => _modifier;
