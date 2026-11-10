@@ -191,6 +191,35 @@ namespace Cryptforge.Tests
             };
         }
 
+        // The difficulty research's structural candidates (FOUNDRY_LEVERS=7; docs/cloud/2026-11-04-difficulty.md): a mark
+        // on the floor that the careful pilot reads as it reads the Warden's - an echo of the Warden's blow, slag lobbed
+        // at the hero in the halls, the elite's stomp - and surges that enter ahead of the hero's walk. Each separates
+        // a pilot that reads the floor from one that does not; FoundryDifficultyResearch plays them by cohort and with a
+        // human's reaction (PilotRealism).
+        public static Lever[] DifficultyLevers()
+        {
+            Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
+            {
+                DescentSimulation.FoundryLevers levers = Shipped().Copy(name);
+                set(levers);
+                return new Lever { Name = name, Estimate = NotMeasured, Levers = levers };
+            }
+
+            return new[]
+            {
+                Make("Warden echo: a second mark after each blow, 0.8 s", l => l.WardenEchoTelegraph = .8f),
+                Make("slag: a 1.6 mark on the hero every 5 s outside the Warden, 1.0 s, 8 %", l => l.SlagEvery = 5f),
+                Make("elite stomp: 2.6 round the elite every 3 s within 2.4, 0.9 s, 15 %", l => l.EliteStompEvery = 3f),
+                Make("ambush surges: surges enter 4 ahead of the hero's walk", l => l.AmbushSurges = true),
+                Make("echo + slag + stomp", l =>
+                {
+                    l.WardenEchoTelegraph = .8f;
+                    l.SlagEvery = 5f;
+                    l.EliteStompEvery = 3f;
+                })
+            };
+        }
+
         public static Batch Run(DescentSimulation.FoundryHero hero, DescentSimulation.FoundryLevers levers, int[] seeds,
             int parallelism)
         {

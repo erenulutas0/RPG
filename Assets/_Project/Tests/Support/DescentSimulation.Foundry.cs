@@ -254,6 +254,43 @@ namespace Cryptforge.Tests
             public bool ReshapesSword => SwordReach > 0f || SwordSweepRadius > 0f || SwordIntervalScale != 1f ||
                                          SwordEvolutionPulseScale != 1f || SwordKillCleaveShare > 0f;
 
+            // Research 2026-11-04 (docs/cloud/2026-11-04-difficulty.md), simulation only and off at the shipped floor.
+            // A human's reaction, aim and attention on the cohort's habits (PilotRealism); null is the frame-perfect pilot.
+            public PilotRealism Realism;
+            // Structural candidates that separate a player who reads the floor from one who does not, each a mark on the
+            // floor that lands a telegraph after it goes down, read by a cohort that EscapesMarks as it reads the
+            // Warden's. The Warden's echo: after each blow a second mark where the hero stands then, landing this many
+            // seconds later, with the slam's radius and WardenEchoShare of the hero's maximum health; 0 is off.
+            public float WardenEchoTelegraph;
+            public float WardenEchoShare = WardenRule.HeroShare;
+            // Slag lobbed from the foundry's furnaces at the hero in the halls and the elite rooms (not at the Warden):
+            // every SlagEvery seconds while a wave or the horde stands outside the Warden's fight, a mark of SlagRadius
+            // where the hero stands, SlagShare of its maximum health a SlagTelegraph later - range does not help,
+            // standing still does not either. 0 is off.
+            public float SlagEvery;
+            public float SlagTelegraph = 1f;
+            public float SlagRadius = 1.6f;
+            public float SlagShare = .08f;
+            // The elite's stomp: an elite room's first enemy (the Grunt Captain), whenever the hero stands within
+            // EliteStompReach of it and EliteStompEvery seconds have passed since its last, marks EliteStompRadius round
+            // itself and deals EliteStompShare a telegraph later - a hero who trades at its reach must step out, one who
+            // kites wide is never marked. Its first a second after it walks in. 0 is off.
+            public float EliteStompEvery;
+            public float EliteStompTelegraph = .9f;
+            public float EliteStompRadius = 2.6f;
+            public float EliteStompReach = 2.4f;
+            public float EliteStompShare = .15f;
+            // Surges that cut off the kite: a combat hall's surge waves enter AmbushDistance ahead of where the hero is
+            // walking (behind it when it stands), its pack drawn in round that point, instead of the arena's corners.
+            public bool AmbushSurges;
+            public float AmbushDistance = 4f;
+            // The difficulty research's tables only: count FoundryResult.TakenBy, the health the hero lost by place and blow.
+            // Off, as every other report runs, TakenBy stays null and a hit on the hero builds no key; accounting only, no
+            // number of the floor moves either way.
+            public bool CountsHarmByPlace;
+
+            public bool HasHazards => WardenEchoTelegraph > 0f || SlagEvery > 0f || EliteStompEvery > 0f;
+
             public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond ||
                                          HordeTargetGrowth != HordeClock.TargetGrowth;
 
@@ -273,6 +310,28 @@ namespace Cryptforge.Tests
             Cleared,
             Died,
             Timeout
+        }
+
+        // Where the hero was hurt (research 2026-11-04; FoundryResult.LowestPhase and TakenBy): the Warden's fight, a
+        // room's node fight, or the walk between (a room's hall marked, or nothing standing but the horde). None before a
+        // hit.
+        internal enum HarmPlace
+        {
+            None,
+            Boss,
+            Room,
+            Between
+        }
+
+        // A HarmPlace by name, with its 1-based room: "boss", "room 3", "room 3 between"; null for None.
+        internal static string PlaceName(HarmPlace place, int room)
+        {
+            if (place == HarmPlace.None)
+                return null;
+            if (place == HarmPlace.Boss)
+                return "boss";
+            string name = "room " + room.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return place == HarmPlace.Between ? name + " between" : name;
         }
 
         // One enemy's life, for the observed TTK: its kind, whether it was the horde's, from walking in to falling, and
@@ -475,6 +534,24 @@ namespace Cryptforge.Tests
             public int[] BucketLevel;
             public int Buckets;
 
+            // Research 2026-11-04: the hazards' marks (FoundryLevers' echo, slag, stomp) put down, those that landed on the
+            // hero and what they took; the realistic pilot's lapses (PilotRealism); the hero's lowest health as a share of
+            // its maximum, with the room (the 1-based room index, as DeathRoom), the phase and the blow that took it
+            // there; and the health the hero lost, by place and blow ("room 3|horde Grunt", "boss|pit"), counted only when
+            // a report asks for it (FoundryLevers.CountsHarmByPlace) and null otherwise.
+            public int HazardMarks;
+            public int HazardHits;
+            public float TakenFromHazards;
+            public int Lapses;
+            public float LowestHealthShare = 1f;
+            public int LowestRoom = -1;
+            // The place of the lowest health, named as it is read ("boss", "room 3", "room 3 between"; null before a hit),
+            // so that a hit builds no string.
+            public string LowestPhase => PlaceName(LowestPlace, LowestRoom);
+            public HarmPlace LowestPlace;
+            public string LowestHarm;
+            public Dictionary<string, float> TakenBy;
+
             public bool Cleared => Outcome == FoundryOutcome.Cleared;
 
             public float WalkTotal
@@ -662,6 +739,11 @@ namespace Cryptforge.Tests
             public float FirstHitAt = -1f;
             // FoundryLevers.SwordKnockbackUnits (research): no strike before this run second.
             public float StaggeredUntil;
+            // A realistic pilot's notice of it (PilotRealism): when it came within the kite reach, and when it last left it;
+            // NaN for neither. And the elite's stomp clock (FoundryLevers.EliteStompEvery).
+            public float NoticedAt = float.NaN;
+            public float LostAt = float.NaN;
+            public float StompClock = float.NaN;
             public FoundryRun Run;
 
             public bool IsAlive => Health.IsAlive;
@@ -678,6 +760,25 @@ namespace Cryptforge.Tests
             Burn,
             Ability,
             Pit
+        }
+
+        // A hazard's mark on the floor (FoundryLevers' echo, slag and stomp; research 2026-11-04): where it lands, how wide,
+        // when it went down and lands, what it takes and from where it came (an escape steps away from that), and the
+        // realistic pilot's misplaced step for it, drawn once.
+        private sealed class HazardMark
+        {
+            public float X;
+            public float Y;
+            public float Radius;
+            public float Onset;
+            public float LandsAt;
+            public float Share;
+            public string Harm;
+            public float SourceX;
+            public float SourceY;
+            public bool Aimed;
+            public float AimX;
+            public float AimY;
         }
 
         // The horde's director: the game's HordeDirector, or the tuned copy when a lever changes what it reads as constants.
@@ -851,6 +952,28 @@ namespace Cryptforge.Tests
             private float _chestY;
             private ChestReward _chestReward;
 
+            // Research 2026-11-04: the realistic pilot (FoundryLevers.Realism, null for the frame-perfect one), its dice and
+            // its attention - the stick held until _lapseUntil, the next lapse - and its misplaced steps: for the Warden's
+            // mark (by the slams counted when it was drawn), for a shelter (by the eruptions counted) and for a kite stride
+            // (until _kiteAimUntil). The hazards' marks on the floor, the slag's clock, and the next wave's ambush.
+            private readonly PilotRealism _realism;
+            private readonly PilotDice _dice;
+            private float _lapseUntil = float.NegativeInfinity;
+            private float _nextLapseAt = float.PositiveInfinity;
+            private int _markAimFor = -1;
+            private float _markAimX;
+            private float _markAimY;
+            private int _shelterAimFor = -1;
+            private float _shelterAimX;
+            private float _shelterAimY;
+            private float _kiteAimUntil = float.NegativeInfinity;
+            private float _kiteAimX;
+            private float _kiteAimY;
+            private readonly List<HazardMark> _marks = new List<HazardMark>();
+            private float _slagClock;
+            private bool _ambushNext;
+            private string _hazardHarm;
+
             private int _frame;
             private float _seconds;
             private float _lastHeroHit = float.NegativeInfinity;
@@ -957,6 +1080,13 @@ namespace Cryptforge.Tests
                 // Update left last frame, since EncounterController steps the packs before the pit's Update runs.
                 _pitHeld = (x, y) => _pitRunning && _pit.IsWarning && PitEruptionRule.InBand(x, y);
                 _revealFrames = RevealFrames();
+                _realism = levers.Realism;
+                if (_realism != null)
+                {
+                    _dice = new PilotDice(seed);
+                    if (_realism.Lapses)
+                        _nextLapseAt = _dice.Wait(_realism.LapsesPerMinute);
+                }
 
                 EnterFloor();
             }
@@ -968,7 +1098,8 @@ namespace Cryptforge.Tests
                 {
                     Seed = seed, Hero = _heroDefinition.Id, Levers = _levers.Name, Floor = _floor.FloorNumber,
                     Kinds = _floor.Kinds, RoomSeconds = Filled(_floor.Kinds.Length, -1f),
-                    WalkSeconds = Filled(_floor.Kinds.Length, -1f), WaveSeconds = Filled(_floor.Kinds.Length, -1f)
+                    WalkSeconds = Filled(_floor.Kinds.Length, -1f), WaveSeconds = Filled(_floor.Kinds.Length, -1f),
+                    TakenBy = _levers.CountsHarmByPlace ? new Dictionary<string, float>() : null
                 };
                 int buckets = (int)Math.Ceiling(_levers.LimitSeconds / FoundryBucketSeconds) + 1;
                 result.BucketDamage = new float[buckets];
@@ -1075,6 +1206,8 @@ namespace Cryptforge.Tests
                 if (!_revealHold && _heroHealth.IsAlive)
                     Encounter();
                 StepWarden();
+                if (_levers.HasHazards)
+                    StepHazards();
 
                 HeroAttacks();
                 if (_heroHealth.IsAlive)
@@ -1228,7 +1361,7 @@ namespace Cryptforge.Tests
             }
 
             private float Taken => _result.TakenFromWave + _result.TakenFromHorde + _result.TakenFromWarden +
-                                   _result.TakenFromSlams + _result.TakenFromPit;
+                                   _result.TakenFromSlams + _result.TakenFromPit + _result.TakenFromHazards;
 
             // FoundryLevers.GateSiegeHall: the hall's waves in turn, a new one as the last falls, as a held hall repeats its
             // own (RepeatsHall) - the floor's progress stays at the room before the gate meanwhile.
@@ -1375,7 +1508,9 @@ namespace Cryptforge.Tests
             {
                 RoomKind kind = _floor.Kinds[roomIndex];
                 bool boss = kind == RoomKind.Boss;
+                _ambushNext = _levers.AmbushSurges && kind == RoomKind.Combat && waveIndex >= _floor.Rooms[roomIndex].Length;
                 SpawnWave(WaveEnemies(roomIndex, waveIndex), boss, boss);
+                _ambushNext = false;
                 _waveIndex = waveIndex;
                 if (waveIndex == 0 && _hallRepeatWave < 0)
                     _hallStartedAt = _seconds;
@@ -1399,6 +1534,8 @@ namespace Cryptforge.Tests
                 _gateBossWave = atGate;
                 if (atGate)
                     FoundryMap.PlaceAtGate(count, _placements);
+                else if (_ambushNext)
+                    Ambush(count, heroX, heroY);
                 for (int i = 0; i < count; i++)
                 {
                     Enemy definition = definitions[i];
@@ -1927,6 +2064,11 @@ namespace Cryptforge.Tests
                     if (_harmIsSlam)
                         _lastHarm = "Warden slam";
                 }
+                else if (_hazardHarm != null)
+                {
+                    _result.TakenFromHazards += taken;
+                    _lastHarm = _hazardHarm;
+                }
                 else
                 {
                     _result.TakenFromPit += taken;
@@ -1934,11 +2076,32 @@ namespace Cryptforge.Tests
                         _result.FightTakenFromPit += taken;
                     _lastHarm = "pit";
                 }
+                HarmPlace place = Place();
+                // FoundryLevers.CountsHarmByPlace: the health lost by place and blow, for the research's tables alone.
+                if (_result.TakenBy != null)
+                {
+                    string key = PlaceName(place, _roomIndex + 1) + "|" + _lastHarm;
+                    _result.TakenBy.TryGetValue(key, out float sum);
+                    _result.TakenBy[key] = sum + taken;
+                }
+                float share = _heroHealth.Current / Math.Max(1f, _heroHealth.Maximum);
+                if (share < _result.LowestHealthShare)
+                {
+                    _result.LowestHealthShare = share;
+                    _result.LowestRoom = _roomIndex + 1;
+                    _result.LowestPlace = place;
+                    _result.LowestHarm = _lastHarm;
+                }
                 if (!_heroHealth.IsAlive && _result.DeathRoom < 0)
                     RecordDeath();
             }
 
             private bool _harmIsSlam;
+
+            // Where the hero is hurt, for FoundryResult.LowestPhase and TakenBy: the Warden's fight, a room's node fight, or
+            // the walk between (a room's hall marked, or nothing standing but the horde).
+            private HarmPlace Place() =>
+                _gateBossWave && _waveAlive > 0 ? HarmPlace.Boss : _waveAlive > 0 ? HarmPlace.Room : HarmPlace.Between;
 
             private void RecordDeath()
             {
@@ -2274,7 +2437,131 @@ namespace Cryptforge.Tests
                         }
                         if (_trace != null)
                             Emit($"slam_blow hit={hit} enraged={_slamEnraged} hp={N(_heroHealth.Current)}");
+                        if (_levers.WardenEchoTelegraph > 0f && _heroHealth.IsAlive)
+                            Mark(HeroX, HeroY, WardenRule.SlamRadius, _levers.WardenEchoTelegraph, _levers.WardenEchoShare,
+                                "Warden echo", boss.X, boss.Y);
                         break;
+                }
+            }
+
+            // ---------------------------------------------------------------------------------------------------------
+            // Research 2026-11-04: the structural candidates' hazards (FoundryLevers), simulation only
+            // ---------------------------------------------------------------------------------------------------------
+
+            private void Mark(float x, float y, float radius, float telegraph, float share, string harm, float sourceX,
+                float sourceY)
+            {
+                _marks.Add(new HazardMark
+                {
+                    X = x, Y = y, Radius = radius, Onset = _seconds, LandsAt = _seconds + telegraph, Share = share,
+                    Harm = harm, SourceX = sourceX, SourceY = sourceY
+                });
+                _result.HazardMarks++;
+                if (_trace != null)
+                    Emit($"hazard_mark {harm} x={N(x)} y={N(y)} hp={N(_heroHealth.Current)}");
+            }
+
+            // The hazards' clocks and their marks landing, stepped beside the Warden's slam: paused while a choice is open
+            // or the reveal holds, gone with the fight that put them down (an echo with its Warden; slag and a stomp once
+            // nothing stands, or the Warden walks out). The slag's clock runs while a wave or the horde stands outside the
+            // Warden's fight - the halls, the elite rooms and the wait at the gate: a node wave alone lasts a few seconds.
+            private void StepHazards()
+            {
+                if (_run.HasEnded || _choices.IsOpen || _revealHold)
+                    return;
+                bool warden = _slamBoss != null && _slamBoss.IsAlive;
+                bool node = _waveAlive + _hordeAlive > 0 && !warden;
+                for (int i = _marks.Count - 1; i >= 0; i--)
+                {
+                    HazardMark mark = _marks[i];
+                    bool echo = mark.Harm == "Warden echo";
+                    if (echo ? !warden : !node)
+                    {
+                        _marks.RemoveAt(i);
+                        continue;
+                    }
+                    if (_seconds < mark.LandsAt)
+                        continue;
+                    _marks.RemoveAt(i);
+                    bool hit = _heroHealth.IsAlive &&
+                               ArenaFloor.FloorDistanceSquared(HeroX, HeroY, mark.X, mark.Y) <= mark.Radius * mark.Radius;
+                    if (!hit)
+                        continue;
+                    _result.HazardHits++;
+                    _hazardHarm = mark.Harm;
+                    _harmIsSlam = false;
+                    _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * mark.Share));
+                    _hazardHarm = null;
+                }
+                if (!node || !_heroHealth.IsAlive)
+                {
+                    _slagClock = 0f;
+                    return;
+                }
+                if (_levers.SlagEvery > 0f)
+                {
+                    _slagClock += Step;
+                    if (_slagClock >= _levers.SlagEvery)
+                    {
+                        _slagClock = 0f;
+                        Mark(HeroX, HeroY, _levers.SlagRadius, _levers.SlagTelegraph, _levers.SlagShare, "slag", HeroX, HeroY);
+                    }
+                }
+                if (_levers.EliteStompEvery > 0f && _waveAlive > 0 && _roomIndex >= 0 &&
+                    _floor.Kinds[_roomIndex] == RoomKind.Elite && _wave.Count > 0)
+                {
+                    Foe elite = _wave[0];
+                    if (IsValid(elite))
+                    {
+                        // The first stomp comes a second after the elite walks in: a Captain often falls inside three.
+                        if (float.IsNaN(elite.StompClock))
+                            elite.StompClock = _levers.EliteStompEvery - 1f;
+                        elite.StompClock += Step;
+                        float reach = _levers.EliteStompReach;
+                        if (elite.StompClock >= _levers.EliteStompEvery &&
+                            ArenaFloor.FloorDistanceSquared(HeroX, HeroY, elite.X, elite.Y) <= reach * reach)
+                        {
+                            elite.StompClock = 0f;
+                            Mark(elite.X, elite.Y, _levers.EliteStompRadius, _levers.EliteStompTelegraph,
+                                _levers.EliteStompShare, "elite stomp", elite.X, elite.Y);
+                        }
+                    }
+                }
+            }
+
+            // FoundryLevers.AmbushSurges: the surge's pack drawn in round a point AmbushDistance ahead of the hero's walk
+            // (behind it, from the floor's far side, when it stands), each enemy at half its corner offset from the pack's
+            // centre; an enemy whose spot is off the floor or too near the hero keeps its corner.
+            private void Ambush(int count, float heroX, float heroY)
+            {
+                float dx = _steerX;
+                float dy = _steerY;
+                if (dx * dx + dy * dy < 1e-6f)
+                {
+                    dx = 0f;
+                    dy = -1f;
+                }
+                Normalize(ref dx, ref dy);
+                float cx = 0f, cy = 0f;
+                for (int i = 0; i < count; i++)
+                {
+                    cx += _placements[i].X;
+                    cy += _placements[i].Y;
+                }
+                cx /= Math.Max(1, count);
+                cy /= Math.Max(1, count);
+                float ax = heroX + dx * _levers.AmbushDistance;
+                float ay = heroY + dy * _levers.AmbushDistance;
+                float minimum = EntrySides.MinimumEntryDistance;
+                for (int i = 0; i < count; i++)
+                {
+                    EntryPlacement p = _placements[i];
+                    float x = ax + (p.X - cx) * .5f;
+                    float y = ay + (p.Y - cy) * .5f;
+                    if (!FoundryMap.Contains(x, y, HeroMotion.EdgeMargin) ||
+                        ArenaFloor.FloorDistanceSquared(x, y, heroX, heroY) < minimum * minimum)
+                        continue;
+                    _placements[i] = new EntryPlacement(p.Side, p.Lateral, x, y);
                 }
             }
 
@@ -2309,6 +2596,9 @@ namespace Cryptforge.Tests
                     _steerY = 0f;
                     return;
                 }
+                // A realistic pilot looking away holds the stick where it was (PilotRealism).
+                if (_realism != null && LooksAway())
+                    return;
                 if (_levers.Cohort.UsesTheAbility)
                     PilotAbility();
                 float x = HeroX;
@@ -2396,6 +2686,12 @@ namespace Cryptforge.Tests
                 // While the pit's band glows a cohort that keeps out of it steps into it only to leave the Warden's mark
                 // (PilotSteer).
                 bool glowing = _pitRunning && _pit.IsWarning;
+                // A realistic pilot reads the glow a reaction after it began.
+                if (glowing && _realism != null &&
+                    !Perceived(_seconds - _pit.WarningProgress * PitEruptionRule.Warning, _realism.GlowReaction))
+                    glowing = false;
+                if (_realism != null && _realism.FoeReaction > 0f)
+                    NoticeFoes(cohort, x, y);
                 bool guarded = cohort.Guards(glowing);
                 _bandGuard = guarded;
                 if (_gateExitOpen)
@@ -2405,7 +2701,9 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Walk;
                     return true;
                 }
-                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked)
+                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked &&
+                    (_realism == null ||
+                     Perceived(_seconds - _slam.TelegraphProgress * WardenRule.Telegraph, _realism.MarkReaction)))
                 {
                     float mx = x - _markX;
                     float my = y - _markY;
@@ -2413,6 +2711,15 @@ namespace Cryptforge.Tests
                     if (mx * mx + my * my < reach * reach &&
                         cohort.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out gx, out gy))
                     {
+                        if (_realism != null && _realism.AimError > 0f)
+                        {
+                            if (_markAimFor != _result.Slams)
+                            {
+                                _markAimFor = _result.Slams;
+                                _dice.Disc(_realism.AimError, out _markAimX, out _markAimY);
+                            }
+                            Aim(ref gx, ref gy, _markAimX, _markAimY);
+                        }
                         stop = 0f;
                         _bandGuard = false;
                         _result.EscapeSeconds += Step;
@@ -2420,9 +2727,26 @@ namespace Cryptforge.Tests
                         return true;
                     }
                 }
+                if (cohort.EscapesMarks && _marks.Count > 0 && EscapeHazard(cohort, x, y, glowing, out gx, out gy))
+                {
+                    stop = 0f;
+                    _bandGuard = false;
+                    _result.EscapeSeconds += Step;
+                    _doing = PilotDoing.Walk;
+                    return true;
+                }
                 if (cohort.Shelters && glowing && PitEruptionRule.InBand(x, y))
                 {
                     cohort.Shelter(x, y, PilotShelterDepth, out gx, out gy);
+                    if (_realism != null && _realism.AimError > 0f)
+                    {
+                        if (_shelterAimFor != _result.Eruptions)
+                        {
+                            _shelterAimFor = _result.Eruptions;
+                            _dice.Disc(_realism.AimError, out _shelterAimX, out _shelterAimY);
+                        }
+                        Aim(ref gx, ref gy, _shelterAimX, _shelterAimY);
+                    }
                     _result.ShelterSeconds += Step;
                     _doing = PilotDoing.Walk;
                     return true;
@@ -2430,6 +2754,15 @@ namespace Cryptforge.Tests
                 if (cohort.Kites && Threat(cohort, x, y, out float tx, out float ty) &&
                     cohort.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out gx, out gy))
                 {
+                    if (_realism != null && _realism.AimError > 0f)
+                    {
+                        if (_seconds >= _kiteAimUntil)
+                        {
+                            _kiteAimUntil = _seconds + _realism.KiteAimSeconds;
+                            _dice.Disc(_realism.AimError, out _kiteAimX, out _kiteAimY);
+                        }
+                        Aim(ref gx, ref gy, _kiteAimX, _kiteAimY);
+                    }
                     stop = 0f;
                     _result.KiteSeconds += Step;
                     _doing = PilotDoing.Kite;
@@ -2538,6 +2871,9 @@ namespace Cryptforge.Tests
                     float reach = cohort.ThreatReach(PilotKiteReach, enemy.Definition.Reach, ReferenceEquals(enemy, gate));
                     if (d >= reach * reach || d < 1e-6f)
                         continue;
+                    if (_realism != null && !Perceived(float.IsNaN(enemy.NoticedAt) ? _seconds : enemy.NoticedAt,
+                            _realism.FoeReaction))
+                        continue;
                     tx += (x - px) / d;
                     ty += (y - py) / d;
                 }
@@ -2591,6 +2927,103 @@ namespace Cryptforge.Tests
                     return;
                 _steerX = 0f;
                 _steerY = 0f;
+                // A realistic pilot reads the floor again after the panel closes, the stick let go.
+                if (_realism != null && _realism.CardLapseSeconds > 0f)
+                    _lapseUntil = Math.Max(_lapseUntil, _seconds + _realism.CardLapseSeconds);
+            }
+
+            // ---------------------------------------------------------------------------------------------------------
+            // Research 2026-11-04: the realistic pilot (PilotRealism), simulation only
+            // ---------------------------------------------------------------------------------------------------------
+
+            // Whether a threat that appeared at onset has been seen long enough to be answered: a reaction after it, or
+            // after the end of the lapse it appeared in.
+            private bool Perceived(float onset, float reaction) =>
+                _seconds - Math.Max(onset, _lapseUntil) >= reaction - 1e-4f;
+
+            // A lapse due starts now; true while one lasts (a card's included), the stick held.
+            private bool LooksAway()
+            {
+                if (_realism.Lapses && _seconds >= _nextLapseAt)
+                {
+                    _lapseUntil = Math.Max(_lapseUntil, _seconds + _realism.LapseSeconds);
+                    _nextLapseAt = _lapseUntil + _dice.Wait(_realism.LapsesPerMinute);
+                    _result.Lapses++;
+                }
+                return _seconds < _lapseUntil;
+            }
+
+            // Each enemy within the cohort's kite reach is noticed when it comes in - or when the pilot looks back - and
+            // forgotten once it has stayed out of it FoeMemory seconds.
+            private void NoticeFoes(AutopilotCohort cohort, float x, float y)
+            {
+                Foe gate = GateBoss;
+                for (int i = 0; i < TargetCount; i++)
+                {
+                    Foe enemy = TargetAt(i);
+                    if (!IsValid(enemy))
+                        continue;
+                    float reach = cohort.ThreatReach(PilotKiteReach, enemy.Definition.Reach, ReferenceEquals(enemy, gate));
+                    bool within = ArenaFloor.FloorDistanceSquared(x, y, enemy.X, enemy.Y) < reach * reach;
+                    if (within)
+                    {
+                        if (float.IsNaN(enemy.NoticedAt))
+                            enemy.NoticedAt = _seconds;
+                        enemy.LostAt = float.NaN;
+                    }
+                    else if (!float.IsNaN(enemy.NoticedAt))
+                    {
+                        if (float.IsNaN(enemy.LostAt))
+                            enemy.LostAt = _seconds;
+                        else if (_seconds - enemy.LostAt > _realism.FoeMemory)
+                            enemy.NoticedAt = float.NaN;
+                    }
+                }
+            }
+
+            // The misplaced step: the goal moved by the drawn offset, where the hero can still stand there.
+            private static void Aim(ref float gx, ref float gy, float ox, float oy)
+            {
+                if (!FoundryMap.Contains(gx + ox, gy + oy, HeroMotion.EdgeMargin))
+                    return;
+                gx += ox;
+                gy += oy;
+            }
+
+            // Out of the hazard mark the hero stands in (within its radius and .6) that lands first, once seen: as the
+            // Warden's mark, away from where it came from (FootworkRule.EscapeMark; the slag's own centre gives the
+            // nearest way out).
+            private bool EscapeHazard(AutopilotCohort cohort, float x, float y, bool glowing, out float gx, out float gy)
+            {
+                gx = x;
+                gy = y;
+                HazardMark next = null;
+                for (int i = 0; i < _marks.Count; i++)
+                {
+                    HazardMark mark = _marks[i];
+                    float reach = mark.Radius + .6f;
+                    if (ArenaFloor.FloorDistanceSquared(x, y, mark.X, mark.Y) >= reach * reach)
+                        continue;
+                    if (_realism != null && !Perceived(mark.Onset, _realism.MarkReaction))
+                        continue;
+                    if (next == null || mark.LandsAt < next.LandsAt)
+                        next = mark;
+                }
+                if (next == null)
+                    return false;
+                if (!cohort.EscapeMark(x, y, next.X, next.Y, next.Radius + 1f, next.SourceX, next.SourceY, glowing, out gx,
+                        out gy))
+                    return false;
+                if (_realism != null && _realism.AimError > 0f)
+                {
+                    if (!next.Aimed)
+                    {
+                        next.Aimed = true;
+                        _dice.Disc(_realism.AimError, out next.AimX, out next.AimY);
+                    }
+                    Aim(ref gx, ref gy, next.AimX, next.AimY);
+                }
+                return true;
             }
 
             private void OnOfferChanged()

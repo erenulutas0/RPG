@@ -26,9 +26,10 @@ namespace Cryptforge.Tests
     // levers of docs/41's open decision 2, FoundryBatch.GateLevers, and 6 the lever sets made of them,
     // FoundryBatch.GateLeverSets - each played by every cohort, or those FOUNDRY_SWEEP_COHORTS names, into
     // foundry-gate-levers.md and .csv; FOUNDRY_LEVER_FILTER keeps the levers whose names hold one of its comma-separated
-    // words). FOUNDRY_COHORTS=1 adds the
+    // words; 7 the difficulty research's structural candidates, FoundryBatch.DifficultyLevers). FOUNDRY_COHORTS=1 adds the
     // autopilot's cohorts on the same seeds and floors (FoundryCohorts: four more batches a hero, alone in
-    // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it).
+    // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it;
+    // FOUNDRY_REALISM - typical, slow or a reaction in seconds - plays every cohort with a human's hands, PilotRealism).
     // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
@@ -82,7 +83,8 @@ namespace Cryptforge.Tests
                     gateLevers.Add(FoundryBatch.RunCohorts(lever, heroes, batchSeeds, parallel, sweepCohorts, floors));
             }
             if (levers)
-                foreach (FoundryBatch.Lever lever in leverSet == 4 ? FoundryBatch.SwordLevers() :
+                foreach (FoundryBatch.Lever lever in leverSet == 7 ? FoundryBatch.DifficultyLevers() :
+                         leverSet == 4 ? FoundryBatch.SwordLevers() :
                          leverSet == 3 ? FoundryBatch.WardenLevers() :
                          leverSet == 2 ? FoundryBatch.ComboLevers() : FoundryBatch.ResearchLevers())
                     leverRuns.Add((lever, heroes.Select(hero => FoundryBatch.Run(hero, lever.Levers, batchSeeds, parallel)).ToArray()));
@@ -115,7 +117,8 @@ namespace Cryptforge.Tests
             var cohortRuns = new List<(Cryptforge.Core.AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)>();
             if (Setting("FOUNDRY_COHORTS", 0) != 0)
             {
-                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines, floors);
+                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines, floors,
+                    PilotRealism.Named(Environment.GetEnvironmentVariable("FOUNDRY_REALISM")));
                 string cohorts = FoundryCohorts.Section(cohortRuns);
                 md.Append(cohorts);
                 File.WriteAllText(Path.Combine(output, "foundry-cohorts.md"), cohorts);
