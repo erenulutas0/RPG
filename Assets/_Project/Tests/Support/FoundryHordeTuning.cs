@@ -31,6 +31,9 @@ namespace Cryptforge.Tests
         // What the fill rate before the overrun is multiplied by; one keeps HordeClock.SpawnRate. The overrun's own rate
         // (HordeClock.OvertimeRate) is never scaled: the lever is the floor's pace, not its punishment.
         private readonly float _rateScale;
+        // How much the crowd grows by the overrun (HordeClock.TargetGrowth unless a lever sets it, docs/41's open
+        // decision 2).
+        private readonly float _targetGrowth;
         private int _second;
         private float _credit;
         private float _nextSpawnAt;
@@ -47,8 +50,11 @@ namespace Cryptforge.Tests
         public HordeState State => _state;
 
         // Always clocked, as the scene's foundry horde is. targets: four crowds or null; rateScale: above zero.
-        public TunedHordeDirector(int cap, int roleCount, int seed, int[] targets, float rateScale)
+        public TunedHordeDirector(int cap, int roleCount, int seed, int[] targets, float rateScale,
+            float targetGrowth = HordeClock.TargetGrowth)
         {
+            if (!(targetGrowth >= 0f) || float.IsInfinity(targetGrowth))
+                throw new ArgumentOutOfRangeException(nameof(targetGrowth));
             if (cap < 1)
                 throw new ArgumentOutOfRangeException(nameof(cap));
             if (roleCount < 1)
@@ -62,6 +68,7 @@ namespace Cryptforge.Tests
             _roleCount = roleCount;
             _targets = targets != null ? (int[])targets.Clone() : null;
             _rateScale = rateScale;
+            _targetGrowth = targetGrowth;
             _random = RunRandom.Stream(seed, HordeRule.RandomPurpose, 0);
             _weights = new int[States * roleCount];
             _weightTotals = new int[States];
@@ -194,16 +201,17 @@ namespace Cryptforge.Tests
 
         private void Retarget()
         {
-            TargetNow = _targets == null
+            TargetNow = _targets == null && _targetGrowth == HordeClock.TargetGrowth
                 ? HordeRule.EffectiveTarget(_state, KillsInWindow, SpawnsInWindow, _cap, Seconds)
-                : EffectiveTarget(_targets, _state, KillsInWindow, SpawnsInWindow, _cap, Seconds);
+                : EffectiveTarget(_targets ?? HordeRule.TargetByState, _state, KillsInWindow, SpawnsInWindow, _cap, Seconds,
+                    _targetGrowth);
         }
 
         // HordeRule.EffectiveTarget's clocked body over given crowds. Never inlined, as the original is not; the tests hold
         // it to the original at HordeRule.TargetByState over every state, window and second they try.
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static int EffectiveTarget(int[] targets, HordeState state, int killsInWindow, int spawnsInWindow, int cap,
-            float clockSeconds)
+            float clockSeconds, float targetGrowth = HordeClock.TargetGrowth)
         {
             float ratio = killsInWindow / (float)Math.Max(1, spawnsInWindow);
             if (ratio > 1f)
@@ -214,9 +222,21 @@ namespace Cryptforge.Tests
                 return plain;
             if (HordeClock.IsOvertime(clockSeconds))
                 return cap;
-            float grown = targets[(int)state] * HordeClock.TargetMultiplier(clockSeconds);
+            float grown = targets[(int)state] * TargetMultiplier(clockSeconds, targetGrowth);
             int clocked = (int)(grown * (1f + HordeRule.ReactiveShare * ratio) + 0.5f);
             return clocked < cap ? clocked : cap;
+        }
+
+        // HordeClock.TargetMultiplier with its growth as a parameter: the game's own at the shipped growth, else its body.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static float TargetMultiplier(float seconds, float growth)
+        {
+            if (growth == HordeClock.TargetGrowth)
+                return HordeClock.TargetMultiplier(seconds);
+            if (float.IsNaN(seconds) || seconds < 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds));
+            float progress = seconds < HordeClock.TargetSeconds ? seconds / HordeClock.TargetSeconds : 1f;
+            return 1f + growth * progress;
         }
 
         private HordeDirector.Spawn Take()

@@ -200,6 +200,19 @@ namespace Cryptforge.Tests
             public float HallHoldSeconds;
             // The gate does not open before the floor's clock reads this; 0 is off.
             public float GateNotBeforeSeconds = 210f;
+            // docs/41's open decision 2 (2026-11-04): what else may open the gate, and what may fill its wait; each off at
+            // the shipped floor. The gate opens once the floor's kills (horde and node waves) reach GateKillQuota, or once
+            // the hero's level reaches GateOpenLevel - whichever comes first beside the clock above. With the clock off,
+            // the gate holds for the quota or the level alone, and opens at the overrun (HordeClock.TargetSeconds) at the
+            // latest. 0 is off.
+            public int GateKillQuota;
+            public int GateOpenLevel;
+            // A siege while the gate holds: each time the standing wave is down, the floor's n-th combat hall (1-based)
+            // sends its waves again in turn, its surges included; 0 is off, and the wait is the horde's alone.
+            public int GateSiegeHall;
+            // How much the horde's standing crowd grows by the overrun (HordeClock.TargetGrowth, 0.5): the crowd aims for
+            // (1 + this * clock / 300) times its state's target.
+            public float HordeTargetGrowth = HordeClock.TargetGrowth;
             public float LimitSeconds = FoundryFloorLimitSeconds;
             // How many floors of the climb a run plays: 1, floor 1 alone, as every report did before 2026-11-04; 2 goes on
             // after a floor-1 clear, as the autopilot answers the checkpoint with Descend, into floor 2 (FoundryFloor.Next),
@@ -241,7 +254,10 @@ namespace Cryptforge.Tests
             public bool ReshapesSword => SwordReach > 0f || SwordSweepRadius > 0f || SwordIntervalScale != 1f ||
                                          SwordEvolutionPulseScale != 1f || SwordKillCleaveShare > 0f;
 
-            public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond;
+            public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond ||
+                                         HordeTargetGrowth != HordeClock.TargetGrowth;
+
+            public bool HoldsGate => GateNotBeforeSeconds > 0f || GateKillQuota > 0 || GateOpenLevel > 0;
 
             public FoundryLevers Copy(string name)
             {
@@ -347,6 +363,27 @@ namespace Cryptforge.Tests
             public float BossLeft = -1f;
             public float ExitSeconds = -1f;
             public float GateWaitSeconds;
+            // The room before the gate cleared (whether or not the gate then held): the floor's clock, its kills and the
+            // hero's level at that moment; -1 where the floor never got there.
+            public float GateReadyClock = -1f;
+            public int GateReadyKills = -1;
+            public int GateReadyLevel = -1;
+            // What filled the gate's wait (docs/41's open decision 2), in active seconds of it: an enemy within the first
+            // weapon's reach or a hit in the last 1.5 s (the engaged rule), and what the autopilot's steer was doing -
+            // kiting, walking to a drop, fighting a node wave where it stood or drew it, walking elsewhere, or standing
+            // still with nothing to do. And over the wait: the kills, the levels gained, the health lost, the drops
+            // collected, the siege's waves (FoundryLevers.GateSiegeHall).
+            public float WaitEngaged;
+            public float WaitKite;
+            public float WaitDrop;
+            public float WaitFight;
+            public float WaitWalk;
+            public float WaitStill;
+            public int WaitKills;
+            public int WaitLevels;
+            public float WaitTaken;
+            public int WaitDrops;
+            public int WaitSiegeWaves;
             // The level as the Warden walked out, and at the end after the floor's sweep (the measurement's "level").
             public int LevelAtGate = -1;
             public int Level;
@@ -532,6 +569,9 @@ namespace Cryptforge.Tests
             levers.ExtraHalls = 0;
             levers.HallHoldSeconds = 0f;
             levers.NodeHealthScale = 1f;
+            levers.GateKillQuota = 0;
+            levers.GateOpenLevel = 0;
+            levers.GateSiegeHall = 0;
             return levers;
         }
 
@@ -650,7 +690,7 @@ namespace Cryptforge.Tests
             {
                 if (levers.TunesDirector)
                     _tuned = new TunedHordeDirector(HordeRule.SceneCap, roles, seed, levers.HordeTargets,
-                        levers.HordeFillRate / HordeRule.MaxSpawnsPerSecond);
+                        levers.HordeFillRate / HordeRule.MaxSpawnsPerSecond, levers.HordeTargetGrowth);
                 else
                     _shipped = new HordeDirector(HordeRule.SceneCap, roles, seed, true);
                 for (HordeState state = HordeState.Ramp; state <= HordeState.Boss; state++)
@@ -743,8 +783,8 @@ namespace Cryptforge.Tests
             // The checkpoint's Descend waits the advance delay before the next floor's first room; the districts the run's
             // earlier floors opened (EncounterController._hallsOnEarlierFloors).
             private bool _descending;
-            // The cleared room before the gate holding for the floor's clock (FoundryLevers.GateNotBeforeSeconds), for the
-            // death report: a death then is the gate's wait's, not its room's.
+            // The cleared room before the gate holding for the floor's clock (FoundryLevers.GateNotBeforeSeconds; GateHolds,
+            // its siege's waves included), for the death report: a death then is the gate's wait's, not its room's.
             private bool _gateHeld;
             private int _hallsOnEarlierFloors;
             private bool _roomSiteOpen;
@@ -827,6 +867,28 @@ namespace Cryptforge.Tests
             private int _hordeFrames;
             private float _fighting;
             private float _engaged;
+            // The gate's wait (FoundryLevers.HoldsGate, GateSiegeHall): whether this frame was part of it, whether it has
+            // begun and a siege wave stands, and the run's tallies as it began.
+            private bool _waitFrame;
+            private bool _waitBegan;
+            private bool _waitEnded;
+            private bool _sieging;
+            private int _siegeWave;
+            private int _waitKillsFrom;
+            private int _waitLevelFrom;
+            private float _waitTakenFrom;
+            private int _waitDropsFrom;
+            // What the autopilot's steer did this frame (PilotGoal), for the wait's accounting.
+            private PilotDoing _doing;
+
+            private enum PilotDoing
+            {
+                Still,
+                Kite,
+                Drop,
+                Fight,
+                Walk
+            }
 
             private readonly List<IDamageable> _nearby = new List<IDamageable>();
             private readonly List<IDamageable> _pulse = new List<IDamageable>();
@@ -958,6 +1020,10 @@ namespace Cryptforge.Tests
                 _floorStartedAt = _seconds;
                 _fighting = 0f;
                 _engaged = 0f;
+                _waitBegan = false;
+                _waitEnded = false;
+                _sieging = false;
+                _siegeWave = 0;
                 _hordeAliveSum = 0;
                 _hordeTargetSum = 0;
                 _hordeFrames = 0;
@@ -1082,17 +1148,109 @@ namespace Cryptforge.Tests
                     return;
                 }
 
-                if (_progress.IsComplete || !_fight.Tick(Step, canAdvance))
+                if (_progress.IsComplete)
                     return;
-                // FoundryLevers.GateNotBeforeSeconds: the floor waits at the room before the gate until its clock says so.
-                if (_levers.GateNotBeforeSeconds > 0f && NextIsGate() && _horde != null &&
-                    _horde.Seconds < _levers.GateNotBeforeSeconds)
+                bool ready = _fight.Tick(Step, canAdvance);
+                // A siege wave of the gate's wait standing, or falling: the wait goes on.
+                if (_sieging)
                 {
+                    _waitFrame = true;
                     _result.GateWaitSeconds += Step;
+                }
+                if (!ready)
+                    return;
+                if (_result.GateReadyClock < 0f && NextIsGate())
+                {
+                    _result.GateReadyClock = _horde != null ? _horde.Seconds : FloorTime;
+                    _result.GateReadyKills = FloorKills;
+                    _result.GateReadyLevel = _run.Level;
+                }
+                // FoundryLevers.GateNotBeforeSeconds, GateKillQuota, GateOpenLevel: the floor waits at the room before the
+                // gate until its clock, its kills or the hero's level say so; GateSiegeHall sends waves meanwhile.
+                if (GateHolds())
+                {
+                    if (!_waitBegan)
+                        BeginWait();
+                    if (!_sieging)
+                    {
+                        _waitFrame = true;
+                        _result.GateWaitSeconds += Step;
+                    }
                     _gateHeld = true;
+                    if (_levers.GateSiegeHall > 0)
+                        SiegeWave();
                     return;
                 }
+                _sieging = false;
+                EndWait();
                 AdvanceFloor();
+            }
+
+            private int FloorKills => _result.HordeKills + _result.WaveKills;
+
+            private bool GateHolds()
+            {
+                if (!_levers.HoldsGate || _horde == null || !NextIsGate())
+                    return false;
+                float clock = _horde.Seconds;
+                if (_levers.GateNotBeforeSeconds > 0f)
+                {
+                    if (clock >= _levers.GateNotBeforeSeconds)
+                        return false;
+                }
+                else if (HordeClock.IsOvertime(clock))
+                    return false;
+                if (_levers.GateKillQuota > 0 && FloorKills >= _levers.GateKillQuota)
+                    return false;
+                if (_levers.GateOpenLevel > 0 && _run.Level >= _levers.GateOpenLevel)
+                    return false;
+                return true;
+            }
+
+            private void BeginWait()
+            {
+                _waitBegan = true;
+                _waitKillsFrom = FloorKills;
+                _waitLevelFrom = _run.Level;
+                _waitTakenFrom = Taken;
+                _waitDropsFrom = _result.DropsCollected;
+            }
+
+            private void EndWait()
+            {
+                if (!_waitBegan || _waitEnded)
+                    return;
+                _waitEnded = true;
+                _result.WaitKills = FloorKills - _waitKillsFrom;
+                _result.WaitLevels = _run.Level - _waitLevelFrom;
+                _result.WaitTaken = Taken - _waitTakenFrom;
+                _result.WaitDrops = _result.DropsCollected - _waitDropsFrom;
+            }
+
+            private float Taken => _result.TakenFromWave + _result.TakenFromHorde + _result.TakenFromWarden +
+                                   _result.TakenFromSlams + _result.TakenFromPit;
+
+            // FoundryLevers.GateSiegeHall: the hall's waves in turn, a new one as the last falls, as a held hall repeats its
+            // own (RepeatsHall) - the floor's progress stays at the room before the gate meanwhile.
+            private void SiegeWave()
+            {
+                int hall = -1;
+                for (int i = 0, ordinal = 0; i < _floor.Kinds.Length; i++)
+                {
+                    if (_floor.Kinds[i] != RoomKind.Combat)
+                        continue;
+                    hall = i;
+                    if (++ordinal == _levers.GateSiegeHall)
+                        break;
+                }
+                if (hall < 0)
+                    return;
+                SpawnWave(WaveEnemies(hall, _siegeWave % _wavesPerRoom[hall]), false, false);
+                _siegeWave++;
+                _sieging = true;
+                _result.WaitSiegeWaves++;
+                if (_trace != null)
+                    Emit($"gate_siege wave={_siegeWave} hall={hall + 1} clock={N(_horde.Seconds)}");
             }
 
             private void AdvanceFloor()
@@ -2144,6 +2302,7 @@ namespace Cryptforge.Tests
 
             private void Pilot()
             {
+                _doing = PilotDoing.Still;
                 if (_run.HasEnded || _choices.IsOpen)
                 {
                     _steerX = 0f;
@@ -2243,6 +2402,7 @@ namespace Cryptforge.Tests
                 {
                     gx = _exitX;
                     gy = _exitY;
+                    _doing = PilotDoing.Walk;
                     return true;
                 }
                 if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked)
@@ -2256,6 +2416,7 @@ namespace Cryptforge.Tests
                         stop = 0f;
                         _bandGuard = false;
                         _result.EscapeSeconds += Step;
+                        _doing = PilotDoing.Walk;
                         return true;
                     }
                 }
@@ -2263,6 +2424,7 @@ namespace Cryptforge.Tests
                 {
                     cohort.Shelter(x, y, PilotShelterDepth, out gx, out gy);
                     _result.ShelterSeconds += Step;
+                    _doing = PilotDoing.Walk;
                     return true;
                 }
                 if (cohort.Kites && Threat(cohort, x, y, out float tx, out float ty) &&
@@ -2270,11 +2432,13 @@ namespace Cryptforge.Tests
                 {
                     stop = 0f;
                     _result.KiteSeconds += Step;
+                    _doing = PilotDoing.Kite;
                     return true;
                 }
                 // A node fight is drawn to the pit's rim, but not while a guarded band glows: then the hero waits out of it.
                 if (fighting)
                 {
+                    _doing = PilotDoing.Fight;
                     if (guarded || !cohort.Lures)
                         return false;
                     FootworkRule.RimSpot(x, y, PilotLureDepth, out gx, out gy);
@@ -2295,12 +2459,14 @@ namespace Cryptforge.Tests
                     if (DropDetourRule.Nearest(_drops, x, y, PilotDropDetour, out gx, out gy))
                     {
                         stop = DropRule.PickupRadius * .5f;
+                        _doing = PilotDoing.Drop;
                         return true;
                     }
                 }
                 else if (_detour.Choose(_drops, x, y, wx, wy, Step, out gx, out gy))
                 {
                     stop = DropRule.PickupRadius * .5f;
+                    _doing = PilotDoing.Drop;
                     return true;
                 }
                 gx = wx;
@@ -2308,11 +2474,13 @@ namespace Cryptforge.Tests
                 if (altar)
                 {
                     stop = .1f;
+                    _doing = PilotDoing.Walk;
                     return true;
                 }
                 if (hall)
                 {
                     stop = FoundryMap.RoomSiteRadius * .5f;
+                    _doing = PilotDoing.Walk;
                     return true;
                 }
                 return false;
@@ -2475,8 +2643,26 @@ namespace Cryptforge.Tests
                 int alive = _waveAlive + _hordeAlive;
                 if (alive > 0)
                     _fighting += Step;
-                if (_seconds - _lastHeroHit <= EngagedAfterHitSeconds || EnemyNear(_loadout.Primary.Range + EngagedMargin))
+                bool engaged = _seconds - _lastHeroHit <= EngagedAfterHitSeconds ||
+                               EnemyNear(_loadout.Primary.Range + EngagedMargin);
+                if (engaged)
                     _engaged += Step;
+                if (_waitFrame)
+                {
+                    _waitFrame = false;
+                    if (engaged)
+                        _result.WaitEngaged += Step;
+                    if (_doing == PilotDoing.Kite)
+                        _result.WaitKite += Step;
+                    else if (_doing == PilotDoing.Drop)
+                        _result.WaitDrop += Step;
+                    else if (_doing == PilotDoing.Fight)
+                        _result.WaitFight += Step;
+                    else if (_doing == PilotDoing.Walk)
+                        _result.WaitWalk += Step;
+                    else
+                        _result.WaitStill += Step;
+                }
                 Foe warden = GateBoss;
                 // What is left of the Warden as the frame ends: its clock is stepped before the frame's blows land on it.
                 if (warden != null)
@@ -2560,6 +2746,7 @@ namespace Cryptforge.Tests
                     if (_upgrades.TomeLevel(tome.Id) > 0)
                         tomes.Add(tome.Id.Replace("tome_", string.Empty) + " " + _upgrades.TomeLevel(tome.Id));
                 _result.Tomes = string.Join(", ", tomes);
+                EndWait();
                 if (_result.Outcome == FoundryOutcome.Died && _result.DeathRoom < 0)
                     _result.DeathRoom = _roomIndex + 1;
                 return _result;
