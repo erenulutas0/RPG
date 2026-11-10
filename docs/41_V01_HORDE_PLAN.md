@@ -573,3 +573,106 @@ ablation above by name (`before` is main 18715c94's score, `syn-dt31` the shippe
 without its way to the evolutions). `AutopilotCohortTests` holds the order, the tiers and `LeadsToEvolution` on
 constructed offers; `FoundryCohortTests` counts the clumsy cohort's weapons over the floor rather than at the gate (its
 Vanguard of seed 33 now dies before the Warden walks out).
+
+## Status 2026-11-10 (night): the Daggers' role
+
+**The decision** (taken on the owner's behalf; the lead delegated the research and the shipping): the Daggers deal x12
+to the foundry's elites - the Grunt Captain each elite room is built round - and nothing else changes. Roles: Staff =
+horde, Daggers = elites, Sword = Warden, and the gate's roles row reads three jobs and is met. Measured on main 4791f86f
+(the careful pilot's cards); the same research on 18715c94, before those cards, is summed up at the end.
+
+**The elites, defined.** The game's elite is room-level (RoomKind.Elite): an elite room's wave is a Grunt Captain with
+an escort of a Grunt and two Cinder Mites - floor 1's two (V0.1's second elite included) and floor 2's Sentry Hall. The
+halls' waves and surges hold none (Grunts, Runners, Tanks, Mites). The elites are the Captains, the first enemy of an
+elite room's wave, and not their escorts, as the Warden's job leaves floor 2's escort Mites apart. A weapon's damage on
+the elites a second is what it took off the Captains (`FoundryWeaponWork.DealtEliteLeader`) over the seconds an elite
+room's wave stood with the hero alive, its walk-in included (`FoundryResult.EliteFought`), P50 over the runs that met
+one, the Vanguard started with each weapon - as the gate reads the horde and the Warden. The whole pack
+(`DealtElite`) is read beside.
+
+**What binds the job.** Whatever the Vanguard starts with, the two elite rooms' fights last P50 14.3 s (about 7 s
+each, most of it the pack walking in) and its weapons together take 35-36 a second off them: the pack's health over its
+walk. The job is a share of that, and the Staff takes 59 % (reach 2.4 and a 3.5 splash on the pack as it walks in), the
+Sword 27 %, the Daggers 15 %: the careful pilot kites a Captain at its reach and 0.15 (1.75 units), the Daggers reach
+1.8, so they touch the pack last, after the Staff or the Sword the Vanguard picked up and its Forge Burst. A share on
+the Daggers' landings raises their part, never the pie: on the whole pack it stops at 12-14 a second against the
+Staff's 19-20 (x6 and x10 alike), and their crits or a longer reach do no better (below). The Captain alone is a smaller
+pie the Staff takes less of (12 a second), and a share there turns the Daggers' rare touch into a kill.
+
+**The rule, in one place.** `EliteRule` (Scripts/Combat, pure): `DaggersId` (`weapon_daggers`, Weapon_Daggers.asset's
+id), `DaggersShare` = 12, `EliteShareOf(weaponId)`, `IsAmong` and `DamageOn(amount, share, elite)`, the one never-inlined
+body of the product. `WeaponLoadout.TryAdd` hands each weapon its share by its id (`WeaponRuntime.EliteShare`), and every
+landing of `WeaponRuntime.TryAttack` - strike, splash, burst, splinter, pulse - goes through `EliteRule.DamageOn` after
+`WardenRule.DamageOn`, with the elites the strike is handed. The scene: `EncounterController.Elites`, one list it fills
+with an elite room's first enemy as the wave spawns on the foundry (`EliteRoom`: RoomKind.Elite and the foundry region)
+and empties as the wave is released, held once by the hero's `AttackController.Elites` (CombatSetup). The simulation:
+the same list of its own (`SpawnWave`, `ReleaseWave`), passed from `HeroAttacks`. The hall arena, the Descent, the
+escorts, the halls, the horde and the gate boss take the Daggers' authored damage; Weapon_Daggers.asset does not move;
+no card text names a weapon's damage on elites. `EliteRuleTests` hold the values, the Daggers x12 on an elite through
+the strike (crit and splinter included), every other weapon and every non-elite x1, and no share without a loadout or
+elites; `FoundrySimulationTests.TheSimulationsWeaponsTakeTheGamesShareOnTheElites` the simulation's weapons (parity);
+`WeaponContentTests.TheElitesWeaponIsTheDaggersAsset` the asset's id;
+`ClimbFloorContentTests.EveryEliteRoomOpensItsWavesWithItsGruntCaptain` that the first enemy of every elite room's wave
+is the Captain (Unity, not run here). The scene's hand-over has no PlayMode test yet.
+
+**The gate.** `FoundryGate`'s roles row reads three jobs - horde, elites, Warden - and a weapon's role is a job on which
+it leads every other weapon by more than 10 % (the lead's reading; at most one weapon leads a job, so roles are
+distinct). Its basis states the definition; `FoundryGateTests` hold the reading on constructed numbers. The weapons
+table gains an elites column. The batch report after the rule (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`,
+TestResults/daggers-role-1110/gate-after-fp) reads the row met - Sword horde 8, elites 3, Warden 27; Staff 31, 10, 23;
+Daggers 2, 12, 0 - and the gate at met 8, not met 1 (engaged uptime), not measured 2, reported 4.
+
+**Before and after** (the foundry simulation, seeds 1-200 a hero, `FOUNDRY_FLOORS=2`, every cohort, the Vanguard started
+with each weapon; frame-perfect / `FOUNDRY_REALISM=typical`; TestResults/daggers-role-1110/main2-* (before, and the
+candidates) and after-*; `TheDaggersRoleOverASeedBatch`):
+
+| | Before (main 4791f86f) | After (Daggers x12 on the elites) |
+|---|---|---|
+| Horde a second: Sword / Staff / Daggers | 8.2 / 31.1 / 1.7; 8.0 / 30.6 / 1.5 | 8.4 / 31.4 / 1.6; 8.3 / 31.1 / 1.4 |
+| Elites (Captains) a second | 6.2 / 12.2 / 4.4; 6.1 / 12.2 / 4.4 | 3.4 / 10.0 / **12.5**; 3.6 / 9.4 / **11.6** |
+| The elite packs a second | 9.5 / 20.8 / 5.4; 9.5 / 20.6 / 4.9 | 7.7 / 20.1 / 13.4; 7.4 / 18.9 / 12.7 |
+| Warden a second | 26.4 / 23.3 / 0; 27.2 / 22.9 / 4.0 | 27.1 / 23.4 / 0; 26.5 / 23.8 / 3.8 |
+| Roles (three jobs) | not met: the Daggers none (both hands) | met: Staff horde, Daggers elites (+25 % / +23 %), Sword Warden (+16 % / +11 %) |
+| Floor 1 cleared V: careful / first-card / standing / clumsy / auto-farmer | 200 / 196 / 193 / 104 / 9; 195 / 181 / 179 / 82 / 9 | 200 / 196 / 195 / 107 / 8; 196 / 183 / 181 / 82 / 11 |
+| Floor 1 cleared I, the same | 200 / 200 / 193 / 184 / 30; 199 / 199 / 180 / 141 / 23 | 200 / 200 / 197 / 187 / 36; 199 / 200 / 184 / 142 / 28 |
+| Both floors V, the same | 200 / 196 / 176 / 96 / 1; 193 / 179 / 151 / 66 / 1 | 200 / 196 / 183 / 98 / 0; 194 / 181 / 158 / 65 / 1 |
+| Both floors I, the same | 200 / 200 / 176 / 162 / 4; 195 / 197 / 155 / 105 / 3 | 200 / 200 / 182 / 163 / 4; 199 / 195 / 162 / 114 / 5 |
+| Warden fight P50, floor 1 V / I | 58 / 51; 53 / 48 s | 58 / 50; 52 / 47 s |
+| Warden fight P50, floor 2 V / I | 58 / 51; 53 / 49 s | 58 / 51; 54 / 49 s |
+
+No cohort's floor-1 clears move by more than 6 of 200 (Ilya's auto-farmer frame-perfect 30 -> 36; with human hands
+Ilya's standing 180 -> 184, auto-farmer 23 -> 28); both floors move up to 9 (Ilya's clumsy with human hands, 105 ->
+114), where the hero picks the Daggers up. On seeds 201-400 the same: the Daggers 12.4 to the Staff's 10.1 (+23 %)
+frame-perfect and 11.7 to 9.6 (+22 %) with human hands, the Sword 26.9 to 23.0 and 26.4 to 23.0 on the Warden, no
+floor-1 cohort moving by more than 4.
+
+**The candidates** (main 4791f86f, seeds 1-200; frame-perfect; typical; the elites read as the Captains):
+
+| Lever | Elites: Daggers to the Staff | Warden: Sword to the Staff | Floor-1 clears, the largest move | Verdict |
+|---|---|---|---|---|
+| On the whole pack x6 | packs 12.7 to 19.7; 11.5 to 19.5 | holds | +8 (Ilya clumsy, typical) | no lead on the packs |
+| On the whole pack x10 | packs 13.8 to 19.7; 12.5 to 18.9 | holds | +11 (Ilya auto-farmer, typical) | no lead on the packs |
+| On the Captains x8 | 11.2 to 10.2 (+10 %); 11.1 to 10.0 (+11 %) | 27.0 to 23.2; 26.4 to 24.1 (+9.5 %) | +5 | the Sword loses its lead with human hands |
+| On the Captains x10 | 11.8 to 10.3 (+15 %); 11.3 to 9.6 (+18 %) | 27.8 to 23.4; 26.6 to 24.3 (+9.5 %) | +6 | the same |
+| **On the Captains x12** | 12.5 to 10.0 (+25 %); 11.6 to 9.4 (+23 %) | 27.1 to 23.4 (+16 %); 26.5 to 23.8 (+11 %) | +6 | **met, on seeds 201-400 too** |
+| On the Captains x15 | 13.1 to 9.9 (+32 %); 11.9 to 9.4 (+27 %) | 28.0 to 23.4; 26.5 to 23.9 (+11 %) | +10 (Ilya auto-farmer, typical) | met, more than needed |
+
+With human hands every Captain share lifts the Staff's own Warden rate by about one a second (22.9 -> 23.8-24.3: the
+Staff-started Vanguard that picks the Daggers up), so the Sword's lead there falls from 19 % to 10-11 %; x12 is the
+smallest share at which the Daggers lead by more than 10 % in both hands and the Sword keeps its lead, and the Sword's
+margin with human hands is the row to watch.
+
+**On 18715c94, before the careful pilot's cards** (TestResults/daggers-role-1110/base-*, sweep*, captains*): the same
+shape. A share on the whole pack: x3 11, x4-x6 12-13, x10 15 a second against the Staff's 20-22. The Daggers' crits on
+the elites x3: 9-10. Reach 2.2 (Weapon_Daggers.asset's, shared with the hall and the Descent): elites 9-10, the Daggers
+21-22 on the Warden, the Warden's fight 44 / 41 s (under 45) and Ilya's standing cohort +18; reach 2.0 with x3: elites
+14-15, the Warden 18, Ilya's standing +17. The Captains: x8 led with human hands (+12 %) but not frame-perfect (+8 %),
+x15 led both but moved Ilya's clumsy cohort by 13 with human hands. The new picker takes fewer of the Daggers' lines,
+and the Staff's share of the elites fell with it (63 % -> 59 %).
+
+**What was built besides.** `FoundryLevers.DaggersEliteDamage`, `DaggersEliteCritDamage` and `DaggersEliteLeaderOnly`
+(research, read by the simulation alone, on top of the shipped share), `FoundryBatch.DaggersLevers` and
+`FoundryBatchReport.TheDaggersRoleOverASeedBatch` (explicit; `DAGGERS_LEVERS` by index, `FOUNDRY_REALISM`,
+`FOUNDRY_FLOORS`, default 2): each lever for both heroes in every cohort and the Vanguard started with each weapon, into
+daggers-role.md and .csv - with the elites' fight length, every weapon's rate on them and the starting weapon's share
+of it, what showed the pie.
