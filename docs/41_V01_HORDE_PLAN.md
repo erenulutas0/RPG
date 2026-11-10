@@ -435,3 +435,38 @@ Still open: what the Daggers are (their Warden damage is reach inside the carefu
 (careful P50 70 s Vanguard / 64 s Ilya with the Sword, against 45-65 s - its 2026-11-04 options were a share of about 6
 with floor 2's Mend at 100 %, or RecoverySeconds 2.5); the Warden room's heal chest; the sprite atlas (a ProjectSettings
 change); and installing the current APK on the S23.
+
+## Status 2026-11-10 (later): floor 2's Warden
+
+**The decision** (taken today on the owner's behalf, from the human-hands measurement, TestResults/human-hands-1110/
+f2warden-*): floor 2's Forge Warden takes a health share of 8.5 / 1.4 (about 6.07) instead of `WardenRule.GateHealthShare`
+8.5 - the climb's x1.4 on floor 2 cancelled on its Warden - so its fight lands in step 4's 45-65 s. Floor 1's Warden
+keeps 8.5; floor 2's Mend (40 %) and the Warden's recovery (1.5 s) do not move.
+
+**The rule, as data.** `FloorDefinition._foundryGateHealthShare` (0 = `WardenRule.GateHealthShare`) is 6.071429 on
+Floor_QuicksilverVaults.asset (8.5f / 1.4f as a float) and 0 on Floor_EmberHalls. `WardenRule.GateHealthShareOn`, one
+never-inlined body, turns a floor's value into its gate boss's share; `EncounterController.SpawnWave` reads it for the
+gate boss and `ValidateFloor` refuses a NaN, negative or infinite share. The simulation's floor 2 carries the asset's
+value (`FoundryFloor.GateHealthShare`) and `LaterFloorLevers` reads it through the same body; the research lever
+`LaterWardenHealthShare` still overrides it and is off by default, and FOUNDRY_LEVERS=8's second row now plays the old
+8.5. The Warden walks out of floor 2's gate with 300 x 6.071429 x 1.4 x difficulty = 2550 x difficulty: 4080 at 1.6
+instead of 5712, floor 1's Warden's health at the same difficulty. `ClimbFloorContentTests`, `WardenRuleTests`,
+`FoundrySimulationTests` and `FoundrySimulationSceneValueTests` hold floor 1's Warden unchanged, floor 2's to 4080 at 1.6
+and the simulation's floor 2 to the asset.
+
+**Before and after** (the foundry simulation, seeds 1-200 a hero, `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1
+FOUNDRY_FLOORS=2`, frame-perfect and `FOUNDRY_REALISM=typical`; before TestResults/human-hands-1110/shipped-*, after
+TestResults/f2-warden-ship-1110/; Vanguard / Ilya):
+
+| | Before (share 8.5) | After (8.5 / 1.4) |
+|---|---|---|
+| Floor 2 Warden fight P50 (P90), careful, frame-perfect | 70 (89) / 64 (78) s | 58 (68) / 51 (61) s |
+| Floor 2 Warden fight P50 (P90), careful, human hands | 68 (81) / 63 (74) s | 56 (65) / 50 (59) s |
+| Both floors cleared, careful, frame-perfect | 199 / 200 | 199 / 200 |
+| Both floors cleared, human hands: careful / standing / first-card / clumsy | 135 / 174; 41 / 50; 175 / 195; 19 / 35 | 147 / 181; 63 / 80; 179 / 197; 23 / 46 |
+| Careful deaths at floor 2's Warden, human hands | 18 / 20 | 6 / 13 |
+| Both floors cleared, frame-perfect: standing / clumsy | 71 / 83; 63 / 118 | 100 / 121; 67 / 137 |
+
+The numbers are the measurement's "F2 share 6.07" row to the seed. Floor 1 is the same floor run for run: its
+cohort tables, its gate and every floor-1 row of foundry-batch.csv are identical before and after. Floor 2's careful
+Warden now sits inside 45-65 s with either hands; the standing pilot, who trades blows with the Warden, gains most.
