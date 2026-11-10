@@ -30,10 +30,10 @@ namespace Cryptforge.Tests
                 return new Lever { Name = name, Estimate = "daggers", Levers = levers };
             }
 
-            // The Daggers dealing the Captains share in all, the shipped EliteRule.DaggersShare divided out.
+            // The Daggers dealing the Captains alone share.
             Action<DescentSimulation.FoundryLevers> Captains(float share) => l =>
             {
-                l.DaggersEliteDamage = share / Cryptforge.Combat.EliteRule.DaggersShare;
+                l.DaggersEliteDamage = share;
                 l.DaggersEliteLeaderOnly = true;
             };
 
@@ -62,7 +62,7 @@ namespace Cryptforge.Tests
                 Make("Daggers on the Captains x15", Captains(15f)),
                 Make("Daggers on the Captains x10", Captains(10f)),
                 Make("Daggers on the Captains x12", Captains(12f)),
-                Make("Daggers on the Captains x1 (before EliteRule)", Captains(1f))
+                Make("Daggers on the Captains x1", Captains(1f))
             };
         }
 
