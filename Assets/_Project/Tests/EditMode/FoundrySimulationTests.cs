@@ -520,7 +520,10 @@ namespace Cryptforge.Tests
             {
                 string where = $"{hero.Name} seed {seed}";
                 var lines = new List<string>();
-                DescentSimulation.RunFoundry(hero, seed, trace: lines.Add);
+                // The clumsy cohort (the old pilot) stands in the Warden's reach; the careful pilot kites past it, so on
+                // Unity's runtime its fights can pass without a single strike to check (2026-11-10).
+                var levers = new DescentSimulation.FoundryLevers { Cohort = Cryptforge.Core.AutopilotCohort.Clumsy };
+                DescentSimulation.RunFoundry(hero, seed, levers, trace: lines.Add);
                 // A trace line starts with its frame's time, so the lines of one frame share it.
                 var marked = new List<(string Frame, float At, bool Enraged)>();
                 var blows = new List<(float At, bool Enraged)>();
