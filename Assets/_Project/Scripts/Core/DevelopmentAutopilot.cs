@@ -157,14 +157,15 @@ namespace Cryptforge.Core
             UpgradeOffer upgrade = _setup.Upgrades.CurrentOffer;
             if (_setup.Choices.Current.Kind != ChoiceKind.Upgrade || upgrade == null || !_setup.Upgrades.IsCategoryMode)
                 return 0;
-            // A build, not the first card (docs/42's CardPicker order, AutopilotCohort.CardScore): health when the hero is
-            // low, then the weapons it holds, a new weapon while a slot is free, two tomes, their levels, then anything
-            // else. A third weapon scored 10, under every tome level, so the autopilot never took one and a Vanguard whose
-            // second was the Daggers never got the Staff (the survival research, 2026-11-04). The first-card cohorts take
-            // the first card.
+            // A build, not the first card (docs/42's CardPicker order, AutopilotCohort.CardScore, each card at the tier it
+            // is offered): health when the hero is low, an evolution, a new weapon while a slot is free, two tomes, a line
+            // toward an evolution, the tomes' levels, the other lines, then the hero's cards, health and armour by their
+            // tier. A third weapon scored 10, under every tome level, so the autopilot never took one and a Vanguard whose
+            // second was the Daggers never got the Staff (the survival research, 2026-11-04); every line outranked the
+            // tomes' levels until 2026-11-10 (docs/41). The first-card cohorts take the first card.
             Health hero = _hero.GetComponent<Health>();
             bool low = hero != null && hero.Current < hero.Maximum * .5f;
-            return _cohort.Pick(upgrade, low, _setup.Upgrades.Loadout.Count, _setup.Upgrades.TomesHeld);
+            return _cohort.Pick(upgrade, low, _setup.Upgrades);
         }
 
         private bool Goal(float x, float y, out float gx, out float gy, out float stop)
