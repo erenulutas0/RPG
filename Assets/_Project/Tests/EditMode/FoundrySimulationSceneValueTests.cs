@@ -114,12 +114,14 @@ namespace Cryptforge.Tests
             Assert.That(asset.FoundryHallSurges, Is.EqualTo(FoundryBatch.Shipped().HallSurges));
             Assert.That(asset.FoundryExtraElites, Is.EqualTo(FoundryBatch.Shipped().ExtraElites));
             Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(FoundryBatch.Shipped().GateNotBeforeSeconds));
+            Assert.That(asset.FoundryGateHealthShare, Is.Zero, "floor 1's Warden keeps WardenRule.GateHealthShare");
+            Assert.That(WardenRule.GateHealthShareOn(asset.FoundryGateHealthShare), Is.EqualTo(FoundryBatch.Shipped().WardenHealthShare));
         }
 
         // The climb's floor 2, which a run goes down to after a floor-1 clear (FoundryLevers.Floors = 2): Floor_EmberHalls'
-        // next floor as the foundry plays it - its rooms, horde, climb scaling, Cursed Gold and its own V0.1 knobs (none) -
-        // its gate boss the Forge Warden with two Cinder Mites, the districts the round goes on from, and below it the
-        // finale's swarm room, which the simulation does not play.
+        // next floor as the foundry plays it - its rooms, horde, climb scaling, Cursed Gold and its own foundry knobs (no
+        // V0.1 surges, elite or gate time; its Warden's own share) - its gate boss the Forge Warden with two Cinder Mites,
+        // the districts the round goes on from, and below it the finale's swarm room, which the simulation does not play.
         [Test]
         public void TheFoundrysSecondFloorIsTheAsset()
         {
@@ -139,6 +141,12 @@ namespace Cryptforge.Tests
                 "floor 1's gate boss, the Forge Warden");
             Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
             Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
+
+            // Its Warden's share is the floor's own, 8.5 / 1.4 (docs/41, status 2026-11-10 later), and the simulation's floor
+            // 2 plays the asset's (LaterFloorLevers, through the scene's WardenRule.GateHealthShareOn).
+            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(8.5f / 1.4f));
+            Assert.That(DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), floor).WardenHealthShare,
+                Is.EqualTo(WardenRule.GateHealthShareOn(asset.FoundryGateHealthShare)));
 
             // The districts go on from floor 1's authored halls.
             Assert.That(DescentSimulation.LaterHalls(DescentSimulation.FoundryFloorOne()), Is.EqualTo(EncounterController.LaterHalls(first)));
@@ -164,6 +172,7 @@ namespace Cryptforge.Tests
             Assert.That(asset.FoundryHallSurges, Is.EqualTo(floor.HallSurges), where);
             Assert.That(asset.FoundryExtraElites, Is.EqualTo(floor.ExtraElites), where);
             Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(floor.GateNotBeforeSeconds), where);
+            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(floor.GateHealthShare), where);
             Assert.That(asset.RoomCount, Is.EqualTo(floor.Kinds.Length), where);
             for (int room = 0; room < asset.RoomCount; room++)
             {

@@ -108,11 +108,13 @@ namespace Cryptforge.Tests
             public float ModifierHealthPercent;
             public float ModifierDamagePercent;
             public float ModifierGoldPercent;
-            // Its foundry knobs (FloorDefinition.FoundryHallSurges, FoundryExtraElites, FoundryGateNotBeforeSeconds). A floor
-            // after the first plays these; the first plays the run's levers instead, whose defaults are its own.
+            // Its foundry knobs (FloorDefinition.FoundryHallSurges, FoundryExtraElites, FoundryGateNotBeforeSeconds,
+            // FoundryGateHealthShare - 0 for WardenRule.GateHealthShare, WardenRule.GateHealthShareOn). A floor after the
+            // first plays these; the first plays the run's levers instead, whose defaults are its own.
             public int HallSurges;
             public int ExtraElites;
             public float GateNotBeforeSeconds;
+            public float GateHealthShare;
             // The floor its checkpoint descends to (FloorDefinition.NextFloor); null where the climb goes on into a floor
             // this run does not play - floor 2's next is the finale's swarm room - or ends.
             public FoundryFloor Next;
@@ -145,7 +147,8 @@ namespace Cryptforge.Tests
         // Data/Floors/Floor_QuicksilverVaults.asset, the climb's floor 2, as the foundry plays it: the Descent's floor 2
         // (QuicksilverVaults) - three halls, the Deep Forge, the Sentry Hall and the Warden's Vault, whose Forge Warden walks
         // out of the gate with two Cinder Mites - climb-scaled at floor 2, floor 1's three horde roles, Cursed Gold (+20%
-        // enemy damage, +50% gold) and none of V0.1's knobs: no surges, no extra elite, the gate open as its room clears.
+        // enemy damage, +50% gold) and none of V0.1's surges, extra elite or gate time: the gate open as its room clears.
+        // Its Warden's share is its own, 8.5 / 1.4 (the asset's 6.071429): the climb's x1.4 cancelled on its gate boss.
         public static FoundryFloor FoundryFloorTwo() => new FoundryFloor
         {
             Id = "floor_quicksilver_vaults",
@@ -153,6 +156,7 @@ namespace Cryptforge.Tests
             Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
             HordeRoles = new[] { Mite, Grunt, Runner },
             FloorNumber = 2,
+            GateHealthShare = 6.071429f,
             ModifierHealthPercent = 0f,
             ModifierDamagePercent = QuicksilverVaults.ModifierDamagePercent,
             ModifierGoldPercent = QuicksilverVaults.ModifierGoldPercent
@@ -172,7 +176,9 @@ namespace Cryptforge.Tests
             public int ExtraElites = 1;
             // More combat halls after the floor's last, copies of its second and third halls in turn.
             public int ExtraHalls;
-            // The gate boss's health against its authored (WardenRule.GateHealthShare).
+            // The gate boss's health against its authored on floor 1 (WardenRule.GateHealthShare, Floor_EmberHalls setting
+            // none of its own). A floor after the first plays its own (FoundryFloor.GateHealthShare), or
+            // LaterWardenHealthShare below.
             public float WardenHealthShare = WardenRule.GateHealthShare;
             // How long after a blow the Warden still holds its weapon (WardenRule.RecoverySeconds; it always holds it
             // through the telegraph); below zero it never holds it, as the floor was before 2026-11-03.
@@ -216,14 +222,15 @@ namespace Cryptforge.Tests
             public float LimitSeconds = FoundryFloorLimitSeconds;
             // How many floors of the climb a run plays: 1, floor 1 alone, as every report did before 2026-11-04; 2 goes on
             // after a floor-1 clear, as the autopilot answers the checkpoint with Descend, into floor 2 (FoundryFloor.Next),
-            // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's,
-            // under the Warden's and the horde's levers (LaterFloorLevers).
+            // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's -
+            // the gate boss's share among them - under the Warden's other levers and the horde's (LaterFloorLevers).
             public int Floors = 1;
             // Research only (docs/41's open question of floor 2's Warden; FoundryBatch.FloorTwoWardenLevers,
-            // FOUNDRY_LEVERS=8): the gate boss on the floors after the first, instead of the run's WardenHealthShare and
-            // WardenRecoverySeconds, and the forge's Mend there healing this share of the hero's maximum instead of
-            // Forge_Mend's 0.4. Each off by default (a share or a Mend at or below 0, a recovery NaN): every floor plays
-            // the run's own Warden and the asset's Mend.
+            // FOUNDRY_LEVERS=8): the gate boss on the floors after the first, instead of the floor's own share
+            // (FoundryFloor.GateHealthShare) and the run's WardenRecoverySeconds, and the forge's Mend there healing this
+            // share of the hero's maximum instead of Forge_Mend's 0.4. Each off by default (a share or a Mend at or below
+            // 0, a recovery NaN): every floor after the first plays its asset's share, the run's recovery and the asset's
+            // Mend.
             public float LaterWardenHealthShare = -1f;
             public float LaterWardenRecoverySeconds = float.NaN;
             public float LaterMendAmount = -1f;
@@ -658,8 +665,10 @@ namespace Cryptforge.Tests
             levers.GateKillQuota = 0;
             levers.GateOpenLevel = 0;
             levers.GateSiegeHall = 0;
-            if (run.LaterWardenHealthShare > 0f)
-                levers.WardenHealthShare = run.LaterWardenHealthShare;
+            // The floor's own gate share, as EncounterController.SpawnWave reads it, unless a research lever overrides it.
+            levers.WardenHealthShare = run.LaterWardenHealthShare > 0f
+                ? run.LaterWardenHealthShare
+                : WardenRule.GateHealthShareOn(floor.GateHealthShare);
             if (!float.IsNaN(run.LaterWardenRecoverySeconds))
                 levers.WardenRecoverySeconds = run.LaterWardenRecoverySeconds;
             return levers;
@@ -1578,8 +1587,9 @@ namespace Cryptforge.Tests
                     GateBossArrived();
             }
 
-            // WardenRule.GateHealthShare, or a lever's share, grown with the floor's clock where FoundryLevers.WardenClockFrom
-            // asks for it.
+            // The floor's gate share (WardenRule.GateHealthShare on floor 1, a later floor's own through
+            // WardenRule.GateHealthShareOn, LaterFloorLevers), or a lever's share, grown with the floor's clock where
+            // FoundryLevers.WardenClockFrom asks for it.
             private float WardenHealthShare()
             {
                 float share = _levers.WardenHealthShare;

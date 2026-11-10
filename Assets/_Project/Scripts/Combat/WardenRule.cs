@@ -24,6 +24,25 @@ namespace Cryptforge.Combat
         // 47 s for Ilya, P90 61 and 58 s, and clears of 36 % and 78 % against 36 % and 76 % before (seeds 1-600 a hero;
         // docs/41, status 2026-11-03). Measured, not chosen: change it only with a re-measurement.
         public const float GateHealthShare = 8.5f;
+
+        // The gate boss's share on a floor whose own (FloorDefinition.FoundryGateHealthShare) is floorShare: that share
+        // where the floor sets one, GateHealthShare where it is 0. Floor 2 sets 8.5 / 1.4 (Floor_QuicksilverVaults.asset):
+        // the climb's x1.4 (ClimbScaling.Health(2)) cancelled on its Warden, which with GateHealthShare was 300 x 8.5 x 1.4
+        // and lasted a P50 of 70 s (Vanguard) and 64 s (Ilya); 8.5 / 1.4 gives 58 and 51 s, 56 and 50 s with a human's
+        // hands, inside docs/41 step 4's 45-65 s (docs/41, status 2026-11-10 later). Floor 1 keeps GateHealthShare. One
+        // body, never inlined, for EncounterController.SpawnWave and the foundry simulation's floors after the first.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float GateHealthShareOn(float floorShare)
+        {
+            if (!IsFloorGateHealthShare(floorShare))
+                throw new ArgumentOutOfRangeException(nameof(floorShare));
+            return floorShare > 0f ? floorShare : GateHealthShare;
+        }
+
+        // Whether a floor's own share is one GateHealthShareOn takes: 0, or a finite share above 0 - never NaN or negative.
+        public static bool IsFloorGateHealthShare(float floorShare) =>
+            floorShare == 0f || (floorShare > 0f && !float.IsInfinity(floorShare));
+
         public const float SlamEvery = 6f;
         public const float SlamEveryEnraged = 4f;
         // Between the mark appearing and the hammer landing: the report's 0.8-1.2 s for a readable telegraph on a phone.

@@ -172,7 +172,8 @@ namespace Cryptforge.Tests
                     {
                         Assert.That(run.LevelAtGate, Is.GreaterThanOrEqualTo(first.Level), where + ": the level carried down");
                         Assert.That(run.DifficultyAtGate, Is.GreaterThanOrEqualTo(first.Difficulty), where + ": the difficulty carried down");
-                        Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.Warden.Health * WardenRule.GateHealthShare *
+                        // Floor 2's own share (8.5 / 1.4), the climb's x1.4 cancelled on its Warden.
+                        Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.Warden.Health * (8.5f / 1.4f) *
                                                                  ClimbScaling.Health(2) * run.DifficultyAtGate).Within(.01f), where);
                         Assert.That(run.ClockAtGate, Is.InRange(1f, run.FloorSeconds - run.DescentSeconds), where + ": the floor's own clock");
                     }
@@ -191,8 +192,9 @@ namespace Cryptforge.Tests
             }
         }
 
-        // The floor-1 knobs a run's levers set stay on floor 1: floor 2 plays its asset's own (FoundryFloor), under the run's
-        // Warden and horde levers, which stand for rules every floor of the scene reads.
+        // The floor-1 knobs a run's levers set stay on floor 1: floor 2 plays its asset's own (FoundryFloor) - its gate
+        // boss's share among them - under the run's other Warden levers and its horde levers, which stand for rules every
+        // floor of the scene reads.
         [Test]
         public void AFloorAfterTheFirstPlaysItsOwnKnobsUnderTheRunsRuleLevers()
         {
@@ -211,12 +213,45 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next;
             DescentSimulation.FoundryLevers later = DescentSimulation.LaterFloorLevers(run, floor);
             Assert.That((later.HallSurges, later.ExtraElites, later.GateNotBeforeSeconds), Is.EqualTo((floor.HallSurges, floor.ExtraElites, floor.GateNotBeforeSeconds)));
+            Assert.That(later.WardenHealthShare, Is.EqualTo(WardenRule.GateHealthShareOn(floor.GateHealthShare)),
+                "floor 2's own share, not floor 1's lever");
             Assert.That((later.ExtraHalls, later.HallHoldSeconds, later.NodeHealthScale), Is.EqualTo((0, 0f, 1f)));
-            Assert.That((later.WardenHealthShare, later.WardenRecoverySeconds, later.HordeHealthShare, later.HordeFillRate, later.Floors),
-                Is.EqualTo((7f, 1f, .6f, 3f, 2)));
+            Assert.That((later.WardenRecoverySeconds, later.HordeHealthShare, later.HordeFillRate, later.Floors),
+                Is.EqualTo((1f, .6f, 3f, 2)));
             Assert.That(later.Name, Is.EqualTo(run.Name));
+            // The research lever still overrides the floor's own share, and is off by default.
+            Assert.That(new DescentSimulation.FoundryLevers().LaterWardenHealthShare, Is.LessThanOrEqualTo(0f));
+            run.LaterWardenHealthShare = 7.5f;
+            Assert.That(DescentSimulation.LaterFloorLevers(run, floor).WardenHealthShare, Is.EqualTo(7.5f));
             Assert.That(DescentSimulation.LaterHalls(DescentSimulation.FoundryFloorOne()), Is.EqualTo(3),
                 "floor 1's later halls - the workyard, the pit's rim, the east - its extra elite not counted");
+        }
+
+        // The Forge Warden's health as it walks out of the gate (docs/41, status 2026-11-10 later): floor 1's is
+        // WardenRule.GateHealthShare of its authored 300, as before; floor 2's own share, 8.5 / 1.4, cancels the climb's
+        // x1.4 on it, so at a difficulty of 1.6 it walks out with 4080 instead of 5712 - floor 1's Warden's at the same
+        // difficulty. The simulation's floor 2 plays that share (LaterFloorLevers) as EncounterController.SpawnWave does.
+        [Test]
+        public void FloorTwosWardenHasTheClimbCancelledAndFloorOnesIsUnchanged()
+        {
+            const float difficulty = 1.6f;
+            DescentSimulation.FoundryFloor one = DescentSimulation.FoundryFloorOne();
+            DescentSimulation.FoundryFloor two = one.Next;
+            float Warden(DescentSimulation.FoundryFloor floor, float share) =>
+                FloorScaling.Health(DescentSimulation.Warden.Health,
+                    ClimbScaling.Health(floor.FloorNumber) * ClimbScaling.Boss(floor.FloorNumber) * difficulty * share,
+                    floor.ModifierHealthPercent);
+
+            float first = FoundryBatch.Shipped().WardenHealthShare;
+            Assert.That(first, Is.EqualTo(WardenRule.GateHealthShareOn(one.GateHealthShare)), "floor 1 sets no share of its own");
+            Assert.That(Warden(one, first), Is.EqualTo(300f * 8.5f * difficulty).Within(.01f), "floor 1's, unchanged");
+
+            float second = DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), two).WardenHealthShare;
+            Assert.That(second, Is.EqualTo(WardenRule.GateHealthShareOn(two.GateHealthShare)));
+            Assert.That(second, Is.EqualTo(8.5f / 1.4f));
+            Assert.That(Warden(two, second), Is.EqualTo(300f * (8.5f / 1.4f) * 1.4f * difficulty).Within(.01f));
+            Assert.That(Warden(two, second), Is.EqualTo(4080f).Within(.01f), "floor 1's Warden's at the same difficulty");
+            Assert.That(Warden(two, WardenRule.GateHealthShare), Is.EqualTo(5712f).Within(.01f), "floor 2's before");
         }
 
         // Two values alike all the way down: a value, a string or a struct equal, a list element by element, a class (a

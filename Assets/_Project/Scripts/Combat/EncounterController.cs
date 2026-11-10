@@ -414,6 +414,18 @@ namespace Cryptforge.Combat
                 }
             }
             ValidateGateHold(floor);
+            ValidateGateHealthShare(floor);
+        }
+
+        // The gate boss's share on the floor (FloorDefinition.FoundryGateHealthShare, WardenRule.GateHealthShareOn): 0 for
+        // WardenRule.GateHealthShare, or a finite share above 0. A NaN or a negative share would give the Warden no health
+        // or none that counts down.
+        private static void ValidateGateHealthShare(FloorDefinition floor)
+        {
+            float share = floor.FoundryGateHealthShare;
+            if (!WardenRule.IsFloorGateHealthShare(share))
+                throw new InvalidOperationException(
+                    $"Floor {floor.name} gives its gate boss a health share of {share}; the share must be 0 (WardenRule.GateHealthShare) or a finite share above 0.");
         }
 
         // The gate's clock holds the cleared room before the gate boss on the foundry (GateHoldsForClock): a time inside
@@ -938,6 +950,8 @@ namespace Cryptforge.Combat
 
             int count = waveDefinition.Count;
             var candidates = new Health[count];
+            // The gate boss's share on this floor: the floor's own, or WardenRule.GateHealthShare.
+            float gateShare = atGate ? WardenRule.GateHealthShareOn(_currentFloor.FoundryGateHealthShare) : 1f;
             // The pack forms up round wherever the hero stands now, on the corners the platform leaves open.
             float heroX = HeroFloorX;
             float heroY = HeroFloorY;
@@ -955,7 +969,7 @@ namespace Cryptforge.Combat
                 EnemyDefinition definition = waveDefinition[i];
                 SpawnedEnemy spawn = CreateEnemy(definition,
                     count == 1 ? definition.Prefab.name : $"{definition.Prefab.name} {i + 1}",
-                    floorHealth * scale * (atGate && i == 0 ? WardenRule.GateHealthShare : 1f),
+                    floorHealth * scale * (atGate && i == 0 ? gateShare : 1f),
                     healthPercent, damageBonus, goldPercent, out float reach);
                 int slot = _motion.Add(spawn.Health, _placements[i], definition.MoveSpeed, reach);
                 if (atGate)

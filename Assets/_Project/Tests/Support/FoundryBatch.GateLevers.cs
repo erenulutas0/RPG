@@ -87,11 +87,13 @@ namespace Cryptforge.Tests
         // docs/41's open question of floor 2's Warden (FOUNDRY_LEVERS=8, both floors, every cohort): the 2026-11-04 options
         // - a floor-2 share of about 6 (8.5 / 1.4, the climb's x1.4 cancelled) instead of 8.5, floor 2's Mend at 100 %, a
         // 2.5 s recovery on floor 2 - and their combinations, plus a share of 7 now that the Sword deals the Warden half
-        // again. Floor 1 is the shipped floor in every row but the one naming both floors.
+        // again. Floor 1 is the shipped floor in every row but the one naming both floors. Since 2026-11-10 (later) the
+        // shipped floor 2 is the share of about 6 (Floor_QuicksilverVaults' own, FoundryFloor.GateHealthShare), and the
+        // second row plays the 8.5 it had before.
         public static Lever[] FloorTwoWardenLevers() => new[]
         {
-            OnShipped("Shipped: floor 2 share 8.5, recovery 1.5 s, Mend 40 %", l => { }),
-            OnShipped("F2 share 6.07", l => l.LaterWardenHealthShare = 8.5f / 1.4f),
+            OnShipped("Shipped: floor 2 share 6.07 (8.5 / 1.4), recovery 1.5 s, Mend 40 %", l => { }),
+            OnShipped("F2 share 8.5 (before 2026-11-10)", l => l.LaterWardenHealthShare = WardenRule.GateHealthShare),
             OnShipped("F2 share 7", l => l.LaterWardenHealthShare = 7f),
             OnShipped("F2 Mend 100 %", l => l.LaterMendAmount = 1f),
             OnShipped("F2 recovery 2.5 s", l => l.LaterWardenRecoverySeconds = 2.5f),

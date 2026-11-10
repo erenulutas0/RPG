@@ -28,7 +28,7 @@ namespace Cryptforge.Tests
             md.AppendLine("FoundryLevers.Floors = 2: every run that cleared floor 1 answers the checkpoint with Descend, as the autopilot does, and plays floor 2 - " +
                           "its first hall where the descent leaves the hero, the next two and the Sentry Hall (its elite) at the north court, the workyard and the pit's rim, the Deep Forge between, " +
                           "the Warden's Vault last - climb-scaled at floor 2 (1.4 times floor 1's enemy health and damage), with Cursed Gold's +20% enemy damage, no hall surges, no second elite " +
-                          "and the gate open as its room clears. Its Forge Warden has WardenRule's 8.5 times its health and holds its weapon through each slam, and two Cinder Mites walk out of the gate beside it. " +
+                          "and the gate open as its room clears. Its Forge Warden has the floor's own 8.5 / 1.4 times its health (the climb's x1.4 cancelled on it, 2026-11-10) and holds its weapon through each slam, and two Cinder Mites walk out of the gate beside it. " +
                           "The hero goes down with its level, weapons, tomes, difficulty and health; the altars answer again; the horde and the floor's clock start again with the first room. " +
                           "Floor 2's seconds run from the checkpoint, the descent's 1 s advance delay included. Nothing in the Editor has measured floor 2: no parity table stands behind these numbers.").AppendLine();
             FloorTwoOutcomes(md, batches);

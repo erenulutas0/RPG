@@ -70,6 +70,70 @@ namespace Cryptforge.Tests
             Assert.That(climbing, Is.EqualTo(2), "The Foundry and the floor above it climb; the finale keeps its own ramp.");
         }
 
+        // The Forge Warden as the foundry's gate sends it out (EncounterController.SpawnWave): its authored 300 at the
+        // floor's tier, the run's difficulty - 1.6 here - and the floor's gate share (WardenRule.GateHealthShareOn). Floor
+        // 1's is WardenRule.GateHealthShare's, as before; floor 2's own 8.5 / 1.4 cancels the climb's x1.4 on its Warden,
+        // which walks out with 4080 instead of 5712 - floor 1's Warden's at the same difficulty (docs/41, status
+        // 2026-11-10 later).
+        [Test]
+        public void TheGateBossKeepsFloorOnesHealthAndFloorTwosHasItsClimbCancelled()
+        {
+            const float difficulty = 1.6f;
+            var first = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
+            Assert.That(first, Is.Not.Null);
+            FloorDefinition second = first.NextFloor;
+            Assert.That(second, Is.Not.Null);
+            Assert.That(second.Id, Is.EqualTo("floor_quicksilver_vaults"));
+
+            float Warden(FloorDefinition floor, int height)
+            {
+                RoomDefinition[] rooms = EncounterController.FoundryRooms(floor);
+                RoomDefinition gate = rooms[rooms.Length - 1];
+                Assert.That(gate.Kind, Is.EqualTo(RoomKind.Boss), floor.Id);
+                EnemyDefinition boss = gate.WaveAt(0).EnemyAt(0);
+                Assert.That(boss.MaximumHealth, Is.EqualTo(300f), floor.Id + ": the Forge Warden");
+                FloorModifierDefinition modifier = floor.Modifier;
+                return FloorScaling.Health(boss.MaximumHealth,
+                    ClimbScaling.Health(height) * ClimbScaling.Boss(height) * difficulty *
+                    WardenRule.GateHealthShareOn(floor.FoundryGateHealthShare),
+                    modifier != null ? modifier.EnemyHealthPercent : 0f);
+            }
+
+            Assert.That(first.FoundryGateHealthShare, Is.Zero, "floor 1 keeps the rule's share");
+            Assert.That(Warden(first, 1), Is.EqualTo(300f * WardenRule.GateHealthShare * difficulty).Within(.01f), "floor 1's, unchanged");
+            Assert.That(Warden(second, 2), Is.EqualTo(300f * (8.5f / 1.4f) * 1.4f * difficulty).Within(.01f));
+            Assert.That(Warden(second, 2), Is.EqualTo(4080f).Within(.01f), "floor 1's Warden's at the same difficulty, not 5712");
+        }
+
+        // A floor's gate share (FloorDefinition.FoundryGateHealthShare) is 0 for the rule's, or a finite share above 0:
+        // NaN, a negative or an infinite share fails the Descent's checks, as a gate held outside the floor's clock does.
+        [Test]
+        public void AGateBossShareThatIsNoShareIsRejected()
+        {
+            const string second = "Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset";
+            const string share = "_foundryGateHealthShare";
+            var copies = new List<FloorDefinition>();
+            FloorDefinition Copy(object value)
+            {
+                FloorDefinition copy = CopyOf(second, share, value);
+                copies.Add(copy);
+                return copy;
+            }
+
+            try
+            {
+                Assert.DoesNotThrow(() => Validate(Copy(8.5f / 1.4f)), "Floor 2's own share.");
+                Assert.DoesNotThrow(() => Validate(Copy(0f)), "The rule's share.");
+                foreach (float value in new[] { float.NaN, -1f, float.PositiveInfinity })
+                    Assert.Throws<System.InvalidOperationException>(() => Validate(Copy(value)), $"A gate share of {value}.");
+            }
+            finally
+            {
+                foreach (FloorDefinition copy in copies)
+                    Object.DestroyImmediate(copy);
+            }
+        }
+
         // The climb's halls go round the foundry's districts (FoundryMap.RoomSite) where the controller opens them
         // (EncounterController.TryRoomSite, over each floor's rooms as the foundry plays them): floor 1 walks the workyard,
         // the pit's rim, the east court and, for its V0.1 elite before the gate, the north court; the floors above go on
