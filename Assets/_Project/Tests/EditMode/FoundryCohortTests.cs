@@ -118,10 +118,12 @@ namespace Cryptforge.Tests
         }
 
         // The pilot before 2026-11-04's fixes: on these seeds the spills burn it again - the careful pilot at most once
-        // (FoundrySimulationTests.TheAutopilotWaitsOutThePitsGlowingBand) - and it walks out to the Warden with two weapons,
-        // the careful pilot with three. Each of those two fixes undone alone does the same; the three footwork fixes' two
-        // ways are AutopilotCohortTests'. When the cohorts came in, the clumsy cohort played seeds 1-200 of both heroes
-        // exactly as main d6664d2's pilot had, every column of the batch's CSV alike.
+        // (FoundrySimulationTests.TheAutopilotWaitsOutThePitsGlowingBand) - and it never holds more than two weapons, the
+        // careful pilot three. Each of those two fixes undone alone does the same; the three footwork fixes' two ways are
+        // AutopilotCohortTests'. When the cohorts came in, the clumsy cohort played seeds 1-200 of both heroes exactly as
+        // main d6664d2's pilot had, every column of the batch's CSV alike; since 2026-11-10 it scores its cards as the
+        // careful pilot does now (AutopilotCohort.CardScore), and the weapons are counted over the floor rather than at the
+        // gate: with the new cards the clumsy Vanguard of seed 33 dies before the Warden walks out.
         [Test]
         public void TheClumsyCohortIsBurntByTheSpillsAndNeverTakesAThirdWeapon()
         {
@@ -136,11 +138,11 @@ namespace Cryptforge.Tests
                     ? Played(AutopilotCohort.Clumsy, h)
                     : Run(heroes[h], seed, AutopilotCohort.Clumsy);
                 Assert.That(clumsy.EruptionsOnHero, Is.GreaterThan(1), where + ": " + clumsy.Eruptions + " spills");
-                Assert.That(clumsy.WeaponsAtGate, Is.EqualTo(2), where + ": " + clumsy.Weapons);
+                Assert.That(clumsy.WeaponWork.Count, Is.EqualTo(2), where + ": " + clumsy.Weapons);
                 DescentSimulation.FoundryResult glowing = Run(heroes[h], seed, glow);
                 Assert.That(glowing.EruptionsOnHero, Is.GreaterThan(1), where + ", " + glow.Name);
                 DescentSimulation.FoundryResult two = Run(heroes[h], seed, weapons);
-                Assert.That(two.WeaponsAtGate, Is.EqualTo(2), where + ", " + weapons.Name + ": " + two.Weapons);
+                Assert.That(two.WeaponWork.Count, Is.EqualTo(2), where + ", " + weapons.Name + ": " + two.Weapons);
             }
         }
 

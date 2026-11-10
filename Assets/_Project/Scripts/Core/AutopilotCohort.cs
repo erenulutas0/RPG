@@ -170,33 +170,81 @@ namespace Cryptforge.Core
         // How many weapons this cohort takes a new one up to: every slot, or two.
         public int WeaponsWanted => Has(Habit.FillsWeaponSlots) ? WeaponLoadout.MaxSlots : 2;
 
-        // docs/42's CardPicker order, as the autopilot scores a card (low: the hero under half its health): health when
-        // low, then the weapons it holds, a new weapon while it holds fewer than it wants, two tomes, their levels, then
-        // anything else.
-        public int CardScore(UpgradeOption card, bool low, int weaponsHeld, int tomesHeld)
+        // docs/42's CardPicker order, as the autopilot scores a card at the tier it is offered (low: the hero under half its
+        // health; towardEvolution: a line of a weapon on its way to its evolution, LeadsToEvolution): health when low; an
+        // evolution; a new weapon while it holds fewer than it wants; two tomes; a line toward an evolution; the tomes'
+        // levels; the other lines; then the hero's own cards, health and armour TierStep higher each tier above common.
+        //
+        // The tomes' levels come before the weapons' lines since 2026-11-10 (docs/41): a tome's level raises every weapon
+        // held - Force, Tempo, Reach and Precision each weapon's damage, speed, circles or crits, Vitality the hero's health -
+        // where a line raises one weapon. With every line at 50 the careful pilot spent two thirds of its cards on them, each
+        // weapon to its last level, the Daggers too, and the tomes' levels came after the fourth minute: frame-perfect it
+        // cleared, but with a human's hands (the cohorts' PilotRealism) the horde reached the hero and the first-card cohort
+        // outlived it, 181 to 154 Vanguards of 200. A line still comes before the tomes' levels while it builds toward its
+        // weapon's evolution (the weapon below EvolutionRule.WeaponEvolutionLevel with its tome held), so the careful pilot
+        // still evolves as often as before. And a health or armour card's tiers scale 1 / 2 / 4 / 5.3 where a line's scale
+        // 1 / 1.25 / 1.5 / 2: a rare one outranks a line and a tome's level, an epic one a new tome, a gold health card a
+        // new weapon.
+        public const int TierStep = 10;
+
+        public int CardScore(UpgradeOption card, UpgradeRarity tier, bool low, int weaponsHeld, int tomesHeld,
+            bool towardEvolution)
         {
             if (low && card.Stat == UpgradeStat.MaxHealth)
                 return 100;
             switch (card.Category)
             {
-                case OfferCategory.WeaponUpgrade: return 50;
+                case OfferCategory.WeaponUpgrade: return card.IsEvolution ? 50 : towardEvolution ? 31 : 28;
                 case OfferCategory.NewWeapon: return weaponsHeld < WeaponsWanted ? 45 : 10;
                 case OfferCategory.NewTome: return tomesHeld < 2 ? 40 : 15;
                 case OfferCategory.TomeUpgrade: return 30;
-                default: return card.Stat == UpgradeStat.MaxHealth ? 25 : 20;
+                default:
+                    if (card.Stat == UpgradeStat.MaxHealth)
+                        return 25 + TierStep * (int)tier;
+                    return card.Stat == UpgradeStat.Armor ? 20 + TierStep * (int)tier : 20;
             }
         }
 
-        // The slot this cohort takes from an upgrade offer: the best scored, the first of equals; without ScoresCards, the
-        // first.
-        public int Pick(UpgradeOffer offer, bool low, int weaponsHeld, int tomesHeld)
+        // Whether a card is a line of a weapon the hero holds on its way to its evolution (docs/42, EvolutionRule): the
+        // weapon has one, has not taken it, stands below WeaponEvolutionLevel, and the tome it evolves with is held. False
+        // for anything else, and in the legacy engine.
+        public static bool LeadsToEvolution(UpgradeOption card, UpgradeService upgrades)
+        {
+            if (card == null || card.Category != OfferCategory.WeaponUpgrade || card.IsEvolution || upgrades == null ||
+                upgrades.Loadout == null || upgrades.WeaponCards == null)
+                return false;
+            for (int w = 0; w < upgrades.WeaponCards.Count; w++)
+            {
+                WeaponCard weapon = upgrades.WeaponCards[w];
+                for (int l = 0; l < weapon.Lines.Count; l++)
+                {
+                    if (weapon.Lines[l].Id != card.Id)
+                        continue;
+                    int slot = upgrades.Loadout.IndexOf(weapon.Id);
+                    return slot >= 0 && weapon.Evolution != null && !upgrades.HasEvolved(weapon.Id) &&
+                           upgrades.Loadout.At(slot).Level < EvolutionRule.WeaponEvolutionLevel &&
+                           upgrades.TomeLevel(weapon.EvolvesWithTomeId) > 0;
+                }
+            }
+            return false;
+        }
+
+        // The slot this cohort takes from the run's upgrade offer, as the scene's autopilot and the simulation's take it:
+        // what the hero holds read from the offers' own service.
+        public int Pick(UpgradeOffer offer, bool low, UpgradeService upgrades) =>
+            Pick(offer, low, upgrades.Loadout != null ? upgrades.Loadout.Count : 1, upgrades.TomesHeld, upgrades);
+
+        // The slot this cohort takes from an upgrade offer: the best scored at its tier, the first of equals; without
+        // ScoresCards, the first. Without the service no line leads to an evolution.
+        public int Pick(UpgradeOffer offer, bool low, int weaponsHeld, int tomesHeld, UpgradeService upgrades = null)
         {
             if (!Has(Habit.ScoresCards))
                 return 0;
             int best = 0, bestScore = int.MinValue;
             for (int i = 0; i < offer.Choices.Count; i++)
             {
-                int score = CardScore(offer.Choices[i], low, weaponsHeld, tomesHeld);
+                UpgradeOption card = offer.Choices[i];
+                int score = CardScore(card, offer.RarityAt(i), low, weaponsHeld, tomesHeld, LeadsToEvolution(card, upgrades));
                 if (score <= bestScore)
                     continue;
                 best = i;

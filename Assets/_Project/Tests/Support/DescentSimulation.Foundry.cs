@@ -3125,8 +3125,7 @@ namespace Cryptforge.Tests
                     };
                 int best = _levers.Picker != null && _levers.Cohort.Has(AutopilotCohort.Habit.ScoresCards)
                     ? _levers.Picker(logged, _upgrades)
-                    : _levers.Cohort.Pick(offer, _heroHealth.Current < _heroHealth.Maximum * .5f, _upgrades.Loadout.Count,
-                        _upgrades.TomesHeld);
+                    : _levers.Cohort.Pick(offer, _heroHealth.Current < _heroHealth.Maximum * .5f, _upgrades);
                 if (_result.PickLog != null)
                 {
                     logged.Taken = best;
