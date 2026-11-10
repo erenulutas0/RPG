@@ -413,3 +413,25 @@ standing 156 -> 170, auto-farmer 19 -> 30). The figures are the research's x1.5 
 The roles row stays not met on the Daggers alone: their 0 on the Warden is reach (1.8) inside the careful pilot's kite
 ring (2.0), and their horde damage is under the Sword's; what the Daggers are is the next decision (the research's
 recommendation 2).
+
+## Status 2026-11-10: the decisions taken, and what waits
+
+The owner adopted the careful autopilot and its cohorts (main e8e22d54) and left the other open decisions to the lead.
+Taken, on the 2026-11-04 cloud research (docs/cloud/) and its local verification:
+
+- **The Sword is the Warden's weapon** (open decision 3), x1.5 on the gate boss - the section above.
+- **The floor keeps its gate at 3:30** (open decision 2), for now. Every candidate that shortens the wait makes the floor
+  harder for the weaker cohorts: Set B (30 s hall beats, a wave more a hall, the gate at 2:45, horde XP 25 %) takes the
+  clumsy Vanguard from 37 % to 23 % and Ilya from 80 % to 54 %, Set A to 23 % / 49 %, and none was read with the human
+  realism below, under which the wait's farm likely matters more. The gate's levers stay in the batch
+  (FOUNDRY_LEVERS=5 and 6) for that reading.
+- **Difficulty is read with human hands from now on**: the cohorts' realism (reaction, aim, attention; the difficulty
+  research's "typical human") is the measure of how hard a floor is; the frame-perfect careful pilot stays the check
+  that a floor can be cleared. No structural hazard is built yet (slag and the enraged echo stay levers,
+  FOUNDRY_LEVERS=7), and the Staff's splash is not cut: at 0.4 it takes the clumsy Ilya from 94 to 21 clears of 200,
+  and it moves the Staff the Sword's share was measured against.
+
+Still open: what the Daggers are (their Warden damage is reach inside the careful pilot's kite ring); floor 2's Warden
+(careful P50 70 s Vanguard / 64 s Ilya with the Sword, against 45-65 s - its 2026-11-04 options were a share of about 6
+with floor 2's Mend at 100 %, or RecoverySeconds 2.5); the Warden room's heal chest; the sprite atlas (a ProjectSettings
+change); and installing the current APK on the S23.
