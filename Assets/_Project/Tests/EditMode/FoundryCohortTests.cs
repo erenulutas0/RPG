@@ -117,13 +117,17 @@ namespace Cryptforge.Tests
             }
         }
 
-        // The pilot before 2026-11-04's fixes: on these seeds the spills burn it again - the careful pilot at most once
+        // The pilot before 2026-11-04's fixes: the spills burn it again and again - the careful pilot at most once a floor
         // (FoundrySimulationTests.TheAutopilotWaitsOutThePitsGlowingBand) - and it never holds more than two weapons, the
         // careful pilot three. Each of those two fixes undone alone does the same; the three footwork fixes' two ways are
         // AutopilotCohortTests'. When the cohorts came in, the clumsy cohort played seeds 1-200 of both heroes exactly as
         // main d6664d2's pilot had, every column of the batch's CSV alike; since 2026-11-10 it scores its cards as the
-        // careful pilot does now (AutopilotCohort.CardScore), and the weapons are counted over the floor rather than at the
-        // gate: with the new cards the clumsy Vanguard of seed 33 dies before the Warden walks out.
+        // careful pilot does now (AutopilotCohort.CardScore). With those cards a clumsy Vanguard can die in the second
+        // hall, burnt once or twice by then, and Unity's runtime plays a seed apart from .NET's, so the burns are read over
+        // the Editor measurement's six seeds a hero rather than seed by seed (2026-11-11: on .NET the clumsy pilot was
+        // burnt 29 / 41 times over them, Vanguard / Ilya, the pilot that walks into the glow 46 / 34, the careful one 1 / 0).
+        private static readonly int[] SpillSeeds = { 11, 22, 33, 44, 55, 66 };
+
         [Test]
         public void TheClumsyCohortIsBurntByTheSpillsAndNeverTakesAThirdWeapon()
         {
@@ -131,18 +135,35 @@ namespace Cryptforge.Tests
             AutopilotCohort weapons = CarefulLess(AutopilotCohort.Habit.FillsWeaponSlots);
             DescentSimulation.FoundryHero[] heroes = Heroes();
             for (int h = 0; h < heroes.Length; h++)
-            foreach (int seed in Seeds)
             {
-                string where = $"{heroes[h].Name} seed {seed}";
-                DescentSimulation.FoundryResult clumsy = seed == Seeds[0]
-                    ? Played(AutopilotCohort.Clumsy, h)
-                    : Run(heroes[h], seed, AutopilotCohort.Clumsy);
-                Assert.That(clumsy.EruptionsOnHero, Is.GreaterThan(1), where + ": " + clumsy.Eruptions + " spills");
-                Assert.That(clumsy.WeaponWork.Count, Is.EqualTo(2), where + ": " + clumsy.Weapons);
-                DescentSimulation.FoundryResult glowing = Run(heroes[h], seed, glow);
-                Assert.That(glowing.EruptionsOnHero, Is.GreaterThan(1), where + ", " + glow.Name);
-                DescentSimulation.FoundryResult two = Run(heroes[h], seed, weapons);
-                Assert.That(two.WeaponWork.Count, Is.EqualTo(2), where + ", " + weapons.Name + ": " + two.Weapons);
+                int clumsyBurns = 0, glowBurns = 0, carefulBurns = 0, clumsyAgain = 0, glowAgain = 0;
+                var each = new List<string>();
+                foreach (int seed in SpillSeeds)
+                {
+                    string where = $"{heroes[h].Name} seed {seed}";
+                    DescentSimulation.FoundryResult clumsy = seed == Seeds[0]
+                        ? Played(AutopilotCohort.Clumsy, h)
+                        : Run(heroes[h], seed, AutopilotCohort.Clumsy);
+                    Assert.That(clumsy.WeaponWork.Count, Is.LessThanOrEqualTo(2), where + ": " + clumsy.Weapons);
+                    DescentSimulation.FoundryResult glowing = Run(heroes[h], seed, glow);
+                    DescentSimulation.FoundryResult two = Run(heroes[h], seed, weapons);
+                    Assert.That(two.WeaponWork.Count, Is.LessThanOrEqualTo(2), where + ", " + weapons.Name + ": " + two.Weapons);
+                    DescentSimulation.FoundryResult careful = DescentSimulation.RunFoundry(heroes[h], seed);
+                    clumsyBurns += clumsy.EruptionsOnHero;
+                    glowBurns += glowing.EruptionsOnHero;
+                    carefulBurns += careful.EruptionsOnHero;
+                    if (clumsy.EruptionsOnHero > 1)
+                        clumsyAgain++;
+                    if (glowing.EruptionsOnHero > 1)
+                        glowAgain++;
+                    each.Add($"{seed}: {clumsy.EruptionsOnHero} ({clumsy.Outcome}) / {glowing.EruptionsOnHero} / {careful.EruptionsOnHero}");
+                }
+                string all = heroes[h].Name + " - clumsy / " + glow.Name + " / careful: " + string.Join(", ", each);
+                Assert.That(clumsyAgain, Is.GreaterThanOrEqualTo(SpillSeeds.Length - 2), all);
+                Assert.That(glowAgain, Is.GreaterThanOrEqualTo(SpillSeeds.Length - 2), all);
+                Assert.That(clumsyBurns, Is.GreaterThanOrEqualTo(2 * SpillSeeds.Length), all);
+                Assert.That(glowBurns, Is.GreaterThanOrEqualTo(2 * SpillSeeds.Length), all);
+                Assert.That(carefulBurns, Is.LessThanOrEqualTo(SpillSeeds.Length), all);
             }
         }
 
