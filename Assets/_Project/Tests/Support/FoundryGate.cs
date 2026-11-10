@@ -301,13 +301,14 @@ namespace Cryptforge.Tests
         };
 
         // docs/40 section 17.5's three weapons with distinct roles, read as section 17.3's weapon_effectiveness: each
-        // weapon's horde and boss efficiency when the Vanguard starts with it - its own damage on the horde a second of the
-        // floor, and on the Warden a second of the fight after the reveal - and a role is a lead of more than RoleMargin on
-        // one of them over every other weapon.
+        // weapon's efficiency on three jobs when the Vanguard starts with it - its own damage on the horde a second of the
+        // floor, on the elites (the elite rooms' whole waves) a second of the elite rooms' fights, and on the Warden a
+        // second of the fight after the reveal - and a weapon's role is a job on which it leads every other weapon by more
+        // than RoleMargin. Three jobs, so that three weapons can each lead one (docs/41, status 2026-11-10 night).
         private static Row Roles(IReadOnlyList<FoundryBatch.Batch> weapons, Evidence evidence)
         {
             const string criterion = WeaponRoles;
-            string target = $"Sword, Staff and Daggers each lead every other by more than {F(RoleMargin * 100)} % on the horde or on the Warden (docs/40 section 17.5's roles, read as section 17.3's horde and boss efficiency; the {F(RoleMargin * 100)} % is proposed)";
+            string target = $"Sword, Staff and Daggers each lead every other by more than {F(RoleMargin * 100)} % on a job of its own: the horde, the elites or the Warden (docs/40 section 17.5's roles, read as section 17.3's horde and boss efficiency with the elites beside them; the {F(RoleMargin * 100)} % is proposed)";
             DescentSimulation.HeroWeapon[] catalogue = DescentSimulation.WeaponCatalogue();
             var editorCells = new List<string>();
             foreach (DescentSimulation.HeroWeapon weapon in catalogue)
@@ -319,49 +320,51 @@ namespace Cryptforge.Tests
                                     $"Warden P50 {F(Median(file.Seeds.Where(s => s.Cleared).Select(s => s.Boss)))} s");
             }
             string editor = editorCells.Count > 0 ? string.Join("; ", editorCells) : "no Editor file started with a weapon";
-            var rows = new List<(string Name, double Horde, double Warden)>();
+            var rows = new List<(string Name, double[] Jobs)>();
             foreach (DescentSimulation.HeroWeapon weapon in catalogue)
             {
                 FoundryBatch.Batch b = weapons.FirstOrDefault(w => w.Hero.Weapon.Id == weapon.Id);
                 if (b == null)
                     continue;
-                (double horde, double warden) = Efficiency(b);
-                rows.Add((weapon.DisplayName, horde, warden));
+                (double horde, double elites, double warden) = Efficiency(b);
+                rows.Add((weapon.DisplayName, new[] { horde, elites, warden }));
             }
             string simulation = rows.Count > 0
-                ? string.Join("; ", rows.Select(r => $"{r.Name} horde {F(r.Horde)}, Warden {F(r.Warden)} a second"))
+                ? string.Join("; ", rows.Select(r => $"{r.Name} horde {F(r.Jobs[0])}, elites {F(r.Jobs[1])}, Warden {F(r.Jobs[2])} a second"))
                 : "-";
-            const string how = "The Vanguard started with each weapon on the batch's seeds, the others still offered (the weapons table below); each weapon's own damage, what it picked up apart: horde, its damage on the horde a second of the floor; Warden, on the Warden a second of the fight after the reveal; P50s.";
-            if (rows.Count < catalogue.Length || rows.Any(r => double.IsNaN(r.Horde) || double.IsNaN(r.Warden)))
+            string how = "The Vanguard started with each weapon on the batch's seeds, the others still offered (the weapons table below); each weapon's own damage, what it picked up apart, P50s: " +
+                         "horde, its damage on the horde a second of the floor it held it; elites, on the elite rooms' waves (RoomKind.Elite: a Grunt Captain with a Grunt and two Mites, the horde round them apart; the halls hold no elite) a second of those rooms' fights, from the wave's spawn to its last fall; " +
+                         $"Warden, on the Warden a second of the fight after the reveal. A weapon's role is a job on which it leads every other weapon by more than {F(RoleMargin * 100)} %, and the three have distinct roles when each has one (at most one weapon leads a job).";
+            if (rows.Count < catalogue.Length || rows.Any(r => r.Jobs.Any(double.IsNaN)))
                 return new Row
                 {
                     Criterion = criterion, Target = target, Simulation = simulation, Editor = editor, Status = NotMeasured,
-                    Basis = "The batch did not run every weapon, or a weapon never reached the Warden: FoundryBatch.RunWeapons on seeds that reach it would measure it."
+                    Basis = "The batch did not run every weapon, or a weapon never met the elites or the Warden: FoundryBatch.RunWeapons on seeds that reach them would measure it."
                 };
 
-            // A weapon without a role of its own: some other is ahead of it, or within the margin, on both.
+            // Each weapon's role: the job on which it leads every other by more than the margin.
+            var roles = new List<string>();
             var without = new List<string>();
-            foreach ((string Name, double Horde, double Warden) a in rows)
+            foreach ((string Name, double[] Jobs) a in rows)
             {
-                string[] over = rows.Where(b => b.Name != a.Name &&
-                                                !(a.Horde > b.Horde * (1 + RoleMargin) || a.Warden > b.Warden * (1 + RoleMargin)))
-                    .Select(b => $"the {b.Name}'s horde {F(b.Horde)} to its {F(a.Horde)}, Warden {F(b.Warden)} to {F(a.Warden)}")
-                    .ToArray();
-                if (over.Length > 0)
-                    without.Add($"the {a.Name} ({string.Join("; ", over)})");
+                (string Name, double[] Jobs)[] others = rows.Where(b => b.Name != a.Name).ToArray();
+                int job = LeadsJob(a.Jobs, others.Select(b => b.Jobs).ToArray());
+                if (job >= 0)
+                {
+                    roles.Add($"the {a.Name} {JobRoles[job]}");
+                    continue;
+                }
+                string[] behind = Enumerable.Range(0, JobNames.Length).Select(j =>
+                {
+                    (string Name, double[] Jobs) best = others.OrderByDescending(b => b.Jobs[j]).First();
+                    return $"{JobNames[j]} {F(a.Jobs[j])} to the {best.Name}'s {F(best.Jobs[j])}";
+                }).ToArray();
+                without.Add($"the {a.Name} ({string.Join(", ", behind)})");
             }
-            string verdict;
-            if (without.Count == 0)
-            {
-                string crowd = rows.OrderByDescending(r => r.Horde).First().Name;
-                string boss = rows.OrderByDescending(r => r.Warden).First().Name;
-                string between = string.Join(", ", rows.Select(r => r.Name).Where(n => n != crowd && n != boss));
-                verdict = $"Roles: the {crowd} the horde's, the {boss} the Warden's{(between.Length > 0 ? ", the " + between + " between" : string.Empty)}.";
-            }
-            else
-            {
-                verdict = $"No lead of its own, another weapon ahead or within {F(RoleMargin * 100)} % on both: {string.Join("; ", without)}.";
-            }
+            string verdict = without.Count == 0
+                ? $"Roles: {string.Join(", ", roles)}."
+                : $"No job of its own, another weapon ahead or within {F(RoleMargin * 100)} % on each: {string.Join("; ", without)}" +
+                  (roles.Count > 0 ? $". Roles: {string.Join(", ", roles)}." : ".");
             return new Row
             {
                 Criterion = criterion, Target = target, Simulation = simulation, Editor = editor,
@@ -369,12 +372,29 @@ namespace Cryptforge.Tests
             };
         }
 
-        // P50 over the batch of the starting weapon's own horde damage a second it was held, and of its own Warden damage a
-        // second of the fight after the reveal over the runs that reached the Warden.
-        public static (double Horde, double Warden) Efficiency(FoundryBatch.Batch b)
+        // The roles row's jobs, in Efficiency's order, and a weapon's role on each.
+        public static readonly string[] JobNames = { "horde", "elites", "Warden" };
+        private static readonly string[] JobRoles = { "the horde's", "the elites'", "the Warden's" };
+
+        // The job (an index of JobNames) on which jobs lead each of others by more than RoleMargin; -1 for none. At most one
+        // weapon leads a job so, so weapons that each have one have distinct roles.
+        public static int LeadsJob(double[] jobs, IReadOnlyList<double[]> others)
+        {
+            for (int j = 0; j < jobs.Length; j++)
+                if (!double.IsNaN(jobs[j]) && others.All(o => jobs[j] > o[j] * (1 + RoleMargin)))
+                    return j;
+            return -1;
+        }
+
+        // P50s over the batch of the starting weapon's own damage: on the horde a second it was held; on the elites - the
+        // elite rooms' whole waves, FoundryWeaponWork.DealtElite - a second of the elite rooms' fights
+        // (FoundryResult.EliteFought), over the runs that met one; and on the Warden a second of the fight after the
+        // reveal, over the runs that reached it.
+        public static (double Horde, double Elites, double Warden) Efficiency(FoundryBatch.Batch b)
         {
             string id = b.Hero.Weapon.Id;
             var horde = new List<float>();
+            var elites = new List<float>();
             var warden = new List<float>();
             foreach (DescentSimulation.FoundryResult r in b.Runs)
             {
@@ -384,10 +404,12 @@ namespace Cryptforge.Tests
                 float held = r.FloorSeconds - w.HeldFrom;
                 if (held > 0f)
                     horde.Add(w.DealtHorde / held);
+                if (r.EliteFought > 0f)
+                    elites.Add(w.DealtElite / r.EliteFought);
                 if (r.WardenFought > 0f)
                     warden.Add(w.DealtWarden / r.WardenFought);
             }
-            return (Median(horde), Median(warden));
+            return (Median(horde), Median(elites), Median(warden));
         }
 
         // docs/41 step 3's visible synergy - a tome that changes a weapon's kill pattern, not only its number - is the
@@ -671,10 +693,10 @@ namespace Cryptforge.Tests
             if (weapons.Count == 0)
                 return;
             md.AppendLine("### Weapons: the Vanguard started with each (weapon_effectiveness, the roles row)").AppendLine();
-            md.AppendLine("The starting weapon's own work, the weapons the offers brought later apart. Share: of the weapons' damage. Horde and Warden: its damage on the horde a second it was held, and on the Warden a second of the fight after the reveal (the runs that reached it), P50 (P10-P90). " +
+            md.AppendLine("The starting weapon's own work, the weapons the offers brought later apart. Share: of the weapons' damage. Horde, elites and Warden: its damage on the horde a second it was held, on the elite rooms' waves a second of those rooms' fights (the runs that met one), and on the Warden a second of the fight after the reveal (the runs that reached it), P50 (P10-P90). " +
                           "Hit a strike: the enemies its strikes landed on (target, splash or cleave), its evolution's procs apart. Blows: the kills it landed a run. Under fire: from an enemy's first damage to its fall, of the enemies it finished.").AppendLine();
-            md.AppendLine("| Starting weapon | Runs (cleared) | Floor P50 | Warden fight P50 | Weapons at the gate P50 | Share | Its damage: horde / node waves / Warden | Horde a second | Warden a second | Hit a strike | Blows a run P50 (horde) | Under fire P50: node / horde | Evolved |");
-            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            md.AppendLine("| Starting weapon | Runs (cleared) | Floor P50 | Warden fight P50 | Weapons at the gate P50 | Share | Its damage: horde / node waves / Warden | Horde a second | Elites a second | Warden a second | Hit a strike | Blows a run P50 (horde) | Under fire P50: node / horde | Evolved |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
             foreach (FoundryBatch.Batch b in weapons)
             {
                 string id = b.Hero.Weapon.Id;
@@ -694,6 +716,7 @@ namespace Cryptforge.Tests
                               $"{F(Median(Felled(b).Select(r => r.BossSeconds)))} s | {F(Median(Reached(b).Select(r => (float)r.WeaponsAtGate)))} | {Pct(dealt, all)} | " +
                               $"{Pct(work.Sum(x => x.Work.DealtHorde), dealt)} / {Pct(work.Sum(x => x.Work.DealtNode), dealt)} / {Pct(work.Sum(x => x.Work.DealtWarden), dealt)} | " +
                               $"{Rate(work.Where(x => x.Run.FloorSeconds > x.Work.HeldFrom).Select(x => x.Work.DealtHorde / (x.Run.FloorSeconds - x.Work.HeldFrom)))} | " +
+                              $"{Rate(work.Where(x => x.Run.EliteFought > 0f).Select(x => x.Work.DealtElite / x.Run.EliteFought))} | " +
                               $"{Rate(work.Where(x => x.Run.WardenFought > 0f).Select(x => x.Work.DealtWarden / x.Run.WardenFought))} | " +
                               $"{(strikes == 0 ? "-" : F((double)landings / strikes, "0.00"))} | " +
                               $"{F(Median(b.Runs.Select(r => (float)r.Kills.Count(k => k.By == id))))} ({Pct(blows.Count(k => k.Horde), blows.Length)}) | " +

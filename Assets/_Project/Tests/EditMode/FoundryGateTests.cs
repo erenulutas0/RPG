@@ -85,9 +85,30 @@ namespace Cryptforge.Tests
             // Without every weapon's batch the roles cannot be read.
             FoundryGate.Row roles = FoundryGate.Rows(_heroes, _weapons.Take(2).ToArray(), null).Single(r => r.Criterion == FoundryGate.WeaponRoles);
             Assert.That(roles.Status, Is.EqualTo(FoundryGate.NotMeasured));
-            // With all three, each weapon is named with its two efficiencies.
+            // With all three, each weapon is named with its three efficiencies.
             foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
-                Assert.That(rows[FoundryGate.WeaponRoles].Simulation, Does.Contain(weapon.DisplayName + " horde "));
+                Assert.That(rows[FoundryGate.WeaponRoles].Simulation, Does.Contain(weapon.DisplayName + " horde ")
+                    .And.Contain(", elites ").And.Contain(", Warden "));
+            Assert.That(rows[FoundryGate.WeaponRoles].Basis, Does.Contain("elites, on the elite rooms' waves"));
+        }
+
+        // The roles row's reading (docs/41, status 2026-11-10 night): three jobs - the horde, the elites, the Warden - and a
+        // weapon's role is a job on which it leads every other weapon by more than RoleMargin; within the margin is a tie.
+        // Constructed numbers in the shape of the 2026-11-10 night batch.
+        [Test]
+        public void AWeaponsRoleIsAJobItLeadsEveryOtherOnByMoreThanTheMargin()
+        {
+            Assert.That(FoundryGate.JobNames, Is.EqualTo(new[] { "horde", "elites", "Warden" }));
+            double[] staff = { 31, 10, 23 }, sword = { 8, 3, 27 }, daggers = { 2, 12.5, 0 };
+            Assert.That(FoundryGate.LeadsJob(staff, new[] { sword, daggers }), Is.EqualTo(0), "the Staff leads the horde");
+            Assert.That(FoundryGate.LeadsJob(daggers, new[] { staff, sword }), Is.EqualTo(1), "12.5 is more than 10 and a tenth");
+            Assert.That(FoundryGate.LeadsJob(sword, new[] { staff, daggers }), Is.EqualTo(2), "the Sword leads the Warden");
+            double[] tied = { 2, 11, 0 };
+            Assert.That(FoundryGate.LeadsJob(tied, new[] { staff, sword }), Is.EqualTo(-1), "11 is within a tenth of 10");
+            Assert.That(FoundryGate.LeadsJob(new[] { double.NaN, double.NaN, double.NaN }, new[] { staff, sword }), Is.EqualTo(-1),
+                "nothing measured leads nothing");
+            Assert.That(FoundryGate.LeadsJob(new double[] { 40, 40, 40 }, new[] { staff, sword }), Is.EqualTo(0),
+                "a weapon ahead on every job has the first");
         }
 
         // An Editor file, the perf probe and the floor's asset handed in read in their rows; a file of another floor is

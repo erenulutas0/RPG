@@ -208,7 +208,8 @@ namespace Cryptforge.Tests
         {
             var dropped = new List<string>();
             foreach (AutopilotCohort.Habit habit in Enum.GetValues(typeof(AutopilotCohort.Habit)))
-                if (habit != AutopilotCohort.Habit.None && habit != AutopilotCohort.Habit.All && !cohort.Has(habit))
+                if (habit != AutopilotCohort.Habit.None && (habit & AutopilotCohort.Habit.All) == habit &&
+                    habit != AutopilotCohort.Habit.All && !cohort.Has(habit))
                     dropped.Add(Words(habit.ToString()));
             return dropped.Count == 0 ? "-" : string.Join(", ", dropped);
         }

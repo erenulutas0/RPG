@@ -174,6 +174,50 @@ namespace Cryptforge.Tests
             Assert.That(FootworkRule.ThreatReach(kiteReach, 1f, true), Is.EqualTo(kiteReach));
         }
 
+        // The step-in (AutopilotCohort.Habit.StepsIn; docs/41, status 2026-11-10 night): the best weapon on one target is
+        // the one with the most damage a second on it - the Daggers' 7 every 0.3 s with a double every third over the
+        // Sword's 18 every 0.8 s, but on the gate boss the Sword's share counts - and the pilot holds the target at that
+        // weapon's reach less the margin, in or out, only while the weapon is short and it is safe.
+        [Test]
+        public void ThePilotStepsInToItsShortBestWeaponsReachOnlyWhileSafe()
+        {
+            var daggers = new WeaponRuntime(7f, .3f, 1.8f, 0f, new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f));
+            var sword = new WeaponRuntime(18f, .8f, 2.1f, 0f, new AttackPattern(WeaponBehavior.Cleave, 2f, .6f));
+            Assert.That(FootworkRule.SingleTargetRate(daggers, false), Is.EqualTo(7f * (1f + 1f / 3f) / .3f).Within(1e-3f));
+            Assert.That(FootworkRule.SingleTargetRate(sword, false), Is.EqualTo(18f / .8f).Within(1e-3f));
+            sword.GateBossShare = 1.5f;
+            Assert.That(FootworkRule.SingleTargetRate(sword, true), Is.EqualTo(18f / .8f * 1.5f).Within(1e-3f));
+
+            var loadout = new WeaponLoadout(1);
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, false), Is.Zero, "nothing held");
+            Assert.That(loadout.TryAdd("weapon_sword", sword), Is.True);
+            Assert.That(loadout.TryAdd("weapon_daggers", daggers), Is.True);
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, false), Is.EqualTo(1.8f), "the Daggers' 31 on a Captain, the Sword's 22.5");
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, true), Is.EqualTo(2.1f), "the Sword's 33.75 on the gate boss");
+
+            // A Captain 3 units east of the hero: held 1.8 less the margin from it, on the hero's side.
+            Floor(4f, -8f, out float x, out float y);
+            Floor(7f, -8f, out float tx, out float ty);
+            float hold = 1.8f - FootworkRule.StepInMargin;
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 80f, 100f, out float gx, out float gy), Is.True);
+            Assert.That((float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(gx, gy, tx, ty)), Is.EqualTo(hold).Within(1e-4f));
+            Assert.That(ArenaFloor.FloorDistanceSquared(gx, gy, x, y), Is.EqualTo((3f - hold) * (3f - hold)).Within(1e-3f), "in, straight at it");
+            // Too near, it steps back out to the same ring.
+            Floor(6f, -8f, out float nx, out float ny);
+            Assert.That(FootworkRule.StepIn(nx, ny, tx, ty, 1.8f, false, false, 80f, 100f, out gx, out gy), Is.True);
+            Assert.That((float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(gx, gy, tx, ty)), Is.EqualTo(hold).Within(1e-4f));
+
+            // Not with a weapon that reaches the kited target anyway, nor far off, nor marked, low, or in the glow.
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 2.1f, false, false, 80f, 100f, out _, out _), Is.False, "the Sword");
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 0f, false, false, 80f, 100f, out _, out _), Is.False, "no weapon");
+            Floor(10f, -8f, out float fx, out float fy);
+            Assert.That(FootworkRule.StepIn(x, y, fx, fy, 1.8f, false, false, 80f, 100f, out _, out _), Is.False, "beyond StepInRange");
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, true, false, 80f, 100f, out _, out _), Is.False, "a mark down");
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, true, 80f, 100f, out _, out _), Is.False, "the band glows");
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 49f, 100f, out _, out _), Is.False, "under half health");
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 50f, 100f, out _, out _), Is.True, "at half");
+        }
+
         // Nowhere to walk - a point the floor does not hold - and there is no escape.
         [Test]
         public void WithNoPointToWalkToThereIsNoEscape()

@@ -572,6 +572,49 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The elites the simulation counts (the Daggers' role, docs/41 status 2026-11-10 night) are an elite room's wave: a
+        // run that never entered an elite room fought none, what a weapon took off the Captains is part of what it took off
+        // the elites, and that part of what it took off the node waves. The shipped floor's Daggers are the game's, and
+        // every other row of the Daggers' research (FoundryBatch.DaggersLevers) moves a Daggers lever or gives the careful
+        // pilots a habit (the step-in).
+        [Test]
+        public void TheElitesAreTheEliteRoomsWavesAndOnlyTheDaggersResearchMovesTheDaggers()
+        {
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            Assert.That(shipped.DaggersEliteDamage, Is.EqualTo(1f), "the shipped floor's Daggers are the game's");
+            Assert.That(shipped.DaggersEliteCritDamage, Is.EqualTo(1f));
+            Assert.That(shipped.DaggersEliteLeaderOnly, Is.False);
+            Assert.That(shipped.DaggersReach, Is.Zero);
+            FoundryBatch.Lever[] levers = FoundryBatch.DaggersLevers();
+            Assert.That(levers[0].Levers.DaggersEliteDamage == 1f && levers[0].Levers.DaggersEliteCritDamage == 1f &&
+                        levers[0].Levers.DaggersReach == 0f && levers[0].CarefulHabits == Cryptforge.Core.AutopilotCohort.Habit.None,
+                Is.True, "the first row is the shipped floor");
+            foreach (FoundryBatch.Lever lever in levers.Skip(1))
+                Assert.That(lever.Levers.DaggersEliteDamage != 1f || lever.Levers.DaggersEliteCritDamage != 1f ||
+                            lever.Levers.DaggersReach > 0f || lever.CarefulHabits != Cryptforge.Core.AutopilotCohort.Habit.None,
+                    Is.True, lever.Name);
+
+            DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+            hero.Weapon = DescentSimulation.Daggers();
+            int dealt = 0;
+            foreach (int seed in new[] { 11, 22, 33, 44, 55, 66 })
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(hero, seed);
+                bool enteredElite = Enumerable.Range(0, run.Kinds.Length).Any(i => run.Kinds[i] == RoomKind.Elite && run.WaveSeconds[i] >= 0f) ||
+                                    (run.DeathRoom >= 1 && run.Kinds[run.DeathRoom - 1] == RoomKind.Elite);
+                if (!enteredElite)
+                    Assert.That(run.EliteFought, Is.Zero, $"seed {seed}: no elite room, no elites");
+                foreach (DescentSimulation.FoundryWeaponWork work in run.WeaponWork)
+                {
+                    Assert.That(work.DealtEliteLeader, Is.LessThanOrEqualTo(work.DealtElite + 1e-3f), $"seed {seed} {work.Id}: the Captains are elites");
+                    Assert.That(work.DealtElite, Is.LessThanOrEqualTo(work.DealtNode + 1e-3f), $"seed {seed} {work.Id}: the elites are node waves");
+                }
+                if (run.WeaponWork[0].DealtElite > 0f)
+                    dealt++;
+            }
+            Assert.That(dealt, Is.GreaterThan(0), "the Daggers reach the elites on some seed");
+        }
+
         // The Warden's own weapon is held from the frame its mark goes down until its hammer is out of the floor again -
         // WardenSlamService runs before every AttackController, and the simulation steps the clock before anything
         // attacks - and every blow lands a whole telegraph after its mark, the Warden enraged under it or not

@@ -38,6 +38,9 @@ namespace Cryptforge.Tests
             // What the lever is read against: null for the shipped floor, else the levers' name of another row of its list
             // (PreV01Name, the floor the research's estimates were made on).
             public string Basis;
+            // Habits the careful-footwork cohorts (careful, first-card) play with besides their own, where a report reads it
+            // (FoundryBatch.RunRoles; research, e.g. AutopilotCohort.Habit.StepsIn); none by default.
+            public Cryptforge.Core.AutopilotCohort.Habit CarefulHabits;
         }
 
         public const string NotMeasured = "not measured";

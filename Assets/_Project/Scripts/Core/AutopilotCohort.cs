@@ -48,7 +48,14 @@ namespace Cryptforge.Core
             // ...with a new weapon while a weapon slot is free; without it only a second, and it never held three.
             // 2026-11-04.
             FillsWeaponSlots = 1 << 10,
-            All = (1 << 11) - 1
+            All = (1 << 11) - 1,
+            // Research, 2026-11-10 night, outside All - no cohort has them unless built with them (docs/41): against a single
+            // elite room's Captain, when its best weapon on that target is short (the Daggers) and it is safe, it holds the
+            // target at that weapon's reach rather than kiting (FootworkRule.StepIn), as a player closes in...
+            StepsIn = 1 << 11,
+            // ...and against the gate boss too.
+            StepsInOnTheGateBoss = 1 << 12,
+            Known = (1 << 13) - 1
         }
 
         // What 2026-11-04's four fixes taught the pilot (the survival research): the careful pilot without them is the
@@ -91,7 +98,7 @@ namespace Cryptforge.Core
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("A cohort has a name.", nameof(name));
             Name = name;
-            Habits = habits & Habit.All;
+            Habits = habits & Habit.Known;
         }
 
         public bool Has(Habit habit) => (Habits & habit) == habit;
@@ -101,6 +108,8 @@ namespace Cryptforge.Core
         public bool Shelters => Has(Habit.Shelters);
         public bool Lures => Has(Habit.Lures);
         public bool UsesTheAbility => Has(Habit.UsesTheAbility);
+        public bool StepsIn => Has(Habit.StepsIn);
+        public bool StepsInOnTheGateBoss => Has(Habit.StepsIn | Habit.StepsInOnTheGateBoss);
 
         public override string ToString() => Name;
 

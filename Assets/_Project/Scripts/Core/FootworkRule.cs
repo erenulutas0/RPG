@@ -200,6 +200,75 @@ namespace Cryptforge.Core
                    PitEruptionRule.InBand(x + dx * BandLookahead, y + dy * BandLookahead);
         }
 
+        // Stepping in (AutopilotCohort.Habit.StepsIn; docs/41, status 2026-11-10 night): the careful pilot kites a Grunt
+        // Captain from 1.75 units and the Warden from 2.0, and the Daggers reach 1.8, so a pilot holding them as its best
+        // weapon against that one target fought it out of its own reach, where a player closes in. A pilot with the habit,
+        // safe, holds the target at its best weapon's reach less StepInMargin instead of kiting. A short weapon reaches less
+        // than ShortReach (the Daggers; the Sword's 2.1 and the Staff's 2.4 already reach a kited target); the target is
+        // the gate boss or an elite room's Captain within StepInRange; safe is no mark down on the floor, the hero at
+        // StepInHealth of its maximum or more and the pit's band not glowing.
+        public const float ShortReach = 2f;
+        public const float StepInMargin = .15f;
+        public const float StepInRange = 5f;
+        public const float StepInHealth = .5f;
+        // How near the hold point the hero stops walking.
+        public const float StepInStop = .1f;
+
+        // A weapon's damage a second on one target - its strike, its fixed rhythm's crits and its rolled crits, on the gate
+        // boss its share (WeaponRuntime.GateBossShare) - for choosing the weapon a pilot fights one target with.
+        public static float SingleTargetRate(WeaponRuntime weapon, bool gateBoss)
+        {
+            AttackPattern pattern = weapon.Pattern;
+            float rhythm = pattern.CritEvery > 0 ? (pattern.CritMultiplier - 1f) / pattern.CritEvery : 0f;
+            float rolled = Math.Min(1f, weapon.CritChance);
+            float rate = weapon.Damage * (1f + rhythm + rolled) / weapon.Interval;
+            return gateBoss ? rate * weapon.GateBossShare : rate;
+        }
+
+        // The reach of the loadout's best weapon on one target (SingleTargetRate, the earlier slot on a tie); 0 for none.
+        public static float BestSingleTargetReach(WeaponLoadout loadout, bool gateBoss)
+        {
+            float best = -1f, reach = 0f;
+            for (int i = 0; loadout != null && i < loadout.Count; i++)
+            {
+                WeaponRuntime weapon = loadout.At(i).Runtime;
+                float rate = SingleTargetRate(weapon, gateBoss);
+                if (rate <= best)
+                    continue;
+                best = rate;
+                reach = weapon.Range;
+            }
+            return reach;
+        }
+
+        // Where the pilot at (x, y) steps to against the target at (tx, ty), whose best weapon on it reaches bestReach: the
+        // point StepInMargin inside that reach on the hero's side of the target - in, or back out to it. False, and no step,
+        // when the weapon is not short, the target is beyond StepInRange, or it is not safe (marked, health under
+        // StepInHealth, glowing).
+        public static bool StepIn(float x, float y, float tx, float ty, float bestReach, bool marked, bool glowing,
+            float health, float maximum, out float gx, out float gy)
+        {
+            gx = x;
+            gy = y;
+            if (bestReach <= 0f || bestReach >= ShortReach || marked || glowing || maximum <= 0f || health < maximum * StepInHealth)
+                return false;
+            float d = ArenaFloor.FloorDistanceSquared(x, y, tx, ty);
+            if (d > StepInRange * StepInRange)
+                return false;
+            float awayX = x - tx, awayY = y - ty;
+            Normalize(ref awayX, ref awayY);
+            if (awayX == 0f && awayY == 0f)
+                awayY = -1f;
+            float hold = bestReach - StepInMargin;
+            gx = tx + awayX * hold;
+            gy = ty + awayY * hold;
+            if (FoundryMap.Contains(gx, gy, HeroMotion.EdgeMargin))
+                return true;
+            gx = x;
+            gy = y;
+            return d <= hold * hold;
+        }
+
         // A goal the hero can stand on and walk to in a straight line.
         private static bool Clear(float x, float y, float tx, float ty) =>
             FoundryMap.Contains(tx, ty, HeroMotion.EdgeMargin) && FoundryMap.Segment(x, y, tx, ty, HeroMotion.EdgeMargin);
