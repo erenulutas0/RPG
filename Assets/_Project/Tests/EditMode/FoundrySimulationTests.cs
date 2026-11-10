@@ -572,7 +572,8 @@ namespace Cryptforge.Tests
         // The elites the simulation counts (the Daggers' role, docs/41 status 2026-11-10 night) are an elite room's wave: a
         // run that never entered an elite room fought none, what a weapon took off the Captains is part of what it took off
         // the elites, and that part of what it took off the node waves. The shipped floor's Daggers are the game's, and
-        // every other row of the Daggers' research (FoundryBatch.DaggersLevers) moves a Daggers lever.
+        // every other row of the Daggers' research (FoundryBatch.DaggersLevers) moves a Daggers lever or gives the careful
+        // pilots a habit (the step-in).
         [Test]
         public void TheElitesAreTheEliteRoomsWavesAndOnlyTheDaggersResearchMovesTheDaggers()
         {
@@ -583,10 +584,12 @@ namespace Cryptforge.Tests
             Assert.That(shipped.DaggersReach, Is.Zero);
             FoundryBatch.Lever[] levers = FoundryBatch.DaggersLevers();
             Assert.That(levers[0].Levers.DaggersEliteDamage == 1f && levers[0].Levers.DaggersEliteCritDamage == 1f &&
-                        levers[0].Levers.DaggersReach == 0f, Is.True, "the first row is the shipped floor");
+                        levers[0].Levers.DaggersReach == 0f && levers[0].CarefulHabits == Cryptforge.Core.AutopilotCohort.Habit.None,
+                Is.True, "the first row is the shipped floor");
             foreach (FoundryBatch.Lever lever in levers.Skip(1))
                 Assert.That(lever.Levers.DaggersEliteDamage != 1f || lever.Levers.DaggersEliteCritDamage != 1f ||
-                            lever.Levers.DaggersReach > 0f, Is.True, lever.Name);
+                            lever.Levers.DaggersReach > 0f || lever.CarefulHabits != Cryptforge.Core.AutopilotCohort.Habit.None,
+                    Is.True, lever.Name);
 
             DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
             hero.Weapon = DescentSimulation.Daggers();
