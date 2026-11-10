@@ -10,13 +10,14 @@ using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // Engaged uptime (docs/41, 2026-11-11): the V0.1 gate's "Engaged uptime" row reads 0.60 / 0.58 (Vanguard / Ilya,
-    // frame-perfect) against its proposed 0.75 while combat uptime reads 0.95. This splits a floor's active seconds by phase
+    // Engaged uptime (docs/41, 2026-11-11): the V0.1 gate's "Engaged uptime" row read 0.60 / 0.58 (Vanguard / Ilya,
+    // frame-perfect) against its proposed 0.75 while combat uptime read 0.95. This splits a floor's active seconds by phase
     // (the walk to a hall, a node fight, between, the gate's wait, the Warden, the exit) and reads each phase under every
-    // reading of engaged FoundryEngagement names - the gate's (an enemy within the first weapon's reach and a unit), the
-    // longest weapon's reach in place of the first's, the first weapon's authored reach, the longest weapon's reach without
-    // the margin, a strike landed - beside where the nearest enemy stood on the frames the gate's reading leaves out; and
-    // plays the research's candidate levers on the same seeds. Explicit, so a plain `dotnet test` skips it:
+    // reading of engaged FoundryEngagement names - the one before 2026-11-11 (an enemy within the first weapon's reach and a
+    // unit), the longest weapon's reach in place of the first's, the first weapon's authored reach, the longest weapon's
+    // reach without the margin, and the gate's since (a strike landed) - beside where the nearest enemy stood on the frames
+    // the reading before 2026-11-11 leaves out; and plays the research's candidate levers on the same seeds. Explicit, so a
+    // plain `dotnet test` skips it:
     //
     //   dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~EngagedResearch"
     //
@@ -120,8 +121,8 @@ namespace Cryptforge.Tests
         {
             var md = new StringBuilder();
             md.AppendLine("## Every reading over the floor").AppendLine();
-            md.AppendLine("P50 of every run (the gate's reading), each reading's share of the floor's active seconds; FoundryResult's Engaged (R0) and Uptime (R5) " +
-                          "of FoundryResult beside them as the check. Cleared, deaths, the floor's P50, the Warden's fight P50 of the felled fights, " +
+            md.AppendLine("P50 of every run (the gate's reading), each reading's share of the floor's active seconds; FoundryResult's Engaged (R4) and Uptime (R5) " +
+                          "beside them as the check. Cleared, deaths, the floor's P50, the Warden's fight P50 of the felled fights, " +
                           "and the first and the longest weapon's reach at the floor's end (P50).").AppendLine();
             int rules = DescentSimulation.FoundryEngagement.Rules.Length;
             md.AppendLine("| Realism | Cohort | Lever | Hero | Cleared | Floor P50 | Warden P50 | " +
@@ -146,7 +147,7 @@ namespace Cryptforge.Tests
             var md = new StringBuilder();
             md.AppendLine("## By phase").AppendLine();
             md.AppendLine("Seconds: the phase's mean seconds a run. Each reading: the share of the phase's seconds it counts, pooled over the runs. " +
-                          "Lost: the phase's seconds a run the gate's reading (R0) leaves out (mean), and their share of all the floor's seconds it leaves out.").AppendLine();
+                          "Lost: the phase's seconds a run the reading before 2026-11-11 (R0) leaves out (mean), and their share of all the floor's seconds it leaves out.").AppendLine();
             int rules = DescentSimulation.FoundryEngagement.Rules.Length;
             md.AppendLine("| Realism | Cohort | Lever | Hero | Phase | Seconds | Lost (share) | " + string.Join(" | ", Enumerable.Range(0, rules).Select(r => "R" + r)) + " |");
             md.AppendLine("|---|---|---|---|---|---|---|" + string.Concat(Enumerable.Repeat("---|", rules)));
@@ -173,7 +174,7 @@ namespace Cryptforge.Tests
         private static string Outside(List<(string Realism, string Cohort, string Lever, DescentSimulation.FoundryHero Hero, DescentSimulation.FoundryResult[] Runs)> rows)
         {
             var md = new StringBuilder();
-            md.AppendLine("## Where the nearest enemy stood when the gate's reading (R0) leaves a frame out").AppendLine();
+            md.AppendLine("## Where the nearest enemy stood when the reading before 2026-11-11 (R0) leaves a frame out").AppendLine();
             md.AppendLine("Shares of the left-out seconds, pooled over the runs: no enemy standing, then the nearest within each distance (floor units).").AppendLine();
             float[] d = DescentSimulation.FoundryEngagement.Distances;
             md.AppendLine("| Realism | Cohort | Lever | Hero | None standing | " +

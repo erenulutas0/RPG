@@ -15,8 +15,9 @@ namespace Cryptforge.Tests
 {
     // A measurement, not a check (docs/41 step 2): the development autopilot plays the foundry's first floor with the
     // horde on, over several seeds, and writes how long the floor took, how much of it had an enemy standing (combat
-    // uptime), how much of it the hero was actually engaged (an enemy within its reach plus a unit, or a hit taken in the
-    // last 1.5 s), what it killed, how the Warden's fight went and what state the hero reached the gate in to
+    // uptime), how much of it the hero was actually engaged (a strike of any weapon it holds landed, or a hit taken, in the
+    // last 1.5 s: the engaged_strike column, since 2026-11-11; the engaged column before it read an enemy within the first
+    // weapon's reach plus a unit), what it killed, how the Warden's fight went and what state the hero reached the gate in to
     // TestResults/horde-pacing.txt (its header names the floor and its foundry levers: surges, extra elites, the gate's
     // time, and the autopilot's cohort where horde-cohort.txt names one), and keeps each seed's telemetry under
     // TestResults/horde-telemetry/<hero>-<seed>/ (<hero>-<cohort>-<seed>/ for a cohort's run)
@@ -29,9 +30,9 @@ namespace Cryptforge.Tests
     {
         private const float Step = 1f / 60f;
         private const float FloorLimitSeconds = 900f;
-        // Engaged: an enemy this far past the hero's reach (floor units), or a hit taken this recently.
-        private const float EngagedMargin = 1f;
-        private const float EngagedAfterHitSeconds = 1.5f;
+        // Engaged: a strike of any weapon the hero holds landed (AttackController.StruckWith), or a hit taken, this recently
+        // (DescentSimulation.EngagedSeconds).
+        private const float EngagedSeconds = 1.5f;
         private static readonly int[] DefaultSeeds = { 11, 22, 33, 44, 55, 66 };
 
         // TestResults/horde-linger.txt, one word, plays the autopilot's measurement mode instead of the floor: "linger"
@@ -127,7 +128,7 @@ namespace Cryptforge.Tests
                     report.AppendLine(string.Format(CultureInfo.InvariantCulture,
                         "levers floor {0} hall_surges {1} extra_elites {2} gate_s {3:0.###}", floor.Id, floor.FoundryHallSurges,
                         floor.FoundryExtraElites, floor.FoundryGateNotBeforeSeconds));
-                    report.AppendLine("seed\tresult\tfloor_s\tuptime\tengaged\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
+                    report.AppendLine("seed\tresult\tfloor_s\tuptime\tengaged_strike\twave_kills\thorde_kills\tlevel\thp\tmax_hp\thorde_avg\thorde_max\tslams\tslam_hits\tboss_s\tboss_left\tclock\trooms");
                 }
                 var hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
                 bool cleared = false;
@@ -151,9 +152,11 @@ namespace Cryptforge.Tests
                     else
                         waveKills++;
                 };
-                float lastHit = float.NegativeInfinity, engaged = 0f;
+                float lastHit = float.NegativeInfinity, lastStrike = float.NegativeInfinity, engaged = 0f;
                 hero.Damaged += context => lastHit = Time.time;
                 AttackController heroAttack = hero.GetComponent<AttackController>();
+                if (heroAttack != null)
+                    heroAttack.StruckWith += (target, weapon) => lastStrike = Time.time;
                 float start = Time.time, fighting = 0f, active = 0f, hordeSum = 0f;
                 int hordeMax = 0, frames = 0;
                 float clock = 0f;
@@ -168,8 +171,7 @@ namespace Cryptforge.Tests
                     active += Time.deltaTime;
                     if (encounters.AllAliveCount > 0)
                         fighting += Time.deltaTime;
-                    if (Time.time - lastHit <= EngagedAfterHitSeconds || EnemyNear(encounters, hero.transform.position,
-                            (heroAttack != null && heroAttack.Weapon != null ? heroAttack.Weapon.Range : 1f) + EngagedMargin))
+                    if (Time.time - lastHit <= EngagedSeconds || Time.time - lastStrike <= EngagedSeconds)
                         engaged += Time.deltaTime;
                     hordeSum += encounters.HordeAliveCount;
                     hordeMax = Mathf.Max(hordeMax, encounters.HordeAliveCount);
@@ -219,28 +221,6 @@ namespace Cryptforge.Tests
             File.WriteAllText(path, report.ToString());
             TestProfile.Begin();
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
-        }
-
-        // A living wave or horde enemy within reach of the hero, measured on the floor (depth unsquashed).
-        private static bool EnemyNear(EncounterController encounters, Vector3 hero, float reach)
-        {
-            float reachSquared = reach * reach;
-            for (int i = 0; i < encounters.WaveEnemyCount; i++)
-                if (Near(encounters.WaveEnemyAt(i), hero, reachSquared))
-                    return true;
-            for (int i = 0; i < encounters.HordeEnemyCount; i++)
-                if (Near(encounters.HordeEnemyAt(i), hero, reachSquared))
-                    return true;
-            return false;
-        }
-
-        private static bool Near(Health enemy, Vector3 hero, float reachSquared)
-        {
-            if (enemy == null || !enemy.IsAlive)
-                return false;
-            Vector3 delta = enemy.transform.position - hero;
-            float y = delta.y / ArenaFloor.DepthScale;
-            return delta.x * delta.x + y * y <= reachSquared;
         }
     }
 }

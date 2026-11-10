@@ -180,10 +180,12 @@ namespace Cryptforge.Tests
                     e => AtLeastEditor(e.Seeds.Select(s => s.Uptime), e.Seeds.Where(s => s.Cleared).Select(s => s.Uptime), UptimeTarget),
                     note: b => ClearsNote(b, Median(b.Runs.Select(r => r.Uptime)), Median(b.Cleared.Select(r => r.Uptime)),
                         p50 => p50 >= UptimeTarget, "0.00")),
-                PerHero(gate, EngagedUptime, $">= {F(UptimeTarget, "0.00")} over every run (proposed: an enemy within the first weapon's reach + {F(DescentSimulation.EngagedMargin)} unit, or a hit taken in the last {F(DescentSimulation.EngagedAfterHitSeconds, "0.0")} s)",
-                    "The lead's stricter reading of docs/41 step 2's uptime, the one its 2026-11-02 status lists as open; the Editor's engaged column is the same rule. A run that dies early fought most of its short floor, so the clears' P50 stands beside.",
+                PerHero(gate, EngagedUptime, $">= {F(UptimeTarget, "0.00")} over every run (proposed: a strike of any weapon held landed, or a hit taken, in the last {F(DescentSimulation.EngagedSeconds, "0.0")} s - docs/40 section 8.4's attack and target-finding uptime, section 9.6's attack uptime)",
+                    "The lead's stricter reading of docs/41 step 2's uptime, the one its 2026-11-02 status lists as open. Until 2026-11-11 it read an enemy within the first weapon's reach and a unit: that read how long the horde, which falls to a strike or two, stood near the hero rather than whether the hero fought, and it moved with the Sword's reach line (docs/41's status of that day). The Editor's engaged_strike column is the same rule; a pacing file written before it has none. A run that dies early fought most of its short floor, so the clears' P50 stands beside.",
                     b => AtLeast(b.Runs.Select(r => r.Engaged), b.Cleared.Select(r => r.Engaged), UptimeTarget),
-                    e => AtLeastEditor(e.Seeds.Select(s => s.Engaged), e.Seeds.Where(s => s.Cleared).Select(s => s.Engaged), UptimeTarget),
+                    e => e.Seeds.Any(s => !float.IsNaN(s.Engaged))
+                        ? AtLeastEditor(e.Seeds.Select(s => s.Engaged), e.Seeds.Where(s => s.Cleared).Select(s => s.Engaged), UptimeTarget)
+                        : ("not in this file (written before 2026-11-11's rule)", (bool?)null),
                     note: b => ClearsNote(b, Median(b.Runs.Select(r => r.Engaged)), Median(b.Cleared.Select(r => r.Engaged)),
                         p50 => p50 >= UptimeTarget, "0.00")),
                 PerHero(gate, FirstCombat, $"<= {F(FirstCombatSeconds)} s (docs/41 step 2, docs/40 section 9.6), read as the P90",

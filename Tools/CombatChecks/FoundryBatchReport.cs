@@ -534,8 +534,10 @@ namespace Cryptforge.Tests
             return (words[1], hero, weapon, cohort);
         }
 
-        // The pacing file's tab-separated lines (seed, result, floor_s, uptime[, engaged], ..., level, ..., rooms), and,
-        // where the seed's telemetry was kept, its walks, node fights, the Warden's wave and the level at the gate.
+        // The pacing file's tab-separated lines (seed, result, floor_s, uptime[, engaged_strike], ..., level, ..., rooms),
+        // and, where the seed's telemetry was kept, its walks, node fights, the Warden's wave and the level at the gate.
+        // Engaged is the engaged_strike column (since 2026-11-11, the simulation's rule); a file's older engaged column read
+        // an enemy within the first weapon's reach and a unit, and is left unread.
         private static List<EditorRun> ReadEditor(string folder, string pacing, string heroId)
         {
             var runs = new List<EditorRun>();
@@ -559,8 +561,8 @@ namespace Cryptforge.Tests
                     Uptime = Float(cells[Column("uptime")]),
                     Level = int.Parse(cells[Column("level")], CultureInfo.InvariantCulture)
                 };
-                if (Column("engaged") >= 0)
-                    run.Engaged = Float(cells[Column("engaged")]);
+                if (Column("engaged_strike") >= 0)
+                    run.Engaged = Float(cells[Column("engaged_strike")]);
                 if (Column("boss_s") >= 0)
                     run.BossColumn = Float(cells[Column("boss_s")]);
                 if (Column("clock") >= 0)

@@ -85,7 +85,7 @@ namespace Cryptforge.Tests
             md.AppendLine();
 
             md.AppendLine("Cleared: of the seeds. Deaths: in which room (the boss's room as boss) and by what blow. Floor: active seconds, every run; the cleared floor P50 of the clears. " +
-                          "Warden: the felled fights, from walking out of the gate to falling. Engaged: an enemy within the first weapon's reach and a unit, or a hit in the last 1.5 s, " +
+                          "Warden: the felled fights, from walking out of the gate to falling. Engaged: a strike of any weapon landed, or a hit taken, in the last 1.5 s, " +
                           "over the floor (P50 of every run). Level at the gate: as the Warden walked out (P50 of the runs that got there). Clock at clear: the floor's clock at the end of a clear. " +
                           "Paired with careful: seeds both cleared / only the careful pilot cleared / only this cohort cleared.").AppendLine();
             md.AppendLine("| Cohort | Hero | Cleared | Deaths: where, killing blow | Floor P50 / P90 | Cleared floor P50 | Warden fight P50 / P90 | Engaged uptime P50 | Level at the gate P50 | Clock at clear P50 / P90 | Paired with careful |");
