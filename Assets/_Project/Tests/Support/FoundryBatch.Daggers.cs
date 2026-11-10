@@ -11,13 +11,16 @@ namespace Cryptforge.Tests
     // levers (FoundryLevers' Daggers fields, read by the foundry simulation alone), each run with the Vanguard started with
     // each weapon and for both heroes in every cohort's hands, down the floors asked for, frame-perfect or with a human's
     // hands (PilotRealism), read as three jobs - the horde, the elites, the Warden - beside the clears and the Warden's
-    // fight. The elites are an elite room's node wave (RoomKind.Elite: the Grunt Captain and its pack; the halls hold none),
-    // a weapon's work on them FoundryWeaponWork.DealtElite a second of FoundryResult.EliteFought; the Captains alone are
-    // read beside. Pure: it only runs DescentSimulation.RunFoundry and counts.
+    // fight. Two readings of the elites: the gate's, the elite rooms' Grunt Captains (FoundryGate.Efficiency,
+    // FoundryWeaponWork.DealtEliteLeader), and their whole packs (an elite room's node wave, DealtElite), each a second of
+    // FoundryResult.EliteFought. The levers are measured on the shipped floor, the Daggers' EliteRule share among it: a
+    // Captains row names the share it plays in all, a pack row its share on the pack on top. Pure: it only runs
+    // DescentSimulation.RunFoundry and counts.
     internal static partial class FoundryBatch
     {
         // The rows of the Daggers' report (FoundryBatchReport.TheDaggersRoleOverASeedBatch, DAGGERS_LEVERS by index). The
-        // first row is the shipped floor; every other sets a Daggers lever on it.
+        // first row is the shipped floor; every other sets a Daggers lever on it. docs/41's status 2026-11-10 night read
+        // them before EliteRule shipped (be1f9ceb on 4791f86f), where the shipped Daggers dealt the Captains their own.
         public static Lever[] DaggersLevers()
         {
             Lever Make(string name, Action<DescentSimulation.FoundryLevers> set)
@@ -26,6 +29,13 @@ namespace Cryptforge.Tests
                 set(levers);
                 return new Lever { Name = name, Estimate = "daggers", Levers = levers };
             }
+
+            // The Daggers dealing the Captains share in all, the shipped EliteRule.DaggersShare divided out.
+            Action<DescentSimulation.FoundryLevers> Captains(float share) => l =>
+            {
+                l.DaggersEliteDamage = share / Cryptforge.Combat.EliteRule.DaggersShare;
+                l.DaggersEliteLeaderOnly = true;
+            };
 
             return new[]
             {
@@ -45,13 +55,14 @@ namespace Cryptforge.Tests
                 Make("Daggers reach 2.2 + on the elites x5", l => { l.DaggersReach = 2.2f; l.DaggersEliteDamage = 5f; }),
                 Make("Daggers reach 2.5 + on the elites x3", l => { l.DaggersReach = 2.5f; l.DaggersEliteDamage = 3f; }),
                 Make("Daggers on the elites x10", l => l.DaggersEliteDamage = 10f),
-                // The share on the elite rooms' leaders alone, their Grunt Captains.
-                Make("Daggers on the Captains x3", l => { l.DaggersEliteDamage = 3f; l.DaggersEliteLeaderOnly = true; }),
-                Make("Daggers on the Captains x5", l => { l.DaggersEliteDamage = 5f; l.DaggersEliteLeaderOnly = true; }),
-                Make("Daggers on the Captains x8", l => { l.DaggersEliteDamage = 8f; l.DaggersEliteLeaderOnly = true; }),
-                Make("Daggers on the Captains x15", l => { l.DaggersEliteDamage = 15f; l.DaggersEliteLeaderOnly = true; }),
-                Make("Daggers on the Captains x10", l => { l.DaggersEliteDamage = 10f; l.DaggersEliteLeaderOnly = true; }),
-                Make("Daggers on the Captains x12", l => { l.DaggersEliteDamage = 12f; l.DaggersEliteLeaderOnly = true; })
+                // The share on the elite rooms' leaders alone, their Grunt Captains (the gate's elites; the shipped 12).
+                Make("Daggers on the Captains x3", Captains(3f)),
+                Make("Daggers on the Captains x5", Captains(5f)),
+                Make("Daggers on the Captains x8", Captains(8f)),
+                Make("Daggers on the Captains x15", Captains(15f)),
+                Make("Daggers on the Captains x10", Captains(10f)),
+                Make("Daggers on the Captains x12", Captains(12f)),
+                Make("Daggers on the Captains x1 (before EliteRule)", Captains(1f))
             };
         }
 
@@ -98,34 +109,21 @@ namespace Cryptforge.Tests
             return run;
         }
 
-        // The three jobs, in Jobs' order.
-        public static readonly string[] RoleJobs = { "horde", "elites", "Warden" };
-
         // A starting weapon's three jobs, P50s over the batch: its own damage on the horde a second it was held and on the
-        // Warden a second of the fight after the reveal (FoundryGate.Efficiency's two), and on the elites a second of the
-        // elites' fights over the runs that met them - or, with captains, on the elite rooms' Grunt Captains alone.
+        // Warden a second of the fight after the reveal (FoundryGate.Efficiency's), and on the elites a second of the elite
+        // rooms' fights over the runs that met them - their whole packs, or with captains the gate's, their Grunt Captains.
         public static double[] RoleJobsOf(Batch b, bool captains = false)
         {
-            (double horde, double warden) = FoundryGate.Efficiency(b);
+            (double Horde, double Elites, double Warden) gate = FoundryGate.Efficiency(b);
+            double horde = gate.Horde, warden = gate.Warden;
             string id = b.Hero.Weapon.Id;
             double elites = Median(b.Runs.Where(r => r.EliteFought > 0f).Select(r =>
                 r.WeaponWork.Where(w => w.Id == id).Sum(w => captains ? w.DealtEliteLeader : w.DealtElite) / r.EliteFought));
             return new[] { horde, elites, warden };
         }
 
-        // The job (an index of RoleJobs) on which jobs lead each of others by more than the gate's margin (the lead's
-        // reading of a role, 2026-11-10: a lead of more than 10 % over every other weapon on one job); -1 for none. At most
-        // one weapon leads a job so, so weapons that each have one have distinct roles.
-        public static int LeadsJob(double[] jobs, IReadOnlyList<double[]> others)
-        {
-            for (int j = 0; j < jobs.Length; j++)
-                if (!double.IsNaN(jobs[j]) && others.All(o => jobs[j] > o[j] * (1 + FoundryGate.RoleMargin)))
-                    return j;
-            return -1;
-        }
-
         public static string RoleHeader() =>
-            "| Lever | Hands | Horde a second: Sword / Staff / Daggers | Elites a second | Warden a second | Roles | Captains a second | Roles, the Captains as the elites | " +
+            "| Lever | Hands | Horde a second: Sword / Staff / Daggers | Elite packs a second | Warden a second | Roles, the packs as the elites | Captains (the gate's elites) a second | Roles (the gate's) | " +
             "Floor 1 cleared V (careful / standing / first-card / clumsy / auto-farmer) | Floor 1 cleared I | Both floors V | Both floors I | " +
             "Warden P50 floor 1 V / I | Warden P50 floor 2 V / I |" +
             Environment.NewLine + "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
@@ -149,16 +147,16 @@ namespace Cryptforge.Tests
 
         private static bool BothCleared(DescentSimulation.FoundryResult run) => run.Cleared && run.NextFloor != null && run.NextFloor.Cleared;
 
-        // Three jobs read for three weapons: each weapon's own (LeadsJob), "met" when each has one.
+        // Three jobs read for three weapons: each weapon's own (FoundryGate.LeadsJob), "met" when each has one.
         public static string Roles(IReadOnlyList<(string Name, double[] Jobs)> jobs)
         {
             var parts = new List<string>();
             bool met = true;
             foreach ((string Name, double[] Jobs) a in jobs)
             {
-                int job = LeadsJob(a.Jobs, jobs.Where(b => b.Name != a.Name).Select(b => b.Jobs).ToArray());
+                int job = FoundryGate.LeadsJob(a.Jobs, jobs.Where(b => b.Name != a.Name).Select(b => b.Jobs).ToArray());
                 met &= job >= 0;
-                parts.Add(a.Name + " " + (job >= 0 ? RoleJobs[job] : "none"));
+                parts.Add(a.Name + " " + (job >= 0 ? FoundryGate.JobNames[job] : "none"));
             }
             return (met ? "met: " : "not met: ") + string.Join(", ", parts);
         }

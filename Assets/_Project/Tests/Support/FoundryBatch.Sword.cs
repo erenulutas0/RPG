@@ -101,12 +101,14 @@ namespace Cryptforge.Tests
             return run;
         }
 
-        // A starting weapon's three jobs, P50s over the batch: its own damage on the horde a second it was held and on the
-        // Warden a second of the fight (FoundryGate.Efficiency, the gate's), and on the node waves - the halls' and the
-        // elites' - a second of the node fights (the report's third job, not the gate's).
+        // A starting weapon's three jobs as the Sword's research read them, P50s over the batch: its own damage on the horde
+        // a second it was held and on the Warden a second of the fight (FoundryGate.Efficiency's), and on the node waves -
+        // the halls' and the elite rooms' - a second of the node fights (this report's third job; the gate's third, since
+        // 2026-11-10 night, is the elite rooms' Captains).
         public static (double Horde, double Warden, double Node) Jobs(Batch b)
         {
-            (double horde, double warden) = FoundryGate.Efficiency(b);
+            (double Horde, double Elites, double Warden) gate = FoundryGate.Efficiency(b);
+            double horde = gate.Horde, warden = gate.Warden;
             string id = b.Hero.Weapon.Id;
             var node = new List<float>();
             foreach (DescentSimulation.FoundryResult r in b.Runs)
@@ -118,8 +120,9 @@ namespace Cryptforge.Tests
             return (horde, warden, Median(node));
         }
 
-        // The gate's reading (FoundryGate.Roles): a weapon has a role when against every other it is ahead by more than the
-        // margin on the horde or on the Warden - not necessarily the same job against each. Returns the weapons without.
+        // The gate's reading of 2026-11-04, which this report keeps: a weapon has a role when against every other it is ahead
+        // by more than the margin on the horde or on the Warden - not necessarily the same job against each. Returns the
+        // weapons without. The gate reads three jobs and Leaders' strict reading since 2026-11-10 night (FoundryGate.Roles).
         public static string[] WithoutRole(IReadOnlyList<(string Name, double Horde, double Warden)> rows)
         {
             double m = 1 + FoundryGate.RoleMargin;
