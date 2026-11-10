@@ -432,8 +432,9 @@ Taken, on the 2026-11-04 cloud research (docs/cloud/) and its local verification
   and it moves the Staff the Sword's share was measured against.
 
 Also taken: **the Warden room's chest stays a heal** - since the extra elite moved the Warden's room from index 5 to 6,
-ChestRule's room-by-room rule makes its chest a heal (a quarter of the hero's health) where it was gold; it opens after
-the Warden falls, so it heals the hero for floor 2, the floor human hands lose most on. **The sprite atlas waits** for a
+ChestRule.RewardFor's even/odd rule makes its chest a heal (a quarter of the hero's health) where it was gold. The chest
+is placed as the room's first wave begins, so it is a heal within reach during the Warden's fight - where the human-hands
+batch loses most of its weaker heroes - and the measurements of 2026-11-04 and 2026-11-10 already played it. **The sprite atlas waits** for a
 frame-time reading on the S23 (Sprite Packer V2 is a ProjectSettings change; the Editor's probe reads p95 5.9 ms at 40
 alive, nothing to buy yet).
 
