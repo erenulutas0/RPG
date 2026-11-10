@@ -53,6 +53,31 @@ namespace Cryptforge.Tests
             info.SetValue(floor, value);
         }
 
+        // The Daggers' elites (EliteRule; docs/41, status 2026-11-10 night): EncounterController.Elites holds the first enemy
+        // of an elite room's wave, so every elite room of the climb's foundry floors opens each of its waves with its Grunt
+        // Captain, the elite, as the simulation's copies of the floors do (DescentSimulation.EmberHalls, QuicksilverVaults).
+        [Test]
+        public void EveryEliteRoomOpensItsWavesWithItsGruntCaptain()
+        {
+            foreach (string path in new[] { FirstFloor, "Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset" })
+            {
+                var floor = AssetDatabase.LoadAssetAtPath<FloorDefinition>(path);
+                Assert.That(floor, Is.Not.Null, path);
+                int elites = 0;
+                for (int r = 0; r < floor.RoomCount; r++)
+                {
+                    RoomDefinition room = floor.RoomAt(r);
+                    if (room == null || room.Kind != RoomKind.Elite)
+                        continue;
+                    elites++;
+                    for (int w = 0; w < room.WaveCount; w++)
+                        Assert.That(room.WaveAt(w).EnemyAt(0).DisplayName, Is.EqualTo(DescentSimulation.Captain.Name),
+                            $"{path}: room {r + 1}, wave {w + 1}");
+                }
+                Assert.That(elites, Is.GreaterThan(0), path + " has an elite room");
+            }
+        }
+
         [Test]
         public void ClimbScaledFloorsMatchTheFormulaAtTheirHeight()
         {

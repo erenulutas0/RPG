@@ -359,6 +359,12 @@ namespace Cryptforge.Combat
         // The boss the foundry's gate sent out, while its wave stands; null otherwise.
         public Health GateBoss => _gateBossWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0].Health : null;
         private bool _gateBossWave;
+        // The foundry's elites (EliteRule): the Grunt Captain an elite room's wave is built round - its first enemy - from
+        // its spawn until the wave is released, fallen or not; empty otherwise - the escort, the halls, the horde, the gate,
+        // the hall arena. One list for the run, so the hero's attacker holds it once (CombatSetup, AttackController.Elites)
+        // and every strike reads it as it stands.
+        public IReadOnlyList<Health> Elites => _elites;
+        private readonly List<Health> _elites = new List<Health>(1);
         public bool IsBossEnraged => _bossEnraged;
 
         // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
@@ -592,7 +598,7 @@ namespace Cryptforge.Combat
                     _roomSiteOpen = false;
                     HallReached?.Invoke(_roomSiteWait);
                     StartWave(WaveEnemies(_roomSiteStep.RoomIndex, _roomSiteStep.WaveIndex), false,
-                        _rooms[_roomSiteStep.RoomIndex].Kind == RoomKind.Boss);
+                        _rooms[_roomSiteStep.RoomIndex].Kind == RoomKind.Boss, EliteRoom(_rooms[_roomSiteStep.RoomIndex]));
                 }
                 return;
             }
@@ -810,7 +816,8 @@ namespace Cryptforge.Combat
                         ProgressChanged?.Invoke();
                     }
                     else
-                        StartWave(WaveEnemies(step.RoomIndex, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
+                        StartWave(WaveEnemies(step.RoomIndex, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss,
+                            EliteRoom(room));
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
@@ -835,10 +842,10 @@ namespace Cryptforge.Combat
         // only by taking an evolution.
         public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
 
-        private void StartWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false)
+        private void StartWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false, bool elite = false)
         {
             using (PerformanceMarkers.StartWave.Auto())
-                SpawnWave(waveDefinition, atGate, boss);
+                SpawnWave(waveDefinition, atGate, boss, elite);
         }
 
         // The floor's tier: authored, or the climb's formula by the floor's height with a boss room's own hardening.
@@ -856,6 +863,10 @@ namespace Cryptforge.Combat
         // A boss room on the foundry: its pack walks out of the gate instead of entering round the hero.
         private bool GateRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
+
+        // An elite room on the foundry: its wave's first enemy is an elite (Elites).
+        private bool EliteRoom(RoomDefinition room) =>
+            room.Kind == RoomKind.Elite && _arena != null && _arena.IsFoundryRegion;
 
         // A foundry floor's combat room after its first opens at its own district, the round going on from the
         // districts the run's earlier floors opened.
@@ -935,7 +946,7 @@ namespace Cryptforge.Combat
             FloorCleared?.Invoke();
         }
 
-        private void SpawnWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false)
+        private void SpawnWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false, bool elite = false)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -978,6 +989,8 @@ namespace Cryptforge.Combat
                 spawn.Health.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
                 _wave.Add(spawn);
                 candidates[i] = spawn.Health;
+                if (elite && i == 0)
+                    _elites.Add(spawn.Health);
             }
 
             AliveEnemyCount = count;
@@ -1146,6 +1159,7 @@ namespace Cryptforge.Combat
             }
 
             _wave.Clear();
+            _elites.Clear();
             _motion = null;
             _lastDefeated = null;
             AliveEnemyCount = 0;
