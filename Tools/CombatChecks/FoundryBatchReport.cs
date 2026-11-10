@@ -26,7 +26,10 @@ namespace Cryptforge.Tests
     // levers of docs/41's open decision 2, FoundryBatch.GateLevers, and 6 the lever sets made of them,
     // FoundryBatch.GateLeverSets - each played by every cohort, or those FOUNDRY_SWEEP_COHORTS names, into
     // foundry-gate-levers.md and .csv; FOUNDRY_LEVER_FILTER keeps the levers whose names hold one of its comma-separated
-    // words; 7 the difficulty research's structural candidates, FoundryBatch.DifficultyLevers). FOUNDRY_COHORTS=1 adds the
+    // words; 7 the difficulty research's structural candidates, FoundryBatch.DifficultyLevers; 8 floor 2's Warden options,
+    // FoundryBatch.FloorTwoWardenLevers, played as 5 and 6 are - with FOUNDRY_FLOORS=2 - and with 5, 6 and 8 each lever's
+    // cohort section into foundry-gate-levers-cohorts.md and every run's two floors into foundry-gate-levers-floors.csv;
+    // FOUNDRY_REALISM plays their cohorts with a human's hands too). FOUNDRY_COHORTS=1 adds the
     // autopilot's cohorts on the same seeds and floors (FoundryCohorts: four more batches a hero, alone in
     // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it;
     // FOUNDRY_REALISM - typical, slow or a reaction in seconds - plays every cohort with a human's hands, PilotRealism).
@@ -70,17 +73,20 @@ namespace Cryptforge.Tests
             // docs/41's open decision 2: the gate's levers (5) or the lever sets made of them (6), each played by the
             // autopilot's cohorts (FOUNDRY_SWEEP_COHORTS, all by default), floor 1 alone; FOUNDRY_LEVER_FILTER keeps the
             // levers whose names hold one of its comma-separated words.
+            // 8: floor 2's Warden options (FoundryBatch.FloorTwoWardenLevers), the same way. FOUNDRY_REALISM plays these
+            // cohorts with a human's hands too, as it does the cohort section's.
             var gateLevers = new List<FoundryBatch.CohortLever>();
-            if (leverSet == 5 || leverSet == 6)
+            if (leverSet == 5 || leverSet == 6 || leverSet == 8)
             {
                 levers = false;
                 List<Cryptforge.Core.AutopilotCohort> sweepCohorts =
                     FoundryBatch.SweepCohorts(Environment.GetEnvironmentVariable("FOUNDRY_SWEEP_COHORTS"));
                 FoundryBatch.Lever[] list = FoundryBatch.Filtered(
-                    leverSet == 5 ? FoundryBatch.GateLevers() : FoundryBatch.GateLeverSets(),
+                    leverSet == 5 ? FoundryBatch.GateLevers() : leverSet == 8 ? FoundryBatch.FloorTwoWardenLevers() : FoundryBatch.GateLeverSets(),
                     Environment.GetEnvironmentVariable("FOUNDRY_LEVER_FILTER"));
+                PilotRealism leverRealism = PilotRealism.Named(Environment.GetEnvironmentVariable("FOUNDRY_REALISM"));
                 foreach (FoundryBatch.Lever lever in list)
-                    gateLevers.Add(FoundryBatch.RunCohorts(lever, heroes, batchSeeds, parallel, sweepCohorts, floors));
+                    gateLevers.Add(FoundryBatch.RunCohorts(lever, heroes, batchSeeds, parallel, sweepCohorts, floors, leverRealism));
             }
             if (levers)
                 foreach (FoundryBatch.Lever lever in leverSet == 7 ? FoundryBatch.DifficultyLevers() :
@@ -105,10 +111,17 @@ namespace Cryptforge.Tests
             if (gateLevers.Count > 0)
             {
                 string section = FoundryBatch.GateLeverSection(gateLevers,
-                    leverSet == 5 ? "The gate's levers (docs/41's open decision 2)" : "The lever sets for the owner (docs/41's open decision 2)");
+                    leverSet == 5 ? "The gate's levers (docs/41's open decision 2)"
+                    : leverSet == 8 ? "Floor 2's Warden (docs/41, what waits)" : "The lever sets for the owner (docs/41's open decision 2)");
                 md.Append(section);
                 File.WriteAllText(Path.Combine(output, "foundry-gate-levers.md"), section);
                 File.WriteAllText(Path.Combine(output, "foundry-gate-levers.csv"), FoundryBatch.GateLeverCsv(gateLevers));
+                // Each lever's cohort section (both floors when FOUNDRY_FLOORS=2) and every run's two floors on one line.
+                var perLever = new StringBuilder();
+                foreach (FoundryBatch.CohortLever lever in gateLevers)
+                    perLever.AppendLine("# " + lever.Lever.Name).AppendLine().Append(FoundryCohorts.Section(lever.Cohorts));
+                File.WriteAllText(Path.Combine(output, "foundry-gate-levers-cohorts.md"), perLever.ToString());
+                File.WriteAllText(Path.Combine(output, "foundry-gate-levers-floors.csv"), FoundryBatch.GateLeverFloorsCsv(gateLevers));
             }
             string parity = Parity(editor, heroes, baselines, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
             if (parity != null)

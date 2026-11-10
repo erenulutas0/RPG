@@ -219,6 +219,14 @@ namespace Cryptforge.Tests
             // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's,
             // under the Warden's and the horde's levers (LaterFloorLevers).
             public int Floors = 1;
+            // Research only (docs/41's open question of floor 2's Warden; FoundryBatch.FloorTwoWardenLevers,
+            // FOUNDRY_LEVERS=8): the gate boss on the floors after the first, instead of the run's WardenHealthShare and
+            // WardenRecoverySeconds, and the forge's Mend there healing this share of the hero's maximum instead of
+            // Forge_Mend's 0.4. Each off by default (a share or a Mend at or below 0, a recovery NaN): every floor plays
+            // the run's own Warden and the asset's Mend.
+            public float LaterWardenHealthShare = -1f;
+            public float LaterWardenRecoverySeconds = float.NaN;
+            public float LaterMendAmount = -1f;
             // Research only (docs/cloud/2026-11-04-sword-role.md, FoundryBatch.SwordLevers): a foundry-only Sword pattern,
             // read by this simulation alone and never by the scene, the hall arena or the Descent, whose Sword stays
             // Weapon_Sword.asset (docs/26, docs/30). Every default is the shipped Sword. The Sword's reach (0 keeps 2.1).
@@ -650,6 +658,10 @@ namespace Cryptforge.Tests
             levers.GateKillQuota = 0;
             levers.GateOpenLevel = 0;
             levers.GateSiegeHall = 0;
+            if (run.LaterWardenHealthShare > 0f)
+                levers.WardenHealthShare = run.LaterWardenHealthShare;
+            if (!float.IsNaN(run.LaterWardenRecoverySeconds))
+                levers.WardenRecoverySeconds = run.LaterWardenRecoverySeconds;
             return levers;
         }
 
@@ -1664,7 +1676,10 @@ namespace Cryptforge.Tests
                 _nonCombat = true;
                 _transitionWait = 0f;
                 // The room's options in the asset's order, the same on floor 1 and floor 2: Forge_Mend, Forge_Temper.
-                _forge.Open(new[] { Mend(), Temper() });
+                ForgeOption mend = _floor.FloorNumber >= 2 && _levers.LaterMendAmount > 0f
+                    ? new ForgeOption("forge_mend", "Mend", "Restore {0:0}% health", ForgeEffect.Heal, Math.Min(1f, _levers.LaterMendAmount))
+                    : Mend();
+                _forge.Open(new[] { mend, Temper() });
                 if (_trace != null)
                     Emit("forge_opened");
             }

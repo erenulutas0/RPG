@@ -84,6 +84,24 @@ namespace Cryptforge.Tests
             OnShipped("R2 Halls held 30 s, surges 3, gate 2:30, horde XP 0.25, siege of hall 1", l => { l.HallHoldSeconds = 30f; l.HallSurges = 3; l.GateNotBeforeSeconds = 150f; l.HordeExperienceShare = .25f; l.GateSiegeHall = 1; })
         };
 
+        // docs/41's open question of floor 2's Warden (FOUNDRY_LEVERS=8, both floors, every cohort): the 2026-11-04 options
+        // - a floor-2 share of about 6 (8.5 / 1.4, the climb's x1.4 cancelled) instead of 8.5, floor 2's Mend at 100 %, a
+        // 2.5 s recovery on floor 2 - and their combinations, plus a share of 7 now that the Sword deals the Warden half
+        // again. Floor 1 is the shipped floor in every row but the one naming both floors.
+        public static Lever[] FloorTwoWardenLevers() => new[]
+        {
+            OnShipped("Shipped: floor 2 share 8.5, recovery 1.5 s, Mend 40 %", l => { }),
+            OnShipped("F2 share 6.07", l => l.LaterWardenHealthShare = 8.5f / 1.4f),
+            OnShipped("F2 share 7", l => l.LaterWardenHealthShare = 7f),
+            OnShipped("F2 Mend 100 %", l => l.LaterMendAmount = 1f),
+            OnShipped("F2 recovery 2.5 s", l => l.LaterWardenRecoverySeconds = 2.5f),
+            OnShipped("F2 share 6.07 + F2 Mend 100 %", l => { l.LaterWardenHealthShare = 8.5f / 1.4f; l.LaterMendAmount = 1f; }),
+            OnShipped("F2 share 6.07 + F2 recovery 2.5 s", l => { l.LaterWardenHealthShare = 8.5f / 1.4f; l.LaterWardenRecoverySeconds = 2.5f; }),
+            OnShipped("F2 share 6.07 + recovery 2.5 s on both floors", l => { l.LaterWardenHealthShare = 8.5f / 1.4f; l.WardenRecoverySeconds = 2.5f; }),
+            OnShipped("F2 share 7 + F2 Mend 100 %", l => { l.LaterWardenHealthShare = 7f; l.LaterMendAmount = 1f; }),
+            OnShipped("F2 share 7 + F2 recovery 2.5 s", l => { l.LaterWardenHealthShare = 7f; l.LaterWardenRecoverySeconds = 2.5f; })
+        };
+
         // Only the levers whose names hold one of FOUNDRY_LEVER_FILTER's comma-separated words, the shipped row kept.
         public static Lever[] Filtered(Lever[] levers, string filter)
         {
@@ -105,7 +123,7 @@ namespace Cryptforge.Tests
         }
 
         public static CohortLever RunCohorts(Lever lever, IReadOnlyList<DescentSimulation.FoundryHero> heroes, int[] seeds,
-            int parallelism, IReadOnlyList<AutopilotCohort> cohorts, int floors = 1)
+            int parallelism, IReadOnlyList<AutopilotCohort> cohorts, int floors = 1, PilotRealism realism = null)
         {
             var run = new CohortLever { Lever = lever };
             foreach (AutopilotCohort cohort in cohorts)
@@ -116,6 +134,7 @@ namespace Cryptforge.Tests
                     DescentSimulation.FoundryLevers levers = lever.Levers.Copy(lever.Levers.Name);
                     levers.Cohort = cohort;
                     levers.Floors = floors;
+                    levers.Realism = realism;
                     batches[h] = Run(heroes[h], levers, seeds, parallelism);
                 }
                 run.Cohorts.Add((cohort, batches));
@@ -226,6 +245,38 @@ namespace Cryptforge.Tests
                     N(r.GateReadyKills), N(r.GateReadyLevel), N(r.WaitEngaged), N(r.WaitKite), N(r.WaitDrop), N(r.WaitFight),
                     N(r.WaitWalk), N(r.WaitStill), N(r.WaitKills), N(r.WaitLevels), N(r.WaitTaken), N(r.WaitSiegeWaves), N(r.Level)
                 }));
+            return csv.ToString();
+        }
+
+        // Every run of every lever and cohort, floor 1 and (where it went down) floor 2 on one line: the outcome, the
+        // floor's length, the gate's wait, the boss room's and the Warden's own fight, where and by what it died, the
+        // slams that landed, and the health it went down with.
+        public static string GateLeverFloorsCsv(IEnumerable<CohortLever> levers)
+        {
+            var csv = new StringBuilder();
+            csv.AppendLine("lever,cohort,hero,seed,f1_outcome,f1_floor_s,f1_gate_wait_s,f1_boss_s,f1_warden_s,f1_death_place,f1_death_room,f1_killer,f1_slam_hits," +
+                           "down_hp_share,f2_outcome,f2_floor_s,f2_gate_wait_s,f2_boss_s,f2_warden_s,f2_death_place,f2_death_room,f2_killer,f2_slam_hits,f2_level_gate");
+            string Q(string s) => "\"" + (s ?? string.Empty) + "\"";
+            foreach (CohortLever lever in levers)
+            foreach ((AutopilotCohort cohort, Batch[] batches) in lever.Cohorts)
+            foreach (Batch b in batches)
+            foreach (DescentSimulation.FoundryResult r in b.Runs)
+            {
+                DescentSimulation.FoundryResult two = r.NextFloor;
+                bool died1 = r.Outcome == DescentSimulation.FoundryOutcome.Died;
+                bool died2 = two != null && two.Outcome == DescentSimulation.FoundryOutcome.Died;
+                csv.AppendLine(string.Join(",", new[]
+                {
+                    Q(lever.Lever.Name), cohort.Name, b.Hero.Id, N(r.Seed), r.Outcome.ToString(), N(r.FloorSeconds), N(r.GateWaitSeconds),
+                    N(r.BossSeconds), N(r.WardenSeconds), died1 ? Q(FoundryGate.DeathPlace(r)) : "", died1 ? N(r.DeathRoom) : "",
+                    died1 ? Q(r.Killer) : "", N(r.SlamHits),
+                    two != null ? N(r.HeroHealth / Math.Max(1f, r.HeroMaximum)) : "",
+                    two != null ? two.Outcome.ToString() : "", two != null ? N(two.FloorSeconds) : "", two != null ? N(two.GateWaitSeconds) : "",
+                    two != null ? N(two.BossSeconds) : "", two != null ? N(two.WardenSeconds) : "",
+                    died2 ? Q(FoundryGate.DeathPlace(two)) : "", died2 ? N(two.DeathRoom) : "", died2 ? Q(two.Killer) : "",
+                    two != null ? N(two.SlamHits) : "", two != null ? N(two.LevelAtGate) : ""
+                }));
+            }
             return csv.ToString();
         }
 
