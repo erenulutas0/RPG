@@ -241,7 +241,8 @@ namespace Cryptforge.Tests
             // units of its own walk (units / its speed seconds); 0 is off. The simulation's packs cannot be displaced.
             public float SwordKnockbackUnits;
             // What the Sword's landings deal, its procs included, by what they land on: the horde, the node waves
-            // (halls and elites) and the Warden.
+            // (halls and elites) and the Warden. The Warden's is on top of the shipped WardenRule.SwordShare (1.5 since
+            // 2026-11-10): FoundryBatch.SwordLevers names absolute shares and divides them by it.
             public float SwordHordeDamage = 1f;
             public float SwordNodeDamage = 1f;
             public float SwordWardenDamage = 1f;

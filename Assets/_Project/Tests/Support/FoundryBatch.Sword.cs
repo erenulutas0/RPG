@@ -47,20 +47,20 @@ namespace Cryptforge.Tests
                 Make("Interval x0.8 (0.64 s)", l => l.SwordIntervalScale = .8f),
                 Make("Interval x0.67 (0.53 s)", l => l.SwordIntervalScale = 2f / 3f),
                 // Against the elites and the Warden, against the horde.
-                Make("Warden x1.3", l => l.SwordWardenDamage = 1.3f),
-                Make("Warden x1.5", l => l.SwordWardenDamage = 1.5f),
-                Make("Elites and Warden x1.4", l => { l.SwordNodeDamage = 1.4f; l.SwordWardenDamage = 1.4f; }),
-                Make("Horde x0.8, Warden x1.5", l => { l.SwordHordeDamage = .8f; l.SwordWardenDamage = 1.5f; }),
+                Make("Warden x1.3", l => l.SwordWardenDamage = 1.3f / Cryptforge.Combat.WardenRule.SwordShare),
+                Make("Warden x1.5", l => l.SwordWardenDamage = 1.5f / Cryptforge.Combat.WardenRule.SwordShare),
+                Make("Elites and Warden x1.4", l => { l.SwordNodeDamage = 1.4f; l.SwordWardenDamage = 1.4f / Cryptforge.Combat.WardenRule.SwordShare; }),
+                Make("Horde x0.8, Warden x1.5", l => { l.SwordHordeDamage = .8f; l.SwordWardenDamage = 1.5f / Cryptforge.Combat.WardenRule.SwordShare; }),
                 // Small combinations.
-                Make("Reach 2.5 + Warden x1.2", l => { l.SwordReach = 2.5f; l.SwordWardenDamage = 1.2f; }),
-                Make("Knockback 0.5 + Warden x1.3", l => { l.SwordKnockbackUnits = .5f; l.SwordWardenDamage = 1.3f; }),
-                Make("Evolved sweep 2.5 + Warden x1.3", l => { l.SwordSweepRadius = 2.5f; l.SwordSweepAtEvolution = true; l.SwordWardenDamage = 1.3f; }),
+                Make("Reach 2.5 + Warden x1.2", l => { l.SwordReach = 2.5f; l.SwordWardenDamage = 1.2f / Cryptforge.Combat.WardenRule.SwordShare; }),
+                Make("Knockback 0.5 + Warden x1.3", l => { l.SwordKnockbackUnits = .5f; l.SwordWardenDamage = 1.3f / Cryptforge.Combat.WardenRule.SwordShare; }),
+                Make("Evolved sweep 2.5 + Warden x1.3", l => { l.SwordSweepRadius = 2.5f; l.SwordSweepAtEvolution = true; l.SwordWardenDamage = 1.3f / Cryptforge.Combat.WardenRule.SwordShare; }),
                 // What the Daggers would need (their values, so not candidates for the Sword's question).
                 Make("Daggers: reach 1.8 -> 2.2", l => l.DaggersReach = 2.2f),
                 Make("Daggers: reach 1.8 -> 2.5", l => l.DaggersReach = 2.5f),
-                Make("Warden x1.4", l => l.SwordWardenDamage = 1.4f),
-                Make("Warden x1.5 + Daggers reach 2.5", l => { l.SwordWardenDamage = 1.5f; l.DaggersReach = 2.5f; }),
-                Make("Warden x1.5 + Daggers reach 2.5, Warden x2", l => { l.SwordWardenDamage = 1.5f; l.DaggersReach = 2.5f; l.DaggersWardenDamage = 2f; })
+                Make("Warden x1.4", l => l.SwordWardenDamage = 1.4f / Cryptforge.Combat.WardenRule.SwordShare),
+                Make("Warden x1.5 + Daggers reach 2.5", l => { l.SwordWardenDamage = 1.5f / Cryptforge.Combat.WardenRule.SwordShare; l.DaggersReach = 2.5f; }),
+                Make("Warden x1.5 + Daggers reach 2.5, Warden x2", l => { l.SwordWardenDamage = 1.5f / Cryptforge.Combat.WardenRule.SwordShare; l.DaggersReach = 2.5f; l.DaggersWardenDamage = 2f; })
             };
         }
 
