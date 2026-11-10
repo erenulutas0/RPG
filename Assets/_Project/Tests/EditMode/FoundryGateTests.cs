@@ -204,7 +204,7 @@ namespace Cryptforge.Tests
         {
             DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("gate held to the limit");
             levers.GateNotBeforeSeconds = levers.LimitSeconds;
-            FoundryBatch.Batch batch = FoundryBatch.Run(DescentSimulation.Vanguard(), levers, new[] { 1, 2, 3, 4, 5, 6 }, 2);
+            FoundryBatch.Batch batch = FoundryBatch.Run(DescentSimulation.Vanguard(), levers, new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 2);
             DescentSimulation.FoundryResult[] waited = batch.Runs.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died &&
                                                                              r.GateWaitSeconds > 0f && r.LevelAtGate < 0).ToArray();
             Assert.That(waited, Is.Not.Empty, "a hero held at the gate for the floor's limit falls in the wait");

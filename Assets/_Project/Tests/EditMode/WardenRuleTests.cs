@@ -95,7 +95,9 @@ namespace Cryptforge.Tests
             Assert.That(clock.Advance(.5f,false),Is.EqualTo(WardenSlamClock.Step.None));
             Assert.That(clock.Advance(.5f,true),Is.EqualTo(WardenSlamClock.Step.None),"Enraged a second after the blow.");
             Assert.That(clock.HoldsWeapon,Is.True,"Still in the floor.");
-            Assert.That(clock.Advance(WardenRule.RecoverySeconds-1f+.01f,true),Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.Advance(WardenRule.RecoverySeconds-1f-.02f,true),Is.EqualTo(WardenSlamClock.Step.None));
+            Assert.That(clock.HoldsWeapon,Is.True,"The enrage does not cut the recovery short.");
+            Assert.That(clock.Advance(.03f,true),Is.EqualTo(WardenSlamClock.Step.None));
             Assert.That(clock.HoldsWeapon,Is.False,"Out of the floor on time.");
             Assert.That(clock.Advance(WardenRule.SlamEveryEnraged-WardenRule.Telegraph-WardenRule.RecoverySeconds-.02f,true),
                 Is.EqualTo(WardenSlamClock.Step.None));
@@ -110,12 +112,12 @@ namespace Cryptforge.Tests
             clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false);
             Assert.That(clock.IsMarked,Is.True);
             clock.Reset();
-            Assert.That(clock.IsMarked,Is.False);Assert.That(clock.HoldsWeapon,Is.False);Assert.That(clock.TelegraphProgress,Is.Zero);
+            Assert.That(clock.IsMarked,Is.False);Assert.That(clock.HoldsWeapon,Is.False);Assert.That(clock.Seconds,Is.Zero);
             clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph+.01f,false);
             clock.Advance(WardenRule.Telegraph+.01f,false);
             Assert.That(clock.HoldsWeapon,Is.True,"In the recovery.");
             clock.Reset();
-            Assert.That(clock.HoldsWeapon,Is.False);
+            Assert.That(clock.HoldsWeapon,Is.False);Assert.That(clock.Seconds,Is.Zero);
             Assert.That(clock.Advance(WardenRule.SlamEvery-WardenRule.Telegraph-.01f,false),Is.EqualTo(WardenSlamClock.Step.None),
                 "The next fight's first mark comes on its own pace.");
             Assert.That(clock.HoldsWeapon,Is.False);
