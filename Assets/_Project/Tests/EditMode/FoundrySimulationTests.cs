@@ -66,7 +66,10 @@ namespace Cryptforge.Tests
                     Assert.That(run.HeroHealth, Is.EqualTo(0f), where);
                 }
                 Assert.That(run.Uptime, Is.InRange(0f, 1f), where);
-                Assert.That(run.Engaged, Is.InRange(0f, run.Uptime + 1e-4f), where + ": engaged is a part of the uptime");
+                // A strike's or a hit's 1.5 s can outlast the last enemy standing, so engaged is a share of the floor and
+                // not a part of the uptime (over the batch it stays under it, docs/41's 2026-11-11 status).
+                Assert.That(run.Engaged, Is.InRange(0f, 1f), where + ": engaged is a share of the floor");
+                Assert.That(run.Engaged, Is.GreaterThan(0f), where + ": the hero strikes on every floor");
                 Assert.That(run.HordeMaxAlive + PackLayout.MaxFormationSize, Is.LessThanOrEqualTo(HordeRule.SceneCap + PackLayout.MaxFormationSize), where);
                 Assert.That(run.HordeMaxAlive, Is.LessThanOrEqualTo(HordeRule.SceneCap), where + ": the scene's cap");
                 Assert.That(run.FirstStrikeSeconds, Is.InRange(0f, 10f), where + ": the first hall's first wave is fought at once");

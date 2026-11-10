@@ -57,10 +57,12 @@ namespace Cryptforge.Tests
         public const int FoundryChoiceCount = 3;
         // HordePacingMeasurement: the Editor measurement's frame and its floor limit.
         public const float FoundryFloorLimitSeconds = 900f;
-        // The lead's engaged uptime (HordePacingMeasurement, 2026-10-29): an enemy within the first weapon's reach and
-        // this much more, or a hit taken this recently.
+        // The lead's engaged uptime (HordePacingMeasurement; docs/41, 2026-11-11): a strike of any weapon the hero holds
+        // landed, or a hit taken, this recently - docs/40 section 8.4's attack and target-finding uptime, the "attack
+        // uptime" of section 9.6. Before 2026-11-11 it read an enemy within the first weapon's reach and EngagedMargin
+        // more, or a hit taken this recently; FoundryEngagement keeps that reading for the research.
+        public const float EngagedSeconds = 1.5f;
         public const float EngagedMargin = 1f;
-        public const float EngagedAfterHitSeconds = 1.5f;
         // FoundryResult.DeathPhase of a death while the cleared room before the gate holds for the floor's clock.
         public const string GateWaitPhase = "gate wait";
         // The 30-second buckets of docs/40's time_bucket_summary.
@@ -311,6 +313,10 @@ namespace Cryptforge.Tests
             // default, plays the cohort's own.
             public bool LogsPicks;
             public Func<FoundryPick, UpgradeService, int> Picker;
+            // Engaged uptime (research 2026-11-11, EngagedResearch): count FoundryResult.Engagement, the floor's seconds by
+            // phase under each reading of engaged (FoundryEngagement.Rules). Off, as every other report runs, Engagement
+            // stays null; accounting only.
+            public bool CountsEngagement;
 
             public bool HasHazards => WardenEchoTelegraph > 0f || SlagEvery > 0f || EliteStompEvery > 0f;
 
@@ -411,6 +417,79 @@ namespace Cryptforge.Tests
             public float Dealt => DealtHorde + DealtNode + DealtWarden;
         }
 
+        // The floor's active seconds by phase, and under each reading of engaged the seconds of each phase it counts
+        // (FoundryLevers.CountsEngagement, research 2026-11-11). A phase: the walk to a marked hall, a node wave standing,
+        // between (a room's advance delay, the forge, the descent), the gate's wait, the Warden's fight (its reveal
+        // included) and the walk to the gate after it. Beside them, for the frames the reading before 2026-11-11 does not
+        // count, how far the nearest enemy stood.
+        internal sealed class FoundryEngagement
+        {
+            public const int Walk = 0;
+            public const int Node = 1;
+            public const int Between = 2;
+            public const int Wait = 3;
+            public const int Warden = 4;
+            public const int Exit = 5;
+            public static readonly string[] Phases = { "walk", "node fight", "between", "gate wait", "Warden", "exit" };
+
+            // NearFirst is the gate's reading before 2026-11-11, Striking the gate's since (FoundryResult.Engaged).
+            public const int NearFirst = 0;
+            public const int Longest = 1;
+            public const int Authored = 2;
+            public const int InReach = 3;
+            public const int Striking = 4;
+            public const int Alive = 5;
+            public const int NearOnly = 6;
+            public const int HitOnly = 7;
+            public static readonly string[] Rules =
+            {
+                "before 2026-11-11: an enemy within the first weapon's reach + 1, or a hit taken in the last 1.5 s",
+                "an enemy within the longest weapon's reach + 1, or a hit taken in the last 1.5 s",
+                "an enemy within the first weapon's authored reach + 1 (no reach line), or a hit taken in the last 1.5 s",
+                "an enemy within the longest weapon's reach, or a hit taken in the last 1.5 s",
+                "since 2026-11-11 (the gate's): a strike of any weapon landed, or a hit taken, in the last 1.5 s",
+                "an enemy alive (combat uptime)",
+                "an enemy within the first weapon's reach + 1 alone",
+                "a hit taken in the last 1.5 s alone"
+            };
+
+            // The nearest enemy on the frames the reading before 2026-11-11 leaves out: none standing, then within each
+            // distance.
+            public static readonly float[] Distances = { 4f, 5f, 6f, 8f, float.PositiveInfinity };
+
+            public readonly float[] Seconds = new float[Phases.Length];
+            public readonly float[,] Engaged = new float[Rules.Length, Phases.Length];
+            public readonly float[] Outside = new float[Distances.Length + 1];
+            // The first weapon's reach and the longest weapon's reach as the floor ended.
+            public float FirstReach;
+            public float LongestReach;
+
+            public float Total
+            {
+                get
+                {
+                    float sum = 0f;
+                    for (int i = 0; i < Seconds.Length; i++)
+                        sum += Seconds[i];
+                    return sum;
+                }
+            }
+
+            public float EngagedSeconds(int rule)
+            {
+                float sum = 0f;
+                for (int i = 0; i < Phases.Length; i++)
+                    sum += Engaged[rule, i];
+                return sum;
+            }
+
+            public float Share(int rule)
+            {
+                float total = Total;
+                return total > 0f ? EngagedSeconds(rule) / total : 0f;
+            }
+        }
+
         // One level-up offer as the pilot met it, and the card it took (FoundryLevers.LogsPicks, research 2026-11-10): the
         // floor's active seconds, the run's level, the room (1-based) and whether the gate boss was out, the hero's health,
         // maximum and armour, the weapons and tomes held, the offer's cards and tiers, and the slot taken (-1 until taken).
@@ -472,8 +551,8 @@ namespace Cryptforge.Tests
             public float GateReadyClock = -1f;
             public int GateReadyKills = -1;
             public int GateReadyLevel = -1;
-            // What filled the gate's wait (docs/41's open decision 2), in active seconds of it: an enemy within the first
-            // weapon's reach or a hit in the last 1.5 s (the engaged rule), and what the autopilot's steer was doing -
+            // What filled the gate's wait (docs/41's open decision 2), in active seconds of it: a strike landed or a hit
+            // taken in the last 1.5 s (the engaged rule, EngagedSeconds), and what the autopilot's steer was doing -
             // kiting, walking to a drop, fighting a node wave where it stood or drew it, walking elsewhere, or standing
             // still with nothing to do. And over the wait: the kills, the levels gained, the health lost, the drops
             // collected, the siege's waves (FoundryLevers.GateSiegeHall).
@@ -493,6 +572,8 @@ namespace Cryptforge.Tests
             public int Level;
             public float HeroHealth;
             public float HeroMaximum;
+            // Combat uptime, the share of the floor's active seconds with an enemy alive; engaged uptime, the share with a
+            // strike landed or a hit taken in the last EngagedSeconds.
             public float Uptime;
             public float Engaged;
             public int WaveKills;
@@ -598,6 +679,9 @@ namespace Cryptforge.Tests
             public Dictionary<string, float> TakenBy;
             // Every level-up offer and the card taken, when a report asks for it (FoundryLevers.LogsPicks); null otherwise.
             public List<FoundryPick> PickLog;
+            // The floor's seconds by phase under each reading of engaged, when a report asks for it
+            // (FoundryLevers.CountsEngagement); null otherwise.
+            public FoundryEngagement Engagement;
 
             public bool Cleared => Outcome == FoundryOutcome.Cleared;
 
@@ -1030,6 +1114,8 @@ namespace Cryptforge.Tests
             private int _frame;
             private float _seconds;
             private float _lastHeroHit = float.NegativeInfinity;
+            // The hero's last landed strike, of any weapon it holds: the engaged rule's (EngagedSeconds).
+            private float _lastStrike = float.NegativeInfinity;
             private DamageSource _source;
             // The weapon striking now, for weapon_effectiveness: its work, its runtime and the procs it had fired before
             // this strike (a proc's counter rises before its damage lands, so any landing after it is the proc's).
@@ -1153,7 +1239,8 @@ namespace Cryptforge.Tests
                     Kinds = _floor.Kinds, RoomSeconds = Filled(_floor.Kinds.Length, -1f),
                     WalkSeconds = Filled(_floor.Kinds.Length, -1f), WaveSeconds = Filled(_floor.Kinds.Length, -1f),
                     TakenBy = _levers.CountsHarmByPlace ? new Dictionary<string, float>() : null,
-                    PickLog = _levers.LogsPicks ? new List<FoundryPick>() : null
+                    PickLog = _levers.LogsPicks ? new List<FoundryPick>() : null,
+                    Engagement = _levers.CountsEngagement ? new FoundryEngagement() : null
                 };
                 int buckets = (int)Math.Ceiling(_levers.LimitSeconds / FoundryBucketSeconds) + 1;
                 result.BucketDamage = new float[buckets];
@@ -2294,6 +2381,7 @@ namespace Cryptforge.Tests
                     _strikingWeapon = null;
                     if (!struck)
                         continue;
+                    _lastStrike = _seconds;
                     if (_result.FirstStrikeSeconds < 0f)
                         _result.FirstStrikeSeconds = FloorTime;
                     if (_heroDefinition.EmberMemory)
@@ -3151,10 +3239,11 @@ namespace Cryptforge.Tests
                 int alive = _waveAlive + _hordeAlive;
                 if (alive > 0)
                     _fighting += Step;
-                bool engaged = _seconds - _lastHeroHit <= EngagedAfterHitSeconds ||
-                               EnemyNear(_loadout.Primary.Range + EngagedMargin);
+                bool engaged = _seconds - _lastHeroHit <= EngagedSeconds || _seconds - _lastStrike <= EngagedSeconds;
                 if (engaged)
                     _engaged += Step;
+                if (_result.Engagement != null)
+                    CountEngagement(alive);
                 if (_waitFrame)
                 {
                     _waitFrame = false;
@@ -3211,16 +3300,60 @@ namespace Cryptforge.Tests
                          $"wave={_waveAlive} hp={N(_heroHealth.Current)} x={N(HeroX)} y={N(HeroY)} drops={_drops.Count} xp={_run.Experience}");
             }
 
-            private bool EnemyNear(float reach)
+            // FoundryEngagement (research only): this frame's phase, and each reading of engaged on it.
+            private void CountEngagement(int alive)
             {
-                float reachSquared = reach * reach;
+                FoundryEngagement e = _result.Engagement;
+                int phase = _gateExitOpen ? FoundryEngagement.Exit
+                    : _gateBossWave && (_waveAlive > 0 || _revealHold) ? FoundryEngagement.Warden
+                    : _waitFrame ? FoundryEngagement.Wait
+                    : _roomSiteOpen ? FoundryEngagement.Walk
+                    : _waveAlive > 0 ? FoundryEngagement.Node
+                    : FoundryEngagement.Between;
+                e.Seconds[phase] += Step;
+                bool hit = _seconds - _lastHeroHit <= EngagedSeconds;
+                float first = _loadout.Primary.Range;
+                float longest = 0f;
+                for (int i = 0; i < _loadout.Count; i++)
+                    longest = Math.Max(longest, _loadout.At(i).Runtime.Range);
+                e.FirstReach = first;
+                e.LongestReach = longest;
+                float nearest = float.PositiveInfinity;
                 for (int i = 0; i < TargetCount; i++)
                 {
                     Foe foe = TargetAt(i);
-                    if (IsValid(foe) && ArenaFloor.FloorDistanceSquared(foe.X, foe.Y, HeroX, HeroY) <= reachSquared)
-                        return true;
+                    if (IsValid(foe))
+                        nearest = Math.Min(nearest, ArenaFloor.FloorDistanceSquared(foe.X, foe.Y, HeroX, HeroY));
                 }
-                return false;
+                nearest = (float)Math.Sqrt(nearest);
+                bool before = hit || nearest <= first + EngagedMargin;
+                bool[] rules =
+                {
+                    before,
+                    hit || nearest <= longest + EngagedMargin,
+                    hit || nearest <= _heroDefinition.Weapon.Range + EngagedMargin,
+                    hit || nearest <= longest,
+                    hit || _seconds - _lastStrike <= EngagedSeconds,
+                    alive > 0,
+                    nearest <= first + EngagedMargin,
+                    hit
+                };
+                for (int r = 0; r < rules.Length; r++)
+                    if (rules[r])
+                        e.Engaged[r, phase] += Step;
+                if (before)
+                    return;
+                if (alive == 0)
+                {
+                    e.Outside[0] += Step;
+                    return;
+                }
+                for (int d = 0; d < FoundryEngagement.Distances.Length; d++)
+                    if (nearest <= FoundryEngagement.Distances[d])
+                    {
+                        e.Outside[d + 1] += Step;
+                        return;
+                    }
             }
 
             private FoundryResult Finish()

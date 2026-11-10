@@ -573,3 +573,118 @@ ablation above by name (`before` is main 18715c94's score, `syn-dt31` the shippe
 without its way to the evolutions). `AutopilotCohortTests` holds the order, the tiers and `LeadsToEvolution` on
 constructed offers; `FoundryCohortTests` counts the clumsy cohort's weapons over the floor rather than at the gate (its
 Vanguard of seed 33 now dies before the Warden walks out).
+
+## Status 2026-11-11: engaged uptime
+
+**The question.** The gate's "Engaged uptime" row (proposed, >= 0.75 over every run) read 0.60 / 0.58 (Vanguard / Ilya,
+the frame-perfect careful pilot, seeds 1-200) and 0.62 / 0.62 with human hands, while combat uptime reads 0.95. Its
+rule was the lead's of 2026-10-29 (HordePacingMeasurement): an enemy within the first weapon's reach + 1 unit, or a hit
+taken in the last 1.5 s. The careful pilot's cards (the status above) took the Vanguard's from 0.70 to 0.60.
+
+**How it was measured.** `FoundryLevers.CountsEngagement` (accounting only, off by default) splits a floor's active
+seconds by phase and reads every candidate rule on the same frames (`FoundryResult.Engagement`, `FoundryEngagement`);
+`Tools/CombatChecks/EngagedResearch` (explicit) plays the careful cohort frame-perfect and with `PilotRealism.Typical`
+on seeds 1-200 a hero, with main 18715c94's card score and the floor's horde and gate levers as candidates
+(TestResults/engaged-1111/research-shipped, research-levers, research-final).
+
+**The cause: the rule read how long the horde stood near the hero, not whether the hero fought.** Frame-perfect careful
+pilot, Vanguard / Ilya; a phase's readings are shares of its seconds; "lost" is the phase's share of the seconds the old
+rule left out:
+
+| Phase | Seconds a run | Lost | Old rule | An enemy within the longest weapon's reach (or a hit) | A strike landed or a hit taken in 1.5 s | An enemy alive |
+|---|---|---|---|---|---|---|
+| Walk to a hall | 38 / 37 | 23 / 21 % | 0.27 / 0.32 | 0.04 / 0.03 | 0.68 / 0.68 | 0.99 / 0.99 |
+| Node fights | 52 / 48 | 7 / 6 % | 0.83 / 0.86 | 0.49 / 0.48 | 0.93 / 0.93 | 1.00 / 1.00 |
+| Between (advance delays, the forge) | 18 / 18 | 6 / 5 % | 0.61 / 0.67 | 0.33 / 0.33 | 0.99 / 0.99 | 1.00 / 1.00 |
+| The gate's wait | 113 / 117 | 44 / 47 % | 0.53 / 0.52 | 0.12 / 0.12 | 0.96 / 0.95 | 1.00 / 1.00 |
+| The Warden | 58 / 52 | 9 / 9 % | 0.82 / 0.79 | 0.55 / 0.53 | 0.93 / 0.92 | 1.00 / 1.00 |
+| The exit | 15 / 15 | 12 / 12 % | 0.01 / 0.01 | 0.01 / 0.01 | 0.10 / 0.10 | 0.00 / 0.00 |
+| The floor, P50 of every run | 292 / 285 | | 0.60 / 0.58 | 0.26 / 0.23 | 0.88 / 0.87 | 0.95 / 0.95 |
+
+- The horde falls to a strike or two (`HordeRule.HealthShare` 0.3), so it seldom stands near the hero: an enemy within
+  the reach of the longest weapon held on 0.26 / 0.23 of the floor, while some weapon lands a strike within any 1.5 s on
+  0.88 / 0.87. A horde enemy counted toward the old rule only for the second or so it took to cross the margin's unit
+  before it fell. On the frames the old rule left out, the nearest enemy stood within 5 units two thirds of the time
+  (39 / 36 % within 4), and nothing stood at all an eighth of it (mostly the exit: the horde is gone once the Warden
+  falls).
+- So it fell as the hero killed faster and rose as the horde got tougher, the fighting unchanged: the horde at 0.4 / 0.5
+  of its authored health reads 0.63 / 0.67 (Vanguard), strikes 0.88 either way.
+- And it moved with one card. The first weapon's reach counts the Sword's reach line (`line_sword_range`, +0.3 to +0.6 a
+  pick). Main 18715c94's score took more of them (every line at 50): the Vanguard's first reach P50 at the floor's end
+  2.8 against 2.5 now, and the rule 0.70 against 0.60. Read at the Sword's authored reach (2.1) it is 0.50 with either
+  score, and strikes read 0.89 against 0.88; Ilya's Staff has no reach line, 0.56 -> 0.58. The 2026-11-10 drop was the
+  reach line, not less fighting.
+- The longest weapon's reach in place of the first's (the lead's example) reads 0.65 / 0.62 frame-perfect and
+  0.66 / 0.65 with human hands. It counts the Vanguard's Staff and Ilya's later weapons, but keeps the reach line and the
+  kill speed in the reading (0.71 / 0.65 on main 18715c94's cards).
+
+**(b) No gameplay lever lifts it within the bounds.** The careful cohort, seeds 1-200; the old rule frame-perfect and
+with human hands, the floor-1 clears with human hands (shipped 195 / 199), the Warden fight and the floor P50
+frame-perfect:
+
+| Lever (foundry only) | Old rule, frame-perfect | Old rule, human hands | Careful clears, human hands | Warden P50 | Floor P50 |
+|---|---|---|---|---|---|
+| Shipped | 0.60 / 0.58 | 0.62 / 0.62 | 195 / 199 | 58 / 51 | 292 / 285 |
+| Horde health 0.4 (`HordeRule.HealthShare` 0.3) | 0.63 / 0.62 | 0.67 / 0.66 | 189 / 189 | 58 / 51 | 293 / 285 |
+| Horde health 0.5 | 0.67 / 0.67 | 0.71 / 0.72 | 167 / 170 | 58 / 52 | 292 / 285 |
+| Horde targets x1.5 (6/15/24/9) | 0.60 / 0.60 | 0.62 / 0.62 | 195 / 197 | 56 / 50 | 290 / 284 |
+| Horde targets x2 (8/20/32/12) | 0.59 / 0.59 | 0.62 / 0.62 | 194 / 197 | 57 / 50 | 291 / 284 |
+| Horde fill 3 a second (2) | 0.62 / 0.61 | 0.66 / 0.65 | 197 / 197 | 53 / 49 | 287 / 282 |
+| Horde growth 1.5 (0.5) | 0.59 / 0.58 | 0.62 / 0.62 | 198 / 198 | 58 / 51 | 291 / 284 |
+| Siege of hall 1 through the wait | 0.66 / 0.67 | 0.70 / 0.70 | 186 / 184 | 56 / 49 | 292 / 284 |
+| Halls held 30 s | 0.63 / 0.63 | 0.67 / 0.67 | 194 / 192 | 54 / 48 | 288 / 283 |
+
+None reaches 0.75 frame-perfect (the best 0.67), and the two that move it most cost the careful cohort clears with human
+hands past the ~10 allowed - 28 / 29 (horde health 0.5) and 9 / 15 (the siege) - before any weaker cohort is read, so the
+other cohorts were not run. Every lever keeps the Warden (48-58 s) and the floor (282-293 s) in their bands. What lifts the
+old rule is the horde living longer near the hero, which is danger. A bigger or faster-growing crowd does not move it
+(0.58-0.60): the hero kills what comes as it comes. Strikes stay 0.87-0.89 under every lever.
+
+**(a) The rule corrected - shipped.** docs/40 section 8.4 calls a weapon's uptime its "attack and target-finding uptime"
+(U_weapon in DPS_horde) and section 9.6 puts attack uptime second in its tuning order; docs/41 step 2's own uptime is
+combat uptime, met at 0.95. The engaged row now reads that attack uptime for the whole loadout: **a strike of any weapon
+the hero holds landed, or a hit taken, in the last 1.5 s.** The old rule's own window on both sides; every weapon's
+reach by construction (a strike lands only on a target its weapon acquired within its reach); no margin and no first
+weapon; the same on either card score (0.89 / 0.88 and 0.88 / 0.87). It still leaves out the walks (0.68) and the exit
+(0.10), so it stays stricter than combat uptime where the hero is not fighting. It counts the gate's wait as fighting
+(0.96): the hero kills the horde there as it comes, and the wait has its own row ("Time waiting for the gate").
+
+**What was built.** `DescentSimulation.EngagedSeconds` (1.5; `EngagedAfterHitSeconds` is gone, `EngagedMargin` stays
+for the research's old rule): the simulation counts a frame engaged within it of the hero's last landed strike (any
+weapon, `HeroAttacks`) or its last hit taken. `HordePacingMeasurement` reads the same off `AttackController.StruckWith`
+(every weapon's landed strike) and writes it as an `engaged_strike` column; the batch report reads `engaged_strike` and
+leaves an older file's `engaged` column unread, so the gate's Editor cell and the parity table's Editor engaged read
+"not in this file" / "-" until the Editor is run again. The gate row's target and basis and the cohort table's legend
+name the rule. `FoundrySimulationTests` now holds engaged as a share of the floor: a strike's 1.5 s can outlast the last
+enemy, so it is no longer a part of the uptime by construction (over the batches below it stays under it in every run,
+by 0.001 at the least). No gameplay code or value moved.
+
+**Before and after** (the default batch: `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`,
+frame-perfect and `FOUNDRY_REALISM=typical`; TestResults/engaged-1111/before-* and after-*). Only engaged figures
+change: in foundry-batch.csv, foundry-batch-floor2.csv and foundry-cohorts-floor2.csv the `engaged` column alone, and in
+the reports the cells below (and the gate's tally line, met 7 -> 8, not met 2 -> 1; the batch table's wall-clock seconds
+aside); every clear, death, floor time, Warden fight and roles figure is the same to the digit.
+
+| Where | Before | After |
+|---|---|---|
+| Gate row, Vanguard (P10 / P50 / P90, clears' P50) | 0.44 / 0.60 / 0.71, 0.60 - not met | 0.84 / 0.88 / 0.90, 0.88 - met |
+| Gate row, Ilya | 0.47 / 0.58 / 0.69, 0.58 | 0.83 / 0.87 / 0.90, 0.87 |
+| Gate row, the Editor (2026-11-04 files) | 0.71 / 0.53 | not in this file (written before the rule) |
+| Batch table and its gate list, Vanguard / Ilya | 0.60 / 0.58 | 0.88 / 0.87 |
+| Parity table, simulation on the Editor's seeds 11-66 | 0.54 / 0.63 | 0.86 / 0.87 |
+| Floor 2, uptime / engaged P50, Vanguard; Ilya | 0.87 / 0.56; 0.86 / 0.48 | 0.87 / 0.78; 0.86 / 0.77 |
+| Cohorts, frame-perfect, Vanguard (careful / standing / first-card / clumsy / auto-farmer) | 0.60 / 0.61 / 0.63 / 0.74 / 0.74 | 0.88 / 0.88 / 0.88 / 0.89 / 0.91 |
+| Cohorts, frame-perfect, Ilya | 0.58 / 0.59 / 0.57 / 0.60 / 0.62 | 0.87 / 0.87 / 0.87 / 0.89 / 0.91 |
+| Cohorts, human hands, Vanguard | 0.62 / 0.62 / 0.66 / 0.76 / 0.74 | 0.88 / 0.88 / 0.88 / 0.90 / 0.92 |
+| Cohorts, human hands, Ilya | 0.62 / 0.61 / 0.60 / 0.64 / 0.63 | 0.88 / 0.88 / 0.88 / 0.89 / 0.92 |
+
+The old rule read the clumsy and auto-farmer pilots as the most engaged, since they let the horde close and take its
+blows; the new one reads every cohort 0.87-0.92 - it measures the floor, whose horde keeps any pilot's weapons busy,
+not the pilot's footwork. The gate (frame-perfect careful) is unchanged by the realism: its row reads the same with
+`FOUNDRY_REALISM=typical`.
+
+**Open.** The Editor's pacing files predate the rule: HordePacingMeasurement on seeds 11-66 for both heroes would put the
+scene's `engaged_strike` beside the simulation's (expected about 0.86-0.88). The target stays docs/40 section 3.2's
+0.75, an estimate for combat uptime that the stricter reading borrowed; a higher bar for attack uptime is the owner's
+call. The gate's wait remains the floor's largest phase (113-117 s); it is engaged now, but what fills it is still
+docs/41's open decision 2.

@@ -113,6 +113,8 @@
     <Compile Include="FoundryDifficultyResearch.cs" />
     <!-- The careful pilot's cards research of 2026-11-10 on demand: the cohorts' cards side by side, candidate pickers. -->
     <Compile Include="CardScoreResearch.cs" />
+    <!-- The engaged uptime research of 2026-11-11 on demand: a floor's seconds by phase under each reading of engaged. -->
+    <Compile Include="EngagedResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />

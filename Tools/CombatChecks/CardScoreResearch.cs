@@ -32,14 +32,14 @@ namespace Cryptforge.Tests
 
         // A picker in the research: a name, the cohort that plays (its footwork; the picker replaces its card score), and
         // the picker itself (null: the cohort's own).
-        private sealed class Picker
+        internal sealed class Picker
         {
             public string Name;
             public AutopilotCohort Cohort;
             public Func<DescentSimulation.FoundryPick, UpgradeService, int> Pick;
         }
 
-        private static IEnumerable<Picker> Pickers()
+        internal static IEnumerable<Picker> Pickers()
         {
             yield return new Picker { Name = "careful", Cohort = AutopilotCohort.Careful };
             yield return new Picker { Name = "first-card", Cohort = AutopilotCohort.FirstCard };
