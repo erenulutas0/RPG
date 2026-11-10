@@ -369,3 +369,47 @@ Every slam hit the autopilot took was the first defect: seeds 1-200 a hero, slam
 0.12 -> 0 (Ilya), the fight's P50 unchanged (53 and 51 s), clears 37.0 -> 37.0 % and 79.0 -> 80.0 % (Ilya's two
 deaths to a slam came at the enrage). The Warden lever table moves within a few points; the 2026-11-03 choice of share
 8.5 with a 1.5 s recovery stands (TestResults/warden-fix-1104/).
+
+## Status 2026-11-10: the Sword is the Warden's weapon
+
+**The decision** (open decision 3, the Sword's role without the Staff; made 2026-11-10 on the owner's behalf from the
+research on `claude/research-sword-1104`, docs/cloud/2026-11-04-sword-role.md there): the Sword deals x1.5 to the
+foundry's gate boss, the Forge Warden, and nothing else changes. Roles: Staff = horde, Sword = Warden. The research's
+other levers (sweeps, arcs, cleave on kill, knockback, reach, a faster Sword) gave the Sword no role; a faster Sword did,
+but it is the Sword's shared interval and lifted every cohort.
+
+**The rule, in one place.** `WardenRule.SwordId` (`weapon_sword`, Weapon_Sword.asset's id), `WardenRule.SwordShare` =
+1.5, `GateBossShareOf(weaponId)` and `DamageOn(amount, share, gateBoss)`, the one never-inlined body of the product.
+`WeaponLoadout.TryAdd` hands each weapon its share by its id (`WeaponRuntime.GateBossShare`), and every landing of
+`WeaponRuntime.TryAttack` - the strike, the cleave or splash, the kill burst, the splinter, the pulse - goes through
+`DamageOn` with the gate boss the strike is handed. The scene hands it from `WardenSlamService` (-40, before every
+attacker) to the hero's `AttackController.GateBoss`; the simulation passes `StepWarden`'s `_slamBoss` from
+`HeroAttacks`, the same point of the frame. Only the foundry's gate boss is one (`EncounterController.GateRoom`): the
+hall arena's Warden, the Descent's bosses, the elites and the horde take the Sword's authored damage, and the Sword's
+values (Weapon_Sword.asset, shared with the hall and the Descent) do not move. Floor 2's gate boss is the Forge Warden
+too (Floor_QuicksilverVaults' boss room: the Warden first, two Cinder Mites beside it), so the rule applies there; the
+escorts take the authored damage. No card text states a weapon's damage on bosses, so nothing in the UI changed.
+`WardenRuleTests` hold the rule and the strike, `FoundrySimulationTests.TheSimulationsWeaponsTakeTheGamesShareOnTheWarden`
+the simulation's weapons, `WeaponContentTests.TheWardensWeaponIsTheSwordAsset` the asset's id, and `WardenFlowTests`
+the scene's hand-over.
+
+**Before and after** (the foundry simulation, seeds 1-200 a hero, `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`; main e8e22d5 against the rule; TestResults/sword-warden-1110/):
+
+| | Before | After |
+|---|---|---|
+| The Warden a second, the Vanguard started with each (P50): Sword / Staff / Daggers | 18 / 23 / 0 | 27 / 22 / 0 |
+| The horde a second, the same (P50): Sword / Staff / Daggers | 10 / 30 / 2 | 10 / 30 / 2 |
+| Three weapons with distinct roles | not met: the Sword and the Daggers without | not met: the Daggers without |
+| Warden fight P50, floor 1: Vanguard / Ilya | 64 / 55 s | 56 / 50 s |
+| Warden fight P50, floor 2: Vanguard / Ilya | 84 / 73 s | 70 / 64 s |
+| Floor 1 cleared, Vanguard: careful / first-card / standing / clumsy / auto-farmer | 199 / 196 / 130 / 74 / 6 | 199 / 196 / 139 / 80 / 9 |
+| Floor 1 cleared, Ilya: the same | 200 / 200 / 156 / 160 / 19 | 200 / 200 / 170 / 164 / 30 |
+| Both floors cleared, careful: Vanguard / Ilya | 197 / 200 | 199 / 200 |
+
+The careful clears do not move and the Warden fight stays inside step 4's 45-65 s on floor 1; floor 2's Vanguard no
+longer dies at its Warden (2 -> 0). The weaker cohorts gain a few clears, most where the hero picks the Sword up (Ilya
+standing 156 -> 170, auto-farmer 19 -> 30). The figures are the research's x1.5 row, reproduced on the shipped code.
+The roles row stays not met on the Daggers alone: their 0 on the Warden is reach (1.8) inside the careful pilot's kite
+ring (2.0), and their horde damage is under the Sword's; what the Daggers are is the next decision (the research's
+recommendation 2).
