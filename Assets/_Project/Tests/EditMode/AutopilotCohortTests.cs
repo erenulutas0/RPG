@@ -183,6 +183,113 @@ namespace Cryptforge.Tests
             Assert.That(AutopilotCohort.Careful.Pick(equals, false, 1, 0), Is.EqualTo(0), "the first of equals");
         }
 
+        // The careful score since 2026-11-10 (docs/41): a tome's level before a weapon's line - it raises every weapon held -
+        // but a line still before the tomes' levels while it builds toward its weapon's evolution; an evolution before a new
+        // weapon; a new weapon and the first two tomes before either kind of line.
+        [Test]
+        public void TheTomesLevelsComeBeforeTheWeaponsLinesButALineTowardAnEvolutionBeforeThem()
+        {
+            UpgradeOption line = Card("line_sword_damage", UpgradeStat.Damage, OfferCategory.WeaponUpgrade);
+            UpgradeOption level = Card("tome_force", UpgradeStat.Damage, OfferCategory.TomeUpgrade);
+            UpgradeOption newTome = Card("tome_tempo", UpgradeStat.AttackSpeed, OfferCategory.NewTome);
+            UpgradeOption newWeapon = Card("weapon_staff", UpgradeStat.Damage, OfferCategory.NewWeapon);
+            UpgradeOption evolution = new UpgradeOption("evolution_sword", "evolution_sword", "+{0:0}", UpgradeStat.PulseDamage,
+                new StatModifier(ModifierOperation.Flat, 1f), 1, null, "weapon_sword", OfferCategory.WeaponUpgrade);
+            AutopilotCohort careful = AutopilotCohort.Careful;
+            int Score(UpgradeOption card, bool toward) => careful.CardScore(card, UpgradeRarity.Common, false, 2, 1, toward);
+
+            Assert.That(Score(level, false), Is.GreaterThan(Score(line, false)), "a tome's level before a line");
+            Assert.That(Score(line, true), Is.GreaterThan(Score(level, false)), "a line toward an evolution before a tome's level");
+            Assert.That(Score(newTome, false), Is.GreaterThan(Score(line, true)), "the second tome before any line");
+            Assert.That(Score(newWeapon, false), Is.GreaterThan(Score(newTome, false)), "a new weapon before a new tome");
+            Assert.That(Score(evolution, false), Is.GreaterThan(Score(newWeapon, false)), "an evolution before a new weapon");
+
+            Assert.That(careful.Pick(new UpgradeOffer(new[] { line, level }), false, 2, 1), Is.EqualTo(1));
+            Assert.That(careful.Pick(new UpgradeOffer(new[] { level, evolution }), false, 2, 1), Is.EqualTo(1));
+            Assert.That(AutopilotCohort.Standing.Pick(new UpgradeOffer(new[] { line, level }), false, 2, 1), Is.EqualTo(1),
+                "every cohort that scores its cards scores them so");
+            Assert.That(AutopilotCohort.FirstCard.Pick(new UpgradeOffer(new[] { line, level }), false, 2, 1), Is.EqualTo(0));
+        }
+
+        // A health or armour card is scored at the tier it is offered, TierStep a tier: its tiers scale 1 / 2 / 4 / 5.3 where
+        // a line's scale 1 / 1.25 / 1.5 / 2. A common one stays under a line, a rare one outranks a line and a tome's level,
+        // an epic one a new tome, a gold health card a new weapon; a speed card is the same at every tier.
+        [Test]
+        public void AHealthOrArmourCardIsScoredAtItsTier()
+        {
+            UpgradeOption line = Card("line_sword_damage", UpgradeStat.Damage, OfferCategory.WeaponUpgrade);
+            UpgradeOption level = Card("tome_force", UpgradeStat.Damage, OfferCategory.TomeUpgrade);
+            UpgradeOption newTome = Card("tome_tempo", UpgradeStat.AttackSpeed, OfferCategory.NewTome);
+            UpgradeOption newWeapon = Card("weapon_staff", UpgradeStat.Damage, OfferCategory.NewWeapon);
+            UpgradeOption health = Card("upgrade_health", UpgradeStat.MaxHealth, OfferCategory.General);
+            UpgradeOption armour = Card("upgrade_armor", UpgradeStat.Armor, OfferCategory.General);
+            UpgradeOption speed = Card("upgrade_move_speed", UpgradeStat.MoveSpeed, OfferCategory.General);
+            AutopilotCohort careful = AutopilotCohort.Careful;
+
+            int Taken(UpgradeOption other, UpgradeOption hero, UpgradeRarity tier) =>
+                careful.Pick(new UpgradeOffer(new[] { other, hero }, 0, new[] { UpgradeRarity.Common, tier }), false, 2, 1);
+
+            Assert.That(Taken(line, armour, UpgradeRarity.Common), Is.EqualTo(0), "a common armour card under a line");
+            Assert.That(Taken(line, health, UpgradeRarity.Common), Is.EqualTo(0), "a common health card under a line");
+            Assert.That(Taken(line, armour, UpgradeRarity.Rare), Is.EqualTo(1), "a rare armour card over a line");
+            Assert.That(Taken(level, health, UpgradeRarity.Rare), Is.EqualTo(1), "a rare health card over a tome's level");
+            Assert.That(Taken(newTome, armour, UpgradeRarity.Rare), Is.EqualTo(0), "a rare armour card under a new tome");
+            Assert.That(Taken(newTome, health, UpgradeRarity.Epic), Is.EqualTo(1), "an epic health card over a new tome");
+            Assert.That(Taken(newWeapon, armour, UpgradeRarity.Epic), Is.EqualTo(0), "an epic armour card under a new weapon");
+            Assert.That(Taken(newWeapon, health, UpgradeRarity.Gold), Is.EqualTo(1), "a gold health card over a new weapon");
+            Assert.That(Taken(line, speed, UpgradeRarity.Gold), Is.EqualTo(0), "a speed card's tier does not count");
+            Assert.That(careful.CardScore(health, UpgradeRarity.Rare, false, 2, 1, false) - careful.CardScore(health, UpgradeRarity.Common, false, 2, 1, false),
+                Is.EqualTo(AutopilotCohort.TierStep));
+            Assert.That(careful.CardScore(health, UpgradeRarity.Common, true, 2, 1, false),
+                Is.GreaterThan(careful.CardScore(armour, UpgradeRarity.Gold, true, 2, 1, false)), "health first when low, whatever the tier");
+        }
+
+        // A line leads to its weapon's evolution while the weapon is held, has not evolved, stands below
+        // EvolutionRule.WeaponEvolutionLevel, and the tome it evolves with is held (the Sword with Force here, the only tome:
+        // every offer is the Sword's card and Force's, so taking Force is one pick on any seed). Through the run's own
+        // service the careful pilot then takes the line over Force's level, and Force's level once the Sword is at 5.
+        [Test]
+        public void ALineLeadsToItsEvolutionBelowLevelFiveWithItsTomeHeld()
+        {
+            var run = new RunState(10, 0.5f, 2, 7);
+            var loadout = new WeaponLoadout(7);
+            WeaponCard sword = DescentSimulation.Sword().CreateCard();
+            WeaponRuntime primary = sword.CreateRuntime();
+            Assert.That(loadout.TryAdd(sword.Id, primary), Is.True);
+            UpgradeOption force = DescentSimulation.Force();
+            var upgrades = new UpgradeService(run, primary, new UpgradeOption[0], 3, new HeroStats(100f, 2.5f, HeroStamina.DefaultBar),
+                false, loadout, new[] { sword }, new[] { force });
+            UpgradeOption line = sword.Lines[0];
+            UpgradeOption daggerLine = DescentSimulation.Daggers().CreateCard().Lines[0];
+
+            Assert.That(AutopilotCohort.LeadsToEvolution(line, upgrades), Is.False, "Force not held yet");
+            run.GrantBonusUpgrade();
+            UpgradeOffer offer = upgrades.CurrentOffer;
+            Assert.That(offer, Is.Not.Null);
+            int tome = -1;
+            for (int i = 0; i < offer.Choices.Count; i++)
+                if (offer.Choices[i].Category == OfferCategory.NewTome)
+                    tome = i;
+            Assert.That(tome, Is.GreaterThanOrEqualTo(0), "Force is offered");
+            Assert.That(upgrades.TrySelect(offer, tome), Is.True);
+            Assert.That(upgrades.TomeLevel(force.Id), Is.EqualTo(1));
+
+            Assert.That(AutopilotCohort.LeadsToEvolution(line, upgrades), Is.True);
+            Assert.That(AutopilotCohort.LeadsToEvolution(daggerLine, upgrades), Is.False, "the Daggers are not held");
+            Assert.That(AutopilotCohort.LeadsToEvolution(sword.Evolution, upgrades), Is.False, "the evolution is not a line");
+            Assert.That(AutopilotCohort.LeadsToEvolution(line, null), Is.False);
+            UpgradeOption forceLevel = force.WithCategory(OfferCategory.TomeUpgrade);
+            var choice = new UpgradeOffer(new[] { forceLevel, line });
+            Assert.That(AutopilotCohort.Careful.Pick(choice, false, upgrades), Is.EqualTo(1), "the line toward the evolution");
+            Assert.That(AutopilotCohort.Careful.Pick(choice, false, 1, 1), Is.EqualTo(0), "without the service, Force's level");
+
+            for (int level = loadout.At(0).Level; level < EvolutionRule.WeaponEvolutionLevel; level++)
+                Assert.That(loadout.TryLevelUp(sword.Id), Is.True);
+            Assert.That(loadout.At(0).Level, Is.EqualTo(EvolutionRule.WeaponEvolutionLevel));
+            Assert.That(AutopilotCohort.LeadsToEvolution(line, upgrades), Is.False, "the Sword at its evolution's level");
+            Assert.That(AutopilotCohort.Careful.Pick(choice, false, upgrades), Is.EqualTo(0), "Force's level now");
+        }
+
         private static UpgradeOption Card(string id, UpgradeStat stat, OfferCategory category) =>
             new UpgradeOption(id, id, "+{0:0}", stat, new StatModifier(ModifierOperation.Flat, 1f), 4, category: category);
     }

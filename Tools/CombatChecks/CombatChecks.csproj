@@ -113,6 +113,8 @@
     <Compile Include="FoundryBatchReport.cs" />
     <!-- The difficulty research of 2026-11-04 on demand: realism, why Ilya is safe, the structural candidates. -->
     <Compile Include="FoundryDifficultyResearch.cs" />
+    <!-- The careful pilot's cards research of 2026-11-10 on demand: the cohorts' cards side by side, candidate pickers. -->
+    <Compile Include="CardScoreResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />

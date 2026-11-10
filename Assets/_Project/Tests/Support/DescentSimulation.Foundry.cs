@@ -311,6 +311,13 @@ namespace Cryptforge.Tests
             // Off, as every other report runs, TakenBy stays null and a hit on the hero builds no key; accounting only, no
             // number of the floor moves either way.
             public bool CountsHarmByPlace;
+            // The careful pilot's cards (research 2026-11-10, CardScoreResearch): log every level-up offer - its cards, their
+            // tiers, the one taken, and the hero's health, armour, level and holdings then - in FoundryResult.PickLog. Off,
+            // as every other report runs, PickLog stays null; accounting only. And Picker, a picker in place of a cohort's
+            // own scoring (AutopilotCohort.Pick) for that research's candidates, for a cohort that ScoresCards; null, the
+            // default, plays the cohort's own.
+            public bool LogsPicks;
+            public Func<FoundryPick, UpgradeService, int> Picker;
 
             public bool HasHazards => WardenEchoTelegraph > 0f || SlagEvery > 0f || EliteStompEvery > 0f;
 
@@ -415,6 +422,28 @@ namespace Cryptforge.Tests
             public float DealtAfterEvolving;
 
             public float Dealt => DealtHorde + DealtNode + DealtWarden;
+        }
+
+        // One level-up offer as the pilot met it, and the card it took (FoundryLevers.LogsPicks, research 2026-11-10): the
+        // floor's active seconds, the run's level, the room (1-based) and whether the gate boss was out, the hero's health,
+        // maximum and armour, the weapons and tomes held, the offer's cards and tiers, and the slot taken (-1 until taken).
+        internal sealed class FoundryPick
+        {
+            public float Seconds;
+            public int Level;
+            public int Room;
+            public bool AtWarden;
+            public float Health;
+            public float Maximum;
+            public float Armor;
+            public int WeaponsHeld;
+            public int TomesHeld;
+            public UpgradeOffer Offer;
+            public int Taken = -1;
+
+            public bool Low => Health < Maximum * .5f;
+            public UpgradeOption Card => Taken >= 0 ? Offer.Choices[Taken] : null;
+            public UpgradeRarity Rarity => Taken >= 0 ? Offer.RarityAt(Taken) : UpgradeRarity.Common;
         }
 
         // What one foundry floor did, in the Editor measurement's terms (HordePacingMeasurement and the telemetry's
@@ -583,6 +612,8 @@ namespace Cryptforge.Tests
             public HarmPlace LowestPlace;
             public string LowestHarm;
             public Dictionary<string, float> TakenBy;
+            // Every level-up offer and the card taken, when a report asks for it (FoundryLevers.LogsPicks); null otherwise.
+            public List<FoundryPick> PickLog;
 
             public bool Cleared => Outcome == FoundryOutcome.Cleared;
 
@@ -1142,7 +1173,8 @@ namespace Cryptforge.Tests
                     Seed = seed, Hero = _heroDefinition.Id, Levers = _levers.Name, Floor = _floor.FloorNumber,
                     Kinds = _floor.Kinds, RoomSeconds = Filled(_floor.Kinds.Length, -1f),
                     WalkSeconds = Filled(_floor.Kinds.Length, -1f), WaveSeconds = Filled(_floor.Kinds.Length, -1f),
-                    TakenBy = _levers.CountsHarmByPlace ? new Dictionary<string, float>() : null
+                    TakenBy = _levers.CountsHarmByPlace ? new Dictionary<string, float>() : null,
+                    PickLog = _levers.LogsPicks ? new List<FoundryPick>() : null
                 };
                 int buckets = (int)Math.Ceiling(_levers.LimitSeconds / FoundryBucketSeconds) + 1;
                 result.BucketDamage = new float[buckets];
@@ -3117,8 +3149,22 @@ namespace Cryptforge.Tests
                     return 0;
                 // DevelopmentAutopilot.ChoiceSlot: the cohort's pick (AutopilotCohort.Pick, the CardPicker order or the
                 // first card), health first when the hero is under half.
-                int best = _levers.Cohort.Pick(offer, _heroHealth.Current < _heroHealth.Maximum * .5f, _upgrades.Loadout.Count,
-                    _upgrades.TomesHeld);
+                FoundryPick logged = null;
+                if (_result.PickLog != null || _levers.Picker != null)
+                    logged = new FoundryPick
+                    {
+                        Seconds = FloorTime, Level = _run.Level, Room = _roomIndex + 1, AtWarden = GateBoss != null,
+                        Health = _heroHealth.Current, Maximum = _heroHealth.Maximum, Armor = _heroStats.Armor,
+                        WeaponsHeld = _upgrades.Loadout.Count, TomesHeld = _upgrades.TomesHeld, Offer = offer
+                    };
+                int best = _levers.Picker != null && _levers.Cohort.Has(AutopilotCohort.Habit.ScoresCards)
+                    ? _levers.Picker(logged, _upgrades)
+                    : _levers.Cohort.Pick(offer, _heroHealth.Current < _heroHealth.Maximum * .5f, _upgrades);
+                if (_result.PickLog != null)
+                {
+                    logged.Taken = best;
+                    _result.PickLog.Add(logged);
+                }
                 UpgradeOption pick = offer.Choices[best];
                 if (_trace != null)
                     Emit($"upgrade_selected {pick.Id} level={_run.Level} hp={N(_heroHealth.Current)}/{N(_heroHealth.Maximum)}");
