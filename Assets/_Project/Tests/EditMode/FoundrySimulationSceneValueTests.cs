@@ -40,6 +40,23 @@ namespace Cryptforge.Tests
             Assert.That(Autopilot<int>("AbilityCrowd"), Is.EqualTo(DescentSimulation.PilotAbilityCrowd));
         }
 
+        // Who the scene's autopilot plays as comes from development/autopilot.txt's words (AutopilotCohort.FromSwitch, in
+        // DevelopmentAutopilot.Initialize), who the simulation's plays as from its levers; the habits are one body, so what
+        // must agree is the reading: the careful pilot for a line naming no cohort ("on", as PerfProbe and
+        // HordePacingMeasurement write it) and for the simulation's default levers, and each cohort for its name after a
+        // mode ("<mode> <cohort>", as HordePacingMeasurement writes TestResults/horde-cohort.txt).
+        [Test]
+        public void TheAutopilotsCohortsAreTheSimulations()
+        {
+            Assert.That(AutopilotCohort.FromSwitch("on"), Is.SameAs(new DescentSimulation.FoundryLevers().Cohort));
+            Assert.That(AutopilotCohort.FromSwitch("on"), Is.SameAs(AutopilotCohort.Careful));
+            foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
+            {
+                Assert.That(AutopilotCohort.FromSwitch("on " + cohort.Name), Is.SameAs(cohort), cohort.Name);
+                Assert.That(AutopilotCohort.FromSwitch("linger " + cohort.Name), Is.SameAs(cohort), cohort.Name);
+            }
+        }
+
         private static T Autopilot<T>(string name)
         {
             FieldInfo field = typeof(DevelopmentAutopilot).GetField(name, BindingFlags.NonPublic | BindingFlags.Static);

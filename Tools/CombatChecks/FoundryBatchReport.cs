@@ -21,11 +21,13 @@ namespace Cryptforge.Tests
     // for both heroes at 200 seeds takes about fifteen seconds on ten threads, the gate's Vanguard started with the Staff
     // and the Daggers about as long again, and each lever about fifteen seconds more (FoundryBatch.ResearchLevers: the
     // pre-V0.1 floor, the research's twelve on it and V0.1's three taken away; FOUNDRY_LEVERS=0 skips them, 2 runs
-    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers).
+    // FoundryBatch.ComboLevers instead, 3 the Warden's candidates, FoundryBatch.WardenLevers). FOUNDRY_COHORTS=1 adds the
+    // autopilot's cohorts on the same seeds and floors (FoundryCohorts: four more batches a hero, alone in
+    // foundry-cohorts.md too; with FOUNDRY_FLOORS=2 each cohort goes down to floor 2 as well, and the section reads it).
     // OneSeedAsTheTelemetryWouldWriteIt traces one seed instead (below).
     //
     // Environment, all optional: FOUNDRY_SEEDS (seeds a hero, 200), FOUNDRY_FIRST_SEED (1), FOUNDRY_LEVERS (0 skips the
-    // lever runs), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
+    // lever runs), FOUNDRY_COHORTS (1 adds the cohorts), FOUNDRY_PARALLEL (threads, half the processors), FOUNDRY_OUT (folder for the report, the repository's
     // TestResults), FOUNDRY_EDITOR (folder holding the Editor measurement - horde-pacing-*.txt, horde-telemetry/ and the
     // perf probe's summary - the repository's TestResults; nothing there skips the parity table and leaves the gate's Editor
     // column empty), FOUNDRY_EDITOR_FILES (the two pacing files the gate and the parity read, Vanguard's then Ilya's, comma
@@ -80,6 +82,18 @@ namespace Cryptforge.Tests
             string parity = Parity(editor, heroes, baselines, parallel, out List<FoundryBatch.Batch> editorSeedBatches);
             if (parity != null)
                 md.AppendLine(parity);
+            // The autopilot's cohorts on the same seeds (docs/41 step 5), on demand.
+            var cohortRuns = new List<(Cryptforge.Core.AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)>();
+            if (Setting("FOUNDRY_COHORTS", 0) != 0)
+            {
+                cohortRuns = FoundryCohorts.Run(heroes, batchSeeds, parallel, baselines, floors);
+                string cohorts = FoundryCohorts.Section(cohortRuns);
+                md.Append(cohorts);
+                File.WriteAllText(Path.Combine(output, "foundry-cohorts.md"), cohorts);
+                if (floors >= 2)
+                    File.WriteAllText(Path.Combine(output, "foundry-cohorts-floor2.csv"),
+                        FoundryBatch.FloorTwoCsv(cohortRuns.SelectMany(c => c.Batches)));
+            }
 
             File.WriteAllText(Path.Combine(output, "foundry-batch.md"), md.ToString());
             File.WriteAllText(Path.Combine(output, "foundry-gate.md"), gate);
@@ -88,6 +102,7 @@ namespace Cryptforge.Tests
             foreach ((FoundryBatch.Lever _, FoundryBatch.Batch[] batches) in leverRuns)
                 all.AddRange(batches);
             all.AddRange(editorSeedBatches);
+            all.AddRange(cohortRuns.SelectMany(c => c.Batches).Where(batch => !baselines.Contains(batch)));
             File.WriteAllText(Path.Combine(output, "foundry-batch.csv"), FoundryBatch.Csv(all));
             TestContext.WriteLine(md.ToString());
             Assert.That(baselines.All(b => b.Runs.Length == seeds), "every seed ran");
@@ -399,8 +414,9 @@ namespace Cryptforge.Tests
         }
 
         // A hero's newest pacing file of the autopilot playing the floor - its mode line "mode on", naming that hero and
-        // the weapon it started with (null for the hero's own) - the newest naming the simulated floor's levers before any
-        // other, and of two written together the named copy rather than the measurement's own horde-pacing.txt.
+        // the weapon it started with (null for the hero's own) and no cohort but the careful pilot, the simulation's
+        // default - the newest naming the simulated floor's levers before any other, and of two written together the
+        // named copy rather than the measurement's own horde-pacing.txt.
         private static string NewestPacing(string folder, string heroId, string weaponId)
         {
             if (!Directory.Exists(folder))
@@ -408,7 +424,8 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
             return Directory.GetFiles(folder, "horde-pacing*.txt")
                 .Select(path => (Path: path, Header: PacingHeader(path)))
-                .Where(file => file.Header.Mode == "on" && file.Header.Hero == heroId && file.Header.Weapon == weaponId)
+                .Where(file => file.Header.Mode == "on" && file.Header.Hero == heroId && file.Header.Weapon == weaponId &&
+                               (file.Header.Cohort == null || file.Header.Cohort == shipped.Cohort.Name))
                 .OrderBy(file => LeverMismatch(ReadLevers(file.Path), shipped) == null ? 0 : 1)
                 .ThenByDescending(file => File.GetLastWriteTimeUtc(file.Path))
                 .ThenByDescending(file => Path.GetFileName(file.Path).Length)
@@ -416,22 +433,24 @@ namespace Cryptforge.Tests
                 .FirstOrDefault();
         }
 
-        // A pacing file's first line, "mode <mode>[ hero <id>][ weapon <id>]" (HordePacingMeasurement): the scene's
-        // default hero, the Vanguard, when it names none.
-        private static (string Mode, string Hero, string Weapon) PacingHeader(string path)
+        // A pacing file's first line, "mode <mode>[ hero <id>][ weapon <id>][ cohort <name>]" (HordePacingMeasurement): the
+        // scene's default hero, the Vanguard, when it names none, and no cohort - the careful pilot - when it names none.
+        private static (string Mode, string Hero, string Weapon, string Cohort) PacingHeader(string path)
         {
             string[] words = (File.ReadLines(path).FirstOrDefault() ?? string.Empty).Split(' ');
             if (words.Length < 2 || words[0] != "mode")
-                return (null, null, null);
-            string hero = FoundryGate.V01HeroId, weapon = null;
+                return (null, null, null, null);
+            string hero = FoundryGate.V01HeroId, weapon = null, cohort = null;
             for (int i = 2; i + 1 < words.Length; i += 2)
             {
                 if (words[i] == "hero")
                     hero = words[i + 1];
                 else if (words[i] == "weapon")
                     weapon = words[i + 1];
+                else if (words[i] == "cohort")
+                    cohort = words[i + 1];
             }
-            return (words[1], hero, weapon);
+            return (words[1], hero, weapon, cohort);
         }
 
         // The pacing file's tab-separated lines (seed, result, floor_s, uptime[, engaged], ..., level, ..., rooms), and,

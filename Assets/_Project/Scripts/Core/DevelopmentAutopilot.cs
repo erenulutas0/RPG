@@ -11,9 +11,11 @@ namespace Cryptforge.Core
     // A development build's hands-off player for device checks of the foundry (DevelopmentStart.Autopilot): it walks the
     // hero to each marked hall, picks up the drops beside it and takes both altars between fights, kites any enemy that
     // comes close, draws a node fight to the pit's rim and steps out of the band while the rim glows, so the run's log
-    // measures what the floor does to a hero who plays it. It answers every offer with its first card and every
-    // checkpoint with Descend, and walks onto an open exit (a minute into the finale's swarm). It steers through
-    // HeroMovementInput.Hold, so a finger on the screen still takes over. Never part of a player's build.
+    // measures what the floor does to a hero who plays it. It answers every offer by its card score and every checkpoint
+    // with Descend, and walks onto an open exit (a minute into the finale's swarm). It steers through
+    // HeroMovementInput.Hold, so a finger on the screen still takes over. Never part of a player's build. A word of
+    // development/autopilot.txt may name a cohort (AutopilotCohort: standing, first-card, clumsy, auto-farmer) that drops
+    // some of these habits; the foundry simulation's pilot reads the same habits in the same order.
     public sealed class DevelopmentAutopilot : MonoBehaviour
     {
         private const float ChoiceDelay = .8f;
@@ -38,9 +40,14 @@ namespace Cryptforge.Core
         private const float DetourSlack = 2f;
         private const float DetourBudget = 12f;
         private readonly DropDetourRule.Walk _detour = new DropDetourRule.Walk(DropDetour, DetourSlack, DetourBudget);
-        // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach pushes the hero away, the nearer the
-        // harder, and the hero walks away from the push turned KiteTurn round it, so it circles the crowd instead of backing
-        // into a wall. Just beyond a melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
+        // While the pit's band glows the autopilot steps into it only to leave the Warden's mark (Goal, Steer): the old
+        // autopilot stepped out to shelter and was drawn straight back in to lure or kite, and four in five of the pit's
+        // burns in the foundry simulation were that (2026-11-04, seeds 1-200 a hero).
+        private bool _bandGuard;
+        // Kiting, as a player in a crowd does (docs/41): every enemy within KiteReach - or within its own reach and a margin,
+        // where that is longer (FootworkRule.ThreatReach) - pushes the hero away, the nearer the harder, and the hero walks
+        // away from the push turned KiteTurn round it, so it circles the crowd instead of backing into a wall. Just beyond a
+        // melee enemy's 1.5: at 2.2 it kited all the time and never stopped for a drop.
         private const float KiteReach = 1.6f;
         private const float KiteTurn = 35f * Mathf.Deg2Rad;
         private const float KiteStride = 2f;
@@ -55,6 +62,8 @@ namespace Cryptforge.Core
         // Either still answers every offer. Anything else plays the floor.
         private bool _linger;
         private bool _idle;
+        // Who plays (AutopilotCohort.FromSwitch): a cohort's name among the file's words, the careful pilot otherwise.
+        private AutopilotCohort _cohort = AutopilotCohort.Careful;
         // How far a lingering hero walks for a drop: the whole court, since it has nowhere else to go.
         private const float LingerDetour = 30f;
         // The ability fires once this many enemies stand in its reach - burning ones for a Vent - or at once beside the
@@ -74,9 +83,12 @@ namespace Cryptforge.Core
             _targeting = hero.GetComponent<Targeting>();
             _heroHealth = hero.GetComponent<Health>();
             string mode = DevelopmentStart.AutopilotMode();
-            _linger = mode == "linger";
-            _idle = mode == "idle";
-            Debug.Log("[Autopilot] driving the hero (development/autopilot.txt" + (mode.Length > 0 ? ": " + mode : string.Empty) + ")");
+            string[] words = mode.Split((char[])null, System.StringSplitOptions.RemoveEmptyEntries);
+            _linger = System.Array.IndexOf(words, "linger") >= 0;
+            _idle = System.Array.IndexOf(words, "idle") >= 0;
+            _cohort = AutopilotCohort.FromSwitch(mode);
+            Debug.Log("[Autopilot] driving the hero as the " + _cohort.Name + " cohort (development/autopilot.txt" +
+                      (mode.Length > 0 ? ": " + mode : string.Empty) + ")");
         }
 
         private void Update()
@@ -103,7 +115,8 @@ namespace Cryptforge.Core
                 _movement.Release();
                 return;
             }
-            TryAbility();
+            if (_cohort.UsesTheAbility)
+                TryAbility();
             float x = _hero.position.x, y = ArenaFloor.FloorY(_hero.position.y);
             if (Goal(x, y, out float gx, out float gy, out float stop))
                 Steer(x, y, gx, gy, stop);
@@ -144,34 +157,14 @@ namespace Cryptforge.Core
             UpgradeOffer upgrade = _setup.Upgrades.CurrentOffer;
             if (_setup.Choices.Current.Kind != ChoiceKind.Upgrade || upgrade == null || !_setup.Upgrades.IsCategoryMode)
                 return 0;
-            // A build, not the first card (docs/42's CardPicker order): health when the hero is low, then the weapons it
-            // holds, a second weapon, two tomes, their levels, then anything else.
-            int best = 0, bestScore = int.MinValue;
-            for (int i = 0; i < upgrade.Choices.Count; i++)
-            {
-                int score = CardScore(upgrade.Choices[i]);
-                if (score <= bestScore)
-                    continue;
-                best = i;
-                bestScore = score;
-            }
-            return best;
-        }
-
-        private int CardScore(UpgradeOption card)
-        {
+            // A build, not the first card (docs/42's CardPicker order, AutopilotCohort.CardScore): health when the hero is
+            // low, then the weapons it holds, a new weapon while a slot is free, two tomes, their levels, then anything
+            // else. A third weapon scored 10, under every tome level, so the autopilot never took one and a Vanguard whose
+            // second was the Daggers never got the Staff (the survival research, 2026-11-04). The first-card cohorts take
+            // the first card.
             Health hero = _hero.GetComponent<Health>();
             bool low = hero != null && hero.Current < hero.Maximum * .5f;
-            if (low && card.Stat == UpgradeStat.MaxHealth)
-                return 100;
-            switch (card.Category)
-            {
-                case OfferCategory.WeaponUpgrade: return 50;
-                case OfferCategory.NewWeapon: return _setup.Upgrades.Loadout.Count < 2 ? 45 : 10;
-                case OfferCategory.NewTome: return _setup.Upgrades.TomesHeld < 2 ? 40 : 15;
-                case OfferCategory.TomeUpgrade: return 30;
-                default: return card.Stat == UpgradeStat.MaxHealth ? 25 : 20;
-            }
+            return _cohort.Pick(upgrade, low, _setup.Upgrades.Loadout.Count, _setup.Upgrades.TomesHeld);
         }
 
         private bool Goal(float x, float y, out float gx, out float gy, out float stop)
@@ -182,43 +175,61 @@ namespace Cryptforge.Core
             bool fighting = encounter.AliveEnemyCount > 0;
             // A fight, or a hall newly marked, gives the walk after it its whole drop budget.
             _detour.Track(fighting, encounter.IsRoomSiteOpen);
+            // While the pit's band glows a cohort that keeps out of it (AutopilotCohort.Guards) steps into it only to leave
+            // the Warden's mark (Steer).
+            bool pit = _setup.Pit != null && _setup.Pit.IsActive;
+            bool glowing = pit && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning;
+            bool guarded = _cohort.Guards(glowing);
+            _bandGuard = guarded;
             // The finale's exit opens at once; the autopilot fights the swarm a while first, as a player after depth does.
             if (encounter.IsExitOpen && (!encounter.IsInSwarmRoom || encounter.SwarmSeconds >= SwarmStay))
             {
                 gx = encounter.ExitFloorX; gy = encounter.ExitFloorY;
                 return true;
             }
-            bool pit = _setup.Pit != null && _setup.Pit.IsActive;
-            // The Warden's mark under the hero: out of it first, as a player who reads it does.
+            // The Warden's mark under the hero: out of it first, as a player who reads it does - away from the Warden, with
+            // room, not across the glowing band if it can help it (FootworkRule.EscapeMark; from the mark itself, the
+            // nearest way out, if the Warden cannot be found). The clumsy cohorts take the nearest way out, wherever the
+            // Warden stands (AutopilotCohort.EscapeMark).
             WardenSlamService warden = _setup.Warden;
-            if (warden != null && warden.IsFighting && warden.Clock.IsMarked)
+            if (_cohort.EscapesMarks && warden != null && warden.IsFighting && warden.Clock.IsMarked)
             {
                 float mx = x - warden.MarkX, my = y - warden.MarkY;
                 float reach = WardenRule.SlamRadius + .6f;
-                if (mx * mx + my * my < reach * reach && EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, out gx, out gy))
+                if (!encounter.TryFloorPositionOf(warden.Boss, out float bossX, out float bossY))
+                {
+                    bossX = warden.MarkX; bossY = warden.MarkY;
+                }
+                if (mx * mx + my * my < reach * reach &&
+                    _cohort.EscapeMark(x, y, warden.MarkX, warden.MarkY, reach + .4f, bossX, bossY, glowing, out gx, out gy))
                 {
                     stop = 0f;
+                    _bandGuard = false;
                     return true;
                 }
             }
-            // A spill coming and the hero on the rim: shelter first, whatever is chasing.
-            if (pit && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning && PitEruptionRule.InBand(x, y))
+            // A spill coming and the hero on the rim: shelter first, whatever is chasing (FootworkRule.Shelter; the rim
+            // spot, wherever it lies, for a cohort that does not keep out of the glow).
+            if (_cohort.Shelters && glowing && PitEruptionRule.InBand(x, y))
             {
-                RimSpot(x, y, ShelterDepth, out gx, out gy);
+                _cohort.Shelter(x, y, ShelterDepth, out gx, out gy);
                 return true;
             }
-            if (Threat(x, y, out float tx, out float ty))
+            // Kiting with room (FootworkRule.Kite): along a wall or turned away from it, never into it, nor into the band
+            // while it glows; straight on for the clumsy cohorts, and not at all for the standing ones.
+            if (_cohort.Kites && Threat(x, y, out float tx, out float ty) &&
+                _cohort.Kite(x, y, tx, ty, KiteTurn, KiteStride, glowing, out gx, out gy))
             {
-                float cos = Mathf.Cos(KiteTurn), sin = Mathf.Sin(KiteTurn);
-                gx = x + (tx * cos - ty * sin) * KiteStride;
-                gy = y + (tx * sin + ty * cos) * KiteStride;
                 stop = 0f;
                 return true;
             }
-            // A node fight is drawn to the pit's rim; the horde alone is fought wherever the hero is going.
+            // A node fight is drawn to the pit's rim, but not while a guarded band glows: then the hero waits out of it. The
+            // horde alone is fought wherever the hero is going.
             if (fighting && pit)
             {
-                RimSpot(x, y, LureDepth, out gx, out gy);
+                if (guarded || !_cohort.Lures)
+                    return false;
+                FootworkRule.RimSpot(x, y, LureDepth, out gx, out gy);
                 return true;
             }
             if (fighting)
@@ -282,40 +293,8 @@ namespace Cryptforge.Core
             return !float.IsPositiveInfinity(best);
         }
 
-        // The point Depth design units out from the pit's hole on the side the hero stands.
-        private static void RimSpot(float x, float y, float depth, out float gx, out float gy)
-        {
-            FoundryMap.ToDesign(x, y, out float u, out float v);
-            float cu = Mathf.Clamp(u, FoundryMap.PitWest, FoundryMap.PitEast);
-            float cv = Mathf.Clamp(v, FoundryMap.PitSouth, FoundryMap.PitNorth);
-            Vector2 away = new Vector2(u - cu, v - cv);
-            if (away.sqrMagnitude < 1e-4f)
-                away = new Vector2(0f, -1f);
-            away.Normalize();
-            FoundryMap.ToFloor(cu + away.x * depth, cv + away.y * depth, out gx, out gy);
-        }
-
-        // The nearest of eight points round the mark, just past its reach, that the hero can walk straight to: the straight
-        // line away from the centre ran into the gate's walls and the hero stood still on the mark.
-        private static bool EscapeMark(float x, float y, float markX, float markY, float radius, out float gx, out float gy)
-        {
-            gx = x; gy = y;
-            float best = float.PositiveInfinity;
-            for (int k = 0; k < 8; k++)
-            {
-                float a = k * Mathf.PI / 4f;
-                float px = markX + Mathf.Cos(a) * radius, py = markY + Mathf.Sin(a) * radius;
-                if (!FoundryMap.Contains(px, py, HeroMotion.EdgeMargin) || !FoundryMap.Segment(x, y, px, py, HeroMotion.EdgeMargin))
-                    continue;
-                float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                if (d >= best)
-                    continue;
-                best = d; gx = px; gy = py;
-            }
-            return !float.IsPositiveInfinity(best);
-        }
-
-        // The push of every living enemy within KiteReach, as a unit direction away from them; false when none is that close.
+        // The push of every living enemy within its kite reach (the cohort's AutopilotCohort.ThreatReach: KiteReach, or its
+        // own reach and a margin), as a unit direction away from them; false when none is that close.
         private bool Threat(float x, float y, out float tx, out float ty)
         {
             EncounterController encounter = _setup.Encounters;
@@ -326,13 +305,10 @@ namespace Cryptforge.Core
                 if (enemy == null || !enemy.IsAlive || !encounter.TryFloorPositionOf(enemy, out float px, out float py))
                     continue;
                 float d = ArenaFloor.FloorDistanceSquared(x, y, px, py);
-                // Outside the gate boss's own reach - the Warden's hammer outreaches a grunt's, and kiting at a grunt's
-                // distance left the hero inside every swing; kiting every enemy that wide starved the hero of drops
-                // (docs/41, 2026-10-26).
-                float reach = KiteReach;
-                EnemyDefinition definition = ReferenceEquals(enemy, encounter.GateBoss) ? encounter.DefinitionOf(enemy) : null;
-                if (definition != null && definition.Weapon != null)
-                    reach = Mathf.Max(reach, definition.Weapon.Range + .3f);
+                EnemyDefinition definition = encounter.DefinitionOf(enemy);
+                float reach = definition != null && definition.Weapon != null
+                    ? _cohort.ThreatReach(KiteReach, definition.Weapon.Range, ReferenceEquals(enemy, encounter.GateBoss))
+                    : KiteReach;
                 if (d >= reach * reach || d < 1e-6f)
                     continue;
                 tx += (x - px) / d;
@@ -357,7 +333,7 @@ namespace Cryptforge.Core
             if (!FoundryMap.Segment(x, y, gx, gy, .6f))
                 _route.Target(x, y, gx, gy, ref tx, ref ty);
             var steer = new Vector2(tx - x, ty - y);
-            if (steer.sqrMagnitude < 1e-6f)
+            if (steer.sqrMagnitude < 1e-6f || (_bandGuard && FootworkRule.StepsIntoBand(x, y, tx, ty)))
             {
                 _movement.Release();
                 return;
