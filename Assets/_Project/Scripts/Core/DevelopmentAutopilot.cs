@@ -216,6 +216,14 @@ namespace Cryptforge.Core
                 _cohort.Shelter(x, y, ShelterDepth, out gx, out gy);
                 return true;
             }
+            // Stepping in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn), for a cohort built with it: a single elite
+            // room's Captain - or the gate boss, with StepsInOnTheGateBoss - held at the best weapon's reach, when that weapon
+            // is short and the hero safe.
+            if (_cohort.StepsIn && StepInGoal(x, y, glowing, out gx, out gy))
+            {
+                stop = FootworkRule.StepInStop;
+                return true;
+            }
             // Kiting with room (FootworkRule.Kite): along a wall or turned away from it, never into it, nor into the band
             // while it glows; straight on for the clumsy cohorts, and not at all for the standing ones.
             if (_cohort.Kites && Threat(x, y, out float tx, out float ty) &&
@@ -274,6 +282,25 @@ namespace Cryptforge.Core
         // From the floor's second room on, in the walk to its next hall: where a measurement mode stops playing.
         private bool Lingering() => _setup.Encounters.RoomNumber >= 2 && _setup.Encounters.IsRoomSiteOpen &&
             !_setup.Encounters.IsInSwarmRoom;
+
+        // The gate boss while it stands, for a cohort that steps in on it, else the elite room's Captain while its wave
+        // stands, against the loadout's best weapon on it; marked while the Warden's mark is down.
+        private bool StepInGoal(float x, float y, bool glowing, out float gx, out float gy)
+        {
+            gx = x; gy = y;
+            EncounterController encounter = _setup.Encounters;
+            Health target = _cohort.StepsInOnTheGateBoss ? encounter.GateBoss : null;
+            bool boss = target != null;
+            if (!boss)
+                target = encounter.EliteLeader;
+            if (target == null || !target.IsAlive || _heroHealth == null ||
+                !encounter.TryFloorPositionOf(target, out float tx, out float ty))
+                return false;
+            WardenSlamService warden = _setup.Warden;
+            bool marked = warden != null && warden.IsFighting && warden.Clock.IsMarked;
+            return FootworkRule.StepIn(x, y, tx, ty, FootworkRule.BestSingleTargetReach(_setup.Upgrades.Loadout, boss), marked,
+                glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
+        }
 
         private bool NearestAltar(float x, float y, out float gx, out float gy)
         {

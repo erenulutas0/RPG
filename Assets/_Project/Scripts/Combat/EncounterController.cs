@@ -359,6 +359,10 @@ namespace Cryptforge.Combat
         // The boss the foundry's gate sent out, while its wave stands; null otherwise.
         public Health GateBoss => _gateBossWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0].Health : null;
         private bool _gateBossWave;
+        // The Grunt Captain of a foundry elite room's wave while it stands - the wave's first enemy - for the development
+        // autopilot's step-in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn); null otherwise.
+        public Health EliteLeader => _eliteWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0].Health : null;
+        private bool _eliteWave;
         public bool IsBossEnraged => _bossEnraged;
 
         // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
@@ -592,7 +596,7 @@ namespace Cryptforge.Combat
                     _roomSiteOpen = false;
                     HallReached?.Invoke(_roomSiteWait);
                     StartWave(WaveEnemies(_roomSiteStep.RoomIndex, _roomSiteStep.WaveIndex), false,
-                        _rooms[_roomSiteStep.RoomIndex].Kind == RoomKind.Boss);
+                        _rooms[_roomSiteStep.RoomIndex].Kind == RoomKind.Boss, EliteRoom(_rooms[_roomSiteStep.RoomIndex]));
                 }
                 return;
             }
@@ -810,7 +814,8 @@ namespace Cryptforge.Combat
                         ProgressChanged?.Invoke();
                     }
                     else
-                        StartWave(WaveEnemies(step.RoomIndex, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss);
+                        StartWave(WaveEnemies(step.RoomIndex, step.WaveIndex), GateRoom(room), room.Kind == RoomKind.Boss,
+                            EliteRoom(room));
                     break;
                 }
                 case FloorStepKind.NonCombatRoom:
@@ -835,10 +840,10 @@ namespace Cryptforge.Combat
         // only by taking an evolution.
         public float RunDifficulty => _difficulty != null ? _difficulty() : 1f;
 
-        private void StartWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false)
+        private void StartWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false, bool elite = false)
         {
             using (PerformanceMarkers.StartWave.Auto())
-                SpawnWave(waveDefinition, atGate, boss);
+                SpawnWave(waveDefinition, atGate, boss, elite);
         }
 
         // The floor's tier: authored, or the climb's formula by the floor's height with a boss room's own hardening.
@@ -856,6 +861,10 @@ namespace Cryptforge.Combat
         // A boss room on the foundry: its pack walks out of the gate instead of entering round the hero.
         private bool GateRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
+
+        // An elite room on the foundry: its wave's first enemy is its Captain (EliteLeader).
+        private bool EliteRoom(RoomDefinition room) =>
+            room.Kind == RoomKind.Elite && _arena != null && _arena.IsFoundryRegion;
 
         // A foundry floor's combat room after its first opens at its own district, the round going on from the
         // districts the run's earlier floors opened.
@@ -935,7 +944,7 @@ namespace Cryptforge.Combat
             FloorCleared?.Invoke();
         }
 
-        private void SpawnWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false)
+        private void SpawnWave(List<EnemyDefinition> waveDefinition, bool atGate = false, bool boss = false, bool elite = false)
         {
             ReleaseWave(true);
             IsInNonCombatRoom = false;
@@ -962,6 +971,7 @@ namespace Cryptforge.Combat
             EntrySides.Place(_waveOrdinal, count, heroX, heroY, _arena.Geometry, _entryDepth, _formationSpacing, _bodySpacing,
                 _placements);
             _gateBossWave = atGate;
+            _eliteWave = elite;
             if (atGate)
                 FoundryMap.PlaceAtGate(count, _placements);
             for (int i = 0; i < count; i++)

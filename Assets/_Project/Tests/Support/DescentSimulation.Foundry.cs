@@ -528,6 +528,8 @@ namespace Cryptforge.Tests
             public float EscapeSeconds;
             public float ShelterSeconds;
             public float LureSeconds;
+            // Seconds the pilot held a single elite or the gate boss at its best weapon's reach (Habit.StepsIn).
+            public float StepInSeconds;
             public int AltarsTaken;
             public int ChestsOpened;
             public int DropsCollected;
@@ -2846,6 +2848,25 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Walk;
                     return true;
                 }
+                // DevelopmentAutopilot's step-in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn): a single elite room's
+                // Captain - or the gate boss, with StepsInOnTheGateBoss - held at the best weapon's reach, when that weapon is
+                // short and the pilot safe.
+                if (cohort.StepsIn && StepInGoal(x, y, glowing, out gx, out gy))
+                {
+                    if (_realism != null && _realism.AimError > 0f)
+                    {
+                        if (_seconds >= _kiteAimUntil)
+                        {
+                            _kiteAimUntil = _seconds + _realism.KiteAimSeconds;
+                            _dice.Disc(_realism.AimError, out _kiteAimX, out _kiteAimY);
+                        }
+                        Aim(ref gx, ref gy, _kiteAimX, _kiteAimY);
+                    }
+                    stop = FootworkRule.StepInStop;
+                    _result.StepInSeconds += Step;
+                    _doing = PilotDoing.Fight;
+                    return true;
+                }
                 if (cohort.Kites && Threat(cohort, x, y, out float tx, out float ty) &&
                     cohort.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out gx, out gy))
                 {
@@ -2912,6 +2933,24 @@ namespace Cryptforge.Tests
                     return true;
                 }
                 return false;
+            }
+
+            // DevelopmentAutopilot.StepInGoal: the gate boss while it stands, for a cohort that steps in on it, else the elite
+            // room's Captain while its wave stands (EncounterController.EliteLeader), against the loadout's best weapon on
+            // it; marked while the Warden's mark - or a research hazard's - is down.
+            private bool StepInGoal(float x, float y, bool glowing, out float gx, out float gy)
+            {
+                gx = x;
+                gy = y;
+                Foe target = _levers.Cohort.StepsInOnTheGateBoss ? GateBoss : null;
+                bool boss = target != null;
+                if (!boss && _eliteWave && _wave.Count > 0 && !_wave[0].Defeated)
+                    target = _wave[0];
+                if (target == null || !target.IsAlive)
+                    return false;
+                bool marked = (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked) || _marks.Count > 0;
+                return FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss), marked,
+                    glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
             }
 
             private bool NearestAltar(float x, float y, out float gx, out float gy)

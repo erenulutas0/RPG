@@ -42,6 +42,25 @@ namespace Cryptforge.Tests
 
         private static AutopilotCohort.Habit Dropped(AutopilotCohort cohort) => AutopilotCohort.Habit.All & ~cohort.Habits;
 
+        // The step-in (FootworkRule.StepIn; docs/41, status 2026-11-10 night) is research: outside All, no cohort plays with
+        // it unless built with it, and one built with it keeps it.
+        [Test]
+        public void NoCohortStepsInUnlessBuiltWithTheHabit()
+        {
+            AutopilotCohort.Habit both = AutopilotCohort.Habit.StepsIn | AutopilotCohort.Habit.StepsInOnTheGateBoss;
+            Assert.That(AutopilotCohort.Habit.All & both, Is.EqualTo(AutopilotCohort.Habit.None));
+            foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
+                Assert.That(cohort.StepsIn || cohort.StepsInOnTheGateBoss, Is.False, cohort.Name);
+            var elites = new AutopilotCohort("careful, stepping in", AutopilotCohort.Habit.All | AutopilotCohort.Habit.StepsIn);
+            Assert.That(elites.StepsIn, Is.True);
+            Assert.That(elites.StepsInOnTheGateBoss, Is.False, "the gate boss is a habit of its own");
+            Assert.That(elites.Has(AutopilotCohort.Habit.All), Is.True);
+            var boss = new AutopilotCohort("careful, stepping in on the boss", AutopilotCohort.Habit.All | both);
+            Assert.That(boss.StepsInOnTheGateBoss, Is.True);
+            var bossOnly = new AutopilotCohort("the boss alone", AutopilotCohort.Habit.All | AutopilotCohort.Habit.StepsInOnTheGateBoss);
+            Assert.That(bossOnly.StepsIn || bossOnly.StepsInOnTheGateBoss, Is.False, "on the boss only with the step-in itself");
+        }
+
         // development/autopilot.txt: a cohort's name among the line's words, beside "on" or a measurement mode; the careful
         // pilot for none, or for a word that names no cohort.
         [Test]
