@@ -576,103 +576,110 @@ Vanguard of seed 33 now dies before the Warden walks out).
 
 ## Status 2026-11-10 (night): the Daggers' role
 
-**The decision** (taken on the owner's behalf; the lead delegated the research and the shipping): the Daggers deal x12
-to the foundry's elites - the Grunt Captain each elite room is built round - and nothing else changes. Roles: Staff =
-horde, Daggers = elites, Sword = Warden, and the gate's roles row reads three jobs and is met. Measured on main 4791f86f
-(the careful pilot's cards); the same research on 18715c94, before those cards, is summed up at the end.
+**Where it stands: no Daggers role ships.** A x12 Daggers share on the elite rooms' Grunt Captains met a three-job roles
+row and was reverted: the lead did not merge it (below). The root cause it rode on, the careful pilot's spacing, was
+measured next as a habit of the pilot's. A pilot that steps in on its target makes every weapon's elite fights three
+times shorter. It does not give the Daggers a lead on the elite rooms' waves with human hands, alone or with a readable
+Daggers mechanic of x2 at most. What ships is the measurement:
+- the simulation counts the elites;
+- the Daggers' research levers and their report;
+- the step-in, built in the scene and the simulation, off for every cohort;
+- the gate's roles row reading three jobs, which reads not met: the Daggers have no job.
 
-**The elites, defined.** The game's elite is room-level (RoomKind.Elite): an elite room's wave is a Grunt Captain with
-an escort of a Grunt and two Cinder Mites - floor 1's two (V0.1's second elite included) and floor 2's Sentry Hall. The
-halls' waves and surges hold none (Grunts, Runners, Tanks, Mites). The elites are the Captains, the first enemy of an
-elite room's wave, and not their escorts, as the Warden's job leaves floor 2's escort Mites apart. A weapon's damage on
-the elites a second is what it took off the Captains (`FoundryWeaponWork.DealtEliteLeader`) over the seconds an elite
-room's wave stood with the hero alive, its walk-in included (`FoundryResult.EliteFought`), P50 over the runs that met
-one, the Vanguard started with each weapon - as the gate reads the horde and the Warden. The whole pack
-(`DealtElite`) is read beside.
+Measured on main 4791f86f and 511a380b (the careful pilot's cards). Seeds 1-200 a hero, both floors, every cohort, the
+Vanguard started with each weapon, frame-perfect ; `FOUNDRY_REALISM=typical`. `TheDaggersRoleOverASeedBatch`,
+TestResults/daggers-role-1110/.
 
-**What binds the job.** Whatever the Vanguard starts with, the two elite rooms' fights last P50 14.3 s (about 7 s
-each, most of it the pack walking in) and its weapons together take 35-36 a second off them: the pack's health over its
-walk. The job is a share of that, and the Staff takes 59 % (reach 2.4 and a 3.5 splash on the pack as it walks in), the
-Sword 27 %, the Daggers 15 %: the careful pilot kites a Captain at its reach and 0.15 (1.75 units), the Daggers reach
-1.8, so they touch the pack last, after the Staff or the Sword the Vanguard picked up and its Forge Burst. A share on
-the Daggers' landings raises their part, never the pie: on the whole pack it stops at 12-14 a second against the
-Staff's 19-20 (x6 and x10 alike), and their crits or a longer reach do no better (below). The Captain alone is a smaller
-pie the Staff takes less of (12 a second), and a share there turns the Daggers' rare touch into a kill.
+**The elites, as the gate reads them.** The game's elite is a room (RoomKind.Elite): an elite room's wave is a Grunt
+Captain with a Grunt and two Cinder Mites. Floor 1 has two of them, V0.1's second elite included, and floor 2 has the
+Sentry Hall. The halls' waves and surges hold none: they are Grunts, Runners, Tanks and Mites. A weapon's damage on the
+elites a second is what it took off those waves (`FoundryWeaponWork.DealtElite`) over the seconds such a wave stood with
+the hero alive, from its spawn to its last fall (`FoundryResult.EliteFought`). The figure is the P50 over the runs that
+met one, with the Vanguard started with each weapon, as the gate reads the horde and the Warden. The research reads the
+Captains alone beside (`DealtEliteLeader`). The gate keeps the whole waves, the definition set before the batches. The
+roles row (`FoundryGate`) reads three jobs: horde, elites and Warden. A weapon's role is a job on which it leads every
+other weapon by more than 10 %. The batch report on this branch (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`)
+reads it not met: "the Daggers (horde 2 to the Staff's 31, elites 5 to the Staff's 21, Warden 0 to the Sword's 26)". The
+gate stands at met 7, not met 2 (engaged uptime, the roles).
 
-**The rule, in one place.** `EliteRule` (Scripts/Combat, pure): `DaggersId` (`weapon_daggers`, Weapon_Daggers.asset's
-id), `DaggersShare` = 12, `EliteShareOf(weaponId)`, `IsAmong` and `DamageOn(amount, share, elite)`, the one never-inlined
-body of the product. `WeaponLoadout.TryAdd` hands each weapon its share by its id (`WeaponRuntime.EliteShare`), and every
-landing of `WeaponRuntime.TryAttack` - strike, splash, burst, splinter, pulse - goes through `EliteRule.DamageOn` after
-`WardenRule.DamageOn`, with the elites the strike is handed. The scene: `EncounterController.Elites`, one list it fills
-with an elite room's first enemy as the wave spawns on the foundry (`EliteRoom`: RoomKind.Elite and the foundry region)
-and empties as the wave is released, held once by the hero's `AttackController.Elites` (CombatSetup). The simulation:
-the same list of its own (`SpawnWave`, `ReleaseWave`), passed from `HeroAttacks`. The hall arena, the Descent, the
-escorts, the halls, the horde and the gate boss take the Daggers' authored damage; Weapon_Daggers.asset does not move;
-no card text names a weapon's damage on elites. `EliteRuleTests` hold the values, the Daggers x12 on an elite through
-the strike (crit and splinter included), every other weapon and every non-elite x1, and no share without a loadout or
-elites; `FoundrySimulationTests.TheSimulationsWeaponsTakeTheGamesShareOnTheElites` the simulation's weapons (parity);
-`WeaponContentTests.TheElitesWeaponIsTheDaggersAsset` the asset's id;
-`ClimbFloorContentTests.EveryEliteRoomOpensItsWavesWithItsGruntCaptain` that the first enemy of every elite room's wave
-is the Captain (Unity, not run here). The scene's hand-over has no PlayMode test yet.
+**Before** (nothing in this section changes it; Sword / Staff / Daggers, frame-perfect ; human hands):
 
-**The gate.** `FoundryGate`'s roles row reads three jobs - horde, elites, Warden - and a weapon's role is a job on which
-it leads every other weapon by more than 10 % (the lead's reading; at most one weapon leads a job, so roles are
-distinct). Its basis states the definition; `FoundryGateTests` hold the reading on constructed numbers. The weapons
-table gains an elites column. The batch report after the rule (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`,
-TestResults/daggers-role-1110/gate-after-fp) reads the row met - Sword horde 8, elites 3, Warden 27; Staff 31, 10, 23;
-Daggers 2, 12, 0 - and the gate at met 8, not met 1 (engaged uptime), not measured 2, reported 4.
+| | |
+|---|---|
+| Horde a second | 8.2 / 31.1 / 1.7 ; 8.0 / 30.6 / 1.5 |
+| Elites (the waves) a second | 9.5 / 20.8 / 5.4 ; 9.5 / 20.6 / 4.9 |
+| The Captains alone a second | 6.2 / 12.2 / 4.4 ; 6.1 / 12.2 / 4.4 |
+| Warden a second | 26.4 / 23.3 / 0 ; 27.2 / 22.9 / 4.0 |
+| Floor 1 cleared, careful / first-card / standing / clumsy / auto-farmer, Vanguard | 200 / 196 / 193 / 104 / 9 ; 195 / 181 / 179 / 82 / 9 |
+| The same, Ilya | 200 / 200 / 193 / 184 / 30 ; 199 / 199 / 180 / 141 / 23 |
+| Both floors, Vanguard | 200 / 196 / 176 / 96 / 1 ; 193 / 179 / 151 / 66 / 1 |
+| Both floors, Ilya | 200 / 200 / 176 / 162 / 4 ; 195 / 197 / 155 / 105 / 3 |
+| Warden fight P50, floor 1 / floor 2, Vanguard / Ilya | 58 / 51, 58 / 51 s ; 53 / 48, 53 / 49 s |
 
-**Before and after** (the foundry simulation, seeds 1-200 a hero, `FOUNDRY_FLOORS=2`, every cohort, the Vanguard started
-with each weapon; frame-perfect / `FOUNDRY_REALISM=typical`; TestResults/daggers-role-1110/main2-* (before, and the
-candidates) and after-*; `TheDaggersRoleOverASeedBatch`):
+**What binds the job: the pilot's kite.** Whatever the Vanguard starts with, the elite rooms' fights last P50 14.3 s
+(two rooms), and its weapons together take 35-36 a second off them. The job is a share of that total: the Staff takes
+59 % (reach 2.4, a 3.5 splash), the Sword 27 % and the Daggers 15 %. The careful pilot kites a Captain from its reach
+plus 0.15 (1.75 units) and every other enemy alike, and the Daggers reach 1.8. They touch the pack last, after whatever
+the Vanguard picked up and its Forge Burst. Held at the Daggers' reach (the step-in, below), the same fights last 4.4 s
+and every weapon's rate on them triples (103-111 a second together): the fights' length was the kite, not the pack's walk.
 
-| | Before (main 4791f86f) | After (Daggers x12 on the elites) |
-|---|---|---|
-| Horde a second: Sword / Staff / Daggers | 8.2 / 31.1 / 1.7; 8.0 / 30.6 / 1.5 | 8.4 / 31.4 / 1.6; 8.3 / 31.1 / 1.4 |
-| Elites (Captains) a second | 6.2 / 12.2 / 4.4; 6.1 / 12.2 / 4.4 | 3.4 / 10.0 / **12.5**; 3.6 / 9.4 / **11.6** |
-| The elite packs a second | 9.5 / 20.8 / 5.4; 9.5 / 20.6 / 4.9 | 7.7 / 20.1 / 13.4; 7.4 / 18.9 / 12.7 |
-| Warden a second | 26.4 / 23.3 / 0; 27.2 / 22.9 / 4.0 | 27.1 / 23.4 / 0; 26.5 / 23.8 / 3.8 |
-| Roles (three jobs) | not met: the Daggers none (both hands) | met: Staff horde, Daggers elites (+25 % / +23 %), Sword Warden (+16 % / +11 %) |
-| Floor 1 cleared V: careful / first-card / standing / clumsy / auto-farmer | 200 / 196 / 193 / 104 / 9; 195 / 181 / 179 / 82 / 9 | 200 / 196 / 195 / 107 / 8; 196 / 183 / 181 / 82 / 11 |
-| Floor 1 cleared I, the same | 200 / 200 / 193 / 184 / 30; 199 / 199 / 180 / 141 / 23 | 200 / 200 / 197 / 187 / 36; 199 / 200 / 184 / 142 / 28 |
-| Both floors V, the same | 200 / 196 / 176 / 96 / 1; 193 / 179 / 151 / 66 / 1 | 200 / 196 / 183 / 98 / 0; 194 / 181 / 158 / 65 / 1 |
-| Both floors I, the same | 200 / 200 / 176 / 162 / 4; 195 / 197 / 155 / 105 / 3 | 200 / 200 / 182 / 163 / 4; 199 / 195 / 162 / 114 / 5 |
-| Warden fight P50, floor 1 V / I | 58 / 51; 53 / 48 s | 58 / 50; 52 / 47 s |
-| Warden fight P50, floor 2 V / I | 58 / 51; 53 / 49 s | 58 / 51; 54 / 49 s |
+**The x12 on the Captains: measured, shipped, reverted.** A Daggers share of 12 on the elite rooms' Captains, through
+one `EliteRule` that the scene and the simulation struck through, met a three-job roles row that read the Captains as
+the elites. It held on seeds 1-200: the Daggers 12.5 to the Staff's 10.0 frame-perfect and 11.6 to 9.4 with human
+hands, the Sword's Warden lead 16 % and 11 %, no cohort's floor-1 clears moving more than 6. It held on seeds 201-400
+too: 12.4 to 10.1 and 11.7 to 9.6. Below 12 the Sword lost the Warden with human hands (x8, x10: +9.5 %). On the whole
+waves no share leads: x6-x10 gives 12-14 a second against the Staff's 19-20. The lead did not merge it, and 5ef52402
+reverts 54e1850f:
+- a hidden x12 on one enemy is opaque to a player;
+- it one-shoots the Captain whenever a human closes in, and a human holding the Daggers closes in, so the elite rooms
+  become trivial with that weapon;
+- it stayed modest only because the careful pilot holds the Captain at 1.75 against a reach of 1.8;
+- the Captain-alone reading was chosen after the whole waves' failed.
 
-No cohort's floor-1 clears move by more than 6 of 200 (Ilya's auto-farmer frame-perfect 30 -> 36; with human hands
-Ilya's standing 180 -> 184, auto-farmer 23 -> 28); both floors move up to 9 (Ilya's clumsy with human hands, 105 ->
-114), where the hero picks the Daggers up. On seeds 201-400 the same: the Daggers 12.4 to the Staff's 10.1 (+23 %)
-frame-perfect and 11.7 to 9.6 (+22 %) with human hands, the Sword 26.9 to 23.0 and 26.4 to 23.0 on the Warden, no
-floor-1 cohort moving by more than 4.
+**The pilot's spacing.** `AutopilotCohort.Habit.StepsIn` (and `StepsInOnTheGateBoss`, a habit of its own), with
+`FootworkRule.StepIn` as the one body that `DevelopmentAutopilot` and the simulation call.
+- The target: the elite room's Captain (`EncounterController.EliteLeader`), or the gate boss with the second habit,
+  within 5 units.
+- The trigger: the pilot's best weapon on that one target (`FootworkRule.SingleTargetRate`: damage, rhythm and rolled
+  crits, the gate boss's share) reaches less than 2.0 units, and it is safe: no mark down, health at half or more, the
+  pit's band not glowing.
+- The step: it holds the target at that weapon's reach less 0.15, in or back out, rather than kiting.
+- Both habits stand outside `Habit.All`, so no cohort has them. The research gives them to the careful and first-card
+  cohorts (`Lever.CarefulHabits`); the standing, clumsy and auto-farmer cohorts play as they are.
+- `FootworkRuleTests` and `AutopilotCohortTests` hold the body and the habits.
 
-**The candidates** (main 4791f86f, seeds 1-200; frame-perfect; typical; the elites read as the Captains):
+| Lever | Elites (waves): Daggers to the best other | The Captains alone | Warden: Sword to Staff | Warden fight P50, floor 1, V / I | Floor-1 clears, largest move | Verdict |
+|---|---|---|---|---|---|---|
+| Steps in, the Captains and the Warden | 29.9 to 45.2 ; 22.8 to 38.8 | 25.2 to 24.1 ; 18.0 to 22.2 | 29.9 to 24.4 ; 30.6 to 25.0 | 48 / 43 ; 47 / 43 s | -4 (Ilya careful, human hands) | the Warden under 45 s |
+| Steps in on the Captains | 29.9 to 45.2 ; 22.8 to 38.8 | 25.2 to 24.1 ; 18.0 to 22.2 | 27.4 to 23.4 ; 27.0 to 23.7 | 55 / 49 ; 51 / 46 s | +-4 (careful, human hands) | within every bound; no job for the Daggers |
+| ...+ the Daggers x2 on the elites | **38.3 to 34.2 (+12 %) ; 30.3 to 31.6 (-4 %)** | 34.2 to 15.8 ; 24.2 to 16.6 | 27.1 to 24.0 ; 27.6 to 23.8 | 56 / 51 ; 51 / 45 s | +8 (Ilya auto-farmer), -9 (Ilya clumsy, human hands) | no lead with human hands |
+| ...+ the Daggers x2 on the Captains | 37.7 to 33.7 ; 28.4 to 31.1 | 32.5 to 15.4 ; 24.3 to 16.2 | 26.8 to 24.0 ; 27.6 to 23.7 | 56 / 50 ; 51 / 45 s | +6 (Ilya auto-farmer) | no lead with human hands |
+| ...+ the Daggers' crits x2 on the elites | 36.2 to 37.5 ; 28.8 to 35.9 | 30.5 to 19.2 ; 23.3 to 18.6 | 27.8 to 23.4 ; 27.2 to 24.1 | 55 / 50 ; 51 / 46 s | +8 (Ilya auto-farmer), -7 (Ilya clumsy), human hands | no lead |
+| The Daggers x2 on the elites, no step-in | 8.3 to 20.3 ; 7.9 to 20.6 | 7.0 to 11.3 ; 6.7 to 11.4 | 28.0 to 23.4 ; 26.6 to 23.1 | 57 / 51 ; 52 / 46 s | +8 (Ilya auto-farmer) | no lead |
 
-| Lever | Elites: Daggers to the Staff | Warden: Sword to the Staff | Floor-1 clears, the largest move | Verdict |
-|---|---|---|---|---|
-| On the whole pack x6 | packs 12.7 to 19.7; 11.5 to 19.5 | holds | +8 (Ilya clumsy, typical) | no lead on the packs |
-| On the whole pack x10 | packs 13.8 to 19.7; 12.5 to 18.9 | holds | +11 (Ilya auto-farmer, typical) | no lead on the packs |
-| On the Captains x8 | 11.2 to 10.2 (+10 %); 11.1 to 10.0 (+11 %) | 27.0 to 23.2; 26.4 to 24.1 (+9.5 %) | +5 | the Sword loses its lead with human hands |
-| On the Captains x10 | 11.8 to 10.3 (+15 %); 11.3 to 9.6 (+18 %) | 27.8 to 23.4; 26.6 to 24.3 (+9.5 %) | +6 | the same |
-| **On the Captains x12** | 12.5 to 10.0 (+25 %); 11.6 to 9.4 (+23 %) | 27.1 to 23.4 (+16 %); 26.5 to 23.8 (+11 %) | +6 | **met, on seeds 201-400 too** |
-| On the Captains x15 | 13.1 to 9.9 (+32 %); 11.9 to 9.4 (+27 %) | 28.0 to 23.4; 26.5 to 23.9 (+11 %) | +10 (Ilya auto-farmer, typical) | met, more than needed |
+(Frame-perfect ; human hands. The x2 shares are research levers, `FoundryLevers.DaggersEliteDamage`,
+`DaggersEliteCritDamage` and `DaggersEliteLeaderOnly`, read by the simulation alone. The step-in on the Warden too reads
+the elites as the step-in on the Captains does: the runs are the same until the gate.)
 
-With human hands every Captain share lifts the Staff's own Warden rate by about one a second (22.9 -> 23.8-24.3: the
-Staff-started Vanguard that picks the Daggers up), so the Sword's lead there falls from 19 % to 10-11 %; x12 is the
-smallest share at which the Daggers lead by more than 10 % in both hands and the Sword keeps its lead, and the Sword's
-margin with human hands is the row to watch.
+The step-in moves the floor-1 clears of no cohort by more than 4: the careful pilots keep their kite against everything
+but the one target, and step out when hurt. With the Warden included it takes the Warden's fight under step 4's 45 s
+(Ilya 43 s), since every weapon then reaches the Warden. A x2 on the elites with the step-in gives the Daggers the
+waves frame-perfect, 38 to 34, but not with human hands, where the Staff keeps them 32 to 30. On the Captains alone
+the Daggers lead with every x2. That is the reading this round does not take, for the reason the x12 was reverted.
 
-**On 18715c94, before the careful pilot's cards** (TestResults/daggers-role-1110/base-*, sweep*, captains*): the same
-shape. A share on the whole pack: x3 11, x4-x6 12-13, x10 15 a second against the Staff's 20-22. The Daggers' crits on
-the elites x3: 9-10. Reach 2.2 (Weapon_Daggers.asset's, shared with the hall and the Descent): elites 9-10, the Daggers
-21-22 on the Warden, the Warden's fight 44 / 41 s (under 45) and Ilya's standing cohort +18; reach 2.0 with x3: elites
-14-15, the Warden 18, Ilya's standing +17. The Captains: x8 led with human hands (+12 %) but not frame-perfect (+8 %),
-x15 led both but moved Ilya's clumsy cohort by 13 with human hands. The new picker takes fewer of the Daggers' lines,
-and the Staff's share of the elites fell with it (63 % -> 59 %).
+**The decision.** Nothing ships to the game. Turning the step-in on for the careful pilot on the Captains alone passes
+every bound the lead set for a pilot-fidelity fix: clears within 4, the Warden 55 / 49 s and 51 / 46 s, the Sword's lead
+17 % and 14 %. It is not turned on here, for three reasons:
+- it changes the instrument every gate row reads: the elite fights go from 14 s to 4-5 s, and the Warden's from 58 / 51
+  to 55 / 49 s frame-perfect;
+- engaged uptime is being re-read with that pilot in parallel;
+- it gives the Daggers no job.
 
-**What was built besides.** `FoundryLevers.DaggersEliteDamage`, `DaggersEliteCritDamage` and `DaggersEliteLeaderOnly`
-(research, read by the simulation alone, on top of the shipped share), `FoundryBatch.DaggersLevers` and
-`FoundryBatchReport.TheDaggersRoleOverASeedBatch` (explicit; `DAGGERS_LEVERS` by index, `FOUNDRY_REALISM`,
-`FOUNDRY_FLOORS`, default 2): each lever for both heroes in every cohort and the Vanguard started with each weapon, into
-daggers-role.md and .csv - with the elites' fight length, every weapon's rate on them and the starting weapon's share
-of it, what showed the pie.
+Turning it on is one line, adding `Habit.StepsIn` to `AutopilotCohort.Careful` and `FirstCard`, and it is the lead's
+call. With the gate boss too it needs the Warden's health re-read first.
+
+**What a Daggers job would take.** With the pilot holding them at their reach, the Daggers are level with the Staff on a
+single elite (25 to 24 frame-perfect) and far behind on the waves (30 to 45): the Staff's splash owns any pack. A job
+the Daggers can lead without a hidden share is one read on single targets the Staff cannot splash, such as the Captains
+or the Warden's escort-free fight. That is a change of the gate's reading, for the owner, and it was not taken here.
+Otherwise the Daggers stay the between weapon.
