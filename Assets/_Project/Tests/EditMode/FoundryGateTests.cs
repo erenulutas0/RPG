@@ -89,7 +89,7 @@ namespace Cryptforge.Tests
             foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
                 Assert.That(rows[FoundryGate.WeaponRoles].Simulation, Does.Contain(weapon.DisplayName + " horde ")
                     .And.Contain(", elites ").And.Contain(", Warden "));
-            Assert.That(rows[FoundryGate.WeaponRoles].Basis, Does.Contain("elites, on the elite rooms' Grunt Captains"));
+            Assert.That(rows[FoundryGate.WeaponRoles].Basis, Does.Contain("elites, on the elite rooms' waves"));
         }
 
         // The roles row's reading (docs/41, status 2026-11-10 night): three jobs - the horde, the elites, the Warden - and a

@@ -300,7 +300,7 @@ namespace Cryptforge.Tests
 
         // docs/40 section 17.5's three weapons with distinct roles, read as section 17.3's weapon_effectiveness: each
         // weapon's efficiency on three jobs when the Vanguard starts with it - its own damage on the horde a second of the
-        // floor, on the elites (the elite rooms' Grunt Captains) a second of the elite rooms' fights, and on the Warden a
+        // floor, on the elites (the elite rooms' whole waves) a second of the elite rooms' fights, and on the Warden a
         // second of the fight after the reveal - and a weapon's role is a job on which it leads every other weapon by more
         // than RoleMargin. Three jobs, so that three weapons can each lead one (docs/41, status 2026-11-10 night).
         private static Row Roles(IReadOnlyList<FoundryBatch.Batch> weapons, Evidence evidence)
@@ -331,7 +331,7 @@ namespace Cryptforge.Tests
                 ? string.Join("; ", rows.Select(r => $"{r.Name} horde {F(r.Jobs[0])}, elites {F(r.Jobs[1])}, Warden {F(r.Jobs[2])} a second"))
                 : "-";
             string how = "The Vanguard started with each weapon on the batch's seeds, the others still offered (the weapons table below); each weapon's own damage, what it picked up apart, P50s: " +
-                         "horde, its damage on the horde a second of the floor it held it; elites, on the elite rooms' Grunt Captains (the first enemy of a RoomKind.Elite room's wave, its escort of a Grunt and two Mites apart as the Warden's job leaves floor 2's escort apart; the halls hold no elite) a second of those rooms' fights, from the wave's spawn to its last fall; " +
+                         "horde, its damage on the horde a second of the floor it held it; elites, on the elite rooms' waves (RoomKind.Elite: a Grunt Captain with a Grunt and two Mites, the horde round them apart; the halls hold no elite) a second of those rooms' fights, from the wave's spawn to its last fall; " +
                          $"Warden, on the Warden a second of the fight after the reveal. A weapon's role is a job on which it leads every other weapon by more than {F(RoleMargin * 100)} %, and the three have distinct roles when each has one (at most one weapon leads a job).";
             if (rows.Count < catalogue.Length || rows.Any(r => r.Jobs.Any(double.IsNaN)))
                 return new Row
@@ -385,7 +385,7 @@ namespace Cryptforge.Tests
         }
 
         // P50s over the batch of the starting weapon's own damage: on the horde a second it was held; on the elites - the
-        // elite rooms' Grunt Captains, FoundryWeaponWork.DealtEliteLeader - a second of the elite rooms' fights
+        // elite rooms' whole waves, FoundryWeaponWork.DealtElite - a second of the elite rooms' fights
         // (FoundryResult.EliteFought), over the runs that met one; and on the Warden a second of the fight after the
         // reveal, over the runs that reached it.
         public static (double Horde, double Elites, double Warden) Efficiency(FoundryBatch.Batch b)
@@ -403,7 +403,7 @@ namespace Cryptforge.Tests
                 if (held > 0f)
                     horde.Add(w.DealtHorde / held);
                 if (r.EliteFought > 0f)
-                    elites.Add(w.DealtEliteLeader / r.EliteFought);
+                    elites.Add(w.DealtElite / r.EliteFought);
                 if (r.WardenFought > 0f)
                     warden.Add(w.DealtWarden / r.WardenFought);
             }
@@ -691,7 +691,7 @@ namespace Cryptforge.Tests
             if (weapons.Count == 0)
                 return;
             md.AppendLine("### Weapons: the Vanguard started with each (weapon_effectiveness, the roles row)").AppendLine();
-            md.AppendLine("The starting weapon's own work, the weapons the offers brought later apart. Share: of the weapons' damage. Horde, elites and Warden: its damage on the horde a second it was held, on the elite rooms' Grunt Captains a second of those rooms' fights (the runs that met one), and on the Warden a second of the fight after the reveal (the runs that reached it), P50 (P10-P90). " +
+            md.AppendLine("The starting weapon's own work, the weapons the offers brought later apart. Share: of the weapons' damage. Horde, elites and Warden: its damage on the horde a second it was held, on the elite rooms' waves a second of those rooms' fights (the runs that met one), and on the Warden a second of the fight after the reveal (the runs that reached it), P50 (P10-P90). " +
                           "Hit a strike: the enemies its strikes landed on (target, splash or cleave), its evolution's procs apart. Blows: the kills it landed a run. Under fire: from an enemy's first damage to its fall, of the enemies it finished.").AppendLine();
             md.AppendLine("| Starting weapon | Runs (cleared) | Floor P50 | Warden fight P50 | Weapons at the gate P50 | Share | Its damage: horde / node waves / Warden | Horde a second | Elites a second | Warden a second | Hit a strike | Blows a run P50 (horde) | Under fire P50: node / horde | Evolved |");
             md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
@@ -714,7 +714,7 @@ namespace Cryptforge.Tests
                               $"{F(Median(Felled(b).Select(r => r.BossSeconds)))} s | {F(Median(Reached(b).Select(r => (float)r.WeaponsAtGate)))} | {Pct(dealt, all)} | " +
                               $"{Pct(work.Sum(x => x.Work.DealtHorde), dealt)} / {Pct(work.Sum(x => x.Work.DealtNode), dealt)} / {Pct(work.Sum(x => x.Work.DealtWarden), dealt)} | " +
                               $"{Rate(work.Where(x => x.Run.FloorSeconds > x.Work.HeldFrom).Select(x => x.Work.DealtHorde / (x.Run.FloorSeconds - x.Work.HeldFrom)))} | " +
-                              $"{Rate(work.Where(x => x.Run.EliteFought > 0f).Select(x => x.Work.DealtEliteLeader / x.Run.EliteFought))} | " +
+                              $"{Rate(work.Where(x => x.Run.EliteFought > 0f).Select(x => x.Work.DealtElite / x.Run.EliteFought))} | " +
                               $"{Rate(work.Where(x => x.Run.WardenFought > 0f).Select(x => x.Work.DealtWarden / x.Run.WardenFought))} | " +
                               $"{(strikes == 0 ? "-" : F((double)landings / strikes, "0.00"))} | " +
                               $"{F(Median(b.Runs.Select(r => (float)r.Kills.Count(k => k.By == id))))} ({Pct(blows.Count(k => k.Horde), blows.Length)}) | " +
