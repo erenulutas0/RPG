@@ -301,7 +301,7 @@ namespace Cryptforge.Tests
                 DescentSimulation.FoundryResult[] reached = with.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
                 DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
                 DescentSimulation.FoundryResult[] cleared = with.Cleared.ToArray();
-                int died = reached.Count(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f);
+                int died = reached.Count(r => r.DiedAtWarden);
                 double change = 100.0 * (with.ClearedCount - baseline.ClearedCount) / Math.Max(1, with.Runs.Length);
                 double cost = reached.Length == 0 ? double.NaN
                     : reached.Average(r => r.TakenFromWarden + r.TakenFromSlams + r.FightTakenFromHorde + r.FightTakenFromPit);
@@ -394,7 +394,7 @@ namespace Cryptforge.Tests
             {
                 DescentSimulation.FoundryResult[] reached = b.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
                 DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
-                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f).ToArray();
+                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.DiedAtWarden).ToArray();
                 double slams = reached.Length > 0 ? reached.Average(r => r.Slams) : double.NaN;
                 double hits = reached.Length > 0 ? reached.Average(r => r.SlamHits) : double.NaN;
                 md.AppendLine($"| {b.Hero.Name} | {reached.Length} | {felled.Length} | {Spread(felled.Select(r => r.BossSeconds))} | " +
@@ -420,7 +420,7 @@ namespace Cryptforge.Tests
             {
                 DescentSimulation.FoundryResult[] reached = b.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
                 DescentSimulation.FoundryResult[] felled = reached.Where(r => r.BossSeconds >= 0f).ToArray();
-                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died && r.BossSeconds < 0f).ToArray();
+                DescentSimulation.FoundryResult[] diedThere = reached.Where(r => r.DiedAtWarden).ToArray();
                 string Share(Func<DescentSimulation.FoundryResult, float> part) =>
                     felled.Length == 0 ? "-" : F(100.0 * felled.Average(r => part(r) / Math.Max(1f, r.WardenHealth))) + "%";
                 double Mean(Func<DescentSimulation.FoundryResult, float> value) =>

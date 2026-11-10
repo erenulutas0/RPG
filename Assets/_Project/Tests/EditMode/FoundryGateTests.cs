@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Cryptforge.Combat;
 using NUnit.Framework;
 
 namespace Cryptforge.Tests
@@ -146,6 +147,69 @@ namespace Cryptforge.Tests
             evidence.NextFloor = null;
             Assert.That(FoundryGate.Rows(_heroes, _weapons, evidence).Single(r => r.Criterion == FoundryGate.Extract).Status,
                 Is.EqualTo(FoundryGate.NotMet));
+        }
+
+        // Where a run died, as the clears row and the Warden's cost row read it (constructed runs): a hero felled while the
+        // cleared room before the gate held for the floor's clock died to the gate's wait, not to that room's elite; and a
+        // hero burnt by the eruption that fells the Warden too died at the Warden in both rows, though the Warden fell.
+        [Test]
+        public void DeathsAreReadByWhereTheHeroStoodTheSameInEveryRow()
+        {
+            RoomKind[] kinds = { RoomKind.Combat, RoomKind.Elite, RoomKind.Boss };
+            DescentSimulation.FoundryResult Run(int seed, DescentSimulation.FoundryOutcome outcome) => new DescentSimulation.FoundryResult
+            {
+                Seed = seed, Hero = FoundryGate.V01HeroId, Outcome = outcome, Kinds = kinds, FloorSeconds = 250f,
+                RoomSeconds = new[] { 60f, 150f, 40f }, WalkSeconds = new[] { 5f, 5f, -1f }, WaveSeconds = new[] { 50f, 30f, -1f }
+            };
+
+            DescentSimulation.FoundryResult inTheWait = Run(1, DescentSimulation.FoundryOutcome.Died);
+            inTheWait.GateWaitSeconds = 20f;
+            inTheWait.DeathRoom = 2;
+            inTheWait.DeathPhase = DescentSimulation.GateWaitPhase;
+            DescentSimulation.FoundryResult atTheElite = Run(2, DescentSimulation.FoundryOutcome.Died);
+            atTheElite.DeathRoom = 2;
+            atTheElite.DeathPhase = "wave 1";
+            DescentSimulation.FoundryResult together = Run(3, DescentSimulation.FoundryOutcome.Died);
+            together.LevelAtGate = 20;
+            together.BossSeconds = 55f;
+            together.WardenSeconds = 55f;
+            together.DeathRoom = 3;
+            together.DeathPhase = "boss";
+            DescentSimulation.FoundryResult cleared = Run(4, DescentSimulation.FoundryOutcome.Cleared);
+            cleared.LevelAtGate = 20;
+            cleared.BossSeconds = 50f;
+            cleared.WardenSeconds = 50f;
+            var batch = new FoundryBatch.Batch
+            {
+                Hero = DescentSimulation.Vanguard(), Levers = FoundryBatch.Shipped(),
+                Runs = new[] { inTheWait, atTheElite, together, cleared }
+            };
+
+            Assert.That(together.DiedAtWarden, Is.True, "felled by the eruption that felled the Warden");
+            Assert.That(inTheWait.DiedAtWarden || atTheElite.DiedAtWarden || cleared.DiedAtWarden, Is.False);
+            Dictionary<string, FoundryGate.Row> rows = FoundryGate.Rows(new[] { batch }, null, null).ToDictionary(r => r.Criterion);
+            string clears = rows[FoundryGate.Clears].Simulation;
+            Assert.That(clears, Does.Contain("died 3: "));
+            Assert.That(clears, Does.Contain("the gate's wait 1"));
+            Assert.That(clears, Does.Contain("elites 1"));
+            Assert.That(clears, Does.Contain("Warden 1"));
+            Assert.That(rows[FoundryGate.WardenCost].Simulation, Does.Contain("died there 1 of 2"));
+        }
+
+        // A death while the gate holds is recorded as the gate's wait's (DescentSimulation.GateWaitPhase): with the gate
+        // held to the floor's limit, the Vanguard falls in the wait, and no death after the wait began and before the Warden
+        // walked out is read as its room's.
+        [Test]
+        public void TheSimulationRecordsADeathInTheGatesWaitAsTheWaits()
+        {
+            DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("gate held to the limit");
+            levers.GateNotBeforeSeconds = levers.LimitSeconds;
+            FoundryBatch.Batch batch = FoundryBatch.Run(DescentSimulation.Vanguard(), levers, new[] { 1, 2, 3, 4, 5, 6 }, 2);
+            DescentSimulation.FoundryResult[] waited = batch.Runs.Where(r => r.Outcome == DescentSimulation.FoundryOutcome.Died &&
+                                                                             r.GateWaitSeconds > 0f && r.LevelAtGate < 0).ToArray();
+            Assert.That(waited, Is.Not.Empty, "a hero held at the gate for the floor's limit falls in the wait");
+            foreach (DescentSimulation.FoundryResult r in waited)
+                Assert.That(r.DeathPhase, Is.EqualTo(DescentSimulation.GateWaitPhase), "seed " + r.Seed);
         }
 
         // The section's gate table, by its first cell: each row's cells between the unescaped pipes.
