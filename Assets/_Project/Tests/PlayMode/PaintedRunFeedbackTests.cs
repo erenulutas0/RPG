@@ -130,7 +130,7 @@ namespace Cryptforge.Tests
             Assert.That(ring.sortingOrder, Is.EqualTo(_arena.GroundEffectSortingOrder), "On the floor's order, as the line.");
             Vector3 feet = Feet();
             Assert.That(ring.transform.position.x, Is.EqualTo(feet.x).Within(1e-3f), "At his feet.");
-            Assert.That(ring.transform.position.y, Is.EqualTo(feet.y).Within(1e-3f), "Raised onto the surface he stands on.");
+            Assert.That(ring.transform.position.y, Is.EqualTo(feet.y).Within(1e-3f), "Raised onto the surface it stands on.");
             Assert.That(ring.transform.localScale.x, Is.EqualTo(.2f + .5f * .1f).Within(1e-4f),
                 "Out to the line's outer edge: its radius and half its width.");
             Assert.That(ring.transform.localScale.y, Is.EqualTo(ring.transform.localScale.x), "Its painted depth kept.");
