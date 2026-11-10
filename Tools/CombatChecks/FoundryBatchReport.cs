@@ -189,6 +189,45 @@ namespace Cryptforge.Tests
             Assert.That(md.Length, Is.GreaterThan(0));
         }
 
+        // The Daggers' role (docs/41, status 2026-11-10 night): each of FoundryBatch.DaggersLevers for both heroes in every
+        // cohort's hands and with the Vanguard started with each weapon, down FOUNDRY_FLOORS floors (2 by default), read as
+        // the gate's three jobs - horde, elites, Warden - beside the clears and the Warden's fight; frame-perfect, or with
+        // FOUNDRY_REALISM's hands. Into FOUNDRY_OUT: daggers-role.md (a row a lever) and daggers-role.csv. DAGGERS_LEVERS
+        // picks rows by index (comma separated, all by default); FOUNDRY_SEEDS, FOUNDRY_FIRST_SEED and FOUNDRY_PARALLEL as
+        // above.
+        [Test]
+        public void TheDaggersRoleOverASeedBatch()
+        {
+            int seeds = Setting("FOUNDRY_SEEDS", 200);
+            int first = Setting("FOUNDRY_FIRST_SEED", 1);
+            int floors = Setting("FOUNDRY_FLOORS", 2);
+            int parallel = Setting("FOUNDRY_PARALLEL", Math.Max(1, Environment.ProcessorCount / 2));
+            PilotRealism realism = PilotRealism.Named(Environment.GetEnvironmentVariable("FOUNDRY_REALISM"));
+            string output = Environment.GetEnvironmentVariable("FOUNDRY_OUT") ?? Path.Combine(RepositoryRoot(), "TestResults");
+            Directory.CreateDirectory(output);
+            FoundryBatch.Lever[] all = FoundryBatch.DaggersLevers();
+            string pick = Environment.GetEnvironmentVariable("DAGGERS_LEVERS");
+            IEnumerable<int> chosen = string.IsNullOrEmpty(pick)
+                ? Enumerable.Range(0, all.Length)
+                : pick.Split(',').Select(p => int.Parse(p.Trim(), CultureInfo.InvariantCulture));
+            int[] batchSeeds = FoundryBatch.Seeds(first, seeds);
+            var md = new StringBuilder();
+            md.AppendLine($"# The Daggers' role: seeds {first}-{first + seeds - 1} a hero, {floors} floor(s) ({DateTime.Now:yyyy-MM-dd HH:mm})").AppendLine();
+            md.AppendLine(FoundryBatch.RoleHeader());
+            var csv = new StringBuilder().AppendLine(FoundryBatch.RoleCsvHeader());
+            foreach (int index in chosen)
+            {
+                FoundryBatch.RoleRun run = FoundryBatch.RunRoles(all[index], batchSeeds, parallel, floors, realism);
+                md.AppendLine(FoundryBatch.RoleRow(run));
+                foreach (string line in FoundryBatch.RoleCsv(run))
+                    csv.AppendLine(line);
+                File.WriteAllText(Path.Combine(output, "daggers-role.md"), md.ToString());
+                File.WriteAllText(Path.Combine(output, "daggers-role.csv"), csv.ToString());
+            }
+            TestContext.WriteLine(md.ToString());
+            Assert.That(md.Length, Is.GreaterThan(0));
+        }
+
         // One seed's run as the scene's telemetry would write it, to lay beside the Editor's copy of the same seed's events:
         // FOUNDRY_TRACE_HERO (hero_vanguard or hero_cinder_arcanist) and FOUNDRY_TRACE_SEED, into FOUNDRY_OUT; FOUNDRY_FLOORS=2
         // traces floor 2 after a floor-1 clear too.

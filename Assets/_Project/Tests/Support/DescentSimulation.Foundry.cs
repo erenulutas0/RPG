@@ -266,6 +266,13 @@ namespace Cryptforge.Tests
             // the Warden.
             public float DaggersReach;
             public float DaggersWardenDamage = 1f;
+            // Research only, the Daggers' role (docs/41, status 2026-11-10 night; FoundryBatch.DaggersLevers): what the
+            // Daggers' landings on the elites (an elite room's node wave) deal, and what their critical landings there deal,
+            // on top of what they deal now. 1 is off.
+            public float DaggersEliteDamage = 1f;
+            public float DaggersEliteCritDamage = 1f;
+            // The two above on an elite room's leader alone, its Grunt Captain, rather than its whole pack.
+            public bool DaggersEliteLeaderOnly;
 
             public bool ReshapesSword => SwordReach > 0f || SwordSweepRadius > 0f || SwordIntervalScale != 1f ||
                                          SwordEvolutionPulseScale != 1f || SwordKillCleaveShare > 0f;
@@ -398,6 +405,12 @@ namespace Cryptforge.Tests
             public float DealtHorde;
             public float DealtNode;
             public float DealtWarden;
+            // Of DealtNode, what it took off the elites: the node waves of the floor's elite rooms (RoomKind.Elite), the
+            // Grunt Captain's pack - the third job the Daggers' research reads (FoundryBatch.RoleJobsOf).
+            public float DealtElite;
+            // Of DealtElite, what it took off the elite rooms' leaders, their Grunt Captains (research, docs/41 2026-11-10
+            // night: the elite alone rather than its pack).
+            public float DealtEliteLeader;
             public float DealtByProcs;
             public float DealtAfterEvolving;
 
@@ -521,6 +534,9 @@ namespace Cryptforge.Tests
             public float WardenFromPit;
             public float WardenFought;
             public float WardenInReach;
+            // The elites' fights: active seconds an elite room's node wave stood with the hero alive, its walk-in included,
+            // over the floor's elite rooms - what FoundryWeaponWork.DealtElite is read a second of.
+            public float EliteFought;
             public float HeroHealthAtGate = -1f;
             public float HeroMaximumAtGate = -1f;
             public float FightTakenFromHorde;
@@ -749,6 +765,9 @@ namespace Cryptforge.Tests
             public bool GateBoss;
             // Walked out of the gate beside the gate boss: floor 2's two Cinder Mites.
             public bool Escort;
+            // Of an elite room's node wave (RoomKind.Elite): the Grunt Captain and its pack; and its first, the Captain.
+            public bool Elite;
+            public bool EliteLeader;
             public PackMotion Motion;
             public int Slot;
             public int Experience;
@@ -924,6 +943,8 @@ namespace Cryptforge.Tests
             private bool _cleared;
             private int _waveOrdinal;
             private bool _gateBossWave;
+            // The node wave standing is an elite room's (FoundryResult.EliteFought).
+            private bool _eliteWave;
             private int _waveIndex = -1;
             private int _roomIndex = -1;
             private float _waveStartedAt;
@@ -1400,7 +1421,7 @@ namespace Cryptforge.Tests
                 }
                 if (hall < 0)
                     return;
-                SpawnWave(WaveEnemies(hall, _siegeWave % _wavesPerRoom[hall]), false, false);
+                SpawnWave(WaveEnemies(hall, _siegeWave % _wavesPerRoom[hall]), false, false, false);
                 _siegeWave++;
                 _sieging = true;
                 _result.WaitSiegeWaves++;
@@ -1531,15 +1552,15 @@ namespace Cryptforge.Tests
                 RoomKind kind = _floor.Kinds[roomIndex];
                 bool boss = kind == RoomKind.Boss;
                 _ambushNext = _levers.AmbushSurges && kind == RoomKind.Combat && waveIndex >= _floor.Rooms[roomIndex].Length;
-                SpawnWave(WaveEnemies(roomIndex, waveIndex), boss, boss);
+                SpawnWave(WaveEnemies(roomIndex, waveIndex), boss, boss, kind == RoomKind.Elite);
                 _ambushNext = false;
                 _waveIndex = waveIndex;
                 if (waveIndex == 0 && _hallRepeatWave < 0)
                     _hallStartedAt = _seconds;
             }
 
-            // EncounterController.SpawnWave on the foundry.
-            private void SpawnWave(List<Enemy> definitions, bool atGate, bool boss)
+            // EncounterController.SpawnWave on the foundry; elite, an elite room's wave (FoundryResult.EliteFought).
+            private void SpawnWave(List<Enemy> definitions, bool atGate, bool boss, bool elite)
             {
                 ReleaseWave();
                 _nonCombat = false;
@@ -1576,8 +1597,11 @@ namespace Cryptforge.Tests
                         foe.GateBoss = i == 0;
                         foe.Escort = i > 0;
                     }
+                    foe.Elite = elite;
+                    foe.EliteLeader = elite && i == 0;
                     _wave.Add(foe);
                 }
+                _eliteWave = elite;
                 _waveAlive = count;
                 _waveOrdinal++;
                 _fight.Begin();
@@ -1880,6 +1904,12 @@ namespace Cryptforge.Tests
                 FoundryWeaponWork striking = source == DamageSource.Weapon ? _striking : null;
                 if (striking != null && striking.Id == DaggersId && foe.GateBoss && _levers.DaggersWardenDamage != 1f)
                     context = new DamageContext(ScaleOf(context.Amount, _levers.DaggersWardenDamage), context.Source, context.IsCritical);
+                if (striking != null && striking.Id == DaggersId && (_levers.DaggersEliteLeaderOnly ? foe.EliteLeader : foe.Elite))
+                {
+                    float scale = context.IsCritical ? _levers.DaggersEliteDamage * _levers.DaggersEliteCritDamage : _levers.DaggersEliteDamage;
+                    if (scale != 1f)
+                        context = new DamageContext(ScaleOf(context.Amount, scale), context.Source, context.IsCritical);
+                }
                 if (striking != null && striking.Id == SwordId)
                 {
                     float scale = SwordDamageScale(foe);
@@ -1940,6 +1970,10 @@ namespace Cryptforge.Tests
                     work.DealtHorde += dealt;
                 else
                     work.DealtNode += dealt;
+                if (foe.Elite)
+                    work.DealtElite += dealt;
+                if (foe.EliteLeader)
+                    work.DealtEliteLeader += dealt;
                 if (work.EvolvedAt >= 0f)
                     work.DealtAfterEvolving += dealt;
             }
@@ -3125,6 +3159,8 @@ namespace Cryptforge.Tests
                     else
                         _result.WaitStill += Step;
                 }
+                if (_eliteWave && _waveAlive > 0 && _heroHealth.IsAlive)
+                    _result.EliteFought += Step;
                 Foe warden = GateBoss;
                 // What is left of the Warden as the frame ends: its clock is stepped before the frame's blows land on it.
                 if (warden != null)

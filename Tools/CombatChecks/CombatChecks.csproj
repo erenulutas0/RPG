@@ -100,6 +100,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.Sword.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.GateLevers.cs" />
+    <!-- The Daggers' role (docs/41, 2026-11-10 night): their research levers, read as the gate's three jobs. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.Daggers.cs" />
     <!-- The autopilot's cohorts over the batch's seeds (docs/41 step 5), the report's FOUNDRY_COHORTS section. -->
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryCohorts.cs" />
     <!-- A human's hands on the simulation's autopilot: reaction, aim and attention (research 2026-11-04). -->
