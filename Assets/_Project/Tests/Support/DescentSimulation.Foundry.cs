@@ -192,7 +192,8 @@ namespace Cryptforge.Tests
         // Data/Floors/Floor_QuicksilverVaults.asset, the climb's floor 2, as the foundry plays it: the Descent's floor 2
         // (QuicksilverVaults) - three halls, the Deep Forge, the Sentry Hall and the Warden's Vault, whose Forge Warden walks
         // out of the gate with two Cinder Mites - climb-scaled at floor 2, floor 1's three horde roles, Cursed Gold (+20%
-        // enemy damage, +50% gold) and none of V0.1's surges, extra elite or gate time: the gate open as its room clears.
+        // enemy damage, +50% gold), none of V0.1's surges or extra elite, and floor 1's gate time: the gate holds for the
+        // floor's clock to read 210 s (docs/47, built 2026-11-11; before it the gate opened as its room cleared).
         // Its Warden's share is its own, 8.5 / 1.4 (the asset's 6.071429): the climb's x1.4 cancelled on its gate boss.
         public static FoundryFloor FoundryFloorTwo() => new FoundryFloor
         {
@@ -201,6 +202,7 @@ namespace Cryptforge.Tests
             Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
             HordeRoles = new[] { Mite, Grunt, Runner },
             FloorNumber = 2,
+            GateNotBeforeSeconds = 210f,
             GateHealthShare = 6.071429f,
             ModifierHealthPercent = 0f,
             ModifierDamagePercent = QuicksilverVaults.ModifierDamagePercent,

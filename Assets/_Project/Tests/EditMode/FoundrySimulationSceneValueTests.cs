@@ -120,7 +120,7 @@ namespace Cryptforge.Tests
 
         // The climb's floor 2, which a run goes down to after a floor-1 clear (FoundryLevers.Floors = 2): Floor_EmberHalls'
         // next floor as the foundry plays it - its rooms, horde, climb scaling, Cursed Gold and its own foundry knobs (no
-        // V0.1 surges, elite or gate time; its Warden's own share) - its gate boss the Forge Warden with two Cinder Mites,
+        // V0.1 surges or elite, floor 1's gate time; its Warden's own share) - its gate boss the Forge Warden with two Cinder Mites,
         // the districts the round goes on from, and below it the finale's swarm room, which the simulation plays after a
         // floor-2 clear with FoundryLevers.Floors = 3 (TheFoundrysFinaleIsTheAsset).
         [Test]
@@ -132,7 +132,7 @@ namespace Cryptforge.Tests
             Assert.That(floor, Is.Not.Null);
             Assert.That(floor.FloorNumber, Is.EqualTo(2));
             AssertFloor(asset, floor);
-            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.Zero, "floor 2's gate opens as its room clears");
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(210f), "floor 2's gate holds for floor 1's 3:30 (docs/47)");
 
             // Its gate boss: the boss room's first enemy walks out of the gate and WardenRule's share and hold are its; the
             // others walk out beside it.
