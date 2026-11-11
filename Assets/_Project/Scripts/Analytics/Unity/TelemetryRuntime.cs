@@ -35,7 +35,10 @@ namespace Cryptforge.Analytics
             var clock = new StopwatchTelemetryClock();
             var store = new FileTelemetryStore(directory);
             if (_holds > 0)
+            {
                 store.Hold();
+                store.TryOpen();
+            }
             var session = new TelemetrySession(new TelemetryLog(new TimedStore(store), clock), clock);
             // Build facts only: nothing here names the device or the player.
             session.Start(new TelemetryFields()
@@ -54,11 +57,15 @@ namespace Cryptforge.Analytics
             return session;
         }
 
-        // A gameplay scene's recorder begins: the session's file stays open until every scene holding it has ended.
+        // A gameplay scene's recorder begins: the session's file is opened now, as the scene loads, rather than at its first
+        // flush (FileTelemetryStore.TryOpen), and stays open until every scene holding it has ended.
         public static void HoldFile()
         {
             _holds++;
-            _store?.Hold();
+            if (_store == null)
+                return;
+            _store.Hold();
+            _store.TryOpen();
         }
 
         // A gameplay scene's recorder has written its last lines: once no scene holds it, the file is closed.

@@ -31,7 +31,7 @@ namespace Cryptforge.Tests
         internal const int Capacity = 12000;
         internal const byte ProbeWork = 1;
         internal const byte Paused = 2;
-        private const int MaxMarkers = 96;
+        private const int MaxMarkers = 128;
         private static readonly double MillisecondsPerTick = 1000d / Stopwatch.Frequency;
         // The probe's own work in its LateUpdate, so a frame's LateUpdate can be told from the game's: the sorting groups
         // brought forward and the camera's render into the phone's target.
@@ -60,6 +60,36 @@ namespace Cryptforge.Tests
             // The Editor's compiler, a wait on the render thread, a hierarchy woken (2026-11-11's markers file).
             "Mono.JIT", "Gfx.WaitForGfxCommandsFromMainThread", "Semaphore.WaitForSignal", "Gfx.PresentFrame",
             "GameObject.ActivateAwakeRecursively", ProbeSortingName, ProbeRenderName,
+            // A first use's GPU-side work, by the names 2026-11-11's markers file gives it (the first level-up's render
+            // held 6 ms that Camera.Render, Culling and Drawing did not): a shader variant compiled, loaded or created, a
+            // font's glyphs cached, a texture made or uploaded, a mesh made, the main thread waiting on the render thread.
+            "Shader.CompileGPUProgram", "Shader.DynamicLoadGPUProgram", "Shader.ParseMainThread", "Shader.ParseThreaded",
+            "CreateGpuProgram", "Font.CacheFontForText", "Gfx.UploadTexture", "Gfx.UploadTextureData", "Gfx.CreateTexture",
+            "Gfx.CreateTextureThreaded", "Gfx.IntegrateTexture", "Gfx.MapTexture", "GraphicsTexture.CopyToTextureMemory",
+            "Texture.AwakeFromLoad", "Mesh.CreateMesh", "Mesh.UploadMeshData", "Canvas.RenderSubBatch",
+            "Canvas.PrepareBatches", "SpriteRenderer.OnChangeSprite", "Material.SetPassFast", "ApplyPass.PrepareKeywords",
+            "ApplyDeferredShaderLoadActions", "Gfx.WaitForRenderThread", "Shader.WarmupAllShaders",
+            "ShaderVariantCollection.WarmupShaders", "Prewarm Shaders", "TextureStreamingManager.LoadMipLevels",
+            "TextureStreamingManager.Update", "Application.UpdateTextureStreaming",
+        };
+        // Waits every thread makes - the workers' and the render thread's idle time summed past the frame's own - read once
+        // more on the main thread alone, as "<name> (main thread)", so the main thread's own wait is told apart.
+        private static readonly string[] MainThreadMarkers = { "Semaphore.WaitForSignal", "Gfx.WaitForRenderThread" };
+        internal const string MainThreadSuffix = " (main thread)";
+        // The engine's counters a first use moves: a texture, material or mesh made, the textures a frame draws with, a
+        // buffer uploaded. One this Editor does not offer stays invalid and is left out. A name holding "In Frame" is the
+        // frame's own amount; any other is a level, read as its change from the frame before.
+        private static readonly ProfilerCategory[] CounterCategories =
+        {
+            ProfilerCategory.Memory, ProfilerCategory.Memory, ProfilerCategory.Memory, ProfilerCategory.Memory,
+            ProfilerCategory.Memory, ProfilerCategory.Render, ProfilerCategory.Render, ProfilerCategory.Render,
+            ProfilerCategory.Render, ProfilerCategory.Render, ProfilerCategory.Render, ProfilerCategory.Render,
+        };
+        internal static readonly string[] CounterNames =
+        {
+            "Texture Count", "Texture Memory", "Material Count", "Mesh Count", "Gfx Used Memory", "Used Textures Count",
+            "Used Textures Bytes", "Render Textures Count", "Vertex Buffer Upload In Frame Count",
+            "Vertex Buffer Upload In Frame Bytes", "Index Buffer Upload In Frame Count", "Index Buffer Upload In Frame Bytes",
         };
         internal static readonly string[] ScriptNames =
         {
@@ -103,6 +133,12 @@ namespace Cryptforge.Tests
         internal readonly float[] Slams = new float[Capacity];
         internal readonly float[] Progress = new float[Capacity];
         internal readonly float[] BurnTicks = new float[Capacity];
+        // Font.textureRebuilt on the frame - a dynamic font's atlas rebuilt, every text on it made again - and which fonts.
+        internal readonly float[] FontRebuilds = new float[Capacity];
+        internal readonly string[] FontRebuildNames = new string[Capacity];
+        // CounterNames' values on each frame, -1 where a counter is not offered.
+        internal readonly float[][] CounterValues = new float[CounterNames.Length][];
+        private readonly ProfilerRecorder[] _counters = new ProfilerRecorder[CounterNames.Length];
 
         // Discovered at Begin: the markers this Editor or player provides, and each one's time per frame.
         internal readonly List<string> MarkerNames = new List<string>();
@@ -175,6 +211,13 @@ namespace Cryptforge.Tests
             _setPass = ProfilerRecorder.StartNew(ProfilerCategory.Render, "SetPass Calls Count");
             _triangles = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Triangles Count");
             _vertices = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Vertices Count");
+            for (int i = 0; i < CounterNames.Length; i++)
+            {
+                _counters[i] = ProfilerRecorder.StartNew(CounterCategories[i], CounterNames[i]);
+                CounterValues[i] = new float[Capacity];
+            }
+            System.Array.Clear(FontRebuilds, 0, FontRebuilds.Length);
+            System.Array.Clear(FontRebuildNames, 0, FontRebuildNames.Length);
             _recorders = true;
             DiscoverMarkers();
             Subscribe();
@@ -272,6 +315,8 @@ namespace Cryptforge.Tests
             Vertices[previous] = Last(_vertices);
             for (int i = 0; i < _markers.Length; i++)
                 MarkerMs[i][previous] = Milliseconds(_markers[i]);
+            for (int i = 0; i < _counters.Length; i++)
+                CounterValues[i][previous] = Last(_counters[i]);
         }
 
         private static float Last(in ProfilerRecorder recorder) =>
@@ -294,11 +339,14 @@ namespace Cryptforge.Tests
             var chosen = new List<ProfilerRecorderHandle>();
             MarkerNames.Clear();
             MarkersOnOffer.Clear();
+            // Counters too, with their unit, so a counter's exact name can be found here.
             foreach (ProfilerRecorderHandle handle in handles)
             {
                 ProfilerRecorderDescription description = ProfilerRecorderHandle.GetDescription(handle);
-                if (description.UnitType == ProfilerMarkerDataUnit.TimeNanoseconds && !string.IsNullOrEmpty(description.Name))
-                    MarkersOnOffer.Add(description.Category.Name + ": " + description.Name);
+                if (string.IsNullOrEmpty(description.Name))
+                    continue;
+                MarkersOnOffer.Add(description.Category.Name + ": " + description.Name +
+                    (description.UnitType == ProfilerMarkerDataUnit.TimeNanoseconds ? string.Empty : " [" + description.UnitType + "]"));
             }
             MarkersOnOffer.Sort(System.StringComparer.Ordinal);
             // Wanted names first, so the cap never pushes them out; then the scripts', in the order found.
@@ -321,11 +369,23 @@ namespace Cryptforge.Tests
                     MarkerNames.Add(name);
                 }
             }
+            // The waits once more on the main thread alone (made here, on it).
+            int allThreads = chosen.Count;
+            var mainOnly = new HashSet<string>(MainThreadMarkers);
+            for (int i = 0; i < allThreads; i++)
+            {
+                if (!mainOnly.Contains(MarkerNames[i]))
+                    continue;
+                chosen.Add(chosen[i]);
+                MarkerNames.Add(MarkerNames[i] + MainThreadSuffix);
+            }
             _markers = new ProfilerRecorder[chosen.Count];
             MarkerMs = new float[chosen.Count][];
             for (int i = 0; i < chosen.Count; i++)
             {
-                _markers[i] = new ProfilerRecorder(chosen[i], 1, ProfilerRecorderOptions.Default);
+                ProfilerRecorderOptions options = i < allThreads ? ProfilerRecorderOptions.Default
+                    : ProfilerRecorderOptions.Default | ProfilerRecorderOptions.CollectOnlyOnCurrentThread;
+                _markers[i] = new ProfilerRecorder(chosen[i], 1, options);
                 _markers[i].Start();
                 MarkerMs[i] = new float[Capacity];
             }
@@ -357,6 +417,8 @@ namespace Cryptforge.Tests
             for (int i = 0; i < _markers.Length; i++)
                 _markers[i].Dispose();
             _markers = new ProfilerRecorder[0];
+            for (int i = 0; i < _counters.Length; i++)
+                _counters[i].Dispose();
         }
 
         private void Subscribe()
@@ -379,6 +441,7 @@ namespace Cryptforge.Tests
             if (_setup.Warden != null)
                 _setup.Warden.Slammed += OnSlammed;
             BurnStatus.Burned += OnBurned;
+            Font.textureRebuilt += OnFontRebuilt;
             _subscribed = true;
         }
 
@@ -388,6 +451,7 @@ namespace Cryptforge.Tests
                 return;
             _subscribed = false;
             BurnStatus.Burned -= OnBurned;
+            Font.textureRebuilt -= OnFontRebuilt;
             if (_encounters != null)
             {
                 _encounters.HordeEnemySpawned -= OnSpawned;
@@ -428,5 +492,16 @@ namespace Cryptforge.Tests
         private void OnPicked(UpgradeOption option, int slot) => Bump(Picks);
         private void OnSlammed(bool hit) => Bump(Slams);
         private void OnBurned(Health enemy, float damage) => Bump(BurnTicks);
+
+        // Rare, so the names may allocate.
+        private void OnFontRebuilt(Font font)
+        {
+            int frame = Time.frameCount - _base;
+            if (!_recording || frame < 0 || frame >= Capacity)
+                return;
+            FontRebuilds[frame]++;
+            string name = font != null ? font.name : "?";
+            FontRebuildNames[frame] = FontRebuildNames[frame] == null ? name : FontRebuildNames[frame] + "," + name;
+        }
     }
 }

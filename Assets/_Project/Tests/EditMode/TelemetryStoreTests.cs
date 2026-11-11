@@ -195,6 +195,37 @@ namespace Cryptforge.Tests
             Assert.That(Directory.GetFiles(held).Length, Is.EqualTo(Directory.GetFiles(opened).Length));
         }
 
+        [Test]
+        public void AHeldStoreOpensItsFileAheadEmptyAndThenWritesTheSameBytes()
+        {
+            string ahead = Path.Combine(_directory, "ahead", "telemetry"), each = Path.Combine(_directory, "each");
+            var early = new FileTelemetryStore(ahead, 100, 3);
+            Assert.That(early.TryOpen(), Is.False, "Not holding, nothing is opened ahead.");
+            Assert.That(Directory.Exists(ahead), Is.False);
+            early.Hold();
+            Assert.That(early.TryOpen(), Is.True);
+            Assert.That(early.HoldsAFile, Is.True);
+            Assert.That(ReadShared(Path.Combine(ahead, FileTelemetryStore.FileName)), Is.Empty, "Opened ahead, it stands empty.");
+
+            var opened = new FileTelemetryStore(each, 100, 3);
+            for (int i = 0; i < 7; i++)
+            {
+                early.Append(Line(i, 11));
+                opened.Append(Line(i, 11));
+            }
+            early.Release();
+            for (int slot = 0; slot < 3; slot++)
+                Assert.That(File.ReadAllBytes(Path.Combine(ahead, FileTelemetryStore.FileNameAt(slot))),
+                    Is.EqualTo(File.ReadAllBytes(Path.Combine(each, FileTelemetryStore.FileNameAt(slot)))), $"Slot {slot}.");
+
+            string blocked = Path.Combine(_directory, "blocked");
+            File.WriteAllText(blocked, "a file where the folder should be");
+            var refused = new FileTelemetryStore(blocked);
+            refused.Hold();
+            Assert.That(refused.TryOpen(), Is.False, "A folder that cannot be made is left to the first append.");
+            Assert.That(() => refused.Append("{}\n"), Throws.InstanceOf<IOException>(), "Which fails where it always did.");
+        }
+
         // A file a store may hold open, read as a reader on Windows must read it.
         private static string ReadShared(string path)
         {
