@@ -34,6 +34,7 @@ namespace Cryptforge.Tests
             Assert.That(levers.Realism, Is.Null);
             Assert.That(levers.HasHazards, Is.False);
             Assert.That(levers.AmbushSurges, Is.False);
+            Assert.That(levers.WardenEchoEnragedOnly, Is.False);
             Assert.That(PilotRealism.Named(null), Is.Null);
             Assert.That(PilotRealism.Named(""), Is.Null);
         }
@@ -87,6 +88,23 @@ namespace Cryptforge.Tests
                 DescentSimulation.FoundryResult result = Run(DescentSimulation.CinderArcanist(), levers);
                 Assert.That(result.HazardMarks, Is.GreaterThan(0), lever.Name);
             }
+        }
+
+        // The echo's second round (2026-11-11): every blow of the careful pilot's Warden has its echo, and with
+        // WardenEchoEnragedOnly only the blows after the Warden is enraged - some, never all.
+        [Test]
+        public void TheEnragedOnlyEchoFollowsTheEnragedBlowsAlone()
+        {
+            DescentSimulation.FoundryLevers always = FoundryBatch.Shipped().Copy("echo");
+            always.WardenEchoTelegraph = 1.1f;
+            DescentSimulation.FoundryResult every = Run(DescentSimulation.CinderArcanist(), always);
+            Assert.That(every.Slams, Is.GreaterThan(0), "the careful pilot reached the Warden");
+            Assert.That(every.HazardMarks, Is.EqualTo(every.Slams));
+            DescentSimulation.FoundryLevers enraged = always.Copy("enraged echo");
+            enraged.WardenEchoEnragedOnly = true;
+            DescentSimulation.FoundryResult result = Run(DescentSimulation.CinderArcanist(), enraged);
+            Assert.That(result.HazardMarks, Is.GreaterThan(0));
+            Assert.That(result.HazardMarks, Is.LessThan(result.Slams));
         }
 
         // Counted only when a report asks (FoundryLevers.CountsHarmByPlace), and accounting only: the floor is the same.
