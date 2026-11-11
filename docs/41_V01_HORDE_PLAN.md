@@ -1003,3 +1003,261 @@ A 2.0 radius would put careful Ilya at 83 %, but the clumsy one at 17 %, and it 
    margin, the step-in habit included. Re-read the roles row before any of them ships.
 5. **Floor 2's Warden at 6.07 stands.** Share 7 is inside the band too, at a cost to the standing cohort; there is no
    reason in this batch to move it.
+
+## Status 2026-11-11: the Warden echo, second round
+
+**Why.** Decision 4 of the re-read found floor 1 too easy for the careful cohort. With human hands it clears 98 / 100 %,
+and only the Warden echo at the slam's own 1.1 s telegraph brings it back. As measured the echo had three problems:
+- frame-perfect, it stretched the careful Warden fight to 78 / 67 s, out of step 4's 45-65 s;
+- the standing cohort paid as much as the careful one;
+- the enraged-only echo the 2026-11-04 research recommended had no lever.
+
+This round reads two candidates, both research levers, off by default:
+1. the echo after every blow, with floor 1's Warden on a lower health share, so that the frame-perfect fight comes
+   back into 45-65 s;
+2. the echo after the enraged Warden's blows only.
+
+Nothing changes in the game.
+
+**Settings.** Main 4476f661 and this branch's levers: `FoundryLevers.WardenEchoEnragedOnly` and two parts of
+`FoundryDifficultyResearch`:
+- `echo-share` sweeps `ECHO_HEALTH` x `ECHO_SHARES`. The health is `FoundryLevers.WardenHealthShare`, the gate boss's
+  share on floor 1 (shipped `WardenRule.GateHealthShare`, 8.5).
+- `echo-enraged` sweeps `ECHO_ENRAGED_HEALTH` x `ECHO_ENRAGED_SHARES`.
+
+Seeds 1-200 a hero, `FOUNDRY_PARALLEL=4`, floor 1, every cohort, frame-perfect and `FOUNDRY_REALISM=typical` ("human
+hands"). The outputs are in TestResults/echo-1111/ (reference, share, share2, enraged, enraged2-4). The shipped floor
+and the echo at 8.5 reproduce the re-read's decision 4 to the digit: clears, Warden fights and floors. The default batch
+(`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1`) is byte-identical to main's but for the wall-time column.
+
+Every cell is "Vanguard / Ilya", clears of 200; "fp ; hh" is frame-perfect ; human hands. The 80-90 % band is 160-180
+clears, 65-80 % is 130-160. Read differences under about 10 as noise (docs/cloud/2026-11-04-difficulty.md).
+
+| Candidate | Verdict | The numbers that decide it |
+|---|---|---|
+| 1. The echo after every blow, floor 1's Warden at a lower share | **lands careful in either band, inside 45-65 s, at share 6** | 20 % echo: careful 166 / 170 with human hands (83 / 85 %). 30 %: 145 / 148 (73 / 74 %). Frame-perfect fight 58 / 51 s (P90 74 / 66), the shipped length; frame-perfect careful 199 / 200 |
+| 2. The echo after the enraged Warden's blows only | **lands careful in 80-90 %, inside 45-65 s, at 30 % and share 7** | careful 166 / 175 with human hands (83 / 88 %); frame-perfect fight 60 / 52 s (P90 76 / 66); the echo half again the slam's 20 %. For 65-80 % it needs 40 %, twice the slam: 148 / 161, Ilya on the edge |
+| Skill separation | **neither echo separates skill** | Shipped, careful clears 16 / 19 more than standing with human hands. In the band: every blow +6 / +1 (20 %) and +1 / -8 (30 %), enraged-only +6 / +15. The clumsy cohort does not move (79-86 / 137-142, shipped 82 / 141) |
+
+### 1. The echo after every blow, with floor 1's Warden at a lower share
+
+`DIFFICULTY_PARTS=echo-share`. After each blow a second mark goes down where the hero stands, with the slam's radius, and
+lands 1.1 s later. The shipped floor and share 8.5 come from TestResults/echo-1111/reference.
+
+| Echo, Warden share | careful fp ; hh | standing fp ; hh | first-card fp ; hh | clumsy fp ; hh | auto-farmer fp ; hh |
+|---|---|---|---|---|---|
+| none (shipped), 8.5 | 200 / 200 ; 195 / 199 | 193 / 193 ; 179 / 180 | 196 / 200 ; 181 / 199 | 104 / 184 ; 82 / 141 | 9 / 30 ; 9 / 23 |
+| 10 %, 8.5 | 200 / 200 ; 166 / 178 | 195 / 193 ; 161 / 159 | 196 / 200 ; 161 / 186 | 99 / 180 ; 71 / 128 | 3 / 8 ; 1 / 7 |
+| 10 %, 7 | 200 / 200 ; 179 / 186 | 197 / 196 ; 172 / 174 | 195 / 200 ; 178 / 192 | 105 / 183 ; 78 / 138 | 7 / 18 ; 6 / 13 |
+| 10 %, 6.5 | 200 / 200 ; 179 / 182 | 197 / 196 ; 175 / 175 | 195 / 200 ; 178 / 191 | 108 / 183 ; 79 / 142 | 7 / 23 ; 7 / 18 |
+| 10 %, 6 | 199 / 200 ; 184 / 186 | 196 / 197 ; 178 / 179 | 196 / 200 ; 178 / 193 | 110 / 186 ; 83 / 148 | 9 / 28 ; 10 / 22 |
+| 20 %, 8.5 | 200 / 200 ; 136 / 149 | 195 / 193 ; 147 / 148 | 196 / 200 ; 142 / 172 | 99 / 180 ; 69 / 124 | 0 / 2 ; 0 / 1 |
+| 20 %, 7 | 200 / 200 ; 158 / 162 | 197 / 196 ; 157 / 158 | 195 / 200 ; 161 / 181 | 105 / 183 ; 75 / 131 | 2 / 5 ; 1 / 6 |
+| 20 %, 6.5 | 200 / 200 ; 156 / 161 | 197 / 196 ; 161 / 164 | 195 / 200 ; 166 / 176 | 108 / 183 ; 78 / 137 | 3 / 6 ; 2 / 6 |
+| 20 %, 6 | 199 / 200 ; 166 / 170 | 196 / 197 ; 160 / 169 | 196 / 200 ; 166 / 187 | 110 / 186 ; 81 / 141 | 3 / 11 ; 4 / 9 |
+| 30 %, 6 | 199 / 200 ; 145 / 148 | 196 / 197 ; 144 / 156 | 196 / 200 ; 143 / 176 | 110 / 186 ; 79 / 137 | 1 / 4 ; 1 / 3 |
+
+The careful cohort's Warden fight, from walking out of the gate to its fall: P50 (P90) of the felled fights. Its floor:
+P50 of every run. Its echo hits a Warden fight with human hands (frame-perfect, 0.00-0.01), and its deaths at the
+Warden with human hands:
+
+| Echo, Warden share | Warden fight fp | Warden fight hh | Floor fp ; hh | Echo hits a fight, hh | Deaths at the Warden, hh |
+|---|---|---|---|---|---|
+| none (shipped), 8.5 | 58 (70) / 51 (62) | 53 (65) / 48 (57) | 292 / 285 ; 286 / 280 | 0.00 / 0.00 | 4 / 1 |
+| 10 %, 8.5 | 78 (94) / 67 (82) | 66 (80) / 59 (72) | 311 / 301 ; 298 / 290 | 1.91 / 1.74 | 33 / 22 |
+| 10 %, 7 | 67 (82) / 56 (73) | 58 (71) / 53 (63) | 300 / 293 ; 290 / 285 | 1.61 / 1.65 | 20 / 14 |
+| 10 %, 6.5 | 63 (78) / 53 (68) | 55 (70) / 49 (59) | 298 / 291 ; 287 / 281 | 1.61 / 1.55 | 20 / 18 |
+| 10 %, 6 | 58 (74) / 51 (66) | 53 (66) / 48 (57) | 294 / 288 ; 285 / 280 | 1.48 / 1.47 | 15 / 14 |
+| 20 %, 8.5 | 78 (94) / 67 (82) | 66 (80) / 59 (72) | 311 / 301 ; 294 / 288 | 1.81 / 1.70 | 63 / 51 |
+| 20 %, 7 | 67 (82) / 56 (73) | 58 (71) / 52 (63) | 300 / 293 ; 287 / 283 | 1.57 / 1.60 | 41 / 38 |
+| 20 %, 6.5 | 63 (78) / 53 (68) | 55 (70) / 49 (59) | 298 / 291 ; 285 / 280 | 1.57 / 1.52 | 43 / 39 |
+| 20 %, 6 | 58 (74) / 51 (66) | 53 (67) / 46 (56) | 294 / 288 ; 283 / 278 | 1.47 / 1.45 | 33 / 30 |
+| 30 %, 6 | 58 (74) / 51 (66) | 53 (67) / 47 (56) | 294 / 288 ; 281 / 276 | 1.42 / 1.38 | 54 / 52 |
+
+- **The fight comes back with the share.** At 8.5 the echo stretches the frame-perfect fight from 58 / 51 s to
+  78 / 67 s. The echo lands inside the 1.5 s the hammer stays in the floor, the window step 4 gave the hero to strike
+  back, so escaping it spends that window. At share 7 the fight is 67 / 56 s, the Vanguard still out; at 6.5 it is
+  63 / 53 s; at 6 it is 58 / 51 s, the shipped fight's length. Its P90 stays a few seconds over the shipped one:
+  74 / 66 s at 6, against 70 / 62 s.
+- **The echo still costs human hands at the lower share.** At share 6 the 20 % echo leaves careful at 166 / 170 and the
+  30 % at 145 / 148 (at 8.5 the 20 % gave 136 / 149): a shorter fight sees fewer echoes. The 10 % echo hardly bites
+  below 8.5 (179-184 / 182-186).
+- **The careful cohort's losses move to the Warden.** With human hands it dies there 33 / 30 times at share 6 and 20 %,
+  against 4 / 1 shipped; elsewhere on the floor it loses what it lost before.
+- **The frame-perfect pilot never notices it**: careful 199-200 at every share, never struck by the echo.
+
+### 2. The echo after the enraged Warden's blows only
+
+`DIFFICULTY_PARTS=echo-enraged` (`FoundryLevers.WardenEchoEnragedOnly`). The echo follows only the blows the Warden
+lands once it is enraged, under half its health, where the marks come every 4 s instead of 6 s. The calm half of the
+fight is the shipped one.
+
+| Enraged-only echo, Warden share | careful fp ; hh | standing fp ; hh | first-card fp ; hh | clumsy fp ; hh | auto-farmer fp ; hh |
+|---|---|---|---|---|---|
+| none (shipped), 8.5 | 200 / 200 ; 195 / 199 | 193 / 193 ; 179 / 180 | 196 / 200 ; 181 / 199 | 104 / 184 ; 82 / 141 | 9 / 30 ; 9 / 23 |
+| 10 %, 8.5 | 200 / 198 ; 177 / 186 | 195 / 189 ; 168 / 174 | 196 / 200 ; 174 / 192 | 102 / 179 ; 87 / 138 | 6 / 19 ; 5 / 15 |
+| 20 %, 8.5 | 200 / 198 ; 160 / 177 | 195 / 189 ; 155 / 163 | 196 / 200 ; 167 / 189 | 102 / 179 ; 82 / 138 | 5 / 9 ; 1 / 7 |
+| 30 %, 8.5 | 200 / 198 ; 143 / 168 | 195 / 189 ; 142 / 154 | 196 / 200 ; 156 / 180 | 102 / 179 ; 81 / 134 | 1 / 3 ; 1 / 6 |
+| 10 %, 7.5 | 200 / 200 ; 183 / 196 | 197 / 196 ; 178 / 179 | 196 / 200 ; 181 / 195 | 105 / 184 ; 89 / 143 | 9 / 26 ; 9 / 24 |
+| 20 %, 7.5 | 200 / 200 ; 170 / 184 | 197 / 196 ; 170 / 168 | 196 / 200 ; 169 / 189 | 105 / 184 ; 86 / 140 | 6 / 16 ; 6 / 11 |
+| 25 %, 7.5 | 200 / 200 ; 159 / 176 | 197 / 196 ; 168 / 164 | 196 / 200 ; 160 / 188 | 105 / 184 ; 85 / 138 | 5 / 13 ; 3 / 9 |
+| 30 %, 7.5 | 200 / 200 ; 152 / 165 | 197 / 196 ; 157 / 158 | 196 / 200 ; 157 / 185 | 105 / 184 ; 85 / 137 | 4 / 8 ; 3 / 8 |
+| 25 %, 7 | 200 / 200 ; 173 / 182 | 197 / 199 ; 168 / 165 | 196 / 200 ; 170 / 194 | 109 / 188 ; 80 / 139 | 6 / 18 ; 5 / 11 |
+| 30 %, 7 | 200 / 200 ; 166 / 175 | 197 / 199 ; 160 / 160 | 196 / 200 ; 163 / 187 | 109 / 188 ; 79 / 138 | 6 / 15 ; 5 / 10 |
+| 40 %, 7 | 200 / 200 ; 148 / 161 | 197 / 199 ; 152 / 150 | 196 / 200 ; 149 / 183 | 109 / 188 ; 78 / 133 | 3 / 10 ; 1 / 7 |
+
+| Enraged-only echo, Warden share | Warden fight fp | Warden fight hh | Floor fp ; hh | Echo hits a fight, hh | Deaths at the Warden, hh |
+|---|---|---|---|---|---|
+| none (shipped), 8.5 | 58 (70) / 51 (62) | 53 (65) / 48 (57) | 292 / 285 ; 286 / 280 | 0.00 / 0.00 | 4 / 1 |
+| 10 %, 8.5 | 69 (85) / 59 (75) | 62 (75) / 54 (65) | 304 / 296 ; 292 / 286 | 1.17 / 0.96 | 22 / 14 |
+| 20 %, 8.5 | 69 (85) / 59 (75) | 62 (75) / 54 (65) | 304 / 296 ; 290 / 285 | 1.12 / 0.92 | 39 / 23 |
+| 30 %, 8.5 | 69 (85) / 59 (75) | 62 (75) / 54 (65) | 304 / 296 ; 289 / 285 | 1.05 / 0.90 | 56 / 32 |
+| 10 %, 7.5 | 64 (79) / 54 (69) | 56 (69) / 49 (60) | 299 / 290 ; 289 / 283 | 1.09 / 0.88 | 16 / 4 |
+| 20 %, 7.5 | 64 (79) / 54 (69) | 56 (69) / 49 (61) | 299 / 290 ; 288 / 282 | 1.08 / 0.86 | 29 / 16 |
+| 25 %, 7.5 | 64 (79) / 54 (69) | 56 (69) / 49 (61) | 299 / 290 ; 286 / 281 | 1.06 / 0.85 | 40 / 24 |
+| 30 %, 7.5 | 64 (79) / 54 (69) | 56 (69) / 50 (61) | 299 / 290 ; 285 / 280 | 1.04 / 0.84 | 47 / 35 |
+| 25 %, 7 | 60 (76) / 52 (66) | 54 (67) / 47 (57) | 296 / 288 ; 285 / 279 | 1.04 / 0.86 | 26 / 18 |
+| 30 %, 7 | 60 (76) / 52 (66) | 54 (67) / 47 (57) | 296 / 288 ; 285 / 279 | 1.03 / 0.85 | 33 / 25 |
+| 40 %, 7 | 60 (76) / 52 (66) | 54 (67) / 47 (58) | 296 / 288 ; 283 / 278 | 1.01 / 0.82 | 51 / 39 |
+
+- **It stretches the fight about half as much.** At 8.5 the frame-perfect fight runs 69 / 59 s (after every blow:
+  78 / 67 s), the Vanguard still out of 45-65 s. At 7.5 it runs 64 / 54 s and at 7 60 / 52 s, inside.
+- **It needs a larger echo to bite**, since the calm half has none. At share 7 the 25 % echo leaves careful at
+  173 / 182 and the 30 % at 166 / 175; at 7.5 the 20 % leaves it at 170 / 184. So the echo hits as hard as the slam
+  (20 %) or half again as hard.
+- **It keeps the heroes apart.** Ilya clears 9-17 more than the Vanguard at every enraged-only setting in the fight
+  band. After every blow the two are within 2-7 below share 8.5 (166 / 170 at share 6).
+
+### 3. Neither echo separates skill
+
+How far the careful cohort clears above each other cohort with human hands:
+
+| Configuration | careful - standing | careful - first-card | careful - clumsy |
+|---|---|---|---|
+| shipped | +16 / +19 | +14 / +0 | +113 / +58 |
+| every blow, 10 %, share 8.5 | +5 / +19 | +5 / -8 | +95 / +50 |
+| every blow, 20 %, share 8.5 | -11 / +1 | -6 / -23 | +67 / +25 |
+| every blow, 20 %, share 7 | +1 / +4 | -3 / -19 | +83 / +31 |
+| every blow, 10 %, share 6.5 | +4 / +7 | +1 / -9 | +100 / +40 |
+| every blow, 20 %, share 6.5 | -5 / -3 | -10 / -15 | +78 / +24 |
+| every blow, 10 %, share 6 | +6 / +7 | +6 / -7 | +101 / +38 |
+| every blow, 20 %, share 6 | +6 / +1 | +0 / -17 | +85 / +29 |
+| every blow, 30 %, share 6 | +1 / -8 | +2 / -28 | +66 / +11 |
+| enraged-only, 10 %, share 8.5 | +9 / +12 | +3 / -6 | +90 / +48 |
+| enraged-only, 20 %, share 8.5 | +5 / +14 | -7 / -12 | +78 / +39 |
+| enraged-only, 30 %, share 8.5 | +1 / +14 | -13 / -12 | +62 / +34 |
+| enraged-only, 10 %, share 7.5 | +5 / +17 | +2 / +1 | +94 / +53 |
+| enraged-only, 20 %, share 7.5 | +0 / +16 | +1 / -5 | +84 / +44 |
+| enraged-only, 25 %, share 7.5 | -9 / +12 | -1 / -12 | +74 / +38 |
+| enraged-only, 30 %, share 7.5 | -5 / +7 | -5 / -20 | +67 / +28 |
+| enraged-only, 25 %, share 7 | +5 / +17 | +3 / -12 | +93 / +43 |
+| enraged-only, 30 %, share 7 | +6 / +15 | +3 / -12 | +87 / +37 |
+| enraged-only, 40 %, share 7 | -4 / +11 | -1 / -22 | +70 / +28 |
+
+Echo hits a Warden fight with human hands, and that fight's P50, by cohort:
+
+| | careful | standing | first-card | clumsy |
+|---|---|---|---|---|
+| every blow, 20 %, share 8.5: echo hits a fight | 1.81 / 1.70 | 1.37 / 1.21 | 1.24 / 1.02 | 0.42 / 0.42 |
+| every blow, 20 %, share 8.5: Warden fight P50 | 66 / 59 s | 56 / 50 s | 63 / 58 s | 48 / 48 s |
+| every blow, 20 %, share 6: echo hits a fight | 1.47 / 1.45 | 1.21 / 1.00 | 1.02 / 0.84 | 0.46 / 0.41 |
+| every blow, 20 %, share 6: Warden fight P50 | 53 / 46 s | 45 / 41 s | 52 / 45 s | 39 / 40 s |
+| enraged-only, 30 %, share 7: echo hits a fight | 1.03 / 0.85 | 0.70 / 0.65 | 0.68 / 0.55 | 0.18 / 0.19 |
+| enraged-only, 30 %, share 7: Warden fight P50 | 54 / 47 s | 45 / 41 s | 50 / 45 s | 43 / 44 s |
+| enraged-only, 20 %, share 7.5: echo hits a fight | 1.08 / 0.86 | 0.73 / 0.65 | 0.81 / 0.62 | 0.14 / 0.21 |
+| enraged-only, 20 %, share 7.5: Warden fight P50 | 56 / 49 s | 46 / 43 s | 54 / 47 s | 44 / 45 s |
+
+- **Standing pays about as much as careful, with either echo.** Shipped, careful clears 16 / 19 more than standing with
+  human hands. With the echo after every blow the gap is -11 to +6 for the Vanguard and -8 to +19 for Ilya;
+  enraged-only it is -9 to +9 and +7 to +17. Enraged-only keeps Ilya's shipped gap, not the Vanguard's.
+- **The echo does not reach the clumsy cohort.** Its clears move by 4 or less wherever careful lands in a band
+  (shipped 82 / 141). The clumsy Vanguard loses most of its runs in the halls before the Warden. At the Warden the clumsy
+  cohort takes 0.1-0.5 echo hits a fight against careful's 1.0-1.5, in a shorter fight. So the echo narrows the gap from
+  careful to clumsy: from +113 / +58 shipped to +66-87 / +11-44 in the bands.
+- **Careful pays most, and its fight is the longest.** With human hands it fights the Warden 53-56 / 46-49 s, standing
+  45-46 / 41-43 s, clumsy 39-44 / 40-45 s. So it sees the most echoes, and with a 0.25 s reaction and the typical
+  lapses each one is a chance to be late.
+
+The echo makes the Warden harder for every cohort that fights it at length. It is not a test that only the careful
+player passes. The 2026-11-04 research said so of the echo after every blow; the enraged-only echo is no different
+for the Vanguard and only a little better for Ilya.
+
+### 4. The bands
+
+| Careful with human hands | Candidates inside the fight band (careful clears, hh) | Frame-perfect careful fight P50 (P90) |
+|---|---|---|
+| 80-90 % (160-180) | **after every blow, 20 %, share 6: 166 / 170** | 58 / 51 s (74 / 66) |
+| | **enraged-only, 30 %, share 7: 166 / 175** | 60 / 52 s (76 / 66) |
+| | after every blow, 10 %, share 6.5: 179 / 182 (Ilya 91 %, on the edge) | 63 / 53 s (78 / 68) |
+| | enraged-only, share 7.5, 20 % and 25 %: 170 / 184 and 159 / 176 (one hero out each time) | 64 / 54 s (79 / 69) |
+| 65-80 % (130-160) | **after every blow, 30 %, share 6: 145 / 148** | 58 / 51 s (74 / 66) |
+| | enraged-only, 40 %, share 7: 148 / 161 (Ilya 80.5 %, on the edge; the echo twice the slam) | 60 / 52 s (76 / 66) |
+| | after every blow, 20 %, share 6.5: 156 / 161 (Ilya 80.5 %, on the edge) | 63 / 53 s (78 / 68) |
+
+Out of the fight band: enraged-only 20 % at 8.5 gives 160 / 177 (fight 69 / 59 s), and the echo after every blow at
+8.5 gives 166 / 178 at 10 % and 136 / 149 at 20 % (fight 78 / 67 s).
+
+What the 80-90 % readings do to the other cohorts with human hands:
+
+| | standing | first-card | clumsy | auto-farmer | careful floor fp ; hh |
+|---|---|---|---|---|---|
+| shipped | 179 / 180 | 181 / 199 | 82 / 141 | 9 / 23 | 292 / 285 ; 286 / 280 s |
+| after every blow, 20 %, share 6 | 160 / 169 | 166 / 187 | 81 / 141 | 4 / 9 | 294 / 288 ; 283 / 278 s |
+| enraged-only, 30 %, share 7 | 160 / 160 | 163 / 187 | 79 / 138 | 5 / 10 | 296 / 288 ; 285 / 279 s |
+| after every blow, 30 %, share 6 (65-80 %) | 144 / 156 | 143 / 176 | 79 / 137 | 1 / 3 | 294 / 288 ; 281 / 276 s |
+
+**Not read:**
+- **Floor 2.** The echo, built as the Warden's, would reach floor 2's Warden too; this round reads floor 1 alone.
+  Floor 2's careful fight is 58 / 51 s at its 6.07 share, and the echo after every blow added 20 / 16 s to floor 1's
+  fight of the same length. Floor 2's share would want the same re-read (`FOUNDRY_FLOORS=2`), or the echo stays
+  floor 1's.
+- **The Sword's role.** The Sword's lead on the Warden (x1.5, the smallest share that holds) is read as damage a second
+  of the fight. The echo changes how long the hero stands striking, so the roles row wants a re-read with it.
+- **The slow human.** Only the typical hand was read; the 2026-11-04 research found the echo the candidate most
+  sensitive to reaction (at 0.8 s it was a cliff).
+
+### What it would take to build in the scene
+
+Either echo needs the same five pieces; the enraged-only one adds one condition.
+
+| Piece | Where | What |
+|---|---|---|
+| The rule | WardenRule | The echo's telegraph and share as constants, and one body, never inlined, that says whether a blow has an echo (enraged or not), read by the scene and the simulation alike. The simulation's echo moves off the hazard levers onto it. A new health share is one constant (`GateHealthShare`), its comment re-measured. |
+| The clock | WardenSlamService | A second mark after a blow: where the hero stands at the blow, landing a telegraph later, paused with the slam clock (a choice open, the reveal held), gone with the Warden, its damage with the Warden as the source; events for the mark and the landing. |
+| The mark | WardenSlamView | A second ring set (edge and filling ring) on the echo's mark, told apart from the slam's at a glance (the art below). |
+| The pilot | DevelopmentAutopilot | The cohorts that escape marks escape the echo's too, as the simulation's `EscapeHazard` does, or the scene's frame-perfect parity breaks; `FoundrySimulationSceneValueTests` holds the two to it. |
+| The record | horde telemetry, the pacing file | Echo marks and hits a Warden fight beside the slam's, so a device session can set a human's echo hits against the simulation's typical hand. |
+
+**Telegraph art.**
+- The echo goes down while the hammer is still in the floor (its 1.5 s recovery), where the hero stood at the blow. It
+  must read as the blow's aftershock, not a second slam: a cracked ring or a ring of embers running out from the
+  hammer, in a colour of its own, so a player never mistakes which mark lands first.
+- The painted Warden needs a tell for it: the hammer held in the floor with a pulse running out of it. EnemyLookView has
+  the WindUp and Slam poses; the echo wants a third pose or a floor effect.
+- Enraged-only, the echo is the enrage's mechanic. The ForgeWarden prefab already shows an enrage (EnrageBehaviour's
+  colour and the "is enraged!" line); the build checks it turns at WardenRule.PhaseTwoAt, so the echo starts as the
+  enrage shows.
+
+**Cost.** About a day for the rule, the service, the pilot, the parity tests and the telemetry. The art adds a second
+mark decal and the Warden's aftershock tell. Then one device session, to read a human's echo hits against the
+simulation's.
+
+### What the owner must decide first
+
+1. **Which band careful should hit**: 80-90 % (the 2026-11-04 research's read) or docs/40 section 10.2's Apprentice
+   65-80 %, and for which cohort docs/40's bands are read at all. The echo moves careful, standing and first-card
+   together and leaves clumsy where it is. It sets one band for the cohorts that fight the Warden at length; it does
+   not build a ladder of skill.
+2. **Whether the Warden's health may move with it.** Each echo needs floor 1's share lowered to keep the fight's
+   length: 6 for the echo after every blow, 7 for the enraged-only one (from 8.5). That is the gate boss's one balance
+   number (`WardenRule.GateHealthShare`).
+3. **Then which echo.**
+   - **After every blow**, share 6: 20 % for 80-90 %, 30 % for 65-80 %. Both heroes land within 3-4 clears of each
+     other, the fight stays at today's length, and the frame-perfect pilot never notices it. The echo is a new rule of
+     the whole fight.
+   - **Enraged-only**, share 7, 30 % for 80-90 %. The calm half of the fight stays as it is and the enrage becomes a
+     second phase with its own mechanic, which may read better to a player. The price: an echo half again as heavy as
+     the slam, the heroes 9 clears apart, and a fight 2 s longer. It keeps Ilya's gap over the standing cohort, not the
+     Vanguard's. For 65-80 % it needs a 40 % echo, twice the slam, and Ilya still sits on the edge (148 / 161).
+4. Whichever is chosen, read its first scene build on a device. The typical human's 0.25 s reaction is an assumption,
+   and the echo is the candidate most sensitive to it.
