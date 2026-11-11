@@ -378,3 +378,122 @@ evolution more, and the 3:30 horde. The cohorts whose picker spends the extra le
 - careful stays rare (5 to 8 at the Warden, within the noise of 391 fights).
 
 The first-card cohort spends the same levels at random and comes out behind (4 to 13 at the Warden).
+
+### The levers
+
+Each option is the shipped Descent with one change on floor 2. Floor 1 is the same run in every option: of the 2,000
+runs, none differs in its floor-1 outcome, health, level or evolutions across the eight options.
+
+| Key | What it plays on floor 2 |
+|---|---|
+| `shipped` | as shipped: the gate at 3:30 (the finale's chest where the hero arrives) |
+| `gate0` | the gate as its room clears, floor 2 before the build |
+| `warden85` / `warden75` | the Warden at 85 % / 75 % of its health (`LaterWardenHealthShare` 5.160715 / 4.553572 against the asset's 6.071429) |
+| `horde180` / `horde210` | the horde stops hardening at 3:00 / 3:30 on the floor's clock (`LaterHordeClockCap`; no overrun) |
+| `mend70` | the Deep Forge's Mend heals 70 % instead of Forge_Mend's 40 % (`LaterMendAmount`; every cohort takes the Mend) |
+| `gatechest` | the gate room's chest a quarter heal under the hero's feet as the Warden walks out (`LaterGateChestHeal` 0.25) |
+
+Floor-2 deaths, Vanguard / Ilya, with floor 2's clears of those that went down in brackets:
+
+| Option | careful | standing | first-card | clumsy | auto-farmer |
+|---|---|---|---|---|---|
+| `shipped` | 4 / 6 (98 / 97 %) | 7 / 12 (96 / 93 %) | 10 / 6 (95 / 97 %) | 12 / 24 (85 / 82 %) | 7 / 21 (30 / 28 %) |
+| `gate0` | 3 / 4 (98 / 98 %) | 21 / 22 (89 / 88 %) | 6 / 1 (97 / 99 %) | 20 / 31 (74 / 77 %) | 9 / 23 (10 / 21 %) |
+| `warden85` | 3 / 5 (98 / 97 %) | 5 / 11 (97 / 94 %) | 6 / 5 (97 / 97 %) | 11 / 23 (86 / 83 %) | 6 / 18 (40 / 38 %) |
+| `warden75` | 1 / 4 (99 / 98 %) | 5 / 8 (97 / 96 %) | 6 / 4 (97 / 98 %) | 11 / 22 (86 / 83 %) | 6 / 17 (40 / 41 %) |
+| `horde180` | 3 / 4 (98 / 98 %) | 7 / 11 (96 / 94 %) | 7 / 5 (96 / 97 %) | 13 / 23 (83 / 83 %) | 6 / 21 (40 / 28 %) |
+| `horde210` | 4 / 5 (98 / 97 %) | 8 / 12 (96 / 93 %) | 8 / 5 (96 / 97 %) | 12 / 24 (85 / 82 %) | 7 / 21 (30 / 28 %) |
+| `mend70` | 0 / 4 (100 / 98 %) | 3 / 7 (98 / 96 %) | 3 / 2 (98 / 99 %) | 8 / 17 (90 / 87 %) | 5 / 14 (50 / 52 %) |
+| `gatechest` | 0 / 3 (100 / 98 %) | 1 / 7 (99 / 96 %) | 4 / 2 (98 / 99 %) | 8 / 20 (90 / 85 %) | 5 / 16 (50 / 45 %) |
+
+The times, all cohorts pooled, and floor 2's Warden fight by cohort (P50 s, Vanguard / Ilya; docs/40 section 9.6's band
+is 45-65 s). Completed: walked out of the finale, of all runs, for the first-card and careful cohorts.
+
+| Option | Floor 2 P50 (s) | Descent P50 (min) | Finale deaths (of reached) | Warden: careful | standing | first-card | clumsy | Completed: first-card / careful |
+|---|---|---|---|---|---|---|---|---|
+| `shipped` | 268 | 10.1 | 0 of 1,283 | 51 / 45 | 40 / 38 | 48 / 45 | 43 / 44 | 86 / 96 %, 96 / 96 % |
+| `gate0` | 128 | 7.7 | 0 of 1,252 | 53 / 48 | 39 / 37 | 51 / 47 | 45 / 45 | 88 / 98 %, 96 / 97 % |
+| `warden85` | 264 | 10.0 | 0 of 1,299 | 46 / 42 | 37 / 35 | 44 / 41 | 39 / 41 | 88 / 96 %, 96 / 96 % |
+| `warden75` | 262 | 10.0 | 0 of 1,308 | 43 / 39 | 35 / 33 | 40 / 38 | 36 / 39 | 88 / 97 %, 97 / 97 % |
+| `horde180` | 268 | 10.1 | 0 of 1,292 | 50 / 46 | 40 / 38 | 47 / 45 | 42 / 44 | 88 / 96 %, 96 / 97 % |
+| `horde210` | 268 | 10.1 | 0 of 1,286 | 50 / 45 | 40 / 38 | 48 / 45 | 43 / 44 | 87 / 96 %, 96 / 96 % |
+| `mend70` | 268 | 10.1 | 1 of 1,329 | 51 / 45 | 40 / 38 | 48 / 45 | 42 / 44 | 89 / 98 %, 98 / 97 % |
+| `gatechest` | 268 | 10.1 | 1 of 1,326 | 51 / 45 | 40 / 38 | 47 / 45 | 43 / 44 | 88 / 98 %, 98 / 98 % |
+
+The one finale death in `mend70` and `gatechest` is the same run: the first-card Vanguard of seed 95, which dies at
+floor 2's Warden as shipped, survives it and falls in the finale.
+
+**No lever is targeted at the first-card cohort.** Every lever that lowers its deaths lowers the careful cohort's about
+as much in proportion, because the careful cohort's few floor-2 deaths are the same kind: Warden fights at difficulty
+1.8+ after a costly wait.
+- **The Warden's share** (`warden85`: first-card 16 to 11, careful 10 to 8) shortens careful Ilya's fight to 42 s, out of
+  the 45-65 s band; `warden75` takes it to 39 s and the Vanguard's to 43 s.
+- **The horde's cap** keeps the Warden's fight in the band but buys little. `horde180` takes first-card from 16 to 12 and
+  careful from 10 to 7. `horde210`, the cap at the Warden's walk-out, buys 3, within the noise: in a 40-50 s fight the
+  horde only grows from x1.35 to x1.42 damage. The ramp past 3:00 is not what kills.
+- **The heals** take first-card back to its pre-build rate (`mend70` 5, `gatechest` 6). They leave the fight's length and
+  the Descent's 10.1 minutes as they are. But they also take careful from 10 to 3-4, standing from 19 to 8-10 and clumsy
+  from 36 to 25-28, and careful's floor-2 clears from 98 / 97 % to 100 / 98 %. Floor 2 gets easier for everyone, careful
+  included.
+
+### The reading
+
+**Is 16 within docs/40?** Yes. docs/40 section 10.2's bands are a whole run's win rates by difficulty mode, as docs/41
+read them on 2026-11-11, and the easiest, Apprentice, is 65-80 %. As shipped, the first-card cohort walks out of the
+finale in 86 % (Vanguard) and 96 % (Ilya) of its runs, against 88 / 98 % before the build. That is above every docs/40
+band, as the careful cohort's 96 / 96 % is. Its 9 extra floor-2 deaths are 2.4 % of its 377 Warden fights and cost it 2
+points of completion. Of the playing cohorts only the clumsy one (33 / 54 %) sits inside bands: Tempered's 25-40 % for
+the Vanguard and Forged's 40-60 % for Ilya.
+
+**Why the rise.** It is the cohort's build, not floor 2's length. The 3:30 gate gives every cohort about 8 more levels,
+an evolution's difficulty more and the 3:30 horde at the Warden. The careful picker spends the levels on health and comes
+out ahead. The first-card picker spends them at random, so it meets that harder Warden with 22 more health where the
+careful pilot brings 37. The overrun, the horde's experience cut-off and SwarmRule's ramp play no part.
+
+**Recommendation: none.** Keep floor 2 as shipped.
+- The first-card cohort loses a little more on the longer floor, as the weaker hand should, and its run stays above
+  docs/40's bands.
+- No floor-2 lever reaches it without reaching the careful cohort. The Warden's share breaks the 45-65 s band, and the
+  horde's cap is noise.
+- If the owner wants the first-card cohort's pre-build rate back anyway, `mend70` or `gatechest` does it with no change
+  to the Warden's band or the Descent's length. Either makes floor 2 easier for every cohort, careful included, so it is a
+  floor-2 difficulty decision, not a first-card fix.
+  - `mend70` needs a floor-2 Mend of its own, as Forge_Mend serves both floors.
+  - `gatechest` changes the gate room's gold chest into a heal at the hero's feet, the finale chest's rule.
+
+### The default batch is unchanged
+
+The levers are off by default. The default batch (FOUNDRY_FLOORS=2, the command below) ran on main 4487316e and again on
+this branch, with the same environment:
+- byte-identical, by first 12 hex of their sha256:
+  - foundry-batch.csv (f19890670d51)
+  - foundry-batch-floor2.csv (f62b2231ff59)
+  - foundry-cohorts-floor2.csv (7127077ed18b)
+  - foundry-gate.md (47a518a75d5f)
+  - foundry-cohorts.md (b309eba5c068)
+- foundry-batch.md differs only in its date line and its "Wall s" column.
+
+CombatChecks' foundry suites (`FoundrySimulationTests`, `FoundryGateCallTests`, `FoundryFinaleTests`, `FoundryGateTests`,
+`ChestRuleTests`, `HordeDirectorTests`): 63 of 63 green on this branch.
+
+### Reproduce
+
+```
+# the research (FIRSTCARD_OPTIONS picks a subset; every option by default). Writes first-card-floor2.md and a row a run's
+# floor 2 in first-card-floor2.csv, both rewritten after each option
+FOUNDRY_SEEDS=200 FOUNDRY_PARALLEL=11 FOUNDRY_REALISM=typical FOUNDRY_OUT=<dir> \
+FIRSTCARD_OPTIONS=shipped,gate0,warden85,warden75,horde180,horde210,mend70,gatechest \
+  dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~FirstCardFloorTwoResearch"
+
+# the batch's cohorts down the whole Descent: its floor-2 section is the research's `shipped` rows
+FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=3 FOUNDRY_REALISM=typical FOUNDRY_PARALLEL=1 \
+FOUNDRY_OUT=<dir> dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false \
+  --filter "FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"
+
+# the default batch, byte-identical with the levers off: the same with FOUNDRY_FLOORS=2
+```
+
+The research plays each cohort through `FoundryCohorts.Levers(cohort, 3, realism)`, the batch's own levers for
+FOUNDRY_FLOORS=3. Its `shipped` rows match the default batch's foundry-cohorts.md floor-2 section on 4487316e in every
+cohort's went-down, clears, deaths and Warden fight. That batch reads careful 10 and clumsy 36 floor-2 deaths, where the
+evening status above read 8 and 34.
