@@ -6,8 +6,10 @@ namespace Cryptforge.UI
 {
     // Shared grid sprites let floor rings, shadows and pulses bend over both ramp seams.
     // Sources/textures are borrowed; copies and the single material belong to the scene.
-    // Its one-time work - the shader loaded and the material made, a sprite's grid made - runs the first time a floor
-    // sprite reaches the ramp, each step in its own profiler scope (PerformanceMarkers.Ground*), as does every projection.
+    // Its one-time work - the shader loaded and the material made, a sprite's grid made - is done as the foundry loads for
+    // the sprites every actor carries onto the ramp (Prewarm, from FoundryVisibilityView), and otherwise the first time a
+    // floor sprite reaches the ramp; each step has its own profiler scope (PerformanceMarkers.Ground*), as has every
+    // projection.
     internal sealed class FoundryGroundProjection
     {
         private const int Divisions = 16;
@@ -23,6 +25,16 @@ namespace Cryptforge.UI
         internal int GridCount => _grids.Count;
         internal bool HasGrid(Sprite source) => source != null && _grids.ContainsKey(source);
         internal int Projections { get; private set; }
+
+        // The material and these sources' grids made now, so that no ramp overlap makes them. False when the shader is
+        // missing: nothing is made, and every floor sprite stays flat as it always did.
+        internal bool Prewarm(Sprite first, Sprite second)
+        {
+            if (!EnsureMaterial()) return false;
+            if (first != null) Grid(first);
+            if (second != null) Grid(second);
+            return true;
+        }
 
         internal void Apply(SpriteRenderer renderer, Vector3 region)
         {
@@ -63,7 +75,7 @@ namespace Cryptforge.UI
         }
 
         // The source's surface grid, made the first time it is wanted: the source's texture and rect over 16x16 cells.
-        private Sprite Grid(Sprite source)
+        internal Sprite Grid(Sprite source)
         {
             if (_grids.TryGetValue(source, out var grid)) return grid;
             using (PerformanceMarkers.GroundGrid.Auto())

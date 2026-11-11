@@ -97,6 +97,18 @@ namespace Cryptforge.UI
         private bool _coverAbandoned;
         // The placement on show gives the silhouette material only to bodies a structure may cover (the gate above).
         private bool _gated;
+        // The warm-up renderers waiting for the first render of a game camera, and that camera while it draws them.
+        private readonly List<SpriteRenderer> _warm = new List<SpriteRenderer>();
+        private Camera _warming;
+
+        // Off, the foundry loads as it did before 2026-11-11: the ground projection makes its material and grids at the
+        // first ramp overlap, a silhouette material is made for the first body that needs it, and nothing is drawn ahead.
+        // For FoundryRampEntryMeasurement's comparison (one Editor process each way); set before the scene loads.
+        internal static bool PrewarmFirstUse { get; set; } = true;
+        internal const string WarmUpName = "Foundry first-use warm-up";
+        // Warm-up renderers made and not drawn yet, and the renders that drew them (0 or 1).
+        internal int WarmPending => _warm.Count;
+        internal int WarmDraws { get; private set; }
 
         internal Material ForStructure(Material source)
         {
@@ -163,6 +175,10 @@ namespace Cryptforge.UI
         {
             Camera.onPreCull += OnCameraPreCull;
             Camera.onPostRender += OnCameraPostRender;
+            // Warm-up renderers still waiting draw with the view on, never with it off.
+            foreach (SpriteRenderer warm in _warm)
+                if (warm != null)
+                    warm.enabled = true;
         }
 
         // The ground projection's state, for the tests and the ramp-entry measurement: its material (null until made), the
@@ -179,6 +195,7 @@ namespace Cryptforge.UI
 
         private void Start()
         {
+            Prewarm();
             _drops = FindFirstObjectByType<GroundDropView>();
             _chest = FindFirstObjectByType<ChestSpawner>();
             _effects = FindFirstObjectByType<CombatEffectsView>();
@@ -186,6 +203,71 @@ namespace Cryptforge.UI
             if (hero == null) return;
             _hero = hero.transform;
             _health = hero.GetComponent<Health>();
+        }
+
+        // The one-time work of the hero's first ramp entry, and of a body's first silhouette, done as the foundry loads
+        // (docs/23, 2026-10-09: one 216.9 ms frame on the S23 at the first ramp entry, the frame the ground projection
+        // loaded its shader, made its material and grids and first drew them). Made here: the ground material and the grids
+        // of the two sprites every actor carries onto the ramp first - the contact shadow and the hero's ability ring; a
+        // floor effect's frame keeps its small grid to its first overlap - and both silhouette materials. Drawn in the
+        // first render of a game camera: one renderer per shader, at zero alpha (ArmWarmDraws), so that each pass's GPU
+        // program - on Vulkan its pipeline, which depends on the camera's target and the sprites' vertex layout and which a
+        // ShaderVariantCollection warm-up does not make - is created during the load, not in the frame the ramp or a
+        // covering structure is first reached. Every pass of both shaders writes its colour premultiplied by the vertex
+        // alpha, with Blend One OneMinusSrcAlpha and no depth: at zero alpha the draws leave every pixel as it was.
+        private void Prewarm()
+        {
+            if (!PrewarmFirstUse) return;
+            using (Cryptforge.Core.PerformanceMarkers.GroundPrewarm.Auto())
+            {
+                Sprite shadow = Cryptforge.Art.ArenaSpriteCache.ContactShadow;
+                if (_ground.Prewarm(shadow, Cryptforge.Art.AbilityRingArt.Get()) && shadow != null)
+                    AddWarmRenderer(_ground.Grid(shadow), _ground.Material);
+                // The loot silhouette shares the enemies' shader and passes; only its colour differs.
+                Material xray = EnemyXray();
+                LootXray();
+                AddWarmRenderer(shadow, xray);
+            }
+        }
+
+        // Enabled from the start, never culled (bounds far beyond any view), and not one of the bodies or floor sprites the
+        // depth pass places; under the region, so it goes with the scene.
+        private void AddWarmRenderer(Sprite sprite, Material material)
+        {
+            if (sprite == null || material == null) return;
+            var warm = new GameObject(WarmUpName);
+            warm.transform.SetParent(transform, false);
+            var renderer = warm.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+            renderer.sharedMaterial = material;
+            renderer.color = new Color(1f, 1f, 1f, 0f);
+            renderer.localBounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
+            _warm.Add(renderer);
+        }
+
+        // In front of the camera for its first render, inside its clip range wherever it looks.
+        private void ArmWarmDraws(Camera camera)
+        {
+            Transform view = camera.transform;
+            Vector3 at = view.position + view.forward * (camera.nearClipPlane + 1f);
+            foreach (SpriteRenderer warm in _warm)
+                if (warm != null)
+                    warm.transform.position = at;
+            _warming = camera;
+        }
+
+        // Off at once (a destroyed object lingers to the frame's end, and the same frame may render again), then gone.
+        private void EndWarmDraws()
+        {
+            foreach (SpriteRenderer warm in _warm)
+                if (warm != null)
+                {
+                    warm.enabled = false;
+                    Destroy(warm.gameObject);
+                }
+            _warm.Clear();
+            _warming = null;
+            WarmDraws++;
         }
 
         private void LateUpdate()
@@ -216,12 +298,14 @@ namespace Cryptforge.UI
                 string refusal = CameraRefusal(camera);
                 if (!_applied || _appliedFrame != Time.frameCount || (_gated && refusal != null)) Place(refusal);
             }
+            if (_warm.Count > 0 && _warming == null && camera.cameraType == CameraType.Game) ArmWarmDraws(camera);
         }
 
         private void OnCameraPostRender(Camera camera)
         {
             using (Cryptforge.Core.PerformanceMarkers.DepthRestore.Auto())
                 RestoreActorDepth();
+            if (_warming != null && camera == _warming) EndWarmDraws();
         }
 
         // The placement for a render whose camera is not known (tests, the probe's timing): every enemy, drop and chest body
@@ -542,6 +626,10 @@ namespace Cryptforge.UI
         {
             Camera.onPreCull -= OnCameraPreCull;
             Camera.onPostRender -= OnCameraPostRender;
+            foreach (SpriteRenderer warm in _warm)
+                if (warm != null)
+                    warm.enabled = false;
+            _warming = null;
             RestoreActorDepth();
             RestoreXrayed();
             foreach (var variant in _variants.Values) variant.SetVector(FocusId, Vector4.zero);
@@ -549,6 +637,10 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            foreach (SpriteRenderer warm in _warm)
+                if (warm != null)
+                    Destroy(warm.gameObject);
+            _warm.Clear();
             _ground.Dispose();
             foreach (var variant in _variants.Values) if (variant != null) Destroy(variant);
             _variants.Clear();

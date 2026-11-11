@@ -31,6 +31,9 @@ namespace Cryptforge.Tests
     // load, before the first frame measured, is summed apart. Writes TestResults/ramp-entry.txt and logs one "[RampEntry]"
     // message. Run it by name, with a graphics device for the draws:
     //   pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -Filter Cryptforge.Tests.FoundryRampEntryMeasurement -Graphics -SkipApk
+    // The foundry pre-warms its first-use work as it loads (FoundryVisibilityView.PrewarmFirstUse); a line "off" in
+    // TestResults/ramp-entry-prewarm.txt loads it as before, for the comparison - one Editor process each way, since a
+    // shader's GPU program, once made, lasts the process.
     // Without one nothing renders and only the script side (material, grids, projection) means anything. The Editor's
     // D3D11 makes a GPU program in well under a millisecond; a phone's Vulkan pipeline or GLES link is what this frame
     // cost there, so the Editor shows where the work lands, not what it costs on the S23.
@@ -96,6 +99,7 @@ namespace Cryptforge.Tests
             if (_frameRateTaken)
                 Application.targetFrameRate = _frameRate;
             Time.timeScale = 1f;
+            FoundryVisibilityView.PrewarmFirstUse = true;
             if (_scene.IsValid() && _scene.isLoaded)
             {
                 SceneManager.SetActiveScene(SceneManager.CreateScene("Ramp entry cleanup"));
@@ -112,6 +116,9 @@ namespace Cryptforge.Tests
             TestProfile.Begin();
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
             File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
+            string knob = Path.Combine(ResultsFolder, "ramp-entry-prewarm.txt");
+            bool prewarm = !(File.Exists(knob) && File.ReadAllText(knob).Trim() == "off");
+            FoundryVisibilityView.PrewarmFirstUse = prewarm;
             // The ground's scopes summed over the load: reading the names makes the markers, so they can be recorded first.
             Assert.That(PerformanceMarkers.PickNames, Is.Not.Empty);
             string[] loadNames =
@@ -153,6 +160,8 @@ namespace Cryptforge.Tests
             Material materialAtStart = visibility.GroundMaterial;
             int gridsAtStart = visibility.GroundGridCount;
             int projectionsAtStart = visibility.GroundProjections;
+            string warmAtStart = "prewarm " + (prewarm ? "on" : "off (ramp-entry-prewarm.txt)") + ", warm-up renderers waiting " +
+                visibility.WarmPending + ", drawn in " + visibility.WarmDraws + " renders";
 
             _recorder = new GameObject("Ramp entry recorder").AddComponent<PerfProbeRecorder>();
             _recorder.Initialize(setup, hero.GetComponent<Health>(), _camera, manual);
@@ -205,7 +214,7 @@ namespace Cryptforge.Tests
             _recorder.End();
 
             string report = Report(_recorder, extraNames, extraMs, heroU, projected, graphics, manual, loadNames, loadMs,
-                materialAtStart != null, gridsAtStart, projectionsAtStart, visibility);
+                warmAtStart, materialAtStart != null, gridsAtStart, projectionsAtStart, visibility);
             Directory.CreateDirectory(ResultsFolder);
             File.WriteAllText(Path.Combine(ResultsFolder, "ramp-entry.txt"), report);
             TestContext.Out.WriteLine(report);
@@ -241,8 +250,8 @@ namespace Cryptforge.Tests
         }
 
         private static string Report(PerfProbeRecorder r, List<string> extraNames, float[][] extraMs, float[] heroU,
-            int[] projected, bool graphics, bool manual, string[] loadNames, float[] loadMs, bool materialAtStart,
-            int gridsAtStart, int projectionsAtStart, FoundryVisibilityView visibility)
+            int[] projected, bool graphics, bool manual, string[] loadNames, float[] loadMs, string warmAtStart,
+            bool materialAtStart, int gridsAtStart, int projectionsAtStart, FoundryVisibilityView visibility)
         {
             int count = r.Count - 1;
             int first = -1, second = -1, clear = 0;
@@ -276,9 +285,11 @@ namespace Cryptforge.Tests
             for (int i = 0; i < loadNames.Length; i++)
                 t.Append(i > 0 ? ", " : string.Empty).Append(loadNames[i]).Append(' ').Append(F(loadMs[i], 2)).Append(" ms");
             t.Append("; ground material made ").Append(materialAtStart ? "yes" : "no").Append(", grids ").Append(gridsAtStart)
-                .Append(", projections ").Append(projectionsAtStart).AppendLine();
+                .Append(", projections ").Append(projectionsAtStart).Append("; ").Append(warmAtStart).AppendLine();
             t.Append("   at the end: ground material ").Append(visibility.GroundMaterial != null ? "made" : "none").Append(", grids ")
-                .Append(visibility.GroundGridCount).Append(", projections ").Append(visibility.GroundProjections).AppendLine();
+                .Append(visibility.GroundGridCount).Append(", projections ").Append(visibility.GroundProjections)
+                .Append("; warm-up renderers waiting ").Append(visibility.WarmPending).Append(", drawn in ")
+                .Append(visibility.WarmDraws).Append(" renders").AppendLine();
             t.Append("   markers a frame round each entry (ms, ").Append(F(MarkerFloorMs, 2))
                 .AppendLine(" and up, largest first; u is the hero's design u, the ramp starts at " +
                     F(FoundrySurface.RampStart, 0) + "):");
