@@ -7,7 +7,10 @@ namespace Cryptforge.Core
 {
     // Measures a development build on a device. Every five seconds of real time it logs the window's frame times, the
     // longest main-thread frame, the managed memory allocated and collected and the memory in use; it logs each wave that
-    // enters with what it cost, and any other frame that ran past a 30 Hz deadline. It installs itself only in a
+    // enters with what it cost, and any other frame that ran past a 30 Hz deadline; and the foundry's ground projection
+    // whenever it does one-time work - up front at load (prewarm), or at a floor sprite's first ramp overlap (its material,
+    // a sprite's grid) - with the frame it ran in, so a long frame at the first ramp entry shows whether that work was in
+    // it (docs/23, 2026-10-09: 216.9 ms on the S23). It installs itself only in a
     // development player, never in the Editor or a release build, and draws nothing. Read it with
     // adb logcat -s Unity and the "[Perf]" tag; numbers use the invariant culture.
     public sealed class FrameTimeProbe : MonoBehaviour
@@ -26,6 +29,9 @@ namespace Cryptforge.Core
         private ProfilerRecorder _startWave;
         private ProfilerRecorder _buildBackdrop;
         private ProfilerRecorder _buildPlatform;
+        private ProfilerRecorder _groundPrewarm;
+        private ProfilerRecorder _groundMaterial;
+        private ProfilerRecorder _groundGrid;
         private int _window;
         private float _windowSeconds;
         private long _windowAllocated;
@@ -52,6 +58,9 @@ namespace Cryptforge.Core
             _startWave = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.StartWaveName);
             _buildBackdrop = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.BuildBackdropName);
             _buildPlatform = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.BuildPlatformName);
+            _groundPrewarm = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.GroundPrewarmName);
+            _groundMaterial = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.GroundMaterialName);
+            _groundGrid = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.GroundGridName);
             _collections = GC.CollectionCount(0);
             Write(FormattableString.Invariant(
                 $"{Tag} probe on: {SystemInfo.deviceModel}, {Screen.width}x{Screen.height} at {Screen.currentResolution.refreshRateRatio.value:0} Hz, target {Application.targetFrameRate} fps; recorders main thread {_mainThread.Valid}, allocated {_allocatedInFrame.Valid}, wave {_startWave.Valid}"));
@@ -66,6 +75,9 @@ namespace Cryptforge.Core
             _startWave.Dispose();
             _buildBackdrop.Dispose();
             _buildPlatform.Dispose();
+            _groundPrewarm.Dispose();
+            _groundMaterial.Dispose();
+            _groundGrid.Dispose();
         }
 
         // The unscaled delta and every recorder's last value describe the frame before this one.
@@ -77,6 +89,9 @@ namespace Cryptforge.Core
             long wave = _startWave.Valid ? _startWave.LastValue : 0;
             long backdrop = _buildBackdrop.Valid ? _buildBackdrop.LastValue : 0;
             long platform = _buildPlatform.Valid ? _buildPlatform.LastValue : 0;
+            long prewarm = _groundPrewarm.Valid ? _groundPrewarm.LastValue : 0;
+            long material = _groundMaterial.Valid ? _groundMaterial.LastValue : 0;
+            long grid = _groundGrid.Valid ? _groundGrid.LastValue : 0;
             _frames.Add(frame);
             _windowSeconds += frame;
             _windowAllocated += allocated;
@@ -86,6 +101,10 @@ namespace Cryptforge.Core
             if (backdrop > 0 || platform > 0)
                 Write(FormattableString.Invariant(
                     $"{Tag} environment build: backdrop {Milliseconds(backdrop):0.00} ms, platform {Milliseconds(platform):0.00} ms; frame allocation (all work) {allocated / 1024f:0.0} KB"));
+
+            if (prewarm > 0 || material > 0 || grid > 0)
+                Write(FormattableString.Invariant(
+                    $"{Tag} ground projection: prewarm {Milliseconds(prewarm):0.00} ms, material {Milliseconds(material):0.00} ms, grids {Milliseconds(grid):0.00} ms; frame {frame * 1000f:0.0} ms, main thread {Milliseconds(mainThread):0.0} ms, allocated {allocated / 1024f:0.0} KB"));
 
             if (wave > 0)
             {

@@ -26,6 +26,71 @@ namespace Cryptforge.Tests
             }
             TestProfile.End();
         }
+        // The first ramp entry's one-time work is done as the foundry loads (FoundryVisibilityView.Prewarm; docs/23
+        // 2026-10-09, one 216.9 ms frame on the S23): before anything reaches the ramp the ground material and the grids
+        // of the contact shadow and the ability ring exist, and the warm-up renderers wait at zero alpha for the first
+        // render of a game camera (or have drawn in it and gone, where something renders). The hero's first ramp overlap
+        // then makes nothing: its ring wears a grid made at load, in the material made at load.
+        [UnityTest] public IEnumerator TheFirstRampEntrysMaterialAndGridsAreMadeAsTheFoundryLoads()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
+            yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
+            _scene = SceneManager.GetActiveScene();
+            yield return null;
+            Time.timeScale = 0;
+            var arena = Object.FindFirstObjectByType<ArenaView>();
+            var visibility = arena.Region.GetComponent<FoundryVisibilityView>();
+            var hero = Object.FindFirstObjectByType<HeroLookView>();
+            var ring = hero.GetComponent<AbilityRingView>().Ring;
+            Assert.That(FoundryVisibilityView.PrewarmFirstUse, Is.True, "The game pre-warms.");
+            Assert.That(visibility.GroundProjections, Is.Zero, "Nothing has reached the ramp yet.");
+            Material ground = visibility.GroundMaterial;
+            Assert.That(ground != null, Is.True, "The ground material is made at load.");
+            Assert.That(ground.shader.name, Is.EqualTo("Cryptforge/Foundry Ground"));
+            Assert.That(visibility.HasGroundGrid(ArenaSpriteCache.ContactShadow), Is.True, "The contact shadow's grid is made at load.");
+            Assert.That(visibility.HasGroundGrid(ring.sprite), Is.True, "The ability ring's grid is made at load.");
+            int grids = visibility.GroundGridCount;
+            Assert.That(grids, Is.EqualTo(2));
+
+            var warm = new List<SpriteRenderer>();
+            foreach (var renderer in arena.Region.GetComponentsInChildren<SpriteRenderer>(true))
+                if (renderer.name == FoundryVisibilityView.WarmUpName) warm.Add(renderer);
+            if (visibility.WarmDraws == 0)
+            {
+                // Nothing has rendered (a batch Editor): both wait, invisible, one per shader.
+                Assert.That(visibility.WarmPending, Is.EqualTo(2));
+                Assert.That(warm.Count, Is.EqualTo(2));
+                var shaders = new List<string>();
+                foreach (var renderer in warm)
+                {
+                    Assert.That(renderer.enabled, Is.True, renderer.name);
+                    Assert.That(renderer.color.a, Is.EqualTo(0f), "A warm-up draw changes no pixel.");
+                    shaders.Add(renderer.sharedMaterial.shader.name);
+                }
+                Assert.That(shaders, Is.EquivalentTo(new[] { "Cryptforge/Foundry Ground", FoundryVisibilityView.XrayShaderName }));
+                Assert.That(warm.Find(r => r.sharedMaterial == ground).sprite.vertices.Length, Is.GreaterThan(200),
+                    "The ground material draws a surface grid, as on the ramp.");
+            }
+            else
+            {
+                Assert.That(visibility.WarmDraws, Is.EqualTo(1), "Drawn in one render.");
+                Assert.That(visibility.WarmPending, Is.Zero);
+                foreach (var renderer in warm) Assert.That(renderer.enabled, Is.False, "Gone after its render.");
+            }
+
+            // The hero's first ramp overlap makes no material and no grid.
+            FoundryMap.ToFloor(FoundrySurface.RampStart + 1, FoundryMap.GateExitV, out float x, out float y);
+            hero.transform.position = arena.Region.transform.position + new Vector3(x, y * .5f, 0);
+            visibility.ApplyActorDepth();
+            Assert.That(visibility.GroundProjections, Is.GreaterThan(0), "The ring and the shadow reach the ramp.");
+            Assert.That(ring.sharedMaterial, Is.SameAs(ground));
+            Assert.That(visibility.GroundGridCount, Is.EqualTo(grids), "No grid is made at the first ramp overlap.");
+            Assert.That(ring.sprite.vertices.Length, Is.GreaterThan(200));
+            visibility.RestoreActorDepth();
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [UnityTest] public IEnumerator ElevatedActorsEffectsAndCameraShareContactsWithoutMovingGameplayRoots()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
