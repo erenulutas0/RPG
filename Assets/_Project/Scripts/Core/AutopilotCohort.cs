@@ -48,12 +48,14 @@ namespace Cryptforge.Core
             // ...with a new weapon while a weapon slot is free; without it only a second, and it never held three.
             // 2026-11-04.
             FillsWeaponSlots = 1 << 10,
-            All = (1 << 11) - 1,
-            // Research, 2026-11-10 night, outside All - no cohort has them unless built with them (docs/41): against a single
-            // elite room's Captain, when its best weapon on that target is short (the Daggers) and it is safe, it holds the
-            // target at that weapon's reach rather than kiting (FootworkRule.StepIn), as a player closes in...
+            // Against a single elite room's Captain, when its best weapon on that target is short (the Daggers) and it is
+            // safe, it holds the target at that weapon's reach rather than kiting (FootworkRule.StepIn), as a player closes
+            // in; without it the kite holds the Captain at 1.75, outside the Daggers' 1.8. Measured 2026-11-10 night, the
+            // careful pilot's since 2026-11-11 (docs/41: the lead's decision with the Daggers' elite share).
             StepsIn = 1 << 11,
-            // ...and against the gate boss too.
+            All = (1 << 12) - 1,
+            // Research, outside All - no cohort has it unless built with it: the step-in against the gate boss too. It takes
+            // the Warden's fight under docs/41 step 4's 45 s (docs/41, status 2026-11-10 night).
             StepsInOnTheGateBoss = 1 << 12,
             Known = (1 << 13) - 1
         }
@@ -64,20 +66,22 @@ namespace Cryptforge.Core
                                    Habit.KeepsOutOfTheGlow | Habit.FillsWeaponSlots;
 
         // The careful pilot, the default: every habit. docs/40 9.4's Skilled bot "reads telegraphs and manages its route",
-        // as this one reads the Warden's mark and the pit's glow, kites with room and builds by the CardPicker order.
+        // as this one reads the Warden's mark and the pit's glow, kites with room, steps in on an elite with its short
+        // weapon and builds by the CardPicker order.
         public static readonly AutopilotCohort Careful = new AutopilotCohort("careful", Habit.All);
 
-        // docs/41 step 5's standing policy: no kiting. Everything else is the careful pilot's - it still leaves the
-        // Warden's mark, shelters from a spill and waits out the glow, and draws node fights to the rim.
-        public static readonly AutopilotCohort Standing = new AutopilotCohort("standing", Habit.All & ~Habit.Kites);
+        // docs/41 step 5's standing policy: no kiting, and no step-in - it stands where the fight finds it. Everything else
+        // is the careful pilot's - it still leaves the Warden's mark, shelters from a spill and waits out the glow, and
+        // draws node fights to the rim.
+        public static readonly AutopilotCohort Standing = new AutopilotCohort("standing", Habit.All & ~(Habit.Kites | Habit.StepsIn));
 
         // docs/41 step 5's first-card picker with the careful pilot's footwork: every offer's first card.
         public static readonly AutopilotCohort FirstCard = new AutopilotCohort("first-card", Habit.All & ~Habit.ScoresCards);
 
-        // The pilot before 2026-11-04's fixes, each undone. docs/40 9.4's Casual in shape: it gathers the drops, dodges
-        // simply - kites straight on at one reach, leaves the mark by the nearest way, shelters on the rim spot and walks
-        // back into the glow - and takes a reasonable card.
-        public static readonly AutopilotCohort Clumsy = new AutopilotCohort("clumsy", Habit.All & ~Fixes);
+        // The pilot before 2026-11-04's fixes, each undone, and without the step-in that came after them. docs/40 9.4's
+        // Casual in shape: it gathers the drops, dodges simply - kites straight on at one reach, leaves the mark by the
+        // nearest way, shelters on the rim spot and walks back into the glow - and takes a reasonable card.
+        public static readonly AutopilotCohort Clumsy = new AutopilotCohort("clumsy", Habit.All & ~(Fixes | Habit.StepsIn));
 
         // docs/40 9.4's Auto Farmer: it moves - the careful pilot's walk between fights, to the altars and the next hall
         // with the drops beside the way - with no active skill and a simple upgrade, the first card. And no dodge, which
@@ -85,7 +89,7 @@ namespace Cryptforge.Core
         // nor the lure, a fight drawn to the pit on purpose. In a node fight it stands where the fight found it.
         public static readonly AutopilotCohort AutoFarmer = new AutopilotCohort("auto-farmer",
             Habit.All & ~(Habit.Kites | Habit.EscapesMarks | Habit.Shelters | Habit.KeepsOutOfTheGlow | Habit.Lures |
-                          Habit.UsesTheAbility | Habit.ScoresCards));
+                          Habit.UsesTheAbility | Habit.ScoresCards | Habit.StepsIn));
 
         // Every cohort, the careful one first.
         public static readonly IReadOnlyList<AutopilotCohort> Cohorts = new[] { Careful, Standing, FirstCard, Clumsy, AutoFarmer };
