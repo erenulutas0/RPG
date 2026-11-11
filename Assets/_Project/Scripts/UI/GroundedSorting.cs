@@ -16,10 +16,11 @@ namespace Cryptforge.UI
         // (FoundryVisibilityView). Destroyed roots stay as null entries until a reader or the next attach prunes them.
         internal static List<Transform> Actors => ActorRoots;
 
+        // Every spawn attaches its root, bar and contact shadow, none of which has a group yet: TryGetComponent, since a
+        // failed GetComponent allocates in the Editor.
         internal static SortingGroup Attach(Transform root, int layer, int order)
         {
-            var group = root.GetComponent<SortingGroup>();
-            if (group == null) group = root.gameObject.AddComponent<SortingGroup>();
+            if (!root.TryGetComponent(out SortingGroup group)) group = root.gameObject.AddComponent<SortingGroup>();
             group.sortingLayerID = layer;
             group.sortingOrder = order;
             group.sortAtRoot = true;

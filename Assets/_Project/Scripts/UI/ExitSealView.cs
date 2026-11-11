@@ -21,6 +21,10 @@ namespace Cryptforge.UI
         private LineRenderer _arrow;
         private Material _material;
         private TextMesh _label;
+        // What the label was last given. TextMesh.text is read from the native text, a new string on every read, so the
+        // view never reads it back: a frame with the seal or a marked hall on show then allocates nothing.
+        private string _shownInstruction;
+        private bool _instructionShown;
         private readonly Vector3[] _arc = new Vector3[Segments + 1];
         private readonly Vector3[] _corners = new Vector3[4];
         public float ShownProgress { get; private set; }
@@ -75,7 +79,7 @@ namespace Cryptforge.UI
         private static Vector3 Project(Vector2 floor)=>new Vector3(floor.x,ArenaFloor.WorldY(floor.y),0);
         private static Vector3 Point(float angle,float radius)=>Project(new Vector2(Mathf.Cos(angle)*radius,Mathf.Sin(angle)*radius));
         private void LateUpdate()=>Refresh();
-        private void Refresh()
+        internal void Refresh()
         {
             if(_plate==null)return;
             var encounter=_setup.Encounters;
@@ -116,7 +120,7 @@ namespace Cryptforge.UI
             bool gate=encounter.IsGateExitOpen;
             string instruction=hall?(outside?_text.HallDirection:_text.HallInstruction):
                 outside?(gate?_text.GateDirection:_text.ExitDirection):(gate?_text.GateInstruction:_text.ExitInstruction);
-            if(_label.text!=instruction)_label.text=instruction;
+            if(!_instructionShown||_shownInstruction!=instruction){_label.text=instruction;_shownInstruction=instruction;_instructionShown=true;}
         }
         private void OnDisable(){if(_plate!=null)_plate.SetActive(false);if(_label!=null)_label.gameObject.SetActive(false);if(_arrow!=null)_arrow.enabled=false;}
         private void OnDestroy(){if(_plate!=null)Destroy(_plate);if(_arrow!=null)Destroy(_arrow.gameObject);if(_label!=null)Destroy(_label.gameObject);}
