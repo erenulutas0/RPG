@@ -977,6 +977,8 @@ namespace Cryptforge.Combat
 
         internal int LeavingBodyCount => _leavingBodies.Count;
 
+        internal int ShelvedBodyCountOf(EnemyDefinition definition) => PoolOf(definition, false)?.Free.Count ?? 0;
+
         // The hero stood still on the way out long enough: the room ends, the pack goes with it, and the floor moves on.
         private void LeaveSwarm()
         {
