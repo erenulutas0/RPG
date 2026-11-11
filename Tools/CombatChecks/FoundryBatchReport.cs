@@ -149,9 +149,13 @@ namespace Cryptforge.Tests
                 List<(string Label, FoundryBatch.Batch Batch)> finaleRows = cohortRuns.Count > 0
                     ? FoundryCohorts.FinaleRows(cohortRuns)
                     : baselines.Select(b => ("careful", b)).ToList();
-                string finale = FoundryBatch.FinaleSection(finaleRows);
+                // The Editor's Descent beside it, where the pacing files the gate reads hold one (horde-floors.txt "3").
+                string editorDescent = EditorDescentSection(editor, heroes, baselines, parallel);
+                string finale = FoundryBatch.FinaleSection(finaleRows) + editorDescent;
                 if (cohortRuns.Count == 0)
                     md.Append(finale);
+                else
+                    md.Append(editorDescent);
                 File.WriteAllText(Path.Combine(output, "foundry-finale.md"), finale);
                 File.WriteAllText(Path.Combine(output, "foundry-finale.csv"), FoundryBatch.FinaleCsv(finaleRows.Select(r => r.Batch)));
             }
@@ -404,7 +408,7 @@ namespace Cryptforge.Tests
         // ---------------------------------------------------------------------------------------------------------
 
         // One Editor seed, from its pacing line and, where it is this line's run, its copied telemetry.
-        private sealed class EditorRun
+        internal sealed class EditorRun
         {
             public int Seed;
             public bool Cleared;
@@ -524,6 +528,60 @@ namespace Cryptforge.Tests
             return md.ToString();
         }
 
+        // The Editor's Descent (HordePacingMeasurement with horde-floors.txt "3", EditorDescent): the descent rows of the
+        // pacing files the gate and the parity read (FOUNDRY_EDITOR_FILES, or each hero's newest), each beside RunFoundry
+        // on its seeds down three floors - the file's hero, starting weapon and cohort, frame-perfect as the Editor's
+        // autopilot - and the batch's own careful pilot where it went down three floors. Empty where no file holds any.
+        private static string EditorDescentSection(string folder, DescentSimulation.FoundryHero[] heroes,
+            IReadOnlyList<FoundryBatch.Batch> baselines, int parallel)
+        {
+            if (!Directory.Exists(folder))
+                return string.Empty;
+            string[] files = PacingFiles(folder, heroes);
+            if (files == null)
+                return string.Empty;
+            var rows = new List<EditorDescent.HeroRows>();
+            for (int h = 0; h < files.Length; h++)
+            {
+                List<EditorDescent.Run> runs = EditorDescent.Read(files[h]);
+                if (runs.Count == 0)
+                    continue;
+                (string _, string heroId, string weaponId, string cohortName) = PacingHeader(files[h]);
+                int index = Array.FindIndex(heroes, hero => hero.Id == heroId);
+                if (index < 0)
+                    index = h < heroes.Length ? h : 0;
+                DescentSimulation.FoundryHero hero = heroes[index];
+                DescentSimulation.HeroWeapon weapon = weaponId == null ? null
+                    : DescentSimulation.WeaponCatalogue().FirstOrDefault(w => w.Id == weaponId);
+                if (weapon != null && weapon.Id != hero.Weapon.Id)
+                {
+                    hero = hero.Id == heroes[0].Id ? DescentSimulation.Vanguard() : DescentSimulation.CinderArcanist();
+                    hero.Weapon = weapon;
+                    hero.Name += " + " + weapon.DisplayName;
+                }
+                DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("editor seeds, three floors");
+                levers.Floors = 3;
+                bool careful = true;
+                if (cohortName != null && Cryptforge.Core.AutopilotCohort.TryNamed(cohortName, out Cryptforge.Core.AutopilotCohort cohort))
+                {
+                    levers.Cohort = cohort;
+                    careful = cohort.Name == FoundryBatch.Shipped().Cohort.Name;
+                }
+                FoundryBatch.Batch batch = careful && weapon == null && index < baselines.Count && baselines[index].Levers.Floors >= 3
+                    ? baselines[index] : null;
+                rows.Add(new EditorDescent.HeroRows
+                {
+                    Hero = hero.Name,
+                    Source = Path.GetFileName(files[h]),
+                    Cohort = cohortName,
+                    Editor = runs,
+                    SameSeeds = FoundryBatch.Run(hero, levers, runs.Select(run => run.Seed).ToArray(), parallel),
+                    Batch = batch
+                });
+            }
+            return rows.Count == 0 ? string.Empty : EditorDescent.Section(rows);
+        }
+
         private static string M(IEnumerable<float> values, string format = "0")
         {
             double value = FoundryBatch.Median(values.Where(v => !float.IsNaN(v) && v >= 0f));
@@ -575,7 +633,7 @@ namespace Cryptforge.Tests
 
         // A pacing file's first line, "mode <mode>[ hero <id>][ weapon <id>][ cohort <name>]" (HordePacingMeasurement): the
         // scene's default hero, the Vanguard, when it names none, and no cohort - the careful pilot - when it names none.
-        private static (string Mode, string Hero, string Weapon, string Cohort) PacingHeader(string path)
+        internal static (string Mode, string Hero, string Weapon, string Cohort) PacingHeader(string path)
         {
             string[] words = (File.ReadLines(path).FirstOrDefault() ?? string.Empty).Split(' ');
             if (words.Length < 2 || words[0] != "mode")
@@ -597,7 +655,7 @@ namespace Cryptforge.Tests
         // and, where the seed's telemetry was kept, its walks, node fights, the Warden's wave and the level at the gate.
         // Engaged is the engaged_strike column (since 2026-11-11, the simulation's rule); a file's older engaged column read
         // an enemy within the first weapon's reach and a unit, and is left unread.
-        private static List<EditorRun> ReadEditor(string folder, string pacing, string heroId)
+        internal static List<EditorRun> ReadEditor(string folder, string pacing, string heroId)
         {
             var runs = new List<EditorRun>();
             if (!File.Exists(pacing))
