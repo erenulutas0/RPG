@@ -106,7 +106,8 @@ namespace Cryptforge.Tests
         // A floor-1 clear goes down to floor 2 as the scene does: after the checkpoint and its advance delay, floor 2's rooms
         // in the asset's order - three halls, the forge, the elite, the Warden - the first fought where the hero stands, the
         // later halls at the districts the climb's round reaches next (the north court, the workyard, the pit's rim; the
-        // scene's own route in ClimbFloorContentTests), the gate open as its room clears, its Warden at floor 2's tier and
+        // scene's own route in ClimbFloorContentTests), the gate held for the floor's clock to read 210 s as floor 1's
+        // (docs/47; it opened as its room cleared before), its Warden at floor 2's tier and
         // the run's difficulty; the hero carries its level and health down, and the floor's clock starts again.
         [Test]
         public void AFloorOneClearGoesDownToFloorTwoAndPlaysItsRoomsInTheScenesOrder()
@@ -170,9 +171,9 @@ namespace Cryptforge.Tests
                     if (run.Cleared)
                         Assert.That(hall, Is.EqualTo(districts.Length), where);
 
-                    Assert.That(run.GateWaitSeconds, Is.Zero, where + ": floor 2's gate opens as its room clears");
                     if (run.LevelAtGate >= 0)
                     {
+                        Assert.That(run.ClockAtGate, Is.GreaterThanOrEqualTo(210f), where + ": floor 2's gate holds for its clock's 3:30");
                         Assert.That(run.LevelAtGate, Is.GreaterThanOrEqualTo(first.Level), where + ": the level carried down");
                         Assert.That(run.DifficultyAtGate, Is.GreaterThanOrEqualTo(first.Difficulty), where + ": the difficulty carried down");
                         // Floor 2's own share (8.5 / 1.4), the climb's x1.4 cancelled on its Warden.
