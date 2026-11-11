@@ -94,7 +94,7 @@ namespace Cryptforge.Tests
             if (configs.Any(c => c.Words == "wait"))
                 md.Append(Wait(cells.Where(c => c.Config.Words == "wait").ToList(), pilots, cohorts));
             md.Append(Clears(cells, configs, pilots, cohorts));
-            if (configs.Any(c => c.Words == "wait"))
+            if (configs.Any(c => c.Words == "wait") && configs.Any(c => c.Words != "wait"))
                 md.Append(AgainstWaiting(cells, configs, pilots, cohorts));
             md.Append(Careful(cells, configs, pilots));
             md.Append(Detail(cells));

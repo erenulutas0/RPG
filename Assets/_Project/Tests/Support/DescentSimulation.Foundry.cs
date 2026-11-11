@@ -65,10 +65,11 @@ namespace Cryptforge.Tests
         public const float EngagedMargin = 1f;
         // FoundryResult.DeathPhase of a death while the cleared room before the gate holds for the floor's clock.
         public const string GateWaitPhase = "gate wait";
-        // What the careful pilot's wait for the gate farms a second on floor 1 (research 2026-11-11, GateCallResearch's
-        // probe: the experience of the wait over its seconds, P50 of the careful clears, both heroes, frame-perfect and
-        // with human hands): the rate an early call's experience is paid at (FoundryLevers.GateCallExperienceShare).
-        public const float GateWaitExperienceRate = 5f;
+        // What the careful pilot's wait for the gate farms a second on floor 1 (research 2026-11-11, GateCallResearch on
+        // main 158c9f3d: the experience of the wait over its seconds, P50 4.82 of the careful clears of seeds 1-200, both
+        // heroes, frame-perfect and with human hands): the rate an early call's experience is paid at
+        // (FoundryLevers.GateCallExperienceShare).
+        public const float GateWaitExperienceRate = 4.8f;
         // The 30-second buckets of docs/40's time_bucket_summary.
         public const float FoundryBucketSeconds = 30f;
 
