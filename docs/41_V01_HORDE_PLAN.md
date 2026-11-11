@@ -1026,9 +1026,10 @@ Nothing changes in the game.
 - `echo-enraged` sweeps `ECHO_ENRAGED_HEALTH` x `ECHO_ENRAGED_SHARES`.
 
 Seeds 1-200 a hero, `FOUNDRY_PARALLEL=4`, floor 1, every cohort, frame-perfect and `FOUNDRY_REALISM=typical` ("human
-hands"). The outputs are in TestResults/echo-1111/ (reference, share, share2, enraged, enraged2-4). The shipped floor
-and the echo at 8.5 reproduce the re-read's decision 4 to the digit: clears, Warden fights and floors. The default batch
-(`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1`) is byte-identical to main's but for the wall-time column.
+hands"). The outputs are in TestResults/echo-1111/: reference, share, share2, enraged and enraged2-4 for floor 1,
+f2-* for floor 2. The shipped floor and the echo at 8.5 reproduce the re-read's decision 4 to the digit: clears, Warden
+fights and floors. The default batch (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1`) is byte-identical to main's but for the
+wall-time column.
 
 Every cell is "Vanguard / Ilya", clears of 200; "fp ; hh" is frame-perfect ; human hands. The 80-90 % band is 160-180
 clears, 65-80 % is 130-160. Read differences under about 10 as noise (docs/cloud/2026-11-04-difficulty.md).
@@ -1037,6 +1038,7 @@ clears, 65-80 % is 130-160. Read differences under about 10 as noise (docs/cloud
 |---|---|---|
 | 1. The echo after every blow, floor 1's Warden at a lower share | **lands careful in either band, inside 45-65 s, at share 6** | 20 % echo: careful 166 / 170 with human hands (83 / 85 %). 30 %: 145 / 148 (73 / 74 %). Frame-perfect fight 58 / 51 s (P90 74 / 66), the shipped length; frame-perfect careful 199 / 200 |
 | 2. The echo after the enraged Warden's blows only | **lands careful in 80-90 %, inside 45-65 s, at 30 % and share 7** | careful 166 / 175 with human hands (83 / 88 %); frame-perfect fight 60 / 52 s (P90 76 / 66); the echo half again the slam's 20 %. For 65-80 % it needs 40 %, twice the slam: 148 / 161, Ilya on the edge |
+| Floor 2, where the echo is the Warden's | **it costs careful humans a second time** | at floor 2's own 6.07 its fight runs 77 / 68 s (every blow) and 69 / 57 s (enraged-only); at 4.3 and 5 it holds 57 / 49 and 56 / 51 s, but careful with human hands clears both floors 128 / 139 and 132 / 154 (shipped 193 / 195) |
 | Skill separation | **neither echo separates skill** | Shipped, careful clears 16 / 19 more than standing with human hands. In the band: every blow +6 / +1 (20 %) and +1 / -8 (30 %), enraged-only +6 / +15. The clumsy cohort does not move (79-86 / 137-142, shipped 82 / 141) |
 
 ### 1. The echo after every blow, with floor 1's Warden at a lower share
@@ -1206,11 +1208,32 @@ What the 80-90 % readings do to the other cohorts with human hands:
 | enraged-only, 30 %, share 7 | 160 / 160 | 163 / 187 | 79 / 138 | 5 / 10 | 296 / 288 ; 285 / 279 s |
 | after every blow, 30 %, share 6 (65-80 %) | 144 / 156 | 143 / 176 | 79 / 137 | 1 / 3 | 294 / 288 ; 281 / 276 s |
 
+### 5. Floor 2: the echo reaches the next Warden too
+
+Built as the Warden's, the echo reaches floor 2's Warden as well (Floor_QuicksilverVaults: share 6.07, Cursed Gold's
++20 % enemy damage). `ECHO_FLOORS=2` plays on into floor 2 after a floor-1 clear, and `ECHO_LATER_HEALTH` sets floor 2's
+share (`FoundryLevers.LaterWardenHealthShare`). The two 80-90 % readings, careful and standing at floor 2's own share,
+careful alone at a lowered one (TestResults/echo-1111/f2-*). The shipped rows reproduce the re-read's decision 3 to the
+digit, and floor 1's rows are the ones above.
+
+| Floor 1 ; floor 2's share | Both floors cleared, careful fp ; hh | Both floors cleared, standing fp ; hh | Floor-2 Warden fight, careful fp | Floor-2 Warden fight, careful hh | Deaths at floor 2's Warden, hh: careful ; standing |
+|---|---|---|---|---|---|
+| shipped ; 6.07 | 200 / 200 ; 193 / 195 | 176 / 176 ; 151 / 155 | 58 (69) / 51 (63) | 53 (68) / 49 (60) | 1 / 4 ; 26 / 25 |
+| every blow, 20 %, share 6 ; 6.07 | 198 / 200 ; 106 / 116 | 178 / 180 ; 104 / 119 | 77 (94) / 68 (84) | 68 (82) / 60 (75) | 58 / 53 ; 52 / 46 |
+| every blow, 20 %, share 6 ; 4.3 | 199 / 200 ; 128 / 139 | - | 57 (74) / 49 (67) | 55 (67) / 49 (60) | 36 / 30 ; - |
+| enraged-only, 30 %, share 7 ; 6.07 | 200 / 200 ; 125 / 144 | 174 / 180 ; 115 / 108 | 69 (87) / 57 (77) | 64 (80) / 58 (70) | 39 / 28 ; 40 / 49 |
+| enraged-only, 30 %, share 7 ; 5 | 200 / 200 ; 132 / 154 | - | 56 (75) / 51 (67) | 56 (69) / 51 (62) | 32 / 18 ; - |
+
+- **At floor 2's own share the echo stretches its fight out of 45-65 s**, as on floor 1: 77 / 68 s after every blow,
+  69 / 57 s enraged-only. Floor 1's ratio holds it: 4.3 (every blow) and 5 (enraged-only) give 57 / 49 and 56 / 51 s.
+- **Even there it costs careful humans a second time.** Of the runs that clear floor 1 (166 / 170 and 166 / 175),
+  38 / 31 and 34 / 21 die at floor 2's Warden; shipped, 2 / 4 do. Over the two floors careful with human hands clears
+  64 / 70 % (every blow) or 66 / 77 % (enraged-only), against 97 / 98 % shipped.
+- So the floor-1 setting that lands careful in 80-90 % puts the two floors together at 64-77 % if every Warden has the
+  echo. A band read over the run would want a smaller echo, or none, on floor 2; a band read floor by floor would want
+  floor 2's echo tuned on its own.
+
 **Not read:**
-- **Floor 2.** The echo, built as the Warden's, would reach floor 2's Warden too; this round reads floor 1 alone.
-  Floor 2's careful fight is 58 / 51 s at its 6.07 share, and the echo after every blow added 20 / 16 s to floor 1's
-  fight of the same length. Floor 2's share would want the same re-read (`FOUNDRY_FLOORS=2`), or the echo stays
-  floor 1's.
 - **The Sword's role.** The Sword's lead on the Warden (x1.5, the smallest share that holds) is read as damage a second
   of the fight. The echo changes how long the hero stands striking, so the roles row wants a re-read with it.
 - **The slow human.** Only the typical hand was read; the 2026-11-04 research found the echo the candidate most
@@ -1259,5 +1282,8 @@ simulation's.
      second phase with its own mechanic, which may read better to a player. The price: an echo half again as heavy as
      the slam, the heroes 9 clears apart, and a fight 2 s longer. It keeps Ilya's gap over the standing cohort, not the
      Vanguard's. For 65-80 % it needs a 40 % echo, twice the slam, and Ilya still sits on the edge (148 / 161).
-4. Whichever is chosen, read its first scene build on a device. The typical human's 0.25 s reaction is an assumption,
+4. **Whether the echo is every Warden's or floor 1's.** As the Warden's it reaches floor 2 too: floor 2's share has to
+   come down with it (4.3 or 5 from 6.07), and careful humans lose another 21-38 runs there, so the run as a whole
+   lands at 64-77 %. A floor-1-only echo needs a floor knob (FloorDefinition) beside the rule.
+5. Whichever is chosen, read its first scene build on a device. The typical human's 0.25 s reaction is an assumption,
    and the echo is the candidate most sensitive to it.
