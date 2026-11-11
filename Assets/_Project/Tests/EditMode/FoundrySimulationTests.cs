@@ -585,13 +585,17 @@ namespace Cryptforge.Tests
             Assert.That(shipped.DaggersEliteCritDamage, Is.EqualTo(1f));
             Assert.That(shipped.DaggersEliteLeaderOnly, Is.False);
             Assert.That(shipped.DaggersReach, Is.Zero);
+            Assert.That(shipped.ReachesForDaggers || shipped.DaggersBleedShare > 0f || shipped.DaggersMarkShare > 0f ||
+                        shipped.DaggersExecuteBelow > 0f, Is.False, "the Daggers' design levers are off at the shipped floor");
             FoundryBatch.Lever[] levers = FoundryBatch.DaggersLevers();
             Assert.That(levers[0].Levers.DaggersEliteDamage == 1f && levers[0].Levers.DaggersEliteCritDamage == 1f &&
-                        levers[0].Levers.DaggersReach == 0f && levers[0].CarefulHabits == Cryptforge.Core.AutopilotCohort.Habit.None,
+                        levers[0].Levers.DaggersReach == 0f && !ReshapesDaggers(levers[0].Levers) &&
+                        levers[0].CarefulHabits == Cryptforge.Core.AutopilotCohort.Habit.None,
                 Is.True, "the first row is the shipped floor");
             foreach (FoundryBatch.Lever lever in levers.Skip(1))
                 Assert.That(lever.Levers.DaggersEliteDamage != 1f || lever.Levers.DaggersEliteCritDamage != 1f ||
-                            lever.Levers.DaggersReach > 0f || lever.CarefulHabits != Cryptforge.Core.AutopilotCohort.Habit.None,
+                            lever.Levers.DaggersReach > 0f || ReshapesDaggers(lever.Levers) ||
+                            lever.CarefulHabits != Cryptforge.Core.AutopilotCohort.Habit.None,
                     Is.True, lever.Name);
 
             DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
@@ -613,6 +617,50 @@ namespace Cryptforge.Tests
                     dealt++;
             }
             Assert.That(dealt, Is.GreaterThan(0), "the Daggers reach the elites on some seed");
+        }
+
+        // The Daggers' design levers (docs/41, status 2026-11-11): a throw, a lunge, a bleed, a mark or an execute.
+        private static bool ReshapesDaggers(DescentSimulation.FoundryLevers levers) =>
+            levers.ReachesForDaggers || levers.DaggersBleedShare > 0f || levers.DaggersMarkShare > 0f || levers.DaggersExecuteBelow > 0f;
+
+        // The Daggers' design levers do what they say on a Vanguard started with the Daggers: the throw and the lunge fire
+        // and reach farther than the Daggers do, the bleed and the mark add to what the Daggers take off the floor without
+        // a landing more, and the floor's accounting holds - the Captains part of the elites, the elites of the node waves.
+        [Test]
+        public void TheDaggersDesignLeversThrowLungeBleedAndMarkAsTheyName()
+        {
+            DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+            hero.Weapon = DescentSimulation.Daggers();
+            DescentSimulation.FoundryLevers shipped = FoundryBatch.Shipped();
+            DescentSimulation.FoundryLevers Lever(Action<DescentSimulation.FoundryLevers> set)
+            {
+                DescentSimulation.FoundryLevers levers = shipped.Copy("daggers design");
+                set(levers);
+                return levers;
+            }
+
+            const int seed = 22;
+            DescentSimulation.FoundryResult plain = DescentSimulation.RunFoundry(hero, seed, shipped);
+            DescentSimulation.FoundryResult thrown = DescentSimulation.RunFoundry(hero, seed, Lever(l => l.DaggersThrowReach = 3.2f));
+            DescentSimulation.FoundryResult lunged = DescentSimulation.RunFoundry(hero, seed, Lever(l => l.DaggersLungeReach = 3f));
+            DescentSimulation.FoundryResult bled = DescentSimulation.RunFoundry(hero, seed, Lever(l => l.DaggersBleedShare = 1f));
+            DescentSimulation.FoundryResult marked = DescentSimulation.RunFoundry(hero, seed, Lever(l => l.DaggersMarkShare = .3f));
+            Assert.That(plain.DaggersThrows + plain.DaggersLunges, Is.Zero, "nothing thrown or lunged at the shipped levers");
+            Assert.That(thrown.DaggersThrows, Is.GreaterThan(0), "the throw fires");
+            Assert.That(lunged.DaggersLunges, Is.GreaterThan(0), "the lunge fires");
+            Assert.That(thrown.WeaponWork[0].Landings, Is.GreaterThan(plain.WeaponWork[0].Landings), "a throw lands beyond the Daggers' reach");
+            // The wounds deal on top of the landings - little on the horde, which falls to a landing or two before its wounds
+            // close - and a wound's ticks are no landings.
+            float PerLanding(DescentSimulation.FoundryResult r) => r.WeaponWork[0].Dealt / Math.Max(1, r.WeaponWork[0].Landings);
+            Assert.That(PerLanding(bled), Is.GreaterThan(PerLanding(plain)), "the wounds deal on top of the landings");
+            Assert.That(PerLanding(bled), Is.LessThan(PerLanding(plain) * 2f), "a wound deals the landing's worth at most");
+            Assert.That(marked.WeaponWork.Count, Is.GreaterThan(0));
+            foreach (DescentSimulation.FoundryResult run in new[] { thrown, lunged, bled, marked })
+                foreach (DescentSimulation.FoundryWeaponWork work in run.WeaponWork)
+                {
+                    Assert.That(work.DealtEliteLeader, Is.LessThanOrEqualTo(work.DealtElite + 1e-3f), work.Id);
+                    Assert.That(work.DealtElite, Is.LessThanOrEqualTo(work.DealtNode + 1e-3f), work.Id);
+                }
         }
 
         // The Warden's own weapon is held from the frame its mark goes down until its hammer is out of the floor again -
