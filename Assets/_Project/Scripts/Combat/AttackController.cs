@@ -70,16 +70,18 @@ namespace Cryptforge.Combat
         }
 
         // A pooled body back on the floor (EncounterController's horde pool): armed as Initialize arms a new one - its one
-        // weapon new, so its cooldown is a new weapon's; nothing holding it, no gate boss or elites, no strike counted - and
-        // heard by no one until its views take it up again as it is enabled. Only while it is off the floor, after Initialize.
-        internal void Rearm(WeaponRuntime weapon)
+        // weapon restored to what its definition makes (WeaponRuntime.Restore: base stats, the initial delay's cooldown);
+        // nothing holding it, no gate boss or elites, no strike counted - and heard by no one until its views take it up
+        // again as it is enabled. Only while it is off the floor, after Initialize; the pool keeps a body to its kind, so
+        // the weapon is its definition's.
+        internal void Rearm()
         {
             if (_weapon == null)
                 throw new InvalidOperationException("AttackController needs Initialize before it is rearmed.");
             if (gameObject.activeInHierarchy)
                 throw new InvalidOperationException("Only an attacker off the floor is rearmed.");
 
-            _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
+            _weapon.Restore();
             _moreWeapons = null;
             AttackCount = 0;
             IsHeld = false;

@@ -75,8 +75,14 @@ namespace Cryptforge.UI
             public Transform Root;
             public Vector3 BodyOffset;
             public EnemyLookView Look;
+            // OnDamaged as one delegate for the watch's life, so binding a newcomer allocates none.
+            public readonly System.Action<DamageContext> Handler;
 
-            public EnemyWatch(CombatEffectsView view) => _view = view;
+            public EnemyWatch(CombatEffectsView view)
+            {
+                _view = view;
+                Handler = OnDamaged;
+            }
 
             public void OnDamaged(DamageContext context) => _view.OnEnemyDamaged(this, context);
         }
@@ -738,7 +744,7 @@ namespace Cryptforge.UI
         private void Unbind(EnemyWatch watch)
         {
             if (!ReferenceEquals(watch.Enemy, null))
-                watch.Enemy.Damaged -= watch.OnDamaged;
+                watch.Enemy.Damaged -= watch.Handler;
             watch.Enemy = null;
             watch.Root = null;
             watch.Look = null;
@@ -755,7 +761,7 @@ namespace Cryptforge.UI
             Vector3 offset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
             offset.z = 0f;
             watch.BodyOffset = offset;
-            enemy.Damaged += watch.OnDamaged;
+            enemy.Damaged += watch.Handler;
         }
 
         // Unsubscribing goes through the managed object, so it is safe after Unity destroyed the enemy.
@@ -765,7 +771,7 @@ namespace Cryptforge.UI
             {
                 EnemyWatch watch = _watches[i];
                 if (!ReferenceEquals(watch.Enemy, null))
-                    watch.Enemy.Damaged -= watch.OnDamaged;
+                    watch.Enemy.Damaged -= watch.Handler;
                 watch.Enemy = null;
                 watch.Root = null;
                 watch.Look = null;

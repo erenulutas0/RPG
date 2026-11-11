@@ -30,8 +30,25 @@ namespace Cryptforge.Combat
             public bool Defeated;
             // When a horde enemy fell, on the horde's clock, so its body can be taken away a while after.
             public float FellAt;
+            public bool Horde;
+            // Its death reported to the encounter that spawned it: one delegate for the record's every life, made once
+            // (a horde record is reused once its place is filled again or the horde is released).
             public Action OnDied;
+            public EncounterController Owner;
+
+            public void ReportDied()
+            {
+                if (Horde)
+                    Owner.OnHordeEnemyDied(this);
+                else
+                    Owner.OnEnemyDied(this);
+            }
         }
+
+        // Horde records whose place was filled again or whose horde was released: nothing holds them, so the next horde
+        // spawn takes one instead of a new record and a new closure.
+        private readonly Stack<SpawnedEnemy> _freeHordeRecords = new Stack<SpawnedEnemy>(PackLayout.MaxPackSize);
+        private Action _enemyChanged;
 
         [SerializeField] private FloorDefinition _floor;
         [SerializeField] private Health _hero;
@@ -818,7 +835,7 @@ namespace Cryptforge.Combat
                 fallen.Enrage.Enraged -= OnEnemyEnraged;
             if (ReferenceEquals(fallen.Health, null))
                 return;
-            fallen.Health.Changed -= OnEnemyChanged;
+            fallen.Health.Changed -= _enemyChanged;
             fallen.Health.Died -= fallen.OnDied;
             if (fallen.Health != null)
                 RemoveBody(fallen.Health);
@@ -911,15 +928,18 @@ namespace Cryptforge.Combat
         }
 
         // Stands a shelved body up as Instantiate stands a new one: at the origin, unturned, at its prefab's scale, its
-        // health new and full, its weapon new, its look and body as Awake and Start leave them - all while it is still off
-        // the floor - and then enabled, so its views take up the new health and attacker and show its bar as a new body's
-        // do, before the encounter subscribes to its death (CreateEnemy): every listener in a new body's order.
-        private static void ReuseBody(Health body, Transform prefab, float maximum, AttackController attack, WeaponRuntime weapon)
+        // health new and full, its weapon restored to its definition's and hardened as a new one is, its look and body as
+        // Awake and Start leave them - all while it is still off the floor - and then enabled, so its views take up the
+        // new health and attacker and show its bar as a new body's do, before the encounter subscribes to its death
+        // (CreateEnemy): every listener in a new body's order.
+        private static void ReuseBody(Health body, Transform prefab, float maximum, AttackController attack, float damageBonus)
         {
             body.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             body.transform.localScale = prefab.localScale;
             body.Revive(maximum);
-            attack.Rearm(weapon);
+            attack.Rearm();
+            if (damageBonus != 0f)
+                attack.Weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
             if (body.TryGetComponent(out CombatantView combatant))
                 combatant.ResetForReuse();
             if (body.TryGetComponent(out EnemyLookView look))
@@ -1209,52 +1229,57 @@ namespace Cryptforge.Combat
 
         // One enemy, built and wired but not yet placed: the setup a wave and a swarm share, so the two can never drift apart.
         // Its weapon's reach comes back for the pack, which stops each enemy just inside it.
-        // healthScale is the floor's health tier times the difficulty the enemy walks in at.
+        // healthScale is the floor's health tier times the difficulty the enemy walks in at. A horde enemy is named by its
+        // ordinal (name is the wave's and the swarm's), and only when its body is new: a reused body keeps its first name.
         private SpawnedEnemy CreateEnemy(EnemyDefinition definition, string name, float healthScale, float healthPercent,
-            float damageBonus, float goldPercent, out float reach, bool horde = false)
+            float damageBonus, float goldPercent, out float reach, bool horde = false, int hordeOrdinal = 0)
         {
+            float maximum = FloorScaling.Health(definition.MaximumHealth, healthScale, healthPercent);
             // A horde enemy stands up a shelved body of its kind when there is one (BodyPool); anything else is new.
             Health enemy = horde ? TakeShelvedBody(definition) : null;
-            bool reused = enemy != null;
-            if (!reused)
+            AttackController attack;
+            WeaponRuntime weapon;
+            if (enemy != null)
+            {
+                attack = enemy.GetComponent<AttackController>();
+                weapon = attack.Weapon;
+                ReuseBody(enemy, definition.Prefab.transform, maximum, attack, damageBonus);
+            }
+            else
+            {
                 enemy = Instantiate(definition.Prefab, Vector3.zero, Quaternion.identity);
-            enemy.name = name;
-            float maximum = FloorScaling.Health(definition.MaximumHealth, healthScale, healthPercent);
-            if (!reused)
+                enemy.name = horde ? $"Horde {definition.Prefab.name} {hordeOrdinal + 1}" : name;
                 enemy.Initialize(maximum);
-            WeaponRuntime weapon = definition.Weapon.CreateRuntime();
-            if (damageBonus != 0f)
-                weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+                weapon = definition.Weapon.CreateRuntime();
+                if (damageBonus != 0f)
+                    weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
+                attack = enemy.GetComponent<AttackController>();
+                attack.Initialize(weapon);
+            }
             if (_heroOnly == null || !ReferenceEquals(_heroOnly[0], _hero))
                 _heroOnly = new[] { _hero };
             enemy.GetComponent<Targeting>().SetCandidates(_heroOnly);
-            var attack = enemy.GetComponent<AttackController>();
-            if (reused)
-                ReuseBody(enemy, definition.Prefab.transform, maximum, attack, weapon);
-            else
-                attack.Initialize(weapon);
             attack.FightHold = FightHold;
             reach = weapon.Range;
 
-            var spawn = new SpawnedEnemy
-            {
-                Health = enemy,
-                Definition = definition,
-                Gold = horde ? 0 : FloorScaling.Gold(definition.GoldReward, goldPercent),
-                // An overrun floor's horde pays nothing (HordeClock.PaysExperience): the overrun is a reason to leave.
-                Experience = !horde ? definition.ExperienceReward :
-                    _horde != null && !HordeClock.PaysExperience(_horde.Seconds) ? 0 :
-                    HordeRule.Experience(definition.ExperienceReward),
-                Enrage = enemy.GetComponent<EnrageBehaviour>()
-            };
+            SpawnedEnemy spawn = horde && _freeHordeRecords.Count > 0 ? _freeHordeRecords.Pop() : new SpawnedEnemy { Owner = this };
+            spawn.Slot = 0;
+            spawn.Health = enemy;
+            spawn.Definition = definition;
+            spawn.Gold = horde ? 0 : FloorScaling.Gold(definition.GoldReward, goldPercent);
+            // An overrun floor's horde pays nothing (HordeClock.PaysExperience): the overrun is a reason to leave.
+            spawn.Experience = !horde ? definition.ExperienceReward :
+                _horde != null && !HordeClock.PaysExperience(_horde.Seconds) ? 0 :
+                HordeRule.Experience(definition.ExperienceReward);
+            // TryGetComponent: a horde enemy has none, and a failed GetComponent allocates in the Editor.
+            spawn.Enrage = enemy.TryGetComponent(out EnrageBehaviour enrage) ? enrage : null;
+            spawn.Defeated = false;
+            spawn.FellAt = 0f;
             // A horde enemy's hits and death are the horde's: they never count towards the node wave's fight.
-            if (horde)
-                spawn.OnDied = () => OnHordeEnemyDied(spawn);
-            else
-            {
-                spawn.OnDied = () => OnEnemyDied(spawn);
-                enemy.Changed += OnEnemyChanged;
-            }
+            spawn.Horde = horde;
+            spawn.OnDied ??= spawn.ReportDied;
+            if (!horde)
+                enemy.Changed += _enemyChanged ??= OnEnemyChanged;
             enemy.Died += spawn.OnDied;
             if (spawn.Enrage != null)
                 spawn.Enrage.Enraged += OnEnemyEnraged;
@@ -1368,7 +1393,7 @@ namespace Cryptforge.Combat
                 if (ReferenceEquals(spawn.Health, null))
                     continue;
 
-                spawn.Health.Changed -= OnEnemyChanged;
+                spawn.Health.Changed -= _enemyChanged;
                 spawn.Health.Died -= spawn.OnDied;
                 if (destroy && spawn.Health != null)
                     RemoveBody(spawn.Health);
@@ -1535,15 +1560,18 @@ namespace Cryptforge.Combat
             // The floor's clock: a horde enemy that walks in later on the floor is tougher (HordeClock).
             float damageBonus = FloorScaling.DamageBonus(
                 FloorDamageMultiplier * scale * HordeRule.DamageShare * _horde.DamageMultiplier, damagePercent);
-            SpawnedEnemy enemy = CreateEnemy(definition, $"Horde {definition.Prefab.name} {spawn.Ordinal + 1}",
+            SpawnedEnemy enemy = CreateEnemy(definition, null,
                 FloorHealthMultiplier(false) * scale * HordeRule.HealthShare * _horde.HealthMultiplier, healthPercent,
-                damageBonus, 0f, out float reach, true);
+                damageBonus, 0f, out float reach, true, spawn.Ordinal);
             var placement = new EntryPlacement(EntrySides.SideOf(spawn.Ordinal, 0), 0f, x, y);
             if (slot >= 0)
             {
-                RetireHordeBody(_hordeEnemies[slot]);
+                SpawnedEnemy left = _hordeEnemies[slot];
+                RetireHordeBody(left);
                 _hordeMotion.Replace(slot, enemy.Health, placement, definition.MoveSpeed, reach);
                 _hordeEnemies[slot] = enemy;
+                // Its place is filled again: nothing holds the record now.
+                FreeHordeRecord(left);
             }
             else
             {
@@ -1614,6 +1642,16 @@ namespace Cryptforge.Combat
         {
             if (_hordeMotion == null)
                 return null;
+            if (_hordeEnemies.Count != _hordeMotion.Count)
+                return $"the horde has {_hordeEnemies.Count} places and its motion {_hordeMotion.Count}";
+            int standing = 0;
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+            {
+                if (!_hordeEnemies[i].Defeated)
+                    standing++;
+            }
+            if (standing != HordeAliveCount)
+                return $"{standing} horde enemies stand but HordeAliveCount says {HordeAliveCount}";
             for (int i = 0; i < _hordeEnemies.Count; i++)
             {
                 SpawnedEnemy enemy = _hordeEnemies[i];
@@ -1636,6 +1674,18 @@ namespace Cryptforge.Combat
             return null;
         }
 
+        // A horde record no place holds any more, its death long unsubscribed: kept for the next horde spawn, whose
+        // CreateEnemy sets every field again. Bounded by the pack's size.
+        private void FreeHordeRecord(SpawnedEnemy record)
+        {
+            if (record == null || _freeHordeRecords.Count >= PackLayout.MaxPackSize)
+                return;
+            record.Health = null;
+            record.Definition = null;
+            record.Enrage = null;
+            _freeHordeRecords.Push(record);
+        }
+
         // The horde leaves the floor: every body goes, and the hero's targets are the wave's again.
         private void ReleaseHorde(bool destroy)
         {
@@ -1650,6 +1700,8 @@ namespace Cryptforge.Combat
                 if (destroy && enemy.Health != null)
                     RemoveBody(enemy.Health, enemy.Definition);
             }
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+                FreeHordeRecord(_hordeEnemies[i]);
             _hordeEnemies.Clear();
             bool had = _horde != null;
             _horde = null;

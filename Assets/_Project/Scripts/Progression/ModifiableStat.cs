@@ -34,5 +34,13 @@ namespace Cryptforge.Progression
 
             Value = Math.Max(Minimum, (Base + _flat) * (1f + _percent));
         }
+
+        // Every modifier gone: the stat as the constructor left it (WeaponRuntime.Restore, for a pooled enemy's weapon).
+        internal void Restore()
+        {
+            _flat = 0f;
+            _percent = 0f;
+            Value = Base;
+        }
     }
 }

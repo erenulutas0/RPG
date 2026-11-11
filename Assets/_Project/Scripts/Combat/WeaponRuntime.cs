@@ -39,6 +39,8 @@ namespace Cryptforge.Combat
         // weapon with a burst fells anything, so a weapon without one - every enemy's - never holds a list.
         private List<IDamageable> _felled;
         private readonly float _baseInterval;
+        // The cooldown a new runtime starts on, which Restore starts it on again.
+        private readonly float _initialDelay;
         private float _cooldown;
         private float _gateBossShare = 1f;
         private float _eliteShare = 1f;
@@ -150,8 +152,35 @@ namespace Cryptforge.Combat
             _killBurst = new ModifiableStat(0f, 0f);
             _area = new ModifiableStat(1f, MinimumArea);
             _baseInterval = interval;
+            _initialDelay = initialDelay;
             _cooldown = initialDelay;
             Pattern = pattern;
+        }
+
+        // The runtime as its constructor left it, for a pooled enemy's next life (EncounterController's horde pool, through
+        // AttackController.Rearm): every stat at its base with no modifier, the first strike after the initial delay,
+        // nothing made, fired or felled, no share, no seed and no listener. The Descent simulation never restores one.
+        internal void Restore()
+        {
+            _damage.Restore();
+            _attackSpeed.Restore();
+            _range.Restore();
+            _critChance.Restore();
+            _pulseDamage.Restore();
+            _critSplash.Restore();
+            _killBurst.Restore();
+            _area.Restore();
+            _felled?.Clear();
+            _cooldown = _initialDelay;
+            _gateBossShare = 1f;
+            _eliteShare = 1f;
+            PulsesFired = 0;
+            SplintersFired = 0;
+            KillBurstsFired = 0;
+            AttacksMade = 0;
+            Seed = 0;
+            StatsChanged = null;
+            Pulsed = null;
         }
 
         private bool RollsCritical()

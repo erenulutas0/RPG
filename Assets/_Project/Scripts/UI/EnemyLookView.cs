@@ -73,6 +73,12 @@ namespace Cryptforge.UI
         private float _frameRemaining;
         private float _attackRemaining;
         private bool _subscribed;
+        private System.Action _onChanged;
+        private System.Action _onDied;
+        private System.Action<DamageContext> _onDamaged;
+        private System.Action _onAttacked;
+        private System.Action<Health> _onStruck;
+        private System.Action _onEnraged;
         // Only with a painted second phase: the enrage that shows it.
         private EnrageBehaviour _enrage;
         // The set draws a horde enemy's strike windup and there is an attacker to anticipate.
@@ -136,20 +142,22 @@ namespace Cryptforge.UI
         {
             if (!HasSprites)
                 return;
+            // One delegate per handler for the view's life: a pooled enemy is enabled and disabled once a life
+            // (EncounterController's horde pool), and a method group makes a new delegate each time it is named.
             if (_health != null)
             {
-                _health.Changed += RefreshBar;
-                _health.Died += OnDied;
-                _health.Damaged += OnDamaged;
+                _health.Changed += _onChanged ??= RefreshBar;
+                _health.Died += _onDied ??= OnDied;
+                _health.Damaged += _onDamaged ??= OnDamaged;
             }
             if (_attack != null)
             {
-                _attack.Attacked += OnAttacked;
-                _attack.Struck += OnStruck;
+                _attack.Attacked += _onAttacked ??= OnAttacked;
+                _attack.Struck += _onStruck ??= OnStruck;
             }
             if (_enrage != null)
             {
-                _enrage.Enraged += OnEnraged;
+                _enrage.Enraged += _onEnraged ??= OnEnraged;
                 ShowsEnraged |= _enrage.IsEnraged;
             }
             _subscribed = true;
@@ -515,17 +523,17 @@ namespace Cryptforge.UI
                 return;
             if (_health != null)
             {
-                _health.Changed -= RefreshBar;
-                _health.Died -= OnDied;
-                _health.Damaged -= OnDamaged;
+                _health.Changed -= _onChanged;
+                _health.Died -= _onDied;
+                _health.Damaged -= _onDamaged;
             }
             if (_attack != null)
             {
-                _attack.Attacked -= OnAttacked;
-                _attack.Struck -= OnStruck;
+                _attack.Attacked -= _onAttacked;
+                _attack.Struck -= _onStruck;
             }
             if (_enrage != null)
-                _enrage.Enraged -= OnEnraged;
+                _enrage.Enraged -= _onEnraged;
             _subscribed = false;
         }
 
