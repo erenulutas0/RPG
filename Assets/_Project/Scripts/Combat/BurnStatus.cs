@@ -26,10 +26,13 @@ namespace Cryptforge.Combat
         public static event Action<Health, Health> Spread;
         public static event Action<Health> BurnKill;
 
-        // The enemy's burn, added on its first stack. Null for a missing or fallen enemy.
+        // The enemy's burn, added on its first stack. Null for a missing or fallen enemy, and for one off the floor: a
+        // strike's StruckWith lands after its TryAttack returns, when the strike's own kill may have released the body (the
+        // gate opening on the Warden's fall), and a burn put on it then would ride the horde's pool into its next life with
+        // no one to put it out (the pool's review, 2026-11-11).
         public static BurnStatus On(Health enemy)
         {
-            if (enemy == null || !enemy.IsAlive)
+            if (enemy == null || !enemy.IsAlive || !enemy.isActiveAndEnabled)
                 return null;
             BurnStatus status = enemy.GetComponent<BurnStatus>();
             if (status == null)

@@ -881,9 +881,15 @@ namespace Cryptforge.Combat
                     continue;
                 BodyPool pool = IsHordeRole(leaving.Definition) ? PoolOf(leaving.Definition, true) : null;
                 if (pool == null || pool.Free.Count >= BodyPoolCap)
+                {
                     Destroy(leaving.Body.gameObject);
-                else
-                    pool.Free.Push(leaving.Body);
+                    continue;
+                }
+                // No burn rides the shelf: RemoveBody destroyed the one it had, BurnStatus.On refuses a body off the floor,
+                // and anything left goes now, at once, before the body can stand up again in this very tick.
+                if (leaving.Body.TryGetComponent(out BurnStatus late))
+                    DestroyImmediate(late);
+                pool.Free.Push(leaving.Body);
             }
             _leavingBodies.RemoveRange(waiting, _leavingBodies.Count - waiting);
         }

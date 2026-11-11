@@ -409,5 +409,27 @@ namespace Cryptforge.Tests
                 $"A shelved body's spawn allocates {pooled} times, a new one's {fresh}: the pool saves less than it did.");
             LogAssert.NoUnexpectedReceived();
         }
+
+        // A strike's StruckWith lands after its TryAttack returns, when the strike's own kill may have released the body it
+        // struck (the gate opening on the Warden's fall): a burn put on that body would ride the shelf into its next life,
+        // past Revive's cleared Died. A body off the floor takes no burn (the pool's review, 2026-11-11).
+        [Test]
+        public void ABodyOffTheFloorTakesNoBurn()
+        {
+            Health body = new GameObject("Burn on a body off the floor").AddComponent<Health>();
+            try
+            {
+                body.Initialize(10f);
+                body.gameObject.SetActive(false);
+                Assert.That(BurnStatus.On(body), Is.Null, "A body off the floor takes no burn.");
+                Assert.That(body.GetComponent<BurnStatus>(), Is.Null, "Nothing was added to it.");
+                body.gameObject.SetActive(true);
+                Assert.That(BurnStatus.On(body), Is.Not.Null, "Back on the floor it burns again.");
+            }
+            finally
+            {
+                Object.Destroy(body.gameObject);
+            }
+        }
     }
 }
