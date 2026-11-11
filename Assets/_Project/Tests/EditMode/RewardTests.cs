@@ -119,6 +119,36 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => run.AddExperience(-1));
         }
 
+        // The guarantee holds a paid victim only until its owner forgets it - the encounter lets go of the body - so a horde
+        // floor's thousands of kills no longer stay in it for the whole run; a victim still held is still paid once.
+        [Test]
+        public void ForgottenVictimsLeaveTheGuaranteeAndHeldOnesPayOnce()
+        {
+            var run = new RunState(ExperiencePerLevel);
+            var rewards = new RewardService(run);
+            var drops = new GroundDrops(run);
+            for (int i = 0; i < 2000; i++)
+            {
+                var victim = new HealthState(5f);
+                victim.ApplyDamage(new DamageContext(5f));
+                Assert.That(rewards.TryDropKill(victim, 1, 0, 0f, 0f, drops), Is.True);
+                Assert.That(rewards.TryDropKill(victim, 1, 0, 0f, 0f, drops), Is.False, "held, it pays once");
+                Assert.That(rewards.RememberedCount, Is.EqualTo(1));
+                rewards.Forget(victim);
+                Assert.That(rewards.RememberedCount, Is.Zero);
+            }
+            Assert.That(drops.Count, Is.EqualTo(2000));
+
+            var held = new HealthState(5f);
+            held.ApplyDamage(new DamageContext(5f));
+            Assert.That(rewards.TryAwardKill(held, 3, 2), Is.True);
+            rewards.Forget(null);
+            rewards.Forget(new HealthState(5f));
+            Assert.That(rewards.RememberedCount, Is.EqualTo(1), "forgetting another victim, or none, keeps it");
+            Assert.That(rewards.TryAwardKill(held, 3, 2), Is.False);
+            Assert.That((run.Experience, run.Gold), Is.EqualTo((3, 2)));
+        }
+
         [Test]
         public void PrototypeBalanceAwardsTenExperienceForOneGrunt()
         {

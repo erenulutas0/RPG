@@ -188,6 +188,9 @@ namespace Cryptforge.Combat
         public event Action HordeReleased;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
+        // An enemy's body leaves the floor, fallen or standing, its death no longer reported (RemoveBody): RewardService
+        // forgets a paid kill then.
+        public event Action<Health> EnemyRemoved;
         // An ordinary wave's last enemy has fallen, once per wave and before the floor moves on; a swarm never raises it.
         public event Action WaveCleared;
         public event Action FloorCleared;
@@ -796,9 +799,11 @@ namespace Cryptforge.Combat
         // standing - the horde as the gate opens, the swarm at the finale's exit - kept its AttackController, its burn and
         // the hero's strikes for the rest of the frame: a horde enemy could strike the hero after the Warden had fallen
         // (the run flow's review, 2026-11-11). Deactivated first, it does nothing more; the simulation drops a released
-        // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell.
-        private static void RemoveBody(Health enemy)
+        // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell. Every caller has
+        // unsubscribed from its death first, so EnemyRemoved says nothing can report it again.
+        private void RemoveBody(Health enemy)
         {
+            EnemyRemoved?.Invoke(enemy);
             enemy.gameObject.SetActive(false);
             Destroy(enemy.gameObject);
         }

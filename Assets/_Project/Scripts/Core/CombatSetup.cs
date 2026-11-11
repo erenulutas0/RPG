@@ -208,6 +208,7 @@ namespace Cryptforge.Core
 
             // Subscribe before the first spawn so every defeated enemy reaches the reward service.
             _encounters.EnemyDefeated += OnEnemyDefeated;
+            _encounters.EnemyRemoved += OnEnemyRemoved;
             _encounters.FloorCleared += OnFloorCleared;
             telemetry.Begin();
             bool arrival = DevelopmentStart.GateArrival();
@@ -336,6 +337,9 @@ namespace Cryptforge.Core
             }
             _rewards.TryDropKill(enemy, experience, gold, x, y, Drops);
         }
+
+        // The encounter let go of the body and of its death: the kill paid, if it was one, cannot be reported again.
+        private void OnEnemyRemoved(Health enemy) => _rewards.Forget(enemy);
 
         // Damaged fires before Died, so the killer is known when the defeat ends the run.
         private void OnHeroDamaged(DamageContext context)
@@ -472,6 +476,7 @@ namespace Cryptforge.Core
             if (_encounters != null)
             {
                 _encounters.EnemyDefeated -= OnEnemyDefeated;
+                _encounters.EnemyRemoved -= OnEnemyRemoved;
                 _encounters.FloorCleared -= OnFloorCleared;
             }
             if (Checkpoint != null)

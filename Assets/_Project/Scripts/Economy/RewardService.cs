@@ -6,7 +6,9 @@ using Cryptforge.Core;
 namespace Cryptforge.Economy
 {
     // Awards a kill's experience and gold once per victim. Death callbacks can repeat or re-enter, so the rewarded set
-    // is the guarantee rather than caller discipline.
+    // is the guarantee rather than caller discipline. A victim stays in it until its owner says nothing can report its
+    // death again (Forget): kept for the whole run, the set held every kill of a horde floor - thousands of enemies long
+    // destroyed - and rehashed as it grew (the review of 2026-11-11).
     public sealed class RewardService
     {
         private readonly RunState _run;
@@ -15,6 +17,18 @@ namespace Cryptforge.Economy
         public RewardService(RunState run)
         {
             _run = run ?? throw new ArgumentNullException(nameof(run));
+        }
+
+        // How many paid victims the guarantee still holds.
+        public int RememberedCount => _rewarded.Count;
+
+        // The victim's death can no longer be reported - the encounter has let go of its body and unsubscribed from its
+        // death (EncounterController.EnemyRemoved) - so the guarantee need not hold it. A victim forgotten while its death
+        // could still be reported would be paid again.
+        public void Forget(IDamageable victim)
+        {
+            if (victim != null)
+                _rewarded.Remove(victim);
         }
 
         public bool TryAwardKill(IDamageable victim, int experience, int gold)
