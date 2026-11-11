@@ -1593,3 +1593,275 @@ owner's floor time, the device's frames), reported 4.
   room, a Captain alone): the scene's autopilot holding the Captain within the Daggers' reach, and the Daggers landing
   double on it.
 - `FoundryGateTests`: the row's two readings and its basis.
+
+## Status 2026-11-11: the gate's wait - an early call
+
+**The question.** docs/41's open decision 2: what fills the gate's wait. The owner put the gate on the floor's clock at
+3:30 (2026-11-02, `FloorDefinition._foundryGateNotBeforeSeconds` 210) to give the floor its 4-6 minutes. On main
+158c9f3d the cleared room before the gate holds for 117-122 s of the careful pilot's 278-284 s floor (human hands), its
+largest phase. The hero farms the horde there almost risk-free: 11.6-12 levels. Set A and Set B (more content, the gate
+at 2:45) shortened the wait but cost the weaker cohorts: with human hands the clumsy Vanguard went from 41 % to 25-26 %
+("last night's decisions re-read", section 2).
+
+The idea measured here: once the room before the gate is cleared and the hold begins, the player may call the Warden at
+once (ring the gate's bell) instead of waiting for 3:30. The call may pay for the seconds it skips. The hope was that
+weak players keep the farm and strong players take a faster floor. Research only: nothing changes in the game.
+
+| Question | Verdict | The numbers that decide it (human hands, both floors cleared of 200, Vanguard / Ilya) |
+|---|---|---|
+| Does the wait's farm matter? | **yes**, for every cohort: the careful and standing ones need it on floor 2, the clumsy one at floor 1's Warden | careful calling at once: 180 / 182 against 192 / 195 waiting; floor 2's Warden kills it 14 / 12 times, against 3 / 2 |
+| A call without a reward | **waiting is never beaten** beyond noise: the call only buys time | careful at level 22: +1 / -1 for 42-43 s; at level 20: 0 / -6 for 61-64 s; at once: -12 / -13 for 113-118 s. Standing loses 13-49 a hero, clumsy 1-48 |
+| + a full heal | **wrong**: it pays the hurt, and calling becomes the weak cohorts' best play | clumsy at level 20 + heal: +11 / +22 (floor 1 +26 / +44); it dies at floor 1's Warden 2 / 4 times, against 24 / 47 |
+| + one upgrade choice (a Temper) | **too small to matter** | within noise of the bare call: at most 10 a hero either way, no direction |
+| + experience, half the wait's farm (2.4 a second skipped) | **the design asked for**: the careful pilots call at once for free; the standing and clumsy ones still do better waiting | careful +1 / -1 (holdout -2 / -4), 114-121 s faster; first-card -7 / 0 (+3 / +7); standing -22 / -14 (-24 / -26); clumsy -11 / -19 (-1 / -10) |
+
+**What was built** (research only, off by default; no scene code, no asset, no gate row changed):
+- `FoundryLevers.GateCalls`, `GateCallLevel`, `GateCallHealth`: while the cleared room before the gate holds, the
+  simulation's pilot calls the Warden on the first frame its hero is at the level and the health share (0: any). A
+  realistic pilot calls a reaction (0.25 s, `PilotRealism.MarkReaction`) after the condition comes true, and never while
+  it looks away or a choice is open. The hold ends the next frame (`GateHolds`), as a press would reach
+  EncounterController.
+- The rewards, paid at the call: `GateCallHeal` (a share of the maximum), `GateCallUpgrades` (choices, the forge's
+  Temper through `RunState.GrantBonusUpgrade`) and `GateCallExperienceShare` (that share of
+  `DescentSimulation.GateWaitExperienceRate` for each second of the hold skipped; one never-inlined body,
+  `GateCallExperienceFor`). The rate is 4.8, the careful wait's P50 of 4.82 experience a second (796 clears).
+- `FoundryResult`: `GateCalled`, `GateCallClock`, `GateCallSkipped`, `GateCallExperience`, the wait's own experience
+  (`WaitExperience`) and the hero's health as the room before the gate clears (`GateReadyHealth`). Accounting only.
+- `Tools/CombatChecks/GateCallResearch` (explicit; `CALL_CONFIGS`, `CALL_REALISM`, `CALL_COHORTS`): each configuration
+  by every cohort and both heroes, frame-perfect and with human hands, down both floors. It writes gate-call.md, a row a
+  cell in gate-call.csv and a row a run in gate-call-runs.csv.
+- `FoundryGateCallTests` holds that:
+  - the call is off by default;
+  - a call that never comes is the shipped floor run for run;
+  - a call at once comes on the hold's first frame and ends the hold on the next, the floor up to it the shipped one's;
+  - a level's call waits for its level;
+  - each reward is paid at the call;
+  - floor 2 never holds, so never calls.
+
+The default batch (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`) is byte-identical to main 158c9f3d's:
+foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv, foundry-gate.md and foundry-cohorts.md are the
+same to the byte; foundry-batch.md differs only in its date and its wall-clock seconds.
+
+**How it was measured.** Main 158c9f3d with this branch's levers (main's 0f9a4ec7 since changes a PlayMode test
+alone, not the simulation). `GateCallResearch`, seeds 1-200 a hero, both floors (a floor-1 clear goes on into floor 2,
+whose gate does not hold), every cohort, frame-perfect and `FOUNDRY_REALISM=typical` ("human hands"),
+`FOUNDRY_PARALLEL=4`; TestResults/gate-call-1111/full/. The holdout: seeds 201-400 with human hands,
+TestResults/gate-call-1111/holdout/ and holdout-xp/. A run is the shipped floor until the hold begins, so a difference
+against the wait is the call's. Read differences under about 10 of 200 as noise.
+
+The policies:
+- at once, as the hold begins;
+- at level 18, 20 or 22 (the careful pilot is at 19 at 2:30 on the floor's clock and at 22 at 3:00);
+- at once with the hero's health at 80 % of its maximum or more, and at level 20 with the same.
+
+The rewards, on the call at once and at level 20: a heal to full, one upgrade choice (the forge's Temper), and
+experience at half the wait's farm.
+
+### What the wait gives
+
+The shipped floor with human hands. Ready: the floor's clock, the level and the health as the room before the gate
+clears (P50). Level by the floor's time: P50 at 2:30, 3:00 and 3:30 of the floor's active time. Wait: the clears' P50.
+Levels and health lost in the wait: mean of the clears; died in the wait: of 200.
+
+| Cohort | Ready: clock / level / health | Level at 2:30 ; 3:00 ; 3:30 | Level at the gate | Wait | Levels in the wait | Experience a second | Health lost in the wait | Died in the wait |
+|---|---|---|---|---|---|---|---|---|
+| careful | 93 / 88 s, 14 / 13, 88 / 87 % | 19 / 19 ; 22 / 22 ; 24 / 25 | 25 / 25 | 117 / 122 s | 11.6 / 12.0 | 4.85 / 4.83 | 7 / 8 | 0 / 0 |
+| standing | 98 / 93 s, 14 / 14, 88 / 90 % | 19 / 19 ; 22 / 22 ; 25 / 25 | 26 / 26 | 112 / 116 s | 11.2 / 11.7 | 5.00 / 4.99 | 6 / 7 | 0 / 0 |
+| first-card | 97 / 89 s, 14 / 14, 83 / 82 % | 19 / 19 ; 22 / 22 ; 24 / 25 | 25 / 26 | 113 / 120 s | 11.2 / 12.0 | 4.91 / 4.87 | 5 / 5 | 0 / 0 |
+| clumsy | 101 / 97 s, 14 / 14, 59 / 58 % | 19 / 19 ; 22 / 22 ; 25 / 25 | 25 / 25 | 110 / 112 s | 11.2 / 11.6 | 5.09 / 5.02 | 19 / 18 | 5 / 1 |
+| auto-farmer | 91 / 86 s, 14 / 14, 61 / 65 % | 19 / 20 ; 22 / 22 ; 25 / 25 | 25 / 26 | 121 / 124 s | 11.8 / 12.1 | 4.74 / 4.79 | 3 / 5 | 0 / 0 |
+
+Every cohort reaches the hold at level 13-14 and leaves it at 25-26, at the same pace: the horde feeds every hand alike.
+It is safe for every cohort but the clumsy one, which comes to it hurt (58-59 %), loses 18-19 more there and is the only
+one that dies there (6 of 400). Frame-perfect the careful pilot is ready at 89 / 86 s and waits 120 / 124 s.
+
+### The clears
+
+Floor 1 ; both floors, Vanguard / Ilya. The first row is the shipped floor's clears of 200; every other row its clears
+less the wait's.
+
+| Human hands | careful | standing | first-card | clumsy | auto-farmer |
+|---|---|---|---|---|---|
+| Wait (shipped) | 198 / 198 ; 192 / 195 | 181 / 179 ; 162 / 156 | 183 / 197 ; 177 / 192 | 81 / 138 ; 65 / 109 | 9 / 29 ; 3 / 3 |
+| At once | -4 / -2 ; -12 / -13 | -21 / -16 ; -47 / -49 | -9 / -11 ; -23 / -20 | -27 / -35 ; -26 / -48 | -9 / -26 ; -3 / -3 |
+| At level 18 | 0 / 0 ; -2 / -8 | -5 / +1 ; -31 / -21 | -5 / -1 ; -8 / -3 | -4 / -11 ; -20 / -29 | -7 / -17 ; -3 / -2 |
+| At level 20 | 0 / -2 ; 0 / -6 | 0 / +2 ; -27 / -20 | -2 / +3 ; +1 / +4 | -6 / -7 ; -9 / -22 | -4 / -12 ; -3 / 0 |
+| At level 22 | -1 / 0 ; +1 / -1 | +1 / +4 ; -19 / -13 | +2 / +3 ; +3 / +1 | -3 / -1 ; -6 / -16 | -2 / -12 ; -3 / 0 |
+| At once, health 80 % | 0 / 0 ; -3 / -5 | -13 / -3 ; -32 / -35 | -1 / -2 ; -3 / -4 | 0 / -2 ; -2 / -5 | -3 / -13 ; -1 / -3 |
+| At level 20, health 80 % | +1 / 0 ; +4 / -1 | +2 / +2 ; -18 / -15 | 0 / 0 ; -1 / 0 | -1 / 0 ; -1 / -1 | -2 / -5 ; -1 / -2 |
+| At once + full heal | 0 / +1 ; -8 / -9 | +6 / +7 ; -33 / -39 | +1 / +2 ; 0 / -7 | +16 / +31 ; -4 / -14 | -5 / -16 ; -3 / -3 |
+| At once + 1 choice | -4 / -3 ; -10 / -13 | -17 / -14 ; -49 / -41 | -11 / -6 ; -14 / -19 | -21 / -40 ; -30 / -41 | -7 / -24 ; -3 / -3 |
+| At once + XP 50 % | -1 / +1 ; +1 / -1 | -1 / -1 ; -22 / -14 | 0 / -2 ; -7 / 0 | +4 / -6 ; -11 / -19 | -4 / -10 ; -3 / -2 |
+| At level 20 + full heal | +1 / 0 ; 0 / -6 | +13 / +18 ; -8 / -10 | +2 / +3 ; +5 / +6 | +26 / +44 ; +11 / +22 | +7 / +17 ; 0 / +4 |
+| At level 20 + 1 choice | -1 / -1 ; 0 / -5 | +2 / +5 ; -22 / -15 | 0 / +3 ; 0 / +1 | -8 / -4 ; -9 / -12 | -3 / -7 ; -3 / 0 |
+| At level 20 + XP 50 % | -4 / +1 ; 0 / 0 | 0 / +5 ; -8 / -6 | -6 / +3 ; -5 / 0 | +3 / +5 ; -8 / -11 | -1 / -2 ; -1 / 0 |
+
+| Frame-perfect | careful | standing | first-card | clumsy | auto-farmer |
+|---|---|---|---|---|---|
+| Wait (shipped) | 200 / 200 ; 200 / 200 | 195 / 195 ; 180 / 176 | 196 / 200 ; 196 / 200 | 106 / 183 ; 99 / 164 | 11 / 36 ; 2 / 6 |
+| At once | 0 / 0 ; 0 / 0 | -5 / -4 ; -28 / -19 | 0 / 0 ; 0 / 0 | -20 / -25 ; -29 / -38 | -10 / -32 ; -2 / -5 |
+| At level 18 | 0 / 0 ; 0 / 0 | -4 / -8 ; -19 / -23 | 0 / 0 ; 0 / 0 | -14 / -9 ; -16 / -30 | -8 / -19 ; -1 / -5 |
+| At level 20 | 0 / 0 ; 0 / 0 | -4 / -6 ; -15 / -16 | -1 / 0 ; -1 / 0 | +3 / -6 ; -6 / -23 | -7 / -17 ; -2 / -5 |
+| At level 22 | 0 / 0 ; 0 / 0 | -3 / -7 ; -10 / -12 | 0 / 0 ; 0 / 0 | -2 / -8 ; -3 / -10 | -5 / -12 ; -1 / -4 |
+| At once, health 80 % | 0 / 0 ; 0 / 0 | +1 / -2 ; -18 / -6 | 0 / 0 ; 0 / 0 | -1 / +2 ; -1 / 0 | -4 / -16 ; -2 / -4 |
+| At level 20, health 80 % | 0 / 0 ; 0 / 0 | +1 / -1 ; -8 / -3 | 0 / 0 ; 0 / 0 | 0 / +2 ; -1 / +1 | -3 / -3 ; -2 / -4 |
+| At once + full heal | 0 / 0 ; 0 / 0 | +4 / +4 ; -21 / -15 | 0 / 0 ; 0 / 0 | +19 / +14 ; +6 / +2 | -5 / -23 ; -2 / -5 |
+| At once + 1 choice | 0 / 0 ; 0 / 0 | -6 / -2 ; -21 / -21 | 0 / 0 ; 0 / 0 | -9 / -19 ; -20 / -29 | -9 / -31 ; -2 / -5 |
+| At once + XP 50 % | 0 / 0 ; 0 / 0 | -1 / +2 ; -8 / -9 | 0 / 0 ; 0 / 0 | +2 / -5 ; -2 / -14 | -6 / -13 ; -1 / -4 |
+| At level 20 + full heal | 0 / 0 ; 0 / 0 | +3 / +5 ; -13 / -5 | 0 / 0 ; 0 / 0 | +20 / +14 ; +13 / +5 | +8 / +16 ; -2 / -4 |
+| At level 20 + 1 choice | 0 / 0 ; 0 / 0 | -2 / -6 ; -13 / -10 | 0 / 0 ; 0 / 0 | -2 / -5 ; -7 / -8 | -6 / -14 ; -2 / -3 |
+| At level 20 + XP 50 % | 0 / 0 ; 0 / 0 | +3 / -1 ; -5 / -6 | 0 / 0 ; 0 / 0 | +2 / +4 ; -5 / -4 | -5 / -11 ; -1 / -2 |
+
+The holdout (seeds 201-400, human hands) reads the same: at once careful -9 / -14 over both floors, standing -57 / -60,
+clumsy -28 / -43; at level 20 careful +2 / -7, standing -28 / -24, clumsy -6 / -14; at once with health 80 % careful
+-7 / -6, standing -42 / -44, clumsy -2 / -7. With the experience reward: at once careful -2 / -4 and 114-121 s
+faster, first-card +3 / +7, standing -24 / -26, clumsy -1 / -10 (floor 1 +6 / +9), auto-farmer 0 / -1; at level 20
+careful -2 / -3, standing -8 / -9, clumsy -5 / +3.
+
+### Where the farm's levels go
+
+The careful cohort, every configuration (Vanguard / Ilya; fp frame-perfect, hh human hands). Floor 1: the clears' P50.
+Both floors: floor 1 and floor 2 together, P50 of the runs that cleared both. Warden's health: its maximum as it walks
+out, which the run's difficulty multiplies. Warden fights: P50 (P90) of the felled fights. Wait: the clears' P50. Called
+at: the floor's clock at the call, P50.
+
+| Policy | Pilot | Floor 1 | Both floors | Level at the gate | Warden's health | Warden, floor 1 | Warden, floor 2 | Died at the Warden, floor 1 ; floor 2 | Wait | Called at |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Wait (shipped) | fp | 291 / 283 | 433 / 419 | 25 / 26 | 3570 / 3570 | 56 / 50 (68 / 60) | 58 / 52 (70 / 62) | 0 / 0 ; 0 / 0 | 120 / 124 | - / - |
+| At once | fp | 174 / 162 | 325 / 309 | 14 / 14 | 3060 / 3060 | 61 / 54 (72 / 62) | 62 / 58 (79 / 68) | 0 / 0 ; 0 / 0 | 0 / 0 | 89 / 86 |
+| At level 18 | fp | 207 / 194 | 355 / 338 | 18 / 18 | 3060 / 3060 | 61 / 52 (72 / 63) | 61 / 55 (80 / 65) | 0 / 0 ; 0 / 0 | 31 / 32 | 121 / 118 |
+| At level 20 | fp | 226 / 215 | 372 / 357 | 20 / 20 | 3570 / 3570 | 59 / 51 (72 / 62) | 60 / 55 (74 / 66) | 0 / 0 ; 0 / 0 | 51 / 53 | 142 / 139 |
+| At level 22 | fp | 247 / 236 | 393 / 375 | 22 / 22 | 3570 / 3570 | 58 / 51 (70 / 61) | 59 / 54 (76 / 65) | 0 / 0 ; 0 / 0 | 74 / 75 | 164 / 162 |
+| At once, health 80 % | fp | 174 / 164 | 326 / 312 | 14 / 14 | 3060 / 3060 | 61 / 53 (72 / 62) | 61 / 58 (78 / 67) | 0 / 0 ; 0 / 0 | 0 / 0 | 89 / 86 |
+| At level 20, health 80 % | fp | 226 / 216 | 373 / 359 | 20 / 20 | 3570 / 3570 | 59 / 51 (72 / 62) | 60 / 55 (73 / 65) | 0 / 0 ; 0 / 0 | 52 / 54 | 142 / 139 |
+| At once + full heal | fp | 174 / 162 | 325 / 309 | 14 / 14 | 3060 / 3060 | 61 / 54 (72 / 62) | 62 / 58 (79 / 68) | 0 / 0 ; 0 / 0 | 0 / 0 | 89 / 86 |
+| At once + 1 choice | fp | 173 / 162 | 323 / 306 | 14 / 14 | 3060 / 3060 | 61 / 53 (71 / 62) | 61 / 56 (81 / 66) | 0 / 0 ; 0 / 0 | 0 / 0 | 89 / 86 |
+| At once + XP 50 % | fp | 170 / 159 | 316 / 301 | 20 / 20 | 3570 / 3570 | 57 / 51 (70 / 59) | 60 / 54 (76 / 65) | 0 / 0 ; 0 / 0 | 0 / 0 | 89 / 86 |
+| At level 20 + full heal | fp | 226 / 215 | 372 / 357 | 20 / 20 | 3570 / 3570 | 59 / 51 (72 / 62) | 60 / 55 (74 / 66) | 0 / 0 ; 0 / 0 | 51 / 53 | 142 / 139 |
+| At level 20 + 1 choice | fp | 225 / 213 | 371 / 354 | 20 / 20 | 3570 / 3570 | 58 / 51 (70 / 61) | 60 / 54 (75 / 65) | 0 / 0 ; 0 / 0 | 51 / 53 | 142 / 139 |
+| At level 20 + XP 50 % | fp | 225 / 213 | 367 / 352 | 23 / 23 | 3570 / 3570 | 57 / 50 (70 / 58) | 58 / 54 (74 / 64) | 0 / 0 ; 0 / 0 | 51 / 53 | 142 / 139 |
+| Wait (shipped) | hh | 284 / 278 | 422 / 410 | 25 / 25 | 3570 / 3570 | 51 / 45 (65 / 56) | 54 / 49 (64 / 61) | 1 / 2 ; 3 / 2 | 117 / 122 | - / - |
+| At once | hh | 172 / 160 | 317 / 300 | 14 / 13 | 3060 / 3060 | 55 / 49 (63 / 55) | 58 / 54 (70 / 63) | 5 / 4 ; 14 / 12 | 0 / 0 | 93 / 89 |
+| At level 18 | hh | 202 / 193 | 344 / 329 | 18 / 18 | 3060 / 3060 | 53 / 48 (64 / 56) | 58 / 52 (71 / 64) | 1 / 2 ; 7 / 9 | 31 / 34 | 124 / 122 |
+| At level 20 | hh | 223 / 214 | 364 / 349 | 20 / 20 | 3570 / 3570 | 54 / 48 (66 / 55) | 57 / 51 (71 / 62) | 1 / 4 ; 6 / 7 | 52 / 55 | 145 / 143 |
+| At level 22 | hh | 243 / 235 | 382 / 372 | 22 / 22 | 3570 / 3570 | 53 / 46 (65 / 56) | 56 / 51 (69 / 62) | 2 / 2 ; 4 / 3 | 74 / 77 | 167 / 165 |
+| At once, health 80 % | hh | 175 / 165 | 324 / 310 | 14 / 14 | 3060 / 3060 | 55 / 48 (64 / 55) | 58 / 53 (70 / 62) | 1 / 2 ; 9 / 8 | 0 / 0 | 93 / 90 |
+| At level 20, health 80 % | hh | 226 / 219 | 370 / 361 | 20 / 20 | 3570 / 3570 | 53 / 47 (65 / 55) | 56 / 50 (70 / 62) | 0 / 2 ; 3 / 4 | 54 / 58 | 145 / 144 |
+| At once + full heal | hh | 172 / 160 | 317 / 300 | 14 / 13 | 3060 / 3060 | 55 / 49 (64 / 55) | 59 / 54 (70 / 64) | 1 / 1 ; 14 / 13 | 0 / 0 | 93 / 89 |
+| At once + 1 choice | hh | 171 / 161 | 316 / 301 | 14 / 13 | 3060 / 3060 | 54 / 48 (64 / 55) | 59 / 54 (72 / 65) | 5 / 5 ; 11 / 13 | 0 / 0 | 93 / 89 |
+| At once + XP 50 % | hh | 170 / 157 | 312 / 294 | 20 / 20 | 3570 / 3570 | 52 / 47 (63 / 54) | 56 / 50 (70 / 63) | 2 / 1 ; 4 / 4 | 0 / 0 | 93 / 89 |
+| At level 20 + full heal | hh | 223 / 214 | 364 / 349 | 20 / 20 | 3570 / 3570 | 54 / 48 (66 / 55) | 57 / 51 (70 / 62) | 0 / 2 ; 7 / 8 | 52 / 55 | 145 / 143 |
+| At level 20 + 1 choice | hh | 221 / 213 | 362 / 349 | 20 / 20 | 3570 / 3570 | 52 / 47 (65 / 56) | 55 / 51 (66 / 61) | 2 / 3 ; 5 / 5 | 52 / 55 | 145 / 143 |
+| At level 20 + XP 50 % | hh | 220 / 212 | 360 / 346 | 23 / 23 | 3570 / 3570 | 52 / 46 (64 / 54) | 54 / 50 (68 / 60) | 5 / 1 ; 2 / 4 | 52 / 55 | 145 / 143 |
+
+- **An early call meets a weaker floor-1 Warden.** The run's difficulty is the two altars' 0.1 each and 0.2 an
+  evolution, and most heroes evolve their first weapon in the wait. Called at once, the careful run's difficulty is 1.2
+  in 340 of 399 runs, where waiting it is 1.4 or more in 298. The Warden walks out with 3060 health (P50) instead of
+  3570, and the horde round it is the clock's 90 s horde rather than its 210 s one. So floor 1's Warden costs the
+  careful pilot little: the fight runs 55 / 49 s at level 14 against 51 / 45 s at level 25 with human hands, and it
+  dies there 5 / 4 times against 1 / 2.
+- **The cost comes on floor 2.** Floor 2 has no wait, so the hero goes down with the levels it farmed, or without them.
+  The careful cohort that called at once dies at floor 2's Warden 14 / 12 times, against 3 / 2. The standing cohort,
+  which trades blows with the Warden, dies there 42 / 53 times against 17 / 21. The clumsy cohort's losses come at
+  floor 1's Warden instead: 56 / 83 deaths against 24 / 47, since it arrives hurt and the farm's levels carried it.
+- **Experience at half the farm puts the evolution back.** The call at once pays 280-291 experience: the hero meets the
+  Warden at level 20 rather than 14 and its difficulty is 1.4 again (3570). The careful pilot then dies at the Wardens
+  2 / 1 ; 4 / 4 times (waiting: 1 / 2 ; 3 / 2), and its floor 1 takes 170 / 157 s.
+
+The other cohorts with human hands (floor 1 P50 of every run; level at the gate; wait, the clears' P50; Warden fight on
+floor 1; deaths at the Warden, floor 1 ; floor 2):
+
+| Floor 1 ; level at the gate ; wait | standing | first-card | clumsy | auto-farmer |
+|---|---|---|---|---|
+| Wait (shipped) | 274 / 270 ; 26 / 26 ; 112 / 116 | 281 / 276 ; 25 / 26 ; 113 / 120 | 243 / 272 ; 25 / 25 ; 110 / 112 | 231 / 241 ; 25 / 26 ; 121 / 124 |
+| At once | 161 / 153 ; 14 / 14 ; 0 / 0 | 173 / 161 ; 14 / 14 ; 0 / 0 | 136 / 158 ; 14 / 14 ; 0 / 0 | 108 / 116 ; 14 / 14 ; - / 0 |
+| At level 18 | 188 / 184 ; 18 / 18 ; 26 / 29 | 199 / 192 ; 18 / 18 ; 28 / 32 | 168 / 189 ; 18 / 18 ; 25 / 27 | 144 / 149 ; 18 / 18 ; 30 / 34 |
+| At level 20 | 208 / 204 ; 20 / 20 ; 45 / 49 | 219 / 212 ; 20 / 20 ; 49 / 54 | 182 / 208 ; 20 / 20 ; 45 / 47 | 165 / 172 ; 20 / 20 ; 56 / 55 |
+| At level 22 | 230 / 226 ; 22 / 22 ; 67 / 70 | 239 / 233 ; 22 / 22 ; 72 / 75 | 206 / 230 ; 22 / 22 ; 65 / 69 | 186 / 194 ; 22 / 22 ; 78 / 76 |
+| At once, health 80 % | 166 / 157 ; 15 / 14 ; 0 / 0 | 181 / 170 ; 15 / 14 ; 1 / 1 | 175 / 267 ; 25 / 25 ; 108 / 111 | 123 / 237 ; 25 / 25 ; 121 / 123 |
+| At level 20, health 80 % | 212 / 208 ; 20 / 20 ; 47 / 50 | 228 / 220 ; 20 / 20 ; 58 / 60 | 207 / 269 ; 25 / 25 ; 108 / 111 | 183 / 237 ; 25 / 25 ; 120 / 117 |
+| At once + full heal | 163 / 154 ; 14 / 14 ; 0 / 0 | 174 / 161 ; 14 / 14 ; 0 / 0 | 160 / 167 ; 14 / 14 ; 0 / 0 | 116 / 122 ; 14 / 14 ; 0 / 0 |
+| At once + 1 choice | 162 / 153 ; 14 / 14 ; 0 / 0 | 171 / 160 ; 14 / 14 ; 0 / 0 | 137 / 157 ; 14 / 14 ; 0 / 0 | 110 / 116 ; 14 / 14 ; 0 / 0 |
+| At once + XP 50 % | 161 / 153 ; 20 / 20 ; 0 / 0 | 169 / 157 ; 20 / 20 ; 0 / 0 | 149 / 160 ; 20 / 20 ; 0 / 0 | 109 / 118 ; 20 / 20 ; 0 / 0 |
+| At level 20 + full heal | 208 / 204 ; 20 / 20 ; 46 / 49 | 220 / 212 ; 20 / 20 ; 49 / 54 | 202 / 214 ; 20 / 20 ; 44 / 47 | 171 / 178 ; 20 / 20 ; 53 / 54 |
+| At level 20 + 1 choice | 207 / 204 ; 20 / 20 ; 45 / 49 | 218 / 212 ; 20 / 20 ; 49 / 54 | 185 / 207 ; 20 / 20 ; 45 / 46 | 165 / 172 ; 20 / 20 ; 56 / 54 |
+| At level 20 + XP 50 % | 207 / 203 ; 23 / 23 ; 45 / 49 | 216 / 210 ; 23 / 23 ; 49 / 54 | 185 / 208 ; 23 / 23 ; 44 / 46 | 165 / 172 ; 23 / 23 ; 56 / 54 |
+
+| Warden fight, floor 1 ; died at the Warden, floor 1 , floor 2 | standing | first-card | clumsy | auto-farmer |
+|---|---|---|---|---|
+| Wait (shipped) | 41 / 39 (49 / 45) ; 18 / 21 , 17 / 21 | 48 / 44 (58 / 50) ; 2 / 3 , 6 / 3 | 47 / 48 (55 / 63) ; 24 / 47 , 10 / 16 | 28 / 29 (36 / 32) ; 98 / 168 , 3 / 16 |
+| At once | 45 / 41 (51 / 47) ; 39 / 37 , 42 / 53 | 54 / 48 (60 / 55) ; 11 / 14 , 9 / 10 | 53 / 52 (64 / 67) ; 56 / 83 , 8 / 26 | - / 35 (- / 38) ; 107 / 194 , 0 / 2 |
+| At level 18 | 44 / 40 (50 / 46) ; 23 / 20 , 41 / 43 | 52 / 46 (60 / 52) ; 7 / 4 , 7 / 7 | 53 / 51 (60 / 69) ; 32 / 59 , 20 / 36 | 35 / 31 (37 / 33) ; 105 / 185 , 2 / 10 |
+| At level 20 | 43 / 40 (51 / 47) ; 18 / 19 , 45 / 42 | 51 / 45 (60 / 51) ; 4 / 0 , 2 / 4 | 52 / 50 (61 / 63) ; 34 / 55 , 12 / 31 | 31 / 30 (33 / 33) ; 102 / 180 , 4 / 8 |
+| At level 22 | 43 / 40 (50 / 46) ; 17 / 17 , 38 / 39 | 50 / 45 (59 / 52) ; 0 / 0 , 3 / 5 | 49 / 49 (58 / 63) ; 31 / 49 , 14 / 27 | 34 / 29 (36 / 34) ; 100 / 180 , 6 / 9 |
+| At once, health 80 % | 45 / 41 (51 / 46) ; 31 / 24 , 36 / 52 | 53 / 47 (60 / 54) ; 3 / 5 , 7 / 5 | 48 / 49 (58 / 64) ; 24 / 49 , 11 / 18 | 34 / 29 (37 / 33) ; 101 / 181 , 2 / 10 |
+| At level 20, health 80 % | 43 / 40 (50 / 47) ; 16 / 19 , 39 / 38 | 50 / 45 (60 / 51) ; 2 / 3 , 6 / 3 | 48 / 48 (56 / 64) ; 25 / 47 , 10 / 16 | 33 / 30 (36 / 33) ; 100 / 173 , 3 / 14 |
+| At once + full heal | 45 / 41 (51 / 46) ; 12 / 14 , 53 / 65 | 54 / 49 (60 / 55) ; 1 / 1 , 6 / 12 | 54 / 52 (65 / 67) ; 13 / 17 , 27 / 56 | 38 / 35 (40 / 36) ; 103 / 184 , 2 / 7 |
+| At once + 1 choice | 45 / 40 (52 / 46) ; 35 / 35 , 50 / 48 | 53 / 48 (61 / 54) ; 13 / 9 , 7 / 12 | 53 / 52 (62 / 67) ; 50 / 88 , 17 / 22 | 38 / 33 (40 / 36) ; 105 / 192 , 2 / 3 |
+| At once + XP 50 % | 43 / 40 (51 / 48) ; 19 / 22 , 34 / 35 | 50 / 45 (56 / 51) ; 2 / 5 , 9 / 3 | 50 / 49 (60 / 67) ; 25 / 54 , 21 / 30 | 30 / 31 (36 / 33) ; 102 / 178 , 5 / 13 |
+| At level 20 + full heal | 43 / 40 (50 / 47) ; 5 / 3 , 39 / 50 | 51 / 45 (61 / 51) ; 0 / 0 , 3 / 2 | 52 / 50 (63 / 63) ; 2 / 4 , 23 / 37 | 33 / 31 (37 / 34) ; 91 / 151 , 11 / 28 |
+| At level 20 + 1 choice | 43 / 40 (50 / 46) ; 16 / 16 , 41 / 39 | 50 / 45 (59 / 51) ; 2 / 0 , 3 / 6 | 51 / 49 (61 / 65) ; 36 / 52 , 11 / 28 | 31 / 30 (35 / 32) ; 101 / 175 , 5 / 9 |
+| At level 20 + XP 50 % | 42 / 40 (49 / 46) ; 18 / 16 , 27 / 30 | 49 / 44 (58 / 50) ; 8 / 0 , 4 / 6 | 49 / 48 (59 / 64) ; 25 / 43 , 16 / 32 | 32 / 29 (35 / 33) ; 99 / 170 , 4 / 13 |
+
+### The behavioural reading
+
+Which policy maximises each cohort's clears, with human hands (both floors, the two heroes together)?
+
+| Cohort | Without a reward | With experience at half the farm | With a full heal |
+|---|---|---|---|
+| careful | the wait or a late call, tied within noise (level 22: +1 / -1). A call is only time: 42-64 s for nothing, 113-118 s for -12 / -13 | the call at once: +1 / -1 (holdout -2 / -4), 114-121 s faster | the wait; the heal adds nothing (at once -8 / -9, at level 20 0 / -6) |
+| first-card | the wait, or a call at level 20-22 (+1 / +4, +3 / +1) | a tie: the call at once -7 / 0 (holdout +3 / +7) | the call at level 20 (+5 / +6) |
+| standing | the wait; every call loses 13-49 a hero | the wait (-22 / -14 at once, -8 / -6 at level 20) | the wait (-8 / -10 at level 20) |
+| clumsy | the wait; every call loses, the health-gated ones least (-1 / -1), since a hurt clumsy hero never calls | the wait over both floors (-11 / -19 at once, holdout -1 / -10); floor 1 alone a tie (+4 / -6, holdout +6 / +9) | **the call** at level 20: +11 / +22 |
+| auto-farmer | the wait (3 / 3 of 200; every call within 3) | the wait (within 3) | the call at level 20 (0 / +4; floor 1 +7 / +17) |
+
+Frame-perfect, the careful and first-card pilots lose at most one run to any call (200 / 200 and 196 / 200 over both
+floors). The standing, clumsy and auto-farmer pilots lose to every call they make without a reward; the health-gated
+calls leave the clumsy hero waiting.
+
+So:
+- **Without a reward the button is a trap.** Waiting is the best play for every cohort. For the careful pilot a late
+  call (level 20-22, 2:40-3:00) is close to free, but it buys under a minute. For every weaker cohort a call costs runs,
+  most of all on floor 2.
+- **With experience at half the wait's farm it is the design asked for.** Calling at once is best for the strong pilots:
+  the careful clears hold and the floor is two minutes shorter. Waiting stays best for the weak: the standing pilot
+  clears 14-26 more a hero over both floors by waiting, the clumsy one 1-19 more (on floor 1 alone it is a tie), and the
+  auto-farmer's 3 / 3 do not move. The reward replaces the farm's levels only by half. The careful pilot needs no more
+  than that; the others need the whole farm, most of all for floor 2.
+- **A heal inverts the design.** It pays the players who arrive hurt, who are the weak ones, so that calling becomes
+  their best play and the floor gets easier for them (clumsy floor 1 +26 / +44). The careful pilot arrives at 88-93 %
+  and gains nothing from it.
+- **One upgrade choice is noise**, a twelfth of what the wait gives.
+- **A health threshold on the call protects the clumsy, not the standing.** The clumsy hero arrives hurt and never
+  calls under it. The standing hero arrives healthy (88-90 %), calls, and loses 32-35 a hero at once over both floors.
+
+### What the scene would need
+
+None of it is built. In the simulation the call is a frame of the pilot's (`PilotCallsGate`) and one condition of the
+hold (`GateHolds`). The scene needs the same in its own places, and one rule body for parity.
+
+| Piece | Where | What |
+|---|---|---|
+| The call | EncounterController | `CallGate()`: while `IsHoldingForGate`, it sets a `_gateCalled` that `GateHoldsForClock()` reads, so the hold ends on the next Update, as in the simulation. It is reset in `EnterFloor` and `OnHeroDied` beside `_holdingForGate`, and raises an event for the HUD and the telemetry. Only a floor whose gate holds offers it (Floor_QuicksilverVaults sets no time). |
+| The rule | a `GateCallRule` beside `WardenRule` (Scripts/Combat) | Whether a call is open, and its reward: the experience for the seconds skipped as one never-inlined body that EncounterController and the simulation both call. The simulation's `GateCallExperienceFor` and `GateWaitExperienceRate` move onto it. |
+| The control | FloorClockView, RunHud | The ember "Gate opens in m:ss" label becomes a button while the gate holds: "Ring the bell: the Warden now", with what it pays ("+290 XP", counting down 2.4 a second with the clock). The steering thumb has to reach it: a large target by the clock. A bell at the gate that the hero stands on for a second (ExitRule's dwell) is the other way; it adds a walk through the horde and was not measured. |
+| The bell | the gate court (FoundryMap's gate, its art) | A bell or brazier at the gate that lights as the hold begins and rings at the call, so the call is seen in the world and not only on the HUD. |
+| The pilot | DevelopmentAutopilot | A call policy among development/autopilot.txt's words ("call", "call 20", "call 20 health 80"), read as the simulation reads `FoundryLevers.GateCalls`, `GateCallLevel` and `GateCallHealth`, so that HordePacingMeasurement plays it; `FoundrySimulationSceneValueTests` holds the two to one rule. The default autopilot keeps waiting, so the gate's rows keep reading the shipped floor. |
+| The record | RunTelemetry | A `gate_called` event: the floor's clock, the seconds skipped, the level, `hero_hp` / `hero_max_hp` and the reward paid. room_complete's `gate_hold_sec` already measures the hold. A device session then reads who calls, when, and what it cost them at the Wardens. |
+| The tests | PlayMode, beside GateHoldFlowTests | On the proof floor (its gate waits 0:12): a call during the hold begins the gate boss's room the next frame and pays its reward; no call outside the hold. |
+
+### Recommendation
+
+1. **If the floor's 4-6 minutes are the point, do not build the call.** It does not fill the wait. It removes it for
+   whoever presses it. A careful player who calls at once with the reward clears floor 1 in 170 / 157 s and both floors
+   in 312 / 294 s, against 284 / 278 s and 422 / 410 s waiting. The gate stays at 3:30 as the floor's length. What fills
+   the wait is then still the horde, or content (Set A / Set B) at the cost the re-read measured.
+2. **If a strong player may take a faster floor (the idea's intent): build the call with experience for the seconds
+   skipped, at half the wait's farm.** That is 2.4 a second, about 290 as the hold begins, counting down on the prompt.
+   Offer it only on a floor whose gate holds (floor 1), with no heal and no card. It is the only version measured that
+   is free for the careful pilot (+1 / -1 with human hands, 0 / 0 frame-perfect, -2 / -4 on the holdout) and still a
+   loss over both floors for the standing and clumsy ones. The 4-6 minutes then hold for those who wait. The default
+   autopilot keeps waiting, so the gate's floor-time row still reads the shipped floor.
+3. **Never pay a heal at the call.** It turns the bell into the weak player's best play.
+4. **Read a human before the build.** The simulation calls by a fixed rule. Whether a weak player resists "+290 XP", and
+   when a careful one presses, is a device session's question: the `gate_called` telemetry above would answer it.
