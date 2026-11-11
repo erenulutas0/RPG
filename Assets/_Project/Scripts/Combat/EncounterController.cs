@@ -863,6 +863,9 @@ namespace Cryptforge.Combat
                 fallen.Enrage.Enraged -= OnEnemyEnraged;
             if (ReferenceEquals(fallen.Health, null))
                 return;
+            // Only a fallen place is filled again (SwarmDirector refills the places Fell marked): with the place vacated
+            // before PackMotion.Replace, nothing else would object to a standing body shelved alive (the swarm pool's review).
+            Debug.Assert(fallen.Defeated, "RetireFallen: a standing enemy's place is being refilled.");
             fallen.Health.Changed -= _enemyChanged;
             fallen.Health.Died -= fallen.OnDied;
             int slot = fallen.Slot;
