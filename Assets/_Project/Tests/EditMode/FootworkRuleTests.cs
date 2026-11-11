@@ -192,7 +192,7 @@ namespace Cryptforge.Tests
             Assert.That(FootworkRule.BestSingleTargetReach(loadout, false), Is.Zero, "nothing held");
             Assert.That(loadout.TryAdd("weapon_sword", sword), Is.True);
             Assert.That(loadout.TryAdd("weapon_daggers", daggers), Is.True);
-            Assert.That(FootworkRule.BestSingleTargetReach(loadout, false), Is.EqualTo(1.8f), "the Daggers' 31 on a Captain, the Sword's 22.5");
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, false), Is.EqualTo(1.8f), "the Daggers' 31, the Sword's 22.5");
             Assert.That(FootworkRule.BestSingleTargetReach(loadout, true), Is.EqualTo(2.1f), "the Sword's 33.75 on the gate boss");
 
             // A Captain 3 units east of the hero: held 1.8 less the margin from it, on the hero's side.
@@ -216,6 +216,29 @@ namespace Cryptforge.Tests
             Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, true, 80f, 100f, out _, out _), Is.False, "the band glows");
             Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 49f, 100f, out _, out _), Is.False, "under half health");
             Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 50f, 100f, out _, out _), Is.True, "at half");
+        }
+
+        // The Daggers land double on an elite room's Captain (EliteRule), so on it their share counts toward the best weapon
+        // as the Sword's does on the gate boss: a Sword levelled to 30 every 0.8 s - 37.5 a second, over the Daggers' 31 on
+        // anything else - stays under their 62 on a Captain, and the pilot steps in with the Daggers. Without the share the
+        // Sword counted as its best weapon on the Captain, so it never stepped in and kited the Captain out of the Daggers'
+        // reach.
+        [Test]
+        public void OnACaptainTheDaggersShareCountsTowardItsBestWeapon()
+        {
+            var daggers = new WeaponRuntime(7f, .3f, 1.8f, 0f, new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f));
+            var sword = new WeaponRuntime(30f, .8f, 2.1f, 0f, new AttackPattern(WeaponBehavior.Cleave, 2f, .6f));
+            var loadout = new WeaponLoadout(1);
+            Assert.That(loadout.TryAdd(WardenRule.SwordId, sword), Is.True);
+            Assert.That(loadout.TryAdd(EliteRule.DaggersId, daggers), Is.True);
+            float daggersRate = 7f * (1f + 1f / 3f) / .3f;
+            Assert.That(FootworkRule.SingleTargetRate(daggers, false, true), Is.EqualTo(daggersRate * EliteRule.DaggersShare).Within(1e-3f));
+            Assert.That(FootworkRule.SingleTargetRate(sword, false, true), Is.EqualTo(30f / .8f).Within(1e-3f), "the Sword deals an elite its own");
+            Assert.That(FootworkRule.SingleTargetRate(daggers, false), Is.EqualTo(daggersRate).Within(1e-3f), "on anything else, their own");
+
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, false, true), Is.EqualTo(1.8f), "the Daggers' 62 on a Captain, the Sword's 37.5");
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, false), Is.EqualTo(2.1f), "on anything else the Sword's 37.5, the Daggers' 31");
+            Assert.That(FootworkRule.BestSingleTargetReach(loadout, true), Is.EqualTo(2.1f), "on the gate boss the Sword's 56.25");
         }
 
         // Nowhere to walk - a point the floor does not hold - and there is no escape.
