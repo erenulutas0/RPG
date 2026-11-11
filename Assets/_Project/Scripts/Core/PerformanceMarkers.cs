@@ -56,6 +56,16 @@ namespace Cryptforge.Core
         public const string DepthPlaceName = "Cryptforge.Depth.Place";
         public const string DepthRestoreName = "Cryptforge.Depth.Restore";
 
+        // The foundry's ground projection (FoundryGroundProjection), which bends floor sprites over the gate ramp: its
+        // one-time work wherever it runs - the shader loaded and the scene's material made (Material), one sprite's surface
+        // grid made (Grid) - every floor sprite projected in a render (Apply, inside Depth.Place), and the work done up front
+        // as the foundry loads (Prewarm, FoundryVisibilityView). 2026-10-09: one 216.9 ms frame on the S23 at the hero's
+        // first ramp entry, the frame the material and grids were first made and drawn (docs/23).
+        public const string GroundPrewarmName = "Cryptforge.Ground.Prewarm";
+        public const string GroundMaterialName = "Cryptforge.Ground.Material";
+        public const string GroundGridName = "Cryptforge.Ground.Grid";
+        public const string GroundApplyName = "Cryptforge.Ground.Apply";
+
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
         public static readonly string[] PickNames =
         {
@@ -63,7 +73,7 @@ namespace Cryptforge.Core
             PickAddWeaponName, PickHeroStatsName, PickPauseName, PickHudName, PickLoadoutName,
             LateCameraName, LateEffectsName, LateShadowsName, LateExitSealName, LateHudArtName, LatePitName, LatePuppetName,
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
-            DepthPlaceName, DepthRestoreName
+            DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -98,5 +108,9 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker LateBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, LateBackdropName);
         public static readonly ProfilerMarker DepthPlace = new ProfilerMarker(ProfilerCategory.Scripts, DepthPlaceName);
         public static readonly ProfilerMarker DepthRestore = new ProfilerMarker(ProfilerCategory.Scripts, DepthRestoreName);
+        public static readonly ProfilerMarker GroundPrewarm = new ProfilerMarker(ProfilerCategory.Scripts, GroundPrewarmName);
+        public static readonly ProfilerMarker GroundMaterial = new ProfilerMarker(ProfilerCategory.Scripts, GroundMaterialName);
+        public static readonly ProfilerMarker GroundGrid = new ProfilerMarker(ProfilerCategory.Scripts, GroundGridName);
+        public static readonly ProfilerMarker GroundApply = new ProfilerMarker(ProfilerCategory.Scripts, GroundApplyName);
     }
 }

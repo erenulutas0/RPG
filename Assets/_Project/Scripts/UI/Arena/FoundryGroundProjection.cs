@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
 {
     // Shared grid sprites let floor rings, shadows and pulses bend over both ramp seams.
     // Sources/textures are borrowed; copies and the single material belong to the scene.
+    // Its one-time work - the shader loaded and the material made, a sprite's grid made - runs the first time a floor
+    // sprite reaches the ramp, each step in its own profiler scope (PerformanceMarkers.Ground*), as does every projection.
     internal sealed class FoundryGroundProjection
     {
         private const int Divisions = 16;
@@ -14,6 +17,13 @@ namespace Cryptforge.UI
         private readonly List<Material> _materials = new List<Material>();
         private Material _material;
 
+        // The scene's material, null until made; how many grids are made; whether a source has one; and how many floor
+        // sprites have been projected so far, every render's counted (for the tests and the ramp-entry measurement).
+        internal Material Material => _material;
+        internal int GridCount => _grids.Count;
+        internal bool HasGrid(Sprite source) => source != null && _grids.ContainsKey(source);
+        internal int Projections { get; private set; }
+
         internal void Apply(SpriteRenderer renderer, Vector3 region)
         {
             if (renderer == null || !renderer.enabled || renderer.sprite == null) return;
@@ -21,17 +31,42 @@ namespace Cryptforge.UI
             // conservative bounds include any ring that straddles the foot of the ramp.
             Vector3 high = renderer.bounds.max - region;
             if ((high.x + high.y * 2) * Cryptforge.Art.FoundryMap.Axis <= FoundrySurface.RampStart) return;
-            if (_material == null)
+            using (PerformanceMarkers.GroundApply.Auto())
+            {
+                if (!EnsureMaterial()) return;
+                _material.SetVector("_Region", region);
+                Sprite source = renderer.sprite;
+                Sprite grid = Grid(source);
+                _shown.Add(renderer); _sources.Add(source); _materials.Add(renderer.sharedMaterial);
+                renderer.sprite = grid; renderer.sharedMaterial = _material;
+                Bounds bounds = grid.bounds;
+                bounds.Encapsulate(bounds.max + Vector3.up * (FoundrySurface.Rise / Mathf.Max(.001f, Mathf.Abs(renderer.transform.lossyScale.y))));
+                renderer.localBounds = bounds;
+                Projections++;
+            }
+        }
+
+        // The scene's material of the ground shader, made the first time it is wanted. False when the shader is missing:
+        // every floor sprite then stays flat, as it always did.
+        private bool EnsureMaterial()
+        {
+            if (_material != null) return true;
+            using (PerformanceMarkers.GroundMaterial.Auto())
             {
                 var shader = Resources.Load<Shader>("FoundryGround");
-                if (shader == null) return;
+                if (shader == null) return false;
                 _material = new Material(shader) { name = "Foundry surface ground sprites (scene)" };
                 _material.SetVector("_Surface", new Vector4(FoundrySurface.RampStart,
                     1 / (FoundrySurface.RampEnd - FoundrySurface.RampStart), FoundrySurface.Rise, Cryptforge.Art.FoundryMap.Axis));
             }
-            _material.SetVector("_Region", region);
-            Sprite source = renderer.sprite;
-            if (!_grids.TryGetValue(source, out var grid))
+            return true;
+        }
+
+        // The source's surface grid, made the first time it is wanted: the source's texture and rect over 16x16 cells.
+        private Sprite Grid(Sprite source)
+        {
+            if (_grids.TryGetValue(source, out var grid)) return grid;
+            using (PerformanceMarkers.GroundGrid.Auto())
             {
                 grid = Sprite.Create(source.texture, source.rect, source.pivot / source.rect.size,
                     source.pixelsPerUnit, 0, SpriteMeshType.FullRect);
@@ -54,11 +89,7 @@ namespace Cryptforge.UI
                 grid.OverrideGeometry(points, triangles);
                 _grids.Add(source, grid);
             }
-            _shown.Add(renderer); _sources.Add(source); _materials.Add(renderer.sharedMaterial);
-            renderer.sprite = grid; renderer.sharedMaterial = _material;
-            Bounds bounds = grid.bounds;
-            bounds.Encapsulate(bounds.max + Vector3.up * (FoundrySurface.Rise / Mathf.Max(.001f, Mathf.Abs(renderer.transform.lossyScale.y))));
-            renderer.localBounds = bounds;
+            return grid;
         }
 
         internal void Restore()
