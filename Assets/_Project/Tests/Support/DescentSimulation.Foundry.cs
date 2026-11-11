@@ -275,6 +275,42 @@ namespace Cryptforge.Tests
             public float DaggersEliteCritDamage = 1f;
             // The two above on an elite room's leader alone, its Grunt Captain, rather than its whole pack.
             public bool DaggersEliteLeaderOnly;
+            // Research only, the Daggers' design options (docs/41, status 2026-11-11; FoundryBatch.DaggersLevers): shapes a
+            // player can see, each off by default and read by this simulation alone. A throw: with no enemy within the
+            // Daggers' reach, a ready Daggers throws one blade at the nearest enemy within DaggersThrowReach, at most one
+            // throw every DaggersThrowEvery seconds (a strike of the Daggers' own: its damage, its crit rhythm). 0 is off.
+            public float DaggersThrowReach;
+            public float DaggersThrowEvery = 1f;
+            // The throw at the enemy of most maximum health within its reach (the elite room's Captain, a hall's Tank, the
+            // Warden) rather than the nearest.
+            public bool DaggersThrowHeaviest;
+            // A fan: the throw is this many blades, its target's and one more at each next-nearest enemy within the throw's
+            // reach, each dealing what the target's blade dealt; 1 is a single blade.
+            public int DaggersThrowBlades = 1;
+            // The gate boss deflects thrown blades: a throw never takes it for its target or a blade of its fan (the Daggers'
+            // strikes within their reach land on it as ever).
+            public bool DaggersThrowSparesGateBoss;
+            // A lunge: with no enemy within the Daggers' reach, a ready Daggers dashes the hero at an enemy within
+            // DaggersLungeReach - the nearest, or with DaggersLungeHeaviest the one of most maximum health - until it stands
+            // DaggersLungeStop from it, and strikes it; at most once every DaggersLungeCooldown seconds. 0 is off.
+            public float DaggersLungeReach;
+            public float DaggersLungeStop = 1.4f;
+            public float DaggersLungeCooldown = 2f;
+            public bool DaggersLungeHeaviest;
+            // A bleed: each landing of a Daggers strike (not a proc) opens a wound on what it struck that deals
+            // DaggersBleedShare of the landing over DaggersBleedSeconds, a frame at a time; wounds stack. 0 is off.
+            public float DaggersBleedShare;
+            public float DaggersBleedSeconds = 3f;
+            // An exposing mark: a Daggers landing marks what it struck for DaggersMarkSeconds, and every weapon's landing on
+            // a marked enemy deals DaggersMarkShare more - the extra the Daggers' work, the mark's weapon. 0 is off.
+            public float DaggersMarkShare;
+            public float DaggersMarkSeconds = 3f;
+            // An execute: a Daggers landing on an enemy under DaggersExecuteBelow of its maximum health deals
+            // DaggersExecuteDamage times as much. 0 is off.
+            public float DaggersExecuteBelow;
+            public float DaggersExecuteDamage = 2f;
+
+            public bool ReachesForDaggers => DaggersThrowReach > 0f || DaggersLungeReach > 0f;
 
             public bool ReshapesSword => SwordReach > 0f || SwordSweepRadius > 0f || SwordIntervalScale != 1f ||
                                          SwordEvolutionPulseScale != 1f || SwordKillCleaveShare > 0f;
@@ -611,6 +647,9 @@ namespace Cryptforge.Tests
             public float LureSeconds;
             // Seconds the pilot held a single elite or the gate boss at its best weapon's reach (Habit.StepsIn).
             public float StepInSeconds;
+            // The Daggers' design levers' throws and lunges (research 2026-11-11). Accounting only.
+            public int DaggersThrows;
+            public int DaggersLunges;
             public int AltarsTaken;
             public int ChestsOpened;
             public int DropsCollected;
@@ -905,6 +944,11 @@ namespace Cryptforge.Tests
             public float NoticedAt = float.NaN;
             public float LostAt = float.NaN;
             public float StompClock = float.NaN;
+            // The Daggers' design levers (research 2026-11-11): its open wounds - what each deals a second and the run second
+            // it closes - and the run second its mark ends.
+            public List<float> WoundRates;
+            public List<float> WoundEnds;
+            public float MarkedUntil = float.NegativeInfinity;
             public FoundryRun Run;
 
             public bool IsAlive => Health.IsAlive;
@@ -1088,6 +1132,16 @@ namespace Cryptforge.Tests
 
             // Every enemy that has caught fire, in the order its BurnStatus was added.
             private readonly List<Foe> _burning = new List<Foe>();
+            // The Daggers' design levers (research 2026-11-11): every enemy with a wound open, in the order it was first
+            // wounded; the run second the next throw and the next lunge may come; and a wound's tick landing now.
+            private readonly List<Foe> _bleeding = new List<Foe>();
+            private float _nextThrow;
+            private float _nextLunge;
+            private bool _bleedTick;
+            // The throw striking now, and what its target's blade dealt (the fan's other blades deal the same).
+            private bool _throwing;
+            private float _thrownBlade;
+            private readonly List<IDamageable> _fan = new List<IDamageable>();
 
             // BossRevealView: the encounter holds, and the hero's movement waits, for this many more frames.
             private readonly int _revealFrames;
@@ -1381,6 +1435,8 @@ namespace Cryptforge.Tests
                     _ability.Tick(Step);
                 EnemyAttacks();
                 TickBurns();
+                if (_bleeding.Count > 0)
+                    TickBleeds();
                 StepAltars();
                 StepPit();
                 StepChest();
@@ -2042,11 +2098,30 @@ namespace Cryptforge.Tests
                     if (_levers.SwordKnockbackUnits > 0f && !foe.GateBoss && foe.Definition.Speed > 0f)
                         foe.StaggeredUntil = Math.Max(foe.StaggeredUntil, _seconds + _levers.SwordKnockbackUnits / foe.Definition.Speed);
                 }
+                // The Daggers' design levers (research 2026-11-11): the execute on their own landings, and the mark's share on
+                // every weapon's landing on a marked enemy - a wound's tick takes neither.
+                if (striking != null && striking.Id == DaggersId && !_bleedTick && _levers.DaggersExecuteBelow > 0f &&
+                    foe.Health.Current < foe.Health.Maximum * _levers.DaggersExecuteBelow)
+                    context = new DamageContext(ScaleOf(context.Amount, _levers.DaggersExecuteDamage), context.Source, context.IsCritical);
+                float markShare = striking != null && !_bleedTick && _levers.DaggersMarkShare > 0f && foe.MarkedUntil > _seconds
+                    ? _levers.DaggersMarkShare
+                    : 0f;
+                if (markShare > 0f)
+                    context = new DamageContext(ScaleOf(context.Amount, 1f + markShare), context.Source, context.IsCritical);
                 bool proc = striking != null && StrikeHasProcced();
+                float struck = context.Amount;
                 foe.Health.ApplyDamage(context);
                 float dealt = before - foe.Health.Current;
                 if (striking != null && dealt > 0f)
-                    Attribute(striking, foe, dealt, proc);
+                {
+                    FoundryWeaponWork marker = markShare > 0f ? DaggersWork() : null;
+                    float marked = marker != null ? dealt * markShare / (1f + markShare) : 0f;
+                    Attribute(striking, foe, dealt - marked, proc);
+                    if (marked > 0f)
+                        Attribute(marker, foe, marked, proc, false);
+                }
+                if (striking != null && striking.Id == DaggersId && !_bleedTick && !proc)
+                    DaggersLanded(foe, struck);
                 switch (source)
                 {
                     case DamageSource.Weapon:
@@ -2077,16 +2152,21 @@ namespace Cryptforge.Tests
 
             // weapon_effectiveness: a landing of the striking weapon's, on what it fell, and whether its evolution's proc
             // dealt it.
-            private void Attribute(FoundryWeaponWork work, Foe foe, float dealt, bool proc)
+            // A landing is false for the Daggers' mark's share of another landing (research 2026-11-11), and a wound's tick
+            // is no landing either: neither counts as one.
+            private void Attribute(FoundryWeaponWork work, Foe foe, float dealt, bool proc, bool landing = true)
             {
-                if (proc)
+                if (landing && !_bleedTick)
                 {
-                    work.ProcLandings++;
-                    work.DealtByProcs += dealt;
-                }
-                else
-                {
-                    work.Landings++;
+                    if (proc)
+                    {
+                        work.ProcLandings++;
+                        work.DealtByProcs += dealt;
+                    }
+                    else
+                    {
+                        work.Landings++;
+                    }
                 }
                 if (foe.GateBoss)
                     work.DealtWarden += dealt;
@@ -2100,6 +2180,156 @@ namespace Cryptforge.Tests
                     work.DealtEliteLeader += dealt;
                 if (work.EvolvedAt >= 0f)
                     work.DealtAfterEvolving += dealt;
+            }
+
+            // The Daggers' work on this floor, null before they joined the loadout (research 2026-11-11).
+            private FoundryWeaponWork DaggersWork()
+            {
+                for (int i = 0; i < _result.WeaponWork.Count; i++)
+                    if (_result.WeaponWork[i].Id == DaggersId)
+                        return _result.WeaponWork[i];
+                return null;
+            }
+
+            // A landing of a Daggers strike, of what it struck for: the bleed's wound and the mark (FoundryLevers' Daggers
+            // design levers, research 2026-11-11). Nothing at the shipped levers.
+            private void DaggersLanded(Foe foe, float struck)
+            {
+                if (_throwing)
+                    _thrownBlade = struck;
+                if (!foe.IsAlive)
+                    return;
+                if (_levers.DaggersMarkShare > 0f)
+                    foe.MarkedUntil = _seconds + _levers.DaggersMarkSeconds;
+                if (_levers.DaggersBleedShare > 0f && _levers.DaggersBleedSeconds > 0f && struck > 0f)
+                {
+                    if (foe.WoundRates == null)
+                    {
+                        foe.WoundRates = new List<float>(4);
+                        foe.WoundEnds = new List<float>(4);
+                    }
+                    if (foe.WoundRates.Count == 0)
+                        _bleeding.Add(foe);
+                    foe.WoundRates.Add(struck * _levers.DaggersBleedShare / _levers.DaggersBleedSeconds);
+                    foe.WoundEnds.Add(_seconds + _levers.DaggersBleedSeconds);
+                }
+            }
+
+            // The Daggers' wounds (research 2026-11-11): each open wound deals its rate a frame, as the Daggers' damage; a
+            // wound opened this frame first ticks next frame, and the wounds stop with the hero.
+            private void TickBleeds()
+            {
+                FoundryWeaponWork daggers = DaggersWork();
+                for (int i = _bleeding.Count - 1; i >= 0; i--)
+                {
+                    Foe foe = _bleeding[i];
+                    float damage = 0f;
+                    for (int w = foe.WoundRates.Count - 1; w >= 0; w--)
+                    {
+                        float left = foe.WoundEnds[w] - (_seconds - Step);
+                        bool opened = foe.WoundEnds[w] - _levers.DaggersBleedSeconds < _seconds - Step * .5f;
+                        if (opened && left > 0f)
+                            damage += foe.WoundRates[w] * Math.Min(Step, left);
+                        if (foe.WoundEnds[w] <= _seconds)
+                        {
+                            foe.WoundRates.RemoveAt(w);
+                            foe.WoundEnds.RemoveAt(w);
+                        }
+                    }
+                    if (foe.Released || !foe.IsAlive || !_heroHealth.IsAlive || daggers == null)
+                    {
+                        foe.WoundRates.Clear();
+                        foe.WoundEnds.Clear();
+                    }
+                    else if (damage > 0f)
+                    {
+                        _source = DamageSource.Weapon;
+                        _striking = daggers;
+                        _strikingWeapon = null;
+                        _bleedTick = true;
+                        foe.ApplyDamage(new DamageContext(damage, _hero));
+                        _bleedTick = false;
+                        _striking = null;
+                    }
+                    if (foe.WoundRates.Count == 0)
+                        _bleeding.RemoveAt(i);
+                }
+            }
+
+            // A ready Daggers with no enemy within its reach (research 2026-11-11): a throw at the nearest enemy within the
+            // throw's reach, else a lunge - the hero dashed at the lunge's enemy - each on its own clock; null for neither.
+            private Foe DaggersReach()
+            {
+                if (_levers.DaggersThrowReach > 0f && _seconds >= _nextThrow)
+                {
+                    Foe thrown = _levers.DaggersThrowHeaviest || _levers.DaggersThrowSparesGateBoss
+                        ? AcquireHeaviest(_levers.DaggersThrowReach, !_levers.DaggersThrowHeaviest, _levers.DaggersThrowSparesGateBoss)
+                        : Acquire(_levers.DaggersThrowReach);
+                    if (thrown != null)
+                    {
+                        _nextThrow = _seconds + _levers.DaggersThrowEvery;
+                        _result.DaggersThrows++;
+                        _throwing = true;
+                        return thrown;
+                    }
+                }
+                if (_levers.DaggersLungeReach > 0f && _seconds >= _nextLunge)
+                {
+                    Foe lunged = _levers.DaggersLungeHeaviest ? AcquireHeaviest(_levers.DaggersLungeReach) : Acquire(_levers.DaggersLungeReach);
+                    if (lunged != null)
+                    {
+                        _nextLunge = _seconds + _levers.DaggersLungeCooldown;
+                        _result.DaggersLunges++;
+                        float dx = lunged.X - HeroX, dy = lunged.Y - HeroY;
+                        float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+                        if (distance > _levers.DaggersLungeStop)
+                            _heroMotion.Move(dx / distance, dy / distance,
+                                (distance - _levers.DaggersLungeStop) / _heroMotion.Speed, Map);
+                        return lunged;
+                    }
+                }
+                return null;
+            }
+
+            // The throw's other blades (research 2026-11-11): one at each next-nearest living enemy within the throw's reach
+            // of the hero, each dealing what the target's blade dealt, as landings of the Daggers' strike (no proc's).
+            private void ThrowFan(Foe target)
+            {
+                CollectNear(target, HeroX, HeroY, _levers.DaggersThrowReach, _fan);
+                WeaponRuntime striking = _strikingWeapon;
+                _strikingWeapon = null;
+                float blade = _thrownBlade;
+                if (_levers.DaggersThrowSparesGateBoss)
+                    _fan.RemoveAll(foe => ((Foe)foe).GateBoss);
+                for (int i = 0; i < _fan.Count && i < _levers.DaggersThrowBlades - 1; i++)
+                    if (_fan[i].IsAlive)
+                        _fan[i].ApplyDamage(new DamageContext(blade, _hero));
+                _strikingWeapon = striking;
+            }
+
+            // The living target of most maximum health within range, the nearest of those on a tie - or with nearest the
+            // nearest, the earlier on a tie, as Acquire - leaving the gate boss out with sparesGateBoss (research 2026-11-11).
+            private Foe AcquireHeaviest(float range, bool nearest = false, bool sparesGateBoss = false)
+            {
+                Foe heaviest = null;
+                float rangeSquared = range * range, heaviestDistance = 0f;
+                for (int i = 0; i < TargetCount; i++)
+                {
+                    Foe candidate = TargetAt(i);
+                    if (!IsValid(candidate) || (sparesGateBoss && candidate.GateBoss))
+                        continue;
+                    float distanceSquared = ArenaFloor.FloorDistanceSquared(candidate.X, candidate.Y, HeroX, HeroY);
+                    if (distanceSquared > rangeSquared)
+                        continue;
+                    if (nearest ? heaviest == null || distanceSquared < heaviestDistance
+                            : heaviest == null || candidate.Health.Maximum > heaviest.Health.Maximum ||
+                              (candidate.Health.Maximum == heaviest.Health.Maximum && distanceSquared < heaviestDistance))
+                    {
+                        heaviest = candidate;
+                        heaviestDistance = distanceSquared;
+                    }
+                }
+                return heaviest;
             }
 
             // Whether the weapon striking now has fired a pulse, a splinter or a kill burst since the strike began: each
@@ -2392,6 +2622,9 @@ namespace Cryptforge.Tests
                     if (!weapon.IsReady)
                         continue;
                     Foe target = Acquire(weapon.Range);
+                    // The Daggers' throw or lunge (research 2026-11-11), off at the shipped levers.
+                    if (target == null && _levers.ReachesForDaggers && _loadout.At(slot).WeaponId == DaggersId)
+                        target = DaggersReach();
                     if (target == null)
                         continue;
                     _nearby.Clear();
@@ -2416,6 +2649,10 @@ namespace Cryptforge.Tests
                         _slamBoss);
                     if (struck)
                         _striking.Strikes++;
+                    // The throw's fan (research 2026-11-11): its other blades, off at the shipped levers.
+                    if (_throwing && struck && _levers.DaggersThrowBlades > 1)
+                        ThrowFan(target);
+                    _throwing = false;
                     _striking = null;
                     _strikingWeapon = null;
                     if (!struck)

@@ -193,8 +193,9 @@ namespace Cryptforge.Tests
         // cohort's hands and with the Vanguard started with each weapon, down FOUNDRY_FLOORS floors (2 by default), read as
         // the gate's three jobs - horde, elites, Warden - beside the clears and the Warden's fight; frame-perfect, or with
         // FOUNDRY_REALISM's hands. Into FOUNDRY_OUT: daggers-role.md (a row a lever) and daggers-role.csv. DAGGERS_LEVERS
-        // picks rows by index (comma separated, all by default); FOUNDRY_SEEDS, FOUNDRY_FIRST_SEED and FOUNDRY_PARALLEL as
-        // above.
+        // picks rows by index (comma separated, all by default); DAGGERS_COHORTS plays only the cohorts it names (comma
+        // separated, the careful one always first; every cohort by default), a screen of the jobs; FOUNDRY_SEEDS,
+        // FOUNDRY_FIRST_SEED and FOUNDRY_PARALLEL as above.
         [Test]
         public void TheDaggersRoleOverASeedBatch()
         {
@@ -210,6 +211,8 @@ namespace Cryptforge.Tests
             IEnumerable<int> chosen = string.IsNullOrEmpty(pick)
                 ? Enumerable.Range(0, all.Length)
                 : pick.Split(',').Select(p => int.Parse(p.Trim(), CultureInfo.InvariantCulture));
+            string screen = Environment.GetEnvironmentVariable("DAGGERS_COHORTS");
+            List<Cryptforge.Core.AutopilotCohort> cohorts = string.IsNullOrWhiteSpace(screen) ? null : FoundryBatch.SweepCohorts(screen);
             int[] batchSeeds = FoundryBatch.Seeds(first, seeds);
             var md = new StringBuilder();
             md.AppendLine($"# The Daggers' role: seeds {first}-{first + seeds - 1} a hero, {floors} floor(s) ({DateTime.Now:yyyy-MM-dd HH:mm})").AppendLine();
@@ -217,7 +220,7 @@ namespace Cryptforge.Tests
             var csv = new StringBuilder().AppendLine(FoundryBatch.RoleCsvHeader());
             foreach (int index in chosen)
             {
-                FoundryBatch.RoleRun run = FoundryBatch.RunRoles(all[index], batchSeeds, parallel, floors, realism);
+                FoundryBatch.RoleRun run = FoundryBatch.RunRoles(all[index], batchSeeds, parallel, floors, realism, cohorts);
                 md.AppendLine(FoundryBatch.RoleRow(run));
                 foreach (string line in FoundryBatch.RoleCsv(run))
                     csv.AppendLine(line);
