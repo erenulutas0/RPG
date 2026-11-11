@@ -45,7 +45,8 @@ namespace Cryptforge.Tests
     // where nothing renders and only the CPU, GC and census figures mean anything. In the interactive Test Runner the
     // Game view renders (set it to 1080x2340). Knobs, one value per line, in TestResults/: perf-probe-heroes.txt (hero ids,
     // "vanguard" for the default hero), perf-probe-phases.txt (horde, warden), perf-probe-seconds.txt (the horde window),
-    // perf-probe-seed.txt, perf-probe-prejit.txt (any line: the game compiled before the first phase, PreCompile). Every
+    // perf-probe-seed.txt, perf-probe-prejit.txt (any line: the game compiled before the first phase, PreCompile),
+    // perf-probe-warmup.txt ("on": each phase's scene has its shader variants warmed as it loads, ShaderWarmup). Every
     // time marker on offer is listed in perf-probe-markers.txt, and the summary breaks the slowest frames and every
     // level-up or pick down marker by marker (the game's own scopes: PerformanceMarkers). It changes no game code and
     // asserts nothing about speed.
@@ -101,6 +102,8 @@ namespace Cryptforge.Tests
             public int DepthPlaced;
             // The silhouette gate's verdict on the timed placement (FoundryVisibilityView.DescribeGate).
             public string DepthGate = "na";
+            // What the shader warm-up warmed as the scene loaded (perf-probe-warmup.txt), "off" without it.
+            public string Warmup = "off";
             public readonly List<PerfCensus> Censuses = new List<PerfCensus>();
             public readonly StringBuilder Text = new StringBuilder();
             public readonly StringBuilder Frames = new StringBuilder();
@@ -125,6 +128,8 @@ namespace Cryptforge.Tests
         // (RestorePhase): the frame rate cap, the camera's target (a 1080x2340 texture the Editor would keep alive) and the
         // overlay canvases drawn through the camera. Static, as Play is; a phase that throws or times out leaves them to
         // End, so a failed run leaves the Editor as it found it.
+        // perf-probe-warmup.txt reads "on": every phase's scene has its shader variants warmed as it loads (ShaderWarmup).
+        private static bool _warmup;
         private static bool _frameRateTaken;
         private static int _frameRateBefore;
         private static Camera _targetCamera;
@@ -157,6 +162,8 @@ namespace Cryptforge.Tests
             var report = new StringBuilder();
             var frames = new StringBuilder();
             string compiled = Lines("perf-probe-prejit.txt", new string[0]).Length > 0 ? PreCompile() : "off";
+            string[] warmup = Lines("perf-probe-warmup.txt", new string[0]);
+            _warmup = warmup.Length > 0 && string.Equals(warmup[0], "on", System.StringComparison.OrdinalIgnoreCase);
             Header(report, seed, hordeSeconds, compiled);
             frames.AppendLine(FrameColumns);
             foreach (string hero in heroes)
@@ -191,6 +198,15 @@ namespace Cryptforge.Tests
             Time.timeScale = 1;
             Time.captureDeltaTime = Step;
             yield return SceneManager.LoadSceneAsync(ScenePath);
+            // The A/B knob (perf-probe-warmup.txt "on"): the scene's shader variants warmed as it loads, before the frame
+            // the probe has always waited, so the measured frames keep their numbers whether it is on or off.
+            if (_warmup)
+            {
+                ShaderWarmup.Result warmed = ShaderWarmup.WarmScene(SceneManager.GetActiveScene());
+                run.Warmup = warmed.Materials + " materials of " + warmed.Shaders + " shaders, " + warmed.Variants +
+                    " variants warmed (" + warmed.Refused + " refused) in " + F((float)warmed.Milliseconds, 1) + " ms: " +
+                    warmed.ShaderNames;
+            }
             yield return null;
 
             var setup = Object.FindFirstObjectByType<CombatSetup>();
@@ -456,6 +472,8 @@ namespace Cryptforge.Tests
             report.AppendLine("caution: Editor CPU and GC are the Editor's, not the S23's - compare builds against each other " +
                 "on this machine, and read the phone with development/render-stats.txt. ms are milliseconds of wall or main-thread time.");
             report.Append("pre-compiled before the first phase (perf-probe-prejit.txt): ").AppendLine(compiled);
+            report.Append("shader warm-up as each phase's scene loads (perf-probe-warmup.txt): ").AppendLine(_warmup
+                ? "on - what each warmed, and how long it took, is under its phase" : "off");
             report.AppendLine();
         }
 
@@ -476,6 +494,7 @@ namespace Cryptforge.Tests
             if (run.EndedEarly) t.Append("; THE RUN ENDED inside the window");
             if (run.Note.Length > 0) t.Append("; ").Append(run.Note);
             t.AppendLine();
+            t.Append("   shader warm-up as the scene loaded (perf-probe-warmup.txt): ").AppendLine(run.Warmup);
             if (r.Count == 0)
             {
                 t.AppendLine();
