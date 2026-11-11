@@ -226,6 +226,27 @@ namespace Cryptforge.Tests
             Assert.That(() => refused.Append("{}\n"), Throws.InstanceOf<IOException>(), "Which fails where it always did.");
         }
 
+        [Test]
+        public void AHeldFileRefusesASecondWriterButNotAReaderOrTheFoldersRemoval()
+        {
+            if (Path.DirectorySeparatorChar != '\\')
+                Assert.Ignore("Windows enforces a file's sharing; elsewhere it is advisory.");
+            string folder = Path.Combine(_directory, "held");
+            var store = new FileTelemetryStore(folder);
+            store.Hold();
+            store.Append(Line(0, 11));
+            string path = Path.Combine(folder, FileTelemetryStore.FileName);
+            Assert.That(ReadShared(path), Is.EqualTo(Line(0, 11)), "A reader sharing write access reads it.");
+            Assert.Throws<IOException>(() => new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite).Dispose(),
+                "A second writer - another game process on the same folder - is refused while the file is held.");
+
+            Directory.Delete(folder, true);
+            Assert.That(Directory.Exists(folder), Is.False, "The folder can be removed while the file is held.");
+            store.Append(Line(1, 11));
+            Assert.That(ReadShared(path), Is.EqualTo(Line(1, 11)), "And comes back with the next line.");
+            store.Release();
+        }
+
         // A file a store may hold open, read as a reader on Windows must read it.
         private static string ReadShared(string path)
         {

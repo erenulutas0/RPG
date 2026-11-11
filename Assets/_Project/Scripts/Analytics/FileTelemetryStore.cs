@@ -17,7 +17,7 @@ namespace Cryptforge.Analytics
     // when the operating system has it, is the same either way: each append is written through and flushed before it
     // returns, so a crash loses exactly what it lost before. A held file is looked for at each append, and opened again
     // with its folder if it went; it is closed before a rotation moves it. While it is held, a reader on Windows must
-    // open it sharing write access (a phone's reader needs nothing).
+    // open it sharing write access (a phone's reader needs nothing), and a second writer is refused.
     public sealed class FileTelemetryStore : ITelemetryStore
     {
         public const string FileName = "events.jsonl";
@@ -174,8 +174,11 @@ namespace Cryptforge.Analytics
             Directory.CreateDirectory(Location);
             if (!_holding)
                 return new FileStream(_path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1);
-            _held = new FileStream(_path, FileMode.OpenOrCreate, FileAccess.Write,
-                FileShare.ReadWrite | FileShare.Delete, 1);
+            // Readers in, and the folder's removal; never a second writer. Another game process writing the same folder
+            // (two Editors, the Editor and a standalone build) is refused while the file is held and keeps its lines for
+            // its next flush, as it was refused, and retried, while an append held the file before: sharing write access
+            // let it append behind a rotation it never saw (2026-11-11 review).
+            _held = new FileStream(_path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read | FileShare.Delete, 1);
             return _held;
         }
 
