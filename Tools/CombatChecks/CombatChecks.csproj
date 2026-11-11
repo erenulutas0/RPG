@@ -104,6 +104,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.FoundryFinale.cs" />
     <!-- The Descent's length research (docs/47, 2026-11-11): the finale's opening heal and its chest, research levers. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.DescentLength.cs" />
+    <!-- The first-card cohort on floor 2 (docs/47, research 2026-11-11 night): two levers on the floors after the first. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.FirstCardFloorTwo.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
@@ -148,6 +150,8 @@
     <Compile Include="FinaleStayResearch.cs" />
     <!-- The Descent's length research of 2026-11-11 on demand (docs/47): a heal before the finale, floor 2's gate later, a third floor. -->
     <Compile Include="DescentLengthResearch.cs" />
+    <!-- The first-card cohort on floor 2 research of 2026-11-11 night on demand (docs/47): why it dies there since the gate at 3:30, and the levers. -->
+    <Compile Include="FirstCardFloorTwoResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
