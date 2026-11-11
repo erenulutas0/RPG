@@ -426,6 +426,11 @@ namespace Cryptforge.Tests
                 Assert.That(basis, Does.Contain("1 window in play in the finale's swarm, which writes no horde_sample: alive only where a [Perf] wave line counted it (0 did)."));
                 Assert.That(basis, Does.Contain("no frame past 35 ms in play"));
 
+                // A long frame in a run's last second of slack, with no run loading, stays in play.
+                string[] back = { Log(676.5, "[Perf] long frame 44.0 ms, main thread 42.0 ms, allocated 300.0 KB, time scale 1") };
+                Assert.That(DevicePull.Read(new[] { TodaysPull(Path.Combine(root, "back"), back) }).LongFrames.Single().Play, Is.True,
+                    "inside s1-1's slack and no run's load: read in play");
+
                 string[] ramp = load.Concat(new[]
                 {
                     Log(120, "[Perf] ground projection: prewarm 0.00 ms, material 1.20 ms, grids 2.40 ms; frame 41.3 ms, main thread 39.0 ms, allocated 80.2 KB"),

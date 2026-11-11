@@ -561,8 +561,10 @@ namespace Cryptforge.Tests
                 if (line.Utc.HasValue)
                 {
                     DateTime at = line.Utc.Value;
+                    // Not in play inside the next run's load either, which can fall in the last run's slack.
                     frame.Play = (wave.Success || Number(slow.Groups["scale"].Value) >= .5f) &&
-                                 runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds));
+                                 runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds)) &&
+                                 !runs.Any(r => r.Start.AddSeconds(-OpeningSeconds) <= at && at < r.OpeningEnd);
                     frame.Alive = wave.Success
                         ? int.Parse(wave.Groups["enemies"].Value, CultureInfo.InvariantCulture)
                         : Alive(runs, waves, at.AddSeconds(-FrameSampleSeconds), at.AddSeconds(FrameSampleSeconds));
