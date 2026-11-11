@@ -109,3 +109,9 @@ MonoBehaviour:
   - _id: upgrade_stamina
     _card: {fileID: -1059241235656373839, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
     _slot: {fileID: 0}
+  - _id: upgrade_damage
+    _card: {fileID: 7587483203479585391, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: upgrade_attack_speed
+    _card: {fileID: -4951901537402991512, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}

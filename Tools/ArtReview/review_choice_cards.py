@@ -517,6 +517,34 @@ def rarities():
         caption(sheet, tier, (cell_w - 90, 24 + row * cell_h), 24)
     sheet.save(OUT / "rarity-closeup.png")
     sheet.resize((sheet.width * 2, sheet.height * 2), Image.LANCZOS).save(OUT / "rarity-closeup-x2.png")
+    legacy_cards()
+
+
+# The hall's two legacy cards on the epic and gold grounds: their old painted icons (the scene's table, a navy square)
+# beside the set's squareless repaints, where the set has them.
+LEGACY = [("Tempered Edge", "+10 damage per hit", "UI_Icon_TemperedEdge_v1", "upgrade_damage"),
+          ("Quickened Grip", "+15% attack speed", "UI_Icon_QuickenedGrip_v1", "upgrade_attack_speed")]
+
+
+def legacy_cards():
+    columns = [("the old painted icon (navy square)", lambda e: e[2])]
+    if all(e[3] in SET_ICONS for e in LEGACY):
+        columns.append(("the set's repaint", lambda e: "set:" + e[3]))
+    cell_w, cell_h = 960, 300
+    sheet = Image.new("RGB", (cell_w * len(columns) + 40, cell_h * 4 + 90), (24, 22, 28))
+    navy = np.zeros((cell_h, cell_w, 3), np.float32) + np.array([12, 18, 36], np.float32)
+    for col, (title, icon) in enumerate(columns):
+        caption(sheet, title, (20 + col * cell_w + 20, 20), 32)
+        row = 0
+        for entry in LEGACY:
+            for look, tier in (("Red", 2), ("Gold", 3)):
+                canvas = to_canvas(navy)
+                parts = layout(2)[0]  # the hall's two cards, as the scene authors them
+                parts = dict(parts, card=(32.0, (cell_h - parts["card"][3]) / 2, 896.0, parts["card"][3]))
+                after_card(canvas, Card(entry[0], entry[1], look, tier, icon=icon(entry)), parts)
+                sheet.paste(to_image(canvas), (20 + col * cell_w, 70 + row * cell_h))
+                row += 1
+    sheet.save(OUT / "legacy-epic-gold.png")
 
 
 def main():
