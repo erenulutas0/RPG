@@ -260,6 +260,36 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The walk from a combat room reads true as the walk from the forge does: the last enemy's health and the room's
+        // victory line stayed on the enemy and status labels until the next hall spawned (the run flow's review, 2026-11-11).
+        [UnityTest, Timeout(120000)] public IEnumerator TheHudNamesTheNextHallOnTheWalkFromACombatRoom()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounters=setup.Encounters;
+            var heroHealth=Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
+            var hud=Object.FindFirstObjectByType<RunHud>();
+            // The first hall's waves fall where they stand; each one's victory shows for a second before the floor moves on.
+            string fight=null,victory=null;
+            float deadline=Time.realtimeSinceStartup+60;
+            while(!encounters.IsRoomSiteOpen&&!setup.Run.HasEnded&&Time.realtimeSinceStartup<deadline)
+            {
+                KeepUp(setup,heroHealth);
+                if(encounters.IsCleared){fight=HudLabel("Enemy Label");victory=HudLabel("Status Label");}
+                else PackTestUtility.KillWave(encounters);
+                yield return null;
+            }
+            Assert.That(encounters.IsRoomSiteOpen,Is.True,$"The second hall waits at its district; stopped in room {encounters.RoomNumber}.");
+            Assert.That(encounters.RoomNumber,Is.EqualTo(2),"The walk is the one after the first hall.");
+            Assert.That(victory,Is.Not.Null.And.Not.Empty,"The first hall's victory was shown before the walk.");
+            yield return null;
+            string hall=encounters.CurrentRoom.DisplayName;
+            Assert.That(fight,Is.Not.EqualTo(hall));
+            Assert.That(HudLabel("Enemy Label"),Is.EqualTo(hall),"The hall ahead is named on the walk, not the last enemy.");
+            Assert.That(HudLabel("Status Label"),Is.Empty,"The fight's victory line is gone.");
+            Assert.That(hud.ShownEnemy,Is.Null,"The bar shows nobody.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         private static string HudLabel(string name)
         {
             foreach(var label in Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsInactive.Include,FindObjectsSortMode.None))
