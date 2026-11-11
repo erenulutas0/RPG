@@ -127,13 +127,15 @@ namespace Cryptforge.Combat
         // Every enemy's own targets: the hero alone. One array for all of them, since Targeting only reads it.
         private Health[] _heroOnly;
 
-        // The horde's bodies, kept off the floor once they leave it and stood up again for the next of their kind instead
-        // of instantiating a new one (the allocation audit of 2026-11-11: CreateEnemy was the horde's biggest garbage, about
-        // 8 KB a spawn). Only the horde's: the waves, the swarm, the elites and the gate boss are instantiated and destroyed
-        // as before. A body leaves at RemoveBody, waits a frame there - so a death it is still reporting and the burn
-        // destroyed with it are over before it is touched - is shelved by its kind at the next horde tick, and comes back
-        // from CreateEnemy reset as Instantiate makes a new one (ReuseBody). A floor whose horde no longer fields a kind
-        // destroys that kind's bodies, and the scene's end destroys them all.
+        // The horde's and the swarm's bodies, kept off the floor once they leave it and stood up again for the next of their
+        // kind instead of instantiating a new one (the allocation audit of 2026-11-11: CreateEnemy was the horde's biggest
+        // garbage, about 8 KB a spawn; the Final Swarm refills its places as often). Only theirs, and only a kind whose
+        // prefab carries nothing but what ReuseBody resets (HasPlainBody - not the Forge Warden, whose EnrageBehaviour it
+        // does not): the waves, the elites and the gate boss are instantiated and destroyed as before. A body leaves at
+        // RemoveBody, waits a frame there - so a death it is still reporting and the burn destroyed with it are over before
+        // it is touched - is shelved by its kind at the next frame's start (Update), and comes back from CreateEnemy reset
+        // as Instantiate makes a new one (ReuseBody). A floor whose horde no longer fields a kind, and a swarm room left
+        // behind, destroy that kind's bodies, and the scene's end destroys them all.
         private sealed class BodyPool
         {
             public EnemyDefinition Definition;
@@ -152,6 +154,10 @@ namespace Cryptforge.Combat
         public const int BodyPoolCap = HordeRule.SceneCap + 8;
         private readonly List<BodyPool> _bodyPools = new List<BodyPool>(4);
         private readonly List<LeavingBody> _leavingBodies = new List<LeavingBody>(PackLayout.MaxPackSize);
+        // The kinds the swarm room's ladder fields, from BeginSwarm to LeaveSwarm: pooled as the horde's roles are.
+        private readonly List<EnemyDefinition> _swarmKinds = new List<EnemyDefinition>(8);
+        // Whether each kind met so far has a plain body (HasPlainBody), read from its prefab once.
+        private readonly Dictionary<EnemyDefinition, bool> _plainKinds = new Dictionary<EnemyDefinition, bool>(8);
 
         public FloorDefinition Floor => _currentFloor;
         public int FloorNumber { get; private set; }
@@ -636,6 +642,9 @@ namespace Cryptforge.Combat
             if (_floorProgress == null || _firstEncounterPending || _revealHold || !_hero.IsAlive)
                 return;
 
+            // The bodies that left the floor before this frame are shelved first, whatever ticks after: the horde, which a
+            // swarm room never runs, or the swarm, whose refills stand them up again.
+            ShelveLeavingBodies();
             MovePack(Time.deltaTime);
             TickHorde(Time.deltaTime);
             if (_swarm != null)
@@ -763,6 +772,18 @@ namespace Cryptforge.Combat
             ReleaseWave(true);
             IsInNonCombatRoom = false;
             _swarmRoom = room;
+            // Every kind the ladder fields, so a plain one's bodies are shelved for its next refill (IsPooledKind).
+            _swarmKinds.Clear();
+            for (int w = 0; w < room.WaveCount; w++)
+            {
+                WaveDefinition wave = room.WaveAt(w);
+                for (int e = 0; e < wave.EnemyCount; e++)
+                {
+                    EnemyDefinition kind = wave.EnemyAt(e);
+                    if (kind != null && !IsSwarmKind(kind))
+                        _swarmKinds.Add(kind);
+                }
+            }
             var sizes = new int[room.WaveCount];
             for (int i = 0; i < sizes.Length; i++)
                 sizes[i] = room.WaveAt(i).EnemyCount;
@@ -790,7 +811,8 @@ namespace Cryptforge.Combat
 
         // One enemy walking into one place: its own one-enemy entry, one corner further round the arena than the last,
         // placed round wherever the hero stands now, at the difficulty the director gave it. A place whose enemy has
-        // fallen has its body taken away as the new one arrives.
+        // fallen has its body taken away as the new one arrives. A plain kind's newcomer is a shelved body of its kind when
+        // there is one (BodyPool): never the body it replaces, which is still in its place, or one that left this frame.
         private void SpawnSwarmEnemy(SwarmDirector.Spawn spawn)
         {
             EnemyDefinition definition = _swarmRoom.WaveAt(spawn.Wave).EnemyAt(spawn.Index);
@@ -804,7 +826,7 @@ namespace Cryptforge.Combat
             float scale = spawn.Difficulty * RunDifficulty;
             float damageBonus = FloorScaling.DamageBonus(FloorDamageMultiplier * scale, damagePercent);
             SpawnedEnemy enemy = CreateEnemy(definition, $"{definition.Prefab.name} {spawn.Slot + 1}", FloorHealthMultiplier(false) * scale, healthPercent,
-                damageBonus, goldPercent, out float reach);
+                damageBonus, goldPercent, out float reach, pooled: true);
             enemy.Slot = spawn.Slot;
 
             if (spawn.Slot < _motion.Count)
@@ -824,7 +846,11 @@ namespace Cryptforge.Combat
             SwarmEnemySpawned?.Invoke(spawn.Slot);
         }
 
-        // A fallen enemy's body leaves as its place is filled again: a second after it fell, long enough to be seen to.
+        // A fallen enemy's body leaves as its place is filled again: a second after it fell, long enough to be seen to. A
+        // plain kind's body goes to the pool (RemoveBody) and may live again in another place, so neither its place in the
+        // pack's motion nor the hero's targets by place keep it, though the refill that follows fills both at once: a place
+        // still holding it would read as a living enemy once it stood up elsewhere (PackMotion.Replace threw so in the perf
+        // probe's horde, 2026-11-11).
         private void RetireFallen(SpawnedEnemy fallen)
         {
             if (fallen == null)
@@ -837,8 +863,13 @@ namespace Cryptforge.Combat
                 return;
             fallen.Health.Changed -= _enemyChanged;
             fallen.Health.Died -= fallen.OnDied;
+            int slot = fallen.Slot;
+            if (_motion != null && slot >= 0 && slot < _motion.Count && ReferenceEquals(_motion.BodyAt(slot), fallen.Health))
+                _motion.Vacate(slot);
+            if (slot >= 0 && slot < _swarmCandidates.Length && ReferenceEquals(_swarmCandidates[slot], fallen.Health))
+                _swarmCandidates[slot] = null;
             if (fallen.Health != null)
-                RemoveBody(fallen.Health);
+                RemoveBody(fallen.Health, fallen.Definition);
         }
 
         // An enemy leaves the floor at once. Destroy waits for the frame's end, and until then a released enemy still
@@ -846,14 +877,17 @@ namespace Cryptforge.Combat
         // the hero's strikes for the rest of the frame: a horde enemy could strike the hero after the Warden had fallen
         // (the run flow's review, 2026-11-11). Deactivated first, it does nothing more; the simulation drops a released
         // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell. Every caller has
-        // unsubscribed from its death first, so EnemyRemoved says nothing can report it again. A horde body (pooledAs, its
-        // kind) is kept off the floor for the next of its kind instead of destroyed: its burn, which Destroy took with it,
-        // goes now, and the body waits out the frame before it is shelved (ShelveLeavingBodies).
+        // unsubscribed from its death first, so EnemyRemoved says nothing can report it again. A horde or swarm body
+        // (pooledAs, its kind) of a pooled kind (IsPooledKind) is kept off the floor for the next of its kind instead of
+        // destroyed: its burn, which Destroy took with it, goes now, and the body waits out the frame before it is shelved
+        // (ShelveLeavingBodies). The gate boss and the elites are never kept, whatever their kind: only the horde and the
+        // swarm hand a kind here and neither fields one, but the Forge Warden walks both out of the gate and the finale's
+        // ladder, and a Captain may stand in a swarm.
         private void RemoveBody(Health enemy, EnemyDefinition pooledAs = null)
         {
             EnemyRemoved?.Invoke(enemy);
             enemy.gameObject.SetActive(false);
-            if (pooledAs == null)
+            if (pooledAs == null || !IsPooledKind(pooledAs) || IsGateBossOrElite(enemy))
             {
                 Destroy(enemy.gameObject);
                 return;
@@ -863,8 +897,9 @@ namespace Cryptforge.Combat
             _leavingBodies.Add(new LeavingBody { Body = enemy, Definition = pooledAs, Frame = Time.frameCount });
         }
 
-        // Bodies that left the floor before this frame go on their kind's shelf; one whose kind the floor's horde no longer
-        // fields, or past the shelf's cap, is destroyed. Only from the horde's tick, never inside a death's report.
+        // Bodies that left the floor before this frame go on their kind's shelf; one whose kind is no longer pooled - the
+        // floor's horde no longer fields it, the swarm room that did is behind the hero - or past the shelf's cap, is
+        // destroyed. Only at the start of a frame (Update), never inside a death's report.
         private void ShelveLeavingBodies()
         {
             int frame = Time.frameCount;
@@ -879,7 +914,7 @@ namespace Cryptforge.Combat
                 }
                 if (leaving.Body == null)
                     continue;
-                BodyPool pool = IsHordeRole(leaving.Definition) ? PoolOf(leaving.Definition, true) : null;
+                BodyPool pool = IsPooledKind(leaving.Definition) ? PoolOf(leaving.Definition, true) : null;
                 if (pool == null || pool.Free.Count >= BodyPoolCap)
                 {
                     Destroy(leaving.Body.gameObject);
@@ -920,6 +955,68 @@ namespace Cryptforge.Combat
             return false;
         }
 
+        // A kind the swarm room standing now fields on its ladder.
+        private bool IsSwarmKind(EnemyDefinition definition)
+        {
+            for (int i = 0; i < _swarmKinds.Count; i++)
+            {
+                if (ReferenceEquals(_swarmKinds[i], definition))
+                    return true;
+            }
+            return false;
+        }
+
+        // A kind whose bodies are kept off the floor for the next of it: one the floor's horde or the standing swarm room
+        // fields, whose prefab ReuseBody can reset whole (HasPlainBody).
+        private bool IsPooledKind(EnemyDefinition definition) =>
+            definition != null && (IsHordeRole(definition) || IsSwarmKind(definition)) && IsPlainKind(definition);
+
+        private bool IsPlainKind(EnemyDefinition definition)
+        {
+            if (!_plainKinds.TryGetValue(definition, out bool plain))
+            {
+                plain = HasPlainBody(definition.Prefab);
+                _plainKinds.Add(definition, plain);
+            }
+            return plain;
+        }
+
+        // Whether a prefab carries nothing but the five behaviours ReuseBody resets - Health, Targeting, AttackController,
+        // CombatantView and EnemyLookView - on its root or below. Anything more keeps state of a life the pool would carry
+        // into the next: the Forge Warden's EnrageBehaviour stays enraged from its last life (its EnrageRule never re-arms)
+        // and keeps its Enraged listeners, so the Warden is instantiated and destroyed, in the swarm as at the gate. A
+        // missing script is something more too.
+        internal static bool HasPlainBody(Health prefab)
+        {
+            if (prefab == null)
+                return false;
+            MonoBehaviour[] behaviours = prefab.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                MonoBehaviour behaviour = behaviours[i];
+                if (behaviour == null)
+                    return false;
+                Type type = behaviour.GetType();
+                if (type != typeof(Health) && type != typeof(Targeting) && type != typeof(AttackController) &&
+                    type != typeof(CombatantView) && type != typeof(EnemyLookView))
+                    return false;
+            }
+            return true;
+        }
+
+        // The gate boss of the wave standing, fallen or not, or one of the elites: bodies the pool never keeps.
+        private bool IsGateBossOrElite(Health enemy)
+        {
+            if (_gateBossWave && _wave.Count > 0 && ReferenceEquals(_wave[0].Health, enemy))
+                return true;
+            for (int i = 0; i < _elites.Count; i++)
+            {
+                if (ReferenceEquals(_elites[i], enemy))
+                    return true;
+            }
+            return false;
+        }
+
         // A shelved body of the kind, or null when there is none (or it was destroyed with its scene).
         private Health TakeShelvedBody(EnemyDefinition definition)
         {
@@ -953,13 +1050,14 @@ namespace Cryptforge.Combat
             body.gameObject.SetActive(true);
         }
 
-        // A floor's kinds change with it: the bodies of a kind its horde no longer fields are destroyed rather than kept.
+        // A floor's kinds change with it, and a swarm room's with the room: the bodies of a kind no longer pooled - its horde
+        // no longer fields it, nor a standing swarm room - are destroyed rather than kept.
         private void TrimBodyPools()
         {
             for (int i = _bodyPools.Count - 1; i >= 0; i--)
             {
                 BodyPool pool = _bodyPools[i];
-                if (IsHordeRole(pool.Definition))
+                if (IsPooledKind(pool.Definition))
                     continue;
                 DestroyShelf(pool);
                 _bodyPools.RemoveAt(i);
@@ -989,7 +1087,7 @@ namespace Cryptforge.Combat
             }
         }
 
-        // The horde's bodies kept off the floor, shelved by kind and still waiting out their frame: for tests.
+        // The horde's and the swarm's bodies kept off the floor, shelved by kind and still waiting out their frame: for tests.
         internal int ShelvedBodyCount
         {
             get
@@ -1005,14 +1103,57 @@ namespace Cryptforge.Combat
 
         internal int ShelvedBodyCountOf(EnemyDefinition definition) => PoolOf(definition, false)?.Free.Count ?? 0;
 
+        // Whether every place of the swarm agrees with its pack's motion and the hero's targets by place - the same body -
+        // and stands as its enemy does: a standing enemy's body alive on the floor, a fallen one's its own fallen body still
+        // on the floor, never one shelved or standing up elsewhere; and no body stands in two places. For tests. Null when
+        // they agree or no swarm stands, else what disagrees.
+        internal string SwarmPlacesFault()
+        {
+            if (_swarm == null || _motion == null)
+                return null;
+            if (_wave.Count != _motion.Count)
+                return $"the swarm has {_wave.Count} places and its motion {_motion.Count}";
+            int standing = 0;
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                SpawnedEnemy enemy = _wave[i];
+                if (enemy.Slot != i)
+                    return $"place {i} holds an enemy of place {enemy.Slot}";
+                if (!ReferenceEquals(_motion.BodyAt(i), enemy.Health))
+                    return $"place {i}'s motion holds another body than its enemy's";
+                if (!ReferenceEquals(_swarmCandidates[i], enemy.Health))
+                    return $"place {i}'s target is another body than its enemy's";
+                if (enemy.Health == null)
+                    return $"place {i}'s body is gone";
+                if (!enemy.Health.isActiveAndEnabled)
+                    return $"place {i}'s {(enemy.Defeated ? "fallen" : "standing")} enemy is off the floor";
+                if (enemy.Defeated == enemy.Health.IsAlive)
+                    return $"place {i}'s enemy is {(enemy.Defeated ? "defeated" : "standing")} but its body {(enemy.Health.IsAlive ? "lives" : "has fallen")}";
+                if (!enemy.Defeated)
+                    standing++;
+                for (int j = 0; j < i; j++)
+                {
+                    if (ReferenceEquals(_wave[j].Health, enemy.Health))
+                        return $"places {j} and {i} hold the same body";
+                }
+            }
+            if (standing != AliveEnemyCount)
+                return $"{standing} swarm enemies stand but AliveEnemyCount says {AliveEnemyCount}";
+            return null;
+        }
+
         // The hero stood still on the way out long enough: the room ends, the pack goes with it, and the floor moves on.
+        // Its bodies are destroyed with it, and the shelves of the kinds only its ladder fielded go too (TrimBodyPools);
+        // a body that left the floor this frame is destroyed as it would have been shelved (ShelveLeavingBodies).
         private void LeaveSwarm()
         {
             SwarmLeft?.Invoke();
             _swarm = null;
             _swarmRoom = null;
+            _swarmKinds.Clear();
             _floorProgress.LeaveEndlessRoom();
             ReleaseWave(true);
+            TrimBodyPools();
             Array.Clear(_swarmCandidates, 0, _swarmCandidates.Length);
             SetWaveTargets(Array.Empty<Health>());
             // Whatever the room still held back is offered now, before the floor moves on.
@@ -1237,18 +1378,23 @@ namespace Cryptforge.Combat
         // Its weapon's reach comes back for the pack, which stops each enemy just inside it.
         // healthScale is the floor's health tier times the difficulty the enemy walks in at. A horde enemy is named by its
         // ordinal (name is the wave's and the swarm's), and only when its body is new: a reused body keeps its first name.
+        // pooled: a swarm's enemy, which stands up a shelved body as a horde enemy does, named for its place either way.
         private SpawnedEnemy CreateEnemy(EnemyDefinition definition, string name, float healthScale, float healthPercent,
-            float damageBonus, float goldPercent, out float reach, bool horde = false, int hordeOrdinal = 0)
+            float damageBonus, float goldPercent, out float reach, bool horde = false, int hordeOrdinal = 0,
+            bool pooled = false)
         {
             float maximum = FloorScaling.Health(definition.MaximumHealth, healthScale, healthPercent);
-            // A horde enemy stands up a shelved body of its kind when there is one (BodyPool); anything else is new.
-            Health enemy = horde ? TakeShelvedBody(definition) : null;
+            // A horde or swarm enemy stands up a shelved body of its kind when there is one (BodyPool, which shelves only a
+            // pooled kind's); anything else - a wave's, an elite's, the gate boss's - is new.
+            Health enemy = horde || pooled ? TakeShelvedBody(definition) : null;
             AttackController attack;
             WeaponRuntime weapon;
             if (enemy != null)
             {
                 attack = enemy.GetComponent<AttackController>();
                 weapon = attack.Weapon;
+                if (!horde && name != null)
+                    enemy.name = name;
                 ReuseBody(enemy, definition.Prefab.transform, maximum, attack, damageBonus);
             }
             else
@@ -1463,7 +1609,6 @@ namespace Cryptforge.Combat
         // frozen frame - an open choice, the forge, a level-up - moves nothing.
         private void TickHorde(float deltaTime)
         {
-            ShelveLeavingBodies();
             if (!HordeWanted())
             {
                 if (_horde != null)
