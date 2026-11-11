@@ -1865,3 +1865,33 @@ hold (`GateHolds`). The scene needs the same in its own places, and one rule bod
 3. **Never pay a heal at the call.** It turns the bell into the weak player's best play.
 4. **Read a human before the build.** The simulation calls by a fixed rule. Whether a weak player resists "+290 XP", and
    when a careful one presses, is a device session's question: the `gate_called` telemetry above would answer it.
+
+## Status 2026-11-11 (late morning): the lead's decisions on the night's questions
+
+The owner said "devam edelim" and had left the open gameplay decisions to the lead on 2026-11-10. The lead took the
+night's questions as follows.
+
+- **The Daggers are the elites' weapon** (the status above): x2 on the elite enemies, named on their card. The
+  careful and first-card pilots step in on a Captain with them. The roles row reads the elite enemies, with the whole
+  waves printed beside them.
+  - docs/40 section 4.1 gives the Riftblade, the Daggers' character, "Elite/boss strong", and the rule mirrors the
+    Sword's x1.5 on the gate boss.
+  - The thrown Daggers with a bleed (the design options' F) were turned down. docs/42 allows no projectile objects in
+    V0.1, and docs/40 makes the Riftblade fragile under dense pressure, not a horde weapon.
+  - Main 158c9f3d, pushed as 0f9a4ec7. The gate: met 9, not met 0, not measured 2 (the owner's floor time and the S23's
+    frames).
+- **Floor 1's difficulty stays as it is for V0.1.** The careful cohort with human hands clears 98-100 %, but clears
+  are a reported row of the gate, not a target. docs/40 section 10.2's bands are a whole run's win rates by difficulty
+  mode, not one floor's, and the clumsy cohort (41 / 71 %) shows that the floor still turns weaker hands back. The
+  Warden echo is not built. Its levers stay for the climb's later floors, where a run's bands can be read.
+- **The gate's early call is not built** (the status above). The owner set the 3:30 gate to give the floor its 4-6
+  minutes, and a call removes the wait for whoever presses it. Without a reward the call is a trap. The only reward
+  that keeps the weaker cohorts waiting is experience at half the wait's farm. It stays an option for the owner, to be
+  played on a device first.
+- **The step-in on the gate boss stays research**: it takes the Warden's fight under 45 s.
+- **The engaged uptime's bar stays 0.75** for attack uptime (0.88 / 0.87). Raising it is the owner's call.
+- **docs/46 proposes the third character**, the Riftblade (Nix Vane), on docs/45's pipeline. Nothing is built. Its
+  build waits for the owner's go and for the S23's frame-time row (docs/27 decision 12).
+
+What waits for the owner and the phone: installing the APK, the S23's frame time at the chosen crowd, the owner's own
+floor time, and docs/46's questions.
