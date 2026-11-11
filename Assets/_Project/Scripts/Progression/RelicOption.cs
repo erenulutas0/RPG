@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace Cryptforge.Progression
 {
@@ -15,7 +16,7 @@ namespace Cryptforge.Progression
         public float Threshold { get; }
         public int Price { get; }
 
-        public string Description => string.Format(DescriptionFormat, Amount * 100f, Threshold * 100f);
+        public string Description => string.Format(CultureInfo.InvariantCulture, DescriptionFormat, Amount * 100f, Threshold * 100f);
 
         public RelicOption(string id, string displayName, string descriptionFormat, RelicEffect effect, float amount,
             float threshold, int price)

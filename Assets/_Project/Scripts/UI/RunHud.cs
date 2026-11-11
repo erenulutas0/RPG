@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
@@ -189,9 +190,9 @@ namespace Cryptforge.UI
             if (relic == null)
                 _relicLabel.text = string.Empty;
             else if (relic.Triggers == 0)
-                _relicLabel.text = string.Format(_text.RelicFormat, relic.Relic.DisplayName);
+                _relicLabel.text = string.Format(CultureInfo.InvariantCulture, _text.RelicFormat, relic.Relic.DisplayName);
             else
-                _relicLabel.text = string.Format(_text.RelicTriggeredFormat, relic.Relic.DisplayName, relic.Triggers);
+                _relicLabel.text = string.Format(CultureInfo.InvariantCulture, _text.RelicTriggeredFormat, relic.Relic.DisplayName, relic.Triggers);
             if (_relicBadge != null)
             {
                 _relicBadge.SetActive(relic != null);
@@ -208,7 +209,7 @@ namespace Cryptforge.UI
         private void RefreshHero()
         {
             string name = _setup.Hero != null ? _setup.Hero.DisplayName : _heroDefinition.DisplayName;
-            _heroLabel.text = string.Format(_text.HealthFormat, name, _hero.Current, _hero.Maximum);
+            _heroLabel.text = string.Format(CultureInfo.InvariantCulture, _text.HealthFormat, name, _hero.Current, _hero.Maximum);
             _heroBar.fillAmount = Fraction(_hero.Current, _hero.Maximum);
         }
 
@@ -222,7 +223,7 @@ namespace Cryptforge.UI
             if (!ReferenceEquals(_floorLabel.text, _floorText) || floorNumber != _floorNumber || roomNumber != _floorRoom ||
                 rooms != _floorRooms || !string.Equals(roomName, _floorRoomName, System.StringComparison.Ordinal))
             {
-                _floorLabel.text = string.Format(_text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName);
+                _floorLabel.text = string.Format(CultureInfo.InvariantCulture, _text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName);
                 // Read back: the label keeps its old string when the new one has the same characters.
                 _floorText = _floorLabel.text;
                 _floorNumber = floorNumber;
@@ -295,8 +296,8 @@ namespace Cryptforge.UI
                 maximum != _enemyMaximum || !string.Equals(name, _enemyName, System.StringComparison.Ordinal))
             {
                 _enemyLabel.text = othersAlive > 0
-                    ? string.Format(_text.PackHealthFormat, name, current, maximum, othersAlive)
-                    : string.Format(_text.HealthFormat, name, current, maximum);
+                    ? string.Format(CultureInfo.InvariantCulture, _text.PackHealthFormat, name, current, maximum, othersAlive)
+                    : string.Format(CultureInfo.InvariantCulture, _text.HealthFormat, name, current, maximum);
                 _enemyText = _enemyLabel.text;
                 _enemyName = name;
                 _enemyCurrent = current;
@@ -379,10 +380,10 @@ namespace Cryptforge.UI
                 second == _statusSecond && seconds == _statusSeconds &&
                 string.Equals(name, _statusName, System.StringComparison.Ordinal))
                 return;
-            _statusLabel.text = kind == 1 ? string.Format(_text.PackVictoryFormat, first, second, seconds)
-                : kind == 2 ? string.Format(_text.VictoryFormat, name, second, seconds)
-                : kind == 3 ? string.Format(_text.EnragedFormat, name)
-                : string.Format(_text.WaveFormat, first, second);
+            _statusLabel.text = kind == 1 ? string.Format(CultureInfo.InvariantCulture, _text.PackVictoryFormat, first, second, seconds)
+                : kind == 2 ? string.Format(CultureInfo.InvariantCulture, _text.VictoryFormat, name, second, seconds)
+                : kind == 3 ? string.Format(CultureInfo.InvariantCulture, _text.EnragedFormat, name)
+                : string.Format(CultureInfo.InvariantCulture, _text.WaveFormat, first, second);
             _statusText = _statusLabel.text;
             _statusKind = kind;
             _statusFirst = first;
@@ -404,7 +405,7 @@ namespace Cryptforge.UI
         {
             using (PerformanceMarkers.PickHud.Auto())
             {
-                _weaponLabel.text = string.Format(_text.WeaponFormat, _setup.HeroWeapon.DisplayName,
+                _weaponLabel.text = string.Format(CultureInfo.InvariantCulture, _text.WeaponFormat, _setup.HeroWeapon.DisplayName,
                     _setup.Weapon.Damage, _setup.Weapon.Interval);
                 if (_weaponName != null)
                     _weaponName.text = _setup.HeroWeapon.DisplayName;

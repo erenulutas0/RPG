@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cryptforge.Combat;
 using UnityEngine;
 
@@ -27,7 +28,7 @@ namespace Cryptforge.Content
         public float Cooldown => _cooldown;
         public AbilityKind Kind => _kind;
         public Sprite Icon => _icon;
-        public string Description => string.Format(_descriptionFormat ?? string.Empty, _damage, _radius, _cooldown);
+        public string Description => string.Format(CultureInfo.InvariantCulture, _descriptionFormat ?? string.Empty, _damage, _radius, _cooldown);
 
         // A fresh runtime per run; the definition stays untouched by upgrades.
         public AbilityRuntime CreateRuntime() => new AbilityRuntime(_damage, _radius, _cooldown, _kind);

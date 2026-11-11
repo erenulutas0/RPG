@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
@@ -121,7 +122,7 @@ namespace Cryptforge.UI
                 _shownGate = true;
                 _beatStart = -1f;
                 _label.rectTransform.localScale = Vector3.one;
-                _label.text = string.Format(_text.GateOpensFormat, second / 60, second % 60);
+                _label.text = string.Format(CultureInfo.InvariantCulture, _text.GateOpensFormat, second / 60, second % 60);
                 _label.color = Ember;
                 return;
             }
@@ -135,7 +136,7 @@ namespace Cryptforge.UI
                 _beatStart = Time.unscaledTime;
             _shownSecond = second;
             _shownOverrun = overrun;
-            _label.text = string.Format(overrun ? _text.OverrunFormat : _text.FloorClockFormat, second / 60, second % 60);
+            _label.text = string.Format(CultureInfo.InvariantCulture, overrun ? _text.OverrunFormat : _text.FloorClockFormat, second / 60, second % 60);
             if (_beatStart < 0f)
                 _label.color = Rest(overrun, lastMinute);
         }

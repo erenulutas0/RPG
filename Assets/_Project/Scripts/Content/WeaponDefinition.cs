@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cryptforge.Combat;
 using Cryptforge.Progression;
 using UnityEngine;
@@ -75,7 +76,7 @@ namespace Cryptforge.Content
 
         public WeaponOption CreateForgeOption() =>
             new WeaponOption(_id, _displayName,
-                string.Format(_forgeDescriptionFormat ?? string.Empty, _damage, _interval, _splashFraction * 100f,
+                string.Format(CultureInfo.InvariantCulture, _forgeDescriptionFormat ?? string.Empty, _damage, _interval, _splashFraction * 100f,
                     _critMultiplier * 100f, _critEvery),
                 _forgePrice);
 
