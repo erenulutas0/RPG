@@ -88,8 +88,9 @@ namespace Cryptforge.Tests
             // With all three, each weapon is named with its three efficiencies.
             foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
                 Assert.That(rows[FoundryGate.WeaponRoles].Simulation, Does.Contain(weapon.DisplayName + " horde ")
-                    .And.Contain(", elites ").And.Contain(", Warden "));
-            Assert.That(rows[FoundryGate.WeaponRoles].Basis, Does.Contain("elites, on the elite rooms' waves"));
+                    .And.Contain(", elite enemies ").And.Contain("(elite rooms' waves ").And.Contain("), Warden "));
+            Assert.That(rows[FoundryGate.WeaponRoles].Basis, Does.Contain("elites, on the elite enemies")
+                .And.Contain("first proposed on 2026-11-10").And.Contain("took the Captains' reading on 2026-11-11"));
         }
 
         // The roles row's reading (docs/41, status 2026-11-10 night): three jobs - the horde, the elites, the Warden - and a

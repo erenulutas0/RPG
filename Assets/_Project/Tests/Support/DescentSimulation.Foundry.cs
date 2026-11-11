@@ -428,9 +428,12 @@ namespace Cryptforge.Tests
             public readonly string By;
             public readonly bool Proc;
             public readonly float At;
+            // Whether a Daggers landing reached it before it fell (docs/41, status 2026-11-11: an elite's time under fire
+            // where the Daggers' share on it took part).
+            public readonly bool DaggersLanded;
 
             public FoundryKill(string kind, bool horde, float lifetime, float underFire, string by = null, bool proc = false,
-                float at = -1f)
+                float at = -1f, bool daggersLanded = false)
             {
                 Kind = kind;
                 Horde = horde;
@@ -439,6 +442,7 @@ namespace Cryptforge.Tests
                 By = by;
                 Proc = proc;
                 At = at;
+                DaggersLanded = daggersLanded;
             }
         }
 
@@ -944,6 +948,8 @@ namespace Cryptforge.Tests
             public float FirstHitAt = -1f;
             // FoundryLevers.SwordKnockbackUnits (research): no strike before this run second.
             public float StaggeredUntil;
+            // A Daggers landing has reached it (FoundryKill.DaggersLanded).
+            public bool DaggersLanded;
             // A realistic pilot's notice of it (PilotRealism): when it came within the kite reach, and when it last left it;
             // NaN for neither. And the elite's stomp clock (FoundryLevers.EliteStompEvery).
             public float NoticedAt = float.NaN;
@@ -2166,6 +2172,8 @@ namespace Cryptforge.Tests
             // is no landing either: neither counts as one.
             private void Attribute(FoundryWeaponWork work, Foe foe, float dealt, bool proc, bool landing = true)
             {
+                if (work.Id == DaggersId)
+                    foe.DaggersLanded = true;
                 if (landing && !_bleedTick)
                 {
                     if (proc)
@@ -2387,7 +2395,7 @@ namespace Cryptforge.Tests
                 foe.Defeated = true;
                 _result.Kills.Add(new FoundryKill(foe.Definition.Name, foe.Horde, _seconds - foe.SpawnedAt,
                     foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f, KillingBlow(),
-                    _source == DamageSource.Weapon && StrikeHasProcced(), FloorTime));
+                    _source == DamageSource.Weapon && StrikeHasProcced(), FloorTime, foe.DaggersLanded));
                 _result.BucketKills[Bucket()]++;
                 _roomKills++;
                 if (foe.Horde)
@@ -2657,7 +2665,7 @@ namespace Cryptforge.Tests
                     // AttackController.GateBoss: the gate boss WardenSlamService handed the hero's attacker at its step
                     // (StepWarden's _slamBoss), on which each weapon lands its share (WardenRule: the Sword's 1.5). And
                     // AttackController.Elites: the elite room's Captain while its wave stands (EncounterController.Elites),
-                    // on which each weapon lands its share (EliteRule: the Daggers' 12).
+                    // on which each weapon lands its share (EliteRule: the Daggers' 2).
                     bool struck = weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null,
                         _slamBoss, _elites);
                     if (struck)
