@@ -53,6 +53,30 @@ namespace Cryptforge.Analytics
             CloseHeld();
         }
 
+        // While holding, opens the current file now (its folder made, the file made empty if it was missing), so the first
+        // append finds it open: a scene opens it as it starts rather than at its first flush, which is the first level-up's
+        // (2026-11-11). Nothing is written, so every file holds the same bytes at the same moments; a file that was missing
+        // stands empty until the first flush. False when not holding, or when it cannot be opened now: the next append
+        // tries again and fails, if it still must, where it always did.
+        public bool TryOpen()
+        {
+            if (!_holding)
+                return false;
+            try
+            {
+                Open();
+                return true;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
         public FileTelemetryStore(string directory, long maxFileBytes = 256 * 1024, int maxFiles = 3)
         {
             if (string.IsNullOrEmpty(directory))

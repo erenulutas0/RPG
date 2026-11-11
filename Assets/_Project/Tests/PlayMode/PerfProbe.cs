@@ -666,7 +666,54 @@ namespace Cryptforge.Tests
                 for (int i = 0; i < entries.Count; i++)
                     t.Append(i > 0 ? "," : string.Empty).Append(' ').Append(entries[i].Key).Append(' ')
                         .Append(F(entries[i].Value, 2));
+                if (r.FontRebuilds[f] > 0f)
+                    t.Append(" | font atlases rebuilt ").Append(F(r.FontRebuilds[f], 0)).Append(" (")
+                        .Append(r.FontRebuildNames[f]).Append(')');
+                AppendCounters(t, r, f);
                 t.AppendLine();
+            }
+            var rebuilt = new List<int>();
+            int rebuilds = 0;
+            for (int f = 0; f < r.Count; f++)
+            {
+                if (r.FontRebuilds[f] <= 0f)
+                    continue;
+                rebuilds += Mathf.RoundToInt(r.FontRebuilds[f]);
+                rebuilt.Add(f);
+            }
+            t.Append("   font atlases rebuilt (Font.textureRebuilt): ").Append(rebuilds).Append(" in the window");
+            for (int i = 0; i < rebuilt.Count && i < 12; i++)
+                t.Append(i == 0 ? ", on frames #" : ", #").Append(rebuilt[i]).Append(" (").Append(r.FontRebuildNames[rebuilt[i]])
+                    .Append(')');
+            t.AppendLine();
+        }
+
+        // The engine counters that moved on the frame (PerfProbeRecorder.CounterNames): a frame's own amount where it has
+        // one, otherwise the change from the frame before; bytes in KB.
+        private static void AppendCounters(StringBuilder t, PerfProbeRecorder r, int f)
+        {
+            bool any = false;
+            for (int i = 0; i < PerfProbeRecorder.CounterNames.Length; i++)
+            {
+                string name = PerfProbeRecorder.CounterNames[i];
+                float[] values = r.CounterValues[i];
+                if (values == null || values[f] < 0f)
+                    continue;
+                bool perFrame = name.IndexOf("In Frame", System.StringComparison.Ordinal) >= 0;
+                float shown = values[f];
+                if (!perFrame)
+                {
+                    if (f == 0 || values[f - 1] < 0f || values[f] == values[f - 1])
+                        continue;
+                    shown = values[f] - values[f - 1];
+                }
+                else if (shown <= 0f)
+                    continue;
+                bool bytes = name.IndexOf("Bytes", System.StringComparison.Ordinal) >= 0 ||
+                             name.IndexOf("Memory", System.StringComparison.Ordinal) >= 0;
+                t.Append(any ? ", " : " | counters: ").Append(name).Append(' ').Append(!perFrame && shown > 0f ? "+" : string.Empty)
+                    .Append(bytes ? F(shown / 1024f, 1) + " KB" : F(shown, 0));
+                any = true;
             }
         }
 
