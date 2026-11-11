@@ -47,14 +47,19 @@ namespace Cryptforge.Combat
 
         // Sets the enemy alight: stacks from the hero's hit (spread false) or a neighbour's fall (spread true). source is
         // whose damage the burn deals; neighbourhood finds who stands beside it when it falls.
-        public void Ignite(int stacks, bool spread, IDamageable source, INeighbourhood neighbourhood)
+        // hold: the encounter's fight hold (EncounterController.FightHold) - while it reads true, the burn waits.
+        public void Ignite(int stacks, bool spread, IDamageable source, INeighbourhood neighbourhood, Func<bool> hold = null)
         {
             if (_health == null || !_health.IsAlive)
                 return;
             State.Apply(stacks, spread);
             _source = source;
             _neighbourhood = neighbourhood;
+            if (hold != null)
+                _hold = hold;
         }
+
+        private Func<bool> _hold;
 
         // Crucible Vent: every stack spent at once; how many there were.
         public int Consume() => State.Consume();
@@ -77,7 +82,10 @@ namespace Cryptforge.Combat
                 State.Clear();
                 return;
             }
-            float damage = State.Tick(Time.deltaTime);
+            // The boss's reveal holds the fight (AttackController.FightHold), and the burn with it: no tick, no kill, no
+            // spread while the camera is at the gate, and the burn keeps the time it had left (the pre-push review,
+            // 2026-11-12: burns ticked through the ~2.6 s reveal while every attacker waited).
+            float damage = State.Tick(Time.deltaTime, _hold != null && _hold());
             if (damage <= 0f)
                 return;
             _health.ApplyDamage(new DamageContext(damage, _source));
@@ -102,7 +110,7 @@ namespace Cryptforge.Combat
                 BurnStatus status = On(neighbour);
                 if (status == null)
                     continue;
-                status.Ignite(BurnRule.SpreadStacks, true, _source, _neighbourhood);
+                status.Ignite(BurnRule.SpreadStacks, true, _source, _neighbourhood, _hold);
                 Spread?.Invoke(_health, neighbour);
             }
         }
