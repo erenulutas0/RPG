@@ -192,6 +192,11 @@ namespace Cryptforge.Combat
         public event Action GateBossArrived;
         // While a view presents the arriving boss, the encounter holds still: no pack moves, no fight clock runs.
         public bool IsRevealHeld => _revealHold;
+        // The reveal's hold as every attacker of the fight reads it (AttackController.FightHold): nothing strikes while
+        // the camera is at the gate, neither an enemy in reach of the hero who cannot step away nor the hero. One delegate
+        // for every enemy this spawns and for the hero's attacker (CombatSetup).
+        public Func<bool> FightHold => _fightHold ??= () => _revealHold;
+        private Func<bool> _fightHold;
         // Floor points where the pack cannot walk (PackMotion.Held); the foundry pit sets it, nothing else does.
         public Func<float, float, bool> PackHeld { get; set; }
         public void HoldForReveal(bool hold) => _revealHold = hold;
@@ -1037,7 +1042,9 @@ namespace Cryptforge.Combat
             if (damageBonus != 0f)
                 weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
             enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
-            enemy.GetComponent<AttackController>().Initialize(weapon);
+            var attack = enemy.GetComponent<AttackController>();
+            attack.Initialize(weapon);
+            attack.FightHold = FightHold;
             reach = weapon.Range;
 
             var spawn = new SpawnedEnemy
