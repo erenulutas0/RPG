@@ -156,6 +156,9 @@ namespace Cryptforge.Combat
         public bool IsInSwarmRoom => _swarm != null;
         public float SwarmSeconds => _swarm != null ? _swarm.Seconds : 0f;
         public int SwarmWave => _swarm != null ? (int)(_swarm.Seconds / SwarmRule.StepSeconds) + 1 : 0;
+        // The wave of the room's ladder the swarm's clock has reached, one-based (SwarmDirector.Wave): what the HUD's wave
+        // line counts in a swarm room, where the floor's own wave stays on the first.
+        public int SwarmLadderWave => _swarm != null ? _swarm.Wave + 1 : 0;
         public float SwarmDifficulty => _swarm != null ? SwarmRule.DifficultyAtSeconds(_swarm.Seconds) : 1f;
         // On the foundry a floor that ends in a boss is left through the gate: once the boss falls the gate opens and the
         // floor clears only when the hero walks to it and holds still there (ExitRule), so the climb is a walk out.
