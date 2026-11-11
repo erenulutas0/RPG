@@ -323,7 +323,21 @@ namespace Cryptforge.Tests
             var pilots = new List<(string Name, PilotRealism Realism)>();
             foreach (string word in Words("ECHO_REALISMS", "frame-perfect,typical"))
                 pilots.Add((word, word == "frame-perfect" ? null : PilotRealism.Named(word)));
-            IReadOnlyList<AutopilotCohort> cohorts = AutopilotCohort.Cohorts;
+            // ECHO_COHORTS (every cohort; careful always among them) and ECHO_FLOORS (1): 2 plays on into floor 2 after a
+            // floor-1 clear, its Warden on its own share or ECHO_LATER_HEALTH (FoundryLevers.LaterWardenHealthShare), and
+            // adds floor 2's table.
+            string[] named = Words("ECHO_COHORTS", string.Join(",", AutopilotCohort.Cohorts.Select(c => c.Name))).ToArray();
+            IReadOnlyList<AutopilotCohort> cohorts = AutopilotCohort.Cohorts.Where(c => c == AutopilotCohort.Careful || named.Contains(c.Name)).ToList();
+            int floors = Setting("ECHO_FLOORS", 1);
+            float later = Floats("ECHO_LATER_HEALTH", "-1").DefaultIfEmpty(-1f).First();
+            options = options.Select(o => (later > 0f ? $"{o.Name}, floor 2 share {Number(later)}" : o.Name,
+                (Action<DescentSimulation.FoundryLevers>)(l =>
+                {
+                    o.Apply?.Invoke(l);
+                    l.Floors = floors;
+                    if (later > 0f)
+                        l.LaterWardenHealthShare = later;
+                }))).ToList();
             DescentSimulation.FoundryHero[] heroes = Heroes();
             var cells = new Dictionary<string, Row[]>();
             string Key(string option, string pilot, AutopilotCohort cohort) => option + "|" + pilot + "|" + cohort.Name;
@@ -354,20 +368,23 @@ namespace Cryptforge.Tests
             md.AppendLine();
 
             string last = pilots[pilots.Count - 1].Name;
-            md.AppendLine($"### How far careful clears above each other cohort ({last})").AppendLine();
-            md.AppendLine("| Configuration | " + string.Join(" | ", cohorts.Skip(1).Select(c => "careful - " + c.Name)) + " |");
-            md.AppendLine("|---|" + string.Concat(cohorts.Skip(1).Select(_ => "---|")));
-            foreach ((string name, _) in options)
+            if (cohorts.Count > 1)
             {
-                Row[] careful = cells[Key(name, last, cohorts[0])];
-                md.AppendLine($"| {name} | " + string.Join(" | ", cohorts.Skip(1).Select(c =>
+                md.AppendLine($"### How far careful clears above each other cohort ({last})").AppendLine();
+                md.AppendLine("| Configuration | " + string.Join(" | ", cohorts.Skip(1).Select(c => "careful - " + c.Name)) + " |");
+                md.AppendLine("|---|" + string.Concat(cohorts.Skip(1).Select(_ => "---|")));
+                foreach ((string name, _) in options)
                 {
-                    Row[] other = cells[Key(name, last, c)];
-                    return string.Join(" / ", Enumerable.Range(0, heroes.Length)
-                        .Select(h => (careful[h].Cleared - other[h].Cleared).ToString("+0;-0;0", CultureInfo.InvariantCulture)));
-                })) + " |");
+                    Row[] careful = cells[Key(name, last, cohorts[0])];
+                    md.AppendLine($"| {name} | " + string.Join(" | ", cohorts.Skip(1).Select(c =>
+                    {
+                        Row[] other = cells[Key(name, last, c)];
+                        return string.Join(" / ", Enumerable.Range(0, heroes.Length)
+                            .Select(h => (careful[h].Cleared - other[h].Cleared).ToString("+0;-0;0", CultureInfo.InvariantCulture)));
+                    })) + " |");
+                }
+                md.AppendLine();
             }
-            md.AppendLine();
 
             md.AppendLine("### The careful cohort: the Warden fight and the floor").AppendLine();
             md.AppendLine("| Configuration | Pilot | Cleared | Warden fight P50 (P90) | Floor P50 (cleared P50) | Slam hits a Warden fight | Echo hits a Warden fight | Deaths at the Warden |");
@@ -381,6 +398,23 @@ namespace Cryptforge.Tests
                                   $"{Both(c, r => r.SlamHits)} | {Both(c, r => r.EchoHits)} | {Both(c, r => r.WardenDeaths.ToString(CultureInfo.InvariantCulture))} |");
                 }
             md.AppendLine();
+
+            if (floors >= 2)
+            {
+                md.AppendLine("### Floor 2, after a floor-1 clear").AppendLine();
+                md.AppendLine("| Configuration | Pilot | Cohort | Floors 1 and 2 cleared | Floor-2 Warden fight P50 (P90) | Echo hits a floor-2 Warden fight | Deaths at floor 2's Warden |");
+                md.AppendLine("|---|---|---|---|---|---|---|");
+                foreach ((string name, _) in options)
+                    foreach ((string pilot, _) in pilots)
+                        foreach (AutopilotCohort cohort in cohorts)
+                        {
+                            Row[] c = cells[Key(name, pilot, cohort)];
+                            md.AppendLine($"| {name} | {pilot} | {cohort.Name} | {Both(c, r => r.BothCleared.ToString(CultureInfo.InvariantCulture))} | " +
+                                          $"{Both(c, r => $"{r.Floor2WardenP50} ({r.Floor2WardenP90})")} | {Both(c, r => r.Floor2EchoHits)} | " +
+                                          $"{Both(c, r => r.Floor2WardenDeaths.ToString(CultureInfo.InvariantCulture))} |");
+                        }
+                md.AppendLine();
+            }
 
             md.AppendLine("<details><summary>Every cell</summary>").AppendLine();
             md.AppendLine("| Configuration | Pilot | Cohort | Hero | Cleared | Warden fight P50 (P90) | Floor P50 (cleared P50) | Slam / echo hits a Warden fight | Deaths at the Warden | Deaths: where / blow |");
@@ -522,12 +556,20 @@ namespace Cryptforge.Tests
             public string WardenP90;
             public string EchoHits;
             public int WardenDeaths;
+            // And floor 2's, where a run went on into it (FoundryLevers.Floors): both floors cleared, floor 2's Warden fight
+            // (its own, FoundryResult.WardenSeconds), its echo hits a fight and the deaths there.
+            public int BothCleared;
+            public string Floor2WardenP50;
+            public string Floor2WardenP90;
+            public string Floor2EchoHits;
+            public int Floor2WardenDeaths;
         }
 
         private static Row Summarise(string config, AutopilotCohort cohort, FoundryBatch.Batch b)
         {
             DescentSimulation.FoundryResult[] felled = b.Runs.Where(r => r.BossSeconds >= 0f).ToArray();
             DescentSimulation.FoundryResult[] gated = b.Runs.Where(r => r.LevelAtGate >= 0).ToArray();
+            DescentSimulation.FoundryResult[] second = b.Runs.Where(r => r.NextFloor != null).Select(r => r.NextFloor).ToArray();
             return new Row
             {
                 Config = config, Cohort = cohort.Name, Hero = b.Hero.Name, Cleared = b.ClearedCount, Runs = b.Runs.Length,
@@ -536,7 +578,12 @@ namespace Cryptforge.Tests
                 SlamHits = Mean(gated.Select(r => (float)r.SlamHits), "0.00"), HazardHits = Mean(b.Runs.Select(r => (float)r.HazardHits), "0.0"),
                 Lapses = Mean(b.Runs.Select(r => (float)r.Lapses), "0"), Deaths = DeathsBy(b),
                 WardenP90 = P(felled.Select(r => r.BossSeconds), 90), EchoHits = Mean(gated.Select(r => (float)r.HazardHits), "0.00"),
-                WardenDeaths = b.Runs.Count(r => r.DiedAtWarden)
+                WardenDeaths = b.Runs.Count(r => r.DiedAtWarden),
+                BothCleared = second.Count(r => r.Cleared),
+                Floor2WardenP50 = P(second.Where(r => r.WardenSeconds >= 0f).Select(r => r.WardenSeconds), 50),
+                Floor2WardenP90 = P(second.Where(r => r.WardenSeconds >= 0f).Select(r => r.WardenSeconds), 90),
+                Floor2EchoHits = Mean(second.Where(r => r.LevelAtGate >= 0).Select(r => (float)r.HazardHits), "0.00"),
+                Floor2WardenDeaths = second.Count(r => r.DiedAtWarden)
             };
         }
 
@@ -590,11 +637,14 @@ namespace Cryptforge.Tests
         private static string Csv(IEnumerable<Row> rows)
         {
             var csv = new StringBuilder("config,cohort,hero,cleared,runs,floor_p50,cleared_floor_p50,warden_p50,slam_hits,hazard_hits,lapses,deaths," +
-                                        "warden_p90,hazard_hits_a_fight,warden_deaths\n");
+                                        "warden_p90,hazard_hits_a_fight,warden_deaths,both_cleared,floor2_warden_p50,floor2_warden_p90," +
+                                        "floor2_hazard_hits_a_fight,floor2_warden_deaths\n");
             foreach (Row r in rows)
                 csv.AppendLine(string.Join(",", new[] { r.Config, r.Cohort, r.Hero, r.Cleared.ToString(CultureInfo.InvariantCulture),
                     r.Runs.ToString(CultureInfo.InvariantCulture), r.FloorP50, r.ClearedFloorP50, r.WardenP50, r.SlamHits, r.HazardHits,
-                    r.Lapses, r.Deaths, r.WardenP90, r.EchoHits, r.WardenDeaths.ToString(CultureInfo.InvariantCulture) }.Select(Quote)));
+                    r.Lapses, r.Deaths, r.WardenP90, r.EchoHits, r.WardenDeaths.ToString(CultureInfo.InvariantCulture),
+                    r.BothCleared.ToString(CultureInfo.InvariantCulture), r.Floor2WardenP50, r.Floor2WardenP90, r.Floor2EchoHits,
+                    r.Floor2WardenDeaths.ToString(CultureInfo.InvariantCulture) }.Select(Quote)));
             return csv.ToString();
         }
 
