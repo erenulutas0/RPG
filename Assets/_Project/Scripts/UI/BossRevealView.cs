@@ -41,7 +41,9 @@ namespace Cryptforge.UI
             if (IsRevealing || !isActiveAndEnabled) return;
             _camera = Camera.main;
             _follow = _camera != null ? _camera.GetComponent<ArenaCameraFollow>() : null;
-            var boss = _setup.Encounters.CurrentEnemy;
+            // The gate's boss, not the wave's nearest enemy: floor 2's Warden walks out between two Mites.
+            var boss = _setup.Encounters.GateBoss;
+            if (boss == null) boss = _setup.Encounters.CurrentEnemy;
             if (_follow == null || boss == null) return;
             StartCoroutine(Reveal(boss));
         }

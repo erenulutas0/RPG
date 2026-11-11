@@ -120,6 +120,27 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The reveal frames the gate's boss, not whichever of its wave stands nearest the hero: floor 2's Warden walks out
+        // between two Cinder Mites, and from the floor's start a Mite stands nearer, so the camera turned to the Mite (the
+        // run flow's review, 2026-11-11). Resources/Development/Floor_GateEscortProof: the gate's room as floor 2 plays it.
+        [UnityTest, Timeout(90000)] public IEnumerator TheRevealFramesTheWardenNotItsNearestEscort()
+        {
+            yield return Load("foundry","floor_gate_escort_proof");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var reveal=setup.GetComponent<BossRevealView>();var camera=Camera.main;
+            for(int i=0;i<600&&encounter.AliveEnemyCount==0;i++)yield return null;
+            Assert.That(encounter.AliveEnemyCount,Is.EqualTo(3),"The Warden walks out with its two Mites.");
+            Health warden=encounter.GateBoss;
+            Assert.That(warden,Is.Not.Null,"The wave's first enemy is the gate's boss.");
+            Assert.That(encounter.CurrentEnemy,Is.Not.SameAs(warden),"From the floor's start a Mite stands nearer the hero.");
+            Assert.That(reveal.IsRevealing,Is.True,"The boss walking out of the gate is presented.");
+            Vector3 wardenAt=warden.transform.position;
+            yield return Hold(setup,BossRevealView.TurnSeconds+.3f);
+            Assert.That(reveal.Turn,Is.EqualTo(1f).Within(.001f),"The camera has turned fully to the gate.");
+            Assert.That(camera.transform.position.x,Is.EqualTo(wardenAt.x).Within(.01f),"It frames the Warden, not the Mite.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // The floor after the gate has no gate boss of its own: a swarm walks in without a wave's spawn, and the gate wave's
         // flag, once left standing, made the swarm's first enemy the Warden - its marks and slams on the hero, the Sword's
         // share on it (the review of 2026-11-11; the Descent's finale after floor 2 on the foundry). The flag goes with the
