@@ -16,9 +16,10 @@ namespace Cryptforge.UI
         // That patch is already among the atlas's calmest slate interiors; its
         // remaining cloud is a 15-25 texel mottle. At .075 it printed as ~14 px
         // blotches across the broad crown planes at the gate camera. A finer
-        // physical grain (period 1.6 x 1.2 units, still far beyond one coping
-        // stone) lets that mottle settle into stone texture instead of clouds.
-        internal const float GateHouseDensity=.10f;
+        // physical grain (period 1.13 x .89 units, still beyond one coping stone)
+        // is mip-filtered at the gate camera, so the mottle's amplitude drops by
+        // about two fifths and settles into stone texture instead of clouds.
+        internal const float GateHouseDensity=.14f;
 
         private static void GateHouseGrain(Builder stone)
         {
@@ -29,6 +30,6 @@ namespace Cryptforge.UI
         }
 
         internal static Color GateHouseAlbedo(Color source)=>
-            new Color(source.r*1.015f,source.g*1.035f,source.b*.95f,source.a);
+            new Color(source.r*.995f,source.g*1.05f,source.b*.95f,source.a);
     }
 }

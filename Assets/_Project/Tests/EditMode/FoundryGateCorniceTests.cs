@@ -13,7 +13,7 @@ namespace Cryptforge.Tests
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
         private const float U0=32.08f+FoundryMap.GateOffset,U1=33.92f+FoundryMap.GateOffset;
-        private const float V0=-.78f,V1=10.78f,Bottom=6.93f,Top=7.22f,Inset=.06f,Shade=1.02f;
+        private const float V0=-.78f,V1=10.78f,Bottom=6.93f,Top=7.22f,Inset=.06f,Shade=FoundryRegionView.GateHeaderCorniceShade;
 
         [Test]
         public void ActualHeaderUsesProfiledCorniceAndRetainsItsExactCapAndBearing()
