@@ -24,10 +24,10 @@ namespace Cryptforge.Tests
             yield return SceneManager.UnloadSceneAsync(old);TestProfile.End();
         }
 
-        private static IEnumerator Load(string region)
+        private static IEnumerator Load(string region,string floor="floor_gate_boss_proof")
         {
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartFloorPath));
-            File.WriteAllText(DevelopmentStart.StartFloorPath,"floor_gate_boss_proof");
+            File.WriteAllText(DevelopmentStart.StartFloorPath,floor);
             File.WriteAllText(DevelopmentStart.RegionPreviewPath,region);
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");yield return null;
             foreach(var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))attack.enabled=false;
@@ -117,6 +117,44 @@ namespace Cryptforge.Tests
             Assert.That(follow.enabled,Is.True,"The camera follows the hero again.");
             yield return Hold(setup,.5f);
             Assert.That(encounter.CurrentEnemy.transform.position,Is.Not.EqualTo(boss),"Then the boss walks.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The floor after the gate has no gate boss of its own: a swarm walks in without a wave's spawn, and the gate wave's
+        // flag, once left standing, made the swarm's first enemy the Warden - its marks and slams on the hero, the Sword's
+        // share on it (the review of 2026-11-11; the Descent's finale after floor 2 on the foundry). The flag goes with the
+        // wave now. Resources/Development/Floor_GateThenSwarmProof: the proof's gate, then Floor_SwarmProof.
+        [UnityTest, Timeout(90000)] public IEnumerator TheSwarmAfterTheGateHasNoWarden()
+        {
+            yield return Load("foundry","floor_gate_then_swarm_proof");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var hero=Object.FindFirstObjectByType<HeroMovementInput>().transform;var heroHealth=hero.GetComponent<Health>();
+            yield return WaitForBoss(encounter);
+            Assert.That(encounter.GateBoss,Is.Not.Null,"The gate's boss is the gate boss.");
+            encounter.CurrentEnemy.ApplyDamage(new DamageContext(1000000f));yield return null;ResolveUpgrades(setup);yield return null;ResolveUpgrades(setup);yield return null;
+            Assert.That(encounter.IsGateExitOpen,Is.True,"The boss's fall opens the gate.");
+            FoundryMap.GateExitSpot(out float gx,out float gy);
+            hero.position=new Vector3(gx,ArenaFloor.WorldY(gy),0);
+            float deadline=Time.realtimeSinceStartup+20f;
+            while(!encounter.IsInSwarmRoom&&!setup.Run.HasEnded&&Time.realtimeSinceStartup<deadline)
+            {
+                ResolveUpgrades(setup);
+                var prompt=setup.Choices.Current;
+                if(prompt!=null&&prompt.Kind==ChoiceKind.Checkpoint)Assert.That(setup.Choices.TrySelect(prompt,1),Is.True,"Descend.");
+                yield return null;
+            }
+            Assert.That(setup.Run.HasEnded,Is.False);
+            Assert.That(encounter.IsInSwarmRoom,Is.True,"Walking out of the gate and descending opens the swarm.");
+            float end=Time.time+2f;deadline=Time.realtimeSinceStartup+20f;
+            while(Time.time<end&&Time.realtimeSinceStartup<deadline)
+            {
+                ResolveUpgrades(setup);
+                if(heroHealth.IsAlive)heroHealth.Heal(heroHealth.Maximum);
+                Assert.That(encounter.GateBoss,Is.Null,"No enemy of the swarm is the gate boss.");
+                Assert.That(setup.Warden.IsFighting,Is.False,"The Warden's slam has nobody to swing.");
+                yield return null;
+            }
+            Assert.That(Time.time,Is.GreaterThanOrEqualTo(end),"The swarm ran.");
             LogAssert.NoUnexpectedReceived();
         }
 

@@ -1165,6 +1165,11 @@ namespace Cryptforge.Combat
 
             _wave.Clear();
             _elites.Clear();
+            // A gate's or an elite room's wave is gone with its flags: a swarm refills the wave without SpawnWave, and a
+            // flag left standing made its first enemy the gate boss (GateBoss, WardenSlamService) or the Captain
+            // (EliteLeader) - the review of 2026-11-11, the Descent's finale after floor 2's gate on the foundry.
+            _gateBossWave = false;
+            _eliteWave = false;
             _motion = null;
             _lastDefeated = null;
             AliveEnemyCount = 0;
