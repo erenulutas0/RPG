@@ -1590,7 +1590,9 @@ namespace Cryptforge.Combat
             EnemyDefeated?.Invoke(enemy.Health);
         }
 
-        // A fallen horde enemy's body leaves the floor; its place stays for the next to fill.
+        // A fallen horde enemy's body leaves the floor; its place stays for the next to fill, empty in the pack's motion too:
+        // the body goes to the pool and lives again elsewhere, and a place still holding it would read as a living enemy -
+        // walking, blocking, and refusing its refill (PackMotion.Replace threw in the perf probe's horde, 2026-11-11).
         private void RetireHordeBody(SpawnedEnemy fallen)
         {
             if (ReferenceEquals(fallen.Health, null))
@@ -1598,9 +1600,40 @@ namespace Cryptforge.Combat
             fallen.Health.Died -= fallen.OnDied;
             if (fallen.Enrage != null)
                 fallen.Enrage.Enraged -= OnEnemyEnraged;
+            if (_hordeMotion != null && fallen.Slot < _hordeMotion.Count &&
+                ReferenceEquals(_hordeMotion.BodyAt(fallen.Slot), fallen.Health))
+                _hordeMotion.Vacate(fallen.Slot);
             if (fallen.Health != null)
                 RemoveBody(fallen.Health, fallen.Definition);
             fallen.Health = null;
+        }
+
+        // Whether every place of the horde agrees with its pack's motion - the same body, or none once it is retired - and
+        // no body stands in two places; for tests. Null when they agree, else what disagrees.
+        internal string HordePlacesFault()
+        {
+            if (_hordeMotion == null)
+                return null;
+            for (int i = 0; i < _hordeEnemies.Count; i++)
+            {
+                SpawnedEnemy enemy = _hordeEnemies[i];
+                if (enemy.Slot != i)
+                    return $"place {i} holds an enemy of place {enemy.Slot}";
+                if (!ReferenceEquals(_hordeMotion.BodyAt(i), enemy.Health))
+                    return $"place {i}'s motion holds another body than its enemy's";
+                if (enemy.Health == null)
+                    continue;
+                if (enemy.Defeated == enemy.Health.IsAlive)
+                    return $"place {i}'s enemy is {(enemy.Defeated ? "defeated" : "standing")} but its body {(enemy.Health.IsAlive ? "lives" : "has fallen")}";
+                if (!enemy.Defeated && !enemy.Health.isActiveAndEnabled)
+                    return $"place {i}'s standing enemy is off the floor";
+                for (int j = 0; j < i; j++)
+                {
+                    if (ReferenceEquals(_hordeEnemies[j].Health, enemy.Health))
+                        return $"places {j} and {i} hold the same body";
+                }
+            }
+            return null;
         }
 
         // The horde leaves the floor: every body goes, and the hero's targets are the wave's again.
