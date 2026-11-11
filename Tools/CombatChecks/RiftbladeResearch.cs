@@ -34,7 +34,8 @@ namespace Cryptforge.Tests
     //
     // docs/46's measured section read TheRiftbladeOverASeedBatch's TestResults/riftblade-1111/full (seeds 1-200, every hero
     // of Heroes and the careful-only levers), holdout (FOUNDRY_FIRST_SEED=201, RIFT_COHORTS=careful) and hold-ready ("nix
-    // hold;nix none"). OneRiftbladeSeedAsTheTelemetryWouldWriteIt traces one seed's careful run instead.
+    // hold;nix none"), all on main ba11a36f, and cebf8775 ("vanguard +bare;ilya +bare;nix;nix none" on main cebf8775).
+    // OneRiftbladeSeedAsTheTelemetryWouldWriteIt traces one seed's careful run instead.
     [Explicit("The Riftblade's research: run it by name.")]
     public sealed class RiftbladeResearch
     {

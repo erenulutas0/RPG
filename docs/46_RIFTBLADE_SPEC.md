@@ -413,7 +413,8 @@ simulation's assembly, so that they can move into Scripts as they stand.
 - R_skill is 1.09x / 1.03x, not 1.6-2.0x, and no variant reaches even section 2's 1.3-1.5x. The best, a hold at the
   Warden's feet whenever the dash is ready, gives 1.21x / 1.15x. On the Warden the dash adds only the Daggers' seconds
   at its feet: the careful pilot kites it at 2.0, where the Sword and the Staff reach it and the Daggers do not.
-- The dash's worth is survival with human hands: the careful Nix clears both floors 198 times with it and 189 without.
+- The dash's worth is defence with human hands: about a third fewer Warden slams land on Nix, and the standing and
+  first-card cohorts clear both floors 7-16 more times with it. The careful cohort's gain (+1 to +9) is within noise.
 - The passive on every weapon takes the Warden under 45 s. Sever adds damage but saves no one.
 
 ### What was built (the simulation's side, every path off for the Vanguard and Ilya)
@@ -654,10 +655,12 @@ Deaths by place, floor 1, of 200: halls / elite rooms / the gate's wait / the Wa
 
 **Question 2, the active.**
 - **Phase Dash as proposed adds little damage.** R_skill is 1.09x / 1.03x on floor 1 and 1.02x / 0.96x on floor 2. Its
-  worth is the escape, with human hands:
-  - the careful Nix clears both floors 198 times with it and 189 without (holdout 195 and 192);
-  - the first-card one 155 and 139, the standing one 166 and 159;
-  - fewer slams land a Warden fight, 0.67 against 0.89.
+  worth is the escape, with human hands (seeds 1-200 on ba11a36f ; the same seeds on cebf8775, below):
+  - a third fewer slams land a floor-1 Warden fight: 0.67 ; 0.68 against 0.89 ; 0.99 with no active (holdout 0.70
+    against 0.96);
+  - the first-card cohort clears both floors 155 ; 154 times with it and 139 ; 141 without, the standing one 166 ; 164
+    and 159 ; 156;
+  - the careful one 198 ; 193 and 189 ; 192 (holdout 195 and 192): within noise.
 - **The dash at 12 s or as an escape only** loses the little damage the dash adds (1.00x, 0.96x frame-perfect) and keeps
   the clears (197 / 196, 197 / 195). The 9 s and the hold earn their place.
 - **Sever adds damage of the dash's size:** 1.08x / 1.05x on floor 1, 1.10x / 1.10x on floor 2, 8-9 % of the Warden's
@@ -696,8 +699,8 @@ Deaths by place, floor 1, of 200: halls / elite rooms / the gate's wait / the Wa
   docs/40's 1.05-1.15x and 1.35-1.6x are not met either, so R_skill on the Warden cannot separate the heroes' actives in
   this harness.
 - **On Nix's Daggers alone R_skill is no ratio:** 4.5 a second against 0 (frame-perfect).
-- So let the gate's 45-65 s bind. Read the Riftblade's skill 4 where it shows: in the weaker cohorts' clears and in
-  survival with human hands.
+- So let the gate's 45-65 s bind. Read the Riftblade's skill 4 where it shows: in the weaker cohorts' clears, and in the
+  slams the dash turns with human hands.
 
 **Where the Riftblade sits in docs/40's skill order (Vanguard 1, Ilya 3, Riftblade 4).** On clears in weaker hands Nix
 sits above the Vanguard:
@@ -715,10 +718,10 @@ three.
 1. **Build the proposal as it stands** once the owner and the device row allow: 85 health, the Daggers, Quicksilver
    Stride on the Daggers alone, Phase Dash at 9 s with the late escape. It meets the gate's Warden band with either
    hands, the careful clears and the elite quest, and it is the hardest of the three heroes in weaker hands.
-2. **Rewrite section 4's R_skill row before the build.** Read R_skill as measured (about 1.1x on the Warden), or as
-   survival: the careful pilot with human hands clears both floors 198 times with the dash and 189 without. Hold skill 4
-   to the clumsy and first-card clears below the Vanguard's. docs/40's 1.6-2.0x needs the Daggers to carry the Warden,
-   and that takes the Warden from the Sword.
+2. **Rewrite section 4's R_skill row before the build.** Read R_skill as measured (about 1.1x on the Warden), beside the
+   dash's defence with human hands: a third fewer slams land, and the standing and first-card cohorts clear both floors
+   7-16 more times. Hold skill 4 to the clumsy and first-card clears below the Vanguard's. docs/40's 1.6-2.0x needs the
+   Daggers to carry the Warden, and that takes the Warden from the Sword.
 3. **Keep the passive on the Daggers.** On every weapon the Warden falls under 45 s.
 4. **Leave Sever out** of the first release: it adds damage of the dash's size, no survival, and a second button.
 5. **Keep 85 health.** 90 and 80 move nothing beyond noise (careful 199 / 199 and 196 / 196 with human hands, clumsy
@@ -752,3 +755,51 @@ Section 3's steps stand. Measuring them in the simulation made these points prec
   weapon, and the Warden's health share measured again for this hero.
 - **Step 5's parity pins** then hold `Riftblade()` and the rules to the assets. The simulation's research levers
   (`RiftbladeKit`'s variants) stay research.
+
+### Re-read on main cebf8775
+
+Main moved to cebf8775 while this was measured, and this branch merges it. Three changes came with it:
+- the walk from the forge to the next hall is the horde's again: the horde and the floor's clock run on it, and floor 1
+  is about 9 s shorter;
+- the step-in counts the Daggers' share on a Captain toward the best weapon on it;
+- the gate's and the elite room's wave flags go with the wave (`ReleaseWave`).
+
+**The default batch is byte-identical to cebf8775's.** `FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`, the same
+Editor files (TestResults/riftblade-1111/cebf-main-default and cebf-after-default). The three CSVs, foundry-gate.md and
+foundry-cohorts.md are the same to the byte; foundry-batch.md differs in its date and wall-clock seconds only.
+CombatChecks 764 (751 + 13) and UnityCompileCheck clean on the merge.
+
+**The shipped heroes and the proposal again** (seeds 1-200, both floors, every cohort, both hands;
+TestResults/riftblade-1111/cebf8775). Of 200: careful / standing / first-card / clumsy / auto-farmer.
+
+| Hero | Floor 1, frame-perfect | Floor 1, human hands | Both floors, frame-perfect | Both floors, human hands |
+|---|---|---|---|---|
+| Vanguard | 200 / 190 / 196 / 108 / 9 | 195 / 184 / 182 / 78 / 10 | 200 / 173 / 196 / 101 / 2 | 194 / 159 / 178 / 66 / 2 |
+| Ilya | 200 / 194 / 200 / 182 / 36 | 199 / 181 / 197 / 131 / 29 | 200 / 185 / 200 / 165 / 3 | 195 / 159 / 197 / 105 / 4 |
+| **Nix as proposed** | 200 / 191 / 192 / 81 / 9 | 196 / 183 / 159 / 44 / 13 | 200 / 182 / 192 / 66 / 4 | 193 / 164 / 154 / 28 / 1 |
+| (d) no active | 200 / 188 / 193 / 79 / 9 | 194 / 172 / 151 / 36 / 13 | 200 / 179 / 193 / 67 / 4 | 192 / 156 / 141 / 26 / 1 |
+
+| Hero | Warden P50 (P90), floor 1 ; 2, fp | The same, hh | Careful floor-1 clear P50, fp ; hh | R_skill floor 1 ; 2, fp | The same, hh |
+|---|---|---|---|---|---|
+| Vanguard | 55 (70) ; 57 (70) | 51 (62) ; 54 (66) | 282 ; 276 s | 1.03x ; 1.00x | 1.03x ; 1.04x |
+| Ilya | 49 (60) ; 51 (63) | 46 (57) ; 48 (61) | 275 ; 270 s | 0.99x ; 1.03x | 1.01x ; 1.01x |
+| **Nix as proposed** | 53 (65) ; 53 (67) | 51 (60) ; 51 (61) | 278 ; 274 s | 1.10x ; 1.02x | 1.03x ; 0.99x |
+| (d) no active | 57 (70) ; 57 (70) | 51 (63) ; 53 (66) | 283 ; 276 s | - | - |
+
+What holds, within noise:
+- the Warden in the gate's band, the proposal 53 / 51 s;
+- R_skill about 1.1x, the dash's own (1.10x / 1.03x on floor 1);
+- the order in weaker hands: the clumsy cohort clears floor 1 with Nix 81 / 44 times against the Vanguard's 108 / 78,
+  and the first-card cohort with human hands 159 against 182;
+- the elites: a careful Captain falls P50 1.4 / 1.8 s from walking in, and no Captain of Nix's fell within a frame;
+- the dash's defence: 0.68 slams land a floor-1 Warden fight against 0.99 without it.
+
+What moved:
+- every floor is 8-9 s shorter (Nix's careful floor 1 278 / 274 s against 287 / 282), as main's fix makes it;
+- the dash's gain for the careful cohort with human hands is 193 against 192 over both floors, the noise question 2
+  reads it as;
+- the auto-farmer's floor-1 clears are 9 / 13 against the Vanguard's 9 / 10. It dies at the Warden 89 / 85 % of the
+  times it reaches it, against 92 / 91 %: the "boss'ta zorlanmalı" row stays short by a few runs.
+
+The variants were not run again on cebf8775: the forge-walk fix moves every hero alike, and the proposal and its
+denominator moved within noise.
