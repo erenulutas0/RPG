@@ -96,8 +96,9 @@ included, play identical floors 1 and 2.
 - Entering health of the dead: 0-59 %, P50 12 %. The 59 % death is the first-card Ilya, seed 98.
 - Grunts dealt 32 of the 34 killing blows and Cinder Mites 2. 29 heroes fell fighting and 5 after turning for the
   exit.
-- This is more than docs/41's 19 with human hands. Since 42e4e7fb the pilot no longer drags the swarm to the pit's rim,
-  so it stands and fights in the open.
+- This is more than docs/41's 19 with human hands. The likely cause is main 42e4e7fb's pilot, which no longer lures the
+  swarm to the pit's rim. It is the one change on the finale's path since that measurement, which was not split out
+  here.
 - The pilot now opens the room's chest at (1.8, 1) in 88-93 % of finales (docs/41: under 1 %). None of the 34 dead
   opened it: they fell before they got there.
 
@@ -204,9 +205,17 @@ shape. Do not lengthen the finale's stay to buy time.
 
 ## The default batch is unchanged
 
-The levers are off by default, so the default batch (FOUNDRY_FLOORS=2, the command below) should not move. It is checked
-against main 2c620d21's, run before any change on this branch. The comparison is in progress:
-foundry-batch-floor2.csv is byte-identical (sha256 8e2d1923...).
+The levers are off by default, and the default batch (FOUNDRY_FLOORS=2, the command below) does not move.
+- **The two runs.** The batch ran first on main 2c620d21, before any change on this branch, and again on this branch
+  merged with main 42e4e7fb.
+- **Byte-identical**, by first 12 hex of their sha256:
+  - foundry-batch.csv (67850cacf122)
+  - foundry-batch-floor2.csv (8e2d1923b604)
+  - foundry-cohorts-floor2.csv (528a63ce5bf8)
+  - foundry-gate.md (588e02b95d7a)
+  - foundry-cohorts.md (abbadd898356)
+- **foundry-batch.md** differs only in its date line and its "Wall s" column.
+- **What it confirms.** Neither this branch's levers nor 42e4e7fb's swarm-room lure change floors 1 and 2.
 
 ## Reproduce
 
