@@ -86,7 +86,11 @@ namespace Cryptforge.Tests
                 Button card = view.CardButton(c);
                 Assert.That(card.gameObject.activeInHierarchy, Is.False, $"Card {c} is hidden until an offer.");
                 if (view.PaintsCards)
+                {
                     Assert.That(card.transform.Find("Painted Press"), Is.Not.Null, $"Card {c} is painted at load.");
+                    Assert.That(card.transform.Find("Painted Item Ground"), Is.Not.Null,
+                        $"Card {c}'s item ground is made at load, ready for any tier.");
+                }
             }
 
             // The view stops hearing the choices, so the test shows the offer itself: the first show the panel ever makes,
