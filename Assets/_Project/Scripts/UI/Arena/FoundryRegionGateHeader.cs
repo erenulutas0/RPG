@@ -212,7 +212,8 @@ namespace Cryptforge.UI
                 float stoneLow=low+(row==0?0:joint),stoneHigh=high-(row==rows-1?0:joint);
                 for(int slope=1;slope>=0;slope--)
                 {
-                    Color tone=roofTone*(slope==0?.97f:.90f)*(1+(row%3-1)*.012f);tone.a=1;
+                    // The two roof planes keep their face separation with a smaller step between them.
+                    Color tone=roofTone*(slope==0?.96f:.92f)*(1+(row%3-1)*.012f);tone.a=1;
                     GateShoulderRoofPatch(mesh,outline,slope==0?a:middle,slope==0?middle:c,
                         stoneLow,stoneHigh,a,c,top,tone);
                     if(row>0)
@@ -261,7 +262,9 @@ namespace Cryptforge.UI
             }
             var levels=new[]{0f,.28f,.65f,1f};
             var depths=new[]{0f,.09f,.09f,0f};
-            var gains=new[]{.88f,.73f,1.04f};
+            // The recessed middle fascia stays clearly below its dressed upper return, but no longer
+            // prints the darkest continuous stripe across the whole portal beside the calm baked bays.
+            var gains=new[]{.90f,.80f,1.0f};
             for(int face=0;face<3;face++)
             {
                 int first=face*4;

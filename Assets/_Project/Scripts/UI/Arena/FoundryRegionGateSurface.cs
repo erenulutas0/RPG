@@ -13,10 +13,16 @@ namespace Cryptforge.UI
         // crown that ramp printed as cloudy bands. Apply once, to static
         // completed stone, before depth registration.
         internal static readonly Vector4 GateHousePatch=new Vector4(.272f,.44f,.43f,.564f);
+        // That patch is already among the atlas's calmest slate interiors; its
+        // remaining cloud is a 15-25 texel mottle. At .075 it printed as ~14 px
+        // blotches across the broad crown planes at the gate camera. A finer
+        // physical grain (period 1.6 x 1.2 units, still far beyond one coping
+        // stone) lets that mottle settle into stone texture instead of clouds.
+        internal const float GateHouseDensity=.10f;
 
         private static void GateHouseGrain(Builder stone)
         {
-            StoneDetailGrain(stone,0,stone.V.Count,Project(GateU(32),-3),Vector2.right,GateHousePatch,.075f);
+            StoneDetailGrain(stone,0,stone.V.Count,Project(GateU(32),-3),Vector2.right,GateHousePatch,GateHouseDensity);
             // Native gate stone read violet beside the baked slate bays. One
             // constant albedo balance keeps every relative forge-light value.
             for(int i=0;i<stone.C.Count;i++)stone.C[i]=GateHouseAlbedo(stone.C[i]);

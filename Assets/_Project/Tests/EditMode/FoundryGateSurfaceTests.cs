@@ -59,12 +59,12 @@ namespace Cryptforge.Tests
                 float size=axis==0?patch.z-patch.x:patch.w-patch.y,lo=float.MaxValue,hi=float.MinValue;
                 for(int j=0;j<3;j++)
                 {
-                    float f=(points[triangles[i+j]][axis]-datum[axis])*.075f/size;
+                    float f=(points[triangles[i+j]][axis]-datum[axis])*Density()/size;
                     lo=Mathf.Min(lo,f);hi=Mathf.Max(hi,f);
                 }
                 Assert.That(Mathf.FloorToInt(lo+.00002f),Is.EqualTo(Mathf.FloorToInt(hi-.00002f)).Or.EqualTo(Mathf.FloorToInt(hi+.00002f)),
                     "A rendered triangle cannot bridge an uncut repeat fold.");
-                double physical=(probe[axis]-datum[axis])*.075/size;
+                double physical=(probe[axis]-datum[axis])*Density()/size;
                 double cycle=physical-Math.Floor(physical/2)*2;
                 double expected=(axis==0?patch.x:patch.y)+(1-Math.Abs(cycle-1))*size;
                 Assert.That(sampled[axis],Is.EqualTo(expected).Within(.00002),
@@ -74,6 +74,7 @@ namespace Cryptforge.Tests
             TestContext.WriteLine($"Gate grain part {part}: {original.Length}->{points.Count} vertices; {oldTriangles.Length/3}->{triangles.Count/3} triangles.");
         }
 
+        static float Density()=>(float)typeof(FoundryRegionView).GetField("GateHouseDensity",Static).GetValue(null);
         static Vector4 Patch()=>(Vector4)typeof(FoundryRegionView).GetField("GateHousePatch",Static).GetValue(null);
         static Color Albedo(Color c)=>(Color)Call("GateHouseAlbedo",c);
 
