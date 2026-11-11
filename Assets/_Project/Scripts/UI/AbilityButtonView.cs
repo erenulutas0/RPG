@@ -63,7 +63,7 @@ namespace Cryptforge.UI
             if (_countdownLabel != null && seconds != _shownSeconds)
             {
                 _shownSeconds = seconds;
-                _countdownLabel.text = seconds > 0 ? seconds.ToString() : string.Empty;
+                _countdownLabel.text = seconds > 0 ? HudText.Count(seconds) : string.Empty;
             }
         }
 

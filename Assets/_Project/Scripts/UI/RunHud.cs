@@ -347,9 +347,11 @@ namespace Cryptforge.UI
             _statusName = name;
         }
 
+        // The gold and experience lines change with every drop picked up, so they are made without string.Format's boxing
+        // (HudText), as the same text.
         private void RefreshGold()
         {
-            _goldLabel.text = string.Format(_text.GoldFormat, _setup.Run.Gold, _setup.Run.UnsecuredGold);
+            _goldLabel.text = HudText.Format(_text.GoldFormat, _setup.Run.Gold, _setup.Run.UnsecuredGold);
             if (_compactGold != null)
                 _compactGold.text = _setup.Run.Gold.ToString();
         }
@@ -365,7 +367,7 @@ namespace Cryptforge.UI
         private void RefreshExperience()
         {
             RunState run = _setup.Run;
-            _experienceLabel.text = string.Format(_text.ExperienceFormat, run.Level, run.Experience, run.ExperienceForNextLevel);
+            _experienceLabel.text = HudText.Format(_text.ExperienceFormat, run.Level, run.Experience, run.ExperienceForNextLevel);
             _experienceBar.fillAmount = Fraction(run.Experience - run.ExperienceForCurrentLevel,
                 run.ExperienceForNextLevel - run.ExperienceForCurrentLevel);
         }
