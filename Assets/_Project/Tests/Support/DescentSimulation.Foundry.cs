@@ -142,7 +142,7 @@ namespace Cryptforge.Tests
 
         // A foundry floor: its rooms (a forge is null), their kinds, the horde's roles in table order and the climb's floor
         // number, which ClimbScaling reads for the floor's tier.
-        internal sealed class FoundryFloor
+        internal sealed partial class FoundryFloor
         {
             public string Id;
             public Enemy[][][] Rooms;
@@ -160,8 +160,8 @@ namespace Cryptforge.Tests
             public int ExtraElites;
             public float GateNotBeforeSeconds;
             public float GateHealthShare;
-            // The floor its checkpoint descends to (FloorDefinition.NextFloor); null where the climb goes on into a floor
-            // this run does not play - floor 2's next is the finale's swarm room - or ends.
+            // The floor its checkpoint descends to (FloorDefinition.NextFloor): floor 2's is the finale's swarm room
+            // (FoundryFinale), whose own is null - the climb ends there.
             public FoundryFloor Next;
 
             // This floor with the rooms a run's levers give it.
@@ -204,12 +204,13 @@ namespace Cryptforge.Tests
             GateHealthShare = 6.071429f,
             ModifierHealthPercent = 0f,
             ModifierDamagePercent = QuicksilverVaults.ModifierDamagePercent,
-            ModifierGoldPercent = QuicksilverVaults.ModifierGoldPercent
+            ModifierGoldPercent = QuicksilverVaults.ModifierGoldPercent,
+            Next = FoundryFinale()
         };
 
         // The floor's knobs, as parameters of a run rather than edits of the game: each default is the shipped value, read
         // from the game's own constant where there is one, so a run with no levers is the scene's floor.
-        internal sealed class FoundryLevers
+        internal sealed partial class FoundryLevers
         {
             public string Name = "shipped";
             // Who plays the floor (AutopilotCohort, as development/autopilot.txt names one in the scene): the careful pilot,
@@ -285,7 +286,8 @@ namespace Cryptforge.Tests
             // How many floors of the climb a run plays: 1, floor 1 alone, as every report did before 2026-11-04; 2 goes on
             // after a floor-1 clear, as the autopilot answers the checkpoint with Descend, into floor 2 (FoundryFloor.Next),
             // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's -
-            // the gate boss's share among them - under the Warden's other levers and the horde's (LaterFloorLevers).
+            // the gate boss's share among them - under the Warden's other levers and the horde's (LaterFloorLevers). 3 goes
+            // on after a floor-2 clear into the finale's swarm (FoundryFinale, DescentSimulation.FoundryFinale.cs).
             public int Floors = 1;
             // Research only (docs/41's open question of floor 2's Warden; FoundryBatch.FloorTwoWardenLevers,
             // FOUNDRY_LEVERS=8): the gate boss on the floors after the first, instead of the floor's own share
@@ -639,7 +641,7 @@ namespace Cryptforge.Tests
 
         // What one foundry floor did, in the Editor measurement's terms (HordePacingMeasurement and the telemetry's
         // room_start, hall_reached, wave_clear and boss lines) and the report's (docs/41 step 5).
-        internal sealed class FoundryResult
+        internal sealed partial class FoundryResult
         {
             public int Seed;
             public string Hero;
@@ -1162,7 +1164,7 @@ namespace Cryptforge.Tests
             }
         }
 
-        private sealed class FoundryRun : INeighbourhood
+        private sealed partial class FoundryRun : INeighbourhood
         {
             private const float Step = 1f / 60f;
             private static readonly ArenaGeometry Map = ArenaGeometry.Foundry;
@@ -1507,7 +1509,7 @@ namespace Cryptforge.Tests
                 _wavesPerRoom = new int[_floor.Rooms.Length];
                 for (int i = 0; i < _wavesPerRoom.Length; i++)
                     _wavesPerRoom[i] = _floor.Rooms[i] == null ? 0 : _floor.Rooms[i].Length + SurgesIn(i);
-                _progress = new FloorProgress(_wavesPerRoom);
+                _progress = new FloorProgress(_wavesPerRoom, EndlessRooms());
                 _waveOrdinal = 0;
             }
 
@@ -1938,6 +1940,8 @@ namespace Cryptforge.Tests
             private void Encounter()
             {
                 MovePack();
+                if (SwarmFrame())
+                    return;
                 TickHorde();
                 _result.DropsCollected += _drops.CollectNear(HeroX, HeroY);
 
@@ -2140,6 +2144,8 @@ namespace Cryptforge.Tests
                     case FloorStepKind.Wave:
                         if (step.WaveIndex == 0)
                             BeginRoom(step.RoomIndex);
+                        if (BeginsSwarm(step))
+                            break;
                         if (step.WaveIndex == 0 && TryRoomSite(step.RoomIndex, out _siteX, out _siteY))
                         {
                             ReleaseWave();
@@ -2967,6 +2973,8 @@ namespace Cryptforge.Tests
                     _horde?.Fell();
                     _rewards.TryDropKill(foe, foe.Experience, 0, foe.X, foe.Y, _drops);
                 }
+                else if (_swarm != null)
+                    SwarmFoeDied(foe);
                 else
                 {
                     _waveAlive--;
@@ -3116,7 +3124,9 @@ namespace Cryptforge.Tests
                 _result.Killer = _lastHarm;
                 if (_trace != null)
                     Emit($"run_end defeat room={_roomIndex + 1} killer={_lastHarm} level={_run.Level}");
-                if (_roomSiteOpen)
+                if (_swarm != null)
+                    RecordSwarmDeath();
+                else if (_roomSiteOpen)
                     _result.DeathPhase = "walk";
                 else if (_gateExitOpen)
                     _result.DeathPhase = "exit";
@@ -3396,10 +3406,11 @@ namespace Cryptforge.Tests
                 _run.GrantBonusUpgrade();
             }
 
-            // PitEruptionService: the clock runs while anything stands, and the spill burns whatever is on the rim.
+            // PitEruptionService: the clock runs while anything stands outside a swarm room, and the spill burns whatever is
+            // on the rim.
             private void StepPit()
             {
-                _pitRunning = !_run.HasEnded && _waveAlive + _hordeAlive > 0;
+                _pitRunning = !_run.HasEnded && _waveAlive + _hordeAlive > 0 && _swarm == null;
                 if (!_pitRunning || _choices.IsOpen || _revealHold || !_pit.Step(Step))
                     return;
                 _result.Eruptions++;
@@ -3749,7 +3760,7 @@ namespace Cryptforge.Tests
                     NoticeFoes(cohort, x, y);
                 bool guarded = cohort.Guards(glowing);
                 _bandGuard = guarded;
-                if (_gateExitOpen)
+                if (_gateExitOpen || LeavesSwarm)
                 {
                     gx = _exitX;
                     gy = _exitY;
