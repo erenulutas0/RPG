@@ -326,6 +326,9 @@ namespace Cryptforge.Tests
             // seconds later, with the slam's radius and WardenEchoShare of the hero's maximum health; 0 is off.
             public float WardenEchoTelegraph;
             public float WardenEchoShare = WardenRule.HeroShare;
+            // Research 2026-11-11 (the echo's second round): the echo only after the blows the Warden lands enraged
+            // (WardenRule.IsEnraged, as the slam clock reads it); off, every blow has its echo.
+            public bool WardenEchoEnragedOnly;
             // Slag lobbed from the foundry's furnaces at the hero in the halls and the elite rooms (not at the Warden):
             // every SlagEvery seconds while a wave or the horde stands outside the Warden's fight, a mark of SlagRadius
             // where the hero stands, SlagShare of its maximum health a SlagTelegraph later - range does not help,
@@ -2865,7 +2868,8 @@ namespace Cryptforge.Tests
                         }
                         if (_trace != null)
                             Emit($"slam_blow hit={hit} enraged={_slamEnraged} hp={N(_heroHealth.Current)}");
-                        if (_levers.WardenEchoTelegraph > 0f && _heroHealth.IsAlive)
+                        if (_levers.WardenEchoTelegraph > 0f && _heroHealth.IsAlive &&
+                            (_slamEnraged || !_levers.WardenEchoEnragedOnly))
                             Mark(HeroX, HeroY, WardenRule.SlamRadius, _levers.WardenEchoTelegraph, _levers.WardenEchoShare,
                                 "Warden echo", boss.X, boss.Y);
                         break;
