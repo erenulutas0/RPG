@@ -34,7 +34,9 @@ namespace Cryptforge.Tests
     // main-thread time, GC bytes and allocations, its draw calls, batches, SetPass calls, triangles and vertices,
     // UnityStats' (Editor), the main player-loop and script markers the Editor offers, and the crowd and its events; a
     // census of what the camera sees (PerfCensus) every two seconds and a timing of the foundry's depth pass at the middle
-    // of each window. Frames the probe works in, and paused ones, are left out of the summary.
+    // of each window. Frames the probe works in, and paused ones, are left out of the summary. Its GC lines give the quiet
+    // frames apart - none of the fight's events: the steady fight, whose garbage a frame should be flat whatever the crowd
+    // (docs/41 step 1) - and the frames with each event.
     //
     // Run it by name. Draw calls, batches and SetPass calls need a graphics device: Tools/Run-PerfProbe.ps1 runs it in a
     // graphics-enabled batch Editor, which renders the camera into a 1080x2340 target each frame (the batch Editor has no
@@ -450,6 +452,22 @@ namespace Cryptforge.Tests
                     .Append("% of frames allocate; ").Append(F(gc.Sum / 1048576f, 2)).Append(" MB in the window; allocations a frame: ")
                     .Append(allocs.Count > 0 ? F(allocs.Mean, 1) + " mean, " + F(allocs.Max, 0) + " max" : "na")
                     .Append("; GC.Collect runs ").Append(r.CollectionsAtEnd - r.CollectionsAtBegin).AppendLine();
+                // The steady fight, whose garbage a frame should be flat whatever the crowd (docs/41 step 1): the frames
+                // with none of the events, by crowd too; then the frames with each, as the wall times are given below.
+                Spread quiet = Of(r, r.GcBytes, f => Quiet(r, f)), quietAllocs = Of(r, r.GcCount, f => Quiet(r, f));
+                t.Append("   GC on quiet frames (none of the events below): ").Append(quiet.Count).Append(" frames, median ")
+                    .Append(F(quiet.Median, 0)).Append(" B and ").Append(F(quietAllocs.Median, 0)).Append(" allocations, mean ")
+                    .Append(F(quiet.Mean, 0)).Append(" B, p95 ").Append(F(quiet.P95, 0)).Append(" B, max ").Append(F(quiet.Max, 0))
+                    .Append(" B; by crowd (median B / allocations, frames): up to 20 alive ")
+                    .Append(GcWith(r, f => Quiet(r, f) && r.Alive[f] <= 20f)).Append(", 30 and up ")
+                    .Append(GcWith(r, f => Quiet(r, f) && r.Alive[f] >= 30f)).AppendLine();
+                t.Append("   GC a frame with (median B / allocations, frames): none of these ").Append(GcWith(r, f => Quiet(r, f)))
+                    .Append(" | horde spawn ").Append(GcWith(r, f => r.Spawns[f] > 0f)).Append(" | wave ")
+                    .Append(GcWith(r, f => r.Waves[f] > 0f)).Append(" | death ").Append(GcWith(r, f => r.Deaths[f] > 0f))
+                    .Append(" | level-up or pick ").Append(GcWith(r, f => r.LevelUps[f] + r.Picks[f] > 0f))
+                    .Append(" | ability ").Append(GcWith(r, f => r.AbilityUses[f] > 0f)).Append(" | slam ")
+                    .Append(GcWith(r, f => r.Slams[f] > 0f)).Append(" | hero strike ").Append(GcWith(r, f => r.Strikes[f] > 0f))
+                    .Append(" | HUD progress ").Append(GcWith(r, f => r.Progress[f] > 0f)).AppendLine();
             }
             else
                 t.AppendLine("   GC per frame: na (no GC Allocated In Frame counter)");
@@ -469,9 +487,7 @@ namespace Cryptforge.Tests
             else
                 t.AppendLine("   render (UnityStats): na - nothing rendered, or the stats only follow the Game view");
 #endif
-            t.Append("   frames with (median wall ms, count): none of these ").Append(With(r, f =>
-                    r.Spawns[f] + r.Waves[f] + r.Deaths[f] + r.LevelUps[f] + r.Picks[f] + r.Vents[f] + r.AbilityUses[f] +
-                    r.Slams[f] == 0f))
+            t.Append("   frames with (median wall ms, count): none of these ").Append(With(r, f => Quiet(r, f)))
                 .Append(" | horde spawn ").Append(With(r, f => r.Spawns[f] > 0f)).Append(" | wave ").Append(With(r, f => r.Waves[f] > 0f))
                 .Append(" | death ").Append(With(r, f => r.Deaths[f] > 0f)).Append(" | 5+ deaths ").Append(With(r, f => r.Deaths[f] >= 5f))
                 .Append(" | level-up or pick ").Append(With(r, f => r.LevelUps[f] + r.Picks[f] > 0f))
@@ -593,13 +609,36 @@ namespace Cryptforge.Tests
         }
 
         // Over the frames the summary keeps; a value below zero is one the recorder did not have.
-        private static Spread Of(PerfProbeRecorder r, float[] values)
+        private static Spread Of(PerfProbeRecorder r, float[] values) => Of(r, values, f => true);
+
+        // The same, over the kept frames the condition holds for.
+        private static Spread Of(PerfProbeRecorder r, float[] values, System.Func<int, bool> where)
         {
             var kept = new List<float>(r.Count);
             for (int f = 0; f < r.Count; f++)
-                if (r.IsIncluded(f) && values[f] >= 0f)
+                if (r.IsIncluded(f) && values[f] >= 0f && where(f))
                     kept.Add(values[f]);
             return SpreadOf(kept);
+        }
+
+        // A frame of the steady fight: no horde spawn, wave, death, level-up, pick, eruption, ability or slam in it.
+        private static bool Quiet(PerfProbeRecorder r, int f) =>
+            r.Spawns[f] + r.Waves[f] + r.Deaths[f] + r.LevelUps[f] + r.Picks[f] + r.Vents[f] + r.AbilityUses[f] + r.Slams[f] == 0f;
+
+        // The median GC bytes and allocations of the kept frames the condition holds for, and how many those are.
+        private static string GcWith(PerfProbeRecorder r, System.Func<int, bool> where)
+        {
+            var bytes = new List<float>();
+            var allocations = new List<float>();
+            for (int f = 0; f < r.Count; f++)
+            {
+                if (!r.IsIncluded(f) || r.GcBytes[f] < 0f || !where(f))
+                    continue;
+                bytes.Add(r.GcBytes[f]);
+                allocations.Add(r.GcCount[f]);
+            }
+            return bytes.Count == 0 ? "-"
+                : F(SpreadOf(bytes).Median, 0) + " / " + F(SpreadOf(allocations).Median, 0) + " (" + bytes.Count + ")";
         }
 
         private static Spread SpreadOf(List<float> values)

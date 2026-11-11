@@ -24,6 +24,10 @@ namespace Cryptforge.UI
         private bool _eventsEnabled;
         private GUIStyle _hintStyle;
         public bool IsPresenting { get; private set; }
+        // Unity calls OnGUI every frame for as long as this view lives - the whole run, long after the arrival - and runs
+        // GUILayout's layout pass before it, which allocates every frame. The hint is a plain GUI.Label, so the pass is
+        // skipped; the hint draws as it did.
+        private void Awake() => useGUILayout = false;
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
         {
             _setup = setup; _movement = movement;

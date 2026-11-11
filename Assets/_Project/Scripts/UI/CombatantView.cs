@@ -136,8 +136,9 @@ namespace Cryptforge.UI
             GameObject flash = existing != null ? existing.gameObject : new GameObject(FlashName);
             if (existing == null)
                 flash.transform.SetParent(_body.transform, false);
-            SpriteRenderer renderer = flash.GetComponent<SpriteRenderer>();
-            if (renderer == null)
+            // TryGetComponent: a new overlay has none yet, and a failed GetComponent allocates in the Editor - once for every
+            // enemy, on its first hit.
+            if (!flash.TryGetComponent(out SpriteRenderer renderer))
                 renderer = flash.AddComponent<SpriteRenderer>();
             renderer.sortingLayerID = _body.sortingLayerID;
             // The imported hero's front knuckle overlay sits above its sword; flash must cover that hand too.
