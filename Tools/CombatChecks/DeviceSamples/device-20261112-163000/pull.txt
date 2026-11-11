@@ -1,0 +1,20 @@
+# Tools/Device/Pull-DeviceEvidence.ps1: what it pulled and read off the phone; Tools/CombatChecks/DevicePull.cs reads it.
+pulled_utc: 2026-11-12T16:30:00Z
+serial: SAMPLE0001
+model: SM-S911B
+android: 14
+package: com.cryptforge.prototype
+version_name: 0.1.0
+version_code: 1
+apk_sha256: 41d2a7c9e0b3f5a8d1c4e7b0a3f6c9d2e5b8a1c4f7d0e3b6a9c2f5e8b1d4a7c0
+installed_device: 2026-11-01 13:00:00
+device_utc_offset: +0300
+installed_utc: 2026-11-01T10:00:00Z
+device_clock_utc: 2026-11-12T16:30:00Z
+game_running: no
+development_flags: none
+telemetry_files: events.jsonl 1913
+logcat: logcat-unity.txt (adb logcat -d -v time -s Unity:V), 3 lines
+logcat_times: the phone's local time at logcat_offset
+logcat_offset: +0300
+logcat_buffer: main: ring buffer is 256 KiB (227 KiB consumed, 225 KiB readable), max entry is 5120 B, max payload is 4068 B

@@ -114,6 +114,10 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryGateTests.cs" />
     <!-- The batch report on demand: an explicit test, skipped by a plain dotnet test (docs/41 step 5). -->
     <Compile Include="FoundryBatchReport.cs" />
+    <!-- The phone's pulls for the gate's owner floor time and device frames rows (Tools/Device/Pull-DeviceEvidence.ps1),
+         read from sample pulls in DeviceSamples/. -->
+    <Compile Include="DevicePull.cs" />
+    <Compile Include="DevicePullTests.cs" />
     <!-- The Daggers' card names their share on the elites, read from the asset's text (docs/41, 2026-11-11). -->
     <Compile Include="WeaponTextChecks.cs" />
     <!-- The difficulty research of 2026-11-04 on demand: realism, why Ilya is safe, the structural candidates. -->
