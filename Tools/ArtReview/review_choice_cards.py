@@ -2,6 +2,7 @@
 
     python -B Tools/ArtReview/review_choice_cards.py --out DIR --levelup CAPTURE.png --evolution CAPTURE.png
                                                      --checkpoint CAPTURE.png [--forge CAPTURE.png]
+    python -B Tools/ArtReview/review_choice_cards.py --out DIR --rarity    # the four tiers' cards only, no capture
 
 Reads the painted sprites back from Art/UI/ChoiceCards (the sheet, its meta's rects and 9-slice borders, and the set's
 margins) and lays the choice panel out as RunChoiceView and ChoiceCardPainter do on a 1080x2340 phone (one canvas unit a
@@ -210,8 +211,27 @@ def label(canvas, words, rect, size_max, size_min, colour, bold=False, align="le
     blit(canvas, rgba, x, y)
 
 
+def set_icons():
+    """Every card icon of the painted upgrade icons (build_upgrade_icons.py) by id, straight from their sheet."""
+    sheet = Image.open(UI / "UpgradeIcons/UI_UpgradeIcons.png").convert("RGBA")
+    meta = (UI / "UpgradeIcons/UI_UpgradeIcons.png.meta").read_text(encoding="utf-8")
+    found = {}
+    pattern = (r"      name: UI_UpgradeIcons_(\S+)\n      rect:\n        serializedVersion: 2\n        x: (\d+)\n"
+               r"        y: (\d+)\n        width: (\d+)\n        height: (\d+)\n")
+    for m in re.finditer(pattern, meta):
+        x, y, w, h = map(int, m.group(2, 3, 4, 5))
+        top = sheet.height - y - h
+        found[m.group(1)] = sheet.crop((x, top, x + w, top + h))
+    return found
+
+
+SET_ICONS = set_icons()
+
+
 def icon_image(name, size):
-    img = Image.open(UI / f"{name}.png").convert("RGBA").resize((int(round(size)), int(round(size))), Image.LANCZOS)
+    """A painted icon by file name (Art/UI/<name>.png), or one of the set's card icons as 'set:<id>'."""
+    source = SET_ICONS[name[4:]] if name.startswith("set:") else Image.open(UI / f"{name}.png").convert("RGBA")
+    img = source.resize((int(round(size)), int(round(size))), Image.LANCZOS)
     rgba = np.asarray(img, np.float32) / 255.0
     rgba[..., :3] *= rgba[..., 3:]
     return rgba
@@ -307,6 +327,9 @@ def after_card(canvas, c, parts, state="rest"):
     draw(canvas, s[c.look + "NamePlate"], grow(name, NAME_MARGIN))
     draw(canvas, s["Description"], grow(desc, DESC_MARGIN))
     draw(canvas, s[c.look + "Well"], grow(icon, (WELL_MARGIN,) * 4))
+    # The tier's item ground, where the set has one: on the well's floor, exactly the icon's square, under the icon.
+    if c.look + "Ground" in s:
+        draw(canvas, s[c.look + "Ground"], icon, kind="simple")
     if c.icon:
         blit(canvas, icon_image(c.icon, icon[2]), icon[0], icon[1])
     else:
@@ -464,7 +487,43 @@ def sprites_sheet():
     sheet.save(OUT / "sprites-and-borders.png")
 
 
+# Every tier's card with the set's own icon for its id, as a foundry offer draws them.
+RARITY_CARDS = {
+    "Common": Card("Vitality", "+20 maximum health", "Green", 0, "NEW TOME", KIND_NEW, "set:tome_vitality"),
+    "Rare": Card("Staff", "+12.5% area", "Orange", 1, "Lv 2 -> 3", KIND_LEVEL, "set:line_staff_area"),
+    "Epic": Card("Daggers", "+15% attack speed", "Red", 2, "Lv 3 -> 4", KIND_LEVEL, "set:line_daggers_attack_speed"),
+    "Gold": Card("Force", "+20% damage to every weapon", "Gold", 3, "NEW TOME", KIND_NEW, "set:tome_force"),
+}
+RARITY_OFFERS = {"1": ("Common", "Rare", "Epic"), "2": ("Gold", "Epic", "Rare")}
+FIELD = (21, 19, 26)  # a dark run under the dim, so the panel alone is judged
+
+
+def rarities():
+    """The four tiers' cards: two three-card level-ups on the phone (all four tiers between them) and every tier's card
+    alone at the stacked offer's height, at phone size and doubled. With --rarity, only these are written."""
+    field = np.zeros((H, W, 3), np.uint8) + np.array(FIELD, np.uint8)
+    for name, tiers in RARITY_OFFERS.items():
+        cards = [RARITY_CARDS[t] for t in tiers]
+        to_image(panel(field, "upgrade", cards, painted=True)).save(OUT / f"phone-rarity-{name}.png")
+    cell_w, cell_h = 960, 240
+    sheet = Image.new("RGB", (cell_w + 40, cell_h * 4 + 40), (24, 22, 28))
+    navy = np.zeros((cell_h, cell_w, 3), np.float32) + np.array([12, 18, 36], np.float32)
+    for row, tier in enumerate(("Common", "Rare", "Epic", "Gold")):
+        canvas = to_canvas(navy)
+        parts = layout(3)[0]
+        parts = dict(parts, card=(32.0, (cell_h - parts["card"][3]) / 2, 896.0, parts["card"][3]))
+        after_card(canvas, RARITY_CARDS[tier], parts)
+        sheet.paste(to_image(canvas), (20, 20 + row * cell_h))
+        caption(sheet, tier, (cell_w - 90, 24 + row * cell_h), 24)
+    sheet.save(OUT / "rarity-closeup.png")
+    sheet.resize((sheet.width * 2, sheet.height * 2), Image.LANCZOS).save(OUT / "rarity-closeup-x2.png")
+
+
 def main():
+    if "--rarity" in ARGS:
+        rarities()
+        print("wrote", OUT)
+        return
     capture = None
     for name, path in CAPTURES.items():
         if path:

@@ -36,6 +36,9 @@ TextureImporter:
       213: 6000633754969301941
     second: UI_ChoiceCards_GreenSigil
   - first:
+      213: 2687619438841410141
+    second: UI_ChoiceCards_GreenGround
+  - first:
       213: -3872526445276267752
     second: UI_ChoiceCards_OrangeFrame
   - first:
@@ -48,6 +51,9 @@ TextureImporter:
       213: 1534043838168245002
     second: UI_ChoiceCards_OrangeSigil
   - first:
+      213: -7906668176594193150
+    second: UI_ChoiceCards_OrangeGround
+  - first:
       213: -8626933205699606910
     second: UI_ChoiceCards_RedFrame
   - first:
@@ -59,6 +65,9 @@ TextureImporter:
   - first:
       213: 1892158750185250929
     second: UI_ChoiceCards_RedSigil
+  - first:
+      213: 2686599549980858498
+    second: UI_ChoiceCards_RedGround
   - first:
       213: -268014077894330582
     second: UI_ChoiceCards_GoldFrame
@@ -77,6 +86,9 @@ TextureImporter:
   - first:
       213: -3005775255962564131
     second: UI_ChoiceCards_GoldSigil
+  - first:
+      213: 4489535012393658421
+    second: UI_ChoiceCards_GoldGround
   - first:
       213: 1174790654020541577
     second: UI_ChoiceCards_EvolutionFrame
@@ -243,7 +255,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 2
-        y: 506
+        y: 478
         width: 90
         height: 196
       alignment: 9
@@ -264,8 +276,8 @@ TextureImporter:
       name: UI_ChoiceCards_Surface
       rect:
         serializedVersion: 2
-        x: 472
-        y: 406
+        x: 236
+        y: 260
         width: 96
         height: 96
       alignment: 9
@@ -286,8 +298,8 @@ TextureImporter:
       name: UI_ChoiceCards_TitlePlate
       rect:
         serializedVersion: 2
-        x: 0
-        y: 292
+        x: 334
+        y: 264
         width: 176
         height: 92
       alignment: 9
@@ -308,8 +320,8 @@ TextureImporter:
       name: UI_ChoiceCards_TitleCrest
       rect:
         serializedVersion: 2
-        x: 330
-        y: 54
+        x: 0
+        y: 2
         width: 96
         height: 30
       alignment: 9
@@ -330,8 +342,8 @@ TextureImporter:
       name: UI_ChoiceCards_Description
       rect:
         serializedVersion: 2
-        x: 232
-        y: 44
+        x: 708
+        y: 50
         width: 96
         height: 40
       alignment: 9
@@ -352,8 +364,8 @@ TextureImporter:
       name: UI_ChoiceCards_WellLip
       rect:
         serializedVersion: 2
-        x: 502
-        y: 2
+        x: 682
+        y: 8
         width: 24
         height: 24
       alignment: 9
@@ -374,8 +386,8 @@ TextureImporter:
       name: UI_ChoiceCards_Press
       rect:
         serializedVersion: 2
-        x: 398
-        y: 296
+        x: 0
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -396,8 +408,8 @@ TextureImporter:
       name: UI_ChoiceCards_GreenFrame
       rect:
         serializedVersion: 2
-        x: 488
-        y: 296
+        x: 90
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -419,7 +431,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 144
+        y: 92
         width: 120
         height: 56
       alignment: 9
@@ -440,8 +452,8 @@ TextureImporter:
       name: UI_ChoiceCards_GreenWell
       rect:
         serializedVersion: 2
-        x: 366
-        y: 86
+        x: 244
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -462,8 +474,8 @@ TextureImporter:
       name: UI_ChoiceCards_GreenSigil
       rect:
         serializedVersion: 2
-        x: 96
-        y: 588
+        x: 0
+        y: 358
         width: 116
         height: 116
       alignment: 9
@@ -481,11 +493,33 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: UI_ChoiceCards_GreenGround
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 504
+        width: 172
+        height: 172
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63e8b095d9ad4062841d7cff4c1bdee2
+      internalID: 2687619438841410141
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: UI_ChoiceCards_OrangeFrame
       rect:
         serializedVersion: 2
-        x: 0
-        y: 202
+        x: 180
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -507,7 +541,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 122
-        y: 144
+        y: 92
         width: 120
         height: 56
       alignment: 9
@@ -528,8 +562,8 @@ TextureImporter:
       name: UI_ChoiceCards_OrangeWell
       rect:
         serializedVersion: 2
-        x: 424
-        y: 86
+        x: 302
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -550,8 +584,8 @@ TextureImporter:
       name: UI_ChoiceCards_OrangeSigil
       rect:
         serializedVersion: 2
-        x: 214
-        y: 588
+        x: 118
+        y: 358
         width: 116
         height: 116
       alignment: 9
@@ -569,11 +603,33 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: UI_ChoiceCards_OrangeGround
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 504
+        width: 172
+        height: 172
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 715f520389274684861801f1290d3601
+      internalID: -7906668176594193150
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: UI_ChoiceCards_RedFrame
       rect:
         serializedVersion: 2
-        x: 90
-        y: 202
+        x: 270
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -595,7 +651,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 244
-        y: 144
+        y: 92
         width: 120
         height: 56
       alignment: 9
@@ -616,8 +672,8 @@ TextureImporter:
       name: UI_ChoiceCards_RedWell
       rect:
         serializedVersion: 2
-        x: 482
-        y: 86
+        x: 360
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -638,8 +694,8 @@ TextureImporter:
       name: UI_ChoiceCards_RedSigil
       rect:
         serializedVersion: 2
-        x: 332
-        y: 588
+        x: 236
+        y: 358
         width: 116
         height: 116
       alignment: 9
@@ -657,11 +713,33 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: UI_ChoiceCards_RedGround
+      rect:
+        serializedVersion: 2
+        x: 444
+        y: 504
+        width: 172
+        height: 172
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 662d9196372b473ab85532d0830710c3
+      internalID: 2686599549980858498
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: UI_ChoiceCards_GoldFrame
       rect:
         serializedVersion: 2
-        x: 180
-        y: 202
+        x: 360
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -682,8 +760,8 @@ TextureImporter:
       name: UI_ChoiceCards_GoldAura
       rect:
         serializedVersion: 2
-        x: 300
-        y: 292
+        x: 634
+        y: 264
         width: 96
         height: 92
       alignment: 9
@@ -704,8 +782,8 @@ TextureImporter:
       name: UI_ChoiceCards_GoldCrest
       rect:
         serializedVersion: 2
-        x: 428
-        y: 54
+        x: 98
+        y: 2
         width: 80
         height: 30
       alignment: 9
@@ -727,7 +805,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 366
-        y: 144
+        y: 92
         width: 120
         height: 56
       alignment: 9
@@ -748,8 +826,8 @@ TextureImporter:
       name: UI_ChoiceCards_GoldWell
       rect:
         serializedVersion: 2
-        x: 540
-        y: 86
+        x: 418
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -770,8 +848,8 @@ TextureImporter:
       name: UI_ChoiceCards_GoldSigil
       rect:
         serializedVersion: 2
-        x: 450
-        y: 588
+        x: 354
+        y: 358
         width: 116
         height: 116
       alignment: 9
@@ -789,11 +867,33 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: UI_ChoiceCards_GoldGround
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 504
+        width: 172
+        height: 172
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0318ebf19a684280b1bcb1be9dc61530
+      internalID: 4489535012393658421
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: UI_ChoiceCards_EvolutionFrame
       rect:
         serializedVersion: 2
-        x: 270
-        y: 202
+        x: 450
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -814,8 +914,8 @@ TextureImporter:
       name: UI_ChoiceCards_EvolutionAura
       rect:
         serializedVersion: 2
-        x: 178
-        y: 292
+        x: 512
+        y: 264
         width: 120
         height: 92
       alignment: 9
@@ -836,8 +936,8 @@ TextureImporter:
       name: UI_ChoiceCards_EvolutionCrest
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
+        x: 180
+        y: 6
         width: 500
         height: 26
       alignment: 9
@@ -859,7 +959,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 488
-        y: 144
+        y: 92
         width: 120
         height: 56
       alignment: 9
@@ -880,8 +980,8 @@ TextureImporter:
       name: UI_ChoiceCards_EvolutionWell
       rect:
         serializedVersion: 2
-        x: 0
-        y: 28
+        x: 476
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -902,8 +1002,8 @@ TextureImporter:
       name: UI_ChoiceCards_EvolutionSigil
       rect:
         serializedVersion: 2
-        x: 0
-        y: 386
+        x: 472
+        y: 358
         width: 116
         height: 116
       alignment: 9
@@ -924,8 +1024,8 @@ TextureImporter:
       name: UI_ChoiceCards_NeutralFrame
       rect:
         serializedVersion: 2
-        x: 360
-        y: 202
+        x: 540
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -946,8 +1046,8 @@ TextureImporter:
       name: UI_ChoiceCards_NeutralNamePlate
       rect:
         serializedVersion: 2
-        x: 0
-        y: 86
+        x: 610
+        y: 92
         width: 120
         height: 56
       alignment: 9
@@ -968,8 +1068,8 @@ TextureImporter:
       name: UI_ChoiceCards_NeutralWell
       rect:
         serializedVersion: 2
-        x: 58
-        y: 28
+        x: 534
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -990,8 +1090,8 @@ TextureImporter:
       name: UI_ChoiceCards_NeutralSigil
       rect:
         serializedVersion: 2
-        x: 118
-        y: 386
+        x: 590
+        y: 358
         width: 116
         height: 116
       alignment: 9
@@ -1012,8 +1112,8 @@ TextureImporter:
       name: UI_ChoiceCards_ExtractFrame
       rect:
         serializedVersion: 2
-        x: 450
-        y: 202
+        x: 630
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -1034,8 +1134,8 @@ TextureImporter:
       name: UI_ChoiceCards_ExtractNamePlate
       rect:
         serializedVersion: 2
-        x: 122
-        y: 86
+        x: 0
+        y: 34
         width: 120
         height: 56
       alignment: 9
@@ -1056,8 +1156,8 @@ TextureImporter:
       name: UI_ChoiceCards_ExtractWell
       rect:
         serializedVersion: 2
-        x: 116
-        y: 28
+        x: 592
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -1078,8 +1178,8 @@ TextureImporter:
       name: UI_ChoiceCards_ExtractSigil
       rect:
         serializedVersion: 2
-        x: 236
-        y: 386
+        x: 0
+        y: 240
         width: 116
         height: 116
       alignment: 9
@@ -1100,8 +1200,8 @@ TextureImporter:
       name: UI_ChoiceCards_ClimbFrame
       rect:
         serializedVersion: 2
-        x: 540
-        y: 202
+        x: 720
+        y: 150
         width: 88
         height: 88
       alignment: 9
@@ -1122,8 +1222,8 @@ TextureImporter:
       name: UI_ChoiceCards_ClimbNamePlate
       rect:
         serializedVersion: 2
-        x: 244
-        y: 86
+        x: 122
+        y: 34
         width: 120
         height: 56
       alignment: 9
@@ -1144,8 +1244,8 @@ TextureImporter:
       name: UI_ChoiceCards_ClimbWell
       rect:
         serializedVersion: 2
-        x: 174
-        y: 28
+        x: 650
+        y: 34
         width: 56
         height: 56
       alignment: 9
@@ -1166,8 +1266,8 @@ TextureImporter:
       name: UI_ChoiceCards_ClimbSigil
       rect:
         serializedVersion: 2
-        x: 354
-        y: 386
+        x: 118
+        y: 240
         width: 116
         height: 116
       alignment: 9
@@ -1209,20 +1309,24 @@ TextureImporter:
       UI_ChoiceCards_GreenNamePlate: -988498981720247006
       UI_ChoiceCards_GreenWell: 1461543893333893022
       UI_ChoiceCards_GreenSigil: 6000633754969301941
+      UI_ChoiceCards_GreenGround: 2687619438841410141
       UI_ChoiceCards_OrangeFrame: -3872526445276267752
       UI_ChoiceCards_OrangeNamePlate: -8697169583272768659
       UI_ChoiceCards_OrangeWell: 6290761748157743799
       UI_ChoiceCards_OrangeSigil: 1534043838168245002
+      UI_ChoiceCards_OrangeGround: -7906668176594193150
       UI_ChoiceCards_RedFrame: -8626933205699606910
       UI_ChoiceCards_RedNamePlate: -843853342341486369
       UI_ChoiceCards_RedWell: 4199108141317408198
       UI_ChoiceCards_RedSigil: 1892158750185250929
+      UI_ChoiceCards_RedGround: 2686599549980858498
       UI_ChoiceCards_GoldFrame: -268014077894330582
       UI_ChoiceCards_GoldAura: 1965372614914444658
       UI_ChoiceCards_GoldCrest: -7329977725881091956
       UI_ChoiceCards_GoldNamePlate: -6394380266655175050
       UI_ChoiceCards_GoldWell: -4662736151544318235
       UI_ChoiceCards_GoldSigil: -3005775255962564131
+      UI_ChoiceCards_GoldGround: 4489535012393658421
       UI_ChoiceCards_EvolutionFrame: 1174790654020541577
       UI_ChoiceCards_EvolutionAura: -7833357916802199539
       UI_ChoiceCards_EvolutionCrest: -1277304214555122243
