@@ -30,34 +30,37 @@ namespace Cryptforge.Tests
             Assert.That(AutopilotCohort.Careful.Habits, Is.EqualTo(AutopilotCohort.Habit.All));
             Assert.That(AutopilotCohort.Cohorts[0], Is.SameAs(AutopilotCohort.Careful), "the careful pilot first, the default");
             Assert.That(AutopilotCohort.Cohorts.Select(c => c.Name).Distinct().Count(), Is.EqualTo(AutopilotCohort.Cohorts.Count));
-            Assert.That(Dropped(AutopilotCohort.Standing), Is.EqualTo(AutopilotCohort.Habit.Kites));
+            Assert.That(Dropped(AutopilotCohort.Standing), Is.EqualTo(AutopilotCohort.Habit.Kites | AutopilotCohort.Habit.StepsIn));
             Assert.That(Dropped(AutopilotCohort.FirstCard), Is.EqualTo(AutopilotCohort.Habit.ScoresCards));
             Assert.That(Dropped(AutopilotCohort.Clumsy), Is.EqualTo(AutopilotCohort.Habit.KitesWithRoom |
                 AutopilotCohort.Habit.KitesEachAtItsReach | AutopilotCohort.Habit.EscapesAwayFromTheWarden |
-                AutopilotCohort.Habit.KeepsOutOfTheGlow | AutopilotCohort.Habit.FillsWeaponSlots));
+                AutopilotCohort.Habit.KeepsOutOfTheGlow | AutopilotCohort.Habit.FillsWeaponSlots | AutopilotCohort.Habit.StepsIn));
             Assert.That(Dropped(AutopilotCohort.AutoFarmer), Is.EqualTo(AutopilotCohort.Habit.Kites |
                 AutopilotCohort.Habit.EscapesMarks | AutopilotCohort.Habit.Shelters | AutopilotCohort.Habit.KeepsOutOfTheGlow |
-                AutopilotCohort.Habit.Lures | AutopilotCohort.Habit.UsesTheAbility | AutopilotCohort.Habit.ScoresCards));
+                AutopilotCohort.Habit.Lures | AutopilotCohort.Habit.UsesTheAbility | AutopilotCohort.Habit.ScoresCards |
+                AutopilotCohort.Habit.StepsIn));
         }
 
         private static AutopilotCohort.Habit Dropped(AutopilotCohort cohort) => AutopilotCohort.Habit.All & ~cohort.Habits;
 
-        // The step-in (FootworkRule.StepIn; docs/41, status 2026-11-10 night) is research: outside All, no cohort plays with
-        // it unless built with it, and one built with it keeps it.
+        // The step-in (FootworkRule.StepIn; docs/41, status 2026-11-11): the careful and first-card pilots step in on an
+        // elite room's Captain; the standing, clumsy and auto-farmer pilots play as before it, and no cohort steps in on the
+        // gate boss, a research habit outside All that only a cohort built with it has.
         [Test]
-        public void NoCohortStepsInUnlessBuiltWithTheHabit()
+        public void TheCarefulPilotsStepInOnTheCaptainsAndNoCohortOnTheGateBoss()
         {
-            AutopilotCohort.Habit both = AutopilotCohort.Habit.StepsIn | AutopilotCohort.Habit.StepsInOnTheGateBoss;
-            Assert.That(AutopilotCohort.Habit.All & both, Is.EqualTo(AutopilotCohort.Habit.None));
+            Assert.That(AutopilotCohort.Habit.All & AutopilotCohort.Habit.StepsIn, Is.EqualTo(AutopilotCohort.Habit.StepsIn));
+            Assert.That(AutopilotCohort.Habit.All & AutopilotCohort.Habit.StepsInOnTheGateBoss, Is.EqualTo(AutopilotCohort.Habit.None));
+            Assert.That(AutopilotCohort.Careful.StepsIn, Is.True);
+            Assert.That(AutopilotCohort.FirstCard.StepsIn, Is.True);
+            foreach (AutopilotCohort cohort in new[] { AutopilotCohort.Standing, AutopilotCohort.Clumsy, AutopilotCohort.AutoFarmer })
+                Assert.That(cohort.StepsIn, Is.False, cohort.Name);
             foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
-                Assert.That(cohort.StepsIn || cohort.StepsInOnTheGateBoss, Is.False, cohort.Name);
-            var elites = new AutopilotCohort("careful, stepping in", AutopilotCohort.Habit.All | AutopilotCohort.Habit.StepsIn);
-            Assert.That(elites.StepsIn, Is.True);
-            Assert.That(elites.StepsInOnTheGateBoss, Is.False, "the gate boss is a habit of its own");
-            Assert.That(elites.Has(AutopilotCohort.Habit.All), Is.True);
-            var boss = new AutopilotCohort("careful, stepping in on the boss", AutopilotCohort.Habit.All | both);
+                Assert.That(cohort.StepsInOnTheGateBoss, Is.False, cohort.Name);
+            var boss = new AutopilotCohort("careful, stepping in on the boss", AutopilotCohort.Habit.All | AutopilotCohort.Habit.StepsInOnTheGateBoss);
             Assert.That(boss.StepsInOnTheGateBoss, Is.True);
-            var bossOnly = new AutopilotCohort("the boss alone", AutopilotCohort.Habit.All | AutopilotCohort.Habit.StepsInOnTheGateBoss);
+            var bossOnly = new AutopilotCohort("the boss alone",
+                AutopilotCohort.Habit.All & ~AutopilotCohort.Habit.StepsIn | AutopilotCohort.Habit.StepsInOnTheGateBoss);
             Assert.That(bossOnly.StepsIn || bossOnly.StepsInOnTheGateBoss, Is.False, "on the boss only with the step-in itself");
         }
 

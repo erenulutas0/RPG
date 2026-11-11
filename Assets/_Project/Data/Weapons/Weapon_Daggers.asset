@@ -23,7 +23,7 @@ MonoBehaviour:
   _splashFraction: 0
   _critEvery: 3
   _critMultiplier: 2
-  _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s. Crits for {3:0}% once every {4} strikes'
+  _forgeDescriptionFormat: '{0:0} damage every {1:0.0#}s. Crits for {3:0}% once every {4} strikes. Double damage to elites'
   _forgePrice: 180
   _levelUps:
   - {fileID: 11400000, guid: 1f588e5a37ef4cec95d9f3fc46bce194, type: 2}

@@ -41,6 +41,7 @@ namespace Cryptforge.Combat
         private readonly float _baseInterval;
         private float _cooldown;
         private float _gateBossShare = 1f;
+        private float _eliteShare = 1f;
 
         public float Damage => _damage.Value;
         public float Interval => _baseInterval / _attackSpeed.Value;
@@ -104,6 +105,19 @@ namespace Cryptforge.Combat
             {
                 RequirePositiveFinite(value, nameof(value));
                 _gateBossShare = value;
+            }
+        }
+
+        // What this weapon's landings on the foundry's elites are multiplied by (EliteRule.DamageOn), handed to it by the
+        // loadout that takes it up from its id (EliteRule.EliteShareOf): the Daggers' 2, every other weapon's 1, and 1 on
+        // a weapon no loadout holds.
+        public float EliteShare
+        {
+            get => _eliteShare;
+            set
+            {
+                RequirePositiveFinite(value, nameof(value));
+                _eliteShare = value;
             }
         }
 
@@ -214,9 +228,11 @@ namespace Cryptforge.Combat
         // once per kill and only while the weapon carries a burst; null unless one was granted. gateBoss is the foundry's
         // gate boss while it stands (EncounterController.GateBoss), null elsewhere: every landing of this weapon on it -
         // the strike's, the splash's, the burst's, the splinter's and the pulse's - deals GateBossShare of its amount.
+        // elites are the foundry's elites standing (EncounterController.Elites), null or empty elsewhere: every landing of
+        // this weapon on one of them deals EliteShare of its amount, the same way.
         public bool TryAttack(IDamageable target, IDamageable source = null, IReadOnlyList<IDamageable> nearby = null,
             IReadOnlyList<IDamageable> inPulseRadius = null, IReadOnlyList<IDamageable> inCritSplashRadius = null,
-            INeighbourhood aroundTheFallen = null, IDamageable gateBoss = null)
+            INeighbourhood aroundTheFallen = null, IDamageable gateBoss = null, IReadOnlyList<IDamageable> elites = null)
         {
             if (_cooldown > 0f || target == null || !target.IsAlive)
                 return false;
@@ -233,7 +249,7 @@ namespace Cryptforge.Combat
             float damage = critical ? Damage * multiplier : Damage;
             // Read once, so a share granted from a death callback mid-strike waits for the next strike.
             float burstShare = KillBurst;
-            Land(target, damage, source, critical, gateBoss);
+            Land(target, damage, source, critical, gateBoss, elites);
             NoteIfFelled(target, burstShare);
             if (Pattern.Behavior != WeaponBehavior.DirectHit && nearby != null)
             {
@@ -242,7 +258,7 @@ namespace Cryptforge.Combat
                     IDamageable other = nearby[i];
                     if (other == null || ReferenceEquals(other, target) || !other.IsAlive)
                         continue;
-                    Land(other, damage * Pattern.SplashFraction, source, critical, gateBoss);
+                    Land(other, damage * Pattern.SplashFraction, source, critical, gateBoss, elites);
                     NoteIfFelled(other, burstShare);
                     if (Pattern.Behavior == WeaponBehavior.Cleave)
                         break;
@@ -251,16 +267,16 @@ namespace Cryptforge.Combat
 
             // What the strike felled bursts where it fell, once the strike has landed in full and before anything it
             // sets off: the bursts are the strike's, and the splinter and the pulse are not part of it.
-            Burst(burstShare, source, aroundTheFallen, gateBoss);
+            Burst(burstShare, source, aroundTheFallen, gateBoss, elites);
 
             // A critical strike splinters where it landed, off the critical damage it just dealt.
-            Splinter(critical, damage, source, target, inCritSplashRadius, gateBoss);
+            Splinter(critical, damage, source, target, inCritSplashRadius, gateBoss, elites);
 
             // The pulse, last and outside everything above: it reads the strike's number but not its damage, so a crit
             // can be the strike that triggers one and the pulse still lands flat. It is not a strike itself - no
             // cadence, no rhythm, no pulse of its own - and it reaches whatever stands near the attacker rather than
             // near what the attacker hit.
-            Pulse(source, inPulseRadius, gateBoss);
+            Pulse(source, inPulseRadius, gateBoss, elites);
             return true;
         }
 
@@ -279,7 +295,8 @@ namespace Cryptforge.Combat
         // Each enemy the strike felled bursts once, in the order it fell, onto every other living enemy near it. The
         // list is spent and cleared here; a strike tried again from a death callback below is turned away by the
         // cadence before it can touch it.
-        private void Burst(float burstShare, IDamageable source, INeighbourhood aroundTheFallen, IDamageable gateBoss)
+        private void Burst(float burstShare, IDamageable source, INeighbourhood aroundTheFallen, IDamageable gateBoss,
+            IReadOnlyList<IDamageable> elites)
         {
             if (_felled == null || _felled.Count == 0)
                 return;
@@ -301,14 +318,14 @@ namespace Cryptforge.Combat
                     IDamageable near = caught[j];
                     // Never the fallen enemy itself, and nothing a burst before this one has already felled.
                     if (near != null && !ReferenceEquals(near, fallen) && near.IsAlive)
-                        Land(near, amount, source, false, gateBoss);
+                        Land(near, amount, source, false, gateBoss, elites);
                 }
             }
             _felled.Clear();
         }
 
         private void Splinter(bool critical, float criticalDamage, IDamageable source, IDamageable target,
-            IReadOnlyList<IDamageable> inCritSplashRadius, IDamageable gateBoss)
+            IReadOnlyList<IDamageable> inCritSplashRadius, IDamageable gateBoss, IReadOnlyList<IDamageable> elites)
         {
             if (!CritSplashRule.Splinters(critical, CritSplash))
                 return;
@@ -323,11 +340,12 @@ namespace Cryptforge.Combat
                 IDamageable caught = inCritSplashRadius[i];
                 // Never the struck enemy again: it took the crit itself.
                 if (caught != null && !ReferenceEquals(caught, target) && caught.IsAlive)
-                    Land(caught, amount, source, false, gateBoss);
+                    Land(caught, amount, source, false, gateBoss, elites);
             }
         }
 
-        private void Pulse(IDamageable source, IReadOnlyList<IDamageable> inPulseRadius, IDamageable gateBoss)
+        private void Pulse(IDamageable source, IReadOnlyList<IDamageable> inPulseRadius, IDamageable gateBoss,
+            IReadOnlyList<IDamageable> elites)
         {
             if (!PulseRule.Pulses(AttacksMade, PulseDamage))
                 return;
@@ -340,19 +358,22 @@ namespace Cryptforge.Combat
                 {
                     IDamageable caught = inPulseRadius[i];
                     if (caught != null && caught.IsAlive)
-                        Land(caught, amount, source, false, gateBoss);
+                        Land(caught, amount, source, false, gateBoss, elites);
                 }
             }
 
             Pulsed?.Invoke();
         }
 
-        // Every landing of this weapon, whatever dealt it: the gate boss takes GateBossShare of the amount (WardenRule),
-        // anything else the amount itself.
-        private void Land(IDamageable struck, float amount, IDamageable source, bool critical, IDamageable gateBoss) =>
+        // Every landing of this weapon, whatever dealt it: the gate boss takes GateBossShare of the amount (WardenRule), an
+        // elite EliteShare of it (EliteRule), anything else the amount itself. A weapon whose elite share is 1 never looks
+        // the struck enemy up among the elites: the product would be the amount.
+        private void Land(IDamageable struck, float amount, IDamageable source, bool critical, IDamageable gateBoss,
+            IReadOnlyList<IDamageable> elites) =>
             struck.ApplyDamage(new DamageContext(
-                WardenRule.DamageOn(amount, _gateBossShare, gateBoss != null && ReferenceEquals(struck, gateBoss)), source,
-                critical));
+                EliteRule.DamageOn(
+                    WardenRule.DamageOn(amount, _gateBossShare, gateBoss != null && ReferenceEquals(struck, gateBoss)),
+                    _eliteShare, _eliteShare != 1f && EliteRule.IsAmong(struck, elites)), source, critical));
 
         private static void RequirePositiveFinite(float value, string name)
         {

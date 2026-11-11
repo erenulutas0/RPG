@@ -41,6 +41,11 @@ namespace Cryptforge.Combat
         // hero's attacker by WardenSlamService, which runs before every attacker; null on every enemy's, and wherever no
         // gate boss stands.
         public IDamageable GateBoss { get; set; }
+        // The foundry's elites standing (EncounterController.Elites: a list it fills as an elite room's wave walks in and
+        // empties as the wave goes), handed to every strike so a weapon's landings on them take the weapon's share
+        // (WeaponRuntime.EliteShare, EliteRule: the Daggers' 2). Set once on the hero's attacker by CombatSetup; null on
+        // every enemy's.
+        public IReadOnlyList<IDamageable> Elites { get; set; }
         public event Action Attacked;
         // The target of each successful attack, right after Attacked, so views can place a strike effect at it.
         public event Action<Health> Struck;
@@ -118,7 +123,7 @@ namespace Cryptforge.Combat
             if (weapon.CritSplash > 0f)
                 _targeting.CollectNear(target, weapon.CritSplashRadius, _inCritSplashRadius);
             if (!weapon.TryAttack(target, _owner, _nearby, _inPulseRadius, _inCritSplashRadius,
-                    weapon.KillBurst > 0f ? this : null, GateBoss))
+                    weapon.KillBurst > 0f ? this : null, GateBoss, Elites))
                 return;
 
             if (first)

@@ -29,12 +29,19 @@ namespace Cryptforge.Tests
                 return new Lever { Name = name, Estimate = "daggers", Levers = levers };
             }
 
-            // The Daggers dealing the Captains alone share.
+            // The Daggers dealing the Captains share in all, the shipped EliteRule.DaggersShare divided out.
             Action<DescentSimulation.FoundryLevers> Captains(float share) => l =>
             {
-                l.DaggersEliteDamage = share;
+                l.DaggersEliteDamage = share / Cryptforge.Combat.EliteRule.DaggersShare;
                 l.DaggersEliteLeaderOnly = true;
             };
+
+            Lever Before()
+            {
+                Lever lever = Make("Before: the Daggers x1 on the Captains, the careful pilots kiting them", Captains(1f));
+                lever.CarefulHabitsDropped = AutopilotCohort.Habit.StepsIn;
+                return lever;
+            }
 
             // The careful-footwork cohorts stepping in on a single elite room's Captain and the gate boss (FootworkRule.StepIn),
             // or on the Captain alone.
@@ -70,7 +77,8 @@ namespace Cryptforge.Tests
                 Make("Daggers reach 2.2 + on the elites x5", l => { l.DaggersReach = 2.2f; l.DaggersEliteDamage = 5f; }),
                 Make("Daggers reach 2.5 + on the elites x3", l => { l.DaggersReach = 2.5f; l.DaggersEliteDamage = 3f; }),
                 Make("Daggers on the elites x10", l => l.DaggersEliteDamage = 10f),
-                // The share on the elite rooms' leaders alone, their Grunt Captains (x12 was shipped and reverted, 355b00c4).
+                // The share on the elite rooms' leaders alone, their Grunt Captains, in all (x12 was shipped and reverted on
+                // 2026-11-10; x2 ships on 2026-11-11 with the careful pilots stepping in).
                 Make("Daggers on the Captains x3", Captains(3f)),
                 Make("Daggers on the Captains x5", Captains(5f)),
                 Make("Daggers on the Captains x8", Captains(8f)),
@@ -162,7 +170,10 @@ namespace Cryptforge.Tests
                     Bleed(1f)(l);
                     l.DaggersThrowSparesGateBoss = true;
                     l.DaggersBleedSparesGateBoss = true;
-                })
+                }),
+                // The floor before 2026-11-11 (main 9b5ef052), bit for bit: the Daggers' share divided out on the Captains
+                // (x2 then x0.5, both exact in floating point) and the careful pilots kiting a Captain rather than stepping in.
+                Before()
             };
         }
 
@@ -251,20 +262,20 @@ namespace Cryptforge.Tests
             return new[] { horde, elites, warden };
         }
 
-        // The cohort a lever plays: the careful-footwork cohorts (careful, first-card) with the lever's CarefulHabits, every
-        // other as it is.
+        // The cohort a lever plays: the careful-footwork cohorts (careful, first-card) with the lever's CarefulHabits and
+        // without its CarefulHabitsDropped, every other as it is.
         private static AutopilotCohort Played(Lever lever, AutopilotCohort cohort) =>
-            lever.CarefulHabits != AutopilotCohort.Habit.None &&
+            (lever.CarefulHabits != AutopilotCohort.Habit.None || lever.CarefulHabitsDropped != AutopilotCohort.Habit.None) &&
             (cohort == AutopilotCohort.Careful || cohort == AutopilotCohort.FirstCard)
-                ? new AutopilotCohort(cohort.Name, cohort.Habits | lever.CarefulHabits)
+                ? new AutopilotCohort(cohort.Name, (cohort.Habits | lever.CarefulHabits) & ~lever.CarefulHabitsDropped)
                 : cohort;
 
         public static string RoleHeader() =>
-            "| Lever | Hands | Horde a second: Sword / Staff / Daggers | Elite packs a second | Warden a second | Roles, the packs as the elites | Captains a second | Roles, the Captains as the elites | " +
+            "| Lever | Hands | Horde a second: Sword / Staff / Daggers | Elite rooms' waves a second | Warden a second | Roles, the waves as the elites | Elite enemies (Captains) a second | Roles, the elite enemies (the gate's) | " +
             "Floor 1 cleared V (careful / standing / first-card / clumsy / auto-farmer) | Floor 1 cleared I | Both floors V | Both floors I | " +
             "Warden P50 floor 1 V / I | Warden P50 floor 2 V / I | Elite fights P50 s, started with each | Every weapon on the elites a second, the same | " +
-            "A Captain under fire P50 s, the same |" +
-            Environment.NewLine + "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
+            "A Captain under fire P50 s, the same | A Captain the Daggers reached, under fire P10 / P50 s (felled; within a frame), careful | The Sword's lead on the Warden |" +
+            Environment.NewLine + "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
 
         public static string RoleRow(RoleRun run)
         {
@@ -283,7 +294,27 @@ namespace Cryptforge.Tests
                    $"{Warden(b => FloorTwo(b).Runs.Where(r => r.WardenSeconds >= 0f).Select(r => r.WardenSeconds))} | " +
                    $"{string.Join(" / ", run.Weapons.Select(b => N(Median(b.Runs.Where(r => r.EliteFought > 0f).Select(r => r.EliteFought)))))} | " +
                    $"{string.Join(" / ", run.Weapons.Select(b => N(Median(b.Runs.Where(r => r.EliteFought > 0f).Select(r => r.WeaponWork.Sum(w => w.DealtElite) / r.EliteFought)))))} | " +
-                   $"{string.Join(" / ", run.Weapons.Select(b => N(CaptainUnderFire(b), "0.0")))} |";
+                   $"{string.Join(" / ", run.Weapons.Select(b => N(CaptainUnderFire(b), "0.0")))} | " +
+                   $"{DaggersCaptains(run)} | {SwordWardenLead(captains)} |";
+        }
+
+        // The Captains a Daggers landing reached before they fell (FoundryKill.DaggersLanded), in the careful hands - both
+        // heroes and the Vanguard started with each weapon - their time under fire P10 / P50, how many, and how many fell
+        // within a frame of their first damage (none: no one-shot).
+        public static string DaggersCaptains(RoleRun run)
+        {
+            float[] underFire = run.Cohorts[0].Batches.Concat(run.Weapons.Where(w => w.Hero.Weapon.Id != DescentSimulation.SwordId))
+                .SelectMany(b => b.Runs).SelectMany(r => r.Kills)
+                .Where(k => !k.Horde && k.Kind == "Grunt Captain" && k.DaggersLanded).Select(k => k.UnderFire).ToArray();
+            return $"{N(Percentile(underFire, 10), "0.0")} / {N(Percentile(underFire, 50), "0.0")} ({underFire.Length}; {underFire.Count(u => u <= 1f / 60f)})";
+        }
+
+        // The Sword's Warden figure against the best other weapon's, as a lead in percent.
+        private static string SwordWardenLead(IReadOnlyList<(string Name, double[] Jobs)> jobs)
+        {
+            double sword = jobs.First(j => j.Name == "Sword").Jobs[2];
+            double best = jobs.Where(j => j.Name != "Sword").Max(j => j.Jobs[2]);
+            return best > 0 ? N(100.0 * (sword / best - 1.0)) + " %" : "-";
         }
 
         // docs/40 section 8.6's elite TTK, the elite's time under fire: P50 over the batch's felled elite-room Captains of the
@@ -312,7 +343,8 @@ namespace Cryptforge.Tests
         // damage on the Captains alone a second.
         public static string RoleCsvHeader() =>
             "lever,hands,cohort,hero,runs,floor1_cleared,both_cleared,warden_p50_f1,warden_p50_f2,start_weapon_horde,start_weapon_elites,start_weapon_warden," +
-            "elite_fights_p50,weapons_on_elites_p50,start_weapon_share_of_elites,start_weapon_captains,step_in_s_p50,daggers_throws_p50,daggers_lunges_p50";
+            "elite_fights_p50,weapons_on_elites_p50,start_weapon_share_of_elites,start_weapon_captains,step_in_s_p50,daggers_throws_p50,daggers_lunges_p50," +
+            "captains_daggers_reached,captains_daggers_under_fire_p10,captains_daggers_under_fire_p50";
 
         public static IEnumerable<string> RoleCsv(RoleRun run)
         {
@@ -330,6 +362,8 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryResult[] met = b.Runs.Where(r => r.EliteFought > 0f).ToArray();
             double all = b.Runs.Sum(r => r.WeaponWork.Sum(w => w.DealtElite));
             double own = b.Runs.Sum(r => r.WeaponWork.Where(w => w.Id == b.Hero.Weapon.Id).Sum(w => w.DealtElite));
+            float[] reached = b.Runs.SelectMany(r => r.Kills).Where(k => !k.Horde && k.Kind == "Grunt Captain" && k.DaggersLanded)
+                .Select(k => k.UnderFire).ToArray();
             return string.Join(",", "\"" + lever + "\"", hands, cohort, "\"" + b.Hero.Name + "\"", b.Runs.Length,
                 b.ClearedCount, b.Runs.Count(BothCleared),
                 N(Median(b.Runs.Where(r => r.LevelAtGate >= 0 && r.BossSeconds >= 0f).Select(r => r.BossSeconds))),
@@ -339,7 +373,8 @@ namespace Cryptforge.Tests
                 N(Median(met.Select(r => r.WeaponWork.Sum(w => w.DealtElite) / r.EliteFought)), "0.0"),
                 all > 0 ? N(100.0 * own / all) : "-",
                 N(RoleJobsOf(b, true)[1], "0.0"), N(Median(b.Runs.Select(r => r.StepInSeconds)), "0.0"),
-                N(Median(b.Runs.Select(r => (float)r.DaggersThrows)), "0"), N(Median(b.Runs.Select(r => (float)r.DaggersLunges)), "0"));
+                N(Median(b.Runs.Select(r => (float)r.DaggersThrows)), "0"), N(Median(b.Runs.Select(r => (float)r.DaggersLunges)), "0"),
+                reached.Length, N(Percentile(reached, 10), "0.00"), N(Percentile(reached, 50), "0.00"));
         }
     }
 }
