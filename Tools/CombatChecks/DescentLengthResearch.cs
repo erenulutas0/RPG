@@ -67,6 +67,7 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "stay90", What = "the finale's stay 90 s (docs/40's typical upper bound)", Stay = 90f };
             yield return new Option { Key = "third2", What = "a third floor: floor 2's asset again at floor 2's tier, its gate as the room clears", Floors = 4, ThirdFloorTier = 2 };
             yield return new Option { Key = "third3", What = "a third floor: floor 2's asset at floor 3's tier (x1.96 / x1.80, no modifier, its Warden held to 8.5), its gate as the room clears", Floors = 4, ThirdFloorTier = 3 };
+            yield return new Option { Key = "gate210-chest", What = "floor 2's gate at 3:30 and the finale's chest where the hero arrives (docs/47's recommendation)", FloorTwoGate = 210f, ChestAtArrival = true };
             yield return new Option { Key = "set-a", What = "floor 2's gate at 3:30, the chest where the hero arrives, the 90 s stay", FloorTwoGate = 210f, ChestAtArrival = true, Stay = 90f };
             yield return new Option { Key = "set-b", What = "floor 2's gate at 3:30, a third floor at floor 3's tier with its gate at 3:30, a 50 % heal before the finale", Floors = 4, FloorTwoGate = 210f, ThirdFloorTier = 3, ThirdFloorGate = 210f, HealShare = .5f };
         }
