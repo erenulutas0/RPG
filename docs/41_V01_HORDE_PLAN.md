@@ -1957,8 +1957,8 @@ and the asset):
   - the stay lever.
   `FoundrySimulationSceneValueTests.TheFoundrysFinaleIsTheAsset` holds the finale's floor, ladder and enemies to
   Floor_FinalSwarm and the 60 s to `DevelopmentAutopilot.SwarmStay` (Unity; compile-checked here).
-- The default batch (FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2) is byte-identical to main cebf8775's, and was
-  to 6a09574f's before the merge: foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv,
+- The default batch (FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2) is byte-identical to main's at each merge:
+  6a09574f, cebf8775 and 4db8f5b6. foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv,
   foundry-gate.md and foundry-cohorts.md are the same to the byte, and foundry-batch.md differs only in its date and its
   wall-clock seconds.
 
@@ -1967,7 +1967,10 @@ FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=3 FOUNDRY_PARALLEL=6, frame-perfect and with FO
 both heroes, every cohort. The outputs are in TestResults/finale-1111/fp and hh: foundry-finale.md, foundry-finale.csv
 with a row a finale, and the cohort section. Floors 1 and 2 are the default batch's runs: the finale comes after them
 and changes nothing before it. A first run on 6a09574f, before main's forge-walk fix, is kept in
-finale-1111/pre-merge-6a09574f and reads the same.
+finale-1111/pre-merge-6a09574f and reads the same. So does a run after merging main 4db8f5b6, where the boss's reveal
+holds every attacker on floors 1 and 2 (finale-1111/merge-4db8f5b6). It finds 5 deaths in 1,421 finales frame-perfect
+and 18 in 1,248 with human hands, every one entering under 15 % of its maximum; the finale's P50 is 65 s and the
+Descent's 467 / 463 s. The tables below are cebf8775's.
 
 ### Who reaches the finale, and how it ends
 
@@ -2064,8 +2067,8 @@ calibrated Staff.
   are fewer: at most 5 stand at once (P50), against floor 2's horde of up to 40 and its node waves. And the pilot leaves
   at the ladder's sixth wave, x1.49 on the ramp, before the Tanks and the Warden walk in. It kills only heroes that come
   into it nearly dead: 23 deaths in 2,684 finales, every one entered under a fifth of its maximum.
-  - The scenario: careful Ilya with human hands, seed 33. Floor 2's Warden leaves it 4.8 of 90 health. It fights the
-    swarm for 60 s untouched, turns for the exit, and a Grunt's first blow ends it at 62 s.
+  - The scenario, the same in both measurements: the first-card Vanguard with human hands, seed 147. Floor 2's Warden
+    leaves it 3.4 of 115 health. It fights the swarm for 52 s untouched, and a Grunt's first blow ends it.
   - Nothing heals a hero between floor 2's gate and the swarm. The descent heals nothing. The room's chest, a quarter
     heal, stands at (1.8, 1), about 25 units from the gate landing where the hero arrives, and the autopilot never walks
     to it (10 of 2,684 finales opened it).
