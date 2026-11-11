@@ -215,24 +215,26 @@ namespace Cryptforge.Core
         public const float StepInStop = .1f;
 
         // A weapon's damage a second on one target - its strike, its fixed rhythm's crits and its rolled crits, on the gate
-        // boss its share (WeaponRuntime.GateBossShare) - for choosing the weapon a pilot fights one target with.
-        public static float SingleTargetRate(WeaponRuntime weapon, bool gateBoss)
+        // boss its share (WeaponRuntime.GateBossShare), on an elite its share (WeaponRuntime.EliteShare: the Daggers' 2 on
+        // an elite room's Captain) - for choosing the weapon a pilot fights one target with.
+        public static float SingleTargetRate(WeaponRuntime weapon, bool gateBoss, bool elite = false)
         {
             AttackPattern pattern = weapon.Pattern;
             float rhythm = pattern.CritEvery > 0 ? (pattern.CritMultiplier - 1f) / pattern.CritEvery : 0f;
             float rolled = Math.Min(1f, weapon.CritChance);
             float rate = weapon.Damage * (1f + rhythm + rolled) / weapon.Interval;
-            return gateBoss ? rate * weapon.GateBossShare : rate;
+            return gateBoss ? rate * weapon.GateBossShare : elite ? rate * weapon.EliteShare : rate;
         }
 
-        // The reach of the loadout's best weapon on one target (SingleTargetRate, the earlier slot on a tie); 0 for none.
-        public static float BestSingleTargetReach(WeaponLoadout loadout, bool gateBoss)
+        // The reach of the loadout's best weapon on one target - the gate boss, an elite or neither (SingleTargetRate, the
+        // earlier slot on a tie); 0 for none.
+        public static float BestSingleTargetReach(WeaponLoadout loadout, bool gateBoss, bool elite = false)
         {
             float best = -1f, reach = 0f;
             for (int i = 0; loadout != null && i < loadout.Count; i++)
             {
                 WeaponRuntime weapon = loadout.At(i).Runtime;
-                float rate = SingleTargetRate(weapon, gateBoss);
+                float rate = SingleTargetRate(weapon, gateBoss, elite);
                 if (rate <= best)
                     continue;
                 best = rate;

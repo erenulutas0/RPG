@@ -2,6 +2,7 @@ using System.Collections;
 using System.IO;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -178,6 +179,62 @@ namespace Cryptforge.Tests
             Assert.That(lowest,Is.LessThan(fallY),"They settle into the floor as they go.");
             Assert.That(remains.enabled,Is.False,"Gone before the encounter retires the body.");
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // The forge freezes the horde and the floor's clock while it stands - its offer and the second after it - and only
+        // then: the walk from it to the next hall's district is the horde's, as every other walk is. IsInNonCombatRoom, which
+        // the horde reads, was set by the forge and cleared only by a wave's or a swarm's spawn, and a marked hall spawns
+        // nothing until it is reached: on Floor_EmberHalls the horde stood still and the clock stopped from the forge to the
+        // Captain's Post, five to nine seconds a floor in the simulation (the run flow's review, 2026-11-11).
+        [UnityTest, Timeout(180000)] public IEnumerator TheWalkFromTheForgeToTheNextHallIsTheHordes()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounters=setup.Encounters;
+            var hero=Object.FindFirstObjectByType<HeroMovementInput>().transform;var heroHealth=hero.GetComponent<Health>();
+            // Floor_EmberHalls as the foundry plays it: three halls, each after the first at its own district, then the forge.
+            float deadline=Time.realtimeSinceStartup+120;
+            while(!AtForge(setup)&&!setup.Run.HasEnded&&Time.realtimeSinceStartup<deadline)
+            {
+                KeepUp(setup,heroHealth);
+                if(encounters.IsRoomSiteOpen)hero.position=new Vector3(encounters.RoomSiteFloorX,ArenaFloor.WorldY(encounters.RoomSiteFloorY),0);
+                else if(!encounters.IsInNonCombatRoom)PackTestUtility.KillWave(encounters);
+                yield return null;
+            }
+            Assert.That(AtForge(setup),Is.True,$"The forge is reached; stopped in room {encounters.RoomNumber}.");
+            Assert.That(encounters.IsHordeActive,Is.True);
+
+            // The forge holds the clock through its offer and the second after it.
+            float atForge=encounters.FloorClockSeconds;
+            Assert.That(setup.Choices.TrySelect(setup.Choices.Current,0),Is.True,"Mend.");
+            float end=Time.time+.4f;
+            deadline=Time.realtimeSinceStartup+20;
+            while(Time.time<end&&Time.realtimeSinceStartup<deadline){KeepUp(setup,heroHealth);yield return null;}
+            Assert.That(encounters.IsInNonCombatRoom,Is.True,"Still the forge's second.");
+            Assert.That(encounters.FloorClockSeconds,Is.EqualTo(atForge),"The forge holds the floor's clock.");
+            while(!encounters.IsRoomSiteOpen&&Time.realtimeSinceStartup<deadline){KeepUp(setup,heroHealth);yield return null;}
+            Assert.That(encounters.IsRoomSiteOpen,Is.True,"The Captain's Post waits at its district.");
+            Assert.That(encounters.CurrentRoom.Kind,Is.EqualTo(RoomKind.Elite));
+            Assert.That(encounters.IsInNonCombatRoom,Is.False,"The forge is behind the hero.");
+
+            // The walk is the horde's: the floor's clock runs on it, the hero standing where the forge found it.
+            float walkFrom=encounters.FloorClockSeconds;
+            end=Time.time+1f;
+            deadline=Time.realtimeSinceStartup+20;
+            while(Time.time<end&&Time.realtimeSinceStartup<deadline){KeepUp(setup,heroHealth);yield return null;}
+            Assert.That(Time.time,Is.GreaterThanOrEqualTo(end),"Game time passed.");
+            Assert.That(encounters.IsRoomSiteOpen,Is.True,"The hero has not walked onto the Post.");
+            Assert.That(encounters.IsHordeActive,Is.True);
+            Assert.That(encounters.FloorClockSeconds,Is.GreaterThan(walkFrom+.5f),"The floor's clock runs on the walk.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private static bool AtForge(CombatSetup setup)=>setup.Choices.Current!=null&&setup.Choices.Current.Kind==ChoiceKind.Forge;
+
+        // Every offer but the forge's answered with its first card, and the hero kept standing.
+        private static void KeepUp(CombatSetup setup,Health hero)
+        {
+            for(int i=0;i<4&&setup.Choices.IsOpen&&!AtForge(setup);i++)setup.Choices.TrySelect(setup.Choices.Current,0);
+            if(hero.IsAlive)hero.Heal(hero.Maximum);
         }
 
         [UnityTest, Timeout(90000)] public IEnumerator TheHallArenaHasNoHorde()

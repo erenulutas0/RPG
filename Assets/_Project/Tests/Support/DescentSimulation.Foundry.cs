@@ -2139,6 +2139,8 @@ namespace Cryptforge.Tests
                         if (step.WaveIndex == 0 && TryRoomSite(step.RoomIndex, out _siteX, out _siteY))
                         {
                             ReleaseWave();
+                            // EncounterController: a forge before it is behind the hero, and the walk is the horde's.
+                            _nonCombat = false;
                             _siteStep = step;
                             _roomSiteOpen = true;
                             _siteWait = 0f;
@@ -2452,8 +2454,8 @@ namespace Cryptforge.Tests
             }
 
             // EncounterController.TickHorde: the horde stands from the floor's first step to the boss's fall - never on the
-            // way down to the next floor - and the forge freezes it, from the forge's offer until the next hall's wave forms
-            // up, as IsInNonCombatRoom reads.
+            // way down to the next floor - and the forge freezes it, from the forge's offer until the floor moves on from it,
+            // as IsInNonCombatRoom reads; the walk to the next hall's district after it runs (until 2026-11-11 it froze too).
             private void TickHorde()
             {
                 bool wanted = !_progress.IsComplete && !_gateExitOpen && !_descending;
@@ -3939,8 +3941,8 @@ namespace Cryptforge.Tests
                 if (target == null || !target.IsAlive)
                     return false;
                 bool marked = (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked) || _marks.Count > 0;
-                return FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss), marked,
-                    glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
+                return FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss, !boss),
+                    marked, glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
             }
 
             private bool NearestAltar(float x, float y, out float gx, out float gy)

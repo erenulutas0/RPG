@@ -298,8 +298,9 @@ namespace Cryptforge.Core
                 return false;
             WardenSlamService warden = _setup.Warden;
             bool marked = warden != null && warden.IsFighting && warden.Clock.IsMarked;
-            return FootworkRule.StepIn(x, y, tx, ty, FootworkRule.BestSingleTargetReach(_setup.Upgrades.Loadout, boss), marked,
-                glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
+            // Not the gate boss, the target is the Captain, an elite: the Daggers' share on it counts (EliteRule).
+            return FootworkRule.StepIn(x, y, tx, ty, FootworkRule.BestSingleTargetReach(_setup.Upgrades.Loadout, boss, !boss),
+                marked, glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
         }
 
         private bool NearestAltar(float x, float y, out float gx, out float gy)

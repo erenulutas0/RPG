@@ -814,6 +814,10 @@ namespace Cryptforge.Combat
                     else if (step.WaveIndex == 0 && TryRoomSite(step.RoomIndex))
                     {
                         ReleaseWave(true);
+                        // A forge before it is behind the hero: the walk to the hall is not the forge's, so the horde and
+                        // the floor's clock run on it (TickHorde). Only a spawn cleared the flag, and a marked hall spawns
+                        // nothing until it is reached (the run flow's review, 2026-11-11).
+                        IsInNonCombatRoom = false;
                         _roomSiteStep = step;
                         _roomSiteOpen = true;
                         _roomSiteWait = 0f;
@@ -1165,6 +1169,11 @@ namespace Cryptforge.Combat
 
             _wave.Clear();
             _elites.Clear();
+            // A gate's or an elite room's wave is gone with its flags: a swarm refills the wave without SpawnWave, and a
+            // flag left standing made its first enemy the gate boss (GateBoss, WardenSlamService) or the Captain
+            // (EliteLeader) - the review of 2026-11-11, the Descent's finale after floor 2's gate on the foundry.
+            _gateBossWave = false;
+            _eliteWave = false;
             _motion = null;
             _lastDefeated = null;
             AliveEnemyCount = 0;
