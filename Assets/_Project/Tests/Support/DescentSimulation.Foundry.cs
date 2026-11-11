@@ -1112,8 +1112,10 @@ namespace Cryptforge.Tests
             private bool _cleared;
             private int _waveOrdinal;
             private bool _gateBossWave;
-            // The node wave standing is an elite room's (FoundryResult.EliteFought).
+            // The node wave standing is an elite room's (FoundryResult.EliteFought), and its Captain while it stands, the
+            // elites EncounterController.Elites hands the hero's attacker (EliteRule).
             private bool _eliteWave;
+            private readonly List<Foe> _elites = new List<Foe>(1);
             private int _waveIndex = -1;
             private int _roomIndex = -1;
             private float _waveStartedAt;
@@ -1784,6 +1786,8 @@ namespace Cryptforge.Tests
                     }
                     foe.Elite = elite;
                     foe.EliteLeader = elite && i == 0;
+                    if (foe.EliteLeader)
+                        _elites.Add(foe);
                     _wave.Add(foe);
                 }
                 _eliteWave = elite;
@@ -1885,6 +1889,7 @@ namespace Cryptforge.Tests
                 for (int i = 0; i < _wave.Count; i++)
                     _wave[i].Released = true;
                 _wave.Clear();
+                _elites.Clear();
                 _waveMotion = null;
                 _waveAlive = 0;
             }
@@ -2650,9 +2655,11 @@ namespace Cryptforge.Tests
                     _strikingWeapon = weapon;
                     _procsBeforeStrike = ProcsFired(weapon);
                     // AttackController.GateBoss: the gate boss WardenSlamService handed the hero's attacker at its step
-                    // (StepWarden's _slamBoss), on which each weapon lands its share (WardenRule: the Sword's 1.5).
+                    // (StepWarden's _slamBoss), on which each weapon lands its share (WardenRule: the Sword's 1.5). And
+                    // AttackController.Elites: the elite room's Captain while its wave stands (EncounterController.Elites),
+                    // on which each weapon lands its share (EliteRule: the Daggers' 12).
                     bool struck = weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null,
-                        _slamBoss);
+                        _slamBoss, _elites);
                     if (struck)
                         _striking.Strikes++;
                     // The throw's fan (research 2026-11-11): its other blades, off at the shipped levers.

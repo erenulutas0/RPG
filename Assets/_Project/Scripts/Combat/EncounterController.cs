@@ -363,6 +363,12 @@ namespace Cryptforge.Combat
         // autopilot's step-in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn); null otherwise.
         public Health EliteLeader => _eliteWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0].Health : null;
         private bool _eliteWave;
+        // The foundry's elites (EliteRule): the Grunt Captain an elite room's wave is built round - its first enemy - from
+        // its spawn until the wave is released, fallen or not; empty otherwise - the escort, the halls, the horde, the gate,
+        // the hall arena. One list for the run, so the hero's attacker holds it once (CombatSetup, AttackController.Elites)
+        // and every strike reads it as it stands.
+        public IReadOnlyList<Health> Elites => _elites;
+        private readonly List<Health> _elites = new List<Health>(1);
         public bool IsBossEnraged => _bossEnraged;
 
         // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
@@ -862,7 +868,7 @@ namespace Cryptforge.Combat
         private bool GateRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Boss && _arena != null && _arena.IsFoundryRegion;
 
-        // An elite room on the foundry: its wave's first enemy is its Captain (EliteLeader).
+        // An elite room on the foundry: its wave's first enemy is its Captain, an elite (EliteLeader, Elites).
         private bool EliteRoom(RoomDefinition room) =>
             room.Kind == RoomKind.Elite && _arena != null && _arena.IsFoundryRegion;
 
@@ -988,6 +994,8 @@ namespace Cryptforge.Combat
                 spawn.Health.transform.position = WorldPosition(_motion.XOf(slot), _motion.YOf(slot));
                 _wave.Add(spawn);
                 candidates[i] = spawn.Health;
+                if (elite && i == 0)
+                    _elites.Add(spawn.Health);
             }
 
             AliveEnemyCount = count;
@@ -1156,6 +1164,7 @@ namespace Cryptforge.Combat
             }
 
             _wave.Clear();
+            _elites.Clear();
             _motion = null;
             _lastDefeated = null;
             AliveEnemyCount = 0;

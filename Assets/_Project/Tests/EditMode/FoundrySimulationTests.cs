@@ -572,6 +572,35 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The Daggers are the elites' weapon in the simulation as in the scene (EliteRule.DaggersShare, docs/41 status
+        // 2026-11-10 night), through the one body both strike with: the simulation's Daggers are EliteRule's by their id,
+        // every weapon it builds - its hero's and its cards' - takes its elite share from the game's WeaponLoadout as the
+        // scene's does, and its strikes land through WeaponRuntime.TryAttack with the elite room's Captain as the elites
+        // (HeroAttacks), as the scene's AttackController strikes with EncounterController.Elites. EliteRule.DamageOn is the
+        // rule's only body.
+        [Test]
+        public void TheSimulationsWeaponsTakeTheGamesShareOnTheElites()
+        {
+            Assert.That(DescentSimulation.Daggers().Id, Is.EqualTo(EliteRule.DaggersId));
+            Assert.That(DescentSimulation.DaggersId, Is.EqualTo(EliteRule.DaggersId));
+            foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.WeaponCatalogue())
+            {
+                float share = weapon.Id == EliteRule.DaggersId ? EliteRule.DaggersShare : 1f;
+                WeaponRuntime started = weapon.CreateCategoryRuntime();
+                Assert.That(new WeaponLoadout(1).TryAdd(weapon.Id, started), Is.True, weapon.Id);
+                Assert.That(started.EliteShare, Is.EqualTo(share), weapon.Id + " as the hero's own");
+                WeaponCard card = weapon.CreateCard();
+                WeaponRuntime picked = card.CreateRuntime();
+                Assert.That(new WeaponLoadout(1).TryAdd(card.Id, picked), Is.True, card.Id);
+                Assert.That(picked.EliteShare, Is.EqualTo(share), weapon.Id + " picked up from a card");
+
+                // Its first strike, no crit, on an elite of ten Grunt Captains' health, as HeroAttacks fires it.
+                var captain = new HealthState(DescentSimulation.Captain.Health * 10f);
+                Assert.That(started.TryAttack(captain, null, null, null, null, null, null, new IDamageable[] { captain }), Is.True, weapon.Id);
+                Assert.That(captain.Maximum - captain.Current, Is.EqualTo(started.Damage * share).Within(1e-3f), weapon.Id);
+            }
+        }
+
         // The elites the simulation counts (the Daggers' role, docs/41 status 2026-11-10 night) are an elite room's wave: a
         // run that never entered an elite room fought none, what a weapon took off the Captains is part of what it took off
         // the elites, and that part of what it took off the node waves. The shipped floor's Daggers are the game's, and
@@ -595,6 +624,7 @@ namespace Cryptforge.Tests
             foreach (FoundryBatch.Lever lever in levers.Skip(1))
                 Assert.That(lever.Levers.DaggersEliteDamage != 1f || lever.Levers.DaggersEliteCritDamage != 1f ||
                             lever.Levers.DaggersReach > 0f || ReshapesDaggers(lever.Levers) ||
+                            lever.Levers.DaggersEliteLeaderOnly ||
                             lever.CarefulHabits != Cryptforge.Core.AutopilotCohort.Habit.None,
                     Is.True, lever.Name);
 
