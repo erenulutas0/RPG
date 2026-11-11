@@ -185,6 +185,62 @@ namespace Cryptforge.UI
                 _buttons[i].gameObject.SetActive(cardsWereActive[i]);
             }
             _panel.SetActive(panelWasActive);
+            WarmGlyphs();
+        }
+
+        // The panel's labels' glyphs at every size they may be drawn at (TextPrewarm), so the first offer's text finds them
+        // in the font's texture: the titles, every card name and description an upgrade offer can draw - the general cards,
+        // every weapon's acquisition, lines and evolution, the tomes - with the digits and signs a value is written in, and
+        // the kind lines with a level's digits.
+        private void WarmGlyphs()
+        {
+            UpgradeService upgrades = _setup.Upgrades;
+            if (upgrades == null)
+                return;
+            var names = new System.Text.StringBuilder();
+            var descriptions = new System.Text.StringBuilder();
+            AddCards(upgrades.Pool, names, descriptions);
+            if (upgrades.WeaponCards != null)
+                foreach (WeaponCard card in upgrades.WeaponCards)
+                {
+                    names.Append(card.DisplayName);
+                    AddCard(card.Acquire, names, descriptions);
+                    AddCards(card.Lines, names, descriptions);
+                    AddCard(card.Evolution, names, descriptions);
+                }
+            AddCards(upgrades.Tomes, names, descriptions);
+            const string Values = TextPrewarm.Digits + ".,%+-";
+            string nameCharacters = TextPrewarm.Characters(names.ToString(), Values);
+            string descriptionCharacters = TextPrewarm.Characters(descriptions.ToString(), Values);
+            string kindCharacters = TextPrewarm.Characters(_text.CardEvolution, _text.CardNewWeapon, _text.CardNewTome,
+                _text.CardLevelUpFormat, TextPrewarm.Digits);
+            TextPrewarm prewarm = TextPrewarm.On(gameObject);
+            prewarm.Add(_titleLabel, TextPrewarm.Characters(_text.UpgradeChoiceTitle, _text.ForgeChoiceTitle,
+                _text.CheckpointChoiceTitle));
+            for (int i = 0; i < _buttons.Length; i++)
+            {
+                prewarm.Add(_nameLabels[i], nameCharacters);
+                prewarm.Add(_descriptionLabels[i], descriptionCharacters);
+                if (_kindLabels != null)
+                    prewarm.Add(_kindLabels[i], kindCharacters);
+            }
+        }
+
+        private static void AddCards(System.Collections.Generic.IReadOnlyList<UpgradeOption> cards,
+            System.Text.StringBuilder names, System.Text.StringBuilder descriptions)
+        {
+            if (cards == null)
+                return;
+            for (int i = 0; i < cards.Count; i++)
+                AddCard(cards[i], names, descriptions);
+        }
+
+        private static void AddCard(UpgradeOption card, System.Text.StringBuilder names, System.Text.StringBuilder descriptions)
+        {
+            if (card == null)
+                return;
+            names.Append(card.DisplayName);
+            descriptions.Append(card.DescriptionFormat);
         }
 
         private bool SlotsAreValid()

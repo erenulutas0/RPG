@@ -135,6 +135,20 @@ namespace Cryptforge.UI
             upgrades.BookGranted += OnBookGranted;
             _subscribed = true;
             Refresh();
+
+            // Every badge's glyphs at every size it may be drawn at, before the first pick fills one (TextPrewarm): the short
+            // names and the evolved mark over the levels' digits.
+            var shortNames = new System.Text.StringBuilder();
+            foreach (string shortName in _shortNames.Values)
+                shortNames.Append(shortName);
+            string names = TextPrewarm.Characters(shortNames.ToString(), _text.LoadoutEvolvedFormat);
+            TextPrewarm prewarm = TextPrewarm.On(gameObject);
+            foreach (Badge[] group in new[] { _weapons, _tomes })
+                foreach (Badge badge in group)
+                {
+                    prewarm.Add(badge.Name, names);
+                    prewarm.Add(badge.Level, TextPrewarm.Digits);
+                }
         }
 
         private void AddShortName(string id, string displayName)

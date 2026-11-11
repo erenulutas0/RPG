@@ -287,6 +287,10 @@ namespace Cryptforge.Tests
                     WallMs[frame] = (float)((now - _lastStamp) * MillisecondsPerTick);
                 if (Time.deltaTime <= 0f || (_choices != null && _choices.IsOpen))
                     Flags[frame] |= Paused;
+                // The labels' glyphs warmed again because the probe's switch of the canvases to its target changed their
+                // scale (TextPrewarm): the probe's doing, which a phone's load does once before any frame is measured.
+                if (TextPrewarm.WarmedFrame == Time.frameCount)
+                    Flags[frame] |= ProbeWork;
                 Alive[frame] = _encounters != null ? _encounters.AllAliveCount : 0;
                 Horde[frame] = _encounters != null ? _encounters.HordeAliveCount : 0;
                 Burning[frame] = _effects != null ? _effects.ShownFlameCount : 0;

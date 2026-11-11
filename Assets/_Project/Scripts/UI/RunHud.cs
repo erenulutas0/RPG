@@ -134,6 +134,12 @@ namespace Cryptforge.UI
             RefreshRelic();
             RefreshBadges();
             RefreshDetails();
+            // The weapon line and the level's glyphs at every size they may be drawn at, before a pick or a level-up first
+            // changes them (TextPrewarm).
+            TextPrewarm prewarm = TextPrewarm.On(gameObject);
+            prewarm.Add(_weaponLabel, TextPrewarm.Characters(_text.WeaponFormat, _setup.HeroWeapon != null
+                ? _setup.HeroWeapon.DisplayName : string.Empty, TextPrewarm.Digits, ".,"));
+            prewarm.Add(_experienceLabel, TextPrewarm.Characters(_text.ExperienceFormat, TextPrewarm.Digits));
         }
 
         private void RefreshDetails()
