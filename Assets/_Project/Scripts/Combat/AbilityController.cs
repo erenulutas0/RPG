@@ -22,6 +22,11 @@ namespace Cryptforge.Combat
         public AbilityRuntime Ability { get; private set; }
         public int UseCount => Ability?.UsesMade ?? 0;
         public event Action Used;
+        // A hold on the ability, asked on each use, as AttackController.FightHold is on each strike: while it answers true
+        // TryUse refuses. The foundry's boss reveal holds the fight while the camera is at the gate (EncounterController.
+        // FightHold), and the ability is part of the fight; the composition root hands it over. Null where nothing holds it.
+        public Func<bool> FightHold { get; set; }
+        public bool IsHeld => FightHold != null && FightHold();
 
         public void Initialize(AbilityRuntime ability)
         {
@@ -33,10 +38,10 @@ namespace Cryptforge.Combat
             Ability = ability ?? throw new ArgumentNullException(nameof(ability));
         }
 
-        // False while cooling down, before Initialize, or once the hero has fallen.
+        // False while cooling down, before Initialize, once the hero has fallen, or while the fight is held (FightHold).
         public bool TryUse()
         {
-            if (Ability == null || !_owner.isActiveAndEnabled || !_owner.IsAlive || !Ability.IsReady)
+            if (Ability == null || !_owner.isActiveAndEnabled || !_owner.IsAlive || !Ability.IsReady || IsHeld)
                 return false;
 
             _targeting.CollectNear(_owner, Ability.Radius, _targets);

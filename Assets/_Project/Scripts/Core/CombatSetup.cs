@@ -226,6 +226,8 @@ namespace Cryptforge.Core
             _attack.Elites = _encounters.Elites;
             // The hero strikes nothing while the boss's reveal holds the fight, as no enemy strikes it.
             _attack.FightHold = _encounters.FightHold;
+            // Nor does its ability fire: the button stands greyed and a use is refused (AbilityController.FightHold).
+            _ability.FightHold = _encounters.FightHold;
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);

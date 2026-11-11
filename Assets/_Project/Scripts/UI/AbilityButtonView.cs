@@ -7,7 +7,8 @@ using UnityEngine.UI;
 namespace Cryptforge.UI
 {
     // The round ability button at the bottom right: a tap fires the burst; a radial fill drains as the cooldown runs. It
-    // only answers while the run is live, no choice is open and the run is not paused.
+    // only answers while the run is live, no choice is open, the run is not paused and the fight is not held (the boss's
+    // reveal: AbilityController.FightHold).
     public sealed class AbilityButtonView : MonoBehaviour
     {
         [SerializeField] private CombatSetup _setup;
@@ -23,7 +24,7 @@ namespace Cryptforge.UI
         private int _shownSeconds = -1;
 
         public bool IsUsable => _setup != null && _controller != null && _controller.Ability != null && _controller.Ability.IsReady &&
-                                !_setup.Run.HasEnded && !_setup.Choices.IsOpen && !_setup.Pause.IsPlayerPaused;
+                                !_controller.IsHeld && !_setup.Run.HasEnded && !_setup.Choices.IsOpen && !_setup.Pause.IsPlayerPaused;
 
         private void Start()
         {

@@ -120,6 +120,31 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The hero's ability is part of the fight the reveal holds, as its weapons are (AttackController.FightHold): while the
+        // camera is at the gate the button stands greyed and a use is refused, and once the camera is back on the hero the
+        // ability fires (the run flow's review, 2026-11-11: a ready ability fired off screen).
+        [UnityTest, Timeout(90000)] public IEnumerator TheAbilityWaitsWhileTheCameraIsAtTheGate()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var ability=Object.FindFirstObjectByType<AbilityController>();var button=Object.FindFirstObjectByType<AbilityButtonView>();
+            Assert.That(button,Is.Not.Null,"The run's ability button.");
+            yield return WaitForBoss(encounter);
+            Assert.That(encounter.IsRevealHeld,Is.True,"The camera turns to the arriving boss.");
+            Assert.That(ability.Ability.IsReady,Is.True,"The ability is ready from the start.");
+            Assert.That(ability.IsHeld,Is.True,"The reveal holds it.");
+            Assert.That(button.IsUsable,Is.False,"The button stands greyed while the camera is away.");
+            Assert.That(ability.TryUse(),Is.False,"A use is refused.");
+            Assert.That(ability.UseCount,Is.Zero);
+            yield return Hold(setup,BossRevealView.HoldSeconds+2*BossRevealView.TurnSeconds+.3f);
+            Assert.That(encounter.IsRevealHeld,Is.False,"The camera is back on the hero.");
+            Assert.That(ability.IsHeld,Is.False);
+            Assert.That(button.IsUsable,Is.True,"The button answers again.");
+            Assert.That(ability.TryUse(),Is.True,"And the ability fires.");
+            Assert.That(ability.UseCount,Is.EqualTo(1));
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // The reveal frames the gate's boss, not whichever of its wave stands nearest the hero: floor 2's Warden walks out
         // between two Cinder Mites, and from the floor's start a Mite stands nearer, so the camera turned to the Mite (the
         // run flow's review, 2026-11-11). Resources/Development/Floor_GateEscortProof: the gate's room as floor 2 plays it.
