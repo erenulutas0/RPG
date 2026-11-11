@@ -5,10 +5,10 @@ namespace Cryptforge.UI
     // The HUD's whole-number lines, made as string.Format makes them with one allocation, the line itself: string.Format
     // boxes every number and makes a string of each before it makes the line, seven allocations for the experience line,
     // which is made again for every experience drop picked up. Only a format of plain text and plain placeholders ("{0}",
-    // "{1}", "{2}") over numbers from zero up is made here, as the gold and experience lines are; anything else - an
-    // alignment or a format string in a placeholder, an escaped or a stray brace, a placeholder past the arguments, a
-    // negative number, no format at all - is handed to string.Format, so the text, or the exception, is always
-    // string.Format's (HudTextTests). The main thread's alone: one buffer serves every call.
+    // "{1}", "{2}") over numbers from zero up is made here, as the gold and experience lines are; anything else - any
+    // other placeholder (an alignment, a format string, a leading zero), an escaped or a stray brace, a placeholder past
+    // the arguments, a negative number, no format at all - is handed to string.Format, so the text, or the exception, is
+    // always string.Format's (HudTextTests). The main thread's alone: one buffer serves every call.
     internal static class HudText
     {
         // Small counts - a cooldown's seconds - each made once, so a countdown makes no string as it ticks.
@@ -47,16 +47,15 @@ namespace Cryptforge.UI
                     Put(ref length, c);
                     continue;
                 }
-                // "{", an index of one or two digits, "}": anything else in a placeholder is string.Format's.
-                int index = 0, digits = 0;
-                while (++i < format.Length && format[i] >= '0' && format[i] <= '9' && digits < 2)
-                {
-                    index = index * 10 + (format[i] - '0');
-                    digits++;
-                }
-                if (digits == 0 || i >= format.Length || format[i] != '}' || index >= count)
+                // "{", one digit naming an argument, "}": anything else in a placeholder - more digits, a leading zero,
+                // spaces, an alignment, a format string - is string.Format's.
+                if (i + 2 >= format.Length || format[i + 2] != '}')
+                    return false;
+                int index = format[i + 1] - '0';
+                if (index < 0 || index >= count)
                     return false;
                 PutNumber(ref length, index == 0 ? arg0 : index == 1 ? arg1 : arg2);
+                i += 2;
             }
             text = new string(_buffer, 0, length);
             return true;
