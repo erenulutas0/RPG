@@ -76,6 +76,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/SwarmDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryGateCallTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FootworkRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AutopilotCohortTests.cs" />
@@ -117,6 +118,8 @@
     <Compile Include="CardScoreResearch.cs" />
     <!-- The engaged uptime research of 2026-11-11 on demand: a floor's seconds by phase under each reading of engaged. -->
     <Compile Include="EngagedResearch.cs" />
+    <!-- The gate's early call research of 2026-11-11 on demand: the wait's call policies and rewards, every cohort. -->
+    <Compile Include="GateCallResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
