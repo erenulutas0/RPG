@@ -397,3 +397,409 @@ on the one-model route (or cuts and rigs P2), integrates it, and shows matched b
 7. **The bleed's look** on stone enemies: a crimson rift rather than blood (proposed).
 8. **The palette.** Silver-led (proposed) rather than the bible's purple-black.
 9. **The art route after P1:** one Blender model (proposed), or the painted parts.
+
+## Measured 2026-11-11: the proposal in the simulation
+
+Research only. Nothing in the game changed: no HeroDefinition asset, no roster entry, no scene code, and no line of
+Scripts (`WeaponRuntime`, `AbilityRuntime` and `HealthState` are as they were). The Riftblade is a hero of the foundry
+simulation alone, `DescentSimulation.Riftblade()`. Its rules are written as the pure bodies section 3 names, in the
+simulation's assembly, so that they can move into Scripts as they stand.
+
+**In short.**
+- The proposal holds the gate's Warden band with either hands: 53 / 49 s on floor 1 (frame-perfect / human hands).
+- It holds docs/40's elite quest: a Captain falls 1.4 / 1.7 s after walking in, and never within a frame.
+- The careful clears match the Vanguard's (200 / 198 of 200), and the clumsy and first-card cohorts clear less with Nix
+  than with the Vanguard: it sits above skill 1.
+- R_skill is 1.09x / 1.03x, not 1.6-2.0x, and no variant reaches even section 2's 1.3-1.5x. The best, a hold at the
+  Warden's feet whenever the dash is ready, gives 1.21x / 1.15x. On the Warden the dash adds only the Daggers' seconds
+  at its feet: the careful pilot kites it at 2.0, where the Sword and the Staff reach it and the Daggers do not.
+- The dash's worth is defence with human hands: about a third fewer Warden slams land on Nix, and the standing and
+  first-card cohorts clear both floors 7-16 more times with it. The careful cohort's gain (+1 to +9) is within noise.
+- The passive on every weapon takes the Warden under 45 s. Sever adds damage but saves no one.
+
+### What was built (the simulation's side, every path off for the Vanguard and Ilya)
+
+- `DescentSimulation.Riftblade()`: 85 health, the Daggers at the start (the category base: 7 every 0.3 s at 1.8, every
+  third strike x2, x2 on the elite enemies), no other weapon at the forge. A `RiftbladeKit` stands in the ability's
+  place.
+- `Tests/Support/RiftbladeRules.cs`, one pure body each. Nothing draws and nothing raises to a power, and the float math
+  the scene and the simulation would share sits in one never-inlined method each.
+  - `BleedRule` + `BleedState`. A wound is 60 % of the crit as it landed (`WoundOf`). A wound sets the pool's six 0.5 s
+    ticks back to full, and each tick pays the pool over the ticks left (`TickOf`), so every wound is paid in full. A
+    fresh pool's clock starts at its wound; a pooled one keeps its own.
+  - `MomentumRule` + `MomentumState`, the stride tracker: 2.5 floor units walked and 1.2 s since the last crit. `Stride`
+    is the square root of `ArenaFloor.FloorDistanceSquared`, fed from the hero's position before and after the walk
+    step, the dash's travel included. The hero starts with the clock run out, and nothing banks past priming.
+  - `PhaseDashRule` + `PhaseDashState`: 3 units in 0.2 s (`StepOf`), a 0.3 s guard from the first step, 9 s.
+  - `ActiveClock` (AbilityRuntime's cooldown for an active with no damage), `SeverRule` (the variant), `DashFootwork`
+    (the autopilot's two dash rules).
+- **The primed crit.** `WeaponRuntime` was not touched, so the simulation decides the crit beside the strike.
+  - The order is rhythm, primed, rolled: a Daggers strike that its rhythm does not crit takes the primed crit.
+  - Its own landings that the weapon did not crit itself are doubled where they land. A factor of two is exact in
+    floating point before or after the shares, so each landing is the one a crit of the weapon's own would make.
+  - A primed crit's Rift Echo splinter is thrown by the simulation after the strike's pulse. In the scene it would come
+    from `TryAttack`, before the pulse; the order matters only on a strike that also pulses.
+- **Wounds.** Every crit of the Daggers (the rhythm's, a rolled one, the primed one) opens a wound on its target, at
+  60 % of the crit after the Daggers' x2 on an elite.
+  - Its ticks are the Daggers' work (`FoundryWeaponWork.DealtByBleed`) and no landing. Bleed kills read "bleed".
+  - A bleeding enemy first ticks the frame after its first wound, as BurnStatus does.
+- **Phase Dash** runs at the walk step.
+  - A press is taken at the next walk step, along the steer the pilot holds or the last heading walked.
+  - The dash moves 0.25 units a frame for 12 frames through `FoundryMap.Move`.
+  - The guard is read in `HeroDamaged`, the one place every hit comes through (a strike, the slam, the pit's spill).
+- **The autopilot's dash** rides on `Habit.UsesTheAbility`, so the auto-farmer never dashes. With human hands each press
+  comes a reaction after its moment (`PilotRealism`).
+  - **The late escape.** The dash is ready and the Warden's mark is seen round the hero. A cohort that escapes marks
+    then holds at the Daggers' reach of the Warden: `FootworkRule.StepIn` with the mark left to the dash, so only at
+    half health or more and with the band dark. It presses as the blow comes due within the guard less a frame
+    ((1 - progress) x 1.1 s <= 0.3 s - 1/60), out along `EscapeMark`'s heading. With the dash cooling it walks out
+    early.
+  - **Out of a surround:** four or more enemies within their own reach and the hero under half its health. It dashes out
+    along the kite's heading.
+- **The variants are levers of the hero's kit**, each default the proposal:
+  - (a) Quicksilver Stride on every weapon. The primed crit goes to whichever weapon strikes first, and every weapon's
+    crits wound, a pool a weapon.
+  - (b) Sever in the dash's place: 18 s, on the heaviest enemy within 3 units that is not the horde's. Its mark holds
+    3 s: every weapon's landing on it deals +30 % (the Daggers' options' D), and x2 on that below 30 % of its health
+    (E). The extra is the ability's work. It deals nothing itself, so nothing falls to it outside the execute. The
+    Warden is marked and executed as any enemy.
+  - (c) health 90; (d) no active at all, R_skill's denominator.
+  - Section 4's others, careful only: the wound at 0.4 and 0.8, the dash at 12 s, health 80, and the dash as an escape
+    only. Also a hold at the Warden's feet whenever the dash is ready: section 2's estimate assumed it; step 6's rule
+    does not.
+- `Tools/CombatChecks/RiftbladeResearch` (explicit). `TheRiftbladeOverASeedBatch` writes riftblade.md, riftblade.csv (a
+  row a cell) and riftblade-runs.csv (a row a run). `OneRiftbladeSeedAsTheTelemetryWouldWriteIt` traces one seed.
+- `RiftbladeSimulationTests` (13, in CombatChecks):
+  - the pool pays every wound in full, a refresh loses nothing, thirty frames are a tick;
+  - the stride's walk and clock; the dash's 3 units in 12 frames and its 18 guarded frames; Sever's threshold; the
+    pilot's two dash rules; the kit's defaults;
+  - the Vanguard and Ilya reach none of it;
+  - on the simulated floor: the stride and the wounds on the Daggers alone, the floor's accounting adding up with the
+    bleed; the dash, its hold and its guard, with either hands, and none without an active or for the auto-farmer;
+    Sever; the passive on every weapon.
+- **The default batch is byte-identical.** `FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`, base ba11a36f against
+  this branch, the same Editor files. foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv,
+  foundry-gate.md and foundry-cohorts.md are the same to the byte. foundry-batch.md differs in its date and its
+  wall-clock seconds only (TestResults/riftblade-1111/main-default and after-default).
+
+### How it was measured
+
+Every number in this section's tables was measured on **main ba11a36f** (the floor before cebf8775's forge-walk fix; the
+re-read on cebf8775 is at the section's end). `RiftbladeResearch`: seeds 1-200 a hero, both floors (a floor-1 clear goes
+on to floor 2), every cohort, frame-perfect and with `FOUNDRY_REALISM=typical` ("human hands"), `FOUNDRY_PARALLEL=6`;
+TestResults/riftblade-1111/full.
+- The Vanguard and Ilya are the same harness's runs. Each is also played by the careful pilot less the ability's habit
+  (careful-no-ability), its own R_skill's denominator.
+- The holdout: seeds 201-400, the careful cohort, both hands (holdout/). The hold whenever the dash is ready, every
+  cohort (hold-ready/; it replaces full/'s careful-only row of it, which an earlier build of the lever wrote).
+- Read differences under about 10 of 200 as noise, as docs/41 does. Cells: frame-perfect ; human hands unless a table
+  says otherwise.
+
+### The clears
+
+Of 200: careful / standing / first-card / clumsy / auto-farmer.
+
+| Hero | Floor 1, frame-perfect | Floor 1, human hands | Both floors, frame-perfect | Both floors, human hands |
+|---|---|---|---|---|
+| Vanguard | 200 / 195 / 196 / 106 / 11 | 198 / 181 / 183 / 81 / 9 | 200 / 180 / 196 / 99 / 2 | 192 / 162 / 177 / 65 / 3 |
+| Ilya | 200 / 195 / 200 / 183 / 36 | 198 / 179 / 197 / 138 / 29 | 200 / 176 / 200 / 164 / 6 | 195 / 156 / 192 / 109 / 3 |
+| **Nix as proposed** | 200 / 192 / 193 / 85 / 14 | 198 / 183 / 158 / 45 / 12 | 200 / 178 / 193 / 74 / 2 | 198 / 166 / 155 / 29 / 1 |
+| (a) the passive on every weapon | 200 / 192 / 193 / 77 / 10 | 199 / 184 / 158 / 51 / 11 | 200 / 184 / 193 / 74 / 3 | 199 / 173 / 155 / 34 / 2 |
+| (b) Sever | 200 / 195 / 195 / 80 / 14 | 192 / 178 / 159 / 45 / 12 | 200 / 182 / 195 / 68 / 2 | 190 / 162 / 153 / 33 / 1 |
+| (c) health 90 | 200 / 194 / 194 / 87 / 15 | 199 / 185 / 161 / 43 / 12 | 200 / 183 / 194 / 75 / 2 | 199 / 172 / 156 / 27 / 3 |
+| (d) no active | 200 / 187 / 193 / 81 / 14 | 196 / 173 / 150 / 44 / 12 | 200 / 174 / 193 / 70 / 2 | 189 / 159 / 139 / 32 / 1 |
+| The hold whenever the dash is ready | 200 / 192 / 193 / 84 / 14 | 194 / 185 / 155 / 42 / 12 | 200 / 179 / 193 / 67 / 2 | 193 / 166 / 151 / 31 / 1 |
+
+The holdout (seeds 201-400, careful, floor 1 / both floors, human hands; frame-perfect every hero clears 200 / 200):
+Vanguard 196 / 194, Ilya 200 / 197, Nix 198 / 195, (a) 199 / 198, (b) 197 / 196, (c) 197 / 196, (d) 194 / 192, the hold
+whenever ready 199 / 195. The careful-only levers, seeds 1-200 (frame-perfect 200 / 200 each): the wound at 0.4 198 /
+195 and at 0.8 200 / 200, the dash at 12 s 197 / 196, health 80 196 / 196, the dash as an escape only 197 / 195.
+
+### The Warden
+
+The careful cohort's felled fights, P50 (P90), floor 1 ; floor 2 (its own fight, the escort apart). The gate's band is
+45-65 s, docs/40 section 8.8's for the Riftblade 35-55 s. No fight of any cell fell within 5 s: the shortest of the
+proposal's is 36 / 30 s.
+
+| Hero | Frame-perfect | Human hands | Holdout, frame-perfect | Holdout, human hands | Died at the Warden, floor 1 ; 2 (fp , hh) |
+|---|---|---|---|---|---|
+| Vanguard | 56 (68) ; 58 (70) | 51 (65) ; 54 (64) | 58 (69) ; 58 (71) | 52 (63) ; 54 (66) | 0 ; 0 , 1 ; 3 |
+| Ilya | 50 (60) ; 52 (63) | 45 (56) ; 49 (61) | 51 (61) ; 53 (62) | 48 (57) ; 49 (60) | 0 ; 0 , 2 ; 2 |
+| **Nix as proposed** | 53 (65) ; 52 (66) | 49 (61) ; 51 (62) | 53 (66) ; 54 (66) | 50 (60) ; 51 (61) | 0 ; 0 , 1 ; 0 |
+| (a) every weapon | 43 (54) ; 44 (54) | 43 (51) ; 44 (54) | 45 (54) ; 45 (55) | 43 (50) ; 44 (53) | 0 ; 0 , 1 ; 0 |
+| (b) Sever | 51 (66) ; 54 (66) | 49 (58) ; 50 (62) | 53 (65) ; 54 (66) | 49 (58) ; 51 (62) | 0 ; 0 , 8 ; 2 |
+| (c) health 90 | 53 (65) ; 52 (66) | 49 (61) ; 51 (62) | 53 (66) ; 54 (66) | 50 (60) ; 51 (62) | 0 ; 0 , 0 ; 0 |
+| (d) no active | 57 (69) ; 58 (69) | 51 (62) ; 53 (65) | 59 (71) ; 58 (71) | 51 (63) ; 54 (66) | 0 ; 0 , 3 ; 5 |
+| The hold whenever ready | 48 (59) ; 49 (62) | 45 (58) ; 46 (56) | 48 (59) ; 49 (62) | 46 (56) ; 46 (58) | 0 ; 0 , 5 ; 0 |
+| The dash at 12 s | 56 (69) ; 56 (69) | 50 (62) ; 50 (62) | - | - | 0 ; 0 , 2 ; 0 |
+| The dash as an escape only | 60 (73) ; 58 (77) | 52 (64) ; 53 (65) | - | - | 0 ; 0 , 2 ; 2 |
+
+### R_skill
+
+The careful cohort's own damage a second on the Warden, with its active over without: every weapon, burn, bleed and
+ability, the pit apart, over the fight after the reveal. P50 with / without = R, with a bootstrap's 95 % for the ratio
+on seeds 1-200. The denominators:
+- the Vanguard and Ilya: careful-no-ability;
+- the Riftblade's variants: Nix with no active;
+- the passive on every weapon: itself with no active.
+
+docs/40's targets: Vanguard 1.05-1.15x, Ilya 1.35-1.6x, Riftblade 1.6-2.0x.
+
+| Hero | Floor 1, frame-perfect | Floor 1, human hands | Floor 2, fp ; hh | Holdout, floor 1 , 2: fp ; hh |
+|---|---|---|---|---|
+| Vanguard (Forge Burst) | 53.1 / 51.3 = 1.04x [0.99-1.08] | 56.3 / 54.2 = 1.04x [0.99-1.10] | 1.03x ; 1.06x | 1.01x , 1.01x ; 1.03x , 1.01x |
+| Ilya (Crucible Vent) | 61.2 / 60.4 = 1.01x [0.97-1.05] | 66.0 / 64.8 = 1.02x [0.98-1.07] | 0.99x ; 0.97x | 1.02x , 1.02x ; 1.00x , 1.05x |
+| **Nix, Phase Dash** | 56.4 / 51.9 = 1.09x [1.02-1.15] | 58.1 / 56.7 = 1.03x [0.97-1.09] | 1.02x ; 0.96x | 1.10x , 1.02x ; 1.01x , 0.98x |
+| (a) every weapon, the dash | 71.5 / 66.8 = 1.07x [1.02-1.13] | 71.4 / 71.4 = 1.00x [0.95-1.06] | 1.05x ; 0.97x | 1.07x , 1.01x ; 1.03x , 0.95x |
+| (b) Sever | 56.0 / 51.9 = 1.08x [1.03-1.16] | 59.6 / 56.7 = 1.05x [1.00-1.11] | 1.10x ; 1.10x | 1.11x , 1.10x ; 1.07x , 1.05x |
+| (c) health 90 | 1.09x | 1.03x | 1.02x ; 0.97x | 1.10x , 1.02x ; 1.02x , 0.99x |
+| The hold whenever ready | 62.7 / 51.9 = 1.21x [1.14-1.27] | 65.0 / 56.7 = 1.15x [1.10-1.20] | 1.21x ; 1.12x | 1.22x , 1.17x ; 1.17x , 1.14x |
+| The dash at 12 s | 1.00x | 1.04x | 1.01x ; 1.00x | - |
+| The dash as an escape only | 0.96x | 0.99x | 0.99x ; 0.98x | - |
+| The wound at 0.4 ; at 0.8 | 1.06x ; 1.09x | 1.03x ; 1.04x | 1.03x , 1.03x ; 1.00x , 1.03x | - |
+
+- **Nix's Daggers alone on the Warden** are no ratio. Frame-perfect they deal it 4.5 a second with the dash (1.4 of it
+  the bleed) and 0 without; with human hands 8.3 against 6.7, since a human's kite drifts within their reach.
+- **The floor's damage a second** is 1.00x for every hero and variant: the horde comes as it comes, and every hero kills
+  it.
+- **A Captain's time under fire**, P50 without / with (careful, frame-perfect): Vanguard 1.43 / 1.08 s (the Burst), Ilya
+  1.25 / 1.27, Nix 1.13 / 1.12, Sever 1.13 / 1.04.
+
+### The elites
+
+The elite rooms' Grunt Captains felled on either floor: walking in to falling P50 ; under fire P50, frame-perfect ,
+human hands. The careful cohort's P90 is 2.5 s or less, the longest 13 s (clumsy), and every Captain fell within docs/40
+13.1's 30 s.
+
+| Hero | careful | standing | clumsy | auto-farmer |
+|---|---|---|---|---|
+| Vanguard | 1.4 ; 1.08 , 1.7 ; 1.37 | 5.1 ; 2.45 , 5.1 ; 2.53 | 6.5 ; 3.07 , 6.5 ; 3.25 | 2.5 ; 1.80 , 2.6 ; 1.80 |
+| Ilya | 1.6 ; 1.27 , 1.8 ; 1.50 | 5.1 ; 2.47 , 5.2 ; 2.52 | 5.8 ; 3.30 , 6.0 ; 3.35 | 2.5 ; 1.40 , 2.5 ; 1.33 |
+| **Nix as proposed** | 1.4 ; 1.12 , 1.7 ; 1.37 | 5.1 ; 2.45 , 5.2 ; 2.57 | 5.5 ; 2.80 , 5.9 ; 3.33 | 2.5 ; 1.30 , 2.5 ; 1.23 |
+| (a) every weapon | 1.4 ; 1.10 , 1.6 ; 1.28 | 5.0 ; 2.50 , 5.1 ; 2.58 | 5.7 ; 3.12 , 5.7 ; 3.52 | 2.4 ; 1.40 , 2.4 ; 1.49 |
+| (b) Sever | 1.4 ; 1.04 , 1.6 ; 1.25 | 4.9 ; 2.45 , 4.9 ; 2.32 | 5.5 ; 3.21 , 5.7 ; 3.27 | 2.5 ; 1.30 , 2.5 ; 1.23 |
+| (d) no active | 1.5 ; 1.13 , 1.7 ; 1.37 | 5.2 ; 2.53 , 5.2 ; 2.57 | 5.5 ; 2.67 , 5.8 ; 3.28 | 2.5 ; 1.30 , 2.5 ; 1.23 |
+
+No Captain of any cell, the holdout included, fell within a frame of its first damage: the primed crit on the elite
+share (x4 on a strike) and its wound one-shot nothing.
+
+### Damage by job and by weapon
+
+The careful cohort, floor 1: each weapon's own damage a second, P50 of the runs that held it. The horde is a second it
+was held, the Captains a second of the elite rooms' fights, the Warden a second of its fight after the reveal. In
+brackets is the part its wounds paid. The Warden's health is the mean share over the felled fights, by what took it.
+Every Nix run held all three weapons by the gate.
+
+| Hero | Daggers: horde / Captains / Warden | Sword | Staff | The Warden's health |
+|---|---|---|---|---|
+| Vanguard, fp | 1.3 / 31.3 / 0.0 | 8.3 / 12.7 / 26.8 | 30.4 / 16.5 / 23.4 | Sword 43 %, Staff 36 %, Daggers 1 %, ability 2 %, pit 18 % |
+| Vanguard, hh | 1.3 / 25.6 / 3.8 | 8.4 / 13.0 / 27.6 | 30.2 / 18.8 / 23.3 | Sword 39 %, Staff 33 %, Daggers 5 %, ability 2 %, pit 20 % |
+| Ilya, fp | 1.2 / 30.2 / 0.0 | 6.9 / 13.3 / 26.7 | 31.4 / 18.3 / 23.2 | Sword 37 %, Staff 31 %, burn 12 %, ability 2 %, pit 18 % |
+| **Nix, fp** | 2.0 / 33.2 (2.3) / 4.5 (1.4) | 7.9 / 11.1 / 28.2 | 30.7 / 14.9 / 22.9 | Sword 41 %, Staff 34 %, Daggers 5 %, bleed 2 %, pit 19 % |
+| **Nix, hh** | 1.9 / 27.3 (2.1) / 8.3 (2.7) | 7.6 / 11.2 / 26.5 | 30.7 / 16.8 / 22.5 | Sword 36 %, Staff 31 %, Daggers 8 %, bleed 4 %, pit 21 % |
+| (a) every weapon, fp | 1.6 / 29.4 (1.0) / 3.7 (0.9) | 7.9 / 13.4 / 36.1 (6.8) | 30.4 / 19.1 (0.4) / 29.1 (4.0) | Sword 36 %, Staff 30 %, Daggers 3 %, bleed 14 %, pit 17 % |
+| (b) Sever, fp | 2.1 / 25.3 (1.6) / 0.0 | 7.6 / 8.6 / 27.0 | 30.6 / 12.2 / 22.5 | Sword 39 %, Staff 33 %, Daggers 1 %, ability 9 %, pit 18 % |
+| (d) no active, fp | 2.1 / 33.2 (2.3) / 0.0 | 7.9 / 11.1 / 27.8 | 31.0 / 14.9 / 23.5 | Sword 43 %, Staff 36 %, Daggers 1 %, pit 19 % |
+| The hold whenever ready, fp | 2.0 / 33.2 (2.3) / 12.2 (3.4) | 7.8 / 11.1 / 27.6 | 30.4 / 14.9 / 22.8 | Sword 36 %, Staff 30 %, Daggers 12 %, bleed 4 %, pit 18 % |
+
+In Nix's runs the Daggers lead the elite job: 33 a second on the Captains against the Staff's 15 and the Sword's 11. The
+Staff keeps the horde and the Sword the Warden. The gate's roles row reads the Vanguard and does not move.
+
+### Deaths, floor time, the passive and the dash at work
+
+Deaths by place, floor 1, of 200: halls / elite rooms / the gate's wait / the Warden.
+
+| Cohort | Vanguard, fp ; hh | Ilya, fp ; hh | Nix, fp ; hh | Nix with no active, fp ; hh |
+|---|---|---|---|---|
+| careful | 0 / 0 / 0 / 0 ; 1 / 0 / 0 / 1 | 0 / 0 / 0 / 0 ; 0 / 0 / 0 / 2 | 0 / 0 / 0 / 0 ; 1 / 0 / 0 / 1 | 0 / 0 / 0 / 0 ; 1 / 0 / 0 / 3 |
+| standing | 1 / 0 / 0 / 4 ; 1 / 0 / 0 / 18 | 0 / 0 / 0 / 5 ; 0 / 0 / 0 / 21 | 1 / 0 / 0 / 7 ; 1 / 0 / 0 / 16 | 5 / 0 / 0 / 8 ; 4 / 0 / 0 / 23 |
+| first-card | 4 / 0 / 0 / 0 ; 15 / 0 / 0 / 2 | 0 / 0 / 0 / 0 ; 0 / 0 / 0 / 3 | 6 / 0 / 1 / 0 ; 40 / 0 / 0 / 2 | 6 / 0 / 1 / 0 ; 40 / 0 / 0 / 10 |
+| clumsy | 65 / 6 / 2 / 21 ; 90 / 0 / 5 / 24 | 1 / 0 / 1 / 15 ; 13 / 1 / 1 / 47 | 100 / 2 / 0 / 13 ; 130 / 0 / 1 / 24 | 102 / 2 / 0 / 15 ; 130 / 0 / 2 / 24 |
+| auto-farmer | 81 / 0 / 1 / 107 ; 93 / 0 / 0 / 98 | 1 / 0 / 1 / 162 ; 3 / 0 / 0 / 168 | 116 / 0 / 1 / 69 ; 115 / 0 / 0 / 73 | 116 / 0 / 1 / 69 ; 115 / 0 / 0 / 73 |
+
+- **Floor 2's deaths** are few for every hero: Nix's careful 0 ; 0 and standing 14 ; 17, all at the Warden, against the
+  Vanguard's 15 ; 17.
+- **Floor time**, the careful clears' P50, floor 1 ; floor 2 ; both: Vanguard 291 ; 143 ; 433 s (fp) and 284 ; 138 ; 422
+  (hh), Ilya 283 ; 136 ; 419 and 278 ; 133 ; 410, Nix 287 ; 133 ; 421 and 282 ; 133 ; 416. Nix with no active takes 292
+  ; 142 ; 434 and 284 ; 137 ; 423, the passive on every weapon 277 ; 125 ; 403 and 275 ; 124 ; 399.
+- **The primed crits** come 7.1 / 8.2 a minute for the careful cohort and 7.3 / 7.1 for the standing one. The clumsy
+  one, which lets the horde close, gets 15.5 / 16.2. On every weapon they come 24-27 a minute.
+- **The wounds** go the other way: careful 7.0 / 9.4 a minute, standing 13.4 / 12.9, clumsy 17.1 / 15.4. The bleed is
+  0.8 / 1.4 % of the careful hero's damage (4.8 % on every weapon).
+- **The dash, careful.** It comes 4 / 3 times a floor and holds at the Warden's feet 2.3 / 2.1 s a fight. Its guard
+  turns 1.1 / 2.8 hits a floor.
+  - Frame-perfect, the dash leaves the mark before the blow: 11 slams in 400 floors came down on the hero, all turned.
+  - With human hands the press comes about two frames before the blow (a 0.25 s reaction after the moment it was due),
+    and the guard carries the escape. 79 % of the 1041 slams that came down on a held hero were turned.
+  - A floor-1 Warden fight lands 0.67 slams on Nix, against 0.89 with no active, 0.91 on the Vanguard and 0.81 on Ilya.
+- **The auto-farmer at the Warden.** Of its runs that reached floor 1's Warden, 69 of 83 died there (83 %) frame-perfect
+  and 73 of 85 (86 %) with human hands, against the Vanguard's 107 of 118 (91 %) and 98 of 107 (92 %). It reaches the
+  Warden less often, since it dies in the halls.
+
+### docs/46's acceptance, row by row
+
+| Row | Measured | Verdict |
+|---|---|---|
+| No regression | the default batch to the byte (above); CombatChecks 763 (750 + 13), UnityCompileCheck clean; Unity's suites not run | met |
+| Clears, careful | 200 / 198 against the Vanguard's 200 / 198 (floor 1), 200 / 198 against 200 / 192 (both); holdout 200 / 198 and 200 / 195 against 200 / 196 and 200 / 194 | met |
+| Clears, the weaker cohorts | clumsy 85 / 45 against the Vanguard's 106 / 81; first-card 193 / 158 against 196 / 183; standing 192 / 183 against 195 / 181; auto-farmer 14 / 12 against 11 / 9 | met for clumsy and first-card; standing (hh) and the auto-farmer a few runs above, within noise |
+| The walk | primed crits a minute, careful 7.1 / 8.2 against standing 7.3 / 7.1 | reported: the passive does not read the walk |
+| R_skill 1.6-2.0x | 1.09x / 1.03x (floor 1), 1.02x / 0.96x (floor 2); the hold whenever ready 1.21x / 1.15x | not met; nothing measured reaches section 2's 1.3-1.5x |
+| Elites | a Captain falls P50 1.4 / 1.7 s from walking in, 1.12 / 1.37 s under fire, none within a frame | met |
+| Warden | 53 / 49 s on floor 1, 52 / 51 s on floor 2 (holdout 53 / 50, 54 / 51); the shortest 36 / 30 s | met |
+| Boss'ta zorlanmalı | the auto-farmer dies at the Warden 83 / 86 % against the Vanguard's 91 / 92 %; floor 1 cleared 14 / 12 against 11 / 9 | not met, by a few runs: it dies in the halls first |
+| Roles | the gate's row reads the Vanguard and is byte-identical; Nix's Daggers 33 / 27 a second on the Captains, 5-8 % of the Warden's health and the bleed 2-4 % | reported |
+| Parity, device | no Editor run, no scene build | not measured |
+
+### docs/46's questions 2-4: what the numbers say
+
+**Question 2, the active.**
+- **Phase Dash as proposed adds little damage.** R_skill is 1.09x / 1.03x on floor 1 and 1.02x / 0.96x on floor 2. Its
+  worth is the escape, with human hands (seeds 1-200 on ba11a36f ; the same seeds on cebf8775, below):
+  - a third fewer slams land a floor-1 Warden fight: 0.67 ; 0.68 against 0.89 ; 0.99 with no active (holdout 0.70
+    against 0.96);
+  - the first-card cohort clears both floors 155 ; 154 times with it and 139 ; 141 without, the standing one 166 ; 164
+    and 159 ; 156;
+  - the careful one 198 ; 193 and 189 ; 192 (holdout 195 and 192): within noise.
+- **The dash at 12 s or as an escape only** loses the little damage the dash adds (1.00x, 0.96x frame-perfect) and keeps
+  the clears (197 / 196, 197 / 195). The 9 s and the hold earn their place.
+- **Sever adds damage of the dash's size:** 1.08x / 1.05x on floor 1, 1.10x / 1.10x on floor 2, 8-9 % of the Warden's
+  health as its extra, a Captain 1.04 s under fire against 1.13. It saves no one: with human hands the careful clears
+  are 192 / 190 and the careful Nix dies at floor 1's Warden 8 times (3 with no active, 1 with the dash).
+- So Phase Dash is right as the one active, as a defence. Sever later would not raise R_skill much.
+- **The dash's heading.** Only the stick's was measured: the autopilot holds the escape's heading and the dash takes it.
+  A heading toward the Warden would be a closing-in. Its nearest measured stand-in is the hold at the Warden's feet
+  whenever the dash is ready (question 4); a dash spent on closing in is not there to leave the mark.
+
+**Question 3, the passive's reach.**
+- **On the Daggers alone the passive is small.** The Daggers seldom reach what the Sword and the Staff have not felled:
+  2 a second on the horde. So the primed crit comes 7-8 times a minute in every hand, and it does not read the walk. The
+  wounds favour the cohorts that let enemies close. The Warden stays in the band (53 / 49 s), and the elite job is the
+  Daggers' (33 / 27 a second on the Captains).
+- **On every weapon** the primed crits come 24-27 a minute and the bleed takes 14 % of the Warden. The Sword deals the
+  Warden 36 a second against 28, and the fight falls to 43 / 43 s (holdout 45 / 43): under the gate's 45 s with either
+  hands, inside docs/40's 35-55 s for this hero. The clears barely move, and the dash's R_skill over the same passive is
+  1.07x / 1.00x.
+- So the Daggers alone, as proposed. The passive on every weapon would need the Warden's health share re-measured for
+  this hero.
+
+**Question 4, which binds.**
+- **The two do not trade against each other as section 2 estimated.** The gate's 45-65 s holds for the proposal (53 /
+  49 s). R_skill on the hero's whole damage on the Warden is 1.0-1.1x, not 1.3-1.5x.
+- **No variant reaches 1.6x.** The strongest is the hold at the Warden's feet whenever the dash is ready: 1.21x / 1.15x
+  (holdout 1.22x / 1.17x), and a 48 / 45 s fight, at the band's floor with human hands.
+- **Why.** The careful pilot kites the Warden at 2.0 units, where the Sword (2.1) and the Staff (2.4) reach it and the
+  Daggers (1.8) do not. The Sword and the Staff take three quarters of its health whether or not Nix dashes. The dash
+  adds only the Daggers' seconds at its feet:
+  - 2.1-2.3 s a fight as proposed, the Daggers 4.5 a second over the fight;
+  - 6.6 s and 12.2 a second with the hold whenever ready.
+- **Section 2's estimate** assumed the hold whenever the dash is ready (a quarter of the fight); step 6's rule holds
+  through the telegraph alone.
+- **The same reading finds every hero's active small:** the Vanguard's Forge Burst 1.04x, Ilya's Crucible Vent 1.01x.
+  docs/40's 1.05-1.15x and 1.35-1.6x are not met either, so R_skill on the Warden cannot separate the heroes' actives in
+  this harness.
+- **On Nix's Daggers alone R_skill is no ratio:** 4.5 a second against 0 (frame-perfect).
+- So let the gate's 45-65 s bind. Read the Riftblade's skill 4 where it shows: in the weaker cohorts' clears, and in the
+  slams the dash turns with human hands.
+
+**Where the Riftblade sits in docs/40's skill order (Vanguard 1, Ilya 3, Riftblade 4).** On clears in weaker hands Nix
+sits above the Vanguard:
+- the clumsy cohort clears floor 1 with Nix 85 / 45 times, against the Vanguard's 106 / 81 and Ilya's 183 / 138;
+- the first-card cohort, with human hands, 158 against 183 and 197;
+- the standing and auto-farmer cohorts clear about what the Vanguard's do;
+- its clumsy and auto-farmer runs die in the halls (100 / 130 and 116 / 115 of 200), fragile under the horde as docs/40
+  makes it.
+
+Ilya stays the exception docs/46 noted, below the Vanguard. By R_skill there is no order to read: 1.0-1.1x for all
+three.
+
+### Recommendation
+
+1. **Build the proposal as it stands** once the owner and the device row allow: 85 health, the Daggers, Quicksilver
+   Stride on the Daggers alone, Phase Dash at 9 s with the late escape. It meets the gate's Warden band with either
+   hands, the careful clears and the elite quest, and it is the hardest of the three heroes in weaker hands.
+2. **Rewrite section 4's R_skill row before the build.** Read R_skill as measured (about 1.1x on the Warden), beside the
+   dash's defence with human hands: a third fewer slams land, and the standing and first-card cohorts clear both floors
+   7-16 more times. Hold skill 4 to the clumsy and first-card clears below the Vanguard's. docs/40's 1.6-2.0x needs the
+   Daggers to carry the Warden, and that takes the Warden from the Sword.
+3. **Keep the passive on the Daggers.** On every weapon the Warden falls under 45 s.
+4. **Leave Sever out** of the first release: it adds damage of the dash's size, no survival, and a second button.
+5. **Keep 85 health.** 90 and 80 move nothing beyond noise (careful 199 / 199 and 196 / 196 with human hands, clumsy
+   43-45).
+6. **For the owner:** the hold at the Warden's feet whenever the dash is ready is the pilot's footwork, a player's by
+   hand, not a rule. It raises R_skill to 1.2x and takes the fight to 48 / 45 s, the band's floor with human hands.
+7. **Read the device before the R_skill and Warden rows are believed**, as section 4 says: the autopilot's press is
+   timed from the telegraph's progress, and a thumb's is not.
+
+### What the scene build would need
+
+Section 3's steps stand. Measuring them in the simulation made these points precise or changed them:
+- **Bleed (step 1).** "The pool spread over the time left" is six ticks a wound. Each wound sets the ticks left to six,
+  each tick pays the pool over the ticks left, and the last pays what is left (`BleedState` as it stands). A fresh
+  status first ticks the frame after its first wound.
+- **Momentum (step 2).**
+  - The hero starts with the 1.2 s run out, and neither the walk nor the clock banks past priming.
+  - The primed crit belongs in `WeaponRuntime.TryAttack` (rhythm, primed, rolled), as step 2 says. The simulation's
+    stand-in goes when TryAttack has it: it doubles the strike's own landings in `FoeDamaged` and throws a primed crit's
+    Rift Echo splinter after the pulse. The splinter then comes before the pulse, as every crit's does.
+- **Phase Dash (step 3).**
+  - The press is taken at the next walk step along the stick.
+  - With human hands it comes about two frames before the blow, so the guard, not the travel, carries the escape. The
+    guard has to be read wherever a hit lands, in `HealthState`, as step 3 says.
+- **The autopilot (step 6).** The hold is `FootworkRule.StepIn` with the mark passed as clear and the Daggers' own reach
+  (not `BestSingleTargetReach`, which picks the Sword on the Warden). The press is due at
+  (1 - progress) x Telegraph <= GuardSeconds less a frame. These bodies (`DashFootwork`) join FootworkRule.
+- **Telemetry (step 7).** Beside `dash_turned` and `dash_slams_turned`, the seconds held at the Warden's feet
+  (`dash_hold_sec`). A device session can then read a thumb's hold and press against these numbers.
+- **If the owner takes the passive on every weapon:** a pool a weapon (as measured) or one pool with its ticks split by
+  weapon, and the Warden's health share measured again for this hero.
+- **Step 5's parity pins** then hold `Riftblade()` and the rules to the assets. The simulation's research levers
+  (`RiftbladeKit`'s variants) stay research.
+
+### Re-read on main cebf8775
+
+Main moved to cebf8775 while this was measured, and this branch merges it. Three changes came with it:
+- the walk from the forge to the next hall is the horde's again: the horde and the floor's clock run on it, and floor 1
+  is about 9 s shorter;
+- the step-in counts the Daggers' share on a Captain toward the best weapon on it;
+- the gate's and the elite room's wave flags go with the wave (`ReleaseWave`).
+
+**The default batch is byte-identical to cebf8775's.** `FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`, the same
+Editor files (TestResults/riftblade-1111/cebf-main-default and cebf-after-default). The three CSVs, foundry-gate.md and
+foundry-cohorts.md are the same to the byte; foundry-batch.md differs in its date and wall-clock seconds only.
+CombatChecks 764 (751 + 13) and UnityCompileCheck clean on the merge.
+
+**The shipped heroes and the proposal again** (seeds 1-200, both floors, every cohort, both hands;
+TestResults/riftblade-1111/cebf8775). Of 200: careful / standing / first-card / clumsy / auto-farmer.
+
+| Hero | Floor 1, frame-perfect | Floor 1, human hands | Both floors, frame-perfect | Both floors, human hands |
+|---|---|---|---|---|
+| Vanguard | 200 / 190 / 196 / 108 / 9 | 195 / 184 / 182 / 78 / 10 | 200 / 173 / 196 / 101 / 2 | 194 / 159 / 178 / 66 / 2 |
+| Ilya | 200 / 194 / 200 / 182 / 36 | 199 / 181 / 197 / 131 / 29 | 200 / 185 / 200 / 165 / 3 | 195 / 159 / 197 / 105 / 4 |
+| **Nix as proposed** | 200 / 191 / 192 / 81 / 9 | 196 / 183 / 159 / 44 / 13 | 200 / 182 / 192 / 66 / 4 | 193 / 164 / 154 / 28 / 1 |
+| (d) no active | 200 / 188 / 193 / 79 / 9 | 194 / 172 / 151 / 36 / 13 | 200 / 179 / 193 / 67 / 4 | 192 / 156 / 141 / 26 / 1 |
+
+| Hero | Warden P50 (P90), floor 1 ; 2, fp | The same, hh | Careful floor-1 clear P50, fp ; hh | R_skill floor 1 ; 2, fp | The same, hh |
+|---|---|---|---|---|---|
+| Vanguard | 55 (70) ; 57 (70) | 51 (62) ; 54 (66) | 282 ; 276 s | 1.03x ; 1.00x | 1.03x ; 1.04x |
+| Ilya | 49 (60) ; 51 (63) | 46 (57) ; 48 (61) | 275 ; 270 s | 0.99x ; 1.03x | 1.01x ; 1.01x |
+| **Nix as proposed** | 53 (65) ; 53 (67) | 51 (60) ; 51 (61) | 278 ; 274 s | 1.10x ; 1.02x | 1.03x ; 0.99x |
+| (d) no active | 57 (70) ; 57 (70) | 51 (63) ; 53 (66) | 283 ; 276 s | - | - |
+
+What holds, within noise:
+- the Warden in the gate's band, the proposal 53 / 51 s;
+- R_skill about 1.1x, the dash's own (1.10x / 1.03x on floor 1);
+- the order in weaker hands: the clumsy cohort clears floor 1 with Nix 81 / 44 times against the Vanguard's 108 / 78,
+  and the first-card cohort with human hands 159 against 182;
+- the elites: a careful Captain falls P50 1.4 / 1.8 s from walking in, and no Captain of Nix's fell within a frame;
+- the dash's defence: 0.68 slams land a floor-1 Warden fight against 0.99 without it.
+
+What moved:
+- every floor is 8-9 s shorter (Nix's careful floor 1 278 / 274 s against 287 / 282), as main's fix makes it;
+- the dash's gain for the careful cohort with human hands is 193 against 192 over both floors, the noise question 2
+  reads it as;
+- the auto-farmer's floor-1 clears are 9 / 13 against the Vanguard's 9 / 10. It dies at the Warden 89 / 85 % of the
+  times it reaches it, against 92 / 91 %: the "boss'ta zorlanmalı" row stays short by a few runs.
+
+The variants were not run again on cebf8775: the forge-walk fix moves every hero alike, and the proposal and its
+denominator moved within noise.

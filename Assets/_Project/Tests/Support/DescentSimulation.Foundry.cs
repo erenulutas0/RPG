@@ -83,6 +83,9 @@ namespace Cryptforge.Tests
             public HeroWeapon Weapon;
             public HeroAbility Ability;
             public bool EmberMemory;
+            // The Riftblade's kit (docs/46, research 2026-11-11): Quicksilver Stride and its active, which stands in the
+            // ability's place (Ability null). Null for every hero the game has, whose runs it leaves as they were.
+            public RiftbladeKit Rift;
         }
 
         // Data/Heroes/Hero_Vanguard.asset: 100 health, the Sword, the Forge Burst.
@@ -97,6 +100,41 @@ namespace Cryptforge.Tests
             Id = "hero_cinder_arcanist", Name = "Ilya", MaximumHealth = 90f, Weapon = Staff(), Ability = CrucibleVent(),
             EmberMemory = true
         };
+
+        // docs/46's third hero, the Riftblade (Nix Vane), measured in the simulation before anything is built (research
+        // 2026-11-11): no HeroDefinition asset, no roster entry, no scene code. 85 health, the Daggers at the start (its own
+        // weapon only at the forge, as Ilya's Staff), Phase Dash on the ability's button and Quicksilver Stride on the
+        // Daggers (RiftbladeKit; RiftbladeRules.cs holds the rules).
+        public static FoundryHero Riftblade() => new FoundryHero
+        {
+            Id = "hero_riftblade", Name = "Nix", MaximumHealth = 85f, Weapon = Daggers(), Rift = new RiftbladeKit()
+        };
+
+        // The Riftblade's active (docs/46 question 2): Phase Dash as proposed, Sever (the variant), or none - the
+        // denominator of its R_skill.
+        internal enum RiftActive
+        {
+            PhaseDash,
+            Sever,
+            None
+        }
+
+        // The Riftblade's kit and its research levers, each default the proposal (docs/46 sections 2 and 4), read by the
+        // simulation alone: Quicksilver Stride on the Daggers or on every weapon (question 3), the wound's share, the
+        // active and the dash's cooldown, and the late escape's hold at the Warden through its telegraph (off: the dash is
+        // an escape only). HoldsWhileReady, off as proposed, holds at the Warden's feet whenever the dash is ready rather
+        // than through the telegraph alone - docs/46 section 2's estimate's reading, a player closing in by hand.
+        internal sealed class RiftbladeKit
+        {
+            public bool StrideOnEveryWeapon;
+            public float WoundShare = BleedRule.WoundShare;
+            public RiftActive Active = RiftActive.PhaseDash;
+            public float DashCooldown = PhaseDashRule.CooldownSeconds;
+            public bool HoldsForTheDash = true;
+            public bool HoldsWhileReady;
+
+            public RiftbladeKit Copy() => (RiftbladeKit)MemberwiseClone();
+        }
 
         // Data/Abilities/Ability_CrucibleVent.asset.
         public static HeroAbility CrucibleVent() =>
@@ -442,6 +480,8 @@ namespace Cryptforge.Tests
             public const string KilledByBurn = "burn";
             public const string KilledByAbility = "ability";
             public const string KilledByPit = "pit";
+            // The Riftblade's bleed (research 2026-11-11): its damage is its weapon's work, its kills read the bleed.
+            public const string KilledByBleed = "bleed";
 
             public readonly string Kind;
             public readonly bool Horde;
@@ -493,6 +533,11 @@ namespace Cryptforge.Tests
             public float DealtEliteLeader;
             public float DealtByProcs;
             public float DealtAfterEvolving;
+            // Of what it dealt, its wounds' ticks (the Riftblade's bleed, research 2026-11-11: docs/40 section 8.4's
+            // originating weapon), in all, on the Warden and on the elite rooms' Captains. 0 for every other hero.
+            public float DealtByBleed;
+            public float BleedWarden;
+            public float BleedEliteLeader;
 
             public float Dealt => DealtHorde + DealtNode + DealtWarden;
         }
@@ -691,6 +736,18 @@ namespace Cryptforge.Tests
             // The Daggers' design levers' throws and lunges (research 2026-11-11). Accounting only.
             public int DaggersThrows;
             public int DaggersLunges;
+            // The Riftblade (research 2026-11-11; 0 for every other hero): Quicksilver Stride's primed crits landed, the
+            // wounds opened, the splinters its primed crits threw, the dashes and the hits their guard turned away (the
+            // Warden's slams among them), the seconds the pilot held at the Warden's feet for a ready dash, and Sever's
+            // presses. Accounting only.
+            public int MomentumCrits;
+            public int WoundsOpened;
+            public int PrimedSplinters;
+            public int Dashes;
+            public int DashTurned;
+            public int DashSlamsTurned;
+            public float DashHoldSeconds;
+            public int Severs;
             public int AltarsTaken;
             public int ChestsOpened;
             public int DropsCollected;
@@ -718,6 +775,10 @@ namespace Cryptforge.Tests
             public float DealtByBurn;
             public float DealtByAbility;
             public float DealtByPit;
+            // The Riftblade's bleed (research 2026-11-11), apart from the weapons' landings, and its part on the Warden; its
+            // Sever's extra is the ability's (DealtByAbility, WardenFromAbility).
+            public float DealtByBleed;
+            public float WardenFromBleed;
             // The Warden's fight as docs/41 step 4 budgets its health (HP_boss = D_focus * uptime * damageable_seconds):
             // what each source took off it; the seconds of the fight after the reveal, and of those the seconds it stood
             // within the reach of the hero's longest weapon; the hero's health as it walked out; and what the hero took in
@@ -999,6 +1060,12 @@ namespace Cryptforge.Tests
             public List<float> WoundRates;
             public List<float> WoundEnds;
             public float MarkedUntil = float.NegativeInfinity;
+            // The Riftblade (research 2026-11-11): its bleed, a pool a weapon slot whose crits wound (the Daggers' slot 0 as
+            // proposed), fresh on the frame its first wound opened as a status added in an Update; and the run second its
+            // Sever's mark ends.
+            public BleedState[] Bleeds;
+            public bool BleedFresh;
+            public float SeveredUntil = float.NegativeInfinity;
             public FoundryRun Run;
 
             public bool IsAlive => Health.IsAlive;
@@ -1014,7 +1081,9 @@ namespace Cryptforge.Tests
             Weapon,
             Burn,
             Ability,
-            Pit
+            Pit,
+            // The Riftblade's wounds' ticks (research 2026-11-11).
+            Bleed
         }
 
         // A hazard's mark on the floor (FoundryLevers' echo, slag and stomp; research 2026-11-04): where it lands, how wide,
@@ -1195,6 +1264,35 @@ namespace Cryptforge.Tests
             private float _thrownBlade;
             private readonly List<IDamageable> _fan = new List<IDamageable>();
 
+            // The Riftblade (docs/46, research 2026-11-11; all null, empty or off for every other hero). Its kit; the stride
+            // tracker of Quicksilver Stride; Phase Dash's clocks, the press the next walk step takes and the last heading
+            // walked; the active's cooldown (the dash's or Sever's; null with none); and every enemy with a bleed, in the
+            // order its first wound opened.
+            private readonly RiftbladeKit _rift;
+            private readonly MomentumState _stride;
+            private readonly PhaseDashState _dash;
+            private readonly ActiveClock _active;
+            private bool _dashPressed;
+            private float _dashHeadingX;
+            private float _dashHeadingY;
+            private float _lastHeadingX;
+            private float _lastHeadingY;
+            private readonly List<Foe> _wounded = new List<Foe>();
+            // The strike being made: whether it is the primed one and its crit has landed, the target whose crit wounds and
+            // the slot whose bleed it opens; a splinter the simulation throws for a primed crit (a proc of the strike's); the
+            // slot a wound's tick is paid for.
+            private bool _primedStrike;
+            private bool _primedLanded;
+            private Foe _woundTarget;
+            private int _woundSlot = -1;
+            private bool _splinterEmulated;
+            private int _bleedSlot = -1;
+            // A realistic pilot's notice of the dash's and Sever's moments (PilotRealism): since when the late escape's blow
+            // has been due, a surround has stood and a target worth Sever has stood in its reach; NaN while not.
+            private float _lateSince = float.NaN;
+            private float _surroundSince = float.NaN;
+            private float _severSince = float.NaN;
+
             // BossRevealView: the encounter holds, and the hero's movement waits, for this many more frames.
             private readonly int _revealFrames;
             private int _revealLeft;
@@ -1346,7 +1444,22 @@ namespace Cryptforge.Tests
                 _forge = new ForgeService(_run, _heroHealth);
                 _choices = new RunChoices(_upgrades, _forge);
                 _drops = new GroundDrops(_run);
-                _ability = hero.Ability.CreateRuntime();
+                // The Riftblade's active stands in the ability's place: no AbilityRuntime, its own clock (research).
+                _ability = hero.Ability?.CreateRuntime();
+                _rift = hero.Rift;
+                if (_rift != null)
+                {
+                    _stride = new MomentumState();
+                    if (_rift.Active == RiftActive.PhaseDash)
+                    {
+                        _dash = new PhaseDashState();
+                        _active = new ActiveClock(_rift.DashCooldown);
+                    }
+                    else if (_rift.Active == RiftActive.Sever)
+                    {
+                        _active = new ActiveClock(SeverRule.CooldownSeconds);
+                    }
+                }
                 var altarX = new float[FoundryMap.AltarCount];
                 var altarY = new float[FoundryMap.AltarCount];
                 for (int i = 0; i < altarX.Length; i++)
@@ -1479,9 +1592,18 @@ namespace Cryptforge.Tests
                 _seconds += Step;
                 _revealStarted = false;
 
-                // HeroMovementInput: the steer held from last frame, unless the boss's arrival has the stick.
+                // The Riftblade's stride clock runs on combat time (research 2026-11-11).
+                if (_stride != null && _heroHealth.IsAlive)
+                    _stride.Tick(Step);
+                // HeroMovementInput: the steer held from last frame, unless the boss's arrival has the stick - or, for the
+                // Riftblade, its dash's step, and the walk fed to its stride.
                 if (!_revealHold && _heroHealth.IsAlive)
-                    _heroMotion.Move(_steerX, _steerY, Step * _stamina.SpeedFactor, Map);
+                {
+                    if (_rift == null)
+                        _heroMotion.Move(_steerX, _steerY, Step * _stamina.SpeedFactor, Map);
+                    else
+                        RiftWalk();
+                }
 
                 if (!_revealHold && _heroHealth.IsAlive)
                     Encounter();
@@ -1494,12 +1616,19 @@ namespace Cryptforge.Tests
                 if (!_revealHold)
                     HeroAttacks();
                 if (_heroHealth.IsAlive)
-                    _ability.Tick(Step);
+                {
+                    if (_ability != null)
+                        _ability.Tick(Step);
+                    else
+                        _active?.Tick(Step);
+                }
                 if (!_revealHold)
                     EnemyAttacks();
                 TickBurns();
                 if (_bleeding.Count > 0)
                     TickBleeds();
+                if (_wounded.Count > 0)
+                    TickWounds();
                 StepAltars();
                 StepPit();
                 StepChest();
@@ -1515,7 +1644,291 @@ namespace Cryptforge.Tests
                 }
                 for (int i = 0; i < _burning.Count; i++)
                     _burning[i].BurnFresh = false;
+                for (int i = 0; i < _wounded.Count; i++)
+                    _wounded[i].BleedFresh = false;
                 Sample();
+            }
+
+            // ---------------------------------------------------------------------------------------------------------
+            // The Riftblade (docs/46, research 2026-11-11): its walk step, its wounds, its pilot
+            // ---------------------------------------------------------------------------------------------------------
+
+            // HeroMovementInput for the Riftblade: a pressed dash begins at this step along the steer the pilot holds, or
+            // the last heading walked with no finger down; while it travels it moves the hero its step through the floor's
+            // walls (FoundryMap.Move), the stick ignored, and its guard is read for the frame; otherwise the hero walks on
+            // the steer as any hero. The hero's real displacement feeds the stride, the dash's travel included.
+            private void RiftWalk()
+            {
+                float fromX = HeroX;
+                float fromY = HeroY;
+                float units = 0f;
+                if (_dash != null)
+                {
+                    if (_dashPressed)
+                    {
+                        _dashPressed = false;
+                        bool held = _steerX * _steerX + _steerY * _steerY >= .05f * .05f;
+                        _dash.Begin(held ? _steerX : _lastHeadingX, held ? _steerY : _lastHeadingY);
+                        _result.Dashes++;
+                        if (_trace != null)
+                            Emit($"dash x={N(_dash.HeadingX)} y={N(_dash.HeadingY)} hp={N(_heroHealth.Current)}");
+                    }
+                    units = _dash.Step(Step);
+                }
+                if (units > 0f)
+                    _heroMotion.Move(_dash.HeadingX, _dash.HeadingY, units / _heroMotion.Speed, Map);
+                else if (_heroMotion.Move(_steerX, _steerY, Step * _stamina.SpeedFactor, Map))
+                {
+                    _lastHeadingX = _steerX;
+                    _lastHeadingY = _steerY;
+                }
+                _stride.Walk(MomentumRule.Stride(fromX, fromY, HeroX, HeroY));
+            }
+
+            // Whether Quicksilver Stride rides on this weapon: the Daggers as proposed, every weapon with the lever.
+            private bool StridesWith(string weaponId) => _rift != null && (_rift.StrideOnEveryWeapon || weaponId == DaggersId);
+
+            // A crit's wound on what it struck: a pool for the weapon's slot, the enemy's bleed status added with its first.
+            private void OpenWound(Foe foe, int slot, float worth)
+            {
+                if (worth <= 0f || slot < 0 || foe.Released || !foe.IsAlive)
+                    return;
+                if (foe.Bleeds == null)
+                {
+                    foe.Bleeds = new BleedState[WeaponLoadout.MaxSlots];
+                    foe.BleedFresh = true;
+                }
+                if (!Bleeding(foe))
+                    _wounded.Add(foe);
+                if (foe.Bleeds[slot] == null)
+                    foe.Bleeds[slot] = new BleedState();
+                foe.Bleeds[slot].Wound(worth);
+                _result.WoundsOpened++;
+            }
+
+            private static bool Bleeding(Foe foe)
+            {
+                if (foe.Bleeds == null)
+                    return false;
+                for (int s = 0; s < foe.Bleeds.Length; s++)
+                    if (foe.Bleeds[s] != null && foe.Bleeds[s].IsBleeding)
+                        return true;
+                return false;
+            }
+
+            // Every bleeding enemy's pools, in the order their first wounds opened: each tick paid as the hero's damage, the
+            // work of the weapon whose crits opened the pool; a status added this frame first ticks next frame, and the
+            // bleeds stop with the enemy or the hero.
+            private void TickWounds()
+            {
+                int count = _wounded.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    Foe foe = _wounded[i];
+                    if (foe.BleedFresh)
+                        continue;
+                    for (int s = 0; s < foe.Bleeds.Length; s++)
+                    {
+                        BleedState bleed = foe.Bleeds[s];
+                        if (bleed == null || !bleed.IsBleeding)
+                            continue;
+                        if (foe.Released || !foe.IsAlive || !_heroHealth.IsAlive)
+                        {
+                            bleed.Clear();
+                            continue;
+                        }
+                        float damage = bleed.Tick(Step);
+                        if (damage <= 0f)
+                            continue;
+                        _source = DamageSource.Bleed;
+                        _bleedSlot = s;
+                        foe.ApplyDamage(new DamageContext(damage, _hero));
+                        _bleedSlot = -1;
+                    }
+                }
+                _wounded.RemoveAll(foe => !Bleeding(foe));
+            }
+
+            // The splinter a primed crit throws (the Daggers' Rift Echo, a crit's like any other): what WeaponRuntime's
+            // Splinter would have dealt off the critical damage, onto the enemies round the target gathered for the strike,
+            // with each landing's shares, as a proc of the strike's. The weapon decides its crits itself, and a primed one is
+            // doubled where it lands (FoeDamaged), so its splinter is thrown here, after the strike's pulse.
+            private void PrimedSplinter(WeaponRuntime weapon, Foe target)
+            {
+                if (!CritSplashRule.Splinters(true, weapon.CritSplash))
+                    return;
+                float amount = CritSplashRule.DamageOf(weapon.Damage * MomentumRule.MultiplierOf(weapon.Pattern), weapon.CritSplash);
+                _result.PrimedSplinters++;
+                if (amount <= 0f)
+                    return;
+                _splinterEmulated = true;
+                for (int i = 0; i < _crit.Count; i++)
+                {
+                    IDamageable caught = _crit[i];
+                    if (caught == null || ReferenceEquals(caught, target) || !caught.IsAlive)
+                        continue;
+                    float landing = EliteRule.DamageOn(
+                        WardenRule.DamageOn(amount, weapon.GateBossShare, _slamBoss != null && ReferenceEquals(caught, _slamBoss)),
+                        weapon.EliteShare, weapon.EliteShare != 1f && EliteRule.IsAmong(caught, _elites));
+                    caught.ApplyDamage(new DamageContext(landing, _hero));
+                }
+                _splinterEmulated = false;
+            }
+
+            // The Daggers the hero holds, null before they joined the loadout.
+            private WeaponRuntime DaggersRuntime()
+            {
+                int slot = _loadout.IndexOf(DaggersId);
+                return slot >= 0 ? _loadout.At(slot).Runtime : null;
+            }
+
+            // The pit's glow as the pilot sees it: a realistic pilot reads it a reaction after it began (PilotGoal's own).
+            private bool GlowSeen()
+            {
+                bool glowing = _pitRunning && _pit.IsWarning;
+                if (glowing && _realism != null &&
+                    !Perceived(_seconds - _pit.WarningProgress * PitEruptionRule.Warning, _realism.GlowReaction))
+                    glowing = false;
+                return glowing;
+            }
+
+            // The Riftblade's active, for a cohort that uses the ability: Phase Dash's late escape and its way out of a
+            // surround, or Sever on the heaviest enemy within its reach; nothing with none.
+            private void PilotRift()
+            {
+                if (_active == null || !_heroHealth.IsAlive || !_active.IsReady)
+                {
+                    _lateSince = _surroundSince = _severSince = float.NaN;
+                    return;
+                }
+                if (_dash != null)
+                    PilotDash();
+                else
+                    PilotSever();
+            }
+
+            // The late escape: the Warden's mark down round the hero, the pilot holding at its feet (PilotGoal,
+            // HoldsAtTheWarden), and the blow due within the guard - out along the escape's heading. Out of a surround: four
+            // or more enemies within their own reach and the hero under half its health - out along the kite's heading. A
+            // realistic pilot presses a reaction after the moment came (PilotRealism), as it answers every threat.
+            private void PilotDash()
+            {
+                if (_dash.IsDashing || _dashPressed)
+                    return;
+                AutopilotCohort cohort = _levers.Cohort;
+                float x = HeroX;
+                float y = HeroY;
+                bool glowing = GlowSeen();
+                float hx = 0f, hy = 0f;
+                bool due = false;
+                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked &&
+                    DashFootwork.BlowDueWithinGuard(_slam.TelegraphProgress, Step))
+                {
+                    float mx = x - _markX;
+                    float my = y - _markY;
+                    float reach = WardenRule.SlamRadius + .6f;
+                    if (mx * mx + my * my < reach * reach &&
+                        cohort.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out float gx, out float gy))
+                    {
+                        hx = gx - x;
+                        hy = gy - y;
+                        due = true;
+                    }
+                }
+                if (!due)
+                    _lateSince = float.NaN;
+                else if (float.IsNaN(_lateSince))
+                    _lateSince = _seconds;
+                bool press = due && (_realism == null || Perceived(_lateSince, _realism.MarkReaction));
+
+                if (!press)
+                {
+                    int within = 0;
+                    for (int i = 0; i < TargetCount; i++)
+                    {
+                        Foe foe = TargetAt(i);
+                        if (IsValid(foe) &&
+                            ArenaFloor.FloorDistanceSquared(x, y, foe.X, foe.Y) <= foe.Weapon.Range * foe.Weapon.Range)
+                            within++;
+                    }
+                    bool surrounded = DashFootwork.Surrounded(within, _heroHealth.Current, _heroHealth.Maximum) &&
+                                      Threat(cohort, x, y, out float tx, out float ty) &&
+                                      KiteHeading(cohort, x, y, tx, ty, glowing, out hx, out hy);
+                    if (!surrounded)
+                        _surroundSince = float.NaN;
+                    else if (float.IsNaN(_surroundSince))
+                        _surroundSince = _seconds;
+                    press = surrounded && (_realism == null || Perceived(_surroundSince, _realism.FoeReaction));
+                }
+                if (!press || !_active.TrySpend())
+                    return;
+                _dashPressed = true;
+                _dashHeadingX = hx;
+                _dashHeadingY = hy;
+                Normalize(ref _dashHeadingX, ref _dashHeadingY);
+                _lateSince = _surroundSince = float.NaN;
+                _result.AbilityUses++;
+                if (_trace != null)
+                    Emit($"ability_used room={_roomIndex + 1} room_active={N(_seconds - _roomStartedAt)} dash late={due}");
+            }
+
+            // The kite's heading from (x, y) against the push (tx, ty): the cohort's kite stride where it has room, else
+            // straight along the push.
+            private static bool KiteHeading(AutopilotCohort cohort, float x, float y, float tx, float ty, bool glowing,
+                out float hx, out float hy)
+            {
+                if (cohort.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out float gx, out float gy))
+                {
+                    hx = gx - x;
+                    hy = gy - y;
+                }
+                else
+                {
+                    hx = tx;
+                    hy = ty;
+                }
+                return hx * hx + hy * hy > 1e-6f;
+            }
+
+            // Sever: the heaviest enemy within its reach, when it is more than the horde - a node wave's enemy, an elite
+            // room's, the gate boss - marked for SeverRule.MarkSeconds; a realistic pilot a reaction after it stood there.
+            private void PilotSever()
+            {
+                Foe target = AcquireHeaviest(SeverRule.Reach);
+                if (target == null || target.Horde)
+                {
+                    _severSince = float.NaN;
+                    return;
+                }
+                if (float.IsNaN(_severSince))
+                    _severSince = _seconds;
+                if (_realism != null && !Perceived(_severSince, _realism.FoeReaction))
+                    return;
+                if (!_active.TrySpend())
+                    return;
+                _severSince = float.NaN;
+                target.SeveredUntil = _seconds + SeverRule.MarkSeconds;
+                _result.Severs++;
+                _result.AbilityUses++;
+                if (_trace != null)
+                    Emit($"ability_used room={_roomIndex + 1} room_active={N(_seconds - _roomStartedAt)} sever={target.Definition.Name}");
+            }
+
+            // The late escape's hold (docs/46 section 3 step 6): with the dash ready, a cohort that uses its ability holds the
+            // hero at the Daggers' reach of the gate boss through the telegraph - FootworkRule.StepIn with the mark left to the
+            // dash, so still safe only at half health or more and with the pit's band dark - rather than walking out early.
+            private bool HoldsAtTheWarden(AutopilotCohort cohort, float x, float y, bool glowing, out float gx, out float gy)
+            {
+                gx = x;
+                gy = y;
+                if (!cohort.UsesTheAbility || _active == null || !_active.IsReady || _dash.IsDashing || _dashPressed)
+                    return false;
+                WeaponRuntime daggers = DaggersRuntime();
+                Foe boss = GateBoss;
+                if (daggers == null || boss == null || !boss.IsAlive)
+                    return false;
+                return FootworkRule.StepIn(x, y, boss.X, boss.Y, daggers.Range, false, glowing, _heroHealth.Current,
+                    _heroHealth.Maximum, out gx, out gy);
             }
 
             // ---------------------------------------------------------------------------------------------------------
@@ -2193,6 +2606,16 @@ namespace Cryptforge.Tests
                     context = new DamageContext(context.Amount * _levers.WardenGuardShare, context.Source, context.IsCritical);
                 DamageSource source = _source;
                 FoundryWeaponWork striking = source == DamageSource.Weapon ? _striking : null;
+                // The Riftblade's primed crit (research 2026-11-11): the strike's own landings - its target, and its splash or
+                // cleave on another weapon, never a proc's - that its weapon did not crit itself take the crit's multiplier,
+                // as WeaponRuntime would have dealt them critical: a factor of two is exact in floating point, before or
+                // after the shares. Off for every other hero.
+                if (_primedStrike && striking != null && !context.IsCritical && !StrikeHasProcced())
+                {
+                    context = new DamageContext(ScaleOf(context.Amount, MomentumRule.MultiplierOf(_strikingWeapon.Pattern)),
+                        context.Source, true);
+                    _primedLanded = true;
+                }
                 if (striking != null && striking.Id == DaggersId && foe.GateBoss && _levers.DaggersWardenDamage != 1f)
                     context = new DamageContext(ScaleOf(context.Amount, _levers.DaggersWardenDamage), context.Source, context.IsCritical);
                 if (striking != null && striking.Id == DaggersId && (_levers.DaggersEliteLeaderOnly ? foe.EliteLeader : foe.Elite))
@@ -2219,26 +2642,67 @@ namespace Cryptforge.Tests
                     : 0f;
                 if (markShare > 0f)
                     context = new DamageContext(ScaleOf(context.Amount, 1f + markShare), context.Source, context.IsCritical);
+                // The Riftblade's Sever (research 2026-11-11): every weapon's landing on its marked enemy deals the mark's
+                // share more, and the execute's x2 below its threshold (SeverRule.DamageOn); the extra is the ability's work.
+                float severShare = 0f;
+                if (striking != null && foe.SeveredUntil > _seconds)
+                {
+                    float severed = SeverRule.DamageOn(context.Amount, foe.Health.Current, foe.Health.Maximum);
+                    severShare = severed > 0f ? (severed - context.Amount) / severed : 0f;
+                    context = new DamageContext(severed, context.Source, context.IsCritical);
+                }
                 bool proc = striking != null && StrikeHasProcced();
                 float struck = context.Amount;
                 foe.Health.ApplyDamage(context);
                 float dealt = before - foe.Health.Current;
+                float bySever = severShare > 0f ? dealt * severShare : 0f;
                 if (striking != null && dealt > 0f)
                 {
                     FoundryWeaponWork marker = markShare > 0f ? DaggersWork() : null;
                     float marked = marker != null ? dealt * markShare / (1f + markShare) : 0f;
-                    Attribute(striking, foe, dealt - marked, proc);
+                    Attribute(striking, foe, bySever > 0f ? dealt - marked - bySever : dealt - marked, proc);
                     if (marked > 0f)
                         Attribute(marker, foe, marked, proc, false);
                 }
                 if (striking != null && striking.Id == DaggersId && !_bleedTick && !proc)
                     DaggersLanded(foe, struck);
+                // Quicksilver Stride's wound (research 2026-11-11): a crit of the strike's own target - its rhythm's, a rolled
+                // one or the primed one - opens a wound of its share of the crit as it landed, after its shares; no splash,
+                // splinter, pulse or tick opens one.
+                if (_woundTarget != null && ReferenceEquals(foe, _woundTarget) && striking != null && !proc && context.IsCritical)
+                    OpenWound(foe, _woundSlot, BleedRule.WoundOf(struck, _rift.WoundShare));
                 switch (source)
                 {
                     case DamageSource.Weapon:
+                        if (bySever > 0f)
+                        {
+                            _result.DealtByWeapons += dealt - bySever;
+                            _result.DealtByAbility += bySever;
+                            if (foe.GateBoss)
+                            {
+                                _result.WardenFromWeapons += dealt - bySever;
+                                _result.WardenFromAbility += bySever;
+                            }
+                            break;
+                        }
                         _result.DealtByWeapons += dealt;
                         if (foe.GateBoss)
                             _result.WardenFromWeapons += dealt;
+                        break;
+                    case DamageSource.Bleed:
+                        _result.DealtByBleed += dealt;
+                        if (foe.GateBoss)
+                            _result.WardenFromBleed += dealt;
+                        if (dealt > 0f && _bleedSlot >= 0)
+                        {
+                            FoundryWeaponWork bleeder = WorkAt(_bleedSlot);
+                            Attribute(bleeder, foe, dealt, false, false);
+                            bleeder.DealtByBleed += dealt;
+                            if (foe.GateBoss)
+                                bleeder.BleedWarden += dealt;
+                            if (foe.EliteLeader)
+                                bleeder.BleedEliteLeader += dealt;
+                        }
                         break;
                     case DamageSource.Burn:
                         _result.DealtByBurn += dealt;
@@ -2448,8 +2912,9 @@ namespace Cryptforge.Tests
 
             // Whether the weapon striking now has fired a pulse, a splinter or a kill burst since the strike began: each
             // counter rises before its damage lands, and all three come after the strike's own landings (WeaponRuntime).
+            // The Riftblade's primed crit's splinter, which the simulation throws itself (PrimedSplinter), is a proc too.
             private bool StrikeHasProcced() =>
-                _strikingWeapon != null && ProcsFired(_strikingWeapon) > _procsBeforeStrike;
+                _splinterEmulated || (_strikingWeapon != null && ProcsFired(_strikingWeapon) > _procsBeforeStrike);
 
             private static int ProcsFired(WeaponRuntime weapon) =>
                 weapon.PulsesFired + weapon.SplintersFired + weapon.KillBurstsFired;
@@ -2476,6 +2941,8 @@ namespace Cryptforge.Tests
                         return FoundryKill.KilledByBurn;
                     case DamageSource.Ability:
                         return FoundryKill.KilledByAbility;
+                    case DamageSource.Bleed:
+                        return FoundryKill.KilledByBleed;
                     default:
                         return FoundryKill.KilledByPit;
                 }
@@ -2566,6 +3033,18 @@ namespace Cryptforge.Tests
             {
                 if (!_heroHealth.IsAlive || context.Amount == 0f)
                     return;
+                // Phase Dash's guard (the Riftblade, research 2026-11-11), read in this one place every hit on the hero comes
+                // through: within its GuardSeconds from the dash's first step the hit is turned away - an enemy's strike, the
+                // Warden's slam, the pit's spill.
+                if (_dash != null && _dash.Guarded)
+                {
+                    _result.DashTurned++;
+                    if (_harmIsSlam)
+                        _result.DashSlamsTurned++;
+                    if (_trace != null)
+                        Emit($"dash_turned slam={_harmIsSlam} hp={N(_heroHealth.Current)}");
+                    return;
+                }
                 float before = _heroHealth.Current;
                 _heroHealth.ApplyDamage(context);
                 float taken = before - _heroHealth.Current;
@@ -2757,12 +3236,31 @@ namespace Cryptforge.Tests
                     _striking = WorkAt(slot);
                     _strikingWeapon = weapon;
                     _procsBeforeStrike = ProcsFired(weapon);
+                    // The Riftblade's Quicksilver Stride (research 2026-11-11), on the Daggers or every weapon: a primed
+                    // strike crits unless its rhythm does (the rhythm first, then the primed crit, then the roll), and the
+                    // crits of the strike's own target open its wounds (FoeDamaged). Off for every other hero.
+                    bool strides = _stride != null && StridesWith(_striking.Id);
+                    _primedStrike = strides && !weapon.Pattern.IsCritical(weapon.AttacksMade + 1) && _stride.IsPrimed;
+                    _primedLanded = false;
+                    _woundTarget = strides ? target : null;
+                    _woundSlot = strides ? slot : -1;
                     // AttackController.GateBoss: the gate boss WardenSlamService handed the hero's attacker at its step
                     // (StepWarden's _slamBoss), on which each weapon lands its share (WardenRule: the Sword's 1.5). And
                     // AttackController.Elites: the elite room's Captain while its wave stands (EncounterController.Elites),
                     // on which each weapon lands its share (EliteRule: the Daggers' 2).
                     bool struck = weapon.TryAttack(target, _hero, _nearby, _pulse, _crit, weapon.KillBurst > 0f ? this : null,
                         _slamBoss, _elites);
+                    if (_primedStrike && struck)
+                    {
+                        _stride.Spend();
+                        _result.MomentumCrits++;
+                        if (_primedLanded)
+                            PrimedSplinter(weapon, target);
+                    }
+                    _primedStrike = false;
+                    _primedLanded = false;
+                    _woundTarget = null;
+                    _woundSlot = -1;
                     if (struck)
                         _striking.Strikes++;
                     // The throw's fan (research 2026-11-11): its other blades, off at the shipped levers.
@@ -3154,11 +3652,24 @@ namespace Cryptforge.Tests
                     _steerX = 0f;
                     _steerY = 0f;
                 }
+                // The Riftblade's dash pressed this frame (research 2026-11-11): the pilot holds the stick along its heading,
+                // which the next walk step reads.
+                if (_dashPressed)
+                {
+                    _steerX = _dashHeadingX;
+                    _steerY = _dashHeadingY;
+                }
             }
 
-            // TryAbility: three enemies in reach - burning ones for a Vent - or any one beside the gate boss.
+            // TryAbility: three enemies in reach - burning ones for a Vent - or any one beside the gate boss. The Riftblade's
+            // active, which has no AbilityRuntime, has its own (PilotRift).
             private void PilotAbility()
             {
+                if (_ability == null)
+                {
+                    PilotRift();
+                    return;
+                }
                 if (!_ability.IsReady || !_heroHealth.IsAlive)
                     return;
                 CollectNear(null, HeroX, HeroY, _ability.Radius, _abilityTargets);
@@ -3252,6 +3763,25 @@ namespace Cryptforge.Tests
                     float mx = x - _markX;
                     float my = y - _markY;
                     float reach = WardenRule.SlamRadius + .6f;
+                    // The Riftblade's late escape (research 2026-11-11): with its dash ready it holds at the Daggers' reach
+                    // of the Warden through the telegraph, and the dash leaves as the blow comes due (PilotDash).
+                    if (_dash != null && _rift.HoldsForTheDash && mx * mx + my * my < reach * reach &&
+                        HoldsAtTheWarden(cohort, x, y, glowing, out gx, out gy))
+                    {
+                        if (_realism != null && _realism.AimError > 0f)
+                        {
+                            if (_seconds >= _kiteAimUntil)
+                            {
+                                _kiteAimUntil = _seconds + _realism.KiteAimSeconds;
+                                _dice.Disc(_realism.AimError, out _kiteAimX, out _kiteAimY);
+                            }
+                            Aim(ref gx, ref gy, _kiteAimX, _kiteAimY);
+                        }
+                        stop = FootworkRule.StepInStop;
+                        _result.DashHoldSeconds += Step;
+                        _doing = PilotDoing.Fight;
+                        return true;
+                    }
                     if (mx * mx + my * my < reach * reach &&
                         cohort.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out gx, out gy))
                     {
@@ -3293,6 +3823,25 @@ namespace Cryptforge.Tests
                     }
                     _result.ShelterSeconds += Step;
                     _doing = PilotDoing.Walk;
+                    return true;
+                }
+                // The Riftblade's hold while its dash is ready (RiftbladeKit.HoldsWhileReady, research 2026-11-11, off as
+                // proposed): at the Daggers' reach of the Warden between its marks too, the dash kept for the next blow - a
+                // mark seen round the hero is the late escape's above.
+                if (_dash != null && _rift.HoldsWhileReady && HoldsAtTheWarden(cohort, x, y, glowing, out gx, out gy))
+                {
+                    if (_realism != null && _realism.AimError > 0f)
+                    {
+                        if (_seconds >= _kiteAimUntil)
+                        {
+                            _kiteAimUntil = _seconds + _realism.KiteAimSeconds;
+                            _dice.Disc(_realism.AimError, out _kiteAimX, out _kiteAimY);
+                        }
+                        Aim(ref gx, ref gy, _kiteAimX, _kiteAimY);
+                    }
+                    stop = FootworkRule.StepInStop;
+                    _result.DashHoldSeconds += Step;
+                    _doing = PilotDoing.Fight;
                     return true;
                 }
                 // DevelopmentAutopilot's step-in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn): a single elite room's
