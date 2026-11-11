@@ -74,10 +74,15 @@ namespace Cryptforge.UI
             Finish();
         }
 
-        private void Update()
+        // After every Update, so the EventSystem has taken this frame's touches and a tap on a button (the pause button, the
+        // ability button) is the button's, not a skip (RevealSkip.ThisFrame); and never while the game stands paused, as
+        // this runs at a time scale of 0 too and a tap on the paused screen latched the skip for the moment play resumed.
+        private void LateUpdate()
         {
-            if (IsRevealing && RevealSkip.ThisFrame()) _skip = true;
+            if (IsRevealing && !_skip && RevealSkip.ThisFrame(IsPaused)) _skip = true;
         }
+
+        private bool IsPaused => Time.timeScale <= 0f || (_setup != null && _setup.Pause != null && _setup.Pause.IsFrozen);
 
         private void Finish()
         {
