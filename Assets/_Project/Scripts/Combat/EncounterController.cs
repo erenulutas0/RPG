@@ -781,7 +781,18 @@ namespace Cryptforge.Combat
             fallen.Health.Changed -= OnEnemyChanged;
             fallen.Health.Died -= fallen.OnDied;
             if (fallen.Health != null)
-                Destroy(fallen.Health.gameObject);
+                RemoveBody(fallen.Health);
+        }
+
+        // An enemy leaves the floor at once. Destroy waits for the frame's end, and until then a released enemy still
+        // standing - the horde as the gate opens, the swarm at the finale's exit - kept its AttackController, its burn and
+        // the hero's strikes for the rest of the frame: a horde enemy could strike the hero after the Warden had fallen
+        // (the run flow's review, 2026-11-11). Deactivated first, it does nothing more; the simulation drops a released
+        // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell.
+        private static void RemoveBody(Health enemy)
+        {
+            enemy.gameObject.SetActive(false);
+            Destroy(enemy.gameObject);
         }
 
         // The hero stood still on the way out long enough: the room ends, the pack goes with it, and the floor moves on.
@@ -1164,7 +1175,7 @@ namespace Cryptforge.Combat
                 spawn.Health.Changed -= OnEnemyChanged;
                 spawn.Health.Died -= spawn.OnDied;
                 if (destroy && spawn.Health != null)
-                    Destroy(spawn.Health.gameObject);
+                    RemoveBody(spawn.Health);
             }
 
             _wave.Clear();
@@ -1390,7 +1401,7 @@ namespace Cryptforge.Combat
             if (fallen.Enrage != null)
                 fallen.Enrage.Enraged -= OnEnemyEnraged;
             if (fallen.Health != null)
-                Destroy(fallen.Health.gameObject);
+                RemoveBody(fallen.Health);
             fallen.Health = null;
         }
 
@@ -1406,7 +1417,7 @@ namespace Cryptforge.Combat
                 if (enemy.Enrage != null)
                     enemy.Enrage.Enraged -= OnEnemyEnraged;
                 if (destroy && enemy.Health != null)
-                    Destroy(enemy.Health.gameObject);
+                    RemoveBody(enemy.Health);
             }
             _hordeEnemies.Clear();
             bool had = _horde != null;

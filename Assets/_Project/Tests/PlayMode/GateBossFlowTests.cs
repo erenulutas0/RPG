@@ -158,6 +158,78 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The Warden's fall opens the gate and releases the floor's horde, whose bodies Destroy takes away only at the
+        // frame's end: until the run flow's review of 2026-11-11 a released horde enemy kept its AttackController for the
+        // rest of that frame, and one in reach could still strike the hero after the Warden had fallen. Released, it leaves
+        // at once, as the simulation drops it. The Warden falls from EarlyUpdateHook, before the frame's other Updates, with
+        // the hero standing on a horde Mite whose bite is ready (a Mite's has no first delay, so one still walking in holds
+        // it): were the Mite still on the floor, it would bite in that same frame. The Warden's own escort is not released
+        // by its fall - the gate opens only once the whole wave is down - so the horde is what the fall lets go.
+        // Resources/Development/Floor_GateHoldProof: a hall, the gate at 0:12, a horde of Mites.
+        [UnityTest, Timeout(90000)] public IEnumerator TheHordeTheWardensFallReleasesStrikesNoMoreThatFrame()
+        {
+            yield return Load("foundry","floor_gate_hold_proof");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var hero=Object.FindFirstObjectByType<HeroMovementInput>().transform;var heroHealth=hero.GetComponent<Health>();
+            float deadline=Time.realtimeSinceStartup+40f;
+            while((encounter.GateBoss==null||encounter.IsRevealHeld)&&!setup.Run.HasEnded&&Time.realtimeSinceStartup<deadline)
+            {
+                ResolveUpgrades(setup);
+                if(heroHealth.IsAlive)heroHealth.Heal(heroHealth.Maximum);
+                if(encounter.CurrentRoom!=null&&encounter.CurrentRoom.Kind==RoomKind.Combat)PackTestUtility.KillWave(encounter);
+                yield return null;
+            }
+            Assert.That(encounter.GateBoss,Is.Not.Null,"The Warden walks out once the floor's clock allows.");
+            Assert.That(encounter.IsRevealHeld,Is.False,"The camera is back on the hero.");
+            deadline=Time.realtimeSinceStartup+20f;
+            while(ReadyHordeEnemy(encounter,hero)==null&&Time.realtimeSinceStartup<deadline)
+            {
+                ResolveUpgrades(setup);
+                if(heroHealth.IsAlive)heroHealth.Heal(heroHealth.Maximum);
+                yield return null;
+            }
+            Assert.That(ReadyHordeEnemy(encounter,hero),Is.Not.Null,"A horde Mite walks in with its bite ready.");
+
+            Health mite=null;AttackController bite=null;int bitesBefore=-1;float healthBefore=-1f;bool activeAfterFall=true;
+            var hook=setup.gameObject.AddComponent<EarlyUpdateHook>();
+            hook.Next=()=>
+            {
+                mite=ReadyHordeEnemy(encounter,hero);
+                if(mite==null)return;
+                bite=mite.GetComponent<AttackController>();bitesBefore=bite.AttackCount;
+                heroHealth.Heal(heroHealth.Maximum);healthBefore=heroHealth.Current;
+                // The hero on the Mite, inside its reach.
+                hero.position=mite.transform.position;
+                encounter.GateBoss.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+                activeAfterFall=mite.gameObject.activeInHierarchy;
+            };
+            yield return null;
+            Assert.That(mite,Is.Not.Null,"The Warden fell with a ready Mite on the floor.");
+            Assert.That(encounter.IsGateExitOpen,Is.True,"The Warden's fall opens the gate.");
+            Assert.That(encounter.IsHordeActive,Is.False,"And releases the horde.");
+            Assert.That(bite.AttackCount,Is.EqualTo(bitesBefore),"The released Mite strikes no more that frame.");
+            Assert.That(heroHealth.Current,Is.EqualTo(healthBefore),"The hero takes no blow after the Warden's fall.");
+            Assert.That(activeAfterFall,Is.False,"A released enemy leaves the floor at once.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A living horde enemy whose strike is ready and whose reach does not hold the hero, so nothing has spent it yet.
+        private static Health ReadyHordeEnemy(EncounterController encounter,Transform hero)
+        {
+            for(int i=0;i<encounter.HordeEnemyCount;i++)
+            {
+                Health enemy=encounter.HordeEnemyAt(i);
+                if(enemy==null||!enemy.IsAlive)continue;
+                var attack=enemy.GetComponent<AttackController>();
+                if(attack==null||!attack.enabled||attack.Weapon==null||attack.Weapon.CooldownRemaining>0f)continue;
+                float reach=attack.Weapon.Range;
+                Vector3 at=enemy.transform.position;
+                if(ArenaFloor.FloorDistanceSquared(at.x,ArenaFloor.FloorY(at.y),hero.position.x,ArenaFloor.FloorY(hero.position.y))<=reach*reach)continue;
+                return enemy;
+            }
+            return null;
+        }
+
         [UnityTest, Timeout(90000)] public IEnumerator TheHallKeepsItsBossAroundTheHeroAndClearsOnTheKill()
         {
             yield return Load("hall");
