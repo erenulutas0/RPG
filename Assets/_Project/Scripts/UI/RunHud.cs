@@ -67,8 +67,9 @@ namespace Cryptforge.UI
         private int _statusSecond;
         private float _statusSeconds;
         private string _statusName;
-        // The enemy and status labels show a forge's lines (RefreshEncounter), until the next enemy or the walk away.
-        private bool _showsForge;
+        // The enemy and status labels show a room's lines - a forge's, or a fight's enemy and wave line, its victory too -
+        // (RefreshEncounter), until the next room's lines or the walk away from it.
+        private bool _showsRoom;
 
         // The weapon and tome row on a category-mode run; null on the legacy cards. For tests.
         public LoadoutBadgesView LoadoutBadges => _loadoutBadges;
@@ -240,26 +241,29 @@ namespace Cryptforge.UI
                 _enemyLabel.text = room != null ? room.DisplayName : string.Empty;
                 _enemyBar.fillAmount = 0f;
                 _statusLabel.text = _text.ForgeStatus;
-                _showsForge = true;
+                _showsRoom = true;
                 return;
             }
 
             EnemyDefinition definition = _encounters.CurrentDefinition;
             if (definition == null)
             {
-                // The forge is behind the hero, and nobody stands to show: on the walk to the next marked hall the forge's
-                // lines named a room the hero had left (the run flow's review, 2026-11-11). The hall ahead is named - the
-                // encounter's room is already the hall - and the forge's line goes, as the hall's marker says the way
-                // (ExitSealView). Once, as the forge is left: a combat room's last lines stay on the walk after it.
-                if (_showsForge)
+                // The room is behind the hero, a forge or a fight, and nobody stands to show: on the walk to the next marked
+                // hall the forge's lines, or the last enemy's and the victory, named a room the hero had left (the run
+                // flow's review, 2026-11-11). The hall ahead is named - the encounter's room is already the hall - the bar
+                // shows nobody and the room's line goes, as the hall's marker says the way (ExitSealView). Once, as the room
+                // is left: the walk formats nothing, and the next room's spawn shows its own lines.
+                if (_showsRoom)
                 {
-                    _showsForge = false;
+                    _showsRoom = false;
+                    ShownEnemy = null;
                     _enemyLabel.text = room != null && _encounters.IsRoomSiteOpen ? room.DisplayName : string.Empty;
+                    _enemyBar.fillAmount = 0f;
                     _statusLabel.text = string.Empty;
                 }
                 return;
             }
-            _showsForge = false;
+            _showsRoom = true;
 
             // The bar follows the hero's current target; the label counts the rest of the pack still standing.
             Health enemy = _encounters.CurrentEnemy;

@@ -145,6 +145,35 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // A tap on the greyed ability button skips the reveal, where a tap on the pause button stays the pause button's
+        // (the run flow's review, 2026-11-11: a tap on the greyed button did nothing at all). The legacy Input cannot be
+        // driven from a test, so RevealSkipTests holds the rule; here the reveal hands RevealSkip the ability button while
+        // the camera is at the gate, a tap at the button's middle is on it and one at the pause button's is not, and once
+        // the camera is back the button answers its own taps again.
+        [UnityTest, Timeout(90000)] public IEnumerator TheRevealTakesATapOnTheGreyedAbilityButton()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var reveal=setup.GetComponent<BossRevealView>();var button=Object.FindFirstObjectByType<AbilityButtonView>();
+            var pause=GameObject.Find("Pause Button").GetComponent<RectTransform>();
+            yield return WaitForBoss(encounter);
+            Assert.That(reveal.IsRevealing,Is.True,"The boss walking out of the gate is presented.");
+            Assert.That(button.IsUsable,Is.False,"The ability button stands greyed.");
+            RectTransform held=reveal.HeldButton;
+            Assert.That(held,Is.Not.Null,"The reveal holds the ability button.");
+            Assert.That(held,Is.SameAs(button.ButtonRect));
+            Assert.That(RevealSkip.IsOn(held,ScreenMiddle(held)),Is.True,"A tap at its middle is on it.");
+            Assert.That(RevealSkip.IsOn(held,ScreenMiddle(pause)),Is.False,"A tap on the pause button is not.");
+            yield return Hold(setup,BossRevealView.HoldSeconds+2*BossRevealView.TurnSeconds+.3f);
+            Assert.That(reveal.IsRevealing,Is.False,"The camera is back on the hero.");
+            Assert.That(reveal.HeldButton,Is.Null,"The button answers its own taps again.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Where a UI element's middle stands on screen: the HUD's canvas is an overlay, where world and screen are one.
+        private static Vector2 ScreenMiddle(RectTransform rect)=>
+            RectTransformUtility.WorldToScreenPoint(null,rect.TransformPoint(rect.rect.center));
+
         // The reveal frames the gate's boss, not whichever of its wave stands nearest the hero: floor 2's Warden walks out
         // between two Cinder Mites, and from the floor's start a Mite stands nearer, so the camera turned to the Mite (the
         // run flow's review, 2026-11-11). Resources/Development/Floor_GateEscortProof: the gate's room as floor 2 plays it.

@@ -26,6 +26,12 @@ namespace Cryptforge.UI
         public bool IsUsable => _setup != null && _controller != null && _controller.Ability != null && _controller.Ability.IsReady &&
                                 !_controller.IsHeld && !_setup.Run.HasEnded && !_setup.Choices.IsOpen && !_setup.Pause.IsPlayerPaused;
 
+        // Whether the fight's hold greys the button (AbilityController.IsHeld: the boss's reveal holds the fight). It takes no
+        // tap then, so a tap on it is the reveal's to skip (BossRevealView.HeldButton).
+        internal bool IsHeld => _controller != null && _controller.IsHeld;
+        // Where the button stands on screen.
+        internal RectTransform ButtonRect => _button != null ? _button.transform as RectTransform : null;
+
         private void Start()
         {
             if (_setup == null || _setup.Run == null || _controller == null || _controller.Ability == null || _button == null ||
