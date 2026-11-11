@@ -97,6 +97,10 @@ namespace Cryptforge.Combat
             return damage;
         }
 
+        // Tick, unless the fight is held (the boss's reveal, EncounterController.FightHold): a held burn deals nothing and
+        // keeps its stacks, its remaining seconds and its progress to the next tick, as if no time had passed.
+        public float Tick(float deltaTime, bool held) => held ? 0f : Tick(deltaTime);
+
         // Spends every stack at once (Crucible Vent) and returns how many there were.
         public int Consume()
         {

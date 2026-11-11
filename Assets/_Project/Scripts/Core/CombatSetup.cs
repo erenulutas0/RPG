@@ -417,7 +417,7 @@ namespace Cryptforge.Core
 
         // Ember Memory: one direct Burn stack on the enemy each hit lands on; its fall then passes the burn on.
         private void IgniteStruck(Health target, WeaponRuntime weapon) =>
-            BurnStatus.On(target)?.Ignite(1, false, _hero, _burnNeighbourhood);
+            BurnStatus.On(target)?.Ignite(1, false, _hero, _burnNeighbourhood, _encounters.FightHold);
 
         // For tests: the neighbourhood a burn's fall asks.
         internal INeighbourhood BurnNeighbourhood => _burnNeighbourhood;

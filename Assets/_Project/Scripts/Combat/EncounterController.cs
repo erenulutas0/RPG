@@ -414,6 +414,8 @@ namespace Cryptforge.Combat
         public void SetBossEnraged(bool enraged) => _bossEnraged = enraged;
         // The boss the foundry's gate sent out, while its wave stands; null otherwise.
         public Health GateBoss => _gateBossWave && _wave.Count > 0 && !_wave[0].Defeated ? _wave[0].Health : null;
+        // The gate boss's definition while it stands (GateBoss); null otherwise.
+        public EnemyDefinition GateBossDefinition => GateBoss != null ? _wave[0].Definition : null;
         private bool _gateBossWave;
         // The Grunt Captain of a foundry elite room's wave while it stands - the wave's first enemy - for the development
         // autopilot's step-in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn); null otherwise.

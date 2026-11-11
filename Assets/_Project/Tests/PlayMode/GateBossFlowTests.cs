@@ -9,6 +9,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Cryptforge.Tests
 {
@@ -192,6 +193,36 @@ namespace Cryptforge.Tests
             yield return Hold(setup,BossRevealView.TurnSeconds+.3f);
             Assert.That(reveal.Turn,Is.EqualTo(1f).Within(.001f),"The camera has turned fully to the gate.");
             Assert.That(camera.transform.position.x,Is.EqualTo(wardenAt.x).Within(.01f),"It frames the Warden, not the Mite.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The boss banner and its bar name the gate's boss while it stands, not the nearest of its wave: floor 2's Mites
+        // reach the hero first, and the banner read "Cinder Mite" until both fell (the pre-push review, 2026-11-12). Once the
+        // Warden falls with a Mite still standing, the bar goes back to the hero's target.
+        [UnityTest, Timeout(90000)] public IEnumerator TheBossBannerNamesTheWardenNotItsNearestEscort()
+        {
+            yield return Load("foundry","floor_gate_escort_proof");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var hud=Object.FindFirstObjectByType<RunHud>();
+            Text banner=GameObject.Find("Boss Name").GetComponent<Text>();
+            for(int i=0;i<600&&encounter.AliveEnemyCount==0;i++)yield return null;
+            Assert.That(encounter.AliveEnemyCount,Is.EqualTo(3),"The Warden walks out with its two Mites.");
+            Health warden=encounter.GateBoss;
+            Assert.That(warden,Is.Not.Null,"The wave's first enemy is the gate's boss.");
+            Assert.That(encounter.CurrentEnemy,Is.Not.SameAs(warden),"From the floor's start a Mite stands nearer the hero.");
+            string wardenName=encounter.GateBossDefinition.DisplayName;
+            Assert.That(encounter.CurrentDefinition.DisplayName,Is.Not.EqualTo(wardenName),"The nearest enemy is an escort.");
+            yield return null;
+            Assert.That(banner.text,Is.EqualTo(wardenName),"The banner names the Warden.");
+            Assert.That(hud.ShownEnemy,Is.SameAs(warden),"The bar is the Warden's.");
+            yield return Hold(setup,BossRevealView.HoldSeconds+2*BossRevealView.TurnSeconds+.3f);
+            Assert.That(banner.text,Is.EqualTo(wardenName),"Still the Warden's after the reveal, with the Mites at the hero.");
+            Assert.That(hud.ShownEnemy,Is.SameAs(warden));
+
+            warden.ApplyDamage(new DamageContext(PackTestUtility.Lethal));yield return null;ResolveUpgrades(setup);yield return null;
+            Assert.That(encounter.GateBoss,Is.Null,"The Warden has fallen.");
+            if(encounter.AliveEnemyCount>0)
+                Assert.That(hud.ShownEnemy,Is.SameAs(encounter.CurrentEnemy),"The bar goes back to the hero's target.");
             LogAssert.NoUnexpectedReceived();
         }
 

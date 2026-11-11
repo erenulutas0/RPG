@@ -41,6 +41,35 @@ namespace Cryptforge.Tests
             Assert.That(() => burn.Tick(-1f), Throws.InstanceOf<ArgumentOutOfRangeException>());
         }
 
+        // The boss's reveal holds the fight (FightHold) and the burn with it: the scene's BurnStatus and the simulation tick
+        // Tick(deltaTime, held). Held frames deal nothing and cost the burn none of its time; once the hold lets go, the
+        // burn pays exactly what an unheld one would (the pre-push review, 2026-11-12: burns ticked through the reveal).
+        [Test] public void AHeldBurnWaitsAndKeepsItsTimeLeft()
+        {
+            var held = new BurnState();
+            var free = new BurnState();
+            held.Apply(2, false);
+            free.Apply(2, false);
+            held.Tick(0.3f, false);
+            free.Tick(0.3f, false);
+            float remaining = held.Remaining;
+            for (int i = 0; i < 156; i++)
+                Assert.That(held.Tick(Frame, true), Is.Zero, "No tick lands while the reveal holds the fight.");
+            Assert.That(held.Remaining, Is.EqualTo(remaining), "The burn keeps the time it had left.");
+            Assert.That((held.Stacks, held.IsBurning, held.Spreads), Is.EqualTo((2, true, true)));
+            float heldDealt = 0f, freeDealt = 0f;
+            int frames = 0;
+            while ((held.IsBurning || free.IsBurning) && frames < 1000)
+            {
+                heldDealt += held.Tick(Frame, false);
+                freeDealt += free.Tick(Frame, false);
+                frames++;
+            }
+            Assert.That(heldDealt, Is.EqualTo(freeDealt), "Then it pays what an unheld burn pays, tick for tick.");
+            Assert.That(heldDealt, Is.GreaterThan(0f));
+            Assert.That(held.IsBurning, Is.False);
+        }
+
         [Test] public void OnlyADirectStackLetsAFallPassTheBurnOn()
         {
             var caught = new BurnState();

@@ -3383,7 +3383,8 @@ namespace Cryptforge.Tests
                         foe.Burn.Clear();
                         continue;
                     }
-                    float damage = foe.Burn.Tick(Step);
+                    // BurnStatus: the reveal's hold (FightHold) holds the burn, which keeps its time left.
+                    float damage = foe.Burn.Tick(Step, _revealHold);
                     if (damage <= 0f)
                         continue;
                     _source = DamageSource.Burn;
