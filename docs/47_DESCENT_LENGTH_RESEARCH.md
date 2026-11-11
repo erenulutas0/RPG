@@ -285,3 +285,96 @@ against the same batch on the pre-build branch:
 - Unity, not run here (no Unity in the worktree):
   - EditMode: `FoundrySimulationSceneValueTests;ClimbFloorContentTests;FoundrySimulationTests;FoundryGateCallTests;FoundryFinaleTests;ChestRuleTests`
   - PlayMode: `FoundryDescentFlowTests;ArenaWalkTests;FoundryRegionTests;GateHoldFlowTests;FoundryRunEndFlowTests;PaintedHudFlowTests`
+
+## The first-card cohort on floor 2 (research 2026-11-11 night)
+
+Simulation only. No runtime script, scene, asset or setting changed. With floor 2's gate at 3:30 (the build above), floor
+2 got safer for every cohort but one: the first-card cohort's floor-2 deaths went from 6 to 16. This section finds out
+why, and measures four small floor-2 levers against it.
+
+**What was built.**
+- `Tests/Support/DescentSimulation.FirstCardFloorTwo.cs`, a partial with two research levers. Both act on the floors
+  after the first only, and both are off by default:
+  - `FoundryLevers.LaterHordeClockCap`. A horde enemy that walks in after the floor's clock passes the cap reads
+    HordeClock's health, damage and experience at the cap. The horde stops hardening there, and that floor's overrun
+    never comes.
+  - `FoundryLevers.LaterGateChestHeal`. The gate room's own chest holds a heal of this share of the maximum, and it
+    stands where the hero is as the Warden walks out (today it is a gold chest at ChestRule's spot).
+  - The changes to existing code: `SpawnHordeFoe` reads the horde's growth through `HordeHealthNow`, `HordeDamageNow`
+    and `HordeClockNow`, which return the director's own values at the default levers; and `GateBossArrived` ends with
+    one call, `GateArrival()`, which does nothing at the default levers.
+- Floor 2's Warden share and its Deep Forge's Mend already had levers (`LaterWardenHealthShare`, `LaterMendAmount`).
+- `Tools/CombatChecks/FirstCardFloorTwoResearch.cs` (explicit). It plays every cohort and both heroes down the whole
+  Descent (floor 1, floor 2, the finale) on the same seeds. Its options are: as shipped; floor 2's gate as its room clears
+  (`gate0`, floor 2 before the build); and each candidate, set on floor 2 alone. Floor 1 is the same run in every
+  option.
+
+**How it was measured.** Main 4487316e with this branch. Seeds 1-200, both heroes (Vanguard, Ilya), all five cohorts,
+human hands (`PilotRealism` typical). The research's `shipped` row reproduces the default batch's floor-2 section: 10 /
+6 first-card deaths (Vanguard / Ilya), 16 in all. Its `gate0` row measures 7 on this main, against the 6 the pre-build
+batch read.
+
+### Why the first-card cohort dies on floor 2
+
+Floor-2 deaths by hero, before the build (`gate0`) and as shipped. "At the Warden": the deaths after it walked out, with
+the seconds into its fight and the killing blows (the Warden's strike or slam, the horde, the pit).
+
+| Cohort | Hero | Deaths: `gate0` -> shipped | At the Warden: `gate0` -> shipped | Shipped: seconds into the Warden's fight | Shipped: killing blows at the Warden |
+|---|---|---|---|---|---|
+| careful | Vanguard | 3 -> 4 | 3 -> 4 | 36, 39, 42, 51 | Warden 2, horde 2 |
+| careful | Ilya | 4 -> 6 | 2 -> 4 | 18, 29, 32, 36 | Warden 3, pit 1 |
+| standing | Vanguard | 21 -> 7 | 21 -> 7 | 28-40 | Warden 6, pit 1 |
+| standing | Ilya | 22 -> 12 | 18 -> 8 | 22-48 | Warden 4, horde 3, pit 1 |
+| first-card | Vanguard | 6 -> 10 | 4 -> 8 | 14, 24, 27, 34, 34, 38, 40, 44 | Warden 4, horde 3, pit 1 |
+| first-card | Ilya | 1 -> 6 | 0 -> 5 | 18, 24, 32, 38, 41 | Warden 4, horde 1 |
+
+At floor 2's gate, both heroes pooled, the runs whose Warden walked out (P50 or mean as marked). "Difficulty 1.8+": the
+run's difficulty as the Warden walked out was 1.8 or more, an evolution above the floor's usual 1.6 (each evolution adds
+0.2, each altar 0.1, and the difficulty multiplies the Warden's, the halls' and the horde's health and damage).
+"Low maximum": the hero's maximum health at most 1.5 times its base (150 for the Vanguard, 135 for Ilya).
+
+| Cohort | Option | Reached the Warden | Died there | Level P50 | Clock P50 (s) | Maximum health mean | Health at the gate P50 | Difficulty 1.8+ (died) | Low maximum (died) | Vital Surge / Vitality levels / Iron Skin (mean) | Evolutions mean | Horde's damage in the fight, mean |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| careful | `gate0` | 391 | 5 | 33 | 70 | 217 | 93 % | 109 (1) | 73 (1) | 1.9 / 4.5 / 1.2 | 1.23 | 6.5 |
+| careful | shipped | 391 | 8 | 41 | 210 | 254 | 90 % | 156 (6) | 44 (0) | 2.9 / 4.9 / 1.9 | 1.57 | 10.2 |
+| standing | `gate0` | 366 | 39 | 32 | 71 | 225 | 91 % | 89 (18) | 51 (7) | 1.9 / 4.9 / 1.2 | 1.14 | 4.9 |
+| standing | shipped | 366 | 15 | 40 | 210 | 262 | 90 % | 135 (2) | 29 (1) | 2.8 / 5.5 / 1.7 | 1.46 | 7.9 |
+| first-card | `gate0` | 377 | 4 | 33 | 67 | 171 | 90 % | 37 (1) | 123 (2) | 1.5 / 3.0 / 1.5 | 0.89 | 5.1 |
+| first-card | shipped | 377 | 13 | 41 | 210 | 193 | 87 % | 119 (9) | 94 (6) | 2.0 / 3.6 / 1.9 | 1.36 | 9.2 |
+
+**Where and when.** 13 of the first-card cohort's 16 floor-2 deaths are at the Warden: 14-44 s into its fight, at floor
+2's clock 224-254 s. The other 3 die in the halls (Vanguard seeds 165 and 173, Ilya seed 57), and they die the same way
+before the build, which reaches the halls the same. The killing blows at the Warden: the Warden's strike or slam 8, the
+horde 4 (Grunts and Runners), the pit 1. No cohort's Warden fight on floor 2 reaches 300 s, and no hero dies at or past
+the overrun.
+
+**The ramp at 3:30.** The Warden walks out at floor 2's clock 210 s, where before the build it walked out at about 70 s.
+- The horde that fights beside it is the 3:30 horde: HordeClock's x1.35 damage and x1.70 health at 210 s, rising to
+  x1.42 and x1.83 by 250 s, against x1.12 and x1.23 at 70 s. In the boss state the horde keeps its plain crowd of 6
+  (HordeRule.EffectiveTarget), so it grows in strength, not in numbers.
+- What the horde dealt the hero in the Warden's fight went up by half or more in every cohort (first-card 5.1 to 9.2
+  mean, careful 6.5 to 10.2).
+- The overrun's steps and its experience cut-off (HordeClock.PaysExperience) never bite on floor 2. SwarmRule's ramp is
+  the finale's (one step every 3 s at 1.02); it does not touch floor 2.
+
+**The difficulty the wait buys.** The wait's farm gives about 8 levels (33 to 40-41), and with them evolutions. The share
+of Warden fights at difficulty 1.8+ rises in every cohort. First-card goes from 37 to 119 of 377, and those fights kill
+9 of its 13. A difficulty of 1.8 against 1.6 is a Warden with 4,590 health against 4,080 and a strike an eighth harder
+(its slam stays a fifth of the hero's maximum, WardenRule.HeroShare), beside a horde an eighth stronger too.
+
+**The build.** The first-card cohort takes whatever card comes first, so the wait's levels buy it less health than they
+buy the others.
+- Its maximum health grows by 22 (171 to 193 mean) where the careful cohort's grows by 37 (217 to 254) and the standing
+  cohort's by 37 (225 to 262).
+- By the gate it holds 2.0 Vital Surges and 3.6 Vitality levels, against the careful cohort's 2.9 and 4.9. Armour is
+  level: 1.9 Iron Skins in both.
+- 94 of its 377 Warden fights start with a low maximum (careful 44), and 6 of those die.
+- Weapons are not it. Every cohort holds three weapons at or near level 8, and three tomes, at the gate. The first-card
+  cohort's tomes are Force, Tempo, Precision and Reach more often than Vitality.
+
+**Against the careful and standing cohorts.** The longer floor makes the world harder for everyone at the Warden: an
+evolution more, and the 3:30 horde. The cohorts whose picker spends the extra levels on health come out ahead:
+- standing, which takes the Warden's blows without kiting, halves its Warden deaths (39 to 15);
+- careful stays rare (5 to 8 at the Warden, within the noise of 391 fights).
+
+The first-card cohort spends the same levels at random and comes out behind (4 to 13 at the Warden).
