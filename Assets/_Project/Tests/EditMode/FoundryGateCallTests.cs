@@ -98,9 +98,10 @@ namespace Cryptforge.Tests
             Assert.That(DescentSimulation.GateCallExperienceFor(50f, 0f), Is.EqualTo(0));
         }
 
-        // Floor 2's gate opens as its room clears (Floor_QuicksilverVaults sets no time): no hold there, so no call.
+        // Floor 2's gate holds for the same 3:30 as floor 1's since docs/47 (Floor_QuicksilverVaults' 210 s), so the call
+        // reaches it too: its cleared room holds, and the pilot calls on the hold's first frame.
         [Test]
-        public void FloorTwoNeverHoldsSoNeverCalls()
+        public void FloorTwoHoldsSoTheCallReachesIt()
         {
             DescentSimulation.FoundryLevers levers = Calling("two floors", 0, 0f);
             levers.Floors = 2;
@@ -108,8 +109,9 @@ namespace Cryptforge.Tests
             Assert.That(run.Cleared, Is.True);
             Assert.That(run.GateCalled, Is.True);
             Assert.That(run.NextFloor, Is.Not.Null);
-            Assert.That(run.NextFloor.GateCalled, Is.False);
-            Assert.That(run.NextFloor.GateWaitSeconds, Is.EqualTo(0f));
+            Assert.That(run.NextFloor.GateReadyClock, Is.InRange(0f, 210f), "floor 2's gate room cleared before its clock");
+            Assert.That(run.NextFloor.GateCalled, Is.True);
+            Assert.That(run.NextFloor.GateWaitSeconds, Is.LessThan(1f), "called at once, not waited out");
         }
 
         private static DescentSimulation.FoundryLevers Calling(string name, int level, float health)

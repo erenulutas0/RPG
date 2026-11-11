@@ -56,7 +56,7 @@ namespace Cryptforge.Tests
 
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "as shipped: floor 2's gate as its room clears, no heal, the 60 s stay" };
+            yield return new Option { Key = "shipped", What = "as shipped before docs/47's build: floor 2's gate as its room clears, the finale's chest at ChestRule's spot, no heal, the 60 s stay" };
             yield return new Option { Key = "heal30", What = "a heal of 30 % of the maximum as the finale opens", HealShare = .3f };
             yield return new Option { Key = "heal50", What = "a heal of 50 % as the finale opens", HealShare = .5f };
             yield return new Option { Key = "healfull", What = "a full heal as the finale opens", HealShare = 1f };
@@ -78,8 +78,8 @@ namespace Cryptforge.Tests
         {
             DescentSimulation.FoundryFloor one = DescentSimulation.FoundryFloorOne();
             DescentSimulation.FoundryFloor two = one.Next;
-            if (option.FloorTwoGate > 0f)
-                two.GateNotBeforeSeconds = option.FloorTwoGate;
+            // Floor 2's gate as the option says, 0 (open as its room clears) as before docs/47's build.
+            two.GateNotBeforeSeconds = option.FloorTwoGate;
             if (option.FloorTwoAsFloorOne)
             {
                 two.HallSurges = one.HallSurges;

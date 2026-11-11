@@ -234,3 +234,54 @@ FOUNDRY_OUT=<dir> dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false 
 `DESCENT_COHORTS` (all five by default) and `DESCENT_REALISM` (`typical` by default; also `frame-perfect`, `slow`)
 narrow or widen the research. It writes `descent-length.md` (the per-cohort tables) and `descent-length.csv` (a row per
 run).
+
+## Status 2026-11-11 (evening): built
+
+The owner delegated the gameplay calls, and the lead took the recommended pair. Both are built, in the scene and the
+simulation together.
+
+**What was built.**
+- **Floor 2's gate at 3:30.** Floor_QuicksilverVaults sets `_foundryGateNotBeforeSeconds: 210`, as Floor_EmberHalls
+  does. It is one line in the asset; its formatting and GUIDs are unchanged.
+  - The simulation's `FoundryFloorTwo()` mirrors it (`GateNotBeforeSeconds = 210f`).
+  - `FoundrySimulationSceneValueTests.TheFoundrysSecondFloorIsTheAsset` reads 210.
+  - Two simulation tests that held the old open gate now read the new hold.
+    `FoundrySimulationTests.AFloorOneClearGoesDownToFloorTwoAndPlaysItsRoomsInTheScenesOrder` checks that floor 2's
+    Warden walks out at the floor's clock 210 s or later.
+    `FoundryGateCallTests.FloorTwoNeverHoldsSoNeverCalls` becomes `FloorTwoHoldsSoTheCallReachesIt`.
+  - The PlayMode shipped climb already starts each floor's clock at 215 s, so floor 2's wait is skipped there as floor
+    1's is.
+- **The finale's chest where the hero arrives.**
+  - `ChestSpawner.OnEncounterStarted` places a foundry swarm room's chest at the hero's floor position as the swarm
+    opens, instead of `ChestRule.SpotFor`. That chest is room 0's quarter heal.
+  - Every other room is unchanged, and so is the hall arena's swarm room, so the hall Descent's parity stays.
+  - The simulation's `FoundryLevers.FinaleChestAtArrival` is now on by default.
+  - `FoundryDescentFlowTests.TheShippedClimbPlaysThroughToTheEndOfTheFinalSwarm` asserts on the finale's first frame
+    that the chest stands within `ChestRule.PickupRadius` of the hero, and then that it opens.
+  - `DescentLengthResearch` now sets every option's floor 2 gate and chest explicitly, so its `shipped` row stays the
+    pre-build floors and its tables above still reproduce.
+
+**The default batch after the build** (seeds 1-200, FOUNDRY_LEVERS=0, FOUNDRY_COHORTS=1, FOUNDRY_REALISM=typical),
+against the same batch on the pre-build branch:
+- **foundry-gate.md: no row moved**, with FOUNDRY_FLOORS=2 or 3. The gate reads floor 1, which neither change touches.
+  foundry-batch.csv is byte-identical too.
+- **Floor 2** (foundry-cohorts.md's floor-2 section, FOUNDRY_FLOORS=2):
+  - its cleared P50 goes from 123-136 s to 263-274 s (the auto-farmer's from 89-94 s to 255 s);
+  - the level at its gate goes from 31-33 to 40-41;
+  - cleared floor 2, of those that went down, Vanguard / Ilya: careful 98 / 98 % to 99 / 97 %, standing 88 / 89 % to
+    96 / 93 %, first-card 97 / 99 % to 95 / 97 %, clumsy 77 / 77 % to 86 / 82 %;
+  - deaths on floor 2 across both heroes: careful 8 to 8, standing 44 to 19, first-card 6 to 16, clumsy 48 to 34,
+    auto-farmer 32 to 28.
+  - The first-card cohort is the one that loses runs on floor 2, 10 more (Forge Warden and horde blows).
+- **The finale** (foundry-finale.md, FOUNDRY_FLOORS=3):
+  - deaths go from 34 (2 / 2 / 5 / 7 / 3 / 11 / 0 / 2 / 1 / 1, by cohort and hero) to 0 in every row;
+  - every run that reached it walks out;
+  - the hero enters at level 42-45 (was 34-38).
+- **The whole Descent:** P50 goes from 7.6-8.0 min to 9.9-10.3 min (P90 up to 10.7). No run reaches 13 minutes; that
+  still waits for a third floor (section 3, `set-b`).
+
+**Checks.**
+- CombatChecks: 780 of 780 green after the two tests were updated. Before the update, exactly those two failed.
+- Unity, not run here (no Unity in the worktree):
+  - EditMode: `FoundrySimulationSceneValueTests;ClimbFloorContentTests;FoundrySimulationTests;FoundryGateCallTests;FoundryFinaleTests;ChestRuleTests`
+  - PlayMode: `FoundryDescentFlowTests;ArenaWalkTests;FoundryRegionTests;GateHoldFlowTests;FoundryRunEndFlowTests;PaintedHudFlowTests`

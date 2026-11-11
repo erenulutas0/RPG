@@ -362,9 +362,10 @@ namespace Cryptforge.Tests
 
         // The climb the game ships, on the foundry from its first hall to the end of the Final Swarm: floor 1 as the
         // foundry plays it - its halls at their districts, the forge, the Captain twice, the gate - its gate's wait skipped
-        // by starting the floor's clock past it; floor 2; the finale. Every room is played in the order FoundryRooms gives,
-        // the HUD's pips grow past the scene's six for floor 1's seven, and the finale has no gate boss. Every checkpoint
-        // descends, every offer takes its first card, the forge its first option.
+        // by starting each floor's clock past it (floor 2's waits for the same 3:30 since docs/47); floor 2; the finale.
+        // Every room is played in the order FoundryRooms gives, the HUD's pips grow past the scene's six for floor 1's
+        // seven, the finale has no gate boss, and its chest stands where the hero arrives and opens under it (docs/47).
+        // Every checkpoint descends, every offer takes its first card, the forge its first option.
         [UnityTest, Timeout(300000)]
         public IEnumerator TheShippedClimbPlaysThroughToTheEndOfTheFinalSwarm()
         {
@@ -402,6 +403,10 @@ namespace Cryptforge.Tests
             string last = null;
             int floorSeen = 0;
             bool wardenInTheFinale = false;
+            var chests = Object.FindFirstObjectByType<ChestSpawner>();
+            Assert.That(chests, Is.Not.Null);
+            float chestFromArrival = float.NaN;
+            bool finaleChestOpened = false;
             float deadline = Time.realtimeSinceStartup + 240f;
             while (!setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
             {
@@ -425,7 +430,15 @@ namespace Cryptforge.Tests
                 else if (encounters.IsInSwarmRoom)
                 {
                     wardenInTheFinale |= encounters.GateBoss != null || setup.Warden.IsFighting;
-                    FoundryRunDriver.Place(hero, encounters.ExitFloorX, encounters.ExitFloorY);
+                    // The finale's first frame: its chest where the hero arrived, left a frame to open under it.
+                    if (float.IsNaN(chestFromArrival))
+                        chestFromArrival = Vector2.Distance(new Vector2(chests.ChestFloorX, chests.ChestFloorY),
+                            new Vector2(encounters.HeroFloorX, encounters.HeroFloorY));
+                    else
+                    {
+                        finaleChestOpened |= chests.IsOpen;
+                        FoundryRunDriver.Place(hero, encounters.ExitFloorX, encounters.ExitFloorY);
+                    }
                 }
                 else if (encounters.IsGateExitOpen)
                 {
@@ -444,6 +457,8 @@ namespace Cryptforge.Tests
             Assert.That(pips, Is.EqualTo(new[] { (7, 1), (6, 1), (1, 1) }),
                 "A pip a room: floor 1's seven, floor 2's six, the finale's one; the first reached on each.");
             Assert.That(wardenInTheFinale, Is.False, "No enemy of the finale is the gate boss.");
+            Assert.That(chestFromArrival, Is.LessThanOrEqualTo(ChestRule.PickupRadius), "The finale's chest stands where the hero arrives.");
+            Assert.That(finaleChestOpened, Is.True, "The hero opens it standing there.");
             Assert.That(encounters.TotalRoomsCleared, Is.EqualTo(expected.Count));
             Assert.That(TestProfile.ReadSaved().DeepestFloorCleared, Is.EqualTo(3));
             LogAssert.NoUnexpectedReceived();
