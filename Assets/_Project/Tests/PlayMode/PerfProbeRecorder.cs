@@ -202,8 +202,15 @@ namespace Cryptforge.Tests
         private void LateUpdate()
         {
             // No Game view renders in batch mode: the probe's camera draws the frame here, after every LateUpdate.
+            // The player loop updates the sorting groups only in PostLateUpdate, after this: a body deactivated this frame
+            // (EncounterController.RemoveBody, a wave released as the next spawns) left a stale group that Unity's renderer
+            // asserted on ("Invalid sorting group ID"), failing the probe from 4db8f5b6 on. A frame drawn by the engine
+            // itself renders after that update, so the probe brings it forward to draw what a phone would.
             if (_manualRender && _camera != null && _camera.isActiveAndEnabled)
+            {
+                UnityEngine.Rendering.SortingGroup.UpdateAllSortingGroups();
                 _camera.Render();
+            }
             long now = Stopwatch.GetTimestamp();
             if (_recording)
                 Record(now);
