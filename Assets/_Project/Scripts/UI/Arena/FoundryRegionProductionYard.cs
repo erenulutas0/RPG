@@ -179,7 +179,8 @@ namespace Cryptforge.UI
             foreach(float u in new[]{u0+.62f,u1-.62f})YardWheel(kit,u,v0+.18f,YardWheelCentre,YardWheelRadius,true);
             // Value hierarchy: the skid is a dark bearing plate, not a pale tray; the running gear and frame are
             // worked iron, darker toward the floor, lighter on worn top edges; oak bearers carry the oxide-steel load.
-            YardTrolleyIronFinish(kit,0,skid,origin,.70f);
+            // The skid sits a step darker than the bench's, under the deeper shadowed side frames.
+            YardTrolleyIronFinish(kit,0,skid,origin,.62f);
             YardTrolleyIronFinish(kit,skid,stock,origin,1.02f);
             for(int i=stock;i<bearers;i++)kit.C[i]=YardBearerTone(kit.C[i]);
             YardTrolleyIronFinish(kit,freight,kit.V.Count,origin,1.02f);
