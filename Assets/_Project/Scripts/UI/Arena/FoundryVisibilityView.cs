@@ -165,6 +165,13 @@ namespace Cryptforge.UI
             Camera.onPostRender += OnCameraPostRender;
         }
 
+        // The ground projection's state, for the tests and the ramp-entry measurement: its material (null until made), the
+        // grids made, whether a source sprite has one, and the floor sprites projected so far (every render's counted).
+        internal Material GroundMaterial => _ground.Material;
+        internal int GroundGridCount => _ground.GridCount;
+        internal bool HasGroundGrid(Sprite source) => _ground.HasGrid(source);
+        internal int GroundProjections => _ground.Projections;
+
         // Bodies remembered for restoring (enemies, drops and the chest; destroyed ones until pruned), so a test can see nothing registers twice.
         internal int XrayedCount => _xrayed.Count;
         // Transforms the last apply placed in depth (actor sprites and effects), so a test can see none is remembered twice.
