@@ -170,6 +170,39 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // A swarm room is one wave of the floor's for its whole life, and the HUD's wave line read "Wave 1/12" all through
+        // the finale. It counts the room's ladder, whose next wave walks in every SwarmRule.LadderSeconds, and moves on
+        // with the swarm's clock even when nothing falls or is hit (EncounterController.SwarmStepped).
+        [UnityTest]
+        public IEnumerator TheSwarmsWaveLineCountsItsLadder()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartFloorPath));
+            File.WriteAllText(DevelopmentStart.StartFloorPath, "floor_swarm_proof");
+            yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
+            yield return null;
+            FindSceneObjects();
+            Object.FindFirstObjectByType<HeroMovementInput>().enabled = false;
+            _heroAttack.enabled = false;
+            Assert.That(_encounters.IsInSwarmRoom, Is.True, "The proof floor opens on its swarm.");
+            int waves = _encounters.WaveCount;
+            Assert.That(waves, Is.GreaterThan(2));
+            Assert.That(Label("Status Label"), Does.StartWith($"Wave 1/{waves}:"));
+
+            // Two ladder waves on, a little faster than real time; the hero is kept standing.
+            Time.timeScale = 3f;
+            float deadline = Time.realtimeSinceStartup + 15f;
+            while (_encounters.SwarmLadderWave < 3 && Time.realtimeSinceStartup < deadline)
+            {
+                if (_hero.IsAlive)
+                    _hero.Heal(_hero.Maximum);
+                yield return null;
+            }
+            Time.timeScale = 1f;
+            Assert.That(_encounters.SwarmLadderWave, Is.EqualTo(3), "The swarm's clock reached its ladder's third wave.");
+            Assert.That(_encounters.WaveNumber, Is.EqualTo(1), "The floor's own wave stays on the room's first.");
+            Assert.That(Label("Status Label"), Does.StartWith($"Wave 3/{waves}:"));
+        }
+
         [UnityTest]
         public IEnumerator TryAgainReloadsAFreshRunExactlyOnce()
         {

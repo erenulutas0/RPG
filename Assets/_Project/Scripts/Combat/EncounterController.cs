@@ -156,6 +156,9 @@ namespace Cryptforge.Combat
         public bool IsInSwarmRoom => _swarm != null;
         public float SwarmSeconds => _swarm != null ? _swarm.Seconds : 0f;
         public int SwarmWave => _swarm != null ? (int)(_swarm.Seconds / SwarmRule.StepSeconds) + 1 : 0;
+        // The wave of the room's ladder the swarm's clock has reached, one-based (SwarmDirector.Wave): what the HUD's wave
+        // line counts in a swarm room, where the floor's own wave stays on the first.
+        public int SwarmLadderWave => _swarm != null ? _swarm.Wave + 1 : 0;
         public float SwarmDifficulty => _swarm != null ? SwarmRule.DifficultyAtSeconds(_swarm.Seconds) : 1f;
         // On the foundry a floor that ends in a boss is left through the gate: once the boss falls the gate opens and the
         // floor clears only when the hero walks to it and holds still there (ExitRule), so the climb is a walk out.
@@ -185,6 +188,9 @@ namespace Cryptforge.Combat
         public event Action HordeReleased;
         public event Action ProgressChanged;
         public event Action<Health> EnemyDefeated;
+        // An enemy's body leaves the floor, fallen or standing, its death no longer reported (RemoveBody): RewardService
+        // forgets a paid kill then.
+        public event Action<Health> EnemyRemoved;
         // An ordinary wave's last enemy has fallen, once per wave and before the floor moves on; a swarm never raises it.
         public event Action WaveCleared;
         public event Action FloorCleared;
@@ -793,9 +799,11 @@ namespace Cryptforge.Combat
         // standing - the horde as the gate opens, the swarm at the finale's exit - kept its AttackController, its burn and
         // the hero's strikes for the rest of the frame: a horde enemy could strike the hero after the Warden had fallen
         // (the run flow's review, 2026-11-11). Deactivated first, it does nothing more; the simulation drops a released
-        // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell.
-        private static void RemoveBody(Health enemy)
+        // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell. Every caller has
+        // unsubscribed from its death first, so EnemyRemoved says nothing can report it again.
+        private void RemoveBody(Health enemy)
         {
+            EnemyRemoved?.Invoke(enemy);
             enemy.gameObject.SetActive(false);
             Destroy(enemy.gameObject);
         }
