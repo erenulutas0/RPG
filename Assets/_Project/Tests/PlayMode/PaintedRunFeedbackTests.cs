@@ -177,10 +177,18 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // A run seed whose offers draw every tier early (RarityTable at Luck 0: six gold cards in the first twenty offers,
+        // the first in the third; tiers are drawn per offer from the seed alone, RunRandom.Offers). With a fresh seed a
+        // gold card is about one in thirty, and on 2026-11-11 one run went through its offers without one.
+        private const string EveryTierEarlySeed = "260";
+
         [UnityTest, Timeout(120000)]
         public IEnumerator ATakenCardRingsTheHeroInItsTiersOwnColourAfterItsBrightCore()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RunSeedPath));
+            File.WriteAllText(DevelopmentStart.RunSeedPath, EveryTierEarlySeed);
             yield return Load();
+            Assert.That(_setup.Run.Seed, Is.EqualTo(int.Parse(EveryTierEarlySeed)), "the run plays the chosen seed");
             UpgradeService upgrades = _setup.Upgrades;
             var seen = new bool[RarityTable.TierCount];
             int found = 0;
