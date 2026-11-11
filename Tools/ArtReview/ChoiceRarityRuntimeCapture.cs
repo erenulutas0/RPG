@@ -170,7 +170,9 @@ namespace Cryptforge.Tests
                 bool evolution = offer.Choices[c].IsEvolution;
                 UpgradeRarity rarity = staged != null ? staged[c] : offer.RarityAt(c);
                 Sprite expected = evolution ? _art.Evolution.Ground : _art.Tier(rarity).Ground;
-                Assert.That(ground.sprite, Is.SameAs(expected), $"{file}: card {c}'s ground.");
+                // Unity's equality: an untiered card's empty reference need not be the same object as the set's.
+                Assert.That(ground.sprite == expected, Is.True, $"{file}: card {c}'s ground.");
+                Assert.That(ground.enabled, Is.EqualTo(expected != null), $"{file}: card {c}'s ground on show only with a sprite.");
                 Assert.That(icon.enabled && icon.sprite != null, Is.True, $"{file}: card {c} shows its item.");
                 _cards.Append("  ").Append(evolution ? "evolution" : TierNames[(int)rarity]).Append(' ')
                     .Append(offer.Choices[c].Id).Append(' ')

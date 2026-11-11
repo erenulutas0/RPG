@@ -146,7 +146,13 @@ namespace Cryptforge.Tests
             Assert.That(lip.transform.GetSiblingIndex(), Is.EqualTo(icon.transform.GetSiblingIndex() + 1), $"{name}: the lip over its edge.");
             AssertEdges(lip.rectTransform, icon.rectTransform, Vector4.zero, $"{name}: the lip on the icon's edge");
             Image ground = Part(card, "Painted Item Ground");
-            Assert.That(ground.sprite, Is.SameAs(look.Ground), $"{name}: its treatment's item ground.");
+            // An untiered treatment (the evolution's, the forge's, Extract's and Climb's) has no ground: the part is empty and
+            // switched off, and the well's navy floor shows as before. An empty sprite reference is compared with Unity's
+            // own equality, since the set's and the image's empty references need not be the same object.
+            if (look.Ground != null)
+                Assert.That(ground.sprite, Is.SameAs(look.Ground), $"{name}: its treatment's item ground.");
+            else
+                Assert.That(ground.sprite == null, Is.True, $"{name}: no item ground, the well's navy floor.");
             Assert.That(ground.enabled, Is.EqualTo(look.Ground != null), $"{name}: a ground only where its treatment has one.");
             Assert.That(ground.type, Is.EqualTo(Image.Type.Simple), name);
             AssertEdges(ground.rectTransform, icon.rectTransform, Vector4.zero, $"{name}: the ground exactly under the icon");
@@ -318,7 +324,7 @@ namespace Cryptforge.Tests
             }
             Assert.That(grounds.Count, Is.EqualTo(RarityTable.TierCount), "Each tier its own ground.");
             foreach (ChoiceCardArtSet.Treatment untiered in new[] { art.Evolution, art.Neutral, art.Extract, art.Climb })
-                Assert.That(untiered.Ground, Is.Null, "The untiered treatments keep the well's navy floor.");
+                Assert.That(untiered.Ground == null, Is.True, "The untiered treatments keep the well's navy floor.");
 
             var seen = new bool[RarityTable.TierCount];
             int found = 0;
