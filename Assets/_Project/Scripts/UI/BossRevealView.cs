@@ -21,9 +21,14 @@ namespace Cryptforge.UI
         private bool _followEnabled;
         private Vector3 _home;
         private bool _skip;
+        private AbilityButtonView _abilityButton;
         public bool IsRevealing { get; private set; }
         // How far the camera has turned toward the boss (0 at the hero, 1 at the gate), for tests and the HUD.
         public float Turn { get; private set; }
+        // The ability button while the reveal holds the fight (AbilityButtonView.IsHeld): greyed, it takes no tap, so a tap on
+        // it skips the reveal as one on the floor does (RevealSkip). Null without one, or once it answers its own taps again.
+        internal RectTransform HeldButton =>
+            _abilityButton != null && _abilityButton.IsHeld ? _abilityButton.ButtonRect : null;
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
         {
@@ -45,6 +50,8 @@ namespace Cryptforge.UI
             var boss = _setup.Encounters.GateBoss;
             if (boss == null) boss = _setup.Encounters.CurrentEnemy;
             if (_follow == null || boss == null) return;
+            // The button the reveal greys, found once a reveal: a tap on it is the reveal's (HeldButton).
+            _abilityButton = FindFirstObjectByType<AbilityButtonView>();
             StartCoroutine(Reveal(boss));
         }
 
@@ -74,12 +81,13 @@ namespace Cryptforge.UI
             Finish();
         }
 
-        // After every Update, so the EventSystem has taken this frame's touches and a tap on a button (the pause button, the
-        // ability button) is the button's, not a skip (RevealSkip.ThisFrame); and never while the game stands paused, as
-        // this runs at a time scale of 0 too and a tap on the paused screen latched the skip for the moment play resumed.
+        // After every Update, so the EventSystem has taken this frame's touches and a tap on a button (the pause button) is
+        // the button's, not a skip, while a tap on the greyed ability button, which takes none, skips (RevealSkip.ThisFrame,
+        // HeldButton); and never while the game stands paused, as this runs at a time scale of 0 too and a tap on the
+        // paused screen latched the skip for the moment play resumed.
         private void LateUpdate()
         {
-            if (IsRevealing && !_skip && RevealSkip.ThisFrame(IsPaused)) _skip = true;
+            if (IsRevealing && !_skip && RevealSkip.ThisFrame(IsPaused, HeldButton)) _skip = true;
         }
 
         private bool IsPaused => Time.timeScale <= 0f || (_setup != null && _setup.Pause != null && _setup.Pause.IsFrozen);

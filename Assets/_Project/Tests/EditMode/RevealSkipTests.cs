@@ -32,8 +32,8 @@ namespace Cryptforge.Tests
             Assert.That(RevealSkip.Skips(0, Phases(), false, true), Is.True, "Space.");
         }
 
-        // A tap on the UI is the button's - the pause button, the ability button - not a skip; another finger's new tap
-        // beside it still skips (the run flow's review, 2026-11-11).
+        // A tap on the UI is the button's - the pause button - not a skip; another finger's new tap beside it still skips
+        // (the run flow's review, 2026-11-11).
         [Test]
         public void ATapOnTheUiDoesNotSkip()
         {
@@ -47,6 +47,29 @@ namespace Cryptforge.Tests
             Assert.That(RevealSkip.Skips(1, Phases(TouchPhase.Began), noneOverUi, false, false, false, false), Is.True,
                 "A tap on the floor.");
             Assert.That(RevealSkip.Skips(0, Phases(), null, true, false, false, false), Is.True, "A click on the floor.");
+        }
+
+        // The ability button stands greyed while the reveal holds the fight (AbilityController.IsHeld) and takes no tap: a
+        // tap on it skips as one on the floor does, where a tap on any other UI - the pause button - stays that UI's. Counted
+        // as a tap on the UI, a tap on the greyed button did nothing at all (the run flow's review, 2026-11-11).
+        [Test]
+        public void ATapOnTheHeldAbilityButtonSkips()
+        {
+            Func<int, bool> overUi = index => true;
+            Func<int, bool> firstOnHeld = index => index == 0;
+            Func<int, bool> noneOnHeld = index => false;
+            Assert.That(RevealSkip.Skips(1, Phases(TouchPhase.Began), overUi, firstOnHeld, false, false, false, false, false),
+                Is.True, "A tap on the greyed ability button.");
+            Assert.That(RevealSkip.Skips(1, Phases(TouchPhase.Began), overUi, noneOnHeld, false, false, false, false, false),
+                Is.False, "A tap on the pause button.");
+            Assert.That(RevealSkip.Skips(2, Phases(TouchPhase.Stationary, TouchPhase.Began), overUi, firstOnHeld, false, false,
+                false, false, false), Is.False, "A tap on the pause button while a finger rests on the greyed one.");
+            Assert.That(RevealSkip.Skips(0, Phases(), null, null, true, true, true, false, false), Is.True,
+                "A click on the greyed ability button.");
+            Assert.That(RevealSkip.Skips(0, Phases(), null, null, true, true, false, false, false), Is.False,
+                "A click on the pause button.");
+            Assert.That(RevealSkip.Skips(1, Phases(TouchPhase.Began), overUi, firstOnHeld, false, false, false, false, true),
+                Is.False, "Nor while the game stands paused.");
         }
 
         // With a finger on the screen the mouse button is its echo (Input.simulateMouseWithTouches): the touches decide,
@@ -75,6 +98,7 @@ namespace Cryptforge.Tests
         {
             Assert.Throws<ArgumentNullException>(() => RevealSkip.Skips(0, null, false, false));
             Assert.Throws<ArgumentNullException>(() => RevealSkip.Skips(0, null, null, false, false, false, true));
+            Assert.Throws<ArgumentNullException>(() => RevealSkip.Skips(0, null, null, null, false, false, false, false, true));
         }
     }
 }
