@@ -97,9 +97,15 @@ namespace Cryptforge.UI
             UsesPaintedArt = true;
         }
 
+        private void LateUpdate()
+        {
+            using (Cryptforge.Core.PerformanceMarkers.LateHudArt.Auto())
+                LateTick();
+        }
+
         // After every Start (so RunHud's row exists) and after the frame's damage (so a hit's chunk shows the frame it
         // lands): the chunks drain and the lights follow the fills' ends. A fill is only read; nothing is allocated.
-        private void LateUpdate()
+        private void LateTick()
         {
             if (!_loadoutChecked)
             {

@@ -37,7 +37,9 @@ namespace Cryptforge.Tests
         {
             var text=new System.Text.StringBuilder();
             string folder=Cryptforge.Analytics.TelemetryLocation.Resolve();
-            if(Directory.Exists(folder))foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))text.Append(File.ReadAllText(file));
+            // Sharing write access: the scene still recording holds the current file open (TelemetryRuntime.HoldFile).
+            if(Directory.Exists(folder))foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))
+                using(var reader=new StreamReader(new FileStream(file,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete)))text.Append(reader.ReadToEnd());
             return text.ToString();
         }
 

@@ -81,6 +81,12 @@ namespace Cryptforge.UI
 
         private void LateUpdate()
         {
+            using (PerformanceMarkers.LateWarden.Auto())
+                LateTick();
+        }
+
+        private void LateTick()
+        {
             if (_mark == null)
                 return;
             if (_flash > 0f)

@@ -215,7 +215,11 @@ namespace Cryptforge.UI
         }
 
         // After every Update, so the hero's movement and its weapon's cooldown this frame are already in.
-        private void LateUpdate() => Tick(Time.deltaTime);
+        private void LateUpdate()
+        {
+            using (PerformanceMarkers.LatePuppet.Auto())
+                Tick(Time.deltaTime);
+        }
 
         public void Tick(float dt)
         {

@@ -154,6 +154,55 @@ namespace Cryptforge.Tests
             Assert.That(log.Written, Is.EqualTo(3));
         }
 
+        [Test]
+        public void AHeldFileGetsExactlyTheBytesOfAFileOpenedForEachAppend()
+        {
+            string opened = Path.Combine(_directory, "opened"), held = Path.Combine(_directory, "held");
+            var each = new FileTelemetryStore(opened, 100, 3);
+            var hold = new FileTelemetryStore(held, 100, 3);
+            hold.Hold();
+            Assert.That(hold.IsHolding, Is.True);
+            Assert.That(hold.HoldsAFile, Is.False, "Nothing is opened before the first line.");
+
+            // Batches that rotate, then a line longer than a whole file, then lines after it: the same as the first test.
+            int next = 0;
+            foreach (int batch in new[] { 1, 2, 3, 5, 4, 5, 1 })
+            {
+                var text = new StringBuilder();
+                for (int i = 0; i < batch; i++)
+                    text.Append(Line(next++, 11));
+                each.Append(text.ToString());
+                hold.Append(text.ToString());
+                Assert.That(hold.HoldsAFile, Is.True, $"Held after {next} lines.");
+                Assert.That(ReadShared(Path.Combine(held, FileTelemetryStore.FileName)),
+                    Is.EqualTo(File.ReadAllText(Path.Combine(opened, FileTelemetryStore.FileName))),
+                    $"Written through before the append returns, and readable while held, after {next} lines.");
+            }
+            foreach (string text in new[] { Line(99, 131), Line(100, 11), Line(101, 11) })
+            {
+                each.Append(text);
+                hold.Append(text);
+            }
+
+            hold.Release();
+            Assert.That(hold.HoldsAFile, Is.False, "Released, the file is closed.");
+            hold.Append(Line(102, 11));
+            each.Append(Line(102, 11));
+            Assert.That(hold.HoldsAFile, Is.False, "And opened only for each append after it.");
+            for (int slot = 0; slot < 3; slot++)
+                Assert.That(File.ReadAllBytes(Path.Combine(held, FileTelemetryStore.FileNameAt(slot))),
+                    Is.EqualTo(File.ReadAllBytes(Path.Combine(opened, FileTelemetryStore.FileNameAt(slot)))), $"Slot {slot}.");
+            Assert.That(Directory.GetFiles(held).Length, Is.EqualTo(Directory.GetFiles(opened).Length));
+        }
+
+        // A file a store may hold open, read as a reader on Windows must read it.
+        private static string ReadShared(string path)
+        {
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
+                return reader.ReadToEnd();
+        }
+
         private string ReadSlot(int index)
         {
             return File.ReadAllText(Path.Combine(_directory, FileTelemetryStore.FileNameAt(index)));

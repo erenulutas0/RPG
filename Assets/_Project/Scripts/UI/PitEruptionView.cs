@@ -85,7 +85,11 @@ namespace Cryptforge.UI
             return line;
         }
 
-        private void LateUpdate() => Refresh();
+        private void LateUpdate()
+        {
+            using (PerformanceMarkers.LatePit.Auto())
+                Refresh();
+        }
 
         private void Refresh()
         {

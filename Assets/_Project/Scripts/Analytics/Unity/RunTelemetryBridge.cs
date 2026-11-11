@@ -16,6 +16,7 @@ namespace Cryptforge.Analytics
     public sealed class RunTelemetryBridge : MonoBehaviour
     {
         private RunTelemetry _telemetry;
+        private bool _holdsFile;
         private EncounterController _encounters;
         private AbilityController _ability;
         private ChestSpawner _chests;
@@ -57,6 +58,10 @@ namespace Cryptforge.Analytics
                 TimeChoices(context, false);
             RunTelemetryBridge bridge = host.AddComponent<RunTelemetryBridge>();
             bridge.Bind(telemetry, encounters, ability, FindChestSpawner(host.scene));
+            // The session's file stays open while this scene records (TelemetryRuntime.HoldFile): a flush is then one
+            // write, not an open, a write and a close.
+            TelemetryRuntime.HoldFile();
+            bridge._holdsFile = true;
             return bridge;
         }
 
@@ -302,6 +307,12 @@ namespace Cryptforge.Analytics
             {
                 _telemetry.Dispose();
                 _telemetry = null;
+            }
+            // After the recorder's last write: the file is closed once no scene holds it (TelemetryRuntime.HoldFile).
+            if (_holdsFile)
+            {
+                _holdsFile = false;
+                TelemetryRuntime.ReleaseFile();
             }
         }
     }

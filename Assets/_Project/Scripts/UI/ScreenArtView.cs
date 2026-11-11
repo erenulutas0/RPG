@@ -100,9 +100,15 @@ namespace Cryptforge.UI
             UsesPaintedArt = true;
         }
 
+        private void LateUpdate()
+        {
+            using (PerformanceMarkers.LateScreenArt.Auto())
+                LateTick();
+        }
+
         // After every Start, so the forge's hero chooser exists; and after the forge has refreshed, so the rack's empty
         // places and the pips show what the forge now does.
-        private void LateUpdate()
+        private void LateTick()
         {
             if (!_chooserChecked)
             {

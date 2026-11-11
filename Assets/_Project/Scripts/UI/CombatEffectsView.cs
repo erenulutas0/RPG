@@ -1259,9 +1259,15 @@ namespace Cryptforge.UI
             }
         }
 
+        private void LateUpdate()
+        {
+            using (Cryptforge.Core.PerformanceMarkers.LateEffects.Auto())
+                LateTick();
+        }
+
         // After the camera framing, which only moves the camera when the screen changes; the shake is measured from the
         // framing's own position each frame so a frame change mid-shake is kept, and the rest position is restored exactly.
-        private void LateUpdate()
+        private void LateTick()
         {
             // After every Update has moved the enemies and lit, spent or put out their burns, so each flame stands on its
             // enemy in the frame it is drawn, and on scaled time, so a pause holds the flicker as it holds the burn.

@@ -37,11 +37,33 @@ namespace Cryptforge.Core
         // The loadout row's weapon and tome badges.
         public const string PickLoadoutName = "Cryptforge.Pick.Loadout";
 
+        // Every view's LateUpdate, one scope a view whatever its instances, and the foundry's depth placement and restore in
+        // the camera's own callbacks (2026-11-11: the first level-up's frame held about 7 ms of LateUpdate that no marker
+        // named, and a spawn's and a quiet frame 4 ms each).
+        public const string LateCameraName = "Cryptforge.Late.Camera";
+        public const string LateEffectsName = "Cryptforge.Late.Effects";
+        public const string LateShadowsName = "Cryptforge.Late.Shadows";
+        public const string LateExitSealName = "Cryptforge.Late.ExitSeal";
+        public const string LateHudArtName = "Cryptforge.Late.HudArt";
+        public const string LatePitName = "Cryptforge.Late.Pit";
+        public const string LatePuppetName = "Cryptforge.Late.Puppet";
+        public const string LateFramesName = "Cryptforge.Late.RenderedFrames";
+        public const string LateAltarName = "Cryptforge.Late.Altar";
+        public const string LateWardenName = "Cryptforge.Late.Warden";
+        public const string LateScreenArtName = "Cryptforge.Late.ScreenArt";
+        public const string LateVisibilityName = "Cryptforge.Late.Visibility";
+        public const string LateBackdropName = "Cryptforge.Late.Backdrop";
+        public const string DepthPlaceName = "Cryptforge.Depth.Place";
+        public const string DepthRestoreName = "Cryptforge.Depth.Restore";
+
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
         public static readonly string[] PickNames =
         {
             PickName, PickPanelName, PickTelemetryName, TelemetryWriteName, PickFeedbackName, FeedbackDrawName,
-            PickAddWeaponName, PickHeroStatsName, PickPauseName, PickHudName, PickLoadoutName
+            PickAddWeaponName, PickHeroStatsName, PickPauseName, PickHudName, PickLoadoutName,
+            LateCameraName, LateEffectsName, LateShadowsName, LateExitSealName, LateHudArtName, LatePitName, LatePuppetName,
+            LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
+            DepthPlaceName, DepthRestoreName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -60,5 +82,21 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker PickPause = new ProfilerMarker(ProfilerCategory.Scripts, PickPauseName);
         public static readonly ProfilerMarker PickHud = new ProfilerMarker(ProfilerCategory.Scripts, PickHudName);
         public static readonly ProfilerMarker PickLoadout = new ProfilerMarker(ProfilerCategory.Scripts, PickLoadoutName);
+
+        public static readonly ProfilerMarker LateCamera = new ProfilerMarker(ProfilerCategory.Scripts, LateCameraName);
+        public static readonly ProfilerMarker LateEffects = new ProfilerMarker(ProfilerCategory.Scripts, LateEffectsName);
+        public static readonly ProfilerMarker LateShadows = new ProfilerMarker(ProfilerCategory.Scripts, LateShadowsName);
+        public static readonly ProfilerMarker LateExitSeal = new ProfilerMarker(ProfilerCategory.Scripts, LateExitSealName);
+        public static readonly ProfilerMarker LateHudArt = new ProfilerMarker(ProfilerCategory.Scripts, LateHudArtName);
+        public static readonly ProfilerMarker LatePit = new ProfilerMarker(ProfilerCategory.Scripts, LatePitName);
+        public static readonly ProfilerMarker LatePuppet = new ProfilerMarker(ProfilerCategory.Scripts, LatePuppetName);
+        public static readonly ProfilerMarker LateFrames = new ProfilerMarker(ProfilerCategory.Scripts, LateFramesName);
+        public static readonly ProfilerMarker LateAltar = new ProfilerMarker(ProfilerCategory.Scripts, LateAltarName);
+        public static readonly ProfilerMarker LateWarden = new ProfilerMarker(ProfilerCategory.Scripts, LateWardenName);
+        public static readonly ProfilerMarker LateScreenArt = new ProfilerMarker(ProfilerCategory.Scripts, LateScreenArtName);
+        public static readonly ProfilerMarker LateVisibility = new ProfilerMarker(ProfilerCategory.Scripts, LateVisibilityName);
+        public static readonly ProfilerMarker LateBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, LateBackdropName);
+        public static readonly ProfilerMarker DepthPlace = new ProfilerMarker(ProfilerCategory.Scripts, DepthPlaceName);
+        public static readonly ProfilerMarker DepthRestore = new ProfilerMarker(ProfilerCategory.Scripts, DepthRestoreName);
     }
 }

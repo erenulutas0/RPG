@@ -159,7 +159,11 @@ namespace Cryptforge.UI
         }
 
         // After every Update, so the hero's movement this frame is already in its position.
-        private void LateUpdate() => Tick(Time.deltaTime);
+        private void LateUpdate()
+        {
+            using (PerformanceMarkers.LateFrames.Auto())
+                Tick(Time.deltaTime);
+        }
 
         public void Tick(float dt)
         {

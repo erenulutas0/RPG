@@ -46,7 +46,11 @@ namespace Cryptforge.UI
             Refresh();
         }
 
-        private void LateUpdate() => Refresh();
+        private void LateUpdate()
+        {
+            using (Cryptforge.Core.PerformanceMarkers.LateShadows.Auto())
+                Refresh();
+        }
 
         internal void Refresh()
         {

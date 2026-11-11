@@ -31,8 +31,14 @@ namespace Cryptforge.Tests
         internal const int Capacity = 12000;
         internal const byte ProbeWork = 1;
         internal const byte Paused = 2;
-        private const int MaxMarkers = 64;
+        private const int MaxMarkers = 96;
         private static readonly double MillisecondsPerTick = 1000d / Stopwatch.Frequency;
+        // The probe's own work in its LateUpdate, so a frame's LateUpdate can be told from the game's: the sorting groups
+        // brought forward and the camera's render into the phone's target.
+        internal const string ProbeSortingName = "Cryptforge.Probe.SortingGroups";
+        internal const string ProbeRenderName = "Cryptforge.Probe.Render";
+        private static readonly ProfilerMarker ProbeSorting = new ProfilerMarker(ProfilerCategory.Scripts, ProbeSortingName);
+        private static readonly ProfilerMarker ProbeRender = new ProfilerMarker(ProfilerCategory.Scripts, ProbeRenderName);
 
         // Exact names worth a line of their own, with PerformanceMarkers.PickNames (DiscoverMarkers); any marker naming one
         // of ScriptNames is taken too. The engine's first-use work - a shader variant's GPU program, a hierarchy switched
@@ -51,6 +57,9 @@ namespace Cryptforge.Tests
             "WaitForTargetFPS", "Gfx.WaitForPresent", "EditorLoop",
             "Shader.CreateGPUProgram", "CreateGPUProgram", "Shader.Parse", "GameObject.Activate", "GameObject.Deactivate",
             "Font.RequestCharactersInTexture", "TextGenerator.Populate", "Canvas.SendWillRenderCanvases.Layout",
+            // The Editor's compiler, a wait on the render thread, a hierarchy woken (2026-11-11's markers file).
+            "Mono.JIT", "Gfx.WaitForGfxCommandsFromMainThread", "Semaphore.WaitForSignal", "Gfx.PresentFrame",
+            "GameObject.ActivateAwakeRecursively", ProbeSortingName, ProbeRenderName,
         };
         internal static readonly string[] ScriptNames =
         {
@@ -215,8 +224,10 @@ namespace Cryptforge.Tests
             // itself renders after that update, so the probe brings it forward to draw what a phone would.
             if (_manualRender && _camera != null && _camera.isActiveAndEnabled)
             {
-                UnityEngine.Rendering.SortingGroup.UpdateAllSortingGroups();
-                _camera.Render();
+                using (ProbeSorting.Auto())
+                    UnityEngine.Rendering.SortingGroup.UpdateAllSortingGroups();
+                using (ProbeRender.Auto())
+                    _camera.Render();
             }
             long now = Stopwatch.GetTimestamp();
             if (_recording)
@@ -272,9 +283,12 @@ namespace Cryptforge.Tests
         // The markers on offer, by name: the wanted ones and every one naming a script of the game's that runs per frame.
         private void DiscoverMarkers()
         {
-            // Reading the names creates the game's own markers, so they are on offer even before their first use.
+            // Reading the names creates the game's own markers, so they are on offer even before their first use; the
+            // probe's own are made with this class and asked for here, which makes them too.
             var wanted = new HashSet<string>(WantedMarkers);
             wanted.UnionWith(PerformanceMarkers.PickNames);
+            if (ProbeSorting.Handle == System.IntPtr.Zero || ProbeRender.Handle == System.IntPtr.Zero)
+                UnityEngine.Debug.LogWarning("[PerfProbe] the probe's own markers were not made.");
             var handles = new List<ProfilerRecorderHandle>();
             ProfilerRecorderHandle.GetAvailable(handles);
             var chosen = new List<ProfilerRecorderHandle>();
