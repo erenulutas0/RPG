@@ -35,7 +35,7 @@ namespace Cryptforge.Tests
             Assert.That(relics[0].Id, Is.EqualTo("relic_second_wind"));
             Assert.That(weapons[0].Id, Is.EqualTo("weapon_sword"));
             Assert.That(weapons[1].Id, Is.EqualTo("weapon_staff"));
-            Assert.That(weapons[1].Description, Is.EqualTo(string.Format("{0:0} damage every {1:0.0#}s", 10f, 0.8f)));
+            Assert.That(weapons[1].Description, Is.EqualTo("10 damage every 0.8s"));
             Assert.That(weapons[1].Price, Is.EqualTo(120));
         }
 

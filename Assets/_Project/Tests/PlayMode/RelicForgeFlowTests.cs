@@ -228,17 +228,17 @@ namespace Cryptforge.Tests
         {
             // Decimals follow the current culture, as on the device.
             yield return LoadGameplay(new PlayerProfile(150, null, null, 1));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Sword  |  10 damage every {0.8f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo("Sword  |  10 damage every 0.80s"));
             _hero.ApplyDamage(new DamageContext(1000f));
             yield return null;
             yield return new WaitForSecondsRealtime(0.6f);
             Tap(FindButton("Forge Button"));
             yield return new WaitForSecondsRealtime(0.4f);
 
-            Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo($"10 damage every {0.8f:0.0#}s. Cleaves a second enemy for 60%"));
-            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"11 damage every {1.1f:0.0#}s. Blasts every enemy near the target for 75%"));
+            Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo("10 damage every 0.8s. Cleaves a second enemy for 60%"));
+            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo("11 damage every 1.1s. Blasts every enemy near the target for 75%"));
             Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
-            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.5f:0.0#}s. Crits for 200% once every 3 strikes. Double damage to elites"));
+            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo("6 damage every 0.5s. Crits for 200% once every 3 strikes. Double damage to elites"));
             Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
 
             Tap(WeaponCard(1));
@@ -264,7 +264,7 @@ namespace Cryptforge.Tests
             yield return StartRun();
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
             Assert.That(_setup.Weapon.Pattern.Behavior, Is.EqualTo(WeaponBehavior.Area));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Staff  |  11 damage every {1.1f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo("Staff  |  11 damage every 1.10s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Staff Loadout"));
             Assert.That(GameObject.Find("Sword Placeholder"), Is.Null, "The Sword loadout is hidden.");
 
@@ -283,7 +283,7 @@ namespace Cryptforge.Tests
         public IEnumerator DaggersCritEveryThirdStrikeAndTheCritFlashesGold()
         {
             yield return LoadGameplay(new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
-            Assert.That(Label("Weapon Label"), Is.EqualTo($"Daggers  |  6 damage every {0.5f:0.00}s"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo("Daggers  |  6 damage every 0.50s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Daggers Loadout"));
 
             // Every hit on the pack is checked against its attack number: the mite from the right corner walks in first and
