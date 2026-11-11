@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -44,7 +45,10 @@ namespace Cryptforge.Tests
     // where nothing renders and only the CPU, GC and census figures mean anything. In the interactive Test Runner the
     // Game view renders (set it to 1080x2340). Knobs, one value per line, in TestResults/: perf-probe-heroes.txt (hero ids,
     // "vanguard" for the default hero), perf-probe-phases.txt (horde, warden), perf-probe-seconds.txt (the horde window),
-    // perf-probe-seed.txt. It changes no game code and asserts nothing about speed.
+    // perf-probe-seed.txt, perf-probe-prejit.txt (any line: the game compiled before the first phase, PreCompile). Every
+    // time marker on offer is listed in perf-probe-markers.txt, and the summary breaks the slowest frames and every
+    // level-up or pick down marker by marker (the game's own scopes: PerformanceMarkers). It changes no game code and
+    // asserts nothing about speed.
     [Explicit("Measurement: run it by name.")]
     public sealed class PerfProbe
     {
@@ -69,6 +73,11 @@ namespace Cryptforge.Tests
         private const float HealBelow = .7f;
         private const int CensusEvery = 120;
         private const int DepthRuns = 50;
+        // The per-frame marker lines (AppendFrameMarkers): how many of the slowest frames, how many lines at most, and the
+        // least time a marker needs on a frame to be named.
+        private const int SlowestBrokenDown = 6;
+        private const int MostBrokenDown = 24;
+        private const float MarkerFloorMs = .05f;
         private static readonly string[] DefaultHeroes = { "vanguard", "hero_cinder_arcanist" };
         private static readonly string[] DefaultPhases = { "horde", "warden" };
         private const string FrameColumns = "hero\tphase\tframe\tflags\twall_ms\tmain_ms\tgc_bytes\tgc_allocs\tdraw\tbatches\t" +
@@ -147,7 +156,8 @@ namespace Cryptforge.Tests
             float hordeSeconds = Mathf.Max(1f, Number("perf-probe-seconds.txt", DefaultHordeSeconds));
             var report = new StringBuilder();
             var frames = new StringBuilder();
-            Header(report, seed, hordeSeconds);
+            string compiled = Lines("perf-probe-prejit.txt", new string[0]).Length > 0 ? PreCompile() : "off";
+            Header(report, seed, hordeSeconds, compiled);
             frames.AppendLine(FrameColumns);
             foreach (string hero in heroes)
                 foreach (string phase in phases)
@@ -230,6 +240,11 @@ namespace Cryptforge.Tests
                 yield return Horde(run, setup, hero, camera, recorder);
             recorder.End();
             Summarize(run, recorder);
+            if (recorder.MarkersOnOffer.Count > 0)
+            {
+                Directory.CreateDirectory(ResultsFolder);
+                File.WriteAllLines(Path.Combine(ResultsFolder, "perf-probe-markers.txt"), recorder.MarkersOnOffer);
+            }
             RestorePhase();
             Time.captureDeltaTime = 0f;
             var old = SceneManager.GetActiveScene();
@@ -350,7 +365,8 @@ namespace Cryptforge.Tests
         private static void Keep(CombatSetup setup, Health hero)
         {
             for (int i = 0; i < 8 && setup.Choices.Current != null && setup.Choices.Current.Kind == ChoiceKind.Upgrade; i++)
-                setup.Choices.TrySelect(setup.Choices.Current, 0);
+                using (PerformanceMarkers.Pick.Auto())
+                    setup.Choices.TrySelect(setup.Choices.Current, 0);
             if (hero != null && hero.IsAlive && hero.Current < hero.Maximum * HealBelow)
                 hero.Heal(hero.Maximum);
         }
@@ -372,7 +388,49 @@ namespace Cryptforge.Tests
             return (float)(watch.Elapsed.TotalMilliseconds * 1000d / DepthRuns);
         }
 
-        private static void Header(StringBuilder report, int seed, float hordeSeconds)
+        // A diagnostic, off unless TestResults/perf-probe-prejit.txt holds a line: the Editor's Mono compiles each method
+        // the first time it runs, which a phone's IL2CPP player never does, so a first level-up's one-off cost can be the
+        // compiler's alone. Every method of the game's and uGUI's assemblies that can be compiled ahead of its first call
+        // is compiled here, before anything is measured (open generics cannot be, and are left to their first use); a
+        // first-time cost that stays with this on is not the compiler's.
+        private static string PreCompile()
+        {
+            const BindingFlags Declared = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static |
+                BindingFlags.Public | BindingFlags.NonPublic;
+            var watch = Stopwatch.StartNew();
+            int compiled = 0, failed = 0;
+            foreach (Assembly assembly in new[] { typeof(CombatSetup).Assembly, typeof(UnityEngine.UI.Text).Assembly })
+            {
+                foreach (System.Type type in assembly.GetTypes())
+                {
+                    if (type.ContainsGenericParameters)
+                        continue;
+                    var methods = new List<MethodBase>(type.GetMethods(Declared));
+                    methods.AddRange(type.GetConstructors(Declared));
+                    foreach (MethodBase method in methods)
+                    {
+                        if (method.IsAbstract || method.ContainsGenericParameters ||
+                            (method.Attributes & MethodAttributes.PinvokeImpl) != 0 ||
+                            (method.MethodImplementationFlags & MethodImplAttributes.InternalCall) != 0)
+                            continue;
+                        try
+                        {
+                            method.MethodHandle.GetFunctionPointer();
+                            compiled++;
+                        }
+                        catch (System.Exception)
+                        {
+                            failed++;
+                        }
+                    }
+                }
+            }
+            watch.Stop();
+            return compiled + " methods of the game's and uGUI's assemblies in " + F((float)watch.Elapsed.TotalSeconds, 1) +
+                " s (" + failed + " refused)";
+        }
+
+        private static void Header(StringBuilder report, int seed, float hordeSeconds, string compiled)
         {
             bool graphics = SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null;
             string rendering = !graphics ? "no graphics device: nothing renders, render counts are na"
@@ -397,6 +455,7 @@ namespace Cryptforge.Tests
                 " frames, the depth timing) and paused frames (an open choice). The recorders' values are the frame's own.");
             report.AppendLine("caution: Editor CPU and GC are the Editor's, not the S23's - compare builds against each other " +
                 "on this machine, and read the phone with development/render-stats.txt. ms are milliseconds of wall or main-thread time.");
+            report.Append("pre-compiled before the first phase (perf-probe-prejit.txt): ").AppendLine(compiled);
             report.AppendLine();
         }
 
@@ -495,6 +554,7 @@ namespace Cryptforge.Tests
                 .AppendLine();
             AppendSlowest(t, r);
             AppendMarkers(t, r);
+            AppendFrameMarkers(t, r);
             AppendCensus(t, run);
             t.Append("   foundry depth pass (apply + restore for the gameplay camera, all on show): ")
                 .Append(run.DepthMicros >= 0f ? F(run.DepthMicros, 1) + " us for " + run.DepthPlaced + " transforms placed, mean of " + DepthRuns : "na")
@@ -560,6 +620,54 @@ namespace Cryptforge.Tests
                 t.Append("      ").Append(pair.Key.PadRight(58)).Append(' ').Append(F(pair.Value.Mean, 3)).Append(" / ")
                     .Append(F(pair.Value.Median, 3)).Append(" / ").Append(F(pair.Value.P95, 3)).Append(" / ")
                     .Append(F(pair.Value.Max, 2)).AppendLine();
+        }
+
+        // Where single frames went (the first level-up's pick, 2026-11-11): the slowest frames and every frame with a
+        // level-up or a pick, in frame order, each with the markers that took at least MarkerFloorMs of it, largest first.
+        // A marker's value is its frame's own player loop; the frame's wall time also holds the previous frame's
+        // PostLateUpdate. Cryptforge.Pick is the whole selection and holds the Cryptforge.Pick.* scopes run inside it.
+        private static void AppendFrameMarkers(StringBuilder t, PerfProbeRecorder r)
+        {
+            if (r.MarkerNames.Count == 0)
+                return;
+            var slowest = new List<int>();
+            for (int f = 0; f < r.Count; f++)
+                if (r.IsIncluded(f)) slowest.Add(f);
+            slowest.Sort((a, b) => r.WallMs[b].CompareTo(r.WallMs[a]));
+            var shown = new List<int>();
+            for (int i = 0; i < slowest.Count && i < SlowestBrokenDown; i++)
+                shown.Add(slowest[i]);
+            // The last frame's markers were never read (PerfProbeRecorder.IsIncluded).
+            for (int f = 0; f < r.Count - 1 && shown.Count < MostBrokenDown; f++)
+                if (r.LevelUps[f] + r.Picks[f] > 0f && !shown.Contains(f))
+                    shown.Add(f);
+            shown.Sort();
+            t.Append("   markers a frame, the ").Append(SlowestBrokenDown).Append(" slowest and every level-up or pick (ms, ")
+                .Append(F(MarkerFloorMs, 2)).AppendLine(" and up, largest first):");
+            var entries = new List<KeyValuePair<string, float>>();
+            foreach (int f in shown)
+            {
+                entries.Clear();
+                for (int m = 0; m < r.MarkerNames.Count; m++)
+                    if (r.MarkerMs[m][f] >= MarkerFloorMs)
+                        entries.Add(new KeyValuePair<string, float>(r.MarkerNames[m], r.MarkerMs[m][f]));
+                entries.Sort((a, b) => b.Value.CompareTo(a.Value));
+                t.Append("      #").Append(f).Append(' ').Append(F(r.WallMs[f], 1)).Append(" ms");
+                if (r.GcBytes[f] > 0f) t.Append(", gc ").Append(F(r.GcBytes[f] / 1024f, 1)).Append(" KB");
+                Tag(t, r.Spawns[f], "spawn");
+                Tag(t, r.Waves[f], "wave");
+                Tag(t, r.Deaths[f], "death");
+                Tag(t, r.LevelUps[f], "level");
+                Tag(t, r.Picks[f], "pick");
+                Tag(t, r.AbilityUses[f], "ability");
+                Tag(t, r.Slams[f], "slam");
+                if (!r.IsIncluded(f)) t.Append(", left out of the summary");
+                t.Append(':');
+                for (int i = 0; i < entries.Count; i++)
+                    t.Append(i > 0 ? "," : string.Empty).Append(' ').Append(entries[i].Key).Append(' ')
+                        .Append(F(entries[i].Value, 2));
+                t.AppendLine();
+            }
         }
 
         private static void AppendCensus(StringBuilder t, Run run)

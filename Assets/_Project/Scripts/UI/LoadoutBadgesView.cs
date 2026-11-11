@@ -310,8 +310,14 @@ namespace Cryptforge.UI
 
         private void OnBookGranted(UpgradeOption book, UpgradeRarity rarity) => Refresh();
 
-        // On the service's change events only; a badge's strings are rebuilt when what it shows changes, never per frame.
         private void Refresh()
+        {
+            using (PerformanceMarkers.PickLoadout.Auto())
+                ShowLoadout();
+        }
+
+        // On the service's change events only; a badge's strings are rebuilt when what it shows changes, never per frame.
+        private void ShowLoadout()
         {
             UpgradeService upgrades = _setup.Upgrades;
             WeaponLoadout loadout = upgrades.Loadout;

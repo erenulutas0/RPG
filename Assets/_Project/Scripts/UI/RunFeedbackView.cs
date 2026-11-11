@@ -276,16 +276,25 @@ namespace Cryptforge.UI
         {
             if (!isActiveAndEnabled)
                 return;
-            ShownLevelUps++;
-            ArmRing(Kind.LevelUp, Look.Level, false, 0f, LevelUpSeconds, LevelGold, .2f, .95f, .1f, .02f);
-            Rise(Kind.LevelUp, false, 7, .32f, 1.8f, LevelUpSeconds, LevelSpark);
+            using (PerformanceMarkers.PickFeedback.Auto())
+            {
+                ShownLevelUps++;
+                ArmRing(Kind.LevelUp, Look.Level, false, 0f, LevelUpSeconds, LevelGold, .2f, .95f, .1f, .02f);
+                Rise(Kind.LevelUp, false, 7, .32f, 1.8f, LevelUpSeconds, LevelSpark);
+            }
         }
 
-        // Selected comes after LastSelected holds the offer the card came from, so the tier is the one the card showed.
         private void OnSelected(UpgradeOption option, int slot)
         {
             if (!isActiveAndEnabled)
                 return;
+            using (PerformanceMarkers.PickFeedback.Auto())
+                ShowCard(option, slot);
+        }
+
+        // Selected comes after LastSelected holds the offer the card came from, so the tier is the one the card showed.
+        private void ShowCard(UpgradeOption option, int slot)
+        {
             UpgradeOffer offer = _upgrades.LastSelected;
             UpgradeRarity rarity = offer != null ? offer.RarityAt(slot) : UpgradeRarity.Common;
             Color colour = RunChoiceView.RarityColour(rarity);
@@ -329,6 +338,12 @@ namespace Cryptforge.UI
         {
             if (!isActiveAndEnabled)
                 return;
+            using (PerformanceMarkers.PickFeedback.Auto())
+                ShowWeapon();
+        }
+
+        private void ShowWeapon()
+        {
             ShownWeaponPops++;
             ArmRing(Kind.Weapon, Look.Ember, true, 0f, .3f, Ember, .1f, .45f, .06f, .015f);
             const int count = 6;
@@ -422,6 +437,12 @@ namespace Cryptforge.UI
         {
             if (_root == null)
                 return;
+            using (PerformanceMarkers.FeedbackDraw.Auto())
+                Animate();
+        }
+
+        private void Animate()
+        {
             float scaled = Mathf.Min(Time.deltaTime, MaxStep);
             float unscaled = Mathf.Min(Time.unscaledDeltaTime, MaxStep);
             Follow();

@@ -24,7 +24,7 @@ namespace Cryptforge.Analytics
 
             _session?.Flush();
             var clock = new StopwatchTelemetryClock();
-            var session = new TelemetrySession(new TelemetryLog(new FileTelemetryStore(directory), clock), clock);
+            var session = new TelemetrySession(new TelemetryLog(new TimedStore(new FileTelemetryStore(directory)), clock), clock);
             // Build facts only: nothing here names the device or the player.
             session.Start(new TelemetryFields()
                 .Add("app_version", Application.version)
@@ -39,6 +39,23 @@ namespace Cryptforge.Analytics
                 _quitHooked = true;
             }
             return session;
+        }
+
+        // The file store with every write to disk timed for the perf probe (PerformanceMarkers.TelemetryWrite): the store
+        // itself is pure and holds no Unity marker.
+        private sealed class TimedStore : ITelemetryStore
+        {
+            private readonly ITelemetryStore _store;
+
+            public TimedStore(ITelemetryStore store) => _store = store;
+
+            public string Location => _store.Location;
+
+            public void Append(string text)
+            {
+                using (Cryptforge.Core.PerformanceMarkers.TelemetryWrite.Auto())
+                    _store.Append(text);
+            }
         }
 
         // A normal quit gets one last write; a killed process relies on the flushes at choices, run ends and backgrounding.

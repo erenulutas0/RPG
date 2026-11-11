@@ -383,7 +383,11 @@ namespace Cryptforge.UI
                 icon.rectTransform.sizeDelta = layout.IconSize;
         }
 
-        private void OnChoicesChanged() => Show(_setup.Choices.Current);
+        private void OnChoicesChanged()
+        {
+            using (PerformanceMarkers.PickPanel.Auto())
+                Show(_setup.Choices.Current);
+        }
 
         private void Show(ChoicePrompt prompt)
         {
@@ -565,7 +569,10 @@ namespace Cryptforge.UI
             ChoicePrompt prompt = _shownPrompt;
             SetInteractable(false);
             // A successful selection raises Changed, which hides this prompt or shows the next one.
-            if (!_setup.Choices.TrySelect(prompt, slot))
+            bool taken;
+            using (PerformanceMarkers.Pick.Auto())
+                taken = _setup.Choices.TrySelect(prompt, slot);
+            if (!taken)
                 Show(_setup.Choices.Current);
         }
 
