@@ -43,7 +43,7 @@ namespace Cryptforge.Combat
         public IDamageable GateBoss { get; set; }
         // The foundry's elites standing (EncounterController.Elites: a list it fills as an elite room's wave walks in and
         // empties as the wave goes), handed to every strike so a weapon's landings on them take the weapon's share
-        // (WeaponRuntime.EliteShare, EliteRule: the Daggers' 12). Set once on the hero's attacker by CombatSetup; null on
+        // (WeaponRuntime.EliteShare, EliteRule: the Daggers' 2). Set once on the hero's attacker by CombatSetup; null on
         // every enemy's.
         public IReadOnlyList<IDamageable> Elites { get; set; }
         public event Action Attacked;

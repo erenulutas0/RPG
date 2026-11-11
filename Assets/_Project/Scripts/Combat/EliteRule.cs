@@ -3,22 +3,21 @@ using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
-    // The Daggers are the elites' weapon (docs/41, status 2026-11-10 night): every landing of the Daggers on one of the
-    // foundry's elites deals DaggersShare of what it would, as the Sword's does on the gate boss (WardenRule.SwordShare).
-    // An elite is the Grunt Captain an elite room (RoomKind.Elite) is built round - the first enemy of its wave - and not
-    // its escort, the Grunt and the two Cinder Mites beside it, as the Warden's job leaves floor 2's escort Mites apart.
-    // With the Staff the horde's weapon and the Sword the Warden's, the V0.1 gate's roles row reads a third job, the
-    // elites, and the Daggers lead it: 12.5 a second to the Staff's 10.0 frame-perfect, 11.6 to 9.4 with a human's hands
-    // (P50 of 200 seeds, the Vanguard started with each; FoundryBatch.DaggersLevers). The careful pilot kites a Captain at
-    // its reach and a little more (1.75) and the Daggers reach 1.8, so they touch it seldom and late, after the Staff's
-    // splash and the Sword's cleave; a share of 12 makes the touch a kill. Measured, not chosen: change it only with a
-    // re-measurement. Nothing else of the Daggers moves: the horde, the halls' waves, the escorts, the gate boss, and the
-    // hall arena's and the Descent's elite rooms take their authored damage, and every other weapon deals an elite its
-    // own. The id is the WeaponDefinition's (Data/Weapons/Weapon_Daggers.asset). Pure.
+    // The Daggers are the elites' weapon (docs/41, status 2026-11-11; the lead's decision for the owner, docs/40 section
+    // 4.1's Riftblade, "Elite/boss strong"): every landing of the Daggers on one of the foundry's elite enemies deals
+    // DaggersShare of what it would - double, as their card says - as the Sword's does on the gate boss
+    // (WardenRule.SwordShare): each weapon a target class. An elite enemy is the Grunt Captain an elite room
+    // (RoomKind.Elite) is built round - the first enemy of its wave - and not its escort, the Grunt and the two Cinder
+    // Mites beside it, as the Warden's job leaves floor 2's escort Mites apart. With the careful pilot stepping in on a
+    // Captain when the Daggers are its best weapon on it (AutopilotCohort.Habit.StepsIn), the Daggers lead the gate's
+    // elite job (FoundryGate's roles row). Measured, not chosen: change it only with a re-measurement. Nothing else of the
+    // Daggers moves: the horde, the halls' waves, the escorts, the gate boss, and the hall arena's and the Descent's elite
+    // rooms take their authored damage, and every other weapon deals an elite its own. The id is the WeaponDefinition's
+    // (Data/Weapons/Weapon_Daggers.asset, whose description names the bonus). Pure.
     public static class EliteRule
     {
         public const string DaggersId = "weapon_daggers";
-        public const float DaggersShare = 12f;
+        public const float DaggersShare = 2f;
 
         // What a weapon's landings on an elite are multiplied by, by its id: DaggersShare for the Daggers, 1 for any other.
         // WeaponLoadout hands it to each weapon it takes up (WeaponRuntime.EliteShare).

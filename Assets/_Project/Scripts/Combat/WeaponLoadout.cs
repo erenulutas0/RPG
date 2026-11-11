@@ -68,7 +68,7 @@ namespace Cryptforge.Combat
         }
 
         // Puts a weapon in the next slot, seeds its crits for that slot, hands it its shares on the foundry's gate boss and
-        // elites by its id (WardenRule.GateBossShareOf: the Sword's 1.5; EliteRule.EliteShareOf: the Daggers' 12) and
+        // elites by its id (WardenRule.GateBossShareOf: the Sword's 1.5; EliteRule.EliteShareOf: the Daggers' 2) and
         // replays every global grant onto it. False, and nothing changed, when every slot is held or the hero already
         // carries this weapon.
         public bool TryAdd(string weaponId, WeaponRuntime runtime)

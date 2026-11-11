@@ -85,15 +85,31 @@ namespace Cryptforge.Tests
                     Is.EqualTo(name == "Sword" ? Cryptforge.Combat.WardenRule.SwordShare : 1f), name);
         }
 
-        // The Daggers are the elites' weapon (docs/41, status 2026-11-10 night): EliteRule's id is Weapon_Daggers.asset's,
-        // and only it takes a share on the elites.
+        // The Daggers are the elites' weapon (docs/41, status 2026-11-11): EliteRule's id is Weapon_Daggers.asset's, only it
+        // takes a share on the elites, and its card says so where a player reads the weapon - the forge's rack and the
+        // run's offer of it - which no other weapon's does.
         [Test]
         public void TheElitesWeaponIsTheDaggersAsset()
         {
             Assert.That(Weapon("Daggers").Id, Is.EqualTo(Cryptforge.Combat.EliteRule.DaggersId));
             foreach (string name in HeroWeapons)
+            {
                 Assert.That(Cryptforge.Combat.EliteRule.EliteShareOf(Weapon(name).Id),
                     Is.EqualTo(name == "Daggers" ? Cryptforge.Combat.EliteRule.DaggersShare : 1f), name);
+                string forge = Weapon(name).CreateForgeOption().Description;
+                string offer = Weapon(name).CreateCard().Acquire.DescriptionFormat;
+                if (name == "Daggers")
+                {
+                    Assert.That(Cryptforge.Combat.EliteRule.DaggersShare, Is.EqualTo(2f), "the card says double");
+                    Assert.That(forge, Does.EndWith("Double damage to elites"), "the forge's rack");
+                    Assert.That(offer, Does.EndWith("Double damage to elites"), "the run's offer of the weapon");
+                }
+                else
+                {
+                    Assert.That(forge, Does.Not.Contain("elite"), name);
+                    Assert.That(offer, Does.Not.Contain("elite"), name);
+                }
+            }
         }
 
         // The three evolutions (docs/42, PR 5; the Staff's is Cinder Nova, KillBurstRule): as the simulation restates

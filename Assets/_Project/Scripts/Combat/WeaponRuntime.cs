@@ -109,7 +109,7 @@ namespace Cryptforge.Combat
         }
 
         // What this weapon's landings on the foundry's elites are multiplied by (EliteRule.DamageOn), handed to it by the
-        // loadout that takes it up from its id (EliteRule.EliteShareOf): the Daggers' 12, every other weapon's 1, and 1 on
+        // loadout that takes it up from its id (EliteRule.EliteShareOf): the Daggers' 2, every other weapon's 1, and 1 on
         // a weapon no loadout holds.
         public float EliteShare
         {

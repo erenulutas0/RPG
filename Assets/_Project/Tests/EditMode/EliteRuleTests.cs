@@ -4,10 +4,10 @@ using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // The Daggers are the elites' weapon (docs/41, status 2026-11-10 night; EliteRule): every landing of the Daggers on one
-    // of the foundry's elites - an elite room's Grunt Captain - deals EliteRule.DaggersShare of what it would, and nothing
-    // else moves: not their landings on the Captain's escort or anything else, not another weapon's on the elites, not the
-    // Sword's share on the gate boss.
+    // The Daggers are the elites' weapon (docs/41, status 2026-11-11; EliteRule): every landing of the Daggers on one of
+    // the foundry's elite enemies - an elite room's Grunt Captain - deals EliteRule.DaggersShare, double, of what it would,
+    // and nothing else moves: not their landings on the Captain's escort or anything else, not another weapon's on the
+    // elites, not the Sword's share on the gate boss.
     public sealed class EliteRuleTests
     {
         private static readonly AttackPattern DaggersPattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f);
@@ -16,11 +16,11 @@ namespace Cryptforge.Tests
         public void TheDaggersDealTheElitesTheirShareAndEveryOtherWeaponItsOwn()
         {
             Assert.That(EliteRule.DaggersId, Is.EqualTo("weapon_daggers"), "The Daggers' WeaponDefinition id.");
-            Assert.That(EliteRule.DaggersShare, Is.EqualTo(12f));
+            Assert.That(EliteRule.DaggersShare, Is.EqualTo(2f), "Double, as the Daggers' card says (Weapon_Daggers.asset).");
             Assert.That(EliteRule.EliteShareOf(EliteRule.DaggersId), Is.EqualTo(EliteRule.DaggersShare));
             foreach (string id in new[] { WardenRule.SwordId, "weapon_staff", string.Empty, null })
                 Assert.That(EliteRule.EliteShareOf(id), Is.EqualTo(1f), id ?? "null");
-            Assert.That(EliteRule.DamageOn(7f, EliteRule.DaggersShare, true), Is.EqualTo(84f), "The Daggers on an elite.");
+            Assert.That(EliteRule.DamageOn(7f, EliteRule.DaggersShare, true), Is.EqualTo(14f), "The Daggers on an elite.");
             Assert.That(EliteRule.DamageOn(7f, EliteRule.DaggersShare, false), Is.EqualTo(7f), "The Daggers on anything else.");
             Assert.That(EliteRule.DamageOn(24f, EliteRule.EliteShareOf("weapon_staff"), true), Is.EqualTo(24f), "The Staff on an elite.");
 

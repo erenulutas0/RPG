@@ -573,7 +573,7 @@ namespace Cryptforge.Tests
         }
 
         // The Daggers are the elites' weapon in the simulation as in the scene (EliteRule.DaggersShare, docs/41 status
-        // 2026-11-10 night), through the one body both strike with: the simulation's Daggers are EliteRule's by their id,
+        // 2026-11-11), through the one body both strike with: the simulation's Daggers are EliteRule's by their id,
         // every weapon it builds - its hero's and its cards' - takes its elite share from the game's WeaponLoadout as the
         // scene's does, and its strikes land through WeaponRuntime.TryAttack with the elite room's Captain as the elites
         // (HeroAttacks), as the scene's AttackController strikes with EncounterController.Elites. EliteRule.DamageOn is the

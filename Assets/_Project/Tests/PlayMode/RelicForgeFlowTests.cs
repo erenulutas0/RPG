@@ -238,7 +238,7 @@ namespace Cryptforge.Tests
             Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo($"10 damage every {0.8f:0.0#}s. Cleaves a second enemy for 60%"));
             Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo($"11 damage every {1.1f:0.0#}s. Blasts every enemy near the target for 75%"));
             Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
-            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.5f:0.0#}s. Crits for 200% once every 3 strikes"));
+            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo($"6 damage every {0.5f:0.0#}s. Crits for 200% once every 3 strikes. Double damage to elites"));
             Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
 
             Tap(WeaponCard(1));
