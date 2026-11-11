@@ -9,6 +9,9 @@ installed APK, "Frame time on the device" from FrameTimeProbe's [Perf] windows s
   pwsh -File Tools/Device/Pull-DeviceEvidence.ps1             # pull, print what was found
   pwsh -File Tools/Device/Pull-DeviceEvidence.ps1 -Report     # and run the batch report, print the gate's two rows
   pwsh -File Tools/Device/Pull-DeviceEvidence.ps1 -Serial R5CW...   # with more than one phone connected
+  pwsh -File Tools/Device/Pull-DeviceEvidence.ps1 -FromFolder <dir> -Report   # offline: no adb at all; <dir> is read
+                                                      # as if pulled (telemetry/, development/, logcat*.txt, pull.txt
+                                                      # where there is one) and -Report reads it alone (FOUNDRY_DEVICE)
 
 Pull-only: it never taps, launches, stops, installs, pushes, deletes, clears the log or changes a setting, and takes no
 screenshot, so it needs no focus check. Everything it runs on the phone reads:
@@ -38,6 +41,8 @@ param(
   [string] $Out,
   # adb itself; by default $env:ADB, adb on the PATH, the Android SDK's or the pinned Unity Editor's.
   [string] $Adb,
+  # Offline: read this folder as if it had been pulled, with no adb call at all (a dry run, or a pull copied by hand).
+  [string] $FromFolder,
   [switch] $Report
 )
 $ErrorActionPreference = 'Stop'
@@ -83,6 +88,35 @@ function First-Line($call) {
 $consoleEncoding = [Console]::OutputEncoding
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 try {
+ if ($FromFolder) {
+  # Offline: nothing is run on a phone; the folder's own files stand for the pull, pull.txt's values where it has one.
+  if (-not (Test-Path -LiteralPath $FromFolder -PathType Container)) { throw "No folder at -FromFolder $FromFolder" }
+  $folder = (Resolve-Path -LiteralPath $FromFolder).Path
+  $values = @{}
+  $manifestPath = Join-Path $folder 'pull.txt'
+  if (Test-Path -LiteralPath $manifestPath) {
+    foreach ($line in Get-Content -LiteralPath $manifestPath) {
+      if ($line -match '^\s*#' -or $line -notmatch '^(?<key>[^:]+):(?<value>.*)$') { continue }
+      $value = $Matches.value.Trim()
+      if ($value.Length -gt 0 -and $value -ne '?') { $values[$Matches.key.Trim()] = $value }
+    }
+  }
+  $script:serial = if ($values.serial) { $values.serial } else { 'no phone' }
+  $model = if ($values.model) { $values.model } else { 'a folder' }
+  $android = $values.android
+  $versionName = if ($values.version_name) { $values.version_name } else { '?' }
+  $versionCode = if ($values.version_code) { $values.version_code } else { '?' }
+  $sha = $values.apk_sha256
+  $installedUtc = $values.installed_utc
+  $lastUpdate = $values.installed_device
+  $offset = $values.device_utc_offset
+  $buffer = $values.logcat_buffer
+  $running = $values.game_running -eq 'yes'
+  $logFormat = 'from the folder'
+  $logLines = @(Get-ChildItem -LiteralPath $folder -Filter 'logcat*.txt' -File | Sort-Object Name | ForEach-Object { Get-Content -LiteralPath $_.FullName })
+  $telemetry = @(Get-ChildItem -LiteralPath (Join-Path $folder 'telemetry') -Filter '*.jsonl' -File -ErrorAction SilentlyContinue | Sort-Object Name)
+  $flags = @(Get-ChildItem -LiteralPath (Join-Path $folder 'development') -File -ErrorAction SilentlyContinue | Sort-Object Name)
+ } else {
   $script:adbPath = Find-Adb
   if (-not $script:adbPath) {
     Write-Output 'adb was not found: install the Android SDK platform-tools, put adb on the PATH, or pass -Adb <path>. Nothing was pulled.'
@@ -199,38 +233,54 @@ try {
     "logcat_buffer: $(if ($buffer) { $buffer.Trim() } else { '?' })"
   )
   Set-Content -LiteralPath (Join-Path $folder 'pull.txt') -Value $manifest -Encoding utf8NoBOM
+  $logLines = $log.Lines
+ }
 
-  # What was found: a count by eye; the batch report reads it properly.
+  # What was found: a count by eye; the batch report reads it properly. A file the game holds open (FileTelemetryStore's
+  # hold) reads the same; a run with no run_end is still on, or the app was killed in it.
   $lines = @(foreach ($file in ($telemetry | Sort-Object Name -Descending)) { Get-Content -LiteralPath $file.FullName })
   $heroes = @{}
   $ends = @{}
+  $causes = @{}
   $probes = @{}
-  $floors = 0
+  $floors = @{}
+  $sessions = @{}
   foreach ($entry in $lines) {
+    if ($entry -match '"session":"(?<session>[^"]+)"') { $sessions[$Matches.session] = 1 }
     if ($entry -match '"event":"run_start".*?"hero_id":"(?<hero>[^"]+)"') { $heroes[$Matches.hero] = 1 + [int]$heroes[$Matches.hero] }
-    elseif ($entry -match '"event":"run_end".*?"result":"(?<result>[^"]+)"') { $ends[$Matches.result] = 1 + [int]$ends[$Matches.result] }
+    elseif ($entry -match '"event":"run_end".*?"result":"(?<result>[^"]+)"') {
+      $ends[$Matches.result] = 1 + [int]$ends[$Matches.result]
+      if ($Matches.result -eq 'defeat' -and $entry -match '"cause":"(?<cause>[^"]+)"') { $causes[$Matches.cause] = 1 + [int]$causes[$Matches.cause] }
+    }
     elseif ($entry -match '"event":"run_interrupted"') { $ends['interrupted'] = 1 + [int]$ends['interrupted'] }
-    elseif ($entry -match '"event":"floor_complete"') { $floors++ }
+    elseif ($entry -match '"event":"floor_complete".*?"floor_index":(?<floor>\d+)') { $floors[[int]$Matches.floor] = 1 + [int]$floors[[int]$Matches.floor] }
     if ($entry -match '"run":"(?<run>[^"]+)".*"hero_max_hp":(?<max>\d+)' -and [double]$Matches.max -ge 1000000) { $probes[$Matches.run] = 1 }
   }
   $times = @($lines | ForEach-Object { if ($_ -match '"t":"(?<t>[^"]+)"') { $Matches.t } } | Sort-Object)
-  $perf = @($log.Lines | Where-Object { $_ -match '\[Perf\] window ' })
-  $render = @($log.Lines | Where-Object { $_ -match '\[RenderStats\] t=' })
-  $slow = @($log.Lines | Where-Object { $_ -match '\[Perf\] long frame ' })
+  $perf = @($logLines | Where-Object { $_ -match '\[Perf\] window ' })
+  $render = @($logLines | Where-Object { $_ -match '\[RenderStats\] t=' })
+  $slow = @($logLines | Where-Object { $_ -match '\[Perf\] long frame ' })
+  # The ground projection's one-time work: with a prewarm it is the load's (expected, once a run); without one it ran
+  # at a ramp's first overlap, the stall the pre-warm is there to remove (docs/23, 2026-11-12 runbook).
+  $ground = @($logLines | Where-Object { $_ -match '\[Perf\] ground projection: ' })
+  $groundRamp = @($ground | Where-Object { $_ -match 'prewarm 0\.00 ms' })
 
-  Write-Output "Pulled from $model ($script:serial, Android $android) into $folder"
+  Write-Output "$(if ($FromFolder) { 'Read offline (no adb) from' } else { 'Pulled from' }) $model ($script:serial, Android $android) $(if ($FromFolder) { 'in' } else { 'into' }) $folder"
   Write-Output ("  APK: $Package $versionName ($versionCode), SHA-256 $(if ($sha) { $sha } else { 'not read' }), installed " +
     $(if ($installedUtc) { "$installedUtc (the phone's $lastUpdate at $offset)" } else { 'at a time not read: every run will be read' }))
   if ($telemetry.Count -eq 0) {
     Write-Output "  telemetry: none on the phone ($files/telemetry): no session since the game's data was cleared"
   } else {
     Write-Output "  telemetry: $(($telemetry | ForEach-Object { "$($_.Name) $($_.Length) B" }) -join ', '); $($lines.Count) lines, $($times[0]) to $($times[-1])"
-    Write-Output ("    runs begun: $(if ($heroes.Count) { ($heroes.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ' } else { 'none' }); " +
-      "ended: $(if ($ends.Count) { ($ends.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ' } else { 'none' }); floors cleared: $floors")
+    Write-Output ("    $($sessions.Count) sessions; runs begun: $(if ($heroes.Count) { ($heroes.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ' } else { 'none' }); " +
+      "ended: $(if ($ends.Count) { ($ends.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ' } else { 'none' }); " +
+      "floors cleared: $(if ($floors.Count) { ($floors.GetEnumerator() | Sort-Object Name | ForEach-Object { "floor $($_.Name) $($_.Value)" }) -join ', ' } else { 'none' })")
+    if ($causes.Count -gt 0) { Write-Output "    deaths by run_end's cause: $(($causes.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ')" }
     if ($probes.Count -gt 0) { Write-Output "    the density probe's runs (its hero at a million health): $($probes.Count), left out of the owner's floors" }
   }
   Write-Output "  development flags: $(if ($flags.Count) { ($flags | ForEach-Object { "$($_.Name) ($((Get-Content -LiteralPath $_.FullName -TotalCount 1) -join ''))" }) -join ', ' } else { 'none' })"
-  Write-Output "  log: $($log.Lines.Count) Unity lines ($logFormat; buffer $(if ($buffer) { $buffer.Trim() } else { 'not read' })): $($perf.Count) [Perf] windows, $($render.Count) [RenderStats] windows, $($slow.Count) long frames"
+  Write-Output "  log: $($logLines.Count) Unity lines ($logFormat; buffer $(if ($buffer) { $buffer.Trim() } else { 'not read' })): $($perf.Count) [Perf] windows, $($render.Count) [RenderStats] windows, $($slow.Count) long frames, $($ground.Count) ground projection lines ($($groundRamp.Count) at a ramp)"
+  foreach ($line in $groundRamp) { Write-Output "  note: the ground projection did one-time work at a ramp (the pre-warm missed it): $($line.Substring($line.IndexOf('[Perf]')))" }
 
   if ($running) { Write-Output '  note: the game is running - its last seconds of telemetry may be unwritten, and a run still on is read as unfinished.' }
   if ($telemetry | Where-Object Name -eq 'events.2.jsonl') { Write-Output "  note: the phone's telemetry is at its three files: the oldest lines rotate away from here on. Pull after every two or three runs; every pull is read together." }
@@ -261,6 +311,8 @@ try {
 foreach ($setting in @(@('FOUNDRY_LEVERS', '0'), @('FOUNDRY_COHORTS', '1'), @('FOUNDRY_FLOORS', '2'))) {
   if (-not [Environment]::GetEnvironmentVariable($setting[0])) { Set-Item -Path "env:$($setting[0])" -Value $setting[1] }
 }
+# Offline, the folder read is the one named, alone: never the real pulls in TestResults.
+if ($FromFolder -and -not $env:FOUNDRY_DEVICE) { $env:FOUNDRY_DEVICE = $folder }
 Write-Output ''
 Write-Output "Running the batch report (FOUNDRY_LEVERS=$env:FOUNDRY_LEVERS FOUNDRY_COHORTS=$env:FOUNDRY_COHORTS FOUNDRY_FLOORS=$env:FOUNDRY_FLOORS), a few minutes..."
 & dotnet test (Join-Path $root 'Tools/CombatChecks') -c Release -p:NuGetAudit=false --filter 'FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch'

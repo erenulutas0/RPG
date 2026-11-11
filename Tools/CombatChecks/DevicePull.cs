@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -32,6 +33,9 @@ namespace Cryptforge.Tests
         private const double WaveSettleSeconds = 1;
         // A long frame's alive count reads the samples this far either side of it.
         private const double FrameSampleSeconds = 3;
+        // A ground projection line and the long frame line of the same frame are written together; their log times agree
+        // to within this.
+        private const double RampPairSeconds = .5;
 
         // The pulls to read. FOUNDRY_DEVICE (setting) names a folder or several, separated by ';', each absolute or within
         // the Editor folder (TestResults); "none" reads none. Unset: every device-* folder of the Editor folder that holds a
@@ -96,9 +100,16 @@ namespace Cryptforge.Tests
                 }
                 device.Runs++;
                 foreach ((int floor, float seconds) in run.Cleared)
-                    device.Floors.Add(new FoundryGate.DeviceFloor { HeroId = run.HeroId, Floor = floor, Cleared = true, Seconds = seconds });
+                    device.Floors.Add(new FoundryGate.DeviceFloor
+                        { HeroId = run.HeroId, Floor = floor, Cleared = true, Seconds = seconds, Finale = floor == run.FinaleFloor });
                 if (run.DiedFloor > 0)
-                    device.Floors.Add(new FoundryGate.DeviceFloor { HeroId = run.HeroId, Floor = run.DiedFloor, Seconds = run.DiedSeconds });
+                    device.Floors.Add(new FoundryGate.DeviceFloor
+                    {
+                        HeroId = run.HeroId, Floor = run.DiedFloor, Seconds = run.DiedSeconds, Finale = run.DiedFloor == run.FinaleFloor,
+                        Cause = run.Cause
+                    });
+                if (run.Result == "victory" && !float.IsNaN(run.Seconds))
+                    device.Descents.Add(new FoundryGate.DeviceDescent { HeroId = run.HeroId, Floors = run.Cleared.Count, Seconds = run.Seconds });
                 if (run.Unfinished)
                     device.UnfinishedFloors++;
             }
@@ -192,7 +203,7 @@ namespace Cryptforge.Tests
                 if (!Directory.Exists(folder))
                     continue;
                 foreach (string file in Directory.GetFiles(folder, "*.jsonl").OrderBy(f => f, StringComparer.Ordinal))
-                foreach (string line in File.ReadLines(file))
+                foreach (string line in SharedLines(file))
                 {
                     if (line.Trim().Length == 0)
                         continue;
@@ -221,6 +232,20 @@ namespace Cryptforge.Tests
             return events.OrderBy(e => e.Session, StringComparer.Ordinal).ThenBy(e => e.Seq).ToList();
         }
 
+        // A file's lines, read while a writer may hold it open: FileTelemetryStore holds the current events.jsonl open
+        // between appends (2026-11-11) and shares only reading and deletion, so a reader on Windows - a pull copied off the
+        // phone while the game ran, or the Editor's own folder - must share writing (File.ReadLines does not).
+        public static IEnumerable<string> SharedLines(string path)
+        {
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var reader = new StreamReader(stream, new UTF8Encoding(false)))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                    yield return line;
+            }
+        }
+
         // One run as its telemetry tells it: who, when, its floors and how it ended, and its horde samples.
         internal sealed class RunRecord
         {
@@ -234,8 +259,15 @@ namespace Cryptforge.Tests
             // run_end's or run_interrupted's time, else its last line's (still on at the pull, or the process killed).
             public DateTime End;
             public bool Probe;
-            // run_end's result, "interrupted" for run_interrupted, null for neither.
+            // run_end's result, "interrupted" for run_interrupted, null for neither; run_end's cause (cleared, extracted,
+            // killed, killed_by:<id> - the pit's is killed_by:pit_eruption) and its active_sec, the whole run's.
             public string Result;
+            public string Cause;
+            public float Seconds = float.NaN;
+            // The first room_start of a swarm room (the finale, floor 3's floor_final_swarm) and its floor: the swarm writes
+            // swarm_step, no horde_sample, so a window in it has no alive count from the telemetry. Null when never reached.
+            public DateTime? FinaleStart;
+            public int FinaleFloor = -1;
             public List<(int Floor, float Seconds)> Cleared = new List<(int, float)>();
             public int DiedFloor = -1;
             public float DiedSeconds = float.NaN;
@@ -272,6 +304,11 @@ namespace Cryptforge.Tests
                             break;
                         case "room_start":
                             floor = Int(f, "floor_index", floor);
+                            if (Text(f, "room_kind") == "swarm" && !run.FinaleStart.HasValue)
+                            {
+                                run.FinaleStart = e.Utc;
+                                run.FinaleFloor = floor;
+                            }
                             break;
                         case "wave_start":
                             if (!firstWave.HasValue)
@@ -290,6 +327,8 @@ namespace Cryptforge.Tests
                         case "run_end":
                             run.End = e.Utc;
                             run.Result = Text(f, "result");
+                            run.Cause = Text(f, "cause");
+                            run.Seconds = Float(f, "active_sec");
                             if (run.Result == "defeat")
                             {
                                 if (Int(f, "floors_completed", -1) == run.Cleared.Count)
@@ -384,6 +423,11 @@ namespace Cryptforge.Tests
             RegexOptions.CultureInvariant);
         private static readonly Regex PerfWave = new Regex(@"\[Perf\] wave: (?<enemies>\d+) enemies,.*?\bframe (?<frame>[\d.]+) ms", RegexOptions.CultureInvariant);
         private static readonly Regex PerfLong = new Regex(@"\[Perf\] long frame (?<frame>[\d.]+) ms.*?\btime scale (?<scale>[\d.]+)", RegexOptions.CultureInvariant);
+        // The ground projection's one-time work (FoundryVisibilityView, 2026-11-12): with a prewarm, the load's; without one, a
+        // floor sprite's first ramp overlap made its material or a grid in play - the stall the pre-warm removes.
+        private static readonly Regex PerfGround = new Regex(
+            @"\[Perf\] ground projection: prewarm (?<prewarm>[\d.]+) ms, material (?<material>[\d.]+) ms, grids (?<grids>[\d.]+) ms; frame (?<frame>[\d.]+) ms",
+            RegexOptions.CultureInvariant);
         private static readonly Regex Token = new Regex(@"(?<key>[a-z_0-9]+)=(?<value>\S+)", RegexOptions.CultureInvariant);
 
         // One probe line of the log, its time on the phone's clock (null where it cannot be set) and its text from the tag on.
@@ -401,7 +445,7 @@ namespace Cryptforge.Tests
             var lines = new List<LogLine>();
             foreach (Pull pull in pulls)
             foreach (string file in Directory.GetFiles(pull.Folder, "logcat*.txt").OrderBy(f => f, StringComparer.Ordinal))
-            foreach (string raw in File.ReadLines(file))
+            foreach (string raw in SharedLines(file))
             {
                 int at = raw.IndexOf("[Perf]", StringComparison.Ordinal);
                 if (at < 0)
@@ -443,6 +487,7 @@ namespace Cryptforge.Tests
             }
 
             double renderSeconds = 5;
+            var rampTimes = new List<(DateTime? Utc, float Ms)>();
             foreach (LogLine line in lines)
             {
                 Match m = PerfWindow.Match(line.Text);
@@ -482,6 +527,27 @@ namespace Cryptforge.Tests
                     device.RenderWindows.Add(window);
                     continue;
                 }
+                Match ground = PerfGround.Match(line.Text);
+                if (ground.Success)
+                {
+                    if (Number(ground.Groups["prewarm"].Value) > 0f)
+                    {
+                        device.GroundLoad++;
+                        continue;
+                    }
+                    if (!(Number(ground.Groups["material"].Value) > 0f) && !(Number(ground.Groups["grids"].Value) > 0f))
+                        continue;
+                    var work = new FoundryGate.DeviceFrame { Ms = Number(ground.Groups["frame"].Value), Ramp = true };
+                    if (line.Utc.HasValue)
+                    {
+                        DateTime at = line.Utc.Value;
+                        work.Play = runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds));
+                        work.Alive = Alive(runs, waves, at.AddSeconds(-FrameSampleSeconds), at.AddSeconds(FrameSampleSeconds));
+                    }
+                    device.RampWork.Add(work);
+                    rampTimes.Add((line.Utc, work.Ms));
+                    continue;
+                }
                 Match wave = PerfWave.Match(line.Text);
                 Match slow = wave.Success ? Match.Empty : PerfLong.Match(line.Text);
                 if (!wave.Success && !slow.Success)
@@ -489,11 +555,16 @@ namespace Cryptforge.Tests
                 var frame = new FoundryGate.DeviceFrame { Ms = Number((wave.Success ? wave : slow).Groups["frame"].Value), Wave = wave.Success };
                 if (frame.Ms <= FoundryGate.DeviceLongMs)
                     continue;
+                // The long frame the ramp's one-time work ran in: FrameTimeProbe writes both lines in the same Update.
+                frame.Ramp = !wave.Success && rampTimes.Any(r => r.Ms == frame.Ms &&
+                    (r.Utc == line.Utc || r.Utc.HasValue && line.Utc.HasValue && Math.Abs((r.Utc.Value - line.Utc.Value).TotalSeconds) <= RampPairSeconds));
                 if (line.Utc.HasValue)
                 {
                     DateTime at = line.Utc.Value;
+                    // Not in play inside the next run's load either, which can fall in the last run's slack.
                     frame.Play = (wave.Success || Number(slow.Groups["scale"].Value) >= .5f) &&
-                                 runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds));
+                                 runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds)) &&
+                                 !runs.Any(r => r.Start.AddSeconds(-OpeningSeconds) <= at && at < r.OpeningEnd);
                     frame.Alive = wave.Success
                         ? int.Parse(wave.Groups["enemies"].Value, CultureInfo.InvariantCulture)
                         : Alive(runs, waves, at.AddSeconds(-FrameSampleSeconds), at.AddSeconds(FrameSampleSeconds));
@@ -511,6 +582,7 @@ namespace Cryptforge.Tests
                 return;
             DateTime start = end.Value.AddSeconds(-seconds);
             window.Play = scale >= .5 && runs.Any(r => r.OpeningEnd <= start && end.Value <= r.End.AddSeconds(SlackSeconds));
+            window.Finale = window.Play && runs.Any(r => r.FinaleStart.HasValue && r.FinaleStart.Value <= start && end.Value <= r.End.AddSeconds(SlackSeconds));
             window.Alive = Alive(runs, waves, start.AddSeconds(-SlackSeconds), end.Value.AddSeconds(SlackSeconds));
         }
 

@@ -2380,3 +2380,93 @@ What the phone holds (a development APK of `com.cryptforge.prototype`):
   the frames over 35 ms named one by one, and `[RenderStats]`' GPU ms, draw calls and garbage at the crowd. The device's
   probe counts frames over 20 and 35 ms (the target's lines), not the Editor's 16.7 and 33.3; the Editor's perf probe
   stays in its column.
+
+## 2026-11-12: the morning runbook - the owner's phone session, the gate's two device rows on the first try
+
+Who does what: **the owner** holds and plays the phone; **the lead** runs every command on the PC, each one announced,
+and asks before anything that writes to the phone. Rules for the whole session (adb safety): before every
+`adb shell input tap` or `screencap`, check that the game has focus (`adb shell dumpsys window | findstr mCurrentFocus`
+names `com.cryptforge.prototype`) and stop if it does not; never take a screenshot of another app; ask before any
+unattended loop; ask before installing over an open run (an install ends it and its unbanked gold). The pull and the
+report (steps 7-8) only read, so they need no focus check.
+
+1. **Connect the phone.** USB cable, phone unlocked, allow USB debugging on its prompt. `adb devices` lists one phone as
+   `device` (`unauthorized`: answer the prompt on the phone; `offline`: plug the cable again). With more than one,
+   every command below takes `-s <serial>` and the pull takes `-Serial <serial>`.
+2. **Check that no run is open** (the owner looks at the phone and says what is on screen). If a run is open, the
+   owner finishes or banks it first, or says to go ahead knowing it ends.
+3. **Back up the profile**, the game closed (`adb shell am force-stop com.cryptforge.prototype`, with the owner's OK):
+   ```
+   $b = "TestResults/device-backup-$(Get-Date -Format yyyyMMdd-HHmmss)"; New-Item -ItemType Directory $b | Out-Null
+   adb pull /sdcard/Android/data/com.cryptforge.prototype/files/profile.json $b
+   adb pull /sdcard/Android/data/com.cryptforge.prototype/files/profile.json.bak $b
+   Get-FileHash $b/* -Algorithm SHA256
+   ```
+   The folder holds no `pull.txt`, so the batch report never reads it.
+4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean rebuild of
+   main da60d7ee (679df68d's runtime, without the 10 MB of holes Gradle had left; 36,808,265 bytes). Check the file
+   itself, never a hash written down earlier:
+   ```
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 457491A254CEB61E... on 2026-11-12
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 36808265
+   adb install -r Builds/Android/Cryptforge-Prototype.apk
+   ```
+   `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) is
+   superseded: do not install it. The pull reads the installed APK's SHA-256 back (`pull.txt`'s `apk_sha256`); it must
+   equal the hash printed here. Check that the phone's `development/` holds no `autopilot.txt`, `floor-clock.txt` or
+   `horde-probe.txt` (`adb shell ls /sdcard/Android/data/com.cryptforge.prototype/files/development`): the owner's
+   runs need none.
+5. **The owner plays** - the floor-time row. Two or three careful **whole Descents with the Vanguard** (floor 1, floor
+   2 with its gate at 3:30, the finale's swarm, walk out), about 10 minutes each. Play as usual: a death counts, on the
+   floor it happened, with its cause (`killed_by:pit_eruption` for the pit). Pull (step 7) after every two or three
+   runs: the phone keeps about three runs of telemetry and the log its last minutes. Pulling with the game open is
+   fine: the telemetry file is held open and reads the same, and a run still on counts its cleared floors.
+   - **The first-ramp stall check**, in the first run: right after the load, walk the hero up the first ramp (the
+     causeway onto the ramp, down and up again). Since 679df68d the ground projection's one-time work is done at
+     load: the log should show one `[Perf] ground projection: prewarm ...` line at load and **no** `[Perf] long frame`
+     over 35 ms at the ramp. The pull prints `ground projection lines (N at a ramp)` with a note for each at a ramp,
+     and the frames row names such a frame "a long frame at a ramp's first entry".
+6. **The steady 30-40-alive fight** - the frame-time row. Careful play stands at about 15-23 alive, under the row's
+   crowd of 30, so the crowd needs the density probe. The lead, with the owner's OK and the game closed:
+   ```
+   adb shell "mkdir -p /sdcard/Android/data/com.cryptforge.prototype/files/development"
+   adb shell "echo 40 > /sdcard/Android/data/com.cryptforge.prototype/files/development/horde-probe.txt"
+   adb shell "echo on > /sdcard/Android/data/com.cryptforge.prototype/files/development/render-stats.txt"
+   ```
+   The owner launches, starts a run and fights in place for two minutes or more (the first wave is padded to 40, the
+   hero has a million health more, and that run is left out of the owner's floor time). Pull at once (step 7), then
+   remove both flags (`adb shell rm` each, with the OK) so the next runs are plain.
+7. **Pull** (read-only adb, the lead):
+   ```
+   pwsh -File Tools/Device/Pull-DeviceEvidence.ps1 -Report
+   ```
+   It writes `TestResults/device-<yyyyMMdd-HHmmss>/` and prints the installed APK's hash and install time, the
+   sessions, the runs by hero, how they ended (deaths by cause), the floors cleared by floor, the probe's run, the
+   `[Perf]` and `[RenderStats]` windows, the long frames, the ground projection lines (at a ramp or not) and any flag
+   still on. Without `-Report` it only pulls; the report reads every pull together, so run it after the last pull.
+8. **Read the two rows** (printed at the end, and in `TestResults/foundry-gate.md`):
+   - **Floor time (the owner's play)**: met when the Vanguard's floor 1 P50 over every run since the install (clears
+     and deaths) is within 240-360 s. Beside it: each hero's floors - floor 2, whose gate also opens at 210 s, read
+     against the same band for information, and the finale (floor 3) - the deaths by `run_end`'s cause, and the
+     whole Descents' P50 (about 10 minutes in the Editor and the simulation). Not measured means no Vanguard floor 1
+     was finished or died on since the install: check `pull.txt`'s `installed_utc` and the runs left out.
+   - **Frame time on the device**: met when, in the windows in play at 30 alive and more, at most a twentieth of the
+     frames are over 20 ms (p95 <= 20 ms), no window in play has a frame over 35 ms, and garbage a frame stays flat.
+     Not measured with "no window in play at the crowd" means step 6 was missed or pulled too late (the log turned
+     over). Not met names the frames over 35 ms; one "at a ramp's first entry" is the pre-warm missing a ramp. Frames
+     over 35 ms out of play (the load, menus, card offers) and the finale's windows (its swarm writes no
+     `horde_sample`, so they have no alive count) are listed apart and not judged.
+9. **Afterwards**: the game left as the owner wants it, the flags gone, the pulls kept in `TestResults/device-*`. If
+   the profile went wrong, the step-3 backup restores it (the owner's OK, the game closed, `adb push` each file back,
+   compare the hashes).
+
+**A dry run without the phone.** `Pull-DeviceEvidence.ps1 -FromFolder <dir> [-Report]` reads a folder laid out as a
+pull (`telemetry/`, `development/`, `logcat*.txt`, `pull.txt` where it has one) with no adb call, and `-Report` then
+reads that folder alone (`FOUNDRY_DEVICE`). On 2026-11-12 it ran on a stand-in built from the Editor's twelve whole
+Descents of 2026-11-11 (`TestResults/horde-telemetry/*-descent-*`, both heroes, in one folder over seven rotated
+files), with one Vanguard run cut on floor 2 by the pit, one Ilya run still on, a density-probe run and a synthetic
+log in FrameTimeProbe's and RenderStatsProbe's formats (the load's ground pre-warm, card-offer long frames). Both rows
+came out filled. Fixed in the parsers and covered by `DevicePullTests`: the pit's cause, the finale named by its swarm
+room, floor 2 beside the row, the whole Descent's time, the held telemetry file (read sharing writes), the ground
+projection's lines (left out at load, named at a ramp, paired with their long frame), long frames out of play counted
+apart, the finale's windows without an alive count, and several sessions, runs and heroes in one pull.

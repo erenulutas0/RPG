@@ -161,6 +161,12 @@ namespace Cryptforge.Tests
             public List<DeviceWindow> RenderWindows = new List<DeviceWindow>();
             public List<DeviceFrame> LongFrames = new List<DeviceFrame>();
             public int EarlierWindows;
+            // The owner's whole Descents (run_end victory): the run's own active_sec.
+            public List<DeviceDescent> Descents = new List<DeviceDescent>();
+            // FrameTimeProbe's [Perf] ground projection lines: the load's pre-warm (expected, left out), and the one-time work
+            // a floor sprite's first ramp overlap did without one (the stall the pre-warm removes), with its frame.
+            public int GroundLoad;
+            public List<DeviceFrame> RampWork = new List<DeviceFrame>();
             // Whether the log's times could be set against the telemetry's (both the phone's clock).
             public bool Placed;
         }
@@ -172,6 +178,17 @@ namespace Cryptforge.Tests
             public string HeroId;
             public int Floor;
             public bool Cleared;
+            public float Seconds;
+            // A swarm room's floor (the finale, floor 3); the floor a run died on: run_end's cause (killed_by:pit_eruption...).
+            public bool Finale;
+            public string Cause;
+        }
+
+        // One of the owner's whole Descents: its floors cleared and run_end's active_sec.
+        internal sealed class DeviceDescent
+        {
+            public string HeroId;
+            public int Floors;
             public float Seconds;
         }
 
@@ -192,13 +209,17 @@ namespace Cryptforge.Tests
             public float DrawCalls = float.NaN;
             public bool Play;
             public int Alive = -1;
+            // In play in the finale's swarm, which writes no horde_sample.
+            public bool Finale;
         }
 
-        // A frame past 35 ms a [Perf] line names: a long frame, or the frame a wave entered on.
+        // A frame past 35 ms a [Perf] line names: a long frame, or the frame a wave entered on; Ramp, the frame a ground
+        // projection line says did its one-time work at a ramp.
         internal sealed class DeviceFrame
         {
             public float Ms;
             public bool Wave;
+            public bool Ramp;
             public bool Play;
             public int Alive = -1;
         }
@@ -563,11 +584,23 @@ namespace Cryptforge.Tests
                 heroes.Add(HeroName(gate, hero.Key) + " " + string.Join(", ", hero.GroupBy(f => f.Floor).OrderBy(g => g.Key).Select(floor =>
                 {
                     float[] clears = floor.Where(f => f.Cleared).Select(f => f.Seconds).ToArray();
-                    return $"floor {floor.Key} P50 {F(Median(floor.Select(f => f.Seconds)))} s over {Many(floor.Count(), "run")} " +
+                    return $"{(floor.Any(f => f.Finale) ? "the finale (floor " + floor.Key + ")" : "floor " + floor.Key)} P50 {F(Median(floor.Select(f => f.Seconds)))} s over {Many(floor.Count(), "run")} " +
                            $"({clears.Length} cleared{(clears.Length > 0 ? $", P50 {F(Median(clears))} s" : string.Empty)})";
                 })));
             string v01 = gate.V01.Hero.Name;
             double p50 = Median(device.Floors.Where(f => f.HeroId == gate.V01.Hero.Id && f.Floor == 1).Select(f => f.Seconds));
+            double floorTwo = Median(device.Floors.Where(f => f.HeroId == gate.V01.Hero.Id && f.Floor == 2).Select(f => f.Seconds));
+            DeviceFloor[] deaths = device.Floors.Where(f => !f.Cleared).ToArray();
+            string extra =
+                (double.IsNaN(floorTwo) ? string.Empty
+                    : $" The {v01}'s floor 2, its gate open at 210 s as floor 1's: P50 {F(floorTwo)} s, {(floorTwo >= FloorLow && floorTwo <= FloorHigh ? "within" : "outside")} {F(FloorLow)}-{F(FloorHigh)} s (beside the row; floor 1 decides).") +
+                (deaths.Length == 0 ? string.Empty
+                    : " Deaths by run_end's cause: " + string.Join(", ", deaths.GroupBy(f => f.Cause ?? "not named").OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal)
+                        .Select(g => $"{g.Key} {g.Count()} ({string.Join(", ", g.GroupBy(f => HeroName(gate, f.HeroId) + (f.Finale ? " the finale" : " floor " + f.Floor)).Select(h => h.Key + (h.Count() > 1 ? " x" + h.Count() : string.Empty)))})")) + ".") +
+                (device.Descents.Count == 0 ? string.Empty
+                    : " Whole Descents (run_end victory, its active_sec): " + string.Join("; ", device.Descents.GroupBy(d => d.HeroId)
+                        .OrderBy(g => HeroIndex(gate, g.Key)).ThenBy(g => g.Key, StringComparer.Ordinal)
+                        .Select(g => $"{HeroName(gate, g.Key)} {g.Count()}, P50 {F(Median(g.Select(d => d.Seconds)))} s ({F(Median(g.Select(d => d.Seconds)) / 60, "0.0")} min)")) + ".");
             var left = new List<string>();
             if (device.EarlierRuns > 0)
                 left.Add($"{device.EarlierRuns} begun before the install (another APK)");
@@ -577,7 +610,7 @@ namespace Cryptforge.Tests
                 left.Add($"{Many(device.UnfinishedFloors, "floor")} never finished (the app closed, the run still on at the pull, or its lines rotated away on the phone)");
             string basis =
                 $"The owner's runs pulled from the phone ({device.Source}{(device.Model != null ? ", " + device.Model : string.Empty)}), {Many(device.Runs, "run")} on {ApkText(device)}: " +
-                (heroes.Count > 0 ? string.Join("; ", heroes) + "." : "no floor finished or died on.") +
+                (heroes.Count > 0 ? string.Join("; ", heroes) + "." : "no floor finished or died on.") + extra +
                 (double.IsNaN(p50) ? $" No run of the {v01}'s finished floor 1 or died on it, and the {v01}'s floor 1 decides." : string.Empty) +
                 " A floor's active seconds: floor_complete's active_sec where it was cleared, run_end's less the floors before it where the run died on it - the autopilot's row's floor, from its first frame to the gate held or a death - over every run, the deaths with the clears." +
                 (device.InstalledUtc.HasValue
@@ -682,13 +715,34 @@ namespace Cryptforge.Tests
                            (device.Placed ? string.Empty : "The log's times could not be set against the telemetry's (no year or zone, and the pull named no UTC offset), so no window is in play. ") +
                            $"At the crowd ({DeviceCrowd} alive and more, the owner's 30-40 on the S23; HordeRule.SceneCap {HordeRule.SceneCap}): {FrameWindows(crowd)}. Every window in play: {FrameWindows(play)}. " +
                            (spikes.Length > 0
-                               ? "Past 35 ms in play: " + string.Join(", ", spikes.Take(5).Select(f => $"{F(f.Ms, "0.0")} ms ({(f.Wave ? "a wave entering" : "a long frame")}{(f.Alive >= 0 ? $", {f.Alive} alive" : string.Empty)})")) +
+                               ? "Past 35 ms in play: " + string.Join(", ", spikes.Take(5).Select(f => $"{F(f.Ms, "0.0")} ms ({(f.Wave ? "a wave entering" : f.Ramp ? "a long frame at a ramp's first entry" : "a long frame")}{(f.Alive >= 0 ? $", {f.Alive} alive" : string.Empty)})")) +
                                  (spikes.Length > 5 ? $" and {spikes.Length - 5} more. " : ". ")
                                : string.Empty) +
+                           GroundAndQuiet(device, play) +
                            render + " Read: " + string.Join("; ", verdict) + "." +
                            (device.EarlierWindows > 0 ? $" Left out: {Many(device.EarlierWindows, "window")} from before the install." : string.Empty) +
                            $" The device's probe counts frames past 20 and 35 ms, the target's own lines, where the Editor's counts 16.7 and 33.3; garbage flat reads the later half of the crowd's windows within {F(GarbageFlatShare * 100)} %, or {F(GarbageFlatKb, "0.0")} KB a frame, of the earlier (proposed).";
             return (status, basis);
+        }
+
+        // What the frames row adds where the log holds it: the ground projection's one-time work (the load's pre-warm, left
+        // out; any at a ramp's first entry, the stall it removes), the frames past 35 ms out of play, and the windows in the
+        // finale's swarm, which has no horde_sample to count its alive.
+        private static string GroundAndQuiet(DeviceEvidence device, DeviceWindow[] play)
+        {
+            var text = new StringBuilder();
+            if (device.GroundLoad > 0 || device.RampWork.Count > 0)
+                text.Append($"The ground projection's one-time work: {Many(device.GroundLoad, "load")} with the pre-warm (left out)")
+                    .Append(device.RampWork.Count == 0
+                        ? ", none at a ramp. "
+                        : $"; {device.RampWork.Count} at a ramp's first entry, the pre-warm missing it, in frames of {string.Join(", ", device.RampWork.Select(f => F(f.Ms, "0.0") + " ms" + (f.Play ? string.Empty : " (not in play)")))}. ");
+            DeviceFrame[] quiet = device.LongFrames.Where(f => !f.Play && !f.Wave).ToArray();
+            if (quiet.Length > 0)
+                text.Append($"Past 35 ms out of play (loads, menus, card offers; not judged): {Many(quiet.Length, "frame")}, the longest {F(quiet.Max(f => f.Ms), "0.0")} ms. ");
+            int finale = play.Count(w => w.Finale);
+            if (finale > 0)
+                text.Append($"{Many(finale, "window")} in play in the finale's swarm, which writes no horde_sample: alive only where a [Perf] wave line counted it ({play.Count(w => w.Finale && w.Alive >= 0)} did). ");
+            return text.ToString();
         }
 
         // A set of [Perf] windows as the frames row reads them.

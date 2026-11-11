@@ -270,6 +270,193 @@ namespace Cryptforge.Tests
             Assert.That(Owner().Basis, Does.Contain("No run of the Vanguard's finished floor 1 or died on it").And.Contain("its install time not read"));
         }
 
+        // ---------------------------------------------------------------------------------------------------------
+        // Today's formats (2026-11-12): the Descent's three floors, a pit death, the held telemetry file, the ground
+        // projection's [Perf] lines, several runs and heroes in one pull.
+        // ---------------------------------------------------------------------------------------------------------
+
+        private static readonly DateTime Day = new DateTime(2026, 11, 13, 9, 0, 0, DateTimeKind.Utc);
+
+        private static string Event(string session, int seq, double seconds, string run, string name, string fields = "") =>
+            $"{{\"v\":1,\"seq\":{seq},\"t\":\"{Day.AddSeconds(seconds):yyyy-MM-dd'T'HH:mm:ss.fff'Z'}\",\"st\":{seconds},\"session\":\"{session}\"" +
+            (run != null ? $",\"run\":\"{run}\"" : string.Empty) + $",\"event\":\"{name}\"" + (fields.Length > 0 ? "," + fields : string.Empty) + "}";
+
+        private static string Room(int floor, string kind) =>
+            $"\"floor_index\":{floor},\"floor_id\":\"f{floor}\",\"room_index\":1,\"room_kind\":\"{kind}\",\"hero_hp\":100.000,\"hero_max_hp\":100.000";
+
+        private static string Log(double seconds, string text) =>
+            (new DateTimeOffset(Day.AddSeconds(seconds)).ToUnixTimeMilliseconds() / 1000.0).ToString("0.000", System.Globalization.CultureInfo.InvariantCulture) +
+            " I/Unity   (23456): " + text;
+
+        // One pull of a session of two runs - the Vanguard's whole Descent and Ilya's death to the pit on floor 2 - rotated
+        // into events.1.jsonl, and a second session's Vanguard run still on in events.jsonl, which the game holds open.
+        private static string TodaysPull(string root, params string[] log)
+        {
+            string folder = Path.Combine(root, "device-20261113-094000");
+            Directory.CreateDirectory(Path.Combine(folder, "telemetry"));
+            File.WriteAllLines(Path.Combine(folder, "telemetry", "events.1.jsonl"), new[]
+            {
+                Event("s1", 1, 0, null, "session_start", "\"schema\":1,\"app_version\":\"0.1.0\",\"platform\":\"android\",\"development\":true"),
+                Event("s1", 2, 1, "s1-1", "run_start", "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\""),
+                Event("s1", 3, 1, "s1-1", "room_start", Room(1, "combat")),
+                Event("s1", 4, 2, "s1-1", "wave_start", "\"floor_index\":1,\"room_index\":1,\"wave_index\":1,\"enemy_count\":2"),
+                Event("s1", 5, 30, "s1-1", "horde_sample", "\"floor_index\":1,\"horde_alive\":20,\"wave_alive\":5"),
+                Event("s1", 6, 300, "s1-1", "floor_complete", "\"floor_index\":1,\"floor_id\":\"f1\",\"active_sec\":280.000,\"rooms\":7"),
+                Event("s1", 7, 310, "s1-1", "room_start", Room(2, "combat")),
+                Event("s1", 8, 600, "s1-1", "floor_complete", "\"floor_index\":2,\"floor_id\":\"f2\",\"active_sec\":270.000,\"rooms\":6"),
+                Event("s1", 9, 605, "s1-1", "room_start", Room(3, "swarm")),
+                Event("s1", 10, 675, "s1-1", "floor_complete", "\"floor_index\":3,\"floor_id\":\"floor_final_swarm\",\"active_sec\":68.000,\"rooms\":1"),
+                Event("s1", 11, 676, "s1-1", "run_end", "\"result\":\"victory\",\"cause\":\"cleared\",\"floors_completed\":3,\"active_sec\":618.000"),
+                Event("s1", 12, 720, "s1-2", "run_start", "\"run_ordinal\":2,\"hero_id\":\"hero_cinder_arcanist\""),
+                Event("s1", 13, 720, "s1-2", "room_start", Room(1, "combat")),
+                Event("s1", 14, 721, "s1-2", "wave_start", "\"floor_index\":1,\"room_index\":1,\"wave_index\":1,\"enemy_count\":2"),
+                Event("s1", 15, 990, "s1-2", "floor_complete", "\"floor_index\":1,\"floor_id\":\"f1\",\"active_sec\":265.000,\"rooms\":7"),
+                Event("s1", 16, 1000, "s1-2", "room_start", Room(2, "combat")),
+                Event("s1", 17, 1140, "s1-2", "run_end", "\"result\":\"defeat\",\"cause\":\"killed_by:pit_eruption\",\"floors_completed\":1,\"active_sec\":400.000")
+            });
+            File.WriteAllLines(Path.Combine(folder, "telemetry", "events.jsonl"), new[]
+            {
+                Event("s2", 1, 1800, null, "session_start", "\"schema\":1"),
+                Event("s2", 2, 1801, "s2-1", "run_start", "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\""),
+                Event("s2", 3, 1801, "s2-1", "room_start", Room(1, "combat")),
+                Event("s2", 4, 1802, "s2-1", "wave_start", "\"floor_index\":1,\"room_index\":1,\"wave_index\":1,\"enemy_count\":2"),
+                Event("s2", 5, 2090, "s2-1", "floor_complete", "\"floor_index\":1,\"floor_id\":\"f1\",\"active_sec\":290.000,\"rooms\":7"),
+                Event("s2", 6, 2100, "s2-1", "room_start", Room(2, "combat"))
+            });
+            File.WriteAllLines(Path.Combine(folder, DevicePull.ManifestName), new[]
+            {
+                "pulled_utc: 2026-11-13T09:40:00Z", "model: SM-S911B", "apk_sha256: da3d13fd515c89866dbf2724091a36227d362d679cf664a4534d38461df7b5b4",
+                "installed_utc: 2026-11-13T08:00:00Z", "device_utc_offset: +0300", "game_running: yes", "development_flags: none", "logcat_offset: +0000"
+            });
+            File.WriteAllLines(Path.Combine(folder, "logcat-unity.txt"), log);
+            return folder;
+        }
+
+        private const string Window = "[Perf] window 24: 299 frames in 5.00 s (59.8 fps), avg 16.8 ms, p50 16.7, p95 17.0, p99 18.0, max {0} ms, over 20 ms {1}, over 35 ms {1}; main thread max 12.0 ms; allocated 150.0 KB, most in a frame 10.0 KB, GC runs 0; managed 2.6 MB, total 152.3 MB; time scale 1";
+
+        private static T InTemp<T>(Func<string, T> body)
+        {
+            string root = Path.Combine(Path.GetTempPath(), "cryptforge-device-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                return body(root);
+            }
+            finally
+            {
+                if (Directory.Exists(root))
+                    Directory.Delete(root, true);
+            }
+        }
+
+        // Several runs and heroes in one pull, across a rotation: each floor under its run's hero, the finale (the swarm
+        // room, floor 3) named, floor 2 - its gate at 210 s as floor 1's - read beside the row, the pit's death by its
+        // cause, the whole Descent by run_end's active_sec, and the run still on as a floor never finished.
+        [Test]
+        public void ThreeFloorsAPitDeathAndTwoHeroesInOnePullAreRead()
+        {
+            InTemp(root =>
+            {
+                FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { TodaysPull(root) });
+                Assert.That(device.Runs, Is.EqualTo(3));
+                Assert.That(device.UnfinishedFloors, Is.EqualTo(1), "the second session's floor 2, still on at the pull");
+                Assert.That(device.Floors.Select(f => (f.HeroId, f.Floor, f.Cleared, f.Seconds, f.Finale, f.Cause)), Is.EquivalentTo(new[]
+                {
+                    ("hero_vanguard", 1, true, 280f, false, (string)null), ("hero_vanguard", 2, true, 270f, false, null), ("hero_vanguard", 3, true, 68f, true, null),
+                    ("hero_cinder_arcanist", 1, true, 265f, false, null), ("hero_cinder_arcanist", 2, false, 135f, false, "killed_by:pit_eruption"),
+                    ("hero_vanguard", 1, true, 290f, false, null)
+                }));
+                Assert.That(device.Descents.Select(d => (d.HeroId, d.Floors, d.Seconds)), Is.EqualTo(new[] { ("hero_vanguard", 3, 618f) }));
+
+                FoundryGate.Row owner = FoundryGate.Rows(Batches(), null, new FoundryGate.Evidence { Device = device }).Single(r => r.Criterion == FoundryGate.OwnersFloor);
+                Assert.That(owner.Status, Is.EqualTo(FoundryGate.Met), "the Vanguard's floor 1 P50 285 s");
+                Assert.That(owner.Basis, Does.Contain("Vanguard floor 1 P50 285 s over 2 runs (2 cleared, P50 285 s), floor 2 P50 270 s over 1 run (1 cleared, P50 270 s), " +
+                                                      "the finale (floor 3) P50 68 s over 1 run (1 cleared, P50 68 s); Ilya floor 1 P50 265 s over 1 run (1 cleared, P50 265 s), floor 2 P50 135 s over 1 run (0 cleared)."));
+                Assert.That(owner.Basis, Does.Contain("The Vanguard's floor 2, its gate open at 210 s as floor 1's: P50 270 s, within 240-360 s (beside the row; floor 1 decides)."));
+                Assert.That(owner.Basis, Does.Contain("Deaths by run_end's cause: killed_by:pit_eruption 1 (Ilya floor 2)."));
+                Assert.That(owner.Basis, Does.Contain("Whole Descents (run_end victory, its active_sec): Vanguard 1, P50 618 s (10.3 min)."));
+                Assert.That(owner.Basis, Does.Contain("1 floor never finished"));
+                return 0;
+            });
+        }
+
+        // FileTelemetryStore holds events.jsonl open while the game runs, sharing only reading and deletion: the pull's
+        // reader shares writing, so a folder the game still writes reads the same.
+        [Test]
+        public void ATelemetryFileTheGameHoldsOpenIsRead()
+        {
+            InTemp(root =>
+            {
+                string folder = TodaysPull(root);
+                string current = Path.Combine(folder, "telemetry", "events.jsonl");
+                using (new FileStream(current, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read | FileShare.Delete, 1))
+                {
+                    Assert.That(DevicePull.ReadEvents(new[] { Path.Combine(folder, "telemetry") }).Count(e => e.Session == "s2"), Is.EqualTo(6));
+                    Assert.That(DevicePull.Read(new[] { folder }).Runs, Is.EqualTo(3));
+                }
+                return 0;
+            });
+        }
+
+        // The ground projection's [Perf] lines: the load's pre-warm is left out; one-time work at a ramp is named, and the
+        // long frame it ran in is named as the ramp's. Frames past 35 ms out of play are counted apart, and a window in the
+        // finale's swarm (no horde_sample) is named as having no alive count.
+        [Test]
+        public void TheGroundProjectionAndLongFramesAreReadAtLoadAtARampAndOutOfPlay()
+        {
+            InTemp(root =>
+            {
+                FoundryGate.Row Frames(FoundryGate.DeviceEvidence device) =>
+                    FoundryGate.Rows(Batches(), null, new FoundryGate.Evidence { Device = device }).Single(r => r.Criterion == FoundryGate.DeviceFrames);
+                string[] load =
+                {
+                    Log(.5, "[Perf] ground projection: prewarm 4.12 ms, material 1.05 ms, grids 2.31 ms; frame 46.8 ms, main thread 44.9 ms, allocated 612.4 KB"),
+                    Log(.5, "[Perf] long frame 46.8 ms, main thread 44.9 ms, allocated 612.4 KB, time scale 1"),
+                    Log(125, string.Format(System.Globalization.CultureInfo.InvariantCulture, Window, "18.0", 0)),
+                    Log(630, string.Format(System.Globalization.CultureInfo.InvariantCulture, Window, "18.0", 0))
+                };
+
+                FoundryGate.DeviceEvidence clean = DevicePull.Read(new[] { TodaysPull(Path.Combine(root, "clean"), load) });
+                Assert.That(clean.GroundLoad, Is.EqualTo(1));
+                Assert.That(clean.RampWork, Is.Empty);
+                Assert.That(clean.LongFrames.Select(f => (f.Ms, f.Play, f.Ramp)), Is.EqualTo(new[] { (46.8f, false, false) }), "the load's, before the first wave");
+                Assert.That(clean.Windows.Select(w => (w.Play, w.Finale, w.Alive)), Is.EqualTo(new[] { (true, false, -1), (true, true, -1) }));
+                string basis = Frames(clean).Basis;
+                Assert.That(basis, Does.Contain("The ground projection's one-time work: 1 load with the pre-warm (left out), none at a ramp."));
+                Assert.That(basis, Does.Contain("Past 35 ms out of play (loads, menus, card offers; not judged): 1 frame, the longest 46.8 ms."));
+                Assert.That(basis, Does.Contain("1 window in play in the finale's swarm, which writes no horde_sample: alive only where a [Perf] wave line counted it (0 did)."));
+                Assert.That(basis, Does.Contain("no frame past 35 ms in play"));
+
+                // A long frame in a run's last second of slack, with no run loading, stays in play.
+                string[] back = { Log(676.5, "[Perf] long frame 44.0 ms, main thread 42.0 ms, allocated 300.0 KB, time scale 1") };
+                Assert.That(DevicePull.Read(new[] { TodaysPull(Path.Combine(root, "back"), back) }).LongFrames.Single().Play, Is.True,
+                    "inside s1-1's slack and no run's load: read in play");
+
+                string[] ramp = load.Concat(new[]
+                {
+                    Log(120, "[Perf] ground projection: prewarm 0.00 ms, material 1.20 ms, grids 2.40 ms; frame 41.3 ms, main thread 39.0 ms, allocated 80.2 KB"),
+                    Log(120, "[Perf] long frame 41.3 ms, main thread 39.0 ms, allocated 80.2 KB, time scale 1"),
+                    Log(123, string.Format(System.Globalization.CultureInfo.InvariantCulture, Window, "41.3", 1))
+                }).ToArray();
+                FoundryGate.DeviceEvidence stall = DevicePull.Read(new[] { TodaysPull(Path.Combine(root, "stall"), ramp) });
+                Assert.That(stall.RampWork.Select(f => (f.Ms, f.Play)), Is.EqualTo(new[] { (41.3f, true) }));
+                Assert.That(stall.LongFrames.Where(f => f.Play).Select(f => (f.Ms, f.Ramp)), Is.EqualTo(new[] { (41.3f, true) }));
+                FoundryGate.Row row = Frames(stall);
+                Assert.That(row.Status, Is.EqualTo(FoundryGate.NotMet), "a frame past 35 ms in play");
+                Assert.That(row.Basis, Does.Contain("Past 35 ms in play: 41.3 ms (a long frame at a ramp's first entry)."));
+                Assert.That(row.Basis, Does.Contain("1 load with the pre-warm (left out); 1 at a ramp's first entry, the pre-warm missing it, in frames of 41.3 ms."));
+                return 0;
+            });
+        }
+
+        // The sample pulls' two frames past 35 ms are both out of play: counted apart, never judged.
+        [Test]
+        public void LongFramesOutOfPlayAreCountedApart()
+        {
+            FoundryGate.Row frames = FoundryGate.Rows(Batches(), null, new FoundryGate.Evidence { Device = ReadBoth() }).Single(r => r.Criterion == FoundryGate.DeviceFrames);
+            Assert.That(frames.Basis, Does.Contain("Past 35 ms out of play (loads, menus, card offers; not judged): 2 frames, the longest 52.1 ms."));
+            Assert.That(frames.Basis, Does.Not.Contain("ground projection"), "no ground line in the samples");
+        }
+
         // Both heroes' constructed batches: the device rows read the pulls, not the simulation.
         private static FoundryBatch.Batch[] Batches()
         {
