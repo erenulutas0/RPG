@@ -167,6 +167,27 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The step-in (AutopilotCohort.Habit.StepsIn, FootworkRule.StepIn; docs/41, status 2026-11-11): started with the
+        // Daggers, the careful and first-card Vanguards hold an elite room's Captain at the Daggers' reach over the Editor
+        // measurement's six seeds; the standing, clumsy and auto-farmer Vanguards never do. Read over the seeds, not seed by
+        // seed (Unity's runtime plays a seed apart from .NET's).
+        [Test]
+        public void TheCarefulPilotsStepInOnACaptainWithTheDaggersAndNoOtherCohortDoes()
+        {
+            DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+            hero.Weapon = DescentSimulation.Daggers();
+            foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
+            {
+                float stepped = 0f;
+                foreach (int seed in SpillSeeds)
+                    stepped += Run(hero, seed, cohort).StepInSeconds;
+                if (cohort == AutopilotCohort.Careful || cohort == AutopilotCohort.FirstCard)
+                    Assert.That(stepped, Is.GreaterThan(0f), cohort.Name + " steps in");
+                else
+                    Assert.That(stepped, Is.Zero, cohort.Name + " plays as before the step-in");
+            }
+        }
+
         // docs/40 9.4's Auto Farmer walks the floor - to the halls, the altars and the drops beside its way - and does
         // nothing else: not a step of kiting, leaving a mark, sheltering or luring, never its ability, every offer's first
         // card. So each of the Warden's slams it meets lands.

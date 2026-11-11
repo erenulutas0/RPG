@@ -221,6 +221,8 @@ namespace Cryptforge.Core
             gameObject.AddComponent<PitEruptionView>().Initialize(Pit);
             Warden = gameObject.AddComponent<WardenSlamService>();
             Warden.Initialize(this, _hero, _attack);
+            // The foundry's elites as they stand, for every strike of the hero's (EliteRule: the Daggers' share on them).
+            _attack.Elites = _encounters.Elites;
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
