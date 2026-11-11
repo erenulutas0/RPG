@@ -70,6 +70,46 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // A spill that fells the hero is the defeat's cause: its burn has no attacker, and the result screen and the
+        // telemetry's killer named the enemy whose hit landed before it (the run flow's review, 2026-11-11).
+        [UnityTest, Timeout(90000)] public IEnumerator ASpillThatFellsTheHeroNamesThePit()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var heroInput=Object.FindFirstObjectByType<HeroMovementInput>();var hero=heroInput.GetComponent<Health>();
+            yield return Until(()=>encounter.AliveEnemyCount>0,20);
+            FoundryMap.ToFloor(FoundryMap.PitWest-1.2f,8,out float x,out float y);
+            heroInput.transform.position=new Vector3(x,ArenaFloor.WorldY(y),0);
+            yield return Until(()=>setup.Pit.Clock.IsWarning,20);
+            Assert.That(setup.Pit.Clock.IsWarning,Is.True);
+            // An enemy's hit lands first; then the hero is left less than the spill's burn.
+            hero.ApplyDamage(new DamageContext(1f,encounter.WaveEnemyAt(0)));
+            Assert.That(setup.LastAttacker,Is.Not.Null,"The enemy's hit is recorded.");
+            Assert.That(setup.LastHurtByPit,Is.False);
+            Assert.That(setup.KillerTelemetryId,Is.EqualTo(setup.LastAttacker.Id));
+            string enemyName=setup.LastAttacker.DisplayName;
+            hero.ApplyDamage(new DamageContext(hero.Current-1f));
+            Assert.That(hero.Current,Is.LessThan(2f));
+            bool erupted=false;setup.Pit.Erupted+=()=>erupted=true;
+            float deadline=Time.realtimeSinceStartup+5;
+            while(!erupted&&Time.realtimeSinceStartup<deadline)
+            {
+                // Every attacker kept still, the wave's newcomers too, so the spill is the only blow.
+                foreach(var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))attack.enabled=false;
+                yield return null;
+            }
+            Assert.That(erupted,Is.True);
+            Assert.That(hero.IsAlive,Is.False,"The spill fells the hero.");
+            Assert.That(setup.Run.Outcome,Is.EqualTo(RunOutcome.Defeat));
+            Assert.That(setup.LastHurtByPit,Is.True);
+            Assert.That(setup.KillerTelemetryId,Is.EqualTo(PitEruptionService.KillerId),"run_end's cause reads killed_by:pit_eruption.");
+            yield return null;
+            string cause=GameObject.Find("Cause Label").GetComponent<UnityEngine.UI.Text>().text;
+            Assert.That(cause,Does.Contain("pit"),"The result screen names the pit.");
+            Assert.That(cause,Does.Not.Contain(enemyName),"Not the enemy whose hit came before it.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // Living wave enemies whose floor point lies in the band - the ones the warning holds.
         private static int InBand(EncounterController encounter)
         {

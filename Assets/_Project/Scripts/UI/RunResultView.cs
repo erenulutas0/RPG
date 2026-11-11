@@ -95,7 +95,10 @@ namespace Cryptforge.UI
                 default:
                     _titleLabel.text = _text.ResultDefeatTitle;
                     _titleLabel.color = _defeatColor;
-                    _causeLabel.text = string.Format(_text.ResultDefeatCauseFormat, hero, enemyName, roomName);
+                    // The pit's spill has no attacker: it named the enemy whose hit landed before it (CombatSetup.LastHurtByPit).
+                    _causeLabel.text = _setup.LastHurtByPit
+                        ? string.Format(_text.ResultPitCauseFormat, hero, roomName.Length > 0 ? roomName : floorName)
+                        : string.Format(_text.ResultDefeatCauseFormat, hero, enemyName, roomName);
                     break;
             }
 

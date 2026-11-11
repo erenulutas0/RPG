@@ -22,6 +22,11 @@ namespace Cryptforge.Core
         // True while a fight is running the clock.
         public bool IsRunning { get; private set; }
         public event Action Erupted;
+        // The pit as the telemetry's killer (run_end's cause killed_by:pit_eruption) when its spill fells the hero.
+        public const string KillerId = "pit_eruption";
+        // True while the spill's burn lands on the hero: that blow has no attacker (DamageContext.Source), so whoever hears
+        // the hero's damage reads the pit as its cause here (CombatSetup.OnHeroDamaged).
+        public bool IsBurningHero { get; private set; }
         // What the last spill burnt, for telemetry.
         public bool LastHeroBurnt { get; private set; }
         public int LastEnemiesBurnt { get; private set; }
@@ -53,7 +58,17 @@ namespace Cryptforge.Core
             LastEnemiesBurnt = 0;
             LastEnemiesKilled = 0;
             if (LastHeroBurnt)
-                _hero.ApplyDamage(new DamageContext(_hero.Maximum * PitEruptionRule.HeroShare));
+            {
+                IsBurningHero = true;
+                try
+                {
+                    _hero.ApplyDamage(new DamageContext(_hero.Maximum * PitEruptionRule.HeroShare));
+                }
+                finally
+                {
+                    IsBurningHero = false;
+                }
+            }
             // The wave's enemies and the horde's alike: the rim burns whatever stands on it.
             for (int i = 0; i < encounter.EnemyCount; i++)
             {
