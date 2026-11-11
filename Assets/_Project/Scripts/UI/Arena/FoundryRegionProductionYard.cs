@@ -113,10 +113,10 @@ namespace Cryptforge.UI
             // Through axles run between both wheel hubs, through the cast side frames.
             foreach(float u in new[]{u0+.62f,u1-.62f})
                 WorkshopMetalHull(kit,u-.06f,v0+.14f,u+.06f,v1-.14f,YardWheelCentre-.06f,YardWheelCentre+.06f,.012f,true);
-            // Two deep cast side frames carry everything above the axles: a channel whose
-            // lit top flange and bottom lip overhang a shadowed web, so the cart reads as
-            // thick iron at portrait scale instead of a thin slab on four discs. The far
-            // frame is emitted before the sunken deck, the near frame after it.
+            // Two deep cast side frames (.18-.58) carry everything above the axles: a heavy body under a
+            // projecting flange with a lit arris and over a dark bottom lip, so the cart reads as thick iron
+            // at portrait scale instead of a thin slab on four discs. The far frame is emitted before the
+            // sunken deck, the near frame after it.
             YardTrolleySideFrame(kit,u0,u1,v1-.47f,v1-.25f);
             // A sunken plate deck between the frames leaves real air under the load.
             WorkshopMetalHull(kit,u0+.30f,v0+.47f,u1-.30f,v1-.47f,.38f,.46f,.025f,true);
@@ -128,7 +128,7 @@ namespace Cryptforge.UI
             // Two thick oak dunnage bearers span both side frames between the band stations and stand
             // proud of the load at each side, so the billets visibly rest on timber laid across the iron.
             foreach(float u in YardBearerStations(u0,u1))
-                WorkshopMetalHull(kit,u,v0+.28f,u+YardBearerWidth,v1-.28f,YardFrameTop,.66f,.025f,true);
+                WorkshopMetalHull(kit,u,v0+.28f,u+YardBearerWidth,v1-.28f,YardFrameTop,YardLoadBase,.025f,true);
             int bearers=kit.V.Count;
             // Three staggered courses of long billets make one broad freight load.
             for(int level=0;level<3;level++)
@@ -140,11 +140,16 @@ namespace Cryptforge.UI
                     // breaking either of the two common load-band contact stations.
                     float left=u0+.43f+((row+level)%3)*.07f;
                     float right=u1-.45f-((row*2+level)%3)*.065f;
-                    WorkshopMetalHull(kit,left,v,right,v+.33f,.66f+level*.20f,.85f+level*.20f,.055f,true);
-                    // Warm mill scale distinguishes raw stock from the cool cart. Each whole billet takes its own
-                    // value, so the six read one by one at portrait scale instead of as one flat olive block.
+                    WorkshopMetalHull(kit,left,v,right,v+.33f,YardLoadBase+level*.20f,YardLoadBase+.19f+level*.20f,.055f,true);
+                    // Cool rolled steel: each whole billet takes its own value, so the six read one by one at
+                    // portrait scale, with a lit top arris over a dark underside and a clear step below the oak.
                     float billet=BilletValue[(row*2+level*3)%BilletValue.Length]*(1+level*.05f);
                     for(int c=first;c<kit.C.Count;c++)kit.C[c]=YardBilletTone(kit.C[c],billet);
+                    // The hull's two side faces lead with their lower pair: darken that underside further.
+                    foreach(int lower in new[]{0,1,4,5})
+                    {
+                        Color c=kit.C[first+lower];kit.C[first+lower]=new Color(c.r*.72f,c.g*.72f,c.b*.72f,1);
+                    }
                 }
             int freight=kit.V.Count;
             // Folded bands follow all three cargo courses and terminate at deck
@@ -152,12 +157,12 @@ namespace Cryptforge.UI
             foreach(float u in new[]{u0+.85f,u1-.90f})
             {
                 // The band is anchored on the near frame's flange and drops to the sunken deck at the far side.
-                var profile=new[]{new Vector2(.44f,YardFrameTop),new Vector2(.44f,.865f),
-                    new Vector2(.665f,.865f),new Vector2(.665f,1.065f),
-                    new Vector2(.865f,1.065f),new Vector2(.865f,1.265f),
-                    new Vector2(1.225f,1.265f),new Vector2(1.225f,1.065f),
-                    new Vector2(1.435f,1.065f),new Vector2(1.435f,.865f),
-                    new Vector2(1.645f,.865f),new Vector2(1.645f,.46f)};
+                var profile=new[]{new Vector2(.44f,YardFrameTop),new Vector2(.44f,.905f),
+                    new Vector2(.665f,.905f),new Vector2(.665f,1.105f),
+                    new Vector2(.905f,1.105f),new Vector2(.905f,1.305f),
+                    new Vector2(1.225f,1.305f),new Vector2(1.225f,1.105f),
+                    new Vector2(1.435f,1.105f),new Vector2(1.435f,.905f),
+                    new Vector2(1.645f,.905f),new Vector2(1.645f,.46f)};
                 for(int i=0;i<profile.Length-1;i++)
                 {
                     Vector3 a=Project(u,v0+profile[i].x)+Vector3.up*profile[i].y;
@@ -168,8 +173,8 @@ namespace Cryptforge.UI
                     FullFace(kit,a,b,b+width,a+width,new Color(.60f,.64f,.69f));
                     FullFace(kit,a+thickness,b+thickness,b,a,new Color(.28f,.32f,.39f));
                 }
-                WorkshopMetalHull(kit,u-.025f,v0+.395f,u+.145f,v0+.47f,.66f,.84f,.02f,true);
-                WorkshopMetalHull(kit,u+.035f,v0+.37f,u+.085f,v0+.425f,.715f,.785f,.009f,true);
+                WorkshopMetalHull(kit,u-.025f,v0+.395f,u+.145f,v0+.47f,.70f,.88f,.02f,true);
+                WorkshopMetalHull(kit,u+.035f,v0+.37f,u+.085f,v0+.425f,.755f,.825f,.009f,true);
             }
             // Cast end yokes retain the freight and provide a handhold. Broad legs,
             // sloped haunches and a connected crown read as one casting, with clear
@@ -181,9 +186,9 @@ namespace Cryptforge.UI
             // worked iron, darker toward the floor, lighter on worn top edges; oak bearers carry the oxide-steel load.
             // The skid sits a step darker than the bench's, under the deeper shadowed side frames.
             YardTrolleyIronFinish(kit,0,skid,origin,.62f);
-            YardTrolleyIronFinish(kit,skid,stock,origin,1.02f);
+            YardTrolleyIronFinish(kit,skid,stock,origin,1.02f,true);
             for(int i=stock;i<bearers;i++)kit.C[i]=YardBearerTone(kit.C[i]);
-            YardTrolleyIronFinish(kit,freight,kit.V.Count,origin,1.02f);
+            YardTrolleyIronFinish(kit,freight,kit.V.Count,origin,1.02f,true);
             // The complete trolley, including the skid already in this builder,
             // uses one jointless cast field. Existing stock/frame light and all
             // geometry remain; bands no longer repeat the framed global atlas.
@@ -202,13 +207,15 @@ namespace Cryptforge.UI
 
         private static Color YardBilletTone(Color source,float billet)
         {
-            // Mill scale on the authored face light: warm oxide-grey steel, clearly warmer than the cast frame
-            // but cooler and darker than the oak it rests on, so the load no longer reads as more planks.
-            float value=(source.r*.299f+source.g*.587f+source.b*.114f)*billet;
-            return new Color(value*.94f,value*.78f,value*.67f,1);
+            // Cool blue-grey rolled steel under thin oxide, never warm like the oak it rests on. The authored
+            // face light is steepened so the lit top arris separates from the dark sides, and the whole bar
+            // sits a clear value step below the timber.
+            float light=source.r*.299f+source.g*.587f+source.b*.114f;
+            float value=light*billet*.80f*Mathf.Lerp(.66f,1.22f,Mathf.SmoothStep(0,1,Mathf.InverseLerp(.30f,.75f,light)));
+            return new Color(value*.975f,value*1.0f,value*1.015f,1);
         }
 
-        private static void YardTrolleyIronFinish(Builder kit,int first,int end,Vector3 origin,float gain)
+        private static void YardTrolleyIronFinish(Builder kit,int first,int end,Vector3 origin,float gain,bool cast=false)
         {
             for(int i=first;i<end;i++)
             {
@@ -216,7 +223,11 @@ namespace Cryptforge.UI
                 float age=.9f+.04f*FloorPatina(p.x*.6f+1.3f,p.y*.6f+2.2f);
                 // Darker toward the floor, so the deck and its load stand above a shadowed undercarriage.
                 float foot=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.62f,-.12f,p.y));
-                kit.C[i]=WorkyardCastTone(kit.C[i],gain*age*(1-foot*.2f));
+                // The trolley's own cast parts carry a steeper response: worn lit arrises lift and the
+                // shadowed faces drop, so the sections read thick. The bench's skid keeps the plain tone.
+                Color old=kit.C[i];float light=old.r*.299f+old.g*.587f+old.b*.114f;
+                float section=cast?Mathf.Lerp(.84f,1.26f,Mathf.SmoothStep(0,1,Mathf.InverseLerp(.30f,.85f,light))):1;
+                kit.C[i]=WorkyardCastTone(old,gain*age*(1-foot*.2f)*section);
             }
         }
 
@@ -233,13 +244,15 @@ namespace Cryptforge.UI
 
         private static void YardTrolleyYoke(Builder kit,float u,float v0,float v1)
         {
-            // Broad cast legs (.24 x .38) run down past the side frames' flanges to their bottom lip,
+            // Broad cast legs (.27 x .38) run down past the side frames' flanges to their bottom lip,
             // so each end casting and the frame it clasps read as one heavy piece at portrait scale.
             foreach(float v in new[]{v0+.22f,v1-.60f})
-                WorkshopMetalHull(kit,u,v,u+.24f,v+.38f,.24f,1.08f,.055f,true);
-            WorkshopMetalHull(kit,u,v0+.52f,u+.24f,v1-.52f,1.08f,1.33f,.05f,true);
-            YardTrestleGusset(kit,u,u+.24f,v0+.30f,v0+.72f,.98f,1.33f);
-            YardTrestleGusset(kit,u,u+.24f,v1-.30f,v1-.72f,.98f,1.33f);
+                WorkshopMetalHull(kit,u,v,u+.27f,v+.38f,.18f,1.08f,.055f,true);
+            WorkshopMetalHull(kit,u,v0+.52f,u+.27f,v1-.52f,1.08f,1.33f,.05f,true);
+            YardTrestleGusset(kit,u,u+.27f,v0+.30f,v0+.72f,.98f,1.33f);
+            YardTrestleGusset(kit,u,u+.27f,v1-.30f,v1-.72f,.98f,1.33f);
+            // A projecting cast cap over the crown gives the casting a lit flange edge.
+            WorkshopMetalHull(kit,u-.03f,v0+.46f,u+.30f,v1-.46f,1.33f,1.40f,.03f,true);
         }
 
         // A solid triangular casting in the v/height plane. The far triangle goes
@@ -266,19 +279,23 @@ namespace Cryptforge.UI
         }
 
         // Shared running-gear dimensions: wheels sit on the skid (.10) and the side frames' flange tops carry the bearers.
-        internal const float YardWheelCentre=.44f,YardWheelRadius=.34f,YardFrameTop=.52f,YardBearerWidth=.30f;
+        internal const float YardWheelCentre=.44f,YardWheelRadius=.34f,YardFrameTop=.58f,YardBearerWidth=.30f;
+        // The oak bearers' top: the lowest billet course rests here.
+        internal const float YardLoadBase=.70f;
         // Bearers stand between the two band stations, symmetric about the load's middle.
         internal static float[] YardBearerStations(float u0,float u1)=>new[]{u0+1.22f,u1-1.52f};
 
         private static void YardTrolleySideFrame(Builder kit,float u0,float u1,float v0,float v1)
         {
-            // Web first, then the overhanging bottom lip and top flange that sit in front of it.
-            int web=kit.V.Count;
-            WorkshopMetalHull(kit,u0+.14f,v0+.05f,u1-.14f,v1-.02f,.26f,.48f,.015f,true);
-            // The recessed web stays in the flange's shadow.
-            for(int i=web;i<kit.V.Count;i++){Color c=kit.C[i];kit.C[i]=new Color(c.r*.68f,c.g*.68f,c.b*.68f,1);}
-            WorkshopMetalHull(kit,u0+.14f,v0,u1-.14f,v1,.24f,.31f,.02f,true);
-            WorkshopMetalHull(kit,u0+.14f,v0,u1-.14f,v1,.44f,YardFrameTop,.03f,true);
+            // Heavy body first, then the dark bottom lip and the projecting flange that sit in front of it.
+            int body=kit.V.Count;
+            WorkshopMetalHull(kit,u0+.14f,v0+.035f,u1-.14f,v1-.02f,.22f,.52f,.015f,true);
+            // The body face sits a little under the flange's shadow; it stays a broad mid-value cast face.
+            for(int i=body;i<kit.V.Count;i++){Color c=kit.C[i];kit.C[i]=new Color(c.r*.88f,c.g*.88f,c.b*.88f,1);}
+            int lip=kit.V.Count;
+            WorkshopMetalHull(kit,u0+.14f,v0,u1-.14f,v1,.18f,.24f,.02f,true);
+            for(int i=lip;i<kit.V.Count;i++){Color c=kit.C[i];kit.C[i]=new Color(c.r*.6f,c.g*.6f,c.b*.6f,1);}
+            WorkshopMetalHull(kit,u0+.14f,v0-.02f,u1-.14f,v1,.50f,YardFrameTop,.035f,true);
         }
 
         private static void YardWheel(Builder kit,float u,float v,float height,float radius,bool near)
@@ -294,7 +311,7 @@ namespace Cryptforge.UI
                     float a=i*Mathf.PI/6,b=(i+1)*Mathf.PI/6;
                     Vector3 p=horizontal*(Mathf.Cos(a)*radius)+Vector3.up*(Mathf.Sin(a)*radius);
                     Vector3 q=horizontal*(Mathf.Cos(b)*radius)+Vector3.up*(Mathf.Sin(b)*radius);
-                    float lit=Mathf.Lerp(.22f,.56f,(Mathf.Sin((a+b)*.5f)+1)*.5f);
+                    float lit=Mathf.Lerp(.24f,.70f,(Mathf.Sin((a+b)*.5f)+1)*.5f);
                     int first=kit.V.Count;
                     FullFace(kit,centre+p+depth,centre+q+depth,centre+q,centre+p,new Color(lit,lit*1.04f,lit*1.1f));
                     WorkedStockFace(kit,first,centre,1.3f,height-radius,height+radius);
@@ -308,20 +325,20 @@ namespace Cryptforge.UI
                 Vector3 p=horizontal*(Mathf.Cos(a)*radius)+Vector3.up*(Mathf.Sin(a)*radius);
                 Vector3 q=horizontal*(Mathf.Cos(b)*radius)+Vector3.up*(Mathf.Sin(b)*radius);
                 int first=kit.V.Count;
-                FullFace(kit,centre,centre+p*.64f,centre+q*.64f,centre,new Color(.22f,.25f,.31f));
+                FullFace(kit,centre,centre+p*.64f,centre+q*.64f,centre,new Color(.18f,.21f,.27f));
                 kit.T.RemoveRange(kit.T.Count-3,3); // Fan is one triangle, not a degenerate quad.
-                FullFace(kit,centre+p*.64f,centre+p,centre+q,centre+q*.64f,new Color(.50f,.55f,.63f));
+                FullFace(kit,centre+p*.64f,centre+p,centre+q,centre+q*.64f,new Color(.62f,.66f,.73f));
                 WorkedStockFace(kit,first,centre,1.3f,height-radius,height+radius);
                 WorkedStockFace(kit,first+4,centre,1.3f,height-radius,height+radius);
             }
-            // Four broad cast ribs give each wheel a manufactured centre at portrait size.
-            for(int spoke=0;spoke<4;spoke++)
+            // Six broad cast spokes give each wheel a manufactured centre at portrait size.
+            for(int spoke=0;spoke<6;spoke++)
             {
-                float angle=spoke*Mathf.PI*.5f+Mathf.PI*.25f;
+                float angle=spoke*Mathf.PI/3+Mathf.PI/6;
                 Vector3 radial=horizontal*Mathf.Cos(angle)+Vector3.up*Mathf.Sin(angle);
                 Vector3 tangent=(horizontal*-Mathf.Sin(angle)+Vector3.up*Mathf.Cos(angle))*.045f;
                 FullFace(kit,centre+radial*.07f-tangent,centre+radial*(radius*.66f)-tangent,
-                    centre+radial*(radius*.66f)+tangent,centre+radial*.07f+tangent,new Color(.44f,.48f,.55f));
+                    centre+radial*(radius*.66f)+tangent,centre+radial*.07f+tangent,new Color(.56f,.60f,.67f));
             }
             // The near pair carries a broad axle-box cap standing off the disc; the far hubs stay small.
             if(near)WorkshopMetalHull(kit,u-.11f,v-.09f,u+.11f,v+.01f,height-.11f,height+.11f,.03f,true);
