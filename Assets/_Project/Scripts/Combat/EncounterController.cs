@@ -814,6 +814,10 @@ namespace Cryptforge.Combat
                     else if (step.WaveIndex == 0 && TryRoomSite(step.RoomIndex))
                     {
                         ReleaseWave(true);
+                        // A forge before it is behind the hero: the walk to the hall is not the forge's, so the horde and
+                        // the floor's clock run on it (TickHorde). Only a spawn cleared the flag, and a marked hall spawns
+                        // nothing until it is reached (the run flow's review, 2026-11-11).
+                        IsInNonCombatRoom = false;
                         _roomSiteStep = step;
                         _roomSiteOpen = true;
                         _roomSiteWait = 0f;
