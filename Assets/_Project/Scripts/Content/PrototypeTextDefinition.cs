@@ -80,6 +80,7 @@ namespace Cryptforge.Content
         [SerializeField] private string _resultExtractedCauseFormat;
         [SerializeField] private string _resultDefeatCauseFormat;
         [SerializeField] private string _resultFinaleCauseFormat = "{0} walked out of {1}";
+        [SerializeField] private string _resultPitCauseFormat = "{0} was burnt by the pit's eruption in {1}";
         [SerializeField] private string _resultProgressFormat;
         [SerializeField] private string _resultGoldFormat;
         [SerializeField] private string _resultGoldLostFormat;
@@ -150,6 +151,9 @@ namespace Cryptforge.Content
         // A victory with no boss to name - the Descent's finale, left by its exit with its pack gone with the room:
         // {0} hero name, {1} floor name.
         public string ResultFinaleCauseFormat => _resultFinaleCauseFormat;
+        // A defeat whose last blow was the foundry pit's eruption, which no enemy dealt: {0} hero name, {1} room name (the
+        // floor's while no room stands).
+        public string ResultPitCauseFormat => _resultPitCauseFormat;
         // {0} floor number reached, {1} rooms cleared in total, {2} level, {3} experience.
         public string ResultProgressFormat => _resultProgressFormat;
         // {0} gold banked.

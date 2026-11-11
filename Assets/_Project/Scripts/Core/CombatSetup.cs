@@ -84,6 +84,12 @@ namespace Cryptforge.Core
         public RelicRuntime Relic { get; private set; }
         // The enemy whose hit last damaged the hero; after a defeat, the killer named on the result screen.
         public EnemyDefinition LastAttacker { get; private set; }
+        // The foundry pit's spill burnt the hero after any enemy's hit (PitEruptionService.IsBurningHero): after a defeat
+        // the pit is the cause, not the enemy whose hit landed before it - its blow has no attacker, and LastAttacker
+        // named that enemy (the run flow's review, 2026-11-11). An enemy's next hit clears it.
+        public bool LastHurtByPit { get; private set; }
+        // The killer telemetry writes into run_end's cause (killed_by:<id>): the pit's id, the last attacker's, or none.
+        public string KillerTelemetryId => LastHurtByPit ? PitEruptionService.KillerId : LastAttacker != null ? LastAttacker.Id : null;
 
         private void Awake()
         {
@@ -226,6 +232,8 @@ namespace Cryptforge.Core
             _attack.Elites = _encounters.Elites;
             // The hero strikes nothing while the boss's reveal holds the fight, as no enemy strikes it.
             _attack.FightHold = _encounters.FightHold;
+            // Nor does its ability fire: the button stands greyed and a use is refused (AbilityController.FightHold).
+            _ability.FightHold = _encounters.FightHold;
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
@@ -255,7 +263,7 @@ namespace Cryptforge.Core
                 ForgeGold = Profile.Gold,
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
                 Seed = Run.Seed,
-                KillerId = () => LastAttacker != null ? LastAttacker.Id : null,
+                KillerId = () => KillerTelemetryId,
                 HeroHealth = () => _hero.Current,
                 HeroMaximumHealth = () => _hero.Maximum,
                 Pulses = () => RunTelemetry.PulsesFired(Upgrades.Loadout, Weapon)
@@ -344,9 +352,17 @@ namespace Cryptforge.Core
         // Damaged fires before Died, so the killer is known when the defeat ends the run.
         private void OnHeroDamaged(DamageContext context)
         {
+            if (Pit != null && Pit.IsBurningHero)
+            {
+                LastHurtByPit = true;
+                return;
+            }
             EnemyDefinition attacker = _encounters.DefinitionOf(context.Source);
             if (attacker != null)
+            {
                 LastAttacker = attacker;
+                LastHurtByPit = false;
+            }
         }
 
         private void OnHeroDied() => Run.End(RunOutcome.Defeat);

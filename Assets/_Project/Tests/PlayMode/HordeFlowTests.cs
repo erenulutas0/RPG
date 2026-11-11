@@ -228,6 +228,45 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // On the walk from the forge the HUD names the hall ahead, not the forge: the forge's lines stayed on the enemy and
+        // status labels to the Captain's Post, as only the next enemy's replaced them (the run flow's review, 2026-11-11).
+        [UnityTest, Timeout(180000)] public IEnumerator TheHudNamesTheNextHallOnTheWalkFromTheForge()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounters=setup.Encounters;
+            var hero=Object.FindFirstObjectByType<HeroMovementInput>().transform;var heroHealth=hero.GetComponent<Health>();
+            float deadline=Time.realtimeSinceStartup+120;
+            while(!AtForge(setup)&&!setup.Run.HasEnded&&Time.realtimeSinceStartup<deadline)
+            {
+                KeepUp(setup,heroHealth);
+                if(encounters.IsRoomSiteOpen)hero.position=new Vector3(encounters.RoomSiteFloorX,ArenaFloor.WorldY(encounters.RoomSiteFloorY),0);
+                else if(!encounters.IsInNonCombatRoom)PackTestUtility.KillWave(encounters);
+                yield return null;
+            }
+            Assert.That(AtForge(setup),Is.True,$"The forge is reached; stopped in room {encounters.RoomNumber}.");
+            string forge=encounters.CurrentRoom.DisplayName,forgeStatus=HudLabel("Status Label");
+            Assert.That(HudLabel("Enemy Label"),Is.EqualTo(forge),"The forge is named while it stands.");
+            Assert.That(forgeStatus,Is.Not.Empty);
+
+            Assert.That(setup.Choices.TrySelect(setup.Choices.Current,0),Is.True,"Mend.");
+            deadline=Time.realtimeSinceStartup+20;
+            while(!encounters.IsRoomSiteOpen&&Time.realtimeSinceStartup<deadline){KeepUp(setup,heroHealth);yield return null;}
+            Assert.That(encounters.IsRoomSiteOpen,Is.True,"The Captain's Post waits at its district.");
+            yield return null;
+            string hall=encounters.CurrentRoom.DisplayName;
+            Assert.That(hall,Is.Not.EqualTo(forge));
+            Assert.That(HudLabel("Enemy Label"),Is.EqualTo(hall),"The hall ahead is named on the walk.");
+            Assert.That(HudLabel("Status Label"),Is.Not.EqualTo(forgeStatus),"The forge's line is gone.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private static string HudLabel(string name)
+        {
+            foreach(var label in Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+                if(label.name==name)return label.text;
+            Assert.Fail($"The HUD has no {name}.");return null;
+        }
+
         private static bool AtForge(CombatSetup setup)=>setup.Choices.Current!=null&&setup.Choices.Current.Kind==ChoiceKind.Forge;
 
         // Every offer but the forge's answered with its first card, and the hero kept standing.

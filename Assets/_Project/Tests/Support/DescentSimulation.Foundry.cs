@@ -3681,7 +3681,8 @@ namespace Cryptforge.Tests
                     PilotRift();
                     return;
                 }
-                if (!_ability.IsReady || !_heroHealth.IsAlive)
+                // AbilityController.FightHold: no use while the boss's reveal holds the fight, as no weapon strikes.
+                if (!_ability.IsReady || !_heroHealth.IsAlive || _revealHold)
                     return;
                 CollectNear(null, HeroX, HeroY, _ability.Radius, _abilityTargets);
                 int count = 0;

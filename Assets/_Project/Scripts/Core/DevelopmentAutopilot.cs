@@ -126,7 +126,8 @@ namespace Cryptforge.Core
 
         private void TryAbility()
         {
-            if (_ability == null || _ability.Ability == null || !_ability.Ability.IsReady || _targeting == null)
+            // Not while the boss's reveal holds the fight: TryUse would refuse it (AbilityController.FightHold).
+            if (_ability == null || _ability.Ability == null || !_ability.Ability.IsReady || _ability.IsHeld || _targeting == null)
                 return;
             _targeting.CollectNear(_heroHealth, _ability.Ability.Radius, _inReach);
             int count = 0;

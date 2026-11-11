@@ -55,7 +55,7 @@ Priority:
 - `boss_end`
 - `run_end`
   - result
-  - cause (extracted / killed_by:<enemy_id>)
+  - cause (extracted / killed_by:<enemy_id>; killed_by:pit_eruption when the foundry pit's spill fells the hero)
   - duration_sec
   - floors_completed
   - rooms_completed

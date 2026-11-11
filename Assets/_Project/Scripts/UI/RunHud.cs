@@ -67,6 +67,8 @@ namespace Cryptforge.UI
         private int _statusSecond;
         private float _statusSeconds;
         private string _statusName;
+        // The enemy and status labels show a forge's lines (RefreshEncounter), until the next enemy or the walk away.
+        private bool _showsForge;
 
         // The weapon and tome row on a category-mode run; null on the legacy cards. For tests.
         public LoadoutBadgesView LoadoutBadges => _loadoutBadges;
@@ -238,12 +240,26 @@ namespace Cryptforge.UI
                 _enemyLabel.text = room != null ? room.DisplayName : string.Empty;
                 _enemyBar.fillAmount = 0f;
                 _statusLabel.text = _text.ForgeStatus;
+                _showsForge = true;
                 return;
             }
 
             EnemyDefinition definition = _encounters.CurrentDefinition;
             if (definition == null)
+            {
+                // The forge is behind the hero, and nobody stands to show: on the walk to the next marked hall the forge's
+                // lines named a room the hero had left (the run flow's review, 2026-11-11). The hall ahead is named - the
+                // encounter's room is already the hall - and the forge's line goes, as the hall's marker says the way
+                // (ExitSealView). Once, as the forge is left: a combat room's last lines stay on the walk after it.
+                if (_showsForge)
+                {
+                    _showsForge = false;
+                    _enemyLabel.text = room != null && _encounters.IsRoomSiteOpen ? room.DisplayName : string.Empty;
+                    _statusLabel.text = string.Empty;
+                }
                 return;
+            }
+            _showsForge = false;
 
             // The bar follows the hero's current target; the label counts the rest of the pack still standing.
             Health enemy = _encounters.CurrentEnemy;
