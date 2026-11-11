@@ -2305,9 +2305,11 @@ pre-run profile is backed up). 444 .NET / 719 EditMode / 164 PlayMode, zero fail
 
 The V0.1 gate (`TestResults/foundry-gate.md`, `FoundryGate`) has two rows only the phone can fill, **Floor time (the
 owner's play)** and **Frame time on the device**. Both now read what `Tools/Device/Pull-DeviceEvidence.ps1` pulls into
-`TestResults/device-<yyyyMMdd-HHmmss>/`; with nothing pulled they read "not measured", word for word as before, and the
-default batch is byte-identical to main's. No phone was connected for this: the script ran against a stand-in for adb,
-and the parsers and rows against two sample pulls (`Tools/CombatChecks/DeviceSamples/`, `DevicePullTests`).
+`TestResults/device-<yyyyMMdd-HHmmss>/`; with nothing pulled they read "not measured", word for word as before: the
+default batch (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`, 200 seeds) wrote the same `foundry-gate.md`, CSVs
+and cohort section as main's, byte for byte, with the old `device-*` folders in `TestResults`. No phone was connected for
+this: the script ran against a stand-in for adb, and the parsers and rows against two sample pulls
+(`Tools/CombatChecks/DeviceSamples/`, `DevicePullTests`).
 
 What the phone holds (a development APK of `com.cryptforge.prototype`):
 - **Telemetry**, in `/sdcard/Android/data/com.cryptforge.prototype/files/telemetry/` (persistentDataPath, beside the
@@ -2339,9 +2341,10 @@ What the phone holds (a development APK of `com.cryptforge.prototype`):
    adb shell "echo on > /sdcard/Android/data/com.cryptforge.prototype/files/development/render-stats.txt"
    ```
    Launch the game and start a run: the first wave is padded to 40 (the pack's most) and the hero stands with a
-   million health more, so the crowd holds for a minute or two of the fight. Pull at once (step 4), before the log's buffer turns over, then remove both
-   flags (`adb shell rm` each) so the owner's next runs are plain. The probe's runs are left out of the owner's floor
-   time by that million health; the autopilot's (`autopilot.txt`) could not be, so it stays off.
+   million health more, so the crowd holds for a minute or two of the fight. Pull at once (step 4), before the log's
+   buffer turns over, then remove both flags (`adb shell rm` each) so the owner's next runs are plain. The probe's runs
+   are left out of the owner's floor time by that million health; the autopilot's (`autopilot.txt`) could not be, so it
+   stays off.
 4. **Pull and report**, the one command:
    ```
    pwsh -File Tools/Device/Pull-DeviceEvidence.ps1 -Report

@@ -14,6 +14,7 @@ device_clock_utc: 2026-11-12T18:25:00Z
 game_running: no
 development_flags: horde-probe.txt, render-stats.txt
 telemetry_files: events.1.jsonl 4936, events.jsonl 11243
-logcat: logcat-unity.txt (adb logcat -d -v time -v epoch -s Unity:V)
+logcat: logcat-unity.txt (adb logcat -d -v time -v epoch -s Unity:V), 38 lines
 logcat_times: seconds since 1970
-logcat_buffer: main 256 KiB
+logcat_offset: +0000
+logcat_buffer: main: ring buffer is 256 KiB (227 KiB consumed, 225 KiB readable), max entry is 5120 B, max payload is 4068 B
