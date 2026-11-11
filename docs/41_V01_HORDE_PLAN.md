@@ -2135,3 +2135,31 @@ panel is pre-warmed at load (the first level-up was the probe's 345 KB frame).
 
 Still the owner's: the push, the phone (APK install, S23 frame time, the owner's play), a third floor for 13-16 min,
 and docs/46's Riftblade questions.
+
+## Status 2026-11-11 (night): the scene confirms the Descent, the horde's bodies are pooled
+
+The owner: "daha çok kullan", then "80 olana kadar kullan". Since the evening status:
+- **The Editor plays the whole Descent** (HordePacingMeasurement with TestResults/horde-floors.txt "3"; the floor-1
+  rows are unchanged). The careful Vanguard, seeds 11-66 (TestResults/horde-pacing-descent-vanguard-1111.txt): 6 of 6
+  walk out of the finale; floor 1 272-300 s, floor 2 267-287 s, the finale 68 s, the Descent 10.1-10.9 min, against
+  the simulation's P50 276 / 274 / 68 s and 10.3 min. The finale's chest opens at 0.0 s of the swarm clock in every
+  seed; the hero reaches floor 2's gate at level 40-42 (simulation 40-41). Ilya's run follows.
+- **The horde's bodies are pooled** (EncounterController BodyPool): a horde frame with a spawn allocates 6.8 KB
+  against 13.6 KB, the quiet frame's 5.5 KB being mostly the probe's own. Two holders read a reused body as its old
+  life and were fixed before the merge (PackMotion's places, CombatEffectsView's watchers), and the pool's review found
+  a late burn riding the shelf (BurnStatus.On now refuses a body off the floor).
+- **The perf probe passes again.** It had failed since 4db8f5b6 on "Invalid sorting group ID": its manual render ran
+  before the player loop's sorting-group update. The first level-up's garbage is 44 KB (345 KB before the panel's
+  pre-warm); its frame is still 18-24 ms in the Editor: about 8 ms of Mono JIT (a phone's IL2CPP pays none), about
+  6 ms of render-side first use (being named by the probe's new GPU markers), 2.5 ms of telemetry's first write.
+- **The first-card cohort on floor 2** (docs/47): its 16 floor-2 deaths (6 before the 3:30 gate) are a build effect at
+  the Warden; no lever reaches it without easing careful too, and 86-96 % of its Descents finish, above docs/40's
+  easiest band. Nothing changes.
+- **Small fixes:** the HUD names the hall ahead on the walk after any room; a tap on the greyed ability button skips
+  the boss reveal; the telemetry file is held open while a scene records (one write a flush, the same bytes); the
+  long-run growth sweep found nothing else unbounded.
+- Reviews: the run-flow review (four small fixes, merged), the merges' review (nothing), the pool's (one, fixed), the
+  telemetry hold's (nothing on the phone).
+
+Still the owner's: the push (main is about 70 commits past origin), the phone (a new APK, the S23 frame time and the
+first-ramp stall of docs/23, the owner's play), a third floor for 13-16 min, docs/46's Riftblade questions.
