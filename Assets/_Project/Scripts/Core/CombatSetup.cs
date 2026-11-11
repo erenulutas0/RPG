@@ -223,6 +223,8 @@ namespace Cryptforge.Core
             Warden.Initialize(this, _hero, _attack);
             // The foundry's elites as they stand, for every strike of the hero's (EliteRule: the Daggers' share on them).
             _attack.Elites = _encounters.Elites;
+            // The hero strikes nothing while the boss's reveal holds the fight, as no enemy strikes it.
+            _attack.FightHold = _encounters.FightHold;
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);

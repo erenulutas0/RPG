@@ -21,7 +21,7 @@ namespace Cryptforge.Tests
     // AltarService, PitEruptionService, the chest, and DevelopmentAutopilot, which fires the ability and chooses next
     // frame's steer. An offer that opens is answered at the frame's end with the autopilot's own card score, and the frame
     // after it the hero stands, as the scene's autopilot releases the stick while a panel is open. The boss's arrival holds
-    // the encounter for BossRevealView's turn, hold and turn back.
+    // the encounter, and every AttackController with it, for BossRevealView's turn, hold and turn back.
     //
     // The order of the default-order scripts is Unity's to choose and is not part of the game's contract; this one puts
     // the hero first and the enemies after it, as the Descent always has. A seed here is the same seed as the scene's -
@@ -1491,10 +1491,14 @@ namespace Cryptforge.Tests
                 if (_levers.HasHazards)
                     StepHazards();
 
-                HeroAttacks();
+                // AttackController.FightHold: nothing strikes while the boss's reveal holds the encounter - not the hero's
+                // weapons, not an enemy in reach of a hero who cannot step away - and no weapon readies meanwhile.
+                if (!_revealHold)
+                    HeroAttacks();
                 if (_heroHealth.IsAlive)
                     _ability.Tick(Step);
-                EnemyAttacks();
+                if (!_revealHold)
+                    EnemyAttacks();
                 TickBurns();
                 if (_bleeding.Count > 0)
                     TickBleeds();

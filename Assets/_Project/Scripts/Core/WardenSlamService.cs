@@ -67,7 +67,19 @@ namespace Cryptforge.Core
             Health boss = Boss;
             if (boss == null)
                 return;
-            if (_setup.Run.HasEnded || Time.deltaTime <= 0f || _setup.Choices.IsOpen || encounter.IsRevealHeld)
+            // The run is over: no mark goes down and no blow lands. One left down - the hero fell to a horde's bite or the
+            // pit under it - is withdrawn and the hammer comes down without its blow, as WardenSlamView withdraws a mark
+            // when the fight stops; held, it stood raised behind the result (the run flow's review, 2026-11-11).
+            if (_setup.Run.HasEnded)
+            {
+                if (_clock.HoldsWeapon)
+                {
+                    _clock.Reset();
+                    Hold(false);
+                }
+                return;
+            }
+            if (Time.deltaTime <= 0f || _setup.Choices.IsOpen || encounter.IsRevealHeld)
                 return;
 
             if (!IsEnraged && WardenRule.IsEnraged(boss.Current, boss.Maximum))

@@ -104,6 +104,11 @@ namespace Cryptforge.Tests
         private ProfilerRecorder _triangles;
         private ProfilerRecorder _vertices;
         private bool _recorders;
+        // What the recorders offered, kept at End: the summary reads them after End has disposed the recorders, when every
+        // recorder reads invalid (and the summary said "na" for the main thread, the GC and the render counts it had).
+        private bool _mainThreadOffered;
+        private bool _gcOffered;
+        private bool _renderOffered;
 
         private CombatSetup _setup;
         private EncounterController _encounters;
@@ -124,9 +129,9 @@ namespace Cryptforge.Tests
         internal int CurrentFrame => Time.frameCount - _base;
         internal int CollectionsAtBegin { get; private set; }
         internal int CollectionsAtEnd { get; private set; }
-        internal bool MainThreadValid => _recorders && _mainThread.Valid;
-        internal bool GcValid => _recorders && _gcBytes.Valid;
-        internal bool RenderCountersValid => _recorders && _draw.Valid;
+        internal bool MainThreadValid => _recorders ? _mainThread.Valid : _mainThreadOffered;
+        internal bool GcValid => _recorders ? _gcBytes.Valid : _gcOffered;
+        internal bool RenderCountersValid => _recorders ? _draw.Valid : _renderOffered;
 
         internal void Initialize(CombatSetup setup, Health hero, Camera camera, bool manualRender)
         {
@@ -169,6 +174,9 @@ namespace Cryptforge.Tests
                 return;
             _recording = false;
             CollectionsAtEnd = System.GC.CollectionCount(0);
+            _mainThreadOffered = _mainThread.Valid;
+            _gcOffered = _gcBytes.Valid;
+            _renderOffered = _draw.Valid;
             Unsubscribe();
             DisposeRecorders();
         }

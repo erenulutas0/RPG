@@ -21,14 +21,14 @@ namespace Cryptforge.UI
             GameObject child = existing != null ? existing.gameObject : new GameObject("Contact Shadow");
             if (existing == null)
                 child.transform.SetParent(actor, false);
-            var view = child.GetComponent<ContactShadowView>();
-            if (view == null)
+            // TryGetComponent: a new child has neither yet, and a failed GetComponent allocates in the Editor on every spawn.
+            if (!child.TryGetComponent(out ContactShadowView view))
                 view = child.AddComponent<ContactShadowView>();
             view._width = width;
             view._health = health;
-            view.Renderer = child.GetComponent<SpriteRenderer>();
-            if (view.Renderer == null)
-                view.Renderer = child.AddComponent<SpriteRenderer>();
+            if (!child.TryGetComponent(out SpriteRenderer renderer))
+                renderer = child.AddComponent<SpriteRenderer>();
+            view.Renderer = renderer;
             view.Renderer.sprite = ArenaSpriteCache.ContactShadow;
             view.Renderer.sortingLayerID = body.sortingLayerID;
             view.Renderer.sortingOrder = -10;

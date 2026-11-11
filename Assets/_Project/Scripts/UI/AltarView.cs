@@ -21,6 +21,10 @@ namespace Cryptforge.UI
         private GameObject[] _sigils;
         private LineRenderer _progress;
         private TextMesh _label;
+        // What the label was last given. TextMesh.text is read from the native text, a new string on every read, so the
+        // view never reads it back: a frame with an altar's bargain on show then allocates nothing.
+        private string _shownInstruction;
+        private bool _instructionShown;
         private readonly Vector3[] _arc = new Vector3[Segments + 1];
         public bool IsShown(int altar) => _sigils != null && _sigils[altar].activeSelf;
         public float ShownProgress { get; private set; }
@@ -78,7 +82,7 @@ namespace Cryptforge.UI
         private static Vector3 Project(Vector2 floor) => new Vector3(floor.x, ArenaFloor.WorldY(floor.y), 0);
         private void LateUpdate() => Refresh();
 
-        private void Refresh()
+        internal void Refresh()
         {
             if (_sigils == null) return;
             var field = _service.Field;
@@ -108,7 +112,13 @@ namespace Cryptforge.UI
             _label.gameObject.SetActive(nearest >= 0);
             if (nearest < 0) return;
             _label.transform.position = _sigils[nearest].transform.position + Vector3.down * .62f;
-            if (_label.text != _text.AltarInstruction) _label.text = _text.AltarInstruction;
+            string instruction = _text.AltarInstruction;
+            if (!_instructionShown || _shownInstruction != instruction)
+            {
+                _label.text = instruction;
+                _shownInstruction = instruction;
+                _instructionShown = true;
+            }
         }
     }
 }

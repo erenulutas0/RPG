@@ -1,0 +1,3 @@
+--------- beginning of main
+11-12 19:07:03.512 I/Unity   (12001): [Perf] window 40: 300 frames in 5.00 s (60.0 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 17.0, max 17.0 ms, over 20 ms 0, over 35 ms 0; main thread max 9.8 ms; allocated 141.2 KB, most in a frame 23.5 KB, GC runs 0; managed 2.4 MB, total 141.3 MB; time scale 1
+11-12 19:07:08.517 I/Unity   (12001): [Perf] window 41: 300 frames in 5.00 s (60.0 fps), avg 16.7 ms, p50 16.7, p95 16.7, p99 17.0, max 17.0 ms, over 20 ms 0, over 35 ms 0; main thread max 9.8 ms; allocated 150.8 KB, most in a frame 25.1 KB, GC runs 0; managed 2.4 MB, total 141.3 MB; time scale 1
