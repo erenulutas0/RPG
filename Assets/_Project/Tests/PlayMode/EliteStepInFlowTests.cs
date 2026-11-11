@@ -1,5 +1,6 @@
 using System.Collections;
 using System.IO;
+using System.Text.RegularExpressions;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -41,6 +42,8 @@ namespace Cryptforge.Tests
             File.WriteAllText(DevelopmentStart.StartFloorPath, "floor_elite_proof");
             File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
             File.WriteAllText(DevelopmentStart.AutopilotPath, "on");
+            // The autopilot names its cohort as it takes the hero (DevelopmentAutopilot).
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[Autopilot\] driving the hero as the careful cohort"));
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             yield return null;
 
