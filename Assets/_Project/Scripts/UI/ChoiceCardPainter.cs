@@ -129,6 +129,9 @@ namespace Cryptforge.UI
             }
         }
 
+        // No card wears a glow until it is painted again: after RunChoiceView's load-time paint, which no one sees.
+        internal void Forget() => System.Array.Clear(_glows, 0, _glows.Length);
+
         // While the panel is open: the shown cards' auras and crests breathe, each card a little after the last. Only
         // their renderers' alpha moves, so no mesh is rebuilt.
         internal void Tick(float time)
