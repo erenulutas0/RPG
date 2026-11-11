@@ -798,3 +798,182 @@ scene's `engaged_strike` beside the simulation's (expected about 0.86-0.88). The
 0.75, an estimate for combat uptime that the stricter reading borrowed; a higher bar for attack uptime is the owner's
 call. The gate's wait remains the floor's largest phase (113-117 s); it is engaged now, but what fills it is still
 docs/41's open decision 2.
+
+## Status 2026-11-11: the Daggers' design options
+
+**The question.** The V0.1 gate's last unmet row is "Three weapons with distinct roles": each weapon leads every other by
+more than 10 % on a job of its own. The Staff leads the horde (31 a second to the Sword's 8 and the Daggers' 2) and the
+elite rooms' whole waves (21 to the Daggers' 5), and the Sword leads the Warden through `WardenRule.SwordShare` 1.5 (26
+to the Staff's 23). The x12 on the Captains was reverted, and the readable x2 shares, with and without the step-in, did
+not lead with human hands (the status above). This round prototypes Daggers mechanics a player can see and understand,
+with no hidden multiplier above x2 and no one-shot, as research levers of the simulation, and reads each as the gate
+does. Nothing ships to the game.
+
+**What was built** (research only, off by default; no scene code, no asset, no gate row changed). `FoundryLevers`'
+Daggers design fields, read by the foundry simulation alone:
+- **throw** (`DaggersThrowReach`, `DaggersThrowEvery`, `DaggersThrowHeaviest`, `DaggersThrowBlades`,
+  `DaggersThrowSparesGateBoss`): with no enemy within the Daggers' 1.8, a ready Daggers strikes the nearest enemy within
+  the throw's reach instead - a strike of its own, with its damage and its crit rhythm - at most once every
+  `DaggersThrowEvery` seconds (0: at every strike). Variants: the heaviest enemy rather than the nearest; a fan of blades
+  on the next-nearest; the gate boss turning thrown blades;
+- **lunge** (`DaggersLungeReach`, `DaggersLungeStop`, `DaggersLungeCooldown`, `DaggersLungeHeaviest`): the hero is dashed
+  to 1.4 from an enemy within the lunge's reach, then strikes;
+- **bleed** (`DaggersBleedShare`, `DaggersBleedSeconds`, `DaggersBleedSparesGateBoss`): each landing of a Daggers strike
+  opens a wound that deals the share of it over the seconds, a frame at a time. Wounds stack, and a wound's tick is no
+  landing. The gate boss can be left unbled;
+- **mark** (`DaggersMarkShare`, `DaggersMarkSeconds`): every weapon's landing on a marked enemy deals the share more. The
+  extra counts as the Daggers' (the originating weapon, docs/40 section 8.4's counting rule);
+- **execute** (`DaggersExecuteBelow`, `DaggersExecuteDamage`).
+
+`FoundryBatch.DaggersLevers` gains rows 28-58 (rows 0-27 are unchanged). The Daggers report gains, by starting weapon,
+the elite fights' length, every weapon's damage on the elites a second and a Captain's time under fire (docs/40 section
+8.6's elite TTK). `DAGGERS_COHORTS` screens a lever on the careful cohort alone. `FoundryResult.DaggersThrows` and
+`DaggersLunges` count. `FoundrySimulationTests` holds the levers off at the shipped floor, and each doing what it names.
+**The default batch is byte-identical** (`FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2`, before and after):
+foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv, foundry-gate.md (met 8, not met 1) and
+foundry-cohorts.md are the same to the byte; foundry-batch.md differs only in its date and its wall-clock seconds.
+
+**How it was measured.** `TheDaggersRoleOverASeedBatch`. First a screen of 30 shapes and combinations (rows 28-57) on
+seeds 1-60: the careful cohort alone, floor 1. Then the shipped floor and 12 shapes in full (11 of the screen's and row
+58): seeds 1-200 a hero, both floors, every cohort, the Vanguard started with each weapon, frame-perfect and
+`FOUNDRY_REALISM=typical` (TestResults/daggers-design-1111/). The jobs are the gate's: P50s of each weapon's own damage
+a second, the Vanguard started with that weapon - on the horde (of the floor it held it), on the elite rooms' whole
+waves (of those rooms' fights) and on the Warden (of its fight).
+
+**What binds the Daggers.**
+1. **The elite fight is a fixed pie.** Whatever the Vanguard starts with, and under every lever but the step-in, the
+   careful pilot's elite fights last P50 13-15 s (two rooms). Its weapons together take 35-39 a second off them. The
+   pilot's footwork sets the fights' length, not the damage, so the elite job is a weapon's share of the waves' health.
+   The Staff takes about 60 % of it in its own runs (21 of 35 a second). A Daggers lead needs either two thirds of it in
+   the Daggers' own runs, beside whatever else the Vanguard holds by then (often the Staff), or Daggers strong enough to
+   take a slice of the Staff's share in the Staff's runs once picked up. F below leads that second way: 19 a second to
+   the Staff's 15.
+2. **The reach binds, not the damage.** Bleed, mark, execute and the lunge (each x2 at most, or no multiplier) add 1-2 a
+   second, and the Daggers stay at 6-7 on the elites against the Staff's 20. A throw at 3.2 once a second, or a fan of
+   three, reaches 9-10.
+3. **A Daggers that reaches past the kite at every strike takes the Warden.** On a lone target a single-target weapon
+   wastes nothing. Thrown at every strike, the Daggers take 26 a second off the Warden to the Sword's 24 (the screen), and
+   with the bleed 48 to 21. Every throw cadence that lifts the elites lifts the Warden faster: the Warden is the only
+   target in reach, and it stands for a minute.
+
+So one shape meets the row: the Daggers thrown at every strike, with a bleed, and the Warden's armour turning both. The
+throw gives the reach. The bleed gives the elites, since the horde falls before a wound closes and the Captain does
+not. The Warden's armour leaves the Warden to the Sword.
+
+**The options in full** (frame-perfect ; human hands. Each job is the Daggers', the Sword's or the Staff's against the
+best other weapon on it. The roles row reads the elites as the whole waves, and beside it as the Captains alone.
+Clears: careful / standing / first-card / clumsy / auto-farmer. The Warden: the careful cohort's fight, the Vanguard
+started with the Sword and Ilya.)
+
+| Option | Elites (the waves): Daggers to the best other | The Captains alone: the same | Warden: Sword to the best other | Horde: Staff to the best other | Roles row: the waves, the Captains | Floor-1 clears, Vanguard | Floor-1 clears, Ilya | Both floors, Vanguard | Warden P50 floor 1, V / I |
+|---|---|---|---|---|---|---|---|---|---|
+| Shipped: the Daggers as they are | 5 to 21 (-76 %) ; 5 to 21 (-76 %) | 4 to 12 (-67 %) ; 4 to 12 (-67 %) | 26 to 23 (+13 %) ; 27 to 23 (+17 %) | 31 to 8 (+288 %) ; 31 to 8 (+288 %) | not met, not met ; not met, not met | 200 / 193 / 196 / 104 / 9 ; 195 / 179 / 181 / 82 / 9 | 200 / 193 / 200 / 184 / 30 ; 199 / 180 / 199 / 141 / 23 | 200 / 176 / 196 / 96 / 1 ; 193 / 151 / 179 / 66 / 1 | 58 / 51 ; 53 / 48 s |
+| A. A thrown blade at 3.2, one a second | 9 to 19 (-53 %) ; 9 to 19 (-53 %) | 6 to 11 (-45 %) ; 6 to 11 (-45 %) | 26 to 23 (+13 %) ; 27 to 23 (+17 %) | 28 to 7 (+300 %) ; 27 to 7 (+286 %) | not met, not met ; not met, not met | 200 / 195 / 196 / 110 / 12 ; 196 / 187 / 185 / 86 / 8 | 200 / 198 / 200 / 182 / 37 ; 199 / 182 / 199 / 148 / 34 | 200 / 183 / 196 / 100 / 1 ; 194 / 161 / 185 / 67 / 4 | 52 / 46 ; 48 / 43 s |
+| A, a fan of three blades a second | 10 to 18 (-44 %) ; 10 to 18 (-44 %) | 7 to 11 (-36 %) ; 7 to 11 (-36 %) | 27 to 22 (+23 %) ; 28 to 22 (+27 %) | 27 to 7 (+286 %) ; 26 to 8 (+225 %) | not met, not met ; not met, not met | 200 / 199 / 196 / 125 / 10 ; 200 / 187 / 187 / 84 / 6 | 200 / 198 / 200 / 190 / 39 ; 199 / 193 / 200 / 155 / 33 | 200 / 184 / 196 / 111 / 2 ; 197 / 168 / 186 / 67 / 1 | 52 / 46 ; 48 / 43 s |
+| B. A bleed, 100 % over 3 s | 6 to 21 (-71 %) ; 6 to 21 (-71 %) | 5 to 12 (-58 %) ; 5 to 12 (-58 %) | 27 to 23 (+17 %) ; 27 to 23 (+17 %) | 31 to 8 (+288 %) ; 31 to 8 (+288 %) | not met, not met ; not met, not met | 200 / 198 / 195 / 113 / 19 ; 197 / 187 / 183 / 83 / 16 | 200 / 194 / 200 / 188 / 50 ; 199 / 189 / 198 / 147 / 54 | 200 / 186 / 195 / 100 / 4 ; 195 / 172 / 180 / 65 / 5 | 57 / 51 ; 50 / 45 s |
+| C. A lunge at the heaviest within 3.0, every 2 s | 7 to 20 (-65 %) ; 7 to 19 (-63 %) | 5 to 11 (-55 %) ; 5 to 11 (-55 %) | 27 to 24 (+12 %) ; 28 to 23 (+22 %) | 29 to 8 (+262 %) ; 28 to 7 (+300 %) | not met, not met ; not met, not met | 193 / 172 / 185 / 104 / 7 ; 135 / 123 / 118 / 80 / 7 | 187 / 172 / 192 / 152 / 25 ; 140 / 118 / 140 / 119 / 19 | 177 / 144 / 155 / 91 / 2 ; 103 / 83 / 83 / 64 / 1 | 53 / 49 ; 48 / 44 s |
+| D. An exposing mark, +30 % for 3 s | 7 to 20 (-65 %) ; 7 to 21 (-67 %) | 6 to 12 (-50 %) ; 6 to 12 (-50 %) | 28 to 24 (+17 %) ; 27 to 23 (+17 %) | 31 to 8 (+288 %) ; 31 to 8 (+288 %) | not met, not met ; not met, not met | 200 / 198 / 196 / 108 / 19 ; 198 / 187 / 182 / 85 / 19 | 200 / 200 / 200 / 183 / 52 ; 199 / 189 / 200 / 136 / 51 | 200 / 191 / 196 / 96 / 5 ; 193 / 172 / 179 / 67 / 4 | 55 / 51 ; 46 / 43 s |
+| E. An execute, x2 under 30 % | 6 to 21 (-71 %) ; 6 to 20 (-70 %) | 5 to 12 (-58 %) ; 5 to 12 (-58 %) | 27 to 23 (+17 %) ; 27 to 23 (+17 %) | 31 to 8 (+288 %) ; 31 to 8 (+288 %) | not met, not met ; not met, not met | 200 / 197 / 196 / 106 / 13 ; 196 / 182 / 180 / 83 / 14 | 200 / 196 / 200 / 189 / 33 ; 198 / 192 / 199 / 146 / 40 | 200 / 186 / 196 / 97 / 3 ; 193 / 163 / 179 / 66 / 4 | 56 / 51 ; 51 / 46 s |
+| **F. The thrown Daggers: a throw at every strike and B; the Warden turns thrown blades and does not bleed** | 19 to 15 (+27 %) ; 19 to 15 (+27 %) | 13 to 8 (+62 %) ; 13 to 8 (+62 %) | 30 to 22 (+36 %) ; 30 to 23 (+30 %) | 21 to 16 (+31 %) ; 21 to 16 (+31 %) | met, met ; met, met | 200 / 200 / 196 / 142 / 15 ; 200 / 194 / 187 / 98 / 16 | 200 / 200 / 200 / 191 / 48 ; 200 / 196 / 200 / 156 / 51 | 200 / 187 / 196 / 125 / 6 ; 197 / 176 / 187 / 78 / 4 | 54 / 49 ; 50 / 45 s |
+| F, the Warden bleeding | 19 to 15 (+27 %) ; 19 to 15 (+27 %) | 13 to 8 (+62 %) ; 13 to 8 (+62 %) | 30 to 23 (+30 %) ; 30 to 23 (+30 %) | 21 to 16 (+31 %) ; 20 to 16 (+25 %) | met, met ; met, met | 200 / 200 / 196 / 145 / 29 ; 200 / 196 / 187 / 98 / 28 | 200 / 200 / 200 / 195 / 70 ; 200 / 199 / 200 / 165 / 73 | 200 / 192 / 196 / 129 / 10 ; 199 / 179 / 186 / 74 / 8 | 54 / 49 ; 48 / 44 s |
+| F without the bleed | 16 to 16 (+0 %) ; 16 to 16 (+0 %) | 11 to 9 (+22 %) ; 11 to 9 (+22 %) | 29 to 23 (+26 %) ; 30 to 23 (+30 %) | 21 to 15 (+40 %) ; 21 to 15 (+40 %) | not met, met ; not met, met | 200 / 199 / 196 / 132 / 14 ; 199 / 195 / 189 / 91 / 11 | 200 / 200 / 200 / 186 / 35 ; 200 / 195 / 200 / 159 / 35 | 200 / 183 / 196 / 116 / 2 ; 199 / 174 / 187 / 72 / 2 | 55 / 49 ; 50 / 46 s |
+| F, the Warden turning nothing | 19 to 15 (+27 %) ; 19 to 15 (+27 %) | 13 to 8 (+62 %) ; 13 to 8 (+62 %) | 21 to 48 (-56 %) ; 22 to 50 (-56 %) | 20 to 14 (+43 %) ; 20 to 14 (+43 %) | not met, not met ; not met, not met | 200 / 200 / 196 / 152 / 32 ; 200 / 199 / 187 / 110 / 33 | 200 / 200 / 200 / 197 / 78 ; 200 / 200 / 200 / 174 / 76 | 200 / 195 / 196 / 138 / 10 ; 200 / 192 / 187 / 85 / 9 | 36 / 34 ; 34 / 33 s |
+| G. The step-in on the Captains, with B | 34 to 45 (-24 %) ; 25 to 39 (-36 %) | 29 to 24 (+21 %) ; 20 to 21 (-5 %) | 27 to 24 (+12 %) ; 27 to 24 (+12 %) | 31 to 8 (+288 %) ; 31 to 8 (+288 %) | not met, met ; not met, not met | 200 / 198 / 195 / 113 / 19 ; 198 / 187 / 184 / 83 / 16 | 200 / 194 / 200 / 188 / 50 ; 200 / 189 / 199 / 147 / 54 | 200 / 186 / 195 / 100 / 4 ; 194 / 172 / 179 / 65 / 5 | 56 / 50 ; 49 / 45 s |
+| G. The step-in on the Captains, with D | 35 to 39 (-10 %) ; 27 to 36 (-25 %) | 29 to 20 (+45 %) ; 22 to 18 (+22 %) | 27 to 24 (+12 %) ; 27 to 23 (+17 %) | 31 to 8 (+288 %) ; 30 to 8 (+275 %) | not met, met ; not met, met | 200 / 198 / 196 / 108 / 19 ; 197 / 187 / 182 / 85 / 19 | 200 / 200 / 200 / 183 / 52 ; 200 / 189 / 199 / 136 / 51 | 200 / 191 / 196 / 96 / 5 ; 195 / 172 / 181 / 67 / 4 | 56 / 50 ; 46 / 43 s |
+
+The screen's other shapes (seeds 1-60, careful, floor 1; the elites, the Daggers to the best other, frame-perfect ;
+human hands):
+
+| Shape | Elites (the waves) | Note |
+|---|---|---|
+| A throw every 0.75 s | 9 to 19 ; 10 to 20 | |
+| A throw a second at the heaviest enemy | 9 to 20 ; 9 to 19 | with the bleed 11 to 19 ; 11 to 19 |
+| A throw at 2.6 at every strike | 11 to 18 ; 11 to 19 | with the bleed and the Warden turning throws 14 to 18 ; 13 to 17 |
+| A fan of three every 0.75 s | 12 to 18 ; 12 to 18 | a fan of three a second with the bleed 12 to 19 ; 12 to 18 |
+| The lunge at the nearest | 7 to 19 ; 6 to 19 | at the heaviest every second with the bleed 10 to 18 ; 8 to 18 |
+| A throw a second with the mark | 11 to 18 ; 12 to 18 | the Sword's Warden lead gone with human hands (24 to 26) |
+| A throw every 0.75 s with the bleed, the Warden turning throws | 12 to 18 ; 11 to 18 | |
+| A throw at every strike with half the bleed, the Warden turning throws | 18 to 15 ; 17 to 16 | +20 % ; +6 %: not met with human hands |
+
+On seeds 201-400 (careful, floor 1) the shape with the Warden bleeding (row 54; F differs from it only on the Warden)
+reads the same: the elites 19 to 14 ; 18 to 14, the Warden 29 to 23 ; 28 to 22 (the Sword's), the horde 20 to 15 ; 20
+to 15 (the Staff's). Met with either hands.
+
+**Each option: what the player sees, what it costs, what it takes to build.**
+
+- **A. A thrown blade**: out of reach, one blade a second at up to 3.2. The player sees a dagger fly at whatever stands
+  just past the kite. It is readable and modest, but the Daggers stay third on every job. Its cost: the Warden's fight
+  shortens (52 / 46 s ; 48 / 43 s, Ilya under 45 s with human hands), since a Vanguard that picks the Daggers up throws
+  at the Warden. Build: a projectile (V0.1 has none: every hit is instant, and docs/42 section 4 asks for pooling), a
+  throw rule body the scene and the simulation share, a dagger sprite with a trail, and card text. A fan of three
+  blades is the same build with three sprites, and it does no better.
+- **B. A bleed**: each hit bleeds as much again over 3 s. The player sees red drops and ticking numbers on what the
+  Daggers cut. It adds most where a target lives (the Warden, the Captain) and nothing on the horde, but on its own the
+  Daggers seldom cut anything. Build: a `BleedStatus` and a `BleedRule` beside `BurnStatus` and `BurnRule` (Ember
+  Memory's pattern), a drip effect, and the ticks in the damage numbers. The cheapest of the five.
+- **C. A lunge**: out of reach, a dash to the heaviest enemy within 3.0, every 2 s. The player sees the hero dart
+  forward. It moves the hero without the stick, into the Captain's reach, on a one-thumb mobile control, and it costs
+  the most: the careful cohort's floor-1 clears with human hands fall from 195 / 199 to 135 / 140. Build: a dash on
+  `HeroMotion` that the steering yields to, its animation, and a cooldown readout.
+- **D. An exposing mark**: +30 % from every weapon for 3 s. The player sees a sigil on what the Daggers cut. It is a team
+  weapon: the extra is the Daggers' only by attribution, and the elite fights do not shorten (the fixed pie). With human
+  hands the careful Warden's fight drops to 46 / 43 s. Build: a mark rule in the damage path every weapon's landing goes
+  through (the pattern of `WardenRule.DamageOn`), and a sigil decal.
+- **E. An execute**: x2 under 30 % health. The player sees a skull flash on the wounded. It has the smallest effect of
+  all. Build: one branch in the Daggers' damage, and a flash.
+- **F. The thrown Daggers**: A at every strike and B, and the Warden's armour turning both. The player sees the Daggers
+  as a short-range thrown weapon - a blade at every strike, at the nearest enemy within 3.2 when nothing is within 1.8 -
+  whose cuts bleed, and blades sparking off the Warden's armour, which neither takes a throw nor bleeds. The Daggers'
+  strikes within 1.8 land on the Warden as ever. It changes what the Daggers are, not a number. Its costs:
+  - the Daggers become a strong pickup: their horde rate goes from 2 to 16 a second, and the Staff's horde lead narrows
+    from +288 % to +31 % (still its role);
+  - the weaker cohorts clear more (decision 3);
+  - the careful Warden's fight shortens, from 58 / 51 to 54 / 49 s frame-perfect and from 53 / 48 to 50 / 45 s with
+    human hands. No Daggers damage that F adds lands on the Warden, but the Sword's own rate on it rises from 26 to
+    30 a second - likely the horde round the Warden falling sooner and leaving it the Sword's nearest target.
+
+  With the Warden bleeding (its armour turning thrown blades alone), F costs more: the standing pilot, who cuts the
+  Warden in melee, fights it in 39 / 37 s rather than 43 / 40, the auto-farmers clear 28 / 73 rather than 16 / 51 with
+  human hands, and the careful Warden's fight drops to 48 / 44 s. Without the bleed, F leads only the Captains alone (11
+  to 9, +22 %, with either hands), not the waves (16 to 16).
+
+  Build: A's projectile and B's status, and the gate boss's armour: a rule body that reads `EncounterController.GateRoom`
+  as `WardenRule` does, and a spark-and-clang effect, so the exception is seen. Also the Daggers' card and forge text
+  ("thrown", "bleeds", "the Warden's armour turns thrown blades and wounds"), and a parity pin for the throw and the
+  bleed. The throw and the bleed would be fields of their own: Weapon_Daggers.asset's damage, interval, reach and crit
+  rhythm do not move, and the hall arena and the Descent read them.
+- **G. The step-in, with B or D.** Only a pilot habit brings the Daggers' melee to the elites. With the step-in on the
+  Captains, the Daggers lead the Captains alone with the mark (29 to 20 ; 22 to 18), and with the bleed only
+  frame-perfect (29 to 24 ; 20 to 21). Neither leads the waves (the mark 35 to 39 ; 27 to 36, the bleed 34 to 45 ; 25
+  to 39). It reads the elites as the Captains (docs/40 section 8.6's elite TTK is the elite's own), it turns on a habit
+  the lead has held back, and a stepped-in Captain falls within 1.1-1.5 s under fire. With the mark, the careful
+  Warden's fight with human hands drops to 46 / 43 s.
+
+**Recommendation.** F, if the owner answers yes to the three questions below. Of the 31 shapes two meet the row without
+a hidden share, F and F with the Warden bleeding, and F is the cheaper. It meets the row every way it was read: on the
+gate's own reading (the whole waves) and on the Captains', with either hands. The bleed is the hit's own worth again
+over 3 s, and it shows as it ticks. The Warden's armour shows at every blade it turns. No Captain is one-shot: with the Daggers started it
+stands 3.9 ; 4.4 s under fire (P50), against 4.3 ; 4.4 s now. The careful Warden's fight stays inside step 4's 45-65 s,
+on its edge with human hands (Ilya 45 s). Build it behind a foundry-only switch and play it on the device before the row
+is called met: the simulation's blades land at once, and the scene's would fly.
+
+If the owner wants the Daggers left a melee weapon, or no boss exception, no shape gives them a job. Then V0.1 ships with
+two roles, the row stays not met as the owner's waiver, and the Daggers' job waits for their character. docs/40 section
+4.1's Riftblade has Phase Dash and a marked execute: the closing-in a player does by hand, which the step-in stands for.
+The bleed is worth keeping either way, as docs/40 section 5.2's "+15 % Bleed" Daggers line.
+
+**What the owner must decide.**
+1. **Do the Daggers become a thrown weapon?** That means a blade at every strike, at the nearest enemy within 3.2 when
+   nothing is within 1.8, and a bleed of the hit's worth again over 3 s. The asset's numbers stay, but what the Daggers
+   are changes, and they become a strong pickup: their horde rate goes from 2 to 16 a second, and the Staff's horde
+   lead narrows from +288 % to +31 % (still its role).
+2. **May the Warden's armour turn thrown blades and wounds?** Without it the thrown Daggers take the Warden (48 to 21),
+   the Sword has no job, and the Warden's fight falls to 33-36 s. With it, the Sword keeps the Warden by 30-36 %. The
+   exception has to be seen: a spark and a clang at every turned blade, and no drops on the Warden.
+3. **May the floor get easier for the weaker cohorts?** With F, every cohort that picks the Daggers up clears more of
+   floor 1, and no cohort loses a clear. With human hands, Vanguard / Ilya: standing 179 -> 194 / 180 -> 196, clumsy
+   82 -> 98 / 141 -> 156, auto-farmer 9 -> 16 / 23 -> 51. Both floors, clumsy Vanguard 66 -> 78. The careful Warden's
+   fight with human hands drops from 53 / 48 to 50 / 45 s. This round measured no counterweight (the Warden's health
+   share, the Daggers' forge price, or their offer weight).
+4. **If not F, the waiver.** Whether V0.1 may ship with the Staff the horde's weapon and the Sword the Warden's, and the
+   roles row read not met with this section as its note.
