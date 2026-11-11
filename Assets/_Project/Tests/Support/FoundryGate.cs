@@ -43,6 +43,15 @@ namespace Cryptforge.Tests
         public const double SynergyShare = .8;
         // A weapon's lead on another under this share of the other's figure is read as a tie (proposed).
         public const double RoleMargin = .1;
+        // docs/41 step 1's frame time on the S23: the chosen crowd read as the owner's 30-40 alive (HordeRule, 2026-10-26);
+        // p95 at most 20 ms, so at most a twentieth of the crowd's frames past 20 ms (FrameTimeProbe counts them); no frame
+        // past 35 ms in a fight; and garbage a frame flat, read as the later half of the crowd's windows within a quarter,
+        // or 0.1 KB, of the earlier (proposed).
+        public const int DeviceCrowd = 30;
+        public const float DeviceLongMs = 35f;
+        public const double DeviceSlowShare = .05;
+        public const double GarbageFlatShare = .25;
+        public const double GarbageFlatKb = .1;
 
         // The criteria, in the table's order; a row's name is its key.
         public const string FloorTime = "Floor time (the autopilot)";
@@ -126,6 +135,74 @@ namespace Cryptforge.Tests
             public int Over33 = -1;
         }
 
+        // The phone's evidence, pulled by Tools/Device/Pull-DeviceEvidence.ps1 into TestResults/device-*/ and read by the
+        // batch report: the pulls read, the phone, the APK the runs and frames are read on (the installed one at the newest
+        // pull: its SHA-256 and install time, null where the pull could not read them), the development flags on the phone
+        // at the pull, the owner's floors on that APK and the runs left out of them, and the logcat's frame windows.
+        internal sealed class DeviceEvidence
+        {
+            public string Source;
+            public string Model;
+            public string ApkSha256;
+            public DateTime? InstalledUtc;
+            public List<string> Flags = new List<string>();
+            public List<DeviceFloor> Floors = new List<DeviceFloor>();
+            public int Runs;
+            // Begun before the install (another APK); the density probe's (horde-probe.txt: its hero's maximum health past a
+            // million); a floor the run never finished (the app closed, the run still on at the pull, or its lines rotated
+            // away on the phone).
+            public int EarlierRuns;
+            public int ProbeRuns;
+            public int UnfinishedFloors;
+            // FrameTimeProbe's [Perf] windows and RenderStatsProbe's [RenderStats] ones, in time order, on that APK; the
+            // frames past 35 ms the [Perf] lines name one by one; the windows the log held from before the install.
+            public string FrameSource;
+            public List<DeviceWindow> Windows = new List<DeviceWindow>();
+            public List<DeviceWindow> RenderWindows = new List<DeviceWindow>();
+            public List<DeviceFrame> LongFrames = new List<DeviceFrame>();
+            public int EarlierWindows;
+            // Whether the log's times could be set against the telemetry's (both the phone's clock).
+            public bool Placed;
+        }
+
+        // A floor of one of the owner's runs: cleared, or the one it died on; its active seconds, floor_complete's
+        // active_sec or run_end's less the floors before it.
+        internal sealed class DeviceFloor
+        {
+            public string HeroId;
+            public int Floor;
+            public bool Cleared;
+            public float Seconds;
+        }
+
+        // A probe's window of about 5 s. [Perf]: frames, p95 and max, frames past 20 and 35 ms, the managed allocation
+        // (KB). [RenderStats]: p95 and max, garbage a frame (bytes), GPU ms and draw calls, per-frame averages. Play: the
+        // time scale 1 inside a run past its opening (its load and first wave); Alive: the most enemies the telemetry's
+        // horde_sample (horde and node waves) or a [Perf] wave line counted in it, -1 when none did.
+        internal sealed class DeviceWindow
+        {
+            public int Frames;
+            public float P95 = float.NaN;
+            public float Max = float.NaN;
+            public int Over20 = -1;
+            public int Over35 = -1;
+            public float AllocatedKb = float.NaN;
+            public float GarbageBytes = float.NaN;
+            public float GpuMs = float.NaN;
+            public float DrawCalls = float.NaN;
+            public bool Play;
+            public int Alive = -1;
+        }
+
+        // A frame past 35 ms a [Perf] line names: a long frame, or the frame a wave entered on.
+        internal sealed class DeviceFrame
+        {
+            public float Ms;
+            public bool Wave;
+            public bool Play;
+            public int Alive = -1;
+        }
+
         internal sealed class Evidence
         {
             public List<EditorFile> Files = new List<EditorFile>();
@@ -135,6 +212,8 @@ namespace Cryptforge.Tests
             public bool FloorRead;
             public string FloorAsset;
             public string NextFloor;
+            // Null when no pull of the phone's was read.
+            public DeviceEvidence Device;
 
             public EditorFile HeroFile(string heroId) => Files.FirstOrDefault(f => f.HeroId == heroId && f.WeaponId == null);
 
@@ -172,8 +251,7 @@ namespace Cryptforge.Tests
                     $"The cleared room before the gate holds, the horde still on, until the floor's clock reads {gateClock} (docs/41's 2026-11-02 status); the floor's time counts the wait.",
                     b => (WaitText(b), (bool?)null),
                     e => (EditorWaitText(e), null), Reported),
-                Unmeasured(OwnersFloor, $"P50 {F(FloorLow)}-{F(FloorHigh)} s on the owner too (docs/41 step 2)",
-                    "This report reads no owner telemetry: floor_complete and run_end active_sec from the owner's runs on a current APK would measure it."),
+                OwnersRow(gate),
                 PerHero(gate, CombatUptime, $">= {F(UptimeTarget, "0.00")} of active time with an enemy alive (docs/41 step 2), over every run",
                     "HordePacingMeasurement's uptime and the simulation's: with the horde on, some enemy stands nearly always, so it says little about fighting.",
                     b => AtLeast(b.Runs.Select(r => r.Uptime), b.Cleared.Select(r => r.Uptime), UptimeTarget),
@@ -468,24 +546,185 @@ namespace Cryptforge.Tests
                 e => ($"{e.Seeds.Count(s => s.Cleared)} of {e.Seeds.Count} cleared", null), status);
         }
 
+        // docs/41 step 2's floor time on the owner's own play: every floor of the owner's runs on the installed APK, pulled
+        // from the phone (Tools/Device/Pull-DeviceEvidence.ps1), by hero and floor; the V0.1 hero's floor 1 decides, over
+        // every run as in the autopilot's row. Without a pull it is not measured, as before one existed.
+        private static Row OwnersRow(Reading gate)
+        {
+            string target = $"P50 {F(FloorLow)}-{F(FloorHigh)} s on the owner too (docs/41 step 2)";
+            DeviceEvidence device = gate.Evidence.Device;
+            if (device == null)
+                return Unmeasured(OwnersFloor, target,
+                    "This report reads no owner telemetry: floor_complete and run_end active_sec from the owner's runs on a current APK would measure it.");
+
+            var heroes = new List<string>();
+            foreach (IGrouping<string, DeviceFloor> hero in device.Floors.GroupBy(f => f.HeroId)
+                         .OrderBy(g => HeroIndex(gate, g.Key)).ThenBy(g => g.Key, StringComparer.Ordinal))
+                heroes.Add(HeroName(gate, hero.Key) + " " + string.Join(", ", hero.GroupBy(f => f.Floor).OrderBy(g => g.Key).Select(floor =>
+                {
+                    float[] clears = floor.Where(f => f.Cleared).Select(f => f.Seconds).ToArray();
+                    return $"floor {floor.Key} P50 {F(Median(floor.Select(f => f.Seconds)))} s over {Many(floor.Count(), "run")} " +
+                           $"({clears.Length} cleared{(clears.Length > 0 ? $", P50 {F(Median(clears))} s" : string.Empty)})";
+                })));
+            string v01 = gate.V01.Hero.Name;
+            double p50 = Median(device.Floors.Where(f => f.HeroId == gate.V01.Hero.Id && f.Floor == 1).Select(f => f.Seconds));
+            var left = new List<string>();
+            if (device.EarlierRuns > 0)
+                left.Add($"{device.EarlierRuns} begun before the install (another APK)");
+            if (device.ProbeRuns > 0)
+                left.Add($"{device.ProbeRuns} of the density probe (development/horde-probe.txt, its hero at a million health)");
+            if (device.UnfinishedFloors > 0)
+                left.Add($"{Many(device.UnfinishedFloors, "floor")} never finished (the app closed, the run still on at the pull, or its lines rotated away on the phone)");
+            string basis =
+                $"The owner's runs pulled from the phone ({device.Source}{(device.Model != null ? ", " + device.Model : string.Empty)}), {Many(device.Runs, "run")} on {ApkText(device)}: " +
+                (heroes.Count > 0 ? string.Join("; ", heroes) + "." : "no floor finished or died on.") +
+                (double.IsNaN(p50) ? $" No run of the {v01}'s finished floor 1 or died on it, and the {v01}'s floor 1 decides." : string.Empty) +
+                " A floor's active seconds: floor_complete's active_sec where it was cleared, run_end's less the floors before it where the run died on it - the autopilot's row's floor, from its first frame to the gate held or a death - over every run, the deaths with the clears." +
+                (device.InstalledUtc.HasValue
+                    ? " The telemetry names no build (session_start's app_version is the project's bundle version, the same on every APK), so a run is the installed APK's when it began after the install (dumpsys package's lastUpdateTime at the newest pull)."
+                    : " The newest pull read no install time, so every run is read, whatever APK it ran on (the telemetry names no build).") +
+                (left.Count > 0 ? " Left out: " + string.Join("; ", left) + "." : string.Empty) +
+                (device.Flags.Contains("autopilot.txt") ? " development/autopilot.txt was on the phone at the pull: the autopilot's runs read as the owner's." : string.Empty);
+            return new Row
+            {
+                Criterion = OwnersFloor, Target = target, Simulation = "-", Editor = "-",
+                Status = double.IsNaN(p50) ? NotMeasured : StatusOf(p50 >= FloorLow && p50 <= FloorHigh), Basis = basis
+            };
+        }
+
+        private static int HeroIndex(Reading gate, string heroId)
+        {
+            for (int i = 0; i < gate.Heroes.Count; i++)
+                if (gate.Heroes[i].Hero.Id == heroId)
+                    return i;
+            return gate.Heroes.Count;
+        }
+
+        private static string HeroName(Reading gate, string heroId) =>
+            gate.Heroes.FirstOrDefault(b => b.Hero.Id == heroId)?.Hero.Name ?? heroId;
+
         private static Row FramesRow(Evidence evidence)
         {
+            const string target = "the S23: p95 <= 20 ms at the chosen crowd, no frame over 35 ms in a steady fight, garbage per frame flat (docs/41 step 1)";
             EditorFrames frames = evidence.Frames;
             string editor = frames == null || frames.Windows.Count == 0
                 ? "no perf probe file"
                 : string.Join("; ", frames.Windows.Select(w =>
                     $"{w.Name}: p95 {F(w.P95, "0.0")} ms, max {F(w.Max, "0.0")} ms, {Count(w.Over16)} of {w.Frames} frames over 16.7 ms and {Count(w.Over33)} over 33.3 ms, up to {F(w.AliveMax)} alive")) +
                   $" ({frames.Source}: {frames.Machine})";
+            if (evidence.Device != null)
+            {
+                (string status, string reading) = DeviceFramesReading(evidence.Device);
+                return new Row
+                {
+                    Criterion = DeviceFrames, Target = target, Simulation = "-", Editor = editor, Status = status,
+                    Basis = reading + " The Editor's column is the perf probe's on a desktop CPU, for comparing builds, not the phone (its own caution)."
+                };
+            }
             return new Row
             {
                 Criterion = DeviceFrames,
-                Target = "the S23: p95 <= 20 ms at the chosen crowd, no frame over 35 ms in a steady fight, garbage per frame flat (docs/41 step 1)",
+                Target = target,
                 Simulation = "-",
                 Editor = editor,
                 Status = NotMeasured,
                 Basis = "The perf probe's times are the Editor's on a desktop CPU, for comparing builds, not the phone (its own caution). RenderStatsProbe (development/render-stats.txt) on the S23 with a current APK at 30-40 enemies alive would measure it; docs/21 has the S23's last reading at 10-40, on 2026-10-26, before V0.1's floor."
             };
         }
+
+        // The S23's frames from the pulled logcat (docs/41 step 1): FrameTimeProbe's [Perf] windows, which every development
+        // player logs, set against the telemetry by the phone's clock (play, alive); RenderStatsProbe's [RenderStats] beside
+        // them when development/render-stats.txt was on. A criterion a window measured and missed is not met; one nothing
+        // measured leaves the row not measured.
+        private static (string Status, string Basis) DeviceFramesReading(DeviceEvidence device)
+        {
+            string source = $"The phone's own frames ({device.FrameSource ?? device.Source}{(device.Model != null ? ", " + device.Model : string.Empty)}, {ApkText(device)})";
+            if (device.Windows.Count == 0)
+                return (NotMeasured, source + ": no [Perf] window" +
+                                     (device.EarlierWindows > 0 ? $" ({Many(device.EarlierWindows, "window")} from before the install)" : string.Empty) +
+                                     ". FrameTimeProbe logs one every 5 s in a development player only, and the phone's log keeps its last minutes, so the pull follows the session (docs/23, 2026-11-11).");
+            DeviceWindow[] play = device.Windows.Where(w => w.Play).ToArray();
+            DeviceWindow[] crowd = play.Where(w => w.Alive >= DeviceCrowd).ToArray();
+            int crowdFrames = crowd.Sum(w => w.Frames);
+            bool? slow = crowd.Length == 0 ? (bool?)null : crowd.Sum(w => w.Over20) <= crowdFrames * DeviceSlowShare;
+            bool? steady = play.Length == 0 ? (bool?)null : play.Sum(w => w.Over35) == 0;
+            (double earlier, double later) = Halves(crowd);
+            bool? flat = double.IsNaN(earlier) || double.IsNaN(later) ? (bool?)null : later <= earlier * (1 + GarbageFlatShare) + GarbageFlatKb;
+            string status = slow == false || steady == false || flat == false ? NotMet
+                : slow == null || steady == null || flat == null ? NotMeasured : Met;
+
+            int most = device.Windows.Where(w => w.Play).Select(w => w.Alive).DefaultIfEmpty(-1).Max();
+            DeviceFrame[] spikes = device.LongFrames.Where(f => f.Play).OrderByDescending(f => f.Ms).ToArray();
+            var verdict = new List<string>
+            {
+                slow == null
+                    ? (play.Length == 0 ? "no window in play" : most < 0 ? "no window in play with an alive count" : $"no window in play at the crowd (at most {most} alive): development/horde-probe.txt pads the first wave to it (docs/23)")
+                    : slow.Value ? "p95 at most 20 ms at the crowd" : "p95 past 20 ms at the crowd",
+                steady == null ? "no frame read in play" : steady.Value ? "no frame past 35 ms in play" : $"{Many(play.Sum(w => w.Over35), "frame")} past 35 ms in play",
+                flat == null
+                    ? (crowd.Length == 1 ? "one window at the crowd cannot show garbage flat" : "garbage not read at the crowd")
+                    : flat.Value ? "garbage flat at the crowd" : "garbage growing at the crowd"
+            };
+            DeviceWindow[] stats = device.RenderWindows.Where(w => w.Play && w.Alive >= DeviceCrowd).ToArray();
+            string statsWhere = "at the crowd";
+            if (stats.Length == 0)
+            {
+                stats = device.RenderWindows.Where(w => w.Play).ToArray();
+                statsWhere = "in play";
+            }
+            string render = device.RenderWindows.Count == 0
+                ? "No [RenderStats] line: development/render-stats.txt was off."
+                : stats.Length == 0
+                    ? $"[RenderStats]: {Many(device.RenderWindows.Count, "window")}, none in play."
+                    : $"[RenderStats] {statsWhere} ({Many(stats.Length, "window")}), P50s: GPU {F(Median(stats.Select(w => w.GpuMs)), "0.0")} ms, {F(Median(stats.Select(w => w.DrawCalls)))} draw calls, " +
+                      $"garbage {F(Median(stats.Select(w => w.GarbageBytes)))} B a frame, p95 {F(Median(stats.Select(w => w.P95)), "0.0")} ms.";
+            string basis = source + ": FrameTimeProbe's [Perf] windows of 5 s, set against the telemetry by the phone's clock - in play, the time scale 1 inside a run past its opening (its load and first wave); alive, the most enemies the telemetry's horde_sample (horde and node waves) or a [Perf] wave line counted in the window. " +
+                           (device.Placed ? string.Empty : "The log's times could not be set against the telemetry's (no year or zone, and the pull named no UTC offset), so no window is in play. ") +
+                           $"At the crowd ({DeviceCrowd} alive and more, the owner's 30-40 on the S23; HordeRule.SceneCap {HordeRule.SceneCap}): {FrameWindows(crowd)}. Every window in play: {FrameWindows(play)}. " +
+                           (spikes.Length > 0
+                               ? "Past 35 ms in play: " + string.Join(", ", spikes.Take(5).Select(f => $"{F(f.Ms, "0.0")} ms ({(f.Wave ? "a wave entering" : "a long frame")}{(f.Alive >= 0 ? $", {f.Alive} alive" : string.Empty)})")) +
+                                 (spikes.Length > 5 ? $" and {spikes.Length - 5} more. " : ". ")
+                               : string.Empty) +
+                           render + " Read: " + string.Join("; ", verdict) + "." +
+                           (device.EarlierWindows > 0 ? $" Left out: {Many(device.EarlierWindows, "window")} from before the install." : string.Empty) +
+                           $" The device's probe counts frames past 20 and 35 ms, the target's own lines, where the Editor's counts 16.7 and 33.3; garbage flat reads the later half of the crowd's windows within {F(GarbageFlatShare * 100)} %, or {F(GarbageFlatKb, "0.0")} KB a frame, of the earlier (proposed).";
+            return (status, basis);
+        }
+
+        // A set of [Perf] windows as the frames row reads them.
+        private static string FrameWindows(DeviceWindow[] windows)
+        {
+            if (windows.Length == 0)
+                return "none";
+            int frames = windows.Sum(w => w.Frames);
+            int over20 = windows.Sum(w => w.Over20);
+            int[] alive = windows.Where(w => w.Alive >= 0).Select(w => w.Alive).ToArray();
+            (double earlier, double later) = Halves(windows);
+            return $"{Many(windows.Length, "window")}, {frames} frames" +
+                   (alive.Length > 0 ? $", {alive.Min()}-{alive.Max()} alive (P50 {F(Median(alive.Select(a => (float)a)))})" : ", no alive count") +
+                   $": past 20 ms {over20} ({Pct(over20, frames, "0.0")}), past 35 ms {windows.Sum(w => w.Over35)}, max {F(windows.Max(w => w.Max), "0.0")} ms, " +
+                   $"the windows' p95 P50 {F(Median(windows.Select(w => w.P95)), "0.0")} and max {F(windows.Max(w => w.P95), "0.0")} ms; " +
+                   $"garbage {F(Median(windows.Select(GarbageKb)), "0.00")} KB a frame P50" +
+                   (double.IsNaN(earlier) ? string.Empty : $" (earlier half {F(earlier, "0.00")}, later {F(later, "0.00")})");
+        }
+
+        private static float GarbageKb(DeviceWindow w) => w.Frames > 0 ? w.AllocatedKb / w.Frames : float.NaN;
+
+        // The P50 garbage a frame of the windows' earlier half and of their later half, in time order; NaN under two windows.
+        private static (double Earlier, double Later) Halves(DeviceWindow[] windows)
+        {
+            int half = windows.Length / 2;
+            if (half == 0)
+                return (double.NaN, double.NaN);
+            return (Median(windows.Take(half).Select(GarbageKb)), Median(windows.Skip(windows.Length - half).Select(GarbageKb)));
+        }
+
+        // The APK a pull's runs and frames are read on: the installed one's SHA-256 and install time, where the pull read them.
+        private static string ApkText(DeviceEvidence device) =>
+            (device.ApkSha256 != null ? "the APK " + device.ApkSha256.Substring(0, Math.Min(12, device.ApkSha256.Length)) : "the installed APK") +
+            (device.InstalledUtc.HasValue
+                ? " installed " + device.InstalledUtc.Value.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC"
+                : " (its install time not read)");
 
         // ---------------------------------------------------------------------------------------------------------
         // What the rows read
@@ -663,6 +902,8 @@ namespace Cryptforge.Tests
                           "Reported: a number the plan asks for without a target. Nothing here is estimated: what nothing measures is not measured, with what would measure it.").AppendLine();
             md.AppendLine(Summary(rows, v01.Hero.Name)).AppendLine();
             md.AppendLine(EditorLine(heroes, evidence)).AppendLine();
+            if (evidence.Device != null)
+                md.AppendLine(DeviceLine(evidence.Device)).AppendLine();
             md.AppendLine("| Criterion | Target | Simulation | Editor | Status | Basis |");
             md.AppendLine("|---|---|---|---|---|---|");
             foreach (Row row in rows)
@@ -698,6 +939,12 @@ namespace Cryptforge.Tests
             }
             return "Editor files: " + string.Join("; ", parts) + ". A file names its floor's levers (surges, extra elites, the gate's time), not the Warden's version or the autopilot's.";
         }
+
+        // What the two device rows read, where a pull of the phone's was read.
+        private static string DeviceLine(DeviceEvidence device) =>
+            $"Device: {device.Source}{(device.Model != null ? " (" + device.Model + ")" : string.Empty)}, read on {ApkText(device)}: " +
+            $"{Many(device.Runs, "run")} of the owner's ({Many(device.Floors.Count, "floor")}), {Many(device.Windows.Count, "[Perf] window")} and " +
+            $"{Many(device.RenderWindows.Count, "[RenderStats] window")}.";
 
         // docs/40 section 17.3's weapon_effectiveness for the gate's roles row: the Vanguard started with each weapon, and
         // that weapon's own work in those runs.

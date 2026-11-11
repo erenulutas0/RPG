@@ -1,0 +1,19 @@
+# Tools/Device/Pull-DeviceEvidence.ps1: what it pulled and read off the phone; Tools/CombatChecks/DevicePull.cs reads it.
+pulled_utc: 2026-11-12T18:25:00Z
+serial: SAMPLE0001
+model: SM-S911B
+android: 14
+package: com.cryptforge.prototype
+version_name: 0.1.0
+version_code: 1
+apk_sha256: 9c1e5b7a3f02d64e8a1b0c7d5e9f3a2b4c6d8e0f1a3b5c7d9e1f2a4b6c8d0e2f
+installed_device: 2026-11-12 20:00:00
+device_utc_offset: +0300
+installed_utc: 2026-11-12T17:00:00Z
+device_clock_utc: 2026-11-12T18:25:00Z
+game_running: no
+development_flags: horde-probe.txt, render-stats.txt
+telemetry_files: events.1.jsonl 4936, events.jsonl 11243
+logcat: logcat-unity.txt (adb logcat -d -v time -v epoch -s Unity:V)
+logcat_times: seconds since 1970
+logcat_buffer: main 256 KiB

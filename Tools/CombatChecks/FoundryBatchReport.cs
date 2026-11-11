@@ -43,9 +43,12 @@ namespace Cryptforge.Tests
     // separated; by default each hero's newest file of the plain autopilot, the newest naming the simulated floor's levers
     // first), FOUNDRY_PERF_PROBE (the perf probe's file; the newest perf-probe-baseline-*.txt by default). Both flag a
     // pacing file whose header names other floor levers than the simulation's shipped ones, or none (written before
-    // 2026-11-03). FOUNDRY_FLOORS (1): 2 has the shipped floor's runs go down to floor 2 after a floor-1 clear
-    // (FoundryLevers.Floors) and adds floor 2's section and foundry-batch-floor2.csv; the gate, floor 1's tables, the
-    // levers' and the parity table stay floor 1's.
+    // 2026-11-03). FOUNDRY_DEVICE (the phone's pulls, Tools/Device/Pull-DeviceEvidence.ps1's folders, read by DevicePull
+    // for the gate's rows of the owner's floor time and the device's frames: a folder or several separated by ';',
+    // absolute or within the Editor folder, or "none"; by default every device-* folder there holding a pull.txt - with
+    // none both rows stay not measured, as before the script). FOUNDRY_FLOORS (1): 2 has the shipped floor's runs go down
+    // to floor 2 after a floor-1 clear (FoundryLevers.Floors) and adds floor 2's section and foundry-batch-floor2.csv; the
+    // gate, floor 1's tables, the levers' and the parity table stay floor 1's.
     [Explicit("The regression harness's batch report: run it by name.")]
     public sealed class FoundryBatchReport
     {
@@ -271,11 +274,12 @@ namespace Cryptforge.Tests
         // ---------------------------------------------------------------------------------------------------------
 
         // What the gate reads beside the batch: each hero's pacing file (as the parity's), the newest file a weapon started
-        // (horde-weapon.txt, the research's M1), the perf probe's summary and floor 1's asset.
+        // (horde-weapon.txt, the research's M1), the perf probe's summary, floor 1's asset and the phone's pulls.
         private static FoundryGate.Evidence GateEvidence(string root, string folder, DescentSimulation.FoundryHero[] heroes)
         {
             var evidence = new FoundryGate.Evidence();
             ReadNextFloor(root, evidence);
+            evidence.Device = DevicePull.Read(DevicePull.Folders(folder, Environment.GetEnvironmentVariable("FOUNDRY_DEVICE")));
             if (!Directory.Exists(folder))
                 return evidence;
             string[] files = PacingFiles(folder, heroes) ?? heroes.Select(hero => NewestPacing(folder, hero.Id, null)).ToArray();
