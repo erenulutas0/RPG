@@ -541,7 +541,7 @@ namespace Cryptforge.Tests
                     if (line.Utc.HasValue)
                     {
                         DateTime at = line.Utc.Value;
-                        work.Play = runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds));
+                        work.Play = InPlay(runs, at);
                         work.Alive = Alive(runs, waves, at.AddSeconds(-FrameSampleSeconds), at.AddSeconds(FrameSampleSeconds));
                     }
                     device.RampWork.Add(work);
@@ -561,10 +561,7 @@ namespace Cryptforge.Tests
                 if (line.Utc.HasValue)
                 {
                     DateTime at = line.Utc.Value;
-                    // Not in play inside the next run's load either, which can fall in the last run's slack.
-                    frame.Play = (wave.Success || Number(slow.Groups["scale"].Value) >= .5f) &&
-                                 runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds)) &&
-                                 !runs.Any(r => r.Start.AddSeconds(-OpeningSeconds) <= at && at < r.OpeningEnd);
+                    frame.Play = (wave.Success || Number(slow.Groups["scale"].Value) >= .5f) && InPlay(runs, at);
                     frame.Alive = wave.Success
                         ? int.Parse(wave.Groups["enemies"].Value, CultureInfo.InvariantCulture)
                         : Alive(runs, waves, at.AddSeconds(-FrameSampleSeconds), at.AddSeconds(FrameSampleSeconds));
@@ -572,6 +569,12 @@ namespace Cryptforge.Tests
                 device.LongFrames.Add(frame);
             }
         }
+
+        // A moment in play: inside a run past its opening (or within its slack after its end), and not inside the next
+        // run's load, which can fall in the last run's slack. Long frames and ramp work read it alike.
+        private static bool InPlay(List<RunRecord> runs, DateTime at) =>
+            runs.Any(r => r.OpeningEnd <= at && at <= r.End.AddSeconds(SlackSeconds)) &&
+            !runs.Any(r => r.Start.AddSeconds(-OpeningSeconds) <= at && at < r.OpeningEnd);
 
         // A window ending at end and lasting seconds: in play when its time scale is 1 and it lies inside a run past the
         // run's opening; alive, the most enemies counted in it.
