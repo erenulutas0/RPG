@@ -241,10 +241,16 @@ namespace Cryptforge.UI
                     _roomPips[i].color = i < reached ? new Color32(218, 165, 84, 255) : new Color32(60, 60, 79, 255);
                 }
             }
+            // While a gate boss stands, the banner and the bar are its, not the nearest enemy's: floor 2's Warden walks out
+            // between two Cinder Mites that reach the hero first, and the banner read "Cinder Mite" until both fell (the
+            // pre-push review, 2026-11-12). BossRevealView frames the same boss.
+            Health gateBoss = _encounters.GateBoss;
+            EnemyDefinition gateBossDefinition = gateBoss != null ? _encounters.GateBossDefinition : null;
             if (_bossGroup != null)
             {
                 _bossGroup.alpha = room != null && room.Kind == RoomKind.Boss ? 1f : 0f;
-                _bossName.text = _encounters.CurrentDefinition != null ? _encounters.CurrentDefinition.DisplayName : string.Empty;
+                EnemyDefinition bossDefinition = gateBossDefinition ?? _encounters.CurrentDefinition;
+                _bossName.text = bossDefinition != null ? bossDefinition.DisplayName : string.Empty;
             }
 
             if (_encounters.IsInNonCombatRoom)
@@ -257,7 +263,7 @@ namespace Cryptforge.UI
                 return;
             }
 
-            EnemyDefinition definition = _encounters.CurrentDefinition;
+            EnemyDefinition definition = gateBossDefinition ?? _encounters.CurrentDefinition;
             if (definition == null)
             {
                 // The room is behind the hero, a forge or a fight, and nobody stands to show: on the walk to the next marked
@@ -277,8 +283,9 @@ namespace Cryptforge.UI
             }
             _showsRoom = true;
 
-            // The bar follows the hero's current target; the label counts the rest of the pack still standing.
-            Health enemy = _encounters.CurrentEnemy;
+            // The bar follows the gate boss while it stands, otherwise the hero's current target; the label counts the rest
+            // of the pack still standing.
+            Health enemy = gateBoss != null ? gateBoss : _encounters.CurrentEnemy;
             ShownEnemy = enemy;
             float current = enemy != null ? enemy.Current : 0f;
             float maximum = enemy != null ? enemy.Maximum : definition.MaximumHealth;
