@@ -2403,15 +2403,17 @@ report (steps 7-8) only read, so they need no focus check.
    Get-FileHash $b/* -Algorithm SHA256
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
-4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean rebuild of
-   main da60d7ee (679df68d's runtime, without the 10 MB of holes Gradle had left; 36,808,265 bytes). Check the file
+4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 90c7eab1 (the 2026-11-12 overnight work: the swarm pool, the boss banner, burns held in the reveal, decimals
+   with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 457491A254CEB61E... on 2026-11-12
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 36808265
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 2093FD6667F3911E... on 2026-11-12 01:48
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 36819361
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
-   `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) is
+   `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
+   457491A2... build of da60d7ee are
    superseded: do not install it. The pull reads the installed APK's SHA-256 back (`pull.txt`'s `apk_sha256`); it must
    equal the hash printed here. Check that the phone's `development/` holds no `autopilot.txt`, `floor-clock.txt` or
    `horde-probe.txt` (`adb shell ls /sdcard/Android/data/com.cryptforge.prototype/files/development`): the owner's
