@@ -127,6 +127,8 @@ namespace Cryptforge.Tests
             md.AppendLine();
             if (cohorts.Any(c => c.Batches.Any(b => b.Levers.Floors >= 2)))
                 FloorTwo(md, cohorts, careful);
+            if (cohorts.Any(c => c.Batches.Any(b => b.Levers.Floors >= 3)))
+                md.Append(FoundryBatch.FinaleSection(FinaleRows(cohorts)));
             return md.ToString();
         }
 
@@ -163,6 +165,11 @@ namespace Cryptforge.Tests
         }
 
         private static bool BothFloors(DescentSimulation.FoundryResult run) => run.Cleared && run.NextFloor != null && run.NextFloor.Cleared;
+
+        // The finale's rows (FoundryBatch.FinaleSection): every cohort's batch for each hero, labelled with the cohort.
+        public static List<(string Label, FoundryBatch.Batch Batch)> FinaleRows(
+            IReadOnlyList<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> cohorts) =>
+            cohorts.SelectMany(c => c.Batches.Select(b => (c.Cohort.Name, b))).ToList();
 
         // "126: room 3 x72, room 2 x29, boss x20; pit 36, horde Grunt 33", as docs/41's tables read; "-" for none.
         private static string Deaths(FoundryBatch.Batch b)

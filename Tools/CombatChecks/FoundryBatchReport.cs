@@ -139,6 +139,19 @@ namespace Cryptforge.Tests
                     File.WriteAllText(Path.Combine(output, "foundry-cohorts-floor2.csv"),
                         FoundryBatch.FloorTwoCsv(cohortRuns.SelectMany(c => c.Batches)));
             }
+            // The finale after floor 2 (FOUNDRY_FLOORS=3): every cohort's when they ran (their section carries it), else the
+            // shipped pilot's, alone in foundry-finale.md and a row a run that reached it in foundry-finale.csv.
+            if (floors >= 3)
+            {
+                List<(string Label, FoundryBatch.Batch Batch)> finaleRows = cohortRuns.Count > 0
+                    ? FoundryCohorts.FinaleRows(cohortRuns)
+                    : baselines.Select(b => ("careful", b)).ToList();
+                string finale = FoundryBatch.FinaleSection(finaleRows);
+                if (cohortRuns.Count == 0)
+                    md.Append(finale);
+                File.WriteAllText(Path.Combine(output, "foundry-finale.md"), finale);
+                File.WriteAllText(Path.Combine(output, "foundry-finale.csv"), FoundryBatch.FinaleCsv(finaleRows.Select(r => r.Batch)));
+            }
 
             File.WriteAllText(Path.Combine(output, "foundry-batch.md"), md.ToString());
             File.WriteAllText(Path.Combine(output, "foundry-gate.md"), gate);

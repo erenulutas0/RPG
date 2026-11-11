@@ -77,6 +77,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/SwarmDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryFinaleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryGateCallTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FootworkRuleTests.cs" />
@@ -98,9 +99,13 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FrameStatsTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Foundry.cs" />
+    <!-- The foundry's finale (Floor_FinalSwarm) after floor 2, FoundryLevers.Floors = 3 (docs/41, 2026-11-11). -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.FoundryFinale.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
+    <!-- The finale after floor 2 in the batch's report (FOUNDRY_FLOORS=3): foundry-finale.md and .csv. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.Finale.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.Sword.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.GateLevers.cs" />
     <!-- The Daggers' role (docs/41, 2026-11-10 night): their research levers, read as the gate's three jobs. -->
@@ -124,6 +129,8 @@
     <Compile Include="EngagedResearch.cs" />
     <!-- The gate's early call research of 2026-11-11 on demand: the wait's call policies and rewards, every cohort. -->
     <Compile Include="GateCallResearch.cs" />
+    <!-- The finale's stay research of 2026-11-11 on demand: the finale's swarm with the pilot staying longer than 60 s. -->
+    <Compile Include="FinaleStayResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
