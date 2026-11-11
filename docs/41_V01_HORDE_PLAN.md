@@ -1466,3 +1466,43 @@ simulation's.
    lands at 64-77 %. A floor-1-only echo needs a floor knob (FloorDefinition) beside the rule.
 5. Whichever is chosen, read its first scene build on a device. The typical human's 0.25 s reaction is an assumption,
    and the echo is the candidate most sensitive to it.
+
+## Status 2026-11-11 (morning): the night's merges, and what waits for the owner
+
+The lead's summary of the night of 2026-11-10/11. The sections above hold the numbers.
+
+**Shipped to the game:**
+- The careful pilot's cards (CardScore). With human hands the careful pilot clears floor 1 195/199 (was 154/194). The
+  clumsy and standing cohorts score their cards the same way, so the clumsy cohort no longer replays the old pilot
+  run for run.
+- FloorClockView no longer beats as the gate's count hands over to the floor clock in the last minute (latent).
+- The heroes are "it" in the code's comments and test messages.
+
+**Changed in the measurement only:**
+- Engaged uptime reads the hero's strikes (attack uptime): met, 0.88 / 0.87 in the simulation and 0.87 / 0.87 in
+  the Editor (horde-pacing-careful-*-1111.txt).
+- The roles row reads three jobs: the horde, the elites (as whole waves) and the Warden.
+- The first combat row reads a run that never struck as its whole floor.
+- RunHud.RoomPipsThatFit holds every floor to nine rooms.
+
+**Turned down by the lead:** the Daggers' x12 on the Grunt Captains. It was reverted on its branch; the reasons are
+in "the Daggers' role".
+
+**Research levers, all off by default:** FootworkRule.StepIn, the Daggers' throw / lunge / bleed / mark / execute,
+and the enraged-only Warden echo. The default batch was checked byte-identical after each merge.
+
+**The gate:**
+- Met 8, not met 1 (three weapons with distinct roles: the Daggers), not measured 2 (the owner's play, the S23's
+  frames).
+- Unity EditMode 1137, PlayMode 305 (+4 explicit), CombatChecks 739.
+- APK 70C8B120... (main 747896e3), not installed.
+
+**For the owner, in order:**
+1. The Daggers: thrown with a bleed, the Warden's armour turning both (the only shape that meets the row), or a
+   two-role V0.1 with the row waived.
+2. Which band the careful cohort should hit with human hands (80-90 % or docs/40's 65-80 %), since floor 1 is now
+   98 / 100 %. Then which Warden echo, and whether floor 1's Warden share may drop to 6-7. Floor 2 would follow
+   (4.3-5) if the echo is every Warden's.
+3. Turning the step-in on for the careful pilot (pilot fidelity, clears move by 4 at most; it changes the instrument).
+4. Engaged uptime's 0.75 bar for attack uptime, and the gate's wait reading as engaged (open decision 2).
+5. Pushing main, and installing the APK on the S23.
