@@ -270,7 +270,11 @@ namespace Cryptforge.UI
         // gate making seven) gets copies of the last pip, each a step further along the row at the scene's own spacing.
         // On the 1080-wide canvas the scene's six span x 52-614 and y 133-141 down from the safe area's top; a seventh
         // spans x 628-710: below the gold (to 106), above the relic badge and the loadout row (from 155), left of the
-        // pause button (from 936) and inside the top surface (to 1056). The row has room for nine before the pause button.
+        // pause button (from 936) and inside the top surface (to 1056). The row has room for nine before the pause button
+        // (RoomPipsThatFit; ClimbFloorContentTests holds every floor in the project to it, the 2026-11-04 render review's
+        // second finding).
+        public const int RoomPipsThatFit = 9;
+
         private void GrowRoomPips(int count)
         {
             int last = _roomPips.Length - 1;

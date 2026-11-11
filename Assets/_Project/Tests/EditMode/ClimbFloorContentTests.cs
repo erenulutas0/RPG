@@ -186,6 +186,25 @@ namespace Cryptforge.Tests
         // The gate's clock (FloorDefinition.FoundryGateNotBeforeSeconds) holds the cleared room before the gate boss, so a
         // floor that sets one needs a time inside the floor's clock, a horde to run that clock, a boss, and a combat or
         // elite room before the boss as the foundry plays the floor - a forge before it would let the gate open early.
+        // RunHud's room pips grow one a room along the HUD's top row, which has room for nine before the pause button
+        // (RunHud.RoomPipsThatFit): every floor in the project, as the foundry plays it (its extra elites added) and as the
+        // hall arena plays it, keeps within them. The most any floor plays today is seven.
+        [Test]
+        public void EveryFloorsRoomsFitTheHudsRowOfPips()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:" + nameof(FloorDefinition), new[] { "Assets/_Project" });
+            Assert.That(guids, Is.Not.Empty);
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var floor = AssetDatabase.LoadAssetAtPath<FloorDefinition>(path);
+                Assert.That(floor, Is.Not.Null, path);
+                Assert.That(floor.RoomCount, Is.LessThanOrEqualTo(Cryptforge.UI.RunHud.RoomPipsThatFit), path + ", authored");
+                Assert.That(EncounterController.FoundryRooms(floor).Length,
+                    Is.LessThanOrEqualTo(Cryptforge.UI.RunHud.RoomPipsThatFit), path + ", as the foundry plays it");
+            }
+        }
+
         [Test]
         public void AGateHeldForTheClockIsRejectedWhereItCouldNotHold()
         {
