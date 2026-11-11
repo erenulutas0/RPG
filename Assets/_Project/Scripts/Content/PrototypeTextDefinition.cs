@@ -79,6 +79,7 @@ namespace Cryptforge.Content
         [SerializeField] private string _resultVictoryCauseFormat;
         [SerializeField] private string _resultExtractedCauseFormat;
         [SerializeField] private string _resultDefeatCauseFormat;
+        [SerializeField] private string _resultFinaleCauseFormat = "{0} walked out of {1}";
         [SerializeField] private string _resultProgressFormat;
         [SerializeField] private string _resultGoldFormat;
         [SerializeField] private string _resultGoldLostFormat;
@@ -146,6 +147,9 @@ namespace Cryptforge.Content
         public string ResultExtractedCauseFormat => _resultExtractedCauseFormat;
         // {0} hero name, {1} enemy name, {2} room name.
         public string ResultDefeatCauseFormat => _resultDefeatCauseFormat;
+        // A victory with no boss to name - the Descent's finale, left by its exit with its pack gone with the room:
+        // {0} hero name, {1} floor name.
+        public string ResultFinaleCauseFormat => _resultFinaleCauseFormat;
         // {0} floor number reached, {1} rooms cleared in total, {2} level, {3} experience.
         public string ResultProgressFormat => _resultProgressFormat;
         // {0} gold banked.

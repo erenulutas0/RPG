@@ -80,7 +80,12 @@ namespace Cryptforge.UI
                 case RunOutcome.Victory:
                     _titleLabel.text = _text.ResultVictoryTitle;
                     _titleLabel.color = _victoryColor;
-                    _causeLabel.text = string.Format(_text.ResultVictoryCauseFormat, hero, enemyName, floorName);
+                    // The Descent's finale is a swarm left by its exit, its pack released with the room before the run
+                    // ends, so no boss is left to name: it read "defeated the  and cleared" on every Ascent (the run
+                    // flow's review, 2026-11-11).
+                    _causeLabel.text = killer != null
+                        ? string.Format(_text.ResultVictoryCauseFormat, hero, enemyName, floorName)
+                        : string.Format(_text.ResultFinaleCauseFormat, hero, floorName);
                     break;
                 case RunOutcome.Extracted:
                     _titleLabel.text = _text.ResultExtractedTitle;
