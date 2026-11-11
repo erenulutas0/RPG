@@ -3891,11 +3891,14 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Kite;
                     return true;
                 }
-                // A node fight is drawn to the pit's rim, but not while a guarded band glows: then the hero waits out of it.
+                // A node fight is drawn to the pit's rim while the pit runs - never in the finale's swarm, where it does not
+                // (DevelopmentAutopilot.Goal reads PitEruptionService.IsRunning) - but not while a guarded band glows: then
+                // the hero waits out of it. StepPit set _pitRunning this frame, before the pilot, and nothing between them
+                // spawns, so outside a swarm room a fight always finds it running.
                 if (fighting)
                 {
                     _doing = PilotDoing.Fight;
-                    if (guarded || !cohort.Lures)
+                    if (guarded || !cohort.Lures || !_pitRunning)
                         return false;
                     FootworkRule.RimSpot(x, y, PilotLureDepth, out gx, out gy);
                     _result.LureSeconds += Step;

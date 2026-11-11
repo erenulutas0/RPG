@@ -26,8 +26,8 @@ namespace Cryptforge.Tests
     //   Leaving releases the held level-ups and advances the floor; the swarm was its last room and no gate closes a floor
     //   that ends in one (EncounterController.GateClosesFloor), so FloorCleared ends the run in victory
     //   (CombatSetup.OnFloorCleared with no floor below), and the offers just released are withdrawn with the run.
-    // - The development autopilot plays it with its cohort's habits as on every floor - it kites, lures the swarm to the
-    //   pit's rim (which never spills here) or stands - takes the floor's two altars, which answer again on a new floor,
+    // - The development autopilot plays it with its cohort's habits as on every floor - it kites or stands, and never lures
+    //   the swarm to the pit's rim, which does not run here - takes the floor's two altars, which answer again on a new floor,
     //   whenever nothing of the swarm stands, and from PilotSwarmStay seconds on the swarm's clock walks to the exit before
     //   anything else and holds it. Its "linger" and "idle" modes never apply in a swarm room (DevelopmentAutopilot.Lingering).
     internal static partial class DescentSimulation

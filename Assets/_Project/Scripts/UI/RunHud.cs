@@ -92,6 +92,8 @@ namespace Cryptforge.UI
             _titleLabel.text = _text.Title;
             _hero.Changed += RefreshHero;
             _encounters.ProgressChanged += RefreshEncounter;
+            // A swarm's ladder moves on its clock, with or without a spawn or a hit to report it.
+            _encounters.SwarmStepped += RefreshEncounter;
             _setup.Weapon.StatsChanged += RefreshWeapon;
             _setup.Run.ExperienceChanged += RefreshExperience;
             _setup.Run.GoldChanged += RefreshGold;
@@ -299,7 +301,8 @@ namespace Cryptforge.UI
         internal int RoomPipCount => _roomPips?.Length ?? 0;
         internal Image RoomPipAt(int index) => _roomPips[index];
 
-        // The wave's line on the details: the pack's or the enemy's victory, an enrage, or the wave under way.
+        // The wave's line on the details: the pack's or the enemy's victory, an enrage, or the wave under way (in a swarm
+        // room, the ladder's).
         private void RefreshStatus(EnemyDefinition definition)
         {
             EnemyDefinition enraged = _encounters.EnragedDefinition;
@@ -327,8 +330,10 @@ namespace Cryptforge.UI
             }
             else
             {
+                // A swarm room is one wave of the floor's for its whole life, and the line read "Wave 1/12" all through
+                // the finale: there it counts the room's ladder, whose next wave walks in every SwarmRule.LadderSeconds.
                 kind = 4;
-                first = _encounters.WaveNumber;
+                first = _encounters.IsInSwarmRoom ? _encounters.SwarmLadderWave : _encounters.WaveNumber;
                 second = _encounters.WaveCount;
             }
             if (ReferenceEquals(_statusLabel.text, _statusText) && kind == _statusKind && first == _statusFirst &&
@@ -392,7 +397,10 @@ namespace Cryptforge.UI
 
             _hero.Changed -= RefreshHero;
             if (_encounters != null)
+            {
                 _encounters.ProgressChanged -= RefreshEncounter;
+                _encounters.SwarmStepped -= RefreshEncounter;
+            }
             _setup.Weapon.StatsChanged -= RefreshWeapon;
             _setup.Run.ExperienceChanged -= RefreshExperience;
             _setup.Run.GoldChanged -= RefreshGold;

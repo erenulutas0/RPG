@@ -160,6 +160,19 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The pit does not run in a swarm room, so the pilot never draws the swarm to its rim, as DevelopmentAutopilot.Goal
+        // reads PitEruptionService.IsRunning: the careful pilot spent about 44 s of the finale on a rim that never spills
+        // (the review of 2026-11-11). Floors 1 and 2 still lure their node fights.
+        [Test]
+        public void ThePilotNeverLuresTheSwarmToThePitsRim()
+        {
+            foreach (Climb climb in Reached())
+            {
+                Assert.That(climb.Finale.LureSeconds, Is.Zero, climb.Where);
+                Assert.That(climb.First.LureSeconds + climb.Second.LureSeconds, Is.GreaterThan(0f), climb.Where + ": floors 1 and 2");
+            }
+        }
+
         // Floors 1 and 2 are the same floors, field for field, whether or not the run goes on into the finale; asked for
         // two floors, floor 2 has nothing below it.
         [Test]
