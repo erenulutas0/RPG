@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -133,6 +134,40 @@ namespace Cryptforge.Tests
             // The Grunt's 5 gold was never secured: half, rounded down, is lost.
             Assert.That(Label("Result Gold Label"), Is.EqualTo("Gold banked: 3  |  lost: 2"));
             Assert.That(Label("Build Label"), Does.Contain(taken + " x1"));
+        }
+
+        // The Ascent is won by walking out of the finale's swarm, whose pack goes with the room before the run ends: the
+        // victory has no boss to name, and its line said "defeated the  and cleared" with nobody in it. It says the hero
+        // walked out. Resources/Development/Floor_SwarmProof, a finale of one swarm room ("The Swarm").
+        [UnityTest]
+        public IEnumerator WalkingOutOfTheFinaleNamesNoEmptyEnemy()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartFloorPath));
+            File.WriteAllText(DevelopmentStart.StartFloorPath, "floor_swarm_proof");
+            yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
+            yield return null;
+            FindSceneObjects();
+            Object.FindFirstObjectByType<HeroMovementInput>().enabled = false;
+            _heroAttack.enabled = false;
+            Assert.That(_encounters.IsInSwarmRoom, Is.True, "The proof floor opens on its swarm.");
+            Assert.That(_encounters.HasNextFloor, Is.False, "Leaving it ends the run.");
+
+            _hero.transform.position = new Vector3(_encounters.ExitFloorX, ArenaFloor.WorldY(_encounters.ExitFloorY), 0f);
+            float deadline = Time.realtimeSinceStartup + 10f;
+            while (!_setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
+            {
+                if (_hero.IsAlive)
+                    _hero.Heal(_hero.Maximum);
+                yield return null;
+            }
+            yield return null;
+
+            Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory), "Standing still on the exit leaves the finale.");
+            Assert.That(_encounters.WaveEnemyCount, Is.Zero, "The swarm's pack went with the room.");
+            Assert.That(_result.IsOpen, Is.True);
+            Assert.That(Label("Result Title"), Is.EqualTo("Ascent complete"));
+            Assert.That(Label("Cause Label"), Is.EqualTo("Vanguard walked out of The Swarm"));
+            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
