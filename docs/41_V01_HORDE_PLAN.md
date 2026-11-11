@@ -798,3 +798,208 @@ scene's `engaged_strike` beside the simulation's (expected about 0.86-0.88). The
 0.75, an estimate for combat uptime that the stricter reading borrowed; a higher bar for attack uptime is the owner's
 call. The gate's wait remains the floor's largest phase (113-117 s); it is engaged now, but what fills it is still
 docs/41's open decision 2.
+
+## Status 2026-11-11: last night's decisions re-read on the new cards
+
+**Why.** The decisions of 2026-11-10 were all measured with the careful pilot's old card score:
+- the Sword's x1.5 on the gate boss;
+- the gate kept at 3:30 rather than Set A or Set B;
+- floor 2's Warden at 8.5 / 1.4;
+- difficulty read with human hands, the slag and echo candidates left as levers.
+
+The night's fix ("the careful pilot's cards") moved every cohort that scores its cards. Each decision is measured again
+here on main add6e2e0. Settings: seeds 1-200 a hero, `FOUNDRY_SEEDS=200 FOUNDRY_PARALLEL=4`, frame-perfect and
+`FOUNDRY_REALISM=typical` ("human hands"). The outputs are in TestResults/reread-1111/. The shipped floor's clears,
+Warden fights and roles row reproduce the "before" of the Daggers' role status (already on the new cards) to the digit.
+Since 18715c94 only the card score moves these readings: the step-in habit is off for every cohort, the x12 was
+reverted, and the engaged rule is accounting. Nothing changes in the game: this section is measurement only.
+
+| Decision | Verdict | The numbers that decide it |
+|---|---|---|
+| 1. The Sword x1.5 on the gate boss | **holds**, on a thinner margin | Sword over Staff on the Warden: +13 % frame-perfect, +19 % with human hands (was +23 %); x1.4 no longer passes (+6 %) |
+| 2. The gate at 3:30, not Set A / Set B | **holds** | with human hands the clumsy cohort still loses 30-33 (V) and 52-71 (I) clears of 200 to a set; the careful one now loses 5-9 too |
+| 3. Floor 2's Warden at 8.5 / 1.4 | **holds** | careful fight 58 / 51 s frame-perfect, 53 / 49 s with human hands; at 8.5 the Vanguard's is 72 s; careful deaths there with human hands 1 / 4 (was 6 / 13) |
+| 4. The difficulty bands and candidates | **flips**: floor 1 is now too easy for the careful cohort | careful 98 / 100 % with human hands (77 / 97 % on the old cards); slag, the research's first pick, no longer reaches it; only the Warden echo brings it under 90 %, and not within the Warden's 45-65 s |
+
+### 1. The Sword's x1.5 on the gate boss: holds, on a thinner margin
+
+The roles row's Warden job: the careful Vanguard started with each weapon, its own damage on the Warden a second of the
+fight (P50); the Sword's lead over the Staff, the 10 % the row asks. Human hands from `TheDaggersRoleOverASeedBatch`
+(`DAGGERS_LEVERS=0`, the shipped floor), the shares below x1.5 from `TheSwordsRoleOverASeedBatch` (`SWORD_LEVERS=0,17,26`,
+FoundryBatch.SwordLevers, the list FOUNDRY_LEVERS=4 runs; frame-perfect only, the harness has no realism).
+
+| Warden a second: Sword / Staff (the Sword's lead) | Old cards (e8e22d5, docs/cloud/2026-11-04-sword-role.md) | New cards |
+|---|---|---|
+| x1.5 (shipped), frame-perfect | 27 / 22 (+23 %) | 26.4 / 23.3 (+13 %) |
+| x1.5, human hands | not read (the gate's weapons are frame-perfect) | 27.2 / 22.9 (+19 %) |
+| x1.4, frame-perfect | 25 / 22 (+14 %, met) | 25.1 / 23.7 (+6 %, not met) |
+| x1.3, frame-perfect | 23 / 23 (none) | 23.5 / 24.0 (-2 %) |
+| Warden fight P50, floor 1, V / I (x1.5) | 56 / 50 | 58 / 51; human hands 53 / 48 |
+
+**Holds.** The Sword leads the Warden by 13 % frame-perfect and 19 % with human hands, both over 10 %, and the Warden
+fight stays in 45-65 s. The cushion is gone, though: on the old cards x1.4 was enough, on the new it is not. Under the
+new score, which puts every weapon line under a tome's level, the Sword-started Vanguard deals the Warden 26.4 a second
+where it dealt 27, and the Staff-started one 23.3 where it dealt 22; the Sword's spread widened too (P10-P90 18-42, was
+21-34). Anything that moves either weapon or the pilot again (a Staff value, the step-in habit) wants this row re-read
+before it ships.
+
+### 2. The gate at 3:30 rather than Set A or Set B: holds
+
+`FOUNDRY_LEVERS=6 FOUNDRY_COHORTS=1 FOUNDRY_LEVER_FILTER="horde XP 0.25"` (the shipped floor and the seven sets with a
+25 % horde XP, the rows the 2026-11-10 decision read), frame-perfect and `FOUNDRY_REALISM=typical`, floor 1. Old: main
+18715c94's cards, TestResults/human-hands-1110/sets-*. Set A: two more halls, three surges, the gate at 2:45. Set B:
+halls held 30 s, three surges, the gate at 2:45. Floor-1 clears of 200, Vanguard / Ilya:
+
+| Cohort | Shipped, old -> new | Set A, old -> new | Set B, old -> new |
+|---|---|---|---|
+| careful, frame-perfect | 199 / 200 -> 200 / 200 | 198 / 200 -> 200 / 200 | 199 / 200 -> 200 / 200 |
+| careful, human hands | 154 / 194 -> **195 / 199** | 140 / 186 -> **188 / 193** | 136 / 181 -> **190 / 190** |
+| standing, frame-perfect | 139 / 170 -> 193 / 193 | 135 / 183 -> 195 / 195 | 138 / 181 -> 194 / 194 |
+| standing, human hands | 110 / 141 -> 179 / 180 | 100 / 141 -> 177 / 179 | 97 / 140 -> 176 / 182 |
+| first-card, frame-perfect | 196 / 200 | 197 / 200 | 196 / 200 |
+| first-card, human hands | 181 / 199 | 164 / 188 | 166 / 185 |
+| clumsy, frame-perfect | 80 / 164 -> 104 / 184 | 49 / 105 -> 70 / 122 | 51 / 110 -> 85 / 137 |
+| clumsy, human hands | 43 / 98 -> **82 / 141** (41 / 71 %) | 13 / 35 -> **49 / 70** (25 / 35 %) | 12 / 45 -> **52 / 89** (26 / 45 %) |
+| auto-farmer, frame-perfect ; human hands | 9 / 30 ; 9 / 23 | 3 / 10 ; 3 / 10 | 8 / 22 ; 9 / 22 |
+
+(The first-card and auto-farmer cohorts take the first card, so the new score does not move them.)
+
+The careful cohort's floor (P50, every run) and the gate's wait (P50 of the clears), Vanguard / Ilya. The other cohorts'
+clears wait within 5 s of it, the auto-farmer's 8-19 s longer; every run's wait, cohort by cohort, is in
+foundry-gate-levers.csv.
+
+| | Shipped | Set A | Set B |
+|---|---|---|---|
+| Floor, frame-perfect: old -> new | 289 / 284 -> 292 / 285 | 256 / 244 -> 251 / 245 | 242 / 237 -> 243 / 237 |
+| Floor, human hands: old -> new | 281 / 279 -> 286 / 280 | 245 / 240 -> 247 / 239 | 235 / 233 -> 239 / 233 |
+| Wait, frame-perfect: old -> new | 106 / 116 -> 114 / 117 | 1 / 11 -> 9 / 11 | 25 / 31 -> 29 / 31 |
+| Wait, human hands: old -> new | 106 / 114 -> 111 / 115 | 1 / 8 -> 6 / 9 | 21 / 24 -> 21 / 24 |
+| Clumsy, human hands: floor P50 (its clears' P50) | 246 (278) / 272 (277) | 112 (238) / 170 (237) | 108 (236) / 196 (233) |
+
+**Holds.** The sets still cost the weak humans as many runs as before. With human hands the clumsy Vanguard loses 33
+(Set A) and 30 (Set B) of 200, the clumsy Ilya 71 and 52 (old: 30 and 31, 63 and 53). What changed is the base under
+them: the clumsy Vanguard goes from 41 % to 25-26 % where it went from 22 % to 6 %. The careful cohort pays too: 5-9
+runs a hero with human hands, none frame-perfect (old: 8-18 runs of a smaller base). The standing cohort no longer
+pays. The sets still do what they were for: the wait is 6-31 s instead of 111-117 s and the floor 233-251 s (Set B's
+floor reads "not met" with human hands, at 239 s). So the trade is the one the decision weighed: the wait against the
+weak cohort's clears.
+
+### 3. Floor 2's Warden at 8.5 / 1.4: holds
+
+`FOUNDRY_LEVERS=8 FOUNDRY_FLOORS=2 FOUNDRY_LEVER_FILTER="before 2026,F2 share 7"` (the shipped 6.07, the 8.5 it had
+before, 7, and 7 with floor 2's Mend at 100 % or a 2.5 s recovery), frame-perfect and `FOUNDRY_REALISM=typical`. Old:
+TestResults/human-hands-1110/f2warden-* (main 18715c94's cards; there 8.5 was shipped and 6.07 a lever). Floor 2's
+Warden fight, from walking out of the gate to its fall, P50 (P90) over the felled fights; deaths in floor 2's Warden
+room (of all floor-2 deaths); Vanguard / Ilya:
+
+| | Share 6.07 (shipped), old -> new | Share 8.5, old -> new | Share 7, old -> new |
+|---|---|---|---|
+| Careful, Warden fight, frame-perfect | 58 (68) / 51 (61) -> 58 (69) / 51 (63) | 70 (89) / 64 (78) -> 72 (93) / 64 (84) | 63 (80) / 57 (66) -> 62 (82) / 57 (69) |
+| Careful, Warden fight, human hands | 56 (65) / 50 (59) -> **53 (68) / 49 (60)** | 68 (81) / 62 (74) -> 65 (84) / 60 (74) | 60 (72) / 56 (65) -> 58 (73) / 54 (66) |
+| Careful, deaths at floor 2's Warden, human hands | 6 / 13 -> **1 / 4** | 18 / 20 -> 1 / 6 | 12 / 14 -> 1 / 5 |
+| Standing, deaths there, frame-perfect ; human hands | 39 / 48 ; 45 / 60 -> 17 / 17 ; 26 / 25 | 68 / 86 ; 67 / 90 -> 34 / 34 ; 50 / 48 | 51 / 61 ; 50 / 66 -> 29 / 20 ; 39 / 36 |
+| Clumsy, deaths there, frame-perfect ; human hands | 7 / 23 ; 11 / 37 -> 5 / 13 ; 10 / 24 | 11 / 42 ; 15 / 48 -> 7 / 16 ; 16 / 41 | 7 / 30 ; 12 / 39 -> 3 / 17 ; 14 / 27 |
+| Both floors cleared, human hands: careful / standing / clumsy | 147 / 181; 63 / 80; 23 / 46 -> 193 / 195; 151 / 155; 66 / 105 | 135 / 174; 41 / 50; 19 / 35 -> 193 / 193; 127 / 132; 60 / 88 | 141 / 180; 58 / 74; 22 / 44 -> 193 / 194; 138 / 144; 62 / 102 |
+
+(Frame-perfect, the careful and first-card cohorts never die at floor 2's Warden at any of the three.) With 7, floor 2's
+Mend at 100 % takes the standing deaths there to 15 / 17 and the clumsy to 1 / 9 with human hands, a 2.5 s recovery to
+7 / 12 and 11 / 21; the careful fight does not move (58 / 54 s).
+
+**Holds.** The careful Warden fight on floor 2 is where it was (58 / 51 s frame-perfect, 53 / 49 s with human hands,
+inside 45-65 s), and at 8.5 the frame-perfect Vanguard is still out of the band (72 s, P90 93 s). What the new cards
+changed is the deaths: with human hands the careful cohort goes down to floor 2 with 72 / 74 % of its health where it
+went with 57 / 57 %, and dies at floor 2's Warden 1 / 4 times at 6.07 and 1 / 6 at 8.5. The share no longer decides
+whether careful humans survive that fight, only how long it runs; for the standing and clumsy cohorts it still decides
+it (8.5 doubles the standing deaths there). Share 7 sits inside the band as well (62 / 57 s, 58 / 54 s), as it did on
+the old cards, at a cost to the standing cohort (13 / 11 more deaths with human hands); nothing in this batch argues for
+leaving 6.07.
+
+### 4. The difficulty candidates: floor 1 is too easy for the careful cohort
+
+`FoundryDifficultyResearch` (`DIFFICULTY_PARTS=structural2,structural`): FOUNDRY_LEVERS=7's candidates and the
+research's tuned ones, every cohort, frame-perfect, the typical human and the slow human, seeds 1-200 a hero, floor 1
+(TestResults/reread-1111/d4-difficulty/). Old: docs/cloud/2026-11-04-difficulty.md (that day's main: the old cards and
+no Sword share). Clears of 200, Vanguard / Ilya:
+
+| Typical human | careful | standing | first-card | clumsy | auto-farmer |
+|---|---|---|---|---|---|
+| shipped, old | 149 / 185 | 100 / 119 | 182 / 198 | 32 / 94 | 6 / 16 |
+| **shipped, now** | **195 / 199 (98 / 100 %)** | 179 / 180 (90 %) | 181 / 199 | 82 / 141 (41 / 71 %) | 9 / 23 |
+| Warden echo 1.1 s, 10 %: old -> now | 69 / 107 -> **166 / 178 (83 / 89 %)** | 66 / 93 -> 161 / 159 | 149 / 185 -> 161 / 186 | 26 / 81 -> 71 / 128 | 0 / 6 -> 1 / 7 |
+| Warden echo 1.1 s, 20 %: old -> now | 34 / 71 -> **136 / 149 (68 / 75 %)** | 39 / 61 -> 147 / 148 | 125 / 163 -> 142 / 172 | 23 / 67 -> 69 / 124 | 0 / 0 -> 0 / 1 |
+| slag every 8 s: old -> now | 141 / 186 -> 193 / 196 | 79 / 124 -> 176 / 181 | 173 / 199 -> 177 / 199 | 20 / 79 -> 72 / 133 | 0 / 6 -> 0 / 8 |
+| slag 8 s + echo 1.1 s, 10 %: old -> now | 59 / 85 -> 156 / 169 | 51 / 87 -> 157 / 163 | 138 / 175 -> 151 / 177 | 21 / 70 -> 67 / 121 | 0 / 1 -> 0 / 2 |
+| Warden echo 0.8 s, 20 %: old -> now | 0 / 0 -> 13 / 20 | 0 / 0 -> 18 / 29 | 9 / 19 -> 16 / 23 | 3 / 23 -> 47 / 71 | 0 / 0 -> 0 / 0 |
+| slag every 5 s: old -> now | 138 / 184 -> 193 / 190 | 74 / 123 -> 173 / 170 | 162 / 193 -> 160 / 193 | 14 / 73 -> 68 / 107 | 0 / 1 -> 0 / 5 |
+| elite stomp: old -> now | 146 / 185 -> 197 / 200 | 89 / 125 -> 180 / 180 | 181 / 200 -> 184 / 199 | 36 / 94 -> 89 / 140 | 1 / 7 -> 4 / 12 |
+| ambush surges: old -> now | 144 / 189 -> 197 / 199 | 96 / 136 -> 183 / 181 | 180 / 198 -> 181 / 199 | 36 / 105 -> 86 / 132 | 7 / 18 -> 8 / 27 |
+| echo 0.8 s + slag 5 s + stomp: old -> now | 0 / 0 -> 10 / 22 | 0 / 0 -> 15 / 14 | 7 / 14 -> 13 / 24 | 4 / 12 -> 31 / 47 | 0 / 0 -> 0 / 0 |
+
+| Frame-perfect careful, now | Clears | Warden fight P50 | Floor P50 |
+|---|---|---|---|
+| shipped | 200 / 200 | 58 / 51 s | 292 / 285 s |
+| Warden echo 1.1 s (10 or 20 %: never struck) | 200 / 200 | **78 / 67 s** | 311 / 301 s |
+| slag every 8 s | 200 / 200 | 56 / 50 s | 291 / 284 s |
+| slag 8 s + echo 1.1 s, 10 % | 200 / 198 | 77 / 65 s | 312 / 300 s |
+| Warden echo 0.8 s | 200 / 200 | 75 / 64 s | 309 / 298 s |
+| slag every 5 s, elite stomp, ambush surges | 200 / 200 (ambush 200 / 199) | 55-57 / 50-51 s | 290-292 / 284-285 s |
+
+The slow human (reaction 0.4 s): shipped careful 174 / 177 (87 / 89 %), standing 150 / 158, clumsy 65 / 119.
+
+**The bands.** docs/40 section 10.2 sets target win rates by difficulty, for a skill cohort still to be named: Apprentice
+65-80 %, Forged 40-60 %, Tempered 25-40 % and so on. The 2026-11-04 research read the careful cohort against 80-90 %.
+
+**Floor 1 is too easy for the careful cohort.** With typical human hands it clears 98 / 100 %, above 80-90 % and above
+every docs/40 band. The standing and first-card cohorts are at 90-100 % too. Of the cohorts a band could be meant for,
+only the clumsy one (docs/40 9.4's Casual in shape) lands in one: the Vanguard in Forged at 41 %, Ilya in Apprentice at
+71 %. Only the slow human brings careful under 90 % (87 / 89 %).
+
+**Which candidate brings careful back.** Only the Warden echo:
+- at 1.1 s and 10 %, careful lands at 83 / 89 %, inside 80-90 % for both heroes;
+- at 1.1 s and 20 %, careful lands at 68 / 75 %, inside docs/40's top band (65-80 %).
+
+Neither ships as measured:
+- frame-perfect, the echo's second escape stretches the Warden fight to 78 / 67 s, out of step 4's 45-65 s (with human
+  hands 66 / 59 s); it wants the Warden's health re-read with it, which this harness cannot combine;
+- it is a test at the Warden that the careful and standing cohorts fail alike. At 10 % standing lands at 161 / 159,
+  level with careful; at 20 % standing (147 / 148) clears more than careful;
+- the 2026-11-04 recommendation was an enraged-only echo, which has no lever yet.
+
+The other candidates:
+- slag no longer separates anything at the top. Every 8 s: careful 193 / 196, standing 176 / 181. Every 5 s: careful
+  193 / 190, standing 173 / 170. It costs the clumsy cohort 10 / 8 (8 s) and 14 / 34 (5 s), and the auto-farmer most
+  of its few clears. On the old cards it cost careful 8 / 0 and 11 / 1;
+- the echo at 0.8 s is still a cliff: with human hands the careful, standing and first-card cohorts clear 13-29 a hero,
+  fewer than the clumsy one (47 / 71);
+- the elite stomp and the ambush surges stay within the noise.
+
+**The Staff's splash, not cut on 2026-11-10, holds too** (`DIFFICULTY_PARTS=staff`, Ilya's own Staff changed,
+TestResults/reread-1111/d4-staff/; frame-perfect / human hands):
+
+| Ilya | careful | standing | clumsy |
+|---|---|---|---|
+| shipped: old -> now | 200 / 185 -> 200 / 199 | 156 / 119 -> 193 / 180 | 160 / 94 -> 184 / 141 |
+| splash share 0.4: old -> now | 200 / 156 -> 200 / 189 | 147 / 91 -> 182 / 159 | 118 / 21 -> 159 / 64 |
+| splash radius 2.0: old -> now | 200 / 86 -> 200 / 166 | 91 / 34 -> 165 / 121 | 75 / 2 -> 124 / 34 |
+
+The 0.4 share no longer brings careful Ilya into 80-90 % (189, 95 %), and it still takes the clumsy Ilya from 141 to 64.
+A 2.0 radius would put careful Ilya at 83 %, but the clumsy one at 17 %, and it moves Ilya alone.
+
+### What the owner should look at
+
+1. **Floor 1 is too easy for the careful cohort.** With human hands careful clears 98 / 100 %, standing 90 / 90 % and
+   first-card 91 / 100 %. Of the playing cohorts only the clumsy one sits in a docs/40 band. Two things to settle
+   before any change:
+   - which cohort docs/40 section 10.2's bands are read for;
+   - whether careful should land in 80-90 % or in 65-80 %.
+2. **The Warden echo is the one lever that reaches the careful cohort.** It needs one more round before a yes:
+   - the Warden's health read with the echo, to bring the frame-perfect fight from 78 / 67 s back into 45-65 s;
+   - the enraged-only variant, which has no lever yet;
+   - a look at whether a Warden test that careful and standing fail alike is the difficulty the owner wants.
+   Slag no longer touches the careful cohort; it only makes the weak cohorts weaker.
+3. **The gate stays at 3:30 on the same trade as before.** A set cuts the wait from 111-117 s to 6-31 s. It costs the
+   clumsy cohort over a third of its clears (Ilya's up to half), and now the careful cohort 5-9 runs a hero too.
+4. **The Sword's x1.5 is now the smallest share that holds.** A change to the Staff, the Sword or the pilot moves the
+   margin, the step-in habit included. Re-read the roles row before any of them ships.
+5. **Floor 2's Warden at 6.07 stands.** Share 7 is inside the band too, at a cost to the standing cohort; there is no
+   reason in this batch to move it.
