@@ -172,6 +172,18 @@ namespace Cryptforge.Combat
             _stalled[index] = false;
         }
 
+        // The place's body has left the floor: the place stands empty, walking and blocking no one, until Replace fills it
+        // again. A body the scene keeps for a later life (EncounterController's horde pool) is alive again in another
+        // place, so the place it left must stop reading it, or it would walk, block and refuse its refill as a living
+        // enemy. The Descent simulation never vacates a place.
+        public void Vacate(int index)
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            _bodies[index] = null;
+            _stalled[index] = false;
+        }
+
         private void Initialise(int index, IDamageable body, EntryPlacement placement, float speed, float reach)
         {
             EntrySides.Outward(placement.Side, out float outwardX, out float outwardY);
@@ -190,6 +202,9 @@ namespace Cryptforge.Combat
             _march[index] = 1f;
             _marchRange[index] = 0f;
         }
+
+        // The body the place holds, null once vacated: for tests.
+        internal IDamageable BodyAt(int index) => _bodies[index];
 
         public float XOf(int index) => _x[index];
 
@@ -254,7 +269,7 @@ namespace Cryptforge.Combat
             int living = 0;
             for (int i = 0; i < Count; i++)
             {
-                if (!_bodies[i].IsAlive)
+                if (_bodies[i] == null || !_bodies[i].IsAlive)
                     continue;
                 float distance = DistanceToHeroSquared(i);
                 int insertAt = living;
@@ -420,7 +435,7 @@ namespace Cryptforge.Combat
         // nearer than i stands to it now.
         private bool Blocks(int i, int other, float x, float y)
         {
-            if (!_bodies[other].IsAlive)
+            if (_bodies[other] == null || !_bodies[other].IsAlive)
                 return false;
             float dx = x - _x[other];
             float dy = y - _y[other];

@@ -75,8 +75,14 @@ namespace Cryptforge.UI
             public Transform Root;
             public Vector3 BodyOffset;
             public EnemyLookView Look;
+            // OnDamaged as one delegate for the watch's life, so binding a newcomer allocates none.
+            public readonly System.Action<DamageContext> Handler;
 
-            public EnemyWatch(CombatEffectsView view) => _view = view;
+            public EnemyWatch(CombatEffectsView view)
+            {
+                _view = view;
+                Handler = OnDamaged;
+            }
 
             public void OnDamaged(DamageContext context) => _view.OnEnemyDamaged(this, context);
         }
@@ -420,6 +426,7 @@ namespace Cryptforge.UI
             _encounter.HordeEnemySpawned += OnHordeEnemySpawned;
             _encounter.SwarmEnemySpawned += OnSwarmEnemySpawned;
             _encounter.HordeReleased += ReleaseHorde;
+            _encounter.EnemyRemoved += OnEnemyRemoved;
             _heroAttack.Struck += OnHeroStruck;
             _heroAttack.StruckWith += OnHeroStruckWith;
             _hero.Damaged += OnHeroDamaged;
@@ -449,6 +456,7 @@ namespace Cryptforge.UI
                 _encounter.HordeEnemySpawned -= OnHordeEnemySpawned;
                 _encounter.SwarmEnemySpawned -= OnSwarmEnemySpawned;
                 _encounter.HordeReleased -= ReleaseHorde;
+                _encounter.EnemyRemoved -= OnEnemyRemoved;
                 ReleaseHorde();
                 _heroAttack.Struck -= OnHeroStruck;
                 _heroAttack.StruckWith -= OnHeroStruckWith;
@@ -719,10 +727,24 @@ namespace Cryptforge.UI
                 Unbind(_hordeWatches[i]);
         }
 
+        // A horde body has left the floor: no watch follows it now. The horde's bodies are pooled (EncounterController), and
+        // a watch left on a retired body whose place has not filled again would follow it into its next life in another
+        // place - found first for its fall, and drawing its hits twice had its health kept its listeners.
+        private void OnEnemyRemoved(Health enemy)
+        {
+            if (_hordeWatches == null)
+                return;
+            for (int i = 0; i < _hordeWatches.Length; i++)
+            {
+                if (ReferenceEquals(_hordeWatches[i].Enemy, enemy))
+                    Unbind(_hordeWatches[i]);
+            }
+        }
+
         private void Unbind(EnemyWatch watch)
         {
             if (!ReferenceEquals(watch.Enemy, null))
-                watch.Enemy.Damaged -= watch.OnDamaged;
+                watch.Enemy.Damaged -= watch.Handler;
             watch.Enemy = null;
             watch.Root = null;
             watch.Look = null;
@@ -739,7 +761,7 @@ namespace Cryptforge.UI
             Vector3 offset = body != null ? body.bounds.center - watch.Root.position : Vector3.up * DefaultBodyHeight;
             offset.z = 0f;
             watch.BodyOffset = offset;
-            enemy.Damaged += watch.OnDamaged;
+            enemy.Damaged += watch.Handler;
         }
 
         // Unsubscribing goes through the managed object, so it is safe after Unity destroyed the enemy.
@@ -749,7 +771,7 @@ namespace Cryptforge.UI
             {
                 EnemyWatch watch = _watches[i];
                 if (!ReferenceEquals(watch.Enemy, null))
-                    watch.Enemy.Damaged -= watch.OnDamaged;
+                    watch.Enemy.Damaged -= watch.Handler;
                 watch.Enemy = null;
                 watch.Root = null;
                 watch.Look = null;

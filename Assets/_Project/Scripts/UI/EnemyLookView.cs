@@ -73,6 +73,12 @@ namespace Cryptforge.UI
         private float _frameRemaining;
         private float _attackRemaining;
         private bool _subscribed;
+        private System.Action _onChanged;
+        private System.Action _onDied;
+        private System.Action<DamageContext> _onDamaged;
+        private System.Action _onAttacked;
+        private System.Action<Health> _onStruck;
+        private System.Action _onEnraged;
         // Only with a painted second phase: the enrage that shows it.
         private EnrageBehaviour _enrage;
         // The set draws a horde enemy's strike windup and there is an attacker to anticipate.
@@ -136,20 +142,22 @@ namespace Cryptforge.UI
         {
             if (!HasSprites)
                 return;
+            // One delegate per handler for the view's life: a pooled enemy is enabled and disabled once a life
+            // (EncounterController's horde pool), and a method group makes a new delegate each time it is named.
             if (_health != null)
             {
-                _health.Changed += RefreshBar;
-                _health.Died += OnDied;
-                _health.Damaged += OnDamaged;
+                _health.Changed += _onChanged ??= RefreshBar;
+                _health.Died += _onDied ??= OnDied;
+                _health.Damaged += _onDamaged ??= OnDamaged;
             }
             if (_attack != null)
             {
-                _attack.Attacked += OnAttacked;
-                _attack.Struck += OnStruck;
+                _attack.Attacked += _onAttacked ??= OnAttacked;
+                _attack.Struck += _onStruck ??= OnStruck;
             }
             if (_enrage != null)
             {
-                _enrage.Enraged += OnEnraged;
+                _enrage.Enraged += _onEnraged ??= OnEnraged;
                 ShowsEnraged |= _enrage.IsEnraged;
             }
             _subscribed = true;
@@ -158,6 +166,41 @@ namespace Cryptforge.UI
 
         // The encounter initialises the health right after Instantiate, so the bar shows its full width from the first frame.
         private void Start() => RefreshBar();
+
+        // A pooled body back on the floor (EncounterController's horde pool): the look as Awake leaves a new one - standing,
+        // facing front, its first frame drawn, white, unsquashed and at rest; nothing arriving, winding up, striking or
+        // enraged; bar, chunk and shadow whole - read from where the body stands now, the origin it is instantiated at.
+        // Only while it is off the floor: enabling it subscribes and shows the bar, as a new body's Start does.
+        internal void ResetForReuse()
+        {
+            if (_body == null)
+                return;
+            _walkDistance = 0f;
+            _hitRemaining = 0f;
+            _arrivalDuration = 0f;
+            _arrivalRemaining = 0f;
+            _attackRemaining = 0f;
+            _bobbed = false;
+            _frameRemaining = _breathFrameDuration;
+            PaintedFrame = 0;
+            RearFacing = false;
+            Mirrored = false;
+            IsWindingUp = false;
+            WindupStep = -1;
+            ShowsEnraged = false;
+            _body.color = Color.white;
+            _body.transform.localScale = Vector3.one;
+            _body.transform.localPosition = _bodyRest;
+            _body.sprite = _painted ? _paintedArt.GetFrame(0, false).Body : _sprites.Frame(EnemyPose.IdleA);
+            CurrentPose = EnemyPose.IdleA;
+            SetAlpha(_backRenderer, 1f);
+            SetAlpha(_trailRenderer, 1f);
+            SetAlpha(_fillRenderer, 1f);
+            SetAlpha(_shadow, 1f);
+            if (_barTrail != null)
+                _barTrail.Initialize(_trailRenderer, _fillTexels);
+            _lastPosition = transform.position;
+        }
 
         // A pre-built white silhouette for any frame this view assigned to the body; null for anything else.
         public Sprite SilhouetteOf(Sprite bodySprite) => _painted ? _paintedArt.FlashOf(bodySprite) : _sprites?.SilhouetteOf(bodySprite);
@@ -480,17 +523,17 @@ namespace Cryptforge.UI
                 return;
             if (_health != null)
             {
-                _health.Changed -= RefreshBar;
-                _health.Died -= OnDied;
-                _health.Damaged -= OnDamaged;
+                _health.Changed -= _onChanged;
+                _health.Died -= _onDied;
+                _health.Damaged -= _onDamaged;
             }
             if (_attack != null)
             {
-                _attack.Attacked -= OnAttacked;
-                _attack.Struck -= OnStruck;
+                _attack.Attacked -= _onAttacked;
+                _attack.Struck -= _onStruck;
             }
             if (_enrage != null)
-                _enrage.Enraged -= OnEnraged;
+                _enrage.Enraged -= _onEnraged;
             _subscribed = false;
         }
 

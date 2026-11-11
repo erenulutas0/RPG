@@ -46,14 +46,21 @@ namespace Cryptforge.UI
             // A look view owns the body colour and sets it white in its Awake, which may run after this OnEnable.
             _baseColor = _look != null ? Color.white : _body.color;
             _basePosition = _body.transform.localPosition;
-            _health.Damaged += OnDamaged;
-            _health.Died += OnDied;
+            // One delegate per handler for the view's life: a pooled enemy is enabled and disabled once a life
+            // (EncounterController's horde pool), and a method group makes a new delegate each time it is named.
+            _health.Damaged += _onDamaged ??= OnDamaged;
+            _health.Died += _onDied ??= OnDied;
             if (_attack != null)
-                _attack.Attacked += OnAttacked;
+                _attack.Attacked += _onAttacked ??= OnAttacked;
             if (_enrage != null)
-                _enrage.Enraged += OnEnraged;
+                _enrage.Enraged += _onEnraged ??= OnEnraged;
             _subscribed = true;
         }
+
+        private System.Action<DamageContext> _onDamaged;
+        private System.Action _onDied;
+        private System.Action _onAttacked;
+        private System.Action _onEnraged;
 
         private void OnEnraged()
         {
@@ -67,6 +74,16 @@ namespace Cryptforge.UI
         }
 
         private void Start() => _body.enabled = _health.IsAlive;
+
+        // A pooled body back on the floor (EncounterController's horde pool): the body its death hid stands again, as Start
+        // shows a new one's; its flash and nudge already ended as it was disabled. Only while it is off the floor.
+        internal void ResetForReuse()
+        {
+            if (_body == null)
+                return;
+            _body.gameObject.SetActive(true);
+            _body.enabled = true;
+        }
 
         private void OnDamaged(DamageContext context)
         {
@@ -167,12 +184,12 @@ namespace Cryptforge.UI
         {
             if (_subscribed)
             {
-                _health.Damaged -= OnDamaged;
-                _health.Died -= OnDied;
+                _health.Damaged -= _onDamaged;
+                _health.Died -= _onDied;
                 if (_attack != null)
-                    _attack.Attacked -= OnAttacked;
+                    _attack.Attacked -= _onAttacked;
                 if (_enrage != null)
-                    _enrage.Enraged -= OnEnraged;
+                    _enrage.Enraged -= _onEnraged;
                 _subscribed = false;
             }
             ResetFeedback();
