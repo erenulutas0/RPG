@@ -61,7 +61,10 @@ namespace Cryptforge.Tests
             var setup=Object.FindFirstObjectByType<CombatSetup>();var upgrades=setup.Upgrades;
             var choices=Object.FindFirstObjectByType<RunChoiceView>();
             Assert.That(upgrades.IsCategoryMode,Is.True,"The foundry offers by category.");
-            Assert.That(choices.CardSlots,Is.EqualTo(2),"The scene authors two cards.");
+            // The scene authors two cards; the panel clones the third at load (RunChoiceView.Prewarm), hidden until an offer.
+            Assert.That(upgrades.ChoiceCount,Is.EqualTo(3));
+            Assert.That(choices.CardSlots,Is.EqualTo(3),"The panel readies a card for each an offer can draw.");
+            Assert.That(choices.IsOpen,Is.False);
 
             // Bonus offers until one shows three cards; any smaller one takes its first card. The offer opens and the panel
             // shows it on the grant itself, so the input delay is checked before a frame passes.

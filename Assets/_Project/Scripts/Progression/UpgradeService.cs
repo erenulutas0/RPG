@@ -153,6 +153,9 @@ namespace Cryptforge.Progression
 
         public bool IsHeld => _held;
 
+        // The most cards an offer draws; fewer when fewer are eligible.
+        public int ChoiceCount => _choiceCount;
+
         // Whether offers are drawn by category, which is whether a loadout was handed in.
         public bool IsCategoryMode => _loadout != null;
         // The loadout category mode fills and levels; null in the legacy engine.

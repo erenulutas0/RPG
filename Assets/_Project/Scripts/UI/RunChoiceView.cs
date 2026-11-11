@@ -141,10 +141,50 @@ namespace Cryptforge.UI
             if (_cardArt != null && _cardArt.IsValid)
                 _painter = new ChoiceCardPainter(_cardArt, _panel.GetComponent<Image>(),
                     _buttons[0].transform.parent.GetComponent<Image>(), _titleLabel);
+            Prewarm();
 
             _setup.Choices.Changed += OnChoicesChanged;
             _subscribed = true;
             Show(_setup.Choices.Current);
+        }
+
+        // The panel's first show done once at load, where no one sees it (the 2026-11-11 allocation audit: the first
+        // level-up was the perf probe's slowest frame, 345 KB, where later ones are ~40 KB). The scene's panel starts
+        // inactive, so its first show woke every part of it - each label making its text generator, ~23 KB apiece - cloned
+        // the card an offer's third needs and made every painted part. Here the cards an upgrade offer can ask for are
+        // cloned, every card is painted in the neutral treatment, and the panel, its cards and their kind lines are
+        // switched on and back off, all inside Start, before the first frame renders; Start's Show then hides the panel as
+        // it always did. Nothing shown changes: Show lays out, fills and repaints every card it shows, as on every later
+        // offer, and the hierarchy is the one the first offer built.
+        private void Prewarm()
+        {
+            int wanted = Mathf.Min(_setup.Upgrades != null ? _setup.Upgrades.ChoiceCount : 0, MaxCards);
+            while (_canRestack && _buttons.Length < wanted)
+                AddSlot();
+
+            bool panelWasActive = _panel.activeSelf;
+            var cardsWereActive = new bool[_buttons.Length];
+            _panel.SetActive(true);
+            for (int i = 0; i < _buttons.Length; i++)
+            {
+                cardsWereActive[i] = _buttons[i].gameObject.activeSelf;
+                _buttons[i].gameObject.SetActive(true);
+                if (_kindLabels != null)
+                    _kindLabels[i].gameObject.SetActive(true);
+            }
+            if (_painter != null)
+            {
+                for (int i = 0; i < _buttons.Length; i++)
+                    _painter.Paint(i, _buttons[i], _nameLabels[i], _descriptionLabels[i], IconAt(i), _cardArt.Neutral);
+                _painter.Forget();
+            }
+            for (int i = 0; i < _buttons.Length; i++)
+            {
+                if (_kindLabels != null)
+                    _kindLabels[i].gameObject.SetActive(false);
+                _buttons[i].gameObject.SetActive(cardsWereActive[i]);
+            }
+            _panel.SetActive(panelWasActive);
         }
 
         private bool SlotsAreValid()
@@ -205,8 +245,9 @@ namespace Cryptforge.UI
         // A copy of the last card under the same surface, registered in every per-slot array the way the scene's cards
         // are: its own name, description, icon, rarity accent and kind line (found in the copy where the original's
         // were), the original's authored name colour, and a click that selects its slot. It starts disabled - it is made
-        // while Show holds the cards for the input delay - and is enabled with the rest when the delay ends. Made once,
-        // the first time a prompt needs it, then shown or hidden like the others.
+        // while Show holds the cards for the input delay - and is enabled with the rest when the delay ends. Made once - at
+        // load for the cards an upgrade offer can ask for (Prewarm), else the first time a prompt needs it - then shown or
+        // hidden like the others.
         private void AddSlot()
         {
             int source = _buttons.Length - 1;
