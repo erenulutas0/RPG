@@ -74,7 +74,7 @@ namespace Cryptforge.UI
 
         private void Update()
         {
-            if (IsRevealing && (Input.touchCount > 0 || Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))) _skip = true;
+            if (IsRevealing && RevealSkip.ThisFrame()) _skip = true;
         }
 
         private void Finish()
