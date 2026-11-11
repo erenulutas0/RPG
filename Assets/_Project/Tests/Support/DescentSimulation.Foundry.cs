@@ -65,6 +65,11 @@ namespace Cryptforge.Tests
         public const float EngagedMargin = 1f;
         // FoundryResult.DeathPhase of a death while the cleared room before the gate holds for the floor's clock.
         public const string GateWaitPhase = "gate wait";
+        // What the careful pilot's wait for the gate farms a second on floor 1 (research 2026-11-11, GateCallResearch on
+        // main 158c9f3d: the experience of the wait over its seconds, P50 4.82 of the careful clears of seeds 1-200, both
+        // heroes, frame-perfect and with human hands): the rate an early call's experience is paid at
+        // (FoundryLevers.GateCallExperienceShare).
+        public const float GateWaitExperienceRate = 4.8f;
         // The 30-second buckets of docs/40's time_bucket_summary.
         public const float FoundryBucketSeconds = 30f;
 
@@ -218,6 +223,23 @@ namespace Cryptforge.Tests
             // A siege while the gate holds: each time the standing wave is down, the floor's n-th combat hall (1-based)
             // sends its waves again in turn, its surges included; 0 is off, and the wait is the horde's alone.
             public int GateSiegeHall;
+            // Research only (docs/41's open decision 2, 2026-11-11: the gate's wait - an early call): while the cleared
+            // room before the gate holds, the player may call the Warden now - the gate's bell, the HUD's "Gate opens in"
+            // turned into a prompt - rather than wait out the hold. With GateCalls the pilot calls on the first frame of the
+            // hold on which the hero's level is at least GateCallLevel (0: any) and its health at least GateCallHealth of its
+            // maximum (0: any); a realistic pilot (PilotRealism) a reaction after the prompt shows or the condition comes
+            // true, and never while it looks away or a choice is open. The hold ends the next frame, as a press reaches
+            // EncounterController. Off by default: no call, the gate opens on its clock.
+            public bool GateCalls;
+            public int GateCallLevel;
+            public float GateCallHealth;
+            // What the call pays, at the call; each 0 is off. A heal of this share of the hero's maximum health; this many
+            // upgrade choices (the forge's Temper, RunState.GrantBonusUpgrade); and experience for each second of the hold
+            // skipped (the gate's time less the floor's clock at the call): GateCallExperienceShare of
+            // GateWaitExperienceRate, what the careful pilot's wait farms a second.
+            public float GateCallHeal;
+            public int GateCallUpgrades;
+            public float GateCallExperienceShare;
             // How much the horde's standing crowd grows by the overrun (HordeClock.TargetGrowth, 0.5): the crowd aims for
             // (1 + this * clock / 300) times its state's target.
             public float HordeTargetGrowth = HordeClock.TargetGrowth;
@@ -609,6 +631,8 @@ namespace Cryptforge.Tests
             public float GateReadyClock = -1f;
             public int GateReadyKills = -1;
             public int GateReadyLevel = -1;
+            // ...and the hero's health then, as a share of its maximum (research 2026-11-11); -1 likewise.
+            public float GateReadyHealth = -1f;
             // What filled the gate's wait (docs/41's open decision 2), in active seconds of it: a strike landed or a hit
             // taken in the last 1.5 s (the engaged rule, EngagedSeconds), and what the autopilot's steer was doing -
             // kiting, walking to a drop, fighting a node wave where it stood or drew it, walking elsewhere, or standing
@@ -625,6 +649,14 @@ namespace Cryptforge.Tests
             public float WaitTaken;
             public int WaitDrops;
             public int WaitSiegeWaves;
+            // And the experience the wait farmed (the call's own excepted), and the call (FoundryLevers.GateCalls, research
+            // 2026-11-11): whether the pilot called the gate early, the floor's clock then and the seconds of the hold it
+            // skipped (-1 and 0 without a call), and the experience the call paid.
+            public int WaitExperience;
+            public bool GateCalled;
+            public float GateCallClock = -1f;
+            public float GateCallSkipped;
+            public int GateCallExperience;
             // The level as the Warden walked out, and at the end after the floor's sweep (the measurement's "level").
             public int LevelAtGate = -1;
             public int Level;
@@ -836,6 +868,13 @@ namespace Cryptforge.Tests
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private static float ScaleOf(float value, float scale) => value * scale;
+
+        // The early call's experience (FoundryLevers.GateCallExperienceShare, research 2026-11-11): the share of what the
+        // careful pilot's wait farms a second (GateWaitExperienceRate) for each second of the hold skipped, rounded down;
+        // none for none skipped.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        internal static int GateCallExperienceFor(float skipped, float share) =>
+            skipped > 0f && share > 0f ? (int)(skipped * GateWaitExperienceRate * share) : 0;
 
         internal static FoundryLevers LaterFloorLevers(FoundryLevers run, FoundryFloor floor)
         {
@@ -1233,6 +1272,11 @@ namespace Cryptforge.Tests
             private int _waitLevelFrom;
             private float _waitTakenFrom;
             private int _waitDropsFrom;
+            private int _waitExperienceFrom;
+            // The early call (FoundryLevers.GateCalls, research 2026-11-11): made this floor, and since when the pilot's
+            // condition for it has held (NaN while it does not) - what a realistic pilot answers a reaction after.
+            private bool _gateCalled;
+            private float _callSince = float.NaN;
             // What the autopilot's steer did this frame (PilotGoal), for the wait's accounting.
             private PilotDoing _doing;
 
@@ -1387,6 +1431,8 @@ namespace Cryptforge.Tests
                 _engaged = 0f;
                 _waitBegan = false;
                 _waitEnded = false;
+                _gateCalled = false;
+                _callSince = float.NaN;
                 _sieging = false;
                 _siegeWave = 0;
                 _hordeAliveSum = 0;
@@ -1533,6 +1579,7 @@ namespace Cryptforge.Tests
                     _result.GateReadyClock = _horde != null ? _horde.Seconds : FloorTime;
                     _result.GateReadyKills = FloorKills;
                     _result.GateReadyLevel = _run.Level;
+                    _result.GateReadyHealth = _heroHealth.Current / Math.Max(1f, _heroHealth.Maximum);
                 }
                 // FoundryLevers.GateNotBeforeSeconds, GateKillQuota, GateOpenLevel: the floor waits at the room before the
                 // gate until its clock, its kills or the hero's level say so; GateSiegeHall sends waves meanwhile.
@@ -1559,7 +1606,7 @@ namespace Cryptforge.Tests
 
             private bool GateHolds()
             {
-                if (!_levers.HoldsGate || _horde == null || !NextIsGate())
+                if (!_levers.HoldsGate || _horde == null || !NextIsGate() || _gateCalled)
                     return false;
                 float clock = _horde.Seconds;
                 if (_levers.GateNotBeforeSeconds > 0f)
@@ -1583,6 +1630,7 @@ namespace Cryptforge.Tests
                 _waitLevelFrom = _run.Level;
                 _waitTakenFrom = Taken;
                 _waitDropsFrom = _result.DropsCollected;
+                _waitExperienceFrom = _run.Experience;
             }
 
             private void EndWait()
@@ -1594,6 +1642,47 @@ namespace Cryptforge.Tests
                 _result.WaitLevels = _run.Level - _waitLevelFrom;
                 _result.WaitTaken = Taken - _waitTakenFrom;
                 _result.WaitDrops = _result.DropsCollected - _waitDropsFrom;
+                _result.WaitExperience = _run.Experience - _waitExperienceFrom - _result.GateCallExperience;
+            }
+
+            // FoundryLevers.GateCalls (research 2026-11-11): the pilot calls the Warden while the gate holds, once the
+            // hero's level and health meet its condition - a realistic pilot a reaction after it first held - and the call
+            // pays its reward at once. EncounterController reads the call the next frame (GateHolds) and opens the gate.
+            private void PilotCallsGate()
+            {
+                if (_gateCalled || !_gateHeld || _horde == null)
+                {
+                    _callSince = float.NaN;
+                    return;
+                }
+                bool ready = _run.Level >= _levers.GateCallLevel &&
+                             (_levers.GateCallHealth <= 0f || _heroHealth.Current >= _heroHealth.Maximum * _levers.GateCallHealth);
+                if (!ready)
+                {
+                    _callSince = float.NaN;
+                    return;
+                }
+                if (float.IsNaN(_callSince))
+                    _callSince = _seconds;
+                if (_realism != null && !Perceived(_callSince, _realism.MarkReaction))
+                    return;
+                _gateCalled = true;
+                float clock = _horde.Seconds;
+                _result.GateCalled = true;
+                _result.GateCallClock = clock;
+                _result.GateCallSkipped = Math.Max(0f, _levers.GateNotBeforeSeconds - clock);
+                if (_trace != null)
+                    Emit($"gate_called clock={N(clock)} skipped={N(_result.GateCallSkipped)} level={_run.Level} hp={N(_heroHealth.Current)}");
+                if (_levers.GateCallHeal > 0f)
+                    _heroHealth.Heal(_heroHealth.Maximum * _levers.GateCallHeal);
+                for (int i = 0; i < _levers.GateCallUpgrades; i++)
+                    _run.GrantBonusUpgrade();
+                if (_levers.GateCallExperienceShare > 0f)
+                {
+                    int experience = GateCallExperienceFor(_result.GateCallSkipped, _levers.GateCallExperienceShare);
+                    _result.GateCallExperience = experience;
+                    _run.AddExperience(experience);
+                }
             }
 
             private float Taken => _result.TakenFromWave + _result.TakenFromHorde + _result.TakenFromWarden +
@@ -3046,6 +3135,8 @@ namespace Cryptforge.Tests
                 // A realistic pilot looking away holds the stick where it was (PilotRealism).
                 if (_realism != null && LooksAway())
                     return;
+                if (_levers.GateCalls)
+                    PilotCallsGate();
                 if (_levers.Cohort.UsesTheAbility)
                     PilotAbility();
                 float x = HeroX;
