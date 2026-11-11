@@ -192,6 +192,11 @@ namespace Cryptforge.Combat
         public event Action GateBossArrived;
         // While a view presents the arriving boss, the encounter holds still: no pack moves, no fight clock runs.
         public bool IsRevealHeld => _revealHold;
+        // The reveal's hold as every attacker of the fight reads it (AttackController.FightHold): nothing strikes while
+        // the camera is at the gate, neither an enemy in reach of the hero who cannot step away nor the hero. One delegate
+        // for every enemy this spawns and for the hero's attacker (CombatSetup).
+        public Func<bool> FightHold => _fightHold ??= () => _revealHold;
+        private Func<bool> _fightHold;
         // Floor points where the pack cannot walk (PackMotion.Held); the foundry pit sets it, nothing else does.
         public Func<float, float, bool> PackHeld { get; set; }
         public void HoldForReveal(bool hold) => _revealHold = hold;
@@ -781,7 +786,18 @@ namespace Cryptforge.Combat
             fallen.Health.Changed -= OnEnemyChanged;
             fallen.Health.Died -= fallen.OnDied;
             if (fallen.Health != null)
-                Destroy(fallen.Health.gameObject);
+                RemoveBody(fallen.Health);
+        }
+
+        // An enemy leaves the floor at once. Destroy waits for the frame's end, and until then a released enemy still
+        // standing - the horde as the gate opens, the swarm at the finale's exit - kept its AttackController, its burn and
+        // the hero's strikes for the rest of the frame: a horde enemy could strike the hero after the Warden had fallen
+        // (the run flow's review, 2026-11-11). Deactivated first, it does nothing more; the simulation drops a released
+        // enemy the same way. Its views unsubscribe as it goes, and a kill it already made paid as it fell.
+        private static void RemoveBody(Health enemy)
+        {
+            enemy.gameObject.SetActive(false);
+            Destroy(enemy.gameObject);
         }
 
         // The hero stood still on the way out long enough: the room ends, the pack goes with it, and the floor moves on.
@@ -1026,7 +1042,9 @@ namespace Cryptforge.Combat
             if (damageBonus != 0f)
                 weapon.AddModifier(UpgradeStat.Damage, new StatModifier(ModifierOperation.Percent, damageBonus));
             enemy.GetComponent<Targeting>().SetCandidates(new[] { _hero });
-            enemy.GetComponent<AttackController>().Initialize(weapon);
+            var attack = enemy.GetComponent<AttackController>();
+            attack.Initialize(weapon);
+            attack.FightHold = FightHold;
             reach = weapon.Range;
 
             var spawn = new SpawnedEnemy
@@ -1164,7 +1182,7 @@ namespace Cryptforge.Combat
                 spawn.Health.Changed -= OnEnemyChanged;
                 spawn.Health.Died -= spawn.OnDied;
                 if (destroy && spawn.Health != null)
-                    Destroy(spawn.Health.gameObject);
+                    RemoveBody(spawn.Health);
             }
 
             _wave.Clear();
@@ -1390,7 +1408,7 @@ namespace Cryptforge.Combat
             if (fallen.Enrage != null)
                 fallen.Enrage.Enraged -= OnEnemyEnraged;
             if (fallen.Health != null)
-                Destroy(fallen.Health.gameObject);
+                RemoveBody(fallen.Health);
             fallen.Health = null;
         }
 
@@ -1406,7 +1424,7 @@ namespace Cryptforge.Combat
                 if (enemy.Enrage != null)
                     enemy.Enrage.Enraged -= OnEnemyEnraged;
                 if (destroy && enemy.Health != null)
-                    Destroy(enemy.Health.gameObject);
+                    RemoveBody(enemy.Health);
             }
             _hordeEnemies.Clear();
             bool had = _horde != null;

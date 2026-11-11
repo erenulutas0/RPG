@@ -36,6 +36,12 @@ namespace Cryptforge.Combat
         // gate boss is held so while it winds up a slam and while its hammer is in the floor (WardenSlamService,
         // WardenRule.RecoverySeconds); nothing else holds an attacker.
         public bool IsHeld { get; set; }
+        // A hold on every fight at once, asked each frame: while it answers true this attacker neither readies nor strikes,
+        // as while IsHeld. The foundry's boss reveal holds the fight while the camera is at the gate, so that nothing is
+        // fought off screen (BossRevealView, EncounterController.IsRevealHeld): the encounter hands it to every enemy it
+        // spawns and the composition root to the hero. Null where nothing holds the fight.
+        public Func<bool> FightHold { get; set; }
+        private bool IsFightHeld => FightHold != null && FightHold();
         // The foundry's gate boss while it stands (EncounterController.GateBoss), handed to every strike so a weapon's
         // landings on it take the weapon's share (WeaponRuntime.GateBossShare, WardenRule: the Sword's 1.5). Set on the
         // hero's attacker by WardenSlamService, which runs before every attacker; null on every enemy's, and wherever no
@@ -87,7 +93,7 @@ namespace Cryptforge.Combat
         // one felled this frame - Targeting skips the fallen.
         private void Update()
         {
-            if (_weapon == null || IsHeld || !_owner.isActiveAndEnabled || !_owner.IsAlive || Time.deltaTime <= 0f)
+            if (_weapon == null || IsHeld || IsFightHeld || !_owner.isActiveAndEnabled || !_owner.IsAlive || Time.deltaTime <= 0f)
                 return;
 
             float deltaTime = Time.deltaTime;
@@ -142,7 +148,7 @@ namespace Cryptforge.Combat
         // and where it would have: the cooldown ticks and the strike fires in Update alone.
         public Health StrikeDue(float within)
         {
-            if (_weapon == null || IsHeld || !isActiveAndEnabled || !_owner.isActiveAndEnabled || !_owner.IsAlive ||
+            if (_weapon == null || IsHeld || IsFightHeld || !isActiveAndEnabled || !_owner.isActiveAndEnabled || !_owner.IsAlive ||
                 _weapon.CooldownRemaining > within)
                 return null;
             return _targeting.Acquire(_weapon.Range);
