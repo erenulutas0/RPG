@@ -69,6 +69,32 @@ namespace Cryptforge.Combat
             _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
         }
 
+        // A pooled body back on the floor (EncounterController's horde pool): armed as Initialize arms a new one - its one
+        // weapon new, so its cooldown is a new weapon's; nothing holding it, no gate boss or elites, no strike counted - and
+        // heard by no one until its views take it up again as it is enabled. Only while it is off the floor, after Initialize.
+        internal void Rearm(WeaponRuntime weapon)
+        {
+            if (_weapon == null)
+                throw new InvalidOperationException("AttackController needs Initialize before it is rearmed.");
+            if (gameObject.activeInHierarchy)
+                throw new InvalidOperationException("Only an attacker off the floor is rearmed.");
+
+            _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
+            _moreWeapons = null;
+            AttackCount = 0;
+            IsHeld = false;
+            FightHold = null;
+            GateBoss = null;
+            Elites = null;
+            Attacked = null;
+            Struck = null;
+            StruckWith = null;
+            _nearby.Clear();
+            _inPulseRadius.Clear();
+            _inCritSplashRadius.Clear();
+            _inKillBurstRadius.Clear();
+        }
+
         // Puts a further weapon in the next slot, fired after every weapon before it. The loadout decides what the hero
         // holds (WeaponLoadout); this only fires it, in the order the loadout added it.
         public void AddWeapon(WeaponRuntime weapon)

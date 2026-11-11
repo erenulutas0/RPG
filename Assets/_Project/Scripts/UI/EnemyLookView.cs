@@ -159,6 +159,41 @@ namespace Cryptforge.UI
         // The encounter initialises the health right after Instantiate, so the bar shows its full width from the first frame.
         private void Start() => RefreshBar();
 
+        // A pooled body back on the floor (EncounterController's horde pool): the look as Awake leaves a new one - standing,
+        // facing front, its first frame drawn, white, unsquashed and at rest; nothing arriving, winding up, striking or
+        // enraged; bar, chunk and shadow whole - read from where the body stands now, the origin it is instantiated at.
+        // Only while it is off the floor: enabling it subscribes and shows the bar, as a new body's Start does.
+        internal void ResetForReuse()
+        {
+            if (_body == null)
+                return;
+            _walkDistance = 0f;
+            _hitRemaining = 0f;
+            _arrivalDuration = 0f;
+            _arrivalRemaining = 0f;
+            _attackRemaining = 0f;
+            _bobbed = false;
+            _frameRemaining = _breathFrameDuration;
+            PaintedFrame = 0;
+            RearFacing = false;
+            Mirrored = false;
+            IsWindingUp = false;
+            WindupStep = -1;
+            ShowsEnraged = false;
+            _body.color = Color.white;
+            _body.transform.localScale = Vector3.one;
+            _body.transform.localPosition = _bodyRest;
+            _body.sprite = _painted ? _paintedArt.GetFrame(0, false).Body : _sprites.Frame(EnemyPose.IdleA);
+            CurrentPose = EnemyPose.IdleA;
+            SetAlpha(_backRenderer, 1f);
+            SetAlpha(_trailRenderer, 1f);
+            SetAlpha(_fillRenderer, 1f);
+            SetAlpha(_shadow, 1f);
+            if (_barTrail != null)
+                _barTrail.Initialize(_trailRenderer, _fillTexels);
+            _lastPosition = transform.position;
+        }
+
         // A pre-built white silhouette for any frame this view assigned to the body; null for anything else.
         public Sprite SilhouetteOf(Sprite bodySprite) => _painted ? _paintedArt.FlashOf(bodySprite) : _sprites?.SilhouetteOf(bodySprite);
 

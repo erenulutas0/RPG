@@ -420,6 +420,7 @@ namespace Cryptforge.UI
             _encounter.HordeEnemySpawned += OnHordeEnemySpawned;
             _encounter.SwarmEnemySpawned += OnSwarmEnemySpawned;
             _encounter.HordeReleased += ReleaseHorde;
+            _encounter.EnemyRemoved += OnEnemyRemoved;
             _heroAttack.Struck += OnHeroStruck;
             _heroAttack.StruckWith += OnHeroStruckWith;
             _hero.Damaged += OnHeroDamaged;
@@ -449,6 +450,7 @@ namespace Cryptforge.UI
                 _encounter.HordeEnemySpawned -= OnHordeEnemySpawned;
                 _encounter.SwarmEnemySpawned -= OnSwarmEnemySpawned;
                 _encounter.HordeReleased -= ReleaseHorde;
+                _encounter.EnemyRemoved -= OnEnemyRemoved;
                 ReleaseHorde();
                 _heroAttack.Struck -= OnHeroStruck;
                 _heroAttack.StruckWith -= OnHeroStruckWith;
@@ -717,6 +719,20 @@ namespace Cryptforge.UI
                 return;
             for (int i = 0; i < _hordeWatches.Length; i++)
                 Unbind(_hordeWatches[i]);
+        }
+
+        // A horde body has left the floor: no watch follows it now. The horde's bodies are pooled (EncounterController), and
+        // a watch left on a retired body whose place has not filled again would follow it into its next life in another
+        // place - found first for its fall, and drawing its hits twice had its health kept its listeners.
+        private void OnEnemyRemoved(Health enemy)
+        {
+            if (_hordeWatches == null)
+                return;
+            for (int i = 0; i < _hordeWatches.Length; i++)
+            {
+                if (ReferenceEquals(_hordeWatches[i].Enemy, enemy))
+                    Unbind(_hordeWatches[i]);
+            }
         }
 
         private void Unbind(EnemyWatch watch)

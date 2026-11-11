@@ -68,6 +68,16 @@ namespace Cryptforge.UI
 
         private void Start() => _body.enabled = _health.IsAlive;
 
+        // A pooled body back on the floor (EncounterController's horde pool): the body its death hid stands again, as Start
+        // shows a new one's; its flash and nudge already ended as it was disabled. Only while it is off the floor.
+        internal void ResetForReuse()
+        {
+            if (_body == null)
+                return;
+            _body.gameObject.SetActive(true);
+            _body.enabled = true;
+        }
+
         private void OnDamaged(DamageContext context)
         {
             Color color = context.IsCritical ? _criticalColor : Color.white;
