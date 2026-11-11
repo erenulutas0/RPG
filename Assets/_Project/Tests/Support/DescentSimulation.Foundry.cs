@@ -2385,6 +2385,8 @@ namespace Cryptforge.Tests
                 _result.ClockAtGate = _horde != null ? _horde.Seconds : 0f;
                 if (_trace != null)
                     Emit($"boss_start hp={N(_heroHealth.Current)} level={_run.Level} warden={N(_result.WardenHealth)}");
+                // A research hook (FoundryLevers.LaterGateChestHeal); nothing at the default levers.
+                GateArrival();
                 if (_revealLeft <= 0)
                     _revealHold = false;
             }
@@ -2534,15 +2536,17 @@ namespace Cryptforge.Tests
                 Enemy definition = _floor.HordeRoles[spawn.Role];
                 int n = _floor.FloorNumber;
                 float scale = _heroStats.Difficulty;
+                // The horde's growth and clock as the director reads them (HordeHealthNow, HordeDamageNow, HordeClockNow:
+                // the director's own at the default levers; FoundryLevers.LaterHordeClockCap, research only, caps them).
                 float damageBonus = FloorScaling.DamageBonus(
-                    ClimbScaling.Damage(n) * scale * HordeRule.DamageShare * _horde.DamageMultiplier, _floor.ModifierDamagePercent);
+                    ClimbScaling.Damage(n) * scale * HordeRule.DamageShare * HordeDamageNow, _floor.ModifierDamagePercent);
                 Foe foe = CreateFoe(definition,
                     FloorScaling.Health(definition.Health,
-                        ClimbScaling.Health(n) * scale * _levers.HordeHealthShare * _horde.HealthMultiplier,
+                        ClimbScaling.Health(n) * scale * _levers.HordeHealthShare * HordeHealthNow,
                         _floor.ModifierHealthPercent),
                     damageBonus, true);
                 // An overrun floor's horde pays nothing (HordeClock.PaysExperience); otherwise its share.
-                foe.Experience = !HordeClock.PaysExperience(_horde.Seconds)
+                foe.Experience = !HordeClock.PaysExperience(HordeClockNow)
                     ? 0
                     : TunedHordeExperience.Experience(definition.Experience, _levers.HordeExperienceShare);
                 foe.Motion = _hordeMotion;
