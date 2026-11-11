@@ -199,6 +199,8 @@ namespace Cryptforge.Tests
                 ReportSwarmStep();
                 ObserveSwarm();
                 EncounterStarted();
+                // Research only (docs/47, DescentSimulation.DescentLength.cs): nothing at the default levers.
+                FinaleArrival();
             }
 
             // EncounterController.SpawnSwarmEnemy: one enemy walking into one place, its own one-enemy entry one corner

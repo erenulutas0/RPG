@@ -102,6 +102,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Foundry.cs" />
     <!-- The foundry's finale (Floor_FinalSwarm) after floor 2, FoundryLevers.Floors = 3 (docs/41, 2026-11-11). -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.FoundryFinale.cs" />
+    <!-- The Descent's length research (docs/47, 2026-11-11): the finale's opening heal and its chest, research levers. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.DescentLength.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
@@ -140,6 +142,8 @@
     <Compile Include="RiftbladeResearch.cs" />
     <!-- The finale's stay research of 2026-11-11 on demand: the finale's swarm with the pilot staying longer than 60 s. -->
     <Compile Include="FinaleStayResearch.cs" />
+    <!-- The Descent's length research of 2026-11-11 on demand (docs/47): a heal before the finale, floor 2's gate later, a third floor. -->
+    <Compile Include="DescentLengthResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
