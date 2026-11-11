@@ -154,6 +154,14 @@ namespace Cryptforge.Tests
                     l.DaggersThrowReach = 2.6f;
                     Bleed(1f)(l);
                     l.DaggersThrowSparesGateBoss = true;
+                }),
+                // The thrown Daggers with the gate boss turning both: it deflects thrown blades and does not bleed.
+                Make("Throw every strike + bleed, the Warden deflects throws and does not bleed", l =>
+                {
+                    Throw(0f)(l);
+                    Bleed(1f)(l);
+                    l.DaggersThrowSparesGateBoss = true;
+                    l.DaggersBleedSparesGateBoss = true;
                 })
             };
         }

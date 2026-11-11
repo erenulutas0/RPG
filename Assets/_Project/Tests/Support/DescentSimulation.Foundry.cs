@@ -301,6 +301,8 @@ namespace Cryptforge.Tests
             // DaggersBleedShare of the landing over DaggersBleedSeconds, a frame at a time; wounds stack. 0 is off.
             public float DaggersBleedShare;
             public float DaggersBleedSeconds = 3f;
+            // The gate boss does not bleed: no wound opens on it.
+            public bool DaggersBleedSparesGateBoss;
             // An exposing mark: a Daggers landing marks what it struck for DaggersMarkSeconds, and every weapon's landing on
             // a marked enemy deals DaggersMarkShare more - the extra the Daggers' work, the mark's weapon. 0 is off.
             public float DaggersMarkShare;
@@ -2201,7 +2203,8 @@ namespace Cryptforge.Tests
                     return;
                 if (_levers.DaggersMarkShare > 0f)
                     foe.MarkedUntil = _seconds + _levers.DaggersMarkSeconds;
-                if (_levers.DaggersBleedShare > 0f && _levers.DaggersBleedSeconds > 0f && struck > 0f)
+                if (_levers.DaggersBleedShare > 0f && _levers.DaggersBleedSeconds > 0f && struck > 0f &&
+                    !(_levers.DaggersBleedSparesGateBoss && foe.GateBoss))
                 {
                     if (foe.WoundRates == null)
                     {
