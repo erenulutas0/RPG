@@ -2109,3 +2109,29 @@ calibrated Staff.
   victory). The Editor has measured neither floor 2 nor the finale.
 - The heal between floor 2 and the finale, if the near-dead deaths should go: a Mend at the checkpoint, or the room's
   chest where the hero arrives. Neither is measured.
+
+## Status 2026-11-11 (evening): the finale's heal and floor 2's length, built
+
+The owner: "devam edelim, %85 olana kadar". The lead's decisions, on docs/47's measured options:
+- **The finale's chest stands where the hero arrives** (ChestSpawner, a foundry swarm room only; the hall arena keeps
+  its spot). It is the room's own quarter heal. Finale deaths 34 -> 0 of 1,248 (seeds 1-200, both heroes, every
+  cohort, human hands).
+- **Floor 2's gate opens at 3:30, as floor 1's** (Floor_QuicksilverVaults `_foundryGateNotBeforeSeconds: 210`; the
+  simulation's FoundryFloorTwo mirrors it). Floor 2's clears P50 about 2:10 -> 4:30; the hero reaches the Warden 8-9
+  levels higher. Floor-2 clears rise for standing and clumsy; the first-card cohort's floor-2 deaths go 6 -> 16.
+- **The whole Descent:** P50 about 8 -> 10 min (careful 10.3 / 10.2, every cohort 9.9-10.3; TestResults/gate-1111i).
+  docs/40's 13-16 needs a third floor; docs/47 measures a stand-in at 14.2-15.1 min. A longer finale stay is a cliff
+  and is not the way to buy time.
+- The gate's rows read floor 1 and did not move: met 9, not met 0, not measured 2.
+
+Fixed the same evening (the review of ba11a36f..2c620d21 found no high-severity bug, and four small ones):
+- the hero's ability struck during the boss reveal; it now waits with every AttackController (scene and simulation);
+- a tap on UI, or a paused game, skipped the reveal;
+- the HUD named the forge on the walk to the next marked hall;
+- a pit death named the last enemy that hit the hero; it now names the pit (telemetry `killed_by:pit_eruption`).
+And: the autopilot no longer lures the swarm to a pit that is not running (scene and simulation); the HUD's wave line
+counts a swarm room's ladder; RewardService forgets a paid kill once its body leaves the floor; the level-up choice
+panel is pre-warmed at load (the first level-up was the probe's 345 KB frame).
+
+Still the owner's: the push, the phone (APK install, S23 frame time, the owner's play), a third floor for 13-16 min,
+and docs/46's Riftblade questions.
