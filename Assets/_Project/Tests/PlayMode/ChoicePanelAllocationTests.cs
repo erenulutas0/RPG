@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -116,6 +117,8 @@ namespace Cryptforge.Tests
             {
                 setup.Choices.Changed += heard;
             }
+            // The counts go to the log for the probe's reader; the test ends on LogAssert.NoUnexpectedReceived.
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[ChoicePanelAllocationTests\] first show"));
             Debug.Log($"[ChoicePanelAllocationTests] first show {first} allocations, the same prompt again {again}.");
             Assert.That(first, Is.LessThanOrEqualTo(again + Margin),
                 $"The first show allocates {first} times, the same prompt shown again {again}: the panel is not made ready at load.");
