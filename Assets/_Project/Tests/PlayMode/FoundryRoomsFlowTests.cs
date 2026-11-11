@@ -173,7 +173,9 @@ namespace Cryptforge.Tests
             Assert.That(encounters.IsFloorOvertime, Is.False);
             yield return null;
             yield return null;
-            Assert.That(horde == null, Is.True, "Its bodies with it.");
+            // Its bodies leave the floor with it: destroyed, or since the horde's body pool (2026-11-11) shelved off the floor
+            // for the next of their kind.
+            Assert.That(horde == null || !horde.gameObject.activeInHierarchy, Is.True, "Its bodies with it.");
             Assert.That(clock.IsShown, Is.False, "No floor clock on the walk out.");
             Assert.That(encounters.IsBossEnraged, Is.False, "The fallen Warden's rage is over.");
             LogAssert.NoUnexpectedReceived();

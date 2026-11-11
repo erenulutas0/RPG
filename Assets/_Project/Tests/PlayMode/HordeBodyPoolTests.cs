@@ -257,6 +257,8 @@ namespace Cryptforge.Tests
         [UnityTest, Timeout(240000)]
         public IEnumerator TheProbesHeavyHordeReusesBodiesWithoutLosingAPlace()
         {
+            // The autopilot says which cohort it drives as it starts; the test ends on LogAssert.NoUnexpectedReceived.
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[Autopilot\] driving the hero as the careful cohort"));
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.AutopilotPath));
             File.WriteAllText(DevelopmentStart.AutopilotPath, "on");
             File.WriteAllText(DevelopmentStart.RunSeedPath, "11");
