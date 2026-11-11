@@ -19,7 +19,8 @@ namespace Cryptforge.Tests
 {
     // The horde's bodies are pooled (EncounterController.BodyPool, the allocation audit of 2026-11-11): a body that left
     // the floor comes back for the next of its kind reset as Instantiate makes a new one, and a spawn that stands one up
-    // allocates a fraction of one that instantiates.
+    // allocates a fraction of one that instantiates. The Final Swarm's plain kinds are pooled the same way (2026-11-12),
+    // never the Forge Warden, whose EnrageBehaviour the pool does not reset.
     public sealed class HordeBodyPoolTests
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -27,6 +28,10 @@ namespace Cryptforge.Tests
         // (AShelvedBodyWalksInForAFractionOfANewOne), and the margin the bound leaves under it.
         private const int MeasuredSaving = 30;
         private const int SavingMargin = 10;
+        // Game seconds the finale's swarm test gives the autopilot to fight its minute (DevelopmentAutopilot.SwarmStay)
+        // and walk out: the walk and the exit's hold take a few seconds, and the rest is margin.
+        private const float SwarmTestSeconds = 120f;
+        private const string WardenId = "enemy_forge_warden";
 
         [UnitySetUp] public IEnumerator Begin() { TestProfile.Begin(); Time.timeScale = 1; yield return null; }
 
@@ -224,9 +229,9 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        // What one horde spawn allocates on this thread: GC.Alloc samples, as ChoicePanelAllocationTests counts them, and
-        // the managed heap's growth in bytes. True when the spawn walked in.
-        private static bool Measure(EncounterController encounters, MethodInfo spawn, object[] args, out int allocations,
+        // What one horde or swarm spawn allocates on this thread: GC.Alloc samples, as ChoicePanelAllocationTests counts
+        // them, and the managed heap's growth in bytes. What the spawn returned: for the horde's, whether it walked in.
+        private static object Measure(EncounterController encounters, MethodInfo spawn, object[] args, out int allocations,
             out long bytes)
         {
             Recorder recorder = Recorder.Get("GC.Alloc");
@@ -246,7 +251,7 @@ namespace Cryptforge.Tests
             }
             bytes = Profiler.GetMonoUsedSizeLong() - before;
             allocations = recorder.sampleBlockCount;
-            return (bool)walked;
+            return walked;
         }
 
         // The perf probe's heavy horde with the bodies reused under it (2026-11-11: a body back from the pool still stood in
@@ -358,7 +363,7 @@ namespace Cryptforge.Tests
             for (int attempt = 0; attempt < 2; attempt++)
             {
                 var args = new object[] { new HordeDirector.Spawn(role, ordinal++) };
-                if (Measure(encounters, spawn, args, out int allocations, out long bytes) && attempt == 1)
+                if ((bool)Measure(encounters, spawn, args, out int allocations, out long bytes) && attempt == 1)
                 {
                     fresh = allocations;
                     freshBytes = bytes;
@@ -380,7 +385,7 @@ namespace Cryptforge.Tests
                 {
                     var args = new object[] { new HordeDirector.Spawn(role, ordinal++) };
                     int shelved = encounters.ShelvedBodyCountOf(kind);
-                    if (Measure(encounters, spawn, args, out int allocations, out long bytes))
+                    if ((bool)Measure(encounters, spawn, args, out int allocations, out long bytes))
                     {
                         Assert.That(encounters.ShelvedBodyCountOf(kind), Is.EqualTo(shelved - 1), "The spawn stood a shelved body up.");
                         if (reuses > 0 && allocations < pooled)
@@ -409,6 +414,294 @@ namespace Cryptforge.Tests
             // shelved one 50. Those cuts only widen the gap, so the bound is that saving less a margin of 10.
             Assert.That(fresh - pooled, Is.GreaterThanOrEqualTo(MeasuredSaving - SavingMargin),
                 $"A shelved body's spawn allocates {pooled} times, a new one's {fresh}: the pool saves less than it did.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Resources/Development/Floor_SwarmProof, a finale of one swarm room - the Final Swarm's ladder with more Mites -
+        // played on the foundry as the finale is. Without the autopilot nothing strikes but the test.
+        private static IEnumerator LoadSwarm(bool autopilot)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartFloorPath));
+            File.WriteAllText(DevelopmentStart.StartFloorPath, "floor_swarm_proof");
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
+            File.WriteAllText(DevelopmentStart.RunSeedPath, "11");
+            if (autopilot)
+                File.WriteAllText(DevelopmentStart.AutopilotPath, "on");
+            yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
+            yield return null;
+            if (!autopilot)
+            {
+                foreach (var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))
+                    attack.enabled = false;
+                Object.FindFirstObjectByType<HeroMovementInput>().enabled = false;
+            }
+            Time.captureDeltaTime = 1f / 60;
+        }
+
+        // Every kind the swarm room's ladder fields is pooled but the Forge Warden, which carries EnrageBehaviour; the
+        // Warden is on the ladder, so the exclusion is in play.
+        private static EnemyDefinition AssertPlainKinds(RoomDefinition room)
+        {
+            EnemyDefinition warden = null;
+            for (int w = 0; w < room.WaveCount; w++)
+            {
+                for (int e = 0; e < room.WaveAt(w).EnemyCount; e++)
+                {
+                    EnemyDefinition kind = room.WaveAt(w).EnemyAt(e);
+                    bool isWarden = kind.Id == WardenId;
+                    if (isWarden)
+                        warden = kind;
+                    Assert.That(EncounterController.HasPlainBody(kind.Prefab), Is.EqualTo(!isWarden),
+                        $"{kind.Id}'s body is {(isWarden ? "not " : string.Empty)}pooled.");
+                }
+            }
+            Assert.That(warden, Is.Not.Null, "The ladder fields the Forge Warden.");
+            return warden;
+        }
+
+        // The place's enemy has fallen: killed here if it still stands, so the director refills it in its own time.
+        private static void Fell(EncounterController encounters, int place)
+        {
+            Health enemy = encounters.WaveEnemyAt(place);
+            if (enemy != null && enemy.IsAlive)
+                enemy.ApplyDamage(new DamageContext(PackTestUtility.Lethal));
+            Assert.That(enemy != null && !enemy.IsAlive, Is.True, $"Place {place}'s enemy has fallen.");
+        }
+
+        private static object[] SwarmSpawn(EncounterController encounters, int place, int wave, int index) =>
+            new object[] { new SwarmDirector.Spawn(place, wave, index, encounters.SwarmDifficulty) };
+
+        // The Final Swarm with its bodies reused under it: the autopilot fights the finale's ladder at three times speed for
+        // the minute it stays (DevelopmentAutopilot.SwarmStay) and walks out. On every frame every place of the swarm, its
+        // pack's motion and the hero's targets by place hold the same body; a standing enemy's body lives on the floor and a
+        // fallen one's is its own, still there - never a body shelved or standing up in another place; no body stands in
+        // two places; and no exception is logged (EncounterController.SwarmPlacesFault). Each kind's first reused body walks
+        // in as that kind's first new one did. Leaving the room takes its shelves with it.
+        [UnityTest, Timeout(300000)]
+        public IEnumerator TheFinalesSwarmReusesBodiesWithoutLosingAPlace()
+        {
+            // The autopilot says which cohort it drives as it starts; the test ends on LogAssert.NoUnexpectedReceived.
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[Autopilot\] driving the hero"));
+            yield return LoadSwarm(true);
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var encounters = setup.Encounters;
+            var hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
+            Time.timeScale = 3;
+            Assert.That(encounters.IsInSwarmRoom, Is.True, "The proof floor opens on its swarm.");
+            AssertPlainKinds(encounters.CurrentRoom);
+
+            // Bodies that walked in before this listened are known, so none of them is taken for a new one if it comes back.
+            var seen = new HashSet<Health>();
+            for (int i = 0; i < encounters.WaveEnemyCount; i++)
+            {
+                if (encounters.WaveEnemyAt(i) != null)
+                    seen.Add(encounters.WaveEnemyAt(i));
+            }
+            var fresh = new Dictionary<EnemyDefinition, Walk>();
+            var reusedWalks = new List<Walk>();
+            var freshWalks = new List<Walk>();
+            var compared = new List<EnemyDefinition>();
+            int spawns = 0, reuses = 0;
+            Action<int> spawned = slot =>
+            {
+                Health enemy = encounters.WaveEnemyAt(slot);
+                EnemyDefinition kind = encounters.DefinitionOf(enemy);
+                Walk walk = Walk.Of(enemy, encounters);
+                spawns++;
+                if (seen.Add(enemy))
+                {
+                    if (!fresh.ContainsKey(kind))
+                        fresh[kind] = walk;
+                    return;
+                }
+                reuses++;
+                if (!compared.Contains(kind) && fresh.TryGetValue(kind, out Walk first))
+                {
+                    compared.Add(kind);
+                    reusedWalks.Add(walk);
+                    freshWalks.Add(first);
+                }
+            };
+            encounters.SwarmEnemySpawned += spawned;
+            string fault = null;
+            int frames = 0, places = 0, crowd = 0;
+            float start = Time.time;
+            try
+            {
+                float deadline = Time.realtimeSinceStartup + 240;
+                while (!setup.Run.HasEnded && Time.time - start < SwarmTestSeconds && fault == null &&
+                       Time.realtimeSinceStartup < deadline)
+                {
+                    KeepUp(setup, hero);
+                    // A choice's pause gives time back at one times speed as it closes (CombatSetup.ApplyPause).
+                    if (!setup.Choices.IsOpen && Time.timeScale > 0f)
+                        Time.timeScale = 3;
+                    yield return null;
+                    frames++;
+                    places = Mathf.Max(places, encounters.WaveEnemyCount);
+                    crowd = Mathf.Max(crowd, encounters.AliveEnemyCount);
+                    fault = encounters.SwarmPlacesFault();
+                }
+            }
+            finally
+            {
+                encounters.SwarmEnemySpawned -= spawned;
+            }
+            Assert.That(fault, Is.Null, $"After {frames} frames, {spawns} spawns and {reuses} reuses.");
+            Assert.That(setup.Run.HasEnded, Is.True,
+                $"The autopilot walked out of the swarm ({Time.time - start:0.0} s, {frames} frames).");
+            Assert.That(setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory));
+            Assert.That(places, Is.GreaterThanOrEqualTo(5), "The ladder's crowd walked in.");
+            Assert.That(reuses, Is.GreaterThan(0), $"Bodies came back from the pool ({spawns} spawns).");
+            Assert.That(reusedWalks.Count, Is.GreaterThan(0), "A reused body walked in where a new one of its kind had.");
+            for (int i = 0; i < reusedWalks.Count; i++)
+                reusedWalks[i].Matches(freshWalks[i]);
+
+            // The room's shelves went with it (the proof floor has no horde to keep its kinds), and the bodies that left the
+            // floor in its last frame are destroyed as they would have been shelved.
+            Assert.That(encounters.ShelvedBodyCount, Is.Zero, "Leaving the swarm trimmed its shelves.");
+            yield return null;
+            yield return null;
+            Assert.That(encounters.LeavingBodyCount, Is.Zero, "Nothing waits to be shelved after the swarm.");
+            Assert.That(encounters.ShelvedBodyCount, Is.Zero);
+
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[HordeBodyPoolTests\] finale swarm"));
+            Debug.Log($"[HordeBodyPoolTests] finale swarm: {frames} frames, {spawns} spawns, {reuses} reused bodies, " +
+                      $"{places} places, a crowd of {crowd}, {reusedWalks.Count} kinds compared.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A swarm refill that stands a shelved body up allocates a fraction of one that instantiates. The proof's first
+        // place, a Cinder Mite's, is felled and refilled by hand - SpawnSwarmEnemy, as the director's refill calls it -
+        // first while nothing of the kind is shelved, then once the refills' fallen bodies are.
+        [UnityTest, Timeout(150000)]
+        public IEnumerator AShelvedSwarmBodyWalksInForAFractionOfANewOne()
+        {
+            yield return LoadSwarm(false);
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var encounters = setup.Encounters;
+            var hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
+            Assert.That(encounters.IsInSwarmRoom, Is.True, "The proof floor opens on its swarm.");
+            const int place = 0;
+            EnemyDefinition kind = encounters.CurrentRoom.WaveAt(0).EnemyAt(0);
+            Assert.That(encounters.DefinitionOf(encounters.WaveEnemyAt(place)), Is.SameAs(kind));
+            Assert.That(EncounterController.HasPlainBody(kind.Prefab), Is.True);
+            MethodInfo spawn = typeof(EncounterController).GetMethod("SpawnSwarmEnemy", Private);
+
+            // New bodies: nothing has left the floor yet, and what the refills retire waits out this frame. The first
+            // refill warms the path; the second is counted. Each newcomer falls at once, so the director, told of the
+            // fall, refills the place in its own time from a fallen body as it always does.
+            Assert.That(encounters.ShelvedBodyCountOf(kind), Is.Zero, "Nothing shelved before anything falls.");
+            int fresh = int.MaxValue;
+            long freshBytes = 0;
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                Fell(encounters, place);
+                Measure(encounters, spawn, SwarmSpawn(encounters, place, 0, 0), out int allocations, out long bytes);
+                Assert.That(encounters.WaveEnemyAt(place).IsAlive, Is.True, "A newcomer stands in the place.");
+                Assert.That(encounters.ShelvedBodyCountOf(kind), Is.Zero);
+                if (attempt == 1)
+                {
+                    fresh = allocations;
+                    freshBytes = bytes;
+                }
+                Fell(encounters, place);
+            }
+
+            // Shelved bodies: a frame on, the retired ones are shelved, and each refill stands one up. The smallest of up to
+            // three is counted, past the first, which may warm the path.
+            int pooled = int.MaxValue;
+            long pooledBytes = 0;
+            int reuses = 0;
+            float deadline = Time.realtimeSinceStartup + 60;
+            while (reuses < 3 && !setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
+            {
+                KeepUp(setup, hero);
+                yield return null;
+                int shelved = encounters.ShelvedBodyCountOf(kind);
+                if (shelved == 0 || setup.Choices.IsOpen)
+                    continue;
+                Fell(encounters, place);
+                Measure(encounters, spawn, SwarmSpawn(encounters, place, 0, 0), out int allocations, out long bytes);
+                Assert.That(encounters.ShelvedBodyCountOf(kind), Is.EqualTo(shelved - 1), "The refill stood a shelved body up.");
+                Assert.That(encounters.WaveEnemyAt(place).IsAlive, Is.True);
+                if (reuses > 0 && allocations < pooled)
+                {
+                    pooled = allocations;
+                    pooledBytes = bytes;
+                }
+                reuses++;
+                Fell(encounters, place);
+            }
+            Assert.That(reuses, Is.GreaterThanOrEqualTo(2), "Shelved bodies walked in again.");
+            Assert.That(encounters.SwarmPlacesFault(), Is.Null);
+
+            // The counts go to the log for the probe's reader; the test ends on LogAssert.NoUnexpectedReceived.
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[HordeBodyPoolTests\] a new swarm body"));
+            Debug.Log($"[HordeBodyPoolTests] a new swarm body walks in for {fresh} allocations ({freshBytes} bytes), a " +
+                      $"shelved one for {pooled} ({pooledBytes} bytes).");
+            // The swarm's two refills differ only by the body: Instantiate, Initialize and a new weapon, or ReuseBody (Revive,
+            // Rearm restoring the weapon, the views reset). The place's name, its record and the record's closure, the entry
+            // and the pack's place are made the same both ways. The horde's spawns differed by that body and no more when
+            // Unity measured them on 2026-11-11 (a new body 80 allocations, a shelved one 50: its reuse still made a weapon,
+            // a record, a closure and a name, as the new one did), so the body alone saves at least the horde's measured 30,
+            // and the swarm's reuse, which makes no weapon, more. The bound is the horde's: that saving less a margin of 10.
+            Assert.That(fresh - pooled, Is.GreaterThanOrEqualTo(MeasuredSaving - SavingMargin),
+                $"A shelved swarm body's refill allocates {pooled} times, a new one's {fresh}: the pool saves less than the horde's.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The Forge Warden walks the finale's ladder as a plain swarm enemy - no gate boss, no elite - but its prefab
+        // carries EnrageBehaviour, which the pool does not reset: its body is destroyed as its place fills again, never
+        // shelved, while a Mite's beside it is.
+        [UnityTest, Timeout(150000)]
+        public IEnumerator TheSwarmsWardenIsNeverShelved()
+        {
+            yield return LoadSwarm(false);
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var encounters = setup.Encounters;
+            Assert.That(encounters.IsInSwarmRoom, Is.True, "The proof floor opens on its swarm.");
+            RoomDefinition room = encounters.CurrentRoom;
+            EnemyDefinition wardenKind = AssertPlainKinds(room);
+            int wardenWave = -1, wardenIndex = -1;
+            for (int w = 0; w < room.WaveCount && wardenWave < 0; w++)
+            {
+                for (int e = 0; e < room.WaveAt(w).EnemyCount && wardenWave < 0; e++)
+                {
+                    if (room.WaveAt(w).EnemyAt(e) == wardenKind)
+                    {
+                        wardenWave = w;
+                        wardenIndex = e;
+                    }
+                }
+            }
+            const int place = 0;
+            EnemyDefinition mite = room.WaveAt(0).EnemyAt(0);
+            Health opening = encounters.WaveEnemyAt(place);
+            Assert.That(encounters.DefinitionOf(opening), Is.SameAs(mite));
+            MethodInfo spawn = typeof(EncounterController).GetMethod("SpawnSwarmEnemy", Private);
+
+            // The Warden walks into the opening Mite's place, which leaves for the shelf.
+            Fell(encounters, place);
+            spawn.Invoke(encounters, SwarmSpawn(encounters, place, wardenWave, wardenIndex));
+            Health warden = encounters.WaveEnemyAt(place);
+            Assert.That(encounters.DefinitionOf(warden), Is.SameAs(wardenKind));
+            Assert.That(warden.GetComponent<EnrageBehaviour>(), Is.Not.Null);
+            Assert.That(encounters.GateBoss, Is.Null, "The swarm's Warden is no gate boss.");
+            Assert.That(encounters.Elites, Is.Empty, "Nor an elite.");
+
+            // It falls, and a Mite takes its place: its body leaves the floor.
+            Fell(encounters, place);
+            spawn.Invoke(encounters, SwarmSpawn(encounters, place, 0, 0));
+            Assert.That(warden.gameObject.activeSelf, Is.False, "The Warden's body left the floor.");
+            Fell(encounters, place);
+            yield return null;
+            yield return null;
+            Assert.That(warden == null, Is.True, "The Warden's body was destroyed, not kept.");
+            Assert.That(encounters.ShelvedBodyCountOf(wardenKind), Is.Zero, "No Warden is shelved.");
+            Assert.That(opening == null, Is.False, "The opening Mite's body was kept.");
+            Assert.That(encounters.ShelvedBodyCountOf(mite), Is.GreaterThan(0), "And shelved, in the swarm room.");
+            Assert.That(encounters.SwarmPlacesFault(), Is.Null);
             LogAssert.NoUnexpectedReceived();
         }
 
