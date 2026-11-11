@@ -2143,7 +2143,10 @@ The owner: "daha çok kullan", then "80 olana kadar kullan". Since the evening s
   rows are unchanged). The careful Vanguard, seeds 11-66 (TestResults/horde-pacing-descent-vanguard-1111.txt): 6 of 6
   walk out of the finale; floor 1 272-300 s, floor 2 267-287 s, the finale 68 s, the Descent 10.1-10.9 min, against
   the simulation's P50 276 / 274 / 68 s and 10.3 min. The finale's chest opens at 0.0 s of the swarm clock in every
-  seed; the hero reaches floor 2's gate at level 40-42 (simulation 40-41). Ilya's run follows.
+  seed; the hero reaches floor 2's gate at level 40-42 (simulation 40-41). Ilya (with the body pool on): 6 of 6 walk
+  out, the Descent 9.9-10.7 min. On the same seeds the Editor and the simulation agree (FOUNDRY_FLOORS=3 with both
+  files): the Descent P50 626 / 632 s for the Vanguard and 620 / 617 s for Ilya, floors 282 / 284 and 274 / 276 s,
+  277 / 277 and 269 / 270 s, the Wardens 56 / 55 and 50 / 49 s, 50 / 52 and 44 / 45 s.
 - **The horde's bodies are pooled** (EncounterController BodyPool): a horde frame with a spawn allocates 6.8 KB
   against 13.6 KB, the quiet frame's 5.5 KB being mostly the probe's own. Two holders read a reused body as its old
   life and were fixed before the merge (PackMotion's places, CombatEffectsView's watchers), and the pool's review found
