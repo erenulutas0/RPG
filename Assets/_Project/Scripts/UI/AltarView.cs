@@ -80,7 +80,11 @@ namespace Cryptforge.UI
         }
 
         private static Vector3 Project(Vector2 floor) => new Vector3(floor.x, ArenaFloor.WorldY(floor.y), 0);
-        private void LateUpdate() => Refresh();
+        private void LateUpdate()
+        {
+            using (PerformanceMarkers.LateAltar.Auto())
+                Refresh();
+        }
 
         internal void Refresh()
         {

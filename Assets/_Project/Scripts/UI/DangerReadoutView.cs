@@ -73,11 +73,14 @@ namespace Cryptforge.UI
             int percent = PercentOf(_setup.HeroStats.Difficulty);
             if (percent == _shownPercent)
                 return;
-            if (percent > _shownPercent)
-                _pulsePending = true;
-            _shownPercent = percent;
-            _label.text = string.Format(_text.DangerFormat, percent);
-            _label.gameObject.SetActive(percent > 0);
+            using (PerformanceMarkers.PickHud.Auto())
+            {
+                if (percent > _shownPercent)
+                    _pulsePending = true;
+                _shownPercent = percent;
+                _label.text = string.Format(_text.DangerFormat, percent);
+                _label.gameObject.SetActive(percent > 0);
+            }
         }
 
         // Unscaled, because the rise usually lands while a card offer has the game paused.

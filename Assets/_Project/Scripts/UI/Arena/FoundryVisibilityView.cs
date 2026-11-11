@@ -183,6 +183,12 @@ namespace Cryptforge.UI
 
         private void LateUpdate()
         {
+            using (Cryptforge.Core.PerformanceMarkers.LateVisibility.Auto())
+                LateTick();
+        }
+
+        private void LateTick()
+        {
             Vector4 focus = Vector4.zero;
             if (_hero != null && (_health == null || _health.IsAlive))
             {
@@ -198,11 +204,18 @@ namespace Cryptforge.UI
         // a flat view is never reused for a camera that is not one.
         private void OnCameraPreCull(Camera camera)
         {
-            string refusal = CameraRefusal(camera);
-            if (!_applied || _appliedFrame != Time.frameCount || (_gated && refusal != null)) Place(refusal);
+            using (Cryptforge.Core.PerformanceMarkers.DepthPlace.Auto())
+            {
+                string refusal = CameraRefusal(camera);
+                if (!_applied || _appliedFrame != Time.frameCount || (_gated && refusal != null)) Place(refusal);
+            }
         }
 
-        private void OnCameraPostRender(Camera camera) => RestoreActorDepth();
+        private void OnCameraPostRender(Camera camera)
+        {
+            using (Cryptforge.Core.PerformanceMarkers.DepthRestore.Auto())
+                RestoreActorDepth();
+        }
 
         // The placement for a render whose camera is not known (tests, the probe's timing): every enemy, drop and chest body
         // wears its silhouette material.

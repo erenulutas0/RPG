@@ -105,7 +105,8 @@ namespace Cryptforge.Core
                 if (_choiceWait >= ChoiceDelay)
                 {
                     _choiceWait = 0f;
-                    _setup.Choices.TrySelect(_setup.Choices.Current, ChoiceSlot());
+                    using (PerformanceMarkers.Pick.Auto())
+                        _setup.Choices.TrySelect(_setup.Choices.Current, ChoiceSlot());
                 }
                 return;
             }

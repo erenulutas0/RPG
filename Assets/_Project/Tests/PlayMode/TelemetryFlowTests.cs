@@ -396,7 +396,11 @@ namespace Cryptforge.Tests
                 if (!File.Exists(path))
                     continue;
 
-                string text = File.ReadAllText(path, Encoding.UTF8);
+                // Sharing write access: a scene still recording holds the current file open (TelemetryRuntime.HoldFile).
+                string text;
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
+                    text = reader.ReadToEnd();
                 Assert.That(text, Does.EndWith("\n"), $"{path} ends with a complete line.");
                 string[] parts = text.Substring(0, text.Length - 1).Split('\n');
                 foreach (string part in parts)

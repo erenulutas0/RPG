@@ -78,7 +78,7 @@ namespace Cryptforge.UI
         }
         private static Vector3 Project(Vector2 floor)=>new Vector3(floor.x,ArenaFloor.WorldY(floor.y),0);
         private static Vector3 Point(float angle,float radius)=>Project(new Vector2(Mathf.Cos(angle)*radius,Mathf.Sin(angle)*radius));
-        private void LateUpdate()=>Refresh();
+        private void LateUpdate(){using(PerformanceMarkers.LateExitSeal.Auto())Refresh();}
         internal void Refresh()
         {
             if(_plate==null)return;

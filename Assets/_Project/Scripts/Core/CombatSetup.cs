@@ -192,7 +192,11 @@ namespace Cryptforge.Core
                 categories ? _economy.CategoryChoiceCount : _economy.UpgradeChoiceCount, HeroStats,
                 movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes);
             // A weapon taken from an offer joins the hero's attack after the ones it already carries.
-            Upgrades.WeaponAcquired += (card, runtime) => _attack.AddWeapon(runtime);
+            Upgrades.WeaponAcquired += (card, runtime) =>
+            {
+                using (PerformanceMarkers.PickAddWeapon.Auto())
+                    _attack.AddWeapon(runtime);
+            };
             Forge = new ForgeService(Run, _hero);
             Checkpoint = new CheckpointService(Run);
             Choices = new RunChoices(Upgrades, Forge, Checkpoint);
@@ -306,9 +310,12 @@ namespace Cryptforge.Core
         // A failed write keeps the in-memory profile; the next change tries again.
         private void ApplyHeroStats()
         {
-            HeroMovementInput movement = _hero.GetComponent<HeroMovementInput>();
-            HeroStatsBinding.Apply(HeroStats, _hero.State, movement != null ? movement.Motion : null,
-                movement != null ? movement.Stamina : null);
+            using (PerformanceMarkers.PickHeroStats.Auto())
+            {
+                HeroMovementInput movement = _hero.GetComponent<HeroMovementInput>();
+                HeroStatsBinding.Apply(HeroStats, _hero.State, movement != null ? movement.Motion : null,
+                    movement != null ? movement.Stamina : null);
+            }
         }
 
         private void SaveProfile()
@@ -462,7 +469,11 @@ namespace Cryptforge.Core
             _encounters.DescendToNextFloor();
         }
 
-        private void OnChoicesChanged() => Pause.SetChoiceOpen(Choices.IsOpen);
+        private void OnChoicesChanged()
+        {
+            using (PerformanceMarkers.PickPause.Auto())
+                Pause.SetChoiceOpen(Choices.IsOpen);
+        }
 
         // Leaving the app (a call, the home button) pauses the run so it waits for the player on return.
         private void OnApplicationPause(bool paused)

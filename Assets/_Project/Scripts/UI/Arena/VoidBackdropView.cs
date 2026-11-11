@@ -195,7 +195,11 @@ namespace Cryptforge.UI
             }
         }
 
-        private void LateUpdate() => FrameCavern();
+        private void LateUpdate()
+        {
+            using (Cryptforge.Core.PerformanceMarkers.LateBackdrop.Auto())
+                FrameCavern();
+        }
 
         // Cover the full camera without stretching the source. Small bounded parallax gives depth without exposing
         // image edges at any rim or screen aspect; the floor and collision geometry remain world-anchored.

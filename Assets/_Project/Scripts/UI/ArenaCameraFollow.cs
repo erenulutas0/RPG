@@ -69,8 +69,14 @@ namespace Cryptforge.UI
             }
         }
 
-        // After every Update, so the hero has moved and the safe area fitter has placed the HUD.
         private void LateUpdate()
+        {
+            using (Cryptforge.Core.PerformanceMarkers.LateCamera.Auto())
+                LateTick();
+        }
+
+        // After every Update, so the hero has moved and the safe area fitter has placed the HUD.
+        private void LateTick()
         {
             if (Screen.width != _framedWidth || Screen.height != _framedHeight || Screen.safeArea != _framedSafeArea)
             {

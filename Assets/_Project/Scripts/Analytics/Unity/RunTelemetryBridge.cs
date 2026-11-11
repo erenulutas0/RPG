@@ -16,6 +16,7 @@ namespace Cryptforge.Analytics
     public sealed class RunTelemetryBridge : MonoBehaviour
     {
         private RunTelemetry _telemetry;
+        private bool _holdsFile;
         private EncounterController _encounters;
         private AbilityController _ability;
         private ChestSpawner _chests;
@@ -36,11 +37,67 @@ namespace Cryptforge.Analytics
             if (ability == null)
                 throw new ArgumentNullException(nameof(ability));
 
-            var telemetry = new RunTelemetry(context);
+            // The recorder subscribes to an offer, a pick and a weapon taken as it is made; a scope opened just before its
+            // handlers and closed just after them times them for the perf probe (PerformanceMarkers.PickTelemetry), since
+            // the pure recorder holds no Unity marker of its own.
+            bool timed = context.Choices != null && context.Upgrades != null;
+            if (timed)
+                TimeChoices(context, true);
+            RunTelemetry telemetry;
+            try
+            {
+                telemetry = new RunTelemetry(context);
+            }
+            catch
+            {
+                if (timed)
+                    UntimeChoices(context);
+                throw;
+            }
+            if (timed)
+                TimeChoices(context, false);
             RunTelemetryBridge bridge = host.AddComponent<RunTelemetryBridge>();
             bridge.Bind(telemetry, encounters, ability, FindChestSpawner(host.scene));
+            // The session's file stays open while this scene records (TelemetryRuntime.HoldFile): a flush is then one
+            // write, not an open, a write and a close.
+            TelemetryRuntime.HoldFile();
+            bridge._holdsFile = true;
             return bridge;
         }
+
+        // Before the recorder is made (open) the scopes' openings, after it (closed) their closings, on each event it hears
+        // of an offer, a pick or a weapon taken: handlers run in the order they subscribed, so each scope holds exactly the
+        // recorder's own handler. They go with the services, which go with the scene.
+        private static void TimeChoices(RunTelemetryContext context, bool open)
+        {
+            if (open)
+            {
+                context.Choices.Changed += OpenScope;
+                context.Upgrades.OfferChanged += OpenScope;
+                context.Upgrades.Selected += OpenScope;
+                context.Upgrades.WeaponAcquired += OpenScope;
+                return;
+            }
+            context.Choices.Changed += CloseScope;
+            context.Upgrades.OfferChanged += CloseScope;
+            context.Upgrades.Selected += CloseScope;
+            context.Upgrades.WeaponAcquired += CloseScope;
+        }
+
+        private static void UntimeChoices(RunTelemetryContext context)
+        {
+            context.Choices.Changed -= OpenScope;
+            context.Upgrades.OfferChanged -= OpenScope;
+            context.Upgrades.Selected -= OpenScope;
+            context.Upgrades.WeaponAcquired -= OpenScope;
+        }
+
+        private static void OpenScope() => Cryptforge.Core.PerformanceMarkers.PickTelemetry.Begin();
+        private static void OpenScope(Cryptforge.Progression.UpgradeOption option, int slot) => OpenScope();
+        private static void OpenScope(Cryptforge.Progression.WeaponCard card, WeaponRuntime runtime) => OpenScope();
+        private static void CloseScope() => Cryptforge.Core.PerformanceMarkers.PickTelemetry.End();
+        private static void CloseScope(Cryptforge.Progression.UpgradeOption option, int slot) => CloseScope();
+        private static void CloseScope(Cryptforge.Progression.WeaponCard card, WeaponRuntime runtime) => CloseScope();
 
         // The Descent's drops: a dropped kill's gold is kill gold when it is picked up (docs/27, S6d). Before the
         // composition root's own subscriptions, like everything else here.
@@ -250,6 +307,12 @@ namespace Cryptforge.Analytics
             {
                 _telemetry.Dispose();
                 _telemetry = null;
+            }
+            // After the recorder's last write: the file is closed once no scene holds it (TelemetryRuntime.HoldFile).
+            if (_holdsFile)
+            {
+                _holdsFile = false;
+                TelemetryRuntime.ReleaseFile();
             }
         }
     }

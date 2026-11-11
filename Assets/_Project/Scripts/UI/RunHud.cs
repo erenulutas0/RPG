@@ -147,6 +147,12 @@ namespace Cryptforge.UI
 
         private void RefreshBadges()
         {
+            using (PerformanceMarkers.PickHud.Auto())
+                ShowBadges();
+        }
+
+        private void ShowBadges()
+        {
             if (_badgeDefinitions == null || _upgradeBadges == null || _upgradeCounts == null)
                 return;
             // The loadout row sits where these do; they are hidden whatever the pool holds, so a later pool change can
@@ -383,10 +389,13 @@ namespace Cryptforge.UI
 
         private void RefreshWeapon()
         {
-            _weaponLabel.text = string.Format(_text.WeaponFormat, _setup.HeroWeapon.DisplayName,
-                _setup.Weapon.Damage, _setup.Weapon.Interval);
-            if (_weaponName != null)
-                _weaponName.text = _setup.HeroWeapon.DisplayName;
+            using (PerformanceMarkers.PickHud.Auto())
+            {
+                _weaponLabel.text = string.Format(_text.WeaponFormat, _setup.HeroWeapon.DisplayName,
+                    _setup.Weapon.Damage, _setup.Weapon.Interval);
+                if (_weaponName != null)
+                    _weaponName.text = _setup.HeroWeapon.DisplayName;
+            }
         }
 
         private void RefreshExperience()
