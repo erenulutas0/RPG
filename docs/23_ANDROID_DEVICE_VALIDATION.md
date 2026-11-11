@@ -2300,3 +2300,80 @@ pack now marches at 3.5x its speed until within 4 units of the hero (`PackMotion
 9.4 s to the court centre in the pure test, then fights at its own pace. Observation: the 0.9-unit hold radius took a few
 nudges to land on by touch. The test run banked 50 gold into the owner's profile (37668 -> 37718, revision 246; the
 pre-run profile is backed up). 444 .NET / 719 EditMode / 164 PlayMode, zero failures.
+
+## 2026-11-11: the gate's device rows in one command
+
+The V0.1 gate (`TestResults/foundry-gate.md`, `FoundryGate`) has two rows only the phone can fill, **Floor time (the
+owner's play)** and **Frame time on the device**. Both now read what `Tools/Device/Pull-DeviceEvidence.ps1` pulls into
+`TestResults/device-<yyyyMMdd-HHmmss>/`; with nothing pulled they read "not measured", word for word as before, and the
+default batch is byte-identical to main's. No phone was connected for this: the script ran against a stand-in for adb,
+and the parsers and rows against two sample pulls (`Tools/CombatChecks/DeviceSamples/`, `DevicePullTests`).
+
+What the phone holds (a development APK of `com.cryptforge.prototype`):
+- **Telemetry**, in `/sdcard/Android/data/com.cryptforge.prototype/files/telemetry/` (persistentDataPath, beside the
+  profile): `events.jsonl`, rotated at 256 KB into `events.1.jsonl` and `events.2.jsonl`, the oldest dropped - about three
+  long runs. JSON Lines of schema 1: `run_start` names the hero, `floor_complete` carries the floor's own `active_sec`,
+  `run_end` the run's `active_sec` and `floors_completed` (or `run_interrupted` when the app closed mid-run), and
+  `horde_sample` the enemies standing (`horde_alive` and `wave_alive`) every 5 active seconds.
+- **Frame stats in no file.** `FrameTimeProbe` logs to logcat in every development player: a `[Perf] window` line every
+  5 s (frames, p95, max, frames over 20 and 35 ms, KB allocated, time scale), a `[Perf] wave:` line with the enemies
+  standing as each wave enters, and a `[Perf] long frame` line for any other frame over 35 ms. `RenderStatsProbe` adds a
+  `[RenderStats]` line (GPU ms, draw calls, garbage a frame) with `development/render-stats.txt`. Only the log's buffer
+  holds them, its last few minutes.
+- **No build in the telemetry.** `session_start`'s `app_version` is `PlayerSettings.bundleVersion`, 0.1.0 on every APK.
+  What identifies a run's build is the install: the pull reads the installed APK's SHA-256 (`pm path`, `sha256sum`)
+  and its `lastUpdateTime` (`dumpsys package`), and a run begun after that install ran on that APK. Both files carry the
+  phone's clock, so the log's windows are set against the telemetry's runs and alive counts by time.
+
+### Steps
+
+1. **Install** the development APK - the lead, with the owner's OK and the game closed. `adb install -r` keeps the
+   profile and the telemetry. Keep the APK's SHA-256: `pull.txt` reads the installed one back.
+2. **The owner plays** a few runs, the Vanguard for V0.1, with no development flag on the phone. The phone keeps about
+   three runs of telemetry, so pull (step 4) after every two or three; the report reads every pull together and a line
+   two pulls share once.
+3. **A perf session** - the lead, with the owner's OK and the game closed - for the frames row at the chosen crowd:
+   ```
+   adb shell "mkdir -p /sdcard/Android/data/com.cryptforge.prototype/files/development"
+   adb shell "echo 40 > /sdcard/Android/data/com.cryptforge.prototype/files/development/horde-probe.txt"
+   adb shell "echo on > /sdcard/Android/data/com.cryptforge.prototype/files/development/render-stats.txt"
+   ```
+   Launch the game and start a run: the first wave is padded to 40 (the pack's most) and the hero stands with a
+   million health more, so the crowd holds for a minute or two of the fight. Pull at once (step 4), before the log's buffer turns over, then remove both
+   flags (`adb shell rm` each) so the owner's next runs are plain. The probe's runs are left out of the owner's floor
+   time by that million health; the autopilot's (`autopilot.txt`) could not be, so it stays off.
+4. **Pull and report**, the one command:
+   ```
+   pwsh -File Tools/Device/Pull-DeviceEvidence.ps1 -Report
+   ```
+   It stops with a message unless exactly one phone is ready (`-Serial` picks one). It only reads the phone - the reads
+   are listed in its header: the APK's hash and install time, `adb pull` of `telemetry/` and `development/`, `adb logcat
+   -d -v time -v epoch -s Unity:V` - and never taps, launches, installs, pushes, deletes, clears the log or changes a
+   setting, so it needs no focus check. It writes `pull.txt` beside the files and prints what it found: runs by hero,
+   how they ended, the probes' windows, flags left on, a telemetry at its three files.
+5. **The batch report** (`-Report` runs it with `FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2` unless set):
+   ```
+   dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch"
+   ```
+   It reads every `TestResults/device-*` folder holding a `pull.txt` (the device sessions' folders before the script
+   hold none and stay unread); `FOUNDRY_DEVICE` names others (`;` between them) or `none`. The gate section gains a
+   `Device:` line naming the pulls, the phone and the APK.
+
+### What the two rows then read
+
+- **Floor time (the owner's play)**: every floor of the owner's runs on the installed APK, by hero and floor -
+  `floor_complete`'s `active_sec` for a floor cleared, `run_end`'s `active_sec` less the floors before it for the floor
+  a run died on (the autopilot's row's floor: from its first frame to the gate held or a death) - as P50 over every
+  run, the clears' P50 beside. The Vanguard's floor 1 against 240-360 s decides; no Vanguard floor 1 is not measured.
+  Left out and counted: runs begun before the install, the density probe's runs, floors never finished (the app
+  closed, the run still on, or its lines rotated away). `autopilot.txt` on the phone at the pull is named.
+- **Frame time on the device**: the `[Perf]` windows on the installed APK, each **in play** when it ends at time scale 1
+  inside a run past its opening (its load and first wave), and **alive** the most enemies a `horde_sample` or a
+  `[Perf] wave:` line counted in it. At the crowd - 30 alive and more, the owner's 30-40 on the S23 - frames over 20 ms
+  at most a twentieth of the frames (p95 at most 20 ms); no frame over 35 ms in any window in play; garbage a frame
+  flat, the later half of the crowd's windows within a quarter (or 0.1 KB) of the earlier, proposed. Met when all
+  three hold, not met when one is missed, not measured when no window reached the crowd or one cannot show the
+  garbage's trend. Printed beside: the windows' p95 and max, frames over 20 and 35 ms, the alive range, garbage a frame,
+  the frames over 35 ms named one by one, and `[RenderStats]`' GPU ms, draw calls and garbage at the crowd. The device's
+  probe counts frames over 20 and 35 ms (the target's lines), not the Editor's 16.7 and 33.3; the Editor's perf probe
+  stays in its column.
