@@ -189,11 +189,11 @@ namespace Cryptforge.Tests
                     note: b => ClearsNote(b, Median(b.Runs.Select(r => r.Engaged)), Median(b.Cleared.Select(r => r.Engaged)),
                         p50 => p50 >= UptimeTarget, "0.00")),
                 PerHero(gate, FirstCombat, $"<= {F(FirstCombatSeconds)} s (docs/41 step 2, docs/40 section 9.6), read as the P90",
-                    "The hero's first landed strike, in active seconds.",
+                    "The hero's first landed strike, in active seconds; a run that never struck counts as its whole floor.",
                     b =>
                     {
-                        double p90 = Percentile(b.Runs.Select(r => r.FirstStrikeSeconds), 90);
-                        return ($"P50 {F(Median(b.Runs.Select(r => r.FirstStrikeSeconds)), "0.0")} s, P90 {F(p90, "0.0")} s",
+                        double p90 = Percentile(b.Runs.Select(r => r.FirstCombatSeconds), 90);
+                        return ($"P50 {F(Median(b.Runs.Select(r => r.FirstCombatSeconds)), "0.0")} s, P90 {F(p90, "0.0")} s",
                             double.IsNaN(p90) ? (bool?)null : p90 <= FirstCombatSeconds);
                     },
                     e => ("not in the pacing file", null)),

@@ -592,7 +592,7 @@ namespace Cryptforge.Tests
             });
             Line("First combat (first strike) P90", "<= 10 s", b =>
             {
-                double p90 = Percentile(b.Runs.Select(r => r.FirstStrikeSeconds), 90);
+                double p90 = Percentile(b.Runs.Select(r => r.FirstCombatSeconds), 90);
                 return ($"{F(p90, "0.0")} s", p90 <= 10);
             });
             Line("Warden fight P50 (felled)", "45-65 s", b =>

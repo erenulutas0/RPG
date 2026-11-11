@@ -623,8 +623,11 @@ namespace Cryptforge.Tests
             public bool DiedAtWarden =>
                 Outcome == FoundryOutcome.Died && LevelAtGate >= 0 && DeathPhase == "boss";
             public string Killer;
-            // The first strike the hero landed, in active seconds.
+            // The first strike the hero landed, in active seconds; -1 when it never landed one.
             public float FirstStrikeSeconds = -1f;
+            // The first strike as the reports read the gate's first combat: a run that never struck counts as the whole
+            // floor, never as -1 below every real strike (the 2026-11-04 parity review's O5).
+            public float FirstCombatSeconds => FirstStrikeSeconds >= 0f ? FirstStrikeSeconds : FloorSeconds;
             // Damage the hero took, by what dealt it, and the damage it dealt, by what dealt it.
             public float TakenFromWave;
             public float TakenFromHorde;

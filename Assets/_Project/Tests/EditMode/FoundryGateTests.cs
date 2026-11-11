@@ -217,6 +217,30 @@ namespace Cryptforge.Tests
             Assert.That(rows[FoundryGate.WardenCost].Simulation, Does.Contain("died there 1 of 2"));
         }
 
+        // The first combat row reads a run that never landed a strike as its whole floor, not as its -1 below every real
+        // strike (the 2026-11-04 parity review's O5): two such runs in ten put the P90 past 10 s (constructed runs).
+        [Test]
+        public void ARunThatNeverStruckIsReadAsItsWholeFloorInTheFirstCombatRow()
+        {
+            FoundryGate.Row Row(int never)
+            {
+                var runs = new DescentSimulation.FoundryResult[10];
+                for (int i = 0; i < runs.Length; i++)
+                    runs[i] = new DescentSimulation.FoundryResult
+                    {
+                        Seed = i + 1, Hero = FoundryGate.V01HeroId, Outcome = DescentSimulation.FoundryOutcome.Died,
+                        Kinds = new[] { RoomKind.Combat }, FloorSeconds = 250f, RoomSeconds = new[] { 250f },
+                        WalkSeconds = new[] { -1f }, WaveSeconds = new[] { -1f }, FirstStrikeSeconds = i < never ? -1f : 1.5f
+                    };
+                var batch = new FoundryBatch.Batch { Hero = DescentSimulation.Vanguard(), Levers = FoundryBatch.Shipped(), Runs = runs };
+                return FoundryGate.Rows(new[] { batch }, null, null).Single(r => r.Criterion == FoundryGate.FirstCombat);
+            }
+
+            Assert.That(Row(0).Status, Is.EqualTo(FoundryGate.Met), "every run struck at 1.5 s");
+            Assert.That(Row(2).Status, Is.EqualTo(FoundryGate.NotMet), "two runs never struck on a 250 s floor");
+            Assert.That(Row(2).Simulation, Does.Contain("P90 250.0 s"));
+        }
+
         // A death while the gate holds is recorded as the gate's wait's (DescentSimulation.GateWaitPhase): with the gate
         // held to the floor's limit, the Vanguard falls in the wait, and no death after the wait began and before the Warden
         // walked out is read as its room's.
