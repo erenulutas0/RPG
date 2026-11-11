@@ -2,21 +2,22 @@ using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Tests
 {
-    // The Descent's length and the finale's heal (docs/47, research 2026-11-11): two research levers on the finale's
-    // opening, off by default and read by this simulation alone - nothing of the scene heals the hero between floor 2's
-    // Warden and the Final Swarm. FoundryLevers.FinaleHealShare heals a share of the hero's maximum as the swarm opens
-    // (a Mend at the checkpoint, say); FoundryLevers.FinaleChestAtArrival moves the finale's own chest (ChestRule's room-0
-    // chest, a quarter heal) from ChestRule.SpotFor to where the hero arrives, so the hero stands on it. Floor 2's later
-    // gate and a third floor need no lever: DescentLengthResearch builds the floors' chain itself (FoundryFloor's knobs and
-    // Next) and plays it through RunFoundry's floor.
+    // The Descent's length and the finale's heal (docs/47, 2026-11-11): two levers on the finale's opening.
+    // FoundryLevers.FinaleChestAtArrival places the finale's own chest (ChestRule's room-0 chest, a quarter heal) where the
+    // hero arrives, so the hero stands on it - as ChestSpawner places a foundry swarm room's since docs/47's build, so it
+    // is on by default; off (research) it stands at ChestRule.SpotFor as before. FoundryLevers.FinaleHealShare (research
+    // only, off) heals a share of the hero's maximum as the swarm opens (a Mend at the checkpoint, say). Floor 2's gate and
+    // a third floor need no lever: DescentLengthResearch builds the floors' chain itself (FoundryFloor's knobs and Next)
+    // and plays it through RunFoundry's floor.
     internal static partial class DescentSimulation
     {
         internal sealed partial class FoundryLevers
         {
             // Research only (docs/47): a heal of this share of the hero's maximum as the finale's swarm opens; 0 is off.
             public float FinaleHealShare;
-            // Research only (docs/47): the finale's chest placed where the hero arrives; off, it stands at ChestRule.SpotFor.
-            public bool FinaleChestAtArrival;
+            // The finale's chest placed where the hero arrives, as ChestSpawner places a foundry swarm room's since docs/47's
+            // build (2026-11-11): the shipped default. Off (research), it stands at ChestRule.SpotFor, as before the build.
+            public bool FinaleChestAtArrival = true;
         }
 
         internal sealed partial class FoundryResult

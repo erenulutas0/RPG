@@ -124,7 +124,16 @@ namespace Cryptforge.Combat
             _roomNumber = _encounters.RoomNumber;
             int roomIndex = _roomNumber - 1;
             _chestIndex++;
-            ChestRule.SpotFor(roomIndex, _arena.Geometry, out _floorX, out _floorY);
+            // The foundry's finale (a swarm room; docs/47, built 2026-11-11): its chest - room 0's quarter heal - stands
+            // where the hero arrives from floor 2's gate, so a hero the Warden left near dead is mended as the swarm opens.
+            // Every other room's chest, and the hall arena's swarm room's, stands on ChestRule's spot.
+            if (_encounters.IsInSwarmRoom && _arena.IsFoundryRegion)
+            {
+                _floorX = _encounters.HeroFloorX;
+                _floorY = _encounters.HeroFloorY;
+            }
+            else
+                ChestRule.SpotFor(roomIndex, _arena.Geometry, out _floorX, out _floorY);
             _reward = ChestRule.RewardFor(roomIndex, _chestIndex, _setup.Run != null ? _setup.Run.Seed : 0);
             IsOpen = false;
             _openingRemaining = 0f;
