@@ -19,9 +19,9 @@ namespace Cryptforge.Tests
 {
     // The upgrade cards' painted icons in the Gameplay scene (UpgradeIconSet on RunChoiceView and RunHud): on the foundry
     // every category card - a new weapon, a weapon's line or evolution, a tome, a general card - shows its own icon by its
-    // id, and the loadout row shows each weapon's and tome's icon beside its level; the scene's own table still wins for
-    // an id it names, and the hall's legacy cards keep their painted icons; without the set the cards and the row are
-    // text, as they were.
+    // id, and the loadout row shows each weapon's and tome's icon beside its level; the set wins over the scene's own
+    // table, which answers only what the set lacks, and the hall's legacy cards show the set's squareless repaint of their
+    // icons (2026-11-12, so their tier ground shows); without the set the cards and the row are text, as they were.
     public sealed class UpgradeIconFlowTests
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -159,7 +159,7 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        [UnityTest, Timeout(90000)] public IEnumerator TheScenesTableWinsAndWithoutTheSetTheCardsAndTheRowAreTextAsBefore()
+        [UnityTest, Timeout(90000)] public IEnumerator TheSetWinsTheTableAnswersWhatItLacksAndWithoutBothTheCardsAndTheRowAreText()
         {
             yield return Load("foundry");
             var setup=Object.FindFirstObjectByType<CombatSetup>();var upgrades=setup.Upgrades;
@@ -168,7 +168,8 @@ namespace Cryptforge.Tests
             Assert.That(set,Is.Not.Null);
             object authored=TableField.GetValue(choices);
 
-            // A table naming every id this run can offer, each with a sprite of its own: every card shows the table's.
+            // A table naming every id this run can offer, each with a sprite of its own: every card still shows the set's
+            // (2026-11-12: the set's icons carry no square, so the card's tier ground shows round them).
             var ids=new List<string>();
             foreach(UpgradeOption option in upgrades.Pool)ids.Add(option.Id);
             foreach(WeaponCard card in upgrades.WeaponCards)
@@ -202,10 +203,22 @@ namespace Cryptforge.Tests
             for(int c=0;c<offer.Choices.Count;c++)
             {
                 Assert.That(set.CardIconFor(offer.Choices[c].Id),Is.Not.Null,"The set has one too.");
-                Assert.That(icons[c].sprite,Is.SameAs(marker),"Card "+c+" ("+offer.Choices[c].Id+"): the scene's own table wins.");
+                Assert.That(icons[c].sprite,Is.SameAs(set.CardIconFor(offer.Choices[c].Id)),
+                    "Card "+c+" ("+offer.Choices[c].Id+"): the set wins over the scene's table.");
             }
 
-            // The scene's table again: its two legacy cards are never offered by category, so the set answers every card.
+            // The same table without the set: the table answers what the set does not.
+            SetField.SetValue(choices,null);
+            Assert.That(setup.Choices.TrySelect(setup.Choices.Current,0),Is.True);
+            if(upgrades.CurrentOffer==null)setup.Run.GrantBonusUpgrade();
+            yield return null;
+            offer=upgrades.CurrentOffer;
+            Assert.That(offer,Is.Not.Null);
+            for(int c=0;c<offer.Choices.Count;c++)
+                Assert.That(icons[c].sprite,Is.SameAs(marker),"Card "+c+" ("+offer.Choices[c].Id+"): the table answers without the set.");
+
+            // The scene's table and the set again: the set answers every card.
+            SetField.SetValue(choices,set);
             TableField.SetValue(choices,authored);
             Assert.That(setup.Choices.TrySelect(setup.Choices.Current,0),Is.True);
             if(upgrades.CurrentOffer==null)setup.Run.GrantBonusUpgrade();
@@ -250,7 +263,7 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        [UnityTest, Timeout(90000)] public IEnumerator TheHallsLegacyCardsKeepTheirPaintedIconsAndEveryOtherCardShowsTheSets()
+        [UnityTest, Timeout(90000)] public IEnumerator TheHallsLegacyCardsShowTheSetsSquarelessIconsLikeEveryOtherCard()
         {
             yield return Load("hall");
             var setup=Object.FindFirstObjectByType<CombatSetup>();var upgrades=setup.Upgrades;
@@ -258,7 +271,8 @@ namespace Cryptforge.Tests
             var set=(UpgradeIconSet)SetField.GetValue(choices);
             Assert.That(upgrades.IsCategoryMode,Is.False);
             Assert.That(Object.FindFirstObjectByType<RunHud>().LoadoutBadges,Is.Null,"The hall has no loadout row.");
-            // The scene's own table: Tempered Edge and Quickened Grip with their painted icons.
+            // The scene's own table: Tempered Edge and Quickened Grip with their old painted icons, on their navy squares.
+            // The set paints both again without the square and wins, so their tier ground shows round them.
             var own=new Dictionary<string,Sprite>();
             Type entryType=typeof(RunChoiceView).GetNestedType("UpgradeIcon",BindingFlags.NonPublic);
             foreach(object entry in (Array)TableField.GetValue(choices))
@@ -277,8 +291,10 @@ namespace Cryptforge.Tests
                     string id=offer.Choices[c].Id;
                     if(own.TryGetValue(id,out Sprite painted))
                     {
-                        Assert.That(icons[c].sprite,Is.SameAs(painted),id+" keeps its painted legacy icon.");
                         Assert.That(painted.name,Does.StartWith("UI_Icon_"));
+                        Assert.That(icons[c].sprite,Is.SameAs(set.CardIconFor(id)).And.Not.SameAs(painted),
+                            id+" shows the set's icon, not the table's square one.");
+                        Assert.That(icons[c].sprite.name,Is.EqualTo("UI_UpgradeIcons_"+id),id+": its own glyph, repainted.");
                         tableShown=true;
                     }
                     else

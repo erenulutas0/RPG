@@ -7,7 +7,8 @@
 // camera above the world. Then two staged frames, so all four tiers sit side by side: one real three-card offer shown
 // again with its tiers set to common, rare and epic, and to gold, epic and rare (the icons, names and descriptions are
 // the real offer's; only the tiers are staged, so a staged card's numbers are its drawn tier's). cards.txt lists every
-// frame's cards. No scene or asset is saved; nothing here ships.
+// frame's cards. A second run on the hall stages a two-card offer holding Tempered Edge or Quickened Grip on epic and
+// gold, their icons the set's squareless repaints (cards-hall.txt). No scene or asset is saved; nothing here ships.
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -65,7 +66,7 @@ namespace Cryptforge.Tests
             Assert.That(_view.PaintsCards, Is.True, "The painted cards.");
             _art = _view.CardArt;
             Directory.CreateDirectory(Output);
-            _cards.Append("Each frame's cards, top to bottom: tier, id, and the item ground's sprite.\n");
+            _cards.Clear().Append("Each frame's cards, top to bottom: tier, id, and the item ground's sprite.\n");
 
             UpgradeService upgrades = _setup.Upgrades;
             var shot = new bool[RarityTable.TierCount];
@@ -143,6 +144,87 @@ namespace Cryptforge.Tests
             Assert.That(found, Is.EqualTo(shot.Length), "Every tier was on show within three hundred offers.");
             for (int i = 0; i < 4 && _setup.Choices.IsOpen; i++)
                 _setup.Choices.TrySelect(_setup.Choices.Current, NotAnEvolution(upgrades.CurrentOffer));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The hall's two legacy cards, Tempered Edge and Quickened Grip, whose icons the set now paints without their navy
+        // square: the hall's offers answered until one holds either, then that two-card offer shown again staged epic and
+        // gold, and gold and epic, so each legacy icon stands on both grounds. cards-hall.txt lists the frames.
+        [UnityTest, Timeout(300000)]
+        public IEnumerator CaptureTheHallsLegacyCardsOnEpicAndGold()
+        {
+            TestProfile.Begin();
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RunSeedPath));
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath, "hall");
+            File.WriteAllText(DevelopmentStart.RunSeedPath, Seed);
+            Time.timeScale = 1;
+            yield return SceneManager.LoadSceneAsync(ScenePath);
+            yield return null;
+            _scene = SceneManager.GetActiveScene();
+            _setup = Object.FindFirstObjectByType<CombatSetup>();
+            _view = Object.FindFirstObjectByType<RunChoiceView>();
+            Object.FindFirstObjectByType<HeroMovementInput>().enabled = false;
+            _camera = Camera.main;
+            Assert.That(_view.PaintsCards, Is.True, "The painted cards.");
+            _art = _view.CardArt;
+            Directory.CreateDirectory(Output);
+            _cards.Clear().Append("The hall's legacy cards, staged on the epic and gold grounds: tier, id, ground.\n");
+
+            UpgradeService upgrades = _setup.Upgrades;
+            UpgradeOffer legacy = null;
+            for (int i = 0; i < 40 && legacy == null; i++)
+            {
+                if (upgrades.CurrentOffer == null)
+                    _setup.Run.GrantBonusUpgrade();
+                yield return null;
+                UpgradeOffer offer = upgrades.CurrentOffer;
+                if (offer == null)
+                    continue;
+                bool both = offer.Choices.Count == 2;
+                bool holds = false;
+                for (int c = 0; c < offer.Choices.Count; c++)
+                    holds |= offer.Choices[c].Id == "upgrade_damage" || offer.Choices[c].Id == "upgrade_attack_speed";
+                if (both && holds)
+                {
+                    legacy = offer;
+                    break;
+                }
+                Assert.That(_setup.Choices.TrySelect(_setup.Choices.Current, 0), Is.True);
+            }
+            Assert.That(legacy, Is.Not.Null, "A hall offer held Tempered Edge or Quickened Grip within forty.");
+
+            ChoicePrompt prompt = _setup.Choices.Current;
+            MethodInfo show = typeof(RunChoiceView).GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(show, Is.Not.Null);
+            foreach (UpgradeRarity[] set in new[]
+                     {
+                         new[] { UpgradeRarity.Epic, UpgradeRarity.Gold },
+                         new[] { UpgradeRarity.Gold, UpgradeRarity.Epic }
+                     })
+            {
+                var cards = new List<ChoiceCard>();
+                var tiers = new StringBuilder();
+                for (int c = 0; c < 2; c++)
+                {
+                    cards.Add(new ChoiceCard(prompt.Cards[c].Name, prompt.Cards[c].Description, set[c]));
+                    tiers.Append('-').Append(TierNames[(int)set[c]]);
+                }
+                show.Invoke(_view, new object[] { new ChoicePrompt(ChoiceKind.Upgrade, cards) });
+                yield return new WaitForSecondsRealtime(.4f);
+                Shoot("hall-legacy" + tiers, legacy, set);
+                for (int c = 0; c < 2; c++)
+                {
+                    string id = legacy.Choices[c].Id;
+                    if (id != "upgrade_damage" && id != "upgrade_attack_speed")
+                        continue;
+                    Image icon = _view.CardButton(c).transform.Find("Choice Icon").GetComponent<Image>();
+                    Assert.That(icon.sprite.name, Is.EqualTo("UI_UpgradeIcons_" + id), $"{id}: the set's squareless icon.");
+                }
+            }
+            show.Invoke(_view, new object[] { _setup.Choices.Current });
+            File.WriteAllText(Output + "cards-hall.txt", _cards.ToString());
+            for (int i = 0; i < 4 && _setup.Choices.IsOpen; i++)
+                _setup.Choices.TrySelect(_setup.Choices.Current, 0);
             LogAssert.NoUnexpectedReceived();
         }
 

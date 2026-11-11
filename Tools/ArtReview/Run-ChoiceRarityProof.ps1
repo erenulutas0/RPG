@@ -2,7 +2,8 @@
 # Isolated, graphics-enabled capture of the level-up panel's cards on their tiers' item grounds
 # (ChoiceRarityRuntimeCapture.cs): a foundry run on seed 260 drawn at 1080x2340, a frame for each offer that brings a tier
 # not yet shown until common, rare, epic and gold have all been on screen, then two staged frames of one real three-card
-# offer with its tiers set (common, rare, epic; gold, epic, rare), so all four stand side by side. No authored import,
+# offer with its tiers set (common, rare, epic; gold, epic, rare), so all four stand side by side; then the hall, a
+# two-card offer holding Tempered Edge or Quickened Grip staged on epic and gold (hall-legacy-*.png). No authored import,
 # scene save, APK or device operation. Frames land in ArtDirection/2026-11-12/choice-rarity-01/runtime as PNG, with
 # cards.txt beside them.
 #   pwsh -File Tools/ArtReview/Run-ChoiceRarityProof.ps1

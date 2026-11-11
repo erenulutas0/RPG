@@ -14,8 +14,9 @@ namespace Cryptforge.Tests
 {
     // The upgrade cards' painted icons (Tools/ArtReview/build_upgrade_icons.py): every id the Gameplay scene's offers can
     // show - each upgrade card of its pool (the hall offers them all, the foundry the hero's), each weapon of its catalogue
-    // with its lines and its evolution, each tome of its economy - has an icon, in the scene's own table or in the set its
-    // RunChoiceView holds; the weapons, their evolutions and the tomes have socket icons for the loadout row too. The
+    // with its lines and its evolution, each tome of its economy - has an icon in the set its RunChoiceView holds (the
+    // hall's two legacy cards too, since 2026-11-12, so every card's tier ground shows round its icon; the scene's own
+    // table keeps their old painted icons only as a fallback); the weapons, their evolutions and the tomes have socket icons for the loadout row too. The
     // sheet's import and its cost on the phone, and what the icons paint, read back from the sheet as painted (the
     // imported texture is compressed and unreadable): clear at their edges and the painted icons' navy laid over it,
     // their glyphs filling the square, and each evolution throwing more light than what it evolves from.
@@ -112,11 +113,11 @@ namespace Cryptforge.Tests
             Assert.That(_tomeIds.Count, Is.EqualTo(5), "Five tomes.");
             Assert.That(_generalIds.Count, Is.EqualTo(14), "Fourteen general cards in the pool.");
             Assert.That(_tableIds, Is.EquivalentTo(new[] { "upgrade_damage", "upgrade_attack_speed" }),
-                "The scene's own table keeps the two painted legacy icons.");
+                "The scene's own table keeps the two painted legacy icons, as a fallback the set now covers.");
             var offerable = new HashSet<string>(OfferableIds());
             Assert.That(offerable.Count, Is.EqualTo(34), "No id names two cards.");
             foreach (string id in offerable)
-                Assert.That(_tableIds.Contains(id) || _set.CardIconFor(id) != null, Is.True, $"{id} has an icon.");
+                Assert.That(_set.CardIconFor(id), Is.Not.Null, $"{id} has its icon in the set, the table's two included.");
             var inSet = new HashSet<string>();
             for (int i = 0; i < _set.Count; i++)
             {
@@ -125,7 +126,7 @@ namespace Cryptforge.Tests
                 Assert.That(offerable.Contains(icon.Id), Is.True, $"{icon.Id} is something an offer can show.");
                 Assert.That(icon.Card, Is.Not.Null, $"{icon.Id} has its card icon.");
             }
-            Assert.That(inSet.Count, Is.EqualTo(offerable.Count - _tableIds.Count), "Every id the table does not cover.");
+            Assert.That(inSet.Count, Is.EqualTo(offerable.Count), "Every id an offer can show.");
         }
 
         [Test]
@@ -155,7 +156,9 @@ namespace Cryptforge.Tests
             Assert.That(_set.CardIconFor(null), Is.Null);
             Assert.That(_set.CardIconFor(string.Empty), Is.Null);
             Assert.That(_set.SlotIconFor("line_sword_damage"), Is.Null, "A line has no socket icon.");
-            Assert.That(_set.CardIconFor("upgrade_damage"), Is.Null, "The table's ids are the table's.");
+            foreach (string legacy in new[] { "upgrade_damage", "upgrade_attack_speed" })
+                Assert.That(_set.CardIconFor(legacy).name, Is.EqualTo("UI_UpgradeIcons_" + legacy),
+                    $"{legacy}: the set paints the hall's legacy card too, without its old navy square.");
             var empty = ScriptableObject.CreateInstance<UpgradeIconSet>();
             try
             {
@@ -179,7 +182,7 @@ namespace Cryptforge.Tests
             string guid = AssetDatabase.AssetPathToGUID(SetPath);
             string reference = "{fileID: 11400000, guid: " + guid + ", type: 2}";
             Assert.That(Block(_scene, "Assets/_Project/Scripts/UI/RunChoiceView.cs"), Does.Contain("\n  _iconSet: " + reference),
-                "The choice panel looks in the set after its table.");
+                "The choice panel looks in the set before its table.");
             Assert.That(Block(_scene, "Assets/_Project/Scripts/UI/RunHud.cs"), Does.Contain("\n  _upgradeIcons: " + reference),
                 "The HUD hands the set to the loadout row it builds.");
         }
@@ -296,14 +299,14 @@ namespace Cryptforge.Tests
             {
                 Sprite evolved = _set.CardIconFor(pair.Key), from = _set.CardIconFor(pair.Value);
                 Assert.That(evolved, Is.Not.Null, pair.Key);
-                if (from == null)
-                    continue;  // Tempered Edge and Quickened Grip keep the scene's own painted icons.
+                Assert.That(from, Is.Not.Null, pair.Value);
                 float more = Light(evolved), less = Light(from);
                 Assert.That(more, Is.GreaterThan(less * 1.4f),
                     $"{pair.Key} ({more:0.0}) is a richer version of {pair.Value} ({less:0.0}): its radiance and glow.");
                 pairs++;
             }
-            Assert.That(pairs, Is.EqualTo(4), "The three weapons' evolutions and Ironblood over Vital Surge.");
+            Assert.That(pairs, Is.EqualTo(6),
+                "The three weapons' evolutions, Ironblood over Vital Surge, Ruinous Edge over Tempered Edge and Blurred Grip over Quickened Grip.");
         }
 
         // The light a card icon throws on the navy round its glyph: the mean, over its square, of how far its brightest
