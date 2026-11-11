@@ -232,9 +232,11 @@ namespace Cryptforge.Core
                 stop = 0f;
                 return true;
             }
-            // A node fight is drawn to the pit's rim, but not while a guarded band glows: then the hero waits out of it. The
-            // horde alone is fought wherever the hero is going.
-            if (fighting && pit)
+            // A node fight is drawn to the pit's rim while the pit runs, but not while a guarded band glows: then the hero
+            // waits out of it. The horde alone is fought wherever the hero is going. Never in a swarm room, where the pit
+            // does not run (PitEruptionService.IsRunning): the careful pilot spent about 44 s of the finale dragging the
+            // swarm to a rim that never spills (the review of 2026-11-11).
+            if (fighting && pit && _setup.Pit.IsRunning)
             {
                 if (guarded || !_cohort.Lures)
                     return false;
