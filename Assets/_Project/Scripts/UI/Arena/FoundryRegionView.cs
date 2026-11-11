@@ -121,7 +121,6 @@ namespace Cryptforge.UI
         // s=u+v runs toward the court; d=u-v is the lateral axis.
         private static Vector2 DeckDesign(float s,float d)=>new Vector2((s+d)*.5f,(s-d)*.5f);
         private static Vector3 Deck(float s,float d)=>Project((s+d)*.5f,(s-d)*.5f);
-        private const float BridgeLaneHalf=FoundryMap.BridgeHalfWidth*.5f;
         // The bridge is laid in the court's cut stone, as on the concept: its whole walking quad short of the court (which
         // owns v >= South), on the laid stone's light lattice only, in the bridge's own field (BridgeField) - which the
         // processional way to the bridge shares (its end, which dips onto the deck, is cut from it), and the way's
@@ -186,14 +185,10 @@ namespace Cryptforge.UI
             Color brass=CeremonialBrass;
             BuildCourtSeal(arena);
             BuildCourtInlayNetwork(arena);
-            foreach(float d in new[]{-BridgeLaneHalf,BridgeLaneHalf})
-            {
-                Vector2 a=DeckDesign(FoundryMap.BridgeStart+2,d),b=DeckDesign(2*FoundryMap.South-1,d);
-                Strip(inlays,a.x,a.y,b.x,b.y,.12f,brass,CopingTrim.Brass);
-            }
+            // The bridge's lane lines are the processional way's own, carried down the deck by the court's
+            // bronze network (BuildCourtInlayGeometry); only the deck's diamond stays here.
             BridgeDiamond(inlays,brass);
-            // The court's processional settings are stone in the existing floor
-            // mesh; only the exposed bridge retains its narrow brass lane inlays.
+            // The court's processional settings are stone in the existing floor mesh.
             Create("Court brass inlays",inlays,arena.PlatformMaterials.Coping,FloorDecal);
 
             BuildGate(arena);
