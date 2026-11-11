@@ -1895,3 +1895,214 @@ night's questions as follows.
 
 What waits for the owner and the phone: installing the APK, the S23's frame time at the chosen crowd, the owner's own
 floor time, and docs/46's questions.
+
+## Status 2026-11-11: the foundry's finale in the simulation
+
+**Why.** On the foundry the Descent runs floor 1 (Ember Halls), floor 2 (Quicksilver Vaults) and then the Final Swarm
+(Floor_FinalSwarm: one swarm room, an exit to walk out of). The foundry simulation played floors 1 and 2 only, so nobody
+had measured the finale: how long it lasts, who survives it, whether walking out of it works, and the whole Descent's
+length and clear rate against docs/40 phase 2's full run of 13-16 minutes. The bug fixed on main 6a09574f - the swarm
+after floor 2's gate made its first enemy the Warden - sat on exactly that path.
+
+**What the scene does there** (EncounterController's BeginSwarm, TickSwarm, SpawnSwarmEnemy and LeaveSwarm,
+SwarmDirector, SwarmRule, ExitRule, CombatSetup, PitEruptionService, AltarService, ChestSpawner, DevelopmentAutopilot
+and the asset):
+- Floor_FinalSwarm is one swarm room, the Unending Crowd (RoomKind 4), whose twelve waves are a ladder: three Cinder
+  Mites at first, a Grunt from the third wave, a Runner from the sixth, a Tank from the tenth, and in the twelfth a
+  Forge Warden among nine others - an ordinary enemy there, with no slam. The floor is not climb-scaled: its enemies
+  take health 1 and damage 0.92, where floor 2's take 1.4 and 1.288 and Cursed Gold's +20 %. No modifier, no horde
+  roles, no floor below.
+- After floor 2's checkpoint (Descend) and the 1 s advance delay, BeginSwarm opens one pack for the room's life.
+  SwarmDirector reads the ladder by the room's clock - a wave every 12 s, so the Tanks walk in at 1:48 and the Warden at
+  2:12 - and each enemy takes the ramp's difficulty as it walks in (x1.02 every 3 s: x1.49 at 1:00, x2.2 at 2:00, x4.9
+  at 4:00) times the run's. A fallen enemy's place refills 2 s after its fall. Each enemy walks in alone round the hero,
+  through the foundry's PlacePack.
+- No horde: HordeWanted needs a floor with horde roles and no swarm room, so the floor clock is hidden. No pit:
+  PitEruptionService runs only outside a swarm room. No gate boss since 6a09574f. The floor's two altars answer again,
+  since AltarService resets them on a new floor, and the room's chest (a quarter of the hero's health) stands at floor
+  (1.8, 1).
+- A kill pays at once, and its level-ups wait for a sitting every 10 s of the room's clock.
+- The exit is ExitRule.SpotFor on the foundry's geometry: floor (0, 6), on the court's east side and outside the pit's
+  band. The hero holds it by standing still within 0.9 of it for 1 s. Leaving releases the held level-ups and clears the
+  floor; with no floor below, CombatSetup ends the run in victory, and the offers just released are withdrawn with it.
+- The development autopilot plays it with its cohort's habits. The careful pilot kites; otherwise it draws the swarm to
+  the pit's rim. Its lure reads the pit as active (`Pit.IsActive`), not as running, so it lures to a rim that never
+  spills there. Between kills it walks to the altars. From 60 s on the room's clock (`SwarmStay`) it walks to the exit
+  before anything else and stands on it. Its "linger" and "idle" modes do not apply in a swarm room (`Lingering`).
+
+**What was built** (the simulation and its reports; no scene code, no asset):
+- `FoundryLevers.Floors = 3`: after a floor-2 clear the run answers the checkpoint with Descend and plays the finale
+  (`DescentSimulation.FoundryFinale`, floor 2's `Next`). Its ladder is the hall Descent's `FinalSwarm`, which
+  DescentFlowTests holds to the asset, at the floor's own multipliers. The swarm goes through SwarmDirector and
+  SwarmRule, the entries through the foundry's PlacePack, and the exit and its hold through ExitRule. Kills pay at once,
+  the sittings come every 10 s, and the walk out ends the run in victory. As the scene's ReleaseWave does since
+  6a09574f, the swarm resets the gate's and the elite room's flags. The pilot turns for the exit at the autopilot's
+  60 s; `FoundryLevers.FinaleStaySeconds` (research, off) stays longer.
+- The code is a new partial, `Tests/Support/DescentSimulation.FoundryFinale.cs`. `DescentSimulation.Foundry.cs` gains
+  `partial` on four classes, floor 2's next floor and one-to-three-line hooks: the endless room's progress, the swarm's
+  frame, its first step, its deaths and their phase, the pit outside a swarm room and the pilot's exit goal.
+- `FoundryResult` reads the finale: the swarm's clock, ramp step and ladder wave at the end, the hero's level, health
+  and difficulty entering, the walk out and where it left from, the sittings, and the frames with a gate boss.
+- The batch report with FOUNDRY_FLOORS=3 writes the finale's tables (foundry-finale.md, and in the cohort section) and a
+  row a run (foundry-finale.csv). `FinaleStayResearch` (explicit) plays the finale at longer stays.
+- Tests. `FoundryFinaleTests` (CombatChecks and EditMode, read over the Editor's four seeds and both heroes, never one
+  seed's path):
+  - the finale is floor 2's next floor and the hall Descent's ladder, and its exit is on the floor, outside the band;
+  - it is played after a floor-2 clear and ends, walked out or fallen, never at the limit, with no horde, no pit and the
+    level and health floor 2 left;
+  - floors 1 and 2 are the same runs, field for field, with or without it;
+  - no gate boss in it: no frame of the swarm reads one, no slam, no reveal, none of the Sword's share on a Warden and
+    none of the Daggers' on an elite. With the flags' reset taken out it fails: 2,196 such frames in its first run;
+  - walking out is a victory, from the exit, after the stay and the hold;
+  - the stay lever.
+  `FoundrySimulationSceneValueTests.TheFoundrysFinaleIsTheAsset` holds the finale's floor, ladder and enemies to
+  Floor_FinalSwarm and the 60 s to `DevelopmentAutopilot.SwarmStay` (Unity; compile-checked here).
+- The default batch (FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=2) is byte-identical to main cebf8775's, and was
+  to 6a09574f's before the merge: foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv,
+  foundry-gate.md and foundry-cohorts.md are the same to the byte, and foundry-batch.md differs only in its date and its
+  wall-clock seconds.
+
+**How it was measured.** Main cebf8775 with this branch. The batch report ran with FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=3 FOUNDRY_PARALLEL=6, frame-perfect and with FOUNDRY_REALISM=typical ("human hands"),
+both heroes, every cohort. The outputs are in TestResults/finale-1111/fp and hh: foundry-finale.md, foundry-finale.csv
+with a row a finale, and the cohort section. Floors 1 and 2 are the default batch's runs: the finale comes after them
+and changes nothing before it. A first run on 6a09574f, before main's forge-walk fix, is kept in
+finale-1111/pre-merge-6a09574f and reads the same.
+
+### Who reaches the finale, and how it ends
+
+Of 200 seeds a hero, Vanguard / Ilya. Reached: cleared both floors. Walked out and died there: of those that reached it.
+
+| Cohort | Frame-perfect: reached ; walked out ; died there | Human hands: reached ; walked out ; died there |
+|---|---|---|
+| careful | 200 / 200 ; 200 / 200 ; 0 / 0 | 194 / 195 ; 194 / 193 ; 0 / 2 |
+| standing | 173 / 185 ; 172 / 182 ; 1 / 3 | 159 / 159 ; 155 / 157 ; 4 / 2 |
+| first-card | 196 / 200 ; 196 / 200 ; 0 / 0 | 178 / 197 ; 174 / 194 ; 4 / 3 |
+| clumsy | 101 / 165 ; 101 / 165 ; 0 / 0 | 66 / 105 ; 65 / 103 ; 1 / 2 |
+| auto-farmer | 2 / 3 ; 2 / 3 ; 0 / 0 | 2 / 4 ; 1 / 4 ; 1 / 0 |
+
+- **Walking out works.** Every hero that survived the finale walked out of it: 1,421 of 1,425 frame-perfect and 1,240 of
+  1,259 with human hands, each from within the exit's 0.9. None timed out. No frame of any of the 2,684 swarms read a
+  gate boss.
+- **Deaths there**: 4 frame-perfect and 19 with human hands. Grunts dealt 22 of the 23 killing blows and a Runner one;
+  20 fell fighting and 3 after turning for the exit. Every one of them entered the finale under a fifth of its maximum
+  health (0-19 %). Of the heroes that entered under a quarter, 4 of 46 and 19 of 124 died; of the 1,379 and 1,135 that
+  entered with more, none did.
+
+### How long it lasts
+
+For every cohort and both hands the finale takes P50 65 s, P90 66 s, from floor 2's checkpoint with the 1 s descent
+included. That is the autopilot's 60 s, then a 4.2-4.5 s walk to the exit (P90 5.0 s) with its 1 s hold, and every
+walk-out lands inside docs/40's 45-90 s. At its end the swarm's clock reads 64 s: the ladder's sixth wave (a Runner, a
+Grunt and four Mites) at x1.52 on the ramp. The hero has made 85 kills and sat 6 times, and at most 5 enemies stood at
+once (P50). The careful pilot spends 43-44 s of it luring the swarm to the pit's rim.
+
+### The hero coming in
+
+Vanguard / Ilya; health as a share of the maximum. Health lost: in the finale, mean.
+
+| Cohort | Level entering P50, frame-perfect | Health entering P50 (P10), frame-perfect | Health entering P50 (P10), human hands | Health lost: frame-perfect ; human hands |
+|---|---|---|---|---|
+| careful | 37 / 37 | 92 / 92 % (82 / 82) | 69 / 74 % (43 / 40) | 2 / 3 ; 16 / 17 |
+| standing | 36 / 36 | 61 / 60 % (32 / 31) | 52 / 55 % (21 / 23) | 15 / 16 ; 15 / 16 |
+| first-card | 37 / 36 | 92 / 93 % (81 / 84) | 65 / 68 % (32 / 32) | 3 / 3 ; 14 / 14 |
+| clumsy | 36 / 36 | 66 / 67 % (35 / 30) | 50 / 48 % (17 / 21) | 7 / 9 ; 13 / 15 |
+| auto-farmer (2-4 runs) | 33 / 33 | 12 / 18 % | 4 / 14 % | 7 / 8 ; 1 / 11 |
+
+The hero comes in at level 35-38 with the run's difficulty at 1.6 (1.4 for the auto-farmer). It takes one of the floor's
+altars (1.0 a run) and gains 2 levels it never uses. Nothing heals it between floor 2's Warden and the swarm: the
+descent heals nothing, a sitting's health card fills only the room it adds, and the autopilot never walks to the room's
+chest (5 of 1,425 and 5 of 1,259 finales opened it).
+
+### The whole Descent against 13-16 minutes
+
+The walk-outs' three floors. Floors: P50 in seconds, with human hands. The Descent: P50 (P90) in minutes. Vanguard /
+Ilya.
+
+| Cohort | Completed of 200: frame-perfect ; human hands | Floor 1 / floor 2 / finale | The Descent, frame-perfect | The Descent, human hands |
+|---|---|---|---|---|
+| careful | 200 / 200 ; 194 / 193 | 276 / 137 / 66 ; 270 / 133 / 65 | 8.2 (8.7) / 7.9 (8.4) | 8.0 (8.4) / 7.8 (8.2) |
+| standing | 172 / 182 ; 155 / 157 | 265 / 124 / 65 ; 262 / 123 / 65 | 7.6 (7.9) / 7.5 (7.7) | 7.6 (7.8) / 7.5 (7.8) |
+| first-card | 196 / 200 ; 174 / 194 | 273 / 131 / 65 ; 268 / 126 / 65 | 8.0 (8.4) / 7.8 (8.2) | 7.8 (8.2) / 7.6 (8.0) |
+| clumsy | 101 / 165 ; 65 / 103 | 269 / 129 / 66 ; 270 / 127 / 66 | 7.7 (8.1) / 7.7 (8.1) | 7.8 (8.0) / 7.7 (8.2) |
+
+Over every cohort the Descent takes P50 7.8 min (P90 8.3) frame-perfect and 7.7 (8.2) with human hands. The longest run
+took 9.3 min, and no run reached 13 minutes.
+
+### The stay (research)
+
+The autopilot turns for the exit at 60 s whatever the swarm does, so the finale's length and its deaths above are the
+pilot's policy as much as the swarm's. `FinaleStayResearch` has the pilot stay longer (FoundryLevers.FinaleStaySeconds):
+the careful, standing and clumsy cohorts, both heroes, seeds 1-200, both hands, in TestResults/finale-1111/stay. It
+plays the same runs as above up to the finale. The table reads walked out, of the runs that reached the finale, Vanguard
+/ Ilya.
+
+| Stay | careful: frame-perfect ; human hands | standing: frame-perfect ; human hands | clumsy: frame-perfect ; human hands | The swarm at the turn |
+|---|---|---|---|---|
+| 60 s | 100 / 100 ; 100 / 99 % | 99 / 98 ; 97 / 99 % | 100 / 100 ; 98 / 98 % | ladder wave 6, x1.49 |
+| 120 s | 100 / 99 ; 60 / 51 % | 46 / 39 ; 42 / 40 % | 85 / 78 ; 58 / 55 % | wave 11 (the Tanks from 1:48), x2.21 |
+| 180 s | 56 / 48 ; 4 / 4 % | 0 / 0 ; 0 / 0 % | 7 / 9 ; 2 / 5 % | wave 12 (the Warden from 2:12), x3.28 |
+| 300 s | 2 / 1 ; 0 / 0 % | 0 / 0 ; 0 / 0 % | 0 / 0 ; 0 / 0 % | wave 12, x7.24 |
+
+A pilot that never leaves dies at about these finale seconds (P50, the 300 s row):
+- careful: 181-189 frame-perfect and 124-128 with human hands;
+- standing: 117-120 with either hands;
+- clumsy: 143-148 frame-perfect and 129-130 with human hands.
+
+Past 2:12 the ladder's Warden walks in as one of the crowd and deals a third of the careful frame-perfect pilot's deaths
+at 180 s; otherwise Grunts deal most of the blows, then Tanks and Runners. docs/35 read 202 s for the hall Descent's
+calibrated Staff.
+
+### The reading
+
+- **The finale is not broken.** It opens after floor 2's checkpoint as the scene's does. No gate Warden is left in it:
+  no frame of the 2,684 swarms has one, where the test's first run read 2,196 with the flags' reset taken out. Every
+  hero that survives reaches its exit at (0, 6) and holds it; none is stuck, none times out, and the walk out ends the
+  run in victory.
+- **At the autopilot's 60 s it is the safest minute of the run.** Its enemies are weaker than floor 2's: it is not
+  climb-scaled, so they take health 1 and damage 0.92, against floor 2's 1.4 and 1.288 with Cursed Gold's +20 %. They
+  are fewer: at most 5 stand at once (P50), against floor 2's horde of up to 40 and its node waves. And the pilot leaves
+  at the ladder's sixth wave, x1.49 on the ramp, before the Tanks and the Warden walk in. It kills only heroes that come
+  into it nearly dead: 23 deaths in 2,684 finales, every one entered under a fifth of its maximum.
+  - The scenario: careful Ilya with human hands, seed 33. Floor 2's Warden leaves it 4.8 of 90 health. It fights the
+    swarm for 60 s untouched, turns for the exit, and a Grunt's first blow ends it at 62 s.
+  - Nothing heals a hero between floor 2's gate and the swarm. The descent heals nothing. The room's chest, a quarter
+    heal, stands at (1.8, 1), about 25 units from the gate landing where the hero arrives, and the autopilot never walks
+    to it (10 of 2,684 finales opened it).
+- **Past that minute the swarm is a cliff.** With human hands the careful pilot walks out of 100 / 99 % of its finales
+  at 1:00, 60 / 51 % at 2:00 and 4 / 4 % at 3:00. A pilot that never leaves dies at P50 2:04-2:08 (frame-perfect
+  3:01-3:09). docs/40 section 10.4 puts the Final Swarm's extract thresholds at 45, 90 and 120 s; at 120 s the careful
+  human player is a coin flip.
+  - Staying pays nothing in this build but the kills' gold and levels the run ends with: docs/40's rising extract
+    rewards are not built.
+  - Nothing on the HUD shows the ramp or the room's clock. RunHud's details line reads `WaveNumber / WaveCount`, which
+    stays 1 / 12 in a swarm room (read from the code, not seen).
+  - So a player who stays to see what the finale holds loses half its runs at 2:00. That is the one scenario that reads
+    as unfair. A player who walks out at once loses nothing.
+  - Whether the finale should reward staying (docs/40's thresholds) or show its ramp is the owner's call; neither is
+    measured here.
+- **The whole Descent takes about 8 minutes, not 13-16.**
+  - Floor 1 (P50 262-276 s) sits inside docs/40's 4-5 minutes.
+  - Floor 2 (123-137 s) is half of that: its gate opens as its room clears, with no surges and no second elite.
+  - The finale adds 65 s.
+  - docs/40's full run is three 4-5 minute floors and a 45-90 s Final Swarm; this Descent has two floors before its
+    finale. The careful pilot's 8.0 minutes are 5 short of 13. Floor 2 at floor 1's length (about +2.3 minutes) and a
+    third floor of 4-5 minutes would land the run in 13-16. A longer stay cannot carry it: 2:00 in the finale costs half
+    the careful human runs and adds a minute.
+- **The autopilot's lure in the swarm is a quirk of the measuring pilot, not of the game.** `DevelopmentAutopilot.Goal`
+  draws a fight to the pit's rim whenever the pit is active (`_setup.Pit.IsActive`, true on the whole foundry), and
+  PitEruptionService never runs in a swarm room. So the careful pilot drags the swarm to a rim that never spills, for
+  43-44 s of its 65. It costs nothing measurable. If the lure should read only a running pit, `IsRunning` is the flag;
+  that is runtime code, left to its owner.
+- **No scene bug was found on the finale's path** beyond the gate flag fixed on 6a09574f. The scene's floor, director,
+  exit, pit, altars, chest and pilot read as the simulation now plays them, and main's c56f7151 already names a finale
+  walk-out on the result screen.
+
+**What waits.**
+- The owner's call: a finale that is a safe minute for whoever walks out, with a cliff for whoever stays without a
+  reason to, or docs/40 10.4's rising rewards at its thresholds. Then the run's 13-16 minutes: floor 2's length and a
+  third floor, rather than the finale.
+- The scene's confirmation: a HordePacingMeasurement run down all three floors (the finale's 65 s, its exit, the
+  victory). The Editor has measured neither floor 2 nor the finale.
+- The heal between floor 2 and the finale, if the near-dead deaths should go: a Mend at the checkpoint, or the room's
+  chest where the hero arrives. Neither is measured.
