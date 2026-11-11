@@ -3390,8 +3390,8 @@ namespace Cryptforge.Tests
                 if (target == null || !target.IsAlive)
                     return false;
                 bool marked = (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked) || _marks.Count > 0;
-                return FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss), marked,
-                    glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
+                return FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss, !boss),
+                    marked, glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
             }
 
             private bool NearestAltar(float x, float y, out float gx, out float gy)
