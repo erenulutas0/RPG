@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
@@ -84,30 +85,30 @@ namespace Cryptforge.UI
                     // ends, so no boss is left to name: it read "defeated the  and cleared" on every Ascent (the run
                     // flow's review, 2026-11-11).
                     _causeLabel.text = killer != null
-                        ? string.Format(_text.ResultVictoryCauseFormat, hero, enemyName, floorName)
-                        : string.Format(_text.ResultFinaleCauseFormat, hero, floorName);
+                        ? string.Format(CultureInfo.InvariantCulture, _text.ResultVictoryCauseFormat, hero, enemyName, floorName)
+                        : string.Format(CultureInfo.InvariantCulture, _text.ResultFinaleCauseFormat, hero, floorName);
                     break;
                 case RunOutcome.Extracted:
                     _titleLabel.text = _text.ResultExtractedTitle;
                     _titleLabel.color = _victoryColor;
-                    _causeLabel.text = string.Format(_text.ResultExtractedCauseFormat, hero, floorName);
+                    _causeLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ResultExtractedCauseFormat, hero, floorName);
                     break;
                 default:
                     _titleLabel.text = _text.ResultDefeatTitle;
                     _titleLabel.color = _defeatColor;
                     // The pit's spill has no attacker: it named the enemy whose hit landed before it (CombatSetup.LastHurtByPit).
                     _causeLabel.text = _setup.LastHurtByPit
-                        ? string.Format(_text.ResultPitCauseFormat, hero, roomName.Length > 0 ? roomName : floorName)
-                        : string.Format(_text.ResultDefeatCauseFormat, hero, enemyName, roomName);
+                        ? string.Format(CultureInfo.InvariantCulture, _text.ResultPitCauseFormat, hero, roomName.Length > 0 ? roomName : floorName)
+                        : string.Format(CultureInfo.InvariantCulture, _text.ResultDefeatCauseFormat, hero, enemyName, roomName);
                     break;
             }
 
-            _progressLabel.text = string.Format(_text.ResultProgressFormat, _encounters.FloorNumber, _encounters.TotalRoomsCleared,
+            _progressLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ResultProgressFormat, _encounters.FloorNumber, _encounters.TotalRoomsCleared,
                 run.Level, run.Experience);
             _goldLabel.text = run.GoldLost > 0
-                ? string.Format(_text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
-                : string.Format(_text.ResultGoldFormat, run.GoldBanked);
-            _buildLabel.text = string.Format(_text.ResultBuildFormat, _setup.HeroWeapon.DisplayName, DescribeBuild());
+                ? string.Format(CultureInfo.InvariantCulture, _text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
+                : string.Format(CultureInfo.InvariantCulture, _text.ResultGoldFormat, run.GoldBanked);
+            _buildLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ResultBuildFormat, _setup.HeroWeapon.DisplayName, DescribeBuild());
             _forgeHintLabel.text = DescribeForge();
 
             _panel.SetActive(true);
@@ -120,7 +121,7 @@ namespace Cryptforge.UI
         {
             var entries = new List<string>();
             if (_setup.Relic != null)
-                entries.Add(string.Format(_text.ResultRelicFormat, _setup.Relic.Relic.DisplayName, _setup.Relic.Triggers));
+                entries.Add(string.Format(CultureInfo.InvariantCulture, _text.ResultRelicFormat, _setup.Relic.Relic.DisplayName, _setup.Relic.Triggers));
 
             UpgradeService upgrades = _setup.Upgrades;
             for (int i = 0; i < upgrades.Pool.Count; i++)
@@ -128,7 +129,7 @@ namespace Cryptforge.UI
                 UpgradeOption option = upgrades.Pool[i];
                 int stacks = upgrades.StacksOf(option);
                 if (stacks > 0)
-                    entries.Add(string.Format(_text.ResultUpgradeFormat, option.DisplayName, stacks));
+                    entries.Add(string.Format(CultureInfo.InvariantCulture, _text.ResultUpgradeFormat, option.DisplayName, stacks));
             }
 
             return entries.Count > 0 ? string.Join(", ", entries) : _text.ResultNoUpgrades;
@@ -144,7 +145,7 @@ namespace Cryptforge.UI
             // A hero offered its own weapon alone (Ilya) has no weapon to forge toward while the Vanguard's rack may
             // still sell some: with every relic forged, only the relics are complete, not the whole forge.
             if (relic == null && weapon == null)
-                return string.Format(_setup.Weapons.OnlyStartingWeapon ? _text.ForgeHintRelicsCompleteFormat
+                return string.Format(CultureInfo.InvariantCulture, _setup.Weapons.OnlyStartingWeapon ? _text.ForgeHintRelicsCompleteFormat
                     : _text.ForgeHintCompleteFormat, gold);
 
             // The cheaper one is nearer; a relic wins a tie.
@@ -152,8 +153,8 @@ namespace Cryptforge.UI
             string name = relicFirst ? relic.DisplayName : weapon.DisplayName;
             int price = relicFirst ? relic.Price : weapon.Price;
             return gold >= price
-                ? string.Format(_text.ForgeHintReadyFormat, gold, name)
-                : string.Format(_text.ForgeHintNextFormat, gold, name, price);
+                ? string.Format(CultureInfo.InvariantCulture, _text.ForgeHintReadyFormat, gold, name)
+                : string.Format(CultureInfo.InvariantCulture, _text.ForgeHintNextFormat, gold, name, price);
         }
 
         private void Update()

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -117,7 +118,7 @@ namespace Cryptforge.UI
 
         private void Refresh()
         {
-            _statusLabel.text = string.Format(_text.ForgeStatusFormat, _setup.Profile.Gold, _setup.Profile.DeepestFloorCleared);
+            _statusLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ForgeStatusFormat, _setup.Profile.Gold, _setup.Profile.DeepestFloorCleared);
 
             WeaponShop weapons = _setup.Weapons;
             for (int i = 0; i < _weaponCards.Length; i++)
@@ -179,10 +180,10 @@ namespace Cryptforge.UI
             switch (status)
             {
                 case UnlockStatus.Affordable:
-                    card.State.text = string.Format(_text.UnlockForgeFormat, price);
+                    card.State.text = string.Format(CultureInfo.InvariantCulture, _text.UnlockForgeFormat, price);
                     break;
                 case UnlockStatus.TooExpensive:
-                    card.State.text = string.Format(_text.UnlockNeedGoldFormat, price, goldNeeded);
+                    card.State.text = string.Format(CultureInfo.InvariantCulture, _text.UnlockNeedGoldFormat, price, goldNeeded);
                     break;
                 case UnlockStatus.Owned:
                     card.State.text = _text.UnlockOwnedLabel;

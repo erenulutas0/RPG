@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using UnityEngine;
@@ -78,7 +79,7 @@ namespace Cryptforge.UI
                 if (percent > _shownPercent)
                     _pulsePending = true;
                 _shownPercent = percent;
-                _label.text = string.Format(_text.DangerFormat, percent);
+                _label.text = string.Format(CultureInfo.InvariantCulture, _text.DangerFormat, percent);
                 _label.gameObject.SetActive(percent > 0);
             }
         }

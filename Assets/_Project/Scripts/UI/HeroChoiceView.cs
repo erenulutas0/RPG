@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using UnityEngine;
@@ -152,11 +153,11 @@ namespace Cryptforge.UI
             {
                 if (heroes[i] != null && !_setup.IsHeroPlayable(heroes[i]) && heroes[i].UnlockHint.Length > 0)
                 {
-                    second = string.Format(_text.HeroLockedFormat, heroes[i].DisplayName, heroes[i].UnlockHint);
+                    second = string.Format(CultureInfo.InvariantCulture, _text.HeroLockedFormat, heroes[i].DisplayName, heroes[i].UnlockHint);
                     break;
                 }
             }
-            _label.text = string.Format(_text.HeroChoiceFormat, Current.DisplayName, second);
+            _label.text = string.Format(CultureInfo.InvariantCulture, _text.HeroChoiceFormat, Current.DisplayName, second);
             Sprite portrait = Current.Portrait;
             _portrait.sprite = portrait;
             _portrait.enabled = portrait != null;
