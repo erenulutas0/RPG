@@ -163,5 +163,50 @@ namespace Cryptforge.Tests
             Assert.That(clock.ShownText, Does.StartWith("OVERRUN +"));
             LogAssert.NoUnexpectedReceived();
         }
+
+        // A gate held into the floor's last minute (validation allows up to the clock's end) hands its count over to the
+        // floor clock without a beat - the clock's first showing, not a new second of the warning - and the warning beats
+        // from the next second on. The hold is set by hand, the hall's wave left standing, as in the overrun's test.
+        [UnityTest, Timeout(90000)]
+        public IEnumerator TheGatesCountHandsOverToTheLastMinuteWithoutABeat()
+        {
+            yield return Load(HordeClock.TargetSeconds - 40f);
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            EncounterController encounters = setup.Encounters;
+            Health hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
+            FloorClockView clock = Object.FindFirstObjectByType<RunHud>().FloorClock;
+            hero.GetComponent<AttackController>().enabled = false;
+            FieldInfo holding = typeof(EncounterController).GetField("_holdingForGate", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(holding, Is.Not.Null);
+
+            for (int i = 0; i < 3; i++)
+            {
+                Keep(setup, hero);
+                holding.SetValue(encounters, true);
+                yield return null;
+            }
+            Assert.That(clock.IsGateShown, Is.True, "The gate's count.");
+            Assert.That(HordeClock.Remaining(encounters.FloorClockSeconds), Is.LessThanOrEqualTo(FloorClockView.LastMinuteSeconds));
+
+            holding.SetValue(encounters, false);
+            yield return null;
+            Assert.That(clock.IsGateShown, Is.False);
+            Assert.That(clock.IsShown, Is.True);
+            Assert.That(clock.IsOverrunShown, Is.False);
+            Assert.That(clock.IsBeating, Is.False, "The floor clock's first showing does not beat.");
+
+            string first = clock.ShownText;
+            bool beat = false;
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (!beat && Time.realtimeSinceStartup < deadline)
+            {
+                Keep(setup, hero);
+                yield return null;
+                beat = clock.IsBeating;
+            }
+            Assert.That(beat, Is.True, "The last minute beats on its next second.");
+            Assert.That(clock.ShownText, Is.Not.EqualTo(first));
+            LogAssert.NoUnexpectedReceived();
+        }
     }
 }

@@ -46,6 +46,7 @@ namespace Cryptforge.UI
         public bool IsGateShown => IsShown && _shownGate;
         public bool IsUnderBoss => _underBoss;
         public Color ShownColor => _label != null ? _label.color : Color.clear;
+        public bool IsBeating => _beatStart >= 0f;
 
         // style is the compact gold count: the clock shares its font and layer, and sits on the same safe area.
         internal void Initialize(CombatSetup setup, EncounterController encounters, PrototypeTextDefinition text, Text style)
@@ -124,10 +125,13 @@ namespace Cryptforge.UI
                 _label.color = Ember;
                 return;
             }
+            // The floor clock taking over from the gate's count is its first showing too, not a new second of the warning
+            // (the 2026-11-04 render review's first finding: a gate held past 4:00 would beat as it opened).
+            bool afterGate = _shownGate;
             _shownGate = false;
             bool lastMinute = !overrun && HordeClock.Remaining(clock) <= LastMinuteSeconds;
             // A beat on each new second of the last minute and of the overrun, not on the label's first showing.
-            if (_shownSecond >= 0 && (overrun || lastMinute))
+            if (_shownSecond >= 0 && !afterGate && (overrun || lastMinute))
                 _beatStart = Time.unscaledTime;
             _shownSecond = second;
             _shownOverrun = overrun;
