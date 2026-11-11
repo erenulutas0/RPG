@@ -278,7 +278,7 @@ namespace Cryptforge.Tests
         private static readonly DateTime Day = new DateTime(2026, 11, 13, 9, 0, 0, DateTimeKind.Utc);
 
         private static string Event(string session, int seq, double seconds, string run, string name, string fields = "") =>
-            $"{{\"v\":1,\"seq\":{seq},\"t\":\"{Day.AddSeconds(seconds):yyyy-MM-dd'T'HH:mm:ss.fff'Z'}\",\"st\":{seconds},\"session\":\"{session}\"" +
+            $"{{\"v\":1,\"seq\":{seq},\"t\":\"{Day.AddSeconds(seconds):yyyy-MM-dd'T'HH:mm:ss.fff'Z'}\",\"st\":{seconds.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"session\":\"{session}\"" +
             (run != null ? $",\"run\":\"{run}\"" : string.Empty) + $",\"event\":\"{name}\"" + (fields.Length > 0 ? "," + fields : string.Empty) + "}";
 
         private static string Room(int floor, string kind) =>
@@ -444,6 +444,42 @@ namespace Cryptforge.Tests
                 Assert.That(row.Status, Is.EqualTo(FoundryGate.NotMet), "a frame past 35 ms in play");
                 Assert.That(row.Basis, Does.Contain("Past 35 ms in play: 41.3 ms (a long frame at a ramp's first entry)."));
                 Assert.That(row.Basis, Does.Contain("1 load with the pre-warm (left out); 1 at a ramp's first entry, the pre-warm missing it, in frames of 41.3 ms."));
+                return 0;
+            });
+        }
+
+        // A ramp's one-time work and its long frame inside the next run's load, which falls in the last run's second of
+        // slack, are read by the same rule: neither is in play.
+        [Test]
+        public void RampWorkAndLongFramesInTheNextRunsLoadAreNotInPlay()
+        {
+            InTemp(root =>
+            {
+                string folder = Path.Combine(root, "device-20261113-094000");
+                Directory.CreateDirectory(Path.Combine(folder, "telemetry"));
+                File.WriteAllLines(Path.Combine(folder, "telemetry", "events.jsonl"), new[]
+                {
+                    Event("s1", 1, 0, null, "session_start", "\"schema\":1"),
+                    Event("s1", 2, 0, "s1-1", "run_start", "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\""),
+                    Event("s1", 3, 0, "s1-1", "room_start", Room(1, "combat")),
+                    Event("s1", 4, 1, "s1-1", "wave_start", "\"floor_index\":1,\"room_index\":1,\"wave_index\":1,\"enemy_count\":2"),
+                    Event("s1", 5, 100, "s1-1", "run_end", "\"result\":\"extracted\",\"cause\":\"extracted\",\"floors_completed\":0,\"active_sec\":99.000"),
+                    Event("s1", 6, 101.5, "s1-2", "run_start", "\"run_ordinal\":2,\"hero_id\":\"hero_vanguard\""),
+                    Event("s1", 7, 101.5, "s1-2", "room_start", Room(1, "combat")),
+                    Event("s1", 8, 102.5, "s1-2", "wave_start", "\"floor_index\":1,\"room_index\":1,\"wave_index\":1,\"enemy_count\":2")
+                });
+                File.WriteAllLines(Path.Combine(folder, DevicePull.ManifestName), new[] { "pulled_utc: 2026-11-13T09:40:00Z", "logcat_offset: +0000" });
+                File.WriteAllLines(Path.Combine(folder, "logcat-unity.txt"), new[]
+                {
+                    Log(50, "[Perf] ground projection: prewarm 0.00 ms, material 1.20 ms, grids 2.40 ms; frame 41.3 ms, main thread 39.0 ms, allocated 80.2 KB"),
+                    Log(50, "[Perf] long frame 41.3 ms, main thread 39.0 ms, allocated 80.2 KB, time scale 1"),
+                    Log(100.8, "[Perf] ground projection: prewarm 0.00 ms, material 1.10 ms, grids 2.20 ms; frame 39.9 ms, main thread 38.0 ms, allocated 70.1 KB"),
+                    Log(100.8, "[Perf] long frame 39.9 ms, main thread 38.0 ms, allocated 70.1 KB, time scale 1")
+                });
+
+                FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { folder });
+                Assert.That(device.RampWork.Select(f => (f.Ms, f.Play)), Is.EqualTo(new[] { (41.3f, true), (39.9f, false) }));
+                Assert.That(device.LongFrames.Select(f => (f.Ms, f.Ramp, f.Play)), Is.EqualTo(new[] { (41.3f, true, true), (39.9f, true, false) }));
                 return 0;
             });
         }

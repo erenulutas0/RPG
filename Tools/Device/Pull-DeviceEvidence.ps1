@@ -269,7 +269,8 @@ try {
   Write-Output ("  APK: $Package $versionName ($versionCode), SHA-256 $(if ($sha) { $sha } else { 'not read' }), installed " +
     $(if ($installedUtc) { "$installedUtc (the phone's $lastUpdate at $offset)" } else { 'at a time not read: every run will be read' }))
   if ($telemetry.Count -eq 0) {
-    Write-Output "  telemetry: none on the phone ($files/telemetry): no session since the game's data was cleared"
+    if ($FromFolder) { Write-Output "  telemetry: none in the folder ($(Join-Path $folder 'telemetry')): no events*.jsonl to read" }
+    else { Write-Output "  telemetry: none on the phone ($files/telemetry): no session since the game's data was cleared" }
   } else {
     Write-Output "  telemetry: $(($telemetry | ForEach-Object { "$($_.Name) $($_.Length) B" }) -join ', '); $($lines.Count) lines, $($times[0]) to $($times[-1])"
     Write-Output ("    $($sessions.Count) sessions; runs begun: $(if ($heroes.Count) { ($heroes.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ' } else { 'none' }); " +
@@ -311,12 +312,21 @@ try {
 foreach ($setting in @(@('FOUNDRY_LEVERS', '0'), @('FOUNDRY_COHORTS', '1'), @('FOUNDRY_FLOORS', '2'))) {
   if (-not [Environment]::GetEnvironmentVariable($setting[0])) { Set-Item -Path "env:$($setting[0])" -Value $setting[1] }
 }
-# Offline, the folder read is the one named, alone: never the real pulls in TestResults.
-if ($FromFolder -and -not $env:FOUNDRY_DEVICE) { $env:FOUNDRY_DEVICE = $folder }
+# Offline, the folder read is the one named, alone - never the real pulls in TestResults, nor a FOUNDRY_DEVICE left in
+# the shell - and the shell's own value is restored afterwards.
+$previousDevice = $env:FOUNDRY_DEVICE
+if ($FromFolder) {
+  if ($previousDevice -and $previousDevice -ne $folder) { Write-Output "  note: FOUNDRY_DEVICE ($previousDevice) is set aside for this report: it reads $folder alone." }
+  $env:FOUNDRY_DEVICE = $folder
+}
 Write-Output ''
-Write-Output "Running the batch report (FOUNDRY_LEVERS=$env:FOUNDRY_LEVERS FOUNDRY_COHORTS=$env:FOUNDRY_COHORTS FOUNDRY_FLOORS=$env:FOUNDRY_FLOORS), a few minutes..."
-& dotnet test (Join-Path $root 'Tools/CombatChecks') -c Release -p:NuGetAudit=false --filter 'FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch'
-$code = $LASTEXITCODE
+Write-Output "Running the batch report (FOUNDRY_LEVERS=$env:FOUNDRY_LEVERS FOUNDRY_COHORTS=$env:FOUNDRY_COHORTS FOUNDRY_FLOORS=$env:FOUNDRY_FLOORS$(if ($env:FOUNDRY_DEVICE) { " FOUNDRY_DEVICE=$env:FOUNDRY_DEVICE" })), a few minutes..."
+try {
+  & dotnet test (Join-Path $root 'Tools/CombatChecks') -c Release -p:NuGetAudit=false --filter 'FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch'
+  $code = $LASTEXITCODE
+} finally {
+  if ($FromFolder) { $env:FOUNDRY_DEVICE = $previousDevice }
+}
 $gate = Join-Path $(if ($env:FOUNDRY_OUT) { $env:FOUNDRY_OUT } else { $results }) 'foundry-gate.md'
 if (Test-Path -LiteralPath $gate) {
   Write-Output ''
