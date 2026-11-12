@@ -72,6 +72,16 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "sentry-c1", What = "the shipped Mirror Sentry with its reflection capped at 1 % of the hero's maximum a second", Roles = true, Set = l => l.SentryReflectCap = .01f };
             yield return new Option { Key = "sentry-h100", What = "the shipped Mirror Sentry at docs/50's 160 health (0.8 of the shipped 200)", Roles = true, Set = l => l.SentryHealthScale = .8f };
             yield return new Option { Key = "sentry-r0", What = "the shipped Mirror Sentry reflecting nothing: the guard alone", Roles = true, Set = l => l.SentryReflectShare = 0f };
+            // The next round (docs/50, "The 40 % rule and the sweep"): no reflection with a softer front for the cohort that
+            // never flanks, or a small reflection kept with one.
+            yield return new Option { Key = "sentry-r0-f70", What = "the Mirror Sentry reflecting nothing, taking 70 % of a front landing", Roles = true,
+                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .7f; } };
+            yield return new Option { Key = "sentry-r0-f60-h100", What = "the Mirror Sentry reflecting nothing, taking 60 % of a front landing, at 160 health", Roles = true,
+                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .6f; l.SentryHealthScale = .8f; } };
+            yield return new Option { Key = "sentry-r0-f80", What = "the Mirror Sentry reflecting nothing, taking 80 % of a front landing", Roles = true,
+                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .8f; } };
+            yield return new Option { Key = "sentry-c1-f70", What = "the Mirror Sentry with its reflection capped at 1 % a second, taking 70 % of a front landing", Roles = true,
+                Set = l => { l.SentryReflectCap = .01f; l.SentryFrontShare = .7f; } };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
             // Round 2's alternatives (docs/50 Measured), simulation only.
