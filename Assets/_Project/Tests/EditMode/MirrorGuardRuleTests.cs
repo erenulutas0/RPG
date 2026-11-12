@@ -13,11 +13,18 @@ namespace Cryptforge.Tests
     {
         private const float Degree = (float)Math.PI / 180f;
         private const float Frame = 1f / 60f;
+        // The behaviour is read on round 2's guard - half a front landing taken, a fifth reflected, capped at 2 % a second -
+        // whatever the shipped tuning (TheGuardIsTheLeadsTuning holds that).
+        private const float Front = .5f;
+        private const float Share = .2f;
+        private const float Cap = .02f;
+
+        private static MirrorGuardState Tuned() => new MirrorGuardState(45f, 120f, Front, Share, Cap);
 
         // A Sentry at the origin, stepped once with the hero due east of it: it faces east, its budget full.
         private static MirrorGuardState FacingEast(float heroMaximum = 100f)
         {
-            var guard = new MirrorGuardState();
+            var guard = Tuned();
             guard.Step(Frame, 0f, 0f, 3f, 0f, heroMaximum);
             return guard;
         }
@@ -45,7 +52,7 @@ namespace Cryptforge.Tests
         [Test]
         public void UntilItsFirstStepItGuardsNothing()
         {
-            var guard = new MirrorGuardState();
+            var guard = Tuned();
             Assert.That(guard.IsGuarding, Is.False);
             Assert.That(float.IsNaN(guard.Facing) && float.IsNaN(guard.ReflectBudget), Is.True);
             Assert.That(guard.Land(10f, 0f, 0f, 1f, 0f, out bool front, out float reflected), Is.EqualTo(10f));
@@ -58,7 +65,7 @@ namespace Cryptforge.Tests
         [Test]
         public void ItTurnsTowardTheHeroAtFortyFiveDegreesASecond()
         {
-            var guard = new MirrorGuardState();
+            var guard = Tuned();
             guard.Step(Frame, 0f, 0f, 0f, -2f, 100f);
             Assert.That(guard.Facing, Is.EqualTo(-90f * Degree).Within(1e-5f), "the first step faces the hero at once");
 
@@ -115,7 +122,7 @@ namespace Cryptforge.Tests
             At(20f, 1.6f, out float hx, out float hy);
             Assert.That(guard.Land(14f, 0f, 0f, hx, hy, out bool front, out float reflected), Is.EqualTo(7f));
             Assert.That(front, Is.True);
-            Assert.That(reflected, Is.EqualTo(14f * MirrorGuardRule.ReflectShare).Within(1e-5f), "a fifth of the whole landing");
+            Assert.That(reflected, Is.EqualTo(14f * Share).Within(1e-5f), "a fifth of the whole landing");
 
             guard = FacingEast();
             foreach (float bearing in new[] { 90f, -90f, 180f })
@@ -125,8 +132,8 @@ namespace Cryptforge.Tests
                 Assert.That(front, Is.False);
                 Assert.That(reflected, Is.Zero, "nothing reflects from " + bearing + " degrees");
             }
-            Assert.That(MirrorGuardRule.DamageOn(14f, true, MirrorGuardRule.FrontShare), Is.EqualTo(7f));
-            Assert.That(MirrorGuardRule.DamageOn(14f, false, MirrorGuardRule.FrontShare), Is.EqualTo(14f));
+            Assert.That(MirrorGuardRule.DamageOn(14f, true, Front), Is.EqualTo(7f));
+            Assert.That(MirrorGuardRule.DamageOn(14f, false, Front), Is.EqualTo(14f));
         }
 
         // The reflection is capped at 2 % of the hero's maximum a second for each Sentry: a budget that starts full - one
@@ -135,7 +142,7 @@ namespace Cryptforge.Tests
         public void TheReflectionIsCappedAtTwoPercentOfTheHerosMaximumASecondPerSentry()
         {
             const float maximum = 150f;
-            float cap = maximum * MirrorGuardRule.ReflectCap;
+            float cap = maximum * Cap;
             Assert.That(cap, Is.EqualTo(3f).Within(1e-5f));
             MirrorGuardState guard = FacingEast(maximum);
             MirrorGuardState other = FacingEast(maximum);

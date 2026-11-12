@@ -1,7 +1,8 @@
 # 50 - The Quicksilver Vaults' own enemies (design proposal, 2026-11-12)
 
-**Status 2026-11-12:** the Mirror Sentry is built (step 2 of section 8; "Lead decisions 2026-11-12" at the end). The
-Wisp, the Clerk and the Regent stay simulation-only research.
+**Status 2026-11-12:** the Mirror Sentry is built (step 2 of section 8; "Lead decisions 2026-11-12" at the end). It is
+not yet cleared to ship: no variant tried so far keeps the four-floor Descent's clumsy completion at 40 % ("The 40 % rule
+and the sweep"). The Wisp, the Clerk and the Regent stay simulation-only research.
 
 A proposal for the owner's decision. Nothing here is built: no code, asset, scene or setting changed. Numbers cited as
 "measured" name their source in docs/41, docs/47 or docs/48. Every other number is a starting value for the simulation
@@ -760,7 +761,8 @@ Read against the lead's five conditions:
 
 ## Lead decisions 2026-11-12 (the owner delegated the gameplay calls to the lead)
 
-**The Mirror Sentry ships as `sentry-t45-h125-c2-f50`** (section 8, step 2):
+**The Mirror Sentry is built as `sentry-t45-h125-c2-f50`** (section 8, step 2). It ships only once a variant passes the
+40 % rule below:
 - It replaces the Grunt Captain as floor 2's elite. Sentry Hall is Sentry, Grunt, Mite, Mite. `EliteRule` treats the first
   enemy of an elite room's wave as the elite, so the Daggers' x2 applies unchanged. Floor 1 and floor 3 (Gloam Gardens'
   Thorn Post) keep their Captain.
@@ -849,3 +851,42 @@ final code and gives the same floor-2 cells.
   175 / 185, 62 / 101 and 4 / 7, in the order careful, standing, first-card, clumsy, auto-farmer. These are round 2's
   `f50` row. The port is exact.
 - The shipped frame-perfect careful pilot clears floor 2 on every seed for both heroes, before and after.
+
+### The 40 % rule and the sweep (2026-11-12, later)
+
+**The lead's decision.** docs/40's 40 % line for clumsy completion holds for the whole four-floor Descent (docs/52 takes
+the same rule): no creature may bring the clumsy cohort below it. The Sentry ships only in a variant that keeps clumsy
+completion at 40 % or more. Of those, it must keep careful clears on floor 2 within 3 of the Captain and the Daggers'
+lead above +50 %. The largest careful-minus-standing gap then wins.
+
+**The sweep.** One lever at a time off `t45-h125-c2-f50`, the flank on. The run used `VaultsEnemiesResearch` on the
+final code: seeds 1-200, both heroes, every cohort, typical hands, the four-floor Descent. Clumsy completion is of 400
+runs; floor-2 cells are Vanguard / Ilya.
+
+| Option | Clumsy completion | Careful F2 | Standing F2 | Gap | Daggers' lead | Standing F2 boss deaths | Clumsy deaths in Sentry Hall | Careful front share | Careful elite fight P50 | Reflected a fight, careful |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `captain` (before) | 161 (40.3 %) | 191 / 191 | 180 / 170 | 11 / 21 | +19 % | 7 / 9 | 0 / 0 | - | - | - |
+| `shipped` (`f50`) | 147 (36.8 %) | 192 / 189 | 164 / 165 | 28 / 24 | +83 % | 23 / 14 | 4 / 3 | 73 % / 74 % | 3.3 / 3.2 s | 10.7 / 9.5 |
+| `sentry-f60`: 60 % of a front landing taken | 145 (36.3 %) | 189 / 190 | 168 / 168 | 21 / 22 | +81 % | 19 / 11 | 3 / 6 | 74 % / 74 % | 3.1 / 3.0 s | 10.2 / 9.0 |
+| `sentry-c1`: reflection capped at 1 % a second | 153 (38.3 %) | 193 / 189 | 169 / 167 | 24 / 22 | +83 % | 18 / 12 | 3 / 3 | 73 % / 74 % | 3.3 / 3.2 s | 5.3 / 4.8 |
+| `sentry-h100`: health 160 | 149 (37.3 %) | 188 / 191 | 168 / 167 | 20 / 24 | +77 % | 19 / 12 | 2 / 3 | 75 % / 76 % | 2.9 / 2.9 s | 9.8 / 8.5 |
+| `sentry-r0`: no reflection, the guard alone | 157 (39.3 %) | 193 / 189 | 175 / 167 | 18 / 22 | +83 % | 12 / 12 | 0 / 2 | 73 % / 73 % | 3.3 / 3.2 s | 0 |
+
+**No variant reaches 40 %, so nothing ships yet.** The code keeps `f50`, and the Sentry waits for a variant that passes.
+- The closest is `r0`, at 157 of 400; it needs 160.
+- The reflection is the larger cost. Removing it gives back 10 completions (147 to 157) and the standing cohort's gate
+  deaths (23 / 14 to 12 / 12).
+- The front share and the health move clumsy completion little (-2 to +2). The clumsy pilot fights the front's
+  effective health whichever way the turn goes.
+- The Captain's floor itself stands at 40.3 %, one completion above the line. A floor-2 elite therefore has to cost the
+  clumsy cohort at most one completion in 400. That is within this sample's noise: the binomial SD at 40 % of 400 is
+  about 2.4 points.
+- The Daggers' lead stays at +77 % to +83 % and careful within 3 of the Captain in every variant: the flank, not the
+  reflection, makes the Sentry the Daggers' elite.
+
+**Recommended next round.**
+- Keep `r0` and soften the front for the cohort that never flanks: `r0-f70` (effective health from the front 286,
+  against the Captain's 140 and `f50`'s 400), `r0-f60-h100` (267) and `r0-f80` (250).
+- Or keep a small reflection only for the flanking cohorts' benefit: `c1-f70`.
+- Each costs 3 minutes on 8 threads. Read them against `captain` on the same seeds and, given the noise, on the holdout
+  seeds 201-400 too, before any of them ships.

@@ -66,6 +66,12 @@ namespace Cryptforge.Tests
                     l.SentryReflectCap = .04f;
                 }
             };
+            // The lead's sweep after the four-floor Descent (2026-11-12): each one lever off the shipped t45-h125-c2-f50, for
+            // clumsy completion of the whole Descent at 40 % or more.
+            yield return new Option { Key = "sentry-f60", What = "the shipped Mirror Sentry taking 60 % of a front landing", Roles = true, Set = l => l.SentryFrontShare = .6f };
+            yield return new Option { Key = "sentry-c1", What = "the shipped Mirror Sentry with its reflection capped at 1 % of the hero's maximum a second", Roles = true, Set = l => l.SentryReflectCap = .01f };
+            yield return new Option { Key = "sentry-h100", What = "the shipped Mirror Sentry at docs/50's 160 health (0.8 of the shipped 200)", Roles = true, Set = l => l.SentryHealthScale = .8f };
+            yield return new Option { Key = "sentry-r0", What = "the shipped Mirror Sentry reflecting nothing: the guard alone", Roles = true, Set = l => l.SentryReflectShare = 0f };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
             // Round 2's alternatives (docs/50 Measured), simulation only.

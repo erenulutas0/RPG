@@ -166,9 +166,15 @@ namespace Cryptforge.Tests
             Assert.That(tooFast, Is.Zero, "it never turned faster than 45 degrees a second");
             Assert.That(atRate, Is.GreaterThan(30), "and it turned at its full rate after the hero, half a second and more");
 
-            // The reflection: paid, and within 2 % of the hero's maximum a second, its starting budget a second's worth.
-            Assert.That(reflections, Is.GreaterThan(0), "the front landings reflected");
-            Assert.That(reflected, Is.GreaterThan(0f));
+            // The reflection: paid, and within its cap of the hero's maximum a second, its starting budget a second's worth.
+            float share = MirrorGuardRule.ReflectShare, cap = MirrorGuardRule.ReflectCap;
+            if (share > 0f && cap > 0f)
+            {
+                Assert.That(reflections, Is.GreaterThan(0), "the front landings reflected");
+                Assert.That(reflected, Is.GreaterThan(0f));
+            }
+            else
+                Assert.That(reflections, Is.Zero, "a guard that reflects nothing pays nothing");
             Assert.That(reflected, Is.LessThanOrEqualTo(maximum * MirrorGuardRule.ReflectCap * (guardedSeconds + 1f) + 1e-3f),
                 $"{reflected:0.00} reflected over {guardedSeconds:0.0} s guarding, the hero's maximum {maximum:0}");
             Assert.That(setup.Mirrors.ReflectedTotal, Is.EqualTo(reflected).Within(1e-4f));
