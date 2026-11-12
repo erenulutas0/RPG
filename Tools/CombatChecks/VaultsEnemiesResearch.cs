@@ -25,7 +25,8 @@ namespace Cryptforge.Tests
     //
     // Environment, all optional: FOUNDRY_SEEDS (200), FOUNDRY_FIRST_SEED (1), FOUNDRY_PARALLEL (half the processors),
     // FOUNDRY_OUT (the repository's TestResults), FOUNDRY_REALISM (typical; frame-perfect for none), VAULTS_OPTIONS (comma
-    // separated option keys; all). Writes vaults-enemies.md and a row a run in vaults-enemies.csv, rewritten after each option.
+    // separated option keys; all), VAULTS_COHORTS (comma separated cohort names, for a quicker screen of one reading; all).
+    // Writes vaults-enemies.md and a row a run in vaults-enemies.csv, rewritten after each option.
     [Explicit("The Quicksilver Vaults' own enemies: run it by name.")]
     public sealed class VaultsEnemiesResearch
     {
@@ -152,6 +153,49 @@ namespace Cryptforge.Tests
             };
         }
 
+        // A Regent variant named by its levers, for a sweep without a build: "regent:" then colon-separated name=value pairs
+        // off the shipped Regent - l the lane's share of the hero's maximum, t its telegraph (s), len its length, w its width,
+        // e the beat and e2 phase two's (s), s the gate share, c the copies - and "nosidestep" or "warden" as words, e.g.
+        // "regent:l=0.14:t=1.3". Roles read for the plain words "roles".
+        private static Option RegentVariant(string key)
+        {
+            var sets = new List<Action<DescentSimulation.FoundryLevers>>();
+            bool roles = false;
+            foreach (string part in key.Substring("regent:".Length).Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] pair = part.Split('=');
+                if (pair.Length == 1)
+                {
+                    switch (pair[0])
+                    {
+                        case "nosidestep": sets.Add(l => l.SidestepsTheRegent = false); break;
+                        case "warden": sets.Add(l => l.VaultsWarden = true); break;
+                        case "roles": roles = true; break;
+                        default: throw new ArgumentException("Unknown Regent word: " + part);
+                    }
+                    continue;
+                }
+                float value = float.Parse(pair[1], CultureInfo.InvariantCulture);
+                switch (pair[0])
+                {
+                    case "l": sets.Add(l => l.RegentLaneShare = value); break;
+                    case "t": sets.Add(l => l.RegentTelegraph = value); break;
+                    case "len": sets.Add(l => l.RegentLaneLength = value); break;
+                    case "w": sets.Add(l => l.RegentLaneWidth = value); break;
+                    case "e": sets.Add(l => l.RegentEvery = value); break;
+                    case "e2": sets.Add(l => l.RegentEveryPhaseTwo = value); break;
+                    case "s": sets.Add(l => l.RegentHealthShare = value); break;
+                    case "c": sets.Add(l => l.RegentCopies = (int)value); break;
+                    default: throw new ArgumentException("Unknown Regent lever: " + part);
+                }
+            }
+            return new Option
+            {
+                Key = key, What = "the shipped Glass Regent with " + key.Substring("regent:".Length).Replace(":", ", "), Roles = roles,
+                Set = l => { foreach (Action<DescentSimulation.FoundryLevers> set in sets) set(l); }
+            };
+        }
+
         private sealed class Cell
         {
             public Option Option;
@@ -172,7 +216,9 @@ namespace Cryptforge.Tests
             string output = Environment.GetEnvironmentVariable("FOUNDRY_OUT") ?? Path.Combine(RepositoryRoot(), "TestResults");
             Directory.CreateDirectory(output);
             string[] keys = List("VAULTS_OPTIONS", string.Join(",", Options().Select(o => o.Key)));
-            Option[] options = Options().Where(o => keys.Contains(o.Key)).ToArray();
+            Option[] options = Options().Where(o => keys.Contains(o.Key))
+                .Concat(keys.Where(k => k.StartsWith("regent:", StringComparison.Ordinal)).Select(RegentVariant)).ToArray();
+            string[] cohorts = List("VAULTS_COHORTS", string.Join(",", AutopilotCohort.Cohorts.Select(c => c.Name)));
             string pilot = Environment.GetEnvironmentVariable("FOUNDRY_REALISM") ?? "typical";
             PilotRealism realism = pilot == "frame-perfect" ? null : PilotRealism.Named(pilot);
             string hands = realism != null ? realism.Name : "frame-perfect";
@@ -184,7 +230,7 @@ namespace Cryptforge.Tests
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 Cell carefulVanguard = null;
-                foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
+                foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts.Where(c => cohorts.Contains(c.Name)))
                 foreach (DescentSimulation.FoundryHero hero in heroes)
                 {
                     DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(cohort, DescentSimulation.FinaleFloor, realism)
