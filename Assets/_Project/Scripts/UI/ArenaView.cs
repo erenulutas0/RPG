@@ -94,10 +94,17 @@ namespace Cryptforge.UI
         {
             if (theme == Theme)
                 return;
+            using (PerformanceMarkers.ThemeApply.Auto())
+                DressFloor(theme);
+        }
+
+        private void DressFloor(FloorTheme theme)
+        {
             Theme = theme;
             bool ice = theme == FloorTheme.Ice;
             if (Region != null)
                 Region.ApplyTheme(theme, _platformMaterials);
+            using var backdrop = PerformanceMarkers.ThemeBackdrop.Auto();
             if (_atmosphere != null)
                 _atmosphere.SetCold(ice);
             // The hero's contact patch widens on the ice floor so the Vanguard keeps his footing against the slate (docs/49).

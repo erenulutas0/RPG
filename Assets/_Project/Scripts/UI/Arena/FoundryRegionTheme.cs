@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cryptforge.Art;
 using Cryptforge.Content;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -46,8 +47,10 @@ namespace Cryptforge.UI
         public void ApplyTheme(FloorTheme theme,PlatformMaterialSet set)
         {
             if(theme==_theme)return;
-            KeepFoundryColours(set);
             bool ice=theme==FloorTheme.Ice;
+            using(PerformanceMarkers.ThemeRetint.Auto())
+            {
+            KeepFoundryColours(set);
             for(int i=0;i<_themeMeshes.Count;i++)
             {
                 if(_themeMeshes[i]==null)continue;
@@ -82,9 +85,15 @@ namespace Cryptforge.UI
                 }
                 _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
             }
+            }
             // Built before the blocks are set, so the crystals take the coping's untextured dress with the rest.
-            if(ice)BuildIceCrystals(set);
-            if(_iceCrystals!=null)_iceCrystals.SetActive(ice);
+            using(PerformanceMarkers.ThemeCrystals.Auto())
+            {
+                if(ice)BuildIceCrystals(set);
+                if(_iceCrystals!=null)_iceCrystals.SetActive(ice);
+            }
+            using(PerformanceMarkers.ThemeTextures.Auto())
+            {
             if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
             foreach(var renderer in GetComponentsInChildren<MeshRenderer>(true))
             {
@@ -121,8 +130,10 @@ namespace Cryptforge.UI
                 _themeBlock.SetColor(ColourId,colour);
                 renderer.SetPropertyBlock(_themeBlock);
             }
-            for(int i=0;i<_themeSprites.Count;i++)
-                if(_themeSprites[i]!=null)_themeSprites[i].color=ice?_foundrySpriteColours[i]*IceSprite:_foundrySpriteColours[i];
+            }
+            using(PerformanceMarkers.ThemeRetint.Auto())
+                for(int i=0;i<_themeSprites.Count;i++)
+                    if(_themeSprites[i]!=null)_themeSprites[i].color=ice?_foundrySpriteColours[i]*IceSprite:_foundrySpriteColours[i];
             _theme=theme;
         }
 

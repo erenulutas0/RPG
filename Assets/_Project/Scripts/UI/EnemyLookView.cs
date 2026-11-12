@@ -1,5 +1,6 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -217,6 +218,7 @@ namespace Cryptforge.UI
             EnemyArtSet next = frosted && _paintedArt.Frosted != null ? _paintedArt.Frosted : _paintedArt;
             if (ReferenceEquals(next, _art))
                 return;
+            using var frost = PerformanceMarkers.ThemeFrost.Auto();
             _art = next;
             if (IsWindingUp)
                 ShowWindup(WindupStep >= 0 && _art.HasWalkingWindup(ShowsEnraged) ? WindupStep : -1);

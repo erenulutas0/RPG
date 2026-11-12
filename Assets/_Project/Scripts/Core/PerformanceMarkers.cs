@@ -66,6 +66,22 @@ namespace Cryptforge.Core
         public const string GroundGridName = "Cryptforge.Ground.Grid";
         public const string GroundApplyName = "Cryptforge.Ground.Apply";
 
+        // A floor's dress changing (FloorTheme, docs/49): the whole of ArenaView.ApplyFloorTheme (Apply), and inside it the
+        // region's vertex colours and sprite colours re-tinted on the CPU (Retint, the foundry's arrays kept the first time
+        // included), the property-block texture swaps with their Resources/Ice loads (Textures), the ice-crystal mesh built
+        // and shown or hidden (Crystals), and the atmosphere, hero shadow and backdrop plate (Backdrop). Frost is one enemy
+        // body's palette swapped to the frosted set (EnemyLookView.UseFrost), only when it actually changes. Floor 1 pays none.
+        public const string ThemeApplyName = "Cryptforge.Theme.Apply";
+        public const string ThemeRetintName = "Cryptforge.Theme.Retint";
+        public const string ThemeTexturesName = "Cryptforge.Theme.Textures";
+        public const string ThemeCrystalsName = "Cryptforge.Theme.Crystals";
+        public const string ThemeBackdropName = "Cryptforge.Theme.Backdrop";
+        public const string ThemeFrostName = "Cryptforge.Theme.Frost";
+        public static readonly string[] ThemeNames =
+        {
+            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemeBackdropName, ThemeFrostName
+        };
+
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
         public static readonly string[] PickNames =
         {
@@ -73,7 +89,8 @@ namespace Cryptforge.Core
             PickAddWeaponName, PickHeroStatsName, PickPauseName, PickHudName, PickLoadoutName,
             LateCameraName, LateEffectsName, LateShadowsName, LateExitSealName, LateHudArtName, LatePitName, LatePuppetName,
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
-            DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName
+            DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName,
+            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemeBackdropName, ThemeFrostName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -112,5 +129,11 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker GroundMaterial = new ProfilerMarker(ProfilerCategory.Scripts, GroundMaterialName);
         public static readonly ProfilerMarker GroundGrid = new ProfilerMarker(ProfilerCategory.Scripts, GroundGridName);
         public static readonly ProfilerMarker GroundApply = new ProfilerMarker(ProfilerCategory.Scripts, GroundApplyName);
+        public static readonly ProfilerMarker ThemeApply = new ProfilerMarker(ProfilerCategory.Scripts, ThemeApplyName);
+        public static readonly ProfilerMarker ThemeRetint = new ProfilerMarker(ProfilerCategory.Scripts, ThemeRetintName);
+        public static readonly ProfilerMarker ThemeTextures = new ProfilerMarker(ProfilerCategory.Scripts, ThemeTexturesName);
+        public static readonly ProfilerMarker ThemeCrystals = new ProfilerMarker(ProfilerCategory.Scripts, ThemeCrystalsName);
+        public static readonly ProfilerMarker ThemeBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, ThemeBackdropName);
+        public static readonly ProfilerMarker ThemeFrost = new ProfilerMarker(ProfilerCategory.Scripts, ThemeFrostName);
     }
 }
