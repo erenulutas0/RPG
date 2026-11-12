@@ -16,7 +16,9 @@ namespace Cryptforge.UI
     // Foundry restores the kept vertex arrays and sprite colours and clears the blocks.
     public sealed partial class FoundryRegionView
     {
-        private static readonly int ColourId=Shader.PropertyToID("_Color"),TextureId=Shader.PropertyToID("_MainTex");
+        private static readonly int ColourId=Shader.PropertyToID("_Color"),TextureId=Shader.PropertyToID("_MainTex"),
+            AtmosphereId=Shader.PropertyToID("_Atmosphere");
+        private const float IceAtmosphere=.1f;
         // docs/49's palette.
         internal static readonly Color MirrorIce=Hex(0x5FA8C8),IceEdge=Hex(0xBFE6F2),Silver=Hex(0xA9B4BF),
             QuicksilverGlow=Hex(0x7FE3FF),FrostLight=Hex(0xA6F0FF),Haze=Hex(0x6E8299),Frost=Hex(0xB9CCDA);
@@ -107,7 +109,13 @@ namespace Cryptforge.UI
                         // A glowing texture with an ice variant (fires, the pit, the baked boilers' windows): the
                         // variant is already cold, so no tint; anything else darkens toward slate.
                         Texture2D variant=IceVariant(material.mainTexture);
-                        if(variant!=null)_themeBlock.SetTexture(TextureId,variant);else colour*=IceSlate;
+                        if(variant!=null)_themeBlock.SetTexture(TextureId,variant);
+                        // The distant works borrow the foundry wall's art in their own atmospheric material.
+                        else if(set!=null&&set.IceMasonry!=null&&set.FoundryWall!=null&&material.mainTexture==set.FoundryWall.mainTexture)
+                            _themeBlock.SetTexture(TextureId,set.IceMasonry);
+                        else colour*=IceSlate;
+                        // Their violet atmospheric blend read magenta against the ice; only a trace of it stays.
+                        if(material.HasProperty(AtmosphereId))_themeBlock.SetFloat(AtmosphereId,IceAtmosphere);
                         break;
                 }
                 _themeBlock.SetColor(ColourId,colour);
@@ -211,14 +219,14 @@ namespace Cryptforge.UI
             return graded;
         }
 
-        // A rail vertex of the untextured coping batch (its colour is final): inlaid mirror-ice #5FA8C8 at about 60-70%
+        // A rail vertex of the untextured coping batch (its colour is final): inlaid mirror-ice #5FA8C8 at about 50-55%
         // of its value, a faint ice-edge #BFE6F2 sheen only where the floor light is strong; on the compass seal silver
         // #A9B4BF to ice edge.
         public static Color IceRail(Color c,bool seal)
         {
             float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
             Color graded=seal?Color.Lerp(Silver,IceEdge,Mathf.Clamp01((luminance-.7f)*1.5f))*Mathf.Clamp(luminance*1.15f,.85f,1.4f)
-                :Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01((luminance-1f)*1.2f)*.45f)*Mathf.Clamp(luminance*.7f,.55f,.85f);
+                :Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01((luminance-1f)*1.2f)*.45f)*Mathf.Clamp(luminance*.56f,.45f,.68f);
             graded.a=c.a;
             return graded;
         }

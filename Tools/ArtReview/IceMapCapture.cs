@@ -70,6 +70,18 @@ namespace Cryptforge.Tests
                 Vector3 pit=FoundrySurface.Project(-10,8);
                 camera.transform.position=new Vector3(pit.x,pit.y-1,-10);camera.orthographicSize=8;
                 Capture(camera,arena,floor+"/pit",1200,1200);
+                // The pit-eruption warning, its telegraph held mid-warning (the clock stepped by hand, time stopped): the
+                // rim band must stay red-orange on either floor. The Warden's slam mark needs the boss fight: not shown.
+                if(setup.Pit!=null&&setup.Pit.Clock!=null)
+                {
+                    var clock=setup.Pit.Clock;
+                    float target=PitEruptionRule.Period-PitEruptionRule.Warning*.4f;
+                    if(clock.Seconds<target)clock.Step(target-clock.Seconds);
+                    yield return null;
+                    camera.transform.position=new Vector3(pit.x,pit.y-1,-10);camera.orthographicSize=9;
+                    Capture(camera,arena,floor+"/pit-warning",1200,1200);
+                    File.WriteAllText(Root+floor+"/pit-warning.txt",$"warning:{clock.IsWarning}; seconds:{clock.Seconds}; running:{setup.Pit.IsRunning}\n");
+                }
                 camera.transform.position=new Vector3(0,4,-10);camera.orthographicSize=32;
                 Capture(camera,arena,floor+"/overview",1600,1200);
                 camera.transform.position=new Vector3(0,2,-10);camera.orthographicSize=37;

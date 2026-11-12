@@ -42,7 +42,7 @@ namespace Cryptforge.Tests
             Color lava = FoundryRegionView.IceTint(new Color(1.4f, .6f, .18f, 1f));
             Assert.That(lava.b, Is.GreaterThan(lava.r), "Lava becomes cold light.");
             Color rail = FoundryRegionView.IceRail(new Color(1f, .95f, .82f, 1f), false);
-            Assert.That(rail.b, Is.GreaterThan(.4f), "The brass rail becomes mirror-ice, not dark.");
+            Assert.That(rail.b, Is.GreaterThan(.35f), "The brass rail becomes mirror-ice, not dark.");
             Assert.That(rail.b, Is.LessThan(.7f), "Inlaid ice, not neon.");
             Color pool = FoundryRegionView.IceTint(new Color(1.9f, 1.4f, .8f, 1f));
             Assert.That(Mathf.Max(pool.r, Mathf.Max(pool.g, pool.b)), Is.LessThan(1.2f), "A fire's pool on stone does not blow out.");

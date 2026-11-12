@@ -38,6 +38,9 @@ namespace Cryptforge.UI
                     Vector3 a=p[i],b=p[(i+1)%4];
                     FoundrySurface.ToDesign((a.x+b.x)*.5f,(a.y+b.y)*.5f,out float edgeU,out float edgeV);
                     if(!CourtEdgeVisible(edgeU,edgeV))continue;
+                    // Only the platform's outer rim, open to the void for several cells: never the pit, a shaft or a
+                    // yard's inner edge.
+                    if(!OpenToVoid(cell,neighbours[i]))continue;
                     // Only rims whose sidewall faces the camera (outward runs down the screen) show their ice.
                     Vector3 outward=(a+b)*.5f-Project(x+.5f,y+.5f);
                     if(outward.y>=0)continue;
@@ -58,6 +61,14 @@ namespace Cryptforge.UI
             renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;renderer.receiveShadows=false;
             renderer.lightProbeUsage=UnityEngine.Rendering.LightProbeUsage.Off;
             renderer.reflectionProbeUsage=UnityEngine.Rendering.ReflectionProbeUsage.Off;
+        }
+
+        private const int VoidReach=6;
+        private static bool OpenToVoid(Vector2Int cell,Vector2Int outward)
+        {
+            for(int k=1;k<=VoidReach;k++)
+                if(FoundryMap.UncutCell(cell.x+outward.x*k,cell.y+outward.y*k))return false;
+            return !(cell.x>=FoundryMap.PitWest-2&&cell.x<=FoundryMap.PitEast+2&&cell.y>=FoundryMap.PitSouth-2&&cell.y<=FoundryMap.PitNorth+2);
         }
 
         // One icicle under the rim at t along a..b: a lit facet (mirror-ice, its root at the ice edge) and a shaded one.
