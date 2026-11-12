@@ -326,3 +326,82 @@ share is its effective health against floor 1's authored 300 (the asset's value 
 - **The gate stays at 210 s**, as floors 1 and 2 hold theirs and as asked. 180 s was measured beside it at 11.5: the
   band holds (47-62 s), 13 fewer floor-3 deaths, the Descent P10 13.8 min, but floor 3's P50 falls to 242-254 s, at the
   bottom of section 2's 240-300 s. It is the lever if floor 3 should cost fewer runs.
+
+### The Descent with floor 3 (the batch, FOUNDRY_FLOORS=4)
+
+Vanguard / Ilya, 200 seeds each. Floor 2 and floor 3 cleared: of the runs that went down to them. Warden: floor 3's
+fight, P50 s. Completed: walked out of the finale, of all runs; "today" is the same batch before this build
+(FOUNDRY_FLOORS=3 then: floor 1, floor 2, the finale). Descent: P50 minutes of the completed runs.
+
+| Cohort | Floor 1 cleared | Floor 2 cleared | Floor 3 cleared | Floor-3 Warden P50 | Floor 3 P50 (s) | Finale deaths | Completed: today -> with floor 3 | Descent P50 (min) |
+|---|---|---|---|---|---|---|---|---|
+| careful | 98 / 99% | 98 / 96% | 98 / 99% | 62 / 58 | 285 / 280 | 0 / 0 | 96 / 96% -> 94 / 95% | 15.1 / 14.8 |
+| standing | 94 / 92% | 96 / 93% | 94 / 94% | 48 / 47 | 272 / 272 | 0 / 0 | 90 / 85% -> 85 / 80% | 14.5 / 14.4 |
+| first-card | 91 / 99% | 95 / 97% | 94 / 92% | 56 / 53 | 278 / 275 | 0 / 0 | 86 / 96% -> 81 / 89% | 14.8 / 14.6 |
+| clumsy | 39 / 66% | 85 / 82% | 91 / 91% | 61 / 62 | 282 / 282 | 0 / 0 | 33 / 54% -> 30 / 49% | 14.8 / 14.8 |
+| auto-farmer | 5 / 15% | 30 / 28% | 0 / 25% (3 / 8 went down) | - / 39 | - / 261 | 0 / 0 | 2 / 4% -> 0 / 1% | - / 13.9 |
+
+All cohorts and both heroes pooled:
+- **The Descent: P10 14.3 / P50 14.7 / P90 15.3 minutes.** All 1,206 completed runs land inside 13-16 (the shortest
+  13.7, the longest 16.0). Today's is 9.9-10.3 minutes P50 by cohort.
+- **Each floor P50:** floor 1 262-276 s, floor 2 263-274 s, floor 3 272-285 s, the finale 67-68 s, every one inside
+  section 2's 240-300 s and 45-90 s.
+- **The finale: no death in 1,206**, with the shipped arrival chest alone. The hero now enters at level 53-57 (today
+  43-45) with P50 51-80 % of its maximum, against a finale that is not climb-scaled (question 9).
+- **Deaths:** floor 2's 110 are unchanged; floor 3 adds 75, so 185 runs die on floors 2-3.
+
+Against section 2's proposed acceptance:
+- met: the Descent's P10 at least 13.0 and P90 at most 16.0; each floor 240-300 s; the finale 45-90 s; no finale death;
+  floor 3 cleared by careful 98-99 % (at least 95) and clumsy 91 % (at least 85); the floor-3 Warden's P50 45-65 s for
+  both heroes in every playing cohort.
+- not met: **completion "no cohort more than 5 points below today".** Pooled by cohort: careful -1.5, standing -5,
+  first-card -6 (Vanguard -5, Ilya -7), clumsy -4. The floor costs it, not the share: at floor 2's 8.5 the first-card
+  cohort completes 82 / 89 % (-5.5). And "deaths before the finale at most about 160": 185, where docs/47's 158 was
+  measured on an older main (today's floor 2 alone is 110, docs/47's 105). If the owner holds the 5 points, 180 s on
+  floor 3's gate saves 13 runs (table above); docs/47's `mend70` and `gatechest` are the measured heals for a floor's
+  Warden, either as floor 3's own.
+
+### The default batch is unchanged
+
+The default batch (FOUNDRY_FLOORS=2, FOUNDRY_LEVERS=0, FOUNDRY_COHORTS=1, FOUNDRY_REALISM=typical, seeds 1-200) ran on
+lead-combined2 (930299dd) before any change and again with floor 3 built, with the same environment (an empty Editor
+folder, FOUNDRY_DEVICE=none):
+- byte-identical, by first 12 hex of their sha256: foundry-batch.csv (91c001bba7d4), foundry-batch-floor2.csv
+  (1af3578459ac), foundry-cohorts-floor2.csv (048d6336985c), foundry-cohorts.md (b1f04bead7a4), foundry-gate.md
+  (3474880ca3c5);
+- foundry-batch.md differs only in its date line and its "Wall s" column.
+
+No row of floors 1 and 2 moved. What moved is the finale: it now follows floor 3, so FOUNDRY_FLOORS=3 (the finale before
+this build) plays floor 3 instead, and the finale's rows come with FOUNDRY_FLOORS=4.
+
+Between the batch before this build with FOUNDRY_FLOORS=3 (floor 1, floor 2, the finale) and with it at
+FOUNDRY_FLOORS=4 (floors 1-3, the finale): foundry-gate.md, foundry-batch.csv, foundry-batch-floor2.csv and
+foundry-cohorts-floor2.csv are byte-identical, and foundry-cohorts.md is the same line for line up to its floor-2 table.
+The rows that moved are the finale's and the whole Descent's (foundry-finale.md and .csv, and the cohort section's
+finale): they now follow floor 3, as the table above reads. foundry-cohorts.md gains floor 3's table, and
+foundry-cohorts-floor3.csv is new.
+
+### Checks
+
+- CombatChecks: 797 of 797 green, `FoundryFloorThreeTests` (4, new) among them; the compile check of the Unity
+  assemblies is clean.
+- Unity, not run here (no Unity in the worktree):
+  - EditMode: `ClimbFloorContentTests;FloorThemeTests;FoundrySimulationSceneValueTests;FoundryFloorThreeTests;FoundryFinaleTests;FoundrySimulationTests;FoundryGateCallTests;FoundryCohortTests;FoundryGateTests`
+  - PlayMode: `FoundryDescentFlowTests;DescentFlowTests;GateHoldFlowTests;FoundryRunEndFlowTests;PaintedHudFlowTests;RunResultTests;EnemyFrostTests`
+  - `FoundryDescentFlowTests.TheShippedClimbPlaysThroughToTheEndOfTheFinalSwarm` now plays four floors (pips 7, 6, 6,
+    1; 20 rooms; deepest floor 4; its real-time deadline 330 s and timeout 420 s). `DescentFlowTests`: floor 2's door
+    names Gloam Gardens, and the finale is reached as floor 4 with 376 gold secured (116 + 157 + floor 3's 103, no
+    modifier).
+
+### What waits
+
+- **The Editor (section 3.6 step 4).** HordePacingMeasurement's horde-floors.txt "3" still reads floor 2 straight into
+  the finale: its descent row's columns (floor2_s, finale_s, the finale's health) and its 840 s limit assume it. With
+  floor 3 in the chain it would play floor 3 as its "finale" column and run out of time near 14 minutes. It needs a "4"
+  and a floor-3 column before the Editor confirms this Descent; until then the batch's Editor-seed comparison holds for
+  floors 1 and 2 only.
+- **The phone (step 6).** A 15-minute run: frame time, thermal soak, memory, telemetry size (section 3.3).
+- **Unseen in the scene:** the region turning back from floor 2's ice to the foundry on floor 3 (FoundryRegionTheme keeps
+  the foundry's colours and swaps both ways, read from the code), the HUD's floor line and pips on a fourth floor, the
+  result screen and Profile.RecordFloorCleared at 4.
+- The owner's questions 5 (the Warden variant), 6 (a modifier), 9 (the finale's scaling) and 10 stay open.
