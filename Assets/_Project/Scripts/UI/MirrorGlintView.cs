@@ -8,11 +8,13 @@ namespace Cryptforge.UI
     // Presentation only: the Mirror Sentry's mirror (MirrorGuardRule; docs/50 section 5, "Readability"). The Sentry's art
     // faces four ways, which cannot show a turn of 45 degrees a second, so each standing mirror wears a short violet arc on
     // the ground at its feet, turned to the guard's exact facing (MirrorGuardState.Facing) and as wide as its front arc:
-    // where the hero stands inside it, a landing is blunted and reflected. It is violet, never red-orange, because standing
+    // where the hero stands inside it, a landing is blunted. It is violet, never red-orange, because standing
     // there does not hurt on a timer (docs/50 section 2 rule 3: red-orange means "this floor will hurt"; violet never does).
-    // A reflection paid (MirrorGuardService.Reflected) draws a three-frame violet glint from the mirror to the hero; the
-    // hero flashes as for any hit (CombatantView). Pooled: an arc a standing mirror, grown as mirrors stand up, and a few
-    // glints reused in turn - nothing is made or destroyed in a fight. Only where the service steps mirrors (the foundry).
+    // A landing the mirror blunted (MirrorGuardService.Blunted, at most one every BluntGlintSeconds) draws a three-frame
+    // violet glint from the mirror toward the hero - a look only, it deals nothing; a reflection paid, where a research
+    // tuning reflects (MirrorGuardService.Reflected), draws the same, and the hero flashes as for any hit (CombatantView).
+    // Pooled: an arc a standing mirror, grown as mirrors stand up, and a few glints reused in turn - nothing is made or
+    // destroyed in a fight. Only where the service steps mirrors (the foundry).
     [DefaultExecutionOrder(100)]
     public sealed class MirrorGlintView : MonoBehaviour
     {
@@ -67,6 +69,7 @@ namespace Cryptforge.UI
                 _glints[i].gameObject.SetActive(false);
             }
             _service.Reflected += OnReflected;
+            _service.Blunted += Glint;
         }
 
         private LineRenderer Line(string name, int points, float width, int order)
@@ -92,7 +95,10 @@ namespace Cryptforge.UI
             return p;
         }
 
-        private void OnReflected(MirrorGuard from, float amount)
+        private void OnReflected(MirrorGuard from, float amount) => Glint(from);
+
+        // The glint from the mirror of from toward the hero, its first frame drawn this frame.
+        private void Glint(MirrorGuard from)
         {
             if (from == null || _hero == null || !_encounter.TryFloorPositionOf(from.Body, out float x, out float y))
                 return;
@@ -191,6 +197,7 @@ namespace Cryptforge.UI
         {
             if (_service != null)
                 _service.Reflected -= OnReflected;
+                _service.Blunted -= Glint;
             // The material is shared (SharedSpriteMaterial), not this view's to destroy.
         }
     }

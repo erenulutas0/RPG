@@ -4,11 +4,13 @@ using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // The Mirror Sentry's guard (MirrorGuardRule, MirrorGuardState; docs/50 section 5 and the lead's decisions 2026-11-12,
-    // `sentry-t45-h125-c2-f50`): the mirror turns toward the hero at 45 degrees a second; a landing made while the hero
-    // stands inside its 120-degree front arc deals half to it and reflects a fifth of the landing to the hero, the
-    // reflection capped at 2 % of the hero's maximum a second for each Sentry; a flank or the rear takes the landing whole
-    // and reflects nothing. Pure, one body for the scene's MirrorGuard and the foundry simulation.
+    // The Mirror Sentry's guard (MirrorGuardRule, MirrorGuardState; docs/50 section 5 and the lead's decisions 2026-11-12):
+    // the mirror turns toward the hero at 45 degrees a second; a landing made while the hero stands inside its 120-degree
+    // front arc deals the front share to it and reflects its share of the landing to the hero, capped a second for each
+    // Sentry; a flank or the rear takes the landing whole and reflects nothing. The shipped tuning is `sentry-r0-f70` (70 %
+    // taken, nothing reflected; TheGuardIsTheLeadsTuning); the behaviour is read on round 2's guard, which reflects, so the
+    // reflection's arithmetic stays held for the research levers. Pure, one body for the scene's MirrorGuard and the
+    // foundry simulation.
     public sealed class MirrorGuardRuleTests
     {
         private const float Degree = (float)Math.PI / 180f;
@@ -41,9 +43,17 @@ namespace Cryptforge.Tests
         {
             Assert.That(MirrorGuardRule.TurnDegrees, Is.EqualTo(45f));
             Assert.That(MirrorGuardRule.ArcDegrees, Is.EqualTo(120f));
-            Assert.That(MirrorGuardRule.FrontShare, Is.EqualTo(.5f));
-            Assert.That(MirrorGuardRule.ReflectShare, Is.EqualTo(.2f));
+            // sentry-r0-f70 (docs/50, rounds 3 and 4, the lead's relative rule): 70 % of a front landing taken, nothing
+            // reflected - the mirror's glint is a look only.
+            Assert.That(MirrorGuardRule.FrontShare, Is.EqualTo(.7f));
+            Assert.That(MirrorGuardRule.ReflectShare, Is.Zero);
             Assert.That(MirrorGuardRule.ReflectCap, Is.EqualTo(.02f));
+            float reflected;
+            var shipped = new MirrorGuardState();
+            shipped.Step(Frame, 0f, 0f, 1f, 0f, 100f);
+            Assert.That(shipped.Land(10f, 0f, 0f, 1f, 0f, out bool front, out reflected), Is.EqualTo(7f).Within(1e-5f));
+            Assert.That(front, Is.True);
+            Assert.That(reflected, Is.Zero, "the shipped guard reflects nothing");
             var guard = new MirrorGuardState();
             Assert.That(guard.ArcDegrees, Is.EqualTo(MirrorGuardRule.ArcDegrees));
         }

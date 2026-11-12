@@ -192,7 +192,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryMapTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ClimbScalingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
-    <!-- Loads the themed art sets through UnityEditor's AssetDatabase: the Editor runs it, not this runner. -->
+    <!-- The glob's one Editor-only file: EnemyThemeArtTests loads the painted sets through UnityEditor's AssetDatabase. -->
     <Compile Remove="../../Assets/_Project/Tests/EditMode/EnemyThemeArtTests.cs" />
     <!-- The puppet's pose math lives in Scripts/Art (above); its placeholder parts are tested by PuppetArtTests. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetGaitTests.cs" />

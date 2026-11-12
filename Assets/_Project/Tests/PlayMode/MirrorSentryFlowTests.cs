@@ -17,9 +17,11 @@ namespace Cryptforge.Tests
     // The Mirror Sentry in the scene (MirrorGuardRule, MirrorGuard, MirrorGuardService; docs/50 section 5 and the lead's
     // decisions 2026-11-12), on Resources/Development/Floor_SentryProof: one elite room, the Sentry alone, the foundry, no
     // horde, the hero with the Daggers and no autopilot. The hero stands and strikes: the mirror turns to it and every
-    // landing from the front deals half and reflects; then the hero is set down behind it: the mirror turns after it at
-    // 45 degrees a second, never faster, and every landing from behind is whole and reflects nothing. What the hero is
-    // reflected stays within 2 % of its maximum a second.
+    // landing from the front deals MirrorGuardRule.FrontShare of itself and reflects, when the rule reflects at all; then
+    // the hero is set down behind it: the mirror turns after it at 45 degrees a second, never faster, and every landing
+    // from behind is whole and reflects nothing. What the hero is reflected stays within MirrorGuardRule.ReflectCap of its
+    // maximum a second - nothing as it ships (sentry-r0-f70) - and a blunted landing still flashes the mirror's violet
+    // glint, never two within MirrorGuardService.BluntGlintSeconds.
     public sealed class MirrorSentryFlowTests
     {
         [UnitySetUp] public IEnumerator Begin()
@@ -70,8 +72,8 @@ namespace Cryptforge.Tests
             Assert.That(Object.FindFirstObjectByType<MirrorGlintView>(), Is.Not.Null, "and the glint view stands");
 
             // Each landing of the hero's on it, judged as the guard judges it - the hero's place against the mirror's facing
-            // at that moment - against the Daggers' landing on an elite, whole or half.
-            int frontHalved = 0, frontOther = 0, rearWhole = 0, rearOther = 0;
+            // at that moment - against the Daggers' landing on an elite, whole or its front share.
+            int frontBlunted = 0, frontOther = 0, rearWhole = 0, rearOther = 0;
             sentry.Damaged += context =>
             {
                 if (!ReferenceEquals(context.Source, hero) || context.IsTick ||
@@ -83,7 +85,7 @@ namespace Cryptforge.Tests
                 if (front)
                 {
                     if (Mathf.Abs(context.Amount - whole * MirrorGuardRule.FrontShare) < .01f)
-                        frontHalved++;
+                        frontBlunted++;
                     else
                         frontOther++;
                 }
@@ -99,6 +101,19 @@ namespace Cryptforge.Tests
                 reflected += amount;
                 reflections++;
             };
+            // The mirror's look for a blunted landing (MirrorGuardService.Blunted): no damage, at most one a BluntGlintSeconds.
+            int blunts = 0, tooSoon = 0, otherMirrors = 0;
+            float lastBlunt = float.NegativeInfinity;
+            setup.Mirrors.Blunted += from =>
+            {
+                if (!ReferenceEquals(from, mirror))
+                    otherMirrors++;
+                if (Time.time - lastBlunt < MirrorGuardService.BluntGlintSeconds - 1e-3f)
+                    tooSoon++;
+                lastBlunt = Time.time;
+                blunts++;
+            };
+            var glints = Object.FindFirstObjectByType<MirrorGlintView>();
 
             // The mirror's turn, frame by frame, while it guards: never more than 45 degrees a second.
             float last = float.NaN, guardedSeconds = 0f, maximum = hero.Maximum;
@@ -125,12 +140,12 @@ namespace Cryptforge.Tests
 
             // The hero stands and the Sentry walks up to it: its landings meet the mirror.
             deadline = Time.realtimeSinceStartup + 25f;
-            while (frontHalved < 4 && sentry.IsAlive && hero.IsAlive && Time.realtimeSinceStartup < deadline)
+            while (frontBlunted < 4 && sentry.IsAlive && hero.IsAlive && Time.realtimeSinceStartup < deadline)
             {
                 yield return null;
                 Watch();
             }
-            Assert.That(frontHalved, Is.GreaterThanOrEqualTo(4), "landings from the front, each half the Daggers' landing");
+            Assert.That(frontBlunted, Is.GreaterThanOrEqualTo(4), "landings from the front, each the front share of the Daggers' landing");
             Assert.That(rearWhole, Is.Zero, "the hero stood before the mirror throughout");
 
             // Set down behind it, a short step inside the Daggers' reach: the mirror has a half-turn to make.
@@ -147,7 +162,7 @@ namespace Cryptforge.Tests
                 break;
             }
             Assert.That(placed, Is.True, "a spot behind the Sentry on the floor");
-            int frontBefore = frontHalved, reflectionsBefore = reflections;
+            int frontBefore = frontBlunted, reflectionsBefore = reflections;
             float rearUntil = Time.realtimeSinceStartup + 20f, rearSeconds = 0f;
             while (rearSeconds < 1.5f && sentry.IsAlive && sentry.Current > sentry.Maximum * .2f && hero.IsAlive &&
                    Time.realtimeSinceStartup < rearUntil)
@@ -157,10 +172,10 @@ namespace Cryptforge.Tests
                 Watch();
             }
             Assert.That(rearWhole, Is.GreaterThan(0), "landings from behind, each the Daggers' whole landing");
-            Assert.That(frontHalved, Is.EqualTo(frontBefore), "none from the front while the mirror turned after the hero");
+            Assert.That(frontBlunted, Is.EqualTo(frontBefore), "none from the front while the mirror turned after the hero");
             Assert.That(reflections, Is.LessThanOrEqualTo(reflectionsBefore + 1),
                 "nothing reflects from behind (one owed from the last front landing may still be paid)");
-            Assert.That((frontOther, rearOther), Is.EqualTo((0, 0)), "every landing was half from the front or whole from behind");
+            Assert.That((frontOther, rearOther), Is.EqualTo((0, 0)), "every landing was the front share from the front or whole from behind");
 
             Assert.That(turns, Is.GreaterThan(60), "the mirror was watched turning for over a second");
             Assert.That(tooFast, Is.Zero, "it never turned faster than 45 degrees a second");
@@ -174,7 +189,17 @@ namespace Cryptforge.Tests
                 Assert.That(reflected, Is.GreaterThan(0f));
             }
             else
+            {
+                // As it ships (sentry-r0-f70): the hero is never reflected anything; the mirror's glint still shows.
                 Assert.That(reflections, Is.Zero, "a guard that reflects nothing pays nothing");
+                Assert.That(setup.Mirrors.ReflectedTotal, Is.Zero, "no health reflected");
+            }
+            Assert.That(blunts, Is.GreaterThan(0), "a blunted landing flashed the mirror's violet glint");
+            Assert.That(otherMirrors, Is.Zero, "from this Sentry's mirror");
+            Assert.That(setup.Mirrors.BluntGlints, Is.EqualTo(blunts));
+            Assert.That(tooSoon, Is.Zero, "never two glints within BluntGlintSeconds");
+            Assert.That(blunts, Is.LessThanOrEqualTo(mirror.FrontLandings), "at most one a blunted landing");
+            Assert.That(glints.GlintsBegun, Is.EqualTo(blunts + reflections), "every glint the view drew was a blunted landing's or a reflection's");
             Assert.That(reflected, Is.LessThanOrEqualTo(maximum * MirrorGuardRule.ReflectCap * (guardedSeconds + 1f) + 1e-3f),
                 $"{reflected:0.00} reflected over {guardedSeconds:0.0} s guarding, the hero's maximum {maximum:0}");
             Assert.That(setup.Mirrors.ReflectedTotal, Is.EqualTo(reflected).Within(1e-4f));
