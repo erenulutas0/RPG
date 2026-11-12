@@ -182,7 +182,23 @@ namespace Cryptforge.UI
             var dress=new ThemeDress{Palette=palette};
             _dresses.Add(theme,dress);
             dress.Preparation=Prepare(dress,set);
-            if(isActiveAndEnabled)dress.Coroutine=StartCoroutine(dress.Preparation);
+            ResumePreparations();
+        }
+
+        // Runs every pending preparation as a coroutine whenever the region is active (asked while inactive, or re-enabled).
+        private void ResumePreparations()
+        {
+            if(!isActiveAndEnabled)return;
+            foreach(var dress in _dresses.Values)
+                if(dress.Preparation!=null&&!dress.Prepared&&!dress.Draining&&dress.Coroutine==null)
+                    dress.Coroutine=StartCoroutine(dress.Preparation);
+        }
+        private void OnEnable()=>ResumePreparations();
+        // A deactivated object's coroutines stop; the same iterator goes on where it stood when it is enabled again.
+        private void OnDisable()
+        {
+            foreach(var dress in _dresses.Values)
+                if(dress.Coroutine!=null){StopCoroutine(dress.Coroutine);dress.Coroutine=null;}
         }
 
         // The preparation finished now, in this frame: the rest of what PrepareTheme spreads over frames, a texture still

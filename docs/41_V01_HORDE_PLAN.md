@@ -2191,3 +2191,65 @@ Waiting for the owner's look (verified together on lead-preview, preview APK bes
   octagon (ArtDirection/2026-11-12/foundry-trolley-crown-01 and foundry-court-ways-02).
 
 Still the owner's: the push, the phone (docs/23's runbook: install, play, pull), docs/48, docs/46.
+
+## Status 2026-11-12 (midday): the lead's decisions, the ice map, floor 3
+
+The owner at 09:05: "Kendine uygun olarak seç bunları, vizyonumuzu sen tasarlıyorsun, görevlere başla" - the lead
+decides the open visual questions and the push. Since the morning status (origin 5647d3ac):
+
+**Pushed today** (each verified in Unity on the commit pushed, EditMode 1189):
+- 10:03, `fccb728d`: the rarity cards, the foundry art and the ice map (PlayMode 347 + 6 explicit, x-ray 2/2; region
+  budget floor 1 161,691 vertices, floor 2 162,519). APK 43,691,365 bytes.
+- 10:44, `8c7514c3`: + the trolley's warmth, floor 2's frosted enemies and their fix (`954881df`), docs/50 and docs/51
+  (PlayMode 349 + 6). APK 46,509,471 bytes, SHA-256 F9F5121C...
+- 11:53, `3c514b75`: + the ice props and the frost transition (`be7b2b14`; PlayMode 351 + 6). APK 46,528,031 bytes,
+  SHA-256 3B4DDAB7..., the APK docs/23's runbook names.
+- origin/main is 3c514b75, 77 commits past 5647d3ac (pushed at 00:17).
+
+**Local main `b85969c2`, not pushed** (19 commits past origin): floor 3 phase 1 and the Vaults enemies research. Its
+Unity check is the floor-3 filters (EditMode 79 of 79, PlayMode 33 of 33) and CombatChecks 798 of 798; the full gate and
+an APK of it are still to run.
+
+**The lead's decisions (09:05 onward):**
+- **Rarity cards: merged.** Common grey, Rare blue, Epic red, Gold gold item grounds on the choice cards.
+- **Foundry art: merged** (the trolley as cast iron carrying steel, the calmer gate crown, the court's lane lines),
+  with a follow-up that gives the trolley warmth back (bronze axle caps, yoke clasps, a riveted strap, warmer oak).
+- **The ice map, "Quicksilver Vaults": merged.** Floor 2 renders with FloorDefinition.Theme Ice (docs/49): slate ice
+  paving, mirror-ice inlays, frost-light flames, quicksilver pit and boilers, rime, icicles, crystals, an aurora
+  backdrop; floor 1 is unchanged. The name stays (frozen quicksilver is the mirror-ice). No hero rim, no falling snow
+  (S23 unmeasured); APK +6.8 MB accepted. **Frosted enemies**: all six painted kinds in cold silver with violet #8B6CE8
+  glow on floor 2, visual only, swapped as bodies spawn or leave the shelf. **Props**: 6 mirror panels and 10 snow
+  drifts (floor 2: 41 renderers, 163,373 vertices); **the frost transition** (0.6 s on entering floor 2).
+- **Floor 3 phase 1, Floor_GloamGardens** (docs/48, data and simulation, the Foundry theme for now): floor 2's six rooms
+  under the garden's names at floor 3's tier; the chain floor 1, floor 2, floor 3, the finale (FOUNDRY_FLOORS=4 plays
+  it all). The Warden at 11.5 times its authored health (the stand-in 8.5 left the standing cohort at 41-42 s); the gate
+  at **180 s** (floors 1 and 2 keep 210): every playing cohort's floor-3 Warden P50 47-62 s, **the four-floor Descent
+  P10 / P50 / P90 13.8 / 14.2 / 14.7-14.8 min** (all 1,219 completed runs inside 13-16, the shortest 13.2, the longest
+  15.6), **finale deaths 0**, first-card's completion -5 points pooled, floor 3 kills 62 runs in 2,000 (75 at 210 s).
+  Floors 1 and 2 are byte-identical in the batch. The Editor's HordePacingMeasurement plays the four floors
+  (horde-floors.txt "4", cap 1,200 s a seed).
+- **The Vaults' own enemies (docs/50, simulation only, levers off by default; the default batch byte-identical):**
+  - **Mirror Sentry `t45-h125-c2-f50` is built first**: turns 45 degrees a second, 125 % health, takes half of a front
+    landing, reflects at most 2 % of the hero's maximum a second. The only creature that separates skill: the Daggers
+    lead it by +83 %, clumsy completion 40.8 %, careful within 3 clears.
+  - **docs/50's 6-12 s elite-fight row becomes "reported"**: the flank that makes the Sentry a read also shortens it
+    (no variant passes 4.3 s for careful hands).
+  - **Glass Regent second, at share 7.0**: careful P50 49 / 46 s on the holdout seeds 201-400 against the Warden's 50 /
+    46, the Sword +27 %; it needs the sidestep habit before it replaces the Warden.
+  - **Silver Wisp: the frosted Runner stays** (a 10-health horde body separates nothing, blink or not).
+  - **Faceless Clerk: dropped for now** (a cost every cohort pays, not a skill read).
+- **Gloam Gardens' look (docs/51)**: an overgrown foundry at dusk (gloamlight #C6EE6A for lava, verdigris for brass);
+  enemies re-coloured first, bark with an orchid #D86BD0 glow (floor 3's own creatures later); ash drifts kept off the
+  lanes; a dimmed sun; a transition later.
+
+**In flight, on branches, not merged:**
+- the floor-2 perf fix: the Editor probe found a 279 ms floor-change hitch (textures 188 ms of synchronous Resources
+  loads, the re-tint 71 ms) and floor 2's p95 11.8 -> 18.2 ms; the branch prepares the theme's dress during the previous
+  floor (1 ms slices, colours on a worker thread, Resources.LoadAsync) so the floor change only binds (target under
+  10 ms). Its Unity tests and the probes on floors "1,2" and "2,1" are running;
+- Gloam Gardens visual pass 1 (docs/51 steps 1-4), the Gloam backdrop plate and growth art;
+- the Mirror Sentry runtime (scene, simulation and the autopilot's flank), the Mirror Sentry and Glass Regent art;
+- docs/52, floor 3's own enemies; a code review of floor 3, the perf branch and the pool / ice work.
+
+Still the owner's (the phone): the V0.1 device rows - the owner's play and the S23 frame time - and the APK install
+by docs/23's runbook (be7b2b14's APK, 3B4DDAB7...).

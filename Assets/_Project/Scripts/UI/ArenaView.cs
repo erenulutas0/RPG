@@ -55,6 +55,19 @@ namespace Cryptforge.UI
 
         private void Awake()
         {
+            _awoken = true;
+            Build();
+            // A dress asked for before this Awake (a run that starts on an ice floor: CombatSetup.Awake's EnterFloor can
+            // run first), put on now that there is something to dress.
+            if (_themeAsked)
+            {
+                _themeAsked = false;
+                ApplyFloorTheme(_askedTheme);
+            }
+        }
+
+        private void Build()
+        {
             if (_camera == null || _material == null || !(_farCorner > _nearCorner))
             {
                 Debug.LogError("ArenaView needs a camera, a vertex-colour material and a far corner beyond the near corner.", this);
@@ -73,6 +86,8 @@ namespace Cryptforge.UI
             {
                 Region=Child<FoundryRegionView>("Playable Foundry");
                 Region.Build(this,_furnaceSprite);
+                // A preparation asked for before this Awake (CombatSetup.Awake's EnterFloor can run first).
+                HandOverPreparation();
                 _atmosphere=Child<FoundryAtmosphereView>("Foundry atmosphere");
                 _atmosphere.Build(_material);
                 return;
@@ -94,15 +109,41 @@ namespace Cryptforge.UI
         // A floor ahead whose dress is not this one (EncounterController, as a floor starts): the region works it out over
         // the coming frames - colours graded off the main thread, textures loaded asynchronously - so the change itself
         // only binds it. Nothing on show changes.
+        // The request is kept until the region exists: CombatSetup.Awake enters floor 1 (and asks for floor 2's dress)
+        // before this view's own Awake has built the region whenever Unity happens to wake CombatSetup first.
         public void PrepareFloorTheme(FloorTheme theme)
         {
-            if (Region != null && theme != Theme)
-                Region.PrepareTheme(theme, _platformMaterials);
+            if (theme == Theme)
+                return;
+            _preparing = theme;
+            _preparationAsked = true;
+            HandOverPreparation();
         }
         public bool IsFloorThemeReady(FloorTheme theme) => Region == null || Region.IsThemePrepared(theme);
-        public bool IsPreparingFloorTheme => Region != null && Region.IsPreparingTheme;
+        // True from the request until the region has the dress ready; false once awake with no region to dress.
+        public bool IsPreparingFloorTheme => Region != null ? Region.IsPreparingTheme || (_preparationAsked && !Region.IsThemePrepared(_preparing))
+            : _preparationAsked && !_awoken;
+        private void HandOverPreparation()
+        {
+            if (!_preparationAsked || Region == null)
+                return;
+            if (_preparing != Theme)
+                Region.PrepareTheme(_preparing, _platformMaterials);
+        }
+        private bool _awoken;
+        private bool _themeAsked;
+        private FloorTheme _askedTheme;
+        private bool _preparationAsked;
+        private FloorTheme _preparing;
         public void ApplyFloorTheme(FloorTheme theme)
         {
+            // Before Awake nothing is built yet: kept, and put on as Awake ends (Theme changes then).
+            if (!_awoken)
+            {
+                _askedTheme = theme;
+                _themeAsked = theme != Theme;
+                return;
+            }
             if (theme == Theme)
                 return;
             using (PerformanceMarkers.ThemeApply.Auto())
@@ -112,6 +153,10 @@ namespace Cryptforge.UI
         private void DressFloor(FloorTheme theme)
         {
             Theme = theme;
+            // The dress asked to be prepared is now on: the request is fulfilled. Leaving it later releases it
+            // (FoundryRegionView.Release), so it must not read as still preparing.
+            if (_preparationAsked && _preparing == theme)
+                _preparationAsked = false;
             if (Region != null)
                 Region.ApplyTheme(theme, _platformMaterials);
             using var backdrop = PerformanceMarkers.ThemeBackdrop.Auto();
