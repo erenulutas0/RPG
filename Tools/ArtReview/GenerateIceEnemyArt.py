@@ -135,7 +135,7 @@ def main():
         folder_meta(ice_dir)
         swaps = {}
         for line in text.splitlines():
-            if "Flash:" in line or "m_Script" in line or "_frost" in line:
+            if "Flash:" in line or "m_Script" in line or "_frost" in line or "_gloam" in line:
                 continue
             for guid in re.findall(r"guid: (\w+), type: 3", line):
                 if guid in swaps:
@@ -151,6 +151,8 @@ def main():
         ice_text = re.sub(r"guid: (\w+), type: 3", lambda m: "guid: %s, type: 3" % swaps.get(m.group(1), m.group(1)), text)
         ice_text = ice_text.replace("m_Name: " + set_name, "m_Name: " + ice_name)
         ice_text = re.sub(r"\n  _frost: [^\n]*", "", ice_text)
+        # Nor the garden's copy (GenerateGloamEnemyArt.py): a frosted set has no themed copies of its own.
+        ice_text = re.sub(r"\n  _gloam: [^\n]*", "", ice_text)
         newline = "\r\n" if "\r\n" in text else "\n"
         ice_text = ice_text.rstrip("\r\n") + newline + "  _frost: {fileID: 0}" + newline
         ice_asset = os.path.join(ice_dir, ice_name + ".asset")

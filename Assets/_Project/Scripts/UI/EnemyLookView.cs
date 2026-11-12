@@ -1,5 +1,6 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using UnityEngine;
 
@@ -35,12 +36,13 @@ namespace Cryptforge.UI
         [SerializeField] private Health _health;
         [SerializeField] private AttackController _attack;
         [SerializeField] private EnemyArtSet _paintedArt;
-        // The set on show (Art): the painted set, or its frosted copy on the ice floor (UseFrost). Every pose, flash,
-        // death and fall is read from it, so a frosted enemy's remains are frosted too. Resolved again whenever the
-        // painted set is not the one it was resolved for, so off the ice floor Art is always exactly _paintedArt.
+        // The set on show (Art): the painted set, or its copy for the floor's theme (UseTheme: frosted on the ice, bloomed
+        // in the garden). Every pose, flash, death and fall is read from it, so a themed enemy's remains are themed too.
+        // Resolved again whenever the painted set is not the one it was resolved for, so on the foundry Art is always
+        // exactly _paintedArt.
         private EnemyArtSet _art;
         private EnemyArtSet _artFor;
-        private bool _frosted;
+        private FloorTheme _theme;
         private EnemyArtSet Art
         {
             get
@@ -48,8 +50,8 @@ namespace Cryptforge.UI
                 if (!ReferenceEquals(_artFor, _paintedArt))
                 {
                     _artFor = _paintedArt;
-                    EnemyArtSet frost = _frosted && _paintedArt != null ? _paintedArt.Frosted : null;
-                    _art = frost != null ? frost : _paintedArt;
+                    EnemyArtSet themed = _paintedArt != null ? _paintedArt.ForTheme(_theme) : null;
+                    _art = themed != null ? themed : _paintedArt;
                 }
                 return _art;
             }
@@ -222,16 +224,18 @@ namespace Cryptforge.UI
             _lastPosition = transform.position;
         }
 
-        // The floor's palette (docs/49): frosted on the ice floor when the painted set has a frosted copy, the painted
-        // set itself otherwise. Visual only - the body's current pose is redrawn from the new set in place, nothing else
-        // changes, and asking for the palette on show does nothing. The encounter asks as it stands each enemy up, a
-        // new body or a shelved one, so a body reused from another floor takes the floor it is on now.
-        internal void UseFrost(bool frosted)
+        // The floor's palette (docs/49, docs/51): the painted set's copy for the floor's theme when it has one (frosted on
+        // the ice, bloomed in the garden), the painted set itself otherwise. Visual only - the body's current pose is
+        // redrawn from the new set in place, nothing else changes, and asking for the palette on show does nothing. The
+        // encounter asks as it stands each enemy up, a new body or a shelved one, so a body reused from another floor
+        // takes the floor it is on now.
+        internal void UseFrost(bool frosted) => UseTheme(frosted ? FloorTheme.Ice : FloorTheme.Foundry);
+        internal void UseTheme(FloorTheme theme)
         {
             if (!_painted)
                 return;
             EnemyArtSet shown = Art;
-            _frosted = frosted;
+            _theme = theme;
             _artFor = null;
             if (ReferenceEquals(Art, shown))
                 return;
@@ -245,8 +249,10 @@ namespace Cryptforge.UI
                 ShowPainted(PaintedFrame < WindupFrame ? PaintedFrame : 0);
         }
 
-        // The frosted copy is on show (UseFrost).
-        internal bool ShowsFrost => _painted && !ReferenceEquals(Art, _paintedArt);
+        // A themed copy is on show (UseTheme), and which: the frosted one (ShowsFrost) or the garden's.
+        internal bool ShowsThemed => _painted && !ReferenceEquals(Art, _paintedArt);
+        internal FloorTheme ShownTheme => ShowsThemed ? _theme : FloorTheme.Foundry;
+        internal bool ShowsFrost => ShownTheme == FloorTheme.Ice;
 
         // A pre-built white silhouette for any frame this view assigned to the body; null for anything else.
         public Sprite SilhouetteOf(Sprite bodySprite) => _painted ? Art.FlashOf(bodySprite) : _sprites?.SilhouetteOf(bodySprite);
