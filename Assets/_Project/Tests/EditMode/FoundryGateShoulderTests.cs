@@ -13,7 +13,9 @@ namespace Cryptforge.Tests
         private const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
         private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
         private const float U0=32.18f+FoundryMap.GateOffset,U1=33.82f+FoundryMap.GateOffset;
-        private const float Height=6.5f,Bottom=Height+.72f,Top=Height+1.16f,Inset=.065f,Shade=.99f;
+        private const float Height=6.5f,Bottom=Height+.72f,Top=Height+1.16f,Inset=.065f;
+        private static readonly float Shade=(float)typeof(FoundryRegionView).GetField("GateHeaderShoulderShade",Static).GetValue(null);
+        private static readonly float CorniceShade=(float)typeof(FoundryRegionView).GetField("GateHeaderCorniceShade",Static).GetValue(null);
 
         [TestCase(-.68f,3.35f)]
         [TestCase(6.65f,10.68f)]
@@ -42,7 +44,7 @@ namespace Cryptforge.Tests
             Assert.That(points.Count-oldPoints.Count,Is.LessThanOrEqualTo(500),
                 "Two shoulder replacements together may not consume more than 1000 extra vertices.");
             object cornice=Builder();Call("GateHeaderCornice",cornice,32.08f+FoundryMap.GateOffset,-.78f,
-                33.92f+FoundryMap.GateOffset,10.78f,Height+.43f,Bottom,.06f,1.02f);
+                33.92f+FoundryMap.GateOffset,10.78f,Height+.43f,Bottom,.06f,CorniceShade);
             object actual=Builder();Call("BuildGateHeaderFinish",actual,Height);
             int prefix=Data<Vector3>(cornice,"V").Count;
             AssertRange(cornice,actual,0);

@@ -197,7 +197,7 @@ namespace Cryptforge.Tests
         }
 
         [Test]
-        public void TrolleyJoinsTheWorkedIronFamilyWithADarkSkidAndWarmStockOnTimberBearers()
+        public void TrolleyJoinsTheWorkedIronFamilyWithADarkSkidAndSteelStockOnTimberBearers()
         {
             float u0=FoundryMap.WorkIslandBound(0,0),v0=FoundryMap.WorkIslandBound(0,1);
             float u1=FoundryMap.WorkIslandBound(0,2),v1=FoundryMap.WorkIslandBound(0,3);
@@ -208,25 +208,47 @@ namespace Cryptforge.Tests
             object builder=TrolleyWithSkid();
             var points=Field<List<Vector3>>(builder,"V");var colours=Field<List<Color>>(builder,"C");
             var referenced=new HashSet<int>(Field<List<int>>(builder,"T"));
-            float skidValue=0,ironValue=0,ironPeak=0,stockPeak=0;int ironCount=0,stock=0;
+            float skidValue=0,ironPeak=0,oakPeak=0,oakValue=0;int oak=0;
             for(int i=0;i<colours.Count;i++)
             {
                 Color c=colours[i];
                 // The old cart was a blue cage over a pale blue tray (b/r about 1.2).
                 Assert.That(c.b/c.r,Is.LessThanOrEqualTo(1.05f),"No vertex keeps the old blue cage tint.");
                 if(i<skid){skidValue+=c.grayscale;continue;}
-                if(c.r/c.b>1.5f){stock++;stockPeak=Mathf.Max(stockPeak,c.grayscale);continue;}
-                ironValue+=c.grayscale;ironCount++;ironPeak=Mathf.Max(ironPeak,c.grayscale);
+                // Oak bearers are the only warm material; frame, running gear and the steel load are cool.
+                if(c.r/c.b>1.5f){oak++;oakValue+=c.grayscale;oakPeak=Mathf.Max(oakPeak,c.grayscale);continue;}
+                Assert.That(c.r/c.b,Is.LessThan(1.25f),"Only the oak is warm; the billets are no longer brown.");
+                ironPeak=Mathf.Max(ironPeak,c.grayscale);
             }
-            Assert.That(ironCount,Is.GreaterThan(0));Assert.That(stock,Is.GreaterThan(0),"The freight is warm stock.");
-            Assert.That(skidValue/skid,Is.LessThan(ironValue/ironCount*.85f),"The skid is a dark bearing plate, not a pale tray.");
-            Assert.That(stockPeak,Is.LessThan(ironPeak),"Stock never outshines the worn iron edges.");
-            // Both oak bearers' tops (inset by their .02 bevel) carry the lowest billet course at the band stations.
-            foreach(float u in new[]{u0+.78f,u1-.97f})
-                Assert.That(Find(points,referenced,Project(u+.02f,v0+.42f)+Vector3.up*.66f),Is.GreaterThanOrEqualTo(0),
+            Assert.That(oak,Is.GreaterThan(0),"The load rests on oak.");
+            Assert.That(oakPeak,Is.LessThan(ironPeak),"Timber never outshines the worn iron edges.");
+            Type view=typeof(FoundryRegionView);
+            float top=(float)view.GetField("YardFrameTop",Static).GetValue(null);
+            float load=(float)view.GetField("YardLoadBase",Static).GetValue(null);
+            Color At(Vector3 point)
+            {
+                int index=Find(points,referenced,point);
+                Assert.That(index,Is.GreaterThanOrEqualTo(0),"Expected trolley vertex is missing.");
+                return colours[index];
+            }
+            // The skid is a dark bearing plate under the lit flange of the near side frame.
+            Color flange=At(Project(u0+.175f,v0+.265f)+Vector3.up*top);
+            Assert.That(skidValue/skid,Is.LessThan(flange.grayscale*.85f),"The skid is a dark bearing plate, not a pale tray.");
+            // The lowest near billet: a cool steel top arris over a dark underside, a value step below the oak.
+            Color billetTop=At(Project(u0+.485f,v0+.535f)+Vector3.up*(load+.19f));
+            Color billetFoot=At(Project(u0+.43f,v0+.48f)+Vector3.up*load);
+            Assert.That(billetTop.b,Is.GreaterThanOrEqualTo(billetTop.r),"Steel, not warm stock.");
+            Assert.That(billetFoot.grayscale,Is.LessThan(billetTop.grayscale*.7f),"A lit top arris over a dark underside.");
+            Assert.That(billetFoot.grayscale,Is.LessThan(oakValue/oak*.8f),"The steel sits a value step below its oak.");
+            // Both oak bearers span the side frames' flange tops, stand proud of the load at the near side
+            // (inset by their .025 bevel) and carry the lowest billet course.
+            foreach(float u in (float[])view.GetMethod("YardBearerStations",Static).Invoke(null,new object[]{u0,u1}))
+            {
+                Assert.That(Find(points,referenced,Project(u+.025f,v0+.305f)+Vector3.up*load),Is.GreaterThanOrEqualTo(0),
                     "A timber bearer stands under the load.");
-            Assert.That(Find(points,referenced,Project(u0+.43f,v0+.48f)+Vector3.up*.66f),Is.GreaterThanOrEqualTo(0),
-                "The lowest billet rests on the bearers' top, not on the iron deck.");
+                Assert.That(Find(points,referenced,Project(u,v0+.28f)+Vector3.up*top),Is.GreaterThanOrEqualTo(0),
+                    "The bearer bears on the near side frame's flange.");
+            }
         }
 
         [Test]

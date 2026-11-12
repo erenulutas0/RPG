@@ -15,6 +15,10 @@ namespace Cryptforge.UI
         private const float CourtInlayStep=.25f,CourtInlayClearance=.55f;
         // Spokes along the processional ways are replaced by their lane lines.
         private static readonly int[] CourtInlaySpokes={0,1,2,3,4,6,7};
+        // A lane line's centre: just outside the processional stone's edge, its band covering that edge.
+        private const float CourtLaneOffset=CourtPathHalfWidth+.16f;
+        // The deck station (s = u+v) where the bridge's lane lines end, short of the bridge's start.
+        private const float CourtBridgeLaneEnd=FoundryMap.BridgeStart+2;
 
         private void BuildCourtInlayNetwork(ArenaView arena)
         {
@@ -39,11 +43,18 @@ namespace Cryptforge.UI
                 Vector2 direction=(end-CourtSealCentre).normalized,side=new Vector2(-direction.y,direction.x);
                 foreach(float sign in new[]{-1f,1f})
                 {
-                    Vector2 offset=side*sign*(CourtPathHalfWidth+.16f);
-                    // Begin where the lane line leaves the octagon setting.
-                    float t=CourtPathStart;
-                    while(t<CourtInlayRadius+2&&InsideCourtOctagon(CourtSealCentre+direction*t+offset,octagon))t+=CourtInlayStep*.5f;
+                    Vector2 offset=side*sign*CourtLaneOffset;
+                    // Each lane line starts under the seal's outer ring and crosses the octagon setting, so the
+                    // processional stone is edged in brass from the medallion outward instead of showing a bare
+                    // cut through the court's flags inside the octagon.
+                    float t=Mathf.Sqrt(CourtOuterRingRadius*CourtOuterRingRadius-CourtLaneOffset*CourtLaneOffset);
                     CourtInlayRun(inlay,CourtSealCentre+direction*t+offset,end+offset,false,ref seed);
+                    // The way to the bridge carries its lane lines straight down the deck, on the deck's own axis
+                    // at the lane's lateral station, where two thinner offset bridge lines used to restart.
+                    if(end!=CourtProcessionalEnds[0])continue;
+                    Vector2 lane=end+offset;
+                    Vector2 deck=DeckDesign(CourtBridgeLaneEnd,lane.x-lane.y);
+                    CourtInlayRun(inlay,lane,deck,false,ref seed);
                 }
             }
             CourtOuterRing(inlay);
@@ -115,16 +126,6 @@ namespace Cryptforge.UI
                 if(Vector2.Distance(design,boiler)<BoilerPlinth+CourtInlayClearance)return false;
             foreach(var lamp in ForgeLamps())
                 if(DistanceFromFloorBox(design.x,design.y,lamp.Box.x,lamp.Box.y,lamp.Box.z,lamp.Box.w)<CourtInlayClearance)return false;
-            return true;
-        }
-
-        private static bool InsideCourtOctagon(Vector2 p,Vector2[] octagon)
-        {
-            for(int k=0;k<8;k++)
-            {
-                Vector2 a=octagon[k],b=octagon[(k+1)%8];
-                if((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x)<0)return false;
-            }
             return true;
         }
     }

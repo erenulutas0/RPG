@@ -10,11 +10,13 @@ namespace Cryptforge.UI
             // A continuous dressed lintel seats two broad shoulder stones around
             // the existing lock. The connected mass replaces four disconnected
             // coping ends without adding another silhouette tier or a tall crest.
-            GateHeaderCornice(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,1.02f);
+            // The long header and its shoulders are lifted toward the baked bays' stone value (their lit
+            // tops measure about 61 against the native crown's 51-55); every face keeps its relative light.
+            GateHeaderCornice(stone,GateU(32.08f),-.78f,GateU(33.92f),10.78f,height+.43f,height+.72f,.06f,GateHeaderCorniceShade);
             foreach(bool left in new[]{true,false})
             {
                 float v0=left?-.68f:6.65f,v1=left?3.35f:10.68f;
-                GateHeaderShoulder(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+1.16f,.065f,.99f);
+                GateHeaderShoulder(stone,GateU(32.18f),v0,GateU(33.82f),v1,height+.72f,height+1.16f,.065f,GateHeaderShoulderShade);
             }
             // The compact lock recess remains physically backed and side-seated.
             // Its cap stays at the ridge elevation of the flanking coping,
@@ -37,6 +39,8 @@ namespace Cryptforge.UI
                 HeaderDressedFace(stone,a,b,c,d,new Color(.53f,.57f,.65f),.06f);
             }
         }
+
+        internal const float GateHeaderCorniceShade=1.08f,GateHeaderShoulderShade=1.07f;
 
         private static Vector2[] GateCartoucheOutline()=>new[]{
             new Vector2(-.79f,.52f),new Vector2(.79f,.52f),new Vector2(1.06f,.71f),
@@ -212,7 +216,9 @@ namespace Cryptforge.UI
                 float stoneLow=low+(row==0?0:joint),stoneHigh=high-(row==rows-1?0:joint);
                 for(int slope=1;slope>=0;slope--)
                 {
-                    Color tone=roofTone*(slope==0?.97f:.90f)*(1+(row%3-1)*.012f);tone.a=1;
+                    // The two roof planes keep their face separation with a smaller step between them;
+                    // the broad stones no longer alternate in value, their mortar beds still divide them.
+                    Color tone=roofTone*(slope==0?.98f:.95f);tone.a=1;
                     GateShoulderRoofPatch(mesh,outline,slope==0?a:middle,slope==0?middle:c,
                         stoneLow,stoneHigh,a,c,top,tone);
                     if(row>0)
@@ -261,7 +267,9 @@ namespace Cryptforge.UI
             }
             var levels=new[]{0f,.28f,.65f,1f};
             var depths=new[]{0f,.09f,.09f,0f};
-            var gains=new[]{.88f,.73f,1.04f};
+            // The recessed middle fascia stays clearly below its dressed upper return, but no longer
+            // prints the darkest continuous stripe across the whole portal beside the calm baked bays.
+            var gains=new[]{.90f,.80f,1.0f};
             for(int face=0;face<3;face++)
             {
                 int first=face*4;

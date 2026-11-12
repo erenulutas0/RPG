@@ -101,7 +101,7 @@ namespace Cryptforge.Tests
 
             object neighbour=Builder();Call("BuildGateInnerReturn",neighbour,v,6.5f);Call("GateHouseGrain",neighbour);
             Mesh returned=Read(neighbour);
-            AssertField(returned,.075f,(Vector4)typeof(FoundryRegionView).GetField("GateHousePatch",Static).GetValue(null));
+            AssertField(returned,(float)typeof(FoundryRegionView).GetField("GateHouseDensity",Static).GetValue(null),(Vector4)typeof(FoundryRegionView).GetField("GateHousePatch",Static).GetValue(null));
             object merged=Builder();Call("AppendGateStone",merged,pier);Call("AppendGateStone",merged,neighbour);
             Mesh combined=Read(merged);AssertPart(combined,finished,0,true);
             AssertPart(combined,returned,finished.V.Count,true);
