@@ -40,6 +40,8 @@ namespace Cryptforge.Tests
             Assert.That(arena.IsFoundryRegion, Is.True);
             Assert.That(encounters.Floor.NextFloor, Is.Not.Null);
             Assert.That(encounters.Floor.NextFloor.Theme, Is.EqualTo(FloorTheme.Ice));
+            Assert.That(arena.IsPreparingFloorTheme || arena.IsFloorThemeReady(FloorTheme.Ice), Is.True,
+                "Floor 1's start asks for floor 2's dress, whichever of CombatSetup and ArenaView woke first.");
             encounters.enabled = false;
             foreach (var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None))
                 attack.enabled = false;
@@ -50,7 +52,9 @@ namespace Cryptforge.Tests
                 frames++;
                 yield return null;
             }
-            Assert.That(arena.IsFloorThemeReady(FloorTheme.Ice), Is.True, "The ice dress is ready within 600 frames of floor 1.");
+            Assert.That(arena.IsFloorThemeReady(FloorTheme.Ice), Is.True, "The ice dress is ready within 600 frames of floor 1 " +
+                "(preparing: " + arena.IsPreparingFloorTheme + ").");
+            Debug.Log("[IceThemePreparation] the ice dress was ready " + frames + " frames after floor 1's first frame.");
             Assert.That(arena.Theme, Is.EqualTo(FloorTheme.Foundry), "Preparing changes nothing on show.");
             Assert.That(arena.Region.transform.Find("Ice crystals and icicles"), Is.Null, "Floor 1 builds no ice prop.");
 

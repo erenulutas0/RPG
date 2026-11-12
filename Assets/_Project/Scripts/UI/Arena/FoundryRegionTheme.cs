@@ -77,7 +77,20 @@ namespace Cryptforge.UI
         {
             if(theme!=FloorTheme.Ice||_icePrepared||_icePreparation!=null)return;
             _icePreparation=PrepareIce(set);
-            if(isActiveAndEnabled)_iceCoroutine=StartCoroutine(_icePreparation);
+            ResumeIcePreparation();
+        }
+
+        // Runs a pending preparation as a coroutine whenever the region is active (asked while inactive, or re-enabled).
+        private void ResumeIcePreparation()
+        {
+            if(_icePreparation!=null&&!_icePrepared&&_iceCoroutine==null&&isActiveAndEnabled)
+                _iceCoroutine=StartCoroutine(_icePreparation);
+        }
+        private void OnEnable()=>ResumeIcePreparation();
+        // A deactivated object's coroutines stop; the same iterator goes on where it stood when it is enabled again.
+        private void OnDisable()
+        {
+            if(_iceCoroutine!=null){StopCoroutine(_iceCoroutine);_iceCoroutine=null;}
         }
 
         // The preparation finished now, in this frame: the rest of what PrepareTheme spreads over frames, a texture still
