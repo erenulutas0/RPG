@@ -542,3 +542,22 @@ the enemy it replaces; the rings, motes and bursts are pooled quads in the exist
 9. **Art route** as docs/50: Blender-rendered, no generated imagery; the Wraith pale orchid, not ash-white, for Ilya's
    sake. Agreed?
 10. **Codex.** Take the three drafts of section 7 to the owner, and under which IDs after C30?
+
+## 11. Lead decisions 2026-11-12
+
+The owner made the lead the vision designer on 2026-11-12; these answer section 10.
+
+1. **Order.** After the Mirror Sentry's build (docs/50 step 2). The Cinder Bloom's simulation research first (simulation only,
+   it changes nothing the game ships), then the Pollen Wraith, then the Thornling. The art follows each creature's numbers.
+2. **The gate.** The Warden stays on floor 3 until Rootmother Myrr has her own design, after the Glass Regent ships.
+3. **Clumsy completion.** Hold the 40 % line on the whole Descent; no creature may cost the clumsy or first-card cohorts.
+4. **Wraiths.** In the horde and the halls only; Thorn Post's and the Grove's Cinder Mites stay.
+5. **The pollen ring.** An orchid meter under the hero that turns red-orange only in its last second: red-orange keeps
+   meaning "this will hurt now" (docs/50 section 2 rule 3).
+6. **Slow hands.** Accepted as the Thornling's read with the 0.8 s telegraph; if careful-slow loses more than 8 points of
+   floor-3 clears, lengthen the telegraph to 1.0 s before anything else.
+7. **Thorn Post** keeps its name.
+8. **The closed Bloom's 25 % bark** is accepted as the elite's build counterplay: it blunts every weapon alike while
+   closed, and the open phase rewards timing.
+9. **Art.** Blender, as docs/50; the Pollen Wraith pale orchid, not ash-white, for Ilya's sake.
+10. **Codex.** The three drafts go to the owner later, as C31-C33.
