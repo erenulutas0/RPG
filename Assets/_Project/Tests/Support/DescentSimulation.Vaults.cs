@@ -37,6 +37,16 @@ namespace Cryptforge.Tests
         // Floor 1 as shipped above a floor 2 with the levers' creatures in place of the foundry's: the Sentry for Sentry
         // Hall's Captain, the Wisp for the Runner (the horde's third role and Mercury Stair's second wave), a Clerk at the
         // head of Mercury Stair's first wave and in place of a Grunt in Vault Gate's, the Regent for the Warden.
+        // The Sentry at a share of its authored health: itself at 1, else a copy under its name (the rules read the name).
+        private static Enemy Sentry(float healthScale) => healthScale == 1f
+            ? MirrorSentry
+            : new Enemy
+            {
+                Name = MirrorSentry.Name, Health = MirrorSentry.Health * healthScale, Damage = MirrorSentry.Damage,
+                Interval = MirrorSentry.Interval, InitialDelay = MirrorSentry.InitialDelay, Gold = MirrorSentry.Gold,
+                Experience = MirrorSentry.Experience, Speed = MirrorSentry.Speed, Reach = MirrorSentry.Reach
+            };
+
         public static FoundryFloor VaultsChain(FoundryLevers levers)
         {
             FoundryFloor one = FoundryFloorOne();
@@ -55,7 +65,7 @@ namespace Cryptforge.Tests
                         if (levers.VaultsWisps && wave[i] == Runner)
                             wave[i] = SilverWisp;
                         if (levers.VaultsSentry && wave[i] == Captain)
-                            wave[i] = MirrorSentry;
+                            wave[i] = Sentry(levers.SentryHealthScale);
                         if (levers.VaultsRegent && wave[i] == Warden)
                             wave[i] = GlassRegent;
                     }
@@ -99,6 +109,8 @@ namespace Cryptforge.Tests
             public float SentryFrontShare = .35f;
             public float SentryReflectShare = .2f;
             public float SentryReflectCap = .04f;
+            // The Sentry's authored health against docs/50's 160 (research: the fight's length against the flank).
+            public float SentryHealthScale = 1f;
             // The Silver Wisp's blink (section 3): once, at an age of WispBlinkAge or more and WispBlinkMin-Max from the
             // hero, to WispLandDistance past the hero on the far side, a shimmer later; no strike for the hold after.
             public float WispBlinkAge = 1.5f;
@@ -239,6 +251,9 @@ namespace Cryptforge.Tests
 
             private static bool IsRegent(Foe foe) => foe != null && ReferenceEquals(foe.Definition, GlassRegent);
 
+            // The Sentry or a copy of it with another health (FoundryLevers.SentryHealthScale).
+            private static bool IsSentry(Enemy kind) => ReferenceEquals(kind, MirrorSentry) || kind.Name == MirrorSentry.Name;
+
             // Neither the Clerk nor a glass copy strikes in melee: no weapon ticks, and the pilot does not kite from them.
             private static bool Harmless(Foe foe) =>
                 ReferenceEquals(foe.Definition, FacelessClerk) || ReferenceEquals(foe.Definition, GlassCopy);
@@ -296,7 +311,7 @@ namespace Cryptforge.Tests
                     if (!IsValid(foe) || foe.SpawnFrame == _frame)
                         continue;
                     Enemy kind = foe.Definition;
-                    if (ReferenceEquals(kind, MirrorSentry))
+                    if (IsSentry(kind))
                         StepSentry(foe);
                     else if (ReferenceEquals(kind, SilverWisp))
                         StepWisp(foe);
@@ -365,7 +380,7 @@ namespace Cryptforge.Tests
             // and the reflection it owes (capped by its budget). The landing as it was anywhere else.
             private DamageContext SentryGuard(Foe foe, DamageContext context, DamageSource source)
             {
-                if (!ReferenceEquals(foe.Definition, MirrorSentry) || float.IsNaN(foe.Facing) ||
+                if (!IsSentry(foe.Definition) || float.IsNaN(foe.Facing) ||
                     (source != DamageSource.Weapon && source != DamageSource.Ability))
                     return context;
                 bool front = VaultsRule.InFront(foe.Facing, foe.X, foe.Y, HeroX, HeroY, _levers.SentryArcDegrees);
@@ -531,7 +546,7 @@ namespace Cryptforge.Tests
             // 40 degrees a frame's goal, at the same reach.
             private void Flank(Foe target, float x, float y, ref float gx, ref float gy)
             {
-                if ((_levers.VaultsHabits & VaultsHabit.Flanks) == 0 || !ReferenceEquals(target.Definition, MirrorSentry) ||
+                if ((_levers.VaultsHabits & VaultsHabit.Flanks) == 0 || !IsSentry(target.Definition) ||
                     float.IsNaN(target.Facing))
                     return;
                 float r = (float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(gx, gy, target.X, target.Y));

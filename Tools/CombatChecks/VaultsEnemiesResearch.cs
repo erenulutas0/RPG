@@ -145,6 +145,35 @@ namespace Cryptforge.Tests
             Assert.That(cells.All(c => c.Runs.Length == count), "every seed ran");
         }
 
+        // The flank habit's own reading: the careful Vanguard started with the Daggers against the Sentry, with and without
+        // the habit - the step-in's seconds on floor 2, the Sentry's landings from its front and its time under fire.
+        [Test]
+        public void TheSentryFlankWithTheDaggers()
+        {
+            int count = Setting("FOUNDRY_SEEDS", 60);
+            int[] seeds = FoundryBatch.Seeds(Setting("FOUNDRY_FIRST_SEED", 1), count);
+            int parallel = Setting("FOUNDRY_PARALLEL", Math.Max(1, Environment.ProcessorCount / 2));
+            string pilot = Environment.GetEnvironmentVariable("FOUNDRY_REALISM") ?? "typical";
+            PilotRealism realism = pilot == "frame-perfect" ? null : PilotRealism.Named(pilot);
+            foreach (string key in new[] { "sentry", "sentry-noflank" })
+            {
+                Option option = Options().First(o => o.Key == key);
+                DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+                hero.Weapon = DescentSimulation.WeaponCatalogue().First(w => w.DisplayName == "Daggers");
+                DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(AutopilotCohort.Careful, 3, realism).Copy(key);
+                option.Set(levers);
+                // SENTRY_TURN (degrees a second, 90 by default) and SENTRY_HEALTH_SCALE (1) for the habit's sensitivity.
+                levers.SentryTurnDegrees = Setting("SENTRY_TURN", 90);
+                levers.SentryHealthScale = Setting("SENTRY_HEALTH_PERCENT", 100) / 100f;
+                DescentSimulation.FoundryResult[] two = Play(option, "careful", hero, levers, seeds, parallel).Runs
+                    .Select(Two).Where(r => r != null && r.SentryLandings > 0).ToArray();
+                float[] underFire = two.SelectMany(r => r.Kills).Where(k => !k.Horde && k.Kind == "Mirror Sentry").Select(k => k.UnderFire).ToArray();
+                TestContext.WriteLine($"{key} ({pilot}): met {two.Length}, step-in s {Mean(two.Select(r => r.StepInSeconds))}, " +
+                                      $"front {Pct(two.Sum(r => r.SentryFrontLandings), two.Sum(r => r.SentryLandings))}, " +
+                                      $"under fire P50 {F1(FoundryBatch.Percentile(underFire, 50))} s, reflected {Mean(two.Select(r => r.SentryReflected))}, cleared {two.Count(r => r.Cleared)}");
+            }
+        }
+
         private static Cell Play(Option option, string cohort, DescentSimulation.FoundryHero hero, DescentSimulation.FoundryLevers levers,
             int[] seeds, int parallel)
         {
