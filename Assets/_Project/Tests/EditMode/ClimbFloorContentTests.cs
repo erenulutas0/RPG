@@ -55,13 +55,19 @@ namespace Cryptforge.Tests
         }
 
         // The Daggers' elites (EliteRule; docs/41, status 2026-11-10 night): EncounterController.Elites holds the first enemy
-        // of an elite room's wave, so every elite room of the climb's foundry floors opens each of its waves with its Grunt
-        // Captain, the elite, as the simulation's copies of the floors do (DescentSimulation.EmberHalls, QuicksilverVaults,
-        // GloamGardens).
+        // of an elite room's wave, so every elite room of the climb's foundry floors opens each of its waves with its elite -
+        // the Grunt Captain on floors 1 and 3, the Mirror Sentry on floor 2 since 2026-11-12 (docs/50, the lead's decisions) -
+        // as the simulation's copies of the floors do (DescentSimulation.EmberHalls, QuicksilverVaults, GloamGardens).
         [Test]
-        public void EveryEliteRoomOpensItsWavesWithItsGruntCaptain()
+        public void EveryEliteRoomOpensItsWavesWithItsElite()
         {
-            foreach (string path in new[] { FirstFloor, "Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset", ThirdFloor })
+            var leaders = new[]
+            {
+                (FirstFloor, DescentSimulation.Captain.Name),
+                ("Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset", DescentSimulation.MirrorSentry.Name),
+                (ThirdFloor, DescentSimulation.Captain.Name)
+            };
+            foreach ((string path, string leader) in leaders)
             {
                 var floor = AssetDatabase.LoadAssetAtPath<FloorDefinition>(path);
                 Assert.That(floor, Is.Not.Null, path);
@@ -73,8 +79,7 @@ namespace Cryptforge.Tests
                         continue;
                     elites++;
                     for (int w = 0; w < room.WaveCount; w++)
-                        Assert.That(room.WaveAt(w).EnemyAt(0).DisplayName, Is.EqualTo(DescentSimulation.Captain.Name),
-                            $"{path}: room {r + 1}, wave {w + 1}");
+                        Assert.That(room.WaveAt(w).EnemyAt(0).DisplayName, Is.EqualTo(leader), $"{path}: room {r + 1}, wave {w + 1}");
                 }
                 Assert.That(elites, Is.GreaterThan(0), path + " has an elite room");
             }

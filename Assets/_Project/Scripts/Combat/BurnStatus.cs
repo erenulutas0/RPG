@@ -88,7 +88,8 @@ namespace Cryptforge.Combat
             float damage = State.Tick(Time.deltaTime, _hold != null && _hold());
             if (damage <= 0f)
                 return;
-            _health.ApplyDamage(new DamageContext(damage, _source));
+            // A tick, not a landing: the Mirror Sentry's guard lets it through (MirrorGuardRule), as the simulation's does.
+            _health.ApplyDamage(new DamageContext(damage, _source, isTick: true));
             Burned?.Invoke(_health, damage);
             if (!_health.IsAlive)
                 BurnKill?.Invoke(_health);

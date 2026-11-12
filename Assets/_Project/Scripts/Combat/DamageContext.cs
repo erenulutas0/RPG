@@ -9,8 +9,11 @@ namespace Cryptforge.Combat
         public IDamageable Source { get; }
         // Set for a critical attack and its splash, so views can show the crit.
         public bool IsCritical { get; }
+        // Set for a burn's tick (BurnStatus): damage over time the hero's hit left behind, not a landing of the hero's, so a
+        // guard that judges landings (the Mirror Sentry's, MirrorGuardRule) lets it through untouched.
+        public bool IsTick { get; }
 
-        public DamageContext(float amount, IDamageable source = null, bool isCritical = false)
+        public DamageContext(float amount, IDamageable source = null, bool isCritical = false, bool isTick = false)
         {
             if (float.IsNaN(amount) || float.IsInfinity(amount) || amount < 0f)
                 throw new ArgumentOutOfRangeException(nameof(amount));
@@ -18,6 +21,7 @@ namespace Cryptforge.Combat
             Amount = amount;
             Source = source;
             IsCritical = isCritical;
+            IsTick = isTick;
         }
     }
 }
