@@ -22,12 +22,14 @@ namespace Cryptforge.UI
             QuicksilverGlow=Hex(0x7FE3FF),FrostLight=Hex(0xA6F0FF),Haze=Hex(0x6E8299),Frost=Hex(0xB9CCDA);
         // Neutral stone keeps its value, barely cooled: the textures carry the slate, and saturation stays under 0.2.
         private static readonly Color IceStone=new Color(.93f,.96f,1f);
-        // Untextured coping stone: docs/49's slate light #67717F at the trim's value.
-        private static readonly Color IceBareStone=new Color(.70f,.77f,.86f);
+        // Untextured coping stone (kerbs, grooves): a little darker than the paving, near docs/49's slate #3B4350.
+        private static readonly Color IceBareStone=new Color(.30f,.33f,.39f);
+        // Stone in a fire's pool: barely lit by frost-light, never brighter than a lit flag.
+        private static readonly Color FrostLitStone=new Color(.86f,.97f,1.04f);
         // Materials without an ice texture yet (the base paving, iron, pit, baked props) and sprites: darker, cool grey.
         private static readonly Color IceSlate=new Color(.66f,.70f,.77f),IceSprite=new Color(.62f,.67f,.76f);
         private static readonly Color BackdropDeep=new Color(.055f,.10f,.18f),BackdropTeal=new Color(.12f,.29f,.36f);
-        private enum IceDress{Slate,Paving,Masonry,Bare}
+        private enum IceDress{Slate,Paving,Masonry,Bare,Glow}
         private FloorTheme _theme=FloorTheme.Foundry;
         private readonly List<Mesh> _themeMeshes=new List<Mesh>();
         private readonly List<IceDress> _themeDress=new List<IceDress>();
@@ -63,7 +65,7 @@ namespace Cryptforge.UI
                             graded[v]=IceRail(source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
                         }
                     }
-                    else for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Paving);
+                    else for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Glow);
                     _iceColours[i]=graded;
                 }
                 _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
@@ -128,46 +130,44 @@ namespace Cryptforge.UI
             if(Is(material,set.FoundryFlagstone))return IceDress.Paving;
             if(Is(material,set.FoundryWall)||Is(material,set.Wall))return IceDress.Masonry;
             if(Is(material,set.Coping))return IceDress.Bare;
+            if(Is(material,set.FoundryEmbers))return IceDress.Glow;
             return IceDress.Slate;
         }
         private static bool Is(Material material,Material source)=>source!=null&&
             (material==source||material.name==source.name+" (scene cutaway)");
 
         // A vertex colour (a multiplier on the texture, under the shaders' 2x ceiling) on the Ice floor. bare: the batch
-        // draws untextured, so the colour is the final one.
-        public static Color IceTint(Color c,bool bare=false,bool paving=false)
+        // draws untextured, so the colour is the final one (kerb stone; its rail goes through IceRail). glow: the embers
+        // material (fires, lantern panes, the molten pool), whose warm colours become cold light; anywhere else a warm
+        // vertex colour is a fire's pool on stone and becomes stone faintly frost-lit, capped so no pool blows out.
+        public static Color IceTint(Color c,bool bare=false,bool glow=false)
         {
             float max=Mathf.Max(c.r,Mathf.Max(c.g,c.b)),min=Mathf.Min(c.r,Mathf.Min(c.g,c.b));
             float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
-            float warm=Warmth(c,max,min);
-            Color stone=(bare?IceBareStone:IceStone)*luminance;
-            Color ice;
-            if(paving&&max<=1.05f)
-                // A fire's warm pool on the laid ice stays stone, barely lit by frost-light: no cyan floor.
-                ice=new Color(.86f,.97f,1.04f)*luminance;
-            else if(max>1.05f)
-                // A light: lava (red, little green) to quicksilver glow, a flame or brazier to frost-light.
-                ice=(c.g<c.r*.55f?QuicksilverGlow:FrostLight)*Mathf.Min(max,1.9f);
-            else if(c.g>c.r*.78f&&c.b<c.r*.6f)
-                // Pale gold: silver into ice edge.
-                ice=Color.Lerp(Silver,IceEdge,Mathf.Clamp01(luminance*1.4f-.3f))*(bare?1.15f:1.7f);
+            Color graded;
+            if(bare)graded=IceBareStone*Mathf.Clamp(luminance,.5f,1.2f);
             else
-                // Brass and amber: mirror-ice lines with a bright ice edge on the lit ones.
-                ice=Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01(luminance*1.6f-.5f))*(bare?1.25f:1.8f);
-            Color graded=Color.LerpUnclamped(stone,ice,warm);
+            {
+                float warm=Warmth(c,max,min);
+                Color stone=IceStone*Mathf.Min(luminance,1.25f);
+                Color ice=!glow?FrostLitStone*Mathf.Min(luminance,1.1f)
+                    // A light: lava (red, little green) to quicksilver glow, a flame or brazier to frost-light.
+                    :max>1.05f?(c.g<c.r*.55f?QuicksilverGlow:FrostLight)*Mathf.Min(max,1.5f):FrostLight*luminance;
+                graded=Color.LerpUnclamped(stone,ice,warm);
+            }
             graded.r=Mathf.Min(graded.r,2);graded.g=Mathf.Min(graded.g,2);graded.b=Mathf.Min(graded.b,2);
             graded.a=c.a;
             return graded;
         }
 
-        // A rail vertex of the untextured coping batch (its colour is final): mirror-ice #5FA8C8 brightening to the ice
-        // edge #BFE6F2 where the floor light is strong; on the compass seal silver #A9B4BF to ice edge.
+        // A rail vertex of the untextured coping batch (its colour is final): inlaid mirror-ice #5FA8C8 at about 60-70%
+        // of its value, a faint ice-edge #BFE6F2 sheen only where the floor light is strong; on the compass seal silver
+        // #A9B4BF to ice edge.
         public static Color IceRail(Color c,bool seal)
         {
             float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
-            Color line=seal?Color.Lerp(Silver,IceEdge,Mathf.Clamp01((luminance-.7f)*1.5f))
-                :Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01((luminance-.8f)*1.5f));
-            Color graded=line*Mathf.Clamp(luminance*1.15f,.85f,1.4f);
+            Color graded=seal?Color.Lerp(Silver,IceEdge,Mathf.Clamp01((luminance-.7f)*1.5f))*Mathf.Clamp(luminance*1.15f,.85f,1.4f)
+                :Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01((luminance-1f)*1.2f)*.45f)*Mathf.Clamp(luminance*.7f,.55f,.85f);
             graded.a=c.a;
             return graded;
         }

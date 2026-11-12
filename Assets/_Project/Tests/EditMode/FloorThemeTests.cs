@@ -34,7 +34,7 @@ namespace Cryptforge.Tests
         public void IceTurnsBrassColdAndKeepsStoneNeutralAndAlpha()
         {
             Color brass = FoundryRegionView.IceTint(new Color(.9f, .62f, .25f, .8f));
-            Assert.That(brass.b, Is.GreaterThan(brass.r), "Brass becomes ice.");
+            Assert.That(brass.b, Is.GreaterThan(brass.r), "A warm vertex colour turns cold.");
             Assert.That(brass.a, Is.EqualTo(.8f));
             Color stone = FoundryRegionView.IceTint(new Color(.7f, .7f, .7f, 1f));
             Assert.That(stone.b, Is.GreaterThan(stone.r), "Stone leans cold.");
@@ -42,7 +42,12 @@ namespace Cryptforge.Tests
             Color lava = FoundryRegionView.IceTint(new Color(1.4f, .6f, .18f, 1f));
             Assert.That(lava.b, Is.GreaterThan(lava.r), "Lava becomes cold light.");
             Color rail = FoundryRegionView.IceRail(new Color(1f, .95f, .82f, 1f), false);
-            Assert.That(rail.b, Is.GreaterThan(.6f), "The brass rail becomes bright mirror-ice, not dark.");
+            Assert.That(rail.b, Is.GreaterThan(.4f), "The brass rail becomes mirror-ice, not dark.");
+            Assert.That(rail.b, Is.LessThan(.7f), "Inlaid ice, not neon.");
+            Color pool = FoundryRegionView.IceTint(new Color(1.9f, 1.4f, .8f, 1f));
+            Assert.That(Mathf.Max(pool.r, Mathf.Max(pool.g, pool.b)), Is.LessThan(1.2f), "A fire's pool on stone does not blow out.");
+            Color flame = FoundryRegionView.IceTint(new Color(1.6f, 1.1f, .4f, 1f), false, true);
+            Assert.That(flame.b, Is.GreaterThan(flame.r), "A flame becomes frost-light.");
             Color ember = FoundryRegionView.ColdAtmosphere(new Color(1f, .5f, .12f, .8f));
             Assert.That(ember.b, Is.GreaterThan(ember.r), "Embers become frost motes.");
             Assert.That(ember.a, Is.EqualTo(.8f));
