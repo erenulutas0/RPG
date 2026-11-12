@@ -15,7 +15,8 @@ namespace Cryptforge.Tests
     // Floors 1 (Foundry), 2 (Ice) and 3 (Gloam, docs/51) side by side: the descent's floors read from the first floor's
     // NextFloor chain, each dress applied in order through ArenaView.ApplyFloorTheme as EncounterController does (so
     // floor 3's change also releases floor 2's variants), the same frame of the same crowd (the density probe), each
-    // floor's enemies in its palette (EnemyLookView.UseTheme). Writes BMPs; Run-GloamMapProof.ps1 converts them to PNG.
+    // floor's enemies in its palette (EnemyLookView.UseTheme); then the garden's growth close up on the rim (rim-1..3, the
+    // same frames on floors 2 and 1) and the melt onto floor 3. Writes BMPs; Run-GloamMapProof.ps1 converts them to PNG.
     public sealed class GloamMapCapture
     {
         const string Root="ArtDirection/2026-11-12/gloam-map-01/";
@@ -82,17 +83,21 @@ namespace Cryptforge.Tests
                 string floor=Floors[f];
                 Dress(arena,themes[f]);
                 yield return null;
+                // The left dress's release runs over the frames after the change.
+                for(int wait=0;wait<120&&f>0&&arena.Region.HeldVariantCount(themes[f-1])>0;wait++)yield return null;
                 {
                     // The region's shown budget on this floor: active mesh renderers and their vertices, distant works
-                    // apart; and the theme variants the region holds loaded (none of the floor before).
-                    int renderers=0,vertices=0,distant=0;
+                    // apart, the garden's growth apart; and the theme variants the region holds loaded (none of the floor
+                    // before).
+                    int renderers=0,vertices=0,distant=0,growth=0;
                     foreach(var r in arena.Region.GetComponentsInChildren<MeshRenderer>())
                     {
                         int count=r.GetComponent<MeshFilter>().sharedMesh.vertexCount;
                         renderers++;vertices+=count;
                         if(r.name.StartsWith("Distant foundry works"))distant+=count;
+                        if(r.name==GrowthName)growth+=count;
                     }
-                    File.WriteAllText(Root+floor+"/runtime-budget.txt",$"Region renderers:{renderers}; vertices:{vertices}; distant vertices:{distant}; theme:{arena.Theme}; "+
+                    File.WriteAllText(Root+floor+"/runtime-budget.txt",$"Region renderers:{renderers}; vertices:{vertices}; distant vertices:{distant}; growth vertices:{growth}; theme:{arena.Theme}; "+
                         $"held variants ice:{arena.Region.HeldVariantCount(FloorTheme.Ice)} gloam:{arena.Region.HeldVariantCount(FloorTheme.Gloam)}\n");
                 }
                 Vector3 court=FoundrySurface.Project(-3,1);
@@ -136,7 +141,37 @@ namespace Cryptforge.Tests
             }
             Assert.That(arena.Theme,Is.EqualTo(FloorTheme.Gloam));
             Assert.That(arena.Region.HeldVariantCount(FloorTheme.Ice),Is.EqualTo(0),"Floor 3 holds none of floor 2's variants.");
+            // The garden's growth close up (docs/51 step 5): three spots along it, floor 3 first, then the same frames on
+            // floors 2 and 1 for the rim they replace.
+            Transform growthObject=arena.Region.transform.Find(GrowthName);
+            Assert.That(growthObject!=null&&growthObject.gameObject.activeInHierarchy,Is.True,"Floor 3 shows its growth.");
+            Vector3[] grown=growthObject.GetComponent<MeshFilter>().sharedMesh.vertices;
+            var spots=new Vector3[3];
+            for(int i=0;i<spots.Length;i++)spots[i]=growthObject.TransformPoint(grown[Mathf.Clamp((i*2+1)*grown.Length/6,0,grown.Length-1)]);
+            for(int f=Floors.Length-1;f>=0;f--)
+            {
+                Dress(arena,themes[f]);
+                yield return null;
+                for(int i=0;i<spots.Length;i++)
+                {
+                    camera.transform.position=new Vector3(spots[i].x,spots[i].y,-10);camera.orthographicSize=3.5f;
+                    Capture(camera,arena,Floors[f]+"/rim-"+(i+1),1200,1200);
+                }
+            }
+            // The melt the descent shows as it lands on floor 3 (ArenaView.PlayGloamTransition), early in it: the frost
+            // receding, the ash and gloamlight drifting in.
+            Dress(arena,third.Theme);
+            yield return null;
+            follow.enabled=true;yield return null;follow.Frame(1080,2340,361,1913);follow.enabled=false;
+            camera.aspect=1080f/2340;
+            Assert.That(arena.PlayGloamTransition(),Is.True,"The melt plays the first time it is asked.");
+            var advance=typeof(GloamTransitionView).GetMethod("Advance",Internal);
+            advance.Invoke(arena.GloamTransition,new object[]{.2f});
+            Capture(camera,arena,"floor3/melt-transition",1080,2340);
+            advance.Invoke(arena.GloamTransition,new object[]{.2f});
+            Capture(camera,arena,"floor3/melt-transition-late",1080,2340);
         }
+        const string GrowthName="Garden roots, fungi and moss";
         // The arena's dress and every enemy's palette for a floor, as the descent and EncounterController.CreateEnemy do.
         // EnemyLookView.UseTheme and ShownTheme are internal: reached by reflection from the test assembly.
         const System.Reflection.BindingFlags Internal=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
