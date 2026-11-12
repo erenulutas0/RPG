@@ -67,6 +67,43 @@ namespace Cryptforge.Tests
             foreach (int bark in new[] { 15, 35, 50 })
                 yield return new Option { Key = $"bloom-b{bark}", What = $"the closed bark letting {bark} % through", Roles = true, Set = Bloom(l => l.BloomBark = bark / 100f) };
             yield return new Option { Key = "bloom-r1.4", What = "the Bloom's maul reaching 1.4", Roles = true, Set = Bloom(l => l.BloomMaulReach = 1.4f) };
+            // Round 2 (past docs/52's list): what keeps a kiting hero out of the maul - a shorter reach than the kite's 1.6
+            // less what a 0.25 s reaction lets the Bloom close, a slower walk - and a lighter maul for the flat cost.
+            yield return new Option { Key = "bloom-m50", What = "the Bloom's maul at 50 % of 10.8", Roles = true, Set = Bloom(l => l.BloomMaulScale = .5f) };
+            yield return new Option { Key = "bloom-r1.2", What = "the Bloom's maul reaching 1.2", Roles = true, Set = Bloom(l => l.BloomMaulReach = 1.2f) };
+            yield return new Option { Key = "bloom-s0.9", What = "the Bloom walking 0.9 a second while closed (the Tank's)", Roles = true, Set = Bloom(l => l.BloomSpeed = .9f) };
+            yield return new Option { Key = "bloom-r1.2-s0.9", What = "the Bloom's maul reaching 1.2, walking 0.9", Roles = true, Set = Bloom(l => { l.BloomMaulReach = 1.2f; l.BloomSpeed = .9f; }) };
+            // Round 3: a windup on the maul, so that a hero that walks out of reach in time is not struck (the kite's read).
+            foreach (float windup in new[] { .5f, .7f, .9f })
+                yield return new Option
+                {
+                    Key = "bloom-w" + windup.ToString("0.0", CultureInfo.InvariantCulture),
+                    What = $"the Bloom's maul landing {windup.ToString("0.0", CultureInfo.InvariantCulture)} s after its swing begins, on a hero still in reach", Roles = true,
+                    Set = Bloom(l => l.BloomWindup = windup)
+                };
+            foreach (int maul in new[] { 50, 75 })
+            foreach (float windup in new[] { .5f, .7f })
+                yield return new Option
+                {
+                    Key = $"bloom-w{windup.ToString("0.0", CultureInfo.InvariantCulture)}-m{maul}",
+                    What = $"the Bloom's maul at {maul} % of 10.8, landing {windup.ToString("0.0", CultureInfo.InvariantCulture)} s after its swing begins on a hero still in reach", Roles = true,
+                    Set = Bloom(l => { l.BloomWindup = windup; l.BloomMaulScale = maul / 100f; })
+                };
+            // Round 2's cheaper combinations: the maul at a half or a third, with a shorter reach or less health.
+            foreach (int maul in new[] { 35, 50 })
+            foreach (int health in new[] { 60, 80, 100 })
+            foreach (float reach in new[] { 1.2f, 1.5f })
+            {
+                if (health == 100 && reach == 1.5f && maul == 50)
+                    continue;
+                string key = $"bloom-m{maul}" + (health != 100 ? $"-h{health}" : string.Empty) +
+                             (reach != 1.5f ? "-r" + reach.ToString("0.0", CultureInfo.InvariantCulture) : string.Empty);
+                yield return new Option
+                {
+                    Key = key, What = $"the Bloom's maul at {maul} % of 10.8, {health} % of its health, reaching {reach.ToString("0.0", CultureInfo.InvariantCulture)}", Roles = true,
+                    Set = Bloom(l => { l.BloomMaulScale = maul / 100f; l.BloomHealthScale = health / 100f; l.BloomMaulReach = reach; })
+                };
+            }
             // Combinations, for a variant that meets several rows at once (read after the single levers).
             yield return new Option { Key = "bloom-h80-m125", What = "the Bloom at 80 % health with its maul at 125 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .8f; l.BloomMaulScale = 1.25f; }) };
             yield return new Option { Key = "bloom-h60-m125", What = "the Bloom at 60 % health with its maul at 125 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .6f; l.BloomMaulScale = 1.25f; }) };
@@ -291,7 +328,8 @@ namespace Cryptforge.Tests
             string taken = met.Length == 0 ? "-"
                 : $"{F1(met.Average(r => r.EliteTaken))} ({F1(met.Average(r => r.EliteTakenFromLeader))} / {F1(met.Average(r => r.EliteTakenFromEscort))} / {F1(met.Average(r => r.EliteTakenFromHorde))})";
             string windows = !c.Levers.GloamBloom || fights.Length == 0 ? "-"
-                : $"{fights.Count(f => f.Windows <= 1)} / {fights.Count(f => f.Windows == 2)} / {fights.Count(f => f.Windows >= 3)} ({Pct(fights.Count(f => f.FellOpen), fights.Length)})";
+                : $"{fights.Count(f => f.Windows <= 1)} / {fights.Count(f => f.Windows == 2)} / {fights.Count(f => f.Windows >= 3)} ({Pct(fights.Count(f => f.FellOpen), fights.Length)})" +
+                  (c.Levers.BloomWindup > 0f ? $"; whiffs {F1(met.Length == 0 ? double.NaN : met.Average(r => r.BloomWhiffs))}" : string.Empty);
             float[] gate = down.Where(r => r.WardenSeconds >= 0f).Select(r => r.WardenSeconds).ToArray();
             int completed = c.Runs.Count(Completed);
             return $"| `{c.Option.Key}` | {c.Cohort} | {c.Hero} | {down.Length} | {cleared} ({Pct(cleared, down.Length)}) | {died.Length}: {rooms} | {died.Count(DiedAtThornPost)} | {killers} | " +
@@ -311,7 +349,7 @@ namespace Cryptforge.Tests
         {
             var csv = new StringBuilder();
             csv.AppendLine("realism,option,cohort,hero,seed,f1_outcome,f2_outcome,f3_outcome,f3_s,death_room,killer,elite_kind,elite_fight_s,elite_in_reach_s,elite_windows,elite_fell_open," +
-                           "thorn_post_taken,taken_leader,taken_escort,taken_horde,bloom_closed_landings,bloom_open_landings,bloom_barked,gate_s,finale_outcome,descent_s");
+                           "thorn_post_taken,taken_leader,taken_escort,taken_horde,bloom_closed_landings,bloom_open_landings,bloom_barked,bloom_whiffs,gate_s,finale_outcome,descent_s");
             foreach (Cell cell in cells)
             foreach (DescentSimulation.FoundryResult run in cell.Runs)
             {
@@ -321,7 +359,7 @@ namespace Cryptforge.Tests
                 string head = string.Join(",", hands, cell.Option.Key, cell.Cohort, cell.Hero, run.Seed, run.Outcome, two != null ? two.Outcome.ToString() : string.Empty);
                 if (t == null)
                 {
-                    csv.AppendLine(head + new string(',', 19));
+                    csv.AppendLine(head + new string(',', 20));
                     continue;
                 }
                 DescentSimulation.EliteFight? fight = t.EliteFights != null && t.EliteFights.Count > 0 ? t.EliteFights[0] : (DescentSimulation.EliteFight?)null;
@@ -330,7 +368,7 @@ namespace Cryptforge.Tests
                     fight?.Kind ?? string.Empty, fight != null ? Num(fight.Value.Lifetime) : string.Empty, fight != null ? Num(fight.Value.InReach) : string.Empty,
                     fight?.Windows.ToString(CultureInfo.InvariantCulture) ?? string.Empty, fight != null ? (fight.Value.FellOpen ? "1" : "0") : string.Empty,
                     Num(t.EliteTaken), Num(t.EliteTakenFromLeader), Num(t.EliteTakenFromEscort), Num(t.EliteTakenFromHorde),
-                    t.BloomClosedLandings, t.BloomOpenLandings, Num(t.BloomBarked), Num(t.WardenSeconds),
+                    t.BloomClosedLandings, t.BloomOpenLandings, Num(t.BloomBarked), t.BloomWhiffs, Num(t.WardenSeconds),
                     f != null ? (f.WalkedOut ? "WalkedOut" : f.Outcome.ToString()) : string.Empty, Completed(run) ? Num(Descent(run)) : string.Empty));
             }
             return csv.ToString();

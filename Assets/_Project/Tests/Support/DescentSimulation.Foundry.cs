@@ -3412,7 +3412,15 @@ namespace Cryptforge.Tests
                 if (_seconds < foe.StaggeredUntil)
                     return;
                 float reach = foe.Weapon.Range;
-                if (ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) > reach * reach)
+                bool inReach = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) <= reach * reach;
+                // docs/52's Cinder Bloom with a maul windup (research, FoundryLevers.BloomWindup): the swing lands its windup
+                // after it began, on a hero still in reach.
+                if (foe.Bloom != null && _levers.BloomWindup > 0f)
+                {
+                    if (!BloomSwings(foe, inReach))
+                        return;
+                }
+                else if (!inReach)
                     return;
                 _harmIsSlam = false;
                 if (foe.Weapon.TryAttack(_hero, foe) && _trace != null && ReferenceEquals(foe, _slamBoss))

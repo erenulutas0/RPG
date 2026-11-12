@@ -18,16 +18,17 @@ namespace Cryptforge.Tests
         // rooted while open; the Captain's 20 gold and 10 experience.
         public static readonly Enemy CinderBloom = new Enemy { Name = "Cinder Bloom", Health = 280f, Damage = 10.8f, Interval = 1.8f, InitialDelay = .6f, Gold = 20, Experience = 10, Speed = 1.2f, Reach = 1.5f };
 
-        // The Bloom at the levers' health, maul and reach: itself at the starting values, else a copy under its name.
+        // The Bloom at the levers' health, maul, reach and speed: itself at the starting values, else a copy under its name.
         private static Enemy Bloom(FoundryLevers levers) =>
-            levers.BloomHealthScale == 1f && levers.BloomMaulScale == 1f && levers.BloomMaulReach == CinderBloom.Reach
+            levers.BloomHealthScale == 1f && levers.BloomMaulScale == 1f && levers.BloomMaulReach == CinderBloom.Reach &&
+            levers.BloomSpeed == CinderBloom.Speed
                 ? CinderBloom
                 : new Enemy
                 {
                     Name = CinderBloom.Name, Health = CinderBloom.Health * levers.BloomHealthScale,
                     Damage = CinderBloom.Damage * levers.BloomMaulScale, Interval = CinderBloom.Interval,
                     InitialDelay = CinderBloom.InitialDelay, Gold = CinderBloom.Gold, Experience = CinderBloom.Experience,
-                    Speed = CinderBloom.Speed, Reach = levers.BloomMaulReach
+                    Speed = levers.BloomSpeed, Reach = levers.BloomMaulReach
                 };
 
         // Floors 1 and 2 as VaultsChain makes them (the shipped Mirror Sentry on floor 2, or the levers' floor 2) above a
@@ -68,6 +69,12 @@ namespace Cryptforge.Tests
             public float BloomHealthScale = 1f;
             public float BloomMaulScale = 1f;
             public float BloomMaulReach = 1.5f;
+            // Its walking speed while closed (research past docs/52's list: how fast it closes on a kiting hero).
+            public float BloomSpeed = 1.2f;
+            // A windup on its maul (research past docs/52's list; 0, none, is section 5's maul): a swing begins as the ready
+            // maul finds the hero in reach and lands BloomWindup seconds later only if the hero still stands in reach; a
+            // swing that finds nobody whiffs and the maul waits, ready, for the next. The open bloom drops a swing.
+            public float BloomWindup;
             public float BloomClosed = BloomRule.ClosedSeconds;
             public float BloomOpen = BloomRule.OpenSeconds;
             public float BloomBark = BloomRule.BarkShare;
@@ -114,6 +121,8 @@ namespace Cryptforge.Tests
             public int BloomClosedLandings;
             public int BloomOpenLandings;
             public float BloomBarked;
+            // Swings of a maul with a windup that found the hero gone.
+            public int BloomWhiffs;
         }
 
         private sealed partial class Foe
@@ -122,6 +131,8 @@ namespace Cryptforge.Tests
             public BloomClock Bloom;
             // An elite leader's seconds within reach of the hero's longest weapon (FoundryResult.EliteFights).
             public float InReachSeconds;
+            // The run second the Bloom's swing began (FoundryLevers.BloomWindup), NaN while none is under way.
+            public float SwingSince = float.NaN;
         }
 
         private sealed partial class FoundryRun
@@ -162,7 +173,31 @@ namespace Cryptforge.Tests
 
             // EnemyAttack's hook: the open Bloom holds its maul, as the Warden's weapon is held through its slam - it neither
             // ticks nor strikes.
-            private static bool Rooted(Foe foe) => foe.Bloom != null && foe.Bloom.IsOpen;
+            private static bool Rooted(Foe foe)
+            {
+                if (foe.Bloom == null || !foe.Bloom.IsOpen)
+                    return false;
+                foe.SwingSince = float.NaN;
+                return true;
+            }
+
+            // The windup (FoundryLevers.BloomWindup), with the ready maul: whether the swing lands now. A swing begins as the
+            // hero stands in reach, and when its windup is done it lands on a hero in reach or whiffs.
+            private bool BloomSwings(Foe foe, bool inReach)
+            {
+                if (float.IsNaN(foe.SwingSince))
+                {
+                    if (inReach)
+                        foe.SwingSince = _seconds;
+                    return false;
+                }
+                if (!BloomRule.SwingDone(_seconds - foe.SwingSince, _levers.BloomWindup))
+                    return false;
+                foe.SwingSince = float.NaN;
+                if (!inReach)
+                    _result.BloomWhiffs++;
+                return inReach;
+            }
 
             // The frame's elite accounting, while an elite room's wave stands with the hero alive: its leader's seconds within
             // reach of the hero's longest weapon (the reveal never holds an elite room).

@@ -47,6 +47,11 @@ namespace Cryptforge.Combat
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static float DamageOn(float amount, bool open, float barkShare) => open ? amount : amount * barkShare;
 
+        // Whether a swing begun since seconds ago is done with its windup (research: a maul that lands a windup after the
+        // swing began, on a hero still in reach).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool SwingDone(float since, float windup) => since >= windup;
+
         // The Bloom's walking speed: its own while closed, rooted (none) while open.
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static float SpeedOf(float speed, bool open) => open ? 0f : speed;

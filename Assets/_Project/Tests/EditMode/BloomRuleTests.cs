@@ -49,6 +49,13 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void ASwingIsDoneWhenItsWindupIs()
+        {
+            Assert.That(BloomRule.SwingDone(.49f, .5f), Is.False);
+            Assert.That(BloomRule.SwingDone(.5f, .5f), Is.True);
+        }
+
+        [Test]
         public void TheOpenBloomIsRooted()
         {
             Assert.That(BloomRule.SpeedOf(1.2f, false), Is.EqualTo(1.2f));
