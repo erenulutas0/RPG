@@ -208,23 +208,28 @@ namespace Cryptforge.Tests
             object builder=TrolleyWithSkid();
             var points=Field<List<Vector3>>(builder,"V");var colours=Field<List<Color>>(builder,"C");
             var referenced=new HashSet<int>(Field<List<int>>(builder,"T"));
-            float skidValue=0,ironPeak=0,oakPeak=0,oakValue=0;int oak=0;
+            float skidValue=0,ironPeak=0,oakPeak=0,oakValue=0,bronzeValue=0;int oak=0,bronze=0;
             for(int i=0;i<colours.Count;i++)
             {
                 Color c=colours[i];
                 // The old cart was a blue cage over a pale blue tray (b/r about 1.2).
                 Assert.That(c.b/c.r,Is.LessThanOrEqualTo(1.05f),"No vertex keeps the old blue cage tint.");
                 if(i<skid){skidValue+=c.grayscale;continue;}
-                // Oak bearers are the only warm material; frame, running gear and the steel load are cool.
+                // Bronze fittings (r/b above 2) and the oak bearers are the warm materials; frame, running gear
+                // and the steel load are cool.
+                if(c.r/c.b>2f){bronze++;bronzeValue+=c.grayscale;continue;}
                 if(c.r/c.b>1.5f){oak++;oakValue+=c.grayscale;oakPeak=Mathf.Max(oakPeak,c.grayscale);continue;}
-                Assert.That(c.r/c.b,Is.LessThan(1.25f),"Only the oak is warm; the billets are no longer brown.");
+                Assert.That(c.r/c.b,Is.LessThan(1.25f),"Only the oak and bronze are warm; the billets are no longer brown.");
                 ironPeak=Mathf.Max(ironPeak,c.grayscale);
             }
             Assert.That(oak,Is.GreaterThan(0),"The load rests on oak.");
+            // Two axle caps, two yoke clasps and the riveted strap with five rivets: 10 hulls of 28 vertices.
+            Assert.That(bronze,Is.EqualTo(280),"Bronze fittings give the grey cart a warm metal accent.");
             Assert.That(oakPeak,Is.LessThan(ironPeak),"Timber never outshines the worn iron edges.");
             Type view=typeof(FoundryRegionView);
             float top=(float)view.GetField("YardFrameTop",Static).GetValue(null);
             float load=(float)view.GetField("YardLoadBase",Static).GetValue(null);
+            float bearerEnd=(float)view.GetField("YardBearerEnd",Static).GetValue(null);
             Color At(Vector3 point)
             {
                 int index=Find(points,referenced,point);
@@ -244,9 +249,9 @@ namespace Cryptforge.Tests
             // (inset by their .025 bevel) and carry the lowest billet course.
             foreach(float u in (float[])view.GetMethod("YardBearerStations",Static).Invoke(null,new object[]{u0,u1}))
             {
-                Assert.That(Find(points,referenced,Project(u+.025f,v0+.305f)+Vector3.up*load),Is.GreaterThanOrEqualTo(0),
+                Assert.That(Find(points,referenced,Project(u+.025f,v0+bearerEnd+.025f)+Vector3.up*load),Is.GreaterThanOrEqualTo(0),
                     "A timber bearer stands under the load.");
-                Assert.That(Find(points,referenced,Project(u,v0+.28f)+Vector3.up*top),Is.GreaterThanOrEqualTo(0),
+                Assert.That(Find(points,referenced,Project(u,v0+bearerEnd)+Vector3.up*top),Is.GreaterThanOrEqualTo(0),
                     "The bearer bears on the near side frame's flange.");
             }
         }
