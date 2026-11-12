@@ -276,6 +276,10 @@ namespace Cryptforge.Tests
             long frosted = FrostedArtCopies.AssertMirror(Folder, all);
             Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { Folder + "/Ice" }).Length, Is.EqualTo(46));
             Assert.That(frosted, Is.LessThanOrEqualTo(BudgetBytes), "The frosted Warden's frames as ASTC 4x4.");
+            // Floor 3's bloomed Warden (docs/51): the same 46 copies, imported as their sources, in a budget of their own.
+            long gloamed = FrostedArtCopies.AssertMirror(Folder, all, "Gloam");
+            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { Folder + "/Gloam" }).Length, Is.EqualTo(46));
+            Assert.That(gloamed, Is.EqualTo(frosted), "The bloomed Warden's frames as ASTC 4x4, the frosted ones' size.");
         }
 
         [Test]

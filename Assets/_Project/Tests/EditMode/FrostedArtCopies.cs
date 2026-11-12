@@ -7,11 +7,12 @@ using UnityEngine;
 namespace Cryptforge.Tests
 {
     // An enemy's art folder holds its painted set and, under Ice/, the floor-2 frosted copies of it
-    // (Tools/ArtReview/GenerateIceEnemyArt.py, EnemyArtSet.Frosted). The budget tests count the two apart: the painted
-    // drawings as before, from the folder itself, and the copies as a mirror of them.
+    // (Tools/ArtReview/GenerateIceEnemyArt.py, EnemyArtSet.Frosted), and under Gloam/ the floor-3 bloomed copies
+    // (GenerateGloamEnemyArt.py, EnemyArtSet.ForTheme). The budget tests count them apart: the painted drawings as
+    // before, from the folder itself, and each theme's copies as a mirror of them.
     internal static class FrostedArtCopies
     {
-        // The painted set's textures: in the folder itself, never under its Ice/ copies.
+        // The painted set's textures: in the folder itself, never under its Ice/ or Gloam/ copies.
         public static List<string> BaseGuids(string filter, string folder)
         {
             var guids = new List<string>();
@@ -24,12 +25,12 @@ namespace Cryptforge.Tests
             return guids;
         }
 
-        // Every painted drawing of the folder but the white flashes (shared, not copied) has one frosted copy under Ice/
-        // of its name, its size and its import, and Ice/ holds nothing else. Returns the copies' bytes as ASTC 4x4 among
-        // the painted drawings `counted` names (paths), for the caller's budget.
-        public static long AssertMirror(string folder, ICollection<string> counted)
+        // Every painted drawing of the folder but the white flashes (shared, not copied) has one themed copy under
+        // `theme`/ (Ice, Gloam) of its name, its size and its import, and that folder holds nothing else. Returns the
+        // copies' bytes as ASTC 4x4 among the painted drawings `counted` names (paths), for the caller's budget.
+        public static long AssertMirror(string folder, ICollection<string> counted, string theme = "Ice")
         {
-            string ice = folder + "/Ice";
+            string ice = folder + "/" + theme;
             Assert.That(AssetDatabase.IsValidFolder(ice), Is.True, ice);
             var copies = new Dictionary<string, string>();
             foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { ice }))
@@ -49,7 +50,7 @@ namespace Cryptforge.Tests
                     continue;
                 }
                 drawings++;
-                Assert.That(copies.TryGetValue(name, out string copyPath), Is.True, path + " has its frosted copy.");
+                Assert.That(copies.TryGetValue(name, out string copyPath), Is.True, path + " has its " + theme + " copy.");
                 var source = (TextureImporter)AssetImporter.GetAtPath(path);
                 var copy = (TextureImporter)AssetImporter.GetAtPath(copyPath);
                 Assert.That(copy.textureType, Is.EqualTo(source.textureType), copyPath);

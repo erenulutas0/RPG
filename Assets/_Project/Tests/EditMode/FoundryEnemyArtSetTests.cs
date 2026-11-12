@@ -201,7 +201,7 @@ namespace Cryptforge.Tests
         [Test]
         public void TheTexturesImportAsTheGruntsDoInsideTheBudget()
         {
-            long bytes = 0, frosted = 0;
+            long bytes = 0, frosted = 0, gloamed = 0;
             foreach (Enemy enemy in Enemies)
             {
                 // The windups and deaths beside them are the horde motion's (HordeMotionArtSetTests, its own budget).
@@ -239,9 +239,12 @@ namespace Cryptforge.Tests
                 var counted = new List<string>();
                 foreach (string guid in guids) counted.Add(AssetDatabase.GUIDToAssetPath(guid));
                 frosted += FrostedArtCopies.AssertMirror(Art.TrimEnd('/') + "/" + enemy.Folder, counted);
+                // Floor 3's bloomed copies the same way, in a budget of their own (docs/51).
+                gloamed += FrostedArtCopies.AssertMirror(Art.TrimEnd('/') + "/" + enemy.Folder, counted, "Gloam");
             }
             Assert.That(bytes, Is.LessThanOrEqualTo(BudgetBytes), "The three enemies' frames as ASTC 4x4.");
             Assert.That(frosted, Is.LessThanOrEqualTo(BudgetBytes), "Their frosted copies as ASTC 4x4.");
+            Assert.That(gloamed, Is.EqualTo(frosted), "Their bloomed copies as ASTC 4x4, the frosted copies' size.");
         }
 
         [Test]

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Cryptforge.UI
 {
     // Floor 2's phase-2 props (docs/49 section 4): frozen mirror panels - the vault's quicksilver set into mirror-ice - and
-    // snow drifts at the parapets' feet. Both are built once, the first time the ice floor is shown, beside the crystals
+    // snow drifts at the parapets' feet. Both are built once, hidden, while the floor before the ice plays, beside the crystals
     // (BuildIceCrystals), in the coping material drawn untextured (ApplyTheme's Bare dress, so the vertex colours are
     // final), and hidden on the foundry. Floor 1 never builds them, so its renderers and vertices are unchanged.
     //
@@ -68,21 +68,34 @@ namespace Cryptforge.UI
         private void BuildIceProps(PlatformMaterialSet set)
         {
             if(set==null||set.Coping==null)return;
-            if(_icePanels==null)
-            {
-                var v=new List<Vector3>();var c=new List<Color>();var t=new List<int>();
-                for(int i=0;i<IcePanels.Length;i++)MirrorPanel(v,c,t,IcePanels[i],i);
-                // Drawn after the balustrade and every structure detail, before actors.
-                _icePanels=IcePropObject(IcePanelName,v,c,t,set.Coping,SceneryOrder(IcePanelOrder),0);
-            }
-            if(_iceDrifts==null)
-            {
-                var v=new List<Vector3>();var c=new List<Color>();var t=new List<int>();
-                for(int i=0;i<DriftRuns.Length;i++)Drift(v,c,t,DriftRuns[i],DriftInward(DriftRuns[i]),i);
-                // The paving's own rank; reaching twice as far below the map as the floor decals puts its bounds' centre
-                // under theirs, so it draws after the paving and the kerbs (FloorDecal, DecalSortReach).
-                _iceDrifts=IcePropObject(IceDriftName,v,c,t,set.Coping,SceneryOrder(FloorDecal),DecalSortReach*2);
-            }
+            MakeIceProps(_icePanels==null?IcePanelGeometry():null,_iceDrifts==null?IceDriftGeometry():null,set);
+        }
+
+        // The panels' and the drifts' geometry. Pure: it runs on a worker thread while the floor before plays (PrepareTheme).
+        private static PropGeometry IcePanelGeometry()
+        {
+            var g=new PropGeometry();
+            for(int i=0;i<IcePanels.Length;i++)MirrorPanel(g.V,g.C,g.T,IcePanels[i],i);
+            return g;
+        }
+        private static PropGeometry IceDriftGeometry()
+        {
+            var g=new PropGeometry();
+            for(int i=0;i<DriftRuns.Length;i++)Drift(g.V,g.C,g.T,DriftRuns[i],DriftInward(DriftRuns[i]),i);
+            return g;
+        }
+
+        // Their objects from their geometry (the main thread's share); one already standing is kept.
+        private void MakeIceProps(PropGeometry panels,PropGeometry drifts,PlatformMaterialSet set)
+        {
+            if(set==null||set.Coping==null)return;
+            // Drawn after the balustrade and every structure detail, before actors.
+            if(_icePanels==null&&panels!=null)
+                _icePanels=IcePropObject(IcePanelName,panels.V,panels.C,panels.T,set.Coping,SceneryOrder(IcePanelOrder),0);
+            // The paving's own rank; reaching twice as far below the map as the floor decals puts its bounds' centre
+            // under theirs, so it draws after the paving and the kerbs (FloorDecal, DecalSortReach).
+            if(_iceDrifts==null&&drifts!=null)
+                _iceDrifts=IcePropObject(IceDriftName,drifts.V,drifts.C,drifts.T,set.Coping,SceneryOrder(FloorDecal),DecalSortReach*2);
         }
 
         private GameObject IcePropObject(string name,List<Vector3> v,List<Color> c,List<int> t,Material material,int order,float sortReach)
