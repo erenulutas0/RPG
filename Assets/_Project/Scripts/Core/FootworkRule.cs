@@ -301,6 +301,49 @@ namespace Cryptforge.Core
             gy = fy;
         }
 
+        // The sidestep (docs/50 section 6; the lead's decisions 2026-11-12): against the Glass Regent's lanes (RegentLanes),
+        // whose blow lands along a line from the Regent through the hero's spot, a step along the lane stays in it, so
+        // the escape out of a circle (EscapeMark, which leaves the mark away from the Warden: along the lane) does not
+        // help. A pilot standing within SidestepMargin / 2 of a lane steps instead to the nearest spot clear of every lane
+        // by SidestepMargin that the floor holds: the first of SidestepRings round the hero, SidestepBearings points a
+        // ring, that has one, and on it the one farthest from the mark. False, and no step, when the hero already stands
+        // clear. One body for DevelopmentAutopilot and the foundry simulation (DescentSimulation.Vaults.cs), as StepIn.
+        public const int SidestepBearings = 24;
+        public const float SidestepMargin = .35f;
+        private static readonly float[] SidestepRings = { .5f, .8f, 1.1f, 1.5f, 2f, 2.6f, 3.2f };
+        public static int SidestepRingCount => SidestepRings.Length;
+        public static float SidestepRing(int ring) => SidestepRings[ring];
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool Sidestep(float x, float y, RegentLanes lanes, out float gx, out float gy)
+        {
+            gx = x;
+            gy = y;
+            if (lanes == null || lanes.Count == 0 || !lanes.Holds(x, y, SidestepMargin * .5f))
+                return false;
+            for (int r = 0; r < SidestepRings.Length; r++)
+            {
+                float best = -1f;
+                for (int b = 0; b < SidestepBearings; b++)
+                {
+                    double angle = b * 2.0 * Math.PI / SidestepBearings;
+                    float cx = x + SidestepRings[r] * (float)Math.Cos(angle);
+                    float cy = y + SidestepRings[r] * (float)Math.Sin(angle);
+                    if (lanes.Holds(cx, cy, SidestepMargin) || !FoundryMap.Contains(cx, cy, HeroMotion.EdgeMargin))
+                        continue;
+                    float away = ArenaFloor.FloorDistanceSquared(cx, cy, lanes.MarkX, lanes.MarkY);
+                    if (away <= best)
+                        continue;
+                    best = away;
+                    gx = cx;
+                    gy = cy;
+                }
+                if (best >= 0f)
+                    return true;
+            }
+            return false;
+        }
+
         // A goal the hero can stand on and walk to in a straight line.
         private static bool Clear(float x, float y, float tx, float ty) =>
             FoundryMap.Contains(tx, ty, HeroMotion.EdgeMargin) && FoundryMap.Segment(x, y, tx, ty, HeroMotion.EdgeMargin);

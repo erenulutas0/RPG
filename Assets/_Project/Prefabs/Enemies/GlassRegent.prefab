@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4417520911348226981
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1707163217345694249, guid: 57e246664eba26a48af19cbf575888b8, type: 3}
+      propertyPath: m_Name
+      value: GlassRegent
+      objectReference: {fileID: 0}
+    - target: {fileID: 2726180956799292811, guid: 57e246664eba26a48af19cbf575888b8, type: 3}
+      propertyPath: _paintedArt
+      value:
+      objectReference: {fileID: 11400000, guid: c86314a6fe4042989bf5db2833ca9242, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1707163217345694249, guid: 57e246664eba26a48af19cbf575888b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3086651923410275549}
+  m_SourcePrefab: {fileID: 100100000, guid: 57e246664eba26a48af19cbf575888b8, type: 3}
+--- !u!1 &3098230508900159884 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1707163217345694249, guid: 57e246664eba26a48af19cbf575888b8, type: 3}
+  m_PrefabInstance: {fileID: 4417520911348226981}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3086651923410275549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3098230508900159884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 058117cf010448ecb3de197ce46fd4cb, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _laneEdge: {fileID: 21300000, guid: f341de51e2ad4bcabe992e1b9eb24c48, type: 3}
+  _laneFill: {fileID: 21300000, guid: ddcdd3cd59d941389477bd340491e89d, type: 3}

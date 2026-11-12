@@ -190,11 +190,12 @@ namespace Cryptforge.Tests
         };
 
         // Data/Floors/Floor_QuicksilverVaults.asset, the climb's floor 2, as the foundry plays it: the Descent's floor 2
-        // (QuicksilverVaults) - three halls, the Deep Forge, the Sentry Hall and the Warden's Vault, whose Forge Warden walks
+        // (QuicksilverVaults) - three halls, the Deep Forge, the Sentry Hall and the Warden's Vault, whose Glass Regent walks
         // out of the gate with two Cinder Mites - climb-scaled at floor 2, floor 1's three horde roles, Cursed Gold (+20%
         // enemy damage, +50% gold), none of V0.1's surges or extra elite, and floor 1's gate time: the gate holds for the
         // floor's clock to read 210 s (docs/47, built 2026-11-11; before it the gate opened as its room cleared).
-        // Its Warden's share is its own, 8.5 / 1.4 (the asset's 6.071429): the climb's x1.4 cancelled on its gate boss.
+        // Its gate boss's share is its own (FloorTwoGateShare, the asset's): the Regent's 7.0 since 2026-11-12, the Forge
+        // Warden's 8.5 / 1.4 (FloorTwoWardenShare) before.
         public static FoundryFloor FoundryFloorTwo() => new FoundryFloor
         {
             Id = "floor_quicksilver_vaults",
@@ -203,7 +204,7 @@ namespace Cryptforge.Tests
             HordeRoles = new[] { Mite, Grunt, Runner },
             FloorNumber = 2,
             GateNotBeforeSeconds = 210f,
-            GateHealthShare = 6.071429f,
+            GateHealthShare = FloorTwoGateShare,
             ModifierHealthPercent = 0f,
             ModifierDamagePercent = QuicksilverVaults.ModifierDamagePercent,
             ModifierGoldPercent = QuicksilverVaults.ModifierGoldPercent,
@@ -227,6 +228,16 @@ namespace Cryptforge.Tests
             GateHealthShare = FloorThreeGateShare,
             Next = FoundryFinale()
         };
+
+        // Floor_QuicksilverVaults' _foundryGateHealthShare: the Glass Regent walks out with this share of its authored 300
+        // (times the climb's x1.4 and the run's difficulty), WardenRule.GateHealthShareOn. docs/50 round 2 on the holdout
+        // seeds 201-400 (VaultsEnemiesResearch, typical hands): careful P50 49 / 46 s, 69 % / 60 % of the fights in 45-65 s,
+        // against the Forge Warden's 50 / 46 at its 8.5 / 1.4 (FloorTwoWardenShare): the lead's decision 2026-11-12.
+        public const float FloorTwoGateShare = 7f;
+
+        // The Forge Warden's share on floor 2 before the Regent (docs/41, status 2026-11-10 later): 8.5 / 1.4, the climb's
+        // x1.4 cancelled on its gate boss. FoundryLevers.VaultsWarden puts it back for a comparison on the same seeds.
+        public const float FloorTwoWardenShare = 6.071429f;
 
         // Floor_GloamGardens' _foundryGateHealthShare: the Forge Warden at floor 3's tier walks out with this share of its
         // authored health (times ClimbScaling's x1.96 and x1.15 and the run's difficulty), WardenRule.GateHealthShareOn -
@@ -3503,7 +3514,7 @@ namespace Cryptforge.Tests
                     _slamEnraged = false;
                     _bossEnraged = false;
                     _slam.Reset();
-                    _lanes = 0;
+                    RegentTune(gate);
                 }
                 Foe boss = _slamBoss != null && _slamBoss.IsAlive ? _slamBoss : null;
                 if (boss == null)
@@ -3831,7 +3842,7 @@ namespace Cryptforge.Tests
                 // them, read as the Warden's mark is read.
                 if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked && SidestepsLanes(cohort) &&
                     (_realism == null ||
-                     Perceived(_seconds - _slam.TelegraphProgress * WardenRule.Telegraph, _realism.MarkReaction)) &&
+                     Perceived(_seconds - _slam.TelegraphProgress * _slam.Telegraph, _realism.MarkReaction)) &&
                     SidestepGoal(x, y, out gx, out gy))
                 {
                     if (_realism != null && _realism.AimError > 0f)
@@ -3851,7 +3862,7 @@ namespace Cryptforge.Tests
                 }
                 if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked && !SidestepsLanes(cohort) &&
                     (_realism == null ||
-                     Perceived(_seconds - _slam.TelegraphProgress * WardenRule.Telegraph, _realism.MarkReaction)))
+                     Perceived(_seconds - _slam.TelegraphProgress * _slam.Telegraph, _realism.MarkReaction)))
                 {
                     float mx = x - _markX;
                     float my = y - _markY;

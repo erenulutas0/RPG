@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -9,35 +8,27 @@ namespace Cryptforge.Tests
     // The Quicksilver Vaults' own enemies (docs/50). The Mirror Sentry ships (the lead's decisions 2026-11-12): it leads
     // floor 2's Sentry Hall (DescentSimulation.QuicksilverVaults, MirrorSentry) with MirrorGuardRule's guard, stepped here
     // where the scene's MirrorGuardService steps it, and the step-in's flank (FootworkRule.Flank) circles it, as
-    // DevelopmentAutopilot does. The Silver Wisp, the Faceless Clerk and the Glass Regent stay simulation-only research
-    // levers, off by default (VaultsEnemiesResearch): they exist only on a floor 2 that VaultsChain reshapes, and every
-    // behaviour below keys on one of their definitions or on the Sentry's guard, so a run that never meets them is the run
-    // it was - floor 1's rows of the default batch stay byte-identical.
+    // DevelopmentAutopilot does. The Glass Regent is floor 2's gate boss (GlassRegent; the lead's decisions 2026-11-12):
+    // its lanes (RegentLanes) are marked and judged where the scene's WardenSlamService marks them, and the pilots that
+    // leave the Warden's mark away from it sidestep them (FootworkRule.Sidestep), as DevelopmentAutopilot does. The Silver
+    // Wisp and the Faceless Clerk stay simulation-only research levers, off by default (VaultsEnemiesResearch): they exist
+    // only on a floor 2 that VaultsChain reshapes, and every behaviour below keys on one of their definitions, the Sentry's
+    // guard or the Regent, so a run that never meets them is the run it was - floor 1's rows of the default batch stay
+    // byte-identical.
     internal static partial class DescentSimulation
     {
         // docs/50's starting values, authored (before the climb's floor-2 scaling).
         public static readonly Enemy SilverWisp = new Enemy { Name = "Silver Wisp", Health = 24f, Damage = 1f, Interval = .5f, Gold = 3, Experience = 10, Speed = 2.4f, Reach = 1.4f };
         // No melee strike (its weapon never ticks): its reach is the 2.8 it stands off at.
         public static readonly Enemy FacelessClerk = new Enemy { Name = "Faceless Clerk", Health = 70f, Damage = .01f, Interval = 1f, Gold = 8, Experience = 15, Speed = 1.2f, Reach = 2.8f };
-        public static readonly Enemy GlassRegent = new Enemy { Name = "Glass Regent", Health = 300f, Damage = 5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = .5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
         // The Regent's phase-2 copies: no strike, no reward; their health is a share of the Regent's maximum.
         public static readonly Enemy GlassCopy = new Enemy { Name = "Glass copy", Health = 1f, Damage = .01f, Interval = 1f, Gold = 0, Experience = 0, Speed = 1f, Reach = 1.7f };
-
-        // The research habits docs/50 asks of the pilot, outside AutopilotCohort.Habit.All as StepsInOnTheGateBoss was: no
-        // cohort has one unless the levers give it. Sidesteps extends the escape from the Warden's mark (a cohort that
-        // EscapesAwayFromTheWarden). The flank that was its sibling ships (FoundryLevers.FlanksTheSentry).
-        [Flags]
-        internal enum VaultsHabit
-        {
-            None = 0,
-            // Against the Glass Regent's lanes, the nearest spot clear of every lane rather than out of a circle.
-            Sidesteps = 1 << 1
-        }
 
         // Floor 1 as shipped above a floor 2 with the levers' creatures in place of the foundry's: the Grunt Captain back in
         // Sentry Hall (VaultsCaptain: floor 2 before 2026-11-12) or the Sentry at another health, the Wisp for the Runner
         // (the horde's third role and Mercury Stair's second wave), a Clerk at the head of Mercury Stair's first wave and in
-        // place of a Grunt in Vault Gate's, the Regent for the Warden.
+        // place of a Grunt in Vault Gate's, the Forge Warden back at the gate at its own share (VaultsWarden: floor 2's gate
+        // before 2026-11-12) or the Regent at another share (RegentHealthShare).
         // The Sentry at a share of its authored health: itself at 1, else a copy under its name (its guard reads the name).
         private static Enemy Sentry(float healthScale) => healthScale == 1f
             ? MirrorSentry
@@ -67,8 +58,8 @@ namespace Cryptforge.Tests
                             wave[i] = SilverWisp;
                         if (wave[i] == MirrorSentry)
                             wave[i] = levers.VaultsCaptain ? Captain : Sentry(levers.SentryHealthScale);
-                        if (levers.VaultsRegent && wave[i] == Warden)
-                            wave[i] = GlassRegent;
+                        if (levers.VaultsWarden && wave[i] == GlassRegent)
+                            wave[i] = Warden;
                     }
                     rooms[r][w] = wave;
                 }
@@ -89,6 +80,10 @@ namespace Cryptforge.Tests
                 }
             }
             FoundryFloor shaped = two.Reshaped(rooms, two.Kinds);
+            if (levers.VaultsWarden)
+                shaped.GateHealthShare = FloorTwoWardenShare;
+            else if (levers.RegentHealthShare > 0f)
+                shaped.GateHealthShare = levers.RegentHealthShare;
             if (levers.VaultsWisps)
                 shaped.HordeRoles = new[] { Mite, Grunt, SilverWisp };
             one.Next = shaped;
@@ -99,12 +94,12 @@ namespace Cryptforge.Tests
         {
             // docs/50's research creatures on floor 2, each off by default (VaultsChain reads them; the creatures' rules key on
             // their definitions). VaultsCaptain puts the Grunt Captain back at the head of Sentry Hall: floor 2 as it was
-            // before the Mirror Sentry shipped (2026-11-12), for a comparison on the same seeds.
+            // before the Mirror Sentry shipped (2026-11-12), for a comparison on the same seeds; VaultsWarden the Forge
+            // Warden back at its gate, at its share then (FloorTwoWardenShare): floor 2's gate before the Glass Regent.
             public bool VaultsCaptain;
             public bool VaultsWisps;
             public bool VaultsClerks;
-            public bool VaultsRegent;
-            public VaultsHabit VaultsHabits;
+            public bool VaultsWarden;
             // The Mirror Sentry's guard (MirrorGuardRule, shipped; a research lever may move each): its turn, front arc, the
             // share of a front landing it takes, the reflection's share and its cap a second.
             public float SentryTurnDegrees = MirrorGuardRule.TurnDegrees;
@@ -149,17 +144,26 @@ namespace Cryptforge.Tests
             public float ClerkTouch = 1f;
             public float ClerkBlastRadius = 2.4f;
             public float ClerkFadeSeconds = 3f;
-            // The Glass Regent (section 6) on the Warden's clock (WardenSlamClock as it is: its enraged beat, 4 s, stands
-            // for docs/50's 4.5 s): a lane RegentLaneWidth wide and RegentLaneLength long from each body through the
-            // hero's spot, RegentLaneShare of its maximum once a beat; RegentCopies copies at half health, each
-            // RegentCopyShare of its maximum. Its health share is FoundryLevers.LaterWardenHealthShare.
-            public float RegentLaneWidth = 1.2f;
-            public float RegentLaneLength = 10f;
-            public float RegentLaneShare = .18f;
-            public int RegentCopies = 2;
+            // The Glass Regent (RegentRule, shipped; a research lever may move each) on the Warden's clock, tuned to
+            // RegentEvery, RegentEveryPhaseTwo and RegentTelegraph: a lane RegentLaneWidth wide and RegentLaneLength long
+            // from each body through the hero's spot, RegentLaneShare of its maximum once a beat; RegentCopies copies at
+            // half health, each RegentCopyShare of its maximum (research: section 6's stage 2). RegentHealthShare
+            // (VaultsChain only) is its gate share in place of the floor's (FloorTwoGateShare); 0 keeps the floor's.
+            public float RegentLaneWidth = RegentRule.LaneWidth;
+            public float RegentLaneLength = RegentRule.LaneLength;
+            public float RegentLaneShare = RegentRule.LaneShare;
+            public float RegentEvery = RegentRule.Every;
+            public float RegentEveryPhaseTwo = RegentRule.EveryPhaseTwo;
+            public float RegentTelegraph = RegentRule.Telegraph;
+            public int RegentCopies;
             public float RegentCopyShare = .06f;
+            public float RegentHealthShare;
+            // The sidestep across the Regent's lanes (FootworkRule.Sidestep), as DevelopmentAutopilot steps it: shipped, for
+            // a cohort that leaves the Warden's mark away from it (AutopilotCohort.Sidesteps: careful, standing, first-card).
+            // Off (research), those cohorts leave a lane's mark as they leave the Warden's, away from the Regent: along it.
+            public bool SidestepsTheRegent = true;
 
-            public bool Vaults => VaultsWisps || VaultsClerks || VaultsRegent;
+            public bool Vaults => VaultsWisps || VaultsClerks;
 
             // The Sentry's guard as these levers tune it.
             public MirrorGuardState SentryGuard() =>
@@ -187,35 +191,6 @@ namespace Cryptforge.Tests
             public float RegentPhaseTwoAt = -1f;
         }
 
-        // The arithmetic both a scene and this simulation would run, each in one never-inlined body (docs/50 rule 1).
-        internal static class VaultsRule
-        {
-            // A lane from (ax, ay) through (mx, my), length long and halfWidth either side: whether (px, py) stands in it.
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            public static bool InLane(float px, float py, float ax, float ay, float mx, float my, float length, float halfWidth)
-            {
-                float dx = mx - ax, dy = my - ay;
-                float d = (float)Math.Sqrt(dx * dx + dy * dy);
-                if (d > 1e-5f)
-                {
-                    dx /= d;
-                    dy /= d;
-                }
-                else
-                {
-                    dx = 0f;
-                    dy = -1f;
-                }
-                float along = (px - ax) * dx + (py - ay) * dy;
-                if (along < 0f)
-                    along = 0f;
-                else if (along > length)
-                    along = length;
-                float cx = ax + dx * along - px, cy = ay + dy * along - py;
-                return cx * cx + cy * cy <= halfWidth * halfWidth;
-            }
-        }
-
         private sealed partial class Foe
         {
             // The Mirror Sentry's guard (MirrorGuardRule, the scene's MirrorGuard): null until its first step - and for every
@@ -232,10 +207,9 @@ namespace Cryptforge.Tests
 
         private sealed partial class FoundryRun
         {
-            // The lanes of the Regent's beat standing now: each body's spot as the mark went down.
-            private readonly float[] _laneX = new float[3];
-            private readonly float[] _laneY = new float[3];
-            private int _lanes;
+            // The lanes of the Regent's beat standing now (RegentLanes, as WardenSlamService holds them): each body's spot as
+            // the mark went down, through the mark.
+            private RegentLanes _regentLanes;
             private readonly Foe[] _glassCopies = new Foe[2];
             // Reflection owed to the hero by a Sentry, paid on the next running frame (MirrorReflectionDue, as
             // MirrorGuardService pays it: never inside the hero's own strike, never while the fight holds).
@@ -308,6 +282,10 @@ namespace Cryptforge.Tests
                     return;
                 if (_sentryFloor)
                     StepSentries();
+                // The Regent fallen: its copies shatter with it.
+                if (_glassCopies[0] != null && !_choices.IsOpen && !_revealHold &&
+                    (GateBoss == null || !GateBoss.IsAlive || !IsRegent(GateBoss)))
+                    ShatterCopies();
                 if (!VaultsOn || _choices.IsOpen || _revealHold)
                     return;
                 if (_levers.WispKiteBlink)
@@ -316,9 +294,6 @@ namespace Cryptforge.Tests
                     StepSilentCopies();
                 if (DrawingCopy(out _))
                     _result.DrawnSeconds += Step;
-                // The Regent fallen: its copies shatter with it.
-                if (_glassCopies[0] != null && (GateBoss == null || !GateBoss.IsAlive || !IsRegent(GateBoss)))
-                    ShatterCopies();
                 int copies = _silentCopies.Count;
                 for (int i = 0; i < _marks.Count; i++)
                     if (_marks[i].Harm == ClerkHarm)
@@ -546,37 +521,42 @@ namespace Cryptforge.Tests
                 }
             }
 
+            // WardenSlamService.Marked for the Regent: a lane from its body - and each standing copy's - through the mark.
             private void RegentMarked(Foe boss)
             {
                 _result.RegentBeats++;
-                _lanes = 0;
-                _laneX[_lanes] = boss.X;
-                _laneY[_lanes++] = boss.Y;
+                _regentLanes ??= new RegentLanes(_levers.RegentLaneWidth, _levers.RegentLaneLength);
+                _regentLanes.Mark(_markX, _markY);
+                _regentLanes.Add(boss.X, boss.Y);
                 for (int c = 0; c < _glassCopies.Length; c++)
                 {
                     Foe copy = _glassCopies[c];
                     if (copy == null || !IsValid(copy))
                         continue;
-                    _laneX[_lanes] = copy.X;
-                    _laneY[_lanes++] = copy.Y;
+                    _regentLanes.Add(copy.X, copy.Y);
                 }
             }
 
-            private bool InLanes(float x, float y, float margin)
-            {
-                float half = _levers.RegentLaneWidth * .5f + margin;
-                for (int i = 0; i < _lanes; i++)
-                    if (VaultsRule.InLane(x, y, _laneX[i], _laneY[i], _markX, _markY, _levers.RegentLaneLength, half))
-                        return true;
-                return false;
-            }
-
+            // WardenSlamService.Slammed for the Regent: whether the beat's lanes catch the hero (once, however many it
+            // stands in); the lanes go with the blow.
             private bool RegentLanesHit()
             {
-                bool hit = _heroHealth.IsAlive && InLanes(HeroX, HeroY, 0f);
+                bool hit = _heroHealth.IsAlive && _regentLanes != null && _regentLanes.Holds(HeroX, HeroY, 0f);
                 if (hit)
                     _result.RegentLaneHits++;
+                _regentLanes?.Clear();
                 return hit;
+            }
+
+            // A new gate boss (StepWarden): the clock keeps the Regent's beat for a Regent, the Warden's otherwise, and no
+            // lane is down.
+            private void RegentTune(Foe gate)
+            {
+                _regentLanes?.Clear();
+                if (gate != null && IsRegent(gate))
+                    _slam.Tune(_levers.RegentEvery, _levers.RegentEveryPhaseTwo, _levers.RegentTelegraph);
+                else
+                    _slam.Tune(WardenRule.SlamEvery, WardenRule.SlamEveryEnraged, WardenRule.Telegraph);
             }
 
             // A copy felled: no kill, no reward, and the wave's count never held it.
@@ -604,45 +584,16 @@ namespace Cryptforge.Tests
                 }
             }
 
-            // The sidestep habit: a cohort that leaves the Warden's mark away from it, given the habit, against lanes.
+            // DevelopmentAutopilot.Goal's sidestep: against the Regent's lanes, a cohort that leaves the Warden's mark away from
+            // it (AutopilotCohort.Sidesteps), given the habit (FoundryLevers.SidestepsTheRegent).
             private bool SidestepsLanes(AutopilotCohort cohort) =>
-                _lanes > 0 && IsRegent(_slamBoss) && (_levers.VaultsHabits & VaultsHabit.Sidesteps) != 0 &&
-                cohort.Has(AutopilotCohort.Habit.EscapesAwayFromTheWarden);
+                _regentLanes != null && _regentLanes.Count > 0 && IsRegent(_slamBoss) && _levers.SidestepsTheRegent &&
+                cohort.Sidesteps;
 
-            private static readonly float[] SidestepRings = { .5f, .8f, 1.1f, 1.5f, 2f, 2.6f, 3.2f };
-            private const int SidestepBearings = 24;
-            private const float SidestepMargin = .35f;
-
-            // The nearest spot on the floor clear of every lane by a margin (the first ring with one; on it the one
-            // farthest from the lanes' aim); false when the hero already stands clear.
-            private bool SidestepGoal(float x, float y, out float gx, out float gy)
-            {
-                gx = x;
-                gy = y;
-                if (!InLanes(x, y, SidestepMargin * .5f))
-                    return false;
-                for (int r = 0; r < SidestepRings.Length; r++)
-                {
-                    float best = -1f;
-                    for (int b = 0; b < SidestepBearings; b++)
-                    {
-                        double angle = b * 2.0 * Math.PI / SidestepBearings;
-                        float cx = x + SidestepRings[r] * (float)Math.Cos(angle);
-                        float cy = y + SidestepRings[r] * (float)Math.Sin(angle);
-                        if (InLanes(cx, cy, SidestepMargin) || !FoundryMap.Contains(cx, cy, HeroMotion.EdgeMargin))
-                            continue;
-                        float away = ArenaFloor.FloorDistanceSquared(cx, cy, _markX, _markY);
-                        if (away <= best)
-                            continue;
-                        best = away;
-                        gx = cx;
-                        gy = cy;
-                    }
-                    if (best >= 0f)
-                        return true;
-                }
-                return false;
-            }
+            // The nearest spot on the floor clear of every lane (FootworkRule.Sidestep); false when the hero already stands
+            // clear.
+            private bool SidestepGoal(float x, float y, out float gx, out float gy) =>
+                FootworkRule.Sidestep(x, y, _regentLanes, out gx, out gy);
 
             // DevelopmentAutopilot.StepInGoal's flank: against a Sentry whose guard has been stepped, the step-in's spot turned
             // round it toward its rear (FootworkRule.Flank).

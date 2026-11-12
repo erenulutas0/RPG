@@ -51,6 +51,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/WardenRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EliteRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/MirrorGuardRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/RegentRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />

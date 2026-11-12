@@ -29,7 +29,9 @@ namespace Cryptforge.Core
             // It leaves the Warden's mark before the slam.
             EscapesMarks = 1 << 3,
             // ...away from the Warden, with room (FootworkRule.EscapeMark); without it the nearest of eight points round
-            // the mark, whichever side the Warden stands (FootworkRule.EscapeMarkNearest). 2026-11-04.
+            // the mark, whichever side the Warden stands (FootworkRule.EscapeMarkNearest). 2026-11-04. Against the Glass
+            // Regent's lanes, the habit is the sidestep across them (FootworkRule.Sidestep; docs/50, the lead's decisions
+            // 2026-11-12): a pilot without it leaves the lane's mark as it leaves a circle, the nearest way.
             EscapesAwayFromTheWarden = 1 << 4,
             // It leaves the pit's band when it glows with a spill coming.
             Shelters = 1 << 5,
@@ -114,6 +116,9 @@ namespace Cryptforge.Core
         public bool UsesTheAbility => Has(Habit.UsesTheAbility);
         public bool StepsIn => Has(Habit.StepsIn);
         public bool StepsInOnTheGateBoss => Has(Habit.StepsIn | Habit.StepsInOnTheGateBoss);
+        // Against the Glass Regent's lanes, a sidestep across them (FootworkRule.Sidestep): the escape away from the Warden's
+        // habit, read for a lane.
+        public bool Sidesteps => Has(Habit.EscapesAwayFromTheWarden);
 
         public override string ToString() => Name;
 

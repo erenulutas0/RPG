@@ -81,10 +81,18 @@ namespace Cryptforge.Combat
     }
 
     // The Warden's slam clock: idle until the next mark, then a telegraph, then the blow. Enraged, the next mark comes
-    // sooner; a mark already down keeps its whole telegraph.
+    // sooner; a mark already down keeps its whole telegraph. Its beat is the Warden's (WardenRule) unless Tune hands it
+    // another - the Glass Regent's (RegentRule), or a measurement's.
     public sealed class WardenSlamClock
     {
         public enum Step { None, Marked, Slammed }
+
+        private float _every = WardenRule.SlamEvery;
+        private float _everyEnraged = WardenRule.SlamEveryEnraged;
+        private float _telegraph = WardenRule.Telegraph;
+
+        // From the mark to the blow, in seconds.
+        public float Telegraph => _telegraph;
 
         // Seconds since the last blow (or the fight's start), and whether a mark is down.
         public float Seconds { get; private set; }
@@ -105,6 +113,21 @@ namespace Cryptforge.Combat
         // HoldsWeapon with another recovery, for a measurement that sweeps it (the Descent simulation's foundry levers).
         public bool HoldsWeaponFor(float recoverySeconds) => IsMarked || (_struck && Seconds < recoverySeconds);
 
+        // The beat to keep from the next fight on: a mark every seconds after the last blow, everyEnraged below the
+        // phase-two line, the blow a telegraph after its mark. Call it with Reset, between fights.
+        public void Tune(float every, float everyEnraged, float telegraph)
+        {
+            if (!(telegraph > 0f) || float.IsInfinity(telegraph))
+                throw new ArgumentOutOfRangeException(nameof(telegraph));
+            if (!(every >= telegraph) || float.IsInfinity(every))
+                throw new ArgumentOutOfRangeException(nameof(every));
+            if (!(everyEnraged >= telegraph) || float.IsInfinity(everyEnraged))
+                throw new ArgumentOutOfRangeException(nameof(everyEnraged));
+            _every = every;
+            _everyEnraged = everyEnraged;
+            _telegraph = telegraph;
+        }
+
         public void Reset()
         {
             Seconds = 0f;
@@ -123,16 +146,16 @@ namespace Cryptforge.Combat
             Seconds += deltaTime;
             if (!IsMarked)
             {
-                float every = enraged ? WardenRule.SlamEveryEnraged : WardenRule.SlamEvery;
-                if (Seconds < every - WardenRule.Telegraph)
+                float every = enraged ? _everyEnraged : _every;
+                if (Seconds < every - _telegraph)
                     return Step.None;
                 IsMarked = true;
-                Seconds = every - WardenRule.Telegraph;
+                Seconds = every - _telegraph;
                 _blowAt = every;
                 TelegraphProgress = 0f;
                 return Step.Marked;
             }
-            TelegraphProgress = Math.Min(1f, (Seconds - (_blowAt - WardenRule.Telegraph)) / WardenRule.Telegraph);
+            TelegraphProgress = Math.Min(1f, (Seconds - (_blowAt - _telegraph)) / _telegraph);
             if (Seconds < _blowAt)
                 return Step.None;
             IsMarked = false;

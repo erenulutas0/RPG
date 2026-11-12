@@ -195,7 +195,18 @@ namespace Cryptforge.Core
             // nearest way out, if the Warden cannot be found). The clumsy cohorts take the nearest way out, wherever the
             // Warden stands (AutopilotCohort.EscapeMark).
             WardenSlamService warden = _setup.Warden;
-            if (_cohort.EscapesMarks && warden != null && warden.IsFighting && warden.Clock.IsMarked)
+            // The Glass Regent's lanes (docs/50 section 6): a cohort that leaves the Warden's mark away from it sidesteps
+            // across them instead (AutopilotCohort.Sidesteps, FootworkRule.Sidestep) - and, once clear of them, fights on;
+            // the clumsy cohorts leave a lane's mark as a circle's, the nearest way, wherever it runs.
+            bool lanes = warden != null && warden.MarksLanes && warden.Lanes.Count > 0 && _cohort.Sidesteps;
+            if (_cohort.EscapesMarks && lanes && warden.IsFighting && warden.Clock.IsMarked &&
+                FootworkRule.Sidestep(x, y, warden.Lanes, out gx, out gy))
+            {
+                stop = 0f;
+                _bandGuard = false;
+                return true;
+            }
+            if (_cohort.EscapesMarks && !lanes && warden != null && warden.IsFighting && warden.Clock.IsMarked)
             {
                 float mx = x - warden.MarkX, my = y - warden.MarkY;
                 float reach = WardenRule.SlamRadius + .6f;

@@ -40,18 +40,36 @@ namespace Cryptforge.Tests
             public Action<DescentSimulation.FoundryLevers> Set = _ => { };
         }
 
+        // The Glass Regent at a gate share (floor 2's own, FloorTwoGateShare, is 7.0), with copies at half health or none,
+        // and with or without the sidestep. Before the Regent shipped (2026-11-12) this put it in place of the Warden on
+        // LaterWardenHealthShare, which the four-floor Descent would carry to floor 3's Warden too; RegentHealthShare is
+        // floor 2's alone.
         private static Action<DescentSimulation.FoundryLevers> Regent(float share, int copies, bool sidesteps) => l =>
         {
-            l.VaultsRegent = true;
-            l.LaterWardenHealthShare = share;
+            l.RegentHealthShare = share;
             l.RegentCopies = copies;
-            l.VaultsHabits |= sidesteps ? DescentSimulation.VaultsHabit.Sidesteps : DescentSimulation.VaultsHabit.None;
+            l.SidestepsTheRegent = sidesteps;
         };
 
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "floor 2 as shipped: the Mirror Sentry leads Sentry Hall (MirrorGuardRule, sentry-t45-h125-c2-f50: 45 deg/s, 200 health, half a front landing taken, 20 % reflected up to 2 % of the hero's maximum a second), the careful and first-card pilots flank it (FoundryLevers.FlanksTheSentry); the foundry's roster and the Forge Warden (share 6.071429)", Roles = true };
-            yield return new Option { Key = "captain", What = "floor 2 before 2026-11-12: the Grunt Captain leads Sentry Hall (FoundryLevers.VaultsCaptain)", Roles = true, Set = l => l.VaultsCaptain = true };
+            yield return new Option { Key = "shipped", What = "floor 2 as shipped: the Mirror Sentry leads Sentry Hall (MirrorGuardRule), the careful and first-card pilots flank it (FoundryLevers.FlanksTheSentry); the Glass Regent at the gate (RegentRule: lanes 1.2 x 10 for 18 % on the Warden's clock, share 7.0), the careful, standing and first-card pilots sidestep it (FoundryLevers.SidestepsTheRegent); the foundry's roster", Roles = true };
+            yield return new Option { Key = "warden", What = "floor 2's gate before the Glass Regent: the Forge Warden at share 6.071429 (FoundryLevers.VaultsWarden); the Sentry as shipped", Roles = true, Set = l => l.VaultsWarden = true };
+            yield return new Option { Key = "captain", What = "the Grunt Captain leads Sentry Hall (FoundryLevers.VaultsCaptain); the Regent as shipped", Roles = true, Set = l => l.VaultsCaptain = true };
+            yield return new Option { Key = "captain-warden", What = "floor 2 before 2026-11-12: the Grunt Captain leads Sentry Hall and the Forge Warden holds the gate", Roles = true, Set = l => { l.VaultsCaptain = true; l.VaultsWarden = true; } };
+            // Round 2's holdout cell (docs/50, seeds 201-400): the Captain and the Regent with two copies at 7.0, the port's
+            // check - its floor-2 clears are round 2's, which played the same floor 1 and floor 2.
+            yield return new Option { Key = "round2-regent-7.0", What = "round 2's Regent cell: the Grunt Captain leads Sentry Hall, the Glass Regent with two copies at half health, share 7.0, the sidestep", Set = l => { l.VaultsCaptain = true; Regent(7f, 2, true)(l); } };
+            yield return new Option { Key = "regent-nosidestep", What = "the shipped Glass Regent, no pilot sidesteps: the careful, standing and first-card pilots leave a lane's mark as the Warden's, away from it", Set = l => l.SidestepsTheRegent = false };
+            // The Regent's levers one at a time (docs/50 "Regent"): the lane's share of the hero's maximum, its telegraph,
+            // its length and width.
+            foreach (int lane in new[] { 10, 12, 14, 16 })
+                yield return new Option { Key = $"regent-l{lane}", What = $"the shipped Glass Regent, its lane {lane} % of the hero's maximum", Set = l => l.RegentLaneShare = lane / 100f };
+            foreach (int telegraph in new[] { 13, 15 })
+                yield return new Option { Key = $"regent-t{telegraph}", What = $"the shipped Glass Regent, its lane's telegraph {(telegraph / 10f).ToString("0.0", CultureInfo.InvariantCulture)} s", Set = l => l.RegentTelegraph = telegraph / 10f };
+            foreach (int length in new[] { 5, 6, 8 })
+                yield return new Option { Key = $"regent-len{length}", What = $"the shipped Glass Regent, its lane {length} units long", Set = l => l.RegentLaneLength = length };
+            yield return new Option { Key = "regent-w10", What = "the shipped Glass Regent, its lane 1.0 wide", Set = l => l.RegentLaneWidth = 1f };
             yield return new Option { Key = "sentry-noflank", What = "the shipped Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Roles = true, Set = l => l.FlanksTheSentry = false };
             // docs/50 section 5's starting values (round 1): 90 deg/s, 160 health (0.8 of the shipped 200), 35 % taken from the
             // front, the reflection capped at 4 %.
@@ -346,7 +364,7 @@ namespace Cryptforge.Tests
                 float[] underFire = down.SelectMany(r => r.Kills).Where(k => !k.Horde && k.Kind == "Faceless Clerk").Select(k => k.UnderFire).ToArray();
                 parts.Add($"Clerk: copies {Mean(down.Select(r => (float)r.ClerkCopies))}, shatter hits {Mean(down.Select(r => (float)r.ClerkCopyHits))}, drawn {Mean(down.Select(r => r.DrawnSeconds))} s, under fire P50 {F1(FoundryBatch.Percentile(underFire, 50))} s" + (l.ClerkReachBlast ? $", bursts {Mean(down.Select(r => (float)r.ClerkBursts))}, fades {Mean(down.Select(r => (float)r.ClerkFades))}" : string.Empty));
             }
-            if (l.VaultsRegent)
+            if (!l.VaultsWarden)
             {
                 var met = down.Where(r => r.RegentBeats > 0).ToArray();
                 parts.Add($"Regent: lane hits a fight {Mean(met.Select(r => (float)r.RegentLaneHits))} of {Mean(met.Select(r => (float)r.RegentBeats))} beats, copies shattered {Mean(met.Select(r => (float)r.RegentCopiesShattered))}, phase 2 at P50 {F(FoundryBatch.Percentile(met.Where(r => r.RegentPhaseTwoAt >= 0f).Select(r => r.RegentPhaseTwoAt), 50))} s");

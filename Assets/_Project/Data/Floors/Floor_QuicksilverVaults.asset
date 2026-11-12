@@ -73,7 +73,7 @@ MonoBehaviour:
     _kind: 3
     _waves:
     - _enemies:
-      - {fileID: 11400000, guid: 10000000000000000000000000000012, type: 2}
+      - {fileID: 11400000, guid: b0abdea1547a4bc9bfdf007d92076d8f, type: 2}
       - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
       - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
     _forgeOptions: []
@@ -82,7 +82,7 @@ MonoBehaviour:
   _climbScaled: 1
   _foundryHallSurges: 0
   _foundryGateNotBeforeSeconds: 210
-  _foundryGateHealthShare: 6.071429
+  _foundryGateHealthShare: 7
   _foundryHorde:
   - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
   - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}

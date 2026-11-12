@@ -12,6 +12,12 @@ namespace Cryptforge.Core
     // authored. It also hands the gate boss to the hero's attacker (AttackController.GateBoss), so a weapon's landings on
     // it take the weapon's share (WardenRule.SwordShare: the Sword is the Warden's weapon).
     //
+    // A gate boss that carries a GlassRegent - floor 2's since 2026-11-12 (docs/50 section 6, the lead's decisions) - keeps
+    // its own beat (RegentRule) and marks a lane instead of a circle: as the mark goes down where the hero stands, a lane
+    // from where the Regent stands through it (Lanes), and the blow catches a hero still inside it for RegentRule.LaneShare
+    // of its maximum health. The foundry simulation marks and judges the same RegentLanes at the same point of its frame
+    // (DescentSimulation.Vaults.cs).
+    //
     // It runs after EncounterController (-50), which brings the gate boss out, and before every script of the default
     // order, every AttackController among them: the Warden's weapon is held from the very frame its mark goes down, not
     // one frame later as Unity happens to order the two, and the foundry simulation steps the clock at the same point of
@@ -25,8 +31,15 @@ namespace Cryptforge.Core
         private Health _boss;
         private AttackController _bossAttack;
         private readonly WardenSlamClock _clock = new WardenSlamClock();
+        private readonly RegentLanes _lanes = new RegentLanes();
+        private GlassRegent _regent;
 
         public WardenSlamClock Clock => _clock;
+        // The Glass Regent's lanes of the beat that is down (none between beats, or for the Warden).
+        public RegentLanes Lanes => _lanes;
+        // The gate boss's GlassRegent while a Regent is fought: its marks are lanes. Null for the Warden.
+        public GlassRegent Regent => Boss != null ? _regent : null;
+        public bool MarksLanes => Regent != null;
         public Health Boss => _boss != null && _boss.IsAlive ? _boss : null;
         public bool IsFighting => Boss != null;
         public bool IsEnraged { get; private set; }
@@ -58,11 +71,17 @@ namespace Cryptforge.Core
                 Hold(false);
                 _boss = gate;
                 _bossAttack = gate != null ? gate.GetComponent<AttackController>() : null;
+                _regent = gate != null ? gate.GetComponent<GlassRegent>() : null;
                 if (_heroAttack != null)
                     _heroAttack.GateBoss = gate;
                 IsEnraged = false;
                 encounter.SetBossEnraged(false);
                 _clock.Reset();
+                _lanes.Clear();
+                if (_regent != null)
+                    _clock.Tune(RegentRule.Every, RegentRule.EveryPhaseTwo, RegentRule.Telegraph);
+                else
+                    _clock.Tune(WardenRule.SlamEvery, WardenRule.SlamEveryEnraged, WardenRule.Telegraph);
             }
             Health boss = Boss;
             if (boss == null)
@@ -75,6 +94,7 @@ namespace Cryptforge.Core
                 if (_clock.HoldsWeapon)
                 {
                     _clock.Reset();
+                    _lanes.Clear();
                     Hold(false);
                 }
                 return;
@@ -92,16 +112,38 @@ namespace Cryptforge.Core
                 case WardenSlamClock.Step.Marked:
                     MarkX = _hero.transform.position.x;
                     MarkY = ArenaFloor.FloorY(_hero.transform.position.y);
+                    // The Regent's lane: from where it stands, through the mark.
+                    if (_regent != null)
+                    {
+                        _lanes.Mark(MarkX, MarkY);
+                        if (!encounter.TryFloorPositionOf(boss, out float regentX, out float regentY))
+                        {
+                            regentX = boss.transform.position.x;
+                            regentY = ArenaFloor.FloorY(boss.transform.position.y);
+                        }
+                        _lanes.Add(regentX, regentY);
+                    }
                     Marked?.Invoke();
                     break;
                 case WardenSlamClock.Step.Slammed:
                     float heroX = _hero.transform.position.x, heroY = ArenaFloor.FloorY(_hero.transform.position.y);
                     float distanceSquared = ArenaFloor.FloorDistanceSquared(heroX, heroY, MarkX, MarkY);
                     LastSlamDistance = Mathf.Sqrt(distanceSquared);
-                    LastSlamHit = _hero.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
-                    // The Warden is the source, so the result screen names it if the blow is the last.
-                    if (LastSlamHit)
-                        _hero.ApplyDamage(new DamageContext(_hero.Maximum * WardenRule.HeroShare, boss));
+                    if (_regent != null)
+                    {
+                        // The shards run down the lanes: a hero inside any takes one lane's share, however many.
+                        LastSlamHit = _hero.IsAlive && _lanes.Holds(heroX, heroY, 0f);
+                        if (LastSlamHit)
+                            _hero.ApplyDamage(new DamageContext(_hero.Maximum * RegentRule.LaneShare, boss));
+                        _lanes.Clear();
+                    }
+                    else
+                    {
+                        LastSlamHit = _hero.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
+                        // The Warden is the source, so the result screen names it if the blow is the last.
+                        if (LastSlamHit)
+                            _hero.ApplyDamage(new DamageContext(_hero.Maximum * WardenRule.HeroShare, boss));
+                    }
                     Slammed?.Invoke(LastSlamHit);
                     break;
             }
