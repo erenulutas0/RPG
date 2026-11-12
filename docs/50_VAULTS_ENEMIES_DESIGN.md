@@ -1,5 +1,8 @@
 # 50 - The Quicksilver Vaults' own enemies (design proposal, 2026-11-12)
 
+**Status 2026-11-12:** the Mirror Sentry is built (step 2 of section 8; "Lead decisions 2026-11-12" at the end). The
+Wisp, the Clerk and the Regent stay simulation-only research.
+
 A proposal for the owner's decision. Nothing here is built: no code, asset, scene or setting changed. Numbers cited as
 "measured" name their source in docs/41, docs/47 or docs/48. Every other number is a starting value for the simulation
 to measure, not a decision.
@@ -420,7 +423,7 @@ reported, not gated, until the owner adopts it.
 | Floor-2 time P50 | 240-300 s (the 3:30 gate binds); the Descent P50 within 9.8-10.6 min |
 | Wisp | shimmer-to-hit with no reaction time impossible (no hit within 0.5 s of landing); hits taken from Wisps a minute reported by cohort |
 | Clerk | time under fire P50 1-2.5 s; shatter hits a floor: careful at most 1, standing at least 3 |
-| Sentry | elite fight P50 6-12 s; front share careful at most 40 %, standing at least 80 % |
+| Sentry | elite fight P50 **reported** (the lead's decisions 2026-11-12: no variant passes 4.3 s; the flank that makes it a read also shortens it); front share careful at most 40 %, standing at least 80 % |
 | Regent | lane hits a fight, careful, at most 0.3; the Sword's lead on the Regent over 10 % |
 | Parity | each rule's scene-and-simulation parity test; the Editor's `HordePacingMeasurement` down the whole Descent, 6 seeds a hero, within about 6 s of the simulation on floor 2 (as on 2026-11-11) |
 | Device | floor 2 on the S23 at 40 alive with two copies and three lanes up: p95 at most 20 ms, no frame over 35 ms in a steady fight |
@@ -754,3 +757,95 @@ Read against the lead's five conditions:
 - **Faceless Clerk: not yet.** The ringless copy is a cost every cohort pays about once a floor; it widens the gap
   only because the standing cohort carries the damage into the gate worse. Next round, if wanted: blast radius 1.4
   (inside a kite's distance) with the burst waiting for the pack to close.
+
+## Lead decisions 2026-11-12 (the owner delegated the gameplay calls to the lead)
+
+**The Mirror Sentry ships as `sentry-t45-h125-c2-f50`** (section 8, step 2):
+- It replaces the Grunt Captain as floor 2's elite. Sentry Hall is Sentry, Grunt, Mite, Mite. `EliteRule` treats the first
+  enemy of an elite room's wave as the elite, so the Daggers' x2 applies unchanged. Floor 1 and floor 3 (Gloam Gardens'
+  Thorn Post) keep their Captain.
+- The guard (`MirrorGuardRule`): the mirror turns toward the hero at 45 degrees a second. Its front arc is 120 degrees,
+  centred on its facing and judged by the hero's position, not the strike's. A landing of the hero's made from the front
+  deals half to it, and reflects 20 % of the landing's full amount to the hero. The reflection is capped at 2 % of the
+  hero's maximum health a second for each Sentry: a budget that starts full and refills at that rate. Flanks and the rear
+  take the landing whole and reflect nothing. A burn's tick (`DamageContext.IsTick`), the pit's spill and a relic's
+  counter are not landings and pass untouched.
+- `Enemy_MirrorSentry`: health 200 (125 % of 160; the floor's scaling applies as for every enemy). `Weapon_MirrorBash`:
+  5.4 every 1.4 s, reach 1.6, 0.6 s before the first. Speed 1.1, gold 20, experience 10.
+- **The reflection waits while the encounter holds** (an open choice panel, the boss's reveal, the player's pause).
+  What the landings owe is banked and paid as one hit, from the last Sentry that reflected, on the next frame the fight
+  runs (`MirrorReflectionDue`), so the hero never loses health while it chooses. Round 1 and round 2 paid it the next
+  frame even under a panel. The guard's clock (turn, budget) holds too, as the Warden's slams and the burns do.
+- **The flank** (`FootworkRule.Flank`) goes into `DevelopmentAutopilot` and the simulation together. A cohort that steps in
+  (careful, first-card) and whose best single-target weapon is short (the Daggers) turns the step-in's hold point round the
+  Sentry toward its rear, at most 40 degrees a goal, at the same reach.
+- Section 7's elite-fight row (6-12 s) is **reported** for the Sentry, not a target. No variant of round 2 passes 4.3 s
+  for the careful pilot, because the flank that makes the Sentry a read also shortens its fight.
+- The codex entry C06 "Liquid Names" (docs/44) has nothing to unlock yet: the game has no codex.
+
+**How it is built.** One pure rule, `Scripts/Combat/MirrorGuardRule.cs` (its turn, arc, front share, reflection and
+refill in never-inlined bodies, a `MirrorGuardState` for each Sentry and the `MirrorReflectionDue` bank), stepped by the
+scene and by the simulation alike:
+- Scene: `MirrorGuard` on the Sentry's prefab sits ahead of its `Health` (`Health.Guard`). `MirrorGuardService` (script
+  order -39, after `WardenSlamService`'s -40 and before every attacker) turns it, refills its budget and pays what is owed.
+  It works on the foundry only, so the hall arena's Sentry fights as authored, as that arena's elites and Warden do.
+  `MirrorGlintView` draws a violet (#8B6CE8) ground arc as wide as the front arc and turned to the guard's exact facing,
+  and a three-frame violet glint from the mirror to the hero for each reflection paid. It never uses red-orange (section 2,
+  rule 3). The art is the Blender-rendered `MirrorSentryArtSet`; it has no frosted copy, so the set is its own floor-2 look.
+- Simulation: `DescentSimulation.MirrorSentry` leads the shipped floor 2's Sentry Hall. Its guard is stepped where the
+  service steps it (`StepVaults`, after `StepWarden`). The research levers are kept: `VaultsCaptain` puts the Captain back,
+  and `SentryTurnDegrees`, `SentryHealthScale`, `FlanksTheSentry` and the rest move the tuning.
+- Tests: `MirrorGuardRuleTests`, `FootworkRuleTests` (the flank), `FoundrySimulationSceneValueTests` (the script order and
+  `TheMirrorSentryIsTheSimulations`), and the PlayMode `MirrorSentryFlowTests` on `floor_sentry_proof`.
+- `VaultsEnemiesResearch` now plays the four-floor Descent. Its finale read floor 3 after docs/48's merge, so its
+  completion column was empty. `shipped` is the Sentry and `captain` is floor 2 before 2026-11-12.
+
+**Measured** (seeds 1-200, both heroes, `FOUNDRY_REALISM=typical`, the four-floor Descent):
+
+`VAULTS_OPTIONS=shipped,captain VaultsEnemiesResearch` at the shipped code, with the reflection held under the panels.
+`captain` is floor 2 before today; it reproduces round 1's `shipped` row and the default batch's cohort section before the
+change, cell for cell.
+
+| Floor 2, Vanguard / Ilya | `captain` (before) | `shipped` (the Sentry) | Round 2's `sentry-t45-h125-c2-f50` |
+|---|---|---|---|
+| Careful clears (deaths) | 191 (4) / 191 (7) | **192 (3) / 189 (9)** | 192 / 189 |
+| Standing clears | 180 / 170 | **164 / 165** | 164 / 165 |
+| Careful-minus-standing gap | 11 / 21 | **28 / 24** | 28 / 24 |
+| First-card clears | 172 / 192 | 175 / 185 | - |
+| Clumsy clears (deaths in Sentry Hall) | 66 (0) / 108 (0) | 62 (4) / 101 (3) | 62 / 101 |
+| Auto-farmer clears | 3 / 8 | 4 / 7 | - |
+| Sentry front share, careful / standing | - | 73 % / 74 %; 100 % / 100 % | 73 % / 74 % |
+| Health reflected per elite fight, careful / standing / clumsy | - | 10.7 / 9.5; 14.7 / 13.4; 19.0 / 15.2 | - |
+| Elite fight P50, careful (reported) | - | 3.3 / 3.2 s | 3.3 / 3.2 s |
+| The Daggers' lead on the elite leader (roles row) | +19 % | **+83 %** | +83 % |
+| The Sword's lead on the gate boss | +25 % | +25 % | - |
+| Roles (`FoundryGate.LeadsJob`) | met | met | met |
+
+Floor 2's numbers are round 2's `f50` cell for cell, so holding the reflection under a panel moves nothing measurable.
+The Descent now has floor 3 (docs/48), so completion is not round 2's three-floor figure. Completed, of 400 runs:
+
+| Four-floor Descent | `captain` | `shipped` | Change |
+|---|---|---|---|
+| Careful | 379 (94.8 %) | 372 (93.0 %) | -7 |
+| Standing | 332 (83.0 %) | 312 (78.0 %) | -20 |
+| First-card | 344 (86.0 %) | 339 (84.8 %) | -5 |
+| Clumsy | 161 (40.3 %) | **147 (36.8 %)** | -14 |
+| Descent P50, careful V / I | 14.5 / 14.3 min | 14.5 / 14.3 min | - |
+
+**What this leaves open.** In the four-floor Descent, clumsy completion falls under docs/40's 40 % edge: 36.8 %, against
+40.3 % before the Sentry. With floor 3 the edge was already at 40.3 %, so any floor-2 cost now crosses it. The three-floor
+round 2 put the same Sentry at 40.8 %. The levers are section 7's fallbacks: `SentryReflectShare` 0, the guard alone; or a
+lower `SentryHealthScale`. The standing cohort carries the reflection into the gate: its floor-2 boss deaths are 23 / 14
+against 7 / 9.
+
+**The default batch** was run before and after the change, with the same environment: `FOUNDRY_SEEDS=200
+FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_PARALLEL=1 FOUNDRY_FLOORS=4`. The runs were at
+b85969c2 and at the Sentry's simulation port. The port ran before the reflection hold; the research run above was at the
+final code and gives the same floor-2 cells.
+- Floor 1 is byte-identical. `foundry-gate.md` and `foundry-batch.csv` match byte for byte. In `foundry-batch.md` only
+  the clock in its header and floor 1's wall-seconds column differ. In `foundry-cohorts.md` every floor-1 line is the same.
+- Only the floor-2 rows and those that follow from them move: floor 2, floor 3, the finale and the whole Descent.
+- The cohorts' floor-2 clears move from 191 / 191, 180 / 170, 172 / 192, 66 / 108 and 3 / 8 to 192 / 189, 164 / 165,
+  175 / 185, 62 / 101 and 4 / 7, in the order careful, standing, first-card, clumsy, auto-farmer. These are round 2's
+  `f50` row. The port is exact.
+- The shipped frame-perfect careful pilot clears floor 2 on every seed for both heroes, before and after.
