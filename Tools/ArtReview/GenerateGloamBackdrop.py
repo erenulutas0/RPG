@@ -410,8 +410,10 @@ def swallowed_masonry(rng, img, tr_m, edge_d, xx, yy):
 
 # ---------------------------------------------------------------- the shader, for previews
 
-def in_game(img, tint=(1.04, 1.0, 1.06), atmosphere=0.10):
+def in_game(img, tint=None, atmosphere=None):
     """FoundryCavern.shader on this plate: the renderer colour, saturation x1.08, 10 % toward violet."""
+    tint = GAME_TINT if tint is None else tint
+    atmosphere = GAME_ATMOSPHERE if atmosphere is None else atmosphere
     c_ = img * np.array(tint, np.float32)
     lum = c_ @ np.array([0.2126, 0.7152, 0.0722], np.float32)
     c_ = lum[..., None] + (c_ - lum[..., None]) * 1.08
@@ -621,7 +623,7 @@ def paint():
             ow = fw * (1.0 - 0.22 * k) * rng.uniform(0.9, 1.1)
             ox, oy = fx + step * k * fw * 0.3 + rng.uniform(-4, 4), fy + k * fw * 0.7
             top = (ox - ow, oy - ow * 0.44, ox + ow, oy + ow * 0.12)
-            kd.pieslice(E(top), 180, 360, fill=rgb255(HEARTWOOD * rng.uniform(0.5, 0.66)))
+            kd.pieslice(E(top), 180, 360, fill=rgb255(HEARTWOOD * rng.uniform(0.66, 0.84)))
             ka.pieslice(E(top), 180, 360, fill=255)
             # growth rings on the cap
             for r in (0.75, 0.5):
@@ -629,8 +631,8 @@ def paint():
                 kd.arc(E(inner), 190, 350, fill=rgb255(HEARTWOOD * 0.42), width=SS)
             kd.arc(E((top[0] + 1, top[1] + 1, top[2] - 1, top[3] + 4)), 205, 335, fill=rgb255(WALL_CAP * 0.7), width=SS)
             # the gill rim: a flat underside, brightest at the middle
-            gd.line(S([(ox - ow * 0.85, oy - 0.5), (ox + ow * 0.85, oy - 0.5)]), fill=150, width=SS)
-            gd.line(S([(ox - ow * 0.5, oy - 0.5), (ox + ow * 0.5, oy - 0.5)]), fill=255, width=SS)
+            gd.line(S([(ox - ow * 0.6, oy - 0.5), (ox + ow * 0.6, oy - 0.5)]), fill=110, width=SS)
+            gd.line(S([(ox - ow * 0.3, oy - 0.5), (ox + ow * 0.3, oy - 0.5)]), fill=200, width=SS)
     cap_rgb = np.asarray(caps.resize((W, H), Image.LANCZOS)).astype(np.float32) / 255
     cap_a = np.asarray(caps_a.resize((W, H), Image.LANCZOS)).astype(np.float32) / 255
     gill_a = np.asarray(gills.resize((W, H), Image.LANCZOS)).astype(np.float32) / 255
@@ -641,7 +643,7 @@ def paint():
     glow = blur(core_a, 5) * 3.0 + blur(core_a, 20) * 5 + blur(below, 3, 5) * 0.55 + blur(gill_a, 14) * 2.5
     img = img + GLOAM * np.clip(glow, 0, 1.0)[..., None] * 0.26
     img = lerp(img, unpremultiplied(cap_rgb, cap_a), cap_a)
-    img = lerp(img, GLOAM * 0.9, gill_a * 0.8)
+    img = lerp(img, GLOAM * 0.9, gill_a * 0.55)
     img = lerp(img, lerp(GLOAM, GLOAM_CORE, np.array(0.45)), core_a * 0.7)
 
     # The dark lower band where the arena meets the plate (roots and rubble), same height as the ice plate's.
@@ -665,7 +667,49 @@ def paint():
     img = np.clip(img, 0, 1)
     pil = Image.fromarray((img * 255 + 0.5).astype(np.uint8), "RGB")
     pil = pil.filter(ImageFilter.ModeFilter(3)).filter(ImageFilter.UnsharpMask(2, 45, 2))
-    return pil
+    painted = precompensate(np.asarray(pil).astype(np.float32) / 255)
+    return Image.fromarray((palette_guard(painted) * 255 + 0.5).astype(np.uint8), "RGB")
+
+
+# The cavern renderer's colour (VoidBackdropView.FoundryCavernTint, kept by ArenaView.ApplyFloorTheme for a painted
+# plate) and FoundryCavern.shader's default _Atmosphere. If the floor-3 wiring changes either (e.g. a property block
+# with _Atmosphere 0), change these and re-run, so the plate still lands on docs/51's palette in game.
+GAME_TINT, GAME_ATMOSPHERE = (1.04, 1.0, 1.06), 0.10
+
+
+def precompensate(img):
+    """Invert in_game(): the shader's 10 % violet blend would grey every green of the gloam toward slate-violet; the
+    plate stores the colours that the game turns back into the painting (dark values clip at 0)."""
+    violet = np.array([0.20, 0.15, 0.30], np.float32)
+    c1 = (img - violet * GAME_ATMOSPHERE) / (1 - GAME_ATMOSPHERE)
+    lum = c1 @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    c2 = lum[..., None] + (c1 - lum[..., None]) / 1.08
+    return np.clip(c2 / np.array(GAME_TINT, np.float32), 0, 1)
+
+
+def hue_sat_val(img):
+    mx, mn = img.max(-1), img.min(-1)
+    s = np.where(mx > 1e-4, (mx - mn) / np.maximum(mx, 1e-4), 0)
+    r, g, b = img[..., 0], img[..., 1], img[..., 2]
+    d = np.maximum(mx - mn, 1e-6)
+    h = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60
+    return h, s, mx
+
+
+def palette_guard(img):
+    """docs/51 section 7: no red-orange (the telegraphs') and no orchid (the enemies') anywhere on the plate, as the
+    game draws it. The sharpening's overshoot on the heartwood rims and the shader's violet blend on the warm bark can
+    make a few such pixels; pull just those toward an olive grey of the same luminance until none are left."""
+    olive = np.array([1.0, 1.04, 0.92], np.float32)
+    for _ in range(4):
+        h, s, v = hue_sat_val(in_game(img))
+        bad = ((((h < 30) | (h > 345)) & (s > 0.4) & (v > 0.3)) | ((h >= 275) & (h <= 335) & (s > 0.17) & (v > 0.12)))
+        if not bad.any():
+            break
+        lum = img @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+        grey = np.clip(lum[..., None] * olive, 0, 1)
+        img = np.where(bad[..., None], img * 0.4 + grey * 0.6, img)
+    return img
 
 
 def main():
