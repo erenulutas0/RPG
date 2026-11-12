@@ -112,29 +112,31 @@ namespace Cryptforge.UI
         private void DressFloor(FloorTheme theme)
         {
             Theme = theme;
-            bool ice = theme == FloorTheme.Ice;
             if (Region != null)
                 Region.ApplyTheme(theme, _platformMaterials);
             using var backdrop = PerformanceMarkers.ThemeBackdrop.Auto();
             if (_atmosphere != null)
-                _atmosphere.SetCold(ice);
-            // The hero's contact patch widens on the ice floor so the Vanguard keeps his footing against the slate (docs/49).
+                _atmosphere.SetTheme(theme);
+            // The hero's contact patch widens on the ice and in the garden so the Vanguard keeps his footing against the
+            // slate and the ash loam (docs/49 7.1, docs/51 7.1).
             var hero = FindFirstObjectByType<HeroLookView>();
             Transform shadow = hero != null ? hero.transform.Find("Contact Shadow") : null;
             if (shadow != null)
             {
                 if (_heroShadow != shadow) { _heroShadow = shadow; _heroShadowScale = shadow.localScale; }
-                shadow.localScale = ice ? _heroShadowScale * IceHeroShadow : _heroShadowScale;
+                float scale = FoundryRegionView.HeroShadowScale(theme);
+                shadow.localScale = scale != 1f ? _heroShadowScale * scale : _heroShadowScale;
             }
             if (Backdrop != null && Backdrop.CavernRenderer != null)
             {
                 SpriteRenderer plate = Backdrop.CavernRenderer;
                 if (!_cavernColourKept) { _cavernColour = plate.color; _cavernSprite = plate.sprite; _cavernColourKept = true; }
-                Sprite painted = _platformMaterials != null ? _platformMaterials.IceBackdrop : null;
-                // The ice vault's own painting where it exists (the same size and framing as the cavern's), else the
-                // cavern tinted cold.
-                plate.sprite = ice && painted != null ? painted : _cavernSprite;
-                plate.color = ice && painted == null ? FoundryRegionView.IceBackdrop(_cavernColour) : _cavernColour;
+                bool themed = theme != FloorTheme.Foundry;
+                Sprite painted = themed && _platformMaterials != null ? _platformMaterials.BackdropFor(theme) : null;
+                // The floor's own painting where it exists (the same size and framing as the cavern's), else the cavern
+                // tinted for the floor.
+                plate.sprite = painted != null ? painted : _cavernSprite;
+                plate.color = themed && painted == null ? FoundryRegionView.Backdrop(theme, _cavernColour) : _cavernColour;
                 Backdrop.FrameCavern();
             }
         }
@@ -160,7 +162,6 @@ namespace Cryptforge.UI
         // Only the first floor's descent onto the frozen second floor shows the frost.
         public static bool FrostsOnEntry(int floorNumber, FloorTheme theme) => floorNumber == 2 && theme == FloorTheme.Ice;
         private bool _frostPlayed;
-        private const float IceHeroShadow = 1.25f;
         private FoundryAtmosphereView _atmosphere;
         private Transform _heroShadow;
         private Vector3 _heroShadowScale;
