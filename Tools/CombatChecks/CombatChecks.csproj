@@ -108,6 +108,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.DescentLength.cs" />
     <!-- The first-card cohort on floor 2 (docs/47, research 2026-11-11 night): two levers on the floors after the first. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.FirstCardFloorTwo.cs" />
+    <!-- The Quicksilver Vaults' own enemies (docs/50, research 2026-11-12): the four as research levers on floor 2. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Vaults.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
@@ -156,6 +158,7 @@
     <Compile Include="FirstCardFloorTwoResearch.cs" />
     <!-- Floor 3's tuning (docs/48 phase 1, 2026-11-12) on demand: its Warden's share, its gate and a heal before the finale. -->
     <Compile Include="ThirdFloorResearch.cs" />
+    <Compile Include="VaultsEnemiesResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
