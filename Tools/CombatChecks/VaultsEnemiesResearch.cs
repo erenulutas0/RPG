@@ -61,8 +61,8 @@ namespace Cryptforge.Tests
             };
             yield return new Option
             {
-                Key = "clerk-reach", What = "the Faceless Clerk's copy has no ring or timer: it draws the packs and bursts as the first reaches it, hitting the hero within 2.4 for 10 %; untouched for 3 s it fades",
-                Set = l => { l.VaultsClerks = true; l.ClerkReachBlast = true; }
+                Key = "clerk-reach", What = "the Faceless Clerk's copy has no ring or timer: it draws the packs and bursts as the first comes within 1.8 of it (a pack halts at its reach, 1.4-1.6, from its goal), hitting the hero within 2.4 for 10 %; untouched for 3 s it fades",
+                Set = l => { l.VaultsClerks = true; l.ClerkReachBlast = true; l.ClerkTouch = 1.8f; }
             };
             yield return new Option { Key = "regent-lanes", What = "the Glass Regent, stage 1: lanes on the Warden's clock, no copies, share 5.2, the sidestep habit", Set = Regent(5.2f, 0, true) };
             // Round 2 (docs/50 Measured): the Sentry's turn, health and reflection cap, the flank habit on.

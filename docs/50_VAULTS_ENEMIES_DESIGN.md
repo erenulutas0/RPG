@@ -652,3 +652,105 @@ the first splash, and its 0.5 s hold means its blink never lands a hit. The Cler
 but the auto-farmer (docs/41's standing cohort keeps `EscapesMarks`), and its pack draw makes the halls easier. Both need
 a redesign before art: for the Wisp, a share of a Runner's health in the horde or a shorter hold; for the Clerk, a
 wider or faster copy (radius 2.4, telegraph 0.8 s) or no pack draw, measured against a cohort that does not leave marks.
+
+### Round 2 (2026-11-12, the lead's follow-up)
+
+Same harness and hands (`VaultsEnemiesResearch`, typical, all five cohorts, both heroes, the whole Descent). The default
+batch stays byte-identical at the round-2 code. New levers, all off by default: `SentryHealthScale` (the Sentry's rules
+read its name), `WispKiteBlink` / `WispKiteSeconds` / `WispKiteDegrees`, `ClerkReachBlast` / `ClerkTouch` /
+`ClerkBlastRadius` / `ClerkFadeSeconds`.
+
+**1. The Mirror Sentry grid** (seeds 1-200, the flank habit on): turn 45 / 52 / 60 degrees a second x health 125 / 150 %
+x reflection cap 2 / 3 %, and one variant past the grid with half of a front landing taken (docs/50: 35 %). Shipped:
+careful 191 / 191, standing 180 / 170 (gap 11 / 21), clumsy completion 43.5 %, the Daggers' lead on the Captain 19 %.
+
+| Variant | Careful V / I (vs shipped) | Standing V / I | Gap V / I | Clumsy V / I | Clumsy completion | Elite fight P50, careful V / I | Front share, careful | Daggers' lead |
+|---|---|---|---|---|---|---|---|---|
+| `sentry-t45-h125-c2` | 190 / 190 (-1 / -1) | 165 / 162 | 25 / 28 | 54 / 101 | 38.8 % | 3.7 / 3.6 s | 72 % / 73 % | +88 % |
+| `sentry-t45-h125-c3` | 191 / 189 (+0 / -2) | 161 / 161 | 30 / 28 | 54 / 96 | 37.5 % | 3.7 / 3.6 s | 72 % / 73 % | +88 % |
+| `sentry-t45-h150-c2` | 190 / 189 (-1 / -2) | 164 / 160 | 26 / 29 | 56 / 95 | 37.8 % | 4.1 / 4.0 s | 70 % / 71 % | +87 % |
+| `sentry-t45-h150-c3` | 187 / 189 (-4 / -2) | 157 / 154 | 30 / 35 | 54 / 91 | 36.2 % | 4.1 / 4.0 s | 70 % / 71 % | +87 % |
+| `sentry-t52-h125-c2` | 190 / 191 (-1 / +0) | 165 / 162 | 25 / 29 | 54 / 101 | 38.8 % | 3.8 / 3.6 s | 75 % / 76 % | +85 % |
+| `sentry-t52-h125-c3` | 188 / 189 (-3 / -2) | 161 / 161 | 27 / 28 | 54 / 96 | 37.5 % | 3.8 / 3.6 s | 75 % / 76 % | +85 % |
+| `sentry-t52-h150-c2` | 188 / 189 (-3 / -2) | 164 / 160 | 24 / 29 | 56 / 96 | 38.0 % | 4.1 / 4.0 s | 73 % / 74 % | +92 % |
+| `sentry-t52-h150-c3` | 185 / 188 (-6 / -3) | 157 / 154 | 28 / 34 | 54 / 92 | 36.5 % | 4.1 / 4.0 s | 73 % / 74 % | +92 % |
+| `sentry-t60-h125-c2` | 190 / 190 (-1 / -1) | 165 / 162 | 25 / 28 | 54 / 101 | 38.8 % | 3.9 / 3.7 s | 78 % / 80 % | +87 % |
+| `sentry-t60-h125-c3` | 188 / 190 (-3 / -1) | 161 / 161 | 27 / 29 | 54 / 96 | 37.5 % | 3.9 / 3.7 s | 79 % / 80 % | +87 % |
+| `sentry-t60-h150-c2` | 190 / 190 (-1 / -1) | 164 / 160 | 26 / 30 | 56 / 96 | 38.0 % | 4.3 / 4.1 s | 77 % / 78 % | +96 % |
+| `sentry-t60-h150-c3` | 186 / 187 (-5 / -4) | 157 / 154 | 29 / 33 | 54 / 92 | 36.5 % | 4.3 / 4.1 s | 77 % / 79 % | +97 % |
+| `sentry-t45-h125-c2-f50` | 192 / 189 (+1 / -2) | 164 / 165 | 28 / 24 | 62 / 101 | 40.8 % | 3.3 / 3.2 s | 73 % / 74 % | +83 % |
+
+Read against the lead's five conditions:
+- **Careful within 3 of shipped:** every variant at cap 2 % holds it (-3 to +1); at cap 3 % the 150 % variants miss
+  (-4 to -6).
+- **Clumsy completion at least 40 %:** no variant of the grid reaches it (36.2-38.8 %). The clumsy pilot never flanks
+  (100 % of its landings from the front) and dies in the Sentry Hall itself (room 5: 8 / 5 of its floor-2 deaths at
+  `t45-h125-c2`), so turn and cap cannot help it; it fights the front's effective health, 160 x 1.25 / 0.35. Taking
+  half a front landing instead of 35 % (`f50`) brings it to 40.8 %.
+- **The Daggers' lead well above the Captain's 19 %:** +83 % to +97 % everywhere.
+- **The elite fight in 6-12 s: not reachable.** The careful elite fight P50 is 3.3-4.3 s at every variant (under fire
+  2.8-4.0 s): the flank that a slower turn opens shortens the fight as much as the health lengthens it. Only the clumsy
+  pilot's fight passes 5 s. The row needs health well past 150 % or a lower front share with more health; it is the one
+  condition this grid cannot meet.
+- **A clear careful-minus-standing gap:** 24-34 / 24-34 clears everywhere (shipped 11 / 21).
+
+**Top 3**, all with the flank habit:
+1. **`sentry-t45-h125-c2-f50`** (45 deg/s, 125 %, cap 2 %, half a front landing): careful +1 / -2, clumsy completion
+   40.8 %, Daggers +83 %, gap 28 / 24. The only variant that meets four of the five; the elite fight is 3.3 s.
+2. **`sentry-t45-h125-c2`**: careful -1 / -1, Daggers +88 %, front share 72 %, gap 25 / 28; clumsy completion 38.8 %.
+3. **`sentry-t60-h150-c2`**: careful -1 / -1, the Daggers' lead +96 %, the longest careful fight of the grid (4.3 /
+   4.1 s), gap 26 / 30; clumsy completion 38.0 %.
+
+**2. The Glass Regent on the holdout** (seeds 201-400, copies, the sidestep habit). Shipped on these seeds: careful
+194 / 194, standing 179 / 178, first-card 164 / 186, clumsy 62 / 99; the Warden's fight P50 50 / 46.
+
+| Gate boss (seeds 201-400) | Careful P50 / P90 V; I (in band) | Careful | Standing | First-card | Clumsy | Lane hits careful / standing / clumsy (V; I) | Sword's lead |
+|---|---|---|---|---|---|---|---|
+| Forge Warden (shipped) | 50 / 60; 46 / 55 (69% / 58%) | 194 / 194 | 179 / 178 | 164 / 186 | 62 / 99 | - | 20 % |
+| Regent 6.4 | 46 / 57; 44 / 53 (55% / 45%) | 196 / 194 | 186 / 187 | 162 / 186 | 56 / 92 | 0.5 / 0.2 / 1.2; 0.4 / 0.2 / 1.4 | 27 % |
+| Regent 6.7 | 48 / 59; 45 / 55 (61% / 53%) | 195 / 195 | 184 / 184 | 163 / 184 | 58 / 94 | 0.6 / 0.2 / 1.3; 0.5 / 0.2 / 1.4 | 28 % |
+| Regent 7.0 | 49 / 60; 46 / 56 (69% / 60%) | 196 / 193 | 183 / 183 | 165 / 186 | 56 / 91 | 0.5 / 0.3 / 1.3; 0.5 / 0.2 / 1.5 | 27 % |
+
+**3. One alternative each for the Wisp and the Clerk** (seeds 1-200, against shipped on the same seeds).
+
+- **`wisp-kite`**: the blink comes only after 1.5 s of straight walking (heading within 20 degrees), lands 3 units ahead
+  along the walk and strikes on landing (no hold). Blinks fall from about 40 to 2.2-2.9 a floor: the pilots rarely walk
+  1.5 s straight inside a fight, mostly between halls. Clears (V / I): careful 193 / 192, standing 179 / 171, first-card
+  177 / 193, clumsy 65 / 107, against 191 / 191, 180 / 170, 172 / 192, 66 / 108. The hero takes 0.1-0.2 health a
+  minute from Wisps. **No skill separation, and no cost**: a 10-health horde body that strikes for 0.8 cannot punish a
+  kite even when it lands in front of it.
+- **`clerk-reach`**: the copy has no ring and no timer; it draws the packs and bursts as the first pack body comes
+  within 1.8 of it (a pack halts at its reach, 1.4-1.6, from its goal; a first run with 1.0 never burst), hitting the
+  hero within 2.4 for 10 %; untouched for 3 s it fades. A cohort that leaves marks does not see it: only walking away
+  saves the hero, which the kiting pilots do and the standing one does not.
+  About 4 copies a floor: 2.6-2.9 burst, 1.2-1.5 fade, the packs drawn 8 s a floor. Clears (V / I): careful 188 / 189,
+  standing 172 / 163, first-card 175 / 191, clumsy 65 / 104 (shipped 191 / 191, 180 / 170, 172 / 192, 66 / 108). The
+  halls are not easier: careful, standing and clumsy lose 1-8 clears (first-card +3 / -1). The careful-minus-standing
+  gap grows to 16 / 26 (+5 / +5), but
+  not through the copy: every cohort is hit about once a floor (careful 1.0-1.1, standing 1.1, clumsy 1.1-1.3). The
+  packs halt round the copy at 1.4-1.6, and a kite holds the hero 1.6-2.5 from them, inside the 2.4 blast, so the kite
+  does not save the hero either; the standing cohort simply carries the 10 % into the gate worse (its boss deaths 14 /
+  15 against 7 / 9). **A cost, not a read.** For the copy to separate, the blast has to be smaller than the distance a
+  kite keeps (about 1.6) or the burst has to wait for the pack to close on the copy, with the hero's step off it as the
+  counter.
+
+### Recommendation after round 2
+
+- **Mirror Sentry: build `sentry-t45-h125-c2-f50`** - 45 degrees a second, 200 health (125 % of 160), half of a front
+  landing taken, the reflection capped at 2 % of the hero's maximum a second, the flank habit in `DevelopmentAutopilot`
+  and the simulation together. It keeps careful within 3, clumsy completion at 40.8 %, the Daggers' lead at +83 % and a
+  gap of 28 / 24 clears. Section 7's elite-fight row (6-12 s) should be rewritten or dropped for the Sentry: no variant
+  of the grid passes 4.3 s for the careful pilot, because the flank that makes the Sentry a read also shortens it.
+- **Glass Regent: share 7.0.** On the holdout its careful P50 is 49 / 46 s with 69 % / 60 % of the fights in band,
+  against the shipped Warden's 50 / 46 and 69 % / 58 % on the same seeds; 6.7 is the lowest share in band but puts Ilya
+  on the edge at 45 s. Clears stay within 1 of shipped or above for the careful, standing and first-card cohorts (careful
+196 / 193 against 194 / 194), and the Sword
+  leads by +27 % (the Warden: +20 % on these seeds). Two misses to carry into the build: careful lane hits are 0.4-0.6 a
+  fight (section 7 asks at most 0.3), and the clumsy cohort, which never sidesteps, loses 4-8 clears. It still needs the
+  sidestep habit in `DevelopmentAutopilot` before it can replace the Warden.
+- **Silver Wisp: do not build the kite-punisher either.** Neither form separates skill, because a horde Wisp is a
+  10-health body that strikes for 0.8; the blink's geometry is not the problem, its body is. Keep the frosted Runner on
+  floor 2, or give the Wisp a Runner's health in the horde before measuring a blink again.
+- **Faceless Clerk: not yet.** The ringless copy is a cost every cohort pays about once a floor; it widens the gap
+  only because the standing cohort carries the damage into the gate worse. Next round, if wanted: blast radius 1.4
+  (inside a kite's distance) with the burst waiting for the pack to close.
