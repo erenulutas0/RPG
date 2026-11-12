@@ -308,9 +308,10 @@ TOON = build_toon_group()
 
 PALETTES = {
     # light, mid, shadow, deep. Silver plate: its local colour a step above the slate floor's light (#67717F), its
-    # lit planes pale, its shade leaning violet-blue (docs/49's shadow tint), never the floor's own slate.
-    'plate': ('#C2CBD8', '#8F9BAD', '#566076', '#272B3D'),
-    'plate-dark': ('#9CA6B7', '#69738A', '#3E4659', '#1B1E2A'),
+    # shade leaning violet-blue (docs/49's shadow tint), never the floor's own slate; its lit planes kept well under the
+    # mirror (review round 1: paler plate competed with the mirror by value at the phone's scale).
+    'plate': ('#A9B3C3', '#7B8698', '#4A5368', '#22263A'),
+    'plate-dark': ('#8A94A7', '#5C657A', '#373E51', '#191C28'),
     # Black iron mail and the undersuit: the dark mass the silver sits on, so the figure keeps a dark core.
     'iron': ('#5E6879', '#2E3442', '#1B1F29', '#0C0E14'),
     # Ice crystals: mirror-ice to ice edge (docs/49 palette).
@@ -497,8 +498,8 @@ MATERIALS = {}
 def build_materials():
     m = MATERIALS
     m['outline'] = outline_material()
-    m['plate'] = plain('Silver plate', 'plate', spec=0.7, spec_color='#F2F7FF', glint=0.7, rim=0.45)
-    m['plate-dark'] = plain('Silver under-plates', 'plate-dark', spec=0.4, spec_color='#DCE6F4', rim=0.35)
+    m['plate'] = plain('Silver plate', 'plate', spec=0.4, spec_color='#DDE6F2', glint=0.3, rim=0.4)
+    m['plate-dark'] = plain('Silver under-plates', 'plate-dark', spec=0.25, spec_color='#C8D2E2', rim=0.3)
     m['iron'] = plain('Black iron mail', 'iron', spec=0.25, spec_color='#AAB6CC', rim=0.3)
     m['ice'] = plain('Ice crystal', 'ice', spec=0.9, spec_color='#FFFFFF', glint=1.0, rim=0.6, band_shift=0.05)
     m['shield-back'] = plain('Shield back', 'shield-back', spec=0.3, rim=0.3)

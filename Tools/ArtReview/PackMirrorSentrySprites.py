@@ -63,8 +63,8 @@ ANDROID_MAX = 256           # the Captain's import caps Android at 256: every te
 
 # ---- The mirror: tune here (docs/50: the brightest shape on the body, a pale silver-violet slab) ----
 MIRROR_VALUE = 1.0                         # the whole mirror's brightness
-MIRROR_TOP = '#E7E2FF'                     # its upper left (sheen coordinate 0)
-MIRROR_BOTTOM = '#AFA4E6'                  # its lower right (1): the floor's dark reflected
+MIRROR_TOP = '#EEEAFF'                     # its upper left (sheen coordinate 0)
+MIRROR_BOTTOM = '#B9AFEC'                  # its lower right (1): the floor's dark reflected
 MIRROR_BANDS = [(0.33, 0.055, '#FFFFFF', 0.85), (0.46, 0.018, '#FFFFFF', 0.6)]   # centre, half-width, colour, strength
 MIRROR_RIM_GLOW = 0.12                     # the mirror's light on the rim round it
 # ---- The visor's violet light ----
@@ -245,8 +245,8 @@ def glint_arc():
     core = smoothstep(core_w + 0.012, core_w, d) * (taper > 0)
     glow = np.exp(-(d / (0.075 * taper ** 0.5 + 1e-4)) ** 2) * 0.5 * taper ** 0.6
     img = premult_layer(hexlin(VIOLET), np.clip(glow, 0, 1))
-    img = over(img, premult_layer(hexlin('#C9BCFF'), np.clip(core, 0, 1)))
-    centre = smoothstep(0.012, 0.004, d) * taper ** 3 * 0.8
+    img = over(img, premult_layer(hexlin('#AE9BFA'), np.clip(core * 0.9, 0, 1)))
+    centre = smoothstep(0.012, 0.004, d) * taper ** 3 * 0.35
     img = over(img, premult_layer(hexlin('#F1EDFF'), np.clip(centre, 0, 1)))
     img = downsample(img, FX_SS)
     return finish(img[..., :3], img[..., 3:4]), (0, h // 2)
