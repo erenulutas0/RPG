@@ -236,3 +236,22 @@ In Assets, not yet run in Unity. No geometry: floor 3's region has floor 1's ren
 - **Not in this pass:** step 5 (roots, fungi, moss through the crystal builder), step 6 (the painted plate with the
   dimmed sun), the floor 2 -> 3 transition, the real floor-3 creatures. The finale after floor 3 still plays on the
   foundry's look (its asset sets no theme).
+
+## Pass 2 (2026-11-12): the plate, step 5's growth, the melt
+
+In Assets, waiting for its Unity run (the plate was wired and seen by the lead, commit aa036e09).
+- **Plate (step 6).** PlatformMaterials' `_gloamBackdrop` is ENV_Gloam_Garden_v1: the root-framed dusk garden with the
+  dimmed sun; floor 3 no longer tints the foundry's cavern plate.
+- **Growth (step 5).** FoundryRegionGloamGrowth.cs: one mesh, one renderer, on the ice crystals' slots (the
+  camera-facing outer rim, open to the void; never a lane, the pit, the gate path or the bridge) under the same
+  IceCrystalVertexCap (6,000), at most 16 vertices an edge: a moss strip on every rim edge (cushion above the rim under
+  the deck, drape down the sidewall, consecutive seamless quarters), two hanging roots on every other edge, a fungus or
+  seed-pod cluster on every fifth, wholly under the rim. Pass 2's atlas Resources/Gloam/GloamGrowth on its property block
+  (GenerateGloamGrowthTextures.py's cells), the coping material, drawn where the crystals draw. Built on a worker and
+  made hidden while floor 2 plays (the prop hook), shown only on floor 3; its atlas is released with the garden's
+  variants. Budget: floor 3 = floor 1's region + 1 renderer + at most 6,000 vertices (about 167k against the 174,000
+  ceiling); the distant works unchanged.
+- **The melt (Q6, now in).** GloamTransitionView: on landing on floor 3, once a run, the last frost recedes from the
+  screen's edges over the first 45 % of 0.7 s while 32 ash flakes and gloamlight motes (one in four lit) drift in and
+  fade; on the camera, never the region, allocation-free, no input.
+- **Check.** Run-GloamMapProof.ps1 adds rim-1..3 per floor (the growth and the rims it replaces) and the melt frames.
