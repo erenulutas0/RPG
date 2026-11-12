@@ -30,7 +30,7 @@ namespace Cryptforge.Tests
             public string Key;
             // The Warden's share on floor 3; its effective share against floor 1's authored 300 is this x1.96 x1.15.
             public float Share = DescentSimulation.FloorThreeGateShare;
-            public float Gate = 210f;
+            public float Gate = DescentSimulation.FloorThreeGateSeconds;
             public float Heal;
         }
 

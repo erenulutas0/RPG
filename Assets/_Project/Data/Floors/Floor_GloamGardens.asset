@@ -81,7 +81,7 @@ MonoBehaviour:
   _enemyDamageMultiplier: 1.8032
   _climbScaled: 1
   _foundryHallSurges: 0
-  _foundryGateNotBeforeSeconds: 210
+  _foundryGateNotBeforeSeconds: 180
   _foundryExtraElites: 0
   _foundryGateHealthShare: 5.102041
   _foundryHorde:

@@ -362,7 +362,7 @@ namespace Cryptforge.Tests
 
         // The climb the game ships, on the foundry from its first hall to the end of the Final Swarm: floor 1 as the
         // foundry plays it - its halls at their districts, the forge, the Captain twice, the gate - its gate's wait skipped
-        // by starting each floor's clock past it (floors 2 and 3 wait for the same 3:30, docs/47 and docs/48); floor 2;
+        // by starting each floor's clock past it (floor 2 waits for the same 3:30, docs/47, floor 3 for 3:00, docs/48); floor 2;
         // floor 3 (Gloam Gardens, docs/48); the finale. Every room is played in the order FoundryRooms gives, the HUD's pips
         // grow past the scene's six for floor 1's seven, the finale has no gate boss, and its chest stands where the hero
         // arrives and opens under it (docs/47). Every checkpoint descends, every offer takes its first card, the forge its

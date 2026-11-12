@@ -213,9 +213,9 @@ namespace Cryptforge.Tests
         // Data/Floors/Floor_GloamGardens.asset, the climb's floor 3 (docs/48, phase 1), as the foundry plays it: floor 2's
         // six rooms again under the garden's names (GloamGardens), climb-scaled at floor 3 - ClimbScaling's x1.96 health and
         // x1.8032 damage, and its first boss growth (ClimbScaling.Boss(3), x1.15) on the Warden's Grove - floor 1's three
-        // horde roles, no modifier, none of V0.1's surges or extra elite, the gate held for the floor's clock to read 210 s
-        // as floors 1 and 2 hold theirs, and the finale below it. Its Warden's share is its own (FloorThreeGateShare),
-        // measured to put the fight in docs/40 section 9.6's 45-65 s (docs/48, status 2026-11-12).
+        // horde roles, no modifier, none of V0.1's surges or extra elite, the gate held for the floor's clock to read 180 s
+        // (FloorThreeGateSeconds), and the finale below it. Its Warden's share is its own (FloorThreeGateShare), measured to
+        // put the fight in docs/40 section 9.6's 45-65 s (docs/48, status 2026-11-12).
         public static FoundryFloor FoundryFloorThree() => new FoundryFloor
         {
             Id = "floor_gloam_gardens",
@@ -223,7 +223,7 @@ namespace Cryptforge.Tests
             Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
             HordeRoles = new[] { Mite, Grunt, Runner },
             FloorNumber = 3,
-            GateNotBeforeSeconds = 210f,
+            GateNotBeforeSeconds = FloorThreeGateSeconds,
             GateHealthShare = FloorThreeGateShare,
             Next = FoundryFinale()
         };
@@ -234,6 +234,11 @@ namespace Cryptforge.Tests
         // 2026-11-12 (ThirdFloorResearch, seeds 1-200, human hands): floor 2's 8.5 put the standing cohort's fight at
         // 41-42 s, under the band; 11.5 puts every playing cohort's P50 at 47-62 s for both heroes.
         public const float FloorThreeGateShare = 5.102041f;
+
+        // Floor_GloamGardens' _foundryGateNotBeforeSeconds: floor 3's gate holds for its clock's 3:00, half a minute before
+        // floors 1 and 2 open theirs (the lead's round 2, docs/48 status 2026-11-12): measured at the 11.5 share, 13 fewer
+        // floor-3 deaths in 2,000 runs than at 3:30, the Warden's band held, the Descent P10 13.8 min.
+        public const float FloorThreeGateSeconds = 180f;
 
         // The floor's knobs, as parameters of a run rather than edits of the game: each default is the shipped value, read
         // from the game's own constant where there is one, so a run with no levers is the scene's floor.

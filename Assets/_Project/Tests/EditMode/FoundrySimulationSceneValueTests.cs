@@ -162,7 +162,7 @@ namespace Cryptforge.Tests
         // The climb's floor 3 (docs/48 phase 1), which a run goes down to after a floor-2 clear (FoundryLevers.Floors = 3):
         // Floor_QuicksilverVaults' next floor as the foundry plays it - floor 2's six rooms under the garden's names, climb-
         // scaled at floor 3 (the first floor where ClimbScaling.Boss's x1.15 reaches the gate boss), no modifier, floor 1's
-        // three horde roles, no surges or extra elite, the gate held for 3:30 and its Warden's own share, which the
+        // three horde roles, no surges or extra elite, the gate held for 3:00 and its Warden's own share, which the
         // simulation reads through the scene's WardenRule.GateHealthShareOn - its gate boss the Forge Warden with two Cinder
         // Mites, the Foundry's look (its own theme comes later), the districts the round goes on from, and below it the
         // finale's swarm room, which the simulation plays after a floor-3 clear (FoundryLevers.Floors = 4,
@@ -181,7 +181,8 @@ namespace Cryptforge.Tests
             Assert.That(asset.DisplayName, Is.EqualTo("Gloam Gardens"));
             Assert.That(asset.Modifier, Is.Null, "no modifier on floor 3's first build");
             Assert.That(asset.Theme, Is.EqualTo(FloorTheme.Foundry), "the Foundry's look until floor 3 has its own");
-            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(210f), "floor 3's gate holds for 3:30, as floors 1 and 2");
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(DescentSimulation.FloorThreeGateSeconds), "floor 3's gate");
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(180f), "floor 3's gate holds for 3:00, half a minute before floors 1 and 2's");
             Assert.That(asset.EnemyHealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));
             Assert.That(asset.EnemyDamageMultiplier, Is.EqualTo(ClimbScaling.Damage(3)).Within(1e-5f));
 

@@ -24,7 +24,7 @@ namespace Cryptforge.Tests
         }
 
         // The chain: floor 1, floor 2, floor 3, the finale - floor 3 floor 2's six rooms under its own names, at floor 3's
-        // tier, with no modifier, the plain horde, no surges or extra elite, its gate held for 3:30 and its Warden's own
+        // tier, with no modifier, the plain horde, no surges or extra elite, its gate held for 3:00 and its Warden's own
         // share; the finale the climb's fourth floor.
         [Test]
         public void FloorThreeStandsBetweenFloorTwoAndTheFinale()
@@ -41,7 +41,8 @@ namespace Cryptforge.Tests
             Assert.That(three.Kinds, Is.EqualTo(new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss }));
             Assert.That(three.HordeRoles, Is.EqualTo(new[] { DescentSimulation.Mite, DescentSimulation.Grunt, DescentSimulation.Runner }));
             Assert.That((three.ModifierHealthPercent, three.ModifierDamagePercent, three.ModifierGoldPercent), Is.EqualTo((0f, 0f, 0f)));
-            Assert.That((three.HallSurges, three.ExtraElites, three.GateNotBeforeSeconds), Is.EqualTo((0, 0, 210f)));
+            Assert.That((three.HallSurges, three.ExtraElites, three.GateNotBeforeSeconds), Is.EqualTo((0, 0, 180f)));
+            Assert.That(DescentSimulation.FloorThreeGateSeconds, Is.EqualTo(180f), "half a minute before floors 1 and 2");
             Assert.That(three.GateHealthShare, Is.EqualTo(DescentSimulation.FloorThreeGateShare));
             Assert.That(WardenRule.IsFloorGateHealthShare(three.GateHealthShare) && three.GateHealthShare > 0f, Is.True);
             Assert.That(DescentSimulation.GloamGardens.HealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));
@@ -85,7 +86,7 @@ namespace Cryptforge.Tests
         }
 
         // A floor-2 clear goes down to floor 3 and plays its rooms in order at their districts; floor 3's gate holds for its
-        // clock's 3:30; its Warden walks out at its share; with three floors asked for nothing follows it, with four a
+        // clock's 3:00; its Warden walks out at its share; with three floors asked for nothing follows it, with four a
         // floor-3 clear goes down into the finale; and floors 1 and 2 are the same runs either way.
         [Test]
         public void AFloorTwoClearGoesDownToFloorThreeAndAFloorThreeClearToTheFinale()
@@ -139,7 +140,7 @@ namespace Cryptforge.Tests
                 if (run.LevelAtGate >= 0)
                 {
                     gated++;
-                    Assert.That(run.ClockAtGate, Is.GreaterThanOrEqualTo(210f), where + ": floor 3's gate holds for its clock's 3:30");
+                    Assert.That(run.ClockAtGate, Is.GreaterThanOrEqualTo(180f), where + ": floor 3's gate holds for its clock's 3:00");
                     Assert.That(run.LevelAtGate, Is.GreaterThanOrEqualTo(two.Level), where);
                     Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.Warden.Health * DescentSimulation.FloorThreeGateShare *
                                                              ClimbScaling.Health(3) * ClimbScaling.Boss(3) * run.DifficultyAtGate).Within(.05f), where);

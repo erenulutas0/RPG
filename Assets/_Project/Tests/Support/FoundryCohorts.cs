@@ -176,7 +176,7 @@ namespace Cryptforge.Tests
         {
             md.AppendLine("### Floor 3 (Gloam Gardens) after a floor-2 clear").AppendLine();
             md.AppendLine("Every run that cleared floor 2 answers its checkpoint with Descend and plays floor 3 in the same hands - floor 2's six rooms under the garden's names, climb-scaled at floor 3 " +
-                          "(x1.96 health, x1.8032 damage, the Warden's Grove x1.15 more), no modifier, its gate held for the floor's clock to read 210 s, its Warden at its own share (DescentSimulation.FloorThreeGateShare). " +
+                          $"(x1.96 health, x1.8032 damage, the Warden's Grove x1.15 more), no modifier, its gate held for the floor's clock to read {DescentSimulation.FloorThreeGateSeconds:0} s, its Warden at its own share (DescentSimulation.FloorThreeGateShare). " +
                           "Went down: floor 2's clears. Health going down: what floor 2 left the hero, as a share of its maximum (P50). Cleared floor 3: of those who went down; all three: of all the seeds. " +
                           "Deaths: floor 3's room (1-3 its halls, 4 the Grafting Forge, 5 Thorn Post, the boss the Warden's Grove) and the blow. Warden: floor 3's Warden's own fight, from walking out of the gate to its fall, " +
                           "over the fights in which it fell (docs/40 section 9.6: P50 45-65 s). Floor 3: active seconds from the checkpoint, its clears. " +
