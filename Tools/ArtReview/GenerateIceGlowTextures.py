@@ -22,7 +22,8 @@ COOL = np.array([0.90, 0.96, 1.06], dtype=np.float32)
 SILVER = np.array([169, 180, 191], dtype=np.float32) / 255
 SNOW = np.array([228, 236, 242], dtype=np.float32) / 255
 
-# source, glow scale (the pit darker than the fires)
+# source, glow scale (the pit darker than the fires), optional value scale of the cold base (stone and iron that
+# were only tinted before land at IcePavingV1's slate value instead of lighter)
 SOURCES = [
     ("Assets/_Project/Art/Props/Foundry/FoundryEmbers.png", 0.85),
     ("Assets/_Project/Art/Props/Foundry/FoundryPitLining.png", 0.65),
@@ -35,10 +36,15 @@ SOURCES = [
     ("Assets/_Project/Resources/FoundryCastingBench.png", 0.85),
     ("Assets/_Project/Resources/FoundryReservoir.png", 0.85),
     ("Assets/_Project/Resources/FoundrySalvage.png", 0.85),
+    ("Assets/_Project/Art/Props/Foundry/FoundryPavingV8.png", 0.85, 0.7),
+    ("Assets/_Project/Art/Props/Foundry/FoundryIronV2.png", 0.85, 0.8),
+    ("Assets/_Project/Art/Props/Foundry/FoundryCastIronV2.png", 0.85, 0.8),
+    ("Assets/_Project/Art/Props/Foundry/FoundryBoilerWrap.png", 0.85, 0.85),
+    ("Assets/_Project/Art/Environment/Platform/ENV_Platform_Floor.png", 0.85, 0.9),
 ]
 
 
-def icify(rgba, glow_scale):
+def icify(rgba, glow_scale, value=1.0):
     rgb = rgba[..., :3].astype(np.float32) / 255
     mx = rgb.max(axis=-1)
     mn = rgb.min(axis=-1)
@@ -50,7 +56,7 @@ def icify(rgba, glow_scale):
     fire = np.clip((0.72 - green) * 6, 0, 1)
     hot = np.clip((sat - 0.4) * 3, 0, 1) * np.clip((mx - 0.35) / 0.35, 0, 1) * warm * fire
     metal = np.clip((sat - 0.18) * 4, 0, 1) * warm * (1 - hot)
-    base = (rgb * 0.25 + lum[..., None] * 0.75) * COOL
+    base = (rgb * 0.25 + lum[..., None] * 0.75) * COOL * value
     glow = QUICKSILVER * np.clip(mx * 1.1, 0, 1)[..., None] * glow_scale
     silver = SILVER * np.clip(lum * 1.7, 0, 1.15)[..., None]
     out = base * (1 - hot - metal)[..., None] + glow * hot[..., None] + silver * metal[..., None]
@@ -82,12 +88,14 @@ def main():
         with open(folder_meta, "w", newline="\n") as f:
             f.write("fileFormatVersion: 2\nguid: %s\nfolderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n"
                     "  userData: \n  assetBundleName: \n  assetBundleVariant: \n" % uuid.uuid4().hex)
-    for source, scale in SOURCES:
+    for entry in SOURCES:
+        source, scale = entry[0], entry[1]
+        value = entry[2] if len(entry) > 2 else 1.0
         path = os.path.join(ROOT, source)
         image = Image.open(path)
         mode = image.mode
         rgba = np.array(image.convert("RGBA"))
-        out = Image.fromarray(icify(rgba, scale), "RGBA")
+        out = Image.fromarray(icify(rgba, scale, value), "RGBA")
         if mode == "RGB":
             out = out.convert("RGB")
         target = os.path.join(DST, os.path.basename(source))

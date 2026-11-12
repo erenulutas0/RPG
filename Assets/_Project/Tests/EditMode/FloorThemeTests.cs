@@ -63,7 +63,8 @@ namespace Cryptforge.Tests
             Assert.That(set.IceMasonry, Is.Not.Null);
             Assert.That(set.IceBackdrop, Is.Not.Null);
             // The cold variants of the glowing textures, swapped in by name on floor 2 (fires, pit, boiler windows).
-            foreach (string name in new[] { "FoundryEmbers", "FoundryPitLining", "FoundryBoiler", "FoundryShortBoiler", "ForgeKeeper", "FoundryCrane" })
+            foreach (string name in new[] { "FoundryEmbers", "FoundryPitLining", "FoundryBoiler", "FoundryShortBoiler", "ForgeKeeper", "FoundryCrane",
+                "FoundryPavingV8", "FoundryIronV2", "FoundryCastIronV2", "FoundryBoilerWrap", "ENV_Platform_Floor" })
                 Assert.That(Resources.Load<Texture2D>("Ice/" + name), Is.Not.Null, name + " has an ice variant.");
             Assert.That(set.FoundryEmbers.mainTexture.name, Is.EqualTo("FoundryEmbers"));
             Assert.That(set.FoundryPitLining.mainTexture.name, Is.EqualTo("FoundryPitLining"));
