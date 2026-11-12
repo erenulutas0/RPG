@@ -65,11 +65,24 @@ namespace Cryptforge.UI
                             graded[v]=IceRail(source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
                         }
                     }
-                    else for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Glow);
+                    else
+                    {
+                        for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Glow);
+                        // Rime: the upward faces of raised structures (parapet and wall caps, crenellations, plinths,
+                        // domes) go toward frost; the walkable floor and decals are not structures and keep none.
+                        if(dress!=IceDress.Glow&&dress!=IceDress.Paving)
+                        {
+                            bool[] top=UpwardVertices(_themeMeshes[i]);
+                            if(top!=null)for(int v=0;v<graded.Length;v++)if(top[v])graded[v]=Rime(graded[v]);
+                        }
+                    }
                     _iceColours[i]=graded;
                 }
                 _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
             }
+            // Built before the blocks are set, so the crystals take the coping's untextured dress with the rest.
+            if(ice)BuildIceCrystals(set);
+            if(_iceCrystals!=null)_iceCrystals.SetActive(ice);
             if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
             foreach(var renderer in GetComponentsInChildren<MeshRenderer>(true))
             {
@@ -125,6 +138,27 @@ namespace Cryptforge.UI
                 _themeSprites.Add(sprite);_foundrySpriteColours.Add(sprite.color);
             }
         }
+
+        // A structure mesh's vertices on upward faces. Walls are extruded straight down the screen, so each wall triangle
+        // has an exactly vertical edge; a cap, a crenellation top or a dome facet has none. A vertex is rimed only when
+        // no wall triangle uses it. Null for a mesh that is not a structure (no depth flags: floor, decals, below deck).
+        private static bool[] UpwardVertices(Mesh mesh)
+        {
+            if(mesh.uv2==null||mesh.uv2.Length==0)return null;
+            var positions=mesh.vertices;var triangles=mesh.triangles;
+            var top=new bool[positions.Length];var wall=new bool[positions.Length];
+            for(int t=0;t+2<triangles.Length;t+=3)
+            {
+                int a=triangles[t],b=triangles[t+1],c=triangles[t+2];
+                bool side=Vertical(positions[a],positions[b])||Vertical(positions[b],positions[c])||Vertical(positions[c],positions[a]);
+                if(side){wall[a]=wall[b]=wall[c]=true;}else{top[a]=top[b]=top[c]=true;}
+            }
+            for(int v=0;v<top.Length;v++)top[v]&=!wall[v];
+            return top;
+        }
+        private static bool Vertical(Vector3 a,Vector3 b)=>Mathf.Abs(a.x-b.x)<1e-4f&&Mathf.Abs(a.y-b.y)>.02f;
+        // Toward frost #B9CCDA on a slate texture (a multiplier near 2 lifts its ~.35 value to ~.7).
+        private static Color Rime(Color c)=>new Color(Mathf.Min(c.r*1.75f,2),Mathf.Min(c.g*1.9f,2),Mathf.Min(c.b*2f,2),c.a);
 
         // Resources/Ice/<name>: the cold variant of a foundry texture (Tools/ArtReview/GenerateIceGlowTextures.py), loaded
         // only when the ice floor first asks for it; floor 1 never loads one.

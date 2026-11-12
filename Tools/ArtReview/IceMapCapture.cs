@@ -50,6 +50,17 @@ namespace Cryptforge.Tests
             foreach(var floor in new[]{"floor1","floor2"})
             {
                 if(floor=="floor2")arena.ApplyFloorTheme(second.Theme);
+                {
+                    // The region's shown budget on this floor: active mesh renderers and their vertices, distant works apart.
+                    int renderers=0,vertices=0,distant=0;
+                    foreach(var r in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                    {
+                        int count=r.GetComponent<MeshFilter>().sharedMesh.vertexCount;
+                        renderers++;vertices+=count;
+                        if(r.name.StartsWith("Distant foundry works"))distant+=count;
+                    }
+                    File.WriteAllText(Root+floor+"/runtime-budget.txt",$"Region renderers:{renderers}; vertices:{vertices}; distant vertices:{distant}; theme:{arena.Theme}\n");
+                }
                 Vector3 court=FoundrySurface.Project(-3,1);
                 camera.transform.position=new Vector3(court.x,court.y,-10);camera.orthographicSize=10;
                 Capture(camera,arena,floor+"/court",1200,1200);
