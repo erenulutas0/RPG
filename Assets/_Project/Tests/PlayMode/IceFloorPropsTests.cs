@@ -87,7 +87,8 @@ namespace Cryptforge.Tests
             Assert.That(panels.GetComponent<MeshRenderer>().sortingOrder, Is.LessThan(0), "The panels draw before every actor.");
             Assert.That(drifts.GetComponent<MeshRenderer>().sortingOrder, Is.LessThan(arena.GroundEffectSortingOrder),
                 "Telegraphs and contact shadows draw over the drifts.");
-            Assert.That(panels.GetComponent<Collider>(), Is.Null);
+            // The project builds without the physics module (no Collider type here): nothing on the panels but the mesh.
+            Assert.That(HasCollider(panels.gameObject), Is.False);
             Count(region, out _, out int floorTwoVertices);
             Assert.That(floorTwoVertices, Is.LessThan(170000), "Floor 2 stays under the ice pass's vertex line.");
             // Every drift vertex lies where no hero can stand: inside the edge margin, off every lane.
@@ -143,7 +144,7 @@ namespace Cryptforge.Tests
             // On the camera, never the region; it takes no input.
             Assert.That(frost.transform.parent.GetComponent<Camera>(), Is.Not.Null);
             Assert.That(frost.GetComponentInParent<FoundryRegionView>(), Is.Null);
-            Assert.That(frost.GetComponentInChildren<Collider>(), Is.Null);
+            Assert.That(HasCollider(frost.gameObject), Is.False);
             Assert.That(frost.GetComponentInChildren<Canvas>(), Is.Null);
             Assert.That(frost.GetComponent<MeshRenderer>().enabled, Is.True);
 
@@ -168,6 +169,17 @@ namespace Cryptforge.Tests
             Assert.That((bool)playing.GetValue(frost), Is.False, "The frost is over within its duration.");
             Assert.That(frost.GetComponent<MeshRenderer>().enabled, Is.False);
             Assert.That((int)plays.GetValue(frost), Is.EqualTo(1));
+        }
+
+        // A collider of any kind, found by type name: the test assembly does not reference UnityEngine.PhysicsModule.
+        private static bool HasCollider(GameObject root)
+        {
+            foreach (Component component in root.GetComponentsInChildren<Component>(true))
+            {
+                if (component != null && component.GetType().Name.Contains("Collider"))
+                    return true;
+            }
+            return false;
         }
     }
 }
