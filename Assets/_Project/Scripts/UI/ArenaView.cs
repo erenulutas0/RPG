@@ -1,4 +1,5 @@
 using Cryptforge.Art;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using UnityEngine;
 
@@ -84,6 +85,25 @@ namespace Cryptforge.UI
                 Scenery.Build(geometry, _furnaceSprite, _platformMaterials.Floor, _sortingOrder + 6);
             }
         }
+
+        // The floor's dress (FloorTheme): the region re-tints its own meshes and the backdrop's plate is tinted; Foundry
+        // restores exactly what Awake built, and asking for the theme already on show does nothing.
+        public FloorTheme Theme { get; private set; }
+        public void ApplyFloorTheme(FloorTheme theme)
+        {
+            if (theme == Theme)
+                return;
+            Theme = theme;
+            if (Region != null)
+                Region.ApplyTheme(theme);
+            if (Backdrop != null && Backdrop.CavernRenderer != null)
+            {
+                if (!_cavernColourKept) { _cavernColour = Backdrop.CavernRenderer.color; _cavernColourKept = true; }
+                Backdrop.CavernRenderer.color = theme == FloorTheme.Ice ? FoundryRegionView.IceBackdrop(_cavernColour) : _cavernColour;
+            }
+        }
+        private Color _cavernColour;
+        private bool _cavernColourKept;
 
         private T Child<T>(string name) where T : Component
         {

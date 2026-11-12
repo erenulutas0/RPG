@@ -584,6 +584,9 @@ namespace Cryptforge.Combat
         private void EnterFloor(FloorDefinition floor)
         {
             _currentFloor = floor;
+            // The region dresses itself for the floor (FloorTheme); floor 1's Foundry is a no-op.
+            if (_arena != null)
+                _arena.ApplyFloorTheme(floor.Theme);
             _rooms = RoomsAsPlayed(floor);
             _floorProgress = new FloorProgress(WavesOf(_rooms), EndlessOf(_rooms));
             _waveOrdinal = 0;
