@@ -56,6 +56,18 @@ namespace Cryptforge.UI
         private void Awake()
         {
             _awoken = true;
+            Build();
+            // A dress asked for before this Awake (a run that starts on an ice floor: CombatSetup.Awake's EnterFloor can
+            // run first), put on now that there is something to dress.
+            if (_themeAsked)
+            {
+                _themeAsked = false;
+                ApplyFloorTheme(_askedTheme);
+            }
+        }
+
+        private void Build()
+        {
             if (_camera == null || _material == null || !(_farCorner > _nearCorner))
             {
                 Debug.LogError("ArenaView needs a camera, a vertex-colour material and a far corner beyond the near corner.", this);
@@ -119,10 +131,19 @@ namespace Cryptforge.UI
                 Region.PrepareTheme(_preparing, _platformMaterials);
         }
         private bool _awoken;
+        private bool _themeAsked;
+        private FloorTheme _askedTheme;
         private bool _preparationAsked;
         private FloorTheme _preparing;
         public void ApplyFloorTheme(FloorTheme theme)
         {
+            // Before Awake nothing is built yet: kept, and put on as Awake ends (Theme changes then).
+            if (!_awoken)
+            {
+                _askedTheme = theme;
+                _themeAsked = theme != Theme;
+                return;
+            }
             if (theme == Theme)
                 return;
             using (PerformanceMarkers.ThemeApply.Auto())

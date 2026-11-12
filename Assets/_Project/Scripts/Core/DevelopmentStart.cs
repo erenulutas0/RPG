@@ -113,7 +113,8 @@ namespace Cryptforge.Core
         }
 
         // The floor a run starts on: the one the file names, when this is the Editor or a development build and the id
-        // matches a floor in Resources/Development; the authored floor in every other case. Resources are only touched
+        // matches a floor of the authored Descent (floor 2, floor 3...) or one in Resources/Development; the authored floor
+        // in every other case. Resources are only touched
         // when a file actually named something, so a normal run pays nothing for this hook at startup.
         public static FloorDefinition FirstFloor(FloorDefinition authored)
         {
@@ -123,6 +124,14 @@ namespace Cryptforge.Core
             string id = ReadStartFloorId();
             if (string.IsNullOrEmpty(id))
                 return authored;
+
+            // A floor of the authored Descent itself (floor 2, floor 3...), reached without playing the ones before it.
+            var seen = new System.Collections.Generic.HashSet<FloorDefinition>();
+            for (FloorDefinition floor = authored; floor != null && seen.Add(floor); floor = floor.NextFloor)
+            {
+                if (string.Equals(floor.Id, id, StringComparison.Ordinal))
+                    return floor;
+            }
 
             FloorDefinition[] candidates = Resources.LoadAll<FloorDefinition>(ResourcesFolder);
             for (int i = 0; i < candidates.Length; i++)
