@@ -14,8 +14,9 @@ namespace Cryptforge.UI
         internal const float Duration=.7f;
         internal const int SortingOrder=FrostTransitionView.SortingOrder;
         private const int Around=48;
-        // Ash flakes and pollen: one in four lit (gloamlight), as the atmosphere's motes are.
-        internal const int Motes=32;
+        // Ash flakes and pollen: one in four lit (gloamlight), as the atmosphere's motes are. Enough, and large enough, to
+        // read in the first 0.3 s; they come in from the sides and stop short of the middle third, where the hero stands.
+        internal const int Motes=48;
         private const float MaxStep=1f/30;
         // The frost's reach at the start, as a share of the screen's shorter side (the frost transition's peak), and how
         // soon in the play it is gone.
@@ -39,11 +40,11 @@ namespace Cryptforge.UI
         internal int Plays{get;private set;}
         // The frost's share left now, 1 at the start to 0 by FrostGone of the play.
         internal static float FrostLeft(float t)=>t<=0?1:t>=FrostGone?0:Mathf.SmoothStep(1,0,t/FrostGone);
-        // A mote's strength at its own time u (0..1): in over the first third, out over the last half.
+        // A mote's strength at its own time u (0..1): in over the first fifth, held, out over the last 40 %.
         internal static float MoteEnvelope(float u)
         {
             if(u<=0||u>=1)return 0;
-            return u<.3f?Mathf.SmoothStep(0,1,u/.3f):u<.5f?1:Mathf.SmoothStep(1,0,(u-.5f)/.5f);
+            return u<.2f?Mathf.SmoothStep(0,1,u/.2f):u<.6f?1:Mathf.SmoothStep(1,0,(u-.6f)/.4f);
         }
 
         internal void Build(Camera camera,Material material)
@@ -56,10 +57,10 @@ namespace Cryptforge.UI
                 // From the left or the right edge (alternating), at a height spread over the screen, drifting inward and
                 // a little down, as ash settles.
                 float side=m%2==0?-1:1;
-                _moteStart[m]=new Vector2(side*(1.02f+.08f*Hash(m*3+1)),Mathf.Lerp(-.9f,.95f,Hash(m*7+2)));
-                _moteDrift[m]=new Vector2(-side*(.25f+.35f*Hash(m*11+3)),-(.05f+.15f*Hash(m*13+4)));
-                _moteSize[m]=(m%4==0?.010f:.007f)+.006f*Hash(m*17+5);
-                _moteDelay[m]=.05f+.3f*Hash(m*19+6);
+                _moteStart[m]=new Vector2(side*(.95f+.08f*Hash(m*3+1)),Mathf.Lerp(-.9f,.95f,Hash(m*7+2)));
+                _moteDrift[m]=new Vector2(-side*(.3f+.3f*Hash(m*11+3)),-(.05f+.15f*Hash(m*13+4)));
+                _moteSize[m]=(m%4==0?.017f:.012f)+.008f*Hash(m*17+5);
+                _moteDelay[m]=.2f*Hash(m*19+6);
             }
             int ring=Around*3;
             _vertices=new Vector3[ring+Motes*4];
@@ -153,7 +154,7 @@ namespace Cryptforge.UI
                 int v=ring+m*4;
                 _vertices[v]=new Vector3(x,y+r,0);_vertices[v+1]=new Vector3(x+r*.7f,y,0);
                 _vertices[v+2]=new Vector3(x,y-r,0);_vertices[v+3]=new Vector3(x-r*.7f,y,0);
-                Color c=m%4==0?Gloamlight:Ash;c.a=(m%4==0?.85f:.7f)*strength;
+                Color c=m%4==0?Gloamlight:Ash;c.a=(m%4==0?.95f:.85f)*strength;
                 _colours[v]=c;_colours[v+1]=c;_colours[v+2]=c;_colours[v+3]=c;
             }
             _mesh.vertices=_vertices;_mesh.colors=_colours;
