@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: ForgeWardenGloamArtSet
+  m_EditorClassIdentifier: 
+  _front:
+  - Body: {fileID: 21300000, guid: 39f69d183dd847968a2c1cb4955af33f, type: 3}
+    Flash: {fileID: 21300000, guid: ae62387f47c1492d80bc498f0168cc85, type: 3}
+  - Body: {fileID: 21300000, guid: 7c3834429d504d74a7408f2600a2ddc9, type: 3}
+    Flash: {fileID: 21300000, guid: 26b0fa6e4d9245da90eba8b1de6796cf, type: 3}
+  - Body: {fileID: 21300000, guid: 06ff19b9cfc44668bfdccc0b9f76c1d9, type: 3}
+    Flash: {fileID: 21300000, guid: 287ddad4670c4062a35635bbee8d1fee, type: 3}
+  - Body: {fileID: 21300000, guid: be85093273e94d209caae7640787f9a1, type: 3}
+    Flash: {fileID: 21300000, guid: 26958364a253444a9303237c2a621fb8, type: 3}
+  - Body: {fileID: 21300000, guid: bb8951ec75934883b14397e20eaad33e, type: 3}
+    Flash: {fileID: 21300000, guid: a8dcc691764344e6a2d63c7a47cedc62, type: 3}
+  - Body: {fileID: 21300000, guid: 0f4eb6cb236d4edf99d94a4ea6477e1f, type: 3}
+    Flash: {fileID: 21300000, guid: caf02bba7d1e48baab1959a301a80cd2, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: 597588059b9a467c98f59c4fe0fb7793, type: 3}
+    Flash: {fileID: 21300000, guid: e4691b5d90ec46ac9bde6ae9fdc85d6c, type: 3}
+  - Body: {fileID: 21300000, guid: b42fb81c66ec4375b42d9bf2b7232168, type: 3}
+    Flash: {fileID: 21300000, guid: dfe84b5410cd493aa3bb04dbb6041bbb, type: 3}
+  - Body: {fileID: 21300000, guid: fe087ed105ea47caa3b9ba5a47db4439, type: 3}
+    Flash: {fileID: 21300000, guid: f4c23cb51dd64a3086e5364362cc778c, type: 3}
+  - Body: {fileID: 21300000, guid: 1889abb01f054fe0ac9aa13a1c7482bf, type: 3}
+    Flash: {fileID: 21300000, guid: 8a55cc46603e40f1a658b3760bb9d7c5, type: 3}
+  - Body: {fileID: 21300000, guid: 257f9b6ee1934d649303d9f5b8d64071, type: 3}
+    Flash: {fileID: 21300000, guid: 35db2d4ac40049b082d259da70743f83, type: 3}
+  - Body: {fileID: 21300000, guid: 1564c00461604d7db5dce869eff2f208, type: 3}
+    Flash: {fileID: 21300000, guid: 27db18f24023465cba06c763c778d9a5, type: 3}
+  _death:
+  - {fileID: 21300000, guid: 629a731f4942424a97b675b9b9da4fcb, type: 3}
+  - {fileID: 21300000, guid: afd9059738e945138db7e8d07b11066f, type: 3}
+  _visualTop: 1.642
+  _shadowWidth: 1.12
+  _walkCycleDistance: 1.0752
+  _windup:
+  - Body: {fileID: 21300000, guid: 63a102f291f94b6a942cd8db1ede7ce0, type: 3}
+    Flash: {fileID: 21300000, guid: 663ef92536df437abd9efa471a3ba969, type: 3}
+  - Body: {fileID: 21300000, guid: a950b35a4bcc4e46a4924bd3fcc2d425, type: 3}
+    Flash: {fileID: 21300000, guid: bde3620d1ce442e6a191d2e6632ee48d, type: 3}
+  _enragedFront:
+  - Body: {fileID: 21300000, guid: 1039869dd39240819064c5ec7bed8e66, type: 3}
+    Flash: {fileID: 21300000, guid: ae62387f47c1492d80bc498f0168cc85, type: 3}
+  - Body: {fileID: 21300000, guid: b1d38dccbf6c4db3a88a563758878e84, type: 3}
+    Flash: {fileID: 21300000, guid: 26b0fa6e4d9245da90eba8b1de6796cf, type: 3}
+  - Body: {fileID: 21300000, guid: 349f5b8f25cc4915ad82d78757e6c09d, type: 3}
+    Flash: {fileID: 21300000, guid: 287ddad4670c4062a35635bbee8d1fee, type: 3}
+  - Body: {fileID: 21300000, guid: 3ee4b359d50640c1a796be73784d55fb, type: 3}
+    Flash: {fileID: 21300000, guid: 26958364a253444a9303237c2a621fb8, type: 3}
+  - Body: {fileID: 21300000, guid: 9c46b8348d3f4f3e8f99ba2375486282, type: 3}
+    Flash: {fileID: 21300000, guid: a8dcc691764344e6a2d63c7a47cedc62, type: 3}
+  - Body: {fileID: 21300000, guid: bd81e27273354eb3849a680347d403b0, type: 3}
+    Flash: {fileID: 21300000, guid: caf02bba7d1e48baab1959a301a80cd2, type: 3}
+  _enragedRear:
+  - Body: {fileID: 21300000, guid: 9d01d477522049819c0091a02688fee0, type: 3}
+    Flash: {fileID: 21300000, guid: e4691b5d90ec46ac9bde6ae9fdc85d6c, type: 3}
+  - Body: {fileID: 21300000, guid: ef287b9028094673afb74b5a5b125865, type: 3}
+    Flash: {fileID: 21300000, guid: dfe84b5410cd493aa3bb04dbb6041bbb, type: 3}
+  - Body: {fileID: 21300000, guid: 57a4bd1ed09c4c28ace2c1d941cf6b0f, type: 3}
+    Flash: {fileID: 21300000, guid: f4c23cb51dd64a3086e5364362cc778c, type: 3}
+  - Body: {fileID: 21300000, guid: 52666849e1fc4fe5a70ca52514941990, type: 3}
+    Flash: {fileID: 21300000, guid: 8a55cc46603e40f1a658b3760bb9d7c5, type: 3}
+  - Body: {fileID: 21300000, guid: c8e5e0797170404a9a5106e7274ac92f, type: 3}
+    Flash: {fileID: 21300000, guid: 35db2d4ac40049b082d259da70743f83, type: 3}
+  - Body: {fileID: 21300000, guid: 2407eb2684ae427c984c423b5fc341e9, type: 3}
+    Flash: {fileID: 21300000, guid: 27db18f24023465cba06c763c778d9a5, type: 3}
+  _enragedWindup:
+  - Body: {fileID: 21300000, guid: 56f63a0a053141af864f0e24178ce388, type: 3}
+    Flash: {fileID: 21300000, guid: 663ef92536df437abd9efa471a3ba969, type: 3}
+  - Body: {fileID: 21300000, guid: 80229817329948a6bcde17cdefdf145e, type: 3}
+    Flash: {fileID: 21300000, guid: bde3620d1ce442e6a191d2e6632ee48d, type: 3}
+  _windupWalk:
+  - Body: {fileID: 21300000, guid: a986798f6ecd49b2b4c0343fc5db1e30, type: 3}
+    Flash: {fileID: 21300000, guid: 36e91fd966054356a8c913a5dfae3743, type: 3}
+  - Body: {fileID: 21300000, guid: cd4fe73db8b54f9d87bd9b25a6338a51, type: 3}
+    Flash: {fileID: 21300000, guid: cc0336d5e6f441f3aeb64b1197d85d48, type: 3}
+  - Body: {fileID: 21300000, guid: 63a102f291f94b6a942cd8db1ede7ce0, type: 3}
+    Flash: {fileID: 21300000, guid: 663ef92536df437abd9efa471a3ba969, type: 3}
+  - Body: {fileID: 21300000, guid: 82367120a0db4716a550f873f6bc9067, type: 3}
+    Flash: {fileID: 21300000, guid: cf7f2dc83471439cb48ba25ea1260af5, type: 3}
+  - Body: {fileID: 21300000, guid: ff870fdf04f0456da8a98104d2a7575b, type: 3}
+    Flash: {fileID: 21300000, guid: aa6f2e36c0654d5e8c2e6b59bde3a478, type: 3}
+  - Body: {fileID: 21300000, guid: 16daeb786ca74ff3a4b9130498774361, type: 3}
+    Flash: {fileID: 21300000, guid: fea9fc105460436a8c9606a9f5c4c3ce, type: 3}
+  - Body: {fileID: 21300000, guid: a950b35a4bcc4e46a4924bd3fcc2d425, type: 3}
+    Flash: {fileID: 21300000, guid: bde3620d1ce442e6a191d2e6632ee48d, type: 3}
+  - Body: {fileID: 21300000, guid: f8ca4122265049dc9fc55976e2052ea7, type: 3}
+    Flash: {fileID: 21300000, guid: 5df02206189f4a838111f6e5b2e0e5f5, type: 3}
+  _enragedWindupWalk:
+  - Body: {fileID: 21300000, guid: 164cf1a634284a9085a927db10d7f87f, type: 3}
+    Flash: {fileID: 21300000, guid: 36e91fd966054356a8c913a5dfae3743, type: 3}
+  - Body: {fileID: 21300000, guid: 06031f6fea7e451d9560f0eeae1963c6, type: 3}
+    Flash: {fileID: 21300000, guid: cc0336d5e6f441f3aeb64b1197d85d48, type: 3}
+  - Body: {fileID: 21300000, guid: 56f63a0a053141af864f0e24178ce388, type: 3}
+    Flash: {fileID: 21300000, guid: 663ef92536df437abd9efa471a3ba969, type: 3}
+  - Body: {fileID: 21300000, guid: e6026887fd8244559adfc954c721f9fb, type: 3}
+    Flash: {fileID: 21300000, guid: cf7f2dc83471439cb48ba25ea1260af5, type: 3}
+  - Body: {fileID: 21300000, guid: abaeebde28584fb9a236d91f5cda3a8e, type: 3}
+    Flash: {fileID: 21300000, guid: aa6f2e36c0654d5e8c2e6b59bde3a478, type: 3}
+  - Body: {fileID: 21300000, guid: d182d91e5baf47859e056112b3c3ef6c, type: 3}
+    Flash: {fileID: 21300000, guid: fea9fc105460436a8c9606a9f5c4c3ce, type: 3}
+  - Body: {fileID: 21300000, guid: 80229817329948a6bcde17cdefdf145e, type: 3}
+    Flash: {fileID: 21300000, guid: bde3620d1ce442e6a191d2e6632ee48d, type: 3}
+  - Body: {fileID: 21300000, guid: 110d69b963b948538b4dfa9a0ff9b12a, type: 3}
+    Flash: {fileID: 21300000, guid: 5df02206189f4a838111f6e5b2e0e5f5, type: 3}
+  _fallFront:
+  - {fileID: 21300000, guid: 9304757045df4a54bf9d1d48a4e941f6, type: 3}
+  - {fileID: 21300000, guid: 629a731f4942424a97b675b9b9da4fcb, type: 3}
+  - {fileID: 21300000, guid: cb149f2dccad4d0c9b930e812bb2e65a, type: 3}
+  - {fileID: 21300000, guid: afd9059738e945138db7e8d07b11066f, type: 3}
+  _fallRear:
+  - {fileID: 21300000, guid: 3b3a36d0754d480c975f009f7f3f5a1e, type: 3}
+  - {fileID: 21300000, guid: 80a7cc22fb3a4305b5e497182706c271, type: 3}
+  - {fileID: 21300000, guid: cb149f2dccad4d0c9b930e812bb2e65a, type: 3}
+  - {fileID: 21300000, guid: afd9059738e945138db7e8d07b11066f, type: 3}
+  _fallSeconds:
+  - 0.16
+  - 0.44
+  - 0.16
+  - 0.56
+  _frost: {fileID: 0}
+  _gloam: {fileID: 0}

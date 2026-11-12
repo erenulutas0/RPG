@@ -11,7 +11,11 @@ both heroes and both phases.
 
 Results land in TestResults/ (ignored by Git): perf-probe.txt (the summary), perf-probe-frames.tsv (every frame),
 perf-probe.xml and perf-probe.log. Knobs, one value per line, in TestResults/: perf-probe-heroes.txt (hero ids,
-"vanguard" for the default hero), perf-probe-phases.txt (horde, warden), perf-probe-seconds.txt, perf-probe-seed.txt.
+"vanguard" for the default hero), perf-probe-phases.txt (horde, warden), perf-probe-seconds.txt, perf-probe-seed.txt,
+perf-probe-floors.txt ("1,2": each phase on floor 1 and again with floor 2's Ice dress; "1,2,3,4": every change of the
+four-floor Descent - 2 Ice, 3 Gloam (the garden prepared while the ice plays), 4 the finale's foundry; floor 1 alone by
+default). With a later floor, the summary ends in "compare <hero>/<phase>/floor n <metric>: floor 1 | floor n | change"
+lines, also written to perf-probe-floors-compare.txt.
 No APK is built and nothing touches a device.
 #>
 param(

@@ -1,3 +1,4 @@
+using Cryptforge.Content;
 using UnityEngine;
 
 namespace Cryptforge.Art
@@ -27,6 +28,18 @@ namespace Cryptforge.Art
         // Floor 2's painted backdrop, shown by ArenaView.ApplyFloorTheme in place of the foundry cavern plate.
         [SerializeField] private Sprite _iceBackdrop;
         public Sprite IceBackdrop => _iceBackdrop;
+        // Floor 3's (docs/51): GloamPavingV1 and GloamMasonryV1, and its painted plate once it has one (pass 2; until
+        // then the cavern plate is tinted, FoundryRegionView.Backdrop).
+        [SerializeField] private Texture2D _gloamPaving;
+        [SerializeField] private Texture2D _gloamMasonry;
+        [SerializeField] private Sprite _gloamBackdrop;
+        public Texture2D GloamPaving => _gloamPaving;
+        public Texture2D GloamMasonry => _gloamMasonry;
+        public Sprite GloamBackdrop => _gloamBackdrop;
+        // A themed floor's paving, masonry and plate (FloorTheme); none on the foundry, which keeps its materials' own.
+        public Texture2D PavingFor(FloorTheme theme) => theme == FloorTheme.Ice ? _icePaving : theme == FloorTheme.Gloam ? _gloamPaving : null;
+        public Texture2D MasonryFor(FloorTheme theme) => theme == FloorTheme.Ice ? _iceMasonry : theme == FloorTheme.Gloam ? _gloamMasonry : null;
+        public Sprite BackdropFor(FloorTheme theme) => theme == FloorTheme.Ice ? _iceBackdrop : theme == FloorTheme.Gloam ? _gloamBackdrop : null;
         public Material ForgeKeeper => _forgeKeeper;
         public Material Floor => _floor;
         public Material Coping => _coping;

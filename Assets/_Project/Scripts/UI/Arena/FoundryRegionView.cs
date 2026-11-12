@@ -483,6 +483,7 @@ namespace Cryptforge.UI
         }
         private void OnDestroy()
         {
+            DropThemeSnapshots();
             foreach(var mesh in _owned)if(mesh!=null)Destroy(mesh);
             if(_distantMasonryMaterial!=null)Destroy(_distantMasonryMaterial);
             if(_salvageMaterial!=null)Destroy(_salvageMaterial);

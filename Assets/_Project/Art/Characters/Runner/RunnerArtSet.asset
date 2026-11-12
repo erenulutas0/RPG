@@ -74,3 +74,4 @@ MonoBehaviour:
   - {fileID: 21300000, guid: f1ee4455b4ff48c78b32303ca27189d4, type: 3}
   _deathStep: 0.06
   _frost: {fileID: 11400000, guid: f3e8630a300c495d97c4a185019ae3e5, type: 2}
+  _gloam: {fileID: 11400000, guid: 200bc5e8ddb544d088f9d1eb2ace28cd, type: 2}
