@@ -176,7 +176,7 @@ namespace Cryptforge.Tests
                 "2.1:Cold Crucible:Tank+Cinder Mite+Cinder Mite+Cinder Mite",
                 "2.2:Cold Crucible:Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite",
                 "3.1:Vault Gate:Grunt+Grunt+Cinder Mite+Cinder Mite+Cinder Mite", "4:The Deep Forge:forge",
-                "5.1:Sentry Hall:Grunt Captain+Grunt+Cinder Mite+Cinder Mite", "6.1:Warden's Vault:Forge Warden+Cinder Mite+Cinder Mite"
+                "5.1:Sentry Hall:Mirror Sentry+Grunt+Cinder Mite+Cinder Mite", "6.1:Warden's Vault:Forge Warden+Cinder Mite+Cinder Mite"
             }));
             yield return null;
 

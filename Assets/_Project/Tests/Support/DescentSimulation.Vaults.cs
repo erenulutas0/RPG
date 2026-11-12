@@ -6,38 +6,39 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Tests
 {
-    // The Quicksilver Vaults' own enemies (docs/50, simulation-only research 2026-11-12): the Mirror Sentry, the Silver
-    // Wisp, the Faceless Clerk and the Glass Regent, each a research lever read by this simulation alone and off by default
-    // (VaultsEnemiesResearch). No floor of the game changes: the four exist only on a floor 2 that VaultsChain reshapes,
-    // and every behaviour below keys on one of their definitions, so a run that never meets them is the run it was.
+    // The Quicksilver Vaults' own enemies (docs/50). The Mirror Sentry ships (the lead's decisions 2026-11-12): it leads
+    // floor 2's Sentry Hall (DescentSimulation.QuicksilverVaults, MirrorSentry) with MirrorGuardRule's guard, stepped here
+    // where the scene's MirrorGuardService steps it, and the step-in's flank (FootworkRule.Flank) circles it, as
+    // DevelopmentAutopilot does. The Silver Wisp, the Faceless Clerk and the Glass Regent stay simulation-only research
+    // levers, off by default (VaultsEnemiesResearch): they exist only on a floor 2 that VaultsChain reshapes, and every
+    // behaviour below keys on one of their definitions or on the Sentry's guard, so a run that never meets them is the run
+    // it was - floor 1's rows of the default batch stay byte-identical.
     internal static partial class DescentSimulation
     {
         // docs/50's starting values, authored (before the climb's floor-2 scaling).
         public static readonly Enemy SilverWisp = new Enemy { Name = "Silver Wisp", Health = 24f, Damage = 1f, Interval = .5f, Gold = 3, Experience = 10, Speed = 2.4f, Reach = 1.4f };
         // No melee strike (its weapon never ticks): its reach is the 2.8 it stands off at.
         public static readonly Enemy FacelessClerk = new Enemy { Name = "Faceless Clerk", Health = 70f, Damage = .01f, Interval = 1f, Gold = 8, Experience = 15, Speed = 1.2f, Reach = 2.8f };
-        public static readonly Enemy MirrorSentry = new Enemy { Name = "Mirror Sentry", Health = 160f, Damage = 5.4f, Interval = 1.4f, InitialDelay = .6f, Gold = 20, Experience = 10, Speed = 1.1f, Reach = 1.6f };
         public static readonly Enemy GlassRegent = new Enemy { Name = "Glass Regent", Health = 300f, Damage = 5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = .5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
         // The Regent's phase-2 copies: no strike, no reward; their health is a share of the Regent's maximum.
         public static readonly Enemy GlassCopy = new Enemy { Name = "Glass copy", Health = 1f, Damage = .01f, Interval = 1f, Gold = 0, Experience = 0, Speed = 1f, Reach = 1.7f };
 
         // The research habits docs/50 asks of the pilot, outside AutopilotCohort.Habit.All as StepsInOnTheGateBoss was: no
-        // cohort has one unless the levers give it. Flanks extends the step-in (a cohort that StepsIn); Sidesteps extends
-        // the escape from the Warden's mark (a cohort that EscapesAwayFromTheWarden).
+        // cohort has one unless the levers give it. Sidesteps extends the escape from the Warden's mark (a cohort that
+        // EscapesAwayFromTheWarden). The flank that was its sibling ships (FoundryLevers.FlanksTheSentry).
         [Flags]
         internal enum VaultsHabit
         {
             None = 0,
-            // Against the Mirror Sentry, its step-in orbits the Sentry towards its rear at the step-in reach.
-            Flanks = 1 << 0,
             // Against the Glass Regent's lanes, the nearest spot clear of every lane rather than out of a circle.
             Sidesteps = 1 << 1
         }
 
-        // Floor 1 as shipped above a floor 2 with the levers' creatures in place of the foundry's: the Sentry for Sentry
-        // Hall's Captain, the Wisp for the Runner (the horde's third role and Mercury Stair's second wave), a Clerk at the
-        // head of Mercury Stair's first wave and in place of a Grunt in Vault Gate's, the Regent for the Warden.
-        // The Sentry at a share of its authored health: itself at 1, else a copy under its name (the rules read the name).
+        // Floor 1 as shipped above a floor 2 with the levers' creatures in place of the foundry's: the Grunt Captain back in
+        // Sentry Hall (VaultsCaptain: floor 2 before 2026-11-12) or the Sentry at another health, the Wisp for the Runner
+        // (the horde's third role and Mercury Stair's second wave), a Clerk at the head of Mercury Stair's first wave and in
+        // place of a Grunt in Vault Gate's, the Regent for the Warden.
+        // The Sentry at a share of its authored health: itself at 1, else a copy under its name (its guard reads the name).
         private static Enemy Sentry(float healthScale) => healthScale == 1f
             ? MirrorSentry
             : new Enemy
@@ -64,8 +65,8 @@ namespace Cryptforge.Tests
                     {
                         if (levers.VaultsWisps && wave[i] == Runner)
                             wave[i] = SilverWisp;
-                        if (levers.VaultsSentry && wave[i] == Captain)
-                            wave[i] = Sentry(levers.SentryHealthScale);
+                        if (wave[i] == MirrorSentry)
+                            wave[i] = levers.VaultsCaptain ? Captain : Sentry(levers.SentryHealthScale);
                         if (levers.VaultsRegent && wave[i] == Warden)
                             wave[i] = GlassRegent;
                     }
@@ -96,20 +97,25 @@ namespace Cryptforge.Tests
 
         internal sealed partial class FoundryLevers
         {
-            // docs/50's four on floor 2, each off by default (VaultsChain reads them; the creatures' rules key on their
-            // definitions).
-            public bool VaultsSentry;
+            // docs/50's research creatures on floor 2, each off by default (VaultsChain reads them; the creatures' rules key on
+            // their definitions). VaultsCaptain puts the Grunt Captain back at the head of Sentry Hall: floor 2 as it was
+            // before the Mirror Sentry shipped (2026-11-12), for a comparison on the same seeds.
+            public bool VaultsCaptain;
             public bool VaultsWisps;
             public bool VaultsClerks;
             public bool VaultsRegent;
             public VaultsHabit VaultsHabits;
-            // The Mirror Sentry's guard (docs/50 section 5).
-            public float SentryTurnDegrees = 90f;
-            public float SentryArcDegrees = 120f;
-            public float SentryFrontShare = .35f;
-            public float SentryReflectShare = .2f;
-            public float SentryReflectCap = .04f;
-            // The Sentry's authored health against docs/50's 160 (research: the fight's length against the flank).
+            // The Mirror Sentry's guard (MirrorGuardRule, shipped; a research lever may move each): its turn, front arc, the
+            // share of a front landing it takes, the reflection's share and its cap a second.
+            public float SentryTurnDegrees = MirrorGuardRule.TurnDegrees;
+            public float SentryArcDegrees = MirrorGuardRule.ArcDegrees;
+            public float SentryFrontShare = MirrorGuardRule.FrontShare;
+            public float SentryReflectShare = MirrorGuardRule.ReflectShare;
+            public float SentryReflectCap = MirrorGuardRule.ReflectCap;
+            // The step-in's flank round the Sentry (FootworkRule.Flank), as DevelopmentAutopilot circles it: shipped, for a
+            // cohort that StepsIn (careful, first-card) when its best single-target weapon is short (the Daggers).
+            public bool FlanksTheSentry = true;
+            // The Sentry's health against its authored 200 (VaultsChain only; research: the fight's length against the flank).
             public float SentryHealthScale = 1f;
             // The Silver Wisp's blink (section 3): once, at an age of WispBlinkAge or more and WispBlinkMin-Max from the
             // hero, to WispLandDistance past the hero on the far side, a shimmer later; no strike for the hold after.
@@ -153,7 +159,11 @@ namespace Cryptforge.Tests
             public int RegentCopies = 2;
             public float RegentCopyShare = .06f;
 
-            public bool Vaults => VaultsSentry || VaultsWisps || VaultsClerks || VaultsRegent;
+            public bool Vaults => VaultsWisps || VaultsClerks || VaultsRegent;
+
+            // The Sentry's guard as these levers tune it.
+            public MirrorGuardState SentryGuard() =>
+                new MirrorGuardState(SentryTurnDegrees, SentryArcDegrees, SentryFrontShare, SentryReflectShare, SentryReflectCap);
         }
 
         internal sealed partial class FoundryResult
@@ -204,44 +214,13 @@ namespace Cryptforge.Tests
                 float cx = ax + dx * along - px, cy = ay + dy * along - py;
                 return cx * cx + cy * cy <= halfWidth * halfWidth;
             }
-
-            // The Sentry's facing turned towards (tx, ty) from (x, y) by at most maxTurn radians, in (-pi, pi].
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            public static float Turn(float facing, float x, float y, float tx, float ty, float maxTurn)
-            {
-                float want = (float)Math.Atan2(ty - y, tx - x);
-                float delta = Wrap(want - facing);
-                if (delta > maxTurn)
-                    delta = maxTurn;
-                else if (delta < -maxTurn)
-                    delta = -maxTurn;
-                return Wrap(facing + delta);
-            }
-
-            // Whether (px, py) stands inside the front arc (arcDegrees in all) of a body at (x, y) facing facing.
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            public static bool InFront(float facing, float x, float y, float px, float py, float arcDegrees)
-            {
-                float toward = (float)Math.Atan2(py - y, px - x);
-                return Math.Abs(Wrap(toward - facing)) <= arcDegrees * (float)Math.PI / 360f;
-            }
-
-            public static float Wrap(float angle)
-            {
-                const float tau = 2f * (float)Math.PI;
-                while (angle > (float)Math.PI)
-                    angle -= tau;
-                while (angle <= -(float)Math.PI)
-                    angle += tau;
-                return angle;
-            }
         }
 
         private sealed partial class Foe
         {
-            // The Sentry's facing (radians; NaN until first stepped) and its reflection's budget (NaN until first stepped).
-            public float Facing = float.NaN;
-            public float ReflectBudget = float.NaN;
+            // The Mirror Sentry's guard (MirrorGuardRule, the scene's MirrorGuard): null until its first step - and for every
+            // other enemy.
+            public MirrorGuardState Guard;
             // The Wisp's blink: spent (done or skipped), and while it shimmers the run second it lands and where.
             public bool Blinked;
             public float BlinkAt = -1f;
@@ -258,11 +237,12 @@ namespace Cryptforge.Tests
             private readonly float[] _laneY = new float[3];
             private int _lanes;
             private readonly Foe[] _glassCopies = new Foe[2];
-            // Reflection owed to the hero by a Sentry, paid next frame (a hit on the hero inside the hero's own strike
-            // would land mid-attack).
-            private float _reflectOwed;
-            private Foe _reflectFrom;
+            // Reflection owed to the hero by a Sentry, paid on the next running frame (MirrorReflectionDue, as
+            // MirrorGuardService pays it: never inside the hero's own strike, never while the fight holds).
+            private readonly MirrorReflectionDue<Foe> _reflectDue = new MirrorReflectionDue<Foe>();
             private bool _reflecting;
+            // Whether the floor holds a Mirror Sentry (EnterFloor): its guard is stepped only there.
+            private bool _sentryFloor;
             // Round 2's alternatives: the hero's straight walk (FoundryLevers.WispKiteBlink) - since when, and its heading
             // then, NaN while it is not walking - and the Clerk's ringless copies (FoundryLevers.ClerkReachBlast).
             private float _straightSince = float.NaN;
@@ -278,6 +258,17 @@ namespace Cryptforge.Tests
 
             // The Sentry or a copy of it with another health (FoundryLevers.SentryHealthScale).
             private static bool IsSentry(Enemy kind) => ReferenceEquals(kind, MirrorSentry) || kind.Name == MirrorSentry.Name;
+
+            // Whether a floor's rooms hold a Mirror Sentry anywhere.
+            private static bool HoldsASentry(FoundryFloor floor)
+            {
+                for (int r = 0; r < floor.Rooms.Length; r++)
+                for (int w = 0; floor.Rooms[r] != null && w < floor.Rooms[r].Length; w++)
+                for (int e = 0; e < floor.Rooms[r][w].Length; e++)
+                    if (IsSentry(floor.Rooms[r][w][e]))
+                        return true;
+                return false;
+            }
 
             // Neither the Clerk nor a glass copy strikes in melee: no weapon ticks, and the pilot does not kite from them.
             private static bool Harmless(Foe foe) =>
@@ -309,22 +300,15 @@ namespace Cryptforge.Tests
 
             private const string ClerkHarm = "Clerk copy";
 
-            // The four's clocks, stepped where the Warden's slam is (docs/50 rule 4), held while a choice is open or the
-            // reveal holds. Nothing on a floor without them.
+            // The four's clocks, stepped where the Warden's slam is (docs/50 rule 4; MirrorGuardService's -39 after
+            // WardenSlamService's -40), held while a choice is open or the reveal holds. Nothing on a floor without them.
             private void StepVaults()
             {
-                if (!VaultsOn || _run.HasEnded)
+                if (_run.HasEnded)
                     return;
-                if (_reflectOwed > 0f && _heroHealth.IsAlive)
-                {
-                    float owed = _reflectOwed;
-                    _reflectOwed = 0f;
-                    _reflecting = true;
-                    _harmIsSlam = false;
-                    _hero.ApplyDamage(new DamageContext(owed, _reflectFrom));
-                    _reflecting = false;
-                }
-                if (_choices.IsOpen || _revealHold)
+                if (_sentryFloor)
+                    StepSentries();
+                if (!VaultsOn || _choices.IsOpen || _revealHold)
                     return;
                 if (_levers.WispKiteBlink)
                     TrackStraightWalk();
@@ -345,9 +329,7 @@ namespace Cryptforge.Tests
                     if (!IsValid(foe) || foe.SpawnFrame == _frame)
                         continue;
                     Enemy kind = foe.Definition;
-                    if (IsSentry(kind))
-                        StepSentry(foe);
-                    else if (ReferenceEquals(kind, SilverWisp))
+                    if (ReferenceEquals(kind, SilverWisp))
                         StepWisp(foe);
                     else if (ReferenceEquals(kind, FacelessClerk) && _heroHealth.IsAlive)
                     {
@@ -372,15 +354,30 @@ namespace Cryptforge.Tests
                 }
             }
 
-            private void StepSentry(Foe foe)
+            // MirrorGuardService.Update: while the fight runs, the reflection banked since the last running frame paid as one
+            // hit with the Sentry as its source, then every standing Sentry's guard stepped (not on the frame it walks in);
+            // while it holds (a choice, the reveal), neither.
+            private void StepSentries()
             {
-                float cap = _heroHealth.Maximum * _levers.SentryReflectCap;
-                foe.ReflectBudget = float.IsNaN(foe.ReflectBudget) ? cap : Math.Min(cap, foe.ReflectBudget + cap * Step);
-                if (float.IsNaN(foe.Facing))
-                    foe.Facing = (float)Math.Atan2(HeroY - foe.Y, HeroX - foe.X);
-                else
-                    foe.Facing = VaultsRule.Turn(foe.Facing, foe.X, foe.Y, HeroX, HeroY,
-                        _levers.SentryTurnDegrees * (float)Math.PI / 180f * Step);
+                bool held = _choices.IsOpen || _revealHold;
+                float owed = _reflectDue.Take(!held && _heroHealth.IsAlive, out Foe from);
+                if (owed > 0f)
+                {
+                    _reflecting = true;
+                    _harmIsSlam = false;
+                    _hero.ApplyDamage(new DamageContext(owed, from));
+                    _reflecting = false;
+                }
+                if (held)
+                    return;
+                for (int i = 0; i < TargetCount; i++)
+                {
+                    Foe foe = TargetAt(i);
+                    if (!IsValid(foe) || foe.SpawnFrame == _frame || !IsSentry(foe.Definition))
+                        continue;
+                    foe.Guard ??= _levers.SentryGuard();
+                    foe.Guard.Step(Step, foe.X, foe.Y, HeroX, HeroY, _heroHealth.Maximum);
+                }
             }
 
             private void StepWisp(Foe foe)
@@ -488,14 +485,14 @@ namespace Cryptforge.Tests
                 }
             }
 
-            // FoeDamaged's hook: the Sentry's guard on a landing of the hero's while the hero stands in its front arc,
-            // and the reflection it owes (capped by its budget). The landing as it was anywhere else.
+            // FoeDamaged's hook, MirrorGuard.Guard: the Sentry's guard on a landing of the hero's - its weapons' and its
+            // ability's; a burn's, a bleed's or the pit's is no landing - while the hero stands in its front arc, and the
+            // reflection it owes (capped by its budget). The landing as it was anywhere else.
             private DamageContext SentryGuard(Foe foe, DamageContext context, DamageSource source)
             {
-                if (!IsSentry(foe.Definition) || float.IsNaN(foe.Facing) ||
-                    (source != DamageSource.Weapon && source != DamageSource.Ability))
+                if (foe.Guard == null || (source != DamageSource.Weapon && source != DamageSource.Ability))
                     return context;
-                bool front = VaultsRule.InFront(foe.Facing, foe.X, foe.Y, HeroX, HeroY, _levers.SentryArcDegrees);
+                float dealt = foe.Guard.Land(context.Amount, foe.X, foe.Y, HeroX, HeroY, out bool front, out float reflected);
                 if (source == DamageSource.Weapon)
                 {
                     _result.SentryLandings++;
@@ -504,15 +501,8 @@ namespace Cryptforge.Tests
                 }
                 if (!front)
                     return context;
-                float want = context.Amount * _levers.SentryReflectShare;
-                float paid = Math.Min(want, Math.Max(0f, foe.ReflectBudget));
-                if (paid > 0f)
-                {
-                    foe.ReflectBudget -= paid;
-                    _reflectOwed += paid;
-                    _reflectFrom = foe;
-                }
-                return new DamageContext(context.Amount * _levers.SentryFrontShare, context.Source, context.IsCritical);
+                _reflectDue.Owe(reflected, foe);
+                return new DamageContext(dealt, context.Source, context.IsCritical);
             }
 
             // HeroDamaged's hook: the four's harm, for the report.
@@ -654,28 +644,13 @@ namespace Cryptforge.Tests
                 return false;
             }
 
-            // The flank habit: against the Sentry, the step-in's spot turned round the Sentry towards its rear, at most
-            // 40 degrees a frame's goal, at the same reach.
+            // DevelopmentAutopilot.StepInGoal's flank: against a Sentry whose guard has been stepped, the step-in's spot turned
+            // round it toward its rear (FootworkRule.Flank).
             private void Flank(Foe target, float x, float y, ref float gx, ref float gy)
             {
-                if ((_levers.VaultsHabits & VaultsHabit.Flanks) == 0 || !IsSentry(target.Definition) ||
-                    float.IsNaN(target.Facing))
+                if (!_levers.FlanksTheSentry || target.Guard == null || !target.Guard.IsGuarding)
                     return;
-                float r = (float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(gx, gy, target.X, target.Y));
-                float at = (float)Math.Atan2(y - target.Y, x - target.X);
-                float rear = VaultsRule.Wrap(target.Facing + (float)Math.PI);
-                float delta = VaultsRule.Wrap(rear - at);
-                const float stepMax = 40f * (float)Math.PI / 180f;
-                if (delta > stepMax)
-                    delta = stepMax;
-                else if (delta < -stepMax)
-                    delta = -stepMax;
-                float fx = target.X + r * (float)Math.Cos(at + delta);
-                float fy = target.Y + r * (float)Math.Sin(at + delta);
-                if (!FoundryMap.Contains(fx, fy, HeroMotion.EdgeMargin))
-                    return;
-                gx = fx;
-                gy = fy;
+                FootworkRule.Flank(x, y, target.X, target.Y, target.Guard.Facing, ref gx, ref gy);
             }
 
             // The back-liner: once a wave's living enemies are Clerks alone, walk to the nearest until the best weapon

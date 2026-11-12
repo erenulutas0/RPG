@@ -71,6 +71,8 @@ namespace Cryptforge.Core
         public PitEruptionService Pit { get; private set; }
         // The foundry gate boss's slams (WardenRule).
         public WardenSlamService Warden { get; private set; }
+        // The Mirror Sentries' guards (MirrorGuardRule): their turn, their budget and the reflection they pay the hero.
+        public MirrorGuardService Mirrors { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
@@ -233,6 +235,8 @@ namespace Cryptforge.Core
             gameObject.AddComponent<PitEruptionView>().Initialize(Pit);
             Warden = gameObject.AddComponent<WardenSlamService>();
             Warden.Initialize(this, _hero, _attack);
+            Mirrors = gameObject.AddComponent<MirrorGuardService>();
+            Mirrors.Initialize(this, _hero);
             // The foundry's elites as they stand, for every strike of the hero's (EliteRule: the Daggers' share on them).
             _attack.Elites = _encounters.Elites;
             // The hero strikes nothing while the boss's reveal holds the fight, as no enemy strikes it.
@@ -240,6 +244,7 @@ namespace Cryptforge.Core
             // Nor does its ability fire: the button stands greyed and a use is refused (AbilityController.FightHold).
             _ability.FightHold = _encounters.FightHold;
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
+            gameObject.AddComponent<MirrorGlintView>().Initialize(Mirrors, _encounters, _hero);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
             if (movement != null && DevelopmentStart.Autopilot())

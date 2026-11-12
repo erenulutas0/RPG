@@ -225,6 +225,10 @@ namespace Cryptforge.Tests
         public static readonly Enemy Runner = new Enemy { Name = "Runner", Health = 30f, Damage = 1.2f, Interval = 0.4f, Gold = 3, Experience = 10, Speed = 3f, Reach = 1.5f };
         public static readonly Enemy Tank = new Enemy { Name = "Tank", Health = 120f, Damage = 7.2f, Interval = 2.5f, InitialDelay = 1.5f, Gold = 10, Experience = 10, Speed = 0.9f, Reach = 1.7f };
         public static readonly Enemy Captain = new Enemy { Name = "Grunt Captain", Health = 140f, Damage = 5.4f, Interval = 1.2f, InitialDelay = 0.6f, Gold = 20, Experience = 10, Speed = 1.4f, Reach = 1.6f };
+        // Enemy_MirrorSentry and Weapon_MirrorBash (docs/50 section 5; the lead's decisions 2026-11-12): floor 2's elite, 125 %
+        // of docs/50's 160. Its guard is MirrorGuardRule's; the foundry simulation steps it (DescentSimulation.Vaults.cs), the
+        // old hall-arena simulation fights it as authored, as the scene's hall arena does.
+        public static readonly Enemy MirrorSentry = new Enemy { Name = "Mirror Sentry", Health = 200f, Damage = 5.4f, Interval = 1.4f, InitialDelay = 0.6f, Gold = 20, Experience = 10, Speed = 1.1f, Reach = 1.6f };
         public static readonly Enemy Warden = new Enemy { Name = "Forge Warden", Health = 300f, Damage = 6f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
         // Mites come in numbers, so each one is worth only a little experience and no gold.
         public static readonly Enemy Mite = new Enemy { Name = "Cinder Mite", Health = 15f, Damage = 0.6f, Interval = 1.5f, Gold = 0, Experience = 1, Speed = 2.2f, Reach = 1.5f };
@@ -301,7 +305,7 @@ namespace Cryptforge.Tests
                 new[] { new[] { Tank, Mite, Mite, Mite }, new[] { Mite, Mite, Mite, Mite, Mite } },
                 new[] { new[] { Grunt, Grunt, Mite, Mite, Mite } },
                 null,
-                new[] { new[] { Captain, Grunt, Mite, Mite } },
+                new[] { new[] { MirrorSentry, Grunt, Mite, Mite } },
                 new[] { new[] { Warden, Mite, Mite } }
             },
             HealthMultiplier = 1.4f,

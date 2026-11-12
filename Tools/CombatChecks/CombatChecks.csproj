@@ -50,6 +50,7 @@
     <!-- The foundry floor's pure rules, for the horde floor of the Descent simulation (docs/41 step 5). -->
     <Compile Include="../../Assets/_Project/Scripts/Combat/WardenRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/EliteRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/MirrorGuardRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryRealismTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EliteRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/MirrorGuardRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
@@ -188,6 +190,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryMapTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ClimbScalingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
+    <!-- The glob's one Editor-only file: EnemyThemeArtTests loads the painted sets through UnityEditor's AssetDatabase. -->
+    <Compile Remove="../../Assets/_Project/Tests/EditMode/EnemyThemeArtTests.cs" />
     <!-- The puppet's pose math lives in Scripts/Art (above); its placeholder parts are tested by PuppetArtTests. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetGaitTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetMotionTests.cs" />

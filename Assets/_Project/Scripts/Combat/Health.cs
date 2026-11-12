@@ -61,10 +61,16 @@ namespace Cryptforge.Combat
             _state.Died -= _forwardDied;
         }
 
+        // A guard ahead of this body's health (IDamageGuard: the Mirror Sentry's MirrorGuard sets itself here), asked about
+        // every landing before the state takes it; none on every other body.
+        internal IDamageGuard Guard { get; set; }
+
         public void ApplyDamage(DamageContext context)
         {
-            if (isActiveAndEnabled)
-                _state?.ApplyDamage(context);
+            if (!isActiveAndEnabled || _state == null)
+                return;
+            IDamageGuard guard = Guard;
+            _state.ApplyDamage(guard != null ? guard.Guard(context) : context);
         }
 
         public void Heal(float amount)

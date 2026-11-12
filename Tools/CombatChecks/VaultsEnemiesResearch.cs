@@ -5,16 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cryptforge.Combat;
 using Cryptforge.Core;
 using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // The Quicksilver Vaults' own enemies (docs/50 section 7, simulation-only research 2026-11-12). Plays every cohort and
-    // both heroes down the whole Descent (floor 1 as shipped, floor 2, the finale) on the same seeds with human hands, once
-    // as shipped and once for each option - a creature of docs/50 on floor 2 (DescentSimulation.VaultsChain), with or
-    // without the pilot's research habit it asks for (DescentSimulation.VaultsHabit) - and, where an option reads the roles,
-    // the Vanguard started with the Staff and with the Daggers in the careful hands beside the careful Vanguard's Sword.
+    // The Quicksilver Vaults' own enemies (docs/50 section 7, research 2026-11-12). Plays every cohort and both heroes down
+    // the whole Descent (floor 1 as shipped, floor 2, floor 3 since docs/48, the finale) on the same seeds with human hands,
+    // once as shipped - the Mirror Sentry leads floor 2's Sentry Hall since the lead's decisions of 2026-11-12 - and once for
+    // each option - the Grunt Captain back (`captain`, floor 2 before), the Sentry tuned otherwise, or a research creature of
+    // docs/50 on floor 2 (DescentSimulation.VaultsChain), with or without the pilot's habit it asks for - and, where an
+    // option reads the roles, the Vanguard started with the Staff and with the Daggers in the careful hands beside the
+    // careful Vanguard's Sword. Measurements before 2026-11-12 played floor 1, floor 2 and the finale only.
     //
     // Explicit, so a plain `dotnet test` skips it:
     //
@@ -45,12 +48,48 @@ namespace Cryptforge.Tests
             l.VaultsHabits |= sidesteps ? DescentSimulation.VaultsHabit.Sidesteps : DescentSimulation.VaultsHabit.None;
         };
 
+        // The Mirror Sentry with its whole guard set: its turn (degrees a second), its health against the built 200, the share
+        // of a front landing it takes, the share of a front landing it reflects and the reflection's cap a second.
+        private static Action<DescentSimulation.FoundryLevers> SentryAt(float turn, float healthScale, float front, float reflect, float cap) => l =>
+        {
+            l.SentryTurnDegrees = turn;
+            l.SentryHealthScale = healthScale;
+            l.SentryFrontShare = front;
+            l.SentryReflectShare = reflect;
+            l.SentryReflectCap = cap;
+        };
+
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "floor 2 as shipped: the foundry's roster and the Forge Warden (share 6.071429)", Roles = true };
-            yield return new Option { Key = "sentry", What = "the Mirror Sentry leads Sentry Hall; the careful and first-card pilots flank it (VaultsHabit.Flanks)", Roles = true,
-                Set = l => { l.VaultsSentry = true; l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks; } };
-            yield return new Option { Key = "sentry-noflank", What = "the Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Roles = true, Set = l => l.VaultsSentry = true };
+            yield return new Option { Key = "shipped", What = "floor 2 as shipped: the Mirror Sentry leads Sentry Hall (MirrorGuardRule, sentry-r0-f70: 45 deg/s, 200 health, 70 % of a front landing taken, nothing reflected), the careful and first-card pilots flank it (FoundryLevers.FlanksTheSentry); the foundry's roster and the Forge Warden (share 6.071429)", Roles = true };
+            yield return new Option { Key = "captain", What = "floor 2 before 2026-11-12: the Grunt Captain leads Sentry Hall (FoundryLevers.VaultsCaptain)", Roles = true, Set = l => l.VaultsCaptain = true };
+            yield return new Option { Key = "sentry-noflank", What = "the shipped Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Roles = true, Set = l => l.FlanksTheSentry = false };
+            // Every Sentry below sets its whole guard (SentryAt), so it reads as it did when it was measured whatever ships.
+            // docs/50 section 5's starting values (round 1).
+            yield return new Option { Key = "sentry-docs50", What = "the Mirror Sentry with docs/50's starting values: 90 deg/s, 160 health, 35 % of a front landing taken, 20 % reflected up to 4 % a second; the flank habit", Roles = true,
+                Set = SentryAt(90f, .8f, .35f, .2f, .04f) };
+            // Round 2's winner, built on 2026-11-12 before the 40 % rule.
+            yield return new Option { Key = "sentry-f50", What = "the Mirror Sentry of round 2 (t45-h125-c2-f50): 45 deg/s, 200 health, half a front landing taken, 20 % reflected up to 2 % a second", Roles = true,
+                Set = SentryAt(45f, 1f, .5f, .2f, .02f) };
+            // The lead's sweep after the four-floor Descent (2026-11-12): each one lever off f50.
+            yield return new Option { Key = "sentry-f60", What = "f50 taking 60 % of a front landing", Roles = true, Set = SentryAt(45f, 1f, .6f, .2f, .02f) };
+            yield return new Option { Key = "sentry-c1", What = "f50 with its reflection capped at 1 % of the hero's maximum a second", Roles = true, Set = SentryAt(45f, 1f, .5f, .2f, .01f) };
+            yield return new Option { Key = "sentry-h100", What = "f50 at docs/50's 160 health (0.8 of 200)", Roles = true, Set = SentryAt(45f, .8f, .5f, .2f, .02f) };
+            yield return new Option { Key = "sentry-r0", What = "f50 reflecting nothing: the guard alone", Roles = true, Set = SentryAt(45f, 1f, .5f, 0f, .02f) };
+            // Rounds 3 and 4 (docs/50): no reflection with a softer front for the cohort that never flanks, or a small
+            // reflection kept with one. r0-f70 ships.
+            yield return new Option { Key = "sentry-r0-f70", What = "the Mirror Sentry reflecting nothing, taking 70 % of a front landing (shipped since 2026-11-12)", Roles = true,
+                Set = SentryAt(45f, 1f, .7f, 0f, .02f) };
+            yield return new Option { Key = "sentry-r0-f60-h100", What = "the Mirror Sentry reflecting nothing, taking 60 % of a front landing, at 160 health", Roles = true,
+                Set = SentryAt(45f, .8f, .6f, 0f, .02f) };
+            yield return new Option { Key = "sentry-r0-f80", What = "the Mirror Sentry reflecting nothing, taking 80 % of a front landing", Roles = true,
+                Set = SentryAt(45f, 1f, .8f, 0f, .02f) };
+            yield return new Option { Key = "sentry-c1-f70", What = "the Mirror Sentry reflecting 20 % up to 1 % a second, taking 70 % of a front landing", Roles = true,
+                Set = SentryAt(45f, 1f, .7f, .2f, .01f) };
+            yield return new Option { Key = "sentry-c1-f80", What = "the Mirror Sentry reflecting 20 % up to 1 % a second, taking 80 % of a front landing", Roles = true,
+                Set = SentryAt(45f, 1f, .8f, .2f, .01f) };
+            yield return new Option { Key = "sentry-r0-f90", What = "the Mirror Sentry reflecting nothing, taking 90 % of a front landing", Roles = true,
+                Set = SentryAt(45f, 1f, .9f, 0f, .02f) };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
             // Round 2's alternatives (docs/50 Measured), simulation only.
@@ -65,39 +104,19 @@ namespace Cryptforge.Tests
                 Set = l => { l.VaultsClerks = true; l.ClerkReachBlast = true; l.ClerkTouch = 1.8f; }
             };
             yield return new Option { Key = "regent-lanes", What = "the Glass Regent, stage 1: lanes on the Warden's clock, no copies, share 5.2, the sidestep habit", Set = Regent(5.2f, 0, true) };
-            // Round 2 (docs/50 Measured): the Sentry's turn, health and reflection cap, the flank habit on.
+            // Round 2 (docs/50 Measured): the Sentry's turn, health (of docs/50's 160: 125 % is the shipped 200) and reflection
+            // cap, 35 % of a front landing taken as round 2 had it, the flank habit on. The shipped Sentry is t45-h125-c2 with
+            // half a front landing taken (`shipped`).
             foreach (int turn in new[] { 45, 52, 60 })
             foreach (int health in new[] { 125, 150 })
             foreach (int cap in new[] { 2, 3 })
                 yield return new Option
                 {
                     Key = $"sentry-t{turn}-h{health}-c{cap}",
-                    What = $"the Mirror Sentry turning {turn} degrees a second, {health} % of its health, its reflection capped at {cap} % of the hero's maximum a second; the flank habit",
+                    What = $"the Mirror Sentry turning {turn} degrees a second, {health} % of docs/50's 160 health, its reflection capped at {cap} % of the hero's maximum a second, 35 % of a front landing taken; the flank habit",
                     Roles = true,
-                    Set = l =>
-                    {
-                        l.VaultsSentry = true;
-                        l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks;
-                        l.SentryTurnDegrees = turn;
-                        l.SentryHealthScale = health / 100f;
-                        l.SentryReflectCap = cap / 100f;
-                    }
+                    Set = SentryAt(turn, health / 125f, .35f, .2f, cap / 100f)
                 };
-            // Past the grid: the front's share of a landing (docs/50's 35 %) raised to a half, on the grid's best turn.
-            yield return new Option
-            {
-                Key = "sentry-t45-h125-c2-f50", What = "the Mirror Sentry turning 45 degrees a second, 125 % of its health, its reflection capped at 2 %, half of a front landing taken (35 % in docs/50); the flank habit",
-                Roles = true,
-                Set = l =>
-                {
-                    l.VaultsSentry = true;
-                    l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks;
-                    l.SentryTurnDegrees = 45f;
-                    l.SentryHealthScale = 1.25f;
-                    l.SentryReflectCap = .02f;
-                    l.SentryFrontShare = .5f;
-                }
-            };
             foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f, 6.2f, 6.4f, 6.6f, 6.7f, 7.0f })
                 yield return new Option
                 {
@@ -108,11 +127,10 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "regent-5.2-nosidestep", What = "the Glass Regent with copies, share 5.2, no sidestep: the shipped escape out of a circle", Set = Regent(5.2f, 2, false) };
             yield return new Option
             {
-                Key = "all", What = "all four together (Sentry with flank, Wisp, Clerk, Regent with copies at 5.2 and sidestep)", Roles = true,
+                Key = "all", What = "all four together (the shipped Sentry with its flank, Wisp, Clerk, Regent with copies at 5.2 and sidestep)", Roles = true,
                 Set = l =>
                 {
-                    l.VaultsSentry = l.VaultsWisps = l.VaultsClerks = true;
-                    l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks;
+                    l.VaultsWisps = l.VaultsClerks = true;
                     Regent(5.2f, 2, true)(l);
                 }
             };
@@ -153,7 +171,7 @@ namespace Cryptforge.Tests
                 foreach (AutopilotCohort cohort in AutopilotCohort.Cohorts)
                 foreach (DescentSimulation.FoundryHero hero in heroes)
                 {
-                    DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(cohort, 3, realism)
+                    DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(cohort, DescentSimulation.FinaleFloor, realism)
                         .Copy($"cohort {cohort.Name}, {option.Key}, {hands}");
                     option.Set(levers);
                     Cell cell = Play(option, cohort.Name, hero, levers, seeds, parallel);
@@ -174,7 +192,7 @@ namespace Cryptforge.Tests
                         DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
                         hero.Weapon = weapon;
                         hero.Name = "Vanguard + " + weapon.DisplayName;
-                        DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(AutopilotCohort.Careful, 3, realism)
+                        DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(AutopilotCohort.Careful, DescentSimulation.FinaleFloor, realism)
                             .Copy($"starting {weapon.Id}, {option.Key}, {hands}");
                         option.Set(levers);
                         weapons.Add(Batch(Play(option, "careful", hero, levers, seeds, parallel)));
@@ -199,15 +217,16 @@ namespace Cryptforge.Tests
             int parallel = Setting("FOUNDRY_PARALLEL", Math.Max(1, Environment.ProcessorCount / 2));
             string pilot = Environment.GetEnvironmentVariable("FOUNDRY_REALISM") ?? "typical";
             PilotRealism realism = pilot == "frame-perfect" ? null : PilotRealism.Named(pilot);
-            foreach (string key in new[] { "sentry", "sentry-noflank" })
+            foreach (string key in new[] { "shipped", "sentry-noflank" })
             {
                 Option option = Options().First(o => o.Key == key);
                 DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
                 hero.Weapon = DescentSimulation.WeaponCatalogue().First(w => w.DisplayName == "Daggers");
-                DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(AutopilotCohort.Careful, 3, realism).Copy(key);
+                DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(AutopilotCohort.Careful, DescentSimulation.FinaleFloor, realism).Copy(key);
                 option.Set(levers);
-                // SENTRY_TURN (degrees a second, 90 by default) and SENTRY_HEALTH_SCALE (1) for the habit's sensitivity.
-                levers.SentryTurnDegrees = Setting("SENTRY_TURN", 90);
+                // SENTRY_TURN (degrees a second, the shipped 45 by default) and SENTRY_HEALTH_PERCENT (of the shipped 200, 100)
+                // for the habit's sensitivity.
+                levers.SentryTurnDegrees = Setting("SENTRY_TURN", (int)MirrorGuardRule.TurnDegrees);
                 levers.SentryHealthScale = Setting("SENTRY_HEALTH_PERCENT", 100) / 100f;
                 DescentSimulation.FoundryResult[] two = Play(option, "careful", hero, levers, seeds, parallel).Runs
                     .Select(Two).Where(r => r != null && r.SentryLandings > 0).ToArray();
@@ -232,7 +251,7 @@ namespace Cryptforge.Tests
 
         private static DescentSimulation.FoundryResult Two(DescentSimulation.FoundryResult run) => run.NextFloor;
 
-        private static DescentSimulation.FoundryResult Finale(DescentSimulation.FoundryResult run) => run.NextFloor?.NextFloor;
+        private static DescentSimulation.FoundryResult Finale(DescentSimulation.FoundryResult run) => FoundryBatch.FinaleOf(run);
 
         private static float Descent(DescentSimulation.FoundryResult run)
         {
@@ -314,7 +333,7 @@ namespace Cryptforge.Tests
         {
             var l = c.Levers;
             var parts = new List<string>();
-            if (l.VaultsSentry)
+            if (!l.VaultsCaptain)
             {
                 var met = down.Where(r => r.SentryLandings > 0).ToArray();
                 int landings = met.Sum(r => r.SentryLandings), front = met.Sum(r => r.SentryFrontLandings);

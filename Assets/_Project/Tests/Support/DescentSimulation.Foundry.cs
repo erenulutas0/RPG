@@ -1545,6 +1545,7 @@ namespace Cryptforge.Tests
                     _wavesPerRoom[i] = _floor.Rooms[i] == null ? 0 : _floor.Rooms[i].Length + SurgesIn(i);
                 _progress = new FloorProgress(_wavesPerRoom, EndlessRooms());
                 _waveOrdinal = 0;
+                _sentryFloor = HoldsASentry(_floor);
             }
 
             // The checkpoint's Descend (CombatSetup.OnCheckpointChosen): the run's gold secured, then
@@ -2696,8 +2697,8 @@ namespace Cryptforge.Tests
                     severShare = severed > 0f ? (severed - context.Amount) / severed : 0f;
                     context = new DamageContext(severed, context.Source, context.IsCritical);
                 }
-                // docs/50's Mirror Sentry (research 2026-11-12, DescentSimulation.Vaults.cs): its guard, on a floor with it.
-                if (VaultsOn)
+                // The Mirror Sentry's guard (MirrorGuardRule, DescentSimulation.Vaults.cs), once it has been stepped.
+                if (foe.Guard != null)
                     context = SentryGuard(foe, context, source);
                 bool proc = striking != null && StrikeHasProcced();
                 float struck = context.Amount;
@@ -3103,7 +3104,7 @@ namespace Cryptforge.Tests
                 if (taken <= 0f)
                     return;
                 _lastHeroHit = _seconds;
-                if (VaultsOn)
+                if (VaultsOn || _sentryFloor)
                     VaultsTaken(context, taken);
                 if (context.Source is Foe foe)
                 {
@@ -4049,8 +4050,8 @@ namespace Cryptforge.Tests
                 bool marked = (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked) || _marks.Count > 0;
                 bool stepped = FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss, !boss),
                     marked, glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
-                // docs/50's flank habit (research 2026-11-12): round the Mirror Sentry towards its rear.
-                if (stepped && !boss && VaultsOn)
+                // The flank (FootworkRule.Flank): round the Mirror Sentry toward its rear.
+                if (stepped && !boss && target.Guard != null)
                     Flank(target, x, y, ref gx, ref gy);
                 return stepped;
             }
