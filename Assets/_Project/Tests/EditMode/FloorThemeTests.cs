@@ -149,5 +149,66 @@ namespace Cryptforge.Tests
             Assert.That(set.FoundryEmbers.mainTexture.name, Is.EqualTo("FoundryEmbers"));
             Assert.That(set.FoundryPitLining.mainTexture.name, Is.EqualTo("FoundryPitLining"));
         }
+
+        // Floor 3's (docs/51): its paving and masonry in the set, by theme; its variants of every glowing texture the ice
+        // pass made, of the same size and import, under Resources/Gloam; no painted plate yet (pass 2), so the cavern is
+        // tinted.
+        [Test]
+        public void ThePlatformSetCarriesFloorThreesGloamArt()
+        {
+            var set = AssetDatabase.LoadAssetAtPath<Cryptforge.Art.PlatformMaterialSet>(
+                "Assets/_Project/Art/Environment/Platform/PlatformMaterials.asset");
+            Assert.That(set, Is.Not.Null);
+            Assert.That(set.GloamPaving, Is.Not.Null);
+            Assert.That(set.GloamMasonry, Is.Not.Null);
+            Assert.That(set.GloamPaving.name, Is.EqualTo("GloamPavingV1"));
+            Assert.That(set.GloamMasonry.name, Is.EqualTo("GloamMasonryV1"));
+            Assert.That(set.PavingFor(FloorTheme.Gloam), Is.SameAs(set.GloamPaving));
+            Assert.That(set.MasonryFor(FloorTheme.Gloam), Is.SameAs(set.GloamMasonry));
+            Assert.That(set.PavingFor(FloorTheme.Ice), Is.SameAs(set.IcePaving));
+            Assert.That(set.MasonryFor(FloorTheme.Ice), Is.SameAs(set.IceMasonry));
+            Assert.That(set.BackdropFor(FloorTheme.Ice), Is.SameAs(set.IceBackdrop));
+            Assert.That(set.PavingFor(FloorTheme.Foundry), Is.Null);
+            Assert.That(set.BackdropFor(FloorTheme.Foundry), Is.Null);
+            AssertTwin("Assets/_Project/Art/Environment/Gloam/GloamPavingV1.png", "Assets/_Project/Art/Environment/Ice/IcePavingV1.png");
+            AssertTwin("Assets/_Project/Art/Environment/Gloam/GloamMasonryV1.png", "Assets/_Project/Art/Environment/Ice/IceMasonryV1.png");
+            int variants = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Resources/Ice" }))
+            {
+                string ice = AssetDatabase.GUIDToAssetPath(guid);
+                string name = System.IO.Path.GetFileNameWithoutExtension(ice);
+                Assert.That(Resources.Load<Texture2D>("Gloam/" + name), Is.Not.Null, name + " has a gloam variant.");
+                AssertTwin("Assets/_Project/Resources/Gloam/" + System.IO.Path.GetFileName(ice), ice);
+                variants++;
+            }
+            Assert.That(variants, Is.EqualTo(16), "The ice pass's sixteen variants.");
+            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Resources/Gloam" }).Length, Is.EqualTo(variants),
+                "Resources/Gloam holds the ice pass's list and nothing else.");
+        }
+
+        // A floor-3 texture: its own guid, its Ice twin's size and import settings.
+        static void AssertTwin(string path, string twinPath)
+        {
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            var twin = (TextureImporter)AssetImporter.GetAtPath(twinPath);
+            Assert.That(importer, Is.Not.Null, path);
+            Assert.That(twin, Is.Not.Null, twinPath);
+            Assert.That(AssetDatabase.AssetPathToGUID(path), Is.Not.EqualTo(AssetDatabase.AssetPathToGUID(twinPath)), path);
+            Assert.That(importer.textureType, Is.EqualTo(twin.textureType), path);
+            Assert.That(importer.mipmapEnabled, Is.EqualTo(twin.mipmapEnabled), path);
+            Assert.That(importer.wrapMode, Is.EqualTo(twin.wrapMode), path);
+            Assert.That(importer.filterMode, Is.EqualTo(twin.filterMode), path);
+            Assert.That(importer.isReadable, Is.EqualTo(twin.isReadable), path);
+            Assert.That(importer.alphaIsTransparency, Is.EqualTo(twin.alphaIsTransparency), path);
+            Assert.That(importer.maxTextureSize, Is.EqualTo(twin.maxTextureSize), path);
+            TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings("Android");
+            TextureImporterPlatformSettings twinAndroid = twin.GetPlatformTextureSettings("Android");
+            Assert.That(android.overridden, Is.EqualTo(twinAndroid.overridden), path);
+            Assert.That(android.format, Is.EqualTo(twinAndroid.format), path);
+            Assert.That(android.maxTextureSize, Is.EqualTo(twinAndroid.maxTextureSize), path);
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            var twinTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(twinPath);
+            Assert.That((texture.width, texture.height), Is.EqualTo((twinTexture.width, twinTexture.height)), path);
+        }
     }
 }
