@@ -43,6 +43,15 @@ namespace Cryptforge.UI
         private float _elapsed;
         private float _nextFrame;
 
+        // Floor 2 (FloorTheme.Ice): smoke becomes cold haze, embers frost motes, the pit's glow quicksilver; redrawn at once.
+        private bool _cold;
+        internal void SetCold(bool cold)
+        {
+            if(cold==_cold)return;
+            _cold=cold;
+            if(_mesh!=null)Draw(_elapsed);
+        }
+
         public void Build(Material material)
         {
             // Smoke rises from the round boilers' flue mouths.
@@ -120,6 +129,7 @@ namespace Cryptforge.UI
                 Disc(SmokeCount+EmberCount+i,_sources[i],.4f,.16f,new Color(1,.32f,.065f,.15f*pulse));
             }
             DrawPit(time);
+            if(_cold)for(int i=0;i<_colors.Length;i++)_colors[i]=FoundryRegionView.ColdAtmosphere(_colors[i]);
             _mesh.SetVertices(_vertices);
             _mesh.SetColors(_colors);
         }

@@ -25,3 +25,6 @@ MonoBehaviour:
   _foundryPaving: {fileID: 2100000, guid: bb0e7a77a8343c145bb92c982d7526df, type: 2}
   _foundryFlagstone: {fileID: 2100000, guid: 1ed06d17ef6641aaa117e16b3303a402, type: 2}
   _forgeKeeper: {fileID: 2100000, guid: 735dd49b22004c4685f19a31c48d7184, type: 2}
+  _icePaving: {fileID: 2800000, guid: d953b2f2d4c6449b969b63e575313b10, type: 3}
+  _iceMasonry: {fileID: 2800000, guid: f079668d0361456f95f203143dd2a4ab, type: 3}
+  _iceBackdrop: {fileID: 21300000, guid: 46ebfbb00e1544b8bac1f7b1f3566d56, type: 3}

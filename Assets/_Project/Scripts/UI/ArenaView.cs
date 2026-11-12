@@ -1,4 +1,5 @@
 using Cryptforge.Art;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using UnityEngine;
 
@@ -72,7 +73,8 @@ namespace Cryptforge.UI
             {
                 Region=Child<FoundryRegionView>("Playable Foundry");
                 Region.Build(this,_furnaceSprite);
-                Child<FoundryAtmosphereView>("Foundry atmosphere").Build(_material);
+                _atmosphere=Child<FoundryAtmosphereView>("Foundry atmosphere");
+                _atmosphere.Build(_material);
                 return;
             }
             Platform = Child<ForgePlatformView>("Forge Platform");
@@ -84,6 +86,47 @@ namespace Cryptforge.UI
                 Scenery.Build(geometry, _furnaceSprite, _platformMaterials.Floor, _sortingOrder + 6);
             }
         }
+
+        // The floor's dress (FloorTheme): the region re-tints its own meshes and the backdrop's plate is tinted; Foundry
+        // restores exactly what Awake built, and asking for the theme already on show does nothing.
+        public FloorTheme Theme { get; private set; }
+        public void ApplyFloorTheme(FloorTheme theme)
+        {
+            if (theme == Theme)
+                return;
+            Theme = theme;
+            bool ice = theme == FloorTheme.Ice;
+            if (Region != null)
+                Region.ApplyTheme(theme, _platformMaterials);
+            if (_atmosphere != null)
+                _atmosphere.SetCold(ice);
+            // The hero's contact patch widens on the ice floor so the Vanguard keeps his footing against the slate (docs/49).
+            var hero = FindFirstObjectByType<HeroLookView>();
+            Transform shadow = hero != null ? hero.transform.Find("Contact Shadow") : null;
+            if (shadow != null)
+            {
+                if (_heroShadow != shadow) { _heroShadow = shadow; _heroShadowScale = shadow.localScale; }
+                shadow.localScale = ice ? _heroShadowScale * IceHeroShadow : _heroShadowScale;
+            }
+            if (Backdrop != null && Backdrop.CavernRenderer != null)
+            {
+                SpriteRenderer plate = Backdrop.CavernRenderer;
+                if (!_cavernColourKept) { _cavernColour = plate.color; _cavernSprite = plate.sprite; _cavernColourKept = true; }
+                Sprite painted = _platformMaterials != null ? _platformMaterials.IceBackdrop : null;
+                // The ice vault's own painting where it exists (the same size and framing as the cavern's), else the
+                // cavern tinted cold.
+                plate.sprite = ice && painted != null ? painted : _cavernSprite;
+                plate.color = ice && painted == null ? FoundryRegionView.IceBackdrop(_cavernColour) : _cavernColour;
+                Backdrop.FrameCavern();
+            }
+        }
+        private const float IceHeroShadow = 1.25f;
+        private FoundryAtmosphereView _atmosphere;
+        private Transform _heroShadow;
+        private Vector3 _heroShadowScale;
+        private Color _cavernColour;
+        private Sprite _cavernSprite;
+        private bool _cavernColourKept;
 
         private T Child<T>(string name) where T : Component
         {

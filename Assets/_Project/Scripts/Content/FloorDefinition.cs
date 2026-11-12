@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Cryptforge.Content
 {
+    // How the foundry region dresses a floor: Foundry is floor 1's look, Ice floor 2's cold re-tint (FoundryRegionTheme).
+    public enum FloorTheme { Foundry = 0, Ice = 1 }
+
     // One Descent floor: rooms in order ending at the floor boss, a scaling tier, an optional modifier, and the floor
     // reached by descending from its checkpoint (none on the final floor).
     [CreateAssetMenu(menuName = "Cryptforge/Floor Definition")]
@@ -33,6 +36,7 @@ namespace Cryptforge.Content
         [SerializeField] private EnemyDefinition[] _foundryHorde;
         [SerializeField] private FloorModifierDefinition _modifier;
         [SerializeField] private FloorDefinition _nextFloor;
+        [SerializeField] private FloorTheme _theme;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -48,6 +52,7 @@ namespace Cryptforge.Content
         public EnemyDefinition HordeRoleAt(int index) => _foundryHorde[index];
         public FloorModifierDefinition Modifier => _modifier;
         public FloorDefinition NextFloor => _nextFloor;
+        public FloorTheme Theme => _theme;
 
         public RoomDefinition RoomAt(int index) => _rooms[index];
     }
