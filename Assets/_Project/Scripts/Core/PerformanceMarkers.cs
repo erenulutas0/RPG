@@ -66,6 +66,32 @@ namespace Cryptforge.Core
         public const string GroundGridName = "Cryptforge.Ground.Grid";
         public const string GroundApplyName = "Cryptforge.Ground.Apply";
 
+        // A floor's dress changing (FloorTheme, docs/49): the whole of ArenaView.ApplyFloorTheme (Apply), and inside it the
+        // region's colour streams swapped (a direct mesh's colours written) and the sprite colours re-tinted (Retint), the property-block texture swaps with their Resources/Ice loads (Textures), the ice-crystal mesh shown or
+        // hidden (Crystals; built in the preparation), the mirror panels and snow drifts shown or hidden (Props, likewise), the frost
+        // creep over the camera on the descent's landing, built on first use and started (Transition,
+        // ArenaView.PlayFrostTransition, outside Apply), and the atmosphere, hero shadow and backdrop plate (Backdrop). Frost is one enemy
+        // body's palette swapped to the frosted set (EnemyLookView.UseFrost), only when it actually changes. Floor 1 pays none.
+        public const string ThemeApplyName = "Cryptforge.Theme.Apply";
+        public const string ThemeRetintName = "Cryptforge.Theme.Retint";
+        public const string ThemeTexturesName = "Cryptforge.Theme.Textures";
+        public const string ThemeCrystalsName = "Cryptforge.Theme.Crystals";
+        public const string ThemePropsName = "Cryptforge.Theme.Props";
+        public const string ThemeTransitionName = "Cryptforge.Theme.Transition";
+        public const string ThemeBackdropName = "Cryptforge.Theme.Backdrop";
+        public const string ThemeFrostName = "Cryptforge.Theme.Frost";
+        // The ice dress worked out ahead, while floor 1 plays (FoundryRegionView.PrepareTheme): one main-thread slice a
+        // frame; inside Apply only when a change came before it was ready.
+        public const string ThemePrepareName = "Cryptforge.Theme.Prepare";
+        // A left dress released over the frames after the change (FoundryRegionView.ReleaseLater): its colour streams
+        // destroyed and its Resources variants unloaded, a slice a frame; never inside Apply.
+        public const string ThemeReleaseName = "Cryptforge.Theme.Release";
+        public static readonly string[] ThemeNames =
+        {
+            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
+            ThemeTransitionName, ThemeFrostName, ThemePrepareName, ThemeReleaseName
+        };
+
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
         public static readonly string[] PickNames =
         {
@@ -73,7 +99,9 @@ namespace Cryptforge.Core
             PickAddWeaponName, PickHeroStatsName, PickPauseName, PickHudName, PickLoadoutName,
             LateCameraName, LateEffectsName, LateShadowsName, LateExitSealName, LateHudArtName, LatePitName, LatePuppetName,
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
-            DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName
+            DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName,
+            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
+            ThemeTransitionName, ThemeFrostName, ThemePrepareName, ThemeReleaseName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -112,5 +140,15 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker GroundMaterial = new ProfilerMarker(ProfilerCategory.Scripts, GroundMaterialName);
         public static readonly ProfilerMarker GroundGrid = new ProfilerMarker(ProfilerCategory.Scripts, GroundGridName);
         public static readonly ProfilerMarker GroundApply = new ProfilerMarker(ProfilerCategory.Scripts, GroundApplyName);
+        public static readonly ProfilerMarker ThemeApply = new ProfilerMarker(ProfilerCategory.Scripts, ThemeApplyName);
+        public static readonly ProfilerMarker ThemeRetint = new ProfilerMarker(ProfilerCategory.Scripts, ThemeRetintName);
+        public static readonly ProfilerMarker ThemeTextures = new ProfilerMarker(ProfilerCategory.Scripts, ThemeTexturesName);
+        public static readonly ProfilerMarker ThemeCrystals = new ProfilerMarker(ProfilerCategory.Scripts, ThemeCrystalsName);
+        public static readonly ProfilerMarker ThemeProps = new ProfilerMarker(ProfilerCategory.Scripts, ThemePropsName);
+        public static readonly ProfilerMarker ThemeTransition = new ProfilerMarker(ProfilerCategory.Scripts, ThemeTransitionName);
+        public static readonly ProfilerMarker ThemeBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, ThemeBackdropName);
+        public static readonly ProfilerMarker ThemeFrost = new ProfilerMarker(ProfilerCategory.Scripts, ThemeFrostName);
+        public static readonly ProfilerMarker ThemePrepare = new ProfilerMarker(ProfilerCategory.Scripts, ThemePrepareName);
+        public static readonly ProfilerMarker ThemeRelease = new ProfilerMarker(ProfilerCategory.Scripts, ThemeReleaseName);
     }
 }

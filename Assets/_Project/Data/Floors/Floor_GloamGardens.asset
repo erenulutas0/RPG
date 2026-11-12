@@ -90,4 +90,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
   _modifier: {fileID: 0}
   _nextFloor: {fileID: 11400000, guid: b42e426407044031a82a854340dfd6f5, type: 2}
-  _theme: 0
+  _theme: 2

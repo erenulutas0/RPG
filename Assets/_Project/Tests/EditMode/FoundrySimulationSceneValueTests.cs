@@ -244,7 +244,7 @@ namespace Cryptforge.Tests
             AssertFloor(asset, floor);
             Assert.That(asset.DisplayName, Is.EqualTo("Gloam Gardens"));
             Assert.That(asset.Modifier, Is.Null, "no modifier on floor 3's first build");
-            Assert.That(asset.Theme, Is.EqualTo(FloorTheme.Foundry), "the Foundry's look until floor 3 has its own");
+            Assert.That(asset.Theme, Is.EqualTo(FloorTheme.Gloam), "floor 3 wears its own overgrown look (docs/51)");
             Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(DescentSimulation.FloorThreeGateSeconds), "floor 3's gate");
             Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(180f), "floor 3's gate holds for 3:00, half a minute before floors 1 and 2's");
             Assert.That(asset.EnemyHealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));

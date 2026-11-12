@@ -71,8 +71,11 @@ namespace Cryptforge.Tests
             Type view = typeof(FoundryRegionView);
             string panelName = Const<string>(view, "IcePanelName"), driftName = Const<string>(view, "IceDriftName");
             Count(region, out int floorOneRenderers, out int floorOneVertices);
-            Assert.That(region.transform.Find(panelName), Is.Null, "Floor 1 never builds the mirror panels.");
-            Assert.That(region.transform.Find(driftName), Is.Null, "Floor 1 never builds the drifts.");
+            // Floor 2's dress is prepared while floor 1 plays: its props may already stand, hidden.
+            Transform early = region.transform.Find(panelName);
+            Assert.That(early == null || !early.gameObject.activeSelf, Is.True, "Floor 1 never shows the mirror panels.");
+            early = region.transform.Find(driftName);
+            Assert.That(early == null || !early.gameObject.activeSelf, Is.True, "Floor 1 never shows the drifts.");
 
             arena.ApplyFloorTheme(FloorTheme.Ice);
             yield return null;

@@ -3070,3 +3070,61 @@ all held the Sword and the Daggers; its three clears took the Staff.
 
 `08f9703` (2026-11-04): the foundry batch report opens with the V0.1 gate, one row for each of docs/41's criteria (docs/41,
 status 2026-11-04).
+
+## 2026-11-12 night - The Final Swarm's pool, the clean APK, the offline device rows
+
+The overnight merges (docs/41, status 2026-11-12 morning), verified on `90c7eab1` (EditMode 1186, PlayMode 346 + 5
+explicit):
+
+- `472f18ba` / `34d8fead`: the Final Swarm's plain enemies are pooled by kind like the horde's (the Forge Warden, the
+  gate boss and elites are not); a refill takes 16 allocations against 77; `RetireFallen` asserts the place it refills.
+- `88f60745`: burns wait while the boss reveal holds the fight (scene and simulation; Ilya's floor P50
+  275 -> 276 s), and the boss banner reads the gate boss, not its escort.
+- `8f003f6c` / `90c7eab1`: 42 player-facing decimals in the invariant culture (a tr-TR phone read
+  "+0,45 reach").
+- `da60d7ee`: `AndroidPrototypeBuild` clears Gradle's outputs/apk, so the APK is written from scratch (about 10 MB of
+  holes, the 43 -> 47 MB growth); `BuildSizeReport` writes per-asset, per-file and hole sizes. APK 36.8 MB again.
+- `e93653be` / `4b3d29e1`: `Pull-DeviceEvidence.ps1 -FromFolder` parses a folder as a device pull; both
+  device rows fill on stand-in telemetry; docs/23's morning runbook.
+- `19504871`: docs/48, the third floor's proposal (Gloam Gardens). `526562fc`: `MultiRunSoak` (explicit), three
+  Descents back to back with every count identical and the heap flat at 14-15.6 MB.
+
+## 2026-11-12 - The rarity cards, the foundry art and the ice map
+
+`fccb728d` (pushed): the choice cards' item grounds by rarity (Common grey, Rare blue, Epic red, Gold gold); the
+foundry art (the trolley as cast iron carrying steel, the calmer gate crown, the court's lane lines); the second map,
+frozen Quicksilver Vaults - `FloorDefinition.Theme` Ice on floor 2 (`FoundryRegionView.ApplyTheme`), ice copies of the
+foundry's textures in Resources/Ice, an aurora backdrop; floor 1 unchanged; docs/49 is the art direction. The lead took
+the visual decisions on the owner's delegation (docs/41, status 2026-11-12 midday). APK 43,691,365 bytes.
+
+## 2026-11-12 - Frosted enemies on floor 2, the trolley's warmth
+
+`930299dd` / `994f4acd`: all six painted enemy sets have cold copies (silver bodies, violet #8B6CE8 glow;
+`EnemyArtSet.Frosted`, `EnemyLookView.UseFrost`), asked for by floor as each body spawns or leaves the shelf; visual
+only. The trolley gets bronze fittings and warmer oak back. `954881df`: the look resolves the set from `_paintedArt` on
+show, the art budget counts the Ice copies apart (`FrostedArtCopies`). Pushed with docs/50 and docs/51 (`6d17d1e5`) as
+`8c7514c3`; APK 46,509,471 bytes.
+
+## 2026-11-12 - The ice props and the frost transition
+
+`be7b2b14` (pushed as `3c514b75`): six mirror panels and ten snow drifts on floor 2 (41 renderers, 163,373 vertices),
+`FrostTransitionView` (0.6 s on entering floor 2), `IceFloorPropsTests`. `d0115285`: a drift's last vertex was NaN
+(`Pow` of a hair-negative `Sin(PI)`), so the mesh had an invalid world AABB; clamped, and the test asserts every vertex
+is finite. Unity: EditMode 1189, PlayMode 351 + 6; APK 46,528,031 bytes, SHA-256 3B4DDAB7...
+
+## 2026-11-12 - Floor 3, Gloam Gardens (phase 1)
+
+`e1cdb8da` (local main, not pushed): `Floor_GloamGardens` between floor 2 and the Final Swarm - floor 2's six rooms
+under the garden's names at floor 3's tier, the Foundry theme, its Warden at 11.5 times its authored health
+(`_foundryGateHealthShare` 5.102041), its gate at 180 s (`f8782202`, `5acedcc4`). The simulation mirrors it
+(`FinaleFloor` 4, `FOUNDRY_FLOORS` 2 / 3 / 4), `ThirdFloorResearch` tunes it, and `HordePacingMeasurement` plays the
+four-floor Descent (horde-floors.txt "4"). Seeds 1-200, both heroes, five cohorts: the Descent P10 / P50 / P90 13.8 /
+14.2 / 14.8 min, no finale death, floors 1 and 2 byte-identical. Unity filters EditMode 79 / 79, PlayMode 33 / 33;
+CombatChecks 798. docs/48 holds both rounds.
+
+## 2026-11-12 - The Vaults' own enemies, measured
+
+`b85969c2` (local main, not pushed): docs/50's four creatures as simulation-only levers, off by default
+(`VaultsEnemiesResearch`, `DescentSimulation.Vaults`); the default batch is byte-identical. Two rounds (docs/50,
+Measured): the Mirror Sentry `t45-h125-c2-f50` is the one to build (the Daggers +83 %, clumsy completion 40.8 %); the
+Glass Regent at share 7.0 (49 / 46 s on seeds 201-400); the Silver Wisp and the Faceless Clerk move nothing and wait.

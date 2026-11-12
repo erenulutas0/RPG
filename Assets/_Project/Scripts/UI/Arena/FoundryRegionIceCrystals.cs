@@ -6,7 +6,7 @@ namespace Cryptforge.UI
 {
     // Floor 2's ice growth (docs/49): icicles hanging from the platform's outer rim and small crystal clusters on its
     // sidewalls, two-tone faceted mirror-ice (#1F4E66 / #5FA8C8 / #BFE6F2). All of it hangs off the deck's outer faces,
-    // never on the walkable floor, the pit, the gate path or the bridge. Built once, the first time the ice floor is shown,
+    // never on the walkable floor, the pit, the gate path or the bridge. Built once, hidden, while the floor before the ice plays,
     // as one mesh in the coping material drawn untextured (ApplyTheme's Bare dress); hidden on the foundry. Floor 1 never
     // builds it, so its renderer and vertex counts are unchanged. Drawn between the sidewalls and the paving, so the deck
     // covers whatever hangs from a rim that faces away from the camera.
@@ -19,23 +19,39 @@ namespace Cryptforge.UI
         private static readonly Color IceDeep=Hex(0x1F4E66);
         private GameObject _iceCrystals;
 
+        // The finished geometry of a theme prop: positions, colours and triangles, worked out off the main thread.
+        private sealed class PropGeometry
+        {
+            public readonly List<Vector3> V=new List<Vector3>();
+            public readonly List<Color> C=new List<Color>();
+            public readonly List<int> T=new List<int>();
+        }
+
         private void BuildIceCrystals(PlatformMaterialSet set)
         {
             if(_iceCrystals!=null||set==null||set.Coping==null)return;
-            var v=new List<Vector3>();var c=new List<Color>();var t=new List<int>();var uv=new List<Vector2>();
+            MakeIceCrystals(IceCrystalGeometry(new List<Vector2Int>(_cells)),set);
+        }
+
+        // The crystals' and icicles' geometry from the region's cells. Pure (no engine object is touched): it runs on a
+        // worker thread while the floor before plays (PrepareTheme).
+        private static PropGeometry IceCrystalGeometry(List<Vector2Int> cells)
+        {
+            var g=new PropGeometry();
+            List<Vector3> v=g.V;List<Color> c=g.C;List<int> t=g.T;
             int edge=0;
-            var cells=new List<Vector2Int>(_cells);
             // A stable order, independent of the hash set's.
             cells.Sort((p,q)=>p.y!=q.y?p.y.CompareTo(q.y):p.x.CompareTo(q.x));
             var neighbours=new[]{Vector2Int.down,Vector2Int.right,Vector2Int.up,Vector2Int.left};
+            var corner=new Vector3[4];
             foreach(var cell in cells)
             {
                 float x=cell.x,y=cell.y;
-                var p=new[]{Project(x,y),Project(x+1,y),Project(x+1,y+1),Project(x,y+1)};
+                corner[0]=Project(x,y);corner[1]=Project(x+1,y);corner[2]=Project(x+1,y+1);corner[3]=Project(x,y+1);
                 for(int i=0;i<4;i++)
                 {
                     if(FoundryMap.UncutCell(cell.x+neighbours[i].x,cell.y+neighbours[i].y))continue;
-                    Vector3 a=p[i],b=p[(i+1)%4];
+                    Vector3 a=corner[i],b=corner[(i+1)%4];
                     FoundrySurface.ToDesign((a.x+b.x)*.5f,(a.y+b.y)*.5f,out float edgeU,out float edgeV);
                     if(!CourtEdgeVisible(edgeU,edgeV))continue;
                     // Only the platform's outer rim, open to the void for several cells: never the pit, a shaft or a
@@ -44,15 +60,23 @@ namespace Cryptforge.UI
                     // Only rims whose sidewall faces the camera (outward runs down the screen) show their ice.
                     Vector3 outward=(a+b)*.5f-Project(x+.5f,y+.5f);
                     if(outward.y>=0)continue;
-                    if(v.Count+36>IceCrystalVertexCap)break;
+                    if(v.Count+36>IceCrystalVertexCap)return g;
                     int seed=cell.x*73+cell.y*151+i*17;
                     if(edge%2==0)for(int k=0;k<3;k++)Icicle(v,c,t,a,b,(k+.5f)/3+(Hash(seed+k)-.5f)*.18f,seed+k);
                     if(edge%5==2)Cluster(v,c,t,Vector3.Lerp(a,b,.35f+Hash(seed+9)*.3f)+Vector3.down*(.9f+Hash(seed+5)*.7f),seed);
                     edge++;
                 }
             }
-            for(int i=0;i<v.Count;i++)uv.Add(Vector2.zero);
-            var mesh=new Mesh{name=IceCrystalName};mesh.SetVertices(v);mesh.SetUVs(0,uv);mesh.SetColors(c);mesh.SetTriangles(t,0);
+            return g;
+        }
+
+        // The crystals' object from their geometry (the main thread's share).
+        private void MakeIceCrystals(PropGeometry g,PlatformMaterialSet set)
+        {
+            if(_iceCrystals!=null||g==null||set==null||set.Coping==null)return;
+            var uv=new List<Vector2>(g.V.Count);
+            for(int i=0;i<g.V.Count;i++)uv.Add(Vector2.zero);
+            var mesh=new Mesh{name=IceCrystalName};mesh.SetVertices(g.V);mesh.SetUVs(0,uv);mesh.SetColors(g.C);mesh.SetTriangles(g.T,0);
             mesh.RecalculateBounds();_owned.Add(mesh);
             _iceCrystals=new GameObject(IceCrystalName);_iceCrystals.transform.SetParent(transform,false);
             _iceCrystals.AddComponent<MeshFilter>().sharedMesh=mesh;
