@@ -89,6 +89,15 @@ namespace Cryptforge.Tests
                 "Telegraphs and contact shadows draw over the drifts.");
             // The project builds without the physics module (no Collider type here): nothing on the panels but the mesh.
             Assert.That(HasCollider(panels.gameObject), Is.False);
+            // Every position finite, so each renderer has a valid world AABB (a NaN drift vertex once broke it).
+            foreach (Transform prop in new[] { panels, drifts })
+            {
+                Mesh mesh = prop.GetComponent<MeshFilter>().sharedMesh;
+                foreach (Vector3 p in mesh.vertices)
+                    Assert.That(float.IsNaN(p.x) || float.IsNaN(p.y) || float.IsNaN(p.z) || float.IsInfinity(p.x) || float.IsInfinity(p.y),
+                        Is.False, prop.name + " has a non-finite vertex.");
+                Assert.That(float.IsNaN(mesh.bounds.size.sqrMagnitude), Is.False, prop.name + "'s bounds are finite.");
+            }
             Count(region, out _, out int floorTwoVertices);
             Assert.That(floorTwoVertices, Is.LessThan(170000), "Floor 2 stays under the ice pass's vertex line.");
             // Every drift vertex lies where no hero can stand: inside the edge margin, off every lane.

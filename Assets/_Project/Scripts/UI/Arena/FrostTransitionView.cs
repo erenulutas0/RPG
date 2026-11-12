@@ -59,6 +59,7 @@ namespace Cryptforge.UI
             _mesh=new Mesh{name=ObjectName};
             _mesh.MarkDynamic();
             _mesh.vertices=_vertices;_mesh.colors=_colours;_mesh.triangles=triangles;
+            _mesh.bounds=new Bounds(Vector3.zero,Vector3.one);
             gameObject.AddComponent<MeshFilter>().sharedMesh=_mesh;
             _renderer=gameObject.AddComponent<MeshRenderer>();
             _renderer.sharedMaterial=material;_renderer.sortingOrder=SortingOrder;
@@ -98,6 +99,9 @@ namespace Cryptforge.UI
             // The frost creeps in fast and holds while it fades.
             float creep=1-Mathf.Pow(1-Mathf.Clamp01(_elapsed/(Duration*.4f)),3);
             float side=Mathf.Min(_framedSize*2,_framedSize*2*_framedAspect);
+            // A camera not yet sized (or a degenerate aspect) draws nothing rather than non-finite positions.
+            if(!(side>0)||float.IsInfinity(side)||!(strength>=0)){_renderer.enabled=false;return;}
+            _renderer.enabled=true;
             for(int i=0;i<Around;i++)
             {
                 Vector2 edge=_edge[i],inward=_inward[i];
@@ -112,7 +116,8 @@ namespace Cryptforge.UI
                 _colours[i*3]=outer;_colours[i*3+1]=mid;_colours[i*3+2]=inner;
             }
             _mesh.vertices=_vertices;_mesh.colors=_colours;
-            _mesh.RecalculateBounds();
+            // Explicit, finite bounds round the camera-local ring (the view rectangle plus its margin).
+            _mesh.bounds=new Bounds(Vector3.zero,new Vector3(_framedSize*_framedAspect*2.2f,_framedSize*2.2f,.1f));
         }
 
         // The ring's outer edge on the camera's view rectangle (a little past it), and each point's way in, redone only
@@ -122,6 +127,7 @@ namespace Cryptforge.UI
             transform.localPosition=new Vector3(0,0,_camera.nearClipPlane+.05f);
             transform.localRotation=Quaternion.identity;transform.localScale=Vector3.one;
             float size=_camera.orthographicSize,aspect=_camera.aspect;
+            if(!(size>0)||!(aspect>0)||float.IsInfinity(size)||float.IsInfinity(aspect))return;
             if(Mathf.Approximately(size,_framedSize)&&Mathf.Approximately(aspect,_framedAspect))return;
             _framedSize=size;_framedAspect=aspect;
             float halfY=size*1.04f,halfX=size*aspect*1.04f;

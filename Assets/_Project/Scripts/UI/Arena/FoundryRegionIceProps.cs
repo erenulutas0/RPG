@@ -87,6 +87,9 @@ namespace Cryptforge.UI
 
         private GameObject IcePropObject(string name,List<Vector3> v,List<Color> c,List<int> t,Material material,int order,float sortReach)
         {
+            // A non-finite position would give the renderer an invalid world AABB: none is expected, but any that slips
+            // through collapses to its triangle's first finite corner (a degenerate, invisible triangle).
+            for(int i=0;i<v.Count;i++)if(!Finite(v[i]))v[i]=FiniteNeighbour(v,i);
             var uv=new List<Vector2>(v.Count);for(int i=0;i<v.Count;i++)uv.Add(Vector2.zero);
             var mesh=new Mesh{name=name};mesh.SetVertices(v);mesh.SetUVs(0,uv);mesh.SetColors(c);mesh.SetTriangles(t,0);
             mesh.RecalculateBounds();
@@ -100,6 +103,14 @@ namespace Cryptforge.UI
             renderer.lightProbeUsage=UnityEngine.Rendering.LightProbeUsage.Off;
             renderer.reflectionProbeUsage=UnityEngine.Rendering.ReflectionProbeUsage.Off;
             return obj;
+        }
+
+        internal static bool Finite(Vector3 p)=>!float.IsNaN(p.x)&&!float.IsNaN(p.y)&&!float.IsNaN(p.z)&&
+            !float.IsInfinity(p.x)&&!float.IsInfinity(p.y)&&!float.IsInfinity(p.z);
+        private static Vector3 FiniteNeighbour(List<Vector3> v,int i)
+        {
+            for(int k=1;k<v.Count;k++){if(i-k>=0&&Finite(v[i-k]))return v[i-k];if(i+k<v.Count&&Finite(v[i+k]))return v[i+k];}
+            return Vector3.zero;
         }
 
         // A tall faceted slab of mirror-ice: a rimed iron foot, a lit bevel, two centre facets meeting at a peaked crown and
@@ -173,7 +184,8 @@ namespace Cryptforge.UI
                 float s=(float)k/segments;
                 Vector2 foot=Vector2.Lerp(from,to,s)+inward*.02f;
                 // Heaped in the middle, low at the ends, its inner edge waving.
-                float heap=Mathf.Pow(Mathf.Sin(Mathf.PI*s),.6f);
+                // Sin(PI) is a hair below zero in floats, and a negative base to a fractional power is NaN: clamp it first.
+                float heap=Mathf.Pow(Mathf.Clamp01(Mathf.Sin(Mathf.PI*s)),.6f);
                 float depth=DriftDepth*(.3f+.7f*heap)*(.82f+.18f*Mathf.Sin(s*9.4f+seed*1.7f));
                 float end=Mathf.SmoothStep(0,1,Mathf.Min(s,1-s)*6f);
                 Vector2 mid=foot+inward*depth*.5f,inner=foot+inward*depth;
