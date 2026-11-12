@@ -81,10 +81,13 @@ namespace Cryptforge.Core
         public const string ThemeTransitionName = "Cryptforge.Theme.Transition";
         public const string ThemeBackdropName = "Cryptforge.Theme.Backdrop";
         public const string ThemeFrostName = "Cryptforge.Theme.Frost";
+        // The ice dress worked out ahead, while floor 1 plays (FoundryRegionView.PrepareTheme): one main-thread slice a
+        // frame; inside Apply only when a change came before it was ready.
+        public const string ThemePrepareName = "Cryptforge.Theme.Prepare";
         public static readonly string[] ThemeNames =
         {
             ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
-            ThemeTransitionName, ThemeFrostName
+            ThemeTransitionName, ThemeFrostName, ThemePrepareName
         };
 
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
@@ -96,7 +99,7 @@ namespace Cryptforge.Core
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
             DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName,
             ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
-            ThemeTransitionName, ThemeFrostName
+            ThemeTransitionName, ThemeFrostName, ThemePrepareName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -143,5 +146,6 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker ThemeTransition = new ProfilerMarker(ProfilerCategory.Scripts, ThemeTransitionName);
         public static readonly ProfilerMarker ThemeBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, ThemeBackdropName);
         public static readonly ProfilerMarker ThemeFrost = new ProfilerMarker(ProfilerCategory.Scripts, ThemeFrostName);
+        public static readonly ProfilerMarker ThemePrepare = new ProfilerMarker(ProfilerCategory.Scripts, ThemePrepareName);
     }
 }

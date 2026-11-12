@@ -591,6 +591,9 @@ namespace Cryptforge.Combat
                 // The descent from floor 1 lands on the frozen floor 2: frost creeps over the view (visual only).
                 if (ArenaView.FrostsOnEntry(FloorNumber, floor.Theme))
                     _arena.PlayFrostTransition();
+                // The next floor's dress, worked out in the background while this one plays, so the descent only binds it.
+                if (floor.NextFloor != null)
+                    _arena.PrepareFloorTheme(floor.NextFloor.Theme);
             }
             _rooms = RoomsAsPlayed(floor);
             _floorProgress = new FloorProgress(WavesOf(_rooms), EndlessOf(_rooms));

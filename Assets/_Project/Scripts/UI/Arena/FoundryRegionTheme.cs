@@ -1,8 +1,12 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Cryptforge.UI
 {
@@ -39,53 +43,275 @@ namespace Cryptforge.UI
         private readonly List<Color[]> _foundryColours=new List<Color[]>(),_iceColours=new List<Color[]>();
         private readonly List<SpriteRenderer> _themeSprites=new List<SpriteRenderer>();
         private readonly List<Color> _foundrySpriteColours=new List<Color>();
-        private bool _themeKept;
         private MaterialPropertyBlock _themeBlock;
 
+        // The ice dress worked out ahead of the floor change (PrepareTheme), so ApplyTheme only binds it: the foundry's
+        // vertex colours kept and their ice grades computed on a worker thread, each renderer's block planned, the cold
+        // texture variants loaded asynchronously (their GPU upload with them). The main thread's share runs in slices of
+        // about PrepareBudgetMs a frame (Cryptforge.Theme.Prepare). A change that comes first finishes it at once.
+        private const double PrepareBudgetMs=1;
+        private struct IceBlock
+        {
+            public MeshRenderer Renderer;
+            public Texture Texture;
+            public Color Colour;
+            public bool Atmosphere;
+            // A Resources/Ice variant still to resolve (null when none is asked for), and the wall-art fallback.
+            public string Variant;
+            public bool WallArt;
+        }
+        private readonly List<IceBlock> _iceBlocks=new List<IceBlock>();
+        private readonly List<Task<Color[]>> _iceGrades=new List<Task<Color[]>>();
+        private readonly Dictionary<string,ResourceRequest> _iceRequests=new Dictionary<string,ResourceRequest>();
+        private IEnumerator _icePreparation;
+        private Coroutine _iceCoroutine;
+        private bool _icePrepared,_iceDraining;
+
         public FloorTheme Theme=>_theme;
+        public bool IsThemePrepared(FloorTheme theme)=>theme!=FloorTheme.Ice||_icePrepared;
+        public bool IsPreparingTheme=>_icePreparation!=null&&!_icePrepared;
+
+        // Starts working out the theme's dress over the next frames; nothing on show changes. Ice only (Foundry is what
+        // Build made); asking again, or once it is ready, does nothing.
+        public void PrepareTheme(FloorTheme theme,PlatformMaterialSet set)
+        {
+            if(theme!=FloorTheme.Ice||_icePrepared||_icePreparation!=null)return;
+            _icePreparation=PrepareIce(set);
+            if(isActiveAndEnabled)_iceCoroutine=StartCoroutine(_icePreparation);
+        }
+
+        // The preparation finished now, in this frame: the rest of what PrepareTheme spreads over frames, a texture still
+        // loading forced to complete and a grade still running waited for.
+        private void FinishIcePreparation(PlatformMaterialSet set)
+        {
+            if(_icePrepared)return;
+            if(_icePreparation==null)_icePreparation=PrepareIce(set);
+            if(_iceCoroutine!=null){StopCoroutine(_iceCoroutine);_iceCoroutine=null;}
+            _iceDraining=true;
+            try{while(!_icePrepared&&_icePreparation.MoveNext()){}}
+            finally{_iceDraining=false;}
+        }
+
+        private IEnumerator PrepareIce(PlatformMaterialSet set)
+        {
+            MeshFilter[] filters;
+            using(PerformanceMarkers.ThemePrepare.Auto())
+            {
+                filters=GetComponentsInChildren<MeshFilter>(true);
+                foreach(var sprite in GetComponentsInChildren<SpriteRenderer>(true))
+                {
+                    if(sprite.name==FoundryVisibilityView.WarmUpName)continue;
+                    _themeSprites.Add(sprite);_foundrySpriteColours.Add(sprite.color);
+                }
+            }
+            yield return null;
+            // The foundry's colours kept and each mesh's grade handed to a worker, a slice a frame.
+            for(int i=0;i<filters.Length;)
+            {
+                using(PerformanceMarkers.ThemePrepare.Auto())
+                {
+                    long slice=Stopwatch.GetTimestamp();
+                    for(;i<filters.Length&&Within(slice);i++)KeepMesh(filters[i],set);
+                }
+                if(i<filters.Length)yield return null;
+            }
+            yield return null;
+            // Every renderer's block planned and the cold variants asked for.
+            MeshRenderer[] renderers;
+            using(PerformanceMarkers.ThemePrepare.Auto())renderers=GetComponentsInChildren<MeshRenderer>(true);
+            for(int i=0;i<renderers.Length;)
+            {
+                using(PerformanceMarkers.ThemePrepare.Auto())
+                {
+                    long slice=Stopwatch.GetTimestamp();
+                    for(;i<renderers.Length&&Within(slice);i++)
+                    {
+                        if(!PlanBlock(renderers[i],set,out IceBlock block))continue;
+                        if(!string.IsNullOrEmpty(block.Variant)&&!_iceVariants.ContainsKey(block.Variant)&&!_iceRequests.ContainsKey(block.Variant))
+                            _iceRequests.Add(block.Variant,Resources.LoadAsync<Texture2D>("Ice/"+block.Variant));
+                        _iceBlocks.Add(block);
+                    }
+                }
+                if(i<renderers.Length)yield return null;
+            }
+            // The loads finish in the background; a change that cannot wait takes them now.
+            foreach(var pair in _iceRequests)
+            {
+                while(!_iceDraining&&!pair.Value.isDone)yield return null;
+                using(PerformanceMarkers.ThemePrepare.Auto())_iceVariants[pair.Key]=pair.Value.asset as Texture2D;
+            }
+            _iceRequests.Clear();
+            using(PerformanceMarkers.ThemePrepare.Auto())
+                for(int i=0;i<_iceBlocks.Count;i++)_iceBlocks[i]=Resolve(_iceBlocks[i],set);
+            // The grades: the worker's result, or the same grade here if the worker failed.
+            for(int i=0;i<_iceGrades.Count;i++)
+            {
+                Task<Color[]> grade=_iceGrades[i];
+                if(grade==null)continue;
+                while(!_iceDraining&&!grade.IsCompleted)yield return null;
+                using(PerformanceMarkers.ThemePrepare.Auto())
+                {
+                    Color[] graded=null;
+                    try{graded=grade.Result;}
+                    catch(System.Exception){graded=null;}
+                    if(graded==null&&_themeMeshes[i]!=null)graded=GradeOf(_themeMeshes[i],_foundryColours[i],_themeDress[i]);
+                    _iceColours[i]=graded;
+                }
+            }
+            _iceGrades.Clear();
+            _icePrepared=true;
+            _iceCoroutine=null;
+        }
+
+        private static bool Within(long since)=>(Stopwatch.GetTimestamp()-since)*1000d/Stopwatch.Frequency<PrepareBudgetMs;
+
+        // One owned mesh's foundry colours kept, and its ice grade started on a worker from copies of what it reads.
+        private void KeepMesh(MeshFilter filter,PlatformMaterialSet set)
+        {
+            if(filter==null)return;
+            var mesh=filter.sharedMesh;
+            if(mesh==null||!_owned.Contains(mesh)||_themeMeshes.Contains(mesh))return;
+            var colours=mesh.colors;
+            if(colours==null||colours.Length==0)return;
+            var renderer=filter.GetComponent<MeshRenderer>();
+            IceDress dress=renderer!=null&&renderer.sharedMaterial!=null?DressOf(renderer.sharedMaterial,set):IceDress.Slate;
+            _themeMeshes.Add(mesh);_foundryColours.Add(colours);_iceColours.Add(null);_themeDress.Add(dress);
+            ReadGradeInputs(mesh,dress,out Vector2[] uvs,out Vector3[] positions,out int[] triangles);
+            _iceGrades.Add(Task.Run(()=>Grade(colours,dress,uvs,positions,triangles)));
+        }
+
+        private static void ReadGradeInputs(Mesh mesh,IceDress dress,out Vector2[] uvs,out Vector3[] positions,out int[] triangles)
+        {
+            uvs=null;positions=null;triangles=null;
+            if(dress==IceDress.Bare){uvs=mesh.uv;positions=mesh.vertices;}
+            // Rime needs the structure's faces; a mesh with no depth flags is not a structure (UpwardVertices).
+            else if(dress!=IceDress.Glow&&dress!=IceDress.Paving&&mesh.uv2!=null&&mesh.uv2.Length>0)
+            {positions=mesh.vertices;triangles=mesh.triangles;}
+        }
+
+        private static Color[] GradeOf(Mesh mesh,Color[] source,IceDress dress)
+        {
+            ReadGradeInputs(mesh,dress,out Vector2[] uvs,out Vector3[] positions,out int[] triangles);
+            return Grade(source,dress,uvs,positions,triangles);
+        }
+
+        // A mesh's ice vertex colours from its foundry ones. Pure: it runs on a worker thread.
+        private static Color[] Grade(Color[] source,IceDress dress,Vector2[] uvs,Vector3[] positions,int[] triangles)
+        {
+            var graded=new Color[source.Length];
+            if(dress==IceDress.Bare)
+            {
+                // The coping sheet's rail is its only metal: brass there becomes mirror-ice, silver on the compass seal;
+                // every other decal vertex is the kerbs' and grooves' stone.
+                for(int v=0;v<source.Length;v++)
+                {
+                    if(uvs==null||v>=uvs.Length||!OnCopingRail(uvs[v])){graded[v]=IceTint(source[v],true);continue;}
+                    FoundrySurface.ToDesign(positions[v].x,positions[v].y,out float u,out float w);
+                    graded[v]=IceRail(source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
+                }
+                return graded;
+            }
+            for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Glow);
+            // Rime: the upward faces of raised structures (parapet and wall caps, crenellations, plinths, domes) go
+            // toward frost; the walkable floor and decals are not structures and keep none.
+            if(positions!=null&&triangles!=null)
+            {
+                bool[] top=UpwardVertices(positions,triangles);
+                for(int v=0;v<graded.Length&&v<top.Length;v++)if(top[v])graded[v]=Rime(graded[v]);
+            }
+            return graded;
+        }
+
+        // A renderer's ice block, before its variant is known; false for one the dress leaves alone.
+        private bool PlanBlock(MeshRenderer renderer,PlatformMaterialSet set,out IceBlock block)
+        {
+            block=default;
+            if(renderer==null)return false;
+            var material=renderer.sharedMaterial;
+            if(material==null||!material.HasProperty(ColourId))return false;
+            block.Renderer=renderer;
+            block.Colour=material.GetColor(ColourId);
+            switch(DressOf(material,set))
+            {
+                case IceDress.Paving:
+                    if(set.IcePaving!=null)block.Texture=set.IcePaving;else block.Colour*=IceSlate;
+                    break;
+                case IceDress.Masonry:
+                    if(set.IceMasonry!=null)block.Texture=set.IceMasonry;else block.Colour*=IceSlate;
+                    break;
+                case IceDress.Bare:
+                    block.Texture=Texture2D.whiteTexture;
+                    break;
+                default:
+                    // A glowing texture with an ice variant (fires, the pit, the baked boilers' windows): the variant is
+                    // already cold, so no tint; anything else darkens toward slate (Resolve).
+                    Texture main=material.mainTexture;
+                    block.Variant=main!=null?main.name:string.Empty;
+                    // The distant works borrow the foundry wall's art in their own atmospheric material.
+                    block.WallArt=set!=null&&set.IceMasonry!=null&&set.FoundryWall!=null&&main==set.FoundryWall.mainTexture;
+                    // Their violet atmospheric blend read magenta against the ice; only a trace of it stays.
+                    block.Atmosphere=material.HasProperty(AtmosphereId);
+                    break;
+            }
+            return true;
+        }
+
+        private IceBlock Resolve(IceBlock block,PlatformMaterialSet set)
+        {
+            if(block.Variant==null)return block;
+            Texture2D variant=block.Variant.Length>0&&_iceVariants.TryGetValue(block.Variant,out var loaded)?loaded:null;
+            if(variant!=null)block.Texture=variant;
+            else if(block.WallArt)block.Texture=set.IceMasonry;
+            else block.Colour*=IceSlate;
+            block.Variant=null;
+            return block;
+        }
+
+        private void Bind(IceBlock block)
+        {
+            if(block.Renderer==null)return;
+            _themeBlock.Clear();
+            if(block.Texture!=null)_themeBlock.SetTexture(TextureId,block.Texture);
+            if(block.Atmosphere)_themeBlock.SetFloat(AtmosphereId,IceAtmosphere);
+            _themeBlock.SetColor(ColourId,block.Colour);
+            block.Renderer.SetPropertyBlock(_themeBlock);
+        }
+
+        // The ice objects built on the change itself, dressed as the coping (their material) with the rest.
+        private void BindIceObject(GameObject ice,PlatformMaterialSet set)
+        {
+            if(ice==null)return;
+            var renderer=ice.GetComponent<MeshRenderer>();
+            // Their own material is the coping (untextured): bound straight away, without DressOf's name compares.
+            if(renderer!=null&&set!=null&&set.Coping!=null&&renderer.sharedMaterial==set.Coping&&set.Coping.HasProperty(ColourId))
+            {
+                Bind(new IceBlock{Renderer=renderer,Texture=Texture2D.whiteTexture,Colour=set.Coping.GetColor(ColourId)});
+                return;
+            }
+            if(!PlanBlock(renderer,set,out IceBlock block))return;
+            if(block.Variant!=null)
+            {
+                if(block.Variant.Length>0&&!_iceVariants.ContainsKey(block.Variant))
+                    _iceVariants.Add(block.Variant,Resources.Load<Texture2D>("Ice/"+block.Variant));
+                block=Resolve(block,set);
+            }
+            Bind(block);
+        }
 
         public void ApplyTheme(FloorTheme theme,PlatformMaterialSet set)
         {
             if(theme==_theme)return;
             bool ice=theme==FloorTheme.Ice;
+            // Normally done frames ago (PrepareTheme); otherwise all of it now.
+            FinishIcePreparation(set);
+            if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
             using(PerformanceMarkers.ThemeRetint.Auto())
-            {
-            KeepFoundryColours(set);
-            for(int i=0;i<_themeMeshes.Count;i++)
-            {
-                if(_themeMeshes[i]==null)continue;
-                if(ice&&_iceColours[i]==null)
+                for(int i=0;i<_themeMeshes.Count;i++)
                 {
-                    var source=_foundryColours[i];var graded=new Color[source.Length];
-                    IceDress dress=_themeDress[i];
-                    if(dress==IceDress.Bare)
-                    {
-                        // The coping sheet's rail is its only metal: brass there becomes mirror-ice, silver on the
-                        // compass seal; every other decal vertex is the kerbs' and grooves' stone.
-                        var uvs=_themeMeshes[i].uv;var positions=_themeMeshes[i].vertices;
-                        for(int v=0;v<source.Length;v++)
-                        {
-                            if(v>=uvs.Length||!OnCopingRail(uvs[v])){graded[v]=IceTint(source[v],true);continue;}
-                            FoundrySurface.ToDesign(positions[v].x,positions[v].y,out float u,out float w);
-                            graded[v]=IceRail(source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
-                        }
-                    }
-                    else
-                    {
-                        for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Glow);
-                        // Rime: the upward faces of raised structures (parapet and wall caps, crenellations, plinths,
-                        // domes) go toward frost; the walkable floor and decals are not structures and keep none.
-                        if(dress!=IceDress.Glow&&dress!=IceDress.Paving)
-                        {
-                            bool[] top=UpwardVertices(_themeMeshes[i]);
-                            if(top!=null)for(int v=0;v<graded.Length;v++)if(top[v])graded[v]=Rime(graded[v]);
-                        }
-                    }
-                    _iceColours[i]=graded;
+                    if(_themeMeshes[i]==null)continue;
+                    Color[] colours=ice?_iceColours[i]:_foundryColours[i];
+                    if(colours!=null)_themeMeshes[i].colors=colours;
                 }
-                _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
-            }
-            }
             // Built before the blocks are set, so the crystals take the coping's untextured dress with the rest.
             using(PerformanceMarkers.ThemeCrystals.Auto())
             {
@@ -100,42 +326,15 @@ namespace Cryptforge.UI
             }
             using(PerformanceMarkers.ThemeTextures.Auto())
             {
-            if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
-            foreach(var renderer in GetComponentsInChildren<MeshRenderer>(true))
-            {
-                if(!ice){renderer.SetPropertyBlock(null);continue;}
-                var material=renderer.sharedMaterial;
-                if(material==null||!material.HasProperty(ColourId))continue;
-                IceDress dress=DressOf(material,set);
-                Color colour=material.GetColor(ColourId);
-                _themeBlock.Clear();
-                switch(dress)
+                if(ice)
                 {
-                    case IceDress.Paving:
-                        if(set.IcePaving!=null)_themeBlock.SetTexture(TextureId,set.IcePaving);else colour*=IceSlate;
-                        break;
-                    case IceDress.Masonry:
-                        if(set.IceMasonry!=null)_themeBlock.SetTexture(TextureId,set.IceMasonry);else colour*=IceSlate;
-                        break;
-                    case IceDress.Bare:
-                        _themeBlock.SetTexture(TextureId,Texture2D.whiteTexture);
-                        break;
-                    default:
-                        // A glowing texture with an ice variant (fires, the pit, the baked boilers' windows): the
-                        // variant is already cold, so no tint; anything else darkens toward slate.
-                        Texture2D variant=IceVariant(material.mainTexture);
-                        if(variant!=null)_themeBlock.SetTexture(TextureId,variant);
-                        // The distant works borrow the foundry wall's art in their own atmospheric material.
-                        else if(set!=null&&set.IceMasonry!=null&&set.FoundryWall!=null&&material.mainTexture==set.FoundryWall.mainTexture)
-                            _themeBlock.SetTexture(TextureId,set.IceMasonry);
-                        else colour*=IceSlate;
-                        // Their violet atmospheric blend read magenta against the ice; only a trace of it stays.
-                        if(material.HasProperty(AtmosphereId))_themeBlock.SetFloat(AtmosphereId,IceAtmosphere);
-                        break;
+                    for(int i=0;i<_iceBlocks.Count;i++)Bind(_iceBlocks[i]);
+                    BindIceObject(_iceCrystals,set);
+                    BindIceObject(_icePanels,set);
+                    BindIceObject(_iceDrifts,set);
                 }
-                _themeBlock.SetColor(ColourId,colour);
-                renderer.SetPropertyBlock(_themeBlock);
-            }
+                else
+                    foreach(var renderer in GetComponentsInChildren<MeshRenderer>(true))renderer.SetPropertyBlock(null);
             }
             using(PerformanceMarkers.ThemeRetint.Auto())
                 for(int i=0;i<_themeSprites.Count;i++)
@@ -143,34 +342,11 @@ namespace Cryptforge.UI
             _theme=theme;
         }
 
-        private void KeepFoundryColours(PlatformMaterialSet set)
-        {
-            if(_themeKept)return;
-            _themeKept=true;
-            foreach(var filter in GetComponentsInChildren<MeshFilter>(true))
-            {
-                var mesh=filter.sharedMesh;
-                if(mesh==null||!_owned.Contains(mesh)||_themeMeshes.Contains(mesh))continue;
-                var colours=mesh.colors;
-                if(colours==null||colours.Length==0)continue;
-                var renderer=filter.GetComponent<MeshRenderer>();
-                _themeMeshes.Add(mesh);_foundryColours.Add(colours);_iceColours.Add(null);
-                _themeDress.Add(renderer!=null&&renderer.sharedMaterial!=null?DressOf(renderer.sharedMaterial,set):IceDress.Slate);
-            }
-            foreach(var sprite in GetComponentsInChildren<SpriteRenderer>(true))
-            {
-                if(sprite.name==FoundryVisibilityView.WarmUpName)continue;
-                _themeSprites.Add(sprite);_foundrySpriteColours.Add(sprite.color);
-            }
-        }
-
         // A structure mesh's vertices on upward faces. Walls are extruded straight down the screen, so each wall triangle
         // has an exactly vertical edge; a cap, a crenellation top or a dome facet has none. A vertex is rimed only when
-        // no wall triangle uses it. Null for a mesh that is not a structure (no depth flags: floor, decals, below deck).
-        private static bool[] UpwardVertices(Mesh mesh)
+        // no wall triangle uses it. Asked only of a structure (ReadGradeInputs: a mesh with depth flags; not floor, decals, below deck).
+        private static bool[] UpwardVertices(Vector3[] positions,int[] triangles)
         {
-            if(mesh.uv2==null||mesh.uv2.Length==0)return null;
-            var positions=mesh.vertices;var triangles=mesh.triangles;
             var top=new bool[positions.Length];var wall=new bool[positions.Length];
             for(int t=0;t+2<triangles.Length;t+=3)
             {
@@ -186,18 +362,8 @@ namespace Cryptforge.UI
         private static Color Rime(Color c)=>new Color(Mathf.Min(c.r*1.75f,2),Mathf.Min(c.g*1.9f,2),Mathf.Min(c.b*2f,2),c.a);
 
         // Resources/Ice/<name>: the cold variant of a foundry texture (Tools/ArtReview/GenerateIceGlowTextures.py), loaded
-        // only when the ice floor first asks for it; floor 1 never loads one.
+        // asynchronously once an ice floor is ahead (PrepareTheme); a run whose floors are all foundry never loads one.
         private readonly Dictionary<string,Texture2D> _iceVariants=new Dictionary<string,Texture2D>();
-        private Texture2D IceVariant(Texture texture)
-        {
-            if(texture==null)return null;
-            if(!_iceVariants.TryGetValue(texture.name,out var variant))
-            {
-                variant=Resources.Load<Texture2D>("Ice/"+texture.name);
-                _iceVariants.Add(texture.name,variant);
-            }
-            return variant;
-        }
 
         // A renderer's material, or the structure variant made from it (FoundryVisibilityView.ForStructure).
         private static IceDress DressOf(Material material,PlatformMaterialSet set)
