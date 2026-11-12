@@ -85,6 +85,13 @@ namespace Cryptforge.Tests
                 Vector3 gate=FoundrySurface.Project(28,6);
                 camera.transform.position=new Vector3(gate.x,gate.y+2,-10);camera.orthographicSize=9;
                 Capture(camera,arena,floor+"/gate",1200,1200);
+                // Floor 2's mirror panels and drifts (FoundryRegionIceProps.cs): the north rail and the east rail.
+                Vector3 north=FoundrySurface.Project(5.5f,16);
+                camera.transform.position=new Vector3(north.x,north.y+1.5f,-10);camera.orthographicSize=6;
+                Capture(camera,arena,floor+"/north-rail",1200,1200);
+                Vector3 east=FoundrySurface.Project(12,4);
+                camera.transform.position=new Vector3(east.x,east.y+1.5f,-10);camera.orthographicSize=9;
+                Capture(camera,arena,floor+"/east-rail",1200,1200);
                 Vector3 pit=FoundrySurface.Project(-10,8);
                 camera.transform.position=new Vector3(pit.x,pit.y-1,-10);camera.orthographicSize=8;
                 Capture(camera,arena,floor+"/pit",1200,1200);
@@ -115,6 +122,12 @@ namespace Cryptforge.Tests
                 }
             }
             Assert.That(arena.Theme,Is.EqualTo(FloorTheme.Ice));
+            // The frost the descent shows as it lands on floor 2 (ArenaView.PlayFrostTransition), near its peak, on the
+            // portrait frame.
+            camera.aspect=1080f/2340;
+            Assert.That(arena.PlayFrostTransition(),Is.True,"The frost plays the first time it is asked.");
+            typeof(FrostTransitionView).GetMethod("Advance",Internal).Invoke(arena.FrostTransition,new object[]{.15f});
+            Capture(camera,arena,"floor2/frost-transition",1080,2340);
         }
         // EnemyLookView.UseFrost and ShowsFrost are internal: reached by reflection from the test assembly.
         const System.Reflection.BindingFlags Internal=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
