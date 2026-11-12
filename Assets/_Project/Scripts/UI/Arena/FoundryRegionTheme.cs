@@ -83,8 +83,10 @@ namespace Cryptforge.UI
                 _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
             }
             // Built before the blocks are set, so the crystals take the coping's untextured dress with the rest.
-            if(ice)BuildIceCrystals(set);
+            if(ice){BuildIceCrystals(set);BuildIceProps(set);}
             if(_iceCrystals!=null)_iceCrystals.SetActive(ice);
+            if(_icePanels!=null)_icePanels.SetActive(ice);
+            if(_iceDrifts!=null)_iceDrifts.SetActive(ice);
             if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
             foreach(var renderer in GetComponentsInChildren<MeshRenderer>(true))
             {

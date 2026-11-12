@@ -586,7 +586,12 @@ namespace Cryptforge.Combat
             _currentFloor = floor;
             // The region dresses itself for the floor (FloorTheme); floor 1's Foundry is a no-op.
             if (_arena != null)
+            {
                 _arena.ApplyFloorTheme(floor.Theme);
+                // The descent from floor 1 lands on the frozen floor 2: frost creeps over the view (visual only).
+                if (ArenaView.FrostsOnEntry(FloorNumber, floor.Theme))
+                    _arena.PlayFrostTransition();
+            }
             _rooms = RoomsAsPlayed(floor);
             _floorProgress = new FloorProgress(WavesOf(_rooms), EndlessOf(_rooms));
             _waveOrdinal = 0;

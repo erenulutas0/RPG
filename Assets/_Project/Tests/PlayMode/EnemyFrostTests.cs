@@ -31,7 +31,7 @@ namespace Cryptforge.Tests
             Time.timeScale = 1;
             Time.captureDeltaTime = 0;
             var old = SceneManager.GetActiveScene();
-            SceneManager.SetActiveScene(SceneManager.CreateScene("Enemy frost cleanup"));
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Enemy frost cleanup " + Guid.NewGuid().ToString("N")));
             yield return SceneManager.UnloadSceneAsync(old);
             TestProfile.End();
         }
