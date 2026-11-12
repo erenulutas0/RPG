@@ -83,6 +83,21 @@ namespace Cryptforge.Tests
                         l.SentryReflectCap = cap / 100f;
                     }
                 };
+            // Past the grid: the front's share of a landing (docs/50's 35 %) raised to a half, on the grid's best turn.
+            yield return new Option
+            {
+                Key = "sentry-t45-h125-c2-f50", What = "the Mirror Sentry turning 45 degrees a second, 125 % of its health, its reflection capped at 2 %, half of a front landing taken (35 % in docs/50); the flank habit",
+                Roles = true,
+                Set = l =>
+                {
+                    l.VaultsSentry = true;
+                    l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks;
+                    l.SentryTurnDegrees = 45f;
+                    l.SentryHealthScale = 1.25f;
+                    l.SentryReflectCap = .02f;
+                    l.SentryFrontShare = .5f;
+                }
+            };
             foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f, 6.2f, 6.4f, 6.6f, 6.7f, 7.0f })
                 yield return new Option
                 {
