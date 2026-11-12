@@ -121,14 +121,26 @@ namespace Cryptforge.UI
             // A sunken plate deck between the frames leaves real air under the load.
             WorkshopMetalHull(kit,u0+.30f,v0+.47f,u1-.30f,v1-.47f,.38f,.46f,.025f,true);
             YardTrolleySideFrame(kit,u0,u1,v0+.25f,v0+.47f);
+            // A riveted bronze strap along the near frame's flange face, between the wheels.
+            var brass=new System.Collections.Generic.List<Vector2Int>();
+            int strap=kit.V.Count;
+            WorkshopMetalHull(kit,u0+1.0f,v0+.212f,u1-1.0f,v0+.245f,.505f,.575f,.01f,true);
+            for(int rivet=0;rivet<5;rivet++)
+            {
+                float u=Mathf.Lerp(u0+1.12f,u1-1.12f,rivet/4f);
+                WorkshopMetalHull(kit,u-.035f,v0+.196f,u+.035f,v0+.214f,.522f,.558f,.006f,true);
+            }
+            brass.Add(new Vector2Int(strap,kit.V.Count));
             // Positive design-u recedes in the fixed camera. The far end casting
             // must precede the freight so its legs cannot paint over the billet ends.
             YardTrolleyYoke(kit,u1-.30f,v0,v1);
+            brass.Add(new Vector2Int(kit.V.Count-YardClaspVertices,kit.V.Count));
             int stock=kit.V.Count;
             // Two thick oak dunnage bearers span both side frames between the band stations and stand
-            // proud of the load at each side, so the billets visibly rest on timber laid across the iron.
+            // well proud of the load and the flange at each side, so the billets visibly rest on timber
+            // laid across the iron and the warm oak ends read at the gameplay camera.
             foreach(float u in YardBearerStations(u0,u1))
-                WorkshopMetalHull(kit,u,v0+.28f,u+YardBearerWidth,v1-.28f,YardFrameTop,YardLoadBase,.025f,true);
+                WorkshopMetalHull(kit,u,v0+YardBearerEnd,u+YardBearerWidth,v1-YardBearerEnd,YardFrameTop,YardLoadBase,.025f,true);
             int bearers=kit.V.Count;
             // Three staggered courses of long billets make one broad freight load.
             for(int level=0;level<3;level++)
@@ -180,8 +192,13 @@ namespace Cryptforge.UI
             // sloped haunches and a connected crown read as one casting, with clear
             // air around the billet ends rather than another cage of narrow ribs.
             YardTrolleyYoke(kit,u0+.06f,v0,v1);
-            // The near wheels have a real cast tread and a broad axle-box cap standing off the frame.
-            foreach(float u in new[]{u0+.62f,u1-.62f})YardWheel(kit,u,v0+.18f,YardWheelCentre,YardWheelRadius,true);
+            brass.Add(new Vector2Int(kit.V.Count-YardClaspVertices,kit.V.Count));
+            // The near wheels have a real cast tread and a broad bronze axle-box cap standing off the frame.
+            foreach(float u in new[]{u0+.62f,u1-.62f})
+            {
+                YardWheel(kit,u,v0+.18f,YardWheelCentre,YardWheelRadius,true);
+                brass.Add(new Vector2Int(kit.V.Count-28,kit.V.Count));
+            }
             // Value hierarchy: the skid is a dark bearing plate, not a pale tray; the running gear and frame are
             // worked iron, darker toward the floor, lighter on worn top edges; oak bearers carry the oxide-steel load.
             // The skid sits a step darker than the bench's, under the deeper shadowed side frames.
@@ -189,6 +206,8 @@ namespace Cryptforge.UI
             YardTrolleyIronFinish(kit,skid,stock,origin,1.02f,true);
             for(int i=stock;i<bearers;i++)kit.C[i]=YardBearerTone(kit.C[i]);
             YardTrolleyIronFinish(kit,freight,kit.V.Count,origin,1.02f,true);
+            // Bronze fittings - axle caps, yoke clasps and the riveted strap - are the cart's warm metal accent.
+            foreach(Vector2Int range in brass)for(int i=range.x;i<range.y;i++)kit.C[i]=YardBronzeTone(kit.C[i]);
             // The complete trolley, including the skid already in this builder,
             // uses one jointless cast field. Existing stock/frame light and all
             // geometry remain; bands no longer repeat the framed global atlas.
@@ -200,9 +219,18 @@ namespace Cryptforge.UI
 
         private static Color YardBearerTone(Color source)
         {
-            // Dull packing oak, the bench timber's family without its rubbed working-plank lift.
-            float value=source.r*.299f+source.g*.587f+source.b*.114f;
-            return new Color(value*1.12f,value*.91f,value*.64f,1);
+            // Packing oak, the bench timber's family, a little warmer and lighter so its ends carry the
+            // trolley's warmth beside the cool steel and iron.
+            float value=(source.r*.299f+source.g*.587f+source.b*.114f)*1.04f;
+            return new Color(value*1.17f,value*.90f,value*.60f,1);
+        }
+
+        private static Color YardBronzeTone(Color source)
+        {
+            // Rubbed bronze on the authored face light: clearly warmer than the oak (r/b above 2), so the Ice
+            // floor's tint, which maps warm metal to frost, takes it with the rest of the brass family.
+            float value=(source.r*.299f+source.g*.587f+source.b*.114f)*1.02f;
+            return new Color(value*1.22f,value*.93f,value*.50f,1);
         }
 
         private static Color YardBilletTone(Color source,float billet)
@@ -253,6 +281,8 @@ namespace Cryptforge.UI
             YardTrestleGusset(kit,u,u+.27f,v1-.30f,v1-.72f,.98f,1.33f);
             // A projecting cast cap over the crown gives the casting a lit flange edge.
             WorkshopMetalHull(kit,u-.03f,v0+.46f,u+.30f,v1-.46f,1.33f,1.40f,.03f,true);
+            // A bronze clasp binds the near leg to the side frame's flange (emitted last; toned by the caller).
+            WorkshopMetalHull(kit,u-.018f,v0+.202f,u+.288f,v0+.618f,.46f,.62f,.012f,true);
         }
 
         // A solid triangular casting in the v/height plane. The far triangle goes
@@ -279,9 +309,12 @@ namespace Cryptforge.UI
         }
 
         // Shared running-gear dimensions: wheels sit on the skid (.10) and the side frames' flange tops carry the bearers.
-        internal const float YardWheelCentre=.44f,YardWheelRadius=.34f,YardFrameTop=.58f,YardBearerWidth=.30f;
+        internal const float YardWheelCentre=.44f,YardWheelRadius=.34f,YardFrameTop=.58f,YardBearerWidth=.34f;
         // The oak bearers' top: the lowest billet course rests here.
         internal const float YardLoadBase=.70f;
+        // How far in from the island's edge the oak bearers' ends stand; a WorkshopMetalHull has 28 vertices.
+        internal const float YardBearerEnd=.22f;
+        private const int YardClaspVertices=28;
         // Bearers stand between the two band stations, symmetric about the load's middle.
         internal static float[] YardBearerStations(float u0,float u1)=>new[]{u0+1.22f,u1-1.52f};
 

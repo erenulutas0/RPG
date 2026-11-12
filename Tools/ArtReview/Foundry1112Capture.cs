@@ -21,9 +21,10 @@ namespace Cryptforge.Tests
         Scene _scene;
         [UnityTest] public IEnumerator CaptureFoundry1112()
         {
-            string phase=File.ReadAllText("TestResults/foundry-1112-phase.txt").Trim();
+            string[] request=File.ReadAllLines("TestResults/foundry-1112-phase.txt");string phase=request[0].Trim();
             Assert.That(phase=="before"||phase=="after",Is.True);
-            Output="ArtDirection/2026-11-12/foundry-trolley-crown-01/"+phase+"/";
+            // An optional second line names another package folder (default foundry-trolley-crown-01).
+            Output="ArtDirection/2026-11-12/"+(request.Length>1&&request[1].Trim().Length>0?request[1].Trim():"foundry-trolley-crown-01")+"/"+phase+"/";
             TestProfile.Begin();Directory.CreateDirectory(Output);
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
             File.WriteAllText(DevelopmentStart.RegionPreviewPath,"foundry");

@@ -1,12 +1,13 @@
 #requires -Version 7
 # 2026-11-12 foundry trolley (V1) and gate header/crown (V2) captures.
 # Before: run in the main checkout at 5647d3ac with unchanged Assets. After: run on the changed branch.
-param([ValidateSet('before','after')][string]$Phase='after',[string]$UnityEditor='E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
+# -Package writes into another 2026-11-12 package folder (default foundry-trolley-crown-01).
+param([ValidateSet('before','after')][string]$Phase='after',[ValidatePattern('^[a-z0-9-]+$')][string]$Package='foundry-trolley-crown-01',[string]$UnityEditor='E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
 $ErrorActionPreference='Stop'
 $proofRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $proofTarget=Join-Path $proofRoot 'Assets/_Project/Tests/PlayMode/Foundry1112Capture.cs'
 $proofResults=Join-Path $proofRoot 'TestResults/foundry-1112.xml'
-$proofOutput=Join-Path $proofRoot "ArtDirection/2026-11-12/foundry-trolley-crown-01/$Phase"
+$proofOutput=Join-Path $proofRoot "ArtDirection/2026-11-12/$Package/$Phase"
 if((Get-Process Unity -ErrorAction SilentlyContinue) -or (Test-Path "$proofRoot/Temp/UnityLockfile")){throw 'Unity is in use.'}
 if((Test-Path $proofTarget) -or (Test-Path "$proofTarget.meta")){throw 'Temporary capture exists; inspect first.'}
 if($Phase -eq 'before'){
@@ -16,7 +17,7 @@ if($Phase -eq 'before'){
     if($proofDirty){throw 'Before capture requires unchanged runtime Assets.'}
 }
 New-Item -ItemType Directory -Force (Join-Path $proofRoot 'TestResults') | Out-Null
-Set-Content "$proofRoot/TestResults/foundry-1112-phase.txt" $Phase
+Set-Content "$proofRoot/TestResults/foundry-1112-phase.txt" @($Phase,$Package)
 try {
     Copy-Item -LiteralPath "$PSScriptRoot/Foundry1112Capture.cs" -Destination $proofTarget
     Set-Content -LiteralPath "$proofTarget.meta" -Value "fileFormatVersion: 2`nguid: $([guid]::NewGuid().ToString('N'))"
