@@ -130,26 +130,28 @@ namespace Cryptforge.UI
             if(!(size>0)||!(aspect>0)||float.IsInfinity(size)||float.IsInfinity(aspect))return;
             if(Mathf.Approximately(size,_framedSize)&&Mathf.Approximately(aspect,_framedAspect))return;
             _framedSize=size;_framedAspect=aspect;
+            for(int i=0;i<Around;i++)RingPoint(i,Around,size,aspect,out _edge[i],out _inward[i]);
+        }
+
+        // Point i of a ring of `around` points on the camera's view rectangle (a little past it) and its way in: round the
+        // rectangle, a quarter of the points to a side, each side starting at its corner so the ring closes over all four.
+        // Shared with GloamTransitionView.
+        internal static void RingPoint(int i,int around,float size,float aspect,out Vector2 edge,out Vector2 inward)
+        {
             float halfY=size*1.04f,halfX=size*aspect*1.04f;
-            const int perSide=Around/4;
-            for(int i=0;i<Around;i++)
+            int perSide=around/4;
+            float f=(float)(i%perSide)/perSide,x,y;
+            switch(i/perSide)
             {
-                // Round the rectangle, a quarter of the points to a side, each side starting at its corner so the ring
-                // closes over all four.
-                float f=(float)(i%perSide)/perSide,x,y;Vector2 inward;
-                switch(i/perSide)
-                {
-                    case 0:x=Mathf.Lerp(-halfX,halfX,f);y=-halfY;inward=Vector2.up;break;
-                    case 1:x=halfX;y=Mathf.Lerp(-halfY,halfY,f);inward=Vector2.left;break;
-                    case 2:x=Mathf.Lerp(halfX,-halfX,f);y=halfY;inward=Vector2.down;break;
-                    default:x=-halfX;y=Mathf.Lerp(halfY,-halfY,f);inward=Vector2.right;break;
-                }
-                _edge[i]=new Vector2(x,y);
-                // Corners lean in on both axes, so the frost thickens there as frost on glass does.
-                float cx=Mathf.Abs(x)/halfX,cy=Mathf.Abs(y)/halfY;
-                if(cx>.85f&&cy>.85f)inward=new Vector2(-Mathf.Sign(x),-Mathf.Sign(y))*1.2f;
-                _inward[i]=inward;
+                case 0:x=Mathf.Lerp(-halfX,halfX,f);y=-halfY;inward=Vector2.up;break;
+                case 1:x=halfX;y=Mathf.Lerp(-halfY,halfY,f);inward=Vector2.left;break;
+                case 2:x=Mathf.Lerp(halfX,-halfX,f);y=halfY;inward=Vector2.down;break;
+                default:x=-halfX;y=Mathf.Lerp(halfY,-halfY,f);inward=Vector2.right;break;
             }
+            edge=new Vector2(x,y);
+            // Corners lean in on both axes, so the frost thickens there as frost on glass does.
+            float cx=Mathf.Abs(x)/halfX,cy=Mathf.Abs(y)/halfY;
+            if(cx>.85f&&cy>.85f)inward=new Vector2(-Mathf.Sign(x),-Mathf.Sign(y))*1.2f;
         }
 
         private void OnDestroy()

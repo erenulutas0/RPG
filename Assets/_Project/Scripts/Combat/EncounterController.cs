@@ -591,6 +591,9 @@ namespace Cryptforge.Combat
                 // The descent from floor 1 lands on the frozen floor 2: frost creeps over the view (visual only).
                 if (ArenaView.FrostsOnEntry(FloorNumber, floor.Theme))
                     _arena.PlayFrostTransition();
+                // The descent from floor 2 lands in the garden: the frost melts into ash (visual only).
+                if (ArenaView.MeltsOnEntry(FloorNumber, floor.Theme))
+                    _arena.PlayGloamTransition();
                 // The next floor's dress, worked out in the background while this one plays, so the descent only binds it.
                 if (floor.NextFloor != null)
                     _arena.PrepareFloorTheme(floor.NextFloor.Theme);
