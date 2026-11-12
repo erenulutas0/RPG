@@ -1,4 +1,5 @@
 using System;
+using Cryptforge.Content;
 using UnityEngine;
 
 namespace Cryptforge.Art
@@ -52,6 +53,9 @@ namespace Cryptforge.Art
         // cold silver stone with violet cracks (Tools/ArtReview/GenerateIceEnemyArt.py), pose for pose with this set.
         // Visual only; the frosted set has none of its own.
         [SerializeField] private EnemyArtSet _frost;
+        // Optional: the same enemy for the garden floor (FloorTheme.Gloam, docs/51) - charred bark with an orchid bloom
+        // where the lava burned (Tools/ArtReview/GenerateGloamEnemyArt.py), pose for pose with this set. Visual only.
+        [SerializeField] private EnemyArtSet _gloam;
         // The fall as frames FallStep apart, built once for each facing.
         [NonSerialized] private Sprite[] _fallTimelineFront;
         [NonSerialized] private Sprite[] _fallTimelineRear;
@@ -69,7 +73,12 @@ namespace Cryptforge.Art
         }
         public Sprite[] Death => _death;
         // The frosted copy when the set has a complete one, else null (the enemy keeps this set on the ice floor).
-        public EnemyArtSet Frosted => _frost != null && _frost != this && _frost.IsValid ? _frost : null;
+        public EnemyArtSet Frosted => Copy(_frost);
+        // The floor's copy (FloorTheme): frosted on the ice, bloomed in the garden, when the set has a complete one; null
+        // on the foundry or without one (the enemy keeps this set).
+        public EnemyArtSet ForTheme(FloorTheme theme) =>
+            theme == FloorTheme.Ice ? Copy(_frost) : theme == FloorTheme.Gloam ? Copy(_gloam) : null;
+        private EnemyArtSet Copy(EnemyArtSet copy) => copy != null && copy != this && copy.IsValid ? copy : null;
         public Frame GetFrame(int index, bool rear) => (rear ? _rear : _front)[index];
         public bool IsValid => Complete(_front) && Complete(_rear) && _front.Length == _rear.Length && _walkCycleDistance > 0 && _shadowWidth > 0 && _death != null && _death.Length == 2 && _death[0] != null && _death[1] != null;
         // A partly filled optional part counts as absent, so its enemy behaves as one without it.

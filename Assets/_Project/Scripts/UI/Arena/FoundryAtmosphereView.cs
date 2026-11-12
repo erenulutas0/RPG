@@ -1,4 +1,5 @@
 using Cryptforge.Art;
+using Cryptforge.Content;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -43,14 +44,20 @@ namespace Cryptforge.UI
         private float _elapsed;
         private float _nextFrame;
 
-        // Floor 2 (FloorTheme.Ice): smoke becomes cold haze, embers frost motes, the pit's glow quicksilver; redrawn at once.
-        private bool _cold;
-        internal void SetCold(bool cold)
+        // The floor's dress (FloorTheme, FoundryRegionView.Atmosphere), redrawn at once: on floor 2 (Ice) smoke becomes cold
+        // haze, embers frost motes, the pit's glow quicksilver; on floor 3 (Gloam) smoke becomes ash haze, embers grey ash
+        // flakes with one in five a gloamlight pollen mote, the pit's glow the root well's gloamlight. Same discs, same count.
+        private FloorTheme _theme=FloorTheme.Foundry;
+        internal FloorTheme Theme=>_theme;
+        internal void SetTheme(FloorTheme theme)
         {
-            if(cold==_cold)return;
-            _cold=cold;
+            if(theme==_theme)return;
+            _theme=theme;
             if(_mesh!=null)Draw(_elapsed);
         }
+        // What an ember disc is on a theme with motes of its own: every fifth a lit mote, the rest ash.
+        internal static int MoteOf(int disc)=>disc<SmokeCount||disc>=SmokeCount+EmberCount?FoundryRegionView.ByColour
+            :(disc-SmokeCount)%5==0?FoundryRegionView.LitMote:FoundryRegionView.AshMote;
 
         public void Build(Material material)
         {
@@ -129,7 +136,8 @@ namespace Cryptforge.UI
                 Disc(SmokeCount+EmberCount+i,_sources[i],.4f,.16f,new Color(1,.32f,.065f,.15f*pulse));
             }
             DrawPit(time);
-            if(_cold)for(int i=0;i<_colors.Length;i++)_colors[i]=FoundryRegionView.ColdAtmosphere(_colors[i]);
+            if(_theme!=FloorTheme.Foundry)
+                for(int i=0;i<_colors.Length;i++)_colors[i]=FoundryRegionView.Atmosphere(_theme,_colors[i],MoteOf(i/VerticesPerDisc));
             _mesh.SetVertices(_vertices);
             _mesh.SetColors(_colors);
         }

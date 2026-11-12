@@ -1,7 +1,9 @@
 # 51 - Gloam Gardens Art Direction (Floor 3)
 
 Status: v1 proposal, 2026-11-12. Floor 3 (docs/48) is being built in data on the same map geometry as floors 1 and 2; this
-gives it its own look, the way docs/49 gave floor 2 one. Nothing in Assets changes with this doc.
+gives it its own look, the way docs/49 gave floor 2 one. Section 10's questions were answered by the lead the same day
+(Lead decisions 2026-11-12, below); visual pass 1 (section 9 steps 1-4 and step 7's capture) is in Assets, waiting for
+its first Unity run (Pass 1, below).
 Mood board: `ArtDirection/2026-11-12/gloam-gardens-01/concept/moodboard.png` (untracked, by convention), made by
 `Tools/ArtReview/GenerateGloamMoodboard.py` (v1 kept beside it as `moodboard-v1.png`).
 Backdrop plate concept: `ArtDirection/2026-11-12/gloam-gardens-01/concept/backdrop.png` (1024x1536, the foundry plate's
@@ -191,3 +193,46 @@ Order: 1-3 first (a playable garden look in one pass, no geometry), then 4, then
    on this floor?
 5. The sky: the dimmed sun in the backdrop (the Long Dimming visible for the first time), or no sun at all?
 6. Should floor 2 -> floor 3 show a transition (frost melting into ash), or a hard cut as today?
+
+## Lead decisions 2026-11-12
+
+The owner delegated section 10 to the lead:
+1. Concept: the abandoned foundry overgrown at dusk - yes.
+2. Enemies: re-colour the foundry enemies now (charred bark, orchid bloom); the real floor-3 creatures (Cinder Bloom,
+   Thornling, Pollen Wraith, Rootmother Myrr) come later.
+3. Orchid `#D86BD0` as the enemy-only glow on this floor - yes.
+4. Ash drifts kept off the lanes; no outline change for Ilya.
+5. The dimmed sun in the backdrop - yes (the backdrop itself is pass 2).
+6. Floor 2 -> floor 3: a hard cut for now; the transition comes later.
+
+## Pass 1 (2026-11-12): steps 1-4 and step 7's capture
+
+In Assets, not yet run in Unity. No geometry: floor 3's region has floor 1's renderers and vertices exactly.
+- **Theme hook.** `FloorTheme { Foundry = 0, Ice = 1, Gloam = 2 }`; Floor_GloamGardens.asset `_theme: 2`.
+- **Region re-tint.** FoundryRegionTheme's `ice` bool is a per-theme palette table (ThemePalette: stone, bare stone, lit
+  stone, untextured, sprite, lava glow, flame light, rail and seal, cap, haze and the three atmosphere lights, backdrop
+  tint, hero shadow), read by one body each for the vertex grade, the rail, the atmosphere and the backdrop tint; the Ice
+  row returns exactly what IceTint/IceRail/ColdAtmosphere/IceBackdrop returned before (FloorThemeTests). The floor-2 perf
+  split is kept and keyed by theme: floor 3's dress is graded on workers and its variants loaded asynchronously while floor
+  2 plays. Leaving a theme unbinds its blocks and unloads its Resources variants (FoundryRegionView.HeldVariantCount), so
+  floors 1-3 never hold two variant sets. Gloam row: lava to gloamlight at 0.65, lanterns to gloamlight core at 0.8, the
+  rail a dim sap channel (heartwood and gloamlight at the rail's 0.45-0.68 scale), the seal verdigris to lichen, a moss cap
+  on upward structure faces, ash haze; the atmosphere's embers grey ash flakes with one disc in five a gloamlight pollen
+  mote (same discs, same count, same motion - the sideways drift of section 3 is not in this pass); the cavern plate
+  tinted sky gloam to dusk until the painted plate; the hero's contact shadow as on floor 2. The ice props stay floor 2's.
+- **Textures.** GenerateGloamTextures.py: GloamPavingV1 (mean luminance 0.300, saturation 0.160) and GloamMasonryV1
+  (0.268, 0.168) in Art/Environment/Gloam, 2.8 MB of PNG. GenerateGloamGlowTextures.py: the ice pass's sixteen variants in
+  Resources/Gloam (fire to gloamlight, brass to verdigris, rime cap to moss cap), 20.7 MB of PNG, each with its
+  Resources/Ice twin's import under a new guid.
+- **Enemies.** GenerateGloamEnemyArt.py: 182 drawings (5.0 MB of PNG) in `<set>/Gloam/` and a `<Set>GloamArtSet` per set;
+  EnemyArtSet.ForTheme, EnemyLookView.UseTheme, EncounterController passes the floor's theme. Bark value 1.3 for the golems,
+  1.1 for the Warden (its core boosted), 1.0 for the Runner: its body mean lands at 0.315, among the golems' 0.28-0.34,
+  instead of near Ilya's robe.
+- **Budget.** As ASTC (the twins' import settings): about 7.7 MB for Resources/Gloam (6x6, mipmapped), 1.3 MB for the two
+  environment textures, 5.3 MB for the enemy copies (4x4), about 14 MB in all before the APK's own compression.
+- **Check.** `Tools/ArtReview/Run-GloamMapProof.ps1` writes floors 1, 2 and 3 side by side to
+  `ArtDirection/2026-11-12/gloam-map-01/` (untracked): crowd, enemy lineup, court, gate, north rail, pit, pit warning,
+  overview, portraits, runtime-budget.txt with the variants held. Then the phone pass (hero, Ilya, telegraphs, numbers).
+- **Not in this pass:** step 5 (roots, fungi, moss through the crystal builder), step 6 (the painted plate with the
+  dimmed sun), the floor 2 -> 3 transition, the real floor-3 creatures. The finale after floor 3 still plays on the
+  foundry's look (its asset sets no theme).
