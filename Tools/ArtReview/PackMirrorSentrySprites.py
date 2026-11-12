@@ -305,6 +305,7 @@ def astc_bytes(w, h):
 def write_sprite(name, px, pivot, captain_name, textures):
     """The PNG and its .meta: the Captain's matching sprite's import settings, this sprite's GUID and pivot."""
     h, w = px.shape[:2]
+    pivot = (int(pivot[0]), int(pivot[1]))
     if max(w, h) > ANDROID_MAX:
         sys.exit('%s is %dx%d: over the Android cap %d the Captain\'s import sets' % (name, w, h, ANDROID_MAX))
     path = OUT / ('CHR_%s_%s.png' % (STEM, name))
@@ -379,12 +380,15 @@ def main():
     for meta_path in CAPTAIN.glob('CHR_Captain_*.tga.meta'):
         name = meta_path.name[len('CHR_Captain_'):-len('.tga.meta')]
         swap[guid_of(meta_path)] = guids[name]
-    text = re.sub(r'guid: ([0-9a-f]{32}), type: 3', lambda m: 'guid: %s, type: 3' % swap[m.group(1)], captain_set)
+    text = re.sub(r'guid: ([0-9a-f]{32}), type: 3', lambda m: 'guid: %s, type: 3' % swap.get(m.group(1), m.group(1)),
+                  captain_set)
     text = text.replace('m_Name: GruntCaptainArtSet', 'm_Name: %sArtSet' % STEM)
     text = re.sub(r'_visualTop: [\d.]+', '_visualTop: %s' % visual_top, text)
     text = re.sub(r'_shadowWidth: [\d.]+', '_shadowWidth: %s' % shadow_width, text)
+    text = re.sub(r'_walkCycleDistance: [\d.]+', '_walkCycleDistance: %s' % round(meta['stride'], 2), text)
     text = re.sub(r'_frost: \{[^}]*\}', '_frost: {fileID: 0}', text)
-    assert text.count('type: 3}') == captain_set.count('type: 3}') and 'GruntCaptain' not in text
+    sprite_refs = re.findall(r'fileID: 21300000, guid: ([0-9a-f]{32})', text)
+    assert sprite_refs and all(g in guids.values() for g in sprite_refs) and 'GruntCaptain' not in text
     set_path = OUT / ('%sArtSet.asset' % STEM)
     set_meta = Path(str(set_path) + '.meta')
     set_guid = existing_guid(set_meta)
