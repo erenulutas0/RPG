@@ -50,11 +50,11 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "shipped", What = "floor 2 as shipped: the foundry's roster and the Forge Warden (share 6.071429)", Roles = true };
             yield return new Option { Key = "sentry", What = "the Mirror Sentry leads Sentry Hall; the careful and first-card pilots flank it (VaultsHabit.Flanks)", Roles = true,
                 Set = l => { l.VaultsSentry = true; l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks; } };
-            yield return new Option { Key = "sentry-noflank", What = "the Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Set = l => l.VaultsSentry = true };
+            yield return new Option { Key = "sentry-noflank", What = "the Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Roles = true, Set = l => l.VaultsSentry = true };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
             yield return new Option { Key = "regent-lanes", What = "the Glass Regent, stage 1: lanes on the Warden's clock, no copies, share 5.2, the sidestep habit", Set = Regent(5.2f, 0, true) };
-            foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f })
+            foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f, 6.2f, 6.6f })
                 yield return new Option
                 {
                     Key = "regent-" + share.ToString("0.0", CultureInfo.InvariantCulture),
@@ -187,9 +187,10 @@ namespace Cryptforge.Tests
             {
                 md.AppendLine("## Floor 2's roles row (careful hands; the Vanguard started with each weapon)").AppendLine();
                 md.AppendLine("A starting weapon's own damage a second on floor 2: the horde (a second held), the elite room's leader (a second of the elite fight), the elite room's whole wave, the gate boss (a second of its fight). " +
-                              "Roles: each weapon's lead job (FoundryGate.LeadsJob) over horde / elite leader / gate boss.").AppendLine();
-                md.AppendLine("| Option | Horde: Sword / Staff / Daggers | Elite leader | Elite waves | Gate boss | Roles | Sword's lead on the gate boss | Daggers' lead on the elite leader |");
-                md.AppendLine("|---|---|---|---|---|---|---|---|");
+                              "Roles: each weapon's lead job (FoundryGate.LeadsJob) over horde / elite leader / gate boss. " +
+                              "Leader under fire: P50 s from its first damage to its fall; front: the Sentry's landings made from its front arc; gate fight: P50 s; floor 2 cleared of those that went down.").AppendLine();
+                md.AppendLine("| Option | Horde: Sword / Staff / Daggers | Elite leader | Elite waves | Gate boss | Roles | Sword's lead on the gate boss | Daggers' lead on the elite leader | Leader under fire P50 s | Sentry front | Gate fight P50 s | Floor 2 cleared |");
+                md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|");
                 foreach ((Option option, FoundryBatch.Batch[] weapons) in roles)
                 {
                     var two = weapons.Select(FoundryBatch.FloorTwo).ToArray();
@@ -197,7 +198,11 @@ namespace Cryptforge.Tests
                     var waves = two.Select(b => FoundryBatch.RoleJobsOf(b)[1]).ToArray();
                     string Three(int job) => string.Join(" / ", jobs.Select(j => F1(j.Jobs[job])));
                     md.AppendLine($"| `{option.Key}` | {Three(0)} | {Three(1)} | {string.Join(" / ", waves.Select(F1))} | {Three(2)} | {FoundryBatch.Roles(jobs)} | " +
-                                  $"{Lead(jobs, "Sword", 2)} | {Lead(jobs, "Daggers", 1)} |");
+                                  $"{Lead(jobs, "Sword", 2)} | {Lead(jobs, "Daggers", 1)} | " +
+                                  $"{string.Join(" / ", two.Select(b => F1(FoundryBatch.Percentile(b.Runs.SelectMany(r => r.Kills).Where(k => !k.Horde && (k.Kind == "Mirror Sentry" || k.Kind == "Grunt Captain")).Select(k => k.UnderFire), 50))))} | " +
+                                  $"{string.Join(" / ", two.Select(b => Pct(b.Runs.Sum(r => r.SentryFrontLandings), b.Runs.Sum(r => r.SentryLandings))))} | " +
+                                  $"{string.Join(" / ", two.Select(b => F(FoundryBatch.Percentile(b.Runs.Where(r => r.WardenSeconds >= 0f).Select(r => r.WardenSeconds), 50))))} | " +
+                                  $"{string.Join(" / ", two.Select(b => b.Runs.Count(r => r.Cleared) + "/" + b.Runs.Length))} |");
                 }
                 md.AppendLine();
             }
