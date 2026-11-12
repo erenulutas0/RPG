@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using Cryptforge.Art;
+using Cryptforge.Combat;
 using UnityEngine;
 
 namespace Cryptforge.UI
 {
     // Floor 3's garden growth (docs/51 sections 4 and 9.5): hanging roots where the ice had icicles, fungus and seed-pod
-    // clusters where it had crystal clusters, and a moss cap along the rim where it had rime - all on the same slots as
+    // clusters where it had crystal clusters, and a moss cap on the rim spilling down the wall face - all on the same slots as
     // the ice crystals (FoundryRegionIceCrystals.cs): the platform's camera-facing outer rim, open to the void, never the
     // walkable floor, the pit, the gate path or the bridge, so never over a lane. One mesh, one renderer, under the same
     // IceCrystalVertexCap, in the coping material with pass 2's atlas (Resources/Gloam/GloamGrowth, laid out by
@@ -24,14 +25,21 @@ namespace Cryptforge.UI
         private const int RootCells=8;
         private const float RootCellWidth=128,RootCellHeight=512,RootAnchorDrop=8;
         // Clusters: 4 cells of 256 x 256 at y 512..767 (painted to stand on their bottom centre); cell 0 the tallest.
-        private const int ClusterCells=4;
         private const float ClusterCellSize=256,ClusterTop=512;
         // Moss strips: 2 of 1024 x 128 at y 768 and 896, each in 4 seamless quarters; the rim line 32 px under the top.
         private const float MossTop0=768,MossTop1=896,MossHeight=128,MossRim=32;
-        // World sizes: a root's width (its length is the cell's 1:4), a cluster's side, the moss strip's height.
-        private const float RootWidth=.3f,ClusterSize=.95f,MossStripHeight=.42f;
+        // The most one rim edge can take: 7 moss strips, 10 roots and 3 clusters.
+        private const int GrowthVerticesPerEdge=20*4;
+        // The walkable floor's test margin, a little under the hero's edge margin: a point the floor does not contain with
+        // this margin is not contained with the hero's either, so no growth vertex reaches a lane.
+        private const float GrowthClearance=HeroMotion.EdgeMargin-.05f;
+        // The moss's green, over the atlas's painted moss, so the cap reads as moss at phone scale.
+        private static readonly Color MossTint=new Color(.92f,1.18f,.82f,1);
 
-        // The growth's geometry from the region's cells, on the crystals' slots. Pure: it runs on a worker thread.
+        // The growth's geometry from the region's cells, on the crystals' slots. Pure: it runs on a worker thread. Every
+        // rim edge is overgrown: layered moss down the wall face, a back row and a front row of hanging roots, and fungus
+        // and pod clusters on most edges. A piece that would reach onto walkable floor (a rim over a narrow notch of void,
+        // where the wall face below overlaps the court or the landing on screen) is shortened or left out (OffTheFloor).
         private static PropGeometry GloamGrowthGeometry(List<Vector2Int> cells)
         {
             var g=new PropGeometry();
@@ -52,67 +60,123 @@ namespace Cryptforge.UI
                     if(!OpenToVoid(cell,neighbours[i]))continue;
                     Vector3 outward=(a+b)*.5f-Project(x+.5f,y+.5f);
                     if(outward.y>=0)continue;
-                    // A moss strip and at most two roots and a cluster: 16 vertices an edge at most.
-                    if(g.V.Count+16>IceCrystalVertexCap)return g;
-                    int seed=cell.x*73+cell.y*151+i*17;
-                    Moss(g,a,b,edge,seed);
-                    if(edge%2==0)for(int k=0;k<2;k++)Root(g,a,b,(k+.5f)/2+(Hash(seed+k)-.5f)*.25f,seed+k);
-                    if(edge%5==2)Fungus(g,Vector3.Lerp(a,b,.35f+Hash(seed+9)*.3f),Hash(seed+5)*.35f,seed);
+                    if(g.V.Count+GrowthVerticesPerEdge>IceCrystalVertexCap)return g;
+                    // Left to right on screen, so a strip's u runs with it.
+                    if(a.x>b.x){Vector3 swap=a;a=b;b=swap;}
+                    Overgrow(g,a,b,edge,cell.x*73+cell.y*151+i*17);
                     edge++;
                 }
             }
             return g;
         }
 
-        // The moss cap along the rim edge a..b: the cushion over the rim line, the drape down the sidewall; consecutive
-        // edges take consecutive quarters of a strip, which join without a seam.
-        private static void Moss(PropGeometry g,Vector3 a,Vector3 b,int edge,int seed)
+        // One rim edge's growth, back to front: the back roots, the moss down the wall face (lowest first), the moss on
+        // the rim, the front roots, the clusters.
+        private static void Overgrow(PropGeometry g,Vector3 a,Vector3 b,int edge,int seed)
         {
-            float top=Hash(seed+3)<.5f?MossTop0:MossTop1;
-            float u0=(edge%4)*.25f,u1=u0+.25f;
-            float vTop=1-top/Atlas,vBottom=1-(top+MossHeight)/Atlas;
-            // The strip's rim line (MossRim under its top) lies on the rim: the cushion above it, the drape below.
-            float cushion=MossStripHeight*MossRim/MossHeight,drape=MossStripHeight-cushion;
-            float shade=.9f+.1f*Hash(seed+4);
-            Vector3 up=Vector3.up*cushion,down=Vector3.down*drape;
-            // Left to right on screen, so the strip's u runs with it.
-            if(a.x>b.x){Vector3 swap=a;a=b;b=swap;}
-            Quad(g,a+up,b+up,b+down,a+down,new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBottom),new Vector2(u0,vBottom),shade);
+            int backRoots=3+(Hash(seed+1)<.6f?1:0)+(Hash(seed+4)<.45f?1:0);
+            for(int k=0;k<backRoots;k++)
+                Root(g,a,b,(k+.5f)/backRoots+(Hash(seed*3+k)-.5f)*.2f,.55f+.3f*Hash(seed*5+k),.62f,seed*7+k);
+            // The wall face: a deep spill, a low drape, two mid drapes across the edge's halves.
+            MossStrip(g,a,b,.2f,.85f,-1.35f,.6f,edge+1,seed+17,.62f);
+            MossStrip(g,a,b,-.04f,1.04f,-.95f,.7f,edge+3,seed+11,.72f);
+            MossStrip(g,a,b,-.04f,.56f,-.32f,.78f,edge+1,seed+12,.88f);
+            MossStrip(g,a,b,.44f,1.04f,-.4f,.82f,edge+2,seed+13,.86f);
+            // The cap on the rim, in two halves, and a strip offset by half an edge for a fuller, joined cushion.
+            MossStrip(g,a,b,-.04f,.54f,.15f,.66f,edge,seed+14,1f);
+            MossStrip(g,a,b,.46f,1.04f,.15f,.66f,edge+1,seed+15,.97f);
+            MossStrip(g,a,b,.25f,.75f,.1f,.5f,edge+2,seed+16,.94f);
+            int frontRoots=3+(Hash(seed+2)<.6f?1:0)+(Hash(seed+3)<.3f?1:0);
+            for(int k=0;k<frontRoots;k++)
+            {
+                // Lengths up to the full 1.25; one root in five wider.
+                float length=.7f+.55f*Hash(seed*11+k);
+                float widen=Hash(seed*13+k)<.2f?1.5f:1f;
+                Root(g,a,b,(k+.5f)/frontRoots+(Hash(seed*17+k)-.5f)*.22f,length,.88f+.12f*Hash(seed*19+k),seed*23+k,widen);
+            }
+            // A large cluster on every other edge, a smaller one on every third, a middling one on every fourth: the painted
+            // growth about 0.6-0.8 across in a cell 1.05-1.35 wide.
+            if(edge%2==0)Fungus(g,Vector3.Lerp(a,b,.3f+.4f*Hash(seed+9)),.05f+.25f*Hash(seed+5),1.05f+.3f*Hash(seed*29+1),seed);
+            if(edge%3==1)Fungus(g,Vector3.Lerp(a,b,.15f+.7f*Hash(seed+10)),.3f+.4f*Hash(seed+6),.75f+.2f*Hash(seed*31+1),seed+1);
+            if(edge%4==3)Fungus(g,Vector3.Lerp(a,b,.2f+.6f*Hash(seed+8)),.6f+.3f*Hash(seed+7),.9f+.2f*Hash(seed*37+1),seed+2);
         }
 
-        // A hanging root at `along` a..b, hanging straight down the screen from just under the rim.
-        private static void Root(PropGeometry g,Vector3 a,Vector3 b,float along,int seed)
+        // A moss strip over the edge's stretch from t0 to t1 (a share of a..b, a little past either end so neighbours
+        // join), its top `top` above the rim (negative: under it, down the wall face), `height` tall; the strip variant
+        // and quarter from the seed and the index; the rim strips carry the strip's own rim line on the rim. Dropped
+        // onto the rim if its cushion would reach the walkable floor, left out if even that would.
+        private static void MossStrip(PropGeometry g,Vector3 a,Vector3 b,float t0,float t1,float top,float height,int quarter,int seed,float shade)
+        {
+            float row=Hash(seed+3)<.5f?MossTop0:MossTop1;
+            float u0=(quarter&3)*.25f,u1=u0+.25f;
+            float vTop=1-row/Atlas,vBottom=1-(row+MossHeight)/Atlas;
+            Vector3 left=Vector3.LerpUnclamped(a,b,t0),right=Vector3.LerpUnclamped(a,b,t1);
+            for(int attempt=0;attempt<2;attempt++)
+            {
+                Vector3 up=Vector3.up*top,down=Vector3.up*(top-height);
+                Vector3 p=left+up,q=right+up,r=right+down,s=left+down;
+                if(OffTheFloor(p,q,r,s))
+                {
+                    Quad(g,p,q,r,s,new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBottom),new Vector2(u0,vBottom),MossTint*shade);
+                    return;
+                }
+                if(top<=0)return;
+                top=0;
+            }
+        }
+
+        // A hanging root at `along` a..b, straight down the screen from just under the rim, `length` long (the cell's 1:4,
+        // `widen` wider); a third shorter if the whole would reach the walkable floor, left out if that would too.
+        private static void Root(PropGeometry g,Vector3 a,Vector3 b,float along,float length,float shade,int seed,float widen=1)
         {
             int cell=(int)(Hash(seed*5+7)*RootCells)%RootCells;
-            float width=RootWidth*(.85f+.3f*Hash(seed*3+1));
-            float length=width*RootCellHeight/RootCellWidth;
-            Vector3 anchor=Vector3.Lerp(a,b,Mathf.Clamp(along,.1f,.9f))+Vector3.down*.04f;
-            Vector3 top=anchor+Vector3.up*length*RootAnchorDrop/RootCellHeight,bottom=top+Vector3.down*length;
-            Vector3 half=Vector3.right*width*.5f;
+            Vector3 anchor=Vector3.Lerp(a,b,Mathf.Clamp(along,.06f,.94f))+Vector3.down*.03f;
             float u0=cell*RootCellWidth/Atlas,u1=(cell+1)*RootCellWidth/Atlas,vTop=1,vBottom=1-RootCellHeight/Atlas;
-            Quad(g,top-half,top+half,bottom+half,bottom-half,new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBottom),
-                new Vector2(u0,vBottom),.85f+.15f*Hash(seed*7+2));
+            for(int attempt=0;attempt<2;attempt++)
+            {
+                float width=length*RootCellWidth/RootCellHeight*widen;
+                Vector3 top=anchor+Vector3.up*length*RootAnchorDrop/RootCellHeight,bottom=top+Vector3.down*length;
+                Vector3 half=Vector3.right*width*.5f;
+                if(OffTheFloor(top-half,top+half,bottom+half,bottom-half))
+                {
+                    Quad(g,top-half,top+half,bottom+half,bottom-half,new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBottom),
+                        new Vector2(u0,vBottom),new Color(shade,shade,shade,1));
+                    return;
+                }
+                length*=.6f;
+            }
         }
 
-        // A fungus or seed-pod cluster growing on the sidewall under the rim point `at`, its top `drop` plus a little under
-        // the rim, so all of it stays below the deck's edge; the taller cells the rarer.
-        private static void Fungus(PropGeometry g,Vector3 at,float drop,int seed)
+        // A fungus or seed-pod cluster on the sidewall under the rim point `at`, its top `drop` under the rim and `size`
+        // across, so all of it stays below the deck's edge; the taller cells the rarer. Left out over walkable floor.
+        private static void Fungus(PropGeometry g,Vector3 at,float drop,float size,int seed)
         {
             float pick=Hash(seed*11+3);
             int cell=pick<.2f?0:pick<.45f?1:pick<.75f?2:3;
-            float size=ClusterSize*(.85f+.3f*Hash(seed*13+4));
             Vector3 top=at+Vector3.down*(.06f+drop),bottom=top+Vector3.down*size;
             Vector3 half=Vector3.right*size*.5f;
+            if(!OffTheFloor(top-half,top+half,bottom+half,bottom-half))return;
             float u0=cell*ClusterCellSize/Atlas,u1=(cell+1)*ClusterCellSize/Atlas;
             float vTop=1-ClusterTop/Atlas,vBottom=1-(ClusterTop+ClusterCellSize)/Atlas;
+            float shade=.92f+.08f*Hash(seed*17+5);
             Quad(g,top-half,top+half,bottom+half,bottom-half,new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBottom),
-                new Vector2(u0,vBottom),.9f+.1f*Hash(seed*17+5));
+                new Vector2(u0,vBottom),new Color(shade,shade,shade,1));
         }
 
-        private static void Quad(PropGeometry g,Vector3 p,Vector3 q,Vector3 r,Vector3 s,Vector2 up,Vector2 uq,Vector2 ur,Vector2 us,float shade)
+        // No corner of the piece lies on walkable floor (inside the hero's edge margin at most), read as the lanes are:
+        // the screen point back to the design plane (FoundrySurface) and on to the floor (FoundryMap.Contains).
+        private static bool OffTheFloor(Vector3 p,Vector3 q,Vector3 r,Vector3 s)=>Off(p)&&Off(q)&&Off(r)&&Off(s);
+        private static bool Off(Vector3 point)
+        {
+            FoundrySurface.ToDesign(point.x,point.y,out float u,out float v);
+            FoundryMap.ToFloor(u,v,out float x,out float y);
+            return !FoundryMap.Contains(x,y,GrowthClearance);
+        }
+
+        private static void Quad(PropGeometry g,Vector3 p,Vector3 q,Vector3 r,Vector3 s,Vector2 up,Vector2 uq,Vector2 ur,Vector2 us,Color c)
         {
             int at=g.V.Count;
-            var c=new Color(shade,shade,shade,1);
+            c.a=1;
             g.V.Add(p);g.V.Add(q);g.V.Add(r);g.V.Add(s);
             g.U.Add(up);g.U.Add(uq);g.U.Add(ur);g.U.Add(us);
             g.C.Add(c);g.C.Add(c);g.C.Add(c);g.C.Add(c);

@@ -187,8 +187,12 @@ namespace Cryptforge.Tests
             Assert.That(variants, Is.EqualTo(16), "The ice pass's sixteen variants.");
             // Pass 2 adds one texture of its own beside the sixteen twins: the garden growth atlas (roots, fungi, moss).
             Assert.That(Resources.Load<Texture2D>("Gloam/GloamGrowth"), Is.Not.Null, "The garden growth atlas.");
-            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Resources/Gloam" }).Length, Is.EqualTo(variants + 1),
-                "Resources/Gloam holds the ice pass's list, the growth atlas and nothing else.");
+            // The gate facade's brass to verdigris on floor 3 only (the ice keeps darkening it as before): the source's import.
+            Assert.That(Resources.Load<Texture2D>("Gloam/GateFacade"), Is.Not.Null, "The gate facade has a garden variant.");
+            Assert.That(Resources.Load<Texture2D>("Ice/GateFacade"), Is.Null, "Floor 2's gate is unchanged.");
+            AssertTwin("Assets/_Project/Resources/Gloam/GateFacade.png", "Assets/_Project/Art/Props/Foundry/GateFacade.png");
+            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Resources/Gloam" }).Length, Is.EqualTo(variants + 2),
+                "Resources/Gloam holds the ice pass's list, the growth atlas, the gate facade and nothing else.");
         }
 
         // A floor-3 texture: its own guid, its Ice twin's size and import settings.
