@@ -110,8 +110,14 @@ namespace Cryptforge.UI
             }
             if (Backdrop != null && Backdrop.CavernRenderer != null)
             {
-                if (!_cavernColourKept) { _cavernColour = Backdrop.CavernRenderer.color; _cavernColourKept = true; }
-                Backdrop.CavernRenderer.color = theme == FloorTheme.Ice ? FoundryRegionView.IceBackdrop(_cavernColour) : _cavernColour;
+                SpriteRenderer plate = Backdrop.CavernRenderer;
+                if (!_cavernColourKept) { _cavernColour = plate.color; _cavernSprite = plate.sprite; _cavernColourKept = true; }
+                Sprite painted = _platformMaterials != null ? _platformMaterials.IceBackdrop : null;
+                // The ice vault's own painting where it exists (the same size and framing as the cavern's), else the
+                // cavern tinted cold.
+                plate.sprite = ice && painted != null ? painted : _cavernSprite;
+                plate.color = ice && painted == null ? FoundryRegionView.IceBackdrop(_cavernColour) : _cavernColour;
+                Backdrop.FrameCavern();
             }
         }
         private const float IceHeroShadow = 1.25f;
@@ -119,6 +125,7 @@ namespace Cryptforge.UI
         private Transform _heroShadow;
         private Vector3 _heroShadowScale;
         private Color _cavernColour;
+        private Sprite _cavernSprite;
         private bool _cavernColourKept;
 
         private T Child<T>(string name) where T : Component

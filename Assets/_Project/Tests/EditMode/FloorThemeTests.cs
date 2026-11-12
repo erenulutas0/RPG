@@ -41,6 +41,22 @@ namespace Cryptforge.Tests
             Assert.That(stone.r, Is.LessThan(.7f), "Stone darkens.");
             Color lava = FoundryRegionView.IceTint(new Color(1.4f, .6f, .18f, 1f));
             Assert.That(lava.b, Is.GreaterThan(lava.r), "Lava becomes cold light.");
+            Color rail = FoundryRegionView.IceRail(new Color(1f, .95f, .82f, 1f), false);
+            Assert.That(rail.b, Is.GreaterThan(.6f), "The brass rail becomes bright mirror-ice, not dark.");
+            Color ember = FoundryRegionView.ColdAtmosphere(new Color(1f, .5f, .12f, .8f));
+            Assert.That(ember.b, Is.GreaterThan(ember.r), "Embers become frost motes.");
+            Assert.That(ember.a, Is.EqualTo(.8f));
+        }
+
+        [Test]
+        public void ThePlatformSetCarriesFloorTwosIceArt()
+        {
+            var set = AssetDatabase.LoadAssetAtPath<Cryptforge.Art.PlatformMaterialSet>(
+                "Assets/_Project/Art/Environment/Platform/PlatformMaterials.asset");
+            Assert.That(set, Is.Not.Null);
+            Assert.That(set.IcePaving, Is.Not.Null);
+            Assert.That(set.IceMasonry, Is.Not.Null);
+            Assert.That(set.IceBackdrop, Is.Not.Null);
         }
     }
 }

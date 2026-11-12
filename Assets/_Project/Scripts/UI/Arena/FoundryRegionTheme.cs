@@ -50,8 +50,20 @@ namespace Cryptforge.UI
                 if(ice&&_iceColours[i]==null)
                 {
                     var source=_foundryColours[i];var graded=new Color[source.Length];
-                    bool bare=_themeDress[i]==IceDress.Bare;
-                    for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],bare);
+                    IceDress dress=_themeDress[i];
+                    if(dress==IceDress.Bare)
+                    {
+                        // The coping sheet's rail is its only metal: brass there becomes mirror-ice, silver on the
+                        // compass seal; every other decal vertex is the kerbs' and grooves' stone.
+                        var uvs=_themeMeshes[i].uv;var positions=_themeMeshes[i].vertices;
+                        for(int v=0;v<source.Length;v++)
+                        {
+                            if(v>=uvs.Length||!OnCopingRail(uvs[v])){graded[v]=IceTint(source[v],true);continue;}
+                            FoundrySurface.ToDesign(positions[v].x,positions[v].y,out float u,out float w);
+                            graded[v]=IceRail(source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
+                        }
+                    }
+                    else for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],false,dress==IceDress.Paving);
                     _iceColours[i]=graded;
                 }
                 _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
@@ -123,14 +135,17 @@ namespace Cryptforge.UI
 
         // A vertex colour (a multiplier on the texture, under the shaders' 2x ceiling) on the Ice floor. bare: the batch
         // draws untextured, so the colour is the final one.
-        public static Color IceTint(Color c,bool bare=false)
+        public static Color IceTint(Color c,bool bare=false,bool paving=false)
         {
             float max=Mathf.Max(c.r,Mathf.Max(c.g,c.b)),min=Mathf.Min(c.r,Mathf.Min(c.g,c.b));
             float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
             float warm=Warmth(c,max,min);
             Color stone=(bare?IceBareStone:IceStone)*luminance;
             Color ice;
-            if(max>1.05f)
+            if(paving&&max<=1.05f)
+                // A fire's warm pool on the laid ice stays stone, barely lit by frost-light: no cyan floor.
+                ice=new Color(.86f,.97f,1.04f)*luminance;
+            else if(max>1.05f)
                 // A light: lava (red, little green) to quicksilver glow, a flame or brazier to frost-light.
                 ice=(c.g<c.r*.55f?QuicksilverGlow:FrostLight)*Mathf.Min(max,1.9f);
             else if(c.g>c.r*.78f&&c.b<c.r*.6f)
@@ -141,6 +156,18 @@ namespace Cryptforge.UI
                 ice=Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01(luminance*1.6f-.5f))*(bare?1.25f:1.8f);
             Color graded=Color.LerpUnclamped(stone,ice,warm);
             graded.r=Mathf.Min(graded.r,2);graded.g=Mathf.Min(graded.g,2);graded.b=Mathf.Min(graded.b,2);
+            graded.a=c.a;
+            return graded;
+        }
+
+        // A rail vertex of the untextured coping batch (its colour is final): mirror-ice #5FA8C8 brightening to the ice
+        // edge #BFE6F2 where the floor light is strong; on the compass seal silver #A9B4BF to ice edge.
+        public static Color IceRail(Color c,bool seal)
+        {
+            float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
+            Color line=seal?Color.Lerp(Silver,IceEdge,Mathf.Clamp01((luminance-.7f)*1.5f))
+                :Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01((luminance-.8f)*1.5f));
+            Color graded=line*Mathf.Clamp(luminance*1.15f,.85f,1.4f);
             graded.a=c.a;
             return graded;
         }
