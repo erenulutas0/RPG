@@ -23,8 +23,8 @@ regenerated on every run:
 
     Assets/_Project/Art/Characters/GlassRegent/CHR_GlassRegent_<facing>_<pose>.png, _hot.png, _Flash.png, the fall's
         CHR_GlassRegent_<facing>_fall-<beat>.png, CHR_GlassRegent_fall-topple.png, CHR_GlassRegent_death_<k>.png
-    Assets/_Project/Art/Characters/GlassRegent/GlassRegentArtSet.asset: laid out as ForgeWardenArtSet.asset, _frost empty
-        (born on floor 2: docs/50 section 2 rule 6)
+    Assets/_Project/Art/Characters/GlassRegent/GlassRegentArtSet.asset: laid out as ForgeWardenArtSet.asset, _frost and
+        _gloam empty (born on floor 2 in its own look: docs/50 section 2 rule 6)
     Assets/_Project/Art/Characters/GlassRegent/Copy/CHR_GlassRegentCopy_*.png and GlassRegentCopyArtSet.asset
     ArtDirection/2026-11-12/glass-regent-01/frames.json: every sprite's size and pivot, and the memory figures
 
@@ -75,13 +75,14 @@ REMAINS = {'fall-knee': 'CHR_GlassRegent_death_0', 'fall-down': 'CHR_GlassRegent
 SHARDS = {'shards-burst': 'CHR_GlassRegentCopy_death_0', 'shards-heap': 'CHR_GlassRegentCopy_death_1'}
 
 # The emission groups, per variant: (edge colour, core colour, gain, bloom gain, wide bloom gain). The mask (0..1,
-# above 1 when the windup flares) runs the colour from edge to core and scales it. The heart is the brightest violet on
-# the floor; the crown glows enough to read as lit glass, not as a lamp; the second phase brightens both and opens the
-# cracks; the copies keep only a faint rod crystal.
+# above 1 when the windup flares) runs the colour from edge to core and scales it. The first phase's heart stays the
+# floor's violet and its crown violet glass lit from within; the second phase burns both toward white, opens the cracks
+# and lights the robe's trims along their seams (the crack channel), so the phase reads at phone scale; the copies keep
+# only a faint rod crystal.
 EMISSION = {
-    'cool': {'heart': ('#5B3FC8', '#C9B6FF', 1.0, 0.7, 0.28), 'crown': ('#6E55D6', '#D2C4FF', 0.42, 0.35, 0.12)},
-    'hot': {'heart': ('#8B6CE8', '#F4EEFF', 1.5, 1.0, 0.45), 'crown': ('#8B6CE8', '#E4DAFF', 0.72, 0.6, 0.2),
-            'crack': ('#B9A2FF', '#FFFFFF', 1.25, 0.8, 0.25)},
+    'cool': {'heart': ('#5A3BD6', '#A68CFF', 0.8, 0.75, 0.3), 'crown': ('#6A50D8', '#B9A6FF', 0.3, 0.3, 0.1)},
+    'hot': {'heart': ('#8B6CE8', '#F4EEFF', 1.7, 1.1, 0.6), 'crown': ('#8B6CE8', '#EDE6FF', 0.75, 0.65, 0.25),
+            'crack': ('#A58BFF', '#FFFFFF', 1.4, 0.9, 0.35)},
     'copy': {'crown': ('#8C97AE', '#E2E8F2', 0.25, 0.2, 0.05)},
 }
 CHANNEL = {'heart': 0, 'crown': 1, 'crack': 2}
@@ -468,7 +469,7 @@ lines += frames_yaml('_enragedWindupWalk', [(sprites[(f, q, 'hot')], sprites[(f,
 for facing, field in (('front', '_fallFront'), ('rear', '_fallRear')):
     lines += ['  %s:' % field] + ['  - ' + ref(falls[(facing, pose)]) for pose in FALLS]
 lines += ['  _fallSeconds:'] + ['  - %s' % s for s in fall_seconds]
-lines += ['  _frost: {fileID: 0}']
+lines += ['  _frost: {fileID: 0}', '  _gloam: {fileID: 0}']
 regent_set = write_set(OUT, 'GlassRegentArtSet', lines)
 
 lines = []
@@ -480,7 +481,7 @@ lines += ['  _visualTop: %s' % copy_top, '  _shadowWidth: %s' % COPY_SHADOW_WIDT
 lines += frames_yaml('_windup', [(copies[(f, 'windup', 'copy')], copies[(f, 'windup', 'flash')]) for f in FACINGS])
 lines += frames_yaml('_windupWalk', [(copies[(f, q, 'copy')], copies[(f, q, 'flash')]) for f in FACINGS
                                      for q in WALK_QUARTERS])
-lines += ['  _frost: {fileID: 0}']
+lines += ['  _frost: {fileID: 0}', '  _gloam: {fileID: 0}']
 copy_set = write_set(COPY_OUT, 'GlassRegentCopyArtSet', lines)
 
 
