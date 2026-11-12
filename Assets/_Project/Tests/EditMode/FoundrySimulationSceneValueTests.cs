@@ -117,6 +117,14 @@ namespace Cryptforge.Tests
             Assert.That(guard.State.ArcDegrees, Is.EqualTo(MirrorGuardRule.ArcDegrees));
             var captain = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_GruntCaptain.asset");
             Assert.That(captain.Prefab.GetComponent<MirrorGuard>(), Is.Null, "the Captain has none");
+            // Its own Blender-rendered set, which has no frosted copy: the set is its own floor-2 look (docs/50 section 2).
+            var look = sentry.Prefab.GetComponent<EnemyLookView>();
+            Assert.That(look, Is.Not.Null);
+            var art = new SerializedObject(look).FindProperty("_paintedArt").objectReferenceValue as Cryptforge.Art.EnemyArtSet;
+            Assert.That(art, Is.Not.Null, "painted");
+            Assert.That(art.name, Is.EqualTo("MirrorSentryArtSet"));
+            Assert.That(art.IsValid, Is.True);
+            Assert.That(art.Frosted, Is.Null);
 
             var shipped = new DescentSimulation.FoundryLevers();
             Assert.That(shipped.SentryTurnDegrees, Is.EqualTo(MirrorGuardRule.TurnDegrees));
