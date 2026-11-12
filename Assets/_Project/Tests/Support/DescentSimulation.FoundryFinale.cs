@@ -6,8 +6,9 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Tests
 {
-    // The foundry's finale in the foundry simulation (FoundryLevers.Floors = 3): Data/Floors/Floor_FinalSwarm.asset, the
-    // climb's last floor below Quicksilver Vaults' checkpoint, on the foundry's arena. What the scene does there, and so
+    // The foundry's finale in the foundry simulation (FoundryLevers.Floors = 4, FinaleFloor):
+    // Data/Floors/Floor_FinalSwarm.asset, the climb's last floor below Gloam Gardens' checkpoint (Quicksilver Vaults' before floor 3 was built, docs/48), on the
+    // foundry's arena. What the scene does there, and so
     // what this plays, in DescentSimulation.Foundry's frame:
     //
     // - The checkpoint's Descend and its advance delay, as below floor 1; then EncounterController.BeginSwarm: one pack for
@@ -40,7 +41,11 @@ namespace Cryptforge.Tests
         // FoundryResult.Killer's word for the swarm's enemies, where the floor's own reads "wave ".
         public const string SwarmHarm = "swarm ";
 
-        // Data/Floors/Floor_FinalSwarm.asset as the foundry plays it: Floor_QuicksilverVaults' next floor and the climb's
+        // The climb's floor the finale is (EncounterController.FloorNumber in it), and so the FoundryLevers.Floors that reach
+        // it: floor 1, Quicksilver Vaults, Gloam Gardens, then the swarm (docs/48; 3 before floor 3 was built).
+        public const int FinaleFloor = 4;
+
+        // Data/Floors/Floor_FinalSwarm.asset as the foundry plays it: Floor_GloamGardens' next floor and the climb's
         // last - one swarm room, the Unending Crowd, whose ladder is FinalSwarm's (the hall Descent's finale, which
         // DescentFlowTests holds to the asset) - at the asset's own multipliers rather than ClimbScaling's, with no
         // modifier, no horde, none of the foundry's knobs and nothing below it.
@@ -50,17 +55,29 @@ namespace Cryptforge.Tests
             Rooms = FinalSwarm.Rooms,
             Kinds = new[] { RoomKind.Swarm },
             HordeRoles = new Enemy[0],
-            FloorNumber = 3,
+            FloorNumber = FinaleFloor,
             ClimbScaled = false,
             EnemyHealthMultiplier = FinalSwarm.HealthMultiplier,
             EnemyDamageMultiplier = FinalSwarm.DamageMultiplier
         };
 
+        // The climb as it was before docs/48's floor 3: floor 1, floor 2 and the finale as floor 2's next floor (the climb's
+        // floor 3 then), for the research that measured that Descent (docs/47's DescentLengthResearch and
+        // FirstCardFloorTwoResearch) and still reproduces its tables.
+        public static FoundryFloor FoundryTwoFloorClimb()
+        {
+            FoundryFloor one = FoundryFloorOne();
+            FoundryFloor finale = FoundryFinale();
+            finale.FloorNumber = 3;
+            one.Next.Next = finale;
+            return one;
+        }
+
         internal sealed partial class FoundryFloor
         {
             // FloorDefinition._climbScaled and its two authored multipliers: a climb-scaled floor's enemies take
             // ClimbScaling's tier by the floor's number, any other floor's the asset's own
-            // (EncounterController.FloorHealthMultiplier, FloorDamageMultiplier). Floors 1 and 2 are climb-scaled and their
+            // (EncounterController.FloorHealthMultiplier, FloorDamageMultiplier). Floors 1 to 3 are climb-scaled and their
             // waves and horde read ClimbScaling directly; only the finale is not, and only its swarm reads these.
             public bool ClimbScaled = true;
             public float EnemyHealthMultiplier = 1f;

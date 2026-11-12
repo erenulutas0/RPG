@@ -13,8 +13,9 @@ using UnityEngine.UI;
 
 namespace Cryptforge.Tests
 {
-    // Drives the Descent through Floor_EmberHalls into Floor_QuicksilverVaults by applying lethal damage to each pack and
-    // resolving choices through RunChoices: Mend at every forge, and the scripted decision at the checkpoint.
+    // Drives the Descent through Floor_EmberHalls into Floor_QuicksilverVaults, and on through Floor_GloamGardens (floor 3,
+    // docs/48) into the Final Swarm, by applying lethal damage to each pack and resolving choices through RunChoices: Mend
+    // at every forge, and the scripted decision at the checkpoint.
     public sealed class DescentFlowTests
     {
         private const int CheckpointExtract = 0;
@@ -134,7 +135,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator ClearingBothFloorsOpensTheFinaleAndExtractingAtItsDoorBanksTheRun()
+        public IEnumerator ClearingBothFloorsOpensFloorThreesDoorAndExtractingThereBanksTheRun()
         {
             var floorTwo = new List<string>();
             _encounters.EncounterStarted += () =>
@@ -150,7 +151,8 @@ namespace Cryptforge.Tests
                 ChoicePrompt prompt = _setup.Choices.Current;
                 if (prompt != null && prompt.Kind == ChoiceKind.Checkpoint)
                 {
-                    // The last boss no longer ends the run: its checkpoint is the finale's door (docs/27 decision 5).
+                    // Floor 2's boss no longer ends the run: its checkpoint is floor 3's door (docs/48; the finale's
+                    // before it, docs/27 decision 5).
                     if (_encounters.FloorNumber == 2)
                         finaleDoor = prompt;
                     _setup.Choices.TrySelect(prompt, _encounters.FloorNumber == 2 ? CheckpointExtract : CheckpointDescend);
@@ -179,8 +181,8 @@ namespace Cryptforge.Tests
             yield return null;
 
             Assert.That(finaleDoor, Is.Not.Null, "The Warden's fall opened a checkpoint.");
-            Assert.That(finaleDoor.Cards[CheckpointDescend].Description, Does.Contain("The Final Swarm"),
-                "And its way down is the finale.");
+            Assert.That(finaleDoor.Cards[CheckpointDescend].Description, Does.Contain("Gloam Gardens"),
+                "And its way down is floor 3 (docs/48).");
             Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Extracted));
             Assert.That(_encounters.TotalRoomsCleared, Is.EqualTo(12));
             Assert.That(_setup.Run.Gold, Is.EqualTo(273), "Floor 1 pays 116 gold and floor 2 pays 157 with Cursed Gold; Cinder Mites pay none.");
@@ -199,12 +201,13 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        // Descending from the last floor walks into the finale: the gold so far is secured at the door, the floor is the
-        // authored finale, and its ladder and multipliers are the ones the simulation measured the finale with.
+        // Descending from the last floor - floor 3, Gloam Gardens, since docs/48 - walks into the finale: the gold so far is
+        // secured at the door, the floor is the authored finale, and its ladder and multipliers are the ones the simulation
+        // measured the finale with.
         [UnityTest]
         public IEnumerator DescendingFromTheLastFloorSecuresTheGoldAndEntersTheFinale()
         {
-            float deadline = Time.realtimeSinceStartup + 120f;
+            float deadline = Time.realtimeSinceStartup + 180f;
             while (!_encounters.IsInSwarmRoom && !_setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
             {
                 ChoosePendingUpgrades();
@@ -219,10 +222,11 @@ namespace Cryptforge.Tests
             }
 
             Assert.That(_setup.Run.HasEnded, Is.False);
-            Assert.That(_encounters.IsInSwarmRoom, Is.True, "Descending from floor 2 walks into the swarm.");
-            Assert.That(_encounters.FloorNumber, Is.EqualTo(3));
+            Assert.That(_encounters.IsInSwarmRoom, Is.True, "Descending from floor 3 walks into the swarm.");
+            Assert.That(_encounters.FloorNumber, Is.EqualTo(4));
             Assert.That(_encounters.HasNextFloor, Is.False, "The finale is the last floor: leaving it ends the run.");
-            Assert.That(_setup.Run.SecuredGold, Is.EqualTo(273), "Everything the Descent paid is safe before the finale.");
+            Assert.That(_setup.Run.SecuredGold, Is.EqualTo(376),
+                "Everything the Descent paid is safe before the finale: floor 1's 116, floor 2's 157 and floor 3's 103 (no modifier).");
             Assert.That(_setup.Run.UnsecuredGold, Is.Zero, "Only what the finale pays is at risk in it.");
 
             FloorDefinition finale = _encounters.Floor;

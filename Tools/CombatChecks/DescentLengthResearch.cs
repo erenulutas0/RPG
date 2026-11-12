@@ -76,7 +76,8 @@ namespace Cryptforge.Tests
         // third floor where it asks for one, then the finale.
         private static DescentSimulation.FoundryFloor Chain(Option option)
         {
-            DescentSimulation.FoundryFloor one = DescentSimulation.FoundryFloorOne();
+            // The Descent this research measured (2026-11-11): floor 2 straight into the finale, before docs/48's floor 3.
+            DescentSimulation.FoundryFloor one = DescentSimulation.FoundryTwoFloorClimb();
             DescentSimulation.FoundryFloor two = one.Next;
             // Floor 2's gate as the option says, 0 (open as its room clears) as before docs/47's build.
             two.GateNotBeforeSeconds = option.FloorTwoGate;

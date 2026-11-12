@@ -47,8 +47,10 @@ namespace Cryptforge.Tests
     // for the gate's rows of the owner's floor time and the device's frames: a folder or several separated by ';',
     // absolute or within the Editor folder, or "none"; by default every device-* folder there holding a pull.txt - with
     // none both rows stay not measured, as before the script). FOUNDRY_FLOORS (1): 2 has the shipped floor's runs go down
-    // to floor 2 after a floor-1 clear (FoundryLevers.Floors) and adds floor 2's section and foundry-batch-floor2.csv; the
-    // gate, floor 1's tables, the levers' and the parity table stay floor 1's.
+    // to floor 2 after a floor-1 clear (FoundryLevers.Floors) and adds floor 2's section and foundry-batch-floor2.csv; 3
+    // goes on to floor 3 (Gloam Gardens, docs/48: the cohorts' floor-3 section and foundry-cohorts-floor3.csv); 4
+    // (DescentSimulation.FinaleFloor) on to the finale (foundry-finale.md and .csv; 3 reached it before floor 3 was
+    // built). The gate, floor 1's tables, the levers' and the parity table stay floor 1's.
     [Explicit("The regression harness's batch report: run it by name.")]
     public sealed class FoundryBatchReport
     {
@@ -141,10 +143,16 @@ namespace Cryptforge.Tests
                 if (floors >= 2)
                     File.WriteAllText(Path.Combine(output, "foundry-cohorts-floor2.csv"),
                         FoundryBatch.FloorTwoCsv(cohortRuns.SelectMany(c => c.Batches)));
+                // Floor 3 (Gloam Gardens, docs/48), a row a run that went down to it: floor 2 in the "floor1" columns as
+                // the floor above it, floor 3 in the rest.
+                if (floors >= 3)
+                    File.WriteAllText(Path.Combine(output, "foundry-cohorts-floor3.csv"),
+                        FoundryBatch.FloorTwoCsv(cohortRuns.SelectMany(c => c.Batches).Select(FoundryBatch.FloorTwo)));
             }
-            // The finale after floor 2 (FOUNDRY_FLOORS=3): every cohort's when they ran (their section carries it), else the
-            // shipped pilot's, alone in foundry-finale.md and a row a run that reached it in foundry-finale.csv.
-            if (floors >= 3)
+            // The finale after floor 3 (FOUNDRY_FLOORS=4, DescentSimulation.FinaleFloor; 3 before docs/48's floor 3): every
+            // cohort's when they ran (their section carries it), else the shipped pilot's, alone in foundry-finale.md and a
+            // row a run that reached it in foundry-finale.csv.
+            if (floors >= DescentSimulation.FinaleFloor)
             {
                 List<(string Label, FoundryBatch.Batch Batch)> finaleRows = cohortRuns.Count > 0
                     ? FoundryCohorts.FinaleRows(cohortRuns)
@@ -559,15 +567,18 @@ namespace Cryptforge.Tests
                     hero.Weapon = weapon;
                     hero.Name += " + " + weapon.DisplayName;
                 }
+                // The whole Descent the simulation plays since docs/48: floors 1-3 and the finale. An Editor file written
+                // before floor 3 holds floor 1, floor 2 and the finale; its floors 1 and 2 still read beside these.
                 DescentSimulation.FoundryLevers levers = FoundryBatch.Shipped().Copy("editor seeds, three floors");
-                levers.Floors = 3;
+                levers.Floors = DescentSimulation.FinaleFloor;
                 bool careful = true;
                 if (cohortName != null && Cryptforge.Core.AutopilotCohort.TryNamed(cohortName, out Cryptforge.Core.AutopilotCohort cohort))
                 {
                     levers.Cohort = cohort;
                     careful = cohort.Name == FoundryBatch.Shipped().Cohort.Name;
                 }
-                FoundryBatch.Batch batch = careful && weapon == null && index < baselines.Count && baselines[index].Levers.Floors >= 3
+                FoundryBatch.Batch batch = careful && weapon == null && index < baselines.Count &&
+                                           baselines[index].Levers.Floors >= DescentSimulation.FinaleFloor
                     ? baselines[index] : null;
                 rows.Add(new EditorDescent.HeroRows
                 {

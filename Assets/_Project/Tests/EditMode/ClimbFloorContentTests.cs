@@ -17,6 +17,7 @@ namespace Cryptforge.Tests
     public sealed class ClimbFloorContentTests
     {
         private const string FirstFloor = "Assets/_Project/Data/Floors/Floor_EmberHalls.asset";
+        private const string ThirdFloor = "Assets/_Project/Data/Floors/Floor_GloamGardens.asset";
         private const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
         // EncounterController.ValidateFloor, which Initialize runs over the whole chain before the first step.
@@ -55,11 +56,12 @@ namespace Cryptforge.Tests
 
         // The Daggers' elites (EliteRule; docs/41, status 2026-11-10 night): EncounterController.Elites holds the first enemy
         // of an elite room's wave, so every elite room of the climb's foundry floors opens each of its waves with its Grunt
-        // Captain, the elite, as the simulation's copies of the floors do (DescentSimulation.EmberHalls, QuicksilverVaults).
+        // Captain, the elite, as the simulation's copies of the floors do (DescentSimulation.EmberHalls, QuicksilverVaults,
+        // GloamGardens).
         [Test]
         public void EveryEliteRoomOpensItsWavesWithItsGruntCaptain()
         {
-            foreach (string path in new[] { FirstFloor, "Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset" })
+            foreach (string path in new[] { FirstFloor, "Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset", ThirdFloor })
             {
                 var floor = AssetDatabase.LoadAssetAtPath<FloorDefinition>(path);
                 Assert.That(floor, Is.Not.Null, path);
@@ -92,7 +94,7 @@ namespace Cryptforge.Tests
                 Assert.That(floor.EnemyHealthMultiplier, Is.EqualTo(ClimbScaling.Health(height)).Within(1e-5f), floor.Id);
                 Assert.That(floor.EnemyDamageMultiplier, Is.EqualTo(ClimbScaling.Damage(height)).Within(1e-5f), floor.Id);
             }
-            Assert.That(climbing, Is.EqualTo(2), "The Foundry and the floor above it climb; the finale keeps its own ramp.");
+            Assert.That(climbing, Is.EqualTo(3), "The Foundry and the two floors above it climb; the finale keeps its own ramp.");
         }
 
         // The Forge Warden as the foundry's gate sends it out (EncounterController.SpawnWave): its authored 300 at the
@@ -130,6 +132,36 @@ namespace Cryptforge.Tests
             Assert.That(Warden(second, 2), Is.EqualTo(4080f).Within(.01f), "floor 1's Warden's at the same difficulty, not 5712");
         }
 
+        // The climb's floor 3 (docs/48, Gloam Gardens) is the first floor whose gate boss ClimbScaling.Boss hardens (x1.15 at
+        // floor 3, on top of the climb's x1.96): its Warden walks out with its authored 300 times both, the run's difficulty
+        // and the floor's own share (WardenRule.GateHealthShareOn), measured for docs/40 section 9.6's 45-65 s fight. The
+        // chain is floor 1, floor 2, floor 3, the finale.
+        [Test]
+        public void FloorThreesGateBossTakesTheBossGrowthAndItsOwnShare()
+        {
+            const float difficulty = 1.6f;
+            var first = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
+            FloorDefinition third = first.NextFloor.NextFloor;
+            Assert.That(third, Is.SameAs(AssetDatabase.LoadAssetAtPath<FloorDefinition>(ThirdFloor)));
+            Assert.That(third.Id, Is.EqualTo("floor_gloam_gardens"));
+            Assert.That(third.NextFloor, Is.Not.Null);
+            Assert.That(third.NextFloor.Id, Is.EqualTo("floor_final_swarm"), "floor 3 descends to the finale");
+            Assert.That(third.NextFloor.NextFloor, Is.Null);
+            Assert.That(third.FoundryGateHealthShare, Is.GreaterThan(0f), "floor 3 sets a share of its own");
+            Assert.That(ClimbScaling.Boss(3), Is.EqualTo(ClimbScaling.BossGrowth));
+
+            RoomDefinition[] rooms = EncounterController.FoundryRooms(third);
+            RoomDefinition gate = rooms[rooms.Length - 1];
+            Assert.That(gate.Kind, Is.EqualTo(RoomKind.Boss));
+            EnemyDefinition boss = gate.WaveAt(0).EnemyAt(0);
+            Assert.That(boss.MaximumHealth, Is.EqualTo(300f), "the Forge Warden");
+            Assert.That(third.Modifier, Is.Null);
+            float warden = FloorScaling.Health(boss.MaximumHealth,
+                ClimbScaling.Health(3) * ClimbScaling.Boss(3) * difficulty * WardenRule.GateHealthShareOn(third.FoundryGateHealthShare), 0f);
+            Assert.That(warden, Is.EqualTo(300f * 1.96f * 1.15f * third.FoundryGateHealthShare * difficulty).Within(.05f));
+            Assert.That(warden, Is.GreaterThan(4080f), "a harder Warden than floor 2's at the same difficulty");
+        }
+
         // A floor's gate share (FloorDefinition.FoundryGateHealthShare) is 0 for the rule's, or a finite share above 0:
         // NaN, a negative or an infinite share fails the Descent's checks, as a gate held outside the floor's clock does.
         [Test]
@@ -163,7 +195,8 @@ namespace Cryptforge.Tests
         // (EncounterController.TryRoomSite, over each floor's rooms as the foundry plays them): floor 1 walks the workyard,
         // the pit's rim, the east court and, for its V0.1 elite before the gate, the north court; the floors above go on
         // from the authored floors' halls (EncounterController.LaterHalls), so floor 2 keeps the route it had before V0.1 -
-        // the north court, the workyard, the pit's rim - and the finale has no halls.
+        // the north court, the workyard, the pit's rim - floor 3 (docs/48) goes on to the east court, the north court and
+        // the workyard, and the finale has no halls.
         [Test]
         public void TheClimbsHallsGoRoundTheDistrictsFromWhereTheAuthoredFloorsBelowLeftOff()
         {
@@ -172,13 +205,14 @@ namespace Cryptforge.Tests
             {
                 new[] { workyard, pitRim, east, north },
                 new[] { north, workyard, pitRim },
+                new[] { east, north, workyard },
                 new float[0][]
             };
             var floor = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
             int height = 0, hallsBefore = 0;
             for (; floor != null; floor = floor.NextFloor, height++)
             {
-                Assert.That(height, Is.LessThan(routes.Length), "Floor 1, floor 2 and the finale.");
+                Assert.That(height, Is.LessThan(routes.Length), "Floor 1, floor 2, floor 3 and the finale.");
                 RoomDefinition[] rooms = EncounterController.FoundryRooms(floor);
                 var route = new List<(float X, float Y)>();
                 for (int i = 0; i < rooms.Length; i++)
@@ -193,7 +227,7 @@ namespace Cryptforge.Tests
                 }
                 hallsBefore += EncounterController.LaterHalls(floor);
             }
-            Assert.That(height, Is.EqualTo(routes.Length), "Floor 1, floor 2 and the finale.");
+            Assert.That(height, Is.EqualTo(routes.Length), "Floor 1, floor 2, floor 3 and the finale.");
         }
 
         [Test]

@@ -57,7 +57,8 @@ namespace Cryptforge.Tests
 
         private static DescentSimulation.FoundryFloor Chain(Option option)
         {
-            DescentSimulation.FoundryFloor one = DescentSimulation.FoundryFloorOne();
+            // The Descent this research measured (2026-11-11): floor 2 straight into the finale, before docs/48's floor 3.
+            DescentSimulation.FoundryFloor one = DescentSimulation.FoundryTwoFloorClimb();
             one.Next.GateNotBeforeSeconds = option.FloorTwoGate;
             return one;
         }
