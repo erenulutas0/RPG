@@ -19,6 +19,11 @@ namespace Cryptforge.Art
         [SerializeField] private Material _foundryPaving;
         [SerializeField] private Material _foundryFlagstone;
         [SerializeField] private Material _forgeKeeper;
+        // Floor 2's ice textures (docs/49), swapped in by FoundryRegionView.ApplyTheme for the flagstone and masonry ones.
+        [SerializeField] private Texture2D _icePaving;
+        [SerializeField] private Texture2D _iceMasonry;
+        public Texture2D IcePaving => _icePaving;
+        public Texture2D IceMasonry => _iceMasonry;
         public Material ForgeKeeper => _forgeKeeper;
         public Material Floor => _floor;
         public Material Coping => _coping;

@@ -73,7 +73,8 @@ namespace Cryptforge.UI
             {
                 Region=Child<FoundryRegionView>("Playable Foundry");
                 Region.Build(this,_furnaceSprite);
-                Child<FoundryAtmosphereView>("Foundry atmosphere").Build(_material);
+                _atmosphere=Child<FoundryAtmosphereView>("Foundry atmosphere");
+                _atmosphere.Build(_material);
                 return;
             }
             Platform = Child<ForgePlatformView>("Forge Platform");
@@ -94,14 +95,29 @@ namespace Cryptforge.UI
             if (theme == Theme)
                 return;
             Theme = theme;
+            bool ice = theme == FloorTheme.Ice;
             if (Region != null)
-                Region.ApplyTheme(theme);
+                Region.ApplyTheme(theme, _platformMaterials);
+            if (_atmosphere != null)
+                _atmosphere.SetCold(ice);
+            // The hero's contact patch widens on the ice floor so the Vanguard keeps his footing against the slate (docs/49).
+            var hero = FindFirstObjectByType<HeroLookView>();
+            Transform shadow = hero != null ? hero.transform.Find("Contact Shadow") : null;
+            if (shadow != null)
+            {
+                if (_heroShadow != shadow) { _heroShadow = shadow; _heroShadowScale = shadow.localScale; }
+                shadow.localScale = ice ? _heroShadowScale * IceHeroShadow : _heroShadowScale;
+            }
             if (Backdrop != null && Backdrop.CavernRenderer != null)
             {
                 if (!_cavernColourKept) { _cavernColour = Backdrop.CavernRenderer.color; _cavernColourKept = true; }
                 Backdrop.CavernRenderer.color = theme == FloorTheme.Ice ? FoundryRegionView.IceBackdrop(_cavernColour) : _cavernColour;
             }
         }
+        private const float IceHeroShadow = 1.25f;
+        private FoundryAtmosphereView _atmosphere;
+        private Transform _heroShadow;
+        private Vector3 _heroShadowScale;
         private Color _cavernColour;
         private bool _cavernColourKept;
 

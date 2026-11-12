@@ -1,26 +1,36 @@
 using System.Collections.Generic;
+using Cryptforge.Art;
 using Cryptforge.Content;
 using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // The region's floor dress (FloorTheme). Foundry is what Build made and is never touched; Ice re-tints in place, once
-    // per change: every owned mesh's vertex colours through IceTint (brass, amber, lava and flame to ice and cold cyan,
-    // everything else to a darker desaturated blue-grey), a property-block tint on each mesh renderer's material (the
-    // textures cool too; the materials themselves stay shared and unedited), and the sprites' colour. No geometry, no new
-    // material, no new draw. Foundry restores the kept arrays and clears the blocks. First palette: the 2026-11-12 brief
-    // (ground #5E6E80 / #8FA3B5 / #1C2633, frost #DDEBF5, ice #7FD4F0, cold light #9FE8FF, backdrop #0E1A2E-#1F4A5C).
+    // The region's floor dress (FloorTheme). Foundry is what Build made and is never touched; Ice (docs/49) dresses it in
+    // place, once per change, with no geometry, no new material and no new draw:
+    // - property blocks on the mesh renderers: the court flagstones take IcePavingV1 and the masonry IceMasonryV1; the
+    //   coping and inlay batch draws untextured (white), so its brass lines become bright mirror-ice from the vertex
+    //   colours alone; every other material is darkened toward slate. The shared materials are never edited.
+    // - every owned mesh's vertex colours through IceTint: brass, amber and gold to mirror-ice and silver, lava to
+    //   quicksilver glow, flames to frost-light, neutral stone to a desaturated slate.
+    // - the sprites' colour toward slate.
+    // Foundry restores the kept vertex arrays and sprite colours and clears the blocks.
     public sealed partial class FoundryRegionView
     {
-        private static readonly int ColourId=Shader.PropertyToID("_Color");
-        // Neutral stone keeps its value and leans to the ground's blue-grey; a material tint darkens and cools textures.
-        private static readonly Color IceStone=new Color(.80f,.90f,1.06f),IceMaterial=new Color(.64f,.74f,.88f);
-        // #7FD4F0 and #9FE8FF at unit luminance: a warm colour keeps its brightness and takes the ice hue.
-        private static readonly Color IceInlay=new Color(.67f,1.12f,1.26f),IceGlow=new Color(.75f,1.09f,1.2f);
-        private static readonly Color IceSprite=new Color(.62f,.76f,.95f);
+        private static readonly int ColourId=Shader.PropertyToID("_Color"),TextureId=Shader.PropertyToID("_MainTex");
+        // docs/49's palette.
+        internal static readonly Color MirrorIce=Hex(0x5FA8C8),IceEdge=Hex(0xBFE6F2),Silver=Hex(0xA9B4BF),
+            QuicksilverGlow=Hex(0x7FE3FF),FrostLight=Hex(0xA6F0FF),Haze=Hex(0x6E8299),Frost=Hex(0xB9CCDA);
+        // Neutral stone keeps its value, barely cooled: the textures carry the slate, and saturation stays under 0.2.
+        private static readonly Color IceStone=new Color(.93f,.96f,1f);
+        // Untextured coping stone: docs/49's slate light #67717F at the trim's value.
+        private static readonly Color IceBareStone=new Color(.70f,.77f,.86f);
+        // Materials without an ice texture yet (the base paving, iron, pit, baked props) and sprites: darker, cool grey.
+        private static readonly Color IceSlate=new Color(.66f,.70f,.77f),IceSprite=new Color(.62f,.67f,.76f);
         private static readonly Color BackdropDeep=new Color(.055f,.10f,.18f),BackdropTeal=new Color(.12f,.29f,.36f);
+        private enum IceDress{Slate,Paving,Masonry,Bare}
         private FloorTheme _theme=FloorTheme.Foundry;
         private readonly List<Mesh> _themeMeshes=new List<Mesh>();
+        private readonly List<IceDress> _themeDress=new List<IceDress>();
         private readonly List<Color[]> _foundryColours=new List<Color[]>(),_iceColours=new List<Color[]>();
         private readonly List<SpriteRenderer> _themeSprites=new List<SpriteRenderer>();
         private readonly List<Color> _foundrySpriteColours=new List<Color>();
@@ -29,10 +39,10 @@ namespace Cryptforge.UI
 
         public FloorTheme Theme=>_theme;
 
-        public void ApplyTheme(FloorTheme theme)
+        public void ApplyTheme(FloorTheme theme,PlatformMaterialSet set)
         {
             if(theme==_theme)return;
-            KeepFoundryColours();
+            KeepFoundryColours(set);
             bool ice=theme==FloorTheme.Ice;
             for(int i=0;i<_themeMeshes.Count;i++)
             {
@@ -40,7 +50,8 @@ namespace Cryptforge.UI
                 if(ice&&_iceColours[i]==null)
                 {
                     var source=_foundryColours[i];var graded=new Color[source.Length];
-                    for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v]);
+                    bool bare=_themeDress[i]==IceDress.Bare;
+                    for(int v=0;v<source.Length;v++)graded[v]=IceTint(source[v],bare);
                     _iceColours[i]=graded;
                 }
                 _themeMeshes[i].colors=ice?_iceColours[i]:_foundryColours[i];
@@ -51,8 +62,25 @@ namespace Cryptforge.UI
                 if(!ice){renderer.SetPropertyBlock(null);continue;}
                 var material=renderer.sharedMaterial;
                 if(material==null||!material.HasProperty(ColourId))continue;
+                IceDress dress=DressOf(material,set);
+                Color colour=material.GetColor(ColourId);
                 _themeBlock.Clear();
-                _themeBlock.SetColor(ColourId,material.GetColor(ColourId)*IceMaterial);
+                switch(dress)
+                {
+                    case IceDress.Paving:
+                        if(set.IcePaving!=null)_themeBlock.SetTexture(TextureId,set.IcePaving);else colour*=IceSlate;
+                        break;
+                    case IceDress.Masonry:
+                        if(set.IceMasonry!=null)_themeBlock.SetTexture(TextureId,set.IceMasonry);else colour*=IceSlate;
+                        break;
+                    case IceDress.Bare:
+                        _themeBlock.SetTexture(TextureId,Texture2D.whiteTexture);
+                        break;
+                    default:
+                        colour*=IceSlate;
+                        break;
+                }
+                _themeBlock.SetColor(ColourId,colour);
                 renderer.SetPropertyBlock(_themeBlock);
             }
             for(int i=0;i<_themeSprites.Count;i++)
@@ -60,7 +88,7 @@ namespace Cryptforge.UI
             _theme=theme;
         }
 
-        private void KeepFoundryColours()
+        private void KeepFoundryColours(PlatformMaterialSet set)
         {
             if(_themeKept)return;
             _themeKept=true;
@@ -70,7 +98,9 @@ namespace Cryptforge.UI
                 if(mesh==null||!_owned.Contains(mesh)||_themeMeshes.Contains(mesh))continue;
                 var colours=mesh.colors;
                 if(colours==null||colours.Length==0)continue;
+                var renderer=filter.GetComponent<MeshRenderer>();
                 _themeMeshes.Add(mesh);_foundryColours.Add(colours);_iceColours.Add(null);
+                _themeDress.Add(renderer!=null&&renderer.sharedMaterial!=null?DressOf(renderer.sharedMaterial,set):IceDress.Slate);
             }
             foreach(var sprite in GetComponentsInChildren<SpriteRenderer>(true))
             {
@@ -79,20 +109,61 @@ namespace Cryptforge.UI
             }
         }
 
-        // A vertex colour (a multiplier on the texture, up to the shaders' 2x ceiling) on the Ice floor.
-        public static Color IceTint(Color c)
+        // A renderer's material, or the structure variant made from it (FoundryVisibilityView.ForStructure).
+        private static IceDress DressOf(Material material,PlatformMaterialSet set)
+        {
+            if(set==null)return IceDress.Slate;
+            if(Is(material,set.FoundryFlagstone))return IceDress.Paving;
+            if(Is(material,set.FoundryWall)||Is(material,set.Wall))return IceDress.Masonry;
+            if(Is(material,set.Coping))return IceDress.Bare;
+            return IceDress.Slate;
+        }
+        private static bool Is(Material material,Material source)=>source!=null&&
+            (material==source||material.name==source.name+" (scene cutaway)");
+
+        // A vertex colour (a multiplier on the texture, under the shaders' 2x ceiling) on the Ice floor. bare: the batch
+        // draws untextured, so the colour is the final one.
+        public static Color IceTint(Color c,bool bare=false)
         {
             float max=Mathf.Max(c.r,Mathf.Max(c.g,c.b)),min=Mathf.Min(c.r,Mathf.Min(c.g,c.b));
             float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
-            float saturation=max>1e-4f?(max-min)/max:0;
-            // Warm and saturated: brass, amber, ember, lava. Neutral stone stays stone.
-            float warm=max>1e-4f?Mathf.Clamp01((c.r-c.b)/max*1.6f)*Mathf.Clamp01(saturation*2.2f):0;
-            Color stone=IceStone*luminance;
-            Color ice=(max>1.05f?IceGlow:IceInlay)*luminance;
+            float warm=Warmth(c,max,min);
+            Color stone=(bare?IceBareStone:IceStone)*luminance;
+            Color ice;
+            if(max>1.05f)
+                // A light: lava (red, little green) to quicksilver glow, a flame or brazier to frost-light.
+                ice=(c.g<c.r*.55f?QuicksilverGlow:FrostLight)*Mathf.Min(max,1.9f);
+            else if(c.g>c.r*.78f&&c.b<c.r*.6f)
+                // Pale gold: silver into ice edge.
+                ice=Color.Lerp(Silver,IceEdge,Mathf.Clamp01(luminance*1.4f-.3f))*(bare?1.15f:1.7f);
+            else
+                // Brass and amber: mirror-ice lines with a bright ice edge on the lit ones.
+                ice=Color.Lerp(MirrorIce,IceEdge,Mathf.Clamp01(luminance*1.6f-.5f))*(bare?1.25f:1.8f);
             Color graded=Color.LerpUnclamped(stone,ice,warm);
             graded.r=Mathf.Min(graded.r,2);graded.g=Mathf.Min(graded.g,2);graded.b=Mathf.Min(graded.b,2);
             graded.a=c.a;
             return graded;
+        }
+
+        // FoundryAtmosphereView on the Ice floor: smoke to cold haze, embers to frost motes, the pit's glow to quicksilver.
+        public static Color ColdAtmosphere(Color c)
+        {
+            float max=Mathf.Max(c.r,Mathf.Max(c.g,c.b)),min=Mathf.Min(c.r,Mathf.Min(c.g,c.b));
+            float luminance=c.r*.299f+c.g*.587f+c.b*.114f;
+            float warm=Warmth(c,max,min);
+            Color haze=Haze*Mathf.Min(luminance*1.9f,1.6f);
+            Color light=(c.g<c.r*.5f?QuicksilverGlow:max>1.2f?FrostLight:Frost)*Mathf.Clamp(max,.6f,1.8f);
+            Color cold=Color.LerpUnclamped(haze,light,warm);
+            cold.a=c.a;
+            return cold;
+        }
+
+        // How warm and saturated: brass, amber, ember, lava near 1; neutral stone and smoke near 0.
+        private static float Warmth(Color c,float max,float min)
+        {
+            if(max<=1e-4f)return 0;
+            float saturation=(max-min)/max;
+            return Mathf.Clamp01((c.r-c.b)/max*1.6f)*Mathf.Clamp01(saturation*2.2f);
         }
 
         // The painted backdrop's tint on the Ice floor: deep navy to teal over the plate's own value.
@@ -101,5 +172,7 @@ namespace Cryptforge.UI
             Color tint=Color.Lerp(BackdropDeep,BackdropTeal,.5f)*2.4f;
             return new Color(foundry.r*tint.r,foundry.g*tint.g,foundry.b*tint.b,foundry.a);
         }
+
+        private static Color Hex(int rgb)=>new Color(((rgb>>16)&255)/255f,((rgb>>8)&255)/255f,(rgb&255)/255f,1);
     }
 }
