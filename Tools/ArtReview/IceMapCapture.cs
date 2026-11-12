@@ -44,9 +44,27 @@ namespace Cryptforge.Tests
             // The crowd as it stands, both floors in the same frame.
             follow.enabled=true;yield return null;follow.Frame(1080,2340,361,1913);follow.enabled=false;
             Capture(camera,arena,"floor1/crowd-portrait",1080,2340);
-            arena.ApplyFloorTheme(second.Theme);
+            // Floor 2's enemies wear the frosted palette (EnemyLookView.UseFrost, as EncounterController stands each up).
+            arena.ApplyFloorTheme(second.Theme);Frost(true);
             Capture(camera,arena,"floor2/crowd-portrait",1080,2340);
-            arena.ApplyFloorTheme(FloorTheme.Foundry);
+            arena.ApplyFloorTheme(FloorTheme.Foundry);Frost(false);
+            // Every painted kind side by side before the hero (the Warden too, whom the crowd never fields), each floor.
+            // A lone Warden off its fight may log what it misses; this is a picture, not a test of it.
+            LogAssert.ignoreFailingMessages=true;
+            var lineup=Lineup(hero.transform.position);
+            foreach(var floor in new[]{"floor1","floor2"})
+            {
+                bool ice=floor=="floor2";
+                arena.ApplyFloorTheme(ice?second.Theme:FloorTheme.Foundry);Frost(ice);
+                yield return null;
+                follow.enabled=true;yield return null;follow.Frame(1080,2340,361,1913);follow.enabled=false;
+                Capture(camera,arena,floor+"/enemy-lineup",1080,2340);
+                int frosted=0;foreach(var look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))if(ShowsFrost(look))frosted++;
+                File.WriteAllText(Root+floor+"/enemy-palette.txt",$"frosted enemies:{frosted}; lineup:{lineup.Length}; theme:{arena.Theme}\n");
+            }
+            foreach(var body in lineup)Object.Destroy(body);
+            arena.ApplyFloorTheme(FloorTheme.Foundry);Frost(false);
+            yield return null;
             foreach(var floor in new[]{"floor1","floor2"})
             {
                 if(floor=="floor2")arena.ApplyFloorTheme(second.Theme);
@@ -97,6 +115,35 @@ namespace Cryptforge.Tests
                 }
             }
             Assert.That(arena.Theme,Is.EqualTo(FloorTheme.Ice));
+        }
+        // EnemyLookView.UseFrost and ShowsFrost are internal: reached by reflection from the test assembly.
+        const System.Reflection.BindingFlags Internal=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        static void Frost(bool on)
+        {
+            var use=typeof(EnemyLookView).GetMethod("UseFrost",Internal);
+            foreach(var look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))use.Invoke(look,new object[]{on});
+        }
+        static bool ShowsFrost(EnemyLookView look)=>(bool)typeof(EnemyLookView).GetProperty("ShowsFrost",Internal).GetValue(look);
+        // The six painted kinds in a row a little below the hero, every body's own behaviour off so they stand.
+        static GameObject[] Lineup(Vector3 hero)
+        {
+#if UNITY_EDITOR
+            string[] kinds={"CinderMite","Runner","Grunt","Tank","GruntCaptain","ForgeWarden"};
+            float[] x={-1.9f,-1.2f,-.45f,.45f,1.3f,2.2f};
+            var bodies=new GameObject[kinds.Length];
+            for(int i=0;i<kinds.Length;i++)
+            {
+                var prefab=UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/"+kinds[i]+".prefab");
+                bodies[i]=Object.Instantiate(prefab,hero+new Vector3(x[i],-1.1f,0f),Quaternion.identity);
+                // The attacker and its targeting off: the body stands and breathes; its look and views stay on.
+                if(bodies[i].TryGetComponent(out AttackController attack))attack.enabled=false;
+                if(bodies[i].TryGetComponent(out Targeting targeting))targeting.enabled=false;
+                if(bodies[i].TryGetComponent(out Health health))health.Initialize(100f);
+            }
+            return bodies;
+#else
+            return new GameObject[0];
+#endif
         }
         static void Capture(Camera c,ArenaView arena,string name,int width,int height)
         {

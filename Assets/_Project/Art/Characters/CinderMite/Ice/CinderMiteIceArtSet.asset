@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: CinderMiteIceArtSet
+  m_EditorClassIdentifier:
+  _front:
+  - Body: {fileID: 21300000, guid: fcf73ee110ba45be94444ca7ed0b4208, type: 3}
+    Flash: {fileID: 21300000, guid: a7b6ae8544d82f345bc8985399c1c01c, type: 3}
+  - Body: {fileID: 21300000, guid: de90d0736b8241edb4fb1cd8ca9b16b5, type: 3}
+    Flash: {fileID: 21300000, guid: 84880a102c3bda34a817e787e92a3ba8, type: 3}
+  - Body: {fileID: 21300000, guid: 305bfa0325dc41dfa50e7bf8468f747c, type: 3}
+    Flash: {fileID: 21300000, guid: b8f0861a74eb5b94e8b361952e9bf473, type: 3}
+  - Body: {fileID: 21300000, guid: 1b25614fdc17482184b14a7011f86d7c, type: 3}
+    Flash: {fileID: 21300000, guid: 8520fb87e187bf14ea4185ee2768056f, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: 14a54ef0f1214e1e86f230d1eb7d285e, type: 3}
+    Flash: {fileID: 21300000, guid: 975b3cf6ed8de1e48ae7c873d749c4b5, type: 3}
+  - Body: {fileID: 21300000, guid: c0925107d90e4dadb599e08f03146615, type: 3}
+    Flash: {fileID: 21300000, guid: 38dc71b0328458b4a8c2ed98878b72b2, type: 3}
+  - Body: {fileID: 21300000, guid: 8f51ec8b5c4d49abadfd47524600371e, type: 3}
+    Flash: {fileID: 21300000, guid: b6f78052f68795a4890932226ba6c56b, type: 3}
+  - Body: {fileID: 21300000, guid: 10f8d03829f94e59b76f5c3da3dc64ed, type: 3}
+    Flash: {fileID: 21300000, guid: cb91ee27c174eb84f8627abe46777808, type: 3}
+  _death:
+  - {fileID: 21300000, guid: 7cc95e5e30a548e89ac76b60d5a5b11b, type: 3}
+  - {fileID: 21300000, guid: a31cff5f49b54f99be6e15ba05907889, type: 3}
+  _strikeWindup:
+  - Body: {fileID: 21300000, guid: fc044ab4bcf540f18e58bc1adbceb589, type: 3}
+    Flash: {fileID: 21300000, guid: 0e57b1a352004c4fbb8b922d636f491a, type: 3}
+  - Body: {fileID: 21300000, guid: 8f40fa371fca45459c30e426bedbcea1, type: 3}
+    Flash: {fileID: 21300000, guid: b63357a6bbbb4a909eb44884d6fcd977, type: 3}
+  _strikeWindupSeconds: 0.18
+  _deathFront:
+  - {fileID: 21300000, guid: 52cda713bcd245acabedb27b478cb6f9, type: 3}
+  - {fileID: 21300000, guid: 9ddd50ef026d486b87d53fcccb159031, type: 3}
+  - {fileID: 21300000, guid: bffc16c567a0474a9af6c28ec514ea98, type: 3}
+  - {fileID: 21300000, guid: f9b9739a7d66417faf287f6155963070, type: 3}
+  - {fileID: 21300000, guid: c2d164b7c351419dad9de27ba358f3c4, type: 3}
+  - {fileID: 21300000, guid: f34064a893214e80b7ffef6f51a05a59, type: 3}
+  - {fileID: 21300000, guid: f34064a893214e80b7ffef6f51a05a59, type: 3}
+  - {fileID: 21300000, guid: 83476b0757c446c5866b04843e785d67, type: 3}
+  - {fileID: 21300000, guid: 83476b0757c446c5866b04843e785d67, type: 3}
+  _deathRear:
+  - {fileID: 21300000, guid: 2d86e9a1f5524709a31eed857109a97d, type: 3}
+  - {fileID: 21300000, guid: c0a61210602747518714d8e546e383c2, type: 3}
+  - {fileID: 21300000, guid: bbb7d29a4fd74318af30d73c5bc53603, type: 3}
+  - {fileID: 21300000, guid: 74dc880178e94c4baf190fba1b743e1a, type: 3}
+  - {fileID: 21300000, guid: a2a8a895e708450cae6c3395ef89a43f, type: 3}
+  - {fileID: 21300000, guid: edf51a5d5bc44de086084fdde509eab1, type: 3}
+  - {fileID: 21300000, guid: edf51a5d5bc44de086084fdde509eab1, type: 3}
+  - {fileID: 21300000, guid: e7ffa32ccb1a4c7faa3f1900e1a69efb, type: 3}
+  - {fileID: 21300000, guid: e7ffa32ccb1a4c7faa3f1900e1a69efb, type: 3}
+  _deathStep: 0.06
+  _frost: {fileID: 0}

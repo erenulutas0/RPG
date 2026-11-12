@@ -48,6 +48,10 @@ namespace Cryptforge.Art
         [SerializeField] private Sprite[] _deathFront;
         [SerializeField] private Sprite[] _deathRear;
         [SerializeField, Min(0f)] private float _deathStep;
+        // Optional: the same enemy frosted for the ice floor (FloorTheme.Ice, docs/49) - its drawings re-coloured
+        // cold silver stone with violet cracks (Tools/ArtReview/GenerateIceEnemyArt.py), pose for pose with this set.
+        // Visual only; the frosted set has none of its own.
+        [SerializeField] private EnemyArtSet _frost;
         // The fall as frames FallStep apart, built once for each facing.
         [NonSerialized] private Sprite[] _fallTimelineFront;
         [NonSerialized] private Sprite[] _fallTimelineRear;
@@ -64,6 +68,8 @@ namespace Cryptforge.Art
             return quarter == 0 ? 1 : quarter == 1 ? 4 : quarter == 2 ? 2 : 5;
         }
         public Sprite[] Death => _death;
+        // The frosted copy when the set has a complete one, else null (the enemy keeps this set on the ice floor).
+        public EnemyArtSet Frosted => _frost != null && _frost != this && _frost.IsValid ? _frost : null;
         public Frame GetFrame(int index, bool rear) => (rear ? _rear : _front)[index];
         public bool IsValid => Complete(_front) && Complete(_rear) && _front.Length == _rear.Length && _walkCycleDistance > 0 && _shadowWidth > 0 && _death != null && _death.Length == 2 && _death[0] != null && _death[1] != null;
         // A partly filled optional part counts as absent, so its enemy behaves as one without it.

@@ -73,3 +73,4 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cad7174355ac48b58750fc411b5a2783, type: 3}
   - {fileID: 21300000, guid: cad7174355ac48b58750fc411b5a2783, type: 3}
   _deathStep: 0.06
+  _frost: {fileID: 11400000, guid: 8a5c7eb0698e420c898ef5afab6b03db, type: 2}

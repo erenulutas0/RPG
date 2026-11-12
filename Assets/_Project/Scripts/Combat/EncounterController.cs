@@ -1416,6 +1416,10 @@ namespace Cryptforge.Combat
                 attack = enemy.GetComponent<AttackController>();
                 attack.Initialize(weapon);
             }
+            // The floor's palette, visual only (docs/49): frosted on the ice floor. Asked of every body as it stands up,
+            // so a shelved body from another floor takes this one's.
+            if (enemy.TryGetComponent(out EnemyLookView paletteLook))
+                paletteLook.UseFrost(_currentFloor != null && _currentFloor.Theme == FloorTheme.Ice);
             if (_heroOnly == null || !ReferenceEquals(_heroOnly[0], _hero))
                 _heroOnly = new[] { _hero };
             enemy.GetComponent<Targeting>().SetCandidates(_heroOnly);

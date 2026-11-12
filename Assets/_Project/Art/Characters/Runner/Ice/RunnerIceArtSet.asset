@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: RunnerIceArtSet
+  m_EditorClassIdentifier: 
+  _front:
+  - Body: {fileID: 21300000, guid: 7a75d07ffdf147c4aba2835193449499, type: 3}
+    Flash: {fileID: 21300000, guid: 112c68082c904d489077d84713c59d2a, type: 3}
+  - Body: {fileID: 21300000, guid: a183577703654d9caa0c82cd1f03cdde, type: 3}
+    Flash: {fileID: 21300000, guid: 0d06e5f8e6884dcb90b21a8aa4891b56, type: 3}
+  - Body: {fileID: 21300000, guid: 1ef736c38abf47d8bd506dcd7dea4bba, type: 3}
+    Flash: {fileID: 21300000, guid: 13631f098a7a4b2c8a2ab701909b06c4, type: 3}
+  - Body: {fileID: 21300000, guid: bf9a1692913f4e13936188a83320b79b, type: 3}
+    Flash: {fileID: 21300000, guid: c44869ae90f2480986fcb589521f61f2, type: 3}
+  - Body: {fileID: 21300000, guid: d3742b5cd01948ca961f012fa6fd2976, type: 3}
+    Flash: {fileID: 21300000, guid: 950e0453255341efa8af0ec80f926dc3, type: 3}
+  - Body: {fileID: 21300000, guid: 32fbe608a6c14feba548380d1880ba9c, type: 3}
+    Flash: {fileID: 21300000, guid: a19c98e0d11c420f93141048ad33c256, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: 182176520bdb47969da2746eff0200a2, type: 3}
+    Flash: {fileID: 21300000, guid: af57e33065ce44ca9abb5a14870d7b2d, type: 3}
+  - Body: {fileID: 21300000, guid: a956d5d8327149d1bd14fc9364c4def0, type: 3}
+    Flash: {fileID: 21300000, guid: 22b0de135ba546239d3cfd5e232a83b4, type: 3}
+  - Body: {fileID: 21300000, guid: f39188d3c9f843f5938a4f331cf8daf8, type: 3}
+    Flash: {fileID: 21300000, guid: cfc7e7bb69d3484b8ad2d38c02a57a0a, type: 3}
+  - Body: {fileID: 21300000, guid: cba0b15503104d668bbcd535830cebf7, type: 3}
+    Flash: {fileID: 21300000, guid: 673dcee17def483d8bd84db0f31e2e31, type: 3}
+  - Body: {fileID: 21300000, guid: 278b485d555c452787cdd50b407ade2e, type: 3}
+    Flash: {fileID: 21300000, guid: 4b30d2a73b9e4d54a28424140f9db909, type: 3}
+  - Body: {fileID: 21300000, guid: 9edc2ba78f7446c79f8860e91408e13d, type: 3}
+    Flash: {fileID: 21300000, guid: d53097140e1149ce80bfb7b86fe09f3a, type: 3}
+  _death:
+  - {fileID: 21300000, guid: d988bb6017894059ac80c99a7b87cb7b, type: 3}
+  - {fileID: 21300000, guid: be43e773f2354b7f83e12e9dd13e48c5, type: 3}
+  _visualTop: 1.05
+  _shadowWidth: 0.44
+  _walkCycleDistance: 1.0
+  _strikeWindup:
+  - Body: {fileID: 21300000, guid: 93ef8bcfac594a75a54974938076403d, type: 3}
+    Flash: {fileID: 21300000, guid: 3e0e4573094b40a7906ac25b6ccf2797, type: 3}
+  - Body: {fileID: 21300000, guid: dc74136f1fdb4a3384b311aac1ada8d7, type: 3}
+    Flash: {fileID: 21300000, guid: 48f33e6a7c104e09a29054694499127b, type: 3}
+  _strikeWindupSeconds: 0.15
+  _deathFront:
+  - {fileID: 21300000, guid: 34e40a823fc84e40a89c060db4adf55e, type: 3}
+  - {fileID: 21300000, guid: 02c4d6e51f044d5e83cea22eebf283c6, type: 3}
+  - {fileID: 21300000, guid: 805a739dc7b24b7aae8f56b667b310ba, type: 3}
+  - {fileID: 21300000, guid: 303864f00c8c44298248d2ca7a364be2, type: 3}
+  - {fileID: 21300000, guid: 303864f00c8c44298248d2ca7a364be2, type: 3}
+  - {fileID: 21300000, guid: 45cbde430c9d451dbcabe78d148fc5e0, type: 3}
+  - {fileID: 21300000, guid: 45cbde430c9d451dbcabe78d148fc5e0, type: 3}
+  - {fileID: 21300000, guid: 45cbde430c9d451dbcabe78d148fc5e0, type: 3}
+  - {fileID: 21300000, guid: 45cbde430c9d451dbcabe78d148fc5e0, type: 3}
+  - {fileID: 21300000, guid: 45cbde430c9d451dbcabe78d148fc5e0, type: 3}
+  _deathRear:
+  - {fileID: 21300000, guid: 5ebd222b9a2b43b597b7a21a6a201292, type: 3}
+  - {fileID: 21300000, guid: c98da13bbcf04a22925822e2856b9a63, type: 3}
+  - {fileID: 21300000, guid: fd293ef5f6cf47e1abe2c4d3761b6bd1, type: 3}
+  - {fileID: 21300000, guid: 36b7a3bf9b5c46f9b41170b3337b27d8, type: 3}
+  - {fileID: 21300000, guid: 36b7a3bf9b5c46f9b41170b3337b27d8, type: 3}
+  - {fileID: 21300000, guid: 55e8477cd7d24fefbb49d285b63518bf, type: 3}
+  - {fileID: 21300000, guid: 55e8477cd7d24fefbb49d285b63518bf, type: 3}
+  - {fileID: 21300000, guid: 55e8477cd7d24fefbb49d285b63518bf, type: 3}
+  - {fileID: 21300000, guid: 55e8477cd7d24fefbb49d285b63518bf, type: 3}
+  - {fileID: 21300000, guid: 55e8477cd7d24fefbb49d285b63518bf, type: 3}
+  _deathStep: 0.06
+  _frost: {fileID: 0}
