@@ -2409,8 +2409,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # F9F5121C35E5E329... on 2026-11-12 10:42
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 46509471
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 3B4DDAB70A5E1508... on 2026-11-12 11:50
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 46528031
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the

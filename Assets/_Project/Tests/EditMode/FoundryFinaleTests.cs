@@ -9,8 +9,9 @@ using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // The foundry's finale in the foundry simulation (FoundryLevers.Floors = 3, DescentSimulation.FoundryFinale.cs): a
-    // floor-2 clear goes down into Floor_FinalSwarm's swarm room on the foundry's arena, which ends when the hero walks
+    // The foundry's finale in the foundry simulation (FoundryLevers.Floors = 4, DescentSimulation.FinaleFloor,
+    // DescentSimulation.FoundryFinale.cs): a floor-3 clear (Gloam Gardens since docs/48; floor 2's before it) goes down
+    // into Floor_FinalSwarm's swarm room on the foundry's arena, which ends when the hero walks
     // out of its exit - a victory, the climb's last floor - or falls. Played over the Editor measurement's seeds, both
     // heroes, and read over all of them rather than pinned to one: the Editor's Mono and the .NET runner walk a seed apart.
     // FoundrySimulationSceneValueTests holds the finale's floor and the autopilot's stay in it to the scene's.
@@ -26,13 +27,16 @@ namespace Cryptforge.Tests
             public List<string> Trace;
             public string Where => $"{Hero.Name} seed {Seed}";
             public DescentSimulation.FoundryResult Second => First.NextFloor;
-            public DescentSimulation.FoundryResult Finale => First.NextFloor?.NextFloor;
+            // Floor 3, the floor the finale follows.
+            public DescentSimulation.FoundryResult Third => First.NextFloor?.NextFloor;
+            public DescentSimulation.FoundryResult Finale => Third?.NextFloor;
             // The trace from the descent into the finale on.
-            public IEnumerable<string> FinaleTrace => Trace.SkipWhile(line => !line.Contains(" floor_descend floor=3 "));
+            public IEnumerable<string> FinaleTrace =>
+                Trace.SkipWhile(line => !line.Contains($" floor_descend floor={DescentSimulation.FinaleFloor} "));
         }
 
-        // Every hero on every seed down all three floors, with the telemetry's trace: about a second a run, played once for
-        // the tests below.
+        // Every hero on every seed down all four floors, the finale the fourth, with the telemetry's trace: about a second
+        // and a half a run, played once for the tests below.
         private static readonly Lazy<Climb[]> Climbs = new Lazy<Climb[]>(() =>
         {
             var climbs = new List<Climb>();
@@ -40,7 +44,7 @@ namespace Cryptforge.Tests
             foreach (int seed in Seeds)
             {
                 var trace = new List<string>();
-                DescentSimulation.FoundryResult first = DescentSimulation.RunFoundry(hero, seed, Floors(3), trace: trace.Add);
+                DescentSimulation.FoundryResult first = DescentSimulation.RunFoundry(hero, seed, Floors(DescentSimulation.FinaleFloor), trace: trace.Add);
                 climbs.Add(new Climb { Hero = hero, Seed = seed, First = first, Trace = trace });
             }
             return climbs.ToArray();
@@ -56,27 +60,32 @@ namespace Cryptforge.Tests
         private static Climb[] Reached()
         {
             Climb[] reached = Climbs.Value.Where(c => c.Finale != null).ToArray();
-            Assert.That(reached.Length, Is.GreaterThan(0), "a run cleared both floors and went down into the finale");
+            Assert.That(reached.Length, Is.GreaterThan(0), "a run cleared all three floors and went down into the finale");
             return reached;
         }
 
-        // The climb's last floor: floor 2's next, the Final Swarm - one swarm room whose ladder is the hall Descent's finale
+        // The climb's last floor: floor 3's next (floor 2's before docs/48), the Final Swarm - one swarm room whose ladder is
+        // the hall Descent's finale
         // (DescentSimulation.FinalSwarm, which DescentFlowTests holds to the asset), its authored multipliers rather than the
         // climb's, no horde, no modifier, none of the foundry's knobs and nothing below it. Its exit stands on the foundry's
         // floor where the hero can hold it, clear of the pit's band.
         [Test]
-        public void TheFinaleIsFloorTwosNextFloorAndTheHallDescentsFinale()
+        public void TheFinaleIsFloorThreesNextFloorAndTheHallDescentsFinale()
         {
             DescentSimulation.FoundryFloor two = DescentSimulation.FoundryFloorOne().Next;
-            DescentSimulation.FoundryFloor finale = two.Next;
+            DescentSimulation.FoundryFloor three = two.Next;
+            Assert.That(three.Id, Is.EqualTo("floor_gloam_gardens"));
+            DescentSimulation.FoundryFloor finale = three.Next;
             Assert.That(finale, Is.Not.Null);
             Assert.That(finale.Id, Is.EqualTo("floor_final_swarm"));
-            Assert.That(finale.FloorNumber, Is.EqualTo(3));
+            Assert.That(finale.FloorNumber, Is.EqualTo(4));
+            Assert.That(DescentSimulation.FinaleFloor, Is.EqualTo(4));
             Assert.That(finale.Next, Is.Null, "the climb ends there");
             Assert.That(finale.Kinds, Is.EqualTo(new[] { RoomKind.Swarm }));
             Assert.That(finale.HordeRoles, Is.Empty, "no horde in the finale");
             Assert.That(finale.ClimbScaled, Is.False);
-            Assert.That(two.ClimbScaled && DescentSimulation.FoundryFloorOne().ClimbScaled, Is.True, "floors 1 and 2 are climb-scaled");
+            Assert.That(three.ClimbScaled && two.ClimbScaled && DescentSimulation.FoundryFloorOne().ClimbScaled, Is.True,
+                "floors 1 to 3 are climb-scaled");
             Assert.That(finale.EnemyHealthMultiplier, Is.EqualTo(DescentSimulation.FinalSwarm.HealthMultiplier));
             Assert.That(finale.EnemyDamageMultiplier, Is.EqualTo(DescentSimulation.FinalSwarm.DamageMultiplier));
             Assert.That((finale.ModifierHealthPercent, finale.ModifierDamagePercent, finale.ModifierGoldPercent), Is.EqualTo((0f, 0f, 0f)));
@@ -95,27 +104,31 @@ namespace Cryptforge.Tests
             Assert.That(DescentSimulation.PilotSwarmStay, Is.GreaterThan(ExitRule.DwellSeconds));
         }
 
-        // A floor-2 clear goes down into the finale after the checkpoint's advance delay, with the level, health and
-        // difficulty floor 2 left; the swarm opens with its ladder's first wave and runs on its own clock - no horde, no
+        // A floor-3 clear goes down into the finale after the checkpoint's advance delay, with the level, health and
+        // difficulty floor 3 left; the swarm opens with its ladder's first wave and runs on its own clock - no horde, no
         // floor clock, no pit - its enemies at most the ten the ladder's waves hold, its kills paid at once and its
         // level-ups offered in sittings; and the floor ends, walked out of or fallen in, never at the limit.
         [Test]
-        public void TheFinaleIsPlayedAfterAFloorTwoClearAndEnds()
+        public void TheFinaleIsPlayedAfterAFloorThreeClearAndEnds()
         {
             foreach (Climb climb in Climbs.Value)
             {
                 string where = climb.Where;
-                DescentSimulation.FoundryResult two = climb.Second;
+                DescentSimulation.FoundryResult two = climb.Second, three = climb.Third;
                 if (two == null)
                     continue;
-                Assert.That(climb.Finale != null, Is.EqualTo(two.Cleared), where + ": a floor-2 clear goes down, anything else ends the run");
+                Assert.That(three != null, Is.EqualTo(two.Cleared), where + ": a floor-2 clear goes down to floor 3, anything else ends the run");
+                if (three == null)
+                    continue;
+                Assert.That(three.Floor, Is.EqualTo(3), where);
+                Assert.That(climb.Finale != null, Is.EqualTo(three.Cleared), where + ": a floor-3 clear goes down, anything else ends the run");
             }
 
             foreach (Climb climb in Reached())
             {
                 string where = climb.Where;
-                DescentSimulation.FoundryResult two = climb.Second, finale = climb.Finale;
-                Assert.That(finale.Floor, Is.EqualTo(3), where);
+                DescentSimulation.FoundryResult two = climb.Third, finale = climb.Finale;
+                Assert.That(finale.Floor, Is.EqualTo(DescentSimulation.FinaleFloor), where);
                 Assert.That(finale.Kinds, Is.EqualTo(new[] { RoomKind.Swarm }), where);
                 Assert.That(finale.NextFloor, Is.Null, where + ": nothing below it");
                 Assert.That(finale.Outcome, Is.Not.EqualTo(DescentSimulation.FoundryOutcome.Timeout), where + ": the finale ends");
@@ -123,7 +136,7 @@ namespace Cryptforge.Tests
                 Assert.That(finale.RoomSeconds[0] + finale.DescentSeconds, Is.EqualTo(finale.FloorSeconds).Within(0.05f),
                     where + ": the descent and the swarm room are the floor");
 
-                // The hero goes down as floor 2 left it.
+                // The hero goes down as floor 3 left it.
                 Assert.That(finale.SwarmEntryLevel, Is.EqualTo(two.Level), where);
                 Assert.That(finale.SwarmEntryHealth, Is.EqualTo(two.HeroHealth), where);
                 Assert.That(finale.SwarmEntryMaximum, Is.EqualTo(two.HeroMaximum), where);
@@ -162,7 +175,7 @@ namespace Cryptforge.Tests
 
         // The pit does not run in a swarm room, so the pilot never draws the swarm to its rim, as DevelopmentAutopilot.Goal
         // reads PitEruptionService.IsRunning: the careful pilot spent about 44 s of the finale on a rim that never spills
-        // (the review of 2026-11-11). Floors 1 and 2 still lure their node fights.
+        // (the review of 2026-11-11). The floors before it still lure their node fights.
         [Test]
         public void ThePilotNeverLuresTheSwarmToThePitsRim()
         {
@@ -173,25 +186,38 @@ namespace Cryptforge.Tests
             }
         }
 
-        // Floors 1 and 2 are the same floors, field for field, whether or not the run goes on into the finale; asked for
-        // two floors, floor 2 has nothing below it.
+        // Floors 1 to 3 are the same floors, field for field, whether or not the run goes on into the finale; asked for
+        // three floors, floor 3 has nothing below it, and asked for two, floor 2 has nothing below it.
         [Test]
-        public void FloorsOneAndTwoAreTheSameWhetherOrNotTheRunGoesOnIntoTheFinale()
+        public void TheFloorsBeforeTheFinaleAreTheSameWhetherOrNotTheRunGoesOnIntoIt()
         {
             foreach (Climb climb in Climbs.Value)
             {
                 string where = climb.Where;
+                DescentSimulation.FoundryResult three = DescentSimulation.RunFoundry(climb.Hero, climb.Seed, Floors(3));
+                AssertSameFloor(climb.First, three, where + " floor 1");
+                Assert.That(three.NextFloor != null, Is.EqualTo(climb.Second != null), where);
+                if (three.NextFloor != null)
+                {
+                    AssertSameFloor(climb.Second, three.NextFloor, where + " floor 2");
+                    Assert.That(three.NextFloor.NextFloor != null, Is.EqualTo(climb.Third != null), where);
+                    if (three.NextFloor.NextFloor != null)
+                    {
+                        Assert.That(three.NextFloor.NextFloor.NextFloor, Is.Null, where + ": three floors asked for");
+                        AssertSameFloor(climb.Third, three.NextFloor.NextFloor, where + " floor 3");
+                    }
+                }
+
                 DescentSimulation.FoundryResult two = DescentSimulation.RunFoundry(climb.Hero, climb.Seed, Floors(2));
-                AssertSameFloor(climb.First, two, where + " floor 1");
-                Assert.That(two.NextFloor != null, Is.EqualTo(climb.Second != null), where);
+                AssertSameFloor(climb.First, two, where + " floor 1, two floors");
                 if (two.NextFloor == null)
                     continue;
                 Assert.That(two.NextFloor.NextFloor, Is.Null, where + ": two floors asked for");
-                AssertSameFloor(climb.Second, two.NextFloor, where + " floor 2");
+                AssertSameFloor(climb.Second, two.NextFloor, where + " floor 2, two floors");
             }
         }
 
-        // The swarm after floor 2's gate has no gate boss (EncounterController.ReleaseWave since main 6a09574f): floor 2
+        // The swarm after floor 3's gate has no gate boss (EncounterController.ReleaseWave since main 6a09574f): floor 3
         // ended on its gate boss's wave, the flag the scene left standing until that fix, and in the finale nothing is read
         // as the gate boss or a Captain - no slam, no reveal, none of the Sword's share on the Warden, none of the Daggers'
         // on an elite, nothing taken from a Warden.
@@ -201,8 +227,8 @@ namespace Cryptforge.Tests
             foreach (Climb climb in Reached())
             {
                 string where = climb.Where;
-                DescentSimulation.FoundryResult two = climb.Second, finale = climb.Finale;
-                Assert.That(two.BossSeconds, Is.GreaterThanOrEqualTo(0f), where + ": floor 2 ended on its gate boss's wave");
+                DescentSimulation.FoundryResult three = climb.Third, finale = climb.Finale;
+                Assert.That(three.BossSeconds, Is.GreaterThanOrEqualTo(0f), where + ": floor 3 ended on its gate boss's wave");
                 Assert.That(finale.GateBossFrames, Is.Zero, where);
                 Assert.That((finale.Slams, finale.SlamHits, finale.LevelAtGate), Is.EqualTo((0, 0, -1)), where);
                 Assert.That((finale.WardenFromWeapons, finale.WardenFought, finale.TakenFromWarden, finale.TakenFromSlams),
@@ -255,7 +281,7 @@ namespace Cryptforge.Tests
         public void AStayLeverTurnsThePilotForTheExitAtItsTime()
         {
             Assert.That(new DescentSimulation.FoundryLevers().FinaleStaySeconds, Is.EqualTo(DescentSimulation.PilotSwarmStay));
-            DescentSimulation.FoundryLevers shorter = Floors(3);
+            DescentSimulation.FoundryLevers shorter = Floors(DescentSimulation.FinaleFloor);
             shorter.FinaleStaySeconds = 30f;
             int walkedOut = 0;
             foreach (Climb climb in Climbs.Value.Where(c => c.Hero.Id == DescentSimulation.Vanguard().Id && c.Finale != null).Take(2))
@@ -263,7 +289,8 @@ namespace Cryptforge.Tests
                 string where = climb.Where;
                 DescentSimulation.FoundryResult first = DescentSimulation.RunFoundry(climb.Hero, climb.Seed, shorter);
                 AssertSameFloor(first.NextFloor, climb.Second, where + " floor 2");
-                DescentSimulation.FoundryResult finale = first.NextFloor.NextFloor;
+                AssertSameFloor(first.NextFloor.NextFloor, climb.Third, where + " floor 3");
+                DescentSimulation.FoundryResult finale = FoundryBatch.FinaleOf(first);
                 Assert.That(finale, Is.Not.Null, where);
                 if (!finale.WalkedOut)
                     continue;

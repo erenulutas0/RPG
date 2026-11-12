@@ -131,5 +131,34 @@ namespace Cryptforge.Tests
             Assert.That(section, Does.Contain("| 640 (10.7) |"), "the Descent's P50 over the walk-outs, and in minutes");
             Assert.That(section, Does.Contain("| Vanguard | 22 | died 2.6:boss, 308 / 250 / -, -, 66 / 40, L32 / L45, - / - L-, - | - |"));
         }
+
+        // Since docs/48 the row adds floor 3's columns after the old ones (HordePacingMeasurement.DescentSeed.Header):
+        // floor 2 is cleared where floor 3 began, the finale reached where it began, and a file written before floor 3
+        // (the sample above) reads floor 3 as never played.
+        [Test]
+        public void FloorThreesColumnsReadAfterTheOldOnes()
+        {
+            string header = Header + "\tfloor3_s\twarden3_s\tlevel_gate3\tuptime_floor3\tengaged_floor3\thold3_s\tclock3\tkills_floor3";
+            string[] lines =
+            {
+                header,
+                "descent\t11\twalked_out\t-\t304\t271\t67\t914\t63\t52\t31\t44\t0.93\t0.88\t0.95\t0.90\t1.00\t0.97\t31\t210\t300\t540\t55\t0.0\t66.5\t57\t500\t540\t812\t160\t1:20s\t272\t58\t53\t0.96\t0.92\t5\t185\t790",
+                "descent\t22\tdied\t3.6:boss\t308\t250\t-\t-\t66\t40\t32\t45\t0.94\t0.84\t0.96\t0.91\t-\t-\t28\t209\t-\t-\t-\t-\t-\t52\t0\t500\t700\t-\t1:19s\t260\t-\t52\t0.95\t0.90\t4\t181\t-"
+            };
+            List<EditorDescent.Run> runs = EditorDescent.Read(lines);
+            Assert.That(runs.Count, Is.EqualTo(2));
+            EditorDescent.Run walked = runs[0], fell = runs[1];
+            Assert.That((walked.Floor3, walked.Warden3, walked.LevelGate3, walked.Hold3), Is.EqualTo((272f, 58f, 53, 5f)));
+            Assert.That(walked.ClearedFloor2 && walked.ReachedFinale && walked.WalkedOut, Is.True);
+            Assert.That(walked.Finale, Is.EqualTo(67f));
+            Assert.That(fell.ClearedFloor2, Is.True, "it went down to floor 3");
+            Assert.That(fell.ReachedFinale, Is.False, "and fell there");
+            Assert.That(fell.Floor3, Is.EqualTo(260f));
+            Assert.That(float.IsNaN(fell.Warden3), Is.True);
+
+            EditorDescent.Run before = EditorDescent.Read(Sample)[0];
+            Assert.That(float.IsNaN(before.Floor3) && before.LevelGate3 < 0, Is.True, "a file from before floor 3");
+            Assert.That(before.ClearedFloor2 && before.ReachedFinale, Is.True);
+        }
     }
 }

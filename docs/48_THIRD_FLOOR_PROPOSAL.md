@@ -266,3 +266,195 @@ suspend/resume. Keeping two floors and building characters (docs/46) first is a 
 9. **The finale after floor 3.** It is not climb-scaled, so a hero coming from floor 3 meets the same swarm with more
    levels. Should the finale scale with the floor it follows?
 10. **Order of work.** Third floor before or after the Riftblade (docs/46) and the phone run?
+
+## Status 2026-11-12: phase 1 built (the floor, the chain, the simulation, the measurement)
+
+The owner delegated the game's vision to the lead, and the lead took section 3.6's steps 1-3 and 5: the data-only floor 3,
+measured in the simulation. Question 2 is answered with choice A (Gloam Gardens), questions 4 and 6 with the plain horde
+and no modifier. Nothing on screen is new: floor 3 plays the foundry's map, art and enemies. The Editor's confirmation
+(step 4), the phone (step 6) and every option of section 1 wait.
+
+**What was built.**
+- **Floor_GloamGardens.asset** (new, guid b5ee68d4...): floor 2's six rooms wave for wave under section 1.1's names (Ash
+  Orchard, Rootbound Walk, Bloom Gate, The Grafting Forge with Mend and Temper, Thorn Post, the Warden's Grove with the
+  Forge Warden and two Cinder Mites); climb-scaled at floor 3 (ClimbScaling x1.96 health, x1.8032 damage, the gate boss
+  x1.15 more), the authored multipliers set to the same; the plain horde (Mite, Grunt, Runner); no modifier, no surges, no
+  extra elite; the gate at 210 s (180 s since round 2, below); `_foundryGateHealthShare` 5.102041; the Foundry theme (FloorTheme 0); the Final Swarm
+  below it.
+- **The chain.** Floor_QuicksilverVaults' `_nextFloor` is floor 3 (one line). The climb is floor 1, floor 2, floor 3,
+  the finale, and the finale is the scene's FloorNumber 4.
+- **No heal before the finale.** The shipped arrival chest (a quarter heal) is enough: no finale death in 1,206
+  finales (below). This is the smallest option: nothing added.
+- **The simulation** mirrors it: `DescentSimulation.GloamGardens` (the rooms), `FoundryFloorThree()` (floor 2's next,
+  FloorNumber 3, `FloorThreeGateShare`), `FoundryFinale()` at FloorNumber 4 and `FinaleFloor` = 4. The Warden's share
+  goes through `WardenRule.GateHealthShareOn` on both sides (LaterFloorLevers), as floor 2's does. No new arithmetic.
+- **FOUNDRY_FLOORS counts floors, the finale included.** 2 is floors 1-2 (the default batch, unchanged); 3 is floors 1-3
+  (the cohort section gains floor 3's table and foundry-cohorts-floor3.csv); 4 (`FinaleFloor`) is floors 1-3 and the
+  finale (foundry-finale.md and .csv, now with a floor-3 column). Before this build 3 reached the finale.
+  `FoundryBatch.FinaleOf` finds the swarm floor however many floors stand before it.
+- docs/47's two research harnesses keep the climb they measured (`FoundryTwoFloorClimb`: floor 2 straight into the
+  finale), so their tables still reproduce. `FinaleStayResearch` and the Editor-seed rows now play the whole Descent.
+- `Tools/CombatChecks/ThirdFloorResearch.cs` (explicit): the shipped Descent with floor 3's share, gate or a finale heal
+  as options.
+
+**How it was measured.** Seeds 1-200, both heroes, all five cohorts, human hands (`PilotRealism` typical): the batch
+report with FOUNDRY_FLOORS=4 (FOUNDRY_LEVERS=0, FOUNDRY_COHORTS=1, FOUNDRY_PARALLEL=1), and ThirdFloorResearch for the
+share. Pooled tables count 2,000 runs.
+
+### Floor 3's Warden share
+
+Floor 3's Warden fight, P50 seconds of the fights in which it fell, Vanguard / Ilya (docs/40 section 9.6: 45-65 s). The
+share is its effective health against floor 1's authored 300 (the asset's value times 1.96 x 1.15).
+
+| Effective share (asset value) | Gate | Seeds | careful | standing | first-card | clumsy | Floor-3 deaths | Descent P10 / P50 / P90 (min) |
+|---|---|---|---|---|---|---|---|---|
+| 8.5 (3.771074, floor 2's, `set-b`'s) | 210 | 1-200 | 53 / 49 | 42 / 41 | 46 / 44 | 52 / 51 | 55 | 14.2 / 14.6 / 15.1 |
+| 10 (4.436557) | 210 | 1-100 | 57 / 53 | 45 / 43 | 50 / 48 | 55 / 59 | - | 14.2 / 14.6 / 15.2 |
+| 11 (4.880213) | 210 | 1-100 | 61 / 56 | 47 / 45 | 54 / 51 | 60 / 60 | - | 14.3 / 14.7 / 15.2 |
+| **11.5 (5.102041), built** | 210 | 1-200 | 62 / 58 | 48 / 47 | 56 / 53 | 61 / 62 | 75 | 14.3 / 14.7 / 15.3 |
+| 12 (5.323869) | 210 | 1-200 | 63 / 59 | 49 / 48 | 57 / 54 | 62 / 62 | 78 | 14.3 / 14.7 / 15.3 |
+| 11.5 | 180 | 1-200 | 61 / 57 | 48 / 47 | 57 / 53 | 61 / 62 | 62 | 13.8 / 14.2 / 14.7 |
+
+- Floor 2's 8.5 leaves the standing cohort's fight at 41-42 s, under the band (floor 2's own Warden fight is 38-40 s for
+  that cohort, docs/41), and 10 still leaves the standing Ilya at 43 s.
+- 11 brings the standing Ilya to 45 s, the band's edge. 11.5 is the smallest step that holds every playing cohort inside
+  45-65 for both heroes with a margin at each end (47 s low, 62 s high). 12 holds too, at 3 more deaths.
+- The auto-farmer, which clears floor 3 in 2 of the 11 runs that reach it, is not a playing cohort here (as for floors 1
+  and 2).
+- The share costs about a point of completion per cohort: 20 more floor-3 deaths in 2,000 runs (55 to 75) from 8.5 to
+  11.5, and the Descent's P50 6 s.
+- **The gate stayed at 210 s** in this round, as floors 1 and 2 hold theirs (round 2 moved it to 180 s, below). 180 s was measured beside it at 11.5: the
+  band holds (47-62 s), 13 fewer floor-3 deaths, the Descent P10 13.8 min, but floor 3's P50 falls to 242-254 s, at the
+  bottom of section 2's 240-300 s. It is the lever if floor 3 should cost fewer runs.
+
+### The Descent with floor 3 (the batch, FOUNDRY_FLOORS=4)
+
+Vanguard / Ilya, 200 seeds each. Floor 2 and floor 3 cleared: of the runs that went down to them. Warden: floor 3's
+fight, P50 s. Completed: walked out of the finale, of all runs; "today" is the same batch before this build
+(FOUNDRY_FLOORS=3 then: floor 1, floor 2, the finale). Descent: P50 minutes of the completed runs.
+
+| Cohort | Floor 1 cleared | Floor 2 cleared | Floor 3 cleared | Floor-3 Warden P50 | Floor 3 P50 (s) | Finale deaths | Completed: today -> with floor 3 | Descent P50 (min) |
+|---|---|---|---|---|---|---|---|---|
+| careful | 98 / 99% | 98 / 96% | 98 / 99% | 62 / 58 | 285 / 280 | 0 / 0 | 96 / 96% -> 94 / 95% | 15.1 / 14.8 |
+| standing | 94 / 92% | 96 / 93% | 94 / 94% | 48 / 47 | 272 / 272 | 0 / 0 | 90 / 85% -> 85 / 80% | 14.5 / 14.4 |
+| first-card | 91 / 99% | 95 / 97% | 94 / 92% | 56 / 53 | 278 / 275 | 0 / 0 | 86 / 96% -> 81 / 89% | 14.8 / 14.6 |
+| clumsy | 39 / 66% | 85 / 82% | 91 / 91% | 61 / 62 | 282 / 282 | 0 / 0 | 33 / 54% -> 30 / 49% | 14.8 / 14.8 |
+| auto-farmer | 5 / 15% | 30 / 28% | 0 / 25% (3 / 8 went down) | - / 39 | - / 261 | 0 / 0 | 2 / 4% -> 0 / 1% | - / 13.9 |
+
+All cohorts and both heroes pooled:
+- **The Descent: P10 14.3 / P50 14.7 / P90 15.3 minutes.** All 1,206 completed runs land inside 13-16 (the shortest
+  13.7, the longest 16.0). Today's is 9.9-10.3 minutes P50 by cohort.
+- **Each floor P50:** floor 1 262-276 s, floor 2 263-274 s, floor 3 272-285 s, the finale 67-68 s, every one inside
+  section 2's 240-300 s and 45-90 s.
+- **The finale: no death in 1,206**, with the shipped arrival chest alone. The hero now enters at level 53-57 (today
+  43-45) with P50 51-80 % of its maximum, against a finale that is not climb-scaled (question 9).
+- **Deaths:** floor 2's 110 are unchanged; floor 3 adds 75, so 185 runs die on floors 2-3.
+
+Against section 2's proposed acceptance:
+- met: the Descent's P10 at least 13.0 and P90 at most 16.0; each floor 240-300 s; the finale 45-90 s; no finale death;
+  floor 3 cleared by careful 98-99 % (at least 95) and clumsy 91 % (at least 85); the floor-3 Warden's P50 45-65 s for
+  both heroes in every playing cohort.
+- not met: **completion "no cohort more than 5 points below today".** Pooled by cohort: careful -1.5, standing -5,
+  first-card -6 (Vanguard -5, Ilya -7), clumsy -4. The floor costs it, not the share: at floor 2's 8.5 the first-card
+  cohort completes 82 / 89 % (-5.5). And "deaths before the finale at most about 160": 185, where docs/47's 158 was
+  measured on an older main (today's floor 2 alone is 110, docs/47's 105). If the owner holds the 5 points, 180 s on
+  floor 3's gate saves 13 runs (table above); docs/47's `mend70` and `gatechest` are the measured heals for a floor's
+  Warden, either as floor 3's own.
+
+### The default batch is unchanged
+
+The default batch (FOUNDRY_FLOORS=2, FOUNDRY_LEVERS=0, FOUNDRY_COHORTS=1, FOUNDRY_REALISM=typical, seeds 1-200) ran on
+lead-combined2 (930299dd) before any change and again with floor 3 built, with the same environment (an empty Editor
+folder, FOUNDRY_DEVICE=none):
+- byte-identical, by first 12 hex of their sha256: foundry-batch.csv (91c001bba7d4), foundry-batch-floor2.csv
+  (1af3578459ac), foundry-cohorts-floor2.csv (048d6336985c), foundry-cohorts.md (b1f04bead7a4), foundry-gate.md
+  (3474880ca3c5);
+- foundry-batch.md differs only in its date line and its "Wall s" column.
+
+No row of floors 1 and 2 moved. What moved is the finale: it now follows floor 3, so FOUNDRY_FLOORS=3 (the finale before
+this build) plays floor 3 instead, and the finale's rows come with FOUNDRY_FLOORS=4.
+
+Between the batch before this build with FOUNDRY_FLOORS=3 (floor 1, floor 2, the finale) and with it at
+FOUNDRY_FLOORS=4 (floors 1-3, the finale): foundry-gate.md, foundry-batch.csv, foundry-batch-floor2.csv and
+foundry-cohorts-floor2.csv are byte-identical, and foundry-cohorts.md is the same line for line up to its floor-2 table.
+The rows that moved are the finale's and the whole Descent's (foundry-finale.md and .csv, and the cohort section's
+finale): they now follow floor 3, as the table above reads. foundry-cohorts.md gains floor 3's table, and
+foundry-cohorts-floor3.csv is new.
+
+### Checks
+
+- CombatChecks: 797 of 797 green, `FoundryFloorThreeTests` (4, new) among them; the compile check of the Unity
+  assemblies is clean.
+- Unity, not run here (no Unity in the worktree):
+  - EditMode: `ClimbFloorContentTests;FloorThemeTests;FoundrySimulationSceneValueTests;FoundryFloorThreeTests;FoundryFinaleTests;FoundrySimulationTests;FoundryGateCallTests;FoundryCohortTests;FoundryGateTests`
+  - PlayMode: `FoundryDescentFlowTests;DescentFlowTests;GateHoldFlowTests;FoundryRunEndFlowTests;PaintedHudFlowTests;RunResultTests;EnemyFrostTests`
+  - `FoundryDescentFlowTests.TheShippedClimbPlaysThroughToTheEndOfTheFinalSwarm` now plays four floors (pips 7, 6, 6,
+    1; 20 rooms; deepest floor 4; its real-time deadline 330 s and timeout 420 s). `DescentFlowTests`: floor 2's door
+    names Gloam Gardens, and the finale is reached as floor 4 with 376 gold secured (116 + 157 + floor 3's 103, no
+    modifier).
+
+### What waits
+
+- **The Editor (section 3.6 step 4; done in round 2, below).** HordePacingMeasurement's horde-floors.txt "3" read floor 2 straight into
+  the finale: its descent row's columns (floor2_s, finale_s, the finale's health) and its 840 s limit assume it. With
+  floor 3 in the chain it would play floor 3 as its "finale" column and run out of time near 14 minutes. It needs a "4"
+  and a floor-3 column before the Editor confirms this Descent; until then the batch's Editor-seed comparison holds for
+  floors 1 and 2 only.
+- **The phone (step 6).** A 15-minute run: frame time, thermal soak, memory, telemetry size (section 3.3).
+- **Unseen in the scene:** the region turning back from floor 2's ice to the foundry on floor 3 (FoundryRegionTheme keeps
+  the foundry's colours and swaps both ways, read from the code), the HUD's floor line and pips on a fourth floor, the
+  result screen and Profile.RecordFloorCleared at 4.
+- The owner's questions 5 (the Warden variant), 6 (a modifier), 9 (the finale's scaling) and 10 stay open.
+
+## Status 2026-11-12 (round 2): floor 3's gate at 3:00, the Editor plays the whole Descent
+
+The lead's round 2, on the measurement above: floor 3's gate opens at 180 s, and the Editor's measurement learns the
+four-floor Descent. Main (be7b2b14: the ice props, the frost transition, frosted enemies, the rarity cards) is merged
+first, without a conflict; none of it touches the simulation, and the ice props and the frost turn off on floor 3's
+Foundry theme as on floor 1 (FoundryRegionTheme sets them by the theme; the frost plays on entering floor 2 only).
+
+**What changed.**
+- Floor_GloamGardens `_foundryGateNotBeforeSeconds` 210 -> 180; the simulation's `FloorThreeGateSeconds` (180) mirrors
+  it, and the scene-value, content and simulation tests read it. Floors 1 and 2 keep 210.
+- **HordePacingMeasurement** plays every floor of the scene's chain with horde-floors.txt "3" or "4" (floor 1, floor 2,
+  floor 3, the finale; the number of floors is counted from the chain, so a proof chain of three still reads as before).
+  The Descent's cap a seed is 1,200 s of game time (was 840 s). The descent row keeps every column it had, the finale's
+  in finale_s, uptime3, engaged3 and kills3 as before, and adds floor 3's after them: floor3_s, warden3_s, level_gate3,
+  uptime_floor3, engaged_floor3, hold3_s, clock3, kills_floor3. Floor 1's rows and its loop are untouched; the mode line
+  reads "floors 3" or "floors 4" as the file says.
+- **EditorDescent** (CombatChecks) reads the new columns by name: a run cleared floor 2 where floor 3 began, reached the
+  finale where it began, and a file from before floor 3 reads as it did. Its section gains "Floor 3 / its Warden P50"
+  for the Editor and the simulation (FoundryLevers.Floors = 4). `EditorDescentTests.FloorThreesColumnsReadAfterTheOldOnes`
+  holds both formats.
+
+**Measured** (ThirdFloorResearch's `shipped`, seeds 1-200, both heroes, five cohorts, human hands, on the merged
+branch; it reproduces round 1's `gate180` row to the digit). Vanguard / Ilya:
+
+| Cohort | Floor 3 cleared | Floor-3 Warden P50 (s) | Floor 3 P50 (s) | Finale deaths | Completed: today -> 210 s -> 180 s | Pooled change from today |
+|---|---|---|---|---|---|---|
+| careful | 99 / 99% | 61 / 57 | 254 / 250 | 0 / 0 | 96 / 96% -> 94 / 95% -> 95 / 95% | -1 |
+| standing | 94 / 95% | 48 / 47 | 243 / 242 | 0 / 0 | 90 / 85% -> 85 / 80% -> 85 / 81% | -4.5 |
+| first-card | 95 / 94% | 57 / 53 | 248 / 245 | 0 / 0 | 86 / 96% -> 81 / 89% -> 82 / 90% | -5 |
+| clumsy | 94 / 92% | 61 / 62 | 251 / 253 | 0 / 0 | 33 / 54% -> 30 / 49% -> 31 / 50% | -3 |
+| auto-farmer | 33 / 25% (3 / 8 went down) | 32 / 39 | 222 / 233 | 0 / 0 | 2 / 4% -> 0 / 1% -> 1 / 1% | - |
+
+- **The Descent: P10 13.8 / P50 14.2 / P90 14.7 minutes**; all 1,219 completed runs inside 13-16. No finale death in
+  1,219.
+- **The Warden's band holds:** every playing cohort's P50 is 47-62 s for both heroes, as at 210 s.
+- **First-card's drop is 5 points pooled** (Vanguard -4, Ilya -6), at section 2's limit; standing -4.5, clumsy -3,
+  careful -1. Floor 3 kills 62 runs (75 at 210 s), floor 2 still 110.
+- Floor 3's P50 is 242-254 s, at the bottom of section 2's 240-300 s: the floor is half a minute shorter than floors 1
+  and 2, by design.
+
+**Checks.** CombatChecks 798 of 798 green; the compile check of the Unity assemblies is clean. The batch report with
+FOUNDRY_FLOORS=4 on the merged branch (FOUNDRY_PARALLEL=1, 36 min) confirms the table cell for cell: every cohort's
+floor-3 clears, Warden, floor-3 length, finale deaths and completion as above, the Descent P10 / P50 / P90 13.8 / 14.2 /
+14.8 min (the shortest completed run 13.2, the longest 15.6, all 1,219 inside 13-16; P50 by cohort 13.9-14.5). Against
+round 1's batch, foundry-gate.md, foundry-batch.csv, foundry-batch-floor2.csv and foundry-cohorts-floor2.csv are
+byte-identical: neither the merge of main nor floor 3's gate moved floors 1 and 2.
+
+**Unity, not run here.**
+- EditMode: `ClimbFloorContentTests;FloorThemeTests;FoundrySimulationSceneValueTests;FoundryFloorThreeTests;FoundryFinaleTests;FoundrySimulationTests;FoundryGateCallTests;FoundryCohortTests;FoundryGateTests`
+- PlayMode: `FoundryDescentFlowTests;DescentFlowTests;GateHoldFlowTests;FoundryRunEndFlowTests;PaintedHudFlowTests;RunResultTests;EnemyFrostTests;IceFloorPropsTests`
+- The Editor's confirmation (explicit): HordePacingMeasurement with TestResults/horde-floors.txt "4", six seeds for each
+  hero (about two hours each), then the batch report with FOUNDRY_FLOORS=4 reads its rows beside the simulation's.

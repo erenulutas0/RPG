@@ -310,6 +310,25 @@ namespace Cryptforge.Tests
             ModifierGoldPercent = 0.5f
         };
 
+        // Data/Floors/Floor_GloamGardens, the climb's floor 3 (docs/48, phase 1): floor 2's six rooms wave for wave under
+        // the garden's names - Ash Orchard, Rootbound Walk and Bloom Gate, the Grafting Forge, Thorn Post, the Warden's
+        // Grove with its Forge Warden and two Cinder Mites - at ClimbScaling's floor-3 tier (x1.96 health, x1.8032 damage)
+        // and no modifier. The foundry plays it as DescentSimulation.FoundryFloorThree.
+        public static readonly Floor GloamGardens = new Floor
+        {
+            Rooms = new[]
+            {
+                new[] { new[] { Grunt, Mite, Mite, Mite }, new[] { Runner, Mite, Mite, Mite } },
+                new[] { new[] { Tank, Mite, Mite, Mite }, new[] { Mite, Mite, Mite, Mite, Mite } },
+                new[] { new[] { Grunt, Grunt, Mite, Mite, Mite } },
+                null,
+                new[] { new[] { Captain, Grunt, Mite, Mite } },
+                new[] { new[] { Warden, Mite, Mite } }
+            },
+            HealthMultiplier = 1.96f,
+            DamageMultiplier = 1.8032f
+        };
+
         // The density proof's floors: one combat room holding one wave of ten, with Ember Halls' multipliers, so the densest
         // pack the formations hold can be fought by a standing hero and a walking one under the same rules. Ten Cinder Mites
         // swarm at 2.2 floor units a second; the trailing wave puts a Grunt in slots 0 and 1, which enter from two corners

@@ -88,5 +88,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
   - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
   _modifier: {fileID: 11400000, guid: 10000000000000000000000000000016, type: 2}
-  _nextFloor: {fileID: 11400000, guid: b42e426407044031a82a854340dfd6f5, type: 2}
+  _nextFloor: {fileID: 11400000, guid: b5ee68d49a3d4b0ab71c975a3d285b96, type: 2}
   _theme: 1

@@ -42,11 +42,11 @@ namespace Cryptforge.Tests
 
             var md = new StringBuilder();
             md.AppendLine($"# The finale's stay: seeds {first}-{first + count - 1} a hero ({DateTime.Now:yyyy-MM-dd HH:mm})").AppendLine();
-            md.AppendLine("Each run plays floors 1 and 2 and, after a floor-2 clear, the finale's swarm, its pilot turning for the exit once the swarm's clock reaches the stay " +
-                          "(FoundryLevers.FinaleStaySeconds, research only; the development autopilot's is 60 s). Floors 1 and 2 are the same runs whatever the stay. " +
-                          "Reached: of all runs. Survived and walked out: of those that reached the finale. Finale: active seconds from floor 2's checkpoint, the runs that reached it (P50 / P90). " +
+            md.AppendLine("Each run plays floors 1 to 3 and, after a floor-3 clear (docs/48), the finale's swarm, its pilot turning for the exit once the swarm's clock reaches the stay " +
+                          "(FoundryLevers.FinaleStaySeconds, research only; the development autopilot's is 60 s). The floors before it are the same runs whatever the stay. " +
+                          "Reached: of all runs. Survived and walked out: of those that reached the finale. Finale: active seconds from floor 3's checkpoint, the runs that reached it (P50 / P90). " +
                           "Ladder wave and ramp: where the swarm's clock got to (P50). Health lost: in the finale (mean / P90). Health leaving: the walk-outs' health as they left, as a share of their maximum (P10 / P50). " +
-                          "Descent: floors 1-3 of the walk-outs (P50, minutes).").AppendLine();
+                          "Descent: every floor of the walk-outs, the finale included (P50, minutes).").AppendLine();
             var all = new List<FoundryBatch.Batch>();
             foreach (string pilot in pilots)
             {
@@ -58,7 +58,7 @@ namespace Cryptforge.Tests
                 foreach (AutopilotCohort cohort in cohorts)
                 foreach (DescentSimulation.FoundryHero hero in heroes)
                 {
-                    DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(cohort, 3, realism)
+                    DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(cohort, DescentSimulation.FinaleFloor, realism)
                         .Copy($"cohort {cohort.Name}, stay {stay.ToString("0", CultureInfo.InvariantCulture)}" +
                               (realism != null ? ", " + realism.Name : string.Empty));
                     levers.FinaleStaySeconds = stay;

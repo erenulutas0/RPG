@@ -160,8 +160,8 @@ namespace Cryptforge.Tests
             public int ExtraElites;
             public float GateNotBeforeSeconds;
             public float GateHealthShare;
-            // The floor its checkpoint descends to (FloorDefinition.NextFloor): floor 2's is the finale's swarm room
-            // (FoundryFinale), whose own is null - the climb ends there.
+            // The floor its checkpoint descends to (FloorDefinition.NextFloor): floor 2's is floor 3 (FoundryFloorThree),
+            // floor 3's the finale's swarm room (FoundryFinale), whose own is null - the climb ends there.
             public FoundryFloor Next;
 
             // This floor with the rooms a run's levers give it.
@@ -207,8 +207,38 @@ namespace Cryptforge.Tests
             ModifierHealthPercent = 0f,
             ModifierDamagePercent = QuicksilverVaults.ModifierDamagePercent,
             ModifierGoldPercent = QuicksilverVaults.ModifierGoldPercent,
+            Next = FoundryFloorThree()
+        };
+
+        // Data/Floors/Floor_GloamGardens.asset, the climb's floor 3 (docs/48, phase 1), as the foundry plays it: floor 2's
+        // six rooms again under the garden's names (GloamGardens), climb-scaled at floor 3 - ClimbScaling's x1.96 health and
+        // x1.8032 damage, and its first boss growth (ClimbScaling.Boss(3), x1.15) on the Warden's Grove - floor 1's three
+        // horde roles, no modifier, none of V0.1's surges or extra elite, the gate held for the floor's clock to read 180 s
+        // (FloorThreeGateSeconds), and the finale below it. Its Warden's share is its own (FloorThreeGateShare), measured to
+        // put the fight in docs/40 section 9.6's 45-65 s (docs/48, status 2026-11-12).
+        public static FoundryFloor FoundryFloorThree() => new FoundryFloor
+        {
+            Id = "floor_gloam_gardens",
+            Rooms = GloamGardens.Rooms,
+            Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
+            HordeRoles = new[] { Mite, Grunt, Runner },
+            FloorNumber = 3,
+            GateNotBeforeSeconds = FloorThreeGateSeconds,
+            GateHealthShare = FloorThreeGateShare,
             Next = FoundryFinale()
         };
+
+        // Floor_GloamGardens' _foundryGateHealthShare: the Forge Warden at floor 3's tier walks out with this share of its
+        // authored health (times ClimbScaling's x1.96 and x1.15 and the run's difficulty), WardenRule.GateHealthShareOn -
+        // 11.5 times its authored 300 against floor 1's and floor 2's 8.5 (11.5 / (1.96 x 1.15)). docs/48's status
+        // 2026-11-12 (ThirdFloorResearch, seeds 1-200, human hands): floor 2's 8.5 put the standing cohort's fight at
+        // 41-42 s, under the band; 11.5 puts every playing cohort's P50 at 47-62 s for both heroes.
+        public const float FloorThreeGateShare = 5.102041f;
+
+        // Floor_GloamGardens' _foundryGateNotBeforeSeconds: floor 3's gate holds for its clock's 3:00, half a minute before
+        // floors 1 and 2 open theirs (the lead's round 2, docs/48 status 2026-11-12): measured at the 11.5 share, 13 fewer
+        // floor-3 deaths in 2,000 runs than at 3:30, the Warden's band held, the Descent P10 13.8 min.
+        public const float FloorThreeGateSeconds = 180f;
 
         // The floor's knobs, as parameters of a run rather than edits of the game: each default is the shipped value, read
         // from the game's own constant where there is one, so a run with no levers is the scene's floor.
@@ -289,7 +319,9 @@ namespace Cryptforge.Tests
             // after a floor-1 clear, as the autopilot answers the checkpoint with Descend, into floor 2 (FoundryFloor.Next),
             // whose result is floor 1's NextFloor. The knobs above are floor 1's: a floor after it plays its own asset's -
             // the gate boss's share among them - under the Warden's other levers and the horde's (LaterFloorLevers). 3 goes
-            // on after a floor-2 clear into the finale's swarm (FoundryFinale, DescentSimulation.FoundryFinale.cs).
+            // on after a floor-2 clear into floor 3 (FoundryFloorThree, Gloam Gardens since docs/48), and 4
+            // (FinaleFloor) after a floor-3 clear into the finale's swarm (FoundryFinale, DescentSimulation.FoundryFinale.cs).
+            // Before floor 3 was built (2026-11-12) the finale was floor 2's next floor and 3 reached it.
             public int Floors = 1;
             // Research only (docs/41's open question of floor 2's Warden; FoundryBatch.FloorTwoWardenLevers,
             // FOUNDRY_LEVERS=8): the gate boss on the floors after the first, instead of the floor's own share
@@ -430,7 +462,7 @@ namespace Cryptforge.Tests
             // stays null; accounting only.
             public bool CountsEngagement;
 
-            public bool HasHazards => WardenEchoTelegraph > 0f || SlagEvery > 0f || EliteStompEvery > 0f;
+            public bool HasHazards => WardenEchoTelegraph > 0f || SlagEvery > 0f || EliteStompEvery > 0f || VaultsClerks;
 
             public bool TunesDirector => HordeTargets != null || HordeFillRate != HordeRule.MaxSpawnsPerSecond ||
                                          HordeTargetGrowth != HordeClock.TargetGrowth;
@@ -1025,7 +1057,7 @@ namespace Cryptforge.Tests
 
         // One enemy on the foundry floor: the scene's Health and the components on its prefab - its weapon, its enrage
         // and, once it first catches fire, its BurnStatus - with where it stands read from its own pack.
-        private sealed class Foe : IDamageable
+        private sealed partial class Foe : IDamageable
         {
             public Enemy Definition;
             public HealthState Health;
@@ -1612,6 +1644,7 @@ namespace Cryptforge.Tests
                 if (!_revealHold && _heroHealth.IsAlive)
                     Encounter();
                 StepWarden();
+                StepVaults();
                 if (_levers.HasHazards)
                     StepHazards();
 
@@ -2464,7 +2497,7 @@ namespace Cryptforge.Tests
                 if (_waveMotion == null || _fight.IsCleared)
                     return;
                 _waveMotion.Held = _pitHeld;
-                _waveMotion.Step(Step, HeroX, HeroY);
+                _waveMotion.Step(Step, PackGoalX, PackGoalY);
             }
 
             // EncounterController.TickHorde: the horde stands from the floor's first step to the boss's fall - never on the
@@ -2485,7 +2518,7 @@ namespace Cryptforge.Tests
                     return;
 
                 _hordeMotion.Held = _pitHeld;
-                _hordeMotion.Step(Step, HeroX, HeroY);
+                _hordeMotion.Step(Step, PackGoalX, PackGoalY);
                 bool bossRoom = _floor.Kinds[_progress.RoomIndex] == RoomKind.Boss;
                 HordeState state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
                 if (state != _horde.State)
@@ -2663,6 +2696,9 @@ namespace Cryptforge.Tests
                     severShare = severed > 0f ? (severed - context.Amount) / severed : 0f;
                     context = new DamageContext(severed, context.Source, context.IsCritical);
                 }
+                // docs/50's Mirror Sentry (research 2026-11-12, DescentSimulation.Vaults.cs): its guard, on a floor with it.
+                if (VaultsOn)
+                    context = SentryGuard(foe, context, source);
                 bool proc = striking != null && StrikeHasProcced();
                 float struck = context.Amount;
                 foe.Health.ApplyDamage(context);
@@ -2967,6 +3003,8 @@ namespace Cryptforge.Tests
                 if (foe.Released || foe.Defeated)
                     return;
                 foe.Defeated = true;
+                if (GlassCopyFell(foe))
+                    return;
                 _result.Kills.Add(new FoundryKill(foe.Definition.Name, foe.Horde, _seconds - foe.SpawnedAt,
                     foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f, KillingBlow(),
                     _source == DamageSource.Weapon && StrikeHasProcced(), FloorTime, foe.DaggersLanded));
@@ -3065,6 +3103,8 @@ namespace Cryptforge.Tests
                 if (taken <= 0f)
                     return;
                 _lastHeroHit = _seconds;
+                if (VaultsOn)
+                    VaultsTaken(context, taken);
                 if (context.Source is Foe foe)
                 {
                     _lastAttacker = foe;
@@ -3346,7 +3386,7 @@ namespace Cryptforge.Tests
 
             private void EnemyAttack(Foe foe)
             {
-                if (foe.Released || !foe.IsAlive || foe.SpawnFrame == _frame)
+                if (foe.Released || !foe.IsAlive || foe.SpawnFrame == _frame || Harmless(foe))
                     return;
                 // WardenSlamService holds the gate boss's AttackController from the mark until the hammer is out of the
                 // floor: its weapon neither ticks nor strikes meanwhile, the mark's own frame included (StepWarden runs
@@ -3462,6 +3502,7 @@ namespace Cryptforge.Tests
                     _slamEnraged = false;
                     _bossEnraged = false;
                     _slam.Reset();
+                    _lanes = 0;
                 }
                 Foe boss = _slamBoss != null && _slamBoss.IsAlive ? _slamBoss : null;
                 if (boss == null)
@@ -3472,24 +3513,34 @@ namespace Cryptforge.Tests
                 {
                     _slamEnraged = true;
                     _bossEnraged = true;
+                    if (IsRegent(boss))
+                        RegentPhaseTwo(boss);
                 }
                 switch (_slam.Advance(Step, _slamEnraged))
                 {
                     case WardenSlamClock.Step.Marked:
                         _markX = HeroX;
                         _markY = HeroY;
+                        if (IsRegent(boss))
+                            RegentMarked(boss);
                         if (_trace != null)
                             Emit($"slam_mark enraged={_slamEnraged} x={N(_markX)} y={N(_markY)} hp={N(_heroHealth.Current)}");
                         break;
                     case WardenSlamClock.Step.Slammed:
                         _result.Slams++;
                         float distanceSquared = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, _markX, _markY);
-                        bool hit = _heroHealth.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
+                        bool regent = IsRegent(boss);
+                        bool hit = regent
+                            ? RegentLanesHit()
+                            : _heroHealth.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
                         if (hit)
                         {
                             _result.SlamHits++;
                             _harmIsSlam = true;
-                            _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * WardenRule.HeroShare, boss));
+                            if (regent)
+                                _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * _levers.RegentLaneShare, boss));
+                            else
+                                _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * WardenRule.HeroShare, boss));
                             _harmIsSlam = false;
                         }
                         if (_trace != null)
@@ -3775,7 +3826,29 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Walk;
                     return true;
                 }
-                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked &&
+                // docs/50's sidestep habit (research 2026-11-12): against the Glass Regent's lanes, the nearest spot clear of
+                // them, read as the Warden's mark is read.
+                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked && SidestepsLanes(cohort) &&
+                    (_realism == null ||
+                     Perceived(_seconds - _slam.TelegraphProgress * WardenRule.Telegraph, _realism.MarkReaction)) &&
+                    SidestepGoal(x, y, out gx, out gy))
+                {
+                    if (_realism != null && _realism.AimError > 0f)
+                    {
+                        if (_markAimFor != _result.Slams)
+                        {
+                            _markAimFor = _result.Slams;
+                            _dice.Disc(_realism.AimError, out _markAimX, out _markAimY);
+                        }
+                        Aim(ref gx, ref gy, _markAimX, _markAimY);
+                    }
+                    stop = 0f;
+                    _bandGuard = false;
+                    _result.EscapeSeconds += Step;
+                    _doing = PilotDoing.Walk;
+                    return true;
+                }
+                if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked && !SidestepsLanes(cohort) &&
                     (_realism == null ||
                      Perceived(_seconds - _slam.TelegraphProgress * WardenRule.Telegraph, _realism.MarkReaction)))
                 {
@@ -3882,6 +3955,13 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Fight;
                     return true;
                 }
+                // docs/50's Faceless Clerk (research 2026-11-12): a wave down to its Clerks is walked to.
+                if (BackLinerGoal(x, y, out gx, out gy, out float backStop))
+                {
+                    stop = backStop;
+                    _doing = PilotDoing.Fight;
+                    return true;
+                }
                 if (cohort.Kites && Threat(cohort, x, y, out float tx, out float ty) &&
                     cohort.Kite(x, y, tx, ty, PilotKiteTurn, PilotKiteStride, glowing, out gx, out gy))
                 {
@@ -3967,8 +4047,12 @@ namespace Cryptforge.Tests
                 if (target == null || !target.IsAlive)
                     return false;
                 bool marked = (_slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked) || _marks.Count > 0;
-                return FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss, !boss),
+                bool stepped = FootworkRule.StepIn(x, y, target.X, target.Y, FootworkRule.BestSingleTargetReach(_loadout, boss, !boss),
                     marked, glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
+                // docs/50's flank habit (research 2026-11-12): round the Mirror Sentry towards its rear.
+                if (stepped && !boss && VaultsOn)
+                    Flank(target, x, y, ref gx, ref gy);
+                return stepped;
             }
 
             private bool NearestAltar(float x, float y, out float gx, out float gy)
@@ -4015,7 +4099,7 @@ namespace Cryptforge.Tests
                 for (int i = 0; i < TargetCount; i++)
                 {
                     Foe enemy = TargetAt(i);
-                    if (!IsValid(enemy))
+                    if (!IsValid(enemy) || Harmless(enemy))
                         continue;
                     float px = enemy.X;
                     float py = enemy.Y;
