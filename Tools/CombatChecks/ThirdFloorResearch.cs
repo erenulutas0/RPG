@@ -38,6 +38,7 @@ namespace Cryptforge.Tests
         private static IEnumerable<Option> Options()
         {
             yield return new Option { Key = "shipped" };
+            // Floor 2's effective 8.5, the stand-in docs/47's set-b played.
             yield return new Option { Key = "s8.5", Share = 3.771074f };
             yield return new Option { Key = "s9.5", Share = 4.214729f };
             yield return new Option { Key = "s10", Share = 4.436557f };

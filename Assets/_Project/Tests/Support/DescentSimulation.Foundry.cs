@@ -229,8 +229,11 @@ namespace Cryptforge.Tests
         };
 
         // Floor_GloamGardens' _foundryGateHealthShare: the Forge Warden at floor 3's tier walks out with this share of its
-        // authored health (times ClimbScaling's x1.96 and x1.15 and the run's difficulty), WardenRule.GateHealthShareOn.
-        public const float FloorThreeGateShare = 3.771074f;
+        // authored health (times ClimbScaling's x1.96 and x1.15 and the run's difficulty), WardenRule.GateHealthShareOn -
+        // 11.5 times its authored 300 against floor 1's and floor 2's 8.5 (11.5 / (1.96 x 1.15)). docs/48's status
+        // 2026-11-12 (ThirdFloorResearch, seeds 1-200, human hands): floor 2's 8.5 put the standing cohort's fight at
+        // 41-42 s, under the band; 11.5 puts every playing cohort's P50 at 47-62 s for both heroes.
+        public const float FloorThreeGateShare = 5.102041f;
 
         // The floor's knobs, as parameters of a run rather than edits of the game: each default is the shipped value, read
         // from the game's own constant where there is one, so a run with no levers is the scene's floor.
