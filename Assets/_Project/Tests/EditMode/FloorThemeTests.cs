@@ -168,6 +168,9 @@ namespace Cryptforge.Tests
             Assert.That(set.PavingFor(FloorTheme.Ice), Is.SameAs(set.IcePaving));
             Assert.That(set.MasonryFor(FloorTheme.Ice), Is.SameAs(set.IceMasonry));
             Assert.That(set.BackdropFor(FloorTheme.Ice), Is.SameAs(set.IceBackdrop));
+            Assert.That(set.BackdropFor(FloorTheme.Gloam), Is.SameAs(set.GloamBackdrop));
+            Assert.That(set.GloamBackdrop, Is.Not.Null, "Floor 3 paints its own plate (pass 2), never the foundry's lava.");
+            Assert.That(set.GloamBackdrop.texture.name, Is.EqualTo("ENV_Gloam_Garden_v1"));
             Assert.That(set.PavingFor(FloorTheme.Foundry), Is.Null);
             Assert.That(set.BackdropFor(FloorTheme.Foundry), Is.Null);
             AssertTwin("Assets/_Project/Art/Environment/Gloam/GloamPavingV1.png", "Assets/_Project/Art/Environment/Ice/IcePavingV1.png");
@@ -182,8 +185,10 @@ namespace Cryptforge.Tests
                 variants++;
             }
             Assert.That(variants, Is.EqualTo(16), "The ice pass's sixteen variants.");
-            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Resources/Gloam" }).Length, Is.EqualTo(variants),
-                "Resources/Gloam holds the ice pass's list and nothing else.");
+            // Pass 2 adds one texture of its own beside the sixteen twins: the garden growth atlas (roots, fungi, moss).
+            Assert.That(Resources.Load<Texture2D>("Gloam/GloamGrowth"), Is.Not.Null, "The garden growth atlas.");
+            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Resources/Gloam" }).Length, Is.EqualTo(variants + 1),
+                "Resources/Gloam holds the ice pass's list, the growth atlas and nothing else.");
         }
 
         // A floor-3 texture: its own guid, its Ice twin's size and import settings.
