@@ -194,5 +194,27 @@ namespace Cryptforge.Tests
             guard.Reset();
             Assert.That(guard.IsGuarding, Is.False);
         }
+
+        // The reflection owed is banked and paid as one hit, from the last Sentry that reflected, on the next frame the fight
+        // runs; while it holds (a level-up panel, the boss's reveal) nothing is paid and the bank keeps it (the lead's
+        // decision 2026-11-12: the hero loses no health while it chooses).
+        [Test]
+        public void TheReflectionIsBankedWhileTheFightHoldsAndPaidAsItResumes()
+        {
+            var due = new MirrorReflectionDue<string>();
+            Assert.That(due.Take(true, out string from), Is.Zero, "nothing owed");
+            Assert.That(from, Is.Null);
+            due.Owe(1.5f, "first");
+            due.Owe(0f, "nobody");
+            due.Owe(.5f, "second");
+            Assert.That(due.Take(false, out from), Is.Zero, "held: nothing paid");
+            Assert.That(due.Owed, Is.EqualTo(2f), "and nothing lost");
+            due.Owe(1f, "second");
+            Assert.That(due.Take(true, out from), Is.EqualTo(3f), "running: all of it at once");
+            Assert.That(from, Is.EqualTo("second"), "from the last Sentry that reflected");
+            Assert.That(due.Owed, Is.Zero);
+            Assert.That(due.Take(true, out _), Is.Zero, "paid once");
+            Assert.Throws<ArgumentOutOfRangeException>(() => due.Owe(-1f, "nobody"));
+        }
     }
 }

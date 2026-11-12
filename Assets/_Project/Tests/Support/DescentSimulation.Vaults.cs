@@ -237,10 +237,9 @@ namespace Cryptforge.Tests
             private readonly float[] _laneY = new float[3];
             private int _lanes;
             private readonly Foe[] _glassCopies = new Foe[2];
-            // Reflection owed to the hero by a Sentry, paid next frame (a hit on the hero inside the hero's own strike
-            // would land mid-attack; MirrorGuardService pays it so).
-            private float _reflectOwed;
-            private Foe _reflectFrom;
+            // Reflection owed to the hero by a Sentry, paid on the next running frame (MirrorReflectionDue, as
+            // MirrorGuardService pays it: never inside the hero's own strike, never while the fight holds).
+            private readonly MirrorReflectionDue<Foe> _reflectDue = new MirrorReflectionDue<Foe>();
             private bool _reflecting;
             // Whether the floor holds a Mirror Sentry (EnterFloor): its guard is stepped only there.
             private bool _sentryFloor;
@@ -355,21 +354,21 @@ namespace Cryptforge.Tests
                 }
             }
 
-            // MirrorGuardService.Update: the reflection owed since last frame paid as one hit with the Sentry as its source -
-            // even while the fight holds - then, while it runs, every standing Sentry's guard stepped (not on the frame it
-            // walks in).
+            // MirrorGuardService.Update: while the fight runs, the reflection banked since the last running frame paid as one
+            // hit with the Sentry as its source, then every standing Sentry's guard stepped (not on the frame it walks in);
+            // while it holds (a choice, the reveal), neither.
             private void StepSentries()
             {
-                if (_reflectOwed > 0f && _heroHealth.IsAlive)
+                bool held = _choices.IsOpen || _revealHold;
+                float owed = _reflectDue.Take(!held && _heroHealth.IsAlive, out Foe from);
+                if (owed > 0f)
                 {
-                    float owed = _reflectOwed;
-                    _reflectOwed = 0f;
                     _reflecting = true;
                     _harmIsSlam = false;
-                    _hero.ApplyDamage(new DamageContext(owed, _reflectFrom));
+                    _hero.ApplyDamage(new DamageContext(owed, from));
                     _reflecting = false;
                 }
-                if (_choices.IsOpen || _revealHold)
+                if (held)
                     return;
                 for (int i = 0; i < TargetCount; i++)
                 {
@@ -502,11 +501,7 @@ namespace Cryptforge.Tests
                 }
                 if (!front)
                     return context;
-                if (reflected > 0f)
-                {
-                    _reflectOwed += reflected;
-                    _reflectFrom = foe;
-                }
+                _reflectDue.Owe(reflected, foe);
                 return new DamageContext(dealt, context.Source, context.IsCritical);
             }
 

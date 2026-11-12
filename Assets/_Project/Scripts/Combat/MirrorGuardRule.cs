@@ -164,4 +164,38 @@ namespace Cryptforge.Combat
                 throw new ArgumentOutOfRangeException(name);
         }
     }
+
+    // The reflection the hero is owed (MirrorGuardState.Land's reflected), banked as the landings make it and paid as one
+    // hit - from the last Sentry that reflected - on the next frame the fight runs: never inside the hero's own strike, and
+    // never while the encounter holds (an open choice, the boss's reveal; the lead's decision 2026-11-12), so the hero loses
+    // no health while it chooses; what was banked meanwhile is paid as the clock resumes. One body for the scene's
+    // MirrorGuardService and the foundry simulation. TSource is whatever names the Sentry there.
+    public sealed class MirrorReflectionDue<TSource> where TSource : class
+    {
+        public float Owed { get; private set; }
+        public TSource From { get; private set; }
+
+        public void Owe(float amount, TSource from)
+        {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount < 0f)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount <= 0f)
+                return;
+            Owed += amount;
+            From = from;
+        }
+
+        // What to pay now, and from whom: all that is banked when the fight runs and the hero can take it, else nothing
+        // (it stays banked).
+        public float Take(bool runs, out TSource from)
+        {
+            from = From;
+            if (!runs || Owed <= 0f)
+                return 0f;
+            float owed = Owed;
+            Owed = 0f;
+            From = null;
+            return owed;
+        }
+    }
 }
