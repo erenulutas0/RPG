@@ -3,19 +3,20 @@ using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
-    // The Mirror Sentry's guard (docs/50 section 5; the lead's decisions 2026-11-12, `sentry-t45-h125-c2-f50`): floor 2's
+    // The Mirror Sentry's guard (docs/50 section 5; the lead's decisions 2026-11-12, shipped as `sentry-r0-f70`): floor 2's
     // elite carries a mirror on its front and turns toward the hero at TurnDegrees a second. A landing of the hero's - its
     // weapons' strikes, splashes and procs, its ability - made while the HERO stands inside the front arc (ArcDegrees in
     // all, centred on the facing; the hero's position, not the strike's, so a Staff splash that reaches the Sentry is
-    // blunted when the hero stands before it) deals FrontShare of itself to the Sentry and reflects ReflectShare of the
-    // landing's full amount back to the hero, the reflection capped at ReflectCap of the hero's maximum health a second
-    // for each Sentry (a budget that refills at that rate up to one second's worth). From the flanks and the rear the
-    // Sentry takes the landing whole and reflects nothing. A burn's tick (DamageContext.IsTick), the pit's spill and a
-    // relic's counter are not landings of the hero's and pass untouched.
+    // blunted when the hero stands before it) deals FrontShare of itself to the Sentry. From the flanks and the rear the
+    // Sentry takes the landing whole. A burn's tick (DamageContext.IsTick), the pit's spill and a relic's counter are not
+    // landings of the hero's and pass untouched. The reflection the research measured - ReflectShare of a front landing
+    // back to the hero, capped at ReflectCap of its maximum a second for each Sentry - ships at nothing: ReflectShare 0. The
+    // mirror's reflecting stays a look only (MirrorGlintView's glint on a blunted landing, which never hurts).
     //
-    // Measured, not chosen (docs/50 Round 2, VaultsEnemiesResearch, seeds 1-200, five cohorts, typical hands): careful
-    // clears +1 / -2 against the Captain, clumsy completion 40.8 %, the Daggers lead the Sentry by 83 %, the careful-minus-
-    // standing gap 28 / 24 clears. Change it only with a re-measurement. Pure: the scene's MirrorGuard and MirrorGuardService
+    // Measured, not chosen (docs/50 "Rounds 3 and 4" and the lead's relative rule, VaultsEnemiesResearch, seeds 1-400,
+    // five cohorts, typical hands, the four-floor Descent): the clumsy cohort completes 306 of 800 against the Captain's 307,
+    // careful clears within 1 of the Captain on each range, the Daggers lead the Sentry by 74 % / 58 %, the careful-minus-
+    // standing gap 17 / 22 and 18 / 15 clears. Change it only with a re-measurement. Pure: the scene's MirrorGuard and MirrorGuardService
     // and the foundry simulation (DescentSimulation.Vaults.cs) step the same MirrorGuardState, and every angle and product
     // below is one body that is never inlined, so the scene and the simulation round alike (the stamina divergence's lesson,
     // docs/21: never copy distance or angle arithmetic across assemblies).
@@ -23,8 +24,8 @@ namespace Cryptforge.Combat
     {
         public const float TurnDegrees = 45f;
         public const float ArcDegrees = 120f;
-        public const float FrontShare = .5f;
-        public const float ReflectShare = .2f;
+        public const float FrontShare = .7f;
+        public const float ReflectShare = 0f;
         public const float ReflectCap = .02f;
 
         // The facing of a body at (x, y) that looks straight at (tx, ty), in radians.

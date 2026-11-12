@@ -28,9 +28,17 @@ namespace Cryptforge.Core
 
         public bool IsActive { get; private set; }
         // A reflection has landed on the hero: the mirror it came from and the health it asked for (before the hero's armour).
+        // None while MirrorGuardRule.ReflectShare is 0, as it ships (sentry-r0-f70).
         public event Action<MirrorGuard, float> Reflected;
         // Every reflection paid this run, in health asked.
         public float ReflectedTotal { get; private set; }
+        // The mirror's look (the lead's decision 2026-11-12: the fantasy kept as feedback only): a landing its front blunted
+        // flashes the violet glint from the mirror toward the hero (MirrorGlintView) - at most one every BluntGlintSeconds,
+        // whichever mirror, so a fast weapon's every strike does not flash. It deals nothing: violet never hurts.
+        public const float BluntGlintSeconds = .8f;
+        public event Action<MirrorGuard> Blunted;
+        public int BluntGlints { get; private set; }
+        private float _nextBluntGlint;
 
         internal void Initialize(CombatSetup setup, Health hero)
         {
@@ -66,6 +74,17 @@ namespace Cryptforge.Core
                 if (guard.StoodUpFrame == frame || body == null || !body.IsAlive ||
                     !encounter.TryFloorPositionOf(body, out float x, out float y))
                     continue;
+                // The landings its front blunted since the last frame: one glint, if the last was long enough ago.
+                if (guard.FrontLandings > guard.FrontLandingsSeen)
+                {
+                    guard.FrontLandingsSeen = guard.FrontLandings;
+                    if (Time.time >= _nextBluntGlint)
+                    {
+                        _nextBluntGlint = Time.time + BluntGlintSeconds;
+                        BluntGlints++;
+                        Blunted?.Invoke(guard);
+                    }
+                }
                 guard.Arm(encounter, _hero, _owe ??= Owe);
                 guard.State.Step(Time.deltaTime, x, y, heroX, heroY, _hero.Maximum);
             }

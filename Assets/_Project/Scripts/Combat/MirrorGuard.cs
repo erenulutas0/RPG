@@ -6,8 +6,9 @@ namespace Cryptforge.Combat
 {
     // The Mirror Sentry's mirror in the scene (MirrorGuardRule; docs/50 section 5): on the Sentry's prefab, ahead of its
     // Health (Health.Guard), it judges each landing of the hero's - a context whose source is the hero, not a burn's tick -
-    // by where the hero stands against its facing: from the front the Sentry takes MirrorGuardRule.FrontShare of it and the
-    // hero is owed a reflection, from the flanks and the rear the landing is whole. MirrorGuardService turns it and refills
+    // by where the hero stands against its facing: from the front the Sentry takes MirrorGuardRule.FrontShare of it (and the
+    // hero is owed MirrorGuardRule.ReflectShare of it, nothing as it ships), from the flanks and the rear the landing is
+    // whole. MirrorGuardService turns it and refills
     // its budget each running frame, at the Warden's point of the frame (after EncounterController, before every attacker),
     // and pays the reflection it owes the next frame, as the foundry simulation does (DescentSimulation.Vaults.cs). Until
     // the service has stepped it - the frame it walks in, off the foundry, in the hall arena - it guards nothing and the
@@ -30,6 +31,8 @@ namespace Cryptforge.Combat
         // The landings of the hero's it judged, and those made from its front, since it stood up.
         public int Landings { get; private set; }
         public int FrontLandings { get; private set; }
+        // The front landings MirrorGuardService has already seen, for its blunted-landing glint.
+        internal int FrontLandingsSeen { get; set; }
 
         public static int StandingCount => Standing.Count;
         public static MirrorGuard StandingAt(int index) => Standing[index];
@@ -44,6 +47,7 @@ namespace Cryptforge.Combat
             State.Reset();
             Landings = 0;
             FrontLandings = 0;
+            FrontLandingsSeen = 0;
             StoodUpFrame = Time.frameCount;
             if (!Standing.Contains(this))
                 Standing.Add(this);

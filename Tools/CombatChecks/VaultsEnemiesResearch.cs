@@ -48,45 +48,48 @@ namespace Cryptforge.Tests
             l.VaultsHabits |= sidesteps ? DescentSimulation.VaultsHabit.Sidesteps : DescentSimulation.VaultsHabit.None;
         };
 
+        // The Mirror Sentry with its whole guard set: its turn (degrees a second), its health against the built 200, the share
+        // of a front landing it takes, the share of a front landing it reflects and the reflection's cap a second.
+        private static Action<DescentSimulation.FoundryLevers> SentryAt(float turn, float healthScale, float front, float reflect, float cap) => l =>
+        {
+            l.SentryTurnDegrees = turn;
+            l.SentryHealthScale = healthScale;
+            l.SentryFrontShare = front;
+            l.SentryReflectShare = reflect;
+            l.SentryReflectCap = cap;
+        };
+
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "floor 2 as shipped: the Mirror Sentry leads Sentry Hall (MirrorGuardRule, sentry-t45-h125-c2-f50: 45 deg/s, 200 health, half a front landing taken, 20 % reflected up to 2 % of the hero's maximum a second), the careful and first-card pilots flank it (FoundryLevers.FlanksTheSentry); the foundry's roster and the Forge Warden (share 6.071429)", Roles = true };
+            yield return new Option { Key = "shipped", What = "floor 2 as shipped: the Mirror Sentry leads Sentry Hall (MirrorGuardRule, sentry-r0-f70: 45 deg/s, 200 health, 70 % of a front landing taken, nothing reflected), the careful and first-card pilots flank it (FoundryLevers.FlanksTheSentry); the foundry's roster and the Forge Warden (share 6.071429)", Roles = true };
             yield return new Option { Key = "captain", What = "floor 2 before 2026-11-12: the Grunt Captain leads Sentry Hall (FoundryLevers.VaultsCaptain)", Roles = true, Set = l => l.VaultsCaptain = true };
             yield return new Option { Key = "sentry-noflank", What = "the shipped Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Roles = true, Set = l => l.FlanksTheSentry = false };
-            // docs/50 section 5's starting values (round 1): 90 deg/s, 160 health (0.8 of the shipped 200), 35 % taken from the
-            // front, the reflection capped at 4 %.
-            yield return new Option
-            {
-                Key = "sentry-docs50", What = "the Mirror Sentry with docs/50's starting values: 90 deg/s, 160 health, 35 % of a front landing taken, its reflection capped at 4 %; the flank habit", Roles = true,
-                Set = l =>
-                {
-                    l.SentryTurnDegrees = 90f;
-                    l.SentryHealthScale = .8f;
-                    l.SentryFrontShare = .35f;
-                    l.SentryReflectCap = .04f;
-                }
-            };
-            // The lead's sweep after the four-floor Descent (2026-11-12): each one lever off the shipped t45-h125-c2-f50, for
-            // clumsy completion of the whole Descent at 40 % or more.
-            yield return new Option { Key = "sentry-f60", What = "the shipped Mirror Sentry taking 60 % of a front landing", Roles = true, Set = l => l.SentryFrontShare = .6f };
-            yield return new Option { Key = "sentry-c1", What = "the shipped Mirror Sentry with its reflection capped at 1 % of the hero's maximum a second", Roles = true, Set = l => l.SentryReflectCap = .01f };
-            yield return new Option { Key = "sentry-h100", What = "the shipped Mirror Sentry at docs/50's 160 health (0.8 of the shipped 200)", Roles = true, Set = l => l.SentryHealthScale = .8f };
-            yield return new Option { Key = "sentry-r0", What = "the shipped Mirror Sentry reflecting nothing: the guard alone", Roles = true, Set = l => l.SentryReflectShare = 0f };
-            // The next round (docs/50, "The 40 % rule and the sweep"): no reflection with a softer front for the cohort that
-            // never flanks, or a small reflection kept with one.
-            yield return new Option { Key = "sentry-r0-f70", What = "the Mirror Sentry reflecting nothing, taking 70 % of a front landing", Roles = true,
-                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .7f; } };
+            // Every Sentry below sets its whole guard (SentryAt), so it reads as it did when it was measured whatever ships.
+            // docs/50 section 5's starting values (round 1).
+            yield return new Option { Key = "sentry-docs50", What = "the Mirror Sentry with docs/50's starting values: 90 deg/s, 160 health, 35 % of a front landing taken, 20 % reflected up to 4 % a second; the flank habit", Roles = true,
+                Set = SentryAt(90f, .8f, .35f, .2f, .04f) };
+            // Round 2's winner, built on 2026-11-12 before the 40 % rule.
+            yield return new Option { Key = "sentry-f50", What = "the Mirror Sentry of round 2 (t45-h125-c2-f50): 45 deg/s, 200 health, half a front landing taken, 20 % reflected up to 2 % a second", Roles = true,
+                Set = SentryAt(45f, 1f, .5f, .2f, .02f) };
+            // The lead's sweep after the four-floor Descent (2026-11-12): each one lever off f50.
+            yield return new Option { Key = "sentry-f60", What = "f50 taking 60 % of a front landing", Roles = true, Set = SentryAt(45f, 1f, .6f, .2f, .02f) };
+            yield return new Option { Key = "sentry-c1", What = "f50 with its reflection capped at 1 % of the hero's maximum a second", Roles = true, Set = SentryAt(45f, 1f, .5f, .2f, .01f) };
+            yield return new Option { Key = "sentry-h100", What = "f50 at docs/50's 160 health (0.8 of 200)", Roles = true, Set = SentryAt(45f, .8f, .5f, .2f, .02f) };
+            yield return new Option { Key = "sentry-r0", What = "f50 reflecting nothing: the guard alone", Roles = true, Set = SentryAt(45f, 1f, .5f, 0f, .02f) };
+            // Rounds 3 and 4 (docs/50): no reflection with a softer front for the cohort that never flanks, or a small
+            // reflection kept with one. r0-f70 ships.
+            yield return new Option { Key = "sentry-r0-f70", What = "the Mirror Sentry reflecting nothing, taking 70 % of a front landing (shipped since 2026-11-12)", Roles = true,
+                Set = SentryAt(45f, 1f, .7f, 0f, .02f) };
             yield return new Option { Key = "sentry-r0-f60-h100", What = "the Mirror Sentry reflecting nothing, taking 60 % of a front landing, at 160 health", Roles = true,
-                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .6f; l.SentryHealthScale = .8f; } };
+                Set = SentryAt(45f, .8f, .6f, 0f, .02f) };
             yield return new Option { Key = "sentry-r0-f80", What = "the Mirror Sentry reflecting nothing, taking 80 % of a front landing", Roles = true,
-                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .8f; } };
-            yield return new Option { Key = "sentry-c1-f70", What = "the Mirror Sentry with its reflection capped at 1 % a second, taking 70 % of a front landing", Roles = true,
-                Set = l => { l.SentryReflectCap = .01f; l.SentryFrontShare = .7f; } };
-            // Round 4 (docs/50): softer still for the cohort that never flanks.
-            yield return new Option { Key = "sentry-c1-f80", What = "the Mirror Sentry with its reflection capped at 1 % a second, taking 80 % of a front landing", Roles = true,
-                Set = l => { l.SentryReflectCap = .01f; l.SentryFrontShare = .8f; } };
+                Set = SentryAt(45f, 1f, .8f, 0f, .02f) };
+            yield return new Option { Key = "sentry-c1-f70", What = "the Mirror Sentry reflecting 20 % up to 1 % a second, taking 70 % of a front landing", Roles = true,
+                Set = SentryAt(45f, 1f, .7f, .2f, .01f) };
+            yield return new Option { Key = "sentry-c1-f80", What = "the Mirror Sentry reflecting 20 % up to 1 % a second, taking 80 % of a front landing", Roles = true,
+                Set = SentryAt(45f, 1f, .8f, .2f, .01f) };
             yield return new Option { Key = "sentry-r0-f90", What = "the Mirror Sentry reflecting nothing, taking 90 % of a front landing", Roles = true,
-                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .9f; } };
+                Set = SentryAt(45f, 1f, .9f, 0f, .02f) };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
             // Round 2's alternatives (docs/50 Measured), simulation only.
@@ -112,13 +115,7 @@ namespace Cryptforge.Tests
                     Key = $"sentry-t{turn}-h{health}-c{cap}",
                     What = $"the Mirror Sentry turning {turn} degrees a second, {health} % of docs/50's 160 health, its reflection capped at {cap} % of the hero's maximum a second, 35 % of a front landing taken; the flank habit",
                     Roles = true,
-                    Set = l =>
-                    {
-                        l.SentryTurnDegrees = turn;
-                        l.SentryHealthScale = health / 125f;
-                        l.SentryReflectCap = cap / 100f;
-                        l.SentryFrontShare = .35f;
-                    }
+                    Set = SentryAt(turn, health / 125f, .35f, .2f, cap / 100f)
                 };
             foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f, 6.2f, 6.4f, 6.6f, 6.7f, 7.0f })
                 yield return new Option
