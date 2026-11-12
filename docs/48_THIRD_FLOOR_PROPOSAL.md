@@ -447,9 +447,11 @@ branch; it reproduces round 1's `gate180` row to the digit). Vanguard / Ilya:
   and 2, by design.
 
 **Checks.** CombatChecks 798 of 798 green; the compile check of the Unity assemblies is clean. The batch report with
-FOUNDRY_FLOORS=4 on this branch (FOUNDRY_PARALLEL=1, TestResults/f3/g180 in the worktree) was still running at the hand-back;
-in round 1 ThirdFloorResearch's rows and the batch's matched cell for cell at the same knobs, so the table above is the
-batch's but for its formatting.
+FOUNDRY_FLOORS=4 on the merged branch (FOUNDRY_PARALLEL=1, 36 min) confirms the table cell for cell: every cohort's
+floor-3 clears, Warden, floor-3 length, finale deaths and completion as above, the Descent P10 / P50 / P90 13.8 / 14.2 /
+14.8 min (the shortest completed run 13.2, the longest 15.6, all 1,219 inside 13-16; P50 by cohort 13.9-14.5). Against
+round 1's batch, foundry-gate.md, foundry-batch.csv, foundry-batch-floor2.csv and foundry-cohorts-floor2.csv are
+byte-identical: neither the merge of main nor floor 3's gate moved floors 1 and 2.
 
 **Unity, not run here.**
 - EditMode: `ClimbFloorContentTests;FloorThemeTests;FoundrySimulationSceneValueTests;FoundryFloorThreeTests;FoundryFinaleTests;FoundrySimulationTests;FoundryGateCallTests;FoundryCohortTests;FoundryGateTests`
