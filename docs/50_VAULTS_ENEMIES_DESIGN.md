@@ -469,3 +469,186 @@ shadow, as the enemy it replaces; the glint, shimmer, lanes and copies are poole
    the Sentry's glint, which never hurt on a timer. Agreed?
 9. **Floor 3 (docs/48)** plays foundry enemies at first. Once floor 2 has its own, should floor 3's stand-in reuse the
    Vaults' creatures or the foundry's?
+
+## Measured (2026-11-12, simulation only)
+
+Section 8's step 1, as research levers off by default. Nothing the game ships changed: no runtime script, scene, asset
+or setting. The default batch (`FOUNDRY_FLOORS=2`, seeds 1-200, cohorts) is byte-identical before and after: every CSV,
+`foundry-gate.md` and `foundry-cohorts.md` (only `foundry-batch.md`'s clock and wall seconds differ).
+
+**What was built.**
+- `Assets/_Project/Tests/Support/DescentSimulation.Vaults.cs`: the four as `Enemy` definitions with section 3-6's
+  numbers, `VaultsChain(levers)` (floor 1 as shipped above a floor 2 with the levers' creatures in place: the Sentry for
+  Sentry Hall's Captain, the Wisp for the Runner in the horde's third role and Mercury Stair's second wave, a Clerk at
+  the head of Mercury Stair's first wave and in place of a Grunt in Vault Gate's, the Regent for the Warden), the
+  levers (`VaultsSentry`, `VaultsWisps`, `VaultsClerks`, `VaultsRegent` and each creature's numbers; the Regent's share
+  is `LaterWardenHealthShare`), the shared arithmetic in never-inlined bodies (`VaultsRule.InLane`, `Turn`, `InFront`)
+  and the research habits `VaultsHabit.Flanks` and `VaultsHabit.Sidesteps`, outside `AutopilotCohort.Habit.All` (the
+  runtime enum is untouched): the flank extends the step-in (so only a cohort that `StepsIn`, careful and first-card,
+  and only when its best single-target weapon is short, the Daggers); the sidestep extends `EscapesAwayFromTheWarden`
+  (careful, standing, first-card; the clumsy pilot keeps the nearest-of-eight escape, the auto-farmer none).
+- `DescentSimulation.Foundry.cs` gains hooks that do nothing unless a floor holds one of the four (`Foe` is partial).
+- `Tools/CombatChecks/VaultsEnemiesResearch.cs` (explicit): every cohort, both heroes, the whole Descent, typical
+  hands; for the options that read roles, the Vanguard also started with the Staff and with the Daggers in the careful
+  hands. `VAULTS_OPTIONS` picks options; it writes `vaults-enemies.md` and `.csv`.
+
+**Where the model departs from sections 3-6.**
+- The Regent's phase-2 beat is the Warden's enraged 4 s (`WardenSlamClock` as it is), not 4.5 s. The horde still
+  thickens in phase 2 as for the Warden.
+- A shimmering Wisp keeps walking until it forms at the landing spot (the spot is fixed as the shimmer starts).
+- The Clerk walks with its pack to the copy (one formation); it never strikes and the pilot does not kite from it.
+- Every cohort walks to a wave's last Clerks (section 4's back-liner habit), or a hall holding a Clerk would never
+  clear when no splash reaches it.
+- The sidestep picks the nearest point (rings 0.5-3.2 units, 24 bearings) clear of every lane by 0.35 and on the floor.
+
+**The run.** Seeds 1-200, both heroes, all five cohorts, `FOUNDRY_REALISM=typical`, the whole Descent. Each option is
+one creature alone against `shipped` on the same seeds (floor 1 is the same run in every option). About 4 minutes an
+option on 6 threads, 8 with the roles row.
+
+### Floor-2 clears (deaths) by cohort, Vanguard / Ilya
+
+Of the runs that cleared floor 1 (went down: careful 195 / 198, standing 187 / 183, first-card 182 / 198, clumsy 78 /
+131, auto-farmer 10 / 29), with the floor's deaths in brackets.
+
+| Option | careful | standing | first-card | clumsy | auto-farmer | Descent P50 min, careful V / I |
+|---|---|---|---|---|---|---|
+| `shipped` | 191 (4) / 191 (7) | 180 (7) / 170 (13) | 172 (10) / 192 (6) | 66 (12) / 108 (23) | 3 (7) / 8 (21) | 10.3 / 10.2 |
+| `sentry` (flank) | 188 (7) / 186 (12) | 162 (25) / 158 (25) | 169 (13) / 185 (13) | 61 (17) / 91 (40) | 1 (9) / 5 (24) | 10.3 / 10.1 |
+| `wisp` | 192 (3) / 193 (5) | 173 (14) / 174 (9) | 177 (5) / 193 (5) | 67 (11) / 108 (23) | 3 (7) / 6 (23) | 10.3 / 10.2 |
+| `clerk` (option A) | 192 (3) / 191 (7) | 182 (5) / 177 (6) | 180 (2) / 195 (3) | 65 (13) / 113 (18) | 5 (5) / 5 (24) | 10.3 / 10.2 |
+| `sentry-noflank` | 184 (11) / 185 (13) | 162 (25) / 158 (25) | 170 (12) / 183 (15) | 61 (17) / 91 (40) | 1 (9) / 5 (24) | 10.3 / 10.2 |
+| `regent-lanes` (stage 1, 5.2) | 194 (1) / 195 (3) | 185 (2) / 176 (7) | 179 (3) / 194 (4) | 63 (15) / 104 (27) | 5 (5) / 13 (16) | 10.1 / 10.0 |
+| `regent-5.2` (copies, sidestep) | 194 (1) / 194 (4) | 187 (0) / 176 (7) | 180 (2) / 195 (3) | 62 (16) / 103 (28) | 5 (5) / 13 (16) | 10.2 / 10.0 |
+| `all` (the four, Regent 5.2) | 190 (5) / 194 (4) | 180 (7) / 174 (9) | 176 (6) / 188 (10) | 56 (22) / 98 (33) | 2 (8) / 8 (21) | 10.2 / 10.0 |
+
+The Descent time barely moves: shipped P50 9.9-10.3 minutes across the cohorts that complete it, every option 9.7-10.3
+(the Regent's shorter fight takes 0.1-0.2 minutes off). Completion follows the floor-2 clears above one for one: no
+option changes the finale.
+
+### Floor 2's roles row (careful hands, the Vanguard started with each weapon)
+
+Damage a second: the horde (a second held), the elite room's leader (a second of the elite fight), the gate boss (a
+second of its fight). Sword / Staff / Daggers.
+
+| Option | Horde | Elite leader | Gate boss | Roles (`FoundryGate.LeadsJob`) | Daggers' lead on the leader | Sword's lead on the gate boss |
+|---|---|---|---|---|---|---|
+| `shipped` (Captain, Warden) | 19.2 / 54.8 / 1.1 | 35.1 / 42.8 / 51.0 | 36.0 / 28.9 / 4.8 | met | +19 % | +25 % |
+| `sentry` | 18.8 / 53.8 / 1.2 | 14.5 / 17.0 / 30.8 | 34.8 / 29.2 / 4.7 | met | **+81 %** | +19 % |
+| `wisp` | 18.1 / 52.4 / 1.7 | 31.6 / 40.6 / 55.0 | 36.5 / 29.1 / 4.5 | met | +35 % | +25 % |
+| `clerk` | 18.8 / 54.3 / 1.2 | 32.8 / 42.1 / 46.2 | 35.2 / 29.1 / 4.8 | not met (Daggers +10 %) | +10 % | +21 % |
+| `sentry-noflank` | 18.3 / 55.2 / 1.2 | 13.8 / 15.6 / 25.3 | 34.9 / 29.1 / 4.7 | met | +62 % | +20 % |
+| `regent-5.2` (Regent) | 18.7 / 54.1 / 1.1 | 35.1 / 42.8 / 51.0 | 38.4 / 31.1 / 4.5 | met | +19 % | +23 % |
+| `all` | 17.9 / 51.9 / 1.6 | 14.3 / 16.9 / 30.2 | 40.3 / 32.3 / 4.4 | met | +79 % | +25 % |
+
+The `wisp` and `clerk` rows change neither the Captain nor the Warden, so their elite and gate columns (Daggers +10 % to
++35 % on the same Captain) show the row's noise: a difference under about 15 points between rows is not a reading.
+
+### Each creature
+
+**Mirror Sentry** (flank habit on; it acts only through the step-in, so only when the best single-target weapon is the
+Daggers). The Daggers lead the Sentry by 81 % (the Captain: 19 %): the Sentry is the Daggers' elite. Floor-2 clears
+fall 3 / 5 (careful), 18 / 12 (standing), 3 / 7 (first-card), 5 / 17 (clumsy). The careful-minus-standing gap grows
+from 11 / 21 to 26 / 28 clears (+15 / +7: the skill separation docs/41's echo could not make). Most of the
+new deaths are not at the Sentry but at the gate (standing: boss deaths 24 / 21 against 7 / 9): the reflection, about
+25-31 health a fight, is carried into the Warden. The clumsy pilot dies to the Sentry itself (room 5: 6 / 6). The elite
+fight is short: P50 3.6-4.4 s (careful, standing), time under fire 3.1-3.9 s, under section 7's 6-12 s. Front share:
+careful 95-96 %, standing 100 %. Careful Ilya's -5 misses the "no more than 3 below" row by 2.
+
+The flank habit is worth little at 90 degrees a second. Without it (`sentry-noflank`) careful clears are 184 / 185 (4 /
+1 fewer), the Daggers' lead 62 % instead of 81 %, and every start lands 100 % from the front instead of 95 %. Its own
+reading (`TheSentryFlankWithTheDaggers`, the careful Vanguard started with the Daggers, seeds 1-60, typical hands), front
+share and time under fire with / without the habit:
+
+| Sentry | Front share | Under fire P50 | Reflected a fight |
+|---|---|---|---|
+| 90 deg/s, 160 health (docs/50) | 93 % / 100 % | 3.6 / 4.0 s | 27 / 32 |
+| 45 deg/s | **72 %** / 93 % | 2.9 / 3.9 s | 20 / 29 |
+| 60 deg/s, 240 health | 78 % / 96 % | 4.1 / 5.1 s | 28 / 40 |
+| 90 deg/s, 280 health | 91 % / 100 % | 5.2 / 6.0 s | 38 / 48 |
+
+The step-in holds the Daggers' reach about 2.7 s of a 3.6 s fight, and at a net 24-31 degrees a second the hero needs
+2-2.5 s to leave a 120-degree arc: the Sentry is down first. The turn rate is the lever that makes the flank matter;
+health alone lengthens the fight without opening the flank. Section 7's "careful at most 40 % front" is out of reach at
+any of these; 72 % is the best seen.
+
+**Silver Wisp.** No reading moves beyond noise: clears within -7 to +4, about 40 blinks a floor, 4-5 Wisps a floor
+form within their reach of the hero and none strikes inside the 0.5 s hold, and the hero takes 0.1-0.2 health a minute
+from Wisps. A horde Wisp has 10 health and dies to the first splash; the Staff still leads the horde (52.4 against
+54.8, the same lead). As specified the Wisp is a look, not a mechanic.
+
+**Faceless Clerk** (option A, area damage lands). About 4 copies a floor, the packs drawn for 4.3-4.9 s a floor, the
+Clerk's time under fire P50 1.0-1.5 s (in section 7's 1-2.5 s). Shatter hits a floor: 0.1 for every cohort that leaves
+a mark (careful, standing, first-card, clumsy) and 1.2-1.4 for the auto-farmer. Clears rise slightly (standing 182 /
+177 against 180 / 170): a copy pulls the packs off the hero. No skill separation: docs/41's standing cohort keeps
+`EscapesMarks`, so it steps off a copy as the careful one does; section 7's "standing at least 3" cannot be met by this
+cohort set.
+
+**Glass Regent** (lanes, two copies at half health, the sidestep habit for careful, standing and first-card). The fight
+band, P50 / P90 seconds of floor 2's gate fight (from the gate wave to the fall, the reveal included), careful hands:
+
+| Gate boss, share | Careful P50 V / I (in 45-65 s) | Careful P90 V / I | Careful clears V / I | Standing P50 V / I | Standing clears V / I |
+|---|---|---|---|---|---|
+| Forge Warden, 6.071 (shipped) | 51 / 45 (69 % / 50 %) | 61 / 56 | 191 / 191 | 40 / 38 | 180 / 170 |
+| Regent, lanes only, 5.2 | 42 / 38 (31 % / 16 %) | 51 / 47 | 194 / 195 | 32 / 30 | 185 / 176 |
+| Regent, 4.6 | 39 / 36 (21 % / 7 %) | 48 / 44 | 194 / 195 | 30 / 29 | 187 / 176 |
+| Regent, 4.8 | 40 / 37 (27 % / 11 %) | 48 / 45 | 193 / 195 | 31 / 30 | 187 / 176 |
+| Regent, 5.0 | 42 / 38 (31 % / 14 %) | 49 / 46 | 193 / 195 | 32 / 30 | 187 / 175 |
+| Regent, 5.2 | 43 / 39 (37 % / 18 %) | 51 / 47 | 194 / 194 | 32 / 31 | 187 / 176 |
+| Regent, 5.4 | 44 / 40 (42 % / 22 %) | 53 / 48 | 193 / 195 | 32 / 32 | 185 / 176 |
+| Regent, 5.6 | 44 / 40 (46 % / 25 %) | 54 / 49 | 194 / 195 | 33 / 32 | 184 / 175 |
+| Regent, 5.8 | 45 / 41 (50 % / 25 %) | 54 / 50 | 192 / 194 | 34 / 33 | 184 / 176 |
+| Regent, 6.2 (past the sweep) | 47 / 43 (60 % / 34 %) | 56 / 52 | 193 / 194 | 34 / 34 | 183 / 176 |
+| Regent, 6.6 (past the sweep) | 49 / 45 (63 % / 46 %) | 59 / 54 | 192 / 195 | 36 / 34 | 183 / 177 |
+
+None of 4.6-5.8 puts both careful P50s in the band: the Vanguard reaches 45 s at 5.8, Ilya stays at 41. Both first
+stand in it at 6.6 (49 / 45; Ilya on the band's edge, 46 % of its fights inside), past the sweep and above the Warden's
+own 6.071. Each 0.2 of share buys about 1 s. At about the Warden's share (6.2 against 6.071) the Regent's fight is 2-4 s
+shorter: the sidestep is a step of about a unit, so the hero stays in reach, where the Warden's circle sends it 2.8
+units out; and the copies add little (6 % each falls in about a second: 2.0 of 2 shattered a fight by every cohort but
+the auto-farmer). Nothing falls within 5 s, and P90 stays under 75 s. Clears do not suffer: careful 192-194 / 194-195
+at every share against 191 / 191, standing up by 3-7 / 5-7. Lane hits a fight: careful 0.3-0.5 (section 7 asks at most
+0.3), standing 0.1-0.3, clumsy 0.9-1.3 (its nearest-of-eight escape often runs along the lane), auto-farmer 3.4-4.0.
+The Sword leads the Regent by 23 % (the Warden: 25 %): the roles hold. The Descent's P50 falls 0.1-0.2 minutes.
+
+The sidestep habit carries the Regent. Without it (`regent-5.2-nosidestep`: the shipped escape out of a circle, away
+from the boss, which runs along the lane) careful clears fall to 163 / 170 (against 194 / 194 with it and 191 / 191
+shipped), standing to 158 / 159, first-card to 146 / 166, nearly every new death at the gate; lane hits are 3.5-3.9 a
+fight. The clumsy pilot, which never sidesteps, is the same in both (62 / 103). The Regent cannot ship before
+`DevelopmentAutopilot` and the scene's development pilot learn the sidestep, and the lane telegraph has to read as
+"step across" to a player.
+
+### Recommendation
+
+Section 7's rows, each creature alone against `shipped`:
+
+| Row | Sentry | Wisp | Clerk | Regent (copies, 6.6) |
+|---|---|---|---|---|
+| Careful clears no more than 3 below | V -3 met; I -5 missed | met (+1 / +2) | met (+1 / 0) | met (+1 / +4) |
+| First-card no more than 5 points below | met (-1.5 / -3.5) | met | met | met |
+| Standing and clumsy may fall up to 10 points | clumsy Ilya -13 missed; the rest met | met | met (they rise) | met |
+| Skill separation +5 points (careful-minus-standing clears) | **met: +15 / +7** | +8 / -2 (noise) | -1 / -7 | -2 / -3 |
+| Clumsy completion at least 40 % | **missed: 38 %** (shipped 43.5 %) | 44 % met | 44.5 % met | 40.5 % met |
+| The creature's own row | elite fight 3.6-4.4 s and front share 95 % missed; Daggers +81 % met | no hit inside the hold met | under fire 1.0-1.5 s met; standing shatter hits 0.1 missed | in band only past the sweep; lane hits 0.4-0.5 missed; Sword +23 % met |
+| Descent P50 9.8-10.6 min | met | met | met | met (0.1-0.2 shorter) |
+
+All four together (`all`, the Regent at 5.2) cancel out: careful 190 / 194, standing 180 / 174, the careful-minus-standing
+gap 10 / 20 against 11 / 21, clumsy completion 38.5 %. The Sentry's cost and the Clerk's and Regent's ease meet in the
+middle and the skill separation disappears.
+
+**Build the Mirror Sentry first** (section 8's order holds), after one more simulation round on the levers already in
+place. It is the only one of the four that moves a reading the floor needs: the Daggers' elite job (+81 % on the Sentry
+against +19 % on the Captain) and the skill separation docs/41's echo could not make (+15 / +7). As specified it costs
+too much in the wrong place (careful Ilya -5, clumsy completion 38 %, most of the new deaths at the gate after the
+reflection) and its fight is too short for its own mechanic. The next round: `SentryTurnDegrees` 45-60 (the flank's
+front share falls to 72-78 %), `SentryHealthScale` about 1.5 (the fight toward 6 s) and `SentryReflectCap` 0.02-0.03.
+
+**The Glass Regent second**, as section 6 stages it. Its lanes, copies and the sidestep keep the clears and the Sword's
+lead; the lead's condition (in 45-65 s before it replaces the Warden) is met only at a share of about 6.6, outside the
+4.6-5.8 sweep, because the sidestep keeps the hero in reach. Next: confirm 6.4-7.0 on the holdout seeds 201-400, and
+raise the copies to 8-12 % so that phase 2 asks the target question for more than a second.
+
+**Do not build the Wisp or the Clerk as specified**: neither moves any reading. A horde Wisp has 10 health and dies to
+the first splash, and its 0.5 s hold means its blink never lands a hit. The Clerk's copy is stepped off by every cohort
+but the auto-farmer (docs/41's standing cohort keeps `EscapesMarks`), and its pack draw makes the halls easier. Both need
+a redesign before art: for the Wisp, a share of a Runner's health in the horde or a shorter hold; for the Clerk, a
+wider or faster copy (radius 2.4, telegraph 0.8 s) or no pack draw, measured against a cohort that does not leave marks.
