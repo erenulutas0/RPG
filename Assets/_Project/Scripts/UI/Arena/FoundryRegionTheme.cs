@@ -91,7 +91,10 @@ namespace Cryptforge.UI
                         _themeBlock.SetTexture(TextureId,Texture2D.whiteTexture);
                         break;
                     default:
-                        colour*=IceSlate;
+                        // A glowing texture with an ice variant (fires, the pit, the baked boilers' windows): the
+                        // variant is already cold, so no tint; anything else darkens toward slate.
+                        Texture2D variant=IceVariant(material.mainTexture);
+                        if(variant!=null)_themeBlock.SetTexture(TextureId,variant);else colour*=IceSlate;
                         break;
                 }
                 _themeBlock.SetColor(ColourId,colour);
@@ -123,6 +126,20 @@ namespace Cryptforge.UI
             }
         }
 
+        // Resources/Ice/<name>: the cold variant of a foundry texture (Tools/ArtReview/GenerateIceGlowTextures.py), loaded
+        // only when the ice floor first asks for it; floor 1 never loads one.
+        private readonly Dictionary<string,Texture2D> _iceVariants=new Dictionary<string,Texture2D>();
+        private Texture2D IceVariant(Texture texture)
+        {
+            if(texture==null)return null;
+            if(!_iceVariants.TryGetValue(texture.name,out var variant))
+            {
+                variant=Resources.Load<Texture2D>("Ice/"+texture.name);
+                _iceVariants.Add(texture.name,variant);
+            }
+            return variant;
+        }
+
         // A renderer's material, or the structure variant made from it (FoundryVisibilityView.ForStructure).
         private static IceDress DressOf(Material material,PlatformMaterialSet set)
         {
@@ -151,8 +168,8 @@ namespace Cryptforge.UI
                 float warm=Warmth(c,max,min);
                 Color stone=IceStone*Mathf.Min(luminance,1.25f);
                 Color ice=!glow?FrostLitStone*Mathf.Min(luminance,1.1f)
-                    // A light: lava (red, little green) to quicksilver glow, a flame or brazier to frost-light.
-                    :max>1.05f?(c.g<c.r*.55f?QuicksilverGlow:FrostLight)*Mathf.Min(max,1.5f):FrostLight*luminance;
+                    // A light: lava (red, little green) to a darker quicksilver glow, a flame or brazier to frost-light.
+                    :max>1.05f?(c.g<c.r*.55f?QuicksilverGlow*.7f:FrostLight)*Mathf.Min(max,1.5f):FrostLight*luminance;
                 graded=Color.LerpUnclamped(stone,ice,warm);
             }
             graded.r=Mathf.Min(graded.r,2);graded.g=Mathf.Min(graded.g,2);graded.b=Mathf.Min(graded.b,2);
