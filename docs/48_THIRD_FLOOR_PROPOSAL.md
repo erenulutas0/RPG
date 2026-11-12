@@ -279,7 +279,7 @@ and no modifier. Nothing on screen is new: floor 3 plays the foundry's map, art 
   Orchard, Rootbound Walk, Bloom Gate, The Grafting Forge with Mend and Temper, Thorn Post, the Warden's Grove with the
   Forge Warden and two Cinder Mites); climb-scaled at floor 3 (ClimbScaling x1.96 health, x1.8032 damage, the gate boss
   x1.15 more), the authored multipliers set to the same; the plain horde (Mite, Grunt, Runner); no modifier, no surges, no
-  extra elite; the gate at 210 s; `_foundryGateHealthShare` 5.102041; the Foundry theme (FloorTheme 0); the Final Swarm
+  extra elite; the gate at 210 s (180 s since round 2, below); `_foundryGateHealthShare` 5.102041; the Foundry theme (FloorTheme 0); the Final Swarm
   below it.
 - **The chain.** Floor_QuicksilverVaults' `_nextFloor` is floor 3 (one line). The climb is floor 1, floor 2, floor 3,
   the finale, and the finale is the scene's FloorNumber 4.
@@ -323,7 +323,7 @@ share is its effective health against floor 1's authored 300 (the asset's value 
   and 2).
 - The share costs about a point of completion per cohort: 20 more floor-3 deaths in 2,000 runs (55 to 75) from 8.5 to
   11.5, and the Descent's P50 6 s.
-- **The gate stays at 210 s**, as floors 1 and 2 hold theirs and as asked. 180 s was measured beside it at 11.5: the
+- **The gate stayed at 210 s** in this round, as floors 1 and 2 hold theirs (round 2 moved it to 180 s, below). 180 s was measured beside it at 11.5: the
   band holds (47-62 s), 13 fewer floor-3 deaths, the Descent P10 13.8 min, but floor 3's P50 falls to 242-254 s, at the
   bottom of section 2's 240-300 s. It is the lever if floor 3 should cost fewer runs.
 
@@ -395,7 +395,7 @@ foundry-cohorts-floor3.csv is new.
 
 ### What waits
 
-- **The Editor (section 3.6 step 4).** HordePacingMeasurement's horde-floors.txt "3" still reads floor 2 straight into
+- **The Editor (section 3.6 step 4; done in round 2, below).** HordePacingMeasurement's horde-floors.txt "3" read floor 2 straight into
   the finale: its descent row's columns (floor2_s, finale_s, the finale's health) and its 840 s limit assume it. With
   floor 3 in the chain it would play floor 3 as its "finale" column and run out of time near 14 minutes. It needs a "4"
   and a floor-3 column before the Editor confirms this Descent; until then the batch's Editor-seed comparison holds for
@@ -405,3 +405,54 @@ foundry-cohorts-floor3.csv is new.
   the foundry's colours and swaps both ways, read from the code), the HUD's floor line and pips on a fourth floor, the
   result screen and Profile.RecordFloorCleared at 4.
 - The owner's questions 5 (the Warden variant), 6 (a modifier), 9 (the finale's scaling) and 10 stay open.
+
+## Status 2026-11-12 (round 2): floor 3's gate at 3:00, the Editor plays the whole Descent
+
+The lead's round 2, on the measurement above: floor 3's gate opens at 180 s, and the Editor's measurement learns the
+four-floor Descent. Main (be7b2b14: the ice props, the frost transition, frosted enemies, the rarity cards) is merged
+first, without a conflict; none of it touches the simulation, and the ice props and the frost turn off on floor 3's
+Foundry theme as on floor 1 (FoundryRegionTheme sets them by the theme; the frost plays on entering floor 2 only).
+
+**What changed.**
+- Floor_GloamGardens `_foundryGateNotBeforeSeconds` 210 -> 180; the simulation's `FloorThreeGateSeconds` (180) mirrors
+  it, and the scene-value, content and simulation tests read it. Floors 1 and 2 keep 210.
+- **HordePacingMeasurement** plays every floor of the scene's chain with horde-floors.txt "3" or "4" (floor 1, floor 2,
+  floor 3, the finale; the number of floors is counted from the chain, so a proof chain of three still reads as before).
+  The Descent's cap a seed is 1,200 s of game time (was 840 s). The descent row keeps every column it had, the finale's
+  in finale_s, uptime3, engaged3 and kills3 as before, and adds floor 3's after them: floor3_s, warden3_s, level_gate3,
+  uptime_floor3, engaged_floor3, hold3_s, clock3, kills_floor3. Floor 1's rows and its loop are untouched; the mode line
+  reads "floors 3" or "floors 4" as the file says.
+- **EditorDescent** (CombatChecks) reads the new columns by name: a run cleared floor 2 where floor 3 began, reached the
+  finale where it began, and a file from before floor 3 reads as it did. Its section gains "Floor 3 / its Warden P50"
+  for the Editor and the simulation (FoundryLevers.Floors = 4). `EditorDescentTests.FloorThreesColumnsReadAfterTheOldOnes`
+  holds both formats.
+
+**Measured** (ThirdFloorResearch's `shipped`, seeds 1-200, both heroes, five cohorts, human hands, on the merged
+branch; it reproduces round 1's `gate180` row to the digit). Vanguard / Ilya:
+
+| Cohort | Floor 3 cleared | Floor-3 Warden P50 (s) | Floor 3 P50 (s) | Finale deaths | Completed: today -> 210 s -> 180 s | Pooled change from today |
+|---|---|---|---|---|---|---|
+| careful | 99 / 99% | 61 / 57 | 254 / 250 | 0 / 0 | 96 / 96% -> 94 / 95% -> 95 / 95% | -1 |
+| standing | 94 / 95% | 48 / 47 | 243 / 242 | 0 / 0 | 90 / 85% -> 85 / 80% -> 85 / 81% | -4.5 |
+| first-card | 95 / 94% | 57 / 53 | 248 / 245 | 0 / 0 | 86 / 96% -> 81 / 89% -> 82 / 90% | -5 |
+| clumsy | 94 / 92% | 61 / 62 | 251 / 253 | 0 / 0 | 33 / 54% -> 30 / 49% -> 31 / 50% | -3 |
+| auto-farmer | 33 / 25% (3 / 8 went down) | 32 / 39 | 222 / 233 | 0 / 0 | 2 / 4% -> 0 / 1% -> 1 / 1% | - |
+
+- **The Descent: P10 13.8 / P50 14.2 / P90 14.7 minutes**; all 1,219 completed runs inside 13-16. No finale death in
+  1,219.
+- **The Warden's band holds:** every playing cohort's P50 is 47-62 s for both heroes, as at 210 s.
+- **First-card's drop is 5 points pooled** (Vanguard -4, Ilya -6), at section 2's limit; standing -4.5, clumsy -3,
+  careful -1. Floor 3 kills 62 runs (75 at 210 s), floor 2 still 110.
+- Floor 3's P50 is 242-254 s, at the bottom of section 2's 240-300 s: the floor is half a minute shorter than floors 1
+  and 2, by design.
+
+**Checks.** CombatChecks 798 of 798 green; the compile check of the Unity assemblies is clean. The batch report with
+FOUNDRY_FLOORS=4 on this branch (FOUNDRY_PARALLEL=1, TestResults/f3/g180 in the worktree) was still running at the hand-back;
+in round 1 ThirdFloorResearch's rows and the batch's matched cell for cell at the same knobs, so the table above is the
+batch's but for its formatting.
+
+**Unity, not run here.**
+- EditMode: `ClimbFloorContentTests;FloorThemeTests;FoundrySimulationSceneValueTests;FoundryFloorThreeTests;FoundryFinaleTests;FoundrySimulationTests;FoundryGateCallTests;FoundryCohortTests;FoundryGateTests`
+- PlayMode: `FoundryDescentFlowTests;DescentFlowTests;GateHoldFlowTests;FoundryRunEndFlowTests;PaintedHudFlowTests;RunResultTests;EnemyFrostTests;IceFloorPropsTests`
+- The Editor's confirmation (explicit): HordePacingMeasurement with TestResults/horde-floors.txt "4", six seeds for each
+  hero (about two hours each), then the batch report with FOUNDRY_FLOORS=4 reads its rows beside the simulation's.
