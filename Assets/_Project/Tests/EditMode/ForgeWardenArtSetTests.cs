@@ -242,8 +242,9 @@ namespace Cryptforge.Tests
         public void TheTexturesImportLikeTheGruntsInsideTheBudget()
         {
             long bytes = 0;
-            string[] guids = AssetDatabase.FindAssets("CHR_Warden_ t:Texture2D", new[] { Folder });
-            Assert.That(guids.Length, Is.EqualTo(66),
+            // The painted set alone; its floor-2 frosted copies under Ice/ are counted apart below.
+            List<string> guids = FrostedArtCopies.BaseGuids("CHR_Warden_ t:Texture2D", Folder);
+            Assert.That(guids.Count, Is.EqualTo(66),
                 "20 drawings in each phase, 20 flashes, and the fall's 6 (the two remains among them).");
             foreach (string guid in guids)
             {
@@ -268,6 +269,13 @@ namespace Cryptforge.Tests
                 bytes += (long)texture.width * texture.height;
             }
             Assert.That(bytes, Is.LessThanOrEqualTo(BudgetBytes), "The Warden's frames as ASTC 4x4.");
+            // Floor 2's frosted Warden: one copy of each of the 46 drawings (the 20 flashes are shared), imported as
+            // its source, inside the same budget of its own.
+            var all = new List<string>();
+            foreach (string guid in guids) all.Add(AssetDatabase.GUIDToAssetPath(guid));
+            long frosted = FrostedArtCopies.AssertMirror(Folder, all);
+            Assert.That(AssetDatabase.FindAssets("t:Texture2D", new[] { Folder + "/Ice" }).Length, Is.EqualTo(46));
+            Assert.That(frosted, Is.LessThanOrEqualTo(BudgetBytes), "The frosted Warden's frames as ASTC 4x4.");
         }
 
         [Test]
