@@ -75,8 +75,12 @@ namespace Cryptforge.Tests
             int walk = ScriptOrder<HeroMovementInput>("UI/HeroMovementInput.cs");
             int encounter = ScriptOrder<EncounterController>("Combat/EncounterController.cs");
             int slams = ScriptOrder<WardenSlamService>("Core/WardenSlamService.cs");
+            // The Mirror Sentries' guards step right after the Warden's slam clock, as DescentSimulation.Foundry's frame
+            // steps StepVaults after StepWarden, and before every strike lands on them.
+            int mirrors = ScriptOrder<MirrorGuardService>("Core/MirrorGuardService.cs");
             Assert.That(walk, Is.LessThan(encounter), "the hero walks before the packs move");
             Assert.That(encounter, Is.LessThan(slams), "the gate boss is out before its clock reads it");
+            Assert.That(slams, Is.LessThan(mirrors), "the mirrors turn after the Warden's clock, as the simulation steps them");
             var after = new (string Name, int Order)[]
             {
                 (nameof(AttackController), ScriptOrder<AttackController>("Combat/AttackController.cs")),
@@ -88,7 +92,51 @@ namespace Cryptforge.Tests
                 (nameof(DevelopmentAutopilot), ScriptOrder<DevelopmentAutopilot>("Core/DevelopmentAutopilot.cs"))
             };
             foreach ((string name, int order) in after)
+            {
                 Assert.That(order, Is.GreaterThan(slams), name + " runs after the Warden's slam clock");
+                Assert.That(order, Is.GreaterThan(mirrors), name + " runs after the mirrors' guards");
+            }
+        }
+
+        // The Mirror Sentry (MirrorGuardRule; the lead's decisions 2026-11-12, `sentry-t45-h125-c2-f50`): the scene's Sentry
+        // carries the guard on its prefab, ahead of its Health, with MirrorGuardRule's tuning, and the simulation's shipped
+        // levers tune its Sentry with the same constants and flank it as DevelopmentAutopilot does; the asset is the
+        // simulation's (AssertEnemy) and its proof floor fields it alone.
+        [Test]
+        public void TheMirrorSentryIsTheSimulations()
+        {
+            var sentry = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_MirrorSentry.asset");
+            Assert.That(sentry, Is.Not.Null);
+            AssertEnemy(sentry, DescentSimulation.MirrorSentry, sentry.Id);
+            Assert.That(sentry.Id, Is.EqualTo("enemy_mirror_sentry"));
+            Assert.That(sentry.Weapon.Id, Is.EqualTo("weapon_mirror_bash"));
+            Assert.That(sentry.Weapon.DisplayName, Is.EqualTo("Mirror Bash"));
+            Assert.That(sentry.MaximumHealth, Is.EqualTo(160f * 1.25f), "125 % of docs/50's 160");
+            var guard = sentry.Prefab.GetComponent<MirrorGuard>();
+            Assert.That(guard, Is.Not.Null, "the Sentry's prefab carries its mirror");
+            Assert.That(guard.State.ArcDegrees, Is.EqualTo(MirrorGuardRule.ArcDegrees));
+            var captain = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_GruntCaptain.asset");
+            Assert.That(captain.Prefab.GetComponent<MirrorGuard>(), Is.Null, "the Captain has none");
+
+            var shipped = new DescentSimulation.FoundryLevers();
+            Assert.That(shipped.SentryTurnDegrees, Is.EqualTo(MirrorGuardRule.TurnDegrees));
+            Assert.That(shipped.SentryArcDegrees, Is.EqualTo(MirrorGuardRule.ArcDegrees));
+            Assert.That(shipped.SentryFrontShare, Is.EqualTo(MirrorGuardRule.FrontShare));
+            Assert.That(shipped.SentryReflectShare, Is.EqualTo(MirrorGuardRule.ReflectShare));
+            Assert.That(shipped.SentryReflectCap, Is.EqualTo(MirrorGuardRule.ReflectCap));
+            Assert.That(shipped.SentryHealthScale, Is.EqualTo(1f));
+            Assert.That(shipped.FlanksTheSentry, Is.True, "the simulation's pilot flanks it as DevelopmentAutopilot does");
+            Assert.That(shipped.VaultsCaptain, Is.False);
+
+            FloorDefinition proof = null;
+            foreach (FloorDefinition floor in UnityEngine.Resources.LoadAll<FloorDefinition>(DevelopmentStart.ResourcesFolder))
+                if (floor.Id == "floor_sentry_proof")
+                    proof = floor;
+            Assert.That(proof, Is.Not.Null, "Resources/Development/Floor_SentryProof");
+            Assert.That(proof.RoomCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).Kind, Is.EqualTo(RoomKind.Elite));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(sentry));
         }
 
         // The order Unity runs a script in: its Script Execution Order setting where one is set, else its
@@ -142,6 +190,14 @@ namespace Cryptforge.Tests
                 "floor 1's gate boss, the Forge Warden");
             Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
             Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
+
+            // Its elite: the Mirror Sentry leads Sentry Hall (the lead's decisions 2026-11-12), where floor 1 keeps its Captain.
+            int elite = System.Array.IndexOf(floor.Kinds, RoomKind.Elite);
+            Assert.That(asset.RoomAt(elite).DisplayName, Is.EqualTo("Sentry Hall"));
+            Assert.That(asset.RoomAt(elite).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_mirror_sentry"));
+            Assert.That(floor.Rooms[elite][0][0], Is.SameAs(DescentSimulation.MirrorSentry));
+            int firstElite = System.Array.IndexOf(DescentSimulation.FoundryFloorOne().Kinds, RoomKind.Elite);
+            Assert.That(first.RoomAt(firstElite).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_grunt_captain"));
 
             // Its Warden's share is the floor's own, 8.5 / 1.4 (docs/41, status 2026-11-10 later), and the simulation's floor
             // 2 plays the asset's (LaterFloorLevers, through the scene's WardenRule.GateHealthShareOn).

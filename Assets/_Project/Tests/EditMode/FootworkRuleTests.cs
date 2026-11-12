@@ -241,6 +241,38 @@ namespace Cryptforge.Tests
             Assert.That(FootworkRule.BestSingleTargetReach(loadout, true), Is.EqualTo(2.1f), "on the gate boss the Sword's 56.25");
         }
 
+        // The flank (docs/50 section 5): against the Mirror Sentry the step-in's hold point is turned round the Sentry toward
+        // its rear, at most FlankStepDegrees from where the pilot stands and at the same reach; walked goal after goal it
+        // leaves the mirror's front arc and holds behind it.
+        [Test]
+        public void AgainstTheMirrorSentryTheStepInCirclesTowardItsRear()
+        {
+            Floor(4f, -8f, out float x, out float y);
+            Floor(7f, -8f, out float tx, out float ty);
+            // The mirror faces the pilot.
+            float facing = MirrorGuardRule.FacingToward(tx, ty, x, y);
+            Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 80f, 100f, out float gx, out float gy), Is.True);
+            float hold = 1.8f - FootworkRule.StepInMargin;
+            float from = (float)Math.Atan2(y - ty, x - tx);
+            FootworkRule.Flank(x, y, tx, ty, facing, ref gx, ref gy);
+            Assert.That((float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(gx, gy, tx, ty)), Is.EqualTo(hold).Within(1e-4f), "the same reach");
+            float turned = MirrorGuardRule.Wrap((float)Math.Atan2(gy - ty, gx - tx) - from);
+            Assert.That(Math.Abs(turned), Is.EqualTo(FootworkRule.FlankStepDegrees * (float)Math.PI / 180f).Within(1e-4f),
+                "a turn of FlankStepDegrees toward the rear");
+
+            // Goal after goal, with the mirror held still, the pilot comes round to its rear and stays there.
+            for (int i = 0; i < 8; i++)
+            {
+                x = gx;
+                y = gy;
+                Assert.That(FootworkRule.StepIn(x, y, tx, ty, 1.8f, false, false, 80f, 100f, out gx, out gy), Is.True);
+                FootworkRule.Flank(x, y, tx, ty, facing, ref gx, ref gy);
+            }
+            float rear = MirrorGuardRule.Wrap((float)Math.Atan2(gy - ty, gx - tx) - (facing + (float)Math.PI));
+            Assert.That(Math.Abs(rear), Is.LessThan(1e-3f), "behind the mirror");
+            Assert.That(MirrorGuardRule.InFront(facing, tx, ty, gx, gy, MirrorGuardRule.ArcDegrees), Is.False);
+        }
+
         // Nowhere to walk - a point the floor does not hold - and there is no escape.
         [Test]
         public void WithNoPointToWalkToThereIsNoEscape()
