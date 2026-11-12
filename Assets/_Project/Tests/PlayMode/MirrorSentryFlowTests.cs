@@ -17,9 +17,10 @@ namespace Cryptforge.Tests
     // The Mirror Sentry in the scene (MirrorGuardRule, MirrorGuard, MirrorGuardService; docs/50 section 5 and the lead's
     // decisions 2026-11-12), on Resources/Development/Floor_SentryProof: one elite room, the Sentry alone, the foundry, no
     // horde, the hero with the Daggers and no autopilot. The hero stands and strikes: the mirror turns to it and every
-    // landing from the front deals half and reflects; then the hero is set down behind it: the mirror turns after it at
-    // 45 degrees a second, never faster, and every landing from behind is whole and reflects nothing. What the hero is
-    // reflected stays within 2 % of its maximum a second.
+    // landing from the front deals MirrorGuardRule.FrontShare of itself and reflects, when the rule reflects at all; then
+    // the hero is set down behind it: the mirror turns after it at 45 degrees a second, never faster, and every landing
+    // from behind is whole and reflects nothing. What the hero is reflected stays within MirrorGuardRule.ReflectCap of its
+    // maximum a second.
     public sealed class MirrorSentryFlowTests
     {
         [UnitySetUp] public IEnumerator Begin()
@@ -70,7 +71,7 @@ namespace Cryptforge.Tests
             Assert.That(Object.FindFirstObjectByType<MirrorGlintView>(), Is.Not.Null, "and the glint view stands");
 
             // Each landing of the hero's on it, judged as the guard judges it - the hero's place against the mirror's facing
-            // at that moment - against the Daggers' landing on an elite, whole or half.
+            // at that moment - against the Daggers' landing on an elite, whole or its front share.
             int frontHalved = 0, frontOther = 0, rearWhole = 0, rearOther = 0;
             sentry.Damaged += context =>
             {
@@ -130,7 +131,7 @@ namespace Cryptforge.Tests
                 yield return null;
                 Watch();
             }
-            Assert.That(frontHalved, Is.GreaterThanOrEqualTo(4), "landings from the front, each half the Daggers' landing");
+            Assert.That(frontHalved, Is.GreaterThanOrEqualTo(4), "landings from the front, each the front share of the Daggers' landing");
             Assert.That(rearWhole, Is.Zero, "the hero stood before the mirror throughout");
 
             // Set down behind it, a short step inside the Daggers' reach: the mirror has a half-turn to make.
@@ -160,7 +161,7 @@ namespace Cryptforge.Tests
             Assert.That(frontHalved, Is.EqualTo(frontBefore), "none from the front while the mirror turned after the hero");
             Assert.That(reflections, Is.LessThanOrEqualTo(reflectionsBefore + 1),
                 "nothing reflects from behind (one owed from the last front landing may still be paid)");
-            Assert.That((frontOther, rearOther), Is.EqualTo((0, 0)), "every landing was half from the front or whole from behind");
+            Assert.That((frontOther, rearOther), Is.EqualTo((0, 0)), "every landing was the front share from the front or whole from behind");
 
             Assert.That(turns, Is.GreaterThan(60), "the mirror was watched turning for over a second");
             Assert.That(tooFast, Is.Zero, "it never turned faster than 45 degrees a second");

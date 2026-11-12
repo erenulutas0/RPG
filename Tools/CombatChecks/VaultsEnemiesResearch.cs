@@ -82,6 +82,11 @@ namespace Cryptforge.Tests
                 Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .8f; } };
             yield return new Option { Key = "sentry-c1-f70", What = "the Mirror Sentry with its reflection capped at 1 % a second, taking 70 % of a front landing", Roles = true,
                 Set = l => { l.SentryReflectCap = .01f; l.SentryFrontShare = .7f; } };
+            // Round 4 (docs/50): softer still for the cohort that never flanks.
+            yield return new Option { Key = "sentry-c1-f80", What = "the Mirror Sentry with its reflection capped at 1 % a second, taking 80 % of a front landing", Roles = true,
+                Set = l => { l.SentryReflectCap = .01f; l.SentryFrontShare = .8f; } };
+            yield return new Option { Key = "sentry-r0-f90", What = "the Mirror Sentry reflecting nothing, taking 90 % of a front landing", Roles = true,
+                Set = l => { l.SentryReflectShare = 0f; l.SentryFrontShare = .9f; } };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
             // Round 2's alternatives (docs/50 Measured), simulation only.
