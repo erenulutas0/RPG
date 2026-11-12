@@ -201,12 +201,13 @@ namespace Cryptforge.Tests
         [Test]
         public void TheTexturesImportAsTheGruntsDoInsideTheBudget()
         {
-            long bytes = 0;
+            long bytes = 0, frosted = 0;
             foreach (Enemy enemy in Enemies)
             {
                 // The windups and deaths beside them are the horde motion's (HordeMotionArtSetTests, its own budget).
+                // The painted set alone: its floor-2 frosted copies under Ice/ are counted apart below.
                 var guids = new List<string>();
-                foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { Art + enemy.Folder }))
+                foreach (string guid in FrostedArtCopies.BaseGuids("t:Texture2D", Art + enemy.Folder))
                 {
                     string file = Path.GetFileName(AssetDatabase.GUIDToAssetPath(guid));
                     if (!file.Contains("-windup") && !file.Contains("_dying-")) guids.Add(guid);
@@ -233,8 +234,14 @@ namespace Cryptforge.Tests
                         path + " is never downscaled.");
                     bytes += (long)((texture.width + 3) / 4) * ((texture.height + 3) / 4) * 16;
                 }
+                // Floor 2's frosted copies mirror every painted drawing but the shared flashes, one for one; the twelve
+                // bodies and two remains counted above have theirs inside a budget of their own.
+                var counted = new List<string>();
+                foreach (string guid in guids) counted.Add(AssetDatabase.GUIDToAssetPath(guid));
+                frosted += FrostedArtCopies.AssertMirror(Art.TrimEnd('/') + "/" + enemy.Folder, counted);
             }
             Assert.That(bytes, Is.LessThanOrEqualTo(BudgetBytes), "The three enemies' frames as ASTC 4x4.");
+            Assert.That(frosted, Is.LessThanOrEqualTo(BudgetBytes), "Their frosted copies as ASTC 4x4.");
         }
 
         [Test]
