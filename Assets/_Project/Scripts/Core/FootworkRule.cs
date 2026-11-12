@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 
@@ -269,6 +270,35 @@ namespace Cryptforge.Core
             gx = x;
             gy = y;
             return d <= hold * hold;
+        }
+
+        // The flank (docs/50 section 5; the lead's decisions 2026-11-12): against the Mirror Sentry (MirrorGuardRule), whose
+        // mirror blunts and reflects a landing made from its front, the step-in's hold point (gx, gy) is turned round the
+        // target at (tx, ty) toward its rear - from where the pilot at (x, y) stands, by at most FlankStepDegrees, at the
+        // hold point's own reach - so the pilot circles it at the short weapon's reach rather than holding still before
+        // it. At 3.5 units a second and the Daggers' 1.65 the walk round it is about 121 degrees a second against the
+        // mirror's 45. Where the floor does not hold the turned point the step-in's stands. facing: the target's mirror,
+        // in radians (MirrorGuardState.Facing). One body for DevelopmentAutopilot and the foundry simulation, as StepIn.
+        public const float FlankStepDegrees = 40f;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void Flank(float x, float y, float tx, float ty, float facing, ref float gx, ref float gy)
+        {
+            float r = (float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(gx, gy, tx, ty));
+            float at = (float)Math.Atan2(y - ty, x - tx);
+            float rear = MirrorGuardRule.Wrap(facing + (float)Math.PI);
+            float delta = MirrorGuardRule.Wrap(rear - at);
+            const float stepMax = FlankStepDegrees * (float)Math.PI / 180f;
+            if (delta > stepMax)
+                delta = stepMax;
+            else if (delta < -stepMax)
+                delta = -stepMax;
+            float fx = tx + r * (float)Math.Cos(at + delta);
+            float fy = ty + r * (float)Math.Sin(at + delta);
+            if (!FoundryMap.Contains(fx, fy, HeroMotion.EdgeMargin))
+                return;
+            gx = fx;
+            gy = fy;
         }
 
         // A goal the hero can stand on and walk to in a straight line.

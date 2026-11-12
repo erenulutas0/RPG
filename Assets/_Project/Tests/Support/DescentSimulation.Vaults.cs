@@ -6,38 +6,39 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Tests
 {
-    // The Quicksilver Vaults' own enemies (docs/50, simulation-only research 2026-11-12): the Mirror Sentry, the Silver
-    // Wisp, the Faceless Clerk and the Glass Regent, each a research lever read by this simulation alone and off by default
-    // (VaultsEnemiesResearch). No floor of the game changes: the four exist only on a floor 2 that VaultsChain reshapes,
-    // and every behaviour below keys on one of their definitions, so a run that never meets them is the run it was.
+    // The Quicksilver Vaults' own enemies (docs/50). The Mirror Sentry ships (the lead's decisions 2026-11-12): it leads
+    // floor 2's Sentry Hall (DescentSimulation.QuicksilverVaults, MirrorSentry) with MirrorGuardRule's guard, stepped here
+    // where the scene's MirrorGuardService steps it, and the step-in's flank (FootworkRule.Flank) circles it, as
+    // DevelopmentAutopilot does. The Silver Wisp, the Faceless Clerk and the Glass Regent stay simulation-only research
+    // levers, off by default (VaultsEnemiesResearch): they exist only on a floor 2 that VaultsChain reshapes, and every
+    // behaviour below keys on one of their definitions or on the Sentry's guard, so a run that never meets them is the run
+    // it was - floor 1's rows of the default batch stay byte-identical.
     internal static partial class DescentSimulation
     {
         // docs/50's starting values, authored (before the climb's floor-2 scaling).
         public static readonly Enemy SilverWisp = new Enemy { Name = "Silver Wisp", Health = 24f, Damage = 1f, Interval = .5f, Gold = 3, Experience = 10, Speed = 2.4f, Reach = 1.4f };
         // No melee strike (its weapon never ticks): its reach is the 2.8 it stands off at.
         public static readonly Enemy FacelessClerk = new Enemy { Name = "Faceless Clerk", Health = 70f, Damage = .01f, Interval = 1f, Gold = 8, Experience = 15, Speed = 1.2f, Reach = 2.8f };
-        public static readonly Enemy MirrorSentry = new Enemy { Name = "Mirror Sentry", Health = 160f, Damage = 5.4f, Interval = 1.4f, InitialDelay = .6f, Gold = 20, Experience = 10, Speed = 1.1f, Reach = 1.6f };
         public static readonly Enemy GlassRegent = new Enemy { Name = "Glass Regent", Health = 300f, Damage = 5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = .5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
         // The Regent's phase-2 copies: no strike, no reward; their health is a share of the Regent's maximum.
         public static readonly Enemy GlassCopy = new Enemy { Name = "Glass copy", Health = 1f, Damage = .01f, Interval = 1f, Gold = 0, Experience = 0, Speed = 1f, Reach = 1.7f };
 
         // The research habits docs/50 asks of the pilot, outside AutopilotCohort.Habit.All as StepsInOnTheGateBoss was: no
-        // cohort has one unless the levers give it. Flanks extends the step-in (a cohort that StepsIn); Sidesteps extends
-        // the escape from the Warden's mark (a cohort that EscapesAwayFromTheWarden).
+        // cohort has one unless the levers give it. Sidesteps extends the escape from the Warden's mark (a cohort that
+        // EscapesAwayFromTheWarden). The flank that was its sibling ships (FoundryLevers.FlanksTheSentry).
         [Flags]
         internal enum VaultsHabit
         {
             None = 0,
-            // Against the Mirror Sentry, its step-in orbits the Sentry towards its rear at the step-in reach.
-            Flanks = 1 << 0,
             // Against the Glass Regent's lanes, the nearest spot clear of every lane rather than out of a circle.
             Sidesteps = 1 << 1
         }
 
-        // Floor 1 as shipped above a floor 2 with the levers' creatures in place of the foundry's: the Sentry for Sentry
-        // Hall's Captain, the Wisp for the Runner (the horde's third role and Mercury Stair's second wave), a Clerk at the
-        // head of Mercury Stair's first wave and in place of a Grunt in Vault Gate's, the Regent for the Warden.
-        // The Sentry at a share of its authored health: itself at 1, else a copy under its name (the rules read the name).
+        // Floor 1 as shipped above a floor 2 with the levers' creatures in place of the foundry's: the Grunt Captain back in
+        // Sentry Hall (VaultsCaptain: floor 2 before 2026-11-12) or the Sentry at another health, the Wisp for the Runner
+        // (the horde's third role and Mercury Stair's second wave), a Clerk at the head of Mercury Stair's first wave and in
+        // place of a Grunt in Vault Gate's, the Regent for the Warden.
+        // The Sentry at a share of its authored health: itself at 1, else a copy under its name (its guard reads the name).
         private static Enemy Sentry(float healthScale) => healthScale == 1f
             ? MirrorSentry
             : new Enemy
@@ -64,8 +65,8 @@ namespace Cryptforge.Tests
                     {
                         if (levers.VaultsWisps && wave[i] == Runner)
                             wave[i] = SilverWisp;
-                        if (levers.VaultsSentry && wave[i] == Captain)
-                            wave[i] = Sentry(levers.SentryHealthScale);
+                        if (wave[i] == MirrorSentry)
+                            wave[i] = levers.VaultsCaptain ? Captain : Sentry(levers.SentryHealthScale);
                         if (levers.VaultsRegent && wave[i] == Warden)
                             wave[i] = GlassRegent;
                     }
