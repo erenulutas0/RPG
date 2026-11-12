@@ -545,6 +545,17 @@ def glass_material(name, palette, channel, flares=True, noise_scale=16.0):
     return s.finish(colour, mask=mask, channel=channel)
 
 
+def trim_material():
+    """The silver trims: silver in the beauty pass; in the second phase the seams they edge light up, written into the
+    crack channel by Heat, so phase 2 reads at a glance at phone scale (docs/50: 'a brighter heart and cracks in the
+    glass') - the robe outlined in violet light."""
+    s = Shading('Silver trim, seams lit in phase 2')
+    colour = s.toon('silver', spec=1.0, spec_color='#FFFFFF', glint=1.2, rim=0.5, chrome=0.4)
+    life = s.state('Life')
+    mask = s.math('MULTIPLY', s.math('MULTIPLY', s.state('Heat'), 0.6), s.math('MULTIPLY', life, life))
+    return s.finish(colour, mask=mask, channel='crack')
+
+
 def crack_material():
     """The second phase's cracks: pale violet light in the beauty pass, the crack channel in the emission pass."""
     s = Shading('Glass crack')
@@ -567,6 +578,7 @@ def build_materials():
     m['heart'] = glass_material('Glass heart', 'heart', 'heart', noise_scale=9.0)
     m['crown'] = glass_material('Glass crown', 'glass', 'crown')
     m['crack'] = crack_material()
+    m['trim'] = trim_material()
 
 
 build_materials()
@@ -798,6 +810,7 @@ def crystal(name, base, axis, length, radius, bone, material, sides=4, foot=0.18
 
 
 def crack(name, points, bone, radius=0.006):
+    radius *= CRACK_WIDTH
     """A crack that opens only in the second phase: the glass splitting, violet-white light inside."""
     tube(name, points, [radius * (1.0 if 0 < k < len(points) - 1 else 0.5) for k in range(len(points))], bone, 'crack',
          count=5, contour=False, chamfer=0.0, show='hot')
@@ -823,6 +836,7 @@ ROD_REST = Vector((-0.8, 0.0, 0.0))      # the rod's butt, the rod standing upri
 HAFT = 1.68                              # butt to the crystal's centre
 CRYSTAL_LEN = 0.36
 ROBE_TOP = 0.97
+CRACK_WIDTH = 1.8                        # the cracks' radius over their authored one: wide enough to read on a phone
 
 
 def mirror_x(v):
@@ -897,7 +911,7 @@ def build_torso():
         edge = []
         for z, rx, ry, _ in CHEST_RINGS[:-1] + [(1.44, 0.135, 0.115, 0.0)]:
             edge.append(around(side * bodice_gap(z), rx + 0.022, ry + 0.022, z))
-        tube('Bodice trim ' + ('L' if side > 0 else 'R'), edge, [0.011] * len(edge), 'chest', 'silver', count=6,
+        tube('Bodice trim ' + ('L' if side > 0 else 'R'), edge, [0.011] * len(edge), 'chest', 'trim', count=6,
              chamfer=0.0)
     # The heart: a faceted violet crystal set in the sternum, in a silver setting that the copies keep empty.
     ellipsoid('Heart', HEART_C, (0.052, 0.04, 0.082), 'chest', 'heart', rings=2, segments=6, contour=False,
@@ -944,10 +958,10 @@ def build_robe():
         bone_name = 'robe_%s.%s' % (kind, s)
         grid('Robe %s %s' % (kind, s), rows, bone_name, 'robe', occluder=True, chamfer=0.0, flat=False)
         hem_row = [p + Vector((p.x, p.y, 0)).normalized() * 0.004 for p in rows[-1]]
-        tube('Robe hem %s %s' % (kind, s), hem_row, [0.012] * len(hem_row), bone_name, 'silver', count=6, chamfer=0.0)
+        tube('Robe hem %s %s' % (kind, s), hem_row, [0.012] * len(hem_row), bone_name, 'trim', count=6, chamfer=0.0)
         if kind == 'front':
             edge = [row[0] + Vector((row[0].x, row[0].y, 0)).normalized() * 0.004 for row in rows]
-            tube('Robe edge ' + s, edge, [0.011] * len(edge), bone_name, 'silver', count=6, chamfer=0.0)
+            tube('Robe edge ' + s, edge, [0.011] * len(edge), bone_name, 'trim', count=6, chamfer=0.0)
 
 
 def collar_point(degrees, t, lift=0.0):
@@ -995,7 +1009,7 @@ def build_collar_and_mantle():
             rows.append(row)
         grid('Capelet ' + s, rows, 'mantle.' + s, 'robe', axis_y=0.02, occluder=True, chamfer=0.0, flat=False)
         hem = [p + Vector((p.x, p.y - 0.02, 0)).normalized() * 0.004 for p in rows[-1]]
-        tube('Capelet hem ' + s, hem, [0.012] * len(hem), 'mantle.' + s, 'silver', count=6, chamfer=0.0)
+        tube('Capelet hem ' + s, hem, [0.012] * len(hem), 'mantle.' + s, 'trim', count=6, chamfer=0.0)
     # Three glass shards at the collar's back, the crown's echo from behind: the copies lose them with the crown.
     for k, (deg, h) in enumerate(((180, 0.2), (152, 0.15), (208, 0.15))):
         base = collar_point(deg, 0.9, -0.01)
@@ -1045,7 +1059,7 @@ def build_arms():
         u = Vector((1, 0, 0)) - d * d.x
         u.normalize()
         torus('Cuff ' + s, wr - d * 0.004, (u, d.cross(u).normalized(), d), (0.12, 0.116), 0.012, 'forearm.' + s,
-              'silver', count=12, wire_count=5, chamfer=0.0)
+              'trim', count=12, wire_count=5, chamfer=0.0)
         loft('Wrist ' + s, frame_points(wr - d * 0.05, fi - wr + d * 0.05, [(0.0, 0.035, 0.035, 8), (1.0, 0.04, 0.04, 8)]),
              'hand.' + s, 'mirror', cap_start=True, cap_end=True, chamfer=0.0, flat=False)
         hd = (fi - wr).normalized()
@@ -1103,6 +1117,14 @@ def build_hot_cracks():
         fi = side_point(FIST, side)
         crack('Crack hand ' + s, [fi + Vector((0.044 * side, -0.01, z)) for z in (0.05, 0.02, -0.01, -0.04)],
               'hand.' + s, 0.005)
+    for side in (-1, 1):
+        s = 'L' if side > 0 else 'R'
+        crack('Crack collar front ' + s, [collar_point(side * d % 360, t, 0.006) for d, t in ((72, 0.2), (80, 0.45),
+                                                                                            (70, 0.7), (78, 0.95))],
+              'chest', 0.006)
+        crack('Crack collar side ' + s, [collar_point(side * d % 360, t, 0.006) for d, t in ((138, 0.1), (146, 0.4),
+                                                                                           (136, 0.7), (144, 0.98))],
+              'chest', 0.006)
     crack('Crack collar back', [collar_point(d, t, 0.006) for d, t in ((176, 0.15), (186, 0.4), (174, 0.65),
                                                                        (184, 0.95))], 'chest', 0.0065)
 
