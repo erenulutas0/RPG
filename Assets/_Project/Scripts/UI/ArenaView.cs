@@ -164,8 +164,13 @@ namespace Cryptforge.UI
                 _atmosphere.SetTheme(theme);
             // The hero's contact patch widens on the ice and in the garden so the Vanguard keeps his footing against the
             // slate and the ash loam (docs/49 7.1, docs/51 7.1).
-            var hero = FindFirstObjectByType<HeroLookView>();
-            Transform shadow = hero != null ? hero.transform.Find("Contact Shadow") : null;
+            // The hero found once (a scene search is not free inside the change's frame), again only if it went.
+            Transform shadow = _heroShadow;
+            if (shadow == null)
+            {
+                var hero = FindFirstObjectByType<HeroLookView>();
+                shadow = hero != null ? hero.transform.Find("Contact Shadow") : null;
+            }
             if (shadow != null)
             {
                 if (_heroShadow != shadow) { _heroShadow = shadow; _heroShadowScale = shadow.localScale; }

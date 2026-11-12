@@ -56,7 +56,16 @@ namespace Cryptforge.Tests
                 "(preparing: " + arena.IsPreparingFloorTheme + ").");
             Debug.Log("[IceThemePreparation] the ice dress was ready " + frames + " frames after floor 1's first frame.");
             Assert.That(arena.Theme, Is.EqualTo(FloorTheme.Foundry), "Preparing changes nothing on show.");
-            Assert.That(arena.Region.transform.Find("Ice crystals and icicles"), Is.Null, "Floor 1 builds no ice prop.");
+            // The ice props are built during the preparation, hidden, so the change only shows them.
+            foreach (string prop in new[] { "Ice crystals and icicles", "Frozen mirror panels", "Snow drifts" })
+            {
+                Transform built = arena.Region.transform.Find(prop);
+                Assert.That(built, Is.Not.Null, prop + " is built during floor 1.");
+                Assert.That(built.gameObject.activeSelf, Is.False, "Floor 1 never shows " + prop + ".");
+            }
+            // The region's meshes keep the foundry's colours for good; no renderer carries a theme stream yet.
+            foreach (var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>(true))
+                Assert.That(renderer.additionalVertexStreams, Is.Null, renderer.name + " carries no theme colours on floor 1.");
 
             arena.ApplyFloorTheme(FloorTheme.Ice);
             yield return null;
@@ -74,10 +83,30 @@ namespace Cryptforge.Tests
                 if (!block.isEmpty) textured++;
             }
             Assert.That(textured, Is.GreaterThan(1), "The region's renderers are dressed for the ice.");
+            int streamed = 0;
+            foreach (var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+                if (renderer.additionalVertexStreams != null)
+                {
+                    streamed++;
+                    Assert.That(renderer.additionalVertexStreams.vertexCount,
+                        Is.EqualTo(renderer.GetComponent<MeshFilter>().sharedMesh.vertexCount), renderer.name + "'s stream fits its mesh.");
+                }
+            Assert.That(streamed, Is.GreaterThan(1), "The ice's colours ride on the renderers' streams.");
 
             arena.ApplyFloorTheme(FloorTheme.Foundry);
             yield return null;
             Assert.That(crystals.gameObject.activeSelf, Is.False);
+            foreach (var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>())
+            {
+                Assert.That(renderer.additionalVertexStreams, Is.Null, renderer.name + " is back on the foundry's colours.");
+                renderer.GetPropertyBlock(block);
+                Assert.That(block.isEmpty, Is.True, renderer.name + " wears its own material again.");
+            }
+            // The ice's variants go over the frames after the change, never inside it.
+            int released = 0;
+            while (arena.Region.HeldVariantCount(FloorTheme.Ice) > 0 && released++ < 120)
+                yield return null;
+            Assert.That(arena.Region.HeldVariantCount(FloorTheme.Ice), Is.EqualTo(0), "The ice is released after the change.");
         }
     }
 }

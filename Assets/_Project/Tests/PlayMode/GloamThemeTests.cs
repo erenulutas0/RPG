@@ -64,11 +64,12 @@ namespace Cryptforge.Tests
             return bound;
         }
 
+        // The shown renderers with a block (floor 2's hidden props keep their own coping block).
         private static int Blocked(FoundryRegionView region)
         {
             int blocked = 0;
             var block = new MaterialPropertyBlock();
-            foreach (var r in region.GetComponentsInChildren<MeshRenderer>(true))
+            foreach (var r in region.GetComponentsInChildren<MeshRenderer>())
             {
                 r.GetPropertyBlock(block);
                 if (!block.isEmpty)
@@ -149,7 +150,19 @@ namespace Cryptforge.Tests
             Assert.That(bound.Contains(arena.PlatformMaterials.IcePaving) || bound.Contains(arena.PlatformMaterials.IceMasonry), Is.False);
             foreach (Texture texture in iceTextures)
                 Assert.That(bound.Contains(texture), Is.False, "No renderer keeps an ice variant.");
+            // The release runs over the frames after the change, never inside it.
+            int releaseFrames = 0;
+            while (region.HeldVariantCount(FloorTheme.Ice) > 0 && releaseFrames++ < 120)
+                yield return null;
             Assert.That(region.HeldVariantCount(FloorTheme.Ice), Is.EqualTo(0), "Leaving the ice releases its variants.");
+            int streamed = 0;
+            foreach (var r in region.GetComponentsInChildren<MeshRenderer>())
+                if (r.additionalVertexStreams != null)
+                {
+                    streamed++;
+                    Assert.That(r.additionalVertexStreams.vertexCount, Is.EqualTo(r.GetComponent<MeshFilter>().sharedMesh.vertexCount), r.name);
+                }
+            Assert.That(streamed, Is.GreaterThan(1), "The garden's colours ride on the renderers' streams.");
             Assert.That(region.HeldVariantCount(FloorTheme.Gloam), Is.GreaterThan(0));
             Assert.That(arena.IsFloorThemeReady(FloorTheme.Ice), Is.False, "The ice is no longer held ready.");
 
@@ -157,6 +170,11 @@ namespace Cryptforge.Tests
             arena.ApplyFloorTheme(FloorTheme.Foundry);
             yield return null;
             Assert.That(Blocked(region), Is.EqualTo(0), "The foundry wears its own materials.");
+            foreach (var r in region.GetComponentsInChildren<MeshRenderer>())
+                Assert.That(r.additionalVertexStreams, Is.Null, r.name + " is back on the foundry's colours.");
+            int frames2 = 0;
+            while (region.HeldVariantCount(FloorTheme.Gloam) > 0 && frames2++ < 120)
+                yield return null;
             Assert.That(region.HeldVariantCount(FloorTheme.Gloam), Is.EqualTo(0));
             Count(region, out int againRenderers, out int againVertices);
             Assert.That(againRenderers, Is.EqualTo(foundryRenderers));

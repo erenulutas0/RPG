@@ -67,9 +67,8 @@ namespace Cryptforge.Core
         public const string GroundApplyName = "Cryptforge.Ground.Apply";
 
         // A floor's dress changing (FloorTheme, docs/49): the whole of ArenaView.ApplyFloorTheme (Apply), and inside it the
-        // region's vertex colours and sprite colours re-tinted on the CPU (Retint, the foundry's arrays kept the first time
-        // included), the property-block texture swaps with their Resources/Ice loads (Textures), the ice-crystal mesh built
-        // and shown or hidden (Crystals), the mirror panels and snow drifts built and shown or hidden (Props), the frost
+        // region's colour streams swapped (a direct mesh's colours written) and the sprite colours re-tinted (Retint), the property-block texture swaps with their Resources/Ice loads (Textures), the ice-crystal mesh shown or
+        // hidden (Crystals; built in the preparation), the mirror panels and snow drifts shown or hidden (Props, likewise), the frost
         // creep over the camera on the descent's landing, built on first use and started (Transition,
         // ArenaView.PlayFrostTransition, outside Apply), and the atmosphere, hero shadow and backdrop plate (Backdrop). Frost is one enemy
         // body's palette swapped to the frosted set (EnemyLookView.UseFrost), only when it actually changes. Floor 1 pays none.
@@ -84,10 +83,13 @@ namespace Cryptforge.Core
         // The ice dress worked out ahead, while floor 1 plays (FoundryRegionView.PrepareTheme): one main-thread slice a
         // frame; inside Apply only when a change came before it was ready.
         public const string ThemePrepareName = "Cryptforge.Theme.Prepare";
+        // A left dress released over the frames after the change (FoundryRegionView.ReleaseLater): its colour streams
+        // destroyed and its Resources variants unloaded, a slice a frame; never inside Apply.
+        public const string ThemeReleaseName = "Cryptforge.Theme.Release";
         public static readonly string[] ThemeNames =
         {
             ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
-            ThemeTransitionName, ThemeFrostName, ThemePrepareName
+            ThemeTransitionName, ThemeFrostName, ThemePrepareName, ThemeReleaseName
         };
 
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
@@ -99,7 +101,7 @@ namespace Cryptforge.Core
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
             DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName,
             ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
-            ThemeTransitionName, ThemeFrostName, ThemePrepareName
+            ThemeTransitionName, ThemeFrostName, ThemePrepareName, ThemeReleaseName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -147,5 +149,6 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker ThemeBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, ThemeBackdropName);
         public static readonly ProfilerMarker ThemeFrost = new ProfilerMarker(ProfilerCategory.Scripts, ThemeFrostName);
         public static readonly ProfilerMarker ThemePrepare = new ProfilerMarker(ProfilerCategory.Scripts, ThemePrepareName);
+        public static readonly ProfilerMarker ThemeRelease = new ProfilerMarker(ProfilerCategory.Scripts, ThemeReleaseName);
     }
 }

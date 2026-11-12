@@ -2,11 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
 namespace Cryptforge.UI
@@ -21,10 +24,11 @@ namespace Cryptforge.UI
     //   are never edited.
     // - every owned mesh's vertex colours through Tint: brass, amber and gold to the theme's metal, lava to its glow
     //   (quicksilver, gloamlight), flames to its light (frost-light, a seed-lantern), neutral stone to its stone, and the
-    //   upward faces of structures to its cap (rime, moss).
+    //   upward faces of structures to its cap (rime, moss) - laid over the mesh's own as an additional vertex stream, so
+    //   the foundry's colours never leave the meshes.
     // - the sprites' colour toward the theme's stone.
-    // Foundry restores the kept vertex arrays and sprite colours and clears the blocks. Leaving a theme releases its
-    // Resources variants (unbound first), so a run through floors 1-3 never holds two themes' variant sets.
+    // Foundry takes the streams away, restores the sprite colours and clears the blocks. Leaving a theme releases its
+    // streams and Resources variants over the next frames, so a run through floors 1-3 never holds two themes' sets.
     public sealed partial class FoundryRegionView
     {
         private static readonly int ColourId=Shader.PropertyToID("_Color"),TextureId=Shader.PropertyToID("_MainTex"),
@@ -110,20 +114,42 @@ namespace Cryptforge.UI
         // What a renderer's material is to the dress.
         private enum Dress{Slate,Paving,Masonry,Bare,Glow}
         private FloorTheme _theme=FloorTheme.Foundry;
-        // The foundry's own colours, kept once for every theme: an owned mesh, its colours and its dress, index for index.
+        // Every owned mesh a theme re-colours, index for index: the mesh, its renderer, its dress, and whether its colours
+        // are written in place (direct: a mesh some script on its object re-shapes - the banners, flames and gate door
+        // motions - or every mesh when ColourStreams is off), with, for those, the foundry's own colours. Every other mesh
+        // keeps the foundry's colours for good: a theme lays its own over them as the renderer's additional vertex stream
+        // (MeshRenderer.additionalVertexStreams: the same positions, the theme's colours), built while the floor before
+        // plays, and the foundry takes the stream away. A change of dress writes no vertex data.
         private readonly List<Mesh> _themeMeshes=new List<Mesh>();
         private readonly Dictionary<Mesh,int> _themeMeshIndex=new Dictionary<Mesh,int>();
+        private readonly List<MeshRenderer> _themeRenderers=new List<MeshRenderer>();
         private readonly List<Dress> _themeDress=new List<Dress>();
+        private readonly List<bool> _themeDirect=new List<bool>();
         private readonly List<Color[]> _foundryColours=new List<Color[]>();
         private readonly List<SpriteRenderer> _themeSprites=new List<SpriteRenderer>();
         private readonly List<Color> _foundrySpriteColours=new List<Color>();
         private bool _spritesKept;
         private MaterialPropertyBlock _themeBlock;
+        // Off: every mesh's colours written in place on the change, as before the streams (a fallback, should a device
+        // mishandle additional vertex streams).
+        private static readonly bool ColourStreams=true;
+        // A theme's stream vertex: the primary mesh's position, unchanged, and the theme's colour, both as the primary
+        // stores them (Float32), so the result is exactly the colour written in place would give.
+        [StructLayout(LayoutKind.Sequential)]
+        private struct StreamVertex{public Vector3 Position;public Color Colour;}
+        private static readonly VertexAttributeDescriptor[] StreamLayout=
+        {
+            new VertexAttributeDescriptor(VertexAttribute.Position,VertexAttributeFormat.Float32,3),
+            new VertexAttributeDescriptor(VertexAttribute.Color,VertexAttributeFormat.Float32,4),
+        };
+        private const MeshUpdateFlags StreamFlags=MeshUpdateFlags.DontValidateIndices|MeshUpdateFlags.DontRecalculateBounds|
+            MeshUpdateFlags.DontNotifyMeshUsers|MeshUpdateFlags.DontResetBoneBounds;
 
-        // A theme's dress worked out ahead of the floor change (PrepareTheme), so ApplyTheme only binds it: its grade of
-        // every kept mesh computed on a worker thread, each renderer's block planned, its texture variants loaded
-        // asynchronously (their GPU upload with them). The main thread's share runs in slices of about PrepareBudgetMs a
-        // frame (Cryptforge.Theme.Prepare). A change that comes first finishes it at once.
+        // A theme's dress worked out ahead of the floor change (PrepareTheme), so ApplyTheme only binds it: each kept mesh
+        // read through a read-only snapshot and graded on a worker thread, its stream built, each renderer's block planned,
+        // the texture variants loaded asynchronously (their GPU upload with them), and the theme's own props built hidden.
+        // The main thread's share runs in slices of about PrepareBudgetMs a frame (Cryptforge.Theme.Prepare). A change that
+        // comes first finishes it at once.
         private const double PrepareBudgetMs=1;
         private struct ThemeBlock
         {
@@ -135,13 +161,18 @@ namespace Cryptforge.UI
             public string Variant;
             public bool WallArt;
         }
+        // One mesh's grade, as the worker hands it back: the colours read (the foundry's, kept for a direct mesh), and the
+        // theme's colours in place (direct) or as stream vertices.
+        private sealed class Graded{public Color[] Foundry;public Color[] Colours;public StreamVertex[] Stream;}
+        private sealed class PendingGrade{public Task<Graded> Task;public Mesh.MeshDataArray Snapshot;}
         private sealed class ThemeDress
         {
             public ThemePalette Palette;
             public readonly List<ThemeBlock> Blocks=new List<ThemeBlock>();
-            // Index for index with _themeMeshes; null where not graded yet.
+            // Index for index with _themeMeshes: a direct mesh's colours, a streamed mesh's stream, a grade still running.
             public readonly List<Color[]> Colours=new List<Color[]>();
-            public readonly List<Task<Color[]>> Grades=new List<Task<Color[]>>();
+            public readonly List<Mesh> Streams=new List<Mesh>();
+            public readonly List<PendingGrade> Pending=new List<PendingGrade>();
             public readonly Dictionary<string,ResourceRequest> Requests=new Dictionary<string,ResourceRequest>();
             // Resources/<theme>/<name>: the theme's variant of a foundry texture (Tools/ArtReview/GenerateIceGlowTextures.py,
             // GenerateGloamGlowTextures.py), loaded once its floor is ahead; a run that never reaches it never loads one.
@@ -149,8 +180,17 @@ namespace Cryptforge.UI
             public IEnumerator Preparation;
             public Coroutine Coroutine;
             public bool Prepared,Draining;
+            // Set when the theme is asked for again while this, its left dress, is being released: its textures stay.
+            public bool KeepTextures;
+            public void Fit(int count)
+            {
+                while(Colours.Count<count){Colours.Add(null);Streams.Add(null);Pending.Add(null);}
+            }
         }
         private readonly Dictionary<FloorTheme,ThemeDress> _dresses=new Dictionary<FloorTheme,ThemeDress>();
+        // Left dresses being released over the frames after the change (ReleaseLater), never inside it.
+        private readonly List<ThemeDress> _releasing=new List<ThemeDress>();
+        private Coroutine _releaseCoroutine;
 
         public FloorTheme Theme=>_theme;
         public bool IsThemePrepared(FloorTheme theme)=>
@@ -164,34 +204,40 @@ namespace Cryptforge.UI
             }
         }
         // How many of the theme's Resources variants the region holds loaded: none before its floor is ahead, none once
-        // its floor is left.
+        // its floor is left and the release has run (a few frames after the change).
         public int HeldVariantCount(FloorTheme theme)
         {
-            if(!_dresses.TryGetValue(theme,out ThemeDress dress))return 0;
             int held=0;
-            foreach(var variant in dress.Variants.Values)if(variant!=null)held++;
+            if(_dresses.TryGetValue(theme,out ThemeDress dress))
+                foreach(var variant in dress.Variants.Values)if(variant!=null)held++;
+            foreach(var left in _releasing)
+                if(left.Palette.Theme==theme)
+                    foreach(var variant in left.Variants.Values)if(variant!=null)held++;
             return held;
         }
 
-        // Starts working out the theme's dress over the next frames; nothing on show changes. Foundry is what Build made;
-        // asking again, or once it is ready, does nothing.
+        // Starts working out the theme's dress over the next frames; nothing on show changes. Foundry is what Build made
+        // and needs nothing (its colours never leave the meshes); asking again, or once it is ready, does nothing.
         public void PrepareTheme(FloorTheme theme,PlatformMaterialSet set)
         {
             ThemePalette palette=PaletteOf(theme);
             if(palette==null||_dresses.ContainsKey(theme))return;
+            KeepReleasedTextures(theme);
             var dress=new ThemeDress{Palette=palette};
             _dresses.Add(theme,dress);
             dress.Preparation=Prepare(dress,set);
             ResumePreparations();
         }
 
-        // Runs every pending preparation as a coroutine whenever the region is active (asked while inactive, or re-enabled).
+        // Runs every pending preparation, and the release of a left dress, as coroutines whenever the region is active
+        // (asked while inactive, or re-enabled).
         private void ResumePreparations()
         {
             if(!isActiveAndEnabled)return;
             foreach(var dress in _dresses.Values)
                 if(dress.Preparation!=null&&!dress.Prepared&&!dress.Draining&&dress.Coroutine==null)
                     dress.Coroutine=StartCoroutine(dress.Preparation);
+            if(_releasing.Count>0&&_releaseCoroutine==null)_releaseCoroutine=StartCoroutine(ReleaseLater());
         }
         private void OnEnable()=>ResumePreparations();
         // A deactivated object's coroutines stop; the same iterator goes on where it stood when it is enabled again.
@@ -199,6 +245,7 @@ namespace Cryptforge.UI
         {
             foreach(var dress in _dresses.Values)
                 if(dress.Coroutine!=null){StopCoroutine(dress.Coroutine);dress.Coroutine=null;}
+            if(_releaseCoroutine!=null){StopCoroutine(_releaseCoroutine);_releaseCoroutine=null;}
         }
 
         // The preparation finished now, in this frame: the rest of what PrepareTheme spreads over frames, a texture still
@@ -207,6 +254,7 @@ namespace Cryptforge.UI
         {
             if(!_dresses.TryGetValue(theme,out ThemeDress dress))
             {
+                KeepReleasedTextures(theme);
                 dress=new ThemeDress{Palette=PaletteOf(theme)};
                 _dresses.Add(theme,dress);
             }
@@ -222,13 +270,15 @@ namespace Cryptforge.UI
         private IEnumerator Prepare(ThemeDress dress,PlatformMaterialSet set)
         {
             MeshFilter[] filters;
+            Task<PropGeometry[]> geometry;
             using(PerformanceMarkers.ThemePrepare.Auto())
             {
                 filters=GetComponentsInChildren<MeshFilter>(true);
                 KeepSprites();
+                geometry=StartPropGeometry(dress.Palette);
             }
             yield return null;
-            // The foundry's colours kept (once, for every theme) and each mesh's grade handed to a worker, a slice a frame.
+            // Each kept mesh's snapshot taken and its grade handed to a worker, a slice a frame.
             for(int i=0;i<filters.Length;)
             {
                 using(PerformanceMarkers.ThemePrepare.Auto())
@@ -268,20 +318,35 @@ namespace Cryptforge.UI
             dress.Requests.Clear();
             using(PerformanceMarkers.ThemePrepare.Auto())
                 for(int i=0;i<dress.Blocks.Count;i++)dress.Blocks[i]=Resolve(dress.Blocks[i],set,dress);
-            // The grades: the worker's result, or the same grade here if the worker failed.
-            for(int i=0;i<dress.Grades.Count;i++)
+            // The grades as the workers finish them: a direct mesh's colours kept, a streamed mesh's stream built (its GPU
+            // upload with it), a slice a frame.
+            for(int at=0;at<dress.Pending.Count;)
             {
-                Task<Color[]> grade=dress.Grades[i];
-                if(grade==null)continue;
-                while(!dress.Draining&&!grade.IsCompleted)yield return null;
                 using(PerformanceMarkers.ThemePrepare.Auto())
                 {
-                    Color[] graded=null;
-                    try{graded=grade.Result;}
-                    catch(System.Exception){graded=null;}
-                    if(graded==null&&_themeMeshes[i]!=null)graded=GradeOf(dress.Palette,_themeMeshes[i],_foundryColours[i],_themeDress[i]);
-                    dress.Colours[i]=graded;
-                    dress.Grades[i]=null;
+                    long slice=Stopwatch.GetTimestamp();
+                    while(at<dress.Pending.Count&&(dress.Draining||Within(slice)))
+                    {
+                        PendingGrade pending=dress.Pending[at];
+                        if(pending!=null&&!dress.Draining&&!pending.Task.IsCompleted)break;
+                        if(pending!=null)Consume(dress,at);
+                        at++;
+                    }
+                }
+                if(at<dress.Pending.Count)yield return null;
+            }
+            // The theme's own props, from the geometry the worker made: built hidden, so the change only shows them.
+            if(geometry!=null)
+            {
+                while(!dress.Draining&&!geometry.IsCompleted)yield return null;
+                PropGeometry[] made=null;
+                try{made=geometry.Result;}
+                catch(System.Exception){made=null;}
+                if(made!=null)
+                {
+                    using(PerformanceMarkers.ThemePrepare.Auto())MakeProp(dress,set,made,0);
+                    if(!dress.Draining)yield return null;
+                    using(PerformanceMarkers.ThemePrepare.Auto())MakeProp(dress,set,made,1);
                 }
             }
             dress.Prepared=true;
@@ -289,6 +354,38 @@ namespace Cryptforge.UI
         }
 
         private static bool Within(long since)=>(Stopwatch.GetTimestamp()-since)*1000d/Stopwatch.Frequency<PrepareBudgetMs;
+
+        // A theme's own geometry, worked out on a worker (FoundryRegionIceCrystals, FoundryRegionIceProps); null when the
+        // theme has none or it already stands. Floor 3's growth (docs/51 step 5) joins here.
+        private Task<PropGeometry[]> StartPropGeometry(ThemePalette palette)
+        {
+            if(!palette.IceProps||(_iceCrystals!=null&&_icePanels!=null&&_iceDrifts!=null))return null;
+            var cells=new List<Vector2Int>(_cells);
+            bool crystals=_iceCrystals==null,panels=_icePanels==null,drifts=_iceDrifts==null;
+            return Task.Run(()=>new[]{crystals?IceCrystalGeometry(cells):null,panels?IcePanelGeometry():null,drifts?IceDriftGeometry():null});
+        }
+
+        // Its objects from that geometry, hidden unless the theme is on show, and dressed once as the coping (their own
+        // untextured material). Step 0 the crystals, step 1 the panels and drifts.
+        private void MakeProp(ThemeDress dress,PlatformMaterialSet set,PropGeometry[] made,int step)
+        {
+            if(!dress.Palette.IceProps)return;
+            bool shown=_theme==dress.Palette.Theme;
+            if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
+            if(step==0)
+            {
+                if(_iceCrystals!=null||made[0]==null)return;
+                MakeIceCrystals(made[0],set);
+                if(_iceCrystals==null)return;
+                _iceCrystals.SetActive(shown);
+                BindIceObject(_iceCrystals,set,dress);
+                return;
+            }
+            bool panels=_icePanels==null,drifts=_iceDrifts==null;
+            MakeIceProps(made[1],made[2],set);
+            if(panels&&_icePanels!=null){_icePanels.SetActive(shown);BindIceObject(_icePanels,set,dress);}
+            if(drifts&&_iceDrifts!=null){_iceDrifts.SetActive(shown);BindIceObject(_iceDrifts,set,dress);}
+        }
 
         private void KeepSprites()
         {
@@ -304,8 +401,8 @@ namespace Cryptforge.UI
         private bool IsIceObject(GameObject candidate)=>candidate!=null&&
             (candidate==_iceCrystals||candidate==_icePanels||candidate==_iceDrifts);
 
-        // One owned mesh's foundry colours kept (the first theme to see it keeps them), and the theme's grade of it started
-        // on a worker from copies of what it reads.
+        // One owned mesh kept (the first theme to see it), and the theme's grade of it started on a worker from a
+        // read-only snapshot of the mesh: no array is copied on the main thread.
         private void KeepMesh(MeshFilter filter,PlatformMaterialSet set,ThemeDress dress)
         {
             if(filter==null||IsIceObject(filter.gameObject))return;
@@ -313,63 +410,150 @@ namespace Cryptforge.UI
             if(mesh==null)return;
             if(!_themeMeshIndex.TryGetValue(mesh,out int index))
             {
-                if(!_owned.Contains(mesh))return;
-                var colours=mesh.colors;
-                if(colours==null||colours.Length==0)return;
+                if(!_owned.Contains(mesh)||mesh.vertexCount==0||!mesh.HasVertexAttribute(VertexAttribute.Color))return;
                 var renderer=filter.GetComponent<MeshRenderer>();
                 Dress kind=renderer!=null&&renderer.sharedMaterial!=null?DressOf(renderer.sharedMaterial,set):Dress.Slate;
+                // A script on the object (a motion) re-shapes the mesh: a stream's positions would freeze it.
+                bool direct=!ColourStreams||renderer==null||filter.GetComponent<MonoBehaviour>()!=null;
                 index=_themeMeshes.Count;
-                _themeMeshes.Add(mesh);_themeMeshIndex.Add(mesh,index);_foundryColours.Add(colours);_themeDress.Add(kind);
+                _themeMeshes.Add(mesh);_themeMeshIndex.Add(mesh,index);_themeRenderers.Add(renderer);_themeDress.Add(kind);
+                _themeDirect.Add(direct);_foundryColours.Add(null);
             }
-            while(dress.Colours.Count<_themeMeshes.Count){dress.Colours.Add(null);dress.Grades.Add(null);}
-            if(dress.Colours[index]!=null||dress.Grades[index]!=null)return;
-            Color[] source=_foundryColours[index];
-            Dress meshDress=_themeDress[index];
-            ThemePalette palette=dress.Palette;
-            ReadGradeInputs(mesh,meshDress,out Vector2[] uvs,out Vector3[] positions,out int[] triangles);
-            dress.Grades[index]=Task.Run(()=>Grade(palette,source,meshDress,uvs,positions,triangles));
+            dress.Fit(_themeMeshes.Count);
+            if(dress.Colours[index]!=null||dress.Streams[index]!=null||dress.Pending[index]!=null)return;
+            dress.Pending[index]=StartGrade(dress.Palette,index);
         }
 
-        private static void ReadGradeInputs(Mesh mesh,Dress dress,out Vector2[] uvs,out Vector3[] positions,out int[] triangles)
+        private PendingGrade StartGrade(ThemePalette palette,int index)
         {
-            uvs=null;positions=null;triangles=null;
-            if(dress==Dress.Bare){uvs=mesh.uv;positions=mesh.vertices;}
+            Mesh.MeshDataArray snapshot=Mesh.AcquireReadOnlyMeshData(_themeMeshes[index]);
+            Mesh.MeshData data=snapshot[0];
+            Color[] foundry=_foundryColours[index];
+            Dress kind=_themeDress[index];
+            bool direct=_themeDirect[index];
+            return new PendingGrade{Snapshot=snapshot,Task=Task.Run(()=>GradeSnapshot(palette,data,foundry,kind,direct))};
+        }
+
+        // A finished grade taken in: the snapshot released, a direct mesh's colours (and the foundry's) kept, a streamed
+        // mesh's stream built. A failed worker's grade is done here.
+        private void Consume(ThemeDress dress,int index)
+        {
+            PendingGrade pending=dress.Pending[index];
+            dress.Pending[index]=null;
+            Graded graded=null;
+            try{graded=pending.Task.Result;}
+            catch(System.Exception){graded=null;}
+            pending.Snapshot.Dispose();
+            if(graded==null)graded=GradeNow(dress.Palette,index);
+            if(graded==null)return;
+            Take(dress,index,graded);
+        }
+
+        private void Take(ThemeDress dress,int index,Graded graded)
+        {
+            if(graded.Foundry!=null&&_foundryColours[index]==null)_foundryColours[index]=graded.Foundry;
+            if(graded.Colours!=null)dress.Colours[index]=graded.Colours;
+            if(graded.Stream!=null&&_themeMeshes[index]!=null)dress.Streams[index]=MakeStream(_themeMeshes[index],graded.Stream);
+        }
+
+        // The same grade on this thread (a worker failed, or a mesh no preparation reached).
+        private Graded GradeNow(ThemePalette palette,int index)
+        {
+            if(_themeMeshes[index]==null)return null;
+            Mesh.MeshDataArray snapshot=Mesh.AcquireReadOnlyMeshData(_themeMeshes[index]);
+            try{return GradeSnapshot(palette,snapshot[0],_foundryColours[index],_themeDress[index],_themeDirect[index]);}
+            finally{snapshot.Dispose();}
+        }
+
+        // A mesh's themed colours from a snapshot of it. Pure (it reads only the snapshot): it runs on a worker thread.
+        // foundry: the foundry's colours when already kept (a direct mesh may show a theme's by now), else read here.
+        private static Graded GradeSnapshot(ThemePalette palette,Mesh.MeshData data,Color[] foundry,Dress kind,bool direct)
+        {
+            int count=data.vertexCount;
+            Color[] source=foundry;
+            if(source==null)
+            {
+                var colours=new NativeArray<Color>(count,Allocator.Persistent,NativeArrayOptions.UninitializedMemory);
+                try{data.GetColors(colours);source=colours.ToArray();}
+                finally{colours.Dispose();}
+            }
             // The cap needs the structure's faces; a mesh with no depth flags is not a structure (UpwardVertices).
-            else if(dress!=Dress.Glow&&dress!=Dress.Paving&&mesh.uv2!=null&&mesh.uv2.Length>0)
-            {positions=mesh.vertices;triangles=mesh.triangles;}
+            bool cap=kind!=Dress.Glow&&kind!=Dress.Paving&&kind!=Dress.Bare&&data.HasVertexAttribute(VertexAttribute.TexCoord1);
+            Vector3[] positions=kind==Dress.Bare||cap||!direct?Positions(data):null;
+            Vector2[] uvs=kind==Dress.Bare?Uvs(data):null;
+            int[] triangles=cap?Triangles(data):null;
+            Color[] graded=Grade(palette,source,kind,uvs,positions,triangles);
+            var result=new Graded{Foundry=direct?source:null};
+            if(direct)result.Colours=graded;
+            else
+            {
+                var stream=new StreamVertex[count];
+                for(int v=0;v<count;v++){stream[v].Position=positions[v];stream[v].Colour=graded[v];}
+                result.Stream=stream;
+            }
+            return result;
         }
 
-        private static Color[] GradeOf(ThemePalette palette,Mesh mesh,Color[] source,Dress dress)
+        private static Vector3[] Positions(Mesh.MeshData data)
         {
-            ReadGradeInputs(mesh,dress,out Vector2[] uvs,out Vector3[] positions,out int[] triangles);
-            return Grade(palette,source,dress,uvs,positions,triangles);
+            var native=new NativeArray<Vector3>(data.vertexCount,Allocator.Persistent,NativeArrayOptions.UninitializedMemory);
+            try{data.GetVertices(native);return native.ToArray();}
+            finally{native.Dispose();}
+        }
+        private static Vector2[] Uvs(Mesh.MeshData data)
+        {
+            if(!data.HasVertexAttribute(VertexAttribute.TexCoord0))return new Vector2[0];
+            var native=new NativeArray<Vector2>(data.vertexCount,Allocator.Persistent,NativeArrayOptions.UninitializedMemory);
+            try{data.GetUVs(0,native);return native.ToArray();}
+            finally{native.Dispose();}
+        }
+        // Every sub-mesh's indices in order, the base vertex applied (Mesh.triangles).
+        private static int[] Triangles(Mesh.MeshData data)
+        {
+            int total=0;
+            for(int s=0;s<data.subMeshCount;s++)total+=data.GetSubMesh(s).indexCount;
+            var triangles=new int[total];
+            int at=0;
+            for(int s=0;s<data.subMeshCount;s++)
+            {
+                int length=data.GetSubMesh(s).indexCount;
+                if(length==0)continue;
+                var native=new NativeArray<int>(length,Allocator.Persistent,NativeArrayOptions.UninitializedMemory);
+                try{data.GetIndices(native,s,true);NativeArray<int>.Copy(native,0,triangles,at,length);}
+                finally{native.Dispose();}
+                at+=length;
+            }
+            return triangles;
         }
 
-        // A mesh's themed vertex colours from its foundry ones. Pure: it runs on a worker thread.
-        private static Color[] Grade(ThemePalette palette,Color[] source,Dress dress,Vector2[] uvs,Vector3[] positions,int[] triangles)
+        // A theme's colours as an additional vertex stream of the primary mesh: its positions and the theme's colours, no
+        // indices; uploaded once and dropped from the CPU.
+        private Mesh MakeStream(Mesh primary,StreamVertex[] vertices)
         {
-            var graded=new Color[source.Length];
-            if(dress==Dress.Bare)
-            {
-                // The coping sheet's rail is its only metal: brass there becomes the theme's rail, its seal on the compass
-                // seal; every other decal vertex is the kerbs' and grooves' stone.
-                for(int v=0;v<source.Length;v++)
-                {
-                    if(uvs==null||v>=uvs.Length||!OnCopingRail(uvs[v])){graded[v]=TintWith(palette,source[v],true,false);continue;}
-                    FoundrySurface.ToDesign(positions[v].x,positions[v].y,out float u,out float w);
-                    graded[v]=RailWith(palette,source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
-                }
-                return graded;
-            }
-            for(int v=0;v<source.Length;v++)graded[v]=TintWith(palette,source[v],false,dress==Dress.Glow);
-            // The cap (rime, moss): the upward faces of raised structures (parapet and wall caps, crenellations, plinths,
-            // domes); the walkable floor and decals are not structures and keep none.
-            if(positions!=null&&triangles!=null)
-            {
-                bool[] top=UpwardVertices(positions,triangles);
-                for(int v=0;v<graded.Length&&v<top.Length;v++)if(top[v])graded[v]=CapOf(palette,graded[v]);
-            }
-            return graded;
+            var stream=new Mesh{name=primary.name+" (theme colours)"};
+            stream.SetVertexBufferParams(vertices.Length,StreamLayout);
+            stream.SetVertexBufferData(vertices,0,0,vertices.Length,0,StreamFlags);
+            stream.bounds=primary.bounds;
+            stream.UploadMeshData(true);
+            _owned.Add(stream);
+            return stream;
+        }
+
+        // A mesh's colours or stream for a theme, graded now when no preparation reached it (a mesh kept after the theme
+        // was prepared, by another theme's preparation).
+        private Color[] ColoursOf(ThemeDress dress,int index)
+        {
+            dress.Fit(index+1);
+            if(dress.Pending[index]!=null)Consume(dress,index);
+            if(dress.Colours[index]==null){Graded graded=GradeNow(dress.Palette,index);if(graded!=null)Take(dress,index,graded);}
+            return dress.Colours[index];
+        }
+        private Mesh StreamOf(ThemeDress dress,int index)
+        {
+            dress.Fit(index+1);
+            if(dress.Pending[index]!=null)Consume(dress,index);
+            if(dress.Streams[index]==null){Graded graded=GradeNow(dress.Palette,index);if(graded!=null)Take(dress,index,graded);}
+            return dress.Streams[index];
         }
 
         // A renderer's block, before its variant is known; false for one the dress leaves alone.
@@ -429,7 +613,7 @@ namespace Cryptforge.UI
             block.Renderer.SetPropertyBlock(_themeBlock);
         }
 
-        // The ice objects built on the change itself, dressed as the coping (their material) with the rest.
+        // An ice object dressed as the coping (its material) with the rest; its block stays when it is hidden.
         private void BindIceObject(GameObject ice,PlatformMaterialSet set,ThemeDress dress)
         {
             if(ice==null)return;
@@ -450,6 +634,10 @@ namespace Cryptforge.UI
             Bind(block,dress.Palette);
         }
 
+        // The change itself: only binds what the preparation made. Streams swapped on each renderer (or a direct mesh's
+        // colours written), the theme's props shown or hidden, the blocks bound or cleared, the sprites tinted. The left
+        // dress is released over the next frames (ReleaseLater). Back to the foundry nothing is prepared: its colours never
+        // left the meshes, and its blocks are none.
         public void ApplyTheme(FloorTheme theme,PlatformMaterialSet set)
         {
             if(theme==_theme)return;
@@ -463,73 +651,155 @@ namespace Cryptforge.UI
                 for(int i=0;i<_themeMeshes.Count;i++)
                 {
                     if(_themeMeshes[i]==null)continue;
-                    Color[] colours=_foundryColours[i];
-                    if(next!=null)
+                    if(_themeDirect[i])
                     {
-                        // A mesh kept after this theme was prepared (by another theme's preparation): graded now.
-                        while(next.Colours.Count<=i){next.Colours.Add(null);next.Grades.Add(null);}
-                        colours=next.Colours[i];
-                        if(colours==null&&next.Grades[i]==null)
-                            colours=next.Colours[i]=GradeOf(palette,_themeMeshes[i],_foundryColours[i],_themeDress[i]);
+                        Color[] colours=next!=null?ColoursOf(next,i):_foundryColours[i];
+                        if(colours!=null)_themeMeshes[i].SetColors(colours);
                     }
-                    if(colours!=null)_themeMeshes[i].colors=colours;
+                    else if(_themeRenderers[i]!=null)
+                        _themeRenderers[i].additionalVertexStreams=next!=null?StreamOf(next,i):null;
                 }
-            // Built before the blocks are set, so the crystals take the coping's untextured dress with the rest.
+            // Built during the preparation; only when it never ran are they built here.
             using(PerformanceMarkers.ThemeCrystals.Auto())
             {
-                if(ice)BuildIceCrystals(set);
-                if(_iceCrystals!=null)_iceCrystals.SetActive(ice);
+                if(ice&&_iceCrystals==null){BuildIceCrystals(set);BindIceObject(_iceCrystals,set,next);}
+                if(_iceCrystals!=null&&_iceCrystals.activeSelf!=ice)_iceCrystals.SetActive(ice);
             }
             using(PerformanceMarkers.ThemeProps.Auto())
             {
-                if(ice)BuildIceProps(set);
-                if(_icePanels!=null)_icePanels.SetActive(ice);
-                if(_iceDrifts!=null)_iceDrifts.SetActive(ice);
+                if(ice&&(_icePanels==null||_iceDrifts==null))
+                {
+                    BuildIceProps(set);
+                    BindIceObject(_icePanels,set,next);
+                    BindIceObject(_iceDrifts,set,next);
+                }
+                if(_icePanels!=null&&_icePanels.activeSelf!=ice)_icePanels.SetActive(ice);
+                if(_iceDrifts!=null&&_iceDrifts.activeSelf!=ice)_iceDrifts.SetActive(ice);
             }
             using(PerformanceMarkers.ThemeTextures.Auto())
             {
                 if(next!=null)
                 {
-                    // The theme on show unbound first: nothing keeps a block on a variant about to be released.
-                    if(leaving!=null)Unbind(leaving);
+                    // The same renderers as the dress on show: each block overwritten, no ice variant left bound.
                     for(int i=0;i<next.Blocks.Count;i++)Bind(next.Blocks[i],palette);
-                    if(ice)
-                    {
-                        BindIceObject(_iceCrystals,set,next);
-                        BindIceObject(_icePanels,set,next);
-                        BindIceObject(_iceDrifts,set,next);
-                    }
+                }
+                else if(leaving!=null)
+                {
+                    for(int i=0;i<leaving.Blocks.Count;i++)
+                        if(leaving.Blocks[i].Renderer!=null)leaving.Blocks[i].Renderer.SetPropertyBlock(null);
                 }
                 else
-                    foreach(var renderer in GetComponentsInChildren<MeshRenderer>(true))renderer.SetPropertyBlock(null);
+                    foreach(var renderer in GetComponentsInChildren<MeshRenderer>())renderer.SetPropertyBlock(null);
             }
             using(PerformanceMarkers.ThemeRetint.Auto())
                 for(int i=0;i<_themeSprites.Count;i++)
                     if(_themeSprites[i]!=null)_themeSprites[i].color=next!=null?_foundrySpriteColours[i]*palette.Sprite:_foundrySpriteColours[i];
             _theme=theme;
-            if(leaving!=null&&leaving!=next)Release(leaving);
+            if(leaving!=null&&leaving!=next)ScheduleRelease(leaving);
         }
 
-        // The blocks a theme bound, cleared: its planned renderers and, on the ice, its own props.
-        private void Unbind(ThemeDress dress)
-        {
-            for(int i=0;i<dress.Blocks.Count;i++)if(dress.Blocks[i].Renderer!=null)dress.Blocks[i].Renderer.SetPropertyBlock(null);
-            if(!dress.Palette.IceProps)return;
-            foreach(var ice in new[]{_iceCrystals,_icePanels,_iceDrifts})
-                if(ice!=null&&ice.TryGetComponent(out MeshRenderer renderer))renderer.SetPropertyBlock(null);
-        }
-
-        // A theme left: its variants unloaded (nothing binds them now) and its grades dropped; the foundry's kept colours
-        // stay for every theme. Coming back to it prepares it again.
-        private void Release(ThemeDress dress)
+        // A theme left: out of the dresses at once (coming back to it prepares it again), its streams destroyed and its
+        // variants unloaded over the next frames, a slice a frame (Cryptforge.Theme.Release), nothing of it in the change.
+        private void ScheduleRelease(ThemeDress dress)
         {
             if(dress.Coroutine!=null){StopCoroutine(dress.Coroutine);dress.Coroutine=null;}
-            foreach(var request in dress.Requests.Values)
-                if(request.isDone&&request.asset is Texture2D loading)Resources.UnloadAsset(loading);
-            foreach(var variant in dress.Variants.Values)
-                if(variant!=null)Resources.UnloadAsset(variant);
-            dress.Variants.Clear();dress.Requests.Clear();dress.Blocks.Clear();dress.Colours.Clear();dress.Grades.Clear();
             _dresses.Remove(dress.Palette.Theme);
+            _releasing.Add(dress);
+            if(isActiveAndEnabled){if(_releaseCoroutine==null)_releaseCoroutine=StartCoroutine(ReleaseLater());}
+            else while(_releasing.Count>0)ReleaseStep(_releasing[0],double.MaxValue);
+        }
+
+        private IEnumerator ReleaseLater()
+        {
+            // The change's own frame is the floor's.
+            yield return null;
+            while(_releasing.Count>0)
+            {
+                using(PerformanceMarkers.ThemeRelease.Auto())ReleaseStep(_releasing[0],PrepareBudgetMs);
+                if(_releasing.Count>0)yield return null;
+            }
+            _releaseCoroutine=null;
+        }
+
+        // Some of a left dress's release, within the budget; the dress leaves the list once nothing of it is held.
+        private void ReleaseStep(ThemeDress dress,double budgetMs)
+        {
+            long slice=Stopwatch.GetTimestamp();
+            bool Left()=>(Stopwatch.GetTimestamp()-slice)*1000d/Stopwatch.Frequency<budgetMs;
+            for(int i=0;i<dress.Pending.Count;i++)
+                if(dress.Pending[i]!=null)
+                {
+                    try{dress.Pending[i].Task.Wait();}catch(System.Exception){}
+                    dress.Pending[i].Snapshot.Dispose();
+                    dress.Pending[i]=null;
+                }
+            for(int i=0;i<dress.Streams.Count;i++)
+            {
+                if(dress.Streams[i]==null)continue;
+                if(!Left())return;
+                _owned.Remove(dress.Streams[i]);
+                Destroy(dress.Streams[i]);
+                dress.Streams[i]=null;
+            }
+            var names=new List<string>(dress.Variants.Keys);
+            foreach(string name in names)
+            {
+                if(!Left())return;
+                Texture2D variant=dress.Variants[name];
+                dress.Variants.Remove(name);
+                // Nothing binds it any more (ApplyTheme overwrote or cleared every block of the dress); unless its theme
+                // is wanted again meanwhile, it goes.
+                if(variant!=null&&!dress.KeepTextures)Resources.UnloadAsset(variant);
+            }
+            dress.Requests.Clear();dress.Blocks.Clear();dress.Colours.Clear();dress.Streams.Clear();dress.Pending.Clear();
+            _releasing.Remove(dress);
+        }
+
+        // A theme asked for again while its left dress is being released: its textures are not unloaded (a new load
+        // returns the same objects).
+        private void KeepReleasedTextures(FloorTheme theme)
+        {
+            foreach(var left in _releasing)if(left.Palette.Theme==theme)left.KeepTextures=true;
+        }
+
+        // Every snapshot still read by a worker released as the region goes (the workers waited for).
+        private void DropThemeSnapshots()
+        {
+            foreach(var dress in _dresses.Values)
+                for(int i=0;i<dress.Pending.Count;i++)
+                    if(dress.Pending[i]!=null)
+                    {
+                        try{dress.Pending[i].Task.Wait();}catch(System.Exception){}
+                        dress.Pending[i].Snapshot.Dispose();
+                        dress.Pending[i]=null;
+                    }
+        }
+
+        // A mesh's themed vertex colours from its foundry ones. Pure: it runs on a worker thread.
+        private static Color[] Grade(ThemePalette palette,Color[] source,Dress dress,Vector2[] uvs,Vector3[] positions,int[] triangles)
+        {
+            var graded=new Color[source.Length];
+            if(dress==Dress.Bare)
+            {
+                // The coping sheet's rail is its only metal: brass there becomes the theme's rail, its seal on the compass
+                // seal; every other decal vertex is the kerbs' and grooves' stone.
+                for(int v=0;v<source.Length;v++)
+                {
+                    if(uvs==null||v>=uvs.Length||!OnCopingRail(uvs[v])){graded[v]=TintWith(palette,source[v],true,false);continue;}
+                    FoundrySurface.ToDesign(positions[v].x,positions[v].y,out float u,out float w);
+                    graded[v]=RailWith(palette,source[v],Vector2.Distance(new Vector2(u,w),CourtSealCentre)<CourtStoneRadius+.1f);
+                }
+                return graded;
+            }
+            for(int v=0;v<source.Length;v++)graded[v]=TintWith(palette,source[v],false,dress==Dress.Glow);
+            // The cap (rime, moss): the upward faces of raised structures (parapet and wall caps, crenellations, plinths,
+            // domes); the walkable floor and decals are not structures and keep none.
+            if(positions!=null&&triangles!=null)
+            {
+                bool[] top=UpwardVertices(positions,triangles);
+                for(int v=0;v<graded.Length&&v<top.Length;v++)if(top[v])graded[v]=CapOf(palette,graded[v]);
+            }
+            return graded;
         }
 
         // A structure mesh's vertices on upward faces. Walls are extruded straight down the screen, so each wall triangle
