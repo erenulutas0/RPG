@@ -16,6 +16,12 @@ try {
     if(!(Test-Path $iceResults)){throw 'Ice capture failed; see TestResults/ice-map.log.'}
     $iceRun=([xml](Get-Content -LiteralPath $iceResults)).'test-run'
     if($iceRun.result -ne 'Passed'){throw "Ice capture failed: $($iceRun.result); see TestResults/ice-map.log."}
+    Add-Type -AssemblyName System.Drawing
+    foreach($iceFile in Get-ChildItem "$iceRoot/ArtDirection/2026-11-12/ice-map-01" -Recurse -Filter '*.bmp'){
+        $iceBitmap=[System.Drawing.Bitmap]::new($iceFile.FullName)
+        try{$iceBitmap.Save([IO.Path]::ChangeExtension($iceFile.FullName,'png'),[System.Drawing.Imaging.ImageFormat]::Png)}finally{$iceBitmap.Dispose()}
+        Remove-Item -LiteralPath $iceFile.FullName
+    }
     Write-Output "Ice map capture: $($iceRun.passed) passed. Output: $iceRoot/ArtDirection/2026-11-12/ice-map-01/{floor1,floor2}"
 } finally {
     if(Test-Path $iceTarget){Remove-Item -LiteralPath $iceTarget}

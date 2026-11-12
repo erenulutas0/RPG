@@ -81,7 +81,15 @@ namespace Cryptforge.Tests
             var rt=RenderTexture.GetTemporary(width,height,24);var previous=RenderTexture.active;c.targetTexture=rt;
             c.Render();RenderTexture.active=rt;var pixels=new Texture2D(width,height,TextureFormat.RGB24,false);
             pixels.ReadPixels(new Rect(0,0,width,height),0,0);pixels.Apply();
-            File.WriteAllBytes(Root+name+".png",pixels.EncodeToPNG());
+            // The PlayMode tests do not reference ImageConversion (no EncodeToPNG): a BMP, as the other runners write,
+            // which Run-IceMapProof.ps1 converts to PNG.
+            using(var w=new BinaryWriter(File.Create(Root+name+".bmp")))
+            {
+                int bytes=width*height*3;w.Write((ushort)0x4d42);w.Write(bytes+54);w.Write(0);w.Write(54);
+                w.Write(40);w.Write(width);w.Write(height);w.Write((ushort)1);w.Write((ushort)24);
+                w.Write(0);w.Write(bytes);w.Write(0);w.Write(0);w.Write(0);w.Write(0);
+                foreach(Color32 p in pixels.GetPixels32()){w.Write(p.b);w.Write(p.g);w.Write(p.r);}
+            }
             Object.DestroyImmediate(pixels);c.targetTexture=null;RenderTexture.active=previous;RenderTexture.ReleaseTemporary(rt);
         }
         [UnityTearDown] public IEnumerator End()
