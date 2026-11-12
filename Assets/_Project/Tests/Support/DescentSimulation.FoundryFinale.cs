@@ -6,8 +6,8 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Tests
 {
-    // The foundry's finale in the foundry simulation (FoundryLevers.Floors = 4, FinaleFloor): Data/Floors/Floor_FinalSwarm.asset,
-    // the climb's last floor below Gloam Gardens' checkpoint (Quicksilver Vaults' before floor 3 was built, docs/48), on the
+    // The foundry's finale in the foundry simulation (FoundryLevers.Floors = 4, FinaleFloor):
+    // Data/Floors/Floor_FinalSwarm.asset, the climb's last floor below Gloam Gardens' checkpoint (Quicksilver Vaults' before floor 3 was built, docs/48), on the
     // foundry's arena. What the scene does there, and so
     // what this plays, in DescentSimulation.Foundry's frame:
     //

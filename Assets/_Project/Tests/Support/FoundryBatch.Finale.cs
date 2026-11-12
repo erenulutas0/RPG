@@ -8,8 +8,8 @@ using Cryptforge.Core;
 namespace Cryptforge.Tests
 {
     // The foundry's finale in the batch's report (FoundryLevers.Floors = 4, DescentSimulation.FinaleFloor; FOUNDRY_FLOORS=4
-    // for the batch report, 3 before floor 3 was built): what a floor-3 clear meets below its checkpoint - the Final Swarm's one swarm room on the foundry's arena - who reaches it,
-    // survives it and walks out, how long it lasts, what it kills the rest with, what the hero brings into it, and the whole
+    // for the batch report, 3 before floor 3 was built): what a floor-3 clear meets below its checkpoint - the Final
+    // Swarm's one swarm room on the foundry's arena - who reaches it, survives it and walks out, how long it lasts, what it kills the rest with, what the hero brings into it, and the whole
     // Descent's length against docs/40 phase 2's 13-16 minutes. Pure: it only reads the runs' FoundryResults.
     internal static partial class FoundryBatch
     {

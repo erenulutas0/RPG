@@ -266,3 +266,63 @@ suspend/resume. Keeping two floors and building characters (docs/46) first is a 
 9. **The finale after floor 3.** It is not climb-scaled, so a hero coming from floor 3 meets the same swarm with more
    levels. Should the finale scale with the floor it follows?
 10. **Order of work.** Third floor before or after the Riftblade (docs/46) and the phone run?
+
+## Status 2026-11-12: phase 1 built (the floor, the chain, the simulation, the measurement)
+
+The owner delegated the game's vision to the lead, and the lead took section 3.6's steps 1-3 and 5: the data-only floor 3,
+measured in the simulation. Question 2 is answered with choice A (Gloam Gardens), questions 4 and 6 with the plain horde
+and no modifier. Nothing on screen is new: floor 3 plays the foundry's map, art and enemies. The Editor's confirmation
+(step 4), the phone (step 6) and every option of section 1 wait.
+
+**What was built.**
+- **Floor_GloamGardens.asset** (new, guid b5ee68d4...): floor 2's six rooms wave for wave under section 1.1's names (Ash
+  Orchard, Rootbound Walk, Bloom Gate, The Grafting Forge with Mend and Temper, Thorn Post, the Warden's Grove with the
+  Forge Warden and two Cinder Mites); climb-scaled at floor 3 (ClimbScaling x1.96 health, x1.8032 damage, the gate boss
+  x1.15 more), the authored multipliers set to the same; the plain horde (Mite, Grunt, Runner); no modifier, no surges, no
+  extra elite; the gate at 210 s; `_foundryGateHealthShare` 5.102041; the Foundry theme (FloorTheme 0); the Final Swarm
+  below it.
+- **The chain.** Floor_QuicksilverVaults' `_nextFloor` is floor 3 (one line). The climb is floor 1, floor 2, floor 3,
+  the finale, and the finale is the scene's FloorNumber 4.
+- **No heal before the finale.** The shipped arrival chest (a quarter heal) is enough: no finale death in 1,206
+  finales (below). This is the smallest option: nothing added.
+- **The simulation** mirrors it: `DescentSimulation.GloamGardens` (the rooms), `FoundryFloorThree()` (floor 2's next,
+  FloorNumber 3, `FloorThreeGateShare`), `FoundryFinale()` at FloorNumber 4 and `FinaleFloor` = 4. The Warden's share
+  goes through `WardenRule.GateHealthShareOn` on both sides (LaterFloorLevers), as floor 2's does. No new arithmetic.
+- **FOUNDRY_FLOORS counts floors, the finale included.** 2 is floors 1-2 (the default batch, unchanged); 3 is floors 1-3
+  (the cohort section gains floor 3's table and foundry-cohorts-floor3.csv); 4 (`FinaleFloor`) is floors 1-3 and the
+  finale (foundry-finale.md and .csv, now with a floor-3 column). Before this build 3 reached the finale.
+  `FoundryBatch.FinaleOf` finds the swarm floor however many floors stand before it.
+- docs/47's two research harnesses keep the climb they measured (`FoundryTwoFloorClimb`: floor 2 straight into the
+  finale), so their tables still reproduce. `FinaleStayResearch` and the Editor-seed rows now play the whole Descent.
+- `Tools/CombatChecks/ThirdFloorResearch.cs` (explicit): the shipped Descent with floor 3's share, gate or a finale heal
+  as options.
+
+**How it was measured.** Seeds 1-200, both heroes, all five cohorts, human hands (`PilotRealism` typical): the batch
+report with FOUNDRY_FLOORS=4 (FOUNDRY_LEVERS=0, FOUNDRY_COHORTS=1, FOUNDRY_PARALLEL=1), and ThirdFloorResearch for the
+share. Pooled tables count 2,000 runs.
+
+### Floor 3's Warden share
+
+Floor 3's Warden fight, P50 seconds of the fights in which it fell, Vanguard / Ilya (docs/40 section 9.6: 45-65 s). The
+share is its effective health against floor 1's authored 300 (the asset's value times 1.96 x 1.15).
+
+| Effective share (asset value) | Gate | Seeds | careful | standing | first-card | clumsy | Floor-3 deaths | Descent P10 / P50 / P90 (min) |
+|---|---|---|---|---|---|---|---|---|
+| 8.5 (3.771074, floor 2's, `set-b`'s) | 210 | 1-200 | 53 / 49 | 42 / 41 | 46 / 44 | 52 / 51 | 55 | 14.2 / 14.6 / 15.1 |
+| 10 (4.436557) | 210 | 1-100 | 57 / 53 | 45 / 43 | 50 / 48 | 55 / 59 | - | 14.2 / 14.6 / 15.2 |
+| 11 (4.880213) | 210 | 1-100 | 61 / 56 | 47 / 45 | 54 / 51 | 60 / 60 | - | 14.3 / 14.7 / 15.2 |
+| **11.5 (5.102041), built** | 210 | 1-200 | 62 / 58 | 48 / 47 | 56 / 53 | 61 / 62 | 75 | 14.3 / 14.7 / 15.3 |
+| 12 (5.323869) | 210 | 1-200 | 63 / 59 | 49 / 48 | 57 / 54 | 62 / 62 | 78 | 14.3 / 14.7 / 15.3 |
+| 11.5 | 180 | 1-200 | 61 / 57 | 48 / 47 | 57 / 53 | 61 / 62 | 62 | 13.8 / 14.2 / 14.7 |
+
+- Floor 2's 8.5 leaves the standing cohort's fight at 41-42 s, under the band (floor 2's own Warden fight is 38-40 s for
+  that cohort, docs/41), and 10 still leaves the standing Ilya at 43 s.
+- 11 brings the standing Ilya to 45 s, the band's edge. 11.5 is the smallest step that holds every playing cohort inside
+  45-65 for both heroes with a margin at each end (47 s low, 62 s high). 12 holds too, at 3 more deaths.
+- The auto-farmer, which clears floor 3 in 2 of the 11 runs that reach it, is not a playing cohort here (as for floors 1
+  and 2).
+- The share costs about a point of completion per cohort: 20 more floor-3 deaths in 2,000 runs (55 to 75) from 8.5 to
+  11.5, and the Descent's P50 6 s.
+- **The gate stays at 210 s**, as floors 1 and 2 hold theirs and as asked. 180 s was measured beside it at 11.5: the
+  band holds (47-62 s), 13 fewer floor-3 deaths, the Descent P10 13.8 min, but floor 3's P50 falls to 242-254 s, at the
+  bottom of section 2's 240-300 s. It is the lever if floor 3 should cost fewer runs.
