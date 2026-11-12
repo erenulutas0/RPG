@@ -6,10 +6,12 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
@@ -46,7 +48,11 @@ namespace Cryptforge.Tests
     // Game view renders (set it to 1080x2340). Knobs, one value per line, in TestResults/: perf-probe-heroes.txt (hero ids,
     // "vanguard" for the default hero), perf-probe-phases.txt (horde, warden), perf-probe-seconds.txt (the horde window),
     // perf-probe-seed.txt, perf-probe-prejit.txt (any line: the game compiled before the first phase, PreCompile),
-    // perf-probe-warmup.txt ("on": each phase's scene has its shader variants warmed as it loads, ShaderWarmup). Every
+    // perf-probe-warmup.txt ("on": each phase's scene has its shader variants warmed as it loads, ShaderWarmup),
+    // perf-probe-floors.txt ("1,2": every phase played on floor 1 and again on floor 2, DressIce; floor 1 alone by default,
+    // so earlier summaries compare as they did). Floor 2 is the same scene, seed and fight with the floor's Ice dress put on
+    // in place as the descent puts it on (ArenaView.ApplyFloorTheme, frosted enemies), its one-time cost timed marker by
+    // marker, and a comparison line per metric, floor 1 against floor 2, closes the summary. Every
     // time marker on offer is listed in perf-probe-markers.txt, and the summary breaks the slowest frames and every
     // level-up or pick down marker by marker (the game's own scopes: PerformanceMarkers). It changes no game code and
     // asserts nothing about speed.
@@ -74,6 +80,8 @@ namespace Cryptforge.Tests
         private const float HealBelow = .7f;
         private const int CensusEvery = 120;
         private const int DepthRuns = 50;
+        // At most this many frames are waited for the next floor's dress (and its slices kept).
+        private const int PrepareFrames = 1800;
         // The per-frame marker lines (AppendFrameMarkers): how many of the slowest frames, how many lines at most, and the
         // least time a marker needs on a frame to be named.
         private const int SlowestBrokenDown = 6;
@@ -81,6 +89,7 @@ namespace Cryptforge.Tests
         private const float MarkerFloorMs = .05f;
         private static readonly string[] DefaultHeroes = { "vanguard", "hero_cinder_arcanist" };
         private static readonly string[] DefaultPhases = { "horde", "warden" };
+        private static readonly string[] DefaultFloors = { "1" };
         private const string FrameColumns = "hero\tphase\tframe\tflags\twall_ms\tmain_ms\tgc_bytes\tgc_allocs\tdraw\tbatches\t" +
             "setpass\ttris\tverts\tstats_draw\tstats_batches\tstats_setpass\tstats_dyn_draws\tstats_dyn_batches\talive\thorde\t" +
             "burning\teffects\tspawns\twaves\tdeaths\tstrikes\tability\tvents\tlevels\tpicks\tslams\tprogress\tburn_ticks";
@@ -104,9 +113,27 @@ namespace Cryptforge.Tests
             public string DepthGate = "na";
             // What the shader warm-up warmed as the scene loaded (perf-probe-warmup.txt), "off" without it.
             public string Warmup = "off";
+            // How the next floor's dress was prepared before the window (AwaitPreparation).
+            public string Preload = "na";
+            // 1, or 2: the Ice dress put on in place before the fight (DressIce).
+            public int Floor = 1;
+            // The floor change's one-time cost, written by DressIce ("" on floor 1).
+            public string FloorChange = string.Empty;
+            // The figures the closing comparison lines put side by side, in report order.
+            public readonly List<Metric> Metrics = new List<Metric>();
+            public string Label => Floor == 1 ? Phase : Phase + "-floor" + Floor;
+            public void Add(string name, float value, int decimals) =>
+                Metrics.Add(new Metric { Name = name, Value = value, Decimals = decimals });
             public readonly List<PerfCensus> Censuses = new List<PerfCensus>();
             public readonly StringBuilder Text = new StringBuilder();
             public readonly StringBuilder Frames = new StringBuilder();
+        }
+
+        private struct Metric
+        {
+            public string Name;
+            public float Value;
+            public int Decimals;
         }
 
         private struct Spread
@@ -139,6 +166,9 @@ namespace Cryptforge.Tests
         private static readonly List<RenderMode> CanvasModes = new List<RenderMode>();
         private static readonly List<Camera> CanvasCameras = new List<Camera>();
         private static readonly List<float> CanvasDistances = new List<float>();
+        // Floor 2's copy of the scene's floor with the Ice theme (DressIce), destroyed after its phase.
+        private static FloorDefinition _iceFloor;
+        private const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic;
 
         [UnityTearDown]
         public IEnumerator End()
@@ -149,6 +179,7 @@ namespace Cryptforge.Tests
             var old = SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(SceneManager.CreateScene("Perf probe cleanup"));
             yield return SceneManager.UnloadSceneAsync(old);
+            DropIceFloor();
             TestProfile.End();
         }
 
@@ -164,18 +195,29 @@ namespace Cryptforge.Tests
             string compiled = Lines("perf-probe-prejit.txt", new string[0]).Length > 0 ? PreCompile() : "off";
             string[] warmup = Lines("perf-probe-warmup.txt", new string[0]);
             _warmup = warmup.Length > 0 && string.Equals(warmup[0], "on", System.StringComparison.OrdinalIgnoreCase);
-            Header(report, seed, hordeSeconds, compiled);
+            int[] floors = Floors();
+            Header(report, seed, hordeSeconds, compiled, floors);
             frames.AppendLine(FrameColumns);
+            var runs = new List<Run>();
             foreach (string hero in heroes)
                 foreach (string phase in phases)
-                {
-                    var run = new Run { Hero = hero, Phase = phase, Seed = seed, HordeSeconds = hordeSeconds };
-                    yield return Play(run);
-                    report.Append(run.Text);
-                    frames.Append(run.Frames);
-                    // After every phase, so a run cut short keeps what it measured.
-                    Write(report, frames);
-                }
+                    foreach (int floor in floors)
+                    {
+                        var run = new Run { Hero = hero, Phase = phase, Seed = seed, HordeSeconds = hordeSeconds, Floor = floor };
+                        yield return Play(run);
+                        runs.Add(run);
+                        report.Append(run.Text);
+                        frames.Append(run.Frames);
+                        // After every phase, so a run cut short keeps what it measured.
+                        Write(report, frames);
+                    }
+            if (System.Array.IndexOf(floors, 2) >= 0)
+            {
+                string comparison = Compare(runs);
+                report.Append(comparison);
+                Write(report, frames);
+                File.WriteAllText(Path.Combine(ResultsFolder, "perf-probe-floors-compare.txt"), comparison);
+            }
             Debug.Log("[PerfProbe] summary written to " + Path.Combine(ResultsFolder, "perf-probe.txt") + "\n" + report);
         }
 
@@ -197,6 +239,13 @@ namespace Cryptforge.Tests
             }
             Time.timeScale = 1;
             Time.captureDeltaTime = Step;
+            // Every frame's slice of the next floor's dress being worked out (Cryptforge.Theme.Prepare), from the load on:
+            // the game starts it as floor 1 starts when floor 2 is ice (EncounterController.EnterFloor).
+            // The game's markers made first, so the recorder finds this one by name.
+            if (PerformanceMarkers.ThemePrepare.Handle == System.IntPtr.Zero)
+                Debug.LogWarning("[PerfProbe] Cryptforge.Theme.Prepare was not made.");
+            var prepare = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, PerformanceMarkers.ThemePrepareName, PrepareFrames);
+            ulong texturesAtLoad = Texture.currentTextureMemory;
             yield return SceneManager.LoadSceneAsync(ScenePath);
             // The A/B knob (perf-probe-warmup.txt "on"): the scene's shader variants warmed as it loads, before the frame
             // the probe has always waited, so the measured frames keep their numbers whether it is on or off.
@@ -249,6 +298,12 @@ namespace Cryptforge.Tests
             Application.targetFrameRate = -1;
             var recorder = new GameObject("Perf Probe Recorder").AddComponent<PerfProbeRecorder>();
             recorder.Initialize(setup, hero, camera, run.ManualRender);
+            // The next floor's dress finished in the background before anything is measured, on either floor, so no
+            // window holds its slices; then on floor 2 the Ice dress on, after the recorder so the change's first frame
+            // renders as every other does.
+            yield return AwaitPreparation(run, setup, hero, prepare, texturesAtLoad);
+            if (run.Floor == 2)
+                yield return DressIce(run, setup);
 
             if (run.Phase == "warden")
                 yield return Warden(run, setup, hero, camera, follow, recorder);
@@ -264,9 +319,158 @@ namespace Cryptforge.Tests
             RestorePhase();
             Time.captureDeltaTime = 0f;
             var old = SceneManager.GetActiveScene();
-            SceneManager.SetActiveScene(SceneManager.CreateScene("Perf probe between " + run.Hero + " " + run.Phase));
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Perf probe between " + run.Hero + " " + run.Label));
             yield return SceneManager.UnloadSceneAsync(old);
+            DropIceFloor();
             TestProfile.End();
+        }
+
+        // Floor 2 as the descent dresses it (EncounterController.EnterFloor), in the floor-1 scene so the fight, its seed
+        // and its rooms stay the same and only the dress differs: the encounter's floor becomes a copy of its own with the
+        // Ice theme (so every body it stands up from here asks for the frosted palette, as on floor 2), the arena takes the
+        // theme (ArenaView.ApplyFloorTheme: re-tint, texture swaps, the crystal mesh, the backdrop), and the bodies already
+        // standing take the frosted set. Timed by the wall clock and by the game's Cryptforge.Theme.* markers, read a frame
+        // later; then the rest of that frame, its first render on ice included. Before the window, so nothing of it is in
+        // the frames measured.
+        // Waits (the fight going on, kept as in the window) until the region has the next floor's dress ready, at most
+        // PrepareFrames frames, then reads the preparation's slices: how many frames held one, their total and the largest.
+        private static IEnumerator AwaitPreparation(Run run, CombatSetup setup, Health hero, ProfilerRecorder prepare,
+            ulong texturesAtLoad)
+        {
+            var arena = Object.FindFirstObjectByType<ArenaView>();
+            int waited = 0;
+            for (; arena != null && arena.IsPreparingFloorTheme && waited < PrepareFrames - 60; waited++)
+            {
+                Keep(setup, hero);
+                yield return null;
+            }
+            // The last slice's frame read back.
+            yield return null;
+            bool ready = arena == null || !arena.IsPreparingFloorTheme;
+            float total = 0f, largest = 0f;
+            int slices = 0;
+            if (prepare.Valid)
+            {
+                for (int i = 0; i < prepare.Count; i++)
+                {
+                    float ms = prepare.GetSample(i).Value / 1e6f;
+                    if (ms <= 0f)
+                        continue;
+                    slices++;
+                    total += ms;
+                    largest = Mathf.Max(largest, ms);
+                }
+            }
+            prepare.Dispose();
+            float textureMb = (float)(((double)Texture.currentTextureMemory - texturesAtLoad) / 1048576d);
+            run.Preload = slices == 0 && ready ? "none (no floor ahead to prepare)"
+                : (ready ? "ready" : "NOT READY after " + waited + " frames") + ": " + slices + " frames with a slice, " +
+                  F(total, 2) + " ms main thread in all, largest slice " + F(largest, 2) + " ms; waited " + waited +
+                  " frames after the load; texture memory since the load " + (textureMb >= 0f ? "+" : string.Empty) +
+                  F(textureMb, 1) + " MB";
+            run.Add("preload: frames with a slice", slices, 0);
+            run.Add("preload: main thread ms in all", total, 2);
+            run.Add("preload: largest slice ms", largest, 2);
+            run.Add("preload: frames waited after load", waited, 0);
+        }
+
+        private static IEnumerator DressIce(Run run, CombatSetup setup)
+        {
+            var arena = Object.FindFirstObjectByType<ArenaView>();
+            EncounterController encounters = setup.Encounters;
+            FloorDefinition authored = encounters != null ? encounters.Floor : null;
+            FieldInfo themeField = typeof(FloorDefinition).GetField("_theme", Hidden);
+            FieldInfo floorField = typeof(EncounterController).GetField("_currentFloor", Hidden);
+            MethodInfo useFrost = typeof(EnemyLookView).GetMethod("UseFrost", Hidden);
+            if (arena == null || authored == null || themeField == null || floorField == null || useFrost == null)
+            {
+                run.Note = "floor 2 NOT dressed: " + (arena == null ? "no ArenaView" : authored == null ? "no floor"
+                    : "the theme, floor or frost member was not found by reflection");
+                run.FloorChange = "na - " + run.Note;
+                yield break;
+            }
+            _iceFloor = Object.Instantiate(authored);
+            _iceFloor.name = authored.name + " (perf probe ice)";
+            themeField.SetValue(_iceFloor, FloorTheme.Ice);
+            floorField.SetValue(encounters, _iceFloor);
+
+            string[] names = PerformanceMarkers.ThemeNames;
+            var markers = new ProfilerRecorder[names.Length];
+            for (int i = 0; i < names.Length; i++)
+                markers[i] = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, names[i], 1);
+            // A frame for the recorders to start collecting in.
+            yield return null;
+
+            int texturesBefore = Resources.FindObjectsOfTypeAll<Texture>().Length;
+            ulong textureBytesBefore = Texture.currentTextureMemory;
+            // Unity's Mono does not count GetAllocatedBytesForCurrentThread; the heap's growth across the call stands in
+            // (no collection runs in it), and the whole frame's GC Allocated In Frame is read a frame later.
+            var frameGc = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame", 1);
+            yield return null;
+            long gcBefore = System.GC.GetTotalMemory(false);
+            var watch = Stopwatch.StartNew();
+            arena.ApplyFloorTheme(FloorTheme.Ice);
+            watch.Stop();
+            float applyMs = (float)watch.Elapsed.TotalMilliseconds;
+            long gcApply = System.GC.GetTotalMemory(false) - gcBefore;
+            // The frost creep the descent plays as it lands on floor 2 (EncounterController.EnterFloor); it runs out over
+            // the walk-in, before the window.
+            watch.Restart();
+            bool transition = arena.PlayFrostTransition();
+            watch.Stop();
+            float transitionMs = (float)watch.Elapsed.TotalMilliseconds;
+            int frosted = 0;
+            watch.Restart();
+            foreach (EnemyLookView look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
+            {
+                useFrost.Invoke(look, new object[] { true });
+                frosted++;
+            }
+            watch.Stop();
+            float frostMs = (float)watch.Elapsed.TotalMilliseconds;
+            watch.Restart();
+            yield return null;
+            watch.Stop();
+            float firstFrameMs = (float)watch.Elapsed.TotalMilliseconds;
+            float frameGcKb = frameGc.Valid && frameGc.Count > 0 ? frameGc.LastValue / 1024f : float.NaN;
+            frameGc.Dispose();
+
+            var line = new StringBuilder();
+            line.Append("ApplyFloorTheme(Ice) ").Append(F(applyMs, 2)).Append(" ms wall, managed heap +").Append(F(gcApply / 1024f, 1))
+                .Append(" KB (the change's whole frame, probe included: ").Append(Shown(frameGcKb, 1)).Append(" KB); frost transition ").Append(transition ? F(transitionMs, 2) + " ms" : "not played")
+                .Append("; ").Append(frosted).Append(" standing bodies frosted in ").Append(F(frostMs, 2))
+                .Append(" ms; the rest of that frame, its first render on ice included, ").Append(F(firstFrameMs, 1))
+                .Append(" ms; markers (ms):");
+            run.Add("floor change: ApplyFloorTheme wall ms", applyMs, 2);
+            for (int i = 0; i < names.Length; i++)
+            {
+                float ms = markers[i].Valid && markers[i].Count > 0 ? markers[i].LastValue / 1e6f : float.NaN;
+                markers[i].Dispose();
+                string shortName = names[i].Substring("Cryptforge.".Length);
+                line.Append(' ').Append(shortName).Append(' ').Append(Shown(ms, 2));
+                if (names[i] != PerformanceMarkers.ThemeFrostName)
+                    run.Add("floor change: " + shortName + " ms", ms, 2);
+            }
+            run.Add("floor change: PlayFrostTransition wall ms", transition ? transitionMs : float.NaN, 2);
+            run.Add("floor change: frosting standing bodies ms", frostMs, 2);
+            run.Add("floor change: managed KB allocated", gcApply / 1024f, 1);
+            run.Add("floor change: its frame's GC KB", frameGcKb, 1);
+            run.Add("floor change: first frame after ms", firstFrameMs, 1);
+            int texturesAfter = Resources.FindObjectsOfTypeAll<Texture>().Length;
+            float textureMb = (float)(((double)Texture.currentTextureMemory - textureBytesBefore) / 1048576d);
+            line.Append("; textures loaded ").Append(texturesAfter - texturesBefore >= 0 ? "+" : string.Empty)
+                .Append(texturesAfter - texturesBefore).Append(", texture memory ").Append(textureMb >= 0f ? "+" : string.Empty)
+                .Append(F(textureMb, 1)).Append(" MB");
+            run.Add("floor change: textures loaded", texturesAfter - texturesBefore, 0);
+            run.Add("floor change: texture MB", textureMb, 1);
+            run.FloorChange = line.ToString();
+        }
+
+        private static void DropIceFloor()
+        {
+            if (_iceFloor != null)
+                Object.Destroy(_iceFloor);
+            _iceFloor = null;
         }
 
         // Puts back what a phase changed (see the fields above): the frame rate cap, the canvases' render mode, camera and
@@ -446,7 +650,7 @@ namespace Cryptforge.Tests
                 " s (" + failed + " refused)";
         }
 
-        private static void Header(StringBuilder report, int seed, float hordeSeconds, string compiled)
+        private static void Header(StringBuilder report, int seed, float hordeSeconds, string compiled, int[] floors)
         {
             bool graphics = SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null;
             string rendering = !graphics ? "no graphics device: nothing renders, render counts are na"
@@ -474,6 +678,11 @@ namespace Cryptforge.Tests
             report.Append("pre-compiled before the first phase (perf-probe-prejit.txt): ").AppendLine(compiled);
             report.Append("shader warm-up as each phase's scene loads (perf-probe-warmup.txt): ").AppendLine(_warmup
                 ? "on - what each warmed, and how long it took, is under its phase" : "off");
+            report.Append("floors (perf-probe-floors.txt): ").Append(string.Join(",", floors));
+            report.AppendLine(System.Array.IndexOf(floors, 2) >= 0
+                ? " - floor 2 is the same scene, seed and fight with the Ice dress put on in place before the walk-in " +
+                  "(ApplyFloorTheme, frosted enemies); the comparison lines close the summary"
+                : string.Empty);
             report.AppendLine();
         }
 
@@ -487,7 +696,8 @@ namespace Cryptforge.Tests
                 if ((r.Flags[f] & PerfProbeRecorder.Paused) != 0) paused++;
                 if ((r.Flags[f] & PerfProbeRecorder.ProbeWork) != 0) probe++;
             }
-            t.Append("== ").Append(run.HeroName).Append(" (").Append(run.Hero).Append(") / ").Append(run.Phase).Append(": ")
+            t.Append("== ").Append(run.HeroName).Append(" (").Append(run.Hero).Append(") / ").Append(run.Phase)
+                .Append(run.Floor == 1 ? string.Empty : " / floor " + run.Floor + " (Ice)").Append(": ")
                 .Append(included).Append(" frames measured of ").Append(r.Count).Append(" (").Append(paused).Append(" paused, ")
                 .Append(probe).Append(" the probe's), ").Append(F(r.Count * Step, 1)).Append(" s of game time after ")
                 .Append(F(run.WarmSeconds, 1)).Append(" s walking in");
@@ -495,6 +705,9 @@ namespace Cryptforge.Tests
             if (run.Note.Length > 0) t.Append("; ").Append(run.Note);
             t.AppendLine();
             t.Append("   shader warm-up as the scene loaded (perf-probe-warmup.txt): ").AppendLine(run.Warmup);
+            t.Append("   next floor's dress prepared in the background before the window: ").AppendLine(run.Preload);
+            if (run.Floor != 1)
+                t.Append("   floor change, once, before the walk-in: ").AppendLine(run.FloorChange);
             if (r.Count == 0)
             {
                 t.AppendLine();
@@ -514,6 +727,33 @@ namespace Cryptforge.Tests
                 .Append(F(Total(r, r.Progress) / Mathf.Max(Step, r.Count * Step), 1)).AppendLine("/s)");
 
             Spread wall = Of(r, r.WallMs);
+            run.Add("frame ms median", wall.Median, 2);
+            run.Add("frame ms p95", wall.P95, 2);
+            run.Add("frame ms max", wall.Max, 2);
+            run.Add("frame ms p90", Rank(Sorted(r, r.WallMs), .9f), 2);
+            run.Add("frames over 16.7 ms", CountOver(r, r.WallMs, 1000f / 60f), 0);
+            run.Add("frames over 33.3 ms", CountOver(r, r.WallMs, 1000f / 30f), 0);
+            // The batch Editor's stalls: frames whose main thread waited over 10 ms on a semaphore (another thread).
+            int wait = r.MarkerNames.IndexOf("Semaphore.WaitForSignal");
+            if (wait >= 0)
+            {
+                int stalls = 0, stallsOver = 0;
+                for (int f = 0; f < r.Count; f++)
+                {
+                    if (!r.IsIncluded(f) || r.MarkerMs[wait][f] <= 10f)
+                        continue;
+                    stalls++;
+                    if (r.WallMs[f] > 1000f / 60f) stallsOver++;
+                }
+                run.Add("frames waiting over 10 ms on another thread", stalls, 0);
+                run.Add("of those over 16.7 ms", stallsOver, 0);
+            }
+            if (r.MainThreadValid)
+            {
+                Spread main = Of(r, r.MainThreadMs);
+                run.Add("main thread ms median", main.Median, 2);
+                run.Add("main thread ms p95", main.P95, 2);
+            }
             t.Append("   frame ms (wall): ").Append(Full(wall, 2)).Append(" | over 16.7 ms: ")
                 .Append(CountOver(r, r.WallMs, 1000f / 60f)).Append(", over 33.3 ms: ").Append(CountOver(r, r.WallMs, 1000f / 30f))
                 .AppendLine();
@@ -521,6 +761,12 @@ namespace Cryptforge.Tests
             if (r.GcValid)
             {
                 Spread gc = Of(r, r.GcBytes), allocs = Of(r, r.GcCount);
+                run.Add("GC KB per frame mean", gc.Mean / 1024f, 2);
+                run.Add("GC KB per frame median", gc.Median / 1024f, 2);
+                run.Add("GC KB per frame p95", gc.P95 / 1024f, 2);
+                run.Add("GC KB per frame max", gc.Max / 1024f, 1);
+                run.Add("GC allocations per frame mean", allocs.Mean, 1);
+                run.Add("GC.Collect runs", r.CollectionsAtEnd - r.CollectionsAtBegin, 0);
                 int allocating = 0;
                 for (int f = 0; f < r.Count; f++)
                     if (r.IsIncluded(f) && r.GcBytes[f] > 0f) allocating++;
@@ -550,6 +796,13 @@ namespace Cryptforge.Tests
             else
                 t.AppendLine("   GC per frame: na (no GC Allocated In Frame counter)");
             if (r.RenderCountersValid && Of(r, r.DrawCalls).Max > 0f)
+            {
+                AddTriple(run, "draw calls", Of(r, r.DrawCalls));
+                AddTriple(run, "batches", Of(r, r.Batches));
+                AddTriple(run, "SetPass", Of(r, r.SetPassCalls));
+                AddTriple(run, "triangles", Of(r, r.Triangles));
+            }
+            if (r.RenderCountersValid && Of(r, r.DrawCalls).Max > 0f)
                 t.Append("   render (profiler counters): draw calls ").Append(Triple(Of(r, r.DrawCalls), 0)).Append(" | batches ")
                     .Append(Triple(Of(r, r.Batches), 0)).Append(" | SetPass ").Append(Triple(Of(r, r.SetPassCalls), 0))
                     .Append(" | triangles ").Append(Triple(Of(r, r.Triangles), 0)).Append(" | vertices ")
@@ -557,6 +810,12 @@ namespace Cryptforge.Tests
             else
                 t.AppendLine("   render (profiler counters): na - nothing rendered, or this Editor reports no render counters");
 #if UNITY_EDITOR
+            if (Of(r, r.StatsDraw).Max > 0f)
+            {
+                AddTriple(run, "UnityStats draw calls", Of(r, r.StatsDraw));
+                AddTriple(run, "UnityStats batches", Of(r, r.StatsBatches));
+                AddTriple(run, "UnityStats SetPass", Of(r, r.StatsSetPass));
+            }
             if (Of(r, r.StatsDraw).Max > 0f)
                 t.Append("   render (UnityStats): draw calls ").Append(Triple(Of(r, r.StatsDraw), 0)).Append(" | batches ")
                     .Append(Triple(Of(r, r.StatsBatches), 0)).Append(" | SetPass ").Append(Triple(Of(r, r.StatsSetPass), 0))
@@ -579,13 +838,100 @@ namespace Cryptforge.Tests
                 .Append(run.DepthMicros >= 0f ? F(run.DepthMicros, 1) + " us for " + run.DepthPlaced + " transforms placed, mean of " + DepthRuns : "na")
                 .AppendLine();
             t.Append("   silhouette gate on that placement: ").AppendLine(run.DepthGate);
+            int textures = Resources.FindObjectsOfTypeAll<Texture>().Length;
             t.Append("   memory at the end: total allocated ").Append(F(Profiler.GetTotalAllocatedMemoryLong() / 1048576f, 0))
                 .Append(" MB, managed heap ").Append(F(Profiler.GetMonoHeapSizeLong() / 1048576f, 0)).Append(" MB (")
                 .Append(F(Profiler.GetMonoUsedSizeLong() / 1048576f, 0)).Append(" used), graphics driver ")
                 .Append(F(Profiler.GetAllocatedMemoryForGraphicsDriver() / 1048576f, 0)).Append(" MB, textures ")
-                .Append(F(Texture.currentTextureMemory / 1048576f, 0)).AppendLine(" MB (the Editor's own included)");
+                .Append(F(Texture.currentTextureMemory / 1048576f, 0)).Append(" MB in ").Append(textures)
+                .AppendLine(" textures loaded (the Editor's own included)");
+            run.Add("end: textures loaded", textures, 0);
+            run.Add("end: texture MB", Texture.currentTextureMemory / 1048576f, 1);
+            run.Add("end: total allocated MB", Profiler.GetTotalAllocatedMemoryLong() / 1048576f, 1);
+            run.Add("end: managed heap used MB", Profiler.GetMonoUsedSizeLong() / 1048576f, 1);
+            run.Add("end: graphics driver MB", Profiler.GetAllocatedMemoryForGraphicsDriver() / 1048576f, 1);
             t.AppendLine();
             AppendFrames(run, r);
+        }
+
+        private static void AddTriple(Run run, string name, Spread spread)
+        {
+            run.Add(name + " median", spread.Median, 0);
+            run.Add(name + " p95", spread.P95, 0);
+            run.Add(name + " max", spread.Max, 0);
+        }
+
+        // One line a metric, floor 1 against floor 2 for each hero and phase both were played for: the change and its
+        // share of floor 1. Floor 1 never changes floor, so its floor-change figures are 0; "na" where a side lacks one.
+        private static string Compare(List<Run> runs)
+        {
+            var t = new StringBuilder();
+            t.AppendLine("== floor 1 (Foundry) vs floor 2 (Ice): one line a metric (floor 1 | floor 2 | change)");
+            foreach (Run ice in runs)
+            {
+                if (ice.Floor != 2)
+                    continue;
+                Run foundry = runs.Find(x => x.Floor == 1 && x.Hero == ice.Hero && x.Phase == ice.Phase);
+                string who = ice.Hero + "/" + ice.Phase;
+                if (foundry == null)
+                {
+                    t.Append("   ").Append(who).AppendLine(": no floor-1 run to compare with");
+                    continue;
+                }
+                if (foundry.EndedEarly || ice.EndedEarly)
+                    t.Append("   ").Append(who).AppendLine(": CAUTION a run ended inside its window; the windows differ");
+                var names = new List<string>();
+                foreach (Metric m in foundry.Metrics) if (!names.Contains(m.Name)) names.Add(m.Name);
+                foreach (Metric m in ice.Metrics) if (!names.Contains(m.Name)) names.Add(m.Name);
+                foreach (string name in names)
+                {
+                    bool change = name.StartsWith("floor change:", System.StringComparison.Ordinal);
+                    int decimals = 2;
+                    float b = Find(ice, name, float.NaN, ref decimals);
+                    float a = Find(foundry, name, change ? 0f : float.NaN, ref decimals);
+                    t.Append("   compare ").Append(who).Append(' ').Append(name.PadRight(42)).Append(" floor 1 ")
+                        .Append(Shown(a, decimals)).Append(" | floor 2 ").Append(Shown(b, decimals)).Append(" | ");
+                    if (float.IsNaN(a) || float.IsNaN(b))
+                    {
+                        t.AppendLine("change na");
+                        continue;
+                    }
+                    float d = b - a;
+                    t.Append(d >= 0f ? "+" : string.Empty).Append(F(d, decimals));
+                    t.AppendLine(a != 0f ? " (" + (d >= 0f ? "+" : string.Empty) + F(100f * d / Mathf.Abs(a), 1) + "%)" : string.Empty);
+                }
+            }
+            t.AppendLine("   (the Editor stands in for the phone, whose S23 frame row is unmeasured: read the change, not the absolute)");
+            t.AppendLine();
+            return t.ToString();
+        }
+
+        private static float Find(Run run, string name, float missing, ref int decimals)
+        {
+            foreach (Metric m in run.Metrics)
+                if (m.Name == name)
+                {
+                    decimals = m.Decimals;
+                    return m.Value;
+                }
+            return missing;
+        }
+
+        private static string Shown(float value, int decimals) => float.IsNaN(value) ? "na" : F(value, decimals);
+
+        // perf-probe-floors.txt: floor numbers, by comma or by line ("1,2"), played in that order ("2,1" puts floor 2 first,
+        // to tell the floor from the order); 1 and 2 are played, floor 1 alone by default.
+        private static int[] Floors()
+        {
+            var floors = new List<int>();
+            foreach (string line in Lines("perf-probe-floors.txt", DefaultFloors))
+                foreach (string part in line.Split(','))
+                    if (int.TryParse(part.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int floor) &&
+                        (floor == 1 || floor == 2) && !floors.Contains(floor))
+                        floors.Add(floor);
+            if (floors.Count == 0)
+                floors.Add(1);
+            return floors.ToArray();
         }
 
         private static void AppendSlowest(StringBuilder t, PerfProbeRecorder r)
@@ -768,7 +1114,7 @@ namespace Cryptforge.Tests
             StringBuilder s = run.Frames;
             for (int f = 0; f < r.Count; f++)
             {
-                s.Append(run.Hero).Append('\t').Append(run.Phase).Append('\t').Append(f).Append('\t').Append(r.Flags[f]);
+                s.Append(run.Hero).Append('\t').Append(run.Label).Append('\t').Append(f).Append('\t').Append(r.Flags[f]);
                 foreach (float[] column in new[]
                 {
                     r.WallMs, r.MainThreadMs, r.GcBytes, r.GcCount, r.DrawCalls, r.Batches, r.SetPassCalls, r.Triangles,
@@ -834,6 +1180,18 @@ namespace Cryptforge.Tests
         // Nearest rank on sorted values.
         private static float Rank(List<float> sorted, float share) =>
             sorted[Mathf.Clamp(Mathf.CeilToInt(share * sorted.Count) - 1, 0, sorted.Count - 1)];
+
+        private static List<float> Sorted(PerfProbeRecorder r, float[] values)
+        {
+            var kept = new List<float>(r.Count);
+            for (int f = 0; f < r.Count; f++)
+                if (r.IsIncluded(f) && values[f] >= 0f)
+                    kept.Add(values[f]);
+            kept.Sort();
+            if (kept.Count == 0)
+                kept.Add(0f);
+            return kept;
+        }
 
         private static float Median(List<float> values) => SpreadOf(new List<float>(values)).Median;
 

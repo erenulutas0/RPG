@@ -90,14 +90,32 @@ namespace Cryptforge.UI
         // The floor's dress (FloorTheme): the region re-tints its own meshes and the backdrop's plate is tinted; Foundry
         // restores exactly what Awake built, and asking for the theme already on show does nothing.
         public FloorTheme Theme { get; private set; }
+
+        // A floor ahead whose dress is not this one (EncounterController, as a floor starts): the region works it out over
+        // the coming frames - colours graded off the main thread, textures loaded asynchronously - so the change itself
+        // only binds it. Nothing on show changes.
+        public void PrepareFloorTheme(FloorTheme theme)
+        {
+            if (Region != null && theme != Theme)
+                Region.PrepareTheme(theme, _platformMaterials);
+        }
+        public bool IsFloorThemeReady(FloorTheme theme) => Region == null || Region.IsThemePrepared(theme);
+        public bool IsPreparingFloorTheme => Region != null && Region.IsPreparingTheme;
         public void ApplyFloorTheme(FloorTheme theme)
         {
             if (theme == Theme)
                 return;
+            using (PerformanceMarkers.ThemeApply.Auto())
+                DressFloor(theme);
+        }
+
+        private void DressFloor(FloorTheme theme)
+        {
             Theme = theme;
             bool ice = theme == FloorTheme.Ice;
             if (Region != null)
                 Region.ApplyTheme(theme, _platformMaterials);
+            using var backdrop = PerformanceMarkers.ThemeBackdrop.Auto();
             if (_atmosphere != null)
                 _atmosphere.SetCold(ice);
             // The hero's contact patch widens on the ice floor so the Vanguard keeps his footing against the slate (docs/49).
@@ -127,6 +145,7 @@ namespace Cryptforge.UI
         {
             if (_frostPlayed || _camera == null || _material == null)
                 return false;
+            using var transition = PerformanceMarkers.ThemeTransition.Auto();
             _frostPlayed = true;
             if (FrostTransition == null)
             {

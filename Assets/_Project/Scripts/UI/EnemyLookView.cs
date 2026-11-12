@@ -1,5 +1,6 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -234,6 +235,8 @@ namespace Cryptforge.UI
             _artFor = null;
             if (ReferenceEquals(Art, shown))
                 return;
+            // The palette changed: the pose redrawn from the new set (Cryptforge.Theme.Frost).
+            using var frost = PerformanceMarkers.ThemeFrost.Auto();
             if (IsWindingUp)
                 ShowWindup(WindupStep >= 0 && Art.HasWalkingWindup(ShowsEnraged) ? WindupStep : -1);
             else if (PaintedFrame == StrikeWindupFrame && Art.HasStrikeWindup)
