@@ -890,3 +890,53 @@ runs; floor-2 cells are Vanguard / Ilya.
 - Or keep a small reflection only for the flanking cohorts' benefit: `c1-f70`.
 - Each costs 3 minutes on 8 threads. Read them against `captain` on the same seeds and, given the noise, on the holdout
   seeds 201-400 too, before any of them ships.
+
+### Rounds 3 and 4 (2026-11-12, night): the ship rule on two seed ranges
+
+**The lead's rule, since the line sits inside the noise.** A variant ships only if all four hold:
+- clumsy completion of the four-floor Descent is at least 40.0 % on seeds 1-200;
+- it is at least 39.0 % on the holdout, seeds 201-400;
+- careful clears on floor 2 stay within 3 of the Captain's;
+- the Daggers' lead stays above +50 %.
+
+Among the variants that pass, `c1-f70` is preferred, because it keeps the reflection. Otherwise the largest
+careful-minus-standing gap wins.
+
+**The runs.** Each variant was played on both seed ranges against `captain` on the same seeds, with
+`VaultsEnemiesResearch` on the shipped code: both heroes, every cohort, typical hands, the flank on. Round 3 is `r0-f70`,
+`r0-f60-h100`, `r0-f80` and `c1-f70`. Round 4 is `c1-f80` and `r0-f90`. Completion is of 400 runs; floor-2 cells are
+Vanguard / Ilya.
+
+| Option | Clumsy completion, 1-200 | Clumsy completion, 201-400 | Both (of 800) | Careful F2, 1-200 / 201-400 | Gap, 1-200 / 201-400 | Daggers' lead, 1-200 / 201-400 | Standing F2 boss deaths, 1-200 / 201-400 | Reflected a fight (careful), 1-200 |
+|---|---|---|---|---|---|---|---|---|
+| `captain` | 161 (40.3 %) | 146 (36.5 %) | 307 | 191 / 191; 194 / 194 | 11 / 21; 15 / 16 | +19 %; +31 % | 7 / 9; 10 / 14 | - |
+| `f50` (built) | 147 (36.8 %) | - | - | 192 / 189 | 28 / 24 | +83 % | 23 / 14 | 10.7 / 9.5 |
+| `r0-f70` | **160 (40.0 %)** | 146 (36.5 %) | 306 | 191 / 194; 195 / 194 | 17 / 22; 18 / 15 | +74 %; +58 % | 13 / 7; 12 / 13 | 0 |
+| `r0-f60-h100` | 159 (39.8 %) | 148 (37.0 %) | 307 | 191 / 193; 192 / 193 | 18 / 22; 11 / 16 | +69 %; +77 % | 14 / 8; 8 / 15 | 0 |
+| `r0-f80` | 155 (38.8 %) | 144 (36.0 %) | 299 | 190 / 191; 193 / 193 | 11 / 18; 11 / 15 | +63 %; +62 % | 8 / 6; 7 / 14 | 0 |
+| `c1-f70` | 153 (38.3 %) | 142 (35.5 %) | 295 | 190 / 193; 194 / 194 | 16 / 23; 17 / 17 | +76 %; +58 % | 13 / 9; 12 / 15 | 4.9 / 4.3 |
+| `c1-f80` | 148 (37.0 %) | 136 (34.0 %) | 284 | 190 / 190; 192 / 194 | 12 / 21; 12 / 17 | +63 %; +62 % | 9 / 10; 9 / 15 | 4.7 / 4.1 |
+| `r0-f90` | 159 (39.8 %) | 141 (35.3 %) | 300 | 191 / 191; 194 / 192 | 15 / 20; 14 / 14 | +62 %; +58 % | 11 / 8; 9 / 14 | 0 |
+
+**No variant passes, so nothing ships.** The Sentry stays built as `f50` and not cleared.
+- Only `r0-f70` meets the bar on seeds 1-200, with 160 of 400, exactly 40.0 %.
+- No variant can meet the holdout bar. On seeds 201-400 the Captain itself completes 36.5 % (146 of 400), under the
+  39.0 % line. A Sentry that is no easier for the clumsy pilot than the Captain cannot pass it.
+- Careful clears within 3 of the Captain and the Daggers' lead above +50 % hold for every variant on both ranges.
+
+**The noise.** At 40 % of 400 runs the binomial SD is about 10 completions (2.4 points).
+- The readings move by that much between neighbours that should be ordered. `c1-f80`, softer than `c1-f70`, completes
+  148 against 153. `r0-f80`, softer than `r0-f70`, completes 155 against 160.
+- The two seed ranges differ by 15 completions for the same Captain (161 and 146).
+- An absolute bar reads the seeds as much as the Sentry.
+
+**Recommendation for the lead.** Read the bar against the Captain on the same seeds, for example "the clumsy cohort
+loses at most 1 completion in 800 against the Captain". On the pooled 800 runs:
+- `r0-f60-h100` costs nothing (307 against 307);
+- `r0-f70` costs 1 (306);
+- `c1-f70`, the one that keeps the reflection, costs 12 (1.5 points), and `f50` about 14 on seeds 1-200 alone.
+
+Of the two that meet such a bar, `r0-f70` has the larger careful-minus-standing gap (72 against 67 over both ranges).
+Its Daggers' lead is +74 % / +58 %. Shipping it gives up the reflection, and with it the violet reflect glint; the
+front arc and the turn remain the creature's read. Keeping the reflection costs the clumsy cohort about 1.5 points
+over 800 runs. The choice is the lead's or the owner's.
