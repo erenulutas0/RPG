@@ -155,6 +155,17 @@ namespace Cryptforge.Combat
             _marchRange[index] = range;
         }
 
+        // Enemy index walks at speed from its next step: 0 roots it where it stands (docs/52's open Cinder Bloom,
+        // BloomRule.SpeedOf; simulation research only today), its own speed walks it again.
+        public void SetSpeed(int index, float speed)
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (float.IsNaN(speed) || float.IsInfinity(speed) || speed < 0f)
+                throw new ArgumentOutOfRangeException(nameof(speed));
+            _speed[index] = speed;
+        }
+
         public void Replace(int index, IDamageable body, EntryPlacement placement, float speed, float reach)
         {
             if (index < 0 || index >= Count)

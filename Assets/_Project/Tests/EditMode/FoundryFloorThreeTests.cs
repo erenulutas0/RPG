@@ -177,6 +177,90 @@ namespace Cryptforge.Tests
             Assert.That(finales, Is.GreaterThan(0), "a run went on into the finale");
         }
 
+        // docs/52's Cinder Bloom, a simulation research lever (DescentSimulation.GloamChain, off by default): with no Gloam
+        // lever the chain is floor 3 as shipped, the Captain at Thorn Post and the same runs; with FoundryLevers.GloamBloom the
+        // Bloom leads Thorn Post in the Captain's place, its escort and every other room unchanged, at docs/52 section 5's
+        // numbers (549 health and 19.5 a maul on floor 3).
+        [Test]
+        public void TheBloomLeverPutsTheCinderBloomAtThornPostAndNothingElse()
+        {
+            DescentSimulation.FoundryLevers off = Floors(DescentSimulation.FinaleFloor);
+            DescentSimulation.FoundryFloor shipped = DescentSimulation.FoundryFloorOne().Next.Next;
+            DescentSimulation.FoundryFloor same = DescentSimulation.GloamChain(off).Next.Next;
+            int elite = Array.IndexOf(shipped.Kinds, RoomKind.Elite);
+            Assert.That(same.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain));
+
+            DescentSimulation.FoundryLevers on = off.Copy("bloom");
+            on.GloamBloom = true;
+            DescentSimulation.FoundryFloor three = DescentSimulation.GloamChain(on).Next.Next;
+            Assert.That(three.Id, Is.EqualTo(shipped.Id));
+            Assert.That(three.Kinds, Is.EqualTo(shipped.Kinds));
+            for (int room = 0; room < shipped.Rooms.Length; room++)
+                if (room != elite)
+                    Assert.That(three.Rooms[room], Is.EqualTo(shipped.Rooms[room]), $"room {room + 1}");
+            Assert.That(three.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom));
+            Assert.That(three.Rooms[elite][0].Skip(1), Is.EqualTo(shipped.Rooms[elite][0].Skip(1)), "the Grunt and two Cinder Mites stay");
+            Assert.That(three.Next.Id, Is.EqualTo("floor_final_swarm"));
+            Assert.That(shipped.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain), "the shipped chain is untouched");
+
+            DescentSimulation.Enemy bloom = DescentSimulation.CinderBloom;
+            Assert.That((bloom.Health, bloom.Damage, bloom.Interval, bloom.InitialDelay, bloom.Reach, bloom.Speed, bloom.Gold, bloom.Experience),
+                Is.EqualTo((280f, 10.8f, 1.8f, .6f, 1.5f, 1.2f, 20, 10)));
+            Assert.That(bloom.Health * ClimbScaling.Health(3), Is.EqualTo(549f).Within(.5f));
+            Assert.That(bloom.Damage * ClimbScaling.Damage(3), Is.EqualTo(19.5f).Within(.05f));
+
+            on.BloomHealthScale = .8f;
+            on.BloomMaulScale = 1.25f;
+            DescentSimulation.Enemy tuned = DescentSimulation.GloamChain(on).Next.Next.Rooms[elite][0][0];
+            Assert.That(tuned.Name, Is.EqualTo(bloom.Name), "the Bloom's rules read its name");
+            Assert.That(tuned.Health, Is.EqualTo(224f).Within(1e-3f));
+            Assert.That(tuned.Damage, Is.EqualTo(13.5f).Within(1e-4f));
+
+            DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+            foreach (int seed in Seeds.Take(2))
+            {
+                DescentSimulation.FoundryResult a = DescentSimulation.RunFoundry(hero, seed, off);
+                DescentSimulation.FoundryResult b = DescentSimulation.RunFoundry(hero, seed, off, DescentSimulation.GloamChain(off));
+                for (int floor = 1; a != null; floor++, a = a.NextFloor, b = b.NextFloor)
+                    AssertSame(b, a, $"seed {seed} floor {floor}: no Gloam lever, the shipped run");
+            }
+        }
+
+        // The Bloom's cycle in a fight: it walks in closed, so no fight is shorter than its closed phase; the bark blunts the
+        // closed landings and lets the open ones through. Read over every run that met it, both heroes, rather than one seed.
+        [Test]
+        public void TheBloomsCycleShapesThornPostsFight()
+        {
+            DescentSimulation.FoundryLevers levers = Floors(3);
+            levers.GloamBloom = true;
+            int met = 0, closed = 0, open = 0;
+            float barked = 0f;
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in Seeds)
+            {
+                DescentSimulation.FoundryResult three = DescentSimulation.RunFoundry(hero, seed, levers, DescentSimulation.GloamChain(levers))
+                    .NextFloor?.NextFloor;
+                if (three?.EliteFights == null)
+                    continue;
+                foreach (DescentSimulation.EliteFight fight in three.EliteFights)
+                {
+                    met++;
+                    Assert.That(fight.Kind, Is.EqualTo(DescentSimulation.CinderBloom.Name));
+                    Assert.That(fight.Lifetime, Is.GreaterThanOrEqualTo(BloomRule.ClosedSeconds), $"{hero.Name} seed {seed}: it walks in closed");
+                    Assert.That(fight.Windows, Is.GreaterThanOrEqualTo(1), $"{hero.Name} seed {seed}");
+                    Assert.That(fight.Health, Is.GreaterThanOrEqualTo(DescentSimulation.CinderBloom.Health * ClimbScaling.Health(3) - .01f),
+                        "floor 3's tier, and the altars' difficulty above it");
+                }
+                closed += three.BloomClosedLandings;
+                open += three.BloomOpenLandings;
+                barked += three.BloomBarked;
+            }
+            Assert.That(met, Is.GreaterThan(0), "a run met the Bloom");
+            Assert.That(closed, Is.GreaterThan(0));
+            Assert.That(open, Is.GreaterThan(0));
+            Assert.That(barked, Is.GreaterThan(0f));
+        }
+
         // The batch report's floors: FOUNDRY_FLOORS=2 stops after floor 2 as before, 3 after floor 3, and only 4 reaches the
         // finale, which FoundryBatch.FinaleOf finds however many floors stand before it.
         [Test]
