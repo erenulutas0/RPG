@@ -68,6 +68,8 @@ namespace Cryptforge.Tests
             Assert.That(arena.Region, Is.Not.Null);
             Assert.That(arena.Region.Theme, Is.EqualTo(FloorTheme.Gloam), "The region itself is dressed as the garden.");
             Assert.That(arena.Region.transform.Find("Ice crystals and icicles"), Is.Null, "Nothing of the ice is built.");
+            Transform growth = arena.Region.transform.Find("Garden roots, fungi and moss");
+            Assert.That(growth != null && growth.gameObject.activeInHierarchy, Is.True, "The garden's growth stands.");
             Assert.That(arena.Region.HeldVariantCount(FloorTheme.Ice), Is.EqualTo(0));
             Assert.That(arena.Region.HeldVariantCount(FloorTheme.Gloam), Is.GreaterThan(0), "The garden's variants are bound.");
             bool paved = false;

@@ -211,6 +211,28 @@ namespace Cryptforge.UI
         }
         // Only the first floor's descent onto the frozen second floor shows the frost.
         public static bool FrostsOnEntry(int floorNumber, FloorTheme theme) => floorNumber == 2 && theme == FloorTheme.Ice;
+        // The Descent landing on floor 3 (EncounterController.EnterFloor): the frost melting into ash (docs/51 question 6),
+        // once a run, made on first use and never a child of the region, as the frost is.
+        public GloamTransitionView GloamTransition { get; private set; }
+        public bool PlayGloamTransition()
+        {
+            if (_gloamPlayed || _camera == null || _material == null)
+                return false;
+            using var transition = PerformanceMarkers.ThemeTransition.Auto();
+            _gloamPlayed = true;
+            if (GloamTransition == null)
+            {
+                var melt = new GameObject(GloamTransitionView.ObjectName);
+                melt.transform.SetParent(_camera.transform, false);
+                GloamTransition = melt.AddComponent<GloamTransitionView>();
+                GloamTransition.Build(_camera, _material);
+            }
+            GloamTransition.Play();
+            return true;
+        }
+        // Only the second floor's descent onto the garden shows the melt.
+        public static bool MeltsOnEntry(int floorNumber, FloorTheme theme) => floorNumber == 3 && theme == FloorTheme.Gloam;
+        private bool _gloamPlayed;
         private bool _frostPlayed;
         private FoundryAtmosphereView _atmosphere;
         private Transform _heroShadow;
