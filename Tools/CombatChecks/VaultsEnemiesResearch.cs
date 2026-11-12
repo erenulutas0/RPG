@@ -155,8 +155,9 @@ namespace Cryptforge.Tests
 
         // A Regent variant named by its levers, for a sweep without a build: "regent:" then colon-separated name=value pairs
         // off the shipped Regent - l the lane's share of the hero's maximum, t its telegraph (s), len its length, w its width,
-        // e the beat and e2 phase two's (s), s the gate share, c the copies - and "nosidestep" or "warden" as words, e.g.
-        // "regent:l=0.14:t=1.3". Roles read for the plain words "roles".
+        // e the beat and e2 phase two's (s), s the gate share, c the copies, sf and sr the Sentry's front and reflection
+        // shares - and "nosidestep", "warden" (the Forge Warden back at its gate) and "roles" (the roles row) as words, e.g.
+        // "regent:l=0.14:t=1.3".
         private static Option RegentVariant(string key)
         {
             var sets = new List<Action<DescentSimulation.FoundryLevers>>();
@@ -186,6 +187,9 @@ namespace Cryptforge.Tests
                     case "e2": sets.Add(l => l.RegentEveryPhaseTwo = value); break;
                     case "s": sets.Add(l => l.RegentHealthShare = value); break;
                     case "c": sets.Add(l => l.RegentCopies = (int)value); break;
+                    // The Sentry beside it (MirrorGuardRule): the share of a front landing it takes and the reflection's share.
+                    case "sf": sets.Add(l => l.SentryFrontShare = value); break;
+                    case "sr": sets.Add(l => l.SentryReflectShare = value); break;
                     default: throw new ArgumentException("Unknown Regent lever: " + part);
                 }
             }
