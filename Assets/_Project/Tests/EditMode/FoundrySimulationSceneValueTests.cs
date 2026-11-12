@@ -74,6 +74,8 @@ namespace Cryptforge.Tests
         {
             int walk = ScriptOrder<HeroMovementInput>("UI/HeroMovementInput.cs");
             int encounter = ScriptOrder<EncounterController>("Combat/EncounterController.cs");
+            // The Glass Regent's lanes are marked and judged on the Warden's clock, in WardenSlamService (docs/50 section 6),
+            // as the simulation marks them in StepWarden.
             int slams = ScriptOrder<WardenSlamService>("Core/WardenSlamService.cs");
             // The Mirror Sentries' guards step right after the Warden's slam clock, as DescentSimulation.Foundry's frame
             // steps StepVaults after StepWarden, and before every strike lands on them.
@@ -147,6 +149,60 @@ namespace Cryptforge.Tests
             Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(sentry));
         }
 
+        // The Glass Regent (RegentRule; the lead's decisions 2026-11-12): the scene's Regent is the Forge Warden's prefab with
+        // a GlassRegent - its lanes' sprites on it - and its own Blender-rendered set, and the simulation's shipped levers mark
+        // its lanes with RegentRule's tuning on its beat and sidestep them as DevelopmentAutopilot does; the asset is the
+        // simulation's (AssertEnemy) and its proof floor fields it alone at the gate.
+        [Test]
+        public void TheGlassRegentIsTheSimulations()
+        {
+            var regent = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_GlassRegent.asset");
+            Assert.That(regent, Is.Not.Null);
+            AssertEnemy(regent, DescentSimulation.GlassRegent, regent.Id);
+            Assert.That(regent.Id, Is.EqualTo("enemy_glass_regent"));
+            Assert.That(regent.Weapon.Id, Is.EqualTo("weapon_glass_rod"));
+            Assert.That(regent.Weapon.DisplayName, Is.EqualTo("Glass Rod"));
+            var lanes = regent.Prefab.GetComponent<GlassRegent>();
+            Assert.That(lanes, Is.Not.Null, "the Regent's prefab marks lanes");
+            Assert.That(lanes.LaneEdge, Is.Not.Null, "the lane's edge sprite");
+            Assert.That(lanes.LaneFill, Is.Not.Null, "the lane's fill sprite");
+            Assert.That(lanes.LaneEdge.border, Is.Not.EqualTo(UnityEngine.Vector4.zero), "9-sliced");
+            Assert.That(regent.Prefab.GetComponent<EnrageBehaviour>(), Is.Not.Null, "its phase two, as the Warden's");
+            var warden = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_ForgeWarden.asset");
+            Assert.That(warden.Prefab.GetComponent<GlassRegent>(), Is.Null, "the Warden marks circles");
+            Assert.That(DescentSimulation.GlassRegent.EnrageAt, Is.EqualTo(DescentSimulation.Warden.EnrageAt));
+            // Its own Blender-rendered set, which has no frosted copy: the set is its own floor-2 look (docs/50 section 2).
+            var look = regent.Prefab.GetComponent<EnemyLookView>();
+            Assert.That(look, Is.Not.Null);
+            var art = new SerializedObject(look).FindProperty("_paintedArt").objectReferenceValue as Cryptforge.Art.EnemyArtSet;
+            Assert.That(art, Is.Not.Null, "painted");
+            Assert.That(art.name, Is.EqualTo("GlassRegentArtSet"));
+            Assert.That(art.IsValid, Is.True);
+            Assert.That(art.Frosted, Is.Null);
+
+            var shipped = new DescentSimulation.FoundryLevers();
+            Assert.That(shipped.RegentLaneWidth, Is.EqualTo(RegentRule.LaneWidth));
+            Assert.That(shipped.RegentLaneLength, Is.EqualTo(RegentRule.LaneLength));
+            Assert.That(shipped.RegentLaneShare, Is.EqualTo(RegentRule.LaneShare));
+            Assert.That(shipped.RegentEvery, Is.EqualTo(RegentRule.Every));
+            Assert.That(shipped.RegentEveryPhaseTwo, Is.EqualTo(RegentRule.EveryPhaseTwo));
+            Assert.That(shipped.RegentTelegraph, Is.EqualTo(RegentRule.Telegraph));
+            Assert.That(shipped.RegentCopies, Is.Zero, "stage 1: no copies");
+            Assert.That(shipped.RegentHealthShare, Is.Zero, "the floor's own share");
+            Assert.That(shipped.SidestepsTheRegent, Is.True, "the simulation's pilot sidesteps it as DevelopmentAutopilot does");
+            Assert.That(shipped.VaultsWarden, Is.False);
+
+            FloorDefinition proof = null;
+            foreach (FloorDefinition floor in UnityEngine.Resources.LoadAll<FloorDefinition>(DevelopmentStart.ResourcesFolder))
+                if (floor.Id == "floor_regent_proof")
+                    proof = floor;
+            Assert.That(proof, Is.Not.Null, "Resources/Development/Floor_RegentProof");
+            Assert.That(proof.RoomCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).Kind, Is.EqualTo(RoomKind.Boss));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(regent));
+        }
+
         // The order Unity runs a script in: its Script Execution Order setting where one is set, else its
         // DefaultExecutionOrder, else 0.
         private static int ScriptOrder<T>(string path) where T : UnityEngine.MonoBehaviour
@@ -176,7 +232,7 @@ namespace Cryptforge.Tests
 
         // The climb's floor 2, which a run goes down to after a floor-1 clear (FoundryLevers.Floors = 2): Floor_EmberHalls'
         // next floor as the foundry plays it - its rooms, horde, climb scaling, Cursed Gold and its own foundry knobs (no
-        // V0.1 surges or elite, floor 1's gate time; its Warden's own share) - its gate boss the Forge Warden with two Cinder Mites,
+        // V0.1 surges or elite, floor 1's gate time; its gate boss's own share) - its gate boss the Glass Regent with two Cinder Mites,
         // the districts the round goes on from, and below it floor 3, Gloam Gardens, which the simulation plays after a
         // floor-2 clear with FoundryLevers.Floors = 3 (TheFoundrysThirdFloorIsTheAsset; the finale before docs/48).
         [Test]
@@ -191,12 +247,13 @@ namespace Cryptforge.Tests
             Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(210f), "floor 2's gate holds for floor 1's 3:30 (docs/47)");
 
             // Its gate boss: the boss room's first enemy walks out of the gate and WardenRule's share and hold are its; the
-            // others walk out beside it.
+            // others walk out beside it. The Glass Regent since 2026-11-12 (docs/50, the lead's decisions), where floor 1 keeps
+            // its Forge Warden.
             int boss = System.Array.IndexOf(floor.Kinds, RoomKind.Boss);
             int firstBoss = System.Array.IndexOf(DescentSimulation.FoundryFloorOne().Kinds, RoomKind.Boss);
-            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo(first.RoomAt(firstBoss).WaveAt(0).EnemyAt(0).Id),
-                "floor 1's gate boss, the Forge Warden");
-            Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
+            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_glass_regent"));
+            Assert.That(first.RoomAt(firstBoss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_forge_warden"));
+            Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.GlassRegent));
             Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
 
             // Its elite: the Mirror Sentry leads Sentry Hall (the lead's decisions 2026-11-12), where floor 1 keeps its Captain.
@@ -207,9 +264,11 @@ namespace Cryptforge.Tests
             int firstElite = System.Array.IndexOf(DescentSimulation.FoundryFloorOne().Kinds, RoomKind.Elite);
             Assert.That(first.RoomAt(firstElite).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_grunt_captain"));
 
-            // Its Warden's share is the floor's own, 8.5 / 1.4 (docs/41, status 2026-11-10 later), and the simulation's floor
-            // 2 plays the asset's (LaterFloorLevers, through the scene's WardenRule.GateHealthShareOn).
-            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(8.5f / 1.4f));
+            // Its gate boss's share is the floor's own - the Regent's 7.0 (the lead's decisions 2026-11-12; the Warden's was
+            // 8.5 / 1.4) - and the simulation's floor 2 plays the asset's (LaterFloorLevers, through the scene's
+            // WardenRule.GateHealthShareOn).
+            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(DescentSimulation.FloorTwoGateShare));
+            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(7f));
             Assert.That(DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), floor).WardenHealthShare,
                 Is.EqualTo(WardenRule.GateHealthShareOn(asset.FoundryGateHealthShare)));
 
@@ -250,10 +309,12 @@ namespace Cryptforge.Tests
             Assert.That(asset.EnemyHealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));
             Assert.That(asset.EnemyDamageMultiplier, Is.EqualTo(ClimbScaling.Damage(3)).Within(1e-5f));
 
-            // Its gate boss: the Forge Warden, two Cinder Mites beside it, at the floor's own share.
+            // Its gate boss: the Forge Warden - floor 1's, where floor 2 has the Glass Regent - two Cinder Mites beside it,
+            // at the floor's own share.
             int boss = System.Array.IndexOf(floor.Kinds, RoomKind.Boss);
-            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo(second.RoomAt(boss).WaveAt(0).EnemyAt(0).Id),
-                "floor 2's gate boss, the Forge Warden");
+            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo(first.RoomAt(boss).WaveAt(0).EnemyAt(0).Id),
+                "floor 1's gate boss, the Forge Warden");
+            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_forge_warden"));
             Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
             Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
             Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(DescentSimulation.FloorThreeGateShare));

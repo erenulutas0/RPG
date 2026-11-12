@@ -320,8 +320,9 @@ namespace Cryptforge.Tests
             Assert.That(PaintedArtOf("ForgeWarden"), Is.SameAs(set));
             Assert.That(PaintedArtOf("Grunt"), Is.SameAs(Load("Assets/_Project/Art/Characters/SlagBrute/SlagBruteArtSet.asset")));
             Assert.That(PaintedArtOf("CinderMite"), Is.SameAs(Load("Assets/_Project/Art/Characters/CinderMite/CinderMiteArtSet.asset")));
-            // The Warden is a variant of the Tank: the override is the Warden's alone.
-            foreach (string other in new[] { "Tank", "Runner", "GruntCaptain" })
+            // The Warden is a variant of the Tank: the override is the Warden's alone. The Glass Regent is a variant of the
+            // Warden (docs/50 section 6) and overrides it with its own set.
+            foreach (string other in new[] { "Tank", "Runner", "GruntCaptain", "GlassRegent" })
                 Assert.That(PaintedArtOf(other), Is.Not.SameAs(set), other);
             // Every other painted enemy's set carries none of the boss's parts, so it walks, strikes and falls as before.
             foreach (string path in new[] { "SlagBrute/SlagBruteArtSet", "CinderMite/CinderMiteArtSet", "Runner/RunnerArtSet",

@@ -49,19 +49,24 @@ namespace Cryptforge.Tests
             Assert.That(DescentSimulation.GloamGardens.DamageMultiplier, Is.EqualTo(ClimbScaling.Damage(3)).Within(1e-5f));
 
             // Floor 2's rooms wave for wave: the same parts, the garden's names (the asset holds them) - but its elite room,
-            // Thorn Post, keeps the Grunt Captain where floor 2's Sentry Hall has the Mirror Sentry since 2026-11-12 (docs/50,
-            // the lead's decisions); the escort is the same.
+            // Thorn Post, keeps the Grunt Captain where floor 2's Sentry Hall has the Mirror Sentry, and its gate, the
+            // Warden's Grove, keeps the Forge Warden where floor 2's has the Glass Regent, since 2026-11-12 (docs/50, the
+            // lead's decisions); the escorts are the same.
             Assert.That(three.Rooms.Length, Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms.Length));
             int elite = System.Array.IndexOf(three.Kinds, RoomKind.Elite);
+            int gate = System.Array.IndexOf(three.Kinds, RoomKind.Boss);
             for (int room = 0; room < three.Rooms.Length; room++)
             {
-                if (room == elite)
+                if (room == elite || room == gate)
                     continue;
                 Assert.That(three.Rooms[room], Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[room]), $"room {room + 1}");
             }
             Assert.That(three.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain));
             Assert.That(DescentSimulation.QuicksilverVaults.Rooms[elite][0][0], Is.SameAs(DescentSimulation.MirrorSentry));
             Assert.That(three.Rooms[elite][0].Skip(1), Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[elite][0].Skip(1)));
+            Assert.That(three.Rooms[gate][0][0], Is.SameAs(DescentSimulation.Warden));
+            Assert.That(DescentSimulation.QuicksilverVaults.Rooms[gate][0][0], Is.SameAs(DescentSimulation.GlassRegent));
+            Assert.That(three.Rooms[gate][0].Skip(1), Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[gate][0].Skip(1)));
 
             Assert.That(three.Next, Is.Not.Null);
             Assert.That(three.Next.Id, Is.EqualTo("floor_final_swarm"));

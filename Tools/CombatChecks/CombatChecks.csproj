@@ -92,6 +92,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/WardenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EliteRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/MirrorGuardRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RegentRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />

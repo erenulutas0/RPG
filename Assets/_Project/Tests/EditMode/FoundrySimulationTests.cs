@@ -176,8 +176,8 @@ namespace Cryptforge.Tests
                         Assert.That(run.ClockAtGate, Is.GreaterThanOrEqualTo(210f), where + ": floor 2's gate holds for its clock's 3:30");
                         Assert.That(run.LevelAtGate, Is.GreaterThanOrEqualTo(first.Level), where + ": the level carried down");
                         Assert.That(run.DifficultyAtGate, Is.GreaterThanOrEqualTo(first.Difficulty), where + ": the difficulty carried down");
-                        // Floor 2's own share (8.5 / 1.4), the climb's x1.4 cancelled on its Warden.
-                        Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.Warden.Health * (8.5f / 1.4f) *
+                        // Floor 2's own share (FloorTwoGateShare), its gate boss the Glass Regent since 2026-11-12.
+                        Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.GlassRegent.Health * DescentSimulation.FloorTwoGateShare *
                                                                  ClimbScaling.Health(2) * run.DifficultyAtGate).Within(.01f), where);
                         Assert.That(run.ClockAtGate, Is.InRange(1f, run.FloorSeconds - run.DescentSeconds), where + ": the floor's own clock");
                     }
@@ -231,12 +231,14 @@ namespace Cryptforge.Tests
                 "floor 1's later halls - the workyard, the pit's rim, the east - its extra elite not counted");
         }
 
-        // The Forge Warden's health as it walks out of the gate (docs/41, status 2026-11-10 later): floor 1's is
-        // WardenRule.GateHealthShare of its authored 300, as before; floor 2's own share, 8.5 / 1.4, cancels the climb's
-        // x1.4 on it, so at a difficulty of 1.6 it walks out with 4080 instead of 5712 - floor 1's Warden's at the same
-        // difficulty. The simulation's floor 2 plays that share (LaterFloorLevers) as EncounterController.SpawnWave does.
+        // The gate boss's health as it walks out of the gate (docs/41, status 2026-11-10 later): floor 1's Forge Warden's is
+        // WardenRule.GateHealthShare of its authored 300, as before. Floor 2's own share cancelled the climb's x1.4 on its
+        // Warden - 8.5 / 1.4, 4080 at a difficulty of 1.6 instead of 5712, floor 1's Warden's - and since 2026-11-12 its
+        // gate boss is the Glass Regent at 7.0 (docs/50, the lead's decisions: the Warden's band on the holdout seeds), 4704
+        // at that difficulty. The simulation's floor 2 plays that share (LaterFloorLevers) as EncounterController.SpawnWave
+        // does.
         [Test]
-        public void FloorTwosWardenHasTheClimbCancelledAndFloorOnesIsUnchanged()
+        public void FloorTwosGateBossHasItsOwnShareAndFloorOnesIsUnchanged()
         {
             const float difficulty = 1.6f;
             DescentSimulation.FoundryFloor one = DescentSimulation.FoundryFloorOne();
@@ -252,10 +254,15 @@ namespace Cryptforge.Tests
 
             float second = DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), two).WardenHealthShare;
             Assert.That(second, Is.EqualTo(WardenRule.GateHealthShareOn(two.GateHealthShare)));
-            Assert.That(second, Is.EqualTo(8.5f / 1.4f));
-            Assert.That(Warden(two, second), Is.EqualTo(300f * (8.5f / 1.4f) * 1.4f * difficulty).Within(.01f));
-            Assert.That(Warden(two, second), Is.EqualTo(4080f).Within(.01f), "floor 1's Warden's at the same difficulty");
-            Assert.That(Warden(two, WardenRule.GateHealthShare), Is.EqualTo(5712f).Within(.01f), "floor 2's before");
+            Assert.That(second, Is.EqualTo(DescentSimulation.FloorTwoGateShare));
+            Assert.That(two.Rooms[two.Rooms.Length - 1][0][0], Is.SameAs(DescentSimulation.GlassRegent));
+            Assert.That(DescentSimulation.GlassRegent.Health, Is.EqualTo(DescentSimulation.Warden.Health), "the Warden's authored 300");
+            Assert.That(Warden(two, second), Is.EqualTo(300f * 7f * 1.4f * difficulty).Within(.01f));
+            Assert.That(Warden(two, second), Is.EqualTo(4704f).Within(.01f), "the Regent at 7.0");
+            Assert.That(Warden(two, DescentSimulation.FloorTwoWardenShare), Is.EqualTo(4080f).Within(.01f),
+                "the Warden at 8.5 / 1.4 before it: floor 1's Warden's at the same difficulty");
+            Assert.That(DescentSimulation.FloorTwoWardenShare, Is.EqualTo(8.5f / 1.4f));
+            Assert.That(Warden(two, WardenRule.GateHealthShare), Is.EqualTo(5712f).Within(.01f), "floor 2's before that");
         }
 
         // Two values alike all the way down: a value, a string or a struct equal, a list element by element, a class (a

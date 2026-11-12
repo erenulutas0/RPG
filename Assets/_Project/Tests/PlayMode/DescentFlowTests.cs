@@ -176,11 +176,11 @@ namespace Cryptforge.Tests
                 "2.1:Cold Crucible:Tank+Cinder Mite+Cinder Mite+Cinder Mite",
                 "2.2:Cold Crucible:Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite+Cinder Mite",
                 "3.1:Vault Gate:Grunt+Grunt+Cinder Mite+Cinder Mite+Cinder Mite", "4:The Deep Forge:forge",
-                "5.1:Sentry Hall:Mirror Sentry+Grunt+Cinder Mite+Cinder Mite", "6.1:Warden's Vault:Forge Warden+Cinder Mite+Cinder Mite"
+                "5.1:Sentry Hall:Mirror Sentry+Grunt+Cinder Mite+Cinder Mite", "6.1:Warden's Vault:Glass Regent+Cinder Mite+Cinder Mite"
             }));
             yield return null;
 
-            Assert.That(finaleDoor, Is.Not.Null, "The Warden's fall opened a checkpoint.");
+            Assert.That(finaleDoor, Is.Not.Null, "The Regent's fall opened a checkpoint.");
             Assert.That(finaleDoor.Cards[CheckpointDescend].Description, Does.Contain("Gloam Gardens"),
                 "And its way down is floor 3 (docs/48).");
             Assert.That(_setup.Run.Outcome, Is.EqualTo(RunOutcome.Extracted));

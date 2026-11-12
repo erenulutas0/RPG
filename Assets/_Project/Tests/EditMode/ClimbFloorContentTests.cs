@@ -102,11 +102,11 @@ namespace Cryptforge.Tests
             Assert.That(climbing, Is.EqualTo(3), "The Foundry and the two floors above it climb; the finale keeps its own ramp.");
         }
 
-        // The Forge Warden as the foundry's gate sends it out (EncounterController.SpawnWave): its authored 300 at the
-        // floor's tier, the run's difficulty - 1.6 here - and the floor's gate share (WardenRule.GateHealthShareOn). Floor
-        // 1's is WardenRule.GateHealthShare's, as before; floor 2's own 8.5 / 1.4 cancels the climb's x1.4 on its Warden,
-        // which walks out with 4080 instead of 5712 - floor 1's Warden's at the same difficulty (docs/41, status
-        // 2026-11-10 later).
+        // The gate boss as the foundry's gate sends it out (EncounterController.SpawnWave): its authored 300 at the floor's
+        // tier, the run's difficulty - 1.6 here - and the floor's gate share (WardenRule.GateHealthShareOn). Floor 1's Forge
+        // Warden takes WardenRule.GateHealthShare's, as before. Floor 2's own 8.5 / 1.4 cancelled the climb's x1.4 on its
+        // Warden - 4080 instead of 5712, floor 1's Warden's at the same difficulty (docs/41, status 2026-11-10 later) - and
+        // since 2026-11-12 its gate boss is the Glass Regent at 7.0 (docs/50, the lead's decisions), 4704.
         [Test]
         public void TheGateBossKeepsFloorOnesHealthAndFloorTwosHasItsClimbCancelled()
         {
@@ -123,7 +123,7 @@ namespace Cryptforge.Tests
                 RoomDefinition gate = rooms[rooms.Length - 1];
                 Assert.That(gate.Kind, Is.EqualTo(RoomKind.Boss), floor.Id);
                 EnemyDefinition boss = gate.WaveAt(0).EnemyAt(0);
-                Assert.That(boss.MaximumHealth, Is.EqualTo(300f), floor.Id + ": the Forge Warden");
+                Assert.That(boss.MaximumHealth, Is.EqualTo(300f), floor.Id + ": the gate boss's authored 300");
                 FloorModifierDefinition modifier = floor.Modifier;
                 return FloorScaling.Health(boss.MaximumHealth,
                     ClimbScaling.Health(height) * ClimbScaling.Boss(height) * difficulty *
@@ -133,8 +133,13 @@ namespace Cryptforge.Tests
 
             Assert.That(first.FoundryGateHealthShare, Is.Zero, "floor 1 keeps the rule's share");
             Assert.That(Warden(first, 1), Is.EqualTo(300f * WardenRule.GateHealthShare * difficulty).Within(.01f), "floor 1's, unchanged");
-            Assert.That(Warden(second, 2), Is.EqualTo(300f * (8.5f / 1.4f) * 1.4f * difficulty).Within(.01f));
-            Assert.That(Warden(second, 2), Is.EqualTo(4080f).Within(.01f), "floor 1's Warden's at the same difficulty, not 5712");
+            RoomDefinition[] gates = EncounterController.FoundryRooms(first);
+            Assert.That(gates[gates.Length - 1].WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_forge_warden"), "floor 1's Forge Warden");
+            gates = EncounterController.FoundryRooms(second);
+            Assert.That(gates[gates.Length - 1].WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_glass_regent"), "floor 2's Glass Regent");
+            Assert.That(second.FoundryGateHealthShare, Is.EqualTo(7f));
+            Assert.That(Warden(second, 2), Is.EqualTo(300f * 7f * 1.4f * difficulty).Within(.01f));
+            Assert.That(Warden(second, 2), Is.EqualTo(4704f).Within(.01f), "the Regent at 7.0, where the Warden at 8.5 / 1.4 had 4080");
         }
 
         // The climb's floor 3 (docs/48, Gloam Gardens) is the first floor whose gate boss ClimbScaling.Boss hardens (x1.15 at
@@ -160,11 +165,12 @@ namespace Cryptforge.Tests
             Assert.That(gate.Kind, Is.EqualTo(RoomKind.Boss));
             EnemyDefinition boss = gate.WaveAt(0).EnemyAt(0);
             Assert.That(boss.MaximumHealth, Is.EqualTo(300f), "the Forge Warden");
+            Assert.That(boss.Id, Is.EqualTo("enemy_forge_warden"), "floor 3 keeps the Forge Warden where floor 2 has the Glass Regent");
             Assert.That(third.Modifier, Is.Null);
             float warden = FloorScaling.Health(boss.MaximumHealth,
                 ClimbScaling.Health(3) * ClimbScaling.Boss(3) * difficulty * WardenRule.GateHealthShareOn(third.FoundryGateHealthShare), 0f);
             Assert.That(warden, Is.EqualTo(300f * 1.96f * 1.15f * third.FoundryGateHealthShare * difficulty).Within(.05f));
-            Assert.That(warden, Is.GreaterThan(4080f), "a harder Warden than floor 2's at the same difficulty");
+            Assert.That(warden, Is.GreaterThan(4704f), "a harder gate boss than floor 2's Regent at the same difficulty");
         }
 
         // A floor's gate share (FloorDefinition.FoundryGateHealthShare) is 0 for the rule's, or a finite share above 0:
