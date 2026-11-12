@@ -53,13 +53,42 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "sentry-noflank", What = "the Mirror Sentry, no pilot flanks: the step-in holds still in front of it", Roles = true, Set = l => l.VaultsSentry = true };
             yield return new Option { Key = "wisp", What = "the Silver Wisp in place of the Runner: the horde's third role and Mercury Stair's second wave", Roles = true, Set = l => l.VaultsWisps = true };
             yield return new Option { Key = "clerk", What = "the Faceless Clerk (option A, area damage lands) heads Mercury Stair's first wave and replaces a Grunt in Vault Gate's", Roles = true, Set = l => l.VaultsClerks = true };
+            // Round 2's alternatives (docs/50 Measured), simulation only.
+            yield return new Option
+            {
+                Key = "wisp-kite", What = "the Silver Wisp blinks only once the hero has walked a straight line for 1.5 s, lands 3 units ahead along it and strikes on landing (no hold)",
+                Set = l => { l.VaultsWisps = true; l.WispKiteBlink = true; l.WispArrivalHoldSeconds = 0f; }
+            };
+            yield return new Option
+            {
+                Key = "clerk-reach", What = "the Faceless Clerk's copy has no ring or timer: it draws the packs and bursts as the first reaches it, hitting the hero within 2.4 for 10 %; untouched for 3 s it fades",
+                Set = l => { l.VaultsClerks = true; l.ClerkReachBlast = true; }
+            };
             yield return new Option { Key = "regent-lanes", What = "the Glass Regent, stage 1: lanes on the Warden's clock, no copies, share 5.2, the sidestep habit", Set = Regent(5.2f, 0, true) };
-            foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f, 6.2f, 6.6f })
+            // Round 2 (docs/50 Measured): the Sentry's turn, health and reflection cap, the flank habit on.
+            foreach (int turn in new[] { 45, 52, 60 })
+            foreach (int health in new[] { 125, 150 })
+            foreach (int cap in new[] { 2, 3 })
+                yield return new Option
+                {
+                    Key = $"sentry-t{turn}-h{health}-c{cap}",
+                    What = $"the Mirror Sentry turning {turn} degrees a second, {health} % of its health, its reflection capped at {cap} % of the hero's maximum a second; the flank habit",
+                    Roles = true,
+                    Set = l =>
+                    {
+                        l.VaultsSentry = true;
+                        l.VaultsHabits |= DescentSimulation.VaultsHabit.Flanks;
+                        l.SentryTurnDegrees = turn;
+                        l.SentryHealthScale = health / 100f;
+                        l.SentryReflectCap = cap / 100f;
+                    }
+                };
+            foreach (float share in new[] { 4.6f, 4.8f, 5.0f, 5.2f, 5.4f, 5.6f, 5.8f, 6.2f, 6.4f, 6.6f, 6.7f, 7.0f })
                 yield return new Option
                 {
                     Key = "regent-" + share.ToString("0.0", CultureInfo.InvariantCulture),
                     What = $"the Glass Regent, lanes and two copies at half health, share {share.ToString("0.0", CultureInfo.InvariantCulture)}, the sidestep habit",
-                    Roles = share == 5.2f, Set = Regent(share, 2, true)
+                    Roles = share == 5.2f || share == 6.4f || share == 6.7f || share == 7.0f, Set = Regent(share, 2, true)
                 };
             yield return new Option { Key = "regent-5.2-nosidestep", What = "the Glass Regent with copies, share 5.2, no sidestep: the shipped escape out of a circle", Set = Regent(5.2f, 2, false) };
             yield return new Option
@@ -283,7 +312,7 @@ namespace Cryptforge.Tests
             if (l.VaultsClerks)
             {
                 float[] underFire = down.SelectMany(r => r.Kills).Where(k => !k.Horde && k.Kind == "Faceless Clerk").Select(k => k.UnderFire).ToArray();
-                parts.Add($"Clerk: copies {Mean(down.Select(r => (float)r.ClerkCopies))}, shatter hits {Mean(down.Select(r => (float)r.ClerkCopyHits))}, drawn {Mean(down.Select(r => r.DrawnSeconds))} s, under fire P50 {F1(FoundryBatch.Percentile(underFire, 50))} s");
+                parts.Add($"Clerk: copies {Mean(down.Select(r => (float)r.ClerkCopies))}, shatter hits {Mean(down.Select(r => (float)r.ClerkCopyHits))}, drawn {Mean(down.Select(r => r.DrawnSeconds))} s, under fire P50 {F1(FoundryBatch.Percentile(underFire, 50))} s" + (l.ClerkReachBlast ? $", bursts {Mean(down.Select(r => (float)r.ClerkBursts))}, fades {Mean(down.Select(r => (float)r.ClerkFades))}" : string.Empty));
             }
             if (l.VaultsRegent)
             {

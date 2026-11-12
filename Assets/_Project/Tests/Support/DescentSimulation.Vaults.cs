@@ -119,6 +119,12 @@ namespace Cryptforge.Tests
             public float WispLandDistance = 3f;
             public float WispShimmerSeconds = .6f;
             public float WispArrivalHoldSeconds = .5f;
+            // Round 2's alternative (research): the blink comes only once the hero has walked in a straight line (its
+            // heading within WispKiteDegrees of where the line began) for WispKiteSeconds, and lands WispLandDistance
+            // ahead along that line instead of mirrored. Off: section 3's blink.
+            public bool WispKiteBlink;
+            public float WispKiteSeconds = 1.5f;
+            public float WispKiteDegrees = 20f;
             // The Faceless Clerk's copy (section 4): every ClerkEvery seconds (its first ClerkFirst after it walks in) a
             // mark of ClerkRadius where the hero stands, ClerkShare of its maximum a ClerkTelegraph later; the packs walk to
             // it while it stands; at most ClerkCopiesMax on the floor.
@@ -129,6 +135,14 @@ namespace Cryptforge.Tests
             public float ClerkShare = .1f;
             public int ClerkCopiesMax = 2;
             public bool ClerkDrawsPacks = true;
+            // Round 2's alternative (research): the copy has no ring and no timer. It draws the packs and bursts as the
+            // first pack body comes within ClerkTouch of it, hitting the hero for ClerkShare if it stands within
+            // ClerkBlastRadius then; untouched for ClerkFadeSeconds it fades. A hero that has walked off is safe, one that
+            // stands where the copy was is not. Off: section 4's copy, a mark that lands a telegraph later.
+            public bool ClerkReachBlast;
+            public float ClerkTouch = 1f;
+            public float ClerkBlastRadius = 2.4f;
+            public float ClerkFadeSeconds = 3f;
             // The Glass Regent (section 6) on the Warden's clock (WardenSlamClock as it is: its enraged beat, 4 s, stands
             // for docs/50's 4.5 s): a lane RegentLaneWidth wide and RegentLaneLength long from each body through the
             // hero's spot, RegentLaneShare of its maximum once a beat; RegentCopies copies at half health, each
@@ -153,6 +167,9 @@ namespace Cryptforge.Tests
             public float TakenFromWisps;
             public int ClerkCopies;
             public int ClerkCopyHits;
+            // Round 2's alternative Clerk (FoundryLevers.ClerkReachBlast): its copies burst by a pack, and those that faded.
+            public int ClerkBursts;
+            public int ClerkFades;
             public float DrawnSeconds;
             public int RegentBeats;
             public int RegentLaneHits;
@@ -246,6 +263,14 @@ namespace Cryptforge.Tests
             private float _reflectOwed;
             private Foe _reflectFrom;
             private bool _reflecting;
+            // Round 2's alternatives: the hero's straight walk (FoundryLevers.WispKiteBlink) - since when, and its heading
+            // then, NaN while it is not walking - and the Clerk's ringless copies (FoundryLevers.ClerkReachBlast).
+            private float _straightSince = float.NaN;
+            private float _straightX;
+            private float _straightY;
+            private float _walkFromX = float.NaN;
+            private float _walkFromY;
+            private readonly System.Collections.Generic.List<HazardMark> _silentCopies = new System.Collections.Generic.List<HazardMark>(2);
 
             private bool VaultsOn => _levers.Vaults && _floor.FloorNumber >= 2;
 
@@ -265,6 +290,11 @@ namespace Cryptforge.Tests
             private bool DrawingCopy(out HazardMark copy)
             {
                 copy = null;
+                if (_silentCopies.Count > 0 && _levers.ClerkDrawsPacks)
+                {
+                    copy = _silentCopies[_silentCopies.Count - 1];
+                    return true;
+                }
                 if (_marks.Count == 0 || !_levers.ClerkDrawsPacks)
                     return false;
                 for (int i = _marks.Count - 1; i >= 0; i--)
@@ -296,12 +326,16 @@ namespace Cryptforge.Tests
                 }
                 if (_choices.IsOpen || _revealHold)
                     return;
+                if (_levers.WispKiteBlink)
+                    TrackStraightWalk();
+                if (_silentCopies.Count > 0)
+                    StepSilentCopies();
                 if (DrawingCopy(out _))
                     _result.DrawnSeconds += Step;
                 // The Regent fallen: its copies shatter with it.
                 if (_glassCopies[0] != null && (GateBoss == null || !GateBoss.IsAlive || !IsRegent(GateBoss)))
                     ShatterCopies();
-                int copies = 0;
+                int copies = _silentCopies.Count;
                 for (int i = 0; i < _marks.Count; i++)
                     if (_marks[i].Harm == ClerkHarm)
                         copies++;
@@ -325,7 +359,14 @@ namespace Cryptforge.Tests
                             foe.ClerkClock = 0f;
                             copies++;
                             _result.ClerkCopies++;
-                            Mark(HeroX, HeroY, _levers.ClerkRadius, _levers.ClerkTelegraph, _levers.ClerkShare, ClerkHarm, HeroX, HeroY);
+                            if (_levers.ClerkReachBlast)
+                                _silentCopies.Add(new HazardMark
+                                {
+                                    X = HeroX, Y = HeroY, Radius = _levers.ClerkBlastRadius, Onset = _seconds,
+                                    LandsAt = _seconds + _levers.ClerkFadeSeconds, Share = _levers.ClerkShare, Harm = ClerkHarm
+                                });
+                            else
+                                Mark(HeroX, HeroY, _levers.ClerkRadius, _levers.ClerkTelegraph, _levers.ClerkShare, ClerkHarm, HeroX, HeroY);
                         }
                     }
                 }
@@ -361,19 +402,90 @@ namespace Cryptforge.Tests
                 }
                 if (foe.Blinked || _seconds - foe.SpawnedAt < _levers.WispBlinkAge)
                     return;
+                if (_levers.WispKiteBlink && (float.IsNaN(_straightSince) || _seconds - _straightSince < _levers.WispKiteSeconds))
+                    return;
                 float dx = HeroX - foe.X, dy = HeroY - foe.Y;
                 float d = (float)Math.Sqrt(dx * dx + dy * dy);
                 if (d < _levers.WispBlinkMin || d > _levers.WispBlinkMax)
                     return;
                 foe.Blinked = true;
-                float lx = HeroX + dx / d * _levers.WispLandDistance;
-                float ly = HeroY + dy / d * _levers.WispLandDistance;
+                // Section 3: mirrored through the hero; round 2's alternative: ahead along the hero's straight walk.
+                float ax = _levers.WispKiteBlink ? _straightX : dx / d;
+                float ay = _levers.WispKiteBlink ? _straightY : dy / d;
+                float lx = HeroX + ax * _levers.WispLandDistance;
+                float ly = HeroY + ay * _levers.WispLandDistance;
                 if (!FoundryMap.Contains(lx, ly, HeroMotion.EdgeMargin))
                     return;
                 foe.BlinkX = lx;
                 foe.BlinkY = ly;
                 foe.BlinkAt = _seconds + _levers.WispShimmerSeconds;
                 foe.StaggeredUntil = Math.Max(foe.StaggeredUntil, foe.BlinkAt + _levers.WispArrivalHoldSeconds);
+            }
+
+            // The hero's straight walk: moving faster than half a unit a second with its heading within WispKiteDegrees of
+            // the heading the line began on.
+            private void TrackStraightWalk()
+            {
+                float x = HeroX, y = HeroY;
+                if (float.IsNaN(_walkFromX))
+                {
+                    _walkFromX = x;
+                    _walkFromY = y;
+                    return;
+                }
+                float dx = x - _walkFromX, dy = y - _walkFromY;
+                _walkFromX = x;
+                _walkFromY = y;
+                float moved = (float)Math.Sqrt(dx * dx + dy * dy);
+                if (moved < .5f * Step)
+                {
+                    _straightSince = float.NaN;
+                    return;
+                }
+                dx /= moved;
+                dy /= moved;
+                if (!float.IsNaN(_straightSince) &&
+                    dx * _straightX + dy * _straightY >= (float)Math.Cos(_levers.WispKiteDegrees * Math.PI / 180.0))
+                    return;
+                _straightSince = _seconds;
+                _straightX = dx;
+                _straightY = dy;
+            }
+
+            // Round 2's Clerk copies: each bursts as a pack body (the horde, or a node wave's enemy that is not a Clerk)
+            // comes within ClerkTouch of it - the hero hit if within ClerkBlastRadius then - or fades untouched.
+            private void StepSilentCopies()
+            {
+                float touch = _levers.ClerkTouch * _levers.ClerkTouch;
+                for (int c = _silentCopies.Count - 1; c >= 0; c--)
+                {
+                    HazardMark copy = _silentCopies[c];
+                    bool touched = false;
+                    for (int i = 0; i < TargetCount && !touched; i++)
+                    {
+                        Foe foe = TargetAt(i);
+                        touched = IsValid(foe) && !Harmless(foe) && !foe.GateBoss &&
+                                  ArenaFloor.FloorDistanceSquared(foe.X, foe.Y, copy.X, copy.Y) <= touch;
+                    }
+                    if (!touched)
+                    {
+                        if (_seconds < copy.LandsAt)
+                            continue;
+                        _silentCopies.RemoveAt(c);
+                        _result.ClerkFades++;
+                        continue;
+                    }
+                    _silentCopies.RemoveAt(c);
+                    _result.ClerkBursts++;
+                    if (!_heroHealth.IsAlive ||
+                        ArenaFloor.FloorDistanceSquared(HeroX, HeroY, copy.X, copy.Y) > copy.Radius * copy.Radius)
+                        continue;
+                    _result.HazardHits++;
+                    _hazardHarm = ClerkHarm;
+                    _harmIsSlam = false;
+                    _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * copy.Share));
+                    _hazardHarm = null;
+                }
             }
 
             // FoeDamaged's hook: the Sentry's guard on a landing of the hero's while the hero stands in its front arc,
