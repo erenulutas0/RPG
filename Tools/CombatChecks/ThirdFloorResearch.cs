@@ -43,6 +43,7 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "s10", Share = 4.436557f };
             yield return new Option { Key = "s10.5", Share = 4.658385f };
             yield return new Option { Key = "s11", Share = 4.880213f };
+            yield return new Option { Key = "s11.5", Share = 5.102041f };
             yield return new Option { Key = "s12", Share = 5.323869f };
             yield return new Option { Key = "s13", Share = 5.767524f };
             yield return new Option { Key = "gate180", Gate = 180f };

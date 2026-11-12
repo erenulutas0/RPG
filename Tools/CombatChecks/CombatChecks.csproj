@@ -78,6 +78,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/HordeDirectorTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryFinaleTests.cs" />
+    <!-- The climb's floor 3 (docs/48, Gloam Gardens) in the foundry simulation: the chain, its Warden, its play. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryFloorThreeTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryGateCallTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RiftbladeSimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DropDetourRuleTests.cs" />
