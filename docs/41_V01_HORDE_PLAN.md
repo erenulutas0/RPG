@@ -2166,3 +2166,28 @@ The owner: "daha çok kullan", then "80 olana kadar kullan". Since the evening s
 
 Still the owner's: the push (main is about 70 commits past origin), the phone (a new APK, the S23 frame time and the
 first-ramp stall of docs/23, the owner's play), a third floor for 13-16 min, docs/46's Riftblade questions.
+
+## Status 2026-11-12 (morning): the overnight work
+
+The owner: "sabah 6'ya kadar ... çalış", no usage cap. Landed in main, each verified in Unity (EditMode 1186, PlayMode
+346-347, the explicit suites as named) and reviewed:
+- **The Final Swarm's plain enemies are pooled** like the horde's (the Forge Warden, the gate boss and elites are not);
+  a refill takes 16 allocations against 77; the swarm's exact parity tests hold. An independent review found nothing.
+- **Burns wait while the boss reveal holds the fight** (scene and simulation); Ilya's floor time P50 275 -> 276 s, no
+  other gate row moved. **The boss banner names the Warden**, not the escort Mite that reaches the hero first.
+- **Decimals read with a point on every locale**: 42 player-facing formats were culture-sensitive, so a tr-TR phone
+  showed "+0,45 reach".
+- **The APK is built from scratch**: Gradle's debug build had edited the old APK in place, leaving about 10 MB of holes
+  (43 -> 47 MB without a content change). The APK is 36.8 MB again (BuildSizeReport writes the breakdown).
+- **The device rows are rehearsed offline**: Pull-DeviceEvidence.ps1 -FromFolder parses a folder as a pull, both rows
+  fill on stand-in telemetry, the parsers read today's formats, and docs/23 holds "2026-11-12: the morning runbook".
+- **A multi-run soak** (MultiRunSoak, explicit): three Descents back to back leave every count identical and the heap
+  flat (14-15.6 MB).
+- **docs/48** proposes the third floor (Gloam Gardens: data and tests, no new geometry; ten questions).
+
+Waiting for the owner's look (verified together on lead-preview, preview APK beside main's):
+- the item rarity grounds on the choice cards (Epic red, Gold gold; ArtDirection/2026-11-12/choice-rarity-01/runtime/);
+- the foundry art: the trolley as cast iron carrying steel, the gate crown calmer, the court's lane lines through the
+  octagon (ArtDirection/2026-11-12/foundry-trolley-crown-01 and foundry-court-ways-02).
+
+Still the owner's: the push, the phone (docs/23's runbook: install, play, pull), docs/48, docs/46.
