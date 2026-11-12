@@ -69,17 +69,22 @@ namespace Cryptforge.Core
         // A floor's dress changing (FloorTheme, docs/49): the whole of ArenaView.ApplyFloorTheme (Apply), and inside it the
         // region's vertex colours and sprite colours re-tinted on the CPU (Retint, the foundry's arrays kept the first time
         // included), the property-block texture swaps with their Resources/Ice loads (Textures), the ice-crystal mesh built
-        // and shown or hidden (Crystals), and the atmosphere, hero shadow and backdrop plate (Backdrop). Frost is one enemy
+        // and shown or hidden (Crystals), the mirror panels and snow drifts built and shown or hidden (Props), the frost
+        // creep over the camera on the descent's landing, built on first use and started (Transition,
+        // ArenaView.PlayFrostTransition, outside Apply), and the atmosphere, hero shadow and backdrop plate (Backdrop). Frost is one enemy
         // body's palette swapped to the frosted set (EnemyLookView.UseFrost), only when it actually changes. Floor 1 pays none.
         public const string ThemeApplyName = "Cryptforge.Theme.Apply";
         public const string ThemeRetintName = "Cryptforge.Theme.Retint";
         public const string ThemeTexturesName = "Cryptforge.Theme.Textures";
         public const string ThemeCrystalsName = "Cryptforge.Theme.Crystals";
+        public const string ThemePropsName = "Cryptforge.Theme.Props";
+        public const string ThemeTransitionName = "Cryptforge.Theme.Transition";
         public const string ThemeBackdropName = "Cryptforge.Theme.Backdrop";
         public const string ThemeFrostName = "Cryptforge.Theme.Frost";
         public static readonly string[] ThemeNames =
         {
-            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemeBackdropName, ThemeFrostName
+            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
+            ThemeTransitionName, ThemeFrostName
         };
 
         // Every scope above, for whoever reads them by name (the perf probe). Reading it creates them all.
@@ -90,7 +95,8 @@ namespace Cryptforge.Core
             LateCameraName, LateEffectsName, LateShadowsName, LateExitSealName, LateHudArtName, LatePitName, LatePuppetName,
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
             DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName,
-            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemeBackdropName, ThemeFrostName
+            ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
+            ThemeTransitionName, ThemeFrostName
         };
 
         // A wave entering: every enemy instantiated, drawn and set up.
@@ -133,6 +139,8 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker ThemeRetint = new ProfilerMarker(ProfilerCategory.Scripts, ThemeRetintName);
         public static readonly ProfilerMarker ThemeTextures = new ProfilerMarker(ProfilerCategory.Scripts, ThemeTexturesName);
         public static readonly ProfilerMarker ThemeCrystals = new ProfilerMarker(ProfilerCategory.Scripts, ThemeCrystalsName);
+        public static readonly ProfilerMarker ThemeProps = new ProfilerMarker(ProfilerCategory.Scripts, ThemePropsName);
+        public static readonly ProfilerMarker ThemeTransition = new ProfilerMarker(ProfilerCategory.Scripts, ThemeTransitionName);
         public static readonly ProfilerMarker ThemeBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, ThemeBackdropName);
         public static readonly ProfilerMarker ThemeFrost = new ProfilerMarker(ProfilerCategory.Scripts, ThemeFrostName);
     }

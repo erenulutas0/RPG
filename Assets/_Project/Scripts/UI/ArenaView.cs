@@ -127,6 +127,28 @@ namespace Cryptforge.UI
                 Backdrop.FrameCavern();
             }
         }
+        // The Descent landing on floor 2 (EncounterController.EnterFloor): a short frost creep over the camera, once a run.
+        // Made on first use, so floor 1 never builds it; never a child of the region, so the region's budget is unchanged.
+        public FrostTransitionView FrostTransition { get; private set; }
+        public bool PlayFrostTransition()
+        {
+            if (_frostPlayed || _camera == null || _material == null)
+                return false;
+            using var transition = PerformanceMarkers.ThemeTransition.Auto();
+            _frostPlayed = true;
+            if (FrostTransition == null)
+            {
+                var frost = new GameObject(FrostTransitionView.ObjectName);
+                frost.transform.SetParent(_camera.transform, false);
+                FrostTransition = frost.AddComponent<FrostTransitionView>();
+                FrostTransition.Build(_camera, _material);
+            }
+            FrostTransition.Play();
+            return true;
+        }
+        // Only the first floor's descent onto the frozen second floor shows the frost.
+        public static bool FrostsOnEntry(int floorNumber, FloorTheme theme) => floorNumber == 2 && theme == FloorTheme.Ice;
+        private bool _frostPlayed;
         private const float IceHeroShadow = 1.25f;
         private FoundryAtmosphereView _atmosphere;
         private Transform _heroShadow;

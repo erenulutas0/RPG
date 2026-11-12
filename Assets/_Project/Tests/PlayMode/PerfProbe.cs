@@ -353,6 +353,12 @@ namespace Cryptforge.Tests
             watch.Stop();
             float applyMs = (float)watch.Elapsed.TotalMilliseconds;
             long gcApply = System.GC.GetAllocatedBytesForCurrentThread() - gcBefore;
+            // The frost creep the descent plays as it lands on floor 2 (EncounterController.EnterFloor); it runs out over
+            // the walk-in, before the window.
+            watch.Restart();
+            bool transition = arena.PlayFrostTransition();
+            watch.Stop();
+            float transitionMs = (float)watch.Elapsed.TotalMilliseconds;
             int frosted = 0;
             watch.Restart();
             foreach (EnemyLookView look in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None))
@@ -369,7 +375,8 @@ namespace Cryptforge.Tests
 
             var line = new StringBuilder();
             line.Append("ApplyFloorTheme(Ice) ").Append(F(applyMs, 2)).Append(" ms wall, ").Append(F(gcApply / 1024f, 1))
-                .Append(" KB managed; ").Append(frosted).Append(" standing bodies frosted in ").Append(F(frostMs, 2))
+                .Append(" KB managed; frost transition ").Append(transition ? F(transitionMs, 2) + " ms" : "not played")
+                .Append("; ").Append(frosted).Append(" standing bodies frosted in ").Append(F(frostMs, 2))
                 .Append(" ms; the rest of that frame, its first render on ice included, ").Append(F(firstFrameMs, 1))
                 .Append(" ms; markers (ms):");
             run.Add("floor change: ApplyFloorTheme wall ms", applyMs, 2);
@@ -382,6 +389,7 @@ namespace Cryptforge.Tests
                 if (names[i] != PerformanceMarkers.ThemeFrostName)
                     run.Add("floor change: " + shortName + " ms", ms, 2);
             }
+            run.Add("floor change: PlayFrostTransition wall ms", transition ? transitionMs : float.NaN, 2);
             run.Add("floor change: frosting standing bodies ms", frostMs, 2);
             run.Add("floor change: managed KB allocated", gcApply / 1024f, 1);
             run.Add("floor change: first frame after ms", firstFrameMs, 1);

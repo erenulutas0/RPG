@@ -92,6 +92,12 @@ namespace Cryptforge.UI
                 if(ice)BuildIceCrystals(set);
                 if(_iceCrystals!=null)_iceCrystals.SetActive(ice);
             }
+            using(PerformanceMarkers.ThemeProps.Auto())
+            {
+                if(ice)BuildIceProps(set);
+                if(_icePanels!=null)_icePanels.SetActive(ice);
+                if(_iceDrifts!=null)_iceDrifts.SetActive(ice);
+            }
             using(PerformanceMarkers.ThemeTextures.Auto())
             {
             if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
