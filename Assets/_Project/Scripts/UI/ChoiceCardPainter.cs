@@ -8,8 +8,8 @@ namespace Cryptforge.UI
     // restyled once: the dim behind it, the surface's frame and a plate with its crest behind the title. A card is painted
     // each time it is shown, in the treatment of what it offers: its own image becomes the treatment's frame, and parts
     // are laid round the scene's own labels and icon - an aura and a crest past the card's edges, a name plate behind the
-    // name, a recess behind the description, a well behind the icon, the well's sigil while the card has no icon, a lip
-    // over the icon's edge - each fitted to the rect it frames as LayOut left it, so a shortened card's parts shorten
+    // name, a recess behind the description, a well behind the icon, the item's ground in a tier's colour on the well's
+    // floor, the well's sigil while the card has no icon, a lip over the icon's edge - each fitted to the rect it frames as LayOut left it, so a shortened card's parts shorten
     // with it. The press lies over the frame as the button's graphic: clear at rest, the treatment's light under a finger,
     // a shade while the card waits out its delay. No part is a raycast target, and every rect, label, icon, click and
     // interactable state the view and the tests read stays as it was. A card cloned from a painted one finds its parts
@@ -23,6 +23,7 @@ namespace Cryptforge.UI
         internal const string DescriptionName = "Painted Description";
         internal const string WellName = "Painted Well";
         internal const string SigilName = "Painted Sigil";
+        internal const string GroundName = "Painted Item Ground";
         internal const string LipName = "Painted Well Lip";
         internal const string TitlePlateName = "Painted Title Plate";
         internal const string TitleCrestName = "Painted Title Crest";
@@ -115,6 +116,10 @@ namespace Cryptforge.UI
                 RectTransform target = icon.rectTransform;
                 float m = _art.WellMargin;
                 Behind(target, WellName, look.Well, new Vector4(m, m, m, m));
+                // The item's ground in the tier's colour on the well's floor, exactly the icon's square; between the well
+                // and the sigil, so the icon (or the sigil) stands on it. Made on every card, empty where the treatment
+                // has none, so the load-time paint makes it for every later offer.
+                Behind(target, GroundName, look.Ground, Vector4.zero, Image.Type.Simple);
                 // The sigil only while the icon has nothing to show; between the well and the icon either way.
                 Image sigil = Behind(target, SigilName, look.Sigil, Vector4.zero, Image.Type.Simple);
                 float inset = -target.rect.width * (1f - _art.SigilScale) / 2f;

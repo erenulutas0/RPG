@@ -99,6 +99,12 @@ TextureImporter:
       213: -1059241235656373839
     second: UI_UpgradeIcons_upgrade_stamina
   - first:
+      213: 7587483203479585391
+    second: UI_UpgradeIcons_upgrade_damage
+  - first:
+      213: -4951901537402991512
+    second: UI_UpgradeIcons_upgrade_attack_speed
+  - first:
       213: -1924785798386527760
     second: UI_UpgradeIcons_weapon_sword_slot
   - first:
@@ -243,7 +249,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -265,7 +271,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -287,7 +293,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 292
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -309,7 +315,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 438
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -331,7 +337,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 584
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -353,7 +359,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 730
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -375,7 +381,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 584
+        y: 644
         width: 144
         height: 144
       alignment: 9
@@ -397,7 +403,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -419,7 +425,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -441,7 +447,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 292
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -463,7 +469,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 438
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -485,7 +491,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 584
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -507,7 +513,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 730
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -529,7 +535,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 438
+        y: 498
         width: 144
         height: 144
       alignment: 9
@@ -551,7 +557,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -573,7 +579,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -595,7 +601,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 292
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -617,7 +623,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 438
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -639,7 +645,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 584
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -661,7 +667,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 730
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -683,7 +689,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 292
+        y: 352
         width: 144
         height: 144
       alignment: 9
@@ -705,7 +711,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -727,7 +733,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -749,7 +755,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 292
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -771,7 +777,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 438
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -793,7 +799,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 584
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -815,7 +821,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 730
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -837,7 +843,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 146
+        y: 206
         width: 144
         height: 144
       alignment: 9
@@ -859,7 +865,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 60
         width: 144
         height: 144
       alignment: 9
@@ -881,7 +887,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 0
+        y: 60
         width: 144
         height: 144
       alignment: 9
@@ -903,7 +909,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 292
-        y: 0
+        y: 60
         width: 144
         height: 144
       alignment: 9
@@ -925,7 +931,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 438
-        y: 0
+        y: 60
         width: 144
         height: 144
       alignment: 9
@@ -943,11 +949,55 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_UpgradeIcons_weapon_sword_slot
+      name: UI_UpgradeIcons_upgrade_damage
       rect:
         serializedVersion: 2
         x: 584
-        y: 88
+        y: 60
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b2afb86cc614c3d8028b1a00bc584e8
+      internalID: 7587483203479585391
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_upgrade_attack_speed
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 60
+        width: 144
+        height: 144
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d670c64a2bce4e8c9e63d643a3164618
+      internalID: -4951901537402991512
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_UpgradeIcons_weapon_sword_slot
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -968,8 +1018,8 @@ TextureImporter:
       name: UI_UpgradeIcons_evolution_sword_slot
       rect:
         serializedVersion: 2
-        x: 642
-        y: 88
+        x: 58
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -990,8 +1040,8 @@ TextureImporter:
       name: UI_UpgradeIcons_weapon_staff_slot
       rect:
         serializedVersion: 2
-        x: 700
-        y: 88
+        x: 116
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1012,8 +1062,8 @@ TextureImporter:
       name: UI_UpgradeIcons_evolution_staff_slot
       rect:
         serializedVersion: 2
-        x: 758
-        y: 88
+        x: 174
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1034,8 +1084,8 @@ TextureImporter:
       name: UI_UpgradeIcons_weapon_daggers_slot
       rect:
         serializedVersion: 2
-        x: 816
-        y: 88
+        x: 232
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1056,8 +1106,8 @@ TextureImporter:
       name: UI_UpgradeIcons_evolution_daggers_slot
       rect:
         serializedVersion: 2
-        x: 874
-        y: 88
+        x: 290
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1078,8 +1128,8 @@ TextureImporter:
       name: UI_UpgradeIcons_tome_force_slot
       rect:
         serializedVersion: 2
-        x: 932
-        y: 88
+        x: 348
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1100,8 +1150,8 @@ TextureImporter:
       name: UI_UpgradeIcons_tome_precision_slot
       rect:
         serializedVersion: 2
-        x: 584
-        y: 30
+        x: 406
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1122,8 +1172,8 @@ TextureImporter:
       name: UI_UpgradeIcons_tome_reach_slot
       rect:
         serializedVersion: 2
-        x: 642
-        y: 30
+        x: 464
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1144,8 +1194,8 @@ TextureImporter:
       name: UI_UpgradeIcons_tome_tempo_slot
       rect:
         serializedVersion: 2
-        x: 700
-        y: 30
+        x: 522
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1166,8 +1216,8 @@ TextureImporter:
       name: UI_UpgradeIcons_tome_vitality_slot
       rect:
         serializedVersion: 2
-        x: 758
-        y: 30
+        x: 580
+        y: 2
         width: 56
         height: 56
       alignment: 9
@@ -1230,6 +1280,8 @@ TextureImporter:
       UI_UpgradeIcons_upgrade_pulse: 5136158449571180895
       UI_UpgradeIcons_upgrade_range: -9060572391286235075
       UI_UpgradeIcons_upgrade_stamina: -1059241235656373839
+      UI_UpgradeIcons_upgrade_damage: 7587483203479585391
+      UI_UpgradeIcons_upgrade_attack_speed: -4951901537402991512
       UI_UpgradeIcons_weapon_sword_slot: -1924785798386527760
       UI_UpgradeIcons_evolution_sword_slot: -5168988756300703283
       UI_UpgradeIcons_weapon_staff_slot: 20727574208815442

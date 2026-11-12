@@ -27,6 +27,9 @@ colour and the glow of what it emits spread into the painted icons' navy field.
     seams. Ruinous Edge and Blurred Grip are drawn from Tempered Edge's and Quickened Grip's own painted glyphs (read off
     their 96-cell grid): the sword's blade run molten and cracked under a burning crescent, the gauntlet worked in gold
     leaving its outline behind it twice.
+  - The hall's two legacy cards themselves, Tempered Edge and Quickened Grip (2026-11-12): their own painted glyphs read
+    off the grid as they are, the swing and sparks or the bolts beside them kept glowing, without the navy square their
+    painted icons carry, so the choice card's tier ground shows round them as round every other icon (legacy_card).
 
 Each icon is painted in cells, shown as hard pixels at three texels a cell (softened by a sixth of a cell, as the painted
 icons' edges are) and box-filtered to the card's 144 from the middle 86 cells of the grid, so its glyph fills about four
@@ -38,7 +41,8 @@ evolutions and the tomes are rendered again for the loadout row's 56 sockets fro
 filtered straight down with their glow kept low, so they need no mip chain.
 
 One sheet, Assets/_Project/Art/UI/UpgradeIcons/UI_UpgradeIcons.png: the card icons on a fixed grid seven across, two
-clear texels apart, the socket icons in the last row's free cells; Multiple sprites, bilinear, no mipmaps, ASTC 4x4 on
+clear texels apart, the socket icons in the last row's free cells (or, once those are too few, a strip of their own under
+the grid); Multiple sprites, bilinear, no mipmaps, ASTC 4x4 on
 Android, as the painted HUD's sheet. And Cryptforge.Art.UpgradeIconSet, UpgradeIconSet.asset, with each id's card icon
 and socket icon. Deterministic: the same script paints the same files byte for byte, and existing GUIDs and sprite ids
 are kept, so a repaint never breaks a reference.
@@ -936,6 +940,29 @@ def legacy_glyph(name, cells=N):
     return im, out
 
 
+def legacy_card(name, cells, glow=1.3):
+    """A painted legacy card's own icon on this grid, its navy square dropped (the owner's 2026-11-12 ask: the item on its
+    tier's ground): its glyph (legacy_glyph) in its own colours, cell for cell, and the bright marks drawn beside it - the
+    Tempered Edge's swing and sparks, the Quickened Grip's bolts - read where they are lit well above the navy and painted
+    glowing, as the icon painted them. Its halo is the field's light round it, so it carries none of the old square."""
+    def draw(g):
+        im, m = legacy_glyph(name, cells)
+        far = np.abs(im - NAVY).max(axis=2)
+        lit = (im.max(axis=2) > 0.50) & (far > 0.30) & ~ndimage.binary_dilation(m, iterations=1)
+        lab, count = ndimage.label(lit)
+        marks = np.zeros_like(lit)
+        for k in range(1, count + 1):
+            if (lab == k).sum() >= 2:
+                marks |= lab == k
+        ys, xs = np.nonzero(m | marks)
+        ox = int(round((N - 1) / 2 - (xs.min() + xs.max()) / 2))
+        oy = int(round((N - 1) / 2 - (ys.min() + ys.max()) / 2))
+        im, m, marks = shift(im, ox, oy), shift(m, ox, oy), shift(marks, ox, oy)
+        g.paint(marks, im, separate=False, emit=glow)
+        g.paint(m, im, separate=True)
+    return draw
+
+
 def recolour(cols, mask, ramp, lo=0.0, hi=1.0):
     """The cells' own light, ranked, laid onto a ramp: their darkest at the ramp's dark end, their lightest at its light."""
     lum = cols @ np.array([0.30, 0.55, 0.15], np.float32)
@@ -1275,6 +1302,10 @@ ICONS = [
     ("upgrade_pulse", forge_pulse, EMBER_HALO, False),
     ("upgrade_range", long_reach, LIME_HALO, False),
     ("upgrade_stamina", deep_lungs, CYAN_HALO, False),
+    # The hall's two legacy cards, their own painted glyphs without the navy square (legacy_card); appended, so the grid
+    # moves none of the icons before them.
+    ("upgrade_damage", legacy_card("TemperedEdge", 96), BLUE_HALO, False),
+    ("upgrade_attack_speed", legacy_card("QuickenedGrip", 90), BLUE_HALO, False),
 ]
 
 
@@ -1377,12 +1408,16 @@ def layout(card_ids, slot_ids):
     y0 = last_row * (CARD + GUTTER)
     width = COLUMNS * (CARD + GUTTER) - GUTTER
     per_row = (width - x0 + GUTTER) // (SLOT + GUTTER)
+    height = rows * (CARD + GUTTER) - GUTTER
     if per_row * ((CARD + GUTTER) // (SLOT + GUTTER)) < len(slot_ids):
-        raise ValueError("the socket icons do not fit the last row's free cells")
+        # Too few free cells left in the last row (34 card icons leave one): the socket icons get a strip of their own
+        # under the grid, as many rows of them as they need.
+        x0, y0 = 0, rows * (CARD + GUTTER)
+        per_row = (width + GUTTER) // (SLOT + GUTTER)
+        height = y0 + -(-len(slot_ids) // per_row) * (SLOT + GUTTER) - GUTTER
     for i, name in enumerate(slot_ids):
         r, c = divmod(i, per_row)
         rects[name + "_slot"] = (x0 + c * (SLOT + GUTTER), y0 + r * (SLOT + GUTTER), SLOT, SLOT)
-    height = rows * (CARD + GUTTER) - GUTTER
     return rects, ((width + 3) // 4 * 4, (height + 3) // 4 * 4)
 
 

@@ -236,7 +236,9 @@ namespace Cryptforge.Tests
             GameObject first = GameObject.Find("Choice Button 1");
             Image icon = first.transform.Find("Choice Icon").GetComponent<Image>();
             Assert.That(icon.enabled, Is.True);
-            Assert.That(icon.sprite.name, Is.EqualTo("UI_Icon_QuickenedGrip_v1"), "Slot zero now holds the other upgrade.");
+            // The upgrade icon set's squareless repaint of Quickened Grip's icon (it wins over the scene's table).
+            Assert.That(icon.sprite.name, Is.EqualTo("UI_UpgradeIcons_upgrade_attack_speed"),
+                "Slot zero now holds the other upgrade.");
             Assert.That(GameObject.Find("Damage Badge").transform.Find("Stack Count").GetComponent<Text>().text,
                 Is.EqualTo(damage.MaxStacks.ToString()));
             yield return new WaitForSecondsRealtime(.3f);

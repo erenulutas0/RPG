@@ -28,7 +28,7 @@ namespace Cryptforge.Tests
         private static readonly string[] Parts =
         {
             "Painted Aura", "Painted Crest", "Painted Press", "Painted Name Plate", "Painted Description", "Painted Well",
-            "Painted Sigil", "Painted Well Lip"
+            "Painted Sigil", "Painted Well Lip", "Painted Item Ground"
         };
 
         [UnitySetUp]
@@ -145,6 +145,21 @@ namespace Cryptforge.Tests
             Assert.That(well.transform.GetSiblingIndex(), Is.LessThan(icon.transform.GetSiblingIndex()), $"{name}: behind the icon.");
             Assert.That(lip.transform.GetSiblingIndex(), Is.EqualTo(icon.transform.GetSiblingIndex() + 1), $"{name}: the lip over its edge.");
             AssertEdges(lip.rectTransform, icon.rectTransform, Vector4.zero, $"{name}: the lip on the icon's edge");
+            Image ground = Part(card, "Painted Item Ground");
+            // An untiered treatment (the evolution's, the forge's, Extract's and Climb's) has no ground: the part is empty and
+            // switched off, and the well's navy floor shows as before. An empty sprite reference is compared with Unity's
+            // own equality, since the set's and the image's empty references need not be the same object.
+            if (look.Ground != null)
+                Assert.That(ground.sprite, Is.SameAs(look.Ground), $"{name}: its treatment's item ground.");
+            else
+                Assert.That(ground.sprite == null, Is.True, $"{name}: no item ground, the well's navy floor.");
+            Assert.That(ground.enabled, Is.EqualTo(look.Ground != null), $"{name}: a ground only where its treatment has one.");
+            Assert.That(ground.type, Is.EqualTo(Image.Type.Simple), name);
+            AssertEdges(ground.rectTransform, icon.rectTransform, Vector4.zero, $"{name}: the ground exactly under the icon");
+            Assert.That(ground.transform.GetSiblingIndex(), Is.GreaterThan(well.transform.GetSiblingIndex()),
+                $"{name}: the ground on the well's floor.");
+            Assert.That(ground.transform.GetSiblingIndex(), Is.LessThan(sigil.transform.GetSiblingIndex()),
+                $"{name}: under the sigil and the icon.");
             Assert.That(sigil.sprite, Is.SameAs(look.Sigil), name);
             Assert.That(sigil.enabled, Is.EqualTo(!(icon.enabled && icon.sprite != null)), $"{name}: the sigil only while the well is empty.");
             Image aura = Part(card, "Painted Aura"), crest = Part(card, "Painted Crest");
@@ -277,6 +292,87 @@ namespace Cryptforge.Tests
             for (int i = 0; i < 4 && setup.Choices.IsOpen; i++)
                 setup.Choices.TrySelect(setup.Choices.Current, 0);
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // A run seed whose offers draw every tier early (PaintedRunFeedbackTests: six gold cards in the first twenty offers).
+        private const string EveryTierEarlySeed = "260";
+
+        // The owner's 2026-11-12 ask: every card's item on its tier's ground - common stone grey, rare steel blue, epic
+        // red, gold gilt - each tier its own, the untiered treatments none. A foundry run on a seed that draws every tier
+        // early, its offers answered until each tier has been shown on a card that is not an evolution.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator EveryTiersCardShowsItsItemOnItsTiersOwnGround()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RunSeedPath));
+            File.WriteAllText(DevelopmentStart.RunSeedPath, EveryTierEarlySeed);
+            yield return Load("foundry");
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            Assert.That(setup.Run.Seed, Is.EqualTo(int.Parse(EveryTierEarlySeed)), "The run plays the chosen seed.");
+            UpgradeService upgrades = setup.Upgrades;
+            var view = Object.FindFirstObjectByType<RunChoiceView>();
+            Assert.That(view.PaintsCards, Is.True);
+            ChoiceCardArtSet art = view.CardArt;
+
+            var grounds = new HashSet<Sprite>();
+            for (int t = 0; t < RarityTable.TierCount; t++)
+            {
+                Sprite ground = art.Tier((UpgradeRarity)t).Ground;
+                Assert.That(ground, Is.Not.Null, $"{(UpgradeRarity)t} has an item ground.");
+                Assert.That(ground.texture, Is.SameAs(art.Surface.texture), $"{(UpgradeRarity)t}: on the cards' one sheet.");
+                Assert.That(ground.rect.width, Is.EqualTo(ground.rect.height), $"{(UpgradeRarity)t}: square, as the icon is.");
+                grounds.Add(ground);
+            }
+            Assert.That(grounds.Count, Is.EqualTo(RarityTable.TierCount), "Each tier its own ground.");
+            foreach (ChoiceCardArtSet.Treatment untiered in new[] { art.Evolution, art.Neutral, art.Extract, art.Climb })
+                Assert.That(untiered.Ground == null, Is.True, "The untiered treatments keep the well's navy floor.");
+
+            var seen = new bool[RarityTable.TierCount];
+            int found = 0;
+            for (int i = 0; i < 300 && found < seen.Length; i++)
+            {
+                if (upgrades.CurrentOffer == null)
+                    setup.Run.GrantBonusUpgrade();
+                yield return null;
+                UpgradeOffer offer = upgrades.CurrentOffer;
+                if (offer == null)
+                    continue;
+                Canvas.ForceUpdateCanvases();
+                for (int c = 0; c < offer.Choices.Count; c++)
+                {
+                    if (offer.Choices[c].IsEvolution)
+                        continue;
+                    UpgradeRarity rarity = offer.RarityAt(c);
+                    Button card = view.CardButton(c);
+                    string name = $"Offer {i} card {c} ({rarity}, {offer.Choices[c].Id})";
+                    AssertPainted(card, art, art.Tier(rarity), name);
+                    Image ground = Part(card, "Painted Item Ground");
+                    Assert.That(ground.sprite, Is.SameAs(art.Tier(rarity).Ground), $"{name}: its tier's ground.");
+                    Assert.That(ground.enabled && ground.gameObject.activeInHierarchy, Is.True, $"{name}: on show.");
+                    Assert.That(ground.canvasRenderer.GetAlpha(), Is.EqualTo(1f), $"{name}: at full strength.");
+                    Image icon = card.transform.Find("Choice Icon").GetComponent<Image>();
+                    Assert.That(icon.enabled && icon.sprite != null, Is.True, $"{name}: its item's icon stands on it.");
+                    Assert.That(icon.transform.GetSiblingIndex(), Is.GreaterThan(ground.transform.GetSiblingIndex()),
+                        $"{name}: the icon over its ground.");
+                    if (!seen[(int)rarity])
+                    {
+                        seen[(int)rarity] = true;
+                        found++;
+                    }
+                }
+                Assert.That(setup.Choices.TrySelect(setup.Choices.Current, NotAnEvolution(offer)), Is.True);
+            }
+            Assert.That(found, Is.EqualTo(seen.Length), "Every tier came within three hundred offers.");
+            for (int i = 0; i < 4 && setup.Choices.IsOpen; i++)
+                setup.Choices.TrySelect(setup.Choices.Current, 0);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private static int NotAnEvolution(UpgradeOffer offer)
+        {
+            for (int c = 0; c < offer.Choices.Count; c++)
+                if (!offer.Choices[c].IsEvolution)
+                    return c;
+            return 0;
         }
 
         [UnityTest, Timeout(120000)]

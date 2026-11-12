@@ -34,6 +34,7 @@ MonoBehaviour:
     _namePlate: {fileID: -988498981720247006, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: 1461543893333893022, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: 6000633754969301941, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 2687619438841410141, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _pressColour: {r: 0.55, g: 1, b: 0.68, a: 0.85}
   - _frame: {fileID: -3872526445276267752, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _aura: {fileID: 0}
@@ -42,6 +43,7 @@ MonoBehaviour:
     _namePlate: {fileID: -8697169583272768659, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: 6290761748157743799, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: 1534043838168245002, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: -7906668176594193150, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _pressColour: {r: 1, g: 0.74, b: 0.4, a: 0.85}
   - _frame: {fileID: -8626933205699606910, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _aura: {fileID: 0}
@@ -50,6 +52,7 @@ MonoBehaviour:
     _namePlate: {fileID: -843853342341486369, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: 4199108141317408198, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: 1892158750185250929, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 2686599549980858498, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _pressColour: {r: 1, g: 0.5, b: 0.5, a: 0.85}
   - _frame: {fileID: -268014077894330582, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _aura: {fileID: 1965372614914444658, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
@@ -58,6 +61,7 @@ MonoBehaviour:
     _namePlate: {fileID: -6394380266655175050, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: -4662736151544318235, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: -3005775255962564131, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 4489535012393658421, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _pressColour: {r: 1, g: 0.9, b: 0.55, a: 0.9}
   _evolution:
     _frame: {fileID: 1174790654020541577, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
@@ -67,6 +71,7 @@ MonoBehaviour:
     _namePlate: {fileID: 1246892655214469488, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: 9099378790449031814, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: -2717526635796764748, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 0}
     _pressColour: {r: 1, g: 0.6, b: 0.28, a: 0.9}
   _neutral:
     _frame: {fileID: -2789038473554276429, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
@@ -76,6 +81,7 @@ MonoBehaviour:
     _namePlate: {fileID: 1247474735390353995, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: -8627368152604694964, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: 2901130168057850055, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 0}
     _pressColour: {r: 1, g: 0.84, b: 0.5, a: 0.8}
   _extract:
     _frame: {fileID: 5929713862534262228, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
@@ -85,6 +91,7 @@ MonoBehaviour:
     _namePlate: {fileID: 7587829163441889172, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: -8914695322826288979, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: 6144117929954470363, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 0}
     _pressColour: {r: 0.62, g: 0.82, b: 1, a: 0.85}
   _climb:
     _frame: {fileID: 8233085056104023226, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
@@ -94,4 +101,5 @@ MonoBehaviour:
     _namePlate: {fileID: 5783258298712186542, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _well: {fileID: -3728633917728778339, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
     _sigil: {fileID: -2503023261768608984, guid: 12d9977056b2426d9d51d153e3c19a78, type: 3}
+    _ground: {fileID: 0}
     _pressColour: {r: 1, g: 0.6, b: 0.32, a: 0.85}

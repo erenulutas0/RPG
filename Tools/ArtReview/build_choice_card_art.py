@@ -20,6 +20,9 @@ card as for a gold one, the tier shown only on the card's name. This paints them
   - Description (9-slice, shared): a faint recess the description lies in, fading out toward the card's far end.
   - Well (9-slice, behind the icon): a recessed socket in the tier's metal round any square icon, its floor the navy the
     painted icons carry, and a lip laid over the icon's edge (shared) so a square icon sits in it rather than on it.
+  - Ground (Simple, the four tiers only, exactly the icon's square on the well's floor): the item's ground in the tier's
+    colour, in the painted icons' cells and banded tones - green's card a dark stone grey, orange's a steel blue, red's a
+    crimson burst with corner studs, gold's a gilded one with glints (see item_ground).
   - Sigil (what an empty well holds): a cut stone of the tier's colour in its prongs, the evolution's molten core, the
     forge's anvil, Extract's lit doorway with a coin on its threshold and Climb's three rising chevrons.
   - Press (9-slice, over the frame, painted light): the button's own graphic from now on, clear at rest; under a finger
@@ -49,6 +52,7 @@ import uuid
 
 import numpy as np
 from PIL import Image
+from scipy import ndimage
 
 import build_hud_art as hud
 import build_skill_vfx as skill
@@ -754,6 +758,98 @@ def well_lip():
     return cv.image(), (LIP_B,) * 4, (0.5, 0.5)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# The item's ground: what an upgrade card's icon stands on, in its tier's colour (the owner's 2026-11-12 ask: red and gold
+# backgrounds behind the items). Painted in the icons' own language (build_upgrade_icons.py): chunky cells, each banded
+# onto one of six picked tones of the tier's hue, lit from the top left, so its cells are the icon's cells. The icon's
+# glyph fills its 144 texels from the middle 86 cells of its grid; the ground is those 86 cells, two texels each, fitted
+# to the icon's square (the well's floor) and shown as a Simple image at 160 (the hall's two cards) or about 120 (an
+# offer's three). Opaque: it replaces the navy floor, and every painted card icon is straight-alpha, so the glyph and its
+# halo lie on it. The two quiet tiers stay low and cool - common a dark stone grey with a mottle, rare a steel blue with a
+# brushed sheen - so red and gold carry the eye: epic a crimson burst of soft rays, gold a gilded one with more rays,
+# corner studs and four glints.
+
+GROUND_CELLS = 86
+GROUND_CELL = 2  # texels a cell on the sheet: 172 square
+GROUND_UP = 6  # working texels a cell, softened by a sixth of a cell as the icons' edges are
+
+
+def tones(*colours):
+    return np.array([hex_rgb(c) for c in colours], np.float32)
+
+
+# key: (six tones dark to light, rays, ray strength, the value thresholds between the tones, studs, glints, mottle,
+# sheen)
+GROUNDS = {
+    "Green": (tones("#161519", "#1F1E22", "#29272B", "#343135", "#403C3E", "#4E4946"), 0, 0.0,
+              (0.10, 0.30, 0.52, 0.74, 0.92), False, False, 0.10, 0.0),
+    "Orange": (tones("#0C1322", "#121C30", "#192840", "#223552", "#2D4466", "#3C587E"), 0, 0.0,
+               (0.10, 0.30, 0.52, 0.74, 0.92), False, False, 0.0, 0.12),
+    "Red": (tones("#300609", "#560C12", "#7E121A", "#A61C22", "#CC2C2C", "#EE5A40"), 12, 0.10,
+            (0.08, 0.24, 0.44, 0.66, 0.88), True, False, 0.0, 0.0),
+    "Gold": (tones("#3E2406", "#6C440A", "#9A6A12", "#C4901E", "#E2B232", "#FAD86E"), 16, 0.12,
+             (0.08, 0.24, 0.44, 0.66, 0.88), True, True, 0.0, 0.0),
+}
+# How far each ground's value is lifted off black at its edges: the quiet tiers sink into their wells, red and gold stay
+# lit out to their edges, where a stacked card's icon leaves them showing.
+GROUND_LIFT = {"Green": 0.08, "Orange": 0.12, "Red": 0.34, "Gold": 0.38}
+
+
+def item_ground(key):
+    ramp_, rays, ray_strength, steps, studs, glints, mottle, sheen = GROUNDS[key]
+    n = GROUND_CELLS
+    c = (n - 1) / 2.0
+    y, x = np.mgrid[0:n, 0:n].astype(np.float32)
+    # The light's centre a little up and left of the middle; a rounded square's distance from it, so the light fills the
+    # square rather than a disc.
+    dx, dy = (x - (c - 3.0)) / (n * 0.62), (y - (c - 4.0)) / (n * 0.62)
+    r = (np.abs(dx) ** 2.6 + np.abs(dy) ** 2.6) ** (1 / 2.6)
+    lift = GROUND_LIFT[key]
+    v = lift + (1 - lift) * np.clip(1.0 - r, 0, 1) ** 1.15
+    if rays:
+        theta = np.arctan2(y - c, x - c)
+        ray = np.cos(rays * theta + 0.3) * np.clip(np.hypot(x - c, y - c) / (n * 0.14), 0, 1)
+        v = v + ray_strength * ray * np.clip(v * 2.2, 0, 1)
+    if mottle:
+        rng = np.random.default_rng(31)
+        coarse = rng.standard_normal((n // 6 + 2, n // 6 + 2)).astype(np.float32)
+        grid = np.asarray(Image.fromarray(coarse, "F").resize((n + 12, n + 12), Image.BICUBIC))[6:6 + n, 6:6 + n]
+        v = v + mottle * grid / (np.abs(grid).max() + 1e-6)
+    if sheen:
+        diag = (x + y) / (2 * n)
+        v = v + sheen * np.exp(-((diag - 0.34) / 0.07) ** 2)
+    tone = np.digitize(v, steps).astype(np.int32)
+    # An engraved line three cells in: dark all round, its bottom and right lip catching the light.
+    ring = np.minimum.reduce([x, y, n - 1 - x, n - 1 - y])
+    tone = np.where(ring == 3, np.maximum(tone - 2, 0), tone)
+    lit_lip = (ring == 4) & ((x >= n - 5) | (y >= n - 5))
+    tone = np.where(lit_lip, np.minimum(tone + 2, 5), tone)
+    tone = np.where(ring < 3, np.maximum(tone - 1, 0), tone)
+    rgb = ramp_[tone]
+    if studs:
+        # A diamond stud of the tier's lightest tone in each corner, outlined in its darkest, inside the engraved line.
+        for sx, sy in ((8, 8), (n - 9, 8), (8, n - 9), (n - 9, n - 9)):
+            d = np.abs(x - sx) + np.abs(y - sy)
+            rgb[d <= 3] = ramp_[0]
+            rgb[d <= 2] = ramp_[4]
+            rgb[(d <= 1) & (x <= sx) & (y <= sy)] = ramp_[5]
+    if glints:
+        # Four glints round the middle, clear of where a glyph usually stands: a plus of light with a white heart.
+        white = np.ones(3, np.float32)
+        for gx, gy, size in ((17, 26, 3), (69, 18, 2), (70, 62, 3), (21, 70, 2)):
+            arm = ((np.abs(x - gx) <= size) & (y == gy)) | ((np.abs(y - gy) <= size) & (x == gx))
+            rgb[arm] = ramp_[5]
+            rgb[(x == gx) & (y == gy)] = white
+    up = GROUND_UP
+    hi = np.repeat(np.repeat(rgb, up, 0), up, 1)
+    hi = ndimage.gaussian_filter(hi, sigma=(up / 6.0, up / 6.0, 0))
+    down = up // GROUND_CELL
+    s = n * GROUND_CELL
+    small = hi.reshape(s, down, s, down, 3).mean(axis=(1, 3))
+    image = np.concatenate([np.clip(small, 0, 1), np.ones((s, s, 1), np.float32)], -1)
+    return (image * 255.0 + 0.5).astype(np.uint8), (0, 0, 0, 0), (0.5, 0.5)
+
+
 def press():
     """The press, painted light: a wash over the rim, a light falling inward from it and a veil over the face. The
     button's colours tint it: clear at rest, the treatment's light under a finger, a shade while the card waits."""
@@ -1093,6 +1189,8 @@ def sprites():
         out[key + "NamePlate"] = name_plate(look)
         out[key + "Well"] = well(look)
         out[key + "Sigil"] = SIGILS[key](look)
+        if key in GROUNDS:
+            out[key + "Ground"] = item_ground(key)
     return out
 
 
@@ -1177,6 +1275,7 @@ def write_set(built):
                  f"_namePlate: {ref(built, key + 'NamePlate')}",
                  f"_well: {ref(built, key + 'Well')}",
                  f"_sigil: {ref(built, key + 'Sigil')}",
+                 f"_ground: {ref(built, key + 'Ground') if key in GROUNDS else '{fileID: 0}'}",
                  f"_pressColour: {colour(LOOKS[key].press)}"]
         return [pad + line for line in lines]
 

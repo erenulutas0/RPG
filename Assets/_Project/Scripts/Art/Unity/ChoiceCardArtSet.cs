@@ -6,7 +6,7 @@ namespace Cryptforge.Art
 {
     // The run's choice cards painted (RunChoiceView, ChoiceCardPainter): a treatment per tier, the evolution's own, the
     // forge's neutral one and the checkpoint's Extract and Climb, each a card frame, a name plate, an icon well and what an
-    // empty well holds; the parts every card shares (the description's recess, the lip over the icon's edge, the press);
+    // empty well holds, and each tier the item's ground its icon stands on; the parts every card shares (the description's recess, the lip over the icon's edge, the press);
     // and the panel round them (the backdrop, the surface's frame, the title's plate and crest).
     // Tools/ArtReview/build_choice_card_art.py paints the one sheet they share (Art/UI/ChoiceCards/UI_ChoiceCards.png,
     // imported as sprites with their 9-slice borders) and writes this asset. One sheet, so the cards batch as one texture.
@@ -24,6 +24,7 @@ namespace Cryptforge.Art
             [SerializeField] private Sprite _namePlate;
             [SerializeField] private Sprite _well;
             [SerializeField] private Sprite _sigil;
+            [SerializeField] private Sprite _ground;
             [SerializeField] private Color _pressColour = Color.white;
 
             // Sliced, the card's own image: its rim, its corners and its face.
@@ -41,6 +42,10 @@ namespace Cryptforge.Art
             public Sprite Well => _well;
             // What the well holds while the card has no icon.
             public Sprite Sigil => _sigil;
+            // Optional, Simple, exactly over the icon's square (the well's floor) and under the icon: the item's ground in
+            // its tier's colour - common's stone grey, rare's steel blue, epic's crimson, gold's gilt - so a card's tier
+            // reads from the icon at a glance. The untiered treatments keep the well's navy floor.
+            public Sprite Ground => _ground;
             // The press's colour under a finger.
             public Color PressColour => _pressColour;
 
@@ -49,7 +54,7 @@ namespace Cryptforge.Art
                 HasBorder(_aura) && _auraOutset.x > 0f && _auraOutset.y > 0f && _auraOutset.z > 0f &&
                 _auraOutset.w > 0f) && (_crest == null || On(_crest, sheet)) && On(_namePlate, sheet) &&
                 _namePlate.border.x > 0f && On(_well, sheet) && HasBorder(_well) && On(_sigil, sheet) &&
-                _pressColour.a > 0f;
+                (_ground == null || On(_ground, sheet)) && _pressColour.a > 0f;
         }
 
         [SerializeField] private Sprite _backdrop;
