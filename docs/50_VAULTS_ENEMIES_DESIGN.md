@@ -1,8 +1,8 @@
 # 50 - The Quicksilver Vaults' own enemies (design proposal, 2026-11-12)
 
-**Status 2026-11-12:** the Mirror Sentry is built (step 2 of section 8; "Lead decisions 2026-11-12" at the end). It is
-not yet cleared to ship: no variant tried so far keeps the four-floor Descent's clumsy completion at 40 % ("The 40 % rule
-and the sweep"). The Wisp, the Clerk and the Regent stay simulation-only research.
+**Status 2026-11-12:** the Mirror Sentry is built and **cleared to ship as `sentry-r0-f70`** (step 2 of section 8;
+"Lead decisions 2026-11-12" and "Shipped: `sentry-r0-f70`" at the end). It takes 70 % of a landing from its front and
+reflects nothing; the reflection is a violet glint only. The Wisp, the Clerk and the Regent stay simulation-only research.
 
 A proposal for the owner's decision. Nothing here is built: no code, asset, scene or setting changed. Numbers cited as
 "measured" name their source in docs/41, docs/47 or docs/48. Every other number is a starting value for the simulation
@@ -761,8 +761,9 @@ Read against the lead's five conditions:
 
 ## Lead decisions 2026-11-12 (the owner delegated the gameplay calls to the lead)
 
-**The Mirror Sentry is built as `sentry-t45-h125-c2-f50`** (section 8, step 2). It ships only once a variant passes the
-40 % rule below:
+**The Mirror Sentry was built as `sentry-t45-h125-c2-f50`** (section 8, step 2). The rounds below replaced its tuning; it
+ships as `sentry-r0-f70` ("Shipped: `sentry-r0-f70`", the last section). The rest of this list stands, except where that
+section says otherwise:
 - It replaces the Grunt Captain as floor 2's elite. Sentry Hall is Sentry, Grunt, Mite, Mite. `EliteRule` treats the first
   enemy of an elite room's wave as the elite, so the Daggers' x2 applies unchanged. Floor 1 and floor 3 (Gloam Gardens'
   Thorn Post) keep their Captain.
@@ -918,7 +919,7 @@ Vanguard / Ilya.
 | `c1-f80` | 148 (37.0 %) | 136 (34.0 %) | 284 | 190 / 190; 192 / 194 | 12 / 21; 12 / 17 | +63 %; +62 % | 9 / 10; 9 / 15 | 4.7 / 4.1 |
 | `r0-f90` | 159 (39.8 %) | 141 (35.3 %) | 300 | 191 / 191; 194 / 192 | 15 / 20; 14 / 14 | +62 %; +58 % | 11 / 8; 9 / 14 | 0 |
 
-**No variant passes, so nothing ships.** The Sentry stays built as `f50` and not cleared.
+**No variant passes the absolute rule** (superseded by the lead's relative rule in the next section).
 - Only `r0-f70` meets the bar on seeds 1-200, with 160 of 400, exactly 40.0 %.
 - No variant can meet the holdout bar. On seeds 201-400 the Captain itself completes 36.5 % (146 of 400), under the
   39.0 % line. A Sentry that is no easier for the clumsy pilot than the Captain cannot pass it.
@@ -940,3 +941,50 @@ Of the two that meet such a bar, `r0-f70` has the larger careful-minus-standing 
 Its Daggers' lead is +74 % / +58 %. Shipping it gives up the reflection, and with it the violet reflect glint; the
 front arc and the turn remain the creature's read. Keeping the reflection costs the clumsy cohort about 1.5 points
 over 800 runs. The choice is the lead's or the owner's.
+
+### Shipped: `sentry-r0-f70` (cleared, 2026-11-12)
+
+**The lead's rule, replacing the absolute bars.** The holdout seeds showed that a fixed bar reads the seeds, not the
+creature: on seeds 201-400 the Captain itself completes 36.5 %. The lead also notes the rule in docs/52. Over seeds
+1-400 combined, a new creature may cost the clumsy cohort at most 1 completion in 800, against the shipped floor on the
+same seeds. Careful clears on floor 2 must stay within 3 of it on each range, and the Daggers' lead must stay above +50 %.
+
+**`sentry-r0-f70` passes:**
+
+| `r0-f70` against `captain` | Seeds 1-200 | Seeds 201-400 | Both |
+|---|---|---|---|
+| Clumsy completion (of 400) | 160 against 161 | 146 against 146 | **306 against 307 (-1 of 800)** |
+| Careful F2 clears, V / I | 191 / 194 against 191 / 191 | 195 / 194 against 194 / 194 | within 3 on each |
+| Careful-minus-standing gap, V / I | 17 / 22 against 11 / 21 | 18 / 15 against 15 / 16 | - |
+| The Daggers' lead on the elite | +74 % (Captain +19 %) | +58 % (Captain +31 %) | above +50 % |
+| Standing F2 boss deaths, V / I | 13 / 7 against 7 / 9 | 12 / 13 against 10 / 14 | - |
+| Careful front share | 74 % / 74 % | 74 % / 77 % | - |
+| Careful elite fight P50 (reported) | 2.9 / 2.8 s | 2.9 / 2.8 s | - |
+
+`r0-f60-h100` passes too (307 of 800, no cost), but its gap is smaller (67 clears against 72 over both ranges). `c1-f70`
+keeps a reflection and costs 12 of 800, so it fails.
+
+**What ships.**
+- `MirrorGuardRule`: turn 45 degrees a second, front arc 120 degrees, **70 %** of a front landing taken
+  (`FrontShare` 0.7), **nothing reflected** (`ReflectShare` 0; `ReflectCap` stays 0.02, unused).
+- Health 200, `Weapon_MirrorBash`, speed 1.1, gold 20 / experience 10, as built.
+- The flank habit, as built.
+- The research levers keep the reflection path (`MirrorReflectionDue` and its hold under panels) for any later tuning.
+- **The reflection as feedback only.** A landing the mirror blunted flashes the violet reflect glint from the mirror
+  toward the hero: `MirrorGuardService.Blunted`, drawn by `MirrorGlintView`.
+  - It is rate-limited to one every 0.8 s (`BluntGlintSeconds`), so the glint shows for some blunted landings and
+    a fast weapon never spams it.
+  - It deals no damage: violet never hurts (section 2, rule 3).
+- `MirrorSentryFlowTests` holds this: the front share, whole rear landings, no health reflected, and the glint shown but
+  never twice within 0.8 s.
+
+**Floor 1 and the batch.** The default batch was run again at the shipped code, with the "before" run's environment
+(`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=4`). Only the thread count
+differed, and runs are seeded, so threads change no result.
+- Floor 1 is byte-identical to the batch before the Sentry. `foundry-gate.md` and `foundry-batch.csv` match byte for
+  byte. In `foundry-batch.md` only the header's clock and floor 1's wall seconds differ. `foundry-cohorts.md` keeps every
+  floor-1 line.
+- The cohorts' floor-2 clears are 191 / 194, 174 / 172, 175 / 189, 64 / 107 and 5 / 7, in the order careful, standing,
+  first-card, clumsy, auto-farmer. They were 191 / 191, 180 / 170, 172 / 192, 66 / 108 and 3 / 8 with the Captain.
+- The cohorts that reach the finale number 189 / 190, 165 / 162, 164 / 179, 62 / 98 and 4 / 2. The clumsy cohort's 160 of
+  400 is `r0-f70`'s reading above.
