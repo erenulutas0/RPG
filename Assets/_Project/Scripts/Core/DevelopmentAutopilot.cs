@@ -302,9 +302,14 @@ namespace Cryptforge.Core
                 return false;
             WardenSlamService warden = _setup.Warden;
             bool marked = warden != null && warden.IsFighting && warden.Clock.IsMarked;
-            // Not the gate boss, the target is the Captain, an elite: the Daggers' share on it counts (EliteRule).
-            return FootworkRule.StepIn(x, y, tx, ty, FootworkRule.BestSingleTargetReach(_setup.Upgrades.Loadout, boss, !boss),
+            // Not the gate boss, the target is the elite room's leader, an elite: the Daggers' share on it counts (EliteRule).
+            bool stepped = FootworkRule.StepIn(x, y, tx, ty, FootworkRule.BestSingleTargetReach(_setup.Upgrades.Loadout, boss, !boss),
                 marked, glowing, _heroHealth.Current, _heroHealth.Maximum, out gx, out gy);
+            // The flank (docs/50 section 5): a Mirror Sentry's mirror is circled toward its rear at the same reach
+            // (FootworkRule.Flank), once MirrorGuardService has turned it.
+            if (stepped && !boss && target.TryGetComponent(out MirrorGuard mirror) && mirror.State.IsGuarding)
+                FootworkRule.Flank(x, y, tx, ty, mirror.State.Facing, ref gx, ref gy);
+            return stepped;
         }
 
         private bool NearestAltar(float x, float y, out float gx, out float gy)
