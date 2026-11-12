@@ -2404,14 +2404,16 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
-   main b901e630 (floor 3, the Gloam Gardens, after the ice floor - the Descent is now four floors, about 14 minutes;
+   main aa036e09 (floor 3's own look: the Gloam Gardens' moss, verdigris and gloamlight, orchid enemies and a root-framed
+   dusk plate; floor changes prepared ahead, so a descent costs about 1-3 ms instead of 279 ms; 56 MB with floor 3's
+   textures) on top of main b901e630 (floor 3, the Gloam Gardens, after the ice floor - the Descent is now four floors, about 14 minutes;
    the ice props and the frost transition; the second map's ice theme, frosted floor-2 enemies, the rarity cards and the
    foundry art on top of) main 90c7eab1 (the 2026-11-12 overnight work: the swarm pool, the boss banner, burns held in the reveal, decimals
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # BB28D6AB7CEAC5A4... on 2026-11-12 12:43
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 46528163
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 4763B4E1B3D08AB3... on 2026-11-12 23:05
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 56463031
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
