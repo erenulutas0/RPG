@@ -30,6 +30,19 @@ namespace Cryptforge.Tests
             Assert.That(ScriptableObject.CreateInstance<FloorDefinition>().Theme, Is.EqualTo(FloorTheme.Foundry));
         }
 
+        // Floor 3 (Gloam Gardens, docs/48) plays on the foundry's look until it has its own: descending from floor 2's ice
+        // turns the region back to the foundry.
+        [Test]
+        public void FloorThreeTurnsBackToTheFoundry()
+        {
+            var second = AssetDatabase.LoadAssetAtPath<FloorDefinition>(SecondFloor);
+            Assert.That(second, Is.Not.Null);
+            FloorDefinition third = second.NextFloor;
+            Assert.That(third, Is.Not.Null);
+            Assert.That(third.Id, Is.EqualTo("floor_gloam_gardens"));
+            Assert.That(third.Theme, Is.EqualTo(FloorTheme.Foundry));
+        }
+
         [Test]
         public void IceTurnsBrassColdAndKeepsStoneNeutralAndAlpha()
         {

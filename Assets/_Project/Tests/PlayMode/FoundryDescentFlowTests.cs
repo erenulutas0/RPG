@@ -362,11 +362,12 @@ namespace Cryptforge.Tests
 
         // The climb the game ships, on the foundry from its first hall to the end of the Final Swarm: floor 1 as the
         // foundry plays it - its halls at their districts, the forge, the Captain twice, the gate - its gate's wait skipped
-        // by starting each floor's clock past it (floor 2's waits for the same 3:30 since docs/47); floor 2; the finale.
-        // Every room is played in the order FoundryRooms gives, the HUD's pips grow past the scene's six for floor 1's
-        // seven, the finale has no gate boss, and its chest stands where the hero arrives and opens under it (docs/47).
-        // Every checkpoint descends, every offer takes its first card, the forge its first option.
-        [UnityTest, Timeout(300000)]
+        // by starting each floor's clock past it (floors 2 and 3 wait for the same 3:30, docs/47 and docs/48); floor 2;
+        // floor 3 (Gloam Gardens, docs/48); the finale. Every room is played in the order FoundryRooms gives, the HUD's pips
+        // grow past the scene's six for floor 1's seven, the finale has no gate boss, and its chest stands where the hero
+        // arrives and opens under it (docs/47). Every checkpoint descends, every offer takes its first card, the forge its
+        // first option.
+        [UnityTest, Timeout(420000)]
         public IEnumerator TheShippedClimbPlaysThroughToTheEndOfTheFinalSwarm()
         {
             yield return FoundryRunDriver.Load(null, PastFloorOnesGate);
@@ -407,7 +408,7 @@ namespace Cryptforge.Tests
             Assert.That(chests, Is.Not.Null);
             float chestFromArrival = float.NaN;
             bool finaleChestOpened = false;
-            float deadline = Time.realtimeSinceStartup + 240f;
+            float deadline = Time.realtimeSinceStartup + 330f;
             while (!setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
             {
                 FoundryRunDriver.Keep(setup, hero);
@@ -454,13 +455,14 @@ namespace Cryptforge.Tests
 
             Assert.That(setup.Run.Outcome, Is.EqualTo(RunOutcome.Victory), $"The climb ends at the finale's way out; it stopped at {last}.");
             Assert.That(played, Is.EqualTo(expected), "Every room of the climb, in the order the foundry plays it.");
-            Assert.That(pips, Is.EqualTo(new[] { (7, 1), (6, 1), (1, 1) }),
-                "A pip a room: floor 1's seven, floor 2's six, the finale's one; the first reached on each.");
+            Assert.That(pips, Is.EqualTo(new[] { (7, 1), (6, 1), (6, 1), (1, 1) }),
+                "A pip a room: floor 1's seven, floor 2's six, floor 3's six, the finale's one; the first reached on each.");
             Assert.That(wardenInTheFinale, Is.False, "No enemy of the finale is the gate boss.");
             Assert.That(chestFromArrival, Is.LessThanOrEqualTo(ChestRule.PickupRadius), "The finale's chest stands where the hero arrives.");
             Assert.That(finaleChestOpened, Is.True, "The hero opens it standing there.");
             Assert.That(encounters.TotalRoomsCleared, Is.EqualTo(expected.Count));
-            Assert.That(TestProfile.ReadSaved().DeepestFloorCleared, Is.EqualTo(3));
+            Assert.That(expected.Count, Is.EqualTo(20), "Floor 1's seven rooms, floor 2's six, floor 3's six, the finale's one.");
+            Assert.That(TestProfile.ReadSaved().DeepestFloorCleared, Is.EqualTo(4));
             LogAssert.NoUnexpectedReceived();
         }
     }

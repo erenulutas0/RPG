@@ -121,8 +121,8 @@ namespace Cryptforge.Tests
         // The climb's floor 2, which a run goes down to after a floor-1 clear (FoundryLevers.Floors = 2): Floor_EmberHalls'
         // next floor as the foundry plays it - its rooms, horde, climb scaling, Cursed Gold and its own foundry knobs (no
         // V0.1 surges or elite, floor 1's gate time; its Warden's own share) - its gate boss the Forge Warden with two Cinder Mites,
-        // the districts the round goes on from, and below it the finale's swarm room, which the simulation plays after a
-        // floor-2 clear with FoundryLevers.Floors = 3 (TheFoundrysFinaleIsTheAsset).
+        // the districts the round goes on from, and below it floor 3, Gloam Gardens, which the simulation plays after a
+        // floor-2 clear with FoundryLevers.Floors = 3 (TheFoundrysThirdFloorIsTheAsset; the finale before docs/48).
         [Test]
         public void TheFoundrysSecondFloorIsTheAsset()
         {
@@ -154,13 +154,59 @@ namespace Cryptforge.Tests
             Assert.That(DescentSimulation.LaterHalls(floor), Is.EqualTo(EncounterController.LaterHalls(asset)));
 
             Assert.That(asset.NextFloor, Is.Not.Null);
-            Assert.That(asset.NextFloor.RoomAt(0).Kind, Is.EqualTo(RoomKind.Swarm), "the finale");
-            Assert.That(floor.Next, Is.Not.Null, "the simulation's floor 2 leads to the finale too");
+            Assert.That(asset.NextFloor.Id, Is.EqualTo("floor_gloam_gardens"), "floor 3 (docs/48)");
+            Assert.That(floor.Next, Is.Not.Null, "the simulation's floor 2 leads to floor 3 too");
             Assert.That(floor.Next.Id, Is.EqualTo(asset.NextFloor.Id));
         }
 
-        // The climb's last floor, which a run goes down to after a floor-2 clear (FoundryLevers.Floors = 3,
-        // DescentSimulation.FoundryFinale): Floor_QuicksilverVaults' next floor as the foundry plays it - as authored, no
+        // The climb's floor 3 (docs/48 phase 1), which a run goes down to after a floor-2 clear (FoundryLevers.Floors = 3):
+        // Floor_QuicksilverVaults' next floor as the foundry plays it - floor 2's six rooms under the garden's names, climb-
+        // scaled at floor 3 (the first floor where ClimbScaling.Boss's x1.15 reaches the gate boss), no modifier, floor 1's
+        // three horde roles, no surges or extra elite, the gate held for 3:30 and its Warden's own share, which the
+        // simulation reads through the scene's WardenRule.GateHealthShareOn - its gate boss the Forge Warden with two Cinder
+        // Mites, the Foundry's look (its own theme comes later), the districts the round goes on from, and below it the
+        // finale's swarm room, which the simulation plays after a floor-3 clear (FoundryLevers.Floors = 4,
+        // TheFoundrysFinaleIsTheAsset).
+        [Test]
+        public void TheFoundrysThirdFloorIsTheAsset()
+        {
+            var first = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
+            FloorDefinition second = first.NextFloor;
+            FloorDefinition asset = second.NextFloor;
+            Assert.That(asset, Is.SameAs(AssetDatabase.LoadAssetAtPath<FloorDefinition>("Assets/_Project/Data/Floors/Floor_GloamGardens.asset")));
+            DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next.Next;
+            Assert.That(floor, Is.Not.Null);
+            Assert.That(floor.FloorNumber, Is.EqualTo(3));
+            AssertFloor(asset, floor);
+            Assert.That(asset.DisplayName, Is.EqualTo("Gloam Gardens"));
+            Assert.That(asset.Modifier, Is.Null, "no modifier on floor 3's first build");
+            Assert.That(asset.Theme, Is.EqualTo(FloorTheme.Foundry), "the Foundry's look until floor 3 has its own");
+            Assert.That(asset.FoundryGateNotBeforeSeconds, Is.EqualTo(210f), "floor 3's gate holds for 3:30, as floors 1 and 2");
+            Assert.That(asset.EnemyHealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));
+            Assert.That(asset.EnemyDamageMultiplier, Is.EqualTo(ClimbScaling.Damage(3)).Within(1e-5f));
+
+            // Its gate boss: the Forge Warden, two Cinder Mites beside it, at the floor's own share.
+            int boss = System.Array.IndexOf(floor.Kinds, RoomKind.Boss);
+            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo(second.RoomAt(boss).WaveAt(0).EnemyAt(0).Id),
+                "floor 2's gate boss, the Forge Warden");
+            Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
+            Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
+            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(DescentSimulation.FloorThreeGateShare));
+            Assert.That(DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), floor).WardenHealthShare,
+                Is.EqualTo(WardenRule.GateHealthShareOn(asset.FoundryGateHealthShare)));
+            Assert.That(ClimbScaling.Boss(floor.FloorNumber), Is.EqualTo(ClimbScaling.BossGrowth), "floor 3's gate is the first the boss growth reaches");
+
+            // The districts go on from floors 1 and 2's authored halls.
+            Assert.That(DescentSimulation.LaterHalls(floor), Is.EqualTo(EncounterController.LaterHalls(asset)));
+
+            Assert.That(asset.NextFloor, Is.Not.Null);
+            Assert.That(asset.NextFloor.RoomAt(0).Kind, Is.EqualTo(RoomKind.Swarm), "the finale");
+            Assert.That(floor.Next, Is.Not.Null, "the simulation's floor 3 leads to the finale too");
+            Assert.That(floor.Next.Id, Is.EqualTo(asset.NextFloor.Id));
+        }
+
+        // The climb's last floor, which a run goes down to after a floor-3 clear (FoundryLevers.Floors = 4,
+        // DescentSimulation.FinaleFloor, FoundryFinale): Floor_GloamGardens' next floor as the foundry plays it - as authored, no
         // extra elite before a boss it does not have - one swarm room whose ladder's waves and enemies are the asset's, at
         // its own multipliers (it is not climb-scaled), with no modifier, no horde, none of the foundry's knobs and nothing
         // below it; and the development autopilot's stay in it before it walks to the exit.
@@ -168,12 +214,13 @@ namespace Cryptforge.Tests
         public void TheFoundrysFinaleIsTheAsset()
         {
             var first = AssetDatabase.LoadAssetAtPath<FloorDefinition>(FirstFloor);
-            FloorDefinition asset = first.NextFloor.NextFloor;
-            DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next.Next;
+            FloorDefinition asset = first.NextFloor.NextFloor.NextFloor;
+            DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next.Next.Next;
             Assert.That(asset, Is.Not.Null);
             Assert.That(floor, Is.Not.Null);
             Assert.That(asset.Id, Is.EqualTo(floor.Id));
-            Assert.That(floor.FloorNumber, Is.EqualTo(3));
+            Assert.That(floor.FloorNumber, Is.EqualTo(DescentSimulation.FinaleFloor));
+            Assert.That(DescentSimulation.FinaleFloor, Is.EqualTo(4), "floor 1, floor 2, floor 3, the finale");
             Assert.That(asset.ClimbScaled, Is.EqualTo(floor.ClimbScaled), "the finale keeps its own multipliers");
             Assert.That(asset.ClimbScaled, Is.False);
             Assert.That(asset.EnemyHealthMultiplier, Is.EqualTo(floor.EnemyHealthMultiplier));
