@@ -108,6 +108,12 @@ namespace Cryptforge.UI
         // For tests: the set the cards are painted from, and whether they are.
         public ChoiceCardArtSet CardArt => _cardArt;
         public bool PaintsCards => _painter != null;
+        // The panel's title and first card's labels, whose fonts and colours the map choice (MapChoiceView) borrows.
+        internal Text TitleLabel => _titleLabel;
+        // The panel itself, which the catch-up's Auto-pick button (CatchUpAutoPickView) stands on.
+        internal GameObject Panel => _panel;
+        internal Text FirstNameLabel => _nameLabels != null && _nameLabels.Length > 0 ? _nameLabels[0] : null;
+        internal Text FirstDescriptionLabel => _descriptionLabels != null && _descriptionLabels.Length > 0 ? _descriptionLabels[0] : null;
 
         public string CardKindText(int slot)
         {

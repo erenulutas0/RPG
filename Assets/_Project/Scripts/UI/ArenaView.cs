@@ -43,6 +43,8 @@ namespace Cryptforge.UI
             new ArenaGeometry(_nearCorner, _farCorner, _halfWidth);
         public Material Material => _material;
         public PlatformMaterialSet PlatformMaterials => _platformMaterials;
+        // The foundry's own cavern plate, the backdrop floor 1 wears (the map choice's preview of the Foundry).
+        public Sprite CavernBackdrop => _cavernBackdrop;
         public int GroundEffectSortingOrder => _sortingOrder + 7;
         public VoidBackdropView Backdrop { get; private set; }
         public ForgePlatformView Platform { get; private set; }

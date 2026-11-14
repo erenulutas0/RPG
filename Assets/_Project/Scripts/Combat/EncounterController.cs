@@ -105,6 +105,8 @@ namespace Cryptforge.Combat
         private int _roomsClearedOnEarlierFloors;
         // The districts the run's earlier floors opened, so the next floor's halls go on round from where they left off.
         private int _hallsOnEarlierFloors;
+        // True only while Initialize enters the run's first floor: EnterFloor plays no descent's transition then.
+        private bool _enteringFirstFloor;
         // Waves started on the current floor; each starts one corner further round the arena.
         private int _waveOrdinal;
         // The foundry floor's continuous horde (docs/27 decision 9, HordeDirector): its own pack, walking the map from the
@@ -161,6 +163,9 @@ namespace Cryptforge.Combat
 
         public FloorDefinition Floor => _currentFloor;
         public int FloorNumber { get; private set; }
+        // The floor the run began on: 1, or the map the player chose (Initialize's startFloor). A development start-floor
+        // file keeps 1 here, as it keeps FloorNumber.
+        public int StartFloorNumber { get; private set; } = 1;
         public bool HasNextFloor => _currentFloor != null && _currentFloor.NextFloor != null;
         public RoomDefinition CurrentRoom =>
             _floorProgress != null && _floorProgress.RoomIndex >= 0 ? _rooms[_floorProgress.RoomIndex] : null;
@@ -286,8 +291,13 @@ namespace Cryptforge.Combat
 
         // upgrades is what a swarm room holds level-ups back on and opens its sittings with; without it a swarm offers each
         // level-up as it comes. drops are the Descent's rewards on the floor, which the hero picks up as it walks.
+        // startFloor is the map the player chose (MapChoiceView): the Descent's floor of that number, entered as if the hero
+        // had walked down to it - its FloorNumber (the climb's scaling, the horde's seed, the telemetry's floor) and the halls
+        // the floors above it added to the round - with no descent's transition. 1, the default, is floor 1 exactly as
+        // before; a development start-floor file wins over it (ResolveStartFloor).
         public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null,
-            UpgradeService upgrades = null, GroundDrops drops = null, bool deferFirstEncounter = false, int hordeSeed = 0)
+            UpgradeService upgrades = null, GroundDrops drops = null, bool deferFirstEncounter = false, int hordeSeed = 0,
+            int startFloor = 1)
         {
             _difficulty = difficulty;
             _hordeSeed = hordeSeed;
@@ -305,6 +315,9 @@ namespace Cryptforge.Combat
             // Gameplay.unity. A release build, and anything without that file, always gets the authored floor back. It is
             // resolved before validation, so whatever the run actually descends is the chain that gets checked.
             FloorDefinition first = DevelopmentStart.FirstFloor(_floor);
+            int firstNumber = 1, hallsBefore = 0;
+            if (startFloor > 1 && ReferenceEquals(first, _floor))
+                first = DescentFloor(_floor, startFloor, out firstNumber, out hallsBefore);
             var visited = new HashSet<FloorDefinition>();
             for (FloorDefinition floor = first; floor != null; floor = floor.NextFloor)
             {
@@ -315,14 +328,53 @@ namespace Cryptforge.Combat
             }
 
             _fight = new EncounterProgress(_advanceDelay);
-            FloorNumber = 1;
-            _hallsOnEarlierFloors = 0;
-            EnterFloor(first);
+            FloorNumber = firstNumber;
+            StartFloorNumber = firstNumber;
+            _hallsOnEarlierFloors = hallsBefore;
+            // The floor a run starts on plays no arrival: the frost and the melt belong to the descent onto it.
+            _enteringFirstFloor = true;
+            try
+            {
+                EnterFloor(first);
+            }
+            finally
+            {
+                _enteringFirstFloor = false;
+            }
             // A fallen hero ends the gate's hold at once, so nothing reads a hold the run has left behind.
             _hero.Died += OnHeroDied;
             _firstEncounterPending = true;
             if (!deferFirstEncounter)
                 BeginFirstEncounter();
+        }
+
+        // The authored Descent's floor of the given number counted from first (the scene's floor 1), the number it reached
+        // (the last floor's when the Descent is shorter) and the halls the floors above it add to the round (LaterHalls), as
+        // a descent from the first floor counts them. Walks at most floorNumber - 1 links, so a looped chain cannot hold it.
+        public static FloorDefinition DescentFloor(FloorDefinition first, int floorNumber, out int reached, out int hallsBefore)
+        {
+            if (first == null)
+                throw new ArgumentNullException(nameof(first));
+            FloorDefinition floor = first;
+            reached = 1;
+            hallsBefore = 0;
+            while (reached < floorNumber && floor.NextFloor != null)
+            {
+                hallsBefore += LaterHalls(floor);
+                floor = floor.NextFloor;
+                reached++;
+            }
+            return floor;
+        }
+
+        // The floor a run asked to start on (MapChoiceView) begins on, before Initialize: 1 when 1 or less is asked or a
+        // development start-floor file names a floor (that path keeps its own rules), otherwise what DescentFloor reaches.
+        public int ResolveStartFloor(int wanted)
+        {
+            if (wanted <= 1 || _floor == null || !ReferenceEquals(DevelopmentStart.FirstFloor(_floor), _floor))
+                return 1;
+            DescentFloor(_floor, wanted, out int reached, out _);
+            return reached;
         }
 
         // Arrival presentation may hold only the initial step. Validation and floor setup have already completed;
@@ -589,10 +641,10 @@ namespace Cryptforge.Combat
             {
                 _arena.ApplyFloorTheme(floor.Theme);
                 // The descent from floor 1 lands on the frozen floor 2: frost creeps over the view (visual only).
-                if (ArenaView.FrostsOnEntry(FloorNumber, floor.Theme))
+                if (!_enteringFirstFloor && ArenaView.FrostsOnEntry(FloorNumber, floor.Theme))
                     _arena.PlayFrostTransition();
                 // The descent from floor 2 lands in the garden: the frost melts into ash (visual only).
-                if (ArenaView.MeltsOnEntry(FloorNumber, floor.Theme))
+                if (!_enteringFirstFloor && ArenaView.MeltsOnEntry(FloorNumber, floor.Theme))
                     _arena.PlayGloamTransition();
                 // The next floor's dress, worked out in the background while this one plays, so the descent only binds it.
                 if (floor.NextFloor != null)

@@ -21,6 +21,10 @@ namespace Cryptforge.Tests
             // naming it; foundry tests overwrite this with "foundry" after Begin.
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
             File.WriteAllText(DevelopmentStart.RegionPreviewPath, "hall");
+            // Every scene test starts its run at once, as before the map choice (MapChoiceView); the map choice's own tests
+            // delete this. No map chosen by an earlier test carries into this one either.
+            File.WriteAllText(DevelopmentStart.MapChoicePath, "off");
+            RunStartRequest.Clear();
             if (seed != null)
                 new ProfileStore(Folder).Save(seed);
         }

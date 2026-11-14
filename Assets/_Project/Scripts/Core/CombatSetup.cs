@@ -47,6 +47,14 @@ namespace Cryptforge.Core
         private ProfileStore _profileStore;
         private bool _timeFrozen;
         private bool _restarting;
+        private RunTelemetryBridge _telemetry;
+        // A deeper start's level-ups are open: the first wave waits for the last of them (OnChoicesChanged).
+        private bool _firstWaveAfterChoices;
+
+        // The floor this run began on: 1, or the deeper map chosen before this load (MapChoiceView, DescentStart).
+        public int StartFloor { get; private set; } = 1;
+        // The map choice is open: the first wave and the run's telemetry wait for a map (StartOnMap).
+        public bool IsChoosingMap { get; private set; }
 
         // The hero this run plays: the profile's choice when it may be played, otherwise the default.
         public HeroDefinition Hero { get; private set; }
@@ -207,7 +215,14 @@ namespace Cryptforge.Core
             Pause.Changed += ApplyPause;
             Choices.Changed += OnChoicesChanged;
             Drops = new GroundDrops(Run);
+            // The map this run starts on (MapChoiceView): the one chosen before this load, if any - the scene reloads to
+            // start deeper - or, with none chosen, the choice itself, which holds the first wave and the run's telemetry
+            // until the player taps a map.
+            int wanted = RunStartRequest.Take();
+            StartFloor = _encounters.ResolveStartFloor(wanted);
+            IsChoosingMap = wanted <= 0 && DevelopmentStart.OffersMapChoice();
             RunTelemetryBridge telemetry = AttachTelemetry(equipped);
+            _telemetry = telemetry;
             telemetry.WatchDrops(Drops);
             gameObject.AddComponent<ExitSealView>().Initialize(this, _text);
             gameObject.AddComponent<BossRevealView>().Initialize(this, movement);
@@ -223,9 +238,12 @@ namespace Cryptforge.Core
             _encounters.EnemyDefeated += OnEnemyDefeated;
             _encounters.EnemyRemoved += OnEnemyRemoved;
             _encounters.FloorCleared += OnFloorCleared;
-            telemetry.Begin();
-            bool arrival = DevelopmentStart.GateArrival();
-            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival, Run.Seed);
+            if (!IsChoosingMap)
+                telemetry.Begin();
+            bool catchUp = StartFloor > 1;
+            bool arrival = !catchUp && DevelopmentStart.GateArrival();
+            _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival || IsChoosingMap || catchUp,
+                Run.Seed, StartFloor);
             if (arrival) gameObject.AddComponent<GateArrivalView>().Initialize(this, movement);
             // After the encounter knows its floor.
             Altars.Initialize(this, _hero.transform);
@@ -249,6 +267,70 @@ namespace Cryptforge.Core
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
             if (movement != null && DevelopmentStart.Autopilot())
                 gameObject.AddComponent<DevelopmentAutopilot>().Initialize(this, movement, _hero.transform);
+            if (IsChoosingMap)
+                gameObject.AddComponent<MapChoiceView>().Initialize(this, movement);
+            // Last, with every view and service wired: a deeper start's level-ups open the level-up panel one after
+            // another, and the first wave waits until the last is chosen (OnChoicesChanged).
+            if (catchUp)
+            {
+                gameObject.AddComponent<CatchUpAutoPickView>().Initialize(this);
+                CatchUpToStartFloor();
+            }
+        }
+
+        // A deeper start's level-ups are still queued before its first wave: the level-up panel offers Auto-pick
+        // (CatchUpAutoPickView). Never during a run's own level-ups.
+        public bool IsCatchingUp => _firstWaveAfterChoices && Choices.IsOpen && Choices.Current.Kind == ChoiceKind.Upgrade &&
+            Upgrades.CurrentOffer != null;
+
+        // Takes every queued catch-up level-up as the careful autopilot takes its cards (AutopilotCohort.Careful.Pick, the
+        // build's scoring; the first card on a legacy offer), from the run's own seeded offers, so the same seed and hero
+        // pick the same build. Each through Choices like a tap, so telemetry logs it as a pick. Returns the cards' names in
+        // the order taken; the last pick closes the panel and the first wave comes in (OnChoicesChanged).
+        public List<string> AutoPickCatchUp()
+        {
+            var taken = new List<string>();
+            for (int guard = 0; IsCatchingUp && guard < 1000; guard++)
+            {
+                UpgradeOffer offer = Upgrades.CurrentOffer;
+                bool low = _hero.Current < _hero.Maximum * .5f;
+                int slot = Upgrades.IsCategoryMode ? AutopilotCohort.Careful.Pick(offer, low, Upgrades) : 0;
+                string name = offer.Choices[slot].DisplayName;
+                if (!Choices.TrySelect(Choices.Current, slot))
+                    break;
+                taken.Add(name);
+            }
+            return taken;
+        }
+
+        // The run begins on a deeper map (DescentStart): the hero raised to the level it typically has arriving there,
+        // every level-up of it left to choose before the first wave.
+        private void CatchUpToStartFloor()
+        {
+            DescentStart.CatchUp(Run, StartFloor);
+            if (Choices.IsOpen)
+                _firstWaveAfterChoices = true;
+            else if (!Run.HasEnded)
+                _encounters.BeginFirstEncounter();
+        }
+
+        // The map the player tapped on the map choice (MapChoiceView): floor 1 begins here and now, as every run began
+        // before the choice existed; a deeper floor reloads the scene with the choice (RunStartRequest), and that load
+        // begins on it (Awake). Once only, and only while the choice is open.
+        public void StartOnMap(int floorNumber)
+        {
+            if (!IsChoosingMap || _restarting)
+                return;
+            IsChoosingMap = false;
+            if (floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber))
+            {
+                RunStartRequest.Set(floorNumber);
+                RestartRun();
+                return;
+            }
+            _telemetry.Begin();
+            if (!Run.HasEnded)
+                _encounters.BeginFirstEncounter();
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
@@ -273,6 +355,7 @@ namespace Cryptforge.Core
                 ForgeGold = Profile.Gold,
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
                 Seed = Run.Seed,
+                StartFloor = StartFloor,
                 KillerId = () => KillerTelemetryId,
                 HeroHealth = () => _hero.Current,
                 HeroMaximumHealth = () => _hero.Maximum,
@@ -487,6 +570,13 @@ namespace Cryptforge.Core
         {
             using (PerformanceMarkers.PickPause.Auto())
                 Pause.SetChoiceOpen(Choices.IsOpen);
+            // A deeper start's last level-up chosen: its first wave comes in (CatchUpToStartFloor).
+            if (_firstWaveAfterChoices && !Choices.IsOpen)
+            {
+                _firstWaveAfterChoices = false;
+                if (!Run.HasEnded)
+                    _encounters.BeginFirstEncounter();
+            }
         }
 
         // Leaving the app (a call, the home button) pauses the run so it waits for the player on return.

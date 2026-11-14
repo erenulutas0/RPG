@@ -204,5 +204,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryLogTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetrySessionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunTelemetryTests.cs" />
+    <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
   </ItemGroup>
 </Project>
