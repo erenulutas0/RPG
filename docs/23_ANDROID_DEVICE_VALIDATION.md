@@ -2404,6 +2404,7 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main with the hero choice beside the map choice ("Choose your hero and map": the Vanguard or Ilya, then the map) on top of
    main 819c4daa (a map choice before every run - the Foundry, the Quicksilver Vaults or the Gloam Gardens, a deeper start
    with the levels it would carry there and an Auto-pick button; floor 2's Mirror Sentry; floor 3's growth, its melt and
    its verdigris gate; runs begun deeper are left out of the gate's device rows) on top of
@@ -2415,8 +2416,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 12B0364B23054F7A... on 2026-11-14 13:41
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 58037373
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 0DBF44D52DC51140... on 2026-11-14 14:50
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 58044357
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
