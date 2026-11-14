@@ -119,6 +119,28 @@ namespace Cryptforge.Tests
             Assert.That(RunStartRequest.Take(), Is.EqualTo(0));
         }
 
+        // The hero chosen beside the map rides with it and goes with it: never alone, never twice.
+        [Test]
+        public void TheHeroChosenWithTheMapIsReadOnceWithIt()
+        {
+            RunStartRequest.Clear();
+            RunStartRequest.Set(1, "hero_cinder_arcanist");
+            Assert.That((RunStartRequest.IsPending, RunStartRequest.PendingHeroId), Is.EqualTo((true, "hero_cinder_arcanist")));
+            Assert.That(RunStartRequest.Take(out string hero), Is.EqualTo(1));
+            Assert.That(hero, Is.EqualTo("hero_cinder_arcanist"));
+            Assert.That(RunStartRequest.Take(out hero), Is.EqualTo(0), "Taken, it is gone.");
+            Assert.That(hero, Is.Null);
+            RunStartRequest.Set(0, "hero_cinder_arcanist");
+            Assert.That((RunStartRequest.IsPending, RunStartRequest.PendingHeroId), Is.EqualTo((false, (string)null)),
+                "A hero without a map is no request.");
+            RunStartRequest.Set(3, "hero_vanguard");
+            Assert.That(RunStartRequest.Take(), Is.EqualTo(3), "The floor alone may be taken");
+            Assert.That(RunStartRequest.PendingHeroId, Is.Null, "and the hero goes with it.");
+            RunStartRequest.Set(2);
+            Assert.That(RunStartRequest.PendingHeroId, Is.Null, "A map alone keeps the profile's hero.");
+            RunStartRequest.Clear();
+        }
+
         [Test]
         public void EveryMapIsAStartAndTheFinaleIsNot()
         {
