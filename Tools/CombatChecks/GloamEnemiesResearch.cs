@@ -90,11 +90,11 @@ namespace Cryptforge.Tests
                     Set = Bloom(l => { l.BloomWindup = windup; l.BloomMaulScale = maul / 100f; })
                 };
             // Round 2's cheaper combinations: the maul at a half or a third, with a shorter reach or less health.
-            foreach (int maul in new[] { 35, 50 })
+            foreach (int maul in new[] { 35, 50, 75, 100 })
             foreach (int health in new[] { 60, 80, 100 })
             foreach (float reach in new[] { 1.2f, 1.5f })
             {
-                if (health == 100 && reach == 1.5f && maul == 50)
+                if (health == 100 && reach == 1.5f && (maul == 50 || maul == 75 || maul == 100))
                     continue;
                 string key = $"bloom-m{maul}" + (health != 100 ? $"-h{health}" : string.Empty) +
                              (reach != 1.5f ? "-r" + reach.ToString("0.0", CultureInfo.InvariantCulture) : string.Empty);
