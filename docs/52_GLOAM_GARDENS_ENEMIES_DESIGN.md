@@ -561,3 +561,261 @@ The owner made the lead the vision designer on 2026-11-12; these answer section 
    closed, and the open phase rewards timing.
 9. **Art.** Blender, as docs/50; the Pollen Wraith pale orchid, not ash-white, for Ilya's sake.
 10. **Codex.** The three drafts go to the owner later, as C31-C33.
+
+## Measured (simulation only, 2026-11-12 to 11-15): the Cinder Bloom
+
+Section 9's step 1 for the Bloom alone (section 11, decision 1), as research levers off by default. Nothing the game
+plays changed: no scene, prefab, asset or setting. The default batch is byte-identical before and after (end of this
+section).
+
+**What was built.**
+- `Scripts/Combat/BloomRule.cs` (compiled by CombatChecks): the cycle in never-inlined bodies - `Open(age, closed,
+  open)`, `WindowsBegun`, `DamageOn(amount, open, bark)`, `SpeedOf(speed, open)`, `SwingDone(since, windup)` - and a
+  `BloomClock` (age, `IsOpen`, `Land`, `Speed`, `Reset`) for a later scene's `GloamService` and the simulation alike.
+  `BloomRuleTests` hold it.
+- `PackMotion.SetSpeed(index, speed)`: the rooting (an open Bloom walks at 0). Unused by the scene today.
+- `Tests/Support/DescentSimulation.Gloam.cs`: `CinderBloom` (280 health, Bark Maul 10.8 every 1.8 s at reach 1.5, 0.6 s
+  before the first, speed 1.2, 20 gold, 10 experience: 549 health and 19.5 a blow at floor 3's tier) and
+  `GloamChain(levers)` (floors 1-2 as `VaultsChain` makes them, floor 3 with the Bloom at the head of Thorn Post in the
+  Captain's place, its Grunt and two Cinder Mites unchanged). Levers: `GloamBloom`, `BloomHealthScale`,
+  `BloomMaulScale`, `BloomMaulReach`, `BloomClosed`, `BloomOpen`, `BloomBark`, and past section 5's list `BloomSpeed`
+  and `BloomWindup`. Its clock is stepped where the scene's service would step it (after the Warden's slam and the
+  Sentry's guard, before every attacker) and holds under a panel and the reveal. Every elite leader's fight is now read
+  for the report (walk-in to fall, seconds in the hero's longest reach, D, windows, the health lost while an elite wave
+  stands, by source); the reading changes nothing a run does.
+- `Tools/CombatChecks/GloamEnemiesResearch.cs` (explicit): every cohort (or `GLOAM_COHORTS`), both heroes, the four-floor
+  Descent, `GLOAM_OPTIONS`, `GLOAM_ROLES`; it writes `gloam-enemies.md` and `.csv`. `FoundryFloorThreeTests` holds the
+  lever off as the shipped run and reads the Bloom's fight over several seeds.
+
+**Where the model departs from section 5.**
+- The bark takes its share of every landing that reaches the Bloom's health while closed: weapons, procs, the ability and
+  a burn's tick alike. It is applied where the landing meets the body, after the attacker's `EliteRule` share; the
+  product is the same, so the Daggers' x2 multiplies what the bark lets through, as section 5 says.
+- While open the maul neither ticks nor strikes (the Warden's weapon hold) and the Bloom's walk is 0.
+- Its age runs from its first stepped frame (not the frame it walks in).
+
+**Floor 2 in every run below is the shipped Mirror Sentry, `sentry-r0-f70`** (main 78f70a4d, merged), unless marked:
+rounds 1-4 of the exploration (2026-11-12) ran on the Sentry's earlier `f50`. All runs: typical hands unless named, both
+heroes, the four-floor Descent, and every cell against `shipped` (the Grunt Captain at Thorn Post) on the same seeds.
+
+### Baselines (docs/48 did not report them)
+
+Floor 3's Thorn Post with the Captain, seeds 1-200; 201-400:
+
+| Cohort | Elite fight P50 (walk-in to fall), V / I | In reach P50 | D (health a second in reach) P50 | Thorn Post health lost (leader / escort / horde) | Floor-3 clears V / I | Completed (of 400) |
+|---|---|---|---|---|---|---|
+| careful | 2.5 / 2.4; 2.6 / 2.5 s | 2.2-2.4 s | 220-235 | 17.0-19.2 (12.2-13.1 / 4.0-4.8 / 0.6-1.2) | 189 / 190; 193 / 191 | 379; 384 |
+| standing | 4.3 / 4.3; 4.4 / 4.3 s | 2.3-2.5 s | 220-228 | 12.7-14.5 (11.6-13.0 / 0.5-0.8 / 0.3-0.5) | 165 / 162; 164 / 168 | 327; 332 |
+| first-card | 2.4-2.5 s | 2.2 s | 233-243 | 17.8-21.3 | 164 / 179; 146 / 159 | 343; 305 |
+| clumsy | 5.6 / 5.3; 5.9 / 5.2 s | 2.7-3.8 s | 150-218 | 21.1-31.2 (14.5-20.9 / 1.2-1.8 / 0.5-0.7) | 62 / 98; 56 / 90 | 160 (40.0 %); 146 (36.5 %) |
+| careful, slow hands (1-200) | 2.6 / 2.7 s | 2.4-2.5 s | 217-218 | 18.8-20.3 | 137 / 141 | 278 |
+| standing, slow hands (1-200) | 4.6 / 4.4 s | 2.3-2.5 s | 212-233 | 13.5-13.7 | 129 / 125 | 254 |
+
+- **D is about 230, not section 5's 60-200.** It counts every weapon and the Daggers' x2 over the seconds in reach (the
+  careful Vanguard's Sword alone deals 37 a second to the leader over its fight). With D = 230 the starting Bloom's 549
+  falls in its first open window (3.5 s x 0.25 x 230 + 2.5 s x 230 = 776 a cycle), so section 5's quantisation reads as
+  "one window, or two", not "two by health".
+- The standing cohort loses *less* than careful at Thorn Post (0.75x): the kite takes the careful hero through the
+  escort (4-5 health), and a 2.5 s fight leaves the Captain's blows no time to differ.
+- The Captain kills almost nobody at Thorn Post (2 and 6 deaths of the four cohorts' 1,600 runs a range).
+
+### The starting values (`bloom`)
+
+| Seeds | Careful F3 V / I (vs Captain) | Completed careful / standing / first-card / clumsy (vs Captain) | Elite fight P50 careful / standing | Thorn Post lost careful / standing / clumsy | Standing / careful | Thorn Post deaths |
+|---|---|---|---|---|---|---|
+| 1-200 | 186 / 187 (-3 / -3) | 373 (-6) / 309 (-18) / 309 (-34) / 154 (-6) | 9.8 / 10.8 s | 49.8 / 52.5 / 62.8 | 1.05x | 17 |
+| 201-400 | 193 / 189 (+0 / -2) | 382 (-2) / 326 (-6) / 276 (-29) / 141 (-5) | 9.8 / 10.9 s | 46.2 / 46.1 / 65.3 | 1.00x | 32 |
+
+The fight is in band and the Daggers lead it (+87 %); everything else misses. The clumsy cohort loses 11 completions in
+800, first-card 63, and **the careful cohort is mauled as hard as the standing one** (42 of its 50 from the maul). Why,
+read from the cells:
+- **The kite does not keep a hero out of a 1.5 maul.** The careful pilot kites an enemy within its reach + 0.15 = 1.65,
+  a reaction (0.25 s) after it comes in; the Bloom closes 0.3 in that time, inside 1.5, and its maul, ready while it
+  walked, lands on contact. Section 5's "outside the maul either way" holds for a frame-perfect pilot only.
+- **The clumsy cohort is mauled like the standing one** (40-49 from the leader): its straight kite stalls, and its
+  fights are the longest (12-16 s P50, 2-3 windows), every second of them also a second at the pit's rim (the health it
+  loses at Thorn Post that is neither the leader's, the escort's nor the horde's: 14-21 a fight, against 4-7 beside
+  the Captain).
+- What a hero loses at Thorn Post it carries into the Warden's Grove (no forge between): the new deaths are at the gate.
+
+### The sweep (seeds 1-200)
+
+One lever at a time off the starting values, then combinations; against the Captain on the same seeds (careful floor-3
+clears 189 / 190; four-floor completions standing 327, first-card 343, clumsy 160).
+
+| Option | Careful F3 V / I | Completed standing / first-card / clumsy | Elite fight P50 careful / standing | Thorn Post lost careful / standing / clumsy | Standing / careful |
+|---|---|---|---|---|---|
+| `bloom-h80` (health 224) | +0 / -3 | -16 / -23 / -4 | 7.4 / 10.3 s | 41.4 / 47.0 / 54.9 | 1.13x |
+| `bloom-h125` | -3 / -2 | -22 / -36 / -6 | 10.9 / 11.6 s | 57.8 / 59.3 / 72.2 | 1.03x |
+| `bloom-m75` (maul 8.1) | -5 / -1 | -12 / -18 / -5 | 9.8 / 10.8 s | 39.6 / 40.1 / 51.9 | 1.01x |
+| `bloom-o3.0` | -2 / -3 | -14 / -29 / -4 | 9.5 / 11.2 s | 44.7 / 49.1 / 57.5 | 1.10x |
+| `bloom-o2.0` | -4 / -3 | -22 / -41 / -10 | 9.9 / 10.6 s | 54.0 / 56.2 / 69.1 | 1.04x |
+| `bloom-c3.0` | -4 / +1 | -12 / -26 / -4 | 9.2 / 10.4 s | 44.9 / 42.4 / 56.6 | 0.94x |
+| `bloom-c4.0` | +0 / -3 | -15 / -32 / -7 | 10.6 / 11.1 s | 53.8 / 52.6 / 64.4 | 0.98x |
+| `bloom-r1.2` (maul reach 1.2) | +0 / +0 | -15 / -6 / -5 | 9.8 / 10.7 s | 18.3 / 44.8 / 56.9 | 2.45x |
+| `bloom-m100-r1.0` | -1 / +2 | -8 / +3 / -6 | 9.8 / 10.7 s | 11.8 / 41.2 / 51.6 | 3.48x |
+| `bloom-m75-r1.2` | -1 / +0 | -8 / -3 / -4 | 9.8 / 10.7 s | 15.9 / 34.3 / 47.8 | 2.16x |
+| `bloom-m50-r1.2` | -1 / +1 | -4 / +1 / +0 | 9.8 / 10.7 s | 13.5 / 23.8 / 38.7 | 1.76x |
+| `bloom-m35-r1.2` | -1 / +1 | -2 / +3 / +2 | 9.8 / 10.7 s | 12.1 / 17.5 / 33.3 | 1.45x |
+| `bloom-m50-r1.0` | +0 / +2 | -1 / +4 / +0 | 9.8 / 10.7 s | 10.3 / 22.0 / 35.1 | 2.13x |
+| `bloom-m35-r1.0` | +0 / +2 | -1 / +5 / +0 | 9.8 / 10.7 s | 9.9 / 16.3 / 30.2 | 1.65x |
+| `bloom-m100-h80-r1.2` | -3 / +0 | -13 / -5 / -4 | 7.4 / 10.2 s | 15.7 / 40.5 / 47.5 | 2.59x |
+| `bloom-m75-h80-r1.2` | -3 / +0 | -6 / -2 / -4 | 7.4 / 10.2 s | 13.8 / 31.1 / 39.9 | 2.26x |
+| `bloom-m50-h80-r1.2` | -3 / +0 | -1 / -2 / -3 | 7.4 / 10.2 s | 11.9 / 21.6 / 32.3 | 1.82x |
+| `bloom-m35-h80-r1.2` | -3 / +0 | +0 / -1 / -2 | 7.4 / 10.2 s | 10.7 / 15.9 / 27.8 | 1.48x |
+
+Read on the Sentry's earlier `f50` floor 2 (rounds 2-4, against the Captain on those runs; clumsy of 400): `bloom-r1.4`
+-7; `bloom-s0.9` (a closed walk of 0.9) -11 at 0.78x; `bloom-w0.5` and `bloom-w0.7` (a maul windup that whiffs on a hero
+who has left its reach) -8 and -9 at 1.44x and 1.56x. The windup and the slower walk spare the careful pilot less than a
+shorter reach does, and cost the clumsy one as much.
+
+What the sweep says:
+- **The cycle levers move nothing that matters.** Closed, open, health and (round 1) the bark each cost the clumsy cohort
+  4-10 and leave standing / careful at 0.9-1.1x. The fight's length is the cycle's, as section 5 meant: P50 9.2-10.9 s
+  at full health, 7.2-7.4 s at 80 %.
+- **The maul's reach is the skill read.** At 1.2 the careful pilot's kite (held at 1.6-1.65, less the 0.3 a reaction
+  lets the Bloom close) stays out of it: its maul damage falls from 42 to 9-10 at the full maul, to about 3 at 1.0.
+  The standing cohort, whom the Bloom walks up to (it stops at its reach less 0.1), takes the maul at any reach.
+- **The maul's weight is the clumsy cost.** With the reach short the clumsy cohort still takes 30-50 at Thorn Post (its
+  kite stalls, its fight is 12-15 s); only a maul of 35-50 % (3.8-5.4 authored, 6.8-9.7 a blow on floor 3) brings that
+  back near the Captain's 21-31 plus the longer fight's pit.
+- **Two rows pull against each other.** The standing cohort's maul is the separation, and the clumsy cohort pays the same
+  maul. A maul light enough to cost the clumsy cohort nothing leaves the standing one 15-22 at Thorn Post against
+  careful's 8-10 - and careful's 8-10 is mostly the escort and the horde (5 + 3-4), which no Bloom lever touches: 1.45-1.74x
+  by section 8's row. Read on the maul alone (the leader's own damage), standing loses 4-13x careful's.
+- Health at 80 % shortens the fight to 7.4 s (in band) and buys no completion: each h80 combination is level with its
+  full-health form or below it.
+
+### Under the lead's relative rule (seeds 1-400)
+
+The rule (2026-11-12): over seeds 1-400 the creature may cost the clumsy cohort at most 1 four-floor completion in 800
+against the shipped floor on the same seeds; careful within 3 floor-3 clears on each range; the other rows as section 8
+lists them. The options read on both ranges:
+
+| Option | Clumsy 1-200 / 201-400 (of 160 / 146) | Cost in 800 | Careful F3 V / I: 1-200; 201-400 | Standing / careful lost at Thorn Post | Elite fight P50 careful / standing | Rule |
+|---|---|---|---|---|---|---|
+| `bloom` (starting) | -6 / -5 | 11 | -3 / -3; +0 / -2 | 1.05x / 1.00x | 9.8 / 10.8 s | fails |
+| **`bloom-m35-r1.0`** | +0 / +0 | **0** | +0 / +2; +0 / +0 | 1.65x / 1.74x | 9.8 / 10.7 s | **passes** |
+| `bloom-m35-r1.2` | +2 / -1 | **0** (gains 1) | -1 / +1; +0 / +1 | 1.45x / 1.52x | 9.8 / 10.7 s | **passes** |
+| `bloom-m50-r1.0` | +0 / -2 | 2 | +0 / +2; +0 / +0 | 2.13x / 2.23x | 9.8 / 10.7 s | fails by 1 |
+| `bloom-m35-h80-r1.2` | -2 / +0 | 2 | -3 / +0; +0 / +0 | 1.48x / 1.58x | 7.4 / 10.2 s | fails by 1 |
+| `bloom-m50-r1.2` | +0 / -3 | 3 | -1 / +1; +0 / +1 | 1.76x / 1.85x | 9.8 / 10.7 s | fails |
+| `bloom-m50-h80-r1.2` | -3 / +0 | 3 | -3 / +0; +0 / -1 | 1.82x / 1.93x | 7.4 / 10.2 s | fails |
+| `bloom-m75-h80-r1.2` | -4 / +0 | 4 | -3 / +0; +0 / -2 | 2.26x / 2.38x | 7.4 / 10.2 s | fails |
+
+A completion is a coin of about 0.4 for the clumsy cohort, so 400 runs carry a binomial SD of about 10; paired seeds take
+most of it away, but neighbours still swap by 2-3 (`bloom-m35-h80-r1.2` and `bloom-m35-r1.2` differ by 4 at 1-200 for a
+change of health alone). A 1-in-800 bar sits inside that noise: "passes" means "no cost these 800 runs can see", and
+`bloom-m50-r1.0` (2) is not measurably different from the two that pass.
+
+### Slow hands, roles, the gate (the passing variants)
+
+**Slow hands** (careful and standing, `FOUNDRY_REALISM=slow`, against the Captain with slow hands on the same seeds):
+
+| Option | Seeds | Careful F3 V / I (vs Captain) | Completed careful / standing (vs Captain) | Elite fight P50 careful / standing | Thorn Post lost careful (maul) / standing (maul) |
+|---|---|---|---|---|---|
+| `shipped` | 1-200; 201-400 | 137 / 141; 151 / 150 | 278 / 254; 301 / 275 | 2.6 / 4.5; 2.7 / 4.4 s | 19.5 / 13.6; 17.3 / 13.5 |
+| `bloom` | 1-200; 201-400 | -7 / -8; -10 / -1 | -15 / -17; -11 / -10 | 10.4 / 11.1; 10.4 / 10.9 s | 57.4 / 47.6; 51.1 / 44.5 |
+| `bloom-m35-r1.2` | 1-200; 201-400 | +1 / -2; +0 / +2 | -1 / -7; +2 / -1 | 10.4 / 10.8 s | 17.1 (8.3) / 17.3 (13.4); 16.0 (8.3) / 16.5 (12.5) |
+| `bloom-m35-r1.0` | 1-200; 201-400 | +1 / -2; +1 / +5 | -1 / +2; +6 / +3 | 10.3 / 10.8 s | 12.1 (3.7) / 16.2 (12.3); 11.4 (3.7) / 15.6 (11.8) |
+
+The slow pilot's maul at reach 1.0 is 3.3-4.0 a fight against the typical pilot's 1.0-1.1, and at 1.2 about 8 against
+3: the reach read is a hands read too, but a small one, and no slow cell leaves careful's clears or completions more
+than 2 below the Captain's. The starting values cost the slow careful pilot up to 10 clears and 11-15 completions a
+range; the passing variants nothing.
+
+**Roles** (careful Vanguard started with each weapon, seeds 1-200; damage a second on the horde, the elite leader, the
+gate boss; Sword / Staff / Daggers):
+
+| Option | Horde | Elite leader | Gate boss | Roles | Staff on the horde | Daggers on the leader | Sword on the gate |
+|---|---|---|---|---|---|---|---|
+| `shipped` (Captain) | 27.8 / 86.9 / 3.8 | 37.3 / 53.1 / 77.3 | 41.3 / 35.8 / 5.7 | met | +212 % | +46 % | +15 % |
+| `bloom` | 27.7 / 87.4 / 3.4 | 26.9 / 29.2 / 54.6 | 41.5 / 35.6 / 5.2 | met | +216 % | +87 % | +17 % |
+| `bloom-m35-r1.2` | 27.3 / 87.8 / 3.7 | 26.9 / 28.6 / 54.4 | 41.0 / 36.1 / 5.7 | met | +222 % | +90 % | +14 % |
+| `bloom-m35-r1.0` | 27.3 / 87.4 / 3.6 | 27.1 / 29.0 / 55.5 | 41.0 / 35.1 / 5.3 | met | +220 % | +91 % | +17 % |
+
+The bark blunts the Sword and the Staff on the leader by a quarter to a half; the Daggers' x2 and their step-in keep them
+the Bloom's weapon by about 90 % (section 8 asks more than 10 %).
+
+**The gate and the Descent** (`bloom-m35-r1.0`, every playing cohort, both ranges): the floor-3 Warden's fight P50 47-63 s
+against the Captain floor's 47-63 s (in docs/40's 45-65 s); floor 3 P50 242-255 s against 241-254; the Descent P50
+13.9-14.6 min against 13.9-14.6. The auto-farmer: 3 / 2 floor-3 clears of 5 / 7 against 4 / 2. Thorn Post deaths of the
+four playing cohorts: 0 and 2 against the Captain's 2 and 6.
+
+### Recommendation
+
+**Build `bloom-m35-r1.0` in step 2:** health 280 (549 on floor 3), the cycle as section 5 has it (closed 3.5 s taking
+25 %, open 2.5 s rooted and taking all), and the **Bark Maul at 3.8 every 1.8 s, reach 1.0, 0.6 s before the first**
+(35 % of 10.8; 6.8 a blow on floor 3), speed 1.2. Against the Captain on seeds 1-400:
+
+| Row (section 8, the lead's rule) | `bloom-m35-r1.0` | |
+|---|---|---|
+| Clumsy completions, 1-400 | 306 against 306 (+0 / +0): cost 0 in 800 | met |
+| Careful floor-3 clears within 3, each range | +0 / +2; +0 / +0 | met |
+| Elite fight P50 6-12 s, careful and standing | 9.8 / 10.7 s on both ranges (P90 11.5-13.5 / 12.1-13.3) | met |
+| Standing at least 2x careful at Thorn Post | 1.65x / 1.74x (16.3 / 9.9; 14.6 / 8.4); the maul alone 13.4 / 1.1 = about 12x | **missed** (see below) |
+| Clumsy at most 1.3x careful | 3.0x / 3.8x (30.2 / 9.9) | **missed** |
+| Daggers' lead on the leader above 10 % | +91 % (the Captain: +46 %) | met |
+| First-card completion | +5 / +10 | met |
+| Floor-3 Warden in 45-65 s, Descent P50 13.8-14.8 | 47-63 s; 13.9-14.6 min | met |
+| Slow hands: careful within 3 | +1 / -2; +1 / +5 | met |
+
+**Runner-up: `bloom-m35-r1.2`** (the same maul at reach 1.2): cost 0 in 800 (+2 / -1), careful -1 / +1 and +0 / +1,
+standing / careful 1.45x / 1.52x, the Daggers +90 %. The longer reach lets a careful pilot's lapses through (its maul 3 a
+fight at typical hands, 8 at slow, against 1 and 4 at 1.0) and buys nothing back. If the lead would rather have the
+separation row than the strict clumsy bar, **`bloom-m50-r1.0`** (maul 5.4) meets 2x (2.13x / 2.23x) at a cost of 2 in 800
+(+0 / -2), every other row as `m35-r1.0`: one completion over a bar that sits inside the sample's noise.
+
+**Why the separation row is missed, and what it would take.** Section 8's "standing at least 2x careful at Thorn Post"
+reads all the health lost while the wave stands. Careful's 8-10 of it is the escort's and the horde's (it kites through
+them), which no Bloom lever touches; the maul is the only thing the levers move, and the clumsy cohort pays it as the
+standing one does (its straight kite stalls, and its fight is 12-15 s, mostly beside the pit). So the bar a maul must
+pass for the clumsy cohort (about 15 a fight) caps standing's total at 15-22. Two readings for the lead:
+- Read the row on the maul alone (standing about 12x careful at `m35-r1.0`), which is what section 5 means by "standing
+  pays the maul". Then `m35-r1.0` meets it.
+- Or keep the row and accept 2 in 800 (`m50-r1.0`), or give the clumsy cohort a counter the sim does not model (its kite
+  stalls at walls; docs/41's fixes), which is a pilot change, not a creature lever.
+
+The "clumsy at most 1.3x careful" row is missed for the same reason and cannot be met by any lever here: the clumsy
+cohort loses 21-31 at Thorn Post to the Captain already (1.3-1.6x careful's), and 30-34 to the Bloom. Its completions,
+not its health at Thorn Post, are what the lead's rule protects, and they hold.
+
+**Risks for the build.**
+- **Reach 1.0.** The Bloom stops 0.9 from the hero (its reach less `PackMotion.ReachMargin`), closer than any foundry
+  enemy (1.4-1.6). Its body sprite will overlap the hero's at that distance on the phone; check the read in the art pass,
+  and keep 1.0 in the rule only if it still reads as "in the maul". 1.2 (the runner-up) stops at 1.1.
+- **The read is the pilot model's reaction.** Reach 1.0 works because a 0.25 s reaction lets a 1.2-speed Bloom close
+  0.3 from the kite's 1.6-1.65. A player who stands to trade blows takes the maul as the standing cohort does (12-13 a
+  fight, 6.8 a blow); nothing tells that player to step back except the windup frames. The maul's windup pair and the
+  bark chip (section 5's readability) carry the whole read.
+- **D is 230, not 60-200.** The Bloom falls in its first window in 39 % of careful fights, in its second in 55 %, later
+  in 5 %; 62-70 % fall while open. A stronger build at floor 3 (the evolutions) shortens the fight toward 6 s; the cycle
+  keeps it above 3.5 s plus the walk-in whatever the build.
+- **Noise.** A 1-in-800 bar sits inside the sample: `m35-r1.2` and `m35-h80-r1.2`, one lever apart, differ by 4
+  completions on seeds 1-200. Re-read the chosen variant on seeds 401-600 if the lead wants a third range before the art.
+
+### What the scene build (step 2) needs
+
+- `BloomRule` and `BloomClock` are in `Scripts/Combat` already; the scene adds a `GloamService` at script order -38
+  (after `WardenSlamService` -40 and `MirrorGuardService` -39, before every attacker), stepping each standing Bloom's
+  clock while the encounter runs and holding it under the reveal and a panel, as the simulation does.
+- A bark component on the Bloom's prefab ahead of `Health` (`IDamageGuard`, as `MirrorGuard`), returning
+  `BloomClock.Land(amount)` for **every** landing, a burn's tick included (unlike the mirror, which passes ticks).
+- Rooting and the held maul: `PackMotion.SetSpeed(slot, BloomClock.Speed(speed))` each step (the method exists, unused);
+  the Bloom's `AttackController` held while open, as `WardenSlamService` holds the Warden's (no tick, no strike).
+- `Enemy_CinderBloom` (280 health, speed 1.2, gold 20, experience 10) and `Weapon_BarkMaul` (3.78 every 1.8 s, reach 1.0,
+  0.6 s initial delay), leading `Floor_GloamGardens`' Thorn Post; `EliteRule` takes it as the room's first enemy with no
+  change. The step-in already targets the elite room's leader (the simulation's `_wave[0]`), so the careful pilot steps
+  in on the Bloom with the Daggers; `DevelopmentAutopilot` needs no new habit.
+- Then: `DescentSimulation.GloamGardens`' Thorn Post holds `CinderBloom` at these numbers (the levers stay for research),
+  `FoundrySimulationSceneValueTests` holds the asset to it and the script order, and the default batch moves on floor 3
+  and the finale only (the cells above). A PlayMode flow test on a proof floor (closed bark, open window, rooted, maul
+  held) as `MirrorSentryFlowTests` does.
+
+### The default batch
+
+Run before (main 78f70a4d, the Sentry `r0-f70`) and after (this branch's head) with `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical`, `FOUNDRY_FLOORS=4` and `FOUNDRY_FLOORS=2`: every CSV, `foundry-gate.md`,
+`foundry-cohorts.md` and `foundry-finale.md` match byte for byte; in `foundry-batch.md` only the clock in its header and
+the wall-seconds column differ. The same held at the first research commit against b85969c2's floor 2 (2026-11-12).
+CombatChecks: 830 green (`Başarılı`); the Unity compile check green.
