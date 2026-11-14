@@ -20,6 +20,12 @@ to show the game on the phone: a run can start on the Foundry, the Quicksilver V
   level; the level-up panel opens at once and offers every level-up of it one after another, and the first wave walks in
   after the last pick.
 - The hero chooser stays on the Relic Forge (between runs); the map is chosen at the start of each run.
+- **Auto-pick.** While a deeper start's level-ups are queued, the level-up panel shows a wide "Auto-pick N level-ups"
+  button under the cards (the Climb frame, 720 x 150; `CatchUpAutoPickView`). One tap takes every remaining level-up as the
+  careful autopilot takes its cards (`AutopilotCohort.Careful.Pick`, the build's card scoring; the first card on a legacy
+  offer) from the run's own seeded offers - the same seed and hero pick the same build - through `RunChoices` like taps,
+  so telemetry logs each pick. A one-line summary ("Auto-picked 44 level-ups: Sword x8, ...") shows over the run for 4 s
+  and the first wave comes in. The cards stay tappable beside it; the run's own level-ups never show it.
 
 ## Starting deeper is the floor a descent reaches
 

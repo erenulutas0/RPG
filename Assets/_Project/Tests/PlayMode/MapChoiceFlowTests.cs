@@ -103,6 +103,8 @@ namespace Cryptforge.Tests
             Assert.That(Object.FindFirstObjectByType<ArenaView>().Theme, Is.EqualTo(FloorTheme.Foundry));
             Assert.That((setup.Run.Level, setup.Run.PendingUpgrades, setup.Choices.IsOpen), Is.EqualTo((0, 0, false)),
                 "A fresh hero, as every run began.");
+            Assert.That(Object.FindFirstObjectByType<CatchUpAutoPickView>(), Is.Null, "A run's own level-ups never offer Auto-pick.");
+            Assert.That(setup.IsCatchingUp, Is.False);
 
             float deadline = Time.realtimeSinceStartup + 30f;
             while (encounters.AllAliveCount == 0 && Time.realtimeSinceStartup < deadline)
@@ -199,14 +201,46 @@ namespace Cryptforge.Tests
             Assert.That(setup.Choices.Current.Kind, Is.EqualTo(Cryptforge.Progression.ChoiceKind.Upgrade));
             Assert.That(Object.FindFirstObjectByType<RunChoiceView>().IsOpen, Is.True, "On the level-up panel.");
             Assert.That(Time.timeScale, Is.EqualTo(0f), "The run waits while the player chooses.");
+
+            // The panel offers Auto-pick beside the cards while the catch-up's level-ups are queued.
+            Assert.That(setup.IsCatchingUp, Is.True);
+            var autoPick = Object.FindFirstObjectByType<CatchUpAutoPickView>();
+            Assert.That(autoPick, Is.Not.Null, "A deeper start has the Auto-pick.");
+            Assert.That(autoPick.IsShown, Is.True, "Auto-pick stands on the level-up panel.");
+            Assert.That(((RectTransform)autoPick.Button.transform).rect.height, Is.GreaterThanOrEqualTo(120f), "Thumb-sized.");
+            Assert.That(autoPick.Button.GetComponentInChildren<UnityEngine.UI.Text>().text,
+                Is.EqualTo(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Auto-pick {0} level-ups", level)));
             int picks = 0;
-            while (setup.Choices.IsOpen && picks < 200)
+            if (autoPick && floorNumber == 3)
             {
-                Assert.That(encounters.IsFirstEncounterPending, Is.True, $"No wave before the last level-up (pick {picks}).");
-                Assert.That(encounters.AllAliveCount, Is.EqualTo(0));
-                Assert.That(setup.Choices.TrySelect(setup.Choices.Current, 0), Is.True);
-                picks++;
+                // One tap takes every level-up queued, as the careful autopilot would, and the run begins.
+                float ready = Time.realtimeSinceStartup + CatchUpAutoPickView.InputDelay + .2f;
+                while (Time.realtimeSinceStartup < ready)
+                    yield return null;
+                Assert.That(encounters.IsFirstEncounterPending, Is.True);
+                autoPick.Button.onClick.Invoke();
+                picks = setup.Run.UpgradesApplied;
+                Assert.That(setup.Choices.IsOpen, Is.False, "Every queued level-up taken in one tap.");
+                Assert.That(autoPick.Summary, Does.StartWith("Auto-picked "), "Its one-line summary.");
+                Assert.That(autoPick.Summary, Does.Contain(picks.ToString(System.Globalization.CultureInfo.InvariantCulture) + " level-ups"));
                 yield return null;
+                Assert.That(autoPick.IsShown, Is.False);
+                Assert.That(setup.IsCatchingUp, Is.False);
+            }
+            else
+            {
+                // By hand, as ever: the button stays beside the cards until the last pick.
+                while (setup.Choices.IsOpen && picks < 200)
+                {
+                    Assert.That(encounters.IsFirstEncounterPending, Is.True, $"No wave before the last level-up (pick {picks}).");
+                    Assert.That(encounters.AllAliveCount, Is.EqualTo(0));
+                    Assert.That(setup.Choices.TrySelect(setup.Choices.Current, 0), Is.True);
+                    picks++;
+                    yield return null;
+                    if (setup.Choices.IsOpen)
+                        Assert.That(autoPick.IsShown, Is.True, $"Auto-pick still offered after pick {picks}.");
+                }
+                Assert.That(autoPick.IsShown, Is.False, "Gone with the last level-up.");
             }
             Assert.That(picks, Is.GreaterThan(0));
             Assert.That(picks, Is.LessThanOrEqualTo(level));

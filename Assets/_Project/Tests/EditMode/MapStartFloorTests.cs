@@ -83,6 +83,26 @@ namespace Cryptforge.Tests
             }
         }
 
+        // Auto-pick's line: each card once, in the order first taken, with how often; the invariant culture's numbers.
+        [Test]
+        public void TheAutoPickSummaryCountsEachCardInOrder()
+        {
+            CultureInfo before = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+                Assert.That(CatchUpAutoPickView.SummaryOf(5, new[] { "Sword", "Force", "Sword", "Vitality", "Sword" }),
+                    Is.EqualTo("Auto-picked 5 level-ups: Sword x3, Force, Vitality"));
+                Assert.That(CatchUpAutoPickView.SummaryOf(44, new[] { "Sword", "Sword" }),
+                    Is.EqualTo("Auto-picked 2 level-ups of 44: Sword x2"), "Fewer cards than levels says so.");
+                Assert.That(CatchUpAutoPickView.SummaryOf(0, new string[0]), Is.EqualTo("Auto-picked 0 level-ups"));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = before;
+            }
+        }
+
         [Test]
         public void TheRequestIsReadOnce()
         {
