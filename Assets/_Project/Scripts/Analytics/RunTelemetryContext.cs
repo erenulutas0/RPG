@@ -30,6 +30,9 @@ namespace Cryptforge.Analytics
         public int DeepestFloorCleared;
         // RunState.Seed, recorded so the run's offers can be reproduced from the log.
         public int Seed;
+        // The floor the run begins on: 1 (or 0, read as 1), or the deeper map the player chose (MapChoiceView); run_start
+        // writes it as start_floor only when it is deeper than 1.
+        public int StartFloor;
 
         // The id of the enemy that last hit the hero, or null; read once when a defeat ends the run.
         public Func<string> KillerId;

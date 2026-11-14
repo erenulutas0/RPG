@@ -97,6 +97,24 @@ namespace Cryptforge.Core
         public static bool DepthProof() => (Application.isEditor || Debug.isDebugBuild) &&
             !string.IsNullOrEmpty(ReadFirstLine(DepthProofPath));
 
+        // "off" in it keeps the map choice (MapChoiceView) from opening before a run: scene tests (TestProfile writes it)
+        // and device sessions that need the run to start by itself. Only the Editor and a development build look.
+        public const string MapChoiceFileName = "map-choice.txt";
+        public static string MapChoicePath => Path.Combine(ProfileLocation.Resolve(), FolderName, MapChoiceFileName);
+        public static bool MapChoiceOff() => (Application.isEditor || Debug.isDebugBuild) &&
+            string.Equals(ReadFirstLine(MapChoicePath), "off", StringComparison.Ordinal);
+
+        // Whether the start-floor file names a floor (the Editor or a development build only): such a run starts where the
+        // file says, and no map is offered.
+        public static bool NamesStartFloor() => (Application.isEditor || Debug.isDebugBuild) &&
+            !string.IsNullOrEmpty(ReadStartFloorId());
+
+        // Whether a run starts with the map choice: on the foundry, always in a release build; in the Editor and a
+        // development build unless a development file already decides how the run starts or plays (a start floor, the
+        // arrival, the depth proof, the autopilot, the density probe) or map-choice.txt says "off".
+        public static bool OffersMapChoice() => FoundryRegion() && !MapChoiceOff() && !NamesStartFloor() &&
+            !GateArrival() && !DepthProof() && !Autopilot() && HordeProbe() == 0;
+
         // The seed the file names, under the same rules as the floor: only the Editor and a development build look, and
         // a missing, empty or unreadable file means no seed was chosen.
         public static bool TryRunSeed(out int seed)
