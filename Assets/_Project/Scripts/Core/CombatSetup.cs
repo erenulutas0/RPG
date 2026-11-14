@@ -321,11 +321,12 @@ namespace Cryptforge.Core
         // floor (Awake) without the choice. Once only, and only while the choice is open.
         public void StartOnMap(int floorNumber, HeroDefinition hero = null)
         {
-            if (!IsChoosingMap || _restarting)
+            bool deeper = floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber);
+            // A deeper map not yet reached (MapUnlock) starts nothing; the choice stays open.
+            if (!IsChoosingMap || _restarting || (deeper && !IsMapOpen(floorNumber)))
                 return;
             IsChoosingMap = false;
             bool otherHero = hero != null && hero != Hero && IsHeroPlayable(hero);
-            bool deeper = floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber);
             if (deeper || otherHero)
             {
                 RunStartRequest.Set(deeper ? floorNumber : DescentStart.FirstFloor, otherHero ? hero.Id : null);
@@ -517,6 +518,11 @@ namespace Cryptforge.Core
         // Open from the start, unlocked by play, or any hero on a development build so the owner can try one early.
         public bool IsHeroPlayable(HeroDefinition hero) => HeroUnlock.IsPlayable(hero != null && hero.UnlockedFromStart,
             hero != null && Profile.HasUnlockedHero(hero.Id), DevelopmentStart.AllHeroesOpen());
+
+        // Whether the map choice may start a run on this floor: the Foundry always, a deeper map once the profile has
+        // cleared the floor above it (MapUnlock, docs/53). Unlike a hero, a development build gets no exception here: the
+        // development files (start-floor.txt) start deeper without the panel.
+        public bool IsMapOpen(int floorNumber) => MapUnlock.IsOpen(floorNumber, Profile.DeepestFloorCleared);
 
         // The Foundry cleared: every hero unlocked by carrying a weapon through it, and carried this run, unlocks.
         internal void UnlockHeroesForTheFoundry()
