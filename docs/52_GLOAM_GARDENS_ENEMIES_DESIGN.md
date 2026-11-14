@@ -561,3 +561,24 @@ The owner made the lead the vision designer on 2026-11-12; these answer section 
    closed, and the open phase rewards timing.
 9. **Art.** Blender, as docs/50; the Pollen Wraith pale orchid, not ash-white, for Ilya's sake.
 10. **Codex.** The three drafts go to the owner later, as C31-C33.
+
+## Cinder Bloom art, pass 1 (2026-11-14)
+
+In Assets, not yet imported by Unity, not yet worn by any prefab (the runtime build, section 9 step 2, wires it).
+- **Pipeline.** `Tools/ArtReview/BuildBlenderCinderBloom.py` (Blender 4.5, the Mirror Sentry's rig, solver, camera and
+  aux-pass method), `PackCinderBloomSprites.py`, `review_cinder_bloom.py`. The bloom, the furnace seam and rear grate and
+  the eyes render black in the beauty pass; the aux pass writes their coverage, tone and glow, so the packer lays the
+  orchid ramp (`#5A1F66` -> `#D86BD0` -> `#F6C2F0`) and its value without rendering again.
+- **Look.** A squat foundry golem in charred bark plates over a cold iron furnace barrel, a small head sunk under two dead
+  branches, a cold chimney stack with a twig on its back, verdigris hoops; a bark maul (a log bound in verdigris).
+  CLOSED: two bark shutters over the furnace with a thin orchid seam, the maul on the right shoulder. OPEN: feet planted,
+  roots into the loam, the maul's head grounded, the shutters swung wide and the bloom out of the chest, about a third of
+  the figure in orchid. No red-orange and no gloamlight anywhere (rule 3): warm and chartreuse texels counted, 0.
+- **Contract.** `Art/Characters/CinderBloom/CinderBloomArtSet.asset` is GruntCaptainArtSet line for line (44 textures),
+  `_frost` and `_gloam` empty (rule 6: no themed copy, so EnemyThemeArtTests' painted list is unchanged). The open state
+  (unfold-0, unfold-1, open in each facing, each with a flash) and a three-frame bark chip lie beside the set; closing
+  plays the unfold back. `CinderBloomArtSetTests` (Editor) checks the contract, the open state, the imports and the budget.
+- **Budget.** 59 textures, 1,306,304 bytes as ASTC 4x4 (closed 0.70 MB, open 0.30, death 0.30, chip 0.01) against the
+  Sentry's 1.07 MB; drawn at 0.88 of the model, 1.21 units tall (the Captain 1.06), about 145 px on the S23.
+- **Review.** `ArtDirection/2026-11-14/cinder-bloom-01/` (untracked): states, cycle, motion, the phone-scale lineup with
+  its value map, the squint test, the bark chip, checks.json and sprites.json (the runtime's list of the open drawings).
