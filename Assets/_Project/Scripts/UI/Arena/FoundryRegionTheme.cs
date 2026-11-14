@@ -76,6 +76,8 @@ namespace Cryptforge.UI
             public float HeroShadow;
             // Floor 2's own props (crystals, mirror panels, snow drifts) stand only on this theme.
             public bool IceProps;
+            // Floor 3's own growth (roots, fungi, moss: FoundryRegionGloamGrowth.cs) stands only on this theme.
+            public bool GardenProps;
         }
 
         private static readonly ThemePalette IcePalette=new ThemePalette
@@ -88,7 +90,7 @@ namespace Cryptforge.UI
             // Toward frost #B9CCDA on a slate texture (a multiplier near 2 lifts its ~.35 value to ~.7).
             Cap=new Color(1.75f,1.9f,2f),
             Haze=FoundryRegionView.Haze,AtmosphereLava=QuicksilverGlow,AtmosphereBright=FrostLight,AtmosphereMote=Frost,OwnMotes=false,
-            Atmosphere=.1f,BackdropTint=Color.Lerp(BackdropDeep,BackdropTeal,.5f)*2.4f,HeroShadow=1.25f,IceProps=true,
+            Atmosphere=.1f,BackdropTint=Color.Lerp(BackdropDeep,BackdropTeal,.5f)*2.4f,HeroShadow=1.25f,IceProps=true,GardenProps=false,
         };
 
         private static readonly ThemePalette GloamPalette=new ThemePalette
@@ -105,7 +107,7 @@ namespace Cryptforge.UI
             // Moss cap: ash-loam stone toward moss #3F5A32-#4F6B3A on caps and crenellations.
             Cap=new Color(1.3f,1.65f,1.05f),
             Haze=AshHaze,AtmosphereLava=Gloamlight*.65f,AtmosphereBright=GloamlightCore,AtmosphereMote=AshDrift,OwnMotes=true,
-            Atmosphere=.1f,BackdropTint=Color.Lerp(SkyGloam,SkyDusk,.5f)*2.4f,HeroShadow=1.25f,IceProps=false,
+            Atmosphere=.1f,BackdropTint=Color.Lerp(SkyGloam,SkyDusk,.5f)*2.4f,HeroShadow=1.25f,IceProps=false,GardenProps=true,
         };
 
         private static ThemePalette PaletteOf(FloorTheme theme)=>
@@ -299,8 +301,8 @@ namespace Cryptforge.UI
                     long slice=Stopwatch.GetTimestamp();
                     for(;i<renderers.Length&&Within(slice);i++)
                     {
-                        // Floor 2's own props have their own dress (BindIceObject) and are never another theme's.
-                        if(renderers[i]==null||IsIceObject(renderers[i].gameObject))continue;
+                        // A theme's own props have their own dress (BindIceObject, BindGrowth) and are never another theme's.
+                        if(renderers[i]==null||IsThemeObject(renderers[i].gameObject))continue;
                         if(!PlanBlock(renderers[i],set,dress.Palette,out ThemeBlock block))continue;
                         if(!string.IsNullOrEmpty(block.Variant)&&!dress.Variants.ContainsKey(block.Variant)&&!dress.Requests.ContainsKey(block.Variant))
                             dress.Requests.Add(block.Variant,Resources.LoadAsync<Texture2D>(dress.Palette.Folder+block.Variant));
@@ -309,6 +311,9 @@ namespace Cryptforge.UI
                 }
                 if(i<renderers.Length)yield return null;
             }
+            // The garden's growth atlas, loaded as one of its variants (released with them).
+            if(dress.Palette.GardenProps&&!dress.Variants.ContainsKey(GloamGrowthAtlas)&&!dress.Requests.ContainsKey(GloamGrowthAtlas))
+                dress.Requests.Add(GloamGrowthAtlas,Resources.LoadAsync<Texture2D>(dress.Palette.Folder+GloamGrowthAtlas));
             // The loads finish in the background; a change that cannot wait takes them now.
             foreach(var pair in dress.Requests)
             {
@@ -355,23 +360,39 @@ namespace Cryptforge.UI
 
         private static bool Within(long since)=>(Stopwatch.GetTimestamp()-since)*1000d/Stopwatch.Frequency<PrepareBudgetMs;
 
-        // A theme's own geometry, worked out on a worker (FoundryRegionIceCrystals, FoundryRegionIceProps); null when the
-        // theme has none or it already stands. Floor 3's growth (docs/51 step 5) joins here.
+        // A theme's own geometry, worked out on a worker (FoundryRegionIceCrystals, FoundryRegionIceProps,
+        // FoundryRegionGloamGrowth); null when the theme has none or it already stands.
         private Task<PropGeometry[]> StartPropGeometry(ThemePalette palette)
         {
+            if(palette.GardenProps)
+            {
+                if(_gloamGrowth!=null)return null;
+                var garden=new List<Vector2Int>(_cells);
+                return Task.Run(()=>new[]{GloamGrowthGeometry(garden)});
+            }
             if(!palette.IceProps||(_iceCrystals!=null&&_icePanels!=null&&_iceDrifts!=null))return null;
             var cells=new List<Vector2Int>(_cells);
             bool crystals=_iceCrystals==null,panels=_icePanels==null,drifts=_iceDrifts==null;
             return Task.Run(()=>new[]{crystals?IceCrystalGeometry(cells):null,panels?IcePanelGeometry():null,drifts?IceDriftGeometry():null});
         }
 
-        // Its objects from that geometry, hidden unless the theme is on show, and dressed once as the coping (their own
-        // untextured material). Step 0 the crystals, step 1 the panels and drifts.
+        // Its objects from that geometry, hidden unless the theme is on show, and dressed once: the ice's as the coping
+        // (their own untextured material), the garden's with its atlas. Step 0 the crystals or the growth, step 1 the
+        // panels and drifts.
         private void MakeProp(ThemeDress dress,PlatformMaterialSet set,PropGeometry[] made,int step)
         {
-            if(!dress.Palette.IceProps)return;
             bool shown=_theme==dress.Palette.Theme;
             if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
+            if(dress.Palette.GardenProps)
+            {
+                if(step!=0||_gloamGrowth!=null||made[0]==null)return;
+                MakeGloamGrowth(made[0],set);
+                if(_gloamGrowth==null)return;
+                _gloamGrowth.SetActive(shown);
+                BindGrowth(set,dress);
+                return;
+            }
+            if(!dress.Palette.IceProps)return;
             if(step==0)
             {
                 if(_iceCrystals!=null||made[0]==null)return;
@@ -398,14 +419,26 @@ namespace Cryptforge.UI
             }
         }
 
-        private bool IsIceObject(GameObject candidate)=>candidate!=null&&
-            (candidate==_iceCrystals||candidate==_icePanels||candidate==_iceDrifts);
+        private bool IsThemeObject(GameObject candidate)=>candidate!=null&&
+            (candidate==_iceCrystals||candidate==_icePanels||candidate==_iceDrifts||candidate==_gloamGrowth);
+
+        // The growth dressed with the garden's atlas on its block (the coping material's colour kept); the atlas loaded
+        // now if the preparation never reached it.
+        private void BindGrowth(PlatformMaterialSet set,ThemeDress dress)
+        {
+            if(_gloamGrowth==null||set==null||set.Coping==null||!_gloamGrowth.TryGetComponent(out MeshRenderer renderer))return;
+            if(!dress.Variants.TryGetValue(GloamGrowthAtlas,out Texture2D atlas)||atlas==null)
+                dress.Variants[GloamGrowthAtlas]=atlas=Resources.Load<Texture2D>(dress.Palette.Folder+GloamGrowthAtlas);
+            if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
+            Color colour=set.Coping.HasProperty(ColourId)?set.Coping.GetColor(ColourId):Color.white;
+            Bind(new ThemeBlock{Renderer=renderer,Texture=atlas!=null?atlas:Texture2D.whiteTexture,Colour=colour},dress.Palette);
+        }
 
         // One owned mesh kept (the first theme to see it), and the theme's grade of it started on a worker from a
         // read-only snapshot of the mesh: no array is copied on the main thread.
         private void KeepMesh(MeshFilter filter,PlatformMaterialSet set,ThemeDress dress)
         {
-            if(filter==null||IsIceObject(filter.gameObject))return;
+            if(filter==null||IsThemeObject(filter.gameObject))return;
             var mesh=filter.sharedMesh;
             if(mesh==null)return;
             if(!_themeMeshIndex.TryGetValue(mesh,out int index))
@@ -645,7 +678,7 @@ namespace Cryptforge.UI
             // Normally done frames ago (PrepareTheme); otherwise all of it now.
             ThemeDress next=palette!=null?FinishPreparation(theme,set):null;
             ThemeDress leaving=PaletteOf(_theme)!=null&&_dresses.TryGetValue(_theme,out ThemeDress shown)?shown:null;
-            bool ice=palette!=null&&palette.IceProps;
+            bool ice=palette!=null&&palette.IceProps,garden=palette!=null&&palette.GardenProps;
             if(_themeBlock==null)_themeBlock=new MaterialPropertyBlock();
             using(PerformanceMarkers.ThemeRetint.Auto())
                 for(int i=0;i<_themeMeshes.Count;i++)
@@ -664,6 +697,15 @@ namespace Cryptforge.UI
             {
                 if(ice&&_iceCrystals==null){BuildIceCrystals(set);BindIceObject(_iceCrystals,set,next);}
                 if(_iceCrystals!=null&&_iceCrystals.activeSelf!=ice)_iceCrystals.SetActive(ice);
+                // The garden's growth on the crystals' slots: its atlas bound from this dress (a dress prepared again
+                // after a release loads its own), cleared as the garden is left so nothing holds a released atlas.
+                if(garden)
+                {
+                    if(_gloamGrowth==null)BuildGloamGrowth(set);
+                    BindGrowth(set,next);
+                }
+                else if(_gloamGrowth!=null&&_gloamGrowth.TryGetComponent(out MeshRenderer growth))growth.SetPropertyBlock(null);
+                if(_gloamGrowth!=null&&_gloamGrowth.activeSelf!=garden)_gloamGrowth.SetActive(garden);
             }
             using(PerformanceMarkers.ThemeProps.Auto())
             {

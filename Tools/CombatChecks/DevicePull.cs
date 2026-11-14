@@ -92,6 +92,13 @@ namespace Cryptforge.Tests
                     device.ProbeRuns++;
                     continue;
                 }
+                // Begun on a deeper map (the map choice, run_start's start_floor): its floors are not the floors a run
+                // walks down to, nor its hero the one a walk would bring, so the owner's floor rows leave it out.
+                if (run.StartFloor > 1)
+                {
+                    device.DeeperStartRuns++;
+                    continue;
+                }
                 if (!run.Started)
                 {
                     // Its start rotated away on the phone: no hero to read its floors under.
@@ -259,6 +266,9 @@ namespace Cryptforge.Tests
             // run_end's or run_interrupted's time, else its last line's (still on at the pull, or the process killed).
             public DateTime End;
             public bool Probe;
+            // The floor the run began on: run_start's start_floor, 1 without one (every run before the map choice, and every
+            // run begun on the Foundry).
+            public int StartFloor = 1;
             // run_end's result, "interrupted" for run_interrupted, null for neither; run_end's cause (cleared, extracted,
             // killed, killed_by:<id> - the pit's is killed_by:pit_eruption) and its active_sec, the whole run's.
             public string Result;
@@ -301,6 +311,7 @@ namespace Cryptforge.Tests
                             run.Started = true;
                             run.Start = e.Utc;
                             run.HeroId = Text(f, "hero_id");
+                            run.StartFloor = Int(f, "start_floor", 1);
                             break;
                         case "room_start":
                             floor = Int(f, "floor_index", floor);

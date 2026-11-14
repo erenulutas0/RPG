@@ -18,6 +18,8 @@ namespace Cryptforge.Content
         [SerializeField] private string _displayName;
         // The character's own name under the class on the select screen (docs/44 section 11): "Ilya Kest".
         [SerializeField] private string _subtitle;
+        // What the hero does, in one line, on the map choice's hero card (MapChoiceView): "Every hit burns...".
+        [SerializeField] private string _role;
         [SerializeField, Min(1f)] private float _maximumHealth;
         [SerializeField] private WeaponDefinition _startingWeapon;
         // The hero starts every run with its own weapon and no other the forge sells (Ilya and its crucible Staff, the
@@ -44,6 +46,7 @@ namespace Cryptforge.Content
         public string Id => _id;
         public string DisplayName => _displayName;
         public string Subtitle => _subtitle ?? string.Empty;
+        public string Role => _role ?? string.Empty;
         public float MaximumHealth => _maximumHealth;
         public WeaponDefinition StartingWeapon => _startingWeapon;
         public bool StartsWithItsOwnWeaponOnly => _startsWithItsOwnWeaponOnly;

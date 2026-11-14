@@ -54,6 +54,9 @@ namespace Cryptforge.Core
         // Total experience for level n: n × perLevel + growth × n(n − 1) / 2.
         private int ThresholdFor(int level) => level * _experiencePerLevel + _experienceGrowth * level * (level - 1) / 2;
 
+        // The total experience at which the run reaches the given level (0 for level 0 or less).
+        public int ExperienceToReach(int level) => level <= 0 ? 0 : ThresholdFor(level);
+
         public void AddGold(int amount)
         {
             if (amount < 0)

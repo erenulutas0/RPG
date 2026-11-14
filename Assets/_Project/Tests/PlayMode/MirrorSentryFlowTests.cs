@@ -158,10 +158,15 @@ namespace Cryptforge.Tests
                 if (!ArenaGeometry.Foundry.IsOnPlatform(bx, by, HeroMotion.EdgeMargin) || !FoundryMap.Contains(bx, by, HeroMotion.EdgeMargin))
                     continue;
                 input.Motion.Place(bx, by, ArenaGeometry.Foundry);
+                // A standing hero's transform follows its motion only when it walks (HeroMovementInput), so set both.
+                FoundryRunDriver.Place(hero, bx, by);
                 placed = true;
                 break;
             }
             Assert.That(placed, Is.True, "a spot behind the Sentry on the floor");
+            // The shipped guard takes 70 % of a front landing (r0-f70), so the front phase can leave the Sentry under the
+            // rear window's 20 % floor; it stands whole again so the rear phase has landings to measure.
+            sentry.Heal(sentry.Maximum);
             int frontBefore = frontBlunted, reflectionsBefore = reflections;
             float rearUntil = Time.realtimeSinceStartup + 20f, rearSeconds = 0f;
             while (rearSeconds < 1.5f && sentry.IsAlive && sentry.Current > sentry.Maximum * .2f && hero.IsAlive &&
@@ -171,7 +176,7 @@ namespace Cryptforge.Tests
                 rearSeconds += Time.deltaTime;
                 Watch();
             }
-            Assert.That(rearWhole, Is.GreaterThan(0), "landings from behind, each the Daggers' whole landing");
+            Assert.That(rearWhole, Is.GreaterThan(0), "landings from behind, each the Daggers' whole landing (front " + frontBlunted + "/" + frontOther + ", rear other " + rearOther + ", rear s " + rearSeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + ", sentry " + sentry.Current.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + "/" + sentry.Maximum.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + ", hero alive " + hero.IsAlive + ", sentry alive " + sentry.IsAlive + ")");
             Assert.That(frontBlunted, Is.EqualTo(frontBefore), "none from the front while the mirror turned after the hero");
             Assert.That(reflections, Is.LessThanOrEqualTo(reflectionsBefore + 1),
                 "nothing reflects from behind (one owed from the last front landing may still be paid)");

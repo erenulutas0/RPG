@@ -74,6 +74,7 @@ namespace Cryptforge.Analytics
         private readonly int _forgeGold;
         private readonly int _deepestFloorCleared;
         private readonly int _seed;
+        private readonly int _startFloor;
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
         private readonly Func<float> _heroMaximumHealth;
@@ -181,6 +182,7 @@ namespace Cryptforge.Analytics
             _forgeGold = context.ForgeGold;
             _deepestFloorCleared = context.DeepestFloorCleared;
             _seed = context.Seed;
+            _startFloor = context.StartFloor > 1 ? context.StartFloor : 1;
             // Emitting before session_start throws in the session; refusing here keeps that out of every handler.
             if (!_session.HasStarted)
                 throw new ArgumentException("Start the telemetry session before recording a run.", nameof(context));
@@ -197,7 +199,7 @@ namespace Cryptforge.Analytics
             _begun = true;
             _runId = _session.BeginRun();
             _goldSeen = _run.Gold;
-            _session.Emit("run_start", new TelemetryFields()
+            var start = new TelemetryFields()
                 .Add("run_ordinal", _session.RunOrdinal)
                 .Add("hero_id", _heroId)
                 .Add("weapon_id", _weaponId)
@@ -205,7 +207,12 @@ namespace Cryptforge.Analytics
                 .Add("ability_id", _abilityId)
                 .Add("forge_gold", _forgeGold)
                 .Add("deepest_floor", _deepestFloorCleared)
-                .Add("seed", _seed));
+                .Add("seed", _seed);
+            // A run begun on a deeper map (MapChoiceView) says so, so a reader of the floors (the V0.1 gate's device rows,
+            // DevicePull) can set it apart; a floor-1 run's line stays as it was.
+            if (_startFloor > 1)
+                start.Add("start_floor", _startFloor);
+            _session.Emit("run_start", start);
 
             // A run that already ended missed its Ended event; close it now so the log never shows it as still running.
             if (_run.HasEnded)

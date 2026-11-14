@@ -15,6 +15,7 @@ MonoBehaviour:
   _id: hero_cinder_arcanist
   _displayName: Cinder Arcanist
   _subtitle: Ilya Kest
+  _role: Every hit sets a foe alight. Crucible Vent erupts the burning.
   _maximumHealth: 90
   _startingWeapon: {fileID: 11400000, guid: 1000000000000000000000000000001b, type: 2}
   _startsWithItsOwnWeaponOnly: 1
