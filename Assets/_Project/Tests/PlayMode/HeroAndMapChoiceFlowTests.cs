@@ -136,7 +136,8 @@ namespace Cryptforge.Tests
         public IEnumerator TheVanguardAndTheGloamGardensStartOnFloorThreeWithTheQueuedLevelUps()
         {
             // The forge chose Ilya for the next run: the scene is built with Ilya, and the panel lights it.
-            yield return LoadWithTheChoice(new PlayerProfile(0, null, null, 0, selectedHeroId: ArcanistId));
+            // Floor 2 cleared, so every map is open (MapUnlock).
+            yield return LoadWithTheChoice(new PlayerProfile(0, null, null, 2, selectedHeroId: ArcanistId));
             var setup = Object.FindFirstObjectByType<CombatSetup>();
             var view = Object.FindFirstObjectByType<MapChoiceView>();
             Assert.That(setup.Hero.Id, Is.EqualTo(ArcanistId));
@@ -145,6 +146,12 @@ namespace Cryptforge.Tests
             Assert.That(view.HeroStateAt(SlotOf(view, ArcanistId)), Is.EqualTo(MapChoiceView.SelectedText));
 
             yield return AfterTheInputDelay();
+            for (int slot = 0; slot < view.CardCount; slot++)
+            {
+                Assert.That(view.IsMapOpenAt(slot), Is.True, "Floor 2 cleared opens every map: " + view.NameAt(slot));
+                Assert.That(view.MapStateAt(slot), Is.Empty);
+                Assert.That(view.CardButton(slot).interactable, Is.True);
+            }
             view.HeroCardButton(vanguard).onClick.Invoke();
             Assert.That(view.SelectedHero.Id, Is.EqualTo(VanguardId));
             Assert.That(setup.Profile.SelectedHeroId, Is.Null, "The default hero is stored as no choice, as the forge stores it.");
@@ -166,6 +173,70 @@ namespace Cryptforge.Tests
             Assert.That(autoPick, Is.Not.Null);
             Assert.That(autoPick.IsShown, Is.True, "Auto-pick stands beside the queued level-ups.");
             Assert.That(next.Encounters.IsFirstEncounterPending, Is.True, "The first wave waits for the last pick.");
+        }
+
+        // Map starts unlock as reached (docs/53, 2026-11-14): a fresh profile has only the Foundry; the Vaults and the
+        // Gardens are shaded like a locked hero, say how to open them, and neither a tap nor StartOnMap starts them. The
+        // hero row is not touched by it.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator AFreshProfileSeesTheDeeperMapsLockedAndCannotStartThem()
+        {
+            yield return LoadWithTheChoice();
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var view = Object.FindFirstObjectByType<MapChoiceView>();
+            Assert.That(setup.Profile.DeepestFloorCleared, Is.EqualTo(0));
+            Assert.That(view.CardCount, Is.EqualTo(3), "The three maps stay on the panel.");
+            Assert.That(view.IsMapOpenAt(0), Is.True, "The Foundry is always open.");
+            Assert.That(view.MapStateAt(0), Is.Empty);
+            Assert.That((view.IsMapOpenAt(1), view.IsMapOpenAt(2)), Is.EqualTo((false, false)));
+            Assert.That(view.MapStateAt(1), Is.EqualTo("Locked: Clear floor 1 to unlock"));
+            Assert.That(view.MapStateAt(2), Is.EqualTo("Locked: Clear floor 2 to unlock"));
+
+            yield return AfterTheInputDelay();
+            Assert.That(view.CardButton(0).interactable, Is.True);
+            Assert.That(view.CardButton(1).interactable, Is.False, "A locked map cannot be tapped.");
+            Assert.That(view.CardButton(2).interactable, Is.False);
+            for (int i = 0; i < view.HeroCardCount; i++)
+                Assert.That(view.HeroCardButton(i).interactable, Is.EqualTo(setup.IsHeroPlayable(view.HeroAt(i))),
+                    "The hero row is untouched by the map locks.");
+
+            view.Choose(1);
+            view.Choose(2);
+            setup.StartOnMap(3);
+            Assert.That(RunStartRequest.IsPending, Is.False, "Neither locked map starts.");
+            Assert.That(view.IsOpen, Is.True, "The choice stays open.");
+            Assert.That(setup.IsChoosingMap, Is.True);
+            Assert.That(setup.Encounters.IsFirstEncounterPending, Is.True);
+
+            view.CardButton(0).onClick.Invoke();
+            Assert.That(view.IsOpen, Is.False, "The Foundry still begins the run here.");
+            Assert.That(RunStartRequest.IsPending, Is.False);
+            Assert.That(setup.Encounters.IsFirstEncounterPending, Is.False);
+        }
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator FloorOneClearedOpensTheVaultsButNotTheGardens()
+        {
+            yield return LoadWithTheChoice(new PlayerProfile(0, null, null, 1));
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var view = Object.FindFirstObjectByType<MapChoiceView>();
+            Assert.That((view.IsMapOpenAt(0), view.IsMapOpenAt(1), view.IsMapOpenAt(2)), Is.EqualTo((true, true, false)));
+            Assert.That(view.MapStateAt(1), Is.Empty);
+            Assert.That(view.MapStateAt(2), Is.EqualTo("Locked: Clear floor 2 to unlock"));
+
+            yield return AfterTheInputDelay();
+            Assert.That(view.CardButton(2).interactable, Is.False);
+            view.Choose(2);
+            Assert.That(RunStartRequest.IsPending, Is.False, "The Gardens are not reached yet.");
+            Assert.That(view.IsOpen, Is.True);
+
+            Assert.That(view.CardButton(1).interactable, Is.True);
+            view.CardButton(1).onClick.Invoke();
+            Assert.That(RunStartRequest.IsPending, Is.True, "The Vaults reload the scene.");
+            CombatSetup next = null;
+            yield return Reloaded(setup, found => next = found);
+            Assert.That((next.StartFloor, next.Encounters.FloorNumber), Is.EqualTo((2, 2)), "On the Quicksilver Vaults.");
+            Assert.That(next.Encounters.Floor.Id, Is.EqualTo("floor_quicksilver_vaults"));
         }
 
         [UnityTest, Timeout(180000)]

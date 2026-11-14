@@ -18,7 +18,9 @@ namespace Cryptforge.UI
     // without one) on its own overlay canvas above the HUD, sized for a thumb on a portrait phone. A hero card chooses the
     // hero and the profile remembers it, as the forge's chooser does (HeroChoiceView); a map card starts the run: the
     // Foundry with the scene's own hero begins here, as it always began (CombatSetup.StartOnMap); a deeper map or another
-    // hero reloads the scene once, which then begins with that hero on that floor (with its catch-up). The hero stands
+    // hero reloads the scene once, which then begins with that hero on that floor (with its catch-up). A deeper map opens
+    // only once the profile has reached it (MapUnlock: the Vaults after floor 1 is cleared, the Gardens after floor 2);
+    // until then its card is shaded like a locked hero's, says how to open it and cannot be tapped. The hero stands
     // still while it is open. With one hero in the roster there is no hero row. CombatSetup adds it when
     // DevelopmentStart.OffersMapChoice says so: every run start of a release build, never with map-choice.txt "off" (the
     // scene tests) or another development start.
@@ -78,6 +80,8 @@ namespace Cryptforge.UI
         private readonly List<Button> _cards = new List<Button>(3);
         private readonly List<int> _floors = new List<int>(3);
         private readonly List<Text> _names = new List<Text>(3);
+        private readonly List<Text> _mapStates = new List<Text>(3);
+        private readonly List<bool> _mapOpen = new List<bool>(3);
         private readonly List<Sprite> _made = new List<Sprite>(3);
         private readonly List<HeroCard> _heroCards = new List<HeroCard>(3);
         private ChoiceCardArtSet _art;
@@ -121,6 +125,10 @@ namespace Cryptforge.UI
         // The floor number a card starts the run on, and the name it shows.
         public int FloorAt(int slot) => _floors[slot];
         public string NameAt(int slot) => _names[slot].text;
+        // Whether a map card may start the run (MapUnlock: the Foundry always, a deeper map once the floor above it is
+        // cleared), and what it says when it may not ("Locked: Clear floor 1 to unlock"); empty while it is open.
+        public bool IsMapOpenAt(int slot) => _mapOpen[slot];
+        public string MapStateAt(int slot) => _mapStates[slot].text;
         public bool PaintsCards => _painter != null;
         // The panel's root, for tests and captures.
         public GameObject Panel => _canvas;
@@ -347,8 +355,10 @@ namespace Cryptforge.UI
             float top = cardsTop + slot * (CardHeight + CardGap);
             rect.offsetMin = new Vector2(CardInset, -(top + CardHeight));
             rect.offsetMax = new Vector2(-CardInset, -top);
+            // A map not yet reached is shaded like a locked hero card and says how to open it (MapUnlock).
+            bool open = _setup.IsMapOpen(number);
             var frame = cardObject.GetComponent<Image>();
-            frame.color = new Color(.2f, .17f, .22f, 1f);
+            frame.color = open ? new Color(.2f, .17f, .22f, 1f) : new Color(.12f, .11f, .13f, 1f);
             var button = cardObject.GetComponent<Button>();
             button.targetGraphic = frame;
             button.onClick.AddListener(() => Choose(slot));
@@ -376,16 +386,32 @@ namespace Cryptforge.UI
             RectTransform descriptionRect = description.rectTransform;
             descriptionRect.anchorMin = Vector2.zero;
             descriptionRect.anchorMax = Vector2.one;
-            descriptionRect.offsetMin = new Vector2(TextLeft, 26f);
+            descriptionRect.offsetMin = new Vector2(TextLeft, open ? 26f : 70f);
             descriptionRect.offsetMax = new Vector2(-CardInset, -112f);
             description.text = Describe(number);
+
+            // The locked line, worded as a locked hero's (PrototypeTextDefinition.HeroLockedFormat); empty while open.
+            Text state = Label(rect, "Map State", descriptionSource, fallback, 28, TextAnchor.MiddleLeft);
+            RectTransform stateRect = state.rectTransform;
+            stateRect.anchorMin = Vector2.zero;
+            stateRect.anchorMax = new Vector2(1f, 0f);
+            stateRect.pivot = new Vector2(.5f, 0f);
+            stateRect.offsetMin = new Vector2(TextLeft, 24f);
+            stateRect.offsetMax = new Vector2(-CardInset, 64f);
+            PrototypeTextDefinition text = _setup.Text;
+            string hint = MapUnlock.Hint(number);
+            state.text = open ? string.Empty
+                : text != null ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
+            state.color = LockedColour;
 
             _cards.Add(button);
             _floors.Add(number);
             _names.Add(name);
+            _mapStates.Add(state);
+            _mapOpen.Add(open);
             if (_painter != null)
                 _painter.Paint(slot, button, name, description, preview,
-                    number == DescentStart.FirstFloor ? art.Neutral : art.Climb);
+                    number == DescentStart.FirstFloor || !open ? art.Neutral : art.Climb);
         }
 
         // A card's text: the map's line, then what a hero starting there begins with. Numbers in the invariant culture.
@@ -462,7 +488,7 @@ namespace Cryptforge.UI
         private void SetInteractable(bool interactable)
         {
             for (int i = 0; i < _cards.Count; i++)
-                _cards[i].interactable = interactable;
+                _cards[i].interactable = interactable && _mapOpen[i];
             for (int i = 0; i < _heroCards.Count; i++)
                 _heroCards[i].Button.interactable = interactable && _isPlayable(_heroCards[i].Hero);
         }
@@ -481,11 +507,11 @@ namespace Cryptforge.UI
             RefreshHeroCards();
         }
 
-        // A map card tapped: once, after the input delay. The Foundry with the scene's own hero closes the panel and the run
+        // A map card tapped: once, after the input delay, and only a map the profile has reached. The Foundry with the scene's own hero closes the panel and the run
         // begins; a deeper map or another hero reloads the scene with the choice, the panel standing until it goes.
         public void Choose(int slot)
         {
-            if (_chosen || !IsOpen || slot < 0 || slot >= _cards.Count || Time.unscaledTime < _inputEnabledAt)
+            if (_chosen || !IsOpen || slot < 0 || slot >= _cards.Count || Time.unscaledTime < _inputEnabledAt || !_mapOpen[slot])
                 return;
             _chosen = true;
             SetInteractable(false);

@@ -1,6 +1,7 @@
 # 53 - The map choice: starting a run on floor 1, 2 or 3, with the hero of your choice
 
-Status 2026-11-14: built (`MapChoiceView`, `DescentStart`, `RunStartRequest`), all three maps unlocked. Asked by the owner
+Status 2026-11-14: built (`MapChoiceView`, `DescentStart`, `RunStartRequest`); since the lead's decision the same day a
+deeper map start opens only once reached (section "Map starts unlock as reached" below). Asked by the owner
 to show the game on the phone: a run can start on the Foundry, the Quicksilver Vaults or the Gloam Gardens.
 Same day, after the owner played it on the S23 ("there is no character selection"): the panel chooses the hero too -
 "Choose your hero and map" (section "Choosing the hero" below).
@@ -64,6 +65,29 @@ Re-run on this branch (the same batch as below, 2026-11-14), the careful cohort'
 
 One level apart on floor 2, inside both heroes' quartiles, and equal on floor 3: the pooled levels stay for both heroes.
 
+## Map starts unlock as reached (2026-11-14)
+
+Lead decision: the connected Descent stays (Foundry = floor 1, Quicksilver Vaults = floor 2, Gloam Gardens = floor 3, then
+the finale), but a deeper map is a start only once the player has reached it in a real run.
+
+- **The rule** (`Progression/MapUnlock.IsOpen(floorNumber, deepestFloorCleared)`): the Foundry is always open; the Vaults
+  once `PlayerProfile.DeepestFloorCleared >= 1`, the Gardens once it is `>= 2`; the finale and anything else that is not a
+  start never. `CombatSetup.IsMapOpen` asks it with the profile's record.
+- **The card.** A locked map card keeps its place, name, line and preview but is drawn as a locked hero card is: the dark
+  frame (the neutral treatment when painted, not the Climb), not interactable (so the button's disabled shade dims it),
+  and a state line in the locked grey worded as a locked hero's (`PrototypeTextDefinition.HeroLockedFormat`):
+  "Locked: Clear floor 1 to unlock" / "Locked: Clear floor 2 to unlock" (`MapUnlock.Hint`, invariant culture). The
+  description gives up its bottom 44 units to that line. An open map card is unchanged and has no state line.
+- **Cannot be chosen.** `MapChoiceView.Choose` ignores a locked card, and `CombatSetup.StartOnMap` refuses a deeper floor
+  not yet open (the choice stays open). The hero row and Auto-pick are untouched.
+- **No saved map to fall back from.** The panel never pre-selects or stores a map (only the hero is remembered), so a
+  fresh profile simply has the Foundry as its one open card.
+- **Development and test starts are not locked.** Only the panel and `StartOnMap` ask: `development/start-floor.txt`,
+  a test's `RunStartRequest` set before the load, and `map-choice.txt` "off" start where they always did. Unlike a hero,
+  a development build gets no exception: the owner sees the locks on a development APK as a player would.
+- A deeper start that clears its floor raises `DeepestFloorCleared` as any run does, so clearing the Vaults from a Vaults
+  start opens the Gardens.
+
 ## Starting deeper is the floor a descent reaches
 
 `EncounterController.Initialize(..., startFloor)` walks the authored Descent from the scene's floor 1
@@ -122,7 +146,10 @@ gold a hero would typically carry down would be forge gold the player never earn
 
 ## Tests
 
-- EditMode: `DescentCatchUpTests` (also in CombatChecks), `MapStartFloorTests`, `RunTelemetryTests.ARunStartedOnADeeperMapTagsItsStartFloor`.
-- PlayMode: `MapChoiceFlowTests`, `HeroAndMapChoiceFlowTests` (Ilya + the Foundry; the Vanguard + the Gloam Gardens; a
-  locked hero; the panel opens once). EditMode: `MapStartFloorTests.TheHeroChosenWithTheMapIsReadOnceWithIt`.
+- EditMode: `DescentCatchUpTests` (also in CombatChecks), `MapStartFloorTests` (with
+  `ADeeperMapOpensOnceTheFloorAboveItIsCleared`, the unlock rule), `RunTelemetryTests.ARunStartedOnADeeperMapTagsItsStartFloor`.
+- PlayMode: `MapChoiceFlowTests` (the deeper starts from a profile that has reached them), `HeroAndMapChoiceFlowTests`
+  (Ilya + the Foundry; the Vanguard + the Gloam Gardens with floor 2 cleared, every map open; a fresh profile's locked
+  Vaults and Gardens, their texts, neither tap nor `StartOnMap` starting them; floor 1 cleared opening the Vaults but not
+  the Gardens; a locked hero; the panel opens once). EditMode: `MapStartFloorTests.TheHeroChosenWithTheMapIsReadOnceWithIt`.
 - CombatChecks: `DevicePullTests.ARunBegunOnADeeperMapIsLeftOutOfTheOwnersFloors`.
