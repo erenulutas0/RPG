@@ -92,7 +92,7 @@ namespace Cryptforge.Tests
             // Round 2's cheaper combinations: the maul at a half or a third, with a shorter reach or less health.
             foreach (int maul in new[] { 35, 50, 75, 100 })
             foreach (int health in new[] { 60, 80, 100 })
-            foreach (float reach in new[] { 1.2f, 1.5f })
+            foreach (float reach in new[] { 1.0f, 1.2f, 1.5f })
             {
                 if (health == 100 && reach == 1.5f && (maul == 50 || maul == 75 || maul == 100))
                     continue;
