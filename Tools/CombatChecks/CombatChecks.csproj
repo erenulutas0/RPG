@@ -52,6 +52,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/EliteRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/MirrorGuardRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/RegentRule.cs" />
+    <!-- docs/52's Cinder Bloom, simulation research only (2026-11-12): its bark-and-bloom cycle. -->
+    <Compile Include="../../Assets/_Project/Scripts/Combat/BloomRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/EliteRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/MirrorGuardRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RegentRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/BloomRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
@@ -114,6 +117,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.FirstCardFloorTwo.cs" />
     <!-- The Quicksilver Vaults' own enemies (docs/50, research 2026-11-12): the four as research levers on floor 2. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Vaults.cs" />
+    <!-- The Gloam Gardens' own enemies (docs/52, research 2026-11-12): the Cinder Bloom as a research lever on floor 3. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Gloam.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
@@ -163,6 +168,8 @@
     <!-- Floor 3's tuning (docs/48 phase 1, 2026-11-12) on demand: its Warden's share, its gate and a heal before the finale. -->
     <Compile Include="ThirdFloorResearch.cs" />
     <Compile Include="VaultsEnemiesResearch.cs" />
+    <!-- The Gloam Gardens' own enemies (docs/52 section 8, step 1) on demand: the Cinder Bloom at Thorn Post. -->
+    <Compile Include="GloamEnemiesResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />

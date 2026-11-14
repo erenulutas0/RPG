@@ -1657,6 +1657,7 @@ namespace Cryptforge.Tests
                     Encounter();
                 StepWarden();
                 StepVaults();
+                StepGloam();
                 if (_levers.HasHazards)
                     StepHazards();
 
@@ -2711,6 +2712,9 @@ namespace Cryptforge.Tests
                 // The Mirror Sentry's guard (MirrorGuardRule, DescentSimulation.Vaults.cs), once it has been stepped.
                 if (foe.Guard != null)
                     context = SentryGuard(foe, context, source);
+                // docs/52's Cinder Bloom's bark (BloomRule, DescentSimulation.Gloam.cs), once its clock runs.
+                if (foe.Bloom != null)
+                    context = BloomBark(foe, context);
                 bool proc = striking != null && StrikeHasProcced();
                 float struck = context.Amount;
                 foe.Health.ApplyDamage(context);
@@ -3017,6 +3021,8 @@ namespace Cryptforge.Tests
                 foe.Defeated = true;
                 if (GlassCopyFell(foe))
                     return;
+                if (foe.EliteLeader)
+                    EliteLeaderFell(foe);
                 _result.Kills.Add(new FoundryKill(foe.Definition.Name, foe.Horde, _seconds - foe.SpawnedAt,
                     foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f, KillingBlow(),
                     _source == DamageSource.Weapon && StrikeHasProcced(), FloorTime, foe.DaggersLanded));
@@ -3117,6 +3123,7 @@ namespace Cryptforge.Tests
                 _lastHeroHit = _seconds;
                 if (VaultsOn || _sentryFloor)
                     VaultsTaken(context, taken);
+                EliteTaken(context, taken);
                 if (context.Source is Foe foe)
                 {
                     _lastAttacker = foe;
@@ -3406,6 +3413,9 @@ namespace Cryptforge.Tests
                 if (ReferenceEquals(foe, _slamBoss) && _levers.WardenRecoverySeconds >= 0f &&
                     _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds))
                     return;
+                // docs/52's open Cinder Bloom holds its maul (DescentSimulation.Gloam.cs).
+                if (Rooted(foe))
+                    return;
                 foe.Weapon.Tick(Step);
                 if (!foe.Weapon.IsReady)
                     return;
@@ -3413,7 +3423,15 @@ namespace Cryptforge.Tests
                 if (_seconds < foe.StaggeredUntil)
                     return;
                 float reach = foe.Weapon.Range;
-                if (ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) > reach * reach)
+                bool inReach = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) <= reach * reach;
+                // docs/52's Cinder Bloom with a maul windup (research, FoundryLevers.BloomWindup): the swing lands its windup
+                // after it began, on a hero still in reach.
+                if (foe.Bloom != null && _levers.BloomWindup > 0f)
+                {
+                    if (!BloomSwings(foe, inReach))
+                        return;
+                }
+                else if (!inReach)
                     return;
                 _harmIsSlam = false;
                 if (foe.Weapon.TryAttack(_hero, foe) && _trace != null && ReferenceEquals(foe, _slamBoss))
@@ -4360,7 +4378,10 @@ namespace Cryptforge.Tests
                         _result.WaitStill += Step;
                 }
                 if (_eliteWave && _waveAlive > 0 && _heroHealth.IsAlive)
+                {
                     _result.EliteFought += Step;
+                    MeasureElite();
+                }
                 Foe warden = GateBoss;
                 // What is left of the Warden as the frame ends: its clock is stepped before the frame's blows land on it.
                 if (warden != null)
